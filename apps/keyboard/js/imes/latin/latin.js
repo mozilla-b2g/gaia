@@ -63,6 +63,9 @@
   // If defined, this is a worker thread that produces word suggestions for us
   var worker;
 
+  // This is the worker thread for predictions from the custom dictionary
+  var userWorker;
+
   // These variables are the input method's state. Most of them are
   // passed to the activate() method or are derived in that method.
   var language;           // The user's language
@@ -85,6 +88,19 @@
   var revertFrom;         // Revert away from this on backspace
   var justAutoCorrected;  // Was last change an auto correction?
   var correctionDisabled; // Temporarily diabled after reverting?
+
+  // An empty dictionary object for the purpose of a user dictionary
+  // This will contain the indexedDB which stores the user words
+  var dictionary = {};
+  dictionary.iDBVersion = 0;
+  dictionary.tempObjStore = {}; // Store the data to be passed to userWorker
+
+  // Flag to track if a new TST is needed
+  var hasVersionChanged = false;
+
+  // The flag that allows us to identify new words as they are typed
+  // if no suggestions are available
+  var markMyWord = false;
 
   // Terminate the worker when the keyboard is inactive for this long.
   const workerTimeout = 30000;  // 30 seconds of idle time
@@ -251,6 +267,12 @@
       keyboard.sendCandidates([]); // Clear any displayed suggestions
       autoCorrection = null;       // and forget any pending correction.
     }
+    if(userWorker) {
+      userWorker.terminate();
+      userWorker = null;
+      keyboard.sendCandidates([]); // Clear any displayed suggestions
+      autoCorrection = null;       // and forget any pending correction.
+    }
   }
 
   function setLanguage(newlang) {
@@ -270,9 +292,35 @@
     if (!worker) {
       // If we haven't created the worker before, do it now
       worker = new Worker('js/imes/latin/worker.js');
-      if (layoutParams && nearbyKeyMap)
-        worker.postMessage({ cmd: 'setNearbyKeys', args: [nearbyKeyMap]});
 
+      if(!userWorker) {
+        userWorker =  new Worker('js/imes/latin/userWorker.js');
+
+        // Since we just made a new worker, it needs a dictionary to work with
+        hasVersionChanged = true;
+
+        // For the first run, we need to open the iDB anyhow
+        if(!localStorage.getItem("iDBVersion")) {
+          dictionary.iDBVersion = 1;
+          localStorage.setItem("iDBVersion", 1);
+        }
+        else {
+          dictionary.iDBVersion = localStorage.getItem("iDBVersion");
+        }
+
+        // We don't need to tell the userWorker about any language 
+        // We will only pass the correct objectStore to it
+        handleIDB(dictionary.iDBVersion, null);
+
+        // Decrement the iDBVersion as we are increasing it later
+        dictionary.iDBVersion--;
+      }
+
+      if (layoutParams && nearbyKeyMap) {
+        worker.postMessage({ cmd: 'setNearbyKeys', args: [nearbyKeyMap]});
+        userWorker.postMessage({ cmd: 'setNearbyKeys', args: [nearbyKeyMap]});
+      }
+      
       worker.onmessage = function(e) {
         switch (e.data.cmd) {
         case 'log':
@@ -293,12 +341,37 @@
           break;
         }
       };
+
+      userWorker.onmessage = function(e) {
+        switch (e.data.cmd) {
+        case 'log':
+          console.log(e.data.message);
+          break;
+        case 'error':
+          console.error(e.data.message);
+          break;
+        case 'predictions':
+          // We call handleSuggestions here with proper suggestions
+          // handleSuggestions has been appropriately modified to
+          // show suggestions only if both workers have returned
+
+          // For now, just logging to console
+          // I need to correct my prediction algorithm to consider
+          // interposition apart from addition and removal
+          console.log(e.data.suggestions);
+          break;
+        }
+      };
     }
 
     // Tell the worker what language we're using. They may cause it to
     // load or reload its dictionary.
     language = newlang;  // Remember the new language
     worker.postMessage({ cmd: 'setLanguage', args: [language]});
+
+    // Since we have a new language now
+    // just upgrade the user dictionary indexedDB version
+    dictionary.iDBVersion++;
 
     // And now that we've changed the language, ask for new suggestions
     updateSuggestions();
@@ -385,17 +458,23 @@
       else {
         switch (keyCode) {
           case SPACE:     // This list of characters matches the WORDSEP regexp
-            case RETURN:
-            case PERIOD:
-            case QUESTION:
-            case EXCLAMATION:
-            case COMMA:
-            case COLON:
-            case SEMICOLON:
+          case RETURN:
+          case PERIOD:
+          case QUESTION:
+          case EXCLAMATION:
+          case COMMA:
+          case COLON:
+          case SEMICOLON:
+            // If the markMyWord flag is set to true,
+            // just store the typed word in the user dictionary
+            if(markMyWord) {
+              insertWordInUserDictionary(wordBeforeCursor());
+              markMyWord = false;
+            }
             // These keys may trigger word or punctuation corrections
             handler = handleCorrections(keyCode);
-          correctionDisabled = false;
-          break;
+            correctionDisabled = false;
+            break;
 
           case BACKSPACE:
             handler = handleBackspace(repeat);
@@ -516,6 +595,10 @@
         // If the change we just reverted was an auto-correction then
         // temporarily disable auto correction until the next space
         if (justAutoCorrected) {
+          // Use revertTo for the word as such
+          insertWordInUserDictionary(revertTo.substring(0,
+                                              revertTo.length - 1));
+
           correctionDisabled = true;
         }
 
@@ -733,6 +816,9 @@
     // Clear the list of candidates
     keyboard.sendCandidates([]);
 
+    //Add the typed word to dictionary before it is cleared
+    insertWordInUserDictionary(wordBeforeCursor());
+
     // Get rid of any autocorrection that is pending and reset the rest
     // of our state, too.
     lastSpaceTimestamp = 0;
@@ -766,6 +852,10 @@
       worker.postMessage({ cmd: 'setNearbyKeys', args: [nearbyKeyMap]});
       // Ask for new suggestions since the new layout may affect them.
       // (When switching from QWERTY to Dvorak, e.g.)
+      updateSuggestions();
+    }
+    if(userWorker) {
+      userWorker.postMessage({ cmd: 'setNearbyKeys', args: [nearbyKeyMap]});
       updateSuggestions();
     }
   }
@@ -857,7 +947,7 @@
 
     // If we don't have a worker (probably because no dictionary) then
     // do nothing
-    if (!worker)
+    if (!worker && !userWorker)
       return;
 
     // If we deferred suggestions because of a key repeat, clear that timer
@@ -883,6 +973,7 @@
     var word = wordBeforeCursor();
     if (word) { // Defend against bug 879572 even though I can't reproduce it
       worker.postMessage({cmd: 'predict', args: [word]});
+      userWorker.postMessage({cmd: 'predict', args: [word]});
     }
   }
 
@@ -1030,6 +1121,156 @@
 
       updateSuggestions();
       break;
+    }
+  }
+
+  function insertWordInUserDictionary(word) {
+    // XXX: Ignore case of the word?
+    // This will certainly help in reducing the redundancy in the dictionary
+    word = word.toLowerCase();
+
+    // Check if the word is really a word and not #!?@
+    // For now, limiting the languages to English variants,
+    // I have no idea about the others :-|
+    if(language.contains("en")) {
+      // A word is supposed to contain only A-Z, a-z, 0-9, _, -, and '
+      if(word.search(/[^\w'-]/) !== -1) {
+        // With at least one letter. gr8 gets inserted but not 5338
+        if(word.search(/[a-z]/) === -1) {
+          return;
+        }
+      }
+    }
+
+    // Update to the proper version
+    dictionary.iDBVersion = localStorage.getItem("iDBVersion");
+
+    handleIDB(dictionary.iDBVersion, word);
+
+    //debugging purpose, list out everything that the indexedDB has
+    showIDB(dictionary.iDBVersion);
+  }
+
+  function handleIDB(iDBVersion, word) {
+    // Open (or create) an indexedDB named userDict
+    // This db will contain separate stores for each language
+    dictionary.iDBRequest = window.indexedDB.open("userDict", iDBVersion);
+    
+    dictionary.iDBRequest.onerror = function(event) {
+      console.log("Database error: " + event.target.errorCode);
+    }
+
+    dictionary.iDBRequest.onupgradeneeded = function(event) {
+      var db = event.target.result;
+      localStorage.setItem("iDBVersion", db.version);
+
+      // Check if the language object store already exists
+      // If not, just create a new objectstore
+      if(!db.objectStoreNames.contains(language)) {
+        var objectStore = db.createObjectStore(language, { keyPath: "word" });
+
+        objectStore.createIndex("word", "word", { unique: true });
+        objectStore.createIndex("frequency", "frequency", { unique: false });
+      }
+    }
+
+    dictionary.iDBRequest.onsuccess = function(event) {
+      var db = event.target.result;
+      
+      if(word) {
+        // Begin writing data to the objectStore
+        var dbTransaction = db.transaction([language], "readwrite")
+                              .objectStore(language);
+        var iDBGetRequest = dbTransaction.get(word);
+
+        iDBGetRequest.onerror = function(event) {
+          // There is no entry for this word, so make a new entry
+          dbTransaction.add({word: word, frequency: 1});
+
+          hasVersionChanged = true;
+        }
+        iDBGetRequest.onsuccess = function(event) {
+          var data = event.target.result;
+          if(!data) {
+            dbTransaction.add({word: word, frequency: 1});
+
+            // No entry for the word, hence version has changed
+            hasVersionChanged = true;
+          }
+          else {
+            data.frequency++;
+            var updateRequest = dbTransaction.put(data);
+            updateRequest.onerror = function(event) {
+              console.log("Failed to update frequency");
+            }
+
+            // Just updating the frequency does not need a new TST
+            hasVersionChanged = false;
+          }
+        }
+      }
+
+    // We are only making a new TST if a new word is added, or the language
+    // changes, and not upon frequency update
+    // In future, we may create a new TST upon frequency update as well
+    // depending on the performane measurements
+    instructUserWorker();
+    }
+  }
+
+  // This function will be removed ASAP
+  function showIDB(iDBVersion) {
+    dictionary.iDBRequest = window.indexedDB.open("userDict", iDBVersion);
+    dictionary.iDBRequest.onerror = function(event) {
+      console.log("Database error: " + event.target.errorCode);
+    }
+    dictionary.iDBRequest.onsuccess = function(event) {
+      var db = event.target.result;
+      var objectStore = db.transaction(language).objectStore(language);
+      objectStore.openCursor().onsuccess = function(event) {
+        var cursor = event.target.result;
+        var logString = "";
+        if (cursor) {
+          logString += "Frequency for word " + cursor.key + " is " + 
+                        cursor.value.frequency + "\t";
+          cursor.continue();
+        }
+        else {
+          logString += "EOF";
+        }
+        console.log(logString);
+      }
+    }
+  }
+
+  function instructUserWorker() {
+    // Make a new TST if the version of indexedDB has changed
+    if(hasVersionChanged) {
+      try {
+        dictionary.iDBRequest = window.indexedDB.open("userDict", 
+                                dictionary.iDBVersion);
+        dictionary.iDBRequest.onerror = function(event) {
+          console.log("Database error: " + event.target.errorCode);
+        }
+        dictionary.iDBRequest.onsuccess = function(event) {
+          var db = event.target.result;
+          var objectStore = db.transaction(language).objectStore(language);
+          objectStore.openCursor().onsuccess = function(event) {
+            var cursor = event.target.result;
+            if (cursor) {
+              console.log(typeof(cursor.key));
+              dictionary.tempObjStore[cursor.key] =
+                                                     cursor.value.frequency;
+              cursor.continue();
+            }
+          }
+        }
+        userWorker.postMessage({cmd: 'setDictionary', 
+                                args: [dictionary.tempObjStore]});
+      }
+      catch(e) {
+        console.error('userWorker data creation failed ' + e);
+      }
     }
   }
 
