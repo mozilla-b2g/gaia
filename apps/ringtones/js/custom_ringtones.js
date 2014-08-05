@@ -73,6 +73,15 @@ window.customRingtones = (function() {
     },
 
     /**
+     * @return {String} The filename of the ringtone.
+     */
+    get filename() {
+      // XXX: If we ever start supporting Blobs that aren't really files, we'll
+      // need to figure out a way to make a fallback filename!
+      return this._blob.name;
+    },
+
+    /**
      * @return {String} The subtitle of the ringtone (e.g. the artist of the
      *   song), or null if there is no subtitle.
      */
