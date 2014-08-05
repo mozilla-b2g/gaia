@@ -262,6 +262,47 @@ suite('Widget Startup Modes Test Suite >', function() {
     Widget.init();
   });
 
+  test('After the airplanemode is disabled, the widget restart without the ' +
+         'iccdetected event is emited',
+    function(done) {
+      // Force loadDataSimIccId to fail
+      sinon.stub(SimManager, 'requestDataSimIcc', failingRequestDataSIMIccId);
+
+      sinon.stub(MockMozL10n, 'ready', function(callback) {
+        callback();
+
+        assertErrorMessage('widget-airplane-mode-meta');
+
+        // Restore the spy/stub
+        SimManager.requestDataSimIcc.restore();
+        MockMozL10n.ready.restore();
+
+        setupCardState({cardState: 'ready', iccInfo: true});
+        var ftePending = true;
+        var applicationMode = 'DATA_USAGE_ONLY';
+        setupConfig(applicationMode, ftePending);
+
+        // In a normal start-up, when the cardState ready, the widget tries to
+        // recover de configuration with the method getInstance
+        sinon.stub(CostControl, 'getInstance', function(window, callback) {
+          SimManager.requestDataSimIcc(function (dataSimIcc) {
+            assert.equal(dataSimIcc.icc.cardState, 'ready');
+            CostControl.getInstance.restore();
+            done();
+          });
+        });
+
+        // This event is listen on the function waitForIccAndCheckSim of the
+        // widget that calls SimManager.requestDataSIMIcc(checkSIMStatus); to
+        // restart the widget after wait a while for the iccdetected event.
+        AirplaneModeHelper.triggerEventListeners('disabled');
+      }
+    );
+
+    AirplaneModeHelper._status = 'enabled';
+    Widget.init();
+  });
+
   test('SIM is detected after an AirplaneMode message on a previous startup',
     function(done) {
       var showSimErrorSpy = sinon.spy(Widget, 'showSimError');

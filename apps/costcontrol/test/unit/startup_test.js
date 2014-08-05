@@ -251,6 +251,46 @@ suite('Application Startup Modes Test Suite >', function() {
     CostControlApp.init();
   });
 
+  test('After disabling the airplanemode the app restart without the ' +
+         'iccdetected event',
+    function(done) {
+      loadBodyHTML('/index.html');
+      this.sinon.spy(window.navigator.mozIccManager, 'addEventListener');
+
+      // Force loadDataSimIccId to fail emulating airplanemode enabled
+      sinon.stub(SimManager, 'requestDataSimIcc', failingRequestDataSIMIccId);
+
+      // airplanemode activated for enable the iccmanager listeners
+      AirplaneModeHelper._status = 'enabled';
+
+      window.addEventListener('viewchanged', function _onalert(evt) {
+        window.removeEventListener('viewchanged', _onalert);
+
+        // Restore the stub method and disabling the airplanemode
+        SimManager.requestDataSimIcc.restore();
+        //AirplaneModeHelper._status = 'disabled';
+
+        // Config the app to start (FTE)
+        var applicationMode = 'DATA_USAGE_ONLY';
+        setupCardState({cardState: 'ready'});
+        window.ConfigManager = new MockConfigManager({
+          fakeSettings: { fte: true },
+          applicationMode: applicationMode
+        });
+
+        // Check the app start correctly
+        assertFTEStarted(applicationMode, done);
+
+        // Launch the second start-up when the airplanemode is disabled, if the
+        // event iccdetected is not received after a while passed, the app try
+        // to check if the simcard is ready (not all the device emit the
+        // iccdetected event
+        AirplaneModeHelper.triggerEventListeners('disabled');
+      });
+
+      CostControlApp.init();
+  });
+
   test('SIM is detected after a non detected SIM on a previous start-up',
     function(done) {
       loadBodyHTML('/index.html');

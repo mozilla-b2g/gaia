@@ -468,17 +468,22 @@ var Widget = (function() {
   }
 
   function initWidget() {
-    var isWaitingForIcc = false;
+    var isWaitingForIcc = false,
+        checkSimTimeout = null,
+        iccManager = window.navigator.mozIccManager;
+    function _oniccdetected() {
+      isWaitingForIcc = false;
+      if (checkSimTimeout) {
+        clearTimeout(checkSimTimeout);
+        checkSimTimeout = null;
+      }
+      iccManager.removeEventListener('iccdetected', _oniccdetected);
+      SimManager.requestDataSimIcc(checkSIMStatus);
+    }
+
     function waitForIccAndCheckSim() {
       if (!isWaitingForIcc) {
-        var iccManager = window.navigator.mozIccManager;
-        iccManager.addEventListener('iccdetected',
-          function _oniccdetected() {
-            isWaitingForIcc = false;
-            iccManager.removeEventListener('iccdetected', _oniccdetected);
-            SimManager.requestDataSimIcc(checkSIMStatus);
-          }
-        );
+        iccManager.addEventListener('iccdetected', _oniccdetected);
         isWaitingForIcc = true;
       }
     }
@@ -496,9 +501,21 @@ var Widget = (function() {
         if (state === 'enabled') {
           waitForIccAndCheckSim();
           Widget.showSimError('airplane-mode');
-        } else if (isWaitingForIcc) {
+        } else if (state === 'disabled' && isWaitingForIcc) {
           var updateTextOnly = true;
           Widget.showSimError('no-sim2', updateTextOnly);
+          // Some modems don't emit the iccdetected event after the airplanemode
+          // is disabled, for this reason, it's necessary recheck the simcard
+          // after a while passed.
+          if (!checkSimTimeout) {
+            checkSimTimeout = setTimeout(function() {
+              SimManager.requestDataSimIcc(function(dataSim) {
+                isWaitingForIcc = false;
+                iccManager.removeEventListener('iccdetected', _oniccdetected);
+                checkSIMStatus(dataSim);
+              });
+            }, 3000);
+          }
         }
       }
     );

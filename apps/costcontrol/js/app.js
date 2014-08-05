@@ -74,17 +74,32 @@ var CostControlApp = (function() {
     }, function _errorNoSim() {
       console.warn('Error when trying to get the ICC, SIM not detected.');
       LazyLoader.load(['/shared/js/airplane_mode_helper.js'], function() {
+        var iccManager = window.navigator.mozIccManager;
+        function _onAirplaneModeChange(state) {
+          if (state === 'disabled') {
+            // Some modems don't emit the iccdetected event after the airplane
+            // mode is disabled, for this reason, it's necessary recheck the
+            // simcard after a while passed.
+            setTimeout(function() {
+              SimManager.requestDataSimIcc(_oniccdetected);
+            }, 3000);
+          }
+        }
+        function _oniccdetected() {
+          iccManager.removeEventListener('iccdetected', _oniccdetected);
+          AirplaneModeHelper.removeEventListener('statechange',
+                                                 _onAirplaneModeChange);
+          waitForSIMReady(callback);
+        }
+
         AirplaneModeHelper.ready(function() {
           var fakeState = null;
           if (AirplaneModeHelper.getStatus() === 'enabled') {
             console.warn('The airplaneMode is enabled.');
             fakeState = 'airplaneMode';
-            var iccManager = window.navigator.mozIccManager;
-            iccManager.addEventListener('iccdetected',
-              function _oniccdetected() {
-                iccManager.removeEventListener('iccdetected', _oniccdetected);
-                waitForSIMReady(callback);
-              });
+            iccManager.addEventListener('iccdetected', _oniccdetected);
+            AirplaneModeHelper.addEventListener('statechange',
+                                                _onAirplaneModeChange);
           }
           showNonReadyScreen(fakeState);
         });
