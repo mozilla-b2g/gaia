@@ -186,9 +186,13 @@ SettingsController.prototype.notify = function(setting, flashDeactivated) {
   var dontNotify = setting.get('notifications') === false;
   if (dontNotify) { return; }
 
-  var optionTitle = this.l10nGet(setting.selected('title'));
+  var localizeOption = setting.get('optionsLocalizable') !== false;
   var title = this.l10nGet(setting.get('title'));
+  var optionTitle = setting.selected('title');
   var html;
+
+  // Localize option title only if not specified in the config
+  optionTitle = localizeOption ? this.l10nGet(optionTitle) : optionTitle;
 
   // Check if the `flashMode` setting is going to be deactivated as part
   // of the change in the `hdr` setting and display a specialized

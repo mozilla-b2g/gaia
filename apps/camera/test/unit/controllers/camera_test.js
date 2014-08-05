@@ -259,6 +259,12 @@ suite('controllers/camera', function() {
       this.controller.updatePictureSize();
       sinon.assert.notCalled(this.viewfinder.fadeOut);
     });
+
+    test('It doesn\'t proceed if `pictureSize` didn\'t change', function() {
+      this.camera.isPictureSize.returns(true);
+      this.controller.updatePictureSize();
+      assert.isFalse(this.app.emit.calledWith('camera:willchange'));
+    });
   });
 
   suite('CameraController#updateRecorderProfile()', function() {
@@ -304,6 +310,12 @@ suite('controllers/camera', function() {
 
       this.controller.updateRecorderProfile();
       sinon.assert.notCalled(this.viewfinder.fadeOut);
+    });
+
+    test('It doesn\'t proceed if `recorderProfile` didn\'t change', function() {
+      this.camera.isRecorderProfile.returns(true);
+      this.controller.updateRecorderProfile();
+      assert.isFalse(this.app.emit.calledWith('camera:willchange'));
     });
   });
 
