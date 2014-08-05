@@ -44,6 +44,8 @@ marionette('startup test > ' + appPath + ' >', function() {
 
     PerformanceHelper.registerLoadTimeListener(client);
 
+    var goals = PerformanceHelper.getGoalData(client);
+
     var memStats = [];
     performanceHelper.repeatWithDelay(function(app, next) {
       app.launch();
@@ -83,6 +85,7 @@ marionette('startup test > ' + appPath + ' >', function() {
 
     PerformanceHelper.reportDuration(results);
     PerformanceHelper.reportMemory(memStats);
+    PerformanceHelper.reportGoal(goals);
 
     PerformanceHelper.unregisterLoadTimeListener(client);
   });

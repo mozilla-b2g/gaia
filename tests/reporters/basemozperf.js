@@ -19,6 +19,7 @@ function BaseMozPerfReporter(runner) {
   var passes = [];
   var mozPerfDurations;
   var mozPerfMemory = [];
+  var mozPerfGoal = {};
 
   runner.on('test', function(test) {
     mozPerfDurations = {};
@@ -30,6 +31,10 @@ function BaseMozPerfReporter(runner) {
 
   runner.on('mozPerfMemory', function(content) {
     mozPerfMemory = content;
+  });
+
+  runner.on('mozPerfGoal', function(content) {
+    mozPerfGoal = content;
   });
 
   runner.on('pass', function(test) {
@@ -47,14 +52,30 @@ function BaseMozPerfReporter(runner) {
     for (var title in mozPerfDurations) {
       // we can have several measurements for one test, that's why we're
       // rewriting the title (each measurement has a title)
+      var fullTitle = test.fullTitle() + ' ' + title;
+
+      // Performance: we shall deal with wildcard
+      // Wildcard only on the app. Explicit app has priority.
+      var perfGoalKey = fullTitle.trim();
+      var perfGoal = mozPerfGoal[perfGoalKey];
+      if (!perfGoal) {
+        var a = perfGoalKey.split(' > ');
+        if (a[1] == process.env.CURRENT_APP) {
+          a[1] = '*';
+          perfGoalKey = a.join(' > ');
+          perfGoal = mozPerfGoal[perfGoalKey];
+        }
+      }
+
       passes.push({
         title: test.title + ' ' + title,
-        fullTitle: test.fullTitle() + ' ' + title,
+        fullTitle: fullTitle,
         duration: test.duration,
         mozPerfDurations: mozPerfDurations[title],
         mozPerfDurationsAverage: average(mozPerfDurations[title]),
         mozPerfMemory: mozPerfMemory[title],
-        mozPerfMemoryAverage: averageObjects(mozPerfMemory[title])
+        mozPerfMemoryAverage: averageObjects(mozPerfMemory[title]),
+        mozPerfGoal: perfGoal
       });
     }
   });

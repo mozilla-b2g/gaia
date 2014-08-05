@@ -12,8 +12,12 @@
   "timeout": 500000,
   "scriptTimeout": 50000,
   "goals": {
-    "startup > moz-app-visually-complete": 1000,
-    "startup > moz-app-loaded": 1250
+    "flame" : {
+      "startup event test > * > startup > moz-app-visually-complete": 1000
+    },
+    "hamachi" : {
+
+    }
   },
   "whitelists": {
     "mozLaunch": [
