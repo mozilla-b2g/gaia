@@ -842,7 +842,7 @@ section[role="region"].report-information > header .icon-back {
   background-image: url(/shared/style/headers/images/icons/close.png);
 }
 
-#messages-back-button:hover:after {
+#messages-back-button:hover {
   background-color: transparent;
 }
 
