@@ -48,8 +48,14 @@ marionette('Uninstall an ime app', function() {
     // Switch back to settings app
     settingsApp.switchTo();
 
-    // Make sure LOL Keyboard is not listed in app list
-    apps = appPermissionPanel.appList.filter(findImeTestApp);
-    assert.equal(apps.length, 0);
+    // Make sure LOL Keyboard is not listed in app list.
+    // Need a waitFor here, because it might need some time
+    // before we get the uninstallation event.
+    client.waitFor(function() {
+      apps = appPermissionPanel.appList.filter(findImeTestApp);
+      return (apps.length === 0);
+    });
+
+    assert.ok(true);
   });
 });

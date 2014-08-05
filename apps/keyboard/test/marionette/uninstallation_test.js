@@ -47,8 +47,8 @@ marionette('Show Keyboard App after uninstallation', function() {
     },
     settings: {
      'keyboard.enabled-layouts': keyboardSettings,
-      'lockscreen.enabled': false,
-      'ftu.manifestURL': null
+     'lockscreen.enabled': false,
+     'ftu.manifestURL': null
     }
   });
 
