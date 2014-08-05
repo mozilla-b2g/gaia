@@ -94,6 +94,8 @@ define(function(require) {
             this.boundSetSelectedTimeZone(DateTime.userSelectedTimezone);
           }
         }
+        this.renderTimeFormatDate();
+        this.renderTimeFormatTime();
 
         window.addEventListener('localized', this);
       },
@@ -177,6 +179,48 @@ define(function(require) {
         } else {
           this._elements.timeManual.classList.remove('disabled');
           this._elements.timezone.classList.remove('disabled');
+        }
+      },
+      renderTimeFormatDate: function dt_renderTimeFormatDate() {
+        var options = [{
+          text: 'MM/DD/YYYY', // 12/31/2014
+          selected: false,
+          value: '',
+        }, {
+          text: 'DD/MM/YYYY', // 31/12/2014
+          selected: false,
+          value: ''
+        }, {
+          text: 'YYYY/MM/DD', // 2014/12/31
+          selected: false,
+          value: ''
+        }];
+        // TODO: restore state before render elements
+        for (var i = 0; i < options.length; i++) {
+          var option = document.createElement('option');
+          option.textContent = options[i].text;
+          option.selected = options[i].selected;
+          option.value = options[i].value;
+          this._elements.timeFormatDate.appendChild(option);
+        }
+      },
+      renderTimeFormatTime: function dt_renderTimeFormatTime() {
+        var options = [{
+          text: '12-hour', // 12/31/2014
+          selected: false,
+          value: '',
+        }, {
+          text: '24-hour', // 31/12/2014
+          selected: false,
+          value: ''
+        }];
+        // TODO: restore state before render elements
+        for (var i = 0; i < options.length; i++) {
+          var option = document.createElement('option');
+          option.textContent = options[i].text;
+          option.selected = options[i].selected;
+          option.value = options[i].value;
+          this._elements.timeFormatTime.appendChild(option);
         }
       }
     });
