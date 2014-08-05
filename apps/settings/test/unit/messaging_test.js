@@ -44,6 +44,12 @@ suite('Messaging settings', function() {
               '<span></span>' +
             '</label>' +
           '</li>' +
+          '<li id="menuItem-emergencyAlert" aria-disabled="true">' +
+            '<label class="pack-switch checkbox-label">' +
+              '<input type="checkbox" data-ignore disabled />' +
+              '<span></span>' +
+            '</label>' +
+          '</li>' +
         '</ul>' +
         '<ul id="general-message-list">' +
           '<li id="menuItem-deliveryReport"' +
@@ -83,7 +89,7 @@ suite('Messaging settings', function() {
         '</ul>' +
         '<ul>' +
           '<li id="menuItem-smsc" aria-disabled="true" class="hint">' +
-            '<a data-l10n-id="messagingSMSC">SMSC</a>' +
+            '<a data-l10n-id="messaging-SMSC">SMSC</a>' +
             '<p class="explanation">Unknown</p>' +
           '</li>' +
         '</ul>' +
@@ -104,7 +110,8 @@ suite('Messaging settings', function() {
                   'menuItem-readReport',
                   'menuItem-autoRetrieve',
                   'menuItem-wapPush',
-                  'menuItem-cellBroadcast'];
+                  'menuItem-cellBroadcast',
+                  'menuItem-emergencyAlert'];
   });
 
   suite('init function, cardState ready', function() {

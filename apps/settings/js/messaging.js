@@ -67,30 +67,92 @@ var Messaging = (function(window, document, undefined) {
     var settings = window.navigator.mozSettings;
 
     var CBS_KEY = 'ril.cellbroadcast.disabled';
-    var wrapper = document.getElementById('menuItem-cellBroadcast');
-    var input = wrapper.querySelector('input');
-    var init = false;
+    var CMAS_KEY = 'cmas.enabled';
+    var CMAS_PREF_KEY = 'cmas.user-pref.enabled';
+    // Cell Broadcast
+    var cbs = document.getElementById('menuItem-cellBroadcast');
+    var cbsInput = cbs.querySelector('input');
+    var cbsInit = false;
+    // Emergency Alert
+    var cmas = document.getElementById('menuItem-emergencyAlert');
+    var cmasInput = cmas.querySelector('input');
+    var cmasInit = false;
+
+    // remember last CMAS pref when CBS off
+    var _storeCMASPref = function(id, checked) {
+      asyncStorage.getItem(CMAS_PREF_KEY, function(pref) {
+        states = pref || [true];
+        states[id] = checked;
+        asyncStorage.setItem(CMAS_PREF_KEY, states);
+      });
+    };
+
+    // check local storage to bring back CMAS pref
+    var _restoreCMASPref = function(id) {
+      asyncStorage.getItem(CMAS_PREF_KEY, function(pref) {
+        states = pref || [true];
+        _setCMAS(id, states[id]);
+
+        if (!cmasInit) {
+          cmasInput.disabled = false;
+          cmas.removeAttribute('aria-disabled');
+          cmasInit = true;
+        }
+      });
+    };
 
     // The UI for cell broadcast indicates that it is enabled or not, whereas
     // the setting used is 'disabled' so note that we switch the value when it
     // is set or displayed
-    var cellBroadcastChanged = function(value) {
-      input.checked = !value;
-      if (!init) {
-        input.disabled = false;
-        wrapper.removeAttribute('aria-disabled');
-        init = true;
+    // CMAS stat are depends on CBS stat
+    var cbsChanged = function(value) {
+      cbsInput.checked = !value;
+
+      if (value) { // when CBS off, CMAS is also off
+        // XXX first param preserved for DSDS
+        _setCMAS(0, false);
+      } else { // when CBS on, retained CMAS pref
+        _restoreCMASPref(0);
+      }
+
+      cmasInput.disabled = value; // CMAS disabled when CBS off
+
+      if (!cbsInit) {
+        cbsInput.disabled = false;
+        cbs.removeAttribute('aria-disabled');
+        cbsInit = true;
       }
     };
 
-    var inputChanged = function(event) {
+    var cbsInputChanged = function(event) {
+      var cbsInputChecked = cbsInput.checked;
+
+      if (!cbsInputChecked) { // save CMAS pref when CBS off
+        _storeCMASPref(0, cmasInput.checked);
+      }
+
       var cbsset = {};
-      cbsset[CBS_KEY] = !input.checked;
+      cbsset[CBS_KEY] = !cbsInputChecked;
       settings.createLock().set(cbsset);
     };
 
-    input.addEventListener('change', inputChanged);
-    SettingsListener.observe(CBS_KEY, false, cellBroadcastChanged);
+    var _setCMAS = function(id, enabled) {
+      cmasInput.checked = enabled;
+
+      var cmasset = {};
+      cmasset[CMAS_KEY] = [];
+      cmasset[CMAS_KEY][id] = enabled;
+      settings.createLock().set(cmasset);
+    };
+
+    var cmasInputChanged = function(event) {
+      _setCMAS(0, cmasInput.checked);
+      _storeCMASPref(0, cmasInput.checked);
+    };
+
+    cbsInput.addEventListener('change', cbsInputChanged);
+    cmasInput.addEventListener('change', cmasInputChanged);
+    SettingsListener.observe(CBS_KEY, true, cbsChanged);
   }
 
   /**
@@ -107,7 +169,7 @@ var Messaging = (function(window, document, undefined) {
       holder.textContent = this.result.split(',')[0].replace(/"/g, '');
     };
     request.onerror = function() {
-      holder.setAttribute('data-l10n-id', 'unknownSMSC');
+      holder.setAttribute('data-l10n-id', 'unknown-SMSC');
       console.error('Unable to retrieve SMSC number');
     };
    }
@@ -124,7 +186,8 @@ var Messaging = (function(window, document, undefined) {
                       'menuItem-readReport',
                       'menuItem-autoRetrieve',
                       'menuItem-wapPush',
-                      'menuItem-cellBroadcast'];
+                      'menuItem-cellBroadcast',
+                      'menuItem-emergencyAlert'];
 
     elementIds.forEach(function(id) {
       var element = document.getElementById(id);

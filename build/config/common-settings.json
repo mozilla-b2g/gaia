@@ -31,6 +31,7 @@
    "camera.sound.enabled": true,
    "camera.recording.preferredSizes": [],
    "clear.remote-windows.data": false,
+   "cmas.enabled": [true, true],
    "debug.console.enabled": false,
    "developer.menu.enabled": false,
    "debug.oop.disabled": false,
