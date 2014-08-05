@@ -171,6 +171,10 @@
     get name() {
       var userLang = document.documentElement.lang;
 
+      if (navigator.mozL10n && userLang in navigator.mozL10n.qps) {
+        return navigator.mozL10n.qps[userLang].translate(this.descriptor.name);
+      }
+
       var locales = this.descriptor.locales;
       var localized = locales && locales[userLang] && locales[userLang].name;
 
