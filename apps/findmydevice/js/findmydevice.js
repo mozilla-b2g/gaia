@@ -470,11 +470,14 @@ var FindMyDevice = {
 
   _onCanDisableChanged: function fmd_can_disable_changed(event) {
     if (event.settingValue === true && this._disableAttempt) {
-      this._enabledHelper.set(false);
+      this._enabledHelper.set(false, function() {
+        this.endHighPriority('clientLogic');
+      }.bind(this));
+    } else {
+      this.endHighPriority('clientLogic');
     }
 
     this._disableAttempt = false;
-    this.endHighPriority('clientLogic');
   },
 
   _refreshClientIDIfRegistered: function fmd_refresh_client_id(forceReauth) {
@@ -636,6 +639,19 @@ var FindMyDevice = {
     DUMP('releasing one wakelock, wakelocks are: ',
       this._highPriorityWakeLocks);
     this._highPriorityWakeLocks[reason].pop().unlock();
+
+    var canShutDown = true;
+    for (var r in this._highPriorityWakeLocks) {
+      if (this._highPriorityWakeLocks[r].length) {
+        canShutDown = false;
+        break;
+      }
+    }
+
+    if (canShutDown) {
+      DUMP('no wakelocks left, shutting down');
+      window.close();
+    }
   }
 };
 
