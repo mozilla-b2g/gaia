@@ -18,6 +18,9 @@
     "bn-BD": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
+    "bs": [
+        {"layoutId": "bs", "app": ["apps", "keyboard"]}
+    ],
     "ca": [
         {"layoutId": "ca", "app": ["apps", "keyboard"]}
     ],
