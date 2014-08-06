@@ -200,15 +200,19 @@ suite('FindMyDevice >', function() {
     }]);
   });
 
-  test('Track command', function(done) {
-    // we want to make sure this is set to 'allow'
-    MockPermissionSettings.permissions.geolocation = 'deny';
+  suite('Track command', function() {
+    test('Set geolocation permission to "allow"', function() {
+      MockPermissionSettings.permissions.geolocation = 'deny';
+      Commands.invokeCommand('track', [30, function() {}]);
+      assert.equal(MockPermissionSettings.permissions.geolocation, 'allow');
+    });
+  });
 
+  test('Track command', function(done) {
     var times = 0;
     var duration = (5 * subject.TRACK_UPDATE_INTERVAL_MS) / 1000;
     subject.invokeCommand('track', [duration, function(retval, position) {
       assert.equal(retval, true);
-      assert.equal(MockPermissionSettings.permissions.geolocation, 'allow');
       assert.deepEqual(position, MockGeolocation.fakePosition);
 
       if (times++ === 3) {
