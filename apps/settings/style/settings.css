@@ -305,7 +305,7 @@ section ul.operate-certificate {
   background: url(images/document_bg.png);
 }
 
-#wifi-certificate-files-List li.disabled a {
+.wifi-certificate-files-List li.disabled a {
   opacity: 0.6;
   pointer-events: none;
 }
