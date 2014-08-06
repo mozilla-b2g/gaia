@@ -1,4 +1,4 @@
-/* global KeyboardManager */
+/* global KeyboardManager, StatusBar */
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
@@ -97,7 +97,7 @@
    */
   SystemDialog.prototype.updateHeight =
     function sd_updateHeight(keyboardHeight) {
-      var height = window.layoutManager.height;
+      var height = window.layoutManager.height - StatusBar.height;
       keyboardHeight = keyboardHeight ? keyboardHeight : 0;
       this.containerElement.style.height = (height - keyboardHeight) + 'px';
       this.debug('updateHeight: new height = ' + (height - keyboardHeight));
