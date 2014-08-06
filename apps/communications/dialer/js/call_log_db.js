@@ -454,23 +454,7 @@ var CallLogDBManager = {
     db.deleteObjectStore(self._dbGroupsStore);
 
     // We recreate the object store that can be used to quickly construct a
-    // group view of the recent calls database. Each entry looks like this:
-    // { id: [date<Date>, number<String>, type<String>, status<String>],
-    //   lastEntryDate: <Date>, (index)
-    //   retryCount: <Number>,
-    //   number: <String>, (index)
-    //   serviceId: <String>,
-    //   contactId: <String>, (index)
-    //   contactPrimaryInfo: <String>,
-    //   contactMatchingTelType: <String>,
-    //   contactMatchingTelCarrier: <String>,
-    //   contactPhoto: <Blob> }
-    //
-    //  The <Date> value from the 'id' field contains only the day of the call.
-    //
-    //  'lastEntryDate' contains a full date.
-    //
-    //  'retryCount' is incremented when we store a new call.
+    // group view of the recent calls database.
     var groupsStore = db.createObjectStore(self._dbGroupsStore,
                                            { keyPath: 'id' });
 
@@ -518,6 +502,7 @@ var CallLogDBManager = {
    *
    * { id: [date<Date>, number<String>, type<String>, status<String>]
    *   number: <String>,
+   *   serviceId: <String>,
    *   lastEntryDate: <Date>,
    *   retryCount: <Number>,
    *   contactId: <String>,
@@ -526,7 +511,11 @@ var CallLogDBManager = {
    *   contactMatchingTelCarrier: <String>,
    *   contactPhoto: <Blob>,
    *   emergency: <Bool>,
-   *   voicemail: <Bool> }
+   *   voicemail: <Bool>,
+   *   calls: [
+   *     {date: <Date>, duration: <Number>}
+   *   ]
+   * }
    *
    * but consumers might find this format hard to handle, so we unwrap the
    * data inside the 'id' and contact related fields to create a more
@@ -534,14 +523,14 @@ var CallLogDBManager = {
    *
    * {
    *   id: <String>,
-   *   date: <Date>,
+   *   date: <Date>, <!-- new -->
+   *   type: <String>, <!-- new -->
+   *   status: <String>, <!-- new -->
    *   number: <String>,
    *   serviceId: <String>,
-   *   type: <String>,
-   *   status: <String>,
    *   lastEntryDate: <Date>,
    *   retryCount: <Number>,
-   *   contact: {
+   *   contact: { <!-- new -->
    *    id: <String>,
    *    primaryInfo: <String>,
    *    matchingTel: {
@@ -553,7 +542,16 @@ var CallLogDBManager = {
    *   },
    *   emergency: <Bool>,
    *   voicemail: <Bool>
+   *   calls: [
+   *     {date: <Date>, duration: <Number>}, more recent first
+   *     ...
+   *   ]
    * }
+   * The <Date> value from the 'id' field contains only the day of the call.
+   *
+   * 'lastEntryDate' contains a full date.
+   *
+   * 'retryCount' is incremented when we store a new call.
    */
   _getGroupObject: function getGroupObject(group) {
     if (!Array.isArray(group.id) || group.id.length < 3) {
@@ -585,7 +583,8 @@ var CallLogDBManager = {
       retryCount: group.retryCount,
       contact: contact,
       emergency: group.emergency,
-      voicemail: group.voicemail
+      voicemail: group.voicemail,
+      calls: group.calls
     };
   },
   /**
@@ -636,7 +635,8 @@ var CallLogDBManager = {
    *          status: <String>,
    *          date: <Date>,
    *          emergency: <Bool>,
-   *          voicemail: <Bool> }
+   *          voicemail: <Bool>,
+   *          duration: <Number> }
    *
    * param callback
    *        Function to be called when the transaction is done.
@@ -669,71 +669,87 @@ var CallLogDBManager = {
       groupsStore.get(groupId).onsuccess = function onsuccess() {
         var group = this.result;
         if (group) {
-          // Groups should have the date of the newest call.
-          if (group.lastEntryDate <= recentCall.date) {
-            group.lastEntryDate = recentCall.date;
-            group.serviceId = recentCall.serviceId;
-            group.emergency = recentCall.emergency;
-            group.voicemail = recentCall.voicemail;
-          }
-          group.retryCount++;
-          groupsStore.put(group).onsuccess = function onsuccess() {
-            self._asyncReturn(callback, self._getGroupObject(group));
-          };
+          self._updateExistingGroup(group, recentCall, groupsStore, callback);
         } else {
-          group = {
-            id: groupId,
-            number: recentCall.number,
-            serviceId: recentCall.serviceId,
-            lastEntryDate: recentCall.date,
-            retryCount: 1,
-            emergency: recentCall.emergency,
-            voicemail: recentCall.voicemail
-          };
-          Contacts.findByNumber(recentCall.number,
-                                function(contact, matchingTel) {
-            if (contact && contact !== null) {
-              group.contactId = contact.id;
-              var photo = ContactPhotoHelper.getThumbnail(contact);
-              if (photo) {
-                group.contactPhoto = photo;
-              }
-              if (matchingTel) {
-                var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
-                                                                  contact);
-                if (Array.isArray(primaryInfo)) {
-                  primaryInfo = primaryInfo[0];
-                }
-                group.contactPrimaryInfo = String(primaryInfo);
-
-                if (Array.isArray(matchingTel.type) && matchingTel.type[0]) {
-                  group.contactMatchingTelType = String(matchingTel.type[0]);
-                } else {
-                  group.contactMatchingTelType = String(matchingTel.type);
-                }
-
-                if (matchingTel.carrier) {
-                  group.contactMatchingTelCarrier = String(matchingTel.carrier);
-                }
-              }
-            }
-
-            self._newTxn('readwrite', [self._dbGroupsStore],
-                         function(error, txn, store) {
-              store.add(group).onsuccess = function onsuccess() {
-                // Once the group has successfully been added, we check that the
-                // db size is below the max size set.
-                self._keepDbPrettyAndFit(function() {
-                  self._asyncReturn(callback, self._getGroupObject(group));
-                });
-              };
-            });
-          });
+          self._createNewGroup(groupId, recentCall, callback);
         }
 
         recentCall.groupId = groupId;
         recentsStore.put(recentCall);
       };
+    });
+  },
+
+  _updateExistingGroup: function(group, recentCall, groupsStore, callback) {
+    // Groups should have the date of the newest call.
+    if (group.lastEntryDate <= recentCall.date) {
+      group.lastEntryDate = recentCall.date;
+      group.serviceId = recentCall.serviceId;
+      group.emergency = recentCall.emergency;
+      group.voicemail = recentCall.voicemail;
+    }
+
+    group.calls = group.calls || [];
+    group.calls.unshift({date: recentCall.date, duration: recentCall.duration});
+
+    group.retryCount++;
+    var self = this;
+    groupsStore.put(group).onsuccess = function onsuccess() {
+      self._asyncReturn(callback, self._getGroupObject(group));
+    };
+  },
+
+  _createNewGroup: function(groupId, recentCall, callback) {
+    var self = this;
+
+    var group = {
+      id: groupId,
+      number: recentCall.number,
+      serviceId: recentCall.serviceId,
+      lastEntryDate: recentCall.date,
+      retryCount: 1,
+      emergency: recentCall.emergency,
+      voicemail: recentCall.voicemail,
+      calls: [{date: recentCall.date, duration: recentCall.duration}]
+    };
+    Contacts.findByNumber(recentCall.number,
+                          function(contact, matchingTel) {
+      if (contact && contact !== null) {
+        group.contactId = contact.id;
+        var photo = ContactPhotoHelper.getThumbnail(contact);
+        if (photo) {
+          group.contactPhoto = photo;
+        }
+        if (matchingTel) {
+          var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel,
+                                                            contact);
+          if (Array.isArray(primaryInfo)) {
+            primaryInfo = primaryInfo[0];
+          }
+          group.contactPrimaryInfo = String(primaryInfo);
+
+          if (Array.isArray(matchingTel.type) && matchingTel.type[0]) {
+            group.contactMatchingTelType = String(matchingTel.type[0]);
+          } else {
+            group.contactMatchingTelType = String(matchingTel.type);
+          }
+
+          if (matchingTel.carrier) {
+            group.contactMatchingTelCarrier = String(matchingTel.carrier);
+          }
+        }
+      }
+
+      self._newTxn('readwrite', [self._dbGroupsStore],
+                   function(error, txn, store) {
+        store.add(group).onsuccess = function onsuccess() {
+          // Once the group has successfully been added, we check that the
+          // db size is below the max size set.
+          self._keepDbPrettyAndFit(function() {
+            self._asyncReturn(callback, self._getGroupObject(group));
+          });
+        };
+      });
     });
   },
   /**
