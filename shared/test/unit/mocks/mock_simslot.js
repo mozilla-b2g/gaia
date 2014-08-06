@@ -2,6 +2,7 @@
 'use strict';
 
 var MockSIMSlot = function(conn, index) {
+  this._smsc = '0123456789';
   this.conn = conn;
   this.index = index;
   this.absent = false;
@@ -12,6 +13,8 @@ var MockSIMSlot = function(conn, index) {
   this.update = function() {};
   this.isAbsent = function() { return this.absent; };
   this.isLocked = function() { return this.locked; };
+  this.getSmsc = function() { return this._smsc; };
+
   // Inject method
   ['sendStkResponse', 'sendStkMenuSelection',
     'sendStkTimerExpiration', 'sendStkEventDownload'].forEach(function(name) {

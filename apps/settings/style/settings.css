@@ -584,6 +584,13 @@ ul li > label.range-icons.volume input {
 }
 
 /******************************************************************************
+ * Messaging
+ */
+#messaging .simcards-container[hidden] {
+  display: none;
+}
+
+/******************************************************************************
  * Date & Time
  */
 

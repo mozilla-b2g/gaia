@@ -90,6 +90,15 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       },
       'shared_mocks/mock_enumerate_all': {
         exports: 'MockEnumerateAll'
+      },
+      'shared_mocks/mock_lazy_loader': {
+        exports: 'MockLazyLoader'
+      },
+      'shared_mocks/mock_simslot_manager': {
+        exports: 'MockSIMSlotManager'
+      },
+      'shared_mocks/mock_mobile_operator': {
+        exports: 'MockMobileOperator'
       }
     },
     modules: [

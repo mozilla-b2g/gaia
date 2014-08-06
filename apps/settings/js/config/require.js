@@ -48,6 +48,16 @@ require.config({
     'shared/bluetooth_helper': {
       exports: 'BluetoothHelper'
     },
+    'shared/simslot': {
+      exports: 'SIMSlot'
+    },
+    'shared/simslot_manager': {
+      exports: 'SIMSlotManager',
+      deps: ['shared/simslot']
+    },
+    'shared/mobile_operator': {
+      exports: 'MobileOperator'
+    },
     'utils': {
       exports: ''
     },

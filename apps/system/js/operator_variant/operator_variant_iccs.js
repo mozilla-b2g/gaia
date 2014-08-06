@@ -94,10 +94,39 @@ var OperatorVariant = (function() {
     getReq.onerror = callback;
   }
 
+  function ov_ensureCBS(callback) {
+    callback = callback || function() {};
+
+    var getReq = _settings.createLock().get('ril.cellbroadcast.disabled');
+    getReq.onsuccess = function() {
+      var originalSetting = getReq.result['ril.cellbroadcast.disabled'];
+      var newSetting = null;
+      if (!originalSetting) {
+        newSetting = ['', ''];
+      } else if (!Array.isArray(originalSetting)) {
+        // Migrate settings field if needed
+        newSetting = [originalSetting, ''];
+      }
+
+      if (newSetting) {
+        var setReq = _settings.createLock().set({
+          'ril.cellbroadcast.disabled': newSetting
+        });
+        setReq.onsuccess = callback;
+        setReq.onerror = callback;
+      } else {
+        callback();
+      }
+    };
+    getReq.onerror = callback;
+  }
+
   return {
     ov_ensureVoicemailType: ov_ensureVoicemailType,
     init: function() {
-      ov_ensureVoicemailType(ov_init);
+      ov_ensureVoicemailType(function() {
+        ov_ensureCBS(ov_init);
+      });
     }
   };
 })();

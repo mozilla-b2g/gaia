@@ -129,6 +129,29 @@
   };
 
   /**
+   * Function to get simcard's smsc number
+   * @param {Function} cb your callback function to get smsc number
+   */
+  SIMSlot.prototype.getSmsc = function ss_getSmsc(cb) {
+    var mobileMessage = window.navigator.mozMobileMessage;
+    if (!mobileMessage) {
+      console.error('can\'t access mozMobileMessage');
+      cb(null);
+    } else {
+      var req = mobileMessage.getSmscAddress(this.index);
+      req.onsuccess = function() {
+        var smsc = this.result.split(',')[0].replace(/"/g, '');
+        cb(smsc);
+      };
+
+      req.onerror = function() {
+        console.error(this.error);
+        cb(null);
+      };
+    }
+  };
+
+  /**
    * Indicate SIM card in the slot is locked or not.
    * @return {Boolean} SIM card locked or not.
    */

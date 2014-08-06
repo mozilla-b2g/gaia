@@ -53,35 +53,23 @@
           </label>
         </li>
       </ul>
-      <header>
-        <h2 data-l10n-id="cellBroadcastMessages">Cell Broadcast Messages</h2>
-      </header>
-      <ul>
-        <li id="menuItem-cellBroadcast" aria-disabled="true">
-          <label class="pack-switch checkbox-label">
-            <input type="checkbox" data-ignore disabled />
-            <span data-l10n-id="cellBroadcast">Cell Broadcast</span>
-          </label>
+      <div class="options-container"></div>
+      <ul class="simcards-container" hidden>
+        <header>
+          <h2 data-l10n-id="simSettings">SIM Settings</h2>
+        </header>
+        <li aria-disabled="true" class="hint sim1">
+          <small></small>
+          <a data-l10n-id="sim1" data-card-index="0">SIM 1</a>
         </li>
-        <li id="menuItem-emergencyAlert" aria-disabled="true">
-          <label class="pack-switch checkbox-label">
-            <input type="checkbox" data-ignore disabled />
-            <span data-l10n-id="emergencyAlert">Emergency Alert</span>
-          </label>
-        </li>
-      </ul>
-      <header>
-        <h2 data-l10n-id="messagingInformation">Information</h2>
-      </header>
-      <ul>
-        <li id="menuItem-smsc" aria-disabled="true" class="hint">
-          <span data-l10n-id="messaging-SMSC">Service Center</span>
-          <p class="explanation">Info not available</p>
+        <li aria-disabled="true" class="hint sim2">
+          <small></small>
+          <a data-l10n-id="sim2" data-card-index="1">SIM 2</a>
         </li>
       </ul>
     </div>
 
-    <script src="js/messaging.js"></script>
+    <panel data-path="panels/messaging/panel"></panel>
 
   </template>
 </element>

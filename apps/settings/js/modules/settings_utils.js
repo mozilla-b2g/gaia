@@ -10,6 +10,8 @@ define(function(require) {
   // TODO
   // We need to move utils.js to SettingsUtils step by step
   var SettingsService = require('modules/settings_service');
+  var LazyLoader = require('shared/lazy_loader');
+
   var SettingsUtils = {
     /*
      * This method can help you make target panel as a dialog and
@@ -19,7 +21,7 @@ define(function(require) {
      * @param {String} dialogID - ID of target panel
      * @param {Object} userOptions - passed options
      */
-    openDialog: function(dialogID, userOptions) {
+    openDialog: function su_openDialog(dialogID, userOptions) {
       if ('#' + dialogID == Settings.currentPanel) {
         return;
       }
@@ -56,6 +58,25 @@ define(function(require) {
           // hide dialog box
           SettingsService.navigate(origin);
         };
+      }
+    },
+
+    /**
+     * We will use LazyLoader to help us load settings' used templates
+     * and then return the html to callback
+     *
+     * @memberOf SettingsUtils
+     * @param {String} panelId - ID of target panel
+     * @param {Function} callback - with html as its first parameter
+     */
+    loadTemplate: function su_loadTemplate(panelId, callback) {
+      var templateElement = document.getElementById(panelId);
+      if (!templateElement) {
+        callback(null);
+      } else {
+        LazyLoader.load([templateElement], function() {
+          callback(templateElement.innerHTML);
+        });
       }
     }
   };
