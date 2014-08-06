@@ -3,7 +3,7 @@ Keyboards['en-Colemak'] = {
   shortLabel: 'En',
   menuLabel: 'Colemak',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'en_us',
   alt: {
     a: 'áàâäåãāæ',

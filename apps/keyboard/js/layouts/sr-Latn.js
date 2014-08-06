@@ -3,7 +3,7 @@ Keyboards['sr-Latn'] = {
   shortLabel: 'Sr',
   menuLabel: 'Srpski',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'sr-Latn',
   alt: {
     c: 'čć',

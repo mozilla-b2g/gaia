@@ -3,7 +3,7 @@ Keyboards.cs = {
   shortLabel: 'Cs',
   menuLabel: 'Česká',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'cs',
   alt: {
     a: 'á',

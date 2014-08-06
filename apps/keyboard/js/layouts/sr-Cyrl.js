@@ -3,7 +3,7 @@ Keyboards['sr-Cyrl'] = {
   shortLabel: 'Sr',
   menuLabel: 'Српски',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'sr-Cyrl',
   alt: {
     // incomplete

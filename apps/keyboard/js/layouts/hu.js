@@ -3,7 +3,7 @@ Keyboards.hu = {
   shortLabel: 'Hu',
   menuLabel: 'Magyar',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'hu',
   alt: {
     a: 'áàâäåãāæª',
