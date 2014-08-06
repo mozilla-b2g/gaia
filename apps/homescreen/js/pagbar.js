@@ -56,7 +56,7 @@ var PaginationBar = (function() {
         previousTotal = total;
       }
 
-      style.MozTransform = 'translateX(' + current * dir + '%)';
+      style.transform = 'translateX(' + current * dir + '%)';
     },
 
     handleEvent: function pb_handleEvent(evt) {
