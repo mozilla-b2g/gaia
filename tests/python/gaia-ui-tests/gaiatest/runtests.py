@@ -13,18 +13,21 @@ from marionette import BaseMarionetteTestRunner
 from marionette.runtests import cli
 
 from gaiatest import __name__
-from gaiatest import GaiaTestCase, GaiaOptionsMixin, GaiaTestRunnerMixin
+from gaiatest import GaiaTestCase, GaiaOptionsMixin, GaiaTestRunnerMixin, \
+    TreeherderOptionsMixin, TreeherderTestRunnerMixin
 from version import __version__
 
 
 class GaiaTestOptions(BaseMarionetteOptions, GaiaOptionsMixin,
-                      EnduranceOptionsMixin, HTMLReportingOptionsMixin):
+                      EnduranceOptionsMixin, HTMLReportingOptionsMixin,
+                      TreeherderOptionsMixin):
 
     def __init__(self, **kwargs):
         BaseMarionetteOptions.__init__(self, **kwargs)
         GaiaOptionsMixin.__init__(self, **kwargs)
         HTMLReportingOptionsMixin.__init__(self, **kwargs)
         EnduranceOptionsMixin.__init__(self, **kwargs)
+        TreeherderOptionsMixin.__init__(self, **kwargs)
 
 
 class GaiaTestResult(MarionetteTestResult, HTMLReportingTestResultMixin):
@@ -40,7 +43,7 @@ class GaiaTextTestRunner(MarionetteTextTestRunner):
 
 
 class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
-                     HTMLReportingTestRunnerMixin):
+                     HTMLReportingTestRunnerMixin, TreeherderTestRunnerMixin):
 
     textrunnerclass = GaiaTextTestRunner
 
@@ -53,6 +56,7 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
         GaiaTestRunnerMixin.__init__(self, **kwargs)
         HTMLReportingTestRunnerMixin.__init__(self, name=__name__,
                                               version=__version__, **kwargs)
+        TreeherderTestRunnerMixin.__init__(self, **kwargs)
         self.test_handlers = [GaiaTestCase]
 
     def start_httpd(self, need_external_ip):
