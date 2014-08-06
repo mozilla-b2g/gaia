@@ -9,7 +9,6 @@
   function HandleDelete(activity) {
     var id = activity.source.data.id;
 
-    // Bug 1007743
     // need to l10n the dialog title and body
     cancelButton.addEventListener('click', function cancel() {
       activity.postResult(false);
