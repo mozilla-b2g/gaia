@@ -3,10 +3,16 @@ var Curtain = {
     return {
       update: function() {
 
+      },
+      setTotal: function() {
+
+      },
+      getValue: function() {
+
       }
     };
   },
-  hide: function() {
-
+  hide: function(cb) {
+    cb();
   }
 };
