@@ -3,7 +3,7 @@
 
 'use strict';
 
-(function() {
+var iccMenu = (function() {
   var iccMainHeader = document.getElementById('icc-mainheader');
   var iccEntries = document.getElementById('icc-entries');
 
@@ -19,6 +19,29 @@
         iccLoaded = true;
         callback();
       });
+  }
+
+  function loadIccMainPage() {
+    DUMP('loadIccMainPage: Getting ICC applications available...');
+    var reqApplications = Settings.mozSettings.createLock().get(
+      'icc.applications');
+    reqApplications.onsuccess = function icc_getApplications() {
+      var json = reqApplications.result['icc.applications'];
+      var menu = json && JSON.parse(json);
+      var SIMNumber = Object.keys(menu)[0];
+      DUMP('SIMNumber: ' + SIMNumber);
+      if (!SIMNumber) {
+        return;
+      }
+
+      loadIccPage(function() {
+        DUMP('Loading ICC Page for SIM Menu: ', menu[SIMNumber]);
+        var event = new CustomEvent('stkmenuselection', {
+          detail: { 'menu': menu[SIMNumber] }
+        });
+        window.dispatchEvent(event);
+      });
+    };
   }
 
   function executeIccCmd(iccMessage) {
@@ -135,4 +158,17 @@
       }
     });
   });
+
+  /**
+   * ICC Menu public interface
+   */
+  return {
+    openMainPage: function iccMenu_loadIccMainPage() {
+      loadIccMainPage();
+    }
+  };
 })();
+
+window.dispatchEvent(new CustomEvent('iccMenuLoaded', {
+  detail: {}
+}));
