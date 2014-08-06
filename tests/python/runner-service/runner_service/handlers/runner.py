@@ -109,9 +109,10 @@ class EmulatorHandler(MozrunnerHandler):
 class DeviceHandler(MozrunnerHandler):
 
     def __init__(self, *args, **kwargs):
+        serial = kwargs.pop('serial', None)
         MozrunnerHandler.__init__(self, *args, **kwargs)
 
-        self.runner = B2GDeviceRunner(**self.common_runner_args)
+        self.runner = B2GDeviceRunner(serial=serial, **self.common_runner_args)
         self.runner.device.connect()
 
     def start_runner(self, data):

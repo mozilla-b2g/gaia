@@ -61,6 +61,7 @@ def cli(args=sys.argv[1:]):
 
     rhandler_args = {
         'symbols_path': args.symbols_path,
+        'serial': args.device_serial,
     }
     if args.b2g_home:
         rhandler_args['b2g_home'] = args.b2g_home
