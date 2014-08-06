@@ -249,7 +249,7 @@ WebappShared.prototype.pushElements = function(path) {
   }
 
   // Copy possible resources from components.
-  var resources = ['style.css', 'css', 'js', 'images', 'locales'];
+  var resources = ['style.css', 'css', 'js', 'images', 'locales', 'fonts'];
   resources.forEach(function(resource) {
     var eachFile = this.gaia.sharedFolder.clone();
     eachFile.append('elements');
