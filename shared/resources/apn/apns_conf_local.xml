@@ -162,6 +162,16 @@
       type="dun"
   />
 
+  <apn carrier="O2 MMS"
+      mcc="262"
+      mnc="07"
+      apn="internet"
+      mmsc="http://10.81.0.7:8002"
+      mmsproxy="82.113.100.5"
+      mmsport="8080"
+      type="mms"
+  />
+
   <!-- overwrite APNs until they get updated in the upstream database -->
 
   <apn carrier="ATT Phone"

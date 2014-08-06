@@ -808,7 +808,8 @@
   "07": [
     {"carrier":"o2 Internet","apn":"internet","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.5","mmsport":"8080","type":["default","supl","mms"],"mvno_match_data":"2620739","mvno_type":"imsi"},
     {"voicemail":"333","enableStrict7BitEncodingForSms":true,"operatorSizeLimitation":614400,"type":["operatorvariant"]},
-    {"carrier":"o2 Internet Prepaid","apn":"pinternet.interkom.de","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.6","mmsport":"8080","type":["default","supl","mms"],"mvno_match_data":"2620749","mvno_type":"imsi"}
+    {"carrier":"o2 Internet Prepaid","apn":"pinternet.interkom.de","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.6","mmsport":"8080","type":["default","supl","mms"],"mvno_match_data":"2620749","mvno_type":"imsi"},
+    {"carrier":"O2 MMS","apn":"internet","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.5","mmsport":"8080","type":["mms"]}
   ]
 },
 "268": {
