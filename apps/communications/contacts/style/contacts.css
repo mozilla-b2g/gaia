@@ -593,7 +593,7 @@ section[role="region"] > header .icon.icon-settings {
   width: 100%;
   z-index: 11;
   color: #000;
-  text-align: left;
+  text-align: initial;
 }
 
 #no-contacts .info {
@@ -602,28 +602,27 @@ section[role="region"] > header .icon.icon-settings {
   font-size: 2rem;
   font-weight: 300;
   margin: 15rem 2rem 0;
+  padding: 1rem;
 }
 
-#no-contacts .info p {
-  margin: 1rem;
+#no-contacts p {
+  margin-bottom: 1rem;
 }
 
 #no-contacts p.small {
   font-size: 1.6rem;
-  margin-left: 2rem;
 }
 #no-contacts .icon {
-  padding-left: 1.5rem;
-  margin-left: 1rem;
+  padding-left: 3.5rem;
 }
 
 #no-contacts .create.icon {
-  background: url("/contacts/style/images/plus_small_ico.png") no-repeat left center / 1.4rem;
+  background: url("/contacts/style/images/plus_small_ico.png") no-repeat 0 50% / 1.4rem;
   margin-top: 3rem;
 }
 
 #no-contacts .import.icon {
-  background: url("/contacts/style/images/settings_small_ico.png") no-repeat left center / 1.6rem;
+  background: url("/contacts/style/images/settings_small_ico.png") no-repeat 0 50% / 1.6rem;
 }
 
 #statusMsg {
@@ -725,4 +724,15 @@ form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) > menu 
 
 form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) header {
   transform: translateY(0);
+}
+
+
+html[dir="rtl"] #no-contacts .icon {
+  padding-right: 3.5rem;
+  padding-left: 0;
+}
+
+html[dir="rtl"] #no-contacts .create.icon,
+html[dir="rtl"] #no-contacts .import.icon {
+  background-position: 100% 50%;
 }
