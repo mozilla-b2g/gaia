@@ -20,6 +20,9 @@ WHITELIST = \
  es.dict \
  fi.dict \
  fr.dict \
+ ga.dict \
+ gd.dict \
+ gv.dict \
  hr.dict \
  hu.dict \
  it.dict \
