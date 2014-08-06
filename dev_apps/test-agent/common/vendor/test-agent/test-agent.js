@@ -21,9 +21,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 function LOG(msg) {
-  setTimeout(function() {
-      throw '----------------> ' + (new Date).toLocaleTimeString() + msg;
-  });
+    dump( 'INFO - ----------------> ' + (new Date).toLocaleTimeString() +
+    ' ' + msg + '\n');
 }
 (function(window) {
 
