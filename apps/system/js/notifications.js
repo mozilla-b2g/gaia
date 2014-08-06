@@ -465,7 +465,10 @@ var NotificationScreen = {
 
     this.updateStatusBarIcon(true);
 
-    var notify = !('noNotify' in detail);
+    var notify = !('noNotify' in detail) &&
+      !(detail.manifestURL && // don't notify for network-alerts notifications
+        detail.manifestURL.indexOf('network-alerts.gaiamobile.org') !== -1);
+
     // Notification toaster
     if (notify) {
       this.updateToaster(detail, type, dir);
