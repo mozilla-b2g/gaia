@@ -91,8 +91,14 @@ class Phone(Base):
         call_screen.wait_for_outgoing_call()
         call_screen.hang_up()
 
-    def a11y_make_call_and_hang_up(self, phone_number):
-        """Just makes a call and hangs up using the screen reader. Does not do any assertions."""
+    def a11y_make_call(self, phone_number):
         call_screen = self.keypad.a11y_call_number(phone_number)
         call_screen.wait_for_outgoing_call()
-        call_screen.a11y_hang_up()
+
+    def a11y_hang_up(self):
+        self.call_screen.a11y_hang_up()
+
+    def a11y_make_call_and_hang_up(self, phone_number):
+        """Just makes a call and hangs up using the screen reader. Does not do any assertions."""
+        self.a11y_make_call(phone_number)
+        self.a11y_hang_up()

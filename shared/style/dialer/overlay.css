@@ -4,8 +4,9 @@
 form.overlay {
   font-size: 1.5rem;
   opacity: 1;
+  visibility: hidden;
   transform: translateY(-100%);
-  transition: transform 0.4s ease-in-out;
+  transition: transform 0.4s ease-in-out, visibility 0.4s;
 }
 
 form.overlay > menu {
@@ -14,6 +15,7 @@ form.overlay > menu {
 
 form.overlay.display {
   transform: translateY(0%);
+  visibility: visible;
 }
 
 form.overlay menu ul {
