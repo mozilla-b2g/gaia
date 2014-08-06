@@ -91,7 +91,7 @@ var NfcURI = {
     records.push(record);
 
     var nfcdom = window.navigator.mozNfc;
-    var nfcPeer = nfcdom.getNFCPeer(event.detail);
+    var nfcPeer = event.peer;
 
     if (!nfcPeer) {
       return null;
