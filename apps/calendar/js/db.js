@@ -255,6 +255,10 @@
           // We need to fix the calendarIds and also remove any of the idb
           // objects that have deleted calendars.
           this.sanitizeEvents(transaction);
+        } else if (curVersion === 15) {
+          // Since we're now doing recurrences for bug 932258, local events
+          // need ical components as well. Generate those here.
+          // TODO(gareth)
         }
       }
     },

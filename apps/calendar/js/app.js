@@ -533,13 +533,6 @@ Calendar.App = (function(window) {
      */
     store: function(name) {
       return this.db.getStore(name);
-    },
-
-    /**
-     * Returns the offline status.
-     */
-    offline: function() {
-      return (navigator && 'onLine' in navigator) ? !navigator.onLine : true;
     }
   };
 
