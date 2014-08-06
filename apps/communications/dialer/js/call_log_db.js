@@ -1,5 +1,9 @@
 'use strict';
 
+/* exported CallLogDBManager */
+
+/*global ContactPhotoHelper, Contacts, IDBKeyRange, LazyLoader, Utils */
+
 var CallLogDBManager = {
   _db: null,
   _dbName: 'dialerRecents',
@@ -241,8 +245,8 @@ var CallLogDBManager = {
     //
     //  We store 'number' and 'contact' separatedly so we allow searches by
     //  these fields without being dependent of the contacts API.
-    var groupsStore = db.createObjectStore(this._dbGroupsStore,
-                                           { keyPath: 'id' });
+    db.createObjectStore(this._dbGroupsStore,
+                         { keyPath: 'id' });
     // We create an index for 'groupId' in the object store hosting the
     // actual calls. Each call belongs to a group indexed by id.
     var recentsStore = transaction.objectStore(this._dbRecentsStore);
@@ -290,7 +294,7 @@ var CallLogDBManager = {
         return;
       }
 
-      if (groupCount == 0) {
+      if (groupCount === 0) {
         next();
         return;
       }
@@ -304,13 +308,14 @@ var CallLogDBManager = {
           return;
         }
 
-        for (var group in groups) {
-          store.put(groups[group]).onsuccess = function onsuccess() {
+        var onPutSuccess = function onsuccess() {
             groupCount--;
-            if (groupCount == 0) {
+            if (groupCount === 0) {
               next();
             }
           };
+        for (var group in groups) {
+          store.put(groups[group]).onsuccess = onPutSuccess;
           delete groups[group];
         }
       });
@@ -444,7 +449,7 @@ var CallLogDBManager = {
       };
     }
 
-    var groupsStore = transaction.objectStore(self._dbGroupsStore);
+    transaction.objectStore(self._dbGroupsStore);
     // First of all we delete the old groups object store.
     db.deleteObjectStore(self._dbGroupsStore);
 
