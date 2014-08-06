@@ -1,12 +1,6 @@
-/*global Factory */
+/* global Factory */
 
-requireLib('calendar.js');
-requireLib('db.js');
 requireLib('ext/uuid.js');
-requireLib('models/account.js');
-requireLib('models/calendar.js');
-requireLib('models/event.js');
-requireLib('presets.js');
 
 suite('db', function() {
   'use strict';
@@ -16,10 +10,9 @@ suite('db', function() {
 
   var dbName = 'calendar-db-test-db';
 
-  suiteSetup(function(done) {
+  suiteSetup(function() {
     // load the required sub-objects..
     app = testSupport.calendar.app();
-    app.loadObject('Provider.Local', done);
   });
 
   suiteSetup(function(done) {
@@ -37,6 +30,9 @@ suite('db', function() {
 
   setup(function() {
     subject = new Calendar.Db(dbName);
+    app.db = subject;
+    var provider = Calendar.Provider.provider;
+    provider.app = app;
   });
 
   test('#getStore', function() {
@@ -54,12 +50,10 @@ suite('db', function() {
     assert.ok(subject.store);
 
     assert.instanceOf(subject, Calendar.Responder);
-    assert.deepEqual(subject._stores, {});
     assert.isTrue(Object.isFrozen(subject.store));
   });
 
   suite('#transaction', function() {
-
     setup(function(done) {
       subject.open(function() {
         done();
@@ -81,12 +75,10 @@ suite('db', function() {
 
       trans.abort();
     });
-
   });
 
   suite('#open', function() {
     suite('on version change', function() {
-
       setup(function(done) {
         subject.deleteDatabase(done);
       });
@@ -126,11 +118,8 @@ suite('db', function() {
 
         test('default account', function() {
           var list = Object.keys(storeLoads.accounts);
-
           assert.length(list, 1);
-
           var item = storeLoads.accounts[list[0]];
-
           assert.ok(item);
           assert.equal(item.providerType, 'Local', 'provider');
           assert.equal(item.preset, 'local', 'preset');

@@ -1,6 +1,14 @@
 (function(window) {
   'use strict';
 
+  /**
+   * Module dependencies
+   */
+  var extend = Calendar.extend,
+      filter = Calendar.Object.filter,
+      map = Calendar.Object.map,
+      provider = Calendar.Provider.provider;
+
   function Account() {
     Calendar.Store.Abstract.apply(this, arguments);
 
@@ -18,7 +26,7 @@
 
     _store: 'accounts',
 
-    _parseId: Calendar.Store.Abstract.prototype.probablyParseInt,
+    _parseId: Calendar.probablyParseInt,
 
     /**
      * Checks if a given account is a duplicate of another.
@@ -56,34 +64,22 @@
     },
 
     verifyAndPersist: function(model, callback) {
-      var self = this;
-      var provider = Calendar.App.provider(
-        model.providerType
-      );
-
-      provider.getAccount(model.toJSON(), function(err, data) {
-        if (err) {
-          callback(err);
-          return;
-        }
-
+      provider.getAccount(model.toJSON()).then((data) => {
         model.error = undefined;
-
         // if this works we always will get a calendar home.
         // This is used to find calendars.
         model.calendarHome = data.calendarHome;
-
         // server may override properties on demand.
-        Calendar.extend(model, data);
-
-        self._validateModel(model, function(err) {
+        extend(model, data);
+        this._validateModel(model, (err) => {
           if (err) {
-            return callback(err);
+            throw err;
           }
 
-          self.persist(model, callback);
+          this.persist(model, callback);
         });
-      });
+      })
+      .catch(callback);
     },
 
     /**
@@ -123,100 +119,65 @@
       //OR after removal ensure everything created here
       //is purged.
 
-      var self = this;
-      var provider = Calendar.App.provider(account.providerType);
-      var calendarStore = this.db.getStore('Calendar');
-
-      var persist = [];
-
       // remotesByAccount return an object indexed by remote ids
       var calendars;
-
       // these are remote ids not local ones
       var originalIds;
 
-      function fetchExistingCalendars(err, results) {
-        if (err) {
-          return callback(err);
-        }
-
+      var calendarStore = this.db.getStore('Calendar');
+      calendarStore.remotesByAccount(account._id)
+      .then((results) => {
         calendars = results;
-        originalIds = Object.keys(calendars);
+        originalIds = Object.keys(results);
+        return provider.findCalendars(account);
+      })
+      .then((remotes) => {
+        var persist = map(remotes, (key, cal) => {
+          var index = originalIds.indexOf(key);
+          if (index !== -1) {
+            // Remove from originalIds.
+            originalIds.splice(index, 1);
+            // Update an existing calendar.
+            var original = calendars[key];
+            original.remote = cal;
+            original.error = undefined;
+            return original;
+          }
 
-        provider.findCalendars(account, persistCalendars);
-      }
+          // Create a new calendar.
+          return calendarStore._createModel({
+            remote: new Object(cal),
+            accountId: account._id
+          });
+        });
 
-      function persistCalendars(err, remoteCals) {
-        var key;
-
-        if (err) {
-          callback(err);
+        // Now calendars remaining in originalIds should be removed.
+        if (!persist.length && !originalIds.length) {
+          // Nothing to do.
           return;
         }
 
-        for (key in remoteCals) {
-          if (remoteCals.hasOwnProperty(key)) {
-            var cal = remoteCals[key];
-            var idx = originalIds.indexOf(key);
+        var trans = this.db.transaction(this._dependentStores, 'readwrite');
 
-            if (idx !== -1) {
-              // update an existing calendar
-              originalIds.splice(idx, 1);
+        // Remove
+        originalIds.forEach((id) => {
+          calendarStore.remove(calendars[id]._id, trans);
+        });
 
-              var original = calendars[key];
-              original.remote = cal;
-              original.error = undefined;
-              persist.push(original);
-            } else {
-              // create a new calendar
-              persist.push(
-                calendarStore._createModel({
-                  remote: new Object(cal),
-                  accountId: account._id
-                })
-              );
-            }
-          }
-        }
+        // Create/Update
+        persist.forEach((object) => {
+          calendarStore.persist(object, trans);
+        });
 
-        // at this point whatever is left in originalIds
-        // is considered a removed calendar.
-
-        // update / remove
-        if (persist.length || originalIds.length) {
-          var trans = self.db.transaction(
-            self._dependentStores,
-            'readwrite'
-          );
-
-          originalIds.forEach(function(id) {
-            calendarStore.remove(calendars[id]._id, trans);
-          });
-
-          persist.forEach(function(object) {
-            calendarStore.persist(object, trans);
-          });
-
-          // event listeners must come at the end
-          // because persist/remove also listen to
-          // transaction complete events.
-          trans.addEventListener('error', function(err) {
-            callback(err);
-          });
-
-          trans.addEventListener('complete', function() {
-            callback(null);
-          });
-        } else {
-          // invoke callback nothing to sync
-          callback(null);
-        }
-      }
-
-      calendarStore.remotesByAccount(
-        account._id,
-        fetchExistingCalendars
-      );
+        return new Promise((resolve, reject) => {
+          trans.addEventListener('error', reject);
+          trans.addEventListener('complete', resolve);
+        });
+      })
+      .then(() => {
+        callback();
+      })
+      .catch(callback);
     },
 
     _createModel: function(obj, id) {
@@ -308,21 +269,15 @@
      * @param {Function} callback [Error err, Array accountList].
      */
     syncableAccounts: function(callback) {
-      this.all(function(err, list) {
-        if (err) {
-          return callback(err);
-        }
-
-        var results = [];
-        for (var key in list) {
-          var account = list[key];
-          var provider = Calendar.App.provider(account.providerType);
-          if (provider.canSync) {
-            results.push(account);
-          }
-        }
-        callback(null, results);
-      });
+      this.all().then((list) => {
+        return Promise.resolve(
+          filter(list, (key, account) => {
+            return !provider.isLocal(account);
+          }, this)
+        );
+      })
+      .then(callback)
+      .catch(callback);
     },
 
     /**

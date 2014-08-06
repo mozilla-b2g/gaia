@@ -1,131 +1,83 @@
-/* global uuid */
-Calendar.ns('Provider').Local = (function() {
-  'use strict';
+(function(exports) {
+'use strict';
 
-  var LOCAL_CALENDAR_ID = 'local-first';
+/**
+ * Module dependencies
+ */
+var extend = Calendar.extend;
 
-  function Local() {
-    Calendar.Provider.Abstract.apply(this, arguments);
+/**
+ * Constants
+ */
+var defaultColor = '#F97C17',
+    localCalendarId = 'local-first';
 
-    this.events = this.app.store('Event');
-    this.busytimes = this.app.store('Busytime');
-    this.alarms = this.app.store('Alarm');
+/**
+ * Private state
+ */
+var calendarStore;
+
+exports.calendarId = localCalendarId;
+
+Object.defineProperty(exports, 'app', {
+  set: function(value) {
+    calendarStore = value.store('Calendar');
+  }
+});
+
+exports.isLocal = function(account) {
+  if ('providerType' in account) {
+    return account.providerType === 'Local';
+  }
+  if ('preset' in account) {
+    return account.preset === 'local';
+  }
+  if ('_id' in account) {
+    return account._id === localCalendarId;
   }
 
-  Local.calendarId = LOCAL_CALENDAR_ID;
+  return false;
+};
 
-  /**
-   * Returns the details for the default calendars.
-   */
-  Local.defaultCalendar = function() {
-    //XXX: Make async
-    var l10nId = 'calendar-local';
-    var name;
+exports.getAccount = function() {
+  return calendarStore.ownersOf(localCalendarId).then((owners) => {
+    return owners.account;
+  });
+};
 
-    if ('mozL10n' in window.navigator) {
-      name = window.navigator.mozL10n.get(l10nId);
-      if (name === l10nId) {
-        name = null;
-      }
-    }
+exports.findCalendars = function() {
+  return calendarStore.ownersOf(localCalendarId).then((owners) => {
+    var result = {};
+    var calendar = owners.calendar;
+    result[localCalendarId] = extend(calendar, exports.localCalendar());
+    return result;
+  });
+};
 
-    if (!name) {
-      name = 'Offline calendar';
-    }
+exports.syncEvents = function() {
+  // Obviously we cannot sync events for local calendars.
+  return Promise.resolve();
+};
 
-    return {
-      // XXX localize this name somewhere
-      name: name,
-      id: LOCAL_CALENDAR_ID,
-      color: Local.prototype.defaultColor
-    };
+exports.calendarCapabilities = function() {
+  return Promise.resolve({
+    canCreateEvent: true,
+    canUpdateEvent: true,
+    canDeleteEvent: true
+  });
+};
 
-  };
+exports.eventCapabilities = function() {
+  return exports.calendarCapabilities();
+};
 
-  Local.prototype = {
-    __proto__: Calendar.Provider.Abstract.prototype,
+/**
+ * Create a description for the local calendar.
+ */
+exports.localCalendar = function() {
+  var l10n = window.navigator.mozL10n;
+  var name = l10n ? l10n.get('calendar-local') : 'Offline calendar';
+  return { id: localCalendarId, name: name, color: defaultColor };
+};
 
-    canExpandRecurringEvents: false,
-
-    getAccount: function(account, callback) {
-      callback(null, {});
-    },
-
-    findCalendars: function(account, callback) {
-      var list = {};
-      list[LOCAL_CALENDAR_ID] = Local.defaultCalendar();
-      callback(null, list);
-    },
-
-    syncEvents: function(account, calendar, cb) {
-      cb(null);
-    },
-
-    /**
-     * @return {Calendar.EventMutations.Create} mutation object.
-     */
-    createEvent: function(event, callback) {
-      // most providers come with their own built in
-      // id system when creating a local event we need to generate
-      // our own UUID.
-      if (!event.remote.id) {
-        // TOOD: uuid is provided by ext/uuid.js
-        //       if/when platform supports a safe
-        //       random number generator (values never conflict)
-        //       we can use that instead of uuid.js
-        event.remote.id = uuid();
-      }
-
-      var create = new Calendar.EventMutations.create({
-        event: event
-      });
-
-      create.commit(function(err) {
-        if (err) {
-          callback(err);
-          return;
-        }
-        callback(null, create.busytime, create.event);
-      });
-
-      return create;
-    },
-
-    deleteEvent: function(event, busytime, callback) {
-      if (typeof(busytime) === 'function') {
-        callback = busytime;
-        busytime = null;
-      }
-
-      this.app.store('Event').remove(event._id, callback);
-    },
-
-    /**
-     * @return {Calendar.EventMutations.Update} mutation object.
-     */
-    updateEvent: function(event, busytime, callback) {
-      if (typeof(busytime) === 'function') {
-        callback = busytime;
-        busytime = null;
-      }
-
-      var update = Calendar.EventMutations.update({
-        event: event
-      });
-
-      update.commit(function(err) {
-        if (err) {
-          callback(err);
-          return;
-        }
-        callback(null, update.busytime, update.event);
-      });
-
-      return update;
-    }
-
-  };
-
-  return Local;
-
-}());
+}(Calendar.ns('Provider').local = {}));

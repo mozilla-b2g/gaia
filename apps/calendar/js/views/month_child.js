@@ -1,8 +1,14 @@
 (function(window) {
   'use strict';
 
+  /**
+   * Module dependencies
+   */
   var Calc = Calendar.Calc,
+      View = Calendar.View,
       debug = Calendar.debug('month child'),
+      nextTick = Calendar.nextTick,
+      performance = Calendar.performance,
       template = Calendar.Templates.Month;
 
   // horrible hack to clear cache when we re-localize
@@ -11,7 +17,7 @@
   });
 
   function Child() {
-    Calendar.View.apply(this, arguments);
+    View.apply(this, arguments);
 
     this.id = this.date.valueOf();
     this.controller = this.app.timeController;
@@ -22,7 +28,7 @@
   }
 
   Child.prototype = {
-    __proto__: Calendar.View.prototype,
+    __proto__: View.prototype,
 
     ACTIVE: 'active',
 
@@ -205,7 +211,7 @@
         for (; i < days; i++) {
           var day = i;
           // localization updates this value
-          if (Calendar.Calc.startsOnMonday) {
+          if (Calc.startsOnMonday) {
             // 0 is monday which is 1 in l10n (based on js engine's getDay)
             day += 1;
 
@@ -275,12 +281,12 @@
         return;
       }
 
-      Calendar.nextTick(function() {
+      nextTick(function() {
         var busytimes = this.controller.queryCache(this.timespan);
         this._updateBusytimes({ added: busytimes });
         this._initEvents();
         // at this point the month view should be ready
-        Calendar.Performance.monthReady();
+        performance.monthReady();
       }.bind(this));
 
       this.hasBeenActive = true;

@@ -133,10 +133,7 @@ Calendar.ns('Controllers').Alarm = (function() {
       var url = this.displayURL + busytime._id;
 
       debug('send notification', title, description);
-
-      Calendar.App.loadObject('Notification', function() {
-        Calendar.Notification.send(title, description, url, callback);
-      });
+      Calendar.Notification.send(title, description, url, callback);
     },
 
     handleAlarm: function(alarm, trans, callback) {

@@ -66,16 +66,9 @@ Calendar.ns('Controllers').Error = (function() {
 
       var url = this.accountErrorUrl + account._id;
 
-      this.app.loadObject('Notification', function() {
-        Calendar.Notification.send(
-          title,
-          description,
-          url,
-          function() {
-            callback && callback();
-            lock.unlock();
-          }
-        );
+      Calendar.Notification.send(title, description, url, () => {
+        lock.unlock();
+        callback && callback();
       });
     }
   };

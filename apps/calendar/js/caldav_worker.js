@@ -2,15 +2,18 @@
 
 [
  'calendar',
- 'responder',
  'inspect',
+ 'extend',
+ 'log',
+ 'ns',
  'presets',
+ 'responder',
  'worker/thread',
- 'ext/ical',
  'ext/caldav',
+ 'ext/ical',
  'ext/uuid',
- 'service/ical_recur_expansion',
- 'service/caldav'
+ 'service/caldav',
+ 'service/ical_recur_expansion'
 ].forEach(function(script) {
    // ?time= is for cache busting in development...
    // there have been cases where nightly would not

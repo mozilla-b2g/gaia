@@ -79,7 +79,7 @@
     },
 
     calendarId: function(input) {
-      if (typeof(input) !== 'string') {
+      if (typeof input === 'object') {
         input = input.calendarId;
       }
 
@@ -246,5 +246,5 @@
   };
 
   Calendar.View = View;
-
+  Calendar.ns('Views');  // Initialize ns root
 }(this));

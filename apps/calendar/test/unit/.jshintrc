@@ -10,6 +10,7 @@
     "IDBTransaction",
     "InputParser",
     "NotAmd",
+    "Promise",
     "ServiceSupport",
     "assert",
     "suite",

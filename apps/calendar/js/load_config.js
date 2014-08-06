@@ -1,6 +1,15 @@
+/* global LazyLoader */
 Calendar.LoadConfig = (function() {
   'use strict';
 
+  /**
+   * Module dependencies
+   */
+  var debug = Calendar.debug('LoadConfig');
+
+  /**
+   * Constants
+   */
   var SNAKE = /(_|\/)([a-zA-Z])/g;
   var SLASH = /\//g;
 
@@ -30,7 +39,6 @@ Calendar.LoadConfig = (function() {
     storeRoot: 'store/',
 
     plugins: {
-
       dom: function(id, obs, cb) {
         var node = document.getElementById(id);
         if (!node) {
@@ -45,15 +53,17 @@ Calendar.LoadConfig = (function() {
 
       js: function lc_importJS(file, obs, cb) {
         var name = camelize(file);
-        var existsInPage = Calendar.ns(name, true);
+        var existsInPage = Calendar.ns(name, true /* checkOnly */);
 
         // already loaded skip
         if (existsInPage) {
+          debug('Found cached: ', name);
           Calendar.nextTick(cb);
           return;
         }
 
         file = this.config.jsRoot + file + '.js';
+        debug('Cache miss. Will load ', file);
         LazyLoader.load([file], cb);
       },
 
@@ -87,7 +97,6 @@ Calendar.LoadConfig = (function() {
     },
 
     group: {
-
       'Views.Pan': {
         js: [
           'views/pan'
@@ -391,7 +400,8 @@ Calendar.LoadConfig = (function() {
 
         js: [
           'ext/uuid',
-          'provider/local'
+          'provider/local',
+          'provider/provider'
         ]
       },
 
@@ -404,7 +414,9 @@ Calendar.LoadConfig = (function() {
 
       'Provider.Abstract': {
         js: [
-          'provider/abstract'
+          'provider/caldav',
+          'provider/local',
+          'provider/provider'
         ]
       },
 

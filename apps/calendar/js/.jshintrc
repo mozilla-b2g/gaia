@@ -1,20 +1,14 @@
 {
   "extends": "../../../.jshintrc",
   "predef": [
-    "AccessibilityHelper",
     "Buffer",
     "Caldav",
     "Calendar",
     "ICAL",
     "IDBKeyRange",
-    "InputParser",
-    "LazyLoader",
-    "NotAmd",
-    "NotificationHelper",
+    "Promise",
     "dump",
     "module",
-    "page",
-    "postMessage",
-    "uuid"
+    "postMessage"
   ]
 }

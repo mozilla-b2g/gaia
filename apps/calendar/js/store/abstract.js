@@ -1,7 +1,10 @@
 (function(window) {
   'use strict';
 
-  var NUMERIC = /^([0-9]+)$/;
+  /**
+   * Module dependencies
+   */
+  var debug = Calendar.debug('Abstract');
 
   /**
    * Creates an abstract store instance.
@@ -16,6 +19,7 @@
     Calendar.Promise.denodeifyAll(this, [
       'persist',
       'all',
+      '_allCached',
       'removeByIndex',
       'get',
       'remove',
@@ -64,17 +68,6 @@
           callback(null);
         });
       }
-    },
-
-    probablyParseInt: function(id) {
-      // by an unfortunate decision we have both
-      // string ids and number ids.. based on the
-      // input we run parseInt
-      if (id.match && id.match(NUMERIC)) {
-        return parseInt(id, 10);
-      }
-
-      return id;
     },
 
     /**
@@ -146,6 +139,7 @@
     },
 
     _allCached: function(callback) {
+      debug('Will load all from cache.');
       var list = this._cached;
       Calendar.nextTick(function() {
         callback(null, list);
@@ -175,6 +169,7 @@
       var store = trans.objectStore(this._store);
 
       function process(data) {
+        debug('Object found during getAll. Will add to cache: ', data);
         return self._addToCache(self._createModel(data));
       }
 
@@ -185,11 +180,13 @@
         }
       }
 
+      debug('Will issue getAll...');
       store.mozGetAll().onsuccess = function(event) {
         event.target.result.forEach(process);
       };
 
       trans.onerror = function(event) {
+        debug('Error in getAll: ', event.target.error.name);
         fireQueue(event.target.error.name);
       };
 

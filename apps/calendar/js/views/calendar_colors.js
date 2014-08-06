@@ -1,6 +1,12 @@
 Calendar.ns('Views').CalendarColors = (function() {
   'use strict';
 
+  /**
+   * Module dependencies
+   */
+  var debug = Calendar.debug('CalendarColors'),
+      forEach = Calendar.Object.forEach;
+
   function Colors() {
     this.colorMap = Object.create(null);
     this._ruleMap = Object.create(null);
@@ -41,23 +47,16 @@ Calendar.ns('Views').CalendarColors = (function() {
 
     render: function() {
       var calendarStore = Calendar.App.store('Calendar');
+      return calendarStore.all().then((calendars) => {
+        debug('Loaded calendars.');
+        debug('There are ' + Object.keys(calendars).length + ' of them!');
+        forEach(calendars, (id, calendar) => {
+          debug('Found calendar with id ', id);
+          this.updateRule(calendar);
+        });
 
-      calendarStore.all(function(err, calendars) {
-        if (err) {
-          console.log('Error fetch calendars in CalendarColors');
-        }
-
-        var id;
-        for (id in calendars) {
-          this.updateRule(calendars[id]);
-        }
-
-        if (this.onrender) {
-          this.onrender();
-        }
-
-      }.bind(this));
-
+        return this.onrender && this.onrender();
+      });
     },
 
     /**
@@ -69,12 +68,7 @@ Calendar.ns('Views').CalendarColors = (function() {
      * @param {Calendar.Models.Calendar|String} item model or string.
      */
     getId: function(item) {
-      var id;
-      if (item instanceof Calendar.Models.Calendar) {
-        id = item._id;
-      } else {
-        id = item;
-      }
+      var id = typeof item === 'object' && '_id' in item ? item._id : item;
       return this.calendarId(String(id));
     },
 
@@ -83,10 +77,22 @@ Calendar.ns('Views').CalendarColors = (function() {
      * calendar/calendar id with a color.
      *
      * @param {Calendar.Model.Calendar} calendar model.
+     * @param {String} id optional calendar id.
      */
     updateRule: function(calendar) {
+      debug('Trying to create/update color rule for calendar: ', calendar);
       var id = this.getId(calendar);
-      var method = id in this.colorMap ? '_updateRules' : '_createRules';
+      debug('Calendar has id: ', id);
+
+      var method;
+      if (id in this.colorMap) {
+        debug('Will update existing rule');
+        method = '_updateRules';
+      } else {
+        debug('Will create new rule');
+        method = '_createRules';
+      }
+
       this[method](calendar, id, calendar.color);
     },
 
@@ -104,9 +110,8 @@ Calendar.ns('Views').CalendarColors = (function() {
 
     _createRules: function(calendar, id, color) {
       // We need to store the ids of created rules for deletion later on.
-      var map = this._ruleMap[id] = {
-        ruleIds: []
-      };
+      debug('Writing color rule for calendar with id, color = ', id, color);
+      var map = this._ruleMap[id] = { ruleIds: [] };
       this.colorMap[id] = color;
 
       // calendar coloring

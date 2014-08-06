@@ -19,11 +19,12 @@ marionette('alarm', function() {
   });
 
   suite(' > with alarm mocks', function() {
-
     setup(function() {
       app = new Calendar(client);
       client.contentScript.inject(SHARED_PATH +
         '/mock_navigator_mozalarms.js');
+      client.contentScript.inject(SHARED_PATH +
+        '/mock_navigator_moz_notification.js');
       client.contentScript.inject(SHARED_PATH +
         '/mock_navigator_moz_set_message_handler.js');
       app.launch({ hideSwipeHint: true });

@@ -7,12 +7,6 @@ requireCommon('test/synthetic_gestures.js');
 suiteGroup('Views.Settings', function() {
   'use strict';
 
-  ['Provider.Local', 'Provider.Caldav'].forEach(function(name) {
-    suiteSetup(function(done) {
-      Calendar.App.loadObject(name, done);
-    });
-  });
-
   var subject;
   var app;
   var store;

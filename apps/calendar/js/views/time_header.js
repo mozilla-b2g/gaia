@@ -2,6 +2,14 @@
 Calendar.ns('Views').TimeHeader = (function() {
   'use strict';
 
+  /**
+   * Module dependencies
+   */
+  var debug = Calendar.debug('TimeHeader');
+
+  /**
+   * Constants
+   */
   var SETTINGS = /settings/;
 
   function TimeHeader() {
@@ -13,8 +21,10 @@ Calendar.ns('Views').TimeHeader = (function() {
       e.stopPropagation();
       var path = window.location.pathname;
       if (SETTINGS.test(path)) {
+        debug('Will close settings...');
         Calendar.App.resetState();
       } else {
+        debug('Will open settings...');
         Calendar.App.router.show('/settings/');
       }
     });

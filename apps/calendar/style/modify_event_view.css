@@ -40,7 +40,7 @@
 #modify-event-view li.start-time {
   text-align: center;
   width: calc(40% - 1px);
-  float: left
+  float: left;
 }
 
 #modify-event-view li.notes  {
@@ -97,6 +97,51 @@
 
 #modify-event-view .calendar-id,
 #modify-event-view .current-calendar {
+  clear: both;
+}
+
+#modify-event-view .repeat-until {
+  display: none;
+  -moz-box-sizing: border-box;
+  float: left;
+  width: 60%;
+  padding-right: 0.5rem;
+}
+
+#modify-event-view .repeat-until-header {
+  display: none;
+}
+
+#modify-event-view .repeat-until-date,
+#modify-event-view .repeat-number-of-events {
+  display: none;
+  float: left;
+  text-align: center;
+  width: calc(40% - 1px);
+}
+
+#modify-event-view .repeat-number-of-events > input {
+  float: left;
+  margin-right: 0.5rem;
+  width: 6rem;
+}
+
+#modify-event-view .repeat-number-of-events > span {
+  float: left;
+  font-size: 1.5rem;
+  height: 4rem;
+  line-height: 4rem;
+  width: calc(100% - 6.5rem);
+}
+
+#modify-event-view .repeat-until-header.active,
+#modify-event-view .repeat-until.active,
+#modify-event-view .repeat-until-date.active,
+#modify-event-view .repeat-number-of-events.active {
+  display: block;
+}
+
+#modify-event-view .remind-me {
   clear: both;
 }
 

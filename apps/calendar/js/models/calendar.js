@@ -73,7 +73,7 @@ Calendar.ns('Models').Calendar = (function() {
     updateRemote: function(provider) {
       var data = provider;
       if ('toJSON' in provider) {
-          data = provider.toJSON();
+        data = provider.toJSON();
       }
 
       this.remote = data;

@@ -2,16 +2,19 @@ Calendar.ns('Controllers').Sync = (function() {
   'use strict';
 
   /**
+   * Module dependencies
+   */
+  var Responder = Calendar.Responder,
+      isOnline = Calendar.isOnline;
+
+  /**
    * Private helper for choosing how to dispatch errors.
    * When given a callback the callback will be called otherwise the error
    * controller will be invoked.
    */
   function handleError(err, callback) {
-    if (callback) {
-      return callback(err);
-    }
-
     Calendar.App.errorController.dispatch(err);
+    return callback && callback(err);
   }
 
   /**
@@ -23,14 +26,13 @@ Calendar.ns('Controllers').Sync = (function() {
    * tell the stores when to sync.
    */
   function Sync(app) {
+    Responder.call(this);
     this.app = app;
     this.pending = 0;
-
-    Calendar.Responder.call(this);
   }
 
   Sync.prototype = {
-    __proto__: Calendar.Responder.prototype,
+    __proto__: Responder.prototype,
 
     startEvent: 'syncStart',
     completeEvent: 'syncComplete',
@@ -69,7 +71,7 @@ Calendar.ns('Controllers').Sync = (function() {
         this.once('syncComplete', callback);
       }
 
-      if (this.app.offline()) {
+      if (!isOnline()) {
         this.emit('offline');
         this.emit('syncComplete');
         return;

@@ -1,16 +1,16 @@
 Calendar.ns('Store').IcalComponent = (function() {
   'use strict';
 
-  function IcalComponent() {
-    Calendar.Store.Abstract.apply(this, arguments);
+  var Abstract = Calendar.Store.Abstract,
+      denodeifyAll = Calendar.Promise.denodeifyAll;
 
-    Calendar.Promise.denodeifyAll(this, [
-      'findRecurrences'
-    ]);
+  function IcalComponent() {
+    Abstract.apply(this, arguments);
+    denodeifyAll(this, [ 'findRecurrencesBefore' ]);
   }
 
   IcalComponent.prototype = {
-    __proto__: Calendar.Store.Abstract.prototype,
+    __proto__: Abstract.prototype,
 
     _store: 'icalComponents',
 
@@ -41,10 +41,7 @@ Calendar.ns('Store').IcalComponent = (function() {
         callback(event.target.error.name);
       };
 
-      var time = Calendar.Calc.dateToTransport(
-        maxDate
-      );
-
+      var time = Calendar.Calc.dateToTransport(maxDate);
       var utc = time.utc;
       var range = IDBKeyRange.bound(0, utc);
       var store = trans.objectStore(this._store);
@@ -53,6 +50,7 @@ Calendar.ns('Store').IcalComponent = (function() {
       var req = idx.mozGetAll(range);
 
       req.onsuccess = function(event) {
+        console.log(event.target.result);
         callback(null, event.target.result);
       };
     }
@@ -60,4 +58,3 @@ Calendar.ns('Store').IcalComponent = (function() {
 
   return IcalComponent;
 }());
-

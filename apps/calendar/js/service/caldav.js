@@ -1,3 +1,4 @@
+/* global uuid */
 Calendar.ns('Service').Caldav = (function() {
   'use strict';
 
@@ -103,7 +104,6 @@ Calendar.ns('Service').Caldav = (function() {
       var Resource = Caldav.Resources.Calendar;
 
       var req = new Finder(connection, { url: url });
-
       req.addResource('calendar', Resource);
       req.prop(['ical', 'calendar-color']);
       req.prop(['caldav', 'calendar-description']);
@@ -111,7 +111,6 @@ Calendar.ns('Service').Caldav = (function() {
       req.prop('displayname');
       req.prop('resourcetype');
       req.prop(['calserver', 'getctag']);
-
       return req;
     },
 
@@ -839,14 +838,19 @@ Calendar.ns('Service').Caldav = (function() {
       return new Caldav.Request.Asset(connection, url);
     },
 
-    deleteEvent: function(account, calendar, event, callback) {
+    deleteEvent: function(account, calendar, event, options, callback) {
+      if (typeof options === 'function') {
+        callback = options;
+        options = {};
+      }
+
+      if ('sync' in options && !options.sync) {
+        return callback(null);
+      }
+
       var connection = this._createConnection(account);
-
       var req = this._assetRequest(connection, event.url);
-
-      req.delete({}, function(err) {
-        callback(err);
-      });
+      req.delete({}, callback);
     },
 
     addAlarms: function(component, alarms, account) {
@@ -914,8 +918,12 @@ Calendar.ns('Service').Caldav = (function() {
       return account && account.domain === 'https://caldav.calendar.yahoo.com';
     },
 
-    createEvent: function(account, calendar, event, callback) {
-      var connection = this._createConnection(account);
+    createEvent: function(account, calendar, event, options, callback) {
+      if (typeof options === 'function') {
+        callback = options;
+        options = {};
+      }
+
       var vcalendar = new ICAL.Component('vcalendar');
       var icalEvent = new ICAL.Event();
 
@@ -924,7 +932,7 @@ Calendar.ns('Service').Caldav = (function() {
       vcalendar.addPropertyWithValue('version', this.icalVersion);
 
       // text fields
-      icalEvent.uid = uuid();
+      icalEvent.uid = event.id || uuid();
       icalEvent.summary = event.title;
       icalEvent.description = event.description;
       icalEvent.location = event.location;
@@ -934,18 +942,35 @@ Calendar.ns('Service').Caldav = (function() {
       icalEvent.startDate = this.formatInputTime(event.start);
       icalEvent.endDate = this.formatInputTime(event.end);
 
+      if ('freq' in event && event.freq !== 'never') {
+        var rrule = ['FREQ=' + event.freq.toUpperCase()];
+        if ('until' in event) {
+          rrule.push('UNTIL=' + this.formatInputTime(event.until));
+        } else if ('count' in event) {
+          rrule.push('COUNT=' + event.count);
+        }
+
+        var value = rrule.join(';');
+        debug('Serialized RRULE: ', value);
+        icalEvent._setProp('rrule', rrule.join(';'));
+      }
+
       // alarms
       this.addAlarms(icalEvent.component, event.alarms, account);
 
       vcalendar.addSubcomponent(icalEvent.component);
 
-      var url = calendar.url + icalEvent.uid + '.ics';
-      var req = this._assetRequest(connection, url);
-
       event.id = icalEvent.uid;
-      event.url = url;
       event.icalComponent = vcalendar.toString();
 
+      if ('sync' in options && !options.sync) {
+        return callback(null, event);
+      }
+
+      var url = calendar.url + icalEvent.uid + '.ics';
+      event.url = url;
+      var connection = this._createConnection(account);
+      var req = this._assetRequest(connection, url);
       req.put({}, event.icalComponent, function(err, data, xhr) {
         if (err) {
           callback(err);
@@ -957,7 +982,6 @@ Calendar.ns('Service').Caldav = (function() {
         // TODO: error handling
         callback(err, event);
       });
-
     },
 
     /**
@@ -969,14 +993,16 @@ Calendar.ns('Service').Caldav = (function() {
      * @param {Object} eventDetails details to update the event.
      *  unmodified parsed ical component. (VCALENDAR).
      */
-    updateEvent: function(account, calendar, eventDetails, callback) {
-      var connection = this._createConnection(account);
+    updateEvent: function(account, calendar, eventDetails, options, callback) {
+      if (typeof options === 'function') {
+        callback = options;
+        options = {};
+      }
 
       var icalComponent = eventDetails.icalComponent;
       var event = eventDetails.event;
 
       var self = this;
-      var req = this._assetRequest(connection, event.url);
 
       // parse event
       this.parseEvent(icalComponent, function(err, icalEvent) {
@@ -1040,6 +1066,12 @@ Calendar.ns('Service').Caldav = (function() {
         var vcal = target.component.parent.toString();
         event.icalComponent = vcal;
 
+        if ('sync' in options && !options.sync) {
+          return callback(null, event);
+        }
+
+        var connection = this._createConnection(account);
+        var req = this._assetRequest(connection, event.url);
         req.put({}, vcal, function(err, data, xhr) {
           if (err) {
             callback(err);
