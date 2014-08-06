@@ -1723,8 +1723,10 @@ function showKeyboard() {
 
 // Hide keyboard
 function hideKeyboard() {
-  if (!isKeyboardRendered)
+  if (!isKeyboardRendered) {
+    clearTouchedKeys();
     return;
+  }
 
   clearTimeout(hideKeyboardTimeout);
 
