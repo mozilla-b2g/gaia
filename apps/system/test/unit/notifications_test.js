@@ -38,6 +38,7 @@ suite('system/NotificationScreen >', function() {
   var fakeNotifContainer, fakeLockScreenContainer, fakeToaster,
     fakeButton, fakeNoNotifications, fakeToasterIcon, fakeToasterTitle,
     fakeToasterDetail, fakeSomeNotifications;
+  var fakeImportantNotifContainer, fakeOtherNotifContainer;
 
   function sendChromeNotificationEvent(detail) {
     var event = new CustomEvent('mozChromeNotificationEvent', {
@@ -51,9 +52,16 @@ suite('system/NotificationScreen >', function() {
   setup(function() {
     fakeNotifContainer = document.createElement('div');
     fakeNotifContainer.id = 'desktop-notifications-container';
+    fakeImportantNotifContainer = document.createElement('div');
+    fakeImportantNotifContainer.className = 'important-notifications';
+    fakeOtherNotifContainer = document.createElement('div');
+    fakeOtherNotifContainer.className = 'other-notifications';
+    fakeNotifContainer.appendChild(fakeImportantNotifContainer);
+    fakeNotifContainer.appendChild(fakeOtherNotifContainer);
+
     // add some children, we don't care what they are
-    fakeNotifContainer.appendChild(document.createElement('div'));
-    fakeNotifContainer.appendChild(document.createElement('div'));
+    fakeOtherNotifContainer.appendChild(document.createElement('div'));
+    fakeOtherNotifContainer.appendChild(document.createElement('div'));
 
     function createFakeElement(tag, id) {
       var obj = document.createElement(tag);
@@ -286,6 +294,28 @@ suite('system/NotificationScreen >', function() {
       assert.ok(fakeToaster.classList.contains('displayed'));
     });
 
+    test('notifications are added in the right place', function() {
+      var title = 'hello world';
+      var text = 'how are you';
+      NotificationScreen.addNotification({
+        id: 'id-10000',
+        title: title,
+        text: text,
+        manifestURL: 'app://sms.gaiamobile.org/manifest.webapp'
+      });
+
+      assert.equal(fakeOtherNotifContainer.childElementCount, 3);
+      var newContent = fakeOtherNotifContainer.firstElementChild.textContent;
+      assert.isTrue(
+        newContent.indexOf(title) !== -1,
+        'The title is in the notification'
+      );
+      assert.isTrue(
+        newContent.indexOf(text) !== -1,
+        'The message is in the notification'
+      );
+    });
+
     test('does not notify for the network-alerts application', function() {
       this.sinon.stub(navigator, 'vibrate');
 
@@ -299,6 +329,29 @@ suite('system/NotificationScreen >', function() {
       assert.lengthOf(MockAudio.instances, 0);
       sinon.assert.notCalled(navigator.vibrate);
       assert.isFalse(fakeToaster.classList.contains('displayed'));
+    });
+
+    test('notifications for important applications are added in right place',
+    function() {
+      var title = 'hello world';
+      var text = 'how are you';
+      NotificationScreen.addNotification({
+        id: 'id-10000',
+        title: title,
+        text: text,
+        manifestURL: 'app://network-alerts.gaiamobile.org/manifest.webapp'
+      });
+
+      assert.equal(fakeImportantNotifContainer.childElementCount, 1);
+      var content = fakeImportantNotifContainer.firstElementChild.textContent;
+      assert.isTrue(
+        content.indexOf(title) !== -1,
+        'The title is in the notification'
+      );
+      assert.isTrue(
+        content.indexOf(text) !== -1,
+        'The message is in the notification'
+      );
     });
   });
 
