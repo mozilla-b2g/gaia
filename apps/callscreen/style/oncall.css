@@ -904,7 +904,10 @@
 
   #call-screen[data-layout="dialing"] #callbar-hang-up > .callbar-inner-button,
   #call-screen[data-layout="connected"] #callbar-hang-up > .callbar-inner-button {
-    margin: 1rem 1.5rem 1rem 1.5rem;
+    margin: 0rem auto 1rem auto;
+    width: 17.2rem;
+    height: 5rem;
+    border-radius: 3rem;
   }
 
   #call-screen[data-layout="incoming"] #co-advanced,
