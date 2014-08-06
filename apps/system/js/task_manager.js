@@ -810,7 +810,7 @@
     // threshold.  This constant should be a truemm/mozmm value, but
     // it's hard for us to evaluate that here.
     this.swipeUpThreshold = 100;
-    this.switchingCardThreshold = 30;
+    this.switchingCardThreshold = this.windowWidth / 2;
 
     this.deltaX = 0;
 
