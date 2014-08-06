@@ -74,7 +74,7 @@ window.systemTones = (function() {
     return _getSetting(settingKey).then(function(id) {
       // XXX: Eventually, maybe we should allow things other than "built-in"
       // tones to be the factory default (e.g. the null ringtone).
-      return window.builtInRingtones.get(toneType, id);
+      return window.builtInRingtones.get(id);
     });
   }
 

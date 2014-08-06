@@ -550,6 +550,13 @@ section ul.operate-certificate {
   border-bottom: none;
 }
 
+/******************************************************************************
+ * Sound settings
+ */
+
+#manage-tones-button {
+  padding-left: 3rem;
+}
 
 /******************************************************************************
  * Volume & Brightness: min/max icons

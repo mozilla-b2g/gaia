@@ -5,6 +5,7 @@
 var Ringtones = require('./lib/ringtones');
 var Settings = require('../../../settings/test/marionette/app/app');
 var assert = require('assert');
+var sd_card = require('./lib/sd_card');
 
 function assert_sorted(array, message) {
   if (array.length === 0) {
@@ -20,7 +21,13 @@ function assert_sorted(array, message) {
 
 marionette('Ringtone picker', function() {
 
-  var client = marionette.client();
+  var client = marionette.client({
+    prefs: {
+      'device.storage.enabled': true,
+      'device.storage.testing': true,
+      'device.storage.prompt.testing': true
+    }
+  });
   var settingsApp;
   var soundPanel;
   var app;
@@ -28,6 +35,8 @@ marionette('Ringtone picker', function() {
   setup(function() {
     settingsApp = new Settings(client);
     app = new Ringtones(client, settingsApp);
+
+    client.fileManager.removeAllFiles();
 
     client.contentScript.inject(__dirname +
       '/lib/mocks/mock_navigator_moz_telephony.js');
@@ -53,57 +62,46 @@ marionette('Ringtone picker', function() {
 
   suiteInfos.forEach(function(suiteInfo) {
     suite(suiteInfo.name, function() {
+      var otherType = suiteInfo.type === 'alerttone' ? 'ringtone' : 'alerttone';
 
       test('Load list of sounds', function() {
         app[suiteInfo.opener](soundPanel, function(container) {
           var soundLists = container.soundLists;
-          assert.equal(soundLists.length, 3,
-                       'Should have found 3 sound lists');
+          assert.equal(soundLists.length, 4,
+                       'Should have found 4 sound lists, found ' +
+                       soundLists.length);
 
-          assert.equal(soundLists[0].header.getAttribute('data-l10n-id'),
-                       'list-title-' + suiteInfo.type);
-          var otherType = suiteInfo.type === 'alerttone' ?
-                          'ringtone' : 'alerttone';
-          assert.equal(soundLists[1].header.getAttribute('data-l10n-id'),
-                       'list-title-custom');
-          assert.equal(soundLists[2].header.getAttribute('data-l10n-id'),
-                       'list-title-' + otherType);
+          var expectedInfo = [
+            {l10nID: 'list-title-builtin-' + suiteInfo.type, visible: true},
+            {l10nID: 'list-title-custom-' + suiteInfo.type, visible: false},
+            {l10nID: 'list-title-builtin-' + otherType, visible: true},
+            {l10nID: 'list-title-custom-' + otherType, visible: false}
+          ];
+          var getName = function(element) {
+            return element.name.toLocaleLowerCase();
+          };
+          for (var i = 0; i < soundLists.length; i++) {
+            // Check basic properties of each section.
+            assert.equal(soundLists[i].header.getAttribute('data-l10n-id'),
+                         expectedInfo[i].l10nID);
+            assert.equal(soundLists[i].sounds.length !== 0,
+                         expectedInfo[i].visible);
+            assert.equal(soundLists[i].displayed(), expectedInfo[i].visible);
 
-          assert.notEqual(soundLists[0].sounds.length, 0,
-                          'Built-in ' + suiteInfo.type +
-                          ' list should not be empty');
-          assert.equal(soundLists[1].sounds.length, 0,
-                       'Custom ringtone list should be empty');
-          assert.notEqual(soundLists[2].sounds.length, 0,
-                          'Built-in ' + otherType +
-                          ' list should not be empty');
+            // Check that the tones are in sorted order.
+            var names = soundLists[i].sounds.map(getName);
+            if (i === 0 && suiteInfo.allowNone) {
+              names.shift();
+            }
+            assert_sorted(names, 'Tones should be sorted by name');
+          }
 
-          assert.equal(soundLists[0].displayed(), true,
-                       'Built-in ' + suiteInfo.type +
-                       ' list should be displayed');
-          assert.equal(soundLists[1].displayed(), false,
-                       'Custom ringtone list should be hidden');
-          assert.equal(soundLists[2].displayed(), true,
-                       'Built-in ' + otherType +
-                       ' list should be displayed');
-
+          // Make sure the "None" ringtone is listed first, if appropriate.
           assert.equal(soundLists[0].sounds[0].name === 'None',
                        suiteInfo.allowNone,
                        '"None" ringtone should ' +
                        (suiteInfo.allowNone ? '' : 'not ') +
                        'be shown');
-
-          var getNames = function(element) {
-            return element.name.toLocaleLowerCase();
-          };
-          for (var i = 0; i < 2; i++) {
-            var names = soundLists[i].sounds.map(getNames);
-            if (i === 0 && suiteInfo.allowNone) {
-              names.shift();
-            }
-
-            assert_sorted(names, 'Tones should be sorted by name');
-          }
         });
       });
 
@@ -119,15 +117,50 @@ marionette('Ringtone picker', function() {
         });
 
         app[suiteInfo.opener](soundPanel, function(container) {
-          var customSounds = container.soundLists[1];
-          assert.equal(customSounds.sounds.length, 1,
-                       'Custom ringtone list should have one item');
-          assert.equal(customSounds.displayed(), true,
+          var index = suiteInfo.type === 'ringtone' ? 1 : 3;
+          var customRingtones = container.soundLists[index];
+          assert.equal(customRingtones.sounds.length, 1,
+                       'Custom ringtone list should have one item, found ' +
+                       customRingtones.sounds.length);
+          assert.equal(customRingtones.displayed(), true,
                        'Custom ringtone list should be displayed');
 
-          var myTone = customSounds.sounds[0];
+          var myTone = customRingtones.sounds[0];
           assert.equal(myTone.name, 'My ringtone');
           assert.equal(myTone.subtitle, 'Bob\'s Ringtones');
+        });
+      });
+
+      test('Load sd card sound', function() {
+        sd_card.injectTone(client, {
+          type: suiteInfo.type, filePath: 'test_media/samples/Music/b2g.ogg'
+        });
+        app[suiteInfo.opener](soundPanel, function(container) {
+          var customTones = container.soundLists[1];
+          assert.equal(
+            customTones.sounds.length, 1,
+            'Custom ' + suiteInfo.type + ' list should have one item, found ' +
+              customTones.sounds.length
+          );
+          assert.equal(
+            customTones.displayed(), true,
+            'Custom ' + suiteInfo.type + ' list should be displayed'
+          );
+
+          var customOtherTones = container.soundLists[3];
+          assert.equal(
+            customOtherTones.sounds.length, 0,
+            'Custom ' + otherType + ' list should have no items, found ' +
+              customOtherTones.sounds.length
+          );
+          assert.equal(
+            customOtherTones.displayed(), false,
+            'Custom ' + otherType + ' list should be hidden'
+          );
+
+          var myTone = customTones.sounds[0];
+          assert.equal(myTone.name, 'b2g');
+          assert.equal(myTone.subtitle, 'SD Card');
         });
       });
 
@@ -147,7 +180,7 @@ marionette('Ringtone picker', function() {
 
           toneName = tone.name;
           tone.select();
-          container.doneButton.tap();
+          container.setButton.tap();
         });
 
         var buttonText = soundPanel.getSelectedTone(suiteInfo.type);
