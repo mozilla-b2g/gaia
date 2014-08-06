@@ -15,7 +15,6 @@ build/post-manifest.js
 build/push-to-device.js
 build/settings.js
 build/test/integration/build.test.js
-build/utils.js
 apps/communications/contacts/oauth2/js/parameters.js
 apps/calendar/js/presets.js
 apps/email/js/alameda.js
