@@ -105,9 +105,11 @@
      */
     mergeAndKeepCustomApnSettings:
       function ovh_mergeApnSettings(apns, defaultApns) {
-        var existingCustomApns = apns.filter(function(apn) {
-          return (apn.carrier === '_custom_');
-        });
+        // apns might be undefined, do filtering only if it's an Array
+        var existingCustomApns = !Array.isArray(apns) ? [] :
+          apns.filter(function(apn) {
+            return (apn.carrier === '_custom_');
+          });
 
         // Find the apn types of the custom apns.
         var typesOfCustomApn = new Set();
