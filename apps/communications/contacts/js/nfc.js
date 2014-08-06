@@ -32,7 +32,7 @@ contacts.NFC = (function() {
   };
 
   var handlePeerReady = function(event) {
-    mozNfcPeer = event.peer;
+    mozNfcPeer = mozNfc.getNFCPeer(event.detail);
     LazyLoader.load([
       '/shared/js/contact2vcard.js',
       '/shared/js/setImmediate.js',

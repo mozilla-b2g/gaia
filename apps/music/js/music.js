@@ -604,7 +604,7 @@ var ModeManager = {
       // Assign the sharing function to onpeerready so that it will trigger
       // the shrinking ui to share the playing file.
       navigator.mozNfc.onpeerready = function(event) {
-        var peer = event.peer;
+        var peer = navigator.mozNfc.getNFCPeer(event.detail);
         if (peer)
           peer.sendFile(PlayerView.playingBlob);
       };
