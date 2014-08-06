@@ -5,7 +5,7 @@ Calendar.ns('Store').IcalComponent = (function() {
     Calendar.Store.Abstract.apply(this, arguments);
 
     Calendar.Promise.denodeifyAll(this, [
-      'findRecurrences'
+      'findRecurrencesBefore'
     ]);
   }
 
