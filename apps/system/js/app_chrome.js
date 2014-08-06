@@ -5,8 +5,6 @@
 (function(exports) {
   var _id = 0;
   var _ = navigator.mozL10n.get;
-  var BUTTONBAR_TIMEOUT = 5000;
-  var BUTTONBAR_INITIAL_OPEN_TIMEOUT = 1500;
 
   /**
    * The chrome UI of the AppWindow.
@@ -38,11 +36,7 @@
       return;
     }
 
-    if (chrome.navigation) {
-      this.app.element.classList.add('navigation');
-    }
-
-    if (chrome.bar && !chrome.navigation) {
+    if (chrome.bar) {
       this.app.element.classList.add('bar');
       this.bar.classList.add('visible');
     }
@@ -99,21 +93,6 @@
                 '<h1 class="title"></h1>' +
               '</header>' +
             '</section>' +
-            '<footer class="navigation closed visible">' +
-              '<div class="handler"></div>' +
-              '<menu type="buttonbar">' +
-                '<button type="button" class="back-button"' +
-                ' alt="Back" data-disabled="disabled"></button>' +
-                '<button type="button" class="forward-button"' +
-                ' alt="Forward" data-disabled="disabled"></button>' +
-                '<button type="button" class="reload-button"' +
-                ' alt="Reload"></button>' +
-                '<button type="button" class="bookmark-button"' +
-                ' alt="Bookmark" data-disabled="disabled"></button>' +
-                '<button type="button" class="close-button"' +
-                ' alt="Close"></button>' +
-              '</menu>' +
-            '</footer>' +
           '</div>';
   };
 
@@ -132,27 +111,31 @@
 
   AppChrome.prototype._fetchElements = function ac__fetchElements() {
     this.element = this.containerElement.querySelector('.chrome');
-    this.navigation = this.element.querySelector('.navigation');
-    this.bar = this.element.querySelector('.bar');
-
-    // We're appending new elements to DOM so to make sure headers are
-    // properly resized and centered, we emmit a lazyload event.
-    // This will be removed when the gaia-header web component lands.
-    window.dispatchEvent(new CustomEvent('lazyload', {
-      detail: this.bar
-    }));
 
     this.progress = this.element.querySelector('.progress');
-    this.openButton = this.element.querySelector('.handler');
-    this.bookmarkButton = this.element.querySelector('.bookmark-button');
     this.reloadButton = this.element.querySelector('.reload-button');
     this.forwardButton = this.element.querySelector('.forward-button');
     this.stopButton = this.element.querySelector('.stop-button');
     this.backButton = this.element.querySelector('.back-button');
     this.menuButton = this.element.querySelector('.menu-button');
-    this.closeButton = this.element.querySelector('.close-button');
-    this.killButton = this.element.querySelector('.kill');
     this.title = this.element.querySelector('.title');
+
+    var dataset = this.app.config;
+    if (dataset.originURL || dataset.searchURL) {
+      delete this.menuButton.dataset.disabled;
+    }
+
+    this.bar = this.element.querySelector('.bar');
+    if (this.bar) {
+      this.killButton = this.element.querySelector('.kill');
+
+      // We're appending new elements to DOM so to make sure headers are
+      // properly resized and centered, we emmit a lazyload event.
+      // This will be removed when the gaia-header web component lands.
+      window.dispatchEvent(new CustomEvent('lazyload', {
+        detail: this.bar
+      }));
+    }
   };
 
   AppChrome.prototype.handleEvent = function ac_handleEvent(evt) {
@@ -197,34 +180,6 @@
         this.handleMetaChange(evt);
         break;
 
-      case '_opened':
-        this.handleOpened(evt);
-        break;
-
-      case '_closing':
-        this.handleClosing(evt);
-        break;
-
-      case '_withkeyboard':
-        if (this.app && this.app.isActive()) {
-          this.hide(this.navigation);
-        }
-        break;
-
-      case '_withoutkeyboard':
-        if (this.app) {
-          this.show(this.navigation);
-        }
-        break;
-
-      case '_homegesture-enabled':
-        this.holdNavigation();
-        break;
-
-      case '_homegesture-disabled':
-        this.releaseNavigation();
-        break;
-
       case '_namechanged':
         this.handleNameChanged(evt);
         break;
@@ -241,18 +196,7 @@
 
   AppChrome.prototype.handleClickEvent = function ac_handleClickEvent(evt) {
     switch (evt.target) {
-      case this.openButton:
-        if (this.closingTimer) {
-          window.clearTimeout(this.closingTimer);
-        }
-        this.navigation.classList.remove('closed');
-        this.closingTimer = setTimeout(function() {
-          this.navigation.classList.add('closed');
-        }.bind(this), BUTTONBAR_TIMEOUT);
-        break;
-
       case this.reloadButton:
-        this.clearButtonBarTimeout();
         this.app.reload();
         break;
 
@@ -261,28 +205,15 @@
         break;
 
       case this.backButton:
-        this.clearButtonBarTimeout();
         this.app.back();
         break;
 
       case this.forwardButton:
-        this.clearButtonBarTimeout();
         this.app.forward();
-        break;
-
-      case this.bookmarkButton:
-        this.onAddBookmark();
         break;
 
       case this.killButton:
         this.app.kill();
-        break;
-
-      case this.closeButton:
-        if (this.closingTimer) {
-          window.clearTimeout(this.closingTimer);
-        }
-        this.navigation.classList.add('closed');
         break;
 
       case this.title:
@@ -320,35 +251,17 @@
   };
 
   AppChrome.prototype._registerEvents = function ac__registerEvents() {
-    if (this.openButton) {
-      this.openButton.addEventListener('click', this);
-    }
-
-    if (this.closeButton) {
-      this.closeButton.addEventListener('click', this);
-    }
-
-    if (this.killButton) {
+    if (this.useCombinedChrome()) {
+      this.stopButton.addEventListener('click', this);
+      this.reloadButton.addEventListener('click', this);
+      this.backButton.addEventListener('click', this);
+      this.forwardButton.addEventListener('click', this);
+      this.title.addEventListener('click', this);
+      this.scrollable.addEventListener('scroll', this);
+      this.menuButton.addEventListener('click', this);
+    } else {
       this.killButton.addEventListener('click', this);
     }
-
-    if (this.bookmarkButton) {
-      this.bookmarkButton.addEventListener('click', this);
-    }
-
-    if (this.stopButton) {
-      this.stopButton.addEventListener('click', this);
-    }
-
-    if (this.menuButton) {
-      this.menuButton.addEventListener('click', this);
-    }
-
-    this.reloadButton.addEventListener('click', this);
-    this.backButton.addEventListener('click', this);
-    this.forwardButton.addEventListener('click', this);
-    this.title.addEventListener('click', this);
-    this.scrollable.addEventListener('scroll', this);
 
     this.app.element.addEventListener('mozbrowserloadstart', this);
     this.app.element.addEventListener('mozbrowserloadend', this);
@@ -358,56 +271,32 @@
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
     this.app.element.addEventListener('_namechanged', this);
-    this.app.element.addEventListener('_opened', this);
-    if (!this.useCombinedChrome()) {
-      this.app.element.addEventListener('_closing', this);
-      this.app.element.addEventListener('_withkeyboard', this);
-      this.app.element.addEventListener('_withoutkeyboard', this);
-      this.app.element.addEventListener('_homegesture-enabled', this);
-      this.app.element.addEventListener('_homegesture-disabled', this);
-    }
   };
 
   AppChrome.prototype._unregisterEvents = function ac__unregisterEvents() {
-    if (this.openButton) {
-      this.openButton.removeEventListener('click', this);
-    }
 
-    if (this.closeButton) {
-      this.closeButton.removeEventListener('click', this);
-    }
+    if (this.useCombinedChrome()) {
+      this.stopButton.removeEventListener('click', this);
+      this.menuButton.removeEventListener('click', this);
+      this.reloadButton.removeEventListener('click', this);
+      this.backButton.removeEventListener('click', this);
+      this.forwardButton.removeEventListener('click', this);
+      this.title.removeEventListener('click', this);
+      this.scrollable.removeEventListener('scroll', this);
 
-    if (this.killButton) {
+      if (this._overflowMenu) {
+        this._overflowMenu.removeEventListener('click', this);
+        this._overflowMenu.removeEventListener('animationend', this);
+        this._overflowMenu.removeEventListener('transitionend', this);
+      }
+
+      if (this.addToHomeButton) {
+        this.addToHomeButton.removeEventListener('click', this);
+      }
+    } else {
       this.killButton.removeEventListener('click', this);
     }
 
-    if (this.bookmarkButton) {
-      this.bookmarkButton.removeEventListener('click', this);
-    }
-
-    if (this.stopButton) {
-      this.stopButton.removeEventListener('click', this);
-    }
-
-    if (this.menuButton) {
-      this.menuButton.removeEventListener('click', this);
-    }
-
-    if (this._overflowMenu) {
-      this._overflowMenu.removeEventListener('click', this);
-      this._overflowMenu.removeEventListener('animationend', this);
-      this._overflowMenu.removeEventListener('transitionend', this);
-    }
-
-    if (this.addToHomeButton) {
-      this.addToHomeButton.removeEventListener('click', this);
-    }
-
-    this.reloadButton.removeEventListener('click', this);
-    this.backButton.removeEventListener('click', this);
-    this.forwardButton.removeEventListener('click', this);
-    this.title.removeEventListener('click', this);
-    this.scrollable.removeEventListener('scroll', this);
 
     if (!this.app) {
       return;
@@ -421,40 +310,7 @@
     this.app.element.removeEventListener('_loading', this);
     this.app.element.removeEventListener('_loaded', this);
     this.app.element.removeEventListener('_namechanged', this);
-    this.app.element.removeEventListener('_opened', this);
-    if (!this.useCombinedChrome()) {
-      this.app.element.removeEventListener('_closing', this);
-      this.app.element.removeEventListener('_withkeyboard', this);
-      this.app.element.removeEventListener('_withoutkeyboard', this);
-      this.app.element.removeEventListener('_homegesture-enabled', this);
-      this.app.element.removeEventListener('_homegesture-disabled', this);
-    }
     this.app = null;
-  };
-
-  /**
-   * Force the navigation to stay opened,
-   * because we don't want to conflict with home gesture.
-   */
-  AppChrome.prototype.holdNavigation = function ac_holdNavigation() {
-    if (this.closeButton.style.visibility !== 'hidden') {
-      this.closeButton.style.visibility = 'hidden';
-    }
-    if (this.navigation.classList.contains('closed')) {
-      this.navigation.classList.remove('closed');
-    }
-  };
-
-  /**
-   * Release the navigation opened state.
-   */
-  AppChrome.prototype.releaseNavigation = function ac_releaseNavigation() {
-    if (this.closeButton.style.visibility !== 'visible') {
-      this.closeButton.style.visibility = 'visible';
-    }
-    if (!this.navigation.classList.contains('closed')) {
-      this.navigation.classList.add('closed');
-    }
   };
 
   // Name has priority over the rest
@@ -472,64 +328,6 @@
       this._recentTitle = false;
     }).bind(this), this.FRESH_TITLE);
   };
-
-  AppChrome.prototype.isButtonBarDisplayed = false;
-
-  AppChrome.prototype.toggleButtonBar = function ac_toggleButtonBar(time) {
-    clearTimeout(this.buttonBarTimeout);
-    if (!window.homeGesture.enabled) {
-      this.navigation.classList.toggle('closed');
-    }
-    this.isButtonBarDisplayed = !this.isButtonBarDisplayed;
-    if (this.isButtonBarDisplayed) {
-      this.buttonBarTimeout = setTimeout(this.toggleButtonBar.bind(this),
-        time || BUTTONBAR_TIMEOUT);
-    }
-  };
-
-  AppChrome.prototype.clearButtonBarTimeout =
-    function ac_clearButtonBarTimeout() {
-      if (!this.navigation) {
-        return;
-      }
-
-      clearTimeout(this.buttonBarTimeout);
-      this.buttonBarTimeout =
-        setTimeout(this.toggleButtonBar.bind(this), BUTTONBAR_TIMEOUT);
-    };
-
-  AppChrome.prototype.handleClosing = function ac_handleClosing() {
-    clearTimeout(this.buttonBarTimeout);
-    if (!window.homeGesture.enabled) {
-      this.navigation.classList.add('closed');
-    }
-    this.isButtonBarDisplayed = false;
-  };
-
-  AppChrome.prototype.handleOpened =
-    function ac_handleOpened() {
-      if (this.navigation) {
-        this.toggleButtonBar(BUTTONBAR_INITIAL_OPEN_TIMEOUT);
-      }
-
-      var dataset = this.app.config;
-      if (dataset.originURL || dataset.searchURL) {
-        if (this.bookmarkButton) {
-          delete this.bookmarkButton.dataset.disabled;
-        }
-        if (this.menuButton) {
-          delete this.menuButton.dataset.disabled;
-        }
-        return;
-      }
-
-      if (this.bookmarkButton) {
-        this.bookmarkButton.dataset.disabled = true;
-      }
-      if (this.menuButton) {
-        this.menuButton.dataset.disabled = true;
-      }
-    };
 
   AppChrome.prototype.handleTitleChanged = function(evt) {
     if (this._gotName) {
@@ -600,12 +398,7 @@
   };
 
   AppChrome.prototype.useCombinedChrome = function ac_useCombinedChrome(evt) {
-    var chrome = this.app.config.chrome;
-    if (!chrome) {
-      return;
-    }
-
-    return chrome.scrollable || (chrome.navigation && chrome.bar);
+    return this.app.config.chrome && !this.app.config.chrome.bar;
   };
 
   AppChrome.prototype._updateLocation =
@@ -628,21 +421,23 @@
                  this.LOCATION_COALESCE);
       this._currentURL = evt.detail;
 
-      this.app.canGoForward(function forwardSuccess(result) {
-        if (result === true) {
-          delete this.forwardButton.dataset.disabled;
-        } else {
-          this.forwardButton.dataset.disabled = true;
-        }
-      }.bind(this));
+      if (this.backButton && this.forwardButton) {
+        this.app.canGoForward(function forwardSuccess(result) {
+          if (result === true) {
+            delete this.forwardButton.dataset.disabled;
+          } else {
+            this.forwardButton.dataset.disabled = true;
+          }
+        }.bind(this));
 
-      this.app.canGoBack(function backSuccess(result) {
-        if (result === true) {
-          delete this.backButton.dataset.disabled;
-        } else {
-          this.backButton.dataset.disabled = true;
-        }
-      }.bind(this));
+        this.app.canGoBack(function backSuccess(result) {
+          if (result === true) {
+            delete this.backButton.dataset.disabled;
+          } else {
+            this.backButton.dataset.disabled = true;
+          }
+        }.bind(this));
+      }
     };
 
   AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
@@ -722,23 +517,12 @@
 
       if (!dataset.originURL &&
           !dataset.searchURL) {
-        if (this.menuButton) {
-          this.menuButton.dataset.disabled = true;
-        }
-        if (this.bookmarkButton) {
-          this.bookmarkButton.dataset.disabled = true;
-        }
+        this.menuButton.dataset.disabled = true;
       }
     }.bind(this);
   };
 
   AppChrome.prototype.onAddBookmark = function ac_onAddBookmark() {
-    if (this.bookmarkButton.dataset.disabled) {
-      return;
-    }
-
-    this.clearButtonBarTimeout();
-
     var self = this;
     function selected(value) {
       if (value) {

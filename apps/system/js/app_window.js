@@ -108,11 +108,11 @@
 
     if (!this.config.chrome) {
       this.config.chrome = {
-        navigation: true,
-        bar: true,
         scrollable: this.isBrowser()
       };
     } else if (this.config.chrome.navigation) {
+      // This is for backward compatibility with application that
+      // requests the |navigation| flag in their manifest.
       this.config.chrome.scrollable = true;
     }
 
