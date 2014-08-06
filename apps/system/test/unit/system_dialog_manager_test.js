@@ -17,6 +17,19 @@ suite('system/SystemDialogManager', function() {
       optionsFake = {
         onShow: function() {},
         onHide: function() {}
+      }, mozChromeEventFake = {
+        type: 'mozChromeEvent',
+        stopImmediatePropagation: function() {},
+        detail: {
+          type: 'inputmethod-contextchange',
+          inputType: 'date'
+        }
+      }, invalidMozChromeEventFake = {
+        type: 'mozChromeEvent',
+        detail: {
+          type: 'inputmethod-contextchange',
+          inputType: 'text'
+        }
       };
 
   setup(function() {
@@ -153,6 +166,30 @@ suite('system/SystemDialogManager', function() {
       assert.isTrue(isContainDialog,
         'the "dialog" was not in screen stylesheet after activated a dialog');
       stubOnHide.restore();
+    });
+
+    test('invalid mozChromeEvent', function() {
+      var stubBroadcast = this.sinon.stub(dialogFake, 'broadcast');
+      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+        detail: dialogFake});
+      window.systemDialogManager.handleEvent({type: 'system-dialog-show',
+        detail: dialogFake});
+      window.systemDialogManager.handleEvent(invalidMozChromeEventFake);
+      assert.isFalse(stubBroadcast.called, 'broadcast was not called for an ' +
+        'active dialog');
+    });
+
+    test('valid mozChromeEvent', function() {
+      var stubBroadcast = this.sinon.stub(dialogFake, 'broadcast');
+      window.systemDialogManager.handleEvent({type: 'system-dialog-created',
+        detail: dialogFake});
+      window.systemDialogManager.handleEvent({type: 'system-dialog-show',
+        detail: dialogFake});
+      window.systemDialogManager.handleEvent(mozChromeEventFake);
+      assert.isTrue(stubBroadcast.called, 'broadcast was called for an ' +
+        'active dialog');
+      assert.isTrue(stubBroadcast.calledWith('inputmethod-contextchange',
+        mozChromeEventFake.detail), 'broadcast arguments are correct');
     });
   });
 });

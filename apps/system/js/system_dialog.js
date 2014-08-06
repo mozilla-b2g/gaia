@@ -62,6 +62,65 @@
   };
 
   /**
+   * System dialog's subcomponents.
+   * @type {Object}
+   */
+  SystemDialog.prototype.SUB_COMPONENTS = {
+    'valueSelector': window.ValueSelector
+  };
+
+  /**
+   * Install sub components belonging to the System Dialog.
+   * The necessary components are based on
+   * SystemDialog.prototype.SUB_COMPONENTS.
+   */
+  SystemDialog.prototype.installSubComponents =
+    function sd_installSubComponents() {
+      this.debug('installing sub components...');
+      for (var componentName in this.SUB_COMPONENTS) {
+        if (this.SUB_COMPONENTS[componentName]) {
+          this[componentName] = new this.SUB_COMPONENTS[componentName](this);
+        }
+      }
+    };
+
+  /**
+   * Uninstall sub components belonging to the System Dialog.
+   */
+  SystemDialog.prototype.uninstallSubComponents =
+    function sd_uninstallSubComponents() {
+      for (var componentName in this.SUB_COMPONENTS) {
+        if (this[componentName]) {
+          this[componentName].destroy();
+          this[componentName] = null;
+        }
+      }
+    };
+
+  /**
+   * Set aria-hidden attribute on browser's element (if available) to handle its
+   * screen reader visibility.
+   * @type {Boolean} visible A flag indicating if the element should be screen
+   * reader visible.
+   */
+  SystemDialog.prototype._setVisibleForScreenReader =
+    function sd__setVisibleForScreenReader(visible) {
+      if (this.browser && this.browser.element) {
+        this.debug('aria-hidden on browser element:' + !visible);
+        this.browser.element.setAttribute('aria-hidden', !visible);
+      }
+    };
+
+  /**
+   * Focus on browser's element (if available).
+   */
+  SystemDialog.prototype.focus = function sd_focus() {
+    if (this.browser && this.browser.element) {
+      this.browser.element.focus();
+    }
+  };
+
+  /**
    * System Dialog html view
    * Override me. It's able to customize your layout.
    *
@@ -82,6 +141,22 @@
     this._fetchElements();
     this._registerEvents();
     this.element = document.getElementById(this.instanceID);
+    this.installSubComponents();
+  };
+
+  /**
+   * Operations when destroying a system dialog inlcude unregistering events and
+   * uninstalling sub components.
+   */
+  SystemDialog.prototype.destroy = function sd_destroy() {
+    this.publish('willdestroy');
+    this._unregisterEvents();
+    this.uninstallSubComponents();
+    if (this.element) {
+      this.element.parentNode.removeChild(this.element);
+      this.element = null;
+    }
+    this.publish('destroyed');
   };
 
   /**
@@ -111,6 +186,7 @@
    * Publish 'show' event for activate the dialog
    */
   SystemDialog.prototype.show = function sd_show() {
+    this.publish('opening');
     this.element.hidden = false;
     this.element.classList.add(this.customID);
     this.onShow();
@@ -125,6 +201,7 @@
    * @param  {boolean} isManagerRequest True: The caller is SystemDialogManager.
    */
   SystemDialog.prototype.hide = function sd_hide(reason, isManagerRequest) {
+    this.publish('closing');
     // The 'reason' is coming from the dialog controller or SystemDialogManager.
     // After the dialog is hidden, pass the reason to its controller via onHide.
     this.element.hidden = true;

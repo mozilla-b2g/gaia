@@ -35,8 +35,6 @@
 
   ValueSelector.prototype.CLASS_NAME = 'ValueSelector';
 
-  ValueSelector.prototype.EVENT_PREFIX = 'value-selector-';
-
   ValueSelector.prototype.ELEMENT_PREFIX = 'value-selector-';
 
   ValueSelector.prototype.customID = function vs_customID() {
@@ -176,8 +174,6 @@
       return;
     }
 
-    this.publish('showing');
-
     var min = detail.min;
     var max = detail.max;
 
@@ -226,7 +222,6 @@
     if (this.element.hidden) {
       return;
     }
-    this.publish('hiding');
     this.element.blur();
     this.element.hidden = true;
     if (this.app) {

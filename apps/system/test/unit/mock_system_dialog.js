@@ -10,8 +10,9 @@
     var dialogFake = document.createElement('div');
     dialogFake.setAttribute('id', 'fake-dialog');
     this.element = dialogFake;
-    this.containerElement = document.createElement('div');
   };
+
+  MockSystemDialog.prototype.SUB_COMPONENTS = {};
 
   MockSystemDialog.prototype.show = function msd_show(reason) {
     this.onShow(reason);
@@ -33,6 +34,7 @@
     }
   };
 
+  MockSystemDialog.prototype.broadcast =
   MockSystemDialog.prototype.resize =
   MockSystemDialog.prototype.updateHeight =
   function() {};
