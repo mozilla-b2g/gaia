@@ -293,11 +293,6 @@ HomescreenAppBuilder.prototype.customizeHomescreen = function() {
     , this)
   };
 
-  // Only enable configurable bookmarks for dogfood devices
-  if (config.HAIDA) {
-    content.bookmarks = customize.bookmarks;
-  }
-
   return content;
 };
 
