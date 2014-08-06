@@ -4,13 +4,7 @@
 var MockCallsHandler = {
   mActiveCall: null,
   mActiveCallForContactImage: null,
-  mUpdateKeypadEnabledCalled: true,
   mIsFirstCallOnCdmaNetwork: false,
-
-  updateKeypadEnabled: function() {
-    this.mUpdateKeypadEnabledCalled =
-      !this.mUpdateKeypadEnabledCalled;
-  },
 
   get activeCall() {
     return this.mActiveCall;
@@ -37,11 +31,11 @@ var MockCallsHandler = {
   end: function() {},
   answer: function() {},
   updateAllPhoneNumberDisplays: function() {},
+  updatePlaceNewCall: function() {},
 
   mTeardown: function() {
     this.mActiveCall = null;
     this.mActiveCallForContactImage = null;
-    this.mUpdateKeypadEnabledCalled = true;
     this.mIsFirstCallOnCdmaNetwork = false;
   }
 };

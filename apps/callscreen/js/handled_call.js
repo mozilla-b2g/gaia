@@ -10,6 +10,7 @@ function HandledCall(aCall) {
   this.call = aCall;
 
   aCall.addEventListener('statechange', this);
+  aCall.addEventListener('statechange', CallsHandler.updatePlaceNewCall);
 
   aCall.ongroupchange = (function onGroupChange() {
     if (this.call.group) {
@@ -90,10 +91,6 @@ HandledCall.prototype._wasUnmerged = function hc_wasUnmerged() {
 
 HandledCall.prototype.handleEvent = function hc_handle(evt) {
   switch (evt.call.state) {
-    case 'dialing':
-    case 'alerting':
-      CallsHandler.updateKeypadEnabled();
-      break;
     case 'connected':
       // The dialer agent in the system app plays and stops the ringtone once
       // the call state changes. If we play silence right after the ringtone
@@ -111,7 +108,6 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       break;
     case 'held':
       AudioCompetingHelper.leaveCompetition();
-      CallsHandler.updateKeypadEnabled();
       this.node.classList.add('held');
       break;
   }
@@ -321,7 +317,6 @@ HandledCall.prototype.connected = function hc_connected() {
 
   this.updateDirection();
   CallScreen.createTicker(this.durationNode);
-  CallScreen.enableKeypad();
   CallScreen.syncSpeakerEnabled();
 
   CallScreen.setCallerContactImage();
