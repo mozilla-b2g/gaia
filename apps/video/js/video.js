@@ -937,7 +937,7 @@ function setNFCSharing(enable) {
       // The callback function is called when user confirm to share the
       // content, send it with NFC Peer.
       videodb.getFile(currentVideo.name, function(file) {
-        event.peer.sendFile(file);
+        navigator.mozNfc.getNFCPeer(event.detail).sendFile(file);
       });
     };
   } else {
