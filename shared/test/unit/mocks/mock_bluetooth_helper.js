@@ -13,11 +13,14 @@ var MockBluetoothHelperInstance = {
   getConnectedDevicesByProfile: function() {},
   connectSco: function() {},
   disconnectSco: function() {},
+  getPairedDevices: function() {},
+  getAddress: function() {},
   setPairingConfirmation: function() {},
   setPinCode: function() {},
   setPasskey: function() {},
   onhfpstatuschanged: null,
-  onscostatuschanged: null
+  onscostatuschanged: null,
+  onpairedstatuschanged: null
 };
 
 var MockBluetoothHelper = function() {

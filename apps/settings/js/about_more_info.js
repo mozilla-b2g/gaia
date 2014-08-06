@@ -10,6 +10,7 @@ var AboutMoreInfo = {
     this.loadIccId();
     this.loadGaiaCommit();
     this.loadMacAddress();
+    this.loadBluetoothAddress();
   },
 
   loadMacAddress: function about_loadMacAddress() {
@@ -69,7 +70,7 @@ var AboutMoreInfo = {
    * Retrieves the IMEI code corresponding with the specified SIM card slot.
    *
    * @param {Integer} simSlotIndex The slot whose IMEI code we want to retrieve.
-   * @returns {Promise} A promise that resolves to the IMEI code or rejects
+   * @return {Promise} A promise that resolves to the IMEI code or rejects
    *          if an error occurred.
    */
   _getImeiCode: function about_getImeiCode(simSlotIndex) {
@@ -128,7 +129,7 @@ var AboutMoreInfo = {
   /**
    * Loads all the phone's IMEI code in the corresponding entry.
    *
-   * @returns {Promise} A promise that is resolved when the container has been
+   * @return {Promise} A promise that is resolved when the container has been
    *          fully populated.
    */
   loadImei: function about_loadImei() {
@@ -186,6 +187,22 @@ var AboutMoreInfo = {
       }
       deviceInfoIccIds.appendChild(span);
     });
+  },
+
+  loadBluetoothAddress: function about_loadBluetoothAddress() {
+    require(['modules/bluetooth'], function(Bluetooth) {
+      Bluetooth.observe('address', this._refreshBluetoothAddress.bind(this));
+    }.bind(this));
+  },
+
+  // Private method for refreshing the address field only.
+  _refreshBluetoothAddress: function about__refreshBluetoothAddress(address) {
+    // update UI fields
+    var fields =
+      document.querySelectorAll('[data-name="deviceinfo.bt_address"]');
+    for (var i = 0, l = fields.length; i < l; i++) {
+      fields[i].textContent = address;
+    }
   }
 };
 
