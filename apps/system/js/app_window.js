@@ -669,7 +669,6 @@
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory,
-    'textSelectionDialog': window.TextSelectionDialog
   };
 
   /**
