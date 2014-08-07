@@ -10,6 +10,13 @@ gaia-grid {
   z-index: 11;
 }
 
+#header {
+  position: absolute;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+}
+
 #edit-header {
   position: absolute;
   top: 0;
@@ -38,7 +45,7 @@ gaia-grid {
 }
 
 .edit-mode #edit-curtain {
-  background-color: #333333;
+  background-color: var(--background, #333);
 }
 
 #header {
