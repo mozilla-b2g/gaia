@@ -406,7 +406,10 @@
 
       if (!_dict) {
         debug('DB has not initialized, defer processing.');
-        initDB(qNext.bind(self));
+        initDB(function() {
+          _qIsWorking = false;
+          qNext();
+        });
         return;
       }
 
