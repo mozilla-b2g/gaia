@@ -29,11 +29,12 @@ var CustomDialog = (function() {
 
     /**
     * Method that shows the dialog
-    * @param  {String} title the title of the dialog. null or empty for
-    *                  no title. or you can give a object with more options
-    *                  like {icon: path or empty string, title: String}.
-    * @param  {String} msg message for the dialog. give a object like the
-    *                  title to enable more options:
+    * @param  {String} titleId the l10n id for title of the dialog. null
+    *                  or empty for no title. or you can give a object
+    *                  with more options like
+    *                  {icon: path or empty string, titleId: String}.
+    * @param  {String} msgId l10n id for message for the dialog. give a
+    *                  object like the title to enable more options:
     *                  {icon: path or empty string, message: String}.
     * @param  {Object} cancel {title, callback} object when confirm.
     * @param  {Object} confirm {title, callback} object when cancel.
@@ -60,13 +61,13 @@ var CustomDialog = (function() {
         var decorateWithOptions = function cd_decorateWithOptions(type, options,
                                                                   elm, dialog) {
           if ('string' === typeof options) {
-            elm.textContent = options;
+            elm.setAttribute('data-l10n-id', options);
             return elm;
           }
 
           var text = options[type];
           var icon = options.icon;
-          elm.textContent = text;
+          elm.setAttribute('data-l10n-id', text);
 
           if (icon && '' !== icon) {
             var iconImg = new Image();
