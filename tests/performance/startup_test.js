@@ -1,18 +1,16 @@
 'use strict';
 
 var assert = require('assert');
-
 var App = require('./app');
 var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
 var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
+var appPath = config.appPath;
 
-var manifestPath, entryPoint;
+var arr = appPath.split('/');
+var manifestPath = arr[0];
+var entryPoint = arr[1];
 
-var arr = mozTestInfo.appPath.split('/');
-manifestPath = arr[0];
-entryPoint = arr[1];
-
-marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
+marionette('startup test > ' + appPath + ' >', function() {
 
   var app;
   var client = marionette.client({
@@ -24,18 +22,18 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
   client.onScriptTimeout = null;
 
   var performanceHelper;
-  var isHostRunner = (process.env.MARIONETTE_RUNNER_HOST == 'marionette-device-host');
+  var isHostRunner = (config.runnerHost === 'marionette-device-host');
 
-  app = new App(client, mozTestInfo.appPath);
+  app = new App(client, appPath);
   if (app.skip) {
     return;
   }
 
   setup(function() {
     // Mocha timeout for this test
-    this.timeout(100000);
+    this.timeout(config.timeout);
     // Marionnette timeout for each command sent to the device
-    client.setScriptTimeout(10000);
+    client.setScriptTimeout(config.scriptTimeout);
 
     MarionetteHelper.unlockScreen(client);
   });
@@ -81,7 +79,7 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
     });
 
     // results is an Array of values, one per run.
-    assert.ok(results.length == mozTestInfo.runs, 'missing runs');
+    assert.ok(results.length == config.runs, 'missing runs');
 
     PerformanceHelper.reportDuration(results);
     PerformanceHelper.reportMemory(memStats);

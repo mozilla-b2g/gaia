@@ -1,64 +1,51 @@
-global.GAIA_DIR = process.env.GAIA_DIR || './';
-// define VERBOSE in the env to get more verbose output.
-global.mozPerfVerbose = process.env.VERBOSE;
+var perfUtils = require('./perf-utils');
 
-global.mozTestInfo = {
-  appPath: process.env.CURRENT_APP,
-  runs: process.env.RUNS || 5
-};
+global.config = perfUtils.configure( require('./config.json') );
 
-const excludedApps = [
-  'communications/facebook', 'communications/gmail', // part of other apps
-  'communications/import', 'communications/live', // part of other apps
-  'communications', // not an app
-  'email/shared', // not an app
-  'template', // XXX not a real thing.
-  'system/test/marionette/fullscreen-app', // some test app.
-  'system/camera' // copy of the camera app
-];
-
-global.excludedApps = excludedApps;
+var appPath = config.appPath;
 
 function handleExcludedApp() {
-  var output = {};
-  output.stats = {application: mozTestInfo.appPath,
-                  suites: 0};
+  var output = {
+    stats: {
+      application: appPath,
+      suites: 0
+    }
+  };
   console.log(JSON.stringify(output));
   process.exit(1);
 }
 
-if (excludedApps.indexOf(mozTestInfo.appPath) !== -1) {
-  if (mozPerfVerbose) {
-    console.error('"' + mozTestInfo.appPath +
-                '" is an excluded app, skipping tests.');
+
+if (perfUtils.isBlacklisted(config.blacklists.global, appPath)) {
+  if (config.verbose) {
+    console.error('"%s" is an excluded app, skipping tests.', appPath);
   }
 
   handleExcludedApp();
 }
 
 global.requireGaia = function(path)  {
-  return require(GAIA_DIR + '/' + path);
+  return require(config.gaiaDir + '/' + path);
 };
 
 var Manifests = requireGaia('tests/performance/manifests.js');
-var appManifest = Manifests.readForApp(mozTestInfo.appPath);
+var appManifest = Manifests.readForApp(appPath);
 if (appManifest == null) {
-  console.error('Manifest for "%s" not found.', mozTestInfo.appPath);
+  console.error('Manifest for "%s" not found.', appPath);
 
   handleExcludedApp();
 }
 
 if (appManifest.role) {
-  if (mozPerfVerbose) {
-    console.error('Found role "%s". Skipping %s',
-                  appManifest.role, mozTestInfo.appPath);
+  if (config.verbose) {
+    console.error('Found role "%s". Skipping %s', appManifest.role, appPath);
   }
 
   handleExcludedApp();
 }
 
-if (mozPerfVerbose) {
-  console.error('testing "' + mozTestInfo.appPath + '"');
+if (config.verbose) {
+  console.error('testing "%s"', appPath);
 }
 
 marionette.plugin('apps', require('marionette-apps'));

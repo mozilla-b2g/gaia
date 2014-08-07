@@ -9,7 +9,7 @@ var PerformanceHelper =
   requireGaia('/tests/performance/performance_helper.js');
 var DialerIntegration = require('./integration.js');
 
-marionette(mozTestInfo.appPath + ' >', function() {
+marionette(config.appPath + ' >', function() {
   var client = marionette.client({
     settings: {
       'ftu.manifestURL': null
@@ -19,8 +19,8 @@ marionette(mozTestInfo.appPath + ' >', function() {
   client.onScriptTimeout = null;
 
   setup(function() {
-    this.timeout(500000);
-    client.setScriptTimeout(50000);
+    this.timeout(config.timeout);
+    client.setScriptTimeout(config.scriptTimeout);
 
     // inject perf event listener
     PerformanceHelper.injectHelperAtom(client);
