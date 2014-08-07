@@ -34,12 +34,6 @@ function pickRingtone(activity) {
   $('done').hidden = false;
   $('title').textContent = _('pick-ringtone');
 
-  // Reflow hack. Remove these
-  // 3 lines once bug 1022866 lands
-  header.style.display = 'none';
-  header.offsetTop;
-  header.style.display = '';
-
   // Make the cancel button work
   header.addEventListener('action', function() {
     player.pause(); // Stop any currently playing sound.
