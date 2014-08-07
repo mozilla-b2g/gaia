@@ -350,7 +350,7 @@
 }
 
 /* Progress */
-.appWindow:not(.bar).navigation > .chrome .progress {
+.appWindow:not(.bar).scrollable > .chrome .progress {
   top: 7.3rem;
 }
 
