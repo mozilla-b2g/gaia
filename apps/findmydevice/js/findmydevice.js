@@ -197,9 +197,16 @@ var FindMyDevice = {
         }
 
         if (request.keyword === 'findmydevice-test') {
+          if (event.data === 'forget') {
+            DUMP('got request to forget registration state');
+            this._forgetRegistration();
+          } else {
             DUMP('got request for test command!');
             event.data.testing = true;
             this._processCommands(event.data);
+          }
+
+          return;
         }
       }).bind(this);
     }).bind(this));
@@ -340,7 +347,9 @@ var FindMyDevice = {
     Requester.post('/register/', obj, function(response) {
       DUMP('findmydevice successfully registered: ', response);
 
-      asyncStorage.setItem('findmydevice-state', response, function() {
+      var state = response;
+      state.pushEndpoint = endpoint;
+      asyncStorage.setItem('findmydevice-state', state, function() {
         self._registeredHelper.set(true);
       });
     }, this._handleServerError.bind(this));
@@ -641,6 +650,50 @@ var FindMyDevice = {
     DUMP('releasing one wakelock, wakelocks are: ',
       this._highPriorityWakeLocks);
     this._highPriorityWakeLocks[reason].pop().unlock();
+  },
+
+  // used by the test app only
+  _forgetRegistration: function() {
+    this.beginHighPriority('clientLogic');
+
+    // stub wakelock functions because they are called by
+    // settings observers.
+    this.beginHighPriority = this.endHighPriority = function() {};
+
+    if (this._state) {
+      var request = navigator.push.unregister(this._state.pushEndpoint);
+      request.onsuccess = clearPendingAlarms();
+    } else {
+      clearPendingAlarms();
+    }
+
+    function clearPendingAlarms() {
+      navigator.mozAlarms.getAll().onsuccess = function() {
+        this.result.forEach(function(alarm) {
+          navigator.mozAlarms.remove(alarm.id);
+        });
+
+        resetStateAndSettings();
+      };
+    }
+
+    function resetStateAndSettings(callback) {
+      asyncStorage.setItem('findmydevice-state', null, function() {
+        var lock = navigator.mozSettings.createLock();
+        var request = lock.set({
+          'findmydevice.enabled': false,
+          'findmydevice.registered': false,
+          'findmydevice.current-clientid': '',
+          'findmydevice.can-disable': true
+        });
+
+        request.onsuccess = request.onerror = function() {
+          // this releases the lock we acquired at the beginning
+          // of the method
+          window.close();
+        };
+      });
+    }
   }
 };
 
