@@ -19,7 +19,7 @@ class Settings(Base):
     _usb_storage_text_locator = (By.CSS_SELECTOR, '.ums-desc-root')
     _screen_lock_text_locator = (By.ID, 'screenLock-desc')
     _language_text_locator = (By.ID, 'language-desc')
-    _bluetooth_text_locator = (By.ID, 'bluetooth-desc')
+    _bluetooth_text_locator = (By.CSS_SELECTOR, '.bluetooth-desc')
 
     _app_loaded_locator = (By.CSS_SELECTOR, 'body[data-ready="true"]')
     _airplane_switch_locator = (By.XPATH, "//input[@id='airplaneMode-input']/..")
