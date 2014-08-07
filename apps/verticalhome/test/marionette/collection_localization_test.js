@@ -2,7 +2,8 @@
 
 var assert = require('assert');
 var Collection = require('./lib/collection');
-var EmeServer = require('./eme_server/parent');
+var EmeServer = require(
+  '../../../../shared/test/integration/eme_server/parent');
 var Home2 = require('./lib/home2');
 var System = require('../../../../apps/system/test/marionette/lib/system');
 
@@ -12,8 +13,7 @@ marionette('Vertical - Collection', function() {
   var collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
-    var folder = __dirname + '/fixtures/everythingme';
-    EmeServer(folder, client, function(err, _server) {
+    EmeServer(client, function(err, _server) {
       server = _server;
       done(err);
     });
