@@ -229,8 +229,8 @@ var icc_worker = {
     var options = message.command.options;
 
     // Check if device is idle
-    var activeApp = AppWindowManager.getActiveApp();
-    if (!options.isHighPriority && !activeApp.isHomescreen) {
+    var activeApp = WindowManager.getDisplayedApp();
+    if (!options.isHighPriority && activeApp !== HomescreenLauncher.origin) {
       DUMP('Do not display the text because normal priority.');
       icc.responseSTKCommand(message, {
         resultCode:
