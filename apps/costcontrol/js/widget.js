@@ -498,6 +498,8 @@ var Widget = (function() {
     });
     AirplaneModeHelper.addEventListener('statechange',
       function _onAirplaneModeChange(state) {
+        console.log('airplanemodeChangeState to:' + state +
+                    ' checkSimTimeout is not defined: ' + (!checkSimTimeout));
         if (state === 'enabled') {
           waitForIccAndCheckSim();
           Widget.showSimError('airplane-mode');
@@ -509,10 +511,18 @@ var Widget = (function() {
           // after a while passed.
           if (!checkSimTimeout) {
             checkSimTimeout = setTimeout(function() {
+              console.log('Timeout executed');
               SimManager.requestDataSimIcc(function(dataSim) {
+                console.log('On success (TimeOut) iccID> '+ dataSim.iccId);
+                console.log('On success (TimeOut) icc.iccID> ' +
+                              dataSim.icc.iccId);
+                console.log('On success (TimeOut) icc.cardstate> ' +
+                              dataSim.icc.cardState);
                 isWaitingForIcc = false;
                 iccManager.removeEventListener('iccdetected', _oniccdetected);
                 checkSIMStatus(dataSim);
+              }, function onError() {
+                console.log('On error of the Timeout > requestDataSime');
               });
             }, 3000);
           }

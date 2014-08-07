@@ -81,6 +81,7 @@ var SimManager = (function() {
   function _requestService(serviceId, onsuccess, onerror) {
     if (serviceIcc[serviceId] && serviceIcc[serviceId].initialized &&
         !serviceIcc[serviceId].dirty) {
+      console.log('Returned cached value');
       (typeof onsuccess === 'function') && onsuccess(serviceIcc[serviceId]);
     } else if (!serviceIcc[serviceId] || !serviceIcc[serviceId].initialized) {
       console.warn('SimManager is not ready, waiting for initialized custom ' +
@@ -93,6 +94,7 @@ var SimManager = (function() {
       });
       _init(serviceId);
     } else {
+      console.log('Forced reload of the value of DataSim');
       _requestServiceSIMIcc(serviceId, onsuccess, onerror);
     }
   }
@@ -109,11 +111,13 @@ var SimManager = (function() {
       (typeof onerror === 'function') && onerror();
       return;
     }
+    console.log ('Updating ' + serviceId + 'values for ' + iccId);
     serviceIcc[serviceId].iccId = iccId;
     serviceIcc[serviceId].icc = iccManager.getIccById(iccId);
 
     // Icc is not detected although iccId exists
     if (!serviceIcc[serviceId].icc) {
+      console.log('We have iccId, byt not icc');
       (typeof onerror === 'function') && onerror();
       return;
     }
