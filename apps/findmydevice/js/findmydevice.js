@@ -198,8 +198,7 @@ var FindMyDevice = {
 
         if (request.keyword === 'findmydevice-test') {
             DUMP('got request for test command!');
-            event.data.testing = true;
-            this._processCommands(event.data);
+            this._processCommands(event.data, true);
         }
       }).bind(this);
     }).bind(this));
@@ -226,7 +225,7 @@ var FindMyDevice = {
     Requester.post(
       this._getCommandEndpoint(),
       {enabled: false},
-      null, // no need to do anything on success
+      this._handleServerResponse.bind(this),
       this._handleServerError.bind(this));
   },
 
@@ -421,7 +420,7 @@ var FindMyDevice = {
     Requester.post(
       this._getCommandEndpoint(),
       this._reply,
-      this._processCommands.bind(this),
+      this._handleServerResponse.bind(this),
       this._handleServerError.bind(this));
 
     this._reply = {};
@@ -471,11 +470,14 @@ var FindMyDevice = {
 
   _onCanDisableChanged: function fmd_can_disable_changed(event) {
     if (event.settingValue === true && this._disableAttempt) {
-      this._enabledHelper.set(false);
+      this._enabledHelper.set(false, function() {
+        this.endHighPriority('clientLogic');
+      }.bind(this));
+    } else {
+      this.endHighPriority('clientLogic');
     }
 
     this._disableAttempt = false;
-    this.endHighPriority('clientLogic');
   },
 
   _refreshClientIDIfRegistered: function fmd_refresh_client_id(forceReauth) {
@@ -525,17 +527,15 @@ var FindMyDevice = {
     this._disableAttempt = false;
   },
 
+  _handleServerResponse: function(response, testing) {
+    if (response && (this._enabled || testing)) {
+      this._processCommands(response);
+    }
+
+    this._scheduleAlarm('ping');
+  },
+
   _processCommands: function fmd_process_commands(cmdobj) {
-    if (cmdobj === null) {
-      return;
-    }
-
-    // only do something if enabled, but bypass this check
-    // while testing
-    if (!this._enabled && cmdobj.testing !== true) {
-      return;
-    }
-
     function noop() {} // callback for testing
 
     for (var cmd in cmdobj) {
@@ -575,8 +575,6 @@ var FindMyDevice = {
 
       Commands.invokeCommand(command, args);
     }
-
-    this._scheduleAlarm('ping');
   },
 
   _countRegistrationRetry: function fmd_count_registration_retry (){
@@ -641,6 +639,19 @@ var FindMyDevice = {
     DUMP('releasing one wakelock, wakelocks are: ',
       this._highPriorityWakeLocks);
     this._highPriorityWakeLocks[reason].pop().unlock();
+
+    var canShutDown = true;
+    for (var r in this._highPriorityWakeLocks) {
+      if (this._highPriorityWakeLocks[r].length) {
+        canShutDown = false;
+        break;
+      }
+    }
+
+    if (canShutDown) {
+      DUMP('no wakelocks left, shutting down');
+      window.close();
+    }
   }
 };
 

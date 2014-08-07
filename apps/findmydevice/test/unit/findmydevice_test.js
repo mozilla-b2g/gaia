@@ -1,7 +1,8 @@
 /* global MocksHelper, MockGeolocation, MockNavigatormozSetMessageHandler,
    MockSettingsHelper, MockNavigatorSettings, FindMyDevice, MockMozAlarms,
-   IAC_API_WAKEUP_REASON_LOGIN, IAC_API_WAKEUP_REASON_LOGOUT,
-   IAC_API_WAKEUP_REASON_TRY_DISABLE, IAC_API_WAKEUP_REASON_ENABLED_CHANGED
+   MockNavigatorWakeLock, IAC_API_WAKEUP_REASON_LOGIN,
+   IAC_API_WAKEUP_REASON_LOGOUT, IAC_API_WAKEUP_REASON_TRY_DISABLE,
+   IAC_API_WAKEUP_REASON_ENABLED_CHANGED
 */
 
 'use strict';
@@ -16,6 +17,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/js/findmydevice_iac_api.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_moz_alarms.js');
+require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 
 var mocksForFindMyDevice = new MocksHelper([
   'Geolocation', 'Dump', 'SettingsHelper'
@@ -27,6 +29,7 @@ suite('FindMyDevice >', function() {
   var realMozSettings;
   var realMozSetMessageHandler;
   var realMozAlarms;
+  var realRequestWakeLock;
 
   mocksForFindMyDevice.attachTestHelpers();
 
@@ -59,6 +62,9 @@ suite('FindMyDevice >', function() {
     realMozAlarms = navigator.mozAlarms;
     navigator.mozAlarms = MockMozAlarms;
 
+    realRequestWakeLock = navigator.requestWakeLock;
+    navigator.requestWakeLock = MockNavigatorWakeLock.requestWakeLock;
+
     // We require findmydevice.js here and not above because
     // we want to make sure all of our dependencies have already
     // been loaded.
@@ -82,6 +88,9 @@ suite('FindMyDevice >', function() {
     MockNavigatormozSetMessageHandler.mTeardown();
 
     navigator.mozAlarms = realMozAlarms;
+
+    navigator.requestWakeLock = realRequestWakeLock;
+    MockNavigatorWakeLock.mTeardown();
   });
 
   setup(function(done) {
@@ -98,6 +107,9 @@ suite('FindMyDevice >', function() {
     FindMyDevice._registered = false;
     FindMyDevice._loggedIn = false;
     FindMyDevice._state = null;
+    for (var r in FindMyDevice._highPriorityWakeLocks) {
+      FindMyDevice._highPriorityWakeLocks[r] = [];
+    }
   });
 
   function sendWakeUpMessage(reason) {
@@ -198,6 +210,7 @@ suite('FindMyDevice >', function() {
   suite('findmydevice.can-disable behavior', function() {
     setup(function() {
       this.sinon.spy(FindMyDevice._canDisableHelper, 'set');
+      this.sinon.stub(FindMyDevice, 'endHighPriority');
     });
 
     test('set findmydevice.can-disable to false when logged out', function() {
@@ -270,6 +283,37 @@ suite('FindMyDevice >', function() {
         {refreshAuthentication: 0}));
   });
 
+  test('setting an alarm releases a wakelock', function() {
+    var clock = this.sinon.useFakeTimers();
+    this.sinon.stub(FindMyDevice, 'endHighPriority');
+    FindMyDevice._scheduleAlarm('ping');
+    clock.tick();
+    sinon.assert.called(FindMyDevice.endHighPriority, 'clientLogic');
+    clock.restore();
+  });
+
+  test('alarm is set on successful server response', function() {
+    this.sinon.stub(FindMyDevice, '_processCommands');
+    this.sinon.stub(FindMyDevice, '_scheduleAlarm');
+    FindMyDevice._enabled = true;
+
+    var response = {t: {d: 60}};
+    FindMyDevice._handleServerResponse(response);
+    sinon.assert.calledWith(FindMyDevice._processCommands, response);
+    sinon.assert.calledWith(FindMyDevice._scheduleAlarm, 'ping');
+  });
+
+  test('alarm is set on server response even when disabled', function() {
+    this.sinon.stub(FindMyDevice, '_processCommands');
+    this.sinon.stub(FindMyDevice, '_scheduleAlarm');
+    FindMyDevice._enabled = false;
+
+    var response = {t: {d: 60}};
+    FindMyDevice._handleServerResponse(response);
+    sinon.assert.notCalled(FindMyDevice._processCommands);
+    sinon.assert.calledWith(FindMyDevice._scheduleAlarm, 'ping');
+  });
+
   test('contact the server on alarm', function() {
     this.sinon.stub(FindMyDevice, '_contactServer');
     this.sinon.stub(FindMyDevice, '_refreshClientIDIfRegistered');
@@ -302,5 +346,19 @@ suite('FindMyDevice >', function() {
     FindMyDevice._register();
     sinon.assert.calledOnce(FindMyDevice.endHighPriority);
     sinon.assert.calledWith(FindMyDevice.endHighPriority, 'clientLogic');
+  });
+
+  test('close the app when the last wakelock is released', function() {
+    this.sinon.stub(window, 'close');
+
+    FindMyDevice.beginHighPriority('clientLogic');
+    FindMyDevice.beginHighPriority('clientLogic');
+
+    FindMyDevice.endHighPriority('clientLogic');
+    sinon.assert.notCalled(window.close);
+
+    FindMyDevice.endHighPriority('clientLogic');
+    console.log('end');
+    sinon.assert.called(window.close);
   });
 });
