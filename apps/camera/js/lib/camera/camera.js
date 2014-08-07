@@ -918,7 +918,14 @@ Camera.prototype.startRecording = function(options) {
       maxFileSizeBytes: maxFileSizeBytes
     };
 
-    self.createVideoFilepath(function(filepath) {
+    self.createVideoFilepath(createVideoFilepathDone);
+
+    function createVideoFilepathDone(errorMsg, filepath) {
+      if (typeof filepath === 'undefined') {
+        debug(errorMsg);
+        self.onRecordingError('error-video-file-path');
+        return;
+      }
       video.filepath = filepath;
       self.emit('willrecord');
       self.mozCamera.startRecording(
@@ -927,7 +934,7 @@ Camera.prototype.startRecording = function(options) {
         filepath,
         onSuccess,
         self.onRecordingError);
-    });
+    }
   }
 
   function onSuccess() {
@@ -1156,7 +1163,7 @@ Camera.prototype.getFreeVideoStorageSpace = function(done) {
  * @param  {Function} done
  */
 Camera.prototype.createVideoFilepath = function(done) {
-  done(Date.now() + '_tmp.3gp');
+  done(null, Date.now() + '_tmp.3gp');
 };
 
 /**
