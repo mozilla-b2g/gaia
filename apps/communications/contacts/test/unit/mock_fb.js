@@ -29,12 +29,33 @@ Mockfb.init = function(callback) {
   callback();
 };
 
+Mockfb.setEmptyContacts = function() {
+  this.contacts = [];
+};
+
 Mockfb.setIsFbContact = function(isFB) {
   this.fbContact = isFB;
 };
 
 Mockfb.setIsFbLinked = function(isLinked) {
   this.fbLinked = isLinked;
+};
+
+// This function redirects to the implementation
+// inside the Mockfb.Contact.  Purpose is to allow
+// reuse of this mock by the contacts_test.js
+// and to allow the existing tests to work.
+Mockfb.getData = function(con) {
+  var fbContact = new Mockfb.Contact(con);
+  return fbContact.getData();
+};
+
+Mockfb.getContactByNumber = function(number, onsuccess, onerror) {
+  if(this.contacts.length === 0) {
+    return onsuccess(null);
+  } else {
+    return onsuccess(this.contacts);
+  }
 };
 
 Mockfb.setIsEnabled = function(isEnabled) {

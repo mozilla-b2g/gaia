@@ -10,7 +10,7 @@
 
 require('/js/audio_competing_helper.js');
 require('/test/unit/mock_call_screen.js');
-require('/test/unit/mock_simple_phone_matcher.js');
+require('/shared/test/unit/mocks/mock_simple_phone_matcher.js');
 require('/shared/test/unit/mocks/mock_bluetooth_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_audio.js');
