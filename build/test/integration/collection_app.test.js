@@ -36,6 +36,17 @@ suite('Collection app tests', function() {
       assert.ok(fs.existsSync(collectionPath),
         'init.json should exist');
 
+      var collectionInfo = JSON.parse(fs.readFileSync(collectionPath));
+      var expected = [
+        'app://collection.gaiamobile.org/collections/social/icon.png',
+        'app://collection.gaiamobile.org/collections/games/icon.png',
+        'app://collection.gaiamobile.org/collections/music/icon.png'
+      ];
+      collectionInfo.collections.forEach(function(data, idx) {
+        assert.equal(data.icon, expected[idx],
+          'Expected collection icon not found in manifest.');
+      });
+
       // Verify collection icon paths.
       var collectionIconPath = path.join(process.cwd(), 'build_stage',
         'collection', 'collections', 'social', 'icon.png');
