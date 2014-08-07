@@ -374,8 +374,8 @@ var NotificationScreen = {
         detail.id.indexOf('app-notif-') === 0) {
       notificationNode.dataset.obsoleteAPI = 'true';
     }
-    var type = notificationNode.dataset.type = detail.type ||
-                                              'desktop-notification';
+    var type = detail.type || 'desktop-notification';
+    notificationNode.dataset.type = type;
     notificationNode.dataset.manifestURL = manifestURL;
 
     if (detail.icon) {
@@ -450,7 +450,9 @@ var NotificationScreen = {
     if (typeof(ScreenManager) !== 'undefined' &&
       !ScreenManager.screenEnabled) {
       // bug 915236: disable turning on the screen for email notifications
-      if (manifestURL.indexOf('email.gaiamobile.org') === -1) {
+      // bug 1050023: disable turning on the screen for download notifications
+      if (type.indexOf('download-notification-downloading') === -1 &&
+          manifestURL.indexOf('email.gaiamobile.org') === -1) {
         ScreenManager.turnScreenOn();
       }
     }
@@ -537,8 +539,10 @@ var NotificationScreen = {
 
       if (this.vibrates) {
         if (document.hidden) {
-           // bug 1030310: disable vibration for the email app when asleep
-          if (manifestURL.indexOf('email.gaiamobile.org') === -1) {
+          // bug 1030310: disable vibration for the email app when asleep
+          // bug 1050023: disable vibration for downloads when asleep
+          if (type.indexOf('download-notification-downloading') === -1 &&
+              manifestURL.indexOf('email.gaiamobile.org') === -1) {
             window.addEventListener('visibilitychange', function waitOn() {
               window.removeEventListener('visibilitychange', waitOn);
               navigator.vibrate([200, 200, 200, 200]);

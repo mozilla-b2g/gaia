@@ -4,7 +4,8 @@
   MockNavigatorSettings,
   MockStatusBar,
   MocksHelper,
-  NotificationScreen
+  NotificationScreen,
+  ScreenManager
  */
 
 'use strict';
@@ -410,6 +411,50 @@ suite('system/NotificationScreen >', function() {
       var timestamp = new Date(new Date().getTime() - 61*1000);
       var date = NotificationScreen.prettyDate(timestamp);
       assert.equal(date, '1m ago');
+    });
+  });
+
+  suite('special notification handling for special apps', function() {
+    var CALENDAR_MANIFEST = 'app://calendar.gaiamobile.org/manifest.webapp';
+    var EMAIL_MANIFEST = 'app://email.gaiamobile.org/manifest.webapp';
+
+    var details = {
+      id: 'id-' + Date.now(),
+      title: 'title',
+      text: 'body'
+    };
+
+    var turnOnScreenSpy;
+
+    setup(function() {
+      ScreenManager.turnScreenOff();
+      turnOnScreenSpy = this.sinon.spy(ScreenManager, 'turnScreenOn');
+    });
+
+    test('calendar notifications should wake the screen', function() {
+      details.manifestURL = CALENDAR_MANIFEST;
+      NotificationScreen.addNotification(details);
+      sinon.assert.calledOnce(ScreenManager.turnScreenOn);
+    });
+
+    test('email notifications should not wake screen', function() {
+      details.manifestURL = EMAIL_MANIFEST;
+      NotificationScreen.addNotification(details);
+      sinon.assert.notCalled(ScreenManager.turnScreenOn);
+    });
+
+    test('download progress notifications should not wake screen', function() {
+      details.manifestURL = null;
+      details.type = 'download-notification-downloading';
+      NotificationScreen.addNotification(details);
+      sinon.assert.notCalled(ScreenManager.turnScreenOn);
+    });
+
+    test('download complete notifications should wake screen', function() {
+      details.manifestURL = null;
+      details.type = 'download-notification-complete';
+      NotificationScreen.addNotification(details);
+      sinon.assert.calledOnce(ScreenManager.turnScreenOn);
     });
   });
 
