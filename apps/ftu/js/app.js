@@ -37,6 +37,10 @@ var AppManager = {
     UIManager.init();
     Navigation.init();
 
+    // Send message to populate preinstalled collections.
+    // This needs to be done for both upgrade and non-upgrade flows.
+    notifyCollection();
+
     // if it's an upgrade we can jump to tutorial directly
     if (versionInfo && versionInfo.isUpgrade()) {
       var stepsKey = versionInfo.delta();
@@ -51,9 +55,6 @@ var AppManager = {
       });
       return;
     }
-
-    // Send message to populate preinstalled collections
-    notifyCollection();
 
     SimManager.init();
     WifiManager.init();
