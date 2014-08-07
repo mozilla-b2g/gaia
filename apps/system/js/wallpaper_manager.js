@@ -336,6 +336,9 @@
 
       // And tell the system about it.
       System.publish('wallpaperchange', { url: this._blobURL });
+
+      document.getElementById('screen').style.backgroundImage =
+        'url(' + this._blobURL + ')';
     }
   };
 

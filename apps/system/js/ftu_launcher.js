@@ -59,6 +59,7 @@ var FtuLauncher = {
     // Monitor appopen event
     // to unlock lockscreen if we are running FTU at first time
     window.addEventListener('appopened', this);
+    this.retrieve();
   },
 
   handleEvent: function fl_init(evt) {

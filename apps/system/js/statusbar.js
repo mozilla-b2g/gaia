@@ -15,7 +15,7 @@
 */
 
 /*global Clock, AppWindowManager, SettingsListener */
-/*global SimPinDialog, TouchForwarder, FtuLauncher */
+/*global SimPinDialog, TouchForwarder */
 /*global MobileOperator, SIMSlotManager, System */
 /*global Bluetooth */
 /*global UtilityTray */
@@ -499,12 +499,12 @@ var StatusBar = {
   },
 
   panelHandler: function sb_panelHandler(evt) {
-    var app = AppWindowManager.getActiveApp().getTopMostWindow();
+    var app = System.topMostAppWindow;
     var chromeBar = app.element.querySelector('.chrome');
     var titleBar = app.element.querySelector('.titlebar');
 
     // Do not forward events if FTU is running
-    if (FtuLauncher.isFtuRunning()) {
+    if (System.runningFTU) {
       return;
     }
 

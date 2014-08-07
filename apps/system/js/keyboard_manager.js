@@ -591,12 +591,3 @@ var KeyboardManager = {
     }, SWITCH_CHANGE_DELAY);
   }
 };
-
-if (applications.ready) {
-  KeyboardManager.init();
-} else {
-  window.addEventListener('applicationready', function mozAppsReady(event) {
-    window.removeEventListener('applicationready', mozAppsReady);
-    KeyboardManager.init();
-  });
-}
