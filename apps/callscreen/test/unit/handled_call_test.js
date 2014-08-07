@@ -520,6 +520,7 @@ suite('dialer/handled_call', function() {
         mockCall._connect();
         assert.isTrue(subject.node.classList.contains('ongoing'));
         assert.isTrue(subject.node.classList.contains('outgoing'));
+        assert.equal(subject.node.getAttribute('aria-label'), 'outgoing');
       });
     });
 
@@ -535,6 +536,7 @@ suite('dialer/handled_call', function() {
         mockCall._connect();
         assert.isTrue(subject.node.classList.contains('ongoing'));
         assert.isTrue(subject.node.classList.contains('incoming'));
+        assert.equal(subject.node.getAttribute('aria-label'), 'incoming');
       });
     });
   });

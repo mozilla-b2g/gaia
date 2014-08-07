@@ -282,11 +282,18 @@ HandledCall.prototype.restorePhoneNumber =
 };
 
 HandledCall.prototype.updateDirection = function hc_updateDirection() {
+  var self = this;
   var classList = this.node.classList;
   if (this._initialState == 'incoming') {
     classList.add('incoming');
+    LazyL10n.get(function localized(_) {
+      self.node.setAttribute('aria-label', _('incoming'));
+    });
   } else {
     classList.add('outgoing');
+    LazyL10n.get(function localized(_) {
+      self.node.setAttribute('aria-label', _('outgoing'));
+    });
   }
 
   if (this.call.state == 'connected') {
