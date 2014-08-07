@@ -1,0 +1,372 @@
+.appWindow:not(.bar) > .chrome {
+  pointer-events: none;
+  top: 0;
+  height: 7.6rem;
+  transform: scaleY(0.6521) translateY(-3rem);
+  transform-origin: top left;
+  transition: transform 0.2s ease-in-out, background-color 0.5s ease;
+
+  background-color: black;
+  background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1));
+  color: white;
+}
+
+.appWindow.light > .chrome {
+  background-image: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.05));
+  background-color: white;
+  color: #4d4d4d;
+}
+
+.appWindow:not(.bar) > .chrome.maximized {
+  transform: scaleY(1) translateY(0);
+}
+
+.appWindow:not(.bar).fullscreen-app > .chrome {
+  height: 7.6rem;
+  top: -3rem;
+}
+
+.appWindow:not(.bar).fullscreen-app > .chrome.maximized {
+  top: 0;
+}
+
+.controls {
+  pointer-events: auto;
+  background-color: transparent;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  font-size: 0;
+}
+
+/* Special cases */
+.searchWindow > .chrome {
+  display: none;
+}
+
+.lockScreenWindow:not(.bar) > .chrome .controls,
+.lockScreenWindow:not(.bar) > .chrome .progress,
+.homescreen:not(.bar) > .chrome .controls,
+.homescreen:not(.bar) > .chrome .progress {
+  visibility: hidden;
+}
+
+.lockScreenWindow:not(.bar) > .chrome {
+  background-color: transparent;
+}
+
+#screen.attention .lockScreenWindow:not(.bar) > .chrome {
+  background-color: black;
+}
+
+/* URL bar */
+.chrome .controls .urlbar {
+  width: calc(100% - 4.5rem);
+  height: 3.6rem;
+  line-height: 3.6rem;
+  margin: 0.4rem 0 0.6rem;
+  border-radius: 1.8rem;
+  color: inherit;
+  overflow: hidden;
+  background-color: transparent;
+  float: left;
+  margin-left: 0.5rem;
+}
+
+.scrollable .chrome .controls button:not([data-disabled]) + button[data-disabled] + .urlbar,
+.scrollable .chrome .controls button:not([data-disabled]) + .urlbar {
+  margin-left: 0;
+}
+
+.maximized .controls .urlbar {
+  background-color: rgba(51,51,51,0.5);
+}
+
+.appWindow.light .maximized .controls .urlbar {
+  background-color: rgba(201,201,201,0.4);
+}
+
+.chrome .controls .urlbar .title {
+  width: calc(100% - 3.2rem);
+  padding-left: 1rem;
+  box-sizing: padding-box;
+  overflow: hidden;
+  white-space: nowrap;
+  font-weight: 300;
+  font-size: 2rem;
+  float: none;
+  background-color: rgba(51,51,51,0.5);
+  border-radius: 1.8rem;
+  text-overflow: ellipsis;
+}
+
+.appWindow.light .chrome:not(.maximized) .controls .urlbar .title {
+  background-color: rgba(201,201,201,0.4);
+}
+
+.maximized .controls .urlbar .title {
+  background-color: transparent;
+}
+
+
+.controls .forward-button:not([data-disabled]) + .urlbar {
+  width: calc(100% - 8rem);
+}
+
+.controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar {
+  width: calc(100% - 8rem);
+}
+
+.controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
+  width: calc(100% - 12rem);
+}
+
+.controls .urlbar {
+  transform: scaleX(0.6521);
+  transform-origin: top left;
+  transition: transform 0.2s ease-in-out;
+}
+
+.maximized .controls .urlbar {
+  transform: scaleX(1);
+}
+
+.scrollable .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
+.scrollable .chrome:not(.maximized) .forward-button:not([data-disabled]) + .urlbar {
+  transform: scaleX(0.6521) translateX(-5.5rem);
+}
+
+.scrollable .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
+  transform: scaleX(0.6521) translateX(-12rem);
+}
+
+
+/* Buttons */
+.controls button  {
+  -moz-appearance: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 4rem;
+  width: 4rem;
+  height: 4rem;
+  line-height: 4rem;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-size: contain;
+  opacity: 1;
+  float: left;
+  border-radius: 0;
+}
+
+.controls .reload-button,
+.controls .stop-button {
+  background-size: 2rem auto;
+  background-position: center center;
+  position: absolute;
+  bottom: 0.3rem;
+  right: 0.3rem;
+  width: 3rem;
+  height: 3rem;
+  min-width: 0.3rem;
+  border-left: 1px solid rgba(51,51,51,0.5);
+}
+
+.loading .controls .reload-button {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.controls .stop-button {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loading .controls .stop-button {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.controls .back-button[data-disabled],
+.controls .forward-button[data-disabled] {
+  display: none;
+}
+
+.chrome.maximized .controls .menu-button[data-disabled] {
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.appWindow:not(.bar) > .chrome button {
+  opacity: 0;
+  transition: opacity 0.15s ease-in;
+}
+
+.appWindow:not(.bar) > .chrome.maximized button {
+  opacity: 1;
+}
+
+
+/* Buttons Images */
+.controls .back-button {
+  background-image: url("images/back.png");
+}
+
+.controls .forward-button {
+  background-image: url("images/forward.png");
+}
+
+.controls .reload-button {
+  background-image: url("images/reload.png");
+}
+
+.controls .stop-button {
+  background-image: url("images/stop.png");
+}
+
+.controls .menu-button {
+  background-image: url("images/overflow.png");
+}
+
+.light .controls .back-button {
+  background-image: url("images/dark/back.png");
+}
+
+.light .controls .forward-button {
+  background-image: url("images/dark/forward.png");
+}
+
+.light .controls .reload-button {
+  background-image: url("images/dark/reload.png");
+}
+
+.light .controls .stop-button {
+  background-image: url("images/dark/stop.png");
+}
+
+.light .controls .menu-button {
+  background-image: url("images/dark/overflow.png");
+}
+
+/* Overflow menu */
+
+.appWindow > .overflow-menu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Same as titlebar */
+  z-index: 1001;
+  padding: 11.4rem 3rem 0;
+  background-color: rgba(231, 231, 231, 0.6);
+  transition: opacity 0.3s;
+  pointer-events: auto;
+}
+
+.appWindow > .overflow-menu.hidden {
+  display: none;
+}
+
+.appWindow > .overflow-menu.showing {
+  background-color: transparent;
+}
+
+/* XXX Possibly a Gecko bug, if you don't specify this pseudo-element, the
+ *     animation set on it below won't re-play subsequent times.
+ */
+.overflow-menu::before {
+  content: '';
+}
+
+.overflow-menu.showing::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(231, 231, 231, 0.6);
+  border-radius: 0 0 0 100%;
+  transform-origin: 100% 0;
+  will-change: transform;
+
+  animation-name: grow;
+  animation-duration: 0.4s;
+}
+
+@keyframes grow {
+  from { transform: scale(0, 0); }
+  to { transform: scale(2, 2); }
+}
+
+.appWindow > .overflow-menu.hiding {
+  opacity: 0;
+}
+
+.overflow-menu > .list {
+  background-color: white;
+  width: calc(100% - 6rem);
+  border: 0.1rem solid rgba(189, 189, 189, 0.1);
+  border-bottom: none;
+  transition: opacity 0.2s;
+  box-sizing: border-box;
+}
+
+.overflow-menu.showing > .list {
+  opacity: 0;
+}
+
+.overflow-menu > .list > .option {
+  height: 5rem;
+  border-bottom: 0.1rem solid rgba(189, 189, 189, 0.1);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.overflow-menu > .list > .option * {
+  pointer-events: none;
+}
+
+.overflow-menu > .list > .option > .icon {
+  display: inline-block;
+  width: 6rem;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.overflow-menu > .list > .option > .label {
+  font-size: 1.6rem;
+  font-style: italic;
+  color: #00aac5;
+  display: inline-block;
+}
+
+.option#add-to-home > .icon {
+  background-image: url("images/menu_add_to_homescreen.png");
+}
+
+/* Progress */
+.appWindow:not(.bar).scrollable > .chrome .progress {
+  top: 7.3rem;
+}
+
+/* App specifics */
+.appWindow:not(.scrollable) > .chrome .controls button {
+  display: none;
+}
+
+.appWindow:not(.scrollable) > .chrome .controls .forward-button:not([data-disabled]) + .urlbar,
+.appWindow:not(.scrollable) > .chrome .controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
+.appWindow:not(.scrollable) > .chrome .controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar,
+.appWindow:not(.scrollable) > .chrome .controls .urlbar {
+  width: calc(100% - 8rem);
+}
+
+.appWindow:not(.scrollable) > .chrome .controls .urlbar .title {
+  width: calc(100%);
+}
+

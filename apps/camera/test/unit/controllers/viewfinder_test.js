@@ -15,10 +15,10 @@ suite('controllers/viewfinder', function() {
       'lib/setting'
     ], function(
       App, Camera, ViewfinderController, ViewfinderView,
-      FocusRingView, FacesView, Settings, Setting) {
+      FocusView, FacesView, Settings, Setting) {
       self.ViewfinderController = ViewfinderController.ViewfinderController;
       self.ViewfinderView = ViewfinderView;
-      self.FocusRingView = FocusRingView;
+      self.FocusView = FocusView;
       self.FacesView = FacesView;
       self.Settings = Settings;
       self.Setting = Setting;
@@ -39,7 +39,7 @@ suite('controllers/viewfinder', function() {
     this.app.settings.grid = sinon.createStubInstance(this.Setting);
     this.app.views = {
       viewfinder: sinon.createStubInstance(this.ViewfinderView),
-      focusRing: sinon.createStubInstance(this.FocusRingView),
+      focus: sinon.createStubInstance(this.FocusView),
       faces: sinon.createStubInstance(this.FacesView)
     };
     this.app.Pinch = sinon.stub();
@@ -66,6 +66,7 @@ suite('controllers/viewfinder', function() {
     this.viewfinder = this.controller.views.viewfinder;
     this.focusRing = this.controller.views.focus;
     this.faces = this.controller.views.faces;
+    this.focus = this.controller.views.focus;
     this.settings = this.app.settings;
     this.camera = this.app.camera;
   });
@@ -122,6 +123,18 @@ suite('controllers/viewfinder', function() {
 
       this.controller = new this.ViewfinderController(this.app);
       assert.isTrue(this.viewfinder.set.calledWith('grid', 'on'));
+    });
+  });
+
+  suite('ViewfinderController#createViews()', function() {
+    setup(function() {
+      this.controller.createViews();
+    });
+
+    test('It appends views to the viewfinder views', function() {
+      assert.isTrue(this.focus.appendTo.calledWith(this.viewfinder.el));
+      assert.isTrue(this.faces.appendTo.calledWith(this.viewfinder.el));
+      assert.isTrue(this.viewfinder.appendTo.calledWith(this.app.el));
     });
   });
 

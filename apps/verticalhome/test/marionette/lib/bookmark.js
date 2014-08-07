@@ -10,7 +10,7 @@ Bookmark.prototype = {
 
   Selectors: {
     'bookmarkAddButton': '#add-button',
-    'mozbrowser': '.inline-activity.active > iframe[mozbrowser]',
+    'mozbrowser': '.inline-activity.active iframe[mozbrowser]',
   },
 
   get addButton() {

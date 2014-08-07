@@ -1,16 +1,18 @@
 'use strict';
-/* global MocksHelper, SystemDialog, LayoutManager */
+/* global MocksHelper, SystemDialog, LayoutManager, MockStatusBar */
 
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_system_dialog_manager.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
+requireApp('system/test/unit/mock_statusbar.js');
 
 var mocksForSystemDialog = new MocksHelper([
   'AppWindowManager',
   'LayoutManager',
   'SystemDialogManager',
-  'KeyboardManager'
+  'KeyboardManager',
+  'StatusBar'
 ]).init();
 
 suite('system/SystemDialog', function() {
@@ -30,6 +32,7 @@ suite('system/SystemDialog', function() {
     requireApp('system/js/base_ui.js');
     requireApp('system/js/system_dialog.js', done);
     window.layoutManager = new LayoutManager();
+    MockStatusBar.height = 30;
   });
 
   teardown(function() {

@@ -20,6 +20,7 @@
 }
 
 #datausage-tab .toggle-data li {
+  padding-right: 2rem;
   padding-left: 3rem;
   height: 3.8rem;
   border-bottom-color: #adadad;
@@ -49,7 +50,6 @@
   right: 0;
   left: auto;
 }
-
 
 /* Color legend (square) */
 #datausage-tab .toggle-data li:before {

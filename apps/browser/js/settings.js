@@ -1,5 +1,12 @@
+/* exported Settings */
+/* global Browser */
+/* global BrowserDB */
+
+'use strict';
+
 /**
- *  Browser app settings panel
+ * Browser app settings panel.
+ * @namespace Settings
  */
 var Settings = {
   searchEnginesFound: false,
@@ -35,12 +42,14 @@ var Settings = {
    */
   populateSearchEngines: function settings_populateSearchEngines() {
     BrowserDB.getSearchEngines((function(engineList) {
-      if (engineList.length == 0)
+      if (engineList.length === 0) {
         return;
+      }
       this.searchEnginesFound = true;
       // Only show the search engine selection UI if we have more than one
-      if (engineList.length <= 1)
+      if (engineList.length <= 1) {
         return;
+      }
       engineList.forEach(function(engine) {
         var option = document.createElement('option');
         option.value = engine.uri;
@@ -64,8 +73,9 @@ var Settings = {
     this.clearHistoryButton.disabled = false;
     this.clearPrivateDataButton.disabled = false;
     // If search engines weren't found on startup, try again.
-    if (!this.searchEnginesFound)
+    if (!this.searchEnginesFound) {
       this.populateSearchEngines();
+    }
   },
 
   /**

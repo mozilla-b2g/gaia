@@ -82,6 +82,33 @@ marionette('configure CalDAV accounts', function() {
     assertEvent(ACCOUNT_USERNAME, TITLE);
   });
 
+  test('events from disabled calendars should not be displayed', function() {
+    var events = app.monthDay.events;
+    assert.equal(events.length, 1, 'at least one event');
+
+    app.openSettingsView();
+    app.settings.toggleCalendar(ACCOUNT_USERNAME);
+    app.closeSettingsView();
+
+    assert.deepEqual(app.monthDay.events, [], 'events should be removed');
+
+    var startDate = new Date();
+    var endDate = new Date();
+    endDate.setHours(endDate.getHours() + 1);
+    var event = {
+      startDate: dateFormat(startDate, DATE_PATTERN),
+      endDate: dateFormat(endDate, DATE_PATTERN),
+      title: TITLE
+    };
+    serverHelper.addEvent(ACCOUNT_USERNAME, event);
+
+    app.openSettingsView();
+    app.settings.sync();
+    app.closeSettingsView();
+
+    assert.deepEqual(app.monthDay.events, [], 'events should not be added');
+  });
+
   function assertEvent(username, title) {
     app.readEvent.waitForDisplay();
 

@@ -3,6 +3,7 @@
 /*global MockApplications, Applications*/
 
 requireApp('system/shared/js/async_storage.js');
+requireApp('system/shared/js/lazy_loader.js');
 requireApp('system/shared/js/screen_layout.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_apps.js');
@@ -22,12 +23,12 @@ requireApp('system/js/dialer_agent.js');
 requireApp('system/js/ftu_launcher.js');
 requireApp('system/js/rocketbar.js');
 requireApp('system/js/home_gesture.js');
-requireApp('system/js/home_searchbar.js');
 requireApp('system/js/homescreen_launcher.js');
 requireApp('system/js/internet_sharing.js');
 requireApp('system/js/layout_manager.js');
 requireApp('system/js/lockscreen_window_manager.js');
 requireApp('system/js/lockscreen_notifications.js');
+requireApp('system/js/lockscreen_passcode_validator.js');
 requireApp('system/js/media_recording.js');
 requireApp('system/js/permission_manager.js');
 requireApp('system/js/remote_debugger.js');

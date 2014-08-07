@@ -1,15 +1,17 @@
 #!/bin/bash
 
+set -e
+
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
 
 if [ -z "$1" ]; then
   echo "Must provide size parameter (light/medium/heavy/x-heavy)"
-  exit
+  exit 1
 fi
 
 if ! type adb > /dev/null 2>&1; then
   echo "adb required to run reference-workloads"
-  exit
+  exit 1
 fi
 
 echo "Waiting for device to be connected..."
@@ -70,7 +72,7 @@ case $1 in
 
   *)
     echo "Size parameter must be one of (empty/light/medium/heavy/x-heavy)"
-    exit
+    exit 1
 
 esac
 
@@ -112,7 +114,7 @@ for app in $APPS; do
   case $app in
     communications/dialer)
       echo "Starting dialer"
-      adb pull /data/local/webapps/webapps.json $SCRIPT_DIR/webapps.json
+      adb pull /data/local/webapps/webapps.json $SCRIPT_DIR/webapps.json || exit 1
       DIALER_INFO=$(python $SCRIPT_DIR/readJSON.py $SCRIPT_DIR/webapps.json "communications.*/localId")
       IFS='/' read -a DIALER_PARTS <<< "$DIALER_INFO"
       DIALER_DOMAIN=${DIALER_PARTS[0]}
@@ -123,47 +125,47 @@ for app in $APPS; do
         echo "Unable to determine communications application ID - skipping dialer history..."
         LINE=" Dialer History: skipped"
       else
-        adb push  $SCRIPT_DIR/dialerDb-$DIALER_COUNT.sqlite $IDB_BASE/$DIALER_DIR$IDB_PATH/2584670174dsitanleecreR.sqlite
+        adb push  $SCRIPT_DIR/dialerDb-$DIALER_COUNT.sqlite $IDB_BASE/$DIALER_DIR$IDB_PATH/2584670174dsitanleecreR.sqlite || exit 1
         LINE=" Dialer History: $(printf "%4d" $DIALER_COUNT)"
       fi
       ;;
 
     gallery)
       echo "Starting gallery"
-      $SCRIPT_DIR/generateImages.sh $IMAGE_COUNT
+      $SCRIPT_DIR/generateImages.sh $IMAGE_COUNT || exit 1
       LINE=" Gallery:        $(printf "%4d" $IMAGE_COUNT)"
       ;;
 
     music)
       echo "Starting music"
-      $SCRIPT_DIR/generateMusicFiles.sh $MUSIC_COUNT
+      $SCRIPT_DIR/generateMusicFiles.sh $MUSIC_COUNT || exit 1
       LINE=" Music:          $(printf "%4d" $MUSIC_COUNT)"
       ;;
 
     video)
       echo "Starting video"
-      $SCRIPT_DIR/generateVideos.sh $VIDEO_COUNT
+      $SCRIPT_DIR/generateVideos.sh $VIDEO_COUNT || exit 1
       LINE=" Videos:         $(printf "%4d" $VIDEO_COUNT)"
       ;;
 
     communications/contacts)
       echo "Starting contacts"
-      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT.sqlite $IDB_BASE/chrome$IDB_PATH/3406066227csotncta.sqlite
+      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT.sqlite $IDB_BASE/chrome$IDB_PATH/3406066227csotncta.sqlite || exit 1
       ATTACHMENT_DIR=$SCRIPT_DIR/contactsDb-$CONTACT_COUNT
       tar -xvzf $SCRIPT_DIR/ContactPictures-$CONTACT_COUNT.tar.gz -C $SCRIPT_DIR
       adb shell "rm $IDB_BASE/chrome$IDB_PATH/3406066227csotncta/*"
-      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT/ $IDB_BASE/chrome$IDB_PATH/3406066227csotncta/
+      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT/ $IDB_BASE/chrome$IDB_PATH/3406066227csotncta/ || exit 1
       rm -rf $ATTACHMENT_DIR/
       LINE=" Contacts:       $(printf "%4d" $CONTACT_COUNT)"
       ;;
 
     sms)
       echo "Starting sms"
-      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT.sqlite $IDB_BASE/chrome$IDB_PATH/226660312ssm.sqlite
+      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT.sqlite $IDB_BASE/chrome$IDB_PATH/226660312ssm.sqlite || exit 1
       ATTACHMENT_DIR=$SCRIPT_DIR/smsDb-$SMS_COUNT
       tar -xvzf $SCRIPT_DIR/Attachments-$SMS_COUNT.tar.gz -C $SCRIPT_DIR
       adb shell "rm $IDB_BASE/chrome$IDB_PATH/226660312ssm/*"
-      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT/ $IDB_BASE/chrome$IDB_PATH/226660312ssm/
+      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT/ $IDB_BASE/chrome$IDB_PATH/226660312ssm/ || exit 1
       rm -rf $ATTACHMENT_DIR/
       LINE=" Sms Messages:   $(printf "%4d" $SMS_COUNT)"
       ;;
@@ -174,7 +176,7 @@ for app in $APPS; do
         echo "Can't push calendar to b2g18 phone..."
         LINE=" Calendar: skipped"
       else
-        adb pull /data/local/webapps/webapps.json $SCRIPT_DIR/webapps.json
+        adb pull /data/local/webapps/webapps.json $SCRIPT_DIR/webapps.json || exit 1
         CAL_INFO=$(python $SCRIPT_DIR/readJSON.py $SCRIPT_DIR/webapps.json "calendar.*/localId")
         IFS='/' read -a CAL_PARTS <<< "$CAL_INFO"
         CAL_DOMAIN=${CAL_PARTS[0]}
@@ -185,7 +187,7 @@ for app in $APPS; do
           echo "Unable to determine calendar application ID - skipping calendar..."
           LINE=" Calendar: skipped"
         else
-          adb push  $SCRIPT_DIR/calendarDb-$CAL_COUNT.sqlite $IDB_BASE/$CAL_DIR$IDB_PATH/125582036br2agd-nceal.sqlite
+          adb push  $SCRIPT_DIR/calendarDb-$CAL_COUNT.sqlite $IDB_BASE/$CAL_DIR$IDB_PATH/125582036br2agd-nceal.sqlite || exit 1
           LINE=" Calendar:   $(printf "%4d" $CAL_COUNT)"
         fi
       fi

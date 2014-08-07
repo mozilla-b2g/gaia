@@ -5,7 +5,9 @@
 'use strict';
 
 /**
- *  Browser App Awesomescreen.
+ * Browser App Awesomescreen. Display top sites, bookmarks, histories and search
+ * result.
+ * @namespace Awesomescreen
  */
 var Awesomescreen = {
 
@@ -19,6 +21,7 @@ var Awesomescreen = {
   resultCache: {},
   updateInProgress: false,
   pendingUpdateFilter: null,
+  // Keep img object URLs to later clean up img file references
   objectURLs: [],
 
   /**
@@ -283,9 +286,9 @@ var Awesomescreen = {
   /**
    * Refresh the list of bookmarks.
    */
-   refreshBookmarks: function awesomescreen_refreshBookmarks() {
-     BrowserDB.getBookmarks(this.populateBookmarks.bind(this));
-   },
+  refreshBookmarks: function awesomescreen_refreshBookmarks() {
+    BrowserDB.getBookmarks(this.populateBookmarks.bind(this));
+  },
 
   /**
    * Deselect all the Awesomescreen tabs.

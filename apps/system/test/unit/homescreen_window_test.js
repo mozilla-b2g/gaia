@@ -11,13 +11,12 @@ requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
-requireApp('system/test/unit/mock_app_titlebar.js');
 
 var mocksForHomescreenWindow = new MocksHelper([
   'OrientationManager',
   'Applications', 'SettingsListener',
   'ManifestHelper', 'AppWindowManager',
-  'HomescreenLauncher', 'AppTitleBar'
+  'HomescreenLauncher'
 ]).init();
 
 suite('system/HomescreenWindow', function() {
@@ -30,8 +29,16 @@ suite('system/HomescreenWindow', function() {
     this.sinon.useFakeTimers();
     window.homescreenLauncher = new HomescreenLauncher();
     window.homescreenLauncher.start();
-    stubById = this.sinon.stub(document, 'getElementById');
-    stubById.returns(document.createElement('div'));
+    stubById = this.sinon.stub(document, 'getElementById', function(id) {
+      var element = document.createElement('div');
+      if (id === 'homescreen') {
+        var container = document.createElement('div');
+        container.className = 'browser-container';
+        element.appendChild(container);
+      }
+
+      return element;
+    });
     requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');

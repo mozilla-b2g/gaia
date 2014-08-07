@@ -909,7 +909,7 @@ function Commander(cmd) {
   this.initPath = function(paths) {
     if (typeof paths === 'string') {
       var file = getFile(paths, command);
-      _file = file.exists() ? file : null;
+      _file = (file.exists() && file.isExecutable()) ? file : null;
     } else if (typeof paths === 'object' && paths.length) {
       for (var p in paths) {
         try {
@@ -957,7 +957,7 @@ function Commander(cmd) {
    *       support). We'll file another bug for migration things.
    */
   this.runWithSubprocess = function(args, options) {
-    log('cmd', command + ' ' + args.join(' '));
+    log('cmd', _file.path + ' ' + args.join(' '));
     var p = subprocess.call({
       command: _file,
       arguments: args,

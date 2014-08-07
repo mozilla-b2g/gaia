@@ -76,32 +76,35 @@ suite('SMIL', function() {
         ]
       };
       SMIL.parse(messageData, function(output) {
-        // one slide returned
-        assert.equal(output.length, 1);
-        // the text should be joined on the one slide
-        assert.equal(output[0].text, text.join(' '));
+        // one slide for each attachment is returned
+        assert.equal(output.length, 2);
+        // the text has not been joined in one slide
+        assert.equal(output[0].text, text[0]);
+        assert.equal(output[1].text, text[1]);
         done();
       });
     });
     test('Text and image message without smil', function(done) {
-      var text = 'Test text';
-      // minimal fake data for text only message without smil
+      var text = ['Test above image', 'Text below image'];
       var messageData = {
         attachments: [
-          {content: new Blob([text], {type: 'text/plain'})},
+          {content: new Blob([text[0]], {type: 'text/plain'})},
           {
             content: testImageBlob,
             location: 'example.jpg'
-          }
+          },
+          {content: new Blob([text[1]], {type: 'text/plain'})},
         ]
       };
       SMIL.parse(messageData, function(output) {
-        // one slide returned
-        assert.equal(output.length, 1);
-        // the text should be put on the same slide as the image
-        assert.equal(output[0].text, text);
-        assert.equal(output[0].blob, testImageBlob);
-        assert.equal(output[0].name, 'example.jpg');
+        // three slides returned
+        assert.equal(output.length, 3);
+        // the order of the attached components should be respected, the text
+        // is located on two different slides (not joined)
+        assert.equal(output[0].text, text[0]);
+        assert.equal(output[1].blob, testImageBlob);
+        assert.equal(output[1].name, 'example.jpg');
+        assert.equal(output[2].text, text[1]);
         done();
       });
     });
@@ -195,6 +198,7 @@ suite('SMIL', function() {
     });
     test('SMIL doc with cid: prefixes on src and no location', function(done) {
       // iphone!
+      // parsed as a non smil message
       var testText = 'Testing 1 2 3';
       var message = {
         smil: '<smil><body><par><img src="cid:23"/>' +
@@ -209,8 +213,8 @@ suite('SMIL', function() {
       };
       SMIL.parse(message, function(output) {
         assert.equal(output[0].text, testText);
-        assert.equal(output[0].blob, testImageBlob);
-        assert.isUndefined(output[0].name, 'name is undefined');
+        assert.equal(output[1].blob, testImageBlob);
+        assert.isUndefined(output[1].name, 'name is undefined');
         done();
       });
     });
@@ -254,8 +258,8 @@ suite('SMIL', function() {
       };
       SMIL.parse(message, function(output) {
         assert.equal(output[0].text, testText);
-        assert.equal(output[0].blob, testImageBlob);
-        assert.equal(output[0].name, 'example.jpg');
+        assert.equal(output[1].blob, testImageBlob);
+        assert.equal(output[1].name, 'example.jpg');
         done();
       });
     });
@@ -324,8 +328,8 @@ suite('SMIL', function() {
       };
       SMIL.parse(message, function(output) {
         assert.equal(output[0].text, testText);
-        assert.equal(output[0].blob, testImageBlob);
-        assert.equal(output[0].name, 'example.jpg');
+        assert.equal(output[1].blob, testImageBlob);
+        assert.equal(output[1].name, 'example.jpg');
         done();
       });
     });
@@ -344,8 +348,8 @@ suite('SMIL', function() {
       };
       SMIL.parse(message, function(output) {
         assert.equal(output[0].text, testText);
-        assert.equal(output[0].blob, testImageBlob);
-        assert.isUndefined(output[0].name, 'name is undefined');
+        assert.equal(output[1].blob, testImageBlob);
+        assert.isUndefined(output[1].name, 'name is undefined');
         done();
       });
     });
@@ -429,7 +433,7 @@ suite('SMIL', function() {
         SMIL.parse(message, function(output) {
           assert.equal(output[0].blob, testContactBlob);
           assert.equal(output[0].name, 'contacts.vcf');
-          assert.equal(output[0].text, 'test Text');
+          assert.equal(output[1].text, 'test Text');
           done();
         });
       });

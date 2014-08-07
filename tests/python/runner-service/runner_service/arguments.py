@@ -24,6 +24,16 @@ class GaiaIntegrationParser(ArgumentParser):
           "default": None,
           "help": "Path to b2g directory."
         }],
+        [["--symbols-path"],
+        { "dest": "symbols_path",
+          "default": None,
+          "help": "Path to build symbols used by crash reporting."
+        }],
+        [["--serial"],
+        { "dest": "device_serial",
+          "default": None,
+          "help": "serial ID of a device to use for adb / fastboot"
+        }],
     ]
 
     def __init__(self, *args, **kwargs):

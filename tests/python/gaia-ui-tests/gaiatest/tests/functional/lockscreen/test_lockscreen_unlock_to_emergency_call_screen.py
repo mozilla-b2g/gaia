@@ -22,7 +22,7 @@ class TestLockScreen(GaiaTestCase):
         lock_screen = LockScreen(self.marionette)
         passcode_pad = lock_screen.unlock_to_passcode_pad()
         emergency_call = passcode_pad.tap_emergency_call()
-        emergency_call.switch_to_emergency_call_frame()
-
-        self.assertTrue(emergency_call.is_emergency_dialer_keypad_displayed,
-                        'emergency dialer keypad is not displayed')
+        if self.device.has_mobile_connection:
+            emergency_call.switch_to_emergency_call_frame()
+            self.assertTrue(emergency_call.is_emergency_dialer_keypad_displayed,
+                           'emergency dialer keypad is not displayed')

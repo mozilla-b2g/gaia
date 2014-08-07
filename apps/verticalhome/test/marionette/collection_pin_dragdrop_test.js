@@ -33,8 +33,6 @@ marionette('Vertical - Collection', function() {
     system = new System(client);
     system.waitForStartup();
 
-    client.apps.launch(Home2.URL);
-
     home.waitForLaunch();
     collection.disableGeolocation();
     collection.setServerURL(server);
@@ -55,6 +53,10 @@ marionette('Vertical - Collection', function() {
     // We specifically choose phone because it has an entry point.
     var phoneIcon = home.getIcon(dialerManifest, dialerEntryPoint);
     var collectionIcon = collection.getCollectionByName(collectionName);
+    // helps marionette finding the icon: Bug 1046706
+    // note: they should be at this position already
+    home.moveIconToIndex(phoneIcon, 0);
+    home.moveIconToIndex(collectionIcon, 1);
 
     actions
       .press(phoneIcon)

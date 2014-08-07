@@ -40,31 +40,29 @@ Search.prototype = {
   },
 
   /**
-   * Checks that we have a result for a given app in the results list.
-
+   * Return selector for the grid item with a n identifier
    */
-  checkAppResult: function(identifier, expected) {
+  getResultSelector: function(identifier) {
+    return '.icon[data-identifier="' + identifier + '"]';
+  },
+
+  /**
+   * Return grid results for a particular identifier
+   */
+  getResult: function(identifier) {
+    var selector = '.icon[data-identifier="' + identifier + '"]';
+    return this.client.findElements(selector);
+  },
+
+  /**
+   * Checks that we have a result for a given app in the results list.
+   */
+  checkResult: function(identifier, expected) {
     var selectors = Search.Selectors;
     var selector = '.icon[data-identifier="' + identifier + '"]';
 
     this.client.helper.waitForElement(selectors.firstAppContainer);
     var result = this.client.helper.waitForElement(selector);
-    assert.equal(expected, result.text());
-    return result;
-  },
-
-  /**
-   * Checks that the text of a selector matches the expected result.
-   * Clicks on that result.
-   * @param {String} selectorKey from Search.Selectors.
-   * @param {String} expected value of the text.
-   */
-  checkResult: function(selectorKey, expected) {
-    var selectors = Search.Selectors;
-
-    this.client.helper.waitForElement(selectors[selectorKey + 'Container']);
-    var result = this.client.helper
-      .waitForElement(selectors[selectorKey]);
     assert.equal(expected, result.text());
     return result;
   },

@@ -719,6 +719,10 @@ bubble above the key when you tap and hold. */
   margin-bottom: -0.3rem;
 }
 
+.keyboard-key.bottom-symbol.highlighted > .visual-wrapper:after {
+  opacity: 1;
+}
+
 .keyboard-key.bottom-symbol[data-keycode="50"] > .visual-wrapper:after {
   content: 'ABC';
 }

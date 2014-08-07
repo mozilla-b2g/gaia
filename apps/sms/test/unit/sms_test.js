@@ -24,6 +24,7 @@ require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/test/unit/mock_settings.js');
 
+require('/js/event_dispatcher.js');
 require('/js/navigation.js');
 requireApp('sms/js/link_helper.js');
 requireApp('sms/js/drafts.js');

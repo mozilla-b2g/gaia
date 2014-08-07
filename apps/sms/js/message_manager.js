@@ -1,8 +1,17 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global ThreadListUI, ThreadUI, Threads, SMIL, MozSmsFilter,
-         LinkActionHandler, Settings, Navigation, ReportView
+/* global
+    MozSmsFilter,
+    Navigation,
+    Promise,
+    ReportView,
+    Settings,
+    SMIL,
+    ThreadListUI,
+    Threads,
+    ThreadUI,
+    Utils
 */
 
 /*exported MessageManager */
@@ -29,8 +38,6 @@ var MessageManager = {
                                             this.onDeliverySuccess);
     this._mozMobileMessage.addEventListener('readsuccess',
                                             this.onReadSuccess);
-    document.addEventListener('visibilitychange',
-                              this.onVisibilityChange.bind(this));
 
     this._mozMobileMessage.addEventListener(
       'deleted',
@@ -101,10 +108,6 @@ var MessageManager = {
     if (e.deletedThreadIds && e.deletedThreadIds.length) {
       ThreadListUI.onThreadsDeleted(e.deletedThreadIds);
     }
-  },
-
-  onVisibilityChange: function mm_onVisibilityChange(e) {
-    LinkActionHandler.reset();
   },
 
   getThreads: function mm_getThreads(options) {
@@ -481,5 +484,25 @@ var MessageManager = {
         'Error while marking message %d as read: %s', id, this.error.name
       );
     };
+  },
+
+  getSegmentInfo: function mm_getSegmentInfo(text) {
+    if (!(this._mozMobileMessage &&
+          this._mozMobileMessage.getSegmentInfoForText)) {
+      return Promise.reject(new Error('mozMobileMessage is unavailable.'));
+    }
+
+    var defer = Utils.Promise.defer();
+
+    var request = this._mozMobileMessage.getSegmentInfoForText(text);
+    request.onsuccess = function onsuccess(e) {
+      defer.resolve(e.target.result);
+    };
+
+    request.onerror = function onerror(e) {
+      defer.reject(e.target.error);
+    };
+
+    return defer.promise;
   }
 };

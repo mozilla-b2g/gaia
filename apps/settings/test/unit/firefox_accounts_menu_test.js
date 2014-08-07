@@ -17,7 +17,7 @@ requireApp('settings/js/firefox_accounts/menu.js');
 suite('firefox accounts menu item > ', function() {
   var suiteSandbox = sinon.sandbox.create(),
     fxaDescEl,
-    localizeSpy,
+    setAttributesSpy,
     realL10n;
 
   suiteSetup(function() {
@@ -34,13 +34,13 @@ suite('firefox accounts menu item > ', function() {
   });
 
   setup(function() {
-    localizeSpy = sinon.spy(navigator.mozL10n, 'localize');
+    setAttributesSpy = sinon.spy(navigator.mozL10n, 'setAttributes');
     fxaDescEl = document.getElementById('fxa-desc');
   });
 
   teardown(function() {
     MockFxAccountsIACHelper.resetListeners();
-    navigator.mozL10n.localize.restore();
+    navigator.mozL10n.setAttributes.restore();
   });
 
   test('check the html loaded correctly', function() {
@@ -54,8 +54,8 @@ suite('firefox accounts menu item > ', function() {
     });
     // init app code
     FxaMenu.init(MockFxAccountsIACHelper);
-    // test localize was called with correct args
-    assert.deepEqual(localizeSpy.args[0], [
+    // test setAttributes was called with correct args
+    assert.deepEqual(setAttributesSpy.args[0], [
       fxaDescEl,
       'fxa-logged-in-text',
       { email: 'init@ialization.com' }
@@ -66,10 +66,7 @@ suite('firefox accounts menu item > ', function() {
     MockFxAccountsIACHelper.setCurrentState(null);
     FxaMenu.init(MockFxAccountsIACHelper);
     MockFxAccountsIACHelper.fireEvent('onlogout');
-    assert.deepEqual(localizeSpy.args[0], [
-      fxaDescEl,
-      'fxa-invitation'
-    ]);
+    assert.equal(fxaDescEl.getAttribute('data-l10n-id'), 'fxa-invitation');
   });
 
   test('show the correct status after onlogin event', function() {
@@ -79,7 +76,7 @@ suite('firefox accounts menu item > ', function() {
     });
     FxaMenu.init(MockFxAccountsIACHelper);
     MockFxAccountsIACHelper.fireEvent('onlogin');
-    assert.deepEqual(localizeSpy.args[0], [
+    assert.deepEqual(setAttributesSpy.args[0], [
       fxaDescEl,
       'fxa-confirm-email',
       { email: 'on@log.in' }
@@ -93,7 +90,7 @@ suite('firefox accounts menu item > ', function() {
     });
     FxaMenu.init(MockFxAccountsIACHelper);
     MockFxAccountsIACHelper.fireEvent('onverified');
-    assert.deepEqual(localizeSpy.args[0], [
+    assert.deepEqual(setAttributesSpy.args[0], [
       fxaDescEl,
       'fxa-logged-in-text',
       { email: 'on@verifiedlog.in' }

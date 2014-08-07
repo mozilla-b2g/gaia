@@ -80,13 +80,6 @@ var KeypadManager = {
     return this.phoneNumberView;
   },
 
-  get fakePhoneNumberView() {
-    delete this.fakePhoneNumberView;
-    this.fakePhoneNumberView =
-      document.getElementById('fake-phone-number-view');
-    return this.fakePhoneNumberView;
-  },
-
   get phoneNumberViewContainer() {
     delete this.phoneNumberViewContainer;
     this.phoneNumberViewContainer =
@@ -576,8 +569,8 @@ var KeypadManager = {
       this.moveCaretToEnd(this.phoneNumberView);
 
       FontSizeManager.adaptToSpace(
-        FontSizeManager.DIAL_PAD, this.phoneNumberView,
-        this.fakePhoneNumberView, forceMaxFontSize, ellipsisSide);
+        FontSizeManager.DIAL_PAD, this.phoneNumberView, forceMaxFontSize,
+        ellipsisSide);
     }
 
     if (this.onValueChanged) {

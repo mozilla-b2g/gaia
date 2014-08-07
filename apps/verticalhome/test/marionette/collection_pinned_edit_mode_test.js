@@ -34,8 +34,6 @@ marionette('Vertical - Collection', function() {
     system = new System(client);
     system.waitForStartup();
 
-    client.apps.launch(Home2.URL);
-
     home.waitForLaunch();
     collection.disableGeolocation();
     collection.setServerURL(server);
@@ -49,9 +47,12 @@ marionette('Vertical - Collection', function() {
     collection.selectNew(collectionName);
     client.apps.switchToApp(Home2.URL);
 
+    var collectionIcon = collection.getCollectionByName(collectionName);
+
+    // helps marionette finding the icon: Bug 1046706
+    home.moveIconToIndex(collectionIcon, 0);
     // Enter the created collection.
-    collection.enterCollection(
-      collection.getCollectionByName(collectionName));
+    collection.enterCollection(collectionIcon);
 
     collection.pin(collection.firstWebResult);
     collection.pin(collection.firstWebResult);

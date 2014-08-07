@@ -186,10 +186,6 @@ const IMERender = (function() {
         requestAnimationFrame(callback);
       }
     }
-
-    // XXX We have to wait for layout to complete before
-    // return this function
-    container.offsetWidth;
   };
 
   /**
@@ -730,8 +726,6 @@ const IMERender = (function() {
 
   // Recalculate dimensions for the current render
   var resizeUI = function(layout, callback) {
-    var RESIZE_UI_TIMEOUT = 0;
-
     // This function consists of two actual functions
     // 1. setKeyWidth (sets the correct width for every key)
     // 2. getVisualData (stores visual offsets in internal array)
@@ -757,7 +751,7 @@ const IMERender = (function() {
             keyRatio = wrapperRatio + ((layoutWidth - rowLayoutWidth) / 2);
           }
 
-          keyEl.style.width = (placeHolderWidth * keyRatio | 0) + 'px';
+          keyEl.style.width = (placeHolderWidth | 0) * keyRatio + 'px';
 
           // Default aligns 100%, if they differ set width on the wrapper
           if (keyRatio !== wrapperRatio) {
@@ -768,7 +762,7 @@ const IMERender = (function() {
         });
       });
 
-      setTimeout(getVisualData, RESIZE_UI_TIMEOUT);
+      requestAnimationFrame(getVisualData);
     }
 
     function getVisualData() {
@@ -806,10 +800,6 @@ const IMERender = (function() {
       if (callback) {
         callback();
       }
-
-      // XXX We have to wait for layout to complete before
-      // return this function
-      ime.offsetWidth;
     }
 
     var changeScale;
@@ -848,10 +838,6 @@ const IMERender = (function() {
     var rows = activeIme.querySelectorAll('.keyboard-row');
 
     setKeyWidth();
-
-    // XXX We have to wait for layout to complete before
-    // return this function
-    activeIme.offsetWidth;
   };
 
   //

@@ -146,6 +146,24 @@ suite('navigation >', function() {
     }
   });
 
+  test('skips date and time when network time is available', function() {
+    var oldTimeZoneNeedsConfirmation = UIManager.timeZoneNeedsConfirmation;
+    UIManager.timeZoneNeedsConfirmation = false;
+
+    MockIccHelper.setProperty('cardState', 'ready');
+    Navigation.simMandatory = true;
+    Navigation.totalSteps = numSteps; // explicitly set the total steps
+
+    setStepState(3);
+    Navigation.forward();
+    assert.equal(Navigation.getProgressBarState(), 5);
+    assert.equal(Navigation.previousStep, 3);
+    assert.equal(Navigation.currentStep, 5);
+    assert.equal(window.location.hash, steps[5].hash);
+
+    UIManager.timeZoneNeedsConfirmation = oldTimeZoneNeedsConfirmation;
+  });
+
   test('progress bar start and end positions', function() {
     Navigation.simMandatory = true;
     Navigation.totalSteps = numSteps; // explicitly set the total steps

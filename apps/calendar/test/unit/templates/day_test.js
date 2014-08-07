@@ -16,15 +16,38 @@ suiteGroup('Templates.Day', function() {
     return subject[type].render(options);
   }
 
-  test('#hour', function() {
-    var result = renderHTML('hour', {
-      hour: 'fooz',
-      items: a()
+  suite('#hour', function() {
+    test('> hour', function() {
+      var date = new Date();
+      date.setHours(1, 0, 0, 0);
+
+      var result = renderHTML('hour', {
+        hour: 1,
+        displayHour: 'fooz',
+        items: a()
+      });
+
+      assert.ok(result);
+      assert.include(result, 'fooz');
+      assert.include(result, a());
+      assert.include(result, 'data-l10n-date-format="hour-format"');
+      assert.include(result, 'data-date="' + date + '"');
+      assert.include(result, 'data-hour="1"');
     });
 
-    assert.ok(result);
-    assert.include(result, 'fooz');
-    assert.include(result, a());
+    test('> all day', function() {
+      var result = renderHTML('hour', {
+        hour: Calendar.Calc.ALLDAY,
+        displayHour: 'foozbar',
+        items: a()
+      });
+
+      assert.ok(result);
+      assert.include(result, 'foozbar');
+      assert.include(result, a());
+      assert.include(result, 'data-l10n-id="hour-allday"');
+      assert.include(result, 'data-hour="allday"');
+    });
   });
 
   test('#attendee', function() {

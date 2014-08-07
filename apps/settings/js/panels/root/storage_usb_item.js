@@ -1,4 +1,4 @@
-/* global DeviceStorageHelper */
+/* global DeviceStorageHelper, openIncompatibleSettingsDialog */
 /**
  * Links the root panel list item with USB Storage.
  *
@@ -9,6 +9,7 @@ define(function(require) {
 
   var SettingsListener = require('shared/settings_listener');
   var AsyncStorage = require('shared/async_storage');
+  var SettingsCache = require('modules/settings_cache');
 
   /**
    * @alias module:panels/root/storage_usb_item
@@ -98,7 +99,6 @@ define(function(require) {
 
     // ums description
     _updateUmsDesc: function storage_updateUmsDesc() {
-      var localize = navigator.mozL10n.localize;
       var key;
       if (this._elements.umsEnabledCheckBox.checked) {
         //TODO list all enabled volume name
@@ -108,7 +108,7 @@ define(function(require) {
       } else {
         key = 'disabled';
       }
-      localize(this._elements.umsEnabledInfoBlock, key);
+      this._elements.umsEnabledInfoBlock.setAttribute('data-l10n-id', key);
     },
 
     _umsMasterSettingChanged: function storage_umsMasterSettingChanged(evt) {
@@ -122,11 +122,11 @@ define(function(require) {
             this._elements.umsWarningDialog.hidden = false;
 
             this._elements.umsConfirmButton.onclick = function() {
-              cset[this._umsSettingKey] = true;
-              Settings.mozSettings.createLock().set(cset);
-
               AsyncStorage.setItem(warningKey, true);
               this._elements.umsWarningDialog.hidden = true;
+
+              SettingsCache.getSettings(
+                this._openIncompatibleSettingsDialogIfNeeded.bind(this));
             }.bind(this);
 
             this._elements.umsCancelButton.onclick = function() {
@@ -137,14 +137,30 @@ define(function(require) {
               this._elements.umsWarningDialog.hidden = true;
             }.bind(this);
           } else {
-            cset[this._umsSettingKey] = true;
-            Settings.mozSettings.createLock().set(cset);
+            SettingsCache.getSettings(
+              this._openIncompatibleSettingsDialogIfNeeded.bind(this));
           }
         }.bind(this));
       } else {
         cset[this._umsSettingKey] = false;
         Settings.mozSettings.createLock().set(cset);
       }
+    },
+
+    _openIncompatibleSettingsDialogIfNeeded:
+      function storage_openIncompatibleSettingsDialogIfNeeded(settings) {
+        var cset = {};
+        var umsSettingKey = this._umsSettingKey;
+        var usbTetheringSetting = settings['tethering.usb.enabled'];
+
+        if (!usbTetheringSetting) {
+          cset[umsSettingKey] = true;
+          Settings.mozSettings.createLock().set(cset);
+        } else {
+          var oldSetting = 'tethering.usb.enabled';
+          openIncompatibleSettingsDialog('incompatible-settings-warning',
+            umsSettingKey, oldSetting, null);
+        }
     },
 
     // XXX media related functions
@@ -182,7 +198,6 @@ define(function(require) {
     },
 
     _updateVolumeState: function storage_updateVolumeState(volume, state) {
-      var localize = navigator.mozL10n.localize;
       this._defaultVolumeState = state;
       this._updateUmsDesc();
       switch (state) {
@@ -192,12 +207,14 @@ define(function(require) {
           break;
 
         case 'shared':
-          localize(this._elements.mediaStorageDesc, '');
+          this._elements.mediaStorageDesc.removeAttribute('data-l10n-id');
+          this._elements.mediaStorageDesc.textContent = '';
           this._lockMediaStorageMenu(false);
           break;
 
         case 'unavailable':
-          localize(this._elements.mediaStorageDesc, 'no-storage');
+          this._elements.mediaStorageDesc.setAttribute('data-l10n-id',
+                                                       'no-storage');
           this._lockMediaStorageMenu(true);
           break;
       }

@@ -12,7 +12,6 @@ window.GaiaMenu = (function(win) {
   proto.createdCallback = function () {
     var shadow = this.createShadowRoot();
 
-    navigator.mozL10n.translateFragment(template);
     this._template = template.content.cloneNode(true);
 
     var cancelButton = this._template.querySelector('.gaia-menu-cancel');
@@ -25,13 +24,12 @@ window.GaiaMenu = (function(win) {
     shadow.appendChild(this._template);
 
     ComponentUtils.style.call(this, baseurl);
-
-    window.addEventListener('localized', this.localize.bind(this));
+    navigator.mozL10n.ready(this.localize.bind(this));
   };
 
   proto.localize = function() {
-    navigator.mozL10n.translateFragment(
-      this.shadowRoot.querySelector('button'));
+    this.shadowRoot.querySelector('button').setAttribute('data-l10n-id' ,
+      'gaia-menu-cancel');
   };
 
   proto.show = function() {
@@ -49,8 +47,7 @@ window.GaiaMenu = (function(win) {
       '<content select="header"></content>' +
       '<menu>' +
         '<content select="button"></content>' +
-        '<button data-l10n-id="cancel" class="gaia-menu-cancel">' +
-          'Cancel</button>' +
+        '<button class="gaia-menu-cancel">Cancel</button>' +
       '</menu>' +
     '</form>';
 

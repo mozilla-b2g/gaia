@@ -52,6 +52,7 @@
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
+    <link rel="stylesheet" type="text/css" href="style/chrome/chrome.css">
 
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
@@ -103,6 +104,9 @@
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/home_gesture.js"></script>
     <script defer src="js/wallpaper_manager.js"></script>
+    <!--  WallpaperManager lazily loads this script if needed
+        <script defer src="shared/js/image_utils.js"></script>
+    -->
 
     <!-- TTL View -->
     <link rel="stylesheet" type="text/css" href="style/ttlview/ttlview.css">
@@ -122,6 +126,7 @@
 
     <!-- Keyboard -->
     <script defer src="js/input_transition.js"></script>
+    <script defer src="js/ime_switcher.js"></script>
     <script defer src="js/keyboard_manager.js"></script>
 
     <!-- Utility Tray -->
@@ -180,6 +185,7 @@
     <script defer src="/shared/js/lockscreen_connection_info_manager.js"></script>
     <script defer src="js/lockscreen.js"></script>
     <script defer src="js/lockscreen_notifications.js"></script>
+    <script defer src="js/lockscreen_passcode_validator.js"></script>
 
     <!-- Airplane Mode -->
     <script defer src="js/airplane_mode.js"></script>
@@ -322,7 +328,6 @@
     <script defer src="js/child_window_factory.js"></script>
     <script defer src="js/app_modal_dialog.js"></script>
     <script defer src="js/app_chrome.js"></script>
-    <script defer src="js/app_titlebar.js"></script>
     <script defer src="js/app_transition_controller.js"></script>
     <script defer src="js/app_authentication_dialog.js"></script>
     <script defer src="js/text_selection_dialog.js"></script>
@@ -386,7 +391,6 @@
     <!-- Rocketbar -->
     <script defer src="js/browser.js"></script>
     <script defer src="js/rocketbar.js"></script>
-    <script defer src="js/home_searchbar.js"></script>
     <script defer src="js/search_window.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
     <link rel="stylesheet" type="text/css" href="style/rocketbar/rocketbar.css">
@@ -424,10 +428,6 @@
       <div id="statusbar" data-z-index-level="statusbar">
         <!-- Rocketbar-->
         <div id="rocketbar">
-          <div id="rocketbar-title">
-            <span role="button" id="rocketbar-title-content" data-l10n-id="search-or-enter-address">Search or enter address</span>
-          </div>
-          <button type="button" id="rocketbar-overflow-button"></button>
           <form id="rocketbar-form" class="hidden">
             <input id="rocketbar-input" type="text" x-inputmode="verbatim" dir="auto"
               placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="">
@@ -603,7 +603,7 @@
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
         <!-- Unlock SIM Pin dialog -->
         <!-- Add the dialog via SystemDialog dynamically. -->
-        <!-- <div id="simpin-dialog" role="dialog" class="generic-dialog" data-z-index-level="simpin-dialog" hidden></div> -->
+        <!-- <div id="system-dialog" role="dialog" class="generic-dialog" data-z-index-level="simpin-dialog" hidden></div> -->
 
         <!-- Crash reporter -->
         <div id="crash-dialog">
@@ -1050,7 +1050,7 @@
           <div id="lockscreen-panel-passcode" class="lockscreen-panel" data-l10n-id="panel-passcode">
             <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
             <div id="lockscreen-passcode-pad">
-              <a role="key" href="#" data-key="1" class="row0"><div>1<span>.</span></div></a>
+              <a role="key" href="#" data-key="1" class="row0"><div>1<span></span></div></a>
               <a role="key" href="#" data-key="2" class="row0"><div>2<span>ABC</span></div></a>
               <a role="key" href="#" data-key="3" class="row0"><div>3<span>DEF</span></div></a>
               <a role="key" href="#" data-key="4" class="row1"><div>4<span>GHI</span></div></a>

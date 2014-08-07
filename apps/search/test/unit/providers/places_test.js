@@ -15,6 +15,7 @@ require('/shared/elements/gaia_grid/js/grid_view.js');
 require('/shared/elements/gaia_grid/script.js');
 require('/shared/elements/gaia_grid/js/items/grid_item.js');
 require('/shared/elements/gaia_grid/js/items/bookmark.js');
+require('/shared/js/sync_datastore.js');
 
 suite('search/providers/places', function() {
   var fakeElement, subject;
@@ -25,10 +26,6 @@ suite('search/providers/places', function() {
     realDatastore = navigator.getDataStores;
     navigator.getDataStores = MockNavigatorDatastore.getDataStores;
     MockNavigatorDatastore._records = {};
-
-    window.SettingsListener = {
-      observe: function() {}
-    };
 
     MockDatastore.sync = function() {
       var cursor = {
@@ -50,7 +47,6 @@ suite('search/providers/places', function() {
 
   suiteTeardown(function() {
     navigator.getDataStores = realDatastore;
-    delete window.SettingsListener;
   });
 
   setup(function(done) {
@@ -61,7 +57,9 @@ suite('search/providers/places', function() {
     requireApp('search/js/providers/places.js', function() {
       subject = window.Places;
       subject.grid = document.createElement('gaia-grid');
-      promiseDone.then(done.bind(null, null));
+      promiseDone.then(function() {
+        subject.init().then(done);
+      });
     });
   });
 
@@ -69,7 +67,7 @@ suite('search/providers/places', function() {
     test('renders data url', function(done) {
       subject.search('mozilla').then((results) => {
         assert.equal(results[0].data.detail.url, 'http://mozilla.org');
-        assert.equal(results[0].data.name, 'homepage');
+        assert.equal(results[0].data.detail.name, 'homepage');
         done();
       });
     });

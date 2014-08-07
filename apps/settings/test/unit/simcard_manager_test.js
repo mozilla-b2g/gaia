@@ -30,7 +30,6 @@ suite('SimCardManager > ', function() {
   var realMozSettings;
   var realMobileOperator;
   var realAirplaneModeHelper;
-  var realLocalize;
   var stubById;
 
   suiteSetup(function(done) {
@@ -39,9 +38,6 @@ suite('SimCardManager > ', function() {
     // dont exec the init so quick
     MockL10n.ready = function() {};
     window.navigator.mozL10n = MockL10n;
-
-    realLocalize = window.localize;
-    window.localize = MockL10n.localize;
 
     realTemplate = window.Template;
     window.Template = MockTemplate;
@@ -106,7 +102,6 @@ suite('SimCardManager > ', function() {
 
   suiteTeardown(function() {
     window.navigator.mozL10n = realL10n;
-    window.localize = realLocalize;
     window.Template = realTemplate;
     window.SimUIModel = realSimUIModel;
     window.SimSettingsHelper = realSimSettingsHelper;

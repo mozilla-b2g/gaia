@@ -207,6 +207,12 @@ suite('controllers/camera', function() {
       this.app.once.withArgs('viewfinder:hidden').args[0][1]();
       sinon.assert.calledWith(this.camera.setMode, 'my-mode');
     });
+
+    test('It doesn\'t set the do anything if the mode didn\'t change', function() {
+      this.camera.isMode.returns(true);
+      this.controller.setMode('my-mode');
+      assert.isFalse(this.app.emit.calledWith('camera:willchange'));
+    });
   });
 
   suite('CameraController#setCamera()', function() {
@@ -248,6 +254,12 @@ suite('controllers/camera', function() {
       // call the callback
       this.app.once.withArgs('viewfinder:hidden').args[0][1]();
       sinon.assert.calledWith(this.camera.setPictureSize, { width: 400, height: 300 });
+    });
+
+    test('It doesn\'t proceed if `pictureSize` didn\'t change', function() {
+      this.camera.isPictureSize.returns(true);
+      this.controller.updatePictureSize();
+      assert.isFalse(this.app.emit.calledWith('camera:willchange'));
     });
 
     suite('`video` mode', function() {
@@ -296,6 +308,12 @@ suite('controllers/camera', function() {
       // call the callback
       this.app.once.withArgs('viewfinder:hidden').args[0][1]();
       sinon.assert.calledWith(this.camera.setRecorderProfile, '720p');
+    });
+
+    test('It doesn\'t proceed if `recorderProfile` didn\'t change', function() {
+      this.camera.isRecorderProfile.returns(true);
+      this.controller.updateRecorderProfile();
+      assert.isFalse(this.app.emit.calledWith('camera:willchange'));
     });
 
     suite('`picture` mode', function() {
@@ -455,14 +473,8 @@ suite('controllers/camera', function() {
   });
 
   suite('CameraController#onStorageChanged()', function() {
-    test('Should stop recording if shared', function() {
-      this.controller.onStorageChanged('foo');
-      assert.isFalse(this.camera.stopRecording.called);
-
-      this.controller.onStorageChanged('bar');
-      assert.isFalse(this.camera.stopRecording.called);
-
-      this.controller.onStorageChanged('shared');
+    test('Should stop recording', function() {
+      this.controller.onStorageChanged();
       assert.isTrue(this.camera.stopRecording.called);
     });
   });

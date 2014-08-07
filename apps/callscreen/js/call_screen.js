@@ -45,7 +45,6 @@ var CallScreen = {
   incomingContainer: document.getElementById('incoming-container'),
   incomingInfo: document.getElementById('incoming-info'),
   incomingNumber: document.getElementById('incoming-number'),
-  fakeIncomingNumber: document.getElementById('fake-incoming-number'),
   incomingSim: document.getElementById('incoming-sim'),
   incomingNumberAdditionalInfo:
     document.getElementById('incoming-number-additional-info'),
@@ -443,9 +442,6 @@ var CallScreen = {
 
   render: function cs_render(layout_type) {
     this.screen.dataset.layout = layout_type;
-    if (layout_type !== 'connected') {
-      this.disableKeypad();
-    }
   },
 
   showClock: function cs_showClock(now) {
@@ -487,12 +483,12 @@ var CallScreen = {
     }
   },
 
-  enableKeypad: function cs_enableKeypad() {
-    this.keypadButton.removeAttribute('disabled');
+  enablePlaceNewCall: function cs_enablePlaceNewCall() {
+    this.placeNewCallButton.removeAttribute('disabled');
   },
 
-  disableKeypad: function cs_disableKeypad() {
-    this.keypadButton.setAttribute('disabled', 'disabled');
+  disablePlaceNewCall: function cs_disablePlaceNewCall() {
+    this.placeNewCallButton.setAttribute('disabled', 'disabled');
   },
 
   showGroupDetails: function cs_showGroupDetails(evt) {
@@ -640,11 +636,10 @@ var CallScreen = {
     var scenario;
     if (this.inStatusBarMode) {
       scenario = FontSizeManager.STATUS_BAR;
-    } else if (this.calls.querySelectorAll(
-      'section:not([hidden])').length > 1) {
-      scenario = FontSizeManager.CALL_WAITING;
-    } else {
+    } else if (this.calls.classList.contains('single-line')) {
       scenario = FontSizeManager.SINGLE_CALL;
+    } else {
+      scenario = FontSizeManager.CALL_WAITING;
     }
     return scenario;
   }

@@ -116,7 +116,8 @@ marionette('email next previous', function() {
         { to: 'testy@localhost', subject: 'Four', body: 'Fish' },
         { to: 'testy@localhost', subject: 'Even', body: 'Fish' },
         { to: 'test@localhost', subject: 'More', body: 'Fish' }
-      ]);
+      // Pass 7 because the outer setup step already added two messages.
+      ], 7);
     });
 
     test('should scroll up when up tapped', function() {
@@ -131,6 +132,11 @@ marionette('email next previous', function() {
 
       var scrollContainer = app.msgListScrollOuter;
       var initial = parseInt(scrollContainer.getAttribute('scrollTop'), 10);
+
+      // The toaster could steal our tap, since our desired target is at the
+      // bottom of the scroll list. So wait for it to disappear first.
+      app.waitForToaster();
+
       app.tapEmailAtIndex(7);
 
       // Advance up to the first message.

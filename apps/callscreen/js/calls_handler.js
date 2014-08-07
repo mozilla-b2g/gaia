@@ -254,11 +254,8 @@ var CallsHandler = (function callsHandler() {
 
       if (!number) {
         CallScreen.incomingNumber.textContent = _('withheld-number');
-        var scenario = (call.state === 'incoming') ?
-          FontSizeManager.SECOND_INCOMING_CALL : FontSizeManager.CALL_WAITING;
-        FontSizeManager.adaptToSpace(scenario, CallScreen.incomingNumber,
-                                     CallScreen.fakeIncomingNumber, false,
-                                     'end');
+        FontSizeManager.adaptToSpace(FontSizeManager.SECOND_INCOMING_CALL,
+          CallScreen.incomingNumber, false, 'end');
         return;
       }
 
@@ -280,11 +277,14 @@ var CallsHandler = (function callsHandler() {
           CallScreen.incomingNumber.textContent = number;
           CallScreen.incomingNumberAdditionalInfo.textContent = '';
         }
-        var scenario = (call.state === 'incoming') ?
-          FontSizeManager.SECOND_INCOMING_CALL : FontSizeManager.CALL_WAITING;
-        FontSizeManager.adaptToSpace(scenario, CallScreen.incomingNumber,
-                                     CallScreen.fakeIncomingNumber, false,
-                                     'end');
+
+        FontSizeManager.adaptToSpace(
+          FontSizeManager.SECOND_INCOMING_CALL, CallScreen.incomingNumber,
+          false, 'end');
+        if (contact && contact.name) {
+          FontSizeManager.ensureFixedBaseline(
+            FontSizeManager.SECOND_INCOMING_CALL, CallScreen.incomingNumber);
+        }
       });
     });
 
@@ -307,14 +307,6 @@ var CallsHandler = (function callsHandler() {
         closeWindow();
       }
     });
-  }
-
-  function updateKeypadEnabled() {
-    if (telephony.active) {
-      CallScreen.enableKeypad();
-    } else {
-      CallScreen.disableKeypad();
-    }
   }
 
   function exitCallScreen(animate) {
@@ -815,6 +807,17 @@ var CallsHandler = (function callsHandler() {
     holdOrResumeSingleCall();
   }
 
+  function updatePlaceNewCall() {
+    var isEstablishing = telephony.calls.some(function (call) {
+      return call.state == 'dialing' || call.state == 'alerting';
+    });
+    if (telephony.calls && isEstablishing) {
+      CallScreen.disablePlaceNewCall();
+    } else {
+      CallScreen.enablePlaceNewCall();
+    }
+  }
+
   return {
     setup: setup,
 
@@ -824,7 +827,6 @@ var CallsHandler = (function callsHandler() {
     toggleCalls: toggleCalls,
     ignore: ignore,
     end: end,
-    updateKeypadEnabled: updateKeypadEnabled,
     toggleMute: toggleMute,
     toggleSpeaker: toggleSpeaker,
     unmute: unmute,
@@ -836,6 +838,7 @@ var CallsHandler = (function callsHandler() {
     mergeActiveCallWith: mergeActiveCallWith,
     mergeConferenceGroupWithActiveCall: mergeConferenceGroupWithActiveCall,
     updateAllPhoneNumberDisplays: updateAllPhoneNumberDisplays,
+    updatePlaceNewCall: updatePlaceNewCall,
 
     get activeCall() {
       return activeCall();

@@ -1,7 +1,6 @@
 define(function(require) {
   'use strict';
 
-  var _ = navigator.mozL10n.get;
   var SettingsPanel = require('modules/settings_panel');
   var WifiContext = require('modules/wifi_context');
   var WifiWps = require('panels/wifi_wps/wifi_wps');
@@ -14,9 +13,9 @@ define(function(require) {
       onInit: function(panel) {
         elements.panel = panel;
         elements.submitWpsButton = panel.querySelector('button[type=submit]');
-        elements.apSelectionArea = panel.querySelector('#wifi-wps-pin-aps');
+        elements.apSelectionArea = panel.querySelector('.wifi-wps-pin-aps');
         elements.apSelect = elements.apSelectionArea.querySelector('select');
-        elements.pinItem = panel.querySelector('#wifi-wps-pin-area');
+        elements.pinItem = panel.querySelector('.wifi-wps-pin-area');
         elements.pinDesc = elements.pinItem.querySelector('p');
         elements.pinInput = elements.pinItem.querySelector('input');
         elements.wpsMethodRadios = panel.querySelectorAll('input[type=radio]');
@@ -56,7 +55,7 @@ define(function(require) {
       _updateApList: function(wpsAvailableNetworks) {
         // Add the first option
         var option = document.createElement('option');
-        option.textContent = _('wpsAnyAp');
+        option.setAttribute('data-l10n-id', 'wpsAnyAp');
         option.value = 'any';
         elements.apSelect.appendChild(option);
 

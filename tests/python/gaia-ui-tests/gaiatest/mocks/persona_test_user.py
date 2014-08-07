@@ -53,4 +53,8 @@ class PersonaTestUser:
             raise Exception("Could not get Persona user from personatestuser.org: %s" % e.reason)
 
         decode = json.loads(response.read())
-        return MockUser(email=decode['email'], password=decode['pass'], name=decode['email'].split('@')[0])
+
+        try:
+            return MockUser(email=decode['email'], password=decode['pass'], name=decode['email'].split('@')[0])
+        except KeyError:
+            raise Exception("Could not get Persona user from personatestuser.org: %s" % decode)

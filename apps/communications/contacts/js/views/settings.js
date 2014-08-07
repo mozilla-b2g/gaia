@@ -28,6 +28,7 @@ contacts.Settings = (function() {
     importSettingsBack,
     orderCheckBox,
     orderByLastName,
+    setICEButton,
     importSettingsPanel,
     importSettingsTitle,
     importContacts,
@@ -117,6 +118,9 @@ contacts.Settings = (function() {
     importLiveOption = document.getElementById('import-live-option');
     importGmailOption = document.getElementById('import-gmail-option');
 
+    // ICE view
+    setICEButton = document.getElementById('set-ice');
+
     /*
      * Adding listeners
      */
@@ -148,6 +152,9 @@ contacts.Settings = (function() {
 
     exportOptions = document.getElementById('export-options');
     exportOptions.addEventListener('click', exportOptionsHandler);
+
+    // ICE view
+    setICEButton.addEventListener('click', showICEScreen);
 
     // Bulk delete
     bulkDeleteButton = document.getElementById('bulkDelete');
@@ -218,6 +225,16 @@ contacts.Settings = (function() {
           navigationHandler.go('import-settings', 'right-left');
         }, Contacts.SHARED_CONTACTS);
       }
+  }
+
+  function showICEScreen(cb) {
+    LazyLoader.load(['/contacts/js/ice.js'], function(){
+      contacts.ICE.init();
+      navigationHandler.go('ice-settings', 'right-left');
+      if (typeof cb === 'function') {
+        cb();
+      }
+    });
   }
 
   // Given an event, select wich should be the targeted
@@ -1025,7 +1042,8 @@ contacts.Settings = (function() {
     'refresh': refresh,
     'cardStateChanged': checkSIMCard,
     'updateTimestamps': updateTimestamps,
-    'navigation': navigationHandler,
+    'showICEScreen' : showICEScreen,
+    get navigation() { return navigationHandler; },
     'importFromSDCard': onSdImport,
     'importFromSIMCard': onSimImport
   };

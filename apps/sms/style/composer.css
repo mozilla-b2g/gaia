@@ -6,7 +6,7 @@
 /*
  * Flex layout is wrapped by 'flex-composer'. Our flex layout has
  * 2 well differentiated:
- * - 'composer-messages-container'
+ * - 'messages-container'
  * - 'messages-compose-form'
  */
 
@@ -22,15 +22,18 @@
 
 .new .flex-composer {
   position: relative;
-  top: 5.5rem; /* 5.5rem is the default size of the recipient panel */
-               /* In Bug 1015841 this should be able to change depending on the
-                * recipients panel height
-                * Should the recipients panel be part of the composer ? */
+  top: 4rem;   /* 4rem is the default size of the recipient panel */
+
+  height: calc(100% - 4rem);
+}
+
+.multiline-recipients-mode.new .flex-composer {
+  top: 5.5rem;
 
   height: calc(100% - 5.5rem);
 }
 
-#composer-messages-container {
+#messages-container {
   /* We'll set flex-basis with a shrink factor of 0 to do min-height.
    * formula: flex-basis = a % + b)
    * a = (gap2 - gap1) / keyboard_height
@@ -55,7 +58,7 @@
   overflow: auto;
 }
 
-.new #composer-messages-container {
+.new #messages-container {
   flex-basis: 0;
 }
 
@@ -182,10 +185,6 @@ form[role="search"] button[type="submit"]:after {
   content: attr(data-placeholder);
 }
 
-#messages-container {
-  height: 100%;
-}
-
 /*
  * 'message-complete' contains Subject & Body
  */
@@ -193,8 +192,7 @@ form[role="search"] button[type="submit"]:after {
   flex: auto;
   position: relative;
   min-height: 4rem;
-
-  margin-left: 1.5rem;
+  min-width: 0;
 }
 
 .subject-input-visible .composer-message-complete:before {
@@ -289,6 +287,20 @@ form[role="search"] button[type="submit"]:after {
   top: 3rem;
 }
 
+#messages-attach-button {
+  align-self: flex-end;
+  flex: none;
+
+  box-sizing: content-box;
+  width: 3rem;
+  margin: 0;
+  padding: 0 1rem 0 0.5rem;
+
+  background: transparent
+              url('images/icons/actionicon_sms_add_attachment_30x30.png')
+              no-repeat center / 3rem;
+}
+
 /*
   DSDS
 */
@@ -329,4 +341,3 @@ button[disabled] .sim-indication {
   text-align: center;
   font-size: 1.8rem;
 }
-

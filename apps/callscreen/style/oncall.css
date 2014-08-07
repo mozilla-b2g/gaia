@@ -188,7 +188,6 @@
     width: 100%;
     background-color: #000;
     background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
-    background-position: 50% calc(50% - 1.2rem); /* 1.2rem is half the size of the status bar. Keep this value in sync with the one declared in system app's statusbar.css */
     background-repeat: no-repeat;
   }
 
@@ -383,45 +382,28 @@
     background-color: transparent;
   }
 
-  #calls > section .switch-calls {
+  /* Switch calls button support, used in CDMA call-waiting mode. */
+
+  #calls #switch-calls-button {
     display: none;
   }
 
-  #calls.switch > section .switch-calls {
+  #calls.switch #switch-calls-button {
     display: block;
-    height: 8.0rem;
-    width: auto;
-    float: right;
-    padding: 0;
-  }
-
-  #calls[data-cdma-call-waiting="true"] > section.additionalInfo .switch-calls {
-    height: 10rem;
   }
 
   #switch-calls-button {
-    display: block;
-    margin: 0 1.3rem 0 0;
-    padding: 0;
+    top: 3rem;
     height: 4rem;
-    width: 12.8rem;
-    border: 0;
+    width: 4rem;
     position: relative;
-    top: calc(50% - 2rem);
-    border-radius: 2rem;
-    background: url('images/handled_call/ActionIcon_40x40_switchlines.png'),
-                url('images/btn_switchlines.png');
-    background-size: 4rem, auto 100%;
-    background-position: center, center;
-    background-repeat: no-repeat, repeat-x;
+    background: url('images/handled_call/Ico_call_switchcalls_40x80.png');
+    background-position: 0 0;
   }
 
   #switch-calls-button:active {
-    background: url('images/handled_call/ActionIcon_40x40_switchlines.png'),
-                url('images/handled_call/btn_switchlines_press.png');
-    background-size: 4rem, auto 100%;
-    background-position: center, center;
-    background-repeat: no-repeat, repeat-x;
+    background: url('images/handled_call/Ico_call_switchcalls_40x80.png');
+    background-position: 0 -4rem;
   }
 
   #calls:not(.big-duration) > section .numberWrapper {
@@ -434,8 +416,7 @@
   }
 
   #calls.big-duration > section .numberWrapper,
-  #calls.big-duration > section .additionalContactInfo,
-  #calls.big-duration > section .switch-calls {
+  #calls.big-duration > section .additionalContactInfo {
     background: rgba(255,255,255,0.85);
     transition: background-color 0.3s linear;
   }
@@ -446,6 +427,7 @@
   }
 
   #calls > section .numberWrapper .number {
+    flex-grow: 1;
     height: 2.5rem;
     padding: 2.25rem 0 0 0;
     font-size: 3.4rem;
@@ -483,10 +465,6 @@
     height: 8rem;
     line-height: 8rem;
     padding: 0;
-  }
-
-  #calls.switch > section .numberWrapper .number {
-    font-size: 2.6rem;
   }
 
   #calls > section.handled-call .fake-number,
@@ -539,17 +517,6 @@
 
   #calls > section:not(.additionalInfo) .additionalContactInfo {
     display: none;
-  }
-
-  #calls > section .shadow {
-    display: none;
-  }
-
-  #calls.switch > section .shadow {
-    display: block;
-    background: url('images/call_screen/Shadow_SwitchBg.png');
-    height: 0.9rem;
-    width: 100%;
   }
 
   #calls:not(.big-duration) > section .duration {
@@ -608,20 +575,16 @@
   #calls:not(.big-duration) > section.held,
   #calls.big-duration > section.held .numberWrapper,
   #calls.big-duration > section.held .additionalContactInfo,
-  #calls.big-duration > section.held .switch-calls,
   #calls.big-duration > section.ended .numberWrapper,
-  #calls.big-duration > section.ended .additionalContactInfo,
-  #calls.big-duration > section.ended .switch-calls {
+  #calls.big-duration > section.ended .additionalContactInfo {
     background-color: rgba(255, 255, 255, 0.85);
   }
 
   #calls:not(.big-duration) > section.ended,
   #calls.big-duration > section.held .numberWrapper,
   #calls.big-duration > section.held .additionalContactInfo,
-  #calls.big-duration > section.held .switch-calls,
   #calls.big-duration > section.ended .numberWrapper,
-  #calls.big-duration > section.ended .additionalContactInfo,
-  #calls.big-duration > section.ended .switch-calls {
+  #calls.big-duration > section.ended .additionalContactInfo {
     background-color: rgba(207, 64, 64, 0.9);
   }
 
@@ -651,6 +614,7 @@
   }
 
   #calls > section .numberWrapper {
+    display: flex;
     white-space: nowrap;
   }
 
@@ -837,8 +801,7 @@
 
   #group-call .hangup-button,
   #calls:not(.big-duration) #group-call > .duration.isTimer,
-  #group-call-details-list .duration,
-  #group-call-details-list .switch-calls {
+  #group-call-details-list .duration {
     display: none;
   }
 

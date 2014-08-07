@@ -215,5 +215,25 @@ suite('system/VisibilityManager', function() {
       assert.isFalse(stubPublish.called);
       assert.isFalse(stubPublish.calledWith('hidewindowforscreenreader'));
     });
+
+    test('system-dialog-show', function() {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'system-dialog-show'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('hidewindowforscreenreader'));
+    });
+
+    test('system-dialog-hide', function() {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'system-dialog-hide'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('showwindowforscreenreader'));
+    });
   });
 });

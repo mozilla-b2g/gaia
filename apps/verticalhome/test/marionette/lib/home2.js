@@ -36,8 +36,7 @@ Home2.clientOptions = {
       'app://verticalhome.gaiamobile.org/manifest.webapp',
     'ftu.manifestURL': null,
     'keyboard.ftu.enabled': false,
-    'lockscreen.enabled': false,
-    'rocketbar.enabled': false
+    'lockscreen.enabled': false
   }
 };
 
@@ -100,7 +99,7 @@ Home2.prototype = {
         confirm.click();
         // ensure it is either hidden or hits the stale element ref
         return !confirm.displayed();
-      } catch(e) {
+      } catch (e) {
         if (e.type === 'StaleElementReference') {
           // element was successfully removed
           return true;
@@ -153,7 +152,7 @@ Home2.prototype = {
 
       // tap the app in the homescreen
       var newApp = this.getIcon(manifestURL);
-      newApp.click();
+      newApp.tap();
 
       // go to the system app
       client.switchToFrame();
@@ -163,7 +162,7 @@ Home2.prototype = {
         frame = client.findElement(
           'iframe[mozapp="' + manifestURL + '"]'
         );
-      } catch(e) {
+      } catch (e) {
         // try again...
         return false;
       }
@@ -224,7 +223,7 @@ Home2.prototype = {
    * Waits for the homescreen to launch and switches to the frame.
    */
   waitForLaunch: function() {
-    this.client.helper.waitForElement('body.homesearch-enabled');
+    this.client.helper.waitForElement('body');
     this.client.apps.switchToApp(Home2.URL);
   },
 

@@ -8,7 +8,6 @@
 
   // 320 / 5 = 64px | 480 / 5 = 96px | 540 / 5 = 108px | ...
   const iconScaleFactorMaxIconsPerRow = 5;
-  const lowCapabilityIconDivisor = 5;
 
   const minIconsPerRow = 3;
 
@@ -27,13 +26,8 @@
     if (window.verticalPreferences) {
       verticalPreferences.get('grid.cols').then(value => {
         this.cols = value;
-      }, this.onReady);
-
-      verticalPreferences.get('capability').then(value => {
-        this.capability = value;
         this.onReady();
       }, this.onReady);
-
       verticalPreferences.addEventListener('updated', this);
     } else {
       this.onReady();
@@ -106,11 +100,6 @@
      * the grid is displayed with the minimum number of columns per row.
      */
     get gridMaxIconSize() {
-      // For low capability devices, do not scale the base icon size.
-      if (this.capability === 'low') {
-        return (windowWidth / lowCapabilityIconDivisor);
-      }
-
       var baseSize = (windowWidth / iconScaleFactorMinIconsPerRow);
       return baseSize * devicePixelRatio;
     },

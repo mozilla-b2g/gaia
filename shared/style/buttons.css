@@ -337,6 +337,13 @@ html[dir="rtl"] li .button.icon {
   padding: 1rem 1.3rem 1rem 4rem;
 }
 
+html[dir="rtl"] li button.icon:before,
+html[dir="rtl"] li [role="button"].icon:before,
+html[dir="rtl"] li .button.icon:before {
+  right: auto;
+  left: 0.5rem;
+}
+
 html[dir="rtl"] li button.icon-dialog,
 html[dir="rtl"] li [role="button"].icon-dialog,
 html[dir="rtl"] li .button.icon-dialog {
@@ -370,3 +377,4 @@ html[dir="rtl"] .button.icon-dialog select {
   text-indent: 1rem;
   padding: 0 0 0 4rem;
 }
+

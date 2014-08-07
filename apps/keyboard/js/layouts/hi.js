@@ -87,7 +87,8 @@ Keyboards.hi = {
       '९': '9',
       '०': '0',
       '?': '¿',
-      '!': '¡'
+      '!': '¡',
+      '₹': '$ € £ ¥ ৳'
     },
     keys: [
       [
@@ -95,12 +96,12 @@ Keyboards.hi = {
         { value: '५' } , { value: '६' }, { value: '७' } , { value: '८' },
         { value: '९' }, { value: '०' }
       ], [
-        { value: '@', hidden: ['email'] }, { value: '#' }, { value: '$' },
+        { value: '@', hidden: ['email'] }, { value: '#' }, { value: '₹' },
         { value: '%' }, { value: '&' } , { value: '*' }, { value: '-' },
         { value: '+' }, { value: '(' }, { value: ')' },
         { value: '_', visible: ['email'] }
       ], [
-        { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
         { value: '!' }, { value: '\"' }, { value: "'" }, { value: ':' },
         { value: ';' }, { value: '/' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }

@@ -31,8 +31,11 @@ body {
 }
 
 h3 {
-  text-align: left;
+  font-size: 1.7rem;
+  font-weight: 400;
+  line-height: 2.3rem;
   margin: 0 0 1rem;
+  text-align: left;
 }
 
 label {
@@ -137,7 +140,7 @@ ul {
   position: absolute;
   overflow: scroll;
   display: none;
-  padding: 1.5rem;
+  padding: 1.5rem 2.5rem;
   box-sizing: border-box;
   text-align: center;
 }
@@ -146,7 +149,6 @@ ul {
   text-align: left;
   line-height: 2.3rem;
   font-size: 1.7rem;
-  margin: 0 1.5rem 1rem;
 }
 
 .screen p {
@@ -181,7 +183,6 @@ ul {
 p.fine-print {
     font-size: 1.2rem;
     line-height: 1.6rem;
-    margin: 0 1.5rem;
 }
 
 /*
@@ -206,6 +207,7 @@ ul.fxa-verification-wrapper li {
 #show-pw-wrapper {
   width: 100%;
   display: block;
+  margin: 0 -1.5rem;
 }
 
 #show-pw-wrapper p {

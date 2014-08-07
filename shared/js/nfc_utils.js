@@ -9,9 +9,9 @@
 
 var NfcUtils; // Pre-declaration for jshint
 
-/*******************************************************************************
- * NDEF (NFC Data Exchange Format)
- */
+/**
+* NDEF (NFC Data Exchange Format) contants and common values.
+*/
 const NDEF = {
   MB: 1 << 7,
   ME: 1 << 6,
@@ -38,6 +38,11 @@ const NDEF = {
   RTD_HANDOVER_CARRIER: 0,
   RTD_HANDOVER_REQUEST: 0,
   RTD_HANDOVER_SELECT: 0,
+
+  RTD_TEXT_IANA_LENGTH: 0x3F,
+  RTD_TEXT_ENCODING: 0x80,
+  RTD_TEXT_UTF8: 0,
+  RTD_TEXT_UTF16: 1,
 
   CPS_INACTIVE: 0,
   CPS_ACTIVE: 1,
@@ -68,6 +73,9 @@ const NDEF = {
 
     this.MIME_BLUETOOTH_OOB =
       NfcUtils.fromUTF8('application/vnd.bluetooth.ep.oob');
+
+    this.MIME_VCARD_STR_ARR =
+      ['text/vcard', 'text/x-vCard', 'text/x-vcard'];
 
     this.SMARTPOSTER_ACTION = NfcUtils.fromUTF8('act');
 
@@ -109,34 +117,209 @@ const NDEF = {
     this.URIS[0x23] = 'urn:nfc:';
   },
 
-  RTD_TEXT_IANA_LENGTH: 0x3F,
-  RTD_TEXT_ENCODING: 0x80,
-  RTD_TEXT_UTF8: 0,
-  RTD_TEXT_UTF16: 1
+  payload: {
+    /**
+     * Decodes NDEF record payload
+     * @see NFCForum-TS-NDEF_1.0
+     * @param {Uint8Array} tnf - record TNF
+     * @param {Uint8Array} type - record type
+     * @param {Uint8Array} payload - record payload
+     * @returns {Object} data - decoded payload or null if invalid
+     */
+    decode: function decode(tnf, type, payload) {
+      var decodedPayload = { type: 'empty' };
+
+      switch (tnf) {
+        case NDEF.TNF_WELL_KNOWN:
+          decodedPayload = this.decodeWellKnown(type, payload);
+          break;
+        case NDEF.TNF_MIME_MEDIA:
+          decodedPayload = this.decodeMIME(type, payload);
+          break;
+        case NDEF.TNF_ABSOLUTE_URI:
+        case NDEF.TNF_EXTERNAL_TYPE:
+          decodedPayload = { type: NfcUtils.toUTF8(type) };
+          break;
+        case NDEF.TNF_UNKNOWN:
+        case NDEF.TNF_RESERVED:
+          decodedPayload = {};
+          break;
+        case NDEF.TNF_UNCHANGED:
+          decodedPayload = null;
+          break;
+      }
+      return decodedPayload;
+    },
+
+    /**
+     * Decodes TNF Well Know NDEF record payload
+     * @see NFCForum-TS-NDEF_1.0
+     * @param {Uint8Array} type - record type
+     * @param {Uint8Array} payload - record payload
+     * @returns {Object} data - decoded payload or null if invalid
+     */
+    decodeWellKnown: function decodeWellKnown(type, payload) {
+      if (NfcUtils.equalArrays(type, NDEF.RTD_TEXT)) {
+        return this.decodeText(payload);
+      } else if (NfcUtils.equalArrays(type, NDEF.RTD_URI)) {
+        return this.decodeURI(payload);
+      } else if (NfcUtils.equalArrays(type, NDEF.RTD_SMART_POSTER)) {
+        return this.decodeSmartPoster(payload);
+      }
+
+      return null;
+    },
+
+    /**
+     * Decodes TNF Well Known RTD Text NDEF record payload
+     * @see NFCForum-TS-RTD_Text_1.0
+     * @param {Uint8Array} payload - record payload
+     * @returns {Object} data - decoded payload
+     */
+    decodeText: function decodeText(payload) {
+      var decoded = { type: 'text' };
+
+      var langLen = payload[0] & NDEF.RTD_TEXT_IANA_LENGTH;
+      decoded.language = NfcUtils.toUTF8(payload.subarray(1, langLen + 1));
+
+      var encoding = (payload[0] & NDEF.RTD_TEXT_ENCODING) !== 0 ? 1 : 0;
+      if (encoding === NDEF.RTD_TEXT_UTF8) {
+        decoded.text = NfcUtils.toUTF8(payload.subarray(langLen + 1));
+        decoded.encoding = 'UTF-8';
+      } else if (encoding === NDEF.RTD_TEXT_UTF16) {
+        decoded.text = NfcUtils.UTF16BytesToStr(payload.subarray(langLen + 1));
+        decoded.encoding = 'UTF-16';
+      }
+
+      return decoded;
+    },
+
+    /**
+     * Decodes TNF Well Known RTD URI NDEF record payload
+     * @see NFCForum-TS-RTD_URI_1.0
+     * @param {Uint8Array} payload - record payload
+     * @returns {Object} data - decoded payload or null if invalid
+     */
+    decodeURI: function decodeURI(payload) {
+      var prefix = NDEF.URIS[payload[0]];
+      if (prefix === undefined) {
+        return null;
+      }
+
+      var suffix = NfcUtils.toUTF8(payload.subarray(1));
+      return { type: 'uri', uri: prefix + suffix };
+    },
+
+    /**
+     * Decodes TNF Well Known RTD Smart Poster NDEF record payload
+     * @see NFCForum-SmartPoster_RTD_1.0
+     * @param {Uint8Array} payload - record payload
+     * @returns {Object} data - decoded payload
+     */
+    decodeSmartPoster: function decodeSmartPoster(payload) {
+      var buffer = new NfcBuffer(payload);
+      var records = NfcUtils.parseNDEF(buffer);
+
+      // First, decode URI. It's treated specially, because it's the only
+      // mandatory record in a smart poster.
+      var URIRecords = records.filter(function(record) {
+        return NfcUtils.equalArrays(record.type, NDEF.RTD_URI);
+      });
+
+      if (URIRecords.length !== 1) {
+        return null;
+      }
+
+      var uriPoster = {
+        type: 'smartposter',
+        uri: NDEF.payload.decodeURI(URIRecords[0].payload).uri
+      };
+
+      // Now decode all other records and attach their data to poster.
+      return records.reduce((poster, record) => {
+        var typeStr = NfcUtils.toUTF8(record.type);
+
+        if (NfcUtils.equalArrays(record.type, NDEF.RTD_TEXT)) {
+          poster.text = poster.text || {};
+
+          var textData = NDEF.payload.decodeText(record.payload);
+
+          if (poster.text[textData.language]) {
+            // According to NFCForum-SmartPoster_RTD_1.0 3.3.2,
+            // there MUST NOT be two or more records with
+            // the same language identifier.
+            return null;
+          }
+
+          poster.text[textData.language] = textData.text;
+        } else if ('act' === typeStr) {
+          poster.action = record.payload[0];
+        } else if (NDEF.TNF_MIME_MEDIA === record.tnf) {
+          poster.icons = poster.icons || [];
+          poster.icons.push({
+            type: NfcUtils.toUTF8(record.type),
+            bytes: record.payload
+          });
+        }
+        return poster;
+      }, uriPoster);
+    },
+
+    /**
+     * Decodes TNF MIME Media NDEF Record payload
+     * @see NFCForum-TS-NDEF_1.0
+     * @param {Uint8Array} type - record mime-type
+     * @returns {Object} data - decoded payload
+     */
+    decodeMIME: function docodeMIME(type, payload) {
+      var typeStr = (typeof type === 'string') ? type : NfcUtils.toUTF8(type);
+      if (NDEF.MIME_VCARD_STR_ARR.indexOf(typeStr) !== -1) {
+        return {
+          type: 'text/vcard',
+          blob: new Blob([NfcUtils.toUTF8(payload)], {type: 'text/vcard'})
+        };
+      }
+
+      return { type: typeStr };
+    }
+  }
 };
 
-/*******************************************************************************
- * NfcBuffer helper object for manipulating NFC Uint8Array data
+/**
+ * NfcBuffer wraps Uint8Array providing helper methods for accessing
+ * its elements.
+ *
+ * @param {Array} array Either a plain Array or an Uint8Array instance.
+ * @constructor
  */
-function NfcBuffer(uint8array) {
-  /*
-   * It is weird that the uint8array parameter (which is of type Uint8Array)
-   * needs to be wrapped in another Uint8Array instance. Running the code
-   * with node.js does not require this, but when running it is Gaia it will
-   * later complain that subarray is not a function when the parameter is
-   * not wrapped.
-   */
-    this.uint8array = new Uint8Array(uint8array);
+function NfcBuffer(array) {
+    this.uint8array = new Uint8Array(array);
     this.offset = 0;
 }
 
+/**
+ * Returns a single octet from the buffer advancing position
+ * by one.
+ *
+ * @returns {Number} Single element from the buffer.
+ * @memberof NfcBuffer
+ */
 NfcBuffer.prototype.getOctet = function getOctet() {
   if (this.offset == this.uint8array.length) {
     throw Error('NfcBuffer too small');
   }
+
   return this.uint8array[this.offset++];
 };
 
+/**
+ * Returns an Uint8Array containing first len elements from the
+ * buffer.
+ *
+ * @param {Number} len Number of elements to return.
+ * @returns {Uint8Array} Array of len first elements from the buffer.
+ * @memberof NfcBuffer
+ */
 NfcBuffer.prototype.getOctetArray = function getOctetArray(len) {
   if (typeof len !== 'number' || len < 0 ||
     this.offset + len > this.uint8array.length) {
@@ -147,40 +330,56 @@ NfcBuffer.prototype.getOctetArray = function getOctetArray(len) {
   return this.uint8array.subarray(this.offset, this.offset += len);
 };
 
+/**
+ * Discards len elements from the buffer.
+ *
+ * @param {Number} len Number of elements to skip over.
+ * @memberof NfcBuffer
+ */
 NfcBuffer.prototype.skip = function skip(len) {
   if (typeof len !== 'number' || len < 0 ||
     this.offset + len > this.uint8array.length) {
 
     throw Error('NfcBuffer too small');
   }
+
   this.offset += len;
 };
 
-/*******************************************************************************
- * NfcUtils offers a set of utility functions to handle NDEF messages according
- * to NFCForum-TS-NDEF_1.0. It exports the following functions:
+/**
+ * Returns a single octet from the buffer, but will not
+ * advance a position.
+ *
+ * @returns {Number} Single element from the buffer.
+ * @memberof NfcBuffer
+ */
+NfcBuffer.prototype.peek = function peek() {
+  if (this.offset === this.uint8array.length) {
+    throw Error('NfcBuffer too small');
+  }
+
+  return this.uint8array[this.offset];
+};
+
+
+/**
+ * NfcUtils offers a set of utility function to handle NDEF messages according
+ * to NFCForum-TS-NDEF_1.0.
+ *
+ * @class NfcUtils
  */
 NfcUtils = {
 
   DEBUG: false,
 
-  /*****************************************************************************
-   *****************************************************************************
-   * Utility functions/classes
-   *****************************************************************************
-   ****************************************************************************/
-
-  /**
-   * Debug method
-   */
-  debug: function debug(msg, optObject) {
+  _debug: function debug(msg, optObject) {
     if (this.DEBUG) {
       var output = '[DEBUG] NFC-UTIL: ' + msg;
       if (optObject) {
         output += JSON.stringify(optObject);
       }
       if (typeof dump !== 'undefined') {
-        dump(output);
+        dump(output + '\n');
       } else {
         console.log(output);
       }
@@ -189,9 +388,10 @@ NfcUtils = {
 
   /**
    * Returns an Uint8Array representation of a string.
-   * 
+   *
    * @param {String} str String to convert.
    * @return {Uint8Array}
+   * @memberof NfcUtils
    */
   fromUTF8: function fromUTF8(str) {
     if (!str) {
@@ -203,29 +403,11 @@ NfcUtils = {
   },
 
   /**
-   * equalArrays: returns true or false whether the arrays are equal
-   */
-  equalArrays: function equalArrays(a1, a2) {
-    if (!a1 || !a2) {
-      return false;
-    }
-
-    if (a1.length != a2.length) {
-      return false;
-    }
-    for (var i = 0; i < a1.length; i++) {
-      if (a1[i] != a2[i]) {
-        return false;
-      }
-    }
-    return true;
-  },
-
-  /**
    * Returns a string representation of an Uint8Array.
    *
    * @param {Uint8Array} a Uint8Array instance.
    * @return {String}
+   * @memberof NfcUtils
    */
   toUTF8: function toUTF8(a) {
     if (!a) {
@@ -245,6 +427,7 @@ NfcUtils = {
    *
    * @param {Uint8Array} array containing UTF-16 encoded bytes
    * @return {string}
+   * @memberof NfcUtils
    */
   UTF16BytesToStr: function UTF16BytesToStr(array) {
       if (!array) {
@@ -269,9 +452,10 @@ NfcUtils = {
   },
 
   /**
-   * Ecodes string into Uint8Array conating UTF-16 BE bytes without BOM
+   * Ecodes string into Uint8Array conating UTF-16 BE bytes without BOM.
    * @param {string}
    * @return {Uint8Array}
+   * @memberof NfcUtils
    */
   strToUTF16Bytes: function strToUTF16Bytes(str) {
     if (!str) {
@@ -282,22 +466,41 @@ NfcUtils = {
     return enc.encode(str);
   },
 
-  /*****************************************************************************
-   * createBuffer: returns a NfcBuffer helper object that makes it easier to
-   * read from a Uint8Array.
-   * @param {Uint8Array}	uint8array	The Uint8Array instance to wrap.
+  /**
+   * Compares arrays, array-like objects and typed arrays for equality.
+   *
+   * @param {Array} a1 First array
+   * @param {Array} a2 Second array
+   * @return {Boolean} True if arrays are equal, false otherwise.
+   * @memberof NfcUtils
    */
-  createBuffer: function createBuffer(uint8array) {
-    return new NfcBuffer(uint8array);
+  equalArrays: function equalArrays(a1, a2) {
+    if (!a1 || !a2) {
+      return false;
+    }
+
+    if (a1.length !== a2.length) {
+      return false;
+    }
+
+    for (var i = 0; i < a1.length; i++) {
+      if (a1[i] !== a2[i]) {
+        return false;
+      }
+    }
+
+    return true;
   },
 
-  /*
+  /**
    * Takes an array of NDEFRecords and returns an Array of octets
    * representing the binary encoding of the NDEF message according
    * to the NFC Forum.
    * Note: support for message chunking is not implemented.
+   *
    * @param {Array} ndefRecords Array of NDEF records to encode.
    * @return {Array} Byte array containing encoded NDEF message.
+   * @memberof NfcUtils
    */
   encodeNDEF: function encodeNDEF(records) {
     var result = [];
@@ -337,80 +540,80 @@ NfcUtils = {
   },
 
   /**
-   * parseNDEF(): parses a NDEF message contained in a NfcBuffer instance.
-   * (NFCForum-TS-NDEF_1.0)
+   * Parses a NDEF message contained in a NfcBuffer instance according to
+   * NFCForum-TS-NDEF_1.0.
+   *
    * Usage:
    *   var buf = new NfcBuffer(<Uint8Array that contains the raw NDEF message>);
    *   var ndefMessage = NdefCodec.parse(buf);
    *
-   * 'null' is returned if the message could not be parsed. Otherwise the
-   * result is an array of MozNDEFRecord instances.
+   * @param {NfcBuffer} Buffer containing the NDEF message.
+   * @return {Array} Array of MozNDEFRecord instances or null if message
+   *                 couldn't be parsed.
+   * @memberof NfcUtils
    */
   parseNDEF: function parseNDEF(buffer) {
     try {
-      return this.doParseNDEF(buffer);
+      return this._doParseNDEF(buffer);
     } catch (err) {
-      this.debug(err);
+      this._debug(err);
       return null;
     }
   },
 
-  doParseNDEF: function doParseNDEF(buffer) {
+  _doParseNDEF: function doParseNDEF(buffer) {
     var records = [];
     var isFirstRecord = true;
     var firstOctet;
+
     do {
-      firstOctet = buffer.getOctet();
+      firstOctet = buffer.peek();
+
       if (isFirstRecord && !(firstOctet & NDEF.MB)) {
         throw Error('MB bit not set in first NDEF record');
       }
+
       if (!isFirstRecord && (firstOctet & NDEF.MB)) {
         throw Error('MB can only be set for the first record');
       }
+
       if (firstOctet & NDEF.CF) {
-        throw Error('Cannot deal with chunked records');
+        throw Error('Chunked payloads are not supported');
       }
-      records.push(this.parseNDEFRecord(buffer, firstOctet));
+
+      records.push(this._parseNDEFRecord(buffer));
       isFirstRecord = false;
     } while (!(firstOctet & NDEF.ME));
+
+    if (buffer.offset < buffer.uint8array.length) {
+      throw Error('ME bit set on non-last record');
+    }
+
     return records;
   },
 
-  parseNDEFRecord: function parseNDEFRecord(buffer, firstOctet) {
-    var tnf = firstOctet & NDEF.TNF;
+  _parseNDEFRecord: function parseNDEFRecord(buffer) {
+    var firstOctet = buffer.getOctet();
     var typeLen = buffer.getOctet();
     var payloadLen = buffer.getOctet();
+
     if (!(firstOctet & NDEF.SR)) {
       for (var i = 0; i < 3; i++) {
         payloadLen <<= 8;
         payloadLen |= buffer.getOctet();
       }
     }
+
     var idLen = 0;
     if (firstOctet & NDEF.IL) {
       idLen = buffer.getOctet();
     }
+
+    var tnf = firstOctet & NDEF.TNF;
     var type = buffer.getOctetArray(typeLen);
     var id = buffer.getOctetArray(idLen);
     var payload = buffer.getOctetArray(payloadLen);
     return new MozNDEFRecord(tnf, type, id, payload);
-  },
-
-  /**
-   * findNDEFRecordWithId: given a NDEF record array, returns the first record
-   * with a ID field that matches the given ID argument.
-   *
-   * @param {Uint8Array}	id		NDEF record ID
-   * @param {MozNDEFRecord}	ndefMessage	non-null Array of NDEF records
-   */
-  findNDEFRecordWithId: function findNDEFRecordWithId(id, ndefMessage) {
-    for (var i = 0; i < ndefMessage.length; i++) {
-      var record = ndefMessage[i];
-      if (this.equalArrays(id, record.id)) {
-        return record;
-      }
-    }
-    throw Error('Could not find record with id');
   }
 };
 

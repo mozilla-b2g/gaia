@@ -1,4 +1,5 @@
-/* globals DataGridProvider, Promise, Search, GaiaGrid */
+/* globals DataGridProvider, SyncDataStore, Promise,
+ Search, GaiaGrid, InMemoryStore */
 
 (function(exports) {
 
@@ -17,30 +18,26 @@
   var topSites = [];
 
   // Maximum number of results to show show for a single query
-  var MAX_AWESOME_RESULTS = 3;
+  var MAX_AWESOME_RESULTS = 4;
   var MAX_HISTORY_RESULTS = 5;
   var MAX_TOPSITES_RESULTS = 6;
 
   // Name of the datastore we pick up places from
   var STORE_NAME = 'places';
 
-  // The last revision that we synced from the datastore, we sync
-  // every time the search app gains focus
-  var lastRevision = 0;
-
-  // Is there a sync in progress
-  var syncing = false;
-
-  var store;
-
   var topSitesWrapper = document.getElementById('top-sites');
   var historyWrapper = document.getElementById('history');
 
-  var initialSync = true;
   var screenshotRequests = {};
 
   topSitesWrapper.addEventListener('click', itemClicked);
   historyWrapper.addEventListener('click', itemClicked);
+
+  var cachedLink = document.createElement('a');
+  function parseUrl(url) {
+    cachedLink.href = url;
+    return cachedLink;
+  }
 
   function itemClicked(e) {
     if (e.target.dataset.url) {
@@ -132,11 +129,6 @@
     addToOrderedStore(history, place, 'visited', MAX_HISTORY_RESULTS);
 
     if (addToOrderedStore(topSites, place, 'frecency', MAX_TOPSITES_RESULTS)) {
-      if (initialSync) {
-        // Dont attempt to load screenshots during initial sync, the
-        // pages wont exist
-        return;
-      }
       if (place.url in screenshotRequests &&
           screenshotRequests[place.url] >= place.visited) {
         return;
@@ -178,41 +170,6 @@
     topSitesWrapper.appendChild(docFragment);
   }
 
-  function doSync() {
-    if (syncing) {
-      return;
-    }
-    syncing = true;
-    var cursor = store.sync(lastRevision);
-
-    function cursorResolve(task) {
-      lastRevision = task.revisionId;
-      switch (task.operation) {
-        // First implementation simply syncs recently used links
-        // and searches most recent, this will eventually be used
-        // to build an index
-      case 'update':
-      case 'add':
-        var place = task.data;
-        if (place.url.startsWith('app://') || place.url === 'about:blank') {
-          break;
-        }
-        exports.Places.addPlace(place);
-        break;
-      case 'clear':
-      case 'remove':
-        break;
-      case 'done':
-        initialSync = false;
-        showStartPage();
-        syncing = false;
-        return;
-      }
-      cursor.next().then(cursorResolve);
-    }
-    cursor.next().then(cursorResolve);
-  }
-
   function matchesFilter(value, filter) {
     return !filter || (value && value.match(new RegExp(filter, 'i')) !== null);
   }
@@ -234,6 +191,14 @@
     return renderObj;
   }
 
+  function parseResults(provider) {
+    results = provider.persistStore.results;
+    Object.keys(results).forEach(function(url) {
+      provider.addPlace(results[url]);
+    });
+    showStartPage();
+  }
+
   function Places() {}
 
   Places.prototype = {
@@ -246,18 +211,41 @@
 
     init: function() {
       DataGridProvider.prototype.init.apply(this, arguments);
+      this.persistStore = new InMemoryStore();
+      this.syncStore = new SyncDataStore(STORE_NAME, this.persistStore, 'url');
+      this.syncStore.filter = function(place) {
+        return place.url.startsWith('app://') ||
+          place.url === 'about:blank';
+      };
+      var self = this;
+      this.syncStore.onChange = function() {
+        parseResults(self);
+      };
+      // Make init return a promise, so we know when
+      // we did the sync. Used right now for testing
+      // porpuses.
+      return this.syncStore.sync().then(function() {
+        return new Promise(function(resolve, reject) {
+          parseResults(self);
+          resolve();
+        });
+      });
     },
 
     search: function(filter) {
       return new Promise((resolve, reject) => {
         var matched = 0;
         var renderResults = [];
+        var matchedOrigins = {};
         for (var url in results) {
           var result = results[url];
+          var parsedUrl = parseUrl(result.url);
           if (!(matchesFilter(result.title, filter) ||
-                matchesFilter(result.url, filter))) {
+                matchesFilter(result.url, filter)) ||
+              parsedUrl.hostname in matchedOrigins) {
             continue;
           }
+          matchedOrigins[parsedUrl.hostname] = true;
           renderResults.push(formatPlace(result, filter));
 
           if (++matched >= MAX_AWESOME_RESULTS) {
@@ -274,7 +262,7 @@
      */
     addPlace: function(place) {
       results[place.url] = place;
-      var icons = Object.keys(place.icons);
+      var icons = place.icons ? Object.keys(place.icons) : [];
       if (icons.length) {
         saveIcon(place.url, icons[0]);
       }
@@ -291,11 +279,5 @@
 
   exports.Places = new Places();
   Search.provider(exports.Places);
-
-  navigator.getDataStores(STORE_NAME).then(function(stores) {
-    store = stores[0];
-    store.onchange = doSync;
-    doSync();
-  });
 
 }(window));

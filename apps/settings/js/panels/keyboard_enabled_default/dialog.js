@@ -7,14 +7,14 @@ define(function(require) {
   var onBeforeShow = function ked_onBeforeShow(rootElement, options) {
     var layout = options.layout;
     var l10n = navigator.mozL10n;
-    l10n.localize(
+    l10n.setAttributes(
       rootElement.querySelector('.keyboard-default-title'),
       'mustHaveOneKeyboard',
       {
         type: l10n.get('keyboardType-' + options.missingType)
       }
     );
-    l10n.localize(
+    l10n.setAttributes(
       rootElement.querySelector('.keyboard-default-text'),
       'defaultKeyboardEnabled',
       {

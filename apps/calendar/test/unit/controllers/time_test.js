@@ -148,13 +148,12 @@ suite('Controllers.Time', function() {
     setup(function() {
       span = new Calendar.Timespan(0, Infinity);
       busy = Factory('busytime');
+      event = null;
 
       subject.observeTime(span, function(result) {
         event = result;
       });
       sinon.stub(subject.calendarStore, 'shouldDisplayCalendar');
-
-      subject.cacheBusytime(busy);
     });
 
     teardown(function() {
@@ -164,30 +163,36 @@ suite('Controllers.Time', function() {
     test('#cacheBusytime', function() {
       subject.calendarStore.shouldDisplayCalendar.returns(true);
 
+      subject.cacheBusytime(busy);
+
       assert.equal(event.type, 'add');
       assert.equal(event.data, busy);
 
       var query = subject.queryCache(span);
       assert.equal(query[0], busy);
-    });
-
-    test('remove', function() {
-      subject.calendarStore.shouldDisplayCalendar.returns(true);
 
       subject.removeCachedBusytime(busy._id);
 
       assert.equal(event.type, 'remove');
       assert.equal(event.data, busy);
 
-      var query = subject.queryCache(busy);
+      query = subject.queryCache(busy);
       assert.length(query, 0);
     });
 
     test('disabled calendar', function() {
       subject.calendarStore.shouldDisplayCalendar.returns(false);
 
+      subject.cacheBusytime(busy);
+
+      // should not return busytimes from disabled calendars
       var query = subject.queryCache(span);
       assert.length(query, 0);
+
+      // should not dispatch event for disabled calendars
+      assert.equal(event, null);
+      subject.removeCachedBusytime(busy._id);
+      assert.equal(event, null);
     });
   });
 

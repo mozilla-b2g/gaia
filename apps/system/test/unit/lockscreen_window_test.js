@@ -6,14 +6,13 @@ requireApp('system/shared/js/template.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_app_titlebar.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 
 var mocksForLockScreenWindow = new window.MocksHelper([
-  'OrientationManager', 'Applications', 'AppTitleBar', 'SettingsListener',
+  'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'ScreenLayout', 'LayoutManager', 'StatusBar'
 ]).init();
 
@@ -23,15 +22,20 @@ suite('system/LockScreenWindow', function() {
 
   setup(function(done) {
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
+
+      var element = document.createElement('div');
+
       // Must give a node with comment node for Template.
       if ('lockscreen-overlay-template' === id) {
-        var node = document.createElement('div'),
-            comment = document.createComment('<div id="lockscreen"></div>');
-        node.appendChild(comment);
-        return node;
-      } else {
-        return document.createElement('div');
+        var comment = document.createComment('<div id="lockscreen"></div>');
+        element.appendChild(comment);
+      } else if (id.indexOf('AppWindow' >= 0)) {
+        var container = document.createElement('div');
+        container.className = 'browser-container';
+        element.appendChild(container);
       }
+
+      return element;
     });
     // Differs from the existing mock which is expected by other components.
     window.LockScreen = function() {};

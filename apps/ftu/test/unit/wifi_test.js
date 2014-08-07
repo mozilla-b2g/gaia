@@ -70,7 +70,7 @@ suite('wifi > ', function() {
     '      <label id="label_wifi_user">User</label>' +
     '      <input type="text" id="wifi_user"></input>' +
     '      <label>Password</label>' +
-    '      <input type="password" id="wifi_password"></input>' +
+    '      <input type="password" id="wifi_password" maxlength="63"></input>' +
     '      <label id="label_show_password">' +
     '        <input type="checkbox" data-ignore name="show_password" />' +
     '        <span></span>' +
@@ -104,7 +104,7 @@ suite('wifi > ', function() {
     '      <label id="label_hidden_wifi_password">' +
     '        Password' +
     '      </label>' +
-    '      <input type="password" id="hidden-wifi-password" />' +
+    '      <input type="password" id="hidden-wifi-password" maxlength="63" />' +
     '      <label id="label_show_password">' +
     '        <input type="checkbox" id="hidden-wifi-show-password" />' +
     '        <span></span>' +
@@ -122,7 +122,7 @@ suite('wifi > ', function() {
     ' </menu>' +
     '</section>';
 
-    container = document.createElement('div');
+    var container = document.createElement('div');
     container.insertAdjacentHTML('beforeend', markup);
     document.body.appendChild(container);
   }
@@ -151,9 +151,14 @@ suite('wifi > ', function() {
     });
 
     test('none available', function(done) {
+      var noNetworks = [];
+      MockNavigatorMozWifiManager.setNetworks(noNetworks);
       WifiManager.scan(function(networks) {
         assert.ok(showOverlayStub.calledOnce, 'shows loading overlay');
-        assert.isUndefined(networks, 'return zero networks');
+        assert.equal(networks.length, noNetworks.length,
+          'return zero networks');
+        assert.isDefined(document.getElementById('no-result-container'),
+          'show no networks message');
         done();
       });
     });
@@ -207,5 +212,4 @@ suite('wifi > ', function() {
       clock.tick(10000);
     });
   });
-
 });

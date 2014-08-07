@@ -51,8 +51,7 @@
 }
 
 #lockscreen-masked-background.blank {
-  background-image: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0));
-  background-size: 100% 22.6rem;
+  background: rgba(0,0,0,0.35);
 }
 
 #screen.screenoff > #lockscreen,
@@ -169,7 +168,7 @@
 #lockscreen-header {
   z-index: 9999;
   position: absolute;
-  top: 2.4rem;   /* 2.4rem = height of status bar */
+  top: 3rem;   /* 3rem = height of status bar */
   left: 0;
   width: 100%;
   -moz-box-sizing: border-box;
@@ -341,7 +340,6 @@ button::-moz-focus-inner {
   border-radius: 2.5rem;
   background-color: rgba(255, 255, 255, 0.25);
   -moz-box-sizing: border-box;
-
   float: right;
   pointer-events: auto;
   opacity: 0.1;
@@ -487,8 +485,7 @@ button::-moz-focus-inner {
 }
 
 #lockscreen-passcode-pad > a:not(.lockscreen-passcode-pad-func) > div{
-  text-align: left;
-  padding-left: 4.3rem;
+  text-align: center;
 }
 
 #lockscreen-passcode-pad > a:last-child > div{
@@ -515,7 +512,7 @@ button::-moz-focus-inner {
   font-size: 1.2rem;
   padding: 0.4rem;
   font-weight: 400;
-  color: #9aaabc;
+  color: #a6a6a6;
 }
 
 .passcode-entered #lockscreen-passcode-pad > a[data-key="c"] {
@@ -549,23 +546,36 @@ button::-moz-focus-inner {
 }
 
 #lockscreen-passcode-pad .row0 > div{
-  border-right-color: #525b5e;
+  border-right-color: #606B6E;
 }
 
 #lockscreen-passcode-pad .row1 > div {
-  border-right-color: #4c5657;
+  border-right-color: #5B6668;
 }
 
 #lockscreen-passcode-pad .row2 > div {
-  border-right-color: #475052;
+  border-right-color: #566063;
 }
 
 #lockscreen-passcode-pad .row3 > div {
-  border-right-color: #434b4d;
+  border-right-color: #525C5E;
+}
+
+#lockscreen-passcode-pad > a.row0 > div,
+#lockscreen-passcode-pad > a.row1 > div,
+#lockscreen-passcode-pad > a.row2 > div {
+  margin-top: 0.1rem;
+}
+
+#lockscreen-passcode-pad > a.row0 > div > span,
+#lockscreen-passcode-pad > a.row1 > div > span,
+#lockscreen-passcode-pad > a.row2 > div > span {
+  display: block;
+  margin-top: -2.6rem;
 }
 
 #lockscreen-passcode-pad > a:active > div > span {
-  color: #fff;
+  color: transparent;
   text-shadow: none;
 }
 
@@ -692,15 +702,15 @@ button::-moz-focus-inner {
  * for big screen, we allow four notifications,
  * for small screen, we allow three notification
  * that would be (for four notifications)
- * (100% - 16.3rem (header) - 2.4rem (statusbar)
+ * (100% - 16.3rem (header) - 3rem (statusbar)
  *  - 10rem (slider) - 24.6rem (4xNotifications height + 1.2rem for showing the 5th)) / 2
- *  + 16.3rem + 2.4rem
+ *  + 16.3rem + 3rem
  */
 
 #notifications-lockscreen-container {
   z-index: 1;
   position: absolute;
-  top: calc(50% - 7.95rem);
+  top: calc(50% - 8.35rem);
   left: 0;
   width: 100%;
   max-height: 24.6rem;
@@ -721,23 +731,23 @@ button::-moz-focus-inner {
   max-height: 11.7rem;
 }
 
-#notifications-lockscreen-container.masked-top {
-  mask: url('lockscreen_container_mask.svg#solid_mask_top');
-}
-
 #notifications-lockscreen-container.masked-both {
   mask: url('lockscreen_container_mask.svg#fade_mask_both');
 }
 
+#notifications-lockscreen-container.collapsed.masked-top {
+  mask: url('lockscreen_container_mask.svg#solid_mask_top');
+}
+
 @media (max-height:480px) {
  /* small screen, normal mode: for three notifications...
-  * (100% - 16.3rem (header) - 2.4rem (statusbar)
+  * (100% - 16.3rem (header) - 3rem (statusbar)
   *  - 10rem (slider) - 18.7rem (3xNotifications height + showing the 4th)) / 2
-  *  + 16.3rem + 2.4rem
+  *  + 16.3rem + 3rem
   */
 
   #notifications-lockscreen-container {
-    top: calc(50% - 5rem);
+    top: calc(50% - 5.4rem);
     max-height: 18.7rem;
   }
 
@@ -747,7 +757,7 @@ button::-moz-focus-inner {
   * (so there is no mask either)
   */
   #notifications-lockscreen-container.collapsed {
-    top: calc(50% - 5rem);
+    top: calc(50% - 5.4rem);
     max-height: 5.8rem;
     overflow-y: hidden;
   }
@@ -774,6 +784,11 @@ button::-moz-focus-inner {
 
 #notifications-lockscreen-container .notification:last-child {
   border-bottom: none;
+  margin-bottom: 1.2rem;
+}
+
+#notifications-lockscreen-container.collapsed .notification:last-child {
+  margin-bottom: 0.05rem;
 }
 
 #notifications-lockscreen-container .notification > div {
@@ -853,4 +868,9 @@ button::-moz-focus-inner {
        container should not be scrollable with collapsed */
     display: none;
   }
+}
+
+/* Right-To-Left layout */
+html[dir="rtl"] #lockscreen-alt-camera {
+  float: left;
 }

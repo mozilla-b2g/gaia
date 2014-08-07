@@ -62,7 +62,8 @@ suite('KeyboardEnabledDefaultDialog', function() {
         document.body.appendChild(this.submit);
 
         this.get = this.sinon.spy(navigator.mozL10n, 'get');
-        this.localize = this.sinon.stub(navigator.mozL10n, 'localize');
+        this.setAttributes = this.sinon.stub(navigator.mozL10n,
+                                             'setAttributes');
 
         this.MockSettingsService = MockSettingsService;
         sinon.spy(this.MockSettingsService, 'navigate');
@@ -86,7 +87,7 @@ suite('KeyboardEnabledDefaultDialog', function() {
       // gets localized string for type
       assert.isTrue(this.get.calledWith('keyboardType-text'));
       // localizes element
-      assert.deepEqual(this.localize.args[0], [
+      assert.deepEqual(this.setAttributes.args[0], [
         this.title,
         'mustHaveOneKeyboard',
         { type: 'keyboardType-text' }
@@ -97,7 +98,7 @@ suite('KeyboardEnabledDefaultDialog', function() {
       // gets localized string for type
       assert.isTrue(this.get.calledWith('keyboardType-text'));
       // localizes element
-      assert.deepEqual(this.localize.args[1], [
+      assert.deepEqual(this.setAttributes.args[1], [
         this.title,
         'defaultKeyboardEnabled',
         { appName: 'appName', layoutName: 'layoutName' }

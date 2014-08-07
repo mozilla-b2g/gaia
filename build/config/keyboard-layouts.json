@@ -100,7 +100,7 @@
     "it": [
         {"layoutId": "it", "app": ["apps", "keyboard"]}
     ],
-    "jp": [
+    "ja": [
         {"layoutId": "jp-kanji", "app": ["apps", "keyboard"]},
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],

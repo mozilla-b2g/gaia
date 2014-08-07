@@ -261,7 +261,7 @@ SystemUpdatable.prototype.showApplyPromptBatteryNok = function(minBattery) {
   UtilityTray.hide();
   CustomDialog.show(
     _('systemUpdateReady'),
-    _('systemUpdateLowBattery', { threshold: minBattery }),
+    _('systemUpdateLowBatteryThreshold', { threshold: minBattery }),
     ok
   );
 };

@@ -14,7 +14,7 @@ requireApp('settings/test/unit/mock_l10n.js');
 
 suite('firefox accounts panel > ', function() {
   var suiteSandbox = sinon.sandbox.create(),
-    localizeSpy,
+    setAttributesSpy,
     realL10n,
     loggedOutScreen,
     unverifiedScreen,
@@ -64,11 +64,11 @@ suite('firefox accounts panel > ', function() {
   });
 
   setup(function() {
-    localizeSpy = sinon.spy(navigator.mozL10n, 'localize');
+    setAttributesSpy = sinon.spy(navigator.mozL10n, 'setAttributes');
   });
 
   teardown(function() {
-    navigator.mozL10n.localize.restore();
+    navigator.mozL10n.setAttributes.restore();
     MockFxAccountsIACHelper.resetListeners();
   });
 
@@ -86,8 +86,8 @@ suite('firefox accounts panel > ', function() {
     assert.isTrue(unverifiedScreen.hidden);
     assert.isFalse(loggedInScreen.hidden);
 
-    // test localize was called with correct args
-    assert.deepEqual(localizeSpy.args[0], [
+    // test setAttributes was called with correct args
+    assert.deepEqual(setAttributesSpy.args[0], [
       document.getElementById('fxa-logged-in-text'),
       'fxa-logged-in-text',
       { email: 'init@ialization.com' }
@@ -114,8 +114,8 @@ suite('firefox accounts panel > ', function() {
     assert.isFalse(unverifiedScreen.hidden);
     assert.isTrue(loggedInScreen.hidden);
 
-    // test localize was called with correct args
-    assert.deepEqual(localizeSpy.args[0], [
+    // test setAttributes was called with correct args
+    assert.deepEqual(setAttributesSpy.args[0], [
       document.getElementById('fxa-unverified-text'),
       'fxa-verification-email-sent-msg',
       { email: 'on@log.in' }
@@ -133,8 +133,8 @@ suite('firefox accounts panel > ', function() {
       assert.isTrue(loggedOutScreen.hidden);
       assert.isTrue(unverifiedScreen.hidden);
       assert.isFalse(loggedInScreen.hidden);
-      // test localize was called with correct args
-      assert.deepEqual(localizeSpy.args[0], [
+      // test setAttributes was called with correct args
+      assert.deepEqual(setAttributesSpy.args[0], [
         document.getElementById('fxa-logged-in-text'),
         'fxa-logged-in-text',
         { email: 'on@verifiedlog.in' }

@@ -17,6 +17,7 @@ var bind = require('lib/bind');
 
 module.exports = View.extend({
   name: 'settings',
+  fadeTime: 150,
 
   initialize: function(options) {
     this.OptionsView = options.OptionsView || OptionsView;
@@ -100,6 +101,18 @@ module.exports = View.extend({
 
   showPane: function(name) {
     this.el.setAttribute('show-pane', 'pane-' + name);
+  },
+
+  fadeIn: function(done) {
+    setTimeout(this.show);
+    if (!done) { return; }
+    setTimeout(done, this.fadeTime);
+  },
+
+  fadeOut: function(done) {
+    this.hide();
+    if (!done) { return; }
+    setTimeout(done, this.fadeTime);
   },
 
   template: function() {

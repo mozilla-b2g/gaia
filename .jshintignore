@@ -8,8 +8,6 @@ apps/camera/js/vendor/**
 apps/camera/test/**
 apps/system/camera/**
 build/r.js
-build/config/gps-prefs.js
-build/config/payment-prefs.js
 build/copy-build-stage-data.js
 build/csslint.js
 build/csslinter.js
@@ -17,10 +15,8 @@ build/download-manager.js
 build/image-resolution.js
 build/jshint/xfail.js
 build/jsmin.js
-build/optimize-clean.js
 build/post-manifest.js
 build/pre-app.js
-build/preferences.js
 build/push-to-device.js
 build/settings.js
 build/test/integration/build.test.js
@@ -28,8 +24,6 @@ build/test/integration/distribution.test.js
 build/test/integration/helper.js
 build/test/integration/multilocale.test.js
 build/utils.js
-build/watcher.js
-build/webapp-manifests.js
 build/webapp-optimize.js
 apps/communications/contacts/oauth2/js/parameters.js
 apps/calendar/js/presets.js
@@ -44,6 +38,7 @@ apps/keyboard/js/imes/jspinyin/libpinyin.js
 apps/keyboard/js/imes/jszhuyin/lib/**
 shared/js/setImmediate.js
 shared/test/unit/test-agent-server.js
+shared/elements/gaia-header/dist/script.js
 apps/sharedtest/test/unit/setImmediate_test.js
 apps/wappush/js/ext/**
 apps/keyboard/js/imes/jsavrophonetic/jsavrophonetic.js
@@ -61,3 +56,4 @@ apps/findmydevice/js/lib/*
 apps/findmydevice/js/config.js
 apps/system/js/uuid.js
 apps/camera/bower_components/**
+apps/bluetooth/js/settings.js

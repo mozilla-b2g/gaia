@@ -106,10 +106,14 @@
       this.manifest.chrome :
       this.config.chrome;
 
-    if (!this.manifestURL && !this.config.chrome) {
+    if (!this.config.chrome) {
       this.config.chrome = {
-        navigation: true
+        scrollable: this.isBrowser()
       };
+    } else if (this.config.chrome.navigation) {
+      // This is for backward compatibility with application that
+      // requests the |navigation| flag in their manifest.
+      this.config.chrome.scrollable = true;
     }
 
     if (!this.manifest && this.config && this.config.title) {
@@ -351,7 +355,7 @@
     }
     this.debug(' ...revived!');
     this.browser = new self.BrowserFrame(this.browser_config);
-    this.element.appendChild(this.browser.element);
+    this.browserContainer.appendChild(this.browser.element);
     this.iframe = this.browser.element;
     this.launchTime = Date.now();
     this.suspended = false;
@@ -373,7 +377,7 @@
     this.loaded = false;
     this.suspended = true;
     this.element.classList.add('suspended');
-    this.element.removeChild(this.browser.element);
+    this.browserContainer.removeChild(this.browser.element);
     this.browser = null;
     this.publish('suspended');
   };
@@ -451,7 +455,7 @@
    * @return {Boolean} The instance is dead or not.
    */
   AppWindow.prototype.isDead = function aw_isDead() {
-    return (this._killed);
+    return (this._killed || !this.element);
   };
 
   /**
@@ -496,7 +500,10 @@
     return '<div class=" ' + this.CLASS_LIST +
             ' " id="' + this.instanceID +
             '" transition-state="closed">' +
-              '<div class="screenshot-overlay"></div>' +
+              '<div class="titlebar">' +
+              ' <div class="statusbar-shadow titlebar-maximized"></div>' +
+              ' <div class="statusbar-shadow titlebar-minimized"></div>' +
+              '</div>' +
               '<div class="identification-overlay">' +
                 '<div>' +
                   '<div class="icon"></div>' +
@@ -505,6 +512,9 @@
               '</div>' +
               '<div class="fade-overlay"></div>' +
               '<div class="touch-blocker"></div>' +
+              '<div class="browser-container">' +
+              ' <div class="screenshot-overlay"></div>' +
+              '</div>' +
            '</div>';
   };
 
@@ -547,7 +557,8 @@
       this.element.classList.add('fullscreen-app');
     }
 
-    this.element.appendChild(this.browser.element);
+    this.browserContainer = this.element.querySelector('.browser-container');
+    this.browserContainer.appendChild(this.browser.element);
 
     // Intentional! The app in the iframe gets two resize events when adding
     // the element to the page (see bug 1007595). The first one is incorrect,
@@ -658,7 +669,6 @@
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory,
-    'textSelectionDialog': window.TextSelectionDialog
   };
 
   /**
@@ -713,22 +723,15 @@
             new this.constructor.SUB_COMPONENTS[componentName](this);
         }
       }
-      if (this.config.chrome &&
-          (this.config.chrome.navigation ||
-           this.config.chrome.bar)) {
-        this.appChrome = new self.AppChrome(this);
-      }
 
-      if (!this.config.chrome || !this.config.chrome.bar) {
-        if (this.manifest) {
-          var that = this;
-          that.element.addEventListener('_opened', function onOpened() {
-            that.element.removeEventListener('_opened', onOpened);
-            that.appTitleBar = new self.AppTitleBar(that);
-          });
-        } else {
-          this.appTitleBar = new self.AppTitleBar(this);
-        }
+      if (this.manifest) {
+        var that = this;
+        that.element.addEventListener('_opened', function onOpened() {
+          that.element.removeEventListener('_opened', onOpened);
+          that.appChrome = new self.AppChrome(that);
+        });
+      } else {
+        this.appChrome = new self.AppChrome(this);
       }
     };
 
@@ -741,7 +744,7 @@
         }
       }
 
-      if (this.config.chrome) {
+      if (this.appChrome) {
         this.appChrome.destroy();
         this.appChrome = null;
       }
@@ -770,7 +773,7 @@
 
     // Resize only the overlays not the app
     var width = self.layoutManager.width;
-    var height = self.layoutManager.height + this.calibratedHeight();
+    var height = self.layoutManager.height;
 
     this.iframe.style.width = this.width + 'px';
     this.iframe.style.height = this.height + 'px';
@@ -867,6 +870,11 @@
       this.loading = false;
       this.loaded = true;
       this.element.classList.add('render');
+      // Bug 1043408 - Marionette tests relies on the render class of the
+      // iframe parent in order to starts. So let's replicate the 'render'
+      // class on browser-container until the proper patch on the external
+      // repo.
+      this.browserContainer.classList.add('render');
       // Force removing background image.
       this.element.style.backgroundImage = 'none';
       this._changeState('loading', false);
@@ -1298,14 +1306,6 @@
       return this._defaultOrientation;
     };
 
-  AppWindow.prototype.calibratedHeight = function aw_calibratedHeight() {
-    if (this.appChrome && this.appChrome.hidingNavigation) {
-      return this.appChrome.getBarHeight();
-    } else {
-      return 0;
-    }
-  };
-
   AppWindow.prototype._resize = function aw__resize() {
     var height, width;
     this.debug('force RESIZE...');
@@ -1326,7 +1326,7 @@
        */
       this.broadcast('withoutkeyboard');
     }
-    height = self.layoutManager.height + this.calibratedHeight();
+    height = self.layoutManager.height;
 
     // If we have sidebar in the future, change layoutManager then.
     width = self.layoutManager.width;
@@ -1368,6 +1368,9 @@
   * ![AppWindow resize flow chart](http://i.imgur.com/bUMm4VM.png)
   */
   AppWindow.prototype.resize = function aw_resize() {
+    if (this.isDead()) {
+      return;
+    }
     this.debug('request RESIZE...active? ', this.isActive());
     var bottom = this.getBottomMostWindow();
     if (!bottom.isActive() || this.isTransitioning()) {

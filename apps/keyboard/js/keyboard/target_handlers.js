@@ -215,6 +215,10 @@ PageSwitchingTargetHandler.prototype.commit = function() {
       page = this.app.layoutManager.LAYOUT_PAGE_SYMBOLS_I;
       break;
 
+     case this.app.layoutManager.KEYCODE_SYMBOL_LAYOUT:
+      page = this.app.layoutManager.LAYOUT_PAGE_SYMBOLS_II;
+      break;
+
     case KeyEvent.DOM_VK_ALT:
       // alternate between pages 1 and 2 of SYMBOLS
       if (this.app.layoutManager.currentLayoutPage ===
@@ -228,6 +232,12 @@ PageSwitchingTargetHandler.prototype.commit = function() {
 
   this.app.setLayoutPage(page);
   this.app.visualHighlightManager.hide(this.target);
+
+  // If needed, empty the candidate panel
+  var currentIMEngine = this.app.inputMethodManager.currentIMEngine;
+  if (typeof currentIMEngine.empty === 'function') {
+    currentIMEngine.empty();
+  }
 };
 
 var CapsLockTargetHandler = function(target, app) {

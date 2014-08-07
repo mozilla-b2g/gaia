@@ -21,9 +21,9 @@ define(function(require) {
     },
 
     updateTitle: function() {
-      this.elements.title.textContent =
-        navigator.mozL10n.get('feedback_whyfeel_' +
-          (this.options.feel === 'feedback-happy' ? 'happy' : 'sad'));
+      this.elements.title.setAttribute('data-l10n-id',
+        'feedback_whyfeel_' +
+        (this.options.feel === 'feedback-happy' ? 'happy' : 'sad'));
     },
 
     /**
@@ -57,6 +57,7 @@ define(function(require) {
     alertConfirm: function() {
       this.elements.alertDialog.hidden = true;
       this.elements.alertMsg.textContent = '';
+      this.elements.alertMsg.removeAttribute('data-l10n-id');
     },
 
     /**
@@ -158,13 +159,12 @@ define(function(require) {
     },
 
     _messageHandler: function(type) {
-      var _ = navigator.mozL10n.get;
       if (type === 'success') {
         this.elements.doneDialog.hidden = false;
       } else {
         this._keepAllInputs();
-        this.elements.alertMsg.textContent =
-          _('feedback-errormessage-' + type);
+        this.elements.alertMsg.setAttribute('data-l10n-id',
+          'feedback-errormessage-' + type);
         this.elements.alertDialog.hidden = false;
       }
       this.elements.sendBtn.disabled = false;

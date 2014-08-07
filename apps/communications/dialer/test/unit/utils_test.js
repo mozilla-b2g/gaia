@@ -1,9 +1,9 @@
-require('/shared/js/dialer/utils.js');
-require('/shared/test/unit/mocks/dialer/mock_contacts.js');
+/* global MockContacts, Utils */
 
-if (!this.SettingsListener) {
-  this.SettingsListener = null;
-}
+'use strict';
+
+require('/shared/test/unit/mocks/dialer/mock_contacts.js');
+require('/shared/js/dialer/utils.js');
 
 suite('dialer/utils', function() {
   var realL10n;

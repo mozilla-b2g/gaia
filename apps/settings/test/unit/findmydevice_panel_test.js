@@ -26,7 +26,8 @@ var mocksForFindMyDevice = new MocksHelper([
 suite('Find My Device panel > ', function() {
   var MockMozId, realMozId;
   var realL10n, realLoadJSON, subject;
-  var signinSection, settingsSection, trackingSection, loginButton, checkbox;
+  var signinSection, settingsSection, trackingSection, login, loginButton,
+      checkbox, unverifiedError;
 
   mocksForFindMyDevice.attachTestHelpers();
 
@@ -36,7 +37,7 @@ suite('Find My Device panel > ', function() {
       once: function(callback) {
         callback();
       },
-      localize: function(element, id) {
+      setAttributes: function(element, id) {
       },
     };
 
@@ -88,7 +89,10 @@ suite('Find My Device panel > ', function() {
       settingsSection = document.getElementById('findmydevice-settings');
       trackingSection = document.getElementById('findmydevice-tracking');
       checkbox = document.querySelector('#findmydevice-enabled input');
-      loginButton = document.getElementById('findmydevice-login');
+      login = document.getElementById('findmydevice-login');
+      loginButton = document.querySelector('#findmydevice-login > button');
+      unverifiedError = document.getElementById(
+        'findmydevice-fxa-unverified-error');
 
       // manually enable the loginButton
       loginButton.removeAttribute('disabled');
@@ -188,14 +192,12 @@ suite('Find My Device panel > ', function() {
     MockSettingsListener.mCallbacks['findmydevice.enabled'](true);
     assert.isFalse(trackingSection.hidden);
 
-    this.sinon.spy(navigator.mozL10n, 'localize');
     MockSettingsListener.mCallbacks['findmydevice.tracking'](true);
-    assert.ok(navigator.mozL10n.localize.calledWith(
-        trackingSection, 'findmydevice-active-tracking'));
+    assert.equal(trackingSection.getAttribute('data-l10n-id'),
+                                              'findmydevice-active-tracking');
     MockSettingsListener.mCallbacks['findmydevice.tracking'](false);
-    assert.ok(navigator.mozL10n.localize.calledWith(
-        trackingSection, 'findmydevice-not-tracking'));
-    navigator.mozL10n.localize.reset();
+    assert.equal(trackingSection.getAttribute('data-l10n-id'),
+                                              'findmydevice-not-tracking');
   });
 
   test('prevent accidental auto-enable on FxA sign-in', function() {
@@ -227,6 +229,32 @@ suite('Find My Device panel > ', function() {
     assert.ok(window.wakeUpFindMyDevice.calledWith(
         IAC_API_WAKEUP_REASON_TRY_DISABLE));
     window.wakeUpFindMyDevice.reset();
+  });
+
+  test('display error message for unverified accounts', function() {
+    MockMozId.onerror('{"name": "UNVERIFIED_ACCOUNT"}');
+    assert.isFalse(unverifiedError.hidden);
+    assert.isTrue(login.hidden);
+  });
+
+  test('hide error message for unverified accounts on login',
+  function() {
+    unverifiedError.hidden = false;
+    login.hidden = true;
+
+    MockMozId.onlogin();
+    assert.isTrue(unverifiedError.hidden);
+    assert.isFalse(login.hidden);
+  });
+
+  test('hide error message for unverified accounts on logout',
+  function() {
+    unverifiedError.hidden = false;
+    login.hidden = true;
+
+    MockMozId.onlogout();
+    assert.isTrue(unverifiedError.hidden);
+    assert.isFalse(login.hidden);
   });
 
   suiteTeardown(function() {

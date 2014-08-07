@@ -305,7 +305,7 @@
   }
 
   function displaysCandidates() {
-    return suggesting && worker;
+    return !!(suggesting && worker);
   }
 
   /*
@@ -903,23 +903,15 @@
     //
     // 1) If the cursor is at the start of the field: uppercase
     //
-    // 2) If there are two uppercase chars before the cursor: uppercase
-    //
-    // 3) If there is a non space character immediately before the cursor:
+    // 2) If there is a non space character immediately before the cursor:
     //    lowercase
     //
-    // 4) If the first non-space character before the cursor is . ? or !:
+    // 3) If the first non-space character before the cursor is . ? or !:
     //    uppercase
     //
-    // 5) Otherwise: lowercase
+    // 4) Otherwise: lowercase
     //
     if (cursor === 0) {
-      keyboard.setUpperCase({
-        isUpperCase: true
-      });
-    }
-    else if (cursor >= 2 &&
-             isUpperCase(inputText.substring(cursor - 2, cursor))) {
       keyboard.setUpperCase({
         isUpperCase: true
       });

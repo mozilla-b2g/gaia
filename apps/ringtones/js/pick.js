@@ -22,10 +22,12 @@ navigator.mozSetMessageHandler('activity', function(activity) {
   });
 
   document.getElementById('cancel').addEventListener('click', function() {
+    tonePlayer.stop();
     activity.postError('cancelled');
   });
 
   document.getElementById('done').addEventListener('click', function() {
+    tonePlayer.stop();
     tonePlayer.isValid(function(valid) {
       if (!valid) {
         // The tone couldn't be played. Just act like the user canceled.

@@ -207,7 +207,19 @@ CameraController.prototype.showSizeLimitAlert = function() {
  * @private
  */
 CameraController.prototype.setMode = function(mode) {
+  debug('set mode: %s', mode);
   var self = this;
+
+  // Abort if didn't change.
+  //
+  // TODO: Perhaps the `Setting` instance should
+  // not emit a `change` event if the value did
+  // not change? This may require some deep checking
+  // if the value is an object. Quite a risky change
+  // to make, but would remove the need for us to check
+  // here and in other change callbacks. Food 4 thought :)
+  if (this.camera.isMode(mode)) { return; }
+
   this.setFlashMode();
   this.app.emit('camera:willchange');
   this.app.once('viewfinder:hidden', function() {
@@ -231,9 +243,13 @@ CameraController.prototype.setMode = function(mode) {
  * @private
  */
 CameraController.prototype.updatePictureSize = function() {
+  debug('update picture-size');
   var pictureMode = this.settings.mode.selected('key') === 'picture';
   var value = this.settings.pictureSizes.selected('data');
   var self = this;
+
+  // Don't do anything if the picture size didn't change
+  if (this.camera.isPictureSize(value)) { return; }
 
   // If not currently in 'picture'
   // mode, just configure.
@@ -265,9 +281,13 @@ CameraController.prototype.updatePictureSize = function() {
  * @private
  */
 CameraController.prototype.updateRecorderProfile = function() {
+  debug('update recorder-profile');
   var videoMode = this.settings.mode.selected('key') === 'video';
   var key = this.settings.recorderProfiles.selected('key');
   var self = this;
+
+  // Don't do anything if the recorder-profile didn't change
+  if (this.camera.isRecorderProfile(key)) { return; }
 
   // If not currently in 'video'
   // mode, just configure.
@@ -298,6 +318,7 @@ CameraController.prototype.updateRecorderProfile = function() {
  * @private
  */
 CameraController.prototype.setCamera = function(camera) {
+  debug('set camera: %s', camera);
   var self = this;
   this.app.emit('camera:willchange');
   this.app.once('viewfinder:hidden', function() {
@@ -362,15 +383,16 @@ CameraController.prototype.onBatteryStatusChange = function(status) {
 };
 
 /**
- * Stop recording if storage becomes
- * 'shared' (unavailable) usually due
- * to the device being connected to
- * a computer via USB.
+ * Stop recording if storage changes state.
+ * Examples:
+ * 'shared' usually due to the device being connected to
+ *  a computer via USB.
+ * 'unavailable' when the SDCARD is yanked
  *
  * @private
  */
-CameraController.prototype.onStorageChanged = function(state) {
-  if (state === 'shared') { this.camera.stopRecording(); }
+CameraController.prototype.onStorageChanged = function() {
+  this.camera.stopRecording();
 };
 
 /**

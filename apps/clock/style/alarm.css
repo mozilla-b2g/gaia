@@ -281,3 +281,36 @@ input[type=range]:active::-moz-range-thumb {
   background-color: #e51e1e;
   text-align: center;
 }
+
+/* RTL View */
+html[dir=rtl] #alarm-new {
+  margin-left: 1.5rem;
+  left: 0;
+  right: auto;
+}
+html[dir=rtl] #alarms .alarmEnable {
+  left: 0;
+  right: auto;
+}
+
+html[dir=rtl] a.alarm-item > .time {
+  left: auto;
+  right: 1.7rem;
+  
+}
+html[dir=rtl] a.alarm-item > .label {
+  left: 4.5rem;
+  right: 12.5rem;
+}
+html[dir=rtl] a.alarm-item > .repeat {
+  left: auto;
+  right: 1.7rem;
+}
+html[dir=rtl] a.alarm-item > .repeat {
+  left: auto;  
+  right: 1.7rem;
+}
+html[dir=rtl] #alarms .alarmEnable input[type="checkbox"] + span {
+  left: 1.5rem;
+  right: auto;
+}

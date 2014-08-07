@@ -191,10 +191,21 @@ div:not(#notifications-lockscreen-container) > .notification:after{
   margin-right: .5rem;
 }
 
+.notification.snapback,
+#notification-toaster.snapback {
+  transition: transform 0.3s ease-out;
+  transform: translateX(0);
+}
+
 .notification.disappearing,
 #notification-toaster.disappearing {
-  transition: transform 0.3s linear;
+  transition: transform 0.2s linear;
   transform: translateX(100%);
+}
+
+.notification.disappearing.left,
+#notification-toaster.disappearing.left {
+  transform: translateX(-100%);
 }
 
 .notification.disappearing ~ .notification {

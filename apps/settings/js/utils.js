@@ -67,6 +67,82 @@ function openDialog(dialogID, onSubmit, onReset) {
   }
 }
 
+function openIncompatibleSettingsDialog(dialogId, newSetting,
+  oldSetting, callback) {
+  var newSettingL10n, oldSettingL10n;
+
+  if (newSetting == 'ums.enabled') {
+    newSettingL10n = 'enableUSBStorage1';
+  } else if (newSetting == 'tethering.usb.enabled') {
+    newSettingL10n = 'usb-tethering';
+  } else {
+    newSettingL10n = 'wifi-hotspot';
+  }
+
+  if (oldSetting == 'ums.enabled') {
+    oldSettingL10n = 'enableUSBStorage1';
+  } else if (oldSetting == 'tethering.usb.enabled') {
+    oldSettingL10n = 'usb-tethering';
+  } else {
+    oldSettingL10n = 'wifi-hotspot';
+  }
+
+  var dialogElement = document.querySelector('.incompatible-settings-dialog'),
+    dialogHead = document.querySelector('.is-warning-head'),
+    dialogMessage = document.querySelector('.is-warning-message'),
+    okBtn = document.querySelector('.incompatible-settings-ok-btn'),
+    cancelBtn = document.querySelector('.incompatible-settings-cancel-btn'),
+    mozL10n = navigator.mozL10n;
+
+  mozL10n.setAttributes(dialogHead, 'is-warning-head',
+    {'newSetting' : mozL10n.get(newSettingL10n)});
+  mozL10n.setAttributes(dialogMessage, 'is-warning-message',
+    {'newSetting' : mozL10n.get(newSettingL10n),
+    'oldSetting' : mozL10n.get(oldSettingL10n)});
+
+  // User has requested enable the feature so the old feature
+  // must be disabled
+  function onEnable() {
+    var lock = Settings.mozSettings.createLock();
+    var cset = {};
+
+    cset[newSetting] = true;
+    cset[oldSetting] = false;
+    lock.set(cset);
+
+    enableDialog(false);
+
+    if (callback) {
+      callback();
+    }
+  }
+
+  function onCancel() {
+    var lock = Settings.mozSettings.createLock();
+    var cset = {};
+
+    cset[newSetting] = false;
+    cset[oldSetting] = true;
+    lock.set(cset);
+
+    enableDialog(false);
+  }
+
+  var enableDialog = function enableDialog(enabled) {
+    if (enabled) {
+      okBtn.addEventListener('click', onEnable);
+      cancelBtn.addEventListener('click', onCancel);
+      dialogElement.hidden = false;
+    } else {
+      okBtn.removeEventListener('click', onEnable);
+      cancelBtn.removeEventListener('click', onCancel);
+      dialogElement.hidden = true;
+    }
+  };
+
+  enableDialog(true);
+}
+
 /**
  * JSON loader
  */
@@ -114,12 +190,6 @@ function loadJSON(href, callback) {
 })(this);
 
 /**
- * L10n helper
- */
-
-var localize = navigator.mozL10n.localize;
-
-/**
  * Helper class for formatting file size strings
  * required by *_storage.js
  */
@@ -165,33 +235,18 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
     var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
 
     var _ = navigator.mozL10n.get;
-    element.textContent = _(l10nId, {
-      size: sizeInfo.size,
-      unit: _('byteUnit-' + sizeInfo.unit)
-    });
+    navigator.mozL10n.setAttributes(element,
+                                    l10nId,
+                                    {
+                                      size: sizeInfo.size,
+                                      unit: _('byteUnit-' + sizeInfo.unit)
+                                    });
   }
 
   return {
     showFormatedSize: showFormatedSize
   };
 })();
-
-/**
- * Connectivity accessors
- */
-var getMobileConnection = function() {
-  var mobileConnection = navigator.mozMobileConnections &&
-      navigator.mozMobileConnections[0];
-
-  if (mobileConnection && mobileConnection.data) {
-    return mobileConnection;
-  }
-  return null;
-};
-
-var getBluetooth = function() {
-  return navigator.mozBluetooth;
-};
 
 /**
  * The function returns an object of the supporting state of category of network

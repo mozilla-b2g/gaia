@@ -163,10 +163,11 @@ suite('timezones >', function() {
       });
 
       test('we use DEFAULT value', function(done) {
-        function tzLoaded() {
+        function tzLoaded(timezone, needsConfirmation) {
           var currentValues = getTextFromSelectors();
           assert.equal(currentValues.region, 'America');
           assert.equal(currentValues.city, 'New York');
+          assert.isTrue(needsConfirmation);
           done();
         }
 
@@ -181,8 +182,8 @@ suite('timezones >', function() {
         // we need a live connection for this test (network)
         conn = new window.MockMobileconnection();
         conn.voice = {
+          connected: true,
           network: {
-            connected: true,
             mcc: 466, // Asia / Taipei
             mnc: 2
           }
@@ -197,10 +198,13 @@ suite('timezones >', function() {
       });
 
       test('get timezone from the connection', function(done) {
-        function tzLoaded() {
+        function tzLoaded(timezone, needsConfirmation) {
           var currentValues = getTextFromSelectors();
           assert.equal(currentValues.region, 'Australia');
           assert.equal(currentValues.city, 'Sydney');
+          // When the timezone (and presumably the time) is loaded from
+          // network, it doesn't need to be confirmed by the user.
+          assert.isFalse(needsConfirmation);
           done();
         }
 
@@ -209,11 +213,12 @@ suite('timezones >', function() {
       });
 
       test('if unknown MCC/MNC, use default', function(done) {
-        function tzLoaded() {
+        function tzLoaded(timezone, needsConfirmation) {
           var currentValues = getTextFromSelectors();
           // DEFAULT is America/New_York
           assert.equal(currentValues.region, 'America');
           assert.equal(currentValues.city, 'New York');
+          assert.isTrue(needsConfirmation);
           done();
         }
 
@@ -242,10 +247,11 @@ suite('timezones >', function() {
       });
 
       test('get timezone from SIM', function(done) {
-        function tzLoaded() {
+        function tzLoaded(timezone, needsConfirmation) {
           var currentValues = getTextFromSelectors();
           assert.equal(currentValues.region, 'Europe');
           assert.equal(currentValues.city, 'London');
+          assert.isTrue(needsConfirmation);
           done();
         }
 
@@ -258,10 +264,11 @@ suite('timezones >', function() {
       });
 
       test('if unknown MCC/MNC, use default', function(done) {
-        function tzLoaded() {
+        function tzLoaded(timezone, needsConfirmation) {
           var currentValues = getTextFromSelectors();
           assert.equal(currentValues.region, 'America');
           assert.equal(currentValues.city, 'New York');
+          assert.isTrue(needsConfirmation);
           done();
         }
 
@@ -292,12 +299,12 @@ suite('timezones >', function() {
       });
 
       test('> default is used while waiting for access', function(done) {
-        function tzLoaded() {
+        function tzLoaded(timezone, needsConfirmation) {
           var currentValues = getTextFromSelectors();
           assert.lengthOf(IccHelper.mEventListeners.iccinfochange, 1);
           assert.equal(currentValues.region, 'America');
           assert.equal(currentValues.city, 'New York');
-
+          assert.isTrue(needsConfirmation);
           done();
         }
 
@@ -306,12 +313,13 @@ suite('timezones >', function() {
 
       test('> reload when granted access to SIM info', function(done) {
         var calls = 0;
-        function tzLoaded() {
+        function tzLoaded(timezone, needsConfirmation) {
           calls++;
           IccHelper.mTriggerEventListeners('iccinfochange', {});
           var currentValues = getTextFromSelectors();
           assert.equal(currentValues.region, 'Europe');
           assert.equal(currentValues.city, 'London');
+          assert.isTrue(needsConfirmation);
           // we expect 2 calls before finishing
           if (calls === 2) {
             done();
@@ -343,10 +351,11 @@ suite('timezones >', function() {
     // });
 
     test('> previous selection prevails', function(done) {
-      function tzLoaded() {
+      function tzLoaded(timezone, needsConfirmation) {
         var currentValues = getTextFromSelectors();
         assert.equal(currentValues.region, 'Europe');
         assert.equal(currentValues.city, 'Madrid');
+        assert.isTrue(needsConfirmation);
         done();
       }
 

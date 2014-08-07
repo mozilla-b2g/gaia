@@ -17,11 +17,11 @@ var MockCallScreen = {
       cb();
     }
   },
-  enableKeypad: function() {
-    this.mEnableKeypadCalled = true;
+  enablePlaceNewCall: function() {
+    this.mEnablePlaceNewCallCalled = true;
   },
-  disableKeypad: function() {
-    this.mEnableKeypadCalled = false;
+  disablePlaceNewCall: function() {
+    this.mEnablePlaceNewCallCalled = false;
   },
   syncSpeakerEnabled: function() {
     this.mSyncSpeakerCalled = true;
@@ -107,18 +107,17 @@ var MockCallScreen = {
   incomingContainer: document.createElement('div'),
   incomingInfo: document.createElement('div'),
   incomingNumber: document.createElement('div'),
-  fakeIncomingNumber: document.createElement('div'),
   incomingSim: document.createElement('div'),
   incomingNumberAdditionalInfo: document.createElement('span'),
 
-  mEnableKeypadCalled: false,
+  mEnablePlaceNewCallCalled: false,
   mSyncSpeakerCalled: false,
   mSetCallerContactImageCalled: false,
   mMuteOn: false,
   mSpeakerOn: false,
   mLastRenderMode: null,
   mTeardown: function teardown() {
-    this.mEnableKeypadCalled = false;
+    this.mEnablePlaceNewCallCalled = false;
     this.mSyncSpeakerCalled = false;
     this.mSetCallerContactImageCalled = false;
     this.mMuteOn = false;
@@ -135,7 +134,6 @@ var MockCallScreen = {
     this.incomingContainer = document.createElement('div');
     this.incomingInfo = document.createElement('div');
     this.incomingNumber = document.createElement('div');
-    this.fakeIncomingNumber = document.createElement('div');
     this.incomingNumberAdditionalInfo = document.createElement('span');
     this.mGroupDetailsShown = false;
     this.mRemoveCallCalled = false;

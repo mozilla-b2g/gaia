@@ -19,6 +19,8 @@ class System(Base):
     _notification_toaster_locator = (By.ID, 'notification-toaster')
     _update_manager_toaster_locator = (By.ID, 'update-manager-toaster')
 
+    _software_home_button_locator = (By.ID, 'software-home-button')
+
     def wait_for_status_bar_displayed(self):
         self.wait_for_element_displayed(*self._status_bar_locator)
 
@@ -34,6 +36,12 @@ class System(Base):
 
     def wait_for_system_banner_not_displayed(self):
         self.wait_for_element_not_displayed(*self._system_banner_locator)
+
+    def wait_for_software_home_button_displayed(self, timeout=10, message=None):
+        self.wait_for_element_displayed(*self._software_home_button_locator)
+
+    def wait_for_software_home_button_not_displayed(self, timeout=10):
+        self.wait_for_element_not_displayed(*self._software_home_button_locator)
 
     def open_utility_tray(self):
         # TODO Use actions for this

@@ -70,6 +70,7 @@
   <script defer src="/shared/js/contacts/import/facebook/fb_query.js"></script>
   <script defer src="/shared/js/fb/fb_reader_utils.js"></script>
   <script defer src="/shared/js/contacts/import/facebook/fb_contact_utils.js"></script>
+  <script defer src="/shared/js/contacts/import/import_status_data.js"></script>
   <script defer src="/shared/js/async_storage.js"></script>
   <script defer src="/shared/js/mobile_operator.js"></script>
   <script defer src="/shared/js/icc_helper.js"></script>
@@ -281,7 +282,7 @@
               </li>
               <li>
                 <label for="wifi_password" data-l10n-id="password">Password</label>
-                <input type="password" id="wifi_password" data-l10n-id="passwordInput" placeholder="Password" value="" x-inputmode="verbatim"></input>
+                <input type="password" id="wifi_password" data-l10n-id="passwordInput" placeholder="Password" value="" maxlength="63" x-inputmode="verbatim"></input>
                 <label class="pack-checkbox" id="label_show_password">
                   <input type="checkbox" data-ignore name="show_password" />
                   <span id="wifi_show_password" data-l10n-id="showPassword">Show Password</span>
@@ -324,7 +325,7 @@
                 <label id="label_hidden_wifi_password" for="hidden-wifi-password" data-l10n-id="password">
                   Password
                 </label>
-                <input type="password" name="wifi_hidden_password" id="hidden-wifi-password" value=""/>
+                <input type="password" name="wifi_hidden_password" id="hidden-wifi-password" value="" maxlength="63" />
                 <label class="pack-checkbox" id="label_show_password" for="hidden-wifi-show-password">
                   <input type="checkbox" id="hidden-wifi-show-password">
                   <span data-l10n-id="showPassword">

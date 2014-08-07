@@ -72,7 +72,7 @@ suite('SimPinLock > ', function() {
 
   // we use dsds for testing by default for each test
   setup(function() {
-    this.sinon.stub(window.navigator.mozL10n, 'localize');
+    this.sinon.stub(window.navigator.mozL10n, 'setAttributes');
     this.sinon.stub(document, 'getElementById', function() {
       return document.createElement('div');
     });
@@ -595,8 +595,8 @@ suite('SimPinLock > ', function() {
         SimPinLock.updateSimSecurityDescUI(true);
       });
       test('is description with enabled wording', function() {
-        assert.equal(window.navigator.mozL10n.localize.args[0][1],
-          'enabled');
+        assert.equal(
+          SimPinLock.simSecurityDesc.getAttribute('data-l10n-id'), 'enabled');
       });
     });
     suite('disabled >', function() {
@@ -604,8 +604,8 @@ suite('SimPinLock > ', function() {
         SimPinLock.updateSimSecurityDescUI(false);
       });
       test('is description with disabled wording', function() {
-        assert.equal(window.navigator.mozL10n.localize.args[0][1],
-          'disabled');
+        assert.equal(
+          SimPinLock.simSecurityDesc.getAttribute('data-l10n-id'), 'disabled');
       });
     });
   });

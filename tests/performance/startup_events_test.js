@@ -1,57 +1,19 @@
 'use strict';
 
 var assert = require('assert');
-
 var App = require('./app');
 var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
 var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
+var perfUtils = require('./perf-utils');
+var appPath = config.appPath;
 
-var appPath = mozTestInfo.appPath;
-
-var whitelistedApps = [
-  'camera',
-  'calendar',
-  'clock',
-  'costcontrol',
-  'communications/contacts',
-  'communications/dialer',
-  'email',
-  'fm',
-  'gallery',
-  'marketplace.firefox.com',
-  'settings',
-  'sms',
-  'video'
-];
-
-var whitelistedUnifiedApps = [
-  'camera',
-  'calendar',
-  'clock',
-  'costcontrol',
-  'communications/dialer',
-  'communications/contacts',
-  'email',
-  'fm',
-  'gallery',
-  'marketplace.firefox.com',
-  'settings',
-  'sms',
-  'video'
-];
-
-function contains(haystack, needle) {
-  return haystack.indexOf(needle) !== -1;
-}
-
-if (!contains(whitelistedApps, appPath)) {
+if (!perfUtils.isWhitelisted(config.whitelists.mozLaunch, appPath)) {
   return;
 }
 
 var arr = appPath.split('/');
 var manifestPath = arr[0];
 var entryPoint = arr[1];
-
 
 marionette('startup event test > ' + appPath + ' >', function() {
 
@@ -63,9 +25,7 @@ marionette('startup event test > ' + appPath + ' >', function() {
   // Do nothing on script timeout. Bug 987383
   client.onScriptTimeout = null;
 
-  var lastEvent = contains(whitelistedUnifiedApps, appPath) ?
-    'moz-app-loaded' :
-    'startup-path-done';
+  var lastEvent = 'moz-app-loaded';
 
   var app = new App(client, appPath);
   if (app.skip) {
@@ -79,8 +39,8 @@ marionette('startup event test > ' + appPath + ' >', function() {
 
   setup(function() {
     // it affects the first run otherwise
-    this.timeout(500000);
-    client.setScriptTimeout(50000);
+    this.timeout(config.timeout);
+    client.setScriptTimeout(config.scriptTimeout);
 
     // inject perf event listener
     PerformanceHelper.injectHelperAtom(client);
@@ -105,9 +65,16 @@ marionette('startup event test > ' + appPath + ' >', function() {
         var epochStart = PerformanceHelper.getEpochStart(client);
         var delta = epochEnd - epochStart;
 
+        // Bug 1045076: Sanity check. If for some reason any handlers
+        // didn't register or we didn't get valid timestamps back, do not
+        // report the values for this run and continue on
+        if (!epochEnd || !epochStart || delta < 1) {
+          return app.close();
+        }
+
         performanceHelper.reportRunDurations(runResults, null, delta);
-        assert.ok(Object.keys(runResults).length, 'empty results');
         app.close();
+        assert.ok(Object.keys(runResults).length, 'empty results');
       });
     });
 

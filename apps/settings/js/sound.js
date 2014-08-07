@@ -227,10 +227,13 @@
     // it is just text.
     SettingsListener.observe(namekey, '', function(tonename) {
       var l10nID = tonename && tonename.l10nID;
-      var name = l10nID ? _(l10nID) : tonename;
 
-      toneType.button.textContent = name || _('change');
-      toneType.button.dataset.l10nId = l10nID || '';
+      if (l10nID) {
+        toneType.button.setAttribute('data-l10n-id', l10nID);
+      } else {
+        toneType.button.removeAttribute('data-l10n-id');
+        toneType.button.textContent = tonename;
+      }
     });
 
     // When the user clicks the button, we launch an activity that lets
@@ -292,8 +295,14 @@
             // a playable audio file. It would be very bad to set an corrupt
             // blob as a ringtone because then the phone wouldn't ring!
             function checkRingtone(result) {
-              var oldRingtoneName = toneType.button.textContent;
-              toneType.button.textContent = _('savingringtone');
+              var oldRingtoneName = null;
+
+              var l10nId = toneType.button.getAttribute('data-l10n-id');
+
+              if (!l10nId) {
+                oldRingtoneName = toneType.button.textContent;
+              }
+              toneType.button.setAttribute('data-l10n-id', 'savingringtone');
 
               var player = new Audio();
               player.preload = 'metadata';
@@ -304,7 +313,11 @@
               };
               player.onerror = function() {
                 release();
-                toneType.button.textContent = oldRingtoneName;
+                if (l10nId) {
+                  toneType.button.setAttribute('data-l10n-id', l10nId);
+                } else {
+                  toneType.button.textContent = oldRingtoneName;
+                }
                 alert(_('unplayable-ringtone'));
               };
 

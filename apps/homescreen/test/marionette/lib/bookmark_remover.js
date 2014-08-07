@@ -4,7 +4,7 @@
 var BookmarkRemover = function br_ctor(client) {
   this.client = client;
   this.selectors = {
-    mozbrowser: '.inline-activity.active > iframe[mozbrowser]',
+    mozbrowser: '.inline-activity.active iframe[mozbrowser]',
     bookmarkRemoveButton: '#remove-action'
   };
 };

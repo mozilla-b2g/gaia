@@ -38,7 +38,7 @@ suite('system/Updatable', function() {
   var MID_CHARGE = 50;
   var BATTERY_THRESHOLD_PLUGGED = 'app.update.battery-threshold.plugged';
   var BATTERY_THRESHOLD_UNPLUGGED = 'app.update.battery-threshold.unplugged';
-  var SYSTEM_LOW_BATTERY_L10N_KEY = 'systemUpdateLowBattery';
+  var SYSTEM_LOW_BATTERY_L10N_KEY = 'systemUpdateLowBatteryThreshold';
 
   mocksHelperForUpdatable.attachTestHelpers();
   suiteSetup(function() {

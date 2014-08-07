@@ -377,6 +377,12 @@ suite('Operator variant', function() {
   });
 
   suite('mergeAndKeepCustomApnSettings', function() {
+    var defaultApns = [{
+      carrier: 'carrier',
+      types: ['default', 'supl'],
+      password: 'newPw'
+    }];
+
     setup(function() {
       this.ovh = new OperatorVariantHandler(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
     });
@@ -391,13 +397,6 @@ suite('Operator variant', function() {
         carrier: 'carrier',
         types: ['supl'],
         password: 'originalPw'
-      }];
-
-      // Mock default apns from apn.json
-      var defaultApns = [{
-        carrier: 'carrier',
-        types: ['default', 'supl'],
-        password: 'newPw'
       }];
 
       // The expeced merging result. Note that the default apns does not
@@ -415,6 +414,12 @@ suite('Operator variant', function() {
       var mergedApns =
         this.ovh.mergeAndKeepCustomApnSettings(existingApns, defaultApns);
       assert.deepEqual(mergedApns, expectedApns);
+    });
+
+    test('custom apns array is undefined', function() {
+      var mergedApns = this.ovh.mergeAndKeepCustomApnSettings(undefined,
+                                                              defaultApns);
+      assert.deepEqual(mergedApns, defaultApns);
     });
   });
 });

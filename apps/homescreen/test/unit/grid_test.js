@@ -412,7 +412,7 @@ suite('grid.js >', function() {
 
         this.sinon.clock.tick();
         var currentPage = document.getElementById('landing-page');
-        assert.equal(currentPage.style.MozTransform, 'translateX(0px)');
+        assert.equal(currentPage.style.transform, 'translateX(0px)');
         sendTouchEvent('touchend', containerNode, move);
         sendMouseEvent('mouseup', containerNode, move);
       });

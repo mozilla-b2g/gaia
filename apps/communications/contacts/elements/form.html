@@ -100,16 +100,18 @@
         <form id="contact-form" action="#" class="fill-flow">
           <input name="id" id="contact-form-id" type="hidden" value="">
           <section class="item first">
-            <a id="thumbnail-action" href="#" class="item-media fillflow-media">
-              <p>
-                <span class="icon icon-addimage"></span>
-                <em data-l10n-id="addPhoto"> Add photo</em>
-              </p>
-              <p class="edit-photo">
-                <em data-l10n-id="edit">Edit</em>
-              </p>
-              <img id="thumbnail-photo" alt="">
-            </a>
+            <div aria-label="Photo" data-l10n-id="legendPhoto" role="group" id="thumbnail-action" href="#" class="item-media fillflow-media">
+              <div role="button" id="photo-button">
+                <p>
+                  <span class="icon icon-addimage"></span>
+                  <em data-l10n-id="addPhoto"> Add photo</em>
+                </p>
+                <p class="edit-photo">
+                  <em data-l10n-id="edit">Edit</em>
+                </p>
+                <img id="thumbnail-photo" alt="">
+              </div>
+            </div>
             <div class="item-body-exp">
               <p class="fillflow-row">
                 <input placeholder="Name" data-l10n-id="givenName" name="givenName" class="textfield" type="text" x-inputmode="latin-prose" value="" id="givenName" dir="auto">

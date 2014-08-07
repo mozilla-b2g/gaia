@@ -49,6 +49,11 @@ marionette('Vertical - App uninstall while pending', function() {
 
     // switch to the homescreen
     client.switchToFrame(system.getHomescreenIframe());
+
+    // this helps marionette finding the icon: Bug 1046706
+    var icon = home.getIcon(server.packageManifestURL);
+    home.moveIconToIndex(icon, 0);
+
     home.enterEditMode();
   });
 
@@ -65,7 +70,7 @@ marionette('Vertical - App uninstall while pending', function() {
     });
 
     // remove the icon
-    remove.click();
+    remove.tap();
     // confirm the dialog to ensure it was removed.
     home.confirmDialog('remove');
     // ensure the icon disappears

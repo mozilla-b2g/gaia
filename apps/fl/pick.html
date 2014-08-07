@@ -4,8 +4,14 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8" />
     <title>Locked Content</title>
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
+
+    <!-- Web Components -->
+    <script defer src="shared/elements/config.js"></script>
+    <script defer src="shared/elements/gaia-header/dist/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" />
+
     <link rel="stylesheet" href="style/pick.css" type="text/css" />
 
     <link rel="resource" type="application/l10n" href="locales/pick.ini" />
@@ -19,15 +25,12 @@
     <script defer src="js/db.js"></script>
     <script defer src="js/pick.js"></script>
   </head>
-  <body>
-    <section role="region" class="skin-dark">
-      <header>
-        <button id="back"><span class="icon icon-back"></span></button>
-        <menu type="toolbar">
-          <button id="done" data-l10n-id="done" type="submit">Done</button>
-        </menu>
+  <body class="theme-media">
+    <section role="region">
+      <gaia-header id="header" action="close">
         <h1 id="title"></h1>
-      </header>
+        <button id="done" data-l10n-id="done" hidden>Done</button>
+      </gaia-header>
     </section>
     <ul id="ringtones" hidden>
       <template id="ringtone-template">

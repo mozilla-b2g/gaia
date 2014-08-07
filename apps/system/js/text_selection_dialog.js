@@ -2,29 +2,17 @@
 'use strict';
 (function(exports) {
 
-  var _id = 0;
-
   /**
    * Text Selection Dialog of the AppWindow
    */
 
-  var TextSelectionDialog = function (app) {
-    if (app) {
-      this.app = app;
-      this.containerElement = app.element;
-    } else {
-      this.containerElement =
-        document.getElementById('TextSelectionDialogRoot');
-    }
+  var TextSelectionDialog = function () {
+    this.containerElement =
+      document.getElementById('TextSelectionDialogRoot');
     this.event = null;
-    // One to one mapping
-    this.instanceID = _id++;
+    this._hideTimeout = null;
     this._injected = false;
-    if (app) {
-      app.element.addEventListener('mozbrowsertextualmenu', this, false);
-    } else {
-      window.addEventListener('mozChromeEvent', this);
-    }
+    window.addEventListener('mozChromeEvent', this);
   };
 
   TextSelectionDialog.prototype = Object.create(window.BaseUI.prototype);
@@ -32,7 +20,12 @@
   TextSelectionDialog.prototype.TEXTDIALOG_HEIGHT = 52;
 
   TextSelectionDialog.prototype.TEXTDIALOG_WIDTH = 52;
-  
+
+  // Based on UX spec, there would be a temporary shortcut and only appears
+  // after the action 'copy/cut'. In this use case, the utility bubble will be
+  // time-out after 3 secs if no action is taken.
+  TextSelectionDialog.prototype.SHORTCUT_TIMEOUT = 3000;
+
   // Distance between selected area and the bottom of menu when menu show on
   // the top of selected area.
   // By UI spec, 12px from the top of dialog to utility menu.
@@ -45,30 +38,20 @@
   // the bottom of selected area to utility menu.
   TextSelectionDialog.prototype.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 34;
 
-  TextSelectionDialog.prototype.CLASS_NAME = 'TextSelectionDialog';
+  TextSelectionDialog.prototype.ID_NAME = 'TextSelectionDialog';
 
   TextSelectionDialog.prototype.ELEMENT_PREFIX = 'textselection-dialog-';
 
-  TextSelectionDialog.prototype.customID = function tsd_customID() {
-    if (this.app) {
-      return '[' + this.app.origin + ']';
-    } else {
-      return '';
-    }
-  };
-
   TextSelectionDialog.prototype.handleEvent = function tsd_handleEvent(evt) {
-    if (evt.type === 'mozChromeEvent' && evt.detail.type != 'textualmenu') {
+    if (evt.type === 'mozChromeEvent' &&
+        evt.detail.type !== 'selectionchange') {
       return;
     }
+
     this.event = evt;
     evt.preventDefault();
     evt.stopPropagation();
-    if (this.app) {
-      this.textualmenuDetail = this.event.detail;
-    } else {
-      this.textualmenuDetail = this.event.detail.detail;
-    }
+    this.textualmenuDetail = this.event.detail.detail;
     if (!this._injected) {
       this.render();
     }
@@ -77,7 +60,7 @@
   };
 
   TextSelectionDialog.prototype._fetchElements = function tsd__fetchElements() {
-    this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
+    this.element = document.getElementById(this.ID_NAME);
     this.elements = {};
 
     var toCamelCase = function toCamelCase(str) {
@@ -106,47 +89,49 @@
         this.selectallHandler.bind(this));
   };
 
-  TextSelectionDialog.prototype.copyHandler =
-    function tsd_copyHandler(evt) {
-      this.textualmenuDetail.copyToClipboard();
+  TextSelectionDialog.prototype._doCommand =
+    function tsd_doCommand(evt, cmd) {
+      var props = {
+        detail: {
+          type: 'do-command',
+          cmd: cmd
+        }
+      };
+      window.dispatchEvent(
+        new CustomEvent('mozContentEvent', props));
       this.hide();
       evt.preventDefault();
+  };
+
+  TextSelectionDialog.prototype.copyHandler =
+    function tsd_copyHandler(evt) {
+      this._doCommand(evt, 'copy');
   };
 
   TextSelectionDialog.prototype.cutHandler =
     function tsd_cutHandler(evt) {
-      this.textualmenuDetail.cutToClipboard();
-      this.hide();
-      evt.preventDefault();
+      this._doCommand(evt, 'cut');
   };
 
   TextSelectionDialog.prototype.pasteHandler =
     function tsd_pasteHandler(evt) {
-      this.textualmenuDetail.pasteFromClipboard();
-      this.hide();
-      evt.preventDefault();
+      this._doCommand(evt, 'paste');
   };
 
   TextSelectionDialog.prototype.selectallHandler =
     function tsd_selectallHandler(evt) {
-      this.textualmenuDetail.selectall();
-      this.hide();
-      evt.preventDefault();
+      this._doCommand(evt, 'selectall');
   };
 
   TextSelectionDialog.prototype.view = function tsd_view() {
     var temp = '<div class="textselection-dialog"' +
-            ' id="' + this.CLASS_NAME + this.instanceID + '">' +
-              '<div class="textselection-dialog-copy"></div>' +
-              '<div class="textselection-dialog-cut"></div>' +
-              '<div class="textselection-dialog-paste"></div>' +
+            ' id="' + this.ID_NAME + '">' +
               '<div class="textselection-dialog-selectall"></div>' +
+              '<div class="textselection-dialog-cut"></div>' +
+              '<div class="textselection-dialog-copy"></div>' +
+              '<div class="textselection-dialog-paste"></div>' +
             '</div>';
     return temp;
-  };
-
-  TextSelectionDialog.prototype.kill = function tsd_kill() {
-    this.containerElement.removeChild(this.element);
   };
 
   TextSelectionDialog.prototype.show = function tsd_show() {
@@ -157,14 +142,14 @@
     var detail = this.textualmenuDetail;
 
     var numOfSelectOptions = 0;
-    var options = ['SelectAll' , 'Paste', 'Cut', 'Copy'];
+    var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
 
     // Based on UI spec, we should have dividers ONLY between each select option
     // So, we use css to put divider in pseudo element and set the last visible
     // option without it.
     var lastVisibleOption;
     options.forEach(function(option) {
-      if (detail['can' + option]) {
+      if (detail.commands['can' + option]) {
         numOfSelectOptions++;
         lastVisibleOption = this.elements[option.toLowerCase()];
         lastVisibleOption.classList.remove('hidden', 'last-option');
@@ -176,6 +161,15 @@
     if (numOfSelectOptions === 0) {
       return;
     }
+
+    clearTimeout(this._hideTimeout);
+    if (detail.isTempShortcut) {
+      var self = this;
+      this._hideTimeout = setTimeout(function() {
+        self.hide();
+      }, this.SHORTCUT_TIMEOUT);
+    }
+
     // Add last-option class to the last item of options array;
     lastVisibleOption.classList.add('last-option');
 
@@ -194,12 +188,12 @@
       var selectOptionWidth = this.TEXTDIALOG_WIDTH;
       var selectOptionHeight = this.TEXTDIALOG_HEIGHT;
 
-      var selectDialogTop = detail.top * (this.app ? 1 : detail.zoomFactor);
+      var selectDialogTop = detail.rect.top * detail.zoomFactor;
       var selectDialogBottom =
-        detail.bottom * (this.app ? 1 : detail.zoomFactor);
-      var selectDialogLeft = detail.left * (this.app ? 1 : detail.zoomFactor);
+        detail.rect.bottom * detail.zoomFactor;
+      var selectDialogLeft = detail.rect.left * detail.zoomFactor;
       var selectDialogRight =
-        detail.right * (this.app ? 1 : detail.zoomFactor);
+        detail.rect.right * detail.zoomFactor;
       var distanceFromBottom = this.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP;
       var distanceFromTop = this.DISTANCE_FROM_MENUBOTTOM_TO_SELECTEDAREA;
 
@@ -230,17 +224,14 @@
       }
 
       return {
-        top: posTop + (this.app ? 0 : detail.frameOffsetY),
-        left: posLeft + (this.app ? 0 : detail.frameOffsetX)
+        top: posTop + detail.offsetY,
+        left: posLeft + detail.offsetX
       };
     };
 
   TextSelectionDialog.prototype.hide = function tsd_hide() {
     this.element.blur();
     this.element.classList.remove('visible');
-    if (this.app && this.app.isActive()) {
-      this.app.focus();
-    }
     this.textualmenuDetail = null;
     this.event = null;
   };

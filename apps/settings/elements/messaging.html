@@ -3,35 +3,35 @@
 
     <header>
       <a href="#root"><span class="icon icon-back">back</span></a>
-      <h1 data-l10n-id="messagingSettings-header"> Messaging Settings </h1>
+      <h1 data-l10n-id="messagingSettings-header">Messaging Settings</h1>
     </header>
 
     <div>
       <header>
-        <h2 data-l10n-id="message-confirmation"> Message confirmation </h2>
+        <h2 data-l10n-id="message-confirmation">Message Confirmation</h2>
       </header>
       <ul id="general-message-list">
         <li id="menuItem-deliveryReport" aria-disabled="true" class="hint">
           <label class="pack-switch">
             <input type="checkbox" name="ril.sms.requestStatusReport.enabled"/>
-            <span data-l10n-id="message-delivery-reports">Delivery reports</span>
+            <span data-l10n-id="message-delivery-reports">Delivery Reports</span>
           </label>
           <p class="explanation" data-l10n-id="message-delivery-reports-details">Request notification of delivery for each message sent</p>
         </li>
       </ul>
       <header>
-        <h2 data-l10n-id="mmsTitle"> Multimedia messaging (MMS) </h2>
+        <h2 data-l10n-id="mmsTitle">Multimedia Messaging (MMS)</h2>
       </header>
       <ul class="mmsSettings-list">
         <li id="menuItem-readReport" aria-disabled="true" class="hint">
           <label class="pack-switch">
             <input type="checkbox" name="ril.mms.requestReadReport.enabled"/>
-            <span data-l10n-id="message-read-reports">Read reports</span>
+            <span data-l10n-id="message-read-reports">Read Reports</span>
           </label>
           <p class="explanation" data-l10n-id="message-read-reports-details">Request read report for each message sent</p>
         </li>
         <li id="menuItem-autoRetrieve" aria-disabled="true" class="hint">
-          <a data-l10n-id="auto-retrieve">Auto retrieve</a>
+          <span data-l10n-id="auto-retrieve">Auto Retrieve</span>
           <p class="explanation" data-l10n-id="auto-retrieve-details">automatically retieve messages</p>
           <span class="button icon icon-dialog">
             <select name="ril.mms.retrieval_mode">
@@ -43,7 +43,7 @@
         </li>
       </ul>
       <header>
-        <h2 data-l10n-id="wapPushMessages"> WAP Push messages </h2>
+        <h2 data-l10n-id="wapPushMessages">WAP Push Messages</h2>
       </header>
       <ul>
         <li id="menuItem-wapPush" aria-disabled="true">
@@ -54,23 +54,29 @@
         </li>
       </ul>
       <header>
-        <h2 data-l10n-id="cellBroadcastMessages"> Cell broadcast messages (MMS) </h2>
+        <h2 data-l10n-id="cellBroadcastMessages">Cell Broadcast Messages</h2>
       </header>
       <ul>
         <li id="menuItem-cellBroadcast" aria-disabled="true">
           <label class="pack-switch checkbox-label">
             <input type="checkbox" data-ignore disabled />
-            <span data-l10n-id="cellBroadcast">Cell broadcast</span>
+            <span data-l10n-id="cellBroadcast">Cell Broadcast</span>
+          </label>
+        </li>
+        <li id="menuItem-emergencyAlert" aria-disabled="true">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore disabled />
+            <span data-l10n-id="emergencyAlert">Emergency Alert</span>
           </label>
         </li>
       </ul>
       <header>
-        <h2 data-l10n-id="messagingInformation"> Information </h2>
+        <h2 data-l10n-id="messagingInformation">Information</h2>
       </header>
       <ul>
         <li id="menuItem-smsc" aria-disabled="true" class="hint">
-          <a data-l10n-id="messagingSMSC">SMSC</a>
-          <p class="explanation">Unknown</p>
+          <span data-l10n-id="messaging-SMSC">Service Center</span>
+          <p class="explanation">Info not available</p>
         </li>
       </ul>
     </div>

@@ -1,4 +1,4 @@
-/* global MockL10n, MockNavigatorSettings, MockNavigatorMozWifiManager, Event */
+/* global MockL10n, MockNavigatorSettings, MockNavigatorMozWifiManager */
 requireApp('settings/test/unit/mock_l10n.js');
 requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp(
@@ -64,12 +64,6 @@ suite('WifiContext', function() {
       wifiContext.removeEventListener('wifiStatusTextChange', fakeCb);
     });
 
-    test('when localized, trigger cb', function() {
-      var evt = new Event('localized');
-      window.dispatchEvent(evt);
-      assert.isTrue(fakeCb.called);
-    });
-
     test('when wifiManger.onenabled, trigger cb', function() {
       wifiManager.onenabled();
       assert.isTrue(fakeCb.called);
@@ -131,13 +125,13 @@ suite('WifiContext', function() {
       wifiManager.enabled = true;
       wifiManager.connection.status = 'disconnected';
       wifiManager.onstatuschange();
-      assert.equal(wifiContext.wifiStatusText, 'fullStatus-disconnected');
+      assert.equal(wifiContext.wifiStatusText.id, 'fullStatus-disconnected');
     });
 
     test('wifiManager is disabled, get disabled string', function() {
       wifiManager.enabled = false;
       wifiManager.onstatuschange();
-      assert.equal(wifiContext.wifiStatusText, 'disabled');
+      assert.equal(wifiContext.wifiStatusText.id, 'disabled');
     });
   });
 

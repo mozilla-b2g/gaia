@@ -65,24 +65,28 @@ suite('NfcConnectSystemDialog', function() {
     test('After confirmed, dismissed properly.', function() {
       nfcDialog.buttonOK.click();
 
-      assert.equal(spyDispatchEvent.callCount, 3);
+      assert.equal(spyDispatchEvent.callCount, 4);
       assert.equal(spyDispatchEvent.getCall(0).args[0].type,
         'system-dialog-created');
       assert.equal(spyDispatchEvent.getCall(1).args[0].type,
         'system-dialog-show');
       assert.equal(spyDispatchEvent.getCall(2).args[0].type,
+        'system-dialog-closing');
+      assert.equal(spyDispatchEvent.getCall(3).args[0].type,
         'system-dialog-hide');
     });
 
     test('After canceled, dismissed properly.', function() {
       nfcDialog.buttonCancel.click();
 
-      assert.equal(spyDispatchEvent.callCount, 3);
+      assert.equal(spyDispatchEvent.callCount, 4);
       assert.equal(spyDispatchEvent.getCall(0).args[0].type,
         'system-dialog-created');
       assert.equal(spyDispatchEvent.getCall(1).args[0].type,
         'system-dialog-show');
       assert.equal(spyDispatchEvent.getCall(2).args[0].type,
+        'system-dialog-closing');
+      assert.equal(spyDispatchEvent.getCall(3).args[0].type,
         'system-dialog-hide');
     });
   });

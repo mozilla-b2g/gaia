@@ -68,11 +68,10 @@ var CarrierSettings = (function(window, document, undefined) {
    * Init function.
    */
   function cs_init() {
-    _ = window.navigator.mozL10n.get;
     _settings = window.navigator.mozSettings;
     _mobileConnections = window.navigator.mozMobileConnections;
     _iccManager = window.navigator.mozIccManager;
-    if (!_ || !_settings || !_mobileConnections || !_iccManager) {
+    if (!_settings || !_mobileConnections || !_iccManager) {
       return;
     }
 
@@ -397,7 +396,8 @@ var CarrierSettings = (function(window, document, undefined) {
         });
       };
       request.onerror = function onErrorHandler() {
-        message.textContent = _('preferredNetworkTypeAlertErrorMessage');
+        message.setAttribute('data-l10n-id',
+                             'preferredNetworkTypeAlertErrorMessage');
         alertDialog.hidden = false;
       };
     });
@@ -432,7 +432,7 @@ var CarrierSettings = (function(window, document, undefined) {
             option.text = networkTypeMapping[type];
           } else {
             var l10nId = supportedNetworkTypeResult.l10nIdForType(type);
-            localize(option, l10nId);
+            option.setAttribute('data-l10n-id', l10nId);
             // fallback to the network type
             if (!l10nId) {
               option.textContent = type;
@@ -470,9 +470,11 @@ var CarrierSettings = (function(window, document, undefined) {
       var auto = !mode || (mode === 'automatic');
       opAutoSelectInput.checked = auto;
       if (auto) {
-        localize(opAutoSelectState, 'operator-networkSelect-auto');
+        opAutoSelectState.setAttribute('data-l10n-id',
+                                       'operator-networkSelect-auto');
       } else {
-        localize(opAutoSelectState, 'operator-networkSelect-manual');
+        opAutoSelectState.setAttribute('data-l10n-id',
+                                       'operator-networkSelect-manual');
         if (scan) {
           gOperatorNetworkList.scan();
         }
@@ -515,7 +517,7 @@ var CarrierSettings = (function(window, document, undefined) {
 
       // state
       var state = document.createElement('small');
-      localize(state,
+      state.setAttribute('data-l10n-id',
         network.state ? ('state-' + network.state) : 'state-unknown');
 
       // create list item
@@ -574,7 +576,7 @@ var CarrierSettings = (function(window, document, undefined) {
             state = 'available';
           }
 
-          localize(messageElement, 'state-' + state);
+          messageElement.setAttribute('data-l10n-id', 'state-' + state);
         });
       }
 
@@ -601,16 +603,19 @@ var CarrierSettings = (function(window, document, undefined) {
         }
 
         var req = _mobileConnection.selectNetwork(network);
-        localize(messageElement, 'operator-status-connecting');
+        messageElement.setAttribute('data-l10n-id',
+                                    'operator-status-connecting');
         req.onsuccess = function onsuccess() {
           currentConnectedNetwork = network;
-          localize(messageElement, 'operator-status-connected');
+          messageElement.setAttribute('data-l10n-id',
+                                      'operator-status-connected');
           updateSelectionMode(false);
           connecting = false;
         };
         req.onerror = function onerror() {
           connecting = false;
-          localize(messageElement, 'operator-status-connectingfailed');
+          messageElement.setAttribute('data-l10n-id',
+                                      'operator-status-connectingfailed');
           if (currentConnectedNetwork) {
             recoverAvailableOperator();
           } else {

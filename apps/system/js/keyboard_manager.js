@@ -122,17 +122,9 @@ var KeyboardManager = {
 
     this.keyboardFrameContainer = document.getElementById('keyboards');
 
-    this.notifIMEContainer =
-            document.getElementById('keyboard-show-ime-list');
-
-    this.fakenoti = this.notifIMEContainer.querySelector('.fake-notification');
-    this.fakenotiMessage = this.fakenoti.querySelector('.message');
-    this.fakenotiTip = this.fakenoti.querySelector('.tip');
-
-    this.fakenoti.addEventListener('mousedown', function km_fakenotiAct(evt) {
-        evt.preventDefault();
-        this.showAll();
-    }.bind(this));
+    this.imeSwitcher = new IMESwitcher();
+    this.imeSwitcher.ontap = this.showAll.bind(this);
+    this.imeSwitcher.start();
 
     // get enabled keyboard from mozSettings, parse their manifest
 
@@ -341,7 +333,7 @@ var KeyboardManager = {
       this.focusChangeTimeout = setTimeout(function keyboardFocusChanged() {
         self._debug('get blur event');
         self.hideKeyboard();
-        self.hideIMESwitcher();
+        self.imeSwitcher.hide();
       }, BLUR_CHANGE_DELAY);
     }
     else {
@@ -559,23 +551,10 @@ var KeyboardManager = {
       return;
     }
 
-    var _ = navigator.mozL10n.get;
-
-    window.dispatchEvent(new CustomEvent('keyboardimeswitchershow'));
-
     // Need to make the message in spec: "FirefoxOS - English"...
     var current = this.keyboardLayouts[showed.type][showed.index];
 
-    this.fakenotiMessage.textContent = _('ime-switching-title', {
-      appName: current.appName,
-      name: current.name
-    });
-    this.fakenotiTip.textContent = _('ime-switching-tip');
-
-    // Instead of create DOM element dynamically, we can just turn the message
-    // on/off and add message as we need. This save the time to create and
-    // append element.
-    this.fakenoti.classList.add('activated');
+    this.imeSwitcher.show(current.appName, current.name);
   },
 
   // Reset the current keyboard frame
@@ -598,11 +577,6 @@ var KeyboardManager = {
     frame.classList.add('hide');
     this.setLayoutFrameActive(frame, false);
     frame.removeEventListener('mozbrowserresize', this, true);
-  },
-
-  hideIMESwitcher: function km_hideIMESwitcher() {
-    this.fakenoti.classList.remove('activated');
-    window.dispatchEvent(new CustomEvent('keyboardimeswitcherhide'));
   },
 
   hideKeyboard: function km_hideKeyboard() {

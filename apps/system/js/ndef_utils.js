@@ -3,7 +3,7 @@
 
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
-/* globals dump, MozNDEFRecord, NDEF, NfcUtils */
+/* globals dump, MozNDEFRecord, NDEF, NfcUtils, NfcBuffer */
 /* exported NDEFUtils */
 'use strict';
 
@@ -83,7 +83,7 @@ var NDEFUtils = {
   },
 
   _doParseHandoverNDEF: function doParseHandoverNDEF(msg) {
-    var hRecordBuffer = NfcUtils.createBuffer(msg[0].payload);
+    var hRecordBuffer = new NfcBuffer(msg[0].payload);
     var version = hRecordBuffer.getOctet();
 
     var h = {
@@ -129,7 +129,7 @@ var NDEFUtils = {
   },
 
   _parseAlternativeCarrier: function _parseAlternativeCarrier(bytes, msg) {
-    var b = NfcUtils.createBuffer(bytes);
+    var b = new NfcBuffer(bytes);
     var ac = {
       cps: b.getOctet() & 0x03
     };
@@ -191,7 +191,7 @@ var NDEFUtils = {
     }
 
     var btssp = {};
-    var buf = NfcUtils.createBuffer(cdr.payload);
+    var buf = new NfcBuffer(cdr.payload);
 
     var btsspLen = buf.getOctet() | (buf.getOctet() << 8);
     if (cdr.payload.length !== btsspLen) {

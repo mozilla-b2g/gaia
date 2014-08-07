@@ -9,7 +9,7 @@ var PerformanceHelper =
   requireGaia('/tests/performance/performance_helper.js');
 var SettingsIntegration = require('./integration.js');
 
-marionette(mozTestInfo.appPath + ' >', function() {
+marionette(config.appPath + ' >', function() {
   var app;
   var client = marionette.client({
     settings: {
@@ -19,12 +19,12 @@ marionette(mozTestInfo.appPath + ' >', function() {
   // Do nothing on script timeout. Bug 987383
   client.onScriptTimeout = null;
 
-  app = new SettingsIntegration(client, mozTestInfo.appPath);
+  app = new SettingsIntegration(client, config.appPath);
 
   setup(function() {
     // It affects the first run otherwise
-    this.timeout(500000);
-    client.setScriptTimeout(50000);
+    this.timeout(config.timeout);
+    client.setScriptTimeout(config.scriptTimeout);
 
     // inject perf event listener
     PerformanceHelper.injectHelperAtom(client);

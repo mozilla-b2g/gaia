@@ -1,18 +1,16 @@
 'use strict';
 
 var assert = require('assert');
-
 var App = require('./app');
 var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
 var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
+var appPath = config.appPath;
 
-var manifestPath, entryPoint;
+var arr = appPath.split('/');
+var manifestPath = arr[0];
+var entryPoint = arr[1];
 
-var arr = mozTestInfo.appPath.split('/');
-manifestPath = arr[0];
-entryPoint = arr[1];
-
-marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
+marionette('startup test > ' + appPath + ' >', function() {
 
   var app;
   var client = marionette.client({
@@ -24,18 +22,18 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
   client.onScriptTimeout = null;
 
   var performanceHelper;
-  var isHostRunner = (process.env.MARIONETTE_RUNNER_HOST == 'marionette-device-host');
+  var isHostRunner = (config.runnerHost === 'marionette-device-host');
 
-  app = new App(client, mozTestInfo.appPath);
+  app = new App(client, appPath);
   if (app.skip) {
     return;
   }
 
   setup(function() {
     // Mocha timeout for this test
-    this.timeout(100000);
+    this.timeout(config.timeout);
     // Marionnette timeout for each command sent to the device
-    client.setScriptTimeout(10000);
+    client.setScriptTimeout(config.scriptTimeout);
 
     MarionetteHelper.unlockScreen(client);
   });
@@ -49,13 +47,20 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
     var memStats = [];
     performanceHelper.repeatWithDelay(function(app, next) {
       app.launch();
-      if (isHostRunner) {
-        // we can only collect memory if we have a host device (adb)
-        var memUsage = performanceHelper.getMemoryUsage(app);
-        assert.ok(memUsage, 'couldn\'t collect mem usage');
-        memStats.push(memUsage);
+
+      if (!isHostRunner) {
+        return app.close();
       }
+
+      // we can only collect memory if we have a host device (adb)
+      var memUsage = performanceHelper.getMemoryUsage(app);
+
+      // Bug 1045717: be sure to close app before we assert the value of
+      // memStats so we avoid leaking problems into other tests
       app.close();
+
+      assert.ok(memUsage, 'couldn\'t collect mem usage');
+      memStats.push(memUsage);
     });
 
     var results = PerformanceHelper.getLoadTimes(client);
@@ -74,7 +79,7 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
     });
 
     // results is an Array of values, one per run.
-    assert.ok(results.length == mozTestInfo.runs, 'missing runs');
+    assert.ok(results.length == config.runs, 'missing runs');
 
     PerformanceHelper.reportDuration(results);
     PerformanceHelper.reportMemory(memStats);

@@ -482,20 +482,23 @@ Calendar.ns('Controllers').Time = (function() {
 
     /**
      * Queries busytimes cache by timespan.
+     * Only retuns busytimes from enabled calendars.
      *
      * @param {Calendar.Timespan} timespan query range.
      * @return {Array} busytimes ordered by start date.
      */
     queryCache: function(timespan) {
-      return this._collection.query(timespan).filter(function(busytime) {
-        // we filter out busytimes from disabled calendars
-        return this.calendarStore.shouldDisplayCalendar(busytime.calendarId);
-      }, this);
+      var busytimes = this._collection.query(timespan);
+      return busytimes.filter(this._shouldDisplayBusytime, this);
+    },
+
+    _shouldDisplayBusytime: function(busytime) {
+      return this.calendarStore.shouldDisplayCalendar(busytime.calendarId);
     },
 
     /**
      * Adds a busytime to the collection.
-     * Emits a 'add' time event when called.
+     * Emits a 'add' time event when called (if calendar is enabled).
      *
      * @param {Object} busytime instance to add to the collection.
      */
@@ -504,12 +507,15 @@ Calendar.ns('Controllers').Time = (function() {
       var end = busytime.endDate;
 
       this._collection.add(busytime);
-      this.fireTimeEvent('add', start, end, busytime);
+
+      if (this._shouldDisplayBusytime(busytime)) {
+        this.fireTimeEvent('add', start, end, busytime);
+      }
     },
 
     /**
      * Removes a busytime from the collection.
-     * Emits a 'remove' time event when called.
+     * Emits a 'remove' time event when called (if calendar is enabled).
      *
      * @param {String} id busytime id.
      */
@@ -522,7 +528,10 @@ Calendar.ns('Controllers').Time = (function() {
         var end = busytime.endDate;
 
         collection.remove(busytime);
-        this.fireTimeEvent('remove', start, end, busytime);
+
+        if (this._shouldDisplayBusytime(busytime)) {
+          this.fireTimeEvent('remove', start, end, busytime);
+        }
       }
     },
 

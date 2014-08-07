@@ -29,8 +29,7 @@ Rocketbar.clientOptions = {
       'app://verticalhome.gaiamobile.org/manifest.webapp',
     'ftu.manifestURL': null,
     'keyboard.ftu.enabled': false,
-    'lockscreen.enabled': false,
-    'rocketbar.enabled': true
+    'lockscreen.enabled': false
   }
 };
 

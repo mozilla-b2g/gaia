@@ -33,8 +33,6 @@ marionette('Vertical - Uninstall Collection', function() {
     system = new System(client);
     system.waitForStartup();
 
-    client.apps.launch(Home2.URL);
-
     home.waitForLaunch();
     collection.disableGeolocation();
     collection.setServerURL(server);
@@ -54,7 +52,7 @@ marionette('Vertical - Uninstall Collection', function() {
       return el.dataset.identifier;
     });
 
-    remove.click();
+    remove.tap();
     home.confirmDialog('remove');
 
     // ensure the icon disappears

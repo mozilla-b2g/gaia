@@ -45,18 +45,16 @@ section[role="region"] {
 section[role="region"] {
   transform: translateX(+100%);
   visibility: hidden;
-  height: 0;
 }
 
 section[role="region"].previous {
   transform: translateX(-100%);
-  height: 100%;
+  visibility: hidden;
 }
 
 section[role="region"].current {
   transform: translateX(0);
   visibility: visible;
-  height: 100%;
 }
 
 /**
@@ -307,7 +305,7 @@ section ul.operate-certificate {
   background: url(images/document_bg.png);
 }
 
-#wifi-certificate-files-List li.disabled a {
+.wifi-certificate-files-List li.disabled a {
   opacity: 0.6;
   pointer-events: none;
 }
@@ -726,13 +724,6 @@ ul li > label.range-icons.volume input {
 #help[data-has-support-info] .no-support-info,
 #help:not([data-has-support-info]) .support-info {
   display: none;
-}
-
-/******************************************************************************
- * Bluetooth
- */
-#update-device-name > section input {
-  margin: 1rem 0;
 }
 
 /* Web activity handling */

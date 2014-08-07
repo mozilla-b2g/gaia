@@ -15,9 +15,9 @@ var templateNode = require('tmpl!./message_list.html'),
     model = require('model'),
     headerCursor = require('header_cursor').cursor,
     htmlCache = require('html_cache'),
-    MessageListTopbar = require('message_list_topbar'),
     mozL10n = require('l10n!'),
     VScroll = require('vscroll'),
+    MessageListTopBar = require('message_list_topbar'),
     Cards = common.Cards,
     ConfirmDialog = common.ConfirmDialog,
     batchAddClass = common.batchAddClass,
@@ -64,7 +64,7 @@ var defaultVScrollData = {
 // slice to do more work.
 var defaultSearchVScrollData = {
   header: defaultVScrollData,
-  matches: [],
+  matches: []
 };
 
 /**
@@ -238,7 +238,6 @@ function MessageListCard(domNode, mode, args) {
 
   this.usingCachedNode = !!args.cachedNode;
 
-
   // Set up the list data source for VScroll
   var listFunc = (function(index) {
      return headerCursor.messagesSlice.items[index];
@@ -321,6 +320,11 @@ function MessageListCard(domNode, mode, args) {
     }
   }.bind(this));
 
+  this._topBar = new MessageListTopBar(
+    domNode.querySelector('.message-list-topbar')
+  );
+  this._topBar.bindToElements(this.scrollContainer, this.vScroll);
+
   // Binding "this" to some functions as they are used for
   // event listeners.
   this._folderChanged = this._folderChanged.bind(this);
@@ -384,7 +388,7 @@ MessageListCard.prototype = {
    * @type {MessageListTopbar}
    * @private
    */
-  _topbar: null,
+  _topBar: null,
 
   /**
    * Cache the distance between messages since rows are effectively fixed
@@ -410,6 +414,9 @@ MessageListCard.prototype = {
     // vScroll about it, but only do this once the DOM is displayed
     // so the ClientRect gives an actual height.
     this.vScroll.visibleOffset = this.searchBar.getBoundingClientRect().height;
+
+    // Also tell the MessageListTopBar
+    this._topBar.visibleOffset = this.vScroll.visibleOffset;
 
     // For search we want to make sure that we capture the screen size prior to
     // focusing the input since the FxOS keyboard will resize our window to be
@@ -528,9 +535,8 @@ MessageListCard.prototype = {
   selectedMessagesUpdated: function() {
     var headerNode =
       this.domNode.getElementsByClassName('msg-listedit-header-label')[0];
-    headerNode.textContent =
-      mozL10n.get('message-multiedit-header',
-                  { n: this.selectedMessages.length });
+    mozL10n.setAttributes(headerNode, 'message-multiedit-header',
+                          { n: this.selectedMessages.length });
 
     // Enabling/disabling rules (not UX-signed-off):  Our bias is that people
     // want to star messages and mark messages unread (since it they naturally
@@ -686,6 +692,8 @@ MessageListCard.prototype = {
       headerCursor.freshMessagesSlice();
     }
 
+    this.onFolderShown();
+
     return true;
   },
 
@@ -783,6 +791,7 @@ MessageListCard.prototype = {
       }
       this.toolbar.refreshBtn.dataset.state = 'synchronized';
       this.syncingNode.classList.add('collapsed');
+      this._manuallyTriggeredSync = false;
     }
   },
 
@@ -800,9 +809,10 @@ MessageListCard.prototype = {
 
     this._clearCachedMessages();
 
-    text.textContent = this.mode == 'search' ?
-      mozL10n.get('messages-search-empty') :
-      mozL10n.get('messages-folder-empty');
+    mozL10n.setAttributes(
+      text,
+      (this.mode === 'search') ? 'messages-search-empty' :
+                                 'messages-folder-empty');
     this.messageEmptyContainer.classList.remove('collapsed');
 
     this.toolbar.editBtn.disabled = true;
@@ -909,19 +919,13 @@ MessageListCard.prototype = {
         return;
       }
 
-      // Decorate or update the little notification bar that tells the user
-      // how many new emails they've received after a sync.
-      if (this._topbar && this._topbar.getElement() !== null) {
-        // Update the existing status bar.
-        this._topbar.updateNewEmailCount(newEmailCount);
+      // If the user manually synced, then want to jump to show the new
+      // messages. Otherwise, show the top bar.
+      if (this._manuallyTriggeredSync) {
+        this.vScroll.jumpToIndex(0);
       } else {
-        this._topbar = new MessageListTopbar(
-            this.scrollContainer, newEmailCount);
-
-        var el =
-            document.getElementsByClassName(MessageListTopbar.CLASS_NAME)[0];
-        this._topbar.decorate(el);
-        this._topbar.render();
+        // Update the existing status bar.
+        this._topBar.showNewEmailCount(newEmailCount);
       }
     }
   },
@@ -1075,10 +1079,9 @@ MessageListCard.prototype = {
     }
 
     // Hide "new mail" topbar too
-    removableCacheNode = cacheNode
-                           .querySelector('.' + MessageListTopbar.CLASS_NAME);
+    removableCacheNode = cacheNode.querySelector('.message-list-topbar');
     if (removableCacheNode) {
-      removableCacheNode.classList.add('collapsed');
+      this._topBar.resetNodeForCache(removableCacheNode);
     }
 
     // Hide the last sync number
@@ -1287,7 +1290,7 @@ MessageListCard.prototype = {
 
     // If the placeholder data, indicate that in case VScroll
     // wants to go back and fix later.
-    var classAction = message.isPlaceholderData ? 'add': 'remove';
+    var classAction = message.isPlaceholderData ? 'add' : 'remove';
     msgNode.classList[classAction](this.vScroll.itemDefaultDataClass);
 
     // ID is stored as a data- attribute so that it can survive
@@ -1385,7 +1388,7 @@ MessageListCard.prototype = {
 
     // If the placeholder data, indicate that in case VScroll
     // wants to go back and fix later.
-    var classAction = message.isPlaceholderData ? 'add': 'remove';
+    var classAction = message.isPlaceholderData ? 'add' : 'remove';
     msgNode.classList[classAction](this.vScroll.itemDefaultDataClass);
 
     // Even though updateMatchedMessageDom is only used in searches,
@@ -1472,6 +1475,40 @@ MessageListCard.prototype = {
   },
 
   /**
+   * Listener called when a folder is shown. The listener emits an 'inboxShown'
+   * for the current account, if the inbox is really being shown and the app is
+   * visible. Useful if periodic sync is involved, and notifications need to be
+   * closed if the inbox is visible to the user.
+   */
+  onFolderShown: function() {
+    if (this.mode === 'search') {
+      return;
+    }
+
+    var account = model.account,
+        foldersSlice = model.foldersSlice;
+
+    // The extra checks here are to allow for lazy startup when we might have
+    // a card instance but not a full model available. Once the model is
+    // available though, this method will get called again, so the event
+    // emitting is still correctly done in the lazy startup case.
+    if (!document.hidden && account && foldersSlice && this.curFolder) {
+      var inboxFolder = foldersSlice.getFirstFolderWithType('inbox');
+      if (inboxFolder === this.curFolder) {
+        evt.emit('inboxShown', account.id);
+      }
+    }
+  },
+
+  /**
+   * An API method for the cards infrastructure, that Cards will call when the
+   * page visibility changes and this card is the currently displayed card.
+   */
+  onCurrentCardDocumentVisibilityChange: function() {
+    this.onFolderShown();
+  },
+
+  /**
    * Called by Cards when the instance of this card type is the
    * visible card.
    */
@@ -1496,7 +1533,8 @@ MessageListCard.prototype = {
 
   onClickMessage: function(messageNode, event) {
     // You cannot open a message if this is the outbox and it is syncing.
-    if (this.curFolder.type === 'outbox' && this.outboxSyncInProgress) {
+    if (this.curFolder &&
+        this.curFolder.type === 'outbox' && this.outboxSyncInProgress) {
       return;
     }
 
@@ -1740,6 +1778,7 @@ MessageListCard.prototype = {
         break;
       // If we fully synchronized, then yes, let us refresh.
       case 'synced':
+        this._manuallyTriggeredSync = true;
         headerCursor.messagesSlice.refresh();
         break;
       // If we failed to talk to the server, then let's only do a refresh if we
@@ -1789,8 +1828,8 @@ MessageListCard.prototype = {
 
     var dialog = deleteConfirmMsgNode.cloneNode(true);
     var content = dialog.getElementsByTagName('p')[0];
-    content.textContent = mozL10n.get('message-multiedit-delete-confirm',
-                                      { n: this.selectedMessages.length });
+    mozL10n.setAttributes(content, 'message-multiedit-delete-confirm',
+                          { n: this.selectedMessages.length });
     ConfirmDialog.show(dialog,
       { // Confirm
         id: 'msg-delete-ok',
@@ -1830,11 +1869,16 @@ MessageListCard.prototype = {
   onMoveMessages: function() {
     // TODO: Batch move back-end mail api is not ready now.
     //       Please verify this function when api landed.
+
     Cards.folderSelector(function(folder) {
       var op = model.api.moveMessages(this.selectedMessages, folder);
       Toaster.toastOperation(op);
       this.setEditMode(false);
-    }.bind(this));
+    }.bind(this), function(folder) {
+      return folder.isValidMoveTarget;
+    });
+
+
   },
 
   _folderChanged: function(folder) {

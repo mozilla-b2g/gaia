@@ -220,6 +220,16 @@ Cards = {
     this._cardsNode.addEventListener('transitionend',
                                      this._onTransitionEnd.bind(this),
                                      false);
+
+    // Listen for visibility changes to let current card know of them too.
+    // Do this here instead of each card needing to listen, and needing to know
+    // if it is also the current card.
+    document.addEventListener('visibilitychange', function(evt) {
+      var card = this._cardStack[this.activeCardIndex];
+      if (card && card.cardImpl.onCurrentCardDocumentVisibilityChange) {
+        card.cardImpl.onCurrentCardDocumentVisibilityChange(document.hidden);
+      }
+    }.bind(this));
   },
 
   /**
@@ -533,7 +543,9 @@ Cards = {
     return result;
   },
 
-  folderSelector: function(callback) {
+  // Filter is an optional paramater. It is a function that returns
+  // true if the folder passed to it should be included in the selector
+  folderSelector: function(callback, filter) {
     var self = this;
 
     require(['model'], function(model) {
@@ -548,15 +560,18 @@ Cards = {
         var folders = foldersSlice.items;
         for (var i = 0; i < folders.length; i++) {
           var folder = folders[i];
-          self.folderPrompt.addToList(folder.name, folder.depth,
-            folder.selectable,
-            function(folder) {
-              return function() {
-                self.folderPrompt.hide();
-                callback(folder);
-              };
-            }(folder));
 
+          var isMatch = !filter || filter(folder);
+          if (folder.neededForHierarchy || isMatch) {
+            self.folderPrompt.addToList(folder.name, folder.depth,
+              isMatch,
+              function(folder) {
+                return function() {
+                  self.folderPrompt.hide();
+                  callback(folder);
+                };
+              }(folder));
+          }
         }
         self.folderPrompt.show();
       });
@@ -1266,7 +1281,7 @@ function displaySubject(subjectNode, message) {
     subjectNode.classList.remove('msg-no-subject');
   }
   else {
-    subjectNode.textContent = mozL10n.get('message-no-subject');
+    mozL10n.setAttributes(subjectNode, 'message-no-subject');
     subjectNode.classList.add('msg-no-subject');
   }
 }

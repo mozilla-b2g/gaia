@@ -133,7 +133,7 @@ suite('lib/camera/camera', function() {
       assert.ok(config.rotation === 90);
     });
 
-    test('Should invert roation for front camera', function() {
+    test('Should invert rotation for front camera', function() {
       this.camera.selectedCamera = 'front';
       this.camera.orientation.get.returns(90);
       this.camera.startRecording();
@@ -290,6 +290,14 @@ suite('lib/camera/camera', function() {
       test('Should call `camera.onRecordingError` on error', function() {
         this.req.onerror();
         sinon.assert.called(this.camera.onRecordingError);
+      });
+
+      test('Should removeEventListener and set camera to ready if SD card is removed', function() {
+        this.callback({
+          reason: 'unavailable'
+        });
+        sinon.assert.called(this.videoStorage.removeEventListener);
+        assert.isTrue(this.camera.emit.calledWith('ready'));
       });
     });
   });
@@ -488,7 +496,14 @@ suite('lib/camera/camera', function() {
 
   suite('Camera#takePicture()', function() {
     setup(function() {
-      this.camera = new this.Camera();
+      this.options = {
+        orientation: {
+          get: sinon.stub().returns(0),
+          start: sinon.stub(),
+          stop: sinon.stub()
+        }
+      };
+      this.camera = new this.Camera(this.options);
       this.camera.focus = {
         resume: function() {},
         focus: sinon.stub().callsArg(0),
@@ -578,6 +593,29 @@ suite('lib/camera/camera', function() {
       this.camera.takePicture({});
       assert.isTrue(takePicture.calledBefore(resumePreview));
     });
+
+    test('Should call mozCamera.takePicture with the current rotation',
+      function() {
+      this.camera.orientation.get.returns(90);
+      this.camera.takePicture();
+
+      var args = this.camera.mozCamera.takePicture.args[0];
+      var config = args[0];
+
+      assert.ok(config.rotation === 90);
+    });
+
+    test('Should invert rotation for front camera', function() {
+      this.camera.selectedCamera = 'front';
+      this.camera.orientation.get.returns(90);
+      this.camera.takePicture();
+
+      var args = this.camera.mozCamera.takePicture.args[0];
+      var config = args[0];
+
+      assert.ok(config.rotation === -90);
+    });
+
   });
 
   suite('Camera#onPreviewStateChange()', function() {
@@ -1171,6 +1209,37 @@ suite('lib/camera/camera', function() {
     test('Should set the thumbnail size', function() {
       this.camera.setPictureSize({ width: 400, height: 300 });
       sinon.assert.called(this.camera.setThumbnailSize);
+    });
+  });
+
+  suite('Camera#setMode()', function() {
+    setup(function() {
+      sinon.stub(this.camera, 'configure');
+    });
+
+    test('It sets `this.mode`', function() {
+      this.camera.setMode('my-mode');
+      assert.equal(this.camera.mode, 'my-mode');
+    });
+
+    test('It configures the camera', function() {
+      this.camera.setMode('my-mode');
+      sinon.assert.called(this.camera.configure);
+    });
+
+    test('It doesn\'t do anything if the mode didn\'t change', function() {
+      this.camera.setMode('my-mode');
+      this.camera.configure.reset();
+      this.camera.setMode('my-mode');
+      sinon.assert.notCalled(this.camera.configure);
+    });
+  });
+
+  suite('Camera#isMode()', function() {
+    test('It returns `true` is the camera is set to the passed mode', function() {
+      this.camera.mode = 'my-mode';
+      assert.isTrue(this.camera.isMode('my-mode'));
+      assert.isFalse(this.camera.isMode('not-my-mode'));
     });
   });
 });

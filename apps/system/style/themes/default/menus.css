@@ -42,7 +42,7 @@
 
 [role="dialog"] menu.actions > ul > li:last-child {
   border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
-  background: #2d2d2d url(images/ui/pattern.png) repeat left top;
+  background: #2d2d2d;
   margin-top: 1.5rem;
 }
 

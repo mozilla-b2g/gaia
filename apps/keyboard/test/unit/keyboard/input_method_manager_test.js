@@ -1,10 +1,11 @@
 'use strict';
 
 /* global InputMethodGlue, InputMethodLoader, InputMethodManager,
-          IMEngineSettings, Promise, KeyEvent */
+          PerformanceTimer, IMEngineSettings, KeyEvent, Promise */
 
 require('/js/keyboard/settings.js');
 require('/js/keyboard/input_method_manager.js');
+require('/js/keyboard/performance_timer.js');
 
 suite('InputMethodGlue', function() {
   test('init', function() {
@@ -147,13 +148,21 @@ suite('InputMethodGlue', function() {
   test('alterKeyboard', function() {
     var glue = new InputMethodGlue();
     var app = {
-      setForcedModifiedLayout: this.sinon.stub()
+      layoutManager: {
+        updateForcedModifiedLayout: this.sinon.stub()
+      },
+      layoutRenderingManager: {
+        updateLayoutRendering: this.sinon.stub()
+      }
     };
     var name = 'bar';
     glue.init(app, 'foo');
     glue.alterKeyboard(name);
 
-    assert.isTrue(app.setForcedModifiedLayout.calledWith(name));
+    assert.isTrue(
+      app.layoutManager.updateForcedModifiedLayout.calledWith(name));
+    assert.isTrue(
+      app.layoutRenderingManager.updateLayoutRendering.calledOnce);
   });
 
   test('setLayoutPage', function() {
@@ -367,6 +376,7 @@ suite('InputMethodManager', function() {
   var imEngineSettingsStub;
   var app;
   var initSettingsPromise;
+  var manager;
 
   suiteSetup(function() {
     realInputMethods = window.InputMethods;
@@ -391,93 +401,38 @@ suite('InputMethodManager', function() {
         currentModifiedLayout: {
           autoCorrectLanguage: 'xx-XX'
         }
+      },
+      perfTimer: this.sinon.stub(PerformanceTimer.prototype),
+      inputContext: {
+        inputType: 'text',
+        inputMode: '',
+        selectionStart: 0,
+        selectionEnd: 0,
+        getText: this.sinon.stub()
       }
     };
-  });
 
-  test('start', function() {
     window.InputMethods = {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager(app);
+    manager = new InputMethodManager(app);
     manager.start();
+    manager.loader.SOURCE_DIR = './fake-imes/';
 
     assert.equal(manager.loader.app, manager.app);
     assert.isTrue(!!manager.currentIMEngine, 'started with default IMEngine.');
   });
 
   test('switchCurrentIMEngine', function(done) {
-    window.InputMethods = {
-      'default': realInputMethods['default']
-    };
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
 
-    var manager = new InputMethodManager(app);
-    manager.start();
-    manager.loader.SOURCE_DIR = './fake-imes/';
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
 
-    var dataPromise = Promise.resolve({
-      value: 'data'
-    });
-
-    var p = manager.switchCurrentIMEngine('foo', dataPromise);
-    p.then(function() {
-      assert.isTrue(true, 'resolved');
-      var imEngine = manager.loader.getInputMethod('foo');
-      assert.isTrue(!!imEngine, 'foo loaded');
-      assert.equal(manager.currentIMEngine, imEngine, 'currentIMEngine is set');
-
-      var activateStub = imEngine.activate;
-      assert.isTrue(activateStub.calledWithExactly('xx-XX', {
-        value: 'data'
-      }, {
-        suggest: true,
-        correct: true
-      }));
-      assert.equal(activateStub.getCall(0).thisValue,
-        imEngine);
-
-      done();
-    }, function() {
-      assert.isTrue(false, 'should not reject');
-
-      done();
-    });
-  });
-
-  test('switchCurrentIMEngine (failed loader)', function(done) {
-    window.InputMethods = {
-      'default': realInputMethods['default']
-    };
-
-    var manager = new InputMethodManager(app);
-    manager.start();
-    manager.loader.SOURCE_DIR = './fake-imes/';
-
-    var dataPromise = Promise.resolve({
-      value: 'data'
-    });
-
-    var p = manager.switchCurrentIMEngine('bar', dataPromise);
-    p.then(function() {
-      assert.isTrue(false, 'should not resolve');
-
-      done();
-    }, function() {
-      assert.isTrue(true, 'rejected');
-
-      done();
-    });
-  });
-
-  test('switchCurrentIMEngine (no data promise)', function(done) {
-    window.InputMethods = {
-      'default': realInputMethods['default']
-    };
-
-    var manager = new InputMethodManager(app);
-    manager.start();
-    manager.loader.SOURCE_DIR = './fake-imes/';
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce,
+      'Should not getText() twice if we have already do so.');
 
     var p = manager.switchCurrentIMEngine('foo');
     p.then(function() {
@@ -487,93 +442,45 @@ suite('InputMethodManager', function() {
       assert.equal(manager.currentIMEngine, imEngine, 'currentIMEngine is set');
 
       var activateStub = imEngine.activate;
-      assert.isTrue(activateStub.calledWithExactly('xx-XX', undefined, {
+      assert.isTrue(activateStub.calledWithExactly('xx-XX', {
+        type: 'text',
+        inputmode: '',
+        selectionStart: 0,
+        selectionEnd: 0,
+        value: 'foobar',
+        inputContext: app.inputContext
+      }, {
         suggest: true,
         correct: true
       }));
       assert.equal(activateStub.getCall(0).thisValue,
         imEngine);
-
-      done();
     }, function() {
       assert.isTrue(false, 'should not reject');
-
-      done();
-    });
+    }).then(done, done);
   });
 
-  test('switchCurrentIMEngine (failed data promise)', function(done) {
-    window.InputMethods = {
-      'default': realInputMethods['default']
-    };
+  test('switchCurrentIMEngine (failed loader)', function(done) {
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
 
-    var manager = new InputMethodManager(app);
-    manager.start();
-    manager.loader.SOURCE_DIR = './fake-imes/';
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
 
-    var dataPromise = Promise.reject();
-
-    var p = manager.switchCurrentIMEngine('foo', dataPromise);
+    var p = manager.switchCurrentIMEngine('bar');
     p.then(function() {
       assert.isTrue(false, 'should not resolve');
-
-      done();
     }, function() {
       assert.isTrue(true, 'rejected');
-
-      done();
-    });
+    }).then(done, done);
   });
 
-  test('switchCurrentIMEngine (twice)', function(done) {
-    window.InputMethods = {
-      'default': realInputMethods['default']
-    };
+  test('switchCurrentIMEngine (failed getText())', function(done) {
+    app.inputContext.getText.returns(Promise.reject());
 
-    var manager = new InputMethodManager(app);
-    manager.start();
-    manager.loader.SOURCE_DIR = './fake-imes/';
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
 
-    var dataPromise = Promise.resolve({
-      value: 'data'
-    });
-
-    var p1 = manager.switchCurrentIMEngine('foo', dataPromise);
-    var p2 = manager.switchCurrentIMEngine('foo', dataPromise);
-    p1.then(function() {
-      assert.isTrue(false, 'should not resolve');
-    }, function() {
-      assert.isTrue(true, 'rejected');
-    });
-    p2.then(function() {
-      assert.isTrue(true, 'resolved');
-      assert.isTrue(!!manager.loader.getInputMethod('foo'), 'foo loaded');
-      assert.equal(manager.currentIMEngine,
-        manager.loader.getInputMethod('foo'),
-        'currentIMEngine is set');
-
-      done();
-    }, function() {
-      assert.isTrue(false, 'should not reject');
-
-      done();
-    });
-  });
-
-  test('switchCurrentIMEngine (reload after loaded)', function(done) {
-    window.InputMethods = {
-      'default': realInputMethods['default']
-    };
-
-    var manager = new InputMethodManager(app);
-    manager.start();
-    manager.loader.SOURCE_DIR = './fake-imes/';
-
-    var dataPromise = Promise.resolve({
-      value: 'data'
-    });
-
-    var p = manager.switchCurrentIMEngine('foo', dataPromise);
+    var p = manager.switchCurrentIMEngine('foo');
     p.then(function() {
       assert.isTrue(true, 'resolved');
       var imEngine = manager.loader.getInputMethod('foo');
@@ -582,7 +489,74 @@ suite('InputMethodManager', function() {
 
       var activateStub = imEngine.activate;
       assert.isTrue(activateStub.calledWithExactly('xx-XX', {
-        value: 'data'
+        type: 'text',
+        inputmode: '',
+        selectionStart: 0,
+        selectionEnd: 0,
+        value: '',
+        inputContext: app.inputContext
+      }, {
+        suggest: true,
+        correct: true
+      }));
+      assert.equal(activateStub.getCall(0).thisValue, imEngine);
+    }, function() {
+      assert.isTrue(false, 'should not reject');
+    }).then(done, done);
+  });
+
+  test('switchCurrentIMEngine (twice)', function(done) {
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
+
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
+
+    var p1 = manager.switchCurrentIMEngine('foo');
+
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledTwice);
+
+    var p2 = manager.switchCurrentIMEngine('foo');
+    p1.then(function() {
+      assert.isTrue(false, 'should not resolve');
+
+      return p2;
+    }, function() {
+      assert.isTrue(true, 'rejected');
+
+      return p2;
+    }).then(function() {
+      assert.isTrue(true, 'resolved');
+      assert.isTrue(!!manager.loader.getInputMethod('foo'), 'foo loaded');
+      assert.equal(manager.currentIMEngine,
+        manager.loader.getInputMethod('foo'),
+        'currentIMEngine is set');
+    }, function() {
+      assert.isTrue(false, 'should not reject');
+    }).then(done, done);
+  });
+
+  test('switchCurrentIMEngine (reload after loaded)', function(done) {
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
+
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
+
+    var p = manager.switchCurrentIMEngine('foo');
+    p.then(function() {
+      assert.isTrue(true, 'resolved');
+      var imEngine = manager.loader.getInputMethod('foo');
+      assert.isTrue(!!imEngine, 'foo loaded');
+      assert.equal(manager.currentIMEngine, imEngine, 'currentIMEngine is set');
+
+      var activateStub = imEngine.activate;
+      assert.isTrue(activateStub.calledWithExactly('xx-XX', {
+        type: 'text',
+        inputmode: '',
+        selectionStart: 0,
+        selectionEnd: 0,
+        value: 'foobar',
+        inputContext: app.inputContext
       }, {
         suggest: true,
         correct: true
@@ -590,7 +564,9 @@ suite('InputMethodManager', function() {
       assert.equal(activateStub.getCall(0).thisValue,
         imEngine);
 
-      var p2 = manager.switchCurrentIMEngine('foo', dataPromise);
+      manager.updateInputContextData();
+
+      var p2 = manager.switchCurrentIMEngine('foo');
 
       var deactivateStub = imEngine.deactivate;
       assert.isTrue(deactivateStub.calledOnce);
@@ -601,34 +577,33 @@ suite('InputMethodManager', function() {
         manager.loader.getInputMethod('default'),
         'currentIMEngine is set to default');
 
-      p2.then(function() {
-        assert.isTrue(true, 'resolved');
-        var imEngine = manager.loader.getInputMethod('foo');
-        assert.isTrue(!!imEngine, 'foo loaded');
-        assert.equal(manager.currentIMEngine, imEngine,
-          'currentIMEngine is set');
-
-        var activateStub = imEngine.activate;
-        assert.isTrue(activateStub.calledTwice);
-        assert.isTrue(activateStub.calledWithExactly('xx-XX', {
-          value: 'data'
-        }, {
-          suggest: true,
-          correct: true
-        }));
-        assert.equal(activateStub.getCall(1).thisValue,
-          imEngine);
-
-        done();
-      }, function() {
-        assert.isTrue(false, 'should not reject');
-
-        done();
-      });
+      return p2;
     }, function() {
       assert.isTrue(false, 'should not reject');
+    }).then(function() {
+      assert.isTrue(true, 'resolved');
+      var imEngine = manager.loader.getInputMethod('foo');
+      assert.isTrue(!!imEngine, 'foo loaded');
+      assert.equal(manager.currentIMEngine, imEngine,
+        'currentIMEngine is set');
 
-      done();
-    });
+      var activateStub = imEngine.activate;
+      assert.isTrue(activateStub.calledTwice);
+      assert.isTrue(activateStub.getCall(1).calledWithExactly('xx-XX', {
+        type: 'text',
+        inputmode: '',
+        selectionStart: 0,
+        selectionEnd: 0,
+        value: 'foobar',
+        inputContext: app.inputContext
+      }, {
+        suggest: true,
+        correct: true
+      }));
+      assert.equal(activateStub.getCall(1).thisValue,
+        imEngine);
+    }, function() {
+      assert.isTrue(false, 'should not reject');
+    }).then(done, done);
   });
 });

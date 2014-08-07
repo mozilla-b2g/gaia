@@ -116,8 +116,7 @@
       var app = AppWindowManager.getApp(config.origin);
       if (!app) {
         config.chrome = {
-          navigation: true,
-          rocketbar: false
+          scrollable: true
         };
         app = new AppWindow(config);
       } else {

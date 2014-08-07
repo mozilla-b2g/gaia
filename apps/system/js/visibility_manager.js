@@ -34,7 +34,9 @@
       'rocketbar-overlayopened',
       'rocketbar-overlayclosed',
       'utility-tray-overlayopened',
-      'utility-tray-overlayclosed'
+      'utility-tray-overlayclosed',
+      'system-dialog-show',
+      'system-dialog-hide'
     ];
   };
 
@@ -114,11 +116,13 @@
       case 'rocketbar-overlayopened':
       case 'utility-tray-overlayopened':
       case 'cardviewshown':
+      case 'system-dialog-show':
         this.publish('hidewindowforscreenreader');
         break;
       case 'rocketbar-overlayclosed':
       case 'utility-tray-overlayclosed':
       case 'cardviewclosed':
+      case 'system-dialog-hide':
         this.publish('showwindowforscreenreader');
         break;
       case 'mozChromeEvent':

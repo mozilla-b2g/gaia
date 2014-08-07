@@ -27,16 +27,18 @@ function pickRingtone(activity) {
   var numRingtones = 0;
   var template = $('ringtone-template');
   var container = $('ringtones');
+  var header = $('header');
   container.hidden = false;
 
   // Display the right title
+  $('done').hidden = false;
   $('title').textContent = _('pick-ringtone');
 
   // Make the cancel button work
-  $('back').onclick = function() {
+  header.addEventListener('action', function() {
     player.pause(); // Stop any currently playing sound.
     activity.postError('cancelled');
-  };
+  });
 
   // Make the done button work
   $('done').onclick = function() {
@@ -124,10 +126,9 @@ function pickWallpaper(activity) {
   container.hidden = false;
 
   $('title').textContent = _('pick-wallpaper');
-  $('done').hidden = true;
-  $('back').onclick = function() {
+  $('header').addEventListener('action', function() {
     activity.postError('cancelled');
-  };
+  });
 
   // Enumerate the wallpapers from the database and display them onscreen
   objectStore.readonly('wallpapers', function(wallpaperStore) {

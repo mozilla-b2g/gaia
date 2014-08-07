@@ -10,12 +10,11 @@ requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_app_titlebar.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 
 var mocksForSecureWindowManager = new window.MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'ScreenLayout', 'AppTitleBar'
+  'ManifestHelper', 'ScreenLayout'
 ]).init();
 
 suite('system/SecureWindow', function() {
@@ -31,8 +30,16 @@ suite('system/SecureWindow', function() {
   mocksForSecureWindowManager.attachTestHelpers();
 
   setup(function(done) {
-    stubById = this.sinon.stub(document, 'getElementById');
-    stubById.returns(document.createElement('div'));
+    stubById = this.sinon.stub(document, 'getElementById', function(id) {
+      var element = document.createElement('div');
+      if (id.indexOf('AppWindow') >= 0) {
+        var container = document.createElement('div');
+        container.className = 'browser-container';
+        element.appendChild(container);
+      }
+
+      return element;
+    });
     requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');

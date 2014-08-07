@@ -44,6 +44,7 @@ apps/clock/style/picker/picker.css 0 1
 apps/clock/style/onring.css 2 1
 apps/clock/style/timer.css 0 2
 apps/bluetooth/style/icons.css 0 1
+apps/bluetooth/style/settings.css 0 1
 apps/camera/style/setting.css 1 0
 apps/camera/style/overlay.css 0 4
 apps/fm/style/fm.css 0 1
@@ -55,7 +56,6 @@ apps/pdfjs/content/web/viewer.css 3 3
 apps/system/emergency-call/style/keypad.css 1 1
 apps/system/emergency-call/style/dialer.css 2 0
 apps/system/style/notifications/notifications.css 0 1
-apps/system/style/wrapper/wrapper.css 0 1
 apps/system/style/update_manager/update_manager.css 1 0
 apps/system/style/sleep_menu/sleep_menu.css 0 1
 apps/system/style/modal_dialog/modal_dialog.css 0 2

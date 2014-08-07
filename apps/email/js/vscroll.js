@@ -193,6 +193,15 @@ define(function(require, exports, module) {
     recalculatePaddingScreens: 1.5,
 
     /**
+     * Track when the last time vscroll manually changed the scrollTop
+     * of the scrolling container. Useful for when knowing if a recent
+     * scroll event was triggered by this component or by user action.
+     * The value resets to 0 periodically to avoid interested code from
+     * doing too many timestamp checks on every scroll event.
+     */
+    lastScrollTopSetTime: 0,
+
+    /**
      * The number of items to prerender (computed).
      */
     prerenderItemCount: undefined,
@@ -324,6 +333,14 @@ define(function(require, exports, module) {
         return;
       }
 
+      if (this.lastScrollTopSetTime) {
+        // Keep the last scroll time for about a second, which should
+        // be enough time for interested parties to check the value.
+        if (this.lastScrollTopSetTime + 1000 < Date.now()) {
+          this.lastScrollTopSetTime = 0;
+        }
+      }
+
       var startIndex,
           endIndex,
           scrollTop = this.scrollingContainer.scrollTop,
@@ -427,8 +444,8 @@ define(function(require, exports, module) {
      * @param  {Number} index the list item index.
      */
     jumpToIndex: function(index) {
-      this.scrollingContainer.scrollTop = (index * this.itemHeight) +
-                                          this.visibleOffset;
+      this._setContainerScrollTop((index * this.itemHeight) +
+                                          this.visibleOffset);
     },
 
     /**
@@ -455,6 +472,14 @@ define(function(require, exports, module) {
         clearTimeout(this._scrollTimeoutPoll);
         this._scrollTimeoutPoll = 0;
       }
+    },
+
+    _setContainerScrollTop: function(value) {
+      this.scrollingContainer.scrollTop = value;
+      // Opt for using a property set instead of an event emitter, since the
+      // timing of that event emit is not guaranteed to get to listeners before
+      // scroll events.
+      this.lastScrollTopSetTime = Date.now();
     },
 
     /**
@@ -704,7 +729,7 @@ define(function(require, exports, module) {
       }
       this.waitingForRecalculate = false;
 
-      this.scrollingContainer.scrollTop = (this.itemHeight * index) + remainder;
+      this._setContainerScrollTop((this.itemHeight * index) + remainder);
       this.renderCurrentPosition();
 
       this.emit('recalculated', index === 0);

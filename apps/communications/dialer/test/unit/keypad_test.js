@@ -92,7 +92,6 @@ suite('dialer/keypad', function() {
 
   setup(function() {
     this.sinon.useFakeTimers();
-    this.sinon.spy(FontSizeManager, 'adaptToSpace');
   });
 
   teardown(function() {
@@ -208,10 +207,11 @@ suite('dialer/keypad', function() {
     });
 
     test('FontSizeManager is invoked with the right parameters', function() {
+      this.sinon.spy(FontSizeManager, 'adaptToSpace');
       subject.updatePhoneNumber('1234567890', 'begin', false);
       sinon.assert.calledWith(
         FontSizeManager.adaptToSpace, FontSizeManager.DIAL_PAD,
-        subject.phoneNumberView, subject.fakePhoneNumberView, false, 'begin');
+        subject.phoneNumberView, false, 'begin');
     });
 
     suite('Audible and DTMF tones when composing numbers', function() {

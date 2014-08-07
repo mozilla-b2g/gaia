@@ -2,7 +2,7 @@
 
 /* global AccessibilityHelper, CallLog, CallLogDBManager, Contacts,
           KeypadManager,LazyL10n, LazyLoader, MmiManager, Notification,
-          NotificationHelper, SettingsListener, SimSettingsHelper,
+          NotificationHelper, SettingsListener, SimPicker, SimSettingsHelper,
           SuggestionBar, TelephonyHelper, TonePlayer, Utils, Voicemail */
 
 var NavbarManager = {
@@ -367,7 +367,15 @@ var CallHandler = (function callHandler() {
     // Dialing a specific number
     if (isAtd && command[3] !== '>') {
       var phoneNumber = command.substring(3);
-      CallHandler.call(phoneNumber);
+      LazyLoader.load(['/shared/js/sim_settings_helper.js',
+                       '/shared/js/sim_picker.js'], function() {
+        SimSettingsHelper.getCardIndexFrom('outgoingCall',
+        function(defaultCardIndex) {
+          SimPicker.getOrPick(defaultCardIndex, phoneNumber, function(ci) {
+            CallHandler.call(phoneNumber, ci);
+          });
+        });
+      });
       return;
     }
 
@@ -377,7 +385,19 @@ var CallHandler = (function callHandler() {
     CallLogDBManager.getGroupAtPosition(position, 'lastEntryDate', true, null,
     function(result) {
       if (result && (typeof result === 'object') && result.number) {
-        CallHandler.call(result.number);
+        LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
+          SimSettingsHelper.getCardIndexFrom('outgoingCall', function(ci) {
+            // If the default outgoing call SIM is set to "Always ask", or is
+            // unset, we place this call on the SIM that was used the last time
+            // we were in a phone call with this number/contact.
+            if (ci === undefined || ci === null ||
+                ci == SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
+              ci = result.serviceId;
+            }
+
+            CallHandler.call(result.number, ci);
+          });
+        });
       } else {
         console.log('Could not get the group at: ' + position +
                     '. Error: ' + result);
@@ -415,19 +435,9 @@ var CallHandler = (function callHandler() {
       SuggestionBar.clear();
     };
 
-    LazyLoader.load(['/dialer/js/telephony_helper.js',
-                     '/shared/js/sim_settings_helper.js'], function() {
-      // FIXME/bug 982163: Temporarily load a cardIndex from SimSettingsHelper
-      // if we were not given one as an argument.
-      if (cardIndex === undefined) {
-        SimSettingsHelper.getCardIndexFrom('outgoingCall', function(ci) {
-          TelephonyHelper.call(
-            number, ci, oncall, connected, disconnected, error);
-        });
-      } else {
-        TelephonyHelper.call(
-          number, cardIndex, oncall, connected, disconnected, error);
-      }
+    LazyLoader.load(['/dialer/js/telephony_helper.js'], function() {
+      TelephonyHelper.call(
+        number, cardIndex, oncall, connected, disconnected, error);
     });
   }
 

@@ -156,7 +156,7 @@ var Predictions = function() {
   // This function is called to pass our dictionary to us as an ArrayBuffer.
   function setDictionary(buffer) {
     cache = new LRUCache(cacheSize); // Start with a new cache
-    var file = Uint8Array(buffer);
+    var file = new Uint8Array(buffer);
 
     function uint32(offset) {
       return (file[offset] << 24) +

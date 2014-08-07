@@ -416,6 +416,27 @@ suite('UserPressManager', function() {
         }, '_mouse']);
     });
 
+    test('mousemove after mouseup', function() {
+      var mouseupEvent = {
+        type: 'mouseup',
+        target: el,
+        pageX: 100,
+        pageY: 110
+      };
+      container.dispatchEvent(mouseupEvent);
+
+      var mousemoveEvent = {
+        type: 'mousemove',
+        target: el,
+        pageX: 101,
+        pageY: 112
+      };
+      container.dispatchEvent(mousemoveEvent);
+
+      assert.isTrue(true, 'Does not throw.');
+    });
+
+
     test('move within the element but less than MOVE_LIMIT', function() {
       var mousemoveEvent = {
         type: 'mousemove',

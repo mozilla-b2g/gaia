@@ -25,29 +25,8 @@ form[data-type="confirm"] .phone-details .phone-number {
   display: inline;
 }
 
-
-/* Override Building Block [Header] styles */
-section[role="region"] > header:first-child .icon.icon-clear {
-  background-image: url(images/icons/clear.png);
-  background-position: center calc(50% + 0.1rem);
-  background-size: 3rem;
-  width: 2rem;
-  margin: 0;
-  padding: 0 2rem;
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-
 section[role="region"] > header:first-child form {
   display: none;
-}
-
-/* TODO: Move this into the shared building block
- * if we use the icon in more places
- */
-section[role="region"] > header:first-child .icon.icon-attachment {
-  background-image: url(images/icons/attachments.png);
 }
 
 /* Override Building Block [Imput areas] styles */
@@ -165,7 +144,7 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 [data-type="list"] .draft .icon-draft {
-  background: url("../style/images/draft.png") no-repeat left center / 1rem;
+  background: url("../style/images/draft.png") no-repeat left center / 1.2rem;
 }
 
 [data-type="list"] .is-draft .pack-end {
@@ -490,8 +469,8 @@ section[role="region"].new > header:first-child form {
   Styles for Edit mode in Messages Container
 */
 
-.edit #composer-messages-container {
-  margin-bottom: 4.0rem;
+.edit #messages-container {
+  margin-bottom: 7rem;
 }
 
 .edit .article-list[data-type="list"] .message {
@@ -530,10 +509,6 @@ section[role="region"].new > header:first-child form {
 
 .edit #messages-compose-form {
   display: none;
-}
-
-.edit #composer-messages-container {
-  margin-bottom: 7rem;
 }
 
 /* Add a margin at the end of the last thread or message node to avoid overlay
@@ -619,6 +594,10 @@ section[role="region"].new .subheader {
   font-size: 1.465rem;
   background-color: #f2f2f2;
   transition: transform 0.2s ease-in-out 0s;
+  transform: translateY(calc(-100% + 4rem));
+}
+
+.multiline-recipients-mode #messages-to-field {
   transform: translateY(calc(-100% + 5.5rem));
 }
 
@@ -647,6 +626,7 @@ section[role="region"].new #messages-to-field.multiline {
 
 #messages-recipients-list-container {
   min-height: 4rem;
+  min-width: 0;
   box-sizing: border-box;
 
   flex-grow: 1;
@@ -721,13 +701,19 @@ Do not remove.
 
 #messages-recipient-suggestions {
   position: absolute;
-  /* 10.5rem (5 rem from app header + 5.5rem from "To" panel heights) */
-  top: 10.5rem;
+  /* 9rem (5 rem from app header + 4rem from "To" panel heights) */
+  top: 9rem;
 
   overflow-y: auto;
 
-  max-height: calc(100% - 10.5rem);
+  max-height: calc(100% - 9rem);
   width: 100%;
+}
+
+.multiline-recipients-mode #messages-recipient-suggestions {
+  top: 10.5rem;
+
+  max-height: calc(100% - 10.5rem);
 }
 
 #messages-recipient-suggestions li:first-child {
@@ -834,7 +820,6 @@ section[role="region"].new .article-list[data-type="list"]  li {
 
 /* Elements related to information view */
 section[role="region"][class$='information'] #messages-options-icon,
-section[role="region"][class$='information'] #messages-attach-button,
 section[role="region"][class$='information'] #messages-subheader,
 section[role="region"][class$='information'] #messages-container,
 section[role="region"][class$='information'] #messages-compose-form {
@@ -846,7 +831,7 @@ section[role="region"].report-information > header .icon-back {
   background-image: url(/shared/style/headers/images/icons/close.png);
 }
 
-#messages-back-button:hover:after {
+#messages-back-button:hover {
   background-color: transparent;
 }
 

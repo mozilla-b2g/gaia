@@ -71,7 +71,7 @@ Keyboards['bn-Probhat'] = {
       '৭': '৭ম 7',
       '৮': '৮ম 8',
       '৯': '৯ম 9',
-      '৳': '$ € £ ¥',
+      '৳': '₹ $ € £ ¥',
       '?': '¿',
       '!': '¡',
       '-': '_'
@@ -82,12 +82,12 @@ Keyboards['bn-Probhat'] = {
         { value: '৫' } , { value: '৬' }, { value: '৭' } , { value: '৮' },
         { value: '৯' }, { value: '০' }
       ], [
-        { value: '@', hidden: ['email'] }, { value: '#' }, { value: '$' },
+        { value: '@', hidden: ['email'] }, { value: '#' }, { value: '৳' },
         { value: '%' }, { value: '&' } , { value: '*' }, { value: '-' },
         { value: '+' }, { value: '(' }, { value: ')' },
         { value: '_', visible: ['email'] }
       ], [
-        { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
         { value: '!' }, { value: '\"' }, { value: "'" }, { value: ':' },
         { value: ';' }, { value: '/' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }

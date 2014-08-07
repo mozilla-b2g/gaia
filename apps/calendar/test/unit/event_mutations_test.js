@@ -16,12 +16,17 @@ suiteGroup('EventMutations', function() {
   var busytimeStore;
   var alarmStore;
   var componentStore;
+  var shouldDisplay;
 
   setup(function(done) {
     subject = Calendar.EventMutations;
     app = testSupport.calendar.app();
     db = app.db;
     controller = app.timeController;
+    shouldDisplay = controller._shouldDisplayBusytime;
+    controller._shouldDisplayBusytime = function() {
+      return true;
+    };
 
     eventStore = db.getStore('Event');
     busytimeStore = db.getStore('Busytime');
@@ -32,6 +37,7 @@ suiteGroup('EventMutations', function() {
   });
 
   teardown(function(done) {
+    controller._shouldDisplayBusytime = shouldDisplay;
     testSupport.calendar.clearStore(
       db,
       [

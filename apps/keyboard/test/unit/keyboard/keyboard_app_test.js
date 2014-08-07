@@ -3,7 +3,8 @@
 /* global KeyboardApp, PerformanceTimer, InputMethodManager, LayoutManager,
           SettingsPromiseManager, L10nLoader, TargetHandlersManager,
           FeedbackManager, VisualHighlightManager, CandidatePanelManager,
-          UpperCaseStateManager, MockInputMethodManager */
+          UpperCaseStateManager, LayoutRenderingManager, StateManager,
+          MockInputMethodManager, IMERender */
 
 require('/js/keyboard/performance_timer.js');
 require('/js/keyboard/input_method_manager.js');
@@ -15,6 +16,8 @@ require('/js/keyboard/feedback_manager.js');
 require('/js/keyboard/visual_highlight_manager.js');
 require('/js/keyboard/candidate_panel_manager.js');
 require('/js/keyboard/upper_case_state_manager.js');
+require('/js/keyboard/layout_rendering_manager.js');
+require('/js/keyboard/state_manager.js');
 
 requireApp('keyboard/shared/test/unit/mocks/mock_event_target.js');
 requireApp('keyboard/shared/test/unit/mocks/mock_navigator_input_method.js');
@@ -32,6 +35,8 @@ suite('KeyboardApp', function() {
   var visualHighlightManagerStub;
   var candidatePanelManagerStub;
   var upperCaseStateManagerStub;
+  var layoutRenderingManagerStub;
+  var stateManagerStub;
 
   var app;
   var realMozInputMethod;
@@ -41,8 +46,6 @@ suite('KeyboardApp', function() {
     navigator.mozInputMethod = {
       mgmt: this.sinon.stub(MockInputMethodManager.prototype)
     };
-
-    window.renderKeyboard = this.sinon.stub();
 
     perfTimerStub = this.sinon.stub(PerformanceTimer.prototype);
     this.sinon.stub(window, 'PerformanceTimer').returns(perfTimerStub);
@@ -85,6 +88,23 @@ suite('KeyboardApp', function() {
     this.sinon.stub(window, 'UpperCaseStateManager')
       .returns(upperCaseStateManagerStub);
 
+    layoutRenderingManagerStub =
+      this.sinon.stub(LayoutRenderingManager.prototype);
+    this.sinon.stub(window, 'LayoutRenderingManager')
+      .returns(layoutRenderingManagerStub);
+
+    window.IMERender = {
+      init: this.sinon.stub(),
+      setUpperCaseLock: this.sinon.stub()
+    };
+
+    stateManagerStub =
+      this.sinon.stub(StateManager.prototype);
+    this.sinon.stub(window, 'StateManager')
+      .returns(stateManagerStub);
+
+    window.requestAnimationFrame = this.sinon.stub();
+
     app = new KeyboardApp();
     app.start();
 
@@ -98,6 +118,8 @@ suite('KeyboardApp', function() {
     assert.isTrue(window.VisualHighlightManager.calledWithNew());
     assert.isTrue(window.CandidatePanelManager.calledWithNew());
     assert.isTrue(window.UpperCaseStateManager.calledWithNew());
+    assert.isTrue(window.LayoutRenderingManager.calledWithNew());
+    assert.isTrue(window.StateManager.calledWithNew());
 
     assert.isTrue(window.InputMethodManager.calledWith(app));
     assert.isTrue(window.LayoutManager.calledWith(app));
@@ -114,6 +136,8 @@ suite('KeyboardApp', function() {
     assert.isTrue(visualHighlightManagerStub.start.calledOnce);
     assert.isTrue(candidatePanelManagerStub.start.calledOnce);
     assert.isTrue(upperCaseStateManagerStub.start.calledOnce);
+    assert.isTrue(layoutRenderingManagerStub.start.calledOnce);
+    assert.isTrue(stateManagerStub.start.calledOnce);
   });
 
   teardown(function() {
@@ -124,9 +148,12 @@ suite('KeyboardApp', function() {
     assert.isTrue(visualHighlightManagerStub.stop.calledOnce);
     assert.isTrue(candidatePanelManagerStub.stop.calledOnce);
     assert.isTrue(upperCaseStateManagerStub.stop.calledOnce);
+    assert.isTrue(layoutRenderingManagerStub.stop.calledOnce);
+    assert.isTrue(stateManagerStub.stop.calledOnce);
 
     navigator.mozInputMethod = realMozInputMethod;
-    delete window.renderKeyboard;
+
+    window.IMERender = undefined;
   });
 
   test('getMenuContainer', function() {
@@ -148,6 +175,14 @@ suite('KeyboardApp', function() {
     assert.isTrue(
       document.getElementById.calledWith(app.CONATINER_ELEMENT_ID));
     assert.equal(result, el);
+  });
+
+  test('setInputContext', function() {
+    var inputContext = {};
+
+    app.setInputContext(inputContext);
+
+    assert.equal(app.inputContext, inputContext);
   });
 
   suite('getBasicInputType', function() {
@@ -246,14 +281,6 @@ suite('KeyboardApp', function() {
     assert.isTrue(result);
   });
 
-  test('setForcedModifiedLayout', function() {
-    app.setForcedModifiedLayout('foo');
-
-    assert.isTrue(
-      app.layoutManager.updateForcedModifiedLayout.calledWith('foo'));
-    assert.isTrue(window.renderKeyboard.calledOnce);
-  });
-
   test('setLayoutPage', function() {
     app.inputMethodManager.currentIMEngine = {
       setLayoutPage: this.sinon.stub()
@@ -264,20 +291,44 @@ suite('KeyboardApp', function() {
 
     assert.isTrue(
       app.layoutManager.updateLayoutPage.calledWith('foo'));
-    assert.isTrue(window.renderKeyboard.calledOnce);
+    assert.isTrue(
+      app.layoutRenderingManager.updateLayoutRendering.calledOnce);
     assert.isTrue(
       app.inputMethodManager.currentIMEngine.setLayoutPage.calledWith(42));
   });
 
   test('getNumberOfCandidatesPerRow', function() {
-    window.IMERender = {
-      getNumberOfCandidatesPerRow: this.sinon.stub()
-    };
-    window.IMERender.getNumberOfCandidatesPerRow.returns(42);
+    window.IMERender.getNumberOfCandidatesPerRow =
+      this.sinon.stub().returns(42);
 
     var result = app.getNumberOfCandidatesPerRow();
     assert.equal(result, 42);
+  });
 
-    window.IMERender = undefined;
+  suite('app.upperCaseStateManager.onstatechange', function() {
+    test('w/o secondLayout', function() {
+      app.layoutManager.currentModifiedLayout = {
+      };
+
+      app.upperCaseStateManager.onstatechange();
+
+      window.requestAnimationFrame.getCall(0).args[0].call(window);
+
+      assert.isTrue(
+        IMERender.setUpperCaseLock.calledWith(app.upperCaseStateManager));
+      assert.isTrue(
+        app.candidatePanelManager.showCandidates.calledOnce);
+    });
+
+    test('w secondLayout', function() {
+      app.layoutManager.currentModifiedLayout = {
+        secondLayout: true
+      };
+
+      app.upperCaseStateManager.onstatechange();
+
+      assert.isTrue(
+        app.layoutRenderingManager.updateLayoutRendering.calledOnce);
+    });
   });
 });

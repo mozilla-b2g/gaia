@@ -36,7 +36,7 @@ define(function(require) {
         return;
       }
 
-      navigator.mozL10n.localize(element,
+      navigator.mozL10n.setAttributes(element,
         'batteryLevel-percent-' + Battery.state, { level: Battery.level });
       if (element.hidden) {
         element.hidden = false;

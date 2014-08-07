@@ -566,12 +566,6 @@
       this.detail = record;
       if (nameChanged) {
         this.updateTitle();
-
-        // Bug 1007743 - Workaround for projected content nodes disappearing
-        document.body.clientTop;
-        this.element.style.display = 'none';
-        document.body.clientTop;
-        this.element.style.display = '';
       }
 
       if (iconChanged && record.icon) {

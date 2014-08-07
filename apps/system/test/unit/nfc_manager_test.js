@@ -1,9 +1,8 @@
 'use strict';
 
-/* globals MockDOMRequest, MockNfc, MocksHelper, MozNDEFRecord, NDEF,
+/* globals MockDOMRequest, MockNfc, MocksHelper, NDEF,
            NfcUtils, NfcManager, MozActivity, NfcHandoverManager */
 
-require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/nfc_utils.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
@@ -18,7 +17,6 @@ require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksForNfcManager = new MocksHelper([
   'MozActivity',
-  'MozNDEFRecord',
   'ScreenManager',
   'SettingsListener',
   'NfcHandoverManager',
@@ -327,7 +325,6 @@ suite('Nfc Manager Functions', function() {
                 type: 'url',
                 url: 'http://mozilla.org',
                 records: sampleMsg.records,
-                rtd: NDEF.RTD_URI,
                 tech: 'NDEF',
                 techList: sampleMsg.techList,
                 sessionToken: sampleMsg.sessionToken
@@ -380,6 +377,7 @@ suite('Nfc Manager Functions', function() {
 
   suite('fireNDEFDiscovered', function() {
     var msg;
+    var uriRecord;
 
     setup(function() {
       msg = {
@@ -388,31 +386,121 @@ suite('Nfc Manager Functions', function() {
         records: [],
         sessionToken: 'sessionToken'
       };
-    }),
 
-    test('Proper NDEF Message contents', function() {
-      var uriRecord = {
+      uriRecord = {
         tnf: NDEF.TNF_WELL_KNOWN,
         type: NDEF.RTD_URI,
         id: new Uint8Array([1]),
         payload: NfcUtils.fromUTF8('\u0000http://mozilla.org')
       };
+
+      this.sinon.stub(window, 'MozActivity');
+    }),
+
+    teardown(function() {
+      window.MozActivity.restore();
+    }),
+
+    suite('NDEF.payload.decode called with proper args', function() {
+      var stubDecodePayload;
+      var smartPoster;
+
+      setup(function() {
+        smartPoster = {
+          tnf: NDEF.TNF_WELL_KNOWN,
+          type: NDEF.RTD_SMART_POSTER,
+          id: new Uint8Array([2]),
+          payload: 'fake payload'
+        };
+
+        stubDecodePayload = this.sinon.stub(NDEF.payload, 'decode',
+                                            () => null);
+      });
+
+      teardown(function() {
+        stubDecodePayload.restore();
+      });
+
+      test('Multiple records, first record decoded', function() {
+        msg.records.push(uriRecord);
+        msg.records.push({tnf: NDEF.TNF_EMPTY});
+        msg.techList.push('NDEF');
+
+        NfcManager.fireNDEFDiscovered(msg, msg.techList[0]);
+        assert.isTrue(stubDecodePayload.withArgs(uriRecord.tnf,
+                                                 uriRecord.type,
+                                                 uriRecord.payload)
+                                       .calledOnce);
+      });
+
+      test('SP (Smart Poster) takes precedence over URI record', function() {
+        msg.records.push(uriRecord);
+        msg.records.push(smartPoster);
+        msg.techList.push('NDEF');
+
+        NfcManager.fireNDEFDiscovered(msg, msg.techList[0]);
+        assert.isTrue(stubDecodePayload.withArgs(smartPoster.tnf,
+                                                 smartPoster.type,
+                                                 smartPoster.payload)
+                                       .calledOnce);
+      });
+
+      test('SP doesnt take precedence over other records', function() {
+        msg.records.push({tnf: NDEF.TNF_EMPTY});
+        msg.records.push(smartPoster);
+        msg.techList.push('NDEF');
+
+        NfcManager.fireNDEFDiscovered(msg, msg.techList[0]);
+        assert.isTrue(stubDecodePayload.withArgs(NDEF.TNF_EMPTY,
+                                                 undefined,
+                                                 undefined)
+                                       .calledOnce);
+      });
+
+      test('Empty NDEF message', function() {
+        msg.techList.push('NDEF');
+
+        NfcManager.fireNDEFDiscovered(msg, msg.techList[0]);
+        assert.isTrue(stubDecodePayload.withArgs(NDEF.TNF_EMPTY,
+                                                 undefined,
+                                                 undefined)
+                                       .calledOnce);
+      });
+    }),
+
+    test('getSmartPoster called with proper arg', function() {
       msg.records.push(uriRecord);
       msg.techList.push('NDEF');
 
-      this.sinon.stub(window, 'MozActivity');
-      var spyHandleNdefMessage = this.sinon.spy(NfcManager,
-                                                'handleNdefMessage');
+      var spyGetSmartPoster = this.sinon.spy(NfcManager, 'getSmartPoster');
 
       NfcManager.fireNDEFDiscovered(msg, msg.techList[0]);
-      assert.isTrue(spyHandleNdefMessage.withArgs(msg.records).calledOnce);
+      assert.isTrue(spyGetSmartPoster.withArgs(msg.records).calledOnce);
+    }),
+
+    test('createNDEFActivityOptions called with proper args', function() {
+      msg.records.push(uriRecord);
+      msg.techList.push('NDEF');
+
+      this.sinon.stub(NDEF.payload, 'decode', () => 'decoded');
+      var spyCreateOptions = this.sinon.spy(NfcManager,
+                                            'createNDEFActivityOptions');
+
+      NfcManager.fireNDEFDiscovered(msg, msg.techList[0]);
+      assert.isTrue(spyCreateOptions.withArgs('decoded').calledOnce);
+    }),
+
+    test('MozActivity called with proper args, valid NDEF', function() {
+      msg.records.push(uriRecord);
+      msg.techList.push('NDEF');
+
+      NfcManager.fireNDEFDiscovered(msg, msg.techList[0]);
       assert.deepEqual(MozActivity.firstCall.args[0], {
         name: 'nfc-ndef-discovered',
         data: {
                 type: 'url',
                 url: 'http://mozilla.org',
                 records: msg.records,
-                rtd: NDEF.RTD_URI,
                 tech: msg.techList[0],
                 techList: msg.techList,
                 sessionToken: msg.sessionToken
@@ -420,20 +508,15 @@ suite('Nfc Manager Functions', function() {
       });
     });
 
-    test('Invalid NDEF Message contents', function() {
+    test('MozActivity called with proper args, invalid NDEF', function() {
       msg.techList.push('NDEF');
 
-      this.sinon.stub(window, 'MozActivity');
-      var stubHandleNdefMessage = this.sinon.stub(NfcManager,
-                                                  'handleNdefMessage',
-                                                  () => null);
+      this.sinon.stub(NDEF.payload, 'decode', () => null);
 
       NfcManager.fireNDEFDiscovered(msg, msg.techList[0]);
-      assert.isTrue(stubHandleNdefMessage.withArgs(msg.records).calledOnce);
       assert.deepEqual(MozActivity.firstCall.args[0], {
         name: 'nfc-ndef-discovered',
         data: {
-                type: 'unknown',
                 tech: msg.techList[0],
                 techList: msg.techList,
                 sessionToken: msg.sessionToken
@@ -465,427 +548,6 @@ suite('Nfc Manager Functions', function() {
                            records: dummyMsg.records
                          }
                        });
-    });
-  });
-
-  suite('handleNdefMessage', function() {
-    var execCommonTest = function(message, type, name) {
-      var activityOptions = NfcManager.handleNdefMessage(message);
-
-      assert.equal(activityOptions.name, name || 'nfc-ndef-discovered');
-      assert.equal(activityOptions.data.type, type);
-      assert.equal(activityOptions.data.records, message);
-
-      return activityOptions;
-    };
-
-    test('TNF empty', function() {
-      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_EMPTY, null, null, null)];
-      execCommonTest(dummyNdefMsg, 'empty');
-    });
-
-    test('TNF well known rtd text utf 8', function() {
-      var payload = new Uint8Array([0x02, 0x65, 0x6E, 0x48,
-                                    0x65, 0x79, 0x21, 0x20,
-                                    0x55, 0x54, 0x46, 0x2D,
-                                    0x38, 0x20, 0x65, 0x6E]);
-      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                            NDEF.RTD_TEXT,
-                                            new Uint8Array(),
-                                            payload)];
-
-      var activityOptions = execCommonTest(dummyNdefMsg, 'text');
-      assert.equal(activityOptions.data.text, 'Hey! UTF-8 en');
-      assert.equal(activityOptions.data.rtd, NDEF.RTD_TEXT);
-      assert.equal(activityOptions.data.language, 'en');
-      assert.equal(activityOptions.data.encoding, 'UTF-8');
-    });
-
-    test('TNF well known rtd text utf 16', function() {
-      var payload = Uint8Array([0x82, 0x65, 0x6E, 0xFF,
-                                0xFE, 0x48, 0x00, 0x6F,
-                                0x00, 0x21, 0x00, 0x20,
-                                0x00, 0x55, 0x00, 0x54,
-                                0x00, 0x46, 0x00, 0x2D,
-                                0x00, 0x31, 0x00, 0x36,
-                                0x00, 0x20, 0x00, 0x65,
-                                0x00, 0x6E, 0x00]);
-      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                            NDEF.RTD_TEXT,
-                                            new Uint8Array(),
-                                            payload)];
-
-      var activityOptions = execCommonTest(dummyNdefMsg, 'text');
-
-      assert.equal(activityOptions.data.text, 'Ho! UTF-16 en');
-      assert.equal(activityOptions.data.rtd, NDEF.RTD_TEXT);
-      assert.equal(activityOptions.data.language, 'en');
-      assert.equal(activityOptions.data.encoding, 'UTF-16');
-    });
-
-    test('TNF well known rtd uri', function() {
-      var payload = new Uint8Array([0x04, 0x77, 0x69, 0x6B,
-                                    0x69, 0x2E, 0x6D, 0x6F,
-                                    0x7A, 0x69, 0x6C, 0x6C,
-                                    0x61, 0x2E, 0x6F, 0x72,
-                                    0x67]);
-      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                            NDEF.RTD_URI,
-                                            new Uint8Array(),
-                                            payload)];
-
-      var activityOptions = execCommonTest(dummyNdefMsg, 'url');
-      assert.equal(activityOptions.data.url, 'https://wiki.mozilla.org');
-    });
-
-    test('TNF well known mailto: uri', function() {
-      var payload = new Uint8Array([6].concat(
-        Array.apply([], NfcUtils.fromUTF8('jorge@borges.ar'))));
-      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                            NDEF.RTD_URI,
-                                            new Uint8Array(),
-                                            payload)];
-      var activityOptions = execCommonTest(dummyNdefMsg, 'mail', 'new');
-      assert.equal(activityOptions.data.url, 'mailto:jorge@borges.ar');
-    });
-
-    test('TNF well known tel: uri', function() {
-      var payload = new Uint8Array([5].concat(
-        Array.apply([], NfcUtils.fromUTF8('0054267437'))));
-      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                            NDEF.RTD_URI,
-                                            new Uint8Array(),
-                                            payload)];
-      var activityOptions = execCommonTest(dummyNdefMsg, 'webtelephony/number',
-                                           'dial');
-      assert.equal(activityOptions.data.uri, 'tel:0054267437');
-      assert.equal(activityOptions.data.number, '0054267437');
-    });
-
-    test('TNF well known, rtd uri unabbreviated', function() {
-      var uri = Array.apply([], NfcUtils.fromUTF8('http://mozilla.com'));
-      var payload = [0x00].concat(uri);
-      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                            NDEF.RTD_URI,
-                                            new Uint8Array(),
-                                            new Uint8Array(payload))];
-      var activityOptions = execCommonTest(dummyNdefMsg, 'url');
-      assert.equal(activityOptions.data.url, 'http://mozilla.com');
-    });
-
-    test('TNF mime media-type text/plain', function() {
-      var type = new Uint8Array([0x74, 0x65, 0x78, 0x74,
-                                 0x2F, 0x70, 0x6C, 0x61,
-                                 0x69, 0x6E]);
-      // What up?!
-      var payload = new Uint8Array([0x57, 0x68, 0x61, 0x74,
-                                    0x20, 0x75, 0x70, 0x3F,
-                                    0x21]);
-      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_MIME_MEDIA,
-                                            type,
-                                            new Uint8Array(),
-                                            payload)];
-
-      execCommonTest(dummyNdefMsg, 'text/plain');
-    });
-
-    test('TNF absolute uri', function() {
-      // TNF_ABSOLUTE_URI has uri in the type
-      var type = new Uint8Array([0x68, 0x74, 0x74, 0x70,
-                                 0x3A, 0x2F, 0x2F, 0x6D,
-                                 0x6F, 0x7A, 0x69, 0x6C,
-                                 0x6C, 0x61, 0x2E, 0x6F,
-                                 0x72, 0x67]);
-      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_ABSOLUTE_URI,
-                                            type,
-                                            new Uint8Array(),
-                                            new Uint8Array())];
-
-      execCommonTest(dummyNdefMsg, 'http://mozilla.org');
-    });
-
-    test('TNF external type', function() {
-      var type = new Uint8Array([0x6D, 0x6F, 0x7A, 0x69,
-                                 0x6C, 0x6C, 0x61, 0x2E,
-                                 0x6F, 0x72, 0x67, 0x3A,
-                                 0x62, 0x75, 0x67]);
-      var payload = new Uint8Array([0x31, 0x30, 0x30, 0x30,
-                                    0x39, 0x38, 0x31]);
-      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_EXTERNAL_TYPE,
-                                            type,
-                                            new Uint8Array(),
-                                            payload)];
-
-      execCommonTest(dummyNdefMsg, 'mozilla.org:bug');
-    });
-
-    test('TNF unknown, unchanged, reserved', function() {
-      var pld = NfcUtils.fromUTF8('payload');
-      var empt = new Uint8Array();
-      var unknwn = [new MozNDEFRecord(NDEF.TNF_UNKNOWN, empt, empt, pld)];
-      var unchngd = [new MozNDEFRecord(NDEF.TNF_UNCHANGED, empt, empt, pld)];
-      var rsrvd = [new MozNDEFRecord(NDEF.TNF_RESERVED, empt, empt, pld)];
-
-      execCommonTest(unknwn, undefined);
-      execCommonTest(rsrvd, undefined);
-
-      var activityUnchngd = NfcManager.handleNdefMessage(unchngd);
-      assert.equal(activityUnchngd.name, 'nfc-ndef-discovered');
-      assert.isUndefined(activityUnchngd.data.type);
-      assert.isUndefined(activityUnchngd.data.records);
-    });
-
-    suite('Smart posters', function() {
-      /**
-       * Constructs a NDEF message with one record. This record
-       * is a smart poster, so it contains multiple subrecords
-       * in the payload, encoded as bytes.
-       *
-       * Accepts 3*N arguments, where:
-       *  3*(N + 0) argument - TNF of the record
-       *  3*(N + 1) argument - type given as string
-       *  3*(N + 2) argument - payload, given as Uint8Array
-       */
-      var makePoster = function() {
-        var records = [];
-        for (var arg = 0; arg < arguments.length; arg += 3) {
-          records.push({
-            tnf: arguments[arg],
-            type: NfcUtils.fromUTF8(arguments[arg + 1]),
-            payload: arguments[arg + 2],
-            id: new Uint8Array()
-          });
-        }
-
-        var payload = NfcUtils.encodeNDEF(records);
-        return [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                  NDEF.RTD_SMART_POSTER,
-                                  new Uint8Array(),
-                                  new Uint8Array(payload))];
-      };
-
-      var recordURI,
-          recordTextEnglish,
-          recordTextPolish,
-          recordAction,
-          recordIcon;
-
-      setup(function() {
-        // URI "http://www.youtube.com" with abbreviation
-        // for "http://www."
-        recordURI = [
-          0x01,  // Payload: abbreviation
-          0x79, 0x6F, 0x75, 0x74, // 'yout'
-          0x75, 0x62, 0x65, 0x2E, // 'ube.'
-          0x63, 0x6F, 0x6D        // 'com'
-        ];
-
-        // Text record with contents: "Best page ever!  q#@"
-        // and language code: "en"
-        recordTextEnglish = [
-          0x02,  // Status byte: UTF-8, two byte lang code
-          0x65, 0x6E, // ISO language code: 'en'
-          0x42, 0x65, 0x73, 0x74, // 'Best'
-          0x20, 0x70, 0x61, 0x67, // ' pag'
-          0x65, 0x20, 0x65, 0x76, // 'e ev'
-          0x65, 0x72, 0x21, 0x20, // 'er! '
-          0x20, 0x71, 0x23, 0x40  // ' q#@'
-        ];
-
-        // Text record with contents: "ąćńó"
-        // and language code: "pl"
-        recordTextPolish = [
-         0x02,  // Status byte: UTF-8, two byte lang code
-         0x70, 0x6C, // ISO language code: 'pl'
-         0xC4, 0x85, 0xC4, 0x87, // 'ąć'
-         0xC5, 0x84, 0xC3, 0xB3  // 'ńó'
-        ];
-
-        // Action record with action = 0
-        recordAction = [0x00];
-
-        // Icon record with simple 4x4 PNG image.
-        recordIcon = [
-          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
-          0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
-          0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x04,
-          0x08, 0x02, 0x00, 0x00, 0x00, 0x26, 0x93, 0x09,
-          0x29, 0x00, 0x00, 0x00, 0x1b, 0x49, 0x44, 0x41,
-          0x54, 0x08, 0xd7, 0x63, 0xf8, 0xff, 0xff, 0x3f,
-          0x03, 0x0c, 0x30, 0xc2, 0x39, 0x8c, 0x8c, 0x8c,
-          0x4c, 0x10, 0x0a, 0x2a, 0x85, 0xac, 0x0c, 0x00,
-          0x26, 0x0b, 0x09, 0x01, 0xc3, 0xd1, 0x9a, 0x7b,
-          0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44,
-          0xae, 0x42, 0x60, 0x82
-        ];
-      });
-
-      test('Decodes simple poster', function() {
-        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI);
-        var activityOptions = execCommonTest(poster, 'url');
-        assert.equal(activityOptions.data.url, 'http://www.youtube.com');
-      });
-
-      test('Decodes extra records', function() {
-        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI,
-                                NDEF.TNF_WELL_KNOWN, 'T', recordTextEnglish,
-                                NDEF.TNF_WELL_KNOWN, 'T', recordTextPolish,
-                                NDEF.TNF_WELL_KNOWN, 'act', recordAction,
-                                NDEF.TNF_MIME_MEDIA, 'image/png', recordIcon);
-
-        var activityOptions = execCommonTest(poster, 'url');
-        assert.equal(activityOptions.data.url, 'http://www.youtube.com');
-        assert.equal(activityOptions.data.text.en, 'Best page ever!  q#@');
-        assert.equal(activityOptions.data.text.pl, 'ąćńó');
-        assert.equal(activityOptions.data.icons.length, 1);
-        assert.equal(activityOptions.data.icons[0].type, 'image/png');
-        assert.isTrue(NfcUtils.equalArrays(activityOptions.data.icons[0].bytes,
-                                           recordIcon));
-      });
-
-      test('Does not handle poster with multiple URIs', function() {
-        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI,
-                                NDEF.TNF_WELL_KNOWN, 'U', recordURI);
-
-        var activityOptions = NfcManager.handleNdefMessage(poster);
-        assert.deepEqual(activityOptions.data, {});
-      });
-
-      test('Does not handle poster with no URI', function() {
-        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'T', recordTextEnglish,
-                                NDEF.TNF_WELL_KNOWN, 'act', recordAction);
-
-        var activityOptions = NfcManager.handleNdefMessage(poster);
-        assert.deepEqual(activityOptions.data, {});
-      });
-
-      test('Does not handle poster with multiple title ' +
-        'records in the same language', function() {
-
-        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI,
-                                NDEF.TNF_WELL_KNOWN, 'T', recordTextEnglish,
-                                NDEF.TNF_WELL_KNOWN, 'T', recordTextEnglish);
-
-        var activityOptions = NfcManager.handleNdefMessage(poster);
-        assert.deepEqual(activityOptions.data, {});
-      });
-
-      test('Handles poster with not supported recrods',
-        function() {
-
-        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI,
-                                NDEF.TNF_WELL_KNOWN, 'T', recordTextEnglish,
-                                NDEF.TNF_WELL_KNOWN, 'X', [0xAB, 0xCD, 0xEF]);
-
-        var activityOptions = execCommonTest(poster, 'url');
-        assert.equal(activityOptions.data.url, 'http://www.youtube.com');
-        assert.equal(activityOptions.data.text.en, 'Best page ever!  q#@');
-
-        // Unsupported 'X' record is last, so look at last 7 bytes
-        // from payload: 1 byte - header (TNF+flags),
-        //               1 byte - type length,
-        //               1 byte - payload length
-        //               1 byte - name
-        //               3 bytes - payload
-        var records = Array.apply([], activityOptions.data.records[0].payload);
-        var recordX = records.slice(records.length - 7);
-        assert.deepEqual(recordX, [0x51, 0x01, 0x03, 0x58, 0xAB, 0xCD, 0xEF]);
-      });
-
-      test('When smart poster is first of multiple toplevel records, ' +
-        'it takes precedence', function() {
-
-        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI);
-        poster.push(new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                      NDEF.RTD_URI,
-                                      new Uint8Array(),
-                                      [0x01, 0x77, 0x69, 0x6B, 0x69, // 'wiki'
-                                       0x70, 0x65, 0x64, 0x69, 0x61, // 'pedia'
-                                       0x2E, 0x6F, 0x72, 0x67]));    // '.com'
-
-        var activityOptions = execCommonTest(poster, 'url');
-        assert.equal(activityOptions.data.url, 'http://www.youtube.com');
-      });
-
-      test('When smart poster is one of multiple toplevel records, ' +
-        'it takes precedence over other URI records', function() {
-
-        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI);
-        poster.unshift(new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                      NDEF.RTD_URI,
-                                      new Uint8Array(),
-                                      new Uint8Array(
-                                      [0x01, 0x77, 0x69, 0x6B, 0x69, // 'wiki'
-                                       0x70, 0x65, 0x64, 0x69, 0x61, // 'pedia'
-                                       0x2E, 0x6F, 0x72, 0x67])));   // '.com'
-
-        var activityOptions = execCommonTest(poster, 'url');
-        assert.equal(activityOptions.data.url, 'http://www.youtube.com');
-      });
-    });
-  });
-
-  suite('Activity Routing', function() {
-    var vcard;
-    var activityInjection1;
-    var activityInjection2;
-    var activityInjection3;
-
-    setup(function() {
-      vcard = 'BEGIN:VCARD\n';
-      vcard += 'VERSION:2.1\n';
-      vcard += 'N:Office;Mozilla;;;\n';
-      vcard += 'FN:Mozilla Office\n';
-      vcard += 'TEL;PREF:1-555-555-5555\n';
-      vcard += 'END:VCARD';
-
-      activityInjection1 = {
-        type: 'techDiscovered',
-        techList: ['P2P', 'NDEF'],
-        records: [{
-          tnf: NDEF.TNF_MIME_MEDIA,
-          type: NfcUtils.fromUTF8('text/vcard'),
-          id: new Uint8Array(),
-          payload: NfcUtils.fromUTF8(vcard)
-        }],
-        sessionToken: '{e9364a8b-538c-4c9d-84e2-e6ce524afd17}'
-      };
-      activityInjection2 = {
-        type: 'techDiscovered',
-        techList: ['P2P', 'NDEF'],
-        records: [{
-          tnf: NDEF.TNF_MIME_MEDIA,
-          type: NfcUtils.fromUTF8('text/x-vcard'),
-          id: new Uint8Array(),
-          payload: NfcUtils.fromUTF8(vcard)
-        }],
-        sessionToken: '{e9364a8b-538c-4c9d-84e2-e6ce524afd18}'
-      };
-      activityInjection3 = {
-        type: 'techDiscovered',
-        techList: ['P2P', 'NDEF'],
-        records: [{
-          tnf: NDEF.TNF_MIME_MEDIA,
-          type: NfcUtils.fromUTF8('text/x-vCard'),
-          id: new Uint8Array(),
-          payload: NfcUtils.fromUTF8(vcard)
-        }],
-        sessionToken: '{e9364a8b-538c-4c9d-84e2-e6ce524afd19}'
-      };
-    });
-
-    test('text/vcard', function() {
-      var spyFormatVCardRecord = this.sinon.spy(NfcManager,
-                                                'formatVCardRecord');
-
-      NfcManager.handleTechnologyDiscovered(activityInjection1);
-      assert.isTrue(spyFormatVCardRecord.calledOnce);
-
-      NfcManager.handleTechnologyDiscovered(activityInjection2);
-      assert.isTrue(spyFormatVCardRecord.calledTwice);
-
-      NfcManager.handleTechnologyDiscovered(activityInjection3);
-      assert.isTrue(spyFormatVCardRecord.calledThrice);
     });
   });
 

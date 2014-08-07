@@ -1,7 +1,6 @@
 define(function(require) {
   'use strict';
 
-  var _ = navigator.mozL10n.get;
   var SettingsPanel = require('modules/settings_panel');
   var WifiHelper = require('shared/wifi_helper');
   var wifiManager = WifiHelper.getWifiManager();
@@ -21,8 +20,14 @@ define(function(require) {
       onBeforeShow: function(panel, options) {
         this._updateNetworkInfo();
         elements.ssid.textContent = options.network.ssid;
-        elements.signal.textContent = _('signalLevel' + options.sl);
-        elements.security.textContent = options.security || _('securityNone');
+        elements.signal.setAttribute('data-l10n-id',
+                                     'signalLevel' + options.sl);
+        if (options.security) {
+          elements.security.removeAttribute('data-l10n-id');
+          elements.security.textContent = options.security;
+        } else {
+          elements.security.setAttribute('data-l10n-id', 'securityNone');
+        }
         wifiManager.onconnectioninfoupdate = this._updateNetworkInfo;
       },
       onBeforeHide: function() {
@@ -31,9 +36,9 @@ define(function(require) {
       _updateNetworkInfo: function() {
         var info = wifiManager.connectionInformation || {};
         elements.ip.textContent = info.ipAddress || '';
-        elements.speed.textContent = _('linkSpeedMbs', {
-          linkSpeed: info.linkSpeed
-        });
+        navigator.mozL10n.setAttributes(elements.speed,
+                                        'linkSpeedMba',
+                                        { linkSpeed: info.linkSpeed });
       }
     });
   };

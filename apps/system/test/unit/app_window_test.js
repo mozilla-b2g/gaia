@@ -1,6 +1,5 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager,
-      LayoutManager, MocksHelper, MockContextMenu,
-      AppChrome, layoutManager */
+      LayoutManager, MocksHelper, MockContextMenu, layoutManager */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -11,7 +10,6 @@ requireApp('system/test/unit/mock_context_menu.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
-requireApp('system/test/unit/mock_app_titlebar.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_activity_window.js');
@@ -20,7 +18,7 @@ requireApp('system/test/unit/mock_statusbar.js');
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'LayoutManager', 'ActivityWindow',
-  'ScreenLayout', 'AppChrome', 'AppTitleBar', 'PopupWindow', 'StatusBar'
+  'ScreenLayout', 'AppChrome', 'PopupWindow', 'StatusBar'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -118,14 +116,6 @@ suite('system/AppWindow', function() {
     title: 'Fakebook'
   };
 
-  var fakeChromeConfig = {
-    url: 'http://www.fakeChrome/index.html',
-    origin: 'http://www.fakeChrome',
-    manifest: {
-      chrome: { 'navigation': true }
-    }
-  };
-
   var fakeChromeConfigWithoutNavigation = {
     url: 'http://www.fakeChrome2/index.html',
     origin: 'http://www.fakeChrome2',
@@ -158,7 +148,7 @@ suite('system/AppWindow', function() {
 
   test('Automatically enable navigation for a brower window.', function() {
     var app1 = new AppWindow(fakeWrapperConfig);
-    assert.equal(app1.config.chrome.navigation, true);
+    assert.equal(app1.config.chrome.scrollable, true);
   });
 
   suite('Resize', function() {
@@ -236,42 +226,31 @@ suite('system/AppWindow', function() {
       assert.equal(app1.iframe.style.height, '');
     });
 
-    test('Would get the height of chrome\'s button bar', function() {
-      var stubGetBarHeight =
-        this.sinon.stub(AppChrome.prototype, 'getBarHeight');
-      var spy = this.sinon.spy(window, 'AppChrome');
-      var chromeApp = new AppWindow(fakeChromeConfig);
-      var stubIsActive = this.sinon.stub(chromeApp, 'isActive');
-      stubIsActive.returns(true);
-      chromeApp.resize();
-      assert.isTrue(stubGetBarHeight.called);
-      assert.isTrue(spy.calledWithNew());
-    });
-
     test('No navigation setting in manifest', function() {
       var spy = this.sinon.spy(window, 'AppChrome');
       new AppWindow(fakeChromeConfigWithoutNavigation); // jshint ignore:line
       assert.isFalse(spy.calledWithNew());
     });
 
-    test('No navigation setting in manifest - app - titlebar', function() {
-      var spy = this.sinon.spy(window, 'AppTitleBar');
+    test('No navigation setting in manifest - app - appChrome', function() {
+      var spy = this.sinon.spy(window, 'AppChrome');
       var aw = new AppWindow(fakeChromeConfigWithoutNavigation);
       assert.isFalse(spy.calledWithNew());
       aw.element.dispatchEvent(new CustomEvent('_opened'));
       assert.isTrue(spy.calledWithNew());
     });
 
-    test('No navigation setting in manifest - wrapper - titlebar', function() {
-      var spy = this.sinon.spy(window, 'AppTitleBar');
+    test('No navigation setting in manifest - wrapper - appChrome', function() {
+      var spy = this.sinon.spy(window, 'AppChrome');
       new AppWindow(fakeWrapperConfig); // jshint ignore:line
       assert.isTrue(spy.calledWithNew());
     });
 
-    test('Navigation bar in manifest - titlebar', function() {
-      var spy = this.sinon.spy(window, 'AppTitleBar');
-      new AppWindow(fakeChromeConfigWithNavigationBar); // jshint ignore:line
-      assert.isFalse(spy.calledWithNew());
+    test('Navigation bar in manifest - appChrome', function() {
+      var spy = this.sinon.spy(window, 'AppChrome');
+      var aw = new AppWindow(fakeChromeConfigWithNavigationBar);
+      aw.element.dispatchEvent(new CustomEvent('_opened'));
+      assert.isTrue(spy.calledWithNew());
     });
 
     test('resize to bottom most and top most window', function() {
@@ -861,6 +840,7 @@ suite('system/AppWindow', function() {
     goBack: function() {},
     goForward: function() {},
     reload: function() {},
+    stop: function() {},
     getCanGoForward: function() {
       return {
         onsuccess: function() {},
@@ -931,6 +911,7 @@ suite('system/AppWindow', function() {
       var stubBack = this.sinon.stub(app1.browser.element, 'goBack');
       var stubForward = this.sinon.stub(app1.browser.element, 'goForward');
       var stubReload = this.sinon.stub(app1.browser.element, 'reload');
+      var stubStop = this.sinon.stub(app1.browser.element, 'stop');
 
       app1.focus();
       assert.isTrue(stubFocus.called);
@@ -942,6 +923,8 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubForward.called);
       app1.reload();
       assert.isTrue(stubReload.called);
+      app1.stop();
+      assert.isTrue(stubStop.called);
     });
 
     test('MozBrowser API: getScreenshot', function() {

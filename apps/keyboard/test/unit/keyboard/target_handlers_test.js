@@ -46,7 +46,8 @@ suite('target handlers', function() {
         currentIMEngine: {
           click: this.sinon.stub(),
           select: this.sinon.stub(),
-          dismissSuggestions: this.sinon.stub()
+          dismissSuggestions: this.sinon.stub(),
+          empty: this.sinon.stub()
         }
       },
       targetHandlersManager: {
@@ -848,6 +849,8 @@ suite('target handlers', function() {
 
         assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
         assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+
+        assert.isTrue(app.inputMethodManager.currentIMEngine.empty.calledOnce);
       });
     });
 
@@ -862,6 +865,26 @@ suite('target handlers', function() {
 
         assert.isTrue(app.setLayoutPage.calledWith(
           app.layoutManager.LAYOUT_PAGE_SYMBOLS_I));
+        assert.isTrue(app.setLayoutPage.calledOnce);
+
+        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
+        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+
+        assert.isTrue(app.inputMethodManager.currentIMEngine.empty.calledOnce);
+      });
+    });
+
+    suite('KEYCODE_SYMBOL_LAYOUT', function() {
+      setup(function() {
+        target.dataset.keycode =
+          app.layoutManager.KEYCODE_SYMBOL_LAYOUT.toString(10);
+      });
+
+      test('commit', function() {
+        handler.commit();
+
+        assert.isTrue(app.setLayoutPage.calledWith(
+          app.layoutManager.LAYOUT_PAGE_SYMBOLS_II));
         assert.isTrue(app.setLayoutPage.calledOnce);
 
         assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
@@ -886,6 +909,8 @@ suite('target handlers', function() {
 
         assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
         assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+
+        assert.isTrue(app.inputMethodManager.currentIMEngine.empty.calledOnce);
       });
 
       test('commit (Symbols II -> I)', function() {
@@ -900,6 +925,8 @@ suite('target handlers', function() {
 
         assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
         assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+
+        assert.isTrue(app.inputMethodManager.currentIMEngine.empty.calledOnce);
       });
     });
   });

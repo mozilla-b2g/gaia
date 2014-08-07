@@ -401,7 +401,7 @@ var DragDropManager = (function() {
   }
 
   function move() {
-    draggableElemStyle.MozTransform =
+    draggableElemStyle.transform =
       'translate(' + (cx - sx) + 'px,' + (cy - sy) + 'px)';
   }
 

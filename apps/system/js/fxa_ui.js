@@ -63,7 +63,8 @@ var FxAccountsUI = {
 
   // Method for reseting the panel.
   reset: function fxa_ui_reset() {
-    this.panel.innerHTML = '';
+    this.panel.removeChild(this.iframe);
+    this.dialog.browser = null;
     this.onerrorCb = null;
     this.onsuccessCb = null;
   },
@@ -80,6 +81,7 @@ var FxAccountsUI = {
     }
     this.iframe.setAttribute('src', url);
     this.panel.appendChild(this.iframe);
+    this.dialog.browser = { element: this.iframe };
     this.dialog.show();
   },
 

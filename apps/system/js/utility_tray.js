@@ -76,6 +76,7 @@ var UtilityTray = {
 
   handleEvent: function ut_handleEvent(evt) {
     var target = evt.target;
+    var detail = evt.detail;
 
     switch (evt.type) {
       case 'home':
@@ -91,8 +92,24 @@ var UtilityTray = {
       case 'keyboardchangecanceled':
       case 'simpinshow':
       case 'appopening':
-      case 'launchapp':
         if (this.shown) {
+          this.hide();
+        }
+        break;
+
+      case 'launchapp':
+        // we don't want background apps to trigger this event, otherwise,
+        // utility tray will be closed accidentally.
+        var findMyDevice =
+          window.location.origin.replace('system', 'findmydevice');
+
+        var blacklist = [findMyDevice];
+
+        var isBlockedApp = blacklist.some(function(blockedApp) {
+          return blockedApp === detail.origin;
+        });
+
+        if (!isBlockedApp && this.shown) {
           this.hide();
         }
         break;
@@ -118,7 +135,7 @@ var UtilityTray = {
         break;
 
       case 'touchstart':
-        if (window.System.locked) {
+        if (window.System.locked || window.System.runningFTU) {
           return;
         }
 
@@ -275,6 +292,19 @@ var UtilityTray = {
 
       shouldOpen ? this.show() : this.hide();
     }
+
+    // Trigger search from the left half of the screen
+    var corner = touch && (touch.target === this.topPanel) &&
+                 (touch.pageX < (window.innerWidth / 2));
+    if (this.isTap && corner) {
+      if (this.shown) {
+        this.hide();
+      }
+      setTimeout(function() {
+        window.dispatchEvent(new CustomEvent('global-search-request'));
+      });
+    }
+
     this.startY = undefined;
     this.lastDelta = undefined;
     this.isTap = false;

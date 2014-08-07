@@ -8,7 +8,6 @@ module.exports = Email;
 Email.EMAIL_ORIGIN = 'app://email.gaiamobile.org';
 
 var Selector = {
-  notificationBar: '.card-message-list .msg-list-topbar',
   setupNameInput: '.card-setup-account-info .sup-info-name',
   setupEmailInput: '.card-setup-account-info .sup-info-email',
   setupPasswordInput: '.card-setup-account-info .sup-info-password',
@@ -88,8 +87,15 @@ Email.prototype = {
    * Send some emails and then receive them.
    *
    * @param {Array} messages list of messages with to, subject, and body.
+   * @param {Number} [messageSyncIndex] the index into the list of messages in
+   * the message list that indicates synchronization is complete. Uses the last
+   * index in messages by default.
    */
-  sendAndReceiveMessages: function(messages) {
+  sendAndReceiveMessages: function(messages, messageSyncIndex) {
+    if (messageSyncIndex === undefined) {
+      messageSyncIndex = messages.length - 1;
+    }
+
     messages.forEach(function(message) {
       this.tapCompose();
       this.typeTo(message.to);
@@ -99,23 +105,12 @@ Email.prototype = {
     }.bind(this));
 
     this.tapRefreshButton();
-    this.waitForNewEmail();
-    this.tapNotificationBar();
+    this.waitForSynchronized(messageSyncIndex);
   },
 
   waitForToaster: function() {
     var toaster = this.client.helper.waitForElement(Selector.toaster);
     this.client.helper.waitForElementToDisappear(toaster);
-  },
-
-  get notificationBar() {
-    return this.client.helper.waitForElement(Selector.notificationBar);
-  },
-
-  tapNotificationBar: function() {
-    var notificationBar = this.notificationBar;
-    notificationBar.click();
-    this.client.helper.waitForElementToDisappear(notificationBar);
   },
 
   get msgDownBtn() {
@@ -473,8 +468,8 @@ Email.prototype = {
     this._waitForTransitionEnd('compose');
   },
 
-  waitForNewEmail: function() {
-    this._waitForElementNoTransition(Selector.notificationBar);
+  waitForSynchronized: function(index) {
+    this.getHeaderAtIndex(index);
   },
 
   launch: function() {

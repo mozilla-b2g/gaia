@@ -118,6 +118,11 @@ marionette('check root panel settings', function() {
   });
 
   suite('sim related tests', function() {
+    setup(function() {
+      client.contentScript.inject(__dirname +
+        '/../mocks/mock_navigator_moz_bluetooth.js');
+    });
+
     suite('single sim tests', function() {
       setup(function() {
         client.contentScript.inject(__dirname +

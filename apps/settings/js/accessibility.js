@@ -7,7 +7,6 @@
 
 // handle Accessibility settings
 navigator.mozL10n.once(function accessibilitySettings() {
-  var l10n = navigator.mozL10n;
   var settings = Settings.mozSettings;
   var gScreenreaderCheckbox =
     document.querySelector('#screenreader-enable input');
@@ -24,11 +23,14 @@ navigator.mozL10n.once(function accessibilitySettings() {
         settings.createLock().set({ 'accessibility.screenreader': start });
       };
       var startOrStop = start ? 'start' : 'stop';
-      l10n.localize(document.querySelector('#screenreader-confirm-dialog h1'),
-                    'screenReader-confirm-title-' + startOrStop);
-      l10n.localize(document.querySelector('#screenreader-confirm-dialog p'),
+      document.querySelector('#screenreader-confirm-dialog h1').
+        setAttribute('data-l10n-id',
+                     'screenReader-confirm-title-' + startOrStop);
+      document.querySelector('#screenreader-confirm-dialog p').
+        setAttribute('data-l10n-id',
                     'screenReader-confirm-description-' + startOrStop);
-      l10n.localize(button, 'screenReader-confirm-button-' + startOrStop);
+      button.setAttribute('data-l10n-id',
+                          'screenReader-confirm-button-' + startOrStop);
       container.hidden = false;
     }
   };
