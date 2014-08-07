@@ -8,6 +8,22 @@
    * @module  System
    */
   window.System = {
+    lowerCapital: function(str) {
+      return str.charAt(0).toLowerCase() + str.slice(1);
+    },
+
+    getActiveApp: function() {
+      if (AppWindowManager) {
+        return AppWindowManager.getActiveApp();
+      } else {
+        return null;
+      }
+    },
+
+    get readyToLaunchApp() {
+      return applications && applications.ready;
+    },
+
     /**
      * Indicates the system is busy doing something.
      * Now it stands for the foreground app is not loaded yet.
@@ -15,6 +31,7 @@
     isBusyLoading: function() {
       return !window.AppWindowManager.getActiveApp().loaded;
     },
+
     /**
      * Record the start time of the system for later debugging usage.
      * @access private

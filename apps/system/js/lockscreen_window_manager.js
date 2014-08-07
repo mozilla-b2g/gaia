@@ -54,7 +54,9 @@
                 'showlockscreenwindow',
                 'home'
                ]
-    }
+    },
+    modules: ['LockScreenNotifications',
+              'LockScreenPasscodeValidator']
   };
 
   /**
@@ -62,6 +64,7 @@
    */
   LockScreenWindowManager.prototype.start =
   function lwm_start() {
+    this.startModules();
     this.startEventListeners();
     this.startObserveSettings();
     this.initElements();
@@ -152,6 +155,25 @@
         var id = selectors[name];
         this.elements[name] = document.getElementById(id);
       }
+    };
+
+  /**
+   * Instantiate and start submodules.
+   *
+   * @private
+   * @this {LockScreenWindowManager}
+   * @memberof LockScreenWindowManager
+   */
+  LockScreenWindowManager.prototype.startModules =
+    function lwm_startObserveSettings() {
+      this.modules.forEach(function(module) {
+        if (window[module]) {
+          var moduleName =
+            module.charAt(0).toUpperCase() + module.slice(1);
+          this[moduleName] = new window[module](this);
+          this[moduleName].start && this[moduleName].start();
+        }
+      }, this);
     };
 
   /**

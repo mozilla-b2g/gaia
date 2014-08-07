@@ -251,11 +251,8 @@ var QuickSettings = {
 
           case this.fullApp:
             // XXX: This should be replaced probably by Web Activities
-            var host = document.location.host;
-            var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-            var protocol = document.location.protocol + '//';
-            applications.getByManifestURL(protocol + 'settings.' +
-                                          domain + '/manifest.webapp').launch();
+            var origin = window.location.origin.replace('system', 'settings');
+            applications.getByManifestURL(origin + '/manifest.webapp').launch();
 
             UtilityTray.hide();
             break;

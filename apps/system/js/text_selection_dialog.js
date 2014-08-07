@@ -9,7 +9,7 @@
    */
 
   var TextSelectionDialog = function (app) {
-    if (app) {
+    if (app && app.element) {
       this.app = app;
       this.containerElement = app.element;
     } else {
@@ -20,7 +20,7 @@
     // One to one mapping
     this.instanceID = _id++;
     this._injected = false;
-    if (app) {
+    if (app && app.element) {
       app.element.addEventListener('mozbrowsertextualmenu', this, false);
     } else {
       window.addEventListener('mozChromeEvent', this);

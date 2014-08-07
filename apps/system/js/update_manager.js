@@ -99,6 +99,22 @@ var UpdateManager = {
     SettingsListener.observe('gaia.system.checkForUpdates', false,
                              this.checkForUpdates.bind(this));
 
+    /**
+     * Enable checkForUpdate after FTU is either done or skipped.
+     */
+    function doneWithFTU() {
+      window.removeEventListener('ftudone', doneWithFTU);
+      window.removeEventListener('ftuskip', doneWithFTU);
+      var lock = window.navigator.mozSettings.createLock();
+      lock.set({
+        'gaia.system.checkForUpdates': true
+      });
+    }
+
+    window.addEventListener('ftudone', doneWithFTU);
+    // Enable checkForUpdate as well if booted without FTU
+    window.addEventListener('ftuskip', doneWithFTU);
+
     // We maintain the the edge and nowifi data attributes to show
     // a warning on the download dialog
     window.addEventListener('wifi-statuschange', this);

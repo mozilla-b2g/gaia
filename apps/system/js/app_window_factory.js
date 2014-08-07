@@ -1,6 +1,6 @@
 'use strict';
 /* global applications, BrowserConfigHelper, AppWindowManager,
-          homescreenLauncher, AppWindow */
+          homescreenLauncher, AppWindow, System */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -28,6 +28,16 @@
   }
 
   AppWindowFactory.prototype = {
+    _DEBUG: true,
+
+    debug: function awm_debug() {
+      if (this._DEBUG) {
+        console.log('[AppWindowFactory]' +
+          '[' + System.currentTime() + '] ' +
+          Array.slice(arguments).concat());
+      }
+    },
+
     /**
      * Indicate whether this class is started or not.
      * @access private
@@ -95,6 +105,7 @@
     },
 
     handleEvent: function awf_handleEvent(evt) {
+      this.debug('handling ' + evt);
       var detail = evt.detail;
       var manifestURL = detail.manifestURL;
       if (!manifestURL) {

@@ -688,12 +688,3 @@ var KeyboardManager = {
     this.hasActiveKeyboard = active;
   }
 };
-
-if (applications.ready) {
-  KeyboardManager.init();
-} else {
-  window.addEventListener('applicationready', function mozAppsReady(event) {
-    window.removeEventListener('applicationready', mozAppsReady);
-    KeyboardManager.init();
-  });
-}

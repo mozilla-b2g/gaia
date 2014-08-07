@@ -2,7 +2,6 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
-/* global Applications, applications*/
 /** Application module handles the information of apps on behalf of other
  *  modules
  *  @class Applications
@@ -63,24 +62,7 @@
         };
       };
 
-      // We need to wait for the chrome shell to let us know when it's ok to
-      // launch activities. This prevents race conditions.
-      // The event does not fire again when we reload System app in on
-      // B2G Desktop, so we save the information into sessionStorage.
-      if (window.sessionStorage.getItem('webapps-registry-ready')) {
-        getAllApps();
-      } else {
-        window.addEventListener('mozChromeEvent', function mozAppReady(event) {
-          if (event.detail.type != 'webapps-registry-ready') {
-            return;
-          }
-
-          window.sessionStorage.setItem('webapps-registry-ready', 'yes');
-          window.removeEventListener('mozChromeEvent', mozAppReady);
-
-          getAllApps();
-        });
-      }
+      getAllApps();
 
       apps.mgmt.oninstall = function a_install(evt) {
         var newapp = evt.application;
@@ -115,6 +97,7 @@
      */
 
     fireApplicationReadyEvent: function a_fireAppReadyEvent() {
+      console.log('ready!');
       var evt = new CustomEvent('applicationready',
                            { bubbles: true,
                              cancelable: false,
@@ -155,6 +138,3 @@
 
   exports.Applications = Applications;
 }(window));
-
-window.applications = new Applications();
-applications.start();

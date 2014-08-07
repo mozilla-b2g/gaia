@@ -585,6 +585,9 @@ var ScreenManager = {
       { bubbles: true, cancelable: false,
         detail: detail });
     window.dispatchEvent(evt);
+  },
+  start: function() {
+    this.turnScreenOn();
   }
 };
 
