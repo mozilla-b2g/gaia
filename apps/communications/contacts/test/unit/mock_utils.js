@@ -19,7 +19,6 @@ var MockImageLoader = function() {
   this.reload = function() {};
   this.setResolver = function() {};
   this.releaseImage = function() {};
-  this.unload = function() {};
 };
 
 var MockUtils = {
