@@ -4,7 +4,8 @@
 /*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
-         PerformanceTestingHelper, StickyHeader, Navigation, Dialog */
+         PerformanceTestingHelper, StickyHeader, Navigation, Dialog
+         */
 /*exported ThreadListUI */
 (function(exports) {
 'use strict';
@@ -26,6 +27,7 @@ var ThreadListUI = {
   // Set to |true| when in edit mode
   inEditMode: false,
 
+  cachedThread: {},
   init: function thlui_init() {
     this.tmpl = {
       thread: Template('messages-thread-tmpl')
@@ -118,8 +120,9 @@ var ThreadListUI = {
   },
 
   setContact: function thlui_setContact(node) {
-    var thread = Threads.get(node.dataset.threadId);
-    var draft = Drafts.get(node.dataset.threadId);
+    var threadId = node.dataset.threadId;
+    var thread = Threads.get(threadId) || this.cachedThread[threadId];
+    var draft = Drafts.get(threadId);
     var number, others;
 
     if (thread) {
@@ -509,8 +512,27 @@ var ThreadListUI = {
 
     var hasThreads = false;
     var firstPanelCount = 9; // counted on a Peak
+    var isfirstViewDoneCalled = false;
+    var firstViewThreads = {};
 
     this.prepareRendering();
+
+    // Rendering the cached threads first
+    var threadsjson = window.localStorage.getItem('thread-cache');
+    if (threadsjson) {
+      this.cachedThread = JSON.parse(threadsjson);
+      for (var key in this.cachedThread) {
+        if (!hasThreads) {
+          hasThreads = true;
+          this.startRendering();
+        }
+        var thread = this.cachedThread[key];
+        this.appendThread(thread);
+        console.log('@@@ append thread = ' + Date.now());
+      }
+      firstViewDone();
+      isfirstViewDoneCalled = true;
+    }
 
     function onRenderThread(thread) {
       /* jshint validthis: true */
@@ -519,11 +541,21 @@ var ThreadListUI = {
         this.startRendering();
       }
 
-      this.appendThread(thread);
+      if (this.cachedThread && this.cachedThread[thread.id]) {
+        this.updateThread(thread, { cached : true });
+      } else {
+        this.appendThread(thread);
+      }
+      firstViewThreads[thread.id] = new Thread(thread);
       if (--firstPanelCount === 0) {
         // dispatch visually-complete and content-interactive when rendered
         // threads could fill up the top of the visiable area
-        firstViewDone();
+        if (!isfirstViewDoneCalled) {
+          firstViewDone();
+          isfirstViewDoneCalled = true;
+        }
+        window.localStorage.setItem('thread-cache',
+          JSON.stringify(firstViewThreads));
         window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
       }
     }
@@ -538,7 +570,12 @@ var ThreadListUI = {
       if (firstPanelCount > 0) {
         // dispatch visually-complete and content-interactive when rendering
         // ended but threads could not fill up the top of the visiable area
-        firstViewDone();
+        if (!isfirstViewDoneCalled) {
+          firstViewDone();
+          isfirstViewDoneCalled = true;
+        }
+        window.localStorage.setItem('thread-cache',
+          JSON.stringify(firstViewThreads));
         window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
       }
     }
@@ -561,7 +598,7 @@ var ThreadListUI = {
     var number = participants[0];
     var id = record.id;
     var bodyHTML = record.body;
-    var thread = Threads.get(id);
+    var thread = Threads.get(id) || this.cachedThread[id];
     var draft, draftId;
 
     // A new conversation "is" a draft
@@ -698,6 +735,11 @@ var ThreadListUI = {
     // unchanged, we don't need to update the thread UI.
     var messagesDeleted = options && options.deleted;
     if (messagesDeleted && threadUITime === recordTime) {
+      return;
+    }
+
+    var messageCached = options && options.cached;
+    if (messageCached && threadUITime === recordTime) {
       return;
     }
 
