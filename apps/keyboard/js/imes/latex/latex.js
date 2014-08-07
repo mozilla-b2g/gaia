@@ -34,6 +34,7 @@
 
   // These variables are the input method's state. Most of them are
   // passed to the activate() method or are derived in that method.
+  var capitalizing;       // Are we auto-capitalizing for this activation?
   var cursor;             // The insertion position
   var inputText;          // The input text
   var selection;          // The end of the selection, if there is one, or 0
@@ -49,6 +50,12 @@
     keyboard = interfaceObject;
   }
 
+  function setAutoCapitalization(type) {
+    if (type === 'text' || type === 'textarea' || type === 'search') {
+      capitalizing = true;
+    }
+  }
+
   // This gets called whenever the keyboard pops up to tell us everything
   // we need to provide useful typing assistance. It also gets called whenever
   // the user taps on an input field to move the cursor. That means that there
@@ -62,10 +69,26 @@
     } else {
       selection = 0;
     }
+
+    // Start off with the correct capitalization
+    setAutoCapitalization(state.type);
+    updateCapitalization();
   }
 
   function deactivate() {
     return;
+  }
+
+  /*
+   * Handle any key (including backspace) and update the capitalization.
+   */
+  function handleKey(keyCode, repeat) {
+    keyboard.sendKey(keyCode, repeat).then(function() {
+      updateCapitalization();
+    }, function() {
+      // sendKey got canceled, keep state the same
+    }
+    );
   }
 
   /*
@@ -91,14 +114,8 @@
     default:
       keyCode = keyboard.isCapitalized() && upperKeyCode ? upperKeyCode :
         keyCode;
-      keyboard.sendKey(keyCode, repeat);
-
-      // The default keyboard disable the upper case function after inserting
-      // one letter (if the upper case isn't lock). This keyboard will have the
-      // same behaviour.
-      keyboard.setUpperCase({
-        isUpperCase: false
-      });
+      handleKey(keyCode, repeat);
+      cursor++;
       break;
     }
   }
@@ -171,7 +188,8 @@
       jumpLength += keyboard.app.inputContext.selectionStart;
       keyboard.app.inputContext.setSelectionRange(jumpLength, 0);
     } else {
-      keyboard.sendKey(RETURN);
+      handleKey(RETURN);
+      cursor++;
     }
   }
 
@@ -191,7 +209,12 @@
     }
 
     for (var i = 0; i < numberOfBackspacesToEmit; i++) {
-      keyboard.sendKey(BACKSPACE);
+      if (cursor > 0) {
+        handleKey(BACKSPACE);
+        cursor--;
+      } else {
+        break;
+      }
     }
   }
 
@@ -206,12 +229,14 @@
     var lastPeriodMatch = textBeforeCursor.match(lastPeriodRegex);
     if (lastPeriodMatch) {
       // Remove ..
-      keyboard.sendKey(BACKSPACE);
-      keyboard.sendKey(BACKSPACE);
+      handleKey(BACKSPACE);
+      handleKey(BACKSPACE);
       // Insert \dots
       compositeKeyClick('\\dots');
+      cursor += 3;
     } else {
-      keyboard.sendKey(PERIOD);
+      handleKey(PERIOD);
+      cursor++;
     }
   }
 
@@ -279,20 +304,75 @@
 
     // Insert compositeKey
     for (var i = 0; i < compositeKey.length; i++) {
-      keyboard.sendKey(compositeKey.charCodeAt(i));
+      handleKey(compositeKey.charCodeAt(i));
+      cursor++;
     }
-
-    // The default keyboard disable the upper case function after insert one
-    // letter (if the upper case isn't lock). This keyboard will have the same
-    // behaviour for Greek letters and styled letters (this doesn't effect
-    // others keys because they don't have upper case value).
-    keyboard.setUpperCase({
-      isUpperCase: false
-    });
 
     // Change the cursor position.
     selectionStart += compositeKey.length - cursorOffset;
     keyboard.app.inputContext.setSelectionRange(selectionStart, 0);
+    updateCapitalization();
+  }
+
+  function updateCapitalization() {
+    // If input type is one that doesn't want capitalization, then don't alter
+    // the state of the keyboard.  We however want to reset the shift key state
+    // triggered by the user, regardless of the layout page the user is
+    // currently on.
+    if (!capitalizing) {
+      keyboard.setUpperCase({
+        isUpperCase: false
+      });
+      return;
+    }
+
+    // Set the keyboard to uppercase or lowercase depending
+    // on the text around the cursor:
+    //
+    // 1) If the cursor is at the start of the field: uppercase
+    //
+    // 2) If there is a non space character immediately before the cursor:
+    //    lowercase
+    //
+    // 3) If the first non-space character before the cursor is . ? or !:
+    //    uppercase
+    //
+    // 4) Otherwise: lowercase
+    //
+    if (cursor === 0) {
+      keyboard.setUpperCase({
+        isUpperCase: true
+      });
+    }
+    else if (midleOfWord()) {
+      keyboard.setUpperCase({
+        isUpperCase: false
+      });
+    }
+    else if (atSentenceStart()) {
+      keyboard.setUpperCase({
+        isUpperCase: true
+      });
+    }
+    else {
+      keyboard.setUpperCase({
+        isUpperCase: false
+      });
+    }
+  }
+
+  function midleOfWord() {
+    var midleOfWordRegex = /\w$/;
+    var wordsBeforeCursor = keyboard.app.inputContext.textBeforeCursor;
+
+    return midleOfWordRegex.test(wordsBeforeCursor);
+  }
+
+  function atSentenceStart() {
+    var sentenceStartRegex = /[.!?]\s+$/;
+    var wordsBeforeCursor = keyboard.app.inputContext.textBeforeCursor;
+
+    return sentenceStartRegex.test(wordsBeforeCursor);
   }
 
 }());
