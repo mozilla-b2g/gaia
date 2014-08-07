@@ -1,6 +1,6 @@
 'use strict';
+
 suite('Languages > ', function() {
-  var mockL10n;
   var mockKeyboardHelper;
   var languages;
   var realL10n;
@@ -19,9 +19,8 @@ suite('Languages > ', function() {
     testRequire(modules, maps,
       function(MockL10n, MockKeyboardHelper, Languages) {
         // mock l10n
-        mockL10n = MockL10n;
         realL10n = window.navigator.mozL10n;
-        window.navigator.mozL10n = mockL10n;
+        window.navigator.mozL10n = MockL10n;
 
         // mock keyboard helper
         mockKeyboardHelper = MockKeyboardHelper;
