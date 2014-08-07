@@ -101,56 +101,6 @@ suite('telephony helper', function() {
     sinon.assert.notCalled(navigator.mozTelephony.dial);
   });
 
-  suite('<<pause>> DTMF separator', function() {
-    setup(function() {
-      this.sinon.useFakeTimers();
-      this.sinon.spy(MockNavigatorMozTelephony, 'startTone');
-    });
-
-    test('should allow dialing number with DTMF separator', function() {
-      subject.call('1233241,,123', 0);
-      sinon.assert.calledWith(navigator.mozTelephony.dial, '1233241');
-    });
-
-    test('a number that starts with pause is invalid', function() {
-      subject.call(',012023423', 0);
-      sinon.assert.calledWith(spyConfirmShow, 'invalidNumberToDialTitle',
-                              'invalidNumberToDialMessage');
-    });
-
-    test('should send DTMF tones after connection', function(done) {
-      subject.call('1233241,,123', 0);
-      mockPromise.then(function() {
-        mockCall.state = 'connected';
-        mockCall.onconnected();
-        this.sinon.clock.tick(5500);
-        sinon.assert.notCalled(MockNavigatorMozTelephony.startTone);
-        this.sinon.clock.tick(6500);
-        sinon.assert.calledWith(MockNavigatorMozTelephony.startTone, '1');
-        this.sinon.clock.tick(6700);
-        sinon.assert.calledWith(MockNavigatorMozTelephony.startTone, '2');
-        this.sinon.clock.tick(6900);
-        sinon.assert.calledWith(MockNavigatorMozTelephony.startTone, '3');
-      }.bind(this)).then(done, done);
-    });
-
-    test('should wait 3 seconds after each separator', function(done) {
-      subject.call('888888,1,2,3', 0);
-      mockPromise.then(function() {
-        mockCall.state = 'connected';
-        mockCall.onconnected();
-        this.sinon.clock.tick(2900);
-        sinon.assert.notCalled(MockNavigatorMozTelephony.startTone);
-        this.sinon.clock.tick(3100);
-        sinon.assert.calledWith(MockNavigatorMozTelephony.startTone, '1');
-        this.sinon.clock.tick(6200);
-        sinon.assert.calledWith(MockNavigatorMozTelephony.startTone, '2');
-        this.sinon.clock.tick(9400);
-        sinon.assert.calledWith(MockNavigatorMozTelephony.startTone, '3');
-      }.bind(this)).then(done, done);
-    });
-  });
-
   suite('Emergency dialing >', function() {
     var initialState;
 
@@ -323,12 +273,11 @@ suite('telephony helper', function() {
       });
     });
 
-    test('should trigger onconnected callback on connected', function(done) {
-      var onconnectedStub = this.sinon.stub();
-      subject.call('123', 0, null, onconnectedStub);
+    test('should bind the onconnected callback', function(done) {
+      var onconnected = function uniq_onconnected() {};
+      subject.call('123', 0, null, onconnected);
       mockPromise.then(function() {
-        mockCall.onconnected();
-        sinon.assert.calledOnce(onconnectedStub);
+        assert.equal(mockCall.onconnected, onconnected);
       }).then(done, done);
     });
 
