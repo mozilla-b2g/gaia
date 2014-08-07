@@ -106,33 +106,91 @@ suite('FindMyDevice >', function() {
     fakeClock.tick();
   });
 
-  test('Ring command', function(done) {
+  suite('Ring command', function() {
     var duration = 2;
-    var ringtone = 'user selected ringtone';
 
-    MockSettingsListener.mCallbacks['dialer.ringtone'](ringtone);
+    setup(function() {
+      this.sinon.spy(window, 'setTimeout');
+      this.sinon.spy(window, 'clearTimeout');
+    });
 
-    subject.invokeCommand('ring', [duration, function(retval) {
-      var lock = MockSettingsListener.getSettingsLock().locks.pop();
+    test('Basic invocation', function() {
+      var ringtone = 'user selected ringtone';
 
-      var ringer = subject._ringer;
-      var channel = ringer.mozAudioChannelType;
-      assert.equal(channel, 'content', 'use content channel');
-      assert.equal(lock['audio.volume.content'], 15, 'volume set to maximum');
-      assert.equal(ringer.paused, false, 'must be playing');
-      assert.equal(ringer.src, ringtone, 'must use ringtone');
-      sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'command');
+      MockSettingsListener.mCallbacks['dialer.ringtone'](ringtone);
 
-      setTimeout(function() {
-        assert.equal(ringer.paused, true, 'must have stopped');
-        sinon.assert.calledWith(FindMyDevice.endHighPriority, 'command');
-        done();
-      }, duration * 1000);
+      Commands.invokeCommand('ring', [duration, function(retval) {
+        var lock = MockSettingsListener.getSettingsLock().locks.pop();
+
+        var channel = Commands._ringer.mozAudioChannelType;
+        assert.equal(channel, 'content', 'use content channel');
+        assert.equal(lock['audio.volume.content'], 15, 'volume set to maximum');
+        assert.equal(Commands._ringer.paused, false, 'must be playing');
+        assert.equal(Commands._ringer.src, ringtone, 'must use ringtone');
+        sinon.assert.calledOnce(FindMyDevice.beginHighPriority);
+        sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'command');
+      }]);
 
       fakeClock.tick(duration * 1000);
-    }]);
+      assert.equal(Commands._ringer.paused, true, 'must have stopped');
+      sinon.assert.calledOnce(FindMyDevice.endHighPriority);
+      sinon.assert.calledWith(FindMyDevice.endHighPriority, 'command');
+    });
 
-    fakeClock.tick();
+    test('Stop ringing if duration is zero', function() {
+      Commands.invokeCommand('ring', [duration, function(retval) {
+        assert.equal(Commands._ringer.paused, false, 'must be playing');
+        sinon.assert.called(window.setTimeout);
+        sinon.assert.calledOnce(FindMyDevice.beginHighPriority);
+        sinon.assert.notCalled(FindMyDevice.endHighPriority);
+      }]);
+
+      fakeClock.tick(duration/2 * 1000);
+
+      var timeoutId = Commands._ringTimeoutId;
+      assert.isFalse(Commands._ringer.paused, 'must not be done ringing');
+      Commands.invokeCommand('ring', [0, function(retval) {}]);
+
+      assert.equal(Commands._ringer.paused, true, 'must have stopped');
+      assert.isNull(Commands._ringTimeoutId, 'timeout must have been canceled');
+      sinon.assert.calledWith(window.clearTimeout, timeoutId);
+      sinon.assert.calledTwice(FindMyDevice.beginHighPriority);
+      sinon.assert.alwaysCalledWith(FindMyDevice.beginHighPriority, 'command');
+      sinon.assert.calledTwice(FindMyDevice.endHighPriority);
+      sinon.assert.alwaysCalledWith(FindMyDevice.endHighPriority, 'command');
+    });
+
+    test('Should do nothing if already ringing', function() {
+      Commands.invokeCommand('ring', [duration, function(retval) {
+        assert.isFalse(Commands._ringer.paused, 'must be playing');
+        sinon.assert.calledOnce(FindMyDevice.beginHighPriority);
+        sinon.assert.notCalled(FindMyDevice.endHighPriority);
+      }]);
+
+      fakeClock.tick(duration/2 * 1000);
+
+      assert.isFalse(Commands._ringer.paused, 'must not be done ringing');
+      Commands.invokeCommand('ring', [duration, function(retval) {}]);
+
+      fakeClock.tick(duration/2 * 1000);
+
+      assert.isTrue(Commands._ringer.paused, 'must have stopped');
+      assert.isNull(Commands._ringTimeoutId, 'no timeouts should be set');
+      sinon.assert.calledTwice(FindMyDevice.beginHighPriority);
+      sinon.assert.alwaysCalledWith(FindMyDevice.beginHighPriority, 'command');
+      sinon.assert.calledTwice(FindMyDevice.endHighPriority);
+      sinon.assert.alwaysCalledWith(FindMyDevice.endHighPriority, 'command');
+    });
+
+    test('Should do nothing if not ringing and duration is zero', function() {
+      Commands.invokeCommand('ring', [0, function(retval) {}]);
+      assert.isTrue(Commands._ringer.paused, 'must not have started');
+      assert.isNull(Commands._ringTimeoutId);
+      sinon.assert.calledOnce(FindMyDevice.beginHighPriority);
+      sinon.assert.alwaysCalledWith(FindMyDevice.beginHighPriority, 'command');
+      sinon.assert.calledOnce(FindMyDevice.endHighPriority);
+      sinon.assert.alwaysCalledWith(FindMyDevice.endHighPriority, 'command');
+    });
   });
 
   test('Erase: ensure factoryReset is called with "wipe"', function(done) {
