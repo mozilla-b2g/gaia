@@ -332,8 +332,9 @@
       this.area.addEventListener('touchstart', this);
 
       // Capture the first overlay change and do the delayed initialization.
-      this.layout = (ScreenLayout && ScreenLayout.getCurrentLayout) ?
-           ScreenLayout.getCurrentLayout() : 'tiny';
+      this.layout = (ScreenLayout && ScreenLayout.getCurrentLayout &&
+                     ScreenLayout.getCurrentLayout()) ?
+                      ScreenLayout.getCurrentLayout() : 'tiny';
 
       var center = this.center;
       this.arrows.left = new Image();

@@ -2,12 +2,18 @@
 
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/test/unit/mock_attention_window.js');
+requireApp('system/test/unit/mock_attention_window_manager.js');
 require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([
   'AppWindowManager',
+  'AttentionWindowManager',
   'LazyLoader',
-  'System'
+  'System',
+  'StatusBar'
 ]);
 mocksHelperForUtilityTray.init();
 
@@ -48,6 +54,7 @@ suite('system/UtilityTray', function() {
   }
 
   setup(function(done) {
+    window.attentionWindowManager = MockAttentionWindowManager;
     var statusbar = document.createElement('div');
     statusbar.style.cssText = 'height: 100px; display: block;';
 
@@ -105,7 +112,6 @@ suite('system/UtilityTray', function() {
     window.System.locked = false;
   });
 
-
   suite('show', function() {
     setup(function() {
       UtilityTray.show();
@@ -161,6 +167,25 @@ suite('system/UtilityTray', function() {
     });
 
     suite('showing', function() {
+      test('clip all closed attention windows', function() {
+        var attentions = [
+          new MockAttentionWindow(),
+          new MockAttentionWindow(),
+          new MockAttentionWindow()
+        ];
+        this.sinon.stub(MockAttentionWindowManager, 'getInstances')
+          .returns(attentions);
+        var stubSetClip = [
+          this.sinon.stub(attentions[0], 'setClip'),
+          this.sinon.stub(attentions[1], 'setClip'),
+          this.sinon.stub(attentions[2], 'setClip')
+        ];
+        fakeTouches(0, 5);
+        assert.isTrue(stubSetClip[0].called);
+        assert.isTrue(stubSetClip[1].called);
+        assert.isTrue(stubSetClip[2].called);
+      });
+
       test('should not be shown by a tap', function() {
         fakeTouches(0, 5);
         assert.equal(UtilityTray.shown, false);
@@ -217,6 +242,26 @@ suite('system/UtilityTray', function() {
         UtilityTray.show();
       });
 
+
+      test('clip all closed attention windows', function() {
+        var attentions = [
+          new MockAttentionWindow(),
+          new MockAttentionWindow(),
+          new MockAttentionWindow()
+        ];
+        this.sinon.stub(MockAttentionWindowManager, 'getInstances')
+          .returns(attentions);
+        var stubUnsetClip = [
+          this.sinon.stub(attentions[0], 'unsetClip'),
+          this.sinon.stub(attentions[1], 'unsetClip'),
+          this.sinon.stub(attentions[2], 'unsetClip')
+        ];
+        fakeTouches(480, 380, UtilityTray.grippy);
+        assert.isTrue(stubUnsetClip[0].called);
+        assert.isTrue(stubUnsetClip[1].called);
+        assert.isTrue(stubUnsetClip[2].called);
+      });
+
       test('should not be hidden by a tap', function() {
         fakeTouches(480, 475, UtilityTray.grippy);
         assert.equal(UtilityTray.shown, true);
@@ -231,9 +276,9 @@ suite('system/UtilityTray', function() {
 
 
   // handleEvent
-  suite('handleEvent: attentionscreenshow', function() {
+  suite('handleEvent: attentionopened', function() {
     setup(function() {
-      fakeEvt = createEvent('attentionscreenshow');
+      fakeEvt = createEvent('attentionopened');
       UtilityTray.show();
       UtilityTray.handleEvent(fakeEvt);
     });

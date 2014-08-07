@@ -1,5 +1,5 @@
 /* Handling the status bar mode */
-@media (max-height: 4.5em) {
+@media (max-height: 6.5em) {
   html {
     font-size: 10px;
   }
@@ -17,12 +17,12 @@
   #group-call {
     background-color: #00adad;
     background-repeat: repeat-x;
-    background-size: auto 4rem;
+    background-size: auto 5rem;
     color: white;
     font-size: 1.7rem;
     padding-left: 1rem;
     padding-right: 2rem;
-    height: 40px;
+    height: 60px;
   }
 
   .handled-call.ended {

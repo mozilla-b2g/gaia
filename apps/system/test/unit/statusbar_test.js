@@ -260,8 +260,8 @@ suite('system/Statusbar', function() {
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
     });
-    test('attentionscreen show', function() {
-      var evt = new CustomEvent('attentionscreenshow');
+    test('attention opening', function() {
+      var evt = new CustomEvent('attentionopened');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
@@ -269,7 +269,7 @@ suite('system/Statusbar', function() {
     test('attentionsceen hide', function() {
       // Test this when lockscreen is off.
       System.locked = false;
-      var evt = new CustomEvent('attentionscreenhide');
+      var evt = new CustomEvent('attentionclosed');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);

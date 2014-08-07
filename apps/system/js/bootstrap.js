@@ -61,6 +61,9 @@ window.addEventListener('load', function startup() {
     // when the screen is locked.
     window.AppWindowManager.init();
 
+    window.layoutManager = new LayoutManager();
+    window.layoutManager.start();
+
     /** @global */
     window.textSelectionDialog = new TextSelectionDialog();
   }
@@ -120,6 +123,9 @@ window.addEventListener('load', function startup() {
   window.appWindowFactory.start();
   window.developerHUD = new DeveloperHUD();
   window.developerHUD.start();
+  /** @global */
+  window.attentionWindowManager = new window.AttentionWindowManager();
+  window.attentionWindowManager.start();
   window.dialerAgent = new DialerAgent();
   window.dialerAgent.start();
   window.homeGesture = new HomeGesture();

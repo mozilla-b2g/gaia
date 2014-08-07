@@ -1,7 +1,7 @@
 'use strict';
 
 (function(window) {
-  var DEBUG = true;
+  var DEBUG = false;
   var _id = 0;
 
   /**
