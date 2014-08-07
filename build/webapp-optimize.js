@@ -8,11 +8,16 @@
  * 3. Concat l10n resource to json files and put them as link and attach to
  *    html.
  * 4. Aggregate and uglify all JS files used in html to one JS file.
- * 5. Optimize inline JS/CSS content.
+ * 5. Aggregate all CSS files used in html to one CSS file.
+ * 6. Optimize inline JS/CSS content.
  */
 
 var utils = require('./utils');
 var jsmin = require('./jsmin');
+
+var URL_IN_CSS_RE = /\burl\b\s*\(['"]?(.*?)["']?\)/gi;
+var URL_STARTS_SCHEME = /^\w+:/;
+
 /**
  * HTMLOptimizer will optimize all the resources of HTML, including javascripts,
  *
@@ -25,7 +30,7 @@ var HTMLOptimizer = function(options) {
    *   - config.GAIA_INLINE_LOCALES  - embed the minimum l10n data in HTML files
    *   - config.GAIA_PRETRANSLATE    - pretranslate html into default locale
    *   - config.GAIA_CONCAT_LOCALES  - aggregates l10n files
-   *   - config.GAIA_OPTIMIZE        - aggregates JS files
+   *   - config.GAIA_OPTIMIZE        - aggregates JS/CSS files
    */
   this.config = options.config;
   this.win = options.win;
@@ -95,13 +100,14 @@ HTMLOptimizer.prototype._optimize = function() {
   this.embedHtmlImports();
   this.optimizeDeviceTypeCSS();
 
-  var jsAggregationBlacklist = this.optimizeConfig.JS_AGGREGATION_BLACKLIST;
+  var aggregationBlacklist = this.optimizeConfig.AGGREGATION_BLACKLIST;
   if (this.config.GAIA_OPTIMIZE === '1' &&
-      (!jsAggregationBlacklist[this.webapp.sourceDirectoryName] ||
-        (jsAggregationBlacklist[this.webapp.sourceDirectoryName]
+      (!aggregationBlacklist[this.webapp.sourceDirectoryName] ||
+        (aggregationBlacklist[this.webapp.sourceDirectoryName]
           .indexOf(this.htmlFile.leafName) === -1) &&
-         jsAggregationBlacklist[this.webapp.sourceDirectoryName] !== '*')) {
+         aggregationBlacklist[this.webapp.sourceDirectoryName] !== '*')) {
     this.aggregateJsResources();
+    this.aggregateCssResources();
   }
 
   var globalVarWhiltelist = this.optimizeConfig.INLINE_GLOBAL_VAR_WHITELIST;
@@ -319,7 +325,7 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
   var gaia = utils.gaia.getInstance(this.config);
   var baseName = this.htmlFile.leafName.split('.')[0];
   var deferred = {
-    fileType: 'script',
+    tagName: 'script',
     content: '',
     lastNode: null,
     name: gaia.aggregatePrefix + 'defer_' + baseName + '.js',
@@ -330,7 +336,7 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
     }
   };
   var normal = {
-    fileType: 'script',
+    tagName: 'script',
     content: '',
     lastNode: null,
     name: gaia.aggregatePrefix + baseName + '.js',
@@ -390,6 +396,82 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
   });
 };
 
+HTMLOptimizer.prototype.aggregateCssResources = function() {
+  var gaia = utils.gaia.getInstance(this.config);
+  var baseName = this.htmlFile.leafName.split('.')[0];
+  var aggregates = {};
+  var aggregateIndex = 0;
+
+  function getAggregate(media) {
+    if (!media) {
+      throw new Error('The `media` parameter needs to be supplied.');
+    }
+
+    if (!aggregates[media]) {
+      aggregateIndex++;
+      var filename =
+        gaia.aggregatePrefix + baseName + '_' + aggregateIndex + '.css';
+
+      aggregates[media] = {
+        content: '',
+        lastNode: null,
+        name: filename,
+        tagName: 'link',
+        specs: {
+          rel: 'stylesheet',
+          media: media,
+          href: './' + filename
+        }
+      };
+    }
+
+    return aggregates[media];
+  }
+
+  // Everyone should be putting their scripts in head with defer.
+  // The best case is that only l10n.js is put into a normal.
+  var doc = this.win.document;
+  var styles = Array.from(doc.head.querySelectorAll('link[rel=stylesheet]'));
+  styles.forEach(function(style, idx) {
+    // per-script out see comment in function header.
+    if ('skipOptimize' in style.dataset) {
+      styles.splice(idx, 1);
+      return;
+    }
+
+    // fetch the whole file append it to the comment.
+    var href = style.href;
+    var styleFile = this.getFileByRelativePath(href);
+    // relativeBaseDir will be empty if href does not contain any '/', or will
+    // finish by '/'
+    var relativeBaseDir = href.slice(0, href.lastIndexOf('/') + 1);
+    var content = styleFile.content;
+    this.files.push(styleFile.file);
+
+    content = content.replace(URL_IN_CSS_RE, function($0, $1) {
+      if (URL_STARTS_SCHEME.test($1) || $1.startsWith('/')) {
+        // don't replace absolute urls
+        return $0;
+      }
+
+      return $0.replace($1, relativeBaseDir + $1);
+    });
+
+    var media = style.media || 'screen';
+    var styleConfig = getAggregate(media);
+    styleConfig.content += content;
+    styleConfig.lastNode = style;
+  }, this);
+
+  for (var media in aggregates) {
+    this.writeAggregatedContent(aggregates[media]);
+  }
+
+  styles.forEach(function commentstyle(style) {
+    style.outerHTML = '<!-- ' + style.outerHTML + ' -->';
+  });
+};
+
 /**
  * Write aggregated content into one js and mark original script tag of html.
  */
@@ -412,7 +494,7 @@ HTMLOptimizer.prototype.writeAggregatedContent = function(conf) {
   // write the contents of the aggregated script
   utils.writeContent(target, conf.content);
   //var script = doc.createElement('script');
-  var file = doc.createElement(conf.fileType);
+  var file = doc.createElement(conf.tagName);
   var lastScript = conf.lastNode;
 
   for (var spe in conf.specs) {
