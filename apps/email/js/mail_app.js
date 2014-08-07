@@ -252,6 +252,18 @@ document.addEventListener('visibilitychange', function onVisibilityChange() {
   }
 }, false);
 
+// v1.4-specific hackfix:  If the language changes, close the email app.
+// We assume that language changes require the user to have already changed
+// away from the email app and therefore the compose window will have already
+// had a chance to successfully autosave.
+if ('mozSettings' in navigator && navigator.mozSettings) {
+  navigator.mozSettings.addObserver('language.current', function(event) {
+    console.log('email app detected language change, closing.');
+    window.close();
+  });
+}
+
+
 // Some event modifications during setup do not have full account
 // IDs. This listener catches those modifications and applies
 // them when the data is available.
