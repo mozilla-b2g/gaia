@@ -228,9 +228,11 @@ var icc_worker = {
     DUMP('STK_CMD_DISPLAY_TEXT:', message.command.options);
     var options = message.command.options;
 
-    // Check if device is idle
+    // Check if device is idle or settings
     var activeApp = AppWindowManager.getActiveApp();
-    if (!options.isHighPriority && !activeApp.isHomescreen) {
+    var settingsOrigin = window.location.origin.replace('system', 'settings');
+    if (!options.isHighPriority && !activeApp.isHomescreen &&
+        activeApp.origin !== settingsOrigin) {
       DUMP('Do not display the text because normal priority.');
       icc.responseSTKCommand(message, {
         resultCode:
