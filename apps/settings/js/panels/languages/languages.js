@@ -4,6 +4,7 @@ define(function(require) {
   // AMD modules
   var KeyboardHelper = require('shared/keyboard_helper');
   var LanguageList = require('shared/language_list');
+  var DateTime = require('modules/date_time');
 
   var Languages = function() {};
 
@@ -46,6 +47,8 @@ define(function(require) {
       var lang = navigator.mozL10n.language.code;
       KeyboardHelper.changeDefaultLayouts(lang);
 
+      // update default date/time format
+      DateTime.updateTimeFormat();
       // update the format example UI
       this.updateDateTime();
     }
