@@ -20,6 +20,10 @@ var Browser = {
         {
           'title': 'Firefox OS',
           'uri': 'http://mozilla.org/firefoxos'
+        },
+        {
+          'title': 'Firefox OS Support',
+          'uri': 'http://support.mozilla.org/products/firefox-os'
         }
       ]
     };
@@ -341,6 +345,10 @@ suite('BrowserDB', function() {
 
         assert.equal(places[2].uri, 'http://mozilla.org/firefoxos');
         assert.equal(places[2].title, 'Firefox OS');
+
+        assert.equal(places[3].uri, 
+                     'http://support.mozilla.org/products/firefox-os');
+        assert.equal(places[3].title, 'Firefox OS Support');
 
         done();
       });
