@@ -19,10 +19,10 @@ define(function(require) {
           timePicker: panel.querySelector('.time-picker'),
           clockDate: panel.querySelector('.clock-date'),
           clockTime: panel.querySelector('.clock-time'),
-          timezoneRaw: panel.querySelector('.timezone-raw'),
-          timezoneValue: panel.querySelector('.timezone-value'),
           timeManual: panel.querySelector('.time-manual'),
-          timezone: panel.querySelector('.timezone')
+          timezone: panel.querySelector('.timezone'),
+          timeFormatDate: panel.querySelector('.time-format-date'),
+          timeFormatTime: panel.querySelector('.time-format-time')
         };
 
         // update date/clock periodically
@@ -32,10 +32,6 @@ define(function(require) {
 
         this._boundSetTime = function() {
           this._elements.clockTime.textContent = DateTime.time;
-        }.bind(this);
-
-        this._boundSetTimezone = function(timezone) {
-          this._elements.timezoneValue.textContent = timezone;
         }.bind(this);
 
         // Reset the timezone to the previous user selected value
@@ -57,7 +53,6 @@ define(function(require) {
         DateTime.observe('clockAutoEnabled', this._boundUpdateUI);
         DateTime.observe('clockAutoAvailable', this._boundUpdateUI);
         DateTime.observe('timezoneAutoAvailable', this._boundUpdateUI);
-        DateTime.observe('timezone', this._boundSetTimezone);
         DateTime.observe('userSelectedTimezone',
           this._boundSetSelectedTimeZone);
 
@@ -69,11 +64,12 @@ define(function(require) {
         this._renderTimeZone();
         this._boundSetDate();
         this._boundSetTime();
-        this._boundSetTimezone(DateTime.timezone);
         if (DateTime.userSelectedTimezone && !DateTime.clockAutoEnabled) {
           this._boundSetSelectedTimeZone(DateTime.userSelectedTimezone);
         }
         this._boundUpdateUI();
+        this.renderTimeFormatDate();
+        this.renderTimeFormatTime();
 
         window.addEventListener('localized', this);
       },
@@ -84,7 +80,6 @@ define(function(require) {
         DateTime.unobserve('clockAutoEnabled', this._boundUpdateUI);
         DateTime.unobserve('clockAutoAvailable', this._boundUpdateUI);
         DateTime.unobserve('timezoneAutoAvailable', this._boundUpdateUI);
-        DateTime.unobserve('timezone', this._boundSetTimezone);
         DateTime.unobserve('userSelectedTimezone',
           this._boundSetSelectedTimeZone);
 
@@ -158,8 +153,6 @@ define(function(require) {
         this._elements.timezoneCity.disabled =
           (DateTime.timezoneAutoAvailable && DateTime.clockAutoEnabled);
 
-        this._elements.timezoneRaw.hidden =
-          !(DateTime.timezoneAutoAvailable && DateTime.clockAutoEnabled);
         this._elements.timeAutoSwitch.hidden =
             !(DateTime.clockAutoAvailable || DateTime.timezoneAutoAvailable);
         this._elements.timeAutoSwitch.hidden =
@@ -173,6 +166,50 @@ define(function(require) {
         } else {
           this._elements.timeManual.classList.remove('disabled');
           this._elements.timezone.classList.remove('disabled');
+        }
+      },
+      renderTimeFormatDate: function dt_renderTimeFormatDate() {
+        // follow format
+        // http://pubs.opengroup.org/onlinepubs/007908799/xsh/strftime.html
+        //TODO: generate options from DateTime
+        var options = [{
+          format: 'MDY', // 12/31/2014
+          selected: false
+        }, {
+          format: 'DMY', // 31/12/2014
+          selected: false
+        }, {
+          format: 'YMD', // 2014/12/31
+          selected: false
+        }];
+        // TODO: restore state before render elements
+        var d = new Date();
+        for (var i = 0; i < options.length; i++) {
+          var format = DateTime['DATEFORMAT_' + options[i].format];
+          var option = document.createElement('option');
+          option.textContent = d.toLocaleFormat(format);
+          option.selected = options[i].selected;
+          option.value = format;
+          this._elements.timeFormatDate.appendChild(option);
+        }
+      },
+      renderTimeFormatTime: function dt_renderTimeFormatTime() {
+        var options = [{
+          text: '12-hour', // 2:00PM
+          selected: DateTime.timeFormat,
+          value: true,
+        }, {
+          text: '24-hour', // 14:00
+          selected: DateTime.timeFormat,
+          value: false
+        }];
+        // TODO: restore state before render elements
+        for (var i = 0; i < options.length; i++) {
+          var option = document.createElement('option');
+          option.textContent = options[i].text;
+          option.selected = options[i].selected;
+          option.value = options[i].value;
+          this._elements.timeFormatTime.appendChild(option);
         }
       }
     });
