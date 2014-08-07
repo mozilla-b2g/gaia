@@ -183,7 +183,7 @@ contacts.Form = (function() {
 
     thumbAction.addEventListener(touchstart, function click(event) {
       // Removing current photo
-      if (event.target.tagName == 'BUTTON') {
+      if (event.target.tagName == 'BUTTON' && (!emptyForm())) {
         saveButton.removeAttribute('disabled');
       }
     });
