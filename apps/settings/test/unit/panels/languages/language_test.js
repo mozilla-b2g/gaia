@@ -4,29 +4,41 @@ suite('Languages > ', function() {
   var mockKeyboardHelper;
   var languages;
   var realL10n;
-  
+
+  var modules = [
+    'unit/mock_l10n',
+    'shared_mocks/mock_keyboard_helper',
+    'panels/languages/languages'
+  ];
+  var maps = {
+    'panels/languages/languages': {
+      'shared/keyboard_helper': 'shared_mocks/mock_keyboard_helper',
+      'modules/date_time': 'MockDateTime'
+    }
+  };
+
   suiteSetup(function(done) {
-    var modules = [
-      'unit/mock_l10n',
-      'shared_mocks/mock_keyboard_helper',
-      'panels/languages/languages'
-    ];
-    var maps = {
-      'panels/languages/languages': {
-        'shared/keyboard_helper': 'shared_mocks/mock_keyboard_helper'
-      }
-    };
-    testRequire(modules, maps,
-      function(MockL10n, MockKeyboardHelper, Languages) {
-        // mock l10n
-        realL10n = window.navigator.mozL10n;
-        window.navigator.mozL10n = MockL10n;
+    // Create a new requirejs context
+    var requireCtx = testRequire([], maps, function() {});
+    var that = this;
 
-        // mock keyboard helper
-        mockKeyboardHelper = MockKeyboardHelper;
+    // Define MockDateTime
+    this.MockDateTime = {};
+    define('MockDateTime', function() {
+      return that.MockDateTime;
+    });
 
-        languages = Languages();
-        done();
+    requireCtx(modules, function(MockL10n, MockKeyboardHelper,
+      Languages) {
+      // mock l10n
+      realL10n = window.navigator.mozL10n;
+      window.navigator.mozL10n = MockL10n;
+
+      // mock keyboard helper
+      mockKeyboardHelper = MockKeyboardHelper;
+
+      languages = Languages();
+      done();
     });
   });
 

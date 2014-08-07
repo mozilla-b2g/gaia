@@ -71,7 +71,8 @@ require.config({
       name: 'panels/languages/panel',
       exclude: [
         'main',
-        'shared/keyboard_helper'
+        'shared/keyboard_helper',
+        'modules/date_time'
       ]
     },
     {
@@ -187,7 +188,8 @@ require.config({
       name: 'panels/date_time/panel',
       exclude: [
         'main',
-        'modules/mvvm/observable'
+        'modules/mvvm/observable',
+        'modules/date_time'
       ]
     }
   ]

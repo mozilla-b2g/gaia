@@ -26,7 +26,6 @@ suite('Date & Time panel > ', function() {
     // Define MockDateTime
     this.MockDateTime = {
       isMock: true,
-      enabled: true,
       autoUpdateDate: function() {},
       autoUpdateClock: function() {},
       moztimechange: function() {},
@@ -52,6 +51,7 @@ suite('Date & Time panel > ', function() {
           _datePickerChange: function() {},
           _timePickerChange: function() {},
           _renderTimeZone: function() {},
+          _renderTimeFormat: function() {},
           _updateUI: function() {}
         };
       };
