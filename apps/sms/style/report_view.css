@@ -69,12 +69,16 @@
   padding-left: 3rem;
 }
 
-.article-list[data-type="list"].report-view > ul.contact-list{
+.report-view > ul.contact-list {
   /* Showing 4 complete contacts and part of the contact name if list
      contains more than 4 contacts */
+  position: static;
+
   max-height: 27rem;
   margin: 0.5rem 0 1.5rem 0;
-  position: static;
+
+  /* Avoid any pointer event on contact list in report view  */
+  pointer-events: none;
 }
 
 .report-view > ul.contact-list > li,
@@ -102,6 +106,7 @@
 
 .report-view .suggestion div > p {
   padding-top: 2.0rem;
+
   color: #5b5b5b;
   font-size: 1.5rem;
   line-height: 2rem;
