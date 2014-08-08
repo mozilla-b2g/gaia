@@ -156,6 +156,7 @@
    * button
    */
   section[role="region"]:not([id='root']) ul li button,
+  section[role="region"]:not([id='root']) ul li div.button,
   section[role="region"]:not([id='root']) ul li span.button,
   section[role="region"]:not([id='root']) ul li a[role='button'] {
     width: 20rem;
@@ -192,6 +193,20 @@
    */
   section[role="region"] ul li.sound-setting {
     min-height: 6rem;
+  }
+
+  ul li > label.range-icons.volume.alarm:before,
+  ul li > label.range-icons.volume.media:before,
+  ul li > label.range-icons.volume.notification:before {
+    background: none;
+  }
+
+  ul li > label.range-icons.volume input {
+    margin-left: 0;
+  }
+
+  ul li > label.range-icons.volume p {
+    padding-left: 0;
   }
 
   /**
@@ -254,10 +269,11 @@
   /**
    * display
    */
-  ul li.brightness-manual > label input[type="range"] {
+  section[role="region"] ul li.brightness-manual > label input[type="range"] {
     display: inline;
-    left: 5rem;
-    top: calc(50% - 1.5rem);
+    width: calc(100% - 8rem);
+    left: 4rem;
+    top: calc(50% - 1rem);
   }
 
   /**
