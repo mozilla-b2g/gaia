@@ -1,4 +1,4 @@
-/* global ModalDialog, MozActivity */
+/* global ModalDialog, MozActivity, BookmarksDatabase */
 
 'use strict';
 
@@ -67,9 +67,9 @@
             '<div class="progress"></div>' +
             '<div class="controls">' +
             ' <button type="button" class="back-button"' +
-            '   alt="Back" data-disabled="disabled"></button>' +
+            '   alt="Back" disabled></button>' +
             ' <button type="button" class="forward-button"' +
-            '   alt="Forward" data-disabled="disabled"></button>' +
+            '   alt="Forward" disabled></button>' +
             ' <div class="urlbar">' +
             '   <div class="title"></div>' +
             '   <button type="button" class="reload-button"' +
@@ -78,7 +78,7 @@
             '     alt="Stop"></button>' +
             ' </div>' +
             ' <button type="button" class="menu-button"' +
-            '   alt="Menu" data-disabled="disabled"></button>' +
+            '   alt="Menu" disabled></button>' +
             '</div>';
   };
 
@@ -122,7 +122,7 @@
 
     var dataset = this.app.config;
     if (dataset.originURL || dataset.searchURL) {
-      delete this.menuButton.dataset.disabled;
+      this.menuButton.disabled = false;
     }
 
     this.bar = this.element.querySelector('.bar');
@@ -423,19 +423,18 @@
 
       if (this.backButton && this.forwardButton) {
         this.app.canGoForward(function forwardSuccess(result) {
-          if (result === true) {
-            delete this.forwardButton.dataset.disabled;
-          } else {
-            this.forwardButton.dataset.disabled = true;
-          }
+          this.forwardButton.disabled = !result;
         }.bind(this));
 
         this.app.canGoBack(function backSuccess(result) {
-          if (result === true) {
-            delete this.backButton.dataset.disabled;
-          } else {
-            this.backButton.dataset.disabled = true;
-          }
+          this.backButton.disabled = !result;
+        }.bind(this));
+      }
+
+      // Enable/disable the bookmark option
+      if (this.menuButton) {
+        BookmarksDatabase.get(this._currentURL).then(function(result) {
+          this.menuButton.disabled = !!result;
         }.bind(this));
       }
     };
@@ -481,20 +480,21 @@
     return this.element.classList.contains('maximized');
   };
 
+  AppChrome.prototype.isSearch = function ac_isSearch() {
+    var dataset = this.app.config;
+    return dataset.searchURL && this._currentURL === dataset.searchURL;
+  };
+
   AppChrome.prototype.addBookmark = function ac_addBookmark() {
     var dataset = this.app.config;
-    if (!dataset.originURL && !dataset.searchURL) {
-      return;
-    }
 
-    var name, url;
-    if (dataset.originURL) {
-      name = dataset.originName;
-      url = dataset.originURL;
-    } else {
+    var name;
+    if (this.isSearch()) {
       name = dataset.searchName;
-      url = dataset.searchURL;
+    } else {
+      name = this.title.textContent;
     }
+    var url = this._currentURL;
 
     var activity = new MozActivity({
       name: 'save-bookmark',
@@ -508,18 +508,11 @@
       }
     });
 
-    activity.onsuccess = function onsuccess() {
-      if (dataset.originURL) {
-        delete dataset.originURL;
-      } else {
-        delete dataset.searchURL;
-      }
-
-      if (!dataset.originURL &&
-          !dataset.searchURL) {
-        this.menuButton.dataset.disabled = true;
-      }
-    }.bind(this);
+    if (this.menuButton) {
+      activity.onsuccess = function onsuccess() {
+        this.menuButton.disabled = true;
+      }.bind(this);
+    }
   };
 
   AppChrome.prototype.onAddBookmark = function ac_onAddBookmark() {
@@ -535,14 +528,11 @@
       options: []
     };
 
-    var dataset = this.app.config;
-
-    if (dataset.originURL) {
-      data.options.push({ id: 'origin', text: dataset.originName });
-    }
-
-    if (dataset.searchURL) {
+    if (this.isSearch()) {
+      var dataset = this.app.config;
       data.options.push({ id: 'search', text: dataset.searchName });
+    } else {
+      data.options.push({ id: 'origin', text: this.title.textContent });
     }
 
     ModalDialog.selectOne(data, selected);

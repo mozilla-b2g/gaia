@@ -1,5 +1,6 @@
 /* global AppWindow, AppChrome, MocksHelper, MockL10n,
           MockModalDialog */
+/* exported MockBookmarksDatabase */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -7,8 +8,14 @@ requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 
+var MockBookmarksDatabase = {
+  get: function(resolve, reject) {
+    return { then: function(resolve) { resolve(); } };
+  }
+};
+
 var mocksForAppChrome = new MocksHelper([
-  'AppWindow', 'ModalDialog', 'PopupWindow'
+  'AppWindow', 'ModalDialog', 'PopupWindow', 'BookmarksDatabase'
 ]).init();
 
 suite('system/AppChrome', function() {
@@ -166,14 +173,14 @@ suite('system/AppChrome', function() {
                            detail: 'new.location' });
 
       stub1.getCall(0).args[0](true);
-      assert.isUndefined(chrome.forwardButton.dataset.disabled);
+      assert.equal(chrome.forwardButton.disabled, false);
       stub1.getCall(0).args[0](false);
-      assert.equal(chrome.forwardButton.dataset.disabled, 'true');
+      assert.equal(chrome.forwardButton.disabled, true);
 
       stub2.getCall(0).args[0](true);
-      assert.isUndefined(chrome.backButton.dataset.disabled);
+      assert.equal(chrome.backButton.disabled, false);
       stub2.getCall(0).args[0](false);
-      assert.equal(chrome.backButton.dataset.disabled, 'true');
+      assert.equal(chrome.backButton.disabled, true);
     });
   });
 
