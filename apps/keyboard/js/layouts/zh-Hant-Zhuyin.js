@@ -4,7 +4,7 @@ Keyboards['zh-Hant-Zhuyin'] = {
   menuLabel: '注音',
   needsCandidatePanel: true,
   imEngine: 'jszhuyin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'number'],
   width: 11,
   textLayoutOverwrite: {
     ',': false,

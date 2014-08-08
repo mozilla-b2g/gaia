@@ -42,6 +42,9 @@ suite('LayoutManager', function() {
     manager.start();
     manager.loader.SOURCE_DIR = './fake-layouts/';
 
+    this.sinon.stub(manager, '_getInitLayoutPage')
+      .returns(manager.LAYOUT_PAGE_DEFAULT);
+
     var p = manager.switchCurrentLayout('foo');
 
     p.then(function() {
@@ -79,6 +82,9 @@ suite('LayoutManager', function() {
     manager.start();
     manager.loader.SOURCE_DIR = './fake-layouts/';
 
+    this.sinon.stub(manager, '_getInitLayoutPage')
+      .returns(manager.LAYOUT_PAGE_DEFAULT);
+
     var p1 = manager.switchCurrentLayout('foo');
     var p2 = manager.switchCurrentLayout('foo');
     p1.then(function() {
@@ -105,6 +111,9 @@ suite('LayoutManager', function() {
     var manager = new LayoutManager({});
     manager.start();
     manager.loader.SOURCE_DIR = './fake-layouts/';
+
+    this.sinon.stub(manager, '_getInitLayoutPage')
+      .returns(manager.LAYOUT_PAGE_DEFAULT);
 
     var p = manager.switchCurrentLayout('foo');
     p.then(function() {
@@ -415,12 +424,16 @@ suite('LayoutManager', function() {
 
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
-          alternativeLayoutName: 'numberLayout',
+          alternativeLayoutName: 'alternateLayout',
           imEngine: 'test-imEngine' };
+
+        // for the sake of simplicity, delete 'keys' from the layout
+        // testing for 'keys' will be done at switchToAlternateTest.
+        delete manager.currentModifiedLayout.keys;
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
-          manager.loader.getLayout('numberLayout'),
+          manager.loader.getLayout('alternateLayout'),
           'proto is set correctly for layout.');
       }, function() {
         assert.isTrue(false, 'Should not reject.');
@@ -438,12 +451,16 @@ suite('LayoutManager', function() {
 
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
-          alternativeLayoutName: 'numberLayout',
+          alternativeLayoutName: 'alternateLayout',
           imEngine: 'test-imEngine' };
+
+        // for the sake of simplicity, delete 'keys' from the layout
+        // testing for 'keys' will be done at switchToAlternateTest.
+        delete manager.currentModifiedLayout.keys;
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
-          manager.loader.getLayout('numberLayout'),
+          manager.loader.getLayout('alternateLayout'),
           'proto is set correctly for layout.');
       }, function() {
         assert.isTrue(false, 'Should not reject.');
