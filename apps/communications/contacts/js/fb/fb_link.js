@@ -1,6 +1,7 @@
 'use strict';
 
-/* global Curtain, FacebookConnector, ImageLoader, Normalizer, utils, oauth2 */
+/* global Curtain, FacebookConnector, ImageLoader, Normalizer, utils,
+   ImportStatusData, oauth2 */
 
 var fb = window.fb || {};
 
@@ -570,7 +571,7 @@ if (!fb.link) {
         allFriends = null;
         link.start(contactid);
       };
-      window.asyncStorage.removeItem(fb.utils.TOKEN_DATA_KEY, cb);
+      ImportStatusData.remove(fb.utils.TOKEN_DATA_KEY).then(cb);
     }
 
     UI.selected = function(event) {

@@ -476,6 +476,60 @@ suite('Contacts settings >', function() {
     });
   });
 
+  suite('FB data synced from FTU', function() {
+    var STORAGE_KEY = 'tokenData';
+    var CACHE_FRIENDS_KEY = 'numFacebookFriends';
+
+    setup(function() {
+      document.body.innerHTML = MockContactsIndexHtml;
+      contacts.Settings.init();
+    });
+
+    teardown(function(done) {
+      MockImportStatusData.clear().then(done, done);
+    });
+
+    test('FB active if token already synced', function(done) {
+      var fbImportCheck = document.querySelector('[name="fb.imported"]');
+
+      function assertChecked() {
+        document.removeEventListener('facebookEnabled', assertChecked);
+        done(function() {
+          assert.isTrue(fbImportCheck.checked);
+        });
+      }
+
+      document.addEventListener('facebookEnabled', assertChecked);
+
+      MockImportStatusData.put(STORAGE_KEY, {access_token: '1'})
+          .then(function() {
+        contacts.Settings.refresh();
+      });
+    });
+
+    test('Show the right number of total & synced friends', function(done) {
+      var fbTotalsMsg = document.querySelector('#fb-totals');
+
+      var observer = new MutationObserver(function() {
+        if (fbTotalsMsg.innerHTML !== '') {
+          observer.disconnect();
+          done(function() {
+            assert.isTrue(fbTotalsMsg.innerHTML.indexOf('50') !== -1);
+          });
+        }
+      });
+
+      observer.observe(fbTotalsMsg, {childList: true});
+
+      MockImportStatusData.put(CACHE_FRIENDS_KEY, 50).then(function() {
+        MockImportStatusData.put(STORAGE_KEY, {access_token: '1'})
+            .then(function() {
+          contacts.Settings.refresh();
+        });
+      });
+    });
+  });
+
   suite('Network status change', function() {
     var fbImportOption,
         fbOfflineMsg,
