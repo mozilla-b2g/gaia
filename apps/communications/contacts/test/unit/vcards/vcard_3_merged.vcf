@@ -1,9 +1,0 @@
-BEGIN:VCARD
-VERSION:3.0
-N:Mercury,Bulsara;Freddy,Farrokh;;;;
-FN:Freddy Mercury
-ORG:Queen
-TEL;TYPE=CELL,VOICE:(111) 555-1212
-TEL;TYPE=HOME,VOICE:(404) 555-1212
-EMAIL;TYPE=PREF,INTERNET:freddy@queen.com
-END:VCARD
