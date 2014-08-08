@@ -1,4 +1,4 @@
-/* global ModalDialog, MozActivity */
+/* global ModalDialog, MozActivity, BookmarksDatabase */
 
 'use strict';
 
@@ -438,6 +438,17 @@
           }
         }.bind(this));
       }
+
+      // Enable/disable the bookmark option
+      if (this.menuButton) {
+        BookmarksDatabase.get(this._currentURL).then(function(result) {
+          if (result) {
+            this.menuButton.dataset.disabled = true;
+          } else {
+            delete this.menuButton.dataset.disabled;
+          }
+        }.bind(this));
+      }
     };
 
   AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
@@ -481,19 +492,19 @@
     return this.element.classList.contains('maximized');
   };
 
+  AppChrome.prototype.isSearch = function ac_isSearch() {
+    var dataset = this.app.config;
+    return dataset.searchURL && this._currentURL === dataset.searchURL;
+  };
+
   AppChrome.prototype.addBookmark = function ac_addBookmark() {
     var dataset = this.app.config;
-    if (!dataset.originURL && !dataset.searchURL) {
-      return;
-    }
 
-    var name, url;
-    if (dataset.originURL) {
-      name = dataset.originName;
-      url = dataset.originURL;
-    } else {
+    var name, url = this._currentURL;
+    if (this.isSearch()) {
       name = dataset.searchName;
-      url = dataset.searchURL;
+    } else {
+      name = this.title.textContent;
     }
 
     var activity = new MozActivity({
@@ -508,18 +519,11 @@
       }
     });
 
-    activity.onsuccess = function onsuccess() {
-      if (dataset.originURL) {
-        delete dataset.originURL;
-      } else {
-        delete dataset.searchURL;
-      }
-
-      if (!dataset.originURL &&
-          !dataset.searchURL) {
+    if (this.menuButton) {
+      activity.onsuccess = function onsuccess() {
         this.menuButton.dataset.disabled = true;
-      }
-    }.bind(this);
+      }.bind(this);
+    }
   };
 
   AppChrome.prototype.onAddBookmark = function ac_onAddBookmark() {
@@ -535,14 +539,11 @@
       options: []
     };
 
-    var dataset = this.app.config;
-
-    if (dataset.originURL) {
-      data.options.push({ id: 'origin', text: dataset.originName });
-    }
-
-    if (dataset.searchURL) {
+    if (this.isSearch()) {
+      var dataset = this.app.config;
       data.options.push({ id: 'search', text: dataset.searchName });
+    } else {
+      data.options.push({ id: 'origin', text: this.title.textContent });
     }
 
     ModalDialog.selectOne(data, selected);
