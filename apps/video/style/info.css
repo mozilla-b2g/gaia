@@ -39,3 +39,15 @@
   /* no separator after the last item in the list */
   border-bottom: none;
 }
+
+/* RTL View */
+html[dir="rtl"] #info-view > section > dl > dt {
+  padding-left: 0;
+  padding-right: 1rem;
+}
+
+html[dir="rtl"] #info-view > section > dl > dd {
+  padding-left: 0;
+  padding-right: 1rem;
+}
+

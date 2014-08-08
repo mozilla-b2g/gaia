@@ -304,13 +304,6 @@ span.line-break {
 body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
-*[dir=rtl] li {
-  padding: 0 14.4rem 0 2rem;
-}
-*[dir=rtl] li img {
-  left: auto;
-  right: 0;
-}
 
 #close {
   outline: none;
@@ -779,3 +772,57 @@ form[role="dialog"][data-type="confirm"] button.hidden {
   border: none;
   padding: 0;
 }
+
+/* RTL View */
+html[dir="rtl"] li .img {
+  left: auto;
+  right: 0;
+}
+
+html[dir="rtl"] li .details {
+  left: 0;
+  right: auto;
+}
+
+html[dir="rtl"] .thumbnail {
+  margin-left: 2rem;
+  margin-right: 0;
+}
+
+html[dir="rtl"] .thumbnail-group-header {
+  padding-left: 0;
+  padding-right: 1rem;
+}
+
+html[dir="rtl"] section[role="region"] header:first-child h1 {
+  margin-left: 0;
+  margin-right: 3.4rem;
+}
+
+html[dir="rtl"] #thumbnails-video-button {
+  left: auto;
+  right: 0;
+}
+
+html[dir="rtl"] #thumbnails-select-button {
+  left: auto;
+  right: 50%;
+}
+
+html[dir="rtl"] #thumbnails-delete-button {
+  left: auto;
+  right: 0;
+  border-left: 0.1rem solid #000;
+  border-right: none;
+}
+
+html[dir="rtl"] #thumbnails-share-button {
+  left: auto;
+  right: 50%;
+}
+
+html[dir="rtl"] #videoBar,
+html[dir="rtl"] #videoControlBar {
+  direction: ltr;
+}
+
