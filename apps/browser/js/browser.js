@@ -409,6 +409,10 @@ var Browser = {
         if (evt.detail === 'about:blank') {
           return;
         }
+        //it should be on startscreen now, hide to reveal actual content.
+        if (!tab.url && evt.detail && evt.detail !== "") {
+          this.hideStartscreen();
+        }
         tab.url = evt.detail;
         this.updateHistory(evt.detail);
         if (isCurrentTab) {
