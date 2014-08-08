@@ -1,6 +1,6 @@
 {
   "name": "gaia-icons",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "homepage": "https://github.com/wilsonpage/gaia-icons",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
@@ -21,13 +21,13 @@
     "README.md",
     "package.json"
   ],
-  "_release": "0.4.0",
+  "_release": "0.4.2",
   "_resolution": {
     "type": "version",
-    "tag": "v0.4.0",
-    "commit": "13b49bdb9ff756ecd4fb5dd7d97b42b7567c3911"
+    "tag": "v0.4.2",
+    "commit": "e0cb128092e2dc764b3b32e27ff81f98ab069bbb"
   },
   "_source": "git://github.com/gaia-components/gaia-icons.git",
-  "_target": "~0.4.0",
+  "_target": "~0.4.2",
   "_originalSource": "gaia-components/gaia-icons"
 }
