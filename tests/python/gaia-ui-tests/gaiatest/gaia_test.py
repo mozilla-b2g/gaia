@@ -422,6 +422,10 @@ class Accessibility(object):
     def get_role(self, element):
         return self._run_async_script('getRole', [element])
 
+    def dispatchEvent(self):
+        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new CustomEvent(" +
+                                       "'accessibility-action'));")
+
     def _run_async_script(self, func, args):
         result = self.marionette.execute_async_script(
             'return Accessibility.%s.apply(Accessibility, arguments)' % func,
@@ -586,6 +590,9 @@ class GaiaDevice(object):
 
     def turn_screen_off(self):
         self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOff(true)")
+
+    def turn_screen_on(self):
+        self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOn(true)")
 
     @property
     def is_screen_enabled(self):
