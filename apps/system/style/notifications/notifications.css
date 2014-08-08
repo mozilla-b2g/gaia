@@ -89,6 +89,8 @@
   text-align: right;
   font-size: 1.4rem;
   font-weight: 500;
+  width: auto;
+  line-height: normal;
 }
 
 #notification-bar button[disabled] {

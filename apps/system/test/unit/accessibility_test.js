@@ -36,7 +36,7 @@ suite('system/Accessibility', function() {
   function getAccessFuOutput(aDetails) {
     return {
       detail: {
-        type: 'accessfu-output',
+        type: 'accessibility-output',
         details: JSON.stringify(aDetails)
       }
     };
@@ -98,7 +98,7 @@ suite('system/Accessibility', function() {
     });
   });
 
-  suite('handle accessfu-output events', function() {
+  suite('handle accessibility-output events', function() {
     test('handleAccessFuOutput', function() {
       var stubHandleAccessFuOutput = this.sinon.stub(accessibility,
         'handleAccessFuOutput');

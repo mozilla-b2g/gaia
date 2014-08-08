@@ -115,6 +115,8 @@
                   'accessibility.show-settings': true
                 });
               }
+              var screen = document.getElementById('screen');
+              screen.classList.toggle('screenreader', aValue);
             }
           }.bind(this));
       }, this);
@@ -261,7 +263,7 @@
      */
     handleEvent: function ar_handleEvent(aEvent) {
       switch (aEvent.detail.type) {
-        case 'accessfu-output':
+        case 'accessibility-output':
           this.handleAccessFuOutput(JSON.parse(aEvent.detail.details));
           break;
         case 'volume-up-button-press':
