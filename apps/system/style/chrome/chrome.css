@@ -22,8 +22,8 @@
 }
 
 .appWindow:not(.bar).fullscreen-app > .chrome {
-  height: 7.6rem;
-  top: -3rem;
+  height: 3rem;
+  top: 0;
 }
 
 .appWindow:not(.bar).fullscreen-app > .chrome.maximized {
@@ -125,6 +125,11 @@
   transform: scaleX(0.6521);
   transform-origin: top left;
   transition: transform 0.2s ease-in-out;
+}
+
+.appWindow.fullscreen-app .controls .urlbar {
+  transform: scale(0.6521) translateY(0.2rem);
+  transform-origin: bottom left;
 }
 
 .maximized .controls .urlbar {
