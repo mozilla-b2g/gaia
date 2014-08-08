@@ -1270,6 +1270,27 @@ suite('Render contacts list', function() {
       });
     });
 
+    test('Search for contacts with middle names', function(done) {
+      mockContacts = new MockContactsList();
+      var contactIndex = Math.floor(Math.random() * mockContacts.length);
+      var contact = mockContacts[contactIndex];
+      mockContacts[contactIndex].givenName[0] = contact.givenName[0] + ' Juan';
+
+      doLoad(subject, mockContacts, function() {
+        contacts.List.initSearch(function onInit() {
+          searchBox.value = contact.givenName[0][0] + ' ' +
+              contact.familyName[0][0];
+          contacts.Search.search(function search_finished() {
+            contacts.Search.invalidateCache();
+            done(function() {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(contact);
+            });
+          });
+        });
+      });
+    });
+
     test('Search phrase highlightded correctly for first letter',
         function(done) {
       mockContacts = new MockContactsList();
