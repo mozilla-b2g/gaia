@@ -12,6 +12,7 @@
 /* global SmsIntegration */
 /* global utils */
 /* global TAG_OPTIONS */
+/* global ImportStatusData */
 
 /* exported COMMS_APP_ORIGIN */
 /* exported SCALE_RATIO */
@@ -229,6 +230,46 @@ var Contacts = (function() {
     });
   };
 
+  var checkFacebookSynchronization = function(config) {
+    if (config && config.fbScheduleDone) {
+      return;
+    }
+
+    LazyLoader.load([
+      '/facebook/js/fb_sync.js',
+      '/shared/js/contacts/import/import_status_data.js',
+      '/shared/js/contacts/import/facebook/fb_utils.js'
+    ], function() {
+      var fbutils = fb.utils;
+
+      var neverExecuteAgain = function() {
+        ImportStatusData.remove(fbutils.SCHEDULE_SYNC_KEY);
+        utils.cookie.update({fbScheduleDone: true});
+        navigator.removeIdleObserver(idleObserver);
+        idleObserver = null;
+      };
+
+      var idleObserver = {
+        time: 3,
+        onidle: function onidle() {
+          ImportStatusData.get(fbutils.SCHEDULE_SYNC_KEY).then(function(date) {
+            if (date) {
+              fbutils.setLastUpdate(date, function() {
+                var req = fb.sync.scheduleNextSync();
+                req.onsuccess = neverExecuteAgain;
+                req.onerror = neverExecuteAgain;
+              });
+            } else {
+              neverExecuteAgain();
+            }
+          });
+        }
+      };
+
+      navigator.addIdleObserver(idleObserver);
+    });
+  };
+
   var init = function init() {
     _ = navigator.mozL10n.get;
     initContainers();
@@ -236,8 +277,11 @@ var Contacts = (function() {
     utils.PerformanceHelper.chromeInteractive();
     window.addEventListener('hashchange', checkUrl);
 
-    // If the migration is not complete
     var config = utils.cookie.load();
+
+    checkFacebookSynchronization(config);
+
+    // If the migration is not complete
     if (!config || !config.fbMigrated) {
       LazyLoader.load('js/fb/datastore_migrator.js', function() {
         new DatastoreMigration().start();

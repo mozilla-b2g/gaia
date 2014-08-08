@@ -4,7 +4,7 @@
           MockContactsListObj, MockCookie, MockMozL10n,
           MockNavigationStack, MockUtils, MocksHelper,
           MockContactAllFields, MockContactDetails, MockContactsNfc,
-          MockContactsSearch, MockContactsSettings
+          MockContactsSearch, MockContactsSettings, Mockfb, MockImportStatusData
 */
 
 requireApp('communications/contacts/test/unit/mock_l10n.js');
@@ -19,6 +19,8 @@ requireApp('communications/contacts/test/unit/mock_contacts_details.js');
 requireApp('communications/contacts/test/unit/mock_contacts_nfc.js');
 requireApp('communications/contacts/test/unit/mock_contacts_search.js');
 requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
+requireApp('communications/contacts/test/unit/mock_fb.js');
+requireApp('communications/contacts/test/unit/mock_import_status_data.js');
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
@@ -57,6 +59,8 @@ suite('Contacts', function() {
   var realMozL10n;
   var realContacts;
   var realUtils;
+  var realFb;
+  var realImportStatusData;
   var mockNavigation;
 
   mocksForStatusBar.attachTestHelpers();
@@ -79,6 +83,12 @@ suite('Contacts', function() {
     window.utils = MockUtils;
     window.utils.cookie = MockCookie;
 
+    realFb = window.fb;
+    window.fb = Mockfb;
+
+    realImportStatusData = window.ImportStatusData;
+    window.ImportStatusData = MockImportStatusData;
+
     realNavigationStack = window.navigationStack;
     window.navigationStack = MockNavigationStack;
     sinon.spy(window, 'navigationStack');
@@ -90,6 +100,8 @@ suite('Contacts', function() {
     navigator.mozL10n = realMozL10n;
     window.contacts = realContacts;
     window.utils = realUtils;
+    window.fb = realFb;
+    window.ImportStatusData = realImportStatusData;
 
     window.navigationStack.restore();
     window.navigationStack = realNavigationStack;
@@ -99,6 +111,9 @@ suite('Contacts', function() {
     this.sinon.spy(window.utils.PerformanceHelper, 'chromeInteractive');
     loadBodyHTML('/contacts/index.html');
 
+    window.ImportStatusData.clear();
+
+    navigator.addIdleObserver = function() {};
     Contacts.init();
     mockNavigation = window.navigationStack.firstCall.thisValue;
   });
@@ -464,5 +479,28 @@ suite('Contacts', function() {
         ActivityHandler.currentlyHandling = false;
       });
     });
+  });
+
+  test('FB sync scheduling when synced in ftu', function(done) {
+    window.fb.sync = {
+      scheduleNextSync: function() {
+        done(function(){
+          window.fb.sync = null;
+          navigator.addIdleObserver = null;
+          navigator.removeIdleObserver = null;
+        });
+        return {};
+      }
+    };
+
+    navigator.addIdleObserver = function(idleObserver) {
+      idleObserver.onidle();
+    };
+
+    navigator.removeIdleObserver = function() {};
+
+    MockImportStatusData.put('facebookShouldHaveScheduledAt', Date.now()).then(
+      Contacts.init
+    );
   });
 });
