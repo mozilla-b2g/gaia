@@ -47,13 +47,32 @@
         callback();
       };
 
-      nextPaintTimer = setTimeout(function ifNextPaintIsTooLate() {
-        self.debug(' nextpaint is timeouted.');
-        iframe.removeNextPaintListener(onNextPaint);
-        callback();
-      }, this.NEXTPAINT_TIMEOUT);
+      function startWaiting() {
+        nextPaintTimer = setTimeout(function ifNextPaintIsTooLate() {
+          self.debug(' nextpaint is timeouted.');
+          iframe.removeNextPaintListener(onNextPaint);
+          callback();
+        }, self.NEXTPAINT_TIMEOUT);
+        iframe.addNextPaintListener(onNextPaint);
+      }
 
-      iframe.addNextPaintListener(onNextPaint);
+      // if removeNextPaintListener or addNextPaintListener are not available
+      // yet on the frame, wait for the mozbrowserready event.
+      self.debug('removeNextPaintListener in iframe : ' +
+                 ('removeNextPaintListener' in iframe));
+      if (!('removeNextPaintListener' in iframe) ||
+          !('addNextPaintListener' in iframe)) {
+        self.debug('Too early to attach paint listeners.');
+
+        var onBrowserReady = function() {
+          self.debug('Got onbrowserready');
+          iframe.removeEventListener('mozbrowserready', onBrowserReady);
+          startWaiting();
+        };
+        iframe.addEventListener('mozbrowserready', onBrowserReady);
+      } else {
+        startWaiting();
+      }
     },
 
     /**
