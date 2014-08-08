@@ -160,6 +160,12 @@ function execute(options) {
       return installSvoperapps(profileFolder, adb);
     }
   }).then(function() {
+    if (buildAppName === '*') {
+      return sh.run(['-c', adb + ' push ' +
+        '"shared/elements/gaia-icons/fonts/gaia-icons.ttf" ' +
+        '//system/fonts/hidden/gaia-icons.ttf']);
+    }
+  }).then(function() {
     if (buildAppName === '*' || buildAppName === 'system') {
       utils.log('push', 'Restarting B2G...');
       sh.run(['-c', adb + ' shell start b2g']);
