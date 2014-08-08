@@ -21,50 +21,14 @@ class HTML5Player(PageRegion):
 
     @property
     def is_paused(self):
-        return self.root_element.get_attribute('paused') == 'true'
+        return self.marionette.execute_script('return arguments[0].paused;', [self.root_element])
 
     @property
     def is_ended(self):
-        return self.root_element.get_attribute('ended') == 'true'
+        return self.marionette.execute_script('return arguments[0].ended;', [self.root_element])
 
-    @property
-    def has_controls(self):
-        return self.root_element.get_attribute('controls') == 'true'
-
-    def _disable_controls(self):
-        if self.has_controls:
-            self.marionette.execute_script(
-                'arguments[0].removeAttribute("controls")',
-                script_args=[self.root_element])
-
-    def invoke_controls(self):
-        if not self.has_controls:
-            self.marionette.execute_script(
-                'arguments[0].setAttribute("controls", "controls")',
-                script_args=[self.root_element])
-            if not (self.is_paused or self.is_ended):
-                self.root_element.tap()
-        else:
-            self.root_element.tap()
-        time.sleep(.25)
-
-    def play(self):
-        self.invoke_controls()
-        # We cannot actually tap on the elements because they are not HTML elements
-        # but we can tap where we anticipate them to be.
-        y_tap_location = int(self.root_element.size['height']/3)
-        self.root_element.tap(y=y_tap_location)
-        self.wait_for_condition(lambda m: not self.is_paused)
-        self._disable_controls()
-
-    def pause(self):
-        self.invoke_controls()
-        # We cannot actually tap on the elements because they are not HTML elements
-        # but we can tap where we anticipate them to be.
-        y_tap_location = int(self.root_element.size['height']/3)
-        self.root_element.tap(y=y_tap_location)
-        self.wait_for_condition(lambda m: self.is_paused)
-        self._disable_controls()
+    def wait_for_video_playing(self):
+        self.wait_for_condition(lambda m: self.is_video_playing())
 
     def is_video_playing(self):
         # get 4 timestamps during approx. 1 sec
@@ -77,4 +41,4 @@ class HTML5Player(PageRegion):
 
     @property
     def current_timestamp(self):
-        return float(self.root_element.get_attribute('currentTime'))
+        return float(self.marionette.execute_script('return arguments[0].currentTime;', [self.root_element]))
