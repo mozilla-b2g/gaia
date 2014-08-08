@@ -980,13 +980,19 @@
     return modified.join('');
   }
 
+  function Pseudo(id, name, charMap, modFn) {
+    this.id = id;
+    this.translate = mapContent.bind(null, function(val) {
+      return makeAccented(charMap, modFn(val));
+    });
+    this.name = this.translate(name);
+  }
+
   var PSEUDO_STRATEGIES = {
-    'qps-ploc': mapContent.bind(null, function(val) {
-      return makeAccented(ACCENTED_MAP, makeLonger(val));
-    }),
-    'qps-plocm': mapContent.bind(null, function(val) {
-      return makeAccented(FLIPPED_MAP, makeRTL(val));
-    })
+    'qps-ploc': new Pseudo('qps-ploc', 'Accented English',
+                           ACCENTED_MAP, makeLonger),
+    'qps-plocm': new Pseudo('qps-plocm', 'Mirrored English',
+                            FLIPPED_MAP, makeRTL)
   };
 
 
@@ -1084,7 +1090,8 @@
 
     if (this.isPseudo) {
       for (; key = keys[i]; i++) {
-        this.entries[key] = walkContent(ast[key], PSEUDO_STRATEGIES[this.id]);
+        this.entries[key] = walkContent(ast[key],
+                                        PSEUDO_STRATEGIES[this.id].translate);
       }
     } else {
       for (; key = keys[i]; i++) {
@@ -1323,6 +1330,7 @@
         return getDirection(navigator.mozL10n.ctx.supportedLocales[0]);
       }
     },
+    qps: PSEUDO_STRATEGIES,
     _getInternalAPI: function() {
       return {
         Error: L10nError,
@@ -1337,8 +1345,7 @@
         fireLocalizedEvent: fireLocalizedEvent,
         PropertiesParser: PropertiesParser,
         compile: compile,
-        walkContent: walkContent,
-        PSEUDO_STRATEGIES: PSEUDO_STRATEGIES
+        walkContent: walkContent
       };
     }
   };

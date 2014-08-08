@@ -93,9 +93,6 @@ NODE_MODULES_SRC?=modules.tar
 # tv
 GAIA_DEVICE_TYPE?=phone
 
-# Haida customization
-# Pass 1 to enable haida features
-HAIDA?=0
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
@@ -474,7 +471,6 @@ define BUILD_CONFIG
 	"GAIA_MEMORY_PROFILE" : "$(GAIA_MEMORY_PROFILE)", \
 	"NOFTU" : "$(NOFTU)", \
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
-	"HAIDA" : $(HAIDA), \
 	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
 	"SETTINGS_PATH" : "$(subst \,\\,$(SETTINGS_PATH))", \
 	"FTU_PING_URL": "$(FTU_PING_URL)", \
@@ -652,6 +648,10 @@ endif
 
 ifeq ($(DOGFOOD),1)
 EXTENDED_PREF_FILES += dogfood-prefs.js
+endif
+
+ifeq ($(DEBUG),1)
+EXTENDED_PREF_FILES += debug-prefs.js
 endif
 
 # Optional partner provided preference files. They will be added

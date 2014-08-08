@@ -18,7 +18,8 @@ Keyboards.cs = {
     t: 'ť',
     u: 'úů',
     y: 'ý',
-    z: 'ž'
+    z: 'ž',
+    '.': ',?!;:'
   },
   keys: [
     [
@@ -28,7 +29,7 @@ Keyboards.cs = {
     ], [
       { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
       { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' },
-      { value: 'l' }, { value: "'", keyCode: 39 }
+      { value: 'l' }
     ], [
       { value: '&#8682;', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
       { value: 'z' }, { value: 'x' }, { value: 'c' }, { value: 'v' },

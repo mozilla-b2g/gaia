@@ -1,4 +1,3 @@
-/* global getSupportedLanguages */
 /**
  * The moudle supports displaying language information on an element.
  *
@@ -7,7 +6,7 @@
 define(function(require) {
   'use strict';
 
-  require('utils');
+  var LanguageList = require('shared/language_list');
 
   /**
    * @alias module:panels/root/language_item
@@ -32,8 +31,8 @@ define(function(require) {
      */
     _refreshText: function l_refeshText(element) {
       // display the current locale in the main panel
-      getSupportedLanguages(function displayLang(languages) {
-        element.textContent = languages[navigator.mozL10n.language.code];
+      LanguageList.get(function displayLang(languages, currentLanguage) {
+        element.textContent = languages[currentLanguage];
       });
     },
 

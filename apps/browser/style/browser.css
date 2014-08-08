@@ -54,6 +54,7 @@ input[type="image"] {
   z-index: 150;
   transition: 0.5s ease-in-out;
   transform: translateY(100%);
+  overflow-y: scroll;
 }
 
 .settings-screen #settings {

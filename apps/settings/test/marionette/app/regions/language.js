@@ -27,15 +27,11 @@ LanguagePanel.Selectors = {
 LanguagePanel.prototype = {
   __proto__: Base.prototype,
 
-  // XXX it's weird that when fetching values out of the select/option
-  // we would get strange '\u202a' and '\u202c' characters. In this way,
-  // we have to add these characters to check ! We can remove this after
-  // this problem got fixed.
   _languageMap: {
     english: {
       label: 'Language',
       optionText: '\u202aEnglish (US)\u202c',
-      dayRules: /monday|tuesday|wednesday|thursday|friday|saturday|sunday/i
+      dayRules: /Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/
     },
     traditionalChinese: {
       label: '語言',
@@ -46,6 +42,30 @@ LanguagePanel.prototype = {
       label: 'Langue',
       optionText: '\u202aFrançais\u202c',
       dayRules: /lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche/i
+    },
+    accented: {
+      label: 'Ŀȧȧƞɠŭŭȧȧɠḗḗ',
+      optionText: '\u202aȦȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ\u202c',
+      dayRules: new RegExp(
+        'Ḿǿǿƞḓȧȧẏ|' +
+        'Ŧŭŭḗḗşḓȧȧẏ|' +
+        'Ẇḗḗḓƞḗḗşḓȧȧẏ|' +
+        'Ŧħŭŭřşḓȧȧẏ|' +
+        'Ŧřīīḓȧȧẏ|' +
+        'Şȧȧŧŭŭřḓȧȧẏ|' +
+        'Şŭŭƞḓȧȧẏ')
+    },
+    mirrored: {
+      label: '\u202e˥ɐuƃnɐƃǝ\u202c',
+      optionText: '\u202b\u202eWıɹɹoɹǝp Ǝuƃʅısɥ\u202c\u202c',
+      dayRules: new RegExp(
+        '\u202eWoupɐʎ\u202c|' +
+        '\u202e⊥nǝspɐʎ\u202c|' +
+        '\u202eＭǝpuǝspɐʎ\u202c|' +
+        '\u202e⊥ɥnɹspɐʎ\u202c|' +
+        '\u202eɟɹıpɐʎ\u202c|' +
+        '\u202eSɐʇnɹpɐʎ\u202c|' +
+        '\u202eSnupɐʎ\u202c')
     }
   },
 
@@ -54,7 +74,6 @@ LanguagePanel.prototype = {
   },
 
   get currentLanguageFromMozSettings() {
-    // ar, en-US, fr, zh-TW for example
     return this.client.settings.get('language.current');
   },
 

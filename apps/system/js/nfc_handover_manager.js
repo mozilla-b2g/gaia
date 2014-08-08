@@ -74,7 +74,7 @@ var NfcHandoverManager = {
    * @type {Number}
    * @memberof NfcHandoverManager.prototype
    */
-  responseTimeoutMillis: 6000,
+  responseTimeoutMillis: 9000,
 
   /**
    * Set whenever a timeout is defined while waiting for an outstanding handover

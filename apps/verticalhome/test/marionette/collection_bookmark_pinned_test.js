@@ -29,7 +29,7 @@ marionette('Vertical - Collection Pin Bookmark', function() {
   var collectionIcon;
 
   // Hard-coded value from fixture.
-  var bookmarkIdentifier = 'http://mozilla1.org';
+  var bookmarkIdentifier = 'http://mozilla1.org/';
 
   setup(function() {
     actions = new Actions(client);

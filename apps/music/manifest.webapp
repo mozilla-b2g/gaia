@@ -62,6 +62,6 @@
   },
   "orientation": "default",
   "messages": [
-     { "media-button": "/index.html#mix" }
+     { "media-button": "/index.html" }
   ]
 }

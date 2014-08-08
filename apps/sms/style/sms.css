@@ -648,8 +648,9 @@ Do not remove.
 
 #messages-recipients-list.multiline {
   /* max-height = viewport - header - minimum composer - list margin */
-  max-height: calc(100vh - 5rem - 3.7rem - 0.6rem);
+  max-height: calc(100vh - 5rem - 4rem - 0.6rem);
   margin-bottom: 0.6rem;
+  padding-bottom: 0;
 
   overflow-y: scroll;
 }

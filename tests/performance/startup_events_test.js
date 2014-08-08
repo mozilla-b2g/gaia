@@ -50,6 +50,8 @@ marionette('startup event test > ' + appPath + ' >', function() {
 
   test('startup >', function() {
 
+    var goals = PerformanceHelper.getGoalData(client);
+
     performanceHelper.repeatWithDelay(function(app, next) {
       var waitForBody = false;
       PerformanceHelper.registerTimestamp(client);
@@ -80,6 +82,7 @@ marionette('startup event test > ' + appPath + ' >', function() {
 
     performanceHelper.finish();
 
+    PerformanceHelper.reportGoal(goals);
   });
 
 });

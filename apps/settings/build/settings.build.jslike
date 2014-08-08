@@ -15,6 +15,7 @@
     'shared/bluetooth_helper': 'empty:',
     'shared/async_storage': 'empty:',
     'shared/icc_helper': 'empty:',
+    'shared/language_list': 'empty:',
     'shared/lazy_loader': 'empty:',
     'shared/manifest_helper': 'empty:',
     'shared/settings_listener': 'empty:',
@@ -24,7 +25,8 @@
     'shared/device_storage/enumerate_all': 'empty:',
     'shared/wifi_helper': 'empty:',
     'modules/wifi_utils': 'empty:',
-    'modules/wifi_context': 'empty:'
+    'modules/wifi_context': 'empty:',
+    'shared/tz_select': 'empty:'
   },
 
   findNestedDependencies: true,

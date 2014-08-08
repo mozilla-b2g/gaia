@@ -2,7 +2,7 @@
 
 /* global utils, importer, MockAlphaScroll, MockImageLoader */
 /* global MockSearch, MockasyncStorage, MockOauthflow, MockImportHtml */
-/* global MockConnector, MockImportedContacts */
+/* global MockConnector, MockImportedContacts, MockCurtain */
 
 require('/shared/js/text_normalizer.js');
 require('/shared/js/contacts/search.js');
@@ -29,6 +29,7 @@ var realSearch,
     realAlphaScroll,
     realAsyncStorage,
     realOauthflow,
+    realCurtain,
     groupsListChild, groupsList;
 
 if (!window.asyncStorage) {
@@ -61,6 +62,9 @@ suite('Import Friends Test Suite', function() {
   suiteSetup(function() {
     realAlphaScroll = utils.AlphaScroll;
     utils.alphaScroll = MockAlphaScroll;
+
+    realCurtain = window.Curtain;
+    window.Curtain = MockCurtain;
 
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
@@ -259,12 +263,95 @@ suite('Import Friends Test Suite', function() {
     MockConnector.listAllContacts = listAllContacts;
   });
 
+  suite('Import process', function() {
+    var stubFriendListRenderer;
+    var listDeviceContacts;
+    var mockCurtainHide;
+    var stubImporterImportAll;
+    var stubParentPostMessage;
+
+    suiteSetup(function() {
+      stubFriendListRenderer = sinon.stub(window.FriendListRenderer, 'render',
+        function(contacts, cb) {
+          cb();
+      });
+
+      mockCurtainHide = MockCurtain.hide;
+      MockCurtain.hide = function (cb) {cb();};
+
+      listDeviceContacts = MockConnector.listDeviceContacts;
+      MockConnector.listDeviceContacts = function(callbacks) {
+        callbacks.success([{uid: '1xz'}]);
+      };
+      stubImporterImportAll = sinon.stub(importer, 'importAll', function(cb) {
+        cb();
+      });
+    });
+
+    setup(function() {
+      groupsList.innerHTML = '';
+      groupsList.appendChild(groupsListChild);
+    });
+
+    test('Import UI is closed when process ends in FTU', function(done) {
+      var stubGetContext = sinon.stub(importer, 'getContext', function() {
+        return 'ftu';
+      });
+
+      stubParentPostMessage = sinon.stub(window.parent, 'postMessage',
+        function(msg) {
+          if (msg.type === 'window_close') {
+            done(function() {
+              assert.ok('passed');
+              stubGetContext.restore();
+            });
+          }
+      });
+
+      importer.start('mock_token', MockConnector, '*', function() {
+        importer.setSelected({contact1: null});
+        importer.ui.importAll();
+      });
+    });
+
+    test('Import UI is closed when process ends in contacts', function(done) {
+      stubParentPostMessage = sinon.stub(window.parent, 'postMessage',
+        function(msg) {
+          if (msg.type === 'import_updated') {
+            window.postMessage({type: 'contacts_loaded'}, '*');
+          } else if (msg.type === 'window_close') {
+            done(function() {
+              assert.ok('passed');
+            });
+          }
+      });
+
+      importer.start('mock_token', MockConnector, window.location.origin,
+          function() {
+        importer.setSelected({contact1: null});
+        importer.ui.importAll();
+      });
+    });
+
+    teardown(function() {
+      stubParentPostMessage.restore();
+    });
+
+    suiteTeardown(function() {
+      MockConnector.listDeviceContacts = listDeviceContacts;
+      stubImporterImportAll.restore();
+      stubFriendListRenderer.restore();
+      MockCurtain.hide = mockCurtainHide;
+    });
+  });
+
   suiteTeardown(function() {
     utils.alphaScroll = realAlphaScroll;
     window.ImageLoader = realImageLoader;
     window.contacts.Search = realSearch;
     window.asyncStorage = realAsyncStorage;
     window.oauthflow = realOauthflow;
+    window.curtain = realCurtain;
   });
 
 });

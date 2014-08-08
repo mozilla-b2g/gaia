@@ -12,11 +12,10 @@ apps/costcontrol/style/bb/input-areas/style.css 2 0
 apps/costcontrol/style/bb/menus-dialogues/valueselector/date/style.css 1 0
 apps/costcontrol/style/bb/menus-dialogues/valueselector/style.css 1 1
 apps/costcontrol/style/bb/menus-dialogues/menus.css 1 0
-apps/costcontrol/style/views/balance.css 0 4
+apps/costcontrol/style/views/balance.css 0 2
 apps/costcontrol/style/app.css 0 3
 apps/keyboard/style/keyboard.css 1 3
 apps/callscreen/style/oncall.css 0 2
-apps/communications/dialer/style/call_log.css 0 1
 apps/communications/dialer/style/dialer.css 0 3
 apps/communications/dialer/style/toolbar.css 0 1
 apps/communications/contacts/style/overlay.css 0 1

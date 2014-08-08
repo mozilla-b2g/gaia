@@ -7,6 +7,7 @@
 /* global MockLinkedContacts:true */
 /* global MockLinkHtml */
 /* global MockOauthflow */
+/* global MockCurtain */
 
 require('/shared/js/text_normalizer.js');
 require('/shared/js/binary_search.js');
@@ -28,6 +29,7 @@ var realImageLoader,
     realAsyncStorage,
     realFb,
     realOauthflow,
+    realCurtain,
     linkProposal,
     linkProposalChild;
 
@@ -55,6 +57,9 @@ suite('Link Friends Test Suite', function() {
   suiteSetup(function() {
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
+
+    realCurtain = window.Curtain;
+    window.Curtain = MockCurtain;
 
     realAsyncStorage = window.asyncStorage;
     window.asyncStorage = MockasyncStorage;
@@ -226,6 +231,7 @@ suite('Link Friends Test Suite', function() {
     window.asyncStorage = realAsyncStorage;
     window.fb = realFb;
     window.oauthflow = realOauthflow;
+    window.Curtain = realCurtain;
   });
 
 });

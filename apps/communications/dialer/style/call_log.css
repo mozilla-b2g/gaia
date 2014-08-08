@@ -167,22 +167,12 @@ ol, ul {
 }
 
 [data-type="list"] aside.icon.icon-missed {
-  background-image: url('images/CallLog_30x30_missed_grey.png');
-}
-[data-type="list"].dual-sim aside.icon.icon-missed.first-sim {
-  background-image: url('images/CallLog_30x30_missed_grey-first-sim.png');
-}
-[data-type="list"].dual-sim aside.icon.icon-missed.second-sim {
-  background-image: url('images/CallLog_30x30_missed_grey-second-sim.png');
-}
-
-[data-type="list"] .missed-call.highlighted aside.icon.icon-missed {
   background-image: url('images/CallLog_30x30_missed.png');
 }
-[data-type="list"].dual-sim .missed-call.highlighted aside.icon.icon-missed.first-sim {
+[data-type="list"].dual-sim aside.icon.icon-missed.first-sim {
   background-image: url('images/CallLog_30x30_missed-first-sim.png');
 }
-[data-type="list"].dual-sim .missed-call.highlighted aside.icon.icon-missed.second-sim {
+[data-type="list"].dual-sim aside.icon.icon-missed.second-sim {
   background-image: url('images/CallLog_30x30_missed-second-sim.png');
 }
 
@@ -222,8 +212,8 @@ ol, ul {
   pointer-events: auto;
 }
 
-.log-item.missed-call.highlighted .call-time {
-  color: #b90000 !important;
+.log-item.missed-call .call-time {
+  color: #b90000;
 }
 
 .log-item .pack-checkbox {
