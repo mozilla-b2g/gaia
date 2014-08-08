@@ -173,14 +173,14 @@ suite('system/AppChrome', function() {
                            detail: 'new.location' });
 
       stub1.getCall(0).args[0](true);
-      assert.isUndefined(chrome.forwardButton.dataset.disabled);
+      assert.equal(chrome.forwardButton.disabled, false);
       stub1.getCall(0).args[0](false);
-      assert.equal(chrome.forwardButton.dataset.disabled, 'true');
+      assert.equal(chrome.forwardButton.disabled, true);
 
       stub2.getCall(0).args[0](true);
-      assert.isUndefined(chrome.backButton.dataset.disabled);
+      assert.equal(chrome.backButton.disabled, false);
       stub2.getCall(0).args[0](false);
-      assert.equal(chrome.backButton.dataset.disabled, 'true');
+      assert.equal(chrome.backButton.disabled, true);
     });
   });
 

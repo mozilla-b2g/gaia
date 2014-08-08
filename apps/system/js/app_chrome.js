@@ -67,9 +67,9 @@
             '<div class="progress"></div>' +
             '<div class="controls">' +
             ' <button type="button" class="back-button"' +
-            '   alt="Back" data-disabled="disabled"></button>' +
+            '   alt="Back" disabled></button>' +
             ' <button type="button" class="forward-button"' +
-            '   alt="Forward" data-disabled="disabled"></button>' +
+            '   alt="Forward" disabled></button>' +
             ' <div class="urlbar">' +
             '   <div class="title"></div>' +
             '   <button type="button" class="reload-button"' +
@@ -78,7 +78,7 @@
             '     alt="Stop"></button>' +
             ' </div>' +
             ' <button type="button" class="menu-button"' +
-            '   alt="Menu" data-disabled="disabled"></button>' +
+            '   alt="Menu" disabled></button>' +
             '</div>';
   };
 
@@ -122,7 +122,7 @@
 
     var dataset = this.app.config;
     if (dataset.originURL || dataset.searchURL) {
-      delete this.menuButton.dataset.disabled;
+      this.menuButton.disabled = false;
     }
 
     this.bar = this.element.querySelector('.bar');
@@ -423,30 +423,18 @@
 
       if (this.backButton && this.forwardButton) {
         this.app.canGoForward(function forwardSuccess(result) {
-          if (result === true) {
-            delete this.forwardButton.dataset.disabled;
-          } else {
-            this.forwardButton.dataset.disabled = true;
-          }
+          this.forwardButton.disabled = !result;
         }.bind(this));
 
         this.app.canGoBack(function backSuccess(result) {
-          if (result === true) {
-            delete this.backButton.dataset.disabled;
-          } else {
-            this.backButton.dataset.disabled = true;
-          }
+          this.backButton.disabled = !result;
         }.bind(this));
       }
 
       // Enable/disable the bookmark option
       if (this.menuButton) {
         BookmarksDatabase.get(this._currentURL).then(function(result) {
-          if (result) {
-            this.menuButton.dataset.disabled = true;
-          } else {
-            delete this.menuButton.dataset.disabled;
-          }
+          this.menuButton.disabled = !!result;
         }.bind(this));
       }
     };
@@ -500,12 +488,13 @@
   AppChrome.prototype.addBookmark = function ac_addBookmark() {
     var dataset = this.app.config;
 
-    var name, url = this._currentURL;
+    var name;
     if (this.isSearch()) {
       name = dataset.searchName;
     } else {
       name = this.title.textContent;
     }
+    var url = this._currentURL;
 
     var activity = new MozActivity({
       name: 'save-bookmark',
@@ -521,7 +510,7 @@
 
     if (this.menuButton) {
       activity.onsuccess = function onsuccess() {
-        this.menuButton.dataset.disabled = true;
+        this.menuButton.disabled = true;
       }.bind(this);
     }
   };

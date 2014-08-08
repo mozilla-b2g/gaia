@@ -73,8 +73,8 @@
   margin-left: 0.5rem;
 }
 
-.scrollable .chrome .controls button:not([data-disabled]) + button[data-disabled] + .urlbar,
-.scrollable .chrome .controls button:not([data-disabled]) + .urlbar {
+.scrollable .chrome .controls button:not([disabled]) + button[disabled] + .urlbar,
+.scrollable .chrome .controls button:not([disabled]) + .urlbar {
   margin-left: 0;
 }
 
@@ -109,15 +109,15 @@
 }
 
 
-.controls .forward-button:not([data-disabled]) + .urlbar {
+.controls .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 8rem);
 }
 
-.controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar {
+.controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
   width: calc(100% - 8rem);
 }
 
-.controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
+.controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 12rem);
 }
 
@@ -131,12 +131,12 @@
   transform: scaleX(1);
 }
 
-.scrollable .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
-.scrollable .chrome:not(.maximized) .forward-button:not([data-disabled]) + .urlbar {
+.scrollable .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
+.scrollable .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
   transform: scaleX(0.6521) translateX(-5.5rem);
 }
 
-.scrollable .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
+.scrollable .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   transform: scaleX(0.6521) translateX(-12rem);
 }
 
@@ -188,14 +188,13 @@
   pointer-events: auto;
 }
 
-.controls .back-button[data-disabled],
-.controls .forward-button[data-disabled] {
+.controls .back-button[disabled],
+.controls .forward-button[disabled] {
   display: none;
 }
 
-.chrome.maximized .controls .menu-button[data-disabled] {
+.chrome.maximized .controls .menu-button[disabled] {
   opacity: 0.2;
-  pointer-events: none;
 }
 
 .appWindow:not(.bar) > .chrome button {
@@ -359,9 +358,9 @@
   display: none;
 }
 
-.appWindow:not(.scrollable) > .chrome .controls .forward-button:not([data-disabled]) + .urlbar,
-.appWindow:not(.scrollable) > .chrome .controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
-.appWindow:not(.scrollable) > .chrome .controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar,
+.appWindow:not(.scrollable) > .chrome .controls .forward-button:not([disabled]) + .urlbar,
+.appWindow:not(.scrollable) > .chrome .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
+.appWindow:not(.scrollable) > .chrome .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar,
 .appWindow:not(.scrollable) > .chrome .controls .urlbar {
   width: calc(100% - 8rem);
 }
