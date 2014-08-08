@@ -204,7 +204,7 @@ Home2.prototype = {
   */
   getIcon: function(manifestUrl, entryPoint) {
     return this.client.helper.waitForElement(
-      '[data-identifier="' + manifestUrl +
+      '[data-identifier*="' + manifestUrl +
       (entryPoint ? '-' + entryPoint : '') + '"]'
     );
   },
