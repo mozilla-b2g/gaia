@@ -654,6 +654,10 @@ ifeq ($(DOGFOOD),1)
 EXTENDED_PREF_FILES += dogfood-prefs.js
 endif
 
+ifeq ($(DEBUG),1)
+EXTENDED_PREF_FILES += debug-prefs.js
+endif
+
 # Optional partner provided preference files. They will be added
 # after the ones on the EXTENDED_PREF_FILES and they will be read
 # from the GAIA_DISTRIBUTION_DIR directory
