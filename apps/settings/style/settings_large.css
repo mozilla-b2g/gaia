@@ -260,17 +260,6 @@
   }
 
   /**
-   * slider
-   */
-  section[role="region"] ul li > label input[type='range'] {
-    top: 1.5rem;
-    width: 49.5%;
-    height: 2rem;
-    left: 50%;
-    position: absolute
-  }
-
-  /**
    * button
    */
   section[role="region"]:not([id='root']) button.icon,
