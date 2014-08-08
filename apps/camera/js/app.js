@@ -163,7 +163,7 @@ App.prototype.bindEvents = function() {
   this.once('viewfinder:visible', this.onCriticalPathDone);
   this.once('storage:checked:healthy', this.geolocationWatch);
   this.on('busy', this.onBusy);
-  this.on('ready', this.onReady);
+  this.on('ready', this.clearSpinner);
   this.on('visible', this.onVisible);
   this.on('hidden', this.onHidden);
 
@@ -389,6 +389,21 @@ App.prototype.showSpinner = function(key) {
     self.views.loading.appendTo(self.el).show();
     debug('loading shown');
   }, ms);
+};
+
+/**
+ * Clears the loadings screen, or
+ * any pending loading screen.
+ *
+ * @private
+ */
+App.prototype.clearSpinner = function() {
+  debug('clear loading');
+  var view = this.views.loading;
+  clearTimeout(this.spinnerTimeout);
+  if (!view) { return; }
+  view.hide(view.destroy);
+  this.views.loading = null;
 };
 
 /**

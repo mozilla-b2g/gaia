@@ -55,7 +55,10 @@ ConfirmController.prototype.renderView = function() {
   this.confirmView.maxPreviewSize = window.CONFIG_MAX_IMAGE_PIXEL_SIZE;
   this.confirmView.render().appendTo(this.container);
 
-  this.confirmView.on('click:select', this.onSelectMedia);
+  // We want to listen to select events exactly once
+  // The media is selected, the confirm view dismissed
+  // and the activity returns
+  this.confirmView.once('click:select', this.onSelectMedia);
   this.confirmView.on('click:retake', this.onRetakeMedia);
   this.confirmView.on('loadingvideo', this.app.firer('busy'));
   this.confirmView.on('playingvideo', this.app.firer('ready'));

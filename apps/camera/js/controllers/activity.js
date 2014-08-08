@@ -261,11 +261,16 @@ ActivityController.prototype.onActivityCanceled = function() {
 
 // TODO: Messy, tidy up!
 ActivityController.prototype.onActivityConfirmed = function(newMedia) {
+  var self = this;
   var activity = this.activity;
   var needsResizing;
   var media = {
     blob: newMedia.blob
   };
+
+  // In low end devices resizing can be slow.
+  // We display a spinner
+  this.app.showSpinner();
 
   // Video
   if (newMedia.isVideo) {
@@ -284,15 +289,20 @@ ActivityController.prototype.onActivityConfirmed = function(newMedia) {
         blob: newMedia.blob,
         width: activity.source.data.width,
         height: activity.source.data.height
-      }, function(resizedBlob) {
-        media.blob = resizedBlob;
-        activity.postResult(media);
-      });
+      }, onImageResized);
       return;
     }
   }
 
-  this.activity.postResult(media);
+  function onImageResized(resizedBlob) {
+    media.blob = resizedBlob;
+    activity.postResult(media);
+    self.app.clearSpinner();
+  }
+
+  activity.postResult(media);
+  this.app.clearSpinner();
+
 };
 
 });

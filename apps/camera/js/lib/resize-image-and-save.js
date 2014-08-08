@@ -37,12 +37,23 @@ module.exports = function(options, done) {
     }
 
     var storage = new Storage();
-    storage.deletePicture(blob.name);
-    storage.addPicture(resizedBlob, {
-      filepath: blob.name
-    }, function(filepath, absolutePath, fileBlob) {
+    // We first delete the full resolution picture
+    storage.deletePicture(blob.name, addPicture);
+    // We save the scaled down image
+    function addPicture(error) {
+      if (error) {
+        done(blob);
+        return;
+      }
+      storage.addPicture(resizedBlob, {
+        filepath: blob.name
+      }, onSavedPicture);
+    }
+
+    function onSavedPicture(error, filepath, absolutePath, fileBlob) {
       done(fileBlob);
-    });
+    }
+
   });
 };
 

@@ -104,6 +104,7 @@ suite('lib/storage', function() {
 
     test('Should callback passing the relative path, absolute path and memory-backed-blob', function() {
       assert.isTrue(this.callback.calledWith(
+        null,
         'filename.file',
         '/path/to/picture.jpg',
         'memory-backed-blob'));
