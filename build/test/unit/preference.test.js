@@ -317,7 +317,6 @@ suite('preferences.js', function() {
         'b2g.system_startup_url': 'app://system8000/index.html',
         'network.http.max-connections-per-server': 15,
         'dom.mozInputMethod.enabled': true,
-        'dom.webcomponents.enabled': true,
         'intl.uidirection.qps-plocm': 'rtl',
         'layout.css.sticky.enabled': true,
         'ril.debugging.enabled': false,
