@@ -3,7 +3,7 @@ Keyboards.ro = {
   shortLabel: 'Ro',
   menuLabel: 'Română',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'password'],
+  types: ['text', 'url', 'email', 'number', 'password'],
   autoCorrectLanguage: 'ro',
   alt: {
     a: 'ăâ',

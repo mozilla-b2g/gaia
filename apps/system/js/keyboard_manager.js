@@ -23,7 +23,7 @@ const TYPE_GROUP_MAPPING = {
   'search': 'text',
   // number
   'number': 'number',
-  'tel': 'number',
+  'tel': 'digit',
   // option
   'select-one': 'option',
   'select-multiple': 'option',

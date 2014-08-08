@@ -2,7 +2,7 @@ Keyboards['es-Americas'] = {
   label: 'Spanish (Latin America)',
   menuLabel: 'Español (Latinoamérica)',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'password'],
+  types: ['text', 'url', 'email', 'number', 'password'],
   autoCorrectLanguage: 'es',
   alt: {
     a: 'áªàâäåãāæ',

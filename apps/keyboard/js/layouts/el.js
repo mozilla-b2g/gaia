@@ -3,7 +3,7 @@ Keyboards.el = {
   shortLabel: 'El',
   menuLabel: 'Ελληνικό',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'password'],
+  types: ['text', 'url', 'email', 'number', 'password'],
   autoCorrectLanguage: 'el',
   upperCase: {
     'ς': 'ς'
