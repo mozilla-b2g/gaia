@@ -73,6 +73,18 @@
     "189": "/style/icons/system_189.png",
     "284": "/style/icons/system_284.png"
   },
+  "activities": {
+    "view": {
+      "filters": {
+        "type": "url",
+        "url": {
+          "required": true,
+          "pattern": "(https?:|data:).{1,16384}",
+          "patternFlags": "i"
+        }
+      }
+    }
+  },
   "messages": [
      { "alarm": "/index.html" },
      { "bluetooth-opp-transfer-complete": "/index.html" },
