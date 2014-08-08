@@ -200,23 +200,23 @@ module.exports = View.extend({
     /*jshint maxlen:false*/
     return '<div class="controls-left">' +
       '<div class="controls-button controls-thumbnail-button test-thumbnail js-thumbnail rotates" name="thumbnail"></div>' +
-      '<div class="controls-button controls-cancel-pick-button test-cancel-pick icon-close rotates js-cancel" name="cancel"></div>' +
+      '<div class="controls-button controls-cancel-pick-button test-cancel-pick rotates js-cancel" name="cancel" data-icon="close"></div>' +
     '</div>' +
     '<div class="controls-middle">' +
       '<div class="capture-button test-capture rotates js-capture" name="capture">' +
         '<div class="circle outer-circle"></div>' +
         '<div class="circle inner-circle"></div>' +
-        '<div class="center icon-camera"></div>' +
+        '<div class="center" data-icon="camera"></div>' +
       '</div>' +
     '</div>' +
     '<div class="controls-right">' +
       '<div class="mode-switch test-switch" name="switch">' +
         '<div class="inner js-switch">' +
-          '<div class="mode-switch_bg-icon icon-camera rotates"></div>' +
-          '<div class="mode-switch_bg-icon icon-video rotates"></div>' +
+          '<div class="mode-switch_bg-icon rotates" data-icon="camera"></div>' +
+          '<div class="mode-switch_bg-icon rotates" data-icon="video"></div>' +
           '<div class="mode-switch_handle js-switch-handle">' +
-            '<div class="mode-switch_current-icon icon-camera rotates js-icon-camera"></div>' +
-            '<div class="mode-switch_current-icon icon-video rotates js-icon-video"></div>' +
+            '<div class="mode-switch_current-icon camera rotates js-icon-camera" data-icon="camera"></div>' +
+            '<div class="mode-switch_current-icon video rotates js-icon-video" data-icon="video"></div>' +
           '</div>' +
         '</div>' +
       '</div>' +

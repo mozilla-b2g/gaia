@@ -82,19 +82,27 @@
 /** Item Icon
  ---------------------------------------------------------*/
 
+/**
+ * 1. Tick icon hidden by default
+ */
+
 .setting-option:before {
   float: right;
   margin-right: 0.5rem;
-  visibility: hidden;
+  font-size: 2rem;
+  visibility: hidden; /* 1 */
 }
 
 /**
- * @selected
+ * .selected
  */
 
 .setting-option.selected:before {
   visibility: visible;
 }
+
+/** Back Button
+ ---------------------------------------------------------*/
 
 .settings-back-btn {
   width: 15rem;
@@ -112,6 +120,10 @@
   padding-left: 0.5rem;
   position: absolute;
 }
+
+/**
+ * :actives
+ */
 
 .settings-back-btn:active {
   background: transparent;

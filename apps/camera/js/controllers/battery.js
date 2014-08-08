@@ -53,15 +53,15 @@ BatteryController.prototype.bindEvents = function() {
 BatteryController.prototype.notifications = {
   low: {
     text: 'battery-low-text',
-    className: 'icon-battery-low'
+    attrs: { 'data-icon': 'battery-low' }
   },
   verylow: {
     text: 'battery-verylow-text',
-    className: 'icon-battery-very-low'
+    attrs: { 'data-icon': 'battery-very-low' }
   },
   critical: {
     text: 'battery-critical-text',
-    className: 'icon-battery-very-low',
+    attrs: { 'data-icon': 'battery-very-low' },
     persistent: true
   }
 };
@@ -118,6 +118,7 @@ BatteryController.prototype.displayNotification = function(status) {
   this.lastNotification = this.notification.display({
     text: this.l10nGet(notification.text),
     className: notification.className,
+    attrs: notification.attrs,
     persistent: notification.persistent
   });
 };

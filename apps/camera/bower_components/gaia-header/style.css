@@ -7,6 +7,14 @@ gaia-header {
   display: block;
 }
 
+/**
+ * [hidden]
+ */
+
+gaia-header[hidden] {
+  display: none;
+}
+
 /** Inner
  ---------------------------------------------------------*/
 
@@ -116,14 +124,18 @@ a,
 button,
 .content a,
 .content button {
-  display: block;
+  box-sizing: border-box;
+  display: flex;
   border: none;
   width: auto;
   height: auto;
   margin: 0;
-  padding: 0;
+  padding: 0 10px;
   font-size: 14px;
+  line-height: 1;
   min-width: 50px;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
   text-align: center;
   background: none;
@@ -172,7 +184,8 @@ a:focus,
  * Icons are a different color to text
  */
 
-.content [class*="icon-"] {
+.content .icon,
+.content [data-icon] {
   color: var(--header-nav-button-color, #000);
 }
 
@@ -180,7 +193,8 @@ a:focus,
  * :active
  */
 
-.content [class*="icon-"]:active {
+.content .icon,
+.content [data-icon]:active {
   color: var(--header-nav-button-color-active, #fff);
 }
 
@@ -190,7 +204,6 @@ a:focus,
 [class^="icon-"]:before,
 [class*="icon-"]:before {
   font-family: "gaia-icons";
-  font-weight: normal;
   font-style: normal;
   text-rendering: optimizeLegibility;
 }
