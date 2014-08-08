@@ -51,8 +51,15 @@
           // it overlaps search bar, let's create a contextmenu attribute on
           // the fly, and remove it once the event dispatching is done.
           e.target.setAttribute('contextmenu', 'contextmenu');
-          setTimeout(function() {
+
+          // Stop the grid from listening to events to prevent it from
+          // receiving a touchend event and launching the icon. This is
+          // restored on next tick.
+          this.grid.stop();
+
+          setTimeout(() => {
             e.target.removeAttribute('contextmenu');
+            this.grid.start();
           });
 
           this.icon = icon;
