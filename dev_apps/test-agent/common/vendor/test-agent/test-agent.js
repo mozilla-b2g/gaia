@@ -2316,7 +2316,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   'use strict';
 
   function LOG(msg) {
-    dump('--------> ' + msg + ' ' + window.location + '\n');
+    dump((new Date).toLocaleTimeString() + '--------> ' + msg + ' ' + window.location + '\n');
   }
 
   if (typeof(window.TestAgent) === 'undefined') {
@@ -2644,7 +2644,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   'use strict';
 
   function LOG(msg) {
-    dump('--- DRIVER ---> ' + msg + '\n');
+    dump((new Date).toLocaleTimeString() + '--- DRIVER ---> ' + msg + '\n');
   }
 
   // This Driver is used in the main Test-Agent window, to manage the iframes
