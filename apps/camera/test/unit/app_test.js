@@ -122,7 +122,7 @@ suite('app', function() {
     // methods before any of this happens, so that the
     // spy is always at the root of any call.
     this.sandbox.spy(this.App.prototype, 'boot');
-    this.sandbox.spy(this.App.prototype, 'onReady');
+    this.sandbox.spy(this.App.prototype, 'clearLoading');
 
     // Aliases
     this.settings = options.settings;
@@ -226,9 +226,9 @@ suite('app', function() {
       var callback = on.args[0][1];
 
       // Call the callback and make sure
-      // that `onReady` was called.
+      // that `clearLoading` was called.
       callback();
-      sinon.assert.calledOnce(this.App.prototype.onReady);
+      sinon.assert.calledOnce(this.App.prototype.clearLoading);
     });
 
     suite('App#geolocationWatch()', function() {
@@ -262,7 +262,7 @@ suite('app', function() {
         this.spy = this.app.once.withArgs('viewfinder:visible');
         this.callback = this.spy.args[0][1];
 
-        sinon.stub(this.app, 'onReady');
+        sinon.stub(this.app, 'clearLoading');
         sinon.spy(this.app, 'loadController');
         sinon.spy(this.app, 'loadL10n');
 
@@ -417,7 +417,7 @@ suite('app', function() {
     });
   });
 
-  suite('App#onReady()', function() {
+  suite('App#clearLoading()', function() {
     setup(function() {
       this.sandbox.spy(window, 'clearTimeout');
       this.sandbox.stub(window, 'setTimeout').returns('<timeout-id>');
@@ -427,20 +427,20 @@ suite('app', function() {
 
     test('Should clear loadingTimeout', function() {
       this.app.showLoading();
-      this.app.onReady();
+      this.app.clearLoading();
       sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
     });
 
     test('Should hide, then destroy the view', function() {
       var view = this.app.views.loading;
-      this.app.onReady();
+      this.app.clearLoading();
 
       sinon.assert.called(view.hide);
       assert.ok(view.destroy.calledAfter(view.hide));
     });
 
     test('Should clear reference to `app.views.loading`', function() {
-      this.app.onReady();
+      this.app.clearLoading();
       assert.equal(this.app.views.loading, null);
     });
   });

@@ -389,7 +389,7 @@ CameraController.prototype.onGalleryClosed = function() {
   }
 
   this.app.showLoading();
-  this.camera.load(this.app.onReady);
+  this.camera.load(this.app.clearLoading);
 };
 
 });
