@@ -5,6 +5,7 @@
 import re
 from marionette.by import By
 
+from gaiatest import GaiaData
 from gaiatest.apps.base import Base
 
 
@@ -79,6 +80,10 @@ class Ftu(Base):
     _pattern_contacts_0 = re.compile("^No contacts detected on SIM to import$")
     _pattern_contacts_1 = re.compile("^Imported one contact$")
     _pattern_contacts_N = re.compile("^Imported ([0-9]+) contacts$")
+
+    def __init__(self, marionette):
+        Base.__init__(self, marionette)
+        self.data_layer = GaiaData(self.marionette)
 
     def launch(self):
         Base.launch(self)
