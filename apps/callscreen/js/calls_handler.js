@@ -181,6 +181,7 @@ var CallsHandler = (function callsHandler() {
 
       // User performed another outgoing call. show its status.
       } else {
+        updatePlaceNewCall();
         hc.show();
       }
     } else {
