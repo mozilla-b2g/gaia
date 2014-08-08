@@ -111,6 +111,7 @@ var PlayerView = {
 
     this.isTouching = false;
     this.isFastSeeking = false;
+    this.stopFromFastSeeking = false;
     this.playStatus = PLAYSTATUS_STOPPED;
     this.pausedPosition = null;
     this.dataSource = [];
@@ -935,7 +936,20 @@ var PlayerView = {
             break;
           case 'player-cover-share':
             this.share();
-
+            break;
+          case 'player-controls-previous':
+            if (this.stopFromFastSeeking) {
+              this.stopFromFastSeeking = false;
+            } else {
+              this.previous();
+            }
+            break;
+          case 'player-controls-next':
+            if (this.stopFromFastSeeking) {
+              this.stopFromFastSeeking = false;
+            } else {
+              this.next();
+            }
             break;
         }
 
@@ -991,6 +1005,7 @@ var PlayerView = {
         // of the previous or next buttons, so stop the fast seeking.
         // Otherwise, check the target id then do the corresponding actions.
         if (this.isFastSeeking) {
+          this.stopFromFastSeeking = true;
           this.stopFastSeeking();
         } else if (target.id === 'player-seek-bar') {
           this.seekIndicator.classList.remove('highlight');
@@ -999,10 +1014,6 @@ var PlayerView = {
             this.seekTime = 0;
           }
           this.isTouching = false;
-        } else if (target.id === 'player-controls-previous') {
-          this.previous();
-        } else if (target.id === 'player-controls-next') {
-          this.next();
         }
         break;
       case 'contextmenu':
