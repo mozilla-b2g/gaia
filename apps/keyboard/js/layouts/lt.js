@@ -3,7 +3,7 @@ Keyboards.lt = {
   shortLabel: 'Lt',
   menuLabel: 'Lietuvių',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'number'],
   autoCorrectLanguage: 'lt',
   alt: {
     a: 'ą',

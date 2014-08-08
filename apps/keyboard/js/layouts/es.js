@@ -3,7 +3,7 @@ Keyboards.es = {
   shortLabel: 'Es',
   menuLabel: 'Español',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'number'],
   autoCorrectLanguage: 'es',
   alt: {
     a: 'áªàâäåãāæ',

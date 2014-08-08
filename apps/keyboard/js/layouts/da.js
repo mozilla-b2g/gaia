@@ -4,7 +4,7 @@ Keyboards.da = {
   menuLabel: 'Dansk',
   imEngine: 'latin',
   autoCorrectLanguage: 'da',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'number'],
   alt: {
     a: 'äáàâąã',
     e: 'éèêëę€',

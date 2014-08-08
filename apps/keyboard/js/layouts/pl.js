@@ -2,7 +2,7 @@ Keyboards.pl = {
   label: 'Polish',
   shortLabel: 'Pl',
   imEngine: 'latin',
-  types: ['text', 'url' , 'email'],
+  types: ['text', 'url' , 'email', 'number'],
   autoCorrectLanguage: 'pl',
   menuLabel: 'Polski',
   alt: {
