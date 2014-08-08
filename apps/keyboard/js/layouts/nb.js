@@ -4,7 +4,7 @@ Keyboards.nb = {
   menuLabel: 'Norsk',
   imEngine: 'latin',
   autoCorrectLanguage: 'nb',
-  types: ['text', 'url', 'email', 'password'],
+  types: ['text', 'url', 'email', 'number', 'password'],
   alt: {
     a: 'äáàâąã',
     e: 'éèêëę€',

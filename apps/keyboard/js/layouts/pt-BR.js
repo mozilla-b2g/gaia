@@ -3,7 +3,7 @@ Keyboards['pt-BR'] = {
   shortLabel: 'Pt',
   menuLabel: 'Português',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'password'],
+  types: ['text', 'url', 'email', 'number', 'password'],
   autoCorrectLanguage: 'pt_br',
   alt: {
     a: 'áãàâäåæª',

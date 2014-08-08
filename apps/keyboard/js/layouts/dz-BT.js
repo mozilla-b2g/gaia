@@ -4,7 +4,7 @@ Keyboards['dz-BT'] = {
   menuLabel: 'རྫོང་ཁ',
   alternateLayoutKey: '༡༢༣',
   basicLayoutKey: 'ཀཁག',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'number'],
   width: 12,
   keys: [
     [

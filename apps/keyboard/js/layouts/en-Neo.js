@@ -3,7 +3,7 @@ Keyboards['en-Neo'] = {
   shortLabel: 'En',
   menuLabel: 'Neo',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'password'],
+  types: ['text', 'url', 'email', 'number', 'password'],
   autoCorrectLanguage: 'en_us',
   alt: {
     a: 'áàâäåãāæ',

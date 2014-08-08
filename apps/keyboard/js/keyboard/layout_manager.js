@@ -156,6 +156,14 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   var alternativeLayoutName =
     this._getAlternativeLayoutName(basicInputType, inputMode);
 
+  if ('alternateLayout' === alternativeLayoutName &&
+      ('number' === basicInputType ||
+       ('text' === basicInputType && 'numeric' === inputMode)
+      )
+     ) {
+    this.currentLayoutPage = this.LAYOUT_PAGE_SYMBOLS_I;
+  }
+
   var layout;
   if (this.currentForcedModifiedLayoutName) {
     layout = this.loader.getLayout(this.currentForcedModifiedLayoutName);
@@ -424,7 +432,7 @@ LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
           return 'pinLayout';
 
         default:
-          return 'numberLayout';
+          return 'alternateLayout';
       }
 
       break;
@@ -437,7 +445,7 @@ LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
           return 'pinLayout';
 
         case 'numeric':
-          return 'numberLayout';
+          return 'alternateLayout';
 
         case '-moz-sms':
           var smsLayoutName = this.currentLayoutName + '-sms';

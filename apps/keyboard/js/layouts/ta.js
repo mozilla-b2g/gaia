@@ -5,7 +5,7 @@ Keyboards.ta = {
   menuLabel: 'தமிழ்',
   secondLayout: true,
   basicLayoutKey: 'அஆஇ',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'number'],
   keyClassName: 'tamil',
   upperCase: {
     'ஒ':'ொ',
