@@ -20,8 +20,8 @@ var UserPress = function(el, coords) {
 
 UserPress.prototype.updateCoords = function(coords, moved) {
   this.moved = moved;
-  this.pageX = coords.pageX;
-  this.pageY = coords.pageY;
+  this.clientX = coords.clientX;
+  this.clientY = coords.clientY;
 };
 
 /**
@@ -124,7 +124,7 @@ UserPressManager.prototype.handleEvent = function(evt) {
           continue;
         }
 
-        el = document.elementFromPoint(touch.pageX, touch.pageY);
+        el = document.elementFromPoint(touch.clientX, touch.clientY);
 
         this._handleChangedPress(el, touch, touchId);
       }
@@ -154,7 +154,7 @@ UserPressManager.prototype.handleEvent = function(evt) {
         touch = evt.changedTouches[i];
         touchId = touch.identifier;
 
-        el = document.elementFromPoint(touch.pageX, touch.pageY);
+        el = document.elementFromPoint(touch.clientX, touch.clientY);
         this._handleFinishPress(el, touch, touchId);
       }
       break;
@@ -232,8 +232,8 @@ UserPressManager.prototype._handleFinishPress = function(el, coords, id) {
 UserPressManager.prototype._distanceReachesLimit = function(id, newCoord) {
   var press = this.presses.get(id);
 
-  var dx = press.pageX - newCoord.pageX;
-  var dy = press.pageY - newCoord.pageY;
+  var dx = press.clientX - newCoord.clientX;
+  var dy = press.clientY - newCoord.clientY;
   var limit = this.MOVE_LIMIT;
 
   return (dx >= limit || dx <= -limit || dy >= limit || dy <= -limit);
