@@ -32,12 +32,6 @@
     pending: [],
 
     /**
-     * The ID of the next permission request. This is incremented by one
-     * on every request, modulo some large number to prevent overflow problems.
-     */
-    nextRequestID: 0,
-
-    /**
      * The ID of the request currently visible on the screen. This has the value
      * "undefined" when there is no request visible on the screen.
      */
@@ -120,7 +114,6 @@
 
       this.responseStatus = null;
       this.pending = [];
-      this.nextRequestID = null;
       this.currentRequestId = null;
 
       this.overlay = null;
@@ -310,7 +303,8 @@
         var message =
           _('fullscreen-request', { 'origin': detail.fullscreenorigin });
         this.fullscreenRequest =
-          this.requestPermission(detail.origin, detail.permission, message, '',
+          this.requestPermission(detail.id, detail.origin, detail.permission,
+                                 message, '',
                                               /* yesCallback */ null,
                                               /* noCallback */ function() {
                                                 document.mozCancelFullScreen();
@@ -357,7 +351,7 @@
 
       var moreInfoText = _(permissionID + '-more-info');
       var self = this;
-      this.requestPermission(detail.origin, this.permissionType,
+      this.requestPermission(detail.id, detail.origin, this.permissionType,
         message, moreInfoText,
         function pm_permYesCB() {
           self.dispatchResponse(detail.id, 'permission-allow',
@@ -485,12 +479,9 @@
      * Queue or show the permission prompt
      * @memberof PermissionManager.prototype
      */
-    requestPermission: function pm_requestPermission(origin, permission,
+    requestPermission: function pm_requestPermission(id, origin, permission,
                                      msg, moreInfoText,
                                      yescallback, nocallback) {
-      var id = this.nextRequestID;
-      this.nextRequestID = (this.nextRequestID + 1) % 1000000;
-
       if (this.currentRequestId !== undefined) {
         // There is already a permission request being shown, queue this one.
         this.pending.push({
