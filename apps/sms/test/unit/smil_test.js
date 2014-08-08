@@ -1,7 +1,10 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global SMIL, MocksHelper */
+/*global SMIL, MocksHelper,
+         AssetsHelper,
+         Promise
+*/
 
 'use strict';
 
@@ -25,36 +28,25 @@ suite('SMIL', function() {
   suiteSetup(function smil_suiteSetup(done) {
     mocksHelperForSMIL.suiteSetup();
 
-    var assetsNeeded = 0;
-    function getAsset(filename, loadCallback) {
-      assetsNeeded++;
+    var blobPromises = [
+      AssetsHelper.generateImageBlob(300, 300, 'image/jpeg', 0.25).then(
+        (blob) => testImageBlob = blob
+      ),
+      AssetsHelper.loadFileBlob('/test/unit/media/grid.wbmp').then(
+        (blob) => testWbmpBlob = blob
+      ),
+      AssetsHelper.loadFileBlob('/test/unit/media/audio.oga').then(
+        (blob) => testAudioBlob = blob
+      ),
+      AssetsHelper.loadFileBlob('/test/unit/media/video.ogv').then(
+        (blob) => testVideoBlob = blob
+      ),
+      AssetsHelper.loadFileBlob('/test/unit/media/contacts.vcf').then(
+        (blob) => testContactBlob = blob
+      )
+    ];
 
-      var req = new XMLHttpRequest();
-      req.open('GET', filename, true);
-      req.responseType = 'blob';
-      req.onload = function() {
-        loadCallback(req.response);
-        if (--assetsNeeded === 0) {
-          done();
-        }
-      };
-      req.send();
-    }
-    getAsset('/test/unit/media/kitten-450.jpg', function(blob) {
-      testImageBlob = blob;
-    });
-    getAsset('/test/unit/media/audio.oga', function(blob) {
-      testAudioBlob = blob;
-    });
-    getAsset('/test/unit/media/video.ogv', function(blob) {
-      testVideoBlob = blob;
-    });
-    getAsset('/test/unit/media/grid.wbmp', function(blob) {
-      testWbmpBlob = blob;
-    });
-    getAsset('/test/unit/media/contacts.vcf', function(blob) {
-      testContactBlob = blob;
-    });
+    Promise.all(blobPromises).then(() => done(), done);
   });
   suiteTeardown(function() {
     mocksHelperForSMIL.suiteTeardown();
