@@ -87,7 +87,8 @@ Keyboards.hi = {
       '९': '9',
       '०': '0',
       '?': '¿',
-      '!': '¡'
+      '!': '¡',
+      '₹': '$ € £ ¥ ৳'
     },
     keys: [
       [
@@ -95,7 +96,7 @@ Keyboards.hi = {
         { value: '५' } , { value: '६' }, { value: '७' } , { value: '८' },
         { value: '९' }, { value: '०' }
       ], [
-        { value: '@', hidden: ['email'] }, { value: '#' }, { value: '$' },
+        { value: '@', hidden: ['email'] }, { value: '#' }, { value: '₹' },
         { value: '%' }, { value: '&' } , { value: '*' }, { value: '-' },
         { value: '+' }, { value: '(' }, { value: ')' },
         { value: '_', visible: ['email'] }
