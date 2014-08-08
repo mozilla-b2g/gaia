@@ -3,29 +3,28 @@
 mocha.globals(['MockL10n']);
 
 suite('LanguageItem', function() {
-  var expectedTitle = 'English';
   var realL10n;
+  var realLanguageList;
   var modules = [
     'unit/mock_l10n',
+    'shared_mocks/mock_language_list',
     'panels/root/language_item',
   ];
   var map = {
     'panels/root/language_item': {
-      'utils': 'MockUtils'
+      'shared/language_list': 'shared_mocks/mock_language_list'
     }
   };
 
   suiteSetup(function(done) {
     var requireCtx = testRequire([], map, function() {});
-    define('MockUtils', function() {
-      window.getSupportedLanguages = function(callback) {
-        callback({ 'en-US': expectedTitle });
-      };
-    });
 
-    requireCtx(modules, function(MockL10n, LanguageItem) {
+    requireCtx(modules, function(MockL10n, MockLanguageList, LanguageItem) {
       realL10n = window.navigator.mozL10n;
       window.navigator.mozL10n = MockL10n;
+
+      realLanguageList = window.LanguageList;
+      window.LanguageList = MockLanguageList;
 
       this.LanguageItem = LanguageItem;
       done();
@@ -33,8 +32,7 @@ suite('LanguageItem', function() {
   });
 
   suiteTeardown(function() {
-    window.navigator.mozL10n = realL10n;
-    window.getSupportedLanguages = null;
+    window.LanguageList = realLanguageList;
   });
 
   setup(function() {
@@ -62,6 +60,6 @@ suite('LanguageItem', function() {
 
   test('_boundRefreshText', function() {
     this.subject._boundRefreshText();
-    assert.equal(this.element.textContent, expectedTitle);
+    assert.equal(this.element.textContent, 'English (US)');
   });
 });

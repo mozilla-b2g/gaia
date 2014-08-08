@@ -54,6 +54,9 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'shared_mocks/mock_navigator_moz_settings': {
         exports: 'MockNavigatorSettings'
       },
+      'shared_mocks/mock_language_list': {
+        exports: 'MockLanguageList'
+      },
       'shared_mocks/mock_keyboard_helper': {
         exports: 'MockKeyboardHelper'
       },

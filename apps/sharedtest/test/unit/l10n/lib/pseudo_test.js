@@ -3,27 +3,27 @@
 'use strict';
 
 var assert = require('assert') || window.assert;
-var PropertiesParser, propertiesParser;
+var propertiesParser;
 
 describe('pseudo strategy', function() {
-  var L10n, strategy, source, ast;
+  var PSEUDO_STRATEGIES, walkContent, strategy, source, ast;
 
   before(function(done) {
     if (typeof navigator !== 'undefined') {
-      require('/build/l10n.js', function() {
-        L10n = navigator.mozL10n._getInternalAPI();
-        PropertiesParser = L10n.PropertiesParser;
-        propertiesParser = new PropertiesParser();
+      require('/shared/js/l10n.js', function() {
+        PSEUDO_STRATEGIES = navigator.mozL10n.qps;
+        var L10n = navigator.mozL10n._getInternalAPI();
+        walkContent = L10n.walkContent;
+        propertiesParser = new L10n.PropertiesParser();
         done();
       });
     } else {
-      L10n = {};
-      L10n.PSEUDO_STRATEGIES = process.env.L20N_COV ?
+      PSEUDO_STRATEGIES = process.env.L20N_COV ?
         require('../../build/cov/lib/l20n/pseudo').PSEUDO_STRATEGIES
         : require('../../lib/l20n/pseudo').PSEUDO_STRATEGIES;
-      L10n.walkContent = require('../../lib/l20n/util').walkContent;
+      walkContent = require('../../lib/l20n/util').walkContent;
 
-      PropertiesParser = process.env.L20N_COV ?
+      var PropertiesParser = process.env.L20N_COV ?
         require('../../build/cov/lib/l20n/parser').PropertiesParser
         : require('../../lib/l20n/format/properties/parser').PropertiesParser;
       propertiesParser = new PropertiesParser();
@@ -38,7 +38,7 @@ describe('pseudo strategy', function() {
   describe('accented English', function(){
 
     before(function() {
-      strategy = L10n.PSEUDO_STRATEGIES['qps-ploc'];
+      strategy = PSEUDO_STRATEGIES['qps-ploc'].translate;
       source = [
         'foo=Foo',
 
@@ -65,7 +65,7 @@ describe('pseudo strategy', function() {
     });
 
     it('walks the value', function(){
-      var walked = L10n.walkContent(ast, strategy);
+      var walked = walkContent(ast, strategy);
       assert.strictEqual(walked.foo, 'Ƒǿǿǿǿ');
 
       assert.strictEqual(walked.bar._.one, 'Ǿǿƞḗḗ');
@@ -98,7 +98,7 @@ describe('pseudo strategy', function() {
     /* jshint -W100 */
 
     before(function() {
-      strategy = L10n.PSEUDO_STRATEGIES['qps-plocm'];
+      strategy = PSEUDO_STRATEGIES['qps-plocm'].translate;
       source = [
         'foo=Foo',
 
@@ -125,7 +125,7 @@ describe('pseudo strategy', function() {
     });
 
     it('walks the value', function(){
-      var walked = L10n.walkContent(ast, strategy);
+      var walked = walkContent(ast, strategy);
       assert.strictEqual(walked.foo, '‮ɟoo‬');
 
       assert.strictEqual(walked.bar._.one, '‮Ouǝ‬');
@@ -157,7 +157,7 @@ describe('pseudo strategy', function() {
     // XXX this requires Unicode support for JavaSript RegExp objects
     // https://bugzil.la/258974
     it.skip('walks the value', function(){
-      var walked = L10n.walkContent(ast, strategy);
+      var walked = walkContent(ast, strategy);
       assert.strictEqual(walked.nonascii,
                          '‮Nɐïʌǝ‬ ‮ɔoödǝɹɐʇıou‬ ' +
                          '‮ɹésnɯé‬ ‮pæɯou‬ ' +

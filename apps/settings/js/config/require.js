@@ -18,6 +18,9 @@ require.config({
     'shared/keyboard_helper': {
       exports: 'KeyboardHelper'
     },
+    'shared/language_list': {
+      exports: 'LanguageList'
+    },
     'shared/lazy_loader': {
       exports: 'LazyLoader'
     },
