@@ -71,9 +71,13 @@
       activityCounter = 0;
       window.removeEventListener('moznetworkupload', _onNetworkActivity);
       window.removeEventListener('moznetworkdownload', _onNetworkActivity);
-      widgetFrame.addEventListener('mozbrowserlocationchange', _onUpdateDone);
-      widgetFrame.src = origin + '/widget.html#update#' + hashMark;
-      hashMark = 1 - hashMark; // toogle between 0 and 1
+      if (!widgetFrame) {
+        console.warn('There is not widgetFrame!');
+      } else {
+        widgetFrame.addEventListener('mozbrowserlocationchange', _onUpdateDone);
+        widgetFrame.src = origin + '/widget.html#update#' + hashMark;
+        hashMark = 1 - hashMark; // toogle between 0 and 1
+      }
     }
   }
 
