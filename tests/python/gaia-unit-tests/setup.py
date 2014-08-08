@@ -11,7 +11,7 @@ except (OSError, IOError):
     description = ''
 
 # dependencies
-deps = ['tornado >= 2.4.1', 'mozlog >= 1.1', 'mozrunner >= 5.15']
+deps = ['tornado >= 2.4.1, < 3.0', 'mozlog >= 1.1', 'mozrunner >= 5.15']
 
 setup(name='gaia_unit_test',
       version=version,
