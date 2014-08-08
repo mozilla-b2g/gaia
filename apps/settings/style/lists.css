@@ -156,6 +156,10 @@ ul li > label.pack-checkbox > .color-preview:before {
   position: absolute;
 }
 
+ul.disabled li > label.pack-checkbox > .color-preview:before {
+  opacity: 0.4;
+}
+
 ul li > label.pack-checkbox > .warning-counter:before {
   background-color: orange;
 }

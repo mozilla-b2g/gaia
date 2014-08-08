@@ -43,6 +43,7 @@ module.exports = View.extend({
     item.el = document.createElement('li');
     item.el.className = options.className || '';
     item.el.innerHTML = '<span>' + options.text + '</span>';
+    if (options.attrs) { this.setAttributes(item.el, options.attrs); }
     this.el.appendChild(item.el);
 
     // Remove last temporary
@@ -68,6 +69,10 @@ module.exports = View.extend({
     // Store and return
     this.hash[id] = item;
     return id;
+  },
+
+  setAttributes: function(el, attrs) {
+    for (var key in attrs) { el.setAttribute(key, attrs[key]); }
   },
 
   /**

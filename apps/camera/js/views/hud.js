@@ -41,33 +41,13 @@ module.exports = View.extend({
   },
 
   setFlashMode: function(mode) {
-    if (!mode) {
-      return;
-    }
-
-    var classes = this.els.flash.classList;
-    var oldIcon = this.flashMode && this.flashMode.icon;
-    if (oldIcon) {
-      classes.remove(oldIcon);
-    }
-
-    classes.add(mode.icon);
-    this.flashMode = mode;
+    if (!mode) { return; }
+    this.els.flash.dataset.icon = mode.icon;
   },
 
   setCamera: function(camera) {
-    if (!camera) {
-      return;
-    }
-
-    var classes = this.els.camera.classList;
-    var oldIcon = this.camera && this.camera.icon;
-    if (oldIcon) {
-      classes.remove(oldIcon);
-    }
-
-    classes.add(camera.icon);
-    this.camera = camera;
+    if (!camera) { return; }
+    this.els.camera.dataset.icon = camera.icon;
   },
 
   onFlashClick: function(event) {
@@ -89,7 +69,7 @@ module.exports = View.extend({
     /*jshint maxlen:false*/
     return '<div class="hud_btn hud_camera rotates test-camera-toggle js-camera"></div>' +
     '<div class="hud_btn hud_flash rotates test-flash-button js-flash"></div>' +
-    '<div class="hud_btn hud_settings rotates icon-menu test-settings-toggle js-settings">' +
+    '<div class="hud_btn hud_settings rotates test-settings-toggle js-settings" data-icon="menu">' +
     '</div>';
   }
 });

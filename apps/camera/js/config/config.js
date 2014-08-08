@@ -159,11 +159,11 @@ module.exports = {
     options: [
       {
         key: 'back',
-        icon: 'icon-toggle-camera-rear'
+        icon: 'toggle-camera-rear'
       },
       {
         key: 'front',
-        icon: 'icon-toggle-camera-front'
+        icon: 'toggle-camera-front'
       }
     ],
     persistent: false
@@ -172,7 +172,7 @@ module.exports = {
   pictureSizesFront: {
     title: 'camera-resolution',
     header: 'camera-resolution-header',
-    icon: 'icon-picture-size',
+    icon: 'picture-size',
     options: [
       // {
       //   key: '2048x1536'
@@ -188,7 +188,7 @@ module.exports = {
   pictureSizesBack: {
     title: 'camera-resolution',
     header: 'camera-resolution-header',
-    icon: 'icon-picture-size',
+    icon: 'picture-size',
     options: [
       // {
       //   key: '2048x1536'
@@ -205,7 +205,7 @@ module.exports = {
   recorderProfilesBack: {
     title: 'video-resolution',
     header: 'video-resolution-header',
-    icon: 'icon-video-size',
+    icon: 'video-size',
     options: [],
     exclude: ['high', '1080p'],
     persistent: true,
@@ -215,7 +215,7 @@ module.exports = {
   recorderProfilesFront: {
     title: 'video-resolution',
     header: 'video-resolution-header',
-    icon: 'icon-video-size',
+    icon: 'video-size',
     options: [],
     persistent: true,
     optionsLocalizable: false,
@@ -226,17 +226,17 @@ module.exports = {
     options: [
       {
         key: 'auto',
-        icon: 'icon-flash-auto',
+        icon: 'flash-auto',
         title: 'flash-auto'
       },
       {
         key: 'on',
-        icon: 'icon-flash-on',
+        icon: 'flash-on',
         title: 'flash-on'
       },
       {
         key: 'off',
-        icon: 'icon-flash-off',
+        icon: 'flash-off',
         title: 'flash-off'
       }
     ],
@@ -248,12 +248,12 @@ module.exports = {
     options: [
       {
         key: 'off',
-        icon: 'icon-flash-off',
+        icon: 'flash-off',
         title: 'flash-off'
       },
       {
         key: 'torch',
-        icon: 'icon-flash-on',
+        icon: 'flash-on',
         title: 'flash-on'
       }
     ],
@@ -263,7 +263,7 @@ module.exports = {
   timer: {
     title: 'self-timer',
     header: 'self-timer-header',
-    icon: 'icon-self-timer',
+    icon: 'self-timer',
     options: [
       {
         key: 'off',
@@ -292,7 +292,7 @@ module.exports = {
   hdr: {
     title: 'hdr',
     header: 'hdr-header',
-    icon: 'icon-hdr-boxed',
+    icon: 'hdr-boxed',
     disabled: false,
     options: [
       {
@@ -310,7 +310,7 @@ module.exports = {
   scene: {
     title: 'scene-mode',
     header: 'scene-mode-header',
-    icon: 'icon-scene',
+    icon: 'scene',
     options: [
       {
         key: 'normal',
@@ -331,7 +331,7 @@ module.exports = {
   grid: {
     title: 'grid',
     header: 'grid-header',
-    icon: 'icon-grid-circular',
+    icon: 'grid-circular',
     options: [
       {
         key: 'off',

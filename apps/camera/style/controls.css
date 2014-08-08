@@ -257,14 +257,14 @@
 /** Mode Switch Current Icon (camera)
  ---------------------------------------------------------*/
 
-.mode-switch_current-icon.icon-camera {
+.mode-switch_current-icon.camera {
   color: #00CAF2;
 }
 
 /** Mode Switch Current Icon (video)
  ---------------------------------------------------------*/
 
-.mode-switch_current-icon.icon-video {
+.mode-switch_current-icon.video {
   color: #D92E2E;
 }
 

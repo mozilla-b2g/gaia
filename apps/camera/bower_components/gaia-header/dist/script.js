@@ -1,5 +1,45 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.GaiaHeader=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 (function(define){'use strict';define(function(_dereq_,exports,module){
+
+/**
+ * Locals
+ */
+
+var bodyClasses = document.body.classList;
+var loadedClass = 'gaia-icons-loaded';
+
+/**
+ * Exports
+ */
+
+exports = module.exports = function(base) {
+  var url = base + 'gaia-icons/style.css';
+  if (!isLoaded()) { load(url); }
+};
+
+function load(href) {
+  var link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.type = 'text/css';
+  link.href = href;
+  document.head.appendChild(link);
+  bodyClasses.add(loadedClass);
+  exports.loaded = true;
+}
+
+function isLoaded() {
+  return exports.loaded ||
+    document.querySelector('link[href*=gaia-icons]') ||
+    bodyClasses.contains(loadedClass);
+}
+
+});})((function(n,w){'use strict';return typeof define=='function'&&define.amd?
+define:typeof module=='object'?function(c){c(_dereq_,exports,module);}:
+function(c){var m={exports:{}},r=function(n){return w[n];};
+w[n]=c(r,m.exports,m)||m.exports;};})('gaia-icons',this));
+
+},{}],2:[function(_dereq_,module,exports){
+(function(define){'use strict';define(function(_dereq_,exports,module){
 /*globals define,exports,module,require*/
 
   /**
@@ -323,7 +363,7 @@ define:typeof module=='object'?function(c){c(_dereq_,exports,module);}:
 function(c){var m={exports:{}},r=function(n){return w[n];};
 w[n]=c(r,m.exports,m)||m.exports;};})('./lib/font-fit',this));
 
-},{}],2:[function(_dereq_,module,exports){
+},{}],3:[function(_dereq_,module,exports){
 (function(define){'use strict';define(function(_dereq_,exports,module){
 /*globals define*//*jshint node:true*/
 
@@ -331,6 +371,7 @@ w[n]=c(r,m.exports,m)||m.exports;};})('./lib/font-fit',this));
  * Dependencies
  */
 
+var loadGaiaIcons = _dereq_('gaia-icons');
 var fontFit = _dereq_('./lib/font-fit');
 
 /**
@@ -339,6 +380,11 @@ var fontFit = _dereq_('./lib/font-fit');
 
 var baseComponents = window.COMPONENTS_BASE_URL || 'bower_components/';
 var base = window.GAIA_HEADER_BASE_URL || baseComponents + 'gaia-header/';
+
+// Load icons into document, we run some
+// to try to determine if the icons have
+// already been loaded elsewhere
+loadGaiaIcons(baseComponents);
 
 // Extend from the HTMLElement prototype
 var proto = Object.create(HTMLElement.prototype);
@@ -507,18 +553,6 @@ template.innerHTML = [
   '</div>'
 ].join('');
 
-// Load the icon-font into the document <head>
-(function loadFont() {
-  var href = baseComponents + 'gaia-icons/style.css';
-  var existing = document.querySelector('link[href="' + href + '"]');
-  if (existing) { return; }
-  var link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.type = 'text/css';
-  link.href = href;
-  document.head.appendChild(link);
-})();
-
 // Register and return the constructor
 // and expose `protoype` (bug 1048339)
 module.exports = document.registerElement('gaia-header', { prototype: proto });
@@ -529,6 +563,6 @@ define:typeof module=='object'?function(c){c(_dereq_,exports,module);}:
 function(c){var m={exports:{}},r=function(n){return w[n];};
 w[n]=c(r,m.exports,m)||m.exports;};})('gaia-header',this));
 
-},{"./lib/font-fit":1}]},{},[2])
-(2)
+},{"./lib/font-fit":2,"gaia-icons":1}]},{},[3])
+(3)
 });

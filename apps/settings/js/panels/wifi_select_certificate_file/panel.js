@@ -97,9 +97,7 @@ define(function(require) {
                 // Re-enable all items of certificate files
                 // since import file process is completed.
                 for (var i = 0; i < items.length; i++) {
-                  if (items[i].classList.contains('disabled')) {
-                    items[i].classList.remove('disabled');
-                  }
+                  items[i].classList.remove('disabled');
                 }
               };
             }

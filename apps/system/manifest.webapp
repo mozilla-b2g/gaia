@@ -141,6 +141,10 @@
     "Basket_Newsletter": {
       "readonly": false,
       "description": "Email address for sending newsletter"
+    },
+    "bookmarks_store": {
+      "readonly": true,
+      "description": "Check for existence of bookmarks"
     }
   }
 }

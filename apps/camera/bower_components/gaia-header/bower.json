@@ -1,6 +1,6 @@
 {
   "name": "gaia-header",
-  "version": "0.2.6",
+  "version": "0.3.2",
   "homepage": "https://github.com/gaia-components/gaia-header",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
@@ -19,6 +19,6 @@
     "README.md"
   ],
   "dependencies": {
-    "gaia-icons": "gaia-components/gaia-icons"
+    "gaia-icons": "gaia-components/gaia-icons#~0.4.2"
   }
 }
