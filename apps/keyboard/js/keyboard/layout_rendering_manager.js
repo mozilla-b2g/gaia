@@ -49,7 +49,22 @@ LayoutRenderingManager.prototype.updateCandidatesRendering = function() {
 };
 
 LayoutRenderingManager.prototype.updateUpperCaseRendering = function() {
-  IMERender.setUpperCaseLock(this.app.upperCaseStateManager);
+  this.app.console.log('LayoutRenderingManager.updateUpperCaseRendering()');
+  // When we have secondLayout, we need to force re-render on uppercase switch
+  if (this.app.layoutManager.currentPage.secondLayout) {
+    this.updateLayoutRendering();
+
+    return;
+  }
+
+  // Otherwise we can just update only the keys we need...
+  // Try to block the event loop as little as possible
+  window.requestAnimationFrame(function() {
+    this.app.console.log(
+      'LayoutRenderingManager.updateUpperCaseRendering()::' +
+      'requestAnimationFrame');
+    IMERender.setUpperCaseLock(this.app.upperCaseStateManager);
+  }.bind(this));
 };
 
 // This function asks render.js to create an HTML layout for the keyboard.
@@ -102,10 +117,10 @@ LayoutRenderingManager.prototype._afterRenderDrew = function() {
   this.app.console.time('LayoutRenderingManager._afterRenderDrew()');
 
   // Reflect the current upper case state on the newly rendered layout.
-  this.updateUpperCaseRendering();
+  IMERender.setUpperCaseLock(this.app.upperCaseStateManager);
 
   // Reflect the current candidates on the current layout.
-  this.updateCandidatesRendering();
+  IMERender.showCandidates(this.app.candidatePanelManager.currentCandidates);
 
   // Tell the input method about the new keyboard layout
   this._updateLayoutParams();

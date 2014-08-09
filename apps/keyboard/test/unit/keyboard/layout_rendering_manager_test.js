@@ -97,12 +97,29 @@ suite('LayoutRenderingManager', function() {
       app.candidatePanelManager.currentCandidates);
   });
 
-  test('updateUpperCaseRendering', function() {
-    manager.updateUpperCaseRendering();
+  suite('updateUpperCaseRendering', function() {
+    setup(function() {
+      window.requestAnimationFrame = this.sinon.stub();
+    });
 
-    assert.isTrue(IMERender.setUpperCaseLock.calledOnce);
-    assert.equal(IMERender.setUpperCaseLock.firstCall.args[0],
-      app.upperCaseStateManager);
+    test('w/o secondLayout', function() {
+      manager.updateUpperCaseRendering();
+
+      window.requestAnimationFrame.getCall(0).args[0].call(window);
+
+      assert.isTrue(IMERender.setUpperCaseLock.calledOnce);
+      assert.equal(IMERender.setUpperCaseLock.firstCall.args[0],
+        app.upperCaseStateManager);
+    });
+
+    test('w/ secondLayout', function() {
+      app.layoutManager.currentPage.secondLayout = true;
+      this.sinon.stub(manager, 'updateLayoutRendering');
+
+      manager.updateUpperCaseRendering();
+
+      assert.isTrue(manager.updateLayoutRendering.calledOnce);
+    });
   });
 
   suite('updateLayoutRendering', function() {

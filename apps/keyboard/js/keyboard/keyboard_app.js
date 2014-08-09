@@ -66,14 +66,14 @@ KeyboardApp.prototype._startComponents = function() {
   this.visualHighlightManager = new VisualHighlightManager(this);
   this.visualHighlightManager.start();
 
-  this.upperCaseStateManager = new UpperCaseStateManager();
-  this.upperCaseStateManager.onstatechange =
-    this.handleUpperCaseStateChange.bind(this);
-  this.upperCaseStateManager.start();
-
   var renderingManager = this.layoutRenderingManager =
     new LayoutRenderingManager(this);
   renderingManager.start();
+
+  this.upperCaseStateManager = new UpperCaseStateManager();
+  this.upperCaseStateManager.onstatechange =
+    renderingManager.updateUpperCaseRendering.bind(renderingManager);
+  this.upperCaseStateManager.start();
 
   this.candidatePanelManager = new CandidatePanelManager(this);
   this.candidatePanelManager.oncandidateschange =
@@ -194,29 +194,6 @@ KeyboardApp.prototype.setLayoutPage = function setLayoutPage(page) {
 // IMERender() is no longer a global class.
 KeyboardApp.prototype.getNumberOfCandidatesPerRow = function() {
   return IMERender.getNumberOfCandidatesPerRow();
-};
-
-KeyboardApp.prototype.handleUpperCaseStateChange = function() {
-  this.console.log('KeyboardApp.handleUpperCaseStateChange()');
-  // When we have secondLayout, we need to force re-render on uppercase switch
-  if (this.layoutManager.currentPage.secondLayout) {
-    this.layoutRenderingManager.updateLayoutRendering();
-
-    return;
-  }
-
-  // Otherwise we can just update only the keys we need...
-  // Try to block the event loop as little as possible
-  window.requestAnimationFrame(function() {
-    this.console.time('setUpperCase:requestAnimationFrame:callback');
-    // And make sure the caps lock key is highlighted correctly
-    this.layoutRenderingManager.updateUpperCaseRendering();
-
-    //restore the previous candidates
-    this.layoutRenderingManager.updateCandidatesRendering();
-
-    this.console.timeEnd('setUpperCase:requestAnimationFrame:callback');
-  }.bind(this));
 };
 
 exports.KeyboardApp = KeyboardApp;
