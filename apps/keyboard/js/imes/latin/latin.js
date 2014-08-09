@@ -87,40 +87,40 @@
   var correctionDisabled; // Temporarily diabled after reverting?
 
   // Terminate the worker when the keyboard is inactive for this long.
-  const workerTimeout = 30000;  // 30 seconds of idle time
+  var WORKER_TIMEOUT = 30000;  // 30 seconds of idle time
 
   // If we get an autorepeating key is sent to us, don't offer suggestions
   // for this long, until we're pretty certain that the autorepeat
   // has stopped.
-  const autorepeatDelay = 250;
+  var AUTOREPEAT_DELAY = 250;
 
   // Some keycodes that we use
-  const SPACE = KeyEvent.DOM_VK_SPACE;
-  const BACKSPACE = KeyEvent.DOM_VK_BACK_SPACE;
-  const RETURN = KeyEvent.DOM_VK_RETURN;
-  const PERIOD = 46;
-  const QUESTION = 63;
-  const EXCLAMATION = 33;
-  const COMMA = 44;
-  const COLON = 58;
-  const SEMICOLON = 59;
+  var SPACE = KeyEvent.DOM_VK_SPACE;
+  var BACKSPACE = KeyEvent.DOM_VK_BACK_SPACE;
+  var RETURN = KeyEvent.DOM_VK_RETURN;
+  var PERIOD = 46;
+  var QUESTION = 63;
+  var EXCLAMATION = 33;
+  var COMMA = 44;
+  var COLON = 58;
+  var SEMICOLON = 59;
 
   // all whitespace characters
   // U+FFFC place holder is added to white space
   // this enables suggestions
   // when cursor is before place holder.
-  const WS = /^[\s\ufffc]+$/;
+  var WS = /^[\s\ufffc]+$/;
 
   // word separator characters
   // U+FFFC is the placeholder character for non-text object
-  const WORDSEP = /^[\s.,?!;:\ufffc]+$/;
+  var WORDSEP = /^[\s.,?!;:\ufffc]+$/;
 
-  const DOUBLE_SPACE_TIME = 700; // ms between spaces to convert to ". "
+  var DOUBLE_SPACE_TIME = 700; // ms between spaces to convert to ". "
 
   // Don't offer to autocorrect unless we're reasonably certain that the
   // user wants this correction. The first suggested word must be at least
   // this much more highly weighted than the second suggested word.
-  const AUTO_CORRECT_THRESHOLD = 1.30;
+  var AUTO_CORRECT_THRESHOLD = 1.30;
 
   /*
    * Since inputContext.sendKey is an async fuction that will return a promise,
@@ -237,7 +237,7 @@
 
     if (!worker || idleTimer)
       return;
-    idleTimer = setTimeout(terminateWorker, workerTimeout);
+    idleTimer = setTimeout(terminateWorker, WORKER_TIMEOUT);
   }
 
   function terminateWorker() {
@@ -868,7 +868,7 @@
 
     // If we're still repeating, reset the repeat timer.
     if (repeat) {
-      suggestionsTimer = setTimeout(updateSuggestions, autorepeatDelay);
+      suggestionsTimer = setTimeout(updateSuggestions, AUTOREPEAT_DELAY);
       return;
     }
 

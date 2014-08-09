@@ -62,7 +62,7 @@
 (function() {
   'use strict';
 
-  const QN = {
+  var QN = {
     unmarkedVowels: 'AaĂăÂâEeÊêIiOoÔôƠơUuƯưYy',
 
     // The elements of this array represent the five marked tones of
@@ -120,7 +120,7 @@
                          'uyê)'                         // /w/ + diphthong
   };
 
-  const vietWordParser = {
+  var vietWordParser = {
     p1: new RegExp('^' + QN.initialsNotQ + QN.nucleusOpen + '$'),
     p2: new RegExp('^' + QN.initialsNotQ + QN.nucleusClosed + QN.finals + '$'),
     p3: new RegExp('^' + QN.initialQ + QN.nucleusOpenAfterQ + '$'),
@@ -260,8 +260,8 @@
   var capitalizeNext = false;
   var tentativeSpace = false;
 
-  const BACKSPACE = 8;
-  const HAT = 94;
+  var BACKSPACE = 8;
+  var HAT = 94;
 
   function isBufferEmpty() {
     return buffer === '';
