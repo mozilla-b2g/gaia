@@ -20,14 +20,11 @@ class DoNotTrack(Base):
     def tap_allow_tracking(self):
         el = self.marionette.find_element(*self._allow_tracking_checkbox_locator)
         el.tap()
-        self.wait_for_condition(lambda m: self.data_layer.get_setting('privacy.donottrackheader.value') == '0')
 
     def tap_disallow_tracking(self):
         el = self.marionette.find_element(*self._disallow_tracking_checkbox_locator)
         el.tap()
-        self.wait_for_condition(lambda m: self.data_layer.get_setting('privacy.donottrackheader.value') == '1')
 
     def tap_do_not_have_pref_on_tracking(self):
         el = self.marionette.find_element(*self._do_not_have_pref_on_tracking_checkbox_locator)
         el.tap()
-        self.wait_for_condition(lambda m: self.data_layer.get_setting('privacy.donottrackheader.value') == '-1')
