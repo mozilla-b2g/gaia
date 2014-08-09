@@ -808,4 +808,64 @@ suiteGroup('Views.DayBased', function() {
       assert.equal(observer, -1, 'removes observer');
     });
   });
+
+  suite('#animatedScroll', function() {
+    var dayEventsWrapper;
+    var maxScrollTop;
+
+    setup(function() {
+      var div = document.createElement('div');
+      div.id = 'test';
+      div.innerHTML = [
+        '<div class="day-events-wrapper"',
+          'style="height: 20px; overflow-y: scroll">',
+          '<div class="day-events">',
+            '<div class="hour-0">0AM</div>',
+            '<div class="hour-8">8AM</div>',
+            '<div class="hour-16">4PM</div>',
+            '<div class="hour-23">11PM</div>',
+          '</div>',
+        '</div>'
+      ].join('');
+      document.body.appendChild(div);
+      subject._element = div;
+
+      dayEventsWrapper = subject.element.querySelector('.day-events-wrapper');
+      maxScrollTop =
+        dayEventsWrapper.scrollHeight - dayEventsWrapper.clientHeight;
+    });
+
+    teardown(function() {
+      var el = document.querySelector('#test');
+      el.parentNode.removeChild(el);
+    });
+
+    test('scroll to bottom from top', function(done) {
+      dayEventsWrapper.scrollTop = 0;
+      subject.animatedScroll(maxScrollTop);
+
+      poll(function() {
+        return dayEventsWrapper.scrollTop === maxScrollTop;
+      }, done);
+    });
+
+    test('scroll to top from bottom', function(done) {
+      dayEventsWrapper.scrollTop = maxScrollTop;
+      subject.animatedScroll(0);
+
+      poll(function() {
+        return dayEventsWrapper.scrollTop === 0;
+      }, done);
+    });
+
+    function poll(check, done) {
+      setTimeout(function() {
+        if (check()) {
+          done();
+        } else {
+          poll(check, done);
+        }
+      }, 10);
+    }
+  });
 });
