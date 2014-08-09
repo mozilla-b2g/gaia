@@ -4,6 +4,7 @@
 #setup-installed-app-dialog,
 #ime-layout-dialog,
 #app-install-dialog,
+#app-uninstall-dialog,
 #app-install-cancel-dialog,
 #app-download-cancel-dialog {
   display: none;
@@ -18,6 +19,7 @@
 #setup-installed-app-dialog.visible,
 #ime-layout-dialog.visible,
 #app-install-dialog.visible,
+#app-uninstall-dialog.visible,
 #app-install-cancel-dialog.visible,
 #app-download-cancel-dialog.visible {
   display: inline-block;
@@ -27,6 +29,7 @@
 #setup-installed-app-dialog section,
 #ime-layout-dialog section,
 #app-install-dialog section,
+#app-uninstall-dialog section,
 #app-install-cancel-dialog section,
 #app-download-cancel-dialog section {
   height: auto;
@@ -35,6 +38,7 @@
 #setup-installed-app-dialog h1,
 #ime-layout-dialog h1,
 #app-install-dialog h1,
+#app-uninstall-dialog h1,
 #app-install-cancel-dialog h1,
 #app-download-cancel-dialog h1 {
   border-bottom: none;

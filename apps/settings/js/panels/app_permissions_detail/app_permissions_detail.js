@@ -198,13 +198,9 @@ define(function(require) {
      * Uninstall the choosed app.
      */
     uninstall: function pd_uninstall() {
-      var _ = window.navigator.mozL10n.get;
-      var name = new ManifestHelper(this._app.manifest).name;
-
-      if (confirm(_('uninstallConfirm', {app: name}))) {
-        mozApps.mgmt.uninstall(this._app);
+      mozApps.mgmt.uninstall(this._app).onsuccess = () => {
         this.back();
-      }
+      };
     }
   };
 

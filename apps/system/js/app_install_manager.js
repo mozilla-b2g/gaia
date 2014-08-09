@@ -14,13 +14,20 @@ var AppInstallManager = {
 
   init: function ai_init() {
     this.systemBanner = new SystemBanner();
-    this.dialog = document.getElementById('app-install-dialog');
-    this.msg = document.getElementById('app-install-message');
+    this.installDialog = document.getElementById('app-install-dialog');
+    this.installMsg = document.getElementById('app-install-message');
     this.size = document.getElementById('app-install-size');
     this.authorName = document.getElementById('app-install-author-name');
     this.authorUrl = document.getElementById('app-install-author-url');
     this.installButton = document.getElementById('app-install-install-button');
-    this.cancelButton = document.getElementById('app-install-cancel-button');
+    this.installCancelButton =
+      document.getElementById('app-install-cancel-button');
+    this.uninstallDialog = document.getElementById('app-uninstall-dialog');
+    this.uninstallMsg = document.getElementById('app-uninstall-message');
+    this.uninstallButton =
+      document.getElementById('app-uninstall-uninstall-button');
+    this.uninstallCancelButton =
+      document.getElementById('app-uninstall-cancel-button');
     this.imeLayoutDialog = document.getElementById('ime-layout-dialog');
     this.imeListTemplate = document.getElementById('ime-list-template');
     this.imeList = document.getElementById('ime-list');
@@ -54,6 +61,9 @@ var AppInstallManager = {
       if (e.detail.type == 'webapps-ask-install') {
         this.handleAppInstallPrompt(e.detail);
       }
+      if (e.detail.type == 'webapps-ask-uninstall') {
+        this.handleAppUninstallPrompt(e.detail);
+      }
     }).bind(this));
 
     window.addEventListener('applicationinstall',
@@ -63,8 +73,10 @@ var AppInstallManager = {
       this.handleApplicationUninstall.bind(this));
 
     this.installButton.onclick = this.handleInstall.bind(this);
-    this.cancelButton.onclick = this.showInstallCancelDialog.bind(this);
+    this.installCancelButton.onclick = this.showInstallCancelDialog.bind(this);
     this.confirmCancelButton.onclick = this.handleInstallCancel.bind(this);
+    this.uninstallButton.onclick = this.handleUninstall.bind(this);
+    this.uninstallCancelButton.onclick = this.handleUninstallCancel.bind(this);
     this.resumeButton.onclick = this.hideInstallCancelDialog.bind(this);
     this.notifContainer.onclick = this.showDownloadCancelDialog.bind(this);
 
@@ -133,7 +145,7 @@ var AppInstallManager = {
     if (!manifest)
       return;
 
-    this.dialog.classList.add('visible');
+    this.installDialog.classList.add('visible');
 
     var id = detail.id;
 
@@ -146,7 +158,7 @@ var AppInstallManager = {
     // Wrap manifest to get localized properties
     manifest = new ManifestHelper(manifest);
     var msg = _('install-app', {'name': manifest.name});
-    this.msg.textContent = msg;
+    this.installMsg.textContent = msg;
 
     if (manifest.developer) {
       this.authorName.textContent = manifest.developer.name ||
@@ -173,7 +185,51 @@ var AppInstallManager = {
     if (this.installCallback)
       this.installCallback();
     this.installCallback = null;
-    this.dialog.classList.remove('visible');
+    this.installDialog.classList.remove('visible');
+  },
+
+  handleAppUninstallPrompt: function ai_handleUninstallPrompt(detail) {
+    var app = detail.app;
+    // updateManifest is used by packaged apps until they are installed
+    var manifest = app.manifest ? app.manifest : app.updateManifest;
+
+    if (!manifest) {
+      return;
+    }
+
+    this.uninstallDialog.classList.add('visible');
+
+    // Wrap manifest to get localized properties
+    manifest = new ManifestHelper(manifest);
+    var _ = navigator.mozL10n.get;
+    var msg = _('uninstall-confirm', {'appName': manifest.name});
+    this.uninstallMsg.textContent = msg;
+
+    var id = detail.id;
+
+    this.uninstallCallback =
+      this.dispatchResponse.bind(this, id, 'webapps-uninstall-granted');
+
+    this.uninstallCancelCallback =
+      this.dispatchResponse.bind(this, id, 'webapps-uninstall-denied');
+  },
+
+  handleUninstall: function ai_handleUninstall(evt) {
+    evt.preventDefault();
+    if (this.uninstallCallback) {
+      this.uninstallCallback();
+      this.uninstallCallback = null;
+    }
+    this.uninstallDialog.classList.remove('visible');
+  },
+
+  handleUninstallCancel: function ai_handleUninstallCancel(evt) {
+    evt.preventDefault();
+    if (this.uninstallCancelCallback) {
+      this.uninstallCancelCallback();
+      this.uninstallCancelCallback = null;
+    }
+    this.uninstallDialog.classList.remove('visible');
   },
 
   prepareForDownload: function ai_prepareForDownload(app) {
@@ -542,13 +598,13 @@ var AppInstallManager = {
     if (evt)
       evt.preventDefault();
     this.installCancelDialog.classList.add('visible');
-    this.dialog.classList.remove('visible');
+    this.installDialog.classList.remove('visible');
   },
 
   hideInstallCancelDialog: function ai_hideInstallCancelDialog(evt) {
     if (evt)
       evt.preventDefault();
-    this.dialog.classList.add('visible');
+    this.installDialog.classList.add('visible');
     this.installCancelDialog.classList.remove('visible');
   },
 
