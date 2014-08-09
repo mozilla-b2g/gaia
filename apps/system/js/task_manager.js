@@ -6,7 +6,7 @@
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
 
   /**
    * Represent a stack of apps as cards
@@ -1181,7 +1181,7 @@
 
   function debug(message) {
     if (DEBUG) {
-      console.log('TaskManager > \n  ', message);
+      System.debug('[TaskManager] ' + message);
     }
   }
 })(window);

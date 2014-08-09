@@ -61,6 +61,7 @@
      */
 
     handleEvent: function acwf_handleEvent(evt) {
+      System.debug('[ActivityWindowManager] ' + evt.type);
       switch (evt.type) {
         case 'activitycreating':
           // XXX: See Bug 931339
