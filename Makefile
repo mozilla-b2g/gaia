@@ -672,7 +672,16 @@ ifeq ($(BUILD_APP_NAME),*)
 	@echo "" >> $(PROFILE_FOLDER)/user.js
 	@$(foreach prefs_file,$(addprefix $(GAIA_DISTRIBUTION_DIR)/,$(PARTNER_PREF_FILES)),\
 	  if [ -f $(prefs_file) ]; then \
-	    cat $(prefs_file) >> $(PROFILE_FOLDER)/user.js; \
+	    while read line; do \
+	      entry=$$(echo $$line | sed "s/.*['\"]\(.*\)['\"]\s*,.*/\1/"); \
+	      if grep -q [\"\']$$entry[\'\"] $(PROFILE_FOLDER)/user.js; then \
+		value=$$(echo $$line | sed 's/[^,]*,\s*\(.*\)/\1/'); \
+		sed "s|['\"]\($$entry\).*|\"\1\", $$value|" $(PROFILE_FOLDER)/user.js > user.js.bak && \
+		mv -f user.js.bak $(PROFILE_FOLDER)/user.js; \
+	      else \
+		echo $$line >> $(PROFILE_FOLDER)/user.js; \
+	      fi; \
+	    done < $(prefs_file); \
 	  fi; \
 	)
 endif
