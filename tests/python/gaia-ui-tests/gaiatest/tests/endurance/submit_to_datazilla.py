@@ -28,7 +28,7 @@ class DatazillaPerfPoster(object):
     def __init__(self, marionette, datazilla_config=None, sources=None):
         self.marionette = marionette
 
-        settings = gaiatest.GaiaData(self.marionette).all_settings  # get all settings
+        settings = gaiatest.GaiaDataManager(self.marionette).all_settings  # get all settings
         mac_address = self.marionette.execute_script('return navigator.mozWifiManager && navigator.mozWifiManager.macAddress;')
 
         self.submit_report = True
