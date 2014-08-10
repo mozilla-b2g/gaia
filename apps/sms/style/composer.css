@@ -1,6 +1,18 @@
 
 #composer-container {
-  position: relative
+  position: relative;
+}
+
+.new #composer-container {
+  background: #e1f0ec;
+}
+
+.new .article-list {
+  z-index: 5;
+
+  padding: 0;
+
+  text-align: left;
 }
 
 /*

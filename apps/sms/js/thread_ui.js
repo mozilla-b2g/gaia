@@ -1981,12 +1981,6 @@ var ThreadUI = {
           return;
         }
 
-        // If we're in composer, let's focus on message editor on click.
-        if (Navigation.isCurrentPanel('composer')) {
-          Compose.focus();
-          return;
-        }
-
         // if the click wasn't on an attachment check for other clicks
         if (!thui_mmsAttachmentClick(evt.target)) {
           this.handleMessageClick(evt);
