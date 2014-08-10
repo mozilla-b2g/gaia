@@ -639,6 +639,7 @@ endif # USE_LOCAL_XULRUNNER_SDK
 # conflict, the result is undefined.
 EXTENDED_PREF_FILES = \
   custom-prefs.js \
+  oop-prefs.js \
   gps-prefs.js \
   payment-prefs.js \
 
