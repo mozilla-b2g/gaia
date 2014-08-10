@@ -118,7 +118,7 @@ aside.connecting {
 
 .privacy-menuitem:before {
   content: "";
-  width: 3.3rem;
+  width: 3.2rem;
   height: 3.3rem;
   background: url(/shared/resources/branding/privacy_sprite.png) no-repeat 3rem 3rem / 9.6rem;
   position: absolute;
