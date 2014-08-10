@@ -330,3 +330,9 @@ li.sup-manual-account-type-container .button {
 .sup-progress-container {
   text-align: center;
 }
+
+.card-settings-debug button {
+  display: block;
+  margin: 1.5rem auto;
+  width: calc(100% - 3rem);
+}
