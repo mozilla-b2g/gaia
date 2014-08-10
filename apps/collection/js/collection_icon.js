@@ -40,7 +40,7 @@
   const defaultBgFill = 'rgba(51, 51, 51, 0.85)';
   const deafultBgImage = '/style/images/icon_default.png';
 
-  const emePrefix = /https?:\/\/api.everything.me/;
+  const emePrefix = /https?:\/\/.*everything.me/;
 
   // icons from EverythingMe api requires clipping (they are rectangular),
   // but everything else does not
