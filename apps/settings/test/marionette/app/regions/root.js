@@ -23,6 +23,7 @@ RootPanel.Selectors = {
   'applicationStorageDesc': '.application-storage-desc',
   'batteryDesc': '.battery-desc',
   'bluetoothDesc': '.bluetooth-desc',
+  'developerMenuItem': '#menuItem-developer',
   'firefoxAccountDesc': '#fxa-desc',
   'geolocationCheckbox': '#root input[name="geolocation.enabled"]',
   'geolocationSpan': '#root input[name="geolocation.enabled"] ~ span',
@@ -59,6 +60,14 @@ RootPanel.prototype = {
   // application storage
   get applicationStorageDesc() {
     return this.waitForElement('applicationStorageDesc').text();
+  },
+
+  get isDeveloperMenuVisible() {
+    return this.waitForElement('developerMenuItem').displayed();
+  },
+
+  get currentLanguageDesc() {
+    return this.findElement('languageDesc').text();
   },
 
   // airplane mode

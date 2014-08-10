@@ -6,6 +6,7 @@ var Base = require('./base');
 var BatteryPanel = require('./regions/battery');
 var BluetoothPanel = require('./regions/bluetooth');
 var DisplayPanel = require('./regions/display');
+var DeviceInformationPanel = require('./regions/device_information');
 var DoNotTrackPanel = require('./regions/do_not_track');
 var FeedbackPanel = require('./regions/feedback');
 var HotspotPanel = require('./regions/hotspot');
@@ -15,6 +16,7 @@ var KeyboardPanel = require('./regions/keyboard');
 var LanguagePanel = require('./regions/language');
 var MediaStoragePanel = require('./regions/media_storage');
 var MessagePanel = require('./regions/message');
+var MoreInfoPanel = require('./regions/more_info');
 var NotificationsPanel = require('./regions/notifications');
 var RootPanel = require('./regions/root');
 var ScreenLockPanel = require('./regions/screen_lock');
@@ -40,6 +42,8 @@ module.exports = Settings;
 Settings.Selectors = {
   'menuItemsSection': '#root',
   'bluetoothMenuItem': '.menuItem-bluetooth',
+  'deviceInformationMenuItem': '#menuItem-deviceInfo',
+  'deviceInformation': '#about',
   'doNotTrackMenuItem': '#menuItem-doNotTrack',
   'hotspotMenuItem': '#menuItem-internetSharing',
   'hotspotPanel': '#hotspot',
@@ -57,6 +61,7 @@ Settings.Selectors = {
   'displayMenuItem': '#menuItem-display',
   'appStorageMenuItem': '.menuItem-applicationStorage',
   'mediaStorageMenuItem': '.menuItem-mediaStorage',
+  'moreInfoSection': '#about button[data-l10n-id="more-info"]',
   'keyboardMenuItem': '#menuItem-keyboard',
   'messageMenuItem': '#menuItem-messagingSettings'
 };
@@ -76,6 +81,20 @@ Settings.prototype = {
     this._bluetoothPanel = this._bluetoothPanel ||
       new BluetoothPanel(this.client);
     return this._bluetoothPanel;
+  },
+
+  get deviceInformationPanel() {
+    this.openPanel.call(this, 'deviceInformationMenuItem');
+    this._deviceInformationPanel = this._deviceInformationPanel ||
+      new DeviceInformationPanel(this.client);
+    return this._deviceInformationPanel;
+  },
+
+  get moreInfoPanel() {
+    this.openPanel.call(this, 'moreInfoSection', 'deviceInformation');
+    this._moreInfoPanel =
+      this._moreInfoPanel || new MoreInfoPanel(this.client);
+    return this._moreInfoPanel;
   },
 
   get doNotTrackPanel() {
