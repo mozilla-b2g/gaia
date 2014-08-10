@@ -240,20 +240,28 @@
           <div class="flex-composer">
             <div id="messages-container" data-type="list" class="article-list"></div>
             <form id="messages-compose-form" role="search" class="bottom" data-message-type="sms">
-              <button id="messages-attach-button" aria-label="Add attachment" data-l10n-id="attach-button" type="button"></button>
-              <div class="composer-message-complete">
-                <div id="messages-subject-input" contentEditable="true" class="placeholder js-l10n-placeholder" data-max-length="40">
+              <section class="top-composer-section">
+                 <div id="messages-subject-input" contentEditable="true"
+                      class="placeholder js-l10n-placeholder"
+                      data-max-length="40" role="textbox" aria-multiline="false">
+                 </div>
+                 <span id="subject-mms-label" data-l10n-id="mms-label">MMS</span>
+              </section>
+              <section class="bottom-composer-section">
+                <button id="messages-attach-button" aria-label="Add attachment" data-l10n-id="attach-button" type="button"></button>
+                <div class="composer-message-input-container">
+                  <div id="messages-input" contentEditable="true" name="message"
+                       x-inputmode="-moz-sms" class="js-l10n-placeholder"
+                       role="textbox" aria-multiline="true">
+                  </div>
                 </div>
-                <div id="messages-input" contentEditable="true" name="message" x-inputmode="-moz-sms" class="js-l10n-placeholder">
+                <div class="composer-button-container">
+                  <span id="messages-counter-label" data-counter="" data-l10n-id="mms-label">MMS</span>
+                  <button id="messages-send-button" class="icon" aria-label="send" data-l10n-id="send-button" type="submit">
+                    <div class="js-sim-indication sim-indication" data-l10n-id="send-button-sim-indication"></div>
+                  </button>
                 </div>
-                <div class="message-divider"></div>
-              </div>
-              <div class="composer-button-container">
-                <span id="messages-counter-label" data-counter="" data-l10n-id="mms-label">MMS</span>
-                <button id="messages-send-button" class="icon" aria-label="send" data-l10n-id="send" type="submit">
-                  <div class="js-sim-indication sim-indication" data-l10n-id="send-button-sim-indication"></div>
-                </button>
-              </div>
+              </section>
             </form>
           </div>
         </article>
