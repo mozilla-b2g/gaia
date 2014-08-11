@@ -141,6 +141,10 @@ function deleteSingleItem() {
     fullscreenButtons.delete.classList.add('disabled');
     fullscreenButtons.share.classList.add('disabled');
 
+    // Since mediadb monitors batchSize for dispatching the delete event.
+    // We set batchSize as 1 , so that we can get immediate delete event
+    // & UI Updation will be faster.
+    photodb.batchSize = 1;
     deleteFile(currentFileIndex);
     // Enable NFC sharing when done deleting and returns to fullscreen view
     setNFCSharing(true);

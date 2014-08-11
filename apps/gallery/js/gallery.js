@@ -42,6 +42,7 @@ var TRANSITION_SPEED = 0.75;
 // Batch sizes are based on this.
 var PAGE_SIZE = 15;
 
+var MAX_SCANN_BATCH_SIZE = 3;
 function $(id) { return document.getElementById(id); }
 
 // UI elements
@@ -232,7 +233,7 @@ function initDB() {
     version: 2,
     autoscan: false,     // We're going to call scan() explicitly
     batchHoldTime: 2000, // Batch files during scanning
-    batchSize: 3         // Max batch size when scanning
+    batchSize: MAX_SCANN_BATCH_SIZE  // Max batch size when scanning
   });
 
   // This is where we find videos once the photodb notifies us that a
@@ -345,6 +346,8 @@ function initDB() {
 
   // One or more files were deleted (or were just discovered missing by a scan)
   photodb.ondeleted = function(event) {
+    // Reset batchSize to max batch size for scanning.
+    photodb.batchSize = MAX_SCANN_BATCH_SIZE;
     event.detail.forEach(fileDeleted);
   };
 
@@ -1209,6 +1212,13 @@ function deleteSelectedItems() {
     confirmText: navigator.mozL10n.get('delete'),
     danger: true
   }, function() { // onSuccess
+    // Since mediadb monitors batchSize for dispatching the delete event.
+    // If selected lenght is less than max batch size We set batchSize as 1 ,
+    // so that we can get immediate delete event & UI Updation will be faster.
+     if (selected.length < MAX_SCANN_BATCH_SIZE) {
+      photodb.batchSize = 1;
+    }
+
     // deleteFile is O(n), so this loop is O(n*n). If used with really large
     // selections, it might have noticably bad performance.  If so, we
     // can write a more efficient deleteFiles() function.
