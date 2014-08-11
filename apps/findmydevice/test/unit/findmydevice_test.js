@@ -1,7 +1,8 @@
 /* global MocksHelper, MockGeolocation, MockNavigatormozSetMessageHandler,
    MockSettingsHelper, MockNavigatorSettings, FindMyDevice, MockMozAlarms,
    IAC_API_WAKEUP_REASON_LOGIN, IAC_API_WAKEUP_REASON_LOGOUT,
-   IAC_API_WAKEUP_REASON_TRY_DISABLE, IAC_API_WAKEUP_REASON_ENABLED_CHANGED
+   IAC_API_WAKEUP_REASON_TRY_DISABLE, IAC_API_WAKEUP_REASON_ENABLED_CHANGED,
+   IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED, Commands
 */
 
 'use strict';
@@ -27,6 +28,7 @@ suite('FindMyDevice >', function() {
   var realMozSettings;
   var realMozSetMessageHandler;
   var realMozAlarms;
+  var realCommands;
 
   mocksForFindMyDevice.attachTestHelpers();
 
@@ -87,6 +89,13 @@ suite('FindMyDevice >', function() {
   setup(function(done) {
     this.sinon.stub(FindMyDevice, '_reportDisabled');
     this.sinon.stub(FindMyDevice, '_replyAndFetchCommands');
+
+    realCommands = window.Commands;
+    window.Commands = {
+      invokeCommand: this.sinon.stub(),
+      deviceHasPasscode: null
+    };
+
     // XXX(ggp) force re-creation of the SettingsHelper objects
     // used by FMD, since MockSettingsHelper invalidates all objects
     // in its mTeardown.
@@ -98,6 +107,7 @@ suite('FindMyDevice >', function() {
     FindMyDevice._registered = false;
     FindMyDevice._loggedIn = false;
     FindMyDevice._state = null;
+    window.Commands = realCommands;
   });
 
   function sendWakeUpMessage(reason) {
@@ -316,6 +326,22 @@ suite('FindMyDevice >', function() {
       {settingValue: false});
     sendWakeUpMessage(IAC_API_WAKEUP_REASON_ENABLED_CHANGED);
     sinon.assert.called(FindMyDevice._reportDisabled);
+  });
+
+  test('track and ring are cancelled on LOCKSCREEN_CLOSED, passcode set',
+  function() {
+    this.sinon.stub(Commands, 'deviceHasPasscode', function() {return true;});
+    sendWakeUpMessage(IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED);
+    sinon.assert.calledTwice(Commands.invokeCommand);
+    sinon.assert.calledWith(Commands.invokeCommand, 'ring', [0]);
+    sinon.assert.calledWith(Commands.invokeCommand, 'track', [0]);
+  });
+
+  test('track and ring continue on LOCKSCREEN_CLOSED, no passcode set',
+  function() {
+    this.sinon.stub(Commands, 'deviceHasPasscode', function() {return false;});
+    sendWakeUpMessage(IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED);
+    sinon.assert.notCalled(Commands.invokeCommand);
   });
 
   test('wakelocks are released on unregistered clientID change', function() {
