@@ -264,12 +264,7 @@ var MmiManager = {
   prependSimNumber: function mm_prependSimNumber(text, cardIndex) {
     if (window.navigator.mozIccManager &&
         window.navigator.mozIccManager.iccIds.length > 1) {
-      var simName = this._('sim-number', { n: +cardIndex + 1 });
-
-      text = this._(
-        'mmi-notification-title-with-sim',
-        { sim: simName, title: text }
-      );
+      text = '(' + this._('sim-number', { n: +cardIndex + 1 }) + ') ' + text;
     }
 
     return text;

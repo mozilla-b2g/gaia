@@ -389,16 +389,14 @@ suite('dialer/mmi', function() {
         promise.then(function() {
           sinon.assert.calledOnce(Notification);
           sinon.assert.calledWithMatch(Notification,
-            'notification-title-with-sim',
+            '(sim-number) fake_carrier',
             {
               body: MMI_MSG,
               icon: 'sms/dialer?ussdMessage=1&cardIndex=1'
             }
           );
-          sinon.assert.calledTwice(MmiManager._);
+          sinon.assert.calledOnce(MmiManager._);
           assert.equal(MockLazyL10n.keys['sim-number'].n, 2);
-          assert.isNotNull(
-            MockLazyL10n.keys['mmi-notification-title-with-sim']);
         }).then(done, done);
     });
   });
