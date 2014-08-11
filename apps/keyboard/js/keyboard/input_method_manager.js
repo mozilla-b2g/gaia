@@ -348,8 +348,7 @@ InputMethodManager.prototype.updateInputContextData = function() {
       inputmode: inputContext.inputMode,
       selectionStart: inputContext.selectionStart,
       selectionEnd: inputContext.selectionEnd,
-      value: value,
-      inputContext: inputContext
+      value: value
     };
   }.bind(this), function(error) {
     console.warn('InputMethodManager: inputcontext.getText() was rejected.');
@@ -362,8 +361,7 @@ InputMethodManager.prototype.updateInputContextData = function() {
       inputmode: inputContext.inputMode,
       selectionStart: inputContext.selectionStart,
       selectionEnd: inputContext.selectionEnd,
-      value: '',
-      inputContext: inputContext
+      value: ''
     };
   }.bind(this));
 
@@ -398,6 +396,10 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
   if (this.currentIMEngine && this.currentIMEngine.deactivate) {
     this.currentIMEngine.deactivate();
   }
+  if (this.app.inputContext) {
+    this.app.inputContext.removeEventListener('selectionchange', this);
+    this.app.inputContext.removeEventListener('surroundingtextchange', this);
+  }
   this.currentIMEngine = this.loader.getInputMethod('default');
 
   // Create our own promise by resolving promise from loader and the passed
@@ -427,10 +429,32 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
         }
       );
     }
+
+    if (typeof imEngine.selectionChange === 'function') {
+      this.app.inputContext.addEventListener('selectionchange', this);
+    }
+
+    if (typeof imEngine.surroundingtextChange === 'function') {
+      this.app.inputContext.addEventListener('surroundingtextchange', this);
+    }
     this.currentIMEngine = imEngine;
   }.bind(this));
 
   return p;
+};
+
+InputMethodManager.prototype.handleEvent = function(evt) {
+  switch (evt.type) {
+    case 'selectionchange':
+      this.currentIMEngine.selectionChange(evt.detail);
+
+      break;
+
+    case 'surroundingtextchange':
+      this.currentIMEngine.surroundingtextChange(evt.detail);
+
+      break;
+  }
 };
 
 // InputMethod modules register themselves in this object, for now.
