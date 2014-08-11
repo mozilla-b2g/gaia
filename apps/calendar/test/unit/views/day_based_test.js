@@ -469,6 +469,8 @@ suiteGroup('Views.DayBased', function() {
     var children;
 
     setup(function() {
+      // hour 0 caused Bug 1048953, so it's important to test it as well
+      subject.createHour(0);
       subject.createHour(5);
       subject.createHour(7);
       subject.createHour(6);
@@ -508,27 +510,44 @@ suiteGroup('Views.DayBased', function() {
     });
 
     test('first', function() {
-      hasHour(5);
+      hasHour(0);
 
       var el = children[0];
       assert.ok(el.outerHTML);
-      assert.include(el.outerHTML, hourHTML(5));
+      assert.include(el.outerHTML, hourHTML(0));
+      // this checks bug 1048953!!
+      assert.include(el.outerHTML, 'hour-0');
+      assert.include(el.outerHTML, 'data-hour="0"');
     });
 
-    test('middle', function() {
-      hasHour(6);
+    test('middle1', function() {
+      hasHour(5);
 
       var el = children[1];
       assert.ok(el.outerHTML);
+      assert.include(el.outerHTML, hourHTML(5));
+      assert.include(el.outerHTML, 'hour-5');
+      assert.include(el.outerHTML, 'data-hour="5"');
+    });
+
+    test('middle2', function() {
+      hasHour(6);
+
+      var el = children[2];
+      assert.ok(el.outerHTML);
       assert.include(el.outerHTML, hourHTML(6));
+      assert.include(el.outerHTML, 'hour-6');
+      assert.include(el.outerHTML, 'data-hour="6"');
     });
 
     test('last', function() {
       hasHour(7);
 
-      var el = children[2];
+      var el = children[3];
       assert.ok(el.outerHTML);
       assert.include(el.outerHTML, hourHTML(7));
+      assert.include(el.outerHTML, 'hour-7');
+      assert.include(el.outerHTML, 'data-hour="7"');
     });
 
   });
