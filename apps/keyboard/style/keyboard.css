@@ -92,6 +92,9 @@ button::-moz-focus-inner {
   border-radius: 0;  /* To override the system-default border radius for button element  */
   background: none;
 
+  /* In case the keys are nested, for example in the alt char menu,
+     they need to be tappable. */
+  pointer-events: auto;
 }
 
 /* Visible keys */
@@ -101,6 +104,9 @@ button::-moz-focus-inner {
   width: 100%;
   height: 4.3rem;
   margin: 0.4rem 0;
+
+  /* Events must originate from .keyboard-key, not its children elements */
+  pointer-events: none;
 }
 
 /* Standard key styles. */
