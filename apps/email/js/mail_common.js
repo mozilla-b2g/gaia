@@ -505,6 +505,7 @@ Cards = {
    * passed, the the current card is used.
    */
   setStatusColor: function(element) {
+
     var color;
     // Some use cases, like dialogs, are outside the card stack, so they may
     // not know what element to use for a baseline. In those cases, Cards
@@ -526,6 +527,8 @@ Cards = {
         color = null;
       } else if (color === 'background') {
         color = getComputedStyle(statusElement).backgroundColor;
+      } else if (color === 'none') {
+        return;
       }
     } else {
       // Just use the background color of the original element.

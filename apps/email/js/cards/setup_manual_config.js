@@ -5,7 +5,8 @@ var templateNode = require('tmpl!./setup_manual_config.html'),
     common = require('mail_common'),
     SetupAccountInfoCard = require('./setup_account_info'),
     Cards = common.Cards,
-    FormNavigation = common.FormNavigation;
+    FormNavigation = common.FormNavigation,
+    WarningDialog = require('./warning_plain_socket_dialog');
 
 /**
  * Asks the user to manually configure their account.
@@ -228,10 +229,17 @@ SetupManualConfig.prototype = {
     var SSL_VALUE = (isImap ? '993' : '995');
     var STARTTLS_VALUE = (isImap ? '143' : '110');
     var socketType = event.target.value;
+
+    if (socketType == 'PLAIN') {
+      WarningDialog.show();
+    } else {
+      WarningDialog.hide();
+    }
+
     var portField = this.formItems.composite.port;
     if (socketType === 'SSL') {
       portField.value = SSL_VALUE;
-    } else if (socketType == 'STARTTLS') {
+    } else if (socketType == 'STARTTLS' || socketType == 'PLAIN') {
       portField.value = STARTTLS_VALUE;
     }
   },
@@ -239,12 +247,25 @@ SetupManualConfig.prototype = {
   onChangeSmtpSocket: function(event) {
     const SSL_VALUE = '465';
     const STARTTLS_VALUE = '587';
+    const PLAIN_VALUE = '25';
     var socketType = event.target.value;
     var portField = this.formItems.smtp.port;
-    if (socketType === 'SSL' && portField.value === STARTTLS_VALUE) {
+
+    if (socketType == 'PLAIN') {
+      WarningDialog.show();
+    } else {
+      WarningDialog.hide();
+    }
+
+    if (socketType === 'SSL' && (portField.value === STARTTLS_VALUE ||
+                                 portField.value === PLAIN_VALUE)) {
       portField.value = SSL_VALUE;
-    } else if (socketType == 'STARTTLS' && portField.value == SSL_VALUE) {
+    } else if (socketType == 'STARTTLS' && (portField.value == SSL_VALUE ||
+                                            portField.value == PLAIN_VALUE)) {
       portField.value = STARTTLS_VALUE;
+    } else if (socketType == 'PLAIN' && (portField.value == SSL_VALUE ||
+                                         portField.value == STARTTLS_VALUE)) {
+      portField.value = PLAIN_VALUE;
     }
   },
 
