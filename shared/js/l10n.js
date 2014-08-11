@@ -1668,7 +1668,12 @@
   }
 
   function translateElement(element) {
-    if (isPretranslated && !this.ctx.isReady) {
+    if (!this.ctx.isReady) {
+      if (!isPretranslated) {
+        /* We will translate it in onReady */
+        return;
+      }
+
       if (!pendingElements) {
         pendingElements = [];
       }
