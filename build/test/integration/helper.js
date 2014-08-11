@@ -103,6 +103,18 @@ function exec(command, callback) {
   exec(command, options, callback);
 }
 
+function emptyJsonFile(filePath) {
+  var content = fs.readFileSync(filePath);
+  fs.unlinkSync(filePath);
+  fs.writeFileSync(filePath, '{}');
+
+  var restoreFunc = function() {
+    fs.writeFileSync(filePath, content);
+  };
+
+  return restoreFunc;
+}
+
 exports.getPrefsSandbox = getPrefsSandbox;
 exports.checkError = checkError;
 exports.checkSettings = checkSettings;
@@ -111,4 +123,5 @@ exports.checkWebappsScheme = checkWebappsScheme;
 exports.checkFileInZip = checkFileInZip;
 exports.checkFileContentInZip = checkFileContentInZip;
 exports.checkFileContentByPathInZip = checkFileContentByPathInZip;
+exports.emptyJsonFile = emptyJsonFile;
 exports.exec = exec;
