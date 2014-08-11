@@ -52,11 +52,11 @@ EmeServer.prototype = {
 /**
  * Create an everything.me server for use in marionette tests.
  *
- * @param {String} stubRoot path to a folder of stub responses.
  * @param {Marionette.Client} client for marionette.
  * @param {Function} callback [Error]
  */
-module.exports = function create(stubRoot, client, callback) {
+module.exports = function create(client, callback) {
+  var stubRoot = __dirname + '/fixtures';
   var proc = fork(__dirname + '/child.js', [stubRoot]);
 
   proc.once('error', callback);

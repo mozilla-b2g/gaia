@@ -59,7 +59,7 @@ Search.prototype = {
    */
   checkResult: function(identifier, expected) {
     var selectors = Search.Selectors;
-    var selector = '.icon[data-identifier="' + identifier + '"]';
+    var selector = '.icon[data-identifier*="' + identifier + '"]';
 
     this.client.helper.waitForElement(selectors.firstAppContainer);
     var result = this.client.helper.waitForElement(selector);
