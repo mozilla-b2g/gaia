@@ -1908,7 +1908,7 @@ var TabBar = {
 
   init: function tab_init() {
     this.option = '';
-    this.view.addEventListener('click', this);
+    this.view.addEventListener('touchend', this);
 
     this.playlistArray.localize = function() {
       this.forEach(function(playList) {
@@ -1931,7 +1931,7 @@ var TabBar = {
       return;
 
     switch (evt.type) {
-      case 'click':
+      case 'touchend':
         var target = evt.target;
 
         if (!target)
