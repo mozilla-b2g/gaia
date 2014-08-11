@@ -3371,8 +3371,8 @@ function copyTempDouble(ptr) {
           // Otherwise, calculate the movement based on the changes
           // in the coordinates.
           var rect = Module["canvas"].getBoundingClientRect();
-          var x = event.pageX - (window.scrollX + rect.left);
-          var y = event.pageY - (window.scrollY + rect.top);
+          var x = event.clientX - (window.scrollX + rect.left);
+          var y = event.clientY - (window.scrollY + rect.top);
           // the canvas might be CSS-scaled compared to its backbuffer;
           // SDL-using content will want mouse coordinates in terms
           // of backbuffer units.
