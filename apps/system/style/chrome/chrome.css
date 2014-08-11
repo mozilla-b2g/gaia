@@ -329,8 +329,21 @@
   align-items: center;
 }
 
+.overflow-menu > .list > :not(#share).option[data-disabled] {
+  display: none;
+}
+
+.overflow-menu > .list > #share.option[data-disabled] {
+  pointer-events: none;
+}
+
 .overflow-menu > .list > .option * {
   pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.overflow-menu > .list > #share.option[data-disabled] * {
+  opacity: 0.5;
 }
 
 .overflow-menu > .list > .option > .icon {
@@ -351,6 +364,10 @@
 
 .option#add-to-home > .icon {
   background-image: url("images/menu_add_to_homescreen.png");
+}
+
+.option#share > .icon {
+  background-image: url("images/menu_share.png");
 }
 
 /* Progress */

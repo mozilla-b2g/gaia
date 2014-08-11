@@ -78,7 +78,7 @@
             '     alt="Stop"></button>' +
             ' </div>' +
             ' <button type="button" class="menu-button"' +
-            '   alt="Menu" disabled></button>' +
+            '   alt="Menu"></button>' +
             '</div>';
   };
 
@@ -99,12 +99,21 @@
   AppChrome.prototype.overflowMenuView = function an_overflowMenuView() {
     return '<div class="overflow-menu hidden">' +
            '  <div class="list">' +
-           '    <div class="option" id="add-to-home">' +
+
+           '    <div class="option" id="add-to-home" data-disabled="true">' +
            '      <div class="icon"></div>' +
            '      <div class="label" data-l10n-id="add-to-home-screen">' +
            '        Add to Home Screen' +
            '      </div>' +
            '    </div>' +
+
+           '    <div class="option" id="share">' +
+           '      <div class="icon"></div>' +
+           '      <div class="label" data-l10n-id="share">' +
+           '        Share' +
+           '      </div>' +
+           '    </div>' +
+
            '  </div>' +
            '</div>';
   };
@@ -119,11 +128,6 @@
     this.backButton = this.element.querySelector('.back-button');
     this.menuButton = this.element.querySelector('.menu-button');
     this.title = this.element.querySelector('.title');
-
-    var dataset = this.app.config;
-    if (dataset.originURL || dataset.searchURL) {
-      this.menuButton.disabled = false;
-    }
 
     this.bar = this.element.querySelector('.bar');
     if (this.bar) {
@@ -232,6 +236,11 @@
         evt.stopImmediatePropagation();
         this.onAddToHome();
         break;
+
+      case this.shareButton:
+        evt.stopImmediatePropagation();
+        this.onShare();
+        break;
     }
   };
 
@@ -293,10 +302,13 @@
       if (this.addToHomeButton) {
         this.addToHomeButton.removeEventListener('click', this);
       }
+
+      if (this.shareButton) {
+        this.shareButton.removeEventListener('click', this);
+      }
     } else {
       this.killButton.removeEventListener('click', this);
     }
-
 
     if (!this.app) {
       return;
@@ -409,6 +421,25 @@
       this.title.textContent = title;
     };
 
+  AppChrome.prototype.updateAddToHomeButton =
+    function ac_updateAddToHomeButton() {
+      if (!this.addToHomeButton) {
+        return;
+      }
+
+      // Enable/disable the bookmark option
+      BookmarksDatabase.get(this._currentURL).then(function resolve(result) {
+        if (result) {
+          this.addToHomeButton.dataset.disabled = true;
+        } else {
+          delete this.addToHomeButton.dataset.disabled;
+        }
+      }.bind(this),
+      function reject() {
+        this.addToHomeButton.dataset.disabled = true;
+      }.bind(this));
+    };
+
   AppChrome.prototype.handleLocationChanged =
     function ac_handleLocationChange(evt) {
       if (!this.app) {
@@ -431,12 +462,7 @@
         }.bind(this));
       }
 
-      // Enable/disable the bookmark option
-      if (this.menuButton) {
-        BookmarksDatabase.get(this._currentURL).then(function(result) {
-          this.menuButton.disabled = !!result;
-        }.bind(this));
-      }
+      this.updateAddToHomeButton();
     };
 
   AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
@@ -508,9 +534,9 @@
       }
     });
 
-    if (this.menuButton) {
+    if (this.addToHomeButton) {
       activity.onsuccess = function onsuccess() {
-        this.menuButton.disabled = true;
+        this.addToHomeButton.dataset.disabled = true;
       }.bind(this);
     }
   };
@@ -566,13 +592,18 @@
                                             this.overflowMenuView());
         this._overflowMenu = this.containerElement.
           querySelector('.overflow-menu');
-        this.addToHomeButton = this.containerElement.
+        this.addToHomeButton = this._overflowMenu.
           querySelector('#add-to-home');
+        this.shareButton = this._overflowMenu.
+          querySelector('#share');
 
         this._overflowMenu.addEventListener('click', this);
         this._overflowMenu.addEventListener('animationend', this);
         this._overflowMenu.addEventListener('transitionend', this);
         this.addToHomeButton.addEventListener('click', this);
+        this.shareButton.addEventListener('click', this);
+
+        this.updateAddToHomeButton();
       }
 
       return this._overflowMenu;
@@ -590,6 +621,25 @@
         !this.overflowMenu.classList.contains('showing')) {
       this.overflowMenu.classList.add('hiding');
     }
+  };
+
+  AppChrome.prototype.onShare = function ac_onShare() {
+    this.shareButton.dataset.disabled = true;
+
+    // Fire web activity to share URL
+    var activity = new MozActivity({
+      name: 'share',
+      data: {
+        type: 'url',
+        url: this._currentURL
+      }
+    });
+
+    activity.onsuccess = activity.onerror = (function() {
+      delete this.shareButton.dataset.disabled;
+    }).bind(this);
+
+    this.hideOverflowMenu();
   };
 
   exports.AppChrome = AppChrome;
