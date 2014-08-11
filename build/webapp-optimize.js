@@ -359,11 +359,21 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
     // fetch the whole file append it to the comment.
     var scriptFile = this.getFileByRelativePath(script.src);
     content += scriptFile.content;
+
+    // We store the unminified content for comparing.
+    var originalContent = content;
     try {
       content = jsmin(content).code;
       this.files.push(scriptFile.file);
     } catch (e) {
       utils.log('Failed to minify content: ' + e);
+    }
+
+    // When BUILD_DEBUG is true, we'll do AST comparing in build time.
+    if (this.config.BUILD_DEBUG &&
+        !utils.jsComparator(originalContent, content)) {
+      throw 'minified ' + script.src + ' has different AST with' +
+            ' unminified script.';
     }
 
     var scriptConfig = normal;
@@ -398,31 +408,20 @@ HTMLOptimizer.prototype.writeAggregatedContent = function(conf) {
     return;
   }
   var doc = this.win.document;
-  // root name like index or oncall, etc...
-  //var baseName = this.htmlFile.leafName.split('.')[0];
-  // used as basis for aggregated scripts...
   var rootDirectory = this.htmlFile.parent;
 
-  //var gaia = utils.gaia.getInstance(this.config);
-  //var scriptBaseName = gaia.aggregatePrefix + conf.prefix + baseName + '.js';
   var target = rootDirectory.clone();
   target.append(conf.name);
-  //target.append(scriptBaseName);
 
   // write the contents of the aggregated script
   utils.writeContent(target, conf.content);
-  //var script = doc.createElement('script');
+
   var file = doc.createElement(conf.fileType);
   var lastScript = conf.lastNode;
 
   for (var spe in conf.specs) {
     file[spe] = conf.specs[spe];
   }
-
-  //script.src = './' + scriptBaseName;
-  //script.defer = lastScript.defer;
-  // use the conf's type if given (for text/javascript;version=x)
-  //script.type = conf.type || lastScript.type;
 
   // insert after the last script node of this type...
   var parent = lastScript.parentNode;
