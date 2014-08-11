@@ -26,7 +26,6 @@
     urlTemplate: 'https://www.google.com/search?q={searchTerms}',
 
     searchResults: document.getElementById('search-results'),
-    newTabPage: document.getElementById('newtab-page'),
 
     suggestionsEnabled: false,
 
@@ -279,30 +278,10 @@
       this.suggestionNotice.hidden = true;
     },
 
-    showBlank: function() {
-      if (this.searchResults) {
-        this.newTabPage.classList.add('hidden');
-        this.searchResults.classList.add('hidden');
-      }
-    },
-
-    /**
-     * Called when the user displays the task manager
-     */
-    showTaskManager: function() {
-      this.showBlank();
-    },
-
     showSearchResults: function() {
       if (this.searchResults) {
         this.searchResults.classList.remove('hidden');
-        this.newTabPage.classList.add('hidden');
       }
-    },
-
-    showNewTabPage: function() {
-      this.searchResults.classList.add('hidden');
-      this.newTabPage.classList.remove('hidden');
     },
 
     /**
@@ -339,13 +318,6 @@
       // Keep jshint happy
       activity.onsuccess = function() {};
       */
-    },
-
-    requestScreenshot: function(url) {
-      this._port.postMessage({
-        'action': 'request-screenshot',
-        'url': url
-      });
     },
 
     /**

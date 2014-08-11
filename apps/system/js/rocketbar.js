@@ -16,7 +16,6 @@
     this.enabled = false;
     this.focused = false;
     this.active = false;
-    this.newTabPage = false;
     this.currentApp = null;
 
     // Properties
@@ -125,7 +124,6 @@
         return;
       }
       this.active = false;
-      this.newTabPage = false;
       this.rocketbar.classList.remove('active');
       this.form.classList.add('hidden');
       this.backdrop.classList.add('hidden');
@@ -308,22 +306,6 @@
     },
 
     /**
-     * Show New Tab Page.
-     * @memberof Rocketbar.prototype
-     */
-    showNewTabPage: function() {
-      this.newTabPage = true;
-      this.activate((function() {
-        this.showResults();
-        if (this._port) {
-          this._port.postMessage({
-            action: 'showNewTabPage'
-          });
-        }
-      }).bind(this));
-    },
-
-    /**
      * Enable back button.
      */
     enableNavigation: function() {
@@ -424,14 +406,8 @@
 
       this.rocketbar.classList.toggle('has-text', input.length);
 
-      if (!input && !this.newTabPage &&
-          !this.results.classList.contains('hidden')) {
+      if (!input && !this.results.classList.contains('hidden')) {
         this.hideResults();
-        return;
-      }
-
-      if (!input && this.newTabPage) {
-        this.showNewTabPage();
         return;
       }
 
