@@ -48,7 +48,8 @@ var CarrierInfoNotifier = {
     var notification = NotificationScreen.addNotification({
       id: ++this._notificationId,
       title: title,
-      text: message
+      text: message,
+      type: 'cell_broadcast_mark'
     });
     notification.addEventListener('tap', showDialog);
   },

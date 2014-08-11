@@ -421,10 +421,12 @@ var NotificationScreen = {
     if (typeof(ScreenManager) !== 'undefined' &&
       !ScreenManager.screenEnabled) {
       // bug 915236: disable turning on the screen for email notifications
-      if (!detail.manifestURL ||
-           detail.manifestURL.indexOf('email.gaiamobile.org') === -1) {
+      if (detail.type === 'cell_broadcast_mark') {
         ScreenManager.turnScreenOn();
-      }
+      } else if (detail.manifestURL &&
+        detail.manifestURL.indexOf('email.gaiamobile.org') === -1) {
+          ScreenManager.turnScreenOn();
+        }
     }
 
     this.updateStatusBarIcon(true);
