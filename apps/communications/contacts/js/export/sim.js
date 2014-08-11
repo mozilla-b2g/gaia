@@ -1,4 +1,3 @@
-/* global _ */
 /* exported ContactsSIMExport */
 'use strict';
 
@@ -28,7 +27,7 @@ var ContactsSIMExport = function ContactsSIMExport(icc) {
   };
 
   var getExportTitle = function getExportTitle() {
-    return _('simExport-title');
+    return 'simExport-title';
   };
 
   var doExport = function doExport(finishCallback) {

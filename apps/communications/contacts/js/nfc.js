@@ -10,7 +10,6 @@ contacts.NFC = (function() {
   var currentContact;
   var vCardContact;
   var mozNfcPeer;
-  var _ = navigator.mozL10n.get;
 
   var startListening = function(contact) {
     currentContact = contact;
@@ -76,7 +75,7 @@ contacts.NFC = (function() {
    };
 
   var handlePeerReadyForFb = function() {
-    Contacts.showStatus(_('facebook-export-forbidden'));
+    Contacts.showStatus('facebook-export-forbidden');
   };
 
   return {

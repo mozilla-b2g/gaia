@@ -259,7 +259,7 @@ var UIManager = {
     if (emailValue === '') {
       return callback(true);
     } else {
-      utils.overlay.show(_('email-loading'), 'spinner');
+      utils.overlay.show('email-loading', 'spinner');
       if (self.newsletterInput.checkValidity()) {
         if (window.navigator.onLine) {
           Basket.send(emailValue, function emailSent(err, data) {

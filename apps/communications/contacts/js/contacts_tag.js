@@ -44,7 +44,6 @@ var ContactsTag = (function() {
     for (var option in options) {
       var tagLink = document.createElement('button');
       tagLink.dataset.index = option;
-      tagLink.textContent = options[option].value;
       tagLink.setAttribute('data-l10n-id', options[option].type);
       tagLink.setAttribute('data-value', options[option].type);
       tagLink.setAttribute('role', 'option');

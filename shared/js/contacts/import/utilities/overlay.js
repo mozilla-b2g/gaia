@@ -1,4 +1,3 @@
-/* global _ */
 'use strict';
 
 var utils = window.utils || {};
@@ -24,10 +23,10 @@ var utils = window.utils || {};
     progressElement.setAttribute('value', 0);
 
     function showMessage() {
-      progressMsg.textContent = _(progressTextId, {
-        current: counter,
-        total: total
-      });
+      navigator.mozL10n.setAttributes(progressMsg,
+                                      progressTextId,
+                                      { current: counter, total: total }
+      );
     }
 
     /**
@@ -56,20 +55,28 @@ var utils = window.utils || {};
       // To refresh the message according to the new clazzName
       if (clazzName === 'activityBar' || clazzName === 'spinner') {
         progressMsg.textContent = null;
+        progressMsg.removeAttribute('data-l10n-id');
       }
     };
 
-    this.setHeaderMsg = function(headerMsg) {
-      progressTitle.textContent = headerMsg;
+    this.setHeaderMsg = function(headerMsgId) {
+      progressTitle.setAttribute('data-l10n-id', headerMsgId);
     };
   } // ProgressBar
 
   utils.overlay.isAnimationPlaying = false;
   utils.overlay.isShown = false;
-  utils.overlay._show = function _show(message, progressClass, textId) {
+  utils.overlay._show = function _show(messageId, progressClass, textId) {
     progressActivity.classList.remove('hide');
-    progressTitle.textContent = message;
+    if (typeof messageId === 'string') {
+      progressTitle.setAttribute('data-l10n-id', messageId);
+    } else {
+      navigator.mozL10n.setAttributes(progressTitle,
+                                      messageId.id,
+                                      messageId.args);
+    }
     progressMsg.textContent = null;
+    progressMsg.removeAttribute('data-l10n-id');
     if (utils.overlay.isShown) {
       return;
     }
@@ -88,20 +95,20 @@ var utils = window.utils || {};
     });
   };
 
-  utils.overlay.show = function show(message, progressClass, textId) {
+  utils.overlay.show = function show(messageId, progressClass, textId) {
     var out;
     // In the case of an spinner this object will not be really used
     out = new ProgressBar(textId, progressClass);
     setClass(progressClass);
     utils.overlay.hideMenu(); // By default
     if (!utils.overlay.isAnimationPlaying) {
-      utils.overlay._show(message, progressClass, textId);
+      utils.overlay._show(messageId, progressClass, textId);
       return out;
     }
     overlay.addEventListener('animationend',
       function ov_showWhenFinished(ev) {
         overlay.removeEventListener('animationend', ov_showWhenFinished);
-        utils.overlay._show(message, progressClass, textId);
+        utils.overlay._show(messageId, progressClass, textId);
       }
     );
     return out;

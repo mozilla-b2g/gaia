@@ -328,8 +328,8 @@ contacts.Details = (function() {
 
   var toggleFavoriteMessage = function toggleFavMessage(isFav) {
     var cList = favoriteMessage.classList;
-    var text = isFav ? _('removeFavorite') : _('addFavorite');
-    favoriteMessage.textContent = text;
+    var l10nId = isFav ? 'removeFavorite' : 'addFavorite';
+    favoriteMessage.setAttribute('data-l10n-id', l10nId);
     isFav ? cList.add('on') : cList.remove('on');
   };
 
@@ -401,7 +401,7 @@ contacts.Details = (function() {
     } else {
         var socialLabel = social.querySelector('#social-label');
         if (socialLabel) {
-          socialLabel.textContent = _('facebook');
+          socialLabel.setAttribute('data-l10n-id', 'facebook');
         }
 
         // Check whether the social buttons that require to be online
@@ -515,7 +515,7 @@ contacts.Details = (function() {
     }
     var container = document.createElement('li');
     var title = document.createElement('h2');
-    title.textContent = _('comments');
+    title.setAttribute('data-l10n-id', 'comments');
     container.appendChild(title);
     for (var i = 0; i < contact.note.length; i++) {
       var currentNote = contact.note[i];

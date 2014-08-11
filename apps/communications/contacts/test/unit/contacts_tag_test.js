@@ -44,9 +44,9 @@ suite('Fill tag options', function() {
       subject.fillTagOptions(container, originalTag,
                              testTagOptions['test-type']);
       assert.equal(container.querySelector('button[data-index="0"]')
-                   .textContent, 'value1');
+                   .getAttribute('data-l10n-id'), 'value1');
       assert.equal(container.querySelector('button[data-index="1"]')
-                   .textContent, 'value2');
+                   .getAttribute('data-l10n-id'), 'value2');
     });
 
     test('choose a tag', function() {

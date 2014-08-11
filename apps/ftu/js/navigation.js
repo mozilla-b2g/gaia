@@ -314,7 +314,7 @@ var Navigation = {
 
     // There is some locations which need a 'loading'
     if (futureLocation.hash === '#wifi') {
-      utils.overlay.show(_('scanningNetworks'), 'spinner');
+      utils.overlay.show('scanningNetworks', 'spinner');
     }
 
     // If SIMcard is mandatory and no SIM, go to message window

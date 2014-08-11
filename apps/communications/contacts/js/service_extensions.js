@@ -77,7 +77,7 @@ if (typeof Contacts.extServices === 'undefined') {
       extensionFrame.src = currentURI = null;
     }
 
-    function close(message, additionalMessage) {
+    function close(messageId, additionalMessageId) {
       extensionFrame.addEventListener('transitionend', function tclose() {
         extensionFrame.removeEventListener('transitionend', tclose);
         extensionFrame.classList.add('hidden');
@@ -88,8 +88,8 @@ if (typeof Contacts.extServices === 'undefined') {
           closeRequested = true;
         }
 
-        if (message && message.trim().length > 0) {
-          Contacts.showStatus(message, additionalMessage);
+        if (messageId) {
+          Contacts.showStatus(messageId, additionalMessageId);
         }
       // Otherwise we do nothing as the sync process will finish sooner or later
       });
@@ -326,7 +326,7 @@ if (typeof Contacts.extServices === 'undefined') {
         break;
 
         case 'window_close':
-          close(data.message, data.additionalMessage);
+          close(data.messageId, data.additionalMessageId);
           notifySettings();
         break;
 

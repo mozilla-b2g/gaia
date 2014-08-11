@@ -64,7 +64,6 @@ if (!fb.link) {
     var currentNetworkRequest = null;
     // State can be proposal or view All
     var state;
-    var _ = navigator.mozL10n.get;
     var imgLoader;
 
     // Only needed for testing purposes
@@ -329,7 +328,7 @@ if (!fb.link) {
             numFriendsProposed = currentRecommendation.length;
           }
         } else {
-          viewButton.textContent = _('viewAll');
+          viewButton.setAttribute('data-l10n-id', 'viewAll');
           viewButton.onclick = UI.viewAllFriends;
         }
 
@@ -349,9 +348,10 @@ if (!fb.link) {
             var data = e.data;
             if (data && data.type === 'dom_transition_end') {
               window.removeEventListener('message', linkOnViewPort);
-              utils.status.show(_('linkProposal', {
-                numFriends: numFriendsProposed
-              }));
+              utils.status.show({
+                id: 'linkProposal',
+                args: { numFriends: numFriendsProposed }
+              });
             }
           });
         });
@@ -482,7 +482,7 @@ if (!fb.link) {
 
     link.friendsReady = function(response) {
       if (typeof response.error === 'undefined' && response.data) {
-        viewButton.textContent = _('viewRecommend');
+        viewButton.setAttribute('data-l10n-id', 'viewRecommend');
         viewButton.onclick = UI.viewRecommended;
 
         allFriends = response;
@@ -662,7 +662,7 @@ if (!fb.link) {
     UI.viewRecommended = function(event) {
       // event.target === viewButton
       event.target.onclick = UI.viewAllFriends;
-      event.target.textContent = _('viewAll');
+      event.target.setAttribute('data-l10n-id', 'viewAll');
 
       clearList();
       utils.templates.append(friendsList, currentRecommendation);

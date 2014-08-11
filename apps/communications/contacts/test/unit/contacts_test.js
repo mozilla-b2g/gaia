@@ -286,7 +286,7 @@ suite('Contacts', function() {
         // Cancel is visible
         assert.equal(header.getAttribute('action'), 'close');
         // Title shows CONTACTS
-        assert.equal(appTitleElement.textContent, 'contacts');
+        assert.equal(appTitleElement.getAttribute('data-l10n-id'), 'contacts');
 
         window.ActivityHandler.currentlyHandling = false;
       });
@@ -303,7 +303,8 @@ suite('Contacts', function() {
         // Add contact is visible
         assert.isFalse(settingsButton.classList.contains('hide'));
         // Title shows SELECT
-        assert.equal(appTitleElement.textContent, 'selectContact');
+        assert.equal(appTitleElement.getAttribute('data-l10n-id'),
+                     'selectContact');
 
         window.contacts.List.isSelecting = false;
       });

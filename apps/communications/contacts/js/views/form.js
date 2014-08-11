@@ -260,11 +260,9 @@ contacts.Form = (function() {
       saveButton.setAttribute('disabled', 'disabled');
     }
     saveButton.setAttribute('data-l10n-id', 'update');
-    saveButton.textContent = _('update');
     currentContact = contact;
     deleteContactButton.parentNode.classList.remove('hide');
     formTitle.setAttribute('data-l10n-id', 'editContact');
-    formTitle.textContent = _('editContact');
     currentContactId.value = contact.id;
     givenName.value = (Array.isArray(contact.givenName) &&
                       contact.givenName.length > 0) ?
@@ -345,10 +343,8 @@ contacts.Form = (function() {
     }
     saveButton.setAttribute('disabled', 'disabled');
     saveButton.setAttribute('data-l10n-id', 'done');
-    saveButton.textContent = _('done');
     deleteContactButton.parentNode.classList.add('hide');
     formTitle.setAttribute('data-l10n-id', 'addContact');
-    formTitle.textContent = _('addContact');
 
     params = params || {};
 
@@ -501,7 +497,7 @@ contacts.Form = (function() {
         renderDate(currField.value, dateInputText);
       }
       else {
-        dateInputText.textContent = _('date-span-placeholder');
+        dateInputText.setAttribute('data-l10n-id', 'date-span-placeholder');
       }
 
       dateInput.addEventListener('input',
@@ -1157,10 +1153,8 @@ contacts.Form = (function() {
 
   var removeFieldIcon = function removeFieldIcon(selector, type) {
     var delButton = document.createElement('button');
-    var _ = navigator.mozL10n.get;
 
     delButton.className = IMG_DELETE_CLASS; // + ' fillflow-row-action';
-    delButton.setAttribute('aria-label', _('removeField.ariaLabel'));
     delButton.setAttribute('data-l10n-id', 'removeField');
     delButton.setAttribute('data-type', type);
 
@@ -1188,7 +1182,6 @@ contacts.Form = (function() {
 
       // Update the aria label for acessibility
       var delButton = event.target;
-      delButton.setAttribute('aria-label', _('removeField.ariaLabel'));
       delButton.setAttribute('data-l10n-id', 'removeField');
 
       counters[type]--;

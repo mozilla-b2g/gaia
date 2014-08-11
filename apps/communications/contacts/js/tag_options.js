@@ -1,6 +1,7 @@
 'use strict';
 /* exported TAG_OPTIONS */
-/* global _ */
+
+var _ = navigator.mozL10n.get;
 
 var TAG_OPTIONS = {
   'phone-type' : [

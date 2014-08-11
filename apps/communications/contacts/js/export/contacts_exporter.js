@@ -1,4 +1,4 @@
-/* global utils, _, ConfirmDialog, Contacts*/
+/* global utils, ConfirmDialog, Contacts*/
 'use strict';
 
 //
@@ -144,12 +144,15 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
 
   var _showStatus = function(exported, total) {
     // TODO: Better mechanism to show result
-    var msg = _('contactsExported2', {
-      'exported': exported,
-      'total': total
-    });
+    var msgId = {
+      id: 'contactsExported2',
+      args: {
+        'exported': exported,
+        'total': total
+      }
+    };
 
-    utils.status.show(msg);
+    utils.status.show(msgId);
   };
 
   //
