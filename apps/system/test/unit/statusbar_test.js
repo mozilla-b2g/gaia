@@ -37,7 +37,8 @@ var mocksForStatusBar = new MocksHelper([
 suite('system/Statusbar', function() {
   var mobileConnectionCount = 2;
   var fakeStatusBarNode, fakeTopPanel, fakeStatusBarBackground,
-      fakeStatusBarIcons, fakeStatusBarConnections,
+      fakeStatusBarIcons, fakeStatusbarIconsMax, fakeStatusbarIconsMin,
+      fakeStatusBarConnections,
       fakeStatusBarCallForwardings, fakeStatusBarTime, fakeStatusBarLabel,
       fakeStatusBarBattery;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [];
@@ -62,6 +63,14 @@ suite('system/Statusbar', function() {
     fakeStatusBarIcons = document.createElement('div');
     fakeStatusBarIcons.id = 'statusbar-icons';
     document.body.appendChild(fakeStatusBarIcons);
+
+    fakeStatusbarIconsMax = document.createElement('div');
+    fakeStatusbarIconsMax.id = 'statusbar-maximized';
+    fakeStatusBarIcons.appendChild(fakeStatusbarIconsMax);
+
+    fakeStatusbarIconsMin = document.createElement('div');
+    fakeStatusbarIconsMin.id = 'statusbar-minimized';
+    fakeStatusBarIcons.appendChild(fakeStatusbarIconsMin);
 
     fakeStatusBarConnections = document.createElement('div');
     fakeStatusBarConnections.id = 'statusbar-connections';
@@ -115,6 +124,7 @@ suite('system/Statusbar', function() {
           elt = document.createElement('div');
         }
         elt.id = 'statusbar-' + elementName;
+        elt.style = 'width: 10px;';
         elt.hidden = true;
         fakeStatusBarNode.appendChild(elt);
         fakeIcons[elementName] = elt;
@@ -840,13 +850,15 @@ suite('system/Statusbar', function() {
         test('call forwarding enabled', function() {
           StatusBar.settingValues['ril.cf.enabled'][slotIndex] = true;
           StatusBar.update.callForwarding.call(StatusBar);
-          assert.isFalse(StatusBar.icons.callForwardings[slotIndex].hidden);
+          assert.isFalse(
+            StatusBar.icons.callForwardingsElements[slotIndex].hidden);
         });
 
         test('call forwarding disabled', function() {
           StatusBar.settingValues['ril.cf.enabled'][slotIndex] = false;
           StatusBar.update.callForwarding.call(StatusBar);
-          assert.isTrue(StatusBar.icons.callForwardings[slotIndex].hidden);
+          assert.isTrue(
+            StatusBar.icons.callForwardingsElements[slotIndex].hidden);
         });
       });
     }
@@ -1677,6 +1689,142 @@ suite('system/Statusbar', function() {
 
         assert.isTrue(StatusBar.background.classList.contains('opaque'));
       });
+    });
+  });
+
+  suite('Icons', function() {
+    test('visibility should be updated on screen resize', function() {
+      var spyUpdateIconVisibility =
+        this.sinon.spy(StatusBar, '_updateIconVisibility');
+
+      var evt = new CustomEvent('resize');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(spyUpdateIconVisibility.called);
+    });
+
+    test('visibility update should get the status bars width', function() {
+      var spyGetMaximizedStatusBarWidth =
+        this.sinon.spy(StatusBar, '_getMaximizedStatusBarWidth');
+      var spyGetMinimizedStatusBarWidth =
+        this.sinon.spy(StatusBar, '_getMinimizedStatusBarWidth');
+
+      StatusBar._updateIconVisibility();
+      assert.isTrue(spyGetMaximizedStatusBarWidth.called);
+      assert.isTrue(spyGetMinimizedStatusBarWidth.called);
+    });
+
+    suite('when only 2 icons fit in the maximized status bar', function() {
+      var iconWithPriority1;
+      var iconWithPriority2;
+      var iconWithPriority3;
+      var getMaximizedStatusBarWidthStub;
+      var getMinimizedStatusBarWidthStub;
+
+      setup(function() {
+        // Reset all the icons to be hidden.
+        StatusBar.PRIORITIES.forEach(function(iconObj) {
+          var iconId = iconObj[0];
+          StatusBar.icons[StatusBar.toCamelCase(iconId)].hidden = true;
+        });
+
+        iconWithPriority1 =
+          StatusBar.icons[StatusBar.toCamelCase(StatusBar.PRIORITIES[0][0])];
+        iconWithPriority2 =
+          StatusBar.icons[StatusBar.toCamelCase(StatusBar.PRIORITIES[1][0])];
+        iconWithPriority3 =
+          StatusBar.icons[StatusBar.toCamelCase(StatusBar.PRIORITIES[2][0])];
+
+        iconWithPriority1.hidden = false;
+        iconWithPriority2.hidden = false;
+        iconWithPriority3.hidden = false;
+
+        // The maximized status bar can fit icons with priority 1 and 2.
+        getMaximizedStatusBarWidthStub = sinon.stub(StatusBar,
+          '_getMaximizedStatusBarWidth', function() {
+            return StatusBar._getIconWidth(StatusBar.PRIORITIES[0]) +
+              StatusBar._getIconWidth(StatusBar.PRIORITIES[1]);
+          });
+        // The minimized status bar can only fit the highest priority icon.
+        getMinimizedStatusBarWidthStub = sinon.stub(StatusBar,
+          '_getMinimizedStatusBarWidth', function() {
+            return StatusBar._getIconWidth(StatusBar.PRIORITIES[0]);
+          });
+
+        StatusBar._updateIconVisibility();
+      });
+
+      teardown(function() {
+        getMaximizedStatusBarWidthStub.restore();
+        getMinimizedStatusBarWidthStub.restore();
+      });
+
+      test('the maximized status bar should hide icon #3', function() {
+        StatusBar._updateIconVisibility();
+
+        // Icon #1 is always visible.
+        assert.isFalse(StatusBar.statusbarIcons.classList
+          .contains('sb-hide-' + StatusBar.PRIORITIES[0][0]));
+        // Icon #2 is visible in the maximized status bar.
+        assert.isFalse(StatusBar.statusbarIcons.classList
+          .contains('sb-hide-' + StatusBar.PRIORITIES[1][0]));
+        // Icon #3 is hidden in the maximized status bar.
+        assert.isTrue(StatusBar.statusbarIcons.classList
+          .contains('sb-hide-' + StatusBar.PRIORITIES[2][0]));
+      });
+
+      test('the minimized status bar should hide icon #2', function() {
+        StatusBar._updateIconVisibility();
+
+        // Icon #1 is always visible.
+        assert.isFalse(StatusBar.statusbarIconsMin.classList
+          .contains('sb-hide-' + StatusBar.PRIORITIES[0][0]));
+        // Icon #2 is hidden in the minimized status bar.
+        assert.isTrue(StatusBar.statusbarIconsMin.classList
+          .contains('sb-hide-' + StatusBar.PRIORITIES[1][0]));
+        // Icon #2 is not hidden in the minimized status bar.
+        assert.isFalse(StatusBar.statusbarIconsMin.classList
+          .contains('sb-hide-' + StatusBar.PRIORITIES[2][0]));
+      });
+    });
+  });
+
+  suite('_getIconWidth', function() {
+    test('should return the stored value for fixed size icons', function() {
+      // Get the index of emergency cb icon in StatusBar.PRIORITIES.
+      var iconIndex;
+      StatusBar.PRIORITIES.some(function(iconObj, i) {
+        if (iconObj[0] === 'emergency-cb-notification') {
+          iconIndex = i;
+          return true;
+        }
+        return false;
+      });
+
+      var emergencyCbNotificationIcon = StatusBar.icons.emergencyCbNotification;
+      emergencyCbNotificationIcon.hidden = false;
+
+      assert.ok(StatusBar.PRIORITIES[iconIndex][1]);
+      assert.equal(StatusBar._getIconWidth(StatusBar.PRIORITIES[iconIndex]),
+          16 + 5);
+    });
+
+    test('should compute the width of variable size icons', function() {
+      // Get the index of time icon in StatusBar.PRIORITIES.
+      var iconIndex;
+      StatusBar.PRIORITIES.some(function(iconObj, i) {
+        if (iconObj[0] === 'time') {
+          iconIndex = i;
+          return true;
+        }
+        return false;
+      });
+
+      var timeIcon = StatusBar.icons.time;
+      timeIcon.hidden = false;
+
+      assert.isNull(StatusBar.PRIORITIES[iconIndex][1]);
+      assert.equal(StatusBar._getIconWidth(StatusBar.PRIORITIES[iconIndex]),
+        timeIcon.clientWidth);
     });
   });
 });
