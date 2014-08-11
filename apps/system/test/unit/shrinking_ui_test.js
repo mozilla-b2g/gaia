@@ -70,6 +70,17 @@ suite('system/ShrinkingUI', function() {
   test('Handle "home" event', homeAndHoldhomeTestFactory('home'));
   test('Handle "holdhome" event', homeAndHoldhomeTestFactory('holdhome'));
 
+  test('Handle "home" event would make current app as null', function() {
+    var evt = {
+      type: 'home',
+    };
+    var current = ShrinkingUI.current;
+    var stubSwitchTo = this.sinon.stub(ShrinkingUI, '_switchTo');
+    ShrinkingUI.handleEvent(evt);
+    assert.isTrue(stubSwitchTo.calledWith(null));
+    ShrinkingUI.current = current;
+  });
+
   test('Handle "homescreenopened" event', function() {
     var evt = {
       type: 'homescreenopened',
@@ -381,19 +392,22 @@ suite('system/ShrinkingUI', function() {
     assert.isTrue(ShrinkingUI.current.tip.classList.remove.calledWith('hide'));
 
     ShrinkingUI.current = oldCurrent;
+    assert.notEqual('undefined', typeof ShrinkingUI.current.tip,
+      'after test the tip was not reseted');
+    assert.notEqual('null', typeof ShrinkingUI.current.tip,
+      'after test the tip was not reseted');
   });
 
   test('Shrinking UI Stop', function(done) {
     // test for state = false (not going to start actually)
-    var stubState = this.sinon.stub(ShrinkingUI, '_state').returns(false);
+    var originalShrinking = ShrinkingUI.state.shrinking;
+    ShrinkingUI.state.shrinking = false;
     var stubShrinkingTiltBack =
       this.sinon.stub(ShrinkingUI, '_shrinkingTiltBack');
     ShrinkingUI.stop();
-    assert.isTrue(stubState.called);
     assert.isFalse(stubShrinkingTiltBack.called);
-
-    stubState.reset();
     stubShrinkingTiltBack.restore();
+    ShrinkingUI.state.shrinking = originalShrinking;
 
     // actual "stop"
 
@@ -412,16 +426,20 @@ suite('system/ShrinkingUI', function() {
     ShrinkingUI.current.instanceID = 'instanceIDofTestApp';
     ShrinkingUI.current.tip = fakeTip;
 
-    stubState.returns(true);
-    var stubCleanEffects = this.sinon.stub(ShrinkingUI, '_cleanEffects');
+    // Stub a promised function.
+    var stubCleanEffects = this.sinon.stub(ShrinkingUI, '_cleanEffects',
+    function() {
+      return {
+        then: function(cb) {
+          cb();
+        }
+      };
+    });
 
     stubShrinkingTiltBack =
       this.sinon.stub(ShrinkingUI, '_shrinkingTiltBack', function(instant, cb){
         assert.isTrue(instant);
-
         cb();
-
-        assert.isTrue(stubState.called);
         assert.isTrue(fakeTip.remove.called);
         assert.isNull(this.current.tip);
         assert.isTrue(testApp.setVisible.calledWith(true));
@@ -479,9 +497,13 @@ suite('system/ShrinkingUI', function() {
       }
     };
 
+    ShrinkingUI.state.shrinking =
+    ShrinkingUI.state.tilting =
+    ShrinkingUI.state.ending = false;
+
     assert.isFalse(ShrinkingUI._state());
 
-    ShrinkingUI.current.appFrame.dataset.shrinkingState = 'true';
+    ShrinkingUI.state.shrinking = true;
     assert.isTrue(ShrinkingUI._state());
 
     ShrinkingUI.current.appFrame = oldAppFrame;

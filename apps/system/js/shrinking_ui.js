@@ -26,7 +26,7 @@
  *
  */
 
-/* globals dump */
+/* globals dump, Promise */
 (function(exports) {
 
   var ShrinkingUI = {
@@ -43,6 +43,9 @@
       cover: null
     },
     state: {
+      shrinking: false,
+      ending: false,
+      tilting: false,
       overThreshold: false,
       toward: 'TOP',
       suspended: false,
@@ -126,6 +129,11 @@
         case 'holdhome':
           if (this._state()) {
             evt.stopImmediatePropagation();
+          } else {
+            // When home event can pass, it means we would switch to
+            // Homescreen. We pre-set this to avoid animation get triggered
+            // while pressing home key .
+            this._switchTo(null, null);
           }
           break;
         case 'homescreenopened':
@@ -238,11 +246,13 @@
       if (this._state()) {
         return;
       }
-
+      this.state.shrinking = true;
+      this.state.tilting = true;
       var afterTilt = (function() {
         // After it tilted done, turn it to the screenshot mode.
         var currentWindow = this.apps[this.current.instanceID];
         currentWindow.setVisible(false, true);
+        this.state.tilting = false;
       }).bind(this);
 
       this._setTip();
@@ -274,14 +284,22 @@
    */
   ShrinkingUI.stop =
     (function su_stop() {
-      if (!this._state()) {
+      if (!this.state.shrinking || this.state.ending) {
         return;
       }
-      var afterTiltBack = (function() {
+      // When shrinking get forcibly stopped, restore the flag.
+      if (this.state.tilting) {
+        this.state.tilting = false;
+      }
+      this.state.shrinking = false;
+      this.state.ending = true;
+      var afterTiltBack = (() => {
         // Turn off the screenshot mode.
         var currentWindow = this.apps[this.current.instanceID];
         currentWindow.setVisible(true);
-        this._cleanEffects();
+        this._cleanEffects().then(() => {
+          this.state.ending = false;
+        });
       }).bind(this);
       this.current.tip.remove();
       this.current.tip = null;
@@ -315,7 +333,10 @@
       if (!this.current.appFrame) {// Has been setup or not.
         return false;
       }
-      return 'true' === this.current.appFrame.dataset.shrinkingState;
+      if (this.state.shrinking || this.state.tilting || this.state.ending) {
+        return true;
+      }
+      return false;
      }).bind(ShrinkingUI);
 
   /**
@@ -692,22 +713,25 @@
    */
   ShrinkingUI._cleanEffects =
     (function su_cleanEffects() {
-      this.debug('_cleanEffects(): ', this._state());
-      this.current.appFrame.style.transition = '';
-      this.current.appFrame.style.transform = '';
-      this.current.appFrame.style.transformOrigin = '50% 50% 0';
-      this._setState(false);
+      return new Promise((resolve, rejected) => {
+        this.debug('_cleanEffects(): ', this._state());
+        this.current.appFrame.style.transition = '';
+        this.current.appFrame.style.transform = '';
+        this.current.appFrame.style.transformOrigin = '50% 50% 0';
+        this._setState(false);
 
-      // Clear the 'transitionend' animation listener callbacks
-      this._updateTiltTransition(null);
-      this._updateSlideTransition(null);
+        // Clear the 'transitionend' animation listener callbacks
+        this._updateTiltTransition(null);
+        this._updateSlideTransition(null);
 
-      this.current.wrapper.classList.remove('shrinking-wrapper');
-      this._disableSlidingCover().remove();
+        this.current.wrapper.classList.remove('shrinking-wrapper');
+        this._disableSlidingCover().remove();
 
-      this.current.wrapper = null;
-      this.current.appFrame = null;
-      this.current.cover = null;
+        this.current.wrapper = null;
+        this.current.appFrame = null;
+        this.current.cover = null;
+        resolve();
+      });
     }).bind(ShrinkingUI);
 
   ShrinkingUI._getTiltingDegree =
