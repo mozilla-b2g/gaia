@@ -153,7 +153,7 @@ var ModalDialog = {
           if (button.messageType === 'builtin') {
             // List of potential `message` values are defined here:
             // http://hg.mozilla.org/mozilla-central/annotate/5ce71981e005/dom/browser-element/BrowserElementPromptService.jsm#l157
-            domElement.textContent = navigator.mozL10n.get(button.message);
+            domElement.setAttribute('data-l10n-id', button.message);
           } else if (button.messageType === 'custom') {
             // For custom button, we assume that the text is already translated
             domElement.textContent = button.message;
