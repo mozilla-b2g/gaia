@@ -39,6 +39,7 @@ apps/keyboard/js/imes/jszhuyin/lib/**
 shared/js/setImmediate.js
 shared/test/unit/test-agent-server.js
 shared/elements/gaia-header/dist/script.js
+shared/elements/gaia-icons/script.js
 apps/sharedtest/test/unit/setImmediate_test.js
 apps/wappush/js/ext/**
 apps/keyboard/js/imes/jsavrophonetic/jsavrophonetic.js
