@@ -80,8 +80,10 @@
                 onerror);
       });
     },
+    // NOTE: we don't take an onsuccess callback because callers don't use it.
+    // An inconsistent API is better than having callers pass in 'null'.
     requestPasswordReset:
-      function fxmsr_requestPasswordReset(email, onsuccess, onerror) {
+      function fxmsr_requestPasswordReset(email, onerror) {
       var url = email ? fxaURL + '?email=' + email : fxaURL;
       var activity = new MozActivity({
         name: 'view',
@@ -94,7 +96,6 @@
         // TODO When the browser loads, it is *behind* the system app. So we
         //      need to dismiss this app in order to let the user reset their
         //      password.
-        onsuccess && onsuccess();
         FxaModuleManager.close();
       };
       activity.onerror = function on_reset_error(err) {
