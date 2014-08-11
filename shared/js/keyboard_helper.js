@@ -234,7 +234,8 @@ function kh_parseEnabled() {
         currentSettings.enabledLayouts = {};
         var oldSettings = JSON.parse(value);
         oldSettings.forEach(function(layout) {
-          if (layout.enabled) {
+          // ignore number keyboard since bug 1024298
+          if ('number' !== layout.layoutId && layout.enabled) {
             var manifestURL = layout.manifestURL;
             if (!manifestURL)
               manifestURL = layout.appOrigin + '/manifest.webapp';
