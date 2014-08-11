@@ -47,7 +47,7 @@ Home2.URL = 'app://verticalhome.gaiamobile.org';
 
 Home2.Selectors = {
   editHeaderText: '#edit-header h1',
-  editHeaderDone: '#edit-header menu a',
+  editHeaderDone: '#exit-edit-mode',
   search: '#search',
   firstIcon: '#icons div.icon:not(.placeholder)',
   dividers: '#icons section.divider',

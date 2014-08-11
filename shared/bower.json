@@ -8,7 +8,7 @@
   "license": "MIT",
   "dependencies": {
     "gaia-header": "gaia-components/gaia-header#~0.3.0",
-    "gaia-theme": "gaia-components/gaia-theme#~0.2.0",
+    "gaia-theme": "gaia-components/gaia-theme#~0.2.1",
     "gaia-icons": "gaia-components/gaia-icons#~0.4.0"
   }
 }
