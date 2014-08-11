@@ -1,9 +1,10 @@
 /* global
-  MocksHelper,
-  MockStatusBar,
-  NotificationScreen,
+  MockAudio,
   MockNavigatorMozChromeNotifications,
-  MockNavigatorSettings
+  MockNavigatorSettings,
+  MockStatusBar,
+  MocksHelper,
+  NotificationScreen
  */
 
 'use strict';
@@ -18,8 +19,10 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_audio.js');
 
 var mocksForNotificationScreen = new MocksHelper([
+  'Audio',
   'StatusBar',
   'GestureDetector',
   'NavigatorMozChromeNotifications',
@@ -35,6 +38,7 @@ suite('system/NotificationScreen >', function() {
   var fakeNotifContainer, fakeLockScreenContainer, fakeToaster,
     fakeButton, fakeNoNotifications, fakeToasterIcon, fakeToasterTitle,
     fakeToasterDetail, fakeSomeNotifications;
+  var fakeImportantNotifContainer, fakeOtherNotifContainer;
 
   function sendChromeNotificationEvent(detail) {
     var event = new CustomEvent('mozChromeNotificationEvent', {
@@ -48,9 +52,16 @@ suite('system/NotificationScreen >', function() {
   setup(function() {
     fakeNotifContainer = document.createElement('div');
     fakeNotifContainer.id = 'desktop-notifications-container';
+    fakeImportantNotifContainer = document.createElement('div');
+    fakeImportantNotifContainer.className = 'important-notifications';
+    fakeOtherNotifContainer = document.createElement('div');
+    fakeOtherNotifContainer.className = 'other-notifications';
+    fakeNotifContainer.appendChild(fakeImportantNotifContainer);
+    fakeNotifContainer.appendChild(fakeOtherNotifContainer);
+
     // add some children, we don't care what they are
-    fakeNotifContainer.appendChild(document.createElement('div'));
-    fakeNotifContainer.appendChild(document.createElement('div'));
+    fakeOtherNotifContainer.appendChild(document.createElement('div'));
+    fakeOtherNotifContainer.appendChild(document.createElement('div'));
 
     function createFakeElement(tag, id) {
       var obj = document.createElement(tag);
@@ -79,6 +90,7 @@ suite('system/NotificationScreen >', function() {
     document.body.appendChild(fakeToasterTitle);
     document.body.appendChild(fakeToasterDetail);
 
+    this.sinon.useFakeTimers();
     NotificationScreen.init();
   });
 
@@ -163,7 +175,9 @@ suite('system/NotificationScreen >', function() {
       NotificationScreen.updateStatusBarIcon(true);
       assert.isTrue(MockStatusBar.mNotificationUnread);
     });
+  });
 
+  suite('addNotification >', function() {
     test('calling addNotification without icon', function() {
       var toasterIcon = NotificationScreen.toasterIcon;
       var imgpath = 'http://example.com/test.png';
@@ -250,52 +264,6 @@ suite('system/NotificationScreen >', function() {
       assert.isTrue(fromDate >= now);
     });
 
-    suite('prettyDate() behavior >', function() {
-      var realMozL10n;
-      setup(function() {
-        var mozL10nStub = {
-          DateTimeFormat: function() {
-            return {
-              fromNow: function(time, compact) {
-                var retval;
-                var delta = new Date().getTime() - time.getTime();
-                if (delta >= 0 && delta < 60*1000) {
-                  retval = 'now';
-                } else if (delta >= 60*1000) {
-                  retval = '1m ago';
-                }
-                return retval;
-              }
-            };
-          }
-        };
-        realMozL10n = navigator.mozL10n;
-        navigator.mozL10n = mozL10nStub;
-      });
-
-      teardown(function() {
-        navigator.mozL10n = realMozL10n;
-      });
-
-      test('converts timestamp to string', function() {
-        var timestamp = new Date();
-        var date = NotificationScreen.prettyDate(timestamp);
-        assert.isTrue(typeof date === 'string');
-      });
-
-      test('shows now', function() {
-        var timestamp = new Date();
-        var date = NotificationScreen.prettyDate(timestamp);
-        assert.equal(date, 'now');
-      });
-
-      test('shows 1m ago', function() {
-        var timestamp = new Date(new Date().getTime() - 61*1000);
-        var date = NotificationScreen.prettyDate(timestamp);
-        assert.equal(date, '1m ago');
-      });
-    });
-
     test('remove lockscreen notifications at the same time', function() {
       NotificationScreen.addNotification({
         id: 'id-10000', title: '', message: ''
@@ -305,6 +273,131 @@ suite('system/NotificationScreen >', function() {
         null,
         fakeLockScreenContainer.querySelector(
           '[data-notification-i-d="id-10000"]'));
+    });
+
+    test('does notify for generic applications', function() {
+      this.sinon.stub(navigator, 'vibrate');
+      this.sinon.stub(MockAudio.prototype, 'play');
+
+      NotificationScreen.addNotification({
+        id: 'id-10000',
+        title: '',
+        message: '',
+        manifestURL: 'app://sms.gaiamobile.org/manifest.webapp'
+      });
+
+      var ringtonePlayer = MockAudio.instances[0];
+      sinon.assert.called(ringtonePlayer.play);
+
+      sinon.assert.called(navigator.vibrate);
+
+      assert.ok(fakeToaster.classList.contains('displayed'));
+    });
+
+    test('notifications are added in the right place', function() {
+      var title = 'hello world';
+      var text = 'how are you';
+      NotificationScreen.addNotification({
+        id: 'id-10000',
+        title: title,
+        text: text,
+        manifestURL: 'app://sms.gaiamobile.org/manifest.webapp'
+      });
+
+      assert.equal(fakeOtherNotifContainer.childElementCount, 3);
+      var newContent = fakeOtherNotifContainer.firstElementChild.textContent;
+      assert.isTrue(
+        newContent.indexOf(title) !== -1,
+        'The title is in the notification'
+      );
+      assert.isTrue(
+        newContent.indexOf(text) !== -1,
+        'The message is in the notification'
+      );
+    });
+
+    test('does not notify for the network-alerts application', function() {
+      this.sinon.stub(navigator, 'vibrate');
+
+      NotificationScreen.addNotification({
+        id: 'id-10000',
+        title: '',
+        message: '',
+        manifestURL: 'app://network-alerts.gaiamobile.org/manifest.webapp'
+      });
+
+      assert.lengthOf(MockAudio.instances, 0);
+      sinon.assert.notCalled(navigator.vibrate);
+      assert.isFalse(fakeToaster.classList.contains('displayed'));
+    });
+
+    test('notifications for important applications are added in right place',
+    function() {
+      var title = 'hello world';
+      var text = 'how are you';
+      NotificationScreen.addNotification({
+        id: 'id-10000',
+        title: title,
+        text: text,
+        manifestURL: 'app://network-alerts.gaiamobile.org/manifest.webapp'
+      });
+
+      assert.equal(fakeImportantNotifContainer.childElementCount, 1);
+      var content = fakeImportantNotifContainer.firstElementChild.textContent;
+      assert.isTrue(
+        content.indexOf(title) !== -1,
+        'The title is in the notification'
+      );
+      assert.isTrue(
+        content.indexOf(text) !== -1,
+        'The message is in the notification'
+      );
+    });
+  });
+
+  suite('prettyDate() behavior >', function() {
+    var realMozL10n;
+    setup(function() {
+      var mozL10nStub = {
+        DateTimeFormat: function() {
+          return {
+            fromNow: function(time, compact) {
+              var retval;
+              var delta = new Date().getTime() - time.getTime();
+              if (delta >= 0 && delta < 60*1000) {
+                retval = 'now';
+              } else if (delta >= 60*1000) {
+                retval = '1m ago';
+              }
+              return retval;
+            }
+          };
+        }
+      };
+      realMozL10n = navigator.mozL10n;
+      navigator.mozL10n = mozL10nStub;
+    });
+
+    teardown(function() {
+      navigator.mozL10n = realMozL10n;
+    });
+
+    test('converts timestamp to string', function() {
+      var timestamp = new Date();
+      var date = NotificationScreen.prettyDate(timestamp);
+      assert.isTrue(typeof date === 'string');
+    });
+
+    test('shows now', function() {
+      var timestamp = new Date();
+      var date = NotificationScreen.prettyDate(timestamp);
+      assert.equal(date, 'now');
+    });
+
+    test('shows 1m ago', function() {
+      var timestamp = new Date(new Date().getTime() - 61*1000);
+      var date = NotificationScreen.prettyDate(timestamp);
+      assert.equal(date, '1m ago');
     });
   });
 
@@ -487,7 +580,6 @@ suite('system/NotificationScreen >', function() {
 
       setup(function() {
         vibrateSpy = this.sinon.spy(navigator, 'vibrate');
-        this.sinon.useFakeTimers();
       });
 
       test('isResending is false', function() {
@@ -547,7 +639,6 @@ suite('system/NotificationScreen >', function() {
       setup(function() {
         resendSpy = this.sinon.spy(MockNavigatorMozChromeNotifications,
           'mozResendAllNotifications');
-        this.sinon.useFakeTimers();
         dispatchEventSpy = this.sinon.spy(window, 'dispatchEvent');
       });
 
