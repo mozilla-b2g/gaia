@@ -15,6 +15,7 @@ define(function(require) {
     var elements = {};
     return SettingsPanel({
       onInit: function(panel) {
+        var self = this;
         elements.panel = panel;
         elements.knownNetworkListWrapper =
           panel.querySelector('.wifi-knownNetworks');
@@ -32,7 +33,17 @@ define(function(require) {
               if (window.MozWifiNetwork !== undefined) {
                 network = new window.MozWifiNetwork(network);
               }
-              WifiContext.associateNetwork(network);
+              var authOptions = WifiContext.authOptions;
+              WifiHelper.setPassword(
+                network,
+                authOptions.password,
+                authOptions.identity,
+                authOptions.eap
+              );
+              WifiContext.associateNetwork(network, function() {
+                self._cleanup();
+                self._scan();
+              });
             }.bind({}, network)
           });
         });

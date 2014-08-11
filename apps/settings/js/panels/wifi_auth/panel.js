@@ -38,11 +38,13 @@ define(function(require) {
         }
       },
       onBeforeHide: function() {
-        WifiContext.authOptions.password = elements.password.value;
-        WifiContext.authOptions.identity = elements.identity.value;
-        WifiContext.authOptions.eap = elements.eap.value;
-        WifiContext.authOptions.authPhase2 = elements.authPhase2.value;
-        WifiContext.authOptions.certificate = elements.certificate.value;
+        WifiContext.authOptions = {
+          password: elements.password.value,
+          identity: elements.identity.value,
+          eap: elements.eap.value,
+          authPhase2: elements.authPhase2.value,
+          certificate: elements.certificate.value
+        };
       },
       onHide: function() {
         elements.identity.value = '';

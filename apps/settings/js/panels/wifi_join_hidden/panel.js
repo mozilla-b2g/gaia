@@ -4,6 +4,7 @@ define(function(require) {
   var SettingsPanel = require('modules/settings_panel');
   var WifiHelper = require('shared/wifi_helper');
   var WifiUtils = require('modules/wifi_utils');
+  var WifiContext = require('modules/wifi_context');
 
   return function ctor_joinHiddenWifi() {
     var elements = {};
@@ -34,6 +35,13 @@ define(function(require) {
         isHomeKeyPressed = false;
       },
       onBeforeHide: function() {
+        // set authOptions
+        WifiContext.authOptions = {
+          password: elements.password.value,
+          identity: elements.identity.value,
+          eap: elements.eap.value
+        };
+
         // We have to keep these information in network object
         network.ssid = elements.ssid.value;
         network.hidden = true;
