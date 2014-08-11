@@ -406,6 +406,24 @@ suite('calls handler', function() {
       });
     });
 
+    suite('> making an extra outgoing call', function() {
+      var extraCall;
+      var extraHC;
+
+      setup(function() {
+        this.sinon.spy(MockCallScreen, 'disablePlaceNewCall');
+        var firstCall = new MockCall('543552', 'incoming');
+        extraCall = new MockCall('12334', 'dialing');
+
+        telephonyAddCall.call(this, firstCall, {trigger: true});
+        extraHC = telephonyAddCall.call(this, extraCall, {trigger: true});
+      });
+
+      test('should disable the place new call button', function() {
+        sinon.assert.calledOnce(MockCallScreen.disablePlaceNewCall);
+      });
+    });
+
     suite('> receiving a third call', function() {
       var firstCall;
       var extraCall;
