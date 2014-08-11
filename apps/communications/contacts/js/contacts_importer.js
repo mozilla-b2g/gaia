@@ -98,6 +98,9 @@
       mustHold = false;
       holded = false;
       mustFinish = false;
+
+      window.parent.dispatchEvent(new CustomEvent('start-batch-import'));
+
       importContacts(next);
     };
 
@@ -169,6 +172,8 @@
     }
 
     function notifySuccess() {
+      window.parent.dispatchEvent(new CustomEvent('finish-batch-import'));
+
       if (typeof self.onsuccess === 'function') {
         window.setTimeout(function do_success() {
           self.onsuccess(totalImported);

@@ -22,6 +22,8 @@ window.ContactsCleaner = function(contacts) {
     else if (typeof self.onsuccess === 'function') {
             window.setTimeout(self.onsuccess, 0);
     }
+
+    window.parent.dispatchEvent(new CustomEvent('start-batch-import'));
   };
 
   this.hold = function() {
@@ -83,6 +85,8 @@ window.ContactsCleaner = function(contacts) {
   }
 
   function notifySuccess() {
+    window.parent.dispatchEvent(new CustomEvent('finish-batch-import'));
+
     if (typeof self.onsuccess === 'function') {
       window.setTimeout(self.onsuccess);
     }
