@@ -265,6 +265,21 @@ button::-moz-focus-inner {
 }
 
 /* Alt menu enabled */
+.kbr-menu-one-rows {
+  top: -6rem;
+  height: 6rem;
+}
+
+.kbr-menu-two-rows {
+  top: -12rem;
+  height: 12rem;
+}
+
+.kbr-menu-three-rows {
+  top: -18rem;
+  height: 18rem;
+}
+
 .keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > .key-element {
   background: none;
 }
@@ -299,14 +314,13 @@ and displays the list of alternatives. */
 #keyboard-accent-char-menu {
   display: none;
   position: absolute;
-  top: -6rem;
-  height: 6rem;
   font-size: 0;
   border-radius: 3rem;
   background-color: #00aacc;
   overflow: hidden;
   white-space: nowrap;
   left: -1.2rem; /* because the first child is 1.2rem wider than others */
+  line-height: 0;
 }
 
 #keyboard-accent-char-menu.show {
@@ -324,8 +338,7 @@ and displays the list of alternatives. */
 }
 
 /* if it is the first or last key in the accent menu make it wider */
-#keyboard-accent-char-menu .keyboard-key:first-child,
-#keyboard-accent-char-menu .keyboard-key:last-child {
+#keyboard-accent-char-menu .keyboard-key .alternative-key-on-border {
   min-width: 4.2rem;
 }
 
@@ -362,12 +375,8 @@ and displays the list of alternatives. */
   color: #fff;
 }
 
-#keyboard-accent-char-menu .keyboard-key:first-child > .visual-wrapper > .key-element {
+#keyboard-accent-char-menu .keyboard-key > .visual-wrapper > .key-element .alternative-key-on-border {
   padding-left: 0.5rem;
-}
-
-#keyboard-accent-char-menu .keyboard-key:last-child > .visual-wrapper > .key-element {
-  padding-right: 0.5rem;
 }
 
 /* Highlighted special accent characters. These keys appear in the popover
@@ -854,4 +863,13 @@ bubble above the key when you tap and hold. */
     .visual-wrapper > span[data-label="ௌ"] {
     font-size: 2rem;
   }
+}
+
+/* Math */
+.keyboard-key.math > .visual-wrapper > .key-element {
+  font-size: 2rem;
+}
+
+#keyboard.landscape .keyboard-key.math > .visual-wrapper > .key-element {
+  font-size: 2rem
 }

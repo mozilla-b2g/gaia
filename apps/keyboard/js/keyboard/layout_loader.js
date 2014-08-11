@@ -9,10 +9,22 @@ var Keyboards = {};
 
 Keyboards.alternateLayout = {
   alt: {
-    '0': ['º'],
-    '$': ['€', '£', '¥'],
-    '?': ['¿'],
-    '!': ['¡']
+    '1': [ { value: '¹' } ],
+    '2': [ { value: '²' } ],
+    '3': [ { value: '³' } ],
+    '4': [ { value: '⁴' } ],
+    '5': [ { value: '⁵' } ],
+    '6': [ { value: '⁶' } ],
+    '7': [ { value: '⁷' } ],
+    '8': [ { value: '⁸' } ],
+    '9': [ { value: '⁹' } ],
+    '0': [ { value: '⁰' }, { value: 'º' } ],
+    '$': [
+      { value: '¥'} , { value: '€' }, { value: '£' },
+      { value: 'R$', compositeKey: 'R$' }, { value: '¢' }, { value: '₠' }
+    ],
+    '?': [ { value: '¿' } ],
+    '!': [ { value: '¡' } ]
   },
   keys: [
     [
@@ -20,14 +32,15 @@ Keyboards.alternateLayout = {
       { value: '5' }, { value: '6' }, { value: '7' }, { value: '8' },
       { value: '9' }, { value: '0' }
     ], [
-      { value: '@', hidden: ['email'] }, { value: '#' }, { value: '$' },
-      { value: '%' },
-      { value: '&' }, { value: '*' }, { value: '-' }, { value: '+' },
-      { value: '(' }, { value: ')' }, { value: '_', visible: ['email'] }
+      { value: '@' }, { value: '#' },
+      { value: '$', className: 'alternate-indicator' }, { value: '&' },
+      { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
+      { value: '(' }, { value: ')' }
     ], [
-      { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
-      { value: '!' }, { value: '\"' }, { value: '\'' }, { value: ':' },
-      { value: ';' }, { value: '/' }, { value: '?' },
+      { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+      { value: '+', supportsSwitchingValue: ',' }, { value: ':' },
+      { value: ';' }, { value: '"' },
+      { value: '\'' }, { value: '?' }, { value: '!' },
       { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
     ], [
       { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
@@ -38,24 +51,25 @@ Keyboards.alternateLayout = {
 
 Keyboards.symbolLayout = {
   keys: [
-    [
-      { value: '`' }, { value: '~' }, { value: '_' }, { value: '^' },
-      { value: '±' }, { value: '|' }, { value: '[' }, { value: ']' },
-      { value: '{' }, { value: '}' }
-    ], [
-      { value: '°' }, { value: '²' }, { value: '³' }, { value: '©' },
-      { value: '®' }, { value: '§' }, { value: '<' }, { value: '>' },
-      { value: '«' }, { value: '»' }
-    ], [
-      { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
-      { value: '¥' }, { value: '€' }, { value: '£' }, { value: '$' },
-      { value: '¢' }, { value: '\\' }, { value: '=' },
-      { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
-    ], [
-      { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
-      { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
-    ]
+  [
+    { value: '¥' }, { value: '€' }, { value: '£' }, { value: '¢' },
+    { value: '₠' }, { value: '%' }, { value: '©' }, { value: '®' },
+    { value: '|' }, { value: '\\' }
+  ], [
+    { value: '~' }, { value: '°C', compositeKey: '°C' },
+    { value: '°F', compositeKey: '°F' }, { value: '°' },
+    { value: '<' }, { value: '>' }, { value: '[' }, { value: ']' },
+    { value: '{' }, { value: '}' }
+  ], [
+    { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+    { value: '`' }, { value: '^' }, { value: '±', supportsSwitchingValue: '+' },
+    { value: '=' }, { value: '§' }, { value: '¿'}, {value: '¡'},
+    { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
+  ], [
+    { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+    { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
   ]
+]
 };
 
 Keyboards.numberLayout = {
@@ -182,6 +196,15 @@ LayoutLoader.prototype._normalizeAlternatives = function(layoutName) {
           // No spaces, so all of the alternatives are single characters
           alternatives = alternatives.split('');
         }
+
+        for (var i = 0; i < alternatives.length; i++) {
+          if (alternatives[i].length > 1) {
+            alternatives[i] = { value: alternatives[i],
+              compositeKey: alternatives[i] };
+          } else {
+            alternatives[i] = { value: alternatives[i] };
+          }
+        }
       }
 
       alt[key] = alternatives;
@@ -192,8 +215,12 @@ LayoutLoader.prototype._normalizeAlternatives = function(layoutName) {
         // Creating an array for upper case too.
         // XXX: The original code does not respect layout.upperCase here.
         alt[upperCaseKey] = alternatives.map(function(key) {
-          if (key.length === 1) {
-            return key.toUpperCase();
+          if (key.value.length === 1 && !key.compositeKey) {
+            if (key.upperValue) {
+              return { 'value': key.value.upperValue };
+            } else {
+              return { 'value': key.value.toUpperCase() };
+            }
           }
 
           // The 'l·l' key in the Catalan layout needs to be
@@ -207,11 +234,25 @@ LayoutLoader.prototype._normalizeAlternatives = function(layoutName) {
           // (e.g. R$ key) we should be able to skip this.
           needDifferentUpperCaseLockedAlternatives =
             needDifferentUpperCaseLockedAlternatives ||
-            (key.substr(1).toUpperCase() !== key.substr(1));
+            (key.value.substr(1).toUpperCase() !== key.value.substr(1));
 
           // We only capitalize the first character of the key in
           // the normalization here.
-          return key[0].toUpperCase() + key.substr(1);
+          var compositeKey;
+          if (key.upperCompositeKey) {
+            compositeKey = key.upperCompositeKey;
+          } else {
+            if (key.compositeKey) {
+              compositeKey = key.compositeKey;
+            } else {
+              compositeKey = key.value[0].toUpperCase() + key.value.substr(1);
+            }
+          }
+          if (key.upperValue) {
+            return { 'value': key.upperValue, 'compositeKey': compositeKey };
+          } else {
+            return { 'value': compositeKey, 'compositeKey': compositeKey };
+          }
         });
 
         // If we really need an special upper case locked alternatives,
@@ -220,7 +261,12 @@ LayoutLoader.prototype._normalizeAlternatives = function(layoutName) {
         // can't be represented in JSON so it's not visible in JSON.stringify().
         if (needDifferentUpperCaseLockedAlternatives) {
           alt[upperCaseKey].upperCaseLocked = alternatives.map(function(key) {
-            return key.toUpperCase();
+            var compositeKey = key.value.toUpperCase();
+            if (key.upperValue) {
+              return { 'value': key.upperValue, 'compositeKey': compositeKey };
+            } else {
+              return { 'value': compositeKey, 'compositeKey': compositeKey };
+            }
           });
         }
       }

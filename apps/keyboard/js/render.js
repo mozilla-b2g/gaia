@@ -272,6 +272,12 @@ const IMERender = (function() {
         if (key.compositeKey) {
           dataset.push({'key': 'compositeKey', 'value': key.compositeKey});
         }
+        if (key.upperCompositeKey) {
+          dataset.push({
+            'key': 'upperCompositeKey',
+            'value': key.upperCompositeKey
+          });
+        }
 
         if (key.disabled) {
           attributeList.push({
@@ -601,53 +607,123 @@ const IMERender = (function() {
     var content = document.createDocumentFragment();
     var left = (cachedWindowWidth / 2 > key.offsetLeft);
 
-    // Place the menu to the left
-    if (!left) {
-      menu.classList.add('kbr-menu-left');
-      altChars = altChars.reverse();
-    }
-
     // How wide (in characters) is the key that we're displaying
     // these alternatives for?
     var keycharwidth = key.dataset.compositeKey ?
       key.dataset.compositeKey.length : 1;
 
-    // Build a key for each alternative
-    altChars.forEach(function(alt, index) {
-      var dataset = alt.length == 1 ?
-        [
-          { 'key': 'keycode', 'value': alt.charCodeAt(0) },
-          { 'key': 'keycodeUpper', 'value': alt.toUpperCase().charCodeAt(0) }
-        ] :
-        [{'key': 'compositeKey', 'value': alt}];
-
-      // Make each of these alternative keys 75% as wide as the key that
-      // it is an alternative for, but adjust for the relative number of
-      // characters in the original and the alternative
-      var width = 0.75 * key.offsetWidth / keycharwidth * alt.length;
-
-      var attributeList = [];
-
-      if (ariaLabelMap[alt]) {
-        attributeList.push({
-          key: 'data-l10n-id',
-          value: ariaLabelMap[alt]
-        });
+    var numberAltKeys = altChars.length;
+    var numberRows;
+    if (numberAltKeys < 6) {
+      numberRows = 1;
+    } else {
+      if (numberAltKeys < 19) {
+        numberRows = 2;
       } else {
-        attributeList.push({
-          key: 'aria-label',
-          value: alt
-        });
+        numberRows = 3;
       }
+    }
+    var numberCols = Math.ceil(numberAltKeys / numberRows);
+    // Place the menu to the left
+    if (!left) {
+      menu.classList.add('kbr-menu-left');
+      switch (numberRows) {
+      case 1:
+        altChars = altChars.reverse();
+        break;
+      case 2:
+        altChars = [].concat(altChars.slice(0, numberCols).reverse(),
+          altChars.slice(numberCols).reverse());
+        break;
+      case 3:
+        altChars = [].concat(altChars.slice(0, numberCols).reverse(),
+          altChars.slice(numberCols, 2 * numberCols).reverse(),
+          altChars.slice(3 * numberCols).reverse());
+        break;
+      }
+    }
+    var alt, index, keyAlternativeClassName;
+    // This loop is need so that alternatives is sorted following the
+    // recommendation, e.g.:
+    //
+    //     #5 #6 #7
+    //     #1 #2 #3 #4
+    //
+    // Build a key for each alternative
+    for (var i = numberRows - 1; i >= 0; i--) {
+      for (var j = 0; j < numberCols; j++) {
+        index = i * numberCols + j;
+        if (j === 0 || j === numberCols) {
+          keyAlternativeClassName = 'alternative-key-on-border';
+        } else {
+          keyAlternativeClassName = '';
+        }
+        if (index < altChars.length) {
+          alt = altChars[index];
+          var dataset;
+          if (alt.compositeKey) {
+            dataset = [{ 'key': 'compositeKey', 'value': alt.compositeKey }];
+            if (alt.upperCompositeKey) {
+              dataset.push({ 'key': 'upperCompositeKey',
+                'value': alt.upperCompositeKey });
+            }
+          } else {
+            dataset = [
+               { 'key': 'keycode', 'value': alt.value.charCodeAt(0) },
+               { 'key': 'keycodeUpper',
+                 'value': alt.value.toUpperCase().charCodeAt(0) }];
+          }
 
-      attributeList.push({
-        key: 'role',
-        value: 'key'
-      });
+          var width;
+          if (alt.ratio) {
+            // Work around for keys that use HTML code as value and need
+            // more space than the original key.
+            width = alt.ratio * key.offsetWidth;
+          } else {
+            // Make each of these alternative keys 75% as wide as the key that
+            // it is an alternative for, but adjust for the relative number of
+            // characters in the original and the alternative
+            width = 0.75 * key.offsetWidth / keycharwidth * alt.length;
+          }
 
-      content.appendChild(
-        buildKey(alt, '', width + 'px', dataset, null, attributeList));
-    });
+          var attributeList = [];
+
+          if (ariaLabelMap[alt]) {
+            attributeList.push({
+              key: 'data-l10n-id',
+              value: ariaLabelMap[alt]
+            });
+          } else {
+            attributeList.push({
+              key: 'aria-label',
+              value: alt
+            });
+          }
+
+          attributeList.push({
+            key: 'role',
+            value: 'key'
+          });
+
+          content.appendChild(
+            buildKey(alt.value, keyAlternativeClassName, width + 'px',
+              dataset, null, attributeList));
+        } else {
+          content.appendChild(function() {
+            var emptyKey = document.createElement('span');
+            emptyKey.classList.add('keyboard-key');
+            if (keyAlternativeClassName !== '') {
+              emptyKey.classList.add(keyAlternativeClassName);
+            }
+            return emptyKey;
+          }());
+        }
+      }
+      if (i > 0) {
+        content.appendChild(document.createElement('br'));
+      }
+    }
+
     menu.innerHTML = '';
     menu.appendChild(content);
 
@@ -666,6 +742,15 @@ const IMERender = (function() {
       .querySelectorAll('.visual-wrapper > span')[0]
       .appendChild(menu);
     menu.style.display = 'block';
+    if (numberRows === 1) {
+      menu.classList.add('kbr-menu-one-rows');
+    } else {
+      if (numberRows == 2) {
+        menu.classList.add('kbr-menu-two-rows');
+      } else {
+        menu.classList.add('kbr-menu-three-rows');
+      }
+    }
 
     function getWindowLeft(obj) {
       var left;

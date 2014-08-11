@@ -46,10 +46,16 @@ LayoutManager.prototype.KEYCODE_ALTERNATE_LAYOUT = -2;
 LayoutManager.prototype.KEYCODE_SWITCH_KEYBOARD = -3;
 LayoutManager.prototype.KEYCODE_TOGGLE_CANDIDATE_PANEL = -4;
 LayoutManager.prototype.KEYCODE_SYMBOL_LAYOUT = -5;
+LayoutManager.prototype.KEYCODE_LATEX_GREEK_LAYOUT = -10;
+LayoutManager.prototype.KEYCODE_LATEX_SYMBOLS_LAYOUT = -11;
+LayoutManager.prototype.KEYCODE_LATEX_FUNCTIONS_LAYOUT = -12;
 
 LayoutManager.prototype.LAYOUT_PAGE_DEFAULT = 0;
 LayoutManager.prototype.LAYOUT_PAGE_SYMBOLS_I = 1;
 LayoutManager.prototype.LAYOUT_PAGE_SYMBOLS_II = 2;
+LayoutManager.prototype.LAYOUT_PAGE_LATEX_GREEK = 3;
+LayoutManager.prototype.LAYOUT_PAGE_LATEX_SYMBOLS = 4;
+LayoutManager.prototype.LAYOUT_PAGE_LATEX_FUNCTIONS = 5;
 
 /*
  * Switch switchCurrentLayout() will switch the current method to the
@@ -116,6 +122,9 @@ LayoutManager.prototype.updateLayoutPage = function(page) {
     case this.LAYOUT_PAGE_DEFAULT:
     case this.LAYOUT_PAGE_SYMBOLS_I:
     case this.LAYOUT_PAGE_SYMBOLS_II:
+    case this.LAYOUT_PAGE_LATEX_GREEK:
+    case this.LAYOUT_PAGE_LATEX_SYMBOLS:
+    case this.LAYOUT_PAGE_LATEX_FUNCTIONS:
       this.currentLayoutPage = page;
       // Reset currentForcedModifiedLayoutName, for the case to go back to
       // default or symbol page from self-defined layout page.
@@ -170,6 +179,17 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   // to prevent from modifying it.
   layout = Object.create(layout);
 
+  // Look for ctrl key. We're going to replace it with switch row.
+  var ctrlKeyFound = false;
+  for (var r = 0, row; !ctrlKeyFound && (row = layout.keys[r]); r += 1) {
+    for (var c = 0, ctrl; ctrl = layout.keys[r][c]; c += 1) {
+      if (ctrl.keyCode == KeyboardEvent.DOM_VK_CONTROL) {
+        ctrlKeyFound = r;
+        break;
+      }
+    }
+  }
+
   // Look for the space key in the layout. We're going to insert
   // meta keys before it or after it.
   var spaceKeyFindResult = this._findKey(layout, KeyboardEvent.DOM_VK_SPACE);
@@ -199,19 +219,50 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   //
   // ... make a copy of the entire keys array,
   layout.keys = [].concat(layout.keys);
-  // ... and point row containing space key object to a new array,
-  var spaceKeyRow = layout.keys[spaceKeyRowCount] =
-    [].concat(layout.keys[spaceKeyRowCount]);
-  // ... the space key object should be point to a new object too.
-  var spaceKeyObject = layout.keys[spaceKeyRowCount][spaceKeyCount] =
-    Object.create(layout.keys[spaceKeyRowCount][spaceKeyCount]);
+  // ... and point all rows/keys to new new array/object too.
+  for (var i = 0; i < layout.keys.length; i++) {
+    layout.keys[i] =
+      [].concat(layout.keys[i]);
+    for (var j = 0; j < layout.keys[i].length; j++) {
+      layout.keys[i][j] =
+        Object.create(layout.keys[i][j]);
+    }
+  }
+  var ctrlKeyRow = layout.keys[ctrlKeyFound];
+  var spaceKeyRow = layout.keys[spaceKeyRowCount];
+  var spaceKeyObject = layout.keys[spaceKeyRowCount][spaceKeyCount];
 
   // Keep the pageSwitchingKey here, because we may need to modify its ratio
   // at the end.
   var pageSwitchingKeyObject = null;
 
   // Insert switch-to-symbol-and-back keys
-  if (!layout.disableAlternateLayout) {
+  if (ctrlKeyFound !== false) {
+    ctrlKeyRow.splice(0, 0,
+      {'value': 'ABC', ratio: 2,
+        keyCode: this.KEYCODE_BASIC_LAYOUT });
+    ctrlKeyRow.splice(1, 0,
+      {'value': '12&', ratio: 2,
+        keyCode: this.KEYCODE_ALTERNATE_LAYOUT });
+    ctrlKeyRow.splice(2, 0,
+      {'value': 'αβγ', ratio: 2,
+        keyCode: this.KEYCODE_LATEX_GREEK_LAYOUT });
+    ctrlKeyRow.splice(3, 0,
+      {'value': '∫∇∑', ratio: 2,
+        keyCode: this.KEYCODE_LATEX_SYMBOLS_LAYOUT });
+    ctrlKeyRow.splice(4, 0,
+      {'value': 'sin', ratio: 2,
+        keyCode: this.KEYCODE_LATEX_FUNCTIONS_LAYOUT });
+    ctrlKeyRow.pop();
+
+    spaceKeyObject.ratio -= 1.5;
+    spaceKeyRow.splice(spaceKeyCount, 0, {
+      value: '$x$',
+      compositeKey: '$$',
+      ratio: 1.5
+    });
+    spaceKeyCount++;
+  } else if (!layout.disableAlternateLayout) {
     spaceKeyObject.ratio -= 2;
     if (this.currentLayoutPage === this.LAYOUT_PAGE_DEFAULT) {
       pageSwitchingKeyObject = {
@@ -234,9 +285,28 @@ LayoutManager.prototype._updateModifiedLayout = function() {
     spaceKeyCount++;
   }
 
-  // Insert switch-to-another-layout button
+  // Insert switch-to-another-layout button and change some keys
   var needsSwitchingKey = supportsSwitching && !layout.hidesSwitchKey;
   if (needsSwitchingKey) {
+    // Change keys with supportsSwitching
+    var key, row, c, r = layout.keys.length;
+    while (r--) {
+      row = layout.keys[r];
+      c = row.length;
+      while (c--) {
+        key = row[c];
+        if (key.supportsSwitchingValue) {
+          if (typeof(key.supportsSwitchingValue) === 'string') {
+            key.value = key.supportsSwitchingValue;
+          } else {
+            for (var property in key.supportsSwitchingValue) {
+              key[property] = key.supportsSwitchingValue[property];
+            }
+          }
+        }
+      }
+    }
+
     var imeSwitchKey = {
       value: '&#x1f310;', // U+1F310 GLOBE WITH MERIDIANS
       ratio: 1,
@@ -302,13 +372,12 @@ LayoutManager.prototype._updateModifiedLayout = function() {
         var overwrites = layout.textLayoutOverwrite || {};
 
         // Add comma key if we asked too,
-        // Only add the key at alternative pages or if
+        // Only add the key if
         // we didn't add the switching key.
         // Add comma key in any page if needsCommaKey is
         // set explicitly.
         if (overwrites[','] !== false &&
-            (this.currentLayoutPage !== this.LAYOUT_PAGE_DEFAULT ||
-             !needsSwitchingKey ||
+            (!needsSwitchingKey ||
              layout.needsCommaKey)) {
           var commaKey = {
             value: ',',
@@ -392,6 +461,15 @@ LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
 
     case this.LAYOUT_PAGE_SYMBOLS_II:
       return 'symbolLayout';
+
+    case this.LAYOUT_PAGE_LATEX_GREEK:
+      return 'latexGreekLayout';
+
+    case this.LAYOUT_PAGE_LATEX_SYMBOLS:
+      return 'latexSymbolsLayout';
+
+    case this.LAYOUT_PAGE_LATEX_FUNCTIONS:
+      return 'latexFunctionsLayout';
   }
 
   switch (basicInputType) {
@@ -474,6 +552,12 @@ LayoutManager.prototype._findKey = function(layout, keyCode) {
 // Layouts references to these constants to define keys
 exports.BASIC_LAYOUT = LayoutManager.prototype.KEYCODE_BASIC_LAYOUT;
 exports.ALTERNATE_LAYOUT = LayoutManager.prototype.KEYCODE_ALTERNATE_LAYOUT;
+exports.LATEX_GREEK_LAYOUT =
+  LayoutManager.prototype.KEYCODE_LATEX_GREEK_LAYOUT;
+exports.LATEX_SYMBOLS_LAYOUT =
+  LayoutManager.prototype.KEYCODE_LATEX_SYMBOLS_LAYOUT;
+exports.LATEX_FUNCTIONS_LAYOUT =
+  LayoutManager.prototype.KEYCODE_LATEX_FUNCTIONS_LAYOUT;
 exports.SWITCH_KEYBOARD = LayoutManager.prototype.KEYCODE_SWITCH_KEYBOARD;
 exports.TOGGLE_CANDIDATE_PANEL =
   LayoutManager.prototype.KEYCODE_TOGGLE_CANDIDATE_PANEL;

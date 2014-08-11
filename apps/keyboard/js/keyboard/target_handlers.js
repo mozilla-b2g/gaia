@@ -185,11 +185,24 @@ CompositeTargetHandler.prototype =
   Object.create(DefaultTargetHandler.prototype);
 CompositeTargetHandler.prototype.commit = function() {
   // Keys with this attribute set send more than a single character
-  // Like ".com" or "2nd" or (in Catalan) "l·l".
-  var compositeString = this.target.dataset.compositeKey;
+  // Like "2nd" or (in Catalan) "l·l".
+
+  var compositeString;
+  // Sometimes the uppercase is totally different from the lowercase
+  // and the keyboard need help.
+  if (this.app.upperCaseStateManager.isUpperCase &&
+    this.target.dataset.upperCompositeKey) {
+    compositeString = this.target.dataset.upperCompositeKey;
+  } else {
+    compositeString = this.target.dataset.compositeKey;
+  }
   var engine = this.app.inputMethodManager.currentIMEngine;
-  for (var i = 0; i < compositeString.length; i++) {
-    engine.click(compositeString.charCodeAt(i));
+  if (engine.compositeKeyClick) {
+    engine.compositeKeyClick(compositeString);
+  } else {
+    for (var i = 0; i < compositeString.length; i++) {
+      engine.click(compositeString.charCodeAt(i));
+    }
   }
 
   this.app.visualHighlightManager.hide(this.target);
@@ -217,6 +230,21 @@ PageSwitchingTargetHandler.prototype.commit = function() {
 
      case this.app.layoutManager.KEYCODE_SYMBOL_LAYOUT:
       page = this.app.layoutManager.LAYOUT_PAGE_SYMBOLS_II;
+      break;
+
+    case this.app.layoutManager.KEYCODE_LATEX_GREEK_LAYOUT:
+      // Switch to Greek letters page
+      page = this.app.layoutManager.LAYOUT_PAGE_LATEX_GREEK;
+      break;
+
+    case this.app.layoutManager.KEYCODE_LATEX_SYMBOLS_LAYOUT:
+      // Switch to math symbols page
+      page = this.app.layoutManager.LAYOUT_PAGE_LATEX_SYMBOLS;
+      break;
+
+    case this.app.layoutManager.KEYCODE_LATEX_FUNCTIONS_LAYOUT:
+      // Switch to math functions page
+      page = this.app.layoutManager.LAYOUT_PAGE_LATEX_FUNCTIONS;
       break;
 
     case KeyEvent.DOM_VK_ALT:
