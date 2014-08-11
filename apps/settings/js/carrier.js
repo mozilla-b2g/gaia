@@ -870,15 +870,17 @@ var CarrierSettings = (function(window, document, undefined) {
     }
 
     /**
-     * Turn off data roaming automatically when users turn off data calls.
+     * Disable data roaming automatically when users turn off data calls.
      */
     function warningDataEnabledCb() {
        _settings.addObserver('ril.data.enabled', function observerCb(event) {
-         if (!event.settingValue && _restartingDataConnection) {
-           var cset = {};
-           cset['ril.data.roaming_enabled'] = false;
-           _settings.createLock().set(cset);
-         }
+        var roamingBtn =
+          document.querySelector('input[name="ril.data.roaming_enabled"]');
+        if (!event.settingValue && !_restartingDataConnection) {
+          roamingBtn.disabled = true;
+        } else {
+          roamingBtn.disabled = false;
+        }
       });
     }
 
