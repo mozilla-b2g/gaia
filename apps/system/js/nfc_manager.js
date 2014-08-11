@@ -202,9 +202,9 @@ var NfcManager = {
       return NfcUtils.equalArrays(r.type, NDEF.RTD_SMART_POSTER);
     });
 
-    if (records[0].tnf === NDEF.TNF_WELL_KNOWN &&
-        NfcUtils.equalArrays(records[0].type, NDEF.RTD_URI) &&
-        smartPosters.length) {
+    if (smartPosters.length && records[0].tnf === NDEF.TNF_WELL_KNOWN &&
+        (NfcUtils.equalArrays(records[0].type, NDEF.RTD_URI) ||
+         NfcUtils.equalArrays(records[0].type, NDEF.RTD_SMART_POSTER))) {
       return smartPosters[0];
     }
     return null;
