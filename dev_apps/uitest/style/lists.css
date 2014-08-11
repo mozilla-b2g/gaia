@@ -1,5 +1,4 @@
 .sublist {
-  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
   margin: 0;
   padding: 0;
 
@@ -10,6 +9,7 @@
   right: 0;
   overflow-y: scroll !important;
   -moz-user-select: none;
+  background: #fff;
 }
 
 .sublist > li {

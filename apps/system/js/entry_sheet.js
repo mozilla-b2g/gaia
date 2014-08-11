@@ -42,13 +42,10 @@ var EntrySheet = (function invocation() {
   function view() {
     return '<div class="' + EntrySheet.className + '">' +
       '<section role="region" class="skin-organic header">' +
-        '<header>' +
-          '<button class="close">' +
-              '<span class="icon icon-close">close</span>' +
-          '</button>' +
+        '<gaia-header action="close">' +
           '<h1 class="title">' + '</h1>' +
-          '<div class="throbber"></div>' +
-        '</header>' +
+        '</gaia-header>' +
+        '<div class="throbber"></div>' +
       '</section>' +
       '<div class="content">' +
       '</div>' +
@@ -59,8 +56,8 @@ var EntrySheet = (function invocation() {
     this.container = container;
     this.title = title;
     this.container.insertAdjacentHTML('beforeend', view.apply(this));
-    this.closeButton =
-      this.container.querySelector('.' + EntrySheet.className + ' .close');
+    this.header =
+      this.container.querySelector('.' + EntrySheet.className + ' gaia-header');
     this.titleElement =
       this.container.querySelector('.' + EntrySheet.className + ' .title');
     this.throbberElement =
@@ -91,9 +88,9 @@ var EntrySheet = (function invocation() {
 
     this.setTitle(this.title);
     var self = this;
-    this.closeButton.onclick = function() {
+    this.header.addEventListener('action', function() {
       self.close();
-    };
+    });
   }
 
   var nextId = 0;

@@ -73,14 +73,26 @@
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/value_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/date_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/time_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/object_menu.css">
 
+    <!-- Gaia Components -->
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia_progress/style/external.css">
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css">
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css">
+
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
+
+    <!-- Include shared web components -->
+    <script defer src="shared/elements/config.js"></script>
+    <script defer src="shared/js/component_utils.js"></script>
+    <script defer src="shared/elements/gaia_buttons/script.js"></script>
+    <script defer src="shared/elements/gaia_progress/script.js"></script>
+    <script defer src="shared/elements/gaia_subheader/script.js"></script>
+    <script defer src="shared/elements/gaia-header/dist/script.js"></script>
 
     <!-- Include shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
@@ -214,7 +226,7 @@
     <link rel="stylesheet" type="text/css" href="style/modal_dialog/modal_dialog.css">
     <script defer src="js/modal_dialog.js"></script>
 
-    <!-- Authentication Dialog -->    
+    <!-- Authentication Dialog -->
     <link rel="stylesheet" type="text/css" href="style/authentication_dialog.css">
 
     <!-- Carrier info notifier, shared by CDMA and Cell Broadcast -->
@@ -443,7 +455,7 @@
     <script defer src="js/mobileid_dialog.js"></script>
   </head>
 
-  <body role="application">
+  <body class="theme-settings" role="application">
     <div id="screen">
       <div id="os-logo" data-z-index-level="initlogo">
         <div id="carrier-logo"></div>
@@ -646,11 +658,10 @@
           </form>
 
           <!-- "Crash Reports" information page -->
-          <section role="region" class="skin-dark">
-            <header>
-              <button id="crash-reports-close"><span class="icon icon-close">close</span></button>
+          <section role="region">
+            <gaia-header id="crash-reports-header" action="close">
               <h1 data-l10n-id="crashReports">Crash Reports</h1>
-            </header>
+            </gaia-header>
             <div>
               <ul>
                 <li class="description" data-l10n-id="crash-reports-description-1">
@@ -664,14 +675,13 @@
           </section>
         </div>
 
-        <div id="trustedui-container" class="up">
+        <div id="trustedui-container" class="up theme-settings">
           <div id="trustedui-inner">
             <section role="region" class="title-container skin-organic">
-              <header>
-                <button id="trustedui-close"><span class="icon icon-close">close</span></button>
+              <gaia-header id="trustedui-header" action="close">
                 <h1 id="trustedui-title"></h1>
-                <div id="trustedui-throbber"></div>
-              </header>
+              </gaia-header>
+              <div id="trustedui-throbber"></div>
             </section>
             <div id="trustedui-frame-container">
               <div id="trustedui-error-dialog" role="dialog" class="generic-dialog">
@@ -1160,21 +1170,21 @@
       <!-- icc / stk -->
       <div id="icc-view" class="generic-dialog" data-z-index-level="icc-view" role="dialog">
         <section role="region" class="skin-organic" id="icc-alert">
-          <header>
+          <gaia-header>
             <h1 id="icc-alert-maintitle">STK Message</h1>
-            <h2 id="icc-alert-subtitle"></h2>
-          </header>
+          </gaia-header>
+          <gaia-subheader skin="organic"><span id="icc-alert-subtitle"></span></gaia-subheader>
           <p id="icc-alert-msg"></p>
           <menu>
             <button type="button" data-l10n-id="close" id="icc-alert-btn" class="recommend full">Close</button>
           </menu>
         </section>
         <section role="region" class="skin-organic" id="icc-confirm">
-          <header>
+          <gaia-header>
             <a href="#"><span class="icon icon-back" id="icc-confirm-btn_back">back</span></a>
             <h1 id="icc-confirm-maintitle">STK Query</h1>
-            <h2 id="icc-confirm-subtitle"></h2>
-          </header>
+          </gaia-header>
+          <gaia-subheader><span id="icc-confirm-subtitle"></span></gaia-subheader>
           <p id="icc-confirm-msg"></p>
           <menu data-items="2">
             <button type="button" data-l10n-id="close" id="icc-confirm-btn_close">Close</button>
@@ -1182,10 +1192,12 @@
           </menu>
         </section>
         <section role="region" class="skin-organic" id="icc-asyncconfirm">
-          <header>
+          <gaia-header>
             <h1 id="icc-asyncconfirm-maintitle">STK Query</h1>
-            <h2 id="icc-asyncconfirm-subtitle"></h2>
-          </header>
+          </gaia-header>
+          <gaia-subheader skin="organic">
+            <span id="icc-asyncconfirm-subtitle"></span>
+          </gaia-subheader>
           <p id="icc-asyncconfirm-msg"></p>
           <menu data-items="2">
             <button type="button" data-l10n-id="no" id="icc-asyncconfirm-btn-no">No</button>
@@ -1193,16 +1205,11 @@
           </menu>
         </section>
         <section role="region" class="skin-organic" id="icc-input">
-          <header>
-            <a href="#">
-                <span class="icon icon-back" id="icc-input-btn_back">back</span>
-            </a>
-            <menu type="toolbar">
-                <button type="button" data-l10n-id="help" id="icc-input-btn_help">Help</button>
-            </menu>
+          <gaia-header id="icc-input-header" action="back">
             <h1 id="icc-input-maintitle">STK Query</h1>
-            <h2 id="icc-input-subtitle"></h2>
-          </header>
+            <button type="button" data-l10n-id="help" id="icc-input-btn_help">Help</button>
+          </gaia-header>
+          <gaia-subheader skin="organic"><span id="icc-input-subtitle"></span></gaia-subheader>
           <form>
             <p id="icc-input-msg"></p>
             <input id="icc-input-box" required="" type="text" dir="auto"></input>

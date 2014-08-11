@@ -1,5 +1,5 @@
 html {
-  font-size: 12px;
+  font-size: 10px;
 }
 
 body {
@@ -62,7 +62,7 @@ body.test .test-panel {
     top: 0rem;
     bottom: 0rem;
   }
-  
+
   .sublist > li {
     height: calc(100% / 5) !important;
   }

@@ -6,6 +6,7 @@ requireApp('system/mobile_id/js/controller.js');
 requireApp('system/mobile_id/js/ui.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/load_body_html_helper.js');
+require('/shared/elements/gaia-header/dist/script.js');
 requireApp(
   'system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 
@@ -71,11 +72,17 @@ suite('MobileID UI ', function() {
     });
 
 
-    test('> close button action',function() {
+    test('> close button action',function(done) {
       this.sinon.stub(Controller, 'postCloseAction');
-      document.getElementById('close-button').click();
-      assert.ok(Controller.postCloseAction.calledOnce);
-      sinon.assert.calledWith(Controller.postCloseAction, false);
+      var header = document.querySelector('gaia-header');
+
+      header.addEventListener('action', function() {
+        assert.ok(Controller.postCloseAction.calledOnce);
+        sinon.assert.calledWith(Controller.postCloseAction, false);
+        done();
+      });
+
+      header.triggerAction();
     });
 
     test('> allow button action',function() {

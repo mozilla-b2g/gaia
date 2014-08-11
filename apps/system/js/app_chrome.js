@@ -102,12 +102,10 @@
 
     return `<div class="chrome" id="${className}">
             <div class="progress"></div>
-            <section role="region" class="bar skin-organic">
-              <header>
-                <button class="kill popup-close">
-                <span class="icon icon-close"></span></button>
+            <section role="region" class="bar">
+              <gaia-header action="close">
                 <h1 class="title"></h1>
-              </header>
+              </gaia-header>
             </section>
           </div>`;
   };
@@ -155,14 +153,7 @@
 
     this.bar = this.element.querySelector('.bar');
     if (this.bar) {
-      this.killButton = this.element.querySelector('.kill');
-
-      // We're appending new elements to DOM so to make sure headers are
-      // properly resized and centered, we emmit a lazyload event.
-      // This will be removed when the gaia-header web component lands.
-      window.dispatchEvent(new CustomEvent('lazyload', {
-        detail: this.bar
-      }));
+      this.header = this.element.querySelector('gaia-header');
     }
   };
 
@@ -174,6 +165,10 @@
 
       case 'click':
         this.handleClickEvent(evt);
+        break;
+
+      case 'action':
+        this.handleActionEvent(evt);
         break;
 
       case 'scroll':
@@ -244,10 +239,6 @@
         this.app.forward();
         break;
 
-      case this.killButton:
-        this.app.kill();
-        break;
-
       case this.title:
         window.dispatchEvent(new CustomEvent('global-search-request'));
         break;
@@ -277,6 +268,12 @@
     }
   };
 
+  AppChrome.prototype.handleActionEvent = function ac_handleActionEvent(evt) {
+    if (evt.detail.type === 'close') {
+      this.app.kill();
+    }
+  };
+
   AppChrome.prototype.handleScrollEvent = function ac_handleScrollEvent(evt) {
     // Ideally we'd animate based on scroll position, but until we have
     // the necessary spec and implementation, we'll animate completely to
@@ -302,7 +299,7 @@
       this.scrollable.addEventListener('scroll', this);
       this.menuButton.addEventListener('click', this);
     } else {
-      this.killButton.addEventListener('click', this);
+      this.header.addEventListener('action', this);
     }
 
     this.app.element.addEventListener('mozbrowserloadstart', this);
@@ -345,7 +342,7 @@
         this.shareButton.removeEventListener('click', this);
       }
     } else {
-      this.killButton.removeEventListener('click', this);
+      this.header.removeEventListener('action', this);
     }
 
     if (!this.app) {
