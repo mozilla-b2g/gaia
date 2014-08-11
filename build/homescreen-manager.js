@@ -134,6 +134,9 @@ function getCollectionMetadata(config, directory, appName, entryPoint) {
 
   descriptor.icon = bestMatchingIcon(config, manifest, origin);
 
+  // Bug 1045701 - Collections only ship a single icon by default.
+  descriptor.icon = descriptor.icon.replace(/_[0-9]+\.png$/, '.png');
+
   return descriptor;
 }
 
