@@ -266,10 +266,32 @@ LayoutManager.prototype._updateModifiedLayout = function() {
       periodKey.className = 'alternate-indicator';
     }
 
-    switch (basicInputType) {
+
+    var modifyType = 'default';
+    // We have different rules to handle the default layout page and
+    // symbol/alternate page.
+    // Only insert special character, such as '@' for email, '/' for url
+    // on the default layout page.
+    if (this.currentLayoutPage === this.LAYOUT_PAGE_DEFAULT) {
+      switch (basicInputType) {
+        case 'url':
+          modifyType = 'url';
+          break;
+        case 'email':
+          modifyType = 'email';
+          break;
+        case 'text':
+          modifyType = 'default';
+          break;
+      }
+    } else {
+      modifyType = 'default';
+    }
+
+    switch (modifyType) {
       case 'url':
         spaceKeyObject.ratio -= 2.0;
-        // forward slash key
+        // Add '/' key when we are at the default page
         spaceKeyRow.splice(spaceKeyCount, 0, {
           value: '/',
           ratio: 1,
@@ -277,31 +299,29 @@ LayoutManager.prototype._updateModifiedLayout = function() {
         });
         spaceKeyCount++;
 
-        // peroid key (after space key)
+        // period key (after space key)
         spaceKeyRow.splice(spaceKeyCount + 1, 0, periodKey);
 
         break;
 
       case 'email':
         spaceKeyObject.ratio -= 2;
-        // at key
+        // Add '@' key when we are at the default page
         spaceKeyRow.splice(spaceKeyCount, 0, {
           value: '@',
           ratio: 1,
           keyCode: 64
         });
-
         spaceKeyCount++;
 
-        // peroid key (after space key)
+        // period key (after space key)
         spaceKeyRow.splice(spaceKeyCount + 1, 0, periodKey);
 
         break;
 
-      case 'text':
+      case 'default':
         var overwrites = layout.textLayoutOverwrite || {};
-
-        // Add comma key if we asked too,
+        // Add comma key if we are asked to,
         // Only add the key at alternative pages or if
         // we didn't add the switching key.
         // Add comma key in any page if needsCommaKey is

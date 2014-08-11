@@ -23,12 +23,12 @@ Keyboards.es = {
   },
   keys: [
     [
-      { value: 'q' }, { value: 'w' }, { value: 'e' } , { value: 'r' },
-      { value: 't' } , { value: 'y' }, { value: 'u' } , { value: 'i' },
+      { value: 'q' }, { value: 'w' }, { value: 'e' }, { value: 'r' },
+      { value: 't' }, { value: 'y' }, { value: 'u' }, { value: 'i' },
       { value: 'o' }, { value: 'p' }
     ], [
       { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
-      { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' },
+      { value: 'g' }, { value: 'h' }, { value: 'j' }, { value: 'k' },
       { value: 'l' }, { value: 'ñ' }
     ], [
       { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
@@ -58,16 +58,15 @@ Keyboards.es = {
     },
     keys: [
       [
-        { value: '1' }, { value: '2' }, { value: '3' } , { value: '4' },
-        { value: '5' } , { value: '6' }, { value: '7' } , { value: '8' },
+        { value: '1' }, { value: '2' }, { value: '3' }, { value: '4' },
+        { value: '5' }, { value: '6' }, { value: '7' }, { value: '8' },
         { value: '9' }, { value: '0' }
       ], [
         { value: '-' }, { value: '/' }, { value: ':' }, { value: ';' },
-        { value: '(' } , { value: ')' }, { value: '€' }, { value: '&' },
-        { value: '@', hidden: ['email'] }, { value: '%' },
-        { value: '_', visible: ['email']}
+        { value: '(' }, { value: ')' }, { value: '€', className: 'alternate-indicator' },
+        { value: '&' }, { value: '@' }, { value: '%' }
       ], [
-        { value: '#+=', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
         { value: '¿' }, { value: '?' }, { value: '¡' }, { value: '!' },
         { value: '\"' }, { value: '\'' }, { value: '*' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
@@ -88,7 +87,7 @@ Keyboards.es = {
         { value: '<' }, { value: '>' }, { value: '$' }, { value: '£' },
         { value: '¥' }, { value: '•' }
       ], [
-        { value: '123', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
         { value: '¿' }, { value: '?' }, { value: '¡' }, { value: '!' },
         { value: '\"' }, { value: '\'' }, {value: '*' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }

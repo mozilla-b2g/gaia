@@ -1,5 +1,6 @@
 Keyboards['en-Neo'] = {
   label: 'English - Neo',
+  shortLabel: 'En',
   menuLabel: 'Neo',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],
