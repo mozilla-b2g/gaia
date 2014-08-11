@@ -1,4 +1,3 @@
-/* globals _ */
 /* exported ActionMenu */
 'use strict';
 
@@ -53,7 +52,7 @@ function ActionMenu(title) {
     }
 
     btnCancel = document.createElement('button');
-    btnCancel.textContent = _('cancel');
+    btnCancel.setAttribute('data-l10n-id', 'cancel');
 
     btnCancel.addEventListener('click', function() {
       self.hide();

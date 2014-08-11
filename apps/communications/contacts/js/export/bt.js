@@ -19,7 +19,7 @@ var ContactsBTExport = function ContactsBTExport() {
   };
 
   var _getExportTitle = function btex_getExportTitle() {
-    return _('btExport-title');
+    return 'btExport-title';
   };
 
   var _setProgressStep = function btex_setProgressStep(p) {

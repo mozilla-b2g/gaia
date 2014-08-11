@@ -24,7 +24,7 @@ var MockMozL10n = window.navigator.mozL10n = {
 
     return out;
   },
-  localize: function localize(element, key, params) {
+  setAttributes: function localize(element, key, params) {
     element.textContent = this.get(key, params);
   },
   translate: function() {},

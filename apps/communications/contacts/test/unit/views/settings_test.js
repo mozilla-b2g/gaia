@@ -328,7 +328,8 @@ suite('Contacts settings >', function() {
       });
       test('import error message should be correct (usb storage enabled)',
         function() {
-        assert.equal(importError.textContent, umsEnabledError);
+        assert.equal(importError.getAttribute('data-l10n-id'),
+                     umsEnabledError);
       });
 
       test('export button should be disabled', function() {
@@ -339,7 +340,8 @@ suite('Contacts settings >', function() {
       });
       test('export error message should be correct (usb storage enabled)',
         function() {
-        assert.equal(exportError.textContent, umsEnabledError);
+        assert.equal(exportError.getAttribute('data-l10n-id'),
+                     umsEnabledError);
       });
     });
 
@@ -356,7 +358,8 @@ suite('Contacts settings >', function() {
       });
       test('import error message should be correct (insert SD card)',
         function() {
-        assert.equal(importError.textContent, noCardErrorImport);
+        assert.equal(importError.getAttribute('data-l10n-id'),
+                     noCardErrorImport);
       });
 
       test('export button should be disabled', function() {
@@ -367,7 +370,8 @@ suite('Contacts settings >', function() {
       });
       test('export error message should be correct (insert SD card)',
         function() {
-        assert.equal(exportError.textContent, noCardErrorExport);
+        assert.equal(exportError.getAttribute('data-l10n-id'),
+                     noCardErrorExport);
       });
     });
 

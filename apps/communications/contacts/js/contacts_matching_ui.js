@@ -62,11 +62,15 @@ if (!contacts.MatchingUI) {
 
       if (type === 'matching') {
         // "Suggested duplicate contacts for xxx"
-        duplicateMessage.textContent = _('suggestedDuplicateContacts', params);
+        navigator.mozL10n.setAttributes(duplicateMessage,
+                                        'suggestedDuplicateContacts',
+                                        params);
       } else {
-        title.textContent = _('duplicatesFoundTitle');
+        title.setAttribute('data-l10n-id', 'duplicatesFoundTitle');
         // "xxx duplicates information in the following contacts"
-        duplicateMessage.textContent = _('duplicatesFoundMessage', params);
+        navigator.mozL10n.setAttributes(duplicateMessage,
+                                        'duplicatesFoundMessage',
+                                        params);
       }
 
       // Rendering the duplicate contacts list
@@ -364,7 +368,7 @@ if (!contacts.MatchingUI) {
               if (isMatch(matchings, aField, fieldValue)) {
                 item.classList.add('selected');
               }
-              navigator.mozL10n.localize(item, 'itemWithLabel', {
+              navigator.mozL10n.setAttributes(item, 'itemWithLabel', {
                 label: _(fieldValue.type),
                 item: fieldValue.value
               });
@@ -402,8 +406,9 @@ if (!contacts.MatchingUI) {
     }
 
     function checkMergeButton() {
-      navigator.mozL10n.localize(mergeButton, 'mergeActionButtonLabel',
-                                                                { n: checked });
+      navigator.mozL10n.setAttributes(mergeButton,
+                                      'mergeActionButtonLabel',
+                                      { n: checked });
       mergeButton.disabled = (checked === 0);
     }
 
