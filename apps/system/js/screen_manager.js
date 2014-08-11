@@ -114,6 +114,9 @@ var ScreenManager = {
     window.addEventListener('unlocking-start', this);
     window.addEventListener('unlocking-stop', this);
 
+    // User is actively using the screen reader.
+    window.addEventListener('accessibility-action', this);
+
     this.screen = document.getElementById('screen');
 
     var self = this;
@@ -211,6 +214,10 @@ var ScreenManager = {
 
       case 'wake':
         this.turnScreenOn();
+        break;
+
+      case 'accessibility-action':
+        this._reconfigScreenTimeout();
         break;
 
       case 'nfc-tech-discovered':

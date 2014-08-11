@@ -229,6 +229,7 @@
      */
     handleAccessFuOutput: function ar_handleAccessFuOutput(aDetails) {
       var options = aDetails.options || {};
+      window.dispatchEvent(new CustomEvent('accessibility-action'));
       switch (aDetails.eventType) {
         case 'vc-change':
           // Vibrate when the virtual cursor changes.
