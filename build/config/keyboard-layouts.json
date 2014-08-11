@@ -209,7 +209,5 @@
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ]
   },
-  "langIndependentLayouts": [
-      {"layoutId": "number", "app": ["apps", "keyboard"]}
-  ]
+  "langIndependentLayouts": []
 }

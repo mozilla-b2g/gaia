@@ -2,7 +2,7 @@ Keyboards['tr-F'] = {
   label: 'Turkish F',
   shortLabel: 'Tr',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'number'],
   autoCorrectLanguage: 'tr',
   menuLabel: 'Türkçe F',
   upperCase: {

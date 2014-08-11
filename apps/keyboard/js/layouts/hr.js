@@ -3,7 +3,7 @@ Keyboards.hr = {
   shortLabel: 'Hr',
   menuLabel: 'Hrvatski',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'number'],
   autoCorrectLanguage: 'hr',
   alt: {
     c: 'čćç',
