@@ -135,6 +135,7 @@ var MockCallScreen = {
     this.incomingInfo = document.createElement('div');
     this.incomingNumber = document.createElement('div');
     this.incomingNumberAdditionalInfo = document.createElement('span');
+    this.groupCalls = document.createElement('div');
     this.mGroupDetailsShown = false;
     this.mRemoveCallCalled = false;
     this.mSetEndConferenceCall = false;

@@ -207,9 +207,11 @@ suite('conference group handler', function() {
         });
 
         test('should hide the overlay of group details', function() {
+          this.sinon.useFakeTimers();
           MockCallScreen.showGroupDetails();
           assert.isTrue(MockCallScreen.mGroupDetailsShown);
           flush();
+          this.sinon.clock.tick();
           assert.isFalse(MockCallScreen.mGroupDetailsShown);
         });
 

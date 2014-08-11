@@ -8,7 +8,7 @@ var CallScreen = {
   _ticker: null,
   _screenWakeLock: null,
   _typedNumber: '',
-  callEndPromptTime: 2000,
+  callEndPromptTime: 3000,
 
   body: document.body,
   screen: document.getElementById('call-screen'),
@@ -503,6 +503,13 @@ var CallScreen = {
       evt.preventDefault();
     }
     this.groupCalls.classList.remove('display');
+    if (!navigator.mozTelephony.conferenceGroup.calls.length) {
+      var pendingEntries = this.groupCalls.querySelectorAll('.handled-call');
+      var self = this;
+      for (var i = 0; i < pendingEntries.length; i++) {
+        self.removeCall(pendingEntries[i]);
+      }
+    }
   },
 
   createTicker: function(durationNode) {

@@ -1,6 +1,6 @@
-/* globals CallsHandler, CallScreen, Contacts, ContactPhotoHelper,
-           FontSizeManager, LazyL10n, Utils, Voicemail, TonePlayer,
-           AudioCompetingHelper */
+/* globals CallsHandler, CallScreen, ConferenceGroupHandler, Contacts,
+           ContactPhotoHelper, FontSizeManager, LazyL10n, Utils, Voicemail,
+           TonePlayer, AudioCompetingHelper */
 
 'use strict';
 
@@ -17,6 +17,10 @@ function HandledCall(aCall) {
       CallScreen.moveToGroup(this.node);
       this._leftGroup = false;
     } else if (this._wasUnmerged()) {
+      if (CallScreen.groupCalls.classList.contains('display')) {
+        var clonedNode = this.node.cloneNode(true);
+        this.node.parentNode.insertBefore(clonedNode, this.node);
+      }
       CallScreen.insertCall(this.node);
       this._leftGroup = false;
     } else {
@@ -294,7 +298,8 @@ HandledCall.prototype.remove = function hc_remove() {
 
   var self = this;
   CallScreen.stopTicker(this.durationNode);
-  var currentDuration = this.durationChildNode.textContent;
+  var currentDuration = CallScreen.groupCalls.classList.contains('display') ?
+    ConferenceGroupHandler.currentDuration : this.durationChildNode.textContent;
   // FIXME/bug 1007148: Refactor duration element structure. No number or ':'
   //  existence checking will be necessary.
   this.totalDurationNode.textContent =
