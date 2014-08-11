@@ -477,6 +477,7 @@ define BUILD_CONFIG
 	"KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)", \
 	"CONTACTS_IMPORT_SERVICES_PATH" : "$(CONTACTS_IMPORT_SERVICES_PATH)", \
 	"STAGE_DIR" : "$(STAGE_DIR)", \
+	"GAIA_APP_TARGET" : "$(GAIA_APP_TARGET)", \
 	"VARIANT_PATH" : "$(VARIANT_PATH)" \
 }
 endef
@@ -634,48 +635,9 @@ endif # MINGW32
 endif # XULRUNNER_SDK_DOWNLOAD
 endif # USE_LOCAL_XULRUNNER_SDK
 
-# Optional files that may be provided to extend the set of default
-# preferences installed for gaia.  If the preferences in these files
-# conflict, the result is undefined.
-EXTENDED_PREF_FILES = \
-  custom-prefs.js \
-  gps-prefs.js \
-  payment-prefs.js \
-
-ifeq ($(GAIA_APP_TARGET), engineering)
-EXTENDED_PREF_FILES += payment-dev-prefs.js
-endif
-
-ifeq ($(DOGFOOD),1)
-EXTENDED_PREF_FILES += dogfood-prefs.js
-endif
-
-ifeq ($(DEBUG),1)
-EXTENDED_PREF_FILES += debug-prefs.js
-endif
-
-# Optional partner provided preference files. They will be added
-# after the ones on the EXTENDED_PREF_FILES and they will be read
-# from the GAIA_DISTRIBUTION_DIR directory
-PARTNER_PREF_FILES = \
-  partner-prefs.js\
-
 # Generate profile/prefs.js
 preferences: profile-dir $(XULRUNNER_BASE_DIRECTORY)
-ifeq ($(BUILD_APP_NAME),*)
 	@$(call run-js-command,preferences)
-	@$(foreach prefs_file,$(addprefix build/config/,$(EXTENDED_PREF_FILES)),\
-	  if [ -f $(prefs_file) ]; then \
-	    cat $(prefs_file) >> $(PROFILE_FOLDER)/user.js; \
-	  fi; \
-	)
-	@echo "" >> $(PROFILE_FOLDER)/user.js
-	@$(foreach prefs_file,$(addprefix $(GAIA_DISTRIBUTION_DIR)/,$(PARTNER_PREF_FILES)),\
-	  if [ -f $(prefs_file) ]; then \
-	    cat $(prefs_file) >> $(PROFILE_FOLDER)/user.js; \
-	  fi; \
-	)
-endif
 
 # Generate $(PROFILE_FOLDER)/extensions
 EXT_DIR=$(PROFILE_FOLDER)/extensions
