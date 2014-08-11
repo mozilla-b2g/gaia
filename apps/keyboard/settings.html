@@ -4,6 +4,7 @@
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
   <meta charset="utf-8">
   <title>Keyboard Settings</title>
+  <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/lists.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
@@ -11,17 +12,13 @@
   <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
   <script defer src="shared/js/l10n.js"></script>
   <script defer src="js/settings/settings.js"></script>
-  <!-- Web Components -->
-  <script defer src="shared/elements/config.js"></script>
-  <script defer src="shared/elements/gaia-header/dist/script.js"></script>
-  <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
-  <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" /> -->
 </head>
-<body class="skin-organic theme-settings">
+<body class="skin-organic">
   <section role="region">
-    <gaia-header id="header" action="back">
+    <header>
+      <a id="back" href="#"><span class="icon icon-back">back</span></a>
       <h1 data-l10n-id="keyboardSettings">Keyboard settings</h1>
-    </gaia-header>
+    </header>
     <div>
       <section data-type="list" id="general-settings">
         <ul>
