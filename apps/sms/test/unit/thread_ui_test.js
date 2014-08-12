@@ -44,7 +44,6 @@ require('/test/unit/mock_contacts.js');
 require('/test/unit/mock_recipients.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_activity_picker.js');
-require('/test/unit/mock_action_menu.js');
 require('/test/unit/mock_dialog.js');
 require('/test/unit/mock_smil.js');
 require('/test/unit/mock_custom_dialog.js');
@@ -65,6 +64,8 @@ require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_notification.js');
+require('/shared/test/unit/mocks/mock_option_menu.js');
+
 
 var mocksHelperForThreadUI = new MocksHelper([
   'asyncStorage',

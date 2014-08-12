@@ -29,7 +29,6 @@ var CallLog = {
       '/shared/style/lists.css',
       '/shared/js/confirm.js',
       '/shared/js/dialer/utils.js',
-      '/dialer/js/phone_action_menu.js',
       '/shared/js/sticky_header.js',
       '/shared/js/sim_settings_helper.js'
     ];
@@ -648,20 +647,13 @@ var CallLog = {
         });
       }
     } else {
-      var contactIds = (dataset.contactId) ? dataset.contactId : null;
-      var contactId = null;
-      if (contactIds !== null) {
-        contactId = contactIds.split(',')[0];
-      }
+      var primaryInfo = logItem.querySelector('.primary-info-main').textContent;
 
-      var isMissedCall = logItem.classList.contains('missed-call');
-      PhoneNumberActionMenu.show(
-        contactId,
-        phoneNumber,
-        null,
-        isMissedCall
-      );
-      evt.preventDefault();
+      LazyLoader.load('/dialer/js/call_group_menu.js', function() {
+        CallGroupMenu.show(
+          primaryInfo, phoneNumber, dataset.timestamp, dataset.type);
+        evt.preventDefault();
+      });
     }
   },
 
