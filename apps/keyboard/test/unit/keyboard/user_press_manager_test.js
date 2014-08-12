@@ -436,6 +436,45 @@ suite('UserPressManager', function() {
       assert.isTrue(true, 'Does not throw.');
     });
 
+    test('mousemove after mouseleave', function() {
+      var mouseleaveEvent = {
+        type: 'mouseleave',
+        target: el,
+        clientX: 100,
+        clientY: 110
+      };
+      container.dispatchEvent(mouseleaveEvent);
+
+      var mousemoveEvent = {
+        type: 'mousemove',
+        target: el,
+        clientX: 101,
+        clientY: 112
+      };
+      container.dispatchEvent(mousemoveEvent);
+
+      assert.isTrue(true, 'Does not throw.');
+    });
+
+    test('mouseup after mouseup', function() {
+      var mouseupEvent = {
+        type: 'mouseup',
+        target: el,
+        clientX: 100,
+        clientY: 110
+      };
+      container.dispatchEvent(mouseupEvent);
+
+      var mouseupEvent2 = {
+        type: 'mouseup',
+        target: el,
+        clientX: 101,
+        clientY: 112
+      };
+      container.dispatchEvent(mouseupEvent2);
+
+      assert.isTrue(true, 'Does not throw.');
+    });
 
     test('move within the element but less than MOVE_LIMIT', function() {
       var mousemoveEvent = {
