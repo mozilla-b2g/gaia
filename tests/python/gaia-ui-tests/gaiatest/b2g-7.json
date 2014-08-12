@@ -25,9 +25,5 @@
   },
   "settings": {
       "debugger.remote-mode": "adb-devtools"
-  },
-  "collect_ref_images": "false",
-  "screenshot_location": "//storage//sdcard0//screenshots//",
-  "fuzz_factor": "5",
-  "post2dot0": "true"
+  }
 }

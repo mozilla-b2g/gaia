@@ -15,12 +15,15 @@ from marionette.runtests import cli
 from gaiatest import __name__
 from gaiatest import GaiaTestCase, GaiaOptionsMixin, GaiaTestRunnerMixin, \
     TreeherderOptionsMixin, TreeherderTestRunnerMixin
+
+from mixins.imagecompare import GaiaImageCompareOptionsMixin
+
 from version import __version__
 
 
 class GaiaTestOptions(BaseMarionetteOptions, GaiaOptionsMixin,
                       EnduranceOptionsMixin, HTMLReportingOptionsMixin,
-                      TreeherderOptionsMixin):
+                      TreeherderOptionsMixin, GaiaImageCompareOptionsMixin):
 
     def __init__(self, **kwargs):
         BaseMarionetteOptions.__init__(self, **kwargs)
@@ -28,6 +31,7 @@ class GaiaTestOptions(BaseMarionetteOptions, GaiaOptionsMixin,
         HTMLReportingOptionsMixin.__init__(self, **kwargs)
         EnduranceOptionsMixin.__init__(self, **kwargs)
         TreeherderOptionsMixin.__init__(self, **kwargs)
+        GaiaImageCompareOptionsMixin.__init__(self, **kwargs)
 
 
 class GaiaTestResult(MarionetteTestResult, HTMLReportingTestResultMixin):

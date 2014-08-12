@@ -2,32 +2,25 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from gaiatest import GaiaTestCase
+from gaiatest.gaia_graphics_test import GaiaGraphicsTestCase
 from gaiatest.apps.gallery.app import Gallery
 from marionette.marionette import Actions
 from gaiatest.apps.browser.app import Browser
-from gaiatest.utils.Imagecompare.imagecompare_util import ImageCompareUtil
-import sys,time
-from marionette import By, Wait
-import pdb
+import time
+from marionette import By
 
 
-class TestGfxSmokeTestOZ(GaiaTestCase):
+class TestGfxSmokeTestOZ(GaiaGraphicsTestCase):
 
     images = 'IMG_0001.jpg'
     image_count = 4
     _current_image_locator = (By.CSS_SELECTOR, '#frames > div.frame[style ~= "translateX(0px);"]')
 
     def setUp(self):
-        GaiaTestCase.setUp(self)
+        GaiaGraphicsTestCase.setUp(self)
         self.data_layer.connect_to_wifi()
         # Add photos to storage.
         self.push_resource(self.images, count=self.image_count)
-
-        current_module = str(sys.modules[__name__])
-        self.module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
-        self.graphics = ImageCompareUtil(self.marionette,self.apps, self,'.')
-
 
     def test_gfx_smoke_test_oz(self):
 
@@ -46,11 +39,11 @@ class TestGfxSmokeTestOZ(GaiaTestCase):
 
         #scroll back and forth in different display mode
         self.change_orientation('landscape-primary')
-        self.graphics.invoke_screen_capture()
-        self.graphics.scroll(self.marionette,self._current_image_locator,'left',5)
+        self.invoke_screen_capture()
+        self.scroll(self._current_image_locator,'left',5)
         self.change_orientation('portrait-primary')
-        self.graphics.invoke_screen_capture()
-        self.graphics.scroll(self.marionette,self._current_image_locator,'right',5)
+        self.invoke_screen_capture()
+        self.scroll(self._current_image_locator,'right',5)
 
         #flip A LOT
         x = 0
@@ -58,38 +51,38 @@ class TestGfxSmokeTestOZ(GaiaTestCase):
             self.change_orientation('landscape-primary')
             self.change_orientation('portrait-primary')
             x += 1
-        self.graphics.invoke_screen_capture()
+        self.invoke_screen_capture()
 
         # do pinch zoom while filpping the phone
-        self.graphics.pinch(self.marionette,self._current_image_locator,'in','high')
-        self.graphics.invoke_screen_capture()
-        self.graphics.scroll(self.marionette,self._current_image_locator,'left',1,distance=10)
-        self.graphics.invoke_screen_capture()
+        self.pinch(self._current_image_locator,'in','high')
+        self.invoke_screen_capture()
+        self.scroll(self._current_image_locator,'left',1,distance=10)
+        self.invoke_screen_capture()
         self.change_orientation('landscape-primary')
-        self.graphics.pinch(self.marionette,self._current_image_locator,'out','high')
-        self.graphics.invoke_screen_capture()
+        self.pinch(self._current_image_locator,'out','high')
+        self.invoke_screen_capture()
         self.change_orientation('portrait-primary')
         action = Actions(self.marionette)
         time.sleep(2)
         action.double_tap(self.marionette.find_element(*self._current_image_locator)).perform()
-        self.graphics.invoke_screen_capture()
-        self.graphics.scroll(self.marionette,self._current_image_locator,'right',1,distance=10)
-        self.graphics.invoke_screen_capture()
+        self.invoke_screen_capture()
+        self.scroll(self._current_image_locator,'right',1,distance=10)
+        self.invoke_screen_capture()
 
         # go back and forth with flicking
-        self.graphics.scroll(self.marionette,self._current_image_locator,'left',10)
-        self.graphics.invoke_screen_capture()
-        self.graphics.scroll(self.marionette,self._current_image_locator,'right',7)
-        self.graphics.invoke_screen_capture()
+        self.scroll(self._current_image_locator,'left',10)
+        self.invoke_screen_capture()
+        self.scroll(self._current_image_locator,'right',7)
+        self.invoke_screen_capture()
 
         # take screenshot halfway while flicking between images
         action.double_tap(self.marionette.find_element(*self._current_image_locator)).perform()
         time.sleep(2)
-        self.graphics.scroll(self.marionette,self._current_image_locator,'right',2,release=False)
-        self.graphics.invoke_screen_capture()
+        self.scroll(self._current_image_locator,'right',2,release=False)
+        self.invoke_screen_capture()
         self.change_orientation('portrait-primary')
         self.apps.kill(gallery.app)
-        self.graphics.invoke_screen_capture()
+        self.invoke_screen_capture()
 
         # Kill gallery, launch browser.  Go to Mozilla FirefoxOS site
         # Scroll up/down, change orientation, scroll up/down
@@ -98,25 +91,20 @@ class TestGfxSmokeTestOZ(GaiaTestCase):
 
         browser.go_to_url('http://mozilla.org/firefoxos')
         time.sleep(15)
-        self.graphics.scroll(self.marionette,browser._main_screen_locator,'up',7)
-        self.graphics.invoke_screen_capture()
-        self.graphics.scroll(self.marionette,browser._main_screen_locator,'up',1)
-        self.graphics.invoke_screen_capture()
+        self.scroll(browser._main_screen_locator,'up',7)
+        self.invoke_screen_capture()
+        self.scroll(browser._main_screen_locator,'up',1)
+        self.invoke_screen_capture()
         self.change_orientation('landscape-primary')
-        self.graphics.scroll(self.marionette,browser._main_screen_locator,'down',4,distance=100)
-        self.graphics.invoke_screen_capture()
-        self.graphics.scroll(self.marionette,browser._main_screen_locator,'down',4)
-        self.graphics.invoke_screen_capture()
-        self.apps.kill(gallery.app)
-        self.graphics.invoke_screen_capture()
+        self.scroll(browser._main_screen_locator,'down',4,distance=100)
+        self.invoke_screen_capture()
+        self.scroll(browser._main_screen_locator,'down',4)
+        self.invoke_screen_capture()
 
     # take screenshot and pause, otherwise there will be a collision
     def change_orientation(self, orientation,wait=2):
-	    self.device.change_orientation(orientation)
-	    time.sleep(wait)
+        self.device.change_orientation(orientation)
+        time.sleep(wait)
 
     def tearDown(self):
-
-        # In case the assertion fails this will still kill the call
-        # An open call creates problems for future tests
-        self.graphics.execute_image_job()
+        GaiaGraphicsTestCase.tearDown(self)
