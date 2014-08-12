@@ -199,9 +199,11 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   //
   // ... make a copy of the entire keys array,
   layout.keys = [].concat(layout.keys);
+  var copiedRows = [];
   // ... and point row containing space key object to a new array,
   var spaceKeyRow = layout.keys[spaceKeyRowCount] =
     [].concat(layout.keys[spaceKeyRowCount]);
+  copiedRows.push(spaceKeyRowCount);
   // ... the space key object should be point to a new object too.
   var spaceKeyObject = layout.keys[spaceKeyRowCount][spaceKeyCount] =
     Object.create(layout.keys[spaceKeyRowCount][spaceKeyCount]);
@@ -253,6 +255,25 @@ LayoutManager.prototype._updateModifiedLayout = function() {
     spaceKeyObject.ratio -= 1;
     spaceKeyRow.splice(spaceKeyCount, 0, imeSwitchKey);
     spaceKeyCount++;
+
+    // Replace the key with supportsSwitching alternative defined.
+    // This is because we won't have ',' at the bottom, and we would
+    // move it to other place.
+    var r = layout.keys.length, c, row, key;
+    while (r--) {
+      row = layout.keys[r];
+      c = row.length;
+      while (c--) {
+        key = row[c];
+        if (key.supportsSwitching) {
+          if (copiedRows.indexOf(r) === -1) {
+            layout.keys[r] = [].concat(layout.keys[r]);
+            copiedRows.push(r);
+          }
+          layout.keys[r][c] = Object.create(key.supportsSwitching);
+        }
+      }
+    }
   }
 
   // Respond to different input types
@@ -322,13 +343,11 @@ LayoutManager.prototype._updateModifiedLayout = function() {
       case 'default':
         var overwrites = layout.textLayoutOverwrite || {};
         // Add comma key if we are asked to,
-        // Only add the key at alternative pages or if
-        // we didn't add the switching key.
+        // Only add the key if we didn't add the switching key.
         // Add comma key in any page if needsCommaKey is
         // set explicitly.
         if (overwrites[','] !== false &&
-            (this.currentLayoutPage !== this.LAYOUT_PAGE_DEFAULT ||
-             !needsSwitchingKey ||
+            (!needsSwitchingKey ||
              layout.needsCommaKey)) {
           var commaKey = {
             value: ',',
