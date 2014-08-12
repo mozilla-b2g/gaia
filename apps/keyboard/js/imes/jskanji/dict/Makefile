@@ -4,7 +4,7 @@ json: dict.utf8
 	python conv.py
 
 dict:
-	find ipadic -name "*.dic" -exec cat {} >> $@ \;
+	find src -name "*.dic" -exec cat {} >> $@ \;
 
 dict.utf8: dict
 	iconv -f euc-jp -t utf-8 dict > $@
