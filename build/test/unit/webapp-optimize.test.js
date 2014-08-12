@@ -251,7 +251,8 @@ suite('webapp-optimize.js', function() {
       'INLINE_OPTIMIZE_WHITELIST': {
         'inlineWhiteListApp': ['test.html']
       },
-      'CSS_AGGREGATION_BLACKLIST': {}
+      'CSS_AGGREGATION_BLACKLIST': {},
+      'SINGLE_FILE_OPTIMIZE_BLACKLIST': {}
     };
   });
 
@@ -281,9 +282,15 @@ suite('webapp-optimize.js', function() {
     test('HTMLProcessed, when all HTMLs have been proceeded ', function() {
       var numOfFiles = webappOptimize.numOfFiles = 10;
       var writeDictionariesCalled = 0;
+      var optimizeFilesCalled = 0;
 
+      webappOptimize.optimizeConfig = mockoptimizeConfig;
       webappOptimize.writeDictionaries = function() {
         writeDictionariesCalled++;
+      };
+
+      webappOptimize.optimizeFiles = function() {
+        optimizeFilesCalled++;
       };
 
       isFileExist = true;
@@ -292,8 +299,9 @@ suite('webapp-optimize.js', function() {
       }
 
       assert.equal(writeDictionariesCalled, 1,
-        'HTMLProcessed should only be called once');
-      // assert.equal(isFileRemoved, true, 'file should be removed');
+        'writeDictionaries should only be called once');
+      assert.equal(optimizeFilesCalled, 1,
+        'optimizeFiles should only be called once');
     });
 
     test('writeDictionaries', function() {

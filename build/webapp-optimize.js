@@ -356,7 +356,7 @@ HTMLOptimizer.prototype.aggregateJsResources = function() {
     // if there is something valuable in the html that effects the script
     // that broke the app it should be fairly easy to tell what happened.
     var content = '; /* "' + html + ' "*/\n\n';
-    // fetch the whole file append it to the comment.
+    // fetch the whole file append it to the git comment.
     var scriptFile = this.getFileByRelativePath(script.src);
     content += scriptFile.content;
 
@@ -650,6 +650,52 @@ WebappOptimize.prototype.HTMLProcessed = function(files) {
     return;
   }
   this.writeDictionaries();
+  this.optimizeFiles();
+};
+
+WebappOptimize.prototype.optimizeFiles = function() {
+  var exclude = this.optimizeConfig.SINGLE_FILE_OPTIMIZE_BLACKLIST;
+  if (exclude[this.webapp.sourceDirectoryName] &&
+    exclude[this.webapp.sourceDirectoryName] === '*') {
+    return;
+  }
+  if (this.config.GAIA_OPTIMIZE !== '1') {
+    return;
+  }
+  var jsReg = /\.js$/;
+  var re = new RegExp('^' + utils.gaia.getInstance(this.config)
+           .aggregatePrefix + '.+.js');
+  utils.ls(this.webapp.buildDirectoryFile, true, re).filter(function(file) {
+    return jsReg.test(file.leafName);
+  }, this).forEach(this._optimizeFile, this);
+};
+
+WebappOptimize.prototype._optimizeFile = function(file) {
+  var exclude = this.optimizeConfig.SINGLE_FILE_OPTIMIZE_BLACKLIST;
+  if (exclude[this.webapp.sourceDirectoryName] &&
+      exclude[this.webapp.sourceDirectoryName].indexOf(file.leafName) !== -1) {
+    return;
+  }
+ 
+  var fileType = file.leafName.split('.').pop();
+  var originalContent = utils.getFileContent(file);
+  var content;
+  switch(fileType) {
+    // We only optimize js now.
+    case 'js':
+      try {
+        content = jsmin(originalContent).code;
+        utils.writeContent(file, content);
+      } catch (e) {
+      }
+      // When BUILD_DEBUG is true, we'll do AST comparing in build time.
+      if (this.config.BUILD_DEBUG &&
+          !utils.jsComparator(originalContent, content)) {
+        throw 'minified ' + file.path + ' has different AST with' +
+              ' unminified script.';
+      }
+      break;
+  }
 };
 
 // all HTML documents in the webapp have been optimized:
