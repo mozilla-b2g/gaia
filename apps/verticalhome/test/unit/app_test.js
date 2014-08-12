@@ -63,4 +63,14 @@ suite('app.js > ', function() {
     window.dispatchEvent(new CustomEvent('context-menu-close'));
   });
 
+  test('Hashchange event without dragdrop', function() {
+    var oldDragdrop = app.grid._grid.dragdrop;
+    app.grid._grid.dragdrop = undefined;
+    app.handleEvent({type: 'hashchange'});
+    app.grid._grid.dragdrop = oldDragdrop;
+    // This test was added for bug 1051061. If the test passes it means that
+    // the test did not throw an error and that bug is not a problem.
+    // No assertion is needed.
+  });
+
 });
