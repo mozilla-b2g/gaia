@@ -1111,6 +1111,25 @@ var CallLogDBManager = {
     });
   },
 
+  getGroup: function(number, date, type, status) {
+    var self = this;
+    return new Promise(function(resolve, reject) {
+      var recentCall = {number: number, date: date, type: type, status: status};
+      var groupId = self._getGroupId(recentCall);
+      self._newTxn('readonly', self._dbGroupsStore,
+      function(error, txn, groupsStore) {
+        groupsStore.get(groupId).onsuccess = function() {
+          var group = this.result;
+          if (!group) {
+            reject();
+            return;
+          }
+          resolve(self._getGroupObject(group));
+        };
+      });
+    });
+  },
+
   /**
    * Get the call with the most recent date.
    *

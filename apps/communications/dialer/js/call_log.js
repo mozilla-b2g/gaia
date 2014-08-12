@@ -666,7 +666,11 @@ var CallLog = {
 
       LazyLoader.load(['/dialer/js/call_group_menu.js'], function() {
         CallGroupMenu.show(
-          primaryInfo, phoneNumber, dataset.timestamp, dataset.type);
+          primaryInfo,
+          phoneNumber,
+          dataset.timestamp,
+          dataset.type,
+          dataset.status);
       });
     }
   },

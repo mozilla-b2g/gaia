@@ -1,8 +1,10 @@
-/* global MockContacts, Utils, MockL10n */
+/* global MockContacts, MockL10n, Utils */
 
 'use strict';
 
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+
 require('/shared/js/dialer/utils.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
@@ -27,18 +29,17 @@ suite('dialer/utils', function() {
       getSpy = this.sinon.spy(MockL10n, 'get');
     });
 
-    test('#additional info WITHOUT carrier', function(done) {
+    test('#additional info WITHOUT carrier', function() {
       MockContacts.mCarrier = null; // No carrier
       MockContacts.findByNumber(number, function(contact, matchingTel) {
         var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
           contact, number);
         sinon.assert.calledWith(getSpy, MockContacts.mType);
         assert.equal(MockContacts.mType, additionalInfo);
-        done();
       });
     });
 
-    test('#additional info WITH carrier', function(done) {
+    test('#additional info WITH carrier', function() {
       MockContacts.mCarrier = 'carrier'; // Carrier value
       MockContacts.findByNumber(number, function(contact, matchingTel) {
         var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
@@ -46,20 +47,18 @@ suite('dialer/utils', function() {
         sinon.assert.calledWith(MockL10n.get, MockContacts.mType);
         assert.equal(MockContacts.mType + ', ' +
           MockContacts.mCarrier, additionalInfo);
-        done();
       });
     });
 
-    test('phone number and type', function(done) {
+    test('phone number and type', function() {
       MockContacts.findByNumber(number, function(contact, matchingTel) {
         var additionalInfo = subject.getPhoneNumberAndType(
           matchingTel, contact, number);
         assert.equal(MockContacts.mType + ', ' + number, additionalInfo);
-        done();
       });
     });
 
-    test('should not translate custom types', function(done) {
+    test('should not translate custom types', function() {
       var customType = 'totally custom';
 
       MockContacts.mCarrier = 'carrier';
@@ -70,7 +69,6 @@ suite('dialer/utils', function() {
           contact, number);
         sinon.assert.calledWith(MockL10n.get, customType);
         assert.equal(customType +', ' + MockContacts.mCarrier, additionalInfo);
-        done();
       });
     });
 
@@ -126,6 +124,27 @@ suite('dialer/utils', function() {
       window.navigator.mozHour12 = false;
       assert.equal(subject.prettyDate(tsToday),
                    formatted + 'shortTimeFormat24');
+    });
+  });
+
+  suite('prettyDuration', function() {
+    test('formats as minutes if less than one hour', function() {
+      var pretty = Utils.prettyDuration(60 * 60 * 1000 - 1);
+      assert.equal(pretty, 'callDurationMinutes{"h":"00","m":59,"s":59}');
+    });
+
+    test('formats with hours if more than one hour', function() {
+      var pretty = Utils.prettyDuration(60 * 60 * 1000);
+      assert.equal(pretty, 'callDurationHours{"h":"01","m":"00","s":"00"}');
+    });
+
+    test('Single digits are padded', function() {
+      var hours = 2;
+      var minutes = 4;
+      var seconds = 7;
+      var duration = hours * 60 * 60 + minutes * 60 + seconds;
+      var pretty = Utils.prettyDuration(duration * 1000);
+      assert.equal(pretty, 'callDurationHours{"h":"02","m":"04","s":"07"}');
     });
   });
 });
