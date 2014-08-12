@@ -5,6 +5,7 @@
 /*global ContactPhotoHelper, Contacts, IDBKeyRange, LazyLoader, Utils */
 
 var CallLogDBManager = {
+  _debugGroups: [],
   _db: null,
   _dbName: 'dialerRecents',
   _dbRecentsStore: 'dialerRecents',
@@ -955,6 +956,7 @@ var CallLogDBManager = {
 
         if (item && getCursor) {
           if (storeName === self._dbGroupsStore) {
+            self._debugGroups.push(item.value.id);
             callback({
               value: self._getGroupObject(item.value),
               continue: function() { return item.continue(); }
@@ -1108,6 +1110,25 @@ var CallLogDBManager = {
       } catch (e) {
         callback(e);
       }
+    });
+  },
+
+  getGroup: function(number, date, type, status) {
+    var self = this;
+    return new Promise(function(resolve, reject) {
+      var recentCall = {number: number, date: date, type: type, status: status};
+      var groupId = self._getGroupId(recentCall);
+      self._newTxn('readonly', self._dbGroupsStore,
+      function(error, txn, groupsStore) {
+        groupsStore.get(groupId).onsuccess = function() {
+          var group = this.result;
+          if (!group) {
+            reject();
+            return;
+          }
+          resolve(self._getGroupObject(group));
+        };
+      });
     });
   },
 

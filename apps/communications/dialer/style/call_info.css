@@ -1,0 +1,7 @@
+#call-info-view {
+  position: absolute;
+  top: 0;
+  background: white;
+  width: 100vw;
+  height: calc(100vh - 4.5rem);
+}

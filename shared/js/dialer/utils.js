@@ -1,5 +1,7 @@
 'use strict';
 
+/* exported Utils */
+
 var Utils = {
   prettyDate: function ut_prettyDate(time) {
     var _ = navigator.mozL10n.get;
@@ -14,12 +16,13 @@ var Utils = {
     var yesterday = _('yesterday');
     var diff = (Date.now() - time) / 1000;
     var day_diff = Math.floor(diff / 86400);
-    if (isNaN(day_diff))
+    if (isNaN(day_diff)) {
       return '(incorrect date)';
+    }
     if (day_diff < 0 || diff < 0) {
       return dtf.localeFormat(new Date(time), _('shortDateTimeFormat'));
     }
-    return day_diff == 0 && today ||
+    return day_diff === 0 && today ||
       day_diff == 1 && yesterday ||
       day_diff < 6 && dtf.localeFormat(new Date(time), '%A') ||
       dtf.localeFormat(new Date(time), '%x');
