@@ -1767,7 +1767,7 @@ var ThreadUI = {
     // Do we remove all messages of the Thread?
     if (!ThreadUI.container.firstElementChild) {
       // Remove the thread from DOM and go back to the thread-list
-      ThreadListUI.removeThread(Threads.currentId);
+      ThreadListUI.deleteThread(Threads.currentId);
       callback();
       Navigation.toPanel('thread-list');
     } else {
