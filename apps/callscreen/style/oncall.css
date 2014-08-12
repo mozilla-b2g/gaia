@@ -816,6 +816,10 @@
     padding-right: 4.5rem;
   }
 
+  #group-call-details-list > section:not(.additionalInfo) .number {
+    line-height: 4.5rem;
+  }
+
   #group-call-details {
     z-index: 750;
   }
@@ -826,7 +830,7 @@
     top: 0;
     right: 0;
     bottom: 0;
-    left: 0;  
+    left: 0;
   }
 
   #group-call .fake-number {
