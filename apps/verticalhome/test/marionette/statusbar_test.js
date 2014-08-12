@@ -117,12 +117,9 @@ marionette('Statusbar', function() {
         actions.flick(body, 200, 200, 200, 300);
         actions.perform();
 
-        client.waitFor(function() {
-          return (home.getThemeColor() == 'transparent');
-        });
-        assert.ok(true, 'meta updated');
+        var metaCorrect = home.getThemeColor() === 'transparent';
         client.switchToFrame();
-        return !isOpaque();
+        return !isOpaque() && metaCorrect;
       });
 
       // Bug 1034657 : Install an app, enter edit mode, scrol down, open the
