@@ -3,11 +3,12 @@
 (function(exports) {
 
   /**
-   * IMESwitcher is responsible for showing a fake notification
+   * ImeSwitcher is responsible for showing a fake notification
    * in utility tray, which indicates the activate keyboard
    * and may be interacted upon for showing IME selection menu.
    */
-  var IMESwitcher = function() {
+  var ImeSwitcher = function(keyboardManager) {
+    this.keyboardManager = keyboardManager;
     this._utilityTrayContainer = null;
     this._notificationContainer = null;
     this._notificationTitle = null;
@@ -15,7 +16,7 @@
     this.ontap = undefined;
   };
 
-  IMESwitcher.prototype.start = function is_start() {
+  ImeSwitcher.prototype.start = function is_start() {
     this._utilityTrayContainer =
       document.getElementById('keyboard-show-ime-list');
 
@@ -26,9 +27,12 @@
     this._notificationTip = this._notificationContainer.querySelector('.tip');
 
     this._notificationContainer.addEventListener('mousedown', this);
+    this.ontap = function() {
+      this.keyboardManager.showAll();
+    }.bind(this);
   };
 
-  IMESwitcher.prototype.stop = function is_stop() {
+  ImeSwitcher.prototype.stop = function is_stop() {
     this._notificationContainer.removeEventListener('mousedown', this);
     this._utilityTrayContainer = null;
     this._notificationContainer = null;
@@ -37,7 +41,7 @@
     this.ontap = undefined;
   };
 
-  IMESwitcher.prototype.show = function is_show(appName, imeName) {
+  ImeSwitcher.prototype.show = function is_show(appName, imeName) {
     window.dispatchEvent(new CustomEvent('keyboardimeswitchershow'));
 
     navigator.mozL10n.localize(this._notificationTitle, 'ime-switching-title', {
@@ -52,18 +56,18 @@
     this._notificationContainer.classList.add('activated');
   };
 
-  IMESwitcher.prototype.hide = function is_hide() {
+  ImeSwitcher.prototype.hide = function is_hide() {
     this._notificationContainer.classList.remove('activated');
     window.dispatchEvent(new CustomEvent('keyboardimeswitcherhide'));
   };
 
-  IMESwitcher.prototype.handleEvent = function is_handleEvent(evt) {
+  ImeSwitcher.prototype.handleEvent = function is_handleEvent(evt) {
     evt.preventDefault();
     if (typeof this.ontap === 'function') {
      this.ontap();
     }
   };
 
-  exports.IMESwitcher = IMESwitcher;
+  exports.ImeSwitcher = ImeSwitcher;
 
 })(window);

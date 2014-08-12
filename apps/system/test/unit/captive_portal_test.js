@@ -2,7 +2,7 @@
 
 /* global
    CaptivePortal,
-   FtuLauncher,
+   MockSystem,
    MocksHelper,
    MockChromeEvent,
    MockL10n,
@@ -29,12 +29,13 @@ requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/js/browser_frame.js');
 requireApp('system/js/entry_sheet.js');
 requireApp('system/js/captive_portal.js');
-requireApp('system/js/ftu_launcher.js');
+require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksForCaptivePortal = new MocksHelper([
   'SettingsListener',
   'Notification',
-  'AppWindowManager'
+  'AppWindowManager',
+  'System'
 ]).init();
 
 suite('captive portal > ', function() {
@@ -170,13 +171,13 @@ suite('captive portal > ', function() {
   });
 
   test('system/captive portal while FTU running..', function() {
-    FtuLauncher._isRunningFirstTime = true;
+    MockSystem.runningFTU = true;
 
     CaptivePortal.handleEvent(event);
     assert.equal(CaptivePortal.hasOwnProperty('entrySheet'), true);
   });
 
   teardown(function() {
-    FtuLauncher._isRunningFirstTime = false;
+    MockSystem.runningFTU = false;
   });
 });

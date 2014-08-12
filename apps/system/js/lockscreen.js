@@ -1,6 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global System */
 'use strict';
 
 /**
@@ -716,7 +714,7 @@
 
   LockScreen.prototype.lockIfEnabled =
   function ls_lockIfEnabled(instant) {
-    if (window.FtuLauncher && window.FtuLauncher.isFtuRunning()) {
+    if (System.runningFTU) {
       this.unlock(instant);
       return;
     }

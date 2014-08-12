@@ -3,6 +3,7 @@
 /* global IccHelper */
 /* global ModalDialog */
 /* global AirplaneMode */
+/* global System */
 
 (function(exports) {
 
@@ -37,9 +38,12 @@
    * @requires ModalDialog
    * @class InternetSharing
    */
-  function InternetSharing() {}
+  function InternetSharing() {};
+  InternetSharing.IMPORTS = [
+    'shared/js/icc_helper.js'
+  ];
 
-  InternetSharing.prototype = {
+  System.create(InternetSharing, {}, {
 
     /**
      * Whether or not we have added settings observers.
@@ -179,7 +183,7 @@
      * Starts the InternetSharing class.
      * @memberof InternetSharing.prototype
      */
-    start: function() {
+    _start: function() {
       settings = window.navigator.mozSettings;
       if (!IccHelper) {
         return;
@@ -190,7 +194,7 @@
       IccHelper.addEventListener('cardstatechange',
         this.checkCardAndInternetSharing.bind(this));
     }
-  };
+  });
 
   exports.InternetSharing = InternetSharing;
 

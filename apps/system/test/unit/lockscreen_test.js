@@ -4,7 +4,7 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
+require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_lockscreen_slide.js');
@@ -18,10 +18,6 @@ requireApp('system/test/unit/mock_clock.js', function() {
       requireApp('system/js/lockscreen.js');
     });
 });
-
-if (!this.FtuLauncher) {
-  this.FtuLauncher = null;
-}
 
 if (!this.SettingsListener) {
   this.SettingsListener = null;
@@ -49,7 +45,7 @@ suite('system/LockScreen >', function() {
   var realMozTelephony;
   var realClock;
   var realOrientationManager;
-  var realFtuLauncher;
+  var realSystem;
   var realSettingsListener;
   var realMozSettings;
   var domPasscodePad;
@@ -94,8 +90,8 @@ suite('system/LockScreen >', function() {
     realOrientationManager = window.OrientationManager;
     window.OrientationManager = window.MockOrientationManager;
 
-    realFtuLauncher = window.FtuLauncher;
-    window.FtuLauncher = window.MockFtuLauncher;
+    realSystem = window.System;
+    window.System = window.MockSystem;
 
     realSettingsListener = window.SettingsListener;
     window.SettingsListener = window.MockSettingsListener;
@@ -287,7 +283,7 @@ suite('system/LockScreen >', function() {
     navigator.mozTelephony = realMozTelephony;
     window.Clock = window.realClock;
     window.OrientationManager = window.realOrientationManager;
-    window.FtuLauncher = realFtuLauncher;
+    window.System = realSystem;
     window.SettingsListener = realSettingsListener;
     navigator.mozSettings = realMozSettings;
 

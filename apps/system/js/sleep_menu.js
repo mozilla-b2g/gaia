@@ -22,7 +22,21 @@
    */
   function SleepMenu() {}
 
-  SleepMenu.prototype = {
+  System.create(SleepMenu, {
+
+    /**
+     * Whether or not the sleep menu is visibile.
+     * @memberof SleepMenu.prototype
+     * @return {Boolean}
+     */
+    visible: {
+      configurable: false,
+      get: function() {
+        return this.elements.overlay.classList.contains('visible');
+      }
+    }
+  }, {
+    name: 'SleepMenu',
 
     /**
      * Indicate setting status of ril.radio.disabled
@@ -60,13 +74,21 @@
      */
     elements: {},
 
-    /**
-     * Whether or not the sleep menu is visibile.
-     * @memberof SleepMenu.prototype
-     * @return {Boolean}
-     */
-    get visible() {
-      return this.elements.overlay.classList.contains('visible');
+    view: function() {
+      return '<div id="sleep-menu" data-z-index-level="sleep-menu">' +
+        '<div id="sleep-menu-container" role="dialog" data-type="object">' +
+          '<header>' +
+            '<h1 data-l10n-id="deviceMenu"></h1>' +
+          '</header>' +
+          '<section>' +
+            '<ul role="menu">' +
+            '</ul>' +
+          '</section>' +
+          '<gaia-buttons skin="dark">' +
+            '<button data-l10n-id="cancel"></button>' +
+          '</gaia-buttons>' +
+        '</div>' +
+      '</div>';
     },
 
     /**
@@ -84,7 +106,7 @@
      * Start listening for events and settings changes.
      * @memberof SleepMenu.prototype
      */
-    start: function sm_init() {
+    _start: function sm_init() {
       this.getAllElements();
       window.addEventListener('holdsleep', this.show.bind(this));
       window.addEventListener('click', this, true);
@@ -438,7 +460,7 @@
         power.powerOff();
       }
     }
-  };
+  });
 
   exports.SleepMenu = SleepMenu;
 

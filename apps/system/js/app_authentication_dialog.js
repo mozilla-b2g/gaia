@@ -1,5 +1,4 @@
 'use strict';
-/* global System */
 
 (function(exports) {
   var _id = 0;
@@ -120,7 +119,7 @@
    * @memberof AppAuthenticationDialog.prototype
    */
   AppAuthenticationDialog.prototype.handleEvent = function(evt) {
-    System.debug(' AAD>> got event: ' + evt.type);
+    this.debug('handling event: ' + evt.type);
     evt.preventDefault();
     this._event = evt;
     if (!this._injected) {
@@ -162,7 +161,7 @@
     var elements = this.elements;
     this.element.classList.add('visible');
     elements.httpAuthentication.classList.add('visible');
-    System.debug(' AAD>> showing');
+    this.debug('showing');
     elements.title.textContent = evt.detail.host;
     elements.httpAuthenticationMessage.textContent = evt.detail.realm;
     elements.httpUsernameInput.value = '';
@@ -178,7 +177,7 @@
     this.elements.httpPasswordInput.blur();
     this.elements.httpAuthentication.classList.remove('visible');
     this.element.classList.remove('visible');
-    System.debug(' AAD>> hided');
+    this.debug('hided');
   };
 
   /**

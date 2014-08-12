@@ -9,7 +9,7 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
+require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 
 require('/shared/js/template.js');
@@ -29,7 +29,7 @@ var mocksForAppInstallManager = new MocksHelper([
   'ModalDialog',
   'ManifestHelper',
   'LazyLoader',
-  'FtuLauncher',
+  'System',
   'KeyboardManager',
   'KeyboardHelper'
 ]).init();
@@ -588,7 +588,7 @@ suite('system/AppInstallManager >', function() {
       ];
 
       suiteTeardown(function() {
-        MockFtuLauncher.mIsRunning = false;
+        MockSystem.runningFTU = false;
       });
 
       setup(function() {
@@ -609,10 +609,10 @@ suite('system/AppInstallManager >', function() {
 
       testCases.forEach(function(testCase) {
         test(testCase.name, function() {
-          MockFtuLauncher.mIsRunning = testCase.value;
+          MockSystem.runningFTU = testCase.value;
           dispatchInstallEvent();
           assert.equal(MockSystemBanner.mMessage,
-                       FtuLauncher.isFtuRunning() ?
+                       MockSystem.runningFTU ?
                         null :
                         'app-install-success{"appName":"' + mockAppName + '"}');
         });

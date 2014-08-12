@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsHelper */
+/* global SettingsHelper, System */
 
 (function(exports) {
   /**
@@ -8,19 +8,22 @@
    * @requires SettingsHelper
    * @class TelephonySettings
    */
-  function TelephonySettings() {
+  var TelephonySettings = function(mobileConnections) {
+    this.mobileConnections = mobileConnections;
     this.started = false;
-    this.connections = Array.slice(navigator.mozMobileConnections || []);
-  }
-
-  TelephonySettings.prototype = {
-
+    this.connections = Array.slice(this.mobileConnections || []);
+  };
+  TelephonySettings.IMPORTS = [
+    'shared/js/settings_helper.js'
+  ];
+  System.create(TelephonySettings, {},
+  {
     /**
      * Initialzes all settings.
      * @memberof TelephonySettings.prototype
      */
-    start: function() {
-      if (this.started || !this.connections.length) {
+    _start: function() {
+      if (!this.connections.length) {
         return;
       }
 
@@ -249,7 +252,7 @@
         return (hwSupportedTypes && hwSupportedTypes.indexOf(type) !== -1);
       }).join('/');
     }
-  };
+  });
 
   exports.TelephonySettings = TelephonySettings;
 

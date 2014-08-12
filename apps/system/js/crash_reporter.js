@@ -1,12 +1,8 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
 
-// This file calls getElementById without waiting for an onload event, so it
-// must have a defer attribute or be included at the end of the <body>.
+(function(exports) {
+  var CrashReporter = function() {};
 
-var CrashReporter = (function() {
   var _ = navigator.mozL10n.get;
   var settings = navigator.mozSettings;
   var screen = document.getElementById('screen');
@@ -159,8 +155,41 @@ var CrashReporter = (function() {
   window.addEventListener('homescreencrashed', handleAppCrash);
   window.addEventListener('searchcrashed', handleAppCrash);
 
-  return {
-    setAppName: setAppName
+  function view() {
+    return
+      '<div id="crash-dialog">' +
+        '<form role="dialog" class="generic-dialog" data-type="confirm">' +
+          '<section id="crash-dialog-contents">' +
+            '<h1 id="crash-dialog-title"></h1>' +
+              '<p data-l10n-id="crash-dialog-message">Would you like to send Mozilla a report about the crash to help us fix the problem? (Reports are sent over Wi-Fi only)</p>' +
+              '<p><a id="crash-info-link" data-l10n-id="crash-info-link">What's in a crash report?</a></p>' +
+              '<p>' +
+                '<input id="always-send" type="checkbox" checked="true"/>' +
+                '<label for="always-send" data-l10n-id="crash-always-report">Always send Mozilla a report when a crash occurs.</label>' +
+              '<p>' +
+            '</section>' +
+            '<menu data-items="2">' +
+              '<button id="dont-send-report" disabled="true" data-l10n-id="crash-dont-send">Don't Send</button>' +
+              '<button id="send-report" class="recommend" data-l10n-id="crash-end">Send Report</button>' +
+            '</menu>' +
+          '</form>' +
+          '<section role="region" class="skin-dark">' +
+            '<header>' +
+              '<button id="crash-reports-close"><span class="icon icon-close">close</span></button>' +
+              '<h1 data-l10n-id="crashReports">Crash Reports</h1>' +
+            '</header>' +
+            '<div>' +
+              '<ul>' +
+                '<li class="description" data-l10n-id="crash-reports-description-1">' +
+                '<li class="description" data-l10n-id="crash-reports-description-2">This may include things like open pages and apps, text typed into forms and the content of open messages, recent browsing history, or geolocation used by an open app.</li>' +
+                '<li class="description">' +
+                  '<span data-l10n-id="crash-reports-description-3-start">We use crash reports to try to fix problems and improve our products. We handle your information as we describe in our </span><span data-l10n-id="crash-reports-description-3-privacy">privacy policy</span><span data-l10n-id="crash-reports-description-3-end">.</span>' +
+                '</li>' +
+              '</ul>' +
+            '</div>' +
+          '</section>' +
+        '</div>';
   };
-})();
+  exports.CrashReporter = CrashReporter;
+}(window));
 

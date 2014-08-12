@@ -72,6 +72,7 @@ MediaPlaybackWidget.prototype = {
       return;
 
     this.origin = info.origin;
+    this.manifestURL = info.manifestURL;
     this.icon.style.backgroundImage = 'url(' + info.icon + ')';
   },
 
@@ -126,7 +127,7 @@ MediaPlaybackWidget.prototype = {
       var evt = new CustomEvent('displayapp', {
         bubbles: true,
         cancelable: true,
-        detail: AppWindowManager.getApp(this.origin)
+        detail: System.getRunningApp(this.origin, this.manifestURL)
       });
       window.dispatchEvent(evt);
     }

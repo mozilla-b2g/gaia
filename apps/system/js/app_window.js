@@ -1,8 +1,7 @@
-/* global SettingsListener, OrientationManager */
+/* global SettingsListener, OrientationManager, BrowserMixin */
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
   var _id = 0;
 
   /**
@@ -48,7 +47,7 @@
      */
     this.publish('created');
 
-    if (DEBUG || this._DEBUG) {
+    if (this.DEBUG) {
       AppWindow[this.instanceID] = this;
     }
 
@@ -75,7 +74,7 @@
    * @memberof AppWindow
    */
   AppWindow.prototype.CLASS_LIST = 'appWindow';
-  AppWindow.prototype._DEBUG = false;
+  AppWindow.prototype.DEBUG = false;
 
   /**
    * Generate instanceID of this instance.
@@ -400,7 +399,7 @@
       this._killed = true;
     }
 
-    if (DEBUG) {
+    if (this.DEBUG) {
       AppWindow[this.instanceID] = null;
     }
 
@@ -1006,7 +1005,7 @@
   AppWindow.prototype.CLASS_NAME = 'AppWindow';
 
   AppWindow.prototype.debug = function aw_debug(msg) {
-    if (DEBUG || this._DEBUG) {
+    if (this.DEBUG) {
       console.log('[Dump: ' + this.CLASS_NAME + ']' +
         '[' + (this.name || this.origin) + ']' +
         '[' + this.instanceID + ']' +
@@ -1943,6 +1942,10 @@
     }
     win.focus();
   };
+
+  if (window.BrowserMixin) {
+    AppWindow.addMixin(BrowserMixin);
+  }
 
   exports.AppWindow = AppWindow;
 }(window));

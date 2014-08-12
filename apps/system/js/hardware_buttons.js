@@ -1,6 +1,5 @@
 'use strict';
-
-/* global ScreenManager, SettingsListener */
+/* global System, BaseModule */
 
 (function(exports) {
 
@@ -75,15 +74,24 @@
    * @requires ScreenManager
    **/
   var HardwareButtons = function HardwareButtons() {
-    this._started = false;
     this._softwareHome = false;
   };
+
+  HardwareButtons.prototype = Object.create(BaseModule.prototype);
+  HardwareButtons.prototype.constructor = HardwareButtons;
 
   /**
    * A mapping between state keyboard and the constructor.
    * @type {Object}
    */
   HardwareButtons.STATES = {};
+
+  HardwareButtons.EVENTS = [
+    'mozChromeEvent'
+  ];
+  HardwareButtons.SETTINGS = ['software-button.enabled'];
+
+  HardwareButtons.prototype.name = 'HardwareButtons';
 
   /**
    * How long for press and hold Home or Sleep.
@@ -106,28 +114,19 @@
    */
   HardwareButtons.prototype.REPEAT_INTERVAL = 100;
 
+
+  HardwareButtons.prototype['_observe_software-button.enabled'] =
+    function(value) {
+      this._softwareHome = value;
+    };
+
   /**
    * Start listening to events from Gecko and FSM.
    * @memberof HardwareButtons.prototype
    */
-  HardwareButtons.prototype.start = function hb_start() {
-    if (this._started) {
-      throw 'Instance should not be start()\'ed twice.';
-    }
-    this._started = true;
-
+  HardwareButtons.prototype._start = function hb_start() {
     // Kick off the FSM in the base state
     this.state = new HardwareButtonsBaseState(this);
-
-    // This event handler listens for hardware button events and passes the
-    // event type to the process() method of the current state for processing
-    window.addEventListener('mozChromeEvent', this);
-
-    window.addEventListener('softwareButtonEvent', this);
-
-    SettingsListener.observe('software-button.enabled', false, function(value) {
-      this._softwareHome = value;
-    }.bind(this));
   };
 
   /**
@@ -135,22 +134,13 @@
    * to avoid memory leaks.
    * @memberof HardwareButtons.prototype
    */
-  HardwareButtons.prototype.stop = function hb_stop() {
-    if (!this._started) {
-      throw 'Instance was never start()\'ed but stop() is called.';
-    }
-    this._started = false;
-
+  HardwareButtons.prototype._stop = function hb_stop() {
     // Exit the current state()
     if (this.state && this.state.exit) {
       this.state.exit();
     }
 
     this.state = null;
-
-    window.removeEventListener('mozChromeEvent', this);
-
-    window.removeEventListener('softwareButtonEvent', this);
   };
 
   /**
@@ -187,13 +177,12 @@
    * @memberof HardwareButtons.prototype
    * @param  {Object} evt Event.
    */
-  HardwareButtons.prototype.handleEvent = function hb_handleEvent(evt) {
+  HardwareButtons.prototype._handle_mozChromeEvent = function(evt) {
     var type = evt.detail.type;
 
     // When the software home button is displayed we ignore the hardware
     // home button if there is one
-    var hardwareHomeEvent = (evt.type == 'mozChromeEvent') &&
-                            type.startsWith('home-button');
+    var hardwareHomeEvent = type.startsWith('home-button');
     if (this._softwareHome && hardwareHomeEvent) {
       return;
     }
@@ -235,8 +224,7 @@
          * (on press, not release)
          * @event HardwareButtonsBaseState#wake
          */
-        // XXX: Unresolved dependency to screenManager
-        if (!ScreenManager.screenEnabled) {
+        if (!System.screenOn) {
           this.hardwareButtons.publish('wake');
           this.hardwareButtons.setState('wake', type);
         } else {
@@ -250,7 +238,7 @@
          * @event HardwareButtonsBaseState#wake
          */
         // XXX: Unresolved dependency to screenManager
-        if (!ScreenManager.screenEnabled) {
+        if (!System.screenOn) {
           this.hardwareButtons.publish('wake');
           this.hardwareButtons.setState('wake', type);
         } else {
@@ -595,13 +583,6 @@
         return;
     }
   };
-
-  /*
-   * Start the hardware buttons events.
-   * XXX: To be moved.
-   */
-  exports.hardwareButtons = new HardwareButtons();
-  exports.hardwareButtons.start();
 
   exports.HardwareButtons = HardwareButtons;
 }(window));

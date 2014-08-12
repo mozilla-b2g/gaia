@@ -1,4 +1,4 @@
-/* global MockDatastore, MockNavigatorDatastore, MockFtuLauncher,
+/* global MockDatastore, MockNavigatorDatastore, MockSystem,
           MockBasket, MockL10n, MocksHelper,
           NewsletterManager, idleObserver */
 
@@ -9,7 +9,7 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 
 require('/shared/test/unit/mocks/mock_l10n.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
+require('/shared/test/unit/mocks/mock_system.js');
 
 mocha.globals([
   'sendWhenOnline',
@@ -18,7 +18,7 @@ mocha.globals([
 ]);
 
 var mocksHelperForNewsletterManager = new MocksHelper([
-  'FtuLauncher',
+  'System',
   'Datastore',
   'LazyLoader',
   'Basket'
@@ -74,7 +74,7 @@ suite('Newsletter Manager >', function() {
   suite('FTU is running >', function() {
     setup(function() {
       this.sinon.spy(NewsletterManager, 'start');
-      MockFtuLauncher.mIsRunning = true;
+      MockSystem.runningFTU = true;
       idleObserver.onidle();
     });
 
@@ -87,7 +87,7 @@ suite('Newsletter Manager >', function() {
   suite('FTU not running >', function() {
     setup(function() {
       this.sinon.spy(NewsletterManager, 'start');
-      MockFtuLauncher.mIsRunning = false;
+      MockSystem.runningFTU = false;
       idleObserver.onidle();
     });
 

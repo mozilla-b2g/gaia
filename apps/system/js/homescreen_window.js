@@ -66,8 +66,8 @@
    * changed to background.
    * @event HomescreenWindow#homescreenbackground
    */
-
   HomescreenWindow.prototype = Object.create(AppWindow.prototype);
+  HomescreenWindow.prototype.constructor = HomescreenWindow;
 
   HomescreenWindow.prototype._DEBUG = false;
 

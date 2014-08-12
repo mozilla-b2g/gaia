@@ -35,8 +35,8 @@ var GaiaApps = {
   },
 
   getApps: function(includeSystemApps) {
-    let manager = window.wrappedJSObject.AppWindowManager;
-    let apps = includeSystemApps ? manager.getApps() : window.wrappedJSObject.StackManager.snapshot();
+    let manager = window.wrappedJSObject.System;
+    let apps = includeSystemApps ? manager.getRunningApps() : window.wrappedJSObject.StackManager.snapshot();
     return apps;
   },
 
@@ -213,8 +213,11 @@ var GaiaApps = {
         );
       });
       console.log("terminating app with origin '" + aOrigin + "'");
-      let manager = window.wrappedJSObject.AppWindowManager || window.wrappedJSObject.WindowManager;
-      manager.kill(aOrigin);
+      window.wrappedJSObject.dispatchEvent(new CustomEvent('killapp', {
+        detail: {
+          origin: aOrigin
+        }
+      }));
     }
   },
 
@@ -329,15 +332,8 @@ var GaiaApps = {
    * Returns the currently displayed app.
    */
   getDisplayedApp: function() {
-    let manager = window.wrappedJSObject.AppWindowManager || window.wrappedJSObject.WindowManager;
-    let app = ('getActiveApp' in manager) ? manager.getActiveApp() : manager.getCurrentDisplayedApp();
-
-    // If frontWindow is not null then a modal activityWindow containing an app is in focus
-    // (only applicable with AppWindowManager)
-    while (app.frontWindow && app.frontWindow.isActive()) {
-      app = app.frontWindow;
-    }
-
+    let manager = window.wrappedJSObject.System;
+    let app = manager.topMostAppWindow;
     let origin = app.origin;
     console.log("app with origin '" + origin + "' is displayed");
     let result = {

@@ -2,10 +2,11 @@
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
            MockSystem, MockTouchForwarder, SimPinDialog, StatusBar, System,
-           AppWindow */
+           MockAppWindow */
 
 'use strict';
 
+requireApp('system/test/unit/mock_app_window.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
 require(
@@ -19,7 +20,6 @@ require('/shared/test/unit/mocks/mock_simslot_manager.js');
 require('/test/unit/mock_touch_forwarder.js');
 require('/test/unit/mock_sim_pin_dialog.js');
 require('/test/unit/mock_utility_tray.js');
-require('/test/unit/mock_app_window.js');
 
 var mocksForStatusBar = new MocksHelper([
   'SettingsListener',
@@ -27,8 +27,7 @@ var mocksForStatusBar = new MocksHelper([
   'SIMSlotManager',
   'TouchForwarder',
   'SimPinDialog',
-  'UtilityTray',
-  'AppWindow'
+  'UtilityTray'
 ]).init();
 
 suite('system/Statusbar', function() {
@@ -39,6 +38,9 @@ suite('system/Statusbar', function() {
       fakeStatusBarCallForwardings, fakeStatusBarTime, fakeStatusBarLabel,
       fakeStatusBarBattery;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [];
+
+
+  var app;
 
   function prepareDOM() {
     for (var i = 1; i < mobileConnectionCount; i++) {
@@ -93,6 +95,7 @@ suite('system/Statusbar', function() {
   mocksForStatusBar.attachTestHelpers();
 
   setup(function(done) {
+    app = new MockAppWindow();
     window.System = MockSystem;
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -1328,11 +1331,9 @@ suite('system/Statusbar', function() {
       this.sinon.clock.tick(10000);
     });
 
-    var app;
     setup(function() {
-      app = new AppWindow();
       MockSystem.topMostAppWindow = app;
-      MockSystem.fullscreenMode = true;
+      MockSystem.fullscreenMode = false;
       this.sinon.stub(StatusBar.element, 'getBoundingClientRect').returns({
         height: 10
       });
@@ -1342,11 +1343,9 @@ suite('system/Statusbar', function() {
 
     suite('Revealing the StatusBar >', function() {
       var stubBroadcast;
-      app = new AppWindow();
       setup(function() {
         StatusBar._cacheHeight = 24;
-        MockSystem.getTopMostWindow = app;
-        stubBroadcast = this.sinon.stub(app, 'broadcast');
+        stubBroadcast = this.sinon.stub(System.topMostAppWindow, 'broadcast');
       });
 
       function assertStatusBarReleased() {
@@ -1375,10 +1374,12 @@ suite('system/Statusbar', function() {
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 5);
         var transform = 'translateY(calc(5px - 100%))';
+        console.log(stubBroadcast);
+        assert.isTrue(stubBroadcast.called);
         assert.isTrue(stubBroadcast.calledWith('shadowtouchmove', {
           timeout: false,
           transform: transform
-        }));
+        }), 'broadcast is not correctly invoked.');
         fakeDispatch('touchend', 100, 5);
       });
 
@@ -1487,7 +1488,6 @@ suite('system/Statusbar', function() {
 
     test('it should prevent default on mouse events keep the focus on the app',
     function() {
-      System.fullscreenMode = false;
       var mousedown = fakeDispatch('mousedown', 100, 0);
       var mousemove = fakeDispatch('mousemove', 100, 2);
       var mouseup = fakeDispatch('mouseup', 100, 2);

@@ -134,8 +134,9 @@ var AttentionScreen = {
     // We want the user attention, so we need to turn the screen on
     // if it's off. The lockscreen will grab the focus when we do that
     // so we need to do it before adding the new iframe to the dom
-    if (!ScreenManager.screenEnabled)
-      ScreenManager.turnScreenOn();
+    if (!System.screenOn) {
+      this.publish('requestwake', this, true);
+    }
 
     var attentionFrame = evt.detail.frameElement;
     attentionFrame.dataset.frameType = 'attention';

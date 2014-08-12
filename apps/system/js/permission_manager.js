@@ -1,5 +1,5 @@
-/* global LazyLoader, AppWindowManager, applications, ManifestHelper*/
-/* global Template*/
+/* global LazyLoader, applications, ManifestHelper*/
+/* global Template, System */
 'use strict';
 (function(exports) {
   /**
@@ -7,11 +7,12 @@
    * @class PermissionManager
    * @requires Applications
    */
-  function PermissionManager() {
+  function PermissionManager(appWindowManager) {
+    this.appWindowManager = appWindowManager;
   }
 
-  PermissionManager.prototype = {
-
+  System.create(PermissionManager, {}, {
+    name: 'PermissionManager',
     currentOrigin: undefined,
     permissionType: undefined,
     currentPermissions: undefined,
@@ -37,11 +38,43 @@
      */
     currentRequestId: undefined,
 
+    containerElement: document.getElementById('screen'),
+    view: function() {
+      return
+      '<div id="permission-screen" data-z-index-level="permission-screen">' +
+        '<div id="permission-dialog" role="dialog" class="generic-dialog">' +
+          '<div class="inner">' +
+            '<h1 id="permission-title"></h1>' +
+            '<h2 id="permission-message"></h2>' +
+            '<div id="permission-more-info" class="hidden">' +
+              '<a id="permission-more-info-link" data-l10n-id="more-info" href="#">More Info…</a>' +
+              '<a id="permission-hide-info-link" data-l10n-id="hide-info" href="#" class="hidden">Hide Info</a>' +
+              '<div id="permission-more-info-box" class="hidden"> </div>' +
+            '</div>' +
+            '<div id="permission-remember-section">' +
+              '<label class="pack-checkbox">' +
+                '<input type="checkbox" id="permission-remember-checkbox" />' +
+                '<span></span>' +
+              '</label>' +
+              '<a data-l10n-id="remember-my-choice" id="permission-remember-label"></a>' +
+            '</div>' +
+            '<div id="permission-device-selector"></div>' +
+            '<ul id="permission-devices">' +
+            '</ul>' +
+            '<menu id="permission-buttons" data-items="2">' +
+              '<button id="permission-no"></button>' +
+              '<button id="permission-yes" class="affirmative"></button>' +
+            '</menu>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    },
+
     /**
      * start the PermissionManager to init variables and listeners
      * @memberof PermissionManager.prototype
      */
-    start: function pm_start() {
+    _start: function pm_start() {
       // Div over in which the permission UI resides.
       this.overlay = document.getElementById('permission-screen');
       this.dialog = document.getElementById('permission-dialog');
@@ -297,7 +330,8 @@
         this.cancelRequest(this.fullscreenRequest);
         this.fullscreenRequest = undefined;
       }
-      if (detail.fullscreenorigin !== AppWindowManager.getActiveApp().origin) {
+      if (detail.fullscreenorigin !==
+          this.appWindowManager.getActiveApp().getTopMostWindow().origin) {
         var _ = navigator.mozL10n.get;
         // The message to be displayed on the approval UI.
         var message =
@@ -628,7 +662,7 @@
       this.hidePermissionPrompt();
       this.pending = [];
     }
-  };
+  });
 
   exports.PermissionManager = PermissionManager;
 

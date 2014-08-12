@@ -7,6 +7,7 @@
 /* global MockStackManager */
 /* global MockSheetsTransition */
 /* global MockTouchForwarder */
+/* global MockSystem */
 
 requireApp('system/js/edge_swipe_detector.js');
 
@@ -15,7 +16,7 @@ requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/test/unit/mock_touch_forwarder.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
+require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksForEdgeSwipeDetector = new MocksHelper([
   'SheetsTransition',
@@ -23,7 +24,7 @@ var mocksForEdgeSwipeDetector = new MocksHelper([
   'SettingsListener',
   'TouchForwarder',
   'HomescreenLauncher',
-  'FtuLauncher'
+  'System'
 ]).init();
 
 suite('system/EdgeSwipeDetector >', function() {
@@ -56,13 +57,6 @@ suite('system/EdgeSwipeDetector >', function() {
     manifestURL: 'app://communications.gaiamobile.org/dialer/manifest.webapp',
     name: 'Dialer',
     getTopMostWindow: function() {}
-  };
-
-  var ftu = {
-    url: 'app://ftu.gaiamobile.org/index.html',
-    origin: 'app://ftu.gaiamobile.org',
-    manifestURL: 'app://ftu.gaiamobile.org/manifest.webapp',
-    name: 'FTU'
   };
 
   function appLaunch(config) {
@@ -178,9 +172,10 @@ suite('system/EdgeSwipeDetector >', function() {
     });
 
     test('the edges should be disabled on the FTU', function() {
-      launchTransitionEnd(ftu);
+      MockSystem.runningFTU = true;
       assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
       assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
+      MockSystem.runningFTU = false;
     });
   });
 

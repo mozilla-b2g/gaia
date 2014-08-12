@@ -1,6 +1,6 @@
 'use strict';
 
-/* global SettingsListener, SettingsURL, AttentionScreen, System*/
+/* global SettingsURL, AttentionScreen, System*/
 /* r=? dialer+system peers for changes in this file. */
 
 (function(exports) {
@@ -52,51 +52,62 @@
     player.loop = true;
   };
 
-  DialerAgent.prototype.start = function da_start() {
+  System.create(DialerAgent);
+  DialerAgent.IMPORTS = ['shared/js/settings_url.js'];
+  DialerAgent.SETTINGS = [
+    'dialer.ringtone',
+    'audio.volume.notification',
+
+  ];
+
+  DialerAgent.EVENTS = [
+    'volumedown',
+    'sleep'
+  ];
+
+  DialerAgent.prototype['_observe_audio.volume.notification'] = function(value) {
+    this._shouldRing = !!value;
+    if (this._shouldRing && this._alerting) {
+      this._player.play();
+    }
+  };
+
+  DialerAgent.prototype['_handle_dialer.ringtone'] = function(value) {
+    var phoneSoundURL = new SettingsURL();
+
+    this._player.pause();
+    this._player.src = phoneSoundURL.set(value);
+
+    if (this._shouldRing && this._alerting) {
+      this._player.play();
+    }
+  };
+
+  DialerAgent.prototype['_handle_vibration.enabled'] = function(value) {
+    this._shouldVibrate = !!value;
+  };
+
+  DialerAgent.prototype._handle_sleep = function(evt) {
+    this._stopAlerting();
+  };
+
+  DialerAgent.prototype._handle_volumedown = function(evt) {
+    this._stopAlerting();
+  };
+
+  DialerAgent.prototype._start = function da_start() {
     if (!this._telephony) {
       return;
     }
 
-    if (this._started) {
-      throw 'Instance should not be start()\'ed twice.';
-    }
-    this._started = true;
-
-    SettingsListener.observe('audio.volume.notification', 7, function(value) {
-      this._shouldRing = !!value;
-      if (this._shouldRing && this._alerting) {
-        this._player.play();
-      }
-    }.bind(this));
-
-    SettingsListener.observe('dialer.ringtone', '', function(value) {
-      var phoneSoundURL = new SettingsURL();
-
-      this._player.pause();
-      this._player.src = phoneSoundURL.set(value);
-
-      if (this._shouldRing && this._alerting) {
-        this._player.play();
-      }
-    }.bind(this));
-
-    SettingsListener.observe('vibration.enabled', true, function(value) {
-      this._shouldVibrate = !!value;
-    }.bind(this));
-
     this._telephony.addEventListener('callschanged', this);
-
-    window.addEventListener('sleep', this);
-    window.addEventListener('volumedown', this);
 
     this._callScreen = this._createCallScreen();
     var callScreen = this._callScreen;
     callScreen.src = CSORIGIN + 'index.html';
     callScreen.dataset.preloaded = true;
     // We need the iframe in the DOM
-    AttentionScreen.attentionScreen.appendChild(callScreen);
-
-    callScreen.setVisible(false);
+    window.AttentionScreen && AttentionScreen.attentionScreen.appendChild(callScreen);
   };
 
   DialerAgent.prototype.stop = function da_stop() {
@@ -115,16 +126,7 @@
     // See bug 981373.
   };
 
-  DialerAgent.prototype.handleEvent = function da_handleEvent(evt) {
-    if (evt.type === 'sleep' || evt.type === 'volumedown') {
-      this._stopAlerting();
-      return;
-    }
-
-    if (evt.type !== 'callschanged') {
-      return;
-    }
-
+  DialerAgent.prototype._handle_callschanged = function da_handleEvent(evt) {
     var calls = this._telephony.calls;
     if (calls.length !== 1) {
       return;

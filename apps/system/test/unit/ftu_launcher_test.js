@@ -1,10 +1,12 @@
-/* global FtuLauncher,
+/* global ftuLauncher, FtuLauncher,
           MockasyncStorage, MockNavigatorSettings */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/js/version_helper.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
+requireApp('system/js/system.js');
+requireApp('system/js/base_module.js');
 requireApp('system/js/ftu_launcher.js');
 
 suite('launch ftu >', function() {
@@ -18,11 +20,15 @@ suite('launch ftu >', function() {
     navigator.mozSettings = MockNavigatorSettings;
     window.FtuPing = function() {
       this.ensurePingCalled = false;
-      this.ensurePing = function() { this.ensurePingCalled = true; };
+      this.start = function() { this.ensurePingCalled = true; };
     };
+    window.ftuLauncher = new FtuLauncher();
+    window.ftuLauncher.start();
   });
 
   suiteTeardown(function() {
+    window.ftuLauncher.stop();
+    window.ftuLauncher = null;
     window.asyncStorage = realAsyncStorage;
     navigator.mozSettings = realMozSettings;
     window.FtuPing = realFtuPing;
@@ -40,13 +46,13 @@ suite('launch ftu >', function() {
         assert.equal(name, 'launch', 'FtuLauncher.launch was called');
         done();
       }
-      this.sinon.stub(FtuLauncher, 'launch', function() {
+      this.sinon.stub(ftuLauncher, 'launch', function() {
         onOutcome('launch');
       });
-      this.sinon.stub(FtuLauncher, 'skip', function() {
+      this.sinon.stub(ftuLauncher, 'skip', function() {
         onOutcome('skip');
       });
-      FtuLauncher.retrieve();
+      ftuLauncher.retrieve();
     });
     test('launch when enabled (no upgrade)', function(done) {
       MockasyncStorage.mItems['ftu.enabled'] = true;
@@ -56,29 +62,29 @@ suite('launch ftu >', function() {
         assert.equal(name, 'launch', 'FtuLauncher.launch was called');
         done();
       }
-      this.sinon.stub(FtuLauncher, 'launch', function() {
+      this.sinon.stub(ftuLauncher, 'launch', function() {
         onOutcome('launch');
       });
-      this.sinon.stub(FtuLauncher, 'skip', function() {
+      this.sinon.stub(ftuLauncher, 'skip', function() {
         onOutcome('skip');
       });
-      FtuLauncher.retrieve();
+      ftuLauncher.retrieve();
     });
     test('dont launch when not enabled (no upgrade)', function(done) {
       MockasyncStorage.mItems['ftu.enabled'] = false;
       navigator.mozSettings
         .mSettings['deviceinfo.previous_os'] = '2.0.1.whatever';
       function onOutcome(name) {
-        assert.equal(name, 'skip', 'FtuLauncher.skip was called');
+        assert.equal(name, 'skip', 'ftuLauncher.skip was called');
         done();
       }
-      this.sinon.stub(FtuLauncher, 'launch', function() {
+      this.sinon.stub(ftuLauncher, 'launch', function() {
         onOutcome('launch');
       });
-      this.sinon.stub(FtuLauncher, 'skip', function() {
+      this.sinon.stub(ftuLauncher, 'skip', function() {
         onOutcome('skip');
       });
-      FtuLauncher.retrieve();
+      ftuLauncher.retrieve();
     });
     test('launch when not enabled (upgrade)', function(done) {
       MockasyncStorage.mItems['ftu.enabled'] = false;
@@ -88,17 +94,17 @@ suite('launch ftu >', function() {
         assert.equal(name, 'launch', 'FtuLauncher.launch was called');
         done();
       }
-      this.sinon.stub(FtuLauncher, 'launch', function() {
+      this.sinon.stub(ftuLauncher, 'launch', function() {
         onOutcome('launch');
       });
-      this.sinon.stub(FtuLauncher, 'skip', function() {
+      this.sinon.stub(ftuLauncher, 'skip', function() {
         onOutcome('skip');
       });
-      FtuLauncher.retrieve();
+      ftuLauncher.retrieve();
     });
     test('ftu ping is called', function() {
-      FtuLauncher.retrieve();
-      assert.ok(FtuLauncher.getFtuPing().ensurePingCalled);
+      ftuLauncher.retrieve();
+      assert.ok(ftuLauncher.getFtuPing().ensurePingCalled);
     });
   });
 
@@ -115,13 +121,13 @@ suite('launch ftu >', function() {
         assert.equal(name, 'launch', 'FtuLauncher.launch was called');
         done();
       }
-      this.sinon.stub(FtuLauncher, 'launch', function() {
+      this.sinon.stub(ftuLauncher, 'launch', function() {
         onOutcome('launch');
       });
-      this.sinon.stub(FtuLauncher, 'skip', function() {
+      this.sinon.stub(ftuLauncher, 'skip', function() {
         onOutcome('skip');
       });
-      FtuLauncher.retrieve();
+      ftuLauncher.retrieve();
     });
   });
 });

@@ -1,6 +1,7 @@
 /* exported MockSystem */
 'use strict';
 var MockSystem = {
+  applicationReady: false,
   mPublishEvents: {},
   isBusyLoading: function() {
     return false;
@@ -12,7 +13,7 @@ var MockSystem = {
   },
   locked: false,
   runningFTU: false,
-  fullscreenMode: true,
+  fullscreenMode: false,
   topMostAppWindow: null,
   manifestURL: 'app://system.gaiamobile.org/manifest.webapp'
 };

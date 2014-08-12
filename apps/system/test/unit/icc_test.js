@@ -1,11 +1,11 @@
 /* global MocksHelper, MockNavigatorMozIccManager, icc,
           MockNavigatorMozMobileConnections, MockNavigatormozSetMessageHandler,
-          MockL10n, MockFtuLauncher, MockNavigatorSettings, KeyboardEvent */
+          MockL10n, MockSystem, MockNavigatorSettings, KeyboardEvent */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc_worker.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
+require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
@@ -18,7 +18,7 @@ require('/shared/test/unit/load_body_html_helper.js');
 
 var mocksForIcc = new MocksHelper([
   'Dump',
-  'FtuLauncher',
+  'System',
   'SystemICCWorker',
   'StatusBar',
   'KeyboardManager'
@@ -67,7 +67,7 @@ suite('STK (icc) >', function() {
   });
 
   setup(function(done) {
-    MockFtuLauncher.mIsRunning = false;
+    MockSystem.runningFTU = false;
 
     window.navigator.mozIccManager.addIcc('1010011010');
 

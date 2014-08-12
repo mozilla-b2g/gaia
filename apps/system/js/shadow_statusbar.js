@@ -23,24 +23,27 @@
   };
   ShadowStatusBar.prototype.RELEASE_TIMEOUT = 5000;
 
-  ShadowStatusBar.prototype._fetchAllElements = function(first_argument) {
+  ShadowStatusBar.prototype._fetchElements = function(first_argument) {
     this.titleBar = this.containerElement.querySelector('.titlebar');
     // XXX: This is rendered by appChrome.
-    this.chromeBar = this.app.element.querySelector('.chrome');
+    this.chromeBar = this.containerElement.querySelector('.chrome');
   };
 
   ShadowStatusBar.prototype.handleEvent = function(evt) {
     switch (evt.type) {
       case '_shadowtouchstart':
         clearTimeout(this._releaseTimeout);
-        this.chromeBar.style.transition = 'transform';
+        if (this.chromeBar) {
+          this.chromeBar.style.transition = 'transform';
+        }
         this.titleBar.style.transition = 'transform';
         break;
 
       case '_shadowtouchmove':
-        this.chromeBar.style.transform =
-          this.titleBar.style.transform =
-          evt.detail.transform;
+        if (this.chromeBar) {
+          this.chromeBar.style.transform = evt.detail.transform;
+        }
+        this.titleBar.style.transform = evt.detail.transform;
         break;
 
       case '_shadowtouchend':
@@ -58,9 +61,11 @@
     var titleBar = this.titleBar;
     var chromeBar = this.chromeBar;
 
-    chromeBar.classList.remove('dragged');
-    chromeBar.style.transform = '';
-    chromeBar.style.transition = '';
+    if (chromeBar) {
+      chromeBar.classList.remove('dragged');
+      chromeBar.style.transform = '';
+      chromeBar.style.transition = '';
+    }
 
     titleBar.classList.remove('dragged');
     titleBar.style.transform = '';
@@ -80,9 +85,11 @@
     titleBar.style.transition = '';
     titleBar.classList.add('dragged');
 
-    chromeBar.style.transform = '';
-    chromeBar.style.transition = '';
-    chromeBar.classList.add('dragged');
+    if (chromeBar) {
+      chromeBar.style.transform = '';
+      chromeBar.style.transition = '';
+      chromeBar.classList.add('dragged');
+    }
 
     self._releaseTimeout = setTimeout(function() {
       self._releaseBar();
@@ -98,6 +105,7 @@
       self._releaseBar();
     }
     window.addEventListener('touchstart', closeOnTap);
-  },
+  };
+
   exports.ShadowStatusBar = ShadowStatusBar;
 }(window));

@@ -230,5 +230,7 @@
     }
   };
 
-  AppWindow.addMixin(BrowserMixin);
+  if (window.AppWindow) {
+    window.AppWindow.addMixin(BrowserMixin);
+  }
 }(this));

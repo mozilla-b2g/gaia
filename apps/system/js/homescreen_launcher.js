@@ -1,5 +1,6 @@
 'use strict';
-/* global applications, SettingsListener, HomescreenWindow, TrustedUIManager */
+/* global SettingsListener, HomescreenWindow,
+          TrustedUIManager, BaseModule, System */
 (function(exports) {
   /**
    * HomescreenLauncher is responsible for launching the homescreen window
@@ -19,7 +20,8 @@
    * @requires module:Applications
    * @requires module:SettingsListener
    * @requires HomescreenWindow
-   * @requires Applications
+   * @requires System
+   * @requires BaseModule
    */
   var HomescreenLauncher = function() {
   };
@@ -33,15 +35,7 @@
    * @event HomescreenLauncher#homescreen-ready
    */
 
-  HomescreenLauncher.prototype = {
-    _currentManifestURL: '',
-
-    _instance: undefined,
-
-    _started: false,
-
-    _ready: false,
-
+  HomescreenLauncher.prototype = Object.create(BaseModule.prototype, {
     /**
      * Homescreen launcher is ready or not. Homescreen launcher is ready
      * only when it is done retrieving 'homescreen.manifestURL'
@@ -51,9 +45,36 @@
      * @memberOf HomescreenLauncher.prototype
      * @type {boolean}
      */
-    get ready() {
-      return this._ready;
-    },
+    ready: {
+      configurable: false,
+      get: function() { return this._ready; }
+    }
+  });
+  HomescreenLauncher.prototype.constructor = HomescreenLauncher;
+  HomescreenLauncher.EVENTS = [
+    'appopening',
+    'trusteduihide',
+    'trusteduishow',
+    'applicationready',
+    'cardviewbeforeshow',
+    'cardviewbeforeclose',
+    'shrinking-start',
+    'shrinking-stop',
+    'software-button-enabled',
+    'software-button-disabled'
+  ];
+  HomescreenLauncher.IMPORTS = [
+    'js/homescreen_window.js'
+  ];
+
+  var prototype = {
+    name: 'HomescreenLauncher',
+
+    _currentManifestURL: '',
+
+    _instance: undefined,
+
+    _ready: false,
 
     /**
      * Origin of homescreen.
@@ -97,39 +118,18 @@
         });
     },
 
-    _onAppReady: function hl_onAppReady() {
-      window.removeEventListener('applicationready', this._onAppReady);
-      this._fetchSettings();
-    },
-
     /**
      * Start process
      * ![Homescreen launch process](http://i.imgur.com/JZ1ibkc.png)
      *
      * @memberOf HomescreenLauncher.prototype
      */
-    start: function hl_start() {
-      if (this._started) {
-        return;
-      }
-      this._started = true;
-      if (applications.ready) {
+    _start: function hl_start() {
+      if (System && System.applicationReady) {
         this._fetchSettings();
       } else {
-        window.addEventListener('applicationready',
-          this._onAppReady.bind(this));
+        window.addEventListener('applicationready', this);
       }
-      window.addEventListener('trusteduishow', this);
-      window.addEventListener('trusteduihide', this);
-      window.addEventListener('appopening', this);
-      window.addEventListener('appopened', this);
-      window.addEventListener('keyboardchange', this);
-      window.addEventListener('cardviewbeforeshow', this);
-      window.addEventListener('cardviewbeforeclose', this);
-      window.addEventListener('shrinking-start', this);
-      window.addEventListener('shrinking-stop', this);
-      window.addEventListener('software-button-enabled', this);
-      window.addEventListener('software-button-disabled', this);
     },
 
     /**
@@ -137,7 +137,7 @@
      *
      * @memberOf HomescreenLauncher.prototype
      */
-    stop: function hl_stop() {
+    _stop: function hl_stop() {
       if (typeof(this._instance) !== 'undefined') {
         // XXX: After landing of bug 976986, we should move action of
         // cleaing _instance into a deregister function of
@@ -146,77 +146,62 @@
         this._instance.kill();
         this._instance = undefined;
       }
+      window.removeEventListener('applicationready', this);
       this._currentManifestURL = '';
-      window.removeEventListener('appopening', this);
-      window.removeEventListener('trusteduihide', this);
-      window.removeEventListener('trusteduishow', this);
-      window.removeEventListener('applicationready', this._onAppReady);
-      window.removeEventListener('cardviewbeforeshow', this);
-      window.removeEventListener('cardviewbeforeclose', this);
-      window.removeEventListener('shrinking-start', this);
-      window.removeEventListener('shrinking-stop', this);
-      window.removeEventListener('software-button-enabled', this);
-      window.removeEventListener('software-button-disabled', this);
-      this._started = false;
     },
 
-    /**
-     * General event handler interface.
-     *
-     * @param  {DOMEvent} evt The event.
-     * @type {boolean}
-     */
-    handleEvent: function hl_handleEvent(evt) {
-      switch (evt.type) {
-        case 'trusteduishow':
-          this.getHomescreen(true).toggle(true);
-          this.getHomescreen(true).fadeIn();
-          break;
-        case 'trusteduihide':
-          this.getHomescreen().toggle(false);
-          break;
-        case 'appopening':
-          // Fade out homescreen if the opening app is landscape.
-          if (evt.detail.rotatingDegree === 90 ||
-              evt.detail.rotatingDegree === 270) {
-            this.getHomescreen().fadeOut();
-          }
-          break;
-        case 'appopened':
-          // XXX: Remove the dependency in trustedUI rework.
-          if (!TrustedUIManager.hasTrustedUI(evt.detail.origin)) {
-            this.getHomescreen().fadeOut();
-          }
-          break;
-        case 'keyboardchange':
-          // Fade out the homescreen, so that it won't be seen when showing/
-          // hiding/switching keyboard.
-          this.getHomescreen().fadeOut();
-          break;
-        case 'cardviewbeforeshow':
-          // Fade out the homescreen before showing the cards view to avoid
-          // having it bleed through during the transition animation.
-          this.getHomescreen().fadeOut();
-          break;
-        case 'cardviewbeforeclose':
-          // Fade homescreen back in before the cards view closes.
-          this.getHomescreen().fadeIn();
-          break;
-        case 'shrinking-start':
-          // To hide the homescreen overlay while we set the background behind
-          // it due to the shrinking UI.
-          this.getHomescreen().hideFadeOverlay();
-          break;
-        case 'shrinking-stop':
-          // To resume the homescreen after shrinking UI is over.
-          this.getHomescreen().showFadeOverlay();
-          break;
-        case 'software-button-enabled':
-        case 'software-button-disabled':
-          var homescreen = this.getHomescreen();
-          homescreen && homescreen.resize();
-          break;
+    _handle_trusteduishow: function() {
+      this.getHomescreen(true).toggle(true);
+      this.getHomescreen(true).fadeIn();
+    },
+
+    _handle_trusteduihide: function() {
+      this.getHomescreen().toggle(false);
+    },
+
+    _handle_appopening: function(evt) {
+      // Fade out homescreen if the opening app is landscape.
+      if (evt.detail.rotatingDegree === 90 ||
+          evt.detail.rotatingDegree === 270) {
+        this.getHomescreen().fadeOut();
       }
+    },
+
+    _handle_appopened: function(evt) {
+      // XXX: Remove the dependency in trustedUI rework.
+      if (!TrustedUIManager.hasTrustedUI(evt.detail.origin)) {
+        this.getHomescreen().fadeOut();
+      }
+    },
+
+    _handle_keyboardchange: function() {
+      this.getHomescreen().fadeOut();
+    },
+
+    _handle_cardviewbeforeshow: function() {
+      this.getHomescreen().fadeOut();
+    },
+
+    _handle_cardviewbeforeclose: function() {
+      this.getHomescreen().fadeIn();
+    },
+
+    '_handle_shrinking-start': function() {
+      this.getHomescreen().hideFadeOverlay();
+    },
+
+    '_handle_shrinking-stop': function() {
+      this.getHomescreen().showFadeOverlay();
+    },
+
+    '_handle_software-button-enabled': function() {
+      var homescreen = this.getHomescreen();
+      homescreen && homescreen.resize();
+    },
+
+    '_handle_software-button-disabled': function() {
+      var homescreen = this.getHomescreen();
+      homescreen && homescreen.resize();
     },
 
     /**
@@ -243,6 +228,7 @@
       }
     }
   };
+  BaseModule.mixin(HomescreenLauncher.prototype, prototype);
 
   exports.HomescreenLauncher = HomescreenLauncher;
 }(window));

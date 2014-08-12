@@ -1,12 +1,9 @@
-/* -*Mode: js; js-indent-level: 2; indent-tabs-mode: nil -**/
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 /* global
    BrowserFrame,
    EntrySheet,
-   FtuLauncher,
    Notification,
-   MozActivity
+   MozActivity,
+   System
 */
 
 'use strict';
@@ -32,7 +29,7 @@ var CaptivePortal = {
         currentNetwork.ssid : '';
     var message = _('captive-wifi-available', { networkName: networkName });
 
-    if (FtuLauncher.isFtuRunning()) {
+    if (System.runningFTU) {
       settings.createLock().set({'wifi.connect_via_settings': false});
 
       this.entrySheet = new EntrySheet(document.getElementById('screen'),

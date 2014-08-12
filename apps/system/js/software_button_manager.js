@@ -3,6 +3,7 @@
 /* global ScreenLayout */
 /* global SettingsListener */
 /* global OrientationManager */
+/* global System */
 
 (function(exports) {
 
@@ -17,20 +18,36 @@
    * @requires OrientationManager
    */
   function SoftwareButtonManager() {
-    this.isMobile = ScreenLayout.getCurrentLayout('tiny');
-    this.isOnRealDevice = ScreenLayout.isOnRealDevice();
-    this.hasHardwareHomeButton =
-      ScreenLayout.getCurrentLayout('hardwareHomeButton');
-    // enabled is true on mobile that has no hardware home button
-    this.enabled = !this.hasHardwareHomeButton && this.isMobile;
-    this.element = document.getElementById('software-buttons');
-    this.homeButton = document.getElementById('software-home-button');
-    this.fullscreenHomeButton =
-      document.getElementById('fullscreen-software-home-button');
-    this.screenElement = document.getElementById('screen');
-  }
+  };
 
-  SoftwareButtonManager.prototype = {
+  SoftwareButtonManager.IMPORTS = [
+    'shared/js/screen_layout.js'
+  ];
+
+  System.create(SoftwareButtonManager, {
+    width: {
+      configurable: false,
+      get: function() {
+        if (!this.enabled || !this._currentOrientation.contains('landscape')) {
+          return 0;
+        }
+
+        return this._cacheWidth ||
+            (this._cacheWidth = this.element.getBoundingClientRect().width);
+      }
+    },
+    height: {
+      configurable: false,
+      get: function() {
+        if (!this.enabled || !this._currentOrientation.contains('portrait')) {
+          return 0;
+        }
+
+        return this._cacheHeight ||
+            (this._cacheHeight = this.element.getBoundingClientRect().height);
+      }
+    },
+  }, {
 
     /**
      * True if the device has a hardware home button.
@@ -60,14 +77,6 @@
      * @return The height of the software buttons element.
      */
     _cacheHeight: null,
-    get height() {
-      if (!this.enabled || !this._currentOrientation.contains('portrait')) {
-        return 0;
-      }
-
-      return this._cacheHeight ||
-          (this._cacheHeight = this.element.getBoundingClientRect().height);
-    },
 
     /**
      * Returns the width of the software buttons if device
@@ -76,14 +85,6 @@
      * @return The width of the software buttons element.
      */
     _cacheWidth: null,
-    get width() {
-      if (!this.enabled || !this._currentOrientation.contains('landscape')) {
-        return 0;
-      }
-
-      return this._cacheWidth ||
-          (this._cacheWidth = this.element.getBoundingClientRect().width);
-    },
 
     /**
      * The current device orientation.
@@ -92,11 +93,33 @@
      */
     _currentOrientation: null,
 
+    containerElement: document.getElementById('screen'),
+    view: function() {
+      return '<div id="software-buttons" data-z-index-level="software-buttons">' +
+                '<button aria-label="Home" id="software-home-button" ' +
+                  'data-l10n-id="softwareHomeButton"></button>' +
+              '</div>' +
+              '<button id="fullscreen-software-home-button" '+
+              'data-z-index-level="fullscreen-software-home-button"></button>';
+    },
+
     /**
      * Starts the SoftwareButtonManager instance.
      * @memberof SoftwareButtonManager.prototype
      */
-    start: function() {
+    _start: function() {
+      this.isMobile = ScreenLayout.getCurrentLayout('tiny');
+      this.isOnRealDevice = ScreenLayout.isOnRealDevice();
+      this.hasHardwareHomeButton =
+        ScreenLayout.getCurrentLayout('hardwareHomeButton');
+      // enabled is true on mobile that has no hardware home button
+      this.enabled = !this.hasHardwareHomeButton && this.isMobile;
+      this.element = document.getElementById('software-buttons');
+      this.homeButton = document.getElementById('software-home-button');
+      this.fullscreenHomeButton =
+        document.getElementById('fullscreen-software-home-button');
+      this.screenElement = document.getElementById('screen');
+
       if (this.isMobile && this.isOnRealDevice) {
         if (!this.hasHardwareHomeButton) {
           this.overrideFlag = true;
@@ -109,7 +132,7 @@
           };
         }
 
-        SettingsListener.observe('software-button.enabled', false,
+        SettingsListener.observe('', false,
           function onObserve(value) {
             // Default settings from build/settings.js will override the value
             // of 'software-button.enabled', so we set a flag to avoid it
@@ -266,7 +289,7 @@
           break;
       }
     }
-  };
+  });
 
   exports.SoftwareButtonManager = SoftwareButtonManager;
 

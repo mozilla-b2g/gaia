@@ -1,5 +1,5 @@
 'use strict';
-/* global ScreenManager, ModalDialog */
+/* global System, ModalDialog */
 
 (function(exports) {
 
@@ -30,8 +30,8 @@
 
       // We want the user attention, so we need to turn the screen on
       // if it's off.
-      if (!ScreenManager.screenEnabled) {
-        ScreenManager.turnScreenOn();
+      if (!System.screenOn) {
+        this.publish('requestwake', this, true);
       }
 
       // Reusing the ModalDialog infrastructure.

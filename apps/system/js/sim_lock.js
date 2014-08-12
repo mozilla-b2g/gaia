@@ -1,4 +1,4 @@
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global System */
 
 'use strict';
 
@@ -131,7 +131,7 @@ var SimLock = {
 
         // Ignore first time usage (FTU) app which already asks for the PIN code
         // XXX: We should have a better way to detect this app is FTU or not.
-        if (app.origin == FtuLauncher.getFtuOrigin())
+        if (System.runningFTU)
           return;
 
         // Ignore apps that don't require a mobile connection
@@ -167,7 +167,7 @@ var SimLock = {
     }
 
     // FTU has its specific SIM PIN UI
-    if (FtuLauncher.isFtuRunning()) {
+    if (System.runningFTU) {
       VersionHelper.getVersionInfo().then(function(info) {
         if (!info.isUpgrade()) {
           SimPinDialog.close();

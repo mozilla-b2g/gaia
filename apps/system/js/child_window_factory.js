@@ -1,6 +1,6 @@
 'use strict';
 /* global AppWindow, PopupWindow, ActivityWindow, SettingsListener,
-          AttentionScreen, MozActivity */
+          AttentionScreen, MozActivity, System, rocketbar, applications */
 
 (function(exports) {
   var ENABLE_IN_APP_SHEET = false;
@@ -49,8 +49,8 @@
         return;
       }
       // Skip to wrapperWindowFactory.
-      if (this.isHomescreen) {
-        // XXX: Launch wrapper window here.
+      if (this.isHomescreen || this.app.CLASSNAME == 'SearchWindow') {
+        this.preLaunchWrapper(evt);
         return;
       }
 
@@ -190,6 +190,151 @@
     };
 
     return true;
+  };
+
+  ChildWindowFactory.prototype.preLaunchWrapper = function(evt) {
+    var detail = evt.detail;
+
+    // If it's a normal window.open request, ignore.
+    if (typeof detail.features !== 'string') {
+      return;
+    }
+
+    // Turn ',' separated 'key=value' string into object for easy access
+    var features = detail.features
+      .split(',')
+      .reduce(function(acc, feature) {
+        feature = feature
+          .split('=')
+          .map(function(featureElem) { return featureElem.trim(); });
+        if (feature.length !== 2) {
+          return acc;
+        }
+
+        acc[decodeURIComponent(feature[0])] = decodeURIComponent(feature[1]);
+        return acc;
+      }, {});
+
+    if (features.features === 'rocketbarstartpage') {
+      evt.stopImmediatePropagation();
+      rocketbar.showNewTabPage();
+      return;
+    }
+
+    // Handles only call to window.open with `remote=true` feature.
+    if (!('remote' in features) || features.remote !== 'true') {
+      return;
+    }
+
+    var callerOrigin;
+
+    // Examine permission
+    // XXX: Ask app window about this.
+    // We can skip the permission check for events against the system window.
+    if (evt.target !== window) {
+      var callerIframe = evt.target;
+      var manifestURL = callerIframe.getAttribute('mozapp');
+
+      var callerApp = applications.getByManifestURL(manifestURL);
+      if (!this.hasPermission(callerApp, 'open-remote-window')) {
+        return;
+      }
+
+      callerOrigin = callerApp.origin;
+    } else {
+      callerOrigin = location.origin;
+    }
+
+    // So, we are going to open a remote window.
+    evt.stopImmediatePropagation();
+
+    var name = detail.name;
+    var url = detail.url;
+    var app;
+
+    // Use fake origin for named windows in order to be able to reuse them,
+    // otherwise always open a new window for '_blank'.
+    var origin = null;
+    if (name == '_blank') {
+      origin = url;
+      app = System.getRunningApp(origin);
+      // Just bring on top if a wrapper window is
+      // already running with this url.
+      if (app && app.windowName == '_blank') {
+        this.publish('launchapp', { origin: origin });
+      }
+    } else {
+      origin = 'window:' + name + ',source:' + callerOrigin;
+      app = System.getRunningApp(origin);
+      if (app && app.windowName === name) {
+        if (app.iframe.src === url) {
+          // If the url is already loaded, just display the app
+          this.publish('launchapp', { origin: origin });
+          return;
+        } else {
+          // Wrapper context shouldn't be shared between two apps -> killing
+          this.publish('killapp', { origin: origin });
+        }
+      }
+    }
+
+    // TODO: Put this into browser_config_helper.
+    var browser_config = this.generateBrowserConfig(features);
+
+    // If we don't reuse an existing app, open a brand new one
+    browser_config.url = url;
+    browser_config.origin = origin;
+    browser_config.windowName = name;
+    if (!browser_config.title) {
+      browser_config.title = url;
+    }
+
+    
+    // XXX: The request is redirected to AppWindowFactory,
+    // because it needs to check
+    // if this browser window is already opened or not.
+    this.publish('launchapp', browser_config);
+  };
+
+  ChildWindowFactory.prototype.hasPermission = function(permission) {
+    var mozPerms = navigator.mozPermissionSettings;
+    if (!mozPerms) {
+      return false;
+    }
+
+    var value = mozPerms.get(
+      permission, this.app.manifestURL, this.app.origin, false);
+
+    return (value === 'allow');
+  };
+
+  ChildWindowFactory.prototype.generateBrowserConfig = function(features) {
+    var config = {};
+    config.title = features.name;
+    config.icon = features.icon || '';
+
+    if ('originName' in features) {
+      config.originName = features.originName;
+      config.originURL = features.originUrl;
+    }
+
+    if ('searchName' in features) {
+      config.searchName = features.searchName;
+      config.searchURL = features.searchUrl;
+    }
+
+    if ('useAsyncPanZoom' in features &&
+        features.useAsyncPanZoom === 'true') {
+      config.useAsyncPanZoom = true;
+    } else {
+      config.useAsyncPanZoom = false;
+    }
+
+    if ('remote' in features) {
+      config.oop = true;
+    }
+
+    return config;
   };
 
   exports.ChildWindowFactory = ChildWindowFactory;

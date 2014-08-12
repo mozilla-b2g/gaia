@@ -1,5 +1,4 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global System */
 'use strict';
 
 (function(exports) {
@@ -10,15 +9,23 @@
    * or turn the secure mode on/off, would be handled. However, if we need
    * to handle cases in the future, we would extend this manager.
    *
-   * So far the LockScreenWindowManager would only manager 1 secure app at once,
+   * So far the LockscreenWindowManager would only manager 1 secure app at once,
    * but there're already some designations for multiple apps.
    *
-   * @constructor LockScreenWindowManager
+   * @constructor LockscreenWindowManager
    */
-  var LockScreenWindowManager = function() {};
-  LockScreenWindowManager.prototype = {
+  var LockscreenWindowManager = function() {};
+  LockscreenWindowManager.IMPORTS = [
+    'js/clock.js',
+    'js/lockscreen.js',
+    'js/lockscreen_slide.js',
+    'shared/js/template.js',
+    'js/lockscreen_window.js'
+  ];
+  System.create(LockscreenWindowManager, {},
+  {
     /**
-     * @memberof LockScreenWindowManager#
+     * @memberof LockscreenWindowManager#
      * @prop {DOMElement} windows - the `#windows` element, which is the same
      *                              element that the would AppWindowManager use.
      * @prop {DOMElement} screen - the `#screen` element.
@@ -29,7 +36,7 @@
     },
 
     /**
-     * @memberof LockScreenWindowManager#
+     * @memberof LockscreenWindowManager#
      */
     states: {
       FTUOccurs: false,
@@ -40,7 +47,7 @@
     },
 
     /**
-     * @memberof LockScreenWindowManager#
+     * @memberof LockscreenWindowManager#
      */
     configs: {
       listens: ['lockscreen-request-unlock',
@@ -57,12 +64,12 @@
     },
     modules: ['LockScreenNotifications',
               'LockScreenPasscodeValidator']
-  };
+  });
 
   /**
    * To initialize the class instance (register events, observe settings, etc.)
    */
-  LockScreenWindowManager.prototype.start =
+  LockscreenWindowManager.prototype._start =
   function lwm_start() {
     this.startModules();
     this.startEventListeners();
@@ -81,10 +88,10 @@
    *                                       called to close itself, the event
    *                                       would be fired
    * @listens screenchange - means to initialize the lockscreen and its window
-   * @this {LockScreenWindowManager}
-   * @memberof LockScreenWindowManager
+   * @this {LockscreenWindowManager}
+   * @memberof LockscreenWindowManager
    */
-  LockScreenWindowManager.prototype.handleEvent =
+  LockscreenWindowManager.prototype.handleEvent =
     function lwm_handleEvent(evt) {
       var app = null;
       switch (evt.type) {
@@ -98,6 +105,7 @@
             this.states.instance.setVisible(true);
           }
           break;
+        case 'fturequest-unlock':
         case 'ftuopen':
           this.states.FTUOccurs = true;
           if (!this.states.instance) {
@@ -145,10 +153,10 @@
 
   /**
    * @private
-   * @this {LockScreenWindowManager}
-   * @memberof LockScreenWindowManager
+   * @this {LockscreenWindowManager}
+   * @memberof LockscreenWindowManager
    */
-  LockScreenWindowManager.prototype.initElements =
+  LockscreenWindowManager.prototype.initElements =
     function lwm_initElements() {
       var selectors = { windows: 'windows', screen: 'screen'};
       for (var name in selectors) {
@@ -161,17 +169,16 @@
    * Instantiate and start submodules.
    *
    * @private
-   * @this {LockScreenWindowManager}
-   * @memberof LockScreenWindowManager
+   * @this {LockscreenWindowManager}
+   * @memberof LockscreenWindowManager
    */
-  LockScreenWindowManager.prototype.startModules =
+  LockscreenWindowManager.prototype.startModules =
     function lwm_startObserveSettings() {
       this.modules.forEach(function(module) {
         if (window[module]) {
-          var moduleName =
-            module.charAt(0).toUpperCase() + module.slice(1);
-          this[moduleName] = new window[module](this);
-          this[moduleName].start && this[moduleName].start();
+          var moduleName = System.lowerCapital(module);
+          window[moduleName] = new window[module](this);
+          window[moduleName].start && window[moduleName].start();
         }
       }, this);
     };
@@ -180,10 +187,10 @@
    * Hook observers of settings to allow or ban window opening.
    *
    * @private
-   * @this {LockScreenWindowManager}
-   * @memberof LockScreenWindowManager
+   * @this {LockscreenWindowManager}
+   * @memberof LockscreenWindowManager
    */
-  LockScreenWindowManager.prototype.startObserveSettings =
+  LockscreenWindowManager.prototype.startObserveSettings =
     function lwm_startObserveSettings() {
       var enabledListener = (val) => {
         if ('false' === val ||
@@ -216,10 +223,10 @@
    * Hook listeners of events this manager interested in.
    *
    * @private
-   * @this {LockScreenWindowManager}
-   * @memberof LockScreenWindowManager
+   * @this {LockscreenWindowManager}
+   * @memberof LockscreenWindowManager
    */
-  LockScreenWindowManager.prototype.startEventListeners =
+  LockscreenWindowManager.prototype.startEventListeners =
     function lwm_startEventListeners() {
       this.configs.listens.forEach((function _initEvent(type) {
         self.addEventListener(type, this);
@@ -230,10 +237,10 @@
    * Remove listeners of events this manager interested in.
    *
    * @private
-   * @this {LockScreenWindowManager}
-   * @memberof LockScreenWindowManager
+   * @this {LockscreenWindowManager}
+   * @memberof LockscreenWindowManager
    */
-  LockScreenWindowManager.prototype.stopEventListeners =
+  LockscreenWindowManager.prototype.stopEventListeners =
     function lwm_stopEventListeners() {
       this.configs.listens.forEach((function _unbind(ename) {
         self.removeEventListener(ename, this);
@@ -246,10 +253,10 @@
    *
    * @param {boolean} instant - true if instantly close.
    * @private
-   * @this {LockScreenWindowManager}
-   * @memberof LockScreenWindowManager
+   * @this {LockscreenWindowManager}
+   * @memberof LockscreenWindowManager
    */
-  LockScreenWindowManager.prototype.closeApp =
+  LockscreenWindowManager.prototype.closeApp =
     function lwm_closeApp(instant) {
       if (!this.states.enabled && !this.states.active) {
         return;
@@ -265,10 +272,10 @@
    * If it's not enabled, would do nothing.
    *
    * @private
-   * @this {LockScreenWindowManager}
-   * @memberof LockScreenWindowManager
+   * @this {LockscreenWindowManager}
+   * @memberof LockscreenWindowManager
    */
-  LockScreenWindowManager.prototype.openApp =
+  LockscreenWindowManager.prototype.openApp =
     function lwm_openApp() {
       if (!this.states.enabled) {
         return;
@@ -286,10 +293,10 @@
    * Message passing method. Would publish to the whole System app.
    *
    * @private
-   * @this {LockScreenWindowManager}
-   * @memberof LockScreenWindowManager
+   * @this {LockscreenWindowManager}
+   * @memberof LockscreenWindowManager
    */
-  LockScreenWindowManager.prototype.publish =
+  LockscreenWindowManager.prototype.publish =
     function lwm_publish(ne, source) {
       if ('string' === typeof ne) {
         ne = new CustomEvent(ne);
@@ -302,20 +309,20 @@
 
   /**
    * @private
-   * @this {LockScreenWindowManager}
-   * @memberof LockScreenWindowManager
+   * @this {LockscreenWindowManager}
+   * @memberof LockscreenWindowManager
    */
-  LockScreenWindowManager.prototype.registerApp =
+  LockscreenWindowManager.prototype.registerApp =
     function lwm_registerApp(app) {
       this.states.instance = app;
     };
 
   /**
    * @private
-   * @this {LockScreenWindowManager}
-   * @memberof LockScreenWindowManager
+   * @this {LockscreenWindowManager}
+   * @memberof LockscreenWindowManager
    */
-  LockScreenWindowManager.prototype.unregisterApp =
+  LockscreenWindowManager.prototype.unregisterApp =
     function lwm_unregisterApp(app) {
       this.states.instance = null;
     };
@@ -325,10 +332,10 @@
    * if it is needed.
    *
    * @private
-   * @this {LockScreenWindowManager}
-   * @memberof LockScreenWindowManager
+   * @this {LockscreenWindowManager}
+   * @memberof LockscreenWindowManager
    */
-  LockScreenWindowManager.prototype.createWindow =
+  LockscreenWindowManager.prototype.createWindow =
     function lwm_createWindow() {
       if (this.states.windowCreating) {
         return false;
@@ -344,10 +351,10 @@
    * to see if we need to open the window.
    *
    * @private
-   * @this {LockScreenWindowManager}
-   * @memberof LockScreenWindowManager
+   * @this {LockscreenWindowManager}
+   * @memberof LockscreenWindowManager
    */
-  LockScreenWindowManager.prototype.initWindow =
+  LockscreenWindowManager.prototype.initWindow =
     function lwm_initWindow() {
       var req = window.SettingsListener.getSettingsLock()
         .get('lockscreen.enabled');
@@ -363,12 +370,11 @@
       };
     };
 
-  LockScreenWindowManager.prototype.responseUnlock =
+  LockscreenWindowManager.prototype.responseUnlock =
     function lwm_responseUnlock(detail) {
       // Only when the background app is ready,
       // we close the window.
-      var activeApp = window.AppWindowManager ?
-            window.AppWindowManager.getActiveApp() : null;
+      var activeApp = System.topMostAppWindow;
       if (!activeApp) {
         this.closeApp();
       } else {
@@ -376,6 +382,6 @@
       }
     };
 
-  /** @exports LockScreenWindowManager */
-  exports.LockScreenWindowManager = LockScreenWindowManager;
+  /** @exports LockscreenWindowManager */
+  exports.LockscreenWindowManager = LockscreenWindowManager;
 })(window);

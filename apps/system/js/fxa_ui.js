@@ -1,4 +1,4 @@
-/* global FxAccountsDialog, FtuLauncher */
+/* global FxAccountsDialog, System */
 
 'use strict';
 
@@ -72,7 +72,7 @@ var FxAccountsUI = {
   // Method for loading the iframe with the flow required.
   loadFlow: function fxa_ui_loadFlow(flow, params) {
     var url = '../fxa/fxa_module.html#' + flow;
-    if (FtuLauncher.isFtuRunning()) {
+    if (System.runningFTU) {
       params = params || [];
       params.push('isftu=true');
     }

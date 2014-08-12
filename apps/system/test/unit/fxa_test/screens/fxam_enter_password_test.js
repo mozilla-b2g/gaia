@@ -13,6 +13,7 @@ requireApp('system/fxa/js/fxam_error_overlay.js');
 
 // Mockuped code
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_system.js');
 
 requireApp('system/fxa/js/fxam_ui.js');
 requireApp('/system/test/unit/fxa_test/mock_fxam_ui.js');
@@ -22,8 +23,6 @@ requireApp('/system/test/unit/fxa_test/mock_fxam_server_request.js');
 
 requireApp('system/fxa/js/fxam_errors.js');
 requireApp('/system/test/unit/fxa_test/mock_fxam_errors.js');
-
-requireApp('/system/test/unit/mock_ftu_launcher.js');
 
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -39,13 +38,7 @@ var mocksHelperForEnterPasswordModule = new MocksHelper([
   'FxaModuleUI',
   'FxModuleServerRequest',
   'FxaModuleErrors',
-  'FtuLauncher'
-]);
-
-mocha.globals([
-  'FxModuleServerRequest',
-  'FxaModuleErrors',
-  'FtuLauncher'
+  'System'
 ]);
 
 suite('Screen: Enter password', function() {

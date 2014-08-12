@@ -1,5 +1,5 @@
 /* global Card, TaskCard,
-          AppWindowManager, sleepMenu, SettingsListener, AttentionScreen,
+          sleepMenu, SettingsListener, AttentionScreen,
           OrientationManager, System,
           GestureDetector, UtilityTray, StackManager, Event */
 
@@ -17,7 +17,8 @@
    *
    * @class TaskManager
    */
-  function TaskManager() {
+  function TaskManager(appWindowManager) {
+    this.appWindowManager = appWindowManager;
     this.stack = null;
     this.cardsByOrigin = {};
     // Unkillable apps which have attention screen now
@@ -32,7 +33,58 @@
                              this.onTaskStripEnabled);
   }
 
-  TaskManager.prototype = Object.create({
+  System.create(TaskManager, {
+    /**
+     * Getter for the current card
+     * @memberOf TaskManager.prototype
+     */
+    currentCard: {
+      get: function cs_getCurrentCard() {
+        return this.getCardAtIndex(this.currentDisplayed);
+      }
+    },
+    /**
+     * Getter for the previous card in the stack
+     * @memberOf TaskManager.prototype
+     */
+    prevCard: {
+      // e.g. stack looks like: 0:phone, 1:Contacts, 2:Settings
+      // if currentDisplayed is 0, prev is -1 i.e. null
+      get: function cs_getPrevCard() {
+        return this.getCardAtIndex(this.currentDisplayed - 1);
+      }
+    },
+    /**
+     * Getter for the next card in the stack
+     * @memberOf TaskManager.prototype
+     */
+    nextCard: {
+      // e.g. stack looks like: 0:phone, 1:Contacts, 2:Settings
+      // if currentDisplayed is 2, next is 3 i.e. null
+      get: function cs_getNextCard() {
+        return this.getCardAtIndex(this.currentDisplayed + 1);
+      }
+    },
+    /**
+     * Getter to access cached window innerWidth measurement
+     * @memberOf TaskManager.prototype
+     */
+    windowWidth: {
+      get: function cs_getWindowWidth() {
+        return this._windowWidth;
+      }
+    },
+    /**
+     * Getter to access cached window innerHeight measurement
+     * @memberOf TaskManager.prototype
+     */
+    windowHeight: {
+      get: function cs_getWindowHeight() {
+        return this._windowHeight;
+      }
+    }
+  }, {
+
     /**
      * Use the carousel-style card view (false) or
      * the Haida-style horizontal task strip (true)
@@ -83,57 +135,16 @@
     sortingDirection: null,
 
     _showing: false
-  }, {
-    /**
-     * Getter for the current card
-     * @memberOf TaskManager.prototype
-     */
-    currentCard: {
-      get: function cs_getCurrentCard() {
-        return this.getCardAtIndex(this.currentDisplayed);
-      }
-    },
-    /**
-     * Getter for the previous card in the stack
-     * @memberOf TaskManager.prototype
-     */
-    prevCard: {
-      // e.g. stack looks like: 0:phone, 1:Contacts, 2:Settings
-      // if currentDisplayed is 0, prev is -1 i.e. null
-      get: function cs_getPrevCard() {
-        return this.getCardAtIndex(this.currentDisplayed - 1);
-      }
-    },
-    /**
-     * Getter for the next card in the stack
-     * @memberOf TaskManager.prototype
-     */
-    nextCard: {
-      // e.g. stack looks like: 0:phone, 1:Contacts, 2:Settings
-      // if currentDisplayed is 2, next is 3 i.e. null
-      get: function cs_getNextCard() {
-        return this.getCardAtIndex(this.currentDisplayed + 1);
-      }
-    },
-    /**
-     * Getter to access cached window innerWidth measurement
-     * @memberOf TaskManager.prototype
-     */
-    windowWidth: {
-      get: function cs_getWindowWidth() {
-        return this._windowWidth;
-      }
-    },
-    /**
-     * Getter to access cached window innerHeight measurement
-     * @memberOf TaskManager.prototype
-     */
-    windowHeight: {
-      get: function cs_getWindowHeight() {
-        return this._windowHeight;
-      }
-    }
   });
+
+  TaskManager.prototype.containerElement = document.getElementById('screen');
+
+  TaskManager.prototype.view = function() {
+    return '<div id="cards-view" data-z-index-level="cards-view">' +
+        '<ul id="cards-list"></ul>' +
+        '<span class="no-recent-apps" data-l10n-id="no-recent-apps">No recent apps</span>' +
+      '</div>';
+  };
 
   /**
    * initialize
@@ -333,7 +344,8 @@
     // while the task manager is shown, the active app is the homescreen
     // so selecting an app switches from homescreen to that app
     // which gets us in the right state
-    AppWindowManager.display(null, null, 'to-cardview');
+    // XXX: Decoupling with appWindowManager
+    this.appWindowManager.display(null, null, 'to-cardview');
 
     // We're committed to showing the card switcher.
     // Homescreen fades (shows its fade-overlay) on cardviewbeforeshow events
@@ -485,7 +497,7 @@
         return;
       case 'select' :
         this.newStackPosition = card.position;
-        AppWindowManager.display(
+        this.appWindowManager.display(
           card.app,
           'from-cardview',
           null
@@ -672,7 +684,7 @@
         break;
 
       case 'opencurrentcard':
-        AppWindowManager.display(
+        this.appWindowManager.display(
           this.currentCard.app.origin,
           'from-cardview',
           null);
@@ -714,7 +726,7 @@
         if (this.isTaskStrip) {
           this.show();
         } else {
-          app = AppWindowManager.getActiveApp();
+          app = System.topMostAppWindow;
           if (app) {
             app.getScreenshot(function onGettingRealtimeScreenshot() {
               this.show();
@@ -1184,10 +1196,4 @@
   };
 
   exports.TaskManager = TaskManager;
-
-  function debug(message) {
-    if (DEBUG) {
-      console.log('TaskManager > \n  ', message);
-    }
-  }
 })(window);

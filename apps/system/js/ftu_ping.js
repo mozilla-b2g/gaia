@@ -1,9 +1,6 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
 
-/* global MobileOperator, SIMSlotManager, uuid, dump */
+/* global MobileOperator, SIMSlotManager, uuid, System */
 
 /**
  * A simple ping that is kicked off on first time use
@@ -38,9 +35,13 @@
                             'app.update.channel'];
 
   function FtuPing() {
-  }
+  };
+  FtuPing.IMPORTS = [
+    'shared/js/uuid.js'
+  ];
 
-  FtuPing.prototype = {
+  System.create(FtuPing, {}, {
+    name: 'FtuPing',
     // whether or not required properties have been loaded
     _pingReady: false,
     _pingReadyCallback: null,
@@ -70,12 +71,6 @@
     // Timeout for ping requests
     _pingTimeout: DEFAULT_PING_TIMEOUT,
     _settingObserver: null,
-
-    debug: function fp_debug(msg) {
-      if (DEBUG) {
-        dump('[FtuPing] ' + msg + '\n');
-      }
-    },
 
     reset: function fp_reset() {
       this._pingReady = false;
@@ -191,7 +186,7 @@
       });
     },
 
-    ensurePing: function fp_ensurePing() {
+    _start: function fp_ensurePing() {
       this.initSettings(this.startPing.bind(this));
     },
 
@@ -400,7 +395,7 @@
     getMaxNetworkFails: function fp_getMaxNetworkFails() {
       return this._maxNetworkFails;
     }
-  };
+  });
 
   exports.FtuPing = FtuPing;
 }(window));

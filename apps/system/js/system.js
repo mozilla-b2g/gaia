@@ -1,3 +1,4 @@
+/* global LazyLoader */
 'use strict';
 
 (function(window) {
@@ -8,20 +9,58 @@
    * @module  System
    */
   window.System = {
+    'API': {
+      'nfc': navigator.mozNFC,
+      'bluetooth': navigator.mozBluetooth,
+      'apps': navigator.mozApps,
+      'telephony': navigator.mozTelephony,
+      'mobileConnections': navigator.mozMobileConnections,
+      'wifi': navigator.wifiManager,
+      'settings': navigator.mozSettings
+    },
+
+    create: function(constructor, properties, prototype) {
+      constructor.prototype = Object.create(BaseModule.prototype, properties);
+      constructor.prototype.constructor = constructor;
+      if (prototype) {
+        BaseModule.mixin(constructor.prototype, prototype);
+      }
+      return constructor;
+    },
+
+    lazyLoad: function(array, callback) {
+      var fileList = [];
+      array.forEach(function(module) {
+        fileList.push(this.object2fileName(module));
+      }, this);
+      LazyLoader.load(fileList, callback);
+    },
+
     lowerCapital: function(str) {
       return str.charAt(0).toLowerCase() + str.slice(1);
     },
 
-    getActiveApp: function() {
-      if (AppWindowManager) {
-        return AppWindowManager.getActiveApp();
-      } else {
-        return null;
+    object2fileName: function(strings) {
+      var i = 0;
+      var ch = '';
+      while (i <= strings.length) {
+        var character = strings.charAt(i);
+        if (character !== character.toLowerCase()) {
+          if (ch === '') {
+            ch += character.toLowerCase();
+          } else {
+            ch += '_' + character.toLowerCase();
+          }
+        } else {
+          ch += character;
+        }
+        i++;
       }
+      return '/js/' + ch + '.js';
     },
 
-    get readyToLaunchApp() {
-      return applications && applications.ready;
+    get applicationReady() {
+      return window.applications && window.applications.ready;
     },
 
     /**
@@ -29,7 +68,51 @@
      * Now it stands for the foreground app is not loaded yet.
      */
     isBusyLoading: function() {
-      return !window.AppWindowManager.getActiveApp().loaded;
+      return (window.appWindowManager &&
+              !window.appWindowManager.getActiveApp().loaded);
+    },
+
+    get screenOn() {
+      return window.systemApp &&
+             window.systemApp.screenManager &&
+             window.systemApp.screenManager.screenEnabled;
+    },
+
+    /**
+     * Get the running app window instance by the origin/manifestURL provided.
+     * @param {String} origin The url to be matched.
+     * @param {String} [manifestURL] The manifestURL to be matched.
+     */
+    getRunningApp: function(origin, manifestURL) {
+      return window.appWindowManager ?
+             window.appWindowManager.getApp(origin, manifestURL) : null;
+    },
+
+    /**
+     * Get the lists of running app window instances.
+     */
+    getRunningApps: function() {
+      return window.appWindowManager ?
+             window.appWindowManager.getApps() : [];
+    },
+
+    isBTProfileConnected: function(profile) {
+      return window.bluetoothHandler &&
+             window.bluetoothHandler.isProfileConnected(profile);
+    },
+
+    get bluetoothConnected() {
+      return window.bluetoothHandler &&
+             window.bluetoothHandler.connected;
+    },
+
+    get headphonesActive() {
+      return StatusBar && StatusBar.headphonesActive;
+    },
+
+    get keyboardHeight() {
+      return systemApp &&
+             systemApp.keyboardManager && systemApp.keyboardManager.getHeight();
     },
 
     /**
@@ -89,10 +172,10 @@
     },
 
     get topMostAppWindow() {
-      if ('undefined' === typeof window.AppWindowManager) {
+      if ('undefined' === typeof window.appWindowManager) {
         return null;
       } else {
-        return window.AppWindowManager.getActiveApp();
+        return window.appWindowManager.getActiveApp();
       }
     },
 
@@ -102,18 +185,19 @@
     get fullscreenMode() {
       if (document.mozFullScreen) {
         return true;
-      } else if ('undefined' === typeof window.AppWindowManager) {
+      } else if ('undefined' === typeof window.appWindowManager ||
+                 !appWindowManager.getActiveApp()) {
         return false;
       } else {
-        return window.AppWindowManager.getActiveApp().isFullScreen();
+        return window.appWindowManager.getActiveApp().isFullScreen();
       }
     },
 
     get runningFTU() {
-      if ('undefined' === typeof window.FtuLauncher) {
+      if ('undefined' === typeof window.ftuLauncher) {
         return false;
       } else {
-        return window.FtuLauncher.isFtuRunning();
+        return window.ftuLauncher.isFtuRunning();
       }
     },
 

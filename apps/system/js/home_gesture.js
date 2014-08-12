@@ -1,6 +1,7 @@
 'use strict';
 /* global ScreenLayout */
 /* global SettingsListener */
+/* global System */
 
 (function(exports) {
 
@@ -14,14 +15,13 @@
    * @requires SettingsListener
    */
   function HomeGesture() {
-
-    this.isTablet = !ScreenLayout.getCurrentLayout('tiny');
-    this.hasHardwareHomeButton =
-      ScreenLayout.getCurrentLayout('hardwareHomeButton');
-    this.homeBar = document.getElementById('bottom-panel');
   }
 
-  HomeGesture.prototype = {
+  HomeGesture.IMPORTS = [
+    'shared/js/screen_layout.js'
+  ];
+
+  System.create(HomeGesture, {}, {
 
     /**
      * Whether or not the HomeGesture is enabled.
@@ -57,13 +57,22 @@
      * @type {Integer}
      */
     MINUMUM_DISTANCE: 50,
+    containerElement: document.getElementById('screen'),
+    view: function() {
+      return '<div id="bottom-panel" class="gesture-panel" data-z-index-level="gesture-panel">' +
+              '</div>';
+    },
 
     /**
      * Starts the HomeGesture instance.
      * @memberof HomeGesture.prototype
      * @param  {Boolean} enable Whether or not the HomeGesture is enabled.
      */
-    start: function() {
+    _start: function() {
+      this.isTablet = !ScreenLayout.getCurrentLayout('tiny');
+      this.hasHardwareHomeButton =
+        ScreenLayout.getCurrentLayout('hardwareHomeButton');
+      this.homeBar = document.getElementById('bottom-panel');
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
       this.homeBar.addEventListener('touchstart', this, true);
@@ -174,7 +183,7 @@
     publish: function(type) {
       window.dispatchEvent(new CustomEvent(type));
     }
-  };
+  });
 
   exports.HomeGesture = HomeGesture;
 

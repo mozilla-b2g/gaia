@@ -1,8 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
-/* global AsyncSemaphore, Bluetooth, CustomDialog, FtuLauncher, ScreenManager,
-          SettingsListener, System */
+/* global AsyncSemaphore, CustomDialog, SettingsListener, System */
 
 (function(exports) {
   'use strict';
@@ -54,6 +50,7 @@
     'content': 15,
     'bt_sco': 15
   };
+  System.create(SoundManager);
 
   /**
    * Store the current active channel;
@@ -341,11 +338,11 @@
    * @param {Number} offset the offset which will be added to volume value.
    */
   SoundManager.prototype.handleVolumeKey = function sm_handleVolumeKey(offset) {
-    if (!ScreenManager.screenEnabled && this.currentChannel === 'none') {
+    if (!System.screenOn && this.currentChannel === 'none') {
       return;
     }
 
-    if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) &&
+    if (System.isBtProfileConnected('sco') &&
         this.isOnCall()) {
       this.changeVolume(offset, 'bt_sco');
     } else if (this.isHeadsetConnected && offset > 0) {
@@ -409,7 +406,7 @@
           return this.defaultVolumeControlChannel;
         } else {
           return this.homescreenVisible || (System.locked) ||
-            FtuLauncher.isFtuRunning() ? 'notification' : 'content';
+            System.runningFTU ? 'notification' : 'content';
         }
     }
   };
@@ -1009,14 +1006,30 @@
     });
   };
 
+  SoundManager.prototype.containerElement = document.getElementById('system-overlay');
+
+  SoundManager.prototype.view = function() {
+    return '<div id="volume" class="vibration">' +
+              '<span class="channel-type"></span>' +
+              '<section>' +
+              '<div class="active"></div>' +
+              '<div class="active"></div>' +
+              '<div class="active"></div>' +
+              '<div class="active"></div>' +
+              '<div class="active"></div>' +
+              '<div></div>' +
+              '<div></div>' +
+              '<div></div>' +
+              '<div></div>' +
+              '<div></div>' +
+              '<div></div>' +
+              '<div></div>' +
+              '<div></div>' +
+              '<div></div>' +
+              '<div></div>' +
+              '<div></div>' +
+            '</section>' +
+          '</div>';
+  };
   exports.SoundManager = SoundManager;
-  // XXX: we shoud move the code to bootstrap but it is so buggy to put there.
-  // So, we put here temporary.
-  exports.soundManager = new SoundManager();
-  if (navigator.mozL10n) {
-    // unit tests call start() manually
-    navigator.mozL10n.once(function() {
-      exports.soundManager.start();
-    });
-  }
 })(window);

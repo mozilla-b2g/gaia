@@ -86,6 +86,7 @@ var LazyLoader = (function() {
       for (var i = 0; i < files.length; i++) {
         var file = files[i];
 
+        try {
         if (this._loaded[file.id || file]) {
           perFileCallback(file);
         } else if (this._isLoading[file]) {
@@ -102,6 +103,10 @@ var LazyLoader = (function() {
           }
 
           this['_' + method](file, perFileCallback.bind(null, idx));
+        }
+        } catch (e) {
+          console.log(files);
+          console.log(e);
         }
       }
     }

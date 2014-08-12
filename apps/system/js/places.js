@@ -1,9 +1,8 @@
 'use strict';
-/* globals Promise, AppWindowManager */
+/* globals Promise */
 /* exported Places */
 
 (function(exports) {
-
   /**
    * Places is the browser history, bookmark and icon management system for
    * B2G. Places monitors app events and syncs information with the Places
@@ -11,7 +10,10 @@
    * @requires AppWindowManager
    * @class Places
    */
-  function Places() {}
+  var Places = function(rocketbar) {
+    this.rocketbar = rocketbar;
+    this.appWindowManager = rocketbar.appWindowManager;
+  };
 
   Places.prototype = {
 
@@ -103,7 +105,7 @@
      */
     screenshotRequested: function(url) {
       var self = this;
-      var app = AppWindowManager.getApp(url);
+      var app = this.appWindowManager.getRunningApp(url);
       if (!app) {
         return false;
       }
@@ -140,6 +142,9 @@
      * @memberof Places.prototype
      */
     editPlace: function(url, fun) {
+      if (!this.datastore) {
+        return;
+      }
       var self = this;
       var rev = this.dataStore.revisionId;
       return new Promise(function(resolve) {
@@ -189,6 +194,9 @@
      * @memberof Places.prototype
      */
     clear: function() {
+      if (!this.dataStore) {
+        return null;
+      }
       return this.dataStore.clear();
     },
 

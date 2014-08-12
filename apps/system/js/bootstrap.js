@@ -1,8 +1,12 @@
-/* global App */
+/* global Core */
 /* jshint nonew: false */
 'use strict';
 
 window.addEventListener('load', function startup() {
-  window.app = new App.start();
-  window.app.start();
+  window.systemApp = new Core();
+  try {
+    window.systemApp.start();
+  } catch (e) {
+    console.log(e);
+  }
 });

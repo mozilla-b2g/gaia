@@ -1,5 +1,4 @@
-/* global KeyboardManager, softwareButtonManager, System,
-          AttentionScreen */
+/* global softwareButtonManager, System */
 'use strict';
 
 (function(exports) {
@@ -54,8 +53,8 @@
      */
     get height() {
       var height = window.innerHeight -
-        (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
-        AttentionScreen.statusHeight -
+        (this.keyboardEnabled ? System.keyboardHeight : 0) -
+        (window.AttentionScreen ? AttentionScreen.statusHeight : 0) -
         softwareButtonManager.height;
 
       // Normalizing the height so that it always translates to an integral

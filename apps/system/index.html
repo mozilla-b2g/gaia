@@ -9,59 +9,21 @@
     <!-- Shared code -->
     <script src="shared/js/l10n.js"></script>
     <script src="shared/js/l10n_date.js"></script>
-    <script src="shared/js/idletimer.js"></script>
-    <script src="shared/js/dump.js"></script>
-    <script defer src="shared/js/nfc_utils.js"></script>
-    <script defer src="shared/js/gesture_detector.js"></script>
-    <script defer src="shared/js/settings_listener.js"></script>
-    <script defer src="shared/js/custom_dialog.js"></script>
-    <script defer src="shared/js/notification_helper.js"></script>
-    <script defer src="shared/js/async_storage.js"></script>
-    <script defer src="shared/js/mobile_operator.js"></script>
-    <script defer src="shared/js/manifest_helper.js"></script>
-    <!-- We need this before we can show the boot animation -->
-    <script src="shared/js/settings_helper.js"></script>
-    <script defer src="shared/js/icc_helper.js"></script>
-    <script defer src="shared/js/mime_mapper.js"></script>
-    <script defer src="shared/js/settings_url.js"></script>
-    <script defer src="shared/js/advanced_timer.js"></script>
-    <script defer src="shared/js/lazy_loader.js"></script>
-    <script defer src="shared/js/screen_layout.js"></script>
-    <script defer src="shared/js/iac_handler.js"></script>
-    <script defer src="shared/js/apn_helper.js"></script>
-    <script defer src="shared/js/utilities.js"></script>
-    <script defer src="js/touch_forwarder.js"></script>
-    <script defer src="shared/js/version_helper.js"></script>
-    <script defer src="shared/js/font_size_utils.js"></script>
-
+    <script src="shared/js/lazy_loader.js"></script>
     <script defer src="js/system.js"></script>
     <script defer src="js/base_ui.js"></script>
-    <script defer src="js/places.js"></script>
-
-    <script defer src="js/orientation_manager.js"></script>
-    <!--
-    <script defer src="shared/js/keyboard_helper.js"></script>
-    <script defer src="shared/js/template.js"></script>
-    -->
-
-    <!-- SIMSlot -->
-    <script type="text/javascript" defer src="shared/js/simslot.js"></script>
-    <script type="text/javascript" defer src="shared/js/simslot_manager.js"></script>
-    <script type="text/javascript" defer src="js/sim_settings_helper.js"></script>
-
-
-    <!-- Wrapper -->
+    <script defer src="js/base_module.js"></script>
+    <!-- applications.js must not be deferred
+         in order to catch webapps-registry-ready mozChromeEvent -->
+    <script src="js/applications.js"></script>
+    <script defer src="js/core.js"></script>
+    <script defer src="js/bootstrap.js"></script>
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
     <link rel="stylesheet" type="text/css" href="style/chrome/chrome.css">
-    <script defer src="shared/js/bookmarks_database.js"></script>
-
-    <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <link rel="stylesheet" type="text/css" href="style/system/keyboard.css">
     <link rel="stylesheet" type="text/css" href="style/sound_manager/sound_manager.css">
     <link rel="stylesheet" type="text/css" href="style/ime_menu.css">
-
-    <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
@@ -70,217 +32,45 @@
     <link rel="stylesheet" type="text/css" href="shared/style/date_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/time_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/object_menu.css">
-
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
-
     <!-- Include shared web components -->
     <script defer src="shared/js/component_utils.js"></script>
     <script defer src="shared/elements/gaia_buttons/script.js"></script>
-
     <!-- Include shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
     <link rel="resource" type="image/png" href="shared/resources/branding/initlogo.png"/>
     <link rel="resource" type="image/png" href="shared/resources/branding/initlogo_large.png"/>
     -->
-
     <link rel="resource" type="image/png" href="shared/resources/branding/browser_84.png"/>
     <link rel="resource" type="image/png" href="shared/resources/branding/browser_126.png"/>
-    <!-- applications.js must not be deferred
-         in order to catch webapps-registry-ready mozChromeEvent -->
-    <script src="js/applications.js"></script>
-    <!-- Not deferring the following to show startup logo/animation as soon as possible. -->
-    <script src="js/logo_loader.js"></script>
-    <script src="js/init_logo_handler.js"></script>
-
-    <script defer src="js/screen_manager.js"></script>
-    <script defer src="js/activities.js"></script>
-    <script defer src="js/storage.js"></script>
-    <script defer src="js/applications_mediator.js"></script>
-    <script defer src="js/app.js"></script>
-    <script defer src="js/bootstrap.js"></script>
-    <script defer src="js/screenshot.js"></script>
-    <script defer src="js/async_semaphore.js"></script>
-    <script defer src="js/sound_manager.js"></script>
-    <script defer src="js/source_view.js"></script>
-    <script defer src="js/hardware_buttons.js"></script>
-    <script defer src="js/dialer_agent.js"></script>
-    <script defer src="js/system_banner.js"></script>
-    <script defer src="js/home_gesture.js"></script>
-    <script defer src="js/wallpaper_manager.js"></script>
-    <script defer src="js/data_cleaner.js"></script>
-    <!--  WallpaperManager lazily loads this script if needed
-        <script defer src="shared/js/image_utils.js"></script>
-    -->
-
-    <!-- TTL View -->
     <link rel="stylesheet" type="text/css" href="style/ttlview/ttlview.css">
-    <script defer src="js/ttlview.js"></script>
-
-    <!-- Accessibility -->
     <link rel="stylesheet" type="text/css" href="style/accessibility/accessibility.css">
-    <script defer src="js/accessibility.js"></script>
-
-    <!-- Sleep Menu -->
     <link rel="stylesheet" type="text/css" href="style/sleep_menu/sleep_menu.css">
-    <script defer src="js/sleep_menu.js"></script>
-
-    <!-- Battery Manager -->
     <link rel="stylesheet" type="text/css" href="style/battery_manager/battery_manager.css">
-    <script defer src="js/battery_manager.js"></script>
-
-    <!-- Keyboard -->
-    <script defer src="js/input_transition.js"></script>
-    <script defer src="js/ime_switcher.js"></script>
-    <script defer src="js/input_frame_manager.js"></script>
-    <script defer src="js/keyboard_manager.js"></script>
-
-    <!-- Utility Tray -->
     <link rel="stylesheet" type="text/css" href="style/utility_tray/utility_tray.css">
-    <script defer src="js/utility_tray.js"></script>
-
-    <!-- Attention Screen -->
     <link rel="stylesheet" type="text/css" href="style/attention_screen.css">
-    <script defer src="js/attention_screen.js"></script>
-
-    <!-- Action Menu -->
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
     <link rel="stylesheet" type="text/css" href="style/action_menu/action_menu_extended.css">
-    <script defer src="js/action_menu.js"></script>
-
-    <!-- Ime Menu -->
-    <script defer src="js/ime_menu.js"></script>
-
-    <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
-    <script defer src="js/clock.js"></script>
-    <script defer src="js/statusbar.js"></script>
-
-    <!-- Software button -->
     <link rel="stylesheet" type="text/css" href="style/software_button_manager/software_button_manager.css">
-    <script defer src="js/software_button_manager.js"></script>
-
-    <!-- FTU ping -->
-    <script defer src="/shared/js/uuid.js"></script>
-    <script defer src="js/ftu_ping.js"></script>
-
-    <!-- FTU launcher -->
-    <script defer src="js/ftu_launcher.js"></script>
-
-    <!-- App usage metrics -->
-    <script defer src="js/app_usage_metrics.js"></script>
-
-    <!-- Basket newsletter -->
-    <script defer src="/shared/js/basket_client.js"></script>
-    <script defer src="js/newsletter_manager.js"></script>
-
-    <!-- ICC/STK -->
-    <!-- This depends on ftu_launcher.js, please load it in order ;) -->
     <link rel="stylesheet" type="text/css" href="style/icc.css">
-    <script defer src="js/icc_events.js"></script>
-    <script defer src="js/icc_worker.js"></script>
-    <script defer src="js/icc.js"></script>
-
-    <!-- Media Playback -->
-    <script defer src="js/media_playback.js"></script>
     <link rel="stylesheet" type="text/css" href="style/media_playback/media_playback.css">
-
-    <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
-    <script defer src="/shared/js/lockscreen_slide.js"></script>
-    <script defer src="/shared/js/lockscreen_connection_info_manager.js"></script>
-    <script defer src="js/lockscreen.js"></script>
-    <script defer src="js/lockscreen_notifications.js"></script>
-    <script defer src="js/lockscreen_passcode_validator.js"></script>
-
-    <!-- Airplane Mode -->
-    <script defer src="js/airplane_mode.js"></script>
     <link rel="stylesheet" type="text/css" href="style/textselection_dialog/textselection_dialog.css">
-
-    <!-- Modal Dialog -->
     <link rel="stylesheet" type="text/css" href="style/modal_dialog/prompt.css">
     <link rel="stylesheet" type="text/css" href="style/modal_dialog/modal_dialog.css">
-    <script defer src="js/modal_dialog.js"></script>
-
-    <!-- Carrier info notifier, shared by CDMA and Cell Broadcast -->
-    <script defer src="js/carrier_info_notifier.js"></script>
-
-    <!-- Cell Broadcast System -->
-    <script defer src="js/cell_broadcast_system.js"></script>
-
-    <!-- Value selector -->
     <link rel="stylesheet" type="text/css" href="style/value_selector/value_selector.css">
-    <script defer src="js/value_selector/value_picker.js"></script>
-    <script defer src="js/value_selector/spin_date_picker.js"></script>
-    <script defer src="js/value_selector/value_selector.js"></script>
-    <script defer src="shared/js/input_parser.js"></script>
-
-    <!-- Trusted UI -->
     <link rel="stylesheet" type="text/css" href="style/trusted_ui/trusted_ui.css">
-    <script defer src="js/trusted_ui.js"></script>
-
-    <!-- Permission Manager -->
     <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
-    <script defer src="js/permission_manager.js"></script>
-
-    <!-- App Install -->
     <link rel="stylesheet" type="text/css" href="style/app_install_manager/app_install_manager.css">
-    <script defer src="js/app_install_manager.js"></script>
-
-    <!-- Cost Control -->
     <link rel="stylesheet" type="text/css" href="style/cost_control/cost_control.css">
-
-    <!-- Quick Settings -->
     <link rel="stylesheet" type="text/css" href="style/quick_settings/quick_settings.css">
-    <script defer src="js/quick_settings.js"></script>
-
-    <!-- Notifications -->
     <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
-    <script defer src="js/notifications.js"></script>
-
-    <!-- Downloads -->
     <link rel="stylesheet" type="text/css" href="style/notifications/downloads.css">
-    <script defer src="js/download/download_manager.js"></script>
-    <!--
-      <script src="shared/js/download/download_helper.js"></script>
-      <script src="shared/js/download/download_ui.js"></script>
-      <script src="shared/js/download/download_formatter.js"></script>
-      <script src="shared/js/download/download_store.js"></script>
-    -->
-
-    <!-- Nfc -->
-    <script defer src="js/ndef_utils.js"></script>
-    <script defer src="js/nfc_handover_manager.js"></script>
-    <script defer src="js/nfc_manager.js"></script>
-    <script defer src="js/nfc_handler.js"></script>
-
-    <!-- Cards View -->
     <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
-    <script defer src="js/cards_helper.js"></script>
-    <script defer src="js/card.js"></script>
-    <script defer src="js/task_card.js"></script>
-    <script defer src="js/task_manager.js"></script>
-
-    <!-- Bluetooth -->
-    <script defer src="js/bluetooth.js"></script>
-    <script defer src="js/bluetooth_transfer.js"></script>
     <link rel="stylesheet" type="text/css" href="style/bluetooth_transfer/bluetooth_transfer.css">
-
-    <!-- Wifi -->
-    <script defer src="js/wifi.js"></script>
-
-    <!-- Radio  -->
-    <script defer src="js/radio.js"></script>
-
-    <!-- Update Manager -->
-    <script defer src="js/updatable.js"></script>
-    <script defer src="js/update_manager.js"></script>
     <link rel="stylesheet" type="text/css" href="style/update_manager/update_manager.css">
-
-    <!-- Media Recording -->
-    <script defer src="js/media_recording.js"></script>
     <link rel="stylesheet" type="text/css" href="style/media_recording/media_recording.css">
-
-    <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/core.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/menus.css">
@@ -292,441 +82,76 @@
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/download.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/voicemail.ini">
-
-    <!-- Payment -->
-    <script defer src="js/payment.js"></script>
-
-    <!-- Identity -->
-    <script defer src="js/identity.js"></script>
-
-    <!-- Operator Variant Mechanism -->
-    <script defer src="shared/js/operator_variant_helper.js"></script>
-    <script defer src="js/operator_variant/operator_variant.js"></script>
-    <script defer src="js/operator_variant/operator_variant_iccs.js"></script>
-
-    <!-- Voicemail -->
-    <script defer src="js/voicemail.js"></script>
-
-    <!-- Crash Reporter -->
     <link rel="stylesheet" type="text/css" href="style/crash_reporter/crash_reporter.css">
-    <script defer src="js/crash_reporter.js"></script>
-
-    <!-- Browser class -->
     <link rel="stylesheet" type="text/css" href="style/browser_frame/browser_frame.css">
-    <script defer src="js/browser_config_helper.js"></script>
-    <script defer src="js/browser_frame.js"></script>
-
-    <!-- Captive Portal Login -->
-    <script defer src="js/captive_portal.js"></script>
-
-    <!-- CDMA Emergency Callback Mode Manager-->
-    <script defer src="js/emergency_callback_manager.js"></script>
     <link rel="stylesheet" type="text/css" href="style/emergency_callback_manager/emergency_callback_manager.css">
-
-    <!-- Windows -->
-    <!-- Any module that wants to intercept the Home button and prevent the -->
-    <!-- homescreen from being displayed must come before this script. -->
     <link rel="stylesheet" type="text/css" href="style/window_layout.css">
     <link rel="stylesheet" type="text/css" href="style/window.css">
     <link rel="stylesheet" type="text/css" href="style/app_titlebar.css">
-    <script defer src="js/base_ui.js"></script>
-    <script defer src="js/browser_context_menu.js"></script>
-    <script defer src="js/child_window_factory.js"></script>
-    <script defer src="js/app_modal_dialog.js"></script>
-    <script defer src="js/app_chrome.js"></script>
-    <script defer src="js/shadow_statusbar.js"></script>
-    <script defer src="js/app_transition_controller.js"></script>
-    <script defer src="js/app_authentication_dialog.js"></script>
-    <script defer src="js/text_selection_dialog.js"></script>
-    <script defer src="js/app_window.js"></script>
-    <script defer src="js/popup_window.js"></script>
-    <script defer src="js/shrinking_ui.js"></script>
     <link rel="stylesheet" type="text/css" href="style/shrinking_ui/shrinking_ui.css">
-    <script defer src="js/browser_mixin.js"></script>
-    <script defer src="js/wrapper_factory.js"></script>
-    <script defer src="js/homescreen_window.js"></script>
-    <script defer src="js/homescreen_launcher.js"></script>
-    <script defer src="js/activity_window.js"></script>
-    <script defer src="js/activity_window_manager.js"></script>
-    <script defer src="js/app_window_factory.js"></script>
-    <script defer src="js/app_window_manager.js"></script>
-    <script defer src="js/secure_window.js"></script>
-    <script defer src="js/secure_window_factory.js"></script>
-    <script defer src="js/secure_window_manager.js"></script>
-    <script defer src="js/system_dialog.js"></script>
-    <script defer src="js/system_dialog_manager.js"></script>
-    <script defer src="js/system_simcard_dialog.js"></script>
-    <script defer src="js/system_nfc_connect_dialog.js"></script>
-    <script defer src="js/fxa_dialog.js"></script>
-    <script defer src="js/lockscreen_window.js"></script>
-    <script defer src="js/lockscreen_window_manager.js"></script>
-    <script defer src="js/visibility_manager.js"></script>
-    <script defer src="js/layout_manager.js"></script>
-    <script defer src="js/suspending_app_priority_manager.js"></script>
-
-    <!-- Edge Gestures -->
-    <script defer src="js/stack_manager.js"></script>
-    <script defer src="js/sheets_transition.js"></script>
-    <script defer src="js/edge_swipe_detector.js"></script>
     <link rel="stylesheet" type="text/css" href="style/edges/edges.css">
-
-    <!-- Entry Sheet -->
     <link rel="stylesheet" type="text/css" href="style/entry_sheet/entry_sheet.css">
-    <script defer src="js/entry_sheet.js"></script>
-
-    <!-- Developer Tools -->
-    <script defer src="js/remote_debugger.js"></script>
-    <script defer src="js/devtools/developer_hud.js"></script>
     <link rel="stylesheet" type="text/css" href="style/devtools/developer_hud.css">
-
-    <!-- Call Forwarding  -->
-    <script defer src="js/call_forwarding.js"></script>
-
-    <!-- Telephony Settings  -->
-    <script defer src="js/telephony_settings.js"></script>
-
-    <!-- Internet Sharing  -->
-    <script defer src="js/internet_sharing.js"></script>
-
-    <!-- z-indexes of all the overlays in the system -->
     <link rel="stylesheet" type="text/css" href="style/zindex.css">
-
-    <!-- Device storage watcher -->
-    <script defer src="js/storage_watcher.js"></script>
     <link rel="stylesheet" type="text/css" href="style/storage_watcher/storage_watcher.css">
-
-    <!-- Rocketbar -->
-    <script defer src="js/browser.js"></script>
-    <script defer src="js/rocketbar.js"></script>
-    <script defer src="js/search_window.js"></script>
-    <script defer src="shared/js/url_helper.js"></script>
     <link rel="stylesheet" type="text/css" href="style/rocketbar/rocketbar.css">
-
-    <!-- PIN Unlocking -->
-    <script defer src="js/sim_lock.js"></script>
     <link rel="stylesheet" type="text/css" href="style/simcard.css">
-    <script defer src="js/simcard_dialog.js"></script>
-
-    <!-- Bluetooth Connect via NFC -->
     <link rel="stylesheet" type="text/css" href="style/nfcconnect.css">
-
-    <!-- Firefox Accounts -->
     <link rel="stylesheet" type="text/css" href="style/firefox_account/firefox_account_container.css">
-    <script defer src="js/fxa_ui.js"></script>
-    <script defer src="js/fxa_manager.js"></script>
-
-    <!-- Find My Device -->
-    <script defer src="shared/js/findmydevice_iac_api.js"></script>
-    <script defer src="js/findmydevice_launcher.js"></script>
-
-    <!-- Mobile ID -->
     <link rel="stylesheet" type="text/css" href="style/mobileid/mobileid.css">
-    <script defer src="js/mobileid_manager.js"></script>
-    <script defer src="js/mobileid_dialog.js"></script>
+
+    <!-- Build system needs these to copy the required shared files.
+
+    <script defer src="shared/js/nfc_utils.js"></script>
+    <script defer src="shared/js/gesture_detector.js"></script>
+    <script defer src="shared/js/settings_listener.js"></script>
+    <script defer src="shared/js/custom_dialog.js"></script>
+    <script defer src="shared/js/notification_helper.js"></script>
+    <script defer src="shared/js/async_storage.js"></script>
+    <script defer src="shared/js/mobile_operator.js"></script>
+    <script defer src="shared/js/manifest_helper.js"></script>
+    <script src="shared/js/settings_helper.js"></script>
+    <script defer src="shared/js/icc_helper.js"></script>
+    <script defer src="shared/js/mime_mapper.js"></script>
+    <script defer src="shared/js/settings_url.js"></script>
+    <script defer src="shared/js/advanced_timer.js"></script>
+    <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/screen_layout.js"></script>
+    <script defer src="shared/js/iac_handler.js"></script>
+    <script defer src="shared/js/apn_helper.js"></script>
+    <script defer src="shared/js/utilities.js"></script>
+    <script defer src="shared/js/keyboard_helper.js"></script>
+    <script defer src="shared/js/template.js"></script>
+    <script defer src="shared/js/image_utils.js"></script>
+    <script src="shared/js/download/download_helper.js"></script>
+    <script src="shared/js/download/download_ui.js"></script>
+    <script src="shared/js/download/download_formatter.js"></script>
+    <script src="shared/js/download/download_store.js"></script>
+    <script src="shared/js/nfc_utils.js"></script>
+    <script src="shared/js/gesture_detector.js"></script>
+    <script src="shared/js/settings_listener.js"></script>
+    <script src="shared/js/custom_dialog.js"></script>
+    <script src="shared/js/notification_helper.js"></script>
+    <script src="shared/js/async_storage.js"></script>
+    <script src="shared/js/mobile_operator.js"></script>
+    <script src="shared/js/manifest_helper.js"></script>
+    <script defer src="shared/js/version_helper.js"></script>
+    <script defer src="shared/js/font_size_utils.js"></script>
+    <script defer src="shared/js/screen_layout.js"></script>
+    <script src="shared/js/l10n.js"></script>
+    <script src="shared/js/l10n_date.js"></script>
+    <script src="shared/js/idletimer.js"></script>
+    <script src="shared/js/dump.js"></script>
+    -->
   </head>
 
   <body role="application">
     <div id="screen">
-      <div id="os-logo" data-z-index-level="initlogo">
-        <div id="carrier-logo"></div>
-      </div>
-      <!-- Statusbar -->
-      <div id="statusbar-background" data-z-index-level="statusbar"></div>
-      <div id="statusbar" data-z-index-level="statusbar">
-        <!-- Rocketbar-->
-        <div id="rocketbar">
-          <form id="rocketbar-form" class="hidden">
-            <input id="rocketbar-input" type="text" x-inputmode="verbatim" dir="auto"
-              placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="">
-            </input>
-            <button type="button" id="rocketbar-clear" data-l10n-id="clear" aria-label="Clear"></button>
-            <button type="button" id="rocketbar-cancel"
-                    data-l10n-id="close">Close</button>
-          </form>
-        </div>
-        <!-- Statusbar icons -->
-        <div id="statusbar-icons" role="group" data-l10n-id="statusbar">
-          <div id="statusbar-maximized" class="statusbar">
-            <!-- General -->
-            <div id="statusbar-time" class="sb-icon-time" role="listitem"></div>
-            <div id="statusbar-battery" class="sb-icon sb-icon-battery" role="listitem"></div>
-
-            <!-- Connectivity -->
-            <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden role="listitem" data-l10n-id="statusbarFlightMode"></div>
-            <div id="statusbar-wifi" class="sb-icon sb-icon-wifi" data-level="4" hidden role="listitem"></div>
-            <div id="statusbar-connections" class="sb-icon-connections" hidden role="presentation"></div>
-            <!-- HACK: We use images instead of divs to enforce allocation of a
-                 dedicated layer just for this animated icons, remove after
-                 https://bugzil.la/717872 gets fixed -->
-            <img id="statusbar-network-activity" src="style/statusbar/images/network-activity.png" class="sb-icon-network-activity" hidden role="listitem" data-l10n-id="statusbarNetworkActivity">
-            <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden role="listitem"></div>
-            <div id="statusbar-bluetooth" class="sb-icon sb-icon-bluetooth" hidden role="listitem"></div>
-            <div id="statusbar-bluetooth-transferring" class="sb-icon sb-icon-bluetooth-transferring" role="listitem" hidden data-l10n-id="statusbarBluetoothTransferring"></div>
-            <div id="statusbar-nfc" class="sb-icon sb-icon-nfc" hidden role="listitem" data-l10n-id="statusbarNfc"></div>
-
-            <!-- System -->
-            <div id="statusbar-emergency-cb-notification" class="sb-icon sb-icon-emergency-cb-notification" hidden role="listitem" data-l10n-id="statusbarEmergencyCBNotification"></div>
-            <!-- See note on <img> above. -->
-            <img id="statusbar-system-downloads" src="style/statusbar/images/system-downloads.png" class="sb-icon-system-downloads" hidden role="listitem" data-l10n-id="statusbarDownloads">
-            <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden role="listitem" data-l10n-id="statusbarUsb"></div>
-            <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden role="listitem"></div>
-            <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden role="listitem" data-l10n-id="statusbarRecording"></div>
-            <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden role="listitem" data-l10n-id="statusbarGeolocation"></div>
-            <div id="statusbar-call-forwardings" class="sb-icon-call-forwardings" hidden role="presentation"></div>
-            <div id="statusbar-bluetooth-headphones" class="sb-icon sb-icon-bluetooth-headphones" role="listitem" hidden data-l10n-id="statusbarBluetoothHeadphones"></div>
-            <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden role="listitem" data-l10n-id="statusbarHeadphones"></div>
-            <div id="statusbar-playing" class="sb-icon sb-icon-playing" hidden role="listitem" data-l10n-id="statusbarPlaying"></div>
-            <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden role="listitem" data-l10n-id="statusbarAlarm"></div>
-
-            <!-- Notifications -->
-            <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification" data-num="" hidden role="listitem"></div>
-
-            <!-- Unused -->
-            <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden role="listitem"></div>
-
-            <!-- Carrier & date label -->
-            <div id="statusbar-label" class="sb-start-upper sb-icon-label" role="listitem"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Rocketbar Results -->
-      <div id="rocketbar-backdrop" class="hidden" data-z-index-level="rocketbar-backdrop">
-        <div id="rocketbar-backdrop-cover"></div>
-      </div>
-      <div id="rocketbar-results" class="hidden" data-z-index-level="rocketbar-results"></div>
-
-      <!-- Utility Tray -->
-      <div id="utility-tray" data-z-index-level="utility-tray">
-        <!-- Placeholder for notifications -->
-        <div id="notifications-placeholder"></div>
-
-        <div id="utility-tray-grippy" role="button" data-l10n-id="utilityTrayGrippy">
-        </div>
-      </div>
-
-      <!-- Notifications -->
-      <div id="utility-tray-notifications" data-z-index-level="utility-tray-notifications">
-        <div id="notification-bar">
-          <span id="notification-some" data-l10n-id="notifications">Notifications</span>
-
-          <button id="notification-clear" data-l10n-id="clear-all" disabled>Clear all</button>
-        </div>
-
-        <div id="notifications-container">
-          <!-- Update Manager -->
-          <div id="update-manager-container" class="fake-notification" role="link">
-            <div class="icon">
-            </div>
-            <div class="activity">
-            </div>
-            <div class="message">
-            </div>
-          </div>
-          <!-- Emergency callback Manager -->
-          <div id="emergency-callback-notification" class="fake-notification" hidden role="link">
-            <div class="icon">
-            </div>
-            <div class="message" data-l10n-id="emergency-callback-mode">
-            </div>
-            <div class="timer">
-            </div>
-          </div>
-          <!-- Storage watcher notification -->
-          <div id="storage-watcher-container" class="fake-notification" role="link">
-            <div class="icon">
-            </div>
-            <div class="message">
-            </div>
-            <div class="available-space">
-            </div>
-          </div>
-          <!-- Media playback notification -->
-          <div id="media-playback-container" class="fake-notification" hidden>
-            <div class="media-playback-nowplaying">
-              <div class="icon">
-              </div>
-              <div class="albumart">
-              </div>
-              <div class="title" data-l10n-id="mediaPlaybackTitle">
-              </div>
-              <div class="artist" data-l10n-id="mediaPlaybackArtist">
-              </div>
-            </div>
-            <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
-              <button class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
-              <button class="play-pause"></button>
-              <button class="next" data-l10n-id="mediaPlaybackNext"></button>
-            </div>
-          </div>
-          <!-- App Install Manager -->
-          <div id="install-manager-notification-container">
-          </div>
-          <!-- bluetooth transfer -->
-          <div id="bluetooth-transfer-status-list">
-          </div>
-          <!-- Another entry to show IME list when the keyboard is activated -->
-          <div id="keyboard-show-ime-list">
-            <div class="fake-notification" role="link">
-                <div class="message">
-                </div>
-                <div class="tip">
-                </div>
-            </div>
-          </div>
-          <!-- media recording status -->
-          <div id="media-recoding-status-list" role="list">
-          </div>
-
-          <div id="desktop-notifications-container">
-          </div>
-        </div>
-
-        <!-- credit module -->
-        <div id="cost-control-widget"></div>
-
-        <!-- quick settings -->
-        <div id="quick-settings" role="toolbar">
-          <a href="#" id="quick-settings-wifi" data-enabled="false" role="button"></a>
-          <div class="separator"></div>
-          <a href="#" id="quick-settings-data" data-enabled="false" role="button"></a>
-          <div class="separator"></div>
-          <a href="#" id="quick-settings-bluetooth" data-enabled="false" role="button"></a>
-          <div class="separator"></div>
-          <a href="#" id="quick-settings-airplane-mode" data-enabled="false" role="button"></a>
-          <div class="separator"></div>
-          <a href="#" id="quick-settings-full-app" data-enabled="false" role="button" data-l10n-id="settingsButton"></a>
-        </div>
-      </div>
-
       <div id="windows" data-z-index-level="app">
-        <!-- application windows are added here -->
       </div>
 
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
-        <!-- Unlock SIM Pin dialog -->
-        <!-- Add the dialog via SystemDialog dynamically. -->
-        <!-- <div id="system-dialog" role="dialog" class="generic-dialog" data-z-index-level="simpin-dialog" hidden></div> -->
-
-        <!-- Crash reporter -->
-        <div id="crash-dialog">
-          <form role="dialog" class="generic-dialog" data-type="confirm">
-            <section id="crash-dialog-contents">
-              <h1 id="crash-dialog-title"></h1>
-              <p data-l10n-id="crash-dialog-message">Would you like to send Mozilla a report about the crash to help us fix the problem? (Reports are sent over Wi-Fi only)</p>
-              <p><a id="crash-info-link" data-l10n-id="crash-info-link">What's in a crash report?</a></p>
-              <p>
-                <input id="always-send" type="checkbox" checked="true"/>
-                <label for="always-send" data-l10n-id="crash-always-report">Always send Mozilla a report when a crash occurs.</label>
-              <p>
-            </section>
-            <menu data-items="2">
-              <button id="dont-send-report" disabled="true" data-l10n-id="crash-dont-send">Don't Send</button>
-              <button id="send-report" class="recommend" data-l10n-id="crash-end">Send Report</button>
-            </menu>
-          </form>
-
-          <!-- "Crash Reports" information page -->
-          <section role="region" class="skin-dark">
-            <header>
-              <button id="crash-reports-close"><span class="icon icon-close">close</span></button>
-              <h1 data-l10n-id="crashReports">Crash Reports</h1>
-            </header>
-            <div>
-              <ul>
-                <li class="description" data-l10n-id="crash-reports-description-1">
-                A crash report contains some details about the crash and your device, as well as a snapshot of the state of your device when it crashed.</li>
-                <li class="description" data-l10n-id="crash-reports-description-2">This may include things like open pages and apps, text typed into forms and the content of open messages, recent browsing history, or geolocation used by an open app.</li>
-                <li class="description">
-                  <span data-l10n-id="crash-reports-description-3-start">We use crash reports to try to fix problems and improve our products. We handle your information as we describe in our </span><span data-l10n-id="crash-reports-description-3-privacy">privacy policy</span><span data-l10n-id="crash-reports-description-3-end">.</span>
-                </li>
-              </ul>
-            </div>
-          </section>
-        </div>
-
-        <div id="trustedui-container" class="up">
-          <div id="trustedui-inner">
-            <section role="region" class="title-container skin-organic">
-              <header>
-                <button id="trustedui-close"><span class="icon icon-close">close</span></button>
-                <h1 id="trustedui-title"></h1>
-                <div id="trustedui-throbber"></div>
-              </header>
-            </section>
-            <div id="trustedui-frame-container">
-              <div id="trustedui-error-dialog" role="dialog" class="generic-dialog">
-                <div class="inner">
-                  <h3 data-l10n-id="error-title" id="trustedui-error-title">Error</h3>
-                  <p>
-                  <span data-l10n-id="error-message" id="trustedui-error-message">The app has encountered an error.</span>
-                  </p>
-                </div>
-                <menu data-items="1">
-                  <button id="trustedui-error-close" data-l10n-id="close">Close</button>
-                </menu>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Firefox Account Dialog -->
-        <!-- <div id="fxa-dialog"></div> Add the dialog via SystemDialog dynamically. -->
-
-        <!-- Mobile ID -->
-        <!-- <div id="mobileid-dialog"></div> Add the dialog via SystemDialog dynamically. -->
-
-        <div id="modal-dialog">
-          <div id="modal-dialog-alert" role="dialog" class="generic-dialog" tabindex="-1">
-            <div class="modal-dialog-message-container inner">
-              <h3 id="modal-dialog-alert-title"></h3>
-              <p>
-                <span id="modal-dialog-alert-message"></span>
-              </p>
-            </div>
-            <menu>
-              <button id="modal-dialog-alert-ok" data-l10n-id="ok" class="affirmative">OK</button>
-            </menu>
-          </div>
-
-          <div id="modal-dialog-confirm" role="dialog" class="generic-dialog" tabindex="-1">
-            <div class="modal-dialog-message-container inner">
-              <h3 id="modal-dialog-confirm-title"></h3>
-              <p>
-                <span id="modal-dialog-confirm-message"></span>
-              </p>
-            </div>
-            <menu data-items="2">
-              <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">Cancel</button>
-              <button id="modal-dialog-confirm-ok" data-l10n-id="ok" class="affirmative">OK</button>
-            </menu>
-          </div>
-
-          <div id="modal-dialog-prompt" role="dialog" class="generic-dialog" tabindex="-1">
-            <div class="modal-dialog-message-container inner">
-              <h3 id="modal-dialog-prompt-title"></h3>
-              <p>
-                <span id="modal-dialog-prompt-message"></span>
-                <input id="modal-dialog-prompt-input" />
-              </p>
-            </div>
-            <menu data-items="2">
-              <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
-              <button id="modal-dialog-prompt-ok" data-l10n-id="ok" class="affirmative">OK</button>
-            </menu>
-          </div>
-
-          <div id="modal-dialog-select-one" role="dialog" class="generic-dialog" tabindex="-1">
-            <div class="modal-dialog-message-container inner">
-              <h3 id="modal-dialog-select-one-title"></h3>
-              <ul id="modal-dialog-select-one-menu"></ul>
-            </div>
-            <menu>
-              <button id="modal-dialog-select-one-cancel" data-l10n-id="cancel">Cancel</button>
-            </menu>
-          </div>
-        </div> <!-- end of #modal-dialog -->
-      </div> <!-- end of #overlay-dialog -->
+      </div>
 
       <div id="value-selector-template" hidden>
       <!--
@@ -803,34 +228,6 @@
       -->
       </div>
 
-      <div id="permission-screen" data-z-index-level="permission-screen">
-        <div id="permission-dialog" role="dialog" class="generic-dialog">
-          <div class="inner">
-            <h1 id="permission-title"></h1>
-            <h2 id="permission-message"></h2>
-            <div id="permission-more-info" class="hidden">
-              <a id="permission-more-info-link" data-l10n-id="more-info" href="#">More Info…</a>
-              <a id="permission-hide-info-link" data-l10n-id="hide-info" href="#" class="hidden">Hide Info</a>
-              <div id="permission-more-info-box" class="hidden"> </div>
-            </div>
-            <div id="permission-remember-section">
-              <label class="pack-checkbox">
-                <input type="checkbox" id="permission-remember-checkbox" />
-                <span></span>
-              </label>
-              <a data-l10n-id="remember-my-choice" id="permission-remember-label">Remember my choice</a>
-            </div>
-            <div id="permission-device-selector"></div>
-            <ul id="permission-devices">
-            </ul>
-            <menu id="permission-buttons" data-items="2">
-              <button id="permission-no"></button>
-              <button id="permission-yes" class="affirmative"></button>
-            </menu>
-          </div>
-        </div>
-      </div>
-
       <div id="device-list-item-tmpl" class="hide">
       <!--
         <label class="device-list deviceEnable">
@@ -840,129 +237,6 @@
         <span class="device-item">${label}</span>
       -->
       </div>
-
-      <form id="app-install-dialog" class='app-install-dialog generic-dialog'
-            data-type="confirm" role="dialog"
-            data-z-index-level="app-install-dialog">
-        <section>
-          <h1 id="app-install-message"></h1>
-          <dl>
-            <dt data-l10n-id="size">Size</dt>
-              <dd id="app-install-size"></dd>
-            <dt data-l10n-id="author">Author</dt>
-              <dd>
-                <span id="app-install-author-name"></span><br />
-                <span id="app-install-author-url"></span>
-              </dd>
-          </dl>
-          <menu data-items="2">
-            <button id="app-install-cancel-button" data-l10n-id="cancel">Cancel</button>
-            <button id="app-install-install-button" class="recommend" data-l10n-id="install">Install</button>
-          </menu>
-        </section>
-      </form>
-
-      <form id="app-install-cancel-dialog" class='app-install-dialog generic-dialog'
-            data-type="confirm" role="dialog"
-            data-z-index-level="app-install-dialog">
-        <section>
-          <h1 data-l10n-id="cancel-install">Cancel Install</h1>
-          <p>
-            <small data-l10n-id="cancelling-will-not-refund">Cancelling will not refund a purchase. Refunds for paid content are provided by the original seller.</small>
-            <small data-l10n-id="apps-can-be-installed-later">Apps can be installed later from the original installation source.</small>
-          </p>
-          <p data-l10n-id="are-you-sure-you-want-to-cancel">Are you sure you want to cancel this install?</p>
-          <menu data-items="2">
-            <button id="app-install-confirm-cancel-button" type="reset" data-l10n-id="cancel-install-button">Cancel Install</button>
-            <button id="app-install-resume-button" type="submit" data-l10n-id="resume">Resume</button>
-          </menu>
-        </section>
-      </form>
-
-      <form id="app-download-cancel-dialog" class='app-install-dialog generic-dialog'
-        data-type="confirm" role="dialog"
-        data-z-index-level="app-install-dialog">
-        <section>
-          <h1></h1>
-          <p data-l10n-id="app-download-can-be-restarted">The download can
-          be restarted later.</p>
-          <menu data-items="2">
-            <button id="app-download-stop-button" class="danger confirm"
-              data-l10n-id="app-download-stop-button">Stop Download</button>
-            <button id="app-download-continue-button" class="cancel"
-              type="reset" data-l10n-id="continue">Continue</button>
-          </menu>
-        </section>
-      </form>
-
-      <form id="updates-download-dialog" data-type="confirm" role="dialog"
-            data-z-index-level="updates-download-dialog" data-nowifi="false"
-            data-data-connection-inline-warning="false" class="generic-dialog">
-        <section>
-          <h1>
-            Updates
-          </h1>
-          <ul>
-          </ul>
-        </section>
-        <p id="updates-data-connection-warning" data-l10n-id="downloadDataConnectionWarning">
-          Updates are downloaded via data connection when Wi-Fi is not available. Additional data charges may apply.
-        </p>
-        <p id="updates-offline-warning" data-l10n-id="downloadOfflineWarning">
-          Connection unavailable. Connect to a network to download updates.
-        </p>
-        <menu data-items="2">
-          <button id="updates-later-button" type="reset"
-                  data-l10n-id="later">Later</button>
-          <button id="updates-download-button" type="submit"
-            data-l10n-id="download">Download</button>
-        </menu>
-      </form>
-
-      <form id="emergency-callback-dialog" role="dialog" data-type="confirm"
-            data-z-index-level="emergency-callback-dialog" class="generic-dialog" hidden>
-        <section>
-          <h1 data-l10n-id="confirm">Confirm</h1>
-          <p id="emergency-callback-dialog-wrapper">
-            <img id="emergency-callback-icon"/>
-            <strong data-l10n-id="emergency-callback-mode">Emergency call back mode</strong>
-            <small id="emergency-callback-timer"></small>
-          </p>
-          <p data-l10n-id="emergency-callback-message">You can not make calls, send messages or go online because emergency callback mode is enabled. Would you like to turn it off?</p>
-        </section>
-        <menu data-items="2">
-          <button type="reset" id="emergency-callback-stay-button" data-l10n-id="cancel">Cancel</button>
-          <button class="recommend" type="button" id="emergency-callback-exit-button" data-l10n-id="ok">OK</button>
-        </menu>
-      </form>
-
-      <form id="updates-viaDataConnection-dialog" data-type="confirm" role="dialog" data-z-index-level="updates-viaDataConnection-dialog" class="generic-dialog">
-        <section>
-          <h1 data-l10n-id="downloadUpdatesViaDataConnection">
-            Download updates via data connection?
-          </h1>
-          <p data-l10n-id="downloadUpdatesViaDataConnectionMessage">
-            Updates are downloaded via data connection when Wi-Fi is not available. When using data connection, phone calls may be blocked and additional charges may also apply.
-          </p>
-        </section>
-        <menu>
-          <button id="updates-viaDataConnection-notnow-button" type="reset" data-l10n-id="notNow">Not Now</button>
-          <button id="updates-viaDataConnection-download-button" type="submit" data-l10n-id="download">Download</button>
-        </menu>
-      </form>
-
-      <form id="setup-installed-app-dialog" class='setup-installed-app-dialog'
-            data-type="confirm" role="dialog"
-            data-z-index-level="setup-installed-app-dialog">
-        <section>
-          <h1 id="setup-app-name"></h1>
-          <p id="setup-app-description"></p>
-          <menu data-items="2">
-            <button id="setup-cancel-button" type="button" data-l10n-id="later">Later</button>
-            <button id="setup-confirm-button" class="recommend" type="button" data-l10n-id="setup">Setup</button>
-          </menu>
-        </section>
-      </form>
 
       <form id="ime-layout-dialog" class="ime-layout-dialog"
             data-type="confirm" role="dialog"
@@ -1073,36 +347,7 @@
         </div>
       </div>
             -->
-      </div> <!-- end of lockscreen overlay template -->
-
-      <div id="attention-screen" data-z-index-level="attention-screen">
-        <div id="attention-bar"></div>
-      </div>
-
-      <div id="update-manager-toaster" data-z-index-level="notification-toaster" aria-live="assertive" aria-atomic="true">
-        <div class="icon">
-        </div>
-        <div class="message">
-        </div>
-      </div>
-
-      <div id="emergency-callback-toaster" data-z-index-level="notification-toaster" hidden role="link" aria-live="assertive" aria-atomic="true">
-        <div class="icon">
-        </div>
-        <div class="message" data-l10n-id="emergency-callback-mode">
-        </div>
-        <div class="timer">
-        </div>
-      </div>
-
-      <div id="notification-toaster" data-z-index-level="notification-toaster" role="link" aria-live="assertive" aria-atomic="true">
-        <img id="toaster-icon" role="presentation"/>
-        <div id="toaster-title"></div>
-        <div id="toaster-detail"></div>
-      </div>
-
-      <!-- keyboard -->
-      <div id="keyboards" class="hide" data-z-index-level="keyboards"></div>
+      </div><!-- end of lockscreen overlay template -->
 
       <!-- template for IME Menu. -->
       <div id="ime-menu-template" hidden>
@@ -1132,130 +377,7 @@
         -->
       </div> <!-- end of template for each IME item. -->
 
-      <!-- cards view -->
-      <div id="cards-view" data-z-index-level="cards-view">
-        <ul id="cards-list"></ul>
-        <span class="no-recent-apps" data-l10n-id="no-recent-apps">No recent apps</span>
-      </div>
-
-      <!-- icc / stk -->
-      <div id="icc-view" class="generic-dialog" data-z-index-level="icc-view" role="dialog">
-        <section role="region" class="skin-organic" id="icc-alert">
-          <header>
-            <h1 id="icc-alert-maintitle">STK Message</h1>
-            <h2 id="icc-alert-subtitle"></h2>
-          </header>
-          <p id="icc-alert-msg"></p>
-          <menu>
-            <button type="button" data-l10n-id="close" id="icc-alert-btn" class="recommend full">Close</button>
-          </menu>
-        </section>
-        <section role="region" class="skin-organic" id="icc-confirm">
-          <header>
-            <a href="#"><span class="icon icon-back" id="icc-confirm-btn_back">back</span></a>
-            <h1 id="icc-confirm-maintitle">STK Query</h1>
-            <h2 id="icc-confirm-subtitle"></h2>
-          </header>
-          <p id="icc-confirm-msg"></p>
-          <menu data-items="2">
-            <button type="button" data-l10n-id="close" id="icc-confirm-btn_close">Close</button>
-            <button type="button" data-l10n-id="ok" id="icc-confirm-btn" class="recommend">OK</button>
-          </menu>
-        </section>
-        <section role="region" class="skin-organic" id="icc-asyncconfirm">
-          <header>
-            <h1 id="icc-asyncconfirm-maintitle">STK Query</h1>
-            <h2 id="icc-asyncconfirm-subtitle"></h2>
-          </header>
-          <p id="icc-asyncconfirm-msg"></p>
-          <menu data-items="2">
-            <button type="button" data-l10n-id="no" id="icc-asyncconfirm-btn-no">No</button>
-            <button type="button" data-l10n-id="yes" id="icc-asyncconfirm-btn-yes" class="recommend">Yes</button>
-          </menu>
-        </section>
-        <section role="region" class="skin-organic" id="icc-input">
-          <header>
-            <a href="#">
-                <span class="icon icon-back" id="icc-input-btn_back">back</span>
-            </a>
-            <menu type="toolbar">
-                <button type="button" data-l10n-id="help" id="icc-input-btn_help">Help</button>
-            </menu>
-            <h1 id="icc-input-maintitle">STK Query</h1>
-            <h2 id="icc-input-subtitle"></h2>
-          </header>
-          <form>
-            <p id="icc-input-msg"></p>
-            <input id="icc-input-box" required="" type="text" dir="auto"></input>
-          </form>
-          <menu>
-            <button type="button" data-l10n-id="close" id="icc-input-btn_close">Close</button>
-            <span class="yesnodisabled">
-              <button type="button" data-l10n-id="ok" id="icc-input-btn" class="recommend">OK</button>
-            </span>
-            <span class="yesnoenabled">
-              <button type="button" data-l10n-id="no" id="icc-input-btn_no">No</button>
-              <button type="button" data-l10n-id="yes" id="icc-input-btn_yes" class="recommend">Yes</button>
-            </span>
-          </menu>
-        </section>
-      </div>
-
-      <div id="sleep-menu" data-z-index-level="sleep-menu">
-        <div id="sleep-menu-container" role="dialog" data-type="object">
-          <header>
-            <h1 data-l10n-id="deviceMenu">Device menu</h1>
-          </header>
-          <section>
-            <ul role="menu">
-            </ul>
-          </section>
-          <gaia-buttons skin="dark">
-            <button data-l10n-id="cancel">Cancel</button>
-          </gaia-buttons>
-        </div>
-      </div>
-
-      <div id="system-overlay" data-z-index-level="system-overlay">
-        <div id="battery">
-          <span class="icon-battery"></span>
-          <span class="battery-notification" data-l10n-id="battery-almost-empty">Battery almost empty</span>
-        </div>
-
-        <div id="volume" class="vibration">
-          <span class="channel-type"></span>
-          <section>
-            <div class="active"></div>
-            <div class="active"></div>
-            <div class="active"></div>
-            <div class="active"></div>
-            <div class="active"></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-          </section>
-        </div>
-      </div>
-
-      <div id="TextSelectionDialogRoot" data-z-index-level="text-selection-dialog"></div>
-      <div id="top-panel" class="gesture-panel" data-z-index-level="statusbar"></div>
-      <div id="left-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
-      <div id="right-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
-      <div id="bottom-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>
-      <div id="software-buttons" data-z-index-level="software-buttons">
-        <button id="software-home-button" data-l10n-id="softwareHomeButton"></button>
-      </div>
-
-      <button id="fullscreen-software-home-button" data-z-index-level="fullscreen-software-home-button"></button>
-
+      <div id="system-overlay" ></div>
     </div> <!-- end of #screen -->
   </body>
 </html>

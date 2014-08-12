@@ -8,14 +8,14 @@
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_trusted_ui_manager.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/js/base_module.js');
 requireApp('system/js/homescreen_launcher.js');
 
 var mocksForHomescreenLauncher = new MocksHelper([
   'Applications', 'HomescreenWindow', 'TrustedUIManager',
-  'FtuLauncher', 'SettingsListener', 'LayoutManager'
+  'SettingsListener', 'LayoutManager'
 ]).init();
 
 suite('system/HomescreenLauncher', function() {

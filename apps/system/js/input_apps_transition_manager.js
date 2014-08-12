@@ -11,7 +11,8 @@
  * currently rely on keyboard app to call resize() first.
  *
  */
-var InputAppsTransitionManager = function() {
+var InputAppsTransitionManager = function(keyboardManager) {
+  this.keyboardManager = keyboardManager;
   this._started = false;
   this.currentState = undefined;
   this.occupyingHeight = undefined;
@@ -38,6 +39,12 @@ InputAppsTransitionManager.prototype.start = function() {
 
   // Start with hidden state.
   this.currentState = this.STATE_HIDDEN;
+
+  this.onstatechange = (function statechanged() {
+    if (this.currentState === this.STATE_HIDDEN) {
+      this.keyboardManager.resetShowingKeyboard();
+    }
+  }).bind(this);
 };
 
 InputAppsTransitionManager.prototype.stop = function hb_stop() {
@@ -52,6 +59,7 @@ InputAppsTransitionManager.prototype.stop = function hb_stop() {
   this.currentState = undefined;
   this.occupyingHeight = undefined;
   this._element = null;
+  this.onstatechange = null;
 };
 
 InputAppsTransitionManager.prototype.handleEvent = function(evt) {

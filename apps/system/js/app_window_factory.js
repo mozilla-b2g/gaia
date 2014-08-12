@@ -1,10 +1,9 @@
 'use strict';
-/* global applications, BrowserConfigHelper, AppWindowManager,
+/* global BrowserConfigHelper,
           homescreenLauncher, AppWindow, System */
 /* jshint nonew: false */
 
 (function(exports) {
-
   /**
    * AppWindowFactory handle the launch request from gecko and
    * wrap the config with properer parameters.
@@ -23,13 +22,22 @@
    *
    * @class AppWindowFactory
    */
-  function AppWindowFactory() {
-    this.preHandleEvent = this.preHandleEvent.bind(this);
-  }
+  var AppWindowFactory = function(appWindowManager) {
+    this.appWindowManager = appWindowManager;
+  };
 
-  AppWindowFactory.prototype = {
-    _DEBUG: true,
+  AppWindowFactory.EVENTS = [
+    'webapps-launch',
+    'webapps-close',
+    'open-app'
+  ];
+  AppWindowFactory.IMPORTS = [
+    'js/app_window.js'
+  ];
 
+  System.create(AppWindowFactory, {}, {
+    name: 'AppWindowFactory',
+    EVENT_PREFIX: '',
     debug: function awm_debug() {
       if (this._DEBUG) {
         console.log('[AppWindowFactory]' +
@@ -46,66 +54,7 @@
      */
     _started: false,
 
-    /**
-     * Register all event handlers.
-     * @memberof AppWindowFactory.prototype
-     */
-    start: function awf_start() {
-      if (this._started) {
-        return;
-      }
-      this._started = true;
-
-      window.addEventListener('webapps-launch', this.preHandleEvent);
-      window.addEventListener('webapps-close', this.preHandleEvent);
-      window.addEventListener('open-app', this.preHandleEvent);
-      window.addEventListener('applicationready', (function appReady(e) {
-        window.removeEventListener('applicationready', appReady);
-        this._handlePendingEvents();
-      }).bind(this));
-    },
-
-    /**
-     * Unregister all event handlers.
-     * @memberof AppWindowFactory.prototype
-     */
-    stop: function awf_stop() {
-      if (!this._started) {
-        return;
-      }
-      this._started = false;
-
-      window.removeEventListener('webapps-launch', this.preHandleEvent);
-      window.removeEventListener('webapps-close', this.preHandleEvent);
-      window.removeEventListener('open-app', this.preHandleEvent);
-    },
-
-    /**
-     * Queue events until AppWindowFactory is ready to handle them.
-     */
-    _queueEvents: [],
-
-    _queuePendingEvent: function(evt) {
-      this._queueEvents.push(evt);
-    },
-
-    _handlePendingEvents: function() {
-      this._queueEvents.forEach((function(evt) {
-        this.handleEvent(evt);
-      }).bind(this));
-      this._queueEvents = [];
-    },
-
-    preHandleEvent: function(evt) {
-      if (applications.ready) {
-        this.handleEvent(evt);
-      } else {
-        this._queuePendingEvent(evt);
-      }
-    },
-
-    handleEvent: function awf_handleEvent(evt) {
-      this.debug('handling ' + evt);
+    '_handle_webapps-launch': function(evt) {
       var detail = evt.detail;
       var manifestURL = detail.manifestURL;
       if (!manifestURL) {
@@ -118,38 +67,59 @@
         return;
       }
 
-      switch (evt.type) {
-        case 'webapps-launch':
-          config.timestamp = detail.timestamp;
-          // TODO: Look up current opened window list,
-          // and then create a new instance here.
-          this.launch(config);
-          break;
-        case 'open-app':
-          // System Message Handler API is asking us to open the specific URL
-          // that handles the pending system message.
-          // We will launch it in background if it's not handling an activity.
-          config.isSystemMessage = true;
-          if (detail.isActivity) {
-            config.isActivity = true;
-            if (detail.target.disposition &&
-                detail.target.disposition == 'inline') {
-              config.inline = true;
-            }
-          }
-          config.changeURL = !detail.onlyShowApp;
-          config.stayBackground = !detail.showApp;
-          if (detail.extra && detail.extra.manifestURL) {
-            config.parentApp = detail.extra.manifestURL;
-          }
-          // TODO: Create activity window instance
-          // or background app window instance for system message here.
-          this.launch(config);
-          break;
-        case 'webapps-close':
-          this.publish('killapp', config);
-          break;
+      config.timestamp = detail.timestamp;
+      // TODO: Look up current opened window list,
+      // and then create a new instance here.
+      this.launch(config);
+    },
+
+    '_handle_open-app': function(evt) {
+      var detail = evt.detail;
+      var manifestURL = detail.manifestURL;
+      if (!manifestURL) {
+        return;
       }
+
+      var config = new BrowserConfigHelper(detail.url, detail.manifestURL);
+
+      if (!config.manifest) {
+        return;
+      }
+
+      // System Message Handler API is asking us to open the specific URL
+      // that handles the pending system message.
+      // We will launch it in background if it's not handling an activity.
+      config.isSystemMessage = true;
+      if (detail.isActivity) {
+        config.isActivity = true;
+        if (detail.target.disposition &&
+            detail.target.disposition == 'inline') {
+          config.inline = true;
+        }
+      }
+      config.changeURL = !detail.onlyShowApp;
+      config.stayBackground = !detail.showApp;
+      if (detail.extra && detail.extra.manifestURL) {
+        config.parentApp = detail.extra.manifestURL;
+      }
+      // TODO: Create activity window instance
+      // or background app window instance for system message here.
+      this.launch(config);
+    },
+
+    '_handle_webapps-close': function(evt) {
+      var detail = evt.detail;
+      var manifestURL = detail.manifestURL;
+      if (!manifestURL) {
+        return;
+      }
+
+      var config = new BrowserConfigHelper(detail.url, detail.manifestURL);
+
+      if (!config.manifest) {
+        return;
+      }
+      this.publish('killapp', config);
     },
 
     /**
@@ -188,7 +158,8 @@
       if (config.manifest.role === 'search') {
         return;
       }
-      var app = AppWindowManager.getApp(config.origin, config.manifestURL);
+      var app =
+        this.appWindowManager.getRunningApp(config.origin, config.manifestURL);
       if (app) {
         app.reviveBrowser();
       } else if (config.origin !== homescreenLauncher.origin) {
@@ -197,21 +168,8 @@
         homescreenLauncher.getHomescreen(true);
       }
       this.publish('launchapp', config);
-    },
-
-    /**
-     * Publish a CustomEvent.
-     * @param  {String} event The name of the event.
-     * @param  {Object} detail The data passed when initializing the event.
-     * @memberof AppWindowFactory.prototype
-     */
-    publish: function awf_publish(event, detail, scope) {
-      scope = scope || window;
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent(event, true, false, detail);
-      scope.dispatchEvent(evt);
     }
-  };
+  });
 
   exports.AppWindowFactory = AppWindowFactory;
 }(window));

@@ -8,7 +8,7 @@
 
   var TextSelectionDialog = function () {
     this.containerElement =
-      document.getElementById('TextSelectionDialogRoot');
+      document.getElementById('screen');
     this.event = null;
     this._hideTimeout = null;
     this._injected = false;
@@ -124,13 +124,16 @@
   };
 
   TextSelectionDialog.prototype.view = function tsd_view() {
-    var temp = '<div class="textselection-dialog"' +
-            ' id="' + this.ID_NAME + '">' +
-              '<div class="textselection-dialog-selectall"></div>' +
-              '<div class="textselection-dialog-cut"></div>' +
-              '<div class="textselection-dialog-copy"></div>' +
-              '<div class="textselection-dialog-paste"></div>' +
-            '</div>';
+    var temp = 
+      '<div id="TextSelectionDialogRoot" data-z-index-level="text-selection-dialog">' +
+        '<div class="textselection-dialog"' +
+          ' id="' + this.ID_NAME + '">' +
+            '<div class="textselection-dialog-selectall"></div>' +
+            '<div class="textselection-dialog-cut"></div>' +
+            '<div class="textselection-dialog-copy"></div>' +
+            '<div class="textselection-dialog-paste"></div>' +
+          '</div>' +
+      '</div>';
     return temp;
   };
 

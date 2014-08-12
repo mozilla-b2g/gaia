@@ -1,6 +1,7 @@
 'use strict';
 
-var MockFtuLauncher = {
+var MockFtuLauncher = function() {};
+MockFtuLauncher.prototype = {
   mIsRunning: false,
 
   isFtuRunning: function() {
