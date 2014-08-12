@@ -19,9 +19,7 @@ function copyUserConfig(options) {
   if (options.GAIA_DISTRIBUTION_DIR) {
     var distConfig = utils.getFile(options.GAIA_DISTRIBUTION_DIR,
       'camera-config.js');
-    if (distConfig.exists()) {
-      utils.copyFileTo(distConfig, parent, filename, true);
-    }
+    utils.copyFileTo(distConfig, parent, filename, true);
   }
 }
 
