@@ -1,3 +1,6 @@
+'use strict';
+/* jshint -W101 */
+/* global process, require, suite, suiteSetup, suiteTeardown, test, teardown */
 var assert = require('chai').assert;
 var rmrf = require('rimraf').sync;
 var fs = require('fs');
@@ -44,26 +47,27 @@ suite('Build GAIA from differece app list', function() {
   });
 
   test('GAIA_DEVICE_TYPE=tablet make', function(done) {
-    helper.exec('GAIA_DEVICE_TYPE=tablet make', function(error, stdout, stderr) {
-      helper.checkError(error, stdout, stderr);
+    helper.exec('GAIA_DEVICE_TYPE=tablet make',
+      function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
 
-      // zip path for system app
-      var zipPath = path.join(process.cwd(), 'profile', 'webapps',
-        'sms.gaiamobile.org', 'application.zip');
+        // zip path for system app
+        var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+          'sms.gaiamobile.org', 'application.zip');
 
-      // sms should not exists in Tablet builds
-      assert.isFalse(fs.existsSync(zipPath));
+        // sms should not exists in Tablet builds
+        assert.isFalse(fs.existsSync(zipPath));
 
-      // vertical homescreen and collection should not exists
-      var zipVertHomePath = path.join(process.cwd(), 'profile', 'webapps',
-        'verticalhome.gaiamobile.org', 'application.zip');
-      var zipCollectionPath = path.join(process.cwd(), 'profile', 'webapps',
-        'collection.gaiamobile.org', 'application.zip');
-      assert.isFalse(fs.existsSync(zipVertHomePath));
-      assert.isFalse(fs.existsSync(zipCollectionPath));
+        // vertical homescreen and collection should not exists
+        var zipVertHomePath = path.join(process.cwd(), 'profile', 'webapps',
+          'verticalhome.gaiamobile.org', 'application.zip');
+        var zipCollectionPath = path.join(process.cwd(), 'profile', 'webapps',
+          'collection.gaiamobile.org', 'application.zip');
+        assert.isFalse(fs.existsSync(zipVertHomePath));
+        assert.isFalse(fs.existsSync(zipCollectionPath));
 
-      done();
-    });
+        done();
+      });
   });
 
   test('GAIA_DEVICE_TYPE=phone make', function(done) {
@@ -92,8 +96,6 @@ suite('Build GAIA from differece app list', function() {
         'init.json should exist');
 
       // Check pre_installed_collections.json
-      var collectionPath = path.join(process.cwd(), 'build_stage',
-        'collection', 'js', 'pre_installed_collections.json');
       assert.ok(fs.existsSync(initPath),
         'init.json should exist');
 
@@ -102,7 +104,7 @@ suite('Build GAIA from differece app list', function() {
         'webapps', 'homescreen.gaiamobile.org', 'application.zip'));
       var hsHomManifest =
         JSON.parse(hsHomZip.readAsText(hsHomZip.getEntry('manifest.webapp')));
-      assert.equal(hsHomManifest.role, 'system')
+      assert.equal(hsHomManifest.role, 'system');
 
       done();
     });
@@ -144,8 +146,9 @@ suite('Node modules tests', function() {
     rmrf('modules.tar');
     rmrf('node_modules');
     rmrf('git-gaia-node-modules');
-    helper.exec('NODE_MODULES_GIT_URL=https://git.mozilla.org/b2g/gaia-node-modules.git make node_modules',
-      function(error, stdout, stderr) {
+    var cmd = 'NODE_MODULES_GIT_URL=' +
+      'https://git.mozilla.org/b2g/gaia-node-modules.git make node_modules';
+    helper.exec(cmd, function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 
         var modulesTarPath = path.join(process.cwd(), 'git-gaia-node-modules',
@@ -191,13 +194,6 @@ suite('Build Integration tests', function() {
   });
 
   function verifyIncludedFilesFromHtml(appName) {
-    var used = {
-      js: [],
-      resources: [],
-      style: [],
-      style_unstable: [],
-      locales: []
-    };
     var zipPath = path.join(process.cwd(), 'profile', 'webapps',
         appName + '.gaiamobile.org', 'application.zip');
     var zip = new AdmZip(zipPath);
@@ -209,12 +205,14 @@ suite('Build Integration tests', function() {
 
     for (var f = 0; f < zipEntries.length; f++) {
       var fileName = zipEntries[f].entryName;
+      var allShared;
       var extention =
         fileName.substr(fileName.lastIndexOf('.') + 1).toLowerCase();
       if (extention === 'html') {
-        var allShared = extractSharedFile(zip, zipEntries[f], appName);
+        allShared = extractSharedFile(zip, zipEntries[f], appName);
       }
     }
+    var matches;
 
     function extractSharedFile(zip, file, appName) {
       var SHARED_USAGE =
@@ -228,7 +226,8 @@ suite('Build Integration tests', function() {
           continue;
         }
         if (filePathInHtml.indexOf('shared/') === 0) {
-          fileInApps = fs.readFileSync(path.join(process.cwd(), filePathInHtml));
+          fileInApps = fs.readFileSync(path.join(process.cwd(),
+            filePathInHtml));
         } else {
           fileInApps = fs.readFileSync(path.join(process.cwd(),
             'apps', appName, filePathInHtml));
@@ -247,14 +246,13 @@ suite('Build Integration tests', function() {
       return;
     }
 
-    var images = [];
     for (var f = 0; f < zipEntries.length; f++) {
       var fileInZip = zipEntries[f];
       var fileName = fileInZip.entryName;
       if (/\.(png|gif|jpg)$/.test(fileName)) {
         if (reso !== 1 && fileName.indexOf('browser_') === -1) {
           fileName = fileName.replace(
-            /(.*)(\.(png|gif|jpg))$/, "$1@" + reso + "x$2");
+            /(.*)(\.(png|gif|jpg))$/, '$1@' + reso + 'x$2');
         }
         compareWithApps(appName, fileName, fileInZip, reso, official);
       }
@@ -270,7 +268,7 @@ suite('Build Integration tests', function() {
       if (filePath.indexOf('shared/') === 0) {
         filePath = path.join(process.cwd(), filePath);
       } else {
-        filePath = path.join(process.cwd(), 'apps', appName, filePath)
+        filePath = path.join(process.cwd(), 'apps', appName, filePath);
       }
 
       if (path.existsSync(filePath)) {
@@ -322,7 +320,8 @@ suite('Build Integration tests', function() {
         'dom.payment.provider.3.requestMethod': 'GET'
       };
 
-      // expected values for settings.json from build/config/common-settings.json
+      // expected values for settings.json
+      // from build/config/common-settings.json
       var settingsPath = path.join(process.cwd(), 'profile', 'settings.json');
       var commonSettingsPath = path.join(process.cwd(), 'build', 'config',
         'common-settings.json');
@@ -399,7 +398,8 @@ suite('Build Integration tests', function() {
         '//\n' +
         '// "requiredEXIFPreviewSize": { "width": 640, "height": 480}\n' +
         '//\n' +
-        '// If you do not specify this property then EXIF previews will only\n' +
+        '// If you do not specify this property then EXIF '+ 
+        '// previews will only\n' +
         '// be used if they are big enough to fill the screen in either\n' +
         '// width or height in both landscape and portrait mode.\n' +
         '//\n' +
@@ -427,7 +427,7 @@ suite('Build Integration tests', function() {
         'metadata_scripts.js should exist');
       var galleryFrameScriptPath = path.join(process.cwd(), 'build_stage',
         'gallery', 'js', 'frame_scripts.js');
-      assert.ok(fs.existsSync(galleryMetadataScriptPath),
+      assert.ok(fs.existsSync(galleryFrameScriptPath),
         'frame_scripts.js should exist');
 
       var profileSize = 0;
@@ -517,7 +517,6 @@ suite('Build Integration tests', function() {
         'dom.w3c_touch_events.enabled': 1,
         'dom.sms.enabled': true,
         'dom.mozTCPSocket.enabled': true,
-        'notification.feature.enabled': true,
         'dom.sysmsg.enabled': true,
         'dom.mozAlarms.enabled': true,
         'device.storage.enabled': true,
@@ -574,8 +573,10 @@ suite('Build Integration tests', function() {
       var installedExtsPath = path.join('build_stage', 'additional-extensions',
         'downloaded.json');
       var expectedSettings = {
-        'homescreen.manifestURL': 'app://verticalhome.gaiamobile.org/manifest.webapp',
-        'rocketbar.searchAppURL': 'app://search.gaiamobile.org/index.html'
+        'homescreen.manifestURL':
+          'app://verticalhome.gaiamobile.org/manifest.webapp',
+        'rocketbar.searchAppURL':
+          'app://search.gaiamobile.org/index.html'
       };
       var expectedUserPrefs = {
         'browser.startup.homepage': 'app://system.gaiamobile.org/index.html',
@@ -597,7 +598,6 @@ suite('Build Integration tests', function() {
         'dom.w3c_touch_events.enabled': 1,
         'dom.sms.enabled': true,
         'dom.mozTCPSocket.enabled': true,
-        'notification.feature.enabled': true,
         'dom.sysmsg.enabled': true,
         'dom.mozAlarms.enabled': true,
         'device.storage.enabled': true,
@@ -630,7 +630,6 @@ suite('Build Integration tests', function() {
         'javascript.options.showInConsole': true,
         'browser.dom.window.dump.enabled': true,
         'dom.report_all_js_exceptions': true,
-        'dom.w3c_touch_events.enabled': 1,
         'webgl.verbose': true,
         'dom.max_script_run_time': 0,
         'toolkit.identity.debug': true,
@@ -732,7 +731,8 @@ suite('Build Integration tests', function() {
       var webapps = JSON.parse(fs.readFileSync(webappsPath));
 
       assert.isNotNull(webapps['test.mozilla.com']);
-      assert.equal(webapps['test.mozilla.com'].origin, 'app://test.mozilla.com');
+      assert.equal(webapps['test.mozilla.com'].origin, 
+        'app://test.mozilla.com');
 
       done();
     });
@@ -753,36 +753,48 @@ suite('Build Integration tests', function() {
   });
 
   suite('Pseudolocalizations', function() {
-    test('build with GAIA_CONCAT_LOCALES=0 doesn\'t include pseudolocales', function(done) {
-      helper.exec('GAIA_CONCAT_LOCALES=0 make', function(error, stdout, stderr) {
-        helper.checkError(error, stdout, stderr);
-        var zipPath = path.join(process.cwd(), 'profile', 'webapps',
-          'system.gaiamobile.org', 'application.zip');
-        var zip = new AdmZip(zipPath);
-        var qpsPlocPathInZip = 'locales-obj/qps-ploc.json';
-        assert.isNull(zip.getEntry(qpsPlocPathInZip),
-          'accented English file ' + qpsPlocPathInZip + ' should not exist');
-        var qpsPlocmPathInZip = 'locales-obj/qps-plocm.json';
-        assert.isNull(zip.getEntry(qpsPlocmPathInZip),
-          'mirrored English file ' + qpsPlocmPathInZip + ' should not exist');
-        done();
+    test('build with GAIA_CONCAT_LOCALES=0 doesn\'t include pseudolocales',
+      function(done) {
+        helper.exec('GAIA_CONCAT_LOCALES=0 make',
+          function(error, stdout, stderr) {
+            helper.checkError(error, stdout, stderr);
+            var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+              'system.gaiamobile.org', 'application.zip');
+            var zip = new AdmZip(zipPath);
+            var qpsPlocPathInZip = 'locales-obj/qps-ploc.json';
+            assert.isNull(zip.getEntry(qpsPlocPathInZip),
+              'accented English file ' +
+              qpsPlocPathInZip +
+              ' should not exist');
+            var qpsPlocmPathInZip = 'locales-obj/qps-plocm.json';
+            assert.isNull(zip.getEntry(qpsPlocmPathInZip),
+              'mirrored English file ' +
+              qpsPlocmPathInZip +
+              ' should not exist');
+            done();
+          });
       });
-    });
-    test('build with GAIA_CONCAT_LOCALES=1 includes pseudolocales', function(done) {
-      helper.exec('GAIA_CONCAT_LOCALES=1 make', function(error, stdout, stderr) {
-        helper.checkError(error, stdout, stderr);
-        var zipPath = path.join(process.cwd(), 'profile', 'webapps',
-          'system.gaiamobile.org', 'application.zip');
-        var zip = new AdmZip(zipPath);
-        var qpsPlocPathInZip = 'locales-obj/qps-ploc.json';
-        assert.isNull(zip.getEntry(qpsPlocPathInZip),
-          'accented English file ' + qpsPlocPathInZip + ' should not exist');
-        var qpsPlocmPathInZip = 'locales-obj/qps-plocm.json';
-        assert.isNull(zip.getEntry(qpsPlocmPathInZip),
-          'mirrored English file ' + qpsPlocmPathInZip + ' should not exist');
-        done();
+    test('build with GAIA_CONCAT_LOCALES=1 includes pseudolocales',
+      function(done) {
+        helper.exec('GAIA_CONCAT_LOCALES=1 make',
+          function(error, stdout, stderr) {
+            helper.checkError(error, stdout, stderr);
+            var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+              'system.gaiamobile.org', 'application.zip');
+            var zip = new AdmZip(zipPath);
+            var qpsPlocPathInZip = 'locales-obj/qps-ploc.json';
+            assert.isNull(zip.getEntry(qpsPlocPathInZip),
+              'accented English file ' +
+              qpsPlocPathInZip +
+              ' should not exist');
+            var qpsPlocmPathInZip = 'locales-obj/qps-plocm.json';
+            assert.isNull(zip.getEntry(qpsPlocmPathInZip),
+              'mirrored English file ' +
+              qpsPlocmPathInZip +
+              ' should not exist');
+            done();
+          });
       });
-    });
   });
 
   teardown(function() {
