@@ -437,6 +437,7 @@ var KeyboardManager = {
     }
 
     this.inputFrameManager.deleteRunningKeyboardRef(manifestURL);
+    this.resetShowingLayoutInfo();
 
     if (handleOOM && revokeShowedType !== null) {
       this.setKeyboardToShow(revokeShowedType);
