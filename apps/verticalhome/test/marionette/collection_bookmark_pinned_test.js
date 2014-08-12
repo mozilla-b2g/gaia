@@ -1,12 +1,12 @@
 'use strict';
-/* global __dirname */
 
 var assert = require('assert');
 var Actions = require('marionette-client').Actions;
 var Bookmark = require('./lib/bookmark');
 var Collection = require('./lib/collection');
 var Home2 = require('./lib/home2');
-var EmeServer = require('./eme_server/parent');
+var EmeServer = require(
+  '../../../../shared/test/integration/eme_server/parent');
 var System = require('../../../../apps/system/test/marionette/lib/system');
 
 marionette('Vertical - Collection Pin Bookmark', function() {
@@ -15,8 +15,7 @@ marionette('Vertical - Collection Pin Bookmark', function() {
   var actions, bookmark, collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
-    var folder = __dirname + '/fixtures/everythingme';
-    EmeServer(folder, client, function(err, _server) {
+    EmeServer(client, function(err, _server) {
       server = _server;
       done(err);
     });
@@ -29,7 +28,7 @@ marionette('Vertical - Collection Pin Bookmark', function() {
   var collectionIcon;
 
   // Hard-coded value from fixture.
-  var bookmarkIdentifier = 'http://mozilla1.org';
+  var bookmarkIdentifier = 'http://mozilla1.org/';
 
   setup(function() {
     actions = new Actions(client);
@@ -39,8 +38,6 @@ marionette('Vertical - Collection Pin Bookmark', function() {
     home = new Home2(client);
     system = new System(client);
     system.waitForStartup();
-
-    client.apps.launch(Home2.URL);
 
     home.waitForLaunch();
     collection.disableGeolocation();
@@ -54,6 +51,8 @@ marionette('Vertical - Collection Pin Bookmark', function() {
     collectionIcon = collection.getCollectionByName(name);
 
     // Pin a result of the collection
+    // helps marionette finding the icon: Bug 1046706
+    home.moveIconToIndex(collectionIcon, 0);
     // Enter the created collection.
     collection.enterCollection(collectionIcon);
     collection.bookmark(bookmark, selectors.firstWebResultNoPinned);
@@ -65,9 +64,8 @@ marionette('Vertical - Collection Pin Bookmark', function() {
 
   test('pins the bookmarked result', function() {
     var bookmarkIcon = home.getIcon(bookmarkIdentifier);
-    bookmarkIcon.scriptWith(function(el) {
-      el.scrollIntoView(false);
-    });
+    // scrolling with APZC confuses marionette when tapping: Bug 1046706
+    home.moveIconToIndex(bookmarkIcon, 1);
 
     actions.longPress(bookmarkIcon, 1).perform();
     client.helper.waitForElement(Home2.Selectors.editHeaderText);
@@ -87,7 +85,6 @@ marionette('Vertical - Collection Pin Bookmark', function() {
     var done = client.helper.waitForElement(Home2.Selectors.editHeaderDone);
     done.click();
 
-    // Enter the created collection.
     collection.enterCollection(collectionIcon);
 
     var firstPinnedIcon = collection.firstPinnedResult;

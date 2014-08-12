@@ -357,6 +357,25 @@ suite('TargetHandlersManager', function() {
         assert.isTrue(handlerStub.activate.calledOnce);
       });
 
+      test('KEYCODE_SYMBOL_LAYOUT', function() {
+        var target = {
+          classList: {
+            contains: this.sinon.stub()
+          },
+          dataset: {
+            keycode: app.layoutManager.KEYCODE_SYMBOL_LAYOUT
+          }
+        };
+        target.classList.contains.returns(false);
+
+        activeTargetsManagerStub.ontargetactivated(target);
+
+        assert.isTrue(
+          window.PageSwitchingTargetHandler.calledWith(target, app));
+
+        assert.isTrue(handlerStub.activate.calledOnce);
+      });
+
       test('KeyEvent.DOM_VK_ALT', function() {
         var target = {
           classList: {

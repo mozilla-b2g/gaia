@@ -21,6 +21,7 @@ var templateNode = require('tmpl!./settings_account.html'),
 function SettingsAccountCard(domNode, mode, args) {
   this.domNode = domNode;
   this.account = args.account;
+  this.identity = this.account.identities[0];
 
   var serversContainer = this.nodeFromClass('tng-account-server-container');
 
@@ -29,7 +30,9 @@ function SettingsAccountCard(domNode, mode, args) {
 
   this._bindPrefs('tng-account-check-interval',
                   'tng-notify-mail',
-                  'tng-sound-onsend');
+                  'tng-sound-onsend',
+                  'tng-signature-input',
+                  'signature-button');
 
   this.nodeFromClass('tng-back-btn')
     .addEventListener('click', this.onBack.bind(this), false);
@@ -37,9 +40,8 @@ function SettingsAccountCard(domNode, mode, args) {
   this.nodeFromClass('tng-account-delete')
     .addEventListener('click', this.onDelete.bind(this), false);
 
-  var identity = this.account.identities[0];
   this.nodeFromClass('tng-account-name').
-       textContent = (identity && identity.name) || this.account.name;
+       textContent = (this.identity && this.identity.name) || this.account.name;
 
   // ActiveSync, IMAP and SMTP are protocol names, no need to be localized
   this.nodeFromClass('tng-account-type').textContent =
@@ -84,9 +86,15 @@ function SettingsAccountCard(domNode, mode, args) {
   this.nodeFromClass('tng-account-credentials')
     .addEventListener('click', this.onClickCredentials.bind(this), false);
 }
+
 SettingsAccountCard.prototype = {
+
   onBack: function() {
     Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
+  },
+
+  onCardVisible: function() {
+    this.updateSignatureButton();
   },
 
   onClickCredentials: function() {

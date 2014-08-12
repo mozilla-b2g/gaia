@@ -163,33 +163,6 @@ function loadJSON(href, callback) {
 }
 
 /**
- * The function return support languages.
- * Used by root panel and language panel
- */
-(function(exports) {
-  var languages;
-  var getSupportedLanguages = function(callback) {
-    if (!callback) {
-      return;
-    }
-
-    if (!languages) {
-      var LANGUAGES = '/shared/resources/languages.json';
-      exports.loadJSON(LANGUAGES, function loadLanguages(data) {
-        if (data) {
-          languages = data;
-          callback(languages);
-        }
-      });
-    } else {
-      callback(languages);
-    }
-  };
-
-  exports.getSupportedLanguages = getSupportedLanguages;
-})(this);
-
-/**
  * Helper class for formatting file size strings
  * required by *_storage.js
  */
@@ -247,23 +220,6 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
     showFormatedSize: showFormatedSize
   };
 })();
-
-/**
- * Connectivity accessors
- */
-var getMobileConnection = function() {
-  var mobileConnection = navigator.mozMobileConnections &&
-      navigator.mozMobileConnections[0];
-
-  if (mobileConnection && mobileConnection.data) {
-    return mobileConnection;
-  }
-  return null;
-};
-
-var getBluetooth = function() {
-  return navigator.mozBluetooth;
-};
 
 /**
  * The function returns an object of the supporting state of category of network

@@ -92,6 +92,8 @@ var Commands = {
 
   _trackTimeoutId: null,
 
+  _ringTimeoutId: null,
+
   _commands: {
     track: function fmdc_track(duration, reply) {
       var self = this;
@@ -181,14 +183,17 @@ var Commands = {
     ring: function fmdc_ring(duration, reply) {
       var ringer = this._ringer;
 
-      function stop() {
+      var stop = function() {
         ringer.pause();
         ringer.currentTime = 0;
-      }
+        clearTimeout(this._ringTimeoutId);
+        this._ringTimeoutId = null;
+        FindMyDevice.endHighPriority('command');
+      }.bind(this);
 
-      // are we already ringing?
-      if (!ringer.paused) {
-        if (duration === 0) {
+      var ringing = !ringer.paused || this._ringTimeoutId !== null;
+      if (ringing || duration === 0) {
+        if (ringing && duration === 0) {
           stop();
         }
 
@@ -212,12 +217,7 @@ var Commands = {
         reply(false, 'failed to set volume');
       };
 
-      // use a minimum duration if the value we received is invalid
-      duration = (isNaN(duration) || duration <= 0) ? 1 : duration;
-      setTimeout(function() {
-        FindMyDevice.endHighPriority('command');
-        stop();
-      }, duration * 1000);
+      this._ringTimeoutId = setTimeout(stop, duration * 1000);
     }
   }
 };

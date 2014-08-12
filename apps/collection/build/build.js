@@ -35,6 +35,8 @@ CollectionAppBuilder.prototype.execute = function(options) {
 
     dir.copyTo(collectionsFolder, null);
 
+    var mainIcon = ioService.newURI(collection.icon, null, null).path;
+
     // Read manifest
     let manifestFile = dir.clone();
     manifestFile.append('manifest.collection');
@@ -43,7 +45,6 @@ CollectionAppBuilder.prototype.execute = function(options) {
     // Remove unused icons
     var icons = manifest.icons;
     if (icons) {
-      var mainIcon = ioService.newURI(collection.icon, null, null).path;
       for (var iconSize in icons) {
         if (mainIcon != icons[iconSize]) {
           var iconFile = utils.getFile(options.STAGE_APP_DIR, icons[iconSize]);
@@ -51,6 +52,15 @@ CollectionAppBuilder.prototype.execute = function(options) {
         }
       }
     }
+
+    // Rename the right icon, (removing the size suffix)
+    var iconSuffixMatch = /_[0-9]+\.png$/;
+    var correctIconFile = utils.getFile(options.STAGE_APP_DIR, mainIcon);
+    var newName = correctIconFile.leafName.replace(iconSuffixMatch, '.png');
+    correctIconFile.renameTo(null, newName);
+
+    // Rename the collection icon.
+    collection.icon = collection.icon.replace(iconSuffixMatch, '.png');
 
     // Remove unused backgrounds
     var backgrounds = manifest.backgrounds;

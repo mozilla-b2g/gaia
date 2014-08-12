@@ -166,7 +166,6 @@ window.SMIL = {
     var slides = [];
     var activeReaders = 0;
     var attachmentsNotFound = false;
-    var workingText = [];
     var doc;
     var parTags;
 
@@ -236,10 +235,8 @@ window.SMIL = {
     }
 
     // handle mms messages without smil
-    // aggregate all text attachments into last slide
-    function SMIL_parseWithoutSMIL(attachment) {
-      var slide;
-      var textIndex = workingText.length;
+    // Display the attachments of the mms message in order
+    function SMIL_parseWithoutSMIL(attachment, idx) {
       var blob = attachment.content;
       if (!blob) {
         return;
@@ -249,31 +246,20 @@ window.SMIL = {
       // handle text blobs (plain text blob only) by reading them and
       // converting to text on the last slide
       if (type === 'text' && blob.type === 'text/plain') {
-        workingText.push('');
         readTextBlob(blob, function SMIL_parseAttachmentRead(event, text) {
-          workingText[textIndex] = text;
-
-          // when the last reader finishs, we will join the text together
-          if (!activeReaders) {
-            text = workingText.join(' ');
-            if (slides.length) {
-              slides[slides.length - 1].text = text;
-            } else {
-              slides.push({
-                text: text
-              });
-            }
-            exitPoint();
-          }
+          slides[idx] = {
+            text: text
+          };
+          exitPoint();
         });
 
       // make sure the type was something we want, otherwise ignore it
       } else if (type) {
-        slide = { name: attachment.location, blob: attachment.content };
+        var slide = { name: attachment.location, blob: attachment.content };
         if (slide.name && slide.name.slice(-5) === '.wbmp') {
           convertWbmpToPng(slide);
         }
-        slides.push(slide);
+        slides[idx] = slide;
       }
     }
 

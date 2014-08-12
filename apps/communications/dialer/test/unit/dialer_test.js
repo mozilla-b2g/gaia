@@ -4,7 +4,8 @@
    MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
    NavbarManager, Notification, MockKeypadManager, MockVoicemail,
    MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock, MockMmiManager,
-   MockSuggestionBar, LazyLoader, AccessibilityHelper, MockSimSettingsHelper */
+   MockSuggestionBar, LazyLoader, AccessibilityHelper, MockSimSettingsHelper,
+   MockSimPicker */
 
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -23,6 +24,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_sim_picker.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
@@ -44,6 +46,7 @@ var mocksHelperForDialer = new MocksHelper([
   'Notification',
   'NotificationHelper',
   'SettingsListener',
+  'SimPicker',
   'SimSettingsHelper',
   'SuggestionBar',
   'Utils',
@@ -492,9 +495,14 @@ suite('navigation bar', function() {
         callSpy = this.sinon.stub(CallHandler, 'call');
       });
 
-      test('> Dialing a specific number', function() {
-        sendCommand('ATD12345');
-        sinon.assert.calledWith(callSpy, '12345');
+      [0, 1].forEach(function(serviceId) {
+        test('> Dialing a specific number on user preferred SIM ' + serviceId,
+        function() {
+          this.sinon.spy(MockSimPicker, 'getOrPick');
+          MockSimSettingsHelper._defaultCards.outgoingCall = serviceId;
+          sendCommand('ATD12345');
+          sinon.assert.calledWith(MockSimPicker.getOrPick, serviceId, '12345');
+        });
       });
 
       suite('> Dialing the last recent entry', function() {

@@ -247,7 +247,7 @@
   InputMethods.jshangul = {
     init: init,
     click: click,
-    empty: empty
+    deactivate: deactivate
   };
 
   function setComposition(gul) {
@@ -280,8 +280,8 @@
     });
   }
 
-  function empty() {
-    composingText = '';
+  function deactivate() {
+    endComposition();
     ime.reset();
   }
 
@@ -291,5 +291,8 @@
     } else {
       ime.add(keycode);
     }
+    keyboard.setUpperCase({
+      isUpperCase: false
+    });
   }
 })();

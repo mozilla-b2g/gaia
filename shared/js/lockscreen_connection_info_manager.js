@@ -171,6 +171,8 @@
       node.removeAttribute('data-l10n-id');
       if (text) {
         node.textContent = text;
+      } else {
+        node.textContent = '';
       }
     }
   }

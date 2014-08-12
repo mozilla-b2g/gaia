@@ -1,10 +1,9 @@
-
 var fs = require('fs');
 
 var Manifests = {
 
   makeAppPath: function (path) {
-    var appPath = global.GAIA_DIR + '/apps/' + path;
+    var appPath = config.gaiaDir + '/apps/' + path;
     return appPath;
   },
 

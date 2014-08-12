@@ -1,0 +1,52 @@
+{
+  "env": {
+    "gaiaDir": "GAIA_DIR",
+    "verbose": "VERBOSE",
+    "appPath": "CURRENT_APP",
+    "runs": "RUNS",
+    "runnerHost": "MARIONETTE_RUNNER_HOST"
+  },
+  "gaiaDir": "./",
+  "runs": 5,
+  "spawnInterval": 6000,
+  "timeout": 500000,
+  "scriptTimeout": 50000,
+  "goals": {
+    "flame" : {
+      "startup event test > * > startup > moz-app-visually-complete": 1000
+    },
+    "hamachi" : {
+
+    }
+  },
+  "whitelists": {
+    "mozLaunch": [
+      "camera",
+      "calendar",
+      "clock",
+      "costcontrol",
+      "communications/contacts",
+      "communications/dialer",
+      "email",
+      "fm",
+      "gallery",
+      "marketplace.firefox.com",
+      "settings",
+      "sms",
+      "video"
+    ]
+  },
+  "blacklists": {
+    "global": [
+      "communications/facebook",
+      "communications/gmail",
+      "communications/import",
+      "communications/live",
+      "communications",
+      "email/shared",
+      "template",
+      "system/test/marionette/fullscreen-app",
+      "system/camera"
+    ]
+  }
+}

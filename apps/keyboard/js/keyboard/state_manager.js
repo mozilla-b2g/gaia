@@ -83,7 +83,9 @@ StateManager.prototype._updateActiveState = function(active) {
       // ... load the layout rendering,
       .then(this._updateLayoutRendering.bind(this))
       // ... load l10n.js (if it's not loaded yet.)
-      .then(this.app.l10nLoader.load.bind(this.app.l10nLoader));
+      .then(this.app.l10nLoader.load.bind(this.app.l10nLoader))
+      // ... make sure error is not silently ignored.
+      .catch(function(e) { (e !== undefined) && console.error(e); });
   } else {
     // Do nothing if we are already hidden.
     if (active === this._isActive) {
@@ -100,7 +102,9 @@ StateManager.prototype._updateActiveState = function(active) {
     this.app.candidatePanelManager.hideFullPanel();
     this.app.candidatePanelManager.updateCandidates([]);
     this.app.targetHandlersManager.activeTargetsManager.clearAllTargets();
-    this.app.inputMethodManager.switchCurrentIMEngine('default');
+    this.app.inputMethodManager.switchCurrentIMEngine('default')
+    // ... make sure error is not silently ignored.
+    .catch(function(e) { (e !== undefined) && console.error(e); });
   }
 
   this._isActive = active;
@@ -116,7 +120,11 @@ StateManager.prototype._preloadLayout = function() {
         var p = imEngineLoader.getInputMethodAsync(imEngineName);
         return p;
       }
-  }.bind(this));
+  }.bind(this)).catch(function(e) {
+    if (e !== undefined) {
+      console.error(e);
+    }
+  });
 
   return p;
 };

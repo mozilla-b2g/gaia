@@ -1,5 +1,7 @@
 'use strict';
 
+/* globals MockNavigatorMozMobileConnections */
+
 requireApp('system/js/update_manager.js');
 
 requireApp('system/test/unit/mock_app.js');
@@ -14,8 +16,10 @@ requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_wake_lock.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
+require(
+  '/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+
 requireApp('system/test/unit/mock_asyncStorage.js');
 
 var mocksForUpdateManager = new MocksHelper([
@@ -36,6 +40,7 @@ suite('system/UpdateManager', function() {
   var realRequestWakeLock;
   var realNavigatorSettings;
   var realDispatchEvent;
+  var realMozMobileConnections;
 
   var apps;
   var updatableApps;
@@ -46,8 +51,10 @@ suite('system/UpdateManager', function() {
   var fakeDialog;
   var fakeWarning;
 
-  var tinyTimeout = 10;
+  var TINY_TIMEOUT = 10;
   var lastDispatchedEvent = null;
+
+  var MOBILE_CONNECTION_COUNT = 2;
 
   mocksForUpdateManager.attachTestHelpers();
   suiteSetup(function() {
@@ -63,6 +70,17 @@ suite('system/UpdateManager', function() {
         status: 'connected'
       }
     };
+
+    realMozMobileConnections = navigator.mozMobileConnections;
+    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+
+    for (var i = 0; i < MOBILE_CONNECTION_COUNT; i++) {
+      MockNavigatorMozMobileConnections.mAddMobileConnection();
+      MockNavigatorMozMobileConnections[i].data = {
+        connected: !i,
+        type: (!i ? 'evdo0' : undefined)
+      };
+    }
 
     realRequestWakeLock = navigator.requestWakeLock;
     navigator.requestWakeLock = MockNavigatorWakeLock.requestWakeLock;
@@ -87,6 +105,9 @@ suite('system/UpdateManager', function() {
     navigator.mozWifiManager = realWifiManager;
     navigator.requestWakeLock = realRequestWakeLock;
     realRequestWakeLock = null;
+
+    MockNavigatorMozMobileConnections.mTeardown();
+    navigator.mozMobileConnections = realMozMobileConnections;
 
     UpdateManager._dispatchEvent = realDispatchEvent;
   });
@@ -420,12 +441,12 @@ suite('system/UpdateManager', function() {
 
       suite('if downloading', function() {
         setup(function() {
-          UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = tinyTimeout;
-          UpdateManager.TOASTER_TIMEOUT = tinyTimeout;
+          UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = TINY_TIMEOUT;
+          UpdateManager.TOASTER_TIMEOUT = TINY_TIMEOUT;
           UpdateManager._downloading = true;
           UpdateManager.addToUpdatesQueue(uAppWithDownloadAvailable);
 
-          this.sinon.clock.tick(tinyTimeout);
+          this.sinon.clock.tick(TINY_TIMEOUT);
         });
 
         teardown(function() {
@@ -560,8 +581,8 @@ suite('system/UpdateManager', function() {
 
     suite('container visibility', function() {
       suiteSetup(function() {
-        UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = tinyTimeout;
-        UpdateManager.TOASTER_TIMEOUT = tinyTimeout;
+        UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = TINY_TIMEOUT;
+        UpdateManager.TOASTER_TIMEOUT = TINY_TIMEOUT;
       });
 
       suiteTeardown(function() {
@@ -588,7 +609,7 @@ suite('system/UpdateManager', function() {
         });
 
         test('should not be displayed again after timeout', function() {
-          this.sinon.clock.tick(tinyTimeout);
+          this.sinon.clock.tick(TINY_TIMEOUT);
 
           var css = UpdateManager.container.classList;
           assert.isTrue(css.contains('displayed'));
@@ -603,7 +624,7 @@ suite('system/UpdateManager', function() {
         function() {
         // context is: uAppWithDownloadAvailable was added to updates queue
           setup(function() {
-            this.sinon.clock.tick(tinyTimeout);
+            this.sinon.clock.tick(TINY_TIMEOUT);
 
             UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
           });
@@ -627,7 +648,7 @@ suite('system/UpdateManager', function() {
         });
 
         test('should display after a timeout', function() {
-          this.sinon.clock.tick(tinyTimeout);
+          this.sinon.clock.tick(TINY_TIMEOUT);
 
           var css = UpdateManager.container.classList;
           assert.isTrue(css.contains('displayed'));
@@ -642,7 +663,7 @@ suite('system/UpdateManager', function() {
             UpdateManager.removeFromUpdatesQueue(uApp);
           });
 
-          this.sinon.clock.tick(tinyTimeout);
+          this.sinon.clock.tick(TINY_TIMEOUT);
 
           var css = UpdateManager.container.classList;
           assert.isFalse(css.contains('displayed'));
@@ -651,7 +672,7 @@ suite('system/UpdateManager', function() {
         test('should display an updated count', function() {
           UpdateManager.addToUpdatesQueue(updatableApps[1]);
 
-          this.sinon.clock.tick(tinyTimeout);
+          this.sinon.clock.tick(TINY_TIMEOUT);
 
           var l10nAttrs = MockL10n.getAttributes(
             UpdateManager.message);
@@ -665,7 +686,7 @@ suite('system/UpdateManager', function() {
             var css = UpdateManager.container.classList;
             assert.isFalse(css.contains('displayed'));
 
-            this.sinon.clock.tick(tinyTimeout);
+            this.sinon.clock.tick(TINY_TIMEOUT);
 
             var css = UpdateManager.toaster.classList;
             assert.isTrue(css.contains('displayed'));
@@ -678,7 +699,7 @@ suite('system/UpdateManager', function() {
 
           test('should reset toaster value when notification was activated',
             function() {
-              this.sinon.clock.tick(tinyTimeout);
+              this.sinon.clock.tick(TINY_TIMEOUT);
 
               UpdateManager.addToUpdatesQueue(updatableApps[1]);
               var l10nAttrs = MockL10n.getAttributes(
@@ -689,7 +710,7 @@ suite('system/UpdateManager', function() {
             });
 
           test('should show the right message', function() {
-            this.sinon.clock.tick(tinyTimeout);
+            this.sinon.clock.tick(TINY_TIMEOUT);
 
             var l10nAttrs = MockL10n.getAttributes(
               UpdateManager.toasterMessage);
@@ -702,7 +723,7 @@ suite('system/UpdateManager', function() {
           test('should hide after TOASTER_TIMEOUT', function() {
             UpdateManager.addToUpdatesQueue(updatableApps[1]);
 
-            this.sinon.clock.tick(tinyTimeout * 2);
+            this.sinon.clock.tick(TINY_TIMEOUT * 2);
 
             var css = UpdateManager.toaster.classList;
             assert.isFalse(css.contains('displayed'));
@@ -711,7 +732,7 @@ suite('system/UpdateManager', function() {
         });
 
         test('should add a new statusbar notification', function() {
-          this.sinon.clock.tick(tinyTimeout);
+          this.sinon.clock.tick(TINY_TIMEOUT);
           var method1 = 'incExternalNotifications';
           assert.ok(MockNotificationScreen.wasMethodCalled[method1]);
         });
@@ -751,8 +772,8 @@ suite('system/UpdateManager', function() {
 
     suite('error banner requests', function() {
       suiteSetup(function() {
-        UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = tinyTimeout;
-        UpdateManager.TOASTER_TIMEOUT = tinyTimeout;
+        UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = TINY_TIMEOUT;
+        UpdateManager.TOASTER_TIMEOUT = TINY_TIMEOUT;
       });
 
       suiteTeardown(function() {
@@ -770,7 +791,7 @@ suite('system/UpdateManager', function() {
       });
 
       test('should show after NOTIFICATION_BUFFERING_TIMEOUT', function() {
-        this.sinon.clock.tick(tinyTimeout);
+        this.sinon.clock.tick(TINY_TIMEOUT);
 
         assert.equal(1, MockSystemBanner.mShowCount);
         assert.equal('downloadError', MockSystemBanner.mMessage);
@@ -779,7 +800,7 @@ suite('system/UpdateManager', function() {
       test('should show only once if called multiple time', function() {
         UpdateManager.requestErrorBanner();
 
-        this.sinon.clock.tick(tinyTimeout);
+        this.sinon.clock.tick(TINY_TIMEOUT);
 
         assert.equal(1, MockSystemBanner.mShowCount);
       });
@@ -837,6 +858,10 @@ suite('system/UpdateManager', function() {
         var downloadDialog;
         setup(function() {
           downloadDialog = UpdateManager.downloadDialog;
+        });
+
+        teardown(function() {
+          navigator.mozWifiManager.connection.status = 'connected';
         });
 
         test('should switch the online data attribute when online',
@@ -1303,6 +1328,204 @@ suite('system/UpdateManager', function() {
       test('should not dispatch force update event if not asked', function() {
         UpdateManager.checkForUpdates(false);
         assert.isNull(lastDispatchedEvent);
+      });
+    });
+  });
+
+  suite('2G download forbidden', function() {
+
+    var showDownloadPromptSpy;
+    var showForbiddenDwnSpy;
+
+    setup(function() {
+      this.sinon.useFakeTimers();
+      showDownloadPromptSpy =
+         this.sinon.spy(UpdateManager, 'showDownloadPrompt');
+      showForbiddenDwnSpy =
+         this.sinon.spy(UpdateManager, 'showForbiddenDownload');
+      UpdateManager.init();
+    });
+
+    teardown(function() {
+      this.sinon.clock.restore();
+      showDownloadPromptSpy.restore();
+      showForbiddenDwnSpy.restore();
+      navigator.mozWifiManager.connection.status = 'connected';
+    });
+
+    // 3G -> conn: 'evdo0',
+    // 2G -> conn: 'gprs',
+
+    var testCases = [
+      {
+        title: 'WIFI, 2G, no Setting update2G -> download available',
+        wifi: true,
+        conns: [
+          {
+            type: 'gprs',
+            connected: true
+          },
+          {
+            connected: false
+          }
+        ],
+        forbiddenDwnload: false
+      },
+      {
+        title: 'WIFI, 2G, Setting update2G is true -> download available',
+        wifi: true,
+        conns: [
+          {
+            connected: false
+          },
+          {
+            type: 'gprs',
+            connected: true
+          }
+        ],
+
+        update2g: true,
+        forbiddenDwnload: false
+      },
+      {
+        title: 'WIFI, 2G, Setting update2G is false -> download available',
+        wifi: true,
+        conns: [
+          {
+            type: 'gprs',
+            connected: true
+          },
+          {
+            connected: false
+          }
+        ],
+        update2g: false,
+        forbiddenDwnload: false
+      },
+      {
+        title: 'WIFI, 3G, no Setting update2G -> download available',
+        wifi: true,
+        conns: [
+          {
+            connected: false
+          },
+          {
+            type: 'evdo0',
+            connected: true
+          }
+        ],
+        forbiddenDwnload: false
+      },
+      {
+        title: 'WIFI, 3G, Setting update2G is true -> download available',
+        wifi: true,
+        conns: [
+          {
+            type: 'evdo0',
+            connected: true
+          },
+          {
+            connected: false
+          }
+        ],
+        update2g: true,
+        forbiddenDwnload: false
+      },
+      {
+        title: 'WIFI, 3G, Setting update2G is false -> download available',
+        wifi: true,
+        conns: [
+          {
+            connected: false
+          },
+          {
+            type: 'evdo0',
+            connected: true
+          }
+        ],
+        update2g: false,
+        forbiddenDwnload: false
+      },
+      {
+        title: 'no WIFI, 2G, no Setting update2G -> download forbidden',
+        wifi: false,
+        conns: [
+          {
+            type: 'gprs',
+            connected: true
+          },
+          {
+            connected: false
+          }
+        ],
+        forbiddenDwnload: true
+      },
+      {
+        title: 'no WIFI, 2G, Setting update2G is true -> download available',
+        wifi: false,
+        conns: [
+          {
+            connected: false
+          },
+          {
+            type: 'gprs',
+            connected: true
+          }
+        ],
+        update2g: true,
+        forbiddenDwnload: false
+      },
+      {
+        title: 'no WIFI, 2G, Setting update2G is false -> download forbidden',
+        wifi: false,
+        conns: [
+          {
+            type: 'gprs',
+            connected: true
+          },
+          {
+            connected: false
+          }
+        ],
+        update2g: false,
+        forbiddenDwnload: true
+      }
+    ];
+
+    testCases.forEach(function(testCase) {
+      test(testCase.title, function() {
+        if (testCase.update2g === undefined) {
+          delete MockNavigatorSettings.mSettings[UpdateManager.UPDATE_2G_SETT];
+        } else {
+          MockNavigatorSettings.mSettings[UpdateManager.UPDATE_2G_SETT] =
+            testCase.update2g;
+        }
+        navigator.mozWifiManager.connection.status =
+          testCase.wifi ? 'connected' : 'disconnected';
+
+        for (var i = 0, iLen = testCase.conns.length;
+             i < iLen && i < MOBILE_CONNECTION_COUNT;
+             i++) {
+          MockNavigatorMozMobileConnections[i].data = {
+            connected: testCase.conns[i].connected,
+            type: testCase.conns[i].type
+          };
+        }
+
+        UpdateManager.launchDownload();
+        this.sinon.clock.tick(TINY_TIMEOUT);
+
+        if (testCase.forbiddenDwnload) {
+          assert.ok(showDownloadPromptSpy.notCalled,
+                    'showDownloadPrompt must not be called');
+          assert.ok(showForbiddenDwnSpy.calledOnce,
+                    'showForbiddenDownload must be called');
+        } else {
+          assert.ok(showDownloadPromptSpy.calledOnce,
+                    'showDownloadPrompt must not be called');
+          assert.ok(showForbiddenDwnSpy.notCalled,
+                    'showForbiddenDownload must not be called');
+        }
       });
     });
   });

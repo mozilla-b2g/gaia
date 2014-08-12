@@ -9,7 +9,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 1.5rem 0 7rem;
+  padding: 0 0 7rem;
   color: #fff;
   font-size: 0;
   white-space: nowrap;
@@ -24,7 +24,7 @@
   display: inline-block;
   vertical-align: middle;
   width: 0.1rem;
-  height: calc( 100% - 7rem );
+  height: calc(100% - 7rem);
 }
 
 [role="dialog"].generic-dialog .inner {

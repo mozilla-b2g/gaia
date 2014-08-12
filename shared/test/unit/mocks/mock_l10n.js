@@ -54,6 +54,14 @@
       direction: 'ltr'
     },
 
+    qps: {
+      'qps-ploc': {
+        id: 'qps-ploc',
+        name: 'Pseudo English',
+        translate: stringify
+      }
+    },
+
     DateTimeFormat: function() {
       // Support navigator.mozL10n.DateTimeFormat() without new the object.
       if (!this.localeFormat) {

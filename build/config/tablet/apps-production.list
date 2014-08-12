@@ -1,7 +1,5 @@
-apps/system
-apps/settings
-apps/homescreen
 apps/bluetooth
+apps/bookmark
 apps/browser
 apps/calendar
 apps/camera
@@ -11,10 +9,16 @@ apps/email
 apps/fl
 apps/ftu
 apps/gallery
+apps/homescreen
 apps/keyboard
+apps/marketplace.firefox.com
 apps/music
 apps/pdfjs
+apps/ringtones
+apps/search
+apps/setringtone
+apps/settings
+apps/system
 apps/video
 apps/wallpaper
-apps/marketplace.firefox.com
 outoftree_apps/*

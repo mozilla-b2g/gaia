@@ -1,6 +1,8 @@
 /*global MockL10n, Utils, MockContact, FixturePhones, MockContactPhotoHelper,
          MockContacts, MockMozPhoneNumberService, MocksHelper, Notification,
-         MockNotification, Threads, Promise, MockSettings */
+         MockNotification, Threads, Promise, MockSettings,
+         AssetsHelper
+*/
 
 'use strict';
 
@@ -726,47 +728,46 @@ suite('Utils', function() {
   });
 
   suite('Utils.getResizedImgBlob', function() {
-    // a list of files in /test/unit/media/ to test resizing on
-    var typeTestData = {
-      'IMG_0554.bmp': null,
-      'IMG_0554.gif': null,
-      'IMG_0554.png': null,
-      'IMG_0554.jpg': null
-    };
-    var qualityTestData = {
-      'low_quality.jpg': null,
-      'low_quality_resized.jpg': null,
-      'default_quality_resized.jpg': null
-    };
+    var blobPromises = [],
+        typeTestData = new Map(),
+        lowQualityJPEGBlob = null,
+        lowQualityResizedJPEGBlob = null,
+        defaultQualityResizedJPEGBlob = null,
+        width = 480,
+        height = 800;
+
+    ['bmp', 'gif', 'png', 'jpeg'].forEach((type) => {
+      var blobName = width + 'x' + height + ' ' + type.toUpperCase();
+      typeTestData.set(blobName, null);
+
+      blobPromises.push(
+        AssetsHelper.generateImageBlob(width, height, 'image/' + type).then(
+          (blob) => typeTestData.set(blobName, blob)
+        )
+      );
+    });
+
+    blobPromises.push(
+      AssetsHelper.generateImageBlob(width, height, 'image/jpeg', 0.25).then(
+        (blob) => lowQualityJPEGBlob = blob
+      )
+    );
+
+    blobPromises.push(
+      AssetsHelper.generateImageBlob(
+          width / 2, height / 2, 'image/jpeg', 0.25
+      ).then((blob) => lowQualityResizedJPEGBlob = blob)
+    );
+
+    blobPromises.push(
+      AssetsHelper.generateImageBlob(
+          width / 2, height / 2, 'image/jpeg', 0.5
+      ).then((blob) => defaultQualityResizedJPEGBlob = blob)
+    );
+
 
     suiteSetup(function(done) {
-      // loading all these blobs takes time!
-      this.timeout(30000);
-
-      // load test blobs for image resize testing
-      var assetsNeeded = 0;
-
-      function loadBlob(filename) {
-        /*jshint validthis: true */
-        assetsNeeded++;
-
-        var req = new XMLHttpRequest();
-        var testData = this;
-        req.open('GET', '/test/unit/media/' + filename, true);
-        req.responseType = 'blob';
-
-        req.onload = function() {
-          testData[filename] = req.response;
-          if (--assetsNeeded === 0) {
-            done();
-          }
-        };
-        req.send();
-      }
-
-      // load the images
-      Object.keys(typeTestData).forEach(loadBlob, typeTestData);
-      Object.keys(qualityTestData).forEach(loadBlob, qualityTestData);
+      Promise.all(blobPromises).then(() => done(), done);
     });
 
     setup(function() {
@@ -786,9 +787,9 @@ suite('Utils', function() {
       );
     }
 
-    Object.keys(typeTestData).forEach(function(filename) {
-      test(filename, function(done) {
-        var blob = typeTestData[filename];
+    typeTestData.forEach(function(value, key) {
+      test(key, function(done) {
+        var blob = typeTestData.get(key);
         // half the image size, or 100k, whichever is smaller
         var limit = Math.min(100000, (blob.size / 2));
 
@@ -804,7 +805,7 @@ suite('Utils', function() {
     });
 
     test('Image size is smaller than limit', function(done) {
-      var blob = qualityTestData['low_quality.jpg'];
+      var blob = lowQualityJPEGBlob;
       var limit = blob.size * 2;
       this.sinon.spy(Utils, '_resizeImageBlobWithRatio');
 
@@ -819,10 +820,12 @@ suite('Utils', function() {
     });
 
     test('Resize low quality image', function(done) {
-      var blob = qualityTestData['low_quality.jpg'];
-      var resizedBlob = qualityTestData['low_quality_resized.jpg'];
-      var defaultBlob = qualityTestData['default_quality_resized.jpg'];
-      var limit = blob.size / 2;
+      var blob = lowQualityJPEGBlob;
+      var resizedBlob = lowQualityResizedJPEGBlob;
+      var defaultBlob = defaultQualityResizedJPEGBlob;
+      // Limit should be less then size of the blob returned on the first
+      // "toBlob" call so that resize routine is repeated.
+      var limit = defaultBlob.size - 1;
 
       var toBlobStub = this.sinon.stub(HTMLCanvasElement.prototype,
         'toBlob', function(callback, type, quality) {
@@ -850,10 +853,10 @@ suite('Utils', function() {
     });
 
     test('Decrease image quality not working', function(done) {
-      var blob = qualityTestData['low_quality.jpg'];
-      var resizedBlob = qualityTestData['low_quality_resized.jpg'];
-      var defaultBlob = qualityTestData['default_quality_resized.jpg'];
-      var limit = blob.size / 2;
+      var blob = lowQualityJPEGBlob;
+      var resizedBlob = lowQualityResizedJPEGBlob;
+      var defaultBlob = defaultQualityResizedJPEGBlob;
+      var limit = defaultBlob.size - 1;
 
       var resizeSpy = this.sinon.spy(Utils, '_resizeImageBlobWithRatio');
 
@@ -1116,24 +1119,13 @@ suite('Utils', function() {
   });
 
   suite('Utils.imageUrlToDataUrl', function() {
-     var getCustomImageDataURL = function(width, height, type) {
-      var canvas = document.createElement('canvas'),
-          context = canvas.getContext('2d');
-
-      canvas.width = width;
-      canvas.height = height;
-
-      context.fillStyle = 'rgb(255, 0, 0)';
-      context.fillRect (0, 0, width, height);
-
-      return canvas.toDataURL(type);
-    };
-
     test('generates the same image if size is not adjusted', function(done) {
-      var type = 'image/jpeg',
+      var type = 'image/png',
           actualWidth = 100,
           actualHeight = 200,
-          imageURL = getCustomImageDataURL(actualWidth, actualHeight, type);
+          imageURL = AssetsHelper.generateImageDataURL(
+            actualWidth, actualHeight, type
+          );
 
       Utils.imageUrlToDataUrl(imageURL, type).then((result) => {
         assert.deepEqual(result, {
@@ -1149,7 +1141,9 @@ suite('Utils', function() {
           actualWidth = 100,
           actualHeight = 200,
           scaleFactor = 2,
-          imageURL = getCustomImageDataURL(actualWidth, actualHeight, type);
+          imageURL = AssetsHelper.generateImageDataURL(
+            actualWidth, actualHeight, type
+          );
 
       Utils.imageUrlToDataUrl(imageURL, type, (width, height) => {
         return {
@@ -1177,7 +1171,9 @@ suite('Utils', function() {
       var type = 'image/png',
           actualWidth = 100,
           actualHeight = 200,
-          imageURL = getCustomImageDataURL(actualWidth, actualHeight, type);
+          imageURL = AssetsHelper.generateImageDataURL(
+            actualWidth, actualHeight, type
+          );
 
       Utils.imageUrlToDataUrl(imageURL, type, () => {
         throw new Error('Something went wrong!');
@@ -1187,6 +1183,37 @@ suite('Utils', function() {
           assert.ok(e);
         }
       ).then(done, done);
+    });
+  });
+
+  suite('Utils.debounce', function() {
+    setup(function() {
+      this.sinon.useFakeTimers();
+    });
+
+    test('calls function only once it stops being called', function() {
+      var waitTime = 1000,
+          funcToExecute = sinon.stub(),
+          debouncedFuncToExecute = Utils.debounce(funcToExecute, waitTime);
+
+      debouncedFuncToExecute();
+      sinon.assert.notCalled(funcToExecute);
+
+      this.sinon.clock.tick(waitTime - 100);
+      sinon.assert.notCalled(funcToExecute);
+
+      debouncedFuncToExecute();
+      debouncedFuncToExecute();
+      debouncedFuncToExecute();
+
+      this.sinon.clock.tick(waitTime - 100);
+      sinon.assert.notCalled(funcToExecute);
+
+      this.sinon.clock.tick(100);
+      sinon.assert.calledOnce(funcToExecute);
+
+      this.sinon.clock.tick(waitTime);
+      sinon.assert.calledOnce(funcToExecute);
     });
   });
 

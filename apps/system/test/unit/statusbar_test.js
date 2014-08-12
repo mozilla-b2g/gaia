@@ -104,7 +104,7 @@ suite('system/Statusbar', function() {
     function statusBarReady() {
 
       StatusBar.ELEMENTS.forEach(function testAddElement(elementName) {
-        var elt =document.getElementById('statusbar-' + elementName);
+        var elt = document.getElementById('statusbar-' + elementName);
         if (elt) {
           elt.parentNode.removeChild(elt);
         }
@@ -1352,6 +1352,10 @@ suite('system/Statusbar', function() {
             var title = document.createElement('div');
             title.classList.add('titlebar');
             element.appendChild(title);
+
+            var chrome = document.createElement('div');
+            chrome.className = 'chrome';
+            element.appendChild(chrome);
             this._element = element;
           }
 

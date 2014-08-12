@@ -17786,7 +17786,7 @@ MailBridge.prototype = {
           break;
 
         default:
-          throw new Error('Invalid key for modifyAccount: "' + key);
+          throw new Error('Invalid key for modifyAccount: "' + key + '"');
       }
     }
 
@@ -17799,6 +17799,49 @@ MailBridge.prototype = {
 
   _cmd_deleteAccount: function mb__cmd_deleteAccount(msg) {
     this.universe.deleteAccount(msg.accountId);
+  },
+
+  _cmd_modifyIdentity: function mb__cmd_modifyIdentity(msg) {
+    var account = this.universe.getAccountForSenderIdentityId(msg.identityId),
+        accountDef = account.accountDef,
+        identity = this.universe.getIdentityForSenderIdentityId(msg.identityId);
+
+    for (var key in msg.mods) {
+      var val = msg.mods[key];
+
+      switch (key) {
+        case 'name':
+          identity.name = val;
+          break;
+
+        case 'address':
+          identity.address = val;
+          break;
+
+        case 'replyTo':
+          identity.replyTo = val;
+          break;
+
+        case 'signature':
+          identity.signature = val;
+          break;
+
+        case 'signatureEnabled':
+          identity.signatureEnabled = val;
+          break;
+
+        default:
+          throw new Error('Invalid key for modifyIdentity: "' + key + '"');
+      }
+    }
+    // accountDef has the identity, so this persists it as well
+    this.universe.saveAccountDef(accountDef, null, function() {
+      this.__sendMessage({
+        type: 'modifyIdentity',
+        handle: msg.handle,
+      });
+    }.bind(this));
+
   },
 
   /**
@@ -18319,7 +18362,7 @@ MailBridge.prototype = {
 
       identity = account.identities[0];
 
-      // not doing something that needs a body just return an empty composer.
+      var bodyText = $composer.mailchew.generateBaseComposeBody(identity);
       if (msg.mode !== 'reply' && msg.mode !== 'forward') {
         return this.__sendMessage({
           type: 'composeBegun',
@@ -18327,7 +18370,7 @@ MailBridge.prototype = {
           error: null,
           identity: identity,
           subject: '',
-          body: { text: '', html: null },
+          body: { text: bodyText, html: null },
           to: [],
           cc: [],
           bcc: [],
@@ -19613,6 +19656,7 @@ function recreateIdentities(universe, accountId, oldIdentities) {
       address: oldIdentity.address,
       replyTo: oldIdentity.replyTo,
       signature: oldIdentity.signature,
+      signatureEnabled: oldIdentity.signatureEnabled
     });
   }
   return identities;

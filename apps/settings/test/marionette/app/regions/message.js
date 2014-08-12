@@ -23,6 +23,8 @@ MessagePanel.Selectors = {
   'wapPushCheckbox': '#menuItem-wapPush input[type="checkbox"]',
   'cellBroadcastMenuItem': '#menuItem-cellBroadcast',
   'cellBroadcastCheckbox': '#menuItem-cellBroadcast input[type="checkbox"]',
+  'emergencyAlertMenuItem': '#menuItem-emergencyAlert',
+  'emergencyAlertCheckbox': '#menuItem-emergencyAlert input[type="checkbox"]',
   'retrieveSelect': 'select[name="ril.mms.retrieval_mode"]',
   'messageContentDiv': '#messaging > div'
 };
@@ -34,21 +36,24 @@ MessagePanel.prototype = {
     'ril.sms.requestStatusReport.enabled',
     'ril.mms.requestReadReport.enabled',
     'wap.push.enabled',
-    'ril.cellbroadcast.disabled'
+    'ril.cellbroadcast.disabled',
+    'cmas.enabled'
   ],
 
   checkboxes: [
     'deliveryReportCheckbox',
     'readReportCheckbox',
     'wapPushCheckbox',
-    'cellBroadcastCheckbox'
+    'cellBroadcastCheckbox',
+    'emergencyAlertCheckbox'
   ],
 
   menuItems: [
     'deliveryReportMenuItem',
     'readReportMenuItem',
     'wapPushMenuItem',
-    'cellBroadcastMenuItem'
+    'cellBroadcastMenuItem',
+    'emergencyAlertMenuItem'
   ],
 
   get deliveryReportMenuItem() {
@@ -81,6 +86,19 @@ MessagePanel.prototype = {
 
   get cellBroadcastCheckbox() {
     return this.findElement('cellBroadcastCheckbox');
+  },
+
+  get emergencyAlertMenuItem() {
+    return this.findElement('emergencyAlertMenuItem');
+  },
+
+  get emergencyAlertCheckbox() {
+    return this.findElement('emergencyAlertCheckbox');
+  },
+
+  get isEmergencyAlertCheckboxEnabled() {
+    return !this.findElement('emergencyAlertCheckbox')
+      .getAttribute('disabled');
   },
 
   get messageContentDiv() {

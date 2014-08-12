@@ -74,7 +74,7 @@ var NfcHandoverManager = {
    * @type {Number}
    * @memberof NfcHandoverManager.prototype
    */
-  responseTimeoutMillis: 6000,
+  responseTimeoutMillis: 9000,
 
   /**
    * Set whenever a timeout is defined while waiting for an outstanding handover
@@ -376,10 +376,8 @@ var NfcHandoverManager = {
       return;
     }
 
-    var nfcPeer;
-    try {
-      nfcPeer = this.nfc.getNFCPeer(session);
-    } catch (ex) {
+    var nfcPeer = this.nfc.getNFCPeer(session);
+    if (nfcPeer === null) {
       this._debug('NFC peer went away during doHandoverRequest');
       this._showFailedNotification('transferFinished-receivedFailed-title');
       this._restoreBluetoothStatus();
@@ -428,10 +426,8 @@ var NfcHandoverManager = {
       var onerror = function() {
         self._dispatchSendFileStatus(1, requestId);
       };
-      var nfcPeer;
-      try {
-        nfcPeer = this.nfc.getNFCPeer(session);
-      } catch (ex) {
+      var nfcPeer = this.nfc.getNFCPeer(session);
+      if (nfcPeer === null) {
         this._debug('NFC peer went away during initiateFileTransfer');
         onerror();
         this._restoreBluetoothStatus();

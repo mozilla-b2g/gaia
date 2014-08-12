@@ -41,7 +41,7 @@
     "audio-channel-ringer":{},
     "cellbroadcast":{},
     "input-manage":{},
-    "nfc":{ "access": "readonly" },
+    "nfc":{ "access": "readwrite" },
     "nfc-manager":{},
     "downloads":{},
     "systemXHR":{},
@@ -73,6 +73,18 @@
     "189": "/style/icons/system_189.png",
     "284": "/style/icons/system_284.png"
   },
+  "activities": {
+    "view": {
+      "filters": {
+        "type": "url",
+        "url": {
+          "required": true,
+          "pattern": "(https?:|data:).{1,16384}",
+          "patternFlags": "i"
+        }
+      }
+    }
+  },
   "messages": [
      { "alarm": "/index.html" },
      { "bluetooth-opp-transfer-complete": "/index.html" },
@@ -84,7 +96,8 @@
      { "nfc-manager-tech-discovered": "/index.html" },
      { "nfc-manager-tech-lost": "/index.html" },
      { "nfc-manager-send-file": "/index.html" },
-     { "bluetooth-pairing-request": "/index.html" }
+     { "bluetooth-pairing-request": "/index.html" },
+     { "notification": "/index.html" }
   ],
   "connections": {
     "mediacomms": {
@@ -128,6 +141,10 @@
     "Basket_Newsletter": {
       "readonly": false,
       "description": "Email address for sending newsletter"
+    },
+    "bookmarks_store": {
+      "readonly": true,
+      "description": "Check for existence of bookmarks"
     }
   }
 }

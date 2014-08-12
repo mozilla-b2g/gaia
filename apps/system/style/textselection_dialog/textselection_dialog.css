@@ -11,7 +11,7 @@
   width: auto;
   position: absolute;
   background-color: #696b6e;
-  box-shadow: 0.1rem 0.1rem 0.2rem 0.1rem #3d3d3d;
+  box-shadow: 0.2rem 0.2rem 0.4rem 0 rgba(0, 0, 0, 0.4);
   display: none;
   border-radius: 0.2rem;
 }
@@ -39,7 +39,7 @@
 .appWindow > .textselection-dialog div:after,
 #TextSelectionDialogRoot > .textselection-dialog div:after {
   content: '';
-  background-color: #4d5759;
+  background-color: #596466;
   width: 0.1rem;
   height: 4.6rem;
   margin-top: 0.4rem;

@@ -10,6 +10,7 @@
   height: 5rem;
   transition-duration: 0.3s;
   transition-timing-function: ease-in-out;
+  visibility: hidden;
 }
 
 #software-buttons.no-transition {
@@ -18,6 +19,7 @@
 
 #software-buttons.visible {
   transform: translateY(-100%);
+  visibility: visible;
 }
 
 @media (orientation: landscape) {

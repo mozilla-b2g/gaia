@@ -142,6 +142,27 @@ suite('calendar/template', function() {
       assert.equal(tpl.render('bar'), '\nfoo bar');
     });
 
+    test('with numeric, null and objects', function() {
+      var tpl = new Template(function() {
+        return 'foo ' + this.h('nullish') + this.h('undefinedish') +
+          this.h('zeroish') +' '+ this.h('falseish') + ' ' +
+          this.h('objectish');
+      });
+      // null, undefined and zero caused problems previously
+      assert.equal(tpl.render({
+        nullish: null,
+        undefinededish: undefined,
+        zeroish: 0,
+        falseish: false,
+        objectish: {
+          toString: function() {
+            // this should be escaped!!!
+            return '<a>complex</a>';
+          }
+        }
+      }), 'foo 0 false &lt;a&gt;complex&lt;/a&gt;');
+    });
+
     test('no html escape', function() {
       var tpl, input, output;
 

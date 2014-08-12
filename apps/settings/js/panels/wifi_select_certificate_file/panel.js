@@ -16,9 +16,9 @@ define(function(require) {
         elements = {};
         elements.panel = panel;
         elements.certificateFilesList =
-          panel.querySelector('#wifi-certificate-files-List');
+          panel.querySelector('.wifi-certificate-files-List');
         elements.certificateFailedDialog =
-          panel.querySelector('#certificate-import-failed');
+          panel.querySelector('.certificate-import-failed');
       },
       onBeforeShow: function(panel) {
         this._cleanup();
@@ -68,7 +68,7 @@ define(function(require) {
               // TODO
               // we have to make a new mechanism for this case
               var inputNickname =
-                document.getElementById('certificate-file-nickname');
+                document.querySelector('.certificate-file-nickname');
 
               var certRequest =
                 wifiManager.importCert(file, '', inputNickname.value);
@@ -97,9 +97,7 @@ define(function(require) {
                 // Re-enable all items of certificate files
                 // since import file process is completed.
                 for (var i = 0; i < items.length; i++) {
-                  if (items[i].classList.contains('disabled')) {
-                    items[i].classList.remove('disabled');
-                  }
+                  items[i].classList.remove('disabled');
                 }
               };
             }

@@ -24,8 +24,7 @@
     ]
   ],
   "preferences": {
-    "grid.cols": 3,
-    "cols.preference.enabled": true
+    "grid.cols": 3
   },
   "bookmarks": [
     {

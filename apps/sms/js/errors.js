@@ -58,6 +58,10 @@
       executeHandler: true
     });
 
+    ERRORS.set('RadioDisabledToDownloadError', {
+      prefix: 'radioDisabledToDownload'
+    });
+
     // The error type below will be represented as "GeneralError" in dialog for
     // the rest of error codes (InternalError and etc.)
     ERRORS.set('UnknownError', {

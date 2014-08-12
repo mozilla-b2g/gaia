@@ -1,12 +1,14 @@
-/* global MocksHelper, ShrinkingUI */
+/* global MocksHelper, ShrinkingUI, MockSystem */
 
 'use strict';
 
 requireApp('system/js/shrinking_ui.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
+require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksForShrinkingUI = new MocksHelper([
-  'OrientationManager'
+  'OrientationManager',
+  'System'
 ]).init();
 
 suite('system/ShrinkingUI', function() {
@@ -70,6 +72,17 @@ suite('system/ShrinkingUI', function() {
   test('Handle "home" event', homeAndHoldhomeTestFactory('home'));
   test('Handle "holdhome" event', homeAndHoldhomeTestFactory('holdhome'));
 
+  test('Handle "home" event would make current app as null', function() {
+    var evt = {
+      type: 'home',
+    };
+    var current = ShrinkingUI.current;
+    var stubSwitchTo = this.sinon.stub(ShrinkingUI, '_switchTo');
+    ShrinkingUI.handleEvent(evt);
+    assert.isTrue(stubSwitchTo.calledWith(null));
+    ShrinkingUI.current = current;
+  });
+
   test('Handle "homescreenopened" event', function() {
     var evt = {
       type: 'homescreenopened',
@@ -83,6 +96,8 @@ suite('system/ShrinkingUI', function() {
     var evt = {
       type: 'appcreated',
       detail: {
+        url: 'app://www.fake.app/murl',
+        instanceID: 'fake',
         manifestURL: 'app://www.fake.app/murl'
       }
     };
@@ -91,11 +106,11 @@ suite('system/ShrinkingUI', function() {
     assert.isTrue(stubRegister.calledWith(evt.detail));
 
     // test the early return in handleEvent
-    //   (for evt.detail & evnt.detail.manifestURL)
+    //   (for evt.detail & evnt.detail.url)
     // note that this is only tested in appcreated,
     // and not appterminated & appopen
 
-    delete evt.detail.manifestURL;
+    delete evt.detail.url;
     stubRegister.reset();
     ShrinkingUI.handleEvent(evt);
     assert.isFalse(stubRegister.called);
@@ -110,6 +125,7 @@ suite('system/ShrinkingUI', function() {
     var evt = {
       type: 'appterminated',
       detail: {
+        url: 'app://www.fake.app/maniurl',
         manifestURL: 'app://www.fake.app/maniurl',
         instanceID: 'fakeinstance'
       }
@@ -165,7 +181,8 @@ suite('system/ShrinkingUI', function() {
       type: 'appopen',
       detail: {
         manifestURL: 'app://www.fake.app/mfurl',
-        instanceID: 'instanceID'
+        instanceID: 'instanceID',
+        url: 'app://www.fake.app/mfurl'
       }
     };
     var stubSwitchTo = this.sinon.stub(ShrinkingUI, '_switchTo');
@@ -178,7 +195,8 @@ suite('system/ShrinkingUI', function() {
       type: 'appwill-become-active',
       detail: {
         manifestURL: 'app://www.fake.app/mfsturl',
-        instanceID: 'instanceID'
+        instanceID: 'instanceID',
+        url: 'app://www.fake.app/mfsturl'
       }
     };
     var stubSwitchTo = this.sinon.stub(ShrinkingUI, '_switchTo');
@@ -267,9 +285,14 @@ suite('system/ShrinkingUI', function() {
     ShrinkingUI.apps = oldApps;
   });
 
-  test('ShrinkingUI SwitchTo', function() {
+  test('ShrinkingUI SwitchTo some instance ID', function() {
     ShrinkingUI._switchTo('someOtherInstanceID');
     assert.equal(ShrinkingUI.current.instanceID, 'someOtherInstanceID');
+  });
+
+  test('ShrinkingUI SwitchTo when manifestURL is null', function() {
+    ShrinkingUI._switchTo(null, null);
+    assert.equal(ShrinkingUI.current.manifestURL, MockSystem.manifestURL);
   });
 
   test('Shrinking UI Setup', function() {
@@ -381,19 +404,22 @@ suite('system/ShrinkingUI', function() {
     assert.isTrue(ShrinkingUI.current.tip.classList.remove.calledWith('hide'));
 
     ShrinkingUI.current = oldCurrent;
+    assert.notEqual('undefined', typeof ShrinkingUI.current.tip,
+      'after test the tip was not reseted');
+    assert.notEqual('null', typeof ShrinkingUI.current.tip,
+      'after test the tip was not reseted');
   });
 
   test('Shrinking UI Stop', function(done) {
     // test for state = false (not going to start actually)
-    var stubState = this.sinon.stub(ShrinkingUI, '_state').returns(false);
+    var originalShrinking = ShrinkingUI.state.shrinking;
+    ShrinkingUI.state.shrinking = false;
     var stubShrinkingTiltBack =
       this.sinon.stub(ShrinkingUI, '_shrinkingTiltBack');
     ShrinkingUI.stop();
-    assert.isTrue(stubState.called);
     assert.isFalse(stubShrinkingTiltBack.called);
-
-    stubState.reset();
     stubShrinkingTiltBack.restore();
+    ShrinkingUI.state.shrinking = originalShrinking;
 
     // actual "stop"
 
@@ -412,16 +438,20 @@ suite('system/ShrinkingUI', function() {
     ShrinkingUI.current.instanceID = 'instanceIDofTestApp';
     ShrinkingUI.current.tip = fakeTip;
 
-    stubState.returns(true);
-    var stubCleanEffects = this.sinon.stub(ShrinkingUI, '_cleanEffects');
+    // Stub a promised function.
+    var stubCleanEffects = this.sinon.stub(ShrinkingUI, '_cleanEffects',
+    function() {
+      return {
+        then: function(cb) {
+          cb();
+        }
+      };
+    });
 
     stubShrinkingTiltBack =
       this.sinon.stub(ShrinkingUI, '_shrinkingTiltBack', function(instant, cb){
         assert.isTrue(instant);
-
         cb();
-
-        assert.isTrue(stubState.called);
         assert.isTrue(fakeTip.remove.called);
         assert.isNull(this.current.tip);
         assert.isTrue(testApp.setVisible.calledWith(true));
@@ -479,9 +509,13 @@ suite('system/ShrinkingUI', function() {
       }
     };
 
+    ShrinkingUI.state.shrinking =
+    ShrinkingUI.state.tilting =
+    ShrinkingUI.state.ending = false;
+
     assert.isFalse(ShrinkingUI._state());
 
-    ShrinkingUI.current.appFrame.dataset.shrinkingState = 'true';
+    ShrinkingUI.state.shrinking = true;
     assert.isTrue(ShrinkingUI._state());
 
     ShrinkingUI.current.appFrame = oldAppFrame;

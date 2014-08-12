@@ -6,9 +6,6 @@ require.config({
     'shared': '../shared/js'
   },
   shim: {
-    'connectivity': {
-      exports: 'Connectivity'
-    },
     'settings': {
       exports: 'Settings'
     },
@@ -20,6 +17,9 @@ require.config({
     },
     'shared/keyboard_helper': {
       exports: 'KeyboardHelper'
+    },
+    'shared/language_list': {
+      exports: 'LanguageList'
     },
     'shared/lazy_loader': {
       exports: 'LazyLoader'
@@ -39,8 +39,14 @@ require.config({
     'shared/settings_listener': {
       exports: 'SettingsListener'
     },
+    'shared/tz_select': {
+      exports: 'tzSelect'
+    },
     'shared/wifi_helper': {
       exports: 'WifiHelper'
+    },
+    'shared/bluetooth_helper': {
+      exports: 'BluetoothHelper'
     },
     'utils': {
       exports: ''
@@ -57,7 +63,8 @@ require.config({
       name: 'panels/root/panel',
       exclude: [
         'main',
-        'modules/battery'
+        'modules/battery',
+        'modules/bluetooth'
       ]
     },
     {
@@ -175,6 +182,13 @@ require.config({
     {
       name: 'panels/wifi_wps/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/date_time/panel',
+      exclude: [
+        'main',
+        'modules/mvvm/observable'
+      ]
     }
   ]
 });

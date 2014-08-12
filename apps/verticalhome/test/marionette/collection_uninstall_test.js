@@ -4,7 +4,8 @@ var assert = require('assert');
 var Actions = require('marionette-client').Actions;
 var Collection = require('./lib/collection');
 var Home2 = require('./lib/home2');
-var EmeServer = require('./eme_server/parent');
+var EmeServer = require(
+  '../../../../shared/test/integration/eme_server/parent');
 var System = require('../../../../apps/system/test/marionette/lib/system');
 
 marionette('Vertical - Uninstall Collection', function() {
@@ -13,8 +14,7 @@ marionette('Vertical - Uninstall Collection', function() {
   var actions, collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
-    var folder = __dirname + '/fixtures/everythingme';
-    EmeServer(folder, client, function(err, _server) {
+    EmeServer(client, function(err, _server) {
       server = _server;
       done(err);
     });
@@ -32,8 +32,6 @@ marionette('Vertical - Uninstall Collection', function() {
     home = new Home2(client);
     system = new System(client);
     system.waitForStartup();
-
-    client.apps.launch(Home2.URL);
 
     home.waitForLaunch();
     collection.disableGeolocation();
@@ -54,7 +52,7 @@ marionette('Vertical - Uninstall Collection', function() {
       return el.dataset.identifier;
     });
 
-    remove.click();
+    remove.tap();
     home.confirmDialog('remove');
 
     // ensure the icon disappears

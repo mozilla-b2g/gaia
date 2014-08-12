@@ -10,5 +10,7 @@ var MockSystem = {
     var evt = new CustomEvent(eventName, { detail: detail });
     window.dispatchEvent(evt);
   },
-  locked: false
+  locked: false,
+  runningFTU: false,
+  manifestURL: 'app://system.gaiamobile.org/manifest.webapp'
 };

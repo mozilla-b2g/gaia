@@ -10,6 +10,9 @@ System.URL = 'app://system.gaiamobile.org/manifest.webapp';
 
 System.Selector = Object.freeze({
   appTitlebar: '.appWindow.active .titlebar',
+  appChromeContextLink: '.appWindow.active .menu-button',
+  appChromeContextMenu: '.appWindow.active .overflow-menu',
+  appChromeContextMenuBookmark: '.appWindow.active #add-to-home',
   statusbar: '#statusbar',
   statusbarBackground: '#statusbar-background',
   statusbarLabel: '#statusbar-label',
@@ -24,6 +27,21 @@ System.prototype = {
 
   get appTitlebar() {
     return this.client.findElement(System.Selector.appTitlebar);
+  },
+
+  get appChromeContextLink() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextLink);
+  },
+
+  get appChromeContextMenu() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextMenu);
+  },
+
+  get appChromeContextMenuBookmark() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextMenuBookmark);
   },
 
   get statusbar() {

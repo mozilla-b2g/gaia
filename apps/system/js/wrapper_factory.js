@@ -116,8 +116,6 @@
       var app = AppWindowManager.getApp(config.origin);
       if (!app) {
         config.chrome = {
-          navigation: true,
-          bar: true,
           scrollable: true
         };
         app = new AppWindow(config);

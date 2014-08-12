@@ -4193,7 +4193,7 @@ NetSocket.prototype.upgradeToSecure = function() {
 NetSocket.prototype.end = function() {
   if (this.destroyed)
     return;
-  this._sendMessage('end');
+  this._sendMessage('close');
   this.destroyed = true;
   this._unregisterWithRouter();
 };
@@ -9909,7 +9909,8 @@ exports.configurator = {
           name: userDetails.displayName,
           address: userDetails.emailAddress,
           replyTo: null,
-          signature: null
+          signature: null,
+          signatureEnabled: false
         },
       ],
       tzOffset: tzOffset,
@@ -9958,7 +9959,8 @@ exports.configurator = {
           name: userDetails.displayName,
           address: userDetails.emailAddress,
           replyTo: null,
-          signature: null
+          signature: null,
+          signatureEnabled: false
         },
       ],
     };

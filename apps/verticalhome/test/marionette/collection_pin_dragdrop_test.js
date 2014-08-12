@@ -3,7 +3,8 @@
 var Actions = require('marionette-client').Actions;
 var Bookmark = require('./lib/bookmark');
 var Collection = require('./lib/collection');
-var EmeServer = require('./eme_server/parent');
+var EmeServer = require(
+  '../../../../shared/test/integration/eme_server/parent');
 var Home2 = require('./lib/home2');
 var System = require('../../../../apps/system/test/marionette/lib/system');
 
@@ -13,8 +14,7 @@ marionette('Vertical - Collection', function() {
   var actions, bookmark, collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
-    var folder = __dirname + '/fixtures/everythingme';
-    EmeServer(folder, client, function(err, _server) {
+    EmeServer(client, function(err, _server) {
       server = _server;
       done(err);
     });
@@ -32,8 +32,6 @@ marionette('Vertical - Collection', function() {
     home = new Home2(client);
     system = new System(client);
     system.waitForStartup();
-
-    client.apps.launch(Home2.URL);
 
     home.waitForLaunch();
     collection.disableGeolocation();
@@ -55,6 +53,10 @@ marionette('Vertical - Collection', function() {
     // We specifically choose phone because it has an entry point.
     var phoneIcon = home.getIcon(dialerManifest, dialerEntryPoint);
     var collectionIcon = collection.getCollectionByName(collectionName);
+    // helps marionette finding the icon: Bug 1046706
+    // note: they should be at this position already
+    home.moveIconToIndex(phoneIcon, 0);
+    home.moveIconToIndex(collectionIcon, 1);
 
     actions
       .press(phoneIcon)

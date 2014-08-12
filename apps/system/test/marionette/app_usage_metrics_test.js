@@ -39,8 +39,7 @@ marionette('App Usage Metrics >', function() {
       'homescreen.manifestURL':
         'app://verticalhome.gaiamobile.org/manifest.webapp',
       'keyboard.ftu.enabled': false,
-      'lockscreen.enabled': false,
-      'rocketbar.enabled': false
+      'lockscreen.enabled': false
     }
   });
 

@@ -385,6 +385,7 @@ var StatusBar = {
   _dontStopEvent: false,
   panelHandler: function sb_panelHandler(evt) {
     var app = AppWindowManager.getActiveApp().getTopMostWindow();
+    var chromeBar = app.element.querySelector('.chrome');
     var titleBar = app.element.querySelector('.titlebar');
 
     // Do not forward events if FTU is running
@@ -420,6 +421,7 @@ var StatusBar = {
         this._startX = touch.clientX;
         this._startY = touch.clientY;
 
+        chromeBar.style.transition = 'transform';
         titleBar.style.transition = 'transform';
         break;
 
@@ -435,6 +437,7 @@ var StatusBar = {
 
         var translate = Math.min(deltaY, height);
         titleBar.style.transform =
+          chromeBar.style.transform =
           'translateY(calc(' + translate + 'px - 100%)';
 
         if (translate == height) {
@@ -470,6 +473,11 @@ var StatusBar = {
 
   _releaseBar: function sb_releaseBar(titleBar) {
     this._dontStopEvent = false;
+    var chromeBar = titleBar.parentNode.querySelector('.chrome');
+
+    chromeBar.classList.remove('dragged');
+    chromeBar.style.transform = '';
+    chromeBar.style.transition = '';
 
     titleBar.classList.remove('dragged');
     titleBar.style.transform = '';
@@ -480,10 +488,16 @@ var StatusBar = {
   },
 
   _releaseAfterTimeout: function sb_releaseAfterTimeout(titleBar) {
+    var chromeBar = titleBar.parentNode.querySelector('.chrome');
+
     var self = this;
     titleBar.style.transform = '';
     titleBar.style.transition = '';
     titleBar.classList.add('dragged');
+
+    chromeBar.style.transform = '';
+    chromeBar.style.transition = '';
+    chromeBar.classList.add('dragged');
 
     self._releaseTimeout = setTimeout(function() {
       self._releaseBar(titleBar);

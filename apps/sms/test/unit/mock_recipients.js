@@ -13,7 +13,8 @@ function MockRecipients(setup) {
   });
   this.events = {
     add: [],
-    remove: []
+    remove: [],
+    modechange: []
   };
   this.numbers = [];
   this.inputValue = '';

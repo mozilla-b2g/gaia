@@ -108,10 +108,12 @@
 
     if (!this.config.chrome) {
       this.config.chrome = {
-        navigation: true,
-        bar: true,
         scrollable: this.isBrowser()
       };
+    } else if (this.config.chrome.navigation) {
+      // This is for backward compatibility with application that
+      // requests the |navigation| flag in their manifest.
+      this.config.chrome.scrollable = true;
     }
 
     if (!this.manifest && this.config && this.config.title) {
@@ -498,7 +500,10 @@
     return '<div class=" ' + this.CLASS_LIST +
             ' " id="' + this.instanceID +
             '" transition-state="closed">' +
-              '<div class="titlebar"></div>' +
+              '<div class="titlebar">' +
+              ' <div class="statusbar-shadow titlebar-maximized"></div>' +
+              ' <div class="statusbar-shadow titlebar-minimized"></div>' +
+              '</div>' +
               '<div class="identification-overlay">' +
                 '<div>' +
                   '<div class="icon"></div>' +
@@ -664,7 +669,6 @@
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory,
-    'textSelectionDialog': window.TextSelectionDialog
   };
 
   /**

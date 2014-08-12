@@ -39,13 +39,16 @@
   display: none;
   height: 1.8rem;
   width: 1.8rem;
-  font-size: 18px;
   line-height: 1;
   margin-bottom: 1.2rem;
   border-radius: 4px;
   text-align: center;
   background-color: rgba(255,255,255,0.8);
   color: #008EAB;
+}
+
+.indicators li:before {
+  font-size: 1.8rem;
 }
 
 /**
@@ -70,8 +73,9 @@
 /** Indication Geolocation
  ---------------------------------------------------------*/
 
-.indicator_geolocation {
+li.indicator_geolocation:before {
   font-size: 1.3rem;
+  line-height: 1.4;
 }
 
 /** Indicator Timer
@@ -79,6 +83,9 @@
 
 .indicators .indicator_timer {
   display: block;
+}
+
+.indicators .indicator_timer:before {
   font-size: 1.7rem;
 }
 
@@ -88,11 +95,14 @@
 .indicators .indicator_battery {
   width: 2.5rem;
   height: 0.9rem;
-  font-size: 2.5rem;
   line-height: 0.9rem;
   margin-left: -0.3rem;
   color: #D92E2E;
   background: transparent;
+}
+
+.indicators .indicator_battery:before {
+  font-size: 2.5rem;
 }
 
 /**
@@ -133,7 +143,7 @@
 
 .indicators[battery='verylow'] .indicator_battery:before,
 .indicators[battery='critical'] .indicator_battery:before {
-  content: "battery-verylow";
+  content: "battery-very-low";
 }
 
 /**

@@ -434,33 +434,99 @@ suite('Contacts settings >', function() {
       }
     });
 
-    function assertContactsImportedFrom(source) {
+    function assertContactsImportedFrom(source, done) {
+      var importElm = document.getElementById('import-' + source + '-option');
+      var time = importElm.querySelector('time');
+
+      var test = function() {
+        assert.equal(time.getAttribute('datetime'),
+            (new Date(timestamps[source])).toLocaleString());
+        assert.equal(time.textContent, timestamps[source]);
+        observer.disconnect();
+      };
+
+      var observer = new MutationObserver(function(){
+        test();
+        done();
+      });
+
+      observer.observe(time, {attributes: true});
+
       MockImportStatusData.put(source + '_last_import_timestamp',
           timestamps[source])
         .then(function() {
           contacts.Settings.updateTimestamps();
-          var time = document.getElementById('import-' + source + '-option')
-            .querySelector('time');
-          assert.equal(time.textContent, timestamps[source]);
-          assert.equal(time.getAttribute('datetime'),
-              (new Date(timestamps[source])).toLocaleString());
         });
     }
 
-    test('Contacts imported from SD', function() {
-      assertContactsImportedFrom('sd');
+    test('Contacts imported from SD', function(done) {
+      assertContactsImportedFrom('sd', done);
     });
 
-    test('Contacts imported from sim', function() {
-      assertContactsImportedFrom('sim');
+    test('Contacts imported from sim', function(done) {
+      assertContactsImportedFrom('sim', done);
     });
 
-    test('Contacts imported from Gmail', function() {
-      assertContactsImportedFrom('gmail');
+    test('Contacts imported from Gmail', function(done) {
+      assertContactsImportedFrom('gmail', done);
     });
 
-    test('Contacts imported from Live', function() {
-      assertContactsImportedFrom('Live');
+    test('Contacts imported from Live', function(done) {
+      assertContactsImportedFrom('live', done);
+    });
+  });
+
+  suite('FB data synced from FTU', function() {
+    var STORAGE_KEY = 'tokenData';
+    var CACHE_FRIENDS_KEY = 'numFacebookFriends';
+
+    setup(function() {
+      document.body.innerHTML = MockContactsIndexHtml;
+      contacts.Settings.init();
+    });
+
+    teardown(function(done) {
+      MockImportStatusData.clear().then(done, done);
+    });
+
+    test('FB active if token already synced', function(done) {
+      var fbImportCheck = document.querySelector('[name="fb.imported"]');
+
+      function assertChecked() {
+        document.removeEventListener('facebookEnabled', assertChecked);
+        done(function() {
+          assert.isTrue(fbImportCheck.checked);
+        });
+      }
+
+      document.addEventListener('facebookEnabled', assertChecked);
+
+      MockImportStatusData.put(STORAGE_KEY, {access_token: '1'})
+          .then(function() {
+        contacts.Settings.refresh();
+      });
+    });
+
+    test('Show the right number of total & synced friends', function(done) {
+      var fbTotalsMsg = document.querySelector('#fb-totals');
+
+      var observer = new MutationObserver(function() {
+        if (fbTotalsMsg.innerHTML !== '') {
+          observer.disconnect();
+          done(function() {
+            assert.isTrue(fbTotalsMsg.innerHTML.indexOf('50') !== -1);
+          });
+        }
+      });
+
+      observer.observe(fbTotalsMsg, {childList: true});
+
+      MockImportStatusData.put(CACHE_FRIENDS_KEY, 50).then(function() {
+        MockImportStatusData.put(STORAGE_KEY, {access_token: '1'})
+            .then(function() {
+          contacts.Settings.refresh();
+        });
+      });
     });
   });
 

@@ -1,5 +1,6 @@
 /* globals MockMobileconnection, MockMobileOperator, MockNavigatormozApps,
            MockNavigatorMozIccManager, MockNavigatorMozMobileConnections,
+           CALL_BARRING_STATUS_MMI_CODE, CALL_WAITING_STATUS_MMI_CODE,
            MocksHelper, MmiManager, MockMmiUI, Notification */
 
 'use strict';
@@ -34,6 +35,10 @@ const MMI_CF_MSG_ACTIVE_PAD = 'mmi_cf_active_pad';
 const MMI_CF_MSG_INVALID_SERVICE_CLASS = 'mmi_cf_invalid_sc';
 const MMI_CF_MSG_ALL_INACTIVE = 'mmi_cf_all_inactive';
 const MMI_CF_MSG_TWO_RULES = 'mmi_cf_two_rules';
+const MMI_CALL_BARRING_STATUS_ENABLED = 'mmi_call_barring_status_enabled';
+const MMI_CALL_BARRING_STATUS_DISABLED = 'mmi_call_barring_status_disabled';
+const MMI_CALL_WAITING_STATUS_ENABLED = 'mmi_call_waiting_status_enabled';
+const MMI_CALL_WAITING_STATUS_DISABLED = 'mmi_call_waiting_status_disabled';
 
 const ICC_SERVICE_CLASS_VOICE = (1 << 0);
 const ICC_SERVICE_CLASS_DATA = (1 << 1);
@@ -201,6 +206,34 @@ suite('dialer/mmi', function() {
           }]
         };
         MmiManager.notifySuccess(evt);
+        break;
+      case MMI_CALL_BARRING_STATUS_ENABLED:
+        evt.target.result = {
+          serviceCode: 'scCallBarring',
+          statusMessage: 'smServiceEnabled'
+        };
+        MmiManager.notifySuccess(evt, CALL_BARRING_STATUS_MMI_CODE);
+        break;
+      case MMI_CALL_BARRING_STATUS_DISABLED:
+        evt.target.result = {
+          serviceCode: 'scCallBarring',
+          statusMessage: 'smServiceDisabled'
+        };
+        MmiManager.notifySuccess(evt, CALL_BARRING_STATUS_MMI_CODE);
+        break;
+      case MMI_CALL_WAITING_STATUS_ENABLED:
+        evt.target.result = {
+          serviceCode: 'scCallWaiting',
+          statusMessage: 'smServiceEnabled'
+        };
+        MmiManager.notifySuccess(evt, CALL_WAITING_STATUS_MMI_CODE);
+        break;
+      case MMI_CALL_WAITING_STATUS_DISABLED:
+        evt.target.result = {
+          serviceCode: 'scCallWaiting',
+          statusMessage: 'smServiceDisabled'
+        };
+        MmiManager.notifySuccess(evt, CALL_WAITING_STATUS_MMI_CODE);
         break;
     }
 
@@ -688,6 +721,41 @@ suite('dialer/mmi', function() {
       });
       conn2.mCachedSendMMIReq.onsuccess({
         target: { result: { serviceCode: 'scImei', statusMessage: imeis[1] } }
+      });
+    });
+  });
+
+  suite('Querying status for call barring or call waiting', function() {
+    setup(function() {
+      this.sinon.stub(MmiManager, '_').returnsArg(0);
+      this.sinon.spy(window, 'postMessage');
+    });
+
+    test('should display correct message for barring enabled', function() {
+      MmiManager.send(MMI_CALL_BARRING_STATUS_ENABLED);
+      sinon.assert.calledWithMatch(window.postMessage, {
+        result: 'ServiceIsEnabled'
+      });
+    });
+
+    test('should display correct message for barring disabled', function() {
+      MmiManager.send(MMI_CALL_BARRING_STATUS_DISABLED);
+      sinon.assert.calledWithMatch(window.postMessage, {
+        result: 'ServiceIsDisabled'
+      });
+    });
+
+    test('should display correct message for waiting enabled', function() {
+      MmiManager.send(MMI_CALL_WAITING_STATUS_ENABLED);
+      sinon.assert.calledWithMatch(window.postMessage, {
+        result: 'ServiceIsEnabled'
+      });
+    });
+
+    test('should display correct message for waiting disabled', function() {
+      MmiManager.send(MMI_CALL_WAITING_STATUS_DISABLED);
+      sinon.assert.calledWithMatch(window.postMessage, {
+        result: 'ServiceIsDisabled'
       });
     });
   });

@@ -298,13 +298,26 @@ suite('system/UtilityTray', function() {
 
   suite('handleEvent: launchapp', function() {
     setup(function() {
-      fakeEvt = createEvent('launchapp');
       UtilityTray.show();
-      UtilityTray.handleEvent(fakeEvt);
     });
 
     test('should be hidden', function() {
+      fakeEvt = createEvent('launchapp', false, true, {
+        origin: 'app://otherApp'
+      });
+      UtilityTray.handleEvent(fakeEvt);
       assert.equal(UtilityTray.shown, false);
+    });
+
+    test('should not be hidden if the event is sent from background app',
+      function() {
+        var findMyDeviceOrigin =
+          window.location.origin.replace('system', 'findmydevice');
+        fakeEvt = createEvent('launchapp', false, true, {
+          origin: findMyDeviceOrigin
+        });
+        UtilityTray.handleEvent(fakeEvt);
+        assert.equal(UtilityTray.shown, true);
     });
   });
 
@@ -313,6 +326,10 @@ suite('system/UtilityTray', function() {
     setup(function() {
       fakeEvt = createEvent('touchstart', false, true);
       fakeEvt.touches = [0];
+    });
+
+    teardown(function() {
+      window.System.runningFTU = false;
     });
 
     test('onTouchStart is not called if LockScreen is locked', function() {
@@ -334,6 +351,13 @@ suite('system/UtilityTray', function() {
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.topPanel.dispatchEvent(fakeEvt);
       assert.ok(stub.calledOnce);
+    });
+
+    test('onTouchStart is called when ftu is running', function() {
+      window.System.runningFTU = true;
+      var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
+      UtilityTray.topPanel.dispatchEvent(fakeEvt);
+      assert.ok(stub.notCalled);
     });
 
     test('Dont preventDefault if the target is the overlay', function() {

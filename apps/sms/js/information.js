@@ -158,6 +158,7 @@ function createListWithMsgInfo(message) {
 var VIEWS = {
   group: {
     name: 'participants',
+
     render: function renderGroup() {
       var participants = Threads.get(this.id).participants;
       this.renderContactList(participants);
@@ -165,6 +166,20 @@ var VIEWS = {
         n: participants.length
       });
     },
+
+    setEventListener: function setEventListener() {
+      this.contactList.addEventListener('click', function onListClick(event) {
+        event.stopPropagation();
+        event.preventDefault();
+
+        var target = event.target;
+
+        ThreadUI.promptContact({
+          number: target.dataset.number
+        });
+      });
+    },
+
     elements: ['contact-list']
   },
   report: {
@@ -267,21 +282,8 @@ var Information = function(type) {
     this[Utils.camelCase(name)] = this.container.querySelector('.' + name);
   }, this);
 
+  this.setEventListener && this.setEventListener();
   this.reset();
-
-  if (this.contactList) {
-    this.contactList.addEventListener(
-      'click', function onListClick(event) {
-      event.stopPropagation();
-      event.preventDefault();
-
-      var target = event.target;
-
-      ThreadUI.promptContact({
-        number: target.dataset.number
-      });}
-    );
-  }
 };
 
 Information.prototype = {

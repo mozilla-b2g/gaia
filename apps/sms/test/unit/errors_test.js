@@ -19,7 +19,8 @@ suite('Errors', function() {
     var knownErrorCodes = [
       'NoSignalError', 'NotFoundError', 'FdnCheckError', 'InvalidAddressError',
       'NoSimCardError', 'RadioDisabledError', 'NonActiveSimCardError',
-      'SimNotMatchedError', 'NonActiveSimCardToSendError'
+      'SimNotMatchedError', 'NonActiveSimCardToSendError',
+      'RadioDisabledToDownloadError'
     ];
 
     knownErrorCodes.forEach((code) => {

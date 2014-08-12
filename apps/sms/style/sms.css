@@ -594,6 +594,10 @@ section[role="region"].new .subheader {
   font-size: 1.465rem;
   background-color: #f2f2f2;
   transition: transform 0.2s ease-in-out 0s;
+  transform: translateY(calc(-100% + 4rem));
+}
+
+.multiline-recipients-mode #messages-to-field {
   transform: translateY(calc(-100% + 5.5rem));
 }
 
@@ -644,8 +648,9 @@ Do not remove.
 
 #messages-recipients-list.multiline {
   /* max-height = viewport - header - minimum composer - list margin */
-  max-height: calc(100vh - 5rem - 3.7rem - 0.6rem);
+  max-height: calc(100vh - 5rem - 4rem - 0.6rem);
   margin-bottom: 0.6rem;
+  padding-bottom: 0;
 
   overflow-y: scroll;
 }
@@ -697,13 +702,19 @@ Do not remove.
 
 #messages-recipient-suggestions {
   position: absolute;
-  /* 10.5rem (5 rem from app header + 5.5rem from "To" panel heights) */
-  top: 10.5rem;
+  /* 9rem (5 rem from app header + 4rem from "To" panel heights) */
+  top: 9rem;
 
   overflow-y: auto;
 
-  max-height: calc(100% - 10.5rem);
+  max-height: calc(100% - 9rem);
   width: 100%;
+}
+
+.multiline-recipients-mode #messages-recipient-suggestions {
+  top: 10.5rem;
+
+  max-height: calc(100% - 10.5rem);
 }
 
 #messages-recipient-suggestions li:first-child {
@@ -821,7 +832,7 @@ section[role="region"].report-information > header .icon-back {
   background-image: url(/shared/style/headers/images/icons/close.png);
 }
 
-#messages-back-button:hover:after {
+#messages-back-button:hover {
   background-color: transparent;
 }
 

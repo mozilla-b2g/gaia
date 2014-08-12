@@ -135,6 +135,20 @@
     });
   }
 
+  function SanitizeAppSearch(result) {
+    return new Promise(function(resolve, reject) {
+      // Sanitize app URLs returned from e.me
+      var apps = result.response.apps;
+      if (apps.length) {
+        var a = document.createElement('a');
+        for (var i = 0, iLen = apps.length; i < iLen; i++) {
+          a.href = apps[i].appUrl;
+          apps[i].appUrl = a.href;
+        }
+      }
+      resolve(result);
+    });
+  }
 
   function PartnersAPI() {
 
@@ -158,7 +172,7 @@
 
         options.iconFormat = ICON_FORMAT;
 
-        return Request('Apps', 'search', options);
+        return Request('Apps', 'search', options).then(SanitizeAppSearch);
       }
     };
 

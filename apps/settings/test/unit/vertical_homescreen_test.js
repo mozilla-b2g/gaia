@@ -15,13 +15,8 @@ suite('vertical_homescreen.js >', function() {
   var numCols = 4;
   var updateStub = null;
   var updateHandler = null;
-  var colsPrefEnabled = 'cols.preference.enabled';
-  var colsPref = 'grid.cols';
+  var pref = 'grid.cols';
   var realMozSettings = null;
-
-  var defaultValues = {};
-  defaultValues[colsPref] = numCols;
-  defaultValues[colsPrefEnabled] = true;
 
   suiteTemplate('homescreen', {
     id: 'homescreen'
@@ -49,10 +44,10 @@ suite('vertical_homescreen.js >', function() {
   });
 
   setup(function(done) {
-    var getStub = sinon.stub(verticalPreferences, 'get', function(key) {
+    var getStub = sinon.stub(verticalPreferences, 'get', function() {
       return {
         then: function(resolve, refect) {
-          resolve(defaultValues[key]);
+          resolve(numCols);
         }
       };
     });
@@ -72,7 +67,6 @@ suite('vertical_homescreen.js >', function() {
     test('Grid layout select initialized correctly ', function() {
       // Four columns (second option -> index 1)
       assertNumberOfColumns(numCols);
-      assert.equal(verticalHomescreen.section.hidden, false);
     });
   });
 
@@ -83,7 +77,7 @@ suite('vertical_homescreen.js >', function() {
     }
 
     function assertPreferenceUpdated(id, value, expectedValue) {
-      assert.equal(id, colsPref);
+      assert.equal(id, pref);
       assert.equal(value, expectedValue);
     }
 
@@ -104,23 +98,23 @@ suite('vertical_homescreen.js >', function() {
 
   suite('Updating Datastore > ', function() {
 
-    function dispatchUpdatedEvent(prefName, prefValue) {
+    function dispatchUpdatedEvent(cols) {
       updateHandler.handleEvent({
         type: 'updated',
         target: {
-          name: prefName,
-          value: prefValue
+          name: pref,
+          value: cols
         }
       });
     }
 
     test('The grid layout select was updated properly ', function() {
       var expectedNumCols = 4;
-      dispatchUpdatedEvent(colsPref, expectedNumCols);
+      dispatchUpdatedEvent(expectedNumCols);
       assertNumberOfColumns(expectedNumCols);
 
       expectedNumCols = 3;
-      dispatchUpdatedEvent(colsPref, expectedNumCols);
+      dispatchUpdatedEvent(expectedNumCols);
       assertNumberOfColumns(expectedNumCols);
     });
   });

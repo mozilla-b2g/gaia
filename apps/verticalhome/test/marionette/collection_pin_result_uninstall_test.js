@@ -3,7 +3,8 @@
 var Actions = require('marionette-client').Actions;
 var Bookmark = require('./lib/bookmark');
 var Collection = require('./lib/collection');
-var EmeServer = require('./eme_server/parent');
+var EmeServer = require(
+  '../../../../shared/test/integration/eme_server/parent');
 var Home2 = require('./lib/home2');
 var System = require('../../../../apps/system/test/marionette/lib/system');
 
@@ -13,8 +14,7 @@ marionette('Vertical - Collection', function() {
   var actions, bookmark, collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
-    var folder = __dirname + '/fixtures/everythingme';
-    EmeServer(folder, client, function(err, _server) {
+    EmeServer(client, function(err, _server) {
       server = _server;
       done(err);
     });
@@ -33,8 +33,6 @@ marionette('Vertical - Collection', function() {
     system = new System(client);
     system.waitForStartup();
 
-    client.apps.launch(Home2.URL);
-
     home.waitForLaunch();
     collection.disableGeolocation();
     collection.setServerURL(server);
@@ -51,9 +49,11 @@ marionette('Vertical - Collection', function() {
     collection.selectNew(collectionName);
     client.apps.switchToApp(Home2.URL);
 
+    var collectionIcon = collection.getCollectionByName(collectionName);
+    // helps marionette finding the icon: Bug 1046706
+    home.moveIconToIndex(collectionIcon, 0);
     // Enter the created collection.
-    collection.enterCollection(
-      collection.getCollectionByName(collectionName));
+    collection.enterCollection(collectionIcon);
 
     // Count the number of dividers
     var numDividers = client.findElements(selectors.allDividers).length;
@@ -83,12 +83,12 @@ marionette('Vertical - Collection', function() {
     // Uninstall the bookmark from the home-screen
     var lastIcon = client.findElements(Home2.Selectors.firstIcon).pop();
     var iconId = lastIcon.getAttribute('data-identifier');
-    lastIcon.scriptWith(function(el) {
-      el.scrollIntoView(false);
-    });
+    // if we scroll now, marionette won't find the collection icon later:
+    // Bug 1046706
+    home.moveIconToIndex(lastIcon, 1);
     home.enterEditMode(lastIcon);
     var remove = client.helper.waitForElement(lastIcon.findElement('.remove'));
-    remove.click();
+    remove.tap();
     home.confirmDialog('remove');
     client.helper.waitForElementToDisappear(lastIcon);
 

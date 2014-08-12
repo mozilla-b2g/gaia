@@ -29,8 +29,7 @@ Rocketbar.clientOptions = {
       'app://verticalhome.gaiamobile.org/manifest.webapp',
     'ftu.manifestURL': null,
     'keyboard.ftu.enabled': false,
-    'lockscreen.enabled': false,
-    'rocketbar.enabled': true
+    'lockscreen.enabled': false
   }
 };
 
@@ -70,6 +69,19 @@ Rocketbar.prototype = {
     var input =
       this.client.findElement(this.selectors.input);
     this.client.waitFor(input.displayed.bind(input));
+  },
+
+  /**
+   * Focuses the rocketbar from the homescreen.
+   * This is a temporary method while the homescreen search trigger lives in
+   * the homescreen app. If we move it to the system app we can remove this.
+   */
+  homescreenFocus: function() {
+    var HomeLib = require(
+      '../../../../../apps/verticalhome/test/marionette/lib/home2');
+    var homeLib = new HomeLib(this.client);
+    homeLib.waitForLaunch();
+    homeLib.focusRocketBar();
   },
 
   /**

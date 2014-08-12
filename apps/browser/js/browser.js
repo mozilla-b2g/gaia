@@ -1,7 +1,26 @@
 'use strict';
 
+/* global BrowserDB */
+/* global LazyLoader */
+/* global Settings */
+/* global GestureDetector */
+/* global ModalDialog */
+/* global Awesomescreen */
+/* global AuthenticationDialog */
+/* global NumberHelper */
+/* global UrlHelper */
+/* global Toolbar */
+/* global MozActivity */
+/* global NfcURI */
+
+/**
+ * Alias of navigator.mozL10n.get
+ */
 var _ = navigator.mozL10n.get;
 
+/**
+ * @namespace Browser
+ */
 var Browser = {
 
   currentTab: null,
@@ -11,20 +30,30 @@ var Browser = {
   styleSheet: document.styleSheets[0],
   cssTranslateId: null,
 
+  /** URL button appearance mode: GO */
   GO: 0,
+  /** URL button appearance mode: REFRESH */
   REFRESH: 1,
+  /** URL button appearance mode: STOP */
   STOP: 2,
+  /** URL button appearance mode: SEARCH */
   SEARCH: 3,
 
   VISIBLE: 0,
   TRANSITIONING: 1,
   HIDDEN: 2,
 
+  /** Name of the screen for web pages. Used to check for current screen. */
   PAGE_SCREEN: 'page-screen',
+  /** Name of the tabs screen. Used to check for current screen. */
   TABS_SCREEN: 'tabs-screen',
+  /** Name of the awesome screen. Used to check for current screen. */
   AWESOME_SCREEN: 'awesome-screen',
+  /** Name of the settings screen. Used to check for current screen. */
   SETTINGS_SCREEN: 'settings-screen',
+  /** Previous displayed screen. */
   previousScreen: null,
+  /** Current displayed screen. */
   currentScreen: 'page-screen',
 
   // This data is set from browser settings,
@@ -34,12 +63,15 @@ var Browser = {
   DEVICE_RATIO: window.devicePixelRatio,
   UPPER_SCROLL_THRESHOLD: 50, // hide address bar
   LOWER_SCROLL_THRESHOLD: 5, // show address bar
-  MAX_TOP_SITES: 4, // max number of top sites to display
+  /** Max number of top sites to display. */
+  MAX_TOP_SITES: 4,
+
   MAX_THUMBNAIL_WIDTH: 140,
   MAX_THUMBNAIL_HEIGHT: 100,
   FIRST_TAB: 'tab_0',
-  MAX_SAVING_RETRIES: 100, // max number of retries when saving images with a
-                           // new name.
+  /** Max number of retries when saving images with a new name. */
+  MAX_SAVING_RETRIES: 100,
+
   urlButtonMode: null,
   addressBarState: null,
 
@@ -52,6 +84,11 @@ var Browser = {
   // we need to show the addressbar when loading the page is complete
   lastScrollOffset: 0,
 
+  /**
+   * Get elements from index.html.
+   * Add event listeners.
+   * Init BrowserDB and search engine.
+   */
   init: function browser_init() {
     this.getAllElements();
     // Add event listeners
@@ -75,23 +112,32 @@ var Browser = {
       this.selectTab(this.createTab());
       this.addressBarState = this.VISIBLE;
       BrowserDB.getSetting('defaultSearchEngine', (function(uri) {
-        if (!uri)
+        if (!uri) {
           return;
+        }
         BrowserDB.getSearchEngine(uri, (function(searchEngine) {
-          if (!searchEngine)
+          if (!searchEngine) {
             return;
+          }
           this.searchEngine = searchEngine;
         }).bind(this));
       }).bind(this));
     }).bind(this));
   },
 
+  /**
+   * Convert dash-separated string to a camel case string.
+   * @param {String} str Dash-separated string
+   */
   toCamelCase: function toCamelCase(str) {
     return str.replace(/\-(.)/g, function replacer(str, p1) {
       return p1.toUpperCase();
     });
   },
 
+  /**
+   * Get elements from index.html.
+   */
   getAllElements: function browser_getAllElements() {
     var elementIDs = [
       'toolbar-start', 'url-bar', 'url-input', 'url-button', 'awesomescreen',
@@ -106,9 +152,15 @@ var Browser = {
     }, this);
   },
 
+  /**
+   * Load remaining DOM elements and js files.
+   * Init remaining event listeners.
+   * Invoked by showStartscreen().
+   */
   loadRemaining: function browser_loadRemaining() {
-    if (this.hasLoaded)
+    if (this.hasLoaded) {
       return;
+    }
 
     var elementsToLoad = [
       // DOM Nodes with commented content to load
@@ -165,12 +217,6 @@ var Browser = {
 
     var loadBrowserFiles = function() {
       LazyLoader.load(jsFiles, function() {
-        var mozL10n = navigator.mozL10n;
-        mozL10n.ready(function browser_localizeElements() {
-          elementsToLoad.forEach(function l10nElement(element) {
-            mozL10n.translate(element);
-          });
-        });
         domElements.forEach(function createElementRef(name) {
           this[this.toCamelCase(name)] = document.getElementById(name);
         }, this);
@@ -189,6 +235,10 @@ var Browser = {
       loadBrowserFiles.bind(this));
   },
 
+  /**
+   * Init remaing event listeners.
+   * Init Settings, ModalDialog, Awesomescreen, AuthenticationDialog.
+   */
   initRemainingListeners: function browser_initRemainingListeners() {
      this.settingsButton.addEventListener('click',
        Settings.show.bind(Settings));
@@ -239,6 +289,10 @@ var Browser = {
      AuthenticationDialog.init(false);
   },
 
+  /**
+   * Get default data from inittopsites.json file generated at build time.
+   * Invoked by BrowserDB.
+   */
   getDefaultData: function browser_getConfData(callback) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/js/inittopsites.json', true);
@@ -321,7 +375,7 @@ var Browser = {
     xhr.send();
   },
 
-  // Extract :active behaviour from CSS into js at it was misbehaving
+  /** Extract :active behaviour from CSS into js as it was misbehaving. */
   addTabBtnActive: function() {
     var self = this;
 
@@ -350,10 +404,16 @@ var Browser = {
     }
   },
 
+  /**
+   * Click event listener of the 'try-reloading' on crashed tab.
+   */
   handleTryReloading: function browser_handleTryReloading() {
     this.reviveCrashedTab(this.currentTab);
   },
 
+  /**
+   * Click event listener of the tab close button.
+   */
   handleCloseTab: function browser_handleCloseTab() {
     this.hideCrashScreen();
     this.deleteTab(this.currentTab.id);
@@ -361,14 +421,23 @@ var Browser = {
     this.updateTabsCount();
   },
 
-  // Tabs badge is the button at the top right, used to show the number of tabs
-  // and to create new ones
+  /**
+   * Click event listener of the tab badge.
+   *
+   * Tabs badge is the button at the top right, used to show the number of tabs
+   * and to create new ones.
+   */
   handleTabsBadgeClicked: function browser_handleTabsBadgeClicked(e) {
-    if (this.inTransition)
+    if (this.inTransition) {
       return;
+    }
     this.showTabScreen();
   },
 
+  /**
+   * Click event listener of the new tab button.
+   * @param {Event} e
+   */
   handleNewTab: function browserHandleNewTab(e) {
     this.inTransition = true;
     var tabId = this.createTab();
@@ -378,7 +447,12 @@ var Browser = {
     }).bind(this));
   },
 
-  // Each browser gets their own listener
+  /**
+   * Create a mozbrowser event listener for a browser.
+   * Each browser gets their own listener.
+   * @param {Object} tab A tab object.
+   * @returns {Function} mozbrowser event listener
+   */
   handleBrowserEvent: function browser_handleBrowserEvent(tab) {
     return (function(evt) {
       var isCurrentTab = this.currentTab.id === tab.id;
@@ -530,8 +604,9 @@ var Browser = {
         break;
 
       case 'mozbrowsererror':
-        if (evt.detail.type === 'fatal')
+        if (evt.detail.type === 'fatal') {
           this.handleCrashedTab(tab);
+        }
         break;
 
       case 'mozbrowserasyncscroll':
@@ -541,6 +616,9 @@ var Browser = {
     }).bind(this);
   },
 
+  /**
+   * Show or hide the address bar according to scroll top.
+   */
   handleScroll: function browser_handleScroll(evt) {
     this.lastScrollOffset = evt.detail.top;
 
@@ -551,6 +629,9 @@ var Browser = {
     }
   },
 
+  /**
+   * Hide address bar.
+   */
   hideAddressBar: function browser_hideAddressBar() {
     if (this.addressBarState === this.HIDDEN ||
         this.addressBarState === this.TRANSITIONING) {
@@ -558,8 +639,9 @@ var Browser = {
     }
 
     // don't hide the address bar when loading
-    if (this.currentTab.loading)
+    if (this.currentTab.loading) {
       return;
+    }
 
     var addressBarHidden = (function browser_addressBarHidden() {
       this.addressBarState = this.HIDDEN;
@@ -574,6 +656,9 @@ var Browser = {
     this.mainScreen.classList.add('address-hidden');
   },
 
+  /**
+   * Show address bar.
+   */
   showAddressBar: function browser_showAddressBar() {
     if (this.addressBarState === null ||
         this.addressBarState === this.VISIBLE ||
@@ -594,6 +679,10 @@ var Browser = {
     this.mainScreen.classList.remove('address-hidden');
   },
 
+  /**
+   * Input event listener of url-input.
+   * Updates Awesomescreen and url-button appearance.
+   */
   handleUrlInputKeypress: function browser_handleUrlInputKeypress(evt) {
     var input = this.urlInput.value;
     Awesomescreen.update(input);
@@ -608,14 +697,26 @@ var Browser = {
     );
   },
 
+  /**
+   * Show crash screen.
+   */
   showCrashScreen: function browser_showCrashScreen() {
     this.crashscreen.style.display = 'block';
   },
 
+  /**
+   * Hide crash screen.
+   */
   hideCrashScreen: function browser_hideCrashScreen() {
     this.crashscreen.style.display = 'none';
   },
 
+  /**
+   * Invoked on mozbrowsererror event.
+   * Clear ModalDialog and AuthenticationDialog of the crashed tab.
+   * Remove the DOM.
+   * @param {Object} tab The crashed tab
+   */
   handleCrashedTab: function browser_handleCrashedTab(tab) {
     // No need to show the crash screen for background tabs,
     // they will be revived when selected
@@ -631,9 +732,13 @@ var Browser = {
     delete tab.dom;
   },
 
+  /**
+   * 'visibilitychange' event listener.
+   */
   handleVisibilityChange: function browser_handleVisibilityChange() {
-    if (!document.hidden && this.currentTab.crashed)
+    if (!document.hidden && this.currentTab.crashed) {
       this.reviveCrashedTab(this.currentTab);
+    }
 
     // Bug 845661 - Attention screen does not appears when
     // the url bar input is focused.
@@ -643,17 +748,26 @@ var Browser = {
     }
   },
 
+  /**
+   * Revive a crashed tab.
+   * @param {Object} tab
+   */
   reviveCrashedTab: function browser_reviveCrashedTab(tab) {
     this.createTab(null, null, tab);
     tab.crashed = false;
-    if (!tab.url)
+    if (!tab.url) {
       return;
+    }
     this.setTabVisibility(tab, true);
     Toolbar.refreshButtons();
     this.navigate(tab.url);
     this.hideCrashScreen();
   },
 
+  /**
+   * Handles 'mozbrowseropenwindow' event.
+   * Open and select the new tab.
+   */
   handleWindowOpen: function browser_handleWindowOpen(evt) {
     var url = evt.detail.url;
     var frame = evt.detail.frameElement;
@@ -668,19 +782,30 @@ var Browser = {
     this.updateTabsCount();
   },
 
+  /**
+   * Delete the specified tab on 'mozbrowserclose' event.
+   * @param {String} tabId The closed tab ID
+   */
   handleWindowClose: function browser_handleWindowClose(tabId) {
-    if (!tabId)
+    if (!tabId) {
       return false;
+    }
 
     this.deleteTab(tabId);
     return true;
   },
 
+  /**
+   * Update tab counter on tabs-badge.
+   */
   updateTabsCount: function browser_updateTabsCount() {
     this.tabsBadge.innerHTML = Object.keys(this.tabs).length +
       '<span id="more-tabs">&#x203A;</span>';
   },
 
+  /**
+   * Update 'ssl-indicator' value.
+   */
   updateSecurityIcon: function browser_updateSecurityIcon() {
     if (!this.currentTab.security) {
       this.sslIndicator.value = '';
@@ -689,6 +814,10 @@ var Browser = {
     this.sslIndicator.value = this.currentTab.security.state;
   },
 
+  /**
+   * Navigate to the specified url.
+   * @param {String} url The url to navigate to.
+   */
   navigate: function browser_navigate(url) {
     this.hideStartscreen();
     this.showPageScreen();
@@ -698,6 +827,9 @@ var Browser = {
     this.setUrlBar(url);
   },
 
+  /**
+   * Get url from url-input.
+   */
   getUrlFromInput: function browser_getUrlFromInput(input) {
     var hasScheme = UrlHelper.hasScheme(input);
 
@@ -715,6 +847,10 @@ var Browser = {
     return input;
   },
 
+  /**
+   * Handle url form submit event. Navigate to the url of the urlInput.
+   * @param {Event} e Event
+   */
   handleUrlFormSubmit: function browser_handleUrlFormSubmit(e) {
     if (e) {
       e.preventDefault();
@@ -761,14 +897,26 @@ var Browser = {
     this.navigate(url);
   },
 
+  /**
+   * Go back.
+   */
   goBack: function browser_goBack() {
+    // tab.dom is the iframe of the tab
     this.currentTab.dom.goBack();
   },
 
+  /**
+   * Go forward.
+   */
   goForward: function browser_goForward() {
     this.currentTab.dom.goForward();
   },
 
+  /**
+   * Click event listener of the bookmark menu add button.
+   * Add a bookmark using BrowserDB.
+   * @param {Event} e
+   */
   addBookmark: function browser_addBookmark(e) {
     e.preventDefault();
     if (!this.currentTab.url || UrlHelper.isNotURL(this.currentTab.url)) {
@@ -780,10 +928,16 @@ var Browser = {
     this.hideBookmarkMenu();
   },
 
+  /**
+   * Click event listener of the bookmark menu remove button.
+   * Remove a bookmark using BrowserDB.
+   * @param {Event} e
+   */
   removeBookmark: function browser_removeBookmark(e) {
     e.preventDefault();
-    if (!this.bookmarkMenuRemove.dataset.url)
+    if (!this.bookmarkMenuRemove.dataset.url) {
       return;
+    }
 
     BrowserDB.removeBookmark(this.bookmarkMenuRemove.dataset.url,
       function() {
@@ -793,10 +947,16 @@ var Browser = {
     this.hideBookmarkMenu();
   },
 
-  // responsible to show the specific action menu
+  /**
+   * Show bookmark menu.
+   * responsible to show the specific action menu
+   * @param {String} url
+   * @param {String} from
+   */
   showActionMenu: function browser_showActionMenu(url, from) {
-      if (!url)
+      if (!url) {
         return;
+      }
       this.bookmarkMenu.classList.remove('hidden');
       BrowserDB.getBookmark(url, (function(bookmark) {
         if (bookmark) {
@@ -834,23 +994,30 @@ var Browser = {
       }).bind(this));
   },
 
-  // Adaptor to show menu while press bookmark star
+  /** Adaptor to show menu while press bookmark star */
   showBookmarkMenu: function browser_showBookmarkMenu() {
     this.showActionMenu(this.currentTab.url);
   },
 
-  // Adaptor to show menu while longpress in bookmark tab
+  /** Adaptor to show menu while longpress in bookmark tab */
   showBookmarkTabContextMenu: function browser_showBookmarkTabContextMenu(url) {
     this.showActionMenu(url, 'bookmarksTab');
   },
 
+  /**
+   * Hide bookmark menu.
+   */
   hideBookmarkMenu: function browser_hideBookmarkMenu() {
     this.bookmarkMenu.classList.add('hidden');
   },
 
+  /**
+   * Show edit bookmark sheet.
+   */
   showBookmarkEntrySheet: function browser_showBookmarkEntrySheet() {
-    if (!this.currentTab.url)
+    if (!this.currentTab.url) {
       return;
+    }
     this.hideBookmarkMenu();
     this.bookmarkEntrySheet.classList.remove('hidden');
     BrowserDB.getBookmark(this.currentTab.url, (function(bookmark) {
@@ -872,6 +1039,9 @@ var Browser = {
     }).bind(this));
   },
 
+  /**
+   * Hide edit bookmark sheet.
+   */
   hideBookmarkEntrySheet: function browser_hideBookmarkEntrySheet() {
     this.bookmarkEntrySheet.classList.add('hidden');
     this.bookmarkTitle.value = '';
@@ -879,6 +1049,11 @@ var Browser = {
     this.bookmarkPreviousUrl.value = '';
   },
 
+  /**
+   * click event listener of the bookmark-entry-sheet-done button.
+   * Add, update or remove bookmark specified in bookmark-entry-sheet.
+   * Hide edit bookmark sheet.
+   */
   saveBookmark: function browser_saveBookmark() {
     var url = this.bookmarkUrl.value;
     var title = this.bookmarkTitle.value;
@@ -893,6 +1068,9 @@ var Browser = {
     this.hideBookmarkEntrySheet();
   },
 
+  /**
+   * If current tab URL is valid, add it to homescreen using MozActivity.
+   */
   addLinkToHome: function browser_addLinkToHome() {
     if (!this.currentTab.url || UrlHelper.isNotURL(this.currentTab.url)) {
       // TODO: don't silently fail here
@@ -900,7 +1078,7 @@ var Browser = {
     }
 
     BrowserDB.getPlace(this.currentTab.url, (function(place) {
-      new MozActivity({
+      var activity = new MozActivity({
         name: 'save-bookmark',
         data: {
           type: 'url',
@@ -908,23 +1086,34 @@ var Browser = {
           name: this.currentTab.title,
           icon: place.iconUri,
           useAsyncPanZoom: true
-        },
-        onerror: function(e) {
-          console.warn('Unhandled error from save-bookmark activity: ' +
-                       e.target.error.message + '\n');
         }
       });
+      activity.onerror = function(e) {
+        console.warn('Unhandled error from save-bookmark activity: ' +
+                     e.target.error.message + '\n');
+      };
     }).bind(this));
     this.hideBookmarkMenu();
   },
 
+  /**
+   * Add URL in BrowserDB. Refresh Toolbar buttons.
+   * @param {String} url The URL string to be added.
+   */
   updateHistory: function browser_updateHistory(url) {
     BrowserDB.addVisit(url);
     Toolbar.refreshButtons();
   },
 
+  /**
+   * Should the url-input text be selected.
+   */
   shouldFocus: false,
 
+  /**
+   * touchend event listener of url-input.
+   * Select the url-input text if shouldFocus === true.
+   */
   urlTouchEnd: function browser_urlTouchEnd(e) {
     if (this.shouldFocus) {
       this.urlInput.focus();
@@ -934,10 +1123,15 @@ var Browser = {
     }
   },
 
+  /**
+   * focus event listener of url-input.
+   * Show Awesomescreen, update URL bar and set shouldFocus = true.
+   */
   urlFocus: function browser_urlFocus(e) {
     // Hack to make integration tests pass, see bug 912150
-    if (this.urlBar.classList.contains('focus'))
+    if (this.urlBar.classList.contains('focus')) {
       return;
+    }
     this.urlBar.classList.add('focus');
     if (this.currentScreen === this.PAGE_SCREEN) {
       this.urlInput.value = this.currentTab.url;
@@ -950,15 +1144,29 @@ var Browser = {
     }
   },
 
+  /**
+   * blur event listener of url-input.
+   * Scroll url-input to the left-most starting point.
+   * Remove focus styles.
+   */
   urlBlur: function browser_urlBlur() {
     this.urlInput.scrollLeft = 0;
     this.urlBar.classList.remove('focus');
   },
 
+  /**
+   * Set url-input value.
+   * @param {String} data The data to be put in url-input
+   */
   setUrlBar: function browser_setUrlBar(data) {
     this.urlInput.value = data;
   },
 
+  /**
+   * Change url-button appearance
+   * @param {Enum} mode Browser.GO, Browser.REFRESH,
+   *                    Browser.STOP, Browser.SEARCH
+   */
   setUrlButtonMode: function browser_setUrlButtonMode(mode) {
     this.urlButtonMode = mode;
 
@@ -986,18 +1194,27 @@ var Browser = {
     }
   },
 
+  /**
+   * Open the url in a new tab.
+   * Create a new tab and update tab count.
+   * @param {String} url Url
+   */
   openInNewTab: function browser_openInNewTab(url) {
     this.createTab(url);
     this.updateTabsCount();
   },
 
-  // Saves a media file to device storage.
+  /**
+   * Saves a media file to device storage.
+   */
   saveMedia: function browser_saveMedia(url) {
     this.currentTab.dom.download(url);
   },
 
-  // This generates callbacks for context menu targets that have
-  // default actions attached
+  /**
+   * Generates callbacks for context menu targets that have
+   * default actions attached.
+   */
   generateSystemMenuItem: function browser_generateSystemMenuItem(item) {
     var self = this;
     var nodeName = item.nodeName ? item.nodeName.toUpperCase() : '';
@@ -1039,6 +1256,9 @@ var Browser = {
     }
   },
 
+  /**
+   * Show context menu on 'mozbrowsercontextmenu' event.
+   */
   showContextMenu: function browser_showContextMenu(evt) {
     var menuItems = [];
     var menuData = evt.detail;
@@ -1118,6 +1338,12 @@ var Browser = {
     document.body.appendChild(dialog);
   },
 
+  /**
+   * Create a button node.
+   * @param {String} text Button text
+   * @param {String} image Image src
+   * @returns {} Button node
+   */
   createButton: function browser_createButton(text, image) {
     var button = document.createElement('button');
     var textNode = document.createTextNode(text);
@@ -1130,6 +1356,10 @@ var Browser = {
     return button;
   },
 
+  /**
+   * Navigate to the link of the clicked top site thumbnail.
+   * @param {Event} e
+   */
   followLink: function browser_followLink(e) {
     e.preventDefault();
     if (e.target.nodeName === 'A') {
@@ -1138,9 +1368,15 @@ var Browser = {
     }
   },
 
+  /**
+   * Show/Hide the specified tab.
+   * @param {Object} tab
+   * @param {Boolean} visible
+   */
   setTabVisibility: function(tab, visible) {
-    if (!tab.dom)
+    if (!tab.dom) {
       return;
+    }
 
     if (ModalDialog.originHasEvent(tab.id)) {
       if (visible) {
@@ -1165,9 +1401,16 @@ var Browser = {
     tab.dom.style.top = '0px';
   },
 
-  // dom.setVisible is loaded asynchronously from BrowserElementChildPreload
-  // and may require a yield before we call it, we want to make sure to
-  // clear any previous call
+  /**
+   * A wrapper for HTMLIFrameElement.setVisible.
+   *
+   * dom.setVisible is loaded asynchronously from BrowserElementChildPreload
+   * and may require a yield before we call it, we want to make sure to
+   * clear any previous call
+   *
+   * @param {Object} tab
+   * @param {Boolean} visible
+   */
   setVisibleWrapper: function(tab, visible) {
     if (tab.setVisibleTimeout) {
       clearTimeout(tab.setVisibleTimeout);
@@ -1177,11 +1420,17 @@ var Browser = {
       return;
     }
     tab.setVisibleTimeout = setTimeout(function() {
-      if (tab.dom.setVisible)
+      if (tab.dom.setVisible) {
         tab.dom.setVisible(visible);
+      }
     });
   },
 
+  /**
+   * Bind mozbrowser event listeners to the specified iframe.
+   * @param {} iframe
+   * @param {Object} tab
+   */
   bindBrowserEvents: function browser_bindBrowserEvents(iframe, tab) {
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
                          'titlechange', 'iconchange', 'contextmenu',
@@ -1194,6 +1443,13 @@ var Browser = {
     }, this);
   },
 
+  /**
+   * Create a browser tab.
+   * @param {String} url
+   * @param {} iframe
+   * @param {Object} tab
+   * @returns {String} Tab ID
+   */
   createTab: function browser_createTab(url, iframe, tab) {
     if (!iframe) {
       iframe = document.createElement('iframe');
@@ -1234,16 +1490,21 @@ var Browser = {
     return tab.id;
   },
 
+  /**
+   * Delete a browser tab.
+   * @param {String} id The tab id to be deleted
+   */
   deleteTab: function browser_deleteTab(id) {
     var tabIds = Object.keys(this.tabs);
-    if (this.tabs[id].dom)
+    if (this.tabs[id].dom) {
       this.tabs[id].dom.parentNode.removeChild(this.tabs[id].dom);
+    }
     delete this.tabs[id];
     ModalDialog.clear(id);
     AuthenticationDialog.clear(id);
 
     // If that was the last tab, create a new one and show start screen
-    if (Object.keys(this.tabs).length == 0) {
+    if (Object.keys(this.tabs).length === 0) {
       this.selectTab(this.createTab());
       this.switchScreen(this.PAGE_SCREEN);
       return;
@@ -1260,8 +1521,10 @@ var Browser = {
     }
   },
 
-  // Show a quick animation while creating a new tab to indicate
-  // that a new tab has been created
+  /**
+   * Show a quick animation while creating a new tab to indicate
+   * that a new tab has been created
+   */
   showNewTabAnimation: function browser_showNewTab(showTabCompleteFun) {
     var ul = this.tabsList.childNodes[0];
     var li = document.createElement('li');
@@ -1281,17 +1544,26 @@ var Browser = {
     li.style.height = '';
   },
 
+  /**
+   * Hide the current tab.
+   */
   hideCurrentTab: function browser_hideCurrentTab() {
     var tab = this.currentTab;
     this.setTabVisibility(tab, false);
     this.throbber.classList.remove('loading');
   },
 
+  /**
+   * Select and display a tab by tab ID.
+   * If the tab crashed, revive it.
+   * @param {String} id Tab ID
+   */
   selectTab: function browser_selectTab(id) {
     this.currentTab = this.tabs[id];
     // If the tab crashed, bring it back to life
-    if (this.currentTab.crashed)
+    if (this.currentTab.crashed) {
       this.reviveCrashedTab(this.currentTab);
+    }
     // We may have picked a currently loading background tab
     // that was positioned off screen
     this.setUrlBar(this.currentTab.title);
@@ -1306,6 +1578,10 @@ var Browser = {
     }
   },
 
+  /**
+   * Switch the current displayed screen to the specified screen.
+   * @param {String} screen Name of the screen to switch to.
+   */
   switchScreen: function browser_switchScreen(screen) {
     if (this.currentScreen === this.TABS_SCREEN) {
       this.screenSwipeMngr.gestureDetector.stopDetecting();
@@ -1318,6 +1594,14 @@ var Browser = {
     }
   },
 
+  /**
+   * Show start screen.
+   * Get top sites from BrowserDB.
+   * Show tope site thumbnails.
+   * Load remaining DOM elements and js files.
+   * Remove Toolbar bookmark button 'bookmarked' class.
+   * Stop listening for NFC connections.
+   */
   showStartscreen: function browser_showStartscreen() {
     document.body.classList.add('start-page');
     this.startscreen.classList.remove('hidden');
@@ -1330,7 +1614,14 @@ var Browser = {
     NfcURI.stopListening();
   },
 
+  /**
+   * Array of top site URLs.
+   */
   _topSiteThumbnailObjectURLs: [],
+
+  /**
+   * Clear top site thumbnails.
+   */
   clearTopSiteThumbnails: function browser_clearTopSiteThumbnails() {
     this.topSiteThumbnails.innerHTML = '';
 
@@ -1342,6 +1633,13 @@ var Browser = {
     this._topSiteThumbnailObjectURLs = [];
   },
 
+  /**
+   * Hide start screen.
+   * Remove 'start-page' class from body.
+   * Add 'hidden' class to startscreen.
+   * Clear top site thumbnails.
+   * Start listening fro NFC connections.
+   */
   hideStartscreen: function browser_hideStartScreen() {
     document.body.classList.remove('start-page');
     this.startscreen.classList.add('hidden');
@@ -1349,23 +1647,28 @@ var Browser = {
     NfcURI.startListening();
   },
 
+  /**
+   * Show tope site thumbnails.
+   */
   showTopSiteThumbnails: function browser_showStartscreenThumbnails(places) {
     this.clearTopSiteThumbnails();
 
     var length = places.length;
     // Display a message if Top Sites empty
-    if (length == 0) {
+    if (length === 0) {
       this.noTopSites.classList.remove('hidden');
       return;
     } else {
       this.noTopSites.classList.add('hidden');
     }
     // If an odd number greater than one, remove one
-    if (length % 2 && length > 1)
+    if (length % 2 && length > 1) {
       places.pop();
+    }
     // If only one, pad with another empty one
-    if (length == 1)
+    if (length == 1) {
       places.push({uri: '', title: ''});
+    }
 
     places.forEach(function processPlace(place) {
       var thumbnail = document.createElement('li');
@@ -1386,6 +1689,9 @@ var Browser = {
     }, this);
   },
 
+  /**
+   * Show web page screen.
+   */
   showPageScreen: function browser_showPageScreen() {
 
     if (this.currentTab.crashed) {
@@ -1417,7 +1723,14 @@ var Browser = {
     this.inTransition = false;
   },
 
+  /**
+   * Array of tab URLs.
+   */
   _tabScreenObjectURLs: [],
+
+  /**
+   * Show tab list.
+   */
   showTabScreen: function browser_showTabScreen() {
 
     // TODO: We shouldnt hide the current tab when switching to the tab
@@ -1448,6 +1761,10 @@ var Browser = {
     this.inTransition = false;
   },
 
+  /**
+   * Generate a tab list item.
+   * @param {Object} tab The tab to be displayed.
+   */
   generateTabLi: function browser_generateTabLi(tab) {
     var title = tab.title || tab.url || _('new-tab');
     var a = document.createElement('a');
@@ -1482,9 +1799,15 @@ var Browser = {
     return li;
   },
 
+  /**
+   * Show a danger dialog which has ok and cancel buttons.
+   * Executes the callback when ok is pressed.
+   * @param {String} title
+   * @param {DOM} btn
+   * @param {Function} callback
+   */
   showDangerDialog: function browser_showDangerDialog(title, btn, callback) {
     var self = this;
-    var msg = navigator.mozL10n.get(title);
 
     var ok = function(e) {
       e.preventDefault();
@@ -1506,7 +1829,7 @@ var Browser = {
       self.dangerDialogCancel.removeEventListener('click', cancel);
     };
 
-    this.dangerDialogMessage.textContent = msg;
+    this.dangerDialogMessage.setAttribute('data-l10n-id', title);
     this.dangerDialog.hidden = false;
 
     this.dangerDialogOk.addEventListener('click', ok);
@@ -1530,6 +1853,9 @@ var Browser = {
     }, this);
   },
 
+  /**
+   * Handle touch events over main-screen.
+   */
   screenSwipeMngr: {
 
     TRANSITION_SPEED: 1.8,
@@ -1580,6 +1906,9 @@ var Browser = {
     }
   },
 
+  /**
+   * Handle touch events over tabs.
+   */
   tabsSwipeMngr: {
 
     TRANSITION_SPEED: 1.8,
@@ -1604,16 +1933,18 @@ var Browser = {
         return;
       }
 
-      if (this.browser.inTransition)
+      if (this.browser.inTransition) {
         return;
+      }
 
       this.tab.classList.add('active');
       this.tab.style.MozTransition = '';
     },
 
     pan: function tabSwipe_pan(e) {
-      if (this.browser.inTransition)
+      if (this.browser.inTransition) {
         return;
+      }
       var movement = Math.min(this.containerWidth,
                               Math.abs(e.detail.absolute.dx));
       if (movement > 0) {
@@ -1637,8 +1968,11 @@ var Browser = {
     },
 
     swipe: function tabSwipe_swipe(e) {
-      if (this.browser.inTransition)
+      var time;
+
+      if (this.browser.inTransition) {
         return;
+      }
 
       var distance = e.detail.start.screenX - e.detail.end.screenX;
       var fastenough = Math.abs(e.detail.vx) > this.TRANSITION_SPEED;
@@ -1647,7 +1981,7 @@ var Browser = {
 
       if (!(farenough || fastenough)) {
         // Werent far or fast enough to delete, restore
-        var time = Math.abs(distance) / this.TRANSITION_SPEED;
+        time = Math.abs(distance) / this.TRANSITION_SPEED;
         var transition = 'left ' + time + 'ms linear';
         this.tab.style.MozTransition = transition;
         this.tab.style.left = '0px';
@@ -1657,7 +1991,7 @@ var Browser = {
       }
 
       var speed = Math.max(Math.abs(e.detail.vx), 1.8);
-      var time = (this.containerWidth - Math.abs(distance)) / speed;
+      time = (this.containerWidth - Math.abs(distance)) / speed;
       var offset = e.detail.direction === 'right' ?
         this.containerWidth : -this.containerWidth;
 
@@ -1668,7 +2002,6 @@ var Browser = {
       var browser = this.browser;
       var id = this.id;
       var li = this.tab.parentNode;
-      var self = this;
 
       // First animate the tab offscreen
       this.tab.addEventListener('transitionend', function() {
@@ -1689,6 +2022,10 @@ var Browser = {
     }
   },
 
+  /**
+   * Handle Web Activity.
+   * Activities: view, nfc-ndef-discovered
+   */
   handleActivity: function browser_handleActivity(activity) {
     // Activities can send multiple names, right now we only handle
     // one so we only filter on types
@@ -1716,12 +2053,17 @@ var Browser = {
   }
 };
 
+/**
+ * Run Browser.init on window load.
+ */
 window.addEventListener('load', function browserOnLoad(evt) {
   window.removeEventListener('load', browserOnLoad);
   Browser.init();
 });
 
-
+/**
+ * Callback of mozSetMessageHandler.
+ */
 function actHandle(activity) {
   if (Browser.hasLoaded) {
     Browser.handleActivity(activity);

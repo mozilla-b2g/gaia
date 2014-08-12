@@ -105,6 +105,19 @@ var BluetoothHelper = function() {
       });
     },
 
+    getPairedDevices: function(cb) {
+      _ready(function() {
+        _handleRequest(_adapter.getPairedDevices(), cb);
+      });
+    },
+
+    getAddress: function(cb) {
+      _ready(function() {
+        var address = _adapter.address;
+        cb(address);
+      });
+    },
+
     setPairingConfirmation: function(address, confirmed) {
       _ready(function() {
         _adapter.setPairingConfirmation(address, confirmed);
@@ -132,6 +145,12 @@ var BluetoothHelper = function() {
     set onscostatuschanged(callback) {
       _ready(function() {
         _adapter.onscostatuschanged = callback;
+      });
+    },
+
+    set onpairedstatuschanged(callback) {
+      _ready(function() {
+        _adapter.onpairedstatuschanged = callback;
       });
     }
   };

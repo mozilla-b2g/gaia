@@ -1,11 +1,5 @@
 apps/bluetooth/js/deviceList.js
 apps/bluetooth/js/transfer.js
-apps/browser/js/authentication_dialog.js
-apps/browser/js/browser.js
-apps/browser/js/browser_db.js
-apps/browser/js/modal_dialog.js
-apps/browser/js/nfc.js
-apps/browser/js/settings.js
 apps/browser/test/marionette/awesomescreen_test.js
 apps/browser/test/marionette/contextmenu_test.js
 apps/browser/test/marionette/lib/browser.js
@@ -18,7 +12,6 @@ apps/browser/test/unit/browser_db_test.js
 apps/callscreen/js/fake-oncall-desktop.js
 apps/callscreen/js/index.js
 apps/callscreen/test/unit/mock_mozbluetooth.js
-apps/callscreen/test/unit/mock_simple_phone_matcher.js
 apps/communications/dialer/js/call_log.js
 apps/communications/dialer/js/call_log_db.js
 apps/communications/dialer/js/index.js
@@ -38,7 +31,6 @@ apps/communications/facebook/js/fb_sync.js
 apps/communications/facebook/js/fb_sync_init.js
 apps/communications/facebook/js/sync_worker.js
 apps/communications/facebook/test/unit/facebook_connector_test.js
-apps/communications/facebook/test/unit/mock_curtain.js
 apps/communications/facebook/test/unit/mock_fb_graph_data.js
 apps/communications/facebook/test/unit/mock_fb_query.js
 apps/email/js/app_messages.js

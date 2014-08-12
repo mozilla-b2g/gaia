@@ -113,7 +113,7 @@ AlternativesCharMenuManager.prototype.getMenuTarget = function(press) {
   }
 
   var children = this._menuContainer.children;
-  var xOffset = press.pageX - this._menuAreaLeft - 1;
+  var xOffset = press.clientX - this._menuAreaLeft - 1;
   var menuWidth = this._menuAreaRight - this._menuAreaLeft;
 
   // If the press.target is still the original target, we should always
@@ -137,10 +137,10 @@ AlternativesCharMenuManager.prototype.isInMenuArea = function(press) {
     return false;
   }
 
-  return (press.pageY >= this._menuAreaTop &&
-          press.pageY <= this._menuAreaBottom &&
-          press.pageX >= this._menuAreaLeft &&
-          press.pageX <= this._menuAreaRight);
+  return (press.clientY >= this._menuAreaTop &&
+          press.clientY <= this._menuAreaBottom &&
+          press.clientX >= this._menuAreaLeft &&
+          press.clientX <= this._menuAreaRight);
 };
 
 exports.AlternativesCharMenuManager = AlternativesCharMenuManager;

@@ -13,7 +13,6 @@ suite('GestureDetector', function() {
       assert.typeOf(gd.stopDetecting, 'function');
       assert.isNumber(GestureDetector.HOLD_INTERVAL);
       assert.isNumber(GestureDetector.PAN_THRESHOLD);
-      assert.isNumber(GestureDetector.MOUSE_PAN_THRESHOLD);
       assert.isNumber(GestureDetector.DOUBLE_TAP_DISTANCE);
       assert.isNumber(GestureDetector.DOUBLE_TAP_TIME);
       assert.isNumber(GestureDetector.VELOCITY_SMOOTHING);
@@ -65,29 +64,8 @@ suite('GestureDetector', function() {
       }, 100, 200);
     });
 
-    test('mousetap', function(done) {
-      SyntheticGestures.mousetap(element, function() {
-        done(function() {
-          assert.length(events, 1);
-          assert.equal(events[0].type, 'tap');
-          assert.equal(events[0].detail.clientX, 100);
-          assert.equal(events[0].detail.clientY, 200);
-        });
-      }, 100, 200);
-    });
-
     test('dbltap', function(done) {
       SyntheticGestures.dbltap(element, function() {
-        done(function() {
-          assert.equal(eventseq(), 'tap tap dbltap');
-          assert.equal(events[2].detail.clientX, 100);
-          assert.equal(events[2].detail.clientY, 200);
-        });
-      }, 100, 200);
-    });
-
-    test('mousedbltap', function(done) {
-      SyntheticGestures.mousedbltap(element, function() {
         done(function() {
           assert.equal(eventseq(), 'tap tap dbltap');
           assert.equal(events[2].detail.clientX, 100);
@@ -316,45 +294,5 @@ suite('GestureDetector', function() {
       });
     });
 */
-
-    // Reuse the swipes data for testing hold+move events
-    swipes.forEach(function(s) {
-      test('mousehold ' + s.name, function(done) {
-        SyntheticGestures.mousehold(element, 1250, s.x0, s.y0, s.x1, s.y1,
-                                    100, checkhold);
-        function checkhold() {
-          done(function() {
-            assert.match(eventseq(), /holdstart (holdmove )*holdend/);
-
-            // Check start details
-            var d = events[0].detail;
-            assert.equal(d.clientX, s.x0);
-            assert.equal(d.clientY, s.y0);
-
-            // Check end details
-            var d = events[events.length - 1].detail;
-            assert.equal(d.start.clientX, s.x0);
-            assert.equal(d.start.clientY, s.y0);
-            assert.equal(d.end.clientX, s.x1);
-            assert.equal(d.end.clientY, s.y1);
-            assert.equal(d.dx, s.x1 - s.x0);
-            assert.equal(d.dy, s.y1 - s.y0);
-
-            // Check relative vs absolute for all the holdmove events
-            var dx = 0, dy = 0;
-            events.forEach(function(e) {
-              if (e.type === 'holdmove') {
-                dx += e.detail.relative.dx;
-                dy += e.detail.relative.dy;
-                assert.equal(dx, e.detail.absolute.dx);
-                assert.equal(dy, e.detail.absolute.dy);
-              }
-            });
-            assert.equal(dx, s.x1 - s.x0);
-            assert.equal(dy, s.y1 - s.y0);
-          });
-        }
-      });
-    });
   });
 });

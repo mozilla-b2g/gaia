@@ -384,34 +384,34 @@ suite('system/TaskManager >', function() {
       cardsList.innerHTML = '';
     });
 
-    test('isRocketbar tracks rocketbar.enabled setting', function() {
+    test('isTaskStrip tracks taskstrip.enabled setting', function() {
       // var withRocketBar = new TaskManager();
-      MockNavigatorSettings.mTriggerObservers('rocketbar.enabled',
+      MockNavigatorSettings.mTriggerObservers('taskstrip.enabled',
                                               { settingValue: true });
-      assert.isTrue(taskManager.isRocketbar,
-                    'isRocketbar is true when setting goes true');
+      assert.isTrue(taskManager.isTaskStrip,
+                    'isTaskStrip is true when setting goes true');
 
-      taskManager.isRocketbar = true;
-      MockNavigatorSettings.mTriggerObservers('rocketbar.enabled',
+      taskManager.isTaskStrip = true;
+      MockNavigatorSettings.mTriggerObservers('taskstrip.enabled',
                                               { settingValue: false });
-      assert.isFalse(taskManager.isRocketbar,
-                    'isRocketbar is false when setting goes false');
+      assert.isFalse(taskManager.isTaskStrip,
+                    'isTaskStrip is false when setting goes false');
     });
 
-    test('creates Card instances when isRocketbar is false', function(){
-      taskManager.isRocketbar = false;
+    test('creates Card instances when isTaskStrip is false', function(){
+      taskManager.isTaskStrip = false;
       taskManager.addCard(0, apps['http://sms.gaiamobile.org']);
       var card = taskManager.getCardAtIndex(0);
       assert.ok(card && card instanceof Card,
-                'creates Card instances when isRocketbar is false');
+                'creates Card instances when isTaskStrip is false');
     });
 
-    test('creates TaskCard instances when isRocketbar is true', function(){
-      taskManager.isRocketbar = true;
+    test('creates TaskCard instances when isTaskStrip is true', function(){
+      taskManager.isTaskStrip = true;
       taskManager.addCard(0, apps['http://sms.gaiamobile.org']);
       var card = taskManager.getCardAtIndex(0);
       assert.ok(card && card instanceof TaskCard,
-                'creates TaskCard instances when isRocketbar is true');
+                'creates TaskCard instances when isTaskStrip is true');
     });
 
     suite('screenshots settings >', function() {
@@ -465,7 +465,7 @@ suite('system/TaskManager >', function() {
         taskManager.hide(true);
         waitForEvent(window, 'cardviewshown')
           .then(function() { done(); }, failOnReject);
-        taskManager.isRocketbar = false;
+        taskManager.isTaskStrip = false;
         taskManager.show();
       });
 
@@ -596,7 +596,7 @@ suite('system/TaskManager >', function() {
 
     suite('populated task manager in rocketbar >', function() {
       setup(function(done) {
-        taskManager.isRocketbar = true;
+        taskManager.isTaskStrip = true;
         assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
         waitForEvent(window, 'cardviewshown')
           .then(function() { done(); }, failOnReject);
@@ -626,7 +626,7 @@ suite('system/TaskManager >', function() {
       taskManager.hide(true);
     });
 
-    test('when isRocketbar is true, empty task manager closes', function(done) {
+    test('when isTaskStrip is true, empty task manager closes', function(done) {
       var events = [];
       window.Promise.race([
         waitForEvent(window, 'cardviewclosed').then(function() {
@@ -645,11 +645,11 @@ suite('system/TaskManager >', function() {
         done();
       }, failOnReject);
       // Haida/rocketbar mode: taskManager aborts show when empty
-      taskManager.isRocketbar = true;
+      taskManager.isTaskStrip = true;
       taskManager.show();
     });
 
-    test('when isRocketbar is false, empty task manager opens', function(done) {
+    test('when isTaskStrip is false, empty task manager opens', function(done) {
       var events = [];
       window.Promise.race([
         waitForEvent(window, 'cardviewclosed').then(function() {
@@ -668,7 +668,7 @@ suite('system/TaskManager >', function() {
         done();
       }, failOnReject);
       // Pre-Haida/Cardsview mode: taskManager shows empty message
-      taskManager.isRocketbar = false;
+      taskManager.isTaskStrip = false;
       taskManager.show();
     });
 
@@ -718,7 +718,7 @@ suite('system/TaskManager >', function() {
       assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
       waitForEvent(window, 'cardviewshown')
         .then(function() { done(); }, failOnReject);
-      taskManager.isRocketbar = false;
+      taskManager.isTaskStrip = false;
       taskManager.show();
     });
 
@@ -818,7 +818,7 @@ suite('system/TaskManager >', function() {
       assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
       waitForEvent(window, 'cardviewshown')
         .then(function() { done(); }, failOnReject);
-      taskManager.isRocketbar = false;
+      taskManager.isTaskStrip = false;
       taskManager.show();
     });
 
@@ -852,7 +852,7 @@ suite('system/TaskManager >', function() {
       assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
       waitForEvent(window, 'cardviewshown')
         .then(function() { done(); }, failOnReject);
-      taskManager.isRocketbar = true;
+      taskManager.isTaskStrip = true;
       taskManager.show();
     });
 
@@ -901,7 +901,7 @@ suite('system/TaskManager >', function() {
       assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
       waitForEvent(window, 'cardviewshown')
         .then(function() { done(); }, failOnReject);
-      taskManager.isRocketbar = false;
+      taskManager.isTaskStrip = false;
       taskManager.show();
     });
     teardown(function() {

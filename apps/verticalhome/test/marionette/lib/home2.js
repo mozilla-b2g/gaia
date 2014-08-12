@@ -36,8 +36,7 @@ Home2.clientOptions = {
       'app://verticalhome.gaiamobile.org/manifest.webapp',
     'ftu.manifestURL': null,
     'keyboard.ftu.enabled': false,
-    'lockscreen.enabled': false,
-    'rocketbar.enabled': false
+    'lockscreen.enabled': false
   }
 };
 
@@ -153,7 +152,7 @@ Home2.prototype = {
 
       // tap the app in the homescreen
       var newApp = this.getIcon(manifestURL);
-      newApp.click();
+      newApp.tap();
 
       // go to the system app
       client.switchToFrame();
@@ -205,7 +204,7 @@ Home2.prototype = {
   */
   getIcon: function(manifestUrl, entryPoint) {
     return this.client.helper.waitForElement(
-      '[data-identifier="' + manifestUrl +
+      '[data-identifier*="' + manifestUrl +
       (entryPoint ? '-' + entryPoint : '') + '"]'
     );
   },

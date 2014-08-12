@@ -3,6 +3,29 @@
 
 var utils = require('./utils');
 
+// Optional partner provided preference files. They will be added
+// after the ones on the extenedPrefFiles and they will be read
+// from the GAIA_DISTRIBUTION_DIR directory
+var PARTNER_PREF_FILES = ['partner-prefs.js'];
+
+function appendPrefFile(destPrefFile, srcDir, srcPrefFiles) {
+  if (!srcDir.exists()) {
+    return;
+  }
+
+  var srcContents = srcPrefFiles.map(function(filename) {
+    var content = '';
+    var srcFile = srcDir.clone();
+    srcFile.append(filename);
+    if (srcFile.exists()) {
+      content = utils.getFileContent(srcFile);
+    }
+    return content;
+  });
+  utils.writeContent(destPrefFile,
+        utils.getFileContent(destPrefFile) + srcContents.join('\n'));
+}
+
 var PreferencesBuilder = function() {
 };
 
@@ -10,6 +33,22 @@ PreferencesBuilder.prototype.setConfig = function(config) {
   this.config = config;
   this.prefs = {};
   this.gaia = utils.gaia.getInstance(this.config);
+
+  // Optional files that may be provided to extend the set of default
+  // preferences installed for gaia.  If the preferences in these files
+  // conflict, the result is undefined.
+  this.extenedPrefFiles = ['custom-prefs.js', 'gps-prefs.js',
+    'payment-prefs.js'];
+
+  if (config.GAIA_APP_TARGET === 'engineering') {
+    this.extenedPrefFiles.push('payment-dev-prefs.js');
+  } else if (config.GAIA_APP_TARGET === 'dogfood') {
+    this.extenedPrefFiles.push('dogfood-prefs.js');
+  }
+
+  if (config.DEBUG === 1) {
+    this.extenedPrefFiles.push('debug-prefs.js');
+  }
 };
 
 PreferencesBuilder.prototype.execute = function(config) {
@@ -19,6 +58,23 @@ PreferencesBuilder.prototype.execute = function(config) {
     this.writePref();
   } else if (this.gaia.engine === 'b2g') {
     this.setPrefs();
+  }
+  this.appendPrefs();
+};
+
+PreferencesBuilder.prototype.appendPrefs = function() {
+  var prefFile = utils.getFile(this.config.PROFILE_DIR, 'user.js');
+
+  var buildConfigDir = utils.getFile(this.config.GAIA_DIR, 'build', 'config');
+  appendPrefFile(prefFile, buildConfigDir, this.extenedPrefFiles);
+
+  try {
+    var distDir = utils.getFile(this.config.GAIA_DISTRIBUTION_DIR);
+    appendPrefFile(prefFile, distDir, PARTNER_PREF_FILES);
+  } catch (e) {
+    // utils.getFile will throw exception if GAIA_DISTRIBUTION_DIR does not
+    // exist. In this case we just don't override preferences by
+    // PARTNER_PREF_FILES.
   }
 };
 
@@ -45,9 +101,6 @@ PreferencesBuilder.prototype.preparePref = function() {
   this.prefs['dom.mozInputMethod.enabled'] = true;
   this.prefs['layout.css.sticky.enabled'] = true;
   this.prefs['intl.uidirection.qps-plocm'] = 'rtl';
-
-  // This pref can be removed once bug 1000199 has landed
-  this.prefs['dom.webcomponents.enabled'] = true;
 
   // for https://bugzilla.mozilla.org/show_bug.cgi?id=811605 to let user know
   //what prefs is for ril debugging
@@ -239,7 +292,11 @@ PreferencesBuilder.prototype.setPrefs = function() {
 
 
 exports.execute = function(config) {
+  if (config.BUILD_APP_NAME !== '*') {
+    return;
+  }
   (new PreferencesBuilder()).execute(config);
 };
 
 exports.PreferencesBuilder = PreferencesBuilder;
+exports.appendPrefFile = appendPrefFile;

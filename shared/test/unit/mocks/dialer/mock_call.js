@@ -12,7 +12,9 @@ function MockCall(aNumber, aState, aServiceId) {
   this.serviceId = (aServiceId === undefined) ? 1 : aServiceId;
   this.state = aState;
 
-  this.answer = function() {};
+  this.answer = function() {
+    this._connect();
+  };
   this.hangUp = function() {
     this._disconnect();
   };

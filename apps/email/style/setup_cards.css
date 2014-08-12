@@ -112,6 +112,36 @@ section[role="region"].skin-organic {
   text-align: center;
 }
 
+.tng-signature-input {
+  margin: 0;
+  min-height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-height: none;
+  display: block;
+  font-family: inherit;
+  font-weight: normal;
+  color: #333;
+  border: none;
+  box-shadow: none;
+  background: white;
+  outline: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 1rem 1.5rem 0;
+  font-size: 1.6rem;
+}
+
+li button.signature-button.icon:before {
+  background-image: url('../shared/style/buttons/images/next.png');
+  right: 0;
+}
+
+li button.signature-button {
+  width: calc(100% - 3rem);
+  margin: 0 auto 2rem auto;
+}
+
 li:not([role]) {
   position: relative;
   width: 100%;

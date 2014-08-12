@@ -1,3 +1,5 @@
+'use strict';
+/* global require, exports */
 // Generate webapps_stage.json.
 
 var utils = require('./utils');

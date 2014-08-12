@@ -13,10 +13,11 @@ const RE_INI_FILE = /locales[\/\\].+\.ini$/;
 const RE_PROPERTIES_FILE = /\.([\w-]+)\.properties$/;
 const MODNAME = 'multilocale';
 
-function L10nManager(gaiaDir, localesFilePath, localeBasedir, official) {
+function L10nManager(gaiaDir, localesFilePath, localeBasedir, subject) {
   function checkArg(arg) {
     return Boolean(arg);
   }
+
   if (arguments.length !== 4 &&
     !Array.prototype.every.call(arguments, checkArg)) {
     throw new TypeError('Illegal constructor');
@@ -33,9 +34,11 @@ function L10nManager(gaiaDir, localesFilePath, localeBasedir, official) {
     }
   });
 
-  [this.locales, this.localeBasedir, this.gaiaDir, this.official] =
-    [Object.keys(utils.getJSON(localesFile)), baseDir.path, gaiaDir, official];
-
+  this.locales = Object.keys(utils.getJSON(localesFile));
+  this.localeBasedir = baseDir.path;
+  this.gaiaDir = gaiaDir;
+  this.official = subject.official;
+  this.deviceType = subject.deviceType;
 
   /**
    * Modify original locales.ini file by keeping default 'en-US' .properties,
@@ -135,6 +138,21 @@ function L10nManager(gaiaDir, localesFilePath, localeBasedir, official) {
           }
           targetFile = brandings.target.modified;
           propFile = brandings.src.modified;
+        }
+        // XXX: We should use @formFactor for device specific L10N support,
+        // isSubjectToDeviceType should be removed after bug 936532 landed.
+        if (utils.isSubjectToDeviceType(propFile.parent.path)) {
+          var devices = {
+            target: { original: targetFile },
+            src: { original: propFile }
+          };
+          for (var dkey in devices) {
+            devices[dkey].modified = devices[dkey].original.parent.clone();
+            devices[dkey].modified.append(self.deviceType);
+            devices[dkey].modified.append(devices[dkey].original.leafName);
+          }
+          targetFile = devices.target.modified;
+          propFile = devices.src.modified;
         }
 
         if (!propFile.exists()) {
@@ -419,7 +437,10 @@ function execute(options) {
     options.GAIA_DIR,
     options.LOCALES_FILE,
     localeBasedir,
-    options.OFFICIAL);
+    {
+      official: options.OFFICIAL,
+      deviceType: options.GAIA_DEVICE_TYPE
+    });
 
   gaia.webapps.forEach(function(webapp) {
     if (utils.isExternalApp(webapp)) {

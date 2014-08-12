@@ -22,10 +22,13 @@
 
 .new .flex-composer {
   position: relative;
-  top: 5.5rem; /* 5.5rem is the default size of the recipient panel */
-               /* In Bug 1015841 this should be able to change depending on the
-                * recipients panel height
-                * Should the recipients panel be part of the composer ? */
+  top: 4rem;   /* 4rem is the default size of the recipient panel */
+
+  height: calc(100% - 4rem);
+}
+
+.multiline-recipients-mode.new .flex-composer {
+  top: 5.5rem;
 
   height: calc(100% - 5.5rem);
 }
@@ -338,4 +341,3 @@ button[disabled] .sim-indication {
   text-align: center;
   font-size: 1.8rem;
 }
-

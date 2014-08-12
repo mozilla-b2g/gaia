@@ -48,7 +48,7 @@
 .suggestion-item {
   flex: 1;
   padding: .2rem 2rem 0;
-  overflow: hidden;
+  min-width: 0;
 }
 
 .suggestion-item .si__tel-type:not(:empty):after {

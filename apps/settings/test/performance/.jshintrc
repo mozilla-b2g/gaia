@@ -12,6 +12,6 @@
     "marionetteScriptFinished",
     "require",
     "requireGaia",
-    "mozTestInfo"
+    "config"
   ]
 }

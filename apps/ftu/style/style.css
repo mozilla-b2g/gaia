@@ -47,6 +47,15 @@ a {
   bottom: 6.5rem;
 }
 
+/*
+ * Responsive design for tablet
+ */
+@media (min-width: 768px) {
+  [role=main] {
+    bottom: 10rem;
+  }
+}
+
 [role=main] > [role=region] {
   background: none
 }

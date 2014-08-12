@@ -148,7 +148,7 @@ suite('system/AppWindow', function() {
 
   test('Automatically enable navigation for a brower window.', function() {
     var app1 = new AppWindow(fakeWrapperConfig);
-    assert.equal(app1.config.chrome.navigation, true);
+    assert.equal(app1.config.chrome.scrollable, true);
   });
 
   suite('Resize', function() {

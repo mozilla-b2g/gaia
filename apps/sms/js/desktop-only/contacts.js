@@ -396,9 +396,9 @@
   });
 
   var readyPromise = Promise.all([
-    getAsset('/js/desktop-only/photo-man.jpg'),
-    getAsset('/js/desktop-only/photo-woman.jpg'),
-    getAsset('/js/desktop-only/photo-man-bowtie.jpg')
+    getAsset('/js/desktop-only/assets/photo-man.jpg'),
+    getAsset('/js/desktop-only/assets/photo-woman.jpg'),
+    getAsset('/js/desktop-only/assets/photo-man-bowtie.jpg')
   ]).then(function gotall(blobs) {
     tom.photo = [blobs[0]];
     grace.photo = [blobs[1]];

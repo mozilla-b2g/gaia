@@ -1,15 +1,10 @@
 /*global suite suiteSetup setup test sinon assert */
 suite('Latin en_us worker', function() {
-
-  // XXX: Disabled for causing intermittent 1044984. Will
-  //      be fixed shortly.
-  return;
-
-
   var worker;
   suiteSetup(function(next) {
     worker = new Worker('../../js/imes/latin/worker.js');
-    worker.postMessage({ cmd: 'setLanguage', args: ['en_us']});
+
+    worker.postMessage({ cmd: 'setLanguage', args: ['en_us'] });
     worker.postMessage({
       cmd: 'setNearbyKeys',
       args: [{
@@ -209,7 +204,21 @@ suite('Latin en_us worker', function() {
       }]
     });
 
-    setTimeout(next, 1000);
+    var successCount = 0;
+    worker.onmessage = function(e) {
+      if (e.data.cmd !== 'success') {
+        dump('worker.onmessage unexpected result ' + e.message + '\n');
+      }
+      assert.equal(e.data.cmd, 'success');
+
+      if (e.data.fn === 'setLanguage' || e.data.fn === 'setNearbyKeys') {
+        successCount++;
+
+        if (successCount === 2) {
+          next();
+        }
+      }
+    };
   });
 
   setup(function() {
@@ -434,5 +443,4 @@ suite('Latin en_us worker', function() {
       });
     });
   });
-
 });

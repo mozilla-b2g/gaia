@@ -11,28 +11,44 @@
   // Most used DOM elements
   var dom = {};
 
+  var HOMESCREEN_MANIFEST = 'homescreen.manifestURL';
   var MSG_MIGRATE_CON = 'migrate';
   var TXT_MSG = 'migrate';
 
   function notifyHomescreenApp() {
-    navigator.mozApps.getSelf().onsuccess = function(evt) {
-      var app = evt.target.result;
-      if (app.connect) {
-        app.connect(MSG_MIGRATE_CON).then(function onConnAccepted(ports) {
-          // Get the token data info to attach to message
-          var message = {
-            txt: TXT_MSG
-          };
-          ports.forEach(function(port) {
-            port.postMessage(message);
-          });
-        }, function onConnRejected(reason) {
-          console.error('Cannot notify homescreen: ', reason);
-        });
-      } else {
-        console.error('mozApps does not have a connect method. ' +
-                      'Cannot launch the collection migration process');
+    _getHomescreenManifestURL(function(url) {
+      // Get default homescreen manifest URL from settings, and will only notify
+      // vertical homescreen to perform data migration
+      if (url !== 'app://verticalhome.gaiamobile.org/manifest.webapp') {
+        return;
       }
+
+      navigator.mozApps.getSelf().onsuccess = function(evt) {
+        var app = evt.target.result;
+        if (app.connect) {
+          app.connect(MSG_MIGRATE_CON).then(function onConnAccepted(ports) {
+            // Get the token data info to attach to message
+            var message = {
+              txt: TXT_MSG
+            };
+            ports.forEach(function(port) {
+              port.postMessage(message);
+            });
+          }, function onConnRejected(reason) {
+            console.error('Cannot notify homescreen: ', reason);
+          });
+        } else {
+          console.error('mozApps does not have a connect method. ' +
+                        'Cannot launch the collection migration process');
+        }
+      };
+    });
+  }
+
+  function _getHomescreenManifestURL(callback) {
+    var req = navigator.mozSettings.createLock().get(HOMESCREEN_MANIFEST);
+    req.onsuccess = function() {
+      callback(req.result[HOMESCREEN_MANIFEST]);
     };
   }
 
@@ -78,7 +94,7 @@
         }
         // Dont block progress on failure to load media
         if (evt.type === 'error') {
-          console.log('Failed to load tutorial media: ' + src);
+          console.error('Failed to load tutorial media: ' + src);
         }
         resolve(evt);
       }
@@ -173,7 +189,7 @@
       elementIDs.forEach(function(name) {
         dom[Utils.camelCase(name)] = document.getElementById(name);
         if (!dom[Utils.camelCase(name)]) {
-          console.log('Cache DOM elements: couldnt cache: ' + name);
+          console.error('Cache DOM elements: couldnt cache: ' + name);
         }
       }, this);
 

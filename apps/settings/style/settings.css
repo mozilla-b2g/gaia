@@ -207,6 +207,19 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
 
 
 /******************************************************************************
+ * Disabled items
+ */
+
+.disabled a,
+.disabled p,
+.disabled h2,
+.disabled label,
+.disabled select {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/******************************************************************************
  * Wi-Fi settings
  */
 
@@ -303,11 +316,6 @@ section ul.operate-certificate {
   bottom: 0;
   width: 100%;
   background: url(images/document_bg.png);
-}
-
-#wifi-certificate-files-List li.disabled a {
-  opacity: 0.6;
-  pointer-events: none;
 }
 
 
@@ -579,23 +587,21 @@ ul li > label.range-icons.volume input {
  * Date & Time
  */
 
-#timezone-raw span,
+#dateTime .timezone-raw span,
 #dateTime ul.disabled p,
 #dateTime ul.disabled a {
   color: #797e80;
-  opacity: 0.6;
-  pointer-events: none;
 }
 
-#dateTime #timezone.disabled {
+#dateTime .timezone.disabled {
   display: none;
 }
 
-#time-manual span {
+#dateTime .time-manual span {
   pointer-events: none;
 }
 
-#time-manual input {
+#dateTime .time-manual input {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -724,13 +730,6 @@ ul li > label.range-icons.volume input {
 #help[data-has-support-info] .no-support-info,
 #help:not([data-has-support-info]) .support-info {
   display: none;
-}
-
-/******************************************************************************
- * Bluetooth
- */
-#update-device-name > section input {
-  margin: 1rem 0;
 }
 
 /* Web activity handling */

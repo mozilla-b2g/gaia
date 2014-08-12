@@ -17,11 +17,11 @@ var MockCallScreen = {
       cb();
     }
   },
-  enableKeypad: function() {
-    this.mEnableKeypadCalled = true;
+  enablePlaceNewCall: function() {
+    this.mEnablePlaceNewCallCalled = true;
   },
-  disableKeypad: function() {
-    this.mEnableKeypadCalled = false;
+  disablePlaceNewCall: function() {
+    this.mEnablePlaceNewCallCalled = false;
   },
   syncSpeakerEnabled: function() {
     this.mSyncSpeakerCalled = true;
@@ -110,14 +110,14 @@ var MockCallScreen = {
   incomingSim: document.createElement('div'),
   incomingNumberAdditionalInfo: document.createElement('span'),
 
-  mEnableKeypadCalled: false,
+  mEnablePlaceNewCallCalled: false,
   mSyncSpeakerCalled: false,
   mSetCallerContactImageCalled: false,
   mMuteOn: false,
   mSpeakerOn: false,
   mLastRenderMode: null,
   mTeardown: function teardown() {
-    this.mEnableKeypadCalled = false;
+    this.mEnablePlaceNewCallCalled = false;
     this.mSyncSpeakerCalled = false;
     this.mSetCallerContactImageCalled = false;
     this.mMuteOn = false;

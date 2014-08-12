@@ -51,7 +51,7 @@
 }
 
 #lockscreen-masked-background.blank {
-  background: rgba(0,0,0,0.35);
+  background: rgba(0,0,0,0.1);
 }
 
 #screen.screenoff > #lockscreen,
