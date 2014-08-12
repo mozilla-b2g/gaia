@@ -31,7 +31,9 @@ marionette('Desktop Notifications', function() {
     client.apps.close(SMS_APP);
 
     var getNotifications = function() {
-      return client.findElements('#desktop-notifications-container > div');
+      return client.findElements(
+        '#desktop-notifications-container .notification'
+      );
     };
 
     client.waitFor(function () {
