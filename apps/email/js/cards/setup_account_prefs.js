@@ -19,7 +19,7 @@ function SetupAccountPrefsCard(domNode, mode, args) {
 
   // Establish defaults specifically for our email app.
   this.identity.modifyIdentity({ signatureEnabled: true,
-    signature: mozL10n.get('settings-default-signature') });
+    signature: mozL10n.get('settings-default-signature-2') });
 
   this.nextButton = this.nodeFromClass('sup-info-next-btn');
   this.nextButton.addEventListener('click', this.onNext.bind(this), false);
