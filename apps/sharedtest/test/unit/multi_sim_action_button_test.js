@@ -5,7 +5,7 @@
 
 'use strict';
 
-require('/apps/communications/dialer/test/unit/mock_telephony_helper.js');
+require('/shared/test/unit/mocks/dialer/mock_telephony_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');

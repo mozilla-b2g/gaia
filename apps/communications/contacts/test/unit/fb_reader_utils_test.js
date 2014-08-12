@@ -6,7 +6,7 @@
 require('/shared/js/fb/fb_reader_utils.js');
 require('/shared/js/fb/fb_request.js');
 require('/shared/test/unit/mocks/mock_fb_data_reader.js');
-requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 
 var realFbContacts, realMozContacts;
 

@@ -35,7 +35,7 @@ require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
 require('/dialer/test/unit/mock_mmi_manager.js');
-require('/dialer/test/unit/mock_telephony_helper.js');
+require('/shared/test/unit/mocks/dialer/mock_telephony_helper.js');
 
 
 requireApp('communications/contacts/js/views/details.js');

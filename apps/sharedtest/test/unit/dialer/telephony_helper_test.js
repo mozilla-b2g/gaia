@@ -5,8 +5,8 @@
 'use strict';
 
 
-require('/dialer/test/unit/mock_lazy_loader.js');
-require('/dialer/test/unit/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
@@ -14,9 +14,9 @@ require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 
-require('/dialer/test/unit/mock_icc_helper.js');
+require('/shared/test/unit/mocks/mock_icc_helper.js');
 
-require('/dialer/js/telephony_helper.js');
+require('/shared/js/dialer/telephony_helper.js');
 
 var mocksHelperForTelephonyHelper = new MocksHelper([
   'Contacts',

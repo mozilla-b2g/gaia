@@ -31,7 +31,7 @@ requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 requireApp('communications/contacts/test/unit/mock_sim_importer.js');
 
-requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 
 requireApp('communications/contacts/js/views/settings.js');
 requireApp('communications/contacts/js/utilities/icc_handler.js');

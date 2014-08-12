@@ -6,7 +6,7 @@
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
-requireApp('communications/contacts/test/unit/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 
 requireApp('communications/contacts/js/contacts_bulk_delete.js');
 
@@ -63,7 +63,7 @@ suite('contacts_bulk_delete.js', function() {
     contacts.BulkDelete.performDelete(promise);
 
     assert.isTrue(overlayShowSpy.calledWith('preparing-contacts', 'spinner'));
-    
+
     promise.onsuccess({
       length: numberOfContacts
     });
@@ -98,7 +98,7 @@ suite('contacts_bulk_delete.js', function() {
   test('call performDelete but the promise fails', function() {
     contacts.BulkDelete.performDelete(promise);
     assert.isTrue(overlayShowSpy.calledWith('preparing-contacts', 'spinner'));
-    
+
     promise.onerror();
     assert.isTrue(overlayHideSpy.called);
   });

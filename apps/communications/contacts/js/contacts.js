@@ -761,7 +761,7 @@ var Contacts = (function() {
       SHARED_UTILS_PATH + '/' + 'misc.js',
       '/contacts/js/utilities/normalizer.js',
       '/shared/js/text_normalizer.js',
-      '/dialer/js/telephony_helper.js',
+      '/shared/js/dialer/telephony_helper.js',
       '/contacts/js/sms_integration.js',
       SHARED_UTILS_PATH + '/' + 'sdcard.js',
       SHARED_UTILS_PATH + '/' + 'vcard_parser.js',

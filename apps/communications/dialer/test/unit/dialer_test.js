@@ -17,7 +17,7 @@ require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_mmi_manager.js');
 require('/dialer/test/unit/mock_voicemail.js');
 require('/dialer/test/unit/mock_suggestion_bar.js');
-require('/dialer/test/unit/mock_telephony_helper.js');
+require('/shared/test/unit/mocks/dialer/mock_telephony_helper.js');
 
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
