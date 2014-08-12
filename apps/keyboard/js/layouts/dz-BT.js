@@ -78,7 +78,7 @@ Keyboards['dz-BT'] = {
       '༨': '8',
       '༩': '9',
       '༠': '0',
-      
+
       '༆': '༄ ༅ @',
       '༉': '࿑ ༊ ࿐ #',
       '༈': '-',
@@ -100,12 +100,13 @@ Keyboards['dz-BT'] = {
     },
     keys: [
       [
-        { value: '༡' }, { value: '༢' }, { value: '༣' } , { value: '༤' },
-        { value: '༥' } , { value: '༦' }, { value: '༧' } , { value: '༨' },
+        { value: '༡' }, { value: '༢' }, { value: '༣' }, { value: '༤' },
+        { value: '༥' }, { value: '༦' }, { value: '༧' }, { value: '༨' },
         { value: '༩' }, { value: '༠' }
       ], [
         { value: '༆'}, { value: '༉' }, { value: '༈' },
-        { value: '₨' }, { value: '༴' } , { value: 'ཿ' }, { value: '༷' },
+        { value: '₨', className: 'alternate-indicator' }, { value: '༴' },
+        { value: 'ཿ' }, { value: '༷' },
         { value: '༔' }, { value: '༼' }, { value: '༽' }
       ], [
         { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },

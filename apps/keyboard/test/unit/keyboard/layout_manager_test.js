@@ -468,42 +468,49 @@ suite('LayoutManager', function() {
       }).then(done, done);
     });
 
-    test('Switch to alternateLayout', function(done) {
-      app.getBasicInputType.returns('text');
-      app.supportsSwitching.returns(false);
+    function switchToAlternateTest(type) {
+      test('Switch to alternateLayout, type=' + type, function(done) {
+        app.getBasicInputType.returns(type);
+        app.supportsSwitching.returns(false);
 
-      manager.switchCurrentLayout('spaceLayout').then(function() {
-        manager.updateLayoutPage(manager.LAYOUT_PAGE_SYMBOLS_I);
+        manager.switchCurrentLayout('spaceLayout').then(function() {
+          manager.updateLayoutPage(manager.LAYOUT_PAGE_SYMBOLS_I);
 
-        assert.deepEqual(manager.currentLayout, spaceLayout,
-          'Original layout not touched.');
+          assert.deepEqual(manager.currentLayout, spaceLayout,
+            'Original layout not touched.');
 
-        var expectedModifiedLayout = {
-          layoutName: 'spaceLayout',
-          alternativeLayoutName: 'alternateLayout',
-          imEngine: 'test-imEngine',
-          keys: [ [ { value: 'A' } ],
-                  [ { keyCode: manager.KEYCODE_BASIC_LAYOUT,
-                      value: 'ABC',
-                      ratio: 2.0,
-                      ariaLabel: 'basicLayoutKey' },
-                    { value: ',', ratio: 1, keyCode: 44 },
-                    { ratio: 4.0 },
-                    { value: '.', ratio: 1, keyCode: 46 },
-                    { value: 'ENTER', ratio: 2.0,
-                      keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
+          var expectedModifiedLayout = {
+            layoutName: 'spaceLayout',
+            alternativeLayoutName: 'alternateLayout',
+            imEngine: 'test-imEngine',
+            keys: [ [ { value: 'A' } ],
+                    [ { keyCode: manager.KEYCODE_BASIC_LAYOUT,
+                        value: 'ABC',
+                        ratio: 2.0,
+                        ariaLabel: 'basicLayoutKey' },
+                      { value: ',', ratio: 1, keyCode: 44 },
+                      { ratio: 4.0 },
+                      { value: '.', ratio: 1, keyCode: 46 },
+                      { value: 'ENTER', ratio: 2.0,
+                        keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
-        assert.equal(manager.currentModifiedLayout.imEngine,
-                     spaceLayout.imEngine);
-        assert.equal(manager.currentModifiedLayout.__proto__,
-          alternateLayout, 'proto is set correctly for layout.');
-        assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
-          alternateLayout.keys[1][0], 'proto is set correctly for space key.');
-      }, function() {
-        assert.isTrue(false, 'Should not reject.');
-      }).then(done, done);
-    });
+          assert.deepEqual(manager.currentModifiedLayout,
+                           expectedModifiedLayout);
+          assert.equal(manager.currentModifiedLayout.imEngine,
+                       spaceLayout.imEngine);
+          assert.equal(manager.currentModifiedLayout.__proto__,
+            alternateLayout, 'proto is set correctly for layout.');
+          assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
+            alternateLayout.keys[1][0],
+            'proto is set correctly for space key.');
+        }, function() {
+          assert.isTrue(false, 'Should not reject.');
+        }).then(done, done);
+      });
+    }
+
+    // The alternate layout should be the same no mater what input type.
+    ['text', 'email', 'url'].forEach(switchToAlternateTest);
 
     test('alternateLayout (overwrite basicLayoutKey)', function(done) {
       app.getBasicInputType.returns('text');
