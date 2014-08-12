@@ -291,6 +291,8 @@
     } else {
       ime.add(keycode);
     }
-    keyboard.resetUpperCase();
+    keyboard.setUpperCase({
+      isUpperCase: false
+    });
   }
 })();
