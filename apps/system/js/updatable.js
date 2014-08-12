@@ -245,6 +245,9 @@ SystemUpdatable.prototype.getBatteryPercentageThreshold = function() {
       if (typeof threshold !== 'number') {
         threshold = fallbackThreshold;
       }
+      if (threshold < 0 || threshold > 100) {
+        threshold = fallbackThreshold;
+      }
       resolve(threshold);
     };
   });

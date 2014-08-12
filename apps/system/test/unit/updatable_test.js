@@ -804,6 +804,46 @@ suite('system/Updatable', function() {
           );
         });
 
+        test('threshold has a default value if over the range. ',
+          function(done) {
+            MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_PLUGGED] = 105;
+            MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_UNPLUGGED] = 105;
+            subject.getBatteryPercentageThreshold().then(
+              function(threshold) {
+                assert.equal(
+                  threshold,
+                  subject.BATTERY_FALLBACK_THRESHOLD
+                );
+                done();
+              },
+              function() {
+                assert.ok(false);
+                done();
+              }
+            );
+          }
+        );
+
+        test('threshold has a default value if under the range. ',
+          function(done) {
+            MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_PLUGGED] = -10;
+            MockNavigatorSettings.mSettings[BATTERY_THRESHOLD_UNPLUGGED] = -10;
+            subject.getBatteryPercentageThreshold().then(
+              function(threshold) {
+                assert.equal(
+                  threshold,
+                  subject.BATTERY_FALLBACK_THRESHOLD
+                );
+                done();
+              },
+              function() {
+                assert.ok(false);
+                done();
+              }
+            );
+          }
+        );
+
         test('threshold has a default even if Settings fails', function(done) {
           // Current MockSettings can not be forced to fail, so preparing our
           // own stub.
