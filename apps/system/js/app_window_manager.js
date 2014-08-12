@@ -35,8 +35,14 @@
       }
     },
 
+    /**
+     * Get active app. If active app is null, we'll return homescreen as
+     * default.
+     * @return {AppWindow} The app is active.
+     */
     getActiveApp: function awm_getActiveApp() {
-      return this._activeApp;
+      return this._activeApp || (exports.homescreenLauncher ?
+        exports.homescreenLauncher.getHomescreen() : null);
     },
 
     /**
