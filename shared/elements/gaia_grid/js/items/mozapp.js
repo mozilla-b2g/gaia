@@ -40,7 +40,7 @@
     // Yes this is clobbering all other listeners to the app MozApp
     //      should be in charge here otherwise the icon will be incorrect.
     MOZAPP_EVENTS.forEach(function(type) {
-      this.app['on' + type] = this;
+      this.app['on' + type] = this.handleEvent.bind(this);
     }, this);
 
     // Determine and set the initial state of the app when it is inserted.
