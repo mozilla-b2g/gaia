@@ -5261,6 +5261,9 @@ var self = {
       case 'upgradeToSecure':
         upgradeToSecure(uid);
         break;
+      default:
+        console.error('Unhandled net-main command:', cmd);
+        break;
     }
   }
 };
