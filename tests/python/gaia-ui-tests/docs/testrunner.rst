@@ -95,6 +95,7 @@ Here is a list of the types used, and when to use them:
 * qemu - These tests require the Firefox OS emulator to run.
 * sdcard - Storage device (such as an SD card) must be present.
 * wifi - WiFi connection is required.
+* sanity - Tests exercising core device features (dialer, camera, browser, sms).
 
 .. note::
   You may be thinking that there is only WiFi or cell data, and why the need for
