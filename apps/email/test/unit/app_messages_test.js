@@ -24,7 +24,6 @@ suite('appMessages', function() {
       // Make sure that we register our activity request handler.
       sinon.assert.calledWith(spy, 'activity');
       navigator.mozSetMessageHandler.restore();
-      done();
     });
   });
 
