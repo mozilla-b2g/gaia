@@ -617,10 +617,12 @@ ComposeCard.prototype = {
       // Setup the marquee structure
       Marquee.setup(email, headerNode);
       // Activate marquee once the contents DOM are added to document
+      Cards.setStatusColor(contents);
       document.body.appendChild(contents);
       Marquee.activate('alternate', 'ease');
 
       var formSubmit = (function(evt) {
+        Cards.setStatusColor();
         document.body.removeChild(contents);
         switch (evt.explicitOriginalTarget.className) {
           case 'cmp-contact-menu-edit':
@@ -870,9 +872,11 @@ ComposeCard.prototype = {
     console.log('compose: back: save needed, prompting');
     var menu = cmpDraftMenuNode.cloneNode(true);
     this._savePromptMenu = menu;
+    Cards.setStatusColor(menu);
     document.body.appendChild(menu);
 
     var formSubmit = (function(evt) {
+      Cards.setStatusColor();
       document.body.removeChild(menu);
       this._savePromptMenu = null;
 

@@ -44,9 +44,11 @@ SettingsSignatureCard.prototype = {
     }
     var menu = backFormNode.cloneNode(true);
     this._savePromptMenu = menu;
+    Cards.setStatusColor(menu);
     document.body.appendChild(menu);
 
     var formSubmit = (function(evt) {
+      Cards.setStatusColor();
       document.body.removeChild(menu);
       this._savePromptMenu = null;
 
