@@ -115,11 +115,13 @@
     height: 100%;
     width: 100%;
     z-index: -1;
+    visibility: hidden;
   }
 
   body.showKeypad #views {
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, visibility 0.3s;
     transform: translateY(-100%);
+    visibility: visible;
     z-index: 500;
   }
 
@@ -679,8 +681,9 @@
     bottom: 0;
     width: 100%;
     transform: translateY(100%);
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.3s ease-in-out, visibility 0.3s;
     z-index: 500;
+    visibility: hidden;
   }
 
   #incoming-container header {
@@ -704,6 +707,7 @@
 
   #incoming-container.displayed {
     transform: translateY(0);
+    visibility: visible;
   }
 
   #incoming-container button {
@@ -799,7 +803,7 @@
     padding-right: 3rem;
   }
 
-  #group-call .hangup-button,
+  .hangup-button,
   #calls:not(.big-duration) #group-call > .duration.isTimer,
   #group-call-details-list .duration {
     display: none;
