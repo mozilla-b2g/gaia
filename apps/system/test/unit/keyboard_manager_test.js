@@ -344,6 +344,9 @@ suite('KeyboardManager', function() {
         'app://keyboard.gaiamobile.org/manifest.webapp';
 
       KeyboardManager.showingLayoutInfo.type = 'text';
+      KeyboardManager.showingLayoutInfo.layout = {
+        manifestURL: fakeFrame_A.manifestURL
+      };
       KeyboardManager.removeKeyboard(fakeFrame_A.manifestURL, true);
       sinon.assert.callCount(hideKeyboard, 1);
       assert.ok(setKeyboardToShow.calledWith('text'));
