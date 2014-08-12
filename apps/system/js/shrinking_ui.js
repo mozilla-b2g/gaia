@@ -107,17 +107,16 @@
   ShrinkingUI.handleEvent =
     (function su_handleEvent(evt) {
 
-      // We can't handle pages without manifestURL.
+      // We can't handle pages without instanceID and url.
       switch (evt.type) {
         case 'appcreated':
         case 'appterminated':
         case 'appopen':
         case 'appwill-become-active':
-          if (!evt.detail || !evt.detail.manifestURL) {
+          if (!evt.detail || !evt.detail.instanceID || !evt.detail.url) {
             return;
           }
       }
-
       switch (evt.type) {
         // Mimic what the lockscreen does: stop home key event
         // be passed to the AppWindowManager, which would fade out
@@ -218,7 +217,7 @@
   ShrinkingUI._switchTo =
     (function su_switchTo(instanceID, manifestURL) {
       this.current.instanceID = instanceID;
-      this.current.manifestURL = manifestURL;
+      this.current.manifestURL = manifestURL || window.System.manifestURL;
     }).bind(ShrinkingUI);
 
   /**
