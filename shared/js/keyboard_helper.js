@@ -468,7 +468,8 @@ var KeyboardHelper = exports.KeyboardHelper = {
   // selected for that group (if it's not enforced in settings)
   // please see the bug and its related UX spec for the sense of 'fallback'
   fallbackLayoutNames: {
-    password: 'en'
+    password: 'en',
+    number: 'en'
   },
 
   fallbackLayouts: {},
