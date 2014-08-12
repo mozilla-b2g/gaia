@@ -8,6 +8,7 @@
     ReportView,
     Settings,
     SMIL,
+    ThreadCache,
     ThreadListUI,
     Threads,
     ThreadUI,
@@ -453,6 +454,7 @@ var MessageManager = {
       }
     };
     MessageManager.getMessages(changeStatusOptions);
+    ThreadCache.markAsRead(threadId);
   },
 
   markMessagesRead: function mm_markMessagesRead(list) {
