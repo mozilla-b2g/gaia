@@ -400,16 +400,18 @@ suite('system/TaskManager >', function() {
 
     test('creates Card instances when isTaskStrip is false', function(){
       taskManager.isTaskStrip = false;
-      taskManager.addCard(0, apps['http://sms.gaiamobile.org']);
-      var card = taskManager.getCardAtIndex(0);
+      var app = apps['http://sms.gaiamobile.org'];
+      taskManager.addCard(0, app);
+      var card = taskManager.cardsByAppID[app.instanceID];
       assert.ok(card && card instanceof Card,
                 'creates Card instances when isTaskStrip is false');
     });
 
     test('creates TaskCard instances when isTaskStrip is true', function(){
       taskManager.isTaskStrip = true;
-      taskManager.addCard(0, apps['http://sms.gaiamobile.org']);
-      var card = taskManager.getCardAtIndex(0);
+      var app = apps['http://sms.gaiamobile.org'];
+      taskManager.addCard(0, app);
+      var card = taskManager.cardsByAppID[app.instanceID];
       assert.ok(card && card instanceof TaskCard,
                 'creates TaskCard instances when isTaskStrip is true');
     });
@@ -755,7 +757,7 @@ suite('system/TaskManager >', function() {
       waitForEvent(window, 'cardviewclosed').then(function(event) {
         assert.equal(cardsList.childNodes.length, 0,
                     'all card elements are gone');
-        assert.equal(Object.keys(taskManager.cardsByOrigin).length, 0,
+        assert.equal(Object.keys(taskManager.cardsByAppID).length, 0,
                     'cards lookup is empty');
         done();
       }, failOnReject);
@@ -922,11 +924,11 @@ suite('system/TaskManager >', function() {
       assert.isTrue(card && card.element &&
                     card.element.parentNode == taskManager.cardsList);
       var destroySpy = this.sinon.spy(card, 'destroy');
-
+      var instanceID = card.app.instanceID;
       taskManager.closeApp(card);
       assert.isTrue(destroySpy.calledOnce);
       assert.equal(cardsList.childNodes.length, 1);
-      assert.isFalse('http://sms.gaiamobile.org' in taskManager.cardsByOrigin);
+      assert.isFalse(instanceID in taskManager.cardsByAppID);
     });
   });
 });
