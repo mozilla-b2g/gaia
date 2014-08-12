@@ -167,8 +167,8 @@ body .utility-tray #statusbar-icons > .sb-start {
 }
 
 #statusbar-time span {
-  margin: 0;
-  font-size: 1.1rem;
+  margin-left: -0.1rem;
+  font-size: 1rem;
 }
 
 /* signal and data icons */
@@ -199,6 +199,14 @@ body .utility-tray #statusbar-icons > .sb-start {
   position: relative;
 }
 
+#statusbar-connections[data-multiple="true"] .statusbar-signal:nth-child(1) {
+  margin-left: .8rem;
+}
+
+#statusbar-connections[data-multiple="true"] .statusbar-signal:only-child {
+  margin-left: 0;
+}
+
 #statusbar-connections[data-multiple="true"] .statusbar-signal::before {
   position: absolute;
   font-size: 0.8rem;
@@ -219,11 +227,13 @@ body .utility-tray #statusbar-icons > .sb-start {
   content: '4';
 }
 
-#statusbar-connections[data-multiple="true"] .statusbar-data {
+#statusbar-connections[data-multiple='true'] .statusbar-data {
   position: relative;
+  top: .4rem;
   width: 1.3rem;
-  margin: 0.3rem 0 0 0;
-  font-size: 0.8rem;
+  height: auto;
+  margin: 0;
+  font-size: .8rem;
   text-align: right;
 }
 
@@ -515,10 +525,12 @@ body .utility-tray #statusbar-icons > .sb-start {
   background-position: -28rem -6rem;
 }
 
-.sb-icon-notification {
-  background: none;
-  width: 3.2rem;
+#statusbar-icons .sb-icon-notification {
   position: relative;
+  float: left;
+  width: 3.2rem;
+  margin-left: -1;
+  background: none;
 }
 
 .sb-icon-notification::before {
@@ -548,13 +560,12 @@ body .utility-tray #statusbar-icons > .sb-start {
 
 .sb-icon-notification::after {
   content: attr(data-num);
-  position: absolute;
+  position: relative;
   color: rgba(255,255,255, 0.4);
   top: 0;
-  right: 0;
+  left: 1.8rem;
   width: 1.6rem;
   height: 1.6rem;
-  padding: 0 0.1rem;
   font-size: 1.5rem;
   font-weight: 400;
   line-height: 1.6rem;
