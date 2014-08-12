@@ -24,25 +24,6 @@ var NotificationScreen = {
   resendReceived: 0,
   resendExpecting: 0,
 
-  /* These applications' notifications will be added in the "priority"
-   * notification group
-   */
-  PRIORITY_APPLICATIONS: [
-    window.location.origin.replace('system.', 'network-alerts.') +
-      '/manifest.webapp'
-  ],
-
-  /* These applications' notifications will not be notified, it means we won't
-   * have:
-   * - the banner
-   * - the vibration
-   * - the sound
-   */
-  SILENT_APPLICATIONS: [
-    window.location.origin.replace('system.', 'network-alerts.') +
-      '/manifest.webapp'
-  ],
-
   init: function ns_init() {
     window.addEventListener('mozChromeNotificationEvent', this);
     this.container =
@@ -354,16 +335,6 @@ var NotificationScreen = {
     // LockScreen window may not opened while this singleton got initialized.
     this.lockScreenContainer = this.lockScreenContainer ||
       document.getElementById('notifications-lockscreen-container');
-
-    var manifestURL = detail.manifestURL || '';
-    var isPriorityNotification =
-      this.PRIORITY_APPLICATIONS.indexOf(manifestURL) !== -1;
-
-    var notificationContainer =
-      (isPriorityNotification) ?
-      this.container.querySelector('.priority-notifications') :
-      this.container.querySelector('.other-notifications');
-
     var notificationNode = document.createElement('div');
     notificationNode.classList.add('notification');
     notificationNode.setAttribute('role', 'link');
@@ -376,7 +347,7 @@ var NotificationScreen = {
     }
     var type = notificationNode.dataset.type = detail.type ||
                                               'desktop-notification';
-    notificationNode.dataset.manifestURL = manifestURL;
+    notificationNode.dataset.manifestURL = detail.manifestURL || '';
 
     if (detail.icon) {
       var icon = document.createElement('img');
@@ -418,7 +389,7 @@ var NotificationScreen = {
     notificationNode.appendChild(message);
 
     var notifSelector = '[data-notification-id="' + detail.id + '"]';
-    var oldNotif = notificationContainer.querySelector(notifSelector);
+    var oldNotif = this.container.querySelector(notifSelector);
     if (oldNotif) {
       // The whole node cannot be replaced because CSS animations are re-started
       oldNotif.replaceChild(titleContainer,
@@ -434,8 +405,8 @@ var NotificationScreen = {
       oldNotif.dataset.type = type;
       notificationNode = oldNotif;
     } else {
-      notificationContainer.insertBefore(notificationNode,
-          notificationContainer.firstElementChild);
+      this.container.insertBefore(notificationNode,
+          this.container.firstElementChild);
     }
 
     var event = document.createEvent('CustomEvent');
@@ -450,17 +421,15 @@ var NotificationScreen = {
     if (typeof(ScreenManager) !== 'undefined' &&
       !ScreenManager.screenEnabled) {
       // bug 915236: disable turning on the screen for email notifications
-      if (manifestURL.indexOf('email.gaiamobile.org') === -1) {
+      if (!detail.manifestURL ||
+           detail.manifestURL.indexOf('email.gaiamobile.org') === -1) {
         ScreenManager.turnScreenOn();
       }
     }
 
     this.updateStatusBarIcon(true);
 
-    var notify = !('noNotify' in detail) &&
-      // don't notify for network-alerts notifications
-      (this.SILENT_APPLICATIONS.indexOf(manifestURL) === -1);
-
+    var notify = !('noNotify' in detail);
     // Notification toaster
     if (notify) {
       this.updateToaster(detail, type, dir);
@@ -538,7 +507,8 @@ var NotificationScreen = {
       if (this.vibrates) {
         if (document.hidden) {
            // bug 1030310: disable vibration for the email app when asleep
-          if (manifestURL.indexOf('email.gaiamobile.org') === -1) {
+          if (!detail.manifestURL ||
+              detail.manifestURL.indexOf('email.gaiamobile.org') === -1) {
             window.addEventListener('visibilitychange', function waitOn() {
               window.removeEventListener('visibilitychange', waitOn);
               navigator.vibrate([200, 200, 200, 200]);
@@ -605,7 +575,7 @@ var NotificationScreen = {
     }
 
     if (notificationNode) {
-      notificationNode.remove();
+      notificationNode.parentNode.removeChild(notificationNode);
     }
 
     var event = document.createEvent('CustomEvent');
@@ -631,16 +601,15 @@ var NotificationScreen = {
     }
     this.updateStatusBarIcon();
 
-    if (!this.container.querySelector('.notification')) {
+    if (!this.container.firstElementChild) {
       // no notifications left
       this.clearAllButton.disabled = true;
     }
   },
 
   clearAll: function ns_clearAll() {
-    var notifications = this.container.querySelectorAll('.notification');
-    for (var notification of notifications) {
-      this.closeNotification(notification);
+    while (this.container.firstElementChild) {
+      this.closeNotification(this.container.firstElementChild);
     }
   },
 
@@ -662,10 +631,9 @@ var NotificationScreen = {
   },
 
   updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {
-    var notifCount = this.externalNotificationsCount;
-    notifCount += this.container.querySelectorAll('.notification').length;
-
-    StatusBar.updateNotification(notifCount);
+    var nbTotalNotif = this.container.children.length +
+      this.externalNotificationsCount;
+    StatusBar.updateNotification(nbTotalNotif);
 
     if (unread)
       StatusBar.updateNotificationUnread(true);

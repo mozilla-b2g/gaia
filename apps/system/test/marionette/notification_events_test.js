@@ -178,9 +178,7 @@ marionette('Notification events', function() {
       }
 
       // then remove it
-      nodes[0].remove();
-
-      nodes = container.querySelectorAll(selector);
+      nodes = container.removeChild(nodes[0]).querySelectorAll(selector);
       if (nodes.length !== 0) {
         marionetteScriptFinished('Node should have disappeared');
       }
