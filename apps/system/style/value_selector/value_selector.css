@@ -9,6 +9,12 @@
   display: block;
 }
 
+/*Bug 1050838: when value selector is global, height needs to be explicit for
+               buttons to be visible. */
+.generic-dialog[role="dialog"] .value-selector {
+  height: calc(100% - 7rem);
+}
+
 .value-selector[hidden] {
   visibility: hidden;
   opacity: 0;

@@ -104,7 +104,7 @@
 }
 
 /* Menu & buttons setup */
-[role="dialog"][data-type="value-selector"] menu {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
@@ -117,12 +117,12 @@
   bottom: 0;
 }
 
-[role="dialog"][data-type="value-selector"] menu button::-moz-focus-inner {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button::-moz-focus-inner {
   border: none;
   outline: none;
 }
 
-[role="dialog"][data-type="value-selector"] menu button {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button {
   width: calc((100% - 1rem) / 2);
   font-family: sans-serif;
   font-style: italic;
@@ -149,26 +149,26 @@
 }
 
 /* Affirmative */
-[role="dialog"][data-type="value-selector"] menu button.affirmative,
-[role="dialog"][data-type="value-selector"] menu button.recommend {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button.affirmative,
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button.recommend {
   background-color: #00caf2;
   color: #fff;
 }
 
 /* Pressed */
-[role="dialog"][data-type="value-selector"] menu button:active {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button:active {
   background: #00aacc;
   color: #fff;
 }
 
 /* Disabled */
-[role="dialog"][data-type="value-selector"] > menu > button[disabled] {
+[role="dialog"][data-type="value-selector"] > menu.value-selector-buttons > button[disabled] {
   background-color: #565656;
   color: rgba(255,255,255,0.4);
   pointer-events: none;
 }
 
-[role="dialog"][data-type="value-selector"] > menu > button[disabled].recommend {
+[role="dialog"][data-type="value-selector"] > menu.value-selector-buttons > button[disabled].recommend {
   background-color: #006579;
 }
 
@@ -176,16 +176,16 @@ button[disabled]::-moz-selection {
   -moz-user-select: none;
 }
 
-[role="dialog"][data-type="value-selector"] menu button:last-child {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button:last-child {
   margin-left: 1rem;
 }
 
-[role="dialog"][data-type="value-selector"] menu button,
-[role="dialog"][data-type="value-selector"] menu button:first-child {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button,
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button:first-child {
   margin: 0;
 }
 
-[role="dialog"][data-type="value-selector"] menu button.full {
+.value-selector > [role="dialog"][data-type="value-selector"] menu.value-selector-buttons button.full {
   width: 100%;
 }
 
