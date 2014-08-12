@@ -76,6 +76,7 @@ UserPressManager.prototype.stop = function() {
   this._container.removeEventListener('mousedown', this);
   this._container.removeEventListener('mousemove', this);
   this._container.removeEventListener('mouseup', this);
+  this._container.removeEventListener('mouseleave', this);
 
   this._container.removeEventListener('contextmenu', this);
 };
@@ -175,15 +176,11 @@ UserPressManager.prototype.handleEvent = function(evt) {
       // on entire container.
       this._container.addEventListener('mousemove', this);
       this._container.addEventListener('mouseup', this);
+      this._container.addEventListener('mouseleave', this);
       this._handleNewPress(evt.target, evt, '_mouse');
       break;
 
     case 'mousemove':
-      // Ignore mousemove event if mouse button is not pressed.
-      if (!this.presses.has('_mouse')) {
-        return;
-      }
-
       if (!this._distanceReachesLimit('_mouse', evt)) {
         return;
       }
@@ -191,7 +188,14 @@ UserPressManager.prototype.handleEvent = function(evt) {
       this._handleChangedPress(evt.target, evt, '_mouse');
       break;
 
-    case 'mouseup':
+    case 'mouseup': /* fall through */
+    case 'mouseleave':
+      // Stop monitoring so there won't be mouse event sequences involving
+      // cursor moving out of/into the keyboard frame.
+      this._container.removeEventListener('mousemove', this);
+      this._container.removeEventListener('mouseup', this);
+      this._container.removeEventListener('mouseleave', this);
+
       this._handleFinishPress(evt.target, evt, '_mouse');
       break;
   }
