@@ -30,7 +30,7 @@ var MockGeolocation = {
         if (onsuccess) {
           onsuccess(this.fakePosition);
         }
-      });
+      }.bind(this));
 
       this.activeWatches.push(watch);
       return watch;
