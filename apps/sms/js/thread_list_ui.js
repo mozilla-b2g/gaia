@@ -4,7 +4,8 @@
 /*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
-         PerformanceTestingHelper, StickyHeader, Navigation, Dialog
+         PerformanceTestingHelper, StickyHeader, Navigation, Dialog,
+         ThreadCache
          */
 /*exported ThreadListUI */
 (function(exports) {
@@ -486,9 +487,41 @@ var ThreadListUI = {
     }.bind(this));
   },
 
-  prepareRendering: function thlui_prepareRendering() {
+  renderCache: function thlui_renderCache(firstViewDone) {
+    // Rendering the cached threads first
+    console.log('@@@ before = ' + Date.now());
+    this.cachedThread = ThreadCache.get();
+    var hasThreads = false;
+    if (this.cachedThread) {
+      for (var key in this.cachedThread) {
+        if (!hasThreads) {
+          hasThreads = true;
+          this.startRendering();
+        }
+        var thread = this.cachedThread[key];
+        this.appendThread(thread);
+      }
+      console.log('@@@ firstViewDone = ' + Date.now());
+      firstViewDone();
+      return {
+        called: true,
+        hasThreads: hasThreads
+      };
+    }
+
+    return {
+      called: false,
+      hasThreads: false
+    };
+  },
+
+  prepareRendering: function thlui_prepareRendering(firstViewDone) {
+    var called = false;
+
     this.container.innerHTML = '';
+    called = this.renderCache(firstViewDone);
     this.renderDrafts();
+    return called;
   },
 
   startRendering: function thlui_startRenderingThreads() {
@@ -514,25 +547,10 @@ var ThreadListUI = {
     var firstPanelCount = 9; // counted on a Peak
     var isfirstViewDoneCalled = false;
     var firstViewThreads = {};
+    var cachedOpts = this.prepareRendering(firstViewDone);
 
-    this.prepareRendering();
-
-    // Rendering the cached threads first
-    var threadsjson = window.localStorage.getItem('thread-cache');
-    if (threadsjson) {
-      this.cachedThread = JSON.parse(threadsjson);
-      for (var key in this.cachedThread) {
-        if (!hasThreads) {
-          hasThreads = true;
-          this.startRendering();
-        }
-        var thread = this.cachedThread[key];
-        this.appendThread(thread);
-        console.log('@@@ append thread = ' + Date.now());
-      }
-      firstViewDone();
-      isfirstViewDoneCalled = true;
-    }
+    isfirstViewDoneCalled = cachedOpts.called;
+    hasThreads = cachedOpts.hasThreads;
 
     function onRenderThread(thread) {
       /* jshint validthis: true */
@@ -554,9 +572,8 @@ var ThreadListUI = {
           firstViewDone();
           isfirstViewDoneCalled = true;
         }
-        window.localStorage.setItem('thread-cache',
-          JSON.stringify(firstViewThreads));
         window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+        ThreadCache.save(firstViewThreads);
       }
     }
 
@@ -684,6 +701,7 @@ var ThreadListUI = {
     // any Draft objects associated with the
     // specified threadId.
     Threads.delete(threadId);
+    ThreadCache.delete(threadId);
 
     // Cleanup the DOM
     this.removeThread(threadId);
@@ -714,6 +732,11 @@ var ThreadListUI = {
     var threadUINode = document.getElementById('thread-' + thread.id);
     var threadUITime = threadUINode ? +threadUINode.dataset.time : NaN;
     var recordTime = +thread.timestamp;
+    var messageCached = options && options.cached;
+
+    if (messageCached && threadUITime === recordTime) {
+      return;
+    }
 
     // For legitimate in-memory thread objects, update the stored
     // Thread instance with the newest data. This check prevents
@@ -721,6 +744,11 @@ var ThreadListUI = {
     // objects.
     if (Threads.has(thread.id)) {
       Threads.set(thread.id, thread);
+    }
+
+    var cachedNeeded = options && options.cacheNeeded;
+    if (cachedNeeded) {
+      ThreadCache.set(thread.id, thread);
     }
 
     // Edge case: if we just received a message that is older than the latest
@@ -738,11 +766,6 @@ var ThreadListUI = {
       return;
     }
 
-    var messageCached = options && options.cached;
-    if (messageCached && threadUITime === recordTime) {
-      return;
-    }
-
     // General case: update the thread UI.
     if (threadUINode) {
       // remove the current thread node in order to place the new one properly
@@ -756,11 +779,14 @@ var ThreadListUI = {
   },
 
   onMessageSending: function thlui_onMessageSending(message) {
-    this.updateThread(message);
+    this.updateThread(message, { cacheNeeded: true });
   },
 
   onMessageReceived: function thlui_onMessageReceived(message) {
-    this.updateThread(message, { unread: true });
+    this.updateThread(message, {
+      unread: true,
+      cacheNeeded: true
+    });
   },
 
   onThreadsDeleted: function thlui_onThreadDeleted(ids) {
