@@ -137,7 +137,8 @@ suite('lib/camera', function() {
 
       // Happy default
       this.camera.getFreeVideoStorageSpace.callsArgWith(0, null, 9999);
-      this.camera.createVideoFilepath.callsArgWith(0, 'file/path/video.3gp');
+      this.camera.createVideoFilepath.callsArgWith(0,
+                                                   null, 'file/path/video.3gp');
       this.camera.get.withArgs('selectedCamera').returns('back');
       this.camera.get.withArgs('maxFileSizeBytes').returns(0);
 
@@ -173,6 +174,8 @@ suite('lib/camera', function() {
     test('Should call mozCamera.startRecording with the current rotation',
       function() {
       this.camera.orientation.get.returns(90);
+      this.camera.createVideoFilepath =
+        sinon.stub().callsArgWith(0, null, 'dir/my-video.3gp');
       this.camera.startRecording();
 
       var args = this.camera.mozCamera.startRecording.args[0];
@@ -184,6 +187,8 @@ suite('lib/camera', function() {
     test('Should rotation should be inversed for front camera', function() {
       this.camera.get.withArgs('selectedCamera').returns('front');
       this.camera.orientation.get.returns(90);
+      this.camera.createVideoFilepath =
+        sinon.stub().callsArgWith(0, null, 'dir/my-video.3gp');
       this.camera.startRecording();
 
       var args = this.camera.mozCamera.startRecording.args[0];
@@ -199,6 +204,8 @@ suite('lib/camera', function() {
 
       this.camera.video.spacePadding = 10;
 
+      this.camera.createVideoFilepath =
+        sinon.stub().callsArgWith(0, null, 'dir/my-video.3gp');
       // Without `maxFileSizeBytes` set
       this.camera.startRecording();
 
@@ -217,6 +224,8 @@ suite('lib/camera', function() {
     });
 
     test('Should pass the video storage object', function() {
+      this.camera.createVideoFilepath =
+        sinon.stub().callsArgWith(0, null, 'dir/my-video.3gp');
       this.camera.startRecording();
       var args = this.camera.mozCamera.startRecording.args[0];
       var storage = args[1];
@@ -225,13 +234,22 @@ suite('lib/camera', function() {
 
     test('Should pass the generated filepath', function() {
       this.camera.createVideoFilepath =
-        sinon.stub().callsArgWith(0, 'dir/my-video.3gp');
+        sinon.stub().callsArgWith(0, null, 'dir/my-video.3gp');
       this.camera.startRecording();
       var filepath = this.camera.mozCamera.startRecording.args[0][2];
       assert.ok(filepath === 'dir/my-video.3gp');
     });
 
+    test('Should call onRecordingError on error create video file', function() {
+      this.camera.createVideoFilepath =
+      sinon.stub().callsArgWith(0, 'error-video-file-path');
+      this.camera.startRecording();
+      assert.ok(this.camera.onRecordingError.called);
+    });
+    
     test('Should set the following onSuccess', function() {
+      this.camera.createVideoFilepath =
+        sinon.stub().callsArgWith(0, null, 'dir/my-video.3gp');
       this.camera.mozCamera.startRecording.callsArg(3);
       this.camera.startRecording();
       assert.ok(this.camera.set.calledWith('recording', true));
@@ -240,6 +258,8 @@ suite('lib/camera', function() {
     });
 
     test('Should call onRecordingError on error', function() {
+      this.camera.createVideoFilepath =
+        sinon.stub().callsArgWith(0, null, 'dir/my-video.3gp');
       this.camera.mozCamera.startRecording.callsArg(4);
       this.camera.startRecording();
       assert.ok(this.camera.onRecordingError.called);
