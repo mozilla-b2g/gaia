@@ -149,45 +149,45 @@ class GaiaData(object):
         self.marionette.import_script(js)
         self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
-    def set_time(self, date_number):
+    def execute_async_script_in_chrome(self, *args, **kwargs):
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        self.marionette.execute_script("window.navigator.mozTime.set(%s);" % date_number)
+        result = self.marionette.execute_async_script(*args, **kwargs)
         self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        return result
+
+    def execute_script_in_chrome(self, *args, **kwargs):
+        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
+        result = self.marionette.execute_script(*args, **kwargs)
+        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        return result
+
+    def set_time(self, date_number):
+        self.execute_script_in_chrome("window.navigator.mozTime.set(%s);" % date_number)
 
     @property
     def all_contacts(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script('return GaiaDataLayer.getAllContacts();', special_powers=True)
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        result = self.execute_async_script_in_chrome('return GaiaDataLayer.getAllContacts();', special_powers=True)
         return result
 
     @property
     def sim_contacts(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        adn_contacts = self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts("adn");', special_powers=True)
-        sdn_contacts = self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts("sdn");', special_powers=True)
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        adn_contacts = self.execute_async_script_in_chrome('return GaiaDataLayer.getSIMContacts("adn");', special_powers=True)
+        sdn_contacts = self.execute_async_script_in_chrome('return GaiaDataLayer.getSIMContacts("sdn");', special_powers=True)
         return adn_contacts + sdn_contacts
 
     def insert_contact(self, contact):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
         mozcontact = contact.create_mozcontact()
-        result = self.marionette.execute_async_script('return GaiaDataLayer.insertContact(%s);' % json.dumps(mozcontact), special_powers=True)
+        result = self.execute_async_script_in_chrome('return GaiaDataLayer.insertContact(%s);' % json.dumps(mozcontact), special_powers=True)
         assert result, 'Unable to insert contact %s' % contact
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
 
     def remove_all_contacts(self):
         timeout = max(self.marionette.timeout or 60000, 1000 * len(self.all_contacts))
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script('return GaiaDataLayer.removeAllContacts();', special_powers=True, script_timeout=timeout)
+        result = self.execute_async_script_in_chrome('return GaiaDataLayer.removeAllContacts();', special_powers=True, script_timeout=timeout)
         assert result, 'Unable to remove all contacts'
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def get_setting(self, name):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script('return GaiaDataLayer.getSetting("%s")' % name, special_powers=True)
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        result = self.execute_async_script_in_chrome('return GaiaDataLayer.getSetting("%s")' % name, special_powers=True)
         return result
 
     @property
@@ -197,22 +197,16 @@ class GaiaData(object):
     def set_setting(self, name, value):
         import json
         value = json.dumps(value)
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script('return GaiaDataLayer.setSetting("%s", %s)' % (name, value), special_powers=True)
+        result = self.execute_async_script_in_chrome('return GaiaDataLayer.setSetting("%s", %s)' % (name, value), special_powers=True)
         assert result, "Unable to change setting with name '%s' to '%s'" % (name, value)
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def _get_pref(self, datatype, name):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        pref = self.marionette.execute_script("return SpecialPowers.get%sPref('%s');" % (datatype, name), special_powers=True)
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        pref = self.execute_script_in_chrome("return SpecialPowers.get%sPref('%s');" % (datatype, name), special_powers=True)
         return pref
 
     def _set_pref(self, datatype, name, value):
         value = json.dumps(value)
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        self.marionette.execute_script("SpecialPowers.set%sPref('%s', %s);" % (datatype, name, value), special_powers=True)
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        self.execute_script_in_chrome("SpecialPowers.set%sPref('%s', %s);" % (datatype, name, value), special_powers=True)
 
     def get_bool_pref(self, name):
         """Returns the value of a Gecko boolean pref, which is different from a Gaia setting."""
@@ -244,22 +238,16 @@ class GaiaData(object):
             self.set_setting('audio.volume.%s' % channel, value)
 
     def bluetooth_enable(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script("return GaiaDataLayer.enableBluetooth()")
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        result = self.execute_async_script_in_chrome("return GaiaDataLayer.enableBluetooth()")
         return result
 
     def bluetooth_disable(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script("return GaiaDataLayer.disableBluetooth()")
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        result = self.execute_async_script_in_chrome("return GaiaDataLayer.disableBluetooth()")
         return result
 
     @property
     def bluetooth_is_enabled(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_script("return window.navigator.mozBluetooth.enabled")
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        result = self.execute_script_in_chrome("return window.navigator.mozBluetooth.enabled")
         return result
 
     @property
@@ -267,16 +255,12 @@ class GaiaData(object):
         return self.get_setting('ril.data.enabled')
 
     def connect_to_cell_data(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script("return GaiaDataLayer.connectToCellData()", special_powers=True)
+        result = self.execute_async_script_in_chrome("return GaiaDataLayer.connectToCellData()", special_powers=True)
         assert result, 'Unable to connect to cell data'
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def disable_cell_data(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script("return GaiaDataLayer.disableCellData()", special_powers=True)
+        result = self.execute_async_script_in_chrome("return GaiaDataLayer.disableCellData()", special_powers=True)
         assert result, 'Unable to disable cell data'
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
 
     @property
@@ -300,54 +284,39 @@ class GaiaData(object):
                                               "window.navigator.mozWifiManager.enabled;")
 
     def enable_wifi(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script("return GaiaDataLayer.enableWiFi()", special_powers=True)
+        result = self.execute_async_script_in_chrome("return GaiaDataLayer.enableWiFi()", special_powers=True)
         assert result, 'Unable to enable WiFi'
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
-
 
     def disable_wifi(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script("return GaiaDataLayer.disableWiFi()", special_powers=True)
+        result = self.execute_async_script_in_chrome("return GaiaDataLayer.disableWiFi()", special_powers=True)
         assert result, 'Unable to disable WiFi'
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def connect_to_wifi(self, network=None):
         network = network or self.testvars.get('wifi')
         assert network, 'No WiFi network provided'
         self.enable_wifi()
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script("return GaiaDataLayer.connectToWiFi(%s)" % json.dumps(network),
+        result = self.execute_async_script_in_chrome("return GaiaDataLayer.connectToWiFi(%s)" % json.dumps(network),
                 script_timeout = max(self.marionette.timeout, 60000))
         assert result, 'Unable to connect to WiFi network'
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def forget_all_networks(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        self.marionette.execute_async_script('return GaiaDataLayer.forgetAllNetworks()')
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        self.execute_async_script_in_chrome('return GaiaDataLayer.forgetAllNetworks()')
 
     def is_wifi_connected(self, network=None):
         network = network or self.testvars.get('wifi')
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_script("return GaiaDataLayer.isWiFiConnected(%s)" % json.dumps(network))
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        result = self.execute_script_in_chrome("return GaiaDataLayer.isWiFiConnected(%s)" % json.dumps(network))
         return result
 
     @property
     def known_networks(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        known_networks = self.marionette.execute_async_script(
+        known_networks = self.execute_async_script_in_chrome(
             'return GaiaDataLayer.getKnownNetworks()')
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
         return [n for n in known_networks if n]
 
     @property
     def active_telephony_state(self):
         # Returns the state of only the currently active call or None if no active call
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_script("return GaiaDataLayer.getMozTelephonyState()")
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        result = self.execute_script_in_chrome("return GaiaDataLayer.getMozTelephonyState()")
         return result
 
     @property
@@ -371,15 +340,11 @@ class GaiaData(object):
         return result
 
     def delete_all_sms(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script("return GaiaDataLayer.deleteAllSms();", special_powers=True)
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        result = self.execute_async_script_in_chrome("return GaiaDataLayer.deleteAllSms();", special_powers=True)
         return result
 
     def get_all_sms(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script("return GaiaDataLayer.getAllSms();", special_powers=True)
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        result = self.execute_async_script_in_chrome("return GaiaDataLayer.getAllSms();", special_powers=True)
         return result
 
     def delete_all_call_log_entries(self):
@@ -392,60 +357,46 @@ class GaiaData(object):
 
     @property
     def music_files(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script(
+        result = self.execute_async_script_in_chrome(
             'return GaiaDataLayer.getAllMusic();')
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
         return result
 
     @property
     def picture_files(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script(
+        result = self.execute_async_script_in_chrome(
             'return GaiaDataLayer.getAllPictures();')
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
         return result
 
     @property
     def video_files(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script(
+        result = self.execute_async_script_in_chrome(
             'return GaiaDataLayer.getAllVideos();')
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
         return result
 
     def sdcard_files(self, extension=''):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        files = self.marionette.execute_async_script(
+        files = self.execute_async_script_in_chrome(
             'return GaiaDataLayer.getAllSDCardFiles();')
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
         if len(extension):
             return [filename for filename in files if filename.endswith(extension)]
         return files
 
     def send_sms(self, number, message):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
         import json
         number = json.dumps(number)
         message = json.dumps(message)
-        result = self.marionette.execute_async_script('return GaiaDataLayer.sendSMS(%s, %s)' % (number, message), special_powers=True)
+        result = self.execute_async_script_in_chrome('return GaiaDataLayer.sendSMS(%s, %s)' % (number, message), special_powers=True)
         assert result, 'Unable to send SMS to recipient %s with text %s' % (number, message)
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     # FIXME: Bug 1011000: will make use of SoundManager instead
     def wait_for_audio_channel_changed(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script("return GaiaDataLayer.waitForAudioChannelChanged();")
+        result = self.marionette.execute_async_script_in_chrome("return GaiaDataLayer.waitForAudioChannelChanged();")
         assert result, "Failed to get a mozChromeEvent audio-channel-changed"
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
         return result
 
     # FIXME: Bug 1011000: will make use of SoundManager instead
     def wait_for_visible_audio_channel_changed(self):
-        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
-        result = self.marionette.execute_async_script("return GaiaDataLayer.waitForVisibleAudioChannelChanged();")
+        result = self.marionette.execute_async_script_in_chrome("return GaiaDataLayer.waitForVisibleAudioChannelChanged();")
         assert result, "Failed to get a mozChromeEvent visible-audio-channel-changed"
-        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
         return result
 
 
