@@ -21,16 +21,18 @@
 }
 
 .appWindow .titlebar .titlebar-maximized {
-  background-image: -moz-element(#statusbar-maximized);
+  background-image: -moz-element(#statusbar);
   width: 100%;
 }
 
 .appWindow .titlebar .titlebar-minimized {
-  background-image: -moz-element(#statusbar-minimized);
+  /* TODO - Bug 1042105. Add here the minified statusbar id */
+  background-image: -moz-element(#statusbar);
+
+  /* TODO - Bug 1042105. Add here the minified size of the statusbar */
+  width: 50%;
+  margin-left: 50%;
   background-size: cover;
-  width: calc(100% - 100% * 0.6521 + 8rem * 0.6521 - 0.5rem);
-  right: 0;
-  position: absolute;
 }
 
 /* Transitions between the maximized / minimized status bars */
