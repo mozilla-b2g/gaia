@@ -1,6 +1,6 @@
 {
-  "name": "Dev",
-  "description": "Firefox Marketplace Dev",
+  "name": "Stage",
+  "description": "Firefox Marketplace Stage",
   "developer": {
     "name": "Mozilla",
     "url": "http://mozilla.org"

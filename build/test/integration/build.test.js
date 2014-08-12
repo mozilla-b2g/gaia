@@ -667,7 +667,8 @@ suite('Build Integration tests', function() {
           helper.checkSettings(settings, expectedSettings);
           helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
           // only expect one zip file for marketplace.
-          assert.equal(zipCount, 1);
+          assert.equal(zipCount, 2, 'we should have two zip files in ' +
+            'profile-debug directory');
 
           fs.unlinkSync(extConfigPath);
           fs.renameSync(extConfigPath + '.bak', extConfigPath);
