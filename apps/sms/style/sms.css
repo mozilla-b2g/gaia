@@ -222,10 +222,6 @@ form[role="dialog"][data-type="edit"] > menu {
   transform: translateX(-100%);
 }
 
-#main-wrapper[data-position='right'] .panel {
-  transform: translateX(0%);
-}
-
 #threads-container, #thread-messages {
   z-index: 10;
   background: white;
