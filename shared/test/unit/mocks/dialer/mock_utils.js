@@ -71,6 +71,8 @@ var MockUtils = {
   getPhoneNumberAndType: function ut_getPhoneNumberAndType(matchingTel) {
     this.mCalledGetPhoneNumberAndType = true;
     return matchingTel.type + ', ' + matchingTel.value;
-  }
+  },
+
+  prettyDuration: function(duration) {}
 };
 

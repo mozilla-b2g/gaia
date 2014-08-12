@@ -1,5 +1,7 @@
 'use strict';
 
+/* exported Utils */
+
 var Utils = {
   prettyDate: function ut_prettyDate(time) {
     var _ = navigator.mozL10n.get;
@@ -7,6 +9,22 @@ var Utils = {
                                                   _('shortTimeFormat24');
     var dtf = new navigator.mozL10n.DateTimeFormat();
     return dtf.localeFormat(new Date(time), timeFormat);
+  },
+
+  prettyDuration: function(duration) {
+    function padNumber(n) {
+      return n > 9 ? n : '0' + n;
+    }
+
+    var elapsed = new Date(duration);
+    var durationL10n = {
+      h: padNumber(elapsed.getUTCHours()),
+      m: padNumber(elapsed.getUTCMinutes()),
+      s: padNumber(elapsed.getUTCSeconds())
+    };
+    var durationFormat = elapsed.getUTCHours() > 0 ?
+      'callDurationHours' : 'callDurationMinutes';
+    return navigator.mozL10n.get(durationFormat, durationL10n);
   },
 
   headerDate: function ut_headerDate(time) {

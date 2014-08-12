@@ -6,10 +6,10 @@
 
 var CallGroupMenu = (function() {
 
-  var _showCallInfo = function(phoneNumber, day, type) {
+  var _showCallInfo = function(phoneNumber, date, type, status) {
     LazyLoader.load(['/dialer/js/call_info.js',
                      '/dialer/style/call_info.css'], function() {
-      CallInfo.show(phoneNumber, day, type);
+      CallInfo.show(phoneNumber, date, type, status);
     });
   };
 
@@ -29,12 +29,12 @@ var CallGroupMenu = (function() {
   };
 
   return {
-    show: function(groupPrimaryInfo, phoneNumber, day, type) {
+    show: function(groupPrimaryInfo, phoneNumber, date, type, status) {
       var params = {
         items: [{
           l10nId: 'callInformation',
           method: _showCallInfo,
-          params: [phoneNumber, day, type]
+          params: [phoneNumber, date, type, status]
         },{
           l10nId: 'sendSms',
           method: _sendSms,
