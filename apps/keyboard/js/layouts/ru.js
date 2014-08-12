@@ -3,7 +3,7 @@ Keyboards.ru = {
   shortLabel: 'Ru',
   menuLabel: 'Pусский',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'ru',
   alt: {
     е: 'ё',

@@ -3,7 +3,7 @@ Keyboards.de = {
   shortLabel: 'De',
   menuLabel: 'Deutsch',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'de',
   alt: {
     a: 'äàáâãåāæ',

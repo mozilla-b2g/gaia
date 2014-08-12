@@ -2,7 +2,7 @@ Keyboards['bg-Pho-Ban'] = {
   label: 'Bulgarian (New)',
   shortLabel: 'Bg',
   menuLabel: 'Български (БАН)',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   imEngine: 'latin',
   autoCorrectLanguage: 'bg',
   width: 11,

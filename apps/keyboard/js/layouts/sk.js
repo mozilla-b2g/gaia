@@ -2,7 +2,7 @@ Keyboards.sk = {
   label: 'Slovak',
   shortLabel: 'Sk',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'sk',
   menuLabel: 'Slovenčina',
   alt: {

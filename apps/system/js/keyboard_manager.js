@@ -19,7 +19,7 @@ const TYPE_GROUP_MAPPING = {
   'textarea': 'text',
   'url': 'url',
   'email': 'email',
-  'password': 'text',
+  'password': 'password',
   'search': 'text',
   // number
   'number': 'number',
@@ -183,41 +183,65 @@ var KeyboardManager = {
       return this.name;
     }
 
+    function transformLayout(layout) {
+      var transformedLayout = {
+        id: layout.layoutId,
+        origin: layout.app.origin,
+        manifestURL: layout.app.manifestURL,
+        path: layout.inputManifest.launch_path
+      };
+
+      // define properties for name that resolve at display time
+      // to the correct language via the ManifestHelper
+      Object.defineProperties(transformedLayout, {
+        name: {
+          get: getName.bind(layout.inputManifest),
+          enumerable: true
+        },
+        appName: {
+          get: getName.bind(layout.manifest),
+          enumerable: true
+        }
+      });
+
+      return transformedLayout;
+    }
+
+    function insertLayout(object, type, layout) {
+      if (!object[type]) {
+        object[type] = [];
+        object[type].activeLayout = 0;
+      }
+
+      object[type].push(layout);
+    }
+
     function reduceLayouts(carry, layout) {
       enabledApps.add(layout.app.manifestURL);
       // add the layout to each type and return the carry
       layout.inputManifest.types.filter(KeyboardHelper.isKeyboardType)
         .forEach(function(type) {
-          if (!carry[type]) {
-            carry[type] = [];
-            carry[type].activeLayout = 0;
-          }
-          var enabledLayout = {
-            id: layout.layoutId,
-            origin: layout.app.origin,
-            manifestURL: layout.app.manifestURL,
-            path: layout.inputManifest.launch_path
-          };
-
-          // define properties for name that resolve at display time
-          // to the correct language via the ManifestHelper
-          Object.defineProperties(enabledLayout, {
-            name: {
-              get: getName.bind(layout.inputManifest),
-              enumerable: true
-            },
-            appName: {
-              get: getName.bind(layout.manifest),
-              enumerable: true
-            }
-          });
-          carry[type].push(enabledLayout);
+          insertLayout(carry, type, transformLayout(layout));
         });
 
       return carry;
     }
 
     this.keyboardLayouts = layouts.reduce(reduceLayouts, {});
+
+    // bug 1035117:
+    // at this moment, if the 'fallback' groups (managed by KeyboardHelper)
+    // doesn't have any layouts, inject the fallback layout into it.
+    // (for example, user enables only CJKV IMEs, and for 'password'
+    //  we need to enable 'en')
+    for (var group in KeyboardHelper.fallbackLayouts) {
+      if (!(group in this.keyboardLayouts)) {
+        var layout = KeyboardHelper.fallbackLayouts[group];
+
+        enabledApps.add(layout.app.manifestURL);
+        insertLayout(this.keyboardLayouts, group, transformLayout(layout));
+      }
+    }
 
     // Let chrome know about how many keyboards we have
     // need to expose all input type from inputTypeTable
@@ -575,7 +599,6 @@ var KeyboardManager = {
         // Refresh the switcher, or the labled type and layout name
         // won't change.
       }, function() {
-        var showed = self.showingLayoutInfo;
         if (!self.keyboardLayouts[showed.type])
           showed.type = 'text';
 

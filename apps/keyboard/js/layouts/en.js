@@ -2,7 +2,7 @@ Keyboards.en = {
   label: 'English',
   shortLabel: 'En',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'en_us',
   menuLabel: 'English',
   alt: {

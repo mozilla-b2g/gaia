@@ -3,7 +3,7 @@ Keyboards.ca = {
   shortLabel: 'Ca',
   menuLabel: 'Català',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'ca',
   alt: {
     a: 'àáâäåãāæª@',

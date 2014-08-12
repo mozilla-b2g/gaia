@@ -2,7 +2,7 @@ Keyboards['en-Neo'] = {
   label: 'English - Neo',
   menuLabel: 'Neo',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'en_us',
   alt: {
     a: 'áàâäåãāæ',

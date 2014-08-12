@@ -565,6 +565,62 @@ suite('KeyboardHelper', function() {
     });
   });
 
+  suite('Fallback layout with getLayouts', function() {
+    var oldFallbackLayoutNames;
+    var oldFallbackLayouts;
+    setup(function() {
+      MockNavigatorSettings.mRequests[0].result[DEFAULT_KEY] =
+        defaultSettings['default'];
+      MockNavigatorSettings.mRequests[1].result[ENABLED_KEY] =
+        defaultSettings.enabled;
+      this.sinon.stub(KeyboardHelper, 'getApps');
+      this.sinon.spy(window, 'ManifestHelper');
+      // since defaultSettings.default does not include fr layout,
+      // fallback with password-type should be set with fr layout
+      this.apps = [{
+        origin: keyboardAppOrigin,
+        manifestURL: keyboardAppManifestURL,
+        manifest: {
+          role: 'input',
+          inputs: {
+            en: {
+              types: ['text', 'url']
+            },
+            fr: {
+              types: ['password']
+            },
+            number: {
+              types: ['number']
+            }
+          }
+        }
+      }];
+
+      MockNavigatorSettings.mReplyToRequests();
+
+      oldFallbackLayoutNames = KeyboardHelper.fallbackLayoutNames;
+      oldFallbackLayouts = KeyboardHelper.fallbackLayouts;
+      KeyboardHelper.fallbackLayoutNames = {
+        password: 'fr'
+      };
+      KeyboardHelper.getLayouts({ 'default': true }, function() {}.bind(this));
+      KeyboardHelper.settings.enabled = defaultSettings.enabled;
+      KeyboardHelper.getApps.yield(this.apps);
+    });
+
+    teardown(function() {
+      KeyboardHelper.fallbackLayoutNames = oldFallbackLayoutNames;
+      KeyboardHelper.fallbackLayouts = oldFallbackLayouts;
+    });
+
+    test('fallback layout test', function() {
+      assert.isTrue('password' in KeyboardHelper.fallbackLayouts,
+                    '"password" type is not in fallback layouts');
+      assert.equal('fr', KeyboardHelper.fallbackLayouts.password.layoutId,
+                   'fallback layout for "password" is not "fr"');
+    });
+  });
+
   suite('watchLayouts', function() {
     setup(function() {
       MockNavigatorSettings.mRequests[0].result[DEFAULT_KEY] =

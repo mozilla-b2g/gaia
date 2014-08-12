@@ -3,7 +3,7 @@ Keyboards['en-Dvorak'] = {
   shortLabel: 'En',
   menuLabel: 'Dvorak',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'en_us',
   alt: {
     a: 'àáâãäåāæ',

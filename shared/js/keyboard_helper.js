@@ -465,6 +465,15 @@ Object.defineProperties(kh_SettingsHelper, {
 var KeyboardHelper = exports.KeyboardHelper = {
   settings: kh_SettingsHelper,
 
+  // bug 1035117: define the fallback layout for a group if no layout has been
+  // selected for that group (if it's not enforced in settings)
+  // please see the bug and its related UX spec for the sense of 'fallback'
+  fallbackLayoutNames: {
+    password: 'en'
+  },
+
+  fallbackLayouts: {},
+
   /**
    * Listen for changes in settings or apps and read the deafault settings
    */
@@ -680,6 +689,13 @@ var KeyboardHelper = exports.KeyboardHelper = {
     }
 
     function withApps(apps) {
+      // we'll delete keys in this active copy (= the purpose of copying)
+      var fallbackLayoutNames = {};
+      for (var group in this.fallbackLayoutNames) {
+        fallbackLayoutNames[group] = this.fallbackLayoutNames[group];
+      }
+      this.fallbackLayouts = {};
+
       var layouts = apps.reduce(function eachApp(result, app) {
 
         var manifest = new ManifestHelper(app.manifest);
@@ -696,6 +712,18 @@ var KeyboardHelper = exports.KeyboardHelper = {
             inputManifest: inputManifest,
             layoutId: layoutId
           });
+
+          // bug 1035117: insert a fallback layout regardless of its
+          // and enabledness
+          // XXX: we only do this for built-in keyboard?
+          if (app.manifestURL === defaultKeyboardManifestURL) {
+            for (var group in fallbackLayoutNames) {
+              if (layoutId === fallbackLayoutNames[group]) {
+                this.fallbackLayouts[group] = layout;
+                delete fallbackLayoutNames[group];
+              }
+            }
+          }
 
           if (options['default'] && !layout['default']) {
             continue;
@@ -725,12 +753,12 @@ var KeyboardHelper = exports.KeyboardHelper = {
           });
         }
         return result;
-      }, []);
+      }.bind(this), []);
 
       kh_withSettings(callback.bind(null, layouts));
     }
 
-    this.getApps(withApps);
+    this.getApps(withApps.bind(this));
   },
 
   /**

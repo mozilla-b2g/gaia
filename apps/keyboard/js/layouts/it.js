@@ -3,7 +3,7 @@ Keyboards.it = {
   shortLabel: 'It',
   menuLabel: 'Italiano',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'it',
   alt: {
     a: 'à@',

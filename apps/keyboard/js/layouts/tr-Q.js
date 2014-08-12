@@ -2,7 +2,7 @@ Keyboards['tr-Q'] = {
   label: 'Turkish Q',
   shortLabel: 'Tr',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'tr',
   menuLabel: 'Türkçe Q',
   upperCase: {
