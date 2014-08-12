@@ -567,14 +567,14 @@ var KeyboardManager = {
     clearTimeout(this.switchChangeTimeout);
 
     var self = this;
-    var showed = this.showingLayoutInfo;
-    var activeLayout = this.keyboardLayouts[showed.type].activeLayout;
+    var showedType = this.showingLayoutInfo.type;
+    var activeLayout = this.keyboardLayouts[showedType].activeLayout;
     var _ = navigator.mozL10n.get;
     var actionMenuTitle = _('choose-option');
 
     this.switchChangeTimeout = setTimeout(function keyboardLayoutList() {
       var items = [];
-      self.keyboardLayouts[showed.type].forEach(function(layout, index) {
+      self.keyboardLayouts[showedType].forEach(function(layout, index) {
         var item = {
           layoutName: layout.name,
           appName: layout.appName,
@@ -587,10 +587,11 @@ var KeyboardManager = {
 
       var menu = new ImeMenu(items, actionMenuTitle,
         function(selectedIndex) {
-        if (!self.keyboardLayouts[showed.type])
-          showed.type = 'text';
-        self.keyboardLayouts[showed.type].activeLayout = selectedIndex;
-        self.setKeyboardToShow(showed.type, selectedIndex);
+        if (!self.keyboardLayouts[showedType]) {
+          showedType = 'text';
+        }
+        self.keyboardLayouts[showedType].activeLayout = selectedIndex;
+        self.setKeyboardToShow(showedType, selectedIndex);
 
         // Hide the tray to show the app directly after
         // user selected a new keyboard.
@@ -599,12 +600,13 @@ var KeyboardManager = {
         // Refresh the switcher, or the labled type and layout name
         // won't change.
       }, function() {
-        if (!self.keyboardLayouts[showed.type])
-          showed.type = 'text';
+        if (!self.keyboardLayouts[showedType]) {
+          showedType = 'text';
+        }
 
         // Mimic the success callback to show the current keyboard
         // when user canceled it.
-        self.setKeyboardToShow(showed.type);
+        self.setKeyboardToShow(showedType);
 
         // Hide the tray to show the app directly after
         // user canceled.
