@@ -37,8 +37,6 @@
     this.lockscreen = new window.LockScreen();
     window.lockScreen = this.lockscreen;
     this.lockscreen.init();
-    window.lockScreenStateManager = new window.LockScreenStateManager();
-    window.lockScreenStateManager.start(window.lockScreen);
   };
 
   /**

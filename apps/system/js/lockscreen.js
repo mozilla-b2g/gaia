@@ -207,11 +207,6 @@
         // Cancel the default action of <a>
         evt.preventDefault();
         this.handlePassCodeInput(key);
-        window.dispatchEvent(new window.CustomEvent(
-          'lockscreen-keypad-input', { detail: {
-            key: key
-          }
-        }));
         break;
 
       case 'touchstart':
@@ -243,6 +238,7 @@
         }
 
         if (!this.locked) {
+          this.switchPanel();
           this.overlay.hidden = true;
           this.unlockDetail = undefined;
         }
@@ -250,6 +246,11 @@
 
       case 'home':
         if (this.locked) {
+          if (this.passCodeEnabled) {
+            this.switchPanel('passcode');
+          } else {
+            this.switchPanel();
+          }
           this.dispatchEvent('secure-closeapps');
           evt.stopImmediatePropagation();
         }
@@ -270,6 +271,10 @@
           emergencyCallBtn.classList.add('disabled');
         } else {
           emergencyCallBtn.classList.remove('disabled');
+        }
+        // Return to main panel once call state changes.
+        if (this.locked) {
+          this.switchPanel();
         }
         break;
       case 'lockscreenslide-unlocker-initializer':
@@ -628,7 +633,9 @@
   LockScreen.prototype._activateUnlock =
   function ls_activateUnlock() {
     var passcodeOrUnlock = (function() {
-      if (!(this.passCodeEnabled && this.checkPassCodeTimeout())) {
+      if (this.passCodeEnabled && this.checkPassCodeTimeout()) {
+          this.switchPanel('passcode');
+      } else {
         this.unlock();
       }
     }).bind(this);
@@ -674,7 +681,7 @@
         break;
 
       case 'c': // 'C'ancel
-        // Delegate to LockScreenStateManager
+        this.switchPanel();
         break;
 
       case 'b': // 'B'ackspace for correction
@@ -700,6 +707,11 @@
         }
         break;
     }
+  };
+
+  LockScreen.prototype.handleEmergencyCallLeave =
+  function ls_handleEmergencyCallLeave() {
+    this.switchPanel();
   };
 
   LockScreen.prototype.lockIfEnabled =
@@ -745,6 +757,7 @@
     // If we don't unlock instantly here,
     // these are run in transitioned callback.
     if (instant) {
+      this.switchPanel();
       this.overlay.hidden = true;
     } else {
       this.unlockDetail = detail;
@@ -755,6 +768,7 @@
   function ls_lock(instant) {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
+    this.switchPanel();
 
     this.overlay.focus();
     this.overlay.classList.toggle('no-transition', instant);
@@ -1178,14 +1192,20 @@
     };
 
   /**
-   * When validation success, do unlock.
+   * When validation success, do UI change, then unlock.
    */
   LockScreen.prototype.onPasscodeValidationSuccess =
     function ls_onPasscodeValidationSuccess() {
+      this.overlay.dataset.passcodeStatus = 'success';
       this.passCodeError = 0;
       this.kPassCodeErrorTimeout = 500;
       this.kPassCodeErrorCounter = 0;
-      this.unlock();
+
+      var transitionend = () => {
+        this.passcodeCode.removeEventListener('transitionend', transitionend);
+        this.unlock();
+      };
+      this.passcodeCode.addEventListener('transitionend', transitionend);
     };
 
   /** @exports LockScreen */

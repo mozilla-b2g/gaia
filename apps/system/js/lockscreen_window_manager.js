@@ -134,11 +134,6 @@
           // We assume that this component is started before AppWindowManager
           // to make this blocking code works.
           if (this.states.active) {
-            // XXX: I don't want to change the order of event registration
-            // at this early-refactoring stage, so do this to minimize the
-            // risk and complete the work.
-            window.dispatchEvent(
-              new CustomEvent('lockscreen-notify-homepressed'));
             evt.stopImmediatePropagation();
           }
           break;
