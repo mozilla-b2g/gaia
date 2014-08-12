@@ -94,12 +94,12 @@ define(function(require, exports, module) {
     schedule: function(type) {
       var alarmDatabase = require('alarm_database'); // circular dependency
 
-      var firedate;
+      var firedate, promise;
       if (type === 'normal') {
-        this.cancel(); // Cancel both snooze and regular mozAlarms.
+        promise = this.cancel(); // Cancel both snooze and regular mozAlarms.
         firedate = this.getNextAlarmFireTime();
       } else if (type === 'snooze') {
-        this.cancel('snooze'); // Cancel any snooze mozAlarms.
+        promise = this.cancel('snooze'); // Cancel any snooze mozAlarms.
         firedate = this.getNextSnoozeFireTime();
       } else {
         return Promise.reject('Invalid type for Alarm.schedule().');
@@ -108,7 +108,7 @@ define(function(require, exports, module) {
       // Save the alarm to the database first. This ensures we have a
       // valid ID, and that we've saved any modified properties before
       // attempting to schedule the alarm.
-      return alarmDatabase.put(this).then(() => {
+      return promise.then(() => alarmDatabase.put(this)).then(() => {
         return new Promise((resolve, reject) => {
           // Then, schedule the alarm.
           var req = navigator.mozAlarms.add(firedate, 'ignoreTimezone',
@@ -132,16 +132,22 @@ define(function(require, exports, module) {
 
     /**
      * Cancel an alarm. If `type` is provided, cancel only that type
-     * ('normal' or 'snooze').
+     * ('normal' or 'snooze'). Returns a Promise.
      */
     cancel: function(/* optional */ type) {
       var types = (type ? [type] : Object.keys(this.registeredAlarms));
+      var alarmDatabase = require('alarm_database'); // circular dependency
       types.forEach((type) => {
         var id = this.registeredAlarms[type];
         navigator.mozAlarms.remove(id);
         delete this.registeredAlarms[type];
       });
-      this._notifyChanged();
+      return alarmDatabase.put(this).then(() => {
+        this._notifyChanged();
+      }).catch((e) => {
+        console.log('Alarm cancel error: ' + e.toString());
+        throw e;
+      });
     },
 
     _notifyChanged: function(removed) {
@@ -162,9 +168,10 @@ define(function(require, exports, module) {
      */
     delete: function() {
       var alarmDatabase = require('alarm_database'); // circular dependency
-      this.cancel();
-      return alarmDatabase.delete(this.id).then(() => {
-        this._notifyChanged(/* removed = */ true);
+      return this.cancel().then(() => {
+        return alarmDatabase.delete(this.id).then(() => {
+          this._notifyChanged(/* removed = */ true);
+        });
       });
     }
 

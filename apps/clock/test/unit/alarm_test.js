@@ -3,12 +3,14 @@ suite('Alarm Test', function() {
 
   var Alarm;
   var activeAlarm;
+  var alarmDatabase;
 
   suiteSetup(function(done) {
-    require(['alarm', 'panels/alarm/active_alarm'],
-      function(alarm, ActiveAlarm) {
+    require(['alarm', 'alarm_database', 'panels/alarm/active_alarm'],
+      function(alarm, alarm_database, ActiveAlarm) {
         Alarm = alarm;
         activeAlarm = new ActiveAlarm();
+        alarmDatabase = alarm_database;
         done();
       }
     );
@@ -39,6 +41,24 @@ suite('Alarm Test', function() {
         sound: 'ac_classic_clock_alarm.opus',
         vibrate: true,
         snooze: 5
+      });
+    });
+
+    test('schedule saves alarm', function(done) {
+      var spy = sinon.spy(alarmDatabase, 'put');
+      this.alarm.schedule('normal').then(function() {
+        spy.restore();
+        assert.ok(spy.called);
+        done();
+      });
+    });
+
+    test('cancel saves alarm', function(done) {
+      var spy = sinon.spy(alarmDatabase, 'put');
+      this.alarm.cancel().then(function() {
+        spy.restore();
+        assert.ok(spy.called);
+        done();
       });
     });
 
