@@ -41,7 +41,8 @@
     'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
-    'childWindowFactory': window.ChildWindowFactory
+    'childWindowFactory': window.ChildWindowFactory,
+    'statusbar': window.AppStatusbar
   };
 
   /**

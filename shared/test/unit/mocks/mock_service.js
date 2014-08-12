@@ -20,6 +20,8 @@ var MockService = {
         return this.runningFTU;
       case 'isFtuUpgrading':
         return this.mUpgrading;
+      case 'getTopMostWindow':
+        return this.mTopMostWindow;
     }
     return undefined;
   },

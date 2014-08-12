@@ -2477,4 +2477,15 @@ suite('system/AppWindow', function() {
     appInput.element.dispatchEvent(new CustomEvent('_opened'));
     assert.equal(appInput.appChrome, undefined);
   });
+
+  test('Should bypass touch event to statusbar submodule', function() {
+    var app = new AppWindow(fakeAppConfig1);
+    app.statusbar = {
+      handleStatusbarTouch: this.sinon.spy()
+    };
+    var fakeTouchEvt = new CustomEvent('touchstart');
+    app.handleStatusbarTouch(fakeTouchEvt, 24);
+    assert.isTrue(app.statusbar.handleStatusbarTouch.calledWith(
+      fakeTouchEvt, 24));
+  });
 });
