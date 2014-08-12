@@ -96,6 +96,19 @@
       }
     },
 
+    /**
+     * Detect there is fullscreen content or fullscreen app running.
+     */
+    get fullscreenMode() {
+      if (document.mozFullScreen) {
+        return true;
+      } else if ('undefined' === typeof window.AppWindowManager) {
+        return false;
+      } else {
+        return window.AppWindowManager.getActiveApp().isFullScreen();
+      }
+    },
+
     get runningFTU() {
       if ('undefined' === typeof window.FtuLauncher) {
         return false;

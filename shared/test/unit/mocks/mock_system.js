@@ -12,5 +12,7 @@ var MockSystem = {
   },
   locked: false,
   runningFTU: false,
+  fullscreenMode: true,
+  topMostAppWindow: null,
   manifestURL: 'app://system.gaiamobile.org/manifest.webapp'
 };

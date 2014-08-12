@@ -33,6 +33,12 @@
       }
       return this._element;
     },
+    get titleBar() {
+      if (!this._titleBar) {
+        this._titleBar = document.createElement('div');
+      }
+      return this._titleBar;
+    },
     get browser() {
       if (!this._iframe) {
         this._iframe = document.createElement('iframe');
@@ -41,6 +47,13 @@
       return {
         element: this._iframe
       };
+    },
+    get iframe() {
+      if (!this._iframe) {
+        this._iframe = document.createElement('iframe');
+        this._iframe.download = function() {};
+      }
+      return this._iframe;
     },
     render: function() {},
     open: function() {},

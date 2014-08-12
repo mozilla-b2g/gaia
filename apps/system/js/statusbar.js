@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-/*global Clock, AppWindowManager, SettingsListener */
+/*global Clock, SettingsListener */
 /*global SimPinDialog, TouchForwarder */
 /*global MobileOperator, SIMSlotManager, System */
 /*global Bluetooth */
@@ -124,9 +124,7 @@ var StatusBar = {
   get height() {
     if (this.screen.classList.contains('active-statusbar')) {
       return this.attentionBar.offsetHeight;
-    } else if (document.mozFullScreen ||
-               (AppWindowManager.getActiveApp() &&
-                AppWindowManager.getActiveApp().isFullScreen())) {
+    } else if (System.fullscreenMode) {
       return 0;
     } else {
       return this._cacheHeight ||
@@ -220,6 +218,7 @@ var StatusBar = {
     window.addEventListener('lockpanelchange', this);
 
     window.addEventListener('appopened', this);
+    window.addEventListener('shadowstatusbarreleased', this);
 
     window.addEventListener('simpinshow', this);
     window.addEventListener('simpinclose', this);
@@ -244,6 +243,10 @@ var StatusBar = {
   handleEvent: function sb_handleEvent(evt) {
     var app;
     switch (evt.type) {
+      case 'shadowstatusbarreleased':
+        this._dontStopEvent = false;
+        break;
+
       case 'appopened':
         this.setAppearance('opaque');
         app = evt.detail;
@@ -417,7 +420,6 @@ var StatusBar = {
 
   _startX: null,
   _startY: null,
-  _releaseTimeout: null,
   _touchStart: null,
   _touchForwarder: new TouchForwarder(),
   _shouldForwardTap: false,
@@ -499,10 +501,6 @@ var StatusBar = {
   },
 
   panelHandler: function sb_panelHandler(evt) {
-    var app = System.topMostAppWindow;
-    var chromeBar = app.element.querySelector('.chrome');
-    var titleBar = app.element.querySelector('.titlebar');
-
     // Do not forward events if FTU is running
     if (System.runningFTU) {
       return;
@@ -512,20 +510,21 @@ var StatusBar = {
       return;
     }
 
-    // If the app is not a fullscreen app, let utility_tray.js handle
-    // this instead.
-    if (!document.mozFullScreen && !app.isFullScreen()) {
+    // If system is at fullscreen mode, let utility tray to handle the event.
+    if (System.fullscreenMode) {
       return;
     }
+
+    var app = System.topMostAppWindow;
 
     evt.stopImmediatePropagation();
     evt.preventDefault();
 
     var touch;
+    var timeout = false;
+    var transform = '';
     switch (evt.type) {
       case 'touchstart':
-        clearTimeout(this._releaseTimeout);
-
         var iframe = app.iframe;
         this._touchForwarder.destination = iframe;
         this._touchStart = evt;
@@ -535,9 +534,6 @@ var StatusBar = {
         touch = evt.changedTouches[0];
         this._startX = touch.clientX;
         this._startY = touch.clientY;
-
-        chromeBar.style.transition = 'transform';
-        titleBar.style.transition = 'transform';
         break;
 
       case 'touchmove':
@@ -551,9 +547,7 @@ var StatusBar = {
         }
 
         var translate = Math.min(deltaY, height);
-        titleBar.style.transform =
-          chromeBar.style.transform =
-          'translateY(calc(' + translate + 'px - 100%)';
+        transform = 'translateY(calc(' + translate + 'px - 100%)';
 
         if (translate == height) {
           if (this._touchStart) {
@@ -565,69 +559,29 @@ var StatusBar = {
         break;
 
       case 'touchend':
-        clearTimeout(this._releaseTimeout);
-
         if (this._touchStart) {
           if (this._shouldForwardTap) {
             this._touchForwarder.forward(this._touchStart);
             this._touchForwarder.forward(evt);
             this._touchStart = null;
           }
-          this._releaseBar(titleBar);
+          this._dontStopEvent = false;
         } else {
           // If we already forwarded the touchstart it means the bar
           // if fully open, releasing after a timeout.
           this._dontStopEvent = true;
           this._touchForwarder.forward(evt);
-          this._releaseAfterTimeout(titleBar);
+          timeout = true;
         }
 
         break;
     }
-  },
 
-  _releaseBar: function sb_releaseBar(titleBar) {
-    this._dontStopEvent = false;
-    var chromeBar = titleBar.parentNode.querySelector('.chrome');
-
-    chromeBar.classList.remove('dragged');
-    chromeBar.style.transform = '';
-    chromeBar.style.transition = '';
-
-    titleBar.classList.remove('dragged');
-    titleBar.style.transform = '';
-    titleBar.style.transition = '';
-
-    clearTimeout(this._releaseTimeout);
-    this._releaseTimeout = null;
-  },
-
-  _releaseAfterTimeout: function sb_releaseAfterTimeout(titleBar) {
-    var chromeBar = titleBar.parentNode.querySelector('.chrome');
-
-    var self = this;
-    titleBar.style.transform = '';
-    titleBar.style.transition = '';
-    titleBar.classList.add('dragged');
-
-    chromeBar.style.transform = '';
-    chromeBar.style.transition = '';
-    chromeBar.classList.add('dragged');
-
-    self._releaseTimeout = setTimeout(function() {
-      self._releaseBar(titleBar);
-      window.removeEventListener('touchstart', closeOnTap);
-    }, 5000);
-
-    function closeOnTap(evt) {
-      if (evt.target != self._touchForwarder.destination) {
-        return;
-      }
-
-      window.removeEventListener('touchstart', closeOnTap);
-      self._releaseBar(titleBar);
-    }
-    window.addEventListener('touchstart', closeOnTap);
+    // XXX: We should broadcast here but we don't want the event delay.
+    app && app.broadcast('shadow' + evt.type, {
+      timeout: timeout,
+      transform: transform
+    });
   },
 
   setActive: function sb_setActive(active) {
