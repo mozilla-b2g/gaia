@@ -21,6 +21,7 @@ require(
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('system/test/unit/mock_asyncStorage.js');
+require('/test/unit/mock_update_manager.js');
 
 var mocksForUpdateManager = new MocksHelper([
   'StatusBar',
@@ -78,7 +79,8 @@ suite('system/UpdateManager', function() {
       MockNavigatorMozMobileConnections.mAddMobileConnection();
       MockNavigatorMozMobileConnections[i].data = {
         connected: !i,
-        type: (!i ? 'evdo0' : undefined)
+        type: (!i ? 'evdo0' : undefined),
+        roaming: (!i ? true : undefined)
       };
     }
 
@@ -1200,15 +1202,58 @@ suite('system/UpdateManager', function() {
 
       test('should handle clicking download when using data connection ' +
             'in the first time',
-          function() {
+          function(done) {
+        var spy = this.sinon.spy(UpdateManager, '_getDataRoamingSetting');
         UpdateManager.downloadDialog.dataset.nowifi = true;
 
         var evt = document.createEvent('MouseEvents');
         evt.initEvent('click', true, true);
 
         UpdateManager.requestDownloads(evt);
-        var css = UpdateManager.downloadViaDataConnectionDialog.classList;
-        assert.isTrue(css.contains('visible'));
+
+        spy.lastCall.returnValue.then(function() {
+          var css = UpdateManager.downloadViaDataConnectionDialog.classList;
+          var titleL10nId =
+            UpdateManager.downloadViaDataConnectionTitle
+            .getAttribute('data-l10n-id');
+          var messageL10nId =
+            UpdateManager.downloadViaDataConnectionMessage
+            .getAttribute('data-l10n-id');
+
+          assert.isTrue(css.contains('visible'));
+          assert.equal(titleL10nId, 'downloadUpdatesViaDataConnection');
+          assert.equal(messageL10nId,
+            'downloadUpdatesViaDataConnectionMessage2');
+        }).then(done, done);
+      });
+
+      test('should handle clicking download when using data ' +
+            'connection roaming in the first time',
+          function(done) {
+        var spy = this.sinon.spy(UpdateManager, '_getDataRoamingSetting');
+        UpdateManager.downloadDialog.dataset.nowifi = true;
+        MockNavigatorSettings.mSettings['ril.data.roaming_enabled'] = true;
+
+        var evt = document.createEvent('MouseEvents');
+        evt.initEvent('click', true, true);
+
+        UpdateManager.requestDownloads(evt);
+
+        spy.lastCall.returnValue.then(function() {
+          var css = UpdateManager.downloadViaDataConnectionDialog.classList;
+          var titleL10nId =
+            UpdateManager.downloadViaDataConnectionTitle
+            .getAttribute('data-l10n-id');
+          var messageL10nId =
+            UpdateManager.downloadViaDataConnectionMessage
+            .getAttribute('data-l10n-id');
+
+          assert.isTrue(css.contains('visible'));
+          assert.equal(titleL10nId,
+            'downloadUpdatesViaDataRoamingConnection');
+          assert.equal(messageL10nId,
+            'downloadUpdatesViaDataRoamingConnectionMessage');
+        }).then(done, done);
       });
 
       test('should handle clicking download when using wifi', function() {
