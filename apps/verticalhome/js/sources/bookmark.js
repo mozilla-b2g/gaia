@@ -18,6 +18,8 @@
     eventTypesToListenFor.forEach(function iterateTypes(type) {
       BookmarksDatabase.addEventListener(type, this);
     }, this);
+
+    console.log('B1048639: BookmarkSource constructor.');
   }
 
   BookmarkSource.prototype = {
@@ -26,6 +28,7 @@
      * Synchronizes our local result set with datastre.
      */
     synchronize: function() {
+      console.log('B1048639: synchronize.');
       var allAppBookmarks = {};
       var toAdd = [];
       var icons = app.grid.getIcons();
@@ -63,6 +66,7 @@
      * @param {Function} success Called after we fetch all initial data.
      */
     populate: function(success) {
+      console.log('B1048639: populate.');
       var self = this;
       BookmarksDatabase.getAll().then(function(systemBookmarks) {
         // We are going to iterate over system bookmarks
@@ -79,6 +83,7 @@
      * @param {Event} e
      */
     handleEvent: function(e) {
+      console.log('B1048639: handleEvent', e.type);
       switch (e.type) {
         case 'added':
         case 'updated':

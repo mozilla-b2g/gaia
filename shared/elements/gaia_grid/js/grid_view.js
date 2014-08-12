@@ -23,6 +23,7 @@
    *  - element: The shadow root of the grid
    */
   function GridView(config) {
+    console.log('B1048639: Got new gridview.');
     this.config = config;
     this.onTouchStart = this.onTouchStart.bind(this);
     this.onTouchEnd = this.onTouchEnd.bind(this);
@@ -79,10 +80,11 @@
      * @param {Object} insertTo The position to insert the item into our list.
      */
     add: function(item, insertTo) {
+      console.log('B1048639: add item.', JSON.stringify(item.detail));
       if (!item) {
         return;
       }
-
+      console.log('B1048639: identifier: ', item.identifier);
       if (item.identifier) {
         // If we already have an item with this identifier, exit.
         // This avoids a potential race condition where we might have duplicate
@@ -98,6 +100,7 @@
 
       // If isnsertTo it is a number, splice.
       if (!isNaN(parseFloat(insertTo)) && isFinite(insertTo)) {
+        console.log('B1048639: calling items.splice.');
         this.items.splice(insertTo, 0, item);
       } else {
         this.items.push(item);
@@ -132,6 +135,7 @@
     },
 
     start: function() {
+      console.log('B1048639: start.');
       this.element.addEventListener('touchstart', this.onTouchStart);
       this.element.addEventListener('touchend', this.onTouchEnd);
       this.element.addEventListener('contextmenu', this.onContextMenu);
@@ -255,6 +259,7 @@
      * Scrubs the list of items, removing empty sections.
      */
     cleanItems: function(skipDivider) {
+      console.log('B1048639: cleanItems.');
       var appCount = 0;
       var toRemove = [];
 
@@ -299,6 +304,7 @@
      * Removes placeholders from the grid.
      */
     removeAllPlaceholders: function() {
+      console.log('B1048639: removeAllPlaceholders.');
       var toSplice = [];
       var previousItem;
       this.items.forEach(function(item, idx) {
@@ -327,6 +333,7 @@
      * Clears the grid view of all items.
      */
     clear: function() {
+      console.log('B1048639: clear.');
       for (var i = 0, iLen = this.items.length; i < iLen; i++) {
         var item = this.items[i];
         if (item.element) {
@@ -372,6 +379,7 @@
      *  - skipDivider {Boolean} Whether or not to skip the divider
      */
     render: function(options) {
+      console.log('B1048639: rendering.');
       var self = this;
       options = options || {};
 
@@ -463,6 +471,7 @@
      * as possible.
      */
     loadDragDrop: function() {
+      console.log('B1048639: loadDragDrop.');
       if (!this.dragdrop && this.config.features.dragdrop) {
         LazyLoader.load('shared/elements/gaia_grid/js/grid_dragdrop.js', () => {
           if (this.dragdrop) {
