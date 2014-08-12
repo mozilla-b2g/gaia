@@ -1,9 +1,8 @@
 /* exported KeypadManager */
 
-/* globals CallHandler, CallLogDBManager, CallsHandler, CallScreen,
-           CustomDialog, FontSizeManager, LazyLoader, LazyL10n,
-           MultiSimActionButton, PhoneNumberActionMenu, SimPicker,
-           SettingsListener, TonePlayer */
+/* globals AddContactMenu, CallHandler, CallLogDBManager, CallsHandler,
+           CallScreen, CustomDialog, FontSizeManager, LazyLoader, LazyL10n,
+           MultiSimActionButton, SimPicker, SettingsListener, TonePlayer */
 
 'use strict';
 
@@ -315,10 +314,8 @@ var KeypadManager = {
     if (!number) {
       return;
     }
-    LazyLoader.load(['/dialer/js/phone_action_menu.js'],
-      function hk_showPhoneNumberActionMenu() {
-        PhoneNumberActionMenu.show(null, number,
-          ['new-contact', 'add-to-existent']);
+    LazyLoader.load(['/dialer/js/add_contact_menu.js'], function() {
+      AddContactMenu.show(number);
     });
   },
 

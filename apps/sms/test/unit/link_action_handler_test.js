@@ -4,11 +4,11 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_option_menu.js');
 
 requireApp('sms/js/link_action_handler.js');
 requireApp('sms/js/utils.js');
 
-requireApp('sms/test/unit/mock_action_menu.js');
 requireApp('sms/test/unit/mock_activity_picker.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
