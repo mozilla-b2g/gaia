@@ -8,24 +8,6 @@ var utils = require('./utils');
 // from the GAIA_DISTRIBUTION_DIR directory
 var PARTNER_PREF_FILES = ['partner-prefs.js'];
 
-function appendPrefFile(destPrefFile, srcDir, srcPrefFiles) {
-  if (!srcDir.exists()) {
-    return;
-  }
-
-  var srcContents = srcPrefFiles.map(function(filename) {
-    var content = '';
-    var srcFile = srcDir.clone();
-    srcFile.append(filename);
-    if (srcFile.exists()) {
-      content = utils.getFileContent(srcFile);
-    }
-    return content;
-  });
-  utils.writeContent(destPrefFile,
-        utils.getFileContent(destPrefFile) + srcContents.join('\n'));
-}
-
 var PreferencesBuilder = function() {
 };
 
@@ -66,16 +48,84 @@ PreferencesBuilder.prototype.appendPrefs = function() {
   var prefFile = utils.getFile(this.config.PROFILE_DIR, 'user.js');
 
   var buildConfigDir = utils.getFile(this.config.GAIA_DIR, 'build', 'config');
-  appendPrefFile(prefFile, buildConfigDir, this.extenedPrefFiles);
+  this.appendPrefFile(prefFile, buildConfigDir, this.extenedPrefFiles);
+
+  var deviceConfigDir = utils.getFile(this.config.GAIA_DIR, 'build', 'config',
+                        this.config.GAIA_DEVICE_TYPE);
+  this.appendPrefFile(prefFile, deviceConfigDir, this.extenedPrefFiles);
 
   try {
     var distDir = utils.getFile(this.config.GAIA_DISTRIBUTION_DIR);
-    appendPrefFile(prefFile, distDir, PARTNER_PREF_FILES);
+    this.appendPrefFile(prefFile, distDir, PARTNER_PREF_FILES);
   } catch (e) {
     // utils.getFile will throw exception if GAIA_DISTRIBUTION_DIR does not
     // exist. In this case we just don't override preferences by
     // PARTNER_PREF_FILES.
   }
+};
+
+PreferencesBuilder.prototype.loadPrefFile = function(srcDir, srcPrefFiles) {
+  // scope object for hosting functions and variables.
+  var scope = {
+    userPrefs: {},
+    prefs: {},
+    user_pref: function(key, value) {
+      this.userPrefs[key] = value;
+    },
+    pref: function(key, value) {
+      this.prefs[key] = value;
+    }
+  };
+
+  // read all files
+  srcPrefFiles.forEach(function(filename) {
+    var srcFile = srcDir.clone();
+    srcFile.append(filename);
+    if (srcFile.exists()) {
+      utils.scriptLoader.load('file://' + srcFile.path + '?reload=' +
+                              new Date().getTime(), scope);
+    }
+  });
+  return {'user_pref': scope.userPrefs, 'pref': scope.prefs};
+};
+
+PreferencesBuilder.prototype.appendPrefFile = function(destPrefFile, srcDir,
+                                                       srcPrefFiles) {
+  if (!srcDir.exists()) {
+    return;
+  }
+
+  var prefs = this.loadPrefFile(srcDir, srcPrefFiles);
+
+  var self = this;
+  var srcContents = ['user_pref', 'pref'].map(function(key) {
+    var content = '';
+    var value;
+    for (var pref in prefs[key]) {
+      value = self.customizePrefValue(pref, prefs[key][pref]);
+      if (value !== null && typeof(value) !== 'undefined') {
+        content += key + '(\'' + pref + '\', ' + JSON.stringify(value) + ');\n';
+      }
+    }
+    return content;
+  });
+
+  utils.writeContent(destPrefFile,
+        utils.getFileContent(destPrefFile) + srcContents.join('\n'));
+};
+
+PreferencesBuilder.prototype.customizePrefValue = function(key, value) {
+  switch(key) {
+    case 'devtools.responsiveUI.customWidth':
+      // The responsive UI has padding and border at width.
+      // width = 320 + 15(horizontal padding) * 2 + 1(vertical border) * 2
+      return value + 32;
+    case 'devtools.responsiveUI.customHeight':
+      // The responsive UI has padding and border at width.
+      // height = 480 + 60(top padding) + 1(top border)
+      return value + 61;
+  }
+  return value;
 };
 
 PreferencesBuilder.prototype.preparePref = function() {
@@ -299,4 +349,3 @@ exports.execute = function(config) {
 };
 
 exports.PreferencesBuilder = PreferencesBuilder;
-exports.appendPrefFile = appendPrefFile;
