@@ -128,21 +128,13 @@ Storage.prototype.addPicture = function(blob, options, done) {
  */
 Storage.prototype.createVideoFilepath = function(done) {
   var videoStorage = this.video;
-
   this.createFilename(this.video, 'video', function(filepath) {
     var dummyFilepath = getDir(filepath) + 'tmp.3gp';
     var blob = new Blob([''], { type: 'video/3gpp' });
     var req = videoStorage.addNamed(blob, dummyFilepath);
-    
-    req.onerror = function(e) {
-      done('Error creating video file path');
-      debug('Failed to add' + filepath +
-            'from DeviceStorage:' + e.target.error);
-    };
-
     req.onsuccess = function(e) {
       videoStorage.delete(e.target.result);
-      done(null, filepath);
+      done(filepath);
     };
   });
 };
