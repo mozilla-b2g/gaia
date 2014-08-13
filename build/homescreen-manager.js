@@ -259,3 +259,10 @@ exports.getCollections = function(config) {
   var rawHomescreen = loadHomescreen(config);
   return getCollections(config, rawHomescreen);
 };
+
+exports.getCollectionMetadata = function(config, info) {
+  configure(config);
+  var collection = getCollectionMetadata(config, info[0], info[1]);
+  collection.path = info;
+  return collection;
+};
