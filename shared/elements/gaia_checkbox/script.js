@@ -85,9 +85,9 @@ window.GaiaCheckbox = (function(win) {
   var template = document.createElement('template');
 
   template.innerHTML =
-    '<span id="checkbox">' +
-      '<span><content select="label"></content></span>' +
-    '</span>';
+    `<span id="checkbox">
+      <span><content select="label"></content></span>
+    </span>`;
 
   // Register and return the constructor
   return document.registerElement('gaia-checkbox', { prototype: proto });

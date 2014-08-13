@@ -214,9 +214,9 @@ window.GaiaGrid = (function(win) {
 
   var stylesheet = baseurl + 'style.css';
   var template = document.createElement('template');
-  template.innerHTML = '<style scoped>' +
-    '@import url(' + stylesheet + ');</style>' +
-    '<content></content>';
+  template.innerHTML = `<style scoped>
+    @import url(${stylesheet});</style>
+    <content></content>`;
 
   // Register and return the constructor
   return document.registerElement('gaia-grid', { prototype: proto });

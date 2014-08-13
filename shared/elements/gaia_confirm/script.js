@@ -76,14 +76,14 @@ window.GaiaConfirm = (function(win) {
   };
 
   var template = document.createElement('template');
-  template.innerHTML = '<form role="dialog" class="confirm">' +
-      '<section>' +
-        '<content select="h1"></content>' +
-        '<content select="p"></content>' +
-      '</section>' +
-      '<content select="gaia-buttons">' +
-      '</content>' +
-    '</form>';
+  template.innerHTML = `<form role="dialog" class="confirm">
+      <section>
+        <content select="h1"></content>
+        <content select="p"></content>
+      </section>
+      <content select="gaia-buttons">
+      </content>
+    </form>`;
 
   // Register and return the constructor
   return document.registerElement('gaia-confirm', { prototype: proto });

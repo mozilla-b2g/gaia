@@ -74,10 +74,10 @@ window.GaiaSwitch = (function(win) {
   // hack until we can import entire custom-elements
   // using HTML Imports (bug 877072).
   var template = document.createElement('template');
-  template.innerHTML = '<label id="switch-label" class="pack-switch">' +
-      '<input type="checkbox">' +
-      '<span><content select="label"></content></span>' +
-    '</label>';
+  template.innerHTML = `<label id="switch-label" class="pack-switch">
+      <input type="checkbox">
+      <span><content select="label"></content></span>
+    </label>`;
 
   // Register and return the constructor
   return document.registerElement('gaia-switch', { prototype: proto });
