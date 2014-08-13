@@ -48,13 +48,26 @@ Focus.prototype.configure = function(mozCamera, focusMode) {
     focusMode = focusModes[0];
   }
 
-  mozCamera.focusMode = this.mode = focusMode;
+  this.setMode(focusMode);
+
 };
 
 Focus.prototype.getMode = function() {
   return this.mode;
 };
 
+Focus.prototype.setMode = function(mode) {
+  var mozCamera = this.mozCamera;
+  this.previousMode = this.mode;
+  mozCamera.focusMode = this.mode = mode;
+  this.reset();
+  return mode;
+};
+
+Focus.prototype.restoreMode = function() {
+  var mode = this.setMode(this.previousMode);
+  return mode;
+};
 
 /**
  *  Configures focus modes based on user preferences
@@ -120,13 +133,12 @@ Focus.prototype.stopContinuousFocus = function() {
   // Clear suspension timers
   clearTimeout(this.continuousModeTimer);
   if (focusMode === 'continuous-picture' || focusMode === 'continuous-video') {
-    this.mode = focusMode;
-    this.mozCamera.focusMode = 'auto';
+    this.setMode('auto');
   }
 };
 
 Focus.prototype.resumeContinuousFocus = function() {
-  this.mozCamera.focusMode = this.mode;
+  this.restoreMode();
   this.mozCamera.resumeContinuousFocus();
 };
 
@@ -278,14 +290,18 @@ Focus.prototype.reset = function() {
   this.mozCamera.setMeteringAreas([]);
 };
 
-Focus.prototype.stop = function() {
+Focus.prototype.pause = function() {
+  if (this.paused) { return; }
   this.stopContinuousFocus();
   this.stopFaceDetection();
+  this.paused = true;
 };
 
 Focus.prototype.resume = function() {
+  if (!this.paused) { return; }
   this.resumeContinuousFocus();
   this.startFaceDetection();
+  this.paused = false;
 };
 
 /**
