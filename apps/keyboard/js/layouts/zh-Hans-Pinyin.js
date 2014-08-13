@@ -37,6 +37,7 @@ Keyboards['zh-Hans-Pinyin'] = {
     ]
   ],
   alternateLayout: {
+    needsCommaKey: true,
     textLayoutOverwrite: {
       ',': '，',
       '.': '。'
@@ -69,6 +70,7 @@ Keyboards['zh-Hans-Pinyin'] = {
     ]
   },
   symbolLayout: {   // Chinese symbol 2
+    needsCommaKey: true,
     textLayoutOverwrite: {
       ',': '，',
       '.': '。'

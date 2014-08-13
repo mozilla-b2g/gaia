@@ -40,6 +40,7 @@ Keyboards['en-Neo'] = {
     ]
   ],
   alternateLayout: {
+    needsCommaKey: true,
     alt: {
       '0': 'º',
       '1': '1st ',
@@ -79,6 +80,7 @@ Keyboards['en-Neo'] = {
     ]
   },
   symbolLayout: {
+    needsCommaKey: true,
     keys: [
       [
         { value: '§' }, { value: '_' }, { value: '[' }, { value: ']' },

@@ -62,6 +62,7 @@ Keyboards.my = {
     '\u102C'/*ာ*/: '\u1026'/*ဦ*/
   },
   alternateLayout: {
+    needsCommaKey: true,
     keys: [
       [
         { value: '\u1041'/*၁*/ }, { value: '\u1042'/*၂*/ },
@@ -87,6 +88,7 @@ Keyboards.my = {
     ]
   },
   symbolLayout: {
+    needsCommaKey: true,
     alt: {
       '€': '€ ¥'
     },
