@@ -66,6 +66,8 @@ suite('ActivityHandler', function() {
   var realMozApps;
   var realMozL10n;
 
+  var isDocumentHidden;
+
   suiteSetup(function() {
     realSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
@@ -78,6 +80,13 @@ suite('ActivityHandler', function() {
 
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      get: function() {
+        return isDocumentHidden;
+      }
+    });
   });
 
   suiteTeardown(function() {
@@ -85,10 +94,12 @@ suite('ActivityHandler', function() {
     navigator.requestWakeLock = realWakeLock;
     navigator.mozApps = realMozApps;
     navigator.mozL10n = realMozL10n;
+    delete document.hidden;
   });
 
   setup(function() {
     this.sinon.stub(window, 'alert');
+    isDocumentHidden = false;
 
     MockNavigatormozSetMessageHandler.mSetup();
 
@@ -408,20 +419,6 @@ suite('ActivityHandler', function() {
 
     suite('Close notification', function() {
       var closeSpy;
-      var isDocumentHidden;
-
-      suiteSetup(function(){
-        Object.defineProperty(document, 'hidden', {
-          configurable: true,
-          get: function() {
-            return isDocumentHidden;
-          }
-        });
-      });
-
-      suiteTeardown(function(){
-        delete document.hidden;
-      });
 
       setup(function() {
         closeSpy = this.sinon.spy(Notification.prototype, 'close');
