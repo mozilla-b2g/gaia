@@ -1583,6 +1583,8 @@ var ThreadUI = {
     messageDOM.id = 'message-' + message.id;
     messageDOM.dataset.messageId = message.id;
     messageDOM.dataset.iccId = message.iccId;
+    var simServiceId = Settings.getServiceIdByIccId(message.iccId);
+    messageDOM.classList.toggle('has-sim-information', simServiceId !== null);
 
     messageDOM.innerHTML = this.tmpl.message.interpolate({
       id: String(message.id),
@@ -1591,7 +1593,8 @@ var ThreadUI = {
       subject: String(message.subject),
       // Incoming and outgoing messages are displayed using different
       // backgrounds, therefore progress indicator should be styled differently.
-      progressIndicatorClassName: isIncoming ? 'light' : ''
+      progressIndicatorClassName: isIncoming ? 'light' : '',
+      simNumberL10nArgs: JSON.stringify({ id: simServiceId + 1 })
     }, {
       safe: ['bodyHTML']
     });
