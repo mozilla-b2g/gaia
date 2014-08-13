@@ -124,7 +124,7 @@
   }
 
   body.showKeypad #keyboard-container {
-    height: 34rem;
+    height: 35rem;
     background: rgba(255,255,255,0.85);
     position: absolute;
     bottom: 0;
