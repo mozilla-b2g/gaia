@@ -277,7 +277,7 @@ var Settings = (function() {
         var textReportsTitle = (mode === 'POSTPAID') ?
           'phone-and-internet-data-report' : 'internet-data-report';
 
-        reportsTitle.querySelector('h2').textContent = _(textReportsTitle);
+        reportsTitle.querySelector('span').textContent = _(textReportsTitle);
 
         balanceLowLimitView.disabled = (mode !== 'PREPAID');
         plantypeSelector.setAttribute('aria-hidden', hidePlantypeSelector);
