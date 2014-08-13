@@ -389,12 +389,16 @@ suite('LayoutManager', function() {
 
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
-          alternativeLayoutName: 'alternatelayout',
+          alternativeLayoutName: 'alternateLayout',
           imEngine: 'test-imEngine' };
+
+        // for the sake of simplicity, delete 'keys' from the layout
+        // testing for 'keys' will be done at switchToAlternateTest.
+        delete manager.currentModifiedLayout.keys;
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
-          manager.loader.getLayout('alternatelayout'),
+          manager.loader.getLayout('alternateLayout'),
           'proto is set correctly for layout.');
       }, function() {
         assert.isTrue(false, 'Should not reject.');
@@ -412,12 +416,16 @@ suite('LayoutManager', function() {
 
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
-          alternativeLayoutName: 'alternatelayout',
+          alternativeLayoutName: 'alternateLayout',
           imEngine: 'test-imEngine' };
+
+        // for the sake of simplicity, delete 'keys' from the layout
+        // testing for 'keys' will be done at switchToAlternateTest.
+        delete manager.currentModifiedLayout.keys;
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
-          manager.loader.getLayout('alternatelayout'),
+          manager.loader.getLayout('alternateLayout'),
           'proto is set correctly for layout.');
       }, function() {
         assert.isTrue(false, 'Should not reject.');
