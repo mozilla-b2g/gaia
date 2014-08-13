@@ -1677,6 +1677,12 @@ contacts.List = (function() {
     inSelectMode = true;
     selectNavigationController = navigationController;
 
+    // As the transition duration is long, we must avoid clicking on settings
+    // buttons (bug 1050843)
+    document.getElementById('settings-button').classList.add('hide');
+    document.getElementById('settings-close').disabled = true;
+    document.getElementById('add-contact-button').classList.add('hide');
+
     if (options && options.transitionLevel === EXPORT_TRANSITION_LEVEL) {
       selectNavigationController.back(function() {
         Contacts.goBack(function() {
@@ -1789,6 +1795,10 @@ contacts.List = (function() {
   */
   var exitSelectMode = function exitSelectMode(canceling) {
     isDangerSelectList = false;
+
+    document.getElementById('settings-button').classList.remove('hide');
+    document.getElementById('add-contact-button').classList.remove('hide');
+    document.getElementById('settings-close').disabled = false;
 
     selectForm.addEventListener('transitionend', function handler() {
       selectForm.removeEventListener('transitionend', handler);
