@@ -9,6 +9,7 @@
     </title>
 
     <!-- Building blocks -->
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
@@ -16,10 +17,6 @@
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/tabs.css">
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
-
-    <!-- Gaia Components -->
-    <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
-    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" />
 
     <!-- App and Views -->
     <link rel="stylesheet" type="text/css" href="style/app.css">
@@ -31,7 +28,7 @@
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
+    <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
 
     <script type="text/javascript" defer src="shared/js/l10n.js"></script>
     <script type="text/javascript" defer src="shared/js/l10n_date.js"></script>
@@ -39,12 +36,9 @@
     <script type="text/javascript" defer src="shared/js/accessibility_helper.js"></script>
     <script type="text/javascript" defer src="shared/js/settings_listener.js"></script>
     <script type="text/javascript" defer src="shared/js/lazy_loader.js"></script>
+    <script type="text/javascript" defer src="shared/js/font_size_utils.js"></script>
     <script type="text/javascript" defer src="shared/js/format.js"></script>
     <script type="text/javascript" defer src='/shared/js/performance_testing_helper.js'></script>
-
-    <!-- Gaia Components -->
-    <script defer src="/shared/elements/config.js"></script>
-    <script defer src="/shared/elements/gaia-header/dist/script.js"></script>
 
     <script type="text/javascript" defer src="js/app.js"></script>
     <script type="text/javascript" defer src="js/application_init.js"></script>
@@ -54,7 +48,7 @@
     <link rel="import" href="/elements/topup-dialog.html">
     <link rel="import" href="/elements/datausage-tab.html">
   </head>
-  <body role="application" class="theme-settings">
+  <body role="application">
 
     <section id="splash_section" class="window splash">
     </section>
@@ -62,10 +56,12 @@
     <section id="main" role="region" class="window skin-organic non-ready">
       <!-- XXX: The order of sections is important (tabs should be place above
 the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
-      <gaia-header>
-        <h1>Usage</h1>
-        <button class="settings-button" data-icon="settings"></button>
-      </gaia-header>
+      <header>
+        <menu type="toolbar">
+          <button class="settings-button"><span class="icon config">Configuration</span></button>
+        </menu>
+        <h1 data-l10n-id="usage">Usage</h1>
+      </header>
 
       <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
       <ul id="tabs" role="tablist" class="bb-tablist" data-type="filter" data-items="2">

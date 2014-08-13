@@ -31,9 +31,9 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
     });
   }
 
-  var dialogHeader = dialog.querySelector('#limit-dialog-header');
-  if (dialogHeader) {
-    dialogHeader.addEventListener('action',
+  var cancelButton = dialog.querySelector('a.cancel');
+  if (cancelButton) {
+    cancelButton.addEventListener('click',
       function ccld_onDialogCancel() {
         var oldValue = settings.option('dataLimitValue');
         var oldUnit = settings.option('dataLimitUnit');

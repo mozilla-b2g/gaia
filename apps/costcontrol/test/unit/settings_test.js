@@ -19,9 +19,7 @@ require('/js/settings/autosettings.js');
 require('/js/settings/settings.js');
 require('/js/sim_manager.js');
 require('/js/utils/toolkit.js');
-require('/shared/js/component_utils.js');
-require('/shared/elements/gaia-header/dist/script.js');
-require('/shared/elements/gaia_subheader/script.js');
+
 
 var realMozL10n,
     realAddNetworkUsageAlarm;
@@ -254,15 +252,14 @@ suite('Settings Test Suite >', function() {
 
   suite('Data Limit Configurator Test Suite >', function() {
     var dataLimitDialog, dataLimitInput, dataLimitOkButton, limitUnitValue,
-        dataLimitSwitchUnitButton, dataLimitHeader;
+        dataLimitCancelButton, dataLimitSwitchUnitButton;
     var evtInput = new CustomEvent('input', {});
 
     setup(function() {
       dataLimitDialog = document.getElementById('data-limit-dialog');
       dataLimitInput = dataLimitDialog.querySelector('input');
       dataLimitOkButton = dataLimitDialog.querySelector('button.recommend');
-      dataLimitHeader = document.getElementById('limit-dialog-header');
-
+      dataLimitCancelButton = dataLimitDialog.querySelector('a.cancel');
       dataLimitSwitchUnitButton = dataLimitDialog.
         querySelector('.switch-unit-button');
       limitUnitValue = dataLimitSwitchUnitButton.querySelector('span.tag');
@@ -307,7 +304,7 @@ suite('Settings Test Suite >', function() {
           dataLimitInput.dispatchEvent(evtInput);
           assertDataLimitInputValid();
 
-          triggerEvent(dataLimitHeader, 'action');
+          triggerEvent(dataLimitCancelButton, 'click');
           Settings.updateUI.restore();
           done();
         });
@@ -327,7 +324,7 @@ suite('Settings Test Suite >', function() {
           dataLimitInput.dispatchEvent(evtInput);
           assertDataLimitInputValid();
 
-          triggerEvent(dataLimitHeader, 'action');
+          triggerEvent(dataLimitCancelButton, 'click');
           Settings.updateUI.restore();
           done();
         });
@@ -347,7 +344,7 @@ suite('Settings Test Suite >', function() {
           dataLimitInput.dispatchEvent(evtInput);
           assertDataLimitInputValid();
 
-          triggerEvent(dataLimitHeader, 'action');
+          triggerEvent(dataLimitCancelButton, 'click');
           Settings.updateUI.restore();
           done();
         });
@@ -363,7 +360,7 @@ suite('Settings Test Suite >', function() {
           dataLimitInput.dispatchEvent(evtInput);
           assertDataLimitInputValid();
 
-          triggerEvent(dataLimitHeader, 'action');
+          triggerEvent(dataLimitCancelButton, 'click');
           Settings.updateUI.restore();
           done();
         });
@@ -382,7 +379,7 @@ suite('Settings Test Suite >', function() {
           dataLimitInput.dispatchEvent(evtInput);
           assertDataLimitInputInvalid();
 
-          triggerEvent(dataLimitHeader, 'action');
+          triggerEvent(dataLimitCancelButton, 'click');
           Settings.updateUI.restore();
           done();
         });
@@ -398,7 +395,7 @@ suite('Settings Test Suite >', function() {
           dataLimitInput.dispatchEvent(evtInput);
           assertDataLimitInputInvalid();
 
-          triggerEvent(dataLimitHeader, 'action');
+          triggerEvent(dataLimitCancelButton, 'click');
           Settings.updateUI.restore();
           done();
         });
@@ -414,7 +411,7 @@ suite('Settings Test Suite >', function() {
           dataLimitInput.dispatchEvent(evtInput);
           assertDataLimitInputInvalid();
 
-          triggerEvent(dataLimitHeader, 'action');
+          triggerEvent(dataLimitCancelButton, 'click');
           Settings.updateUI.restore();
           done();
         });
@@ -430,7 +427,7 @@ suite('Settings Test Suite >', function() {
           dataLimitInput.dispatchEvent(evtInput);
           assertDataLimitInputInvalid();
 
-          triggerEvent(dataLimitHeader, 'action');
+          triggerEvent(dataLimitCancelButton, 'click');
           Settings.updateUI.restore();
           done();
         });
@@ -446,7 +443,7 @@ suite('Settings Test Suite >', function() {
           dataLimitInput.dispatchEvent(evtInput);
           assertDataLimitInputInvalid();
 
-          triggerEvent(dataLimitHeader, 'action');
+          triggerEvent(dataLimitCancelButton, 'click');
           Settings.updateUI.restore();
           done();
         });
@@ -468,7 +465,7 @@ suite('Settings Test Suite >', function() {
           dataLimitInput.dispatchEvent(evtInput);
           assert.equal(dataLimitInput.value, '9912');
 
-          triggerEvent(dataLimitHeader, 'action');
+          triggerEvent(dataLimitCancelButton, 'click');
 
           Settings.updateUI.restore();
           done();
@@ -494,7 +491,7 @@ suite('Settings Test Suite >', function() {
           dataLimitInput.dispatchEvent(evtInput);
           assert.equal(dataLimitInput.value, '12.31');
 
-          triggerEvent(dataLimitHeader, 'action');
+          triggerEvent(dataLimitCancelButton, 'click');
 
           Settings.updateUI.restore();
           done();
@@ -516,7 +513,7 @@ suite('Settings Test Suite >', function() {
           dataLimitInput.dispatchEvent(evtInput);
           assert.equal(dataLimitInput.value, '442.01');
 
-          triggerEvent(dataLimitHeader, 'action');
+          triggerEvent(dataLimitCancelButton, 'click');
 
           Settings.updateUI.restore();
           done();
@@ -538,7 +535,7 @@ suite('Settings Test Suite >', function() {
           dataLimitInput.dispatchEvent(evtInput);
           assert.equal(dataLimitInput.value, '62.1');
 
-          triggerEvent(dataLimitHeader, 'action');
+          triggerEvent(dataLimitCancelButton, 'click');
 
           Settings.updateUI.restore();
           done();
@@ -556,7 +553,7 @@ suite('Settings Test Suite >', function() {
           dataLimitInput.dispatchEvent(evtInput);
           assert.equal(dataLimitInput.value, '0.31');
 
-          triggerEvent(dataLimitHeader, 'action');
+          triggerEvent(dataLimitCancelButton, 'click');
 
           Settings.updateUI.restore();
           done();
@@ -575,7 +572,7 @@ suite('Settings Test Suite >', function() {
         dataLimitInput.dispatchEvent(evtInput);
 
         // Cancel not update the Config values
-
+        triggerEvent(dataLimitCancelButton, 'click');
 
         assert.equal(ConfigManager.option('dataLimitUnit'), 'MB');
         assert.equal(ConfigManager.option('dataLimitValue'), '40');
