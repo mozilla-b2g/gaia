@@ -14,7 +14,7 @@ var MockSettings = {
   switchMmsSimHandler: function() {},
   isDualSimDevice: function() { return false; },
   hasSeveralSim: function() { return false; },
-  getServiceIdByIccId: function() { return 0; },
+  getServiceIdByIccId: function() { return null; },
   getSimNameByIccId: function(id) { return 'sim-name-' + id; },
   getOperatorByIccId: function(id) { return 'sim-operator-' + id; },
 

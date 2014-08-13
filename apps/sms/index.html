@@ -446,10 +446,22 @@
           </aside>
           <div class="message-body">
             <p>${bodyHTML}</p>
-            <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
+            <div class="message-details">
+              ${simInformationHTML}
+              <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
+            </div>
           </div>
         </div>
       </section>
+      -->
+    </div>
+
+    <div id="messages-message-sim-information-tmpl" class="hide">
+      <!--
+      <span class="message-sim-information"
+        data-l10n-id="sim-id-label"
+        data-l10n-args="${simNumberL10nArgs}">
+      </span>
       -->
     </div>
 
