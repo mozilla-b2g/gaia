@@ -659,7 +659,7 @@ Calendar.ns('Views').DayBased = (function() {
     animatedScroll: function(scrollTop) {
       var scroll = this.element.querySelectorAll('.day-events-wrapper')[0];
       var content = scroll.querySelector('.day-events');
-      var SPEED = 1000;
+      var SPEED = 500;
       var scrollTo = scroll.scrollTop - scrollTop;
       var seconds = Math.abs(scrollTo) / SPEED;
 
