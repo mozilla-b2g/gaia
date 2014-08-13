@@ -156,7 +156,7 @@ span.line-break {
 .thumbnail {
   border-top: 0.1rem solid;
   border-color:rgba(255,255,255, 0.1);
-  margin: 0 2rem 0 0;
+  margin: 0;
   height: 12rem;
   overflow: hidden;
   position: relative;
@@ -181,6 +181,13 @@ span.line-break {
  */
 .thumbnail:active div {
   opacity: 0.85;
+}
+
+/*
+ * And make all the text color to white while selection
+ */
+.thumbnail:active span {
+  color: #FFF;
 }
 
 /*
