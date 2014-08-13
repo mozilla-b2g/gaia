@@ -395,19 +395,16 @@ var CallLog = {
   //      <input value="1369695600000-6136112351-dialing" type="checkbox">
   //      <span></span>
   //    </label>
-  //    <aside class="pack-end">
-  //      <span data-type="img" class="call-log-contact-photo">
-  //    </aside>
   //    <a role="presentation">
   //      <aside class="icon call-type-icon icon icon-outgoing">
   //      </aside>
   //      <p class="primary-info">
   //        <span class="primary-info-main">David R. Chichester</span>
-  //      </p>
-  //      <p class="call-additional-info">Mobile, O2</p>
-  //      <p>
-  //        <span class="call-time">9:59 AM </span>
   //        <span class="retry-count">(1)</span>
+  //      </p>
+  //      <p aria-hidden="true" class="additional-info">
+  //        <span class="type-carrier">Mobile, O2</span>
+  //        <span class="call-time">9:59 AM</span>
   //      </p>
   //    </a>
   // </li>
@@ -464,19 +461,6 @@ var CallLog = {
     label.appendChild(input);
     label.appendChild(span);
 
-    var aside = document.createElement('aside');
-    aside.className = 'pack-end';
-    var img = document.createElement('span');
-    img.dataset.type = 'img';
-    img.className = 'call-log-contact-photo';
-
-    if (contact && contact.photo) {
-      this.loadBackgroundImage(img, contact.photo);
-      groupDOM.classList.add('hasPhoto');
-    }
-
-    aside.appendChild(img);
-
     var main = document.createElement('a');
     main.setAttribute('role', 'presentation');
     var icon = document.createElement('aside');
@@ -493,7 +477,15 @@ var CallLog = {
       primInfoMain.textContent = number || this._('withheld-number');
     }
 
+    var retryCount = document.createElement('span');
+    retryCount.className = 'retry-count';
+
+    if (group.retryCount && group.retryCount > 1) {
+      retryCount.textContent = '(' + group.retryCount + ')';
+    }
+
     primInfo.appendChild(primInfoMain);
+    primInfo.appendChild(retryCount);
 
     var phoneNumberAdditionalInfo = '';
     var phoneNumberTypeLocalized = '';
@@ -505,38 +497,31 @@ var CallLog = {
       phoneNumberTypeLocalized =
         voicemail ? this._('voiceMail') :
           (emergency ? this._('emergencyNumber') : '');
+    } else {
+      phoneNumberAdditionalInfo = this._('unknown');
     }
 
-    var addInfo;
+    var addInfo = document.createElement('p');
+    addInfo.className = 'additional-info';
+    addInfo.setAttribute('aria-hidden', 'true');
+
+    var typeAndCarrier = document.createElement('span');
+    typeAndCarrier.className = 'type-carrier';
     if (phoneNumberAdditionalInfo && phoneNumberAdditionalInfo.length) {
-      addInfo = document.createElement('p');
-      addInfo.className = 'call-additional-info';
-      addInfo.textContent = phoneNumberAdditionalInfo;
+      typeAndCarrier.textContent = phoneNumberAdditionalInfo;
     }
+    addInfo.appendChild(typeAndCarrier);
 
-    var thirdInfo = document.createElement('p');
     var callTime = document.createElement('span');
     callTime.className = 'call-time';
     callTime.textContent = Utils.prettyDate(date) + ' ';
-    var retryCount = document.createElement('span');
-    retryCount.className = 'retry-count';
-
-    if (group.retryCount && group.retryCount > 1) {
-      retryCount.textContent = '(' + group.retryCount + ')';
-    }
-
-    thirdInfo.appendChild(callTime);
-    thirdInfo.appendChild(retryCount);
+    addInfo.appendChild(callTime);
 
     main.appendChild(icon);
     main.appendChild(primInfo);
-    if (addInfo) {
-      main.appendChild(addInfo);
-    }
-    main.appendChild(thirdInfo);
+    main.appendChild(addInfo);
 
-    if (addInfo && phoneNumberTypeLocalized &&
-        phoneNumberTypeLocalized.length) {
+    if (phoneNumberTypeLocalized && phoneNumberTypeLocalized.length) {
       primInfoMain.textContent = phoneNumberTypeLocalized;
       var primElem = primInfoMain.parentNode;
       var parent = primElem.parentNode;
@@ -544,7 +529,6 @@ var CallLog = {
     }
 
     groupDOM.appendChild(label);
-    groupDOM.appendChild(aside);
     groupDOM.appendChild(main);
 
     return groupDOM;
@@ -604,10 +588,11 @@ var CallLog = {
     var cont = this.callLogContainer;
     var inputs = cont.querySelectorAll('input[type="checkbox"]');
     var logItems = cont.querySelectorAll('.log-item');
-    for (var i = 0, l = inputs.length; i < l; i++) {
+    var i, l;
+    for (i = 0, l = inputs.length; i < l; i++) {
       inputs[i].checked = false;
     }
-    for (var i = 0, l = logItems.length; i < l; i++) {
+    for (i = 0, l = logItems.length; i < l; i++) {
       logItems[i].setAttribute('aria-selected', false);
     }
   },
@@ -951,26 +936,14 @@ var CallLog = {
   updateContactInfo: function cl_updateContactInfo(element, contact,
                                                    matchingTel) {
     var primInfoCont = element.getElementsByClassName('primary-info-main')[0];
-    var contactPhoto = element.querySelector('.call-log-contact-photo');
-    var addInfo = element.getElementsByClassName('call-additional-info');
-    var addInfoCont;
-    if (addInfo && addInfo[0]) {
-      addInfoCont = addInfo[0];
-    } else {
-      addInfoCont = document.createElement('p');
-      addInfoCont.className = 'call-additional-info';
-      var primElem = primInfoCont.parentNode;
-      var parent = primElem.parentNode;
-      parent.insertBefore(addInfoCont, primElem.nextElementSibling);
-    }
+    var addInfo = element.getElementsByClassName('additional-info')[0];
+    var typeAndCarrier = addInfo.querySelector('.type-carrier');
 
     if (!matchingTel) {
       if (element.dataset.contactId) {
         // Remove contact info.
         primInfoCont.textContent = element.dataset.phoneNumber;
-        addInfoCont.textContent = '';
-        this.unloadBackgroundImage(contactPhoto);
-        element.classList.remove('hasPhoto');
+        typeAndCarrier.textContent = '';
         delete element.dataset.contactId;
       }
       return;
@@ -982,48 +955,15 @@ var CallLog = {
       primInfoCont.textContent = primaryInfo;
     }
 
-    var photo = ContactPhotoHelper.getThumbnail(contact);
-    if (photo) {
-      this.loadBackgroundImage(contactPhoto, photo);
-      element.classList.add('hasPhoto');
-    } else {
-      this.unloadBackgroundImage(contactPhoto);
-      element.classList.remove('hasPhoto');
-    }
-
     var phoneNumberAdditionalInfo =
       Utils.getPhoneNumberAdditionalInfo(matchingTel);
     if (phoneNumberAdditionalInfo && phoneNumberAdditionalInfo.length) {
-      addInfoCont.textContent = phoneNumberAdditionalInfo;
+      typeAndCarrier.textContent = phoneNumberAdditionalInfo;
     }
 
     if (contact) {
       element.dataset.contactId = contact.id;
     }
-  },
-
-  loadBackgroundImage: function cl_loadBackgroundImage(element, url) {
-    var REVOKE_TIMEOUT = 60000;
-
-    if (typeof url === 'string') {
-      element.style.backgroundImage = 'url(' + url + ')';
-    } else if (url instanceof Blob) {
-      url = URL.createObjectURL(url);
-      element.style.backgroundImage = 'url(' + url + ')';
-
-      // Revoke the blob once it's ready. A 1 min timeout is added in order
-      // to avoid a race condition between the revoke an the assignment of
-      // the background image
-      var image = new Image();
-      image.src = url;
-      image.onload = image.onerror = function() {
-        setTimeout(URL.revokeObjectURL, REVOKE_TIMEOUT, image.src);
-      };
-    }
-  },
-
-  unloadBackgroundImage: function cl_unloadBackgroundImage(element) {
-    element.style.backgroundImage = '';
   },
 
   cleanNotifications: function cl_cleanNotifcations() {

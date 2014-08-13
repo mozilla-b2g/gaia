@@ -53,6 +53,22 @@ var Utils = {
     });
   },
 
+  _getPhoneNumberType: function ut_getPhoneNumberType(matchingTel) {
+    // In case that there is no stored type for this number, we default to
+    // "Mobile".
+    var type = matchingTel.type;
+    if (Array.isArray(type)) {
+      type = type[0];
+    }
+
+    var _ = navigator.mozL10n.get;
+
+    var result = type ? _(type) : _('mobile');
+    result = result ? result : type; // no translation found for this type
+
+    return result;
+  },
+
   /**
    * In case of a call linked to a contact, the additional information of the
    * phone number subject of the call consists in the type and carrier
@@ -68,29 +84,17 @@ var Utils = {
    */
   getPhoneNumberAdditionalInfo:
     function ut_getPhoneNumberAdditionalInfo(matchingTel) {
-    var number = matchingTel.number || matchingTel.value;
-    if (!number) {
-      return;
-    }
+    var result = this._getPhoneNumberType(matchingTel);
+
     var carrier = matchingTel.carrier;
-    // In case that there is no stored type for this number, we default to
-    // "Mobile".
-    var type = matchingTel.type;
-    if (Array.isArray(type)) {
-      type = type[0];
-    }
-
-    var _ = navigator.mozL10n.get;
-
-    var result = type ? _(type) : _('mobile');
-    result = result ? result : type; // no translation found for this type
-
     if (carrier) {
       result += ', ' + carrier;
-    } else {
-      result += ', ' + number;
     }
 
     return result;
+  },
+
+  getPhoneNumberAndType: function ut_getPhoneNumberAndType(matchingTel) {
+    return this._getPhoneNumberType(matchingTel) + ', ' + matchingTel.value;
   }
 };

@@ -263,9 +263,9 @@ suite('calls handler', function() {
       test('should show the contact information', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.equal(CallScreen.incomingNumber.textContent, 'test name');
-        assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
+        assert.isTrue(MockUtils.mCalledGetPhoneNumberAndType);
         assert.equal(CallScreen.incomingNumberAdditionalInfo.textContent,
-                     extraCall.id.number);
+                     'type, 12334');
       });
 
       test('should show the number of a unknown contact', function() {
@@ -274,7 +274,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.equal(CallScreen.incomingNumber.textContent,
                      extraCall.id.number);
-        assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
+        assert.isTrue(MockUtils.mCalledGetPhoneNumberAndType);
         assert.equal(CallScreen.incomingNumberAdditionalInfo.textContent, '');
       });
 

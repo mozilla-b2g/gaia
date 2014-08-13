@@ -273,7 +273,7 @@ var CallsHandler = (function callsHandler() {
           CallScreen.incomingInfo.classList.add('additionalInfo');
           CallScreen.incomingNumber.textContent = contact.name;
           CallScreen.incomingNumberAdditionalInfo.textContent =
-            Utils.getPhoneNumberAdditionalInfo(matchingTel);
+            Utils.getPhoneNumberAndType(matchingTel);
         } else {
           CallScreen.incomingNumber.textContent = number;
           CallScreen.incomingNumberAdditionalInfo.textContent = '';

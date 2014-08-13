@@ -201,7 +201,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
         });
       }
       self._cachedAdditionalInfo =
-        Utils.getPhoneNumberAdditionalInfo(matchingTel);
+        Utils.getPhoneNumberAndType(matchingTel);
       self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
       self.formatPhoneNumber('end');
       var photo = ContactPhotoHelper.getFullResolution(contact);

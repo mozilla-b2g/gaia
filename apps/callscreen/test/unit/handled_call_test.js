@@ -328,8 +328,8 @@ suite('dialer/handled_call', function() {
       assert.isTrue(MockUtils.mCalledGetPhoneNumberPrimaryInfo);
     });
 
-    test('additional contact info', function() {
-      assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
+    test('phone number and type', function() {
+      assert.isTrue(MockUtils.mCalledGetPhoneNumberAndType);
     });
 
     test('mute initially off', function() {
@@ -596,13 +596,7 @@ suite('dialer/handled_call', function() {
     test('check additional info updated', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall);
-      assert.equal(subject.additionalInfoNode.textContent, '888');
-    });
-
-    test('check without additional info', function() {
-      mockCall = new MockCall('999', 'incoming');
-      subject = new HandledCall(mockCall);
-      assert.equal('', subject.additionalInfoNode.textContent);
+      assert.equal(subject.additionalInfoNode.textContent, 'type, 888');
     });
 
     test('check switch-calls mode', function() {
@@ -650,14 +644,6 @@ suite('dialer/handled_call', function() {
           assert.isFalse(subject.node.classList.contains('additionalInfo'));
         });
       });
-    });
-
-    test('check restore additional info', function() {
-      mockCall = new MockCall('888', 'incoming');
-      subject = new HandledCall(mockCall);
-      subject.replaceAdditionalContactInfo('test additional info');
-      subject.restoreAdditionalContactInfo();
-      assert.equal(subject.additionalInfoNode.textContent, '888');
     });
   });
 
