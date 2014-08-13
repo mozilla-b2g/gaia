@@ -155,6 +155,10 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
     }
 
     function setTimezone() {
+      if (source === TIMEZONE_PREVIOUS_SETTING) {
+        onload && onload(getTZInfo(), true);
+        return;
+      }
       onchangeTZ(getTZInfo(), {
         'changedByUser': source === TIMEZONE_USER,
         'needsConfirmation': source !== TIMEZONE_USER &&
