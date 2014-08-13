@@ -14,7 +14,7 @@ var Search = require(
 var System = require('./lib/system');
 var Rocketbar = require('./lib/rocketbar');
 
-marionette('Rocketbar - Bookmark Web Result', function() {
+marionette('Browser Chrome - Bookmark Web Result', function() {
 
   var client = marionette.client({
     prefs: {
