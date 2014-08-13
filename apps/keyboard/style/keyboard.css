@@ -720,6 +720,35 @@ bubble above the key when you tap and hold. */
   right: 0;
 }
 
+/* Zhuyin */
+.zh-Hant-Zhuyin .keyboard-key:not(.special-key) > .visual-wrapper > .key-element {
+  font-size: 2rem;
+}
+
+.zh-Hant-Zhuyin .keyboard-row.row0 {
+  background-color: #636e71;
+}
+
+.zh-Hant-Zhuyin .keyboard-row.row1 {
+  background-color: #5e696c;
+}
+
+.zh-Hant-Zhuyin .keyboard-row.row2 {
+  background-color: #5b6668;
+}
+
+.zh-Hant-Zhuyin .keyboard-row.row3 {
+  background-color: #566063;
+}
+
+.zh-Hant-Zhuyin .keyboard-row.row4 {
+  background-color: #525b5e;
+}
+
+.zh-Hant-Zhuyin .keyboard-row.row4 > .keyboard-key > .visual-wrapper > .key-element {
+  border-right-color: #434b4d;
+}
+
 /* With symbols on the bottom */
 .keyboard-key.bottom-symbol > .visual-wrapper:after {
   content: '';
