@@ -2078,6 +2078,13 @@ if (!Error.captureStackTrace) {
   };
 }
 
+exports.gimmeStack = function() {
+  var obj = {};
+  Error.captureStackTrace(obj);
+  // pop off captureStackTrace and us.
+  return obj.stack.slice(2);
+}
+
 var SM_STACK_FORMAT = /^(.*)@(.+):(\d+)$/;
 
 // this is biased towards v8/chromium for now
@@ -2379,6 +2386,12 @@ define('rdcommon/log',
     $extransform,
     exports
   ) {
+
+var rawGimmeStack = $extransform.gimmeStack;
+var gimmeStack = function() {
+  // Slice off the logger calling us and ourselves.
+  return rawGimmeStack().slice(2);
+};
 
 /**
  * Per-thread/process sequence identifier to provide unambiguous ordering of
@@ -3152,13 +3165,14 @@ LoggestClassMaker.prototype = {
                         "participating in this test step!");
       if (this._resolved)
         throw new Error("Attempt to add expectations when already resolved!");
-
-      this._expectations.push([name, val]);
+      // If we are being told to ignore stuff this round, eat the expectation.
+      if (!this._ignore || !this._ignore[name])
+        this._expectations.push([name, gimmeStack(), val]);
       return this;
     };
     this.testActorProto['ignore_' + name] = makeIgnoreFunc(name);
     this.testActorProto['_verify_' + name] = function(exp, entry) {
-      return smartCompareEquiv(exp[1], entry[1], COMPARE_DEPTH);
+      return smartCompareEquiv(exp[2], entry[1], COMPARE_DEPTH);
     };
   },
   /**
@@ -3258,20 +3272,22 @@ LoggestClassMaker.prototype = {
       if (this._resolved)
         throw new Error("Attempt to add expectations when already resolved!");
 
-      var exp = [name];
+      var exp = [name, gimmeStack()];
       for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg] && useArgs[iArg] !== EXCEPTION) {
           exp.push(arguments[iArg]);
         }
       }
-      this._expectations.push(exp);
+      // If we are being told to ignore stuff this round, eat the expectation.
+      if (!this._ignore || !this._ignore[name])
+        this._expectations.push(exp);
       return this;
     };
     this.testActorProto['ignore_' + name] = makeIgnoreFunc(name);
     this.testActorProto['_verify_' + name] = function(tupe, entry) {
       // only check arguments we had expectations for.
-      for (var iArg = 1; iArg < tupe.length; iArg++) {
-        if (!smartCompareEquiv(tupe[iArg], entry[iArg], COMPARE_DEPTH))
+      for (var iArg = 2; iArg < tupe.length; iArg++) {
+        if (!smartCompareEquiv(tupe[iArg], entry[iArg - 1], COMPARE_DEPTH))
           return false;
       }
       return true;
@@ -3391,12 +3407,14 @@ LoggestClassMaker.prototype = {
       if (this._resolved)
         throw new Error("Attempt to add expectations when already resolved!");
 
-      var exp = [name_begin];
+      var exp = [name_begin, gimmeStack()];
       for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg] && useArgs[iArg] !== EXCEPTION)
           exp.push(arguments[iArg]);
       }
-      this._expectations.push(exp);
+      // If we are being told to ignore stuff this round, eat the expectation.
+      if (!this._ignore || !this._ignore[name_begin])
+        this._expectations.push(exp);
       return this;
     };
     this.testActorProto['ignore_' + name_begin] = makeIgnoreFunc(name_begin);
@@ -3408,20 +3426,22 @@ LoggestClassMaker.prototype = {
       if (this._resolved)
         throw new Error("Attempt to add expectations when already resolved!");
 
-      var exp = [name_end];
+      var exp = [name_end, gimmeStack()];
       for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg] && useArgs[iArg] !== EXCEPTION)
           exp.push(arguments[iArg]);
       }
-      this._expectations.push(exp);
+      // If we are being told to ignore stuff this round, eat the expectation.
+      if (!this._ignore || !this._ignore[name_end])
+        this._expectations.push(exp);
       return this;
     };
     this.testActorProto['ignore_' + name_end] = makeIgnoreFunc(name_end);
     this.testActorProto['_verify_' + name_begin] =
         this.testActorProto['_verify_' + name_end] = function(tupe, entry) {
       // only check arguments we had expectations for.
-      for (var iArg = 1; iArg < tupe.length; iArg++) {
-        if (!smartCompareEquiv(tupe[iArg], entry[iArg], COMPARE_DEPTH))
+      for (var iArg = 2; iArg < tupe.length; iArg++) {
+        if (!smartCompareEquiv(tupe[iArg], entry[iArg - 1], COMPARE_DEPTH))
           return false;
       }
       return true;
@@ -3563,12 +3583,14 @@ LoggestClassMaker.prototype = {
       if (this._resolved)
         throw new Error("Attempt to add expectations when already resolved!");
 
-      var exp = [name];
+      var exp = [name, gimmeStack()];
       for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg])
           exp.push(arguments[iArg]);
       }
-      this._expectations.push(exp);
+      // If we are being told to ignore stuff this round, eat the expectation.
+      if (!this._ignore || !this._ignore[name])
+        this._expectations.push(exp);
       return this;
     };
     this.testActorProto['ignore_' + name] = makeIgnoreFunc(name);
@@ -3578,8 +3600,8 @@ LoggestClassMaker.prototype = {
         return false;
       }
       // only check arguments we had expectations for.
-      for (var iArg = 1; iArg < tupe.length; iArg++) {
-        if (!smartCompareEquiv(tupe[iArg], entry[iArg], COMPARE_DEPTH))
+      for (var iArg = 2; iArg < tupe.length; iArg++) {
+        if (!smartCompareEquiv(tupe[iArg], entry[iArg - 1], COMPARE_DEPTH))
           return false;
       }
       return true;
@@ -3630,14 +3652,16 @@ LoggestClassMaker.prototype = {
         if (useArgs[iArg] && useArgs[iArg] !== EXCEPTION)
           exp.push(arguments[iArg]);
       }
-      this._expectations.push(exp);
+      // If we are being told to ignore stuff this round, eat the expectation.
+      if (!this._ignore || !this._ignore[name])
+        this._expectations.push(exp);
       return this;
     };
     this.testActorProto['ignore_' + name] = makeIgnoreFunc(name);
     this.testActorProto['_verify_' + name] = function(tupe, entry) {
       // only check arguments we had expectations for.
-      for (var iArg = 1; iArg < tupe.length; iArg++) {
-        if (!smartCompareEquiv(tupe[iArg], entry[iArg], COMPARE_DEPTH))
+      for (var iArg = 2; iArg < tupe.length; iArg++) {
+        if (!smartCompareEquiv(tupe[iArg], entry[iArg - 1], COMPARE_DEPTH))
           return false;
       }
       return true;
@@ -3853,7 +3877,7 @@ exports.register = function register(mod, defs) {
  * Provide schemas for every logger that has been registered.
  */
 exports.provideSchemaForAllKnownFabs = function schemaForAllKnownFabs() {
-  var schema = {};
+  var schema = { $v: 2 };
   for (var i = 0; i < ALL_KNOWN_FABS.length; i++) {
     var rawDefs = ALL_KNOWN_FABS[i]._rawDefs;
     for (var key in rawDefs) {
@@ -3899,6 +3923,42 @@ exports.DEBUG_markAllFabsUnderTest = function() {
     logfab._underTest = BogusTester;
   }
 };
+
+/**
+ * For EXTREME debugging similar to DEBUG_markAllFabsUnderTest; log entries are
+ * both:
+ * 1) Passed to dumpFunc as they are logged so we get the logs in the "adb
+ *    logcat" output.
+ * 2) Retained so you better have hooked up circular logging or you better have
+ *    infinite memory.
+ *
+ * @param {Function} dumpFunc
+ *   This should resemble the standard mozilla dump() func wherein we must
+ *   provide newlines.  (And we definitely will provide them.)
+ */
+exports.DEBUG_realtimeLogEverything = function(dumpFunc) {
+  var EverythingTester = {
+    reportNewLogger: function(logger, parentLogger) {
+      logger._actor = {
+        __loggerFired: function() {
+          // Destructively pop it off the end of the list; inductively this
+          // should always be index 0, but you never know!
+          var entry = logger._entries.pop();
+          // Let's look like: LoggerType(semanticIdent)["name", ...]
+          dumpFunc(logger.__defName + '(' + logger._ident + ')' +
+                   JSON.stringify(entry) + '\n');
+        }
+      };
+    }
+  };
+  UNDER_TEST_DEFAULT = EverythingTester;
+  for (var i = 0; i < ALL_KNOWN_FABS.length; i++) {
+    var logfab = ALL_KNOWN_FABS[i];
+
+    logfab._underTest = EverythingTester;
+  }
+};
+
 
 /**
  * Evolutionary stopgap debugging helper to be able to put a module/logfab into
@@ -4447,7 +4507,10 @@ exports.latch = function() {
         throw err;
       }
       resolved = true;
-      if (name) {
+      // 'name' might be the integer zero (among other integers) if
+      // the callee is doing array processing, so we pass anything not
+      // equalling null and undefined, even the poor falsey zero.
+      if (name != null) {
         results[name] = Array.slice(arguments);
       }
       if (--count === 0) {
@@ -5041,8 +5104,11 @@ exports.DEFAULT_CHECK_INTERVAL_ENUM = 'manual';
 exports.STALE_CONNECTION_TIMEOUT_MS = 30000;
 
 /**
- * Kill any open IMAP connections if there are no jobs pending and
- * there are no slices open. This flag is mainly just for unit test sanity.
+ * Kill any open IMAP connections if there are no jobs pending and there are no
+ * slices open. This flag is mainly just for unit test sanity because 1) most
+ * tests were written before this flag existed and 2) most tests don't care.
+ * This gets disabled by default in testing; tests that care should turn this
+ * back on.
  */
 exports.KILL_CONNECTIONS_WHEN_JOBLESS = true;
 
@@ -5065,6 +5131,51 @@ exports.SYNC_RANGE_ENUMS_TO_MS = {
    'all': 30 * 365 * DAY_MILLIS,
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// Cronsync/periodic sync stuff
+
+/**
+ * Caps the number of quas-headers we report to the front-end via cronsync
+ * completion notifications (per-account).  We report the newest headers from
+ * each sync.
+ *
+ * The value 5 was arbitrarily chosen, but per :jrburke, the current (hamachi,
+ * flame) phone devices in portrait orientation "can fit about three unique
+ * names in a grouped notification", so 5 still seems like a pretty good value.
+ * This may want to change on landscape devices or devices with more screen
+ * real-estate, like tablets.
+ */
+exports.CRONSYNC_MAX_MESSAGES_TO_REPORT_PER_ACCOUNT = 5;
+
+/**
+ * Caps the number of snippets we are willing to fetch as part of each cronsync
+ * for each account.  We fetch snippets for the newest headers.
+ *
+ * The primary factors here are:
+ * - Latency of sync reporting.  Right now, snippet fetches will defer the
+ *   cronsync completion notification.
+ * - Optimizing UX by having the snippets already available when the user goes
+ *   to view the message list, at least the top of the message list.  An
+ *   interacting factor is how good the UI is at requesting snippets in
+ *   advance of messages being displayed on the screen.
+ *
+ * The initial/current value of 5 was chosen because a Hamachi device could
+ * show 5 messages on the screen at a time.  On fancier devices like the flame,
+ * this is still approximately right; about 5.5 messages are visible on 2.0,
+ * with the snippet part for the last one not displayed.
+ */
+exports.CRONSYNC_MAX_SNIPPETS_TO_FETCH_PER_ACCOUNT = 5;
+
+/**
+ * What's the largest portion of a message's body content to fetch in order
+ * to generate a snippet?
+ *
+ * The 4k value is chosen to match the Gaia mail app's use of 4k in its
+ * snippet fetchin as we scroll.  Arguably that choice should be superseded
+ * by this constant in the future.
+ * TODO: make front-end stop specifying snippet size.
+ */
+exports.MAX_SNIPPET_BYTES = 4 * 1024;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Unit test support
@@ -15544,6 +15655,8 @@ exports.saveAccountState = function(reuseTrans, callback, reason) {
     return null;
   }
 
+  this._LOG.saveAccountState_begin(reason, null);
+
   // Indicate save is active, in case something, like
   // signaling the end of a sync, needs to run after
   // a save, via runAfterSaves.
@@ -15563,12 +15676,13 @@ exports.saveAccountState = function(reuseTrans, callback, reason) {
     if (folderStuff)
       perFolderStuff.push(folderStuff);
   }
-  this._LOG.saveAccountState(reason);
+  var folderSaveCount = perFolderStuff.length;
   var trans = this._db.saveAccountFolderStates(
     this.id, this._folderInfos, perFolderStuff,
     this._deadFolderIds,
     function stateSaved() {
       this._saveAccountStateActive = false;
+      this._LOG.saveAccountState_end(reason, folderSaveCount);
 
       // NB: we used to log when the save completed, but it ended up being
       // annoying to the unit tests since we don't block our actions on
@@ -15581,6 +15695,8 @@ exports.saveAccountState = function(reuseTrans, callback, reason) {
       });
     }.bind(this),
     reuseTrans);
+  // Reduce the length of time perFolderStuff and its contents are kept alive.
+  perFolderStuff = null;
   this._deadFolderIds = null;
   return trans;
 };
@@ -16585,6 +16701,24 @@ define('mailapi/slice_bridge_proxy',
     exports
   ) {
 
+/**
+ * The abstraction for back-end slices to talk to front-end slices.
+ *
+ * Consolidates communication which allows us to provide transparent batching
+ * to our multiple varieties of slices as well as allowing for us to be hacked
+ * up to not actually send anything anywhere.
+ *
+ * The types of slices we support are:
+ * - The main `MailSlice` implementation in mailslice.js
+ * - The filtering `SearchSlice` implementation in searchfilter.js
+ * - The cronsync.js use-case that uses us to be able to hook up a normal
+ *   `MailSlice` without there actually being anything to listen to what it
+ *   says.  It gives us a minimal/fake MailBridge that has a no-op
+ *   __sendMessage.
+ *
+ * If you change this class, you want to make sure you've considered those
+ * slices and their tests too.
+ */
 function SliceBridgeProxy(bridge, ns, handle) {
   this._bridge = bridge;
   this._ns = ns;
@@ -18255,6 +18389,7 @@ define('mailapi/cronsync',
     './worker-router',
     './slice_bridge_proxy',
     './mailslice',
+    './syncbase',
     'prim',
     'module',
     'exports'
@@ -18264,33 +18399,12 @@ define('mailapi/cronsync',
     $router,
     $sliceBridgeProxy,
     $mailslice,
+    $syncbase,
     $prim,
     $module,
     exports
   ) {
 
-
-/**
- * Sanity demands we do not check more frequently than once a minute.
- */
-var MINIMUM_SYNC_INTERVAL_MS = 60 * 1000;
-
-/**
- * How long should we let a synchronization run before we give up on it and
- * potentially try and kill it (if we can)?
- */
-var MAX_SYNC_DURATION_MS = 3 * 60 * 1000;
-
-/**
- * Caps the number of notifications we generate per account.  It would be
- * sitcom funny to let this grow without bound, but would end badly in reality.
- */
-var MAX_MESSAGES_TO_REPORT_PER_ACCOUNT = 5;
-
-/**
- * How much body snippet to save. Chose a value to match the front end
- */
-var MAX_SNIPPET_BYTES = 4 * 1024;
 
 function debug(str) {
   console.log("cronsync: " + str + "\n");
@@ -18298,12 +18412,53 @@ function debug(str) {
 
 var SliceBridgeProxy = $sliceBridgeProxy.SliceBridgeProxy;
 
-function makeSlice(storage, callback, parentLog) {
-  var proxy = new SliceBridgeProxy({
+/**
+ * Create a specialized sync slice via clobbering that accumulates a list of
+ * new headers and invokes a callback when the sync has fully completed.
+ *
+ * Fully completed includes:
+ * - The account update has been fully saved to disk.
+ *
+ * New header semantics are:
+ * - Header is as new or newer than the newest header we previously knew about.
+ *   Specifically we're using SINCE which is >=, so a message that arrived at
+ *   the same second as the other message still counts as new.  Because the new
+ *   message will inherently have a higher id than the other message, this
+ *   meets with our other ordering semantics, although I'm thinking it wasn't
+ *   totally intentional.
+ * - Header is unread.  (AKA Not \Seen)
+ *
+ * "Clobbering" in this case means this is a little hacky.  What we do is:
+ * - Take a normal slice and hook it up to a normal SliceBridgeProxy, but
+ *   give the proxy a fake bridge that never sends any data anywhere.  This
+ *   is reasonably future-proof/safe.
+ *
+ * - Put an onNewHeader method on the slice to accumulate the new headers.
+ *   The new headers are all we care about.  The rest of the headers loaded/etc.
+ *   are boring to us and do not matter.  However, there's relatively little
+ *   memory or CPU overhead to letting that stuff get populated/retained since
+ *   it's in memory already anyways and at worst we're only delaying the GC by
+ *   a little bit.  (This is not to say there aren't pathological situations
+ *   possible, but they'd be largely the same if the user triggered the sync.
+ *   The main difference cronsync currently will definitely not shrink the
+ *   slice.
+ *
+ * - Clobber proy.sendStatus to know when the sync has completed via the
+ *   same signal the front-end uses to know when the sync is over.
+ *
+ * You as the caller need to:
+ * - Make sure to kill the slice in a timely fashion after we invoke the
+ *   callback.  Since killing the slice can result in the connection immediately
+ *   being closed, you want to make sure that if you're doing anything like
+ *   scheduling snippet downloads that you do that first.
+ */
+function makeHackedUpSlice(storage, callback, parentLog) {
+  var fakeBridgeThatEatsStuff = {
         __sendMessage: function() {}
-      }, 'cron'),
+      },
+      proxy = new SliceBridgeProxy(fakeBridgeThatEatsStuff, 'cron'),
       slice = new $mailslice.MailSlice(proxy, storage, parentLog),
-      oldStatus = proxy.sendStatus,
+      oldStatusMethod = proxy.sendStatus,
       newHeaders = [];
 
   slice.onNewHeader = function(header) {
@@ -18313,10 +18468,34 @@ function makeSlice(storage, callback, parentLog) {
 
   proxy.sendStatus = function(status, requested, moreExpected,
                               progress, newEmailCount) {
-    oldStatus.apply(this, arguments);
-    if (requested && !moreExpected && callback) {
-      callback(newHeaders);
-      slice.die();
+    // (maintain normal behaviour)
+    oldStatusMethod.apply(this, arguments);
+
+    // We do not want to declare victory until the sync process has fully
+    // completed which (significantly!) includes waiting for the save to have
+    // completed.
+    // (Only fire completion once.)
+    if (callback) {
+      switch (status) {
+        // normal success and failure
+        case 'synced':
+        case 'syncfailed':
+        // ActiveSync specific edge-case where syncFolderList has not yet
+        // completed.  If the slice is still alive when syncFolderList completes
+        // the slice will auto-refresh itself.  We don't want or need this,
+        // which is fine since we kill the slice in the callback.
+        case 'syncblocked':
+          try {
+            callback(newHeaders);
+          }
+          catch (ex) {
+            console.error('cronsync callback error:', ex, '\n', ex.stack);
+            callback = null;
+            throw ex;
+          }
+          callback = null;
+          break;
+      }
     }
   };
 
@@ -18324,18 +18503,11 @@ function makeSlice(storage, callback, parentLog) {
 }
 
 /**
- * Creates the cronsync instance. Does not do any actions on creation.
- * It waits for a router message or a universe call to start the work.
+ * The brains behind periodic account synchronization; only created by the
+ * universe once it has loaded its configuration and accounts.
  */
 function CronSync(universe, _logParent) {
   this._universe = universe;
-  this._universeDeferred = {};
-  this._isUniverseReady = false;
-
-  this._universeDeferred.promise = $prim(function (resolve, reject) {
-    this._universeDeferred.resolve = resolve;
-    this._universeDeferred.reject = reject;
-  }.bind(this));
 
   this._LOG = LOGFAB.CronSync(this, null, _logParent);
 
@@ -18343,6 +18515,13 @@ function CronSync(universe, _logParent) {
 
   this._completedEnsureSync = true;
   this._syncAccountsDone = true;
+
+  // An internal callback to invoke when it looks like sync has completed.  This
+  // can also be thought of as a boolean indicator that we're actually
+  // performing a cronsync as opposed to just in a paranoia-call to ensureSync.
+  // TODO: Use a promises flow or otherwise alter control flow so that ensureSync
+  // doesn't end up in _checkSyncDone with ambiguity about what is going on.
+  this._onSyncDone = null;
 
   this._synced = [];
 
@@ -18360,24 +18539,17 @@ function CronSync(universe, _logParent) {
     }
   }.bind(this));
   this.sendCronSync('hello');
+
+  this.ensureSync();
 }
 
 exports.CronSync = CronSync;
 CronSync.prototype = {
   _killSlices: function() {
+    this._LOG.killSlices(this._activeSlices.length);
     this._activeSlices.forEach(function(slice) {
       slice.die();
     });
-  },
-
-  onUniverseReady: function() {
-    this._universeDeferred.resolve();
-
-    this.ensureSync();
-  },
-
-  whenUniverse: function(fn) {
-    this._universeDeferred.promise.then(fn);
   },
 
   /**
@@ -18390,29 +18562,28 @@ CronSync.prototype = {
     if (!this._completedEnsureSync)
       return;
 
+    this._LOG.ensureSync_begin();
     this._completedEnsureSync = false;
 
     debug('ensureSync called');
 
-    this.whenUniverse(function() {
-      var accounts = this._universe.accounts,
-          syncData = {};
+    var accounts = this._universe.accounts,
+        syncData = {};
 
-      accounts.forEach(function(account) {
-        // Store data by interval, use a more obvious string
-        // key instead of just stringifying a number, which
-        // could be confused with an array construct.
-        var interval = account.accountDef.syncInterval,
-            intervalKey = 'interval' + interval;
+    accounts.forEach(function(account) {
+      // Store data by interval, use a more obvious string
+      // key instead of just stringifying a number, which
+      // could be confused with an array construct.
+      var interval = account.accountDef.syncInterval,
+          intervalKey = 'interval' + interval;
 
-        if (!syncData.hasOwnProperty(intervalKey)) {
-          syncData[intervalKey] = [];
-        }
-        syncData[intervalKey].push(account.id);
-      });
+      if (!syncData.hasOwnProperty(intervalKey)) {
+        syncData[intervalKey] = [];
+      }
+      syncData[intervalKey].push(account.id);
+    });
 
-      this.sendCronSync('ensureSync', [syncData]);
-    }.bind(this));
+    this.sendCronSync('ensureSync', [syncData]);
   },
 
   /**
@@ -18434,6 +18605,7 @@ CronSync.prototype = {
     if (!this._universe.online || !account.enabled) {
       debug('syncAcount early exit: online: ' +
             this._universe.online + ', enabled: ' + account.enabled);
+      this._LOG.syncSkipped(account.id);
       doneCallback();
       return;
     }
@@ -18460,9 +18632,10 @@ CronSync.prototype = {
 
     // - Initiate a sync of the folder covering the desired time range.
     this._LOG.syncAccount_begin(account.id);
+    this._LOG.syncAccountHeaders_begin(account.id, null);
 
-    var slice = makeSlice(storage, function(newHeaders) {
-      this._LOG.syncAccount_end(account.id);
+    var slice = makeHackedUpSlice(storage, function(newHeaders) {
+      this._LOG.syncAccountHeaders_end(account.id, newHeaders);
       this._activeSlices.splice(this._activeSlices.indexOf(slice), 1);
 
       // Reduce headers to the minimum number and data set needed for
@@ -18477,28 +18650,45 @@ CronSync.prototype = {
           messageSuid: header.suid
         });
 
-        if (i === MAX_MESSAGES_TO_REPORT_PER_ACCOUNT - 1)
+        if (i === $syncbase.CRONSYNC_MAX_MESSAGES_TO_REPORT_PER_ACCOUNT - 1)
           return true;
       });
 
       if (newHeaders.length) {
         debug('Asking for snippets for ' + notifyHeaders.length + ' headers');
-        if (this._universe.online){
+        // POP3 downloads snippets as part of the sync process, there is no
+        // need to call downloadBodies.
+        if (account.accountDef.type === 'pop3+smtp') {
+          this._LOG.syncAccount_end(account.id);
+          done([newHeaders.length, notifyHeaders]);
+        } else if (this._universe.online) {
+          this._LOG.syncAccountSnippets_begin(account.id);
           this._universe.downloadBodies(
-            newHeaders.slice(0, MAX_MESSAGES_TO_REPORT_PER_ACCOUNT), {
-              maximumBytesToFetch: MAX_SNIPPET_BYTES
-            }, function() {
+            newHeaders.slice(
+              0, $syncbase.CRONSYNC_MAX_SNIPPETS_TO_FETCH_PER_ACCOUNT),
+            {
+              maximumBytesToFetch: $syncbase.MAX_SNIPPET_BYTES
+            },
+            function() {
               debug('Notifying for ' + newHeaders.length + ' headers');
+              this._LOG.syncAccountSnippets_end(account.id);
+              this._LOG.syncAccount_end(account.id);
               done([newHeaders.length, notifyHeaders]);
-          }.bind(this));
+            }.bind(this));
         } else {
+          this._LOG.syncAccount_end(account.id);
           debug('UNIVERSE OFFLINE. Notifying for ' + newHeaders.length +
                 ' headers');
           done([newHeaders.length, notifyHeaders]);
         }
       } else {
+        this._LOG.syncAccount_end(account.id);
         done();
       }
+
+      // Kill the slice.  This will release the connection and result in its
+      // death if we didn't schedule snippet downloads above.
+      slice.die();
     }.bind(this), this._LOG);
 
     this._activeSlices.push(slice);
@@ -18507,88 +18697,91 @@ CronSync.prototype = {
   },
 
   onAlarm: function(accountIds) {
-    this.whenUniverse(function() {
-      this._LOG.alarmFired();
+    this._LOG.alarmFired(accountIds);
 
-      if (!accountIds)
+    if (!accountIds)
+      return;
+
+    var accounts = this._universe.accounts,
+        targetAccounts = [],
+        ids = [];
+
+    this._cronsyncing = true;
+    this._LOG.cronSync_begin();
+    this._universe.__notifyStartedCronSync(accountIds);
+
+    // Make sure the acount IDs are still valid. This is to protect agains
+    // an account deletion that did not clean up any alarms correctly.
+    accountIds.forEach(function(id) {
+      accounts.some(function(account) {
+        if (account.id === id) {
+          targetAccounts.push(account);
+          ids.push(id);
+          return true;
+        }
+      });
+    });
+
+    // Flip switch to say account syncing is in progress.
+    this._syncAccountsDone = false;
+
+    // Make sure next alarm is set up. In the case of a cold start
+    // background sync, this is a bit redundant in that the startup
+    // of the mailuniverse would trigger this work. However, if the
+    // app is already running, need to be sure next alarm is set up,
+    // so ensure the next sync is set up here. Do it here instead of
+    // after a sync in case an error in sync would prevent the next
+    // sync from getting scheduled.
+    this.ensureSync();
+
+    var syncMax = targetAccounts.length,
+        syncCount = 0,
+        accountsResults = {
+          accountIds: accountIds
+        };
+
+    var done = function() {
+      syncCount += 1;
+      if (syncCount < syncMax)
         return;
 
-      var accounts = this._universe.accounts,
-          targetAccounts = [],
-          ids = [];
+      // Kill off any slices that still exist from the last sync.
+      this._killSlices();
 
-      this._universe.__notifyStartedCronSync(accountIds);
+      // Wrap up the sync
+      this._syncAccountsDone = true;
+      this._onSyncDone = function() {
+        if (this._synced.length) {
+          accountsResults.updates = this._synced;
+          this._synced = [];
+        }
 
-      // Make sure the acount IDs are still valid. This is to protect agains
-      // an account deletion that did not clean up any alarms correctly.
-      accountIds.forEach(function(id) {
-        accounts.some(function(account) {
-          if (account.id === id) {
-            targetAccounts.push(account);
-            ids.push(id);
-            return true;
-          }
-        });
-      });
-
-      // Flip switch to say account syncing is in progress.
-      this._syncAccountsDone = false;
-
-      // Make sure next alarm is set up. In the case of a cold start
-      // background sync, this is a bit redundant in that the startup
-      // of the mailuniverse would trigger this work. However, if the
-      // app is already running, need to be sure next alarm is set up,
-      // so ensure the next sync is set up here. Do it here instead of
-      // after a sync in case an error in sync would prevent the next
-      // sync from getting scheduled.
-      this.ensureSync();
-
-      var syncMax = targetAccounts.length,
-          syncCount = 0,
-          accountsResults = {
-            accountIds: accountIds
-          };
-
-      var done = function() {
-        syncCount += 1;
-        if (syncCount < syncMax)
-          return;
-
-        // Kill off any slices that still exist from the last sync.
-        this._killSlices();
-
-        // Wrap up the sync
-        this._syncAccountsDone = true;
-        this._onSyncDone = function() {
-          if (this._synced.length) {
-            accountsResults.updates = this._synced;
-            this._synced = [];
-          }
-
-          this._universe.__notifyStoppedCronSync(accountsResults);
-        }.bind(this);
-
-        this._checkSyncDone();
+        this._universe.__notifyStoppedCronSync(accountsResults);
+        this._LOG.syncAccounts_end(accountsResults);
       }.bind(this);
 
-      // Nothing new to sync, probably old accounts. Just return and indicate
-      // that syncing is done.
-      if (!ids.length) {
-        return done();
-      }
+      this._checkSyncDone();
+    }.bind(this);
 
-      targetAccounts.forEach(function(account) {
-        this.syncAccount(account, function (result) {
-          if (result) {
-            this._synced.push({
-              id: account.id,
-              address: account.identities[0].address,
-              count: result[0],
-              latestMessageInfos: result[1]
-            });
-          }
-          done();
-        }.bind(this));
+    // Nothing new to sync, probably old accounts. Just return and indicate
+    // that syncing is done.
+    if (!ids.length) {
+      done();
+      return;
+    }
+
+    this._LOG.syncAccounts_begin();
+    targetAccounts.forEach(function(account) {
+      this.syncAccount(account, function (result) {
+        if (result) {
+          this._synced.push({
+            id: account.id,
+            address: account.identities[0].address,
+            count: result[0],
+            latestMessageInfos: result[1]
+          });
+        }
+        done();
       }.bind(this));
     }.bind(this));
   },
@@ -18602,9 +18795,12 @@ CronSync.prototype = {
     if (!this._completedEnsureSync || !this._syncAccountsDone)
       return;
 
+    // _onSyncDone implies this was a cronsync, !_onSyncDone implies just an
+    // ensureSync.  See comments in the constructor.
     if (this._onSyncDone) {
       this._onSyncDone();
       this._onSyncDone = null;
+      this._LOG.cronSync_end();
     }
   },
 
@@ -18617,6 +18813,7 @@ CronSync.prototype = {
    */
   onSyncEnsured: function() {
     this._completedEnsureSync = true;
+    this._LOG.ensureSync_end();
     this._checkSyncDone();
   },
 
@@ -18630,12 +18827,27 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
   CronSync: {
     type: $log.DAEMON,
     events: {
-      alarmFired: {},
+      alarmFired: { accountIds: false },
+      killSlices: { count: false },
+      syncSkipped: { id: true },
     },
     TEST_ONLY_events: {
     },
     asyncJobs: {
-      syncAccount: { id: false },
+      cronSync: {},
+      ensureSync: {},
+      syncAccounts: { accountsResults: false },
+      syncAccount: { id: true },
+      // The actual slice refresh, leads to syncAccountSnippets if there were
+      // any new headers
+      syncAccountHeaders: { id: true, newHeaders: false },
+      // If we have new headers we will fetch snippets.  This starts when we
+      // issue the request and stops when we get our callback, meaning there
+      // will be an entirely contained downloadBodies job-op.
+      syncAccountSnippets: { id: true },
+      sendOutbox: { id: true },
+    },
+    TEST_ONLY_asyncJobs: {
     },
     errors: {
     },
@@ -19211,7 +19423,9 @@ Autoconfigurator.prototype = {
 
     console.log('  Looking in GELAM');
     if (autoconfigByDomain.hasOwnProperty(domain)) {
-      onComplete(null, autoconfigByDomain[domain]);
+      // These need to be roundtripped through JSON.stringify/parse since
+      // the placeholder logic is mutating/destructive.
+      onComplete(null, JSON.parse(JSON.stringify(autoconfigByDomain[domain])));
       return;
     }
 
@@ -19343,6 +19557,7 @@ define('mailapi/mailuniverse',
     './maildb',
     './cronsync',
     './accountcommon',
+    './allback',
     'module',
     'exports'
   ],
@@ -19356,6 +19571,7 @@ define('mailapi/mailuniverse',
     $maildb,
     $cronsync,
     $acctcommon,
+    $allback,
     $module,
     exports
   ) {
@@ -19701,12 +19917,25 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
 
   this._LOG = null;
   this._db = new $maildb.MailDB(testOptions);
-  this._cronSync = new $cronsync.CronSync(this);
+  this._cronSync = null;
   var self = this;
   this._db.getConfig(function(configObj, accountInfos, lazyCarryover) {
     function setupLogging(config) {
-      if (self.config.debugLogging) {
-        if (self.config.debugLogging !== 'dangerous') {
+       if (self.config.debugLogging) {
+        if (self.config.debugLogging === 'realtime-dangerous') {
+          console.warn('!!!');
+          console.warn('!!! REALTIME USER-DATA ENTRAINING LOGGING ENABLED !!!');
+          console.warn('!!!');
+          console.warn('You are about to see a lot of logs, as they happen!');
+          console.warn('They will also be circularly buffered for saving.');
+          console.warn('');
+          console.warn('These logs will contain SENSITIVE DATA.  The CONTENTS');
+          console.warn('OF EMAILS, maybe some PASSWORDS.  This was turned on');
+          console.warn('via the secret debug mode UI.  Use it to turn us off:');
+          console.warn('https://wiki.mozilla.org/Gaia/Email/SecretDebugMode');
+          $log.DEBUG_realtimeLogEverything(dump);
+        }
+        else if (self.config.debugLogging !== 'dangerous') {
           console.warn('GENERAL LOGGING ENABLED!');
           console.warn('(CIRCULAR EVENT LOGGING WITH NON-SENSITIVE DATA)');
           $log.enableGeneralLogging();
@@ -19718,6 +19947,9 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
           console.warn('This means contents of e-mails and passwords if you');
           console.warn('set up a new account.  (The IMAP protocol sanitizes');
           console.warn('passwords, but the bridge logger may not.)');
+          console.warn('');
+          console.warn('If you forget how to turn us off, see:');
+          console.warn('https://wiki.mozilla.org/Gaia/Email/SecretDebugMode');
           console.warn('...................................................');
           $log.DEBUG_markAllFabsUnderTest();
         }
@@ -19773,20 +20005,28 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
 
       // - Try to re-create any accounts using old account infos.
       if (lazyCarryover) {
-        self._LOG.configMigrating(lazyCarryover);
+        this._LOG.configMigrating_begin(lazyCarryover);
         var waitingCount = lazyCarryover.accountInfos.length;
         var oldVersion = lazyCarryover.oldVersion;
+
+        var accountRecreated = function(accountInfo, err) {
+          this._LOG.recreateAccount_end(accountInfo.type, accountInfo.id, err);
+          // We don't care how they turn out, just that they get a chance
+          // to run to completion before we call our bootstrap complete.
+          if (--waitingCount === 0) {
+            this._LOG.configMigrating_end(null);
+            this._initFromConfig();
+            callAfterBigBang();
+          }
+        };
+
         for (i = 0; i < lazyCarryover.accountInfos.length; i++) {
           var accountInfo = lazyCarryover.accountInfos[i];
-          $acctcommon.recreateAccount(self, oldVersion, accountInfo,
-                                      function() {
-            // We don't care how they turn out, just that they get a chance
-            // to run to completion before we call our bootstrap complete.
-            if (--waitingCount === 0) {
-              self._initFromConfig();
-              callAfterBigBang();
-            }
-          });
+          this._LOG.recreateAccount_begin(accountInfo.type, accountInfo.id,
+                                          null);
+          $acctcommon.recreateAccount(
+            self, oldVersion, accountInfo,
+            accountRecreated.bind(this, accountInfo));
         }
         // Do not let callAfterBigBang get called.
         return;
@@ -19797,7 +20037,7 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
     }
     self._initFromConfig();
     callAfterBigBang();
-  });
+  }.bind(this));
 }
 exports.MailUniverse = MailUniverse;
 MailUniverse.prototype = {
@@ -19860,7 +20100,7 @@ MailUniverse.prototype = {
    * Perform initial initialization based on our configuration.
    */
   _initFromConfig: function() {
-    this._cronSync.onUniverseReady();
+    this._cronSync = new $cronsync.CronSync(this, this._LOG);
   },
 
   /**
@@ -20006,6 +20246,20 @@ MailUniverse.prototype = {
     }
   },
 
+  /**
+   * Return true if there are server jobs that are currently running or will run
+   * imminently.
+   *
+   * It's possible for this method to be called during the cleanup stage of the
+   * last job in the queue.  It was intentionally decided to not try and be
+   * clever in that case because the job could want to be immediately
+   * rescheduled.  Also, propagating the data to do that turned out to involve a
+   * lot of sketchy manual propagation.
+   *
+   * If you have some logic you want to trigger when the server jobs have
+   * all been sufficiently used up, you can use `waitForAccountOps`  or add
+   * logic to the account's `allOperationsCompleted` method.
+   */
   areServerJobsWaiting: function(account) {
     var queues = this._opsByAccount[account.id];
     if (!account.enabled) {
@@ -20093,7 +20347,9 @@ MailUniverse.prototype = {
 
     // Make sure syncs are still accurate, since syncInterval
     // could have changed.
-    this._cronSync.ensureSync();
+    if (this._cronSync) {
+      this._cronSync.ensureSync();
+    }
 
     // If account exists, notify of modification. However on first
     // save, the account does not exist yet.
@@ -20260,13 +20516,22 @@ MailUniverse.prototype = {
   /**
    * Write the current state of the universe to the database.
    */
-  saveUniverseState: function() {
+  saveUniverseState: function(callback) {
     var curTrans = null;
+    var latch = $allback.latch();
 
+    this._LOG.saveUniverseState_begin();
     for (var iAcct = 0; iAcct < this.accounts.length; iAcct++) {
       var account = this.accounts[iAcct];
-      curTrans = account.saveAccountState(curTrans, null, 'saveUniverse');
+      curTrans = account.saveAccountState(curTrans, latch.defer(account.id),
+                                          'saveUniverse');
     }
+    latch.then(function() {
+      this._LOG.saveUniverseState_end();
+      if (callback) {
+        callback();
+      };
+    }.bind(this));
   },
 
   /**
@@ -20293,7 +20558,9 @@ MailUniverse.prototype = {
       account.shutdown(callback ? accountShutdownCompleted : null);
     }
 
-    this._cronSync.shutdown();
+    if (this._cronSync) {
+      this._cronSync.shutdown();
+    }
     this._db.close();
     if (this._LOG)
       this._LOG.__die();
@@ -20433,13 +20700,17 @@ MailUniverse.prototype = {
     }
   },
 
+  /**
+   * A local op finished; figure out what the error means, perform any requested
+   * saves, and *only after the saves complete*, issue any appropriate callback
+   * and only then start the next op.
+   */
   _localOpCompleted: function(account, op, err, resultIfAny,
                               accountSaveSuggested) {
 
     var queues = this._opsByAccount[account.id],
         serverQueue = queues.server,
         localQueue = queues.local;
-    queues.active = false;
 
     var removeFromServerQueue = false,
         completeOp = false;
@@ -20464,6 +20735,9 @@ MailUniverse.prototype = {
           completeOp = true;
           break;
       }
+
+      // Do not save if this was an error.
+      accountSaveSuggested = false;
     }
     else {
       switch (op.localStatus) {
@@ -20482,11 +20756,6 @@ MailUniverse.prototype = {
           }
           break;
       }
-
-      // This is a suggestion; in the event of high-throughput on operations,
-      // we probably don't want to save the account every tick, etc.
-      if (accountSaveSuggested)
-        account.saveAccountState(null, null, 'localOp');
     }
 
     if (removeFromServerQueue) {
@@ -20496,35 +20765,30 @@ MailUniverse.prototype = {
     }
     localQueue.shift();
 
+    var callback;
     if (completeOp) {
       if (this._opCallbacks.hasOwnProperty(op.longtermId)) {
-        var callback = this._opCallbacks[op.longtermId];
+        callback = this._opCallbacks[op.longtermId];
         delete this._opCallbacks[op.longtermId];
-        try {
-          callback(err, resultIfAny, account, op);
-        }
-        catch(ex) {
-          console.log(ex.message, ex.stack);
-          this._LOG.opCallbackErr(op.type);
-        }
       }
     }
 
-    if (localQueue.length) {
-      op = localQueue[0];
-      this._dispatchLocalOpForAccount(account, op);
+    if (accountSaveSuggested) {
+      account.saveAccountState(
+        null,
+        this._startNextOp.bind(this, account, callback, op, err, resultIfAny),
+        'localOp:' + op.type);
+      return;
     }
-    else if (serverQueue.length && this.online && account.enabled) {
-      op = serverQueue[0];
-      this._dispatchServerOpForAccount(account, op);
-    }
-    else if (this._opCompletionListenersByAccount[account.id]) {
-      this._opCompletionListenersByAccount[account.id](account);
-      this._opCompletionListenersByAccount[account.id] = null;
-    }
+
+    this._startNextOp(account, callback, op, err, resultIfAny);
   },
 
   /**
+   * A server op finished; figure out what the error means, perform any
+   * requested saves, and *only after the saves complete*, issue any appropriate
+   * callback and only then start the next op.
+   *
    * @args[
    *   @param[account[
    *   @param[op]{
@@ -20585,7 +20849,6 @@ MailUniverse.prototype = {
     var queues = this._opsByAccount[account.id],
         serverQueue = queues.server,
         localQueue = queues.local;
-    queues.active = false;
 
     if (serverQueue[0] !== op)
       this._LOG.opInvariantFailure();
@@ -20710,26 +20973,75 @@ MailUniverse.prototype = {
     if (accountSaveSuggested)
       account._saveAccountIsImminent = true;
 
+    var callback;
     if (completeOp) {
       if (this._opCallbacks.hasOwnProperty(op.longtermId)) {
-        var callback = this._opCallbacks[op.longtermId];
+        callback = this._opCallbacks[op.longtermId];
         delete this._opCallbacks[op.longtermId];
-        try {
-          callback(err, resultIfAny, account, op);
-        }
-        catch(ex) {
-          console.log(ex.message, ex.stack);
-          this._LOG.opCallbackErr(op.type);
-        }
       }
 
       // This is a suggestion; in the event of high-throughput on operations,
       // we probably don't want to save the account every tick, etc.
       if (accountSaveSuggested) {
         account._saveAccountIsImminent = false;
-        account.saveAccountState(null, null, 'serverOp');
+        account.saveAccountState(
+          null,
+          this._startNextOp.bind(this, account, callback, op, err, resultIfAny),
+          'serverOp:' + op.type);
+        return;
       }
     }
+
+    this._startNextOp(account, callback, op, err, resultIfAny);
+  },
+
+  /**
+   * Shared code for _localOpCompleted and _serverOpCompleted to figure out what
+   * to do next *after* any account save has completed, including invoking
+   * callbacks.  See bug https://bugzil.la/1039007 for rationale as to why we
+   * think it makes sense to defer the callbacks or to provide new reasons why
+   * we should change this behaviour.
+   *
+   * It used to be that we would trigger saves without waiting for them to
+   * complete with the theory that this would allow us to generally be more
+   * efficient without losing correctness since the IndexedDB transaction model
+   * is strong and takes care of data dependency issues for us.  However, for
+   * both testing purposes and with some new concerns over correctness issues,
+   * it's now making sense to wait on the transaction to commit.  There are
+   * potentially some memory-use wins from waiting for the transaction to
+   * complete, especially if we imagine some particularly pathological
+   * situations.
+   *
+   * @param account
+   * @param {Function} [callback]
+   *   The callback associated with the last operation.  May be omitted.  If
+   *    provided then all of the following arguments must also be provided.
+   * @param [lastOp]
+   * @param [err]
+   * @param [result]
+   */
+  _startNextOp: function(account, callback, lastOp, err, result) {
+    var queues = this._opsByAccount[account.id],
+        serverQueue = queues.server,
+        localQueue = queues.local;
+    var op;
+
+    if (callback) {
+      try {
+        callback(err, result, account, lastOp);
+      }
+      catch(ex) {
+        console.log(ex.message, ex.stack);
+        this._LOG.opCallbackErr(lastOp.type);
+      }
+    }
+
+    // We must hold off on freeing up queue.active until after we have
+    // completed processing and called the callback, just as we do in
+    // _localOpCompleted. This allows `callback` to safely schedule
+    // new jobs without interfering with the scheduling we're going to
+    // do immediately below.
+    queues.active = false;
 
     if (localQueue.length) {
       op = localQueue[0];
@@ -20739,9 +21051,19 @@ MailUniverse.prototype = {
       op = serverQueue[0];
       this._dispatchServerOpForAccount(account, op);
     }
-    else if (this._opCompletionListenersByAccount[account.id]) {
-      this._opCompletionListenersByAccount[account.id](account);
-      this._opCompletionListenersByAccount[account.id] = null;
+    // We finished all the operations!  Woo!
+    else {
+      // Notify listeners
+      if (this._opCompletionListenersByAccount[account.id]) {
+        this._opCompletionListenersByAccount[account.id](account);
+        this._opCompletionListenersByAccount[account.id] = null;
+      }
+
+      // - Tell the account so it can clean-up its connections, etc.
+      // (We do this after notifying listeners for the connection cleanup case
+      // so that if the listener wants to schedule new activity, it can do so
+      // without having to wastefully establish a new connection.)
+      account.allOperationsCompleted();
     }
   },
 
@@ -20763,10 +21085,12 @@ MailUniverse.prototype = {
    * ]
    */
   _queueAccountOp: function(account, op, optionalCallback) {
+    var queues = this._opsByAccount[account.id];
     // Log the op for debugging assistance
     // TODO: Create a real logger event; this will require updating existing
     // tests and so is not sufficiently trivial to do at this time.
-    console.log('queueOp', account.id, op.type);
+    console.log('queueOp', account.id, op.type, 'pre-queues:',
+                'local:', queues.local.length, 'server:', queues.server.length);
     // - Name the op, register callbacks
     if (op.longtermId === null) {
       // mutation job must be persisted until completed otherwise bad thing
@@ -20794,7 +21118,6 @@ MailUniverse.prototype = {
 
 
     // - Enqueue
-    var queues = this._opsByAccount[account.id];
     // Local processing needs to happen if we're not in the right local state.
     if (!this._testModeDisablingLocalOps &&
         ((op.lifecycle === 'do' && op.localStatus === null) ||
@@ -20823,8 +21146,9 @@ MailUniverse.prototype = {
 
   waitForAccountOps: function(account, callback) {
     var queues = this._opsByAccount[account.id];
-    if (queues.local.length === 0 &&
-       (queues.server.length === 0 || !this.online || !account.enabled))
+    if (!queues.active &&
+        queues.local.length === 0 &&
+        (queues.server.length === 0 || !this.online || !account.enabled))
       callback();
     else
       this._opCompletionListenersByAccount[account.id] = callback;
@@ -21085,7 +21409,8 @@ MailUniverse.prototype = {
         folderId: folderId,
         headerInfo: sentSafeHeader,
         bodyInfo: sentSafeBody
-      });
+      },
+      callback);
     return [longtermId];
   },
 
@@ -21342,7 +21667,6 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     type: $log.ACCOUNT,
     events: {
       configCreated: {},
-      configMigrating: {},
       configLoaded: {},
       createAccount: { type: true, id: false },
       reportProblem: { type: true, suppressed: true, id: false },
@@ -21357,6 +21681,11 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       configMigrating: { lazyCarryover: false },
       configLoaded: { config: false, accounts: false },
       createAccount: { name: false },
+    },
+    asyncJobs: {
+      configMigrating: {},
+      recreateAccount: { type: true, id: false, err: false },
+      saveUniverseState: {}
     },
     errors: {
       badAccountType: { type: true },

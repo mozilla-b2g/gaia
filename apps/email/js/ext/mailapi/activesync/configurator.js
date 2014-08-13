@@ -1958,30 +1958,37 @@ ActiveSyncFolderSyncer.prototype = {
     // Expand the accuracy range to cover everybody.
     if (!err)
       storage.markSyncedToDawnOfTime();
-    // Always save state, although as an optimization, we could avoid saving state
-    // if we were sure that our state with the server did not advance.
-    this._account.__checkpointSyncCompleted();
 
-    if (err) {
-      doneCallback(err);
-      return;
-    }
+    // Always save state, although as an optimization, we could avoid saving
+    // state if we were sure that our state with the server did not advance.
+    // Do not call our callback until the save has completed.
+    this._account.__checkpointSyncCompleted(function() {
+      if (err) {
+        doneCallback(err);
+      }
+      else if (initialSync) {
+        storage._curSyncSlice.ignoreHeaders = false;
+        storage._curSyncSlice.waitingOnData = 'db';
 
-    if (initialSync) {
-      storage._curSyncSlice.ignoreHeaders = false;
-      storage._curSyncSlice.waitingOnData = 'db';
-
-      storage.getMessagesInImapDateRange(
-        0, null, $sync.INITIAL_FILL_SIZE, $sync.INITIAL_FILL_SIZE,
-        // Don't trigger a refresh; we just synced.  Accordingly, releaseMutex can
-        // be null.
-        storage.onFetchDBHeaders.bind(storage, storage._curSyncSlice, false,
-                                      doneCallback, null)
-      );
-    }
-    else {
-      doneCallback(err);
-    }
+        // TODO: We could potentially shave some latency by doing the DB fetch
+        // but deferring the doneCallback until the checkpoint has notified.
+        // I'm copping out on this right now because there may be some nuances
+        // in there that I would like to think about more and this is also not
+        // a major slowdown concern.  We're already slow here and the more
+        // important thing for us to do would just be to trigger the initial
+        // sync much earlier in the UI process to save even more time.
+        storage.getMessagesInImapDateRange(
+          0, null, $sync.INITIAL_FILL_SIZE, $sync.INITIAL_FILL_SIZE,
+          // Don't trigger a refresh; we just synced.  Accordingly,
+          // releaseMutex can be null.
+          storage.onFetchDBHeaders.bind(storage, storage._curSyncSlice, false,
+                                        doneCallback, null)
+        );
+      }
+      else {
+        doneCallback(err);
+      }
+    });
   },
 
   allConsumersDead: function() {
@@ -2914,8 +2921,8 @@ ActiveSyncAccount.prototype = {
    * We are being told that a synchronization pass completed, and that we may
    * want to consider persisting our state.
    */
-  __checkpointSyncCompleted: function() {
-    this.saveAccountState(null, null, 'checkpointSync');
+  __checkpointSyncCompleted: function(callback, betterReason) {
+    this.saveAccountState(null, callback, betterReason || 'checkpointSync');
   },
 
   shutdown: function asa_shutdown(callback) {
@@ -3480,7 +3487,10 @@ ActiveSyncAccount.prototype = {
   getFirstFolderWithType: $acctmixins.getFirstFolderWithType,
   getFolderByPath: $acctmixins.getFolderByPath,
   saveAccountState: $acctmixins.saveAccountState,
-  runAfterSaves: $acctmixins.runAfterSaves
+  runAfterSaves: $acctmixins.runAfterSaves,
+
+  allOperationsCompleted: function() {
+  }
 };
 
 var LOGFAB = exports.LOGFAB = $log.register($module, {
@@ -3490,7 +3500,6 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       createFolder: {},
       deleteFolder: {},
       recreateFolder: { id: false },
-      saveAccountState: { reason: false },
       /**
        * XXX: this is really an error/warning, but to make the logging less
        * confusing, treat it as an event.
@@ -3499,6 +3508,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     },
     asyncJobs: {
       runOp: { mode: true, type: true, error: false, op: false },
+      saveAccountState: { reason: true, folderSaveCount: true },
     },
     errors: {
       opError: { mode: false, type: false, ex: $log.EXCEPTION },
