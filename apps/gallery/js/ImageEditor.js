@@ -164,16 +164,27 @@ var exposureSlider = (function() {
   var slider = document.getElementById('exposure-slider');
   var bar = document.getElementById('sliderline');
   var thumb = document.getElementById('sliderthumb');
-
+  var currentExposure; // will be set by the initial setExposure call
+  var dragStart = null;
   // prepare gesture detector for slider
   var gestureDetector = new GestureDetector(thumb);
   gestureDetector.startDetecting();
 
-  thumb.addEventListener('pan', sliderDrag);
+  thumb.addEventListener('pan', function(e) {
+    var delta = e.detail.absolute.dx;
+    var exposureDelta = delta / parseInt(bar.clientWidth, 10) * 6;
+    // For the firt time of pan event triggered
+    // set start value to current value.
+    if (!dragStart)
+      dragStart = currentExposure;
+
+    setExposure(dragStart + exposureDelta);
+    e.preventDefault();
+  });
   thumb.addEventListener('swipe', function(e) {
-    // when stopping we init the start to be at the current level
+    // when stopping we init the dragStart to be null
     // this way we avoid a 'panstart' event
-    sliderStartExposure = currentExposure;
+    dragStart = null;
     e.preventDefault();
   });
   thumb.addEventListener('touchstart', function(e) {
@@ -182,16 +193,6 @@ var exposureSlider = (function() {
   thumb.addEventListener('touchend', function(e) {
     thumb.classList.remove('active');
   });
-
-  var currentExposure; // will be set by the initial setExposure call
-  var sliderStartExposure = 0;
-
-  function sliderDrag(e) {
-    var delta = e.detail.absolute.dx;
-    var exposureDelta = delta / parseInt(bar.clientWidth, 10) * 6;
-    setExposure(sliderStartExposure + exposureDelta);
-    e.preventDefault();
-  }
 
   function resize() {
     forceSetExposure(currentExposure);
