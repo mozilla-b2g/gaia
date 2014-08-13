@@ -1705,7 +1705,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"dismisskeybaord"
+					"dismisskeyboard"
 				]
 			},
 			"properties": {
@@ -1713,7 +1713,7 @@
 				"id": 163,
 				"prevSize": 32,
 				"code": 58960,
-				"name": "dismisskeybaord",
+				"name": "dismisskeyboard",
 				"ligatures": ""
 			},
 			"setIdx": 0,
