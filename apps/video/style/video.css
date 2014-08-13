@@ -703,20 +703,17 @@ body.pick-activity #thumbnails-bottom {
 
 .thumbnail .details .title {
   order: 1;
-  flex: 0 1 auto;
   align-self: auto;
   word-break: break-all;
 }
 
 .thumbnail .details .duration-text {
   order: 2;
-  flex: 0 1 auto;
   align-self: auto;
 }
 
 .thumbnail .details .size-type-group {
   order: 3;
-  flex: 0 1 auto;
   align-self: auto;
 }
 
