@@ -11,6 +11,7 @@ const RE_IMPORT_LINE = /@import url\((.*)\)/;
 const RE_PROPERTY_LINE = /(.*)\s*[:=]\s*(.*)/;
 const RE_INI_FILE = /locales[\/\\].+\.ini$/;
 const RE_PROPERTIES_FILE = /\.([\w-]+)\.properties$/;
+const RE_HACKY_FILE = /-hacky-2\.0\.properties$/;
 const MODNAME = 'multilocale';
 
 function L10nManager(gaiaDir, localesFilePath, localeBasedir) {
@@ -139,9 +140,18 @@ function L10nManager(gaiaDir, localesFilePath, localeBasedir) {
    */
   function cleanLocaleFiles(stageDir) {
     utils.ls(stageDir, true).forEach(function(file) {
-      var matched = RE_PROPERTIES_FILE.exec(file.leafName);
-      if (matched && self.locales.indexOf(matched[1]) === -1) {
-        file.remove(false);
+      // XXX: v2.0 only hack to solve bug 1043662. Hacky files are l10n files
+      // named following *-hacky.2.0.properties containing strings that must
+      // not be localized.
+      // As they were introduced late in v2.0, they ended into these special
+      // files but they must be included during the webapp-optimize stage so
+      // we need to prevent this process from deleting them.
+      var isHackyFile = file.leafName.match(RE_HACKY_FILE);
+      if (!isHackyFile) {
+        var matched = RE_PROPERTIES_FILE.exec(file.leafName);
+        if (matched && self.locales.indexOf(matched[1]) === -1) {
+          file.remove(false);
+        }
       }
     });
   }
