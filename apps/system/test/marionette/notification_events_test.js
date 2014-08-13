@@ -200,17 +200,20 @@ marionette('Notification events', function() {
     }, [CALENDAR_APP_MANIFEST]);
     assert.equal(error, false, 'Error on resending after removing: ' + error);
 
-    // close app, to make sure.
-    client.switchToFrame();
-    // We will use `client.apps.close(CALENDAR_APP)`
-    // to instead of the below code,
-    // after the http://bugzil.la/1016835 is fixed.
-    client.switchToFrame(
-      client.findElement('iframe[src*="' + CALENDAR_APP + '"]')
-    );
-    client.executeScript(function() {
-      window.wrappedJSObject.close();
-    });
+    // remove this try-catch once the gecko side for Bug 1046828 lands.
+    try {
+      // close app, to make sure.
+      client.switchToFrame();
+
+      var faster = client.scope({ searchTimeout: 50 });
+
+      client.switchToFrame(
+        faster.findElement('iframe[src*="' + CALENDAR_APP + '"]')
+      );
+      client.executeScript(function() {
+        window.wrappedJSObject.close();
+      });
+    } catch(e) {}
 
     // switch to system app and send desktop-notification-click
     client.switchToFrame();
