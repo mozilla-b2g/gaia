@@ -6,7 +6,6 @@ from marionette import SkipTest
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.phone.regions.call_screen import CallScreen
-from gaiatest.utils.plivo.plivo_util import PlivoUtil
 
 
 class TestReceiveCallScreenLocked(GaiaTestCase):
@@ -24,6 +23,7 @@ class TestReceiveCallScreenLocked(GaiaTestCase):
         PLIVO_TIMEOUT = 30
         self.call_uuid = False
 
+        from gaiatest.utils.plivo.plivo_util import PlivoUtil
         self.plivo = PlivoUtil(
             self.testvars['plivo']['auth_id'],
             self.testvars['plivo']['auth_token'],
