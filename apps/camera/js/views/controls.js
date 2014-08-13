@@ -82,7 +82,8 @@ module.exports = View.extend({
     this.emit('modechanged', mode);
   },
 
-  onSwitchTapped: function() {
+  onSwitchTapped: function(e) {
+    e.preventDefault();
     debug('switch tapped');
     this.emit('modechanged');
   },
