@@ -52,6 +52,8 @@ suite('Date & Time panel > ', function() {
           _datePickerChange: function() {},
           _timePickerChange: function() {},
           _renderTimeZone: function() {},
+          _renderDateFormat: function() {},
+          _renderTimeFormat: function() {},
           _updateUI: function() {}
         };
       };

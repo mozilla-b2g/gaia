@@ -71,7 +71,8 @@ require.config({
       name: 'panels/languages/panel',
       exclude: [
         'main',
-        'shared/keyboard_helper'
+        'shared/keyboard_helper',
+        'modules/date_time'
       ]
     },
     {
