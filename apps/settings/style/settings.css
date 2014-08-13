@@ -787,6 +787,11 @@ section[data-dialog] > header:first-child .icon.icon-back {
   padding: 1.9rem 4rem 1.5rem 3rem;
 }
 
+#developer ul li > label.pack-switch > span,
+#developer-hud ul li > label.pack-switch > span {
+  padding-right: 9rem;
+}
+
 #developer-hud ul li > label > span.color-preview {
   padding-left: 5rem;
 }
