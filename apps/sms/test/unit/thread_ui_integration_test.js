@@ -24,7 +24,6 @@ requireApp('sms/js/compose.js');
 requireApp('sms/js/contacts.js');
 requireApp('sms/js/recipients.js');
 requireApp('sms/js/threads.js');
-requireApp('sms/js/message_manager.js');
 requireApp('sms/js/thread_list_ui.js');
 requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/attachment.js');

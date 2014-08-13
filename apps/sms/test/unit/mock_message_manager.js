@@ -1,4 +1,6 @@
-/* global Promise */
+/* global
+    Promise
+*/
 /* exported MockMessageManager */
 'use strict';
 
@@ -10,12 +12,11 @@ var MockMessageManager = {
     this._message = {};
     return this._message;
   },
-  deleteMessage: function(messageId, callback) {
+  deleteMessages: function(messageId, callback) {
     if (callback) {
       callback();
     }
   },
-  onHashChange: function() {},
   launchComposer: function() {},
   handleActivity: function() {},
   handleForward: function() {},
@@ -33,6 +34,8 @@ var MockMessageManager = {
   getSegmentInfo: function() {
     return Promise.reject(new Error('not implemented '));
   },
+  on: function() {},
+  off: function() {},
   mTriggerOnSuccess: function() {
     if (this._message.onsuccess) {
       this._message.onsuccess();

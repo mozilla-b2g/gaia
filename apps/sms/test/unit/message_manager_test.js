@@ -4,25 +4,19 @@
         MocksHelper,
         MockMessages,
         MozSmsFilter,
-        ReportView,
         Settings,
         SMIL,
-        ThreadListUI,
-        ThreadUI,
         Threads
 */
 
 'use strict';
+require('/js/event_dispatcher.js');
 
 require('/test/unit/mock_messages.js');
 require('/test/unit/mock_navigatormoz_sms.js');
-require('/test/unit/mock_navigation.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_smil.js');
-require('/test/unit/mock_thread_ui.js');
-require('/test/unit/mock_thread_list_ui.js');
 require('/test/unit/mock_threads.js');
-require('/test/unit/mock_information.js');
 
 require('/js/utils.js');
 require('/test/unit/mock_utils.js');
@@ -30,13 +24,9 @@ require('/test/unit/mock_utils.js');
 require('/js/message_manager.js');
 
 var mocksHelperForMessageManager = new MocksHelper([
-  'Navigation',
-  'ReportView',
   'Settings',
   'SMIL',
   'Threads',
-  'ThreadListUI',
-  'ThreadUI',
   'Utils'
 ]).init();
 
@@ -46,38 +36,23 @@ suite('message_manager.js >', function() {
   var realMozMobileMessage;
 
   setup(function() {
-    realMozMobileMessage = MessageManager._mozMobileMessage;
-    MessageManager._mozMobileMessage = MockNavigatormozMobileMessage;
+    realMozMobileMessage = navigator.mozMobileMessage;
+    navigator.mozMobileMessage = MockNavigatormozMobileMessage;
 
+    this.sinon.stub(MockNavigatormozMobileMessage, 'addEventListener');
     this.sinon.spy(MockNavigatormozMobileMessage, 'send');
     this.sinon.spy(MockNavigatormozMobileMessage, 'sendMMS');
+    this.sinon.spy(Threads, 'registerMessage');
+
+    MessageManager.init();
   });
 
   teardown(function() {
-    MessageManager._mozMobileMessage = realMozMobileMessage;
-  });
+    navigator.mozMobileMessage = realMozMobileMessage;
 
-  suite('on message sent > ', function() {
-    setup(function() {
-      this.sinon.spy(ThreadUI, 'onMessageSending');
-      this.sinon.stub(Threads, 'registerMessage');
-    });
+    MessageManager.offAll();
 
-    test('ThreadUI is always notified', function() {
-        var sms = MockMessages.sms();
-
-        Threads.currentId = sms.threadId;
-        MessageManager.onMessageSending({ message: sms });
-        sinon.assert.called(ThreadUI.onMessageSending);
-
-        ThreadUI.onMessageSending.reset();
-
-        // ensure the threadId is different
-        Threads.currentId = sms.threadId + 1;
-        MessageManager.onMessageSending({ message: sms });
-        sinon.assert.called(ThreadUI.onMessageSending);
-      }
-    );
+    MessageManager.initialized = false;
   });
 
   suite('sendSMS() >', function() {
@@ -520,7 +495,7 @@ suite('message_manager.js >', function() {
 
   suite('resendMessage() >', function() {
     setup(function() {
-      this.sinon.stub(MessageManager, 'deleteMessage');
+      this.sinon.stub(MessageManager, 'deleteMessages');
     });
 
     test('fails if message is not passed', function() {
@@ -582,7 +557,7 @@ suite('message_manager.js >', function() {
         sinon.assert.called(resendParameters.onsuccess);
         sinon.assert.notCalled(resendParameters.onerror);
         sinon.assert.calledWith(
-          MessageManager.deleteMessage,
+          MessageManager.deleteMessages,
           resendParameters.message.id
         );
       });
@@ -595,7 +570,7 @@ suite('message_manager.js >', function() {
         sinon.assert.notCalled(resendParameters.onsuccess);
         sinon.assert.called(resendParameters.onerror);
         sinon.assert.calledWith(
-          MessageManager.deleteMessage,
+          MessageManager.deleteMessages,
           resendParameters.message.id
         );
       });
@@ -656,7 +631,7 @@ suite('message_manager.js >', function() {
         sinon.assert.called(resendParameters.onsuccess);
         sinon.assert.notCalled(resendParameters.onerror);
         sinon.assert.calledWith(
-          MessageManager.deleteMessage,
+          MessageManager.deleteMessages,
           resendParameters.message.id
         );
       });
@@ -669,84 +644,217 @@ suite('message_manager.js >', function() {
         sinon.assert.notCalled(resendParameters.onsuccess);
         sinon.assert.called(resendParameters.onerror);
         sinon.assert.calledWith(
-          MessageManager.deleteMessage,
+          MessageManager.deleteMessages,
           resendParameters.message.id
         );
       });
     });
   });
 
+  suite('Dispatched events >', function() {
+    test(' onMessageSent, onMessageFailedToSend, onMessageDelivered,' +
+         ' onMessageRead >', function () {
+      // Map for Messaging API events that just dispatched further without any
+      // logic and processing.
+      var eventsMap = new Map();
 
-  suite('onDeliverySuccess', function() {
-    suiteSetup(function() {
-      this.mockEvent = {
-        message : {
-          id : 1
-        }
-      };
+      eventsMap.set('sent', 'message-sent');
+      eventsMap.set('failed', 'message-failed-to-send');
+      eventsMap.set('deliverysuccess', 'message-delivered');
+      eventsMap.set('readsuccess', 'message-read');
+
+      eventsMap.forEach(function(eventName, messagingApiEvent) {
+        var handler = sinon.stub(),
+            message = { id: 100 };
+
+        MessageManager.on(eventName, handler);
+
+        MockNavigatormozMobileMessage.addEventListener.
+          withArgs(messagingApiEvent).yield({
+            message: message
+          });
+
+        sinon.assert.calledWith(handler, {
+          message: message
+        });
+
+        MessageManager.off(eventName, handler);
+      });
     });
 
-    setup(function() {
-      this.sinon.spy(ThreadUI, 'onDeliverySuccess');
-      this.sinon.stub(ReportView, 'onDeliverySuccess');
+    suite('onMessageSending >', function() {
+      test('registers message being sent with Threads object', function() {
+        var handler = sinon.stub(),
+            message = { id: 100 };
+
+        MessageManager.on('message-sending', handler);
+
+        MockNavigatormozMobileMessage.addEventListener.withArgs('sending').
+          yield({
+            message: message
+          });
+
+        sinon.assert.calledWith(handler, {
+          message: message
+        });
+        sinon.assert.calledWith(Threads.registerMessage, message);
+      });
     });
 
-    test('calls the appropriate views', function() {
-      MessageManager.onDeliverySuccess(this.mockEvent);
-      sinon.assert.calledWith(ThreadUI.onDeliverySuccess,
-        this.mockEvent.message);
-      sinon.assert.calledWith(ReportView.onDeliverySuccess,
-        this.mockEvent.message);
-    });
-  });
+    suite('onMessageReceived >', function() {
+      test('does not dispatch "message-received" for class-0 message',
+      function() {
+        var handler = sinon.stub();
 
-  suite('onReadSuccess', function() {
-    suiteSetup(function() {
-      this.mockEvent = {
-        message : {
-          id : 1
-        }
-      };
-    });
+        var class0Message = {
+          id: 100,
+          messageClass: 'class-0'
+        };
 
-    setup(function() {
-      this.sinon.spy(ThreadUI, 'onReadSuccess');
-      this.sinon.stub(ReportView, 'onReadSuccess');
-    });
+        var class1Message = {
+          id: 200,
+          messageClass: 'class-1'
+        };
 
-    test('calls the appropriate views', function() {
-      MessageManager.onReadSuccess(this.mockEvent);
-      sinon.assert.calledWith(ThreadUI.onReadSuccess,
-        this.mockEvent.message);
-      sinon.assert.calledWith(ReportView.onReadSuccess,
-        this.mockEvent.message);
-    });
-  });
+        var messageWithoutClass = {
+          id: 300
+        };
 
-  suite('onDeleted', function() {
-    setup(function() {
-      this.sinon.spy(ThreadListUI, 'onThreadsDeleted');
-    });
+        MessageManager.on('message-received', handler);
 
-    test('calls ThreadListUI.onThreadsDeleted', function() {
-      MessageManager.onDeleted({
-        deletedThreadIds : [1, 2]
+        MockNavigatormozMobileMessage.addEventListener.withArgs('received').
+          yield({
+            message: class0Message
+          });
+
+        // Should not be called if class-0 message received
+        sinon.assert.notCalled(handler);
+        sinon.assert.notCalled(Threads.registerMessage);
+
+        MockNavigatormozMobileMessage.addEventListener.withArgs('received').
+          yield({
+            message: class1Message
+          });
+
+        // Should be called for any other class of messages
+        sinon.assert.calledWith(handler, { message: class1Message });
+        sinon.assert.calledWith(Threads.registerMessage, class1Message);
+
+        MockNavigatormozMobileMessage.addEventListener.withArgs('received').
+          yield({
+            message: messageWithoutClass
+          });
+
+        // Should be called for messages without class
+        sinon.assert.calledWith(handler, { message: messageWithoutClass });
+        sinon.assert.calledWith(Threads.registerMessage, messageWithoutClass);
       });
 
-      sinon.assert.calledWith(ThreadListUI.onThreadsDeleted, [1, 2]);
+      test('does not dispatch "message-received" for messages being downloaded',
+      function() {
+        var handler = sinon.stub();
+
+        var pendingMessage = {
+          id: 100,
+          delivery: 'not-downloaded',
+          deliveryInfo: [{
+            deliveryStatus: 'pending'
+          }]
+        };
+
+        var messageFailedToDownload = {
+          id: 100,
+          delivery: 'not-downloaded',
+          deliveryInfo: [{
+            deliveryStatus: 'failed'
+          }]
+        };
+
+        MessageManager.on('message-received', handler);
+
+        MockNavigatormozMobileMessage.addEventListener.withArgs('received').
+          yield({
+            message: pendingMessage
+          });
+
+        // Should not be called for not downloaded, but pending message
+        sinon.assert.notCalled(handler);
+        sinon.assert.notCalled(Threads.registerMessage);
+
+        MockNavigatormozMobileMessage.addEventListener.withArgs('received').
+          yield({
+            message: messageFailedToDownload
+          });
+
+        // Should be called for other not downloaded cases
+        sinon.assert.calledWith(handler, { message: messageFailedToDownload });
+        sinon.assert.calledWith(
+          Threads.registerMessage,
+          messageFailedToDownload
+        );
+      });
     });
 
-    test('does not call ThreadListUI.onThreadsDeleted', function() {
-      MessageManager.onDeleted({
-        deletedThreadIds : null
+    suite('onDeleted >', function() {
+      test('does not dispatch "threads-deleted"', function() {
+        var unexpectedHandler = sinon.stub();
+
+        MessageManager.on('threads-deleted', unexpectedHandler);
+
+        var variousParameters = [{}, {
+          deletedThreadIds: null
+        }, {
+          deletedThreadIds: []
+        }, {
+          deletedMessageIds: null
+        }, {
+          deletedMessageIds: []
+        }, {
+          deletedThreadIds: null,
+          deletedMessageIds: null
+        }, {
+          deletedThreadIds: [],
+          deletedMessageIds: []
+        }];
+
+        variousParameters.forEach(
+          (parameters) => MockNavigatormozMobileMessage.addEventListener.
+            withArgs('deleted').yield(parameters)
+        );
+
+        sinon.assert.notCalled(unexpectedHandler);
       });
 
-      sinon.assert.notCalled(ThreadListUI.onThreadsDeleted);
+      test('dispatches "threads-deleted"', function() {
+        var expectedHandler = sinon.stub();
+
+        MessageManager.on('threads-deleted', expectedHandler);
+
+        MockNavigatormozMobileMessage.addEventListener.withArgs('deleted').
+          yield({
+            deletedThreadIds : [1, 2],
+            deletedMessageIds: []
+          });
+
+        sinon.assert.calledOnce(expectedHandler);
+        sinon.assert.calledWith(expectedHandler, {
+          ids: [1, 2]
+        });
+      });
     });
   });
 
   suite('getSegmentInfo()', function() {
-    var subject = 'some text';
+    var subject = 'some text',
+        messageManagerMozMobileMessage;
+
+    setup(function() {
+      messageManagerMozMobileMessage = MessageManager._mozMobileMessage;
+    });
+
+    teardown(function() {
+      MessageManager._mozMobileMessage = messageManagerMozMobileMessage;
+    });
 
     test('returns a rejected promise if there is no API', function(done) {
       MessageManager._mozMobileMessage = undefined;
