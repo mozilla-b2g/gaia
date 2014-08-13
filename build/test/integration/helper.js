@@ -1,7 +1,9 @@
+'use strict';
+/* global exports, require */
 var assert = require('chai').assert;
 var fs = require('fs');
 var AdmZip = require('adm-zip');
-var exec = require('child_process').exec;
+var childProcess = require('child_process');
 
 function getPrefsSandbox() {
   var sandbox = {
@@ -87,19 +89,12 @@ function checkFileContentByPathInZip(zipPath, pathInZip,
     checkFileContentInZip(zipPath, pathInZip, actual, isJSON);
 }
 
-function checkFileContentInZip(zipPath, pathInZip, expectedContent, isJSON) {
-  var zip = new AdmZip(zipPath);
-  var entry = zip.getEntry(pathInZip);
-  var actual = isJSON ? JSON.parse(zip.readAsText(entry)) : zip.readFile(entry);
-  assert.deepEqual(actual, expectedContent);
-}
-
 function exec(command, callback) {
   var options = {
     maxBuffer: 400*1024
   };
 
-  exec(command, options, callback);
+  childProcess.exec(command, options, callback);
 }
 
 exports.getPrefsSandbox = getPrefsSandbox;

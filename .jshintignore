@@ -20,7 +20,6 @@ build/pre-app.js
 build/push-to-device.js
 build/settings.js
 build/test/integration/build.test.js
-build/test/integration/helper.js
 build/utils.js
 build/webapp-optimize.js
 apps/communications/contacts/oauth2/js/parameters.js
