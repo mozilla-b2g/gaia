@@ -397,7 +397,6 @@ Camera.prototype.configure = function() {
     debug('configuration success');
     if (!self.mozCamera) { return; }
     self.configureFocus();
-    self.resumeFocus();
     self.configured = true;
     self.saveBootConfig();
     self.emit('configured');
@@ -813,11 +812,6 @@ Camera.prototype.takePicture = function(options) {
   }
 
   function complete() {
-    // If we are in C-AF mode, we have
-    // to call resume() in order to get
-    // the camera to resume focusing
-    // on what we point it at.
-    self.resumeFocus();
     self.set('focus', 'none');
     self.ready();
   }
@@ -833,14 +827,6 @@ Camera.prototype.updateFocusArea = function(rect, done) {
       done(state);
     }
   }
-};
-
-Camera.prototype.stopFocus = function() {
-  this.focus.stop();
-};
-
-Camera.prototype.resumeFocus = function() {
-  this.focus.resume();
 };
 
 /**
