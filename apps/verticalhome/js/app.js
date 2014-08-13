@@ -4,7 +4,7 @@
 (function(exports) {
 
   // Hidden manifest roles that we do not show
-  const HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
+  const HIDDEN_ROLES = ['system', 'input', 'homescreen'];
 
   function App() {
     window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));

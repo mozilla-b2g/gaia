@@ -1,5 +1,5 @@
 'use strict';
-/*global applications, AppWindowManager, AppWindow, rocketbar */
+/*global applications, AppWindowManager, AppWindow */
 
 (function(window) {
   /**
@@ -34,12 +34,6 @@
           acc[decodeURIComponent(feature[0])] = decodeURIComponent(feature[1]);
           return acc;
         }, {});
-
-      if (features.features === 'rocketbarstartpage') {
-        evt.stopImmediatePropagation();
-        rocketbar.showNewTabPage();
-        return;
-      }
 
       // Handles only call to window.open with `remote=true` feature.
       if (!('remote' in features) || features.remote !== 'true') {

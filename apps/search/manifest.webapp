@@ -1,17 +1,17 @@
 {
-  "name": "Search Results",
+  "name": "Search",
   "type": "certified",
   "role": "search",
-  "description": "Search Results",
-  "launch_path": "/index.html",
+  "description": "Search",
+  "launch_path": "/newtab.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "locales": {
     "en-US": {
-      "name": "Search Results",
-      "description": "Search Results"
+      "name": "Search",
+      "description": "Search"
     }
   },
   "default_locale": "en-US",
