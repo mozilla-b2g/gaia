@@ -72,10 +72,10 @@
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "ga-IE": [
-        {"layoutId": "en", "app": ["apps", "keyboard"]}
+        {"layoutId": "ga", "app": ["apps", "keyboard"]}
     ],
     "gd": [
-        {"layoutId": "en", "app": ["apps", "keyboard"]}
+        {"layoutId": "gd", "app": ["apps", "keyboard"]}
     ],
     "gl": [
         {"layoutId": "es", "app": ["apps", "keyboard"]}
