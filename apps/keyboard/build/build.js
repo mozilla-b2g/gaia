@@ -15,6 +15,20 @@ KeyboardAppBuilder.prototype.setOptions = function(options) {
   this.appDir = utils.getFile(options.APP_DIR);
 };
 
+KeyboardAppBuilder.prototype.includeAllLayouts = function() {
+  var layoutDir = utils.getFile(this.appDir.path, 'js', 'layouts');
+  var enabledLayouts = [];
+  utils.ls(layoutDir, false).forEach(function(file) {
+    if (!file.leafName.endsWith('.js')) {
+      return;
+    }
+
+    enabledLayouts.push(file.leafName.substr(0, file.leafName.length - 3));
+  });
+
+  this.enabledLayouts = enabledLayouts;
+};
+
 KeyboardAppBuilder.prototype.throwForNoneExistLayouts = function() {
   this.enabledLayouts.forEach(function(layoutName) {
     var file = utils.getFile(
@@ -98,7 +112,11 @@ KeyboardAppBuilder.prototype.generateManifest = function() {
 KeyboardAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
 
-  this.throwForNoneExistLayouts();
+  if (this.enabledLayouts.indexOf('*') !== -1) {
+    this.includeAllLayouts();
+  } else {
+    this.throwForNoneExistLayouts();
+  }
   this.copyStaticFiles();
   this.copyLayouts();
   this.generateManifest();
