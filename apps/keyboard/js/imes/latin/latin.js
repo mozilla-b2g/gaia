@@ -43,7 +43,7 @@
 (function() {
   // Register ourselves in the keyboard's set of input methods
   // The functions used here are all defined below
-  InputMethods.latin = {
+  var latin = InputMethods.latin = {
     init: init,
     activate: activate,
     deactivate: deactivate,
@@ -261,6 +261,16 @@
       return;
     }
 
+    var preloaded = isDictionaryPreloaded(newlang);
+
+    if (preloaded) {
+      setLanguageSync(newlang, undefined);
+    } else {
+      loadDictionaryForLanguage(newlang);
+    }
+  }
+
+  function setLanguageSync(newlang, dict) {
     // If we get here, then we have to create a worker and set its language
     // or change the language of an existing worker.
     if (!worker) {
@@ -291,13 +301,32 @@
       };
     }
 
-    // Tell the worker what language we're using. They may cause it to
-    // load or reload its dictionary.
+    // Tell the worker what language we're using.
     language = newlang;  // Remember the new language
-    worker.postMessage({ cmd: 'setLanguage', args: [language]});
+    if (!dict) {
+      // The worker may load or reload its dictionary by itself.
+      worker.postMessage({ cmd: 'setLanguage', args: [language]});
+    } else {
+      // set the language with the arraybuffer we have set.
+      // Transfer the ownership of dict to the worker too.
+      worker.postMessage({ cmd: 'setLanguage', args: [language, dict]}, [dict]);
+    }
 
     // And now that we've changed the language, ask for new suggestions
     updateSuggestions();
+  }
+
+  function loadDictionaryForLanguage(newlang) {
+    // Unfornately loading a downloaded dictionary from IndexedDB takes extra
+    // async loop. We need to terminate the worker here in order to prevent
+    // the race condition of asking a prediction before language is actually
+    // set.
+    // Eventually the complexity should go inside the worker when IndexedDB
+    // is available inside the worker.
+    terminateWorker();
+
+    // TBD ... should eventually goes to setLanguageSync and this async loop
+    // needs to be cancellable.
   }
 
   function displaysCandidates() {
@@ -944,6 +973,18 @@
         isUpperCase: false
       });
     }
+  }
+
+  // Figure out if the dictionary is considered preloaded,
+  // if not, we will have to try to get it from IndexedDB first.
+  function isDictionaryPreloaded(lang) {
+    if (!('PRELOADED_DICTIONARIES' in latin)) {
+      // We are running directly from the source tree.
+      // Everything is "preloaded".
+      return true;
+    }
+
+    return (latin.PRELOADED_DICTIONARIES.indexOf(lang) !== -1);
   }
 
   // Return true if all characters of s are uppercase. A character
