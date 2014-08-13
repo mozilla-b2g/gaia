@@ -2,13 +2,17 @@
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_language_list.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('ftu/js/language.js');
 
 suite('languages >', function() {
   var realSettings;
   var realLanguageList;
+  var realL10n;
   suiteSetup(function() {
-
+    // mock l10n
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
     realLanguageList = window.LanguageList;
@@ -18,6 +22,7 @@ suite('languages >', function() {
   });
 
   suiteTeardown(function() {
+    navigator.mozL10n = realL10n;
     navigator.mozSettings = realSettings;
     realSettings = null;
     window.LanguageList = realLanguageList;
@@ -34,6 +39,7 @@ suite('languages >', function() {
     LanguageManager.handleEvent(fakeEvent);
     assert.equal(MockNavigatorSettings.mSettings[fakeEvent.target.name],
                  fakeEvent.target.value);
+    assert.equal(MockNavigatorSettings.mSettings['locale.hour12'], false);
   });
 
   test('build language list', function(done) {
