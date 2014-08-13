@@ -118,17 +118,15 @@ var Voicemail = {
     };
 
     var showNoVoicemail = (function vmNotificationNoCall_onClick(event) {
-      var _ = window.navigator.mozL10n.get;
-
       var voicemailDialog = {
-        title: _('voicemailNoNumberTitle'),
-        text: _('voicemailNoNumberText'),
+        title: 'voicemailNoNumberTitle',
+        text: 'voicemailNoNumberText',
         confirm: {
-          title: _('voicemailNoNumberSettings'),
+          title: 'voicemailNoNumberSettings',
           callback: this.showVoicemailSettings
         },
         cancel: {
-          title: _('voicemailNoNumberCancel'),
+          title: 'voicemailNoNumberCancel',
           callback: function() {}
         }
       };
