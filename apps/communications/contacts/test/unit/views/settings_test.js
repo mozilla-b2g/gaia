@@ -530,6 +530,96 @@ suite('Contacts settings >', function() {
     });
   });
 
+  suite('Facebook actions reflected in UI', function() {
+    var mockFbUtils;
+
+    setup(function() {
+      document.body.innerHTML = MockContactsIndexHtml;
+      contacts.Settings.init();
+    });
+
+    teardown(function(done) {
+      MockImportStatusData.clear().then(done, done);
+    });
+
+    suiteSetup(function(done) {
+      mockFbUtils = fb.utils;
+      require('/shared/js/contacts/import/facebook/fb_utils.js', function() {
+        sinon.stub(Contacts, 'confirmDialog', function(attr, msg, no, yes) {
+          yes.callback();
+        });
+
+        sinon.stub(Contacts, 'utility', function(attr1, cb) {
+          cb();
+        });
+
+        // Stub needed to fake event target id.
+        sinon.stub(window, 'addEventListener', function(eventType, cb) {
+          if (eventType === 'transitionend') {
+            cb({'target': {'id': 'span-check-fb'}, data: ''});
+          }
+        });
+
+        sinon.stub(Contacts, 'showOverlay', function() {
+          return { setTotal: function() {} };
+        });
+
+        sinon.stub(fb.utils, 'clearFbData', function() {
+          return {
+            'result': {
+              set onsuccess(cb) {
+                cb();
+              },
+              lcontacts: []
+            },
+            set onsuccess(cb) {
+              cb();
+            }
+          };
+        });
+
+        sinon.stub(fb.utils, 'logout', function() {
+          return {
+            set onsuccess(cb) {
+              cb();
+            }
+          };
+        });
+
+        done();
+      });
+    });
+
+    suiteTeardown(function() {
+      fb.utils = mockFbUtils;
+      Contacts.confirmDialog.restore();
+      Contacts.utility.restore();
+      window.addEventListener.restore();
+      Contacts.showOverlay.restore();
+      fb.utils.clearFbData.restore();
+      fb.utils.logout.restore();
+    });
+
+    test('Cached friend number is correctly deleted on logout', function(done) {
+      MockImportStatusData.put(fb.utils.CACHE_FRIENDS_KEY, 50).then(function() {
+        MockImportStatusData.put(fb.utils.STORAGE_KEY, {access_token: '1'})
+            .then(function() {
+          contacts.Settings.refresh();
+
+          var spy = sinon.spy(fb.utils, 'removeCachedNumFriends');
+
+          document.querySelector('#settingsFb > .fb-item').click();
+
+          done(function() {
+            assert.isTrue(spy.called);
+            spy.restore();
+          });
+        });
+      });
+    });
+
+  });
+
   suite('Network status change', function() {
     var fbImportOption,
         fbOfflineMsg,
