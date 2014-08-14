@@ -454,10 +454,21 @@ suite('Information view', function() {
           }
         });
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
-        this.sinon.stub(Settings, 'getSimNameByIccId').returns('SIM 1');
+        this.sinon.stub(Settings, 'getServiceIdByIccId').returns(0);
         this.sinon.stub(Settings, 'getOperatorByIccId').returns('operator');
+        this.sinon.stub(navigator.mozL10n, 'setAttributes');
         reportView.render();
-        assert.equal(simDetail.textContent, 'SIM 1, operator');
+
+        sinon.assert.calledWithMatch(
+          navigator.mozL10n.setAttributes,
+          Object,
+          'sim-detail',
+          {
+            id: 1,
+            detailString: 'operator'
+          }
+        );
+
         assert.isFalse(simInfo.classList.contains('hide'));
       });
 
@@ -472,10 +483,21 @@ suite('Information view', function() {
           }
         });
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
-        this.sinon.stub(Settings, 'getSimNameByIccId').returns('SIM 1');
+        this.sinon.stub(Settings, 'getServiceIdByIccId').returns(0);
         this.sinon.stub(Settings, 'getOperatorByIccId').returns('');
+        this.sinon.stub(navigator.mozL10n, 'setAttributes');
         reportView.render();
-        assert.equal(simDetail.textContent, 'SIM 1, 1111');
+
+        sinon.assert.calledWithMatch(
+          navigator.mozL10n.setAttributes,
+          Object,
+          'sim-detail',
+          {
+            id: 1,
+            detailString: '1111'
+          }
+        );
+
         assert.isFalse(simInfo.classList.contains('hide'));
       });
 
@@ -490,10 +512,21 @@ suite('Information view', function() {
           }
         });
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
-        this.sinon.stub(Settings, 'getSimNameByIccId').returns('SIM 2');
+        this.sinon.stub(Settings, 'getServiceIdByIccId').returns(1);
         this.sinon.stub(Settings, 'getOperatorByIccId').returns('operator');
+        this.sinon.stub(navigator.mozL10n, 'setAttributes');
         reportView.render();
-        assert.equal(simDetail.textContent, 'SIM 2, operator, 1111');
+
+        sinon.assert.calledWithMatch(
+          navigator.mozL10n.setAttributes,
+          Object,
+          'sim-detail',
+          {
+            id: 2,
+            detailString: 'operator, 1111'
+          }
+        );
+
         assert.isFalse(simInfo.classList.contains('hide'));
       });
     });
