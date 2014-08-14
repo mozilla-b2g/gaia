@@ -57,6 +57,21 @@ var NavbarManager = {
     contacts.classList.remove('toolbar-option-selected');
     keypad.classList.remove('toolbar-option-selected');
 
+    recent.addEventListener('click', function hideNavLi(event) { 
+      document.getElementById('call-log-view').classList.add('hide');
+      document.getElementById('keyboard-view').classList.remove('hide');
+      console.log(this);
+    } );
+
+    keypad.addEventListener('click', function hideNavLi(event) {
+      document.getElementById('call-log-view').classList.remove('hide');
+      document.getElementById('keyboard-view').classList.add('hide');
+    } );
+
+    contacts.addEventListener('click', function hideNavLi(event) { 
+      document.getElementById('contacts-view').classList.remove('hide');
+    } );
+
     // XXX : Move this to whole activity approach, so far
     // we don't have time to do a deep modification of
     // contacts activites. Postponed to v2
@@ -113,6 +128,10 @@ var NavbarManager = {
   hide: function() {
     var views = document.getElementById('views');
     views.classList.add('hide-toolbar');
+  },
+
+  hideNavLi: function() {
+
   },
 
   show: function() {

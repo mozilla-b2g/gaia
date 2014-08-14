@@ -9,7 +9,19 @@
 }
 
 .icon-keypad {
-  background-image: url("images/dialpad.png");
+  background-image: url("images/actionicon_activecall_dismisskeyboard.png");
+}
+
+.icon-keypad.displayed {
+  background-position: 50% 0 !important;
+}
+
+.icon-keypad.displayed:active {
+  background-position: 50% -4.5rem !important;
+}
+
+.icon-keypad:active {
+  background-position: 
 }
 
 /* Making lazy loading look nice */

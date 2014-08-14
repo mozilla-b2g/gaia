@@ -51,7 +51,13 @@ form[role="dialog"][data-type="edit"] > menu {
 
 #call-log-container[data-type="list"] header {
   margin: 0 1.5rem;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
 }
+
+#call-log-container[data-type="list"] header:after {}
 
 #call-log-container[data-type="list"] ol {
   padding: 0 1.5rem;
@@ -110,15 +116,19 @@ ol, ul {
 .view-body {
   background : white;
   color: black;
-  height: -moz-calc(100% - 9.1rem);
+  height: -moz-calc(100% - 5rem);
   position: absolute;
   overflow: hidden;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .view-body-inner {
   height: 100%;
-  overflow: auto;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  flex: 1;
 }
 
 .view-body-inner ol {
@@ -304,4 +314,49 @@ ol, ul {
 
 .filter .groupFiltered {
   display: none;
+}
+
+
+/* Prototyping */
+#call-log-filter {
+  margin-top: -4rem;
+}
+
+.favorite-contacts-container {
+  height: 9.8rem;
+  overflow: hidden;
+  border-bottom: solid 0.1rem #E7E7E7;
+}
+
+ul.favorite-contacts {
+  height: 11rem;
+  padding: 0.8rem 0px 0.8rem 0.8rem !important;
+  box-sizing: border-box;
+  overflow: scroll;
+  overflow-x: scroll !important;
+  white-space: nowrap;
+}
+
+ul.favorite-contacts li {
+  width: 5.6rem;
+  display: inline-block;
+  margin-right: 1.4rem;
+  text-align: center;
+  border: none;
+}
+
+ul.favorite-contacts .img {
+  width: 5.6rem;
+  height: 5.6rem;
+  border-radius: 50%;
+  border: 1px solid #999;
+  margin-bottom: 0.5rem;
+}
+
+ul.favorite-contacts .title {
+  display: block;
+  font-size: 1.2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
