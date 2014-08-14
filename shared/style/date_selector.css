@@ -3,6 +3,7 @@
  * ---------------------------------- */
 
 /* Main dialog setup */
+
 [role="dialog"][data-type="date-selector"] {
   background: #2d2d2d;
   overflow: hidden;
@@ -276,4 +277,78 @@ button[disabled]::-moz-selection {
 
 [role="dialog"][data-type="date-selector"] menu button.full {
   width: 100%;
+}
+
+/* ----------------------------------
+ * Date selector for tablet
+ * ---------------------------------- */
+
+@media (min-width: 768px){
+
+  [role="dialog"][data-type="date-selector"] {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    background:
+      url(confirm/images/ui/pattern.png) repeat left top,
+      url(confirm/images/ui/gradient.png) no-repeat center / 68rem 45.5rem,
+      rgba(0, 0, 0, 0.65);
+  }
+
+  [role="dialog"][data-type="date-selector"] h1 {
+    width: 68rem;
+    height: 7rem;
+    font-weight: 500;
+    font-size: 2.2rem;
+    padding: 0 0 0 6rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: none repeat scroll 0 0 rgba(0, 0, 0, 0.2);
+  }
+
+  [role="dialog"][data-type="date-selector"] .picker-container {
+    width: 56rem;
+    height: 22.5rem;
+    margin: 4.5rem;
+  }
+
+  [role="dialog"][data-type="date-selector"] .value-picker-date-wrapper,
+  [role="dialog"][data-type="date-selector"] .value-picker-month-wrapper {
+    width: 33%;
+  }
+
+  [role="dialog"][data-type="date-selector"] .YMD .value-picker-month-wrapper,
+  [role="dialog"][data-type="date-selector"] .MDY .value-picker-date-wrapper,
+  [role="dialog"][data-type="date-selector"] .value-picker-month-wrapper {
+    left: 33%;
+  }
+
+  [role="dialog"][data-type="date-selector"] .value-picker-year-wrapper {
+    width: 34%;
+  }
+
+  [role="dialog"][data-type="date-selector"] .picker-bar-background {
+    width: 34%;
+  }
+
+  [role="dialog"][data-type="date-selector"] menu {
+    position: static;
+    width: 68rem;
+    height: 7rem;
+    box-sizing: padding-box;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: none repeat scroll 0 0 rgba(0, 0, 0, 0.2);
+  }
+
+  [role="dialog"][data-type="date-selector"] menu button {
+    width: calc(56rem / 2 - 12rem);
+  }
+
 }
