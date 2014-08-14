@@ -238,20 +238,40 @@
   background-image: url("images/dark/back.png");
 }
 
+.light .controls .back-button:active {
+  background-image: url("images/dark/back_active.png");
+}
+
 .light .controls .forward-button {
   background-image: url("images/dark/forward.png");
+}
+
+.light .controls .forward-button:active {
+  background-image: url("images/dark/forward_active.png");
 }
 
 .light .controls .reload-button {
   background-image: url("images/dark/reload.png");
 }
 
+.light .controls .reload-button:active {
+  background-image: url("images/dark/reload_active.png");
+}
+
 .light .controls .stop-button {
   background-image: url("images/dark/stop.png");
 }
 
+.light .controls .stop-button:active {
+  background-image: url("images/dark/stop_active.png");
+}
+
 .light .controls .menu-button {
   background-image: url("images/dark/overflow.png");
+}
+
+.light .controls .menu-button:active {
+  background-image: url("images/dark/overflow_active.png");
 }
 
 /* Overflow menu */
