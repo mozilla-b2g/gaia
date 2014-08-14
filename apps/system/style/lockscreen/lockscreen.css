@@ -703,14 +703,14 @@ button::-moz-focus-inner {
  * for small screen, we allow three notification
  * that would be (for four notifications)
  * (100% - 16.3rem (header) - 3rem (statusbar)
- *  - 10rem (slider) - 24.6rem (4xNotifications height + 1.2rem for showing the 5th)) / 2
+ *  - 10rem (slider) - 24.6rem (4xNotifications height)) / 2
  *  + 16.3rem + 3rem
  */
 
 #notifications-lockscreen-container {
   z-index: 1;
   position: absolute;
-  top: calc(50% - 8.35rem);
+  top: calc(50% - 7.65rem);
   left: 0;
   width: 100%;
   max-height: 24.6rem;
@@ -742,13 +742,13 @@ button::-moz-focus-inner {
 @media (max-height:480px) {
  /* small screen, normal mode: for three notifications...
   * (100% - 16.3rem (header) - 3rem (statusbar)
-  *  - 10rem (slider) - 18.7rem (3xNotifications height + showing the 4th)) / 2
+  *  - 10rem (slider) - 18.8rem (3xNotifications height)) / 2
   *  + 16.3rem + 3rem
   */
 
   #notifications-lockscreen-container {
-    top: calc(50% - 5.4rem);
-    max-height: 18.7rem;
+    top: calc(50% - 4.7rem);
+    max-height: 18.8rem;
   }
 
  /* small screen, collapsed mode: for one notification...
@@ -757,7 +757,7 @@ button::-moz-focus-inner {
   * (so there is no mask either)
   */
   #notifications-lockscreen-container.collapsed {
-    top: calc(50% - 5.4rem);
+    top: calc(50% - 4.7rem);
     max-height: 5.8rem;
     overflow-y: hidden;
   }
@@ -850,17 +850,17 @@ button::-moz-focus-inner {
  * and is empirical values.
  */
 #lockscreen-notification-arrow {
-  top: calc(50% - 7.95rem + 24.6rem - 1.2rem);
+  top: calc(50% - 7.65rem + 24.6rem - 1.2rem);
 }
 
 #lockscreen-notification-arrow.collapsed {
-  /* manullay adjusted */
+  /* manually adjusted */
   top: calc(50% - 9.6rem + 11.7rem - 0.05rem);
 }
 
 @media (max-height:480px) {
   #lockscreen-notification-arrow {
-    top: calc(50% - 5rem + 18.7rem - 1.1rem);
+    top: calc(50% - 4.7rem + 18.7rem - 1.1rem);
   }
 
   #lockscreen-notification-arrow.collapsed {
