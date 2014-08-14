@@ -301,9 +301,10 @@ var NotificationScreen = {
         detail.id.indexOf('app-notif-') === 0) {
       notificationNode.dataset.obsoleteAPI = 'true';
     }
-    var type = notificationNode.dataset.type = detail.type ||
-                                              'desktop-notification';
-    notificationNode.dataset.manifestURL = detail.manifestURL || '';
+    var type = detail.type || 'desktop-notification';
+    notificationNode.dataset.type = type;
+    var manifestURL = detail.manifestURL || '';
+    notificationNode.dataset.manifestURL = manifestURL;
 
     if (detail.icon) {
       var icon = document.createElement('img');
@@ -379,8 +380,9 @@ var NotificationScreen = {
     if (typeof(ScreenManager) !== 'undefined' &&
       !ScreenManager.screenEnabled) {
       // bug 915236: disable turning on the screen for email notifications
-      if (!detail.manifestURL ||
-           detail.manifestURL.indexOf('email.gaiamobile.org') === -1) {
+      // bug 1050023: disable turning on the screen for download notifications
+      if (type.indexOf('download-notification-downloading') === -1 &&
+          manifestURL.indexOf('email.gaiamobile.org') === -1) {
         ScreenManager.turnScreenOn();
       }
     }
@@ -468,10 +470,13 @@ var NotificationScreen = {
 
       if (this.vibrates) {
         if (document.hidden) {
-          window.addEventListener('visibilitychange', function waitOn() {
-            window.removeEventListener('visibilitychange', waitOn);
-            navigator.vibrate([200, 200, 200, 200]);
-          });
+          // bug 1050023: disable vibration for downloads when asleep
+          if (type.indexOf('download-notification-downloading') === -1) {
+            window.addEventListener('visibilitychange', function waitOn() {
+              window.removeEventListener('visibilitychange', waitOn);
+              navigator.vibrate([200, 200, 200, 200]);
+            });
+          }
         } else {
           navigator.vibrate([200, 200, 200, 200]);
         }
