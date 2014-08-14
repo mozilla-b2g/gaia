@@ -1327,6 +1327,25 @@ suite('Render contacts list', function() {
       });
     });
 
+    test('Search phrase highlights accented equivalent characters',
+        function(done) {
+      mockContacts = new MockContactsList();
+      var contactIndex = Math.floor(Math.random() * mockContacts.length);
+      var contact = mockContacts[contactIndex];
+      contact.givenName[0] = 'Aáeéi';
+      contact.name[0] = contact.givenName[0] + ' ' + contact.familyName[0];
+      contact.id = 'test-contact';
+
+      doLoad(subject, mockContacts, function() {
+        searchBox.value = 'ae';
+        contacts.Search.search(function search_finished() {
+          assertHighlight('áe');
+          contacts.Search.invalidateCache();
+          done();
+        });
+      });
+    });
+
     test('Order string lazy calculated', function(done) {
       mockContacts = new MockContactsList();
       doLoad(subject, mockContacts, function() {
