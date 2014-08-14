@@ -841,11 +841,15 @@ section[role="region"].report-information > header .icon-back {
   display: none;
 }
 
-.request-activity-mode #messages-close-button {
+.request-activity-mode #messages-close-button,
+.request-activity-mode .report-information #messages-back-button,
+.request-activity-mode .participants-information #messages-back-button {
   display: block;
 }
 
-.request-activity-mode #messages-back-button {
+.request-activity-mode #messages-back-button,
+.request-activity-mode .report-information #messages-close-button,
+.request-activity-mode .participants-information #messages-close-button {
   display: none;
 }
 
