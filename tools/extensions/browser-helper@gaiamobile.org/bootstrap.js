@@ -117,19 +117,10 @@ function initResponsiveDesign(browserWindow) {
   });
 
   // Automatically toggle responsive design mode
-  let width = 320, height = 480;
-  // We have to take into account padding and border introduced with the
-  // device look'n feel:
-  width += 15*2; // Horizontal padding
-  width += 1*2; // Vertical border
-  height += 60; // Top Padding
-  height += 1; // Top border
-  let args = {'width': width, 'height': height};
   let mgr = browserWindow.ResponsiveUI.ResponsiveUIManager;
   mgr.handleGcliCommand(browserWindow,
                         browserWindow.gBrowser.selectedTab,
-                        'resize to',
-                        args);
+                        'resize on');
 
   // Enable touch events
   browserWindow.gBrowser.selectedTab.__responsiveUI.enableTouch();
