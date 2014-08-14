@@ -458,10 +458,12 @@ var icc_worker = {
     switch (options.timerAction) {
       case icc._iccManager.STK_TIMER_START:
         a_timer.start(options.timerId, options.timerValue * 1000,
-          function() {
-            DUMP('Timer expiration - ' + options.timerId);
+          function(realUsedTimeMs) {
+            DUMP('Timer expiration - ' + options.timerId +
+              ' - real used time ' + realUsedTimeMs);
             (icc.getIcc(message.iccId)).sendStkTimerExpiration({
-              'timerId': options.timerId
+              'timerId': options.timerId,
+              'timerValue': realUsedTimeMs / 1000
             });
           });
         icc.responseSTKCommand(message, {
