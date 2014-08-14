@@ -24,7 +24,16 @@ CollectionAppBuilder.prototype.execute = function(options) {
   var sourceDir = gaia.distributionDir ?
     gaia.distributionDir : options.GAIA_DIR;
 
-  collections.collections.forEach(function(collection){
+  // Bug 1035272 - Explicitly copy the 'Entertainment' smart collection to the
+  // profile in the case of an upgrade. By default it is not shown in the grid,
+  // but in case it is migrated we need to include it to have an icon. This is
+  // because smart collection icons are migrated differently for the default
+  // smart collections.
+  var showBizCollection = manager.getCollectionMetadata(
+    options, ['apps/homescreen/collections', 'showbiz']);
+  var collectionsToCopy = collections.collections.concat(showBizCollection);
+
+  collectionsToCopy.forEach(function(collection){
     // Copy collection to stage dir
     var directory = collection.path[0];
     var appName = collection.path[1];
