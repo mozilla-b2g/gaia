@@ -67,14 +67,17 @@ var CallServicesPasswordScreen = (function() {
     console.log('SHOWING!');
     return new Promise(function showing(resolve, reject) {
       panel.hidden = false;
+      input.focus();
       btnOK.addEventListener('click', function okClicked() {
+        btnOK.removeEventListener('click', okClicked);
         if (_passcodeBuffer.length === 4) {
           var password = _passcodeBuffer;
           _closePanel();
           resolve(password);
         } //TODO else SHOW_ERROR
       });
-      btnCancel.addEventListener('click', function okClicked() {
+      btnCancel.addEventListener('click', function cancelClicked() {
+        btnCancel.removeEventListener('click', cancelClicked);
         _closePanel();
         reject();
       });

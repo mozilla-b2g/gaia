@@ -486,9 +486,11 @@ section ul.operate-certificate {
   width: 100%;
 }
 
-#call li[aria-disabled="true"] .icon-dialog {
+#call li[aria-disabled="true"] .icon-dialog,
+#call-cbSettings li[aria-disabled="true"] {
   opacity: 0.6;
   pointer-events: none;
+  color: #797E80;
 }
 
 /******************************************************************************
