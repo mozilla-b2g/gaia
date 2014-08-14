@@ -1,6 +1,6 @@
 'use strict';
 /* global MockNavigatormozApps, MockNavigatormozSetMessageHandler,
-          MockMozActivity, Search, MockProvider, MockasyncStorage, Promise */
+          Search, MockProvider, MockasyncStorage, Promise */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -14,7 +14,6 @@ requireApp('search/test/unit/mock_provider.js');
 suite('search/search', function() {
   var realAsyncStorage;
   var realMozApps;
-  var realMozActivity;
   var realSetMessageHandler;
   var clock;
 
@@ -30,9 +29,6 @@ suite('search/search', function() {
 
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
-
-    realMozActivity = window.MozActivity;
-    window.MozActivity = MockMozActivity;
 
     realAsyncStorage = window.asyncStorage;
     window.asyncStorage = MockasyncStorage;
@@ -57,20 +53,16 @@ suite('search/search', function() {
   suiteTeardown(function() {
     navigator.mozSetMessageHandler = realSetMessageHandler;
     navigator.mozApps = realMozApps;
-    window.MozActivity = realMozActivity;
     window.asyncStorage = realAsyncStorage;
     clock.restore();
     delete window.SettingsListener;
   });
 
   setup(function() {
-
-    MockMozActivity.mSetup();
     MockNavigatormozSetMessageHandler.mSetup();
   });
 
   teardown(function() {
-    MockMozActivity.mTeardown();
     MockNavigatormozSetMessageHandler.mTeardown();
     MockNavigatormozApps.mTeardown();
   });
@@ -268,13 +260,6 @@ suite('search/search', function() {
       var stub = this.sinon.stub(window, 'open');
       Search.navigate(url);
       assert.ok(stub.calledOnce);
-      // Bug 1042012: Disabled until we enable registering of the view activity
-      /*
-      var url = 'http://mozilla.org';
-      assert.equal(MockMozActivity.calls.length, 0);
-      Search.navigate(url);
-      assert.equal(MockMozActivity.calls.length, 1);
-      */
     });
   });
 

@@ -308,16 +308,6 @@
      */
     navigate: function(url) {
       window.open(url, '_blank', 'remote=true');
-      /*
-      Bug 1042012: Disabled until we enable registering of the view activity
-      to the system app.
-      var activity = new window.MozActivity({name: 'view', data: {
-        type: 'url',
-        url: url
-      }});
-      // Keep jshint happy
-      activity.onsuccess = function() {};
-      */
     },
 
     /**
