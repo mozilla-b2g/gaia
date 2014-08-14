@@ -6242,27 +6242,6 @@ suite('thread_ui.js >', function() {
       Compose.clear();
     });
 
-    suite('message editor focus', function() {
-      setup(function() {
-        this.sinon.spy(Compose, 'focus');
-        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
-      });
-
-      test('focus on container click if in Composer', function() {
-        Navigation.isCurrentPanel.withArgs('composer').returns(true);
-        container.click();
-
-        sinon.assert.called(Compose.focus);
-      });
-
-      test('do not focus on container click if not in Composer', function() {
-        Navigation.isCurrentPanel.withArgs('thread').returns(true);
-
-        container.click();
-        sinon.assert.notCalled(Compose.focus);
-      });
-    });
-
     suite('recipients panel mode change', function() {
       setup(function() {
         this.sinon.stub(Recipients.prototype, 'on');
