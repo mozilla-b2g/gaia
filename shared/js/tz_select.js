@@ -205,7 +205,7 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
     function initSelector(initialValue, alreadyDefined) {
       var systemTimeChanged = function() {
         onchange(systemTimeChanged.tz);
-      }
+      };
 
       function updateTZ(tz, options) {
         // Update data for our callback.
@@ -228,7 +228,7 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
       // Get rid of our listener when we unload.
       onchange && window.addEventListener('unload', function() {
         window.removeEventListener('moztimechange', systemTimeChanged);
-      })
+      });
 
       // initialize the timezone selector with the initial TZ setting
       newTZSelector(updateTZ, initialValue, alreadyDefined);
