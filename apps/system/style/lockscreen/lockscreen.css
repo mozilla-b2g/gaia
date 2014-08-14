@@ -470,7 +470,7 @@ button::-moz-focus-inner {
 
   font-size: 3rem;
   font-weight: 400;
-  line-height: 4.2rem;
+  line-height: 3.6rem;
 
   color: #fff;
   text-decoration: none;
@@ -498,7 +498,6 @@ button::-moz-focus-inner {
 
 #lockscreen-passcode-pad > a[data-key="b"] > div {
   font-size: 1.5rem;
-  padding-left: 4rem;
   color: #abb0b1;
 }
 
@@ -546,32 +545,32 @@ button::-moz-focus-inner {
 }
 
 #lockscreen-passcode-pad .row0 > div{
-  border-right-color: #606B6E;
+  border-right-color: #525b5e;
 }
 
 #lockscreen-passcode-pad .row1 > div {
-  border-right-color: #5B6668;
+  border-right-color: #4c5657;
 }
 
 #lockscreen-passcode-pad .row2 > div {
-  border-right-color: #566063;
+  border-right-color: #475052;
 }
 
 #lockscreen-passcode-pad .row3 > div {
-  border-right-color: #525C5E;
+  border-right-color: #434b4d;
 }
 
 #lockscreen-passcode-pad > a.row0 > div,
 #lockscreen-passcode-pad > a.row1 > div,
 #lockscreen-passcode-pad > a.row2 > div {
-  margin-top: 0.1rem;
+  margin-top: 0.4rem;
 }
 
 #lockscreen-passcode-pad > a.row0 > div > span,
 #lockscreen-passcode-pad > a.row1 > div > span,
 #lockscreen-passcode-pad > a.row2 > div > span {
   display: block;
-  margin-top: -2.6rem;
+  margin-top: -2rem;
 }
 
 #lockscreen-passcode-pad > a:active > div > span {
