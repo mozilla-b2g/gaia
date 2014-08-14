@@ -55,7 +55,8 @@ suite('Nfc Manager Functions', function() {
 
   test('send NDEF request to peer', function() {
     var sentRequest = {'testkey': 'testvalue'};
-    nfcHandler.sendNDEFRequestToNFCPeer(sentRequest, {});
+    nfcHandler.sendNDEFRequestToNFCPeer(sentRequest,
+                                        {peer: MockNfc.getNFCPeer()});
     assert.deepEqual(MockNfc.mSentRequest, sentRequest);
   });
 });

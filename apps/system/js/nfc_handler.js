@@ -39,8 +39,7 @@
         if (!request) {
           return;
         }
-        var nfcdom = window.navigator.mozNfc;
-        var nfcPeer = nfcdom.getNFCPeer(nfcEvent.detail);
+        var nfcPeer = nfcEvent.peer;
         if (!nfcPeer) {
           return null;
         }
