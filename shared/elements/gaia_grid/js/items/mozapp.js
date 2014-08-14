@@ -223,20 +223,7 @@
     Show a dialog to handle unrecoverable errors.
     */
     unrecoverableError: function() {
-      var dialog = new ConfirmDialogHelper({
-        type: 'unrecoverable',
-        title: _('gaia-grid-unrecoverable-error-title'),
-        body: _('gaia-grid-unrecoverable-error-body'),
-        confirm: {
-          title: _('gaia-grid-unrecoverable-error-action'),
-          cb: () =>  {
-            // XXX: this means whoever uses gaia-grid must have the
-            //      webapps-manage permission
-            navigator.mozApps.mgmt.uninstall(this.app);
-          }
-        }
-      });
-      dialog.show(document.body);
+      navigator.mozApps.mgmt.uninstall(this.app);
     },
 
     cancel: function() {
