@@ -961,6 +961,17 @@ suite('lib/camera/camera', function() {
       });
     });
 
+    test('Should change camera.releasing status before released fired',
+     function(done) {
+      var self = this;
+      this.camera.releasing = true;
+      this.camera.on('released', function() {
+        assert.isFalse(self.camera.releasing);
+        done();
+      });
+      this.camera.release();
+    });
+
     test('Should call the callback with an error argument', function(done) {
       this.mozCamera.release = sinon.stub();
       this.mozCamera.release.callsArgWithAsync(1, 'error');
