@@ -144,6 +144,10 @@
       }.bind(this),
       System.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
                               this.CLOSING_TRANSITION_TIMEOUT);
+
+      if (!this.app || !this.app.element) {
+        return;
+      }
       this.app.element.classList.add('transition-closing');
       this.app.element.classList.add(this.getAnimationName('close'));
     };
@@ -310,7 +314,7 @@
 
   AppTransitionController.prototype.clearTransitionClasses =
     function atc_removeTransitionClasses() {
-      if (!this.app) {
+      if (!this.app || !this.app.element) {
         return;
       }
 
