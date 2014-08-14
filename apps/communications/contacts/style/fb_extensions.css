@@ -42,16 +42,16 @@
   display: none;
 }
 
-.with-photo.facebook img {
+.with-photo.removed.facebook img {
   pointer-events: auto;
   opacity: 0.95;
 }
 
-.with-photo.facebook {
+.with-photo.removed.facebook {
   padding-right: 0
 }
 
-.with-photo.facebook .edit-photo  {
+.with-photo.removed.facebook .edit-photo  {
   right: 0
 }
 

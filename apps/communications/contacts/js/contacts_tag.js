@@ -126,7 +126,7 @@ var ContactsTag = (function() {
         var itemSame = sameType.item(j);
         var tagNode = itemSame.querySelector('[data-field="type"]');
         if (tagNode !== currentNode &&
-            !itemSame.classList.contains('facebook')) {
+            !itemSame.classList.contains('removed')) {
           newOptions = newOptions.filter(function(ele) {
             return ele.type != tagNode.dataset.value;
           });

@@ -297,21 +297,25 @@ form p textarea + button[type="reset"].hide {
   display: block;
 }
 
-/* MARK AS Facebook */
+/* MARK AS REMOVED */
 
-.facebook {
+.removed {
   border-color: #c8c8c8;
   opacity: 0.85;
 }
 
-.facebook fieldset, .facebook legend, .facebook input {
+.removed fieldset, .removed legend, .removed input {
   background-color: transparent;
   color: #ccc;
   pointer-events: none;
 }
 
-.facebook legend.action:after {
+.removed legend.action:after {
   border-top-color: #666;
+}
+
+.removed button span.icon-delete {
+  background-image: url("/contacts/style/gphx/bitmap/default/forms/undo.png");
 }
 
 .with-photo {
