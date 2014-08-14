@@ -234,11 +234,15 @@
         console.warn('HomescreenLauncher: not ready right now.');
         return null;
       }
+      console.log('getHomescreen');
       if (typeof this._instance == 'undefined') {
+        console.log('getHomescreen instance undefined');
         this._instance = new HomescreenWindow(this._currentManifestURL);
         return this._instance;
       } else {
+        console.log('getHomescreen ensure', ensure);
         if (ensure) {
+          console.log('getHomescreen call ensure()');
           this._instance.ensure();
         }
         return this._instance;
