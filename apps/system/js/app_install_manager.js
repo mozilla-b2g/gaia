@@ -1,4 +1,16 @@
 'use strict';
+/* global ModalDialog */
+/* global SystemBanner */
+/* global StatusBar */
+/* global KeyboardManager */
+/* global LazyLoader */
+/* global ManifestHelper */
+/* global FtuLauncher */
+/* global Template */
+/* global NotificationScreen */
+/* global KeyboardHelper */
+/* global UtilityTray */
+/* global applications */
 
 var AppInstallManager = {
   mapDownloadErrorsToMessage: {
@@ -130,8 +142,9 @@ var AppInstallManager = {
     // updateManifest is used by packaged apps until they are installed
     var manifest = app.manifest ? app.manifest : app.updateManifest;
 
-    if (!manifest)
+    if (!manifest) {
       return;
+    }
 
     this.dialog.classList.add('visible');
 
@@ -168,10 +181,12 @@ var AppInstallManager = {
   },
 
   handleInstall: function ai_handleInstall(evt) {
-    if (evt)
+    if (evt) {
       evt.preventDefault();
-    if (this.installCallback)
+    }
+    if (this.installCallback) {
       this.installCallback();
+    }
     this.installCallback = null;
     this.dialog.classList.remove('visible');
   },
@@ -345,9 +360,9 @@ var AppInstallManager = {
 
     switch (errorName) {
       case 'INSUFFICIENT_STORAGE':
-        var title = _('not-enough-space'),
-            buttonText = _('ok'),
-            message = _('not-enough-space-message');
+        var title = 'not-enough-space',
+            buttonText = 'ok',
+            message = 'not-enough-space-message';
 
         ModalDialog.alert(title, message, {title: buttonText});
         break;
@@ -530,8 +545,9 @@ var AppInstallManager = {
     var _ = navigator.mozL10n.get;
     var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'];
 
-    if (!bytes)
+    if (!bytes) {
       return '0.00 ' + _(units[0]);
+    }
 
     var e = Math.floor(Math.log(bytes) / Math.log(1024));
     return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + ' ' +
@@ -539,15 +555,17 @@ var AppInstallManager = {
   },
 
   showInstallCancelDialog: function ai_showInstallCancelDialog(evt) {
-    if (evt)
+    if (evt) {
       evt.preventDefault();
+    }
     this.installCancelDialog.classList.add('visible');
     this.dialog.classList.remove('visible');
   },
 
   hideInstallCancelDialog: function ai_hideInstallCancelDialog(evt) {
-    if (evt)
+    if (evt) {
       evt.preventDefault();
+    }
     this.dialog.classList.add('visible');
     this.installCancelDialog.classList.remove('visible');
   },
@@ -577,8 +595,9 @@ var AppInstallManager = {
   },
 
   handleInstallCancel: function ai_handleInstallCancel() {
-    if (this.installCancelCallback)
+    if (this.installCancelCallback) {
       this.installCancelCallback();
+    }
     this.installCancelCallback = null;
     this.installCancelDialog.classList.remove('visible');
   },

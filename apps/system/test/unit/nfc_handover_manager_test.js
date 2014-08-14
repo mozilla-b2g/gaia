@@ -125,7 +125,7 @@ suite('Nfc Handover Manager Functions', function() {
       var spyName = this.sinon.spy(NfcConnectSystemDialog.prototype, 'show');
       var spyPairing = this.sinon.spy(NfcHandoverManager, '_doPairing');
 
-      NfcManager.handleTechnologyDiscovered(activityInjection1);
+      NfcManager._handleTechDiscovered(activityInjection1);
       assert.isTrue(spyName.withArgs('UE MINI BOOM').calledOnce);
       assert.isTrue(spyPairing.withArgs('00:0D:44:E7:95:AB').calledOnce);
     });
@@ -134,7 +134,7 @@ suite('Nfc Handover Manager Functions', function() {
       var spyName = this.sinon.spy(NfcConnectSystemDialog.prototype, 'show');
       var spyPairing = this.sinon.spy(NfcHandoverManager, '_doPairing');
 
-      NfcManager.handleTechnologyDiscovered(activityInjection2);
+      NfcManager._handleTechDiscovered(activityInjection2);
       assert.isTrue(spyName.withArgs('MBH10').calledOnce);
       assert.isTrue(spyPairing.withArgs('4C:21:D0:9F:12:F1').calledOnce);
     });

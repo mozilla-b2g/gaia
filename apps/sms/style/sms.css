@@ -376,10 +376,6 @@ section[role="region"].new > header:first-child form {
   display: block;
 }
 
-#messages-container {
-  background: #fff;
-}
-
 #messages-container .messages-date-group-header {
   position: sticky;
   top: 0;
@@ -408,15 +404,6 @@ section[role="region"].new > header:first-child form {
 /* TODO: check whether we need this rule */
 #messages-container .messages-date-group-header.hidden {
   display: none;
-}
-
-.new .article-list {
-  z-index: 5;
-
-  padding: 0;
-
-  background: none repeat scroll 0 0 #fff;
-  text-align: left;
 }
 
 .article-list[data-type="list"] .message {

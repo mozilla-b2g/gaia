@@ -23,13 +23,7 @@ define(function(require) {
     pin: ''
   };
 
-  var _authOptions = {
-    password: '',
-    identity: '',
-    eap: '',
-    authPhase2: '',
-    certificate: ''
-  };
+  var _authOptions = {};
 
   var WifiContext = {
     /**
@@ -409,6 +403,15 @@ define(function(require) {
     forgetNetwork: WifiContext.forgetNetwork,
     associateNetwork: WifiContext.associateNetwork,
     wpsOptions: _wpsOptions,
-    authOptions: _authOptions
+    set authOptions(object) {
+      _authOptions = {};
+      var keys = ['password', 'identity', 'eap', 'authPhase2', 'certificate'];
+      keys.forEach(function(key) {
+        _authOptions[key] = object[key];
+      });
+    },
+    get authOptions() {
+      return _authOptions;
+    },
   };
 });

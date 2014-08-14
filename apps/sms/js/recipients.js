@@ -630,6 +630,14 @@
 
     if (view.mode !== mode) {
       view.mode = mode;
+
+      // the list in "singleline-mode" should only have "singleline" view
+      if (mode === 'singleline-mode' && view.state.visible === 'multiline') {
+        this.visible('singleline', {
+          refocus: this
+        });
+      }
+
       view.owner.emit('modechange', mode);
     }
   };

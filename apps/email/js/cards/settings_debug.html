@@ -1,28 +1,55 @@
-<!-- Developer debug page; for those in the know -->
-<section class="card-settings-debug card skin-organic" role="region">
-  <header>
-    <a href="#" class="tng-close-btn">
-      <span class="icon icon-close"></span>
+<!-- Secret developer debug page; for those in the know.  This page can only be
+     reached by tapping 5 times on some whitespace on the main settings page.
+
+     NOTE NOTE NOTE NOTE NOTE
+
+     This page is intentionally unlocalized.  There's a few reasons for this:
+     - The intended users are Firefox OS developers for which English is
+       currently a pre-requisite.
+     - It allows us to change these settings without being particularly
+       concerned about string freeze.
+     - We don't have to worry about the localized strings not capturing the
+       risk of enabling this logging.
+
+     This raises the question: Should this be shipped in non-developer builds if
+     we think it's not worth localizing?  Our current rationale is that it is
+     useful.  We (the developers) have had bug reporters enable the logging and
+     worked with us to fix bugs using the functionality.  Especially given our
+     limited ability to provide updated versions of the app or have users
+     side-load versions of our certified app.
+  -->
+<section class="card-settings-debug card-settings-account-common card skin-organic"
+         role="region">
+  <header class="tng-account-header">
+    <a href="#" class="tng-back-btn back-btn header-left-btn">
+      <span class="icon icon-back"></span>
     </a>
-    <h1 class="tng-main-header-label">Debug!</h1>
+    <h1 class="header-label">Debug Magic</h1>
   </header>
-  <div class="scrollregion-below-header">
-    <ul>
-      <li>
-        <button class="tng-dbg-reset">Reset App</button>
-      </li>
-      <li>
-        <button class="tng-dbg-logging"></button>
-      </li>
-      <li>
-        <button class="tng-dbg-dangerous-logging"></button>
-      </li>
-      <li>
-        <button class="tng-dbg-dump-storage">Dump log to storage</button>
-      </li>
-      <li>
-        <button class="tng-dbg-fastsync">Enable faster sync options</button>
-      </li>
-    </ul>
-  </div>
+  <section class="scrollregion-below-header skin-organic" role="region">
+    <button href="#" class="tng-dbg-reset">Reset App</button>
+    <header><h2>Logging</h2></header>
+    <li class="select-item">
+      <label class="list-text">Logging Mode</label>
+      <span class="button icon icon-dialog">
+        <select class="tng-dbg-logging">
+          <option value="">
+            No logging.
+          </option>
+          <option value="safe">
+            Circular: Safe data: no passwords or message contents logged.
+          </option>
+          <option value="dangerous">
+            Circular: Dangerous data: passwords and message contents logged.
+          </option>
+          <option value="realtime-dangerous">
+            Realtime + Circular: Dangerous data: passwords and message contents logged.
+          </option>
+        </select>
+      </span>
+    </li>
+    <button href="#" class="tng-dbg-dump-storage">Dump circular log buffer to sdcard</button>
+    <header><h2>More Settings!</h2></header>
+    <button href="#" class="tng-dbg-fastsync">Enable faster sync options</button>
+  </section>
 </section>

@@ -4,7 +4,7 @@
 (function(exports) {
 
   // Hidden manifest roles that we do not show
-  const HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
+  const HIDDEN_ROLES = ['system', 'input', 'homescreen'];
 
   function App() {
     window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
@@ -192,9 +192,17 @@
           window.removeEventListener('gaiagrid-layout-ready', this);
           break;
 
+        // A hashchange event means that the home button was pressed.
+        // The system app changes the hash of the homescreen iframe when it
+        // receives a home button press.
         case 'hashchange':
-          if (this.grid._grid.dragdrop.inEditMode) {
-            this.grid._grid.dragdrop.exitEditMode();
+          var _grid = this.grid._grid;
+
+          // Leave edit mode if the user is in edit mode.
+          // We do not lazy load dragdrop until after load, so the user can not
+          // take this path until libraries are loaded.
+          if (_grid.dragdrop && _grid.dragdrop.inEditMode) {
+            _grid.dragdrop.exitEditMode();
             return;
           }
 

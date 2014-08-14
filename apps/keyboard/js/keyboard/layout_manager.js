@@ -75,7 +75,7 @@ LayoutManager.prototype.switchCurrentLayout = function(layoutName) {
 
     this.currentLayout = layout;
     this.currentLayoutName = layoutName;
-    this.currentLayoutPage = this.LAYOUT_PAGE_DEFAULT;
+    this.currentLayoutPage = this._getInitLayoutPage();
     this.currentForcedModifiedLayoutName = undefined;
 
     this._updateModifiedLayout();
@@ -199,9 +199,11 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   //
   // ... make a copy of the entire keys array,
   layout.keys = [].concat(layout.keys);
+  var copiedRows = [];
   // ... and point row containing space key object to a new array,
   var spaceKeyRow = layout.keys[spaceKeyRowCount] =
     [].concat(layout.keys[spaceKeyRowCount]);
+  copiedRows.push(spaceKeyRowCount);
   // ... the space key object should be point to a new object too.
   var spaceKeyObject = layout.keys[spaceKeyRowCount][spaceKeyCount] =
     Object.create(layout.keys[spaceKeyRowCount][spaceKeyCount]);
@@ -253,6 +255,25 @@ LayoutManager.prototype._updateModifiedLayout = function() {
     spaceKeyObject.ratio -= 1;
     spaceKeyRow.splice(spaceKeyCount, 0, imeSwitchKey);
     spaceKeyCount++;
+
+    // Replace the key with supportsSwitching alternative defined.
+    // This is because we won't have ',' at the bottom, and we would
+    // move it to other place.
+    var r = layout.keys.length, c, row, key;
+    while (r--) {
+      row = layout.keys[r];
+      c = row.length;
+      while (c--) {
+        key = row[c];
+        if (key.supportsSwitching) {
+          if (copiedRows.indexOf(r) === -1) {
+            layout.keys[r] = [].concat(layout.keys[r]);
+            copiedRows.push(r);
+          }
+          layout.keys[r][c] = Object.create(key.supportsSwitching);
+        }
+      }
+    }
   }
 
   // Respond to different input types
@@ -322,13 +343,11 @@ LayoutManager.prototype._updateModifiedLayout = function() {
       case 'default':
         var overwrites = layout.textLayoutOverwrite || {};
         // Add comma key if we are asked to,
-        // Only add the key at alternative pages or if
-        // we didn't add the switching key.
+        // Only add the key if we didn't add the switching key.
         // Add comma key in any page if needsCommaKey is
         // set explicitly.
         if (overwrites[','] !== false &&
-            (this.currentLayoutPage !== this.LAYOUT_PAGE_DEFAULT ||
-             !needsSwitchingKey ||
+            (!needsSwitchingKey ||
              layout.needsCommaKey)) {
           var commaKey = {
             value: ',',
@@ -404,6 +423,24 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   }
 };
 
+// we may launch into some alternative layout page
+// for some specific input types/modes
+// for bug 1024298, launch into symbols 1 page for number-type inputs
+LayoutManager.prototype._getInitLayoutPage = function() {
+  var inputMode = this.app.inputContext.inputMode;
+  var basicInputType = this.app.getBasicInputType();
+
+  // XXX: but if the inputMode is 'digit', we need to launch 'pinLayout';
+  //      the first switch-case in _getAlternativeLayoutName would not allow
+  //      launching pinLayout if we set _SYMBOLS_I here.
+  if (('number' === basicInputType && 'digit' !== inputMode) ||
+      ('text' === basicInputType && 'numeric' === inputMode)) {
+    return this.LAYOUT_PAGE_SYMBOLS_I;
+  } else {
+    return this.LAYOUT_PAGE_DEFAULT;
+  }
+};
+
 LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
                                                              inputMode) {
   switch (this.currentLayoutPage) {
@@ -422,9 +459,6 @@ LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
       switch (inputMode) {
         case 'digit':
           return 'pinLayout';
-
-        default:
-          return 'numberLayout';
       }
 
       break;
@@ -435,9 +469,6 @@ LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
       switch (inputMode) {
         case 'digit':
           return 'pinLayout';
-
-        case 'numeric':
-          return 'numberLayout';
 
         case '-moz-sms':
           var smsLayoutName = this.currentLayoutName + '-sms';

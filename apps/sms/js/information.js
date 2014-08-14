@@ -185,16 +185,19 @@ var VIEWS = {
   report: {
     name: 'report',
 
-    onDeliverySuccess: function report_onDeliverySuccess(message) {
-      if (Navigation.isCurrentPanel('report-view', { id: message.id })) {
-        this.refresh();
-      }
+    init: function() {
+      this.onDeliverySuccess = this.onDeliverySuccess.bind(this);
+      this.onReadSuccess = this.onReadSuccess.bind(this);
     },
 
-    onReadSuccess: function report_onReadSuccess(message) {
-      if (Navigation.isCurrentPanel('report-view', { id: message.id })) {
-        this.refresh();
-      }
+    beforeEnter: function() {
+      MessageManager.on('message-delivered', this.onDeliverySuccess);
+      MessageManager.on('message-read', this.onReadSuccess);
+    },
+
+    afterLeave: function() {
+      MessageManager.off('message-delivered', this.onDeliverySuccess);
+      MessageManager.off('message-read', this.onReadSuccess);
     },
 
     render: function renderReport() {
@@ -266,6 +269,19 @@ var VIEWS = {
 
       localize(ThreadUI.headerText, 'message-report');
     },
+
+    onDeliverySuccess: function report_onDeliverySuccess(e) {
+      if (Navigation.isCurrentPanel('report-view', { id: e.message.id })) {
+        this.refresh();
+      }
+    },
+
+    onReadSuccess: function report_onReadSuccess(e) {
+      if (Navigation.isCurrentPanel('report-view', { id: e.message.id })) {
+        this.refresh();
+      }
+    },
+
     elements: ['contact-list', 'status', 'size', 'size-block', 'sent-detail',
       'type', 'subject', 'datetime', 'contact-title', 'received-detail',
       'sent-timeStamp', 'received-timeStamp', 'sim-info']
@@ -274,6 +290,10 @@ var VIEWS = {
 
 var Information = function(type) {
   Utils.extend(this, VIEWS[type]);
+
+  if (this.init) {
+    this.init();
+  }
 
   var prefix = 'information-' + this.name;
   this.container = document.getElementById(prefix);

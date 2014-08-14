@@ -3,7 +3,7 @@ Keyboards.ro = {
   shortLabel: 'Ro',
   menuLabel: 'Română',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'password'],
+  types: ['text', 'url', 'email', 'number', 'password'],
   autoCorrectLanguage: 'ro',
   alt: {
     a: 'ăâ',
@@ -55,7 +55,11 @@ Keyboards.ro = {
         { value: '(' }, { value: ')' }
       ], [
         { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
-        { value: '+' }, { value: ':' }, { value: ';' }, { value: '"' },
+        { value: '+',
+          supportsSwitching: {
+            value: ','
+          }
+        }, { value: ':' }, { value: ';' }, { value: '"' },
         { value: '\'' }, { value: '?' }, { value: '!' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [

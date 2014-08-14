@@ -167,15 +167,16 @@
 
 .controls .reload-button,
 .controls .stop-button {
-  background-size: 2rem auto;
+  background-size: 3rem auto;
   background-position: center center;
+  background-repeat: no-repeat;
   position: absolute;
   bottom: 0.3rem;
-  right: 0.3rem;
+  right: 0;
+  padding: 0 0.3rem;
   width: 3rem;
   height: 3rem;
-  min-width: 0.3rem;
-  border-left: 1px solid rgba(51,51,51,0.5);
+  border-left: 1px solid rgba(0,0,0,0.05);
 }
 
 .loading .controls .reload-button {
@@ -329,8 +330,21 @@
   align-items: center;
 }
 
+.overflow-menu > .list > :not(#share).option[data-disabled] {
+  display: none;
+}
+
+.overflow-menu > .list > #share.option[data-disabled] {
+  pointer-events: none;
+}
+
 .overflow-menu > .list > .option * {
   pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.overflow-menu > .list > #share.option[data-disabled] * {
+  opacity: 0.5;
 }
 
 .overflow-menu > .list > .option > .icon {
@@ -351,6 +365,10 @@
 
 .option#add-to-home > .icon {
   background-image: url("images/menu_add_to_homescreen.png");
+}
+
+.option#share > .icon {
+  background-image: url("images/menu_share.png");
 }
 
 /* Progress */

@@ -19,7 +19,7 @@
    */
   function TaskManager() {
     this.stack = null;
-    this.cardsByOrigin = {};
+    this.cardsByAppID = {};
     // Unkillable apps which have attention screen now
     this.attentionScreenApps = [];
 
@@ -397,7 +397,7 @@
     var card = (this.isTaskStrip) ?
                   new TaskCard(config) :
                   new Card(config);
-    this.cardsByOrigin[app.origin] = card;
+    this.cardsByAppID[app.instanceID] = card;
     this.cardsList.appendChild(card.render());
   };
 
@@ -412,7 +412,7 @@
                                                             removeImmediately) {
     var element = card.element;
     var position = element.dataset.position;
-    delete this.cardsByOrigin[element.dataset.origin];
+    delete this.cardsByAppID[card.app.instanceID];
     card.destroy();
     element = null;
 
@@ -455,11 +455,11 @@
    */
   TaskManager.prototype.removeCards = function cs_removeCards() {
     // bypass normal removeCards method to efficiently batch-remove all
-    Object.keys(this.cardsByOrigin).forEach(function(origin) {
-      var card = this.cardsByOrigin[origin];
+    Object.keys(this.cardsByAppID).forEach(function(instanceID) {
+      var card = this.cardsByAppID[instanceID];
       card.destroy();
     }, this);
-    this.cardsByOrigin = {};
+    this.cardsByAppID = {};
 
     this.screenElement.classList.remove('cards-view');
     this.screenElement.classList.remove('task-manager');
@@ -481,7 +481,7 @@
           this.closeApp(card);
         return;
       case 'favorite' :
-        debug('cardAction: TODO: favorite ' + card.element.origin);
+        debug('cardAction: TODO: favorite ' + card.element.dataset.origin);
         return;
       case 'select' :
         this.newStackPosition = card.position;
@@ -617,7 +617,7 @@
       this.draggingCardUp = false;
       var card = this.getCardForElement(element);
       if (-dy > this.swipeUpThreshold &&
-          this.attentionScreenApps.indexOf(element.dataset.origin) == -1) {
+          this.attentionScreenApps.indexOf(card.app.origin) == -1) {
         // Remove the card from the Task Manager for a smooth transition.
         this.cardsList.removeChild(element);
         this.closeApp(card);
@@ -673,7 +673,7 @@
 
       case 'opencurrentcard':
         AppWindowManager.display(
-          this.currentCard.app.origin,
+          this.currentCard.app,
           'from-cardview',
           null);
         break;
@@ -836,13 +836,14 @@
    * @param {Number} idx index into the stack
    */
   TaskManager.prototype.getCardAtIndex = function(idx) {
-    if (idx > -1) {
-      var element = this.cardsList.childNodes[idx];
-      if (!element) {
-        debug('getCardAtIndex, no element at idx: ' + idx);
+    if (this.stack && idx > -1 && idx < this.stack.length) {
+      var app = this.stack[idx];
+      var card = app && this.cardsByAppID[app.instanceID];
+      if (card) {
+        return card;
       }
-      return element && this.cardsByOrigin[element.dataset.origin];
     }
+    debug('getCardAtIndex, no card at idx: ' + idx);
     return null;
   };
 
@@ -852,7 +853,7 @@
    * @param {DOMNode} element
    */
   TaskManager.prototype.getCardForElement = function(element) {
-    return element && this.cardsByOrigin[element.dataset.origin];
+    return element && this.cardsByAppID[element.dataset.appInstanceId];
   };
 
   /**
@@ -888,7 +889,7 @@
       // Scaling and translating cards to reach target positions
       this.stack.forEach(function(app, idx) {
         var offset = idx - currentPosition;
-        var card = this.cardsByOrigin[app.origin];
+        var card = this.cardsByAppID[app.instanceID];
         card.move(0, 0);
         var style = {
           opacity: 1
@@ -1007,7 +1008,7 @@
     if (this.isTaskStrip) {
 
       this.stack.forEach(function(app, idx) {
-        var card = this.cardsByOrigin[app.origin];
+        var card = this.cardsByAppID[app.instanceID];
         card.move(Math.abs(deltaX) * sign);
       }, this);
 

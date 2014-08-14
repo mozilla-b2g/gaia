@@ -3,7 +3,7 @@ Keyboards['sr-Latn'] = {
   shortLabel: 'Sr',
   menuLabel: 'Srpski',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'password'],
+  types: ['text', 'url', 'email', 'number', 'password'],
   autoCorrectLanguage: 'sr-Latn',
   alt: {
     c: 'čć',
@@ -51,7 +51,11 @@ Keyboards['sr-Latn'] = {
         { value: '(' }, { value: ')' }
       ], [
         { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
-        { value: '+' }, { value: ':' }, { value: ';' }, { value: '"' },
+        { value: '+',
+          supportsSwitching: {
+            value: ','
+          }
+        }, { value: ':' }, { value: ';' }, { value: '"' },
         { value: '\'' }, { value: '?' }, { value: '!' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [

@@ -248,6 +248,11 @@ suite('navigation bar', function() {
         });
       });
 
+      test('should set the duration', function() {
+        triggerSysMsg(sysMsg);
+        sinon.assert.calledWithMatch(addStub, {duration: 1200});
+      });
+
       suite('> type', function() {
         test('should be incoming for incoming calls', function() {
           sysMsg.direction = 'incoming';
@@ -267,12 +272,55 @@ suite('navigation bar', function() {
         sinon.assert.calledWithMatch(addStub, {number: '12345'});
       });
 
-      test('should set cdma call waiting number', function() {
-        sysMsg.secondNumber = '23456';
-        triggerSysMsg(sysMsg);
-        sinon.assert.calledWithMatch(addStub, {number: '12345'});
-        addStub.yield();
-        sinon.assert.calledWithMatch(addStub, {number: '23456'});
+      suite('> with a CDMA second call', function() {
+        setup(function() {
+          sysMsg.secondNumber = '23456';
+        });
+
+        test('should insert two different calls in the database', function() {
+          triggerSysMsg(sysMsg);
+          sinon.assert.calledWithMatch(addStub, {number: '12345'});
+          addStub.yield();
+          sinon.assert.calledWithMatch(addStub, {number: '23456'});
+        });
+
+        test('should insert the secondCall in the database', function() {
+          triggerSysMsg(sysMsg);
+          addStub.yield();
+          sinon.assert.calledWithMatch(addStub, {
+            duration: 1200,
+            type: 'incoming',
+            number: '23456',
+            serviceId: 1,
+            emergency: false,
+            voicemail: false,
+            status: 'connected'
+          });
+        });
+
+        test('should also insert new call waiting group for cdma log view',
+        function() {
+          var fakeCdmaGroup = 'random useless string';
+          var fakeCdmaGroupSecondCall = 'another random string';
+          var appendSpy = this.sinon.spy(MockCallLog, 'appendGroup');
+
+          triggerSysMsg(sysMsg);
+          addStub.yield(fakeCdmaGroup);
+          addStub.yield(fakeCdmaGroupSecondCall);
+
+          sinon.assert.calledWith(appendSpy, fakeCdmaGroup);
+          sinon.assert.calledWith(appendSpy, fakeCdmaGroupSecondCall);
+        });
+
+        test('should only unlock after second call is added',
+        function() {
+          triggerSysMsg(sysMsg);
+          var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+          addStub.yield();
+          assert.equal(wakeLock.mUnlockCount, 0);
+          addStub.yield();
+          assert.equal(wakeLock.mUnlockCount, 1);
+        });
       });
 
       test('should set the serviceId', function() {
@@ -318,22 +366,6 @@ suite('navigation bar', function() {
         sinon.assert.calledWith(appendSpy, fakeGroup);
       });
 
-      test('should also insert new call waiting group for cdma log view',
-      function() {
-        var fakeGroup = '----uniq----';
-        var fakeGroupCdma = '-----cdma----';
-        var appendSpy = this.sinon.spy(MockCallLog, 'appendGroup');
-        sysMsg.secondNumber = '34567';
-
-        triggerSysMsg(sysMsg);
-        addStub.yield(fakeGroup);
-        assert.equal(MockNavigatorWakeLock.mLastWakeLock.mUnlockCount, 0);
-        addStub.yield(fakeGroupCdma);
-
-        sinon.assert.calledWith(appendSpy, fakeGroup);
-        sinon.assert.calledWith(appendSpy, fakeGroupCdma);
-      });
-
       test('should release the wake lock', function() {
         triggerSysMsg(sysMsg);
         addStub.yield();
@@ -341,16 +373,6 @@ suite('navigation bar', function() {
         assert.isTrue(wakeLock.released);
       });
 
-      test('should only unlock after cdma call is added',
-      function() {
-        sysMsg.secondNumber = '45678';
-        triggerSysMsg(sysMsg);
-        var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
-        addStub.yield();
-        assert.equal(wakeLock.mUnlockCount, 0);
-        addStub.yield();
-        assert.equal(wakeLock.mUnlockCount, 1);
-      });
     });
 
     suite('> Receiving a ussd', function() {

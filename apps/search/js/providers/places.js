@@ -141,8 +141,20 @@
   }
 
   function showStartPage() {
-    var historyDom = exports.Places.buildResultsDom(history.map(function(x) {
-      return formatPlace(x, '');
+    var historyDom = exports.Places.buildResultsDom(history.map(place => {
+      var renderObj = {
+        title: place.title || place.url,
+        meta: place.url,
+        dataset: {
+          url: place.url
+        }
+      };
+
+      if (place.url in icons) {
+        renderObj.icon = URL.createObjectURL(icons[place.url]);
+      }
+
+      return renderObj;
     }));
 
     var docFragment = document.createDocumentFragment();

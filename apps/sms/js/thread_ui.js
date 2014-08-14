@@ -275,6 +275,16 @@ var ThreadUI = {
       this.onRecipientSuggestionClick.bind(this)
     );
 
+    MessageManager.on('message-sending', this.onMessageSending.bind(this));
+    MessageManager.on('message-sent', this.onMessageSent.bind(this));
+    MessageManager.on('message-received', this.onMessageReceived.bind(this));
+    MessageManager.on(
+      'message-failed-to-send',
+      this.onMessageFailed.bind(this)
+    );
+    MessageManager.on('message-delivered', this.onDeliverySuccess.bind(this));
+    MessageManager.on('message-read', this.onReadSuccess.bind(this));
+
     this.tmpl = templateIds.reduce(function(tmpls, name) {
       tmpls[Utils.camelCase(name)] =
         Template('messages-' + name + '-tmpl');
@@ -844,7 +854,16 @@ var ThreadUI = {
     TimeHeaders.updateAll('header[data-time-update]');
   },
 
-  onMessageReceived: function thui_onMessageReceived(message) {
+  onMessageReceived: function thui_onMessageReceived(e) {
+    var message = e.message;
+
+    // If user currently in other thread then there is nothing to do here
+    if (!Navigation.isCurrentPanel('thread', { id: message.threadId })) {
+      return;
+    }
+
+    MessageManager.markMessagesRead([message.id]);
+
     this.onMessage(message);
     this.scrollViewToBottom();
     if (this.isScrolledManually) {
@@ -852,7 +871,8 @@ var ThreadUI = {
     }
   },
 
-  onMessageSending: function thui_onMessageReceived(message) {
+  onMessageSending: function thui_onMessageReceived(e) {
+    var message = e.message;
     if (Navigation.isCurrentPanel('thread', { id: message.threadId })) {
       this.onMessage(message);
       this.forceScrollViewToBottom();
@@ -1798,7 +1818,7 @@ var ThreadUI = {
         delNumList.push(+inputs[i].value);
       }
       // Complete deletion in DB and in UI
-      MessageManager.deleteMessage(delNumList,
+      MessageManager.deleteMessages(delNumList,
         function onDeletionDone() {
           ThreadUI.deleteUIMessages(delNumList, function uiDeletionDone() {
             ThreadUI.cancelEdit();
@@ -1961,12 +1981,6 @@ var ThreadUI = {
           return;
         }
 
-        // If we're in composer, let's focus on message editor on click.
-        if (Navigation.isCurrentPanel('composer')) {
-          Compose.focus();
-          return;
-        }
-
         // if the click wasn't on an attachment check for other clicks
         if (!thui_mmsAttachmentClick(evt.target)) {
           this.handleMessageClick(evt);
@@ -2020,7 +2034,7 @@ var ThreadUI = {
             l10nId: 'delete',
             method: function deleteMessage(messageId) {
               // Complete deletion in DB and UI
-              MessageManager.deleteMessage(messageId,
+              MessageManager.deleteMessages(messageId,
                 function onDeletionDone() {
                   ThreadUI.deleteUIMessages(messageId);
                 }
@@ -2187,7 +2201,8 @@ var ThreadUI = {
     }
   },
 
-  onMessageSent: function thui_onMessageSent(message) {
+  onMessageSent: function thui_onMessageSent(e) {
+    var message = e.message;
     var messageDOM = document.getElementById('message-' + message.id);
 
     if (!messageDOM) {
@@ -2210,7 +2225,8 @@ var ThreadUI = {
     }
   },
 
-  onMessageFailed: function thui_onMessageFailed(message) {
+  onMessageFailed: function thui_onMessageFailed(e) {
+    var message = e.message;
     var messageDOM = document.getElementById('message-' + message.id);
     var serviceId = Settings.getServiceIdByIccId(message.iccId);
     // When this is the first message in a thread, we haven't displayed
@@ -2250,7 +2266,8 @@ var ThreadUI = {
     }
   },
 
-  onDeliverySuccess: function thui_onDeliverySuccess(message) {
+  onDeliverySuccess: function thui_onDeliverySuccess(e) {
+    var message = e.message;
     // We need to make sure all the recipients status got success event.
     if (!this.shouldShowDeliveryStatus(message)) {
       return;
@@ -2265,7 +2282,8 @@ var ThreadUI = {
     messageDOM.classList.add('delivered');
   },
 
-  onReadSuccess: function thui_onReadSuccess(message) {
+  onReadSuccess: function thui_onReadSuccess(e) {
+    var message = e.message;
     // We need to make sure all the recipients status got success event.
     if (!this.shouldShowReadStatus(message)) {
       return;

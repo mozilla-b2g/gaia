@@ -6,6 +6,7 @@
     <title>Emergency Call Dialer</title>
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/dialer.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/keypad.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
     <!-- Shared code -->
     <script defer type="application/javascript" src="/shared/js/settings_listener.js"></script>
     <script src="/shared/js/l10n.js"></script>
@@ -17,6 +18,16 @@
     <script defer type="application/javascript" src="js/dialer.js"></script>
   </head>
   <body class="hidden">
+    <form role="dialog" data-type="confirm" id="emergencyAlert" hidden>
+      <section>
+        <h1 id="emergencyAlert-title" data-l10n-id="emergency-call-only">Emergency Call Only</h1>
+        <p id="emergencyAlert-msg"></p>
+      </section>
+      <menu>
+        <button class="full" id="emergencyAlert-btn" data-l10n-id="ok">OK</button>
+      </menu>
+    </form>
+
     <article id="views" class="full-height">
       <section id="keyboard-view" class="full-height">
         <div id="phone-number-view-container">

@@ -847,7 +847,7 @@ suite('Recipients', function() {
         });
 
         test('swipe down on singleline, inner height <= min container height',
-         function() {
+          function() {
           inner.style.height = '10px';
 
           outer.dispatchEvent(
@@ -1170,6 +1170,25 @@ suite('Recipients', function() {
         this.sinon.clock.tick(waitTime * 2);
 
         sinon.assert.calledOnce(modeChangeHandler);
+      });
+
+      test('ensure "singleline" view when switching to "singleline-mode"',
+        function() {
+        recipients.render();
+        this.sinon.clock.tick(waitTime);
+
+        sinon.assert.calledWith(modeChangeHandler, 'multiline-mode');
+
+        recipients.visible('multiline');
+
+        inner.style.height = '50px';
+        recipients.render();
+        this.sinon.clock.tick(waitTime);
+
+        sinon.assert.calledWith(modeChangeHandler, 'singleline-mode');
+
+        var visible = Recipients.View.prototype.visible;
+        sinon.assert.calledWith(visible, 'singleline');
       });
     });
   });

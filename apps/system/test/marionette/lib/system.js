@@ -13,6 +13,7 @@ System.Selector = Object.freeze({
   appChromeContextLink: '.appWindow.active .menu-button',
   appChromeContextMenu: '.appWindow.active .overflow-menu',
   appChromeContextMenuBookmark: '.appWindow.active #add-to-home',
+  appChromeContextMenuShare: '.appWindow.active #share',
   statusbar: '#statusbar',
   statusbarBackground: '#statusbar-background',
   statusbarLabel: '#statusbar-label',
@@ -42,6 +43,11 @@ System.prototype = {
   get appChromeContextMenuBookmark() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeContextMenuBookmark);
+  },
+
+  get appChromeContextMenuShare() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextMenuShare);
   },
 
   get statusbar() {

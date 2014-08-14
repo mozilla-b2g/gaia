@@ -9,7 +9,7 @@
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
-         SoftwareButtonManager, Accessibility,
+         SoftwareButtonManager, Accessibility, ShrinkingUI,
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
          LockScreenNotifications, LockScreenPasscodeValidator */
 'use strict';
@@ -32,7 +32,6 @@ var Shortcuts = {
 };
 
 window.addEventListener('load', function startup() {
-
   /**
    * Register global instances and constructors here.
    */
@@ -143,6 +142,8 @@ window.addEventListener('load', function startup() {
   window.places.start();
   window.remoteDebugger = new RemoteDebugger();
   window.rocketbar = new Rocketbar();
+  window.shrinkingUI = new ShrinkingUI();
+  window.shrinkingUI.start();
   window.sleepMenu = new SleepMenu();
   window.sleepMenu.start();
   window.softwareButtonManager = new SoftwareButtonManager();

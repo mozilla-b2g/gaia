@@ -7,7 +7,6 @@ from marionette.wait import Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.phone.regions.call_screen import CallScreen
-from gaiatest.utils.plivo.plivo_util import PlivoUtil
 
 
 class TestReceiveCall(GaiaTestCase):
@@ -24,6 +23,7 @@ class TestReceiveCall(GaiaTestCase):
         """Make a phone call from Plivo to the phone."""
         PLIVO_TIMEOUT = 30
 
+        from gaiatest.utils.plivo.plivo_util import PlivoUtil
         self.plivo = PlivoUtil(
             self.testvars['plivo']['auth_id'],
             self.testvars['plivo']['auth_token'],

@@ -4,6 +4,8 @@ define(function(require) {
   // AMD modules
   var KeyboardHelper = require('shared/keyboard_helper');
   var LanguageList = require('shared/language_list');
+  // import this to update time format while laungage changed
+  require('modules/date_time');
 
   var Languages = function() {};
 

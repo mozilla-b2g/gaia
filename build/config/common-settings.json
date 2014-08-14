@@ -105,6 +105,7 @@
    "layers.dump": false,
    "layers.enable-tiles": true,
    "layers.simple-tiles": false,
+   "locale.hour12": true,
    "lockscreen.passcode-lock.code": "0000",
    "lockscreen.passcode-lock.timeout": 0,
    "lockscreen.passcode-lock.enabled": false,

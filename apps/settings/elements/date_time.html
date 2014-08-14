@@ -20,24 +20,21 @@
           <label>
             <input type="date" class="date-picker" min="1970-1-1" max="2037-12-31"/>
           </label>
-          <a data-l10n-id="dateMessage">Date <span class="clock-date"></span> </a>
+          <p data-l10n-id="dateMessage">Date</p>
+          <span class="clock-date button icon icon-dialog"></span>
         </li>
         <li>
           <label>
             <input type="time" class="time-picker" />
           </label>
-          <a data-l10n-id="timeMessage">Time <span class="clock-time"></span> </a>
+          <p data-l10n-id="timeMessage">Time</p>
+          <span class="clock-time button icon icon-dialog"></span>
         </li>
       </ul>
 
       <header>
         <h2 data-l10n-id="timezoneMessage">Time zone</h2>
       </header>
-      <ul class="timezone-raw" hidden>
-        <li>
-          <span class="timezone-value"></span>
-        </li>
-      </ul>
       <ul class="timezone">
         <li>
           <p data-l10n-id="tz-region">Region</p>
@@ -49,6 +46,18 @@
           <p data-l10n-id="tz-city">City</p>
           <span class="button icon icon-dialog">
             <select class="timezone-city"></select>
+          </span>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="time-format">Format</h2>
+      </header>
+      <ul class="timeformat">
+        <li>
+          <p data-l10n-id="time-format-time">Time Format</p>
+          <span class="button icon icon-dialog">
+            <select class="time-format-time"></select>
           </span>
         </li>
       </ul>

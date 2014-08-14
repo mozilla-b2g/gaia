@@ -4,7 +4,12 @@ var assert = require('assert');
 var App = require('./app');
 var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
 var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
+var perfUtils = require('./perf-utils');
 var appPath = config.appPath;
+
+if (perfUtils.isWhitelisted(config.whitelists.mozLaunch, appPath)) {
+  return;
+}
 
 var arr = appPath.split('/');
 var manifestPath = arr[0];

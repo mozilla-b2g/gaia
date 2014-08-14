@@ -278,7 +278,9 @@ suite('Render contacts list', function() {
     loading.id = 'loading-overlay';
     settings = document.createElement('div');
     settings.id = 'view-settings';
-    settings.innerHTML = '<div class="view-body-inner"></div>';
+    settings.innerHTML = '<button id="settings-close" role="menuitem"' +
+                                          'data-l10n-id="done">Done</button>';
+    settings.innerHTML += '<div class="view-body-inner"></div>';
     noContacts = document.createElement('div');
     noContacts.id = 'no-contacts';
     list = container.querySelector('#groups-list');
@@ -1325,6 +1327,25 @@ suite('Render contacts list', function() {
       });
     });
 
+    test('Search phrase highlights accented equivalent characters',
+        function(done) {
+      mockContacts = new MockContactsList();
+      var contactIndex = Math.floor(Math.random() * mockContacts.length);
+      var contact = mockContacts[contactIndex];
+      contact.givenName[0] = 'Aáeéi';
+      contact.name[0] = contact.givenName[0] + ' ' + contact.familyName[0];
+      contact.id = 'test-contact';
+
+      doLoad(subject, mockContacts, function() {
+        searchBox.value = 'ae';
+        contacts.Search.search(function search_finished() {
+          assertHighlight('áe');
+          contacts.Search.invalidateCache();
+          done();
+        });
+      });
+    });
+
     test('Order string lazy calculated', function(done) {
       mockContacts = new MockContactsList();
       doLoad(subject, mockContacts, function() {
@@ -1469,6 +1490,14 @@ suite('Render contacts list', function() {
         assert.equal(selectActionTitle, selectActionButton.textContent);
         assert.isTrue(selectActionButton.disabled);
 
+        var settingsButton = containerSection.querySelector('#settings-button');
+        var addButton = containerSection.querySelector('#add-contact-button');
+        var doneSettings = document.querySelector('#settings-close');
+
+        assert.isTrue(settingsButton.classList.contains('hide'));
+        assert.isTrue(addButton.classList.contains('hide'));
+        assert.isTrue(doneSettings.disabled);
+
         done();
       }, mockNavigationStack);
     });
@@ -1571,6 +1600,14 @@ suite('Render contacts list', function() {
         // We still have the check boxes, but they are hidden
         assert.isFalse(list.classList.contains('selecting'));
         assert.isFalse(searchList.classList.contains('selecting'));
+
+        var settingsButton = containerSection.querySelector('#settings-button');
+        var addButton = containerSection.querySelector('#add-contact-button');
+        var doneSettings = document.querySelector('#settings-close');
+
+        assert.isFalse(settingsButton.classList.contains('hide'));
+        assert.isFalse(addButton.classList.contains('hide'));
+        assert.isFalse(doneSettings.disabled);
       }
 
       setup(function(done) {

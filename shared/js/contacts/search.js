@@ -151,17 +151,31 @@ contacts.Search = (function() {
   };
 
   var highlightNode = function(node) {
-    // This regexp match against everything except HTML tags
-    // 'currentTextToSearch' should be relatively safe from
-    // regex symbols getting passed through since it was previously normalized
-    for (var i=0, l=currentSearchTerms.length; i<l; i++) {
-      var hRegEx = new RegExp('(' + currentSearchTerms[i] + ')(?=[^>]*<)',
-                                                                          'gi');
-      node.innerHTML = node.innerHTML.replace(
-        hRegEx,
-        '<span class="' + highlightClass + '">$1</span>'
-      );
-    }
+    var normalizedText = getSearchText(node);
+    var displayedText = node.querySelector('.contact-text').textContent;
+
+    currentSearchTerms.forEach(function(term) {
+      var hRegEx = new RegExp(term, 'gi');
+      var newTerms = [], newTerm;
+
+      var result = hRegEx.exec(normalizedText);
+      while (result) {
+        newTerm = displayedText.substr(result.index, term.length);
+        newTerm = Normalizer.escapeRegExp(newTerm).toLowerCase();
+        newTerms.push(newTerm);
+        result = hRegEx.exec(normalizedText);
+      }
+
+      newTerms = newTerms.filter(function removeDuplicates(elem, pos) {
+        return newTerms.indexOf(elem) === pos;
+      });
+
+      newTerms.forEach(function replaceWithHighlight(term) {
+        node.innerHTML = node.innerHTML.replace(
+          new RegExp('(' + term + ')(?=[^>]*<)', 'gi'),
+          '<span class="' + highlightClass + '">$1</span>');
+      });
+    });
   };
 
   var updateSearchList = function updateSearchList(cb) {
