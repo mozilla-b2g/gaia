@@ -468,7 +468,7 @@ aside.connecting {
 #hidden-wifi-authentication .pack-checkbox,
 #configure_network_params .pack-checkbox {
   position: relative;
-  transform: translateX(4rem);
+  left: auto;
   padding: 1rem 0 1rem 3rem;
   pointer-events: auto;
 }
@@ -1120,11 +1120,16 @@ i.hack-first-child {
 /*
   RTL Tweeks
 */
+html[dir="rtl"] #hidden-wifi-authentication .pack-checkbox,
+html[dir="rtl"] #configure_network_params .pack-checkbox {
+  padding-right: 3rem;
+  padding-left: 3rem;
+}
 
-/* Right to left: position the check mark to the left */
-html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input + span:after {
-  left: 0;
-  margin-left: auto;
+html[dir="rtl"] #hidden-wifi-authentication .pack-checkbox input ~ span:after,
+html[dir="rtl"] #configure_network_params .pack-checkbox input ~ span:after {
+  right: 0;
+  margin-right: 0;
 }
 
 html[dir="rtl"] #welcome_browser #form_share_statistics label {
