@@ -85,7 +85,3 @@ exports.existsInAppDirs =  function(appDirs, appName) {
   });
   return exists;
 };
-
-exports.scriptLoader = {
-  load: function load() {}
-};

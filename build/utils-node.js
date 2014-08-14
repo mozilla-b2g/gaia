@@ -19,7 +19,6 @@ var fs = require('fs');
 var AdmZip = require('adm-zip');
 var Q = require('q');
 var os = require('os');
-var vm = require('vm');
 
 function joinPath() {
   var src = path.join.apply(path, arguments);
@@ -146,23 +145,6 @@ function existsInAppDirs(appDirs, appName) {
   return exists;
 }
 
-var scriptLoader = {
-  scripts: {},
-  load: function(filePath, exportObj, withoutCache) {
-    try {
-      if (!withoutCache && this.scripts[filePath]) {
-        return;
-      }
-      var script = fs.readFileSync(filePath, {encoding: 'utf-8'});
-      vm.runInNewContext(script, exportObj);
-      this.scripts[filePath] = true;
-    } catch(e) {
-      delete this.scripts[filePath];
-      throw 'cannot load script from ' + filePath;
-    }
-  }
-};
-
 var Services = {};
 
 exports.Services = Services;
@@ -182,5 +164,4 @@ exports.writeContent = writeContent;
 exports.Q = Q;
 exports.getLocaleBasedir = getLocaleBasedir;
 exports.existsInAppDirs = existsInAppDirs;
-exports.scriptLoader = scriptLoader;
 

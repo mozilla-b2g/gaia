@@ -1167,20 +1167,16 @@ function removeFiles(dir, filenames) {
  */
 var scriptLoader = {
   scripts: {},
-  load: function(filePath, exportObj, withoutCache) {
+  load: function(path, exportObj) {
     try {
-      if (!withoutCache && this.scripts[filePath]) {
+      if (this.scripts[path]) {
         return;
       }
-      var uri = Services.io.newFileURI(getFile(filePath)).spec;
-      if (withoutCache) {
-        uri += '?d=' + new Date().getTime();
-      }
-      Services.scriptloader.loadSubScript(uri, exportObj);
-      this.scripts[filePath] = true;
+      Services.scriptloader.loadSubScript(path, exportObj);
+      this.scripts[path] = true;
     } catch(e) {
-      delete this.scripts[filePath];
-      throw 'cannot load script from ' + filePath;
+      delete this.scripts[path];
+      throw 'cannot load script from ' + path;
     }
   }
 };
@@ -1211,6 +1207,7 @@ exports.getOsType = getOsType;
 exports.generateUUID = generateUUID;
 exports.copyRec = copyRec;
 exports.createZip = createZip;
+exports.scriptLoader = scriptLoader;
 exports.scriptParser = Reflect.parse;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;
@@ -1241,4 +1238,3 @@ exports.addEntryContentWithTime = addEntryContentWithTime;
 exports.getCompression = getCompression;
 exports.existsInAppDirs = existsInAppDirs;
 exports.removeFiles = removeFiles;
-exports.scriptLoader = scriptLoader;

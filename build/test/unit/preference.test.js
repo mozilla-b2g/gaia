@@ -37,9 +37,6 @@ suite('preferences.js', function() {
     mockUtils.getFileContent = function(file) {
       return file.path;
     };
-    mockUtils.getFileURISpec = function(file) {
-      return file.path;
-    };
     mockUtils.writeContent = function(file, content) {
       fileContent = {
         file: file.path,
@@ -74,8 +71,7 @@ suite('preferences.js', function() {
     };
   });
 
-  suite('setConfig, execute, writePref, setPrefs, loadPrefFile, ' +
-        'customizePrefValue', function() {
+  suite('setConfig, execute, writePref, setPrefs, appendPrefFile', function() {
     var config;
     setup(function() {
       preferences = new app.PreferencesBuilder();
@@ -123,7 +119,7 @@ suite('preferences.js', function() {
     test('execute', function () {
       var result;
       preferences.preparePref = function() {};
-      preferences.writePrefs = function() {result = 'xpcshell';};
+      preferences.writePref = function() {result = 'xpcshell';};
       preferences.setPrefs = function() {result = 'b2g';};
       preferences.execute({engine: 'xpcshell'});
       assert.equal(result, 'xpcshell');
@@ -131,23 +127,18 @@ suite('preferences.js', function() {
       assert.equal(result, 'b2g');
     });
 
-    test('writePrefs', function () {
+    test('writePref', function () {
       preferences.config = {
         PROFILE_DIR: 'testProfileDir'
       };
       preferences.prefs = {
         'testKey': 'testContent'
       };
-      preferences.userPrefs = {
-        'testKey2': 'testContent2'
-      };
-      preferences.writePrefs();
+      preferences.writePref();
       assert.deepEqual(fileContent, {
         file: preferences.config.PROFILE_DIR + 'user.js',
-        content: 'pref(\'' + 'testKey' + '\', ' +
-          JSON.stringify('testContent') + ');\n' +
-                 'user_pref(\'' + 'testKey2' + '\', ' +
-          JSON.stringify('testContent2') + ');\n' + '\n'
+        content: 'user_pref(\'' + 'testKey' + '\', ' +
+          JSON.stringify('testContent') + ');\n' + '\n'
       });
     });
 
@@ -174,26 +165,14 @@ suite('preferences.js', function() {
       });
     });
 
-    test('loadPrefFile', function() {
-      preferences.prefs = {};
-      preferences.userPrefs = {};
-      var callingCount = 0;
-      var oldLoader = mockUtils.scriptLoader.load;
-      mockUtils.scriptLoader.load = function(path, exportObj, withoutCache) {
-        assert.isDefined(path);
-        assert.isDefined(exportObj);
-        callingCount++;
-        exportObj.pref('test-string-key-' + callingCount, path);
-        exportObj.pref('test-boolean-key-' + callingCount, true);
-        exportObj.pref('test-integer-key-' + callingCount, 1);
-        exportObj.user_pref('test-user-string-key-' + callingCount,
-                            'test user value');
-        exportObj.user_pref('test-user-boolean-key-' + callingCount, false);
-        exportObj.user_pref('test-user-integer-key-' + callingCount, 2);
-      };
-
+    test('appendPrefFile', function() {
+      var userJsPath = 'profile/user.js';
       var prefsList = ['prefs-a', 'prefs-b', 'prefs-c'];
       var exists = function() { return true; };
+      var destFile = {
+        path: userJsPath,
+        exists: exists
+      };
       var srcDir = {
         path: 'build/config',
         exists: exists,
@@ -208,47 +187,14 @@ suite('preferences.js', function() {
           };
         }
       };
-      preferences.loadPrefFile(srcDir, prefsList);
-      assert.equal(callingCount, 3);
-      assert.deepEqual(preferences.prefs, {
-        'test-string-key-1': 'build/config/prefs-a',
-        'test-boolean-key-1': true,
-        'test-integer-key-1': 1,
-        'test-string-key-2': 'build/config/prefs-b',
-        'test-boolean-key-2': true,
-        'test-integer-key-2': 1,
-        'test-string-key-3': 'build/config/prefs-c',
-        'test-boolean-key-3': true,
-        'test-integer-key-3': 1
-      });
-      assert.deepEqual(preferences.userPrefs, {
-        'test-user-string-key-1': 'test user value',
-        'test-user-boolean-key-1': false,
-        'test-user-integer-key-1': 2,
-        'test-user-string-key-2': 'test user value',
-        'test-user-boolean-key-2': false,
-        'test-user-integer-key-2': 2,
-        'test-user-string-key-3': 'test user value',
-        'test-user-boolean-key-3': false,
-        'test-user-integer-key-3': 2
-      });
-      mockUtils.scriptLoader.load = oldLoader;
-    });
+      var expectedFileContent = userJsPath + prefsList.map(function(fname) {
+        return srcDir.path + '/' + fname;
+      }).join('\n');
 
-    test('customizePrefValue', function() {
-      // responsive UI
-      var value = preferences.customizePrefValue(
-                                        'devtools.responsiveUI.customWidth', 0);
-      assert.equal(value, 32);
-      value = preferences.customizePrefValue(
-                                       'devtools.responsiveUI.customHeight', 0);
-      assert.equal(value, 61);
-      value = preferences.customizePrefValue('other-integer-pref', 0);
-      assert.equal(value, 0);
-      value = preferences.customizePrefValue('other-boolean-pref', true);
-      assert.isTrue(value);
-      value = preferences.customizePrefValue('other-string-pref', 'test');
-      assert.equal(value, 'test');
+      app.appendPrefFile(destFile, srcDir, prefsList);
+      assert.equal(fileContent.content, expectedFileContent,
+        'contents of profile/user.js and build/config/prefs-[abc] should be ' +
+        'concat into profile/user.js.');
     });
 
     teardown(function() {
@@ -269,10 +215,9 @@ suite('preferences.js', function() {
     test('editLocalDomainPref', function () {
       preferences.domains = ['test1', 'test2'];
       preferences.prefs = {};
-      preferences.userPrefs = {};
       preferences.setLocalDomainPref();
 
-      assert.deepEqual(preferences.userPrefs, {
+      assert.deepEqual(preferences.prefs, {
         'network.dns.localDomains': preferences.domains.join(',')
       });
     });
@@ -280,9 +225,8 @@ suite('preferences.js', function() {
     test('editDesktopPref', function () {
       preferences.system = 'testSystem';
       preferences.prefs = {};
-      preferences.userPrefs = {};
       preferences.setDesktopPref();
-      assert.deepEqual(preferences.userPrefs, {
+      assert.deepEqual(preferences.prefs, {
         'browser.startup.homepage': preferences.system,
         'startup.homepage_welcome_url': '',
         'browser.shell.checkDefaultBrowser': false,
@@ -354,9 +298,8 @@ suite('preferences.js', function() {
         ]
       };
       preferences.prefs = {};
-      preferences.userPrefs = {};
       preferences.setDebugPref();
-      assert.deepEqual(preferences.userPrefs, {
+      assert.deepEqual(preferences.prefs, {
         'docshell.device_size_is_page_size': true,
         'marionette.defaultPrefs.enabled': true,
         'nglayout.debug.disable_xul_cache': true,
@@ -390,9 +333,8 @@ suite('preferences.js', function() {
 
     test('editDeviceDebugPref', function () {
       preferences.prefs = {};
-      preferences.userPrefs = {};
       preferences.setDeviceDebugPref();
-      assert.deepEqual(preferences.userPrefs, {
+      assert.deepEqual(preferences.prefs, {
         'devtools.debugger.prompt-connection': false,
         'devtools.debugger.forbid-certified-apps': false,
         'javascript.options.discardSystemSource': false,
@@ -440,9 +382,8 @@ suite('preferences.js', function() {
       };
 
       preferences.prefs = {};
-      preferences.userPrefs = {};
       preferences.preparePref();
-      assert.deepEqual(preferences.userPrefs, {
+      assert.deepEqual(preferences.prefs, {
         'b2g.system_manifest_url': 'app://system/manifest.webapp',
         'b2g.neterror.url': 'app://system/net_error.html',
         'b2g.system_startup_url': 'app://system/index.html',
