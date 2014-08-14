@@ -216,3 +216,50 @@ li a:active {
 .skin-comms [data-type="list"] header {
   color: #4997a7;
 }
+
+/* RTL View */
+html[dir="rtl"] [data-type="list"] aside {
+  float: right;
+  margin-left: 0.5rem;
+  margin-right: 0;
+}
+
+html[dir="rtl"] [data-type="list"] aside.pack-end {
+  float: left;
+  margin-left: 0;
+  margin-right: 0.5rem;
+  text-align: left;
+}
+
+html[dir="rtl"] [data-type="list"] li p time {
+  margin-left: 0.3rem;
+  margin-right: auto;
+}
+
+html[dir="rtl"] [data-type="list"] li > .pack-checkbox,
+html[dir="rtl"] [data-type="list"] li > .pack-radio,
+html[dir="rtl"] [data-type="list"] li > .pack-switch {
+  left: 0;
+  right: -4rem;
+}
+
+html[dir="rtl"] [data-type="list"] li > .pack-checkbox input ~ span:after,
+html[dir="rtl"] [data-type="list"] li > .pack-radio input ~ span:after,
+html[dir="rtl"] [data-type="list"] li > .pack-switch input ~ span:after {
+  left: auto;
+  right: 0;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+html[dir="rtl"] [data-type="list"] [data-type="edit"] li {
+  padding-left: 0;
+  padding-right: 4rem;
+}
+
+html[dir="rtl"] [data-type="list"] [data-type="edit"] li > .pack-checkbox,
+html[dir="rtl"] [data-type="list"] [data-type="edit"] li > .pack-radio,
+html[dir="rtl"] [data-type="list"] [data-type="edit"] li > .pack-switch {
+  left: auto;
+  right: 0;
+}

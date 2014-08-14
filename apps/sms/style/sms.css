@@ -858,3 +858,151 @@ section[role="region"].report-information > header .icon-back {
 .phone-details.has-phone-carrier > .phone-carrier-separator {
   display: inline;
 }
+
+/* RTL View */
+html[dir="rtl"] #messages-recipient {
+  padding-left: 3rem;
+  padding-right: 0;
+}
+
+html[dir="rtl"] [data-type="list"] {
+  text-align: right;
+}
+
+html[dir="rtl"] #threads-container[data-type="list"] .mms-icon {
+  margin-left: auto;
+  margin-right: 0.3rem;
+}
+
+html[dir="rtl"] [data-type="list"] li > label {
+  left: 5rem;
+  right: auto;
+}
+
+html[dir="rtl"] [data-type="list"] .unread aside.icon-unread {
+  background-position: right center;
+}
+
+html[dir="rtl"] [data-type="list"] .draft .icon-draft {
+  background-position: right center;
+}
+
+html[dir="rtl"] .edit [data-type="list"] li > label {
+  right: -1.4rem;
+}
+
+html[dir="rtl"] .edit [data-type="list"] li > .pack-checkbox input ~ span:after {
+  transform: translateX(-4.5rem);
+  left: auto;
+  right: -2.2rem;
+}
+
+html[dir="rtl"] .edit [data-type="list"] li > a > p {
+  transform: translateX(-3.5rem);
+  margin-left: 3.5rem;
+  margin-right: auto;
+}
+
+html[dir="rtl"] .edit #threads-container[data-type="list"] aside.pack-end {
+  margin-left: 0;
+  margin-right: -3rem;
+}
+
+html[dir="rtl"] .edit #threads-container[data-type="list"] aside.pack-end span {
+  transform: translateX(-7.5rem);
+}
+
+html[dir="rtl"] #main-wrapper,
+html[dir="rtl"] .panel:first-child {
+  left: auto;
+  right: 0;
+}
+
+html[dir="rtl"] .panel {
+  left: auto;
+  right: 100%;
+}
+
+html[dir="rtl"] #main-wrapper[data-position='left'] .panel {
+  transform: translateX(100%);
+}
+
+html[dir="rtl"] #messages-new-message-notice {
+  flex-direction: row-reverse;
+  padding-left: 1.5rem;
+  padding-right: 2rem;
+  text-align: right;
+}
+
+html[dir="rtl"] #messages-new-message-notice > div:nth-child(2) {
+  padding-left: 0;
+  padding-right: 1.5rem;
+}
+
+html[dir="rtl"] #messages-contact-pick-button .icon-user {
+  left: 1rem;
+  right: auto;
+}
+
+html[dir="rtl"] .carrier-wrapper,
+html[dir="rtl"] .new .article-list,
+html[dir="rtl"] .article-list[data-type="list"] .message .bubble p,
+html[dir="rtl"] .loading-header,
+html[dir="rtl"] #no-result-message,
+html[dir="rtl"] #messages-to-field {
+  text-align: right;
+}
+
+html[dir="rtl"] section[role="region"].new #messages-to-field {
+  align-items: flex-start;
+}
+
+html[dir="rtl"] #to-label {
+  padding-left: 0.7rem;
+  padding-right: 1.5rem;
+}
+
+html[dir="rtl"] #messages-recipients-list {
+  padding-left: 0.6rem;
+  padding-right: 0;
+}
+
+html[dir="rtl"] .recipient[contenteditable] {
+  margin-left: 0.6rem;
+  margin-right: 0;
+  padding-left: 1.6rem;
+  padding-right: 0;
+  float: right;
+}
+
+html[dir="rtl"] .recipient[contenteditable].email {
+  padding-left: 3.8rem;
+  padding-right: 0;
+}
+
+html[dir="rtl"] .recipient[contenteditable=true]:focus,
+html[dir="rtl"] .recipient[contenteditable=true]:empty:focus {
+  margin-left: 0.5rem;
+  margin-right: 0;
+  padding-left: 0.3rem;
+  padding-right: 0;
+}
+
+html[dir="rtl"] body[role="application"] form[role="dialog"][data-type="action"] > section:first-child{
+  padding-left: 0;
+  padding-right: 2.5rem;
+}
+
+html[dir="rtl"] .contact-header aside.pack-end {
+  float: left;
+  margin-left: -1.5rem;
+  margin-right: auto;
+}
+
+html[dir="rtl"] body[role="application"] form[role="dialog"][data-type="action"] > header:first-child{
+  text-align: right;
+}
+
+html[dir="rtl"] #sticky {
+  background-position: 0 0;
+}

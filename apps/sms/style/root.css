@@ -209,3 +209,7 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
   margin: 0;
 }
 
+/* RTL View */
+html[dir="rtl"] caption, th {
+  text-align: right;
+}
