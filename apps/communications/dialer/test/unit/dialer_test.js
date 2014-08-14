@@ -4,8 +4,7 @@
           MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
           NavbarManager, Notification, MockKeypadManager, MockVoicemail,
           MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock,
-          MockMmiManager, MockSuggestionBar, MockSimSettingsHelper,
-          MockTelephonyHelper
+          MockMmiManager, MockSuggestionBar, MockSimSettingsHelper
  */
 
 require(
@@ -17,7 +16,6 @@ requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
 requireApp('communications/dialer/test/unit/mock_voicemail.js');
 require('/dialer/test/unit/mock_mmi_manager.js');
 require('/dialer/test/unit/mock_suggestion_bar.js');
-require('/dialer/test/unit/mock_telephony_helper.js');
 
 require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
@@ -35,7 +33,6 @@ require('/shared/test/unit/mocks/dialer/mock_utils.js');
 requireApp('communications/dialer/js/dialer.js');
 
 var mocksHelperForDialer = new MocksHelper([
-  'TelephonyHelper',
   'Contacts',
   'CallLog',
   'CallLogDBManager',
@@ -396,23 +393,6 @@ suite('navigation bar', function() {
           sinon.assert.calledWithMatch(MockKeypadManager.updatePhoneNumber, '');
           sinon.assert.calledOnce(MockSuggestionBar.clear);
         });
-      });
-    });
-
-    suite('> dialing a long number', function() {
-      var spy, number;
-      setup(function() {
-        number = '+8801535479509';
-        spy = this.sinon.spy(MockKeypadManager, 'updatePhoneNumber');
-      });
-
-      test('display the number back properly if the call errors', function() {
-        /*Callback the error function if this phone-call errors */
-        this.sinon.stub(MockTelephonyHelper, 'call').callsArg(5);
-
-        CallHandler.call(number, 0);
-
-        sinon.assert.calledWithMatch(spy, number, 'begin', false);
       });
     });
 
