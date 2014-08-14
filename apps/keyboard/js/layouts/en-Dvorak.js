@@ -4,6 +4,7 @@ Keyboards['en-Dvorak'] = {
   menuLabel: 'Dvorak',
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
+  dictionaryLabel: 'English',
   autoCorrectLanguage: 'en_us',
   alt: {
     a: 'àáâãäåāæ',

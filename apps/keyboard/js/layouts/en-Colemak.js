@@ -4,6 +4,7 @@ Keyboards['en-Colemak'] = {
   menuLabel: 'Colemak',
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
+  dictionaryLabel: 'English',
   autoCorrectLanguage: 'en_us',
   alt: {
     a: 'áàâäåãāæ',

@@ -4,13 +4,18 @@
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
   <meta charset="utf-8">
   <title>Keyboard Settings</title>
-  <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/lists.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
+  <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+  <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
   <link rel="stylesheet" type="text/css" href="style/settings.css"/>
   <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
   <script defer src="shared/js/l10n.js"></script>
   <script defer src="js/settings/settings.js"></script>
+  <script defer src="js/settings/downloadable.js"></script>
+  <script defer src="js/settings/downloadable_list.js"></script>
+  <script defer src="js/settings/database_promise_manager.js"></script>
+  <script defer src="js/settings/bootstrap.js"></script>
   <!-- Web Components -->
   <script defer src="shared/elements/config.js"></script>
   <script defer src="shared/elements/gaia-header/dist/script.js"></script>
@@ -66,6 +71,26 @@
           </li>
         </ul>
       </section>
+      <div id="dictionary-download" class="hide">
+        <header>
+          <h2 data-l10n-id="dictionary-title"></h2>
+        </header>
+        <section data-type="list">
+          <ul id="dictionary-download-list">
+            <li class="description">
+              <p data-l10n-id="dictionary-desc"></p>
+            </li>
+          </ul>
+          <template id="dictionary-download-list-item">
+            <li>
+              <aside class="pack-end">
+              </aside>
+              <p class="label"></p>
+              <p><small class="status"></small></p>
+            </li>
+          </template>
+        </section>
+      </div>
     </div>
   </section>
 </body>

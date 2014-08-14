@@ -4,6 +4,7 @@ Keyboards['bg-Pho-Trad'] = {
   menuLabel: 'Български (Фонетична)',
   types: ['text', 'url', 'email', 'password'],
   imEngine: 'latin',
+  dictionaryLabel: 'Български',
   autoCorrectLanguage: 'bg',
   width: 11,
   alt: {

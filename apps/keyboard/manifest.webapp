@@ -10,7 +10,8 @@
   },
   "permissions": {
     "settings": { "access": "readwrite" },
-    "input": {}
+    "input": {},
+    "systemXHR":{}
   },
   "inputs": {
     "number": {

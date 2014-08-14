@@ -4,6 +4,7 @@ Keyboards['fr-CH'] = {
   menuLabel: 'Français (Suisse)',
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
+  dictionaryLabel: 'Français',
   autoCorrectLanguage: 'fr',
   autoCorrectPunctuation: false,
   alt: {

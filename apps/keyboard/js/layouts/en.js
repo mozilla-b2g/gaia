@@ -3,6 +3,7 @@ Keyboards.en = {
   shortLabel: 'En',
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
+  dictionaryLabel: 'English',
   autoCorrectLanguage: 'en_us',
   menuLabel: 'English',
   alt: {
