@@ -57,8 +57,8 @@ function BaseMozPerfReporter(runner) {
       // Performance: we shall deal with wildcard
       // Wildcard only on the app. Explicit app has priority.
       var perfGoalKey = fullTitle.trim();
-      var perfGoal = mozPerfGoal[perfGoalKey];
-      if (!perfGoal) {
+      var perfGoal = mozPerfGoal ? mozPerfGoal[perfGoalKey] : undefined;
+      if (mozPerfGoal && !perfGoal) {
         var a = perfGoalKey.split(' > ');
         if (a[1] == process.env.CURRENT_APP) {
           a[1] = '*';
