@@ -18,6 +18,7 @@ define(function(require) {
   var _kTimezoneAutoAvailable = 'time.timezone.automatic-update.available';
   var _kTimezone = 'time.timezone';
   var _kUserSelected = 'time.timezone.user-selected';
+  var _kLocaleTime = 'locale.hour12';
 
   // handler
   var _updateDateTimeout = null;
@@ -89,6 +90,15 @@ define(function(require) {
     time: '',
 
     /**
+     * Current AM/PM or 24 state.
+     *
+     * @access public
+     * @memberOf dateTimePrototype
+     * @type {Boolean}
+     */
+    currentHour12: true,
+
+    /**
      * Init DateTime module.
      *
      * @access private
@@ -118,6 +128,11 @@ define(function(require) {
       this._boundUserSelectedTimezone = function(event) {
         this.userSelectedTimezone = event.settingValue;
       }.bind(this);
+      this._boundCurrentHour12 = function(event) {
+        this.currentHour12 = event.settingValue;
+
+        this._autoUpdateDateTime();
+      }.bind(this);
 
       this._getDefaults();
       this._attachListeners();
@@ -134,7 +149,11 @@ define(function(require) {
         this._boundSetTimezone);
       window.navigator.mozSettings.addObserver(_kUserSelected,
         this._boundUserSelectedTimezone);
-      // Listen to 'moztimechange'
+      window.navigator.mozSettings.addObserver(_kLocaleTime,
+        this._boundCurrentHour12);
+      // Listen to 'localized' to get the latest l10n resource.
+      window.addEventListener('localized', this);
+      // Listen to 'moztimechange' to update clock
       window.addEventListener('moztimechange', this);
     },
 
@@ -144,7 +163,11 @@ define(function(require) {
           navigator.mozL10n.ready((function _updateTime() {
             this._autoUpdateDateTime();
           }).bind(this));
-        break;
+          break;
+        case 'localized':
+          // update time format while language changed
+          this._updateTimeFormat();
+          break;
       }
     },
 
@@ -155,14 +178,15 @@ define(function(require) {
      * @memberOf dateTimePrototype
      */
     _getDefaults: function dt_getDefaults() {
-      this._autoUpdateDateTime();
-
       SettingsCache.getSettings(function(results) {
         this.clockAutoEnabled = results[_kClockAutoEnabled];
         this.clockAutoAvailable = results[_kClockAutoAvailable];
         this.timezoneAutoAvailable = results[_kTimezoneAutoAvailable];
         this.timezone = results[_kTimezone];
         this.userSelectedTimezone = results[_kUserSelected];
+        this.currentHour12 = results[_kLocaleTime];
+        // render date/time after get proper format
+        this._autoUpdateDateTime();
       }.bind(this));
     },
 
@@ -180,15 +204,17 @@ define(function(require) {
     },
 
     /**
-     * Update Date periodically
+     * Update Date periodically.
+     *
+     * DONT call this function directly,
+     * call _autoUpdateDateTime instead.
      *
      * @access private
      * @memberOf dateTimePrototype
      */
     _autoUpdateDate: function dt_autoUpdateDate() {
       var d = new Date();
-      var f = new navigator.mozL10n.DateTimeFormat();
-      this.date = f.localeFormat(d, '%x');
+      this.date = this._formatDate(d);
 
       var remainMillisecond = (24 - d.getHours()) * 3600 * 1000 -
         d.getMinutes() * 60 * 1000 - d.getMilliseconds();
@@ -199,17 +225,17 @@ define(function(require) {
     },
 
     /**
-     * Update Time periodically
+     * Update Time periodically.
+     *
+     * DONT call this function directly,
+     * call _autoUpdateDateTime instead.
      *
      * @access private
      * @memberOf dateTimePrototype
      */
     _autoUpdateTime: function dt_autoUpdateTime() {
       var d = new Date();
-      var f = new navigator.mozL10n.DateTimeFormat();
-      var _ = navigator.mozL10n.get;
-      var format = _('shortTimeFormat');
-      this.time = f.localeFormat(d, format);
+      this.time = this._formatTime(d);
 
       var remainMillisecond = (59 - d.getSeconds()) * 1000;
       _updateTimeTimeout = window.setTimeout(
@@ -223,10 +249,18 @@ define(function(require) {
      *
      * @access private
      * @memberOf dateTimePrototype
+     * @param {Date|String} input could be Date or String
+     * @param {Boolean} iso force output as YYYY-MM-DD for ISO 8601 text parsing
+     * @returns {String}
      */
-    _formatDate: function dt_formatDate(d) {
+    _formatDate: function dt_formatDate(d, iso) {
       if (d instanceof Date) {
-        return d.toLocaleFormat('%Y-%m-%d');
+        if (iso) {
+          return d.toLocaleFormat('%Y-%m-%d');
+        } else {
+          var f = new navigator.mozL10n.DateTimeFormat();
+          return f.localeFormat(d, '%x');
+        }
       } else {
         return d;
       }
@@ -237,10 +271,22 @@ define(function(require) {
      *
      * @access private
      * @memberOf dateTimePrototype
+     * @param {Date|String} input could be Date or String
+     * @param {Boolean} iso force output as HH:MM for ISO 8601 text parsing
+     * @returns {String}
      */
-    _formatTime: function dt_formatTime(d) {
+    _formatTime: function dt_formatTime(d, iso) {
+      var _ = navigator.mozL10n.get;
       if (d instanceof Date) {
-        return d.toLocaleFormat('%H:%M');
+        var format;
+        if (iso) {
+          format = '%H:%M';
+          return d.toLocaleFormat(format);
+        } else {
+          format = (this.currentHour12 === true) ?
+             _('shortTimeFormat12') : _('shortTimeFormat24');
+          return d.toLocaleFormat(format);
+        }
       } else {
         if (d.indexOf(':') == 1) {  // Format: 8:05 --> 08:05
           d = '0' + d;
@@ -263,12 +309,12 @@ define(function(require) {
         case 'date':
           // Get value from date picker.
           pDate = this._formatDate(value);  // Format: 2012-09-01
-          pTime = this._formatTime(d);
+          pTime = this._formatTime(d, true);
           break;
 
         case 'time':
           // Get value from time picker.
-          pDate = this._formatDate(d);
+          pDate = this._formatDate(d, true);
           pTime = this._formatTime(value);  // Format: 0:02, 8:05, 23:45
           break;
       }
@@ -300,6 +346,36 @@ define(function(require) {
       var cset = {};
       cset[_kTimezone] = selected;
       settings.createLock().set(cset);
+    },
+
+    /**
+     * Change hour12 settings.
+     * this valie is used to determine 12 or 24 time format.
+     *
+     * @access public
+     * @memberOf dateTimePrototype
+     */
+    setCurrentHour12: function dt_setCurrentHour12(selected) {
+      var cset = {};
+      cset[_kLocaleTime] = selected;
+      settings.createLock().set(cset);
+    },
+
+    /**
+     * If language changed (in FTU or settings),
+     * set hour12 based on language locale properties.
+     *
+     * @access private
+     * @memberOf dateTimePrototype
+     */
+    _updateTimeFormat: function dt_updateTimeFormat() {
+      var _ = navigator.mozL10n.get;
+      // format a fake time to determine if it is 12 or 24 format.
+      var f = new navigator.mozL10n.DateTimeFormat();
+      var theTime = f.localeFormat(new Date('2011-01-23T13:00'),
+        _('shortTimeFormat'));
+      var ampm = (theTime.indexOf('13') < 0);
+      this.setCurrentHour12(ampm);
     }
   };
 
