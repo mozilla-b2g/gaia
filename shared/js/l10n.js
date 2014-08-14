@@ -1401,6 +1401,7 @@
     if (pretranslate) {
       //XXX: bring back if bug 994370 gets reverted
       //inlineLocalization.call(navigator.mozL10n);
+      cleanDocument();
       initResources.call(navigator.mozL10n);
     } else {
       window.setTimeout(initResources.bind(navigator.mozL10n));
@@ -1625,6 +1626,18 @@
     document.documentElement.lang = this.language.code;
     document.documentElement.dir = this.language.direction;
     translateFragment.call(this, document.documentElement);
+  }
+
+  function cleanDocument() {
+    var element = document.documentElement;
+    if (element.hasAttribute('data-l10n-id')) {
+      setTextContent.call(this, element, '');
+    }
+
+    var nodes = getTranslatableChildren(element);
+    for (var i = 0; i < nodes.length; i++ ) {
+      setTextContent.call(this, nodes[i], '');
+    }
   }
 
   function translateFragment(element) {
