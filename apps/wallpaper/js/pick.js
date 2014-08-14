@@ -17,7 +17,7 @@ var Wallpaper = {
       });
     }
 
-    this.cancelButton = document.getElementById('cancel');
+    this.header = document.getElementById('header');
     this.wallpapers = document.getElementById('wallpapers');
     this.generateWallpaperList();
   },
@@ -55,7 +55,7 @@ var Wallpaper = {
   startPick: function wallpaper_startPick(request) {
     this.pickActivity = request;
     this.wallpapers.addEventListener('click', this.pickWallpaper.bind(this));
-    this.cancelButton.addEventListener('click', this.cancelPick.bind(this));
+    this.header.addEventListener('action', this.cancelPick.bind(this));
   },
 
   pickWallpaper: function wallpaper_pickWallpaper(e) {
@@ -96,7 +96,7 @@ var Wallpaper = {
 
   endPick: function wallpaper_endPick() {
     this.pickActivity = null;
-    this.cancelButton.removeEventListener('click', this.cancelPick);
+    this.header.removeEventListener('action', this.cancelPick);
     this.wallpapers.removeEventListener('click', this.pickWallpaper);
   }
 };
