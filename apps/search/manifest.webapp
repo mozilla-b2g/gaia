@@ -48,5 +48,8 @@
     "189": "/style/icons/search_189.png",
     "284": "/style/icons/search_284.png"
   },
-  "orientation": "default"
+  "orientation": "default",
+  "chrome": {
+    "navigation": true
+  }
 }
