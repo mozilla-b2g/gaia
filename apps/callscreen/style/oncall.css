@@ -31,6 +31,10 @@
     line-height: 1.7rem;
   }
 
+  #calls:not(.big-duration) > section.ended:not(.ongoing) .duration .font-light {
+    line-height: 3.5rem;
+  }
+
   #calls:not(.big-duration) .duration .total-duration {
     display: none;
     font-weight: normal;
