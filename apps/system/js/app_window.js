@@ -2,7 +2,7 @@
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
   var _id = 0;
 
   /**
@@ -510,7 +510,9 @@
    * @inner
    */
   AppWindow.prototype._render = function aw__render() {
+    console.log('AppWindow render');
     if (this.element) {
+      console.log('AppWindow render, already has element. returning.');
       return;
     }
     /**
@@ -566,8 +568,10 @@
 
     // Launched as background: set visibility and overlay screenshot.
     if (this.config.stayBackground) {
+      console.log('AppWindow launched in background. Should not happen for homescreen.');
       this.setVisible(false, true /* screenshot */);
     } else if (this.isHomescreen) {
+      console.log('AppWindow render this.setVisible(false)');
       // homescreen is launched at background under FTU/lockscreen too.
       this.setVisible(false);
     }

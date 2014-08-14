@@ -12,6 +12,7 @@
    * @param {String} manifestURL The manifestURL of the homescreen app.
    */
   var HomescreenWindow = function HomescreenWindow(manifestURL) {
+    console.log('HomescreenWindow constructor');
     this.instanceID = 'homescreen';
     this.setBrowserConfig(manifestURL);
     this.render();
@@ -176,16 +177,20 @@
   HomescreenWindow.prototype.ensure = function hw_ensure(reset) {
     this.debug('ensuring homescreen...', this.frontWindow);
     if (!this.element) {
+      console.log('ensure no element');
       this.render();
     } else if (reset) {
+      console.log('ensure element, reset is: ', reset);
       if (this.frontWindow) {
+        console.log('ensure kill frontWindow');
         // Just kill front window but not switch to the first page.
         this.frontWindow.kill();
       } else {
+        console.log('ensure set browser url ', this.browser_config.url);
         this.browser.element.src = this.browser_config.url + Date.now();
       }
     }
-
+    console.log('ensure returning element ', this.element.outerHTML);
     return this.element;
   };
 
