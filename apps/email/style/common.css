@@ -56,11 +56,11 @@ body {
 }
 
 .card.center {
-  transform: translateX(0);
+  transform: none;
 }
 
 .card.center.anim-vertical {
-  transform: translateY(0);
+  transform: none;
 }
 
 .card.center.anim-fade {
@@ -76,7 +76,7 @@ body {
 }
 
 .card.before.anim-fade {
-  transform: translateX(0);
+  transform: none;
   opacity: 0;
 }
 
@@ -97,7 +97,7 @@ body {
 }
 
 .card.after.anim-fade {
-  transform: translateX(0);
+  transform: none;
   opacity: 0;
 }
 
