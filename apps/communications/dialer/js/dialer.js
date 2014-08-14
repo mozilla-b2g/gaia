@@ -253,7 +253,7 @@ var CallHandler = (function callHandler() {
     };
 
     var error = function() {
-      KeypadManager.updatePhoneNumber(number, 'begin', false);
+      KeypadManager.updatePhoneNumber(number, 'begin', true);
     };
 
     var oncall = function() {
