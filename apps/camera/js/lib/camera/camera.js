@@ -655,8 +655,8 @@ Camera.prototype.release = function(done) {
   function onSuccess() {
     debug('successfully released');
     self.ready();
-    self.emit('released');
     self.releasing = false;
+    self.emit('released');
     done();
   }
 
