@@ -17,7 +17,7 @@ gaia-buttons {
   box-sizing: border-box;
   padding: 0 1.5rem 0 0;
   border-top: 0.1rem solid #e7e7e7;
-  background-color: #f4f4f4;
+  background-color: #4d4d4d;
   pointer-events: auto;
 }
 
@@ -144,7 +144,7 @@ button.icon-previous:before {
 ----------------------------------------------------------------- */
 
 gaia-buttons[skin="dark"] {
-  background: url('images/pattern.png') repeat #2D2D2D;
+  background: #4d4d4d;
   border: none;
 }
 
