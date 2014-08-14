@@ -137,9 +137,7 @@ var ThreadListUI = {
     }
 
     if (!number) {
-      navigator.mozL10n.localize(
-        node.querySelector('.name'), 'no-recipient'
-      );
+      node.querySelector('.name').setAttribute('data-l10n-id', 'no-recipient');
       return;
     }
 
@@ -164,7 +162,7 @@ var ThreadListUI = {
         node.dataset.photoUrl = src;
       }
 
-      navigator.mozL10n.localize(name, 'thread-header-text', {
+      navigator.mozL10n.setAttributes(name, 'thread-header-text', {
         name: title,
         n: others
       });
@@ -235,16 +233,16 @@ var ThreadListUI = {
     var selected = ThreadListUI.selectedInputs.length;
 
     if (selected === ThreadListUI.allInputs.length) {
-      navigator.mozL10n.localize(this.checkUncheckAllButton, 'deselect-all');
+      this.checkUncheckAllButton.setAttribute('data-l10n-id', 'deselect-all');
     } else {
-      navigator.mozL10n.localize(this.checkUncheckAllButton, 'select-all');
+      this.checkUncheckAllButton.setAttribute('data-l10n-id', 'select-all');
     }
     if (selected) {
       this.deleteButton.disabled = false;
-      navigator.mozL10n.localize(this.editMode, 'selected', {n: selected});
+      navigator.mozL10n.setAttributes(this.editMode, 'selected', {n: selected});
     } else {
       this.deleteButton.disabled = true;
-      navigator.mozL10n.localize(this.editMode, 'selectThreads-title');
+      navigator.mozL10n.setAttributes(this.editMode, 'selectThreads-title');
     }
   },
 

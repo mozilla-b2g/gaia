@@ -514,8 +514,10 @@ var ThreadUI = {
 
   showMaxLengthNotice: function thui_showMaxLengthNotice(l10nKey) {
     Compose.lock = true;
-    navigator.mozL10n.localize(
-      this.maxLengthNotice.querySelector('p'), l10nKey);
+    this.maxLengthNotice.querySelector('p').setAttribute(
+      'data-l10n-id',
+      l10nKey
+    );
     this.maxLengthNotice.classList.remove('hide');
   },
 
@@ -560,9 +562,7 @@ var ThreadUI = {
       );
 
       var simPickerElt = document.getElementById('sim-picker');
-      LazyLoader.load([simPickerElt], function() {
-        navigator.mozL10n.translate(simPickerElt);
-      });
+      LazyLoader.load([simPickerElt]);
       this.initSentAudio();
     }
 
@@ -905,7 +905,7 @@ var ThreadUI = {
   onMessageTypeChange: function thui_onMessageTypeChange() {
     var message = 'converted-to-' + Compose.type;
     var messageContainer = this.convertNotice.querySelector('p');
-    navigator.mozL10n.localize(messageContainer, message);
+    messageContainer.setAttribute('data-l10n-id', message);
     this.convertNotice.classList.remove('hide');
 
     if (this._convertNoticeTimeout) {
@@ -982,11 +982,11 @@ var ThreadUI = {
   updateComposerHeader: function thui_updateComposerHeader() {
     var recipientCount = this.recipients.numbers.length;
     if (recipientCount > 0) {
-      navigator.mozL10n.localize(this.headerText, 'recipient', {
+      navigator.mozL10n.setAttributes(this.headerText, 'recipient', {
           n: recipientCount
       });
     } else {
-      navigator.mozL10n.localize(this.headerText, 'newMessage');
+      navigator.mozL10n.setAttributes(this.headerText, 'newMessage');
     }
   },
 
@@ -1287,8 +1287,6 @@ var ThreadUI = {
       if (phoneDetails) {
         carrierTag.innerHTML = SharedComponents.phoneDetails(phoneDetails);
 
-        navigator.mozL10n.translate(carrierTag);
-
         threadMessages.classList.add('has-carrier');
       } else {
         threadMessages.classList.remove('has-carrier');
@@ -1317,10 +1315,14 @@ var ThreadUI = {
     // the callback directly in order to make it work!
     // https://bugzilla.mozilla.org/show_bug.cgi?id=836733
     if (!this._mozMobileMessage) {
-      navigator.mozL10n.localize(this.headerText, 'thread-header-text', {
-        name: number,
-        n: others
-      });
+      navigator.mozL10n.setAttributes(
+        this.headerText,
+        'thread-header-text',
+        {
+          name: number,
+          n: others
+        }
+      );
       return Promise.resolve();
     }
 
@@ -1340,10 +1342,14 @@ var ThreadUI = {
         var contactName = details.title || number;
         this.headerText.dataset.isContact = !!details.isContact;
         this.headerText.dataset.title = contactName;
-        navigator.mozL10n.localize(this.headerText, 'thread-header-text', {
+        navigator.mozL10n.setAttributes(
+          this.headerText,
+          'thread-header-text',
+          {
             name: contactName,
             n: others
-        });
+          }
+        );
 
         this.updateCarrier(thread, contacts);
         resolve();
@@ -1610,7 +1616,7 @@ var ThreadUI = {
 
     var pElement = messageDOM.querySelector('p');
     if (invalidEmptyContent) {
-      navigator.mozL10n.localize(pElement, 'no-attachment-text');
+      pElement.setAttribute('data-l10n-id', 'no-attachment-text');
     }
 
     if (message.type === 'mms' && !isNotDownloaded && !noAttachment) { // MMS
@@ -1882,18 +1888,18 @@ var ThreadUI = {
 
     // Manage buttons enabled\disabled state
     if (selected.length === allInputs.length) {
-      navigator.mozL10n.localize(this.checkUncheckAllButton, 'deselect-all');
+      this.checkUncheckAllButton.setAttribute('data-l10n-id', 'deselect-all');
     } else {
-      navigator.mozL10n.localize(this.checkUncheckAllButton, 'select-all');
+      this.checkUncheckAllButton.setAttribute('data-l10n-id', 'select-all');
     }
 
     if (isAnySelected) {
       this.deleteButton.disabled = false;
-      navigator.mozL10n.localize(this.editMode, 'selected',
+      navigator.mozL10n.setAttributes(this.editMode, 'selected',
         {n: selected.length});
     } else {
       this.deleteButton.disabled = true;
-      navigator.mozL10n.localize(this.editMode, 'deleteMessages-title');
+      navigator.mozL10n.setAttributes(this.editMode, 'deleteMessages-title');
     }
   },
 
@@ -2354,7 +2360,7 @@ var ThreadUI = {
 
     messageDOM.classList.add('pending');
     messageDOM.classList.remove('error');
-    navigator.mozL10n.localize(button, 'downloading-attachment');
+    button.setAttribute('data-l10n-id', 'downloading-attachment');
 
     request.onsuccess = (function retrieveMMSSuccess() {
       this.removeMessageDOM(messageDOM);
@@ -2363,7 +2369,7 @@ var ThreadUI = {
     request.onerror = (function retrieveMMSError() {
       messageDOM.classList.remove('pending');
       messageDOM.classList.add('error');
-      navigator.mozL10n.localize(button, 'download-attachment');
+      button.setAttribute('data-l10n-id', 'download-attachment');
 
       // Show NonActiveSimCard/Other error dialog while retrieving MMS
       var errorCode = (request.error && request.error.name) ?
@@ -2394,7 +2400,7 @@ var ThreadUI = {
             // ready yet.
             messageDOM.classList.add('pending');
             messageDOM.classList.remove('error');
-            navigator.mozL10n.localize(button, 'downloading-attachment');
+            button.setAttribute('data-l10n-id', 'downloading-attachment');
             Settings.switchMmsSimHandler(serviceId).then(
               this.retrieveMMS.bind(this, messageDOM))
             .catch(function(err) {

@@ -177,7 +177,7 @@ var VIEWS = {
     render: function renderGroup() {
       var participants = Threads.get(this.id).participants;
       this.renderContactList(participants);
-      navigator.mozL10n.localize(ThreadUI.headerText, 'participant', {
+      navigator.mozL10n.setAttributes(ThreadUI.headerText, 'participant', {
         n: participants.length
       });
     },
@@ -216,7 +216,7 @@ var VIEWS = {
     },
 
     render: function renderReport() {
-      var localize = navigator.mozL10n.localize;
+      var setL10nAttributes = navigator.mozL10n.setAttributes;
       var request = MessageManager.getMessage(this.id);
 
       request.onsuccess = (function() {
@@ -230,10 +230,10 @@ var VIEWS = {
 
         // Fill in the description/status/size
         if (type === 'sms') {
-          localize(this.type, 'message-type-sms');
+          setL10nAttributes(this.type, 'message-type-sms');
           this.sizeBlock.classList.add('hide');
         } else { //mms
-          localize(this.type, 'message-type-mms');
+          setL10nAttributes(this.type, 'message-type-mms');
           // subject text content
           var subject = message.subject;
           if (subject) {
@@ -243,14 +243,14 @@ var VIEWS = {
           // Message total size show/hide
           if (message.attachments && message.attachments.length > 0) {
             var params = sizeL10nParam(message.attachments);
-            localize(this.size, params.l10nId, params.l10nArgs);
+            setL10nAttributes(this.size, params.l10nId, params.l10nArgs);
             this.sizeBlock.classList.remove('hide');
           } else {
             this.sizeBlock.classList.add('hide');
           }
         }
         this.status.dataset.type = message.delivery;
-        localize(this.status, 'message-status-' + message.delivery);
+        setL10nAttributes(this.status, 'message-status-' + message.delivery);
 
         // Set different layout/value for received and sent message
         this.container.classList.toggle('received', isIncoming);
@@ -262,7 +262,7 @@ var VIEWS = {
           isIncoming && !message.sentTimestamp
         );
 
-        localize(
+        setL10nAttributes(
           this.contactTitle,
           isIncoming ? 'report-from' : 'report-recipients'
         );
@@ -282,7 +282,7 @@ var VIEWS = {
         this.renderContactList(createListWithMsgInfo(message));
       }).bind(this);
 
-      localize(ThreadUI.headerText, 'message-report');
+      setL10nAttributes(ThreadUI.headerText, 'message-report');
     },
 
     onDeliverySuccess: function report_onDeliverySuccess(e) {
@@ -399,7 +399,6 @@ Information.prototype = {
           var parentBlock = li.querySelector(selector);
           if (parentBlock && infoBlock) {
             parentBlock.appendChild(infoBlock);
-            navigator.mozL10n.translate(li);
           }
           ul.appendChild(li);
         }

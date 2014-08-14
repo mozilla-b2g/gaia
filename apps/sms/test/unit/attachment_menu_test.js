@@ -1,11 +1,10 @@
-/*global MocksHelper, MockL10n, loadBodyHTML, AttachmentMenu, Attachment */
+/*global MocksHelper, loadBodyHTML, AttachmentMenu, Attachment */
 
 'use strict';
 
 requireApp('sms/js/attachment_menu.js');
 
 requireApp('sms/test/unit/mock_attachment.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
 
 var MocksHelperForAttachmentMenu = new MocksHelper([
   'Attachment'
@@ -13,13 +12,6 @@ var MocksHelperForAttachmentMenu = new MocksHelper([
 
 suite('attachment_menu_test.js', function() {
   MocksHelperForAttachmentMenu.attachTestHelpers();
-  suiteSetup(function() {
-    this.realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
-  });
-  suiteTeardown(function() {
-    navigator.mozL10n = this.realMozL10n;
-  });
 
   setup(function() {
     loadBodyHTML('/index.html');
@@ -36,7 +28,6 @@ suite('attachment_menu_test.js', function() {
   suite('open', function() {
     setup(function() {
       this.sinon.stub(AttachmentMenu.el, 'focus');
-      this.sinon.spy(navigator.mozL10n, 'localize');
 
       document.querySelector('#attachment-options-menu').className = 'hide';
       // clear out a bunch of fields to make sure open uses localization
@@ -63,24 +54,21 @@ suite('attachment_menu_test.js', function() {
           AttachmentMenu.open(this.attachment);
         });
         test('sets view text', function() {
-          assert.ok(
-            navigator.mozL10n.localize.calledWith(
-              AttachmentMenu.viewButton, 'view-attachment-' + type
-            )
+          assert.equal(
+            AttachmentMenu.viewButton.getAttribute('data-l10n-id'),
+            'view-attachment-' + type
           );
         });
         test('sets remove text', function() {
-          assert.ok(
-            navigator.mozL10n.localize.calledWith(
-              AttachmentMenu.removeButton, 'remove-attachment-' + type
-            )
+          assert.equal(
+            AttachmentMenu.removeButton.getAttribute('data-l10n-id'),
+            'remove-attachment-' + type
           );
         });
         test('sets replace text', function() {
-          assert.ok(
-            navigator.mozL10n.localize.calledWith(
-              AttachmentMenu.replaceButton, 'replace-attachment-' + type
-            )
+          assert.equal(
+            AttachmentMenu.replaceButton.getAttribute('data-l10n-id'),
+            'replace-attachment-' + type
           );
         });
       });

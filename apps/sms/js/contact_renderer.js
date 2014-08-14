@@ -283,9 +283,6 @@ ContactRenderer.prototype = {
         Utils.asyncLoadRevokeURL(details.photoURL);
       }
 
-      // scan for translatable stuff
-      navigator.mozL10n.translate(element);
-
       target.appendChild(element);
 
       tempDiv.textContent = '';
