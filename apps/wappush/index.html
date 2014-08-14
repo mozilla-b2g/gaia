@@ -11,7 +11,6 @@
 
     <!-- Shared styles -->
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css" >
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css" >
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
 
@@ -20,8 +19,12 @@
 
     <!-- Shared code -->
     <script defer src="shared/js/notification_helper.js"></script>
-    <script defer src="shared/js/font_size_utils.js"></script>
     <script defer src="shared/js/uuid.js"></script>
+    <!-- Web Components -->
+    <script defer src="shared/elements/config.js"></script>
+    <script defer src="shared/elements/gaia-header/dist/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" /> -->
 
     <!-- Specific code -->
     <script defer src="js/activity_picker.js"></script>
@@ -41,15 +44,12 @@
     <script defer src="js/startup.js"></script>
   </head>
 
-  <body role="application">
+  <body role="application" class="theme-productivity">
     <section role="region">
-      <header>
-        <button id="close"><span class="icon icon-close" data-l10n-id="close"> close </span></button>
-        <menu type="toolbar">
-          <button id="accept" data-l10n-id="accept" class="full recommend hidden">Accept</button>
-        </menu>
+      <gaia-header id="header" action="close">
         <h1 id="title"></h1>
-      </header>
+        <button id="accept" data-l10n-id="accept" class="full recommend hidden">Accept</button>
+      </gaia-header>
 
       <!-- SI SL message screen -->
       <article id="si-sl-screen" role="main" hidden>
