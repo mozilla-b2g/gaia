@@ -55,9 +55,8 @@ form[role="dialog"][data-type="edit"] > menu {
   top: 0;
   background: #fff;
   z-index: 2;
+  transition: top 0.5s;
 }
-
-#call-log-container[data-type="list"] header:after {}
 
 #call-log-container[data-type="list"] ol {
   padding: 0 1.5rem;
@@ -275,8 +274,8 @@ ol, ul {
 */
 
 #no-result-container {
-  background: url('images/ComLog_200x200_clock.png') fixed no-repeat center / 20rem;
-  height: 100%;
+  background: url('images/ComLog_200x200_clock.png') no-repeat top 4rem center / 20rem;
+  height: calc(100% - 14rem);
   margin: 0 1.5rem;
 }
 
@@ -318,19 +317,14 @@ ol, ul {
 
 
 /* Prototyping */
-#call-log-filter {
-  margin-top: -4rem;
-}
-
 .favorite-contacts-container {
   height: 9.8rem;
   overflow: hidden;
-  border-bottom: solid 0.1rem #E7E7E7;
 }
 
 ul.favorite-contacts {
   height: 11rem;
-  padding: 0.8rem 0px 0.8rem 0.8rem !important;
+  padding: 0.8rem 0 0.8rem 0.8rem !important;
   box-sizing: border-box;
   overflow: scroll;
   overflow-x: scroll !important;
@@ -359,4 +353,35 @@ ul.favorite-contacts .title {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+#call-log-filter .bb-tablist li[role="presentation"] {
+  height: 100%;
+  padding: 0;
+}
+
+#call-log-filter .bb-tablist li[role="presentation"]:active:after {
+  background-color: transparent;
+}
+
+#call-log-filter.after-scroll {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 3;
+  transform: translate(0, -4rem);
+  transition: transform 0.5s;
+}
+
+#call-log-filter.after-scroll.visible {
+  transform: translate(0, 0rem);
+}
+
+#call-log-filter.after-scroll ~ section:first-of-type {
+  margin-top: 4rem;
+}
+
+#call-log-filter.after-scroll.visible ~ section header {
+  top: 4rem !important;
 }
