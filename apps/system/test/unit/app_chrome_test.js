@@ -32,6 +32,8 @@ suite('system/AppChrome', function() {
     requireApp('system/js/system.js');
     requireApp('system/js/base_ui.js');
     requireApp('system/js/app_chrome.js', done);
+
+    window.SettingsListener = { observe: function() {} };
   });
 
   teardown(function() {

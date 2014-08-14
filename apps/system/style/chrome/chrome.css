@@ -363,6 +363,10 @@
   display: inline-block;
 }
 
+.option#new-window > .icon {
+  background-image: url("images/menu_new_window.png");
+}
+
 .option#add-to-home > .icon {
   background-image: url("images/menu_add_to_homescreen.png");
 }

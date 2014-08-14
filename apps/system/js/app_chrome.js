@@ -1,10 +1,22 @@
-/* global ModalDialog, MozActivity, BookmarksDatabase */
+/* global ModalDialog */
+/* global MozActivity */
+/* global BookmarksDatabase */
+/* global applications */
+/* global SettingsListener */
 
 'use strict';
 
 (function(exports) {
   var _id = 0;
   var _ = navigator.mozL10n.get;
+
+  var newTabApp = null;
+  SettingsListener.observe('rocketbar.newTabAppURL', '',
+    function(url) {
+      var manifestURL = url ? url.match(/(^.*?:\/\/.*?\/)/)[1] +
+        'manifest.webapp' : '';
+      newTabApp = applications.getByManifestURL(manifestURL);
+    });
 
   /**
    * The chrome UI of the AppWindow.
@@ -99,6 +111,13 @@
   AppChrome.prototype.overflowMenuView = function an_overflowMenuView() {
     return '<div class="overflow-menu hidden">' +
            '  <div class="list">' +
+
+           '    <div class="option" id="new-window">' +
+           '      <div class="icon"></div>' +
+           '      <div class="label" data-l10n-id="new-window">' +
+           '        New Window' +
+           '      </div>' +
+           '    </div>' +
 
            '    <div class="option" id="add-to-home" data-disabled="true">' +
            '      <div class="icon"></div>' +
@@ -232,6 +251,11 @@
         this.hideOverflowMenu();
         break;
 
+      case this.newWindowButton:
+        evt.stopImmediatePropagation();
+        this.onNewWindow();
+        break;
+
       case this.addToHomeButton:
         evt.stopImmediatePropagation();
         this.onAddToHome();
@@ -297,6 +321,10 @@
         this._overflowMenu.removeEventListener('click', this);
         this._overflowMenu.removeEventListener('animationend', this);
         this._overflowMenu.removeEventListener('transitionend', this);
+      }
+
+      if (this.newWindowButton) {
+        this.newWindowButton.removeEventListener('click', this);
       }
 
       if (this.addToHomeButton) {
@@ -564,6 +592,14 @@
     ModalDialog.selectOne(data, selected);
   };
 
+  AppChrome.prototype.onNewWindow = function ac_onNewWindow() {
+    if (newTabApp) {
+      newTabApp.launch();
+    }
+
+    this.hideOverflowMenu();
+  };
+
   AppChrome.prototype.onAddToHome = function ac_onAddToHome() {
     this.addBookmark();
     this.hideOverflowMenu();
@@ -592,6 +628,8 @@
                                             this.overflowMenuView());
         this._overflowMenu = this.containerElement.
           querySelector('.overflow-menu');
+        this.newWindowButton = this._overflowMenu.
+          querySelector('#new-window');
         this.addToHomeButton = this._overflowMenu.
           querySelector('#add-to-home');
         this.shareButton = this._overflowMenu.
@@ -600,6 +638,7 @@
         this._overflowMenu.addEventListener('click', this);
         this._overflowMenu.addEventListener('animationend', this);
         this._overflowMenu.addEventListener('transitionend', this);
+        this.newWindowButton.addEventListener('click', this);
         this.addToHomeButton.addEventListener('click', this);
         this.shareButton.addEventListener('click', this);
 
