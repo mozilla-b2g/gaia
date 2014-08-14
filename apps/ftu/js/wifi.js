@@ -364,9 +364,9 @@ var WifiUI = {
           li.setAttribute('role', 'option');
           li.setAttribute('aria-live', true);
           li.setAttribute('aria-relevant', 'text');
-          li.appendChild(icon);
           li.appendChild(ssidp);
           li.appendChild(small);
+          li.appendChild(icon);
           // Append to DOM
           if (WifiHelper.isConnected(network)) {
             networksList.insertBefore(li, networksList.firstChild);
