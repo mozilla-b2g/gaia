@@ -427,22 +427,6 @@ footer {
   background-repeat: no-repeat;
 }
 
-.icon-delete {
-  display: block;
-  background-image: url('images/iconaction_delete_30x30.png') !important;
-  background-size: 3rem;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
-.icon-share {
-  display: block;
-  background-image: url('images/iconaction_share_30x30.png') !important;
-  background-size: 3rem;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
 #thumbnails-delete-button {
   position: absolute;
   width: 50%;
@@ -451,6 +435,15 @@ footer {
   background-image: url('images/iconaction_delete_30x30.png');
   background-size: 3rem;
   border-right: 0.1rem solid #000;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+#thumbnails-delete-button:active {
+  background: #00caf2;
+  background-image: url('images/iconaction_delete_30x30.png');
+  background-repeat: no-repeat;
+  background-position: center center;
 }
 
 #thumbnails-share-button {
@@ -458,6 +451,18 @@ footer {
   width: 50%;
   height: 100%;
   left: 50%;
+  background-image: url('images/iconaction_share_30x30.png');
+  background-size: 3rem;
+  border-right: 0.1rem solid #000;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+#thumbnails-share-button:active {
+  background: #00caf2;
+  background-image: url('images/iconaction_share_30x30.png');
+  background-repeat: no-repeat;
+  background-position: center center;
 }
 
 header .icon:after {
