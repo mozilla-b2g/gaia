@@ -8,7 +8,10 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "icons": {
-    "48": "/style/icons/icon-48.png"
+    "30": "/style/icons/icon-30.png",
+    "45": "/style/icons/icon-45.png",
+    "60": "/style/icons/icon-60.png",
+    "68": "/style/icons/icon-68.png"
   },
   "permissions": {
     "attention":{},

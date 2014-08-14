@@ -13,34 +13,31 @@ var style;
 function init() {
   form = document.querySelector('form');
   form.addEventListener('submit', onFormSubmit);
-}
-
-function closeWindow() {
-  window.close();
+  sendNotification().catch((err) => {
+    console.error('Error while sending a notification', err);
+  });
 }
 
 function sendNotification() {
-  var fromNotification = Utils.parseParams().notification;
+  var params = Utils.parseParams();
+  var fromNotification = params.notification;
   if (fromNotification) {
     return Promise.resolve();
   }
 
-  Notification.requestPermission();
-
-  var title = form.querySelector('h1').textContent;
-  var body = form.querySelector('p').textContent;
+  var title = params.title;
+  var body = params.body;
 
   var notification = new Notification(
     title, {
       body: body,
       tag: '' + Date.now(), // needs to be unique
-      icon: window.location.origin + '/style/icons/icon-48.png?style=' + style
+      icon: window.location.origin + '/style/icons/icon-68.png?style=' + style
     }
   );
 
   return new Promise(function(resolve, reject) {
     notification.onerror = function onerror() {
-      console.log('got an error while sending the notification');
       reject(new Error());
     };
 
@@ -50,8 +47,7 @@ function sendNotification() {
 
 function onFormSubmit(e) {
   e.preventDefault();
-
-  sendNotification().then(closeWindow);
+  window.close();
 }
 
 function renderForm() {

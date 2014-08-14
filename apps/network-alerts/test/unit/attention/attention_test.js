@@ -1,5 +1,6 @@
 /* global
   Attention,
+  MockNotification,
   MockNotifications,
   MocksHelper,
   Utils
@@ -16,7 +17,6 @@ var mocksHelperForAttention = new MocksHelper([
   'Notification',
   'Utils'
 ]);
-
 
 suite('Network Alerts - Attention Screen', function() {
   var title, body, style;
@@ -56,22 +56,20 @@ suite('Network Alerts - Attention Screen', function() {
     );
   });
 
-
-  test('click button: sends notification, closes window', function(done) {
-    this.sinon.stub(window, 'close', () => done());
-
-    document.querySelector('button').click();
-
+  test('Notification should be displayed', function() {
     assert.equal(MockNotifications[0].title, title);
     assert.equal(MockNotifications[0].body, body);
     assert.ok(MockNotifications[0].icon.endsWith('style=' + style));
-
-    MockNotifications[0].onshow();
   });
 
-  test('display from notification, click button:', function(done) {
-    this.sinon.stub(window, 'close', () => done());
+  test('click button: closes window', function() {
+    this.sinon.stub(window, 'close');
+    document.querySelector('button').click();
+    sinon.assert.called(window.close);
+  });
 
+  test('display from notification, Notification should not be displayed',
+  function() {
     Utils.parseParams.returns({
       title: title,
       body: body,
@@ -79,12 +77,12 @@ suite('Network Alerts - Attention Screen', function() {
       notification: 1
     });
 
-    document.querySelector('button').click();
+    MockNotification.mTeardown();
+    Attention.init();
 
     assert.isUndefined(
       MockNotifications[0],
       'should not send a new notification'
     );
   });
-
 });

@@ -22,7 +22,7 @@ suite('Network Alerts - Utils', function() {
     emptyvalue: ''
   };
 
-  test('parseParams decode search parameters', function() {
+  test('parseParams decodes search parameters', function() {
     var subject = [ 'attention.html?' ].concat(parameters).join('');
 
     var result = Utils.parseParams(subject);
@@ -31,7 +31,7 @@ suite('Network Alerts - Utils', function() {
     }
   });
 
-  test('parseParams decode hash parameters', function() {
+  test('parseParams decodes hash parameters', function() {
     var subject = [ 'attention.html#' ].concat(parameters).join('');
 
     var result = Utils.parseParams(subject);
