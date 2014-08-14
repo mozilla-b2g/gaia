@@ -46,6 +46,15 @@ require([
       CALL_FORWARD_ACTION_ERASURE: 4
     };
 
+    var _cbAction = {
+      CALL_BARRING_BAOC: 0,     // BAOC: Barring All Outgoing Calls
+      CALL_BARRING_BOIC: 1,     // BOIC: Barring Outgoing International Calls
+      CALL_BARRING_BOICexHC: 2, // BOICexHC: Barring Outgoing International
+                                //  Calls Except  to Home Country
+      CALL_BARRING_BAIC: 3,     // BAIC: Barring All Incoming Calls
+      CALL_BARRING_BAICr: 4     // BAICr: Barring All Incoming Calls in Roaming
+    };
+
     var _clirConstantsMapping = {
       'CLIR_DEFAULT': 0,
       'CLIR_INVOCATION': 1,
@@ -892,6 +901,108 @@ require([
       });
     }
 
+    /** Update the state of the different inputs on the call barring screen.
+      * If no 'newState' parameter, we assume we want to disable all.
+      *
+      * @param newState The status we want to update to. Object in the form:
+      * {
+      *   element1_id: {
+      *     disabled: elementDisabled?,
+      *     checked: inputChecked?
+      *   },
+      *   element2_id: {...}
+      *   ...
+      * }
+      *
+      * @return the state of the inputs before the update
+      */
+    function _updateAllCallBarring(newState) {
+      console.log('UPDATING CALL BARRING ITEMS');
+      console.log('status? ' + JSON.stringify(newState));
+      var currentState = {};
+
+      [].forEach.call(
+        document.querySelectorAll('#call-cbSettings li'),
+        function (item) {
+          var input = item.querySelector('input');
+          console.log('item? ' + item.id);
+          // if we are disabling them, we keep the current state
+          if (!newState || newState.length === 0) {
+            console.log('no new state, backing up');
+            console.log('-- disabled?' + item.getAttribute('aria-disabled'));
+            console.log('-- checked?' + (input && input.checked));
+            currentState[item.id] = {
+              'disabled': item.getAttribute('aria-disabled') || false,
+              'checked': !!input ? input.checked : null
+            };
+            console.log('backup updated' + JSON.stringify(currentState));
+          }
+
+          console.log('newState item - ' + JSON.stringify(newState[item.id]));
+          var disabled = !!newState ? newState[item.id].disabled : true;
+          console.log('new state disabled? '+ disabled);
+          disabled ?
+            item.setAttribute('aria-disabled', disabled):
+            item.removeAttribute('aria-disabled');
+
+          if (!!input) {
+            var checked = newState ? newState[item.id].checked : input.checked;
+            console.log('new state checked? '+ (newState && newState[item.id].checked));
+            console.log('current checked? '+ input.checked);
+
+            input.disabled = disabled;
+            input.checked = checked;
+            console.log('input disabled? '+ disabled);
+            console.log('input checked? '+ checked);
+          }
+        }
+      );
+
+      console.log('FINAL STATUS - ' + JSON.stringify(currentState));
+      return currentState;
+    }
+
+    function _makeCallBarringRequest(inputID, options) {
+      // disable tap on all inputs while we deal with server
+      console.log('disabling inputs');
+      var previousState = _updateAllCallBarring(false);
+
+      console.log('enqueueing request!');
+      _taskScheduler.enqueue('CALL_BARRING', function(done) {
+        console.log('done, sending...');
+        // Send the request
+        var request = _mobileConnection.setCallBarringOption(options);
+        request.onsuccess = function() {
+          console.log('SUCCESS!');
+          console.log('RESULT: ' + JSON.stringify(request.result));
+          //TODO update state of the rest of the inputs
+
+          // and update the state of everything again (enable)
+          _updateAllCallBarring(previousState);
+          done();
+        };
+        request.onerror = function() {
+          // request.error = { name, message }
+          console.log('ERROR!');
+          console.log('e.name =  ' + request.error.name);
+          console.log('e.message = ' + request.error.message);
+
+          // revert visual changes
+          console.log('REVERTING STATUS');
+          console.log('PREVIOUS STATUS - ' + JSON.stringify(previousState));
+
+          console.log('input state is ' + previousState[inputID].checked);
+          console.log('we want to change it to ' + !previousState[inputID].checked);
+          // we revert the clicked input
+          previousState[inputID].checked = !previousState[inputID].checked;
+          // and go back to previous state (enable all)
+          _updateAllCallBarring(previousState);
+
+          done();
+        };
+      });
+    }
+
     /**
      * BAOC: Barring All Outgoing Calls
      * BOIC: Barring Outgoing International Calls
@@ -900,12 +1011,6 @@ require([
      * BAICr: Barring All Incoming Calls in Roaming
      */
     function cs_initCallBarring() {
-      const BAOC = 0;
-      const BOIC = 1;
-      const BOICexHC = 2;
-      const BAIC = 3;
-      const BAICr = 4;
-
       var inputBaoc =
         document.querySelector('#li-cb-baoc .checkbox-label input');
         console.log('BAOC input is ' + inputBaoc);
@@ -918,51 +1023,55 @@ require([
       var inputBaicR =
         document.querySelector('#li-cb-baic-r .checkbox-label input');
 
-      var handleSetCallBarring = function() {
-
+      var cb_serviceMapper = {
+        'li-cb-baoc': _cbAction.CALL_BARRING_BAOC,
+        'li-cb-boic': _cbAction.CALL_BARRING_BOIC,
+        'li-cb-boic-exhc': _cbAction.CALL_BARRING_BOICexHC,
+        'li-cb-baic': _cbAction.CALL_BARRING_BAIC,
+        'li-cb-baic-r': _cbAction.CALL_BARRING_BAICr
       };
 
-      inputBaoc.addEventListener('change', function cs_baocInputchange(event) {
+      var callBarringClick = function(event) {
         console.log('EVENT: ' + JSON.stringify(event));
         console.log('TARGET: ' + JSON.stringify(event.target));
-        console.log('CLICK ON BAOC');
-        //TODO disable tap on the rest of inputs while we deal with server
+
+        var input = event.target;
+        console.log('CLICK ON ' + input);
 
         // Show password screen
-        console.log('showing password screen??');
+        console.log('showing password screen');
         console.log('PANEL: ' + CallServicesPasswordScreen);
         CallServicesPasswordScreen.show().then(
-          function confirmed(code) {
+          // password screen confirmed
+          function confirmed(password) {
             console.log('CLICK ON confirm button');
-            // Create the option object
-            var option = {
-              'program': BAOC,
-              'enabled': inputBaoc.checked,
-              'password': code, //pasword retrieved
+            var inputID = input.parentNode.parentNode.id
+            console.log('ID = ' + inputID);
+            // Create the options object
+            var options = {
+              'program': cb_serviceMapper[inputID],
+              'enabled': input.checked,
+              'password': password,
               'serviceClass': _voiceServiceClassMask
             };
-            console.log('option: ' + JSON.stringify(option));
+            console.log('options: ' + JSON.stringify(options));
 
-            // Send the request
-            var request = _mobileConnection.setCallBarringOption(option);
-            request.onsuccess = function() {
-              console.log('SUCCESS!');
-              console.log('RESULT: ' + JSON.stringify(request.result));
-              //TODO Disable the rest of the options
-            };
-            request.onerror = function() {
-              console.log('ERROR!');
-              console.log('request: ' + JSON.stringify(request));
-              console.log('RESULT: ' + JSON.stringify(request.result));
-              console.log('e =  ' + JSON.stringify(request.error));
-              //TODO revert visual changes
-            };
+            _makeCallBarringRequest(inputID, options);
           },
+          // password screen canceled
           function canceled() {
             console.log('CLICK ON cancel button');
-            //TODO revert visual changes
-          });
-      });
+            // revert visual changes
+            input.checked = !input.checked;
+          }
+        );
+      };
+
+      inputBaoc.addEventListener('change', callBarringClick);
+      inputBoic.addEventListener('change', callBarringClick);
+      inputBoicExhc.addEventListener('change', callBarringClick);
+      inputBaic.addEventListener('change', callBarringClick);
+      inputBaicR.addEventListener('change', callBarringClick);
     }
 
     /**
