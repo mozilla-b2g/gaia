@@ -283,6 +283,7 @@ var CallHandler = (function callHandler() {
       Voicemail.check(number, function(isVoicemailNumber) {
         var entry = {
           date: Date.now() - parseInt(data.duration),
+          duration: data.duration,
           type: incoming ? 'incoming' : 'dialing',
           number: number,
           serviceId: data.serviceId,
@@ -291,12 +292,17 @@ var CallHandler = (function callHandler() {
           status: (incoming && data.duration > 0) ? 'connected' : null
         };
 
+        // Store and display the call that ended
         CallLogDBManager.add(entry, function(logEntry) {
           CallLog.appendGroup(logEntry);
+
+          // A CDMA call can contain two calls. If it only has one call,
+          // we have nothing left to do and release the lock.
           if(!data.secondNumber) {
             highPriorityWakeLock.unlock();
             return;
           }
+
           _addSecondCdmaCall(data, isVoicemailNumber, highPriorityWakeLock);
         });
       });
@@ -306,6 +312,7 @@ var CallHandler = (function callHandler() {
   function _addSecondCdmaCall(data, isVoicemailNumber, wakeLock) {
     var entryCdmaSecond = {
       date: Date.now() - parseInt(data.duration),
+      duration: data.duration,
       type: 'incoming',
       number: data.secondNumber,
       serviceId: data.serviceId,

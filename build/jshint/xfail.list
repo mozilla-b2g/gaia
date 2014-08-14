@@ -13,7 +13,6 @@ apps/callscreen/js/fake-oncall-desktop.js
 apps/callscreen/js/index.js
 apps/callscreen/test/unit/mock_mozbluetooth.js
 apps/communications/dialer/js/call_log.js
-apps/communications/dialer/js/call_log_db.js
 apps/communications/dialer/js/index.js
 apps/communications/dialer/js/mmi_ui.js
 apps/communications/dialer/js/phone_action_menu.js
