@@ -61,17 +61,70 @@
         newEntries.push(new GaiaGrid.Divider());
       }
     }
-    // If entries is not empty yet add orderless entries
+    // If entries is not empty yet, they could be unordered apps (added at end)
+    // or SingleVariant apps, installed before vertical started, which we need
+    // insert it in their correct position (ever if there was a first run with
+    // SIM).
     if (entries.length > 0) {
+      // We only reorder sv apps if SIM was present on first boot!
+      if (configurator.isSimPresentOnFirstBoot) {
+        sortUnclassifiedApps(newEntries, entries);
+      } else {
         newEntries.push(new GaiaGrid.Divider());
         newEntries = newEntries.concat(entries);
+      }
     }
+
     for (i = 0, iLen = newEntries.length; i < iLen; i++) {
       if (newEntries[i].detail) {
         newEntries[i].detail.index = i;
       }
     }
    return newEntries;
+  }
+
+  function sortUnclassifiedApps(dstEntries, orgEntries) {
+    function compareApps(appA, appB) {
+      var svAppA = configurator.getSingleVariantApp(appA.detail.manifestURL);
+      var svAppB = configurator.getSingleVariantApp(appB.detail.manifestURL);
+      var locA = svAppA && svAppA.location !== undefined && svAppA.location ||
+                 Number.MAX_VALUE;
+      var locB = svAppB && svAppB.location !== undefined && svAppB.location ||
+                 Number.MAX_VALUE;
+
+      var relPos = locA - locB;
+      return relPos ? (relPos > 0 ? 1 : -1) : 0;
+    }
+
+    // To simplify the process, we order the apps first (SV apps in relative
+    // order and at the beginning of the array)
+    orgEntries.sort(compareApps);
+
+    // After the sorting process, if the first element is not a SV app then
+    // we only need to add them at the end of dstEntries
+    if (!configurator.getSingleVariantApp(orgEntries[0].detail.manifestURL)) {
+      dstEntries.push(new GaiaGrid.Divider());
+      dstEntries = dstEntries.concat(orgEntries);
+    } else {
+      var sepAdded = false;
+      for (var i = 0, iLen = orgEntries.length; i < iLen; i++) {
+        var app = orgEntries[i];
+        var svApp = configurator.getSingleVariantApp(app.detail.manifestURL);
+        if (!svApp) {
+          if (!sepAdded) {
+            dstEntries.push(new GaiaGrid.Divider());
+            sepAdded = true;
+          }
+          dstEntries.push(app);
+        } else {
+          if (svApp.location !== undefined) {
+            dstEntries.splice(svApp.location, 0, app);
+          } else {
+            dstEntries.push(app);
+          }
+        }
+      }
+    }
   }
 
   function loadTable(table, indexName, iterator, aNext) {
