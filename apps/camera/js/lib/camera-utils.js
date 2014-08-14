@@ -21,16 +21,17 @@ define(function(require) {
   };
 
   CameraUtils.scaleSizeToFillViewport = function(viewportSize, imageSize) {
-    var sw = viewportSize.width / imageSize.width,
-        sh = viewportSize.height / imageSize.height,
+    var dpr = window.devicePixelRatio,
+        sw = Math.ceil(viewportSize.width * dpr) / imageSize.width,
+        sh = Math.ceil(viewportSize.height * dpr) / imageSize.height,
         scale;
 
     // Select the larger scale to fill and overflow viewport with image
     scale = Math.max(sw, sh);
 
     return {
-      width: imageSize.width * scale,
-      height: imageSize.height * scale
+      width: imageSize.width * scale / dpr,
+      height: imageSize.height * scale / dpr
     };
   };
 
