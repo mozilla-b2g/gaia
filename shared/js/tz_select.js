@@ -204,26 +204,37 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
       setTimezoneDescription(event.settingValue);
     });
 
+    var systemTimeChanged = function() {
+      onchange(systemTimeChanged.tz, systemTimeChanged.needsConfirmation);
+    };
+
+    function updateTZ(tz, options) {
+      // Update data for our callback.
+      systemTimeChanged.tz = tz;
+      systemTimeChanged.needsConfirmation = options.needsConfirmation;
+      // Set the timezone in the settings (this causes system time to change).
+      var req = settings.createLock().set({'time.timezone': tz.id});
+      req.onsuccess = function updateTZ_callback() {
+        // Store the user manually selected timezone separately
+        if (options.changedByUser) {
+          settings.createLock().set({'time.timezone.user-selected': tz.id});
+        } else {
+          onload && onload(tz, options.needsConfirmation);
+        }
+     };
+    }
+
     function initSelector(initialValue, source) {
+      // Wait until the timezone is actually set before calling the callback.
+      // Only register this once!
+      onchange && window.addEventListener('moztimechange', systemTimeChanged);
+      // Get rid of our listener when we unload.
+      onchange && window.addEventListener('unload', function() {
+        window.removeEventListener('moztimechange', systemTimeChanged);
+      });
+
       // initialize the timezone selector with the initial TZ setting
-      newTZSelector(function updateTZ(tz, options) {
-        var req = settings.createLock().set({'time.timezone': tz.id});
-        req.onsuccess = function updateTZ_callback() {
-          // Store the user manually selected timezone separately
-          if (options.changedByUser) {
-            settings.createLock().set({'time.timezone.user-selected': tz.id});
-            // Wait until the timezone is actually set
-            // before calling the callback.
-            onchange && window.addEventListener('moztimechange',
-                                                function timeChanged() {
-              window.removeEventListener('moztimechange', timeChanged);
-              onchange(tz, options.needsConfirmation);
-            });
-          } else {
-            onload && onload(tz, options.needsConfirmation);
-          }
-       };
-      }, initialValue, source);
+      newTZSelector(updateTZ, initialValue, source);
     }
 
     var reqTimezone = settings.createLock().get('time.timezone');
