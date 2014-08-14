@@ -246,7 +246,7 @@
 .icon-dialer-contacts:before {
   content: "\e64c";
 }
-.icon-dialer-dailpad:before {
+.icon-dialer-dialpad:before {
   content: "\e64d";
 }
 .icon-dialer-delete:before {
@@ -255,7 +255,7 @@
 .icon-dialer-recentcalls:before {
   content: "\e64f";
 }
-.icon-dismisskeybaord:before {
+.icon-dismisskeyboard:before {
   content: "\e650";
 }
 .icon-editcontact:before {
@@ -477,7 +477,7 @@
 .icon-notification-lowstorage:before {
   content: "\e699";
 }
-.icon-notification-mmic:before {
+.icon-notification-mic:before {
   content: "\e69a";
 }
 .icon-options:before {
@@ -732,7 +732,7 @@
 .icon-utility-data:before {
   content: "\e6ee";
 }
-.icon-utility-maxvolumn:before {
+.icon-utility-maxvolume:before {
   content: "\e6ef";
 }
 .icon-utility-mute-cease:before {
