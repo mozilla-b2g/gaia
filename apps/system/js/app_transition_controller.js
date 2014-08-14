@@ -306,7 +306,7 @@
 
   AppTransitionController.prototype.clearTransitionClasses =
     function atc_removeTransitionClasses() {
-      if (!this.app) {
+      if (!this.app || !this.app.element) {
         return;
       }
 
