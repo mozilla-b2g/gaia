@@ -113,14 +113,6 @@ span.line-break {
   font-size: 2.1rem;
 }
 
-#delete-video-button span {
-  background: transparent url(images/delete.png) no-repeat center center / 3rem;
-}
-
-#delete-video-button:active {
-  background-color: #21a6b9;
-}
-
 /*
  * Thumbnails are implemented as <li> elements in a <ul> with background-image
  * set to display the image. We use background-size: cover to automatically
@@ -327,11 +319,6 @@ body.hidden *[data-l10n-id] {
   background: none !important;
 }
 
-.icon.icon-done {
-  background-image: url('images/iconaction_done_30x30.png') !important;
-  background-size: 3rem;
-}
-
 section[role="region"] > header {
   /* Need to use !important,else color is not reflecting */
   background: rgba(0, 0, 0, 0.85) !important;
@@ -410,10 +397,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 0;
-  background-image: url('images/iconaction_video_30x30.png');
-  background-size: 3rem;
-  background-position: center center;
-  background-repeat: no-repeat;
 }
 
 #thumbnails-select-button {
@@ -421,26 +404,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 50%;
-  background-image: url('images/iconaction_select_30x30.png');
-  background-size: 3rem;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
-.icon-delete {
-  display: block;
-  background-image: url('images/iconaction_delete_30x30.png') !important;
-  background-size: 3rem;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
-.icon-share {
-  display: block;
-  background-image: url('images/iconaction_share_30x30.png') !important;
-  background-size: 3rem;
-  background-position: center center;
-  background-repeat: no-repeat;
 }
 
 #thumbnails-delete-button {
@@ -448,8 +411,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 0;
-  background-image: url('images/iconaction_delete_30x30.png');
-  background-size: 3rem;
   border-right: 0.1rem solid #000;
 }
 
@@ -600,23 +561,18 @@ header .icon:after {
   background-size: 3rem;
 }
 
-#seek-backward {
-  background-image: url("images/IconAction_Media_SkipBackwards_30x30.png");
+#seek-backward,
+#seek-forward {
   width: 33%;
 }
 
 #play {
-  background-image: url("images/IconAction_Media_Pause_30x30.png");
   width: 34%;
 }
 
-#play.paused {
-  background-image: url("images/IconAction_Media_Play_30x30.png");
-}
-
-#seek-forward {
-  background-image: url("images/IconAction_Media_SkipForward_30x30.png");
-  width: 33%;
+#play.paused:before {
+  content: 'play';
+  padding-left: 4px;
 }
 
 .player-controls-button {
@@ -624,7 +580,6 @@ header .icon:after {
   border: none;
   border-radius: 0;
   background: transparent;
-  transition: background 10ms ease;
 }
 
 .player-controls-button:hover {
@@ -683,10 +638,23 @@ body:not(.pick-activity) #picker-close {
   display: none;
 }
 
+/**
+ * 1. COMPLEX: Scoped style-sheets within <gaia-header>
+ *    trump all other rules. !important is required
+ *    for an app to over-ride the default appearance
+ *    of content within the custom-element. This may
+ *    change when we get `:host` and `:content` selectors
+ *    in shadow-dom.
+ */
+
+body:not(.pick-activity) #picker-done {
+  display: none !important; /* 1 */
+}
+
 /* hide options when picking */
 body.pick-activity #options,
 body.pick-activity #thumbnails-bottom {
-  display: none;
+  display: none !important; /* 1 */
 }
 
 #two-column-spearator {
@@ -720,17 +688,25 @@ body.pick-activity #thumbnails-bottom {
   align-self: auto;
 }
 
+/**
+ * 1. COMPLEX: Scoped style-sheets within <gaia-header>
+ *    trump all other rules. !important is required
+ *    for an app to over-ride the default appearance
+ *    of content within the custom-element. This may
+ *    change when we get `:host` and `:content` selectors
+ *    in shadow-dom.
+ */
 #thumbnail-list-title {
-  display: none;
-}
-
-body:not(.pick-activity) #thumbnail-list-view header {
-  display: none;
+  display: none !important; /* 1 */
 }
 
 /* we don't have fullscreen button when we are not in large layout */
 #fullscreen-button {
   display: none;
+}
+
+.large-only {
+  display: none !important; /* 1 */
 }
 
 /* selection mode */
@@ -760,11 +736,6 @@ body:not(.view-activity) #spinner-overlay {
 /* make videocontrolbar visible  when picking */
 body.pick-activity #videoControls #videoBar{
   bottom: 4.4rem;
-}
-
-section[role="region"] > header:first-child .icon-back {
-  pointer-events: none;
-  width: 2.3rem;
 }
 
 /*
