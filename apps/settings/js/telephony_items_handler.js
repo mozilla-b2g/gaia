@@ -223,7 +223,13 @@ var TelephonyItemsHandler = (function(window, document, undefined) {
         continue;
       }
       desc.style.fontStyle = 'italic';
-      desc.setAttribute('data-l10n-id', details);
+
+      if (details !== '') {
+        desc.setAttribute('data-l10n-id', details);
+      } else {
+        desc.removeAttribute('data-l10n-id');
+        desc.textContent = '';
+      }
     }
   }
 
