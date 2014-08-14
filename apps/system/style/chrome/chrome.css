@@ -59,6 +59,17 @@
   background-color: black;
 }
 
+/* Special cases for rocketbar on the Top Sites view */
+.search-app .menu-button,
+.search-app .controls .reload-button,
+.search-app .controls .stop-button {
+  display: none;
+}
+
+.search-app .chrome .controls .urlbar {
+  width: calc(100% - 1rem);
+}
+
 /* URL bar */
 .chrome .controls .urlbar {
   width: calc(100% - 4.5rem);

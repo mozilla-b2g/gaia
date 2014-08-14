@@ -48,6 +48,10 @@
       return;
     }
 
+    if (this.isSearchApp()) {
+      this.app.element.classList.add('search-app');
+    }
+
     if (chrome.bar) {
       this.app.element.classList.add('bar');
       this.bar.classList.add('visible');
@@ -269,6 +273,9 @@
   };
 
   AppChrome.prototype.handleScrollEvent = function ac_handleScrollEvent(evt) {
+    if (this.isSearchApp()) {
+      return;
+    }
     // Ideally we'd animate based on scroll position, but until we have
     // the necessary spec and implementation, we'll animate completely to
     // the expanded or collapsed state depending on whether it's at the
@@ -537,6 +544,11 @@
   AppChrome.prototype.isSearch = function ac_isSearch() {
     var dataset = this.app.config;
     return dataset.searchURL && this._currentURL === dataset.searchURL;
+  };
+
+  AppChrome.prototype.isSearchApp = function() {
+    return this.app.config.manifest &&
+      this.app.config.manifest.role === 'search';
   };
 
   AppChrome.prototype.addBookmark = function ac_addBookmark() {
