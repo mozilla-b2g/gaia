@@ -601,7 +601,7 @@ section[role="region"] > header .icon.icon-settings {
   color: #606060;
   font-size: 2rem;
   font-weight: 300;
-  margin: 15rem 2rem 0;
+  margin: 16rem 2rem 0;
   padding: 1rem;
 }
 
@@ -611,18 +611,6 @@ section[role="region"] > header .icon.icon-settings {
 
 #no-contacts p.small {
   font-size: 1.6rem;
-}
-#no-contacts .icon {
-  padding-left: 3.5rem;
-}
-
-#no-contacts .create.icon {
-  background: url("/contacts/style/images/plus_small_ico.png") no-repeat 0 50% / 1.4rem;
-  margin-top: 3rem;
-}
-
-#no-contacts .import.icon {
-  background: url("/contacts/style/images/settings_small_ico.png") no-repeat 0 50% / 1.6rem;
 }
 
 #statusMsg {
@@ -724,15 +712,4 @@ form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) > menu 
 
 form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) header {
   transform: translateY(0);
-}
-
-
-html[dir="rtl"] #no-contacts .icon {
-  padding-right: 3.5rem;
-  padding-left: 0;
-}
-
-html[dir="rtl"] #no-contacts .create.icon,
-html[dir="rtl"] #no-contacts .import.icon {
-  background-position: 100% 50%;
 }
