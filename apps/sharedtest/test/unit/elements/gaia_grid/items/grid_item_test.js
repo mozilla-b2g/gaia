@@ -23,8 +23,10 @@ suite('GridItem', function() {
     var original  = subject._displayDecoratedIcon;
     subject._displayDecoratedIcon = function(blob) {
       original.call(subject, blob);
+      var gridItemHeight = parseInt(this.element.style.height, 10);
       var backgroundSize = parseInt(this.element.style.backgroundSize, 10);
       assert.ok(backgroundSize > 0);
+      assert.isTrue(gridItemHeight >= backgroundSize);
       done();
     };
 
