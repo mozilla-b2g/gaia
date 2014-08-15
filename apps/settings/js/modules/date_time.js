@@ -370,12 +370,9 @@ define(function(require) {
      */
     _updateTimeFormat: function dt_updateTimeFormat() {
       var _ = navigator.mozL10n.get;
-      // format a fake time to determine if it is 12 or 24 format.
-      var f = new navigator.mozL10n.DateTimeFormat();
-      var theTime = f.localeFormat(new Date('2011-01-23T13:00'),
-        _('shortTimeFormat'));
-      var ampm = (theTime.indexOf('13') < 0);
-      this.setCurrentHour12(ampm);
+      var localeTimeFormat = _('shortTimeFormat');
+      var is12hFormat = (localeTimeFormat.indexOf('%I') >= 0);
+      this.setCurrentHour12(is12hFormat);
     }
   };
 
