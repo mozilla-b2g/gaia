@@ -1206,11 +1206,6 @@ suite('system/AppWindow', function() {
   });
 
   suite('Event handlers', function() {
-    var fakeTransitionController = {
-      requireOpen: function() {},
-      requireClose: function() {}
-    };
-
     test('ActivityDone event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var app2 = new AppWindow(fakeAppConfig2);
@@ -1368,7 +1363,6 @@ suite('system/AppWindow', function() {
       var stubCloseSelf = this.sinon.stub(app1, 'close');
       stubIsActive.returns(true);
 
-      app1.transitionController = fakeTransitionController;
       app1.kill();
       assert.isTrue(stubOpenParent.calledWith('in-from-left'));
       assert.isTrue(stubCloseSelf.calledWith('out-to-right'));
@@ -1379,24 +1373,6 @@ suite('system/AppWindow', function() {
       /** global */
       app1.element.dispatchEvent(new CustomEvent('_closed'));
       assert.isTrue(stubDestroy.called);
-    });
-
-    test('kill guards against missed transitions', function() {
-      var app = new AppWindow(fakeAppConfig1);
-
-      // Ensure that the closed event does not trigger the destroy method.
-      this.sinon.stub(app.element, 'addEventListener');
-
-      this.sinon.stub(app, 'isActive').returns(true);
-      var destroyStub = this.sinon.stub(app, 'destroy');
-
-      app.transitionController = fakeTransitionController;
-      app.kill();
-      assert.ok(destroyStub.notCalled);
-
-      var fallbackTimeout = 1000;
-      this.sinon.clock.tick(fallbackTimeout);
-      assert.ok(destroyStub.calledOnce);
     });
 
     test('Load event', function() {
