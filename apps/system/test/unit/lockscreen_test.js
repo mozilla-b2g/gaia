@@ -235,6 +235,15 @@ suite('system/LockScreen >', function() {
         stubDispatch.restore();
       });
 
+  test('Handle event: when timeformat changed,' +
+      'would fire event to refresh the clock',
+      function() {
+        var stubRefreshClock = this.sinon.stub(subject, 'refreshClock');
+        subject.handleEvent(new CustomEvent('timeformatchange'));
+        assert.isTrue(stubRefreshClock.called,
+          'the refreshClock wasn\'t called even after the time format changed');
+      });
+
   test('Handle event: when lock,' +
       'would fire event to turn secure mode on',
       function() {

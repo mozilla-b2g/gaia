@@ -339,6 +339,12 @@
           break;
         }
         break;
+      case 'timeformatchange':
+        this.timeFormat = window.navigator.mozHour12 ?
+          navigator.mozL10n.get('shortTimeFormat12') :
+          navigator.mozL10n.get('shortTimeFormat24');
+        this.refreshClock();
+        break;
     }
   };  // -- LockScreen#handleEvent --
 
@@ -363,6 +369,10 @@
      * the slider specified in that bugzilla issue
      */
     this._unlocker = new window.LockScreenSlide({useNewStyle: true});
+    // The default one is 12 hour.
+    this.timeFormat = window.navigator.mozHour12 ?
+      navigator.mozL10n.get('shortTimeFormat12') :
+      navigator.mozL10n.get('shortTimeFormat24');
     this.getAllElements();
     this.notificationsContainer =
       document.getElementById('notifications-lockscreen-container');
@@ -405,8 +415,8 @@
 
     /* blocking holdhome and prevent Cards View from show up */
     window.addEventListener('holdhome', this, true);
-
     window.addEventListener('ftuopen', this);
+    window.addEventListener('timeformatchange', this);
 
     /* mobile connection state on lock screen */
     if (window.navigator.mozMobileConnections) {
@@ -907,7 +917,7 @@
     var f = new navigator.mozL10n.DateTimeFormat();
     var _ = navigator.mozL10n.get;
 
-    var timeFormat = _('shortTimeFormat').replace('%p', '<span>%p</span>');
+    var timeFormat = this.timeFormat.replace('%p', '<span>%p</span>');
     var dateFormat = _('longDateFormat');
     this.clockTime.innerHTML = f.localeFormat(now, timeFormat);
     this.date.textContent = f.localeFormat(now, dateFormat);
