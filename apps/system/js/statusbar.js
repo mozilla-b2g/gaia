@@ -180,6 +180,8 @@ var StatusBar = {
 
     // Listen to 'moztimechange'
     window.addEventListener('moztimechange', this);
+    // Listen to 'localechanged'
+    window.addEventListener('timeformatchange', this);
 
     // Listen to 'lockscreen-appopened', 'lockscreen-appclosed', and
     // 'lockpanelchange' in order to correctly set the visibility of
@@ -292,6 +294,7 @@ var StatusBar = {
         this.update.bluetoothProfiles.call(this);
         break;
 
+      case 'timeformatchange':
       case 'moztimechange':
         navigator.mozL10n.ready((function _updateTime() {
           // To stop clock for reseting the clock interval which runs every 60
@@ -639,7 +642,9 @@ var StatusBar = {
       var _ = navigator.mozL10n.get;
       var f = new navigator.mozL10n.DateTimeFormat();
 
-      var timeFormat = _('shortTimeFormat').replace('%p', '<span>%p</span>');
+      var timeFormat = window.navigator.mozHour12 ?
+        _('shortTimeFormat12') : _('shortTimeFormat24');
+      timeFormat = timeFormat.replace('%p', '<span>%p</span>');
       var formatted = f.localeFormat(now, timeFormat);
       this.icons.time.innerHTML = formatted;
 

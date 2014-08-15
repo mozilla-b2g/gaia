@@ -295,6 +295,15 @@ suite('system/Statusbar', function() {
       assert.equal(StatusBar.icons.time.hidden, false);
       this.sinon.clock.restore();
     });
+    test('timeformatchange while timeformat changed', function() {
+      this.sinon.useFakeTimers();
+      var evt = new CustomEvent('timeformatchange');
+      StatusBar.handleEvent(evt);
+      this.sinon.clock.tick();
+      assert.notEqual(StatusBar.clock.timeoutID, null);
+      assert.equal(StatusBar.icons.time.hidden, false);
+      this.sinon.clock.restore();
+    });
     test('screen enable but screen is unlocked', function() {
       var evt = new CustomEvent('screenchange', {
         detail: {
