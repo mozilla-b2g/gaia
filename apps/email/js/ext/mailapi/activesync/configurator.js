@@ -3542,7 +3542,10 @@ ActiveSyncAccount.prototype = {
   getFirstFolderWithType: $acctmixins.getFirstFolderWithType,
   getFolderByPath: $acctmixins.getFolderByPath,
   saveAccountState: $acctmixins.saveAccountState,
-  runAfterSaves: $acctmixins.runAfterSaves
+  runAfterSaves: $acctmixins.runAfterSaves,
+
+  allOperationsCompleted: function() {
+  }
 };
 
 var LOGFAB = exports.LOGFAB = $log.register($module, {

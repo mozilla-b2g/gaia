@@ -106,33 +106,91 @@ suite('FindMyDevice >', function() {
     fakeClock.tick();
   });
 
-  test('Ring command', function(done) {
+  suite('Ring command', function() {
     var duration = 2;
-    var ringtone = 'user selected ringtone';
 
-    MockSettingsListener.mCallbacks['dialer.ringtone'](ringtone);
+    setup(function() {
+      this.sinon.spy(window, 'setTimeout');
+      this.sinon.spy(window, 'clearTimeout');
+    });
 
-    subject.invokeCommand('ring', [duration, function(retval) {
-      var lock = MockSettingsListener.getSettingsLock().locks.pop();
+    test('Basic invocation', function() {
+      var ringtone = 'user selected ringtone';
 
-      var ringer = subject._ringer;
-      var channel = ringer.mozAudioChannelType;
-      assert.equal(channel, 'content', 'use content channel');
-      assert.equal(lock['audio.volume.content'], 15, 'volume set to maximum');
-      assert.equal(ringer.paused, false, 'must be playing');
-      assert.equal(ringer.src, ringtone, 'must use ringtone');
-      sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'command');
+      MockSettingsListener.mCallbacks['dialer.ringtone'](ringtone);
 
-      setTimeout(function() {
-        assert.equal(ringer.paused, true, 'must have stopped');
-        sinon.assert.calledWith(FindMyDevice.endHighPriority, 'command');
-        done();
-      }, duration * 1000);
+      Commands.invokeCommand('ring', [duration, function(retval) {
+        var lock = MockSettingsListener.getSettingsLock().locks.pop();
+
+        var channel = Commands._ringer.mozAudioChannelType;
+        assert.equal(channel, 'content', 'use content channel');
+        assert.equal(lock['audio.volume.content'], 15, 'volume set to maximum');
+        assert.equal(Commands._ringer.paused, false, 'must be playing');
+        assert.equal(Commands._ringer.src, ringtone, 'must use ringtone');
+        sinon.assert.calledOnce(FindMyDevice.beginHighPriority);
+        sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'command');
+      }]);
 
       fakeClock.tick(duration * 1000);
-    }]);
+      assert.equal(Commands._ringer.paused, true, 'must have stopped');
+      sinon.assert.calledOnce(FindMyDevice.endHighPriority);
+      sinon.assert.calledWith(FindMyDevice.endHighPriority, 'command');
+    });
 
-    fakeClock.tick();
+    test('Stop ringing if duration is zero', function() {
+      Commands.invokeCommand('ring', [duration, function(retval) {
+        assert.equal(Commands._ringer.paused, false, 'must be playing');
+        sinon.assert.called(window.setTimeout);
+        sinon.assert.calledOnce(FindMyDevice.beginHighPriority);
+        sinon.assert.notCalled(FindMyDevice.endHighPriority);
+      }]);
+
+      fakeClock.tick(duration/2 * 1000);
+
+      var timeoutId = Commands._ringTimeoutId;
+      assert.isFalse(Commands._ringer.paused, 'must not be done ringing');
+      Commands.invokeCommand('ring', [0, function(retval) {}]);
+
+      assert.equal(Commands._ringer.paused, true, 'must have stopped');
+      assert.isNull(Commands._ringTimeoutId, 'timeout must have been canceled');
+      sinon.assert.calledWith(window.clearTimeout, timeoutId);
+      sinon.assert.calledTwice(FindMyDevice.beginHighPriority);
+      sinon.assert.alwaysCalledWith(FindMyDevice.beginHighPriority, 'command');
+      sinon.assert.calledTwice(FindMyDevice.endHighPriority);
+      sinon.assert.alwaysCalledWith(FindMyDevice.endHighPriority, 'command');
+    });
+
+    test('Should do nothing if already ringing', function() {
+      Commands.invokeCommand('ring', [duration, function(retval) {
+        assert.isFalse(Commands._ringer.paused, 'must be playing');
+        sinon.assert.calledOnce(FindMyDevice.beginHighPriority);
+        sinon.assert.notCalled(FindMyDevice.endHighPriority);
+      }]);
+
+      fakeClock.tick(duration/2 * 1000);
+
+      assert.isFalse(Commands._ringer.paused, 'must not be done ringing');
+      Commands.invokeCommand('ring', [duration, function(retval) {}]);
+
+      fakeClock.tick(duration/2 * 1000);
+
+      assert.isTrue(Commands._ringer.paused, 'must have stopped');
+      assert.isNull(Commands._ringTimeoutId, 'no timeouts should be set');
+      sinon.assert.calledTwice(FindMyDevice.beginHighPriority);
+      sinon.assert.alwaysCalledWith(FindMyDevice.beginHighPriority, 'command');
+      sinon.assert.calledTwice(FindMyDevice.endHighPriority);
+      sinon.assert.alwaysCalledWith(FindMyDevice.endHighPriority, 'command');
+    });
+
+    test('Should do nothing if not ringing and duration is zero', function() {
+      Commands.invokeCommand('ring', [0, function(retval) {}]);
+      assert.isTrue(Commands._ringer.paused, 'must not have started');
+      assert.isNull(Commands._ringTimeoutId);
+      sinon.assert.calledOnce(FindMyDevice.beginHighPriority);
+      sinon.assert.alwaysCalledWith(FindMyDevice.beginHighPriority, 'command');
+      sinon.assert.calledOnce(FindMyDevice.endHighPriority);
+      sinon.assert.alwaysCalledWith(FindMyDevice.endHighPriority, 'command');
+    });
   });
 
   test('Erase: ensure factoryReset is called with "wipe"', function(done) {
@@ -142,63 +200,113 @@ suite('FindMyDevice >', function() {
     }]);
   });
 
-  test('Track command', function(done) {
-    // we want to make sure this is set to 'allow'
-    MockPermissionSettings.permissions.geolocation = 'deny';
-
-    var times = 0;
-    var duration = (5 * subject.TRACK_UPDATE_INTERVAL_MS) / 1000;
-    subject.invokeCommand('track', [duration, function(retval, position) {
-      assert.equal(retval, true);
+  suite('Track command', function() {
+    test('Set geolocation permission to "allow"', function() {
+      MockPermissionSettings.permissions.geolocation = 'deny';
+      Commands.invokeCommand('track', [30, function() {}]);
+      fakeClock.tick();
       assert.equal(MockPermissionSettings.permissions.geolocation, 'allow');
-      assert.deepEqual(position, MockGeolocation.fakePosition);
+    });
 
-      if (times++ === 3) {
-        assert.notEqual(subject._trackIntervalId, null);
-        assert.notEqual(subject._trackTimeoutId, null);
-        fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
+    test('Track receives positions correctly', function() {
+      // track for a period of time
+      var duration = (subject.TRACK_UPDATE_INTERVAL_MS) / 1000;
+      subject.invokeCommand('track', [duration, function(retval, position) {
         assert.equal(retval, true);
-        assert.equal(subject._trackTimeoutId, null);
-        assert.equal(subject._trackIntervalId, null);
-        sinon.assert.calledWith(FindMyDevice.endHighPriority, 'command');
-        done();
-      }
+        // ensure, while tracking, the locations match what the mock makes
+        assert.deepEqual(position, MockGeolocation.fakePosition ,
+          'check the position is what the mock provided');
+      }]);
+      fakeClock.tick(2* subject.TRACK_UPDATE_INTERVAL_MS);
+    });
 
-      fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
-    }]);
+    test('Track command', function() {
+      // track for 3 intervals
+      var duration = (3 * subject.TRACK_UPDATE_INTERVAL_MS) / 1000;
+      subject.invokeCommand('track', [duration, function(retval, position) {}]);
 
-    sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'command');
-    fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
-  });
+      // after 2 intervals...
+      fakeClock.tick(2 * subject.TRACK_UPDATE_INTERVAL_MS);
+      // we're mid-track, check we have a watch and timeout IDs
+      assert.notEqual(subject._watchPositionId, null);
+      assert.notEqual(subject._trackTimeoutId, null);
 
-  test('Track command should update its duration if invoked while running',
-    function(done) {
+      // after another interval...
+      fakeClock.tick(1 * subject.TRACK_UPDATE_INTERVAL_MS);
+      // .. tracking should have stopped.
+      // ensure we no longer have track and watch IDs.
+      assert.equal(subject._trackTimeoutId, null);
+      assert.equal(subject._watchPositionId, null);
+
+      sinon.assert.alwaysCalledWith(FindMyDevice.beginHighPriority, 'command');
+      sinon.assert.alwaysCalledWith(FindMyDevice.endHighPriority, 'command');
+
+      // check wakelock count
+      var begin = FindMyDevice.beginHighPriority.callCount;
+      var end = FindMyDevice.beginHighPriority.callCount;
+      assert.equal(begin, end, 'begin and end count should match');
+    });
+
+    // We assume for this test that the interval used by the geolocation mock
+    // is significantly smaller than TRACK_UPDATE_INTERVAL.
+    test('Track command should throttle observed positions', function() {
+      // track for a long duration (e.g. 10 intervals)
       var duration = 10 * subject.TRACK_UPDATE_INTERVAL_MS / 1000;
-
       var positions = 0;
       subject.invokeCommand('track', [duration, function(retval, position) {
         positions++;
       }]);
 
+      // set the clock to just before the interval, ensure no locations are seen
+      var amountBefore = 2;
+      fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS - amountBefore);
+      assert.equal(positions, 0, 'no update intervals should have passed');
+      // set the clock to almost two intervals, ensure only one location is seen
       fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
+      assert.equal(positions, 1, '1 update interval should have passed');
+    });
 
+    test('Track command should update its duration if invoked while running',
+    function() {
+      // track for a long duration (e.g. 10 intervals)
+      var duration = 10 * subject.TRACK_UPDATE_INTERVAL_MS / 1000;
+      var positions = 0;
+      subject.invokeCommand('track', [duration, function(retval, position) {
+        positions++;
+      }]);
+
+      // ensure the position count updates as expected (one position per
+      // interval)
+      fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
+      assert.equal(positions, 1, '1 update interval should have passed');
+
+      // reset the duration to a shorter value:
       duration = 2 * subject.TRACK_UPDATE_INTERVAL_MS / 1000;
       subject.invokeCommand('track', [duration, function(retval, position) {
         positions++;
       }]);
 
+      // allow the timer to progress to after the duration completes
       fakeClock.tick(5 * subject.TRACK_UPDATE_INTERVAL_MS);
 
-      assert.equal(positions, 2);
+      // ensure tracking stopped at the end of the new duration:
+      // position count should be at 3
+      assert.equal(positions, 3, '2 more (3) intervals should have passed');
+
+      // and the track and watch IDs should be null
       assert.equal(subject._trackTimeoutId, null);
-      assert.equal(subject._trackIntervalId, null);
-      done();
-  });
+      assert.equal(subject._watchPositionId, null);
 
-  test('Track command should stop if duration is zero',
-    function(done) {
+      // check wakelock count
+      var begin = FindMyDevice.beginHighPriority.callCount;
+      var end = FindMyDevice.beginHighPriority.callCount;
+      assert.equal(begin, end, 'begin and end count should match');
+    });
+
+    test('Track command should stop if duration is zero',
+    function() {
+      // track for a long duration (e.g. 10 intervals)
       var duration = 10 * subject.TRACK_UPDATE_INTERVAL_MS / 1000;
-
       var positions = 0;
       subject.invokeCommand('track', [duration, function(retval, position) {
         positions++;
@@ -206,14 +314,58 @@ suite('FindMyDevice >', function() {
 
       fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
 
+      // after a single interval, stop the tracking
       subject.invokeCommand('track', [0, function(retval) {
         assert.equal(retval, true);
-        fakeClock.tick(2 * subject.TRACK_UPDATE_INTERVAL_MS);
-        assert.equal(positions, 1);
-        assert.equal(subject._trackTimeoutId, null);
-        assert.equal(subject._trackIntervalId, null);
-        done();
       }]);
+
+      // allow more intervals to pass
+      fakeClock.tick(2 * subject.TRACK_UPDATE_INTERVAL_MS);
+
+      // and ensure the position count remains at 1
+      assert.equal(positions, 1);
+
+      // check the track and watch IDs should be null
+      assert.equal(subject._trackTimeoutId, null);
+      assert.equal(subject._watchPositionId, null);
+    });
+
+    test('track should not leak wakelocks with nonzero duration', function() {
+      // start tracking
+      var duration = 9 * subject.TRACK_UPDATE_INTERVAL_MS / 1000;
+      subject.invokeCommand('track', [duration, function() {}]);
+
+      // once tracking is complete, check the wakelock call counts match
+      fakeClock.tick(10 * subject.TRACK_UPDATE_INTERVAL_MS);
+      var begin = FindMyDevice.beginHighPriority.callCount;
+      var end = FindMyDevice.beginHighPriority.callCount;
+      assert.equal(begin, end, 'begin and end count should match');
+    });
+
+    test('track should not leak wakelocks with zero duration', function() {
+      subject.invokeCommand('track', [0, function() {}]);
+      var begin = FindMyDevice.beginHighPriority.callCount;
+      var end = FindMyDevice.beginHighPriority.callCount;
+      assert.equal(begin, end, 'begin and end count should match');
+    });
+
+    test('track should not leak wakelocks if stopped mid-track', function() {
+      // track for a long duration (e.g. 10 intervals)
+      var duration = 10 * subject.TRACK_UPDATE_INTERVAL_MS / 1000;
+      subject.invokeCommand('track', [duration, function() {}]);
+
+      // after a single interval, stop the tracking
+      fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
+      subject.invokeCommand('track', [0, function(retval) {}]);
+
+      // go past the original duration
+      fakeClock.tick(10 * subject.TRACK_UPDATE_INTERVAL_MS);
+
+      // check the wakelock call counts
+      var begin = FindMyDevice.beginHighPriority.callCount;
+      var end = FindMyDevice.beginHighPriority.callCount;
+      assert.equal(begin, end, 'begin and end count should match');
+    });
   });
 
   test('Bug 1027325 - correctly check that passcode lock is set', function() {

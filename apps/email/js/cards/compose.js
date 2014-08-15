@@ -15,6 +15,8 @@ var templateNode = require('tmpl!./compose.html'),
     cmpPeepBubbleNode = require('tmpl!./cmp/peep_bubble.html'),
     cmpInvalidAddressesNode = require('tmpl!./cmp/invalid_addresses.html'),
     msgAttachConfirmNode = require('tmpl!./msg/attach_confirm.html'),
+    editorMixin = require('./editor_mixins'),
+    mix = require('mix'),
     evt = require('evt'),
     common = require('mail_common'),
     Toaster = require('toaster'),
@@ -94,6 +96,9 @@ function ComposeCard(domNode, mode, args) {
   this.htmlBodyContainer = domNode.getElementsByClassName('cmp-body-html')[0];
   this.errorMessage = domNode.getElementsByClassName('cmp-error-message')[0];
   this.htmlIframeNode = null;
+
+  // Pass text node to editor mixins
+  this._bindEditor(this.textBodyNode);
 
   this.scrollContainer =
     domNode.getElementsByClassName('scrollregion-below-header')[0];
@@ -209,44 +214,6 @@ ComposeCard.prototype = {
     selection.addRange(range);
   },
 
-  /**
-   * Inserts an email into the contenteditable element
-   */
-  populateEditor: function(value) {
-    var lines = value.split('\n');
-    var frag = document.createDocumentFragment();
-    for (var i = 0, len = lines.length; i < len; i++) {
-      if (i) {
-        frag.appendChild(document.createElement('br'));
-      }
-      frag.appendChild(document.createTextNode(lines[i]));
-    }
-    this.textBodyNode.appendChild(frag);
-  },
-
-  /**
-   * Gets the raw value from a contenteditable div
-   */
-  fromEditor: function(value) {
-    var content = '';
-    var len = this.textBodyNode.childNodes.length;
-    for (var i = 0; i < len; i++) {
-      var node = this.textBodyNode.childNodes[i];
-      if (node.nodeName === 'BR' &&
-          // Gecko's contenteditable implementation likes to create a synthetic
-          // trailing BR with type="_moz".  We do not like/need this synthetic
-          // BR, so we filter it out.  Check out
-          // nsTextEditRules::CreateTrailingBRIfNeeded to find out where it
-          // comes from.
-          node.getAttribute('type') !== '_moz') {
-        content += '\n';
-      } else {
-        content += node.textContent;
-      }
-    }
-
-    return content;
-  },
 
   postInsert: function() {
     // the HTML bit needs us linked into the DOM so the iframe can be
@@ -309,6 +276,12 @@ ComposeCard.prototype = {
     this.renderAttachments();
 
     this.subjectNode.value = this.composer.subject;
+    // Save the initial state of the composer so that if the user immediately
+    // hits the back button without doing anything we can simply discard the
+    // draft. This is not for avoiding redundant saves or any attempt at
+    // efficiency.
+    this.origText = this.composer.body.text;
+
     this.populateEditor(this.composer.body.text);
 
     if (this.composer.body.html) {
@@ -461,12 +434,14 @@ ComposeCard.prototype = {
       return false;
     }
 
-    // We need to save / ask about deleting the draft if:
+    var hasNewContent = this.fromEditor() !== this.composer.body.text;
+
+    // We need `to save / ask about deleting the draft if:
     // There's any recipients listed, there's a subject, there's anything in the
     // body, there are attachments, or we already created a draft for this
     // guy in which case we really want to provide the option to delete the
     // draft.
-    return (this.subjectNode.value || this.textBodyNode.textContent ||
+    return (this.subjectNode.value || hasNewContent ||
         !checkAddressEmpty() || this.composer.attachments.length ||
         this.composer.hasDraft);
   },
@@ -1128,6 +1103,8 @@ ComposeCard.prototype = {
     }
   }
 };
+
+mix(ComposeCard.prototype, editorMixin);
 Cards.defineCardWithDefaultMode('compose', {}, ComposeCard, templateNode);
 
 return ComposeCard;

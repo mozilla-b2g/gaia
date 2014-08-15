@@ -7,22 +7,23 @@
     <div>
       <ul id="sim-card-container"></ul>
       <header>
-        <h2 data-l10n-id="simSettings">SIM settings</h2>
+        <h2 data-l10n-id="simSettings">SIM Settings</h2>
       </header>
       <ul class="sim-manager-select-list">
-        <li data-href="#simpin" id="sim-manager-security-entry">
+        <li id="sim-manager-security-entry">
           <small id="sim-manager-security-desc"></small>
-          <span data-l10n-id="simSecurity" data-href="#simpin">SIM security</span>
+          <button class="icon icon-view" data-href="#simpin"
+            data-l10n-id="simSecurity">SIM Security</button>
         </li>
         <li>
-          <p data-l10n-id="sim-manager-outgoing-calls">Outgoing calls</p>
+          <p data-l10n-id="sim-manager-outgoing-calls">Outgoing Calls</p>
           <p data-l10n-id="sim-manager-outgoing-call-desc" class="explanation">Calls will be sent from</p>
           <span class="button icon icon-dialog">
             <select id="sim-manager-outgoing-call-select"></select>
           </span>
         </li>
         <li>
-          <p data-l10n-id="sim-manager-outgoing-messages">Outgoing messages</p>
+          <p data-l10n-id="sim-manager-outgoing-messages">Outgoing Messages</p>
           <p data-l10n-id="sim-manager-outgoing-messages-desc" class="explanation">SMS will be sent from</p>
           <span class="button icon icon-dialog">
             <select id="sim-manager-outgoing-messages-select"></select>

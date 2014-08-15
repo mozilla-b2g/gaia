@@ -180,6 +180,8 @@ var StatusBar = {
 
     // Listen to 'moztimechange'
     window.addEventListener('moztimechange', this);
+    // Listen to 'localechanged'
+    window.addEventListener('timeformatchange', this);
 
     // Listen to 'lockscreen-appopened', 'lockscreen-appclosed', and
     // 'lockpanelchange' in order to correctly set the visibility of
@@ -292,6 +294,7 @@ var StatusBar = {
         this.update.bluetoothProfiles.call(this);
         break;
 
+      case 'timeformatchange':
       case 'moztimechange':
         navigator.mozL10n.ready((function _updateTime() {
           // To stop clock for reseting the clock interval which runs every 60
@@ -385,6 +388,7 @@ var StatusBar = {
   _dontStopEvent: false,
   panelHandler: function sb_panelHandler(evt) {
     var app = AppWindowManager.getActiveApp().getTopMostWindow();
+    var chromeBar = app.element.querySelector('.chrome');
     var titleBar = app.element.querySelector('.titlebar');
 
     // Do not forward events if FTU is running
@@ -420,6 +424,7 @@ var StatusBar = {
         this._startX = touch.clientX;
         this._startY = touch.clientY;
 
+        chromeBar.style.transition = 'transform';
         titleBar.style.transition = 'transform';
         break;
 
@@ -435,6 +440,7 @@ var StatusBar = {
 
         var translate = Math.min(deltaY, height);
         titleBar.style.transform =
+          chromeBar.style.transform =
           'translateY(calc(' + translate + 'px - 100%)';
 
         if (translate == height) {
@@ -470,6 +476,11 @@ var StatusBar = {
 
   _releaseBar: function sb_releaseBar(titleBar) {
     this._dontStopEvent = false;
+    var chromeBar = titleBar.parentNode.querySelector('.chrome');
+
+    chromeBar.classList.remove('dragged');
+    chromeBar.style.transform = '';
+    chromeBar.style.transition = '';
 
     titleBar.classList.remove('dragged');
     titleBar.style.transform = '';
@@ -480,10 +491,16 @@ var StatusBar = {
   },
 
   _releaseAfterTimeout: function sb_releaseAfterTimeout(titleBar) {
+    var chromeBar = titleBar.parentNode.querySelector('.chrome');
+
     var self = this;
     titleBar.style.transform = '';
     titleBar.style.transition = '';
     titleBar.classList.add('dragged');
+
+    chromeBar.style.transform = '';
+    chromeBar.style.transition = '';
+    chromeBar.classList.add('dragged');
 
     self._releaseTimeout = setTimeout(function() {
       self._releaseBar(titleBar);
@@ -625,7 +642,9 @@ var StatusBar = {
       var _ = navigator.mozL10n.get;
       var f = new navigator.mozL10n.DateTimeFormat();
 
-      var timeFormat = _('shortTimeFormat').replace('%p', '<span>%p</span>');
+      var timeFormat = window.navigator.mozHour12 ?
+        _('shortTimeFormat12') : _('shortTimeFormat24');
+      timeFormat = timeFormat.replace('%p', '<span>%p</span>');
       var formatted = f.localeFormat(now, timeFormat);
       this.icons.time.innerHTML = formatted;
 

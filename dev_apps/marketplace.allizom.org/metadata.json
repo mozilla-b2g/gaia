@@ -1,6 +1,9 @@
 {
   "external": true,
-  "origin": "https://marketplace.allizom.org",
-  "manifestURL": "https://marketplace.allizom.org/manifest.webapp",
-  "type": "web"
+  "etag": "\"5deb176c464f170d36ad0d5766285163a3cc3c6da0792d32ed90736d31f637e2\"",
+  "installOrigin": "https://marketplace.allizom.org",
+  "manifestURL": "https://marketplace.allizom.org/packaged.webapp",
+  "packageEtag": "\"82f976e00692848b148a4ca069c7168c70aea9412630142926e69b01811e3be9\"",
+  "removable": false,
+  "type": "privileged"
 }

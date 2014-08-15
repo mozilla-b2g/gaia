@@ -3,6 +3,9 @@
 
 'use strict';
 
+/* global StatusBar */
+/* global KeyboardManager */
+
 // The modal dialog listen to mozbrowsershowmodalprompt event.
 // Blocking the current app and then show cutom modal dialog
 // (alert/confirm/prompt)
@@ -100,29 +103,33 @@ var ModalDialog = {
       case 'home':
       case 'holdhome':
         // Inline activity, which origin is different from foreground app
-        if (this.isVisible())
+        if (this.isVisible()) {
           this.cancelHandler();
+        }
         break;
 
       case 'appwillclose':
         // Do nothing if the app is closed at background.
-        if (evt.detail.origin !== this.currentOrigin)
+        if (evt.detail.origin !== this.currentOrigin) {
           return;
+        }
 
         // Reset currentOrigin
         this.hide();
         break;
 
       case 'appterminated':
-        if (this.currentEvents[evt.detail.origin])
+        if (this.currentEvents[evt.detail.origin]) {
           delete this.currentEvents[evt.detail.origin];
+        }
 
         break;
 
       case 'resize':
       case 'keyboardhide':
-        if (!this.currentOrigin)
+        if (!this.currentOrigin) {
           return;
+        }
 
         this.setHeight(window.innerHeight - StatusBar.height);
         break;
@@ -148,16 +155,17 @@ var ModalDialog = {
   },
 
   setHeight: function md_setHeight(height) {
-    if (this.isVisible())
+    if (this.isVisible()) {
       this.overlay.style.height = height + 'px';
+    }
   },
 
   // Show relative dialog and set message/input value well
   show: function md_show(target, origin) {
-    if (!(origin in this.currentEvents))
+    if (!(origin in this.currentEvents)) {
       return;
+    }
 
-    var _ = navigator.mozL10n.get;
     this.currentOrigin = origin;
     var evt = this.eventForCurrentOrigin;
 
@@ -166,19 +174,7 @@ var ModalDialog = {
     var elements = this.elements;
     this.screen.classList.add('modal-dialog');
 
-    function escapeHTML(str) {
-      var stringHTML = str;
-      stringHTML = stringHTML.replace(/\</g, '&#60;');
-      stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
-      stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
-
-      return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
-    }
-
     var type = evt.detail.promptType || evt.detail.type;
-    if (type !== 'selectone') {
-      message = escapeHTML(message);
-    }
 
     // XXX: Bug 916658 - Remove unused l10n resources from b2g gecko
     // If we have removed translations from Gecko, then we can remove this.
@@ -188,31 +184,34 @@ var ModalDialog = {
 
     switch (type) {
       case 'alert':
-        elements.alertMessage.innerHTML = message;
+        elements.alertMessage.setAttribute('data-l10n-id', message);
         elements.alert.classList.add('visible');
         this.setTitle('alert', title);
-        elements.alertOk.textContent = evt.yesText ? evt.yesText : _('ok');
+        elements.alertOk.setAttribute('data-l10n-id', evt.yesText ?
+                                                        evt.yesText : 'ok');
         elements.alert.focus();
         break;
 
       case 'prompt':
         elements.prompt.classList.add('visible');
         elements.promptInput.value = evt.detail.initialValue;
-        elements.promptMessage.innerHTML = message;
+        elements.promptMessage.setAttribute('data-l10n-id', message);
         this.setTitle('prompt', title);
-        elements.promptOk.textContent = evt.yesText ? evt.yesText : _('ok');
-        elements.promptCancel.textContent = evt.noText ?
-          evt.noText : _('cancel');
+        elements.promptOk.setAttribute('data-l10n-id', evt.yesText ?
+                                                        evt.yesText : 'ok');
+        elements.promptCancel.setAttribute('data-l10n-id', evt.noText ?
+                                                        evt.noText : 'cancel');
         elements.prompt.focus();
         break;
 
       case 'confirm':
         elements.confirm.classList.add('visible');
-        elements.confirmMessage.innerHTML = message;
+        elements.confirmMessage.setAttribute('data-l10n-id', message);
         this.setTitle('confirm', title);
-        elements.confirmOk.textContent = evt.yesText ? evt.yesText : _('ok');
-        elements.confirmCancel.textContent = evt.noText ?
-          evt.noText : _('cancel');
+        elements.confirmOk.setAttribute('data-l10n-id', evt.yesText ?
+                                                        evt.yesText : 'ok');
+        elements.confirmCancel.setAttribute('data-l10n-id', evt.noText ?
+                                                        evt.noText : 'cancel');
         elements.confirm.focus();
         break;
 
@@ -238,7 +237,7 @@ var ModalDialog = {
   },
 
   setTitle: function md_setTitle(type, title) {
-    this.elements[type + 'Title'].textContent = title;
+    this.elements[type + 'Title'].setAttribute('data-l10n-id', title);
   },
 
   // When user clicks OK button on alert/confirm/prompt
@@ -269,8 +268,9 @@ var ModalDialog = {
       evt.callback(evt.detail.returnValue);
     }
 
-    if (evt.detail.unblock)
+    if (evt.detail.unblock) {
       evt.detail.unblock();
+    }
 
     this.processNextEvent();
   },
@@ -311,8 +311,9 @@ var ModalDialog = {
       evt.cancelCallback(evt.detail.returnValue);
     }
 
-    if (evt.detail.unblock)
+    if (evt.detail.unblock) {
       evt.detail.unblock();
+    }
 
     this.processNextEvent();
   },
@@ -331,8 +332,9 @@ var ModalDialog = {
       evt.callback(evt.detail.returnValue);
     }
 
-    if (evt.detail.unblock)
+    if (evt.detail.unblock) {
       evt.detail.unblock();
+    }
 
     this.processNextEvent();
   },
@@ -446,10 +448,10 @@ var ModalDialog = {
 
     // Create a virtual mapping in this.currentEvents,
     // since system-app uses the different way to call ModalDialog.
-    if (!this.currentEvents['system']) {
-      this.currentEvents['system'] = [];
+    if (!this.currentEvents.system) {
+      this.currentEvents.system = [];
     }
-    this.currentEvents['system'].push(pseudoEvt);
+    this.currentEvents.system.push(pseudoEvt);
     this.show(null, 'system');
   },
 

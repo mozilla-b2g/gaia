@@ -397,7 +397,6 @@ Camera.prototype.configure = function() {
     debug('configuration success');
     if (!self.mozCamera) { return; }
     self.configureFocus();
-    self.resumeFocus();
     self.configured = true;
     self.saveBootConfig();
     self.emit('configured');
@@ -656,8 +655,8 @@ Camera.prototype.release = function(done) {
   function onSuccess() {
     debug('successfully released');
     self.ready();
-    self.emit('released');
     self.releasing = false;
+    self.emit('released');
     done();
   }
 
@@ -813,11 +812,6 @@ Camera.prototype.takePicture = function(options) {
   }
 
   function complete() {
-    // If we are in C-AF mode, we have
-    // to call resume() in order to get
-    // the camera to resume focusing
-    // on what we point it at.
-    self.resumeFocus();
     self.set('focus', 'none');
     self.ready();
   }
@@ -833,14 +827,6 @@ Camera.prototype.updateFocusArea = function(rect, done) {
       done(state);
     }
   }
-};
-
-Camera.prototype.stopFocus = function() {
-  this.focus.stop();
-};
-
-Camera.prototype.resumeFocus = function() {
-  this.focus.resume();
 };
 
 /**
@@ -913,7 +899,14 @@ Camera.prototype.startRecording = function(options) {
       maxFileSizeBytes: maxFileSizeBytes
     };
 
-    self.createVideoFilepath(function(filepath) {
+    self.createVideoFilepath(createVideoFilepathDone);
+
+    function createVideoFilepathDone(errorMsg, filepath) {
+      if (typeof filepath === 'undefined') {
+        debug(errorMsg);
+        self.onRecordingError('error-video-file-path');
+        return;
+      }
       video.filepath = filepath;
       self.emit('willrecord');
       self.mozCamera.startRecording(
@@ -922,7 +915,7 @@ Camera.prototype.startRecording = function(options) {
         filepath,
         onSuccess,
         self.onRecordingError);
-    });
+    }
   }
 
   function onSuccess() {
@@ -1159,7 +1152,7 @@ Camera.prototype.getFreeVideoStorageSpace = function(done) {
  * @param  {Function} done
  */
 Camera.prototype.createVideoFilepath = function(done) {
-  done(Date.now() + '_tmp.3gp');
+  done(null, Date.now() + '_tmp.3gp');
 };
 
 /**

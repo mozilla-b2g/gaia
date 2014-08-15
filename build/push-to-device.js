@@ -6,6 +6,17 @@ var Q = utils.Q;
 
 sh.initPath(utils.getEnvPath());
 
+/**
+ * detect if b2g process needs to be restarted
+ * @param  {string}  appName app name
+ * @return {bool}            true if needed
+ */
+function needsB2gRestart(appName) {
+  // b2g should be restarted if these app name is assigned by APP=appname
+  var appList = ['system', 'callscreen', 'browser'];
+  return (appList.indexOf(appName) !== -1);
+}
+
 function pushToDevice(profileFolder, remotePath, adb) {
   // MingGW on Windows takes '/remote/src' as 'c:\remote\src' which is
   // not right, so we use two slash before the remote path to prevent it.
@@ -115,6 +126,13 @@ function execute(options) {
   var targetFolder;
 
   var adb = options.ADB;
+  var restartB2g = needsB2gRestart(buildAppName);
+
+  if (restartB2g) {
+    utils.log('push-to-device', 'b2g process will be restarted for ' +
+      'installing ' + buildAppName + ' app, see bug 1000049 for ' +
+      'more information.');
+  }
 
   mainQ.resolve();
   return mainQ.promise.then(function() {
@@ -129,7 +147,7 @@ function execute(options) {
     utils.log('push', 'Waiting for device ...');
     return sh.run(['-c', adb + ' wait-for-device']);
   }).then(function() {
-    if (buildAppName === '*' || buildAppName === 'system') {
+    if (buildAppName === '*' || restartB2g) {
       return sh.run(['-c', adb + ' shell stop b2g']);
     }
   }).then(function() {
@@ -160,7 +178,13 @@ function execute(options) {
       return installSvoperapps(profileFolder, adb);
     }
   }).then(function() {
-    if (buildAppName === '*' || buildAppName === 'system') {
+    if (buildAppName === '*') {
+      return sh.run(['-c', adb + ' push ' +
+        '"shared/elements/gaia-icons/fonts/gaia-icons.ttf" ' +
+        '//system/fonts/hidden/gaia-icons.ttf']);
+    }
+  }).then(function() {
+    if (buildAppName === '*' || restartB2g) {
       utils.log('push', 'Restarting B2G...');
       sh.run(['-c', adb + ' shell start b2g']);
     } else {

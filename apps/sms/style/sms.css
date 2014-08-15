@@ -107,7 +107,7 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 #threads-container[data-type="list"] ul {
-  padding: 0 1.5rem;
+  padding: 0 1.0rem;
   background-color: #fff;
 }
 
@@ -132,7 +132,11 @@ form[role="dialog"][data-type="edit"] > menu {
 
 [data-type="list"] aside.icon-unread {
   margin: 0;
-  width: 1.5rem;
+  width: 1.9rem;
+}
+
+[data-type="list"] aside.pack-end {
+  margin: 0 5px 0 0.5px;
 }
 
 [data-type="list"] .unread aside.icon-unread {
@@ -165,10 +169,22 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 /* Lists: edit mode */
+.edit #threads-container[data-type="list"] ul {
+  padding: 0 1.5rem;
+}
+
+.edit [data-type="list"] li > a {
+  left: -2rem;
+}
+
 .edit [data-type="list"] li > label {
   opacity: 1;
   pointer-events: auto;
-  left: -1.4rem;
+  left: -2.4rem;
+}
+
+.edit [data-type="list"] .danger {
+  left: -1.3rem;
 }
 
 .edit [data-type="list"] li > .pack-checkbox input ~ span:after {
@@ -178,20 +194,21 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 .edit [data-type="list"] li > a > aside.icon-unread {
-  opacity: 0;
+  opacity: 1;
+  left: 5rem;
 }
 
 .edit [data-type="list"] li > a > p {
-  transform: translateX(3.5rem);
+  transform: translateX(5.0rem);
   margin-right: 3.5rem;
 }
 
 .edit #threads-container[data-type="list"] aside.pack-end {
-  margin: 0 0 0 -3rem;
+  margin: 0 0.5rem 0 -3rem;
 }
 
 .edit #threads-container[data-type="list"] aside.pack-end span {
-  transform: translateX(7.5rem);
+  transform: translateX(9.5rem);
 }
 
 /* Panel handling */
@@ -220,10 +237,6 @@ form[role="dialog"][data-type="edit"] > menu {
 
 #main-wrapper[data-position='left'] .panel {
   transform: translateX(-100%);
-}
-
-#main-wrapper[data-position='right'] .panel {
-  transform: translateX(0%);
 }
 
 #threads-container, #thread-messages {
@@ -380,10 +393,6 @@ section[role="region"].new > header:first-child form {
   display: block;
 }
 
-#messages-container {
-  background: #fff;
-}
-
 #messages-container .messages-date-group-header {
   position: sticky;
   top: 0;
@@ -412,15 +421,6 @@ section[role="region"].new > header:first-child form {
 /* TODO: check whether we need this rule */
 #messages-container .messages-date-group-header.hidden {
   display: none;
-}
-
-.new .article-list {
-  z-index: 5;
-
-  padding: 0;
-
-  background: none repeat scroll 0 0 #fff;
-  text-align: left;
 }
 
 .article-list[data-type="list"] .message {
@@ -648,8 +648,9 @@ Do not remove.
 
 #messages-recipients-list.multiline {
   /* max-height = viewport - header - minimum composer - list margin */
-  max-height: calc(100vh - 5rem - 3.7rem - 0.6rem);
+  max-height: calc(100vh - 5rem - 4rem - 0.6rem);
   margin-bottom: 0.6rem;
+  padding-bottom: 0;
 
   overflow-y: scroll;
 }
@@ -840,11 +841,15 @@ section[role="region"].report-information > header .icon-back {
   display: none;
 }
 
-.request-activity-mode #messages-close-button {
+.request-activity-mode #messages-close-button,
+.request-activity-mode .report-information #messages-back-button,
+.request-activity-mode .participants-information #messages-back-button {
   display: block;
 }
 
-.request-activity-mode #messages-back-button {
+.request-activity-mode #messages-back-button,
+.request-activity-mode .report-information #messages-close-button,
+.request-activity-mode .participants-information #messages-close-button {
   display: none;
 }
 

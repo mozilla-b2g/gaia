@@ -63,5 +63,5 @@ class TestSetupAndSendIMAPEmail(GaiaTestCase):
 
         read_email = self.email.mails[0].tap_subject()
 
-        self.assertEqual(_body, read_email.body)
+        self.assertEqual(_body, read_email.body.splitlines()[0])
         self.assertEqual(_subject, read_email.subject)

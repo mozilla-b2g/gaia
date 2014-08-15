@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Template, Utils, Threads, Contacts, Threads,
-         WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
+         WaitingScreen, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
          PerformanceTestingHelper, StickyHeader, Navigation, Dialog */
 /*exported ThreadListUI */
@@ -34,7 +34,7 @@ var ThreadListUI = {
     // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854413
     [
       'container', 'no-messages',
-      'check-all-button', 'uncheck-all-button',
+      'check-uncheck-all-button',
       'delete-button', 'cancel-button',
       'options-icon', 'edit-mode', 'edit-form', 'draft-saved-banner'
     ].forEach(function(id) {
@@ -51,12 +51,8 @@ var ThreadListUI = {
       'click', this.launchComposer.bind(this)
     );
 
-    this.checkAllButton.addEventListener(
-      'click', this.toggleCheckedAll.bind(this, true)
-    );
-
-    this.uncheckAllButton.addEventListener(
-      'click', this.toggleCheckedAll.bind(this, false)
+    this.checkUncheckAllButton.addEventListener(
+      'click', this.toggleCheckedAll.bind(this)
     );
 
     this.deleteButton.addEventListener(
@@ -89,6 +85,10 @@ var ThreadListUI = {
 
     this.sticky =
       new StickyHeader(this.container, document.getElementById('sticky'));
+
+    MessageManager.on('message-sending', this.onMessageSending.bind(this));
+    MessageManager.on('message-received', this.onMessageReceived.bind(this));
+    MessageManager.on('threads-deleted', this.onThreadsDeleted.bind(this));
   },
 
   beforeLeave: function thlui_beforeLeave() {
@@ -235,18 +235,16 @@ var ThreadListUI = {
     var selected = ThreadListUI.selectedInputs.length;
 
     if (selected === ThreadListUI.allInputs.length) {
-      this.checkAllButton.disabled = true;
+      navigator.mozL10n.localize(this.checkUncheckAllButton, 'deselect-all');
     } else {
-      this.checkAllButton.disabled = false;
+      navigator.mozL10n.localize(this.checkUncheckAllButton, 'select-all');
     }
     if (selected) {
-      this.uncheckAllButton.disabled = false;
       this.deleteButton.disabled = false;
       navigator.mozL10n.localize(this.editMode, 'selected', {n: selected});
     } else {
-      this.uncheckAllButton.disabled = true;
       this.deleteButton.disabled = true;
-      navigator.mozL10n.localize(this.editMode, 'deleteMessages-title');
+      navigator.mozL10n.localize(this.editMode, 'selectThreads-title');
     }
   },
 
@@ -261,17 +259,18 @@ var ThreadListUI = {
     this.checkInputs();
   },
 
-  toggleCheckedAll: function thlui_select(value) {
+  // if no thread or few are checked : select all the threads
+  // and if all threads are checked : deselect them all.
+  toggleCheckedAll: function thlui_select() {
+    var selected = ThreadListUI.selectedInputs.length;
+    var allSelected = (selected === ThreadListUI.allInputs.length);
     var inputs = this.container.querySelectorAll(
       'input[type="checkbox"]' +
-      // value ?
-      //   true : query for currently unselected threads
-      //   false: query for currently selected threads
-      (value ? ':not(:checked)' : ':checked')
+      (!allSelected ? ':not(:checked)' : ':checked')
     );
     var length = inputs.length;
     for (var i = 0; i < length; i++) {
-      inputs[i].checked = value;
+      inputs[i].checked = !allSelected;
     }
     this.checkInputs();
   },
@@ -330,7 +329,7 @@ var ThreadListUI = {
     }
 
     function deleteMessage(message) {
-      MessageManager.deleteMessage(message.id);
+      MessageManager.deleteMessages(message.id);
       return true;
     }
 
@@ -367,13 +366,12 @@ var ThreadListUI = {
       count = list.threads.length;
 
       // Remove and coerce the threadId back to a number
-      // MozSmsFilter and all other platform APIs
+      // MobileMessageFilter and all other platform APIs
       // expect this value to be a number.
       while ((threadId = +list.threads.pop())) {
 
         // Filter and request all messages with this threadId
-        filter = new MozSmsFilter();
-        filter.threadId = threadId;
+        filter = { threadId: threadId };
 
         MessageManager.getMessages({
           filter: filter,
@@ -434,7 +432,7 @@ var ThreadListUI = {
     // Add delete option when list is not empty
     if (ThreadListUI.noMessages.classList.contains('hide')) {
       params.items.unshift({
-        l10nId: 'deleteMessages-label',
+        l10nId: 'selectThreads-label',
         method: this.startEdit.bind(this)
       });
     }
@@ -514,6 +512,16 @@ var ThreadListUI = {
 
     function onRenderThread(thread) {
       /* jshint validthis: true */
+      // Register all threads to the Threads object.
+      Threads.set(thread.id, thread);
+
+      // If one of the requested threads is also the currently displayed thread,
+      // update the header immediately
+      // TODO: Revise necessity of this code in bug 1050823
+      if (Navigation.isCurrentPanel('thread', { id: thread.id })) {
+        ThreadUI.updateHeaderData();
+      }
+
       if (!hasThreads) {
         hasThreads = true;
         this.startRendering();
@@ -713,16 +721,21 @@ var ThreadListUI = {
     }
   },
 
-  onMessageSending: function thlui_onMessageSending(message) {
-    this.updateThread(message);
+  onMessageSending: function thlui_onMessageSending(e) {
+    this.updateThread(e.message);
   },
 
-  onMessageReceived: function thlui_onMessageReceived(message) {
-    this.updateThread(message, { unread: true });
+  onMessageReceived: function thlui_onMessageReceived(e) {
+    // If user currently in the same thread, then mark thread as read
+    var markAsRead = Navigation.isCurrentPanel('thread', {
+      id: e.message.threadId
+    });
+
+    this.updateThread(e.message, { unread: !markAsRead });
   },
 
-  onThreadsDeleted: function thlui_onThreadDeleted(ids) {
-    ids.forEach(function(threadId) {
+  onThreadsDeleted: function thlui_onThreadDeleted(e) {
+    e.ids.forEach(function(threadId) {
       if (Threads.has(threadId)) {
         this.deleteThread(threadId);
       }

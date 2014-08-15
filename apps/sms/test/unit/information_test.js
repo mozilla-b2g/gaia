@@ -1,6 +1,8 @@
 /*global Information, loadBodyHTML, MockContact, MockL10n, MocksHelper,
          ThreadUI, MessageManager, ContactRenderer, Utils, Template, Threads,
-         MockMessages, Settings, Navigation */
+         MockMessages, Settings, Navigation,
+         AssetsHelper
+*/
 
 'use strict';
 
@@ -43,25 +45,11 @@ suite('Information view', function() {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    var assetsNeeded = 0;
-    function getAsset(filename, loadCallback) {
-      assetsNeeded++;
-
-      var req = new XMLHttpRequest();
-      req.open('GET', filename, true);
-      req.responseType = 'blob';
-      req.onload = function() {
-        loadCallback(req.response);
-        if (--assetsNeeded === 0) {
-          done();
-        }
-      };
-      req.send();
-    }
-
-    getAsset('/test/unit/media/kitten-450.jpg', function(blob) {
-      testImageBlob = blob;
-    });
+    AssetsHelper.generateImageBlob(400, 400, 'image/jpeg', 0.5).then(
+      (blob) => {
+        testImageBlob = blob;
+      }
+    ).then(done, done);
   });
 
   suiteTeardown(function() {
@@ -72,6 +60,7 @@ suite('Information view', function() {
   setup(function() {
     loadBodyHTML('/index.html');
     this.sinon.spy(navigator.mozL10n, 'localize');
+    this.sinon.stub(MessageManager, 'on');
     contact = MockContact();
   });
 
@@ -211,10 +200,12 @@ suite('Information view', function() {
         return request;
       });
       this.sinon.spy(Utils.date.format, 'localeFormat');
+      reportView.beforeEnter();
     });
 
     teardown(function() {
       reportView.reset();
+      reportView.afterLeave();
     });
 
     test('Outgoing Message report(status sending)', function() {
@@ -463,10 +454,21 @@ suite('Information view', function() {
           }
         });
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
-        this.sinon.stub(Settings, 'getSimNameByIccId').returns('SIM 1');
+        this.sinon.stub(Settings, 'getServiceIdByIccId').returns(0);
         this.sinon.stub(Settings, 'getOperatorByIccId').returns('operator');
+        this.sinon.stub(navigator.mozL10n, 'setAttributes');
         reportView.render();
-        assert.equal(simDetail.textContent, 'SIM 1, operator');
+
+        sinon.assert.calledWithMatch(
+          navigator.mozL10n.setAttributes,
+          Object,
+          'sim-detail',
+          {
+            id: 1,
+            detailString: 'operator'
+          }
+        );
+
         assert.isFalse(simInfo.classList.contains('hide'));
       });
 
@@ -481,10 +483,21 @@ suite('Information view', function() {
           }
         });
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
-        this.sinon.stub(Settings, 'getSimNameByIccId').returns('SIM 1');
+        this.sinon.stub(Settings, 'getServiceIdByIccId').returns(0);
         this.sinon.stub(Settings, 'getOperatorByIccId').returns('');
+        this.sinon.stub(navigator.mozL10n, 'setAttributes');
         reportView.render();
-        assert.equal(simDetail.textContent, 'SIM 1, 1111');
+
+        sinon.assert.calledWithMatch(
+          navigator.mozL10n.setAttributes,
+          Object,
+          'sim-detail',
+          {
+            id: 1,
+            detailString: '1111'
+          }
+        );
+
         assert.isFalse(simInfo.classList.contains('hide'));
       });
 
@@ -499,10 +512,21 @@ suite('Information view', function() {
           }
         });
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
-        this.sinon.stub(Settings, 'getSimNameByIccId').returns('SIM 2');
+        this.sinon.stub(Settings, 'getServiceIdByIccId').returns(1);
         this.sinon.stub(Settings, 'getOperatorByIccId').returns('operator');
+        this.sinon.stub(navigator.mozL10n, 'setAttributes');
         reportView.render();
-        assert.equal(simDetail.textContent, 'SIM 2, operator, 1111');
+
+        sinon.assert.calledWithMatch(
+          navigator.mozL10n.setAttributes,
+          Object,
+          'sim-detail',
+          {
+            id: 2,
+            detailString: 'operator, 1111'
+          }
+        );
+
         assert.isFalse(simInfo.classList.contains('hide'));
       });
     });
@@ -663,8 +687,8 @@ suite('Information view', function() {
       });
     });
 
-    ['onDeliverySuccess', 'onReadSuccess'].forEach(function(method) {
-      suite(method + '()', function() {
+    ['message-delivered', 'message-read'].forEach(function(event) {
+      suite('MessageManager.on' + event + '()', function() {
         var fakeMessage;
 
         setup(function() {
@@ -676,19 +700,24 @@ suite('Information view', function() {
         test('If showing this message, report is refreshed', function() {
           Navigation.isCurrentPanel
             .withArgs('report-view', { id: 1 }).returns(true);
-          reportView[method](fakeMessage);
+
+          MessageManager.on.withArgs(event).yield({ message: fakeMessage });
+
           sinon.assert.called(reportView.refresh);
         });
 
         test('If showing another message, report is not refreshed', function() {
           Navigation.isCurrentPanel
             .withArgs('report-view', { id: 2 }).returns(true);
-          reportView[method](fakeMessage);
+
+          MessageManager.on.withArgs(event).yield({ message: fakeMessage });
+
           sinon.assert.notCalled(reportView.refresh);
         });
 
         test('If not showing the report, it is not refreshed', function() {
-          reportView[method](fakeMessage);
+          MessageManager.on.withArgs(event).yield({ message: fakeMessage });
+
           sinon.assert.notCalled(reportView.refresh);
         });
       });
@@ -756,6 +785,16 @@ suite('Information view', function() {
       sinon.assert.called(reportView.reset);
       assert.isNull(reportView.id, 'id is reset after beforeLeave');
     });
+
+    suite('Set event listener', function() {
+      test('No event listenser for report view', function() {
+        var event = new MouseEvent('click',
+          { bubbles: true, cancelable: true });
+        var canceled = !reportView.contactList.dispatchEvent(event);
+
+        assert.isFalse(canceled);
+      });
+    });
   });
 
   suite('GroupView', function() {
@@ -794,6 +833,26 @@ suite('Information view', function() {
       groupView.beforeLeave(leaveArgs);
       sinon.assert.called(groupView.reset);
       assert.isNull(groupView.id, 'id is reset after beforeLeave');
+    });
+
+    suite('Set event listener', function() {
+      setup(function(){
+        this.sinon.stub(ThreadUI, 'promptContact');
+      });
+
+      test('Contact prompt is called when clicked on contactList', function() {
+        var event = new MouseEvent('click',
+          { bubbles: true, cancelable: true });
+        var item = document.createElement('a');
+
+        item.dataset.number = 'test number';
+        groupView.contactList.appendChild(item);
+        item.dispatchEvent(event);
+        sinon.assert.calledWith(
+          ThreadUI.promptContact,
+          { number : item.dataset.number }
+        );
+      });
     });
   });
 });

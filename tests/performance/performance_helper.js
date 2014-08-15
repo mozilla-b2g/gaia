@@ -105,6 +105,14 @@ PerformanceHelper.getLoadTimes = function(client) {
   return client.executeScript(getResults);
 };
 
+PerformanceHelper.getGoalData = function(client) {
+  if (config.goals
+      && client.session && client.session.device) {
+    return config.goals[client.session.device];
+  }
+  return null;
+};
+
 PerformanceHelper.reportDuration = function(values, title) {
   title = title || '';
   sendResults('mozPerfDuration', { title: title, values: values });
@@ -115,6 +123,10 @@ PerformanceHelper.reportMemory = function(values, title) {
   var mozPerfMemory = {};
   mozPerfMemory[title] = values;
   sendResults('mozPerfMemory', mozPerfMemory);
+};
+
+PerformanceHelper.reportGoal = function(goals) {
+  sendResults('mozPerfGoal', goals);
 };
 
 PerformanceHelper.prototype = {

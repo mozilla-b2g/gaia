@@ -17,6 +17,10 @@ class CallScreen(Phone):
     _hangup_bar_locator = (By.ID, 'callbar-hang-up')
     _answer_bar_locator = (By.ID, 'callbar-answer')
     _lockscreen_handle_locator = (By.ID, 'lockscreen-area-slide')
+    _bluetooth_menu_locator = (By.ID, 'bluetooth-menu')
+    _views_locator = (By.ID, 'views')
+    _incoming_container_locator = (By.ID, 'incoming-container')
+    _hangup_button_locator = (By.CSS_SELECTOR, '.handled-call .hangup-button')
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)

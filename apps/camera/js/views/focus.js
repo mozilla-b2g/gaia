@@ -67,7 +67,7 @@ module.exports = View.extend({
   },
 
   template: function() {
-    return '<div class="focus-ring icon-focus-locking js-focus"></div>';
+    return '<div class="focus-ring js-focus" data-icon="focus-locking"></div>';
   }
 
 });

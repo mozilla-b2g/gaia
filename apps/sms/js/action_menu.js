@@ -93,6 +93,8 @@ var OptionMenu = function(options) {
 
     if (typeof options.header === 'string') {
       header.textContent = options.header || '';
+    } else if (options.header.l10nId) {
+      header.setAttribute('data-l10n-id', options.header.l10nId);
     } else {
       header.appendChild(options.header);
     }

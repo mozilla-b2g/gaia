@@ -20,7 +20,7 @@ var MockGeolocation = {
     this.realGetCurrentPosition = navigator.geolocation.getCurrentPosition;
     navigator.geolocation.getCurrentPosition = (function(onsuccess, onerror) {
       if (onsuccess) {
-        onsuccess(this.fakePosition);
+        onsuccess(this.createFakePosition());
       }
     }).bind(this);
 
@@ -28,9 +28,9 @@ var MockGeolocation = {
     navigator.geolocation.watchPosition = (function(onsuccess, onerror) {
       var watch = setInterval(function() {
         if (onsuccess) {
-          onsuccess(this.fakePosition);
+          onsuccess(this.createFakePosition());
         }
-      });
+      }.bind(this), 4);
 
       this.activeWatches.push(watch);
       return watch;
@@ -45,6 +45,14 @@ var MockGeolocation = {
         clearInterval(watch);
       }
     }).bind(this);
+
+    this.createFakePosition = function() {
+      this.fakePosition = {
+        timestamp: Date.now(),
+        coords: this.fakeCoords
+      };
+      return this.fakePosition;
+    };
   },
 
   mTeardown: function() {

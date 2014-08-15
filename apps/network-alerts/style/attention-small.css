@@ -1,0 +1,14 @@
+body {
+  background: #2D2D2D;
+  color: white;
+}
+
+h1 {
+  display: none;
+}
+
+p {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

@@ -5,15 +5,30 @@
       <a href="#developer">
         <span class="icon icon-back">Back</span>
       </a>
-      <h1 data-l10n-id="hud-header">Developer HUD</h1>
+      <h1 data-l10n-id="hud-settings-header">Developer HUD</h1>
     </header>
 
     <div>
       <ul>
         <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="debug.fps.enabled">
+            <span class="color-preview fps-monitor" data-l10n-id="hud-fps">Frames per second</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="debug.ttl.enabled">
+            <span class="color-preview ttl-monitor" data-l10n-id="hud-ttl">Time to load</span>
+          </label>
+        </li>
+        <header>
+          <h2 data-l10n-id="hud-devtools-header">Developer Tools</h2>
+        </header>
+        <li>
           <label class="pack-switch">
             <input type="checkbox" name="devtools.overlay">
-            <span data-l10n-id="hud">Developer HUD</span>
+            <span data-l10n-id="hud-devtools">Developer Tools</span>
           </label>
         </li>
       </ul>
@@ -31,24 +46,29 @@
           </label>
         </li>
         <header>
+          <h2 data-l10n-id="hud-problems">Problems</h2>
+        </header>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="hud.warnings">
+            <span class="color-preview warning-counter" data-l10n-id="hud-warnings">Warnings</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="hud.errors">
+            <span class="color-preview error-counter" data-l10n-id="hud-errors">Errors</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="hud.security">
+            <span class="color-preview security-counter" data-l10n-id="hud-security">Security issues</span>
+          </label>
+        </li>
+        <header>
           <h2 data-l10n-id="hud-performance">Performance</h2>
         </header>
-      </ul>
-      <ul>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="debug.fps.enabled">
-            <span class="color-preview fps-monitor" data-l10n-id="hud-fps">Frames per second</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="debug.ttl.enabled">
-            <span class="color-preview ttl-monitor" data-l10n-id="hud-ttl">Time to load</span>
-          </label>
-        </li>
-      </ul>
-      <ul class="hud-widgets disabled">
         <li class="hud-separator">
           <label class="pack-checkbox">
             <input type="checkbox" name="hud.reflows">
@@ -71,27 +91,6 @@
               <option value="200">200</option>
             </select>
           </span>
-        </li>
-        <header>
-          <h2 data-l10n-id="hud-problems">Problems</h2>
-        </header>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.warnings">
-            <span class="color-preview warning-counter" data-l10n-id="hud-warnings">Warnings</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.errors">
-            <span class="color-preview error-counter" data-l10n-id="hud-errors">Errors</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="hud.security">
-            <span class="color-preview security-counter" data-l10n-id="hud-security">Security issues</span>
-          </label>
         </li>
         <header>
           <h2 data-l10n-id="hud-memory">Memory</h2>

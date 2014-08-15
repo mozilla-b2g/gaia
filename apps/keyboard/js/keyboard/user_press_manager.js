@@ -20,8 +20,8 @@ var UserPress = function(el, coords) {
 
 UserPress.prototype.updateCoords = function(coords, moved) {
   this.moved = moved;
-  this.pageX = coords.pageX;
-  this.pageY = coords.pageY;
+  this.clientX = coords.clientX;
+  this.clientY = coords.clientY;
 };
 
 /**
@@ -76,6 +76,7 @@ UserPressManager.prototype.stop = function() {
   this._container.removeEventListener('mousedown', this);
   this._container.removeEventListener('mousemove', this);
   this._container.removeEventListener('mouseup', this);
+  this._container.removeEventListener('mouseleave', this);
 
   this._container.removeEventListener('contextmenu', this);
 };
@@ -124,7 +125,7 @@ UserPressManager.prototype.handleEvent = function(evt) {
           continue;
         }
 
-        el = document.elementFromPoint(touch.pageX, touch.pageY);
+        el = document.elementFromPoint(touch.clientX, touch.clientY);
 
         this._handleChangedPress(el, touch, touchId);
       }
@@ -154,7 +155,7 @@ UserPressManager.prototype.handleEvent = function(evt) {
         touch = evt.changedTouches[i];
         touchId = touch.identifier;
 
-        el = document.elementFromPoint(touch.pageX, touch.pageY);
+        el = document.elementFromPoint(touch.clientX, touch.clientY);
         this._handleFinishPress(el, touch, touchId);
       }
       break;
@@ -175,15 +176,11 @@ UserPressManager.prototype.handleEvent = function(evt) {
       // on entire container.
       this._container.addEventListener('mousemove', this);
       this._container.addEventListener('mouseup', this);
+      this._container.addEventListener('mouseleave', this);
       this._handleNewPress(evt.target, evt, '_mouse');
       break;
 
     case 'mousemove':
-      // Ignore mousemove event if mouse button is not pressed.
-      if (!this.presses.has('_mouse')) {
-        return;
-      }
-
       if (!this._distanceReachesLimit('_mouse', evt)) {
         return;
       }
@@ -191,7 +188,14 @@ UserPressManager.prototype.handleEvent = function(evt) {
       this._handleChangedPress(evt.target, evt, '_mouse');
       break;
 
-    case 'mouseup':
+    case 'mouseup': /* fall through */
+    case 'mouseleave':
+      // Stop monitoring so there won't be mouse event sequences involving
+      // cursor moving out of/into the keyboard frame.
+      this._container.removeEventListener('mousemove', this);
+      this._container.removeEventListener('mouseup', this);
+      this._container.removeEventListener('mouseleave', this);
+
       this._handleFinishPress(evt.target, evt, '_mouse');
       break;
   }
@@ -232,8 +236,8 @@ UserPressManager.prototype._handleFinishPress = function(el, coords, id) {
 UserPressManager.prototype._distanceReachesLimit = function(id, newCoord) {
   var press = this.presses.get(id);
 
-  var dx = press.pageX - newCoord.pageX;
-  var dy = press.pageY - newCoord.pageY;
+  var dx = press.clientX - newCoord.clientX;
+  var dy = press.clientY - newCoord.clientY;
   var limit = this.MOVE_LIMIT;
 
   return (dx >= limit || dx <= -limit || dy >= limit || dy <= -limit);

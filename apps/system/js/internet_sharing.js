@@ -140,7 +140,6 @@
      * @memberof InternetSharing.prototype
      */
     internetSharingSettingsChangeHanlder: function(evt) {
-      var _ = navigator.mozL10n.get;
       if (validCardState.indexOf(this._cardState) === -1) {
         return;
       }
@@ -154,17 +153,17 @@
         var message;
 
         if (AirplaneMode.enabled && true === evt.settingValue) {
-          title = _('apmActivated');
-          buttonText = _('ok');
-          message = _('noHopspotWhenAPMisOn');
+          title = 'apmActivated';
+          buttonText = 'ok';
+          message = 'noHopspotWhenAPMisOn';
 
           ModalDialog.alert(title, message, { title: buttonText });
           settings.createLock().set({'tethering.wifi.enabled': false});
           return;
         } else if ('absent' === cardId && true === evt.settingValue) {
-          title = _('noSimCard');
-          buttonText = _('ok');
-          message = _('noSIMCardInHotspot');
+          title = 'noSimCard';
+          buttonText = 'ok';
+          message = 'noSIMCardInHotspot';
 
           ModalDialog.alert(title, message, { title: buttonText });
           settings.createLock().set({'tethering.wifi.enabled': false});

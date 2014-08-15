@@ -1,11 +1,12 @@
 /* global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
-         AttachmentMenu, Draft, XMLHttpRequest, Blob,
+         AttachmentMenu, Draft, Blob,
          ThreadUI, SMIL,
          InputEvent,
          MessageManager,
          Navigation,
-         Promise
+         Promise,
+         AssetsHelper
 */
 
 /*jshint strict:false */
@@ -70,28 +71,31 @@ suite('compose_test.js', function() {
   suiteSetup(function(done) {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    // Create test blob for image attachment resize testing
-    var assetsNeeded = 0;
-    function getAsset(filename, loadCallback) {
-      assetsNeeded++;
 
-      var req = new XMLHttpRequest();
-      req.open('GET', filename, true);
-      req.responseType = 'blob';
-      req.onload = function() {
-        loadCallback(req.response);
-        if (--assetsNeeded === 0) {
-          done();
-        }
-      };
-      req.send();
-    }
-    getAsset('/test/unit/media/IMG_0554.jpg', function(blob) {
-      oversizedImageBlob = blob;
-    });
-    getAsset('/test/unit/media/kitten-450.jpg', function(blob) {
-      smallImageBlob = blob;
-    });
+    var blobPromises = [
+      AssetsHelper.generateImageBlob(1400, 1400, 'image/jpeg', 1).then(
+        (blob) => oversizedImageBlob = blob
+      ),
+      AssetsHelper.generateImageBlob(300, 300, 'image/jpeg', 0.5).then(
+        (blob) => smallImageBlob = blob
+      )
+    ];
+
+    Promise.all(blobPromises).then(() => {
+      done(function() {
+        var mmsSizeLimit = 300 * 1024;
+
+        assert.isTrue(
+          smallImageBlob.size < mmsSizeLimit,
+          'Image blob should be greater than MMS size limit'
+        );
+
+        assert.isTrue(
+          oversizedImageBlob.size > mmsSizeLimit,
+          'Image blob should be greater than MMS size limit'
+        );
+      });
+    }, done);
   });
 
   suiteTeardown(function() {

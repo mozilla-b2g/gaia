@@ -172,9 +172,11 @@
         return;
       }
 
-      // The rocketbar currently handles the management of
-      // the search app
-      if (config.manifest.role === 'search') {
+      // The rocketbar currently handles the management of normal search app
+      // launches. Requests for the 'newtab' page will continue to filter
+      // through and publish the launchapp event.
+      if (config.manifest.role === 'search' &&
+          config.url.indexOf('newtab.html') === -1) {
         return;
       }
       var app = AppWindowManager.getApp(config.origin, config.manifestURL);

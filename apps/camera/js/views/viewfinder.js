@@ -155,6 +155,7 @@ module.exports = View.extend({
     debug('fade-out');
     var self = this;
     this.hide();
+    document.body.classList.remove('no-background');
     clearTimeout(this.fadeTimeout);
     this.fadeTimeout = setTimeout(function() {
       self.emit('fadedout');
@@ -171,6 +172,7 @@ module.exports = View.extend({
     this.show();
     clearTimeout(this.fadeTimeout);
     this.fadeTimeout = setTimeout(function() {
+      document.body.classList.add('no-background');
       self.el.style.transitionDuration = '';
       self.emit('fadedin');
       if (done) { done(); }

@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenLauncher, KeyboardManager,
-          layoutManager, System */
+          layoutManager, System, NfcHandler */
 'use strict';
 
 (function(exports) {
@@ -35,8 +35,14 @@
       }
     },
 
+    /**
+     * Get active app. If active app is null, we'll return homescreen as
+     * default.
+     * @return {AppWindow} The app is active.
+     */
     getActiveApp: function awm_getActiveApp() {
-      return this._activeApp;
+      return this._activeApp || (exports.homescreenLauncher ?
+        exports.homescreenLauncher.getHomescreen() : null);
     },
 
     /**
@@ -213,6 +219,9 @@
      * @memberOf module:AppWindowManager
      */
     init: function awm_init() {
+      var nfcHandler = new NfcHandler(this);
+      nfcHandler.start();
+
       if (System.slowTransition) {
         this.element.classList.add('slow-transition');
       } else {

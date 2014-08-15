@@ -89,6 +89,60 @@ suite('font size manager', function() {
       FontSizeManager.adaptToSpace(FontSizeManager.DIAL_PAD, view, true, 'end');
       assert.equal(view.textContent, 'fo\u2026');
     });
+
+    suite('when view is an input element with value', function() {
+      setup(function() {
+        view = document.createElement('input');
+        view.value = 'foobar';
+        document.body.appendChild(view);
+      });
+
+      test('calls FSU with the proper arguments', function() {
+        FontSizeUtils.getMaxFontSizeInfo.returns({
+          fontSize: 10, overflow: false});
+        view.style.fontFamily = 'Arial';
+        view.style.width = '200px';
+        document.body.appendChild(view);
+        FontSizeManager.adaptToSpace(FontSizeManager.DIAL_PAD, view);
+        sinon.assert.calledWith(
+          FontSizeUtils.getMaxFontSizeInfo, view.value,
+          [26, 30, 34, 38, 41], view.style.fontFamily,
+          view.getBoundingClientRect().width);
+      });
+
+      test('changes the font size', function() {
+        FontSizeUtils.getMaxFontSizeInfo.returns({
+          fontSize: 42, overflow: false});
+        FontSizeManager.adaptToSpace(FontSizeManager.DIAL_PAD, view);
+        assert.equal(view.style.fontSize, '42px');
+      });
+
+      test('forces maxfontsize', function() {
+        FontSizeUtils.getMaxFontSizeInfo.returns({
+          fontSize: 10, overflow: false});
+        FontSizeManager.adaptToSpace(FontSizeManager.DIAL_PAD, view, true);
+        sinon.assert.calledWith(
+          FontSizeUtils.getMaxFontSizeInfo, view.value, [41]);
+      });
+
+      test('adds ellipsis', function() {
+        FontSizeUtils.getMaxFontSizeInfo.returns({
+          fontSize: 10, overflow: true});
+        this.sinon.stub(FontSizeUtils, 'getOverflowCount').returns(2);
+        FontSizeManager.adaptToSpace(FontSizeManager.DIAL_PAD, view, true);
+        assert.equal(view.value, '\u2026ar');
+      });
+
+      test('adds ellipsis to the correct side', function() {
+        FontSizeUtils.getMaxFontSizeInfo.returns({
+          fontSize: 10, overflow: true});
+        this.sinon.stub(FontSizeUtils, 'getOverflowCount').returns(2);
+        FontSizeManager.adaptToSpace(
+          FontSizeManager.DIAL_PAD, view, true, 'end');
+        assert.equal(view.value, 'fo\u2026');
+      });
+
+    });
   });
 
   test('ensureFixedBaseline', function() {

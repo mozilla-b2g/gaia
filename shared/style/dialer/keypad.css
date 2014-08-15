@@ -51,6 +51,13 @@
   pointer-events: none;
 }
 
+#fake-phone-number-view {
+  position: absolute;
+  left: 2rem;
+  line-height: 0;
+  visibility: hidden;
+}
+
 #keypad-delete {
   margin-bottom: 4.5rem;
   padding: 0 2.5rem 0 0;

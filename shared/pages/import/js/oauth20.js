@@ -1,4 +1,4 @@
-/* global asyncStorage, oauthflow, Curtain */
+/* global ImportStatusData, oauthflow, Curtain */
 'use strict';
 
 var fb = window.fb || {};
@@ -19,7 +19,7 @@ if (typeof window.oauth2 === 'undefined') {
      *
      */
     function clearStorage(service) {
-      window.asyncStorage.removeItem(getKey(service));
+      ImportStatusData.remove(getKey(service));
     }
 
     function getKey(service) {
@@ -61,7 +61,7 @@ if (typeof window.oauth2 === 'undefined') {
         return;
       }
 
-      asyncStorage.getItem(getKey(service),
+      ImportStatusData.get(getKey(service)).then(
                            function getAccessToken(tokenData) {
         if (!tokenData || !tokenData.access_token) {
           startOAuth(state, service);
@@ -118,11 +118,11 @@ if (typeof window.oauth2 === 'undefined') {
 
         var end = parameters.expires_in;
 
-        window.asyncStorage.setItem(getKey(accessTokenCbData.service), {
+        ImportStatusData.put(getKey(accessTokenCbData.service), {
           access_token: access_token,
           expires: end * 1000,
           token_ts: Date.now()
-        }, function notify_parent() {
+        }).then(function notify_parent() {
               parent.postMessage({
                 type: 'token_stored',
                 data: ''

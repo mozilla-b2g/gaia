@@ -9,10 +9,13 @@
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
+
+    <!-- Gaia Components -->
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" />
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
 
     <!-- App and Views -->
     <link rel="stylesheet" type="text/css" href="style/app.css">
@@ -26,22 +29,25 @@
     <script type="text/javascript" defer src="shared/js/l10n.js"></script>
     <script type="text/javascript" defer src="shared/js/l10n_date.js"></script>
     <script type="text/javascript" defer src="shared/js/lazy_loader.js"></script>
-    <script type="text/javascript" defer src="shared/js/font_size_utils.js"></script>
     <script defer src='/shared/js/performance_testing_helper.js'></script>
+
+    <!-- Gaia Components -->
+    <script defer src="/shared/elements/config.js"></script>
+    <script defer src="/shared/js/component_utils.js"></script>
+    <script defer src="/shared/elements/gaia-header/dist/script.js"></script>
+    <script defer src="shared/elements/gaia_subheader/script.js"></script>
 
     <!-- Specific scripts -->
     <script type="text/javascript" defer src="js/settings/settings.js"></script>
   </head>
-  <body role="application">
+  <body role="application" class="theme-settings">
     <section role="region" class="window skin-organic">
       <!-- Settings view -->
       <section role="region" id="settings-view" class="view">
-        <header data-theme="organic">
-          <menu type="toolbar">
-             <button id="close-settings" data-l10n-id="done">done</button>
-          </menu>
+        <gaia-header>
           <h1 data-l10n-id="settings">Settings</h1>
-        </header>
+          <button id="close-settings" data-l10n-id="done">done</button>
+        </gaia-header>
 
         <!-- Plantype -->
         <section class="view-scroll" role="region">
@@ -57,9 +63,9 @@
           </ul>
 
           <!-- Phone activity -->
-          <header id="phone-activity-settings" aria-hidden="true">
-            <h2 data-l10n-id="phone-activity">Phone Activity</h2>
-          </header>
+          <gaia-subheader id="phone-activity-settings" aria-hidden="true" data-l10n-id="phone-activity" skin="organic">
+            Phone Activity
+          </gaia-subheader>
           <ul class="settings" aria-hidden="true">
             <li>
               <div class="end buttons-list">
@@ -73,9 +79,9 @@
           </ul>
 
           <!-- Balance alerts -->
-          <header id="balance-settings" aria-hidden="true">
-            <h2 data-l10n-id="balance">Balance</h2>
-          </header>
+          <gaia-subheader id="balance-settings" aria-hidden="true" data-l10n-id="balance" skin="organic">
+            Balance
+          </gaia-subheader>
           <ul class="settings" aria-hidden="true">
             <li>
                 <p id="balance"></p>
@@ -98,9 +104,9 @@
           </ul>
 
           <!-- Data usage limits -->
-          <header id="data-usage-settings">
-            <h2 data-l10n-id="data-usage">Data Usage</h2>
-          </header>
+          <gaia-subheader id="data-usage-settings" data-l10n-id="data-usage" skin="organic">
+            Data Usage
+          </gaia-subheader>
           <ul class="settings">
             <li>
               <p id="mobile-data-usage">
@@ -128,9 +134,9 @@
           </ul>
 
           <!-- Tracking period -->
-          <header id="phone-internet-settings" aria-hidden="true">
-            <h2 data-l10n-id="internet-data-report">Internet data report</h2>
-          </header>
+          <gaia-subheader id="phone-internet-settings" aria-hidden="true" skin="organic">
+            <span data-l10n-id="internet-data-report">Internet data report</span>
+          </gaia-subheader>
           <ul class="settings">
             <li class="reset-entry">
               <p data-l10n-id="reset-report">Reset report</p>
@@ -200,13 +206,10 @@
 
       <!-- Data usage limits -->
       <section role="region" id="data-limit-dialog" class="view" data-viewport="bottom">
-        <header>
-          <menu type="toolbar">
-            <button id="data-usage-done-button" data-l10n-id="done" class="recommend">Done</button>
-          </menu>
-          <a class="cancel"><span id="data-usage-close-button" class="icon icon-close">close</span></a>
+        <gaia-header id="limit-dialog-header" action="close">
           <h1 data-l10n-id="data-limit-header">Data Usage Limit</h1>
-        </header>
+          <button id="data-usage-done-button" data-l10n-id="done" class="recommend">Done</button>
+        </gaia-header>
         <section class="content">
           <div class="info">
             <h2 data-l10n-id="data-limit-dialog-title2">Enter a mobile data limit alert</h2>

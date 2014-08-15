@@ -31,6 +31,10 @@
     line-height: 1.7rem;
   }
 
+  #calls:not(.big-duration) > section.ended:not(.ongoing) .duration .font-light {
+    line-height: 3.5rem;
+  }
+
   #calls:not(.big-duration) .duration .total-duration {
     display: none;
     font-weight: normal;
@@ -115,11 +119,13 @@
     height: 100%;
     width: 100%;
     z-index: -1;
+    visibility: hidden;
   }
 
   body.showKeypad #views {
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, visibility 0.3s;
     transform: translateY(-100%);
+    visibility: visible;
     z-index: 500;
   }
 
@@ -679,8 +685,9 @@
     bottom: 0;
     width: 100%;
     transform: translateY(100%);
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.3s ease-in-out, visibility 0.3s;
     z-index: 500;
+    visibility: hidden;
   }
 
   #incoming-container header {
@@ -704,6 +711,7 @@
 
   #incoming-container.displayed {
     transform: translateY(0);
+    visibility: visible;
   }
 
   #incoming-container button {
@@ -799,7 +807,7 @@
     padding-right: 3rem;
   }
 
-  #group-call .hangup-button,
+  .hangup-button,
   #calls:not(.big-duration) #group-call > .duration.isTimer,
   #group-call-details-list .duration {
     display: none;
@@ -816,6 +824,10 @@
     padding-right: 4.5rem;
   }
 
+  #group-call-details-list > section:not(.additionalInfo) .number {
+    line-height: 4.5rem;
+  }
+
   #group-call-details {
     z-index: 750;
   }
@@ -826,7 +838,7 @@
     top: 0;
     right: 0;
     bottom: 0;
-    left: 0;  
+    left: 0;
   }
 
   #group-call .fake-number {

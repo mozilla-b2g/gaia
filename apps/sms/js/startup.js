@@ -131,7 +131,7 @@ var Startup = {
 
   init: function() {
     var initUIApp = this._initUIApp.bind(this);
-    window.addEventListener('load', function() {
+    window.addEventListener('DOMContentLoaded', function() {
       window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
       if (!navigator.mozMobileMessage) {

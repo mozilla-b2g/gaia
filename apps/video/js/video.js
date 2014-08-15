@@ -16,19 +16,18 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
            'thumbnails', 'thumbnails-video-button', 'thumbnails-select-button',
            'thumbnail-select-view',
            'thumbnails-delete-button', 'thumbnails-share-button',
-           'thumbnails-cancel-button', 'thumbnails-number-selected',
+           'thumbnails-select-top', 'thumbnails-number-selected',
            'player-view', 'fullscreen-button', 'spinner-overlay',
            'thumbnails-single-delete-button', 'thumbnails-single-share-button',
            'thumbnails-single-info-button', 'info-view', 'info-close-button',
            'player', 'overlay', 'overlay-title', 'overlay-text',
-           'overlay-menu', 'overlay-action-button',
+           'overlay-menu', 'overlay-action-button', 'player-header',
            'video-container', 'videoControls', 'videoBar', 'videoControlBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
-           'slider-wrapper', 'throbber', 'delete-video-button',
-           'picker-close', 'picker-title', 'picker-done', 'options',
-           'options-view', 'options-cancel-button', 'seek-backward',
-           'seek-forward'];
+           'slider-wrapper', 'throbber', 'picker-close', 'picker-title',
+           'picker-done', 'options', 'options-view', 'options-cancel-button',
+           'seek-backward', 'seek-forward'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -238,7 +237,7 @@ function initPlayerControls() {
   // handle user tapping events
   dom.videoControls.addEventListener('click', toggleVideoControls, true);
   dom.play.addEventListener('click', handlePlayButtonClick);
-  dom.close.addEventListener('click', handleCloseButtonClick);
+  dom.playerHeader.addEventListener('action', handleCloseButtonClick);
   dom.pickerDone.addEventListener('click', postPickResult);
   dom.options.addEventListener('click', showOptionsView);
 }
@@ -248,7 +247,7 @@ function initOptionsButtons() {
   dom.thumbnailsVideoButton.addEventListener('click', launchCameraApp);
   // buttons for entering/exiting selection mode
   dom.thumbnailsSelectButton.addEventListener('click', showSelectView);
-  dom.thumbnailsCancelButton.addEventListener('click', hideSelectView);
+  dom.thumbnailsSelectTop.addEventListener('action', hideSelectView);
   // action buttons for selection mode
   dom.thumbnailsDeleteButton.addEventListener('click', deleteSelectedItems);
   dom.thumbnailsShareButton.addEventListener('click', shareSelectedItems);
@@ -937,7 +936,7 @@ function setNFCSharing(enable) {
       // The callback function is called when user confirm to share the
       // content, send it with NFC Peer.
       videodb.getFile(currentVideo.name, function(file) {
-        navigator.mozNfc.getNFCPeer(event.detail).sendFile(file);
+        event.peer.sendFile(file);
       });
     };
   } else {
@@ -1302,7 +1301,7 @@ function showPickView() {
   thumbnailList.setPickMode(true);
   document.body.classList.add('pick-activity');
 
-  dom.pickerClose.addEventListener('click', cancelPick);
+  dom.pickerHeader.addEventListener('action', cancelPick);
 
   // In tablet, landscape mode, the pick view will have different UI from normal
   // view.

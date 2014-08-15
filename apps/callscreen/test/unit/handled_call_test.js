@@ -520,6 +520,7 @@ suite('dialer/handled_call', function() {
         mockCall._connect();
         assert.isTrue(subject.node.classList.contains('ongoing'));
         assert.isTrue(subject.node.classList.contains('outgoing'));
+        assert.equal(subject.node.getAttribute('aria-label'), 'outgoing');
       });
     });
 
@@ -535,6 +536,7 @@ suite('dialer/handled_call', function() {
         mockCall._connect();
         assert.isTrue(subject.node.classList.contains('ongoing'));
         assert.isTrue(subject.node.classList.contains('incoming'));
+        assert.equal(subject.node.getAttribute('aria-label'), 'incoming');
       });
     });
   });
@@ -660,13 +662,22 @@ suite('dialer/handled_call', function() {
   });
 
   suite('phone number', function() {
-    test('formatPhoneNumber should call the font size manager',
-    function() {
+    test('formatPhoneNumber should call the font size manager if call is not' +
+         ' in a conference', function() {
       this.sinon.spy(FontSizeManager, 'adaptToSpace');
       subject.formatPhoneNumber('end');
       sinon.assert.calledWith(
         FontSizeManager.adaptToSpace, MockCallScreen.mScenario,
         subject.numberNode, false, 'end');
+    });
+
+    test('formatPhoneNumber should not call the font size manager if call is' +
+         ' in a conference', function() {
+      subject.call.group = {};
+      this.sinon.spy(FontSizeManager, 'adaptToSpace');
+      subject.formatPhoneNumber('end');
+      assert.equal(FontSizeManager.adaptToSpace.callCount, 0);
+      delete subject.call.group;
     });
 
     test('should ensureFixedBaseline with a contact', function() {

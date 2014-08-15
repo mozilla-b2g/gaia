@@ -11,10 +11,6 @@ if (!perfUtils.isWhitelisted(config.whitelists.mozLaunch, appPath)) {
   return;
 }
 
-var arr = appPath.split('/');
-var manifestPath = arr[0];
-var entryPoint = arr[1];
-
 marionette('startup event test > ' + appPath + ' >', function() {
 
   var client = marionette.client({
@@ -25,9 +21,10 @@ marionette('startup event test > ' + appPath + ' >', function() {
   // Do nothing on script timeout. Bug 987383
   client.onScriptTimeout = null;
 
+  var isHostRunner = (config.runnerHost === 'marionette-device-host');
   var lastEvent = 'moz-app-loaded';
-
   var app = new App(client, appPath);
+
   if (app.skip) {
     return;
   }
@@ -49,6 +46,10 @@ marionette('startup event test > ' + appPath + ' >', function() {
   });
 
   test('startup >', function() {
+
+    var goals = PerformanceHelper.getGoalData(client);
+    var memStats = [];
+    var memResults = [];
 
     performanceHelper.repeatWithDelay(function(app, next) {
       var waitForBody = false;
@@ -72,14 +73,31 @@ marionette('startup event test > ' + appPath + ' >', function() {
           return app.close();
         }
 
-        performanceHelper.reportRunDurations(runResults, null, delta);
-        app.close();
+        if (isHostRunner) {
+          // we can only collect memory if we have a host device (adb)
+          var memUsage = performanceHelper.getMemoryUsage(app);
+          var start = runResults.start || 0;
+          app.close();
+          assert.ok(memUsage, 'couldn\'t collect mem usage');
+          memStats.push(memUsage);
+          memResults.push(runResults[lastEvent] - start);
+        } else {
+          app.close();
+        }
+
         assert.ok(Object.keys(runResults).length, 'empty results');
+        performanceHelper.reportRunDurations(runResults, null, delta);
       });
     });
 
+    // results is an Array of values, one per run.
+    assert.ok(memResults.length == config.runs, 'missing memory runs');
+
+    PerformanceHelper.reportDuration(memResults);
+    PerformanceHelper.reportMemory(memStats);
+
     performanceHelper.finish();
 
+    PerformanceHelper.reportGoal(goals);
   });
-
 });

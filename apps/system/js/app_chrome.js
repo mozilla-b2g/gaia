@@ -1,10 +1,22 @@
-/* global ModalDialog, MozActivity */
+/* global ModalDialog */
+/* global MozActivity */
+/* global BookmarksDatabase */
+/* global applications */
+/* global SettingsListener */
 
 'use strict';
 
 (function(exports) {
   var _id = 0;
   var _ = navigator.mozL10n.get;
+
+  var newTabApp = null;
+  SettingsListener.observe('rocketbar.newTabAppURL', '',
+    function(url) {
+      var manifestURL = url ? url.match(/(^.*?:\/\/.*?\/)/)[1] +
+        'manifest.webapp' : '';
+      newTabApp = applications.getByManifestURL(manifestURL);
+    });
 
   /**
    * The chrome UI of the AppWindow.
@@ -34,6 +46,10 @@
     var chrome = this.app.config.chrome;
     if (!chrome) {
       return;
+    }
+
+    if (this.isSearchApp()) {
+      this.app.element.classList.add('search-app');
     }
 
     if (chrome.bar) {
@@ -67,9 +83,9 @@
             '<div class="progress"></div>' +
             '<div class="controls">' +
             ' <button type="button" class="back-button"' +
-            '   alt="Back" data-disabled="disabled"></button>' +
+            '   alt="Back" disabled></button>' +
             ' <button type="button" class="forward-button"' +
-            '   alt="Forward" data-disabled="disabled"></button>' +
+            '   alt="Forward" disabled></button>' +
             ' <div class="urlbar">' +
             '   <div class="title"></div>' +
             '   <button type="button" class="reload-button"' +
@@ -78,7 +94,7 @@
             '     alt="Stop"></button>' +
             ' </div>' +
             ' <button type="button" class="menu-button"' +
-            '   alt="Menu" data-disabled="disabled"></button>' +
+            '   alt="Menu"></button>' +
             '</div>';
   };
 
@@ -99,12 +115,28 @@
   AppChrome.prototype.overflowMenuView = function an_overflowMenuView() {
     return '<div class="overflow-menu hidden">' +
            '  <div class="list">' +
-           '    <div class="option" id="add-to-home">' +
+
+           '    <div class="option" id="new-window">' +
+           '      <div class="icon"></div>' +
+           '      <div class="label" data-l10n-id="new-window">' +
+           '        New Window' +
+           '      </div>' +
+           '    </div>' +
+
+           '    <div class="option" id="add-to-home" data-disabled="true">' +
            '      <div class="icon"></div>' +
            '      <div class="label" data-l10n-id="add-to-home-screen">' +
            '        Add to Home Screen' +
            '      </div>' +
            '    </div>' +
+
+           '    <div class="option" id="share">' +
+           '      <div class="icon"></div>' +
+           '      <div class="label" data-l10n-id="share">' +
+           '        Share' +
+           '      </div>' +
+           '    </div>' +
+
            '  </div>' +
            '</div>';
   };
@@ -119,11 +151,6 @@
     this.backButton = this.element.querySelector('.back-button');
     this.menuButton = this.element.querySelector('.menu-button');
     this.title = this.element.querySelector('.title');
-
-    var dataset = this.app.config;
-    if (dataset.originURL || dataset.searchURL) {
-      delete this.menuButton.dataset.disabled;
-    }
 
     this.bar = this.element.querySelector('.bar');
     if (this.bar) {
@@ -228,14 +255,27 @@
         this.hideOverflowMenu();
         break;
 
+      case this.newWindowButton:
+        evt.stopImmediatePropagation();
+        this.onNewWindow();
+        break;
+
       case this.addToHomeButton:
         evt.stopImmediatePropagation();
         this.onAddToHome();
+        break;
+
+      case this.shareButton:
+        evt.stopImmediatePropagation();
+        this.onShare();
         break;
     }
   };
 
   AppChrome.prototype.handleScrollEvent = function ac_handleScrollEvent(evt) {
+    if (this.isSearchApp()) {
+      return;
+    }
     // Ideally we'd animate based on scroll position, but until we have
     // the necessary spec and implementation, we'll animate completely to
     // the expanded or collapsed state depending on whether it's at the
@@ -290,13 +330,20 @@
         this._overflowMenu.removeEventListener('transitionend', this);
       }
 
+      if (this.newWindowButton) {
+        this.newWindowButton.removeEventListener('click', this);
+      }
+
       if (this.addToHomeButton) {
         this.addToHomeButton.removeEventListener('click', this);
+      }
+
+      if (this.shareButton) {
+        this.shareButton.removeEventListener('click', this);
       }
     } else {
       this.killButton.removeEventListener('click', this);
     }
-
 
     if (!this.app) {
       return;
@@ -409,6 +456,25 @@
       this.title.textContent = title;
     };
 
+  AppChrome.prototype.updateAddToHomeButton =
+    function ac_updateAddToHomeButton() {
+      if (!this.addToHomeButton) {
+        return;
+      }
+
+      // Enable/disable the bookmark option
+      BookmarksDatabase.get(this._currentURL).then(function resolve(result) {
+        if (result) {
+          this.addToHomeButton.dataset.disabled = true;
+        } else {
+          delete this.addToHomeButton.dataset.disabled;
+        }
+      }.bind(this),
+      function reject() {
+        this.addToHomeButton.dataset.disabled = true;
+      }.bind(this));
+    };
+
   AppChrome.prototype.handleLocationChanged =
     function ac_handleLocationChange(evt) {
       if (!this.app) {
@@ -423,21 +489,15 @@
 
       if (this.backButton && this.forwardButton) {
         this.app.canGoForward(function forwardSuccess(result) {
-          if (result === true) {
-            delete this.forwardButton.dataset.disabled;
-          } else {
-            this.forwardButton.dataset.disabled = true;
-          }
+          this.forwardButton.disabled = !result;
         }.bind(this));
 
         this.app.canGoBack(function backSuccess(result) {
-          if (result === true) {
-            delete this.backButton.dataset.disabled;
-          } else {
-            this.backButton.dataset.disabled = true;
-          }
+          this.backButton.disabled = !result;
         }.bind(this));
       }
+
+      this.updateAddToHomeButton();
     };
 
   AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
@@ -481,20 +541,26 @@
     return this.element.classList.contains('maximized');
   };
 
+  AppChrome.prototype.isSearch = function ac_isSearch() {
+    var dataset = this.app.config;
+    return dataset.searchURL && this._currentURL === dataset.searchURL;
+  };
+
+  AppChrome.prototype.isSearchApp = function() {
+    return this.app.config.manifest &&
+      this.app.config.manifest.role === 'search';
+  };
+
   AppChrome.prototype.addBookmark = function ac_addBookmark() {
     var dataset = this.app.config;
-    if (!dataset.originURL && !dataset.searchURL) {
-      return;
-    }
 
-    var name, url;
-    if (dataset.originURL) {
-      name = dataset.originName;
-      url = dataset.originURL;
-    } else {
+    var name;
+    if (this.isSearch()) {
       name = dataset.searchName;
-      url = dataset.searchURL;
+    } else {
+      name = this.title.textContent;
     }
+    var url = this._currentURL;
 
     var activity = new MozActivity({
       name: 'save-bookmark',
@@ -508,18 +574,11 @@
       }
     });
 
-    activity.onsuccess = function onsuccess() {
-      if (dataset.originURL) {
-        delete dataset.originURL;
-      } else {
-        delete dataset.searchURL;
-      }
-
-      if (!dataset.originURL &&
-          !dataset.searchURL) {
-        this.menuButton.dataset.disabled = true;
-      }
-    }.bind(this);
+    if (this.addToHomeButton) {
+      activity.onsuccess = function onsuccess() {
+        this.addToHomeButton.dataset.disabled = true;
+      }.bind(this);
+    }
   };
 
   AppChrome.prototype.onAddBookmark = function ac_onAddBookmark() {
@@ -535,17 +594,22 @@
       options: []
     };
 
-    var dataset = this.app.config;
-
-    if (dataset.originURL) {
-      data.options.push({ id: 'origin', text: dataset.originName });
-    }
-
-    if (dataset.searchURL) {
+    if (this.isSearch()) {
+      var dataset = this.app.config;
       data.options.push({ id: 'search', text: dataset.searchName });
+    } else {
+      data.options.push({ id: 'origin', text: this.title.textContent });
     }
 
     ModalDialog.selectOne(data, selected);
+  };
+
+  AppChrome.prototype.onNewWindow = function ac_onNewWindow() {
+    if (newTabApp) {
+      newTabApp.launch();
+    }
+
+    this.hideOverflowMenu();
   };
 
   AppChrome.prototype.onAddToHome = function ac_onAddToHome() {
@@ -576,13 +640,21 @@
                                             this.overflowMenuView());
         this._overflowMenu = this.containerElement.
           querySelector('.overflow-menu');
-        this.addToHomeButton = this.containerElement.
+        this.newWindowButton = this._overflowMenu.
+          querySelector('#new-window');
+        this.addToHomeButton = this._overflowMenu.
           querySelector('#add-to-home');
+        this.shareButton = this._overflowMenu.
+          querySelector('#share');
 
         this._overflowMenu.addEventListener('click', this);
         this._overflowMenu.addEventListener('animationend', this);
         this._overflowMenu.addEventListener('transitionend', this);
+        this.newWindowButton.addEventListener('click', this);
         this.addToHomeButton.addEventListener('click', this);
+        this.shareButton.addEventListener('click', this);
+
+        this.updateAddToHomeButton();
       }
 
       return this._overflowMenu;
@@ -600,6 +672,25 @@
         !this.overflowMenu.classList.contains('showing')) {
       this.overflowMenu.classList.add('hiding');
     }
+  };
+
+  AppChrome.prototype.onShare = function ac_onShare() {
+    this.shareButton.dataset.disabled = true;
+
+    // Fire web activity to share URL
+    var activity = new MozActivity({
+      name: 'share',
+      data: {
+        type: 'url',
+        url: this._currentURL
+      }
+    });
+
+    activity.onsuccess = activity.onerror = (function() {
+      delete this.shareButton.dataset.disabled;
+    }).bind(this);
+
+    this.hideOverflowMenu();
   };
 
   exports.AppChrome = AppChrome;

@@ -4,7 +4,12 @@ var assert = require('assert');
 var App = require('./app');
 var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
 var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
+var perfUtils = require('./perf-utils');
 var appPath = config.appPath;
+
+if (perfUtils.isWhitelisted(config.whitelists.mozLaunch, appPath)) {
+  return;
+}
 
 var arr = appPath.split('/');
 var manifestPath = arr[0];
@@ -43,6 +48,8 @@ marionette('startup test > ' + appPath + ' >', function() {
     performanceHelper = new PerformanceHelper({ app: app });
 
     PerformanceHelper.registerLoadTimeListener(client);
+
+    var goals = PerformanceHelper.getGoalData(client);
 
     var memStats = [];
     performanceHelper.repeatWithDelay(function(app, next) {
@@ -83,6 +90,7 @@ marionette('startup test > ' + appPath + ' >', function() {
 
     PerformanceHelper.reportDuration(results);
     PerformanceHelper.reportMemory(memStats);
+    PerformanceHelper.reportGoal(goals);
 
     PerformanceHelper.unregisterLoadTimeListener(client);
   });

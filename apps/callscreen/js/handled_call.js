@@ -246,6 +246,13 @@ HandledCall.prototype.formatPhoneNumber =
       return;
     }
 
+    // Don't format if the call is in a conference.
+    if (this.call.group) {
+      this.numberNode.style = '';
+      return;
+    }
+
+
     var scenario = CallScreen.getScenario();
     // To cover the second incoming call sub-scenario of the call waiting one,
     //  we have to check if the current call is in incoming state and if the
@@ -275,11 +282,18 @@ HandledCall.prototype.restorePhoneNumber =
 };
 
 HandledCall.prototype.updateDirection = function hc_updateDirection() {
+  var self = this;
   var classList = this.node.classList;
   if (this._initialState == 'incoming') {
     classList.add('incoming');
+    LazyL10n.get(function localized(_) {
+      self.node.setAttribute('aria-label', _('incoming'));
+    });
   } else {
     classList.add('outgoing');
+    LazyL10n.get(function localized(_) {
+      self.node.setAttribute('aria-label', _('outgoing'));
+    });
   }
 
   if (this.call.state == 'connected') {

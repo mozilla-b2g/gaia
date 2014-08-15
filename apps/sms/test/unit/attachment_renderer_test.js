@@ -1,5 +1,7 @@
 /*global MocksHelper, MockL10n, loadBodyHTML, Attachment, AttachmentRenderer,
-         Promise, Utils */
+         Promise, Utils,
+         AssetsHelper
+*/
 
 'use strict';
 
@@ -50,33 +52,36 @@ suite('AttachmentRenderer >', function() {
       type: 'image/jpeg'
     });
 
-    // create sample blobs from real files: image, audio, video
-    var assetsNeeded = 0;
-    function getAsset(filename, loadCallback) {
-      assetsNeeded++;
-      var req = new XMLHttpRequest();
-      req.open('GET', filename, true);
-      req.responseType = 'blob';
-      req.onload = function() {
-        loadCallback(req.response);
-        if (--assetsNeeded === 0) {
-          done();
-        }
-      };
-      req.send();
-    }
-    getAsset('/test/unit/media/kitten-450.jpg', function(blob) {
-      testImageBlob_small = blob; // image < 295 kB => create thumbnail
-    });
-    getAsset('/test/unit/media/IMG_0554.jpg', function(blob) {
-      testImageBlob = blob;
-    });
-    getAsset('/test/unit/media/audio.oga', function(blob) {
-      testAudioBlob = blob;
-    });
-    getAsset('/test/unit/media/video.ogv', function(blob) {
-      testVideoBlob = blob;
-    });
+    var blobPromises = [
+      AssetsHelper.generateImageBlob(300, 300, 'image/jpeg', 0.25).then(
+        (blob) => testImageBlob_small = blob
+      ),
+      AssetsHelper.generateImageBlob(1400, 1400, 'image/jpeg', 1).then(
+        (blob) => testImageBlob = blob
+      ),
+      AssetsHelper.loadFileBlob('/test/unit/media/audio.oga').then(
+        (blob) => testAudioBlob = blob
+      ),
+      AssetsHelper.loadFileBlob('/test/unit/media/video.ogv').then(
+        (blob) => testVideoBlob = blob
+      )
+    ];
+
+    Promise.all(blobPromises).then(() => {
+      done(() => {
+        var mmsSizeLimit = 300 * 1024;
+
+        assert.isTrue(
+          testImageBlob_small.size < mmsSizeLimit,
+          'Image blob should be greater than MMS size limit'
+        );
+
+        assert.isTrue(
+          testImageBlob.size > mmsSizeLimit,
+          'Image blob should be greater than MMS size limit'
+        );
+      });
+    }, done);
   });
 
   suiteTeardown(function() {

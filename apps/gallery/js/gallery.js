@@ -741,12 +741,12 @@ function setNFCSharing(enable) {
       if (fileInfo.metadata.video) {
         // share video
         getVideoFile(fileInfo.metadata.video, function(file) {
-          navigator.mozNfc.getNFCPeer(event.detail).sendFile(file);
+          event.peer.sendFile(file);
         });
       } else {
         // share photo
         photodb.getFile(fileInfo.name, function(file) {
-          navigator.mozNfc.getNFCPeer(event.detail).sendFile(file);
+          event.peer.sendFile(file);
         });
       }
     };

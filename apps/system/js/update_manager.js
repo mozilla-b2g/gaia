@@ -259,7 +259,7 @@ var UpdateManager = {
 
     CustomDialog.show(
     _('systemUpdate'),
-    _('downloadUpdatesVia2GForbidden'),
+    _('downloadUpdatesVia2GForbidden2'),
     ok);
   },
 

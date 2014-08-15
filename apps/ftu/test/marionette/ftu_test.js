@@ -43,6 +43,33 @@ marionette('First Time Use >', function() {
     clickThruPanel('#finish-screen', undefined);
   });
 
+  suite('FTU Languages', function() {
+    var quickly;
+
+    setup(function() {
+      // allow findElement to fail quickly
+      quickly = client.scope({ searchTimeout: 50 });
+      quickly.helper.client = quickly;
+    });
+
+    test('FTU Languages without pseudo localization', function() {
+      quickly.settings.set('devtools.qps.enabled', false);
+      quickly.apps.switchToApp(FTU);
+      quickly.helper.waitForElement('#languages');
+      // the input is hidden so we can't use waitForElement
+      quickly.findElement('input[value="en-US"]');
+      quickly.helper.waitForElementToDisappear('input[value="qps-ploc"]');
+    });
+
+    test('FTU Languages with pseudo localization', function() {
+      quickly.settings.set('devtools.qps.enabled', true);
+      quickly.apps.switchToApp(FTU);
+      quickly.helper.waitForElement('#languages');
+      quickly.findElement('input[value="en-US"]');
+      quickly.findElement('input[value="qps-ploc"]');
+    });
+  });
+
   test('FTU Wifi Scanning Tests', function() {
     client.apps.switchToApp(FTU);
     clickThruPanel('#languages', '#forward');

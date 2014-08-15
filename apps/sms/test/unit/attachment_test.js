@@ -1,5 +1,7 @@
 /*global MocksHelper, MockL10n, loadBodyHTML, Attachment, AttachmentMenu,
-         AttachmentRenderer, MimeMapper, MockMozActivity, Promise, Utils */
+         AttachmentRenderer, MimeMapper, MockMozActivity, Promise, Utils,
+         AssetsHelper
+*/
 
 'use strict';
 
@@ -30,24 +32,15 @@ suite('attachment_test.js', function() {
     this.realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    // create sample blobs from real files: image, audio, video
-    var assetsNeeded = 0;
-    function getAsset(filename, loadCallback) {
-      assetsNeeded++;
-      var req = new XMLHttpRequest();
-      req.open('GET', filename, true);
-      req.responseType = 'blob';
-      req.onload = function() {
-        loadCallback(req.response);
-        if (--assetsNeeded === 0) {
-          done();
-        }
-      };
-      req.send();
-    }
-    getAsset('/test/unit/media/IMG_0554.jpg', function(blob) {
-      testImageBlob = blob;
-    });
+    AssetsHelper.generateImageBlob(1400, 1400, 'image/jpeg', 1).then((blob) => {
+      done(() => {
+        assert.isTrue(
+          blob.size > 300 * 1024,
+          'Image blob should be greater than MMS size limit'
+        );
+        testImageBlob = blob;
+      });
+    }, done);
   });
 
   suiteTeardown(function() {
@@ -135,26 +128,28 @@ suite('attachment_test.js', function() {
     });
 
     test('Open normal image attachment', function() {
+      var fileName = 'jpeg_image.jpg';
       var attachment = new Attachment(testImageBlob, {
-        name: 'IMG_0554.jpg'
+        name: fileName
       });
       var typeSpy = MimeMapper.guessTypeFromFileProperties;
       var matchSpy = MimeMapper.ensureFilenameMatchesType;
       attachment.view();
-      assert.ok(typeSpy.calledWith('IMG_0554.jpg', 'image/jpeg'));
-      assert.ok(matchSpy.calledWith('IMG_0554.jpg', typeSpy.returnValues[0]));
+      assert.ok(typeSpy.calledWith(fileName, 'image/jpeg'));
+      assert.ok(matchSpy.calledWith(fileName, typeSpy.returnValues[0]));
       assert.equal(MockMozActivity.calls.length, 1);
     });
 
     test('Filename has no extension', function() {
+      var fileName = 'jpeg_image.jpg';
       var attachment = new Attachment(testImageBlob, {
-        name: 'IMG_0554'
+        name: fileName
       });
       var typeSpy = MimeMapper.guessTypeFromFileProperties;
       var matchSpy = MimeMapper.ensureFilenameMatchesType;
       attachment.view();
-      assert.ok(typeSpy.calledWith('IMG_0554', 'image/jpeg'));
-      assert.ok(matchSpy.calledWith('IMG_0554', typeSpy.returnValues[0]));
+      assert.ok(typeSpy.calledWith(fileName, 'image/jpeg'));
+      assert.ok(matchSpy.calledWith(fileName, typeSpy.returnValues[0]));
       assert.equal(MockMozActivity.calls.length, 1);
     });
 
@@ -192,7 +187,7 @@ suite('attachment_test.js', function() {
         this.sinon.stub(window, 'alert');
 
         var attachment = new Attachment(testImageBlob, {
-          name: 'IMG_0554.jpg'
+          name: 'jpeg_image.jpg'
         });
 
         attachment.view();

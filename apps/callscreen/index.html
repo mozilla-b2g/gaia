@@ -20,6 +20,7 @@
     <link rel="resource" type="application/l10n" href="/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/phone_types.ini">
+    <link rel="resource" type="application/l10n" href="/shared/locales/lockscreen.ini">
     <!-- Making sure the shared resources will be copy into the zip
     <script type="application/javascript" src="/shared/js/l10n.js"></script>
     <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
@@ -73,7 +74,7 @@
         <div id="lockscreen-date"></div>
       </div>
       <article id="calls" data-count="0">
-        <section id="handled-call-template" hidden>
+        <section id="handled-call-template" role="dialog" hidden>
           <div class="hangup-button" role="button" data-l10n-id="hangup-a11y-button"></div>
           <div class="numberWrapper direction-status-bar">
             <div class="number font-light"></div>

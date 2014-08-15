@@ -93,9 +93,6 @@ NODE_MODULES_SRC?=modules.tar
 # tv
 GAIA_DEVICE_TYPE?=phone
 
-# Haida customization
-# Pass 1 to enable haida features
-HAIDA?=0
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
@@ -474,13 +471,13 @@ define BUILD_CONFIG
 	"GAIA_MEMORY_PROFILE" : "$(GAIA_MEMORY_PROFILE)", \
 	"NOFTU" : "$(NOFTU)", \
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
-	"HAIDA" : $(HAIDA), \
 	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
 	"SETTINGS_PATH" : "$(subst \,\\,$(SETTINGS_PATH))", \
 	"FTU_PING_URL": "$(FTU_PING_URL)", \
 	"KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)", \
 	"CONTACTS_IMPORT_SERVICES_PATH" : "$(CONTACTS_IMPORT_SERVICES_PATH)", \
 	"STAGE_DIR" : "$(STAGE_DIR)", \
+	"GAIA_APP_TARGET" : "$(GAIA_APP_TARGET)", \
 	"VARIANT_PATH" : "$(VARIANT_PATH)" \
 }
 endef
@@ -638,44 +635,9 @@ endif # MINGW32
 endif # XULRUNNER_SDK_DOWNLOAD
 endif # USE_LOCAL_XULRUNNER_SDK
 
-# Optional files that may be provided to extend the set of default
-# preferences installed for gaia.  If the preferences in these files
-# conflict, the result is undefined.
-EXTENDED_PREF_FILES = \
-  custom-prefs.js \
-  gps-prefs.js \
-  payment-prefs.js \
-
-ifeq ($(GAIA_APP_TARGET), engineering)
-EXTENDED_PREF_FILES += payment-dev-prefs.js
-endif
-
-ifeq ($(DOGFOOD),1)
-EXTENDED_PREF_FILES += dogfood-prefs.js
-endif
-
-# Optional partner provided preference files. They will be added
-# after the ones on the EXTENDED_PREF_FILES and they will be read
-# from the GAIA_DISTRIBUTION_DIR directory
-PARTNER_PREF_FILES = \
-  partner-prefs.js\
-
 # Generate profile/prefs.js
 preferences: profile-dir $(XULRUNNER_BASE_DIRECTORY)
-ifeq ($(BUILD_APP_NAME),*)
 	@$(call run-js-command,preferences)
-	@$(foreach prefs_file,$(addprefix build/config/,$(EXTENDED_PREF_FILES)),\
-	  if [ -f $(prefs_file) ]; then \
-	    cat $(prefs_file) >> $(PROFILE_FOLDER)/user.js; \
-	  fi; \
-	)
-	@echo "" >> $(PROFILE_FOLDER)/user.js
-	@$(foreach prefs_file,$(addprefix $(GAIA_DISTRIBUTION_DIR)/,$(PARTNER_PREF_FILES)),\
-	  if [ -f $(prefs_file) ]; then \
-	    cat $(prefs_file) >> $(PROFILE_FOLDER)/user.js; \
-	  fi; \
-	)
-endif
 
 # Generate $(PROFILE_FOLDER)/extensions
 EXT_DIR=$(PROFILE_FOLDER)/extensions
@@ -900,7 +862,7 @@ endif
 endif
 
 lint:
-	NO_XFAIL=1 $(MAKE) -k gjslint hint jsonlint
+	NO_XFAIL=1 $(MAKE) -k gjslint hint jsonlint csslint
 
 gjslint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/\/\*\*$$//' | paste -s -d, -)
 gjslint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)

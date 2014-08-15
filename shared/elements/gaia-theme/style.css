@@ -94,7 +94,8 @@ Customizable styles?
 
 .theme-media {
   /* variables */
-  --header-background: var(--color-gamma);
+  --background: var(--color-alpha);
+  --header-background: var(--color-alpha);
   --header-nav-button-color:  var(--color-beta);
   --header-nav-button-color-active: var(--color-beta);
   --header-button-color: var(--color-brand-blue);
@@ -134,6 +135,7 @@ Customizable styles?
 
 .theme-settings {
   /* variables */
+  --background: var(--color-iota);
   --header-background: var(--color-iota);
   --header-nav-button-color:  var(--color-alpha);
   --header-nav-button-color-active: rgba(51,51,51,0.2);

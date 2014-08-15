@@ -1,3 +1,6 @@
+gaia-subheader[hidden] {
+  display: none;
+}
 
 gaia-subheader {
   display: block;

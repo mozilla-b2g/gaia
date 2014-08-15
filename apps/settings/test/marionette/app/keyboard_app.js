@@ -14,7 +14,7 @@ function KeyboardApp(client) {
 module.exports = KeyboardApp;
 
 KeyboardApp.Selectors = {
-  'settingsBackButton': '#back'
+  'settingsHeader': '#header'
 };
 
 KeyboardApp.SETTINGS_LAUNCH_PATH = 'app://keyboard.gaiamobile.org/' +
@@ -68,7 +68,7 @@ KeyboardApp.prototype = {
   },
 
   goBackToSettingsApp: function() {
-    var backButton = this.waitForElement('settingsBackButton');
-    backButton.click();
+    var header = this.waitForElement('settingsHeader');
+    header.tap(25, 25);
   }
 };

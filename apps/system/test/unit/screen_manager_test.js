@@ -203,6 +203,13 @@ suite('system/ScreenManager', function() {
       assert.isTrue(stubTurnOn.called);
     });
 
+    test('Testing accessibility action event', function() {
+      var stubReconfigScreenTimeout = this.sinon.stub(ScreenManager,
+        '_reconfigScreenTimeout');
+      ScreenManager.handleEvent({'type': 'accessibility-action'});
+      assert.isTrue(stubReconfigScreenTimeout.called);
+    });
+
     suite('Test nfc-tech events', function() {
       test('if _inTransition is true', function() {
         var stubTurnScreenOn = this.sinon.stub(ScreenManager, 'turnScreenOn');

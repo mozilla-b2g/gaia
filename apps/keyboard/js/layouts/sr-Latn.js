@@ -3,7 +3,7 @@ Keyboards['sr-Latn'] = {
   shortLabel: 'Sr',
   menuLabel: 'Srpski',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'number', 'password'],
   autoCorrectLanguage: 'sr-Latn',
   alt: {
     c: 'čć',
@@ -38,20 +38,25 @@ Keyboards['sr-Latn'] = {
       '?': '¿',
       '!': '¡'
     },
+    // These are based on the en layout.
     keys: [
       [
-        { value: '1' }, { value: '2' }, { value: '3' } , { value: '4' },
-        { value: '5' } , { value: '6' }, { value: '7' } , { value: '8' },
+        { value: '1' }, { value: '2' }, { value: '3' }, { value: '4' },
+        { value: '5' }, { value: '6' }, { value: '7' }, { value: '8' },
         { value: '9' }, { value: '0' }
       ], [
-        { value: '@', hidden: ['email'] }, { value: '#' }, { value: '$' },
-        { value: '%' }, { value: '&' } , { value: '*' }, { value: '-' },
-        { value: '+' }, { value: '(' }, { value: ')' },
-        { value: '_', visible: ['email'] }
+        { value: '@' }, { value: '#' },
+        { value: '$', className: 'alternate-indicator' }, { value: '&' },
+        { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
+        { value: '(' }, { value: ')' }
       ], [
         { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
-        { value: '!' }, { value: '\"' }, { value: "'" }, { value: ':' },
-        { value: ';' }, { value: '/' }, { value: '?' },
+        { value: '+',
+          supportsSwitching: {
+            value: ','
+          }
+        }, { value: ':' }, { value: ';' }, { value: '"' },
+        { value: '\'' }, { value: '?' }, { value: '!' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },

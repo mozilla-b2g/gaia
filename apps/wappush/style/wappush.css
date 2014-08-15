@@ -19,8 +19,17 @@ html,body {
   z-index: 1;
 }
 
+/**
+ * 1. COMPLEX: Scoped style-sheets within <gaia-header>
+ * trump all other rules. !important is required
+ * for an app to over-ride the default appearance
+ * of content within the custom-element. This may
+ * change when we get `:host` and `:content` selectors
+ * in shadow-dom.
+ */
+
 #accept.hidden {
-  display: none;
+  display: none !important; /* 1 */
 }
 
 #si-sl-screen {

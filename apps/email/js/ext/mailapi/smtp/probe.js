@@ -142,7 +142,7 @@ NetSocket.prototype.upgradeToSecure = function() {
 NetSocket.prototype.end = function() {
   if (this.destroyed)
     return;
-  this._sendMessage('end');
+  this._sendMessage('close');
   this.destroyed = true;
   this._unregisterWithRouter();
 };

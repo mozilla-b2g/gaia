@@ -1,8 +1,9 @@
 Keyboards['en-Neo'] = {
   label: 'English - Neo',
+  shortLabel: 'En',
   menuLabel: 'Neo',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'number', 'password'],
   autoCorrectLanguage: 'en_us',
   alt: {
     a: 'áàâäåãāæ',
@@ -39,6 +40,7 @@ Keyboards['en-Neo'] = {
     ]
   ],
   alternateLayout: {
+    needsCommaKey: true,
     alt: {
       '0': 'º',
       '1': '1st ',
@@ -78,6 +80,7 @@ Keyboards['en-Neo'] = {
     ]
   },
   symbolLayout: {
+    needsCommaKey: true,
     keys: [
       [
         { value: '§' }, { value: '_' }, { value: '[' }, { value: ']' },

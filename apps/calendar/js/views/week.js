@@ -251,7 +251,8 @@ Calendar.ns('Views').Week = (function() {
     changeDate: function(date) {
       // XXX: good hook to update header here too maybe?
       var details = this.weekDetails(date);
-      Parent.prototype.changeDate.call(this, details.start);
+      Calendar.Views.TimeParent.prototype
+        .changeDate.call(this, details.start);
     },
 
     render: function() {

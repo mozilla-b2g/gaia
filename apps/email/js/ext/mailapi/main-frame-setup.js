@@ -412,6 +412,15 @@ MailAccount.prototype = {
     this.notifyOnNew = wireRep.notifyOnNew;
     this.playSoundOnSend = wireRep.playSoundOnSend;
     this._wireRep.defaultPriority = wireRep.defaultPriority;
+
+    for (var i = 0; i < wireRep.identities.length; i++) {
+      if (this.identities[i]) {
+        this.identities[i].__update(wireRep.identities[i]);
+      } else {
+        this.identities.push(new MailSenderIdentity(this._api,
+                                        wireRep.identities[i]));
+      }
+    }
   },
 
   __die: function() {
@@ -511,6 +520,8 @@ function MailSenderIdentity(api, wireRep) {
   this.address = wireRep.address;
   this.replyTo = wireRep.replyTo;
   this.signature = wireRep.signature;
+  this.signatureEnabled = wireRep.signatureEnabled;
+
 }
 MailSenderIdentity.prototype = {
   toString: function() {
@@ -518,6 +529,34 @@ MailSenderIdentity.prototype = {
   },
   toJSON: function() {
     return { type: 'MailSenderIdentity' };
+  },
+
+  __update: function(wireRep) {
+    this.id = wireRep.id;
+    this.name = wireRep.name;
+    this.address = wireRep.address;
+    this.replyTo = wireRep.replyTo;
+    this.signature = wireRep.signature;
+    this.signatureEnabled = wireRep.signatureEnabled;
+  },
+  /**
+   * Modifies the identity. Applies all of the changes in mods
+   * and leaves all other values the same.
+   *
+   * @param  {Object}   mods     The changes to be applied
+   * @param  {Function} callback
+   */
+  modifyIdentity: function(mods, callback) {
+    // These update signature data immediately, so that the UI
+    // reflects the changes properly before the backend properly
+    // updates the data
+    if (typeof mods.signature !== 'undefined') {
+      this.signature = mods.signature;
+    }
+    if (typeof mods.signatureEnabled !== 'undefined') {
+      this.signatureEnabled = mods.signatureEnabled;
+    }
+    this._api._modifyIdentity(this, mods, callback);
   },
 
   __die: function() {
@@ -612,7 +651,7 @@ MailFolder.prototype = {
     this.neededForHierarchy = !this.selectable;
 
     /**
-     *  isValidMoveTarget denotes whether this folder is a valid 
+     *  isValidMoveTarget denotes whether this folder is a valid
      *  place for messages to be moved into.
      */
     switch (this.type) {
@@ -3110,9 +3149,15 @@ MailAPI.prototype = {
     }
     delete this._pendingRequests[msg.handle];
 
-    // The account info here is currently for unit testing only; it's our wire
-    // protocol instead of a full MailAccount.
-    req.callback.call(null, msg.error, msg.errorDetails, msg.account);
+    // We create this account to expose modifications functions to the
+    // frontend before we have access to the full accounts slice.  Note that
+    // we may not have an account if we failed to create the account!
+    var account;
+    if (msg.account) {
+      account = new MailAccount(this, msg.account, null);
+    }
+
+    req.callback.call(null, msg.error, msg.errorDetails, account);
     return true;
   },
 
@@ -3162,6 +3207,27 @@ MailAPI.prototype = {
       type: 'deleteAccount',
       accountId: account.id,
     });
+  },
+
+  _modifyIdentity: function ma__modifyIdentity(identity, mods, callback) {
+    var handle = this._nextHandle++;
+    this._pendingRequests[handle] = {
+      type: 'modifyIdentity',
+      callback: callback,
+    };
+    this.__bridgeSend({
+      type: 'modifyIdentity',
+      identityId: identity.id,
+      mods: mods,
+      handle: handle
+    });
+  },
+
+  _recv_modifyIdentity: function(msg) {
+    var req = this._pendingRequests[msg.handle];
+    delete this._pendingRequests[msg.handle];
+    req.callback && req.callback();
+    return true;
   },
 
   /**
@@ -4352,17 +4418,25 @@ define('mailapi/worker-support/cronsync-main',['require','evt'],function(require
      */
     ensureSync: function (syncData) {
       var mozAlarms = navigator.mozAlarms;
-      if (!mozAlarms)
+      if (!mozAlarms) {
+        console.warn('no mozAlarms support!');
         return;
+      }
 
       debug('ensureSync called');
 
       var request = mozAlarms.getAll();
 
       request.onsuccess = function(event) {
+        debug('success!');
+
         var alarms = event.target.result;
-        if (!alarms)
-          return;
+        // If there are no alarms a falsey value may be returned.  We want
+        // to not die and also make sure to signal we completed, so just make
+        // an empty list.
+        if (!alarms) {
+          alarms = [];
+        }
 
         // Find all IDs being tracked by alarms
         var expiredAlarmIds = [],
@@ -4417,6 +4491,7 @@ define('mailapi/worker-support/cronsync-main',['require','evt'],function(require
           if (alarmCount < alarmMax)
             return;
 
+          debug('ensureSync completed');
           // Indicate ensureSync has completed because the
           // back end is waiting to hear alarm was set before
           // triggering sync complete.
@@ -5343,6 +5418,9 @@ var self = {
         break;
       case 'upgradeToSecure':
         upgradeToSecure(uid);
+        break;
+      default:
+        console.error('Unhandled net-main command:', cmd);
         break;
     }
   }

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-  <body role="application" class="skin-organic uninit">
+  <body role="application" class="skin-organic theme-settings uninit">
     <!-- Enable Bluetooth View -->
     <form role="dialog" data-type="confirm" id="enable-bluetooth-view" hidden>
       <section>
@@ -31,21 +31,20 @@
     </form>
     <!-- Devices List View -->
     <section role="region" id="devices-list-view" class="current" data-rendered="true" hidden>
-      <header>
-        <a href="#" id="cancel-activity"><span class="icon icon-close"></span></a>
+      <gaia-header id="devices-list-header" action="close">
         <h1 data-l10n-id="bluetooth"> Bluetooth </h1>
-      </header>
+      </gaia-header>
       <div>
         <!-- Devices List View :: Paired Devices List -->
-        <header id="bluetooth-paired-title">
-          <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
-        </header>
+        <gaia-subheader id="bluetooth-paired-title" skin="organic" data-l10n-id="bluetooth-paired-devices">
+          Paired Devices
+        </gaia-subheader>
         <ul id="bluetooth-paired-devices" class="devices">
         </ul>
         <!-- Devices List View :: Found Devices List -->
-        <header id="bluetooth-found-title">
-          <h2 data-l10n-id="bluetooth-devices-in-area">Devices found</h2>
-        </header>
+        <gaia-subheader id="bluetooth-found-title" skin="organic" data-l10n-id="bluetooth-devices-in-area">
+          Devices found
+        </gaia-subheader>
         <ul id="bluetooth-devices" class="devices">
         </ul>
         <!-- Devices List View :: Search Button -->

@@ -1,29 +1,26 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_language_list.js');
 requireApp('ftu/js/language.js');
 
 suite('languages >', function() {
   var realSettings;
+  var realLanguageList;
   suiteSetup(function() {
 
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+    realLanguageList = window.LanguageList;
+    window.LanguageList = MockLanguageList;
     LanguageManager.settings = MockNavigatorSettings;
-    LanguageManager._languages = null;
     LanguageManager._kbLayoutList = null;
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realSettings;
     realSettings = null;
-  });
-
-  test('loads languages from file', function(done) {
-    LanguageManager.getSupportedLanguages(function() {
-      assert.isNotNull(LanguageManager._languages);
-      done();
-    });
+    window.LanguageList = realLanguageList;
   });
 
   test('change language', function() {
@@ -40,20 +37,18 @@ suite('languages >', function() {
   });
 
   test('build language list', function(done) {
-    var language = 'en-US';
-
     var section = document.createElement('section');
     section.id = 'languages';
     document.body.appendChild(section);
     var list = document.createElement('ul');
     section.appendChild(list);
 
-    LanguageManager.buildLanguageList(language);
+    LanguageManager.buildLanguageList();
     assert.equal(document.querySelectorAll('li').length,
-                 Object.keys(LanguageManager._languages).length);
+                 Object.keys(LanguageList._languages).length);
     var selected = document.querySelectorAll('input[type="radio"]:checked');
     assert.equal(selected.length, 1);
-    assert.equal(selected[0].value, language);
+    assert.equal(selected[0].value, 'en-US');
     done();
   });
 

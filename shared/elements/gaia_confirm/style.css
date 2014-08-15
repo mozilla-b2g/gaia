@@ -4,9 +4,7 @@
 
 /* Main dialog setup */
 gaia-confirm {
-  background:
-    url(images/pattern.png) repeat left top,
-    url(images/gradient.png) no-repeat left top / 100% 100%;
+  background: #2d2d2d;
   overflow: hidden;
   position: fixed;
   top: 0;
