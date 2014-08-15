@@ -305,7 +305,7 @@
             // Disable the panel
             _enablePanel('verification');
             // We udpate the button
-            _setMultibuttonStep('verify');
+            _setMultibuttonStep('sending');
             // As we are resending, we reset the conditions
             isVerifying = false;
             isTimeoutOver = false;
