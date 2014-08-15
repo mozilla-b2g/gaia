@@ -77,19 +77,6 @@ Keyboards.symbolLayout = {
   ]
 };
 
-Keyboards.numberLayout = {
-  width: 3,
-  keyClassName: 'big-key special-key',
-  keys: [
-    [ { value: '1'}, { value: '2'}, { value: '3'} ],
-    [ { value: '4'}, { value: '5'}, { value: '6'} ],
-    [ { value: '7'}, { value: '8'}, { value: '9'} ],
-    [ { value: '.', longPressValue: ',' },
-      { value: '0', longPressValue: '-' },
-      { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE } ]
-  ]
-};
-
 Keyboards.pinLayout = {
   width: 3,
   keyClassName: 'big-key special-key bottom-symbol',
@@ -171,7 +158,7 @@ LayoutLoader.prototype._normalizeAlternatives = function(layoutName) {
   // so trying to match every possible returned value of
   // layoutManager._getAlternativeLayoutName() is sufferent here.
   var subLayoutNames = ['alternateLayout', 'symbolLayout', 'telLayout',
-    'pinLayout', 'numberLayout', layoutName + '-sms'];
+    'pinLayout', layoutName + '-sms'];
   subLayoutNames.forEach(function(name) {
     if (name in mainLayout) {
       layouts.push(mainLayout[name]);
