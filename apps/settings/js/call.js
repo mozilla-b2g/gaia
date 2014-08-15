@@ -975,14 +975,23 @@ require([
         request.onsuccess = function() {
           console.log('SUCCESS!');
           console.log('RESULT: ' + JSON.stringify(request.result));
-          //TODO update state of the rest of the inputs
+
+          // Barring All Outgoing disables the rest of outgoing options
+          if (previousState['li-cb-baoc'].checked) {
+            previousState['li-cb-boic'].disabled = true;
+            previousState['li-cb-boic-exhc'].disabled = true;
+          }
+          // Barring All Incoming disables the rest of incoming options
+          if (previousState['li-cb-baic'].checked) {
+            previousState['li-cb-baic-r'].disabled = true;
+          }
 
           // and update the state of everything again (enable)
           _updateAllCallBarring(previousState);
           done();
         };
         request.onerror = function() {
-          // request.error = { name, message }
+          /* request.error = { name, message } */
           console.log('ERROR!');
           console.log('e.name =  ' + request.error.name);
           console.log('e.message = ' + request.error.message);
