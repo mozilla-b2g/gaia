@@ -1,3 +1,8 @@
+/* globals PerformanceTestingHelper, Contacts, CallLogDBManager, LazyLoader,
+           Utils, LazyL10n, StickyHeader, KeypadManager, SimSettingsHelper,
+           CallHandler, PhoneNumberActionMenu, AccessibilityHelper,
+           ConfirmDialog, Notification, fb */
+
 'use strict';
 
 var CallLog = {
@@ -45,7 +50,8 @@ var CallLog = {
           return;
         }
 
-        if (self._contactCache = (cacheRevision >= contactsRevision)) {
+        self._contactCache = (cacheRevision >= contactsRevision);
+        if (self._contactCache) {
           return;
         }
 
@@ -176,7 +182,6 @@ var CallLog = {
     var daysToRender = [];
     var chunk = [];
     var prevDate;
-    var startDate = new Date().getTime();
     var screenRendered = false;
     var MAX_GROUPS_FOR_FIRST_RENDER = 8;
     var MAX_GROUPS_TO_BATCH_RENDER = 100;
@@ -265,8 +270,9 @@ var CallLog = {
     this.disableEditMode();
     // If rendering the empty call log for all calls (i.e. the
     // isEmptyMissedCallsGroup not set), set the _empty parameter to true
-    if (!isEmptyMissedCallsGroup)
+    if (!isEmptyMissedCallsGroup) {
       this._empty = true;
+    }
 
     var noResultContainer = document.getElementById('no-result-container');
     noResultContainer.hidden = false;
@@ -446,7 +452,8 @@ var CallLog = {
     }
 
     if (typeof group.serviceId !== 'undefined') {
-      var serviceClass = (group.serviceId == 0) ? 'first-sim' : 'second-sim';
+      var serviceClass =
+        (parseInt(group.serviceId) === 0) ? 'first-sim' : 'second-sim';
       iconStyle += ' ' + serviceClass;
     }
 
@@ -905,8 +912,10 @@ var CallLog = {
         logs = container.querySelectorAll('li[data-contact-id="' + contactId +
                                           '"]');
         break;
+      /*
       case 'create':
       case 'update':
+      */
       default:
         logs = container.querySelectorAll('.log-item');
         break;
@@ -916,7 +925,7 @@ var CallLog = {
       var log = logs[i];
       var logInfo = log.dataset;
 
-      this._updateContact(log, logInfo.phoneNumber, contactId, i == 0);
+      this._updateContact(log, logInfo.phoneNumber, contactId, i === 0);
     }
   },
 
@@ -1009,7 +1018,7 @@ navigator.mozContacts.oncontactchange = function oncontactchange(event) {
   function contactChanged(contact, reason) {
     var phoneNumbers = [];
     if (contact.tel && contact.tel.length) {
-      var phoneNumbers = contact.tel.map(function(tel) {
+      phoneNumbers = contact.tel.map(function(tel) {
         return tel.value;
       });
     }
