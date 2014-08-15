@@ -195,16 +195,30 @@
           break;
         case 'check-p2p-registration-for-active-app':
           if (evt.detail && evt.detail.checkP2PRegistration) {
-            evt.detail.checkP2PRegistration(this.current.manifestURL);
+            evt.detail.checkP2PRegistration(this._getTopMostAppManifestURL());
           }
           break;
         case 'dispatch-p2p-user-response-on-active-app':
           if (evt.detail && evt.detail.dispatchP2PUserResponse) {
-            evt.detail.dispatchP2PUserResponse(this.current.manifestURL);
+            evt.detail.dispatchP2PUserResponse(
+              this._getTopMostAppManifestURL());
           }
           break;
       }
     };
+
+  ShrinkingUI._getTopMostAppManifestURL =
+    (function su_getTopMostApp() {
+      if (this.current) {
+        var topMost = this.current.getTopMostWindow();
+        while (topMost && !topMost.manifestURL) {
+          topMost = topMost.rearWindow;
+        }
+        return topMost.manifestURL;
+      } else {
+        return '';
+      }
+    }).bind(ShrinkingUI);
 
   /**
    * Register an app.
