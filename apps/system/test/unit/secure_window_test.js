@@ -69,7 +69,6 @@ suite('system/SecureWindow', function() {
       // Or the AppWindow would look for it.
       app.element = document.createElement('div');
       parentElement.appendChild(app.element);
-      app.transitionController = {};
       app.kill();
       assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
           function(e) {
@@ -90,9 +89,6 @@ suite('system/SecureWindow', function() {
       // Or the AppWindow would look for it.
       app.element = document.createElement('div');
       parentElement.appendChild(app.element);
-      app.transitionController = {
-        requireClose: function() {}
-      };
       app.kill();
       app.close();
       assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
