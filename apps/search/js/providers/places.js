@@ -30,8 +30,11 @@
 
   var screenshotRequests = {};
 
-  topSitesWrapper.addEventListener('click', itemClicked);
-  historyWrapper.addEventListener('click', itemClicked);
+  // These elements are only included in the newtab page.
+  if (topSitesWrapper && historyWrapper) {
+    topSitesWrapper.addEventListener('click', itemClicked);
+    historyWrapper.addEventListener('click', itemClicked);
+  }
 
   var cachedLink = document.createElement('a');
   function parseUrl(url) {
@@ -141,6 +144,10 @@
   }
 
   function showStartPage() {
+    if (!topSitesWrapper || !historyWrapper) {
+      return;
+    }
+
     var historyDom = exports.Places.buildResultsDom(history.map(place => {
       var renderObj = {
         title: place.title || place.url,
