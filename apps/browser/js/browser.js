@@ -410,7 +410,7 @@ var Browser = {
           return;
         }
         //it should be on startscreen now, hide to reveal actual content.
-        if (!tab.url && evt.detail && evt.detail !== "") {
+        if (!tab.url && evt.detail && evt.detail !== '') {
           this.hideStartscreen();
         }
         tab.url = evt.detail;
