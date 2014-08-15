@@ -15,6 +15,7 @@ module.exports = Music;
 Music.DEFAULT_ORIGIN = 'music.gaiamobile.org';
 
 Music.Selector = Object.freeze({
+  messageOverlay: '#overlay',
   firstTile: '.tile',
   songsTab: '#tabs-songs',
   firstSong: '.list-item',
@@ -29,6 +30,10 @@ Music.Selector = Object.freeze({
 
 Music.prototype = {
   client: null,
+
+  get messageOverlay() {
+    return this.client.findElement(Music.Selector.messageOverlay);
+  },
 
   get firstTile() {
     return this.client.findElement(Music.Selector.firstTile);
@@ -95,6 +100,13 @@ Music.prototype = {
 
   waitForFirstTile: function() {
     this.client.helper.waitForElement(this.firstTile);
+  },
+
+  waitForMessageOverlayShown: function(shouldBeShown) {
+    this.client.waitFor(function() {
+      var volumeShown = this.messageOverlay.displayed();
+      return volumeShown === shouldBeShown;
+    }.bind(this));
   },
 
   // Because bug 862156 so we couldn't get the correct displayed value for the
