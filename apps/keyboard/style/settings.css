@@ -34,3 +34,104 @@ section[data-type="list"] p>label {
   width: 100%;
   display: inline-block;
 }
+
+section[role="region"] header h2 {
+  padding: 0.8rem 1.5rem;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+ul li {
+  -moz-box-sizing: border-box;
+  position: relative;
+  min-height: 6rem;
+  margin: 0 1.5rem;
+  border-bottom: 0.1rem solid #e6e6e3;
+  color: #000;
+}
+
+ul li:last-child {
+  border-bottom: none;
+}
+
+ul li label:not([for]) {
+  background: none;
+}
+
+ul li > *, ul li > label > * {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+ul li label {
+  text-transform: none;
+}
+
+ul li p {
+  font-size: 1.8rem;
+  line-height: 1.8rem;
+  font-weight: 400;
+  margin: 0;
+  padding: 1.5rem 0rem 1rem;
+  color: #333333;
+}
+
+input[type=range] {
+  -moz-appearance: none;
+  border: none;
+  background: none;
+  width: calc(100% - 2rem);
+  height: 3rem;
+}
+
+input[type=range]:-moz-focusring {
+  outline: none;
+}
+
+ul li > label input[type="range"] {
+  top: calc(50% - 1.5rem);
+  height: 3rem;
+  width: calc(100% - 2rem);
+  margin-bottom: 0.2rem;
+}
+
+input[type=range]::-moz-range-track {
+  height: 0.1rem;
+  background-color: #7e7e7e;
+}
+
+input[type=range]::-moz-range-progress {
+  height: 0.3rem;
+  background-color: #01c5ed;
+}
+
+input[type=range]::-moz-range-thumb {
+  width: 2.8rem;
+  height: 2.8rem;
+  border: solid 0.1rem transparent;
+  border-radius: 3rem;
+  transition: border 0.15s ease;
+  -moz-box-sizing: border-box;
+  background: url(images/range_thumb.png) no-repeat 50% 50%;
+  background-size: 2.8rem 2.8rem;
+}
+
+input[type=range]:active::-moz-range-thumb {
+  border: solid 0.4rem #01c5ed;
+}
+
+input:focus {
+  box-shadow: inset 0 -0.1rem 0 #00caf2;
+  border-bottom-color: #00caf2;
+}
+
+#handwriting-settings {
+  display: none;
+}

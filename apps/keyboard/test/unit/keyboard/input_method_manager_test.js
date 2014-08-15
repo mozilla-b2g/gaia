@@ -400,7 +400,8 @@ suite('InputMethodManager', function() {
       layoutManager: {
         currentModifiedLayout: {
           autoCorrectLanguage: 'xx-XX'
-        }
+        },
+        currentLayout: {}
       },
       perfTimer: this.sinon.stub(PerformanceTimer.prototype),
       inputContext: {
@@ -451,7 +452,8 @@ suite('InputMethodManager', function() {
         inputContext: app.inputContext
       }, {
         suggest: true,
-        correct: true
+        correct: true,
+        layoutName: app.layoutManager.currentLayoutName
       }));
       assert.equal(activateStub.getCall(0).thisValue,
         imEngine);
@@ -497,7 +499,8 @@ suite('InputMethodManager', function() {
         inputContext: app.inputContext
       }, {
         suggest: true,
-        correct: true
+        correct: true,
+        layoutName: app.layoutManager.currentLayoutName
       }));
       assert.equal(activateStub.getCall(0).thisValue, imEngine);
     }, function() {
@@ -559,7 +562,8 @@ suite('InputMethodManager', function() {
         inputContext: app.inputContext
       }, {
         suggest: true,
-        correct: true
+        correct: true,
+        layoutName: app.layoutManager.currentLayoutName
       }));
       assert.equal(activateStub.getCall(0).thisValue,
         imEngine);
@@ -598,7 +602,8 @@ suite('InputMethodManager', function() {
         inputContext: app.inputContext
       }, {
         suggest: true,
-        correct: true
+        correct: true,
+        layoutName: app.layoutManager.currentLayoutName
       }));
       assert.equal(activateStub.getCall(1).thisValue,
         imEngine);

@@ -188,6 +188,36 @@ var IMERender = (function() {
     }
   };
 
+  // Draw in canvas for handwriting pad
+  var drawCanvas = function kr_drawCanvas(target, point, start, strokeWidth) {
+    this.handwritingPad = target;
+    var ctx = this.handwritingPad.getContext('2d');
+    var width = this.handwritingPad.width;
+    var height = this.handwritingPad.height;
+    ctx.strokeStyle = '#df4b26';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = strokeWidth;
+    ctx.beginPath();
+    if (start) {
+      this._lastX = point.x - 1;
+      this._lastY = point.y;
+    }
+    ctx.moveTo(this._lastX, this._lastY);
+    ctx.lineTo(point.x, point.y);
+    ctx.closePath();
+    ctx.stroke();
+    this._lastX = point.x;
+    this._lastY = point.y;
+  };
+
+  var clearCanvas = function kr_clearCanvas() {
+    var ctx = this.handwritingPad.getContext('2d');
+    var width = this.handwritingPad.width;
+    var height = this.handwritingPad.height;
+    ctx.clearRect(0, 0, width, height);
+    this.handwritingPad = null;
+  };
+
   /**
    * Build keyboard HTML structure
    * Pass a container element
@@ -207,6 +237,20 @@ var IMERender = (function() {
     layout.upperCase = layout.upperCase || {};
 
     var content = document.createDocumentFragment();
+
+    // Builds handwriting pad if any.
+    var handwriting = layout.handwriting;
+    if (handwriting) {
+      var pad = document.createElement('canvas');
+      pad.className = 'handwriting-pad';
+      pad.style.cssFloat = 'left';
+      var pixelWidth = placeHolderWidth * handwriting.width;
+      pad.style.width = pixelWidth + 'px';
+      pad.width = pixelWidth * 2;
+      pad.dataset.rowspan = handwriting.rowspan;
+      content.appendChild(pad);
+    }
+
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
       var kbRow = document.createElement('div');
       var rowLayoutWidth = 0;
@@ -305,6 +349,10 @@ var IMERender = (function() {
         kbRow.appendChild(buildKey(outputChar, className, keyWidth + 'px',
           dataset, key.longPressValue, attributeList));
       }));
+
+      if (handwriting && handwriting.rowspan > nrow) {
+        rowLayoutWidth += handwriting.width;
+      }
 
       kbRow.dataset.layoutWidth = rowLayoutWidth;
 
@@ -838,6 +886,19 @@ var IMERender = (function() {
     var rows = activeIme.querySelectorAll('.keyboard-row');
 
     setKeyWidth();
+
+    // Set the height of the handwriting pad.
+    var pad = activeIme.querySelector('.handwriting-pad');
+    if (pad) {
+      var rowCount = rows.length || 3;
+      var candidatePanel = activeIme.querySelector('.keyboard-candidate-panel');
+      var candidatePanelHeight = candidatePanel ?
+                                 candidatePanel.clientHeight : 0;
+      var rowHeight = rows[0].clientHeight;
+      var pixelHeight = Math.floor(rowHeight * pad.dataset.rowspan);
+      pad.height = pixelHeight * 2;
+      pad.style.height = pixelHeight + 'px';
+    }
   };
 
   //
@@ -1072,6 +1133,8 @@ var IMERender = (function() {
     'init': init,
     'setInputMethodName': setInputMethodName,
     'draw': draw,
+    'drawCanvas': drawCanvas,
+    'clearCanvas' : clearCanvas,
     get ime() {
       return ime;
     },

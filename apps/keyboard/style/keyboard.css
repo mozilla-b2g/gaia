@@ -689,6 +689,16 @@ bubble above the key when you tap and hold. */
   font-size: 1.7rem;
 }
 
+.half-full-screen > .visual-wrapper > span {
+  font-size: 1rem;
+}
+
+/* Handwriting */
+.handwriting-pad {
+  background-color: #ebeced;
+  margin: -1px;
+}
+
 /* Hindi */
 .keyboard-key.hindi > .visual-wrapper > span[data-label="औ"],
 .keyboard-key.hindi > .visual-wrapper > span[data-label="आ"],

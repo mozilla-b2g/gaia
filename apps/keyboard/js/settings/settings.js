@@ -1,8 +1,14 @@
 (function() {
   // Get the settings, and then show the panel afterwards
   var panel = document.querySelector('#general-settings');
-  getSettings(panel, function() {
+
+  getGeneralSettings(panel, function() {
     panel.style.display = 'block';
+  });
+
+  var section = document.querySelector('#handwriting-settings');
+  getHandwritingSettings(section, function() {
+    section.style.display = 'block';
   });
 
   document.addEventListener('visibilitychange', function() {
@@ -25,9 +31,9 @@
   document.getElementById('header').addEventListener('action', goBack);
 
   /**
-   * Gets the settings based on information from the dom
+   * Gets the general settings based on information from the dom
    */
-  function getSettings(section, callback) {
+  function getGeneralSettings(section, callback) {
     if (!navigator.mozSettings) {
       return callback();
     }
@@ -64,5 +70,72 @@
         setLock.set(obj);
       });
     });
+  }
+
+  /**
+   * Gets the handwriting settings based on information from the dom
+   */
+  function getHandwritingSettings(section, callback) {
+    if (!navigator.mozSettings) {
+      return;
+    }
+
+    var keyboardKey = 'keyboard.enabled-layouts';
+    var lock = navigator.mozSettings.createLock();
+
+    var req = lock.get(keyboardKey);
+    req.onsuccess = function() {
+      // Get installed keyboards.
+      var keyboards = req.result[keyboardKey];
+
+      // Get built-in keyboard
+      var defaultKeyboardManifestURL =
+        'app://keyboard.gaiamobile.org/manifest.webapp';
+      var defaultKeyboard = keyboards[defaultKeyboardManifestURL];
+
+      // Get enabled layouts in built-in keyboard
+      for (var layout in defaultKeyboard) {
+        // Check handwriting layout
+        var reg = /handwriting/i;
+        if (layout.match(reg)) {
+          var li = section.querySelectorAll('li[data-setting]');
+          var toCompletion = li.length;
+
+          [].forEach.call(li, function(item) {
+            var key = item.dataset.setting;
+            var range = item.querySelector('input[type=range]');
+
+            var getReq = lock.get(key);
+            getReq.onsuccess = function() {
+              if (getReq.result[key] !== undefined) {
+                range.value = getReq.result[key];
+              }
+              if (--toCompletion === 0) {
+                callback();
+              }
+            };
+
+            getReq.onerror = function() {
+              // onerror the range value is the default value
+              if (--toCompletion === 0) {
+                callback();
+              }
+            };
+
+            // Adjusting range slider updates the setting
+            range.addEventListener('change', function(e) {
+              var setLock = navigator.mozSettings.createLock();
+              var obj = {};
+              obj[key] = range.valueAsNumber;
+              setLock.set(obj);
+            });
+          });
+          return;
+        }
+      }
+    };
+    req.onerror = function() {
+      console.error('Error occured when getting ' + keyboardKey);
+    };
   }
 })();

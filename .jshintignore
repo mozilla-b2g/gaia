@@ -33,6 +33,7 @@ shared/js/utilities.js
 shared/js/uuid.js
 apps/keyboard/js/imes/jspinyin/libpinyin.js
 apps/keyboard/js/imes/jszhuyin/lib/**
+apps/keyboard/js/imes/handwriting/hwr/**
 shared/js/setImmediate.js
 shared/test/unit/test-agent-server.js
 shared/elements/gaia-header/dist/script.js
