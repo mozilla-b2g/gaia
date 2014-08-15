@@ -195,6 +195,7 @@ if (appMessages.hasPending('activity') ||
   // and block normal first card selection, wait for activity.
   cachedNode = null;
   waitForAppMessage = true;
+  console.log('email waitForAppMessage');
 }
 
 if (appMessages.hasPending('alarm')) {
@@ -202,6 +203,7 @@ if (appMessages.hasPending('alarm')) {
   // as we were woken up just for the alarm.
   cachedNode = null;
   startedInBackground = true;
+  console.log('email startedInBackground');
 }
 
 // If still have a cached node, then show it.
@@ -463,6 +465,7 @@ appMessages.on('activity', gateEntry(function(type, data, rawActivity) {
       initComposer();
     } else {
       waitingForCreateAccountPrompt = true;
+      console.log('email waitingForCreateAccountPrompt');
       promptEmptyAccount();
     }
   } else {
@@ -472,11 +475,24 @@ appMessages.on('activity', gateEntry(function(type, data, rawActivity) {
     initComposer();
 
     waitingForCreateAccountPrompt = true;
+    console.log('email waitingForCreateAccountPrompt');
     model.latestOnce('acctsSlice', function activityOnAccount() {
       if (!model.hasAccount()) {
         promptEmptyAccount();
       }
     });
+  }
+}));
+
+appMessages.on('notificationClosed', gateEntry(function(data) {
+  // The system notifies the app of closed messages. This really is not helpful
+  // for the email app, but since it wakes up the app, if we do not at least try
+  // to show a usable UI, the user could end up with a blank screen. As the app
+  // could also have been awakened by sync or just user action and running in
+  // the background, we cannot just close the app. So just make sure there is
+  // some usable UI.
+  if (waitForAppMessage && !Cards.getCurrentCardType()) {
+    resetApp();
   }
 }));
 
