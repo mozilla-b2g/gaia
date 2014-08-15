@@ -4,7 +4,6 @@
 /* global ViewApps */
 /* global ViewBgImage */
 /* global ViewEditMode */
-/* global Promise */
 
 (function(exports) {
 
@@ -32,13 +31,8 @@
     navigator.mozL10n.ready(l10nUpdateHander);
     window.addEventListener('localized', l10nUpdateHander);
 
-    // set wallpaper behind header
-    getWallpaperImage().then(function(src) {
-      elements.header.style.backgroundImage = 'url(' + src + ')';
-    });
-
     // close button listener
-    elements.close.addEventListener('click', function close() {
+    elements.header.addEventListener('action', function close() {
       activity.postResult('close');
     });
 
@@ -56,21 +50,6 @@
       HandleView(activity);
     }
   });
-
-  function getWallpaperImage() {
-    return new Promise(function convert(resolve, reject) {
-      var req = navigator.mozSettings.createLock().get('wallpaper.image');
-      req.onsuccess = function image_onsuccess() {
-        var image = req.result['wallpaper.image'];
-        if (image instanceof Blob) {
-          image = URL.createObjectURL(image);
-        }
-
-        resolve(image);
-      };
-      req.onerror = reject;
-    });
-  }
 
   // toggle progress indicator
   function loading(should) {
