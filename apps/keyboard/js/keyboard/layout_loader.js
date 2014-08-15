@@ -36,10 +36,14 @@ Keyboards.alternateLayout = {
   ]
 };
 
-Keyboards.symbolLayout = {
+Keyboards.symbolLayout = {//long press ' to choose  typography quotes in keyboards bug Bug 1050559 
   keys: [
     [
-      { value: '`' }, { value: '~' }, { value: '_' }, { value: '^' },
+      { value: '‘'[
+      { value: 'Alt', ratio: 1.2, keyCode: KeyEvent.DOM_VK_ALT },
+      { value: '’' },
+      { value: '⌫', ratio: 1.2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
+    ], }, { value: '~' }, { value: '_' }, { value: '^' },
       { value: '±' }, { value: '|' }, { value: '[' }, { value: ']' },
       { value: '{' }, { value: '}' }
     ], [
@@ -79,7 +83,7 @@ Keyboards.pinLayout = {
     [ { value: '4'}, { value: '5'}, { value: '6'} ],
     [ { value: '7'}, { value: '8'}, { value: '9'} ],
     [ { value: ''}, { value: '0'},
-      { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE } ]
+      { value: '⌫', kelyCode: KeyEvent.DOM_VK_BACK_SPACE } ]
   ]
 };
 
