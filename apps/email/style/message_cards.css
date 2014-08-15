@@ -497,18 +497,37 @@ reflows. Foreground/background colors should be safe.
 }
 
 .msg-reader-load-infobar {
-  position: absolute;
-  -moz-box-sizing: border-box;
-  color: white;
-  font-size: 1.2rem;
-  left: 0;
-  bottom: 4.8rem;
-  width: 100%;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+
+  margin: 1rem 1.5rem;
+  padding: .2rem 0 1rem 0;
+  border-bottom: 0.1rem solid #f2f2f1;
+
+  font-size: 1.4rem;
+  font-style: italic;
   /* we do not specify a height because text may be more than 1 line high */
-  line-height: 2.2rem;
-  padding: 0.8rem 1.6rem;
-  background-color: #424242;;
+  line-height: 1.8rem;
+  color: #008eab;
 }
+
+
+.msg-reader-load-infobar-text {
+  flex: 1;
+  margin: 0px 1.5rem 0 0;
+}
+
+.msg-reader-load-infobar-button {
+  display: inline-block;
+  width: 3rem;
+  height: 3rem;
+  margin: 0;
+  font-size: 0;
+  background: url("images/icons/icon_show_external_image.png") no-repeat center / 3rem auto;
+}
+
 
 /* For WVGA (800 x 480) */
 .msg-list-action-toolbar .msg-refresh-btn:after {
