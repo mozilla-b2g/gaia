@@ -26,10 +26,9 @@ suiteGroup('Views.TimeHeader', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="wrapper"></div>',
-      '<header id="time-header">',
-        '<button class="settings"></button>',
+      '<gaia-header id="time-header" action="menu">',
         '<h1></h1>',
-      '</div>'
+      '</gaia-header>'
     ].join('');
 
     document.body.appendChild(div);
@@ -55,10 +54,6 @@ suiteGroup('Views.TimeHeader', function() {
     assert.equal(
       subject.element, document.querySelector('#time-header')
     );
-  });
-
-  test('#settings', function() {
-    assert.ok(subject.settings);
   });
 
   test('#title', function() {

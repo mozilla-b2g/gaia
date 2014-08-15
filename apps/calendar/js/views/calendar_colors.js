@@ -12,7 +12,12 @@ Calendar.ns('Views').CalendarColors = (function() {
 
     document.head.appendChild(sheet);
 
-    this._styles = document.styleSheets[document.styleSheets.length - 1];
+    // Make no assumption about the ordering of the style sheets
+    for (var i = 0, len = document.styleSheets.length; i < len; i++) {
+      if (document.styleSheets[i].ownerNode.id === sheet.id) {
+        this._styles = document.styleSheets[i];
+      }
+    }
     this._initEvents();
   }
 

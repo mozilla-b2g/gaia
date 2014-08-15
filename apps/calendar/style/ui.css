@@ -215,7 +215,7 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   }
 }
 
-#advanced-settings-view .content {
+#advanced-settings-view.content {
   height: calc(100% - 5rem);
   overflow-y: scroll;
 }
@@ -347,6 +347,11 @@ section[role="status"].active {
   font-variant: normal;
   text-transform: none;
   line-height: 1;
+}
+
+/* for accessiblity only, fonts should not be visible */
+gaia-header > a > span {
+  font-size: 0;
 }
 
 /* these icons uses a 32px base grid so we need to adjust the font size

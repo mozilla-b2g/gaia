@@ -60,7 +60,7 @@ Calendar.prototype = {
   },
 
   get settingsButton() {
-    return this.client.findElement('#time-header button.settings');
+    return this.client.findElement('#time-header');
   },
 
   openModifyEventView: function() {
@@ -83,7 +83,7 @@ Calendar.prototype = {
     var client = this.client;
     client.helper
       .waitForElement(this.settingsButton)
-      .click();
+      .tap(25, 25);
 
     // Wait for the animation to be complete before trying to click on
     // items in the drawer.
