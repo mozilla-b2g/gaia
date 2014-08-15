@@ -51,9 +51,9 @@ suite('wifi > ', function() {
     var markup =
     '<ol id="progress-bar" class="step-state"></ol>' +
     '<section id="activation-screen">' +
-    ' <gaia-header>' +
+    ' <header>' +
     '  <h1 id="main-title"></h1>' +
-    ' </gaia-header>' +
+    ' </header>' +
     ' <section id="wifi">' +
     '  <div id="wifi-wrapper">' +
     '    <article id="networks">' +

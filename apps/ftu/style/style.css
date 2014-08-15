@@ -103,9 +103,8 @@ gaia-buttons.forward-only .icon-previous {
   Header conditional button
 */
 
-.no-options header menu,
-.no-options gaia-header button {
-  display: none !important;
+.no-options header menu {
+  display: none;
 }
 
 /*
