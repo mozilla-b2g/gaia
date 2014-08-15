@@ -59,8 +59,8 @@ Calendar.prototype = {
     return this.client.findElement('#current-month-year');
   },
 
-  get settingsButton() {
-    return this.client.findElement('#time-header button.settings');
+  get timeHeader() {
+    return this.client.findElement('#time-header');
   },
 
   openModifyEventView: function() {
@@ -82,8 +82,8 @@ Calendar.prototype = {
   _toggleSettingsView: function(isOpen) {
     var client = this.client;
     client.helper
-      .waitForElement(this.settingsButton)
-      .click();
+      .waitForElement(this.timeHeader)
+      .tap(25, 25);
 
     // Wait for the animation to be complete before trying to click on
     // items in the drawer.

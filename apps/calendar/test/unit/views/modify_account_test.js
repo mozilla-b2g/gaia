@@ -85,6 +85,10 @@ suiteGroup('Views.ModifyAccount', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="modify-account-view">',
+        '<gaia-header id="modify-account-header" action="back">',
+          '<h1>Account</h1>',
+          '<button class="save">Save</button>',
+        '</gaia-header>',
         '<button class="save">save</button>',
         '<button class="cancel">cancel</button>',
         '<button class="delete-cancel">cancel</button>',
