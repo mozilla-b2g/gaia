@@ -486,8 +486,7 @@ suite('Render contact form', function() {
           assert.isTrue(cont.indexOf(element + '-2') == -1);
 
           var domElement0 = document.querySelector('#' + element + '-' + '0');
-          assert.isTrue(domElement0.classList.contains('removed') &&
-                        domElement0.classList.contains('facebook'));
+          assert.isTrue(domElement0.classList.contains('facebook'));
           assert.isTrue(domElement0.querySelector('.icon-delete') === null);
         }
 
@@ -502,7 +501,6 @@ suite('Render contact form', function() {
                         parentNode.classList.contains('hide'));
 
         assert.isTrue(thumbnail.classList.contains('facebook'));
-        assert.isTrue(thumbnail.classList.contains('removed'));
       };
     });
 
@@ -523,8 +521,7 @@ suite('Render contact form', function() {
 
 
           var domElement0 = document.querySelector('#' + element + '-' + '0');
-          assert.isTrue(domElement0.classList.contains('removed') &&
-                        domElement0.classList.contains('facebook'),
+          assert.isTrue(domElement0.classList.contains('facebook'),
                         'Class Removed and Facebook present');
           assert.isTrue(domElement0.querySelector('.icon-delete') === null,
                         'Icon delete not present');
@@ -547,7 +544,6 @@ suite('Render contact form', function() {
         var org = document.querySelector('input[name="org"]');
 
         assert.isTrue(org.parentNode.classList.contains('facebook'));
-        assert.isTrue(org.parentNode.classList.contains('removed'));
       };
     });
 
@@ -566,8 +562,7 @@ suite('Render contact form', function() {
         assertDateContent('#' + element + '-0', mockContact.bday);
 
         var domElement0 = document.querySelector('#' + element + '-' + '0');
-        assert.isTrue(domElement0.classList.contains('removed') &&
-                      domElement0.classList.contains('facebook'),
+        assert.isTrue(domElement0.classList.contains('facebook'),
                       'Class Removed and Facebook present');
         assert.isTrue(domElement0.querySelector('.icon-delete') === null,
                       'Icon delete not present');
@@ -654,13 +649,11 @@ suite('Render contact form', function() {
           assert.isTrue(cont.indexOf(element + '-1') > -1);
 
           var domElement0 = document.querySelector('#' + element + '-' + '0');
-          assert.isTrue(domElement0.classList.contains('removed') &&
-                        domElement0.classList.contains('facebook'));
+          assert.isTrue(domElement0.classList.contains('facebook'));
           assert.isTrue(domElement0.querySelector('.icon-delete') === null);
 
           var domElement1 = document.querySelector('#' + element + '-' + '1');
-          assert.isFalse(domElement1.classList.contains('removed') ||
-                          domElement1.classList.contains('facebook'));
+          assert.isFalse(domElement1.classList.contains('facebook'));
           assert.isTrue(domElement1.querySelector('.icon-delete') !== null);
         }
 
@@ -684,7 +677,6 @@ suite('Render contact form', function() {
                         parentNode.classList.contains('hide'));
 
         assert.isFalse(thumbnail.classList.contains('facebook'));
-        assert.isFalse(thumbnail.classList.contains('removed'));
       };
     });
 
@@ -700,8 +692,7 @@ suite('Render contact form', function() {
         assertDateContent('#add-date-0', mockContact.bday);
 
         var domElement0 = document.querySelector('#add-date-0');
-        assert.isFalse(domElement0.classList.contains('removed') ||
-                      domElement0.classList.contains('facebook'),
+        assert.isFalse(domElement0.classList.contains('facebook'),
                       'Class Removed or Facebook present');
         assert.isFalse(domElement0.querySelector('.icon-delete') === null,
                       'Icon delete not present');
