@@ -72,7 +72,7 @@ suite('NFC', function() {
     contacts.NFC.startListening();
     navigator.mozNfc.onpeerready(
       {
-        details: 'random'
+        peer: MockMozNfc.MockNFCPeer
       }
     );
     sinon.assert.called(spy, 'showStatus');
@@ -110,7 +110,7 @@ suite('NFC', function() {
     };
 
     contacts.NFC.startListening(contact);
-    MockMozNfc.onpeerready({});
+    MockMozNfc.onpeerready({peer: MockMozNfc.MockNFCPeer});
   });
 
 });
