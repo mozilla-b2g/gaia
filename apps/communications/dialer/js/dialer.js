@@ -434,7 +434,7 @@ var CallHandler = (function callHandler() {
     };
 
     var error = function() {
-      KeypadManager.updatePhoneNumber(number, 'begin', true);
+      KeypadManager.updatePhoneNumber(number, 'begin', false);
     };
 
     var oncall = function() {
