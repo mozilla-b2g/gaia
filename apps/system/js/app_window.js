@@ -428,18 +428,10 @@
 
     // If the app is the currently displayed app, switch to the homescreen
     if (this.isActive() && !this.isHomescreen) {
-
-      var fallbackTimeout;
-      var onClosed = function() {
-        clearTimeout(fallbackTimeout);
-        this.element.removeEventListener('_closed', onClosed);
+      this.element.addEventListener('_closed', (function onClosed() {
+        window.removeEventListener('_closed', onClosed);
         this.destroy();
-      }.bind(this);
-
-      this.element.addEventListener('_closed', onClosed);
-      fallbackTimeout = setTimeout(onClosed,
-        this.transitionController.CLOSING_TRANSITION_TIMEOUT);
-
+      }).bind(this));
       if (this.previousWindow) {
         this.previousWindow.getBottomMostWindow().open('in-from-left');
         this.close('out-to-right');
