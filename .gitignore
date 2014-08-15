@@ -43,9 +43,7 @@ manifest.appcache
 /profile-gaia-test-b2g/
 /profile-gaia-test-firefox/
 /profile.tar.gz
-/.xulrunner-url
-/xulrunner/
-/xulrunner-sdk*/
+/b2g_sdk/
 /tools/test-agent/node_modules
 /test-output.xml
 /mocha-test-results.html
