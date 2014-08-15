@@ -1,3 +1,5 @@
+git:
+  depth: 1
 before_install:
   - travis_retry make node_modules
   - source ./tests/travis_ci/venv.sh
