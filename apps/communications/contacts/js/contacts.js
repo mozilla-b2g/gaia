@@ -562,7 +562,8 @@ var Contacts = (function() {
     } else {
       Contacts.view('Settings', function viewLoaded() {
         LazyLoader.load(['/contacts/js/utilities/sim_dom_generator.js',
-          '/contacts/js/utilities/icc_handler.js'], function() {
+          '/contacts/js/utilities/icc_handler.js',
+          '/shared/js/date_time_helper.js'], function() {
           settingsReady = true;
           contacts.Settings.init();
           callback();

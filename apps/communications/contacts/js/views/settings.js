@@ -72,6 +72,8 @@ contacts.Settings = (function() {
     utils.sdcard.subscribeToChanges('check_sdcard', function(value) {
       updateStorageOptions(utils.sdcard.checkStorageCard());
     });
+
+    window.addEventListener('timeformatchange', updateTimestamps);
   };
 
   var hideSettings = function hideSettings() {
