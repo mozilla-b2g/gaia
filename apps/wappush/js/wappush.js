@@ -1,8 +1,8 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global CpScreenHelper, Notification, NotificationHelper, ParsedMessage,
-          Promise, SiSlScreenHelper, WhiteList */
+/* global CpScreenHelper, DUMP, Notification, NotificationHelper,
+          ParsedMessage, Promise, SiSlScreenHelper, WhiteList */
 
 /* exported WapPushManager */
 
@@ -246,11 +246,13 @@
    * @param {Object} wapMessage The WAP Push message as provided by the system.
    */
   function wpm_onWapPushReceived(wapMessage) {
+    DUMP('Received a message: ', wapMessage);
     pendingMessages++;
 
     var message = ParsedMessage.from(wapMessage, Date.now());
 
     if (!wpm_shouldDisplayMessage(message)) {
+      DUMP('The message will not be displayed');
       wpm_finish();
       return;
     }
@@ -258,10 +260,12 @@
     message.save(
       function wpm_saveSuccess(status) {
         if (status === 'discarded') {
+          DUMP('The message was discarded');
           wpm_finish();
           return;
         }
 
+        DUMP('The message was successfully saved to the DB');
         wpm_sendNotification(message);
         wpm_finish();
       },
@@ -297,6 +301,8 @@
    * @param {String} timestamp The message timestamp as a string.
    */
   function wpm_displayWapPushMessage(timestamp) {
+    DUMP('Displaying message ' + timestamp);
+
     ParsedMessage.load(timestamp,
       function wpm_loadSuccess(message) {
         if (message) {
@@ -376,6 +382,7 @@
 
       /* There's no more pending messages and the application is in the
        * background, close for real */
+      DUMP('Automatically closing the application');
       closeTimeout = null;
       window.close();
     }, 100);
