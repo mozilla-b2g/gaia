@@ -75,11 +75,23 @@ ul.compact li label:active {
   display: none;
 }
 
-section[role="region"] > header:first-child h1.new-alarm-title {
-  display: none;
+/**
+ * 1. COMPLEX: Scoped style-sheets within <gaia-header>
+ * trump all other rules. !important is required
+ * for an app to over-ride the default appearance
+ * of content within the custom-element. This may
+ * change when we get `:host` and `:content` selectors
+ * in shadow-dom.
+ */
+section[role="region"] > gaia-header h1.new-alarm-title {
+  display: none !important; /* 1 */
 }
-section[role="region"].new > header:first-child h1.new-alarm-title { display: block; }
-section[role="region"].new > header:first-child h1.edit-alarm-title { display: none; }
+section[role="region"].new > gaia-header h1.new-alarm-title {
+  display: flex !important; /* 1 */
+}
+section[role="region"].new > gaia-header h1.edit-alarm-title {
+  display: none !important; /* 1 */
+}
 
 /* ----------- Alarm List ---------- */
 #alarms {
