@@ -267,6 +267,17 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubEnsure.called);
     });
 
+    test('Press home on lockscreen do nothing', function() {
+      injectRunningApps(home);
+      var stubEnsure = this.sinon.stub(home, 'ensure');
+      AppWindowManager._activeApp = homescreenLauncher.mHomescreenWindow;
+      AppWindowManager.displayedApp = homescreenLauncher.origin;
+      window.lockScreen.locked = true;
+      AppWindowManager.handleEvent({ type: 'home' });
+      assert.isFalse(stubEnsure.called);
+      window.lockScreen.locked = false;
+    });
+
     test('Press home on home not displayed', function() {
       injectRunningApps(home, app1);
       var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
