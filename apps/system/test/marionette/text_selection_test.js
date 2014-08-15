@@ -11,7 +11,9 @@ marionette('Text selection >', function() {
   var client = marionette.client({
     apps: apps,
     prefs: {
-      'dom.w3c_touch_events.enabled': 1
+      'dom.w3c_touch_events.enabled': 1,
+      'touchcaret.enabled': true,
+      'selectioncaret.enabled': true
     },
     settings: {
       'ftu.manifestURL': null,
@@ -28,7 +30,6 @@ marionette('Text selection >', function() {
   suite('check dialog location', function() {
     test('click center input', function() {
       fakeTextselectionApp.press('centerInput');
-
       assert.ok(
         fakeTextselectionApp.textSelection.location.y <
         fakeTextselectionApp.centerInput.location.y,
