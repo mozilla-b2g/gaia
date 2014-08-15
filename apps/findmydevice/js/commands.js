@@ -88,7 +88,7 @@ var Commands = {
     appreq.onerror = errorCallback;
   },
 
-  _trackIntervalId: null,
+  _watchPositionId: null,
 
   _trackTimeoutId: null,
 
@@ -99,41 +99,50 @@ var Commands = {
       var self = this;
 
       function stop() {
-        clearInterval(self._trackIntervalId);
-        self._trackIntervalId = null;
+        navigator.geolocation.clearWatch(self._watchPositionId);
+        self._watchPositionId = null;
         clearTimeout(self._trackTimeoutId);
         self._trackTimeoutId = null;
         SettingsHelper('findmydevice.tracking').set(false);
         FindMyDevice.endHighPriority('command');
       }
 
-      if (this._trackIntervalId !== null || this._trackTimeoutId !== null) {
+      if (this._watchPositionId !== null || this._trackTimeoutId !== null) {
         // already tracking
         stop();
       }
 
       if (duration === 0) {
         reply(true);
+        FindMyDevice.endHighPriority('command');
         return;
       }
 
-      // set geolocation permission to true, and start requesting
-      // the current position every TRACK_UPDATE_INTERVAL_MS milliseconds
+      var lastPositionTimestamp = 0;
+
+      // set geolocation permission to true, and start watching
+      // the current position, but throttle updates to one every
+      // TRACK_UPDATE_INTERVAL_MS
       this._setGeolocationPermission(function fmdc_permission_success() {
         SettingsHelper('findmydevice.tracking').set(true);
-        self._trackIntervalId = setInterval(function fmdc_track_interval() {
-          navigator.geolocation.getCurrentPosition(
-            function fmdc_gcp_success(position) {
-              DUMP('updating location to (' +
-                position.coords.latitude + ', ' +
-                position.coords.longitude + ')'
-              );
+        self._watchPositionId = navigator.geolocation.watchPosition(
+        function(position) {
+          DUMP('received location (' +
+            position.coords.latitude + ', ' +
+            position.coords.longitude + ')'
+          );
 
-              reply(true, position);
-            }, function fmdc_gcp_error(error) {
-              reply(false, 'failed to get location: ' + error.message);
-            });
-        }, self.TRACK_UPDATE_INTERVAL_MS);
+          var timeElapsed = position.timestamp - lastPositionTimestamp;
+          if (timeElapsed < self.TRACK_UPDATE_INTERVAL_MS) {
+            DUMP('ignoring position due to throttling');
+            return;
+          }
+
+          lastPositionTimestamp = position.timestamp;
+          reply(true, position);
+        }, function(error) {
+          reply(false, 'failed to get location: ' + error.message);
+        });
       }, function fmdc_permission_error() {
         FindMyDevice.endHighPriority('command');
         reply(false, 'failed to set geolocation permission!');
