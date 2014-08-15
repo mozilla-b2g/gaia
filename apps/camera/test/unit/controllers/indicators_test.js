@@ -22,6 +22,7 @@ suite('controllers/indicators', function() {
     this.app = sinon.createStubInstance(this.App);
     this.app.settings = {
       hdr: sinon.createStubInstance(this.Setting),
+      mode: sinon.createStubInstance(this.Setting),
       timer: sinon.createStubInstance(this.Setting),
       indicators: sinon.createStubInstance(this.Setting)
     };
@@ -45,6 +46,7 @@ suite('controllers/indicators', function() {
   suite('IndicatorsController()', function() {
     test('Should bind settings change events', function() {
       assert.ok(this.app.settings.timer.on.calledWith('change:selected'));
+      assert.ok(this.app.settings.mode.on.calledWith('change:selected'));
       assert.ok(this.app.settings.hdr.on.calledWith('change:selected'));
       assert.ok(this.app.on.calledWith('change:batteryStatus'));
       assert.ok(this.app.on.calledWith('settings:configured'));

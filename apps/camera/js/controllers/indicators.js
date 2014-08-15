@@ -52,6 +52,7 @@ IndicatorsController.prototype.createView = function() {
  */
 IndicatorsController.prototype.bindEvents = function() {
   this.settings.timer.on('change:selected', this.view.setter('timer'));
+  this.settings.mode.on('change:selected', this.view.setter('mode'));
   this.settings.hdr.on('change:selected', this.view.setter('hdr'));
   this.app.on('change:batteryStatus', this.view.setter('battery'));
   this.app.on('change:recording', this.view.setter('recording'));

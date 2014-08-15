@@ -65,6 +65,7 @@
  */
 
 .indicators[recording=true] .indicator_hdr,
+.indicators[mode=video] .indicator_hdr,
 .indicators[recording=true] .indicator_timer,
 .indicators[timer=off] .indicator_timer {
   display: none;
