@@ -91,6 +91,8 @@
       window.addEventListener('screenchange', this, true);
       window.addEventListener('home', this);
       window.addEventListener('batteryshutdown', this);
+
+      window.addEventListener('attentionopened', this);
       this.elements.cancel.addEventListener('click', this);
 
       var self = this;
@@ -257,6 +259,7 @@
           break;
 
         case 'home':
+        case 'attentionopened':
           if (this.visible) {
             this.hide();
           }

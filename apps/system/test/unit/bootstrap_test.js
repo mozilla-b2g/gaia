@@ -5,6 +5,7 @@
 requireApp('system/shared/js/async_storage.js');
 requireApp('system/shared/js/lazy_loader.js');
 requireApp('system/shared/js/screen_layout.js');
+requireApp('system/shared/js/settings_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -47,7 +48,11 @@ requireApp('system/js/text_selection_dialog.js');
 requireApp('system/js/ttlview.js');
 requireApp('system/js/visibility_manager.js');
 requireApp('system/js/wallpaper_manager.js');
+requireApp('system/js/attention_window_manager.js');
 
+requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_attention_window.js');
+requireApp('system/test/unit/mock_callscreen_window.js');
 requireApp('system/test/unit/mock_airplane_mode.js');
 requireApp('system/test/unit/mock_applications.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -66,7 +71,8 @@ var mocksForBootstrap = new MocksHelper([
   'SettingsURL',
   'TaskManager',
   'L10n',
-  'AppWindowManager'
+  'AppWindowManager',
+  'CallscreenWindow'
 ]).init();
 
 suite('system/Bootstrap', function() {

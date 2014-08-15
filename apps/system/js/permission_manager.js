@@ -72,7 +72,8 @@
       });
 
       window.addEventListener('mozChromeEvent', this);
-      window.addEventListener('attentionscreenshow', this);
+      window.addEventListener('attentionopening', this);
+      window.addEventListener('attentionopened', this);
       /* On home/holdhome pressed, discard permission request.
        * XXX: We should make permission dialog be embededd in appWindow
        * Gaia bug is https://bugzilla.mozilla.org/show_bug.cgi?id=853711
@@ -134,7 +135,8 @@
       this.no = null;
 
       window.removeEventListener('mozChromeEvent', this);
-      window.removeEventListener('attentionscreenshow',this);
+      window.removeEventListener('attentionopening', this);
+      window.removeEventListener('attentionopened', this);
       window.removeEventListener('home', this);
       window.removeEventListener('holdhome', this);
     },
@@ -251,7 +253,8 @@
       }
 
       switch (evt.type) {
-        case 'attentionscreenshow':
+        case 'attentionopened':
+        case 'attentionopening':
           this.discardPermissionRequest();
           break;
       }
