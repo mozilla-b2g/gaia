@@ -72,8 +72,10 @@ define(function(require) {
       // "click". The system app will also notify this method of
       // any close events for notificaitons, which are not at all
       // interesting, at least for the purposes here.
-      if (!msg.clicked)
+      if (!msg.clicked) {
+        this.emitWhenListener('notificationClosed');
         return;
+      }
 
       // Need to manually get all notifications and close the one
       // that triggered this event due to fallout from 890440 and
