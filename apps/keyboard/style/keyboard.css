@@ -707,3 +707,11 @@ bubble above the key when you tap and hold. */
 .keyboard-key > .visual-wrapper > span[data-label="া"] {
   font-size: 1.7rem;
 }
+
+/* Hindi */
+.keyboard-key.hindi > .visual-wrapper > span[data-label="औ"],
+.keyboard-key.hindi > .visual-wrapper > span[data-label="आ"],
+.keyboard-key.hindi > .visual-wrapper > span[data-label="ओ"],
+.keyboard-key.hindi > .visual-wrapper > span[data-label="ऑ"] {
+  font-size: 2rem;
+}
