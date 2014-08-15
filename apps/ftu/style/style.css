@@ -482,7 +482,7 @@ aside.connecting {
   opacity: 0;
   z-index: 3010;
   transition: all 1s ease;
-  background: url(images/bg_grey-noise.png);
+  background: #2d2d2d;
 }
 
 .finish-screen-base.show, .tutorial-finish-base.show {
