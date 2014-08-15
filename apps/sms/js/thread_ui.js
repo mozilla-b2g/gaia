@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Compose, Recipients, Utils, AttachmentMenu, Template, Settings,
-         SMIL, ErrorDialog, MessageManager, MozSmsFilter, LinkHelper,
+         SMIL, ErrorDialog, MessageManager, LinkHelper,
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
@@ -1436,8 +1436,7 @@ var ThreadUI = {
       return;
     }
 
-    var filter = new MozSmsFilter();
-    filter.threadId = threadId;
+    var filter = { threadId: threadId };
 
     // We call getMessages with callbacks
     var renderingOptions = {

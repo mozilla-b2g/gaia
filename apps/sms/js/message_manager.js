@@ -167,17 +167,30 @@ var MessageManager = {
       done: callback function invoked when we stopped iterating, either because
             it's the end or because it was stopped. It's invoked after the "end"
             callback.
-      filter: a MozMessageFilter or similar object
+      filter: a MobileMessageFilter or similar object
       invert: option to invert the selection
     }
 
      */
     var each = options.each;
-    var filter = options.filter;
     var invert = options.invert;
     var end = options.end;
     var endArgs = options.endArgs;
     var done = options.done;
+    var filter = options.filter;
+    if (filter && 'MozSmsFilter' in window) {
+      // 'MozSmsFilter' has been obsoleted in favor of WebIDL dictionary
+      // 'MobileMessageFilter'. If somehow we're running with an out-dated
+      // Gecko, use 'MozSmsFilter' instead.
+      var f = new MozSmsFilter();
+      if ('threadId' in filter && filter.threadId) {
+        f.threadId = filter.threadId;
+      }
+      if ('read' in filter) {
+        f.read = filter.read;
+      }
+      filter = f;
+    }
     var cursor = this._mozMobileMessage.getMessages(filter, !invert);
 
     cursor.onsuccess = function onsuccess() {
@@ -413,9 +426,10 @@ var MessageManager = {
   },
 
   markThreadRead: function mm_markThreadRead(threadId) {
-    var filter = new MozSmsFilter();
-    filter.threadId = threadId;
-    filter.read = false;
+    var filter = {
+      threadId: threadId,
+      read: false
+    };
 
     var messagesUnreadIDs = [];
     var changeStatusOptions = {

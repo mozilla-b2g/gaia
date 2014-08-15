@@ -499,8 +499,7 @@ var GaiaDataLayer = {
     let sms = window.navigator.mozMobileMessage;
 
     let msgList = new Array();
-    let filter = new MozSmsFilter();
-    let cursor = sms.getMessages(filter, false);
+    let cursor = sms.getMessages(null, false);
 
     cursor.onsuccess = function(event) {
       if(cursor.result) {
@@ -536,8 +535,7 @@ var GaiaDataLayer = {
     let sms = window.navigator.mozMobileMessage;
 
     let msgList = new Array();
-    let filter = new MozSmsFilter;
-    let cursor = sms.getMessages(filter, false);
+    let cursor = sms.getMessages(null, false);
 
     cursor.onsuccess = function(event) {
       // Check if message was found

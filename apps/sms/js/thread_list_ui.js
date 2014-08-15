@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Template, Utils, Threads, Contacts, Threads,
-         WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
+         WaitingScreen, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
          PerformanceTestingHelper, StickyHeader, Navigation, Dialog */
 /*exported ThreadListUI */
@@ -366,13 +366,12 @@ var ThreadListUI = {
       count = list.threads.length;
 
       // Remove and coerce the threadId back to a number
-      // MozSmsFilter and all other platform APIs
+      // MobileMessageFilter and all other platform APIs
       // expect this value to be a number.
       while ((threadId = +list.threads.pop())) {
 
         // Filter and request all messages with this threadId
-        filter = new MozSmsFilter();
-        filter.threadId = threadId;
+        filter = { threadId: threadId };
 
         MessageManager.getMessages({
           filter: filter,
