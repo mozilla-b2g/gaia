@@ -9,6 +9,7 @@
 /* global IAC_API_WAKEUP_REASON_LOGOUT */
 /* global IAC_API_WAKEUP_REASON_STALE_REGISTRATION */
 /* global IAC_API_WAKEUP_REASON_TRY_DISABLE */
+/* global IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED */
 
 'use strict';
 
@@ -191,6 +192,9 @@ var FindMyDevice = {
             DUMP('refreshing client id and attempting to disable');
             this._disableAttempt = true;
             this._refreshClientIDIfRegistered(true);
+          } else if (reason === IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED) {
+            DUMP('unlocked');
+            this._onLockscreenClosed();
           }
 
           return;
@@ -497,6 +501,14 @@ var FindMyDevice = {
     }
 
     navigator.mozId.request(mozIdRequestOptions);
+  },
+
+  _onLockscreenClosed: function fmd_on_lockscreen_closed() {
+    if (Commands.deviceHasPasscode()) {
+      DUMP('cancelling ring and track');
+      Commands.invokeCommand('ring', [0]);
+      Commands.invokeCommand('track', [0]);
+    }
   },
 
   _fetchClientID: function fmd_fetch_client_id(assertion) {

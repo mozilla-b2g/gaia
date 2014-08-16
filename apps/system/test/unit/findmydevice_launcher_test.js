@@ -2,7 +2,8 @@
    MockMozActivity, MockNotifications, MockNavigatormozSetMessageHandler,
    IAC_API_WAKEUP_REASON_LOGIN, IAC_API_WAKEUP_REASON_LOGOUT,
    IAC_API_WAKEUP_REASON_STALE_REGISTRATION,
-   IAC_API_WAKEUP_REASON_ENABLED_CHANGED
+   IAC_API_WAKEUP_REASON_ENABLED_CHANGED,
+   IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED
 */
 
 'use strict';
@@ -149,6 +150,12 @@ suite('FindMyDevice Launcher >', function(done) {
     window.dispatchEvent(new CustomEvent('lockscreen-appclosing'));
     assert.equal(
       MockSettingsHelper.instances['lockscreen.lock-message'].value, '');
+  });
+
+  test('fmd is awoken with LOCKSCREEN_CLOSED on lockscreen unlock', function() {
+    window.dispatchEvent(new CustomEvent('lockscreen-appclosing'));
+    sinon.assert.calledWith(window.wakeUpFindMyDevice,
+      IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED);
   });
 
   test('send LOGIN wakeup message on FxA login', function() {
