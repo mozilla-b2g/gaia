@@ -77,9 +77,6 @@ var CpScreenHelper = (function() {
   /** All APNs list */
   var apns = null;
 
-  /** Index of the card on which the message was received. */
-  var iccCardIndex = 0;
-
   function cpsh_init() {
     _ = navigator.mozL10n.get;
 
@@ -159,22 +156,8 @@ var CpScreenHelper = (function() {
       pin.blur();
     }
 
-    var _title = message.sender;
-    /* If the phone has more than one SIM prepend the number of the SIM on
-     * which this message was received */
-    if (navigator.mozIccManager &&
-        navigator.mozIccManager.iccIds.length > 1) {
-      var simName = _('sim', { id: +message.serviceId + 1 });
+    title.textContent = message.sender;
 
-      _title = _(
-        'dsds-notification-title-with-sim',
-         { sim: simName, title: _title }
-      );
-    }
-
-    title.textContent = _title;
-
-    iccCardIndex = message.serviceId;
     messageTag = message.timestamp;
   }
 
@@ -313,7 +296,7 @@ var CpScreenHelper = (function() {
 
       processed = true;
       // Store the APNs into the database.
-      StoreProvisioning.provision(apns, iccCardIndex);
+      StoreProvisioning.provision(apns);
 
       WapPushManager.clearNotifications(messageTag);
       cpsh_deleteMessage(messageTag);
