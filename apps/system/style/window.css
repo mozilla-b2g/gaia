@@ -20,6 +20,10 @@
   background-color: transparent;
 }
 
+.appWindow:not(.homescreen):not(.searchWindow).light {
+  background-color: #fff;
+}
+
 /* mozbrowser iframe layout */
 
 .appWindow iframe {
