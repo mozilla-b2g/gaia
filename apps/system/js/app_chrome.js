@@ -87,7 +87,7 @@
             ' <button type="button" class="forward-button"' +
             '   alt="Forward" disabled></button>' +
             ' <div class="urlbar">' +
-            '   <div class="title"></div>' +
+            '   <div class="title" data-ssl=""></div>' +
             '   <button type="button" class="reload-button"' +
             '     alt="Reload"></button>' +
             '   <button type="button" class="stop-button"' +
@@ -199,6 +199,10 @@
         this.handleLocationChanged(evt);
         break;
 
+      case 'mozbrowsersecuritychange':
+        this.handleSecurityChanged(evt);
+        break;
+
       case 'mozbrowsertitlechange':
         this.handleTitleChanged(evt);
         break;
@@ -308,6 +312,7 @@
     this.app.element.addEventListener('mozbrowserlocationchange', this);
     this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('mozbrowsermetachange', this);
+    this.app.element.addEventListener('mozbrowsersecuritychange', this);
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
     this.app.element.addEventListener('_namechanged', this);
@@ -374,6 +379,10 @@
     this._titleTimeout = setTimeout((function() {
       this._recentTitle = false;
     }).bind(this), this.FRESH_TITLE);
+  };
+
+  AppChrome.prototype.handleSecurityChanged = function(evt) {
+    this.title.dataset.ssl = evt.detail.state;
   };
 
   AppChrome.prototype.handleTitleChanged = function(evt) {
