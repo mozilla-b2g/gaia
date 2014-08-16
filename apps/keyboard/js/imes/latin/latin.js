@@ -135,10 +135,19 @@
    */
   var inputSequencePromise = Promise.resolve();
 
+  // DatabasePromiseManager instance
+  var database = null;
+  // We keep this variable global so that we don't anwser
+  // |displaysCandidates| prematurely.
+  var getDictionaryDataPromise = null;
+
   // keyboard.js calls this to pass us the interface object we need
   // to communicate with it
   function init(interfaceObject) {
     keyboard = interfaceObject;
+
+    database = new DatabasePromiseManager();
+    database.start();
   }
 
   // Given the type property and inputmode attribute of a form element,
@@ -261,12 +270,14 @@
       return;
     }
 
+    getDictionaryDataPromise = null;
     var preloaded = isDictionaryPreloaded(newlang);
 
     if (preloaded) {
       setLanguageSync(newlang, undefined);
     } else {
-      loadDictionaryForLanguage(newlang);
+      // This will call setLanguageSync() eventually if the dictionary exists.
+      setLanguageFromDatabase(newlang);
     }
   }
 
@@ -316,7 +327,7 @@
     updateSuggestions();
   }
 
-  function loadDictionaryForLanguage(newlang) {
+  function setLanguageFromDatabase(newlang) {
     // Unfornately loading a downloaded dictionary from IndexedDB takes extra
     // async loop. We need to terminate the worker here in order to prevent
     // the race condition of asking a prediction before language is actually
@@ -325,11 +336,31 @@
     // is available inside the worker.
     terminateWorker();
 
-    // TBD ... should eventually goes to setLanguageSync and this async loop
-    // needs to be cancellable.
+    var p = database.getItem(newlang).then(function(data) {
+      getDictionaryDataPromise = null;
+      if (data) {
+        setLanguageSync(newlang, data);
+      }
+    });
+    getDictionaryDataPromise = p;
   }
 
   function displaysCandidates() {
+    // If getDictionaryDataPromise exists, that means we have not figured out
+    // whether or not to offer suggestions, since we don't know if the
+    // dictionary exists. In this case, we return a promise that will
+    // resolve to the right anwser, when we can answer the question
+    // deterministically.
+    if (getDictionaryDataPromise) {
+      var p = getDictionaryDataPromise.then(function() {
+        return !!(suggesting && worker);
+      }, function() {
+        return !!(suggesting && worker);
+      });
+
+      return p;
+    }
+
     return !!(suggesting && worker);
   }
 
@@ -1080,6 +1111,73 @@
 
     updateSuggestions();
   }
+
+  var DatabasePromiseManager = function() {
+    this._openPromise = null;
+  };
+
+  DatabasePromiseManager.prototype.DB_NAME = 'dictionaries';
+  DatabasePromiseManager.prototype.DB_VERSION = 1;
+  DatabasePromiseManager.prototype.STORE_NAME = 'keyvaluepairs';
+
+  DatabasePromiseManager.prototype.start = function() {
+    this._getDatabase()['catch'](function(e) {
+      e && console.error(e);
+
+      return Promise.reject();
+    });
+  };
+
+  DatabasePromiseManager.prototype._getDatabase = function() {
+    if (this._openPromise) {
+      return this._openPromise;
+    }
+
+    var p = new Promise(function(resolve, reject) {
+      var req = window.indexedDB.open(this.DB_NAME, this.DB_VERSION);
+      req.onerror = reject;
+      req.onsuccess = function(evt) {
+        resolve(req.result);
+      };
+      req.onupgradeneeded = (function(evt) {
+        var db = req.result;
+        if (evt.oldVersion < 1) {
+          db.createObjectStore(this.STORE_NAME);
+        }
+        // ... put next database upgrade here.
+        // See http://www.w3.org/TR/IndexedDB/#introduction
+        // on how upgradeneeded should be handled.
+      }).bind(this);
+    }.bind(this));
+
+    this._openPromise = p;
+    return p;
+  };
+
+  DatabasePromiseManager.prototype._getTxn = function(type) {
+    return this._getDatabase().then(function(db) {
+      var txn = db.transaction(this.STORE_NAME, type);
+      return txn;
+    }.bind(this));
+  };
+
+  DatabasePromiseManager.prototype.getItem = function(name) {
+    return this._getTxn().then(function(txn) {
+      return new Promise(function(resolve, reject) {
+        var req = txn.objectStore(this.STORE_NAME).get(name);
+        req.onerror = function(e) {
+          reject(e);
+        };
+        txn.oncomplete = function() {
+          resolve(req.result);
+        };
+      }.bind(this));
+    }.bind(this))['catch'](function(e) {
+      e && console.error(e);
+
+      return Promise.reject();
+    });
+  };
 
   if (!('LAYOUT_PAGE_DEFAULT' in window))
     window.LAYOUT_PAGE_DEFAULT = null;

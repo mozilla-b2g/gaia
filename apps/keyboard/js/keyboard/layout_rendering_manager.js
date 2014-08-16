@@ -55,28 +55,34 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
   var currentIMEngine = this.app.inputMethodManager.currentIMEngine;
 
   // Determine if the candidate panel for word suggestion is needed
-  var needsCandidatePanel = !!(
+  // If currentIMEngine.displaysCandidates() returns a thenable,
+  // we will wait for it to resolve.
+  var needsCandidatePanel =
     (currentLayout.autoCorrectLanguage || currentLayout.needsCandidatePanel) &&
     ((typeof currentIMEngine.displaysCandidates !== 'function') ||
-      currentIMEngine.displaysCandidates()));
+      currentIMEngine.displaysCandidates()) || false;
 
   // Rule of thumb: always render uppercase, unless secondLayout has been
   // specified (for e.g. arabic, then depending on shift key)
   var needsUpperCase = currentModifiedLayout.secondLayout ?
       this.app.upperCaseStateManager.isUpperCase : true;
+  var p = Promise.resolve(needsCandidatePanel).catch(function(e) {
+        console.error(e);
+        return false;
+      }).then(function(needsCandidatePanel) {
+        return new Promise(function(resolve) {
+          IMERender.draw(currentModifiedLayout, {
+            uppercase: needsUpperCase,
+            inputType: this.app.getBasicInputType(),
+            showCandidatePanel: needsCandidatePanel
+          }, resolve);
 
-  var p = new Promise(function(resolve) {
-    IMERender.draw(currentModifiedLayout, {
-      uppercase: needsUpperCase,
-      inputType: this.app.getBasicInputType(),
-      showCandidatePanel: needsCandidatePanel
-    }, resolve);
-  }.bind(this)).then(this._afterRenderDrew.bind(this));
-
-  // Tell the renderer what input method we're using. This will set a CSS
-  // classname that can be used to style the keyboards differently
-  IMERender.setInputMethodName(
-    this.app.layoutManager.currentModifiedLayout.imEngine || 'default');
+          // Tell the renderer what input method we're using. This will set
+          // a CSS classname that can be used to style the keyboards differently
+          IMERender.setInputMethodName(
+            this.app.layoutManager.currentModifiedLayout.imEngine || 'default');
+        }.bind(this));
+    }.bind(this)).then(this._afterRenderDrew.bind(this));
 
   this.app.perfTimer.printTime(
     'BLOCKING layoutRenderingManager.updateLayoutRendering',
