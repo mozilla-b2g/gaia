@@ -19,8 +19,20 @@ var LanguageManager = {
     if (!this.settings || evt.target.name != 'language.current') {
       return true;
     }
-    this.settings.createLock().set({'language.current': evt.target.value});
+    this.updateSettings(evt.target.value);
     return false;
+  },
+
+  // update current launguage and time format settings
+  updateSettings: function settings_updateSettings(language) {
+    var _ = navigator.mozL10n.get;
+    var localeTimeFormat = _('shortTimeFormat');
+    var is12hFormat = (localeTimeFormat.indexOf('%I') >= 0);
+
+    this.settings.createLock().set({
+      'language.current': language,
+      'locale.hour12': is12hFormat
+    });
   },
 
   buildLanguageList: function settings_buildLanguageList() {
