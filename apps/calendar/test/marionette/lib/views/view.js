@@ -55,6 +55,13 @@ View.prototype = {
     var formData = {};
     formData[name] = value;
     this.setFormData(formData);
+
+    // Send input event to trigger the listener method.
+    // e.g. Set the start date to trigger doing auto change end date.
+    this.form.findElement('[name="' + name + '"]')
+      .scriptWith(function(el) {
+        el.dispatchEvent(new CustomEvent('input'));
+      });
   },
 
   setFormData: function(formData) {
