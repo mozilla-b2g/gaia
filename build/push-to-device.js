@@ -180,7 +180,7 @@ function execute(options) {
   }).then(function() {
     if (buildAppName === '*') {
       return sh.run(['-c', adb + ' push ' +
-        '"shared/elements/gaia-icons/fonts/gaia-icons.ttf" ' +
+        '"shared/elements/gaia_icons/fonts/gaia-icons.ttf" ' +
         '//system/fonts/hidden/gaia-icons.ttf']);
     }
   }).then(function() {
