@@ -321,10 +321,13 @@ gaia-buttons.forward-only .icon-previous {
 
 #wifi [data-type="list"] li > p {
   pointer-events: none;
+  padding-right: 6.2rem;
 }
 
 #wifi li {
   padding: 0 1.5rem;
+  display: flex;
+  flex-direction: column;
 }
 #wifi li.connected p {
   color: #00AACC;
@@ -400,6 +403,11 @@ gaia-buttons.forward-only .icon-previous {
 /*
  * States of Wifi signal
  */
+#wifi [data-type="list"] li > aside {
+  position: absolute;
+  right: 1.5rem;
+  top: 0;
+}
 aside.wifi-icon {
   background-repeat: no-repeat;
   background-position: 0 center;
