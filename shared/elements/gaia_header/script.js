@@ -13,7 +13,7 @@ var fontFit = require('./lib/font-fit');
  */
 
 var baseComponents = window.COMPONENTS_BASE_URL || 'bower_components/';
-var base = window.GAIA_HEADER_BASE_URL || baseComponents + 'gaia-header/';
+var base = window.GAIA_HEADER_BASE_URL || baseComponents + 'gaia_header/';
 
 // Load icons into document, we run some
 // to try to determine if the icons have
