@@ -82,9 +82,9 @@ Keyboards.te = {
    
     keys: [
       [
-        { value: '१' }, { value: '२' }, { value: '३' }, { value: '४' },
-        { value: '५' }, { value: '६' }, { value: '७' }, { value: '८' },
-        { value: '९' }, { value: '०' }
+        { value: '౧' }, { value: '౨' }, { value: '३ '}, { value: '౪'},
+        { value: '౫' }, { value: '౬' }, { value: '౭' }, { value: '౮' },
+        { value: '౯' }, { value: '౦' }
       ], [
         { value: '@' }, { value: '#' },
         { value: '₹', className: 'alternate-indicator' }, { value: '&' },
