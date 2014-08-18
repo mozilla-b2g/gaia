@@ -446,15 +446,11 @@
           ${subject}
         </h1>
         <div class="message-content">
-          <aside class="message-status">
-            <progress class="${progressIndicatorClassName}"></progress>
-          </aside>
-          <div class="message-body">
-            <p>${bodyHTML}</p>
-            <div class="message-details">
-              ${simInformationHTML}
-              <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
-            </div>
+          <p>${bodyHTML}</p>
+          <div class="message-details">
+            ${simInformationHTML}
+            <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
+            ${messageStatusHTML}
           </div>
         </div>
       </section>
@@ -467,6 +463,15 @@
         data-l10n-id="sim-id-label"
         data-l10n-args="${simNumberL10nArgs}">
       </span>
+      -->
+    </div>
+
+    <div id="messages-message-status-tmpl" class="hide">
+      <!--
+      <div class="message-status" data-l10n-id="${statusL10nId}"
+           aria-label="Message status"
+           role="status">
+      </div>
       -->
     </div>
 

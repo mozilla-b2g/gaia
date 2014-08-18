@@ -86,6 +86,7 @@ var ThreadUI = {
     var templateIds = [
       'message',
       'message-sim-information',
+      'message-status',
       'not-downloaded',
       'recipient',
       'date-group'
@@ -1532,18 +1533,12 @@ var ThreadUI = {
   },
 
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
-    var bodyHTML = '';
-    var delivery = message.delivery;
+    var messageDOM = document.createElement('li'),
+        bodyHTML = '';
 
-    var isDelivered = this.shouldShowDeliveryStatus(message);
-    var isRead = this.shouldShowReadStatus(message);
-    var isNotDownloaded = delivery === 'not-downloaded';
-    var isIncoming = delivery === 'received' || isNotDownloaded;
-
-    var messageDOM = document.createElement('li');
-
-    var classNames = ['message', message.type, delivery];
-    var attachments = message.attachments;
+    var messageStatus = message.delivery,
+        isNotDownloaded = messageStatus === 'not-downloaded',
+        isIncoming = messageStatus === 'received' || isNotDownloaded;
 
     // If the MMS has invalid empty content(message without attachment and
     // subject) or contains only subject, we will display corresponding message
@@ -1552,16 +1547,19 @@ var ThreadUI = {
     // Returning attachments would be different based on gecko version:
     // null in b2g18 / empty array in master.
     var noAttachment = (message.type === 'mms' && !isNotDownloaded &&
-      (attachments === null || attachments.length === 0));
+      (message.attachments === null || message.attachments.length === 0));
     var invalidEmptyContent = (noAttachment && !message.subject);
 
-    classNames.push(isIncoming ? 'incoming' : 'outgoing');
-
-    if (isRead) {
-      classNames.push('read');
-    } else if (isDelivered) {
-      classNames.push('delivered');
+    if (this.shouldShowReadStatus(message)) {
+      messageStatus = 'read';
+    } else if (this.shouldShowDeliveryStatus(message)) {
+      messageStatus = 'delivered';
     }
+
+    var classNames = [
+      'message', message.type, messageStatus,
+      isIncoming ? 'incoming' : 'outgoing'
+    ];
 
     if (hidden) {
       classNames.push('hidden');
@@ -1586,6 +1584,12 @@ var ThreadUI = {
       classNames.push('no-attachment');
     }
 
+    if (classNames.indexOf('error') >= 0) {
+      messageStatus = 'error';
+    } else if (classNames.indexOf('pending') >= 0) {
+      messageStatus = 'pending';
+    }
+
     messageDOM.className = classNames.join(' ');
     messageDOM.id = 'message-' + message.id;
     messageDOM.dataset.messageId = message.id;
@@ -1604,12 +1608,10 @@ var ThreadUI = {
       bodyHTML: bodyHTML,
       timestamp: String(message.timestamp),
       subject: String(message.subject),
-      // Incoming and outgoing messages are displayed using different
-      // backgrounds, therefore progress indicator should be styled differently.
-      progressIndicatorClassName: isIncoming ? 'light' : '',
-      simInformationHTML: simInformationHTML
+      simInformationHTML: simInformationHTML,
+      messageStatusHTML: this.getMessageStatusMarkup(messageStatus)
     }, {
-      safe: ['bodyHTML', 'simInformationHTML']
+      safe: ['bodyHTML', 'simInformationHTML', 'messageStatusHTML']
     });
 
     TimeHeaders.update(messageDOM.querySelector('time'));
@@ -1626,6 +1628,13 @@ var ThreadUI = {
     }
 
     return messageDOM;
+  },
+
+  getMessageStatusMarkup: function(status) {
+    return ['read', 'delivered', 'sending', 'error'].indexOf(status) >= 0 ?
+      this.tmpl.messageStatus.interpolate({
+        statusL10nId: 'message-delivery-status-' + status
+      }) : '';
   },
 
   appendMessage: function thui_appendMessage(message, hidden) {
@@ -2218,16 +2227,7 @@ var ThreadUI = {
   },
 
   onMessageSent: function thui_onMessageSent(e) {
-    var message = e.message;
-    var messageDOM = document.getElementById('message-' + message.id);
-
-    if (!messageDOM) {
-      return;
-    }
-
-    // Update class names to reflect message state
-    messageDOM.classList.remove('sending');
-    messageDOM.classList.add('sent');
+    this.setMessageStatus(e.message.id, 'sent');
   },
 
   /**
@@ -2243,22 +2243,12 @@ var ThreadUI = {
 
   onMessageFailed: function thui_onMessageFailed(e) {
     var message = e.message;
-    var messageDOM = document.getElementById('message-' + message.id);
     var serviceId = Settings.getServiceIdByIccId(message.iccId);
+
     // When this is the first message in a thread, we haven't displayed
     // the new thread yet. The error flag will be shown when the thread
     // will be rendered. See Bug 874043
-    if (messageDOM) {
-
-      // Check if it was painted as 'error' before
-      if (messageDOM.classList.contains('error')) {
-        return;
-      }
-
-      // Update class names to reflect message state
-      messageDOM.classList.remove('sending');
-      messageDOM.classList.add('error');
-    }
+    this.setMessageStatus(message.id, 'error');
 
     if (this.showErrorInFailedEvent === 'NonActiveSimCardError') {
       this.showErrorInFailedEvent = '';
@@ -2267,8 +2257,7 @@ var ThreadUI = {
         {
           confirmHandler: function() {
             // Update messageDOM state to 'sending' while sim switching
-            messageDOM.classList.remove('error');
-            messageDOM.classList.add('sending');
+            this.setMessageStatus(message.id, 'sending');
 
             Settings.switchMmsSimHandler(serviceId).then(
               this.resendMessage.bind(this, message.id))
@@ -2289,13 +2278,7 @@ var ThreadUI = {
       return;
     }
 
-    var messageDOM = document.getElementById('message-' + message.id);
-
-    if (!messageDOM) {
-      return;
-    }
-    // Update class names to reflect message state
-    messageDOM.classList.add('delivered');
+    this.setMessageStatus(message.id, 'delivered');
   },
 
   onReadSuccess: function thui_onReadSuccess(e) {
@@ -2305,14 +2288,7 @@ var ThreadUI = {
       return;
     }
 
-    var messageDOM = document.getElementById('message-' + message.id);
-
-    if (!messageDOM) {
-      return;
-    }
-    // Update class names to reflect message state
-    messageDOM.classList.remove('delivered');
-    messageDOM.classList.add('read');
+    this.setMessageStatus(message.id, 'read');
   },
 
   // Some error return from sending error need some specific action instead of
@@ -2349,6 +2325,32 @@ var ThreadUI = {
     }
   },
 
+  setMessageStatus: function(id, status) {
+    var messageDOM = document.getElementById('message-' + id);
+
+    if (!messageDOM || messageDOM.classList.contains(status)) {
+      return;
+    }
+
+    var newStatusMarkup = this.getMessageStatusMarkup(status),
+        oldStatusNode = messageDOM.querySelector('.message-status');
+
+    messageDOM.classList.remove(
+      'sending', 'pending', 'sent', 'received', 'delivered', 'read', 'error'
+    );
+    messageDOM.classList.add(status);
+
+    if (oldStatusNode) {
+      oldStatusNode.remove();
+    }
+
+    if (newStatusMarkup) {
+      messageDOM.querySelector('.message-details').appendChild(
+        this._htmlStringToDomNode(newStatusMarkup)
+      );
+    }
+  },
+
   retrieveMMS: function thui_retrieveMMS(messageDOM) {
     // force a number
     var id = +messageDOM.dataset.messageId;
@@ -2358,8 +2360,7 @@ var ThreadUI = {
 
     var button = messageDOM.querySelector('button');
 
-    messageDOM.classList.add('pending');
-    messageDOM.classList.remove('error');
+    this.setMessageStatus(id, 'pending');
     button.setAttribute('data-l10n-id', 'downloading-attachment');
 
     request.onsuccess = (function retrieveMMSSuccess() {
@@ -2367,8 +2368,7 @@ var ThreadUI = {
     }).bind(this);
 
     request.onerror = (function retrieveMMSError() {
-      messageDOM.classList.remove('pending');
-      messageDOM.classList.add('error');
+      this.setMessageStatus(id, 'error');
       button.setAttribute('data-l10n-id', 'download-attachment');
 
       // Show NonActiveSimCard/Other error dialog while retrieving MMS
@@ -2398,8 +2398,7 @@ var ThreadUI = {
             // TODO move this before trying to call retrieveMMS in Bug 981077
             // Avoid user to click the download button while sim state is not
             // ready yet.
-            messageDOM.classList.add('pending');
-            messageDOM.classList.remove('error');
+            this.setMessageStatus(id, 'pending');
             button.setAttribute('data-l10n-id', 'downloading-attachment');
             Settings.switchMmsSimHandler(serviceId).then(
               this.retrieveMMS.bind(this, messageDOM))
