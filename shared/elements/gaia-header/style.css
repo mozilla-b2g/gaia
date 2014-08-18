@@ -15,6 +15,11 @@ gaia-header[hidden] {
   display: none;
 }
 
+/** Reset
+ ---------------------------------------------------------*/
+
+::-moz-focus-inner { border: 0; }
+
 /** Inner
  ---------------------------------------------------------*/
 
@@ -88,7 +93,7 @@ gaia-header[hidden] {
  *   </gaia-header>
  */
 
-.content .l10n-action {
+.-content .l10n-action {
   position: absolute;
   left: 0;
   top: 0;
@@ -100,21 +105,48 @@ gaia-header[hidden] {
 /** Title
  ---------------------------------------------------------*/
 
-.content h1 {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/**
+ * 1. Vertically center text. We can't use flexbox
+ *    here as it breaks text-overflow ellipsis
+ *    without an inner div.
+ */
+
+.-content h1 {
   flex: 1;
   margin: 0;
-  padding: 0 16px;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
   text-align: center;
+  line-height: 50px; /* 1 */
   font-weight: 300;
   font-style: italic;
   font-size: 24px;
   color: var(--header-title-color, #000);
+}
+
+/**
+ * .flush-left
+ *
+ * When the fitted text is flush with the
+ * edge of the left edge of the container
+ * we pad it in a bit.
+ */
+
+.-content h1.flush-left {
+  padding-left: 10px;
+}
+
+/**
+ * .flush-right
+ *
+ * When the fitted text is flush with the
+ * edge of the right edge of the container
+ * we pad it in a bit.
+ */
+
+.-content h1.flush-right {
+  padding-right: 10px; /* 1 */
 }
 
 /** Buttons
@@ -122,8 +154,8 @@ gaia-header[hidden] {
 
 a,
 button,
-.content a,
-.content button {
+.-content a,
+.-content button {
   box-sizing: border-box;
   display: flex;
   border: none;
@@ -150,8 +182,8 @@ button,
  * [hidden]
  */
 
-.content a[hidden],
-.content button[hidden] {
+.-content a[hidden],
+.-content button[hidden] {
   display: none;
 }
 
@@ -161,8 +193,8 @@ button,
 
 a:active,
 button:active,
-.content a:active,
-.content button:active {
+.-content a:active,
+.-content button:active {
   background: var(--header-button-background, #000);
   color: var(--header-button-color-active, #fff);
   transition: none;
@@ -173,7 +205,7 @@ button:active,
  */
 
 a:focus,
-.content a:focus {
+.-content a:focus {
   outline: none;
 }
 
@@ -184,8 +216,8 @@ a:focus,
  * Icons are a different color to text
  */
 
-.content .icon,
-.content [data-icon] {
+.-content .icon,
+.-content [data-icon] {
   color: var(--header-nav-button-color, #000);
 }
 
@@ -193,8 +225,8 @@ a:focus,
  * :active
  */
 
-.content .icon,
-.content [data-icon]:active {
+.-content .icon,
+.-content [data-icon]:active {
   color: var(--header-nav-button-color-active, #fff);
 }
 

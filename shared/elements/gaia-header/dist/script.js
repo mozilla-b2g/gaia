@@ -2,13 +2,6 @@
 (function(define){'use strict';define(function(_dereq_,exports,module){
 
 /**
- * Locals
- */
-
-var bodyClasses = document.body.classList;
-var loadedClass = 'gaia-icons-loaded';
-
-/**
  * Exports
  */
 
@@ -23,14 +16,13 @@ function load(href) {
   link.type = 'text/css';
   link.href = href;
   document.head.appendChild(link);
-  bodyClasses.add(loadedClass);
   exports.loaded = true;
 }
 
 function isLoaded() {
   return exports.loaded ||
     document.querySelector('link[href*=gaia-icons]') ||
-    bodyClasses.contains(loadedClass);
+    document.documentElement.classList.contains('gaia-icons-loaded');
 }
 
 });})((function(n,w){'use strict';return typeof define=='function'&&define.amd?
@@ -81,6 +73,14 @@ w[n]=c(r,m.exports,m)||m.exports;};})('gaia-icons',this));
 
       // Cache the element style properties to avoid reflows.
       var style = this._getStyleProperties(heading);
+
+      // If the document is inside a hidden iframe
+      // `window.getComputedStyle()` returns null,
+      // and various canvas APIs throw errors; so we
+      // must abort here to avoid exceptions.
+      if (!style) {
+        return;
+      }
 
       // Perform auto-resize and center.
       style.textWidth = this._autoResizeElement(heading, style);
@@ -247,14 +247,14 @@ w[n]=c(r,m.exports,m)||m.exports;};})('gaia-icons',this));
      * @private
      */
     _getStyleProperties: function(heading) {
-      var style = window.getComputedStyle(heading);
+      var style = getComputedStyle(heading) || {};
       var contentWidth = this._getContentWidth(style);
       if (isNaN(contentWidth)) {
         contentWidth = 0;
       }
 
       return {
-        fontFamily: style.fontFamily,
+        fontFamily: style.fontFamily || 'unknown',
         contentWidth: contentWidth,
         paddingRight: parseInt(style.paddingRight, 10),
         paddingLeft: parseInt(style.paddingLeft, 10),
@@ -317,10 +317,16 @@ w[n]=c(r,m.exports,m)||m.exports;};})('gaia-icons',this));
         styleOptions.paddingLeft;
 
       // Get the amount of space on each side of the header text element.
+      var tightText = styleOptions.textWidth > (styleOptions.contentWidth - 30);
       var sideSpaceLeft = styleOptions.offsetLeft;
       var sideSpaceRight = this._getWindowWidth() - sideSpaceLeft -
         styleOptions.contentWidth - styleOptions.paddingRight -
         styleOptions.paddingLeft;
+
+      // If there is no space to the left or right of the title
+      // we apply padding so that it's not flush up against edge
+      heading.classList.toggle('flush-left', tightText && !sideSpaceLeft);
+      heading.classList.toggle('flush-right', tightText && !sideSpaceRight);
 
       // If both margins have the same width, the header is already centered.
       if (sideSpaceLeft === sideSpaceRight) {
@@ -439,6 +445,12 @@ proto.createdCallback = function() {
  * stylesheet. When HTML-Imports are ready
  * we won't have to use @import anymore.
  *
+ * The `-content` class is added to the element
+ * as a simple 'polyfill' for `::content` selector.
+ * We can use `.-content` in our CSS to indicate
+ * we're styling 'distributed' nodes. This will
+ * make the transition to `::content` a lot simpler.
+ *
  * @private
  */
 proto.styleHack = function() {
@@ -448,7 +460,7 @@ proto.styleHack = function() {
   this.style.visibility = 'hidden';
   style.innerHTML = '@import url(' + base + 'style.css);';
   style.setAttribute('scoped', '');
-  this.classList.add('content');
+  this.classList.add('-content');
   this.appendChild(style);
 
   // There are platform issues around using
@@ -556,7 +568,7 @@ template.innerHTML = [
 // Register and return the constructor
 // and expose `protoype` (bug 1048339)
 module.exports = document.registerElement('gaia-header', { prototype: proto });
-module.exports.prototype = proto;
+module.exports._prototype = proto;
 
 });})((function(n,w){'use strict';return typeof define=='function'&&define.amd?
 define:typeof module=='object'?function(c){c(_dereq_,exports,module);}:
