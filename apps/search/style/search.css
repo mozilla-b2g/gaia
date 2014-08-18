@@ -20,27 +20,12 @@ body, a {
 #offline-message {
   font-size: 1.7rem;
   font-style: italic;
-  margin: 3% 1rem 0;
+  margin: 35% 2rem 0;
   text-align: center;
-  line-height: 3.6rem;
+}
+
+#offline-message:empty {
   display: none;
-  justify-content: center;
-}
-
-#settings-connectivity {
-  background: url("/style/icons/settings.png") no-repeat;
-  background-position: center;
-  width: 3.6rem;
-  height: 3.6rem;
-  padding-right: 1.2rem;
-}
-
-#search-results.offline #suggestions {
-  display: none;
-}
-
-#search-results.offline #offline-message {
-  display: flex;
 }
 
 section.suggestions {

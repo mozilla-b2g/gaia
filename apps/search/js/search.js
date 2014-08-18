@@ -27,10 +27,6 @@
 
     searchResults: document.getElementById('search-results'),
 
-    offlineMessage: document.getElementById('offline-message'),
-    settingsConnectivity: document.getElementById('settings-connectivity'),
-    suggestionsWrapper: document.getElementById('suggestions-wrapper'),
-
     suggestionsEnabled: false,
 
     /**
@@ -91,7 +87,6 @@
       }.bind(this));
 
       this.initNotice();
-      this.initConnectivityCheck();
 
       // Fire off a dummy geolocation request so the prompt can be responded
       // to before the user starts typing
@@ -134,6 +129,31 @@
 
       this.clear();
 
+      var collectionCount = 0;
+      var numProviders = Object.keys(this.providers).length;
+
+      /**
+       * Handles the display for the offline message. Displays the offline
+       * message once we process results for all providers, and if there are no
+       * results. Also called when the device comes online to hide the message.
+       */
+      function maybeShowOffline() {
+        if (navigator.isOnline) {
+          return;
+        }
+
+        var offlineMessage = document.getElementById('offline-message');
+        offlineMessage.textContent = '';
+
+        collectionCount++;
+        if (collectionCount >= numProviders) {
+          offlineMessage.textContent = navigator.mozL10n.get(
+            'offline-webresults', {
+            searchQuery: input
+          });
+        }
+      }
+
       this.changeTimeout = setTimeout(() => {
         this.dedupe.reset();
 
@@ -143,6 +163,10 @@
           // If suggestions are disabled, only use local providers
           if (this.suggestionsEnabled || !provider.remote) {
             provider.search(input).then((results) => {
+              if (!results.length) {
+                maybeShowOffline();
+              }
+
               if (provider.name === 'Suggestions') {
                 var shown = (input.length > 2 &&
                              results.length &&
@@ -151,6 +175,8 @@
               }
 
               this.collect(provider, results);
+            }, () => {
+              maybeShowOffline();
             });
           }
         });
@@ -246,6 +272,9 @@
         this.providers[i].clear();
       }
 
+      var offlineMessage = document.getElementById('offline-message');
+      offlineMessage.textContent = '';
+
       this.suggestionNotice.hidden = true;
     },
 
@@ -290,42 +319,6 @@
         'input': input
       });
       this.expandSearch(input);
-    },
-
-    initConnectivityCheck: function() {
-      var self = this;
-      function onConnectivityChange() {
-        if (navigator.onLine) {
-          self.searchResults.classList.remove('offline');
-        } else {
-          self.searchResults.classList.add('offline');
-        }
-      }
-
-      this.settingsConnectivity.addEventListener(
-        'click', function() {
-          var activity = new window.MozActivity({
-            name: 'configure',
-            data: {
-              target: 'device',
-              section: 'root',
-              filterBy: 'connectivity'
-            }
-          });
-          activity.onsuccess = function() {
-            /*
-            XXX: Since this activity inmediately returns
-            success, we cannot go back to the search bar.
-            Keeping a reference of the activity once this
-            is fixed.
-            */
-          };
-        }
-      );
-
-      window.addEventListener('offline', onConnectivityChange);
-      window.addEventListener('online', onConnectivityChange);
-      onConnectivityChange();
     }
   };
 

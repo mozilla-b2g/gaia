@@ -15,8 +15,6 @@ suite('search/search', function() {
   var realAsyncStorage;
   var realMozApps;
   var realSetMessageHandler;
-  var realOnLine;
-
   var clock;
 
   function removeProvider(provider) {
@@ -89,34 +87,7 @@ suite('search/search', function() {
       MockNavigatormozApps.mLastConnectionCallback([]);
       assert.ok(initCalled);
       Search.providers = [];
-      assert.isFalse(Search.suggestionsWrapper.classList.contains('offline'));
     });
-  });
-
-  suite('offline', function() {
-    suiteSetup(function() {
-      realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
-      Object.defineProperty(navigator, 'onLine', {
-        configurable: true,
-        get: function() { return false; }
-      });
-    });
-
-    suiteTeardown(function() {
-      if (realOnLine) {
-        Object.defineProperty(navigator, 'onLine', realOnLine);
-      }
-    });
-
-    test('init while offline', function() {
-      this.sinon.spy(Search, 'initConnectivityCheck');
-      Search.init();
-
-      sinon.assert.calledOnce(Search.initConnectivityCheck);
-      assert.isTrue(Search.searchResults.classList.contains('offline'));
-    });
-
-
   });
 
   suite('provider', function() {
