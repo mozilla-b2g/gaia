@@ -21,6 +21,7 @@ var mocksHelperForNavigation = new MocksHelper([
 suite('navigation >', function() {
 
   var fakeContainer;
+  var panelContainers = {};
   var Panel1, Panel2, Panel3, Panel4;
 
   var saved = new Map();
@@ -81,6 +82,16 @@ suite('navigation >', function() {
       afterLeave: sinon.stub()
     };
 
+    for (var i = 1; i <= 4; i++) {
+      var ident = 'panel' + i;
+      panelContainers[ident] = document.createElement('div');
+      panelContainers[ident].id = ident;
+      // Panel1 is visible by default.
+      panelContainers[ident].setAttribute('aria-hidden', ident !== 'panel1');
+      fakeContainer.appendChild(panelContainers[ident]);
+    }
+
+
     stubObject(Navigation, {
       panelObjects: {
         Panel1: Panel1,
@@ -92,19 +103,23 @@ suite('navigation >', function() {
       panels: {
         'panel1': {
           behaviour: 'Panel1',
-          wrapperPosition: 'left'
+          wrapperPosition: 'left',
+          container: 'panel1'
         },
         'panel2': {
           behaviour: 'Panel2',
-          wrapperPosition: 'left'
+          wrapperPosition: 'left',
+          container: 'panel3'
         },
         'panel3': {
           behaviour: 'Panel3',
-          wrapperPosition: 'left'
+          wrapperPosition: 'left',
+          container: 'panel3'
         },
         'panel4': {
           behaviour: 'Panel4',
-          wrapperPosition: 'left'
+          wrapperPosition: 'left',
+          container: 'panel4'
         },
         'bad-panel': {}
       }
@@ -201,6 +216,22 @@ suite('navigation >', function() {
           Panel4.beforeEnter,
           Panel4.afterEnter
         );
+
+        assert.equal(
+          panelContainers.panel3.getAttribute('aria-hidden'),
+          'true');
+        assert.equal(
+          panelContainers.panel4.getAttribute('aria-hidden'),
+          'false');
+      }).then(done, done);
+    });
+
+    test('Transition to panel with same container', function(done) {
+      Navigation.toPanel('panel3');
+      Navigation.toPanel('panel2').then(function() {
+        assert.equal(
+          panelContainers.panel3.getAttribute('aria-hidden'),
+          'false');
       }).then(done, done);
     });
 
@@ -218,6 +249,13 @@ suite('navigation >', function() {
           Panel3.afterEnter,
           Panel4.beforeEnter
         );
+
+        assert.equal(
+          panelContainers.panel3.getAttribute('aria-hidden'),
+          'false');
+        assert.equal(
+          panelContainers.panel4.getAttribute('aria-hidden'),
+          'true');
       }).then(done, done);
     });
 
