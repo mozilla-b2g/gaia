@@ -341,24 +341,7 @@ var KeyboardManager = {
       }
 
       var previousLayout = self.showingLayoutInfo.layout;
-
-      // Get the last keyboard the user used for this group
-      var currentActiveLayout = KeyboardHelper.getCurrentActiveLayout(group);
-      var currentActiveLayoutIdx;
-      if (currentActiveLayout && self.keyboardLayouts[group]) {
-        for (var ix = 0; ix < self.keyboardLayouts[group].length; ix++) {
-          // See if we still have that keyboard in our current layouts
-          var layout = self.keyboardLayouts[group][ix];
-          if (layout.manifestURL === currentActiveLayout.manifestURL &&
-              layout.id === currentActiveLayout.id) {
-            // If so, default to that, saving the users choice
-            currentActiveLayoutIdx = ix;
-            break;
-          }
-        }
-      }
-
-      self.setKeyboardToShow(group, currentActiveLayoutIdx);
+      self.setKeyboardToShow(group);
 
       // We need to reset the previous frame nly when we switch to a new frame
       // this "frame" is decided by layout properties
@@ -481,11 +464,6 @@ var KeyboardManager = {
       this.resetShowingKeyboard();
       return;
     }
-
-    this.keyboardLayouts[group].activeLayout = index;
-    KeyboardHelper.saveCurrentActiveLayout(group,
-      layout.id, layout.manifestURL);
-
     // Make sure we are not in the transition out state
     // while user foucus quickly again.
     if (this.transitionManager.currentState ===
@@ -575,7 +553,6 @@ var KeyboardManager = {
       this.keyboardLayouts[showed.type].activeLayout = index;
 
       var nextLayout = this.keyboardLayouts[showed.type][index];
-
       // Only resetShowingKeyboard() if the running layout is not the same app
       // to prevent flash of black when switching.
       if (oldLayout.manifestURL !== nextLayout.manifestURL) {
