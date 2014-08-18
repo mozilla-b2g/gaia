@@ -2,7 +2,7 @@
   "L10N_OPTIMIZATION_BLACKLIST": {
     "pdfjs": "*"
   },
-  "JS_AGGREGATION_BLACKLIST": {
+  "AGGREGATION_BLACKLIST": {
     "system": "*"
   },
   "INLINE_GLOBAL_VAR_WHITELIST": {
