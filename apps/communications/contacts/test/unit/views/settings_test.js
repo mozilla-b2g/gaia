@@ -13,6 +13,7 @@
 /* global MockMozL10n */
 /* global MockSdCard */
 /* global utils */
+/* global IccHandler */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/js/contacts/import/utilities/misc.js');
@@ -527,6 +528,183 @@ suite('Contacts settings >', function() {
           contacts.Settings.refresh();
         });
       });
+    });
+  });
+
+  suite('Update simcard locale', function() {
+    setup(function() {
+      realMozMobileConnections = navigator.mozMobileConnections;
+      realMozMobileConnection = navigator.mozMobileConnection;
+      navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+      navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
+      Contacts.showStatus = utils.status.show;
+
+      realMozIccManager = navigator.mozIccManager;
+      navigator.mozIccManager = new MockIccManager();
+      navigator.mozIccManager.iccIds[0] = 0;
+      navigator.mozIccManager.iccIds[1] = 1;
+
+      while (navigator.mozMobileConnections.length) {
+        navigator.mozMobileConnections.mRemoveMobileConnection();
+      }
+      var conn1 = new window.MockMobileconnection();
+      conn1.iccId = 0;
+      conn1.iccInfo = {
+        'iccid': 0
+      };
+      navigator.mozMobileConnections.mAddMobileConnection(conn1, 0);
+      var conn2 = new window.MockMobileconnection();
+      conn2.iccId = 1;
+      conn2.iccInfo = {
+        'iccid': 1
+      };
+      navigator.mozMobileConnections.mAddMobileConnection(conn2, 1);
+      contacts.Settings.init();
+    });
+
+    test('check single sim card locale', function() {
+       var stub = sinon.stub(IccHandler, 'getStatus',
+        function() {
+          return [{
+              'iccId': 0,
+              'cardState' : 'ready'
+            }];
+        }
+      );
+      contacts.Settings.updateSimCardLocale();
+      var tempButton = document.createElement('button');
+      var importSimOption =
+        document.getElementById('import-sim-option-0').querySelector('button');
+      var exportSimOption =
+        document.getElementById('export-sim-option-0').querySelector('button');
+      tempButton.setAttribute('data-l10n-id', 'simCard');
+      assert.equal(importSimOption.getAttribute('data-l10n-id'),
+        tempButton.getAttribute('data-l10n-id')
+      );
+      assert.equal(exportSimOption.getAttribute('data-l10n-id'),
+        tempButton.getAttribute('data-l10n-id')
+      );
+      stub.restore();
+    });
+
+    test('check dual sim card locale', function() {
+      var stub = sinon.stub(IccHandler, 'getStatus',
+        function() {
+          return [{
+              'iccId': 0,
+              'cardState' : 'ready',
+              'icc': {
+                'iccInfo': {
+                  'msisdn': 0
+                }
+              }
+            },
+            {
+              'iccId': 1,
+              'cardState' : 'ready',
+              'icc': {
+                'iccInfo': {
+                  'msisdn': 0
+                }
+              }
+            }];
+        }
+      );
+      contacts.Settings.updateSimCardLocale();
+      assert.isNotNull(document.querySelector('#import-sim-option-0'));
+      assert.isNotNull(document.querySelector('#import-sim-option-1'));
+      var tempButton = document.createElement('button');
+      var importSimOption =
+        document.getElementById('import-sim-option-0').querySelector('button');
+      var exportSimOption =
+        document.getElementById('export-sim-option-0').querySelector('button');
+      tempButton.setAttribute('data-l10n-id', 'simNumber');
+      tempButton.setAttribute('data-l10n-args',
+        JSON.stringify({'number': 1})
+      );
+      assert.equal(importSimOption.getAttribute('data-l10n-id'),
+        tempButton.getAttribute('data-l10n-id')
+      );
+      assert.equal(exportSimOption.getAttribute('data-l10n-id'),
+        tempButton.getAttribute('data-l10n-id')
+      );
+      importSimOption =
+        document.getElementById('import-sim-option-1').querySelector('button');
+      exportSimOption =
+        document.getElementById('export-sim-option-1').querySelector('button');
+      tempButton.setAttribute('data-l10n-id', 'simNumber');
+      tempButton.setAttribute('data-l10n-args',
+        JSON.stringify({'number': 2})
+      );
+      assert.equal(importSimOption.getAttribute('data-l10n-id'),
+        tempButton.getAttribute('data-l10n-id')
+      );
+      assert.equal(exportSimOption.getAttribute('data-l10n-id'),
+        tempButton.getAttribute('data-l10n-id')
+      );
+      stub.restore();
+    });
+
+    test('check dual sim card with msisdn locale', function() {
+      var stub = sinon.stub(IccHandler, 'getStatus',
+        function() {
+          return [{
+              'iccId': 0,
+              'cardState' : 'ready',
+              'icc': {
+                'iccInfo': {
+                  'msisdn': 1
+                }
+              }
+            },
+            {
+              'iccId': 1,
+              'cardState' : 'ready',
+              'icc': {
+                'iccInfo': {
+                  'msisdn': 2
+                }
+              }
+            }];
+        }
+      );
+      contacts.Settings.updateSimCardLocale();
+      assert.isNotNull(document.querySelector('#import-sim-option-0'));
+      assert.isNotNull(document.querySelector('#import-sim-option-1'));
+      var tempButton = document.createElement('button');
+      var importSimOption =
+        document.getElementById('import-sim-option-0').querySelector('button');
+      var exportSimOption =
+        document.getElementById('export-sim-option-0').querySelector('button');
+      tempButton.setAttribute('data-l10n-id', 'simNumber1');
+      tempButton.setAttribute('data-l10n-args', JSON.stringify(
+        {'number': 1, 'msisdn': 1}
+      ));
+      assert.equal(importSimOption.getAttribute('data-l10n-id'),
+        tempButton.getAttribute('data-l10n-id')
+      );
+      assert.equal(exportSimOption.getAttribute('data-l10n-id'),
+        tempButton.getAttribute('data-l10n-id')
+      );
+      importSimOption =
+        document.getElementById('import-sim-option-1').querySelector('button');
+      exportSimOption =
+        document.getElementById('export-sim-option-1').querySelector('button');
+      tempButton.setAttribute('data-l10n-id', 'simNumber1');
+      tempButton.setAttribute('data-l10n-args', JSON.stringify(
+        {'number': 2, 'msisdn': 2}
+      ));
+      assert.equal(importSimOption.getAttribute('data-l10n-id'),
+        tempButton.getAttribute('data-l10n-id')
+      );
+      assert.equal(exportSimOption.getAttribute('data-l10n-id'),
+        tempButton.getAttribute('data-l10n-id')
+      );
+      stub.restore();
+    });
+    teardown(function() {
+      navigator.mozMobileConnections = realMozMobileConnections;
+      navigator.mozMobileConnection = realMozMobileConnection;
     });
   });
 
