@@ -15,6 +15,11 @@ const domUtils = Cc['@mozilla.org/inspector/dom-utils;1']
 const domParser = Cc['@mozilla.org/xmlextras/domparser;1']
                     .createInstance(Ci.nsIDOMParser);
 
+const plugins = [
+  'plugin_lowercase_properties',
+  'plugin_lowercase_selectors'
+];
+
 let CSSLint = null;
 
 function execute(config) {
@@ -184,8 +189,19 @@ function setupLinters(root) {
   // Load the third-party CSS Linter.
   let scope = {};
   let url =
-    'file:///' + root + '/build/csslinter.js?reload=' + Date.now();
+    'file:///' + root + '/build/csslint/csslinter.js?reload=' + Date.now();
   Services.scriptloader.loadSubScript(url, scope);
+
+  // Load plugins
+  plugins.forEach(function(plugin) {
+    let pluginScope = {};
+    let url =
+      'file:///' + root + '/build/csslint/' + plugin + '.js' +
+      '?reload=' + Date.now();
+    Services.scriptloader.loadSubScript(url, pluginScope);
+    scope.CSSLint.addRule(pluginScope.CSSLintPlugin);
+  });
+
   CSSLint = scope.CSSLint;
 }
 
@@ -302,6 +318,13 @@ function checkForGoodPractices(content) {
     // use the Gecko engine to find unknow properties.
     'known-properties': 0,
   };
+
+  // Enable all of our custom plugins.
+  plugins.forEach(function(plugin) {
+    plugin = plugin.replace(/plugin_/, '');
+    plugin = plugin.replace(/_/g, '-');
+    rules[plugin] = 1;
+  });
 
   let messages = CSSLint.verify(content, rules).messages;
 
