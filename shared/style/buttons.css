@@ -137,15 +137,6 @@ li .button {
   padding: 1rem 1.2rem;
 }
 
-/* Fix Bug 1049685 - [Tarako][Settings] Ringer's name overlay Alerts in Sound setting page
-   This should be backout once bug 1010675 landed. */
-li button {
-  padding-left: 0;
-  text-indent: 1.2rem;
-  text-overflow: "...    ";
-  white-space: nowrap;
-}
-
 /* Press */
 li [role="button"]:active:after,
 li .button:active:after,
