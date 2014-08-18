@@ -545,7 +545,6 @@ suite('Build Integration tests', function() {
         'extensions.autoDisableScopes': 0,
         'devtools.debugger.prompt-connection': false,
         'devtools.debugger.forbid-certified-apps': false,
-        'javascript.options.discardSystemSource': false,
         'b2g.adb.timeout': 0
       };
       var userjs = fs.readFileSync(

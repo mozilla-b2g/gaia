@@ -256,9 +256,6 @@ PreferencesBuilder.prototype.setDebugPref = function() {
 PreferencesBuilder.prototype.setDeviceDebugPref = function() {
   this.prefs['devtools.debugger.prompt-connection'] = false;
   this.prefs['devtools.debugger.forbid-certified-apps'] = false;
-  // Bug 1001348: This optimization prevents debugger to fetch script sources
-  // of certified apps as well as chrome code:
-  this.prefs['javascript.options.discardSystemSource'] = false;
   this.prefs['b2g.adb.timeout'] = 0;
 };
 

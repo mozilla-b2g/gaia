@@ -337,7 +337,6 @@ suite('preferences.js', function() {
       assert.deepEqual(preferences.prefs, {
         'devtools.debugger.prompt-connection': false,
         'devtools.debugger.forbid-certified-apps': false,
-        'javascript.options.discardSystemSource': false,
         'b2g.adb.timeout': 0
       });
     });
