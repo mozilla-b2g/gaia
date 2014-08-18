@@ -9,7 +9,6 @@ apps/camera/test/**
 apps/system/camera/**
 build/r.js
 build/copy-build-stage-data.js
-build/csslint.js
 build/csslinter.js
 build/download-manager.js
 build/image-resolution.js
@@ -20,11 +19,7 @@ build/pre-app.js
 build/push-to-device.js
 build/settings.js
 build/test/integration/build.test.js
-build/test/integration/distribution.test.js
-build/test/integration/helper.js
-build/test/integration/multilocale.test.js
 build/utils.js
-build/webapp-optimize.js
 apps/communications/contacts/oauth2/js/parameters.js
 apps/calendar/js/presets.js
 apps/email/js/alameda.js
@@ -39,6 +34,7 @@ apps/keyboard/js/imes/jszhuyin/lib/**
 shared/js/setImmediate.js
 shared/test/unit/test-agent-server.js
 shared/elements/gaia-header/dist/script.js
+shared/elements/gaia-icons/script.js
 apps/sharedtest/test/unit/setImmediate_test.js
 apps/wappush/js/ext/**
 apps/keyboard/js/imes/jsavrophonetic/jsavrophonetic.js

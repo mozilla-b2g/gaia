@@ -8,7 +8,7 @@ var PerformanceHelper =
 var SettingsIntegration = require('./integration.js');
 var Actions = require('marionette-client').Actions;
 
-marionette(mozTestInfo.appPath + ' >', function() {
+marionette(config.appPath + ' >', function() {
   var app;
   var client = marionette.client({
     settings: {
@@ -18,12 +18,12 @@ marionette(mozTestInfo.appPath + ' >', function() {
 
   var chrome = client.scope({context: 'chrome' });
   var actions = new Actions(client);
-  app = new SettingsIntegration(client, mozTestInfo.appPath);
+  app = new SettingsIntegration(client, config.appPath);
 
   setup(function() {
     // It affects the first run otherwise
-    this.timeout(500000);
-    client.setScriptTimeout(50000);
+    this.timeout(config.timeout);
+    client.setScriptTimeout(config.scriptTimeout);
 
     // inject perf event listener
     PerformanceHelper.injectHelperAtom(client);
@@ -72,7 +72,7 @@ marionette(mozTestInfo.appPath + ' >', function() {
      });
 
     // results is an Array of values, one per run.
-    assert.ok(results.length == mozTestInfo.runs, 'missing runs');
+    assert.ok(results.length == config.runs, 'missing runs');
 
     PerformanceHelper.reportDuration(results, 'overfills');
   });

@@ -1633,7 +1633,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"dialer-dailpad"
+					"dialer-dialpad"
 				]
 			},
 			"properties": {
@@ -1641,7 +1641,7 @@
 				"id": 166,
 				"prevSize": 32,
 				"code": 58957,
-				"name": "dialer-dailpad",
+				"name": "dialer-dialpad",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -1705,7 +1705,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"dismisskeybaord"
+					"dismisskeyboard"
 				]
 			},
 			"properties": {
@@ -1713,7 +1713,7 @@
 				"id": 163,
 				"prevSize": 32,
 				"code": 58960,
-				"name": "dismisskeybaord",
+				"name": "dismisskeyboard",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -3281,7 +3281,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"notification-mmic"
+					"notification-mic"
 				]
 			},
 			"properties": {
@@ -3289,7 +3289,7 @@
 				"id": 89,
 				"prevSize": 32,
 				"code": 59034,
-				"name": "notification-mmic",
+				"name": "notification-mic",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -5082,7 +5082,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"utility-maxvolumn"
+					"utility-maxvolume"
 				]
 			},
 			"properties": {
@@ -5090,7 +5090,7 @@
 				"id": 4,
 				"prevSize": 32,
 				"code": 59119,
-				"name": "utility-maxvolumn",
+				"name": "utility-maxvolume",
 				"ligatures": ""
 			},
 			"setIdx": 0,

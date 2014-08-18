@@ -42,12 +42,16 @@ SettingsAppBuilder.prototype.writeSupportsJSON = function(options) {
   utils.writeContent(file, content);
 };
 
-SettingsAppBuilder.prototype.writeSensorsJSON = function(options) {
+SettingsAppBuilder.prototype.writeDeviceFeaturesJSON = function(options) {
   var distDir = options.GAIA_DISTRIBUTION_DIR;
 
-  var file = utils.getFile(options.STAGE_APP_DIR, 'resources', 'sensors.json');
-  var defaultContent = { ambientLight: true };
-  var content = utils.getDistributionFileContent('sensors',
+  var file = utils.getFile(options.STAGE_APP_DIR, 'resources',
+                           'device-features.json');
+  var defaultContent = {
+    ambientLight: true,
+    vibration: true
+  };
+  var content = utils.getDistributionFileContent('device-features',
                                                   defaultContent, distDir);
   utils.writeContent(file, content);
 };
@@ -157,7 +161,7 @@ SettingsAppBuilder.prototype.writeGitCommit = function(options) {
 SettingsAppBuilder.prototype.execute = function(options) {
   this.executeRjs(options);
   this.writeGitCommit(options);
-  this.writeSensorsJSON(options);
+  this.writeDeviceFeaturesJSON(options);
   this.writeSupportsJSON(options);
   this.writeFindMyDeviceConfigJSON(options);
   this.overrideSearchProviders(options);

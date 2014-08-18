@@ -221,11 +221,9 @@ function execute(config) {
   settings['rocketbar.searchAppURL'] = utils.gaiaOriginURL('search',
     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/index.html';
 
-  if (config.HAIDA) {
-    settings['rocketbar.enabled'] = true;
-    settings['edgesgesture.enabled'] = true;
-    settings['in-app-sheet.enabled'] = true;
-  }
+  // Set the new tab-page URL
+  settings['rocketbar.newTabAppURL'] = utils.gaiaOriginURL('search',
+    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/index.html';
 
   settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER ? 'adb-only'
                                                             : 'disabled';

@@ -181,6 +181,7 @@ var CallsHandler = (function callsHandler() {
 
       // User performed another outgoing call. show its status.
       } else {
+        updatePlaceNewCall();
         hc.show();
       }
     } else {
@@ -307,14 +308,6 @@ var CallsHandler = (function callsHandler() {
         closeWindow();
       }
     });
-  }
-
-  function updateKeypadEnabled() {
-    if (telephony.active) {
-      CallScreen.enableKeypad();
-    } else {
-      CallScreen.disableKeypad();
-    }
   }
 
   function exitCallScreen(animate) {
@@ -815,6 +808,17 @@ var CallsHandler = (function callsHandler() {
     holdOrResumeSingleCall();
   }
 
+  function updatePlaceNewCall() {
+    var isEstablishing = telephony.calls.some(function (call) {
+      return call.state == 'dialing' || call.state == 'alerting';
+    });
+    if (telephony.calls && isEstablishing) {
+      CallScreen.disablePlaceNewCall();
+    } else {
+      CallScreen.enablePlaceNewCall();
+    }
+  }
+
   return {
     setup: setup,
 
@@ -824,7 +828,6 @@ var CallsHandler = (function callsHandler() {
     toggleCalls: toggleCalls,
     ignore: ignore,
     end: end,
-    updateKeypadEnabled: updateKeypadEnabled,
     toggleMute: toggleMute,
     toggleSpeaker: toggleSpeaker,
     unmute: unmute,
@@ -836,6 +839,7 @@ var CallsHandler = (function callsHandler() {
     mergeActiveCallWith: mergeActiveCallWith,
     mergeConferenceGroupWithActiveCall: mergeConferenceGroupWithActiveCall,
     updateAllPhoneNumberDisplays: updateAllPhoneNumberDisplays,
+    updatePlaceNewCall: updatePlaceNewCall,
 
     get activeCall() {
       return activeCall();

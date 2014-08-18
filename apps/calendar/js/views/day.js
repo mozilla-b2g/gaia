@@ -41,7 +41,7 @@ Calendar.ns('Views').Day = (function() {
           this.app.timeController.selectedDay = this.app.timeController.day;
           /* falls through */
         case 'selectedDayChange':
-          this.changeDate(e.data[0]);
+          this.changeDate(e.data[0], { onlyToday: true });
           break;
       }
     },
@@ -94,14 +94,50 @@ Calendar.ns('Views').Day = (function() {
 
       controller.moveToMostRecentDay();
 
-      // ensure we change the date, if this is already
-      // the selected date the cost here is very small.
-      this.changeDate(controller.position);
+      // Scroll to the destination from the top(scrollTop as 0)
+      // when go to the day view from other view.
+      this.changeDate(controller.position, { startScrollTop: 0 });
 
       if (!this.frames || !this.frames.length) {
         console.error('(Calendar: render error) no child frames');
         console.trace();
       }
+    },
+
+    changeDate: function(time, options) {
+      var startScrollTop = options && options.startScrollTop;
+      if (startScrollTop != null) {
+        this.currentFrame.setScrollTop(startScrollTop);
+      }
+
+      Parent.prototype.changeDate.call(this, time);
+
+      var scrollTop = this._getDestinationScrollTop(time, options);
+      if (scrollTop != null) {
+        this.currentFrame.animatedScroll(scrollTop);
+      }
+    },
+
+    _getDestinationScrollTop: function(time, options) {
+      var now = new Date();
+      var dayEvents = this.currentFrame.element
+        .querySelector('.day-events-wrapper');
+      var maxScrollTop = dayEvents.scrollHeight - dayEvents.clientHeight;
+      var scrollTop;
+      var hour;
+
+      if (Calendar.Calc.isSameDate(time, now)) {
+        hour = Math.max(now.getHours() - 1, 0);
+      } else if (!options || !options.onlyToday) {
+        hour = 8;
+      }
+
+      if (hour != null) {
+        scrollTop = dayEvents.querySelector('.hour-' + hour).offsetTop;
+        scrollTop = Math.min(scrollTop, maxScrollTop);
+      }
+
+      return scrollTop;
     }
   };
 

@@ -7,6 +7,7 @@
 /* global MockLinkedContacts:true */
 /* global MockLinkHtml */
 /* global MockOauthflow */
+/* global MockCurtain */
 
 require('/shared/js/text_normalizer.js');
 require('/shared/js/binary_search.js');
@@ -28,6 +29,7 @@ var realImageLoader,
     realAsyncStorage,
     realFb,
     realOauthflow,
+    realCurtain,
     linkProposal,
     linkProposalChild;
 
@@ -55,6 +57,9 @@ suite('Link Friends Test Suite', function() {
   suiteSetup(function() {
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
+
+    realCurtain = window.Curtain;
+    window.Curtain = MockCurtain;
 
     realAsyncStorage = window.asyncStorage;
     window.asyncStorage = MockasyncStorage;
@@ -220,12 +225,35 @@ suite('Link Friends Test Suite', function() {
     });
   });
 
+  suite('Link UI process', function() {
+    test('Link UI process ends as expected', function(done) {
+      linkProposal.innerHTML = '';
+      linkProposal.appendChild(linkProposalChild);
+
+      sinon.stub(window.Curtain, 'hide', function(callback) {
+        if (typeof callback === 'function') {
+          callback();
+        }
+      });
+
+      sinon.stub(window.parent, 'postMessage', function(msg) {
+        done(function() {
+          window.Curtain.hide.restore();
+          window.parent.postMessage.restore();
+          assert.equal(msg.type, 'ready', 'Sent message is of type \'ready\'.');
+        });
+      });
+
+      fb.link.start('mock_token', '123456');
+    });
+  });
 
   suiteTeardown(function() {
     window.ImageLoader = realImageLoader;
     window.asyncStorage = realAsyncStorage;
     window.fb = realFb;
     window.oauthflow = realOauthflow;
+    window.Curtain = realCurtain;
   });
 
 });

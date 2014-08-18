@@ -16,7 +16,7 @@ html, body {
   right: 0;
   bottom: 0;
   left: 0;
-  background-color: #26272c;
+  background-color: var(--background, #26272c);
 }
 
 .wallpaper {

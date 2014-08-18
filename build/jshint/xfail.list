@@ -12,9 +12,7 @@ apps/browser/test/unit/browser_db_test.js
 apps/callscreen/js/fake-oncall-desktop.js
 apps/callscreen/js/index.js
 apps/callscreen/test/unit/mock_mozbluetooth.js
-apps/callscreen/test/unit/mock_simple_phone_matcher.js
 apps/communications/dialer/js/call_log.js
-apps/communications/dialer/js/call_log_db.js
 apps/communications/dialer/js/index.js
 apps/communications/dialer/js/mmi_ui.js
 apps/communications/dialer/js/phone_action_menu.js
@@ -32,7 +30,6 @@ apps/communications/facebook/js/fb_sync.js
 apps/communications/facebook/js/fb_sync_init.js
 apps/communications/facebook/js/sync_worker.js
 apps/communications/facebook/test/unit/facebook_connector_test.js
-apps/communications/facebook/test/unit/mock_curtain.js
 apps/communications/facebook/test/unit/mock_fb_graph_data.js
 apps/communications/facebook/test/unit/mock_fb_query.js
 apps/email/js/app_messages.js
@@ -321,7 +318,6 @@ apps/sharedtest/test/unit/template_test.js
 apps/sharedtest/test/unit/url_helper_test.js
 apps/sharedtest/test/unit/wifi_helper_test.js
 apps/system/js/airplane_mode.js
-apps/system/js/app_install_manager.js
 apps/system/js/app_modal_dialog.js
 apps/system/js/attention_screen.js
 apps/system/js/base_ui.js
@@ -347,7 +343,6 @@ apps/system/js/identity.js
 apps/system/js/init_logo_handler.js
 apps/system/js/keyboard_manager.js
 apps/system/js/media_playback.js
-apps/system/js/modal_dialog.js
 apps/system/js/notifications.js
 apps/system/js/operator_variant/operator_variant.js
 apps/system/js/operator_variant/operator_variant_iccs.js
@@ -375,7 +370,7 @@ apps/system/test/marionette/lib/system.js
 apps/system/test/marionette/lockscreen_disabled_test.js
 apps/system/test/marionette/media_playback_test.js
 apps/system/test/marionette/net_error_test.js
-apps/system/test/marionette/notification_launch_app.js
+apps/system/test/marionette/notification_launch_app_test.js
 apps/system/test/marionette/notification_test.js
 apps/system/test/unit/app_install_manager_test.js
 apps/system/test/unit/battery_manager_test.js
@@ -442,7 +437,6 @@ apps/system/test/unit/mock_trusted_ui_manager.js
 apps/system/test/unit/mock_update_manager.js
 apps/system/test/unit/mock_utility_tray.js
 apps/system/test/unit/mock_wifi_manager.js
-apps/system/test/unit/modal_dialog_test.js
 apps/system/test/unit/operator_variant_helper_test.js
 apps/system/test/unit/orientation_manager_test.js
 apps/system/test/unit/quick_settings_test.js

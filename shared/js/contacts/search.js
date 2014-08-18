@@ -22,6 +22,7 @@ contacts.Search = (function() {
       // On the steady state holds the list result of the current search
       searchableNodes = null,
       currentTextToSearch = '',
+      currentSearchTerms = [],
       prevTextToSearch = '',
       // Pointer to the nodes which are currently on the result list
       currentSet = {},
@@ -150,14 +151,31 @@ contacts.Search = (function() {
   };
 
   var highlightNode = function(node) {
-    // This regexp match against everything except HTML tags
-    // 'currentTextToSearch' should be relatively safe from
-    // regex symbols getting passed through since it was previously normalized
-    var hRegEx = new RegExp('(' + currentTextToSearch + ')(?=[^>]*<)', 'gi');
-    node.innerHTML = node.innerHTML.replace(
-      hRegEx,
-      '<span class="' + highlightClass + '">$1</span>'
-    );
+    var normalizedText = getSearchText(node);
+    var displayedText = node.querySelector('.contact-text').textContent;
+
+    currentSearchTerms.forEach(function(term) {
+      var hRegEx = new RegExp(term, 'gi');
+      var newTerms = [], newTerm;
+
+      var result = hRegEx.exec(normalizedText);
+      while (result) {
+        newTerm = displayedText.substr(result.index, term.length);
+        newTerm = Normalizer.escapeRegExp(newTerm).toLowerCase();
+        newTerms.push(newTerm);
+        result = hRegEx.exec(normalizedText);
+      }
+
+      newTerms = newTerms.filter(function removeDuplicates(elem, pos) {
+        return newTerms.indexOf(elem) === pos;
+      });
+
+      newTerms.forEach(function replaceWithHighlight(term) {
+        node.innerHTML = node.innerHTML.replace(
+          new RegExp('(' + term + ')(?=[^>]*<)', 'gi'),
+          '<span class="' + highlightClass + '">$1</span>');
+      });
+    });
   };
 
   var updateSearchList = function updateSearchList(cb) {
@@ -216,6 +234,7 @@ contacts.Search = (function() {
   function resetState() {
     prevTextToSearch = '';
     currentTextToSearch = '';
+    currentSearchTerms = [];
     searchableNodes = null;
     canReuseSearchables = false;
     currentSet = {};
@@ -365,10 +384,11 @@ contacts.Search = (function() {
 
     // Search the next chunk of contacts
     var end = from + CHUNK_SIZE;
+    currentSearchTerms = pattern.source.split(/\s+/);
     for (var c = from; c < end && c < contacts.length; c++) {
       var contact = contacts[c].node || contacts[c];
       var contactText = contacts[c].text || getSearchText(contacts[c]);
-      if (!pattern.test(contactText)) {
+      if (!checkContactMatch(currentSearchTerms, contactText)) {
         if (contact.dataset.uuid in currentSet) {
           searchList.removeChild(currentSet[contact.dataset.uuid]);
           delete currentSet[contact.dataset.uuid];
@@ -475,17 +495,25 @@ contacts.Search = (function() {
 
     // If we have a current search then we need to determine whether the
     // new nodes should show up in that search.
-    var pattern = new RegExp(currentTextToSearch, 'i');
     for (var i = 0, n = nodes.length; i < n; ++i) {
       var node = nodes[i];
       var nodeText = getSearchText(node);
-      if (pattern.test(nodeText)) {
+      if (!checkContactMatch(currentSearchTerms, nodeText)) {
         searchableNodes.push({
           node: node,
           text: nodeText
         });
       }
     }
+  };
+
+  var checkContactMatch = function checkContactMatch(searchTerms, text) {
+    for (var i=0, m=searchTerms.length; i < m; i++){
+      if (!RegExp(searchTerms[i], 'i').test(text)) {
+        return false;
+      }
+    }
+    return true;
   };
 
   var search = function performSearch(searchDoneCb) {

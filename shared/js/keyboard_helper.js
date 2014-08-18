@@ -65,8 +65,7 @@ var currentSettings = {
 
 // until we read otherwise, asssume the default keyboards are en and number
 currentSettings.defaultLayouts[defaultKeyboardManifestURL] = {
-  en: true,
-  number: true
+  en: true
 };
 
 // and also assume that the defaults are the enabled
@@ -235,7 +234,8 @@ function kh_parseEnabled() {
         currentSettings.enabledLayouts = {};
         var oldSettings = JSON.parse(value);
         oldSettings.forEach(function(layout) {
-          if (layout.enabled) {
+          // ignore number keyboard since bug 1024298
+          if ('number' !== layout.layoutId && layout.enabled) {
             var manifestURL = layout.manifestURL;
             if (!manifestURL)
               manifestURL = layout.appOrigin + '/manifest.webapp';
@@ -275,7 +275,6 @@ function kh_migrateDeprecatedSettings(deprecatedSettings) {
 
   // reset the enabled layouts
   currentSettings.enabledLayouts[defaultKeyboardManifestURL] = {
-    number: true
   };
 
   var hasEnabledLayout = false;
@@ -465,6 +464,16 @@ Object.defineProperties(kh_SettingsHelper, {
 var KeyboardHelper = exports.KeyboardHelper = {
   settings: kh_SettingsHelper,
 
+  // bug 1035117: define the fallback layout for a group if no layout has been
+  // selected for that group (if it's not enforced in settings)
+  // please see the bug and its related UX spec for the sense of 'fallback'
+  fallbackLayoutNames: {
+    password: 'en',
+    number: 'en'
+  },
+
+  fallbackLayouts: {},
+
   /**
    * Listen for changes in settings or apps and read the deafault settings
    */
@@ -558,7 +567,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
   checkDefaults: function kh_checkDefaults(callback) {
     var layoutsEnabled = [];
     var missingTypes = [];
-    ['text', 'url', 'number'].forEach(function eachType(type) {
+    ['text', 'url'].forEach(function eachType(type) {
       // getLayouts is sync when we already have data
       var enabled;
       this.getLayouts({ type: type, enabled: true }, function(layouts) {
@@ -680,6 +689,13 @@ var KeyboardHelper = exports.KeyboardHelper = {
     }
 
     function withApps(apps) {
+      // we'll delete keys in this active copy (= the purpose of copying)
+      var fallbackLayoutNames = {};
+      for (var group in this.fallbackLayoutNames) {
+        fallbackLayoutNames[group] = this.fallbackLayoutNames[group];
+      }
+      this.fallbackLayouts = {};
+
       var layouts = apps.reduce(function eachApp(result, app) {
 
         var manifest = new ManifestHelper(app.manifest);
@@ -696,6 +712,18 @@ var KeyboardHelper = exports.KeyboardHelper = {
             inputManifest: inputManifest,
             layoutId: layoutId
           });
+
+          // bug 1035117: insert a fallback layout regardless of its
+          // and enabledness
+          // XXX: we only do this for built-in keyboard?
+          if (app.manifestURL === defaultKeyboardManifestURL) {
+            for (var group in fallbackLayoutNames) {
+              if (layoutId === fallbackLayoutNames[group]) {
+                this.fallbackLayouts[group] = layout;
+                delete fallbackLayoutNames[group];
+              }
+            }
+          }
 
           if (options['default'] && !layout['default']) {
             continue;
@@ -725,12 +753,12 @@ var KeyboardHelper = exports.KeyboardHelper = {
           });
         }
         return result;
-      }, []);
+      }.bind(this), []);
 
       kh_withSettings(callback.bind(null, layouts));
     }
 
-    this.getApps(withApps);
+    this.getApps(withApps.bind(this));
   },
 
   /**

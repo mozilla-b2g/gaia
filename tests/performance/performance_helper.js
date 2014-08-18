@@ -8,14 +8,6 @@ var MemInfo = requireGaia('/tests/performance/meminfo.js');
 // Basically writing to the mocha-json-proxy
 var sendResults = require('mocha-json-proxy/reporter').write;
 
-function extend(dest, obj) {
-  for (var key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      dest[key] = obj[key];
-    }
-  }
-}
-
 /* opts can have the following keys:
  * - spawnInterval (optional): defines how many seconds we must wait before
  *   launching an app. Default is 6000.
@@ -23,19 +15,20 @@ function extend(dest, obj) {
  */
 function PerformanceHelper(opts) {
   // default values
-  this.opts = {
+  var options = this.opts = {
     // Time before gecko spawns a new template process
     // see the pref dom.ipc.processPrelaunch.delayMs in
     // http://mxr.mozilla.org/mozilla-central/source/b2g/app/b2g.js#577
     // FIXME it would be very nice to get it automatically via marionette
     // we add 1s to this value to give a little more time to the background
     // task to finish the preloading
-    spawnInterval: 6000,
-    runs: mozTestInfo.runs
+    spawnInterval: config.spawnInterval,
+    runs: config.runs
   };
 
-  // overwrite values from the user
-  extend(this.opts, opts);
+  Object.keys(opts).forEach(function(key) {
+    options[key] = opts[key];
+  });
 
   if (! this.opts.app) {
     var errMsg = 'The "app" property must be configured.';
@@ -50,82 +43,91 @@ function PerformanceHelper(opts) {
 
 PerformanceHelper.injectHelperAtom = function(client) {
   client.contentScript.inject(
-    GAIA_DIR + '/tests/performance/performance_helper_atom.js');
-}
+    config.gaiaDir + '/tests/performance/performance_helper_atom.js');
+};
 
+// FIXME encapsulate this in a nice object like PerformanceHelperAtom
+// https://bugzilla.mozilla.org/show_bug.cgi?id=844032
+PerformanceHelper.registerLoadTimeListener = function(client) {
+  var registerListener =
+    'var w = global.wrappedJSObject;' +
+    'w.loadTimes = [];' +
+    'if (w.onapplicationloaded) {' +
+    /* We've been here before, let's clean ! */
+    '  w.removeEventListener("apploadtime", w.onapplicationloaded);' +
+    '}' +
+    'w.onapplicationloaded = function(e) {' +
+    '  var data = e.detail;' +
+    /* So that it is backward compatible with the older gaia. */
+    '  data.src = data.src || e.target.src;' +
+    '  w.loadTimes.push(data);' +
+    '};' +
+    'w.addEventListener("apploadtime", w.onapplicationloaded);';
 
-  extend(PerformanceHelper, {
-    // FIXME encapsulate this in a nice object like PerformanceHelperAtom
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=844032
-    registerLoadTimeListener: function(client) {
-      var registerListener =
-        'var w = global.wrappedJSObject;' +
-        'w.loadTimes = [];' +
-        'if (w.onapplicationloaded) {' +
-        /* We've been here before, let's clean ! */
-        '  w.removeEventListener("apploadtime", w.onapplicationloaded);' +
-        '}' +
-        'w.onapplicationloaded = function(e) {' +
-        '  var data = e.detail;' +
-        /* So that it is backward compatible with the older gaia. */
-        '  data.src = data.src || e.target.src;' +
-        '  w.loadTimes.push(data);' +
-        '};' +
-        'w.addEventListener("apploadtime", w.onapplicationloaded);';
+  client.executeScript(registerListener);
+};
 
-      client.executeScript(registerListener);
-    },
+PerformanceHelper.unregisterLoadTimeListener = function(client) {
+  var removeListener =
+    'var w = global.wrappedJSObject;' +
+    'w.removeEventListener("apploadtime", w.onapplicationloaded);';
 
-    unregisterLoadTimeListener: function(client) {
-      var removeListener =
-        'var w = global.wrappedJSObject;' +
-        'w.removeEventListener("apploadtime", w.onapplicationloaded);';
+  client.executeScript(removeListener);
+};
 
-      client.executeScript(removeListener);
-    },
-
-    registerTimestamp: function(client) {
-      client
-        .executeScript(function registerListener() {
-          window.addEventListener('apploadtime', function loadtimeHandler(e) {
-            window.removeEventListener('apploadtime', loadtimeHandler);
-            window.wrappedJSObject.epochStart = e.detail.timestamp;
-          });
-        });
-    },
-
-    getEpochStart: function(client) {
-      client.switchToFrame();
-
-      return client
-        .executeScript(function() {
-          return window.wrappedJSObject.epochStart;
-        });
-    },
-
-    getEpochEnd: function(client) {
-      return client.executeScript(function() {
-        return document.defaultView.wrappedJSObject.epochEnd;
+PerformanceHelper.registerTimestamp = function(client) {
+  client
+    .executeScript(function registerListener() {
+      window.addEventListener('apploadtime', function loadtimeHandler(e) {
+        window.removeEventListener('apploadtime', loadtimeHandler);
+        window.wrappedJSObject.epochStart = e.detail.timestamp;
       });
-    },
+    });
+};
 
-    getLoadTimes: function(client) {
-      var getResults = 'return global.wrappedJSObject.loadTimes;';
-      return client.executeScript(getResults);
-    },
+PerformanceHelper.getEpochStart = function(client) {
+  client.switchToFrame();
 
-    reportDuration: function(values, title) {
-      title = title || '';
-      sendResults('mozPerfDuration', { title: title, values: values });
-    },
+  return client
+    .executeScript(function() {
+      return window.wrappedJSObject.epochStart;
+    });
+};
 
-    reportMemory: function(values, title) {
-      title = title || '';
-      var mozPerfMemory = {};
-      mozPerfMemory[title] = values;
-      sendResults('mozPerfMemory', mozPerfMemory);
-    }
+PerformanceHelper.getEpochEnd = function(client) {
+  return client.executeScript(function() {
+    return document.defaultView.wrappedJSObject.epochEnd;
   });
+};
+
+PerformanceHelper.getLoadTimes = function(client) {
+  var getResults = 'return global.wrappedJSObject.loadTimes;';
+  return client.executeScript(getResults);
+};
+
+PerformanceHelper.getGoalData = function(client) {
+  if (config.goals
+      && client.session && client.session.device) {
+    return config.goals[client.session.device];
+  }
+  return null;
+};
+
+PerformanceHelper.reportDuration = function(values, title) {
+  title = title || '';
+  sendResults('mozPerfDuration', { title: title, values: values });
+};
+
+PerformanceHelper.reportMemory = function(values, title) {
+  title = title || '';
+  var mozPerfMemory = {};
+  mozPerfMemory[title] = values;
+  sendResults('mozPerfMemory', mozPerfMemory);
+};
+
+PerformanceHelper.reportGoal = function(goals) {
+  sendResults('mozPerfGoal', goals);
+};
 
 PerformanceHelper.prototype = {
     // startValue is the name of the start event.
@@ -259,5 +261,3 @@ PerformanceHelper.prototype = {
 };
 
 module.exports = PerformanceHelper;
-
-

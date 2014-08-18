@@ -22,8 +22,8 @@
 }
 
 .appWindow:not(.bar).fullscreen-app > .chrome {
-  height: 7.6rem;
-  top: -3rem;
+  height: 3rem;
+  top: 0;
 }
 
 .appWindow:not(.bar).fullscreen-app > .chrome.maximized {
@@ -59,6 +59,17 @@
   background-color: black;
 }
 
+/* Special cases for rocketbar on the Top Sites view */
+.search-app .menu-button,
+.search-app .controls .reload-button,
+.search-app .controls .stop-button {
+  display: none;
+}
+
+.search-app .chrome .controls .urlbar {
+  width: calc(100% - 1rem);
+}
+
 /* URL bar */
 .chrome .controls .urlbar {
   width: calc(100% - 4.5rem);
@@ -73,8 +84,8 @@
   margin-left: 0.5rem;
 }
 
-.scrollable .chrome .controls button:not([data-disabled]) + button[data-disabled] + .urlbar,
-.scrollable .chrome .controls button:not([data-disabled]) + .urlbar {
+.scrollable .chrome .controls button:not([disabled]) + button[disabled] + .urlbar,
+.scrollable .chrome .controls button:not([disabled]) + .urlbar {
   margin-left: 0;
 }
 
@@ -109,15 +120,15 @@
 }
 
 
-.controls .forward-button:not([data-disabled]) + .urlbar {
+.controls .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 8rem);
 }
 
-.controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar {
+.controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
   width: calc(100% - 8rem);
 }
 
-.controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
+.controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 12rem);
 }
 
@@ -127,16 +138,21 @@
   transition: transform 0.2s ease-in-out;
 }
 
+.appWindow.fullscreen-app .controls .urlbar {
+  transform: scale(0.6521) translateY(0.2rem);
+  transform-origin: bottom left;
+}
+
 .maximized .controls .urlbar {
   transform: scaleX(1);
 }
 
-.scrollable .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
-.scrollable .chrome:not(.maximized) .forward-button:not([data-disabled]) + .urlbar {
+.scrollable .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
+.scrollable .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
   transform: scaleX(0.6521) translateX(-5.5rem);
 }
 
-.scrollable .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
+.scrollable .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   transform: scaleX(0.6521) translateX(-12rem);
 }
 
@@ -162,15 +178,16 @@
 
 .controls .reload-button,
 .controls .stop-button {
-  background-size: 2rem auto;
+  background-size: 3rem auto;
   background-position: center center;
+  background-repeat: no-repeat;
   position: absolute;
   bottom: 0.3rem;
-  right: 0.3rem;
+  right: 0;
+  padding: 0 0.3rem;
   width: 3rem;
   height: 3rem;
-  min-width: 0.3rem;
-  border-left: 1px solid rgba(51,51,51,0.5);
+  border-left: 1px solid rgba(0,0,0,0.05);
 }
 
 .loading .controls .reload-button {
@@ -188,14 +205,13 @@
   pointer-events: auto;
 }
 
-.controls .back-button[data-disabled],
-.controls .forward-button[data-disabled] {
+.controls .back-button[disabled],
+.controls .forward-button[disabled] {
   display: none;
 }
 
-.chrome.maximized .controls .menu-button[data-disabled] {
+.chrome.maximized .controls .menu-button[disabled] {
   opacity: 0.2;
-  pointer-events: none;
 }
 
 .appWindow:not(.bar) > .chrome button {
@@ -233,20 +249,40 @@
   background-image: url("images/dark/back.png");
 }
 
+.light .controls .back-button:active {
+  background-image: url("images/dark/back_active.png");
+}
+
 .light .controls .forward-button {
   background-image: url("images/dark/forward.png");
+}
+
+.light .controls .forward-button:active {
+  background-image: url("images/dark/forward_active.png");
 }
 
 .light .controls .reload-button {
   background-image: url("images/dark/reload.png");
 }
 
+.light .controls .reload-button:active {
+  background-image: url("images/dark/reload_active.png");
+}
+
 .light .controls .stop-button {
   background-image: url("images/dark/stop.png");
 }
 
+.light .controls .stop-button:active {
+  background-image: url("images/dark/stop_active.png");
+}
+
 .light .controls .menu-button {
   background-image: url("images/dark/overflow.png");
+}
+
+.light .controls .menu-button:active {
+  background-image: url("images/dark/overflow_active.png");
 }
 
 /* Overflow menu */
@@ -325,8 +361,21 @@
   align-items: center;
 }
 
+.overflow-menu > .list > :not(#share).option[data-disabled] {
+  display: none;
+}
+
+.overflow-menu > .list > #share.option[data-disabled] {
+  pointer-events: none;
+}
+
 .overflow-menu > .list > .option * {
   pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.overflow-menu > .list > #share.option[data-disabled] * {
+  opacity: 0.5;
 }
 
 .overflow-menu > .list > .option > .icon {
@@ -335,7 +384,6 @@
   height: 100%;
   background-position: center;
   background-repeat: no-repeat;
-  background-size: contain;
 }
 
 .overflow-menu > .list > .option > .label {
@@ -345,12 +393,20 @@
   display: inline-block;
 }
 
+.option#new-window > .icon {
+  background-image: url("images/menu_new_window.png");
+}
+
 .option#add-to-home > .icon {
   background-image: url("images/menu_add_to_homescreen.png");
 }
 
+.option#share > .icon {
+  background-image: url("images/menu_share.png");
+}
+
 /* Progress */
-.appWindow:not(.bar).navigation > .chrome .progress {
+.appWindow:not(.bar).scrollable > .chrome .progress {
   top: 7.3rem;
 }
 
@@ -359,9 +415,9 @@
   display: none;
 }
 
-.appWindow:not(.scrollable) > .chrome .controls .forward-button:not([data-disabled]) + .urlbar,
-.appWindow:not(.scrollable) > .chrome .controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
-.appWindow:not(.scrollable) > .chrome .controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar,
+.appWindow:not(.scrollable) > .chrome .controls .forward-button:not([disabled]) + .urlbar,
+.appWindow:not(.scrollable) > .chrome .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
+.appWindow:not(.scrollable) > .chrome .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar,
 .appWindow:not(.scrollable) > .chrome .controls .urlbar {
   width: calc(100% - 8rem);
 }

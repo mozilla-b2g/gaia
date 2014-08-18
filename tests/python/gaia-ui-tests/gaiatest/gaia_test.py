@@ -422,6 +422,10 @@ class Accessibility(object):
     def get_role(self, element):
         return self._run_async_script('getRole', [element])
 
+    def dispatchEvent(self):
+        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new CustomEvent(" +
+                                       "'accessibility-action'));")
+
     def _run_async_script(self, func, args):
         result = self.marionette.execute_async_script(
             'return Accessibility.%s.apply(Accessibility, arguments)' % func,
@@ -587,6 +591,9 @@ class GaiaDevice(object):
     def turn_screen_off(self):
         self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOff(true)")
 
+    def turn_screen_on(self):
+        self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOn(true)")
+
     @property
     def is_screen_enabled(self):
         return self.marionette.execute_script('return window.wrappedJSObject.ScreenManager.screenEnabled')
@@ -686,17 +693,12 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def setUp(self):
         try:
             MarionetteTestCase.setUp(self)
-        except InvalidResponseException:
+        except (InvalidResponseException, IOError):
             if self.restart:
                 pass
 
-        # TODO: Once bug 1019043 is fixed we will be able to just use
-        # self.device_manager instead of guarding for desktop B2G
-        device_manager = None
-        if not self.marionette.session_capabilities['device'] == 'desktop':
-            device_manager = self.device_manager
         self.device = GaiaDevice(self.marionette,
-                                 manager=device_manager,
+                                 manager=self.device_manager,
                                  testvars=self.testvars)
 
         if self.restart and (self.device.is_android_build or self.marionette.instance):

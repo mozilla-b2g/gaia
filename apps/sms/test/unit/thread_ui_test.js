@@ -11,7 +11,8 @@
          FocusEvent,
          DocumentFragment,
          Errors,
-         MockCompose
+         MockCompose,
+         AssetsHelper
 */
 
 'use strict';
@@ -35,7 +36,6 @@ require('/test/unit/mock_attachment_menu.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_utils.js');
 require('/test/unit/mock_navigatormoz_sms.js');
-require('/test/unit/mock_moz_sms_filter.js');
 require('/test/unit/mock_link_helper.js');
 require('/test/unit/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -76,7 +76,6 @@ var mocksHelperForThreadUI = new MocksHelper([
   'LinkActionHandler',
   'LinkHelper',
   'MozActivity',
-  'MozSmsFilter',
   'ActivityPicker',
   'OptionMenu',
   'Dialog',
@@ -143,33 +142,29 @@ suite('thread_ui.js >', function() {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    var assetsNeeded = 0;
-    function getAsset(filename, loadCallback) {
-      assetsNeeded++;
+    var blobPromises = [
+      AssetsHelper.generateImageBlob(1400, 1400, 'image/jpeg', 1).then(
+        (blob) => oversizedImageBlob = blob
+      ),
+      AssetsHelper.generateImageBlob(300, 300, 'image/jpeg', 0.5).then(
+        (blob) => testImageBlob = blob
+      ),
+      AssetsHelper.loadFileBlob('/test/unit/media/audio.oga').then(
+        (blob) => testAudioBlob = blob
+      ),
+      AssetsHelper.loadFileBlob('/test/unit/media/video.ogv').then(
+        (blob) => testVideoBlob = blob
+      ),
+    ];
 
-      var req = new XMLHttpRequest();
-      req.open('GET', filename, true);
-      req.responseType = 'blob';
-      req.onload = function() {
-        loadCallback(req.response);
-        if (--assetsNeeded === 0) {
-          done();
-        }
-      };
-      req.send();
-    }
-    getAsset('/test/unit/media/kitten-450.jpg', function(blob) {
-      testImageBlob = blob;
-    });
-    getAsset('/test/unit/media/IMG_0554.jpg', function(blob) {
-      oversizedImageBlob = blob;
-    });
-    getAsset('/test/unit/media/audio.oga', function(blob) {
-      testAudioBlob = blob;
-    });
-    getAsset('/test/unit/media/video.ogv', function(blob) {
-      testVideoBlob = blob;
-    });
+    Promise.all(blobPromises).then(() => {
+      done(function() {
+        assert.isTrue(
+          oversizedImageBlob.size > 300 * 1024,
+          'Image blob should be greater than MMS size limit'
+        );
+      });
+    }, done);
   });
 
   suiteTeardown(function() {
@@ -196,6 +191,7 @@ suite('thread_ui.js >', function() {
       'messages-recipient-suggestions'
     );
 
+    this.sinon.stub(MessageManager, 'on');
     this.sinon.useFakeTimers();
 
     ThreadUI.recipients = null;
@@ -271,17 +267,22 @@ suite('thread_ui.js >', function() {
     suite('when a new message is received >', function() {
       setup(function() {
         this.sinon.spy(HTMLElement.prototype, 'scrollIntoView');
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
       });
 
       test('should scroll it into view if we are at the bottom', function() {
         ThreadUI.isScrolledManually = false;
-        ThreadUI.onMessageReceived(MockMessages.sms());
+        MessageManager.on.withArgs('message-received').yield({
+          message: MockMessages.sms()
+        });
         sinon.assert.calledOnce(HTMLElement.prototype.scrollIntoView);
       });
 
       test('should not scroll if we are not at the bottom', function() {
         ThreadUI.isScrolledManually = true;
-        ThreadUI.onMessageReceived(MockMessages.sms());
+        MessageManager.on.withArgs('message-received').yield({
+          message: MockMessages.sms()
+        });
         sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
       });
     });
@@ -417,6 +418,43 @@ suite('thread_ui.js >', function() {
       );
       assert.equal(
         contactList.textContent, '', 'Recipient suggestions should be cleared'
+      );
+    });
+
+    test('always scroll to top when toggleing suggestions list', function() {
+      var contactList = recipientSuggestions.querySelector('.contact-list');
+      contactList.textContent = '';
+
+      recipientSuggestions.classList.add('hide');
+      recipientSuggestions.style.maxHeight = '300px';
+      recipientSuggestions.style.overflowY = 'auto';
+
+      var documentFragment = document.createDocumentFragment();
+      var suggestionNode;
+
+      for (var i = 0; i < 10; i++) {
+        suggestionNode = document.createElement('li');
+        suggestionNode.innerHTML =
+          '<a class="suggestion">' +
+            '<p class="name">Jean Dupont</p>' +
+            '<p class="number">0123456789</p>' +
+          '</a>';
+        documentFragment.appendChild(suggestionNode);
+      }
+
+      ThreadUI.toggleRecipientSuggestions(documentFragment);
+      recipientSuggestions.scrollTop = 200;
+
+      assert.equal(
+        recipientSuggestions.scrollTop, 200,
+        'Recipient suggestions should be scrolled down'
+      );
+
+      ThreadUI.toggleRecipientSuggestions(documentFragment);
+
+      assert.equal(
+        recipientSuggestions.scrollTop, 0,
+        'Recipient suggestions should be scrolled to top'
       );
     });
   });
@@ -1698,11 +1736,15 @@ suite('thread_ui.js >', function() {
 
     suite('onMessageSent >', function() {
       test('removes the "sending" class from the message element', function() {
-        ThreadUI.onMessageSent(this.fakeMessage);
+        MessageManager.on.withArgs('message-sent').yield({
+          message: this.fakeMessage
+        });
         assert.isFalse(this.container.classList.contains('sending'));
       });
       test('adds the "sent" class to the message element', function() {
-        ThreadUI.onMessageSent(this.fakeMessage);
+        MessageManager.on.withArgs('message-sent').yield({
+          message: this.fakeMessage
+        });
         assert.isTrue(this.container.classList.contains('sent'));
       });
     });
@@ -1712,11 +1754,15 @@ suite('thread_ui.js >', function() {
         function() {
         test('removes the "sending" class from the message element',
           function() {
-          ThreadUI.onMessageFailed(this.fakeMessage);
+          MessageManager.on.withArgs('message-failed-to-send').yield({
+            message: this.fakeMessage
+          });
           assert.isFalse(this.container.classList.contains('sending'));
         });
         test('adds the "error" class to the message element', function() {
-          ThreadUI.onMessageFailed(this.fakeMessage);
+          MessageManager.on.withArgs('message-failed-to-send').yield({
+            message: this.fakeMessage
+          });
           assert.isTrue(this.container.classList.contains('error'));
         });
       });
@@ -1727,7 +1773,9 @@ suite('thread_ui.js >', function() {
         });
         test('does not remove the "sending" class to the message element',
           function() {
-          ThreadUI.onMessageFailed(this.fakeMessage);
+          MessageManager.on.withArgs('message-failed-to-send').yield({
+            message: this.fakeMessage
+          });
           assert.isTrue(this.container.classList.contains('sending'));
         });
       });
@@ -1740,13 +1788,17 @@ suite('thread_ui.js >', function() {
         });
         test('does not show dialog if error is not NonActiveSimCardError',
           function() {
-          ThreadUI.onMessageFailed(this.fakeMessage);
+          MessageManager.on.withArgs('message-failed-to-send').yield({
+            message: this.fakeMessage
+          });
           sinon.assert.notCalled(ThreadUI.showMessageError);
         });
         test('Show dialog if error is NonActiveSimCardError',
           function() {
           ThreadUI.showErrorInFailedEvent = 'NonActiveSimCardError';
-          ThreadUI.onMessageFailed(this.fakeMessage);
+          MessageManager.on.withArgs('message-failed-to-send').yield({
+            message: this.fakeMessage
+          });
           sinon.assert.called(ThreadUI.showMessageError);
           assert.equal(ThreadUI.showErrorInFailedEvent, '');
           MockErrorDialog.calls[0][1].confirmHandler();
@@ -1762,7 +1814,9 @@ suite('thread_ui.js >', function() {
         this.fakeMessage.type = 'sms';
         this.fakeMessage.delivery = 'sent';
         this.fakeMessage.deliveryStatus = 'success';
-        ThreadUI.onDeliverySuccess(this.fakeMessage);
+        MessageManager.on.withArgs('message-delivered').yield({
+          message: this.fakeMessage
+        });
         assert.isTrue(this.container.classList.contains('delivered'));
       });
       test('mms delivery success', function() {
@@ -1770,7 +1824,9 @@ suite('thread_ui.js >', function() {
         this.fakeMessage.delivery = 'sent';
         this.fakeMessage.deliveryInfo = [{
           receiver: null, deliveryStatus: 'success'}];
-        ThreadUI.onDeliverySuccess(this.fakeMessage);
+        MessageManager.on.withArgs('message-delivered').yield({
+          message: this.fakeMessage
+        });
         assert.isTrue(this.container.classList.contains('delivered'));
       });
       test('multiple recipients mms delivery success', function() {
@@ -1779,7 +1835,9 @@ suite('thread_ui.js >', function() {
         this.fakeMessage.deliveryInfo = [
           {receiver: null, deliveryStatus: 'success'},
           {receiver: null, deliveryStatus: 'success'}];
-        ThreadUI.onDeliverySuccess(this.fakeMessage);
+        MessageManager.on.withArgs('message-delivered').yield({
+          message: this.fakeMessage
+        });
         assert.isTrue(this.container.classList.contains('delivered'));
       });
       test('not all recipients return mms delivery success', function() {
@@ -1788,7 +1846,9 @@ suite('thread_ui.js >', function() {
         this.fakeMessage.deliveryInfo = [
           {receiver: null, deliveryStatus: 'success'},
           {receiver: null, deliveryStatus: 'pending'}];
-        ThreadUI.onDeliverySuccess(this.fakeMessage);
+        MessageManager.on.withArgs('message-delivered').yield({
+          message: this.fakeMessage
+        });
         assert.isFalse(this.container.classList.contains('delivered'));
       });
     });
@@ -1799,7 +1859,9 @@ suite('thread_ui.js >', function() {
         this.fakeMessage.delivery = 'sent';
         this.fakeMessage.deliveryInfo = [{
           receiver: null, readStatus: 'success'}];
-        ThreadUI.onReadSuccess(this.fakeMessage);
+        MessageManager.on.withArgs('message-read').yield({
+          message: this.fakeMessage
+        });
         assert.isTrue(this.container.classList.contains('read'));
       });
       test('display read icon when both delivery/read success', function() {
@@ -1807,8 +1869,12 @@ suite('thread_ui.js >', function() {
         this.fakeMessage.delivery = 'sent';
         this.fakeMessage.deliveryInfo = [{
           receiver: null, deliveryStatus: 'success', readStatus: 'success'}];
-        ThreadUI.onDeliverySuccess(this.fakeMessage);
-        ThreadUI.onReadSuccess(this.fakeMessage);
+        MessageManager.on.withArgs('message-delivered').yield({
+          message: this.fakeMessage
+        });
+        MessageManager.on.withArgs('message-read').yield({
+          message: this.fakeMessage
+        });
         assert.isFalse(this.container.classList.contains('delivered'));
         assert.isTrue(this.container.classList.contains('read'));
       });
@@ -1818,7 +1884,9 @@ suite('thread_ui.js >', function() {
         this.fakeMessage.deliveryInfo = [
           {receiver: null, readStatus: 'success'},
           {receiver: null, readStatus: 'success'}];
-        ThreadUI.onReadSuccess(this.fakeMessage);
+        MessageManager.on.withArgs('message-read').yield({
+          message: this.fakeMessage
+        });
         assert.isTrue(this.container.classList.contains('read'));
       });
       test('not all recipients return mms read success', function() {
@@ -1827,7 +1895,9 @@ suite('thread_ui.js >', function() {
         this.fakeMessage.deliveryInfo = [
           {receiver: null, readStatus: 'success'},
           {receiver: null, readStatus: 'pending'}];
-        ThreadUI.onReadSuccess(this.fakeMessage);
+        MessageManager.on.withArgs('message-read').yield({
+          message: this.fakeMessage
+        });
         assert.isFalse(this.container.classList.contains('read'));
       });
     });
@@ -2194,13 +2264,13 @@ suite('thread_ui.js >', function() {
         deliveryInfo: [],
         attachments: []
       });
-      assert.ok(ThreadUI.tmpl.message.interpolate.calledWith({
+      sinon.assert.calledWithMatch(ThreadUI.tmpl.message.interpolate, {
         id: '1',
         bodyHTML: '',
         timestamp: '' + now,
         subject: 'subject',
         progressIndicatorClassName: ''
-      }));
+      });
     });
 
     test('correctly sets the iccId in the dataset', function() {
@@ -2208,9 +2278,48 @@ suite('thread_ui.js >', function() {
 
       node = ThreadUI.buildMessageDOM(MockMessages.sms({ iccId: 'A' }));
       assert.equal(node.dataset.iccId, 'A');
+      assert.isNull(
+        node.querySelector('.message-sim-information'),
+        'The SIM information is not displayed'
+      );
 
       node = ThreadUI.buildMessageDOM(MockMessages.mms({ iccId: 'A' }));
       assert.equal(node.dataset.iccId, 'A');
+      assert.isNull(
+        node.querySelector('.message-sim-information'),
+        'The SIM information is not displayed'
+      );
+    });
+
+    test('correctly shows the SIM information when present', function() {
+      var tests = ['A', 'B'];
+      this.sinon.stub(Settings, 'getServiceIdByIccId');
+
+      tests.forEach((iccId, serviceId) => {
+        Settings.getServiceIdByIccId.withArgs(iccId).returns(serviceId);
+      });
+
+      this.sinon.stub(Settings, 'hasSeveralSim').returns(false);
+
+      // testing with serviceId both equal to 0 and not 0, to check we handle
+      // correctly falsy correct values
+      tests.forEach((iccId, serviceId) => {
+        var node = ThreadUI.buildMessageDOM(MockMessages.mms({ iccId: iccId }));
+        assert.isNull(
+          node.querySelector('.message-sim-information'),
+          'The SIM information is not displayed'
+        );
+      });
+
+      Settings.hasSeveralSim.returns(true);
+
+      tests.forEach((iccId, serviceId) => {
+        var node = ThreadUI.buildMessageDOM(MockMessages.mms({ iccId: iccId }));
+        var simInformationNode = node.querySelector('.message-sim-information');
+        assert.ok(simInformationNode, 'The SIM information is displayed');
+        var simInformation = JSON.parse(simInformationNode.dataset.l10nArgs);
+        assert.equal(simInformation.id, serviceId + 1);
+      });
     });
 
     test('correctly sets progress indicator class name', function() {
@@ -3173,7 +3282,7 @@ suite('thread_ui.js >', function() {
       this.getMessageReq = {};
       this.sinon.stub(MessageManager, 'getMessage')
         .returns(this.getMessageReq);
-      this.sinon.stub(MessageManager, 'deleteMessage').callsArgWith(1, true);
+      this.sinon.stub(MessageManager, 'deleteMessages').callsArgWith(1, true);
       this.sinon.stub(MessageManager, 'resendMessage');
       this.sinon.spy(ThreadUI, 'onMessageSendRequestCompleted');
     });
@@ -4294,7 +4403,10 @@ suite('thread_ui.js >', function() {
         body: body,
         receiver: recipient
       });
-      ThreadUI.onMessageSending(sentMessage);
+
+      MessageManager.on.withArgs('message-sending').yield({
+        message: sentMessage
+      });
 
       sinon.assert.calledWith(
         Navigation.toPanel,
@@ -4322,7 +4434,10 @@ suite('thread_ui.js >', function() {
       var sentMessage = MockMessages.mms({
         receivers: [recipient]
       });
-      ThreadUI.onMessageSending(sentMessage);
+
+      MessageManager.on.withArgs('message-sending').yield({
+        message: sentMessage
+      });
 
       sinon.assert.calledWith(
         Navigation.toPanel,
@@ -4359,7 +4474,9 @@ suite('thread_ui.js >', function() {
             receiver: recipient
           });
 
-          ThreadUI.onMessageSending(sentMessage);
+          MessageManager.on.withArgs('message-sending').yield({
+            message: sentMessage
+          });
         });
       }
 
@@ -4404,7 +4521,9 @@ suite('thread_ui.js >', function() {
         receivers: recipients
       });
 
-      ThreadUI.onMessageSending(sentMessage);
+      MessageManager.on.withArgs('message-sending').yield({
+        message: sentMessage
+      });
 
       sinon.assert.calledWith(
         Navigation.toPanel,
@@ -5312,6 +5431,9 @@ suite('thread_ui.js >', function() {
     }
 
     setup(function() {
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      Navigation.isCurrentPanel.withArgs('thread').returns(true);
+
       container.style.overflow = 'scroll';
       container.style.height = '50px';
       notice = document.getElementById('messages-new-message-notice');
@@ -5325,11 +5447,13 @@ suite('thread_ui.js >', function() {
       container.scrollTop = 0;
       dispatchScrollEvent(container);
 
-      ThreadUI.onMessageReceived(testMessage);
+      MessageManager.on.withArgs('message-received').yield({
+        message: testMessage
+      });
     });
 
     suite('should be shown', function() {
-      test('when new message is recieved', function() {
+      test('when new message is received', function() {
         assert.isFalse(notice.classList.contains('hide'));
       });
     });
@@ -5398,8 +5522,8 @@ suite('thread_ui.js >', function() {
       test('should show option for adding subject', function() {
         assert.equal(options[0].l10nId, 'add-subject');
       });
-      test('should show option for deleting messages', function() {
-        assert.equal(options[1].l10nId, 'deleteMessages-label');
+      test('should show option for selecting messages', function() {
+        assert.equal(options[1].l10nId, 'selectMessages-label');
       });
     });
   });
@@ -5498,7 +5622,10 @@ suite('thread_ui.js >', function() {
         threadId: 1
       });
 
-      ThreadUI.onMessageSending(message);
+      MessageManager.on.withArgs('message-sending').yield({
+        message: message
+      });
+
       sinon.assert.called(ThreadUI.appendMessage);
     });
 
@@ -5509,7 +5636,10 @@ suite('thread_ui.js >', function() {
         threadId: 2
       });
 
-      ThreadUI.onMessageSending(message);
+      MessageManager.on.withArgs('message-sending').yield({
+        message: message
+      });
+
       sinon.assert.notCalled(ThreadUI.appendMessage);
 
       // should not change the panel since we didn't click the send button
@@ -5523,12 +5653,51 @@ suite('thread_ui.js >', function() {
         threadId: 1
       });
 
-      ThreadUI.onMessageSending(message);
+      MessageManager.on.withArgs('message-sending').yield({
+        message: message
+      });
 
       sinon.assert.notCalled(ThreadUI.appendMessage);
 
       // should not change the panel since we didn't click the send button
       sinon.assert.notCalled(Navigation.toPanel);
+    });
+  });
+
+  suite('onMessageReceived >', function() {
+    setup(function() {
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      this.sinon.spy(MessageManager, 'markMessagesRead');
+    });
+
+    test('should not mark message as read if message from other thread',
+    function() {
+      var message = MockMessages.sms({
+        threadId: 2
+      });
+
+      Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+
+      MessageManager.on.withArgs('message-received').yield({
+        message: message
+      });
+
+      sinon.assert.notCalled(MessageManager.markMessagesRead);
+    });
+
+    test('should mark message as read if message from the current thread',
+    function() {
+      var message = MockMessages.sms({
+        threadId: 1
+      });
+
+      Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+
+      MessageManager.on.withArgs('message-received').yield({
+        message: message
+      });
+
+      sinon.assert.calledWith(MessageManager.markMessagesRead, [message.id]);
     });
   });
 
@@ -6145,27 +6314,6 @@ suite('thread_ui.js >', function() {
   suite('Compose mode tests', function() {
     teardown(function() {
       Compose.clear();
-    });
-
-    suite('message editor focus', function() {
-      setup(function() {
-        this.sinon.spy(Compose, 'focus');
-        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
-      });
-
-      test('focus on container click if in Composer', function() {
-        Navigation.isCurrentPanel.withArgs('composer').returns(true);
-        container.click();
-
-        sinon.assert.called(Compose.focus);
-      });
-
-      test('do not focus on container click if not in Composer', function() {
-        Navigation.isCurrentPanel.withArgs('thread').returns(true);
-
-        container.click();
-        sinon.assert.notCalled(Compose.focus);
-      });
     });
 
     suite('recipients panel mode change', function() {

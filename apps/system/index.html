@@ -33,6 +33,8 @@
     <script defer src="js/touch_forwarder.js"></script>
     <script defer src="shared/js/version_helper.js"></script>
     <script defer src="shared/js/font_size_utils.js"></script>
+    <!-- XXX can be removed while gecko support navigator.mozHour12 API -->
+    <script defer src="shared/js/date_time_helper.js"></script>
 
     <script defer src="js/system.js"></script>
     <script defer src="js/base_ui.js"></script>
@@ -53,6 +55,7 @@
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
     <link rel="stylesheet" type="text/css" href="style/chrome/chrome.css">
+    <script defer src="shared/js/bookmarks_database.js"></script>
 
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
@@ -127,6 +130,7 @@
     <!-- Keyboard -->
     <script defer src="js/input_transition.js"></script>
     <script defer src="js/ime_switcher.js"></script>
+    <script defer src="js/input_frame_manager.js"></script>
     <script defer src="js/keyboard_manager.js"></script>
 
     <!-- Utility Tray -->
@@ -246,6 +250,7 @@
     <script defer src="js/ndef_utils.js"></script>
     <script defer src="js/nfc_handover_manager.js"></script>
     <script defer src="js/nfc_manager.js"></script>
+    <script defer src="js/nfc_handler.js"></script>
 
     <!-- Cards View -->
     <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
@@ -286,6 +291,7 @@
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/download.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/voicemail.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/lockscreen.ini">
 
     <!-- Payment -->
     <script defer src="js/payment.js"></script>
@@ -369,6 +375,7 @@
 
     <!-- Developer Tools -->
     <script defer src="js/remote_debugger.js"></script>
+    <script defer src="js/devtools/logshake.js"></script>
     <script defer src="js/devtools/developer_hud.js"></script>
     <link rel="stylesheet" type="text/css" href="style/devtools/developer_hud.css">
 
@@ -576,6 +583,8 @@
           </div>
 
           <div id="desktop-notifications-container">
+            <div class='priority-notifications'></div>
+            <div class='other-notifications'></div>
           </div>
         </div>
 
@@ -733,7 +742,7 @@
               <h1 class="value-selector-options-title" data-l10n-id="choose-option">Choose your option</h1>
               <ol class="value-selector-options-container" role="listbox"></ol>
             </section>
-            <menu class="value-selector-select-options-buttons">
+            <menu class="value-selector-select-options-buttons value-selector-buttons">
               <button class="value-option-confirm affirmative full" data-type="ok" data-l10n-id="ok">OK</button>
             </menu>
           </form>
@@ -756,7 +765,7 @@
                 </div>
               </div>
             </div>
-            <menu class="value-selector-time-picker-buttons" data-items="2">
+            <menu class="value-selector-time-picker-buttons value-selector-buttons" data-items="2">
               <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
               <button class="value-selector-confirm affirmative" data-type="ok" data-l10n-id="ok">OK</button>
             </menu>
@@ -781,7 +790,7 @@
                 <div class="value-indicator"></div>
               </div>
             </div>
-            <menu class="value-selector-spin-date-picker-buttons" data-items="2">
+            <menu class="value-selector-spin-date-picker-buttons value-selector-buttons" data-items="2">
               <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
               <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok">OK</button>
             </menu>

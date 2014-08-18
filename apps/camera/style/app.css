@@ -1,4 +1,3 @@
-
 html,
 body {
   font-size: 10px;
@@ -6,8 +5,18 @@ body {
   width: 100%;
   padding: 0;
   margin: 0;
+}
+
+html {
   overflow: hidden;
-  background-color: black;
+}
+
+body {
+  background-color: #000;
+}
+
+body.no-background {
+  background-color: transparent;
 }
 
 /** Mini reset

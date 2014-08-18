@@ -29,10 +29,8 @@ class GmailLogin(Base):
         self.marionette.find_element(*self._sign_in_locator).tap()
 
     def tap_grant_access(self):
-        grant_access_button = self.marionette.find_element(*self._grant_access_button_locator)
-        self.wait_for_condition(lambda m: grant_access_button.is_enabled())
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [grant_access_button])
-        grant_access_button.tap()
+        self.wait_for_condition(lambda m: m.find_element(*self._grant_access_button_locator).is_enabled())
+        self.marionette.find_element(*self._grant_access_button_locator).tap()
         # Go back to displayed Contacts app before waiting for the picker
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == 'Contacts')
         self.apps.switch_to_displayed_app()

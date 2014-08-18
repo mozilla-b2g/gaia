@@ -46,32 +46,9 @@ SystemAppBuilder.prototype.initConfigJsons = function() {
 
 };
 
-SystemAppBuilder.prototype.generateManifest = function() {
-  var manifest =
-    utils.getJSON(utils.getFile(this.appDir.path, 'manifest.webapp'));
-  manifest.activities = manifest.activities || {};
-
-  manifest.activities.view = {
-    filters: {
-      type: 'url',
-      url: {
-        required: true,
-        pattern: '(https?:|data:).{1,16384}',
-        patternFlags: 'i'
-      }
-    }
-  };
-  // Write content to build_stage
-  utils.writeContent(utils.getFile(this.stageDir.path, 'manifest.webapp'),
-                     JSON.stringify(manifest));
-};
-
 SystemAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
   this.initConfigJsons();
-  if (options.HAIDA) {
-    this.generateManifest();
-  }
   if (this.distDirPath) {
     this.addCustomizeFiles();
   }

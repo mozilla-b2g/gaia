@@ -64,6 +64,20 @@ suite('lib/camera/focus', function() {
 
   });
 
+  suite('Focus#setMode', function() {
+    setup(function() {
+      this.focus.reset = sinon.spy();
+      this.focus.mode = 'auto';
+    });
+
+    test('it returns the set focus mode', function() {
+      this.focus.setMode('auto');
+      assert.ok(this.focus.reset.called);
+      assert.ok(this.focus.getMode() === 'auto');
+    });
+
+  });
+
   suite('Focus#getMode', function() {
     setup(function() {
       this.focus.mode = 'auto';
@@ -241,13 +255,14 @@ suite('lib/camera/focus', function() {
   suite('Focus#resumeContinuousFocus', function() {
     setup(function() {
       this.focus.mozCamera = this.mozCamera;
-      this.focus.mode = 'auto';
+      this.focus.previousMode = 'auto';
+      this.focus.restoreMode = sinon.spy();
       this.mozCamera.focusMode = 'continuous-picture';
     });
 
     test('mozCamera resumeContinuousFocus is called', function() {
       this.focus.resumeContinuousFocus();
-      assert.ok(this.focus.mozCamera.focusMode === 'auto');
+      assert.ok(this.focus.restoreMode.called);
       assert.ok(this.focus.suspendedFocusMode === undefined);
       assert.ok(this.focus.mozCamera.resumeContinuousFocus.called);
     });
@@ -530,16 +545,27 @@ suite('lib/camera/focus', function() {
 
   });
 
-  suite('Focus#stop()', function() {
+  suite('Focus#pause()', function() {
     setup(function() {
       this.focus.stopContinuousFocus = sinon.spy();
       this.focus.stopFaceDetection = sinon.spy();
     });
 
+    test('Should do nothing if already paused', function() {
+      this.focus.paused = true;
+      this.focus.pause();
+      assert.ok(!this.focus.stopContinuousFocus.called);
+      assert.ok(!this.focus.stopFaceDetection.called);
+      assert.ok(this.focus.paused);
+
+    });
+
     test('Should stop face detection and continuous focus', function() {
-      this.focus.stop();
+      this.focus.paused = false;
+      this.focus.pause();
       assert.ok(this.focus.stopContinuousFocus.called);
       assert.ok(this.focus.stopFaceDetection.called);
+      assert.ok(this.focus.paused);
     });
   });
 
@@ -564,10 +590,19 @@ suite('lib/camera/focus', function() {
       this.focus.resumeContinuousFocus = sinon.spy();
     });
 
+    test('should do nothing if not paused', function() {
+      this.focus.paused = false;
+      this.focus.resume();
+      assert.ok(!this.focus.resumeContinuousFocus.called);
+      assert.ok(!this.focus.paused);
+    });
+
     test('resumeContinuousFocus called if focus mode is continuous-picture', function() {
+      this.focus.paused = true;
       this.focus.mozCamera.focusMode = 'continuous-picture'
       this.focus.resume();
       assert.ok(this.focus.resumeContinuousFocus.called);
+      assert.ok(!this.focus.paused);
     });
 
   });

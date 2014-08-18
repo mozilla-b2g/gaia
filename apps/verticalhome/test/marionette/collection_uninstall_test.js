@@ -4,7 +4,8 @@ var assert = require('assert');
 var Actions = require('marionette-client').Actions;
 var Collection = require('./lib/collection');
 var Home2 = require('./lib/home2');
-var EmeServer = require('./eme_server/parent');
+var EmeServer = require(
+  '../../../../shared/test/integration/eme_server/parent');
 var System = require('../../../../apps/system/test/marionette/lib/system');
 
 marionette('Vertical - Uninstall Collection', function() {
@@ -13,8 +14,7 @@ marionette('Vertical - Uninstall Collection', function() {
   var actions, collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
-    var folder = __dirname + '/fixtures/everythingme';
-    EmeServer(folder, client, function(err, _server) {
+    EmeServer(client, function(err, _server) {
       server = _server;
       done(err);
     });

@@ -136,7 +136,7 @@
     padding-left: 6rem;
   }
 
-  section[role="region"]:not([id='root']) ul:not([id='wifi-availableNetworks']) li > progress {
+  section[role="region"]:not([id='root']) ul:not([class='wifi-availableNetworks']) li > progress {
     width: 100%;
   }
 
@@ -168,9 +168,10 @@
   }
 
   /**
-   * hotspot wifi settings
+   * wifi auth / hotspot wifi settings
    */
-  section[role="region"]#hotspot-wifiSettings ul li.password > label > span {
+  section[role="region"]#hotspot-wifiSettings ul li.password > label > span,
+  section[role="region"]#wifi-auth ul li.password > label > span {
     padding-left: 3rem;
   }
 

@@ -60,12 +60,29 @@
     ele.classList.remove('visible');
   };
 
-  BaseUI.prototype.publish = function bu_publish(event, detail) {
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent(this.EVENT_PREFIX + event,
-                        true, false, detail || this);
+  BaseUI.prototype.broadcast = function bu_broadcast(event, detail) {
+    if (this.element) {
+      var internalEvent = new CustomEvent('_' + event, {
+        bubbles: false,
+        detail: detail || this
+      });
 
-    this.debug('publish: ' + event);
+      this.debug(' publishing internal event: ' + event);
+      this.element.dispatchEvent(internalEvent);
+    }
+  };
+
+  BaseUI.prototype.publish = function bu_publish(event, detail) {
+    // Dispatch internal event before external events.
+    this.broadcast(event, detail);
+    var evt = new CustomEvent(this.EVENT_PREFIX + event, {
+      bubbles: true,
+      cancelable: false,
+      detail: detail || this
+    });
+
+    this.debug(' publishing external event: ' + event);
+    // Publish external event.
     window.dispatchEvent(evt);
   };
 

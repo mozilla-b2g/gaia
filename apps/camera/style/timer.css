@@ -15,7 +15,6 @@
   transform: scale(1.5);
   transition: none;
   pointer-events: none;
-  will-change: transform;
 }
 
 /**
@@ -41,7 +40,6 @@
   background: #000;
   opacity: 0.12;
   transition: opacity 180ms;
-  will-change: opacity;
 }
 
 /**
@@ -70,7 +68,6 @@
 
 .timer.immanent .timer_circle-2 {
   animation: timer_circle-2 3s linear 1;
-  will-change: opacity;
 }
 
 @keyframes timer_circle-2 {
@@ -89,9 +86,6 @@
   opacity: 1;
   transform: scale(1.6);
   transition: none;
-  will-change:
-    opacity,
-    transform;
 }
 
 /**

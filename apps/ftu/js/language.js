@@ -1,4 +1,4 @@
-/* global KeyboardHelper */
+/* global KeyboardHelper, LanguageList */
 /* exported LanguageManager */
 'use strict';
 
@@ -6,7 +6,7 @@ var LanguageManager = {
   settings: window.navigator.mozSettings,
 
   init: function init() {
-    this.getCurrentLanguage(this.buildLanguageList.bind(this));
+    this.buildLanguageList();
     document.getElementById('languages').addEventListener('change', this);
     this.settings.addObserver('language.current',
       function updateDefaultLayouts(event) {
@@ -19,101 +19,39 @@ var LanguageManager = {
     if (!this.settings || evt.target.name != 'language.current') {
       return true;
     }
-    this.settings.createLock().set({'language.current': evt.target.value});
+    this.updateSettings(evt.target.value);
     return false;
   },
 
-  getCurrentLanguage: function settings_getCurrent(callback) {
-    var self = this;
-    this.readSetting('language.current', function onResponse(setting) {
-      self._currentLanguage = setting;
-      callback(setting);
+  // update current launguage and time format settings
+  updateSettings: function settings_updateSettings(language) {
+    var _ = navigator.mozL10n.get;
+    var localeTimeFormat = _('shortTimeFormat');
+    var is12hFormat = (localeTimeFormat.indexOf('%I') >= 0);
+
+    this.settings.createLock().set({
+      'language.current': language,
+      'locale.hour12': is12hFormat
     });
   },
 
-  readSetting: function settings_readSetting(name, callback) {
-    var settings = window.navigator.mozSettings;
-    if (!settings || !settings.createLock || !callback) {
-      return;
-    }
-
-    var req = settings.createLock().get(name);
-
-    req.onsuccess = function _onsuccess() {
-      callback(req.result[name]);
-    };
-
-    req.onerror = function _onerror() {
-      console.error('Error checking setting ' + name);
-    };
-  },
-
-  getSupportedLanguages: function settings_getSupportedLanguages(callback) {
-    if (!callback) {
-      return;
-    }
-
-    if (this._languages) {
-      callback(this._languages);
-    } else {
-      var LANGUAGES = 'languages.json';
-      var self = this;
-      this.readSharedFile(LANGUAGES, function getLanguages(data) {
-        if (data) {
-          self._languages = data;
-          callback(self._languages);
-        }
-      });
-    }
-  },
-
-  readSharedFile: function settings_readSharedFile(file, callback) {
-    var URI = '/shared/resources/' + file;
-    if (!callback) {
-      return;
-    }
-
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function loadFile() {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 0 || xhr.status === 200) {
-          callback(xhr.response);
-        } else {
-          console.error('Failed to fetch file: ' + file, xhr.statusText);
-        }
-      }
-    };
-    xhr.open('GET', URI, true); // async
-    xhr.responseType = 'json';
-    xhr.send();
-  },
-
-  buildLanguageList: function settings_buildLanguageList(uiLanguage) {
+  buildLanguageList: function settings_buildLanguageList() {
     var container = document.querySelector('#languages ul');
     container.innerHTML = '';
-    this.getSupportedLanguages(function fillLanguageList(languages) {
-      for (var lang in languages) {
+    LanguageList.get(function fillLanguageList(allLanguages, currentLanguage) {
+      for (var lang in allLanguages) {
         var input = document.createElement('input');
         input.type = 'radio';
         input.name = 'language.current';
         input.value = lang;
-        input.checked = (lang == uiLanguage);
+        input.checked = (lang === currentLanguage);
 
         var span = document.createElement('span');
         var p = document.createElement('p');
-
-        // Right-to-Left (RTL) languages:
-        // (http://www.w3.org/International/questions/qa-scripts)
-        // Arabic, Hebrew, Farsi, Pashto, Mirrored English (pseudo), Urdu
-        var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
-        var langDir = (rtlList.indexOf(lang) >= 0) ? 'rtl' : 'ltr';
-        // Each language label should be wrapped in Bi-Directional Override
-        // <bdo> tags with language-specific script direction to correctly
-        // display the labels (Bug #847739)
-        var bdo = document.createElement('bdo');
-        bdo.setAttribute('dir', langDir);
-        bdo.textContent = languages[lang];
-        p.appendChild(bdo);
+        // wrap the name of the language in Unicode control codes which force
+        // the proper direction of the text regardless of the direction of
+        // the whole app
+        p.textContent = LanguageList.wrapBidi(lang, allLanguages[lang]);
 
         var label = document.createElement('label');
         label.classList.add('pack-radio');

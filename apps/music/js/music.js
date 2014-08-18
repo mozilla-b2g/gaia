@@ -397,7 +397,6 @@ function showCurrentView(callback) {
     // because mix page is not needed in picker mode
     if (pendingPick) {
       showListView();
-      knownSongs = ListView.dataSource;
 
       if (callback)
         callback();
@@ -604,7 +603,7 @@ var ModeManager = {
       // Assign the sharing function to onpeerready so that it will trigger
       // the shrinking ui to share the playing file.
       navigator.mozNfc.onpeerready = function(event) {
-        var peer = navigator.mozNfc.getNFCPeer(event.detail);
+        var peer = event.peer;
         if (peer)
           peer.sendFile(PlayerView.playingBlob);
       };
@@ -1149,6 +1148,7 @@ var ListView = {
 
     this.info = null;
     this.dataSource = [];
+
     this.index = 0;
     this.lastDataIndex = 0;
     this.firstLetters = [];
@@ -1237,6 +1237,12 @@ var ListView = {
             // the height.
             count = record ? count : null;
             this.adjustHeight(info.option, count);
+            // In picker mode we have to use the ListView's dataSource to
+            // display the correct overlay.
+            if (pendingPick) {
+              knownSongs = this.dataSource;
+              showCorrectOverlay();
+            }
           }
         }.bind(this));
     }.bind(this));

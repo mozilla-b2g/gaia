@@ -7,9 +7,9 @@
 
   var keyboard, ime, composingText, JangmiIME;
 
-  const SPACE = KeyEvent.DOM_VK_SPACE;
-  const BACKSPACE = KeyEvent.DOM_VK_BACK_SPACE;
-  const RETURN = KeyEvent.DOM_VK_RETURN;
+  var SPACE = KeyEvent.DOM_VK_SPACE;
+  var BACKSPACE = KeyEvent.DOM_VK_BACK_SPACE;
+  var RETURN = KeyEvent.DOM_VK_RETURN;
 
   /*
     JangmiIME
@@ -32,19 +32,19 @@
   (function() {
     var isCompatibleJamoKeyCode;
 
-    const UTF8_HANGUL_SYLLABLES_START = 0xAC00;
-    const UTF8_HANGUL_COMPATIBILITY_START = 0x3131;
-    const UTF8_JUNGSEONG_START = 0x1161;
-    const UTF8_CHOSEONG_DIFF = '까'.charCodeAt(0) - '가'.charCodeAt(0);
-    const UTF8_JUNGSEONG_DIFF = '개'.charCodeAt(0) - '가'.charCodeAt(0);
+    var UTF8_HANGUL_SYLLABLES_START = 0xAC00;
+    var UTF8_HANGUL_COMPATIBILITY_START = 0x3131;
+    var UTF8_JUNGSEONG_START = 0x1161;
+    var UTF8_CHOSEONG_DIFF = '까'.charCodeAt(0) - '가'.charCodeAt(0);
+    var UTF8_JUNGSEONG_DIFF = '개'.charCodeAt(0) - '가'.charCodeAt(0);
 
-    const compatibilityMultiJamoMap = {
+    var COMPATIBILITY_MULTI_JAMO_MAP = {
       'ㄱㄱ' : 0x1, 'ㄷㄷ' : 0x7, 'ㅂㅂ' : 0x12, 'ㅅㅅ' : 0x15,
       'ㅈㅈ' : 0x18, 'ㅗㅏ' : 0x27, 'ㅗㅐ' : 0x28, 'ㅗㅣ' : 0x29,
       'ㅜㅓ' : 0x2C, 'ㅜㅔ' : 0x2E, 'ㅜㅣ' : 0x2E, 'ㅡㅣ' : 0x31
     };
 
-    const choSeongMap = {
+    var CHO_SEONG_MAP = {
       'ㄱ' : 0, 'ㄱㄱ' : 1, 'ㄲ' : 1, 'ㄴ' : 2, 'ㄷ' : 3,
       'ㄷㄷ' : 4, 'ㄸ' : 4, 'ㄹ' : 5, 'ㅁ' : 6, 'ㅂ' : 7,
       'ㅂㅂ' : 8, 'ㅃ' : 8, 'ㅅ' : 9, 'ㅅㅅ' : 10, 'ㅆ' : 10,
@@ -52,7 +52,7 @@
       'ㅋ' : 15, 'ㅌ' : 16, 'ㅍ' : 17, 'ㅎ' : 18
     };
 
-    const jungSeongMap = {
+    var JUNG_SEONG_MAP = {
       'ㅏ' : 0, 'ㅐ' : 1, 'ㅑ' : 2, 'ㅒ' : 3, 'ㅓ' : 4,
       'ㅔ' : 5, 'ㅕ' : 6, 'ㅖ' : 7, 'ㅗ' : 8, 'ㅘ' : 9,
       'ㅗㅏ' : 9, 'ㅙ' : 10, 'ㅗㅐ' : 10, 'ㅚ' : 11, 'ㅗㅣ' : 11,
@@ -61,7 +61,7 @@
       'ㅢ' : 19, 'ㅡㅣ' : 19, 'ㅣ' : 20
     };
 
-    const jongSeongMap = {
+    var JONG_SEONG_MAP = {
       'ㄱ' : 1, 'ㄲ' : 2, 'ㄱㅅ' : 3, 'ㄴ' : 4, 'ㄴㅈ' : 5,
       'ㄴㅎ' : 6, 'ㄷ' : 7, 'ㄹ' : 8, 'ㄹㄱ' : 9, 'ㄹㅁ' : 10,
       'ㄹㅂ' : 11, 'ㄹㅅ' : 12, 'ㄹㅌ' : 13, 'ㄹㅍ' : 14, 'ㄹㅎ' : 15,
@@ -130,10 +130,10 @@
         } else {
           jamo = String.fromCharCode(keyCode);
           if (this.curJamo == null) {
-            if (choSeongMap.hasOwnProperty(jamo)) {
+            if (CHO_SEONG_MAP.hasOwnProperty(jamo)) {
               this.curJamo = this.choSeong;
             }
-            if (jungSeongMap.hasOwnProperty(jamo)) {
+            if (JUNG_SEONG_MAP.hasOwnProperty(jamo)) {
               this.curJamo = this.jungSeong;
             }
             this.curJamo.push(jamo);
@@ -142,14 +142,14 @@
             curJamo = this.curJamo.join('') + jamo;
             switch (this.curJamo) {
               case this.choSeong:
-                if (choSeongMap.hasOwnProperty(curJamo)) {
+                if (CHO_SEONG_MAP.hasOwnProperty(curJamo)) {
                   this.curJamo.push(jamo);
                   return this.changed();
                 } else {
-                  if (choSeongMap.hasOwnProperty(jamo)) {
+                  if (CHO_SEONG_MAP.hasOwnProperty(jamo)) {
                     this.reset();
                     return this.add(keyCode);
-                  } else if (jungSeongMap.hasOwnProperty(jamo)) {
+                  } else if (JUNG_SEONG_MAP.hasOwnProperty(jamo)) {
                     this.jungSeong.push(jamo);
                     this.curJamo = this.jungSeong;
                     return this.changed();
@@ -157,11 +157,11 @@
                 }
                 break;
               case this.jungSeong:
-                if (jungSeongMap.hasOwnProperty(curJamo)) {
+                if (JUNG_SEONG_MAP.hasOwnProperty(curJamo)) {
                   this.curJamo.push(jamo);
                   return this.changed();
                 } else {
-                  if (jongSeongMap.hasOwnProperty(jamo)) {
+                  if (JONG_SEONG_MAP.hasOwnProperty(jamo)) {
                     this.jongSeong.push(jamo);
                     this.curJamo = this.jongSeong;
                     return this.changed();
@@ -169,11 +169,11 @@
                 }
                 break;
               case this.jongSeong:
-                if (jongSeongMap.hasOwnProperty(curJamo)) {
+                if (JONG_SEONG_MAP.hasOwnProperty(curJamo)) {
                   this.curJamo.push(jamo);
                   return this.changed();
                 } else {
-                  if (jungSeongMap.hasOwnProperty(jamo)) {
+                  if (JUNG_SEONG_MAP.hasOwnProperty(jamo)) {
                     temp = this.curJamo.pop();
                     this.changed();
                     this.reset();
@@ -218,22 +218,22 @@
         var code;
         if (this.choSeong.length > 0 && this.jungSeong.length > 0) {
           code = UTF8_HANGUL_SYLLABLES_START +
-            choSeongMap[this.choSeong.join('')] * UTF8_CHOSEONG_DIFF;
-          code += jungSeongMap[this.jungSeong.join('')] * UTF8_JUNGSEONG_DIFF;
+            CHO_SEONG_MAP[this.choSeong.join('')] * UTF8_CHOSEONG_DIFF;
+          code += JUNG_SEONG_MAP[this.jungSeong.join('')] * UTF8_JUNGSEONG_DIFF;
           if (this.jongSeong.length > 0) {
-            code += jongSeongMap[this.jongSeong.join('')];
+            code += JONG_SEONG_MAP[this.jongSeong.join('')];
           }
         } else {
           if (this.choSeong.length === 1) {
             code = this.choSeong[0].charCodeAt(0);
           } else if (this.choSeong.length > 1) {
             code = UTF8_HANGUL_COMPATIBILITY_START +
-              compatibilityMultiJamoMap[this.choSeong.join('')];
+              COMPATIBILITY_MULTI_JAMO_MAP[this.choSeong.join('')];
           } else if (this.jungSeong.length === 1) {
             code = this.jungSeong[0].charCodeAt(0);
           } else if (this.jungSeong.length > 1) {
             code = UTF8_HANGUL_COMPATIBILITY_START +
-              compatibilityMultiJamoMap[this.jungSeong.join('')];
+              COMPATIBILITY_MULTI_JAMO_MAP[this.jungSeong.join('')];
           } else {
             return '';
           }
@@ -247,7 +247,7 @@
   InputMethods.jshangul = {
     init: init,
     click: click,
-    empty: empty
+    deactivate: deactivate
   };
 
   function setComposition(gul) {
@@ -280,8 +280,8 @@
     });
   }
 
-  function empty() {
-    composingText = '';
+  function deactivate() {
+    endComposition();
     ime.reset();
   }
 
@@ -291,5 +291,8 @@
     } else {
       ime.add(keycode);
     }
+    keyboard.setUpperCase({
+      isUpperCase: false
+    });
   }
 })();

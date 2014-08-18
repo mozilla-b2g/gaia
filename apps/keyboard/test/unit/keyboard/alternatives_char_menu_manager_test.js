@@ -187,8 +187,8 @@ suite('AlternativesCharMenuManager', function() {
     suite('isInMenuArea', function() {
       test('above menu', function() {
         var press = {
-          pageX: 45,
-          pageY: 35
+          clientX: 45,
+          clientY: 35
         };
 
         assert.equal(manager.isInMenuArea(press), false);
@@ -196,8 +196,8 @@ suite('AlternativesCharMenuManager', function() {
 
       test('below key', function() {
         var press = {
-          pageX: 45,
-          pageY: 70
+          clientX: 45,
+          clientY: 70
         };
 
         assert.equal(manager.isInMenuArea(press), false);
@@ -205,8 +205,8 @@ suite('AlternativesCharMenuManager', function() {
 
       test('left of menu', function() {
         var press = {
-          pageX: 2,
-          pageY: 55
+          clientX: 2,
+          clientY: 55
         };
 
         assert.equal(manager.isInMenuArea(press), false);
@@ -214,8 +214,8 @@ suite('AlternativesCharMenuManager', function() {
 
       test('right of menu', function() {
         var press = {
-          pageX: 105,
-          pageY: 55
+          clientX: 105,
+          clientY: 55
         };
 
         assert.equal(manager.isInMenuArea(press), false);
@@ -223,8 +223,8 @@ suite('AlternativesCharMenuManager', function() {
 
       test('on top of the menu', function() {
         var press = {
-          pageX: 45,
-          pageY: 40
+          clientX: 45,
+          clientY: 40
         };
 
         assert.equal(manager.isInMenuArea(press), false);
@@ -232,8 +232,8 @@ suite('AlternativesCharMenuManager', function() {
 
       test('on top of the key', function() {
         var press = {
-          pageX: 15,
-          pageY: 55
+          clientX: 15,
+          clientY: 55
         };
 
         assert.equal(manager.isInMenuArea(press), true);
@@ -241,8 +241,8 @@ suite('AlternativesCharMenuManager', function() {
 
       test('below menu and beside key', function() {
         var press = {
-          pageX: 65,
-          pageY: 55
+          clientX: 65,
+          clientY: 55
         };
 
         assert.equal(manager.isInMenuArea(press), true);
@@ -250,8 +250,8 @@ suite('AlternativesCharMenuManager', function() {
 
       test('below menu and above key', function() {
         var press = {
-          pageX: 65,
-          pageY: 47
+          clientX: 65,
+          clientY: 47
         };
 
         assert.equal(manager.isInMenuArea(press), true);
@@ -262,8 +262,8 @@ suite('AlternativesCharMenuManager', function() {
       test('on top of the key', function() {
         var press = {
           target: target,
-          pageX: 15,
-          pageY: 55
+          clientX: 15,
+          clientY: 55
         };
 
         assert.equal(manager.getMenuTarget(press),
@@ -273,8 +273,8 @@ suite('AlternativesCharMenuManager', function() {
       test('under 2nd key', function() {
         var press = {
           target: {},
-          pageX: 35,
-          pageY: 55
+          clientX: 35,
+          clientY: 55
         };
 
         assert.equal(manager.getMenuTarget(press),
@@ -284,8 +284,8 @@ suite('AlternativesCharMenuManager', function() {
       test('under 2nd key but haven\'t moved away from target', function() {
         var press = {
           target: target,
-          pageX: 35,
-          pageY: 55
+          clientX: 35,
+          clientY: 55
         };
 
         assert.equal(manager.getMenuTarget(press),
@@ -295,8 +295,8 @@ suite('AlternativesCharMenuManager', function() {
       test('under 2nd key, had moved away from target', function() {
         var press = {
           target: {},
-          pageX: 45,
-          pageY: 55
+          clientX: 45,
+          clientY: 55
         };
 
         assert.equal(manager.getMenuTarget(press),
@@ -304,8 +304,8 @@ suite('AlternativesCharMenuManager', function() {
 
         var press2 = {
           target: target,
-          pageX: 35,
-          pageY: 55
+          clientX: 35,
+          clientY: 55
         };
 
         assert.equal(manager.getMenuTarget(press2),

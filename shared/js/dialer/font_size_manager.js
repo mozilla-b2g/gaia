@@ -63,7 +63,7 @@ var FontSizeManager = (function fontSizeManager() {
      an ellipsis */
   function adaptToSpace(scenario, view, forceMaxFontSize, ellipsisSide) {
     // We don't care about the font size of empty views
-    if (view.value === '' || view.textContent === '') {
+    if (!view.value && !view.textContent) {
       return;
     }
 

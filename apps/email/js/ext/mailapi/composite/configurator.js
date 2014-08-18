@@ -621,7 +621,7 @@ exports.LOGFAB_DEFINITION = {
       createConnection: {},
       reuseConnection: {},
       releaseConnection: {},
-      deadConnection: {},
+      deadConnection: { why: true },
       unknownDeadConnection: {},
       connectionMismatch: {},
 
@@ -642,8 +642,8 @@ exports.LOGFAB_DEFINITION = {
 
       createConnection: { label: false },
       reuseConnection: { label: false },
-      releaseConnection: { label: false },
-      deadConnection: { },
+      releaseConnection: { folderId: false, label: false },
+      deadConnection: { folder: false },
       connectionMismatch: {},
     },
     errors: {
@@ -3502,6 +3502,31 @@ var properties = {
   },
 
   /**
+   * All our operations completed; let's think about closing any connections
+   * they may have established that we don't need anymore.
+   */
+  allOperationsCompleted: function() {
+    this.maybeCloseUnusedConnections();
+  },
+
+  /**
+   * Using great wisdom, potentially close some/all connections.
+   */
+  maybeCloseUnusedConnections: function() {
+    // XXX: We are closing unused connections in an effort to stem
+    // problems associated with unreliable cell connections; they
+    // tend to be dropped unceremoniously when left idle for a
+    // long time, particularly on cell networks. NB: This will
+    // close the connection we just used, unless someone else is
+    // waiting for a connection.
+    if ($syncbase.KILL_CONNECTIONS_WHEN_JOBLESS &&
+        !this._demandedConns.length &&
+        !this.universe.areServerJobsWaiting(this)) {
+      this.closeUnusedConnections();
+    }
+  },
+
+  /**
    * Close all connections that aren't currently in use.
    */
   closeUnusedConnections: function() {
@@ -3513,7 +3538,7 @@ var properties = {
       // this eats all future notifications, so we need to splice...
       connInfo.conn.die();
       this._ownedConns.splice(i, 1);
-      this._LOG.deadConnection();
+      this._LOG.deadConnection('unused', null);
     }
   },
 
@@ -3630,7 +3655,8 @@ var properties = {
       for (var i = 0; i < this._ownedConns.length; i++) {
         var connInfo = this._ownedConns[i];
         if (connInfo.conn === conn) {
-          this._LOG.deadConnection(connInfo.inUseBy &&
+          this._LOG.deadConnection('closed',
+                                   connInfo.inUseBy &&
                                    connInfo.inUseBy.folderId);
           if (connInfo.inUseBy && connInfo.inUseBy.deathback)
             connInfo.inUseBy.deathback(conn);
@@ -3659,20 +3685,11 @@ var properties = {
                                     connInfo.inUseBy.label);
         connInfo.inUseBy = null;
         // (this will trigger an expunge if not read-only...)
-        if (closeFolder && !resourceProblem && !this._TEST_doNotCloseFolder)
+        if (closeFolder && !resourceProblem && !this._TEST_doNotCloseFolder) {
           conn.closeBox(function() {});
-
-        // XXX: We are closing unused connections in an effort to stem
-        // problems associated with unreliable cell connections; they
-        // tend to be dropped unceremoniously when left idle for a
-        // long time, particularly on cell networks. NB: This will
-        // close the connection we just used, unless someone else is
-        // waiting for a connection.
-        if ($syncbase.KILL_CONNECTIONS_WHEN_JOBLESS &&
-            !this._demandedConns.length &&
-            !this.universe.areServerJobsWaiting(this)) {
-          this.closeUnusedConnections();
         }
+        // We just freed up a connection, it may be appropriate to close it.
+        this.maybeCloseUnusedConnections();
         return;
       }
     }
@@ -4193,7 +4210,7 @@ NetSocket.prototype.upgradeToSecure = function() {
 NetSocket.prototype.end = function() {
   if (this.destroyed)
     return;
-  this._sendMessage('end');
+  this._sendMessage('close');
   this.destroyed = true;
   this._unregisterWithRouter();
 };
@@ -8472,10 +8489,15 @@ Pop3FolderSyncer.prototype = {
       if (this.isInbox) {
         this._LOG.sync_end();
       }
+      // Don't notify completion until the save completes, if relevant.
       if (saveNeeded) {
-        this.account.__checkpointSyncCompleted(null, 'syncComplete');
+        this.account.__checkpointSyncCompleted(doDoneStuff, 'syncComplete');
+      } else {
+        doDoneStuff();
       }
+    }).bind(this));
 
+    var doDoneStuff = function() {
       if (syncType === 'initial') {
         // If it's the first time we've synced, we've set
         // ignoreHeaders to true, which means that slices don't know
@@ -8502,8 +8524,7 @@ Pop3FolderSyncer.prototype = {
       } else {
         doneCallback(null, null);
       }
-    }).bind(this));
-
+    }.bind(this);
   }),
 };
 
@@ -9594,6 +9615,12 @@ CompositeAccount.prototype = {
     return this._receivePiece.runAfterSaves(callback);
   },
 
+  allOperationsCompleted: function() {
+    if (this._receivePiece.allOperationsCompleted) {
+      this._receivePiece.allOperationsCompleted();
+    }
+  },
+
   /**
    * Check that the account is healthy in that we can login at all.
    * We'll check both the incoming server and the SMTP server; for
@@ -9909,7 +9936,8 @@ exports.configurator = {
           name: userDetails.displayName,
           address: userDetails.emailAddress,
           replyTo: null,
-          signature: null
+          signature: null,
+          signatureEnabled: false
         },
       ],
       tzOffset: tzOffset,
@@ -9958,7 +9986,8 @@ exports.configurator = {
           name: userDetails.displayName,
           address: userDetails.emailAddress,
           replyTo: null,
-          signature: null
+          signature: null,
+          signatureEnabled: false
         },
       ],
     };

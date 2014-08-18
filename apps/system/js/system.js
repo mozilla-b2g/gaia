@@ -86,6 +86,10 @@
       } else {
         return window.lockScreenWindowManager.states.active;
       }
+    },
+
+    get manifestURL() {
+      return window.location.href.replace('index.html', 'manifest.webapp');
     }
   };
 }(this));

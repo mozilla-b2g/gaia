@@ -9,7 +9,13 @@ module.exports = System;
 System.URL = 'app://system.gaiamobile.org/manifest.webapp';
 
 System.Selector = Object.freeze({
+  appWindow: '.appWindow',
   appTitlebar: '.appWindow.active .titlebar',
+  appChromeContextLink: '.appWindow.active .menu-button',
+  appChromeContextMenu: '.appWindow.active .overflow-menu',
+  appChromeContextMenuNewWindow: '.appWindow.active #new-window',
+  appChromeContextMenuBookmark: '.appWindow.active #add-to-home',
+  appChromeContextMenuShare: '.appWindow.active #share',
   statusbar: '#statusbar',
   statusbarBackground: '#statusbar-background',
   statusbarLabel: '#statusbar-label',
@@ -22,8 +28,37 @@ System.Selector = Object.freeze({
 System.prototype = {
   client: null,
 
+  getAppWindows: function() {
+    return this.client.findElements(System.Selector.appWindow);
+  },
+
   get appTitlebar() {
     return this.client.findElement(System.Selector.appTitlebar);
+  },
+
+  get appChromeContextLink() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextLink);
+  },
+
+  get appChromeContextMenu() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextMenu);
+  },
+
+  get appChromeContextMenuNewWindow() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextMenuNewWindow);
+  },
+
+  get appChromeContextMenuBookmark() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextMenuBookmark);
+  },
+
+  get appChromeContextMenuShare() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeContextMenuShare);
   },
 
   get statusbar() {

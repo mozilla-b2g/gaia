@@ -33,7 +33,6 @@ suite('FramePanel', function() {
             beforeShow: options.onBeforeShow,
             beforeHide: options.onBeforeHide,
             hide: options.onHide,
-            _escapeHTML: options._escapeHTML,
             _onBrowserClose: options._onBrowserClose
           };
         };

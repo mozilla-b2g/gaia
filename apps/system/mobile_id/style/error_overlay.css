@@ -5,9 +5,8 @@
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 2;
   font-size: 2rem;
-  background-color: rgba(200,200,200,0.9);
+  background-color: rgba(51, 51, 51, 0.9);
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -37,7 +36,7 @@ form[role="dialog"][data-type="confirm"]:before {
 #mobileid-error-overlay section{
   position: relative;
   height: 100%;
-  padding: 14rem 0px 5rem 0;
+  padding: 14rem 0 5rem 0;
 }
 
 form[role="dialog"][data-type="confirm"] p {

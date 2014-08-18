@@ -16,6 +16,7 @@ requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
+requireApp('system/test/unit/mock_nfc_handler.js');
 requireApp('system/js/system.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
@@ -24,7 +25,7 @@ var mocksForAppWindowManager = new MocksHelper([
   'ActivityWindow',
   'Applications', 'SettingsListener', 'HomescreenLauncher',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
-  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'System'
+  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'System', 'NfcHandler'
 ]).init();
 
 suite('system/AppWindowManager', function() {
@@ -147,6 +148,12 @@ suite('system/AppWindowManager', function() {
       AppWindowManager._apps[app.instanceID] = app;
     });
   }
+
+  test('Get active app when _activeApp is null', function() {
+    AppWindowManager._activeApp = null;
+    assert.deepEqual(AppWindowManager.getActiveApp(), home,
+      'should return home app');
+  });
 
   suite('Handle events', function() {
     test('localized event should be broadcasted.', function() {

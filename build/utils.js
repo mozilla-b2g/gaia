@@ -46,7 +46,7 @@ function isSubjectToBranding(path) {
  * @return {bool}
  */
 function isSubjectToDeviceType(path) {
-  return /locales[\/\\]?[a-zA-Z]*[\/\\]?device_type$/.test(path);
+  return /locales[\/\\]?[a-zA-Z\/]*[\/\\]?device_type$/.test(path);
 }
 
 /**
@@ -251,9 +251,9 @@ exports.copyRec = utils.copyRec;
  */
 exports.getAppStatus = getAppStatus;
 exports.createZip = utils.createZip;
-exports.scriptLoader = utils.scriptLoader;
 exports.scriptParser = utils.scriptParser;
 // ===== the following functions support node.js compitable interface.
+exports.scriptLoader = utils.scriptLoader;
 exports.FILE_TYPE_FILE = FILE_TYPE_FILE;
 exports.FILE_TYPE_DIRECTORY = FILE_TYPE_DIRECTORY;
 exports.deleteFile = utils.deleteFile;

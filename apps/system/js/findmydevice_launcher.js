@@ -7,6 +7,7 @@
 /* global IAC_API_WAKEUP_REASON_LOGIN */
 /* global IAC_API_WAKEUP_REASON_LOGOUT */
 /* global IAC_API_WAKEUP_REASON_STALE_REGISTRATION */
+/* global IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED */
 
 'use strict';
 
@@ -66,8 +67,12 @@ navigator.mozSettings.addObserver('geolocation.enabled', function(event) {
 });
 
 window.addEventListener('lockscreen-appclosing', function(event) {
+  // clear the lockscreen lock message
   var helper = SettingsHelper('lockscreen.lock-message');
   helper.set('');
+
+  // stop the ringer if it's currently being rung
+  wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_LOCKSCREEN_CLOSED);
 });
 
 window.addEventListener('mozFxAccountsUnsolChromeEvent', function(event) {

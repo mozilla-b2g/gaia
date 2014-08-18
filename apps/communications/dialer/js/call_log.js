@@ -143,28 +143,7 @@ var CallLog = {
   // Helper to update UI and clean notifications when we got visibility
   becameVisible: function cl_becameVisible() {
     this.updateHeaders();
-    this.updateHighlight();
     this.cleanNotifications();
-  },
-
-  // Method for highlighting call events since last visit to call-log
-  updateHighlight: function cl_updateHighlight(target) {
-    var self = this;
-    var evtName = 'latestCallLogVisit';
-    var container = target || this.callLogContainer;
-    window.asyncStorage.getItem(evtName, function getItem(referenceTimestamp) {
-      if (referenceTimestamp) {
-        var logs = container.getElementsByTagName('li');
-        for (var i = 0, l = logs.length; i < l; i++) {
-          if (logs[i].dataset.timestamp > referenceTimestamp) {
-            logs[i].classList.add('highlighted');
-          } else {
-            logs[i].classList.remove('highlighted');
-          }
-        }
-      }
-      window.asyncStorage.setItem(evtName, Date.now());
-    });
   },
 
   // Method for updating the time in headers based on device time
@@ -272,7 +251,6 @@ var CallLog = {
       phoneNumbers.push(current.number);
     }
 
-    this.updateHighlight(callLogSection);
     this.callLogContainer.appendChild(callLogSection);
 
     // If the contacts cache is not valid, we retrieve the contacts information

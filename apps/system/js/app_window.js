@@ -108,11 +108,11 @@
 
     if (!this.config.chrome) {
       this.config.chrome = {
-        navigation: true,
-        bar: true,
         scrollable: this.isBrowser()
       };
     } else if (this.config.chrome.navigation) {
+      // This is for backward compatibility with application that
+      // requests the |navigation| flag in their manifest.
       this.config.chrome.scrollable = true;
     }
 
@@ -428,10 +428,18 @@
 
     // If the app is the currently displayed app, switch to the homescreen
     if (this.isActive() && !this.isHomescreen) {
-      this.element.addEventListener('_closed', (function onClosed() {
-        window.removeEventListener('_closed', onClosed);
+
+      var fallbackTimeout;
+      var onClosed = function() {
+        clearTimeout(fallbackTimeout);
+        this.element.removeEventListener('_closed', onClosed);
         this.destroy();
-      }).bind(this));
+      }.bind(this);
+
+      this.element.addEventListener('_closed', onClosed);
+      fallbackTimeout = setTimeout(onClosed,
+        this.transitionController.CLOSING_TRANSITION_TIMEOUT);
+
       if (this.previousWindow) {
         this.previousWindow.getBottomMostWindow().open('in-from-left');
         this.close('out-to-right');
@@ -669,7 +677,6 @@
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory,
-    'textSelectionDialog': window.TextSelectionDialog
   };
 
   /**

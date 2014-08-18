@@ -9,7 +9,7 @@ Keyboards['vi-Qwerty'] = {
   imEngine: 'vietnamese',
   needsCandidatePanel: true,
   width: 10,
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'number'],
   alt: {
     'a': 'ăâ',
     'd': 'đ',

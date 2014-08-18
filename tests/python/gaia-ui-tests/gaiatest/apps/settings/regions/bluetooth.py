@@ -8,6 +8,8 @@ from gaiatest.apps.base import Base
 
 class Bluetooth(Base):
 
+    _bluetooth_iframe_locator = (By.CSS_SELECTOR, 'iframe[mozapp*="bluetooth"]')
+
     _bluetooth_checkbox_locator = (By.CSS_SELECTOR, '#bluetooth-status input')
     _bluetooth_label_locator = (By.CSS_SELECTOR, '#bluetooth-status span')
 
@@ -18,6 +20,13 @@ class Bluetooth(Base):
     _update_device_name_form_locator = (By.ID, 'update-device-name')
     _update_device_name_input_locator = (By.ID, 'update-device-name-input')
     _update_device_name_ok_locator = (By.ID, 'update-device-name-confirm')
+    
+
+    def __init__(self, marionette):
+        self.marionette = marionette
+        self.wait_for_element_displayed(*self._bluetooth_iframe_locator)
+        bluetooth_iframe = self.marionette.find_element(*self._bluetooth_iframe_locator)
+        self.marionette.switch_to_frame(bluetooth_iframe)
 
     @property
     def is_bluetooth_enabled(self):

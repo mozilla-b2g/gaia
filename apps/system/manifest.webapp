@@ -41,7 +41,7 @@
     "audio-channel-ringer":{},
     "cellbroadcast":{},
     "input-manage":{},
-    "nfc":{ "access": "readonly" },
+    "nfc":{ "access": "readwrite" },
     "nfc-manager":{},
     "downloads":{},
     "systemXHR":{},
@@ -72,6 +72,18 @@
     "142": "/style/icons/system_142.png",
     "189": "/style/icons/system_189.png",
     "284": "/style/icons/system_284.png"
+  },
+  "activities": {
+    "view": {
+      "filters": {
+        "type": "url",
+        "url": {
+          "required": true,
+          "pattern": "(https?:|data:|rtsp:).{1,16384}",
+          "patternFlags": "i"
+        }
+      }
+    }
   },
   "messages": [
      { "alarm": "/index.html" },
@@ -129,6 +141,10 @@
     "Basket_Newsletter": {
       "readonly": false,
       "description": "Email address for sending newsletter"
+    },
+    "bookmarks_store": {
+      "readonly": true,
+      "description": "Check for existence of bookmarks"
     }
   }
 }

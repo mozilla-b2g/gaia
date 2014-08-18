@@ -104,7 +104,7 @@ suite('system/Statusbar', function() {
     function statusBarReady() {
 
       StatusBar.ELEMENTS.forEach(function testAddElement(elementName) {
-        var elt =document.getElementById('statusbar-' + elementName);
+        var elt = document.getElementById('statusbar-' + elementName);
         if (elt) {
           elt.parentNode.removeChild(elt);
         }
@@ -289,6 +289,15 @@ suite('system/Statusbar', function() {
       this.sinon.useFakeTimers();
       System.locked = false;
       var evt = new CustomEvent('moztimechange');
+      StatusBar.handleEvent(evt);
+      this.sinon.clock.tick();
+      assert.notEqual(StatusBar.clock.timeoutID, null);
+      assert.equal(StatusBar.icons.time.hidden, false);
+      this.sinon.clock.restore();
+    });
+    test('timeformatchange while timeformat changed', function() {
+      this.sinon.useFakeTimers();
+      var evt = new CustomEvent('timeformatchange');
       StatusBar.handleEvent(evt);
       this.sinon.clock.tick();
       assert.notEqual(StatusBar.clock.timeoutID, null);
@@ -1352,6 +1361,10 @@ suite('system/Statusbar', function() {
             var title = document.createElement('div');
             title.classList.add('titlebar');
             element.appendChild(title);
+
+            var chrome = document.createElement('div');
+            chrome.className = 'chrome';
+            element.appendChild(chrome);
             this._element = element;
           }
 

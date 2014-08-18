@@ -183,7 +183,7 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
   left: 0;
   width: 100%;
   height: 100%;
-  transform: translate(0, 0);
+  transform: none;
 }
 
 .view:not(.view-noscroll) {
@@ -653,4 +653,15 @@ form[role="dialog"].no-overlay button {
 
 #sim-picker {
   text-align: left;
+}
+
+
+html[dir="rtl"] .fillflow-row-action {
+  right: auto;
+  left: 0;
+}
+
+html[dir="rtl"] .view-body-inner,
+html[dir="rtl"] ::-moz-placeholder {
+  text-align: right;
 }

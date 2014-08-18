@@ -5,6 +5,12 @@
 
 'use strict';
 
+// As defined in 3GPP TS 22.030 version 10.0.0 Release 10 standard
+// USSD code used to query call barring supplementary service status
+const CALL_BARRING_STATUS_MMI_CODE = '*#33#';
+// USSD code used to query call waiting supplementary service status
+const CALL_WAITING_STATUS_MMI_CODE = '*#43#';
+
 var MmiManager = {
 
   COMMS_APP_ORIGIN: document.location.protocol + '//' +
@@ -63,14 +69,23 @@ var MmiManager = {
     this.init((function onInitDone() {
       if (this._conn) {
         var request = this._pendingRequest = this._conn.sendMMI(message);
-        request.onsuccess = this.notifySuccess.bind(this);
+        request.onsuccess = (function mm_onsuccess(evt) {
+          // TODO we are creating this callback instead of just doing:
+          // request.onsuccess = this.notifySuccess.bind(this)
+          // because we need to pass the original mmi code sent
+          // This should be removed when bug 889737 and bug 1049651 are landed
+          // as it should be possible to get it in the callback
+          this.notifySuccess(evt, message);
+        }).bind(this);
         request.onerror = this.notifyError.bind(this);
         this.openUI();
       }
     }).bind(this));
   },
 
-  notifySuccess: function mm_notifySuccess(evt) {
+  // Passing the sent MMI code because the message displayed to the user
+  // could be different depending on the MMI code.
+  notifySuccess: function mm_notifySuccess(evt, sentMMI) {
     // Helper function to compose an informative message about a successful
     // request to query the call forwarding status.
     var processCf = (function processCf(result) {
@@ -188,10 +203,22 @@ var MmiManager = {
         break;
       case 'scCallBarring':
       case 'scCallWaiting':
+        message.result = this._(mmiResult.statusMessage);
+        // If we are just querying the status of the service, we show a 
+        // different message, so the user knows she hasn't change anything
+        if (sentMMI === CALL_BARRING_STATUS_MMI_CODE ||
+            sentMMI === CALL_WAITING_STATUS_MMI_CODE) {
+          if (mmiResult.statusMessage === 'smServiceEnabled') {
+            message.result = this._('ServiceIsEnabled');
+          } else if (mmiResult.statusMessage === 'smServiceDisabled') {
+            message.result = this._('ServiceIsDisabled');
+          } else if (mmiResult.statusMessage === 'smServiceEnabledFor') {
+            message.result = this._('ServiceIsEnabledFor');
+          }
+        }
         // Call barring and call waiting requests via MMI codes might return an
         // array of strings indicating the service it is enabled for or just
         // the disabled status message.
-        message.result = this._(mmiResult.statusMessage);
         if (mmiResult.statusMessage === 'smServiceEnabledFor' &&
             additionalInformation &&
             Array.isArray(additionalInformation)) {

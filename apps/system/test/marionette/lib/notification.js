@@ -71,7 +71,7 @@ function NotificationList(client) {
 
 NotificationList.Selector = Object.freeze((function() {
   var listSelector = '#desktop-notifications-container';
-  var itemsSelector = listSelector + ' > div';
+  var itemsSelector = listSelector + ' .notification';
 
   var lockScreenSelector = '#notifications-lockscreen-container';
   var lockScreenItemsSelector = lockScreenSelector + ' > div';

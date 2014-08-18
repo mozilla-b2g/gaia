@@ -5,7 +5,6 @@
   <meta charset="utf-8">
 
   <!-- Common style -->
-  <link rel="stylesheet" href="/shared/style/headers.css">
   <link rel="stylesheet" href="/shared/style/switches.css">
   <link rel="stylesheet" href="/shared/style/input_areas.css">
   <link rel="stylesheet" href="/shared/style/buttons.css">
@@ -45,6 +44,7 @@
   <script src="/shared/js/l10n_date.js"></script>
   <script src="/shared/js/tz_select.js"></script>
   <script defer src="/shared/js/keyboard_helper.js"></script>
+  <script defer src="/shared/js/language_list.js"></script>
   <script defer src="/shared/js/version_helper.js"></script>
 
   <!-- Import contacts help files -->
@@ -99,6 +99,11 @@
   <script defer src="/shared/js/component_utils.js"></script>
   <script defer src="/shared/elements/gaia_switch/script.js"></script>
   <script defer src="/shared/elements/gaia_buttons/script.js"></script>
+  <script defer src="/shared/elements/gaia_subheader/script.js"></script>
+  <script defer src="/shared/elements/config.js"></script>
+  <script defer src="/shared/elements/gaia-header/dist/script.js"></script>
+  <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
+  <!-- <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" /> -->
 
   <!--
     <link href="/shared/pages/import/import.html">
@@ -117,15 +122,14 @@
     <link href="/shared/js/contacts/utilities/http_rest.js">
   -->
 </head>
-<body>
+<body class="theme-settings">
   <section id="splash-screen" role="region" class="show">
   </section>
 
   <section id="unlock-sim-screen" role="region" class="skin-organic">
-    <header>
-      <button id="unlock-sim-back"><span class="icon icon-back">back</span></button>
+    <gaia-header id="unlock-sim-action" action="back">
       <h1 id="unlock-sim-header"></h1>
-    </header>
+    </gaia-header>
     <article role="main">
       <section id="pincode-screen" role="region">
         <label id="pin-label"></label>
@@ -180,9 +184,9 @@
   </section>
 
   <section id="sim-info-screen" role="region" class="skin-organic">
-    <header>
+    <gaia-header>
       <h1 id="sim-info-header" data-l10n-id="simManager">SIM Manager</h1>
-    </header>
+    </gaia-header>
     <article role="main">
       <section>
         <section id="sim-info-1" class="sim-info">
@@ -220,12 +224,10 @@
   </section>
 
   <section id="activation-screen" role="region" class="skin-organic no-options">
-    <header>
-      <menu type="toolbar">
-        <button id="wifi-refresh-button" data-l10n-id="refresh">Refresh</button>
-      </menu>
+    <gaia-header>
       <h1 id="main-title"></h1>
-    </header>
+      <button id="wifi-refresh-button" data-l10n-id="refresh">Refresh</button>
+    </gaia-header>
     <ol id="progress-bar" class="step-state" role="progressbar" aria-label="First Time Experience" data-l10n-id="progressbar">
       <li id="progress-bar-state" class="step-state-bar" role="presentation"></li>
       <li role="presentation">languages</li>
@@ -255,7 +257,7 @@
             </li>
           </ul>
         </article>
-        <header><h2 id="dataCaution" data-l10n-id="caution"></h2></header>
+        <gaia-subheader id="dataCaution" data-l10n-id="caution" skin="organic"></gaia-subheader>
         <section class="content">
           <p id="dataExplanation" data-l10n-id="dataConnectionInfo">Some text here</p>
         </section>
@@ -394,7 +396,7 @@
             </li>
           </ul>
         </article>
-        <header><h2 id="geolocationNotice" data-l10n-id="notice"></h2></header>
+        <gaia-subheader id="geolocationNotice" data-l10n-id="notice" skin="organic"></gaia-subheader>
         <section class="content">
           <p id="geolocationInfo" data-l10n-id="geolocationInfo2">Some text here</p>
           <p id="geolocationInfoMore" data-l10n-id="geolocationInfoMore">Some text here</p>
@@ -428,9 +430,9 @@
             </li>
           </ul>
         </article>
-        <header>
-          <h2 data-l10n-id="otherAccount">Other accounts</h2>
-        </header>
+        <gaia-subheader data-l10n-id="otherAccount" skin="organic">
+          Other accounts
+        </gaia-subheader>
         <article data-type="list">
           <ul id="fb_container">
             <li id="fb_import" class="importOption">
@@ -497,9 +499,9 @@
       </section>
       <section role="region" id="about-your-privacy">
         <i class='hack-first-child'></i> <!-- see Bug 819886 -->
-        <header>
-          <h2> Mozilla </h2>
-        </header>
+        <gaia-subheader skin="organic">
+          Mozilla
+        </gaia-subheader>
         <article data-type="list">
           <ul>
             <li>
@@ -518,16 +520,16 @@
             </li>
           </ul>
         </article>
-        <header>
-          <h2 data-l10n-id="about-other"> Other </h2>
-        </header>
+        <gaia-subheader data-l10n-id="about-other" skin="organic">
+          Other
+        </gaia-subheader>
         <article data-type="list">
           <ul>
             <li>
               <a class="privacy-menuitem privacy-everythingME external"
-                href="http://corp.everything.me/privacy"
-                data-l10n-id="privacy-e-me"
-                title="everything.me">everything.me</a>
+                href="http://everything.me/privacy"
+                data-l10n-id="privacy-eme"
+                title="EverythingMe">EverythingMe</a>
             </li>
           </ul>
         </article>

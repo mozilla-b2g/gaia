@@ -1,6 +1,7 @@
 'use strict';
 
-/* global require, process, suite, suiteSetup, test, teardown */
+/* global require, process, suite, setup, test, teardown */
+/* jshint -W101 */
 var rmrf = require('rimraf').sync;
 var vm = require('vm');
 var AdmZip = require('adm-zip');
@@ -23,9 +24,9 @@ suite('Distribution mechanism', function() {
     // Setup local server and handle manifest downloading to avoid remote
     // server dependency
     var fakeManifest = {
-      "version": "1.0",
-      "name": "Fake",
-      "description": "Fake app"
+      'version': '1.0',
+      'name': 'Fake',
+      'description': 'Fake app'
     };
 
     server = http.createServer(function(req, res) {
@@ -51,7 +52,8 @@ suite('Distribution mechanism', function() {
   function validatePreloadSettingDB() {
     var settingsPath = path.join(process.cwd(), 'profile', 'settings.json');
     var settings = JSON.parse(fs.readFileSync(settingsPath));
-    var expectedSettings = JSON.parse(
+    var expectedSettings;
+    expectedSettings = JSON.parse(
       fs.readFileSync(path.join(cusDir, 'settings.json')));
 
     var keyboardManifestURL = 'app://keyboard.gaiamobile.org/manifest.webapp';
@@ -59,7 +61,7 @@ suite('Distribution mechanism', function() {
     // For test only, so deliberately makes English map to cs and es layout
     expectedLayouts[keyboardManifestURL] = {cs: true, es: true};
 
-    var expectedSettings = {
+    expectedSettings = {
       'wap.push.enabled': true,
       'keyboard.enabled-layouts': expectedLayouts,
       'keyboard.default-layouts': expectedLayouts
@@ -77,8 +79,8 @@ suite('Distribution mechanism', function() {
       path.join(cusDir, 'support.json'), true);
 
     helper.checkFileContentByPathInZip(
-      setingsZipPath, 'resources/sensors.json',
-      path.join(cusDir, 'sensors.json'), true);
+      setingsZipPath, 'resources/device-features.json',
+      path.join(cusDir, 'device-features.json'), true);
   }
 
   function validateOperatorVariant() {
@@ -107,32 +109,58 @@ suite('Distribution mechanism', function() {
 
     helper.checkFileContentInZip(zipPath, 'resources/customization.json',
       expectedCustom, true);
-    helper.checkFileInZip(zipPath, 'resources/wallpaper-7b8d66705b283f474c5892e70ece5890df7f9be2.json',
-      path.join(cusDir, 'mobizilla', 'mobizilla_expected_wallpaper.json'));
-    helper.checkFileInZip(zipPath, 'resources/mobizilla_contacts.json',
-      path.join(cusDir, 'mobizilla', 'mobizilla_contacts.json'));
-    helper.checkFileInZip(zipPath, 'resources/mobizilla_support_contacts.json',
-      path.join(cusDir, 'mobizilla', 'mobizilla_support_contacts.json'));
-    helper.checkFileInZip(zipPath, 'resources/keyboard-88cf36fbc274369ce1c2bea24dffce3017cc6f69.json',
-      path.join(cusDir, 'mobizilla', 'mobizilla_expected_keyboard.json'));
-    helper.checkFileInZip(zipPath, 'resources/mobizilla_network_type.json',
-      path.join(cusDir, 'mobizilla', 'mobizilla_network_type.json'));
-    helper.checkFileInZip(zipPath, 'resources/mobizilla_known_networks.json',
-      path.join(cusDir, 'mobizilla', 'mobizilla_known_networks.json'));
-    helper.checkFileInZip(zipPath, 'resources/nfc-93c047a6d0389e755cacdbd6bb0986fff0576aee.json',
-      path.join(cusDir, 'mobizilla', 'mobizilla_expected_nfc.json'));
-    helper.checkFileInZip(zipPath, 'resources/mobizilla_sms.json',
-      path.join(cusDir, 'mobizilla', 'mobizilla_sms.json'));
-    helper.checkFileInZip(zipPath, 'resources/ringtone-8261e854cb494bf7f3a2a25510e595931244292a.json',
-      path.join(cusDir, 'mobizilla', 'mobizilla_expected_ringtone.json'));
-    helper.checkFileInZip(zipPath, 'resources/power-0ccc24f04b44aaadc8962735b5f86eabc5bb71e6.json',
-      path.join(cusDir, 'mobizilla', 'mobizilla_expected_power.json'));
-    helper.checkFileInZip(zipPath, 'resources/mobizilla_search.json',
-      path.join(cusDir, 'mobizilla', 'mobizilla_expected_search.json'));
-    helper.checkFileInZip(zipPath, 'resources/mobizilla_default_search.json',
-      path.join(cusDir, 'mobizilla', 'mobizilla_expected_default_search.json'));
-    helper.checkFileInZip(zipPath, 'resources/mobizilla_topsites.json',
-      path.join(cusDir, 'mobizilla', 'mobizilla_expected_topsites.json'));
+    helper.checkFileInZip(zipPath,
+      'resources/wallpaper-7b8d66705b283f474c5892e70ece5890df7f9be2.json',
+      path.join(cusDir, 'mobizilla',
+        'mobizilla_expected_wallpaper.json'));
+    helper.checkFileInZip(zipPath,
+      'resources/mobizilla_contacts.json',
+      path.join(cusDir, 'mobizilla',
+        'mobizilla_contacts.json'));
+    helper.checkFileInZip(zipPath,
+      'resources/mobizilla_support_contacts.json',
+      path.join(cusDir, 'mobizilla',
+        'mobizilla_support_contacts.json'));
+    helper.checkFileInZip(zipPath,
+      'resources/keyboard-88cf36fbc274369ce1c2bea24dffce3017cc6f69.json',
+      path.join(cusDir, 'mobizilla',
+        'mobizilla_expected_keyboard.json'));
+    helper.checkFileInZip(zipPath,
+      'resources/mobizilla_network_type.json',
+      path.join(cusDir, 'mobizilla',
+        'mobizilla_network_type.json'));
+    helper.checkFileInZip(zipPath,
+      'resources/mobizilla_known_networks.json',
+      path.join(cusDir, 'mobizilla',
+        'mobizilla_known_networks.json'));
+    helper.checkFileInZip(zipPath,
+      'resources/nfc-93c047a6d0389e755cacdbd6bb0986fff0576aee.json',
+      path.join(cusDir, 'mobizilla',
+        'mobizilla_expected_nfc.json'));
+    helper.checkFileInZip(zipPath,
+      'resources/mobizilla_sms.json',
+      path.join(cusDir, 'mobizilla',
+        'mobizilla_sms.json'));
+    helper.checkFileInZip(zipPath,
+      'resources/ringtone-8261e854cb494bf7f3a2a25510e595931244292a.json',
+      path.join(cusDir, 'mobizilla',
+        'mobizilla_expected_ringtone.json'));
+    helper.checkFileInZip(zipPath,
+      'resources/power-0ccc24f04b44aaadc8962735b5f86eabc5bb71e6.json',
+      path.join(cusDir, 'mobizilla',
+        'mobizilla_expected_power.json'));
+    helper.checkFileInZip(zipPath,
+      'resources/mobizilla_search.json',
+      path.join(cusDir, 'mobizilla',
+        'mobizilla_expected_search.json'));
+    helper.checkFileInZip(zipPath,
+      'resources/mobizilla_default_search.json',
+      path.join(cusDir, 'mobizilla',
+        'mobizilla_expected_default_search.json'));
+    helper.checkFileInZip(zipPath,
+      'resources/mobizilla_topsites.json',
+      path.join(cusDir, 'mobizilla',
+        'mobizilla_expected_topsites.json'));
   }
 
   function validateCalendar() {

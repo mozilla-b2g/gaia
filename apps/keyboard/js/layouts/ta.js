@@ -5,7 +5,7 @@ Keyboards.ta = {
   menuLabel: 'தமிழ்',
   secondLayout: true,
   basicLayoutKey: 'அஆஇ',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'number'],
   keyClassName: 'tamil',
   upperCase: {
     'ஒ':'ொ',
@@ -36,7 +36,10 @@ Keyboards.ta = {
     'வ':'ழ',
     'ல':'ள',
     'ஸ':'ஷ',
-    'ய':'@'
+    'ய':'₹'
+  },
+  alt: {
+    '₹': '$ € £ ¥ ৳'
   },
   keys: [
     [

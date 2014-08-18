@@ -64,6 +64,8 @@ def cli(args=sys.argv[1:]):
     }
     if args.b2g_home:
         rhandler_args['b2g_home'] = args.b2g_home
+    if args.buildapp == 'device':
+        rhandler_args.update({'serial': args.device_serial})
     rhandler = runner_handlers[args.buildapp](**rhandler_args)
 
     listener = SocketListener()

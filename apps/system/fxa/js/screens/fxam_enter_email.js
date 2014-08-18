@@ -52,6 +52,7 @@ var FxaModuleEnterEmail = (function() {
     // Cache static HTML elements
     this.importElements(
       'fxa-email-input',
+      'fxa-logo',
       'fxa-notice'
     );
 
@@ -88,6 +89,18 @@ var FxaModuleEnterEmail = (function() {
       function onInput(event) {
         _enableNext(event.target);
       }
+    );
+    this.fxaEmailInput.addEventListener(
+      'focus',
+      function onFocus() {
+        this.fxaLogo.setAttribute('hidden', true);
+      }.bind(this)
+    );
+    this.fxaEmailInput.addEventListener(
+      'blur',
+      function onBlur() {
+        this.fxaLogo.removeAttribute('hidden');
+      }.bind(this)
     );
 
     this.fxaTerms.addEventListener('click', onExternalLinkClick.bind(this));

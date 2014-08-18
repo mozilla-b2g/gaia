@@ -36,6 +36,10 @@
     'h': function(a) {
 
       var arg = this.arg(a);
+      // accept anything that can be converted into a string and we make sure
+      // the only falsy values that are converted into empty strings are
+      // null/undefined to avoid mistakes
+      arg = arg == null ? '' : String(arg);
 
       //only escape bad looking stuff saves
       //a ton of time
@@ -43,9 +47,7 @@
         span.textContent = arg;
         return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
       } else {
-        // we don't want to call String in the case of "".
-        // we emit a string version rather then an empty string.
-        return arg || '';
+        return arg;
       }
     },
 

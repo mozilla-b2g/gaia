@@ -11,13 +11,13 @@
 // deepest interactive HTML element on the hierarchy or, if none, simply the
 // deepest element. This element must contain dataset-keycode and related
 // attributes.
-const IMERender = (function() {
+var IMERender = (function() {
 
   var ime, activeIme, menu;
 
   // Return the upper value for a key object
   var getUpperCaseValue = function getUpperCaseValue(key, layout) {
-    var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
+    var hasSpecialCode = SPECIAL_CODES.indexOf(key.keyCode) > -1;
     if (key.keyCode < 0 || hasSpecialCode || key.compositeKey)
       return key.value;
 
@@ -29,7 +29,7 @@ const IMERender = (function() {
   var isSpecialKey = function isSpecialKeyObj(key) {
     var hasSpecialCode = key.keyCode !== KeyEvent.DOM_VK_SPACE &&
       key.keyCode &&
-      specialCodes.indexOf(key.keyCode) !== -1;
+      SPECIAL_CODES.indexOf(key.keyCode) !== -1;
     return hasSpecialCode || key.keyCode <= 0;
   };
 
@@ -45,7 +45,7 @@ const IMERender = (function() {
   var cachedWindowHeight = -1;
   var cachedWindowWidth = -1;
 
-  const specialCodes = [
+  var SPECIAL_CODES = [
     KeyEvent.DOM_VK_BACK_SPACE,
     KeyEvent.DOM_VK_CAPS_LOCK,
     KeyEvent.DOM_VK_RETURN,
@@ -53,7 +53,7 @@ const IMERender = (function() {
     KeyEvent.DOM_VK_SPACE
   ];
 
-  const ariaLabelMap = {
+  var ARIA_LABELS = {
     '⇪': 'upperCaseKey2',
     '⌫': 'backSpaceKey2',
     '&nbsp': 'spaceKey2',
@@ -280,10 +280,10 @@ const IMERender = (function() {
           });
         }
 
-        if (key.ariaLabel || ariaLabelMap[key.value]) {
+        if (key.ariaLabel || ARIA_LABELS[key.value]) {
           attributeList.push({
             key: 'data-l10n-id',
-            value: key.ariaLabel || ariaLabelMap[key.value]
+            value: key.ariaLabel || ARIA_LABELS[key.value]
           });
         } else {
           attributeList.push({
@@ -628,10 +628,10 @@ const IMERender = (function() {
 
       var attributeList = [];
 
-      if (ariaLabelMap[alt]) {
+      if (ARIA_LABELS[alt]) {
         attributeList.push({
           key: 'data-l10n-id',
-          value: ariaLabelMap[alt]
+          value: ARIA_LABELS[alt]
         });
       } else {
         attributeList.push({

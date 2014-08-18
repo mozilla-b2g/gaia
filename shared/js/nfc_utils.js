@@ -3,7 +3,7 @@
 
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
-/* globals dump, MozNDEFRecord, TextEncoder, TextDecoder */
+/* globals dump, MozNDEFRecord, TextEncoder, TextDecoder, StringHelper */
 /* exported NDEF, NfcBuffer, NfcUtils */
 'use strict';
 
@@ -614,6 +614,36 @@ NfcUtils = {
     var id = buffer.getOctetArray(idLen);
     var payload = buffer.getOctetArray(payloadLen);
     return new MozNDEFRecord(tnf, type, id, payload);
+  },
+
+  /**
+   * Parses a URL string to MozNDEFRecord format.
+   *
+   * @param {String} url url string.
+   * @return {Array} Array of MozNDEFRecord instances.
+   * @memberof NfcUtils
+   */
+  parseURIString: function parseURIString(url) {
+    if (!url) {
+      return;
+    }
+    var content = url;
+    for (var i = 1; i < NDEF.URIS.length; i++) {
+      var len = NDEF.URIS[i].length;
+      if (url.substring(0, len) == NDEF.URIS[i]) {
+          var uriPayload = url.substring(len);
+          content = String.fromCharCode(i) + uriPayload;
+          break;
+      }
+    }
+    var payload = StringHelper.fromUTF8(content);
+    var ids = new Uint8Array(0);
+    var record = new MozNDEFRecord(NDEF.TNF_WELL_KNOWN, NDEF.RTD_URI, ids,
+      payload);
+    if (!record) {
+      return null;
+    }
+    return [record];
   }
 };
 

@@ -767,6 +767,25 @@ define('mailapi/mailchew',
 
 var DESIRED_SNIPPET_LENGTH = 100;
 
+
+/**
+ * Generate the default compose body for a new e-mail
+ * @param  {MailSenderIdentity} identity The current composer identity
+ * @return {String} The text to be inserted into the body
+ */
+exports.generateBaseComposeBody = function generateBaseComposeBody(identity) {
+  if (identity.signatureEnabled &&
+      identity.signature &&
+      identity.signature.length > 0) {
+
+    var body = '\n\n--\n' + identity.signature;
+    return body;
+  } else {
+    return '';
+  }
+};
+
+
 var RE_RE = /^[Rr][Ee]:/;
 
 /**
@@ -913,7 +932,7 @@ exports.generateReplyBody = function generateReplyMessage(reps, authorPair,
 
   // Thunderbird's default is to put the signature after the quote, so us too.
   // (It also has complete control over all of this, but not us too.)
-  if (identity.signature) {
+  if (identity.signature && identity.signatureEnabled) {
     // Thunderbird wraps its signature in a:
     // <pre class="moz-signature" cols="72"> construct and so we do too.
     if (htmlMsg)
@@ -938,7 +957,7 @@ exports.generateForwardMessage =
   function(author, date, subject, headerInfo, bodyInfo, identity) {
   var textMsg = '\n\n', htmlMsg = null;
 
-  if (identity.signature)
+  if (identity.signature && identity.signatureEnabled)
     textMsg += '-- \n' + identity.signature + '\n\n';
 
   textMsg += '-------- ' + l10n_originalMessageString + ' --------\n';

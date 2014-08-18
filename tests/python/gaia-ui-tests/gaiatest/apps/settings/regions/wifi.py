@@ -10,12 +10,12 @@ from gaiatest.apps.base import Base
 
 class Wifi(Base):
 
-    _wifi_enabled_label_locator = (By.CSS_SELECTOR, '#wifi-enabled label')
-    _wifi_enabled_checkbox_locator = (By.CSS_SELECTOR, '#wifi-enabled input')
-    _available_networks_locator = (By.CSS_SELECTOR, '#wifi-availableNetworks > li > aside[class*="wifi-signal"]')
+    _wifi_enabled_label_locator = (By.CSS_SELECTOR, '.wifi-enabled label')
+    _wifi_enabled_checkbox_locator = (By.CSS_SELECTOR, '.wifi-enabled input')
+    _available_networks_locator = (By.CSS_SELECTOR, '.wifi-availableNetworks > li > aside[class*="wifi-signal"]')
     _password_input_locator = (By.CSS_SELECTOR, '#wifi-auth input[type="password"]')
     _password_ok_button_locator = (By.CSS_SELECTOR, '#wifi-auth button[type="submit"]')
-    _connected_message_locator = (By.CSS_SELECTOR, '#wifi-availableNetworks li.active small')
+    _connected_message_locator = (By.CSS_SELECTOR, '.wifi-availableNetworks li.active small')
 
     @property
     def is_wifi_enabled(self):

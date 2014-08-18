@@ -9,8 +9,17 @@ var Keyboards = {};
 
 Keyboards.alternateLayout = {
   alt: {
-    '0': ['º'],
-    '$': ['€', '£', '¥'],
+    '1': ['¹'],
+    '2': ['²'],
+    '3': ['³'],
+    '4': ['⁴'],
+    '5': ['⁵'],
+    '6': ['⁶'],
+    '7': ['⁷'],
+    '8': ['⁸'],
+    '9': ['⁹'],
+    '0': ['⁰', 'º'],
+    '$': ['¥', '€', '£', 'R$', '¢', '₠'],
     '?': ['¿'],
     '!': ['¡']
   },
@@ -20,14 +29,20 @@ Keyboards.alternateLayout = {
       { value: '5' }, { value: '6' }, { value: '7' }, { value: '8' },
       { value: '9' }, { value: '0' }
     ], [
-      { value: '@', hidden: ['email'] }, { value: '#' }, { value: '$' },
-      { value: '%' },
-      { value: '&' }, { value: '*' }, { value: '-' }, { value: '+' },
-      { value: '(' }, { value: ')' }, { value: '_', visible: ['email'] }
+      { value: '@' }, { value: '#' },
+      { value: '$', className: 'alternate-indicator' }, { value: '&' },
+      { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
+      { value: '(' }, { value: ')' }
     ], [
       { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
-      { value: '!' }, { value: '\"' }, { value: '\'' }, { value: ':' },
-      { value: ';' }, { value: '/' }, { value: '?' },
+      { value: '+',
+        supportsSwitching: {
+          value: ','
+        }
+      },
+      { value: ':' },
+      { value: ';' }, { value: '"' },
+      { value: '\'' }, { value: '?' }, { value: '!' },
       { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
     ], [
       { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
@@ -37,19 +52,23 @@ Keyboards.alternateLayout = {
 };
 
 Keyboards.symbolLayout = {
+  alt: {
+    '+': '±'
+  },
   keys: [
     [
-      { value: '`' }, { value: '~' }, { value: '_' }, { value: '^' },
-      { value: '±' }, { value: '|' }, { value: '[' }, { value: ']' },
+      { value: '¥' }, { value: '€' }, { value: '£' }, { value: '¢' },
+      { value: '₠' }, { value: '%' }, { value: '©' }, { value: '®' },
+      { value: '|' }, { value: '\\' }
+    ], [
+      { value: '~' }, { value: '°C', compositeKey: '°C' },
+      { value: '°F', compositeKey: '°F' }, { value: '°' },
+      { value: '<' }, { value: '>' }, { value: '[' }, { value: ']' },
       { value: '{' }, { value: '}' }
     ], [
-      { value: '°' }, { value: '²' }, { value: '³' }, { value: '©' },
-      { value: '®' }, { value: '§' }, { value: '<' }, { value: '>' },
-      { value: '«' }, { value: '»' }
-    ], [
       { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
-      { value: '¥' }, { value: '€' }, { value: '£' }, { value: '$' },
-      { value: '¢' }, { value: '\\' }, { value: '=' },
+      { value: '+' }, { value: '=' }, { value: '`' },
+      { value: '^' }, { value: '§' }, { value: '¿'}, {value: '¡'},
       { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
     ], [
       { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },

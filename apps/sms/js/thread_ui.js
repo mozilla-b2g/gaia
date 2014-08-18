@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Compose, Recipients, Utils, AttachmentMenu, Template, Settings,
-         SMIL, ErrorDialog, MessageManager, MozSmsFilter, LinkHelper,
+         SMIL, ErrorDialog, MessageManager, LinkHelper,
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
@@ -85,6 +85,7 @@ var ThreadUI = {
   init: function thui_init() {
     var templateIds = [
       'message',
+      'message-sim-information',
       'not-downloaded',
       'recipient',
       'date-group'
@@ -95,7 +96,7 @@ var ThreadUI = {
     // Fields with 'messages' label
     [
       'container', 'subheader', 'to-field', 'recipients-list', 'recipient',
-      'input', 'compose-form', 'check-all-button', 'uncheck-all-button',
+      'input', 'compose-form', 'check-uncheck-all-button',
       'contact-pick-button', 'back-button', 'close-button', 'send-button',
       'attach-button', 'delete-button', 'cancel-button', 'subject-input',
       'new-message-notice', 'options-icon', 'edit-mode', 'edit-form',
@@ -167,12 +168,8 @@ var ThreadUI = {
       'click', this.close.bind(this)
     );
 
-    this.checkAllButton.addEventListener(
-      'click', this.toggleCheckedAll.bind(this, true)
-    );
-
-    this.uncheckAllButton.addEventListener(
-      'click', this.toggleCheckedAll.bind(this, false)
+    this.checkUncheckAllButton.addEventListener(
+      'click', this.toggleCheckedAll.bind(this)
     );
 
     this.cancelButton.addEventListener(
@@ -274,6 +271,16 @@ var ThreadUI = {
       'click',
       this.onRecipientSuggestionClick.bind(this)
     );
+
+    MessageManager.on('message-sending', this.onMessageSending.bind(this));
+    MessageManager.on('message-sent', this.onMessageSent.bind(this));
+    MessageManager.on('message-received', this.onMessageReceived.bind(this));
+    MessageManager.on(
+      'message-failed-to-send',
+      this.onMessageFailed.bind(this)
+    );
+    MessageManager.on('message-delivered', this.onDeliverySuccess.bind(this));
+    MessageManager.on('message-read', this.onReadSuccess.bind(this));
 
     this.tmpl = templateIds.reduce(function(tmpls, name) {
       tmpls[Utils.camelCase(name)] =
@@ -844,7 +851,16 @@ var ThreadUI = {
     TimeHeaders.updateAll('header[data-time-update]');
   },
 
-  onMessageReceived: function thui_onMessageReceived(message) {
+  onMessageReceived: function thui_onMessageReceived(e) {
+    var message = e.message;
+
+    // If user currently in other thread then there is nothing to do here
+    if (!Navigation.isCurrentPanel('thread', { id: message.threadId })) {
+      return;
+    }
+
+    MessageManager.markMessagesRead([message.id]);
+
     this.onMessage(message);
     this.scrollViewToBottom();
     if (this.isScrolledManually) {
@@ -852,7 +868,8 @@ var ThreadUI = {
     }
   },
 
-  onMessageSending: function thui_onMessageReceived(message) {
+  onMessageSending: function thui_onMessageReceived(e) {
+    var message = e.message;
     if (Navigation.isCurrentPanel('thread', { id: message.threadId })) {
       this.onMessage(message);
       this.forceScrollViewToBottom();
@@ -1420,8 +1437,7 @@ var ThreadUI = {
       return;
     }
 
-    var filter = new MozSmsFilter();
-    filter.threadId = threadId;
+    var filter = { threadId: threadId };
 
     // We call getMessages with callbacks
     var renderingOptions = {
@@ -1568,6 +1584,14 @@ var ThreadUI = {
     messageDOM.id = 'message-' + message.id;
     messageDOM.dataset.messageId = message.id;
     messageDOM.dataset.iccId = message.iccId;
+    var simServiceId = Settings.getServiceIdByIccId(message.iccId);
+    var showSimInformation = Settings.hasSeveralSim() && simServiceId !== null;
+    var simInformationHTML = '';
+    if (showSimInformation) {
+      simInformationHTML = this.tmpl.messageSimInformation.interpolate({
+        simNumberL10nArgs: JSON.stringify({ id: simServiceId + 1 })
+      });
+    }
 
     messageDOM.innerHTML = this.tmpl.message.interpolate({
       id: String(message.id),
@@ -1576,12 +1600,12 @@ var ThreadUI = {
       subject: String(message.subject),
       // Incoming and outgoing messages are displayed using different
       // backgrounds, therefore progress indicator should be styled differently.
-      progressIndicatorClassName: isIncoming ? 'light' : ''
+      progressIndicatorClassName: isIncoming ? 'light' : '',
+      simInformationHTML: simInformationHTML
     }, {
-      safe: ['bodyHTML']
+      safe: ['bodyHTML', 'simInformationHTML']
     });
 
-    navigator.mozL10n.translate(messageDOM);
     TimeHeaders.update(messageDOM.querySelector('time'));
 
     var pElement = messageDOM.querySelector('p');
@@ -1679,17 +1703,19 @@ var ThreadUI = {
     this.checkInputs();
   },
 
-  toggleCheckedAll: function thui_select(value) {
+  // if no message or few are checked : select all the messages
+  // and if all messages are checked : deselect them all.
+  toggleCheckedAll: function thui_select() {
+    var selected = this.selectedInputs;
+    var allInputs = this.allInputs;
+    var allSelected = (selected.length === allInputs.length);
     var inputs = this.container.querySelectorAll(
       'input[type="checkbox"]' +
-      // value ?
-      //   true : query for currently unselected threads
-      //   false: query for currently selected threads
-      (value ? ':not(:checked)' : ':checked')
+      (!allSelected ? ':not(:checked)' : ':checked')
     );
     var length = inputs.length;
     for (var i = 0; i < length; i++) {
-      inputs[i].checked = value;
+      inputs[i].checked = !allSelected;
       this.chooseMessage(inputs[i]);
     }
     this.checkInputs();
@@ -1702,7 +1728,7 @@ var ThreadUI = {
       * - 'Delete messages' for existing conversations
       */
     var params = {
-      header: navigator.mozL10n.get('message'),
+      header: { l10nId: 'message' },
       items: []
     };
 
@@ -1714,10 +1740,10 @@ var ThreadUI = {
       }
     });
 
-    // If we are on a thread, we can call to DeleteMessages
+    // If we are on a thread, we can call to SelectMessages
     if (Navigation.isCurrentPanel('thread')) {
       params.items.push({
-        l10nId: 'deleteMessages-label',
+        l10nId: 'selectMessages-label',
         method: this.startEdit.bind(this)
       });
     }
@@ -1798,7 +1824,7 @@ var ThreadUI = {
         delNumList.push(+inputs[i].value);
       }
       // Complete deletion in DB and in UI
-      MessageManager.deleteMessage(delNumList,
+      MessageManager.deleteMessages(delNumList,
         function onDeletionDone() {
           ThreadUI.deleteUIMessages(delNumList, function uiDeletionDone() {
             ThreadUI.cancelEdit();
@@ -1855,14 +1881,18 @@ var ThreadUI = {
     var isAnySelected = selected.length > 0;
 
     // Manage buttons enabled\disabled state
-    this.checkAllButton.disabled = selected.length === allInputs.length;
-    this.uncheckAllButton.disabled = !isAnySelected;
-    this.deleteButton.disabled = !isAnySelected;
+    if (selected.length === allInputs.length) {
+      navigator.mozL10n.localize(this.checkUncheckAllButton, 'deselect-all');
+    } else {
+      navigator.mozL10n.localize(this.checkUncheckAllButton, 'select-all');
+    }
 
     if (isAnySelected) {
+      this.deleteButton.disabled = false;
       navigator.mozL10n.localize(this.editMode, 'selected',
         {n: selected.length});
     } else {
+      this.deleteButton.disabled = true;
       navigator.mozL10n.localize(this.editMode, 'deleteMessages-title');
     }
   },
@@ -1961,12 +1991,6 @@ var ThreadUI = {
           return;
         }
 
-        // If we're in composer, let's focus on message editor on click.
-        if (Navigation.isCurrentPanel('composer')) {
-          Compose.focus();
-          return;
-        }
-
         // if the click wasn't on an attachment check for other clicks
         if (!thui_mmsAttachmentClick(evt.target)) {
           this.handleMessageClick(evt);
@@ -1987,7 +2011,7 @@ var ThreadUI = {
         var messageId = messageBubble.id;
         var params = {
           type: 'action',
-          header: navigator.mozL10n.get('message-options'),
+          header: { l10nId: 'message-options' },
           items:[]
         };
 
@@ -2020,7 +2044,7 @@ var ThreadUI = {
             l10nId: 'delete',
             method: function deleteMessage(messageId) {
               // Complete deletion in DB and UI
-              MessageManager.deleteMessage(messageId,
+              MessageManager.deleteMessages(messageId,
                 function onDeletionDone() {
                   ThreadUI.deleteUIMessages(messageId);
                 }
@@ -2187,7 +2211,8 @@ var ThreadUI = {
     }
   },
 
-  onMessageSent: function thui_onMessageSent(message) {
+  onMessageSent: function thui_onMessageSent(e) {
+    var message = e.message;
     var messageDOM = document.getElementById('message-' + message.id);
 
     if (!messageDOM) {
@@ -2210,7 +2235,8 @@ var ThreadUI = {
     }
   },
 
-  onMessageFailed: function thui_onMessageFailed(message) {
+  onMessageFailed: function thui_onMessageFailed(e) {
+    var message = e.message;
     var messageDOM = document.getElementById('message-' + message.id);
     var serviceId = Settings.getServiceIdByIccId(message.iccId);
     // When this is the first message in a thread, we haven't displayed
@@ -2250,7 +2276,8 @@ var ThreadUI = {
     }
   },
 
-  onDeliverySuccess: function thui_onDeliverySuccess(message) {
+  onDeliverySuccess: function thui_onDeliverySuccess(e) {
+    var message = e.message;
     // We need to make sure all the recipients status got success event.
     if (!this.shouldShowDeliveryStatus(message)) {
       return;
@@ -2265,7 +2292,8 @@ var ThreadUI = {
     messageDOM.classList.add('delivered');
   },
 
-  onReadSuccess: function thui_onReadSuccess(message) {
+  onReadSuccess: function thui_onReadSuccess(e) {
+    var message = e.message;
     // We need to make sure all the recipients status got success event.
     if (!this.shouldShowReadStatus(message)) {
       return;
@@ -2901,6 +2929,7 @@ var ThreadUI = {
       contactList.textContent = '';
     } else {
       contactList.appendChild(suggestions);
+      this.recipientSuggestions.scrollTop = 0;
     }
   }
 };

@@ -17,8 +17,7 @@
       this.containerElement = configs.rearWindow.element;
     }
     configs.chrome = {
-      bar: true,
-      navigation: false
+      bar: true
     };
 
     AppWindow.call(this, configs);

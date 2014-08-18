@@ -72,6 +72,8 @@ contacts.Settings = (function() {
     utils.sdcard.subscribeToChanges('check_sdcard', function(value) {
       updateStorageOptions(utils.sdcard.checkStorageCard());
     });
+
+    window.addEventListener('timeformatchange', updateTimestamps);
   };
 
   var hideSettings = function hideSettings() {
@@ -465,6 +467,7 @@ contacts.Settings = (function() {
     fbGetTotals(false);
 
     fbImportCheck.checked = true;
+    document.dispatchEvent(new CustomEvent('facebookEnabled'));
   }
 
   function fbSetDisabledState() {
@@ -642,7 +645,7 @@ contacts.Settings = (function() {
           });
 
           window.asyncStorage.removeItem(fb.utils.LAST_UPDATED_KEY);
-          window.asyncStorage.removeItem(fb.utils.CACHE_FRIENDS_KEY);
+          fb.utils.removeCachedNumFriends();
 
           resetWait(wakeLock);
         };

@@ -153,8 +153,7 @@ AlarmListPanel.prototype = {
           }
         }).then(done, done);
       } else {
-        alarm.cancel();
-        done();
+        alarm.cancel().then(done);
       }
     });
   },

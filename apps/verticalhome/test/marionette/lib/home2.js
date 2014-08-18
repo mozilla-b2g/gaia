@@ -36,8 +36,7 @@ Home2.clientOptions = {
       'app://verticalhome.gaiamobile.org/manifest.webapp',
     'ftu.manifestURL': null,
     'keyboard.ftu.enabled': false,
-    'lockscreen.enabled': false,
-    'rocketbar.enabled': false
+    'lockscreen.enabled': false
   }
 };
 
@@ -48,7 +47,7 @@ Home2.URL = 'app://verticalhome.gaiamobile.org';
 
 Home2.Selectors = {
   editHeaderText: '#edit-header h1',
-  editHeaderDone: '#edit-header menu a',
+  editHeaderDone: '#exit-edit-mode',
   search: '#search',
   firstIcon: '#icons div.icon:not(.placeholder)',
   dividers: '#icons section.divider',
@@ -205,7 +204,7 @@ Home2.prototype = {
   */
   getIcon: function(manifestUrl, entryPoint) {
     return this.client.helper.waitForElement(
-      '[data-identifier="' + manifestUrl +
+      '[data-identifier*="' + manifestUrl +
       (entryPoint ? '-' + entryPoint : '') + '"]'
     );
   },

@@ -274,9 +274,9 @@ var GridManager = (function() {
           next = pages[currentPage + 1].container.style;
           refresh = function(e) {
             if (deltaX <= 0) {
-              next.MozTransform =
+              next.transform =
                 'translateX(' + (windowWidthMinusOne + deltaX) + 'px)';
-              current.MozTransform = 'translateX(' + deltaX + 'px)';
+              current.transform = 'translateX(' + deltaX + 'px)';
             } else {
               startX = currentX;
             }
@@ -285,9 +285,9 @@ var GridManager = (function() {
           previous = pages[currentPage - 1].container.style;
           refresh = function(e) {
             if (deltaX >= 0) {
-              previous.MozTransform =
+              previous.transform =
                 'translateX(' + (-windowWidthMinusOne + deltaX) + 'px)';
-              current.MozTransform = 'translateX(' + deltaX + 'px)';
+              current.transform = 'translateX(' + deltaX + 'px)';
             } else {
               startX = currentX;
             }
@@ -297,29 +297,29 @@ var GridManager = (function() {
           next = pages[currentPage + 1].container.style;
           refresh = function(e) {
             if (deltaX >= 0) {
-              previous.MozTransform =
+              previous.transform =
                 'translateX(' + (-windowWidthMinusOne + deltaX) + 'px)';
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
               if (forward) {
                 forward = false;
-                next.MozTransform = 'translateX(' + windowWidthMinusOne + 'px)';
+                next.transform = 'translateX(' + windowWidthMinusOne + 'px)';
               }
             } else {
-              next.MozTransform =
+              next.transform =
                 'translateX(' + (windowWidthMinusOne + deltaX) + 'px)';
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
               if (!forward) {
                 forward = true;
-                previous.MozTransform =
+                previous.transform =
                   'translateX(-' + windowWidthMinusOne + 'px)';
               }
             }
 
-            current.MozTransform = 'translateX(' + deltaX + 'px)';
+            current.transform = 'translateX(' + deltaX + 'px)';
           };
         }
 
@@ -465,19 +465,19 @@ var GridManager = (function() {
 
     if (index) {
       var previous = pages[index - 1].container.style;
-      previous.MozTransition = '';
-      previous.MozTransform = 'translateX(-' + windowWidthMinusOne + 'px)';
+      previous.transition = '';
+      previous.transform = 'translateX(-' + windowWidthMinusOne + 'px)';
     }
 
     if (index < pages.length - 1) {
       var next = pages[index + 1].container.style;
-      next.MozTransition = '';
-      next.MozTransform = 'translateX(' + windowWidthMinusOne + 'px)';
+      next.transition = '';
+      next.transform = 'translateX(' + windowWidthMinusOne + 'px)';
     }
 
     var current = toPage.container.style;
-    current.MozTransition = '';
-    current.MozTransform = 'translateX(0)';
+    current.transition = '';
+    current.transform = 'translateX(0)';
 
     fromPage.container.setAttribute('aria-hidden', true);
     toPage.container.removeAttribute('aria-hidden');

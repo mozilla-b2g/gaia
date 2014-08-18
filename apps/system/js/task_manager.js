@@ -19,25 +19,25 @@
    */
   function TaskManager() {
     this.stack = null;
-    this.cardsByOrigin = {};
+    this.cardsByAppID = {};
     // Unkillable apps which have attention screen now
     this.attentionScreenApps = [];
 
     // Listen for settings changes
-    this.onRocketbarEnabledChange = function(value) {
-      debug('rocketbar.enabled: '+ value);
-      this.isRocketbar = value;
+    this.onTaskStripEnabled = function(value) {
+      debug('taskstrip.enabled: '+ value);
+      this.isTaskStrip = value;
     }.bind(this);
-    SettingsListener.observe('rocketbar.enabled', false,
-                             this.onRocketbarEnabledChange);
+    SettingsListener.observe('taskstrip.enabled', false,
+                             this.onTaskStripEnabled);
   }
 
   TaskManager.prototype = Object.create({
     /**
      * Use the carousel-style card view (false) or
-     * the Haida-style horizontal task-manager (true)
+     * the Haida-style horizontal task strip (true)
      */
-    isRocketbar: false,
+    isTaskStrip: false,
 
     /**
      * The setting that enables/disables using screenshots vs. icons for the
@@ -206,8 +206,8 @@
 
     SettingsListener.unobserve(this.SCREENSHOT_PREVIEWS_SETTING_KEY,
                                this.onPreviewSettingsChange);
-    SettingsListener.unobserve('rocketbar.enabled',
-                               this.onRocketbarEnabledChange);
+    SettingsListener.unobserve('taskstrip.enabled',
+                               this.onTaskStripEnabled);
   };
 
   /**
@@ -309,8 +309,8 @@
     var currentApp = (stack.length && this.currentPosition > -1 &&
                      stack[this.currentPosition]);
 
-    // Return early if isRocketbar and there are no apps.
-    if (!currentApp && this.isRocketbar) {
+    // Return early if isTaskStrip and there are no apps.
+    if (!currentApp && this.isTaskStrip) {
       // Fire a cardchange event to notify rocketbar that there are no cards
       this.fireCardViewClosed();
       return;
@@ -340,7 +340,7 @@
     this.fireCardViewBeforeShow();
 
     this.screenElement.classList.add('cards-view');
-    if (this.isRocketbar) {
+    if (this.isTaskStrip) {
       this.screenElement.classList.add('task-manager');
     }
 
@@ -348,7 +348,7 @@
     if (stack.length) {
       this.element.classList.remove('empty');
     } else {
-      // (we already bailed for the isRocketbar case)
+      // (we already bailed for the isTaskStrip case)
       this.element.classList.add('empty');
     }
 
@@ -394,10 +394,10 @@
       _windowWidth: this.windowWidth,
       _windowHeight: this.windowHeight
     };
-    var card = (this.isRocketbar) ?
+    var card = (this.isTaskStrip) ?
                   new TaskCard(config) :
                   new Card(config);
-    this.cardsByOrigin[app.origin] = card;
+    this.cardsByAppID[app.instanceID] = card;
     this.cardsList.appendChild(card.render());
   };
 
@@ -412,7 +412,7 @@
                                                             removeImmediately) {
     var element = card.element;
     var position = element.dataset.position;
-    delete this.cardsByOrigin[element.dataset.origin];
+    delete this.cardsByAppID[card.app.instanceID];
     card.destroy();
     element = null;
 
@@ -455,11 +455,11 @@
    */
   TaskManager.prototype.removeCards = function cs_removeCards() {
     // bypass normal removeCards method to efficiently batch-remove all
-    Object.keys(this.cardsByOrigin).forEach(function(origin) {
-      var card = this.cardsByOrigin[origin];
+    Object.keys(this.cardsByAppID).forEach(function(instanceID) {
+      var card = this.cardsByAppID[instanceID];
       card.destroy();
     }, this);
-    this.cardsByOrigin = {};
+    this.cardsByAppID = {};
 
     this.screenElement.classList.remove('cards-view');
     this.screenElement.classList.remove('task-manager');
@@ -481,7 +481,7 @@
           this.closeApp(card);
         return;
       case 'favorite' :
-        debug('cardAction: TODO: favorite ' + card.element.origin);
+        debug('cardAction: TODO: favorite ' + card.element.dataset.origin);
         return;
       case 'select' :
         this.newStackPosition = card.position;
@@ -523,7 +523,7 @@
     var cardElem;
     var card;
 
-    if (this.isRocketbar && ('buttonAction' in targetNode.dataset)) {
+    if (this.isTaskStrip && ('buttonAction' in targetNode.dataset)) {
       tmpNode = containerNode;
       while ((tmpNode = tmpNode.parentNode)) {
         if (tmpNode.classList && tmpNode.classList.contains('card')) {
@@ -617,7 +617,7 @@
       this.draggingCardUp = false;
       var card = this.getCardForElement(element);
       if (-dy > this.swipeUpThreshold &&
-          this.attentionScreenApps.indexOf(element.dataset.origin) == -1) {
+          this.attentionScreenApps.indexOf(card.app.origin) == -1) {
         // Remove the card from the Task Manager for a smooth transition.
         this.cardsList.removeChild(element);
         this.closeApp(card);
@@ -673,7 +673,7 @@
 
       case 'opencurrentcard':
         AppWindowManager.display(
-          this.currentCard.app.origin,
+          this.currentCard.app,
           'from-cardview',
           null);
         break;
@@ -711,7 +711,7 @@
           return;
         }
         sleepMenu.hide();
-        if (this.isRocketbar) {
+        if (this.isTaskStrip) {
           this.show();
         } else {
           app = AppWindowManager.getActiveApp();
@@ -836,13 +836,14 @@
    * @param {Number} idx index into the stack
    */
   TaskManager.prototype.getCardAtIndex = function(idx) {
-    if (idx > -1) {
-      var element = this.cardsList.childNodes[idx];
-      if (!element) {
-        debug('getCardAtIndex, no element at idx: ' + idx);
+    if (this.stack && idx > -1 && idx < this.stack.length) {
+      var app = this.stack[idx];
+      var card = app && this.cardsByAppID[app.instanceID];
+      if (card) {
+        return card;
       }
-      return element && this.cardsByOrigin[element.dataset.origin];
     }
+    debug('getCardAtIndex, no card at idx: ' + idx);
     return null;
   };
 
@@ -852,7 +853,7 @@
    * @param {DOMNode} element
    */
   TaskManager.prototype.getCardForElement = function(element) {
-    return element && this.cardsByOrigin[element.dataset.origin];
+    return element && this.cardsByAppID[element.dataset.appInstanceId];
   };
 
   /**
@@ -884,11 +885,11 @@
     nextCard.element.dispatchEvent(new CustomEvent('onviewport'));
     var nextCardStyle = {};
 
-    if (this.isRocketbar) {
+    if (this.isTaskStrip) {
       // Scaling and translating cards to reach target positions
       this.stack.forEach(function(app, idx) {
         var offset = idx - currentPosition;
-        var card = this.cardsByOrigin[app.origin];
+        var card = this.cardsByAppID[app.instanceID];
         card.move(0, 0);
         var style = {
           opacity: 1
@@ -1004,10 +1005,10 @@
     var movementFactor = Math.abs(deltaX) / this.windowWidth;
     var currentCard = this.currentCard;
 
-    if (this.isRocketbar) {
+    if (this.isTaskStrip) {
 
       this.stack.forEach(function(app, idx) {
-        var card = this.cardsByOrigin[app.origin];
+        var card = this.cardsByAppID[app.instanceID];
         card.move(Math.abs(deltaX) * sign);
       }, this);
 

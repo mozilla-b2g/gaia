@@ -129,6 +129,14 @@ suite('system/Rocketbar', function() {
     assert.equal(subject.form.classList.contains('hidden'), false);
   });
 
+  test('handleHome()', function() {
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    subject.handleHome();
+    assert.ok(deactivateStub.calledOnce);
+    assert.ok(hideResultsStub.calledOnce);
+  });
+
   test('handleInput()', function() {
     var showResultsStub = this.sinon.stub(subject, 'showResults');
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');

@@ -156,6 +156,10 @@ ul li > label.pack-checkbox > .color-preview:before {
   position: absolute;
 }
 
+ul.disabled li > label.pack-checkbox > .color-preview:before {
+  opacity: 0.4;
+}
+
 ul li > label.pack-checkbox > .warning-counter:before {
   background-color: orange;
 }
@@ -468,11 +472,6 @@ html[dir="rtl"] ul li.sound-setting > label input[type="range"] {
 html[dir="rtl"] dl dt {
   padding-left: 0;
   padding-right: 3rem;
-}
-
-html[dir="rtl"] ul li.bluetooth-device > a{
-  padding-left: 1rem;
-  padding-right: 1rem;
 }
 
 html[dir="rtl"] ul li > label.pack-checkbox > .color-preview:before {

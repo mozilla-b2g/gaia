@@ -18,6 +18,9 @@
     "bn-BD": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
+    "bs": [
+        {"layoutId": "bs", "app": ["apps", "keyboard"]}
+    ],
     "ca": [
         {"layoutId": "ca", "app": ["apps", "keyboard"]}
     ],
@@ -69,10 +72,10 @@
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "ga-IE": [
-        {"layoutId": "en", "app": ["apps", "keyboard"]}
+        {"layoutId": "ga", "app": ["apps", "keyboard"]}
     ],
     "gd": [
-        {"layoutId": "en", "app": ["apps", "keyboard"]}
+        {"layoutId": "gd", "app": ["apps", "keyboard"]}
     ],
     "gl": [
         {"layoutId": "es", "app": ["apps", "keyboard"]}
@@ -209,7 +212,5 @@
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ]
   },
-  "langIndependentLayouts": [
-      {"layoutId": "number", "app": ["apps", "keyboard"]}
-  ]
+  "langIndependentLayouts": []
 }

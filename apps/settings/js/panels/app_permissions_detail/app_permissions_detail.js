@@ -23,6 +23,9 @@ define(function(require) {
     init: function pd_init(elements, permissionsTable) {
       this._elements = elements;
       this._permissionsTable = permissionsTable;
+
+      // only go back to previous when application is uninstalled
+      window.addEventListener('applicationuninstall', this.back);
     },
 
     /**
@@ -203,7 +206,6 @@ define(function(require) {
 
       if (confirm(_('uninstallConfirm', {app: name}))) {
         mozApps.mgmt.uninstall(this._app);
-        this.back();
       }
     }
   };

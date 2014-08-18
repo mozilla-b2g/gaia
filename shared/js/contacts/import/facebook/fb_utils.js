@@ -1,6 +1,6 @@
 'use strict';
 
-/* global oauthflow, utils */
+/* global ImportStatusData, oauthflow, utils */
 /* Ignoring function declaration in loops */
 /* jshint -W083 */
 
@@ -159,7 +159,7 @@ window.fb = fb;
     };
 
     Utils.getCachedAccessToken = function(callback) {
-      window.asyncStorage.getItem(STORAGE_KEY, function(data) {
+      ImportStatusData.get(STORAGE_KEY).then(function(data) {
         var out = null;
 
         if (data) {
@@ -174,7 +174,7 @@ window.fb = fb;
     };
 
     Utils.setCachedAccessToken = function(data, callback) {
-      window.asyncStorage.setItem(STORAGE_KEY, data, function done() {
+      ImportStatusData.put(STORAGE_KEY, data).then(function done() {
         if (typeof callback === 'function') {
           callback();
         }
@@ -188,7 +188,7 @@ window.fb = fb;
 
     // Obtains the number locally
     Utils.getCachedNumFbFriends = function(callback) {
-      window.asyncStorage.getItem(CACHE_FRIENDS_KEY, function(data) {
+      ImportStatusData.get(CACHE_FRIENDS_KEY).then(function(data) {
         if (typeof callback === 'function' && typeof data === 'number') {
           callback(data);
         }
@@ -196,9 +196,15 @@ window.fb = fb;
     };
 
     Utils.setCachedNumFriends = function(value, cb) {
-      window.asyncStorage.setItem(CACHE_FRIENDS_KEY, value, cb);
+      ImportStatusData.put(CACHE_FRIENDS_KEY, value).then(cb);
     };
 
+    // Removes cached number of friends from datastore to keep state of sync.
+    Utils.removeCachedNumFriends = function(callback) {
+      ImportStatusData.remove(CACHE_FRIENDS_KEY).then(function() {
+        typeof callback === 'function' && callback();
+      });
+    };
 
     Utils.getImportChecked = function(callback) {
       // If we have an access token Import should be checked
@@ -316,7 +322,7 @@ window.fb = fb;
                 return;
               }
               if (e.data === 'closed') {
-                window.asyncStorage.removeItem(STORAGE_KEY);
+                ImportStatusData.remove(STORAGE_KEY);
                 outReq.done();
               }
               e.stopImmediatePropagation();

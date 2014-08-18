@@ -369,7 +369,7 @@ var ActivityHandler = {
         iconURL += '?type=class0';
 
         // We have to remove the SMS due to it does not have to be shown.
-        MessageManager.deleteMessage(message.id, function() {
+        MessageManager.deleteMessages(message.id, function() {
           app.launch();
           Notify.ringtone();
           Notify.vibrate();

@@ -25,7 +25,7 @@ var UIManager = {
     // Unlock SIM Screen
     'unlock-sim-screen',
     'unlock-sim-header',
-    'unlock-sim-back',
+    'unlock-sim-action',
     // PIN Screen
     'pincode-screen',
     'pin-label',
@@ -134,7 +134,7 @@ var UIManager = {
     this.skipPinButton.addEventListener('click', this);
     this.backSimButton.addEventListener('click', this);
     this.unlockSimButton.addEventListener('click', this);
-    this.unlockSimBack.addEventListener('click', this);
+    this.unlockSimAction.addEventListener('action', this);
     this.simInfoBack.addEventListener('click', this);
     this.simInfoForward.addEventListener('click', this);
 
@@ -325,7 +325,7 @@ var UIManager = {
       case 'unlock-sim-button':
         SimManager.unlock();
         break;
-      case 'unlock-sim-back':
+      case 'unlock-sim-action':
         SimManager.simUnlockBack();
         break;
       case 'sim-info-forward':

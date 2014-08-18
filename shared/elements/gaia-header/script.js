@@ -5,6 +5,7 @@
  * Dependencies
  */
 
+var loadGaiaIcons = require('gaia-icons');
 var fontFit = require('./lib/font-fit');
 
 /**
@@ -13,6 +14,11 @@ var fontFit = require('./lib/font-fit');
 
 var baseComponents = window.COMPONENTS_BASE_URL || 'bower_components/';
 var base = window.GAIA_HEADER_BASE_URL || baseComponents + 'gaia-header/';
+
+// Load icons into document, we run some
+// to try to determine if the icons have
+// already been loaded elsewhere
+loadGaiaIcons(baseComponents);
 
 // Extend from the HTMLElement prototype
 var proto = Object.create(HTMLElement.prototype);
@@ -180,18 +186,6 @@ template.innerHTML = [
     '<content select="h1,h2,h3,h4,a,button"></content>',
   '</div>'
 ].join('');
-
-// Load the icon-font into the document <head>
-(function loadFont() {
-  var href = baseComponents + 'gaia-icons/style.css';
-  var existing = document.querySelector('link[href="' + href + '"]');
-  if (existing) { return; }
-  var link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.type = 'text/css';
-  link.href = href;
-  document.head.appendChild(link);
-})();
 
 // Register and return the constructor
 // and expose `protoype` (bug 1048339)

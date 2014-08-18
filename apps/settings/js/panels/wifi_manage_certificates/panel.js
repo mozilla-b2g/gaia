@@ -14,13 +14,13 @@ define(function(require) {
       onInit: function(panel) {
         elements = {};
         elements.panel = panel;
-        elements.certificateList = panel.querySelector('#wifi-certificateList');
+        elements.certificateList = panel.querySelector('.wifi-certificateList');
         elements.deleteCertificateFailedDialog =
-          panel.querySelector('#certificate-deletion-failed');
+          panel.querySelector('.certificate-deletion-failed');
         elements.importCertificateBtn =
-          panel.querySelector('#importCertificate');
+          panel.querySelector('.importCertificate');
         elements.deleteCertificateBtn =
-          panel.querySelector('#deleteCertificate');
+          panel.querySelector('.deleteCertificate');
 
         elements.importCertificateBtn.onclick = function() {
           SettingsUtils.openDialog('wifi-selectCertificateFile');

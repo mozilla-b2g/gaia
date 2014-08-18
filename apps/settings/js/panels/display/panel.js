@@ -31,7 +31,7 @@ define(function(require) {
 
         wallpaperElements.wallpaper.addEventListener('click',
           wallpaper.selectWallpaper.bind(wallpaper));
-        loadJSON(['/resources/sensors.json'], function(data) {
+        loadJSON(['/resources/device-features.json'], function(data) {
           display.init(displayElements, data);
         });
       },

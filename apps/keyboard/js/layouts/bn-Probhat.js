@@ -4,7 +4,7 @@ Keyboards['bn-Probhat'] = {
   menuLabel: 'বাংলা - প্রভাত',
   alternateLayoutKey: '?১২',
   basicLayoutKey: 'কখগ',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'number'],
   keys: [
     [
       { value: 'দ' }, { value: 'ূ' }, { value: 'ী' } , { value: 'র' },
@@ -71,25 +71,30 @@ Keyboards['bn-Probhat'] = {
       '৭': '৭ম 7',
       '৮': '৮ম 8',
       '৯': '৯ম 9',
-      '৳': '$ € £ ¥',
+      '৳': '₹ $ € £ ¥',
       '?': '¿',
       '!': '¡',
       '-': '_'
     },
+    // These are based on the en layout, with top row modifed and $ localized.
     keys: [
       [
-        { value: '১' }, { value: '২' }, { value: '৩' } , { value: '৪' },
-        { value: '৫' } , { value: '৬' }, { value: '৭' } , { value: '৮' },
+        { value: '১' }, { value: '২' }, { value: '৩' }, { value: '৪' },
+        { value: '৫' }, { value: '৬' }, { value: '৭' }, { value: '৮' },
         { value: '৯' }, { value: '০' }
       ], [
-        { value: '@', hidden: ['email'] }, { value: '#' }, { value: '$' },
-        { value: '%' }, { value: '&' } , { value: '*' }, { value: '-' },
-        { value: '+' }, { value: '(' }, { value: ')' },
-        { value: '_', visible: ['email'] }
+        { value: '@' }, { value: '#' },
+        { value: '৳', className: 'alternate-indicator' }, { value: '&' },
+        { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
+        { value: '(' }, { value: ')' }
       ], [
         { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
-        { value: '!' }, { value: '\"' }, { value: "'" }, { value: ':' },
-        { value: ';' }, { value: '/' }, { value: '?' },
+        { value: '+',
+          supportsSwitching: {
+            value: ','
+          }
+        }, { value: ':' }, { value: ';' }, { value: '"' },
+        { value: '\'' }, { value: '?' }, { value: '!' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },

@@ -2,22 +2,19 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global
+    EventDispatcher,
     MozSmsFilter,
-    Navigation,
     Promise,
-    ReportView,
     Settings,
     SMIL,
-    ThreadListUI,
     Threads,
-    ThreadUI,
     Utils
 */
 
 /*exported MessageManager */
 
 'use strict';
-
+(function(exports) {
 var MessageManager = {
   init: function mm_init(callback) {
     if (this.initialized) {
@@ -27,21 +24,28 @@ var MessageManager = {
     // Allow for stubbing in environments that do not implement the
     // `navigator.mozMobileMessage` API
     this._mozMobileMessage = navigator.mozMobileMessage ||
-                    window.DesktopMockNavigatormozMobileMessage;
-
-    this._mozMobileMessage.addEventListener('received',
-        this.onMessageReceived.bind(this));
-    this._mozMobileMessage.addEventListener('sending', this.onMessageSending);
-    this._mozMobileMessage.addEventListener('sent', this.onMessageSent);
-    this._mozMobileMessage.addEventListener('failed', this.onMessageFailed);
-    this._mozMobileMessage.addEventListener('deliverysuccess',
-                                            this.onDeliverySuccess);
-    this._mozMobileMessage.addEventListener('readsuccess',
-                                            this.onReadSuccess);
+      window.DesktopMockNavigatormozMobileMessage;
 
     this._mozMobileMessage.addEventListener(
-      'deleted',
-      this.onDeleted.bind(this)
+      'received', this.onMessageReceived.bind(this)
+    );
+    this._mozMobileMessage.addEventListener(
+      'sending', this.onMessageSending.bind(this)
+    );
+    this._mozMobileMessage.addEventListener(
+      'sent', this.onMessageSent.bind(this)
+    );
+    this._mozMobileMessage.addEventListener(
+      'failed', this.onMessageFailed.bind(this)
+    );
+    this._mozMobileMessage.addEventListener(
+      'readsuccess', this.onReadSuccess.bind(this)
+    );
+    this._mozMobileMessage.addEventListener(
+      'deliverysuccess', this.onDeliverySuccess.bind(this)
+    );
+    this._mozMobileMessage.addEventListener(
+      'deleted', this.onDeleted.bind(this)
     );
 
     // Callback if needed
@@ -51,30 +55,25 @@ var MessageManager = {
   },
 
   onMessageSending: function mm_onMessageSending(e) {
-    var message = e.message;
+    Threads.registerMessage(e.message);
 
-    Threads.registerMessage(message);
-
-    ThreadUI.onMessageSending(message);
-    ThreadListUI.onMessageSending(message);
+    this.emit('message-sending', { message: e.message });
   },
 
   onMessageFailed: function mm_onMessageFailed(e) {
-    ThreadUI.onMessageFailed(e.message);
+    this.emit('message-failed-to-send', { message: e.message });
   },
 
   onDeliverySuccess: function mm_onDeliverySuccess(e) {
-    ReportView.onDeliverySuccess(e.message);
-    ThreadUI.onDeliverySuccess(e.message);
+    this.emit('message-delivered', { message: e.message });
   },
 
   onReadSuccess: function mm_onReadSuccess(e) {
-    ReportView.onReadSuccess(e.message);
-    ThreadUI.onReadSuccess(e.message);
+    this.emit('message-read', { message: e.message });
   },
 
   onMessageSent: function mm_onMessageSent(e) {
-    ThreadUI.onMessageSent(e.message);
+    this.emit('message-sent', { message: e.message });
   },
 
   onMessageReceived: function mm_onMessageReceived(e) {
@@ -94,19 +93,14 @@ var MessageManager = {
 
     Threads.registerMessage(message);
 
-    if (Navigation.isCurrentPanel('thread', { id: message.threadId })) {
-      // Mark as read in Gecko
-      this.markMessagesRead([message.id]);
-      ThreadListUI.updateThread(message);
-      ThreadUI.onMessageReceived(message);
-    } else {
-      ThreadListUI.onMessageReceived(message);
-    }
+    this.emit('message-received', { message: message });
   },
 
   onDeleted: function(e) {
     if (e.deletedThreadIds && e.deletedThreadIds.length) {
-      ThreadListUI.onThreadsDeleted(e.deletedThreadIds);
+      this.emit('threads-deleted', {
+        ids: e.deletedThreadIds
+      });
     }
   },
 
@@ -140,15 +134,6 @@ var MessageManager = {
 
     cursor.onsuccess = function onsuccess() {
       if (this.result) {
-        // Register all threads to the Threads object.
-        Threads.set(this.result.id, this.result);
-
-        // If one of the requested threads is also the
-        // currently displayed thread, update the header immediately
-        if (this.result.id === Threads.currentId) {
-          ThreadUI.updateHeaderData();
-        }
-
         each && each(this.result);
 
         this.continue();
@@ -182,17 +167,30 @@ var MessageManager = {
       done: callback function invoked when we stopped iterating, either because
             it's the end or because it was stopped. It's invoked after the "end"
             callback.
-      filter: a MozMessageFilter or similar object
+      filter: a MobileMessageFilter or similar object
       invert: option to invert the selection
     }
 
      */
     var each = options.each;
-    var filter = options.filter;
     var invert = options.invert;
     var end = options.end;
     var endArgs = options.endArgs;
     var done = options.done;
+    var filter = options.filter;
+    if (filter && 'MozSmsFilter' in window) {
+      // 'MozSmsFilter' has been obsoleted in favor of WebIDL dictionary
+      // 'MobileMessageFilter'. If somehow we're running with an out-dated
+      // Gecko, use 'MozSmsFilter' instead.
+      var f = new MozSmsFilter();
+      if ('threadId' in filter && filter.threadId) {
+        f.threadId = filter.threadId;
+      }
+      if ('read' in filter) {
+        f.read = filter.read;
+      }
+      filter = f;
+    }
     var cursor = this._mozMobileMessage.getMessages(filter, !invert);
 
     cursor.onsuccess = function onsuccess() {
@@ -400,22 +398,26 @@ var MessageManager = {
     }
 
     request.onsuccess = function onSuccess(evt) {
-      MessageManager.deleteMessage(message.id);
+      MessageManager.deleteMessages(message.id);
       onsuccess && onsuccess(evt.target.result);
     };
 
     request.onerror = function onError(evt) {
-      MessageManager.deleteMessage(message.id);
+      MessageManager.deleteMessages(message.id);
       onerror && onerror(evt.target.error);
     };
   },
 
-  deleteMessage: function mm_deleteMessage(id, callback) {
+  deleteMessages: function mm_deleteMessages(id, callback) {
     var req = this._mozMobileMessage.delete(id);
     req.onsuccess = function onsuccess() {
       callback && callback(this.result);
     };
 
+    // TODO: If the messages could not be deleted completely, conversation list
+    // page will also update without notification currently. May need more
+    // information for user that the messages were not removed completely.
+    // See bug #1045666 for details.
     req.onerror = function onerror() {
       var msg = 'Deleting in the database. Error: ' + req.error.name;
       console.log(msg);
@@ -423,22 +425,11 @@ var MessageManager = {
     };
   },
 
-  /*
-    TODO: If the messages could not be deleted completely,
-    conversation list page will also update without notification currently.
-    May need more infomation for user that the messages were not
-    removed completely.
-  */
-  deleteMessages: function mm_deleteMessages(list, callback) {
-    // mozMobileMessage.delete() has been modified per bug 771458.
-    // Now deleteMessage() can take an id or an array of id.
-    this.deleteMessage(list, callback);
-  },
-
   markThreadRead: function mm_markThreadRead(threadId) {
-    var filter = new MozSmsFilter();
-    filter.threadId = threadId;
-    filter.read = false;
+    var filter = {
+      threadId: threadId,
+      read: false
+    };
 
     var messagesUnreadIDs = [];
     var changeStatusOptions = {
@@ -506,3 +497,20 @@ var MessageManager = {
     return defer.promise;
   }
 };
+
+Object.defineProperty(exports, 'MessageManager', {
+  get: function () {
+    delete exports.MessageManager;
+
+    exports.MessageManager = EventDispatcher.mixin(MessageManager, [
+      'message-sending', 'message-failed-to-send', 'message-delivered',
+      'message-read', 'message-sent', 'message-received', 'threads-deleted'
+    ]);
+
+    return exports.MessageManager;
+  },
+  configurable: true,
+  enumerable: true
+});
+
+})(window);

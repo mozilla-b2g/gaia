@@ -16,7 +16,6 @@
     this.enabled = false;
     this.focused = false;
     this.active = false;
-    this.newTabPage = false;
     this.currentApp = null;
 
     // Properties
@@ -125,7 +124,6 @@
         return;
       }
       this.active = false;
-      this.newTabPage = false;
       this.rocketbar.classList.remove('active');
       this.form.classList.add('hidden');
       this.backdrop.classList.add('hidden');
@@ -145,6 +143,7 @@
       window.addEventListener('apptitlechange', this);
       window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('appopened', this);
+      window.addEventListener('home', this);
       window.addEventListener('launchactivity', this, true);
       window.addEventListener('searchterminated', this);
       window.addEventListener('permissiondialoghide', this);
@@ -186,6 +185,9 @@
           break;
         case 'focus':
           this.handleFocus(e);
+          break;
+        case 'home':
+          this.handleHome(e);
           break;
         case 'blur':
           this.handleBlur(e);
@@ -304,22 +306,6 @@
     },
 
     /**
-     * Show New Tab Page.
-     * @memberof Rocketbar.prototype
-     */
-    showNewTabPage: function() {
-      this.newTabPage = true;
-      this.activate((function() {
-        this.showResults();
-        if (this._port) {
-          this._port.postMessage({
-            action: 'showNewTabPage'
-          });
-        }
-      }).bind(this));
-    },
-
-    /**
      * Enable back button.
      */
     enableNavigation: function() {
@@ -359,6 +345,15 @@
       // To be removed in bug 999463
       this.body.addEventListener('keyboardchange',
         this.handleKeyboardChange, true);
+    },
+
+    /**
+     * Handle press of hardware home button.
+     * @memberof Rocketbar.prototype
+     */
+    handleHome: function() {
+      this.hideResults();
+      this.deactivate();
     },
 
     /**
@@ -411,14 +406,8 @@
 
       this.rocketbar.classList.toggle('has-text', input.length);
 
-      if (!input && !this.newTabPage &&
-          !this.results.classList.contains('hidden')) {
+      if (!input && !this.results.classList.contains('hidden')) {
         this.hideResults();
-        return;
-      }
-
-      if (!input && this.newTabPage) {
-        this.showNewTabPage();
         return;
       }
 

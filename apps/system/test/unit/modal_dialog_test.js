@@ -1,5 +1,9 @@
 'use strict';
 
+/* global MocksHelper */
+/* global ModalDialog */
+/* global MockL10n */
+
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -92,12 +96,12 @@ suite('system/ModalDialog >', function() {
     );
 
     assert.isTrue(ModalDialog.elements.confirm.classList.contains('visible'));
-    assert.isNotNull(
-      ModalDialog.elements.confirmTitle.innerHTML.match(
-        testObject.dialogTitle));
-    assert.isNotNull(
-      ModalDialog.elements.confirmMessage.innerHTML.match(
-        testObject.dialogText));
+    assert.strictEqual(
+      ModalDialog.elements.confirmTitle.getAttribute('data-l10n-id'),
+      testObject.dialogTitle);
+    assert.strictEqual(
+      ModalDialog.elements.confirmMessage.getAttribute('data-l10n-id'),
+      testObject.dialogText);
 
     ModalDialogCleanUp();
   });
@@ -109,15 +113,13 @@ suite('system/ModalDialog >', function() {
       testObject.dialogCancelObject
     );
 
-    // make sure XXX fix will not affect this case
-    assert.equal(ModalDialog.elements.alertTitle.textContent,
-      testObject.dialogTitle);
-
     assert.isTrue(ModalDialog.elements.alert.classList.contains('visible'));
-    assert.isNotNull(
-      ModalDialog.elements.alertTitle.innerHTML.match(testObject.dialogTitle));
-    assert.isNotNull(
-      ModalDialog.elements.alertMessage.innerHTML.match(testObject.dialogText));
+    assert.strictEqual(
+      ModalDialog.elements.alertTitle.getAttribute('data-l10n-id'),
+      testObject.dialogTitle);
+    assert.strictEqual(
+      ModalDialog.elements.alertMessage.getAttribute('data-l10n-id'),
+      testObject.dialogText);
 
     ModalDialogCleanUp();
   });
@@ -132,12 +134,12 @@ suite('system/ModalDialog >', function() {
     );
 
     assert.isTrue(ModalDialog.elements.prompt.classList.contains('visible'));
-    assert.isNotNull(
-      ModalDialog.elements.promptTitle.innerHTML.match(
-        testObject.dialogTitle));
-    assert.isNotNull(
-      ModalDialog.elements.promptMessage.innerHTML.match(
-        testObject.dialogText));
+    assert.strictEqual(
+      ModalDialog.elements.promptTitle.getAttribute('data-l10n-id'),
+      testObject.dialogTitle);
+    assert.strictEqual(
+      ModalDialog.elements.promptMessage.getAttribute('data-l10n-id'),
+      testObject.dialogText);
 
     ModalDialogCleanUp();
   });

@@ -78,7 +78,8 @@
   z-index: 65538;
 }
 
-#screen > [data-z-index-level="keyboards"] {
+#screen > [data-z-index-level="keyboards"],
+#screen > [data-z-index-level="software-buttons"] {
 
   /* It should lower than UtilityTray's, to let the tray overlay it
      in some situation like selecting a new keyboard. */
@@ -177,7 +178,6 @@
   z-index: 2044;
 }
 
-#screen > [data-z-index-level="software-buttons"],
 #screen.task-manager > #cards-view[data-z-index-level="cards-view"] {
   z-index: 2044;
 }

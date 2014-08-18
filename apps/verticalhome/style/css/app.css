@@ -40,7 +40,7 @@ gaia-grid {
 }
 
 .edit-mode #curtain {
-  background: #333333;
+  background: var(--background, #333);
   opacity: 1;
   transition: opacity 0.5s ease-in;
 }

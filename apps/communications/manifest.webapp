@@ -173,16 +173,6 @@
     }
   },
 
-  "connections": {
-    "ftu-connection": {
-      "description": "FTU Token Data Facebook",
-      "rules": {
-        "manifestURLs": ["app://ftu.gaiamobile.org/manifest.webapp"]
-      },
-      "handler_path": "/contacts/iac.html"
-    }
-  },
-
   "icons": {
         "30": "/style/icons/communications_30.png",
         "45": "/style/icons/communications_45.png"

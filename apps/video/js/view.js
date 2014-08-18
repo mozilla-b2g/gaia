@@ -46,8 +46,13 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // and if there is enough free space, then display a save button.
     if (data.allowSave && data.filename && checkFilename()) {
       getStorageIfAvailable('videos', blob.size, function(ds) {
+        dom.save.hidden = false;
+
+        // HACK: Cause gaia-header to re-run font-fit logic
+        // now that the 'save' button is visible.
+        dom.videoTitle.textContent = dom.videoTitle.textContent;
+
         storage = ds;
-        dom.menu.hidden = false;
       });
     }
 
@@ -104,10 +109,10 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
     // Get all the elements we use by their id
     var ids = ['player', 'player-view', 'videoControls',
-               'close', 'play', 'playHead', 'video-container',
+               'player-header', 'play', 'playHead', 'video-container',
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
                'slider-wrapper', 'spinner-overlay',
-               'menu', 'save', 'banner', 'message', 'seek-forward',
+               'save', 'banner', 'message', 'seek-forward',
                'seek-backward', 'videoControlBar'];
 
     ids.forEach(function createElementRef(name) {
@@ -149,7 +154,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
     // option buttons
     dom.play.addEventListener('click', handlePlayButtonClick);
-    dom.close.addEventListener('click', done);
+    dom.playerHeader.addEventListener('action', done);
     dom.save.addEventListener('click', save);
     // show/hide controls
     dom.videoControls.addEventListener('click', toggleVideoControls, true);
@@ -235,7 +240,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
   function save() {
     // Hide the menu that holds the save button: we can only save once
-    dom.menu.hidden = true;
+    dom.save.hidden = true;
     // XXX work around bug 870619
     dom.videoTitle.textContent = dom.videoTitle.textContent;
 

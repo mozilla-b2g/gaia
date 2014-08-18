@@ -31,8 +31,11 @@ if (!utils.time) {
         }
       }
 
+      var timeFormat = window.navigator.mozHour12 ?
+       _('shortTimeFormat12') : _('shortTimeFormat24');
+
       return prettyDate + ' ' +
-                        dtf.localeFormat(new Date(time), _('shortTimeFormat'));
+                        dtf.localeFormat(new Date(time), timeFormat);
     };
   })();
 }

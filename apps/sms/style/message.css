@@ -96,16 +96,20 @@
   color: #ff4e00;
 }
 
-.message .message-body time {
-  /* TODO: We might need to remove time element display: block in root.css */
-  display: block;
-
+.message-details {
   color: #000;
   font-size: 1.4rem;
   line-height: 2.3rem;
   opacity: 0.7;
 }
 
+.message-details time {
+  display: unset;
+}
+
+.message-sim-information::after {
+  content: ' ‧ '
+}
 
 /* Message status aside panel */
 .message .message-status {

@@ -30,8 +30,11 @@
 
   var screenshotRequests = {};
 
-  topSitesWrapper.addEventListener('click', itemClicked);
-  historyWrapper.addEventListener('click', itemClicked);
+  // These elements are only included in the newtab page.
+  if (topSitesWrapper && historyWrapper) {
+    topSitesWrapper.addEventListener('click', itemClicked);
+    historyWrapper.addEventListener('click', itemClicked);
+  }
 
   var cachedLink = document.createElement('a');
   function parseUrl(url) {
@@ -141,8 +144,24 @@
   }
 
   function showStartPage() {
-    var historyDom = exports.Places.buildResultsDom(history.map(function(x) {
-      return formatPlace(x, '');
+    if (!topSitesWrapper || !historyWrapper) {
+      return;
+    }
+
+    var historyDom = exports.Places.buildResultsDom(history.map(place => {
+      var renderObj = {
+        title: place.title || place.url,
+        meta: place.url,
+        dataset: {
+          url: place.url
+        }
+      };
+
+      if (place.url in icons) {
+        renderObj.icon = URL.createObjectURL(icons[place.url]);
+      }
+
+      return renderObj;
     }));
 
     var docFragment = document.createDocumentFragment();

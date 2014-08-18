@@ -99,16 +99,31 @@ function showSimInfo(element, iccId) {
     return;
   }
 
-  var info =[];
-  // TODO: we might need to re-localize Sim name manually when language changes
-  var simId = Settings.getSimNameByIccId(iccId);
+  var info = [];
+  var simId = Settings.getServiceIdByIccId(iccId);
   var operator = Settings.getOperatorByIccId(iccId);
   var number = iccManager.getIccById(iccId).iccInfo.msisdn;
-  info = [simId, operator, number].filter(function(value){
+  var data = {};
+  var l10nId;
+
+  info = [operator, number].filter(function(value) {
     return value;
   });
 
-  element.querySelector('.sim-detail').textContent = info.join(', ');
+  var detailString = info.join(', ');
+
+  if (simId !== null) {
+    l10nId = info.length ?  'sim-detail' : 'sim-id-label';
+    data = { id: simId + 1, detailString: detailString };
+    navigator.mozL10n.setAttributes(
+      element.querySelector('.sim-detail'),
+      l10nId,
+      data
+    );
+  } else {
+    element.querySelector('.sim-detail').textContent = detailString;
+  }
+
   element.classList.remove('hide');
 }
 
@@ -158,6 +173,7 @@ function createListWithMsgInfo(message) {
 var VIEWS = {
   group: {
     name: 'participants',
+
     render: function renderGroup() {
       var participants = Threads.get(this.id).participants;
       this.renderContactList(participants);
@@ -165,21 +181,38 @@ var VIEWS = {
         n: participants.length
       });
     },
+
+    setEventListener: function setEventListener() {
+      this.contactList.addEventListener('click', function onListClick(event) {
+        event.stopPropagation();
+        event.preventDefault();
+
+        var target = event.target;
+
+        ThreadUI.promptContact({
+          number: target.dataset.number
+        });
+      });
+    },
+
     elements: ['contact-list']
   },
   report: {
     name: 'report',
 
-    onDeliverySuccess: function report_onDeliverySuccess(message) {
-      if (Navigation.isCurrentPanel('report-view', { id: message.id })) {
-        this.refresh();
-      }
+    init: function() {
+      this.onDeliverySuccess = this.onDeliverySuccess.bind(this);
+      this.onReadSuccess = this.onReadSuccess.bind(this);
     },
 
-    onReadSuccess: function report_onReadSuccess(message) {
-      if (Navigation.isCurrentPanel('report-view', { id: message.id })) {
-        this.refresh();
-      }
+    beforeEnter: function() {
+      MessageManager.on('message-delivered', this.onDeliverySuccess);
+      MessageManager.on('message-read', this.onReadSuccess);
+    },
+
+    afterLeave: function() {
+      MessageManager.off('message-delivered', this.onDeliverySuccess);
+      MessageManager.off('message-read', this.onReadSuccess);
     },
 
     render: function renderReport() {
@@ -251,6 +284,19 @@ var VIEWS = {
 
       localize(ThreadUI.headerText, 'message-report');
     },
+
+    onDeliverySuccess: function report_onDeliverySuccess(e) {
+      if (Navigation.isCurrentPanel('report-view', { id: e.message.id })) {
+        this.refresh();
+      }
+    },
+
+    onReadSuccess: function report_onReadSuccess(e) {
+      if (Navigation.isCurrentPanel('report-view', { id: e.message.id })) {
+        this.refresh();
+      }
+    },
+
     elements: ['contact-list', 'status', 'size', 'size-block', 'sent-detail',
       'type', 'subject', 'datetime', 'contact-title', 'received-detail',
       'sent-timeStamp', 'received-timeStamp', 'sim-info']
@@ -260,6 +306,10 @@ var VIEWS = {
 var Information = function(type) {
   Utils.extend(this, VIEWS[type]);
 
+  if (this.init) {
+    this.init();
+  }
+
   var prefix = 'information-' + this.name;
   this.container = document.getElementById(prefix);
   this.parent = document.getElementById('thread-messages');
@@ -267,21 +317,8 @@ var Information = function(type) {
     this[Utils.camelCase(name)] = this.container.querySelector('.' + name);
   }, this);
 
+  this.setEventListener && this.setEventListener();
   this.reset();
-
-  if (this.contactList) {
-    this.contactList.addEventListener(
-      'click', function onListClick(event) {
-      event.stopPropagation();
-      event.preventDefault();
-
-      var target = event.target;
-
-      ThreadUI.promptContact({
-        number: target.dataset.number
-      });}
-    );
-  }
 };
 
 Information.prototype = {

@@ -4,7 +4,8 @@
    MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
    NavbarManager, Notification, MockKeypadManager, MockVoicemail,
    MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock, MockMmiManager,
-   MockSuggestionBar, LazyLoader, AccessibilityHelper, MockSimSettingsHelper */
+   MockSuggestionBar, LazyLoader, AccessibilityHelper, MockSimSettingsHelper,
+   MockSimPicker, MockTelephonyHelper */
 
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -16,6 +17,7 @@ require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_mmi_manager.js');
 require('/dialer/test/unit/mock_voicemail.js');
 require('/dialer/test/unit/mock_suggestion_bar.js');
+require('/dialer/test/unit/mock_telephony_helper.js');
 
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
@@ -23,6 +25,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_sim_picker.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
@@ -33,6 +36,7 @@ require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require('/dialer/js/dialer.js');
 
 var mocksHelperForDialer = new MocksHelper([
+  'TelephonyHelper',
   'AccessibilityHelper',
   'Contacts',
   'CallLog',
@@ -44,6 +48,7 @@ var mocksHelperForDialer = new MocksHelper([
   'Notification',
   'NotificationHelper',
   'SettingsListener',
+  'SimPicker',
   'SimSettingsHelper',
   'SuggestionBar',
   'Utils',
@@ -245,6 +250,11 @@ suite('navigation bar', function() {
         });
       });
 
+      test('should set the duration', function() {
+        triggerSysMsg(sysMsg);
+        sinon.assert.calledWithMatch(addStub, {duration: 1200});
+      });
+
       suite('> type', function() {
         test('should be incoming for incoming calls', function() {
           sysMsg.direction = 'incoming';
@@ -264,12 +274,55 @@ suite('navigation bar', function() {
         sinon.assert.calledWithMatch(addStub, {number: '12345'});
       });
 
-      test('should set cdma call waiting number', function() {
-        sysMsg.secondNumber = '23456';
-        triggerSysMsg(sysMsg);
-        sinon.assert.calledWithMatch(addStub, {number: '12345'});
-        addStub.yield();
-        sinon.assert.calledWithMatch(addStub, {number: '23456'});
+      suite('> with a CDMA second call', function() {
+        setup(function() {
+          sysMsg.secondNumber = '23456';
+        });
+
+        test('should insert two different calls in the database', function() {
+          triggerSysMsg(sysMsg);
+          sinon.assert.calledWithMatch(addStub, {number: '12345'});
+          addStub.yield();
+          sinon.assert.calledWithMatch(addStub, {number: '23456'});
+        });
+
+        test('should insert the secondCall in the database', function() {
+          triggerSysMsg(sysMsg);
+          addStub.yield();
+          sinon.assert.calledWithMatch(addStub, {
+            duration: 1200,
+            type: 'incoming',
+            number: '23456',
+            serviceId: 1,
+            emergency: false,
+            voicemail: false,
+            status: 'connected'
+          });
+        });
+
+        test('should also insert new call waiting group for cdma log view',
+        function() {
+          var fakeCdmaGroup = 'random useless string';
+          var fakeCdmaGroupSecondCall = 'another random string';
+          var appendSpy = this.sinon.spy(MockCallLog, 'appendGroup');
+
+          triggerSysMsg(sysMsg);
+          addStub.yield(fakeCdmaGroup);
+          addStub.yield(fakeCdmaGroupSecondCall);
+
+          sinon.assert.calledWith(appendSpy, fakeCdmaGroup);
+          sinon.assert.calledWith(appendSpy, fakeCdmaGroupSecondCall);
+        });
+
+        test('should only unlock after second call is added',
+        function() {
+          triggerSysMsg(sysMsg);
+          var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+          addStub.yield();
+          assert.equal(wakeLock.mUnlockCount, 0);
+          addStub.yield();
+          assert.equal(wakeLock.mUnlockCount, 1);
+        });
       });
 
       test('should set the serviceId', function() {
@@ -315,22 +368,6 @@ suite('navigation bar', function() {
         sinon.assert.calledWith(appendSpy, fakeGroup);
       });
 
-      test('should also insert new call waiting group for cdma log view',
-      function() {
-        var fakeGroup = '----uniq----';
-        var fakeGroupCdma = '-----cdma----';
-        var appendSpy = this.sinon.spy(MockCallLog, 'appendGroup');
-        sysMsg.secondNumber = '34567';
-
-        triggerSysMsg(sysMsg);
-        addStub.yield(fakeGroup);
-        assert.equal(MockNavigatorWakeLock.mLastWakeLock.mUnlockCount, 0);
-        addStub.yield(fakeGroupCdma);
-
-        sinon.assert.calledWith(appendSpy, fakeGroup);
-        sinon.assert.calledWith(appendSpy, fakeGroupCdma);
-      });
-
       test('should release the wake lock', function() {
         triggerSysMsg(sysMsg);
         addStub.yield();
@@ -338,16 +375,6 @@ suite('navigation bar', function() {
         assert.isTrue(wakeLock.released);
       });
 
-      test('should only unlock after cdma call is added',
-      function() {
-        sysMsg.secondNumber = '45678';
-        triggerSysMsg(sysMsg);
-        var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
-        addStub.yield();
-        assert.equal(wakeLock.mUnlockCount, 0);
-        addStub.yield();
-        assert.equal(wakeLock.mUnlockCount, 1);
-      });
     });
 
     suite('> Receiving a ussd', function() {
@@ -476,6 +503,23 @@ suite('navigation bar', function() {
       });
     });
 
+    suite('> dialing a long number', function() {
+      var spy, number;
+      setup(function() {
+        number = '+8801535479509';
+        spy = this.sinon.spy(MockKeypadManager, 'updatePhoneNumber');
+      });
+
+      test('display the number back properly if the call errors', function() {
+        /*Callback the error function if this phone-call errors */
+        this.sinon.stub(MockTelephonyHelper, 'call').callsArg(5);
+
+        CallHandler.call(number, 0);
+
+        sinon.assert.calledWithMatch(spy, number, 'begin', false);
+      });
+    });
+
     suite('> bluetooth commands', function() {
       function sendCommand(command) {
         MockNavigatormozSetMessageHandler.mTrigger('bluetooth-dialer-command', {
@@ -492,9 +536,14 @@ suite('navigation bar', function() {
         callSpy = this.sinon.stub(CallHandler, 'call');
       });
 
-      test('> Dialing a specific number', function() {
-        sendCommand('ATD12345');
-        sinon.assert.calledWith(callSpy, '12345');
+      [0, 1].forEach(function(serviceId) {
+        test('> Dialing a specific number on user preferred SIM ' + serviceId,
+        function() {
+          this.sinon.spy(MockSimPicker, 'getOrPick');
+          MockSimSettingsHelper._defaultCards.outgoingCall = serviceId;
+          sendCommand('ATD12345');
+          sinon.assert.calledWith(MockSimPicker.getOrPick, serviceId, '12345');
+        });
       });
 
       suite('> Dialing the last recent entry', function() {

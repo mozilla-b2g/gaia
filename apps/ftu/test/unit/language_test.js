@@ -1,29 +1,31 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_language_list.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('ftu/js/language.js');
 
 suite('languages >', function() {
   var realSettings;
+  var realLanguageList;
+  var realL10n;
   suiteSetup(function() {
-
+    // mock l10n
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+    realLanguageList = window.LanguageList;
+    window.LanguageList = MockLanguageList;
     LanguageManager.settings = MockNavigatorSettings;
-    LanguageManager._languages = null;
     LanguageManager._kbLayoutList = null;
   });
 
   suiteTeardown(function() {
+    navigator.mozL10n = realL10n;
     navigator.mozSettings = realSettings;
     realSettings = null;
-  });
-
-  test('loads languages from file', function(done) {
-    LanguageManager.getSupportedLanguages(function() {
-      assert.isNotNull(LanguageManager._languages);
-      done();
-    });
+    window.LanguageList = realLanguageList;
   });
 
   test('change language', function() {
@@ -37,23 +39,22 @@ suite('languages >', function() {
     LanguageManager.handleEvent(fakeEvent);
     assert.equal(MockNavigatorSettings.mSettings[fakeEvent.target.name],
                  fakeEvent.target.value);
+    assert.equal(MockNavigatorSettings.mSettings['locale.hour12'], false);
   });
 
   test('build language list', function(done) {
-    var language = 'en-US';
-
     var section = document.createElement('section');
     section.id = 'languages';
     document.body.appendChild(section);
     var list = document.createElement('ul');
     section.appendChild(list);
 
-    LanguageManager.buildLanguageList(language);
+    LanguageManager.buildLanguageList();
     assert.equal(document.querySelectorAll('li').length,
-                 Object.keys(LanguageManager._languages).length);
+                 Object.keys(LanguageList._languages).length);
     var selected = document.querySelectorAll('input[type="radio"]:checked');
     assert.equal(selected.length, 1);
-    assert.equal(selected[0].value, language);
+    assert.equal(selected[0].value, 'en-US');
     done();
   });
 

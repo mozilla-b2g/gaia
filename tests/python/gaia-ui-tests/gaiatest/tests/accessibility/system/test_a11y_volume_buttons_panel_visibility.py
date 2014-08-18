@@ -45,9 +45,9 @@ class TestVolumeButtonsAccessibility(GaiaTestCase):
 
         self.toggle_screen_reader()
 
-        # Panel should not be visible again
-        self.assertFalse(self.data_layer.get_setting('accessibility.show-settings'))
-        self.assertFalse(self.is_element_displayed(
+        # Panel should still be visible
+        self.assertTrue(self.data_layer.get_setting('accessibility.show-settings'))
+        self.assertTrue(self.is_element_displayed(
             *self.settings._accessibility_menu_item_locator))
-        self.assertTrue(self.accessibility.is_hidden(self.marionette.find_element(
+        self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
             *self.settings._accessibility_menu_item_locator)))
