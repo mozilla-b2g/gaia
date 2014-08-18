@@ -103,40 +103,40 @@
   var markMyWord = false;
 
   // Terminate the worker when the keyboard is inactive for this long.
-  var WORKER_TIMEOUT = 30000;  // 30 seconds of idle time
+  const workerTimeout = 30000;  // 30 seconds of idle time
 
   // If we get an autorepeating key is sent to us, don't offer suggestions
   // for this long, until we're pretty certain that the autorepeat
   // has stopped.
-  var AUTOREPEAT_DELAY = 250;
+  const autorepeatDelay = 250;
 
   // Some keycodes that we use
-  var SPACE = KeyEvent.DOM_VK_SPACE;
-  var BACKSPACE = KeyEvent.DOM_VK_BACK_SPACE;
-  var RETURN = KeyEvent.DOM_VK_RETURN;
-  var PERIOD = 46;
-  var QUESTION = 63;
-  var EXCLAMATION = 33;
-  var COMMA = 44;
-  var COLON = 58;
-  var SEMICOLON = 59;
+  const SPACE = KeyEvent.DOM_VK_SPACE;
+  const BACKSPACE = KeyEvent.DOM_VK_BACK_SPACE;
+  const RETURN = KeyEvent.DOM_VK_RETURN;
+  const PERIOD = 46;
+  const QUESTION = 63;
+  const EXCLAMATION = 33;
+  const COMMA = 44;
+  const COLON = 58;
+  const SEMICOLON = 59;
 
   // all whitespace characters
   // U+FFFC place holder is added to white space
   // this enables suggestions
   // when cursor is before place holder.
-  var WS = /^[\s\ufffc]+$/;
+  const WS = /^[\s\ufffc]+$/;
 
   // word separator characters
   // U+FFFC is the placeholder character for non-text object
-  var WORDSEP = /^[\s.,?!;:\ufffc]+$/;
+  const WORDSEP = /^[\s.,?!;:\ufffc]+$/;
 
-  var DOUBLE_SPACE_TIME = 700; // ms between spaces to convert to ". "
+  const DOUBLE_SPACE_TIME = 700; // ms between spaces to convert to ". "
 
   // Don't offer to autocorrect unless we're reasonably certain that the
   // user wants this correction. The first suggested word must be at least
   // this much more highly weighted than the second suggested word.
-  var AUTO_CORRECT_THRESHOLD = 1.30;
+  const AUTO_CORRECT_THRESHOLD = 1.30;
 
   /*
    * Since inputContext.sendKey is an async fuction that will return a promise,
@@ -253,7 +253,7 @@
 
     if (!worker || idleTimer)
       return;
-    idleTimer = setTimeout(terminateWorker, WORKER_TIMEOUT);
+    idleTimer = setTimeout(terminateWorker, workerTimeout);
   }
 
   function terminateWorker() {
@@ -355,10 +355,8 @@
           // handleSuggestions has been appropriately modified to
           // show suggestions only if both workers have returned
 
-          // For now, just logging to console
-          // I need to correct my prediction algorithm to consider
-          // interposition apart from addition and removal
-          console.log(e.data.suggestions);
+          // We get the correct predictions from both the workers
+          // The only task remaining is to merge them
           break;
         }
       };
@@ -719,17 +717,11 @@
     if (suggestions.length === 0 || wordBeforeCursor() !== input) {
       // We don't have this word in the default dictionary
       // So we make arrangements for it to be added
-      markMyWord = true;
+      if(wordBeforeCursor() === input) {
+        markMyWord = true;
+      }
       keyboard.sendCandidates([]); // Clear any displayed suggestions
       return;
-    }
-
-    // If input is ucase, then make all suggestions ucase as well.
-    // Ignore input.length of 1, it never gets autocorrected anyway
-    if (input.length > 1 && isUpperCase(input)) {
-      for (var ix = 0; ix < suggestions.length; ix++) {
-        suggestions[ix][0] = suggestions[ix][0].toUpperCase();
-      }
     }
 
     // See if the user's input is a valid word on the list of suggestions
@@ -969,7 +961,7 @@
 
     // If we're still repeating, reset the repeat timer.
     if (repeat) {
-      suggestionsTimer = setTimeout(updateSuggestions, AUTOREPEAT_DELAY);
+      suggestionsTimer = setTimeout(updateSuggestions, autorepeatDelay);
       return;
     }
 
@@ -1157,9 +1149,6 @@
     dictionary.iDBVersion = localStorage.getItem("iDBVersion");
 
     handleIDB(dictionary.iDBVersion, word);
-
-    //debugging purpose, list out everything that the indexedDB has
-    showIDB(dictionary.iDBVersion);
   }
 
   function handleIDB(iDBVersion, word) {
@@ -1229,31 +1218,6 @@
     }
   }
 
-  // This function will be removed ASAP
-  function showIDB(iDBVersion) {
-    dictionary.iDBRequest = window.indexedDB.open("userDict", iDBVersion);
-    dictionary.iDBRequest.onerror = function(event) {
-      console.log("Database error: " + event.target.errorCode);
-    }
-    dictionary.iDBRequest.onsuccess = function(event) {
-      var db = event.target.result;
-      var objectStore = db.transaction(language).objectStore(language);
-      objectStore.openCursor().onsuccess = function(event) {
-        var cursor = event.target.result;
-        var logString = "";
-        if (cursor) {
-          logString += "Frequency for word " + cursor.key + " is " + 
-                        cursor.value.frequency + "\t";
-          cursor.continue();
-        }
-        else {
-          logString += "EOF";
-        }
-        console.log(logString);
-      }
-    }
-  }
-
   function instructUserWorker() {
     // Make a new TST if the version of indexedDB has changed
     if(hasVersionChanged) {
@@ -1269,8 +1233,7 @@
           objectStore.openCursor().onsuccess = function(event) {
             var cursor = event.target.result;
             if (cursor) {
-              dictionary.tempObjStore[cursor.key] =
-                                                     cursor.value.frequency;
+              dictionary.tempObjStore[cursor.key] = cursor.value.frequency;
               cursor.continue();
             }
           }

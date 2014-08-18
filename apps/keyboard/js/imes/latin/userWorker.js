@@ -32,17 +32,12 @@ self.onmessage = function(e) {
   Commands[e.data.cmd].apply(null, e.data.args);
 };
 
+var suggestions;
+
 // Send console messages back to the main thread with this method
 function log(msg) {
   postMessage({cmd: 'log', message: msg});
 }
-
-// Track our current language so we don't load dictionaries more often
-// than we have to.
-var currentLanguage;
-
-// The prediction that is currently running, if any. So that it can be cancelled
-var pendingPrediction;
 
 var Commands = {
   setDictionary: function setDictionary(objStore) {
@@ -59,6 +54,7 @@ var Commands = {
   },
 
   predict: function predict(prefix) {
-    UserPrediction.predict(prefix);
+    suggestions = UserPrediction.predict(prefix);
+    postMessage({cmd: 'predictions', input: prefix, suggestions: suggestions});
   }
 };
