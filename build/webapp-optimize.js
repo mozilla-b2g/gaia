@@ -585,31 +585,25 @@ HTMLOptimizer.prototype.mockWinObj = function() {
   };
 
   this.win.XMLHttpRequest = function() {
-    function open(type, url, async) {
-      this.status = 200;
-      this.responseText = self.getFileByRelativePath(url).content;
-    }
-
-    function addEventListener(type, cb) {
-      if (type === 'load') {
-        this.onload = cb;
-      }
-    }
-
-    function send() {
-      this.onload({
-        'target': {
-          'status': this.status,
-          'responseText': this.responseText,
-        }
-      });
-    }
-
     return {
-      open: open,
-      send: send,
-      addEventListener: addEventListener,
-      onload: null,
+      open: function(type, url, async) {
+        this.status = 200;
+        this.responseText = self.getFileByRelativePath(url).content;
+      },
+      send: function() {
+        this.onload({
+          'target': {
+            'status': this.status,
+            'responseText': this.responseText,
+          }
+        });
+      },
+      addEventListener: function(type, cb) {
+        if (type === 'load') {
+          this.onload = cb;
+        }
+      },
+      onload: null
     };
   };
 
