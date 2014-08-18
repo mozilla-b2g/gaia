@@ -8,6 +8,7 @@
 
 'use strict';
 
+require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_notification.js');
@@ -28,6 +29,7 @@ require('/test/unit/mock_messagedb.js');
 require('/test/unit/mock_whitelist.js');
 
 var mocksHelperWapPush = new MocksHelper([
+  'Dump',
   'LinkActionHandler',
   'MessageDB',
   'NotificationHelper',
