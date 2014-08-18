@@ -45,9 +45,9 @@
 }
 
 .lockScreenWindow:not(.bar) > .chrome .controls,
-.lockScreenWindow:not(.bar) > .chrome .progress,
+.lockScreenWindow:not(.bar) > .chrome gaia-progress,
 .homescreen:not(.bar) > .chrome .controls,
-.homescreen:not(.bar) > .chrome .progress {
+.homescreen:not(.bar) > .chrome gaia-progress {
   visibility: hidden;
 }
 
@@ -471,7 +471,7 @@
 }
 
 /* Progress */
-.appWindow:not(.bar).scrollable > .chrome .progress {
+.appWindow:not(.bar).scrollable > .chrome gaia-progress {
   top: 7.3rem;
 }
 
