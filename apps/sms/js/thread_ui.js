@@ -574,10 +574,16 @@ var ThreadUI = {
 
   afterEnterComposer: function thui_afterEnterComposer(args) {
     // TODO Bug 1010223: should move to beforeEnter
-    this.handleActivity(args.activity);
-    this.handleForward(args.forward);
-    this.handleDraft(+args.draftId);
-    this.recipients.focus();
+    if (args.activity) {
+      this.handleActivity(args.activity);
+    } else if (args.forward) {
+      this.handleForward(args.forward);
+    } else if (this.draft || args.draftId || Threads.currentId) {
+      // It would be nice to revisit these conditions in Bug 1010216.
+      this.handleDraft(+args.draftId);
+    } else {
+      this.recipients.focus();
+    }
 
     // not strictly necessary but better for consistency
     return Promise.resolve();
@@ -640,16 +646,12 @@ var ThreadUI = {
   },
 
   handleForward: function thui_handleForward(forward) {
-    // TODO use a promise here
-    if (!forward) {
-      return;
-    }
-
     var request = MessageManager.getMessage(+forward.messageId);
 
     request.onsuccess = (function() {
       Compose.fromMessage(request.result);
 
+      Recipients.View.isFocusable = true;
       ThreadUI.recipients.focus();
     }).bind(this);
 
@@ -659,10 +661,6 @@ var ThreadUI = {
   },
 
   handleActivity: function thui_handleActivity(activity) {
-    // TODO use a promise here
-    if (!activity) {
-      return;
-    }
     /**
      * Choose the appropriate contact resolver:
      *  - if we have a phone number and no contact, rely on findByAddress
@@ -699,6 +697,12 @@ var ThreadUI = {
       }
       Compose.fromMessage(activity);
     }
+
+    if (number) {
+      Compose.focus();
+    } else {
+      this.recipients.focus();
+    }
   },
 
   // recalling draft for composer only
@@ -731,6 +735,8 @@ var ThreadUI = {
 
       // Discard this draft object and update the backing store
       Drafts.delete(draft).store();
+    } else {
+      this.recipients.focus();
     }
 
     if (this.draft) {

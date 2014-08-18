@@ -515,7 +515,7 @@ suite('thread_ui.js >', function() {
       Compose.segmentInfo = segmentInfo;
       Compose.on.withArgs('segmentinfochange').yield();
     }
-    
+
     test('from start to first segment', function() {
       yieldSegmentInfo({
         segments: 0,
@@ -566,7 +566,7 @@ suite('thread_ui.js >', function() {
         'sms counter toast should not be showed in 3 seconds'
       );
     });
-    
+
     test('from first segment to second segment', function() {
       yieldSegmentInfo({
         segments: 1,
@@ -618,7 +618,7 @@ suite('thread_ui.js >', function() {
         'sms counter toast should not be showed in 3 seconds'
       );
     });
-    
+
     test('when type is changed to MMS', function() {
       yieldType('mms');
       yieldSegmentInfo({
@@ -5551,6 +5551,7 @@ suite('thread_ui.js >', function() {
         recipients: []
       });
       this.sinon.spy(Compose, 'fromDraft');
+      this.sinon.stub(Compose, 'focus');
       this.sinon.stub(Drafts, 'delete').returns(Drafts);
       this.sinon.stub(Drafts, 'store').returns(Drafts);
       this.sinon.spy(ThreadUI.recipients, 'add');
@@ -5584,12 +5585,19 @@ suite('thread_ui.js >', function() {
 
       sinon.assert.callOrder(Drafts.delete, Drafts.store);
     });
+
+    test('focus composer', function() {
+      ThreadUI.handleDraft();
+      sinon.assert.called(Compose.focus);
+    });
   });
 
   suite('handleActivity() >', function() {
     setup(function() {
       this.sinon.stub(Compose, 'fromDraft');
       this.sinon.stub(Compose, 'fromMessage');
+      this.sinon.stub(Compose, 'focus');
+      this.sinon.stub(ThreadUI.recipients, 'focus');
     });
 
     test('from activity with unknown contact', function() {
@@ -5635,12 +5643,35 @@ suite('thread_ui.js >', function() {
       assert.equal(ThreadUI.recipients.numbers.length, 0);
       sinon.assert.calledWith(Compose.fromMessage, activity);
     });
+
+    test('focus composer if there is at least one recipient', function() {
+      var activity = {
+        number: '998',
+        contact: null,
+        body: 'test'
+      };
+      ThreadUI.handleActivity(activity);
+      sinon.assert.called(Compose.focus);
+      sinon.assert.notCalled(ThreadUI.recipients.focus);
+    });
+
+    test('focus recipients if there isn\'t any contact or number', function() {
+      var activity = {
+        number: null,
+        contact: null,
+        body: 'Youtube url'
+      };
+      ThreadUI.handleActivity(activity);
+      sinon.assert.notCalled(Compose.focus);
+      sinon.assert.called(ThreadUI.recipients.focus);
+    });
   });
 
   suite('handleForward() >', function() {
     var message;
     setup(function() {
       this.sinon.spy(Compose, 'fromMessage');
+      this.sinon.stub(ThreadUI.recipients, 'focus');
       this.sinon.stub(MessageManager, 'getMessage', function(id) {
         switch (id) {
           case 1:
@@ -5693,6 +5724,15 @@ suite('thread_ui.js >', function() {
       sinon.assert.calledOnce(MessageManager.getMessage);
       sinon.assert.calledWith(MessageManager.getMessage, 3);
       sinon.assert.calledWith(Compose.fromMessage, message);
+    });
+
+    test(' focus recipients', function() {
+      var forward = {
+        messageId: 1
+      };
+      ThreadUI.handleForward(forward);
+      assert.isTrue(Recipients.View.isFocusable);
+      sinon.assert.called(ThreadUI.recipients.focus);
     });
   });
 
@@ -5849,17 +5889,18 @@ suite('thread_ui.js >', function() {
   }
 
   suite('switch to composer >', function() {
-    var transitionArgs = {
-      meta: {
-        next: { panel: 'composer', args: {} },
-        prev: { panel: 'thread-list', args: {} }
-      }
-    };
+    var transitionArgs;
 
     setup(function() {
+      transitionArgs = {
+        meta: {
+          next: { panel: 'composer', args: {} },
+          prev: { panel: 'thread-list', args: {} }
+        }
+      };
+
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
     });
-
 
     suite('beforeEnter()', function() {
       setup(function() {

@@ -425,18 +425,6 @@ var Compose = (function() {
       }, Compose);
 
       this.focus();
-
-      // Put the cursor at the end of the message
-      var selection = window.getSelection();
-      var range = document.createRange();
-      var lastChild = dom.message.lastChild;
-      if (lastChild.tagName === 'BR') {
-        range.setStartBefore(lastChild);
-      } else {
-        range.setStartAfter(lastChild);
-      }
-      selection.removeAllRanges();
-      selection.addRange(range);
     },
 
     /** Render message (sms or mms)
@@ -466,12 +454,10 @@ var Compose = (function() {
             }
           }, this);
           this.ignoreEvents = false;
-          this.focus();
         }.bind(this));
         this.ignoreEvents = true;
       } else {
         this.append(message.body);
-        this.focus();
       }
     },
 
@@ -613,6 +599,19 @@ var Compose = (function() {
 
     focus: function() {
       dom.message.focus();
+
+      // Put the cursor at the end of the message
+      var selection = window.getSelection();
+      var range = document.createRange();
+      var lastChild = dom.message.lastChild;
+      if (lastChild.tagName === 'BR') {
+        range.setStartBefore(lastChild);
+      } else {
+        range.setStartAfter(lastChild);
+      }
+      selection.removeAllRanges();
+      selection.addRange(range);
+
       return this;
     },
 

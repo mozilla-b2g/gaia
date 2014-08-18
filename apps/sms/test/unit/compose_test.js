@@ -962,7 +962,7 @@ suite('compose_test.js', function() {
       test('from sms', function() {
         Compose.fromMessage({type: 'sms', body: 'test'});
         sinon.assert.called(Compose.append);
-        sinon.assert.called(message.focus);
+        sinon.assert.notCalled(message.focus);
       });
 
       test('from mms', function() {
@@ -976,14 +976,14 @@ suite('compose_test.js', function() {
         SMIL.parse.yield([{text: testString[0]}, {text: testString[1]}]);
 
         sinon.assert.called(Compose.append);
-        sinon.assert.called(message.focus);
+        sinon.assert.notCalled(message.focus);
         assert.isFalse(message.classList.contains('ignoreEvents'));
       });
 
       test('empty body', function() {
         Compose.fromMessage({type: 'sms', body: null});
         sinon.assert.calledWith(Compose.append, null);
-        sinon.assert.called(message.focus);
+        sinon.assert.notCalled(message.focus);
       });
     });
 
