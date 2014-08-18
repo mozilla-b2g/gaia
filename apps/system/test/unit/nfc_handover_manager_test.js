@@ -88,14 +88,16 @@ suite('Nfc Handover Manager Functions', function() {
   suite('Activity Routing for NfcHandoverManager', function() {
     var activityInjection1;
     var activityInjection2;
+    var nfcUtils;
 
     setup(function() {
+      nfcUtils = new NfcUtils();
       activityInjection1 = {
         type: 'techDiscovered',
         techList: ['NFC_A','NDEF'],
         records: NDEFUtils.encodeHandoverSelect(
                                     '00:0D:44:E7:95:AB', NDEF.CPS_ACTIVE,
-                                    NfcUtils.fromUTF8('UE MINI BOOM')),
+                                    nfcUtils.fromUTF8('UE MINI BOOM')),
         sessionToken: '{e9364a8b-538c-4c9d-84e2-e6ce524afd17}'
       };
 

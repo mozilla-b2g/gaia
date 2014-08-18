@@ -2,6 +2,8 @@
 /*global MockNavigatormozApps, MockNavigatorSettings, MocksHelper, MockL10n*/
 /*global MockApplications, Applications*/
 
+require('/shared/js/nfc_utils.js');
+
 requireApp('system/shared/js/async_storage.js');
 requireApp('system/shared/js/lazy_loader.js');
 requireApp('system/shared/js/screen_layout.js');

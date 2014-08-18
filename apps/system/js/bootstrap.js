@@ -9,7 +9,7 @@
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
-         SoftwareButtonManager, Accessibility, ShrinkingUI,
+         SoftwareButtonManager, Accessibility, NfcUtils, ShrinkingUI,
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
          LockScreenNotifications, LockScreenPasscodeValidator */
 'use strict';
@@ -136,6 +136,7 @@ window.addEventListener('load', function startup() {
   window.lockScreenPasscodeValidator.start();
   window.layoutManager = new LayoutManager();
   window.layoutManager.start();
+  window.nfcUtils = new NfcUtils();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
   window.places = new Places();

@@ -57,11 +57,12 @@ contacts.NFC = (function() {
   };
 
   var sendContact = function() {
+     var nfcUtils = new NfcUtils();
      var NDEFRecord = new MozNDEFRecord(
        NDEF.TNF_MIME_MEDIA,
-       NfcUtils.fromUTF8('text/vcard'),
+       nfcUtils.fromUTF8('text/vcard'),
        new Uint8Array(),
-       NfcUtils.fromUTF8(vCardContact)
+       nfcUtils.fromUTF8(vCardContact)
      );
 
      var res = mozNfcPeer.sendNDEF([NDEFRecord]);

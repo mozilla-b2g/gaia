@@ -83,13 +83,14 @@ var NDEFUtils = {
   },
 
   _doParseHandoverNDEF: function doParseHandoverNDEF(msg) {
+    var nfcUtils = new NfcUtils();
     var hRecordBuffer = new NfcBuffer(msg[0].payload);
     var version = hRecordBuffer.getOctet();
 
     var h = {
       majorVersion: version >>> 4,
       minorVersion: version & 0x0f,
-      type: NfcUtils.toUTF8(msg[0].type),
+      type: nfcUtils.toUTF8(msg[0].type),
       ac: []
     };
 
@@ -101,7 +102,7 @@ var NDEFUtils = {
       throw Error('Record "' + h.type + '" not supported.');
     }
 
-    var hRecord = NfcUtils.parseNDEF(hRecordBuffer);
+    var hRecord = nfcUtils.parseNDEF(hRecordBuffer);
     if (!hRecord) {
       throw Error('Could not parse embedded NDEF in Hr/Hs record');
     }
@@ -111,7 +112,7 @@ var NDEFUtils = {
     }
 
     for (var i = 0; i < hRecord.length; i += 1) {
-      var type = NfcUtils.toUTF8(hRecord[i].type);
+      var type = nfcUtils.toUTF8(hRecord[i].type);
       if ('ac' === type) {
         h.ac.push(this._parseAlternativeCarrier(hRecord[i].payload, msg));
       } else if ('cr' === type) {
@@ -129,6 +130,7 @@ var NDEFUtils = {
   },
 
   _parseAlternativeCarrier: function _parseAlternativeCarrier(bytes, msg) {
+    var nfcUtils = new NfcUtils();
     var b = new NfcBuffer(bytes);
     var ac = {
       cps: b.getOctet() & 0x03
@@ -136,7 +138,7 @@ var NDEFUtils = {
 
     var recordId = b.getOctetArray(b.getOctet());
     ac.cdr = msg.filter(function(record) {
-      return NfcUtils.equalArrays(record.id, recordId);
+      return nfcUtils.equalArrays(record.id, recordId);
     }.bind(this))[0];
 
     if (!ac.cdr) {
@@ -162,10 +164,11 @@ var NDEFUtils = {
     * @return {Object} MozNDEFRecord with Bluetooth OOB.
     */
   searchForBluetoothAC: function searchForBluetoothAC(h) {
+    var nfcUtils = new NfcUtils();
     for (var i = 0; i < h.ac.length; i++) {
       var cdr = h.ac[i].cdr;
       if (cdr.tnf === NDEF.TNF_MIME_MEDIA) {
-        if (NfcUtils.equalArrays(cdr.type, NDEF.MIME_BLUETOOTH_OOB)) {
+        if (nfcUtils.equalArrays(cdr.type, NDEF.MIME_BLUETOOTH_OOB)) {
           return cdr;
         }
       }
@@ -186,6 +189,7 @@ var NDEFUtils = {
    *                   'localName' property. Null if cdr was invalid.
    */
   parseBluetoothSSP: function parseBluetoothSSP(cdr) {
+    var nfcUtils = new NfcUtils();
     if (!cdr || !cdr.payload || cdr.payload.length < 8) {
       return null;
     }
@@ -219,7 +223,7 @@ var NDEFUtils = {
       case 0x09:
         // Local name
         var n = buf.getOctetArray(len);
-        btssp.localName = NfcUtils.toUTF8(n);
+        btssp.localName = nfcUtils.toUTF8(n);
         break;
       default:
         // Ignore OOB value
@@ -307,6 +311,7 @@ var NDEFUtils = {
    *
    */
   encodeHandoverRequest: function encodeHandoverRequest(mac, cps) {
+    var nfcUtils = new NfcUtils();
     var m = this.parseMAC(mac);
     if (!m) {
       this.debug('Invalid BT MAC address: ' + mac);
@@ -325,7 +330,7 @@ var NDEFUtils = {
     var OOB = [OOBLength, 0].concat(m);
 
     // Payload ID
-    var pid = NfcUtils.fromUTF8('0');
+    var pid = nfcUtils.fromUTF8('0');
 
     var hr = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
                                 NDEF.RTD_HANDOVER_REQUEST,
@@ -375,6 +380,7 @@ var NDEFUtils = {
    *
    */
   encodeHandoverSelect: function encodeHandoverSelect(mac, cps, btDeviceName) {
+    var nfcUtils = new NfcUtils();
     var m = this.parseMAC(mac);
     if (!m) {
       this.debug('Invalid BT MAC address: ' + mac);
@@ -401,7 +407,7 @@ var NDEFUtils = {
     }
 
     // Payload ID
-    var pid = NfcUtils.fromUTF8('0');
+    var pid = nfcUtils.fromUTF8('0');
 
     var hs = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
                                 NDEF.RTD_HANDOVER_SELECT,
