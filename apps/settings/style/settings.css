@@ -189,6 +189,10 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
   top: 2.9rem !important;
 }
 
+.hint span {
+  line-height: 6rem;
+}
+
 .hint .explanation {
   font-style: normal;
   position: relative;
@@ -263,22 +267,20 @@ section[data-security*="EAP"] li.auth-phase2,
 section[data-security*="EAP"] li.server-certificate,
 section[data-security*="EAP"] li.server-certificate-description,
 section[data-security*="EAP"] li.identity {
-  display: block;
+  display: inherit;
 }
 
 section li.password {
-  display: block; /*asf*/
+  display: inherit; /*asf*/
   height: 12rem;
   padding-right: 0;
 }
 
 section li.password > label {
-  position: absolute;
-  top: 8.3rem;
-  left: 0;
-  right: 1.5rem;
   height: 3rem;
-  z-index: 1;
+  min-height: 0;
+  margin-top: 0.5rem;
+  margin-left: 0;
 }
 
 section li.password > label > span:after {
@@ -287,17 +289,17 @@ section li.password > label > span:after {
   margin-left: 0;
 }
 
+
 section li.password > label > span {
-  position: absolute;
-  left: 1.5rem;
   padding-left: 3rem;
   height: 3rem;
   color: #848484;
   font-size: 1.7rem;
   line-height: 3rem;
+  margin-right: 1.5rem;
 }
 
-section li.password > label:active > span {
+section li.password > label:active {
   background-color: transparent;
   color: #848484;
 }
@@ -391,7 +393,7 @@ section ul.operate-certificate {
 #menuItem-callWaiting .checkbox-label,
 #menuItem-callWaiting[data-state="on"] .checkbox-label,
 #menuItem-callWaiting[data-state="off"] .checkbox-label {
-  display: block;
+  display: inherit;
 }
 
 #menuItem-callWaiting .alert-label,
@@ -405,7 +407,7 @@ section ul.operate-certificate {
 }
 
 #menuItem-callWaiting[data-state="unknown"] .alert-label {
-  display: block;
+  display: inherit;
 }
 
 #menuItem-callWaiting .alert-label > span {
@@ -616,6 +618,11 @@ ul li > label.range-icons.volume input {
   opacity: 0;
 }
 
+#dateTime .time-manual label {
+  min-height: 0;
+  height: 0;
+  display: block;
+}
 
 /******************************************************************************
  * Improve Browser OS
@@ -881,14 +888,14 @@ html[dir="rtl"] section li.password > label {
 
 html[dir="rtl"] section li.password > label > span:after {
   left: auto;
-  right: 0;
+  right: 1.5rem;
   margin-left: auto;
   margin-right: 0;
 }
 
 html[dir="rtl"] section li.password > label > span {
-  left: auto;
-  right: 1.5rem;
+  margin-left: 0;
+  margin-right: 0;
   padding-right: 3rem;
 }
 

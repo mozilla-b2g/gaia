@@ -55,15 +55,12 @@ define(function(require) {
         elements.developerInfos.hidden = false;
         elements.developerHeader.hidden = false;
         if (!developer.url) {
-          delete elements.developerName.dataset.href;
           delete elements.developerLink.href;
-          elements.developerLink.hidden = true;
+          elements.developerUrl.hidden = true;
         } else {
-          elements.developerLink.hidden = false;
-          elements.developerName.dataset.href = developer.url;
+          elements.developerUrl.hidden = false;
           elements.developerLink.href = developer.url;
-          elements.developerLink.dataset.href = developer.url;
-          elements.developerLink.textContent = developer.url;
+          elements.developerUrl.textContent = developer.url;
         }
       }
       if (!mozPerms) {

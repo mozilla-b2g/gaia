@@ -93,7 +93,7 @@ require([
 
   Volume.prototype.createView = function volume_createView(listRoot) {
     // declair re-useable variables
-    var l10nId, li, label, text, size;
+    var l10nId, li, label, text, size, anchor;
 
     // create header
     var h2 = document.createElement('h2');
@@ -118,29 +118,33 @@ require([
     ITEM_TYPE.forEach(function(type) {
       label = document.createElement('span');
       label.classList.add('stackedbar-color-label');
+      anchor = document.createElement('a');
       size = document.createElement('span');
       size.classList.add('size');
       size.hidden = true;
-      text = document.createElement('a');
+      text = document.createElement('span');
       l10nId = type + '-space';
       text.setAttribute('data-l10n-id', l10nId);
-      text.appendChild(size);
+      anchor.appendChild(text);
+      anchor.appendChild(size);
       li = document.createElement('li');
       li.classList.add('color-' + type);
       li.appendChild(label);
-      li.appendChild(text);
+      li.appendChild(anchor);
       self.rootElement.appendChild(li);
     });
 
+    anchor = document.createElement('a');
     size = document.createElement('span');
     size.classList.add('size');
     size.hidden = true;
-    text = document.createElement('a');
+    text = document.createElement('span');
     l10nId = 'total-space';
     text.setAttribute('data-l10n-id', l10nId);
-    text.appendChild(size);
+    anchor.appendChild(text);
+    anchor.appendChild(size);
     li = document.createElement('li');
-    li.appendChild(text);
+    li.appendChild(anchor);
     this.rootElement.appendChild(li);
 
     var buttonType = 'format-sdcard';
@@ -186,7 +190,7 @@ require([
 
       // update total space size
       var element =
-        self.rootElement.querySelector('a[data-l10n-id="total-space"] .size');
+        self.rootElement.querySelector('[data-l10n-id="total-space"] + .size');
       DeviceStorageHelper.showFormatedSize(element, 'storageSize',
                                            sizes['sdcard'] + sizes['free']);
       element.hidden = false;

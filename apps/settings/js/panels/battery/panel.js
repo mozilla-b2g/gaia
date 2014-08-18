@@ -17,7 +17,8 @@ define(function(require) {
 
     return SettingsPanel({
       onInit: function bp_onInit(rootElement) {
-        _batteryLevelText = rootElement.querySelector('#battery-level *');
+        _batteryLevelText = rootElement.querySelector(
+          '#battery-level span:last-of-type');
       },
       onBeforeShow: function bp_onBeforeShow(rootElement) {
         Battery.observe('level', _refreshText);
