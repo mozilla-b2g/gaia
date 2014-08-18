@@ -555,7 +555,17 @@ contacts.List = (function() {
   var getSearchString = function getSearchString(contact, display) {
     display = display || contact;
     var searchInfo = [];
-    var searchable = ['givenName', 'familyName'];
+    var searchable = [];
+    var familyName = (display.familyName && display.familyName[0]) || '';
+    if (utils.phonetic.isCJK(String(familyName))) {
+      searchable.push('familyName');
+      searchable.push('givenName');
+      searchable.push('phoneticFamilyName');
+      searchable.push('phoneticGivenName');
+    } else {
+      searchable.push('givenName');
+      searchable.push('familyName');
+    }
     searchable.forEach(function(field) {
       var value = getStringValue(display, field);
       if (value) {
@@ -589,10 +599,17 @@ contacts.List = (function() {
       fs.textContent = content;
       return fs;
     }
-
-    if (orderByLastName) {
+    
+    var cjk = utils.phonetic.isCJK(String(familyName));
+    if (orderByLastName && cjk) {
+      ele.appendChild(createStrongTag(familyName));
+      ele.appendChild(document.createTextNode(' ' + givenName));
+    } else if (orderByLastName && !cjk) {
       ele.appendChild(document.createTextNode(givenName + ' '));
       ele.appendChild(createStrongTag(familyName));
+    } else if (!orderByLastName && cjk) {
+      ele.appendChild(document.createTextNode(familyName + ' '));
+      ele.appendChild(createStrongTag(givenName));
     } else {
       ele.appendChild(createStrongTag(givenName));
       ele.appendChild(document.createTextNode(' ' + familyName));
@@ -1029,7 +1046,13 @@ contacts.List = (function() {
   var getAllContacts = function cl_getAllContacts(errorCb, successCb) {
     loading = true;
     initOrder(function onInitOrder() {
-      var sortBy = (orderByLastName === true ? 'familyName' : 'givenName');
+      var sortBy;
+      if (utils.phonetic.isJapaneseLang()) {
+        sortBy = (orderByLastName ?
+          'phoneticFamilyName' : 'phoneticGivenName');
+      } else {
+        sortBy = (orderByLastName ? 'familyName' : 'givenName');
+      }
       var options = {
         sortBy: sortBy,
         sortOrder: 'ascending'
@@ -1126,7 +1149,10 @@ contacts.List = (function() {
   // Fills the contact data to display if no givenName and familyName
   var getDisplayName = function getDisplayName(contact) {
     if (hasName(contact)) {
-      return { givenName: contact.givenName, familyName: contact.familyName };
+      return { givenName: contact.givenName,
+               familyName: contact.familyName,
+               phoneticGivenName: contact.phoneticGivenName,
+               phoneticFamilyName: contact.phoneticFamilyName};
     }
 
     var givenName = [];

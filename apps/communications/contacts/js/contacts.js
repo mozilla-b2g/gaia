@@ -828,6 +828,9 @@ var Contacts = (function() {
       var actHandler = ActivityHandler.handle.bind(ActivityHandler);
       window.navigator.mozSetMessageHandler('activity', actHandler);
     }
+    navigator.mozSettings.addObserver('language.current', function(value) {
+      renderPhonetic();
+    });
 
     document.addEventListener('visibilitychange', function visibility(e) {
       if (ActivityHandler.currentlyHandling && document.hidden) {
@@ -843,6 +846,21 @@ var Contacts = (function() {
         });
       }
     });
+  };
+
+  var renderPhonetic = function renderPhonetic() {
+    if (document.documentElement.lang === navigator.mozL10n.language.code) {
+      return;
+    }
+
+    if (utils.phonetic.isJapaneseLang()) {
+      contacts.Form.showPhoneticInputArea();
+      contacts.Details.showPhoneticArea();
+    } else {
+      contacts.Form.hidePhoneticInputArea();
+      contacts.Details.hidePhoneticArea();
+    }
+    document.documentElement.lang = navigator.mozL10n.language.code;
   };
 
   navigator.mozL10n.once(initContacts);

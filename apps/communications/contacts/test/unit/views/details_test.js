@@ -10,6 +10,7 @@
 /* global MockExtFb */
 /* global Mockfb */
 /* global MocksHelper */
+/* global MockPhonetic */
 /* global MockUtils */
 /* global MultiSimActionButton */
 /* global Normalizer */
@@ -39,12 +40,14 @@ require('/dialer/test/unit/mock_telephony_helper.js');
 
 
 requireApp('communications/contacts/js/views/details.js');
+requireApp('communications/contacts/js/views/list.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
+requireApp('communications/contacts/test/unit/mock_phonetic_contact_fields.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
@@ -73,6 +76,7 @@ var _ = function(key) { return key; },
     realContacts,
     realFb,
     mockContact,
+    phoneticName,
     fbButtons,
     linkButtons,
     realContactsList,
@@ -93,6 +97,26 @@ var mocksHelperForDetailView = new MocksHelper([
   'TelephonyHelper',
   'ActivityHandler'
 ]).init();
+
+function renderPhoneticName(contact) {
+  var phoneticNameText = '';
+
+  if (contact.phoneticFamilyName && contact.phoneticFamilyName.length > 0 &&
+      contact.phoneticFamilyName[0] !== '') {
+    phoneticNameText = contact.phoneticFamilyName[0] + ' ';
+  }
+  if (contact.phoneticGivenName && contact.phoneticGivenName.length > 0 &&
+      contact.phoneticGivenName[0] !== '') {
+    phoneticNameText += contact.phoneticGivenName[0];
+  }
+
+  if (phoneticNameText !== '') {
+    phoneticName.textContent = phoneticNameText;
+    phoneticName.classList.remove('hide');
+  } else {
+    phoneticName.classList.add('hide');
+  }
+}
 
 suite('Render contact', function() {
   mocksHelperForDetailView.attachTestHelpers();
@@ -166,6 +190,7 @@ suite('Render contact', function() {
     cover = dom.querySelector('#cover-img');
     detailsInner = dom.querySelector('#contact-detail-inner');
     favoriteMessage = dom.querySelector('#toggle-favorite').children[0];
+    phoneticName = dom.querySelector('#phonetic-name');
     backButton = dom.querySelector('#details-back');
 
     fbButtons = [
@@ -177,6 +202,8 @@ suite('Render contact', function() {
     linkButtons = [
       '#link_button'
     ];
+
+    utils.phonetic = MockPhonetic;
   });
 
   suiteTeardown(function() {
@@ -253,6 +280,32 @@ suite('Render contact', function() {
       subject.setContact(contactWoFav);
       subject.render(null, TAG_OPTIONS);
       assert.isFalse(detailsName.classList.contains('favorite'));
+    });
+  });
+
+  suite('Render phonetic name', function() {
+    test('with phonetic name', function() {
+      phoneticName.textContent = null;
+      subject.setContact(mockContact);
+      subject.render(null, TAG_OPTIONS);
+      var phonetic = mockContact.phoneticFamilyName + ' ' +
+        mockContact.phoneticGivenName;
+      utils.phonetic.setJapaneseLang(true);
+      if (utils.phonetic.isJapaneseLang()) {
+        renderPhoneticName(mockContact);
+      }
+      utils.phonetic.setJapaneseLang(false);
+      assert.equal(phoneticName.textContent, phonetic);
+    });
+
+    test('without phonetic name', function() {
+      var contactWoPhonetic = new MockContactAllFields(true);
+      contactWoPhonetic.phoneticFamilyName = null;
+      contactWoPhonetic.phoneticGivenName = null;
+      phoneticName.textContent = null;
+      subject.setContact(contactWoPhonetic);
+      subject.render(null, TAG_OPTIONS);
+      assert.equal(phoneticName.textContent, '');
     });
   });
 

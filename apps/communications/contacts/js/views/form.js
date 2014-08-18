@@ -36,6 +36,8 @@ contacts.Form = (function() {
       givenName,
       company,
       familyName,
+      phoneticGivenName,
+      phoneticFamilyName,
       configs,
       _,
       formView,
@@ -106,6 +108,14 @@ contacts.Form = (function() {
     familyName = dom.getElementById('familyName');
     formView = dom.getElementById('view-contact-form');
     throbber = dom.getElementById('throbber');
+    phoneticGivenName = dom.getElementById('phoneticGivenName');
+    phoneticFamilyName = dom.getElementById('phoneticFamilyName');
+
+    if (utils.phonetic.isJapaneseLang()) {
+      showPhoneticInputArea();
+    } else {
+      hidePhoneticInputArea();
+    }
     var phonesContainer = dom.getElementById('contacts-form-phones');
     var emailContainer = dom.getElementById('contacts-form-emails');
     var addressContainer = dom.getElementById('contacts-form-addresses');
@@ -267,6 +277,8 @@ contacts.Form = (function() {
                        contact.familyName.length > 0) ?
                        contact.familyName[0] : '';
     company.value = contact.org && contact.org.length > 0 ? contact.org[0] : '';
+    phoneticGivenName.value = contact.phoneticGivenName || '';
+    phoneticFamilyName.value = contact.phoneticFamilyName || '';
 
     if (nonEditableValues[company.value]) {
       var nodeClass = company.parentNode.classList;
@@ -353,6 +365,8 @@ contacts.Form = (function() {
     givenName.value = params.givenName || '';
     familyName.value = params.lastName || '';
     company.value = params.company || '';
+    phoneticGivenName.value = params.phoneticGivenName || '';
+    phoneticFamilyName.value = params.phoneticLastName || '';
 
     var toRender = ['tel', 'email', 'adr', 'date', 'note'];
     for (var i = 0; i < toRender.length; i++) {
@@ -638,6 +652,8 @@ contacts.Form = (function() {
     var inputs = {
       'givenName': givenName,
       'familyName': familyName,
+      'phoneticGivenName': phoneticGivenName,
+      'phoneticFamilyName': phoneticFamilyName,
       'org': company
     };
 
@@ -1106,6 +1122,8 @@ contacts.Form = (function() {
     currentContact = {};
     givenName.value = '';
     familyName.value = '';
+    phoneticGivenName.value = '';
+    phoneticFamilyName.value = '';
     company.value = '';
     thumb.style.backgroundImage = '';
     var phones = dom.querySelector('#contacts-form-phones');
@@ -1350,12 +1368,32 @@ contacts.Form = (function() {
     };
   }
 
+  var showPhoneticInputArea = function renderPhoneticInputArea() {
+    if (phoneticGivenName) {
+      phoneticGivenName.classList.remove('hide');
+    }
+    if (phoneticFamilyName) {
+      phoneticFamilyName.classList.remove('hide');
+    }
+  };
+
+  var hidePhoneticInputArea = function renderPhoneticInputArea() {
+    if (phoneticGivenName) {
+      phoneticGivenName.classList.add('hide');
+    }
+    if (phoneticFamilyName) {
+      phoneticFamilyName.classList.add('hide');
+    }
+  };
+
   return {
     'init': init,
     'render': render,
     'insertField': insertField,
     'saveContact': saveContact,
     'onNewFieldClicked': onNewFieldClicked,
+    'showPhoneticInputArea': showPhoneticInputArea,
+    'hidePhoneticInputArea': hidePhoneticInputArea,
     'pickImage': pickImage
   };
 })();
