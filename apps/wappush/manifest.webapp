@@ -26,6 +26,7 @@
   "permissions": {
     "desktop-notification": {},
     "settings": { "access": "readwrite" },
-    "wappush": {}
+    "wappush": {},
+    "mobileconnection": {}
   }
 }
