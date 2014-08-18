@@ -151,6 +151,7 @@
   height: 100%;
 }
 
+#screen.active-statusbar #windows .appWindow > .chrome,
 #screen.active-statusbar #windows .appWindow > .titlebar {
   height: 0;
 }
