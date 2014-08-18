@@ -85,6 +85,7 @@ var ThreadUI = {
   init: function thui_init() {
     var templateIds = [
       'message',
+      'message-sim-information',
       'not-downloaded',
       'recipient',
       'date-group'
@@ -1584,7 +1585,13 @@ var ThreadUI = {
     messageDOM.dataset.messageId = message.id;
     messageDOM.dataset.iccId = message.iccId;
     var simServiceId = Settings.getServiceIdByIccId(message.iccId);
-    messageDOM.classList.toggle('has-sim-information', simServiceId !== null);
+    var showSimInformation = Settings.hasSeveralSim() && simServiceId !== null;
+    var simInformationHTML = '';
+    if (showSimInformation) {
+      simInformationHTML = this.tmpl.messageSimInformation.interpolate({
+        simNumberL10nArgs: JSON.stringify({ id: simServiceId + 1 })
+      });
+    }
 
     messageDOM.innerHTML = this.tmpl.message.interpolate({
       id: String(message.id),
@@ -1594,12 +1601,11 @@ var ThreadUI = {
       // Incoming and outgoing messages are displayed using different
       // backgrounds, therefore progress indicator should be styled differently.
       progressIndicatorClassName: isIncoming ? 'light' : '',
-      simNumberL10nArgs: JSON.stringify({ id: simServiceId + 1 })
+      simInformationHTML: simInformationHTML
     }, {
-      safe: ['bodyHTML']
+      safe: ['bodyHTML', 'simInformationHTML']
     });
 
-    navigator.mozL10n.translate(messageDOM);
     TimeHeaders.update(messageDOM.querySelector('time'));
 
     var pElement = messageDOM.querySelector('p');

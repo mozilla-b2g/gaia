@@ -107,14 +107,6 @@
   display: unset;
 }
 
-.message-sim-information {
-  display: none;
-}
-
-.has-sim-information .message-sim-information {
-  display: unset;
-}
-
 .message-sim-information::after {
   content: ' ‧ '
 }

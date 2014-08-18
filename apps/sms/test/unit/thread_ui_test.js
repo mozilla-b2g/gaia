@@ -2293,12 +2293,24 @@ suite('thread_ui.js >', function() {
         Settings.getServiceIdByIccId.withArgs(iccId).returns(serviceId);
       });
 
+      this.sinon.stub(Settings, 'hasSeveralSim').returns(false);
+
       // testing with serviceId both equal to 0 and not 0, to check we handle
       // correctly falsy correct values
       tests.forEach((iccId, serviceId) => {
         var node = ThreadUI.buildMessageDOM(MockMessages.mms({ iccId: iccId }));
-        assert.isTrue(node.classList.contains('has-sim-information'));
+        assert.isNull(
+          node.querySelector('.message-sim-information'),
+          'The SIM information is not displayed'
+        );
+      });
+
+      Settings.hasSeveralSim.returns(true);
+
+      tests.forEach((iccId, serviceId) => {
+        var node = ThreadUI.buildMessageDOM(MockMessages.mms({ iccId: iccId }));
         var simInformationNode = node.querySelector('.message-sim-information');
+        assert.ok(simInformationNode, 'The SIM information is displayed');
         var simInformation = JSON.parse(simInformationNode.dataset.l10nArgs);
         assert.equal(simInformation.id, serviceId + 1);
       });
