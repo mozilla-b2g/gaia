@@ -22,12 +22,12 @@ marionette('Dev Tools server', function() {
 
   test('is running and listening', function() {
     var debuggerServerInited = client.executeScript(function() {
-      Cu.import('resource:///modules/devtools/dbg-server.jsm');
+      Cu.import('resource://gre/modules/devtools/dbg-server.jsm');
       return DebuggerServer.initialized;
     });
     assert.ok(debuggerServerInited, 'Debugger server initialized');
     var debuggerServerSockets = client.executeScript(function() {
-      Cu.import('resource:///modules/devtools/dbg-server.jsm');
+      Cu.import('resource://gre/modules/devtools/dbg-server.jsm');
       return DebuggerServer.listeningSockets;
     });
     assert.equal(debuggerServerSockets, 1, 'Debugger server listening');
