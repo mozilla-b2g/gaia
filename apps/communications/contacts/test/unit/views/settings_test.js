@@ -8,7 +8,6 @@
 /* global MocksHelper */
 /* global MockIccManager */
 /* global MockMozContacts */
-/* global MockNavigatorMozMobileConnection */
 /* global MockNavigatorMozMobileConnections */
 /* global MockMozL10n */
 /* global MockSdCard */
@@ -19,7 +18,6 @@ require('/shared/js/contacts/import/utilities/misc.js');
 require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
 require('/shared/test/unit/mocks/mock_iccmanager.js');
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
@@ -45,7 +43,6 @@ if (!navigator.onLine) { navigator.onLine = null; }
 if (!navigator.mozContacts) { navigator.mozContacts = null; }
 if (!navigator.mozIccManager) { navigator.mozIccManager = null; }
 if (!navigator.mozMobileConnections) { navigator.mozMobileConnections = null; }
-if (!navigator.mozMobileConnection) { navigator.mozMobileConnection = null; }
 
 if (!window.Rest) {
   window.Rest = null;
@@ -61,7 +58,6 @@ var fb,
     realCookie,
     realOnLine,
     realMozIccManager,
-    realMozMobileConnection,
     realMozMobileConnections;
 
 if (!window.realMozContacts) {
@@ -147,9 +143,7 @@ suite('Contacts settings >', function() {
     // This test sets an scenario of two sim cards
     suiteSetup(function() {
       realMozMobileConnections = navigator.mozMobileConnections;
-      realMozMobileConnection = navigator.mozMobileConnection;
       navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
-      navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
       Contacts.showStatus = utils.status.show;
 
       realMozIccManager = navigator.mozIccManager;
@@ -160,7 +154,6 @@ suite('Contacts settings >', function() {
     });
     suiteTeardown(function() {
       navigator.mozMobileConnections = realMozMobileConnections;
-      navigator.mozMobileConnection = realMozMobileConnection;
     });
 
     setup(function() {
