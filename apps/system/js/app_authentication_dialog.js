@@ -67,9 +67,9 @@
     };
 
     this.elementClasses = [
-      'http-authentication', 'http-username-input', 'http-password-input',
+      'http-username-input', 'http-password-input',
       'http-authentication-message', 'http-authentication-ok',
-      'http-authentication-cancel', 'title'
+      'http-authentication-cancel'
     ];
 
     this.elementClasses.forEach(function createElementRef(name) {
@@ -83,36 +83,32 @@
    * @memberof AppAuthenticationDialog.prototype
    */
   AppAuthenticationDialog.prototype.view = function aad_view() {
-    return '<div class="authentication-dialog" ' +
-            'id="' + this.CLASS_NAME + this.instanceID + '">' +
-            '<div role="dialog" ' +
-            'class="authentication-dialog-http-authentication ' +
-            'generic-dialog" >' +
-            '<div class="authentication-dialog-message-container inner">' +
-              '<h3 class="authentication-dialog-title"></h3>' +
-              '<p>' +
-                '<span ' +
-                'class="authentication-dialog-http-authentication-message">' +
-                '</span>' +
-              '</p>' +
-              '<p>' +
-                '<span data-l10n-id="username">Username</span>' +
-                '<input class="authentication-dialog-http-username-input" ' +
-                'type="text" />' +
-                '<span data-l10n-id="password">Password</span>' +
-                '<input class="authentication-dialog-http-password-input" ' +
-                'type="password" />' +
-              '</p>' +
-            '</div>' +
-            '<menu data-items="2">' +
-              '<button ' +
-              'class="authentication-dialog-http-authentication-cancel" ' +
-              'data-l10n-id="cancel">Cancel</button>' +
-              '<button class="authentication-dialog-http-authentication-ok ' +
-              'affirmative" data-l10n-id="login">Login</button>' +
-            '</menu>' +
-          '</div>' +
-        '</div>';
+    return '<section class="authentication-dialog skin-organic" ' +
+            'id="' + this.CLASS_NAME + this.instanceID + '"' +
+            'role="region">' +
+            '<header>' +
+              '<button class="'+
+              'authentication-dialog-http-authentication-cancel">' +
+                '<span class="icon icon-close">close</span>' +
+              '</button>' +
+              '<menu type="toolbar">' +
+                '<button class="' +
+                'authentication-dialog-http-authentication-ok" ' +
+                'data-l10n-id="login">Login</button>' +
+              '</menu>' +
+              '<h1 data-l10n-id="sign-in-to-website">Sign in to website</h1>' +
+            '</header>' +
+            '<span class="authentication-dialog-http-authentication-message">' +
+            '</span>' +
+            '<label data-l10n-id="username">Username' +
+              '<input type="text" ' +
+              'class="authentication-dialog-http-username-input" />' +
+            '</label>' +
+            '<label data-l10n-id="password">Password' +
+              '<input type="password" ' +
+              'class="authentication-dialog-http-password-input" />' +
+            '</label>' +
+          '</section>';
   };
 
   /**
@@ -161,10 +157,10 @@
     var evt = this._event;
     var elements = this.elements;
     this.element.classList.add('visible');
-    elements.httpAuthentication.classList.add('visible');
     System.debug(' AAD>> showing');
-    elements.title.textContent = evt.detail.host;
-    elements.httpAuthenticationMessage.textContent = evt.detail.realm;
+    elements.httpAuthenticationMessage.textContent =
+      navigator.mozL10n.get('http-authentication-message2',
+      {host: evt.detail.host});
     elements.httpUsernameInput.value = '';
     elements.httpPasswordInput.value = '';
   };
@@ -176,7 +172,6 @@
   AppAuthenticationDialog.prototype.hide = function aad_hide() {
     this.elements.httpUsernameInput.blur();
     this.elements.httpPasswordInput.blur();
-    this.elements.httpAuthentication.classList.remove('visible');
     this.element.classList.remove('visible');
     System.debug(' AAD>> hided');
   };

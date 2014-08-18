@@ -2,15 +2,17 @@
 /* global AppAuthenticationDialog */
 /* global AppWindow */
 /* global MocksHelper */
+/* global MockL10n */
 
 requireApp('system/test/unit/mock_app_window.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForAppAuthDialog = new MocksHelper([
   'AppWindow'
 ]).init();
 
 suite('system/AppAuthenticationDialog', function() {
-  var stubById, stubQuerySelector;
+  var stubById, stubQuerySelector, realL10n;
   mocksForAppAuthDialog.attachTestHelpers();
   setup(function(done) {
     stubById = this.sinon.stub(document, 'getElementById');
@@ -18,6 +20,8 @@ suite('system/AppAuthenticationDialog', function() {
     stubQuerySelector = this.sinon.stub(e, 'querySelector');
     stubQuerySelector.returns(document.createElement('div'));
     stubById.returns(e);
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
     requireApp('system/js/system.js');
     requireApp('system/js/base_ui.js');
@@ -27,6 +31,7 @@ suite('system/AppAuthenticationDialog', function() {
   teardown(function() {
     stubById.restore();
     stubQuerySelector.restore();
+    navigator.mozL10n = realL10n;
   });
 
   var fakeAppConfig1 = {

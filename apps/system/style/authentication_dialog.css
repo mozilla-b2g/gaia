@@ -1,0 +1,25 @@
+.authentication-dialog {
+  display: block;
+  position: absolute;
+  top: 3rem; /* Height of status bar */
+  left: 0;
+  width: 100%;
+  height: calc(100% - 3rem); /* Height of status bar */
+  background-color: #EEEEEE;
+  font-weight: normal;
+}
+
+.authentication-dialog-http-authentication-message {
+  display: block;
+  font-size: 1.5rem;
+  margin: 1rem 2rem;
+  color: #000;
+}
+
+.authentication-dialog label {
+  display: block;
+  margin: 1rem 2rem;
+  text-transform: uppercase;
+  font-size: 1.4rem;
+  color: #000;
+ }
