@@ -1,5 +1,4 @@
-/*global
-        MessageManager,
+/*global MessageManager,
         MockNavigatormozMobileMessage,
         MocksHelper,
         MockMessages,

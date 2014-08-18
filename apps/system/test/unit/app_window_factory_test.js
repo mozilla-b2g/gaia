@@ -1,5 +1,4 @@
-/* global
-   MocksHelper,
+/* global MocksHelper,
    AppWindowFactory,
    MockApplications,
    MockAppWindowManager,

@@ -1,5 +1,4 @@
-/* global
-      Promise,
+/* global Promise,
       Utils,
       Startup
 */

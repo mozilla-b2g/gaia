@@ -1,5 +1,4 @@
-/* global
-  MockAudio,
+/* global MockAudio,
   MockNavigatorMozChromeNotifications,
   MockNavigatorSettings,
   MockStatusBar,

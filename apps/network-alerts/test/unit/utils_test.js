@@ -1,6 +1,4 @@
-/* global
-  Utils
- */
+/* global Utils */
 
 'use strict';
 

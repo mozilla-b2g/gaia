@@ -1,5 +1,4 @@
-/*global
-   Dialog,
+/*global Dialog,
    ErrorDialog,
    MocksHelper,
    Settings

@@ -1,5 +1,4 @@
-/*global
-   loadBodyHTML,
+/*global loadBodyHTML,
    Dialog,
    MockL10n
 */

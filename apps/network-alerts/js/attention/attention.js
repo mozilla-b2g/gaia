@@ -1,5 +1,4 @@
-/* global
-  Notification,
+/* global Notification,
   Promise,
   Utils
 */

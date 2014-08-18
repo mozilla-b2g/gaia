@@ -2,8 +2,7 @@
   Settings Tests
 */
 
-/*global
-   Settings,
+/*global Settings,
    MockNavigatorSettings,
    MockL10n,
    MocksHelper,

@@ -1,5 +1,4 @@
-/*global
-        EventDispatcher,
+/*global EventDispatcher,
         Set
 */
 

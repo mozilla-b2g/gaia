@@ -1,5 +1,4 @@
-/*global
-  KeyboardManager, sinon, KeyboardHelper, MockKeyboardHelper,
+/*global KeyboardManager, sinon, KeyboardHelper, MockKeyboardHelper,
   MocksHelper, TransitionEvent, MockNavigatorSettings, Applications, Promise */
 'use strict';
 
