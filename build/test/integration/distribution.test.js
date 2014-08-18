@@ -79,8 +79,8 @@ suite('Distribution mechanism', function() {
       path.join(cusDir, 'support.json'), true);
 
     helper.checkFileContentByPathInZip(
-      setingsZipPath, 'resources/sensors.json',
-      path.join(cusDir, 'sensors.json'), true);
+      setingsZipPath, 'resources/device-features.json',
+      path.join(cusDir, 'device-features.json'), true);
   }
 
   function validateOperatorVariant() {

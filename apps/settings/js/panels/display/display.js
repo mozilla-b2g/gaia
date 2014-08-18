@@ -20,13 +20,13 @@ define(function(require) {
 
   Display.prototype = {
     /**
-     * Init Display module with doms and data of sensors.json.
+     * Init Display module with doms and data of device-features.json.
      *
      * @access public
      * @memberOf Display.prototype
      * @param {HTMLElement} elements
      * @param {Object} data
-     *                 content of resources/sensors.json.
+     *                 content of resources/device-features.json.
      */
     init: function d_init(elements, data) {
       this.elements = elements;
@@ -39,7 +39,7 @@ define(function(require) {
      * @access public
      * @memberOf Display.prototype
      * @param {Object} data
-     *                 content of resources/sensors.json.
+     *                 content of resources/device-features.json.
      */
     initBrightnessItems: function d_init_brightness_items(data) {
       var autoBrightnessSetting = 'screen.automatic-brightness';
