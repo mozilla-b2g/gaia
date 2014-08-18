@@ -7,6 +7,7 @@ Keyboards['zh-Hans-Pinyin'] = {
   imEngine: 'jspinyin',
   types: ['text', 'url', 'email', 'number'],
   width: 10,
+  defaultNumberLayout: 'zh-Hans-Pinyin-Symbol-En-1',
   textLayoutOverwrite: {
     ',': '，',
     '.': '。'
