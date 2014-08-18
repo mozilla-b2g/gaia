@@ -168,9 +168,10 @@
   }
 
   /**
-   * hotspot wifi settings
+   * wifi auth / hotspot wifi settings
    */
-  section[role="region"]#hotspot-wifiSettings ul li.password > label > span {
+  section[role="region"]#hotspot-wifiSettings ul li.password > label > span,
+  section[role="region"]#wifi-auth ul li.password > label > span {
     padding-left: 3rem;
   }
 
