@@ -199,6 +199,12 @@ window.fb = fb;
       ImportStatusData.put(CACHE_FRIENDS_KEY, value).then(cb);
     };
 
+    // Removes cached number of friends from datastore to keep state of sync.
+    Utils.removeCachedNumFriends = function(callback) {
+      ImportStatusData.remove(CACHE_FRIENDS_KEY).then(function() {
+        typeof callback === 'function' && callback();
+      });
+    };
 
     Utils.getImportChecked = function(callback) {
       // If we have an access token Import should be checked
