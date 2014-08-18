@@ -22,8 +22,10 @@ suite('system/TextSelectionDialog', function() {
       type: 'selectionchange',
       detail: {
         commands: {},
-        rect: {}
-      }
+        rect: {},
+        reasons: []
+      },
+      isCollapsed: false
     };
 
     requireApp('system/js/system.js');
@@ -66,6 +68,8 @@ suite('system/TextSelectionDialog', function() {
         mockDetail.detail.commands['can' + item1] = false;
       }
     }
+
+    mockDetail.detail.reasons = ['mouseup'];
 
     fakeTextSelectInAppEvent.detail = mockDetail;
     td.handleEvent(fakeTextSelectInAppEvent);
@@ -135,14 +139,37 @@ suite('system/TextSelectionDialog', function() {
       stubDoCommand = null;
     });
 
+    test('when select all, gecko should receive two selection change events',
+      function() {
+        var stubHide = sinon.stub(td, 'hide');
+        mockDetail.detail.reasons = ['selectall'];
+        mockDetail.detail.isCollapsed = true;
+        fakeTextSelectInAppEvent.detail = mockDetail;
+        td.handleEvent(fakeTextSelectInAppEvent);
+        assert.isTrue(stubHide.calledOnce, 'we should fileter first event by' +
+          ' checking the length of selectedText');
+      });
+
+    test('when select all, and content contains br frame gecko will bubble up' +
+         ' null reasons due to filter it',
+      function() {
+        var stubCalculateDialogPostion =
+          sinon.stub(td, 'calculateDialogPostion');
+        var stubHide = sinon.stub(td, 'hide');
+        mockDetail.detail.reasons = [];
+        fakeTextSelectInAppEvent.detail = mockDetail;
+        td.handleEvent(fakeTextSelectInAppEvent);
+        assert.isFalse(stubHide.calledOnce, 'we should not call hide');
+        assert.isFalse(stubCalculateDialogPostion.calledOnce, 'we should not' +
+          ' call calculateDialogPostion');
+      });
+
     test('option display', function() {
-      mockDetail.show = true;
       verifyClickableOptions({
         'Paste': false,
         'Copy': false,
         'Cut': true,
         'SelectAll': true
-
       });
 
       verifyClickableOptions({
@@ -154,20 +181,17 @@ suite('system/TextSelectionDialog', function() {
     });
 
     test('option handler, selectAll', function() {
-      mockDetail.show = true;
       verifyClickableOptions({
         'Paste': true,
         'Copy': true,
         'Cut': true,
         'SelectAll': true
       });
-
       emitMouseDownEvent(td.elements.selectall);
       assert.equal(stubDoCommand.getCall(0).args[1], 'selectall');
     });
 
     test('option handler, paste', function() {
-      mockDetail.show = true;
       verifyClickableOptions({
         'Paste': true,
         'Copy': true,
@@ -180,7 +204,6 @@ suite('system/TextSelectionDialog', function() {
     });
 
     test('option handler, cut', function() {
-      mockDetail.show = true;
       verifyClickableOptions({
         'Paste': true,
         'Copy': true,
@@ -193,7 +216,6 @@ suite('system/TextSelectionDialog', function() {
     });
 
     test('option handler, copy', function() {
-      mockDetail.show = true;
       verifyClickableOptions({
         'Paste': true,
         'Copy': true,

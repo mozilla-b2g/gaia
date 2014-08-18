@@ -1,7 +1,7 @@
 /* global layoutManager */
 'use strict';
 (function(exports) {
-
+  var DEBUG = false;
   /**
    * Text Selection Dialog of the AppWindow
    */
@@ -41,6 +41,13 @@
   TextSelectionDialog.prototype.ID_NAME = 'TextSelectionDialog';
 
   TextSelectionDialog.prototype.ELEMENT_PREFIX = 'textselection-dialog-';
+
+  TextSelectionDialog.prototype.debug = function aw_debug(msg) {
+    if (DEBUG || this._DEBUG) {
+      console.log('[Dump: ' + this.ID_NAME + ']' +
+        JSON.stringify(msg));
+    }
+  };
 
   TextSelectionDialog.prototype.handleEvent = function tsd_handleEvent(evt) {
     if (evt.type === 'mozChromeEvent' &&
@@ -140,7 +147,26 @@
     }
     var evt = this.event;
     var detail = this.textualmenuDetail;
+    this.debug(JSON.stringify(detail));
 
+    // When selectall and contents contains br frame, gecko will bubble up
+    // a null reasons to filter it. We should ignore it in case hidding
+    // the dialog.
+    if (detail.reasons.length === 0) {
+      return;
+    }
+
+    // When selectall happened, gecko will first collapse the range then
+    // select all. So we will receive two selection change events with
+    // SELECTALL_REASON. We filter first event by check the length of
+    // selectedText.
+    if ((detail.reasons.indexOf('mouseup') === -1 &&
+        (detail.reasons.indexOf('selectall') === -1 || detail.isCollapsed))) {
+      this.hide();
+      return;
+    }
+
+    clearTimeout(this._hideTimeout);
     var numOfSelectOptions = 0;
     var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
 
@@ -162,22 +188,20 @@
       return;
     }
 
-    clearTimeout(this._hideTimeout);
-    if (detail.isTempShortcut) {
-      var self = this;
-      this._hideTimeout = setTimeout(function() {
-        self.hide();
-      }, this.SHORTCUT_TIMEOUT);
-    }
-
     // Add last-option class to the last item of options array;
     lastVisibleOption.classList.add('last-option');
 
     var pos = this.calculateDialogPostion(detail, numOfSelectOptions);
+    this.debug(pos);
     this.element.style.top = pos.top + 'px';
     this.element.style.left = pos.left + 'px';
 
     this.element.classList.add('visible');
+
+    this._hideTimeout = setTimeout(function() {
+      this.hide();
+    }.bind(this), this.SHORTCUT_TIMEOUT);
+
     evt.preventDefault();
   };
 
@@ -234,6 +258,7 @@
     this.element.classList.remove('visible');
     this.textualmenuDetail = null;
     this.event = null;
+    clearTimeout(this._hideTimeout);
   };
 
   exports.TextSelectionDialog = TextSelectionDialog;
