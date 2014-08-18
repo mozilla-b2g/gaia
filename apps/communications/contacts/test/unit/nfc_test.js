@@ -25,6 +25,7 @@ mocksHelperForNFC.init();
 suite('NFC', function() {
   var realMozNfc;
   var realMozNDEFRecord;
+  var nfcUtils;
 
   suiteSetup(function(done) {
     requireApp(
@@ -40,6 +41,7 @@ suite('NFC', function() {
         requireApp('communications/contacts/js/nfc.js', done);
       }
     );
+    nfcUtils = new NfcUtils();
   });
 
   suiteTeardown(function() {
@@ -103,7 +105,7 @@ suite('NFC', function() {
 
       var pos = header.length + 2;
       var actual = payload.subarray(pos, pos + name.length);
-      assert.isTrue(NfcUtils.equalArrays(actual, name));
+      assert.isTrue(nfcUtils.equalArrays(actual, name));
 
       done();
       return {};
