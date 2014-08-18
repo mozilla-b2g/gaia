@@ -1,8 +1,8 @@
 {
-  "name": "Search",
+  "name": "Browser2",
+  "description": "Gaia System Web Browser",
   "type": "certified",
   "role": "search",
-  "description": "Search",
   "launch_path": "/newtab.html",
   "developer": {
     "name": "The Gaia Team",
@@ -10,8 +10,8 @@
   },
   "locales": {
     "en-US": {
-      "name": "Search",
-      "description": "Search"
+      "name": "Browser2",
+      "description": "Gaia System Web Browser"
     }
   },
   "default_locale": "en-US",
@@ -27,7 +27,7 @@
   "connections": {
     "search": {
       "handler_path": "index.html",
-      "description": "Proxies search to copied search app. Should be moved to the search app manifest if we split the app up.",
+      "description": "Notifies the search app on query change.",
       "rules": {}
     }
   },
@@ -42,11 +42,11 @@
     }
   },
   "icons": {
-    "84": "/style/icons/search_84.png",
-    "126": "/style/icons/search_126.png",
-    "142": "/style/icons/search_142.png",
-    "189": "/style/icons/search_189.png",
-    "284": "/style/icons/search_284.png"
+    "84": "/shared/resources/branding/browser_84.png",
+    "126": "/shared/resources/branding/browser_126.png",
+    "142": "/shared/resources/branding/browser_142.png",
+    "189": "/shared/resources/branding/browser_189.png",
+    "284": "/shared/resources/branding/browser_284.png"
   },
   "orientation": "default",
   "chrome": {
