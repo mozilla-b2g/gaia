@@ -16,8 +16,7 @@ a[role="button"],
   width: 100%;
   height: 3.8rem;
   margin: 0 0 1rem;
-  /* Text will overflow left padding when it's too long, so set left padding to 0 and add text-indent to prevent it. */
-  padding: 0 1.5rem 0 0;
+  padding: 0 1.5rem;
   -moz-box-sizing: border-box;
   display: inline-block;
   vertical-align: middle;
@@ -34,7 +33,6 @@ a[role="button"],
   text-align: center;
   text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
   text-decoration: none;
-  text-indent: 1.5rem;
   outline: none;
 }
 
@@ -128,13 +126,6 @@ li .button {
   overflow: visible;
 }
 
-/* Fix Bug 1049685 - [Tarako][Settings] Ringer's name overlay Alerts in Sound setting page
-   Bring back ellipsis for "li button" and still keep box-shadow hacks */
-li button {
-  white-space: nowrap;
-  overflow-x: hidden;
-}
-
 /* Hacking box-shadow */
 li button:after,
 li a[role="button"]:after,
@@ -167,8 +158,6 @@ li button.icon,
 li a[role="button"].icon,
 li .button.icon {
   padding-right: 3rem;
-  /* Text will overflow right padding when it's too long, so add 3 extra space to prevent it. */
-  text-overflow: "...   ";
 }
 
 li button.icon:before,
