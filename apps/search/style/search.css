@@ -63,7 +63,7 @@ section.suggestions ul li:first-child {
 }
 
 section .result * {
-  pointer-events: none;
+  pointer-EVENTS: none;
 }
 
 .local .result {
