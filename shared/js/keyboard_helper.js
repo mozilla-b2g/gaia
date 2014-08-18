@@ -830,14 +830,6 @@ var KeyboardHelper = exports.KeyboardHelper = {
       // reset the set of default layouts
       currentSettings.defaultLayouts = {};
 
-      // set the language-independent default layouts
-      var langIndependentLayouts = keyboards.langIndependentLayouts;
-      for (var i = langIndependentLayouts.length - 1; i >= 0; i--) {
-        this.setLayoutIsDefault(kbManifestURL,
-                                langIndependentLayouts[i].layoutId,
-                                true);
-      }
-
       if (reset) {
         // reset the set of default layouts
         currentSettings.enabledLayouts =
@@ -845,7 +837,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
       }
 
       // Enable the language specific keyboard layout group
-      for (i = newKbLayouts.length - 1; i >= 0; i--) {
+      for (var i = newKbLayouts.length - 1; i >= 0; i--) {
         this.setLayoutIsDefault(kbManifestURL, newKbLayouts[i].layoutId, true);
         this.setLayoutEnabled(kbManifestURL, newKbLayouts[i].layoutId, true);
       }

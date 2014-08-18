@@ -58,8 +58,8 @@ suite('Distribution mechanism', function() {
 
     var keyboardManifestURL = 'app://keyboard.gaiamobile.org/manifest.webapp';
     var expectedLayouts = {};
-    // For test only, so deliberately makes English map to cs and es layout
-    expectedLayouts[keyboardManifestURL] = {cs: true, es: true};
+    // For test only, so deliberately makes English map to es layout
+    expectedLayouts[keyboardManifestURL] = {es: true};
 
     expectedSettings = {
       'wap.push.enabled': true,

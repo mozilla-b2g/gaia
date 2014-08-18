@@ -42,8 +42,7 @@ function genDefaultLayouts(config, webappsMapping) {
   let defaultKeyboards = utils.getJSON(layoutDefFile);
 
   let result = {
-    layout: {},
-    langIndependentLayouts: []
+    layout: {}
   };
 
   // handle language -> layouts mapping
@@ -56,12 +55,6 @@ function genDefaultLayouts(config, webappsMapping) {
   for (var key in mapping) {
     result.layout[key] = mapping[key].map(parseLayout);
   }
-
-  // handle language-independent layouts
-  let langIndLayouts = defaultKeyboards.langIndependentLayouts;
-  langIndLayouts.forEach(function parseLayout(layout) {
-    result.langIndependentLayouts.push(getLayoutEntry(layout, webappsMapping));
-  });
 
   // Write the result to file
   let resultFile = utils.resolve(
