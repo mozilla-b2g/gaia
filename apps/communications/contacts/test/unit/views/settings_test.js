@@ -8,18 +8,17 @@
 /* global MocksHelper */
 /* global MockIccManager */
 /* global MockMozContacts */
-/* global MockNavigatorMozMobileConnection */
 /* global MockNavigatorMozMobileConnections */
 /* global MockMozL10n */
 /* global MockSdCard */
 /* global utils */
+/* global MockNavigatorSettings */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/js/contacts/import/utilities/misc.js');
 require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
 require('/shared/test/unit/mocks/mock_iccmanager.js');
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
@@ -37,6 +36,7 @@ requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/js/utilities/icc_handler.js');
 requireApp('communications/contacts/js/utilities/sim_dom_generator.js');
 requireApp('communications/contacts/js/navigation.js');
+requireApp('communications/contacts/js/utilities/normalizer.js');
 requireApp('communications/contacts/js/views/settings.js');
 
 if (!window._) { window._ = null; }
@@ -45,7 +45,6 @@ if (!navigator.onLine) { navigator.onLine = null; }
 if (!navigator.mozContacts) { navigator.mozContacts = null; }
 if (!navigator.mozIccManager) { navigator.mozIccManager = null; }
 if (!navigator.mozMobileConnections) { navigator.mozMobileConnections = null; }
-if (!navigator.mozMobileConnection) { navigator.mozMobileConnection = null; }
 
 if (!window.Rest) {
   window.Rest = null;
@@ -61,7 +60,6 @@ var fb,
     realCookie,
     realOnLine,
     realMozIccManager,
-    realMozMobileConnection,
     realMozMobileConnections;
 
 if (!window.realMozContacts) {
@@ -112,11 +110,6 @@ suite('Contacts settings >', function() {
     } else {
       window.utils.sdcard = MockSdCard;
     }
-    window.utils.time = {
-      pretty: function(date) {
-        return date;
-      }
-    };
     window.utils.overlay = {
       show: function() {},
       showMenu: function() {}
@@ -147,9 +140,7 @@ suite('Contacts settings >', function() {
     // This test sets an scenario of two sim cards
     suiteSetup(function() {
       realMozMobileConnections = navigator.mozMobileConnections;
-      realMozMobileConnection = navigator.mozMobileConnection;
       navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
-      navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
       Contacts.showStatus = utils.status.show;
 
       realMozIccManager = navigator.mozIccManager;
@@ -160,7 +151,6 @@ suite('Contacts settings >', function() {
     });
     suiteTeardown(function() {
       navigator.mozMobileConnections = realMozMobileConnections;
-      navigator.mozMobileConnection = realMozMobileConnection;
     });
 
     setup(function() {
@@ -404,6 +394,22 @@ suite('Contacts settings >', function() {
   });
 
   suite('Timestamp Import', function() {
+    var realMozSettings;
+
+    suiteSetup(function(done) {
+      realMozSettings = navigator.mozSettings;
+      navigator.mozSettings = MockNavigatorSettings;
+      navigator.mozSettings.mSettings['locale.hour12'] = true;
+
+      require('/shared/js/l10n_date.js');
+      require('/shared/js/date_time_helper.js', done);
+      
+    });
+
+    suiteTeardown(function() {
+      navigator.mozSettings = realMozSettings;
+    });
+
     var timestamps = {
       'gmail': Date.now(),
       'live': Date.now() - 24 * 60 * 60 * 1000,
@@ -434,14 +440,17 @@ suite('Contacts settings >', function() {
       }
     });
 
-    function assertContactsImportedFrom(source, done) {
+    function assertContactsImportedFrom(source, done, extraString) {
       var importElm = document.getElementById('import-' + source + '-option');
       var time = importElm.querySelector('time');
 
       var test = function() {
         assert.equal(time.getAttribute('datetime'),
             (new Date(timestamps[source])).toLocaleString());
-        assert.equal(time.textContent, timestamps[source]);
+        assert.equal(time.textContent, utils.time.pretty(timestamps[source]));
+        if (extraString) {
+          assert.isTrue(time.textContent.indexOf(extraString) != -1);
+        }
         observer.disconnect();
       };
 
@@ -473,6 +482,17 @@ suite('Contacts settings >', function() {
 
     test('Contacts imported from Live', function(done) {
       assertContactsImportedFrom('live', done);
+    });
+
+    test('Test check 12 hour format', function(done) {
+      assertContactsImportedFrom('gmail', done, 'shortTimeFormat12');
+    });
+
+    test('Test check 24 hour format', function(done) {
+      navigator.mozSettings.mSettings['locale.hour12'] = false;
+      navigator.mozSettings.mTriggerObservers('locale.hour12',
+       {'settingValue': false});
+      assertContactsImportedFrom('gmail', done, 'shortTimeFormat24');
     });
   });
 
@@ -528,6 +548,96 @@ suite('Contacts settings >', function() {
         });
       });
     });
+  });
+
+  suite('Facebook actions reflected in UI', function() {
+    var mockFbUtils;
+
+    setup(function() {
+      document.body.innerHTML = MockContactsIndexHtml;
+      contacts.Settings.init();
+    });
+
+    teardown(function(done) {
+      MockImportStatusData.clear().then(done, done);
+    });
+
+    suiteSetup(function(done) {
+      mockFbUtils = fb.utils;
+      require('/shared/js/contacts/import/facebook/fb_utils.js', function() {
+        sinon.stub(Contacts, 'confirmDialog', function(attr, msg, no, yes) {
+          yes.callback();
+        });
+
+        sinon.stub(Contacts, 'utility', function(attr1, cb) {
+          cb();
+        });
+
+        // Stub needed to fake event target id.
+        sinon.stub(window, 'addEventListener', function(eventType, cb) {
+          if (eventType === 'transitionend') {
+            cb({'target': {'id': 'span-check-fb'}, data: ''});
+          }
+        });
+
+        sinon.stub(Contacts, 'showOverlay', function() {
+          return { setTotal: function() {} };
+        });
+
+        sinon.stub(fb.utils, 'clearFbData', function() {
+          return {
+            'result': {
+              set onsuccess(cb) {
+                cb();
+              },
+              lcontacts: []
+            },
+            set onsuccess(cb) {
+              cb();
+            }
+          };
+        });
+
+        sinon.stub(fb.utils, 'logout', function() {
+          return {
+            set onsuccess(cb) {
+              cb();
+            }
+          };
+        });
+
+        done();
+      });
+    });
+
+    suiteTeardown(function() {
+      fb.utils = mockFbUtils;
+      Contacts.confirmDialog.restore();
+      Contacts.utility.restore();
+      window.addEventListener.restore();
+      Contacts.showOverlay.restore();
+      fb.utils.clearFbData.restore();
+      fb.utils.logout.restore();
+    });
+
+    test('Cached friend number is correctly deleted on logout', function(done) {
+      MockImportStatusData.put(fb.utils.CACHE_FRIENDS_KEY, 50).then(function() {
+        MockImportStatusData.put(fb.utils.STORAGE_KEY, {access_token: '1'})
+            .then(function() {
+          contacts.Settings.refresh();
+
+          var spy = sinon.spy(fb.utils, 'removeCachedNumFriends');
+
+          document.querySelector('#settingsFb > .fb-item').click();
+
+          done(function() {
+            assert.isTrue(spy.called);
+            spy.restore();
+          });
+        });
+      });
+    });
+
   });
 
   suite('Network status change', function() {

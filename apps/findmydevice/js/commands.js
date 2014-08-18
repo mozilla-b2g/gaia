@@ -113,7 +113,9 @@ var Commands = {
       }
 
       if (duration === 0) {
-        reply(true);
+        if (reply) {
+          reply(true);
+        }
         FindMyDevice.endHighPriority('command');
         return;
       }
@@ -206,7 +208,9 @@ var Commands = {
           stop();
         }
 
-        reply(true);
+        if (reply) {
+          reply(true);
+        }
         FindMyDevice.endHighPriority('command');
         return;
       }

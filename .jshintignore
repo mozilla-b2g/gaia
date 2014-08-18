@@ -9,7 +9,6 @@ apps/camera/test/**
 apps/system/camera/**
 build/r.js
 build/copy-build-stage-data.js
-build/csslint.js
 build/csslinter.js
 build/download-manager.js
 build/image-resolution.js
@@ -21,7 +20,6 @@ build/push-to-device.js
 build/settings.js
 build/test/integration/build.test.js
 build/utils.js
-build/webapp-optimize.js
 apps/communications/contacts/oauth2/js/parameters.js
 apps/calendar/js/presets.js
 apps/email/js/alameda.js

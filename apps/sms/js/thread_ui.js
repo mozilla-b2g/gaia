@@ -2920,6 +2920,7 @@ var ThreadUI = {
       contactList.textContent = '';
     } else {
       contactList.appendChild(suggestions);
+      this.recipientSuggestions.scrollTop = 0;
     }
   }
 };

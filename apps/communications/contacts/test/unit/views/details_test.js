@@ -784,18 +784,18 @@ suite('Render contact', function() {
 
   suite('> User actions', function() {
     var realMozTelephony;
-    var realMozMobileConnection;
+    var realMozMobileConnections;
     suiteSetup(function() {
       realMozTelephony = navigator.mozTelephony;
-      realMozMobileConnection = navigator.mozMobileConnection;
+      realMozMobileConnections = navigator.mozMobileConnections;
       navigator.mozTelephony = true;
-      navigator.mozMobileConnection = true;
+      navigator.mozMobileConnections = [true];
       sinon.spy(window, 'MultiSimActionButton');
     });
 
     suiteTeardown(function() {
       navigator.mozTelephony = realMozTelephony;
-      navigator.mozMobileConnection = realMozMobileConnection;
+      navigator.mozMobileConnections = realMozMobileConnections;
     });
 
     setup(function() {

@@ -515,8 +515,7 @@ contacts.Details = (function() {
     LazyLoader.load(['/dialer/js/mmi.js'], function() {
       if (ActivityHandler.currentActivityIsNot(['open'])) {
         button.addEventListener('click', onPickNumber);
-      } else if ((navigator.mozMobileConnection ||
-          window.navigator.mozMobileConnections &&
+      } else if ((window.navigator.mozMobileConnections &&
           window.navigator.mozMobileConnections[0]) &&
           MmiManager.isMMI(number)) {
         button.addEventListener('click', onMMICode);

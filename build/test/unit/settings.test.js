@@ -265,6 +265,8 @@ suite('settings.js', function() {
           'homescreen.manifestURL': config.GAIA_SCHEME +
             'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
+          'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
+                      config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
           'debugger.remote-mode': 'adb-only',
@@ -295,6 +297,8 @@ suite('settings.js', function() {
           'homescreen.manifestURL': config.GAIA_SCHEME +
             'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
+          'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
+                      config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
           'language.current': config.GAIA_DEFAULT_LOCALE,
@@ -328,6 +332,8 @@ suite('settings.js', function() {
           'homescreen.manifestURL': config.GAIA_SCHEME +
             'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
+          'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
+                      config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
           'feedback.url': 'https://input.mozilla.org/api/v1/feedback/',
@@ -360,6 +366,8 @@ suite('settings.js', function() {
           'homescreen.manifestURL': config.GAIA_SCHEME +
             'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
+          'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
+                      config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
           'language.current': config.GAIA_DEFAULT_LOCALE,

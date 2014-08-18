@@ -36,6 +36,10 @@ EditEvent.prototype = {
     return this.findElement('form');
   },
 
+  get errors() {
+    return this.form.findElement('.errors').text();
+  },
+
   set title(value) {
     this.setFormValue('title', value);
   },
@@ -57,16 +61,44 @@ EditEvent.prototype = {
     this.setFormValue('startDate', value);
   },
 
+  get startDate() {
+    return this.form.findElement('[name="startDate"]')
+      .scriptWith(function(el) {
+        return el.value;
+      });
+  },
+
   set startTime(value) {
     this.setFormValue('startTime', value);
+  },
+
+  get startTime() {
+    return this.form.findElement('[name="startTime"]')
+      .scriptWith(function(el) {
+        return el.value;
+      });
   },
 
   set endDate(value) {
     this.setFormValue('endDate', value);
   },
 
+  get endDate() {
+    return this.form.findElement('[name="endDate"]')
+      .scriptWith(function(el) {
+        return el.value;
+      });
+  },
+
   set endTime(value) {
     this.setFormValue('endTime', value);
+  },
+
+  get endTime() {
+    return this.form.findElement('[name="endTime"]')
+      .scriptWith(function(el) {
+        return el.value;
+      });
   },
 
   set allDay(value) {

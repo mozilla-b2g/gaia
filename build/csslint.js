@@ -1,8 +1,11 @@
 'use strict';
 
+/* global require, exports, dump, Services */
+/* exported debug */
+
 const utils = require('./utils');
 
-const { Cc, Ci, Cr, Cu } = require('chrome');
+const { Cc, Ci, Cu } = require('chrome');
 Cu.import('resource://gre/modules/Services.jsm');
 
 function debug(msg) {
@@ -46,7 +49,8 @@ function execute(config) {
 
   let reportKnownErrorsOrWarnings = false;
   let quit = require('xpcshell').quit;
-  return quit(lint(config.GAIA_DIR, files.join(' '), reportKnownErrorsOrWarnings));
+  return quit(lint(config.GAIA_DIR, files.join(' '),
+    reportKnownErrorsOrWarnings));
 }
 
 function lint(root, files, reportKnownErrorsOrWarnings = true) {

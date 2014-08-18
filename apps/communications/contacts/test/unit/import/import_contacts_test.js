@@ -11,14 +11,12 @@
 /* global MocksHelper */
 /* global MockUtils */
 /* global MockContactsIndexHtml */
-/* global MockNavigatorMozMobileConnection */
 /* global MockNavigatorMozMobileConnections */
 /* global MockSimContactsImporter */
 /* global MockVCFReader */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
 
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
 
@@ -43,7 +41,6 @@ requireApp('communications/contacts/js/navigation.js');
 if (!window._) { window._ = null; }
 if (!window.utils) { window.utils = null; }
 if (!navigator.mozMobileConnections) { navigator.mozMobileConnections = null; }
-if (!navigator.mozMobileConnection) { navigator.mozMobileConnection = null; }
 
 var mocksHelperForContactImport = new MocksHelper([
   'Contacts', 'fb', 'asyncStorage', 'ConfirmDialog',
@@ -57,7 +54,6 @@ suite('Import contacts >', function() {
   var real_,
       realUtils,
       realWakeLock,
-      realMozMobileConnection,
       realMozMobileConnections;
 
   setup(function() {
@@ -73,9 +69,7 @@ suite('Import contacts >', function() {
     mocksHelper.suiteSetup();
 
     realMozMobileConnections = navigator.mozMobileConnections;
-    realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
-    navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
 
     realWakeLock = navigator.requestWakeLock;
     navigator.requestWakeLock = MockWakeLock;
@@ -110,7 +104,6 @@ suite('Import contacts >', function() {
 
   suiteTeardown(function() {
     navigator.mozMobileConnections = realMozMobileConnections;
-    navigator.mozMobileConnection = realMozMobileConnection;
     navigator.requestWakeLock = realWakeLock;
 
     window.utils = realUtils;

@@ -63,6 +63,12 @@ Calendar.prototype = {
     return this.client.findElement('#time-header button.settings');
   },
 
+  openModifyEventView: function() {
+    this.addEventButton.click();
+    this.editEvent.waitForDisplay();
+    return this;
+  },
+
   openSettingsView: function() {
     this._toggleSettingsView(true);
     return this;
@@ -221,9 +227,8 @@ Calendar.prototype = {
       endDate = new Date(startDate.getTime() + duration * 60 * 60 * 1000);
     }
 
-    this.addEventButton.click();
+    this.openModifyEventView();
     var editEvent = this.editEvent;
-    editEvent.waitForDisplay();
     editEvent.title = opts.title;
     editEvent.location = opts.location || '';
     editEvent.description = opts.description || '';

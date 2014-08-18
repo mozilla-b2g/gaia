@@ -370,7 +370,7 @@ apps/system/test/marionette/lib/system.js
 apps/system/test/marionette/lockscreen_disabled_test.js
 apps/system/test/marionette/media_playback_test.js
 apps/system/test/marionette/net_error_test.js
-apps/system/test/marionette/notification_launch_app.js
+apps/system/test/marionette/notification_launch_app_test.js
 apps/system/test/marionette/notification_test.js
 apps/system/test/unit/app_install_manager_test.js
 apps/system/test/unit/battery_manager_test.js

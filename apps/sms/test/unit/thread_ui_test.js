@@ -420,6 +420,43 @@ suite('thread_ui.js >', function() {
         contactList.textContent, '', 'Recipient suggestions should be cleared'
       );
     });
+
+    test('always scroll to top when toggleing suggestions list', function() {
+      var contactList = recipientSuggestions.querySelector('.contact-list');
+      contactList.textContent = '';
+
+      recipientSuggestions.classList.add('hide');
+      recipientSuggestions.style.maxHeight = '300px';
+      recipientSuggestions.style.overflowY = 'auto';
+
+      var documentFragment = document.createDocumentFragment();
+      var suggestionNode;
+
+      for (var i = 0; i < 10; i++) {
+        suggestionNode = document.createElement('li');
+        suggestionNode.innerHTML =
+          '<a class="suggestion">' +
+            '<p class="name">Jean Dupont</p>' +
+            '<p class="number">0123456789</p>' +
+          '</a>';
+        documentFragment.appendChild(suggestionNode);
+      }
+
+      ThreadUI.toggleRecipientSuggestions(documentFragment);
+      recipientSuggestions.scrollTop = 200;
+
+      assert.equal(
+        recipientSuggestions.scrollTop, 200,
+        'Recipient suggestions should be scrolled down'
+      );
+
+      ThreadUI.toggleRecipientSuggestions(documentFragment);
+
+      assert.equal(
+        recipientSuggestions.scrollTop, 0,
+        'Recipient suggestions should be scrolled to top'
+      );
+    });
   });
 
   suite('segmentInfo management >', function() {
