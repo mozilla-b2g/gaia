@@ -1026,6 +1026,50 @@ contacts.Settings = (function() {
     });
   };
 
+  var updateSimCardLocale = function updateSimCardLocale() {
+    var statuses = IccHandler.getStatus();
+    function onStatus(status, index, array) {
+      var importSimOption =
+        document.getElementById('import-sim-option-' + status.iccId);
+      var exportSimOption =
+        document.getElementById('export-sim-option-' + status.iccId);
+      if (status.cardState !== 'ready' && status.cardState !== 'illegal') {
+        return;
+      }
+      var optionButton = importSimOption.querySelector('button');
+      if (statuses.length > 1) {
+        optionButton.setAttribute('data-l10n-id', 'simNumber');
+        optionButton.setAttribute('data-l10n-args',
+          JSON.stringify({'number': index + 1}));
+        if (status.icc.iccInfo && status.icc.iccInfo.msisdn) {
+          optionButton.setAttribute('data-l10n-id', 'simNumber1');
+          optionButton.setAttribute('data-l10n-args', JSON.stringify(
+            {'number': index + 1, 'msisdn': status.icc.iccInfo.msisdn}));
+        }
+      } else {
+        optionButton.setAttribute('data-l10n-id', 'simCard');
+      }
+      var pTime = document.createElement('p');
+      pTime.appendChild(document.createElement('span'));
+      pTime.appendChild(document.createElement('time'));
+      optionButton.appendChild(pTime);
+      optionButton = exportSimOption.querySelector('button');
+      if (statuses.length > 1) {
+        optionButton.setAttribute('data-l10n-id', 'simNumber');
+        optionButton.setAttribute('data-l10n-args',
+          JSON.stringify({'number': index + 1}));
+        if (status.icc.iccInfo && status.icc.iccInfo.msisdn) {
+          optionButton.setAttribute('data-l10n-id', 'simNumber1');
+          optionButton.setAttribute('data-l10n-args', JSON.stringify(
+            {'number': index + 1, 'msisdn': status.icc.iccInfo.msisdn}));
+        }
+      } else {
+        optionButton.setAttribute('data-l10n-id', 'simCard');
+      }
+    }
+    statuses.forEach(onStatus);
+  };
+
   var refresh = function refresh() {
     getData();
     checkOnline();
@@ -1033,6 +1077,7 @@ contacts.Settings = (function() {
     utils.sdcard.getStatus(function statusUpdated() {
       updateStorageOptions(utils.sdcard.checkStorageCard());
     });
+    updateSimCardLocale();
     updateTimestamps();
     checkNoContacts();
   };
