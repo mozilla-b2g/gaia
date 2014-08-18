@@ -48,6 +48,27 @@ var Hotspot = {
       }
     };
 
+    function generateHotspotSsid() {
+      var characters = 'abcdefghijklmnopqrstuvwxyz' +
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+      var password = 'FirefoxHotspot_';
+      for (var i = 0; i < 10; i++) {
+        password += characters.charAt(
+            Math.floor(Math.random() * characters.length));
+      }
+      return password;
+    }
+
+    var lockSsid = settings.createLock();
+    var reqSsid = lockSsid.get('tethering.wifi.ssid');
+    reqSsid.onsuccess = function onThetheringPasswordSuccess() {
+      var ssid = reqSsid.result['tethering.wifi.ssid'];
+      if (!ssid) {
+        ssid = generateHotspotSsid();
+        lockSsid.set({ 'tethering.wifi.ssid': ssid });
+      }
+    };
+
     function setHotspotSettingsEnabled(enabled) {
       // disable the setting button when internet sharing is enabled
       hotspotSettingBtn.disabled = enabled;

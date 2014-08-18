@@ -45,7 +45,8 @@ suite('Hotspot', function() {
   });
 
   suite('Check default hotspot password', function() {
-    var setting = 'tethering.wifi.security.password';
+    var settingPwd = 'tethering.wifi.security.password';
+    var settingSsid = 'tethering.wifi.ssid';
 
     setup(function() {
       this.sinon.useFakeTimers();
@@ -55,8 +56,14 @@ suite('Hotspot', function() {
 
     test('password is correctly generated', function() {
       var re = new RegExp('[a-z]+[0-9]{4}');
-      var generatedPassword = MockNavigatorSettings.mSettings[setting];
+      var generatedPassword = MockNavigatorSettings.mSettings[settingPwd];
       assert.isTrue(re.test(generatedPassword));
+    });
+
+    test('Ssid is correctly generated', function() {
+      var re = new RegExp('FirefoxHotspot_[a-zA-Z0-9]{10}');
+      var generatedSsid = MockNavigatorSettings.mSettings[settingSsid];
+      assert.isTrue(re.test(generatedSsid));
     });
   });
 });
