@@ -36,17 +36,40 @@
 
     search: function(input) {
       return new Promise((resolve, reject) => {
-        var results = this.find(input);
-        var formatted = [];
+        this.getBlacklist().then((blacklist) => {
+          var results = this.find(input);
+          var formatted = [];
+          results.forEach(function eachResult(result) {
+            for (var i in blacklist) {
+              if (blacklist[i] === result.launch_path) {
+                return;
+              }
+            }
+            formatted.push({
+              dedupeId: result.app.manifestURL,
+              data: new GaiaGrid.Mozapp(result.app, result.entryPoint)
+            });
+          }, this);
 
-        results.forEach(function eachResult(result) {
-          formatted.push({
-            dedupeId: result.app.manifestURL,
-            data: new GaiaGrid.Mozapp(result.app, result.entryPoint)
-          });
-        }, this);
+          resolve(formatted);
+        });
+      });
+    },
 
-        resolve(formatted);
+    getBlacklist: function() {
+      return new Promise((resolve, reject) => {
+        var launchPathBlacklist = [];
+
+        if (navigator.mozSettings) {
+          var key = 'app.launch_path.blacklist';
+          var req = navigator.mozSettings.createLock().get(key);
+          req.onsuccess = function onsuccess() {
+            launchPathBlacklist = req.result[key] || [];
+            resolve(launchPathBlacklist);
+          };
+        } else {
+          resolve(launchPathBlacklist);
+        }
       });
     },
 
@@ -82,7 +105,8 @@
           if (manifest.name.toLowerCase().indexOf(query.toLowerCase()) != -1) {
             results.push({
               app: app,
-              entryPoint: manifest.entryPoint
+              entryPoint: manifest.entryPoint,
+              launch_path: manifest.launch_path
             });
           }
         });
