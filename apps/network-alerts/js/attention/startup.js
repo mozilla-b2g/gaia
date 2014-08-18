@@ -1,6 +1,4 @@
-/* global
-  Attention
- */
+/* global Attention */
 
 'use strict';
 

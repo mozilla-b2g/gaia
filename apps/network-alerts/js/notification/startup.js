@@ -1,6 +1,4 @@
-/* global
-  NotificationHandler
- */
+/* global NotificationHandler */
 
 'use strict';
 

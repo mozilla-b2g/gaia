@@ -1,6 +1,5 @@
-/* global
-    Promise
-*/
+/* global Promise */
+
 /* exported MockMessageManager */
 'use strict';
 

@@ -1,5 +1,4 @@
-/* global
-  Attention,
+/* global Attention,
   MockNotification,
   MockNotifications,
   MocksHelper,

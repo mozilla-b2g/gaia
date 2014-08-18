@@ -1,7 +1,6 @@
 // Captive Portal Test
 
-/* global
-   CaptivePortal,
+/* global CaptivePortal,
    FtuLauncher,
    MocksHelper,
    MockChromeEvent,

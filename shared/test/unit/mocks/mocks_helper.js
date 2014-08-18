@@ -1,5 +1,4 @@
-/* global
-    suiteSetup,
+/* global suiteSetup,
     suiteTeardown,
     setup,
     teardown

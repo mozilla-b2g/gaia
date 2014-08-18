@@ -1,5 +1,4 @@
-/* global
-    Navigation,
+/* global Navigation,
     Startup,
     MocksHelper,
     Promise,
