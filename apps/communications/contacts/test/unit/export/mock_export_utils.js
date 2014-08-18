@@ -9,7 +9,7 @@ var MockGetStorageIfAvailable = function(type, size, callback) {
 
 var MockGetStorageIfAvailableError = function(type, size, callback, cbErr) {
   if (cbErr) {
-    cbErr(10); // Simulate no space error
+    cbErr(0); // Simulate no space error
   } else {
     callback(navigator.getDeviceStorage());
   }
