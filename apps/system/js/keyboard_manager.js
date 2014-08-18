@@ -44,42 +44,9 @@ var KeyboardManager = {
   inputTypeTable: {},
   keyboardFrameContainer: null,
 
-  /**
-   *
-   * The set of installed keyboard layouts grouped by type_group.
-   * This is a map from type_group to an object arrays.
-   *
-   * i.e:
-   * {
-   *   text: [ {...}, {...} ],
-   *   number: [ {...}, {...} ]
-   * }
-   *
-   * Each element in the arrays represents a keyboard layout:
-   * {
-   *    id: the unique id of the keyboard, the key of inputs
-   *    name: the keyboard layout's name
-   *    appName: the keyboard app name
-   *    manifestURL: the keyboard's manifestURL
-   *    path: the keyboard's launch path
-   * }
-   *
-   * Additionally, each array has an |activeLayout|, which is the index, in that
-   * array, of the the currently-activated layout of the group.
-   */
-  keyboardLayouts: {},
-
-  /*
-   * This is the reverse mapping from layout (manifestURL+id) to
-   * an array of {group: , index: }, indicating the groups that are supported
-   * by the layout.
-   * index is the index of the layout in the group in keyboardLayouts.
-   */
-  layoutToGroupMapping: {},
-
   // this info keeps the current keyboard layout's information,
   // including its type, its index in the type array,
-  // its occupying height and its "layout" as kept in "keyboardLayouts"
+  // its occupying height and its "layout" as kept in InputLayouts.layouts
   showingLayoutInfo: {
     type: 'text',
     index: 0,
@@ -178,6 +145,9 @@ var KeyboardManager = {
     this.inputFrameManager = new InputFrameManager(this);
     this.inputFrameManager.start();
 
+    this.inputLayouts = new InputLayouts(this);
+    this.inputLayouts.start();
+
     LazyLoader.load([
       'shared/js/keyboard_helper.js'
     ], function() {
@@ -191,111 +161,7 @@ var KeyboardManager = {
     return this.transitionManager.occupyingHeight;
   },
 
-  updateLayouts: function km_updateLayouts(layouts) {
-    var enabledApps = new Set();
-
-    // tiny helper - bound to the manifests
-    function getName() {
-      return this.name;
-    }
-
-    function transformLayout(layout) {
-      var transformedLayout = {
-        id: layout.layoutId,
-        origin: layout.app.origin,
-        manifestURL: layout.app.manifestURL,
-        path: layout.inputManifest.launch_path
-      };
-
-      // define properties for name that resolve at display time
-      // to the correct language via the ManifestHelper
-      Object.defineProperties(transformedLayout, {
-        name: {
-          get: getName.bind(layout.inputManifest),
-          enumerable: true
-        },
-        appName: {
-          get: getName.bind(layout.manifest),
-          enumerable: true
-        }
-      });
-
-      return transformedLayout;
-    }
-
-    function insertLayout(object, type, layout) {
-      if (!object[type]) {
-        object[type] = [];
-        object[type].activeLayout = 0;
-      }
-
-      object[type].push(layout);
-    }
-
-    function reduceLayouts(carry, layout) {
-      enabledApps.add(layout.app.manifestURL);
-      // add the layout to each type and return the carry
-      layout.inputManifest.types.filter(KeyboardHelper.isKeyboardType)
-        .forEach(function(type) {
-          insertLayout(carry, type, transformLayout(layout));
-        });
-
-      return carry;
-    }
-
-    this.keyboardLayouts = layouts.reduce(reduceLayouts, {});
-
-    // bug 1035117:
-    // at this moment, if the 'fallback' groups (managed by KeyboardHelper)
-    // doesn't have any layouts, inject the fallback layout into it.
-    // (for example, user enables only CJKV IMEs, and for 'password'
-    //  we need to enable 'en')
-    for (var group in KeyboardHelper.fallbackLayouts) {
-      if (!(group in this.keyboardLayouts)) {
-        var layout = KeyboardHelper.fallbackLayouts[group];
-
-        enabledApps.add(layout.app.manifestURL);
-        insertLayout(this.keyboardLayouts, group, transformLayout(layout));
-      }
-    }
-
-    for (var group in this.keyboardLayouts) {
-      this.keyboardLayouts[group].forEach(function(layout, index) {
-        var key = layout.manifestURL + '/' + layout.id;
-        this.layoutToGroupMapping[key] = this.layoutToGroupMapping[key] || [];
-        this.layoutToGroupMapping[key].push({
-          group: group,
-          index: index
-        });
-      }, this);
-    }
-
-    // Let chrome know about how many keyboards we have
-    // need to expose all input type from inputTypeTable
-    var countLayouts = {};
-    Object.keys(this.keyboardLayouts).forEach(function(k) {
-      var typeTable = this.inputTypeTable[k];
-      for (var i in typeTable) {
-        var inputType = typeTable[i];
-        countLayouts[inputType] = this.keyboardLayouts[k].length;
-      }
-    }, this);
-
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentEvent', true, true, {
-      type: 'inputmethod-update-layouts',
-      layouts: countLayouts
-    });
-    window.dispatchEvent(event);
-
-    // Remove apps that are no longer enabled to clean up.
-    Object.keys(this.inputFrameManager.runningLayouts).forEach(
-      function removeApp(manifestURL) {
-      if (!enabledApps.has(manifestURL)) {
-        this.removeKeyboard(manifestURL);
-      }
-    }, this);
-
+  tryLaunchOnBoot: function km_launchOnBoot() {
     if (Object.keys(this.inputFrameManager.runningLayouts).length) {
       // There are already keyboard(s) being launched. We don't really care
       // if a default keyboard should be launch-on-boot.
@@ -318,6 +184,20 @@ var KeyboardManager = {
         this.setKeyboardToShow('text', undefined, true);
       }
     }).bind(this);
+  },
+
+  updateLayouts: function km_updateLayouts(layouts) {
+    var enabledApps = this.inputLayouts.processLayouts(layouts);
+
+    // Remove apps that are no longer enabled to clean up.
+    Object.keys(this.inputFrameManager.runningLayouts).forEach(
+      function removeApp(manifestURL) {
+      if (!enabledApps.has(manifestURL)) {
+        this.removeKeyboard(manifestURL);
+      }
+    }, this);
+
+    this.tryLaunchOnBoot();
   },
 
   resizeKeyboard: function km_resizeKeyboard(evt) {
@@ -355,7 +235,7 @@ var KeyboardManager = {
     // Set one of the keyboard layout for the specific group as active.
     function activateKeyboard() {
       // if we already have layouts for the group, no need to check default
-      if (!self.keyboardLayouts[group]) {
+      if (!self.inputLayouts.layouts[group]) {
         KeyboardHelper.checkDefaults(function changedDefaults() {
             KeyboardHelper.getLayouts({ enabled: true },
               self.updateLayouts.bind(self));
@@ -363,7 +243,7 @@ var KeyboardManager = {
         });
       }
       // if there are still no keyboards to use
-      if (!self.keyboardLayouts[group]) {
+      if (!self.inputLayouts.layouts[group]) {
         group = 'text';
       }
 
@@ -394,7 +274,7 @@ var KeyboardManager = {
       self._debug('get focus event ' + type);
       // by the order in Settings app, we should display
       // if target group (input type) does not exist, use text for default
-      if (!self.keyboardLayouts[group]) {
+      if (!self.inputLayouts.layouts[group]) {
         // ensure the helper has apps and settings data first:
         KeyboardHelper.getLayouts(activateKeyboard);
       } else {
@@ -469,22 +349,19 @@ var KeyboardManager = {
   },
 
   setKeyboardToShow: function km_setKeyboardToShow(group, index, launchOnly) {
-    if (!this.keyboardLayouts[group]) {
+    if (!this.inputLayouts.layouts[group]) {
       console.warn('trying to set a layout group to show that doesnt exist');
       return;
     }
     if (index === undefined) {
-      index = this.keyboardLayouts[group].activeLayout;
+      index = this.inputLayouts.layouts[group].activeLayout;
     }
     this._debug('set layout to display: type=' + group + ' index=' + index);
-    var layout = this.keyboardLayouts[group][index];
+    var layout = this.inputLayouts.layouts[group][index];
     this.inputFrameManager.launchFrame(layout, launchOnly);
     this.setShowingLayoutInfo(group, index, layout);
 
-    this.layoutToGroupMapping[layout.manifestURL + '/' + layout.id].forEach(
-      function(groupInfo) {
-      this.keyboardLayouts[groupInfo.group].activeLayout = groupInfo.index;
-    }, this);
+    this.inputLayouts.setGroupsActiveLayout(layout);
 
     // By setting launchOnly to true, we load the keyboard frame w/o bringing it
     // to the backgorund; this is convenient to call
@@ -509,12 +386,12 @@ var KeyboardManager = {
    */
   showIMESwitcher: function km_showIMESwitcher() {
     var showed = this.showingLayoutInfo;
-    if (!this.keyboardLayouts[showed.type]) {
+    if (!this.inputLayouts.layouts[showed.type]) {
       return;
     }
 
     // Need to make the message in spec: "FirefoxOS - English"...
-    var current = this.keyboardLayouts[showed.type][showed.index];
+    var current = this.inputLayouts.layouts[showed.type][showed.index];
 
     this.imeSwitcher.show(current.appName, current.name);
   },
@@ -573,14 +450,15 @@ var KeyboardManager = {
     var oldLayout = showed.layout;
 
     this.waitForSwitchTimeout(function keyboardSwitchLayout() {
-      if (!this.keyboardLayouts[showed.type]) {
+      if (!this.inputLayouts.layouts[showed.type]) {
         showed.type = 'text';
       }
-      var length = this.keyboardLayouts[showed.type].length;
+      var length = this.inputLayouts.layouts[showed.type].length;
       var index = (showed.index + 1) % length;
-      this.keyboardLayouts[showed.type].activeLayout = index;
+      this.inputLayouts.layouts[showed.type].activeLayout = index;
 
-      var nextLayout = this.keyboardLayouts[showed.type][index];
+      var nextLayout = this.inputLayouts.layouts[showed.type][index];
+
       // Only resetShowingKeyboard() if the running layout is not the same app
       // to prevent flash of black when switching.
       if (oldLayout.manifestURL !== nextLayout.manifestURL) {
@@ -600,7 +478,7 @@ var KeyboardManager = {
   imeMenuCallback: function km_imeMenuCallback(showedType, selectedIndex) {
     if (typeof selectedIndex === 'number') {
       // success: show the new keyboard
-      this.keyboardLayouts[showedType].activeLayout = selectedIndex;
+      this.inputLayouts.layouts[showedType].activeLayout = selectedIndex;
       this.setKeyboardToShow(showedType, selectedIndex);
 
       // Hide the tray to show the app directly after user selected a new kb.
@@ -617,11 +495,11 @@ var KeyboardManager = {
   // Show the input method menu
   showAll: function km_showAll() {
     var showedType = this.showingLayoutInfo.type;
-    var activeLayout = this.keyboardLayouts[showedType].activeLayout;
+    var activeLayout = this.inputLayouts.layouts[showedType].activeLayout;
     var actionMenuTitle = navigator.mozL10n.get('choose-option');
 
-    this.waitForSwitchTimeout(function keyboardLayoutList() {
-      var items = this.keyboardLayouts[showedType].map(
+    this.waitForSwitchTimeout(function listLayouts() {
+      var items = this.inputLayouts.layouts[showedType].map(
         function(layout, index) {
           return {
             layoutName: layout.name,
