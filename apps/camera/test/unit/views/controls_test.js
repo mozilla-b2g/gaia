@@ -35,6 +35,7 @@ suite('views/preview-gallery', function() {
 
     this.sandbox.stub(this.view.els.thumbnail);
     this.sandbox.spy(this.view, 'set');
+    this.sandbox.spy(this.view, 'emit');
   });
 
   teardown(function() {
@@ -151,6 +152,24 @@ suite('views/preview-gallery', function() {
       this.classes.add('enabled');
       this.view.disable();
       assert.isFalse(this.classes.contains('enabled'));
+    });
+  });
+
+  suite('ControlsView#onSwitchTapped()', function() {
+    setup(function() {
+      this.event = {
+        preventDefault: sinon.spy()
+      };
+    });
+
+    test('It emits a `modechanged` event', function() {
+      this.view.onSwitchTapped(this.event);
+      sinon.assert.calledWith(this.view.emit, 'modechanged');
+    });
+
+    test('It prevents default to stop the event becoming a click', function() {
+      this.view.onSwitchTapped(this.event);
+      sinon.assert.called(this.event.preventDefault);
     });
   });
 });

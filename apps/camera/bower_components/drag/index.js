@@ -89,8 +89,8 @@ Drag.prototype.onTouchMove = function(e) {
 
 Drag.prototype.onTouchEnd = function(e) {
   var tapped = (e.timeStamp - this.startTime) < this.tapTime;
-  if (tapped) { this.emit('tapped'); }
-  else { this.emit('ended'); }
+  if (tapped) { this.emit('tapped', e); }
+  else { this.emit('ended', e); }
 };
 
 Drag.prototype.move = function(delta) {
