@@ -220,6 +220,16 @@ li.align-center {
   text-align: center;
 }
 
+.item-with-children::after  {
+  content: "";
+  width: 3rem;
+  height: 3rem;
+  position: absolute;
+  top: calc(50% - 1.5rem);
+  right: 0.5rem;
+  background: url(/shared/style/buttons/images/next.png) no-repeat center / 3rem auto;
+}
+
 .mail-select {
   vertical-align: middle;
   height: 3.8rem;
