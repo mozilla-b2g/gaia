@@ -712,11 +712,12 @@
         this.debug('no active app alive: ' + instanceID);
         return;
       }
-      if (this._activeApp && this._activeApp.isFullScreen()) {
-        screenElement.classList.add('fullscreen-app');
-      } else {
-        screenElement.classList.remove('fullscreen-app');
-      }
+      var fullscreen = this._activeApp.isFullScreen();
+      screenElement.classList.toggle('fullscreen-app', fullscreen);
+
+      var fullScreenLayout = this._activeApp.isFullScreenLayout();
+      screenElement.classList.toggle('fullscreen-layout-app', fullScreenLayout);
+
       // Resize when opened.
       // Note: we will not trigger reflow if the final size
       // is the same as its current value.

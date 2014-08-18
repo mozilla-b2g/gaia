@@ -15,6 +15,16 @@
   height: calc(100% - 7rem);
 }
 
+#screen.fullscreen-layout-app.software-button-enabled .generic-dialog[role="dialog"] .value-selector {
+  height: calc(100% - 5rem - 7rem);
+}
+
+@media (orientation: landscape) {
+  #screen.fullscreen-layout-app.software-button-enabled .generic-dialog[role="dialog"] .value-selector {
+    height: calc(100% - 7rem);
+  }
+}
+
 .value-selector[hidden] {
   visibility: hidden;
   opacity: 0;

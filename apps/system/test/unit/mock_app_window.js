@@ -81,6 +81,7 @@
     isCertified: function() {},
     navigate: function() {},
     isFullScreen: function() {},
+    isFullScreenLayout: function() {},
     _changeState: function() {},
     _setVisible: function() {},
     _setVisibleForScreenReader: function() {},

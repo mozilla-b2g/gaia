@@ -524,7 +524,7 @@ suite('system/AppWindow', function() {
     });
   });
 
-  suite('Fullscreen', function() {
+  suite('Fullscreen, FullscreenLayout', function() {
     var fakeAppConfig1FullScreen = {
       url: 'app://www.fake/index.html',
       manifest: {
@@ -533,6 +533,16 @@ suite('system/AppWindow', function() {
       manifestURL: 'app://wwww.fake/ManifestURL',
       origin: 'app://www.fake'
     };
+
+    var fakeAppConfig1FullScreenLayout = {
+      url: 'app://www.fake/index.html',
+      manifest: {
+        'fullscreen_layout': true
+      },
+      manifestURL: 'app://wwww.fake/ManifestURL',
+      origin: 'app://www.fake'
+    };
+
     test('isFullScreen', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       assert.isFalse(app1.isFullScreen());
@@ -541,6 +551,18 @@ suite('system/AppWindow', function() {
       var app1f = new AppWindow(fakeAppConfig1FullScreen);
       assert.isTrue(app1f.isFullScreen());
       assert.isTrue(app1f.element.classList.contains('fullscreen-app'));
+
+      var app1fl = new AppWindow(fakeAppConfig1FullScreenLayout);
+      assert.isTrue(app1fl.isFullScreen());
+      assert.isTrue(app1fl.element.classList.contains('fullscreen-app'));
+    });
+
+    test('isFullScreenLayout', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      assert.isFalse(app1.isFullScreenLayout());
+
+      var app1f = new AppWindow(fakeAppConfig1FullScreenLayout);
+      assert.isTrue(app1f.isFullScreenLayout());
     });
   });
 

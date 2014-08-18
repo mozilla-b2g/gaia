@@ -145,11 +145,14 @@ suite('system/LockScreenWindowManager', function() {
     test('Open the app when screen is turned on', function() {
       window.lockScreenWindowManager.registerApp(appFake);
       var stubOpen = this.sinon.stub(appFake, 'open');
+      var stubResize = this.sinon.stub(appFake, 'resize');
       window.lockScreenWindowManager.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });
       assert.isTrue(stubOpen.called,
-        'the manager didn\'t call the app.close when screen off');
+        'the manager didn\'t call the app.open when screen on');
+      assert.isTrue(stubResize.called,
+        'the manager didn\'t call the app.resize when screen on');
       window.lockScreenWindowManager.unregisterApp(appFake);
     });
 
@@ -212,10 +215,13 @@ suite('system/LockScreenWindowManager', function() {
     test('Open the app when asked via lock-immediately setting', function() {
       window.lockScreenWindowManager.registerApp(appFake);
       var stubOpen = this.sinon.stub(appFake, 'open');
+      var stubResize = this.sinon.stub(appFake, 'resize');
       window.MockNavigatorSettings.mTriggerObservers(
         'lockscreen.lock-immediately', {settingValue: true});
       assert.isTrue(stubOpen.called,
         'the manager didn\'t open the app when requested');
+      assert.isTrue(stubResize.called,
+        'the manager didn\'t resize the app when requested');
       window.lockScreenWindowManager.unregisterApp(appFake);
     });
   });

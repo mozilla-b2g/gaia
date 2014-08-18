@@ -1,5 +1,5 @@
 /* global KeyboardManager, softwareButtonManager, System,
-          AttentionScreen */
+          AttentionScreen, AppWindowManager */
 'use strict';
 
 (function(exports) {
@@ -53,10 +53,13 @@
      * @memberOf LayoutManager
      */
     get height() {
+      var softwareButtonOverlayed =
+        !System.locked && (AppWindowManager.getActiveApp() &&
+          AppWindowManager.getActiveApp().isFullScreenLayout());
       var height = window.innerHeight -
         (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
         AttentionScreen.statusHeight -
-        softwareButtonManager.height;
+        (softwareButtonOverlayed ? 0 : softwareButtonManager.height);
 
       // Normalizing the height so that it always translates to an integral
       // number of device pixels
@@ -74,7 +77,9 @@
      * @memberOf LayoutManager
      */
     get width() {
-      return window.innerWidth - softwareButtonManager.width;
+      return window.innerWidth -
+        (AppWindowManager.getActiveApp().isFullScreenLayout() ? 0 :
+          softwareButtonManager.width);
     },
 
     /**
