@@ -12,6 +12,7 @@
 /* global MockMozL10n */
 /* global MockSdCard */
 /* global utils */
+/* global MockNavigatorSettings */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/js/contacts/import/utilities/misc.js');
@@ -35,6 +36,7 @@ requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/js/utilities/icc_handler.js');
 requireApp('communications/contacts/js/utilities/sim_dom_generator.js');
 requireApp('communications/contacts/js/navigation.js');
+requireApp('communications/contacts/js/utilities/normalizer.js');
 requireApp('communications/contacts/js/views/settings.js');
 
 if (!window._) { window._ = null; }
@@ -108,11 +110,6 @@ suite('Contacts settings >', function() {
     } else {
       window.utils.sdcard = MockSdCard;
     }
-    window.utils.time = {
-      pretty: function(date) {
-        return date;
-      }
-    };
     window.utils.overlay = {
       show: function() {},
       showMenu: function() {}
@@ -397,6 +394,22 @@ suite('Contacts settings >', function() {
   });
 
   suite('Timestamp Import', function() {
+    var realMozSettings;
+
+    suiteSetup(function(done) {
+      realMozSettings = navigator.mozSettings;
+      navigator.mozSettings = MockNavigatorSettings;
+      navigator.mozSettings.mSettings['locale.hour12'] = true;
+
+      require('/shared/js/l10n_date.js');
+      require('/shared/js/date_time_helper.js', done);
+      
+    });
+
+    suiteTeardown(function() {
+      navigator.mozSettings = realMozSettings;
+    });
+
     var timestamps = {
       'gmail': Date.now(),
       'live': Date.now() - 24 * 60 * 60 * 1000,
@@ -427,14 +440,17 @@ suite('Contacts settings >', function() {
       }
     });
 
-    function assertContactsImportedFrom(source, done) {
+    function assertContactsImportedFrom(source, done, extraString) {
       var importElm = document.getElementById('import-' + source + '-option');
       var time = importElm.querySelector('time');
 
       var test = function() {
         assert.equal(time.getAttribute('datetime'),
             (new Date(timestamps[source])).toLocaleString());
-        assert.equal(time.textContent, timestamps[source]);
+        assert.equal(time.textContent, utils.time.pretty(timestamps[source]));
+        if (extraString) {
+          assert.isTrue(time.textContent.indexOf(extraString) != -1);
+        }
         observer.disconnect();
       };
 
@@ -466,6 +482,17 @@ suite('Contacts settings >', function() {
 
     test('Contacts imported from Live', function(done) {
       assertContactsImportedFrom('live', done);
+    });
+
+    test('Test check 12 hour format', function(done) {
+      assertContactsImportedFrom('gmail', done, 'shortTimeFormat12');
+    });
+
+    test('Test check 24 hour format', function(done) {
+      navigator.mozSettings.mSettings['locale.hour12'] = false;
+      navigator.mozSettings.mTriggerObservers('locale.hour12',
+       {'settingValue': false});
+      assertContactsImportedFrom('gmail', done, 'shortTimeFormat24');
     });
   });
 
