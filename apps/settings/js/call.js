@@ -112,6 +112,7 @@ require([
       cs_initCallerId();
       cs_initCallForwarding();
       cs_initCallBarring();
+
       window.setTimeout(cs_initCallForwardingObservers, 500);
 
       // Update items in the call settings panel.
@@ -918,42 +919,42 @@ require([
       */
     function _updateAllCallBarring(newState) {
       console.log('UPDATING CALL BARRING ITEMS');
-      console.log('status? ' + JSON.stringify(newState));
+      // console.log('status? ' + JSON.stringify(newState));
       var currentState = {};
 
       [].forEach.call(
         document.querySelectorAll('#call-cbSettings li'),
         function (item) {
           var input = item.querySelector('input');
-          console.log('item? ' + item.id);
+          // console.log('item? ' + item.id);
           // if we are disabling them, we keep the current state
           if (!newState || newState.length === 0) {
-            console.log('no new state, backing up');
-            console.log('-- disabled?' + item.getAttribute('aria-disabled'));
-            console.log('-- checked?' + (input && input.checked));
+            // console.log('no new state, backing up');
+            // console.log('-- disabled?' + item.getAttribute('aria-disabled'));
+            // console.log('-- checked?' + (input && input.checked));
             currentState[item.id] = {
               'disabled': item.getAttribute('aria-disabled') || false,
               'checked': !!input ? input.checked : null
             };
-            console.log('backup updated' + JSON.stringify(currentState));
+            // console.log('backup updated' + JSON.stringify(currentState));
           }
 
-          console.log('newState item - ' + JSON.stringify(newState[item.id]));
+          // console.log('newState item - ' + JSON.stringify(newState[item.id]));
           var disabled = !!newState ? newState[item.id].disabled : true;
-          console.log('new state disabled? '+ disabled);
+          // console.log('new state disabled? '+ disabled);
           disabled ?
             item.setAttribute('aria-disabled', disabled):
             item.removeAttribute('aria-disabled');
 
           if (!!input) {
             var checked = newState ? newState[item.id].checked : input.checked;
-            console.log('new state checked? '+ (newState && newState[item.id].checked));
-            console.log('current checked? '+ input.checked);
+            // console.log('new state checked? '+ (newState && newState[item.id].checked));
+            // console.log('current checked? '+ input.checked);
 
             input.disabled = disabled;
             input.checked = checked;
-            console.log('input disabled? '+ disabled);
-            console.log('input checked? '+ checked);
+            // console.log('input disabled? '+ disabled);
+            // console.log('input checked? '+ checked);
           }
         }
       );
@@ -962,19 +963,19 @@ require([
       return currentState;
     }
 
-    function _makeCallBarringRequest(inputID, options) {
+    function _setCallBarring(inputID, options) {
       // disable tap on all inputs while we deal with server
-      console.log('disabling inputs');
+      console.log('CB SET > disabling inputs');
       var previousState = _updateAllCallBarring(false);
 
-      console.log('enqueueing request!');
+      console.log('CB SET > enqueueing request!');
       _taskScheduler.enqueue('CALL_BARRING', function(done) {
-        console.log('done, sending...');
+        console.log('CB SET > done, sending...');
         // Send the request
         var request = _mobileConnection.setCallBarringOption(options);
         request.onsuccess = function() {
-          console.log('SUCCESS!');
-          console.log('RESULT: ' + JSON.stringify(request.result));
+          console.log('CB SET > SUCCESS!');
+          console.log('CB SET > RESULT: ' + JSON.stringify(request.result));
 
           // Barring All Outgoing disables the rest of outgoing options
           if (previousState['li-cb-baoc'].checked) {
@@ -992,16 +993,16 @@ require([
         };
         request.onerror = function() {
           /* request.error = { name, message } */
-          console.log('ERROR!');
-          console.log('e.name =  ' + request.error.name);
-          console.log('e.message = ' + request.error.message);
+          console.log('CB SET > ERROR!');
+          console.log('CB SET > e.name =  ' + request.error.name);
+          console.log('CB SET > e.message = ' + request.error.message);
 
           // revert visual changes
-          console.log('REVERTING STATUS');
-          console.log('PREVIOUS STATUS - ' + JSON.stringify(previousState));
+          console.log('CB SET > REVERTING STATUS');
+          console.log('CB SET > PREVIOUS STATUS - ' + JSON.stringify(previousState));
 
-          console.log('input state is ' + previousState[inputID].checked);
-          console.log('we want to change it to ' + !previousState[inputID].checked);
+          console.log('CB SET > input state is ' + previousState[inputID].checked);
+          console.log('CB SET > we want to change it to ' + !previousState[inputID].checked);
           // we revert the clicked input
           previousState[inputID].checked = !previousState[inputID].checked;
           // and go back to previous state (enable all)
@@ -1009,6 +1010,35 @@ require([
 
           done();
         };
+      });
+    }
+
+    function _getCallBarring(id, options) {
+      console.log('CB GET > promise started');
+      return new Promise(function (resolve, reject) {
+        console.log('CB GET > enqueueing request!');
+        _taskScheduler.enqueue('CALL_BARRING_' + id.slice(6), function(done) {
+          console.log('CB GET > done, sending...');
+
+          // Send the request
+          var request = _mobileConnection.getCallBarringOption(options);
+          request.onsuccess = function() {
+            console.log('CB GET > SUCCESS for ID= ' + id);
+            console.log('CB GET > RESULT: ' + JSON.stringify(request.result));
+
+            done();
+            resolve({'id': id, 'checked': request.result.enabled});
+          };
+          request.onerror = function() {
+            /* request.error = { name, message } */
+            console.log('CB GET > ERROR for ID = ' + id);
+            console.log('CB GET > e.name =  ' + request.error.name);
+            console.log('CB GET > e.message = ' + request.error.message);
+
+            done();
+            reject(request.error);
+          };
+        });
       });
     }
 
@@ -1022,7 +1052,6 @@ require([
     function cs_initCallBarring() {
       var inputBaoc =
         document.querySelector('#li-cb-baoc .checkbox-label input');
-        console.log('BAOC input is ' + inputBaoc);
       var inputBoic =
         document.querySelector('#li-cb-boic .checkbox-label input');
       var inputBoicExhc =
@@ -1040,6 +1069,43 @@ require([
         'li-cb-baic-r': _cbAction.CALL_BARRING_BAICr
       };
 
+      // disable all, change description to 'requestin network info'
+      var initialState = _updateAllCallBarring(false);
+      // make the request for each one
+      console.log('REQUESTING INITIAL VALUES');
+      var requestArray = [];
+      Object.keys(cb_serviceMapper).forEach(function _requestState(inputID) {
+        console.log('getting current value for ' + inputID);
+        var options = {
+          'program': cb_serviceMapper[inputID],
+          'serviceClass': _voiceServiceClassMask
+        };
+        console.log('options: ' + JSON.stringify(options));
+        requestArray.push(_getCallBarring(inputID, options));
+        // var currentValue = _getCallBarring(inputID, options) || false;
+        // console.log('value received: ' + currentValue);
+        // console.log('modifying original state');
+        // initialState[inputID].checked = currentValue;
+        // initialState[inputID].disabled = false;
+      });
+
+      Promise.all(requestArray)
+        .then(function allSolved(responseArray) {
+          console.log('PROMISES > success: ' + JSON.stringify(responseArray));
+        })
+        .catch(function someError(err) {
+          console.log('PROMISES > some error: ' + JSON.stringify(err));
+        })
+        .then(function doAnyway() {
+          console.log('PROMISES > FINISHED');
+          console.log('PROMISES > enabling original state');
+
+          // enable all once updated with the values
+          _updateAllCallBarring(initialState);
+        });
+
+
+
       var callBarringClick = function(event) {
         console.log('EVENT: ' + JSON.stringify(event));
         console.log('TARGET: ' + JSON.stringify(event.target));
@@ -1054,7 +1120,7 @@ require([
           // password screen confirmed
           function confirmed(password) {
             console.log('CLICK ON confirm button');
-            var inputID = input.parentNode.parentNode.id
+            var inputID = input.parentNode.parentNode.id;
             console.log('ID = ' + inputID);
             // Create the options object
             var options = {
@@ -1065,7 +1131,7 @@ require([
             };
             console.log('options: ' + JSON.stringify(options));
 
-            _makeCallBarringRequest(inputID, options);
+            _setCallBarring(inputID, options);
           },
           // password screen canceled
           function canceled() {
@@ -1272,6 +1338,7 @@ require([
         }
       },
       enqueue: function(type, func) {
+        console.log('...adding type ' + type + ' to the queue...');
         this._tasks = this._removeRedundantTasks(type);
         this._tasks.push({
           type: type,
