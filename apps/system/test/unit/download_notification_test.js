@@ -295,15 +295,8 @@ suite('system/DownloadNotification >', function() {
       download.state = 'finalized';
       download.onstatechange();
 
-      sinon.assert.called(NotificationScreen.removeNotification);
-
-      var args = NotificationScreen.removeNotification.args[0];
-      var id = DownloadFormatter.getUUID(download);
-      assert.isTrue(args.indexOf(id) !== -1);
-
-      assert.isNull(notification.id);
-      assert.isNull(notification.download);
-      assert.isNull(notification.state);
+      assert.isFalse(NotificationScreen.removeNotification.called,
+                     'Notification should remain when download is finalized.');
     });
 
   });
