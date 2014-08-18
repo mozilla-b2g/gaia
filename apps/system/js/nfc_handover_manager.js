@@ -600,21 +600,22 @@ var NfcHandoverManager = {
    * @memberof NfcHandoverManager.prototype
    */
   tryHandover: function(ndefMsg, session) {
+    var nfcUtils = new NfcUtils();
     if (!Array.isArray(ndefMsg) || !ndefMsg.length) {
       return false;
     }
 
     var record = ndefMsg[0];
     if (record.tnf === NDEF.TNF_WELL_KNOWN) {
-      if (NfcUtils.equalArrays(record.type, NDEF.RTD_HANDOVER_SELECT)) {
+      if (nfcUtils.equalArrays(record.type, NDEF.RTD_HANDOVER_SELECT)) {
         this._handleHandoverSelect(ndefMsg);
         return true;
-      } else if (NfcUtils.equalArrays(record.type, NDEF.RTD_HANDOVER_REQUEST)) {
+      } else if (nfcUtils.equalArrays(record.type, NDEF.RTD_HANDOVER_REQUEST)) {
         this._handleHandoverRequest(ndefMsg, session);
         return true;
       }
     } else if ((record.tnf === NDEF.TNF_MIME_MEDIA) &&
-        NfcUtils.equalArrays(record.type, NDEF.MIME_BLUETOOTH_OOB)) {
+        nfcUtils.equalArrays(record.type, NDEF.MIME_BLUETOOTH_OOB)) {
       this._handleSimplifiedPairingRecord(ndefMsg);
       return true;
     }

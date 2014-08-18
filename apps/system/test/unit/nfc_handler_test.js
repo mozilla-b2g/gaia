@@ -17,10 +17,12 @@ var mocksForNfcManager = new MocksHelper([
 suite('Nfc Manager Functions', function() {
   var nfcHandler;
   var realMozNfc;
+  var nfcUtils;
 
   mocksForNfcManager.attachTestHelpers();
 
   setup(function(done) {
+    nfcUtils = new NfcUtils();
     realMozNfc = window.navigator.mozNfc;
     window.navigator.mozNfc = MockNfc;
     requireApp('system/js/nfc_handler.js', function() {
@@ -48,7 +50,7 @@ suite('Nfc Manager Functions', function() {
     };
     MockNfc.mTriggerOnpeerready(nfcEvent);
     assert.deepEqual(stubSendNDEFRequestToNFCPeer.getCall(0).args[0],
-      NfcUtils.parseURIString('www.test.com'));
+      nfcUtils.parseURIString('www.test.com'));
     assert.deepEqual(stubSendNDEFRequestToNFCPeer.getCall(0).args[1],
       nfcEvent);
   });

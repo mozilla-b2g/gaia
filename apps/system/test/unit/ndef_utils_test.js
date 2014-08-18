@@ -12,8 +12,13 @@ var mocksForNfcUtils = new MocksHelper([
 ]).init();
 
 suite('NDEFUtils tests', function() {
+  var nfcUtils;
 
   mocksForNfcUtils.attachTestHelpers();
+
+  setup(function() {
+    nfcUtils = new NfcUtils();
+  });
 
   suite('Helper functions tests', function() {
     test('formatMAC()', function() {
@@ -93,7 +98,7 @@ suite('NDEFUtils tests', function() {
 
     test('Decodes AC record correctly', function() {
       var cps = 2;
-      var name = NfcUtils.fromUTF8('lorem ipsum');
+      var name = nfcUtils.fromUTF8('lorem ipsum');
       var hin = NDEFUtils.encodeHandoverSelect(mac, cps, name);
       var hout = NDEFUtils.parseHandoverNDEF(hin);
 
@@ -103,7 +108,7 @@ suite('NDEFUtils tests', function() {
       assert.equal(NDEFUtils.formatMAC(m), mac);
 
       var n = ac.subarray(10, 10 + name.length);
-      assert.equal(NfcUtils.toUTF8(n), 'lorem ipsum');
+      assert.equal(nfcUtils.toUTF8(n), 'lorem ipsum');
     });
 
     test('Parses multiple Alternative Carrier (AC) records', function() {
@@ -205,7 +210,7 @@ suite('NDEFUtils tests', function() {
 
     test('Do not attempt to parse records other that Hs/Hr', function() {
       var hin = NDEFUtils.encodeHandoverRequest(mac, 1);
-      hin[0].type = NfcUtils.fromUTF8('Xx');
+      hin[0].type = nfcUtils.fromUTF8('Xx');
       var hout = NDEFUtils.parseHandoverNDEF(hin);
 
       assert.isNull(hout);
@@ -271,7 +276,7 @@ suite('NDEFUtils tests', function() {
     });
 
     test('No BT AC present - incorrect type', function() {
-      h.ac[0].cdr.type = NfcUtils.fromUTF8('application/invalid');
+      h.ac[0].cdr.type = nfcUtils.fromUTF8('application/invalid');
       var btAC = NDEFUtils.searchForBluetoothAC(h);
       assert.isNull(btAC);
     });
@@ -315,7 +320,7 @@ suite('NDEFUtils tests', function() {
       var name = 'Lorem ipsum';
 
       var record = NDEFUtils.encodeHandoverSelect(mac, 1,
-        NfcUtils.fromUTF8(name));
+        nfcUtils.fromUTF8(name));
       var dec = NDEFUtils.parseBluetoothSSP(record[1]);
 
       assert.equal(dec.localName, name);
@@ -341,7 +346,7 @@ suite('NDEFUtils tests', function() {
 
       // Bluetooth local name (supported field).
       var name = 'Lorem ipsum';
-      var nameArr = Array.apply([], NfcUtils.fromUTF8(name));
+      var nameArr = Array.apply([], nfcUtils.fromUTF8(name));
       var nEIRType = 0x09;
       var nEIRLength = 1 + nameArr.length;
 
@@ -381,7 +386,7 @@ suite('NDEFUtils tests', function() {
       function() {
 
       var record = NDEFUtils.encodeHandoverSelect(mac, 1,
-        NfcUtils.fromUTF8('Lorem ipsum'));
+        nfcUtils.fromUTF8('Lorem ipsum'));
 
       // Make local name invalid: delete one character from it.
       // Set OOB length as if this character was missing.
@@ -469,7 +474,6 @@ suite('NDEFUtils tests', function() {
   });
 
   suite('encodeHandoverSelect() tests', function() {
-
     var cps;
     var btMac;
     var btName;
@@ -478,7 +482,7 @@ suite('NDEFUtils tests', function() {
     setup(function() {
       cps = NDEF.CPS_ACTIVE;
       btMac = '00:0D:44:E7:95:AB';
-      btName = NfcUtils.fromUTF8('UE MINI BOOM');
+      btName = nfcUtils.fromUTF8('UE MINI BOOM');
 
       /*
        * The following NDEF message contains a static handover request

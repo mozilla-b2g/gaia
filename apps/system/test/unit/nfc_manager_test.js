@@ -32,6 +32,7 @@ suite('Nfc Manager Functions', function() {
 
   var realMozSetMessageHandler;
   var realMozBluetooth;
+  var nfcUtils;
 
   mocksForNfcManager.attachTestHelpers();
 
@@ -40,6 +41,7 @@ suite('Nfc Manager Functions', function() {
     window.navigator.mozSetMessageHandler = MockMozSetMessageHandler;
     realMozBluetooth = window.navigator.mozBluetooth;
     window.navigator.mozBluetooth = window.MockBluetooth;
+    nfcUtils = new NfcUtils();
 
     requireApp('system/js/nfc_manager.js', done);
   });
@@ -165,6 +167,7 @@ suite('Nfc Manager Functions', function() {
     var sampleMimeRecord;
 
     setup(function() {
+
       sampleMsg = {
         type: 'techDiscovered',
         techList: [],
@@ -177,14 +180,14 @@ suite('Nfc Manager Functions', function() {
         tnf: NDEF.TNF_WELL_KNOWN,
         type: NDEF.RTD_URI,
         id: new Uint8Array([1]),
-        payload: NfcUtils.fromUTF8('\u0000http://mozilla.org')
+        payload: nfcUtils.fromUTF8('\u0000http://mozilla.org')
       };
 
       sampleMimeRecord = {
         tnf: NDEF.TNF_MIME_MEDIA,
-        type: NfcUtils.fromUTF8('text/vcard'),
+        type: nfcUtils.fromUTF8('text/vcard'),
         id: new Uint8Array([2]),
-        payload: NfcUtils.fromUTF8('BEGIN:VCARD\nVERSION:2.1\nN:J;\nEND:VCARD')
+        payload: nfcUtils.fromUTF8('BEGIN:VCARD\nVERSION:2.1\nN:J;\nEND:VCARD')
       };
 
     });
@@ -373,7 +376,7 @@ suite('Nfc Manager Functions', function() {
         name: 'import',
         data: {
           type: 'text/vcard',
-          blob: new Blob([NfcUtils.toUTF8(sampleMsg.records.payload)],
+          blob: new Blob([nfcUtils.toUTF8(sampleMsg.records.payload)],
                          {'type': 'text/vcard'}),
           tech: 'NDEF',
           techList: sampleMsg.techList,
@@ -451,7 +454,7 @@ suite('Nfc Manager Functions', function() {
         tnf: NDEF.TNF_WELL_KNOWN,
         type: NDEF.RTD_URI,
         id: new Uint8Array([1]),
-        payload: NfcUtils.fromUTF8('\u0000http://mozilla.org')
+        payload: nfcUtils.fromUTF8('\u0000http://mozilla.org')
       };
 
       this.sinon.stub(window, 'MozActivity');
@@ -621,21 +624,21 @@ suite('Nfc Manager Functions', function() {
         tnf: NDEF.TNF_WELL_KNOWN,
         type: NDEF.RTD_SMART_POSTER,
         id: new Uint8Array([1]),
-        paylod: NfcUtils.fromUTF8('dummy payload')
+        paylod: nfcUtils.fromUTF8('dummy payload')
       };
 
       uriRecord = {
         tnf: NDEF.TNF_WELL_KNOWN,
         type: NDEF.RTD_URI,
         id: new Uint8Array([2]),
-        payload: NfcUtils.fromUTF8('dummy uri')
+        payload: nfcUtils.fromUTF8('dummy uri')
       };
 
       mimeRecord = {
         tnf: NDEF.TNF_MIME_MEDIA,
-        type: NfcUtils.fromUTF8('text/plain'),
+        type: nfcUtils.fromUTF8('text/plain'),
         id: new Uint8Array([3]),
-        payload: NfcUtils.fromUTF8('dummy text')
+        payload: nfcUtils.fromUTF8('dummy text')
       };
     });
 

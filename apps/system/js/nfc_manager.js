@@ -205,17 +205,18 @@ var NfcManager = {
    * @returns {Object} record - SmartPostr record or null
    */
   _getSmartPoster: function nm_getSmartPoster(records) {
+    var nfcUtils = new NfcUtils();
     if (!Array.isArray(records) || !records.length) {
       return null;
     }
 
     var smartPosters = records.filter(function isSmartPoster(r) {
-      return NfcUtils.equalArrays(r.type, NDEF.RTD_SMART_POSTER);
+      return nfcUtils.equalArrays(r.type, NDEF.RTD_SMART_POSTER);
     });
 
     if (smartPosters.length && records[0].tnf === NDEF.TNF_WELL_KNOWN &&
-        (NfcUtils.equalArrays(records[0].type, NDEF.RTD_URI) ||
-         NfcUtils.equalArrays(records[0].type, NDEF.RTD_SMART_POSTER))) {
+        (nfcUtils.equalArrays(records[0].type, NDEF.RTD_URI) ||
+         nfcUtils.equalArrays(records[0].type, NDEF.RTD_SMART_POSTER))) {
       return smartPosters[0];
     }
     return null;

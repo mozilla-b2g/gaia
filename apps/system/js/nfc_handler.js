@@ -19,12 +19,13 @@
     },
 
     handleEvent: function nh_handleEvent(evt) {
+      var nfcUtils = new NfcUtils();
       if (evt.type !== 'peerready') {
         return;
       }
       var currentApp = this.appWindowManager.getActiveApp();
       if (currentApp && currentApp.isBrowser() && currentApp.url) {
-        this.sendNDEFRequestToNFCPeer(NfcUtils.parseURIString(currentApp.url),
+        this.sendNDEFRequestToNFCPeer(nfcUtils.parseURIString(currentApp.url),
           evt);
       }
     },
