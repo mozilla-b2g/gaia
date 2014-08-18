@@ -292,16 +292,15 @@ form[role="search"] button[type="submit"]:after {
 
 .sim-indication {
   position: absolute;
-  top: 0.3rem;
-  right: 1.9rem;
+  right: 1.8rem;
+  bottom: 0.3rem;
 
   display: none;
   line-height: 1;
 
-  color: black;
-  font-size: 1.3rem;
+  color: #5f5f5f;
+  font-size: 1.4rem;
   font-style: normal;
-  opacity: 0.5;
 }
 
 button[disabled] .sim-indication {
@@ -314,15 +313,12 @@ button[disabled] .sim-indication {
 
 .has-preferred-sim #messages-send-button:before {
   position: absolute;
-  top: 1rem;
-  left: 0;
-  right: 0;
+  top: 1.2rem;
+  right: 2.6rem;
 
   content: '...';
   display: block;
-  width: 100%;
 
   color: #b2b2b2;
-  text-align: center;
-  font-size: 1.8rem;
+  font-size: 1.6rem;
 }
