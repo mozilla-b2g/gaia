@@ -233,6 +233,13 @@ function execute(config) {
     settings['debugger.remote-mode'] = 'disabled';
   }
 
+  // Disable network activity icon in debug mode because it
+  // causes unit tests to run really slowly until we
+  // can investigate and fix bug 1054220.
+  if (config.DEBUG) {
+    settings['statusbar.network-activity.disabled'] = true;
+  }
+
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
 
   if (config.DEVICE_DEBUG) {
