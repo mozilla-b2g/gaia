@@ -200,20 +200,21 @@ marionette('Notification events', function() {
     }, [CALENDAR_APP_MANIFEST]);
     assert.equal(error, false, 'Error on resending after removing: ' + error);
 
-    // remove this try-catch once the gecko side for Bug 1046828 lands.
+    var applicationLaunched = false;
     try {
-      // close app, to make sure.
       client.switchToFrame();
 
       var faster = client.scope({ searchTimeout: 50 });
 
-      client.switchToFrame(
-        faster.findElement('iframe[src*="' + CALENDAR_APP + '"]')
-      );
-      client.executeScript(function() {
-        window.wrappedJSObject.close();
-      });
+      // If the app's iframe is here, it means the "show" event launched it, and
+      // it's wrong
+      faster.findElement('iframe[src*="' + CALENDAR_APP + '"]');
+      applicationLaunched = true;
     } catch(e) {}
+
+    if (applicationLaunched) {
+      throw new Error('Sending the "show" event launched the app.');
+    }
 
     // switch to system app and send desktop-notification-click
     client.switchToFrame();
