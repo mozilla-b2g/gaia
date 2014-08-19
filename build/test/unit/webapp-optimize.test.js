@@ -131,6 +131,10 @@ suite('webapp-optimize.js', function() {
       return file.path + '-dataURI';
     };
 
+    mockUtils.jsComparator = function() {
+      return true;
+    };
+
     mockConfig = {
       GAIA_DEFAULT_LOCALE: 'default-locale',
       GAIA_CONCAT_LOCALES: '1',
