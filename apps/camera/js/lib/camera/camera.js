@@ -914,8 +914,12 @@ Camera.prototype.startRecording = function(options) {
         storage,
         filepath,
         onSuccess,
-        self.onRecordingError);
+        onError);
     }
+  }
+
+  function onError() {
+    self.onRecordingError();
   }
 
   function onSuccess() {
