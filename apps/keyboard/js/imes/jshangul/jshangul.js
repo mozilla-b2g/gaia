@@ -161,7 +161,10 @@
                   this.curJamo.push(jamo);
                   return this.changed();
                 } else {
-                  if (JONG_SEONG_MAP.hasOwnProperty(jamo)) {
+                  if (this.choSeong.length === 0) {
+                    this.reset();
+                    return this.add(keyCode);
+                  } else if (JONG_SEONG_MAP.hasOwnProperty(jamo)) {
                     this.jongSeong.push(jamo);
                     this.curJamo = this.jongSeong;
                     return this.changed();
