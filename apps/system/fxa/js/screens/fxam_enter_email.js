@@ -90,18 +90,17 @@ var FxaModuleEnterEmail = (function() {
         _enableNext(event.target);
       }
     );
-    this.fxaEmailInput.addEventListener(
-      'focus',
-      function onFocus() {
-        this.fxaLogo.setAttribute('hidden', true);
-      }.bind(this)
-    );
-    this.fxaEmailInput.addEventListener(
-      'blur',
-      function onBlur() {
-        this.fxaLogo.removeAttribute('hidden');
-      }.bind(this)
-    );
+    this.fxaEmailInput.addEventListener('focus', function() {
+      window.addEventListener('resize', function resize() {
+        window.removeEventListener('resize', resize);
+        // Need to wait till resize is done
+        setTimeout(function() {
+          var page = document.getElementById('fxa-email-section');
+          var emailInput = document.getElementById('fxa-email-input');
+          page.parentNode.scrollTop = emailInput.offsetTop;
+        }, 30);
+      });
+    });
 
     this.fxaTerms.addEventListener('click', onExternalLinkClick.bind(this));
     this.fxaPrivacy.addEventListener('click', onExternalLinkClick.bind(this));
