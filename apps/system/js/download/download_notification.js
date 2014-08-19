@@ -160,9 +160,8 @@ DownloadNotification.prototype = {
    * @return {String} Icon path.
    */
   _getIcon: function dn_getIcon() {
-    var state = this.state;
-    return state === 'stopped' ? null : this._ICONS_PATH + state +
-                                        this._ICONS_EXTENSION;
+    var icon = (this.state === 'downloading' ? 'downloading' : 'download');
+    return this._ICONS_PATH + icon + this._ICONS_EXTENSION;
   },
 
   /**
