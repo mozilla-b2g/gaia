@@ -80,7 +80,7 @@
   AppChrome.prototype.combinedView = function an_combinedView() {
     return '<div class="chrome" id="' +
             this.CLASS_NAME + this.instanceID + '">' +
-            '<div class="progress"></div>' +
+            '<gaia-progress></gaia-progress>' +
             '<div class="controls">' +
             ' <button type="button" class="back-button"' +
             '   alt="Back" disabled></button>' +
@@ -101,7 +101,7 @@
   AppChrome.prototype.view = function an_view() {
     return '<div class="chrome" id="' +
             this.CLASS_NAME + this.instanceID + '">' +
-            '<div class="progress"></div>' +
+            '<gaia-progress></gaia-progress>' +
             '<section role="region" class="bar skin-organic">' +
               '<header>' +
                 '<button class="kill popup-close">' +
@@ -144,7 +144,7 @@
   AppChrome.prototype._fetchElements = function ac__fetchElements() {
     this.element = this.containerElement.querySelector('.chrome');
 
-    this.progress = this.element.querySelector('.progress');
+    this.progress = this.element.querySelector('gaia-progress');
     this.reloadButton = this.element.querySelector('.reload-button');
     this.forwardButton = this.element.querySelector('.forward-button');
     this.stopButton = this.element.querySelector('.stop-button');
