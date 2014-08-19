@@ -206,7 +206,7 @@ var WifiUI = {
     // And then end we update the selected network
     var newWifi = document.getElementById(ssid);
     newWifi.dataset.wifiSelected = true;
-    newWifi.querySelector('p:last-child').textContent =
+    newWifi.querySelector('p[data-security-level]').textContent =
                                                     _('shortStatus-connecting');
     newWifi.querySelector('aside').classList.add('connecting');
 
@@ -389,7 +389,7 @@ var WifiUI = {
     }
 
     // Update the element
-    element.querySelector('p:last-child').textContent =
+    element.querySelector('p[data-security-level]').textContent =
                                                     _('shortStatus-' + status);
 
     // Animate icon if connecting, stop animation if
