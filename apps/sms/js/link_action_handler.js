@@ -34,6 +34,10 @@
       }
 
       if (action === 'url-link') {
+        if (!Compose.isEmpty()) {
+          ThreadUI.saveDraft({autoSave: true});
+        }
+        ActivityHandler.leaveActivity();
 
         var type = action.replace('-link', '');
 
