@@ -11,7 +11,8 @@ suite('SettingsUtils', function() {
   var settingsService;
   var map = {
     '*': {
-      'modules/settings_service': 'unit/mock_settings_service'
+      'modules/settings_service': 'unit/mock_settings_service',
+      'shared/lazy_loader': 'shared_mocks/mock_lazy_loader'
     }
   };
 
@@ -104,6 +105,29 @@ suite('SettingsUtils', function() {
       assert.isTrue(onResetCallback.called);
       assert.equal(secondNavigate.args[0], 'root',
         'we did navigate back to root after clicking submit button');
+    });
+  });
+
+  suite('loadTemplate', function() {
+    var spyCallback;
+
+    setup(function() {
+      spyCallback = this.sinon.spy();
+    });
+
+    test('with element', function() {
+      var element = {
+        innerHTML: 'html'
+      };
+      this.sinon.stub(document, 'getElementById').returns(element);
+      settingsUtils.loadTemplate('real', spyCallback);
+      assert.isTrue(spyCallback.calledWith(element.innerHTML));
+    });
+
+    test('without element', function() {
+      this.sinon.stub(document, 'getElementById').returns(null);
+      settingsUtils.loadTemplate('fake', spyCallback);
+      assert.isTrue(spyCallback.calledWith(null));
     });
   });
 

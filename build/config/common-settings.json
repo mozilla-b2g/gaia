@@ -173,7 +173,7 @@
    "ril.supl.user": "",
    "ril.supl.authtype": "notDefined",
    "ril.sms.strict7BitEncoding.enabled": false,
-   "ril.cellbroadcast.disabled": false,
+   "ril.cellbroadcast.disabled": [false, false],
    "ril.data.apnSettings": "",
    "ril.data.cp.apns": "",
    "ril.callerId": "CLIR_DEFAULT",

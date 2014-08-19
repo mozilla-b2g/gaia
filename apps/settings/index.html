@@ -89,6 +89,8 @@
     <!--<script defer src="shared/js/fxa_iac_client.js"></script> -->
     <!--<script defer src="shared/js/text_normalizer.js"></script> -->
     <!--<script defer src="shared/js/settings_url.js"></script> -->
+    <!--<script defer src="shared/js/simslot.js"></script> -->
+    <!--<script defer src="shared/js/simslot_manager.js"></script> -->
     <!--<script defer src="shared/js/omadrm/fl.js"></script> -->
     <!--<script defer src="shared/js/device_storage/enumerate_all.js"></script> -->
     <!--<script defer src="shared/js/tz_select.js"></script> -->
@@ -115,6 +117,7 @@
     <link rel="import" href="/elements/call_iccs.html">
     <link rel="import" href="/elements/call.html">
     <link rel="import" href="/elements/messaging.html">
+    <link rel="import" href="/elements/messaging_details.html">
     <link rel="import" href="/elements/carrier_operator_settings.html">
     <link rel="import" href="/elements/carrier_data_settings.html">
     <link rel="import" href="/elements/carrier_mms_settings.html">
@@ -170,6 +173,7 @@
     <link rel="import" href="/elements/firefox_accounts.html">
     <link rel="import" href="/elements/findmydevice.html">
     <link rel="import" href="/elements/frame.html">
+    <link rel="import" href="/elements/templates/messaging.html">
   </head>
   <body class="skin-organic uninit">
     <!--
@@ -236,6 +240,8 @@
     <section is="call-iccs" role="region" id="call-iccs"></section>
     <!-- Connectivity :: Call -->
     <section is="call" role="region" id="call" data-require-sub-panels="true"></section>
+    <!-- Connectivity :: Messaging :: Details -->
+    <section is="messaging-details" role="region" id="messaging-details"></section>
     <!-- Connectivity :: Messaging -->
     <section is="messaging" role="region" id="messaging"></section>
     <!-- Connectivity :: Cellular & Data :: Network Operator -->
@@ -353,6 +359,10 @@
     <section is="fxa" role="region" id="fxa"></section>
     <!-- Iframe -->
     <section is="frame" role="region" id="frame"></section>
+
+    <!-- templates -->
+    <!-- templates :: Messaging -->
+    <section is="template-messaging" role="region" id="template-messaging"></section>
 
     <!-- Main List -->
     <section role="region" id="root" class="current" data-rendered="true">
