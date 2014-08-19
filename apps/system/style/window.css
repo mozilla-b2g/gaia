@@ -393,7 +393,7 @@
 }
 
 .appWindow > .authentication-dialog {
-  z-index: 4;
+  z-index: 100;
 }
 
 .appWindow.slideleft {
