@@ -389,23 +389,23 @@ var CallLog = {
   // <li data-contact-id="4bfa5f07c5584d48a1af7931b976a223"
   //  id="1369695600000-6136112351-dialing" data-type="dialing"
   //  data-phone-number="6136112351" data-timestamp="1369731559902"
-  //  class="log-item">
-  //    <label class="pack-checkbox call-log-selection danger">
-  //      <input value="1369695600000-6136112351-dialing" type="checkbox"
-  //       aria-labelledby="1369695600000-6136112351-dialing-label">
+  //  class="log-item" role="option" aria-selected="false">
+  //    <label class="pack-checkbox call-log-selection danger"
+  //     aria-hidden="true">
+  //      <input value="1369695600000-6136112351-dialing" type="checkbox">
   //      <span></span>
   //    </label>
   //    <aside class="pack-end">
   //      <span data-type="img" class="call-log-contact-photo">
   //    </aside>
-  //    <a role="button" id="1369695600000-6136112351-dialing-label">
+  //    <a role="presentation">
   //      <aside class="icon call-type-icon icon icon-outgoing">
   //      </aside>
-  //      <p aria-hidden="true" class="primary-info">
+  //      <p class="primary-info">
   //        <span class="primary-info-main">David R. Chichester</span>
   //      </p>
-  //      <p aria-hidden="true" class="call-additional-info">Mobile, O2</p>
-  //      <p aria-hidden="true">
+  //      <p class="call-additional-info">Mobile, O2</p>
+  //      <p>
   //        <span class="call-time">9:59 AM </span>
   //        <span class="retry-count">(1)</span>
   //      </p>
@@ -424,6 +424,8 @@ var CallLog = {
     groupDOM.dataset.timestamp = date;
     groupDOM.dataset.phoneNumber = number;
     groupDOM.dataset.type = type;
+    groupDOM.setAttribute('role', 'option');
+    groupDOM.setAttribute('aria-selected', false);
     if (contact && contact.id) {
       groupDOM.dataset.contactId = contact.id;
     }
@@ -452,12 +454,11 @@ var CallLog = {
     }
 
     var label = document.createElement('label');
+    label.setAttribute('aria-hidden', true);
     label.className = 'pack-checkbox call-log-selection danger';
     var input = document.createElement('input');
     input.setAttribute('type', 'checkbox');
     input.value = group.id;
-    var editLabel = group.id + '-label';
-    input.setAttribute('aria-labelledby', editLabel);
     var span = document.createElement('span');
 
     label.appendChild(input);
@@ -477,14 +478,12 @@ var CallLog = {
     aside.appendChild(img);
 
     var main = document.createElement('a');
-    main.setAttribute('role', 'button');
-    main.id = editLabel;
+    main.setAttribute('role', 'presentation');
     var icon = document.createElement('aside');
     icon.className = 'icon call-type-icon ' + iconStyle;
 
     var primInfo = document.createElement('p');
     primInfo.className = 'primary-info';
-    primInfo.setAttribute('aria-hidden', 'true');
 
     var primInfoMain = document.createElement('span');
     primInfoMain.className = 'primary-info-main';
@@ -513,11 +512,9 @@ var CallLog = {
       addInfo = document.createElement('p');
       addInfo.className = 'call-additional-info';
       addInfo.textContent = phoneNumberAdditionalInfo;
-      addInfo.setAttribute('aria-hidden', 'true');
     }
 
     var thirdInfo = document.createElement('p');
-    thirdInfo.setAttribute('aria-hidden', 'true');
     var callTime = document.createElement('span');
     callTime.className = 'call-time';
     callTime.textContent = Utils.prettyDate(date) + ' ';
@@ -565,6 +562,8 @@ var CallLog = {
     header.dataset.update = true;
     var ol = document.createElement('ol');
     ol.classList.add('log-group');
+    ol.setAttribute('role', 'listbox');
+    ol.setAttribute('aria-multiselectable', true);
     ol.id = 'group-container-' + referenceTimestamp;
 
     groupContainer.appendChild(header);
@@ -604,8 +603,12 @@ var CallLog = {
     document.body.classList.remove('recents-edit');
     var cont = this.callLogContainer;
     var inputs = cont.querySelectorAll('input[type="checkbox"]');
+    var logItems = cont.querySelectorAll('.log-item');
     for (var i = 0, l = inputs.length; i < l; i++) {
       inputs[i].checked = false;
+    }
+    for (var i = 0, l = logItems.length; i < l; i++) {
+      logItems[i].setAttribute('aria-selected', false);
     }
   },
 
@@ -624,14 +627,17 @@ var CallLog = {
 
   // In case we are in edit mode, just update the counter of selected rows.
   handleEvent: function cl_handleEvent(evt) {
+    var logItem = evt.target;
     if (document.body.classList.contains('recents-edit')) {
+      if (logItem.dataset.phoneNumber) {
+        // Landed on the logItem (when using the screen reader).
+        var checkbox = logItem.getElementsByTagName('input')[0];
+        var toggleChecked = !checkbox.checked;
+        checkbox.checked = toggleChecked;
+        logItem.setAttribute('aria-selected', toggleChecked);
+      }
       this.updateHeaderCount();
       return;
-    }
-    var logItem = evt.target;
-    if (!evt.target.classList.contains('log-item')) {
-      // Landed on the link (when using the screen reader).
-      logItem = logItem.parentNode;
     }
     var dataset = logItem.dataset;
     var phoneNumber = dataset.phoneNumber;
