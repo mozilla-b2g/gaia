@@ -10,61 +10,64 @@
         data-l10n-id="setup-account-header3">NeW AccounT</h1>
   </header>
   <section class="scrollregion-below-header skin-organic" role="region">
-    <li class="syncinterval-setting select-item">
-      <label data-l10n-id="settings-account-check-mail" class="list-text">
-        ChecK FoR NeW MessageS</label>
-      <span class="button icon icon-dialog">
-        <select class="tng-account-check-interval mail-select">
-          <option value="0" data-l10n-id="settings-check-every-manual">
-            ManuallY</option>
-          <option value="300000" data-l10n-id="settings-check-every-5min">
-            5 MinuteS</option>
-          <option value="600000" data-l10n-id="settings-check-every-10min">
-            10 MinuteS</option>
-          <option value="900000" data-l10n-id="settings-check-every-15min">
-            15 MinuteS</option>
-          <option value="1800000" data-l10n-id="settings-check-every-30min">
-            30 MinuteS</option>
-          <option value="3600000" data-l10n-id="settings-check-every-60min">
-            60 MinuteS</option>
-        </select>
-      </span>
-    </li>
-    <li class="list-text-with-sub">
-      <span data-l10n-id="settings-account-display-notifications"
-            class="list-text aside start">
-        DisplaY NotificationS FoR NeW MessageS</span>
-      <em class="aside end">
-        <label class="tng-notify-mail-label pack-switch">
-          <input class="tng-notify-mail" type="checkbox">
-          <span></span>
-        </label>
-      </em>
-    </li>
-    <li class="list-text-with-sub">
-      <span data-l10n-id="settings-account-play-sound-onsend"
-            class="list-text aside start">
-        PlaY SounD AfteR MessagE SenT</span>
-      <em class="aside end">
-        <label class="tng-sound-onsend-label pack-switch">
-          <input class="tng-sound-onsend" type="checkbox">
-          <span></span>
-        </label>
-      </em>
-    </li>
-    <li class="settings-signature settings-input-list">
-        <span data-l10n-id="settings-account-signature-label"
-            class="list-text aside start">
-          SignaturE</span>
+    <ul class="tng-list">
+      <li class="syncinterval-setting select-item">
+        <label data-l10n-id="settings-account-check-mail" class="list-text">
+          ChecK FoR NeW MessageS</label>
+        <span class="button icon icon-dialog">
+          <select class="tng-account-check-interval mail-select">
+            <option value="0" data-l10n-id="settings-check-every-manual">
+              ManuallY</option>
+            <option value="300000" data-l10n-id="settings-check-every-5min">
+              5 MinuteS</option>
+            <option value="600000" data-l10n-id="settings-check-every-10min">
+              10 MinuteS</option>
+            <option value="900000" data-l10n-id="settings-check-every-15min">
+              15 MinuteS</option>
+            <option value="1800000" data-l10n-id="settings-check-every-30min">
+              30 MinuteS</option>
+            <option value="3600000" data-l10n-id="settings-check-every-60min">
+              60 MinuteS</option>
+          </select>
+        </span>
+      </li>
+      <li class="list-text-with-sub">
+        <span data-l10n-id="settings-account-display-notifications"
+              class="list-text aside start">
+          DisplaY NotificationS FoR NeW MessageS</span>
         <em class="aside end">
-          <label class="pack-switch tng-default-label">
-            <input class="tng-signature-input" type="checkbox">
+          <label class="tng-notify-mail-label pack-switch">
+            <input class="tng-notify-mail" type="checkbox">
             <span></span>
           </label>
         </em>
-        <button class="signature-button button icon">
-          <div class="signature-button-content"></div>
-        </button>
-    </li>
+
+      </li>
+      <li class="list-text-with-sub">
+        <span data-l10n-id="settings-account-play-sound-onsend"
+              class="list-text aside start">
+          PlaY SounD AfteR MessagE SenT</span>
+        <em class="aside end">
+          <label class="tng-sound-onsend-label pack-switch">
+            <input class="tng-sound-onsend" type="checkbox">
+            <span></span>
+          </label>
+        </em>
+      </li>
+      <li class="settings-signature settings-input-list">
+          <span data-l10n-id="settings-account-signature-label"
+              class="list-text aside start">
+            SignaturE</span>
+          <em class="aside end">
+            <label class="pack-switch tng-default-label">
+              <input class="tng-signature-input" type="checkbox">
+              <span></span>
+            </label>
+          </em>
+          <button class="signature-button button icon">
+            <div class="signature-button-content"></div>
+          </button>
+      </li>
+    </ul>
   </section>
 </section>
