@@ -269,6 +269,11 @@
           // proxy characteristic nodes that the logical proxy must contain.
           for (var l = 0; l < toProxyNodes.length; l++) {
             var pxPhysicalNodes = this.getPxPhysicalNodes(toProxyNodes[l]);
+
+            if (!pxPhysicalNodes) {
+              continue;
+            }
+
             for (var m = 0; m < pxPhysicalNodes.length; m++) {
               proxy = parsePxPhysicalNode(pxPhysicalNodes[m],
                                           (TYPE_MAPPING[appId] === 'mms'));
