@@ -16,6 +16,7 @@ import traceback
 
 import reporters
 
+from subprocess import Popen
 
 class TestAgentServer(tornado.websocket.WebSocketHandler):
 
@@ -157,6 +158,13 @@ class GaiaUnitTestRunner(object):
                                         'profile')
         shutil.copytree(self.profile, self.profile_dir)
 
+        # XXX Bug 1038988: tbpl default frame buffer uses a depth that
+        #       that makes these tests run really slow. We will remove this
+        #       hack when we use a lower depth in the default tbpl
+        #       frame buffer.
+        env = os.environ.copy()
+        env['DISPLAY'] = ':88'
+
         cmdargs = ['--runapp', 'Test Agent']
         if self.browser_arg:
             cmdargs += list(self.browser_arg)
@@ -166,7 +174,8 @@ class GaiaUnitTestRunner(object):
                              profile=profile,
                              clean_profile=False,
                              cmdargs=cmdargs,
-                             symbols_path=self.symbols_path)
+                             symbols_path=self.symbols_path,
+                             env=env)
         self.runner.start()
 
     def cleanup(self):
@@ -232,6 +241,11 @@ def cli():
                     if full_path.endswith('_test.js') and full_path not in disabled:
                         tests.append(full_path)
 
+    # XXX Bug 1038988: tbpl default frame buffer uses a depth that
+    #       that makes these tests run really slow. We will remove this
+    #       hack when we use a lower depth in the default tbpl
+    #       frame buffer.
+    Popen(['Xvfb', ':88'])
     runner = GaiaUnitTestRunner(binary=options.binary,
                                 profile=options.profile,
                                 symbols_path=options.symbols_path,
