@@ -45,6 +45,7 @@ function TimerController(app) {
 TimerController.prototype.bindEvents = function() {
   this.app.on('startcountdown', this.start);
   this.app.on('hidden', this.clear);
+  this.app.on('change:batteryStatus', this.onBatteryChanged);
   this.view.on('timer:immanent', this.app.firer('timer:immanent'));
 };
 
@@ -111,6 +112,12 @@ TimerController.prototype.tick = function() {
 
   this.view.set(this.seconds);
   this.scheduleTick();
+};
+
+TimerController.prototype.onBatteryChanged = function(status) {
+  if (status === 'shutdown') {
+    this.clear();
+  }
 };
 
 /**
