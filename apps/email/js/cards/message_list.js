@@ -787,9 +787,7 @@ MessageListCard.prototype = {
         // onRefresh pretty clever, so it can do all the legwork on
         // accomplishing this goal.
         Toaster.toast({
-          text: mozL10n.get('toaster-retryable-syncfailed'),
-          actionLabel: mozL10n.get('toaster-retry'),
-          action: this.onRefresh.bind(this)
+          text: mozL10n.get('toaster-retryable-syncfailed')
         });
       }
       this.toolbar.refreshBtn.dataset.state = 'synchronized';

@@ -227,15 +227,39 @@ section[role="region"] > header:first-child menu[type="toolbar"] a[aria-disabled
 
 /* Toaster */
 section[role="status"].toaster {
-  bottom: 4.8rem;
-  opacity: 1;
+  bottom: 4.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  color: white;
+  background: #5F5F5F;
+}
+section[role="status"].toaster p {
+  margin: 1.5rem;
+  flex: 1;
+  font-size: 1.6rem;
+}
+section[role="status"].toaster-action-target {
+  display: inline-block;
 }
 
 section[role="status"].toaster button {
   display: inline-block;
-  width: auto;
-  margin-left: 3rem;
+  margin: 1rem 1.5rem;
+  width: 4rem;
+  height: 3rem;
+  font-size: 0;
+  background-color: #00c9f1;
+  background-repeat: no-repeat;
+  background-size: 2.4rem;
+  background-position: center;
 }
+
+section[role="status"].toaster button.undo {
+  background-image: url("images/icons/undo.png");
+}
+
+
 section[role="status"].toaster button:disabled {
   display: none;
 }

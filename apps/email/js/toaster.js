@@ -21,6 +21,12 @@ define(function(require) {
     defaultTimeout: 5000,
 
     /**
+     * Tracks the CSS class that was previously applied to the action button,
+     * so it can be removed on next display.
+     */
+    _previousActionClass: undefined,
+
+    /**
      * Initialize the Toaster, adding things to the DOM and setting up
      * event handlers. The toaster starts out invisible.
      */
@@ -32,7 +38,11 @@ define(function(require) {
 
       this.el.addEventListener('click', this.hide.bind(this));
       this.el.addEventListener('transitionend', this.hide.bind(this));
-      this.actionButton.addEventListener('click', this.onAction.bind(this));
+
+      // The target is used for the action to allow a larger tap target than
+      // just the button.
+      this.el.querySelector('.toaster-action-target')
+          .addEventListener('click', this.onAction.bind(this));
 
       this.currentToast = null; // The data for the currently-displayed toast.
     },
@@ -56,6 +66,7 @@ define(function(require) {
       this.toast({
         text: mozL10n.get('toaster-message-' + type, { n: op.affectedCount }),
         actionLabel: mozL10n.get('toaster-undo'),
+        actionClass: 'undo',
         action: canUndo && op.undo.bind(op)
       });
     },
@@ -84,6 +95,8 @@ define(function(require) {
      * @param {string} opts.actionLabel Label to display for the action button.
      *                                  Required only if `opts.action` is
      *                                  provided.
+     * @param {string} opts.actionClass a CSS class name to apply to the action
+     *                                  button.
      */
     toast: function(opts) {
       opts = opts || {};
@@ -95,6 +108,15 @@ define(function(require) {
 
       this.text.textContent = opts.text;
       this.actionButton.textContent = opts.actionLabel;
+
+      if (this._previousActionClass) {
+        this.actionButton.classList.remove(this._previousActionClass);
+        this._previousActionClass = undefined;
+      }
+      if (opts.actionClass) {
+        this._previousActionClass = opts.actionClass;
+        this.actionButton.classList.add(this._previousActionClass);
+      }
 
       this.el.classList.toggle('actionable', !opts.action);
       this.actionButton.disabled = !opts.action;
