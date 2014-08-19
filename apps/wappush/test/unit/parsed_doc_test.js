@@ -262,5 +262,64 @@ suite('ParsedProvisioningDoc >', function() {
         parsedProvisioningDoc = ParsedProvisioningDoc.from(provisioningDoc);
         assert.lengthOf(parsedProvisioningDoc.getApns(), 1);
     });
+    test('Document without matched PROXY-ID node for a TO-PROXY node',
+      function() {
+        var parsedProvisioningDoc;
+        var provisioningDoc =
+          '<wap-provisioningdoc version="1.0">' +
+            '<characteristic type="PXLOGICAL">' +
+              '<parm name="PROXY-ID" value="www.operator.com"/>' +
+              '<parm name="NAME" value="GW WAP"/>' +
+              '<characteristic type="PXPHYSICAL">' +
+                '<parm name="PHYSICAL-PROXY-ID" value="PROXY_WAP_3"/>' +
+                '<parm name="PXADDR" value="172.150.70.5"/>' +
+                '<parm name="PXADDRTYPE" value="IPV4"/>' +
+                '<parm name="TO-NAPID" value="WAP_GPRS"/>' +
+                '<parm name="TO-NAPID" value="WAP_CSD"/>' +
+              '</characteristic>' +
+            '</characteristic>' +
+            '<characteristic type="NAPDEF">' +
+              '<parm name="NAPID" value="WAP_GPRS"/>' +
+              '<parm name="BEARER" value="GSM-GPRS"/>' +
+              '<parm name="NAME" value="operator GPRS"/>' +
+              '<parm name="NAP-ADDRESS" value="wap.operator.com"/>' +
+              '<parm name="NAP-ADDRTYPE" value="APN"/>' +
+              '<characteristic type="NAPAUTHINFO">' +
+                '<parm name="AUTHTYPE" value="PAP"/>' +
+                '<parm name="AUTHNAME" value="WAPOP"/>' +
+                '<parm name="AUTHSECRET" value="WAPOP"/>' +
+              '</characteristic>' +
+            '</characteristic>' +
+            '<characteristic type="NAPDEF">' +
+              '<parm name="NAPID" value="WAP_GPRS"/>' +
+              '<parm name="BEARER" value="GSM-GPRS"/>' +
+              '<parm name="NAME" value="operator GPRS"/>' +
+              '<parm name="NAP-ADDRESS" value="wapOP.operator.com"/>' +
+              '<parm name="NAP-ADDRTYPE" value="APN"/>' +
+              '<characteristic type="NAPAUTHINFO">' +
+                '<parm name="AUTHTYPE" value="PAP"/>' +
+                '<parm name="AUTHNAME" value="WAPOP"/>' +
+                '<parm name="AUTHSECRET" value="WAPOP"/>' +
+              '</characteristic>' +
+            '</characteristic>' +
+            '<characteristic type="APPLICATION">' +
+              '<parm name="APPID" value="w2"/>' +
+              '<parm name="NAME" value="Operator-portal"/>' +
+              '<parm name="TO-PROXY" value="www.operator.com"/>' +
+              '<characteristic type="RESOURCE">' +
+                '<parm name="URI" value="http://wap.operator_portal.com"/>' +
+                '<parm name="NAME" value="Operator portal"/>' +
+                '<parm name="STARTPAGE"/>' +
+              '</characteristic>' +
+            '</characteristic>' +
+            '<characteristic type="APPLICATION">' +
+              '<parm name="APPID" value="w2"/>' +
+              '<parm name="NAME" value="Operator-portal"/>' +
+              '<parm name="TO-PROXY" value="www.wap.operator.com"/>' +
+            '</characteristic>' +
+          '</wap-provisioningdoc>';
+        parsedProvisioningDoc = ParsedProvisioningDoc.from(provisioningDoc);
+        assert.lengthOf(parsedProvisioningDoc.getApns(), 1);
+    });
   });
 });
