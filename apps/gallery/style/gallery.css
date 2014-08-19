@@ -373,6 +373,12 @@ body.hidden *[data-l10n-id] {
   float: right;
 }
 
+html[dir="rtl"] #fullscreen-back-button-tiny {
+  left: auto;
+  right: 1.4rem;
+  background-image: url(images/back_rtl.png);
+}
+
 /* the indeterminate progress bar displayed while scanning */
 #progress {
   position: absolute;
