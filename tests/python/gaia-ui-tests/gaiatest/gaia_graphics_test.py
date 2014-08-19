@@ -22,7 +22,7 @@ class GaiaGraphicsTestCase(GaiaTestCase, ImageCompareTestCaseMixin):
 
         self.temp_dir = tempfile.mkdtemp()
         self.local_path = '.'
-
+        self.device_info =  mozversion.get_version(dm_type='adb')
         if not os.path.exists(os.path.join(self.local_path, self.ref_dir)):
             os.makedirs(os.path.join(self.local_path, self.ref_dir))
         if not os.path.exists(os.path.join(self.local_path, self.shots_dir)):
@@ -32,8 +32,12 @@ class GaiaGraphicsTestCase(GaiaTestCase, ImageCompareTestCaseMixin):
         GaiaTestCase.setUp(self)
         # # Setup image comparison specific methods
         self.device_name = self.get_device_name()
-        if self.device_name == "flame":
-            self.screenshot_location = "//storage//sdcard0//screenshots//"
+
+        #if self.device_name == "flame":
+        #    self.screenshot_location = "/storage/sdcard0/screenshots/"
+
+        if self.get_gaia_version() >= 34:
+            self.post2dot0 = True
 
         # use reflection method to find its own test name
         frm = inspect.stack()[1]
@@ -46,8 +50,12 @@ class GaiaGraphicsTestCase(GaiaTestCase, ImageCompareTestCaseMixin):
         GaiaTestCase.tearDown(self)
 
     def get_device_name(self):
-        version = mozversion.get_version(dm_type='adb')
-        return version.pop('device_id')
+        return self.device_info.pop('device_id')
+
+    def get_gaia_version(self):
+        version = self.device_info.pop('application_version')
+        version = version[0:version.find('.')]
+        return int(version)
 
     # invokes screen capture event (pressing home button + sleep button together)
     def invoke_screen_capture(self, frame=None, browser=None):
@@ -180,6 +188,22 @@ class GaiaGraphicsTestCase(GaiaTestCase, ImageCompareTestCaseMixin):
 
     # execute the image job
     def execute_image_job(self):
+
+        #locate screenshot folder
+        storage_paths = [self.device.storage_path]
+        if self.device.is_android_build:
+            # TODO: Remove hard-coded paths once bug 1018079 is resolved
+            storage_paths.extend(['/mnt/sdcard',
+                                  '/mnt/extsdcard',
+                                  '/storage/sdcard',
+                                  '/storage/sdcard0',
+                                  '/storage/sdcard1'])
+        for path in storage_paths:
+            screenshot_path = os.path.join(path,"screenshots")
+            if self.device.file_manager.dir_exists(screenshot_path):
+                if len(self.device.file_manager.list_items(screenshot_path)) > 0:
+                    self.screenshot_location = screenshot_path
+
         if self.collect_ref_images is True:
             # collect screenshots and save it as ref images
             self.ref_image_collection(self.screenshot_location, '.', self.module_name)

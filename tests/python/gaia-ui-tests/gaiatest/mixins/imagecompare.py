@@ -15,14 +15,7 @@ class ImageCompareOptionsMixin(object):
     def __init__(self, **kwargs):
         group = self.add_option_group('imagecompare')
 
-        group.add_option('--post2dot0',
-                              action='store_true',
-                              dest='post2dot0',
-                              default=True,
-                              metavar='boolean',
-                              help='B2G build is 2.1 or above')
-
-        group.add_option('--ref_image',
+        group.add_option('--get-reference-image',
                               action='store_true',
                               dest='refimage',
                               default=False,
@@ -37,15 +30,15 @@ class ImageCompareOptionsMixin(object):
                               metavar='int',
                               help='fuzz value supplied to ImageMagick call, in percentage')
 
-        group.add_option('--r_loc',
+        group.add_option('--reference-image-location',
                               action='store',
                               dest='ref_loc',
                               type='string',
-                              default="refimages",
+                              default="ref_images",
                               metavar='string',
                               help='Location of reference images, relative to the current location')
 
-        group.add_option('--s_loc',
+        group.add_option('--screenshot-location',
                               action='store',
                               dest='shot_loc',
                               type='string',
@@ -58,7 +51,7 @@ class ImageCompareOptionsMixin(object):
 class ImageCompareTestCaseMixin(object):
 
     def __init__(self, *args, **kwargs):
-        self.post2dot0 = kwargs.pop('post2dot0') or True
+        self.post2dot0 = False
         self.collect_ref_images = kwargs.pop('refimage') or False
         self.fuzz_factor = kwargs.pop('fuzzfactor')
         self.ref_dir = kwargs.pop('ref_loc')
