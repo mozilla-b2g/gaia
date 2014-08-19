@@ -43,8 +43,8 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
         self.run_tests(self.tests)
 
     def timer_fn(self):
-        self.logger.testFail("%s | Timed out after %d seconds" %
-                             (self.current_test, self.timeout))
+        message = "Timed out after %d seconds" % self.timeout
+        self.logger.test_end(self.current_test, status='TIMEOUT', message=message)
         self.runner.cleanup()
         sys.exit(1)
 
@@ -65,14 +65,15 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
 
         for env in self.envs:
             if len(self.envs[env].output):
-                print '\ntest report: (' + env + ')'
-                print '\n'.join(self.envs[env].output)
+                self.logger.info('\ntest report: (' + env + ')')
+                self.logger.info('\n'.join(self.envs[env].output))
 
         self.close()
 
         self.logger.info('passed: %d' % self.passes)
         self.logger.info('failed: %d' % self.failures)
         self.logger.info('todo: 0')
+        self.logger.suite_end()
 
         crashed = self.runner.cleanup()
         sys.exit(1 if crashed else exitCode)
@@ -100,8 +101,8 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
 
             # add to pending
             if (test_event == 'start'):
-                self.envs[test_env] = reporters.TBPLLogger(stream=False,
-                                                           logger=self.logger)
+                self.envs[test_env] = reporters.StructuredLogReporter(stream=False,
+                                                                      logger=self.logger)
 
             # don't process out of order commands
             if not (test_env in self.envs):
@@ -198,6 +199,7 @@ def cli():
                       default=[],
                       help="optional command-line arg to pass to the browser")
 
+    mozlog.structured.commandline.add_logging_group(parser)
     options, tests = parser.parse_args()
 
     if not options.binary or not options.profile:
@@ -232,23 +234,26 @@ def cli():
                     if full_path.endswith('_test.js') and full_path not in disabled:
                         tests.append(full_path)
 
+    logger_defaults = { 'tbpl': sys.stdout }
+    upload_dir = os.environ.get('MOZ_UPLOAD_DIR')
+    if upload_dir:
+        logger_defaults['raw'] = open(os.path.join(upload_dir, "gu_structured_full.log"), "w")
+    logger = mozlog.structured.commandline.setup_logging('gaia-unit-tests',
+                                                         options,
+                                                         logger_defaults)
+
+    logger.suite_start(tests)
     runner = GaiaUnitTestRunner(binary=options.binary,
                                 profile=options.profile,
                                 symbols_path=options.symbols_path,
                                 browser_arg=options.browser_arg)
     runner.run()
 
-    # Lame but necessary hack to prevent tornado's logger from duplicating
-    # every message from mozlog.
-    logger = logging.getLogger()
-    handler = logging.NullHandler()
-    logger.addHandler(handler)
-
-    print 'starting WebSocket Server'
+    logger.info('starting WebSocket Server')
     application = tornado.web.Application([
         (r"/", TestAgentServer, {'tests': tests,
                                  'runner': runner,
-                                 'logger': mozlog.getLogger('gaia-unit-tests')}),
+                                 'logger': logger}),
     ])
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(8789)
