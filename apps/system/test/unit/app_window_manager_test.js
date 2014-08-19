@@ -33,7 +33,7 @@ var mocksForAppWindowManager = new MocksHelper([
 suite('system/AppWindowManager', function() {
   mocksForAppWindowManager.attachTestHelpers();
   var stubById;
-  var app1, app2, app3, app4, app5, app6, app7, home;
+  var app1, app2, app3, app4, app5, app6, app7, browser1, home;
 
   var screenElement = document.createElement('div');
 
@@ -67,6 +67,7 @@ suite('system/AppWindowManager', function() {
     app5 = new AppWindow(fakeAppConfig5Background);
     app6 = new AppWindow(fakeAppConfig6Browser);
     app7 = new AppWindow(fakeAppConfig7Activity);
+    browser1 = new AppWindow(fakeBrowserConfig);
 
     requireApp('system/js/app_window_manager.js', function() {
       window.AppWindowManager.init();
@@ -147,6 +148,12 @@ suite('system/AppWindowManager', function() {
     origin: 'app://www.fake7',
     isActivity: true,
     parentApp: ''
+  };
+
+  var fakeBrowserConfig = {
+    url: 'http://mozilla.org/index.html',
+    manifest: {},
+    origin: 'http://mozilla.org'
   };
 
   function injectRunningApps() {
@@ -863,5 +870,18 @@ suite('system/AppWindowManager', function() {
     injectRunningApps(app1, app2, app3, app4);
     assert.deepEqual(AppWindowManager.getApp('app://www.fake2'), app2);
     assert.isNull(AppWindowManager.getApp('app://no-this-origin'));
+  });
+
+  test('new browser window for getApp', function() {
+    injectRunningApps(app5);
+    var newApp1 = AppWindowManager.getApp(fakeAppConfig5Background.origin);
+    assert.deepEqual(newApp1.config, fakeAppConfig5Background);
+
+    var newApp2 = AppWindowManager.getApp(fakeBrowserConfig.origin);
+    assert.deepEqual(newApp2, null);
+
+    injectRunningApps(browser1);
+    newApp2 = AppWindowManager.getApp(fakeBrowserConfig.origin);
+    assert.deepEqual(newApp2.config, fakeBrowserConfig);
   });
 });
