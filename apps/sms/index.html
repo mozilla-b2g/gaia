@@ -366,7 +366,7 @@
 
     <div id="contact-photo-tmpl" class="hide">
       <!--
-      <aside class="pack-end">
+      <aside role="img" data-l10n-id="contact-photo" aria-label="Contact photo" class="pack-end">
         <span class="contact-photo" data-type="img"></span>
       </aside>
       -->
@@ -472,8 +472,8 @@
         <span></span>
       </label>
       <a href="${hash}">
-        <aside class="icon icon-unread icon-draft">icon</aside>
-        <aside class="pack-end empty">
+        <aside role="note" data-l10n-id="${iconLabel}" class="icon icon-unread icon-draft"></aside>
+        <aside role="img" data-l10n-id="contact-photo" aria-label="Contact photo" class="pack-end empty">
           <span data-type="img"></span>
         </aside>
         <p class="name">${number}</p>
