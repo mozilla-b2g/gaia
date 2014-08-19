@@ -213,9 +213,22 @@ var metadataParser = (function() {
       // For jpeg images we can downsample while decoding which means that
       // we can handle images that are quite a bit larger.
       //
+      // getImageSize() distinguishes pjpeg files from jpeg, because
+      // progressive jpeg files are quite different than regular jpegs.
+      // Not only do pjpegs not benefit from using #-moz-samplesize, they
+      // actually require more memory to decode than other images of the same
+      // resolution, so we actually need to reduce the image size limit for
+      // this image type.
+      //
       var imagesizelimit = CONFIG_MAX_IMAGE_PIXEL_SIZE;
-      if (file.type === 'image/jpeg')
+      if (metadata.type === 'jpeg') {
         imagesizelimit *= Downsample.MAX_AREA_REDUCTION;
+      }
+      else if (metadata.type === 'pjpeg') {
+        // As a semi-educated guess, we'll say that we can handle pjpegs
+        // 2/3rds the size of the largest PNG we can handle.
+        imagesizelimit *= 2 / 3;
+      }
 
       //
       // Even if we can downsample an image while decoding it, we still
@@ -272,8 +285,10 @@ var metadataParser = (function() {
         // at preview size when needed. So in this case, we just need
         // to create a thumbnail for the image.  On the other hand, if
         // this is not a JPEG image then we have to create both a
-        // thumbnail and an external preview image.
-        if (file.type === 'image/jpeg') {
+        // thumbnail and an external preview image. Note that progressive
+        // jpegs will have a type 'pjpeg' and will be handled below
+        // like png images.
+        if (metadata.type === 'jpeg') {
           cropResizeRotate(file, null, thumbnailSize, null, metadata,
                            function gotThumbnail(error, thumbnailBlob) {
                              if (error) {
