@@ -555,6 +555,13 @@
       inner.querySelector(':last-child').scrollIntoView(false);
     }
 
+    // change to "singleline" view automatically if it doesn't overflow
+    if (view.state.visible === 'multiline' && !this.innerOverflow()) {
+      this.visible('singleline', {
+        refocus: this
+      });
+    }
+
     return this;
   };
 
@@ -738,8 +745,7 @@
         //  2. The user is "pulling down" the recipient list.
 
         // #1
-        if (view.state.visible === 'singleline' &&
-            view.inner.scrollHeight > view.minHeight) {
+        if (view.state.visible === 'singleline' && this.innerOverflow()) {
           // #2
           if (event.detail.absolute.dy > 0) {
             this.visible('multiline');
@@ -1003,6 +1009,11 @@
     if (isPreventingDefault) {
       event.preventDefault();
     }
+  };
+
+  Recipients.View.prototype.innerOverflow = function() {
+    var view = priv.get(this);
+    return view.inner.scrollHeight > view.minHeight;
   };
 
   Recipients.View.prompts = {

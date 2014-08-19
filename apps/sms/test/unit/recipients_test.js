@@ -921,6 +921,9 @@ suite('Recipients', function() {
         });
 
         test('singleline + refocus (with recipients) ', function() {
+          this.sinon.stub(Recipients.View.prototype, 'innerOverflow')
+            .returns(true);
+
           // Clear the spy intel
           target.focus.reset();
 
@@ -929,6 +932,8 @@ suite('Recipients', function() {
           // Assert the last state is multiline
           sinon.assert.calledWith(visible, 'multiline');
           visible.reset();
+
+          Recipients.View.prototype.innerOverflow.restore();
 
           recipients.visible('singleline', {
             refocus: target
@@ -994,6 +999,21 @@ suite('Recipients', function() {
 
           sinon.assert.calledWith(visible, 'multiline');
           sinon.assert.called(last.scrollIntoView);
+        });
+
+        test('ensure "singleline" view if it doesn\'t overflow', function() {
+          recipients.visible('multiline');
+
+          outer.dispatchEvent(
+            new CustomEvent('transitionend')
+          );
+
+          sinon.assert.calledWith(visible, 'multiline');
+          visible.reset();
+
+          recipients.render();
+
+          sinon.assert.calledWith(visible, 'singleline');
         });
       });
     });
