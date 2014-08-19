@@ -128,6 +128,10 @@
       }.bind(this),
       System.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
                               this.TRANSITION_TIMEOUT);
+
+      if (!this.app || !this.app.element) {
+        return;
+      }
       this.app.element.classList.add('transition-closing');
       this.app.element.classList.add(this.getAnimationName('close'));
     };
@@ -153,6 +157,10 @@
       }.bind(this),
       System.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
                               this.TRANSITION_TIMEOUT);
+
+      if (!this.app || !this.app.element) {
+        return;
+      }
       this.app.element.classList.add('transition-opening');
       this.app.element.classList.add(this.getAnimationName('open'));
     };
@@ -279,7 +287,7 @@
   AppTransitionController.prototype.clearTransitionClasses =
     function atc_removeTransitionClasses() {
       this.currentAnimation = null;
-      if (!this.app) {
+      if (!this.app || !this.app.element) {
         return;
       }
 

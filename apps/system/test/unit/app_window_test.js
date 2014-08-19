@@ -833,6 +833,11 @@ suite('system/AppWindow', function() {
   });
 
   suite('Event handlers', function() {
+    var fakeTransitionController = {
+      requireOpen: function() {},
+      requireClose: function() {}
+    };
+
     test('ActivityDone event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var app2 = new AppWindow(fakeAppConfig2);
