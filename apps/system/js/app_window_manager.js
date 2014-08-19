@@ -1,4 +1,4 @@
-/* global SettingsListener, homescreenLauncher, KeyboardManager,
+/* global AppWindow, SettingsListener, homescreenLauncher, KeyboardManager,
           layoutManager, System, NfcHandler */
 'use strict';
 
@@ -59,6 +59,37 @@
         }
       }
       return null;
+    },
+
+    /**
+     * Returns an app for a given location. If the app object does not exist,
+     * creates one for that origin.
+     * @param  {Object} config The app config.
+     * @return {AppWindow} The app window.
+     */
+    getAppForLocation: function awm_getAppByLocation(config) {
+
+      // If we are getting the app object for an app,
+      // then return the reuslt of getApp.
+      if (config.origin.startsWith('app://')) {
+        return this.getApp(config.origin);
+      }
+
+      for (var id in this._apps) {
+        if (this._apps[id].config.url === config.origin) {
+          return this._apps[id];
+        }
+      }
+
+      config.chrome = {
+        scrollable: true
+      };
+      config.url = config.url || config.origin;
+      config.windowName = config.windowName || '_blank';
+      config.title = config.title || config.url;
+
+      var app = new AppWindow(config);
+      return app;
     },
 
     /**
@@ -667,7 +698,7 @@
         if (config.origin == homescreenLauncher.origin) {
           this.display();
         } else {
-          this.display(this.getApp(config.origin));
+          this.display(this.getAppForLocation(config));
         }
       }
     },

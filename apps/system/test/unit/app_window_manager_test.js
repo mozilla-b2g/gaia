@@ -142,6 +142,12 @@ suite('system/AppWindowManager', function() {
     parentApp: ''
   };
 
+  var fakeBrowserConfig = {
+    url: 'http://mozilla.org/index.html',
+    manifest: {},
+    origin: 'http://mozilla.org'
+  };
+
   function injectRunningApps() {
     AppWindowManager._apps = {};
     Array.slice(arguments).forEach(function iterator(app) {
@@ -797,5 +803,14 @@ suite('system/AppWindowManager', function() {
     injectRunningApps(app1, app2, app3, app4);
     assert.deepEqual(AppWindowManager.getApp('app://www.fake2'), app2);
     assert.isNull(AppWindowManager.getApp('app://no-this-origin'));
+  });
+
+  test('getAppForLocation', function() {
+    injectRunningApps(app1, app2, app3, app4);
+    var newApp1 = AppWindowManager.getAppForLocation(fakeAppConfig5Background);
+    assert.equal(newApp1, null);
+
+    var newApp2 = AppWindowManager.getAppForLocation(fakeBrowserConfig);
+    assert.deepEqual(newApp2.config, fakeBrowserConfig);
   });
 });
