@@ -1422,7 +1422,9 @@
     var orientation = manifest ? (manifest.orientation ||
                       OrientationManager.globalOrientation) :
                       OrientationManager.globalOrientation;
-    if (orientation) {
+    if (this.isBrowser()) {
+      screen.mozLockOrientation(['portrait-primary', 'landscape']);
+    } else if (orientation) {
       var rv = screen.mozLockOrientation(orientation);
       if (rv === false) {
         console.warn('screen.mozLockOrientation() returned false for',
