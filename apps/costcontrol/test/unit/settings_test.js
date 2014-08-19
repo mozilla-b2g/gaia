@@ -20,7 +20,7 @@ require('/js/settings/settings.js');
 require('/js/sim_manager.js');
 require('/js/utils/toolkit.js');
 require('/shared/js/component_utils.js');
-require('/shared/elements/gaia-header/dist/script.js');
+require('/shared/elements/gaia_header/dist/script.js');
 require('/shared/elements/gaia_subheader/script.js');
 
 var realMozL10n,

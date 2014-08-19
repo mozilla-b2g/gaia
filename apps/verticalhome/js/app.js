@@ -102,7 +102,7 @@
         window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
         window.addEventListener('localized', this.onLocalized.bind(this));
-        LazyLoader.load(['shared/elements/gaia-header/dist/script.js',
+        LazyLoader.load(['shared/elements/gaia_header/dist/script.js',
                          'js/contextmenu_handler.js',
                          '/shared/js/homescreens/confirm_dialog_helper.js'],
           function() {
