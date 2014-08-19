@@ -1,10 +1,13 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global HtmlHelper, FxaModuleManager, FxaModuleNavigation, LazyLoader */
+/* global HtmlHelper, FxaModule, FxaModuleManager, FxaModuleNavigation,
+   LazyLoader */
 /* exported FxaModuleUI */
 
 'use strict';
+
+const OFFLINE_TIMEOUT = 30 * 1000;
 
 var FxaModuleUI = {
   maxSteps: null,
@@ -33,6 +36,22 @@ var FxaModuleUI = {
 
     this.fxaModuleDone.addEventListener('click', function() {
       FxaModuleNavigation.done();
+    });
+
+    // Give up if the network goes offline for more than 30 seconds straight.
+    var offlineTimer;
+    window.addEventListener('online', function onOnline(evt) {
+      clearTimeout(offlineTimer);
+      FxaModule.hideErrorResponse();
+    });
+
+    window.addEventListener('offline', function onOffline(evt) {
+      if (offlineTimer) { return; }
+      offlineTimer = setTimeout(function onOfflineTimeout() {
+        return FxaModule.showErrorResponse({
+          error: 'OFFLINE'
+        });
+      }, OFFLINE_TIMEOUT);
     });
 
     FxaModuleNavigation.init(flow);

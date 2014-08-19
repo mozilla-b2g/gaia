@@ -54,6 +54,11 @@ var FxaModule = (function() {
         var config = FxaModuleErrors.responseToParams(resp);
         FxaModuleErrorOverlay.show(config.title, config.message);
       });
+    },
+
+    hideErrorResponse: function fxam_hideErrorResponse() {
+      FxaModuleErrorOverlay.hide();
+      FxaModuleOverlay.hide();
     }
   };
 
