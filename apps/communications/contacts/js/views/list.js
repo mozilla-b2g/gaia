@@ -809,27 +809,37 @@ contacts.List = (function() {
 
   function displayICEIndicator(ids) {
     if (!ids || ids.length === 0) {
-      if (utils.alphaScroll) {
-        utils.alphaScroll.hideGroup('ice');
-      }
-      hideICEIndicator();
+      hideICEGroup();
       return;
     }
 
     iceContacts = ids;
     if (iceGroup === null) {
       buildICEGroup();
-    } else {
-      iceGroup.classList.remove('hide');
+    }
+    showICEGroup();
+  }
+
+  function toggleICEGroup(bool) {
+    if (!iceGroup) {
+      return;
     }
 
+    if (!!bool) {
+      showICEGroup();
+    } else {
+      hideICEGroup();
+    }
+  }
+
+  function showICEGroup() {
+    iceGroup.classList.remove('hide');
     utils.alphaScroll.showGroup('ice');
   }
 
-  function hideICEIndicator() {
-    if (iceGroup) {
-      iceGroup.classList.add('hide');
-    }
+  function hideICEGroup() {
+    iceGroup.classList.add('hide');
+    utils.alphaScroll.hideGroup('ice');
   }
 
   function buildICEGroup() {
@@ -1994,6 +2004,7 @@ contacts.List = (function() {
     get isSelecting() {
       return inSelectMode;
     },
-    'notifyRowOnScreenByUUID': notifyRowOnScreenByUUID
+    'notifyRowOnScreenByUUID': notifyRowOnScreenByUUID,
+    'toggleICEGroup': toggleICEGroup
   };
 })();
