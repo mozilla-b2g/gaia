@@ -53,6 +53,12 @@
   z-index: 65536;
 }
 
+/* Software home button should have higher z-index than system notification
+   banners to keep from being overlaid */
+#screen > [data-z-index-level="software-buttons"] {
+  z-index: 65537;
+}
+
 /* Promote the transitioning appWindow to this level as the entry and exiting
  * transition of the cards view. */
 #screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
@@ -82,10 +88,7 @@
   z-index: 32768;
 }
 
-
-#screen > [data-z-index-level="keyboards"],
-#screen > [data-z-index-level="software-buttons"] {
-
+#screen > [data-z-index-level="keyboards"] {
   /* It should lower than UtilityTray's, to let the tray overlay it
      in some situation like selecting a new keyboard. */
   z-index: 4094;

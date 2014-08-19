@@ -336,6 +336,11 @@ body {
   transform: translateY(100%);
 }
 
+/* Banner should be offset when software home button is enabled */
+#screen.software-button-enabled .generic-dialog.banner {
+  bottom: 5rem;
+}
+
 .generic-dialog.banner.visible {
   animation: banner-bounce 4s;
   visibility: visible;
