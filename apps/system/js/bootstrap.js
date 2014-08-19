@@ -5,7 +5,7 @@
          SecureWindowManager, HomescreenLauncher,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
-         VisibilityManager, Storage, InternetSharing, TaskManager,
+         VisibilityManager, UsbStorage, InternetSharing, TaskManager,
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
@@ -193,7 +193,7 @@ window.addEventListener('load', function startup() {
   window.dispatchEvent(evt);
 });
 
-window.storage = new Storage();
+window.usbStorage = new UsbStorage();
 
 // Define the default background to use for all homescreens
 window.addEventListener('wallpaperchange', function(evt) {

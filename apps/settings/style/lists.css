@@ -277,6 +277,34 @@ ul li > label.pack-switch:active {
 }
 
 /******************************************************************************
+ * Split panel
+ */
+ul li.pack-split .name:active {
+  background-color: #B2F2FF;
+}
+
+ul li.pack-split .name {
+  position: absolute;
+  top: 0;
+  width: calc(100% - 9rem);
+  padding-left: 1.5rem;
+}
+
+ul li.pack-split:after {
+  content: '';
+  position: absolute;
+  background-color: #E6E6E3;
+  right: 7.5rem;
+  width: 0.1rem;
+  height: calc(100% - 2rem);
+  top: 1rem;
+}
+
+ul li.pack-split > span {
+  background-color: transparent;
+}
+
+/******************************************************************************
  * Field inputs
  */
 

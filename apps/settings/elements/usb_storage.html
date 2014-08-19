@@ -1,0 +1,27 @@
+<element name="usbStorage" extends="section">
+  <template>
+
+    <header>
+      <a href="#root"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="transferProtocol-header">Transfer Protocol</h1>
+    </header>
+
+    <ul>
+      <li class="description">
+        <label class="pack-radio">
+          <input type="radio" name="usb.transfer" value="1">
+          <span data-l10n-id="protocol-mtp">Media transfer protocol (MTP)</span>
+        </label>
+      </li>
+      <li class="description">
+        <label class="pack-radio">
+          <input type="radio" name="usb.transfer" value="0">
+          <span data-l10n-id="protocol-ums">USB mass Storage (UMS)</span>
+        </label>
+      </li>
+    </ul>
+
+    <panel data-path="panels/usb_storage/panel"></panel>
+
+  </template>
+</element>

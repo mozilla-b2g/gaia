@@ -50,7 +50,7 @@ requireApp('system/js/nfc_manager.js');
 requireApp('system/js/shrinking_ui.js');
 requireApp('system/js/software_button_manager.js');
 requireApp('system/js/source_view.js');
-requireApp('system/js/storage.js');
+requireApp('system/js/usb_storage.js');
 requireApp('system/js/system_dialog_manager.js');
 requireApp('system/js/telephony_settings.js');
 requireApp('system/js/base_ui.js');
