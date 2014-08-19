@@ -94,6 +94,10 @@ require.config({
       ]
     },
     {
+      name: 'modules/dialog_service',
+      exclude: ['main']
+    },
+    {
       name: 'panels/root/panel',
       exclude: [
         'main',

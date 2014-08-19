@@ -19,6 +19,7 @@
     <link rel="stylesheet" type="text/css" href="style/icons.css">
     <link rel="stylesheet" type="text/css" href="style/settings.css">
     <link rel="stylesheet" type="text/css" href="style/settings_large.css" data-device-type="tablet">
+    <link rel="stylesheet" type="text/css" href="style/dialog.css">
     <!-- Panel Stylesheets
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
@@ -32,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="style/downloads.css"/>
     <script defer="" src="shared/js/component_utils.js"></script>
     <script defer="" src="shared/elements/gaia_buttons/script.js"></script>
+    <script defer="" src="shared/elements/gaia_confirm/script.js"></script>
     -->
 
     <!-- Shared resources
@@ -194,6 +196,9 @@
     <link rel="import" href="/elements/frame.html">
     <link rel="import" href="/elements/templates/messaging.html">
     <link rel="import" href="/elements/root.html">
+    <link rel="import" href="/elements/settings_alert_dialog.html">
+    <link rel="import" href="/elements/settings_confirm_dialog.html">
+    <link rel="import" href="/elements/settings_prompt_dialog.html">
   </head>
   <body class="skin-organic uninit theme-settings">
     <!--
@@ -325,7 +330,7 @@
     <section is="findmydevice" role="region" id="findmydevice"></section>
 
     <!-- Security :: Screen Lock :: PIN Input -->
-    <section is="screenLock-passcode" role="region" id="screenLock-passcode"></section>
+    <section is="screenLock-passcode" role="region" id="screenLock-passcode" class="dialog"></section>
     <!-- Security :: Screen Lock -->
     <section is="screenLock" role="region" id="screenLock" data-passcode-enabled="false" data-lockscreen-enabled="false" data-require-sub-panels="true"></section>
     <!-- Security :: SIM Security :: SIM PIN Input -->
@@ -391,6 +396,12 @@
     <section is="fxa" role="region" id="fxa"></section>
     <!-- Iframe -->
     <section is="frame" role="region" id="frame"></section>
+    <!-- SettingsDialog :: AlertDialog -->
+    <section is="settings-alert-dialog" class="dialog" role="region" id="settings-alert-dialog"></section>
+    <!-- SettingsDialog :: ConFirmDialog -->
+    <section is="settings-confirm-dialog" class="dialog" role="region" id="settings-confirm-dialog"></section>
+    <!-- SettingsDialog :: PromptDialog -->
+    <section is="settings-prompt-dialog" class="dialog" role="region" id="settings-prompt-dialog"></section>
 
     <!-- templates -->
     <!-- templates :: Messaging -->
@@ -410,6 +421,8 @@
         <button class="incompatible-settings-ok-btn recommend" data-l10n-id="enable">Enable</button>
       </menu>
     </form>
+
+    <div class="settings-dialog-overlay" hidden></div>
 
     <script src="js/startup.js"></script>
   </body>
