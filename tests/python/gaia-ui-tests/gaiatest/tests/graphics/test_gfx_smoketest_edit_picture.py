@@ -5,12 +5,12 @@
 from marionette.by import By
 from gaiatest.apps.gallery.app import Gallery
 from marionette.marionette import Actions
-from gaiatest.gaia_graphics_test import GaiaGraphicsTestCase
+from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 import time
 import pdb
 
 
-class TestGalleryEditPhoto(GaiaGraphicsTestCase):
+class TestGalleryEditPhoto(GaiaImageCompareTestCase):
     _edit_effect_button_locator = (By.ID, 'edit-effect-button')
     _edit_crop_button = (By.ID, 'edit-crop-button')
     _crop_aspect_landscape_button = (By.ID, 'edit-crop-aspect-landscape')
@@ -26,7 +26,7 @@ class TestGalleryEditPhoto(GaiaGraphicsTestCase):
     _exposure_slider_bar = (By.ID, 'sliderthumb')
 
     def setUp(self):
-        GaiaGraphicsTestCase.setUp(self)
+        GaiaImageCompareTestCase.setUp(self)
 
         # add photo to storage
         self.push_resource('IMG_0001.jpg')
@@ -108,4 +108,4 @@ class TestGalleryEditPhoto(GaiaGraphicsTestCase):
     def tearDown(self):
         # In case the assertion fails this will still kill the call
         # An open call creates problems for future tests
-        GaiaGraphicsTestCase.tearDown(self)
+        GaiaImageCompareTestCase.tearDown(self)

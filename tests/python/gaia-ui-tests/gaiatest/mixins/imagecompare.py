@@ -1,6 +1,6 @@
 
 # Options to add: post2dot0, ref_image, fuzz_factor
-class ImageCompareOptionsMixin(object):
+class GaiaImageCompareOptionsMixin(object):
 
     # verify_usage
     def endurance_verify_usage(self, options, tests):
@@ -48,7 +48,7 @@ class ImageCompareOptionsMixin(object):
         self.verify_usage_handlers.append(self.endurance_verify_usage)
 
 
-class ImageCompareTestCaseMixin(object):
+class GaiaImageCompareTestCaseMixin(object):
 
     def __init__(self, *args, **kwargs):
         self.post2dot0 = False

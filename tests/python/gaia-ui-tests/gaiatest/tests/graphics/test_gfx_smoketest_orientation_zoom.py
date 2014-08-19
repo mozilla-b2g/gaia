@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from gaiatest.gaia_graphics_test import GaiaGraphicsTestCase
+from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from gaiatest.apps.gallery.app import Gallery
 from marionette.marionette import Actions
 from gaiatest.apps.browser.app import Browser
@@ -10,14 +10,14 @@ import time
 from marionette import By
 
 
-class TestGfxSmokeTestOZ(GaiaGraphicsTestCase):
+class TestGfxSmokeTestOZ(GaiaImageCompareTestCase):
 
     images = 'IMG_0001.jpg'
     image_count = 4
     _current_image_locator = (By.CSS_SELECTOR, '#frames > div.frame[style ~= "translateX(0px);"]')
 
     def setUp(self):
-        GaiaGraphicsTestCase.setUp(self)
+        GaiaImageCompareTestCase.setUp(self)
         self.data_layer.connect_to_wifi()
         # Add photos to storage.
         self.push_resource(self.images, count=self.image_count)
@@ -107,4 +107,4 @@ class TestGfxSmokeTestOZ(GaiaGraphicsTestCase):
         time.sleep(wait)
 
     def tearDown(self):
-        GaiaGraphicsTestCase.tearDown(self)
+        GaiaImageCompareTestCase.tearDown(self)
