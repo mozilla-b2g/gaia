@@ -72,10 +72,14 @@ function ValueSelector(title, list) {
 
   show = function() {
     render();
+    // require call done here to avoid cycles. This will get better with
+    // the custom element refactoring.
+    require('mail_common').Cards.setStatusColor(formNode);
     formNode.classList.remove('collapsed');
   };
 
   hide = function() {
+    require('mail_common').Cards.setStatusColor();
     formNode.classList.add('collapsed');
     emptyList();
   };

@@ -141,6 +141,9 @@ function MessageListCard(domNode, mode, args) {
     batchAddClass(domNode, 'msg-search-only', 'collapsed');
   } else {
     batchAddClass(domNode, 'msg-nonsearch-only', 'collapsed');
+    // Favor the use of the card background color for the status bar instead of
+    // the default color.
+    this.domNode.dataset.statuscolor = 'background';
   }
 
   this.messagesContainer =

@@ -327,10 +327,12 @@ MessageReaderCard.prototype = {
 
   onReplyMenu: function(event) {
     var contents = msgReplyMenuNode.cloneNode(true);
+    Cards.setStatusColor(contents);
     document.body.appendChild(contents);
 
     // reply menu selection handling
     var formSubmit = (function(evt) {
+      Cards.setStatusColor();
       document.body.removeChild(contents);
       switch (evt.explicitOriginalTarget.className) {
       case 'msg-reply-menu-reply':

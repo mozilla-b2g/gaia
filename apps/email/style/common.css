@@ -292,6 +292,10 @@ the list of folders.
   padding-left: 11rem;
 }
 
+.email-value-selector[role="dialog"][data-type="value-selector"] menu {
+  padding: 0 1.5rem;
+}
+
 /* Styles for errors that could appear at any time. */
 .error-card h2 {
   font-size: 1.6rem;
