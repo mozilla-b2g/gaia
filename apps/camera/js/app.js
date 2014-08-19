@@ -17,6 +17,7 @@ var debug = require('debug')('app');
 var Pinch = require('lib/pinch');
 var bind = require('lib/bind');
 var model = require('model');
+var WillHideEvent = require('WillHideEvent');
 
 /**
  * Exports
@@ -238,7 +239,7 @@ App.prototype.onCriticalPathDone = function() {
 
   // Load non-critical modules
   this.loadLazyModules();
-  this.listenForAttentionScreen();
+  this.listenForWillHideEvent();
   this.perf.criticalPath = Date.now();
   this.criticalPathDone = true;
   this.emit('criticalpathdone');
@@ -431,26 +432,31 @@ App.prototype.onReady = function() {
  * when that happens, but by that time it is too late and we
  * have already recorded some sound. See bugs 995540 and 1006200.
  *
- * XXX We're abusing the settings API here to allow the system app
- * to broadcast a message to any certified apps that care. There
- * ought to be a better way, but this is a quick and easy way to
- * fix a last-minute release blocker.
+ * Similarly, if the user presses the Home button while recording, we
+ * need to stop recording right away, even if the system is overloaded
+ * and we don't get a visiblitychange event right away. See bug
+ * 1046167.
  *
- * If event.settingValue is true, then an attention screen will
- * soon appear. If it is false, then the attention screen is
- * going away.
+ * To make this work, we rely on shared/js/will_hide_event.js which
+ * abuses the settings API to allow the system app to broadcast a "you
+ * will soon be hidden" message to any certified apps that care. There
+ * ought to be a better way, but this is a quick and easy way to fix a
+ * last-minute release blocker.
  *
  * @private
  */
-App.prototype.listenForAttentionScreen = function() {
-  debug('listen for attention screen');
-  var key = 'private.broadcast.attention_screen_opening';
-  navigator.mozSettings.addObserver(key, function(event) {
-    if (event.settingValue) {
-      debug('attention screen opened');
-      self.emit('attentionscreenopened');
-    }
-  });
+App.prototype.listenForWillHideEvent = function() {
+  debug('listen for will hide events');
+
+  // Start the module that generates the willhide events
+  WillHideEvent.start();
+
+  // Now listen for those custom DOM events
+  window.addEventListener('willhide', function(event) {
+    debug('got willhide event');
+    // and emit them using our internal event emitter
+    this.emit('appwillhide');
+  }.bind(this));
 };
 
 });

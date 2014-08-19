@@ -543,7 +543,9 @@
             // determine if we are going to homescreen or the original app.
 
             this.debug('back to home.');
-            this.display();
+            // Let the foreground app know that it will be closing soon.
+            // XXX: this is a hack to work around bug 1051172
+            this.sendHomescreenOpeningNotification(this.display.bind(this));
           } else {
             // dispatch event to close activity.
             this.debug('ensure home.');
@@ -764,6 +766,39 @@
       for (var id in this._apps) {
         this._apps[id].broadcast(message, detail);
       }
+    },
+
+    /**
+     * Abuse the settings database to notify interested certified apps that
+     * the homescreen will be opening soon. This is a hack implemented to
+     * fix bug 1051172 so that apps can be notified that they will be closing
+     * without having to wait for the visibilitychange event that does not
+     * arrive until after the app has been hidden.
+     *
+     * We ought to be able to remove this function and the code that
+     * calls it when bug 1034001 is fixed.
+     *
+     * See also bugs 995540 and 1006200 and the
+     * private.broadcast.attention_screen_opening setting hack in
+     * attention_screen.js
+     */
+    sendHomescreenOpeningNotification: function awm_homescreenOpen(callback) {
+      // Set a magic property in the settings db so that interested apps
+      // can see when they are about to close
+      var setRequest = navigator.mozSettings.createLock().set({
+        'private.broadcast.home_screen_opening': true
+      });
+      // If it failed for some reason, just call the callback
+      setRequest.onerror = function() { callback(); };
+      setRequest.onsuccess = function() {
+        // When the setting has been set, reset it as part of a separate
+        // transaction.
+        navigator.mozSettings.createLock().set({
+          'private.broadcast.home_screen_opening': false
+        });
+        // And meanwhile, call the callback
+        callback();
+      };
     }
   };
 

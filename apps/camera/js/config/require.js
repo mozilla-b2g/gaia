@@ -18,6 +18,7 @@ requirejs.config({
     'MediaFrame': '../shared/js/media/media_frame',
     'BlobView': '../shared/js/blobview',
     'CustomDialog': '../shared/js/custom_dialog',
+    'WillHideEvent': '../shared/js/will_hide_event',
     'debug': '../bower_components/debug/index',
     'attach': '../bower_components/attach/index',
     'model': '../bower_components/model/index',
@@ -83,6 +84,9 @@ requirejs.config({
     },
     'CustomDialog': {
       exports: 'CustomDialog'
+    },
+    'WillHideEvent': {
+      exports: 'WillHideEvent'
     }
   }
 });
