@@ -656,6 +656,10 @@ bubble above the key when you tap and hold. */
   background: url('images/icon_alternate_keyboard.png') left 50% bottom 0.4rem / 1.4rem no-repeat;
 }
 
+.search-icon {
+  background: url('images/keyboard_search.png') left 50% bottom 0.4rem / 1.4rem no-repeat;
+}
+
 /*
  * Specific layout rules; When a layoutX.js has specificCssRule set to true
  * you can use layout name (Example: ar for Arabic) as a class name.
