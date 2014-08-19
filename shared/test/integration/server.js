@@ -21,8 +21,32 @@ Server.prototype = {
    * Sends signal to stop child process and stop server.
    */
   stop: function() {
-    this.child.send('stop');
+    this.child.send({
+      action: 'stop'
+    });
     this.child.kill();
+  },
+
+  /**
+   * Cork the response body of the given url while allowing headers.
+   * @param {String} url to cork
+   */
+  cork: function(url) {
+    this.child.send({
+      action: 'cork',
+      args: url
+    });
+  },
+
+  /**
+   * Allow the body to be sent after calling `.cork`.
+   * @param {String} url to uncork
+   */
+  uncork: function(url) {
+    this.child.send({
+      action: 'uncork',
+      args: url
+    });
   }
 };
 
