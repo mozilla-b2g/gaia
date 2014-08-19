@@ -36,29 +36,20 @@ marionette('Vertical - Collection', function() {
     collection.setServerURL(server);
   });
 
-  test('create collection shows message when offline', function() {
+  test('create collection shows offline message if no server response',
+    function() {
+
+    server.failAll();
     collection.enterCreateScreen();
 
     client.switchToFrame();
     client.apps.switchToApp(Collection.URL);
+    server.unfailAll();
 
     var expectedMsg = home.l10n(
       '/locales-obj/en-US.json',
       'network-error-message'
     );
-
-    // Wait for listeners to be added
-    collection.waitForCreateScreenReady();
-
-    // This is not quite the same path the user sees during a collection create
-    // but it should still let us test quite a bit. Instead of following the
-    // navigator.isOnline path, we fire an offline event which will also show
-    // the same alert.
-    client.executeScript(function() {
-      setTimeout(function() {
-        window.dispatchEvent(new CustomEvent('offline'));
-      });
-    });
 
     // Wait for the system alert to be populated with the expected message.
     // Convert the alert to a RegExp.
@@ -72,4 +63,27 @@ marionette('Vertical - Collection', function() {
       return expectedMsg.test(msg);
     });
   });
+
+  test('create collection offline succeeds if response is cached',
+    function() {
+      var name1 = 'Around Me';
+      var name2 = 'Astrology';
+
+      // create a collection. expect it will cache the response
+      collection.enterCreateScreen();
+      collection.selectNew(name1);
+      client.apps.switchToApp(Home2.URL);
+      collection.getCollectionByName(name1);
+
+      // go offline, expect list to be retrieved from cache
+      server.failAll();
+
+      collection.enterCreateScreen();
+      collection.selectNew(name2);
+      client.apps.switchToApp(Home2.URL);
+      collection.getCollectionByName(name2);
+
+      server.unfailAll();
+  });
+
 });

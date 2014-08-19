@@ -110,31 +110,6 @@
     return promise;
   }
 
-  /** Make a Request and
-   *  1. cache the response
-   *  2. if offline, get response from cache
-   */
-  function CacheableRequest(service, method, options) {
-    return new Promise(function done(resolve, reject) {
-      if (navigator.onLine) {
-        Request(service, method, options).then(
-          function success(response) {
-            eme.Cache.addRequest(service, method, options, response);
-            resolve(response);
-          }, reject)
-        .catch();
-      }
-      else {
-        eme.Cache.getRequest(service, method, options)
-          .then(function success(cachedResponse) {
-            eme.log('using cached response:', service + '/' + method);
-            resolve(cachedResponse);
-          }, reject.bind(null, NETWORK_ERROR))
-          .catch(reject);
-      }
-    });
-  }
-
   function SanitizeAppSearch(result) {
     return new Promise(function(resolve, reject) {
       // Sanitize app URLs returned from e.me
@@ -191,9 +166,28 @@
       }
     };
 
+    /** Make a Request and
+     *  1. on success: cache the response
+     *  2. on error: get response from cache
+     *  2.1 on error: reject with NETWORK_ERROR
+     */
     this.Categories = {
       list: function list(options) {
-        return CacheableRequest('Categories', 'list', options);
+        var request = Request('Categories', 'list', options);
+
+        return request.then(
+          response => {
+            eme.Cache.addRequest('Categories', 'list', options, response);
+            return response;
+          },
+          () => {
+            return eme.Cache.getRequest('Categories', 'list', options)
+                      .then(response => {
+                        eme.log('using cached response (Categories/list)');
+                        return response;
+                      })
+                      .catch(() => Promise.reject(NETWORK_ERROR));
+          });
       }
     };
   }
