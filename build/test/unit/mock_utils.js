@@ -75,10 +75,6 @@ exports.isSubjectToDeviceType = function(path) {
   return /locales[\/\\]?[a-zA-Z]*[\/\\]?device_type$/.test(path);
 };
 
-exports.cloneJSON = function(obj) {
-  return JSON.parse(JSON.stringify(obj));
-};
-
 exports.existsInAppDirs =  function(appDirs, appName) {
   var apps = appDirs.split(' ');
   var exists = apps.some(function (appPath) {
@@ -88,10 +84,6 @@ exports.existsInAppDirs =  function(appDirs, appName) {
     return (appName === appFile.leafName);
   });
   return exists;
-};
-
-exports.getAppNameRegex = function(buildAppName) {
-  return buildAppName === '*' ? /.+/ : new RegExp(buildAppName);
 };
 
 exports.scriptLoader = {
