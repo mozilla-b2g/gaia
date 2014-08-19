@@ -68,55 +68,13 @@ FakeTextSelectionApp.prototype = {
   },
 
   /**
-   *
    * Show text selection dialog on element.
-   *
-   * HACKING: We need to remove it once gecko is ready.
-   * XXXX: this function will mock mozChromeEvent event to simulate gecko
-   *       has successfully select content and trigger text_selection_dialog
-   *       displaying.
    *       
    * @param {String} ele query string of dom element.
    */
   press: function(target) {
-    var boxInfo = this.client.executeScript(
-      function(ele) {
-        var activeDom = document.querySelector(ele);
-        activeDom.click();
-        var defaultPosition = activeDom.getBoundingClientRect();
-        return {
-          top: defaultPosition.top,
-          left: defaultPosition.left,
-          right: defaultPosition.right,
-          bottom: defaultPosition.bottom
-        };
-      }, [FakeTextSelectionApp.Selector[target]]);
-    // TextSelection dialog exists in system app scope.
-    this.client.switchToFrame();
-    this.client.executeScript(function(boxInfoTop, boxInfoBottom,
-                                       boxInfoLeft, boxInfoRight) {
-      window.dispatchEvent(new CustomEvent('mozChromeEvent', {
-        detail: {
-          type: 'selectionchange',
-          detail: {
-            commands: {
-              canPaste: true,
-              canCut: true,
-              canCopy: true,
-              canSelectAll: true
-            },
-            offsetY: 0,
-            offsetX: 0,
-            zoomFactor: 1,
-            rect: {
-              top: boxInfoTop,
-              bottom: boxInfoBottom,
-              left: boxInfoLeft,
-              right: boxInfoRight
-            }
-          }
-        }
-      }));
-    }, [boxInfo.top, boxInfo.bottom, boxInfo.left, boxInfo.right]);
+    this.client.helper.waitForElement(FakeTextSelectionApp.Selector[target])
+      .tap(0, 0);
+
   }
 };
