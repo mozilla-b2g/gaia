@@ -190,6 +190,7 @@
     /**
      * Play audio for a screen reader notification.
      * @param  {String} aSoundKey a key for the screen reader audio.
+     * XXX: When Bug 848954 lands we should be able to use Web Audio API.
      * @memberof Accessibility.prototype
      */
     _playSound: function ar__playSound(aSoundKey) {
@@ -199,9 +200,11 @@
       }
       if (!this.sounds[aSoundKey]) {
         this.sounds[aSoundKey] = new Audio(this.soundURLs[aSoundKey]);
+        this.sounds[aSoundKey].load();
       }
-      this.sounds[aSoundKey].volume = this.volume;
-      this.sounds[aSoundKey].play();
+      var audio = this.sounds[aSoundKey].cloneNode(false);
+      audio.volume = this.volume;
+      audio.play();
     },
 
     /**
