@@ -54,6 +54,13 @@ require([
       CALL_BARRING_BAIC: 3,     // BAIC: Barring All Incoming Calls
       CALL_BARRING_BAICr: 4     // BAICr: Barring All Incoming Calls in Roaming
     };
+    var _cbServiceMapper = {
+      'li-cb-baoc': _cbAction.CALL_BARRING_BAOC,
+      'li-cb-boic': _cbAction.CALL_BARRING_BOIC,
+      'li-cb-boic-exhc': _cbAction.CALL_BARRING_BOICexHC,
+      'li-cb-baic': _cbAction.CALL_BARRING_BAIC,
+      'li-cb-baic-r': _cbAction.CALL_BARRING_BAICr
+    };
 
     var _clirConstantsMapping = {
       'CLIR_DEFAULT': 0,
@@ -136,6 +143,9 @@ require([
               _mobileConnection.voice && _mobileConnection.voice.type);
             cs_refreshCallSettingItems();
             break;
+          case '#call-cbSettings':
+            cs_updateCallBarring(); // call when entering the panel, not before
+            break;
         }
       });
 
@@ -165,7 +175,7 @@ require([
           }
           _voiceTypes[index] = newType;
           cs_updateNetworkTypeLimitedItemsVisibility(newType);
-          cs_refreshCallSettingItems();
+          cs_refreshCallSettingItems();//TODO refactor, different panels
         });
       });
     }
@@ -963,13 +973,13 @@ require([
       return currentState;
     }
 
-    function _setCallBarring(inputID, options) {
+    function _setCallBarring(id, options) {
       // disable tap on all inputs while we deal with server
       console.log('CB SET > disabling inputs');
       var previousState = _updateAllCallBarring(false);
 
       console.log('CB SET > enqueueing request!');
-      _taskScheduler.enqueue('CALL_BARRING', function(done) {
+      _taskScheduler.enqueue('CALL_BARRING_' + id.slice(6), function(done) {
         console.log('CB SET > done, sending...');
         // Send the request
         var request = _mobileConnection.setCallBarringOption(options);
@@ -1001,10 +1011,10 @@ require([
           console.log('CB SET > REVERTING STATUS');
           console.log('CB SET > PREVIOUS STATUS - ' + JSON.stringify(previousState));
 
-          console.log('CB SET > input state is ' + previousState[inputID].checked);
-          console.log('CB SET > we want to change it to ' + !previousState[inputID].checked);
+          console.log('CB SET > input state is ' + previousState[id].checked);
+          console.log('CB SET > we want to change it to ' + !previousState[id].checked);
           // we revert the clicked input
-          previousState[inputID].checked = !previousState[inputID].checked;
+          previousState[id].checked = !previousState[id].checked;
           // and go back to previous state (enable all)
           _updateAllCallBarring(previousState);
 
@@ -1061,23 +1071,59 @@ require([
       var inputBaicR =
         document.querySelector('#li-cb-baic-r .checkbox-label input');
 
-      var cb_serviceMapper = {
-        'li-cb-baoc': _cbAction.CALL_BARRING_BAOC,
-        'li-cb-boic': _cbAction.CALL_BARRING_BOIC,
-        'li-cb-boic-exhc': _cbAction.CALL_BARRING_BOICexHC,
-        'li-cb-baic': _cbAction.CALL_BARRING_BAIC,
-        'li-cb-baic-r': _cbAction.CALL_BARRING_BAICr
+      var callBarringClick = function(event) {
+        console.log('EVENT: ' + JSON.stringify(event));
+        console.log('TARGET: ' + JSON.stringify(event.target));
+
+        var input = event.target;
+        console.log('CLICK ON ' + input);
+
+        // Show password screen
+        console.log('showing password screen');
+        console.log('PANEL: ' + CallServicesPasswordScreen);
+        CallServicesPasswordScreen.show().then(
+          // password screen confirmed
+          function confirmed(password) {
+            console.log('CLICK ON confirm button');
+            var inputID = input.parentNode.parentNode.id;
+            console.log('ID = ' + inputID);
+            // Create the options object
+            var options = {
+              'program': _cbServiceMapper[inputID],
+              'enabled': input.checked,
+              'password': password,
+              'serviceClass': _voiceServiceClassMask
+            };
+            console.log('options: ' + JSON.stringify(options));
+
+            _setCallBarring(inputID, options);
+          },
+          // password screen canceled
+          function canceled() {
+            console.log('CLICK ON cancel button');
+            // revert visual changes
+            input.checked = !input.checked;
+          }
+        );
       };
 
+      inputBaoc.addEventListener('change', callBarringClick);
+      inputBoic.addEventListener('change', callBarringClick);
+      inputBoicExhc.addEventListener('change', callBarringClick);
+      inputBaic.addEventListener('change', callBarringClick);
+      inputBaicR.addEventListener('change', callBarringClick);
+    }
+
+    function cs_updateCallBarring() {
       // disable all, change description to 'requestin network info'
       var initialState = _updateAllCallBarring(false);
       // make the request for each one
       console.log('REQUESTING INITIAL VALUES');
       var requestArray = [];
-      Object.keys(cb_serviceMapper).forEach(function _requestState(inputID) {
+      Object.keys(_cbServiceMapper).forEach(function _requestState(inputID) {
         console.log('getting current value for ' + inputID);
         var options = {
-          'program': cb_serviceMapper[inputID],
+          'program': _cbServiceMapper[inputID],
           'serviceClass': _voiceServiceClassMask
         };
         console.log('options: ' + JSON.stringify(options));
@@ -1103,50 +1149,6 @@ require([
           // enable all once updated with the values
           _updateAllCallBarring(initialState);
         });
-
-
-
-      var callBarringClick = function(event) {
-        console.log('EVENT: ' + JSON.stringify(event));
-        console.log('TARGET: ' + JSON.stringify(event.target));
-
-        var input = event.target;
-        console.log('CLICK ON ' + input);
-
-        // Show password screen
-        console.log('showing password screen');
-        console.log('PANEL: ' + CallServicesPasswordScreen);
-        CallServicesPasswordScreen.show().then(
-          // password screen confirmed
-          function confirmed(password) {
-            console.log('CLICK ON confirm button');
-            var inputID = input.parentNode.parentNode.id;
-            console.log('ID = ' + inputID);
-            // Create the options object
-            var options = {
-              'program': cb_serviceMapper[inputID],
-              'enabled': input.checked,
-              'password': password,
-              'serviceClass': _voiceServiceClassMask
-            };
-            console.log('options: ' + JSON.stringify(options));
-
-            _setCallBarring(inputID, options);
-          },
-          // password screen canceled
-          function canceled() {
-            console.log('CLICK ON cancel button');
-            // revert visual changes
-            input.checked = !input.checked;
-          }
-        );
-      };
-
-      inputBaoc.addEventListener('change', callBarringClick);
-      inputBoic.addEventListener('change', callBarringClick);
-      inputBoicExhc.addEventListener('change', callBarringClick);
-      inputBaic.addEventListener('change', callBarringClick);
-      inputBaicR.addEventListener('change', callBarringClick);
     }
 
     /**
