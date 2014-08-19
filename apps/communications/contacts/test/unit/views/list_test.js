@@ -15,6 +15,8 @@
 /* global MocksHelper */
 /* global MockNavigationStack */
 /* global Normalizer */
+/* global ICEStore */
+/* global LazyLoader */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/js/text_normalizer.js');
@@ -24,6 +26,7 @@ require('/shared/js/contacts/utilities/templates.js');
 require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/js/contacts/search.js');
+require('/shared/js/contacts/utilities/ice_store.js');
 requireApp('communications/contacts/js/views/list.js');
 requireApp('communications/contacts/test/unit/mock_cookie.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
@@ -1695,6 +1698,35 @@ suite('Render contacts list', function() {
           done();
         });
       });
+    });
+  });
+
+  suite.only('ICE Contacts', function() {
+    setup(function() {
+      this.sinon.stub(ICEStore, 'getContacts', function() {
+        return {
+          then: function(cb) {
+            cb([1,2]);
+          }
+        };
+      });
+      this.sinon.stub(LazyLoader, 'load', function(files, cb) {
+        cb();
+      });
+
+      this.sinon.spy(MockAlphaScroll, 'showGroup');
+      this.sinon.spy(MockAlphaScroll, 'hideGroup');
+    });
+
+    test('Display the ICE group if ICE contacts present', function() {
+      mockContacts = new MockContactsList();
+      subject.load(mockContacts);
+      // Check ice group present
+      var iceGroup = document.getElementById('section-group-ice');
+      assert.isNotNull(iceGroup);
+      // Check that we are displaying the extra item in the alphascroll
+      sinon.assert.calledOnce(MockAlphaScroll.showGroup);
+      sinon.assert.calledWith(MockAlphaScroll.showGroup, 'ice');
     });
   });
 });
