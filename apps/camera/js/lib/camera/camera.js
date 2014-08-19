@@ -919,6 +919,8 @@ Camera.prototype.startRecording = function(options) {
   }
 
   function onError(err) {
+    // Ignore err as we use our own set of error
+    // codes; instead trigger using the default
     self.onRecordingError();
   }
 
