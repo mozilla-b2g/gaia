@@ -8,7 +8,8 @@ define(function(require) {
 
   var APN_CATEGORY = {
     PRESET: 'preset',
-    CUSTOM: 'custom'
+    CUSTOM: 'custom',
+    EU: 'eu'
   };
 
   /**

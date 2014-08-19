@@ -22,6 +22,7 @@ define(function(require) {
   return function ctor_apn_settings_panel() {
     var _rootElement;
     var _mainHeader;
+    var _header;
     var _apnListViewRoot;
     var _apnListView;
     var _addApnBtn;
@@ -29,6 +30,8 @@ define(function(require) {
     var _warningDialog;
     var _warningDialogOkBtn;
     var _warningDialogCancelBtn;
+
+    var _role;
 
     var _apnType = 'default';
     var _serviceId = 0;
@@ -104,21 +107,35 @@ define(function(require) {
       );
     };
 
+    var _onBackBtnClick = function() {
+      if (_role === 'activity') {
+        _role = null;
+        Settings.finishActivityRequest();
+      } else {
+        SettingsService.navigate('apn-settings');
+      }
+    };
+
     return SettingsPanel({
       onInit: function bp_onInit(rootElement) {
         _rootElement = rootElement;
-        _mainHeader = rootElement.querySelector('gaia-header > h1');
+        _mainHeader = rootElement.querySelector('gaia-header');
+        _header = _mainHeader.querySelector('h1');
         _apnListViewRoot = rootElement.querySelector('.apn-list');
         _addApnBtn = rootElement.querySelector('button.add-apn');
+
+        _mainHeader.addEventListener('action', _onBackBtnClick);
       },
       onBeforeShow: function bp_onBeforeShow(rootElement, options) {
+        _role = options.role || _role;
+
         // When back from apn editor, there is no type and serviceId specified
         // so that we use the original type and service id.
         _apnType = options.type || _apnType;
         _serviceId = (options.serviceId === undefined) ?
           _serviceId : options.serviceId;
 
-        _mainHeader.setAttribute('data-l10n-id', HEADER_L10N_MAP[_apnType]);
+        _header.setAttribute('data-l10n-id', HEADER_L10N_MAP[_apnType]);
 
         var apnTemplate =
           ApnTemplateFactory(_apnType,
@@ -127,9 +144,9 @@ define(function(require) {
 
         _addApnBtn.onclick = _onAddApnBtnClick.bind(null, _serviceId, _apnType);
 
-        ApnSettingsManager.queryApns(_serviceId, _apnType).then(
-          function(apnItems) {
-            _apnListView = ListView(_apnListViewRoot, apnItems, apnTemplate);
+        ApnSettingsManager.queryApns(_serviceId, _apnType)
+        .then(function(apnItems) {
+          _apnListView = ListView(_apnListViewRoot, apnItems, apnTemplate);
         });
       },
       onHide: function bp_onBeforeHide() {

@@ -16,6 +16,9 @@ define(function(require) {
   var MCC_SETTINGS_KEY = 'operatorvariant.mcc';
   var MNC_SETTINGS_KEY = 'operatorvariant.mnc';
 
+  var EU_ROAMING_ENABLED_KEY = 'eu-roaming.enabled';
+  var EU_ROAMING_FILE_PATH = '/resources/eu-roaming.json';
+
   var APN_PROPS = [
     'carrier', 'apn', 'user', 'passwd', 'httpproxyhost', 'httpproxyport',
     'mmsc', 'mmsproxy', 'mmsport', 'authtype', 'types', 'protocol',
@@ -36,6 +39,8 @@ define(function(require) {
     get APN_SETTINGS_KEY() { return APN_SETTINGS_KEY; },
     get MCC_SETTINGS_KEY() { return MCC_SETTINGS_KEY; },
     get MNC_SETTINGS_KEY() { return MNC_SETTINGS_KEY; },
+    get EU_ROAMING_ENABLED_KEY() { return EU_ROAMING_ENABLED_KEY; },
+    get EU_ROAMING_FILE_PATH() { return EU_ROAMING_FILE_PATH; },
     get APN_PROPS() { return APN_PROPS; }
   };
 });
