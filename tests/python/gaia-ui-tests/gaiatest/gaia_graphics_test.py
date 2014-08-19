@@ -5,7 +5,7 @@ import inspect
 import tempfile
 
 from gaiatest import GaiaTestCase
-from mixins.imagecompare import ImageCompareTestCaseMixin
+from mixins.imagecompare import GaiaImageCompareTestCaseMixin
 import mozversion
 import os
 import subprocess
@@ -15,10 +15,10 @@ from marionette.marionette import MultiActions
 import pdb
 
 
-class GaiaGraphicsTestCase(GaiaTestCase, ImageCompareTestCaseMixin):
+class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
     def __init__(self, *args, **kwargs):
         GaiaTestCase.__init__(self, *args, **kwargs)
-        ImageCompareTestCaseMixin.__init__(self, *args, **kwargs)
+        GaiaImageCompareTestCaseMixin.__init__(self, *args, **kwargs)
 
         self.temp_dir = tempfile.mkdtemp()
         self.local_path = '.'
