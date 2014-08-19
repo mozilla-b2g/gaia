@@ -750,6 +750,11 @@ var ThreadListUI = {
    * @return Boolean true if a time container was created, false otherwise
    */
   appendThread: function thlui_appendThread(thread) {
+    if (navigator.mozL10n.readyState !== 'complete') {
+      navigator.mozL10n.once(this.appendThread.bind(this, thread));
+      return;
+    }
+
     var timestamp = +thread.timestamp;
     var drafts = Drafts.byThreadId(thread.id);
     var firstThreadInContainer = false;

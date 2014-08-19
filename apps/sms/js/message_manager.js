@@ -2,7 +2,8 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 
-/* global EventDispatcher,
+/* global EarlyCursor,
+    EventDispatcher,
     MozSmsFilter,
     Promise,
     Settings,
@@ -119,17 +120,45 @@ var MessageManager = {
     var end = options.end;
     var done = options.done;
     var cursor = null;
+    var firstResults = null;
+    var hasAllResults = false;
 
-    // WORKAROUND for bug 958738. We can remove 'try\catch' block once this bug
-    // is resolved
-    try {
-      cursor = this._mozMobileMessage.getThreads();
-    } catch(e) {
-      console.error('Error occurred while retrieving threads: ' + e.name);
-      end && end();
-      done && done();
+    if (window.EarlyCursor) {
+      cursor = EarlyCursor.cursor;
+      firstResults = EarlyCursor.results;
+      EarlyCursor.clean();
+    }
 
+    if (firstResults && firstResults.length) {
+      if (firstResults[firstResults.length - 1] === null) {
+        firstResults.splice(-1, 0);
+        hasAllResults = true;
+      }
+      each && firstResults.forEach((thread) => {
+        setTimeout(each.bind(null, thread));
+      });
+    }
+
+    if (hasAllResults) {
+      setTimeout(() => {
+        end && end();
+        done && done();
+      });
       return;
+    }
+
+    if (!cursor) {
+      // WORKAROUND for bug 958738. We can remove 'try\catch' block once this
+      // is resolved
+      try {
+        cursor = this._mozMobileMessage.getThreads();
+      } catch(e) {
+        console.error('Error occurred while retrieving threads: ' + e.name);
+        end && end();
+        done && done();
+
+        return;
+      }
     }
 
     cursor.onsuccess = function onsuccess() {
