@@ -17,6 +17,10 @@ function GaiaUITests_FakeUpdateChecker() {
     dump('FakeUpdateChecker: ' + str + '\n');
   }
 
+  let newCheckerClassID = Cc['@mozilla.org/uuid-generator;1']
+                     .getService(Ci.nsIUUIDGenerator)
+                     .generateUUID();
+
   /**
    * FakeUpdateChecker
    * Mocking Checks for new Updates
@@ -120,9 +124,6 @@ function GaiaUITests_FakeUpdateChecker() {
 
   debug('Initiating update-checker service replacement');
 
-  let newCheckerClassID = Cc['@mozilla.org/uuid-generator;1']
-                     .getService(Ci.nsIUUIDGenerator)
-                     .generateUUID();
   let updateCheckerContract = '@mozilla.org/updates/update-checker;1';
   let checkerCid = '{898cdc9b-e43f-422f-9cc4-2f6291b415a3}';
   debug('Generated a new checker class ID: ' + newCheckerClassID);
