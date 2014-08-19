@@ -2315,12 +2315,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 (function(window) {
   'use strict';
 
+  function LOG(msg) {
+    dump((new Date).toLocaleTimeString() + '--------> ' + msg + ' ' + window.location + '\n');
+  }
+
   if (typeof(window.TestAgent) === 'undefined') {
     window.TestAgent = {};
   }
 
   /* BrowserWorker is the Worker that runs inside an iframe */
   TestAgent.BrowserWorker = function BrowserWorker(options) {
+    LOG('booting worker');
     var self = this,
         dep = this.deps;
 
@@ -2349,6 +2354,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     this.on('run tests with coverage', function(data) {
       self.runTests(data.tests || [], true);
     });
+
+    LOG('done booting worker');
   };
 
   //inheritance
@@ -2371,6 +2378,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    * @param {Function} callback executed when sandbox is created.
    */
   proto.createSandbox = function createSandbox(callback) {
+    LOG('creating sandbox');
     var self = this;
 
     this.sandbox.run(function onSandboxRun() {
@@ -2382,10 +2390,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         callback.call(this, self.loader);
         self.emit('sandbox', this, self.loader);
       }
+      LOG('sandbox created');
     });
   };
 
   proto._emitTestComplete = function _emitTestComplete() {
+    LOG('tests complete');
     var args = Array.prototype.slice.call(arguments);
     args.unshift('run tests complete');
     this.emit.apply(this, args);
@@ -2437,6 +2447,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    * @param {Array} tests list of tests to execute.
    */
   proto.runTests = function runTests(tests, runCoverage) {
+    LOG('running tests');
     var self = this,
         done = this._emitTestComplete.bind(this);
 
@@ -2479,6 +2490,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    * for other plugins.
    */
   proto.start = function start() {
+    LOG('ok, worker starting');
     this.emit('worker start');
   };
 
@@ -2486,6 +2498,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    * Signals when the worker is ready to start running tests
    */
   proto.ready = function ready() {
+    LOG('woker ready to go!');
     this.emit('worker ready');
     if (this.send) {
       this.send('worker ready');
@@ -2630,6 +2643,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 (function(window) {
   'use strict';
 
+  function LOG(msg) {
+    dump((new Date).toLocaleTimeString() + '--- DRIVER ---> ' + msg + '\n');
+  }
+
   // This Driver is used in the main Test-Agent window, to manage the iframes
   // sandboxes for each domain
 
@@ -2721,6 +2738,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      * @return {HTMLElement} iframe element.
      */
     createIframe: function(src) {
+      LOG('creating iframe ' + src);
       var iframe = document.createElement('iframe');
       iframe.src = src + '?time' + String(Date.now());
 
@@ -2747,6 +2765,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      * @param {HTMLElement} iframe raw iframe element.
      */
     removeIframe: function(iframe) {
+      LOG('removing iframe' + iframe.src);
       if (iframe && iframe.parentNode) {
         iframe.parentNode.removeChild(iframe);
       }
@@ -2762,6 +2781,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      * is set.
      */
     _loadNextDomain: function() {
+      LOG('loading next domain');
       var iframe;
       //if we have a current domain
       //remove it it should be finished now.
@@ -2792,6 +2812,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      * @param {String} env the enviroment to test against.
      */
     _startDomainTests: function(env) {
+      LOG('starting domain tests');
       var iframe, group;
 
       if (env in this.sandboxes) {
@@ -2816,6 +2837,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      * @param {Array} tests list of tests.
      */
     _createTestGroups: function(tests) {
+      LOG('creating test group');
       var i = 0, len = tests.length,
           group;
 
@@ -2851,6 +2873,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      * @param {Array} tests list of tests to run.
      */
     runTests: function(tests, runCoverage) {
+      LOG('running tests');
       var batch = {
         tests: tests,
         runCoverage: runCoverage
@@ -2868,6 +2891,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     },
 
     _loadNextBatch: function() {
+      LOG('loading next batch');
       var batch = this._batches.shift();
       if (!batch) {
         return false;
@@ -2891,6 +2915,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     // Runs the next domain, or the next batch if there is no any domain.
     // This also resets the running flag if there is nothing left to run.
     _next: function() {
+      LOG('running _next');
       this._running = true;
 
       if (!this._loadNextDomain() && !this._loadNextBatch()) {
