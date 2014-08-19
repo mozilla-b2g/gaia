@@ -733,13 +733,8 @@ var CallLog = {
       this.deleteButton.setAttribute('disabled', 'disabled');
       return;
     }
-    this.headerEditModeText.textContent = this._('edit-selected',
-                                            {n: selected});
-    // Bug 1022866 - Workaround for projected content nodes disappearing
-    // We need to hide and 'flash' the element style.
-    this.editModeHeader.style.display = 'none';
-    this.editModeHeader.clientTop;
-    this.editModeHeader.style.display = '';
+    this.headerEditModeText.textContent =
+      this._('edit-selected', {n: selected});
 
     this.deleteButton.removeAttribute('disabled');
     if (selected === allInputs) {
