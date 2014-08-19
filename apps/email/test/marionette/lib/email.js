@@ -369,13 +369,26 @@ Email.prototype = {
     return elements;
   },
 
+  isElementDisabled: function(selector) {
+    var client = this.client;
+
+    client.helper.waitForElement(selector);
+
+    client.waitFor(function() {
+      return client.executeScript(function(selector) {
+        var doc = window.wrappedJSObject.document,
+            selectNode = doc.querySelector(selector);
+
+        return selectNode.disabled;
+      }, [selector]);
+    });
+  },
+
   /**
    * Taps the trash button in edit mode.
    */
-  editModeTrash: function() {
-    this.client.helper
-      .waitForElement(Selector.editModeTrash)
-      .tap();
+  isEditModeTrashDisabled: function() {
+    this.isElementDisabled(Selector.editModeTrash);
   },
 
   abortCompose: function(cardId) {

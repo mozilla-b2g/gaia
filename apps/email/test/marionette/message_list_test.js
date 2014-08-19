@@ -25,13 +25,10 @@ marionette('email message list edit mode', function() {
     ]);
   });
 
-  test('tapping trash with no selected messages should exit', function() {
+  test('trash is disabled when no selected messages', function() {
     assert.ok(true);
     app.editMode();
-    app.editModeTrash();
-
-    var checkboxes = app.editModeCheckboxes();
-    assert.ok(!checkboxes[0].displayed());
+    app.isEditModeTrashDisabled();
   });
 
 });

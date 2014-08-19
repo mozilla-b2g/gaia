@@ -195,20 +195,22 @@ function MessageListCard(domNode, mode, args) {
     .addEventListener('click', this.setEditMode.bind(this, false), false);
 
   // - toolbar: edit mode
-  domNode.getElementsByClassName('msg-star-btn')[0]
+  this.toolbar.starBtn = this.domNode.getElementsByClassName('msg-star-btn')[0],
+  this.toolbar.starBtn
     .addEventListener('click', this.onStarMessages.bind(this, true), false);
-  domNode.getElementsByClassName('msg-mark-read-btn')[0]
+
+  this.toolbar.readBtn =
+    this.domNode.getElementsByClassName('msg-mark-read-btn')[0];
+  this.toolbar.readBtn
     .addEventListener('click', this.onMarkMessagesRead.bind(this, true), false);
-  domNode.getElementsByClassName('msg-delete-btn')[0]
+
+  this.toolbar.deleteBtn = domNode.getElementsByClassName('msg-delete-btn')[0];
+  this.toolbar.deleteBtn
     .addEventListener('click', this.onDeleteMessages.bind(this, true), false);
+
   this.toolbar.moveBtn = domNode.getElementsByClassName('msg-move-btn')[0];
   this.toolbar.moveBtn
     .addEventListener('click', this.onMoveMessages.bind(this, true), false);
-
-  this.toolbar.starBtn = this.domNode.getElementsByClassName('msg-star-btn')[0],
-  this.toolbar.readBtn =
-    this.domNode.getElementsByClassName('msg-mark-read-btn')[0];
-
 
   // -- non-search mode
   if (mode === 'nonsearch') {
@@ -401,6 +403,8 @@ MessageListCard.prototype = {
 
   sliceEvents: ['splice', 'change', 'status', 'complete'],
 
+  toolbarEditButtonNames:['starBtn', 'readBtn', 'deleteBtn', 'moveBtn'],
+
   /**
    * Inform Cards to not emit startup content events, this card will trigger
    * them once data from back end has been received and the DOM is up to date
@@ -541,6 +545,8 @@ MessageListCard.prototype = {
     mozL10n.setAttributes(headerNode, 'message-multiedit-header',
                           { n: this.selectedMessages.length });
 
+    var hasMessages = !!this.selectedMessages.length;
+
     // Enabling/disabling rules (not UX-signed-off):  Our bias is that people
     // want to star messages and mark messages unread (since it they naturally
     // end up unread), so unless messages are all in this state, we assume that
@@ -560,10 +566,17 @@ MessageListCard.prototype = {
     this.setAsStarred = !(numStarred && numStarred ===
                           this.selectedMessages.length);
     // Mark read if everything is unread, otherwise unread
-    this.setAsRead = (this.selectedMessages.length && numRead === 0);
+    this.setAsRead = (hasMessages && numRead === 0);
 
-    this.toolbar.starBtn.classList.toggle('msg-btn-active', !this.setAsStarred);
-    this.toolbar.readBtn.classList.toggle('msg-btn-active', this.setAsRead);
+    var toolbar = this.toolbar;
+
+    // Update mark read/unread button to show what action will be taken.
+    toolbar.readBtn.classList.toggle('unread', numRead > 0);
+
+    // Update disabled state based on if there are selected messages
+    this.toolbarEditButtonNames.forEach(function(key) {
+      toolbar[key].disabled = !hasMessages;
+    });
   },
 
   _hideSearchBoxByScrolling: function() {

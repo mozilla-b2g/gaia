@@ -600,7 +600,11 @@ reflows. Foreground/background colors should be safe.
 }
 
 .bb-tablist .msg-mark-read-btn {
-  background-image: url("images/icons/mark.png");
+  background-image: url("images/icons/mark_read.png");
+}
+
+.bb-tablist .msg-mark-read-btn.unread {
+  background-image: url("images/icons/mark_unread.png");
 }
 
 /* Scrollable Area has to have a solid
