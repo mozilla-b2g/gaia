@@ -113,7 +113,8 @@ FakeTextSelectionApp.prototype = {
               bottom: boxInfoBottom,
               left: boxInfoLeft,
               right: boxInfoRight
-            }
+            },
+            reasons: ['mouseup']
           }
         }
       }));
