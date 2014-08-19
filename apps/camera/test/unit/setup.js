@@ -45,6 +45,7 @@ requireApp('camera/js/vendor/alameda.js', function() {
       'MediaFrame': '../shared/js/media/media_frame',
       'BlobView': '../shared/js/blobview',
       'CustomDialog': '../shared/js/custom_dialog',
+      'StopRecordingEvent': '../shared/js/stop_recording_event',
       'debug': 'vendor/debug'
     },
     shim: {
@@ -84,6 +85,9 @@ requireApp('camera/js/vendor/alameda.js', function() {
       },
       'CustomDialog': {
         exports: 'CustomDialog'
+      },
+      'StopRecordingEvent': {
+        exports: 'StopRecordingEvent'
       }
     }
   });

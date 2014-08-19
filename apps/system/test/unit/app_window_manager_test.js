@@ -37,6 +37,7 @@ suite('system/AppWindowManager', function() {
 
     window.lockScreen = MockLockScreen;
     window.layoutManager = new window.LayoutManager();
+    window.mediaRecording = { isRecording: false };
 
     home = new HomescreenWindow('fakeHome');
     window.homescreenLauncher = new HomescreenLauncher().start();
@@ -64,6 +65,8 @@ suite('system/AppWindowManager', function() {
     AppWindowManager.uninit();
     delete window.lockScreen;
     delete window.layoutManager;
+    delete window.mediaRecording;
+
     // MockHelper won't invoke mTeardown() for us
     // since MockHomescreenLauncher is instantiable now
     window.homescreenLauncher.mTeardown();
@@ -538,7 +541,11 @@ suite('system/AppWindowManager', function() {
       injectRunningApps(app1, app2);
       AppWindowManager._activeApp = app1;
       var stubSwitchApp = this.sinon.stub(AppWindowManager, 'switchApp');
+      var spySendStopRecording = this.sinon.spy(AppWindowManager,
+                                                'sendStopRecordingRequest');
+
       AppWindowManager.display(app2);
+      assert.isTrue(spySendStopRecording.calledOnce);
       assert.isTrue(stubSwitchApp.called);
       assert.deepEqual(stubSwitchApp.getCall(0).args[0], app1);
       assert.deepEqual(stubSwitchApp.getCall(0).args[1], app2);
