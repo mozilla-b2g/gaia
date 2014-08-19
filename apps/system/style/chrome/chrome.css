@@ -147,6 +147,16 @@
   transform: scaleX(1);
 }
 
+.chrome.maximized .title[data-ssl="secure"] {
+  padding-left: 3rem;
+  background: url("images/ssl.png") no-repeat 1.3rem center;
+}
+
+.chrome.maximized .title[data-ssl="broken"] {
+  padding-left: 3rem;
+  background: url("images/ssl_broken.png") no-repeat 1.3rem center;
+}
+
 .scrollable .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
 .scrollable .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
   transform: scaleX(0.6521) translateX(-5.5rem);
