@@ -403,7 +403,7 @@ Camera.prototype.configure = function() {
     self.ready();
   }
 
-  function onError() {
+  function onError(err) {
     debug('Error configuring camera');
     self.configured = true;
     self.ready();
@@ -918,7 +918,7 @@ Camera.prototype.startRecording = function(options) {
     }
   }
 
-  function onError() {
+  function onError(err) {
     self.onRecordingError();
   }
 
