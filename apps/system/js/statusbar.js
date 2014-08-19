@@ -212,7 +212,7 @@ var StatusBar = {
 
     // Listen to 'moztimechange'
     window.addEventListener('moztimechange', this);
-    // Listen to 'timeformatchange'
+    // Listen to 'localechanged'
     window.addEventListener('timeformatchange', this);
 
     // Listen to 'lockscreen-appopened', 'lockscreen-appclosed', and

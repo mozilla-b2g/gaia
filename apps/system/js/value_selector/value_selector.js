@@ -29,7 +29,6 @@
     app.element.addEventListener('_inputmethod-contextchange', this);
     app.element.addEventListener('_sheetstransitionstart', this);
     app.element.addEventListener('_localized', this);
-    window.addEventListener('timeformatchange', this);
   };
 
   ValueSelector.prototype = Object.create(BaseUI.prototype);
@@ -82,10 +81,6 @@
           this._timePicker.uninit();
           this._timePicker = null;
         }
-        break;
-      case 'timeformatchange':
-        this._timePicker.uninit();
-        this._timePicker = null;
         break;
       case '_sheetstransitionstart':
         // Only cancel if the value selector was rendered.
@@ -484,9 +479,8 @@
     this.element = element;
     this._fetchElements();
     var _ = navigator.mozL10n.get;
-    var is12hFormat = navigator.mozHour12;
-    var localeTimeFormat = is12hFormat ?
-      _('shortTimeFormat12') : _('shortTimeFormat24');
+    var localeTimeFormat = _('shortTimeFormat');
+    var is12hFormat = (localeTimeFormat.indexOf('%p') >= 0);
     var startHour = is12hFormat ? 1 : 0;
     var endHour = is12hFormat ? (startHour + 12) : (startHour + 12 * 2);
     var unitClassName = 'picker-unit';
@@ -578,7 +572,7 @@
     setTimePickerStyle: function tp_setTimePickerStyle() {
       var style = 'format24h';
       if (this.is12hFormat) {
-        var localeTimeFormat = navigator.mozL10n.get('shortTimeFormat12');
+        var localeTimeFormat = navigator.mozL10n.get('shortTimeFormat');
         var reversedPeriod =
           (localeTimeFormat.indexOf('%p') < localeTimeFormat.indexOf('%M'));
         style = (reversedPeriod) ? 'format12hrev' : 'format12h';

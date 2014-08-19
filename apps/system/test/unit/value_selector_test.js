@@ -39,7 +39,6 @@ suite('value selector/value selector', function() {
   var fakeClosing = { type: '_closing' };
   var fakeOpening = { type: '_opening' };
   var fakeLocalizedEvent = { type: '_localized' };
-  var fakeTimeFormatChangeEvent = { type: 'timeformatchange' };
 
   mocksForValueSelector.attachTestHelpers();
 
@@ -84,7 +83,6 @@ suite('value selector/value selector', function() {
   test('Time Picker (en-US)', function() {
     stubMozl10nGet =
       this.sinon.stub(navigator.mozL10n, 'get').returns('%I:%M %p');
-    navigator.mozHour12 = true;
 
     assert.isNull(vs._timePicker);
 
@@ -102,7 +100,6 @@ suite('value selector/value selector', function() {
   test('Time Picker (pt-BR)', function() {
     stubMozl10nGet =
       this.sinon.stub(navigator.mozL10n, 'get').returns('%Hh%M');
-    navigator.mozHour12 = false;
 
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
 
@@ -115,7 +112,6 @@ suite('value selector/value selector', function() {
   test('Time Picker (zh-CN)', function() {
     stubMozl10nGet =
       this.sinon.stub(navigator.mozL10n, 'get').returns('%p %I:%M');
-    navigator.mozHour12 = true;
 
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
 
@@ -130,8 +126,6 @@ suite('value selector/value selector', function() {
     // start with 12h format
     var sinon = this.sinon;
     stubMozl10nGet = sinon.stub(navigator.mozL10n, 'get').returns('%I:%M %p');
-    navigator.mozHour12 = true;
-
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     assert.ok(vs.elements.timePickerContainer.classList.contains('format12h'));
     stubMozl10nGet.restore();
@@ -140,27 +134,6 @@ suite('value selector/value selector', function() {
     vs.handleEvent(fakeLocalizedEvent);
     assert.isNull(vs._timePicker);
     stubMozl10nGet = sinon.stub(navigator.mozL10n, 'get').returns('%H:%M');
-    navigator.mozHour12 = false;
-    vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
-    assert.ok(vs.elements.timePickerContainer.classList.contains(
-      'format24h'));
-  });
-
-  test('Time Picker reset at timeformat change', function() {
-    // start with 12h format
-    var sinon = this.sinon;
-    stubMozl10nGet = sinon.stub(navigator.mozL10n, 'get').returns('%I:%M %p');
-    navigator.mozHour12 = true;
-
-    vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
-    assert.ok(vs.elements.timePickerContainer.classList.contains('format12h'));
-    stubMozl10nGet.restore();
-
-    // change to 24h format
-    vs.handleEvent(fakeTimeFormatChangeEvent);
-    assert.isNull(vs._timePicker);
-    stubMozl10nGet = sinon.stub(navigator.mozL10n, 'get').returns('%H:%M');
-    navigator.mozHour12 = false;
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     assert.ok(vs.elements.timePickerContainer.classList.contains(
       'format24h'));
