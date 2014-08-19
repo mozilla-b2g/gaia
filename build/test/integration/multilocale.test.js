@@ -46,6 +46,10 @@ suite('multilocale Integration tests', function() {
           'properties file ' + cnSettingsProperties + ' should exist');
         assert.isNotNull(zip.getEntry(cnTzIni),
           'ini file ' + cnTzIni + ' should exist');
+        assert.isNotNull(
+          zip.getEntry('locales/sounds-hacky-2.0.properties'),
+          'sounds hacky files should exist'
+        );
       }
 
       assert.deepEqual(JSON.parse(zip.readAsText(langPathInZip)), localesFileObj);
