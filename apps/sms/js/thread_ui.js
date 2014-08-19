@@ -1994,7 +1994,7 @@ var ThreadUI = {
         // if the click wasn't on an attachment check for other clicks
         if (!thui_mmsAttachmentClick(evt.target)) {
           this.handleMessageClick(evt);
-          LinkActionHandler.onClick(evt);
+          this.onClick(evt);
         }
         return;
       case 'contextmenu':
@@ -2930,6 +2930,45 @@ var ThreadUI = {
     } else {
       contactList.appendChild(suggestions);
       this.recipientSuggestions.scrollTop = 0;
+    }
+  },
+
+  onClick: function lah_onClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    var dataset = event.target.dataset;
+    var action = dataset.action;
+
+    if (!action) {
+      return;
+    }
+
+    if (action === 'email-link') {
+      this.prompt({
+        email: dataset.email,
+        inMessage: true
+      });
+    }
+
+    if (action === 'dial-link') {
+      this.promptContact({
+        number: dataset.dial,
+        inMessage: true
+      });
+    }
+
+    if (action === 'url-link') {
+      console.log('tst: in url-link click');
+      if (!Compose.isEmpty()) {
+        ThreadUI.saveDraft({autoSave: true});
+        ActivityHandler.leaveActivity();
+      }
+      var type = action.replace('-link', '');
+
+      ActivityPicker[type](
+        dataset[type], this.reset, this.reset
+      );
     }
   }
 };
