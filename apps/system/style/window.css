@@ -1,6 +1,6 @@
 .appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen) {
   opacity: 0;
-  transform: translateX(0);
+  transform: none;
 }
 
 #screen.utility-tray #windows > .appWindow {
@@ -529,7 +529,7 @@
 #screen #windows > .appWindow.will-become-active,
 #screen #windows > .appWindow.inside-edges {
   opacity: 1;
-  transform: translateX(0);
+  transform: none;
 }
 
 #screen #windows > .appWindow.outside-edges-left {
