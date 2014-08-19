@@ -84,7 +84,7 @@ ActionsMenu.prototype = {
           __bug1015513_hide_from_self__: true,
           number: 1,
           blobs: [blob],
-          filenames: [self._tone.name],
+          filenames: [self._tone.filename],
           metadata: [{
             title: self._tone.name
           }]

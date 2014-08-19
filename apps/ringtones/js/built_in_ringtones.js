@@ -25,6 +25,30 @@
  *   An array of the valid tone types ('ringtone' and 'alerttone').
  */
 window.builtInRingtones = (function() {
+  var mimeTypeMap = {
+    '.mp3': 'audio/mp3',
+    '.mp4': 'audio/mp4',
+    '.ogg': 'audio/ogg',
+    '.opus': 'audio/ogg'
+  };
+
+  /**
+   * Try to guess the MIME type of a file based on its extension. It's a shame
+   * XHRs don't do this for us automatically!
+   *
+   * @param {String} filename The filename of the ringtone.
+   * @return {String} The MIME type.
+   */
+  function inferMimeType(filename) {
+    var dot = filename.lastIndexOf('.');
+    if (dot === -1) {
+      console.warn('Couldn\'t infer mimetype for ' + filename);
+      return 'application/octet-stream';
+    }
+    var ext = filename.substr(dot);
+    return mimeTypeMap[ext] || 'application/octet-stream';
+  }
+
   /**
    * Create a new built-in ringtone object.
    *
@@ -34,17 +58,31 @@ window.builtInRingtones = (function() {
   function BuiltInRingtone(filename, baseURL) {
     // Strip the file extension for the ID and l10n ID to make it easier to
     // change the file extensions in the future.
-    this._rootName = filename.replace(/\.\w+$/, '');
-    this._url = baseURL + filename;
+    this._filename = filename;
+    this._baseURL = baseURL;
   }
 
   BuiltInRingtone.prototype = {
+    /**
+     * @return {String} The filename without the extension.
+     */
+    get _rootName() {
+      return this._filename.replace(/\.\w+$/, '');
+    },
+
     /**
      * @return {String} The localized name of the tone. Assumes that mozL10n has
      *   been initialized.
      */
     get name() {
       return navigator.mozL10n.get(this.l10nID);
+    },
+
+    /**
+     * @return {String} The filename of the ringtone.
+     */
+    get filename() {
+      return this._filename;
     },
 
     /**
@@ -65,7 +103,7 @@ window.builtInRingtones = (function() {
      * @return {String} A URL pointing to the tone's audio data.
      */
     get url() {
-      return this._url;
+      return this._baseURL + this._filename;
     },
 
     /**
@@ -92,13 +130,11 @@ window.builtInRingtones = (function() {
       return new Promise(function(resolve, reject) {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', url);
+        xhr.overrideMimeType(inferMimeType(url));
         xhr.responseType = 'blob';
         xhr.send();
         xhr.onload = function() {
-          // Use slice() to strip the "application/xml" MIME type from the Blob,
-          // since it's not XML! (We'll just let consumers infer what the type
-          // really is.)
-          resolve(xhr.response.slice());
+          resolve(xhr.response);
         };
         xhr.onerror = function() {
           var err = new Error('Could not read sound file: ' + url +
