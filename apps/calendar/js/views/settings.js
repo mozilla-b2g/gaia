@@ -356,7 +356,7 @@
         // Set header title to same as time view header
         this.headerTitle.textContent =
           document.getElementById('current-month-year').textContent;
-        
+
         // Both the transparent back and clicking on the semi-opaque
         // shield should close the settings since visually those sections
         // do not look like part of the drawer UI, and UX wants to give

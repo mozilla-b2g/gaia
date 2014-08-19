@@ -215,7 +215,7 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   }
 }
 
-#advanced-settings-view.content {
+#advanced-settings-view section.content {
   height: calc(100% - 5rem);
   overflow-y: scroll;
 }

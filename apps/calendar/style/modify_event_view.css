@@ -125,7 +125,7 @@
  */
 
 #modify-event-view.create .save-text {
-  display: flex !important; /* 1 */
+  display: block !important; /* 1 */
 }
 
 #modify-event-view.create .done-text {
@@ -137,7 +137,7 @@
 }
 
 #modify-event-view.update .done-text {
-  display: flex !important; /* 1 */
+  display: block !important; /* 1 */
 }
 
 #modify-event-view .save[aria-disabled="true"] {

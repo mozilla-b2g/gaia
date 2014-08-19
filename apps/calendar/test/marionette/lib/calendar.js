@@ -59,7 +59,7 @@ Calendar.prototype = {
     return this.client.findElement('#current-month-year');
   },
 
-  get settingsButton() {
+  get timeHeader() {
     return this.client.findElement('#time-header');
   },
 
@@ -82,7 +82,7 @@ Calendar.prototype = {
   _toggleSettingsView: function(isOpen) {
     var client = this.client;
     client.helper
-      .waitForElement(this.settingsButton)
+      .waitForElement(this.timeHeader)
       .tap(25, 25);
 
     // Wait for the animation to be complete before trying to click on
