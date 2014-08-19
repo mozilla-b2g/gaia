@@ -128,10 +128,10 @@ window.GaiaDrawer = (function(win) {
   // using HTML Imports (bug 877072).
   // var stylesheet = baseurl + 'style.css';
   var template = document.createElement('template');
-  template.innerHTML = '<div class="inner" id="inner">' +
-      '<div class="background" id="background"></div>' +
-      '<div class="content" id="content"><content></content></div>' +
-    '</div>';
+  template.innerHTML = `<div class="inner" id="inner">
+      <div class="background" id="background"></div>
+      <div class="content" id="content"><content></content></div>
+    </div>`;
 
   // Register and return the constructor
   return document.registerElement('gaia-drawer', { prototype: proto });

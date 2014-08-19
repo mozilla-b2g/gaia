@@ -60,11 +60,11 @@ window.GaiaTextinput = (function(win) {
   // using HTML Imports (bug 877072).
   var stylesheet = baseurl + 'style.css';
   var template = document.createElement('template');
-  template.innerHTML = '<style scoped>' +
-    '@import url(' + stylesheet + ');</style>' +
-    '<p id="gaia-text-input">' +
-      '<input id="input" type="text">' +
-    '</p>';
+  template.innerHTML = `<style scoped>
+    @import url(${stylesheet});</style>
+    <p id="gaia-text-input">
+      <input id="input" type="text">
+    </p>`;
 
   // Register and return the constructor
   return document.registerElement('gaia-textinput', { prototype: proto });
