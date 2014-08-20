@@ -108,7 +108,7 @@ suiteGroup('Views.CreateAccount', function() {
         presets.forEach(function(val) {
           assert.include(
             html,
-            template.provider.render({ name: val })
+            val
           );
         });
       });
