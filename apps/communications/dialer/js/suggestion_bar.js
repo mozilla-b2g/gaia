@@ -119,7 +119,7 @@ var SuggestionBar = {
     // place a call, it just fills in the phone number. In this case, we should
     // hide the suggestions bar to not confuse the user into thinking that
     // tapping it again will place the call.
-    if (totalMatchNum === 1 &&
+    if (totalMatchNum === 0 &&
         contact.tel[firstMatch].value == self._phoneNumber &&
         navigator.mozIccManager &&
         navigator.mozIccManager.iccIds.length > 1) {
