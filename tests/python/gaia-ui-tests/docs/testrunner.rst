@@ -88,6 +88,7 @@ Here is a list of the types used, and when to use them:
 * bluetooth - Bluetooth is required.
 * camera - Camera is required.
 * carrier - Active SIM card with carrier connection is required.
+* external - The test requires access to resources outside the host and device, eg the internet.
 * flash - Camera flash is required.
 * lan - Local area connection (not cell data) is required by these tests (see note below).
 * offline - Specifically requires no online connection.
