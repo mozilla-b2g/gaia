@@ -32,7 +32,17 @@
   // update mozHour12 to real value
   var req = window.navigator.mozSettings.createLock().get(_kLocaleTime);
   req.onsuccess = function() {
-    _setMozHour12(req.result[_kLocaleTime]);
+    var hour12 = req.result[_kLocaleTime];
+    if (hour12 !== undefined) {
+      _setMozHour12(hour12);
+    } else { // migration when upgrading without ftu language selection
+      var _ = navigator.mozL10n.get;
+      var localeTimeFormat = _('shortTimeFormat');
+      var is12hFormat = (localeTimeFormat.indexOf('%I') >= 0);
+      var cset = {};
+      cset[_kLocaleTime] = is12hFormat;
+      window.navigator.mozSettings.createLock().set(cset);
+    }
   };
   // monitor settings changes
   window.navigator.mozSettings.addObserver(_kLocaleTime, _hour12Handler);
