@@ -588,7 +588,12 @@ MailFolder.prototype = {
       path: this.path
     };
   },
-
+  /**
+   * Loads the current unread message count as reported by the FolderStorage backend.
+   * this.unread is the current number of unread messages that are stored within the
+   * FolderStorage object for this folder. Thus, it only accounts for messages
+   * which the user has loaded from the server.
+  */
   __update: function(wireRep) {
     // Hold on to wireRep for caching
     this._wireRep = wireRep;
