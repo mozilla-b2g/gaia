@@ -1,4 +1,5 @@
 /* global Attention,
+  MockL10n,
   MockNotification,
   MockNotifications,
   MocksHelper,
@@ -8,6 +9,7 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_notification.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_utils.js');
 
 require('/js/attention/attention.js');
@@ -18,35 +20,43 @@ var mocksHelperForAttention = new MocksHelper([
 ]);
 
 suite('Network Alerts - Attention Screen', function() {
-  var title, body, style;
+  var title,
+      localizedTitle,
+      body;
+
+  var realL10n = navigator.mozL10n;
 
   mocksHelperForAttention.attachTestHelpers();
 
   setup(function() {
     loadBodyHTML('/attention.html');
 
-    title = 'some title';
+    title = 'title-id';
+    localizedTitle = 'some title';
     body = 'some body';
-    style = 'fullpage';
 
     this.sinon.stub(Utils, 'parseParams').returns({
       title: title,
-      body: body,
-      style: style
+      body: body
     });
+
+    navigator.mozL10n = MockL10n;
+    this.sinon.stub(navigator.mozL10n, 'once').yields();
+    this.sinon.stub(navigator.mozL10n, 'get').withArgs(title)
+                                             .returns(localizedTitle);
 
     Attention.init();
     Attention.render();
   });
 
-  test('form is properly displayed', function() {
-    assert.ok(
-      document.body.classList.contains(style),
-      'Requested style is used'
-    );
+  teardown(function() {
+    navigator.mozL10n = realL10n;
+  });
 
+  test('form is properly displayed', function() {
     assert.equal(
-      document.querySelector('h1').textContent, title,
+      document.querySelector('h1').getAttribute('data-l10n-id'),
+      title,
       'The title is properly displayed'
     );
     assert.equal(
@@ -56,9 +66,9 @@ suite('Network Alerts - Attention Screen', function() {
   });
 
   test('Notification should be displayed', function() {
-    assert.equal(MockNotifications[0].title, title);
+    assert.equal(MockNotifications[0].title, localizedTitle);
     assert.equal(MockNotifications[0].body, body);
-    assert.ok(MockNotifications[0].icon.endsWith('style=' + style));
+    assert.ok(MockNotifications[0].icon.endsWith('titleID=' + title));
   });
 
   test('click button: closes window', function() {
@@ -72,7 +82,6 @@ suite('Network Alerts - Attention Screen', function() {
     Utils.parseParams.returns({
       title: title,
       body: body,
-      style: style,
       notification: 1
     });
 

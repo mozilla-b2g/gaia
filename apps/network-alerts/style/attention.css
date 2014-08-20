@@ -2,15 +2,3 @@ body, html {
   /* Can be increased if we want a bigger font in the alert */
   font-size: 10px;
 }
-
-/* second design */
-
-body.style-2 {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  bottom: 1.5rem;
-  left: 1.5rem;
-
-  border: .2rem solid white;
-}
