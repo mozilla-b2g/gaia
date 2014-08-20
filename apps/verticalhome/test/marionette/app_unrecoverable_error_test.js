@@ -67,6 +67,8 @@ marionette('Vertical Home - App unrecoverable error', function() {
     launchIcon(icon);
     subject.confirmDialog('unrecoverable');
 
+    appInstall.confirmUninstallDialog();
+    client.switchToFrame(system.getHomescreenIframe());
 
     // ensure the icon disappears
     client.helper.waitForElementToDisappear(icon);
