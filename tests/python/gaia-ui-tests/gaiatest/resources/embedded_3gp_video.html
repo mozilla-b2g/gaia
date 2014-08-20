@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Embedded 3GP Video test</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <script type="text/javascript">
+
+        function play() {
+            document.getElementById("testVideo").play();
+        }
+
+        function pause() {
+            document.getElementById("testVideo").pause();
+        }
+    </script>
+</head>
+<body>
+    <video id="testVideo" src="VID_0001.3gp" preload="auto" width="100%"></video>
+    <!-- We can't interact well with HTML5 video element control so we use trigger them with js instead -->
+    <a href="#" id="playVideo" onclick="play()">Play</a>
+    <a href="#" id="pauseVideo" onclick="pause()">Pause</a>
+</body>
+</html>
