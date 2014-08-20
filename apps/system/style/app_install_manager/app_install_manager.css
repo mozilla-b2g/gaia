@@ -7,11 +7,7 @@
 #app-install-cancel-dialog,
 #app-download-cancel-dialog {
   display: none;
-  position: absolute;
-  top: 2.4rem;
-  left: 0;
-  width: 100%;
-  bottom: 0;
+  top: 3rem;
   pointer-events: none;
 }
 

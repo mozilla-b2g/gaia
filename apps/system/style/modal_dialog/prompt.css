@@ -49,3 +49,9 @@
 form[role="dialog"][data-type="confirm"] {
   padding: 2rem 0 7rem;
 }
+
+/* Shift the bottom of the prompt to account for the height of the
+   software home button */
+#screen.software-button-enabled form[role="dialog"][data-type="confirm"] {
+  bottom: 5rem;
+}
