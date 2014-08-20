@@ -28,7 +28,7 @@
     this.onTouchEnd = this.onTouchEnd.bind(this);
     this.onScroll = this.onScroll.bind(this);
     this.onContextMenu = this.onContextMenu.bind(this);
-    this.lastTouchStart = null;
+    this.lastScrollTime = 0;
 
     if (config.features.zoom) {
       this.zoom = new GridZoom(this);
@@ -164,15 +164,7 @@
 
     // bug 1015000
     onScroll: function() {
-      clearTimeout(this.preventTapTimeout);
-
-      this.element.removeEventListener('touchstart', this.onTouchStart);
-
-      this.preventTapTimeout = setTimeout(function() {
-        this.element.addEventListener('touchstart', this.onTouchStart);
-      }.bind(this), PREVENT_TAP_TIMEOUT);
-
-      this.lastTouchStart = null;
+      this.lastScrollTime = Date.now();
     },
 
     onTouchStart: function(e) {
@@ -185,10 +177,11 @@
     // Gecko does that automatically but since we want to use touch events for
     // more responsiveness, we also need to replicate that behavior.
     onTouchEnd: function(e) {
-      var lastTouchStart = this.lastTouchStart;
-      if (!lastTouchStart) {
+      if (Date.now() - this.lastScrollTime < PREVENT_TAP_TIMEOUT) {
         return;
       }
+
+      var lastTouchStart = this.lastTouchStart;
 
       var touch = e.changedTouches.identifiedTouch(lastTouchStart.identifier);
       if (!touch) {
