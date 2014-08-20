@@ -97,12 +97,13 @@ marionette('Show Keyboard App after uninstallation', function() {
     system.switchToActiveKeyboardFrame();
   });
 
-  test('Fallback to built-in keyboard when the active IME has been ' +
+  test.skip('Fallback to built-in keyboard when the active IME has been ' +
        'uninstalled', function() {
     assert.ok(keyboard.currentPanel.displayed());
   });
 
-  test('Should not show IME switching key after uninstallation', function() {
+  test.skip('Should not show IME switching key after' +
+            ' uninstallation', function() {
     client.findElement(Keyboard.Selector.imeSwitchingKey,
       function(err, element) {
         // Should not find the IME switching key
