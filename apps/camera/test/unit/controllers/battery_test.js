@@ -1,11 +1,9 @@
 suite('controllers/battery', function() {
-  /*global req*/
   'use strict';
 
   suiteSetup(function(done) {
     var self = this;
-
-    req([
+    requirejs([
       'app',
       'controllers/battery',
       'lib/settings',

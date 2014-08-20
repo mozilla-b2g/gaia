@@ -1,10 +1,9 @@
 suite('lib/settings', function() {
   'use strict';
-  var require = window.req;
 
   suiteSetup(function(done) {
     var self = this;
-    require([
+    requirejs([
       'lib/settings',
       'lib/setting'
     ], function(Settings, Setting) {

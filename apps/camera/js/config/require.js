@@ -1,5 +1,8 @@
-require.config({
+requirejs.config({
   baseUrl: '/js',
+
+  // 'paths' lets us alias complex
+  // paths to something simpler.
   paths: {
     'l10n': '../shared/js/l10n',
     'asyncStorage': '../shared/js/async_storage',
@@ -17,6 +20,9 @@ require.config({
     'CustomDialog': '../shared/js/custom_dialog',
     'debug': 'vendor/debug'
   },
+
+  // 'shim' config lets us `require()` packages
+  // that don't have an AMD define call.
   shim: {
     'format': {
       exports: 'Format'

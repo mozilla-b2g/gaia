@@ -153,14 +153,28 @@ module.exports = View.extend({
 
   fadeOut: function(done) {
     debug('fade-out');
-    this.el.classList.remove('visible');
-    if (done) { setTimeout(done, this.fadeTime);}
+    var self = this;
+    this.hide();
+    clearTimeout(this.fadeTimeout);
+    this.fadeTimeout = setTimeout(function() {
+      self.emit('fadedout');
+      if (done) { done(); }
+    }, this.fadeTime);
   },
 
-  fadeIn: function(done) {
+  fadeIn: function(ms, done) {
     debug('fade-in');
-    this.el.classList.add('visible');
-    if (done) { setTimeout(done, this.fadeTime); }
+    var self = this;
+    if (typeof ms === 'function') { done = ms, ms = null; }
+    ms = ms || this.fadeTime;
+    this.el.style.transitionDuration = ms + 'ms';
+    this.show();
+    clearTimeout(this.fadeTimeout);
+    this.fadeTimeout = setTimeout(function() {
+      self.el.style.transitionDuration = '';
+      self.emit('fadedin');
+      if (done) { done(); }
+    }, ms);
   },
 
   /**

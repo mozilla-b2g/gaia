@@ -64,7 +64,7 @@ Pinch.prototype.onTouchStart = function(evt) {
   this.lastTouchA = evt.touches[0];
   this.lastTouchB = evt.touches[1];
   this.isPinching = true;
-  this.emit('pinchstarted');
+  this.emit('started');
 };
 
 Pinch.prototype.onTouchMove = function(evt) {
@@ -76,7 +76,7 @@ Pinch.prototype.onTouchMove = function(evt) {
   var touchB = getNewTouchB(this, evt.touches);
   var deltaPinch = getDeltaPinch(this, touchA, touchB);
 
-  this.emit('pinchchanged', deltaPinch);
+  this.emit('changed', deltaPinch);
 
   this.lastTouchA = touchA;
   this.lastTouchB = touchB;
@@ -89,7 +89,7 @@ Pinch.prototype.onTouchEnd = function(evt) {
 
   if (evt.touches.length < 2) {
     this.isPinching = false;
-    this.emit('pinchended');
+    this.emit('ended');
   }
 };
 

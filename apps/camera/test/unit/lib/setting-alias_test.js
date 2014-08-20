@@ -1,11 +1,10 @@
 suite('lib/setting-alias', function() {
   /*jshint maxlen:false*/
   'use strict';
-  var require = window.req;
 
   suiteSetup(function(done) {
     var self = this;
-    require([
+    requirejs([
       'lib/setting',
       'lib/setting-alias',
     ], function(Setting, SettingAlias) {

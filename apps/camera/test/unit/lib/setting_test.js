@@ -1,11 +1,10 @@
 suite('lib/setting', function() {
   /*jshint maxlen:false*/
   'use strict';
-  var require = window.req;
 
   suiteSetup(function(done) {
     var self = this;
-    require(['lib/setting'], function(Setting) {
+    requirejs(['lib/setting'], function(Setting) {
       self.Setting = Setting;
       done();
     });

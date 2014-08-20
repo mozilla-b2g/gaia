@@ -1,12 +1,10 @@
 /*jshint maxlen:false*/
-/*global req*/
 'use strict';
 
 suite('controllers/overlay', function() {
   suiteSetup(function(done) {
     var self = this;
-
-    req([
+    requirejs([
       'app',
       'controllers/overlay',
       'views/overlay'
