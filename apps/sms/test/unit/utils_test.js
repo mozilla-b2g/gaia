@@ -82,30 +82,30 @@ suite('Utils', function() {
     });
   });
 
-  /*
-
-  Omit this test, pending:
-  Bug 847975 - [MMS][SMS] remove use of "dtf" alias from SMS
-  https://bugzilla.mozilla.org/show_bug.cgi?id=847975
-
   suite('Utils.getFormattedHour', function() {
     var time = 1362166084256;
 
     test('([String|Number|Date])', function() {
-      var expect = 'Fri Mar 01 2013 14:28:04 GMT-0500 (EST)';
-      var fixtures = {
-        string: time + '',
-        number: time,
-        date: new Date(time)
-      };
+      [true, false].forEach(function(isMozHour12) {
+        navigator.mozHour12 = isMozHour12;
 
-      assert.equal(Utils.getFormattedHour(fixtures.string), expect);
-      assert.equal(Utils.getFormattedHour(fixtures.number), expect);
-      assert.equal(Utils.getFormattedHour(fixtures.date), expect);
+        var expect = Utils.date.format.localeFormat(
+          new Date(time),
+          isMozHour12 ? 'shortTimeFormat12' : 'shortTimeFormat24'
+        );
+
+        var fixtures = {
+          string: time + '',
+          number: time,
+          date: new Date(time)
+        };
+
+        assert.equal(Utils.getFormattedHour(fixtures.string), expect);
+        assert.equal(Utils.getFormattedHour(fixtures.number), expect);
+        assert.equal(Utils.getFormattedHour(fixtures.date), expect);
+      });
     });
   });
-  */
-
 
   suite('Utils.getDayDate', function() {
     test('(UTSMS)', function() {

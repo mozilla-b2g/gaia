@@ -38,7 +38,10 @@
     getFormattedHour: function ut_getFormattedHour(time) {
       this.date.shared.setTime(+time);
       return this.date.format.localeFormat(
-        this.date.shared, navigator.mozL10n.get('shortTimeFormat')
+        this.date.shared,
+        navigator.mozL10n.get(
+          navigator.mozHour12 ? 'shortTimeFormat12' : 'shortTimeFormat24'
+        )
       );
     },
     getDayDate: function re_getDayDate(time) {
