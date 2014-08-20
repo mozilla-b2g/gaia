@@ -1,7 +1,3 @@
-:root {
-  --panel-transition-secs: 0.3s;
-}
-
 #lockscreen {
   position: absolute;
   top: 0;
@@ -95,10 +91,7 @@
   display: none;
 }
 
-#lockscreen.no-transition,
-#lockscreen.no-transition #lockscreen-panel-passcode,
-#lockscreen.no-transition #lockscreen-passcode-pad,
-#lockscreen.no-transition #lockscreen-passcode-code {
+#lockscreen.no-transition {
   transition: none;
 }
 
@@ -131,7 +124,7 @@
   background-repeat: no-repeat;
   background-position: 50% 50%;
   visibility: hidden;
-  transition: visibility var(--panel-transition-secs) ease, transform var(--panel-transition-secs) ease;
+  transition: visibility 0.5s ease, transform 0.5s ease;
 }
 
 .lockscreen-background::before {
@@ -260,7 +253,7 @@
   height: 10rem;
   position: absolute;
   border-style: none;
-  transition: opacity var(--panel-transition-secs) ease;
+  transition: opacity 0.5s ease;
 }
 
 .lockscreen-icon {
@@ -350,7 +343,7 @@ button::-moz-focus-inner {
   float: right;
   pointer-events: auto;
   opacity: 0.1;
-  transition: opacity var(--panel-transition-secs) ease;
+  transition: opacity 0.5s ease;
   width: 5rem;
   height: 5rem;
   margin-top: 5rem;
@@ -405,7 +398,7 @@ button::-moz-focus-inner {
 }
 
 [data-panel="emergency-call"] #lockscreen-passcode-code {
-  transition-delay: var(--panel-transition-secs);
+  transition-delay: 0.5s;
 }
 
 #lockscreen-passcode-code > span {
@@ -463,7 +456,7 @@ button::-moz-focus-inner {
 }
 
 [data-panel="emergency-call"] #lockscreen-passcode-pad {
-  transition-delay: var(--panel-transition-secs);
+  transition-delay: 0.5s;
 }
 
 #lockscreen-passcode-pad > a {
@@ -648,8 +641,8 @@ button::-moz-focus-inner {
   height: 0.9rem;
   width: 100%;
   transition:
-    transform var(--panel-transition-secs) ease,
-    opacity var(--panel-transition-secs) ease;
+    transform 0.5s ease,
+    opacity 0.5s ease;
 }
 
 #lockscreen-icon-container {

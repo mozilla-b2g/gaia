@@ -17,13 +17,7 @@ var GaiaLockScreen = {
 
     waitFor(
       function() {
-        window.wrappedJSObject.dispatchEvent(
-          new window.wrappedJSObject.CustomEvent(
-            'lockscreen-request-unlock', {
-              detail: {
-                forcibly: true
-              }
-            }));
+        lockscreen.unlock();
         waitFor(
           function() {
             finish(system.locked);
@@ -48,13 +42,7 @@ var GaiaLockScreen = {
     let waitLock = function() {
       waitFor(
         function() {
-        window.wrappedJSObject.dispatchEvent(
-          new window.wrappedJSObject.CustomEvent(
-            'lockscreen-request-lock', {
-              detail: {
-                forcibly: true
-              }
-            }));
+          lockscreen.lock(true);
           waitFor(
             function() {
               finish(!system.locked);
