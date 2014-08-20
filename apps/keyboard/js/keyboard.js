@@ -1429,7 +1429,8 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
        * This hack should be removed and the state/input queue should be
        * maintained in keyboard.js.
        */
-      if (keyboard.imEngine == 'latin') {
+      var activeLayout = Keyboards[keyboardName];
+      if (activeLayout.imEngine == 'latin') {
         inputMethodManager.currentIMEngine.click(
           parseInt(target.dataset.keycode, 10),
           parseInt(target.dataset.keycodeUpper, 10));
