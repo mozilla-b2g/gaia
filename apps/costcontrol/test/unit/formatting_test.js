@@ -134,6 +134,8 @@ suite('Formatting Test Suite >', function() {
   test(
     'formatTime() test behaviour.',
     function() {
+      var originalMozHour12 = window.navigator.mozHour12;
+
       var f = Formatting;
       var today = Toolkit.toMidnight(new Date());
       var MINUTE = 60 * 1000;
@@ -155,12 +157,21 @@ suite('Formatting Test Suite >', function() {
       assert.ok(f.formatTime(yesterday).contains('yesterday, '));
 
       dateSpy.reset();
+      window.navigator.mozHour12 = true;
       f.formatTime(oneTuesday);
       assert.ok(dateSpy.calledTwice);
       assert.ok(dateSpy.calledWith(oneTuesday, '%a'));
-      assert.ok(dateSpy.calledWith(oneTuesday,  'shortTimeFormat'));
+      assert.ok(dateSpy.calledWith(oneTuesday,  'shortTimeFormat12'));
+
+      dateSpy.reset();
+      window.navigator.mozHour12 = false;
+      f.formatTime(oneTuesday);
+      assert.ok(dateSpy.calledTwice);
+      assert.ok(dateSpy.calledWith(oneTuesday, '%a'));
+      assert.ok(dateSpy.calledWith(oneTuesday,  'shortTimeFormat24'));
 
       dateSpy.restore();
+      window.navigator.mozHour12 = originalMozHour12;
     }
   );
 
@@ -177,6 +188,7 @@ suite('Formatting Test Suite >', function() {
   test(
     'formatTimeSinceNow() test behaviour.',
     function() {
+      var originalMozHour12 = window.navigator.mozHour12;
       var f = Formatting;
       var now = new Date();
       var MINUTE = 60 * 1000;
@@ -193,11 +205,21 @@ suite('Formatting Test Suite >', function() {
       // the spy must be placed into the Mock, instead of in the real method.
       var dateSpy = this.sinon.spy(MockMozL10n.DateTimeFormat.prototype,
                                    'localeFormat');
+      window.navigator.mozHour12 = true;
       f.formatTimeSinceNow(oneTuesday);
       assert.ok(dateSpy.calledTwice);
       assert.ok(dateSpy.calledWith(oneTuesday, '%a'));
-      assert.ok(dateSpy.calledWith(oneTuesday,  'shortTimeFormat'));
+      assert.ok(dateSpy.calledWith(oneTuesday,  'shortTimeFormat12'));
+
+      dateSpy.reset();
+      window.navigator.mozHour12 = false;
+      f.formatTimeSinceNow(oneTuesday);
+      assert.ok(dateSpy.calledTwice);
+      assert.ok(dateSpy.calledWith(oneTuesday, '%a'));
+      assert.ok(dateSpy.calledWith(oneTuesday,  'shortTimeFormat24'));
+
       dateSpy.restore();
+      window.navigator.mozHour12 = originalMozHour12;
     }
   );
 
