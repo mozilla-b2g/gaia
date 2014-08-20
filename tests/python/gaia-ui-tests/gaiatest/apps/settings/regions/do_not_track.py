@@ -3,7 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
-from gaiatest import GaiaData
+from gaiatest.data_manager import GaiaDataManager
 from gaiatest.apps.base import Base
 
 
@@ -15,7 +15,7 @@ class DoNotTrack(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.data_layer = GaiaData(self.marionette)
+        self.data_layer = GaiaDataManager(self.marionette)
 
     def tap_allow_tracking(self):
         el = self.marionette.find_element(*self._allow_tracking_checkbox_locator)
