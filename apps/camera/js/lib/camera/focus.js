@@ -271,7 +271,14 @@ Focus.prototype.focus = function(done) {
   // then call the done callback, which takes the picture and clears
   // the focus ring.
   //
-  this.mozCamera.autoFocus(onFocused);
+  this.mozCamera.autoFocus(onFocused, onError);
+
+  // If focus fails with an error (e.g. interrupted), we should
+  // just treat it the same as focus completed but remains
+  // unfocused.
+  function onError(err) {
+    onFocused(false);
+  }
 
   // This is fixed focus: there is nothing we can do here so we
   // should just call the callback and take the photo. No focus
