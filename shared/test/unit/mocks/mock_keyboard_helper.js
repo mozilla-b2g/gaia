@@ -1,6 +1,7 @@
 'use strict';
 
 var MockKeyboardHelper = {
+  fallbackLayouts: {},
   mKeyboards: [
     {
       manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
