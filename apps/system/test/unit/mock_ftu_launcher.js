@@ -1,16 +1,23 @@
-'use strict';
+(function(exports) {
+  'use strict';
 
-var MockFtuLauncher = {
-  mIsRunning: false,
+  exports.MockFtuLauncher = {
+    mIsRunning: false,
+    mIsUpgrading: false,
 
-  isFtuRunning: function() {
-    return this.mIsRunning;
-  },
+    isFtuRunning: function() {
+      return this.mIsRunning;
+    },
 
-  retrieve: function() {
-  },
+    isFtuUpgrading: function() {
+      return this.mIsUpgrading;
+    },
 
-  getFtuOrigin: function() {
-    return 'app://ftu.gaiamobile.org';
-  }
-};
+    retrieve: function() {
+    },
+
+    getFtuOrigin: function() {
+      return 'app://ftu.gaiamobile.org';
+    }
+  };
+}(window));

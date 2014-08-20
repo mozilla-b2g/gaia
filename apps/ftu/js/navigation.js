@@ -87,6 +87,14 @@ var Navigation = {
       self.simMandatory = reqSIM.result['ftu.sim.mandatory'] || false;
     };
 
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      app.connect('ftucomms').then(function onConnAccepted(ports) {
+        self.ports = ports;
+      }, function onConnRejected(reason) {
+        console.warn('FTU navigation cannot use IAC: ' + reason);
+      });
+    };
   },
 
   back: function n_back(event) {
@@ -255,6 +263,21 @@ var Navigation = {
     }
   },
 
+  /**
+   * Posts IAC message about FTU steps passed.
+   */
+  postStepMessage: function n_postStepMessage(stepNumber) {
+    if (!this.ports) {
+      return;
+    }
+    this.ports.forEach(function(port) {
+      port.postMessage({
+        type: 'step',
+        hash: steps[stepNumber].hash
+      });
+    });
+  },
+
   skipStep: function n_skipStep() {
     this.currentStep = this.currentStep +
                       (this.currentStep - this.previousStep);
@@ -269,6 +292,12 @@ var Navigation = {
 
   manageStep: function n_manageStep() {
     var self = this;
+
+    // If we moved forward in FTU, post iac message about progress.
+    if (self.currentStep > self.previousStep) {
+      self.postStepMessage(self.previousStep);
+    }
+
     //SV - We need remember if phone startup with SIM
     if (self.currentStep >= numSteps) {
       OperatorVariant.setSIMOnFirstBootState();
@@ -346,6 +375,7 @@ var Navigation = {
     // determine the timezone, we can determine the time too.)
     if (steps[self.currentStep].hash === '#date_and_time') {
       if (!UIManager.timeZoneNeedsConfirmation) {
+        self.postStepMessage(self.currentStep);
         self.skipStep();
       }
     }
