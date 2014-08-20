@@ -273,11 +273,17 @@ Focus.prototype.focus = function(done) {
   //
   this.mozCamera.autoFocus(onFocused, onError);
 
-  // If focus fails with an error (e.g. interrupted), we should
-  // just treat it the same as focus completed but remains
-  // unfocused.
+  // If focus fails with an error, we still need to signal the
+  // caller. Interruptions are a special case, but other errors
+  // can be treated the same as completing the operation but
+  // remaining unfocused.
   function onError(err) {
-    onFocused(false);
+    self.focused = false;
+    if (err === 'AutoFocusInterrupted') {
+      done('interrupted');
+    } else {
+      done('failed');
+    }
   }
 
   // This is fixed focus: there is nothing we can do here so we
@@ -355,9 +361,11 @@ Focus.prototype.updateFocusArea = function(rect, done) {
   // Call auto focus to focus on focus area.
   this.focus(focusDone);
   function focusDone(state) {
-    // Restores previous flash mode
-    self.mozCamera.flashMode = previousFlashMode;
-    done(state);
+    if (state !== 'interrupted') {
+      // Restores previous flash mode
+      self.mozCamera.flashMode = previousFlashMode;
+      done(state);
+    }
   }
 
 };

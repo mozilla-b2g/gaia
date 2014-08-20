@@ -778,7 +778,11 @@ Camera.prototype.takePicture = function(options) {
   }
 
   function onFocused(state) {
-    self.set('focus', state);
+    // State remains focusing if we are interrupted
+    // as the last caller should update it
+    if (state !== 'interrupted') {
+      self.set('focus', state);
+    }
     takePicture();
   }
 
