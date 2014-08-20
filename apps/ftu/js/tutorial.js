@@ -52,30 +52,6 @@
     };
   }
 
-  function _initProgressBar() {
-    dom.tutorialProgressBar.style.width =
-      'calc(100% / ' + Tutorial._stepsConfig.steps.length + ')';
-  }
-
-  function _setProgressBarStep(step) {
-    dom.tutorialProgressBar.style.transform =
-      'translate(' + ((step - 1) * 100) + '%)';
-    if (Tutorial._stepsConfig) {
-      dom.tutorialProgress.setAttribute('aria-valuetext', navigator.mozL10n.get(
-        'progressbar', {
-          step: step,
-          total: Tutorial._stepsConfig.steps.length
-        }));
-      dom.tutorialProgress.setAttribute('aria-valuemin', 1);
-      dom.tutorialProgress.setAttribute('aria-valuemax',
-        Tutorial._stepsConfig.steps.length);
-    } else {
-      dom.tutorialProgress.removeAttribute('aria-valuetext');
-      dom.tutorialProgress.removeAttribute('aria-valuemin');
-      dom.tutorialProgress.removeAttribute('aria-valuemax');
-    }
-  }
-
   /**
    * Helper function to load imagaes and video
    * @param {DOMNode} mediaElement  video or image to assign new src to
@@ -131,9 +107,7 @@
     'tutorial-step-image',
     'tutorial-step-video',
     'forward-tutorial',
-    'back-tutorial',
-    'tutorial-progress',
-    'tutorial-progress-bar'
+    'back-tutorial'
   ];
 
   /**
@@ -263,14 +237,6 @@
       dom.forwardTutorial.addEventListener('click', this);
       dom.backTutorial.addEventListener('click', this);
 
-      // toggle the layout based number of steps and whether we'll show the
-      // progress bar or not
-      if (this._stepsConfig.steps.length > 3) {
-        dom.tutorial.dataset.progressbar = true;
-        _initProgressBar();
-      } else {
-        delete dom.tutorial.dataset.progressbar;
-      }
       // Set the first step
       this._currentStep = 1;
     },
@@ -331,7 +297,6 @@
         imgElement.hidden = false;
         videoElement.hidden = true;
       }
-      _setProgressBarStep(this._currentStep);
       return stepPromise;
     },
 
@@ -455,7 +420,6 @@
       this._currentStep = 1;
       this._stepsConfig = this.config = null;
       if (this._initialized) {
-        _setProgressBarStep(this._currentStep);
         dom.tutorial.classList.remove('show');
         this._initialized = false;
       }
