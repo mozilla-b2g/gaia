@@ -97,8 +97,8 @@ var ThreadUI = {
     [
       'container', 'subheader', 'to-field', 'recipients-list', 'recipient',
       'input', 'compose-form', 'check-uncheck-all-button',
-      'contact-pick-button', 'back-button', 'close-button', 'send-button',
-      'attach-button', 'delete-button', 'cancel-button', 'subject-input',
+      'contact-pick-button', 'send-button', 'header', 'edit-header',
+      'attach-button', 'delete-button', 'subject-input',
       'new-message-notice', 'options-icon', 'edit-mode', 'edit-form',
       'tel-form', 'header-text', 'max-length-notice', 'convert-notice',
       'resize-notice', 'dual-sim-information', 'new-message-notice',
@@ -152,6 +152,7 @@ var ThreadUI = {
     this.sendButton.addEventListener(
       'click', this.onSendClick.bind(this)
     );
+
     this.sendButton.addEventListener(
       'contextmenu', this.onSendClick.bind(this)
     );
@@ -160,20 +161,16 @@ var ThreadUI = {
       'scroll', this.manageScroll.bind(this)
     );
 
-    this.backButton.addEventListener(
-      'click', this.back.bind(this)
-    );
-
-    this.closeButton.addEventListener(
-      'click', this.close.bind(this)
-    );
-
     this.checkUncheckAllButton.addEventListener(
       'click', this.toggleCheckedAll.bind(this)
     );
 
-    this.cancelButton.addEventListener(
-      'click', this.cancelEdit.bind(this)
+    this.editHeader.addEventListener(
+      'action', this.cancelEdit.bind(this)
+    );
+
+    this.header.addEventListener(
+      'action', this.onHeaderAction.bind(this)
     );
 
     this.optionsIcon.addEventListener(
@@ -327,6 +324,22 @@ var ThreadUI = {
     }
   },
 
+  /**
+   * When the header 'action' button is tapped
+   * we always go back to the previous pane,
+   * unless we're in an activity, then in
+   * select cases we exit the activity.
+   *
+   * @private
+   */
+  onHeaderAction: function thui_onHeaderAction() {
+    var inActivity = ActivityHandler.isInActivity();
+    var isComposer = Navigation.isCurrentPanel('composer');
+    var isThread = Navigation.isCurrentPanel('thread');
+    var action = inActivity && (isComposer || isThread) ? 'close' : 'back';
+    this[action]();
+  },
+
   // Initialize Recipients list and Recipients.View (DOM)
   initRecipients: function thui_initRecipients() {
     var recipientsChanged = (function recipientsChanged(length, record) {
@@ -442,6 +455,10 @@ var ThreadUI = {
     }
   },
 
+  setHeaderAction: function thui_setHeaderAction(icon) {
+    this.header.setAttribute('action', icon);
+  },
+
   messageComposerInputHandler: function thui_messageInputHandler(event) {
     if (Compose.type === 'sms') {
       this.hideMaxLengthNotice();
@@ -550,6 +567,8 @@ var ThreadUI = {
    * visible.
    */
   beforeEnter: function thui_beforeEnter(args) {
+    this.setHeaderAction(ActivityHandler.isInActivity() ? 'close' : 'back');
+
     Recipients.View.isFocusable = true;
     if (!this.multiSimActionButton) {
       // handles the various actions on the send button and encapsulates the

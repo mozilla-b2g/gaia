@@ -12,7 +12,6 @@
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
     <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
@@ -31,6 +30,11 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/sim_picker.ini">
+    <!-- Web Components -->
+    <script defer src="/shared/elements/config.js"></script>
+    <script defer src="/shared/elements/gaia-header/dist/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" /> -->
     <!-- Shared code -->
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/l10n_date.js"></script>
@@ -89,26 +93,19 @@
     <script defer src="js/activity_handler.js"></script>
     <script defer src="js/contact_renderer.js"></script>
     <script defer src="js/information.js"></script>
-    <script defer src="shared/js/font_size_utils.js"></script>
     -->
     <!-- Elements -->
     <link rel="import" href="/shared/elements/sim_picker.html">
   </head>
 
-  <body role="application" class="skin-comms">
+  <body role="application" class="skin-comms theme-communications">
     <article id="main-wrapper" class="wrapper" data-position='right'>
       <section id="thread-list" class="panel" role="region">
-        <header class="view-header regular-header">
-          <menu type="toolbar">
-            <a href="#composer" id="icon-add">
-              <span class="icon icon-compose"></span>
-            </a>
-            <a id="threads-options-icon">
-              <span class="icon icon-options"></span>
-            </a>
-          </menu>
+        <gaia-header class="view-header regular-header">
           <h1 data-l10n-id="messages">Messages</h1>
-        </header>
+          <a href="#composer" id="icon-add" data-icon="compose"></a>
+          <a id="threads-options-icon" data-icon="more"></a>
+        </gaia-header>
         <article id="threads-container" class="view-body edit-container" data-type="list">
         </article>
 
@@ -120,16 +117,11 @@
         </div>
 
         <form id="threads-edit-form" role="dialog" data-type="edit">
-          <section role="region">
-            <header>
-              <button id="threads-cancel-button">
-                <span data-l10n-id="cancel" class="icon icon-close">close</span>
-              </button>
-              <menu type="toolbar">
-                <button id="threads-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
-              </menu>
+          <section role="region" class="theme-settings">
+            <gaia-header id="threads-edit-header" action="close">
               <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title">Select</h1>
-            </header>
+              <button id="threads-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
+            </gaia-header>
           </section>
           <menu>
             <button id="threads-delete-button" data-l10n-id="delete">delete</button>
@@ -144,20 +136,10 @@
       </section>
 
       <section id="thread-messages" class="panel" role="region">
-        <header class="view-header regular-header">
-          <a role="link" id="messages-back-button">
-            <span class="icon icon-back"></span>
-          </a>
-          <a role="link" id="messages-close-button">
-            <span class="icon icon-close"></span>
-          </a>
-          <menu type="toolbar">
-            <a id="messages-options-icon">
-              <span class="icon icon-options"></span>
-            </a>
-          </menu>
+        <gaia-header id="messages-header" class="view-header regular-header" action="back">
           <h1 id="messages-header-text" aria-hidden="true"></h1>
-        </header>
+          <a id="messages-options-icon" data-icon="more"></a>
+        </gaia-header>
         <div id="messages-subheader" class="subheader">
           <section id="messages-to-field">
             <section data-l10n-id="to" id="to-label">
@@ -276,16 +258,11 @@
           </div>
         </article>
         <form role="dialog" id="messages-edit-form" data-type="edit" >
-          <section role="region">
-            <header>
-              <button id="messages-cancel-button">
-                <span data-l10n-id="cancel" class="icon icon-close">close</span>
-              </button>
-              <menu type="toolbar">
-                <button id="messages-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
-              </menu>
+          <section role="region" class="theme-settings">
+            <gaia-header id="messages-edit-header" action="close">
               <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title">Delete Messages</h1>
-            </header>
+              <button id="messages-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
+            </gaia-header>
           </section>
           <menu>
             <button id="messages-delete-button" data-l10n-id="delete">delete</button>
