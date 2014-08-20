@@ -1,9 +1,0 @@
-The new latin.js is now capable of:
-1. Making an in-memory user dictionary,
-2. Recording the frequency of words.
-3. Spawn a userWorker to run the new prediction engine and predict words from the saved user dictionary
-
-The addition of words is determined with the following criterion:
-1. there are no suggestions to display- whatever the user enters is added;
-2. the user dismisses the suggestions by tapping the (X) button;
-3. the user revert to the typed word after it has been auto-corrected.
