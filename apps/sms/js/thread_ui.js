@@ -398,7 +398,7 @@ var ThreadUI = {
 
     this.sentAudio = new Audio();
     this.sentAudio.preload = 'none';
-    this.sentAudio.src = '/sounds/sent.opus';
+    this.sentAudio.src = '/sounds/firefox_msg_sent.opus';
     this.sentAudio.mozAudioChannelType = 'notification';
 
     // TODO move sentAudioEnabled management to Settings

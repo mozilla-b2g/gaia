@@ -453,7 +453,7 @@ define(function(require) {
           //   AUDIO_COMPETING bugs: https://bugzil.la/911238
           if (account.playSoundOnSend) {
             if (!sentAudio) {
-              sentAudio = new Audio('/sounds/sent.ogg');
+              sentAudio = new Audio('/sounds/firefox_sent.opus');
               sentAudio.mozAudioChannelType = 'notification';
             }
             sentAudio.play();

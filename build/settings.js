@@ -44,7 +44,7 @@ function setTone(settings, config, settingsKey, dir, name) {
 function setMediatone(settings, config) {
   // Grab ac_classic_clock_alarm.opus and convert it into a base64 string
   let mediatone_name = 'shared/resources/media/notifications/' +
-    'notifier_bop.opus';
+    'notifier_firefox.opus';
   let mediatone = utils.resolve(mediatone_name,
     config.GAIA_DIR);
 
