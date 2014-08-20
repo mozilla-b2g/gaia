@@ -52,6 +52,9 @@ var SimPinDialog = {
     this.errorMsgBody = document.getElementById('messageBody');
 
     this.containerDiv = document.querySelector('#simpin-dialog .container');
+
+    // Ensure the elements are translated before we show.
+    navigator.mozL10n.translate(document.getElementById('simpin-dialog'));
   },
 
   getNumberPasswordInputField: function spl_wrapNumberInput(name) {
@@ -83,8 +86,6 @@ var SimPinDialog = {
   },
 
   handleCardState: function spl_handleCardState() {
-    var _ = navigator.mozL10n.get;
-
     if (!this._currentSlot) {
       return;
     }
@@ -99,7 +100,7 @@ var SimPinDialog = {
       var retryCount = request.result.retryCount;
       if (retryCount) {
         var l10nArgs = { n: retryCount };
-        this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
+        this._l10n(this.triesLeftMsg, 'inputCodeRetriesLeft', l10nArgs);
         this.triesLeftMsg.hidden = false;
       }
     }).bind(this);
@@ -116,8 +117,8 @@ var SimPinDialog = {
         break;
       case 'puk':
         this.lockType = lockType;
-        this.errorMsgHeader.textContent = _('simCardLockedMsg') || '';
-        this.errorMsgBody.textContent = _('enterPukMsg') || '';
+        this._l10n(this.errorMsgHeader, 'simCardLockedMsg');
+        this._l10n(this.errorMsgBody, 'enterPukMsg');
         this.errorMsg.hidden = false;
         this.inputFieldControl(false, true, false, true);
         this.pukInput.focus();
@@ -133,7 +134,7 @@ var SimPinDialog = {
         this.lockType = lockType;
         this.errorMsg.hidden = true;
         this.inputFieldControl(false, false, true, false);
-        this.desc.textContent = _(lockType + 'Code');
+        this._l10n(this.desc, lockType + 'Code');
         this.xckInput.focus();
         break;
       default:
@@ -141,11 +142,11 @@ var SimPinDialog = {
         break;
     }
     if (this.lockType !== 'pin' || !SIMSlotManager.isMultiSIM()) {
-      this.dialogTitle.textContent =
-        _(this.lockType + 'Title') || '';
+      this._l10n(this.dialogTitle, this.lockType + 'Title');
     } else {
-      this.dialogTitle.textContent =
-        _('multiSIMpinTitle', { n: this._currentSlot.index + 1 }) || '';
+      this._l10n(this.dialogTitle,
+                 'multiSIMpinTitle',
+                 { n: this._currentSlot.index + 1 });
     }
   },
 
@@ -166,15 +167,14 @@ var SimPinDialog = {
   },
 
   showErrorMsg: function spl_showErrorMsg(retry, type) {
-    var _ = navigator.mozL10n.get;
     var l10nArgs = { n: retry };
 
-    this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
-    this.errorMsgHeader.textContent = _(type + 'ErrorMsg');
+    this._l10n(this.triesLeftMsg, 'inputCodeRetriesLeft', l10nArgs);
+    this._l10n(this.errorMsgHeader, type + 'ErrorMsg');
     if (retry !== 1) {
-      this.errorMsgBody.textContent = _(type + 'AttemptMsg2', l10nArgs);
+      this._l10n(this.errorMsgBody, type + 'AttemptMsg2', l10nArgs);
     } else {
-      this.errorMsgBody.textContent = _(type + 'LastChanceMsg');
+      this._l10n(this.errorMsgBody, type + 'LastChanceMsg');
     }
 
     this.errorMsg.hidden = false;
@@ -192,8 +192,6 @@ var SimPinDialog = {
   },
 
   unlockPuk: function spl_unlockPuk() {
-    var _ = navigator.mozL10n.get;
-
     var puk = this.pukInput.value;
     var newPin = this.newPinInput.value;
     var confirmPin = this.confirmPinInput.value;
@@ -202,7 +200,7 @@ var SimPinDialog = {
     }
 
     if (newPin !== confirmPin) {
-      this.errorMsgHeader.textContent = _('newPinErrorMsg');
+      this._l10n(this.errorMsgHeader, 'newPinErrorMsg');
       this.errorMsgBody.textContent = '';
       this.errorMsg.hidden = false;
       return;
@@ -383,6 +381,15 @@ var SimPinDialog = {
 
     this.ensureFocusInView(this.pinInput, this.containerDiv);
     this.ensureFocusInView(this.pukInput, this.containerDiv);
+  },
+
+  _l10n: function spl__l10n(element, l10nId, l10nArgs) {
+    if (l10nArgs) {
+      element.setAttribute('data-l10n-args', JSON.stringify(l10nArgs));
+    }
+    element.setAttribute('data-l10n-id', l10nId);
+    navigator.mozL10n.translate(element);
+    return element;
   }
 };
 
