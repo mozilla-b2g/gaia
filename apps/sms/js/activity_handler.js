@@ -171,6 +171,14 @@ var ActivityHandler = {
       this.REQUEST_ACTIVITY_MODE_CLASS_NAME,
       toggle
     );
+    var messagesHeader = document.getElementById('messages-header');
+    if (messagesHeader) {
+      if (toggle) {
+        messagesHeader.setAttribute('action', 'back');
+      } else {
+        messagesHeader.setAttribute('action', 'close');
+      }
+    }
   },
 
   /**

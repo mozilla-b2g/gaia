@@ -50,7 +50,7 @@ apps/settings/style/lists.css 2 0
 apps/settings/style/settings.css 0 2
 apps/settings/style/settings_large.css 0 1
 apps/sms/style/root.css 0 2
-apps/sms/style/sms.css 0 4
+apps/sms/style/sms.css 0 5
 apps/system/mobile_id/style/mobile_id.css 0 16
 apps/system/style/lockscreen/lockscreen.css 0 2
 apps/system/style/modal_dialog/modal_dialog.css 0 1
@@ -65,8 +65,6 @@ apps/video/style/info.css 0 2
 apps/video/style/video.css 0 8
 apps/video/style/video_tablet.css 0 4
 apps/wappush/style/wappush.css 0 1
-apps/sms/style/root.css 0 2
-apps/sms/style/sms.css 0 4
 apps/search/style/search.css 0 2
 shared/elements/gaia_grid/style.css 0 5
 shared/elements/gaia-theme/style.css 6 0
