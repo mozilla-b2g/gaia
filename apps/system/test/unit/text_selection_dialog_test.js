@@ -121,12 +121,108 @@ suite('system/TextSelectionDialog', function() {
       'should callhide when trigger _doCommand');
   });
 
+  test('copyHandler', function() {
+    var stubDoCommand = this.sinon.stub(td, '_doCommand');
+    var stubResetCutOrCopiedTimer =
+      this.sinon.stub(td, '_resetCutOrCopiedTimer');
+    td.copyHandler(null);
+    assert.isTrue(td._hasCutOrCopied);
+    assert.isTrue(stubDoCommand.calledWith(null, 'copy'));
+    assert.isTrue(stubResetCutOrCopiedTimer.calledOnce);
+  });
+
+  test('cutHandler', function() {
+    var stubDoCommand = this.sinon.stub(td, '_doCommand');
+    var stubResetCutOrCopiedTimer =
+      this.sinon.stub(td, '_resetCutOrCopiedTimer');
+    td.cutHandler(null);
+    assert.isTrue(td._hasCutOrCopied);
+    assert.isTrue(stubDoCommand.calledWith(null, 'cut'));
+    assert.isTrue(stubResetCutOrCopiedTimer.calledOnce);
+  });
+
+  test('pasteHandler', function() {
+    var stubDoCommand = this.sinon.stub(td, '_doCommand');
+    var stubClearTimeout = this.sinon.stub(window, 'clearTimeout');
+    td._resetCutOrCopiedTimeout = 'testtimer';
+    td.pasteHandler(null);
+    assert.isTrue(stubDoCommand.calledWith(null, 'paste'));
+    assert.isTrue(stubClearTimeout.calledWith(td._resetCutOrCopiedTimeout));
+  });
+
   test('hide', function() {
     td.render();
     this.sinon.stub(td.element, 'blur');
     td.hide();
     assert.isFalse(td.element.classList.contains('visible'));
     assert.isTrue(td.element.blur.calledOnce);
+  });
+
+  test('_resetCutOrCopiedTimer', function() {
+    var clock = this.sinon.useFakeTimers();
+    td._hasCutOrCopied = true;
+    td._resetCutOrCopiedTimeout = 'testTimer';
+    td._resetCutOrCopiedTimer();
+    
+    clock.tick(td.RESET_CUT_OR_PASTE_TIMEOUT);
+    assert.isFalse(td._hasCutOrCopied);
+  });
+
+  test('when select all, gecko should receive two selection change events',
+    function() {
+      var stubHide = this.sinon.stub(td, 'hide');
+      mockDetail.detail.reasons = ['selectall'];
+      mockDetail.detail.isCollapsed = true;
+      fakeTextSelectInAppEvent.detail = mockDetail;
+      td.handleEvent(fakeTextSelectInAppEvent);
+      assert.isTrue(stubHide.calledOnce, 'we should fileter first event by' +
+        ' checking the length of selectedText');
+    });
+
+  test('when select all, and content contains br frame gecko will bubble up' +
+       ' null reasons due to filter it',
+    function() {
+      var stubCalculateDialogPostion =
+        this.sinon.stub(td, 'calculateDialogPostion');
+      var stubHide = this.sinon.stub(td, 'hide');
+      mockDetail.detail.reasons = [];
+      fakeTextSelectInAppEvent.detail = mockDetail;
+      td.handleEvent(fakeTextSelectInAppEvent);
+      assert.isFalse(stubHide.calledOnce, 'we should not call hide');
+      assert.isFalse(stubCalculateDialogPostion.calledOnce, 'we should not' +
+        ' call calculateDialogPostion');
+    });
+
+  suite('Single click on text, and selection area is collapsed', function() {
+    test('has not done anything before click', function() {
+      var stubHide = this.sinon.stub(td, 'hide');
+      mockDetail.detail.isCollapsed = true;
+
+      mockDetail.detail.reasons = ['mouseup'];
+      fakeTextSelectInAppEvent.detail = mockDetail;
+      td.handleEvent(fakeTextSelectInAppEvent);
+
+      assert.isTrue(stubHide.calledOnce);
+    });
+
+    test('has cut or copied before click', function() {
+      var clock = this.sinon.useFakeTimers();
+      var stubHide = this.sinon.stub(td, 'hide');
+      var stubCalculateDialogPostion =
+        this.sinon.stub(td, 'calculateDialogPostion').returns({});
+
+      td._hasCutOrCopied = true;
+      mockDetail.detail.isCollapsed = true;
+      mockDetail.detail.reasons = ['mouseup'];
+      mockDetail.detail.commands.canPaste = true;
+      fakeTextSelectInAppEvent.detail = mockDetail;
+      td.handleEvent(fakeTextSelectInAppEvent);
+
+      assert.isFalse(stubHide.calledOnce);
+      assert.isTrue(stubCalculateDialogPostion.calledOnce);
+      clock.tick(td.SHORTCUT_TIMEOUT);
+      assert.isTrue(stubHide.calledOnce);
+    });
   });
 
   suite('check functionality of each button', function() {
@@ -138,31 +234,6 @@ suite('system/TextSelectionDialog', function() {
     teardown(function() {
       stubDoCommand = null;
     });
-
-    test('when select all, gecko should receive two selection change events',
-      function() {
-        var stubHide = sinon.stub(td, 'hide');
-        mockDetail.detail.reasons = ['selectall'];
-        mockDetail.detail.isCollapsed = true;
-        fakeTextSelectInAppEvent.detail = mockDetail;
-        td.handleEvent(fakeTextSelectInAppEvent);
-        assert.isTrue(stubHide.calledOnce, 'we should fileter first event by' +
-          ' checking the length of selectedText');
-      });
-
-    test('when select all, and content contains br frame gecko will bubble up' +
-         ' null reasons due to filter it',
-      function() {
-        var stubCalculateDialogPostion =
-          sinon.stub(td, 'calculateDialogPostion');
-        var stubHide = sinon.stub(td, 'hide');
-        mockDetail.detail.reasons = [];
-        fakeTextSelectInAppEvent.detail = mockDetail;
-        td.handleEvent(fakeTextSelectInAppEvent);
-        assert.isFalse(stubHide.calledOnce, 'we should not call hide');
-        assert.isFalse(stubCalculateDialogPostion.calledOnce, 'we should not' +
-          ' call calculateDialogPostion');
-      });
 
     test('option display', function() {
       verifyClickableOptions({

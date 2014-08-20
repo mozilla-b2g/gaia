@@ -12,6 +12,7 @@
     this.event = null;
     this._hideTimeout = null;
     this._injected = false;
+    this._hasCutOrCopied = false;
     window.addEventListener('mozChromeEvent', this);
   };
 
@@ -25,6 +26,12 @@
   // after the action 'copy/cut'. In this use case, the utility bubble will be
   // time-out after 3 secs if no action is taken.
   TextSelectionDialog.prototype.SHORTCUT_TIMEOUT = 3000;
+
+  // If text is not pasted immediately after copy/cut, the text will be viewed
+  // as pasted after 15 seconds (count starting from the moment when there's no
+  // action at all), and there will be no paste shortcut pop up when tapping on
+  // edit field.
+  TextSelectionDialog.prototype.RESET_CUT_OR_PASTE_TIMEOUT = 15000;
 
   // Distance between selected area and the bottom of menu when menu show on
   // the top of selected area.
@@ -113,16 +120,21 @@
   TextSelectionDialog.prototype.copyHandler =
     function tsd_copyHandler(evt) {
       this._doCommand(evt, 'copy');
+      this._resetCutOrCopiedTimer();
+      this._hasCutOrCopied = true;
   };
 
   TextSelectionDialog.prototype.cutHandler =
     function tsd_cutHandler(evt) {
       this._doCommand(evt, 'cut');
+      this._resetCutOrCopiedTimer();
+      this._hasCutOrCopied = true;
   };
 
   TextSelectionDialog.prototype.pasteHandler =
     function tsd_pasteHandler(evt) {
       this._doCommand(evt, 'paste');
+      window.clearTimeout(this._resetCutOrCopiedTimeout);
   };
 
   TextSelectionDialog.prototype.selectallHandler =
@@ -141,6 +153,14 @@
     return temp;
   };
 
+  TextSelectionDialog.prototype._resetCutOrCopiedTimer =
+    function tsd_resetCutOrCopiedTimer() {
+      window.clearTimeout(this._resetCutOrCopiedTimeout);
+      this._resetCutOrCopiedTimeout = window.setTimeout(function() {
+        this._hasCutOrCopied = false;
+      }.bind(this), this.RESET_CUT_OR_PASTE_TIMEOUT);
+  };
+
   TextSelectionDialog.prototype.show = function tsd_show() {
     if (!this.event) {
       return;
@@ -156,12 +176,16 @@
       return;
     }
 
+    var isTempShortcut = this._hasCutOrCopied && detail.isCollapsed;
+
     // When selectall happened, gecko will first collapse the range then
     // select all. So we will receive two selection change events with
     // SELECTALL_REASON. We filter first event by check the length of
     // selectedText.
     if ((detail.reasons.indexOf('mouseup') === -1 &&
-        (detail.reasons.indexOf('selectall') === -1 || detail.isCollapsed))) {
+        (detail.reasons.indexOf('selectall') === -1 || detail.isCollapsed)) ||
+        // In collapsed mode, only temp shortcut allowed.
+        (detail.isCollapsed && !isTempShortcut)) {
       this.hide();
       return;
     }
@@ -169,6 +193,12 @@
     clearTimeout(this._hideTimeout);
     var numOfSelectOptions = 0;
     var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
+
+    // In collapsed mode, only paste option will be displaed if we have copied
+    // or cut before.
+    if (isTempShortcut) {
+      detail.commands.canSelectAll = false;
+    }
 
     // Based on UI spec, we should have dividers ONLY between each select option
     // So, we use css to put divider in pseudo element and set the last visible
@@ -198,9 +228,11 @@
 
     this.element.classList.add('visible');
 
-    this._hideTimeout = setTimeout(function() {
-      this.hide();
-    }.bind(this), this.SHORTCUT_TIMEOUT);
+    if (isTempShortcut) {
+      this._hideTimeout = window.setTimeout(function() {
+        this.hide();
+      }.bind(this), this.SHORTCUT_TIMEOUT);
+    }
 
     evt.preventDefault();
   };
