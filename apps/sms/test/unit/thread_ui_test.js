@@ -2494,7 +2494,11 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
 
       ThreadUI.beforeEnter(transitionArgs);
-      document.getElementById('messages-back-button').click();
+
+      // Trigger the action button on the header
+      var event = document.createEvent('HTMLEvents');
+      event.initEvent('action', true, true);
+      document.getElementById('messages-header').dispatchEvent(event);
 
       Navigation.isCurrentPanel.withArgs('thread').returns(true);
       ThreadUI.afterEnter(transitionArgs);

@@ -180,6 +180,7 @@ var VIEWS = {
       navigator.mozL10n.localize(ThreadUI.headerText, 'participant', {
         n: participants.length
       });
+      ThreadUI.configureHeaderAction('back', 'back');
     },
 
     setEventListener: function setEventListener() {
@@ -283,6 +284,7 @@ var VIEWS = {
       }).bind(this);
 
       localize(ThreadUI.headerText, 'message-report');
+      ThreadUI.configureHeaderAction('close', 'back');
     },
 
     onDeliverySuccess: function report_onDeliverySuccess(e) {
@@ -332,6 +334,7 @@ Information.prototype = {
   beforeLeave: function() {
     this.reset();
     this.id = null;
+    ThreadUI.resetHeaderAction();
   },
 
   show: function() {

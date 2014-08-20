@@ -171,6 +171,13 @@ var ActivityHandler = {
       this.REQUEST_ACTIVITY_MODE_CLASS_NAME,
       toggle
     );
+    if (ThreadUI.header) {
+      if (toggle) {
+        ThreadUI.configureHeaderAction('close', 'close');
+      } else {
+        ThreadUI.configureHeaderAction('back', 'back');
+      }
+    }
   },
 
   /**

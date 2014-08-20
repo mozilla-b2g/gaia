@@ -97,8 +97,8 @@ var ThreadUI = {
     [
       'container', 'subheader', 'to-field', 'recipients-list', 'recipient',
       'input', 'compose-form', 'check-uncheck-all-button',
-      'contact-pick-button', 'back-button', 'close-button', 'send-button',
-      'attach-button', 'delete-button', 'cancel-button', 'subject-input',
+      'contact-pick-button', 'send-button', 'header', 'edit-header',
+      'attach-button', 'delete-button', 'subject-input',
       'new-message-notice', 'options-icon', 'edit-mode', 'edit-form',
       'tel-form', 'header-text', 'max-length-notice', 'convert-notice',
       'resize-notice', 'dual-sim-information', 'new-message-notice',
@@ -160,20 +160,16 @@ var ThreadUI = {
       'scroll', this.manageScroll.bind(this)
     );
 
-    this.backButton.addEventListener(
-      'click', this.back.bind(this)
-    );
-
-    this.closeButton.addEventListener(
-      'click', this.close.bind(this)
-    );
-
     this.checkUncheckAllButton.addEventListener(
       'click', this.toggleCheckedAll.bind(this)
     );
 
-    this.cancelButton.addEventListener(
-      'click', this.cancelEdit.bind(this)
+    this.editHeader.addEventListener(
+      'action', this.cancelEdit.bind(this)
+    );
+
+    this.header.addEventListener(
+      'action', this.back.bind(this)
     );
 
     this.optionsIcon.addEventListener(
@@ -442,6 +438,19 @@ var ThreadUI = {
     }
   },
 
+  resetHeaderAction: function thui_resetHeaderAction() {
+    this.configureHeaderAction('back', 'back');
+  },
+  
+  configureHeaderAction: function thui_configureHeaderAction(icon, action) {
+    this.header.setAttribute('action', icon);
+    if (action === 'close') {
+      this.header.addEventListener('action', this.close.bind(this));
+    } else if (action === 'back') {
+      this.header.addEventListener('action', this.back.bind(this));
+    }
+  },
+  
   messageComposerInputHandler: function thui_messageInputHandler(event) {
     if (Compose.type === 'sms') {
       this.hideMaxLengthNotice();
