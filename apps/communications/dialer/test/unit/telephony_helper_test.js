@@ -24,6 +24,9 @@ var mocksHelperForTelephonyHelper = new MocksHelper([
   'TelephonyMessages'
 ]).init();
 
+// Constructor used to create a fake TelephonyCall object
+function TelephonyCall() {}
+
 suite('telephony helper', function() {
   var subject;
   var realMozTelephony;
@@ -53,7 +56,7 @@ suite('telephony helper', function() {
   setup(function() {
     spyConfirmShow = this.sinon.spy(ConfirmDialog, 'show');
     mockTelephony = this.sinon.mock(MockNavigatorMozTelephony);
-    mockCall = {};
+    mockCall = new TelephonyCall();
     MockNavigatorMozMobileConnections[0].voice = {};
     mockPromise = Promise.resolve(mockCall);
     this.sinon.stub(MockNavigatorMozTelephony, 'dial',
@@ -134,7 +137,7 @@ suite('telephony helper', function() {
     sinon.assert.calledWith(navigator.mozTelephony.dialEmergency, '112');
   });
 
-  test('should hold the active line before dialing (if there is one)',
+  test('should NOT hold the active line before dialing',
   function() {
     var dialNumber = '123456';
     var holdStub = this.sinon.stub();
@@ -147,36 +150,12 @@ suite('telephony helper', function() {
 
     subject.call(dialNumber, 0);
     delete MockNavigatorMozTelephony.active;
-    mockActive.onheld();
     sinon.assert.calledWith(navigator.mozTelephony.dial, dialNumber);
 
-    assert.isTrue(holdStub.calledBefore(navigator.mozTelephony.dial));
-    assert.isNull(mockActive.onheld);
+    assert.isFalse(holdStub.calledBefore(navigator.mozTelephony.dial));
   });
 
-  ['evdo0', 'evdoa', 'evdob', '1xrtt', 'is95a', 'is95b', 'ehrpd'].forEach(
-  function(type) {
-    test('should NOT hold the active line before dialing in CDMA mode ' + type,
-    function() {
-      MockNavigatorMozMobileConnections[0].voice.type = type;
-      var dialNumber = '123456';
-      var holdStub = this.sinon.stub();
-      var mockActive = {
-        number: '1111',
-        state: 'connected',
-        hold: holdStub
-      };
-      MockNavigatorMozTelephony.active = mockActive;
-
-      subject.call(dialNumber, 0);
-      delete MockNavigatorMozTelephony.active;
-      sinon.assert.calledWith(navigator.mozTelephony.dial, dialNumber);
-
-      assert.isFalse(holdStub.calledBefore(navigator.mozTelephony.dial));
-    });
-  });
-
-  test('should hold the active group call before dialing (if there is one)',
+  test('should not hold the active group call before dialing (if there is one)',
   function() {
     var dialNumber = '123456';
     var holdStub = this.sinon.stub();
@@ -189,11 +168,9 @@ suite('telephony helper', function() {
 
     subject.call(dialNumber, 0);
     delete MockNavigatorMozTelephony.active;
-    MockNavigatorMozTelephony.conferenceGroup.onheld();
     sinon.assert.calledWith(navigator.mozTelephony.dial, dialNumber);
 
-    assert.isTrue(holdStub.calledBefore(navigator.mozTelephony.dial));
-    assert.isNull(MockNavigatorMozTelephony.conferenceGroup.onheld);
+    sinon.assert.notCalled(holdStub);
   });
 
   test('should not dial when call limit reached (2 normal call)', function() {

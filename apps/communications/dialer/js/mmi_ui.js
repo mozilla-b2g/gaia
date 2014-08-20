@@ -1,71 +1,45 @@
+/* globals MmiManager */
+
+/* exported MmiUI */
+
 'use strict';
 
 var MmiUI = {
 
-  COMMS_APP_ORIGIN: document.location.protocol + '//' +
-    document.location.host,
   _: null,
 
-  get headerTitleNode() {
-    delete this.headerTitleNode;
-    return this.headerTitleNode = document.getElementById('header-title');
-  },
+  headerTitleNode: null,
+  headerNode: null,
+  cancelNode: null,
+  sendNode: null,
+  messageNode: null,
+  responseTextNode: null,
+  responseTextResetNode: null,
+  mmiScreen: null,
+  loadingOverlay: null,
 
-  get headerNode() {
-    delete this.headerNode;
-    return this.headerNode = document.getElementById('mmi-header');
-  },
+  animating: false,
 
-  get cancelNode() {
-    delete this.cancelNode;
-    return this.cancelNode = document.getElementById('cancel');
-  },
+  init: function mui_init(_) {
+    this._ = _;
 
-  get sendNode() {
-    delete this.sendNode;
-    return this.sendNode = document.getElementById('send');
-  },
+    this.headerTitleNode = document.getElementById('header-title');
+    this.headerNode = document.getElementById('mmi-header');
+    this.cancelNode = document.getElementById('cancel');
+    this.sendNode = document.getElementById('send');
+    this.messageNode = document.getElementById('message');
+    this.responseTextNode = document.getElementById('response-text');
+    this.responseTextResetNode = document.getElementById('response-text-reset');
+    this.mmiScreen = document.getElementById('mmi-screen');
+    this.loadingOverlay = document.getElementById('loading-overlay');
 
-  get messageNode() {
-    delete this.messageNode;
-    return this.messageNode = document.getElementById('message');
-  },
-
-  get responseTextNode() {
-    delete this.responseTextNode;
-    return this.responseTextNode = document.getElementById('response-text');
-  },
-
-  get responseTextResetNode() {
-    delete this.responseTextResetNode;
-    return this.responseTextResetNode =
-      document.getElementById('response-text-reset');
-  },
-
-  get mmiScreen() {
-    delete this.mmiScreen;
-    return this.mmiScreen = document.getElementById('mmi-screen');
-  },
-
-  get loadingOverlay() {
-    delete this.loadingOverlay;
-    return this.loadingOverlay = document.getElementById('loading-overlay');
-  },
-
-  init: function mui_init() {
-    LazyL10n.get((function localized(_) {
-      window.addEventListener('message', this);
-
-      this._ = _;
-
-      this.headerNode.addEventListener('action', this.closeWindow.bind(this));
-      this.cancelNode.addEventListener('click', this.cancel.bind(this));
-      this.sendNode.addEventListener('click', this.reply.bind(this));
-      this.responseTextResetNode.addEventListener('click',
-        this.resetResponse.bind(this));
-      this.responseTextNode.addEventListener('input',
-        this.responseUpdated.bind(this));
-    }).bind(this));
+    this.headerNode.addEventListener('action', this.closeWindow.bind(this));
+    this.cancelNode.addEventListener('click', this.cancel.bind(this));
+    this.sendNode.addEventListener('click', this.reply.bind(this));
+    this.responseTextResetNode.addEventListener('click',
+      this.resetResponse.bind(this));
+    this.responseTextNode.addEventListener('input',
+      this.responseUpdated.bind(this));
   },
 
   showWindow: function mui_showWindow() {
@@ -73,13 +47,11 @@ var MmiUI = {
   },
 
   closeWindow: function mui_closeWindow() {
-    window.postMessage({
-      type: 'mmi-cancel'
-    }, this.COMMS_APP_ORIGIN);
     this.mmiScreen.hidden = true;
   },
 
   cancel: function mui_cancel() {
+    MmiManager.cancel();
     this.hideLoading();
     this.closeWindow();
   },
@@ -102,23 +74,38 @@ var MmiUI = {
   },
 
   showLoading: function mui_showLoading() {
+    var self = this;
+
     this.loadingOverlay.classList.remove('hide');
     this.loadingOverlay.classList.remove('fade-out');
     this.loadingOverlay.classList.add('fade-in');
+    this.loadingOverlay.addEventListener('animationstart',
+      function mui_fadeIn() {
+        self.loadingOverlay.removeEventListener('animationstart', mui_fadeIn);
+        self.animating = true;
+      }
+    );
     this.responseTextNode.setAttribute('disabled', 'disabled');
     this.sendNode.setAttribute('disabled', 'disabled');
   },
 
   hideLoading: function mui_hideLoading() {
+    var self = this;
+
     this.loadingOverlay.classList.remove('fade-in');
     this.loadingOverlay.classList.add('fade-out');
-    var self = this;
-    this.loadingOverlay.addEventListener('animationend',
-      function uso_fadeOut(ev) {
-        self.loadingOverlay.removeEventListener('animationend', uso_fadeOut);
-        self.loadingOverlay.classList.add('hide');
-      }
-    );
+
+    if (this.animating) {
+      this.loadingOverlay.addEventListener('animationend',
+        function mui_fadeOut(ev) {
+          self.loadingOverlay.removeEventListener('animationend', mui_fadeOut);
+          self.loadingOverlay.classList.add('hide');
+          self.animating = false;
+        }
+      );
+    } else {
+      this.loadingOverlay.classList.add('hide');
+    }
   },
 
   showResponseForm: function mui_showForm() {
@@ -146,55 +133,37 @@ var MmiUI = {
 
   reply: function mui_reply() {
     this.showLoading();
-    var response = this.responseTextNode.value;
-    window.postMessage({
-      type: 'mmi-reply',
-      message: response
-    }, this.COMMS_APP_ORIGIN);
+    MmiManager.reply(this.responseTextNode.value);
     this.resetResponse();
   },
 
-  handleEvent: function ph_handleEvent(evt) {
-    if (evt.type !== 'message' || evt.origin !== this.COMMS_APP_ORIGIN ||
-      !evt.data) {
-      return;
-    }
+  success: function mui_success(message, title) {
+    message = message || this._('mmi-successfully-sent');
 
-    var data = evt.data;
-
-    switch (data.type) {
-      case 'mmi-success':
-        this.hideResponseForm();
-        var msg = data.result ? data.result : this._('mmi-successfully-sent');
-        var header = data.title ? data.title : undefined;
-        this.showMessage(msg, header);
-        break;
-      case 'mmi-error':
-        this.handleError(data);
-        break;
-      case 'mmi-received-ui':
-        if (data.sessionEnded) {
-          this.hideResponseForm();
-          if (data.message == null) {
-            data.message = this._('mmi-session-expired');
-          }
-        } else {
-          this.showResponseForm();
-        }
-        this.showMessage(data.message, data.title);
-        break;
-      case 'mmi-loading':
-        this.showLoading();
-        break;
-    }
+    this.hideResponseForm();
+    this.showMessage(message, title);
   },
 
-  handleError: function ph_handleError(data) {
-    var header = data.title ? data.title : undefined;
-    var error = data.error ? data.error : this._('mmi-error');
-    this.hideResponseForm();
-    this.showMessage(error, header);
-  }
-};
+  error: function mui_error(error, title) {
+    error = error || this._('mmi-error');
 
-MmiUI.init();
+    this.hideResponseForm();
+    this.showMessage(error, title);
+  },
+
+  received: function mui_received(session, message, title) {
+    if (!session) {
+      this.hideResponseForm();
+      if (message === null) {
+        message = this._('mmi-session-expired');
+      }
+    } else {
+      this.showResponseForm();
+    }
+    this.showMessage(message, title);
+  },
+
+  loading: function mui_loading() {
+    this.showLoading();
+  },
+};

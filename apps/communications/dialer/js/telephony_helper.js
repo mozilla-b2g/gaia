@@ -1,6 +1,7 @@
 'use strict';
 
-/* global LazyLoader, IccHelper, ConfirmDialog, TelephonyMessages */
+/* global LazyLoader, IccHelper, ConfirmDialog, MmiManager, TelephonyCall,
+          TelephonyMessages */
 /* exported TelephonyHelper */
 
 var TelephonyHelper = (function() {
@@ -46,23 +47,8 @@ var TelephonyHelper = (function() {
       return;
     }
 
-    var cdmaTypes =
-      ['evdo0', 'evdoa', 'evdob', '1xrtt', 'is95a', 'is95b', 'ehrpd'];
-    var voiceType = conn.voice ? conn.voice.type : null;
-    var isCdmaConnection = (cdmaTypes.indexOf(voiceType) !== -1);
-    var activeCall = telephony.active;
-
-    if (!activeCall || isCdmaConnection) {
-      startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
-                ondisconnected, onerror);
-      return;
-    }
-    activeCall.onheld = function activeCallHeld() {
-      activeCall.onheld = null;
-      startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
-                ondisconnected, onerror);
-    };
-    activeCall.hold();
+    startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
+              ondisconnected, onerror);
   };
 
   function startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
@@ -103,7 +89,10 @@ var TelephonyHelper = (function() {
           );
           document.addEventListener('visibilitychange', function hideDialog() {
             document.removeEventListener('visibilitychange', hideDialog);
-            ConfirmDialog.hide();
+
+            /* In tests this event can happen after the ConfirmDialog mock has
+             * been removed so check that it's still there. */
+            ConfirmDialog && ConfirmDialog.hide();
           });
         });
 
@@ -115,9 +104,18 @@ var TelephonyHelper = (function() {
         callPromise = telephony.dial(sanitizedNumber, cardIndex);
       }
 
-      callPromise.then(function(call) {
-        installHandlers(call, sanitizedNumber, emergencyOnly, oncall,
-                        onconnected, ondisconnected, onerror);
+      callPromise.then(function(obj) {
+        if (obj instanceof TelephonyCall) {
+          installHandlers(obj, sanitizedNumber, emergencyOnly, oncall,
+                          onconnected, ondisconnected, onerror);
+        } else {
+          /* This is an MMICall object, manually invoke the handlers to provide
+           * feedback to the user, the rest of the UX will be dealt with by the
+           * MMI manager. */
+          oncall();
+          onconnected();
+          MmiManager.handleDialing(conn, sanitizedNumber, obj.result);
+        }
       }).catch(function(errorName) {
         if (onerror) {
           onerror();
