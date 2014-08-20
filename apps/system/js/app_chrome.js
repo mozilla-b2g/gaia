@@ -29,8 +29,6 @@
     this.app = app;
     this.instanceID = _id++;
     this.containerElement = app.element;
-    this._recentTitle = false;
-    this._titleTimeout = null;
     this.scrollable = app.browserContainer;
     this.render();
 
@@ -40,7 +38,7 @@
 
     if (!this.app.isBrowser() && this.app.name) {
       this._gotName = true;
-      this.setFreshTitle(this.app.name);
+      this.setTitle(this.app.name);
     }
 
     var chrome = this.app.config.chrome;
@@ -70,10 +68,6 @@
   AppChrome.prototype.CLASS_NAME = 'AppChrome';
 
   AppChrome.prototype.EVENT_PREFIX = 'chrome';
-
-  AppChrome.prototype.FRESH_TITLE = 500;
-
-  AppChrome.prototype.LOCATION_COALESCE = 250;
 
   AppChrome.prototype._DEBUG = false;
 
@@ -203,10 +197,6 @@
         this.handleSecurityChanged(evt);
         break;
 
-      case 'mozbrowsertitlechange':
-        this.handleTitleChanged(evt);
-        break;
-
       case 'mozbrowsermetachange':
         this.handleMetaChange(evt);
         break;
@@ -310,7 +300,6 @@
     this.app.element.addEventListener('mozbrowserloadstart', this);
     this.app.element.addEventListener('mozbrowserloadend', this);
     this.app.element.addEventListener('mozbrowserlocationchange', this);
-    this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('mozbrowsermetachange', this);
     this.app.element.addEventListener('mozbrowsersecuritychange', this);
     this.app.element.addEventListener('_loading', this);
@@ -357,7 +346,6 @@
     this.app.element.removeEventListener('mozbrowserloadstart', this);
     this.app.element.removeEventListener('mozbrowserloadend', this);
     this.app.element.removeEventListener('mozbrowserlocationchange', this);
-    this.app.element.removeEventListener('mozbrowsertitlechange', this);
     this.app.element.removeEventListener('mozbrowsermetachange', this);
     this.app.element.removeEventListener('_loading', this);
     this.app.element.removeEventListener('_loaded', this);
@@ -372,26 +360,12 @@
       this._gotName = true;
     };
 
-  AppChrome.prototype.setFreshTitle = function ac_setFreshTitle(title) {
+  AppChrome.prototype.setTitle = function ac_setTitle(title) {
     this.title.textContent = title;
-    clearTimeout(this._titleTimeout);
-    this._recentTitle = true;
-    this._titleTimeout = setTimeout((function() {
-      this._recentTitle = false;
-    }).bind(this), this.FRESH_TITLE);
   };
 
   AppChrome.prototype.handleSecurityChanged = function(evt) {
     this.title.dataset.ssl = evt.detail.state;
-  };
-
-  AppChrome.prototype.handleTitleChanged = function(evt) {
-    if (this._gotName) {
-      return;
-    }
-
-    this.setFreshTitle(evt.detail || this._currentURL);
-    this._titleChanged = true;
   };
 
   AppChrome.prototype.handleMetaChange =
@@ -457,14 +431,6 @@
     return this.app.config.chrome && !this.app.config.chrome.bar;
   };
 
-  AppChrome.prototype._updateLocation =
-    function ac_updateTitle(title) {
-      if (this._titleChanged || this._gotName || this._recentTitle) {
-        return;
-      }
-      this.title.textContent = title;
-    };
-
   AppChrome.prototype.updateAddToHomeButton =
     function ac_updateAddToHomeButton() {
       if (!this.addToHomeButton) {
@@ -490,10 +456,6 @@
         return;
       }
 
-      // We wait a small while because if we get a title/name it's even better
-      // and we don't want the label to flash
-      setTimeout(this._updateLocation.bind(this, evt.detail),
-                 this.LOCATION_COALESCE);
       this._currentURL = evt.detail;
 
       if (this.backButton && this.forwardButton) {
@@ -507,11 +469,19 @@
       }
 
       this.updateAddToHomeButton();
+
+      // Browser windows use hostname as title if no name is set
+      if (!this.app.isBrowser() || this._gotName) {
+        return;
+      }
+      var a = document.createElement('a');
+      a.href = evt.detail;
+      var hostname = a.hostname;
+      this.setTitle(hostname);
     };
 
   AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
     this.containerElement.classList.add('loading');
-    this._titleChanged = false;
   };
 
   AppChrome.prototype.handleLoadEnd = function ac_handleLoadEnd(evt) {
