@@ -1,5 +1,5 @@
 'use strict';
-/* globals Promise, AppWindowManager */
+/* globals Promise, AppWindowManager, asyncStorage */
 /* exported Places */
 
 (function(exports) {
@@ -44,6 +44,15 @@
     screenshotQueue: [],
 
     /**
+     * Maximum number of top sites we display
+     * @memberof Places.prototype
+     * @type {Integer}
+     */
+    MAX_TOP_SITES: 6,
+
+    topSites: [],
+
+    /**
      * Starts places.
      * Adds necessary event listeners and gets the datastore.
      * @param {Function} callback
@@ -54,6 +63,10 @@
       window.addEventListener('applocationchange', this);
       window.addEventListener('appiconchange', this);
       window.addEventListener('apploaded', this);
+
+      asyncStorage.getItem('top-sites', (function(results) {
+        this.topSites = results || [];
+      }).bind(this));
 
       navigator.getDataStores(this.STORE_NAME)
         .then(this.initStore.bind(this)).then(callback);
@@ -129,7 +142,8 @@
         url: url,
         title: url,
         icons: {},
-        frecency: 0
+        frecency: 0,
+        screenshot: null
       };
     },
 
@@ -170,11 +184,34 @@
      * @memberof Places.prototype
      */
     addVisit: function(url) {
+      var self = this;
       return this.editPlace(url, function(place, cb) {
         place.visited = Date.now();
         place.frecency++;
+        self.checkTopSites(place);
         cb(place);
       });
+    },
+
+    /**
+     * Check if we need to render a screenshot of the current visit
+     * in the case that it is in the top most visited sites
+     */
+    checkTopSites: function(place) {
+      var numTopSites = this.topSites.length;
+      var lastTopSite = this.topSites[numTopSites - 1];
+      if (numTopSites < this.MAX_TOP_SITES ||
+          place.frecency > lastTopSite.frecency) {
+        this.topSites.push(place);
+        this.screenshotRequested(place.url);
+        this.topSites.sort(function(a, b) {
+          return b.frecency - a.frecency;
+        });
+        if (this.topSites.length > this.MAX_TOP_SITES) {
+          this.topSites.length = this.MAX_TOP_SITES;
+        }
+        asyncStorage.setItem('top-sites', this.topSites);
+      }
     },
 
     saveScreenshot: function(url, screenshot) {

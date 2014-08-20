@@ -79,15 +79,15 @@
             var data = task.data;
             if (SDS.keyField in data && !SDS.filterFN(data)) {
               var key = data[SDS.keyField];
-              SDS.persistStore.add(key, data);
+              SDS.persistStore.add(key, data, SDS.store.revisionId);
             }
             break;
           case 'clear':
-            SDS.persistStore.clear();
+            SDS.persistStore.clear(SDS.store.revisionId);
             break;
           case 'remove':
             var id = task.target.id;
-            SDS.persistStore.remove(id);
+            SDS.persistStore.remove(id, SDS.store.revisionId);
             break;
           case 'done':
             SDS.syncInProgress = false;
