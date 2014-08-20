@@ -73,6 +73,7 @@
      */
     init: function() {
       this.itemStore = new ItemStore((firstTime) => {
+        console.log('Initialized itemstore.');
         if (!firstTime) {
           return;
         }
@@ -84,15 +85,26 @@
         });
       });
 
+      console.log('Calling this.itemStore.all.');
       this.itemStore.all(function _all(results) {
+        console.log('Got results: ', results.length);
         results.forEach(function _eachResult(result) {
+          console.log('Adding result:');
+
+          for (var j in result.detail) {
+            console.log(j, result.detail[j]);
+          }
+
           this.grid.add(result);
         }, this);
 
+        console.log('this.layoutReady is:', this.layoutReady);
         if (this.layoutReady) {
           this.renderGrid();
         } else {
+          console.log('adding gaiagrid-layout-ready listener');
           window.addEventListener('gaiagrid-layout-ready', function onReady() {
+            console.log('got gaiagrid-layout-ready');
             window.removeEventListener('gaiagrid-layout-ready', onReady);
             this.renderGrid();
           }.bind(this));
@@ -101,6 +113,7 @@
         window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
         window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
+        console.log('adding localized listener');
         window.addEventListener('localized', this.onLocalized.bind(this));
         LazyLoader.load(['shared/elements/gaia-header/dist/script.js',
                          'js/contextmenu_handler.js',
@@ -112,6 +125,7 @@
     },
 
     renderGrid: function() {
+      console.log('got renderGrid');
       this.grid.setEditHeaderElement(document.getElementById('edit-header'));
       this.grid.render();
     },

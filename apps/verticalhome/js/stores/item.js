@@ -225,11 +225,14 @@
      * Fetches a list of all items in the store.
      */
     all: function(success) {
+      console.log('All called.');
       if (!this.ready) {
+        console.log('Adding listener.');
         window.addEventListener('databaseready', this.all.bind(this, success));
         return;
       }
 
+      console.log('Calling success.');
       success(this._allItems);
     },
 
@@ -290,6 +293,7 @@
      * @param {Function} callback A function to call after fetching all items.
      */
     fetch: function(callback) {
+      console.log('Got fetch');
       var cached = {};
       var collected = [];
 
@@ -319,21 +323,31 @@
       function finish() {
         /* jshint validthis: true */
         // Transforms DB results into item classes
-        for (var i = 0, iLen = collected.length; i < iLen; i++) {
-          var thisItem = collected[i];
-          if (thisItem.type === 'app') {
-            var itemObj = this.applicationSource.mapToApp(thisItem);
-            addIfUnique.call(this, itemObj);
-          } else if (thisItem.type === 'divider') {
-            var divider = new GaiaGrid.Divider(thisItem);
-            this._allItems.push(divider);
-          } else if (thisItem.type === 'bookmark') {
-            var bookmark = new GaiaGrid.Bookmark(thisItem);
-            addIfUnique.call(this, bookmark);
-          } else if (thisItem.type === 'collection') {
-            var collection = new GaiaGrid.Collection(thisItem);
-            addIfUnique.call(this, collection);
+        try {
+          console.log('Collected length: ', collected.length);
+          for (var i = 0, iLen = collected.length; i < iLen; i++) {
+            var thisItem = collected[i];
+
+            for (var j in thisItem) {
+              console.log(j, thisItem[j]);
+            }
+
+            if (thisItem.type === 'app') {
+              var itemObj = this.applicationSource.mapToApp(thisItem);
+              addIfUnique.call(this, itemObj);
+            } else if (thisItem.type === 'divider') {
+              var divider = new GaiaGrid.Divider(thisItem);
+              this._allItems.push(divider);
+            } else if (thisItem.type === 'bookmark') {
+              var bookmark = new GaiaGrid.Bookmark(thisItem);
+              addIfUnique.call(this, bookmark);
+            } else if (thisItem.type === 'collection') {
+              var collection = new GaiaGrid.Collection(thisItem);
+              addIfUnique.call(this, collection);
+            }
           }
+        } catch(e) {
+          console.log('Could not format all items ', e);
         }
 
         this.notifyReady();
@@ -398,6 +412,7 @@
      */
     notifyReady: function() {
       this.ready = true;
+      console.log('Firing databaseready.');
       dispatchEvent(new CustomEvent('databaseready'));
     },
 
