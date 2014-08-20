@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenLauncher, KeyboardManager,
-          layoutManager, System, NfcHandler */
+          layoutManager, System, NfcHandler, rocketbar */
 'use strict';
 
 (function(exports) {
@@ -122,9 +122,9 @@
 
       this._updateActiveApp(appNext.instanceID);
 
+      var that = this;
       if (appCurrent && layoutManager.keyboardEnabled) {
         // Ask keyboard to hide before we switch the app.
-        var that = this;
         window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
           window.removeEventListener('keyboardhidden', onhiddenkeyboard);
           that.switchApp(appCurrent, appNext, switching);
@@ -137,6 +137,12 @@
           // Hide keyboard immediately.
           KeyboardManager.hideKeyboardImmediately();
         }
+      } else if (rocketbar.active) {
+        // Wait for the rocketbar to close
+        window.addEventListener('rocketbar-overlayclosed', function onClose() {
+          window.removeEventListener('rocketbar-overlayclosed', onClose);
+          that.switchApp(appCurrent, appNext, switching);
+        });
       } else {
         this.switchApp(appCurrent, appNext, switching,
           openAnimation, closeAnimation);
