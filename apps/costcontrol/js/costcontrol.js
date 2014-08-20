@@ -99,7 +99,7 @@ var CostControl = (function() {
       function _requestDataStatistics() {
         SimManager.requestDataSimIcc(function(dataSim) {
           requestDataStatistics(configuration, settings, callback, dataSim,
-                                result);
+                                result, requestObj.apps);
         });
       }
 
@@ -427,7 +427,7 @@ var CostControl = (function() {
   // Ask statistics API for mobile and wifi data usage
   var DAY = 24 * 3600 * 1000; // 1 day
   function requestDataStatistics(configuration, settings, callback, dataSimIcc,
-                                 result) {
+                                 result, apps) {
     debug('Statistics out of date. Requesting fresh data...');
 
     var maxAge = 1000 * statistics.maxStorageAge;
@@ -465,7 +465,7 @@ var CostControl = (function() {
     var wifiInterface = Common.getWifiInterface();
     var currentSimcardNetwork = Common.getDataSIMInterface(dataSimIcc.iccId);
 
-    var simRequest, wifiRequest;
+    var simRequests, wifiRequest;
     var pendingRequests = 0;
 
     function checkForCompletion() {
@@ -479,8 +479,6 @@ var CostControl = (function() {
       var fakeEmptyResult = {data: []};
       var wifiData = adaptData(wifiRequest ? wifiRequest.result :
                                              fakeEmptyResult);
-      var mobileData = adaptData(simRequest ? simRequest.result :
-                                              fakeEmptyResult);
 
       var lastDataUsage = {
         timestamp: new Date(),
@@ -491,7 +489,9 @@ var CostControl = (function() {
           total: wifiData[1]
         },
         mobile: {
-          total: mobileData[1]
+          apps: {},
+          total: 0,
+          samples: []
         }
       };
 
@@ -503,7 +503,25 @@ var CostControl = (function() {
 
       // XXX: Enrich with the samples because I can not store them
       lastDataUsage.wifi.samples = wifiData[0];
-      lastDataUsage.mobile.samples = mobileData[0];
+      // lastDataUsage.mobile.samples = mobileData[0];
+
+      if (simRequests) {
+        simRequests.forEach(function(request) {
+          var result = request.result;
+          var data = adaptData(result);
+          if (request.result.appManifestURL) {
+            lastDataUsage.mobile.apps[request.result.appManifestURL] = {
+              samples: data[0],
+              total: data[1]
+            };
+          } else {
+            lastDataUsage.mobile.samples =
+                lastDataUsage.mobile.samples.concat(data[0]);
+          }
+          lastDataUsage.mobile.total += data[1];
+        });
+      }
+
       result.status = 'success';
       result.data = lastDataUsage;
       debug('Returning up to date statistics.');
@@ -514,9 +532,22 @@ var CostControl = (function() {
 
     //Recover current Simcard info
     if (currentSimcardNetwork) {
-      pendingRequests++;
-      simRequest = statistics.getSamples(currentSimcardNetwork, start, end);
-      simRequest.onsuccess = checkForCompletion;
+      simRequests = [];
+      if (apps && apps.length > 0) {
+        apps.forEach(function(manifestURL) {
+          pendingRequests++;
+          var req = statistics.getSamples(currentSimcardNetwork, start, end, {
+            appManifestURL: manifestURL
+          });
+          req.onsuccess = checkForCompletion;
+          simRequests.push(req);
+        });
+      } else {
+        pendingRequests++;
+        var req = statistics.getSamples(currentSimcardNetwork, start, end);
+        req.onsuccess = checkForCompletion;
+        simRequests.push(req);
+      }
     }
 
     if (wifiInterface) {

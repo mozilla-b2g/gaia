@@ -1,6 +1,6 @@
 /* global MockAllNetworkInterfaces, Common, MockMozNetworkStats, ConfigManager,
           WifiInterfaceType, SimManager, MobileInterfaceType, setNextReset,
-          Toolkit */
+          Toolkit, MockNavigatormozApps */
 
 'use strict';
 
@@ -11,9 +11,11 @@ require('/js/config/config_manager.js');
 require('/test/unit/mock_moz_l10n.js');
 require('/test/unit/mock_moz_network_stats.js');
 require('/js/utils/toolkit.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
 var realMozL10n,
-    realMozNetworkStats;
+    realMozNetworkStats,
+    realMozApps;
 
 if (!window.navigator.mozL10n) {
   window.navigator.mozL10n = null;
@@ -21,6 +23,10 @@ if (!window.navigator.mozL10n) {
 
 if (!window.navigator.mozNetworkStats) {
   window.navigator.mozNetworkStats = null;
+}
+
+if (!window.navigator.mozApps) {
+  window.navigator.mozApps = null;
 }
 
 suite('Cost Control Common >', function() {
@@ -31,11 +37,15 @@ suite('Cost Control Common >', function() {
 
     realMozNetworkStats = window.navigator.mozNetworkStats;
     navigator.mozNetworkStats = MockMozNetworkStats;
+
+    realMozApps = window.navigator.mozApps;
+    navigator.mozApps = MockNavigatormozApps;
   });
 
   suiteTeardown(function() {
     window.navigator.mozL10n = realMozL10n;
     window.navigator.mozNetworkStats = realMozNetworkStats;
+    window.navigator.mozApps = realMozApps;
   });
 
   function getCustomClearStats(willFail) {
@@ -75,6 +85,21 @@ suite('Cost Control Common >', function() {
         done();
       }
     );
+  });
+
+  test('loadApps correctly', function(done) {
+    MockNavigatormozApps.mApps = [{
+      manifestURL: 'url1'
+    }, {
+      manifestURL: 'url2'
+    }];
+
+    assert.isFalse(Common.allAppsLoaded);
+    Common.loadApps(function(apps) {
+      assert.isTrue(Common.allAppsLoaded);
+      assert.equal(apps.length, 2);
+      done();
+    });
   });
 
   suite('Reset Data>', function() {
