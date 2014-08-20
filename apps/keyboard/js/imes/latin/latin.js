@@ -1160,32 +1160,32 @@
   }
 
   function handleIDB(iDBVersion, word) {
-    // Open (or create) an indexedDB named userDict
-    // This db will contain separate stores for each language
-    dictionary.iDBRequest = window.indexedDB.open("userDict", iDBVersion);
-    
-    dictionary.iDBRequest.onerror = function(event) {
-      console.log("Database error: " + event.target.errorCode);
-    }
-
-    dictionary.iDBRequest.onupgradeneeded = function(event) {
-      var db = event.target.result;
-      localStorage.setItem("iDBVersion", db.version);
-
-      // Check if the language object store already exists
-      // If not, just create a new objectstore
-      if(!db.objectStoreNames.contains(language)) {
-        var objectStore = db.createObjectStore(language, { keyPath: "word" });
-
-        objectStore.createIndex("word", "word", { unique: true });
-        objectStore.createIndex("frequency", "frequency", { unique: false });
-      }
-    }
-
-    dictionary.iDBRequest.onsuccess = function(event) {
-      var db = event.target.result;
+    if(word !== null) {
+      // Open (or create) an indexedDB named userDict
+      // This db will contain separate stores for each language
+      dictionary.iDBRequest = window.indexedDB.open("userDict", iDBVersion);
       
-      if(word) {
+      dictionary.iDBRequest.onerror = function(event) {
+        console.log("Database error: " + event.target.errorCode);
+      }
+
+      dictionary.iDBRequest.onupgradeneeded = function(event) {
+        var db = event.target.result;
+        localStorage.setItem("iDBVersion", db.version);
+
+        // Check if the language object store already exists
+        // If not, just create a new objectstore
+        if(!db.objectStoreNames.contains(language)) {
+          var objectStore = db.createObjectStore(language, { keyPath: "word" });
+
+          objectStore.createIndex("word", "word", { unique: true });
+          objectStore.createIndex("frequency", "frequency", { unique: false });
+        }
+      }
+
+      dictionary.iDBRequest.onsuccess = function(event) {
+        var db = event.target.result;
+        
         // Begin writing data to the objectStore
         var dbTransaction = db.transaction([language], "readwrite")
                               .objectStore(language);
@@ -1212,18 +1212,18 @@
               console.log("Failed to update frequency");
             }
 
-            // Just updating the frequency does not need a new TST
+            // XXX: Just updating the frequency does not need a new TST?
             hasVersionChanged = false;
           }
         }
       }
+    }
 
     // We are only making a new TST if a new word is added, or the language
     // changes, and not upon frequency update
     // In future, we may create a new TST upon frequency update as well
-    // depending on the performane measurements
+    // depending on the performance measurements
     instructUserWorker();
-    }
   }
 
   function instructUserWorker() {
