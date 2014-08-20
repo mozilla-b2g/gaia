@@ -769,7 +769,7 @@ var StatusBar = {
       l10nArgs.date = f.localeFormat(now, _('statusbarDateFormat'));
       label.dataset.l10nArgs = JSON.stringify(l10nArgs);
       this.update.label.call(this);
-
+console.info('here');
       this._updateIconVisibility();
     },
 
