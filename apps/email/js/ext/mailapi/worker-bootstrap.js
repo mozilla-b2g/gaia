@@ -5735,6 +5735,9 @@ MailSlice.prototype = {
   },
 };
 
+
+var FOLDER_DB_VERSION = exports.FOLDER_DB_VERSION = 2;
+
 /**
  * Per-folder message caching/storage; issues per-folder `MailSlice`s and keeps
  * them up-to-date.  Access is mediated through the use of mutexes which must be
@@ -6364,6 +6367,16 @@ FolderStorage.prototype = {
       this._invokeNextMutexedCall();
   },
 
+  /**
+   * This queues the proper upgrade jobs and updates the version, if necessary
+   */
+  upgradeIfNeeded: function() {
+    if (!this.folderMeta.version || FOLDER_DB_VERSION > this.folderMeta.version) {
+      this._account.universe.performFolderUpgrade(this.folderMeta.id);
+    }
+  },
+
+
   _issueNewHeaderId: function() {
     return this._folderImpl.nextId++;
   },
@@ -6419,7 +6432,21 @@ FolderStorage.prototype = {
 
   _deleteHeaderFromBlock: function ifs__deleteHeaderFromBlock(uid, info, block) {
     var idx = block.ids.indexOf(uid), header;
+
+    // Whatever we're looking for should absolutely exist; log an error if it
+    // does not.  But just silently return since there's little to be gained
+    // from blowing up the world.
+    if (idx === -1) {
+      this._LOG.badDeletionRequest('header', null, uid);
+      return;
+    }
+    header = block.headers[idx];
+
     // - remove, update counts
+    if (header.flags && header.flags.indexOf('\\Seen') === -1) {
+      this.folderMeta.unreadCount--;
+    }
+
     block.ids.splice(idx, 1);
     block.headers.splice(idx, 1);
     info.estSize -= $sync.HEADER_EST_SIZE_IN_BYTES;
@@ -9052,6 +9079,11 @@ FolderStorage.prototype = {
                                  this, header, body, callback));
       return;
     }
+
+    if (header.flags && header.flags.indexOf('\\Seen') === -1) {
+      this.folderMeta.unreadCount++;
+    }
+
     this._LOG.addMessageHeader(header.date, header.id, header.srvid);
 
     this.headerCount += 1;
@@ -14532,6 +14564,102 @@ define('mailapi/wakelocks',['require','./worker-router'],function(require) {
 });
 
 /**
+ * This file implements a function which performs a
+ * a streaming search of a folder to determine the count of
+ * headers which match a particular filter.
+ */
+
+
+define('mailapi/headerCounter',
+  [
+    'module',
+    'exports'
+  ],
+  function(
+    $module,
+    exports) {
+
+
+exports.countHeaders = function(storage, filter, options, callback) {
+
+  var fetchClobber = null;
+  if (typeof options === "function") {
+    callback = options;
+  } else {
+    fetchClobber = options.fetchSize;
+  }
+  var matched = 0;
+
+  // Relatively arbitrary value, but makes sure we don't use too much
+  // memory while streaming
+  var fetchSize = fetchClobber || 100;
+  var startTS = null;
+  var startUID = null;
+
+  function gotMessages(dir, callback, headers, moreMessagesComing) {
+    // conditionally indent messages that are non-notable callbacks since we
+    // have more messages coming.  sanity measure for asuth for now.
+    var logPrefix = moreMessagesComing ? 'sf: ' : 'sf:';
+    console.log(logPrefix, 'gotMessages', headers.length, 'more coming?',
+                moreMessagesComing);
+    // update the range of what we have seen and searched
+    if (headers.length) {
+        var lastHeader = headers[headers.length - 1];
+        startTS = lastHeader.date;
+        startUID = lastHeader.id;
+    }
+
+
+    var checkHandle = function checkHandle(headers) {
+
+      // Update the matched count
+      for (i = 0; i < headers.length; i++) {
+        var header = headers[i];
+        var isMatch = filter(header);
+        if (isMatch) {
+          matched++;
+        }
+      }
+
+      var atBottom = storage.headerIsOldestKnown(
+                        startTS, startUID);
+      var canGetMore = !atBottom,
+          wantMore = !moreMessagesComing && canGetMore;
+
+      if (wantMore) {
+        console.log(logPrefix, 'requesting more because want more');
+        getNewMessages(dir, false, true, callback);
+      } else if (!moreMessagesComing) {
+        callback(matched);
+      }
+
+      // (otherwise we need to wait for the additional messages to show before
+      //  doing anything conclusive)
+    }
+
+    checkHandle(headers);
+  }
+
+
+  function getNewMessages (dirMagnitude, userRequestsGrowth, autoDoNotDesireMore,
+    callback) {
+
+    storage.flushExcessCachedBlocks('countHeaders');
+
+    storage.getMessagesBeforeMessage(startTS, startUID,
+        fetchSize, gotMessages.bind(null, 1, callback));
+
+  }
+
+  storage.getMessagesInImapDateRange(
+    0, null, fetchSize, fetchSize,
+    gotMessages.bind(null, 1, callback));
+
+};
+
+}); // end define
+;
+/**
  * Mix-ins for account job functionality where the code is reused.
  **/
 
@@ -14543,7 +14671,9 @@ define('mailapi/jobmixins',
     './wakelocks',
     './date',
     './syncbase',
-    'exports'
+    './mailslice',
+    './headerCounter',
+    'exports',
   ],
   function(
     $router,
@@ -14552,12 +14682,15 @@ define('mailapi/jobmixins',
     $wakelocks,
     $date,
     $sync,
+    $mailslice,
+    $count,
     exports
   ) {
 
 var sendMessage = $router.registerCallbackType('devicestorage');
 
 exports.local_do_modtags = function(op, doneCallback, undo) {
+  var self = this;
   var addTags = undo ? op.removeTags : op.addTags,
       removeTags = undo ? op.addTags : op.removeTags;
   this._partitionAndAccessFoldersSequentially(
@@ -14575,6 +14708,11 @@ exports.local_do_modtags = function(op, doneCallback, undo) {
         if (addTags) {
           for (iTag = 0; iTag < addTags.length; iTag++) {
             tag = addTags[iTag];
+            if (tag === '\\Seen') {
+              storage.folderMeta.unreadCount--;
+              self.account.universe.__notifyModifiedFolder(self.account,
+                storage.folderMeta);
+            }
             // The list should be small enough that native stuff is better
             // than JS bsearch.
             existing = header.flags.indexOf(tag);
@@ -14588,6 +14726,11 @@ exports.local_do_modtags = function(op, doneCallback, undo) {
         if (removeTags) {
           for (iTag = 0; iTag < removeTags.length; iTag++) {
             tag = removeTags[iTag];
+            if (tag === '\\Seen') {
+              storage.folderMeta.unreadCount++;
+              self.account.universe.__notifyModifiedFolder(self.account,
+                storage.folderMeta);
+            }
             existing = header.flags.indexOf(tag);
             if (existing === -1)
               continue;
@@ -15417,7 +15560,18 @@ exports._partitionAndAccessFoldersSequentially = function(
   openNextFolder();
 };
 
-
+exports.local_do_upgradeDB = function (op, doneCallback) {
+  var storage = this.account.getFolderStorageForFolderId(op.folderId);
+  var filter = function(header) {
+    return header.flags &&
+      header.flags.indexOf('\\Seen') === -1;
+  };
+  $count.countHeaders(storage, filter, function(num) {
+    storage.folderMeta.version = $mailslice.FOLDER_DB_VERSION;
+    storage.folderMeta.unreadCount = num;
+    doneCallback();
+  });
+};
 
 }); // end define
 ;
@@ -16427,6 +16581,20 @@ exports.runAfterSaves = function(callback) {
     callback();
   }
 };
+
+/**
+ * This function goes through each folder storage object in
+ * an account and performs the necessary upgrade steps if
+ * there is a new version. See upgradeIfNeeded in mailslice.js.
+ * Note: This function schedules a job for each folderStorage
+ * object in the account.
+ */
+exports.upgradeFolderStoragesIfNeeded = function() {
+  for (var key in this._folderStorages) {
+    var storage = this._folderStorages[key];
+    storage.upgradeIfNeeded();
+  }
+}
 
 }); // end define
 ;
@@ -21246,6 +21414,7 @@ MailUniverse.prototype = {
           this._queueAccountOp(account, op);
         }
       }
+      account.upgradeFolderStoragesIfNeeded();
       callback(account);
     }.bind(this));
   },
@@ -22631,6 +22800,27 @@ MailUniverse.prototype = {
       }
     }
   },
+
+  /**
+   * Trigger the necessary folder upgrade logic
+   */
+  performFolderUpgrade: function(folderId, callback) {
+    var account = this.getAccountForFolderId(folderId);
+    this._queueAccountOp(
+      account,
+      {
+        type: 'upgradeDB',
+        longtermId: 'session',
+        lifecycle: 'do',
+        localStatus: null,
+        serverStatus: 'n/a',
+        tryCount: 0,
+        humanOp: 'append',
+        folderId: folderId
+      },
+      callback
+    );
+  }
 
   //////////////////////////////////////////////////////////////////////////////
 };
