@@ -144,8 +144,11 @@
   pointer-events: none;
 }
 
+
+/* Rocketbar results is normally 7rem tall and should be adjusted by the
+   height of the SHB of 5rem when enabled */
 #screen.software-button-enabled #rocketbar-results {
-  height: calc(100% - 9.8rem);
+  height: calc(100% - 12rem);
 }
 
 #rocketbar-results.hidden, #rocketbar-results iframe.hidden,
