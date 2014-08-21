@@ -709,3 +709,12 @@ form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) > menu 
 form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) header {
   transform: translateY(0);
 }
+
+nav[data-type="scrollbar"] li .pack-icon-ice {
+  width: 1.2rem;
+  height: 1.2rem;
+  font-size: 0;
+  vertical-align: middle;
+  background: transparent no-repeat center center / 1.2rem;
+  background-image: url("/contacts/style/images/ice_small.png");
+}

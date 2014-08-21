@@ -9,6 +9,7 @@
 /* global monitorTagVisibility */
 /* global Normalizer */
 /* global utils */
+/* global ICEStore */
 
 var contacts = window.contacts || {};
 contacts.List = (function() {
@@ -53,7 +54,11 @@ contacts.List = (function() {
       rowsOnScreen = {},
       selectedContacts = {},
       _notifyRowOnScreenCallback = null,
-      _notifyRowOnScreenUUID = null;
+      _notifyRowOnScreenUUID = null,
+      // Will keep an array of contacts ids, not higger than
+      // 2 contacts with current implementation
+      iceContacts = [],
+      iceGroup = null;
 
   // Possible values for the configuration field 'defaultContactsOrder'
   // config.json file (see bug 841693)
@@ -207,9 +212,10 @@ contacts.List = (function() {
   // the search module to access the app's contacts without knowing anything
   // about our DOM structure.
   //
-  // Only provide access to non-favorite nodes.  If we include favorites then
-  // search may see out-of-order and duplicate values.
-  var NODE_SELECTOR = 'section:not(#section-group-favorites) > ol > li';
+  // Sections marked as 'non searchable' will not display the fields, in this
+  // case the favourites sections and the ICE section, since will provide
+  // duplicate results.
+  var NODE_SELECTOR = 'section:not([data-nonsearchable="true"]) > ol > li';
   var searchSource = {
     getNodes: function() {
       var domNodes = contactsListView.querySelectorAll(NODE_SELECTOR);
@@ -284,6 +290,11 @@ contacts.List = (function() {
     };
 
     utils.alphaScroll.init(params);
+    if (iceContacts.length > 0) {
+      utils.alphaScroll.showGroup('ice');
+    } else {
+      utils.alphaScroll.hideGroup('ice');
+    }
   };
 
   var scrollToCb = function scrollCb(domTarget, group) {
@@ -359,6 +370,9 @@ contacts.List = (function() {
     var title = document.createElement('header');
     title.id = 'group-' + group;
     title.className = 'hide';
+    if (group === 'favorites') {
+      letteredSection.dataset.nonsearchable = true;
+    }
 
     var letterAbbr = document.createElement('abbr');
     letterAbbr.setAttribute('title', 'Contacts listed ' + group);
@@ -776,7 +790,71 @@ contacts.List = (function() {
       lazyLoadImages();
       loaded = true;
     });
+
+    loadICE();
   };
+
+  /**
+   * Check if we have ICE contacts information
+   */
+  function loadICE() {
+    LazyLoader.load(['/shared/js/contacts/utilities/ice_store.js'],
+     function() {
+      ICEStore.getContacts().then(displayICEIndicator);
+      ICEStore.onChange(function() {
+        ICEStore.getContacts().then(displayICEIndicator);
+      });
+    });
+  }
+
+  function displayICEIndicator(ids) {
+    if (!ids || ids.length === 0) {
+      if (utils.alphaScroll) {
+        utils.alphaScroll.hideGroup('ice');
+      }
+      hideICEIndicator();
+      return;
+    }
+
+    iceContacts = ids;
+    if (iceGroup === null) {
+      buildICEGroup();
+    } else {
+      iceGroup.classList.remove('hide');
+    }
+
+    utils.alphaScroll.showGroup('ice');
+  }
+
+  function hideICEIndicator() {
+    if (iceGroup) {
+      iceGroup.classList.add('hide');
+    }
+  }
+
+  function buildICEGroup() {
+    iceGroup = document.createElement('section');
+    iceGroup.classList.add('group-section');
+    iceGroup.id = 'section-group-ice';
+    iceGroup.dataset.nonsearchable = true;
+    var list = document.createElement('ol');
+    list.dataset.group = 'ice';
+    list.id = 'contact-list-ice';
+    list.role = 'listbox';
+    var elem = document.createElement('li');
+    elem.classList.add('contact-item');
+    elem.dataset.group = 'ice';
+    var icon = document.createElement('span');
+    icon.src = '/contacts/style/images/icon_ice.png';
+    var p = document.createElement('p');
+    p.classList.add('contact-text');
+    p.textContent = 'ICE contacts';
+
+    groupsList.insertBefore(iceGroup,
+     groupsList.firstChild).appendChild(list).appendChild(elem);
+    elem.appendChild(icon);
+    elem.appendChild(p);
+  }
 
   var isFavorite = function isFavorite(contact) {
     return contact.category && contact.category.indexOf('favorite') != -1;

@@ -665,3 +665,22 @@ html[dir="rtl"] .view-body-inner,
 html[dir="rtl"] ::-moz-placeholder {
   text-align: right;
 }
+
+#contact-list-ice {
+  padding-left: 1rem
+}
+
+#contact-list-ice li {
+  display: flex;
+  align-items: baseline;
+}
+
+#contact-list-ice span {
+  width: 3rem;
+  height: 3rem;
+  background: url("/contacts/style/images/icon_ice.png");
+}
+
+#groups-list.selecting #contact-list-ice {
+  display:none;
+}
