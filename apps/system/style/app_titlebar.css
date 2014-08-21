@@ -66,11 +66,13 @@
   visibility: hidden;
 }
 
-/* Homescreen must show the maximised status bar */
-#homescreen .chrome + .titlebar .titlebar-maximized {
+/* Homescreen and lockscreen must show the maximised status bar */
+#homescreen .chrome + .titlebar .titlebar-maximized,
+.lockScreenWindow .chrome + .titlebar .titlebar-maximized {
   opacity: 1;
 }
 
-#homescreen .chrome + .titlebar .titlebar-minimized {
+#homescreen .chrome + .titlebar .titlebar-minimized,
+.lockScreenWindow .chrome + .titlebar .titlebar-minimized {
   opacity: 0;
 }
