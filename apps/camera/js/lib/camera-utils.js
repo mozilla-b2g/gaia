@@ -75,6 +75,15 @@ define(function(require) {
 
       var targetRatio = targetSize.width / targetSize.height;
 
+      // If there are preview sizes smaller than our screen,
+      // omit them to not risk blurry images.
+      var largerPreviewSizes = previewSizes.filter(function(previewSize) {
+        return previewSize.height >= targetHeight;
+      });
+      if (largerPreviewSizes.length !== 0) {
+        previewSizes = largerPreviewSizes;
+      }
+
       // Try to find an size match aspect ratio and size
       previewSizes.forEach(function(previewSize) {
         var ratio = previewSize.width / previewSize.height;
