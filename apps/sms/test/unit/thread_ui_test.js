@@ -12,7 +12,8 @@
          DocumentFragment,
          Errors,
          MockCompose,
-         AssetsHelper
+         AssetsHelper,
+         triggerEvent
 */
 
 'use strict';
@@ -29,6 +30,7 @@ require('/js/shared_components.js');
 require('/js/utils.js');
 require('/js/errors.js');
 
+require('/test/unit/helper.js');
 require('/test/unit/mock_time_headers.js');
 require('/test/unit/mock_link_action_handler.js');
 require('/test/unit/mock_attachment.js');
@@ -2487,7 +2489,7 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
 
       ThreadUI.beforeEnter(transitionArgs);
-      document.getElementById('messages-back-button').click();
+      triggerEvent(document.getElementById('messages-header'), 'action');
 
       Navigation.isCurrentPanel.withArgs('thread').returns(true);
       ThreadUI.afterEnter(transitionArgs);
