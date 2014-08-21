@@ -1,6 +1,6 @@
 'use strict';
 
-/* global DialerAgent, MocksHelper, MockNavigatorMozTelephony,
+/* global DialerAgent, MocksHelper, MockNavigatorMozTelephony, MockVersionHelper
           MockSettingsListener, MockSettingsURL, MockAudio, MockApplications */
 
 require('/js/dialer_agent.js');
@@ -8,6 +8,7 @@ require('/test/unit/mock_app_window.js');
 require('/test/unit/mock_applications.js');
 require('/test/unit/mock_attention_window.js');
 require('/test/unit/mock_callscreen_window.js');
+require('/test/unit/mock_version_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_audio.js');
@@ -17,12 +18,14 @@ var mocksForDialerAgent = new MocksHelper([
   'CallscreenWindow',
   'Audio',
   'SettingsListener',
-  'SettingsURL'
+  'SettingsURL',
+  'VersionHelper'
 ]).init();
 
 suite('system/DialerAgent', function() {
   mocksForDialerAgent.attachTestHelpers();
-  var realTelephony, realVibrate, realSystem, realApplications;
+  var realTelephony, realVibrate, realSystem, realApplications,
+      realVersionHelper;
 
   var subject;
   var setVisibleSpy;
@@ -39,6 +42,8 @@ suite('system/DialerAgent', function() {
     realVibrate = navigator.vibrate;
     realSystem = window.System;
     window.System = {locked: false};
+    realVersionHelper = window.VersionHelper;
+    window.VersionHelper = MockVersionHelper(false);
   });
 
   suiteTeardown(function() {
