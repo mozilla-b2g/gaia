@@ -684,19 +684,19 @@ suite('lib/camera/focus', function() {
 
     test('it updates focus area and focus fails', function() {
       this.focus.touchFocus = true;
-      this.focus.focus.callsArgWith(0, 'failed');
       var onFocused = sinon.spy();
       this.focus.updateFocusArea(null, onFocused);
       assert.ok(this.focus.focus.called);
+      this.focus.focus.callArgWith(0, 'failed');
       assert.ok(onFocused.calledWith('failed'));
     });
 
     test('it updates focus area and ignores focus interrupted', function() {
       this.focus.touchFocus = true;
-      this.focus.focus.callsArgWith(0, 'interrupted');
       var onFocused = sinon.spy();
       this.focus.updateFocusArea(null, onFocused);
       assert.ok(this.focus.focus.called);
+      this.focus.focus.callArgWith(0, 'interrupted');
       assert.ok(!onFocused.called);
     });
   });
