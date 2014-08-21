@@ -13,7 +13,7 @@
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
          LockScreenNotifications, LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor, LockScreenNotificationBuilder,
-         BrowserSettings */
+         BrowserSettings, AppMigrator */
 'use strict';
 
 
@@ -115,6 +115,8 @@ window.addEventListener('load', function startup() {
   window.activities = new Activities();
   window.accessibility = new Accessibility();
   window.accessibility.start();
+  window.appMigrator = new AppMigrator();
+  window.appMigrator.start();
   window.appUsageMetrics = new AppUsageMetrics();
   window.appUsageMetrics.start();
   window.appWindowFactory = new AppWindowFactory();
