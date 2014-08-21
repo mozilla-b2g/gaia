@@ -1073,8 +1073,6 @@
         carrier: recipient.carrier
       });
 
-      navigator.mozL10n.translate(dialogBody);
-
       // Dialog will have a closure reference to the response
       // object, therefore it's not necessary to pass it around
       // as an explicit param list item.

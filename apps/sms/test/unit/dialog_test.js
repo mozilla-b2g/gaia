@@ -162,7 +162,7 @@ suite('Dialog', function() {
         l10nId: 'l10n keyConfirm'
       }
     };
-    var l10nSpy = this.sinon.spy(navigator.mozL10n, 'localize');
+    var l10nSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
     // Now we create the new element
     var dialog = new Dialog(params);
     // We append the element to the DOM
@@ -212,7 +212,6 @@ suite('Dialog', function() {
       }
     };
 
-    var l10nSpy = this.sinon.spy(navigator.mozL10n, 'localize');
     // Now we create the new element
     var dialog = new Dialog(params);
     // We append the element to the DOM
@@ -225,7 +224,7 @@ suite('Dialog', function() {
     // We check how many buttons we have (mandatory + confirm one)
     var bodyDOM = dialogForm.querySelector('small');
     // We check localization
-    assert.ok(l10nSpy.calledWith(bodyDOM, params.body.l10nId),
+    assert.equal(bodyDOM.getAttribute('data-l10n-id'), params.body.l10nId,
       'Body DOM localized with proper string');
   });
 });
