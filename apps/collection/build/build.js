@@ -95,6 +95,5 @@ CollectionAppBuilder.prototype.execute = function(options) {
 };
 
 exports.execute = function(options) {
-  utils.copyToStage(options);
   (new CollectionAppBuilder()).execute(options);
 };

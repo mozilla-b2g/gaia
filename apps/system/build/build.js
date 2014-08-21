@@ -47,7 +47,6 @@ SystemAppBuilder.prototype.initConfigJsons = function() {
 };
 
 SystemAppBuilder.prototype.execute = function(options) {
-  utils.copyToStage(options);
   this.setOptions(options);
   this.initConfigJsons();
   if (this.distDirPath) {

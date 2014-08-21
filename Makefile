@@ -485,6 +485,25 @@ endef
 
 export BUILD_CONFIG
 
+define app-makefile-template
+.PHONY: $(1)
+$(1): $(XULRUNNER_BASE_DIRECTORY) pre-app | $(STAGE_DIR)
+	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
+		if [ -r "$(2)$(SEP)Makefile" ]; then \
+			echo "execute Makefile for $(1) app" ; \
+			STAGE_APP_DIR="../../build_stage/$(1)" make -C "$(2)" ; \
+		else \
+			echo "copy $(1) to build_stage/" ; \
+			cp -LR "$(2)" $(STAGE_DIR) && \
+			if [ -r "$(2)$(SEP)build$(SEP)build.js" ]; then \
+				echo "execute $(1)/build/build.js"; \
+				export APP_DIR=$(2); \
+				$(call run-js-command,app/build); \
+			fi; \
+		fi; \
+  fi;
+endef
+
 include build/common.mk
 
 # Generate profile/
@@ -496,18 +515,29 @@ endif
 $(STAGE_DIR):
 	mkdir -p $@
 
+ifeq (${BUILD_APP_NAME},*)
+APP_RULES := $(foreach appdir,$(GAIA_APPDIRS),$(notdir $(appdir)))
+else
+APP_RULES := ${BUILD_APP_NAME}
+endif
+$(foreach appdir,$(GAIA_APPDIRS), \
+	$(eval $(call app-makefile-template,$(notdir $(appdir)),$(appdir))) \
+)
+
+
+# FIXME: we use |STAGE_APP_DIR="../../build_stage/$$APP"| here because we got
+# some problem on Windows if use absolute path.
+.PHONY: app-makefiles
+app-makefiles: $(APP_RULES)
+
 LANG=POSIX # Avoiding sort order differences between OSes
 
 .PHONY: pre-app
 pre-app: $(XULRUNNER_BASE_DIRECTORY) $(STAGE_DIR)
 	@$(call run-js-command,pre-app)
 
-.PHONY: app
-app: $(XULRUNNER_BASE_DIRECTORY) pre-app | $(STAGE_DIR)
-	@$(call run-js-command,app)
-
 .PHONY: post-app
-post-app: app pre-app $(XULRUNNER_BASE_DIRECTORY)
+post-app: app-makefiles pre-app $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,post-app)
 
 # Keep old targets just for people/scripts still using it
@@ -546,7 +576,7 @@ endif
 endif
 
 # Create webapps
-offline: app post-app
+offline: app-makefiles post-app
 
 # Create an empty reference workload
 .PHONY: reference-workload-empty
@@ -722,7 +752,7 @@ test-perf:
 	./bin/gaia-perf-marionette
 
 .PHONY: tests
-tests: app offline
+tests: app-makefiles offline
 	echo "Checking if the mozilla build has tests enabled..."
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."

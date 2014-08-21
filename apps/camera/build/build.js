@@ -8,9 +8,7 @@ function optimize(options) {
   var r = require('r-wrapper').get(options.GAIA_DIR);
   var configFile = utils.getFile(options.APP_DIR, 'build',
     'require_config.jslike');
-  var optimizeOption = 'optimize=' + (options.GAIA_OPTIMIZE === '1' ?
-    'uglify2' : 'none');
-  r.optimize([configFile.path, optimizeOption]);
+  r.optimize([configFile.path]);
 }
 
 function copyUserConfig(options) {
