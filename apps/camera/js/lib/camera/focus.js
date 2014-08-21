@@ -30,7 +30,6 @@ Focus.prototype.configure = function(mozCamera, focusMode) {
   var focusModes = mozCamera.capabilities.focusModes;
   this.mozCamera = mozCamera;
   this.configureFocusModes();
-
   // User preferences override defaults
   if (focusMode === 'continuous-picture' ||
       focusMode === 'continuous-video') {
@@ -48,25 +47,13 @@ Focus.prototype.configure = function(mozCamera, focusMode) {
     focusMode = focusModes[0];
   }
 
-  this.setMode(focusMode);
+  mozCamera.focusMode = focusMode;
 
 };
 
 Focus.prototype.getMode = function() {
-  return this.mode;
-};
-
-Focus.prototype.setMode = function(mode) {
   var mozCamera = this.mozCamera;
-  this.previousMode = this.mode;
-  mozCamera.focusMode = this.mode = mode;
-  this.reset();
-  return mode;
-};
-
-Focus.prototype.restoreMode = function() {
-  var mode = this.setMode(this.previousMode);
-  return mode;
+  return this.suspendedMode || mozCamera.focusMode;
 };
 
 /**
@@ -133,12 +120,15 @@ Focus.prototype.stopContinuousFocus = function() {
   // Clear suspension timers
   clearTimeout(this.continuousModeTimer);
   if (focusMode === 'continuous-picture' || focusMode === 'continuous-video') {
-    this.setMode('auto');
+    this.suspendedMode = this.mozCamera.focusMode;
+    this.mozCamera.focusMode = 'auto';
   }
 };
 
 Focus.prototype.resumeContinuousFocus = function() {
-  this.restoreMode();
+  this.mozCamera.focusMode = this.suspendedMode;
+  this.suspendedMode = null;
+  this.resetFocusAreas();
   this.mozCamera.resumeContinuousFocus();
 };
 
@@ -282,7 +272,7 @@ Focus.prototype.focus = function(done) {
 /**
  * Resets focus regions
  */
-Focus.prototype.reset = function() {
+Focus.prototype.resetFocusAreas = function() {
   if (!this.touchFocus) {
     return;
   }
