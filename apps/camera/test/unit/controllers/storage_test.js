@@ -83,7 +83,7 @@ suite('controllers/storage', function() {
 
   suite('StorageController#storePicture()', function() {
     setup(function() {
-      this.storage.addPicture.callsArgWith(1, '<filepath>', '<abspath>', '<file-blob>');
+      this.storage.addPicture.callsArgWith(1, null, '<filepath>', '<abspath>', '<file-blob>');
 
       this.picture = { blob: '<memory-blob>' };
       this.controller.storePicture(this.picture);
@@ -108,7 +108,7 @@ suite('controllers/storage', function() {
 
   suite('StorageController#storeVideo()', function() {
     setup(function() {
-      this.storage.addPicture.callsArgWith(2, '<filepath>', '<abspath>', '<file-blob>');
+      this.storage.addPicture.callsArgWith(2, null, '<filepath>', '<abspath>', '<file-blob>');
 
       this.video = {
         blob: '<file-blob>',

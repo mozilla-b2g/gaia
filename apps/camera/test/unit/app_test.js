@@ -116,6 +116,7 @@ suite('app', function() {
     this.sandbox.spy(this.App.prototype, 'boot');
     this.sandbox.spy(this.App.prototype, 'onReady');
     this.sandbox.spy(this.App.prototype, 'showSpinner');
+    this.sandbox.spy(this.App.prototype, 'clearSpinner');
 
     // Aliases
     this.settings = options.settings;
@@ -212,9 +213,9 @@ suite('app', function() {
       var callback = on.args[0][1];
 
       // Call the callback and make sure
-      // that `onReady` was called.
+      // that `clearSpinner` was called.
       callback();
-      sinon.assert.calledOnce(this.App.prototype.onReady);
+      sinon.assert.calledOnce(this.App.prototype.clearSpinner);
     });
 
     test('It calls `showSpinner`', function() {
@@ -270,6 +271,7 @@ suite('app', function() {
 
         sinon.stub(this.app, 'onReady');
         sinon.spy(this.app, 'loadLazyControllers');
+        sinon.stub(this.app, 'clearSpinner');
         sinon.spy(this.app, 'loadL10n');
 
         // Call the callback to test
@@ -426,7 +428,7 @@ suite('app', function() {
     });
   });
 
-  suite('App#onReady()', function() {
+  suite('App#clearSpinner()', function() {
     setup(function() {
       this.sandbox.spy(window, 'clearTimeout');
       this.sandbox.stub(window, 'setTimeout').returns('<timeout-id>');
@@ -437,19 +439,20 @@ suite('app', function() {
     test('Should clear loadingTimeout', function() {
       this.app.showSpinner();
       this.app.onReady();
+      this.app.clearSpinner();
       sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
     });
 
     test('Should hide, then destroy the view', function() {
       var view = this.app.views.loading;
-      this.app.onReady();
+      this.app.clearSpinner();
 
       sinon.assert.called(view.hide);
       assert.ok(view.destroy.calledAfter(view.hide));
     });
 
     test('Should clear reference to `app.views.loading`', function() {
-      this.app.onReady();
+      this.app.clearSpinner();
       assert.equal(this.app.views.loading, null);
     });
   });
