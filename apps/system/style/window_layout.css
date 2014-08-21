@@ -48,15 +48,16 @@
   width: 100%;
   height: 100%;
 
-  overflow: hidden;
-
   border: 0;
   margin: 0;
   padding: 0;
 
   background-repeat: no-repeat;
   background-position: center center;
-  transform: translateX(0);
+}
+
+.homescreen {
+  overflow: hidden;
 }
 
 #screen.active-statusbar #windows > .appWindow {
@@ -193,22 +194,10 @@
 .appWindow.scrollable > div.browser-container {
   overflow-x: hidden;
   overflow-y: scroll;
-
-  /*
-     Bug 1041576. The +1rem size is a workaround around the current lack of
-     overflow property that hides browser scrollbars but still authorize a
-     scrollable area to be scrollable.
-  */
-  width: calc(100% + 1rem);
-}
-
-.appWindow.scrollable > div.browser-container > div {
-  width: calc(100% - 1rem);
 }
 
 .appWindow.scrollable > div.browser-container > iframe {
   top: 4.6rem;
-  width: calc(100% - 1rem);
 }
 
 /*****************************************************************************\
