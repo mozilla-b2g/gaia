@@ -100,7 +100,11 @@
      * @memberof Accessibility.prototype
      */
     start: function ar_init() {
+
+      this.screen = document.getElementById('screen');
+
       window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('logohidden', this);
 
       // Attach all observers.
       Object.keys(this.settings).forEach(function attach(settingKey) {
@@ -115,8 +119,7 @@
                   'accessibility.show-settings': true
                 });
               }
-              var screen = document.getElementById('screen');
-              screen.classList.toggle('screenreader', aValue);
+              this.screen.classList.toggle('screenreader', aValue);
             }
           }.bind(this));
       }, this);
@@ -257,18 +260,37 @@
     },
 
     /**
+     * Remove aria-hidden from the screen element to make content accessible to
+     * the screen reader.
+     * @memberof Accessibility.prototype
+     */
+    activateScreen: function ar_activateScreen() {
+      // Screen reader will not say anything until the splash animation is
+      // hidden and the aria-hidden attribute is removed from #screen.
+      this.screen.removeAttribute('aria-hidden');
+      window.removeEventListener('logohidden', this);
+    },
+
+    /**
      * Handle a mozChromeEvent event.
      * @param  {Object} aEvent mozChromeEvent.
      * @memberof Accessibility.prototype
      */
     handleEvent: function ar_handleEvent(aEvent) {
-      switch (aEvent.detail.type) {
-        case 'accessibility-output':
-          this.handleAccessFuOutput(JSON.parse(aEvent.detail.details));
+      switch (aEvent.type) {
+        case 'logohidden':
+          this.activateScreen();
           break;
-        case 'volume-up-button-press':
-        case 'volume-down-button-press':
-          this.handleVolumeButtonPress(aEvent);
+        case 'mozChromeEvent':
+          switch (aEvent.detail.type) {
+            case 'accessibility-output':
+              this.handleAccessFuOutput(JSON.parse(aEvent.detail.details));
+              break;
+            case 'volume-up-button-press':
+            case 'volume-down-button-press':
+              this.handleVolumeButtonPress(aEvent);
+              break;
+          }
           break;
       }
     },
