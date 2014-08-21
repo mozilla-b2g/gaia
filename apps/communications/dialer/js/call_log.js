@@ -647,12 +647,12 @@ var CallLog = {
         });
       }
     } else {
+      evt.preventDefault();
       var primaryInfo = logItem.querySelector('.primary-info-main').textContent;
 
       LazyLoader.load('/dialer/js/call_group_menu.js', function() {
         CallGroupMenu.show(
           primaryInfo, phoneNumber, dataset.timestamp, dataset.type);
-        evt.preventDefault();
       });
     }
   },

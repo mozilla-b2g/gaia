@@ -42,6 +42,8 @@ suite('Add Contact menu', function() {
   suite('Create new contact', function() {
     setup(function() {
       this.sinon.spy(window, 'MozActivity');
+
+      // Fake clicking on the first button
       var item = OptionMenu.calls[0].items[0];
       item.method.apply(null, item.params);
     });
@@ -58,9 +60,12 @@ suite('Add Contact menu', function() {
       );
     });
   });
+
   suite('Add to existing contact', function() {
     setup(function() {
       this.sinon.spy(window, 'MozActivity');
+
+      // Fake clicking on the second button
       var item = OptionMenu.calls[0].items[1];
       item.method.apply(null, item.params);
     });

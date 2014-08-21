@@ -7,7 +7,7 @@ require('/dialer/test/unit/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_option_menu.js');
 
-requireApp('communications/dialer/js/call_group_menu.js');
+require('/dialer/js/call_group_menu.js');
 
 var mocksHelperForPhoneActionMenu = new MocksHelper([
   'CallInfo',
@@ -19,10 +19,11 @@ var mocksHelperForPhoneActionMenu = new MocksHelper([
 suite('Call Group menu', function() {
   mocksHelperForPhoneActionMenu.attachTestHelpers();
 
-  var fakePrimaryInfo = 'Bruce Wayne';
+  var fakePrimaryInfo = 'Jean-Baptiste Poquelin';
   var fakePhoneNumber = '123';
   var fakeDate = '123456789';
   var fakeType = 'incoming';
+
   setup(function() {
     CallGroupMenu.show(fakePrimaryInfo, fakePhoneNumber, fakeDate, fakeType);
   });
@@ -47,6 +48,8 @@ suite('Call Group menu', function() {
   suite('Displaying call information', function() {
     setup(function() {
       this.sinon.spy(CallInfo, 'show');
+
+      // Fake clicking on the first button
       var item = OptionMenu.calls[0].items[0];
       item.method.apply(null, item.params);
     });
@@ -60,6 +63,8 @@ suite('Call Group menu', function() {
   suite('Sending a SMS', function() {
     setup(function() {
       this.sinon.spy(window, 'MozActivity');
+
+      // Fake clicking on the second button
       var item = OptionMenu.calls[0].items[1];
       item.method.apply(null, item.params);
     });

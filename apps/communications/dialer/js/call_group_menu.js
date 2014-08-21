@@ -7,13 +7,13 @@
 var CallGroupMenu = (function() {
 
   var _showCallInfo = function(phoneNumber, day, type) {
-    LazyLoader.load(['/dialer/js/call_info.js', '/dialer/style/call_info.css'],
-    function() {
+    LazyLoader.load(['/dialer/js/call_info.js',
+                     '/dialer/style/call_info.css'], function() {
       CallInfo.show(phoneNumber, day, type);
     });
   };
 
-  var _sendSms = function _sendSms(phoneNumber) {
+  var _sendSms = function(phoneNumber) {
     /* jshint nonew: false */
     try {
       new MozActivity({
@@ -29,7 +29,7 @@ var CallGroupMenu = (function() {
   };
 
   return {
-    show: function show(groupPrimaryInfo, phoneNumber, day, type) {
+    show: function(groupPrimaryInfo, phoneNumber, day, type) {
       var params = {
         items: [{
           l10nId: 'callInformation',
@@ -48,7 +48,7 @@ var CallGroupMenu = (function() {
       };
 
       LazyLoader.load(['/shared/js/option_menu.js',
-                       '/shared/style/action_menu.css'], function () {
+                       '/shared/style/action_menu.css'], function() {
         new OptionMenu(params).show();
       });
     }

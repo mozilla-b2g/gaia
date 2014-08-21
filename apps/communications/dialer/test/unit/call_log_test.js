@@ -710,10 +710,10 @@ suite('dialer/call_log', function() {
 
   suite('Opening contact details', function() {
     var groupDOM;
-    var CallGroupMenuSpy;
+    var callGroupMenuSpy;
 
     setup(function() {
-      CallGroupMenuSpy = this.sinon.spy(CallGroupMenu, 'show');
+      callGroupMenuSpy = this.sinon.spy(CallGroupMenu, 'show');
     });
 
     test('regular number', function() {
@@ -721,7 +721,7 @@ suite('dialer/call_log', function() {
       CallLog.handleEvent({target: groupDOM, preventDefault: function() {}});
 
       sinon.assert.calledWith(
-        CallGroupMenuSpy,
+        callGroupMenuSpy,
         incomingGroup.contact.primaryInfo,
         incomingGroup.contact.matchingTel.value,
         incomingGroup.lastEntryDate.toString(),
@@ -734,7 +734,7 @@ suite('dialer/call_log', function() {
       CallLog.handleEvent({target: groupDOM, preventDefault: function() {}});
 
       sinon.assert.calledWith(
-        CallGroupMenuSpy,
+        callGroupMenuSpy,
         missedGroup.contact.primaryInfo,
         missedGroup.contact.matchingTel.value,
         missedGroup.lastEntryDate.toString(),

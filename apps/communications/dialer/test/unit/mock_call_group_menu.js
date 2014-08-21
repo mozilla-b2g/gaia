@@ -3,6 +3,5 @@
 /* exported MockCallGroupMenu */
 
 var MockCallGroupMenu = {
-  show: function(contactId, phoneNumber, day, type) {
-  }
+  show: function(contactId, phoneNumber, day, type) {}
 };

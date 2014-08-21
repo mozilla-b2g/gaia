@@ -66,7 +66,6 @@ require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_option_menu.js');
 
-
 var mocksHelperForThreadUI = new MocksHelper([
   'asyncStorage',
   'Attachment',

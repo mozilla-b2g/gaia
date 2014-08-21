@@ -6,15 +6,15 @@
 
 var AddContactMenu = (function() {
 
-  var _createNewContact = function _createNewContact(phoneNumber) {
+  var _createNewContact = function(phoneNumber) {
     launchActivity('new', phoneNumber);
   };
 
-  var _addToExistingContact = function _addToExistingContact(phoneNumber) {
+  var _addToExistingContact = function(phoneNumber) {
     launchActivity('update', phoneNumber);
   };
 
-  var launchActivity = function launchActivity(name, phoneNumber) {
+  var launchActivity = function(name, phoneNumber) {
     var options = {
       name: name,
       data: {
@@ -33,7 +33,7 @@ var AddContactMenu = (function() {
   };
 
   return {
-    show: function show(phoneNumber) {
+    show: function(phoneNumber) {
       var params = {
         items: [{
           l10nId: 'createNewContact',
@@ -51,7 +51,7 @@ var AddContactMenu = (function() {
       };
 
       LazyLoader.load(['/shared/js/option_menu.js',
-                       '/shared/style/action_menu.css'], function () {
+                       '/shared/style/action_menu.css'], function() {
         /* jshint nonew: false */
         new OptionMenu(params).show();
       });
