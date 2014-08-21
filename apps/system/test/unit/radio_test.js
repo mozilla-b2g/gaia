@@ -32,6 +32,7 @@ suite('Radio > ', function() {
     // Don't cache this when testing, otherwise would be get 
     // lots of failures
     Radio._mozMobileConnections = null;
+    Radio._expectedRadioStates = [null, null];
   });
 
   suite('internal _doSetRadioEnabled', function() {
@@ -45,6 +46,97 @@ suite('Radio > ', function() {
       var conn = MockNavigatorMozMobileConnections[0];
       conn.triggerEventListeners('radiostatechange');
       sinon.assert.called(Radio._doSetRadioEnabled);
+    });
+  });
+
+  suite('internal _reEnableRadioIfNeeded', function() {
+    setup(function() {
+      this.sinon.stub(Radio, '_setRadioEnabled');
+    });
+
+    test('conn.radioState is "disabled" and Radio.enabled is true', function() {
+      var mockMobileConnection = { radioState: 'disabled' };
+      Radio._enabled = true;
+      Radio._reEnableRadioIfNeeded(mockMobileConnection);
+      // _setRadioEnabled is called with correct parameters
+      sinon.assert
+        .calledWith(Radio._setRadioEnabled, mockMobileConnection, true);
+    });
+
+    ['enabled', 'enabling', 'disabling'].forEach((state) => {
+      test('conn.radioState is ' + state, function() {
+        var mockMobileConnection = { radioState: state };
+        Radio._reEnableRadioIfNeeded(mockMobileConnection);
+        sinon.assert.notCalled(Radio._setRadioEnabled);
+      });
+    });
+
+    test('Radio.enabled is false', function() {
+      var mockMobileConnection = { radioState: 'enabled' };
+      Radio._enabled = false;
+      Radio._reEnableRadioIfNeeded(mockMobileConnection);
+      sinon.assert.notCalled(Radio._setRadioEnabled);
+    });
+  });
+
+  suite('internal _onRadioStateChange', function() {
+    setup(function() {
+      this.sinon.stub(Radio, '_reEnableRadioIfNeeded');
+    });
+
+    test('without expected states', function() {
+      var mockMobileConnection = {};
+      Radio._onRadioStateChange(mockMobileConnection, 0);
+      sinon.assert
+        .calledWith(Radio._reEnableRadioIfNeeded, mockMobileConnection, 0);
+    });
+
+    suite('with an expected states that equals true', function() {
+      var expectedState = true;
+
+      suiteSetup(function() {
+        expectedState = true;
+      });
+
+      test('radio state is enabled', function() {
+        var mockMobileConnection = { radioState: 'enabled' };
+        Radio._expectedRadioStates[0] = expectedState;
+        Radio._onRadioStateChange(mockMobileConnection, 0);
+        assert.equal(Radio._expectedRadioStates[0], null);
+      });
+
+      ['disabled', 'enabling', 'disabling'].forEach((state) => {
+        test('radio state is ' + state, function() {
+          var mockMobileConnection = { radioState: state };
+          Radio._expectedRadioStates[0] = expectedState;
+          Radio._onRadioStateChange(mockMobileConnection, 0);
+          assert.equal(Radio._expectedRadioStates[0], expectedState);
+        });
+      });
+    });
+
+    suite('with an expected states that equals false', function() {
+      var expectedState = false;
+
+      suiteSetup(function() {
+        expectedState = false;
+      });
+
+      test('radio state is disabled', function() {
+        var mockMobileConnection = { radioState: 'disabled' };
+        Radio._expectedRadioStates[0] = expectedState;
+        Radio._onRadioStateChange(mockMobileConnection, 0);
+        assert.equal(Radio._expectedRadioStates[0], null);
+      });
+
+      ['enabled', 'enabling', 'disabling'].forEach((state) => {
+        test('radio state is ' + state, function() {
+          var mockMobileConnection = { radioState: state };
+          Radio._expectedRadioStates[0] = expectedState;
+          Radio._onRadioStateChange(mockMobileConnection, 0);
+          assert.equal(Radio._expectedRadioStates[0], expectedState);
+        });
+      });
     });
   });
 
