@@ -1,6 +1,7 @@
 define(function(require) {
   'use strict';
 
+  var SettingsListener = require('shared/settings_listener');
   var SettingsPanel = require('modules/settings_panel');
   var PermissionDetail =
     require('panels/app_permissions_detail/app_permissions_detail');
@@ -24,6 +25,7 @@ define(function(require) {
 
     return SettingsPanel({
       onInit: function(panel, options) {
+        this._verbose = null;
         elements = {
           back: panel.querySelector('.app-permissions-back'),
           uninstallButton: panel.querySelector('.uninstall-app'),
@@ -37,11 +39,15 @@ define(function(require) {
           detailTitle:
             panel.querySelector('.app-permissions-back + h1')
         };
+        SettingsListener.observe('debug.verbose_app_permissions', false,
+          function(enabled) {
+            this._verbose = enabled;
+          }.bind(this));
         permissionDetailModule.init(elements, options.permissionsTable);
       },
 
       onBeforeShow: function(panel, options) {
-        permissionDetailModule.showAppDetails(options.app);
+        permissionDetailModule.showAppDetails(options.app, this._verbose);
         bindEvents(elements);
       },
 

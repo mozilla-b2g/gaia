@@ -38,7 +38,9 @@ define(function(require) {
     /**
      * Show app detail page.
      */
-    showAppDetails: function pd_show_app_details(app) {
+    showAppDetails: function pd_show_app_details(app, verbose) {
+      this._isValidPerm = verbose ? this._isValidVerbosePerm
+                                  : this._isExplicitPerm;
       this._app = app;
       var table = this._permissionsTable;
       var elements = this._elements;
@@ -74,7 +76,7 @@ define(function(require) {
       table.plainPermissions.forEach(function(perm) {
         var value = mozPerms.get(perm, app.manifestURL,
           app.origin, false);
-        if (this._isExplicitPerm(app, perm, value)) {
+        if (this._isValidPerm(app, perm, value)) {
           this._insertPermissionSelect(perm, value);
         }
       }, this);
@@ -85,7 +87,7 @@ define(function(require) {
           var composedPerm = perm + '-' + mode;
           value = mozPerms.get(composedPerm, app.manifestURL, app.origin,
             false);
-          if (this._isExplicitPerm(app, composedPerm, value)) {
+          if (this._isValidPerm(app, composedPerm, value)) {
             return true;
           }
           return false;
@@ -103,6 +105,12 @@ define(function(require) {
       var isExplicit = mozPerms.isExplicit(perm, app.manifestURL,
                                            app.origin, false);
       return (isExplicit && value !== 'unknown');
+    },
+
+    _isValidVerbosePerm: function pd_displayPermVerbose(app, perm, value) {
+      if (app.manifest.type !== 'certified') {
+        return (value !== 'unknown');
+      }
     },
 
     /**
