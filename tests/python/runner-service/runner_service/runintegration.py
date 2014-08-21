@@ -19,17 +19,20 @@ gaia_dir = os.path.abspath(os.path.join(here, '../../../../'))
 
 class GaiaIntegrationRunner(object):
 
-    def __init__(self, manifest=None):
+    def __init__(self, manifest=None, buildapp=None):
         self.manifest = manifest or os.path.join(gaia_dir, 'shared', 'test',
                                                  'integration', 'manifest.ini')
         if self.manifest.endswith('.ini'):
             self.manifest = self.convert_ini_manifest_to_json(self.manifest)
 
+        self.buildapp = buildapp
+
     def run_gi(self):
         command = ['make', 'test-integration-test',
                    'REPORTER=mocha-socket-reporter',
                    'MARIONETTE_RUNNER_HOST=marionette-socket-host',
-                   'TEST_MANIFEST=%s' % self.manifest,]
+                   'TEST_MANIFEST=%s' % self.manifest,
+                   'BUILDAPP=%s' % self.buildapp]
         # TODO use mozprocess?
         self.proc = subprocess.Popen(command, cwd=gaia_dir)
 
@@ -71,7 +74,7 @@ def cli(args=sys.argv[1:]):
     listener = SocketListener()
     listener.add_runner_handler(rhandler)
 
-    integration = GaiaIntegrationRunner(manifest=args.manifest)
+    integration = GaiaIntegrationRunner(manifest=args.manifest, buildapp=args.buildapp)
     integration.run_gi()
 
     try:

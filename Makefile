@@ -161,6 +161,10 @@ endif
 endif
 
 REPORTER?=spec
+# BUILDAPP variable defines the target b2g platform (eg desktop, device)
+# and exports it for the gaia-marionette script
+BUILDAPP?=desktop
+export BUILDAPP
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
@@ -735,7 +739,8 @@ test-integration-test:
 	./bin/gaia-marionette \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--manifest $(TEST_MANIFEST) \
-		--reporter $(REPORTER)
+		--reporter $(REPORTER) \
+		--buildapp $(BUILDAPP)
 
 .PHONY: caldav-server-install
 caldav-server-install:
