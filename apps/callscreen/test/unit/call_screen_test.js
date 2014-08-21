@@ -856,32 +856,48 @@ suite('call screen', function() {
   suite('showClock in screen locked status', function() {
     var formatArgs = [],
         currentDate,
-        fakeClockTime = '12:02 <span>PM</span>',
+        fakeClockTime12 = '12:02 <span>PM</span>',
+        fakeClockTime24 = '13:14',
         fakeDate = 'Monday, September 16';
 
     setup(function() {
       this.sinon.stub(navigator.mozL10n, 'DateTimeFormat', function() {
         this.localeFormat = function(date, format) {
           formatArgs.push(arguments);
-          if (format === 'shortTimeFormat') {
-            return fakeClockTime;
+          if (format === 'shortTimeFormat12') {
+            return fakeClockTime12;
+          } else if (format === 'shortTimeFormat24') {
+            return fakeClockTime24;
           }
+
           return fakeDate;
         };
       });
     });
 
-    test('clock and date should display current clock/date info', function() {
+    test('clock and date should display current date info', function() {
       currentDate = new Date();
       CallScreen.showClock(currentDate);
-      var clockTime = CallScreen.lockedClockTime.innerHTML;
       var dateStr = CallScreen.lockedDate.textContent;
       // The date parameter here should be equal to clock setup date.
       assert.equal(formatArgs.length, 2);
       assert.equal(formatArgs[0][0], currentDate);
       assert.equal(formatArgs[1][0], currentDate);
-      assert.equal(clockTime, fakeClockTime);
       assert.equal(dateStr, fakeDate);
+    });
+
+    test('clock should display current 12 hour time info', function() {
+      window.navigator.mozHour12 = true;
+      CallScreen.showClock(currentDate);
+      var clockTime = CallScreen.lockedClockTime.innerHTML;
+      assert.equal(clockTime, fakeClockTime12);
+    });
+
+    test('clock should display current 24 hour time info', function() {
+      window.navigator.mozHour12 = false;
+      CallScreen.showClock(currentDate);
+      var clockTime = CallScreen.lockedClockTime.innerHTML;
+      assert.equal(clockTime, fakeClockTime24);
     });
   });
 
