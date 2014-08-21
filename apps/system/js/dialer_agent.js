@@ -1,6 +1,7 @@
 'use strict';
 
 /* global SettingsListener, SettingsURL, CallscreenWindow, applications */
+/* global VersionHelper, LazyLoader, toneUpgrader */
 /* r=? dialer+system peers for changes in this file. */
 
 (function(exports) {
@@ -24,6 +25,8 @@
    * @class    DialerAgent
    * @requires SettingsListener
    * @requires SettingsURL
+   * @requires VersionHelper
+   * @requires LazyLoader
    *
    **/
 
@@ -85,6 +88,18 @@
         this._player.play();
       }
     }.bind(this));
+
+    // We have new default ringtones in 2.0, so check if the version is upgraded
+    // then execute the necessary migration.
+    VersionHelper.getVersionInfo().then(function(versionInfo) {
+      if (versionInfo.isUpgrade()) {
+        LazyLoader.load('js/tone_upgrader.js', function() {
+          toneUpgrader.perform('ringtone');
+        });
+      }
+    }, function(err) {
+      console.error('VersionHelper failed to lookup version settings.');
+    });
 
     SettingsListener.observe('vibration.enabled', true, function(value) {
       this._shouldVibrate = !!value;
