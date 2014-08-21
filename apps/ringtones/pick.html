@@ -4,7 +4,6 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8" />
     <title>Pick Ringtone</title>
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css"/>
@@ -21,6 +20,14 @@
     <script type="text/javascript" defer src="shared/js/template.js"></script>
     <script type="text/javascript" defer src="shared/js/font_size_utils.js"></script>
 
+    <!-- Web Components -->
+    <script type="text/javascript" defer src="shared/js/component_utils.js"></script>
+    <script type="text/javascript" defer src="shared/elements/gaia_subheader/script.js"></script>
+    <script defer src="shared/elements/config.js"></script>
+    <script defer src="shared/elements/gaia-header/dist/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" /> -->
+
     <script type="text/javascript" defer src="js/null_ringtone.js"></script>
     <script type="text/javascript" defer src="js/built_in_ringtones.js"></script>
     <script type="text/javascript" defer src="js/custom_ringtones.js"></script>
@@ -29,23 +36,20 @@
     <script type="text/javascript" defer src="js/pick.js"></script>
   </head>
 
-  <body>
+  <body class="theme-settings">
     <section role="region" class="skin-organic">
-      <header>
-        <button id="cancel"><span class="icon icon-close"></span></button>
-        <menu type="toolbar"><button id="done" data-l10n-id="pick-done"
-                                     disabled>done</button></menu>
+      <gaia-header id="header" action="close">
         <h1 id="title" data-l10n-id="pick-title"></h1>
-      </header>
+        <button id="done" data-l10n-id="pick-done" disabled>done</button>
+      </gaia-header>
 
       <article id="list-parent"></article>
     </section>
 
     <div id="sound-list-template" hidden>
       <!-- <section hidden>
-        <header>
-          <h2 data-l10n-id="${l10nID}"></h2>
-        </header>
+        <gaia-subheader data-l10n-id="${l10nID}" skin="organic">
+        </gaia-subheader>
         <section data-type="list">
           <ul data-type="edit"></ul>
         </section>

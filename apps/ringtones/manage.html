@@ -6,7 +6,6 @@
     <title>Manage Ringtones</title>
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css"/>
@@ -24,7 +23,14 @@
     <script type="text/javascript" defer src="shared/js/template.js"></script>
     <script type="text/javascript" defer src="shared/js/custom_dialog.js"></script>
     <script type="text/javascript" defer src="shared/js/toaster.js"></script>
-    <script type="text/javascript" defer src="shared/js/font_size_utils.js"></script>
+
+    <!-- Web Components -->
+    <script type="text/javascript" defer src="shared/js/component_utils.js"></script>
+    <script type="text/javascript" defer src="shared/elements/gaia_subheader/script.js"></script>
+    <script defer src="shared/elements/config.js"></script>
+    <script defer src="shared/elements/gaia-header/dist/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" /> -->
 
     <script type="text/javascript" defer src="js/system_tones.js"></script>
     <script type="text/javascript" defer src="js/built_in_ringtones.js"></script>
@@ -35,15 +41,12 @@
     <script type="text/javascript" defer src="js/manage.js"></script>
   </head>
 
-  <body>
+  <body class="theme-settings">
     <section role="region" class="skin-organic">
-      <header>
-        <button id="back"><span class="icon icon-back"></span></button>
-        <menu type="toolbar">
-          <button id="add"><span class="icon icon-add">add</span></button>
-        </menu>
+      <gaia-header id="header" action="back">
         <h1 data-l10n-id="manage-title"></h1>
-      </header>
+        <button id="add" data-icon="add"></button>
+      </gaia-header>
 
       <article id="list-parent"></article>
     </section>
@@ -62,9 +65,8 @@
 
     <div id="sound-list-template" hidden>
       <!-- <section hidden>
-        <header>
-          <h2 data-l10n-id="${l10nID}"></h2>
-        </header>
+        <gaia-subheader data-l10n-id="${l10nID}" skin="organic">
+        </gaia-subheader>
         <ul data-type="list"></ul>
       </section> -->
     </div>

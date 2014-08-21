@@ -21,7 +21,7 @@ navigator.mozSetMessageHandler('activity', function(activity) {
     return toneTypes.indexOf(x) === -1;
   });
 
-  document.getElementById('cancel').addEventListener('click', function() {
+  document.getElementById('header').addEventListener('action', function() {
     tonePlayer.stop();
     activity.postError('cancelled');
   });
