@@ -5976,7 +5976,7 @@ suite('thread_ui.js >', function() {
         var sentAudio = ThreadUI.sentAudio;
 
         assert.isTrue(
-          sentAudio.src.endsWith('/sounds/sent.opus'),
+          sentAudio.src.endsWith('/sounds/firefox_msg_sent.opus'),
           'sentAudio properly loaded'
         );
         assert.equal(

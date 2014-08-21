@@ -79,7 +79,7 @@ var NotificationScreen = {
       this.clearDesktopNotifications.bind(this));
     window.addEventListener('desktop-notification-resend', this);
 
-    this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
+    this._sound = 'style/notifications/ringtones/notifier_firefox.opus';
 
     this.ringtoneURL = new SettingsURL();
 
