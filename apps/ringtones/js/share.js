@@ -83,7 +83,7 @@ function handleShare(data, callback) {
     }
 
     var save = document.getElementById('save');
-    var cancel = document.getElementById('cancel');
+    var header = document.getElementById('header');
     var control = document.getElementById('playpause');
     var preview = document.getElementById('preview');
 
@@ -203,7 +203,7 @@ function handleShare(data, callback) {
       control.classList.remove('playing');
     });
 
-    cancel.addEventListener('click', function() {
+    header.addEventListener('action', function() {
       callback('cancel');
     });
 
