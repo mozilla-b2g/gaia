@@ -58,6 +58,9 @@ require.config({
     'shared/mobile_operator': {
       exports: 'MobileOperator'
     },
+    'shared/toaster': {
+      exports: 'Toaster'
+    },
     'utils': {
       exports: ''
     },
