@@ -689,6 +689,17 @@ suite('system/Updatable', function() {
         assert.equal(SYSTEM_LOW_BATTERY_L10N_KEY, MockCustomDialog.mShowedMsg);
         assert.equal('ok', MockCustomDialog.mShowedCancel.title);
       });
+
+      test('battery prompt callback', function() {
+        assert.equal(subject.declineInstallBattery.name,
+                     MockCustomDialog.mShowedCancel.callback.name);
+
+        subject.declineInstallBattery();
+        assert.isFalse(MockCustomDialog.mShown);
+
+        assert.equal('update-prompt-apply-result', lastDispatchedEvent.type);
+        assert.equal('low-battery', lastDispatchedEvent.value);
+      });
     }
 
     testSystemApplyPromptBatteryOk();
@@ -701,7 +712,7 @@ suite('system/Updatable', function() {
       assert.equal(subject.declineInstall.name,
                    MockCustomDialog.mShowedCancel.callback.name);
 
-      subject.declineInstall();
+      subject.declineInstallWait();
       assert.isFalse(MockCustomDialog.mShown);
 
       assert.equal('update-prompt-apply-result', lastDispatchedEvent.type);
@@ -709,7 +720,7 @@ suite('system/Updatable', function() {
     });
 
     test('canceling should remove from downloads queue', function() {
-      subject.declineInstall();
+      subject.declineInstallWait();
 
       assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
       assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
