@@ -43,7 +43,7 @@ var Contacts = (function() {
   var contactTag,
       settings,
       settingsButton,
-      cancelButton,
+      header,
       addButton,
       appTitleElement,
       editModeTitleElement,
@@ -61,7 +61,7 @@ var Contacts = (function() {
   var contactsDetails;
   var contactsForm;
 
-  var customTag, customTagReset, tagDone, tagCancel, lazyLoadedTagsDom = false;
+  var customTag, customTagReset, tagDone, tagHeader, lazyLoadedTagsDom = false;
 
   // Shows the edit form for the current contact being in an update activity
   // It receives an array of two elements with the facebook data && values
@@ -208,7 +208,7 @@ var Contacts = (function() {
   var initContainers = function initContainers() {
     settings = document.getElementById('view-settings');
     settingsButton = document.getElementById('settings-button');
-    cancelButton = document.getElementById('cancel_activity');
+    header = document.getElementById('contacts-list-header');
     addButton = document.getElementById('add-contact-button');
     editModeTitleElement = document.getElementById('edit-title');
     appTitleElement = document.getElementById('app-title');
@@ -316,13 +316,15 @@ var Contacts = (function() {
     //       load time.  For more info see bug 725221.
     var text;
     if (ActivityHandler.currentlyHandling) {
-      cancelButton.classList.remove('hide');
-      addButton.classList.add('hide');
-      settingsButton.classList.add('hide');
+      header.setAttribute('action', 'close');
+      settingsButton.hidden = true;
+      addButton.hidden = true;
+      // Trigger the title to re-run font-fit/centering logic
+      appTitleElement.textContent = appTitleElement.textContent;
     } else {
-      cancelButton.classList.add('hide');
-      addButton.classList.remove('hide');
-      settingsButton.classList.remove('hide');
+      header.removeAttribute('action');
+      settingsButton.hidden = false;
+      addButton.hidden = false;
     }
 
     text = (contactsList && contactsList.isSelecting)?
@@ -464,9 +466,9 @@ var Contacts = (function() {
       tagDone = document.querySelector('#settings-done');
       tagDone.addEventListener('click', handleSelectTagDone);
     }
-    if (!tagCancel) {
-      tagCancel = document.querySelector('#settings-cancel');
-      tagCancel.addEventListener('click', handleBack);
+    if (!tagHeader) {
+      tagHeader = document.querySelector('#settings-header');
+      tagHeader.addEventListener('action', handleBack);
     }
 
     for (var i in options) {
@@ -723,7 +725,12 @@ var Contacts = (function() {
   var initEventListeners = function initEventListener() {
     // Definition of elements and handlers
     utils.listeners.add({
-      '#cancel_activity': handleCancel, // Activity (any) cancellation
+      '#contacts-list-header': [
+        {
+          event: 'action',
+          handler: handleCancel // Activity (any) cancellation
+        }
+      ],
       '#add-contact-button': showAddContact,
       '#settings-button': showSettings, // Settings related
       '#search-start': [

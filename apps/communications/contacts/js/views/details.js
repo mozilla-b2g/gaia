@@ -80,7 +80,12 @@ contacts.Details = (function() {
 
     utils.listeners.add({
       '#toggle-favorite': toggleFavorite,
-      '#details-back': handleDetailsBack,
+      '#details-view-header': [
+        {
+          event: 'action',
+          handler: handleDetailsBack
+        }
+      ],
       '#edit-contact-button': showEditContact
     });
   };
