@@ -4,13 +4,12 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.gallery.app import Gallery
-from gaiatest.utils.Imagecompare.imagecompare_util import ImageCompareUtil
-import sys
+from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from marionette import By
 import pdb
 
 
-class TestGallery(GaiaTestCase):
+class TestGallery(GaiaImageCompareTestCase):
 
     images = 'IMG_0001.jpg'
     image_count = 4
@@ -20,11 +19,6 @@ class TestGallery(GaiaTestCase):
         GaiaTestCase.setUp(self)
         # Add photos to storage.
         self.push_resource(self.images, count=self.image_count)
-
-        current_module = str(sys.modules[__name__])
-        self.module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
-        self.graphics = ImageCompareUtil(self.marionette,self.apps, self,'.')
-
 
     def test_gallery_full_screen_image_flicks(self):
         """https://moztrap.mozilla.org/manage/case/1326/"""
@@ -44,8 +38,8 @@ class TestGallery(GaiaTestCase):
             self.assertTrue(image.is_photo_toolbar_displayed)
             self.change_orientation('landscape-primary')
 
-            self.graphics.scroll(self.marionette,self._current_image_locator,'left',5)
-            self.graphics.invoke_screen_capture()
+            self.scroll(self.marionette,self._current_image_locator,'left',5)
+            self.invoke_screen_capture()
             self.change_orientation('portrait-primary')
             self.change_orientation('landscape-primary')
             self.change_orientation('portrait-primary')
@@ -64,16 +58,16 @@ class TestGallery(GaiaTestCase):
             self.change_orientation('landscape-primary')
             self.change_orientation('portrait-primary')
             self.change_orientation('landscape-primary')
-            self.graphics.scroll(self.marionette,self._current_image_locator,'left',3)
-            self.graphics.invoke_screen_capture()
+            self.scroll(self.marionette,self._current_image_locator,'left',3)
+            self.invoke_screen_capture()
             self.change_orientation('landscape-primary')
-            action = self.graphics.scroll(self.marionette,self._current_image_locator,'right',2,release=False)
-            self.graphics.invoke_screen_capture(frame='root')
+            action = self.scroll(self.marionette,self._current_image_locator,'right',2,release=False)
+            self.invoke_screen_capture(frame='root')
             self.change_orientation('portrait-primary')
             self.apps.kill(gallery.app)
             x += 1
-            #action.release()
-            #action.perform()
-            #self.graphics.scroll(self.marionette,self._current_image_locator,'right',1)
-            #self.graphics.invoke_screen_capture()
+
+    def tearDown(self):
+
+        GaiaImageCompareTestCase.tearDown(self)
 

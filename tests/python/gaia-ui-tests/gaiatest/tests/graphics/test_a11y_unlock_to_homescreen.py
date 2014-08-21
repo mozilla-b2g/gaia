@@ -3,23 +3,18 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
-from gaiatest import GaiaTestCase
 from gaiatest.apps.lockscreen.app import LockScreen
 from gaiatest.apps.homescreen.app import Homescreen
-from gaiatest.utils.Imagecompare.imagecompare_util import ImageCompareUtil
+from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 import sys,time
 
 
-class TestLockScreenAccessibility(GaiaTestCase):
+class TestLockScreenAccessibility(GaiaImageCompareTestCase):
 
     #needed for the imagecapture utility
 
     def setUp(self):
-        GaiaTestCase.setUp(self)
-
-        current_module = str(sys.modules[__name__])
-        self.module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
-        self.graphics = ImageCompareUtil(self.marionette,self.apps, self, '.')
+        GaiaImageCompareTestCase.setUp(self)
 
         self.device.lock()
 
@@ -40,13 +35,9 @@ class TestLockScreenAccessibility(GaiaTestCase):
         self.assertTrue(self.accessibility.is_hidden(lockScreen_window))
         self.assertFalse(self.accessibility.is_hidden(homescreen_container))
         time.sleep(5)
-        self.graphics.invoke_screen_capture()
+        self.invoke_screen_capture()
 
     def tearDown(self):
 
-        # In case the assertion fails this will still kill the call
-        # An open call creates problems for future tests
-        self.graphics.execute_image_job()
-
-        GaiaTestCase.tearDown(self)
+        GaiaImageCompareTestCase.tearDown(self)
 

@@ -5,22 +5,17 @@
 from datetime import datetime, timedelta
 
 from marionette.by import By
-from gaiatest import GaiaTestCase
 from gaiatest.apps.calendar.app import Calendar
-from gaiatest.utils.Imagecompare.imagecompare_util import ImageCompareUtil
+from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 import sys
 
-class TestCalendar(GaiaTestCase):
+class TestCalendar(GaiaImageCompareTestCase):
 
     _week_event_link_locator = (By.CLASS_NAME, 'event calendar-id-local-first calendar-display calendar-bg-color calendar-border-color')
     _day_event_link_locator = (By.CLASS_NAME, 'event calendar-id-local-first calendar-display calendar-bg-color')
 
     def setUp(self):
-        GaiaTestCase.setUp(self)
-
-        current_module = str(sys.modules[__name__])
-        self.module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
-        self.graphics = ImageCompareUtil(self.marionette,self.apps, self,'.')
+        GaiaImageCompareTestCase.setUp(self)
 
     def test_that_new_event_appears_on_all_calendar_views(self):
         """https://moztrap.mozilla.org/manage/case/6118/"""
@@ -35,24 +30,24 @@ class TestCalendar(GaiaTestCase):
         calendar = Calendar(self.marionette)
         calendar.launch()
         new_event = calendar.tap_add_event_button()
-        self.graphics.invoke_screen_capture()
+        self.invoke_screen_capture()
 
         # create a new event
         new_event.fill_event_title(event_title)
         new_event.fill_event_location(event_location)
-        self.graphics.invoke_screen_capture()
+        self.invoke_screen_capture()
 
         event_start_date_time = new_event.tap_save_event()
 
         # assert that the event is displayed as expected in month view
         self.assertIn(event_title, calendar.displayed_events_in_month_view(event_start_date_time))
         self.assertIn(event_location, calendar.displayed_events_in_month_view(event_start_date_time))
-        self.graphics.invoke_screen_capture()
+        self.invoke_screen_capture()
 
         # switch to the week display
         calendar.tap_week_display_button()
         self.assertIn(event_title, calendar.displayed_events_in_week_view(event_start_date_time))
-        self.graphics.invoke_screen_capture()
+        self.invoke_screen_capture()
 
         # switch to the day display
         calendar.tap_day_display_button()
@@ -62,8 +57,4 @@ class TestCalendar(GaiaTestCase):
 
     def tearDown(self):
 
-        # In case the assertion fails this will still kill the call
-        # An open call creates problems for future tests
-        self.graphics.execute_image_job()
-
-        GaiaTestCase.tearDown(self)
+        GaiaImageCompareTestCase.tearDown(self)

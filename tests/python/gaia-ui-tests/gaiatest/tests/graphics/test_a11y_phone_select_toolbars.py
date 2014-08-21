@@ -2,23 +2,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
-from gaiatest import GaiaTestCase
 from gaiatest.apps.phone.app import Phone
+from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
+import sys
 
-from gaiatest.utils.Imagecompare.imagecompare_util import ImageCompareUtil
-import sys,time
-
-class TestAccessibilityPhoneSelectToolbars(GaiaTestCase):
+class TestAccessibilityPhoneSelectToolbars(GaiaImageCompareTestCase):
 
     def setUp(self):
-        GaiaTestCase.setUp(self)
+        GaiaImageCompareTestCase.setUp(self)
         self.phone = Phone(self.marionette)
         self.phone.launch()
-
-        current_module = str(sys.modules[__name__])
-        self.module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
-        self.graphics = ImageCompareUtil(self.marionette,self.apps, self, '.')
 
     def test_phone_select_toolbars(self):
 
@@ -35,7 +28,7 @@ class TestAccessibilityPhoneSelectToolbars(GaiaTestCase):
         self.assertFalse(self.accessibility.is_hidden(self.marionette.find_element(
             *self.phone._call_log_toolbar_locator)))
 
-        self.graphics.invoke_screen_capture()
+        self.invoke_screen_capture()
 
         # Screen reader activated contacts button click.
         self.phone.a11y_click_contacts()
@@ -51,7 +44,7 @@ class TestAccessibilityPhoneSelectToolbars(GaiaTestCase):
         self.assertTrue(self.accessibility.is_hidden(self.marionette.find_element(
             *self.phone._call_log_toolbar_locator)))
 
-        self.graphics.invoke_screen_capture()
+        self.invoke_screen_capture()
 
         # Screen reader activated keypad button click.
         self.phone.a11y_click_keypad_toolbar_button()
@@ -66,12 +59,12 @@ class TestAccessibilityPhoneSelectToolbars(GaiaTestCase):
         self.assertTrue(self.accessibility.is_hidden(self.marionette.find_element(
             *self.phone._call_log_toolbar_locator)))
 
-        self.graphics.invoke_screen_capture()
+        self.invoke_screen_capture()
 
     def tearDown(self):
 
         # In case the assertion fails this will still kill the call
         # An open call creates problems for future tests
-        self.graphics.execute_image_job()
+        self.execute_image_job()
 
-        GaiaTestCase.tearDown(self)
+        GaiaImageCompareTestCase.tearDown(self)

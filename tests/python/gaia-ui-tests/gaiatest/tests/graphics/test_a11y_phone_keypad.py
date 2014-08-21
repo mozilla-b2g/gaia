@@ -2,15 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.mocks.mock_contact import MockContact
 from gaiatest.apps.phone.app import Phone
+from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 
-from gaiatest.utils.Imagecompare.imagecompare_util import ImageCompareUtil
-import sys,time
-
-class TestAccessibilityPhoneKeypad(GaiaTestCase):
+class TestAccessibilityPhoneKeypad(GaiaImageCompareTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -18,10 +15,6 @@ class TestAccessibilityPhoneKeypad(GaiaTestCase):
 
         self.phone = Phone(self.marionette)
         self.phone.launch()
-
-        current_module = str(sys.modules[__name__])
-        self.module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
-        self.graphics = ImageCompareUtil(self.marionette,self.apps,self, '.')
 
     def test_phone_keypad(self):
 
@@ -32,7 +25,7 @@ class TestAccessibilityPhoneKeypad(GaiaTestCase):
         self.assertTrue(self.accessibility.is_disabled(self.marionette.find_element(
             *self.phone.keypad._add_new_contact_button_locator)))
 
-        self.graphics.invoke_screen_capture()
+        self.invoke_screen_capture()
 
         number_to_verify = self.contact['tel']['value']
 
@@ -56,6 +49,4 @@ class TestAccessibilityPhoneKeypad(GaiaTestCase):
 
         # In case the assertion fails this will still kill the call
         # An open call creates problems for future tests
-        self.graphics.execute_image_job()
-
-        GaiaTestCase.tearDown(self)
+        GaiaImageCompareTestCase.tearDown(self)
