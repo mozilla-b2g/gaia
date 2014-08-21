@@ -1,0 +1,16 @@
+#appdetail-view.view {
+  top: 0;
+}
+
+#appdetail-view > .view-scroll {
+  top: 5rem;
+}
+
+#appdetail-view .info {
+  font-size: 1.7rem;
+  padding: 1.2rem 2.7rem;
+}
+
+#appdetail-view > .view-scroll > .info {
+  padding-bottom: 0;
+}

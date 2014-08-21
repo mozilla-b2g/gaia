@@ -497,6 +497,9 @@ var CostControlApp = (function() {
     },
     showDataUsageTab: function _showDataUsageTab() {
       window.location.hash = '#datausage-tab';
+    },
+    showAppDetailView: function _showAppDetailView() {
+      window.location.hash = '##appdetail-view';
     }
   };
 }());
