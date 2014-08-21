@@ -146,17 +146,17 @@ function init() {
 
   // Clicking on the cancel button goes from thumbnail select mode
   // back to thumbnail list mode
-  $('thumbnails-cancel-button').onclick =
-    setView.bind(null, LAYOUT_MODE.list);
+  $('selected-header').addEventListener('action',
+    setView.bind(null, LAYOUT_MODE.list));
 
   // Clicking on the pick back button cancels the pick activity.
-  $('pick-back-button').onclick = cancelPick;
+  $('pick-header').addEventListener('action', cancelPick);
 
   // In crop view, the back button goes back to pick view
-  $('crop-back-button').onclick = function() {
+  $('crop-top').addEventListener('action', function() {
     setView(LAYOUT_MODE.pick);
     cleanupCrop();
-  };
+  });
 
   // The camera buttons should launch the camera app
   fullscreenButtons.camera.onclick = launchCameraApp;
@@ -1165,7 +1165,9 @@ function updateSelection(thumbnail) {
   // Now update the UI based on the number of selected thumbnails
   var numSelected = selectedFileNames.length;
   var msg = navigator.mozL10n.get('number-selected2', { n: numSelected });
-  $('thumbnails-number-selected').textContent = msg;
+  var headerTitle = $('thumbnails-number-selected');
+
+  headerTitle.textContent = msg;
 
   if (numSelected === 0) {
     $('thumbnails-delete-button').classList.add('disabled');
