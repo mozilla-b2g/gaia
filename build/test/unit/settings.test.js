@@ -99,7 +99,7 @@ suite('settings.js', function() {
     test('setAlarmtone', function () {
       var alarmtoneLink =
         'shared/resources/media/alarms/' +
-        'ac_classic_clock_alarm.opus';
+        'ac_awake.opus';
       app.setAlarmtone(settings, config);
       assert.equal(settings['alarm.ringtone'], config.GAIA_DIR + '/' +
         alarmtoneLink);
