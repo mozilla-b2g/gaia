@@ -19,8 +19,8 @@ var FontSizeManager = (function fontSizeManager() {
    */
   var _sizes = {};
   _sizes[DIAL_PAD] = {min: 2.6, max: 4.1};
-  _sizes[SINGLE_CALL] = {min: 2.3, max: 3.4, line: 3.7};
-  _sizes[CALL_WAITING] = {min: 2.3, max: 2.5, line: 1.5};
+  _sizes[SINGLE_CALL] = {min: 2.3, max: 3.4, line: 3.4};
+  _sizes[CALL_WAITING] = {min: 2.3, max: 2.5, line: 1.3};
   _sizes[STATUS_BAR] = {min: 1.7, max: 1.7};
   _sizes[SECOND_INCOMING_CALL] = {min: 2.3, max: 2.5, line: 3.7};
 

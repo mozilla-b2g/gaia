@@ -200,11 +200,11 @@ suite('font size manager', function() {
 
     test('sets correct line heights', function() {
       FontSizeManager.ensureFixedBaseline(FontSizeManager.SINGLE_CALL, view);
-      assert.equal(view.style.lineHeight, '49px');
+      assert.equal(view.style.lineHeight, '46px');
 
       view.style.fontSize = '100px';
       FontSizeManager.ensureFixedBaseline(FontSizeManager.SINGLE_CALL, view);
-      assert.equal(view.style.lineHeight, '4px');
+      assert.equal(view.style.lineHeight, '1px');
     });
   });
 });
