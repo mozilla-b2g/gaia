@@ -188,7 +188,7 @@ App.prototype.bindEvents = function() {
   this.once('viewfinder:visible', this.onCriticalPathDone);
   this.once('storage:checked:healthy', this.geolocationWatch);
   this.on('busy', this.onBusy);
-  this.on('ready', this.onReady);
+  this.on('ready', this.clearLoading);
   this.on('visible', this.onVisible);
   this.on('hidden', this.onHidden);
 
@@ -388,6 +388,21 @@ App.prototype.showLoading = function(delay) {
 };
 
 /**
+ * Clears the loadings screen, or
+ * any pending loading screen.
+ *
+ * @private
+ */
+App.prototype.clearLoading = function() {
+  debug('clear loading');
+  var view = this.views.loading;
+  clearTimeout(this.loadingTimeout);
+  if (!view) { return; }
+  view.hide(view.destroy);
+  this.views.loading = null;
+};
+
+/**
  * When the camera indicates it's busy it
  * sometimes passes a `type` string. When
  * this type matches one of our keys in the
@@ -401,21 +416,6 @@ App.prototype.showLoading = function(delay) {
 App.prototype.onBusy = function(type) {
   var delay = this.settings.loadingScreen.get(type);
   if (delay) { this.showLoading(delay); }
-};
-
-/**
- * Clears the loadings screen, or
- * any pending loading screen.
- *
- * @private
- */
-App.prototype.onReady = function() {
-  debug('clear loading');
-  var view = this.views.loading;
-  clearTimeout(this.loadingTimeout);
-  if (!view) { return; }
-  view.hide(view.destroy);
-  this.views.loading = null;
 };
 
 });
