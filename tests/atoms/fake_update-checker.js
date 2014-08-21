@@ -21,6 +21,10 @@ function GaiaUITests_FakeUpdateChecker() {
                      .getService(Ci.nsIUUIDGenerator)
                      .generateUUID();
 
+  let newTimerClassID = Cc['@mozilla.org/uuid-generator;1']
+                     .getService(Ci.nsIUUIDGenerator)
+                     .generateUUID();
+
   /**
    * FakeUpdateChecker
    * Mocking Checks for new Updates
@@ -128,9 +132,6 @@ function GaiaUITests_FakeUpdateChecker() {
   let checkerCid = '{898cdc9b-e43f-422f-9cc4-2f6291b415a3}';
   debug('Generated a new checker class ID: ' + newCheckerClassID);
 
-  let newTimerClassID = Cc['@mozilla.org/uuid-generator;1']
-                     .getService(Ci.nsIUUIDGenerator)
-                     .generateUUID();
   let updateTimerContract = '@mozilla.org/b2g/webapps-update-timer;1';
   let timerCid = '{637b0f77-2429-49a0-915f-abf5d0db8b9a}';
   debug('Generated a new timer class ID: ' + newTimerClassID);
