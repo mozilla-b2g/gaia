@@ -48,6 +48,10 @@ var CommonjsRunner = function(module) {
     modules: {
       'toolkit/loader': Loader,
       'xpcshell': Object.create(xpcshellScope)
+    },
+    globals: {
+      atob: atob,
+      btoa: btoa
     }
   });
 
