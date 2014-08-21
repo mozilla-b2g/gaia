@@ -7,16 +7,19 @@
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
     <link rel="stylesheet" href="style/VideoPlayer.css" type="text/css" />
     <link rel="stylesheet" href="style/VideoPlayer_tablet.css" type="text/css" media="(min-height: 768px) and (min-width: 768px)" />
-    <link rel="stylesheet" href="shared/style/headers.css" type="text/css" />
     <link rel="stylesheet" href="shared/style/progress_activity.css"/>
+
     <!-- Reponsive design for tiny & large device -->
     <link rel="stylesheet" href="style/gallery_tablet.css" type="text/css" media="(min-height: 768px) and (min-width: 768px)" />
+
     <!-- this file is loaded lazily but is listed here so it gets packaged
     <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
     -->
+
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini" />
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
+
     <!-- Shared code -->
     <script defer src="shared/js/performance_testing_helper.js"></script>
     <script defer src="shared/js/l10n.js"></script>
@@ -35,6 +38,11 @@
     <!-- This script is lazy loaded, but listed here so it gets packaged -->
     <!-- <script defer src="shared/js/media/crop_resize_rotate.js"></script> -->
 
+    <!-- Bower Components -->
+    <link rel="stylesheet" type="text/css" href="bower_components/gaia-icons/style.css" />
+    <link rel="stylesheet" type="text/css" href="bower_components/gaia-theme/style.css" />
+    <script defer src="bower_components/gaia-header/dist/script.js"></script>
+
     <!-- Specific code -->
     <script defer src="js/config.js"></script>
     <script defer src="js/thumbnail_item.js"></script>
@@ -43,63 +51,59 @@
     <script defer src="js/gallery.js"></script>
   </head>
 
-  <body role="application">
+  <body role="application" class="theme-media">
     <section role="region" id="thumbnail-list-view" class="skin-dark">
-      <header id="thumbnails-list-top">
+      <!-- Header only shown on tablet view  -->
+      <gaia-header id="thumbnails-list-top">
         <h1 id="thumbnail-list-title" data-l10n-id="gallery">Gallery</h1>
-      </header>
+      </gaia-header>
       <footer id="thumbnails-bottom">
-        <a id="thumbnails-camera-button" class="button"></a>
-        <a id="thumbnails-select-button" class="button"></a>
+        <a id="thumbnails-camera-button" class="button icon-camera"></a>
+        <a id="thumbnails-select-button" class="button icon-select"></a>
       </footer>
     </section>
 
     <section role="region" id="thumbnail-select-view" class="skin-dark">
-      <header id="thumbnails-select-top">
-        <button id="thumbnails-cancel-button"><span class="icon icon-close"></span></button>
+      <gaia-header id="selected-header" action="close">
         <h1 id="thumbnails-number-selected"></h1>
-      </header>
-
+      </gaia-header>
       <footer id="thumbnails-select-bottom">
-        <a id="thumbnails-delete-button" class="button"></a>
-        <a id="thumbnails-share-button" class="button"></a>
+        <a id="thumbnails-delete-button" class="button icon-delete"></a>
+        <a id="thumbnails-share-button" class="button icon-share"></a>
       </footer>
     </section>
     <section role="region" id="fullscreen-view" class="skin-dark">
-      <header id="fullscreen-toolbar-header" class="large-only">
-        <menu type="toolbar">
-          <a id="fullscreen-camera-button-large">
-            <span class="icon icon-camera"></span>
-          </a>
-          <a id="fullscreen-edit-button-large">
-            <span class="icon icon-picedit"></span>
-          </a>
-          <a id="fullscreen-share-button-large">
-            <span class="icon icon-share"></span>
-          </a>
-          <a id="fullscreen-info-button-large">
-            <span class="icon icon-info"></span>
-          </a>
-          <a id="fullscreen-delete-button-large">
-            <span class="icon icon-delete"></span>
-          </a>
-        </menu>
-        <button id="fullscreen-back-button-large" class="large-only"><span class="icon icon-back"></span></button>
+      <gaia-header id="fullscreen-toolbar-header" action="back" class="large-only">
         <h1 data-l10n-id="gallery" id="fullscreen-title">Gallery</h1>
-      </header>
+        <a id="fullscreen-camera-button-large">
+          <span class="icon-camera"></span>
+        </a>
+        <a id="fullscreen-edit-button-large">
+          <span class="icon-edit-image"></span>
+        </a>
+        <a id="fullscreen-share-button-large">
+          <span class="icon-share"></span>
+        </a>
+        <a id="fullscreen-info-button-large">
+          <span class="icon-info"></span>
+        </a>
+        <a id="fullscreen-delete-button-large">
+          <span class="icon-delete"></span>
+        </a>
+      </gaia-header>
       <div id="frames">
         <!-- the current photo plus next and previous waiting in the wings -->
         <div id="frame1" class="frame"></div>
         <div id="frame2" class="frame"></div>
         <div id="frame3" class="frame"></div>
       </div>
-      <button id="fullscreen-back-button-tiny" type="reset" class="tiny-only"></button>
+      <button id="fullscreen-back-button-tiny" type="reset" class="tiny-only icon-back"></button>
       <footer id="fullscreen-toolbar" class="tiny-only">
-        <a id="fullscreen-camera-button-tiny" class="button"></a>
-        <a id="fullscreen-edit-button-tiny" class="button"></a>
-        <a id="fullscreen-share-button-tiny" class="button"></a>
-        <a id="fullscreen-info-button-tiny" class="button"></a>
-        <a id="fullscreen-delete-button-tiny" class="button"></a>
+        <a id="fullscreen-camera-button-tiny" class="button icon-camera"></a>
+        <a id="fullscreen-edit-button-tiny" class="button icon-edit-image"></a>
+        <a id="fullscreen-share-button-tiny" class="button icon-share"></a>
+        <a id="fullscreen-info-button-tiny" class="button icon-info"></a>
+        <a id="fullscreen-delete-button-tiny" class="button icon-delete"></a>
       </footer>
     </section>
     <form id="info-view" role="dialog" data-type="confirm" class="hidden">
@@ -122,34 +126,27 @@
                 data-l10n-id="close-button" class="full"></button>
       </menu>
     </form>
-    <section role="region" id="pick-view" class="skin-dark">
-      <header id="pick-top">
-        <button id="pick-back-button"><span class="icon icon-back"></span></button>
+    <section role="region" id="pick-view">
+      <gaia-header id="pick-header" action="back">
         <h1 id="pick-header" data-l10n-id="pickoneimage2"></h1>
-      </header>
+      </gaia-header>
     </section>
 
     <section role="region" id="crop-view" class="skin-dark">
-      <header id="crop-top">
-        <button id="crop-back-button"><span class="icon icon-back"></span></button>
-        <menu type="toolbar">
-          <button id="crop-done-button" data-l10n-id="done">done</button>
-        </menu>
+      <gaia-header id="crop-top" action="back">
         <h1 id="crop-header" data-l10n-id="cropimage"></h1>
-      </header>
+        <button id="crop-done-button" data-l10n-id="done">done</button>
+      </gaia-header>
       <div id="crop-frame">
         <img id="crop-image"></img>
       </div>
     </section>
 
     <section role="region" id="edit-view" class="skin-dark">
-      <header id="edit-header">
-        <button id="edit-cancel-button"><span class="icon icon-close"></span></button>
-        <menu type="toolbar">
-          <button id="edit-save-button" data-l10n-id="done">done</button>
-        </menu>
+      <gaia-header id="edit-header" action="close">
         <h1 id="edit-title" data-l10n-id="edit"></h1>
-      </header>
+        <button id="edit-save-button" data-l10n-id="done">done</button>
+      </gaia-header>
 
       <!-- Indicates progress when saving -->
       <progress id="save-progress" value="0" max="120" class="hidden"></progress>
@@ -179,7 +176,7 @@
         </div>
 
         <div id="edit-crop-options" class="edit-options-bar hidden">
-          <a id="edit-crop-none" class="button"></a>
+          <a id="edit-crop-none" class="button icon-undo"></a>
           <a id="edit-crop-aspect-free" class="selected radio button"></a>
           <a id="edit-crop-aspect-portrait" class="radio button"></a>
           <a id="edit-crop-aspect-landscape" class="radio button"></a>
@@ -207,8 +204,8 @@
 
       <!-- buttons for selecting the type of edit to perform -->
       <footer id="edit-toolbar">
-        <a id="edit-exposure-button" class="selected radio button"></a>
-        <a id="edit-crop-button" class="radio button"></a>
+        <a id="edit-exposure-button" class="selected radio button icon-brightness"></a>
+        <a id="edit-crop-button" class="radio button icon-crop"></a>
         <a id="edit-effect-button" class="radio button"></a>
         <a id="edit-enhance-button" class="radio button"></a>
       </footer>

@@ -151,11 +151,6 @@ body.fullscreenView #fullscreen-back-button-large {
   pointer-events: none;
 }
 
-/* Pick */
-#pick-top {
-  height: 5rem;
-}
-
 /* Edit */
 #save-progress {
   position: absolute;

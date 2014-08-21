@@ -17,7 +17,9 @@ $('edit-crop-button').onclick = setEditTool.bind(null, 'crop');
 $('edit-effect-button').onclick = setEditTool.bind(null, 'effect');
 $('edit-enhance-button').onclick = setEditTool.bind(null, 'enhance');
 $('edit-crop-none').onclick = undoCropHandler;
-$('edit-cancel-button').onclick = function() { exitEditMode(false); };
+$('edit-header').addEventListener('action', function() {
+  exitEditMode(false); });
+
 $('edit-save-button').onclick = saveEditedImage;
 editOptionButtons.forEach(function(b) { b.onclick = editOptionsHandler; });
 
