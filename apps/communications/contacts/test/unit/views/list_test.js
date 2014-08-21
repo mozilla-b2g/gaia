@@ -1276,7 +1276,9 @@ suite('Render contacts list', function() {
       mockContacts = new MockContactsList();
       var contactIndex = Math.floor(Math.random() * mockContacts.length);
       var contact = mockContacts[contactIndex];
-      mockContacts[contactIndex].givenName[0] = contact.givenName[0] + ' Juan';
+      contact.givenName[1] = 'Juan';
+      contact.name = contact.givenName[0] + ' ' + contact.givenName[1] +  ' ' + 
+                     contact.familyName[0];
 
       doLoad(subject, mockContacts, function() {
         contacts.List.initSearch(function onInit() {
@@ -1287,6 +1289,7 @@ suite('Render contacts list', function() {
             done(function() {
               assert.isTrue(noResults.classList.contains('hide'));
               assertContactFound(contact);
+              contact.givenName[1] = null;
             });
           });
         });
