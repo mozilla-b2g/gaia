@@ -90,7 +90,7 @@ suite('settings.js', function() {
     test('setMediatone', function () {
       var mediatoneLink =
         'shared/resources/media/notifications/' +
-        'notifier_notify.opus';
+        'notifier_firefox.opus';
       app.setMediatone(settings, config);
       assert.equal(settings['media.ringtone'], config.GAIA_DIR + '/' +
         mediatoneLink);
