@@ -23,6 +23,10 @@ ul[data-type="edit"] {
   overflow: visible;
 }
 
+li {
+  z-index: 1;
+}
+
 li:active:before {
   /* This makes a highlight slightly *bigger* than the li so that it fills up
      the whole list item. It causes a reflow, but that's not a big deal here. */
