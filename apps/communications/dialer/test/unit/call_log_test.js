@@ -21,7 +21,6 @@ require('/dialer/test/unit/mock_keypad.js');
 require('/dialer/test/unit/mock_phone_number_action_menu.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
-require('/shared/test/unit/mocks/mock_sticky_header.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
@@ -40,7 +39,6 @@ var mocksHelperForCallLog = new MocksHelper([
   'LazyLoader',
   'LazyL10n',
   'ContactPhotoHelper',
-  'StickyHeader',
   'CallHandler',
   'KeypadManager',
   'SimSettingsHelper'
@@ -89,8 +87,7 @@ suite('dialer/call_log', function() {
       'select-all-threads',
       'call-log-upgrading',
       'call-log-upgrade-progress',
-      'call-log-upgrade-percent',
-      'sticky'
+      'call-log-upgrade-percent'
     ];
 
     mainNodes.forEach(function(prop) {
@@ -575,22 +572,6 @@ suite('dialer/call_log', function() {
         sinon.assert.callCount(renderSeveralDaysSpy, 2);
         done();
       });
-    });
-  });
-
-  suite('StickyHeader', function() {
-    test('Updated on render', function(done) {
-      this.sinon.spy(CallLog.sticky, 'refresh');
-      appendAndCheckGroupDOM(10, 1, function() {
-        sinon.assert.called(CallLog.sticky.refresh);
-        done();
-      });
-    });
-
-    test('Updated on appendGroup', function() {
-      this.sinon.spy(CallLog.sticky, 'refresh');
-      CallLog.appendGroup(noContactGroup);
-      sinon.assert.called(CallLog.sticky.refresh);
     });
   });
 
