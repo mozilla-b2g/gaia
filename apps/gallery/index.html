@@ -144,11 +144,14 @@
 
     <section role="region" id="edit-view" class="skin-dark">
       <header id="edit-header">
-        <button id="edit-cancel-button"><span class="icon icon-close"></span></button>
+        <button id="edit-cancel-button" class="edit"><span class="icon icon-close"></span></button>
+        <button id="edit-modes-cancel-button" class="edit-mode hidden"><span class="icon icon-close"></span></button>
         <menu type="toolbar">
-          <button id="edit-save-button" data-l10n-id="done">done</button>
+          <button id="edit-save-button" data-l10n-id="done" class="edit">done</button>
+          <button id="edit-modes-apply-button" data-l10n-id="apply" class="edit-mode hidden">Apply</button>
         </menu>
-        <h1 id="edit-title" data-l10n-id="edit"></h1>
+        <h1 id="edit-title" data-l10n-id="edit" class="edit"></h1>
+        <h1 id="edit-modes-title" class="edit-mode hidden"></h1>
       </header>
 
       <!-- Indicates progress when saving -->
@@ -198,16 +201,14 @@
           <a id="edit-effect-faded" class="radio button filter-faded bgimage"
              data-effect="faded"></a>
         </div>
-
-        <div id="edit-enhance-options" class="edit-options-bar hidden">
-          <span id="edit-enhance-status"></span>
-        </div>
-
+      </div>
+      <div id="edit-enhance-banner" hidden>
+        <span id="edit-enhance-status"></span>
       </div>
 
       <!-- buttons for selecting the type of edit to perform -->
       <footer id="edit-toolbar">
-        <a id="edit-exposure-button" class="selected radio button"></a>
+        <a id="edit-exposure-button" class="radio button"></a>
         <a id="edit-crop-button" class="radio button"></a>
         <a id="edit-effect-button" class="radio button"></a>
         <a id="edit-enhance-button" class="radio button"></a>

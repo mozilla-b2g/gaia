@@ -422,6 +422,15 @@ html[dir="rtl"] #fullscreen-back-button-tiny {
   display: none;
 }
 
+/* override headers.css */
+#edit-header h1.hidden {
+  display: none;
+}
+
+#edit-header button.hidden {
+  display: none;
+}
+
 /* buttons */
 a.button {
   display: block;
@@ -611,7 +620,7 @@ footer {
   left: 0;
   width: 100%;
   height: 5rem;
-  bottom: 4.5rem;
+  bottom: 0;
   background: url(images/options-background.png);
 }
 
@@ -789,7 +798,11 @@ a.filter-faded {
   left: 80%;
 }
 
-#edit-enhance-options {
+#edit-enhance-banner {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  bottom: 4.5rem;
   line-height: 5.5rem;
   text-align: center;
 }
@@ -855,22 +868,6 @@ a.filter-faded {
 
 #edit-enhance-button.selected.on {
   background-image: url('images/actionicon_gallery_edit_enhance_on_selected_30x30.png');
-}
-
-#edit-enhance-options a.button {
-  position: absolute;
-  display: block;
-  top: 0;
-  bottom: 0;
-  width: 20%;
-  margin: 0;
-  padding: 0;
-  border-width: 0;
-  border-right: solid black 0.1rem;
-  overflow: hidden;
-  padding-top: 1.6rem;
-  font-size: 1.4rem;
-  background-position: center;
 }
 
 /*
