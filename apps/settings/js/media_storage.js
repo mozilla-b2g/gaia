@@ -24,6 +24,7 @@ require([
     this.storages = storages;
     this.rootElement = null;  //<ul></ul>
     this.stackedbar = null;
+    this.available = false;
   };
 
   // This function will create a view for each volume under #volume-list,
@@ -220,6 +221,7 @@ require([
   Volume.prototype.updateInfo = function volume_updateInfo(callback) {
     var self = this;
     var availreq = this.storages.sdcard.available();
+
     availreq.onsuccess = function availSuccess(evt) {
       var state = evt.target.result;
       switch (state) {
@@ -227,16 +229,39 @@ require([
         case 'unavailable':
           self.setInfoUnavailable();
           self.enableFormatSDCardBtn(false);
+          this.available = false;
           break;
         case 'available':
           self.updateStorageInfo();
           self.enableFormatSDCardBtn(true);
+          this.available = true;
           break;
       }
       if (callback)
         callback(state);
     };
   };
+
+  Volume.prototype.isAvailable = function volume_isAvailable(callback) {
+    var self = this;
+    var availreq = this.storages.sdcard.available();
+
+    availreq.onsuccess = function availSuccess(evt) {
+      var state = evt.target.result;
+      switch (state) {
+        case 'shared':
+        case 'unavailable':
+          self.available = false;
+          break;
+        case 'available':
+          self.available = true;
+          break;
+      }
+      if (callback) {
+        callback(self.available);
+      }
+    };
+  }
 
   Volume.prototype.setInfoUnavailable = function volume_setInfoUnavailable() {
     var self = this;
@@ -322,6 +347,7 @@ require([
       var totalVolumes = 0;
       MEDIA_TYPE.forEach(function(type) {
         var storages = navigator.getDeviceStorages(type);
+
         storages.forEach(function(storage) {
           var name = storage.storageName;
           if (!volumes.hasOwnProperty(name)) {
@@ -398,9 +424,13 @@ require([
         var defaultName = allSettings[defaultMediaVolumeKey];
         var selectionMenu = self.defaultMediaLocation;
         var selectedIndex = 0;
+
         self._volumeList.forEach(function(volume, index) {
           var option = document.createElement('option');
           option.value = volume.name;
+
+          self.removeIfNeeded(option, volume);
+
           var l10nId = volume.getL10nId(true);
           option.setAttribute('data-l10n-id', l10nId);
           selectionMenu.appendChild(option);
@@ -419,6 +449,17 @@ require([
           Settings.mozSettings.createLock().set(obj);
         }
       });
+    },
+
+    removeIfNeeded: function ms_removeIfNeeded(option, volume) {
+      var selectedOption = this.defaultMediaLocation;
+      var removeOption = function (available) {
+        if (!available) {
+          selectedOption.removeChild(option);
+        }
+      }
+
+      volume.isAvailable(removeOption);
     },
 
     changeDefaultStorage: function ms_changeDefaultStorage() {
