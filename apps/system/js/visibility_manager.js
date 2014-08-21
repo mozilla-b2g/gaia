@@ -132,8 +132,10 @@
           if (this._normalAudioChannelActive &&
               evt.detail.channel !== 'normal' && window.System.locked) {
             this._deviceLockedTimer = setTimeout(function setVisibility() {
-              this.publish('hidewindow',
-                { screenshoting: false, type: evt.type });
+              if (window.System.locked) {
+                this.publish('hidewindow',
+                  { screenshoting: false, type: evt.type });
+              }
             }.bind(this), 3000);
           }
 
