@@ -748,7 +748,7 @@ bubble above the key when you tap and hold. */
 }
 
 @media (orientation:portrait) {
-  .special-key > .visual-wrapper > span[data-label="அஆஇ"] {
+  .special-key > .visual-wrapper > .key-element[data-label="அஆஇ"] {
     font-size: 1.1rem;
   }
 
@@ -784,7 +784,7 @@ bubble above the key when you tap and hold. */
 
 @media (orientation:landscape) {
   #keyboard.landscape .special-key > .visual-wrapper >
-    span[data-label="அஆஇ"] {
+    .key-element[data-label="அஆஇ"] {
     font-size: 1.7rem;
   }
 

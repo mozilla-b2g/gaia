@@ -1421,9 +1421,22 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
       }
     }
     else {
-      inputMethodManager.currentIMEngine.click(
-        parseInt(target.dataset.keycode, 10),
-        parseInt(target.dataset.keycodeUpper, 10));
+      /*
+       * XXX: A hack to send both keycode and uppercase keycode to latin IME,
+       * since latin IME would maintain a promise queue for each key, and
+       * send correct keycode based on the current capitalization state.
+       * See bug 1013570 and bug 987809 for details.
+       * This hack should be removed and the state/input queue should be
+       * maintained in keyboard.js.
+       */
+      var activeLayout = Keyboards[keyboardName];
+      if (activeLayout.imEngine == 'latin') {
+        inputMethodManager.currentIMEngine.click(
+          parseInt(target.dataset.keycode, 10),
+          parseInt(target.dataset.keycodeUpper, 10));
+      } else {
+        inputMethodManager.currentIMEngine.click(keyCode);
+      }
     }
     break;
   }
