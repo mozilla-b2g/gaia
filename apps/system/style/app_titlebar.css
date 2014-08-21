@@ -56,3 +56,11 @@
   visibility: hidden;
 }
 
+/* Homescreen must show the maximised status bar */
+#homescreen .chrome + .titlebar .titlebar-maximized {
+  opacity: 1;
+}
+
+#homescreen .chrome + .titlebar .titlebar-minimized {
+  opacity: 0;
+}
