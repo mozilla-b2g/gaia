@@ -430,6 +430,13 @@
   #calls.big-duration > section .numberWrapper .number {
     height: 3.7rem;
     line-height: 3.7rem;
+    padding-bottom: 2.5rem;
+  }
+
+  #calls.big-duration > section.additionalInfo .numberWrapper .number {
+    height: 3.7rem;
+    line-height: 3.7rem;
+    padding-bottom: 0;
   }
 
   #calls > section .numberWrapper .number {
@@ -457,10 +464,13 @@
     color: rgba(255, 255, 255, 0.6);
   }
 
-  #calls > section:not(.additionalInfo) .numberWrapper .number {
-    height: 9rem;
-    line-height: 8rem;
-    padding: 1rem 0 0 0;
+  #calls > section .numberWrapper #group-call-label {
+    padding: 2.5rem 0 0 0;
+    font-size: 3.4rem;
+  }
+
+  #calls:not(.single-line) > section .numberWrapper #group-call-label {
+    font-size: 2.5rem;
   }
 
   #calls > section.emergency.additionalInfo .numberWrapper .number {

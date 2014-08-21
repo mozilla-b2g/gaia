@@ -7,6 +7,9 @@
 var ConferenceGroupHandler = (function() {
   var groupLine = document.getElementById('group-call');
   var groupLabel = document.getElementById('group-call-label');
+  var groupSummary = document.getElementById('group-call-summary');
+  var additionalContactInfo = 
+    document.querySelector('#group-call > .additionalContactInfo');
   var groupDetails = document.getElementById('group-call-details');
   var groupDetailsHeader = groupDetails.querySelector('header');
   // FIXME/bug 1007148: Refactor duration element structure
@@ -40,6 +43,20 @@ var ConferenceGroupHandler = (function() {
       groupDetailsHeader.textContent = groupLabel.textContent =
         _('conferenceCall', {n: calls.length});
     });
+
+    additionalContactInfo.style.display = 'block';
+    groupLine.classList.add('additionalInfo');
+
+    var groupCalls = CallsHandler.groupHandledCalls();
+    var groupSummaryText = '';
+
+    groupCalls.forEach(function(element) {
+      groupSummaryText += 
+        element.node.querySelector('.number').textContent + ', ';
+    });
+    groupSummaryText = 
+      groupSummaryText.substring(0, groupSummaryText.length-2);
+    groupSummary.textContent = groupSummaryText;
 
     // When hanging up phones on conferenceGroup.calls.length >= 2,
     // we need to update handledCalls here since conferenceGroup.oncallschanged
