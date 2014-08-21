@@ -34,7 +34,8 @@ apps/ftu/style/overlay.css 0 1
 apps/ftu/style/status.css 0 1
 apps/ftu/style/style.css 0 10
 apps/ftu/style/tutorial.css 0 1
-apps/gallery/style/gallery.css 0 3
+apps/gallery/style/gallery.css 0 4
+apps/gallery/style/open.css 0 1
 apps/gallery/style/gallery_tablet.css 0 2
 apps/gallery/style/info.css 0 2
 apps/homescreen/everything.me/css/common.css 0 2
