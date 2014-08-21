@@ -463,6 +463,15 @@
     padding: 1rem 0 0 0;
   }
 
+  #calls > section .numberWrapper #group-call-label {
+    padding: 2.5rem 0 0 0;
+    font-size: 3.4rem;
+  }
+
+  #calls:not(.single-line) > section .numberWrapper #group-call-label {
+    font-size: 2.5rem;
+  }
+
   #calls > section.emergency.additionalInfo .numberWrapper .number {
     color: #b90000;
   }
@@ -849,6 +858,10 @@
     font-style: italic;
     line-height: 10rem;
     visibility: hidden;
+  }
+
+  #group-call > .additionalContactInfo{
+    display:block;
   }
 
   #contact-background {

@@ -6,6 +6,8 @@
 function MockHandledCall(call) {
   this.call = call;
   this.node = document.createElement('section'); // fake dom
+  this.node.innerHTML =
+    '<div class="number">' + ((!!call) ? call.id.number:'') + '</div>';
 }
 
 MockHandledCall.prototype.handleEvent = function hc_handle(evt) {
