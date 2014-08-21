@@ -9,18 +9,26 @@ var MockCallBarring = {
       'password': getOptions.password || '',
       'serviceClass': getOptions.serviceClass
     };
+    var error = {
+      'name': 'ERRORCILLO',
+      'message': 'Better call Saul'
+    };
 
     return {
-      set onsuccess(successCallback) {
+      // set onsuccess(successCallback) {
+      //   var self = this;
+      //   setTimeout(function() {
+      //     self.result = response;
+      //     successCallback.call(self);
+      //   }, 100);
+      // }
+      set onerror(errorCallback) {
         var self = this;
         setTimeout(function() {
-          self.result = response;
-          successCallback.call(self);
+          self.error = error;
+          errorCallback.call(self);
         }, 100);
       }
-      // set onerror(errorCallback) {
-      //   errorCallback();
-      // }
     };
   },
   setCallBarringOption: function (setOptions) {
@@ -30,18 +38,26 @@ var MockCallBarring = {
       'password': setOptions.password || '',
       'serviceClass': setOptions.serviceClass
     };
+    var error = {
+      'name': 'ERRORCILLO',
+      'message': 'Better call Saul'
+    };
 
     return {
-      set onsuccess(successCallback) {
+      // set onsuccess(successCallback) {
+      //   var self = this;
+      //   setTimeout(function() {
+      //     self.result = response;
+      //     successCallback.call(self);
+      //   }, 100);
+      // }
+      set onerror(errorCallback) {
         var self = this;
         setTimeout(function() {
-          self.result = response;
-          successCallback.call(self);
+          self.error = error;
+          errorCallback.call(self);
         }, 100);
       }
-      // set onerror(errorCallback) {
-      //   errorCallback();
-      // }
     };
   }
 };
