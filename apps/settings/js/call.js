@@ -927,7 +927,7 @@ require([
         function enable(item) {
           var newStatus = {
             'disabled': false,
-            'message': description || ''
+            'message': description
           };
           _updateCallBarringItem(item, newStatus);
         }
@@ -961,7 +961,7 @@ require([
         function disable(item) {
           var newStatus = {
             'disabled': true,
-            'message': description || ''
+            'message': description
           };
           _updateCallBarringItem(item, newStatus);
         }
@@ -999,19 +999,24 @@ require([
         }
       }
 
-      if (typeof newStatus.message !== 'undefined') {
-        console.log('>> message exists');
-        // update the description
-        if (descText) {
-          navigator.mozL10n.localize(descText, newStatus.message);
-        }
-      }
-
+      // update the input value
       if (input && typeof newStatus.checked === 'boolean') {
         console.log('>> checked exists');
-        // update the input (disable / check)
         input.checked = newStatus.checked;
       }
+
+      // update the description
+      // if (typeof newStatus.message !== 'undefined') {
+        console.log('>> message exists');
+        var text = newStatus.message;
+        if (!text) {
+          text = input && input.checked ? 'enabled' : 'disabled';
+        }
+        console.log('>> updating description to: ' + text);
+        if (descText) {
+          navigator.mozL10n.localize(descText, text);
+        }
+      // }
     }
 
     /**
@@ -1036,8 +1041,8 @@ require([
       _taskScheduler.enqueue('CALL_BARRING', function(done) {
         console.log('CB SET > done, sending...');
         // Send the request
-        // var request = _mobileConnection.setCallBarringOption(options);
-        var request = MockCallBarring.setCallBarringOption(options);
+        var request = _mobileConnection.setCallBarringOption(options);
+        // var request = MockCallBarring.setCallBarringOption(options);
         request.onsuccess = function() {
           console.log('CB SET > SUCCESS!');
           console.log('CB SET > RESULT: ' + JSON.stringify(request.result));
@@ -1056,7 +1061,10 @@ require([
           console.log('CB SET > REVERTING STATUS');
           console.log('CB SET > input state is ' + options.enabled);
           console.log('CB SET > we want to change it to ' + !options.enabled);
-          document.getElementById(id).checked = !options.enabled;
+
+          _updateCallBarringItem(document.getElementById(id),
+                                 {'checked': !options.enabled});
+
           // and enable all again
           _enableAllCallBarring();
 
@@ -1087,8 +1095,8 @@ require([
       console.log('CB GET > options =  ' + JSON.stringify(options));
       return new Promise(function (resolve, reject) {
         // Send the request
-        // var request = _mobileConnection.getCallBarringOption(options);
-        var request = MockCallBarring.getCallBarringOption(options);
+        var request = _mobileConnection.getCallBarringOption(options);
+        // var request = MockCallBarring.getCallBarringOption(options);
 
         request.onsuccess = function() {
           console.log('CB GET > SUCCESS for ID = ' + id);
