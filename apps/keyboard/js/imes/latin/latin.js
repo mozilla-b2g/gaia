@@ -102,6 +102,9 @@
   // if no suggestions are available
   var markMyWord = false;
 
+  // The array to store suggestions from two workers
+  var workerSuggestions = [];
+
   // Terminate the worker when the keyboard is inactive for this long.
   var WORKER_TIMEOUT = 30000;  // 30 seconds of idle time
 
@@ -323,41 +326,44 @@
       
       worker.onmessage = function(e) {
         switch (e.data.cmd) {
-        case 'log':
-          console.log(e.data.message);
-          break;
-        case 'error':
-          console.error(e.data.message);
-          // If the error was a result of our setLanguage call, then
-          // kill the worker because it can't do anything without
-          // a valid dictionary.
-          if (e.data.message.startsWith('setLanguage')) {
-            terminateWorker();
-          }
-          break;
-        case 'predictions':
-          // The worker is suggesting words: ask the keyboard to display them
-          handleSuggestions(e.data.input, e.data.suggestions);
-          break;
+          case 'log':
+            console.log(e.data.message);
+            break;
+          case 'error':
+            console.error(e.data.message);
+            // If the error was a result of our setLanguage call, then
+            // kill the worker because it can't do anything without
+            // a valid dictionary.
+            if (e.data.message.startsWith('setLanguage')) {
+              terminateWorker();
+            }
+            break;
+          case 'predictions':
+            // The worker is suggesting words: ask the keyboard to display them
+            // Let the predictions be sent to a mergeSuggestions function
+            // handleSuggestions(e.data.input, e.data.suggestions);
+            mergeSuggestions(e.data.input, e.data.suggestions, 0);
+            break;
         }
       };
 
       userWorker.onmessage = function(e) {
         switch (e.data.cmd) {
-        case 'log':
-          console.log(e.data.message);
-          break;
-        case 'error':
-          console.error(e.data.message);
-          break;
-        case 'predictions':
-          // We call handleSuggestions here with proper suggestions
-          // handleSuggestions has been appropriately modified to
-          // show suggestions only if both workers have returned
+          case 'log':
+            console.log(e.data.message);
+            break;
+          case 'error':
+            console.error(e.data.message);
+            break;
+          case 'predictions':
+            // We call handleSuggestions here with proper suggestions
+            // handleSuggestions has been appropriately modified to
+            // show suggestions only if both workers have returned
 
-          // We get the correct predictions from both the workers
-          // The only task remaining is to merge them
-          break;
+            // We get the correct predictions from both the workers
+            // The only task remaining is to merge them
+            mergeSuggestions(e.data.input, e.data.suggestions, 1);
+            break;
         }
       };
     }
@@ -703,6 +709,60 @@
           revertFrom = newtext;
           justAutoCorrected = false;
         });
+    }
+  }
+
+  // This functions merges suggestions from the two workers and sends
+  // the final 3 suggestions to handleSuggestions to be displayed
+  function mergeSuggestions(input, suggestions, workerId) {
+    // If no workerId is passed, as in tests, just call handleSuggestions
+    if(workerId === undefined) {
+      handleSuggestions(input, suggestions);
+      return;
+    }
+
+    // Place the suggestions in the correct scope
+    workerSuggestions[workerId] = suggestions;
+
+    if(workerSuggestions[0] && workerSuggestions[1]) {
+      // Take the 3 top suggestions from each worker and merge them
+      // according to descending weights
+      workerSuggestions[0].splice(3);
+      workerSuggestions[1].splice(3);
+      workerSuggestions[2] = workerSuggestions[0].concat(workerSuggestions[1]);
+
+      var merged = [],
+          counter = workerSuggestions[2].length - 1,
+          maxWeight = 0,
+          minWeight = 0;
+      while(counter > 0) {
+        var weight = workerSuggestions[2][counter][1];
+        if(weight > maxWeight) {
+          maxWeight = weight;
+          merged.unshift(workerSuggestions[2][counter]);
+        }
+        else if(weight < minWeight) {
+          minWeight = weight;
+          merged.push(workerSuggestions[2][counter]);
+        }
+        else { // :(
+          var i = merged.length - 1;
+          while(i > -1) {
+            if(merged[i][1] < weight) {
+              merged.splice(i, 0, workerSuggestions[2][counter]);
+              break;
+            }
+            i--;
+          }
+        }
+        counter--;
+      }
+      // Use the top 3 suggestions only
+      merged.splice(3);
+      // and call handleSuggestions with this
+      handleSuggestions(input, merged);
+      // Now clear the suggestions arrays just to be on the safe side
+      workerSuggestions = [];
     }
   }
 
