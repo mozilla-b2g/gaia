@@ -205,7 +205,10 @@ Utils.extend(AlarmEdit.prototype, {
     // to be "undefined" rather than "".
     this.element.dataset.id = this.alarm.id || '';
     this.inputs.name.value = this.alarm.label;
-    this.inputs.volume.value = AudioManager.getAlarmVolume();
+
+    AudioManager.requestAlarmVolume().then(function(volume) {
+      this.inputs.volume.value = AudioManager.getAlarmVolume();
+    }.bind(this));
 
     // Init time, repeat, sound, snooze selection menu.
     this.initTimeSelect();

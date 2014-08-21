@@ -35,6 +35,26 @@ define(function(require) {
     return Math.round(volume * SYSTEM_VOLUME_MAX);
   }
 
+  function requestAlarmSystemVolume() {
+    // Asynchronously load the alarm volume from mozSettings.
+    return new Promise(function(resolve, reject) {
+      var lock = navigator.mozSettings.createLock();
+      var req = lock.get(VOLUME_SETTING);
+      req.onsuccess = function() {
+        var volume = systemVolumeToFloat(req.result[VOLUME_SETTING]);
+        if (isValidVolume(volume)) {
+          globalVolumeManager._volume = volume;
+          resolve(volume);
+        }
+      };
+
+      req.onerror = function() {
+        var DEFAULT_VOLUME = 1.0;
+        resolve(DEFAULT_VOLUME);
+      };
+    });
+  }
+
   function VolumeManager() {
     this.VOLUME_KEY = 'defaultAlarmVolume';
     this.DEFAULT_VOLUME = 1.0;
@@ -44,16 +64,6 @@ define(function(require) {
       navigator.mozSettings.addObserver(
         VOLUME_SETTING,
         this.onSystemAlarmVolumeChange.bind(this));
-
-      // Asynchronously load the alarm volume from mozSettings.
-      var lock = navigator.mozSettings.createLock();
-      var req = lock.get(VOLUME_SETTING);
-      req.onsuccess = function() {
-        var volume = systemVolumeToFloat(req.result[VOLUME_SETTING]);
-        if (isValidVolume(volume)) {
-          this._volume = volume; // Do not use the setter here.
-        }
-      }.bind(this);
     }
   }
 
@@ -173,6 +183,9 @@ define(function(require) {
   return {
     getAlarmVolume: function() {
       return globalVolumeManager.volume;
+    },
+    requestAlarmVolume: function() {
+      return requestAlarmSystemVolume();
     },
     setAlarmVolume: function(volume, cb) {
       globalVolumeManager.setVolume(volume, cb);
