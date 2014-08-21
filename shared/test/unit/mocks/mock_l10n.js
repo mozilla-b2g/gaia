@@ -3,6 +3,8 @@
 
   exports.MockL10n = {
 
+    readyState: 'complete',
+
     get: stringify,
 
     // XXX Remove in https://bugzil.la/1020136
