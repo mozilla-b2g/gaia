@@ -23,7 +23,9 @@ class TestLockScreenAccessibility(GaiaTestCase):
         self.wait_for_condition(lambda m: self.accessibility.is_hidden(homescreen_container))
 
         homescreen = lock_screen.a11y_click_unlock_button()
-        lock_screen.wait_for_lockscreen_not_visible()
+
+        self.wait_for_condition(lambda m: not self.device.is_locked)
+
         self.assertEquals(self.apps.displayed_app.name, homescreen.name)
 
         self.assertTrue(self.accessibility.is_hidden(lockScreen_window))
