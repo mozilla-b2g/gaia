@@ -184,6 +184,12 @@ function execute(options) {
         '//system/fonts/hidden/gaia-icons.ttf']);
     }
   }).then(function() {
+    if (buildAppName === '*') {
+      return sh.run(['-c', adb + ' push ' +
+        '"shared/style/keyboard_symbols/Keyboard-Symbols.woff" ' +
+        '//system/fonts/hidden/Keyboard-Symbols.woff']);
+    }
+  }).then(function() {
     if (buildAppName === '*' || restartB2g) {
       utils.log('push', 'Restarting B2G...');
       sh.run(['-c', adb + ' shell start b2g']);
