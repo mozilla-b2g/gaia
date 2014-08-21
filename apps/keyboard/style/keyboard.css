@@ -715,3 +715,92 @@ bubble above the key when you tap and hold. */
 .keyboard-key.hindi > .visual-wrapper > span[data-label="ऑ"] {
   font-size: 2rem;
 }
+
+/* Tamil */
+.keyboard-key.tamil > .visual-wrapper > span:after {
+  width: auto;
+  min-width: 4.4rem;
+  padding-left: 0.6rem;
+  padding-right: 0.6rem;
+  border-radius: 2.8rem;
+}
+
+.keyboard-row button:last-child.tamil.highlighted >
+  .visual-wrapper > span:after {
+  left: auto;
+  right: 0;
+}
+
+@media (orientation:portrait) {
+  .special-key > .visual-wrapper > span[data-label="அஆஇ"] {
+    font-size: 1.1rem;
+  }
+
+  .keyboard-key.tamil > .visual-wrapper > span {
+    font-size: 2rem;
+  }
+
+  .keyboard-key.tamil > .visual-wrapper > span[data-label="ஹ"],
+  .keyboard-key.tamil > .visual-wrapper > span[data-label="ஊ"],
+  .keyboard-key.tamil > .visual-wrapper > span[data-label="ா"],
+  .keyboard-key.tamil > .visual-wrapper > span[data-label="ூ"],
+  .keyboard-key.tamil > .visual-wrapper > span[data-label="ே"],
+  .keyboard-key.tamil > .visual-wrapper > span[data-label="ெ"] {
+    font-size: 1.7rem;
+  }
+
+  .keyboard-key.tamil > .visual-wrapper > span[data-label="ௗ"],
+  .keyboard-key.tamil > .visual-wrapper > span[data-label="ை"],
+  .keyboard-key.tamil > .visual-wrapper > span[data-label="ண"] {
+    font-size: 1.4rem;
+  }
+
+  .keyboard-key.tamil > .visual-wrapper > span[data-label="ஔ"],
+  .keyboard-key.tamil > .visual-wrapper > span[data-label="ொ"],
+  .keyboard-key.tamil > .visual-wrapper > span[data-label="ோ"] {
+    font-size: 1.2rem;
+  }
+
+  .keyboard-key.tamil > .visual-wrapper > span[data-label="ௌ"] {
+    font-size: 1.1rem;
+  }
+}
+
+@media (orientation:landscape) {
+  #keyboard.landscape .special-key > .visual-wrapper >
+    span[data-label="அஆஇ"] {
+    font-size: 1.7rem;
+  }
+
+  #keyboard.landscape .keyboard-key.tamil.highlighted >
+    .visual-wrapper > span:after {
+    top: -7rem;
+    left: calc(50% - 3.5rem);
+    width: auto;
+    min-width: 5.6rem;
+    height: 7rem;
+    line-height: 7rem;
+    font-size: 3.5rem;
+    border-radius: 3.5rem;
+    padding-left: 0.7rem;
+    padding-right: 0.7rem;
+  }
+
+  #keyboard.landscape .keyboard-row button:last-child.tamil.highlighted >
+    .visual-wrapper > span:after {
+    left: auto;
+    right: 0;
+  }
+
+  #keyboard.landscape .keyboard-key.tamil >
+    .visual-wrapper > span[data-label="ஔ"],
+  #keyboard.landscape .keyboard-key.tamil >
+    .visual-wrapper > span[data-label="ொ"] {
+    font-size: 2.5rem;
+  }
+
+  #keyboard.landscape .keyboard-key.tamil >
+    .visual-wrapper > span[data-label="ௌ"] {
+    font-size: 2rem;
+  }
+}
