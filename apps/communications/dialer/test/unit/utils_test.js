@@ -30,8 +30,7 @@ suite('dialer/utils', function() {
       MockContacts.findByNumber(number, function(contact, matchingTel) {
         var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
           contact, number);
-        assert.equal('prefix-' + MockContacts.mType + ', ' +
-                     number, additionalInfo);
+        assert.equal('prefix-' + MockContacts.mType, additionalInfo);
         done();
       });
     });
@@ -43,6 +42,16 @@ suite('dialer/utils', function() {
           contact, number);
         assert.equal('prefix-' + MockContacts.mType + ', ' +
           MockContacts.mCarrier, additionalInfo);
+        done();
+      });
+    });
+
+    test('phone number and type', function(done) {
+      MockContacts.findByNumber(number, function(contact, matchingTel) {
+        var additionalInfo = subject.getPhoneNumberAndType(
+          matchingTel, contact, number);
+        assert.equal('prefix-' + MockContacts.mType + ', ' + number,
+                     additionalInfo);
         done();
       });
     });
