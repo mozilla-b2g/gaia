@@ -91,8 +91,12 @@
         GridItemsFactory.create(icon).getDescriptor(function(descriptor) {
           icon.record.id = descriptor.type === types.COLLECTION ?
                            descriptor.id : descriptor.url;
-          console.debug('Migrated to datastore', JSON.stringify(descriptor));
-          database.add(descriptor).then(onItemMigrated, onItemMigrated);
+          if (descriptor.skipMigration) {
+            onItemMigrated();
+          } else {
+            console.debug('Migrated to datastore', JSON.stringify(descriptor));
+            database.add(descriptor).then(onItemMigrated, onItemMigrated);
+          }
         });
       }.bind(this));
 

@@ -528,4 +528,45 @@ suite('migrator.js >', function() {
     startMigration();
   });
 
+  test('Skip CollectionsDatabase when E.me has not been initialzed',
+    function(done) {
+    var page = {
+      'index': 0,
+      'icons': [ createIcon('collection', {
+                   type: GridItemsFactory.TYPE.COLLECTION,
+                   provider_id: 234
+                 }),
+                 createIcon('app')
+               ]
+    };
+
+    port.postMessage = function(msg) {
+      assert.equal(msg, 'Done');
+      
+      assert.isFalse(bdAddStub.called);
+      assert.equal(bookmarks.length, 0);
+
+      assert.isFalse(cdAddStub.called);
+      assert.equal(collections.length, 0);
+
+      assert.isTrue(vpPutStub.called);
+      var firstPage = layout.grid[0];
+      assert.equal(firstPage.length, 2);
+      assert.equal(firstPage[0].id, 234);
+      assert.equal(firstPage[0].role, GridItemsFactory.TYPE.COLLECTION);
+      assert.equal(firstPage[1].name, 'app');
+      done();
+    };
+
+    var stub = sinon.stub(HomeState, 'getGrid', function(iterator, success) {
+      stub.restore();
+      iterator(page);
+      success();
+    });
+
+    window.asyncStorage.keys['evme-collectionsettings_idcollection'] = {};
+
+    startMigration();
+  });
+
 });
