@@ -2,8 +2,6 @@
 #datausage-tab .content {
   padding: 0;
   height: 100%;
-  display: flex;
-  flex-direction: column;
   padding-bottom: 3rem;
   box-sizing: border-box;
 }
@@ -26,17 +24,11 @@
   border-bottom-color: #adadad;
 }
 
-#datausage-tab .toggle-data li p {
+#datausage-tab .toggle-data li > span {
   color: #707070;
-}
-
-#datausage-tab .toggle-data li p:only-child,
-#datausage-tab .toggle-data li p:first-of-type:last-of-type {
-  line-height: 2rem;
-}
-
-#datausage-tab .toggle-data li p strong {
-  color: #333;
+  font-size: 1.8rem;
+  height: 100%;
+  line-height: 3.8rem;
 }
 
 #datausage-tab .toggle-data li label {
@@ -77,6 +69,14 @@
   background: #d4d2d2;
 }
 
+#datausage-tab .toggle-data li .overview {
+  color: #333;
+  font-weight: bold;
+  right: 3.4rem;
+  left: auto;
+  position: absolute;
+}
+
 #datausage-tab .toggle-data li[aria-disabled=true] .overview {
   display: none;
 }
@@ -94,4 +94,61 @@
   top: 0;
   width: 100%;
   height: 100%;
+}
+
+/* APPS */
+#datausage-tab #app-usage-no-data {
+  font-size: 1.5rem;
+  font-weight: 500;
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
+
+#datausage-tab .app-item {
+  width: 32rem;
+  padding-top: 1.7rem;
+  clear: both;
+}
+
+#datausage-tab .app-image {
+  width: 5.4rem;
+  height: 5.2rem;
+  background-position: center center;
+  background-size: 3rem 3rem;
+  background-repeat: no-repeat;
+  float: left;
+}
+
+#datausage-tab .app-info {
+  width: calc(100% - 10.8rem);
+  margin-right: 5.4rem;
+  float: right;
+}
+
+#datausage-tab .app-info-row {
+  width: 100%;
+}
+
+#datausage-tab .app-name {
+  font-size: 1.9rem;
+  font-weight: normal;
+}
+
+#datausage-tab .app-usage-bar {
+  height: 0.3rem;
+  margin-top: 0.8rem;
+  margin-bottom: 0.8rem;
+  background-color: #e7e7e7;
+}
+
+#datausage-tab .app-usage-bar-used {
+  background-color: #00caf2;
+  height: 0.3rem;
+  float: left;
+}
+
+#datausage-tab .app-usage-total {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #5f5f5f;
 }
