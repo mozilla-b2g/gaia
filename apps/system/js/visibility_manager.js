@@ -79,13 +79,19 @@
         this._resetDeviceLockedTimer();
         break;
       case 'lockscreen-request-unlock':
-        var activity = evt.detail && evt.detail.activity ?
-          evt.detail.activity : null;
+        var detail = evt.detail,
+            activity = null,
+            notificationId = null;
+
+        if (detail) {
+          activity = detail.activity;
+          notificationId = detail.notificationId;
+        }
 
         if (!AttentionScreen.isFullyVisible()) {
           this.publish('showwindow', {
-            type: evt.type,
-            activity: activity  // Trigger activity opening in AWM
+            activity: activity,  // Trigger activity opening in AWM
+            notificationId: notificationId
           });
         }
         this._resetDeviceLockedTimer();

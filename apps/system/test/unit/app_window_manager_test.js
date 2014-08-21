@@ -465,6 +465,48 @@ suite('system/AppWindowManager', function() {
       window.MozActivity = originalActivity;
     });
 
+    test('Show top window than fire notification event when the request comes',
+    function() {
+      injectRunningApps(app1);
+      AppWindowManager._activeApp = app1;
+      MockAttentionScreen.mFullyVisible = false;
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent'),
+          stubInitCustomEvent =
+          function(type, flag1, flag2, content) {
+            // Assume the API event would be fired.
+            assert.equal('mozContentNotificationEvent', type);
+            assert.equal(true, flag1);
+            assert.equal(true, flag2);
+            assert.equal('desktop-notification-click', content.type);
+            assert.equal('foobar', content.id);
+          },
+          stubCustomEvent = this.sinon.stub(window, 'CustomEvent',
+          function(type, content) {
+            // Assume the custome event would be fired.
+            assert.equal('notification-clicked', type);
+            assert.equal('foobar', content.detail.id);
+          }),
+          stubCreateEvent = this.sinon.stub(document, 'createEvent',
+          function() {
+            return {
+              initCustomEvent: stubInitCustomEvent
+            };
+          });
+      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+
+      AppWindowManager.handleEvent({
+        type: 'showwindow',
+        detail: {
+          notificationId: 'foobar'
+        }
+      });
+
+      assert.isTrue(stubSetVisible.calledWith(true));
+      stubDispatchEvent.restore();  // For linter.
+      stubCreateEvent.restore();
+      stubCustomEvent.restore();
+    });
+
     test('Hide top window', function() {
       injectRunningApps(app1);
       AppWindowManager._activeApp = app1;
