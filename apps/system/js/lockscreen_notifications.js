@@ -12,37 +12,11 @@
    */
   var LockScreenNotifications = function() {};
 
-  LockScreenNotifications.prototype.start =
-  function lsn_start(lockScreen){
-    this._lockScreen = lockScreen;
-    this.configs = {
-      listens: [
-        'lockscreen-notification-clicked'
-      ]
-    };
-    this.configs.listens.forEach((ename) => {
-      window.addEventListener(ename, this);
-    });
-  };
-
-  LockScreenNotifications.prototype.handleEvent =
-  function lsn_handleEvent(evt) {
-    switch (evt.type) {
-      case 'lockscreen-notification-clicked':
-        this.onNotificationClicked(evt.detail);
-      break;
-    }
-  };
-
-  /**
-   * When user clicked on the notification while it's locked.
-   */
-  LockScreenNotifications.prototype.onNotificationClicked =
-  function lsn_onNotificationClicked(info) {
-    this._lockScreen._unlockingMessage = {
-      notificationId: info.notificationId
-    };
-    this._lockScreen._activateUnlock();
+  LockScreenNotifications.prototype = {
+    /*
+     * The LockScreen this module is operating on
+     */
+    _lockScreen: null
   };
 
   /**

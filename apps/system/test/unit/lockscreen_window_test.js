@@ -40,10 +40,6 @@ suite('system/LockScreenWindow', function() {
     // Differs from the existing mock which is expected by other components.
     window.LockScreen = function() {};
     window.LockScreen.prototype.init = this.sinon.stub();
-    window.lockScreenNotificationBuilder =
-    window.lockScreenNotifications = {
-      start: function() {}
-    };
     window.layoutManager = new LayoutManager();
     window.layoutManager.start();
 
