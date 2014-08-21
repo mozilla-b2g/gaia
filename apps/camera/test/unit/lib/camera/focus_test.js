@@ -380,6 +380,16 @@ suite('lib/camera/focus', function() {
       assert.ok(previousFocusState === this.focus.focused);
     });
 
+    test('mozCamera autoFocus is interrupted', function() {
+      var onFocused = sinon.spy();
+      this.mozCamera.autoFocus = sinon.stub();
+      this.mozCamera.autoFocus.callArgWith(1, 'AutoFocusInterrupted');
+      this.mozCamera.focusMode = 'auto';
+      this.focus.focused = true;
+      this.focus.focus(onFocused);
+      assert.ok(onFocused.calledWith('interrupted'));
+      assert.ok(this.focus.focused === false);
+    });
   });
 
   suite('Focus#pause()', function() {
@@ -509,6 +519,23 @@ suite('lib/camera/focus', function() {
       assert.ok(this.focus.focus.called);
     });
 
+    test('it updates focus area and focus fails', function() {
+      this.focus.touchFocus = true;
+      this.focus.focus.callArgWith(0, 'failed');
+      var onFocused = sinon.spy();
+      this.focus.updateFocusArea(null, onFocused);
+      assert.ok(this.focus.focus.called);
+      assert.ok(onFocused.calledWith('failed'));
+    });
+
+    test('it updates focus area and ignores focus interrupted', function() {
+      this.focus.touchFocus = true;
+      this.focus.focus.callArgWith(0, 'interrupted');
+      var onFocused = sinon.spy();
+      this.focus.updateFocusArea(null, onFocused);
+      assert.ok(this.focus.focus.called);
+      assert.ok(!onFocused.called);
+    });
   });
 
 });
