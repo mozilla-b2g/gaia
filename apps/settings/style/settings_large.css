@@ -105,7 +105,7 @@
   }
 
   section[role="region"]#root .pack-switch > .menu-item {
-    padding-left: 7.5rem;
+    padding-left: 6rem;
   }
 
   section[role="region"]#root ul li > label.pack-switch {
@@ -114,6 +114,7 @@
 
   section[role="region"]#root ul li > label.pack-switch > small {
     left: 6.25rem;
+    margin: 0 0 0 4.5rem;
   }
 
   section[role="region"]:not([id='root']) ul li > label.pack-switch > span {
@@ -161,6 +162,11 @@
     width: 20rem;
     left: calc(100% - 20rem);
     height: 3.5rem;
+  }
+
+  section[role="region"]#findmydevice ul li button {
+    width: 100%;
+    left: 0;
   }
 
   section[role="region"]:not([id='root']) ul li span > select {
@@ -274,8 +280,7 @@
   /**
    * button
    */
-  section[role="region"]:not([id='root']) button.icon,
-  section[role="region"]:not([id='root']) .button {
+  section[role="region"]:not([id='root']) ul li p + span.button {
     position: absolute;
     top: 1.2rem;
   }
