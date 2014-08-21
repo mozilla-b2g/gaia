@@ -56,6 +56,10 @@ var Common = {
 
   COST_CONTROL_APP: 'app://costcontrol.gaiamobile.org',
 
+  allApps: {},
+
+  allAppsLoaded: false,
+
   allNetworkInterfaces: {},
 
   allNetworkInterfaceLoaded: false,
@@ -167,6 +171,25 @@ var Common = {
       }
     };
     return this.getInterface(findWifiInterface);
+  },
+
+  loadApps: function(onsuccess, onerror) {
+    var request = window.navigator.mozApps.mgmt.getAll();
+    request.onsuccess = function(event) {
+      Common.allApps = event.target.result;
+      Common.allAppsLoaded = true;
+
+      if (onsuccess) {
+        onsuccess(Common.allApps);
+      }
+    };
+
+    request.onerror = function() {
+      console.error('Error when trying to load apps');
+      if (onerror) {
+        onerror();
+      }
+    };
   },
 
   loadNetworkInterfaces: function(onsuccess, onerror) {

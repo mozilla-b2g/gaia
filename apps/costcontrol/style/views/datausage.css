@@ -1,91 +1,17 @@
 /* DATAUSAGE VIEW */
 #datausage-tab .content {
   padding: 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 3rem;
+  height: 20.2rem;
+  padding-top: 1rem;
+  padding-bottom: 2.2rem;
   box-sizing: border-box;
-}
-
-/* DATA TOGGLE */
-#datausage-tab .toggle-data {
-  list-style: none;
-  padding: 0;
-  margin: 0 1.5rem;
-  border: solid 0.1rem #adadad;
-  border-right: none;
-  border-left: none;
-  border-bottom: none;
-}
-
-#datausage-tab .toggle-data li {
-  padding-right: 2rem;
-  padding-left: 3rem;
-  height: 3.8rem;
-  border-bottom-color: #adadad;
-}
-
-#datausage-tab .toggle-data li p {
-  color: #707070;
-}
-
-#datausage-tab .toggle-data li p:only-child,
-#datausage-tab .toggle-data li p:first-of-type:last-of-type {
-  line-height: 2rem;
-}
-
-#datausage-tab .toggle-data li p strong {
-  color: #333;
-}
-
-#datausage-tab .toggle-data li label {
-  height: 100%;
-  pointer-events: auto;
-  left: 0;
-  border: none;
-}
-
-#datausage-tab .toggle-data li label span:after {
-  right: 0;
-  left: auto;
-}
-
-/* Color legend (square) */
-#datausage-tab .toggle-data li:before {
-  content: "";
-  width: 1.5rem;
-  height: 1.5rem;
-  position: absolute;
-  border: solid 0.1rem #979797;
-  left: 0.5rem;
-  top: 50%;
-  margin: -0.9rem 0 0;
-  transition: background 0.2s ease;
-}
-
-#datausage-tab .toggle-data li:first-child:before {
-  background: #975177 url(../images/app/ui/datausage/pattern-3g.png) repeat left top;
-}
-
-#datausage-tab .toggle-data li:last-child:before {
-  background-color: #d4e073;
-}
-
-/* Disabled state */
-#datausage-tab .toggle-data li[aria-disabled=true]:before {
-  background: #d4d2d2;
-}
-
-#datausage-tab .toggle-data li[aria-disabled=true] .overview {
-  display: none;
 }
 
 /* GRAPHS */
 #datausage-tab section.graph {
   position: relative;
-  height: 28.5rem;
-  flex: 1;
+  height: 14.8rem;
+  width: 100%;
 }
 
 #datausage-tab section.graph canvas {
@@ -94,4 +20,70 @@
   top: 0;
   width: 100%;
   height: 100%;
+}
+
+/* Total usage bar */
+
+#datausage-tab #app-usage-total-bar {
+  margin: 2.2rem 4.5rem 2.2rem 4.5rem;
+  height: 4.2rem;
+  width: calc(100% - 9rem);
+}
+
+/* APPS */
+
+#datausage-tab #app-usage-no-data {
+  font-size: 1.5rem;
+  font-weight: 500;
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
+
+#datausage-tab .app-item {
+  width: 32rem;
+  padding-top: 1.7rem;
+  clear: both;
+}
+
+#datausage-tab .app-image {
+  width: 5.4rem;
+  height: 5.2rem;
+  background-position: center center;
+  background-size: 3rem 3rem;
+  background-repeat: no-repeat;
+  float: left;
+}
+
+#datausage-tab .app-info {
+  width: calc(100% - 10.8rem);
+  margin-right: 5.4rem;
+  float: right;
+}
+
+#datausage-tab .app-info-row {
+  width: 100%;
+}
+
+#datausage-tab .app-name {
+  font-size: 1.9rem;
+  font-weight: normal;
+}
+
+#datausage-tab .app-usage-bar {
+  height: 0.3rem;
+  margin-top: 0.8rem;
+  margin-bottom: 0.8rem;
+  background-color: #e7e7e7;
+}
+
+#datausage-tab .app-usage-bar-used {
+  background-color: #00caf2;
+  height: 0.3rem;
+  float: left;
+}
+
+#datausage-tab .app-usage-total {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #5f5f5f;
 }
