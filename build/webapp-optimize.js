@@ -84,7 +84,7 @@ HTMLOptimizer.prototype._optimize = function() {
   this._proceedLocales();
 
   if (this.config.GAIA_INLINE_LOCALES === '1') {
-    this.embed10nResources();
+    this.embedSubsetL10nResources();
   }
 
   if (this.config.GAIA_CONCAT_LOCALES === '1') {
@@ -245,22 +245,19 @@ HTMLOptimizer.prototype.embededGlobals = function() {
  * Creates a dictionary for all l10n entities that are required by the HTML
  * document, and include it as an inline JSON.
  */
-HTMLOptimizer.prototype.embed10nResources = function() {
+HTMLOptimizer.prototype.embedSubsetL10nResources = function() {
   var doc = this.win.document;
-  var dictionary = this.subDict;
-  // split the l10n dictionary on a per-locale basis,
-  // and embed it in the HTML document by enclosing it in <script> nodes.
-  for (var lang in dictionary) {
-    // skip to the next language if the dictionary is null
-    if (!dictionary[lang]) {
-      continue;
-    }
-    var script = doc.createElement('script');
-    script.type = 'application/l10n';
-    script.lang = lang;
-    script.innerHTML = '\n  ' + JSON.stringify(dictionary[lang]) + '\n';
-    doc.documentElement.appendChild(script);
+  var noFetchRes =
+    doc.querySelector('link[type="application/l10n"][data-no-fetch]');
+
+  // if the document has at least one data-no-fetch link, we will
+  // embed the whole l10n dictionary, no need to embed the partial one.
+  //
+  // hasAttribute is needed because tests always return value for querySelector
+  if (noFetchRes && noFetchRes.hasAttribute('data-no-fetch')) {
+    return;
   }
+  embedL10nResources(doc.documentElement, this.subDict);
 };
 
 
@@ -278,21 +275,33 @@ HTMLOptimizer.prototype.concatL10nResources = function() {
 
   var parentNode = resources[0].parentNode;
   var fetch = false;
+  var embed = false;
+
   for (var i = 0; i < resources.length; i++) {
     var link = resources[i];
     link.parentNode.removeChild(link);
-    // if any l10n link does no have the no-fetch
+    // if any l10n link does have a no-fetch
+    // attribute, we will embed the whole l10n dictionary
+    if (link.hasAttribute('data-no-fetch')) {
+      embed = true;
+    }
+
     // attribute we will embed the locales json link
     if (!link.hasAttribute('data-no-fetch')) {
       fetch = true;
     }
   }
+
   if (fetch) {
     var jsonLink = doc.createElement('link');
     jsonLink.href = '/locales-obj/{{locale}}.json';
     jsonLink.type = 'application/l10n';
     jsonLink.rel = 'prefetch';
     parentNode.appendChild(jsonLink);
+  }
+
+  if (embed) {
+    embedL10nResources(this.win.document.head, this.fullDict);
   }
 };
 
@@ -798,6 +807,25 @@ function getLocales(config) {
   });
   result.push(config.GAIA_DEFAULT_LOCALE);
   return result;
+}
+
+/**
+ * Embeds a JSON dictionary of l10n resources in a document.
+ */
+function embedL10nResources(node, dictionary) {
+  // split the l10n dictionary on a per-locale basis,
+  // and embed it in the HTML document by enclosing it in <script> nodes.
+  for (var lang in dictionary) {
+    // skip to the next language if the dictionary is null
+    if (!dictionary[lang]) {
+      continue;
+    }
+    var script = node.ownerDocument.createElement('script');
+    script.type = 'application/l10n';
+    script.lang = lang;
+    script.innerHTML = '\n  ' + JSON.stringify(dictionary[lang]) + '\n';
+    node.appendChild(script);
+  }
 }
 
 exports.execute = execute;
