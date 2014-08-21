@@ -376,6 +376,7 @@
      * @param {Object} options Options to render with including:
      *  - from {Integer} The index to start rendering from.
      *  - skipDivider {Boolean} Whether or not to skip the divider
+     *  - rerender {Boolean} Whether we should clean elements and re-render.
      */
     render: function(options) {
       var self = this;
@@ -423,6 +424,12 @@
 
       for (var idx = 0; idx <= to; idx++) {
         var item = this.items[idx];
+
+        // Remove the element if we are re-rendering.
+        if (options.rerender && item.element) {
+          this.element.removeChild(item.element);
+          item.element = null;
+        }
 
         // If the item would go over the boundary before rendering,
         // step the y-axis.

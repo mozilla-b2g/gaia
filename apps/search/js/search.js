@@ -100,6 +100,14 @@
       }
 
       this.contextmenu = new Contextmenu();
+      window.addEventListener('resize', this.resize);
+    },
+
+    resize: function() {
+      var grid = document.getElementById('icons');
+      if (grid && grid.render) {
+        grid.render({rerender: true});
+      }
     },
 
     /**
