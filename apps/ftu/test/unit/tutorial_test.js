@@ -278,41 +278,12 @@ suite('Tutorial >', function() {
 
   });
 
-  suite(' progressbar', function() {
-    suiteSetup(function() {
-      Tutorial.reset();
-    });
-    teardown(function() {
-      Tutorial.reset();
-    });
-
-    test(' dont display with 3 steps', function(done) {
-      MockXMLHttpRequest.mResponse = mockConfig(3);
-      Tutorial.init();
-      Tutorial.start(function() {
-        assert.equal(Tutorial.config['default'].steps.length, 3);
-        var tutorialNode = document.getElementById('tutorial');
-        assert.ok(!tutorialNode.hasAttribute('data-progressbar'), '');
-        done();
-      });
-    });
-
-    test(' do display with 4 steps', function(done) {
-      MockXMLHttpRequest.mResponse = mockConfig(4);
-      Tutorial.init();
-      Tutorial.start(function() {
-        assert.equal(Tutorial.config['default'].steps.length, 4);
-        var tutorialNode = document.getElementById('tutorial');
-        assert.ok(tutorialNode.hasAttribute('data-progressbar'));
-        done();
-      });
-    });
-
-  });
-
   suite('IAC Message >', function() {
-    teardown(function() {
+    setup(function() {
       Tutorial.reset();
+    });
+
+    teardown(function() {
       MockNavigatormozApps.mTeardown();
     });
 

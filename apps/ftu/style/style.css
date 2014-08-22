@@ -75,30 +75,6 @@ gaia-buttons.forward-only .icon-previous {
   display: none !important;
 }
 
-/* Steps state */
-.step-state {
-  height: 0;
-  font-size: 0;
-  border-top: solid 0.1rem #b7b7b7;
-  border-bottom: solid 0.1rem #fff;
-  position: absolute;
-  top: 5.5rem;
-  left: 1.5rem;
-  right: 1.5rem;
-  z-index: 100;
-}
-
-.step-state-bar {
-  content: "";
-  height: 0.3rem;
-  position: absolute;
-  top: 50%;
-  left: 0;
-  margin-top: -0.2rem;
-  background: #858585;
-  transition: all 0.35s cubic-bezier(0.000, 1.000, 0.535, 1.110);
-}
-
 /*
   Header conditional button
 */
