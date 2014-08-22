@@ -36,14 +36,13 @@ class TestFtu(GaiaTestCase):
 
         # select en-US due to the condition of this test is only for en-US
         self.ftu.tap_language("en-US")
+        self.ftu.tap_next_to_cell_data_section()
 
-        # Tap enable data if sim network present
-        if self.device.has_mobile_connection:
-            self.ftu.tap_next_to_cell_data_section()
-            self.ftu.enable_data()
-            self.wait_for_condition(
-                lambda m: self.data_layer.is_cell_data_connected,
-                message='Cell data was not connected by FTU app')
+        # Tap enable data
+        self.ftu.enable_data()
+        self.wait_for_condition(
+            lambda m: self.data_layer.is_cell_data_connected,
+            message='Cell data was not connected by FTU app')
 
         # Tap next
         self.ftu.tap_next_to_wifi_section()
@@ -60,14 +59,11 @@ class TestFtu(GaiaTestCase):
 
         self.apps.switch_to_displayed_app()
 
-        # Set timezone if not connected to sim network
-        if not self.device.has_mobile_connection:
-            self.ftu.tap_next_to_timezone_section()
-            # UTC-05:00 America/New York is the default info if no network is detected
-            self.assertEqual(self.ftu.timezone_title, "UTC-05:00 America/New York")
-            self.ftu.set_timezone_continent("Asia")
-            self.ftu.set_timezone_city("Almaty")
-            self.assertEqual(self.ftu.timezone_title, "UTC+06:00 Asia/Almaty")
+        # Set timezone
+        self.ftu.tap_next_to_timezone_section()
+        self.ftu.set_timezone_continent("Asia")
+        self.ftu.set_timezone_city("Almaty")
+        self.assertEqual(self.ftu.timezone_title, "UTC+06:00 Asia/Almaty")
 
         # Verify Geolocation section appears
         self.ftu.tap_next_to_geolocation_section()
@@ -79,16 +75,14 @@ class TestFtu(GaiaTestCase):
             message='Geolocation was not disabled by the FTU app')
         self.ftu.tap_next_to_import_contacts_section()
 
-        if self.device.has_mobile_connection:
-            # Tap import from SIM
-            # You can do this as many times as you like without db conflict
-            self.ftu.tap_import_from_sim()
-            self.ftu.wait_for_contacts_imported()
-            self.assertEqual(self.ftu.count_imported_contacts, len(self.data_layer.all_contacts))
+        # Tap import from SIM
+        # You can do this as many times as you like without db conflict
+        self.ftu.tap_import_from_sim()
+        self.ftu.wait_for_contacts_imported()
+        self.assertEqual(self.ftu.count_imported_contacts, len(self.data_layer.all_contacts))
 
-            # all_contacts switches to top frame; Marionette needs to be switched back to ftu
-            self.apps.switch_to_displayed_app()
-
+        # all_contacts switches to top frame; Marionette needs to be switched back to ftu
+        self.apps.switch_to_displayed_app()
         self.ftu.tap_next_to_firefox_accounts_section()
         self.ftu.tap_next_to_welcome_browser_section()
 
