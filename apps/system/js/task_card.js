@@ -80,7 +80,6 @@
    */
   TaskCard.prototype.render = function tc_render() {
     Card.prototype.render.call(this);
-    this.app.enterTaskManager();
     return this.element;
   };
 
@@ -95,10 +94,6 @@
    * @memberof TaskCard.prototype
    */
   TaskCard.prototype.destroy = function tc_destroy() {
-    var app = this.app;
-    if (app) {
-      app.leaveTaskManager();
-    }
     Card.prototype.destroy.call(this);
   };
 

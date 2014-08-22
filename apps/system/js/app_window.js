@@ -1886,8 +1886,9 @@
    */
   AppWindow.prototype.enterTaskManager = function aw_enterTaskManager() {
     this._dirtyStyleProperties = {};
-    if (this.element) {
+    if (this.element && this.transitionController) {
       this.element.classList.add('in-task-manager');
+      this.close( this.isActive() ? 'to-cardview' : 'immediate' );
     }
   };
 
@@ -1897,8 +1898,10 @@
   AppWindow.prototype.leaveTaskManager = function aw_leaveTaskManager() {
     if (this.element) {
       this.element.classList.remove('in-task-manager');
-      this.unapplyStyle(this._dirtyStyleProperties);
-      this._dirtyStyleProperties = null;
+      if (this._dirtyStyleProperties) {
+        this.unapplyStyle(this._dirtyStyleProperties);
+        this._dirtyStyleProperties = null;
+      }
     }
   };
 
@@ -1973,6 +1976,10 @@
       win = win.frontWindow;
     }
     win.focus();
+  };
+
+  AppWindow.prototype.requestForeground = function aw_requestForeground() {
+    this.publish('requestforeground');
   };
 
   exports.AppWindow = AppWindow;
