@@ -492,7 +492,7 @@ export BUILD_CONFIG
 include build/common.mk
 
 # Generate profile/
-$(PROFILE_FOLDER): preferences pre-app post-app test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit create-default-data
+$(PROFILE_FOLDER): preferences pre-app post-app test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -544,6 +544,7 @@ ifeq ($(BUILD_APP_NAME),*)
 ifdef CONTACTS_PATH
 	@echo "Copying preload contacts to profile"
 	@cp $(CONTACTS_PATH) $(PROFILE_FOLDER)
+	@cp $(CONTACTS_PATH) $(PROFILE_FOLDER)/defaults/contacts.json
 else
 	@rm -f $(PROFILE_FOLDER)/contacts.json
 endif
@@ -965,20 +966,6 @@ else
 	$(ADB) shell rm /system/b2g/defaults/contacts.json
 endif
 	$(ADB) shell start b2g
-
-# create default data, gonk-misc will copy this folder during B2G build time
-create-default-data: preferences $(PROFILE_FOLDER)/settings.json contacts
-ifeq ($(BUILD_APP_NAME),*)
-	# create a clean folder to store data for B2G, this folder will copy to b2g output folder.
-	rm -rf $(PROFILE_FOLDER)/defaults
-	mkdir -p $(PROFILE_FOLDER)/defaults/pref
-	# rename user_pref() to pref() in user.js
-	sed s/user_pref\(/pref\(/ $(PROFILE_FOLDER)/user.js > $(PROFILE_FOLDER)/defaults/pref/user.js
-	cp $(PROFILE_FOLDER)/settings.json $(PROFILE_FOLDER)/defaults/settings.json
-ifdef CONTACTS_PATH
-	cp $(PROFILE_FOLDER)/contacts.json $(PROFILE_FOLDER)/defaults/contacts.json
-endif
-endif
 
 # clean out build products
 clean:

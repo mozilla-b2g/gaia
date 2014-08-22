@@ -20,9 +20,9 @@ suite('preferences.js', function() {
         return config;
       }
     };
-    mockUtils.getFile = function(src, path) {
+    mockUtils.getFile = function() {
       return {
-        path: src + path,
+        path: Array.prototype.join.call(arguments, '/'),
         exists: function() {
           return true;
         },
@@ -141,7 +141,9 @@ suite('preferences.js', function() {
       preferences.userPrefs = {
         'testKey2': 'testContent2'
       };
-      preferences.writePrefs();
+      preferences.writePrefs(preferences.config.PROFILE_DIR + 'user.js',
+        preferences.prefs, preferences.userPrefs
+      );
       assert.deepEqual(fileContent, {
         file: preferences.config.PROFILE_DIR + 'user.js',
         content: 'pref(\'' + 'testKey' + '\', ' +

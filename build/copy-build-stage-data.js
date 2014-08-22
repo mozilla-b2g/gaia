@@ -79,8 +79,13 @@ function genWebappJSON(config) {
  */
 function copySettingsJStoProfile(stageDir, profileDir) {
   var settingsFile = stageDir.clone();
+  var defaultsDir = profileDir.clone();
   settingsFile.append('settings_stage.json');
   settingsFile.copyTo(profileDir, 'settings.json');
+
+  defaultsDir.append('defaults');
+  utils.ensureFolderExists(defaultsDir);
+  settingsFile.copyTo(defaultsDir, 'settings.json');
 }
 
 function execute(options) {
