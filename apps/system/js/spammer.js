@@ -14,22 +14,24 @@
       }
       this.launch();
     },
-    launch: function() {
-      this.shuffle(this._launchApps);
-      for (var i = 0; i < this.LAUNCH_COUNT; i++) {
-        (function(self, app) {
-          window.setTimeout(function() {
-            app.launch();
-          }, self.LAUNCH_DELAY);
-        }(this, this._launchApps[i]));
+    launch: function(count) {
+      if (!count) {
+        count = 1;
       }
-      for (var i = 0; i < this.LAUNCH_COUNT; i++) {
-        (function(self, app) {
-          window.setTimeout(function() {
-            app.launch();
-          }, self.LAUNCH_DELAY);
-        }(this, this._launchApps[i]));
-      }
+      this._interval = window.setInterval(function() {
+        this.shuffle(this._launchApps);
+        for (var i = 0; i < this.LAUNCH_COUNT; i++) {
+          (function(self, app) {
+            window.setTimeout(function() {
+              app.launch();
+            }, self.LAUNCH_DELAY);
+          }(this, this._launchApps[i]));
+        }
+        count--;
+        if (count <= 0) {
+          window.clearInterval(this._interval);
+        }
+      }.bind(this), this.LAUNCH_TIMEOUT);
     },
     stop: function() {
       this._launchApps = [];
