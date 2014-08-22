@@ -478,35 +478,7 @@
           break;
 
         case 'showwindow':
-          var fireActivity = () => {
-            // Need to invoke activity
-            var a = new window.MozActivity(detail.activity);
-            a.onerror = function ls_activityError() {
-              console.log('MozActivity: activity error.');
-            };
-          };
-
-          if (activeApp && activeApp.origin !== homescreenLauncher.origin) {
-            activeApp.setVisible(true);
-            // If we need to invoke activity after we show the window.
-            if (detail && detail.activity) {
-              fireActivity();
-            }
-          } else {
-            // If we only have activity, we don't open the homescreen.
-            if (detail && detail.activity) {
-              fireActivity();
-            } else {
-              var home = homescreenLauncher.getHomescreen(true); // jshint ignore:line
-              if (home) {
-                if (home.isActive()) {
-                  home.setVisible(true);
-                } else {
-                  this.display();
-                }
-              }
-            }
-          }
+          this.onShowWindow(detail);
           break;
 
         case 'overlaystart':
@@ -731,6 +703,7 @@
       this._activeApp = this._apps[instanceID];
       if (!this._activeApp) {
         this.debug('no active app alive: ' + instanceID);
+        return;
       }
       if (this._activeApp && this._activeApp.isFullScreen()) {
         screenElement.classList.add('fullscreen-app');
@@ -770,6 +743,101 @@
       for (var id in this._apps) {
         this._apps[id].broadcast(message, detail);
       }
+    },
+
+    /**
+     * The event 'showwindow' may come with details, which means there is
+     * some steps need to be done after we show or don't show the active app,
+     * or the homescreen window.
+     *
+     * @param {Object} [detail] The detail of the event.
+     * @memberOf module:AppWindowManager
+     */
+    onShowWindow: function awm_onShowWindow(detail) {
+      var activeApp = this._activeApp;
+
+      // Just move the code from the conditional branches below to
+      // a re-usable function. To avoid people get confused with other
+      // homescreen related methods, this should not be moved out to
+      // be a method of AWM.
+      var launchHomescreen = () => {
+        var home = homescreenLauncher.getHomescreen(true); // jshint ignore:line
+        if (home) {
+          if (home.isActive()) {
+            home.setVisible(true);
+          } else {
+            this.display();
+          }
+        }
+      };
+      detail = detail ? detail : {};  // Give an empty object if it's null.
+
+      // In this statement we can add more possible slots when it's required.
+      // The undefined variables would keep undefined, and the existing ones
+      // would hold the data from the detail, so we don't need to parse the
+      // detail object with switch cases.
+      var { activity, notificationId } = detail;
+      if (activity || notificationId) {
+        if (activeApp && activeApp.origin !== homescreenLauncher.origin) {
+          activeApp.setVisible(true);
+          if (activity) {
+            this.fireActivity(activity);
+          } else if (notificationId){
+            this.fireNotificationClicked(notificationId);
+          }
+        } else {
+          if (activity) {
+            this.fireActivity(activity);
+          } else if (notificationId){
+            launchHomescreen();
+            this.fireNotificationClicked(notificationId);
+          }
+        }
+      } else {  // it don't have the detail we can handle.
+        if (activeApp && activeApp.origin !== homescreenLauncher.origin) {
+          activeApp.setVisible(true);
+        } else {
+          launchHomescreen();
+        }
+      }
+    },
+
+    /**
+     * After show the window of activity or homescreen,
+     * fire the following activity.
+     *
+     * @param {Object} [activityContent]
+     * @memberOf module:AppWindowManager
+     */
+    fireActivity: function awm_fireActivity(activityContent) {
+      // Need to invoke activity
+      var a = new window.MozActivity(activityContent);
+      a.onerror = function ls_activityError() {
+        console.log('MozActivity: activity error.');
+      };
+    },
+
+    /**
+     * After show the window of activity or homescreen,
+     * fire the event of notification clicked.
+     *
+     * @param {String} [notificationId]
+     * @memberOf module:AppWindowManager
+     */
+    fireNotificationClicked:
+    function awm_fireNotificationClicked(notificationId) {
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent('mozContentNotificationEvent', true, true, {
+        type: 'desktop-notification-click',
+        id: notificationId
+      });
+      window.dispatchEvent(event);
+
+      window.dispatchEvent(new CustomEvent('notification-clicked', {
+        detail: {
+          id: notificationId
+        }
+      }));
     }
   };
 
