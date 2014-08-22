@@ -196,6 +196,18 @@ function jsComparator(jsa, jsb) {
 }
 
 /**
+ * convert BUILD_APP_NAME to regular expression and automatically convert to
+ * /.+/ if BUILD_APP_NAME is *
+ *
+ * @param buildAppName {string} BUILD_APP_NAME from Makefile
+ *
+ * @return {RegExp}             a RegExp object
+ */
+function getAppNameRegex(buildAppName) {
+  return buildAppName === '*' ? /.+/ : new RegExp(buildAppName);
+}
+
+/**
  * NodeJS library Q for promise.
  * @exports Q
  */
@@ -268,6 +280,7 @@ exports.fileExists = utils.fileExists;
 exports.mkdirs = utils.mkdirs;
 exports.joinPath = utils.joinPath;
 exports.copyFileTo = utils.copyFileTo;
+exports.copyToStage = utils.copyToStage;
 exports.createXMLHttpRequest = utils.createXMLHttpRequest;
 exports.downloadJSON = utils.downloadJSON;
 exports.readJSONFromPath = utils.readJSONFromPath;
@@ -290,6 +303,7 @@ exports.copyDirTo = utils.copyDirTo;
 exports.existsInAppDirs = utils.existsInAppDirs;
 exports.getCompression = utils.getCompression;
 exports.removeFiles = utils.removeFiles;
+exports.getAppNameRegex = getAppNameRegex;
 
 /**
  * Common function.

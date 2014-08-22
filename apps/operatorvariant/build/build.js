@@ -378,6 +378,7 @@ OperatorAppBuilder.prototype.getSingleVariantResources = function(svConfFile) {
 };
 
 OperatorAppBuilder.prototype.execute = function(options) {
+  utils.copyToStage(options);
   this.setOptions(options);
   this.generateCustomizeResources(options);
 };
