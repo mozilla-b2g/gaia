@@ -12,9 +12,8 @@
   padding: 0 1.5rem;
   border-radius: 5.6rem;
   color: #ffffff;
-  overflow: hidden;
   pointer-events: none;
-  background: rgba(0,0,0,0.12);
+  background-color: rgba(0,0,0,0.12);
   opacity: 0;
   -moz-user-select: none;
   transition: opacity 0.2s ease-in-out;
