@@ -17,7 +17,6 @@ System.Selector = Object.freeze({
   appChromeContextMenuBookmark: '.appWindow.active #add-to-home',
   appChromeContextMenuShare: '.appWindow.active #share',
   statusbar: '#statusbar',
-  statusbarBackground: '#statusbar-background',
   statusbarLabel: '#statusbar-label',
   topPanel: '#top-panel',
   leftPanel: '#left-panel',
