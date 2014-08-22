@@ -828,18 +828,20 @@ suite('thread_list_ui', function() {
   });
 
   suite('onMessageReceived >', function() {
-    var firstMessage = MockMessages.sms({
-      id: 100,
-      threadId: 1
-    });
-
-    var secondMessage = MockMessages.sms({
-      id: 200,
-      threadId: 1
-    });
+    var firstMessage, secondMessage;
 
     setup(function() {
       this.sinon.spy(ThreadListUI, 'updateThread');
+
+      firstMessage = MockMessages.sms({
+        id: 100,
+        threadId: 1
+      });
+
+      secondMessage = MockMessages.sms({
+        id: 200,
+        threadId: 1
+      });
     });
 
     teardown(function() {
@@ -882,15 +884,17 @@ suite('thread_list_ui', function() {
   });
 
   suite('onMessageSending >', function() {
+    var firstMessage, secondMessage;
+
     setup(function() {
       this.sinon.spy(ThreadListUI, 'updateThread');
 
-      this.firstMessage = MockMessages.sms({
+      firstMessage = MockMessages.sms({
         id: 100,
         threadId: 1
       });
 
-      this.secondMessage = MockMessages.sms({
+      secondMessage = MockMessages.sms({
         id: 200,
         threadId: 1
       });
@@ -902,10 +906,10 @@ suite('thread_list_ui', function() {
 
     test('Thread is correctly updated', function() {
       MessageManager.on.withArgs('message-sending').yield({
-        message: this.firstMessage
+        message: firstMessage
       });
 
-      sinon.assert.calledWith(ThreadListUI.updateThread, this.firstMessage);
+      sinon.assert.calledWith(ThreadListUI.updateThread, firstMessage);
     });
   });
 
@@ -1006,6 +1010,40 @@ suite('thread_list_ui', function() {
         assert.isFalse(ThreadListUI.appendThread(thread));
       });
     });
+
+    suite('respects l10n lib readiness', function() {
+      setup(function() {
+        navigator.mozL10n.readyState = 'loading';
+        this.sinon.stub(navigator.mozL10n, 'once');
+      });
+
+      teardown(function() {
+        navigator.mozL10n.readyState = 'complete';
+      });
+
+      test('waits for l10n to render', function() {
+        var thread = Thread.create(MockMessages.sms({
+          threadId: 3,
+          timestamp: +(new Date(2013, 1, 2))
+        }));
+
+        var containerId = 'threadsContainer_' + thread.timestamp;
+
+        ThreadListUI.appendThread(thread);
+
+        var container = document.getElementById(containerId);
+
+        // Since mozL10n is not ready nothing should be rendered
+        assert.ok(!container);
+
+        navigator.mozL10n.readyState = 'complete';
+        navigator.mozL10n.once.yield();
+
+        container = document.getElementById(containerId);
+        assert.ok(container);
+        assert.equal(container.querySelector('li').id, 'thread-' + thread.id);
+      });
+    });
   });
 
   suite('renderThreads', function() {
@@ -1102,9 +1140,11 @@ suite('thread_list_ui', function() {
     });
 
     suite('Individual thread actions', function() {
-      var threadList = new MockThreadList();
+      var threadList;
 
       setup(function() {
+        threadList = new MockThreadList();
+
         this.sinon.stub(MessageManager, 'getThreads', (options) => {
           threadList.forEach((thread) => options.each && options.each(thread));
 
@@ -1125,8 +1165,6 @@ suite('thread_list_ui', function() {
 
       test('Updates thread UI header if thread to render is currently active',
       function(done) {
-        var threadList = new MockThreadList();
-
         this.sinon.spy(ThreadUI, 'updateHeaderData');
         this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
         Navigation.isCurrentPanel.withArgs('thread', { id: threadList[0].id }).
