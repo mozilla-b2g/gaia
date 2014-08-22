@@ -85,3 +85,22 @@ function getAlbumArtBlob(fileinfo, callback) {
     getBlob(url, callback);
   }
 }
+
+//The .ogg and .3gp audio files have video mimetype but we force them to be
+//audio mimetype because the audio files are shown as video when user shares
+//while playing and through pick activity to SMS composer which is very
+//confusing to user.This change is for UX improvement and good user experience
+function getAudioTypeBlob(file) {
+  var map = {
+    'video/ogg': 'audio/ogg',
+    'video/3gpp': 'audio/3gpp'
+    // Probably more here?
+  };
+
+  if (file.type.indexOf('audio') === -1 && map[file.type]) {
+    return new Blob([file], {type: map[file.type]});
+  } else {
+    // Is it possible to be some other audio types?
+    return file;
+  }
+}
