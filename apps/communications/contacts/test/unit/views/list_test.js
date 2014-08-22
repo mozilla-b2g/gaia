@@ -1704,7 +1704,7 @@ suite('Render contacts list', function() {
     });
   });
 
-  suite.only('ICE Contacts', function() {
+  suite('ICE Contacts', function() {
     setup(function() {
       this.sinon.stub(ICEStore, 'getContacts', function() {
         return {
