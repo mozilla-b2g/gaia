@@ -250,6 +250,7 @@ var SuggestionBar = {
     itemElm.removeAttribute('id');
     itemElm.hidden = false;
     itemElm.classList.add('si--action-menu');
+    navigator.mozL10n.translateFragment(this.overlayCancel);
     this.list.insertBefore(itemElm, this.overlayCancel);
     return itemElm;
   },
