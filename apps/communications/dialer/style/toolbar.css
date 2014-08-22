@@ -55,7 +55,6 @@
 }
 
 #views > li > .icon {
-  transform: translateY(0%);
   z-index: 2;
 }
 
@@ -79,4 +78,5 @@
 
 #contacts-view .bb-tabpanel {
   height: calc(100% - 4.5rem);
+  z-index: 1;
 }
