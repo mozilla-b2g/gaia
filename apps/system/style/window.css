@@ -3,13 +3,6 @@
   transform: none;
 }
 
-/* do not paint the underlying iframe content if the current window is covered
- * by an other one.
- */
-.appWindow.front-window > .browser-container iframe {
-  visibility: hidden;
-}
-
 #screen.utility-tray #windows > .appWindow {
   pointer-events: none;
 }
