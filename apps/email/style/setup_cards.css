@@ -137,19 +137,9 @@ li button.signature-button.icon:before {
   right: 0;
 }
 
-li button.signature-button.button.icon {
+li button.signature-button {
   width: calc(100% - 3rem);
   margin: 0 auto 2rem auto;
-  padding-right: 3rem;
-  padding-left: 0;
-}
-
-.signature-button-content {
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  width: 100%;
-  overflow: hidden;
-  margin-left: 1rem;
 }
 
 li:not([role]) {

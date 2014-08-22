@@ -4,7 +4,8 @@
 /*global define, console, _secretDebug */
 
 define(function(require) {
-  var mozL10n = require('l10n!'),
+  var evt = require('evt'),
+      mozL10n = require('l10n!'),
       Cards = require('mail_common').Cards;
 
   /**
@@ -89,8 +90,7 @@ define(function(require) {
 
       if (signatureButtonClassName) {
         this.signatureButton = this.nodeFromClass(signatureButtonClassName);
-        this.signatureButton.firstElementChild
-          .textContent = this.identity.signature;
+        this.signatureButton.textContent = this.identity.signature;
         this.signatureButton.addEventListener('click',
           this.onClickSignature.bind(this), false);
       }
@@ -126,8 +126,7 @@ define(function(require) {
     },
 
     updateSignatureButton: function() {
-      this.signatureButton.firstElementChild
-        .textContent = this.identity.signature;
+      this.signatureButton.textContent = this.identity.signature;
     },
 
     onClickSignature: function(index) {
