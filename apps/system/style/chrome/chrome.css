@@ -55,6 +55,10 @@
   background-color: transparent;
 }
 
+.homescreen:not(.bar) > .chrome {
+  background-image: none;
+}
+
 #screen.attention .lockScreenWindow:not(.bar) > .chrome {
   background-color: black;
 }
