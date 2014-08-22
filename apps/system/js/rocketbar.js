@@ -351,7 +351,7 @@
      * @memberof Rocketbar.prototype
      */
     selectAll: function() {
-      this.input.select();
+      this.input.setSelectionRange(0, this.input.value.length, 'forward');
     },
 
     /**

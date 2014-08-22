@@ -96,9 +96,10 @@ suite('system/Rocketbar', function() {
   });
 
   test('selectAll()', function() {
-    var stub = this.sinon.stub(subject.input, 'select');
+    var stub = this.sinon.stub(subject.input, 'setSelectionRange');
     subject.selectAll();
     sinon.assert.calledOnce(stub);
+    stub.restore();
   });
 
   test('focus()', function() {
