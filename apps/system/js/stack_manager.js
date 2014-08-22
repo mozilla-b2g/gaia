@@ -301,6 +301,10 @@ var StackManager = {
       appOut.queueHide();
     }
 
+    if (this._broadcastTimeout === null) {
+      AppWindowManager.sendStopRecordingRequest();
+    }
+
     clearTimeout(this._broadcastTimeout);
     this._broadcastTimeout = setTimeout(this._broadcast.bind(this), 800);
   },
