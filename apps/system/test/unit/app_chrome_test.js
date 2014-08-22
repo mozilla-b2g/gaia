@@ -320,6 +320,20 @@ suite('system/AppChrome', function() {
       this.sinon.clock.tick(500);
       assert.equal(subject.title.textContent, 'Bing');
     });
+    
+    test('should expand if collapsed', function() {
+      var stubIsBrowser = sinon.stub(subject.app, 'isBrowser', function() {
+        return true;
+      });
+      subject.collapse();
+      var evt = new CustomEvent('mozbrowserlocationchange', {
+        detail: 'http://example.com'
+      });
+      subject.app.element.dispatchEvent(evt);
+      assert.isTrue(subject.element.classList.contains('maximized'));
+      assert.equal(subject.scrollable.scrollTop, 0);
+      stubIsBrowser.restore();
+    });
   });
 
   suite('Maximized', function() {
