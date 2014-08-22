@@ -3,6 +3,7 @@
   "default_locale": "en-US",
   "description": "Gaia Test Agent",
   "launch_path": "/index.html",
+  "fullscreen": "true",
   "permissions": {
     "power": {}
   },
