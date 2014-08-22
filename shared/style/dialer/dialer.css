@@ -10,6 +10,11 @@ html,body {
   color: white;
 }
 
+#call-log-view > div {
+  background-color: white;
+  z-index: 1;
+}
+
 .font-light {
   font-weight: 300;
 }
@@ -45,15 +50,3 @@ body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
 
-/**
- * FIXME/bug 1026079: Remove these when tabs are implemented using building
- * blocks. They are temporary overrides for clipping issues.
- */
-body .bb-tablist [aria-selected="true"] ~.bb-tabpanel {
-  visibility: hidden;
-}
-
-body .bb-tablist :target .bb-tabpanel {
-  z-index: -1;
-  visibility: visible;
-}

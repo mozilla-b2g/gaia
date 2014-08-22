@@ -189,13 +189,11 @@
   bottom: 4.5rem;
   left: 0;
   visibility: hidden;
-  z-index: -2;
   overflow: auto;
 }
 
 .bb-tablist :target .bb-tabpanel,
 .bb-tablist [aria-selected="true"] ~.bb-tabpanel {
-  z-index: -1;
   visibility: visible;
 }
 
