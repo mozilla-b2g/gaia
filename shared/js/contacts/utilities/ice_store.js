@@ -90,7 +90,9 @@
      */
     onChange: function(cb) {
       return init().then(function() {
-        store.addEventListener('change', cb);
+        store.addEventListener('change', function() {
+          store.get(FIELD).then(cb);
+        });
       });
     }
   };

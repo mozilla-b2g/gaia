@@ -152,7 +152,9 @@ suite('Contacts', function() {
         });
       });
 
-      this.sinon.spy(contacts.List, 'refresh');
+      this.sinon.stub(contacts.List, 'refresh', function(id, cb) {
+        cb();
+      });
     });
 
     test('> FB contact update sends MozContacts info', function() {
@@ -173,6 +175,25 @@ suite('Contacts', function() {
       assert.isTrue(Array.isArray(argument.email));
       argument.email.forEach(function onEmail(email) {
         assert.isTrue(email.value === 'myfbemail@email.com');
+      });
+    });
+
+    suite('> Custom contact change', function() {
+      test('> Trigger custom event on contact change', function(done) {
+        Contacts.onLocalized();
+        var evt = {
+          contactID: 1234567,
+          reason: 'update'
+        };
+
+        mockNavigation._currentView = 'view-contact-details';
+
+        document.addEventListener('contactChanged', function(e) {
+          assert.equal(e.detail.contactID, evt.contactID);
+          done();
+        });
+
+        navigator.mozContacts.oncontactchange(evt);
       });
     });
   });
@@ -503,4 +524,5 @@ suite('Contacts', function() {
       Contacts.init
     );
   });
+
 });

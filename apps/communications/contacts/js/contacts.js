@@ -853,15 +853,14 @@ var Contacts = (function() {
                 contactsList.refresh(enrichedContact || currentContact,
                                      checkPendingChanges, event.reason);
               }
+              notifyContactChanged(event.contactID);
           });
         } else {
-          contactsList.refresh(event.contactID, checkPendingChanges,
-            event.reason);
+          refreshContactInList(event.contactID);
         }
         break;
       case 'create':
-        contactsList.refresh(event.contactID, checkPendingChanges,
-          event.reason);
+        refreshContactInList(event.contactID);
         break;
       case 'remove':
         if (currentContact != null && currentContact.id == event.contactID &&
@@ -872,9 +871,30 @@ var Contacts = (function() {
         contactsList.remove(event.contactID, event.reason);
         currentContact = {};
         checkPendingChanges(event.contactID);
+        notifyContactChanged(event.contactID);
         break;
     }
   };
+
+  // Refresh a contact in the list, and notifies of contact
+  // changed to possible listeners.
+  function refreshContactInList(id) {
+    contactsList.refresh(id, function() {
+      notifyContactChanged(id);
+      checkPendingChanges();
+    });
+  }
+
+  // Send a custom event when we know that a contact changed and
+  // the contact list was updated.
+  // Used internally in places where the contact list is a reference
+  function notifyContactChanged(id) {
+    document.dispatchEvent(new CustomEvent('contactChanged', {
+      detail: {
+        contactID: id
+      }
+    }));
+  }
 
   var close = function close() {
     window.removeEventListener('localized', initContacts);
@@ -936,7 +956,8 @@ var Contacts = (function() {
     settings: 'settings-wrapper',
     search: 'search-view',
     overlay: 'loading-overlay',
-    confirm: 'confirmation-message'
+    confirm: 'confirmation-message',
+    ice: 'ice-view'
   };
 
   function load(type, file, callback, path) {
