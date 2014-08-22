@@ -310,110 +310,14 @@ suite('lib/camera/focus', function() {
     });
   });
 
-  suite('Focus#facesAlreadyDetected', function() {
-    setup(function() {
-      this.focus.detectedFaces = [];
-    });
-
-    test('it should return false if not faces have been previously detected', function() {
-      assert.ok(!this.focus.facesAlreadyDetected([1,2,3]));
-    });
-
-    test('it should return false if different faces have been previously detected', function() {
-      this.focus.detectedFaces = [1,2];
-      assert.ok(!this.focus.facesAlreadyDetected([1,2,3]));
-    });
-
-    test('it should return true if the same faces have been previously detected', function() {
-      this.focus.detectedFaces = [1,2,3];
-      assert.ok(this.focus.facesAlreadyDetected([1,2,3]));
-    });
-  });
-
-  suite('Focus#filterAndSortDetectedFaces', function() {
-
-    test('it should return empty array if not faces have been detected', function() {
-      assert.ok(this.focus.filterAndSortDetectedFaces([]).length === 0);
-    });
-
-    test('it should filter faces with score under the threshold', function() {
-      assert.ok(this.focus.filterAndSortDetectedFaces([
-      {
-        score: 20,
-        bounds: {
-          height: 100,
-          width: 100
-        }
-      },
-      {
-        score: 40,
-        bounds: {
-          height: 100,
-          width: 100
-        }
-      },
-      {
-        score: 80,
-        bounds: {
-          height: 100,
-          width: 100
-        }
-      }
-      ]).length === 1);
-    });
-
-    test('it should sort faces by area', function() {
-      var sortedFaces = this.focus.filterAndSortDetectedFaces([
-        {
-          id: 1,
-          score: 80,
-          bounds: {
-            height: 100,
-            width: 100
-          }
-        },
-        {
-          id: 2,
-          score: 80,
-          bounds: {
-            height: 200,
-            width: 200
-          }
-        },
-        {
-          id: 3,
-          score: 80,
-          bounds: {
-            height: 300,
-            width: 300
-          }
-        }
-      ]);
-      assert.ok(sortedFaces[0].id === 3);
-      assert.ok(sortedFaces[1].id === 2);
-      assert.ok(sortedFaces[2].id === 1);
-    });
-
-  });
-
   suite('Focus#focusOnLargestFace', function() {
 
     setup(function() {
       this.sandbox.spy(this.focus, 'onFacesDetected');
-      this.sandbox.spy(this.focus, 'stopContinuousFocus');
-      this.sandbox.spy(this.focus, 'updateFocusArea');
-      this.sandbox.spy(this.focus, 'suspendFaceDetection');
     });
 
     teardown(function() {
       this.sandbox.restore();
-    });
-
-    test('it should not focus on any face if touch to focus is not available', function() {
-      this.focus.focusOnLargestFace([]);
-      assert.ok(!this.focus.onFacesDetected.called);
-      assert.ok(!this.focus.stopContinuousFocus.called);
-      assert.ok(!this.focus.updateFocusArea.called);
     });
 
     test('it should not focus on any face if face detection is suspended', function() {
@@ -428,57 +332,6 @@ suite('lib/camera/focus', function() {
         }
       }]);
       assert.ok(this.focus.onFacesDetected.calledWith([]));
-      assert.ok(!this.focus.suspendFaceDetection.called);
-      assert.ok(!this.focus.stopContinuousFocus.called);
-      assert.ok(!this.focus.updateFocusArea.called);
-    });
-
-    test('it should not focus on any face if faces have been already detected and we are focused on a face', function() {
-      this.focus.touchFocus = true;
-      this.focus.faceDetectionSuspended = false;
-      this.focus.faceFocused = true;
-      this.focus.detectedFaces = [{
-        id: 1,
-        score: 80,
-        bounds: {
-          height: 300,
-          width: 300
-        }
-      }];
-      this.focus.focusOnLargestFace([{
-        id: 3,
-        score: 80,
-        bounds: {
-          height: 300,
-          width: 300
-        }
-      }]);
-      assert.ok(this.focus.detectedFaces[0].id === 1);
-      assert.ok(!this.focus.suspendFaceDetection.called);
-      assert.ok(!this.focus.stopContinuousFocus.called);
-      assert.ok(!this.focus.updateFocusArea.called);
-      assert.ok(this.focus.onFacesDetected.called);
-    });
-
-
-    test('it should not focus on any face if faces haven not been already detected and we are not already focused on a face', function() {
-      this.focus.touchFocus = true;
-      this.focus.faceDetectionSuspended = false;
-      this.focus.faceFocused = false;
-      this.focus.detectedFaces = [];
-      this.focus.focusOnLargestFace([{
-        id: 3,
-        score: 80,
-        bounds: {
-          height: 300,
-          width: 300
-        }
-      }]);
-      assert.ok(this.focus.detectedFaces[0].id === 3);
-      assert.ok(this.focus.suspendFaceDetection.called);
-      assert.ok(this.focus.stopContinuousFocus.called);
-      assert.ok(this.focus.updateFocusArea.called);
-      assert.ok(this.focus.onFacesDetected.called);
     });
 
   });
