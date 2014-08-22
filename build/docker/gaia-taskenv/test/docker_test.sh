@@ -1,10 +1,10 @@
 #! /bin/bash -xv
 
+DOCKER_TAG=`cat DOCKER_TAG`
+VERSION=`cat VERSION`
+
 # must run from a docker enabled host
-docker run lightsofapollo/gaia-taskenv \
-           ./bin/git_branch_taskrunner \
-           https://github.com/taskcluster/gaia-taskenv.git \
-           master 'exit 222'
+docker run $DOCKER_TAG:$VERSION 'exit 222'
 
 # exit status from the task runner
 exit_code=$?;

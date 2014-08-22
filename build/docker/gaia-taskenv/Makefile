@@ -1,5 +1,5 @@
 DOCKER_REPO?=
-DOCKER_TAG?=mozillab2g/gaia-taskenv
+DOCKER_TAG?=$(shell cat DOCKER_TAG)
 VERSION?=$(shell cat VERSION)
 
 default: docker_image
@@ -10,3 +10,7 @@ docker_image:
 
 .PHONY: register
 register: docker_image
+
+.PHONY: test
+test:
+	./test/docker_test.sh
