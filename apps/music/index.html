@@ -5,7 +5,6 @@
     <meta charset="utf-8" />
     <title>Music</title>
     <!-- Include shared building blocks -->
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
@@ -27,23 +26,23 @@
     <script defer src="shared/js/media/remote_controls.js"></script>
     <script defer src="shared/js/omadrm/fl.js"></script>
     <script defer src="shared/js/scroll_detector.js"></script>
+    <!-- Web components -->
+    <script defer src="shared/js/component_utils.js"></script>
+    <script defer src="shared/elements/gaia_subheader/script.js"></script>
+    <script defer src="bower_components/gaia-header/dist/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="bower_components/gaia-theme/style.css"/>
     <!-- Specific code -->
     <script defer src="js/utils.js"></script>
     <script defer src="js/music.js"></script>
     <script defer src="js/communications.js"></script>
   </head>
 
-  <body role="application">
-    <section id="title" role="region" class="skin-dark">
-      <header>
-        <button id="title-back"><span class="icon icon-back"></span></button>
-        <menu type="toolbar">
-          <button id="title-player" hidden><span class="icon icon-player">player</span></button>
-          <button id="title-done" hidden><span class="icon icon-done"></span></button>
-        </menu>
-        <h1 id="title-text" data-l10n-id="music">Music</h1>
-      </header>
-    </section>
+  <body role="application" class="theme-media">
+    <gaia-header id="title" action="back">
+      <h1 id="title-text" data-l10n-id="music">Music</h1>
+      <button id="title-player" data-icon="play-circle" hidden></button>
+      <button id="title-done" hidden>Done</button>
+    </gaia-header>
     <div id="views">
       <div id="views-tiles" class="view bb-tabpanel hidden" aria-labelledby="tabs-mix" role="tabpanel">
         <form id="views-tiles-search" role="search" class="skin-dark">
@@ -72,8 +71,8 @@
           <div id="views-sublist-header-image"></div>
           <div id="views-sublist-header-controls">
             <div id="views-sublist-header-name">Name</div>
-            <button id="views-sublist-controls-play" class="album-controls-button"></button>
-            <button id="views-sublist-controls-shuffle" class="album-controls-button"></button>
+            <button id="views-sublist-controls-play" class="album-controls-button" data-icon="play"></button>
+            <button id="views-sublist-controls-shuffle" class="album-controls-button" data-icon="shuffle"></button>
           </div>
         </div>
         <!-- Bug 968456. Scrollable area needs to be inside an opaque background div to help gecko -->
@@ -85,10 +84,10 @@
           <div id="player-cover-caption">
             <div id="player-cover-artist" data-l10n-id="songArtist">Song Artist</div>
             <div id="player-cover-album" data-l10n-id="songAlbum">Song Album</div>
-            <button id="player-cover-share" class="player-cover-button"></button>
+            <button id="player-cover-share" class="player-cover-button" data-icon="share"></button>
           </div>
           <div id="player-cover-buttons">
-            <button id="player-album-repeat" class="player-cover-button"></button>
+            <button id="player-album-repeat" class="player-cover-button" data-icon="repeat"></button>
             <div id="player-album-rating">
               <button class="rating-star" data-rating="1"></button>
               <button class="rating-star" data-rating="2"></button>
@@ -96,7 +95,7 @@
               <button class="rating-star" data-rating="4"></button>
               <button class="rating-star" data-rating="5"></button>
             </div>
-            <button id="player-album-shuffle" class="player-cover-button"></button>
+            <button id="player-album-shuffle" class="player-cover-button" data-icon="shuffle"></button>
           </div>
           <section id="info-banner" role="status">
             <p data-l10n-id="music-paused-notification"></p>
@@ -111,55 +110,53 @@
           <span id="player-seek-remaining">00:00</span>
         </div>
         <div id="player-controls">
-          <button id="player-controls-previous" class="player-controls-button"></button>
-          <button id="player-controls-play" class="player-controls-button is-pause"></button>
-          <button id="player-controls-next" class="player-controls-button"></button>
+          <button id="player-controls-previous" class="player-controls-button" data-icon="skip-back"></button>
+          <button id="player-controls-play" class="player-controls-button is-pause" data-icon="pause"></button>
+          <button id="player-controls-next" class="player-controls-button" data-icon="skip-forward"></button>
         </div>
         <audio id="player-audio" class="hidden"></audio>
       </div>
     </div>
     <div id="search" class="hidden">
-      <section role="region" class="skin-dark">
-        <div id="views-search-artists" class="search-category hidden">
-          <header>
-            <h2><span data-l10n-id="search-artists">ArtistS</span>
-              (<span class="search-result-count"></span>)</h2>
-          </header>
-          <div class="search-results"></div>
-        </div>
-        <div id="views-search-albums" class="search-category hidden">
-          <header>
-            <h2><span data-l10n-id="search-albums">AlbumS</span>
-              (<span class="search-result-count"></span>)</h2>
-          </header>
-          <div class="search-results"></div>
-        </div>
-        <div id="views-search-titles" class="search-category hidden">
-          <header>
-            <h2><span data-l10n-id="search-titles">TrackS</span>
-              (<span class="search-result-count"></span>)</h2>
-          </header>
-          <div class="search-results"></div>
-        </div>
-      </section>
+      <div id="views-search-artists" class="search-category hidden">
+        <gaia-subheader skin="dark">
+          <span data-l10n-id="search-artists">ArtistS</span>
+            (<span class="search-result-count"></span>)
+        </gaia-subheader>
+        <div class="search-results"></div>
+      </div>
+      <div id="views-search-albums" class="search-category hidden">
+        <gaia-subheader skin="dark">
+          <span data-l10n-id="search-albums">AlbumS</span>
+            (<span class="search-result-count"></span>)
+        </gaia-subheader>
+        <div class="search-results"></div>
+      </div>
+      <div id="views-search-titles" class="search-category hidden">
+        <gaia-subheader skin="dark">
+          <span data-l10n-id="search-titles">TrackS</span>
+            (<span class="search-result-count"></span>)
+        </gaia-subheader>
+        <div class="search-results"></div>
+      </div>
     </div>
     <!-- BB tabs -->
     <div id="tabs">
       <ul role="tablist" class="bb-tablist skin-dark">
         <li id="mix" role="presentation">
-          <a href="#mix" id="tabs-mix" data-option="mix" class="icon" role="tab" aria-selected="true" aria-controls="views-tiles">mix</a>
+          <a href="#mix" id="tabs-mix" data-option="mix" role="tab" aria-selected="true" aria-controls="views-tiles" data-icon="grid"></a>
         </li>
         <li id="playlists" role="presentation">
-          <a href="#playlists" id="tabs-playlists" data-option="playlist" class="icon" role="tab" aria-selected="false" aria-controls="views-list">playlists</a>
+          <a href="#playlists" id="tabs-playlists" data-option="playlist" role="tab" aria-selected="false" aria-controls="views-list" data-icon="playlist"></a>
         </li>
         <li id="artists" role="presentation">
-          <a href="#artists" id="tabs-artists" data-option="artist" class="icon" role="tab" aria-selected="false" aria-controls="views-list">artists</a>
+          <a href="#artists" id="tabs-artists" data-option="artist" role="tab" aria-selected="false" aria-controls="views-list" data-icon="artist"></a>
         </li>
         <li id="albums" role="presentation">
-          <a href="#albums" id="tabs-albums" data-option="album" class="icon" role="tab" aria-selected="false" aria-controls="views-list">albums</a>
+          <a href="#albums" id="tabs-albums" data-option="album" role="tab" aria-selected="false" aria-controls="views-list" data-icon="album"></a>
         </li>
         <li id="songs" role="presentation">
-          <a href="#songs" id="tabs-songs" data-option="title" class="icon" role="tab" aria-selected="false" aria-controls="views-list">songs</a>
+          <a href="#songs" id="tabs-songs" data-option="title" role="tab" aria-selected="false" aria-controls="views-list" data-icon="songs"></a>
         </li>
       </ul>
     </div>
