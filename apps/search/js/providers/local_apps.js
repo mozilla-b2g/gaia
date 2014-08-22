@@ -6,6 +6,7 @@
 
   function LocalApps() {
     this.apps = {};
+    this.getBlacklist();
 
     var mozApps = navigator.mozApps.mgmt;
     var self = this;
@@ -34,9 +35,58 @@
     dedupes: true,
     dedupeStrategy: 'exact',
 
+    getBlacklist: function() {
+      return new Promise((resolve, reject) => {
+        var self = this;
+        var key = 'app.launch_path.blacklist';
+        var req = navigator.mozSettings.createLock().get(key);
+        req.onsuccess = function onsuccess() {
+          self.blacklist = req.result[key] || [];
+          resolve();
+        };
+      });
+    },
+
+    // XXX: Prevent apps in black list being added to app list
+    // Should remove this when entry_points is removed from manifest
+    getAppListing: function(manifest) {
+      var appListing = [];
+      var blacklist = this.blacklist;
+      var entryPoints = manifest.entry_points;
+
+      if (entryPoints) {
+        for (var i in entryPoints) {
+          var entry = entryPoints[i];
+          entry.entryPoint = i;
+          appListing.push(entry);
+        }
+      } else {
+        appListing.push(manifest);
+      }
+
+      if (blacklist) {
+        blacklist.forEach(function(blackentry) {
+          for (var i in appListing) {
+            var app = appListing[i];
+            if (app.launch_path === blackentry) {
+              appListing.splice(i, 1);
+            }
+          }
+        });
+      }
+
+      return appListing;
+    },
+
     search: function(input) {
+      if (!this.blacklist) {
+        this.getBlacklist.then(() => {
+          this.search(input);
+        });
+      }
       return new Promise((resolve, reject) => {
         var results = this.find(input);
+        console.log(results);
         var formatted = [];
 
         results.forEach(function eachResult(result) {
@@ -65,18 +115,7 @@
           return;
         }
 
-        var appListing = [];
-        var entryPoints = manifest.entry_points;
-
-        if (entryPoints) {
-          for (var i in entryPoints) {
-            var entry = entryPoints[i];
-            entry.entryPoint = i;
-            appListing.push(entry);
-          }
-        } else {
-          appListing.push(manifest);
-        }
+        var appListing = this.getAppListing(manifest);
 
         appListing.forEach(function(manifest) {
           if (manifest.name.toLowerCase().indexOf(query.toLowerCase()) != -1) {
