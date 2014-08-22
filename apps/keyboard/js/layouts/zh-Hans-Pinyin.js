@@ -53,7 +53,10 @@ Keyboards['zh-Hans-Pinyin'] = {
         { value: '～' }, { value: '（' }, { value: '）' },
         { value: '“' }, { value: '”' }
       ], [
-        { value: 'Alt', keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt',
+          keyCode: KeyEvent.DOM_VK_ALT,
+          className: 'page-switch-key'
+        },
         { value: '<div class="zh-encode-switcher \
                               zh-encode-switcher-half">半</div> \
                   <div class="zh-encode-switcher \
@@ -85,7 +88,10 @@ Keyboards['zh-Hans-Pinyin'] = {
         { value: '＄' }, { value: '￥' }, { value: '《' }, { value: '》' },
         { value: '｛' }, { value: '｝' }
       ], [
-        { value: 'Alt', keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt',
+          keyCode: KeyEvent.DOM_VK_ALT,
+          className: 'page-switch-key'
+        },
         { value: '<div class="zh-encode-switcher \
                               zh-encode-switcher-half">半</div> \
                   <div class="zh-encode-switcher \
@@ -117,7 +123,7 @@ Keyboards['zh-Hans-Pinyin-Symbol-En-1'] = {
       { value: '…' }, { value: '~' }, { value: '(' }, { value: ')' },
       { value: '\'' }, { value: '"' }
     ], [
-      { value: 'Alt', keyCode: -32 },
+      { value: 'Alt', keyCode: -32, className: 'page-switch-key' },
       { value: '<div class="zh-encode-switcher \
                             zh-encode-switcher-half \
                             zh-encode-switcher-selected">半</div> \
@@ -148,7 +154,7 @@ Keyboards['zh-Hans-Pinyin-Symbol-En-2'] = {
       { value: '$' }, { value: '¥' }, { value: '<' }, { value: '>' },
       { value: '{' }, { value: '}' }
     ], [
-      { value: 'Alt', keyCode: -31 },
+      { value: 'Alt', keyCode: -31, className: 'page-switch-key' },
       { value: '<div class="zh-encode-switcher \
                             zh-encode-switcher-half \
                             zh-encode-switcher-selected">半</div> \

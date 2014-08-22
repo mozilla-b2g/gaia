@@ -69,7 +69,10 @@ Keyboards['en-Neo'] = {
         { value: '4' }, { value: '5' }, { value: '6' },
         { value: '+' }, { value: '-' }
       ], [
-        { value: 'Alt', ratio: 2, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 2,
+          keyCode: KeyEvent.DOM_VK_ALT,
+          className: 'page-switch-key'
+        },
         { value: '%' }, { value: '"' }, { value: "'" },
         { value: '1' }, { value: '2' }, { value: '3' },
         { value: '⌫', ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
@@ -92,7 +95,10 @@ Keyboards['en-Neo'] = {
         { value: '£' }, { value: '$' }
       ],
       [
-        { value: 'Alt', ratio: 2, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 2,
+          keyCode: KeyEvent.DOM_VK_ALT,
+          className: 'page-switch-key'
+        },
         { value: '|' }, { value: '~' }, { value: 'º' },
         { value: '¹' }, { value: '²' }, { value: '³' },
         { value: '⌫', ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }

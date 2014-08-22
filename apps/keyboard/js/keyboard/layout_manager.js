@@ -221,14 +221,15 @@ LayoutManager.prototype._updateModifiedLayout = function() {
         value: layout.alternateLayoutKey || '12&',
         ratio: 2,
         ariaLabel: 'alternateLayoutKey',
-        className: 'switch-key'
+        className: 'page-switch-key'
       };
     } else {
       pageSwitchingKeyObject = {
         keyCode: this.KEYCODE_BASIC_LAYOUT,
         value: this.currentLayout.basicLayoutKey || 'ABC',
         ratio: 2,
-        ariaLabel: 'basicLayoutKey'
+        ariaLabel: 'basicLayoutKey',
+        className: 'page-switch-key'
       };
     }
 

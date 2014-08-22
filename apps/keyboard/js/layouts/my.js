@@ -76,7 +76,10 @@ Keyboards.my = {
         { value: '\u101F'/*ဟ*/ }, { value: '\u1027'/*ဧ*/ },
         { value: '/' }, { value: '?' }, { value: '(' }, { value: ')' }
       ], [
-        { value: '#+=', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: '#+=', ratio: 1.5,
+          keyCode: KeyEvent.DOM_VK_ALT,
+          className: 'page-switch-key'
+        },
         { value: '\u104F'/*၏*/ }, { value: '\u1029'/*ဩ*/, ratio: 1.5 },
         { value: '\u102A'/*ဪ*/, ratio: 2 },
         { value: '၊' }, { value: '။', ratio: 1.5 },

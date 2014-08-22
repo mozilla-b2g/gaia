@@ -216,6 +216,11 @@ button::-moz-focus-inner {
   font-size: 1.8rem;
 }
 
+/* Page Switching key - [ABC], [Alt], and [12&] */
+.keyboard-key.special-key.page-switch-key > .visual-wrapper > .key-element {
+  font-size: 1.7rem;
+}
+
 /* For disabled keys */
 .keyboard-key.special-key[disabled="true"] {
   /* Without this rule, the focus would lose when the user clicks this key.
