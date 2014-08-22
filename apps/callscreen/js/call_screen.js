@@ -29,6 +29,8 @@ var CallScreen = {
   keypadButton: document.getElementById('keypad-visibility'),
   placeNewCallButton: document.getElementById('place-new-call'),
 
+  hideBarMuteButton: document.getElementById('keypad-hidebar-mute-action'),
+
   bluetoothMenu: document.getElementById('bluetooth-menu'),
   switchToDeviceButton: document.getElementById('btmenu-btdevice'),
   switchToReceiverButton: document.getElementById('btmenu-receiver'),
@@ -114,6 +116,8 @@ var CallScreen = {
 
   init: function cs_init() {
     this.muteButton.addEventListener('click', this.toggleMute.bind(this));
+    this.hideBarMuteButton.addEventListener('click',
+                                    this.toggleMute.bind(this));
     this.keypadButton.addEventListener('click', this.showKeypad.bind(this));
     this.placeNewCallButton.addEventListener('click',
                                              this.placeNewCall.bind(this));
@@ -362,12 +366,14 @@ var CallScreen = {
 
   toggleMute: function cs_toggleMute() {
     this.muteButton.classList.toggle('active-state');
+    this.hideBarMuteButton.classList.toggle('active-state');
     this.calls.classList.toggle('muted');
     CallsHandler.toggleMute();
   },
 
   unmute: function cs_unmute() {
     this.muteButton.classList.remove('active-state');
+    this.hideBarMuteButton.classList.remove('active-state');
     this.calls.classList.remove('muted');
     CallsHandler.unmute();
   },

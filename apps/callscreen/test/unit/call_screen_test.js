@@ -37,6 +37,7 @@ suite('call screen', function() {
   var groupCalls;
   var groupCallsList;
   var callToolbar;
+  var hideBarMuteButton;
   var muteButton;
   var speakerButton;
   var statusMessage,
@@ -103,6 +104,10 @@ suite('call screen', function() {
     speakerButton.id = 'speaker';
     callToolbar.appendChild(speakerButton);
 
+    hideBarMuteButton = document.createElement('button');
+    hideBarMuteButton.id = 'keypad-hidebar-mute-action';
+    callToolbar.appendChild(hideBarMuteButton);
+
     statusMessage = document.createElement('div');
     statusMessage.id = 'statusMsg';
     statusMessageText = document.createElement('p');
@@ -145,6 +150,7 @@ suite('call screen', function() {
       CallScreen.callToolbar = callToolbar;
       CallScreen.muteButton = muteButton;
       CallScreen.speakerButton = speakerButton;
+      CallScreen.hideBarMuteButton = hideBarMuteButton;
       CallScreen.groupCalls = groupCalls;
       CallScreen.groupCallsList = groupCallsList;
       CallScreen.lockedClockTime = lockedClockTime;
@@ -538,13 +544,20 @@ suite('call screen', function() {
   suite('toggleMute', function() {
     test('should change active-state class', function() {
       var classList = CallScreen.muteButton.classList;
+      var hideBarClassList = CallScreen.hideBarMuteButton.classList;
+
       var originalState = classList.contains('active-state');
+      var hideBarOriginalState = hideBarClassList.contains('active-state');
 
       CallScreen.toggleMute();
       assert.notEqual(classList.contains('active-state'), originalState);
+      assert.notEqual(hideBarClassList.contains('active-state'),
+                      hideBarOriginalState);
 
       CallScreen.toggleMute();
       assert.equal(classList.contains('active-state'), originalState);
+      assert.equal(hideBarClassList.contains('active-state'),
+                   hideBarOriginalState);
     });
 
     test('should change muted class', function() {
@@ -568,9 +581,11 @@ suite('call screen', function() {
   suite('unmute', function() {
     test('should remove active-state', function() {
       var classList = CallScreen.muteButton.classList;
+      var hideBarClassList = CallScreen.hideBarMuteButton.classList;
 
       CallScreen.unmute();
       assert.isFalse(classList.contains('active-state'));
+      assert.isFalse(hideBarClassList.contains('active-state'));
     });
 
     test('should remove muted', function() {
