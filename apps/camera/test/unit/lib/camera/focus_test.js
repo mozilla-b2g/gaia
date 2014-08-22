@@ -65,23 +65,9 @@ suite('lib/camera/focus', function() {
 
   });
 
-  suite('Focus#setMode', function() {
-    setup(function() {
-      this.focus.reset = sinon.spy();
-      this.focus.mode = 'auto';
-    });
-
-    test('it returns the set focus mode', function() {
-      this.focus.setMode('auto');
-      assert.ok(this.focus.reset.called);
-      assert.ok(this.focus.getMode() === 'auto');
-    });
-
-  });
-
   suite('Focus#getMode', function() {
     setup(function() {
-      this.focus.mode = 'auto';
+      this.mozCamera.focusMode = 'auto';
     });
 
     test('it returns the current focus mode', function() {
@@ -90,7 +76,7 @@ suite('lib/camera/focus', function() {
     });
 
     test('it returns the suspended focus mode', function() {
-      this.focus.mode = 'continuous-picture';
+      this.mozCamera.focusMode  = 'continuous-picture';
       assert.ok(this.focus.getMode() === 'continuous-picture');
     });
   });
@@ -256,14 +242,12 @@ suite('lib/camera/focus', function() {
     setup(function() {
       this.focus.mozCamera = this.mozCamera;
       this.focus.previousMode = 'auto';
-      this.focus.restoreMode = sinon.spy();
       this.mozCamera.focusMode = 'continuous-picture';
     });
 
     test('mozCamera resumeContinuousFocus is called', function() {
       this.focus.resumeContinuousFocus();
-      assert.ok(this.focus.restoreMode.called);
-      assert.ok(this.focus.suspendedFocusMode === undefined);
+      assert.ok(!this.focus.suspendedMode);
       assert.ok(this.focus.mozCamera.resumeContinuousFocus.called);
     });
   });
@@ -425,14 +409,14 @@ suite('lib/camera/focus', function() {
   suite('Focus#reset()', function() {
     test('metering areas and focus areas are reset if touch focus enabled', function() {
       this.focus.touchFocus = true;
-      this.focus.reset();
+      this.focus.resetFocusAreas();
       assert.ok(this.focus.mozCamera.setFocusAreas.calledWith([]));
       assert.ok(this.focus.mozCamera.setMeteringAreas.calledWith([]));
     });
 
     test('metering areas and focus areas are not reset if touch focus disabled', function() {
       this.focus.touchFocus = false;
-      this.focus.reset();
+      this.focus.resetFocusAreas();
       assert.ok(!this.focus.mozCamera.setFocusAreas.called);
       assert.ok(!this.focus.mozCamera.setMeteringAreas.called);
     });
