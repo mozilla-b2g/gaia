@@ -89,7 +89,9 @@ marionette('Places tests', function() {
     search.goToResults();
     id = search.getResultSelector(url);
     client.helper.waitForElement(id);
-    assert.equal(search.getResult(url2).length, 0);
+    client.waitFor(function() {
+      return search.getResult(url2).length === 0;
+    });
   });
 
   test.skip('Search for a string that doesnt match visited url', function() {
