@@ -2,15 +2,15 @@
 .hud {
   display: flex;
   position: absolute;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 9rem;
-  padding: 0 1.5rem;
+  z-index: 1;
   align-items: center;
   justify-content: space-between;
   opacity: 0;
   transition: opacity 200ms linear;
-  transform: translateZ(1px);
 }
 
 .hud.visible {
@@ -44,14 +44,12 @@
  *    it changes color instanly.
  *    When it is released it transitons
  *    back to the default color.
- * 3. Offset large border
  */
 
 .hud_btn,
 .settings_close {
   height: 5rem;
   width: 5rem;
-  margin: -2rem; /* 3 */
   font-size: 2rem;
   line-height: 5rem;
   text-align: center;
@@ -60,7 +58,7 @@
   background-repeat: no-repeat;
   background-color: rgba(0,0,0,0.12);
   background-clip: padding-box; /* 1 */
-  border: solid 2rem transparent; /* 1 */
+  border: solid 1.5rem transparent; /* 1 */
   -moz-box-sizing: content-box; /* 1 */
   color: #fff;
 }

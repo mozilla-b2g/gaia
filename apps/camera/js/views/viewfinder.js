@@ -154,13 +154,17 @@ module.exports = View.extend({
   fadeOut: function(done) {
     debug('fade-out');
     this.el.classList.remove('visible');
+    document.body.classList.remove('no-background');
     if (done) { setTimeout(done, this.fadeTime);}
   },
 
   fadeIn: function(done) {
     debug('fade-in');
     this.el.classList.add('visible');
-    if (done) { setTimeout(done, this.fadeTime); }
+    setTimeout(function() {
+      document.body.classList.add('no-background');
+      if (done) { done(); }
+    }, this.fadeTime);
   },
 
   /**
