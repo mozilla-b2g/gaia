@@ -219,8 +219,6 @@ var StatusBar = {
     window.addEventListener('lockscreen-appclosed', this);
     window.addEventListener('lockpanelchange', this);
 
-    window.addEventListener('appopened', this);
-
     window.addEventListener('simpinshow', this);
     window.addEventListener('simpinclose', this);
 
@@ -242,13 +240,7 @@ var StatusBar = {
   },
 
   handleEvent: function sb_handleEvent(evt) {
-    var app;
     switch (evt.type) {
-      case 'appopened':
-        this.setAppearance('opaque');
-        app = evt.detail;
-        break;
-
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
         break;
