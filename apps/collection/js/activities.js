@@ -1,10 +1,20 @@
 'use strict';
 
+/* global CollectionEditor */
+
 (function(exports) {
 
   var Activities = {
     'update-collection': function(activity) {
-      alert('Updating collection!');
+      CollectionEditor.init({
+        data: activity.source.data,
+        onsaved: function() {
+          activity.postResult('updated');
+        },
+        oncancelled: function() {
+          activity.postError('cancelled');
+        }
+      });
     }
   };
 
