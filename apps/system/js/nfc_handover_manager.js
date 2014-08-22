@@ -3,7 +3,7 @@
 
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
-/* globals dump, BluetoothTransfer, NDEFUtils, NfcConnectSystemDialog,
+/* globals BluetoothTransfer, NDEFUtils, NfcConnectSystemDialog,
            NDEF, NfcUtils, NotificationHelper, SettingsListener */
 /* exported NfcHandoverManager */
 'use strict';
@@ -120,16 +120,22 @@ var NfcHandoverManager = {
    */
   _debug: function _debug(msg, optObject) {
     if (this.DEBUG) {
-      var output = '[DEBUG] SYSTEM NFC-HANDOVER: ' + msg;
+      this._logVisibly(msg, optObject);
+    }
+  },
+
+  /**
+   * Logs message in logcat
+   * @param {String} msg debug messages
+   * @param {Object} opObject object to printed after doing JSON.stringfy
+   * @memberof NfcHandoverManager.prototype
+   */
+  _logVisibly: function _logVisibly(msg, optObject) {
+      var output = '[NfcHandoverManager]: ' + msg;
       if (optObject) {
         output += JSON.stringify(optObject);
       }
-      if (typeof dump !== 'undefined') {
-        dump(output + '\n');
-      } else {
-        console.log(output);
-      }
-    }
+      console.log(output);
   },
 
   /**
@@ -155,6 +161,9 @@ var NfcHandoverManager = {
         self._debug('MAC address: ' + self.defaultAdapter.address);
         self._debug('MAC name: ' + self.defaultAdapter.name);
       };
+      req.onerror = function bt_getAdapterError() {
+        self._logVisibly('init: Failed to get bluetooth adapter');
+      };
     }
 
     window.addEventListener('bluetooth-adapter-added', function() {
@@ -174,6 +183,9 @@ var NfcHandoverManager = {
           action.callback.apply(self, action.args);
         }
         self.actionQueue = [];
+      };
+      req.onerror = function bt_getAdapterError() {
+        self._logVisibly('event listner: Failed to get bluetooth adater');
       };
     });
 
@@ -297,7 +309,7 @@ var NfcHandoverManager = {
       self._doConnect(mac);
     };
     req.onerror = function() {
-      self._debug('Pairing failed');
+      self._logVisibly('Pairing failed');
       self._restoreBluetoothStatus();
     };
   },
@@ -381,7 +393,7 @@ var NfcHandoverManager = {
 
     var nfcPeer = this.nfc.getNFCPeer(session);
     if (nfcPeer === null) {
-      this._debug('NFC peer went away during doHandoverRequest');
+      this._logVisibly('NFC peer went away during doHandoverRequest');
       this._showFailedNotification('transferFinished-receivedFailed-title');
       this._restoreBluetoothStatus();
       return;
@@ -397,7 +409,7 @@ var NfcHandoverManager = {
       self.incomingFileTransferInProgress = true;
     };
     req.onerror = function() {
-      self._debug('sendNDEF(hs) failed');
+      self._logVisibly('sendNDEF(hs) failed');
       self._clearTimeout();
       self._restoreBluetoothStatus();
     };
@@ -431,7 +443,7 @@ var NfcHandoverManager = {
       };
       var nfcPeer = this.nfc.getNFCPeer(session);
       if (nfcPeer === null) {
-        this._debug('NFC peer went away during initiateFileTransfer');
+        this._logVisibly('NFC peer went away during initiateFileTransfer');
         onerror();
         this._restoreBluetoothStatus();
         this._showFailedNotification('transferFinished-sentFailed-title',
@@ -497,7 +509,7 @@ var NfcHandoverManager = {
       }
     };
     req.onerror = function() {
-      self._debug('Cannot get paired devices from adapter.');
+      self._logVisibly('Cannot get paired devices from adapter.');
     };
   },
 
@@ -603,6 +615,7 @@ var NfcHandoverManager = {
    * @memberof NfcHandoverManager.prototype
    */
   tryHandover: function(ndefMsg, session) {
+    this._debug('tryHandover: ', ndefMsg);
     var nfcUtils = new NfcUtils();
     if (!Array.isArray(ndefMsg) || !ndefMsg.length) {
       return false;
