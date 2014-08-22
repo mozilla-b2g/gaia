@@ -18,6 +18,7 @@ var model = require('vendor/model');
 var debug = require('debug')('app');
 var HudView = require('views/hud');
 var bind = require('lib/bind');
+var StopRecordingEvent = require('StopRecordingEvent');
 
 /**
  * Exports
@@ -43,7 +44,6 @@ model(App.prototype);
  */
 function App(options) {
   debug('initialize');
-  var self = this;
   bindAll(this);
   this.views = {};
   this.el = options.el;
@@ -59,30 +59,6 @@ function App(options) {
   this.activity = {};
   this.sounds = options.sounds;
   this.Pinch = options.Pinch;
-  //
-  // If the system app is opening an attention screen (because
-  // of an incoming call or an alarm, e.g.) and if we are
-  // currently recording a video then we need to stop recording
-  // before the ringer or alarm starts sounding. We will be sent
-  // to the background shortly after this and will stop recording
-  // when that happens, but by that time it is too late and we
-  // have already recorded some sound. See bugs 995540 and 1006200.
-  //
-  // XXX We're abusing the settings API here to allow the system app
-  // to broadcast a message to any certified apps that care. There
-  // ought to be a better way, but this is a quick and easy way to
-  // fix a last-minute release blocker.
-  //
-  navigator.mozSettings.addObserver(
-    'private.broadcast.attention_screen_opening',
-    function(event) {
-      // If event.settingValue is true, then an attention screen will
-      // soon appear. If it is false, then the attention screen is
-      // going away.
-      if (event.settingValue) {
-        self.emit('attentionscreenopened');
-      }
-  });
 
   debug('initialized');
 }
@@ -273,7 +249,7 @@ App.prototype.onCriticalPathDone = function() {
   this.loadController(this.controllers.confirm);
   this.loadController(this.controllers.sounds);
   this.loadController(this.controllers.timer);
-
+  this.listenForStopRecordingEvent();
   this.criticalPathDone = true;
   this.emit('criticalpathdone');
 
@@ -416,6 +392,42 @@ App.prototype.clearLoading = function() {
 App.prototype.onBusy = function(type) {
   var delay = this.settings.loadingScreen.get(type);
   if (delay) { this.showLoading(delay); }
+};
+
+/**
+ * If the system app is opening an attention screen (because
+ * of an incoming call or an alarm, e.g.) and if we are
+ * currently recording a video then we need to stop recording
+ * before the ringer or alarm starts sounding. We will be sent
+ * to the background shortly after this and will stop recording
+ * when that happens, but by that time it is too late and we
+ * have already recorded some sound. See bugs 995540 and 1006200.
+ *
+ * Similarly, if the user presses the Home button or switches to
+ * another app while recording, we need to stop recording right away,
+ * even if the system is overloaded and we don't get a visiblitychange
+ * event right away. See bug 1046167.
+ *
+ * To make this work, we rely on shared/js/stop_recording_event.js which
+ * abuses the settings API to allow the system app to broadcast a "you
+ * will soon be hidden" message to any certified apps that care. There
+ * ought to be a better way, but this is a quick way to fix a
+ * last-minute release blocker.
+ *
+ * @private
+ */
+App.prototype.listenForStopRecordingEvent = function() {
+  debug('listen for stop recording events');
+
+  // Start the module that generates the stoprecording events
+  StopRecordingEvent.start();
+
+  // Now listen for those custom DOM events
+  // and emit them using our internal event emitter
+  window.addEventListener('stoprecording', function(event) {
+    debug('got stoprecording DOM event');
+    this.emit('stoprecording');
+  }.bind(this));
 };
 
 });
