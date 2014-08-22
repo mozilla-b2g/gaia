@@ -183,7 +183,7 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
   left: 0;
   width: 100%;
   height: 100%;
-  transform: none;
+  transform: translate(0, 0);
 }
 
 .view:not(.view-noscroll) {
