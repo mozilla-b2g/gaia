@@ -46,9 +46,7 @@
   color: #FFF;
   text-align: left;
   cursor: none;
-  -moz-user-select: none;
   padding: 0;
-  pointer-events: none;
 }
 
 #fake-phone-number-view {

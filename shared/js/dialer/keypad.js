@@ -244,9 +244,10 @@ var KeypadManager = {
     this._observePreferences();
   },
 
-  moveCaretToEnd: function hk_util_moveCaretToEnd(el) {
+  moveCaret: function hk_util_moveCaret(el, pos) {
     if (typeof el.selectionStart == 'number') {
-      el.selectionStart = el.selectionEnd = el.value.length;
+      el.selectionStart = el.selectionEnd =
+        (pos === undefined) ? el.value.length : pos;
     } else if (typeof el.createTextRange != 'undefined') {
       el.focus();
       var range = el.createTextRange();
@@ -377,6 +378,9 @@ var KeypadManager = {
     this._longPress = false;
     this._lastPressedKey = key;
 
+    var startPos = this.phoneNumberView.selectionStart;
+    var endPos = this.phoneNumberView.selectionEnd;
+    var caretPos;
     if (key != 'delete') {
       if (this._keypadSoundIsEnabled) {
         // We do not support long press if not on a call
@@ -391,20 +395,20 @@ var KeypadManager = {
     if ((key == '0' && !this._onCall) || key == 'delete') {
       this._holdTimer = setTimeout(function(self) {
         if (key == 'delete') {
-          self._phoneNumber = '';
-        } else {
-          var index = self._phoneNumber.length - 1;
-
-          //Remove last 0, this is a long press and we want to add the '+'
-          if (index >= 0 && self._phoneNumber[index] === '0') {
-            self._phoneNumber = self._phoneNumber.substr(0, index);
+          if (startPos > 0) {
+            self._phoneNumber = self._phoneNumber.substring(startPos - 1);
           }
-
-          self._phoneNumber += '+';
+          caretPos = 0;
+        } else {
+          if (startPos >= 0 && self._phoneNumber[startPos] === '0') {
+            self._phoneNumber = self._phoneNumber.substring(0, startPos) +
+             '+' + self._phoneNumber.substring(endPos + 1);
+          }
+          caretPos = endPos + 1;
         }
 
         self._longPress = true;
-        self._updatePhoneNumberView('begin', false);
+        self._updatePhoneNumberView('begin', false, caretPos);
       }, 400, this);
     }
 
@@ -420,7 +424,9 @@ var KeypadManager = {
     }
 
     if (key == 'delete') {
-      this._phoneNumber = this._phoneNumber.slice(0, -1);
+      this._phoneNumber = this._phoneNumber.substring(0, startPos - 1) +
+        this._phoneNumber.substring(endPos);
+      caretPos = endPos - 1;
     } else if (this.phoneNumberViewContainer.classList.
       contains('keypad-visible')) {
 
@@ -432,11 +438,13 @@ var KeypadManager = {
         this._phoneNumber += key;
       }
     } else {
-      this._phoneNumber += key;
+      this._phoneNumber = this._phoneNumber.substring(0, startPos) +
+        key + this._phoneNumber.substring(endPos);
+      caretPos = endPos + 1;
     }
 
     setTimeout(function(self) {
-      self._updatePhoneNumberView('begin', false);
+      self._updatePhoneNumberView('begin', false, caretPos);
     }, 0, this);
   },
 
@@ -548,7 +556,7 @@ var KeypadManager = {
   },
 
   _updatePhoneNumberView: function kh_updatePhoneNumberview(ellipsisSide,
-    forceMaxFontSize) {
+    forceMaxFontSize, caretPos) {
     var phoneNumber = this._phoneNumber;
 
     // If there are digits in the phone number, show the delete button
@@ -566,7 +574,7 @@ var KeypadManager = {
       }
       this.deleteButton.style.visibility = visibility;
       this.phoneNumberView.value = phoneNumber;
-      this.moveCaretToEnd(this.phoneNumberView);
+      this.moveCaret(this.phoneNumberView, caretPos);
 
       FontSizeManager.adaptToSpace(
         FontSizeManager.DIAL_PAD, this.phoneNumberView, forceMaxFontSize,
