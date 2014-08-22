@@ -1,5 +1,5 @@
 DOCKER_REPO?=
-DOCKER_TAG?=lightsofapollo/gaia-taskenv
+DOCKER_TAG?=mozillab2g/gaia-taskenv
 VERSION?=$(shell cat VERSION)
 
 default: docker_image
