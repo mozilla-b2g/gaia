@@ -167,68 +167,14 @@ Focus.prototype.onFacesDetected = function(faces) {
   // NO OP by default
 };
 
-Focus.prototype.facesAlreadyDetected = function(faces) {
-  return faces.length === this.detectedFaces.length;
-};
-
-/**
- * It filters out the faces that have low likelihood of being a face
- * mozCamera API provides a faceScore for each face (0-100)
- * It also sorts the faces by area on the screen (largest is first)
- */
-Focus.prototype.filterAndSortDetectedFaces = function(faces) {
-  var maxArea = -1;
-  var minFaceScore = 60;
-  var area;
-  var detectedFaces = [];
-
-  faces.forEach(function(face, index) {
-    if (face.score < minFaceScore) {
-      return;
-    }
-    area = face.bounds.width * face.bounds.height;
-    if (area > maxArea) {
-      maxArea = area;
-      detectedFaces.unshift(face);
-    } else {
-      detectedFaces.push(face);
-    }
-  });
-
-  return detectedFaces;
-};
-
 Focus.prototype.focusOnLargestFace = function(faces) {
-  var self = this;
-  var detectedFaces = this.filterAndSortDetectedFaces(faces);
-  var facesAlreadyDetected = this.facesAlreadyDetected(detectedFaces);
-
-  // It touch to focus is not available we cannot focus on the face area
-  if (!this.touchFocus) {
-    return;
-  }
-
-  if (this.faceDetectionSuspended || detectedFaces.length === 0) {
+  if (this.faceDetectionSuspended) {
     this.onFacesDetected([]);
     return;
   }
 
-  if (!facesAlreadyDetected) {
-    this.detectedFaces = detectedFaces;
-    this.suspendFaceDetection(2000, 2000);
-    if (!this.faceFocused) {
-      this.stopContinuousFocus();
-      // First face in the array is the one we focus on (largest area on image)
-      this.updateFocusArea(detectedFaces[0].bounds, focusDone);
-    }
-  }
-  this.onFacesDetected(detectedFaces);
-
-  function focusDone(error) {
-    self.faceFocused = true;
-    self.suspendContinuousFocus(4000);
-  }
-
+  this.detectedFaces = faces;
+  this.onFacesDetected(this.detectedFaces);
 };
 
 /**
