@@ -249,6 +249,16 @@ suite('system/VisibilityManager', function() {
       assert.isTrue(setVisibleStub.calledWith(true));
     });
 
+    test('move lockscreen to foreground', function () {
+      var lockscreen = new MockAppWindow();
+      var setVisibleStub = this.sinon.stub(lockscreen, 'setVisible');
+      var event = new CustomEvent('lockscreen-apprequestforeground', {
+        detail: lockscreen
+      });
+      window.dispatchEvent(event);
+      assert.isTrue(setVisibleStub.calledWith(true));
+    });
+
     test('dont foreground app when attentionscreen visible', function () {
       window.System.locked = false;
       this.sinon.stub(MockAttentionWindowManager, 'hasActiveWindow')

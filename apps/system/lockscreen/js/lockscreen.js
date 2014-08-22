@@ -174,7 +174,7 @@
           }
 
           // Remove camera once screen turns off
-          if (this.camera.firstElementChild) {
+          if (this.camera && this.camera.firstElementChild) {
             this.camera.removeChild(this.camera.firstElementChild);
           }
 
@@ -348,6 +348,9 @@
         }
         break;
       case 'timeformatchange':
+        if (!this.l10nready) {
+          return;
+        }
         this.timeFormat = window.navigator.mozHour12 ?
           navigator.mozL10n.get('shortTimeFormat12') :
           navigator.mozL10n.get('shortTimeFormat24');
@@ -377,10 +380,6 @@
      * the slider specified in that bugzilla issue
      */
     this._unlocker = new window.LockScreenSlide({useNewStyle: true});
-    // The default one is 12 hour.
-    this.timeFormat = window.navigator.mozHour12 ?
-      navigator.mozL10n.get('shortTimeFormat12') :
-      navigator.mozL10n.get('shortTimeFormat24');
     this.getAllElements();
     this.notificationsContainer =
       document.getElementById('notifications-lockscreen-container');
@@ -396,7 +395,6 @@
 
     /* Incoming and normal mode would be different */
     window.addEventListener('lockscreen-mode-switch', this);
-    document.addEventListener('visibilitychange', this);
 
     /* Telephony changes */
     if (navigator.mozTelephony) {
@@ -427,15 +425,9 @@
     window.addEventListener('ftuopen', this);
     window.addEventListener('timeformatchange', this);
 
-    /* mobile connection state on lock screen */
-    if (window.navigator.mozMobileConnections) {
-      this._lockscreenConnInfoManager =
-        new window.LockScreenConnInfoManager(this.connStates);
-    }
-
     /* media playback widget */
     this.mediaPlaybackWidget =
-      new window.MediaPlaybackWidget(this.mediaContainer);
+      new window.LockScreenMediaPlaybackWidget(this.mediaContainer);
 
     // listen to media playback events to adjust notification container height
     window.addEventListener('iac-mediacomms', this);
@@ -505,12 +497,7 @@
     if(this._checkGenerateMaskedBackgroundColor()){
       this._generateMaskedBackgroundColor();
     }
-
-    // start the clock because screenchange won't trigger when
-    // screen locks just after boot
-    // Clock always uses one Timeouts/Intervals so it's safe in
-    // other scenarios (such as turning on lockscreen after boot in settings)
-    this.clock.start(this.refreshClock.bind(this));
+    // Do not refresh clock here: L10n may not ready.
   };
 
   LockScreen.prototype.initUnlockerEvents =
@@ -543,7 +530,19 @@
    */
   LockScreen.prototype.l10nInit =
   function ls_l10nInit() {
+    this.l10nready = true;
+    // The default one is 12 hour.
+    this.timeFormat = window.navigator.mozHour12 ?
+      navigator.mozL10n.get('shortTimeFormat12') :
+      navigator.mozL10n.get('shortTimeFormat24');
     this.refreshClock(new Date());
+
+    // mobile connection state on lock screen.
+    // It needs L10n too.
+    if (window.navigator.mozMobileConnections) {
+      this._lockscreenConnInfoManager =
+        new window.LockScreenConnInfoManager(this.connStates);
+    }
   };
 
   /*
@@ -670,7 +669,7 @@
   LockScreen.prototype.invokeSecureApp =
   function ls_invokeSecureApp(name) {
     var url =
-          window.location.href.replace('system', name),
+          window.parent.location.href.replace('system', name),
         manifestUrl =
           url.replace(/(\/)*(index.html)*$/, '/manifest.webapp');
 
@@ -740,8 +739,6 @@
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
 
-    this.mainScreen.focus();
-
     // The lockscreen will be hidden, stop refreshing the clock.
     this.clock.stop();
 
@@ -752,7 +749,7 @@
     this.writeSetting(false);
 
     if (this.unlockSoundEnabled) {
-      var unlockAudio = new Audio('./resources/sounds/unlock.opus');
+      var unlockAudio = new Audio('/resources/sounds/unlock.opus');
       unlockAudio.play();
     }
 
@@ -1100,10 +1097,10 @@
     // ID of elements to create references
     var elements = ['conn-states', 'clock-time', 'date', 'area',
         'area-unlock', 'area-camera', 'icon-container',
-        'area-handle', 'area-slide', 'media-container', 'passcode-code',
-        'alt-camera', 'alt-camera-button', 'slide-handle',
-        'passcode-pad', 'camera', 'accessibility-camera',
-        'accessibility-unlock', 'panel-emergency-call', 'canvas', 'message',
+        'area-slide', 'media-container', 'passcode-code',
+        'alt-camera', 'alt-camera-button',
+        'passcode-pad',
+        'panel-emergency-call', 'canvas', 'message',
         'notification-arrow', 'masked-background'];
 
     var toCamelCase = function toCamelCase(str) {
@@ -1113,7 +1110,12 @@
     };
 
     elements.forEach((function createElementRef(name) {
-      this[toCamelCase(name)] = document.getElementById('lockscreen-' + name);
+      var element = document.getElementById('lockscreen-' + name);
+      if (!element) {
+        console.error('No such element: lockscreen-'+ name);
+      }
+      name = toCamelCase(name);
+      this[name] = element;
     }).bind(this));
 
     this.overlay = document.getElementById('lockscreen');

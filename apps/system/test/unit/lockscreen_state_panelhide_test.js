@@ -1,7 +1,7 @@
 /* global LockScreenStatePanelHide */
 
 'use strict';
-requireApp('system/js/lockscreen_state_panelhide.js');
+requireApp('system/lockscreen/js/lockscreen_state_panelhide.js');
 suite('sytem/LockScreenStatePanelHide', function() {
   var subject;
   var mockLockScreen;

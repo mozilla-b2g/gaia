@@ -1,7 +1,7 @@
 /* global LockScreenStateLogger */
 
 'use strict';
-requireApp('system/js/lockscreen_state_logger.js');
+requireApp('system/lockscreen/js/lockscreen_state_logger.js');
 suite('system/LockScreenStateLogger', function() {
   var subject;
   setup(function() {

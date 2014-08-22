@@ -215,7 +215,7 @@
       body = body || navigator.mozL10n.get(bodyid);
       var notification = new window.Notification(title, {
         body: body,
-        icon: 'style/icons/Gallery.png'
+        icon: '/style/icons/Gallery.png'
       });
 
       notification.onclick = function() {

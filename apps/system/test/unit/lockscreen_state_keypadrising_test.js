@@ -1,7 +1,7 @@
 /* global LockScreenStateKeypadRising */
 
 'use strict';
-requireApp('system/js/lockscreen_state_keypadrising.js');
+requireApp('system/lockscreen/js/lockscreen_state_keypadrising.js');
 suite('sytem/LockScreenStateKeypadRising', function() {
   var subject;
   var mockLockScreen;

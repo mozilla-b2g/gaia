@@ -26,6 +26,10 @@ marionette('Ringtone picker', function() {
       'device.storage.enabled': true,
       'device.storage.testing': true,
       'device.storage.prompt.testing': true
+    },
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
     }
   });
   var settingsApp;

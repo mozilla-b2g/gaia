@@ -1,7 +1,7 @@
 /* global LockScreenStateSlideShow */
 
 'use strict';
-requireApp('system/js/lockscreen_state_slideshow.js');
+requireApp('system/lockscreen/js/lockscreen_state_slideshow.js');
 suite('sytem/LockScreenStateSlideShow', function() {
   var subject;
   var mockLockScreen;

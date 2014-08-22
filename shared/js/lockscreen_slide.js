@@ -197,13 +197,13 @@
 
     // Paths to access the resources.
     resources: {
-      larrow: '/style/lockscreen/images/larrow.png',
-      rarrow: '/style/lockscreen/images/rarrow.png'
+      larrow: '/lockscreen/style/images/larrow.png',
+      rarrow: '/lockscreen/style/images/rarrow.png'
     },
 
     resourcesNew: {
-      larrow: '/style/lockscreen/images/lockscreen_toggle_arrow_left.png',
-      rarrow: '/style/lockscreen/images/lockscreen_toggle_arrow_right.png'
+      larrow: '/lockscreen/style/images/lockscreen_toggle_arrow_left.png',
+      rarrow: '/lockscreen/style/images/lockscreen_toggle_arrow_right.png'
     }
   };
 

@@ -15,6 +15,10 @@ marionette('alarm', function() {
       // Do not require the B2G-desktop app window to have focus (as per the
       // system window manager) in order for it to do focus-related things.
       'focusmanager.testmode': true
+    },
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
     }
   });
 

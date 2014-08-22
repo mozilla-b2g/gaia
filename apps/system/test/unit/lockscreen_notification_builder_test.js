@@ -2,13 +2,14 @@
 
 /* global LockScreenNotificationBuilder */
 
-requireApp('system/js/lockscreen_notification_builder.js');
+requireApp('system/lockscreen/js/lockscreen_notification_builder.js');
 
 suite('System > LockScreenNotificationBuilder', function() {
   var subject;
   setup(function(){
-    subject = new LockScreenNotificationBuilder();
-    subject.start(document.createElement('div'));
+    subject = new LockScreenNotificationBuilder(
+      document.createElement('div'));
+    subject.start();
   });
 
   test('it can decorate existing notification node with the actionable button',
@@ -33,7 +34,7 @@ suite('System > LockScreenNotificationBuilder', function() {
     button.dispatchEvent(evtTouchStart);
     button.dispatchEvent(evtTouchEnd);
     assert.isTrue(stubDispatchEvent.calledWithMatch(function(evt) {
-      return 'lockscreen-notification-clicked' === evt.type &&
+      return 'lockscreen-notification-request-activate' === evt.type &&
             node.dataset.notificationId === evt.detail.notificationId;
     }), 'after pressing the button, the events did\'nt fire');
   });

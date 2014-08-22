@@ -1,7 +1,7 @@
 /* global LockScreenStateSlideHide */
 
 'use strict';
-requireApp('system/js/lockscreen_state_slidehide.js');
+requireApp('system/lockscreen/js/lockscreen_state_slidehide.js');
 suite('sytem/LockScreenStateSlideHide', function() {
   var subject;
   var mockLockScreen;

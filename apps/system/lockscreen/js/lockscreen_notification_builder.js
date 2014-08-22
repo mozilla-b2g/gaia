@@ -22,11 +22,12 @@
 'use strict';
 (function(exports) {
 
-  var LockScreenNotificationBuilder = function() {};
+  var LockScreenNotificationBuilder = function(container) {
+    this.container = container;
+  };
 
   LockScreenNotificationBuilder.prototype.start =
-  function(container) {
-    this.container = container;
+  function() {
     this.selector = {
       highlighted: '.notification.actionable',
       notification: '.notification'
@@ -87,7 +88,7 @@
     node.appendChild(button);
     node.classList.add('actionable');
     window.dispatchEvent(new CustomEvent(
-      'lockscreen-notification-highlighted', {
+      'lockscreen-notification-notify-highlighted', {
       detail: {
         id: node.dataset.notificationId,
         timestamp: Date.now()
@@ -97,7 +98,7 @@
       // UX require to clean idle and highlighted notification
       // after sevaral seconds.
       window.dispatchEvent(new CustomEvent(
-        'lockscreen-notification-clean-highlighted', {
+        'lockscreen-notification-request-clean-highlighted', {
         detail: {
           id: node.dataset.notificationId,
           timestamp: Date.now()
@@ -142,7 +143,8 @@
     button.addEventListener('touchend', (evt) => {
       button.parentElement.classList.remove('activated');
       button.classList.add('activated');
-      window.dispatchEvent(new CustomEvent('lockscreen-notification-clicked', {
+      window.dispatchEvent(new CustomEvent(
+        'lockscreen-notification-request-activate', {
         detail: { 'notificationId': notificationId }
       }));
     });

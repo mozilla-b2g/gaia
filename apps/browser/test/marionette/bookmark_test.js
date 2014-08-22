@@ -5,7 +5,12 @@ var Server = require('./lib/server');
 var assert = require('assert');
 
 marionette('', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
+    }
+  });
   var subject;
   var server;
 

@@ -22,7 +22,11 @@ marionette('share url from browser', function() {
   var browser, email, fileServer;
 
   var client = marionette.client({
-    settings: { 'keyboard.ftu.enabled': false }
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false,
+      'keyboard.ftu.enabled': false
+    }
   });
 
   var emailServer = serverHelper.use({
