@@ -108,7 +108,6 @@ ol, ul {
 }
 
 .view-body {
-  background : white;
   color: black;
   height: -moz-calc(100% - 9.1rem);
   position: absolute;
