@@ -185,6 +185,7 @@
     window.addEventListener('holdhome', this);
     window.addEventListener('home', this);
     window.addEventListener('appopen', this);
+    window.addEventListener('appterminated', this);
 
     this.onPreviewSettingsChange = function(settingValue) {
       this.useAppScreenshotPreviews = settingValue;
@@ -203,6 +204,7 @@
     window.removeEventListener('holdhome', this);
     window.removeEventListener('home', this);
     window.removeEventListener('appopen', this);
+    window.removeEventListener('appterminated', this);
 
     SettingsListener.unobserve(this.SCREENSHOT_PREVIEWS_SETTING_KEY,
                                this.onPreviewSettingsChange);
@@ -652,7 +654,7 @@
    * @param  {DOMEvent} evt The event.
    */
   TaskManager.prototype.handleEvent = function cv_handleEvent(evt) {
-    var app;
+    var app, card;
 
     switch (evt.type) {
       case 'touchstart':
@@ -731,6 +733,15 @@
           this.hide(/* immediately */ true, this.newStackPosition);
         }
         break;
+      case 'appterminated':
+        if (this.isShown()) {
+          app = evt.detail;
+          card = app && this.cardsByAppID[app.instanceID];
+          if (card && card.app &&
+              app.instanceID === card.app.instanceID) {
+            this.removeCard(card);
+          }
+        }
     }
   };
 
