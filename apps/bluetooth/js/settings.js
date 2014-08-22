@@ -344,7 +344,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
     // private DOM helper: create a device list item
     function newListItem(device, descL10nId) {
-      var deviceName = document.createElement('a');
+      var deviceName = document.createElement('span');
       if (device.name !== '') {
         deviceName.textContent = device.name;
         deviceName.dataset.l10nId = '';
@@ -360,11 +360,13 @@ navigator.mozL10n.once(function bluetoothSettings() {
         deviceDesc.dataset.l10nId = '';
       }
 
+      var a = document.createElement('a');
+      a.appendChild(deviceName);
+      a.appendChild(deviceDesc);
       var li = document.createElement('li');
       li.classList.add('bluetooth-device');
       li.classList.add('bluetooth-type-' + device.icon);
-      li.appendChild(deviceDesc); // should append this first
-      li.appendChild(deviceName);
+      li.appendChild(a);
 
       return li;
     }
@@ -586,7 +588,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
       if (existingDevice) {
         var existingItem = existingDevice.item;
         if (device.name && existingItem) {
-          var deviceName = existingItem.querySelector('a');
+          var deviceName = existingItem.querySelector('a > span');
           if (deviceName) {
             deviceName.dataset.l10nId = '';
             deviceName.textContent = device.name;
