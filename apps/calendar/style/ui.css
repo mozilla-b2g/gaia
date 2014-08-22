@@ -41,7 +41,6 @@ ol.link-list li:only-child a {
 
 #today .icon-calendar-today {
   font-size: 1.4rem;
-  line-height: 4.6rem;
 }
 
 #today .icon-calendar-today:before {
