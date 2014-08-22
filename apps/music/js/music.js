@@ -747,10 +747,11 @@ var TitleBar = {
             ];
             var playingBlob = PlayerView.playingBlob;
             getAlbumArtBlob(currentFileinfo, function(err, picture) {
+              var blob = getAudioTypeBlob(playingBlob);
               var currentMetadata = currentFileinfo.metadata;
               pendingPick.postResult({
-                type: playingBlob.type,
-                blob: playingBlob,
+                type: blob.type,
+                blob: blob,
                 name: currentMetadata.title || '',
                 // We only pass some metadata attributes so we don't share
                 // personal details like # of times played and ratings.
