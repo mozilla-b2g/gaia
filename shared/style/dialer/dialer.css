@@ -8,11 +8,6 @@ html,body {
   overflow: hidden;
   margin: 0;
   color: white;
-  background-color: #fff;
-}
-
-#call-log-view > div {
-  background-color: white;
 }
 
 .font-light {
