@@ -121,10 +121,6 @@
       "rules": {
         "minimumAccessLevel": "certified"
       }
-    },
-    "change-appearance-statusbar": {
-      "description": "Homescreens change statusbar appearance",
-      "rules": {}
     }
   },
   "datastores-owned": {

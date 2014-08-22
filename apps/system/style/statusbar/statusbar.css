@@ -10,21 +10,6 @@
   pointer-events: none;
 }
 
-#statusbar-background {
-  width: 100%;
-  height: 3rem;
-  background-color: #000;
-  opacity: 1;
-  padding: 0;
-  transform: scaleY(1);
-  transition: transform 0.1s, opacity 0.5s;
-  transform-origin: left top;
-}
-
-#screen #statusbar-background {
-  visibility: hidden;
-}
-
 #statusbar {
   position: fixed;
   width: 100%;
@@ -49,12 +34,6 @@ body #statusbar {
   transition: transform 0.2s linear;
 }
 
-#screen:not(.utility-tray):not(.attention) #statusbar-background:not(.opaque) {
-  /* We want to show both the statusbar and homesearch bar at 15% opacity.
-     The homescreen has a 5% wallpaper overlay, so 0.1 is needed to match. */
-  opacity: 0.1;
-}
-
 /* Hiding the black background while the homescreen is in foreground but not
  * utility tray or attention screen */
 #screen.lockscreen-camera > #statusbar {
@@ -62,23 +41,10 @@ body #statusbar {
   transform-origin: left top;
 }
 
-#statusbar-background.hidden {
-  display: none;
-}
-
-#screen.lockscreen-camera > #statusbar-background {
-  display: none;
-}
-
-#screen.locked:not(.attention) #statusbar,
-#screen.locked:not(.attention) #statusbar-background {
+#screen.locked:not(.attention) #statusbar {
   background-color: transparent;
   display: block;
   transform: scaleY(1);
-}
-
-#screen.locked:not(.attention) #statusbar-background:before {
-  background-color: transparent;
 }
 
 #screen.attention.locked #statusbar-time {
@@ -110,11 +76,6 @@ body #statusbar {
 }
 
 #screen.rocketbar-focused:not(.locked) .statusbar {
-  visibility: hidden;
-  opacity: 0;
-}
-
-#screen.rocketbar-focused #statusbar-background {
   visibility: hidden;
   opacity: 0;
 }
