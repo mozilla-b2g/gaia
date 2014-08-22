@@ -508,6 +508,15 @@
       }
 
       this.updateAddToHomeButton();
+      
+      if (!this.app.isBrowser()) {
+        return;
+      }
+      // Expand
+      if (!this.isMaximized()) {
+        this.element.classList.add('maximized');
+      }
+      this.scrollable.scrollTop = 0;
     };
 
   AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
