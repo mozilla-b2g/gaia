@@ -15,7 +15,7 @@
 */
 
 /*global Clock, AppWindowManager, SettingsListener */
-/*global SimPinDialog, TouchForwarder, FtuLauncher */
+/*global TouchForwarder, FtuLauncher */
 /*global MobileOperator, SIMSlotManager, System */
 /*global Bluetooth */
 /*global UtilityTray */
@@ -183,9 +183,6 @@ var StatusBar = {
 
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
-
-    // for iac connection
-    window.addEventListener('iac-change-appearance-statusbar', this);
 
     // mozChromeEvent fired from Gecko is earlier been loaded,
     // so we use mozAudioChannelManager to
@@ -394,22 +391,6 @@ var StatusBar = {
           evt.deltaY < 0 && !this.isLocked()) {
           window.dispatchEvent(new CustomEvent('statusbarwheel'));
         }
-        break;
-
-      case 'iac-change-appearance-statusbar':
-        if (SimPinDialog.visible) {
-          this.setAppearance('opaque');
-        } else {
-          this.setAppearance(evt.detail);
-        }
-        break;
-
-      case 'simpinshow':
-        this.setAppearance('opaque');
-        break;
-
-      case 'simpinclose':
-        this.setAppearance('semi-transparent');
         break;
 
       case 'resize':
@@ -1282,22 +1263,6 @@ var StatusBar = {
       this.clock.stop();
     }
     icon.hidden = !enable;
-  },
-
-  /*
-   * It changes the appearance of the status bar. The values supported are
-   * "opaque" and "semi-transparent"
-   */
-  setAppearance: function sb_setAppearance(value) {
-    switch (value) {
-      case 'opaque':
-        this.background.classList.add('opaque');
-        break;
-
-      case 'semi-transparent':
-        this.background.classList.remove('opaque');
-        break;
-    }
   },
 
   updateNotification: function sb_updateNotification(count) {

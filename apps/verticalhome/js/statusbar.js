@@ -75,30 +75,20 @@
     },
 
     onAppReady: function() {
-      appManager.app.connect('change-appearance-statusbar').then(
-        function ok(ports) {
-          ports.forEach(function(port) {
-            this.port = port;
-          }.bind(this));
-
-          var grid = app.grid;
-          this.scrollable.addEventListener('scroll', this);
-          grid.addEventListener('collection-launch', this);
-          grid.addEventListener('collection-close', this);
-          grid.addEventListener('editmode-start', this);
-          grid.addEventListener('editmode-end', this);
-          window.addEventListener('collections-create-begin', this);
-          window.addEventListener('collections-create-return', this);
-          window.addEventListener('context-menu-close', this);
-          window.addEventListener('context-menu-open', this);
-          window.addEventListener('gaia-confirm-open', this);
-          window.addEventListener('gaia-confirm-close', this);
-          window.addEventListener('visibilitychange', this);
-          this.setAppearance(APPEARANCE.SEMI_TRANSPARENT);
-        }.bind(this), function fail(reason) {
-          console.error('Cannot notify changes of appearance: ', reason);
-        }
-      );
+      var grid = app.grid;
+      this.scrollable.addEventListener('scroll', this);
+      grid.addEventListener('collection-launch', this);
+      grid.addEventListener('collection-close', this);
+      grid.addEventListener('editmode-start', this);
+      grid.addEventListener('editmode-end', this);
+      window.addEventListener('collections-create-begin', this);
+      window.addEventListener('collections-create-return', this);
+      window.addEventListener('context-menu-close', this);
+      window.addEventListener('context-menu-open', this);
+      window.addEventListener('gaia-confirm-open', this);
+      window.addEventListener('gaia-confirm-close', this);
+      window.addEventListener('visibilitychange', this);
+      this.setAppearance(APPEARANCE.SEMI_TRANSPARENT);
     },
 
     /**
@@ -115,7 +105,6 @@
       }
 
       this.appearance = value;
-      this.port.postMessage(value);
 
       var meta = document.head.querySelector('meta[name="theme-color"]');
       if (value == APPEARANCE.OPAQUE) {
