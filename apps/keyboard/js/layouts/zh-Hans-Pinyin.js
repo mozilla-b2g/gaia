@@ -54,11 +54,8 @@ Keyboards['zh-Hans-Pinyin'] = {
         { value: '“' }, { value: '”' }
       ], [
         { value: 'Alt', keyCode: KeyEvent.DOM_VK_ALT },
-        { value: '<div class="zh-encode-switcher \
-                              zh-encode-switcher-half">半</div> \
-                  <div class="zh-encode-switcher \
-                              zh-encode-switcher-selected">全</div>',
-          keyCode: -31
+        {
+          value: '全', keyCode: -31
         },
         { value: '、' }, { value: '＠' }, { value: '＆' }, { value: '＾' },
         { value: '＃' }, { value: '％' }, { value: '／' },
@@ -86,11 +83,8 @@ Keyboards['zh-Hans-Pinyin'] = {
         { value: '｛' }, { value: '｝' }
       ], [
         { value: 'Alt', keyCode: KeyEvent.DOM_VK_ALT },
-        { value: '<div class="zh-encode-switcher \
-                              zh-encode-switcher-half">半</div> \
-                  <div class="zh-encode-switcher \
-                              zh-encode-switcher-selected">全</div>',
-          keyCode: -32
+        {
+          value: '全', keyCode: -32
         },
         { value: '【' }, { value: '】' }, { value: '「' }, { value: '」' },
         { value: '＊' }, { value: '·' }, { value: '｜' },
@@ -118,11 +112,8 @@ Keyboards['zh-Hans-Pinyin-Symbol-En-1'] = {
       { value: '\'' }, { value: '"' }
     ], [
       { value: 'Alt', keyCode: -32 },
-      { value: '<div class="zh-encode-switcher \
-                            zh-encode-switcher-half \
-                            zh-encode-switcher-selected">半</div> \
-                <div class="zh-encode-switcher">全</div>',
-        keyCode: -2
+      {
+        value: '半', keyCode: -2
       },
       { value: '\\' }, { value: '@' }, { value: '&' }, { value: '^' },
       { value: '#' }, { value: '%' }, { value: '/' },
@@ -149,11 +140,8 @@ Keyboards['zh-Hans-Pinyin-Symbol-En-2'] = {
       { value: '{' }, { value: '}' }
     ], [
       { value: 'Alt', keyCode: -31 },
-      { value: '<div class="zh-encode-switcher \
-                            zh-encode-switcher-half \
-                            zh-encode-switcher-selected">半</div> \
-                <div class="zh-encode-switcher">全</div>',
-        keyCode: -5
+      {
+        value: '半', keyCode: -5
       },
       { value: '[' }, { value: ']' }, { value: '「' }, { value: '」' },
       { value: '*' }, { value: '`' }, { value: '|' },

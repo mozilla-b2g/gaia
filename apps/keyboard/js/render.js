@@ -241,6 +241,24 @@ var IMERender = (function() {
 
         if (isSpecialKey(key)) {
           className = 'special-key';
+
+          // Handle special keys of special UI.
+          switch (key.value) {
+            case '全':
+              keyChar = key.value = upperCaseKeyChar =
+                '<div class="zh-encode-switcher ' +
+                            'zh-encode-switcher-half">半</div>' +
+                '<div class="zh-encode-switcher ' +
+                            'zh-encode-switcher-selected">全</div>';
+             break;
+           case '半':
+              keyChar = key.value = upperCaseKeyChar =
+                '<div class="zh-encode-switcher ' +
+                            'zh-encode-switcher-half ' +
+                            'zh-encode-switcher-selected">半</div>' +
+                '<div class="zh-encode-switcher">全</div>';
+             break;
+          }
         } else {
           // The 'key' role tells an assistive technology that these buttons
           // are used for composing text or numbers, and should be easier to
