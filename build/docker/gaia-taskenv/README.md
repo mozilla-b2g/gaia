@@ -12,16 +12,13 @@ testing with the [docker test host](https://github.com/taskcluster/docker-taskho
 
 ## Building the docker image
 
-You need vagrant installed already.
+You need docker (version >= 1.2) installed already.
 
 ```sh
-vagrant up
-vagrant ssh
-cd /vagrant
 make docker_image
 ```
 
-you now have a lightsofapollo/gaia-testenv container. Pass DOCKER_TAG environment variable to make to change the container tag.
+you now have a mozillab2g/gaia-testenv container. Pass DOCKER_TAG environment variable to make to change the container tag.
 
 ## Testing
 
@@ -32,15 +29,4 @@ throughly.
 
 ```sh
 make test
-```
-
-### End to end testing
-
-The end to end tests verify everything is happy inside the docker
-container.
-
-```sh
-vagrant ssh
-cd /vagrant
-make test-docker
 ```
