@@ -377,5 +377,61 @@ suite('system/Rocketbar', function() {
       this.sinon.clock.tick(500);
     });
   });
+
+  suite('deactivate with a transition', function() {
+    setup(function() {
+      subject.active = true;
+      subject.form.classList.remove('hidden');
+      subject.rocketbar.classList.add('active');
+      subject.focused = false;
+    });
+
+    test('should update the css classed properly', function() {
+      subject.deactivate();
+      assert.isTrue(subject.form.classList.contains('hidden'));
+      assert.isFalse(subject.rocketbar.classList.contains('active'));
+    });
+
+    test('should publish rocketbar-overlayclosed after the transition',
+    function(done) {
+      var published = false;
+      window.addEventListener('rocketbar-overlayclosed', function gotIt() {
+        published = true;
+        window.removeEventListener('rocketbar-overlayclosed', gotIt);
+
+        assert.ok(published);
+        done();
+      });
+      subject.deactivate();
+      assert.isFalse(published);
+      subject.backdrop.dispatchEvent(new CustomEvent('transitionend'));
+    });
+
+    suite('when the keyboard is displayed', function() {
+      setup(function() {
+        subject.screen.classList.add('rocketbar-focused');
+        subject.focused = true;
+        this.sinon.spy(subject, 'blur');
+      });
+
+      test('should blur, wait for the keyboard to leave, then exit',
+      function(done) {
+        window.addEventListener('rocketbar-overlayclosed', function gotIt() {
+          window.removeEventListener('rocketbar-overlayclosed', gotIt);
+          done();
+        });
+
+        subject.deactivate();
+
+        sinon.assert.calledOnce(subject.blur);
+        assert.isTrue(subject.screen.classList.contains('rocketbar-focused'));
+
+        window.dispatchEvent(new CustomEvent('keyboardhidden'));
+        assert.isFalse(subject.screen.classList.contains('rocketbar-focused'));
+
+        subject.backdrop.dispatchEvent(new CustomEvent('transitionend'));
+      });
+    });
+  });
 });
 

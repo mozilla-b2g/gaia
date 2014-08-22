@@ -124,12 +124,31 @@
         return;
       }
       this.active = false;
-      this.rocketbar.classList.remove('active');
-      this.form.classList.add('hidden');
-      this.backdrop.classList.add('hidden');
-      this.blur();
-      this.screen.classList.remove('rocketbar-focused');
-      window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
+
+      var backdrop = this.backdrop;
+
+      var finish = (function() {
+        this.form.classList.add('hidden');
+        this.rocketbar.classList.remove('active');
+        this.screen.classList.remove('rocketbar-focused');
+
+        backdrop.classList.add('hidden');
+
+        backdrop.addEventListener('transitionend', function trWait() {
+          backdrop.removeEventListener('transitionend', trWait);
+          window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
+        });
+      }).bind(this);
+
+      if (this.focused) {
+        window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
+          window.removeEventListener('keyboardhidden', onhiddenkeyboard);
+          finish();
+        });
+        this.blur();
+      } else {
+        finish();
+      }
     },
 
     /**

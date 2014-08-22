@@ -173,18 +173,20 @@
 
       var confirm = document.getElementById('suggestions-notice-confirm');
 
-      confirm.addEventListener('click', this.discardNotice.bind(this));
+      confirm.addEventListener('click', this.discardNotice.bind(this, true));
 
       asyncStorage.getItem(this.NOTICE_KEY, function(value) {
         this.toShowNotice = !value;
       }.bind(this));
     },
 
-    discardNotice: function() {
+    discardNotice: function(focus) {
       this.suggestionNotice.hidden = true;
       this.toShowNotice = false;
       asyncStorage.setItem(this.NOTICE_KEY, true);
-      this._port.postMessage({'action': 'focus'});
+      if (focus) {
+        this._port.postMessage({'action': 'focus'});
+      }
     },
 
     /**
