@@ -1,5 +1,6 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager,
-      LayoutManager, MocksHelper, MockContextMenu, layoutManager */
+      LayoutManager, MocksHelper, MockContextMenu, layoutManager,
+      MockAppTransitionController */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -14,11 +15,13 @@ requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_activity_window.js');
 requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/test/unit/mock_app_transition_controller.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'LayoutManager', 'ActivityWindow',
-  'ScreenLayout', 'AppChrome', 'PopupWindow', 'StatusBar'
+  'ScreenLayout', 'AppChrome', 'PopupWindow', 'StatusBar',
+  'AppTransitionController'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -700,13 +703,10 @@ suite('system/AppWindow', function() {
   suite('Transition', function() {
     test('Open', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var fakeTransitionController = {
-        requireOpen: function() {},
-        requireClose: function() {}
-      };
-      app1.transitionController = fakeTransitionController;
+      var transitionController = new MockAppTransitionController();
+      app1.transitionController = transitionController;
       var stubRequireOpen =
-        this.sinon.stub(fakeTransitionController, 'requireOpen');
+        this.sinon.stub(transitionController, 'requireOpen');
       app1.open();
       assert.isTrue(stubRequireOpen.called);
       app1.open('Orz');
@@ -715,13 +715,10 @@ suite('system/AppWindow', function() {
 
     test('Close', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var fakeTransitionController = {
-        requireOpen: function() {},
-        requireClose: function() {}
-      };
-      app1.transitionController = fakeTransitionController;
+      var transitionController = new MockAppTransitionController();
+      app1.transitionController = transitionController;
       var stubRequireClose =
-        this.sinon.stub(fakeTransitionController, 'requireClose');
+        this.sinon.stub(transitionController, 'requireClose');
       app1.close();
       assert.isTrue(stubRequireClose.called);
       app1.close('XD');
@@ -1161,15 +1158,20 @@ suite('system/AppWindow', function() {
   suite('enter/leaveTaskManager', function() {
     test('class gets added and removed', function() {
       var app = new AppWindow(fakeAppConfig1);
+      var closeStub = this.sinon.stub(app, 'close');
+
+      app.transitionController = new MockAppTransitionController();
       assert.isFalse(app.element.classList.contains('in-task-manager'));
       app.enterTaskManager();
       assert.isTrue(app.element.classList.contains('in-task-manager'));
       app.leaveTaskManager();
       assert.isFalse(app.element.classList.contains('in-task-manager'));
+      assert.isTrue(closeStub.calledOnce, 'app.close was called');
     });
 
     test('leaveTaskManager: element.style cleanup', function() {
       var app = new AppWindow(fakeAppConfig1);
+      app.transitionController = new MockAppTransitionController();
       var unapplyStyleStub = sinon.stub(app, 'unapplyStyle');
       app.applyStyle({
         fontSize: '11',

@@ -206,7 +206,7 @@
 
         appNext.open(immediateTranstion ? 'immediate' :
                       ((switching === true) ? 'invoked' : openAnimation));
-        if (appCurrent) {
+        if (appCurrent && appCurrent.instanceID !== appNext.instanceID) {
           appCurrent.close(immediateTranstion ? 'immediate' :
             ((switching === true) ? 'invoking' : closeAnimation));
         } else {
@@ -550,6 +550,7 @@
             this._activeApp.getTopMostWindow().blur();
           }
           break;
+
         case 'sheetstransitionstart':
           if (document.mozFullScreen) {
             document.mozCancelFullScreen();
