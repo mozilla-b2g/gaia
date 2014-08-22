@@ -61,7 +61,7 @@ CameraController.prototype.bindEvents = function() {
   // App
   app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
-  app.on('attentionscreenopened', this.camera.stopRecording);
+  app.on('appwillhide', this.camera.stopRecording);
   app.on('settings:configured', this.onSettingsConfigured);
   app.on('previewgallery:opened', this.shutdownCamera);
   app.on('previewgallery:closed', this.onGalleryClosed);
