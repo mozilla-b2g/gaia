@@ -17,6 +17,7 @@ var debug = require('debug')('app');
 var Pinch = require('lib/pinch');
 var bind = require('lib/bind');
 var model = require('model');
+var StopRecordingEvent = require('StopRecordingEvent');
 
 /**
  * Exports
@@ -237,8 +238,8 @@ App.prototype.onCriticalPathDone = function() {
   this.dispatchEvent('moz-app-visually-complete');
 
   // Load non-critical modules
+  this.listenForStopRecordingEvent();
   this.loadLazyModules();
-  this.listenForAttentionScreen();
   this.perf.criticalPath = Date.now();
   this.criticalPathDone = true;
   this.emit('criticalpathdone');
@@ -446,26 +447,31 @@ App.prototype.onReady = function() {
  * when that happens, but by that time it is too late and we
  * have already recorded some sound. See bugs 995540 and 1006200.
  *
- * XXX We're abusing the settings API here to allow the system app
- * to broadcast a message to any certified apps that care. There
- * ought to be a better way, but this is a quick and easy way to
- * fix a last-minute release blocker.
+ * Similarly, if the user presses the Home button or switches to
+ * another app while recording, we need to stop recording right away,
+ * even if the system is overloaded and we don't get a visiblitychange
+ * event right away. See bug 1046167.
  *
- * If event.settingValue is true, then an attention screen will
- * soon appear. If it is false, then the attention screen is
- * going away.
+ * To make this work, we rely on shared/js/stop_recording_event.js which
+ * abuses the settings API to allow the system app to broadcast a "you
+ * will soon be hidden" message to any certified apps that care. There
+ * ought to be a better way, but this is a quick way to fix a
+ * last-minute release blocker.
  *
  * @private
  */
-App.prototype.listenForAttentionScreen = function() {
-  debug('listen for attention screen');
-  var key = 'private.broadcast.attention_screen_opening';
-  navigator.mozSettings.addObserver(key, function(event) {
-    if (event.settingValue) {
-      debug('attention screen opened');
-      self.emit('attentionscreenopened');
-    }
-  });
+App.prototype.listenForStopRecordingEvent = function() {
+  debug('listen for stop recording events');
+
+  // Start the module that generates the stoprecording events
+  StopRecordingEvent.start();
+
+  // Now listen for those custom DOM events
+  // and emit them using our internal event emitter
+  window.addEventListener('stoprecording', function(event) {
+    debug('got stoprecording DOM event');
+    this.emit('stoprecording');
+  }.bind(this));
 };
 
 });

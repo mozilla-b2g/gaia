@@ -1,4 +1,4 @@
-/* global StackManager, AppWindow, Event, MocksHelper,
+/* global StackManager, AppWindow, AppWindowManager, Event, MocksHelper,
           MockAppWindowManager, HomescreenLauncher, MockSheetsTransition */
 'use strict';
 
@@ -350,6 +350,7 @@ suite('system/StackManager >', function() {
     suite('> blasting through history', function() {
       var dialerBroadcast, contactBroadcast, settingsBroadcast;
       var dialerQueueShow, contactCancelQueuedShow, settingsQueueHide;
+      var sendStopRecordingRequest;
 
       setup(function() {
         dialerBroadcast = this.sinon.stub(dialer, 'broadcast');
@@ -359,6 +360,9 @@ suite('system/StackManager >', function() {
         dialerQueueShow = this.sinon.stub(dialer, 'queueShow');
         contactCancelQueuedShow = this.sinon.stub(contact, 'cancelQueuedShow');
         settingsQueueHide = this.sinon.stub(settings, 'queueHide');
+
+        sendStopRecordingRequest = this.sinon.stub(AppWindowManager,
+                                                   'sendStopRecordingRequest');
 
         StackManager.goPrev();
         StackManager.goPrev();
@@ -386,6 +390,10 @@ suite('system/StackManager >', function() {
         sinon.assert.calledWith(dialerBroadcast, 'swipein');
         sinon.assert.notCalled(contactBroadcast);
         sinon.assert.calledWith(settingsBroadcast, 'swipeout');
+      });
+
+      test('it should call sendStopRecordingRequest', function() {
+        sinon.assert.calledOnce(sendStopRecordingRequest);
       });
 
       suite('if we\'re back to the same place', function() {
