@@ -626,8 +626,11 @@ var MessageManager = {
   // takes a formatted message in case you happen to have one
   resendMessage: function mm_resendMessage(message, callback) {
     var request;
+    var serviceId = Settings.getServiceIdByIccId(message.iccId);
+    var sendOpts = this._getSendOptionsFromServiceId(serviceId);
     if (message.type === 'sms') {
-      request = this._mozMobileMessage.send(message.receiver, message.body);
+      request = this._mozMobileMessage.send(
+        message.receiver, message.body, sendOpts);
     }
     if (message.type === 'mms') {
       request = this._mozMobileMessage.sendMMS({
@@ -635,7 +638,7 @@ var MessageManager = {
         subject: message.subject,
         smil: message.smil,
         attachments: message.attachments
-      });
+      }, sendOpts);
     }
 
     request.onsuccess = function onSuccess(evt) {
