@@ -61,6 +61,16 @@
         return;
       }
 
+      // Check if this is a call to open the url in an known app.
+      if (evt.detail.isApp) {
+        this.app.publish('openwindow',
+          { manifestURL: evt.detail.name,
+            url: evt.detail.url,
+            timestamp: Date.now() });
+        evt.stopPropagation();
+        return;
+      }
+
       var caught = false;
       switch (evt.detail.features) {
         case 'dialog':
