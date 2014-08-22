@@ -201,26 +201,6 @@ suite('system/AppChrome', function() {
       chrome.handleEvent({ type: 'mozbrowserloadend' });
       assert.isFalse(chrome.containerElement.classList.contains('loading'));
     });
-
-    test('titlechange', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
-
-      assert.equal(chrome.title.textContent, '');
-
-      chrome.handleEvent({ type: 'mozbrowserlocationchange',
-                           detail: app.config.url });
-
-      chrome.handleEvent({ type: 'mozbrowsertitlechange',
-                           detail: '' });
-
-      assert.equal(chrome.title.textContent, app.config.url);
-
-      chrome.handleEvent({ type: 'mozbrowsertitlechange',
-                           detail: 'Hello' });
-
-      assert.equal(chrome.title.textContent, 'Hello');
-    });
   });
 
 
@@ -291,34 +271,16 @@ suite('system/AppChrome', function() {
       chrome._unregisterEvents();
     });
 
-    test('should wait before updating the title', function() {
-      subject.title.textContent = 'Google';
+    test('should use hostname for browser windows', function() {
+      var stubIsBrowser = sinon.stub(subject.app, 'isBrowser', function() {
+        return true;
+      });
       var evt = new CustomEvent('mozbrowserlocationchange', {
-        detail: 'http://bing.com'
+        detail: 'http://www.example.com/foo'
       });
       subject.app.element.dispatchEvent(evt);
-
-      assert.equal(subject.title.textContent, 'Google');
-      this.sinon.clock.tick(500);
-      assert.equal(subject.title.textContent, 'http://bing.com');
-    });
-
-    test('should not update the title if we get a titlechange right after',
-    function() {
-      subject.title.textContent = 'Google';
-      var evt = new CustomEvent('mozbrowserlocationchange', {
-        detail: 'http://bing.com'
-      });
-      subject.app.element.dispatchEvent(evt);
-
-      assert.equal(subject.title.textContent, 'Google');
-      this.sinon.clock.tick(100);
-      var titleEvent = new CustomEvent('mozbrowsertitlechange', {
-        detail: 'Bing'
-      });
-      subject.app.element.dispatchEvent(titleEvent);
-      this.sinon.clock.tick(500);
-      assert.equal(subject.title.textContent, 'Bing');
+      assert.equal(subject.title.textContent, 'www.example.com');
+      stubIsBrowser.restore();
     });
   });
 
