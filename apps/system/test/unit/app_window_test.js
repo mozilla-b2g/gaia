@@ -2043,4 +2043,41 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubPublish.calledOnce);
     });
   });
+
+  suite('application-name', function() {
+    test('application-name for browser window', function() {
+      var browser1 = new AppWindow(fakeWrapperConfig);
+      var stubPublish = this.sinon.stub(browser1, 'publish');
+
+      browser1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'application-name',
+          content: 'title1'
+        }
+      });
+
+      assert.equal(browser1.name, 'title1');
+      assert.isTrue(stubPublish.calledOnce);
+      stubPublish.restore();
+    });
+
+
+    test('application-name for app window', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'application-name',
+          content: 'title1'
+        }
+      });
+
+      assert.isFalse(app1.name == 'title1');
+      assert.isFalse(stubPublish.calledOnce);
+      stubPublish.restore();
+    });
+  });
 });
