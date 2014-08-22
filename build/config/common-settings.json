@@ -102,7 +102,7 @@
    "keyboard.launch-on-boot": true,
    "language.current": "en-US",
    "layers.draw-borders": false,
-   "layers.dump": false,
+   "layers.dump": true,
    "layers.enable-tiles": true,
    "layers.simple-tiles": false,
    "locale.hour12": true,
