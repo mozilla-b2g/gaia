@@ -11,6 +11,7 @@ System.URL = 'app://system.gaiamobile.org/manifest.webapp';
 System.Selector = Object.freeze({
   appWindow: '.appWindow',
   appTitlebar: '.appWindow.active .titlebar',
+  appUrlbar: '.appWindow.active .title',
   appChromeContextLink: '.appWindow.active .menu-button',
   appChromeContextMenu: '.appWindow.active .overflow-menu',
   appChromeContextMenuNewWindow: '.appWindow.active #new-window',
@@ -33,6 +34,10 @@ System.prototype = {
 
   get appTitlebar() {
     return this.client.findElement(System.Selector.appTitlebar);
+  },
+
+  get appUrlbar() {
+    return this.client.findElement(System.Selector.appUrlbar);
   },
 
   get appChromeContextLink() {
