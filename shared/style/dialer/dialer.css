@@ -8,6 +8,7 @@ html,body {
   overflow: hidden;
   margin: 0;
   color: white;
+  background-color: white;
 }
 
 #call-log-view > div {
