@@ -59,6 +59,7 @@ navigator.mozL10n.once(function() {
 
     blob = activityData.blob;
     open(blob);
+    setNFCSharing(true);
   }
 
   // Display the specified blob, unless it is too big to display
@@ -210,6 +211,7 @@ navigator.mozL10n.once(function() {
   function done() {
     activity.postResult({ saved: saved });
     activity = null;
+    setNFCSharing(false);
   }
 
   function handleDoubleTap(e) {
@@ -284,5 +286,24 @@ navigator.mozL10n.once(function() {
   // Strip directories and just return the base filename
   function baseName(filename) {
     return filename.substring(filename.lastIndexOf('/') + 1);
+  }
+
+  function setNFCSharing(enable) {
+    if (!window.navigator.mozNfc) {
+      return;
+    }
+
+    if (enable) {
+      // If we have NFC, we need to put the callback to have shrinking UI.
+      window.navigator.mozNfc.onpeerready = function(event) {
+        var peer = event.peer;
+        if (peer) {
+          peer.sendFile(blob);
+        }
+      };
+    } else {
+      // We need to remove onpeerready while out of fullscreen view.
+      window.navigator.mozNfc.onpeerready = null;
+    }
   }
 });
