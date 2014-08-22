@@ -65,7 +65,7 @@ body #statusbar {
   margin: 0;
   top: 0;
   right: 0;
-  padding: 0 0.8rem;
+  padding: 0 0.3rem;
   transition: opacity 0.3s;
   overflow: hidden;
   white-space: nowrap;
@@ -74,12 +74,12 @@ body #statusbar {
 
 #statusbar-minimized {
   width: calc(100% - 100% * 0.6521 + 8rem * 0.6521 - 0.5rem);
-  padding: 0 0.8rem 0 0;
+  padding: 0 0.3rem 0 0;
 }
 
 .statusbar > * {
   float: right;
-  margin: 0.6rem 0.2rem 0.6rem 0.3rem;
+  margin: 0.6rem 0.2rem 0.6rem 0.2rem;
 }
 
 #screen.rocketbar-focused:not(.locked) .statusbar {

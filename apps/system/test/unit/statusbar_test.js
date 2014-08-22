@@ -1750,7 +1750,7 @@ suite('system/Statusbar', function() {
 
       assert.ok(StatusBar.PRIORITIES[iconIndex][1]);
       assert.equal(StatusBar._getIconWidth(StatusBar.PRIORITIES[iconIndex]),
-          16 + 5);
+          16 + 4);
     });
 
     test('should compute the width of variable size icons', function() {
