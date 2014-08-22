@@ -204,6 +204,14 @@ require.config({
         'modules/mvvm/observable',
         'modules/date_time'
       ]
+    },
+    {
+      name: 'panels/browser_privacy/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/search/panel',
+      exclude: ['main']
     }
   ]
 });
