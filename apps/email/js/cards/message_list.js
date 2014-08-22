@@ -1,5 +1,5 @@
 /*jshint browser: true */
-/*global define, console */
+/*global define, console, FontSizeUtils, requestAnimationFrame */
 'use strict';
 
 define(function(require) {
@@ -145,6 +145,13 @@ function MessageListCard(domNode, mode, args) {
     // the default color.
     this.domNode.dataset.statuscolor = 'background';
   }
+
+  this.folderLabel =
+    domNode.getElementsByClassName('msg-list-header-folder-label')[0];
+  this.folderNameNode =
+    domNode.getElementsByClassName('msg-list-header-folder-name')[0];
+  this.folderUnread =
+    domNode.getElementsByClassName('msg-list-header-folder-unread')[0];
 
   this.messagesContainer =
     domNode.getElementsByClassName('msg-messages-container')[0];
@@ -643,11 +650,34 @@ MessageListCard.prototype = {
     this.sizeLastSync();
   },
 
+  updateUnread: function(num) {
+    var content = '';
+    if (num > 0) {
+      content = num > 999 ? mozL10n.get('messages-folder-unread-max') : num;
+    }
+
+    this.folderUnread.textContent = content;
+    this.folderUnread.classList.toggle('collapsed', !content);
+    this.callHeaderFontSize();
+  },
+
   onFoldersSliceChange: function(folder) {
-    // Just care about updating the last sync time
     if (folder === this.curFolder) {
+      this.updateUnread(folder.unread);
       this.updateLastSynced(folder.lastSyncedAt);
     }
+  },
+
+  /**
+   * A workaround for shared/js/font_size_utils not recognizing child node
+   * content changing, and if it did, it would be noisy/extra work if done
+   * generically. Using a rAF call to not slow down the rest of card updates,
+   * it is something that can happen lazily on another turn.
+   */
+  callHeaderFontSize: function(node) {
+    requestAnimationFrame(function() {
+      FontSizeUtils._reformatHeaderText(this.folderLabel);
+    }.bind(this));
   },
 
   /**
@@ -681,9 +711,8 @@ MessageListCard.prototype = {
         break;
     }
 
-    this.domNode.getElementsByClassName('msg-list-header-folder-label')[0]
-      .textContent = folder.name;
-
+    this.folderNameNode.textContent = folder.name;
+    this.updateUnread(folder.unread);
     this.hideEmptyLayout();
 
 
