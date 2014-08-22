@@ -1,13 +1,12 @@
 /* global Card, TaskCard,
           AppWindowManager, sleepMenu, SettingsListener, AttentionScreen,
-          OrientationManager, System,
+          OrientationManager, System, homescreenLauncher,
           GestureDetector, UtilityTray, StackManager, Event */
 
 'use strict';
 
 (function(exports) {
   var DEBUG = false;
-
   /**
    * Represent a stack of apps as cards
    *
@@ -177,15 +176,36 @@
     this.screenElement = document.getElementById('screen');
   };
 
+  TaskManager.prototype._registerShowingEvents = function() {
+    window.addEventListener('appopen', this);
+    window.addEventListener('appterminated', this);
+    if (this.allowSwipeToClose) {
+      this.element.addEventListener('touchstart', this);
+    }
+    window.addEventListener('lockscreen-appopened', this);
+    window.addEventListener('tap', this);
+    window.addEventListener('opencurrentcard', this);
+  };
+  TaskManager.prototype._unregisterShowingEvents = function() {
+    window.removeEventListener('appopen', this);
+    window.removeEventListener('appterminated', this);
+    window.removeEventListener('lockscreen-appopened', this);
+    window.removeEventListener('tap', this);
+    window.removeEventListener('opencurrentcard', this);
+
+    this.element && this.element.removeEventListener('touchstart', this);
+    window.removeEventListener('lockscreen-appopened', this);
+    window.removeEventListener('tap', this);
+    window.removeEventListener('opencurrentcard', this);
+  };
+
+
   TaskManager.prototype._registerEvents = function() {
+    window.addEventListener('home', this);
     window.addEventListener('attentionscreenshow', this);
     window.addEventListener('attentionscreenhide', this);
     window.addEventListener('taskmanagershow', this);
-    window.addEventListener('taskmanagerhide', this);
     window.addEventListener('holdhome', this);
-    window.addEventListener('home', this);
-    window.addEventListener('appopen', this);
-    window.addEventListener('appterminated', this);
 
     this.onPreviewSettingsChange = function(settingValue) {
       this.useAppScreenshotPreviews = settingValue;
@@ -197,14 +217,11 @@
   };
 
   TaskManager.prototype._unregisterEvents = function() {
+    window.removeEventListener('home', this);
     window.removeEventListener('attentionscreenshow', this);
     window.removeEventListener('attentionscreenhide', this);
     window.removeEventListener('taskmanagershow', this);
-    window.removeEventListener('taskmanagerhide', this);
     window.removeEventListener('holdhome', this);
-    window.removeEventListener('home', this);
-    window.removeEventListener('appopen', this);
-    window.removeEventListener('appterminated', this);
 
     SettingsListener.unobserve(this.SCREENSHOT_PREVIEWS_SETTING_KEY,
                                this.onPreviewSettingsChange);
@@ -248,21 +265,17 @@
    *
    * @memberOf TaskManager.prototype
    * @param {Boolean} removeImmediately true to skip transitions when hiding
-   * @param {Number} newStackPosition to include in the event detail
    *
    */
-  TaskManager.prototype.hide = function cs_hideCardSwitcher(removeImmediately,
-                                                            newStackPosition) {
+  TaskManager.prototype.hide = function cs_hideCardSwitcher(removeImmediately) {
     if (!this.isShown()) {
       return;
     }
 
     var cardsView = this.element;
 
-    // events to handle
-    window.removeEventListener('lockscreen-appopened', this);
-    window.removeEventListener('tap', this);
-    window.removeEventListener('opencurrentcard', this);
+    // events to unhandle
+    this._unregisterShowingEvents();
 
     if (removeImmediately) {
       this.element.classList.add('no-transition');
@@ -282,8 +295,7 @@
       }).bind(this);
       cardsView.addEventListener('transitionend', cardsViewHidden);
     }
-
-    this.fireCardViewClosed(newStackPosition);
+    this.fireCardViewClosed();
   };
 
   /**
@@ -299,43 +311,38 @@
     // Apps info from Stack Manager.
     var stack = this.stack = StackManager.snapshot();
     this.currentPosition = StackManager.position;
+    this.newStackPosition = null;
+    this.initialTouchPosition = null;
 
     // If we are currently displaying the homescreen but we have apps in the
     // stack we will display the most recently used application.
-    if ((this.currentPosition == -1 || StackManager.outOfStack()) &&
-        stack.length) {
-      this.currentPosition = stack.length - 1;
+    if (this.currentPosition == -1 || StackManager.outOfStack()) {
+      if (stack.length) {
+        this.currentPosition = this.isTaskStrip ? 0 : this.stack.length - 1;
+      } else {
+      // consider homescreen the active app
+        this.currentPosition = -1;
+      }
     }
     this.currentDisplayed = this.currentPosition;
-
     var currentApp = (stack.length && this.currentPosition > -1 &&
                      stack[this.currentPosition]);
 
     // Return early if isTaskStrip and there are no apps.
-    if (!currentApp && this.isTaskStrip) {
-      // Fire a cardchange event to notify rocketbar that there are no cards
-      this.fireCardViewClosed();
-      return;
-    } else {
-      // We can listen to appclose event
+    if (this.isTaskStrip) {
+      if (!currentApp) {
+        // Fire a cardchange event to notify rocketbar that there are no cards
+        this.fireCardViewClosed();
+        return;
+      }
     }
 
     // stash some measurements now to avoid unexpected reflow later
     this._windowWidth = window.innerWidth;
     this._windowHeight = window.innerHeight;
 
-    if (!this.initialTouchPosition) {
-      this.setupCardSwiping();
-    }
-
     // Close utility tray if it is opened.
     UtilityTray && UtilityTray.hide(true);
-
-    // Now we can switch to the homescreen.
-    // while the task manager is shown, the active app is the homescreen
-    // so selecting an app switches from homescreen to that app
-    // which gets us in the right state
-    AppWindowManager.display(null, null, 'to-cardview');
 
     // We're committed to showing the card switcher.
     // Homescreen fades (shows its fade-overlay) on cardviewbeforeshow events
@@ -354,10 +361,6 @@
       this.element.classList.add('empty');
     }
 
-    if (this.allowSwipeToClose) {
-      this.element.addEventListener('touchstart', this);
-    }
-
     // Make sure we're in default orientation
     screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
@@ -367,9 +370,11 @@
     }, this);
 
     // events to handle while shown
-    window.addEventListener('lockscreen-appopened', this);
-    window.addEventListener('tap', this);
-    window.addEventListener('opencurrentcard', this);
+    this._registerShowingEvents();
+    // only set up for card swiping if there's cards to show
+    if (!this.isTaskStrip && stack.length && !this.initialTouchPosition) {
+      this.setupCardSwiping();
+    }
 
     this.setActive(true);
     this.placeCards();
@@ -442,8 +447,8 @@
     }
 
     // If there are no cards left, then dismiss the task switcher.
-    if (!cardsLength) {
-      this.hide(removeImmediately);
+    if (!cardsLength && this.isShown()) {
+      this.exitToApp();
     }
     else {
       this.alignCurrentCard();
@@ -486,8 +491,7 @@
         debug('cardAction: TODO: favorite ' + card.element.dataset.origin);
         return;
       case 'select' :
-        this.newStackPosition = card.position;
-        AppWindowManager.display(
+        this.exitToApp(
           card.app,
           'from-cardview',
           null
@@ -495,6 +499,23 @@
         // Card switcher will get hidden when 'appopen' is fired.
         return;
     }
+  };
+
+  TaskManager.prototype.exitToApp = function(app,
+                                             openAnimation) {
+
+    if (!app) {
+      // return if possible to previous app.
+      // else homescreen
+      app = StackManager.getCurrent() ||
+            homescreenLauncher.getHomescreen(true);
+    }
+    var position = this.stack.indexOf(app);
+    if (position !== StackManager.position) {
+      this.newStackPosition = position;
+    }
+    app.open(openAnimation || 'from-cardview');
+    this.hide();
   };
 
   /**
@@ -506,7 +527,14 @@
    */
   TaskManager.prototype.closeApp = function cs_closeApp(card,
                                                         removeImmediately) {
+    var wasActive = AppWindowManager.getActiveApp() === card.app;
     card.killApp();
+
+    // if we killed the active app, make homescreen active
+    if (wasActive) {
+      AppWindowManager._updateActiveApp(homescreenLauncher
+                                          .getHomescreen().instanceID);
+    }
     this.removeCard(card, removeImmediately);
   };
 
@@ -525,6 +553,10 @@
     var cardElem;
     var card;
 
+    if (!this.isShown()) {
+      // ignore any bogus events received after we already started to hide
+      return;
+    }
     if (this.isTaskStrip && ('buttonAction' in targetNode.dataset)) {
       tmpNode = containerNode;
       while ((tmpNode = tmpNode.parentNode)) {
@@ -633,7 +665,7 @@
   };
 
   /**
-   * Handle home events - hide the switcher and show the homescreen
+   * Hide the switcher and show the homescreen
    * @memberOf TaskManager.prototype
    * @param  {DOMEvent} evt The event.
    */
@@ -642,10 +674,11 @@
       return;
     }
 
+    var homescreen = homescreenLauncher.getHomescreen(true);
     window.dispatchEvent(new CustomEvent('cardviewclosedhome'));
 
     evt.stopImmediatePropagation();
-    this.hide();
+    this.exitToApp(homescreen);
   };
 
   /**
@@ -674,7 +707,7 @@
         break;
 
       case 'opencurrentcard':
-        AppWindowManager.display(
+        this.exitToApp(
           this.currentCard.app,
           'from-cardview',
           null);
@@ -685,14 +718,20 @@
         break;
 
       case 'home':
-        this.goToHomescreen(evt);
+        if (this.isShown()) {
+          evt.stopImmediatePropagation();
+          this.exitToApp();
+        }
         break;
 
       case 'lockscreen-appopened':
       case 'attentionscreenshow':
         this.attentionScreenApps =
             AttentionScreen.getAttentionScreenOrigins();
-        this.hide();
+        this.newStackPosition = null;
+        this.hide(true);
+        // no need to animate while in background
+        this.exitToApp(null, 'immediately');
         break;
 
       case 'attentionscreenhide':
@@ -729,9 +768,7 @@
         break;
 
       case 'appopen':
-        if (!evt.detail.isHomescreen) {
-          this.hide(/* immediately */ true, this.newStackPosition);
-        }
+        this.hide(/* immediately */ true);
         break;
       case 'appterminated':
         if (this.isShown()) {
@@ -779,11 +816,10 @@
   /**
    * @memberOf TaskManager.prototype
    */
-  TaskManager.prototype.fireCardViewClosed = function(newStackPosition) {
-    var detail = null;
-
-    if (!isNaN(newStackPosition)) {
-      detail = { 'detail': { 'newStackPosition': newStackPosition }};
+  TaskManager.prototype.fireCardViewClosed = function() {
+    var detail;
+    if (!isNaN(this.newStackPosition)) {
+      detail = { 'detail': { 'newStackPosition': this.newStackPosition }};
     }
 
     var event = new CustomEvent('cardviewclosed', detail);
