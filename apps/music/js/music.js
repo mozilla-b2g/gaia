@@ -131,6 +131,8 @@ function init() {
     version: 2
   });
 
+
+
   function metadataParserWrapper(file, onsuccess, onerror) {
     LazyLoader.load('js/metadata_scripts.js', function() {
       parseAudioMetadata(file, onsuccess, onerror);
@@ -323,6 +325,10 @@ function init() {
         pendingPick.postError('pick cancelled');
       }
     });
+
+  document.getElementById('indexed-search').addEventListener('click', function() {
+    console.log("+++++++++++++++++indexed-search+++++++++++++++++");
+       });
 }
 
 //
@@ -408,7 +414,6 @@ function showCurrentView(callback) {
         direction: (option === 'title') ? 'next' : 'nextunique',
         option: option
       };
-
       ListView.activate(info);
     }
     // If it's in picking mode we will just enumerate all the songs
@@ -1118,7 +1123,6 @@ function createListElement(option, data, index, highlight) {
 
       var lengthSpan = document.createElement('span');
       lengthSpan.className = 'list-song-length';
-
       li.appendChild(indexSpan);
       li.appendChild(titleSpan);
       li.appendChild(lengthSpan);
@@ -1220,7 +1224,6 @@ var ListView = {
       headerLi.className = 'list-header';
       headerLi.textContent = this.lastFirstLetter || '?';
     }
-
     return headerLi;
   },
 
@@ -1470,7 +1473,6 @@ var ListView = {
       (data.metadata.title === mostPlayedTitle ||
        data.metadata.title === recentlyAddedTitle ||
        data.metadata.title === highestRatedTitle) ? 'prev' : 'next';
-
     SubListView.activate(
       option, data, index, keyRange, direction, function() {
         ModeManager.push(MODE_SUBLIST);
@@ -1966,7 +1968,7 @@ var TabBar = {
   handleEvent: function tab_handleEvent(evt) {
     if (this.disabled)
       return;
-
+    var fastscroll = document.querySelector('nav[data-type="scrollbar"]');
     switch (evt.type) {
       case 'click':
         var target = evt.target;
@@ -1989,7 +1991,7 @@ var TabBar = {
             // the album on TilesView to play, just cancel the enumeration
             // because we will start a new one and it can be responsive.
             ListView.cancelEnumeration();
-
+            fastscroll.classList.add('hidden');
             ModeManager.start(MODE_TILES);
             TilesView.hideSearch();
 
@@ -1997,7 +1999,7 @@ var TabBar = {
           case 'tabs-playlists':
             ModeManager.start(MODE_LIST);
             ListView.activate();
-
+            fastscroll.classList.add('hidden');
             this.playlistArray.forEach(function(playlist) {
               ListView.update(this.option, playlist);
             }.bind(this));
@@ -2015,6 +2017,7 @@ var TabBar = {
 
             ModeManager.start(MODE_LIST);
             ListView.activate(info);
+            fastscroll.classList.remove('hidden');
             break;
         }
 
