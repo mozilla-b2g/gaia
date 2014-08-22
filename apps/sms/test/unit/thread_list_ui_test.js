@@ -937,6 +937,40 @@ suite('thread_list_ui', function() {
         assert.isFalse(ThreadListUI.appendThread(thread));
       });
     });
+
+    suite('respects l10n lib readiness', function() {
+      setup(function() {
+        navigator.mozL10n.readyState = 'loading';
+        this.sinon.stub(navigator.mozL10n, 'once');
+      });
+
+      teardown(function() {
+        navigator.mozL10n.readyState = 'complete';
+      });
+
+      test('waits for l10n to render', function() {
+        var thread = Thread.create(MockMessages.sms({
+          threadId: 3,
+          timestamp: +(new Date(2013, 1, 2))
+        }));
+
+        var containerId = 'threadsContainer_' + thread.timestamp;
+
+        ThreadListUI.appendThread(thread);
+
+        var container = document.getElementById(containerId);
+
+        // Since mozL10n is not ready nothing should be rendered
+        assert.ok(!container);
+
+        navigator.mozL10n.readyState = 'complete';
+        navigator.mozL10n.once.yield();
+
+        container = document.getElementById(containerId);
+        assert.ok(container);
+        assert.equal(container.querySelector('li').id, 'thread-' + thread.id);
+      });
+    });
   });
 
   suite('renderThreads', function() {

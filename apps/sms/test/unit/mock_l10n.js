@@ -11,6 +11,7 @@
   };
 
   var MockL10n = {
+    readyState: 'complete',
     get: function get(key, params) {
       if (params) {
         return key + JSON.stringify(params);

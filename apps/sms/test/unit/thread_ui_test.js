@@ -24,7 +24,6 @@ require('/js/compose.js');
 require('/js/drafts.js');
 require('/js/threads.js');
 require('/js/thread_ui.js');
-require('/js/thread_list_ui.js');
 require('/js/utils.js');
 
 require('/test/unit/mock_time_headers.js');
@@ -56,6 +55,7 @@ require('/test/unit/mock_contact_renderer.js');
 require('/test/unit/mock_message_manager.js');
 require('/test/unit/mock_waiting_screen.js');
 require('/test/unit/mock_navigation.js');
+require('/test/unit/mock_thread_list_ui.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
@@ -94,7 +94,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'LazyLoader',
   'WaitingScreen',
   'Navigation',
-  'Notification'
+  'Notification',
+  'ThreadListUI'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -206,7 +207,6 @@ suite('thread_ui.js >', function() {
 
     ThreadUI.recipients = null;
     ThreadUI.init();
-    ThreadListUI.init();
     realMozMobileMessage = ThreadUI._mozMobileMessage;
     ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
     sticky = MockStickyHeader;
