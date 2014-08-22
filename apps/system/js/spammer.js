@@ -1,3 +1,6 @@
+/* global applications */
+'use strict';
+
 (function(exports) {
   var Spammer = function() {};
   Spammer.prototype = {
@@ -12,14 +15,15 @@
           this._launchApps.push(app);
         }
       }
+      this.shuffle(this._launchApps);
       this.launch();
     },
     launch: function(count) {
       if (!count) {
         count = 1;
       }
+      // jshint ignore: start
       this._interval = window.setInterval(function() {
-        this.shuffle(this._launchApps);
         for (var i = 0; i < this.LAUNCH_COUNT; i++) {
           (function(self, app) {
             window.setTimeout(function() {
@@ -32,6 +36,7 @@
           window.clearInterval(this._interval);
         }
       }.bind(this), this.LAUNCH_TIMEOUT);
+      // jshint ignore: end
     },
     stop: function() {
       this._launchApps = [];

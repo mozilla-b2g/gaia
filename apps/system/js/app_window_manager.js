@@ -397,7 +397,7 @@
         case 'homescreenopened':
           // Someone else may open the app,
           // so we need to update active app.
-          this._updateActiveApp(evt.detail.instanceID);
+          this._updateActiveApp(evt.detail.instanceID, true);
           break;
 
         case 'homescreencreated':
@@ -653,7 +653,6 @@
       var caller;
       var callee = this.getApp(config.origin);
       caller = this._activeApp.getTopMostWindow();
-      this.debug('Linking window disposition activity: ' + callee.name + '->' + caller.name );
       callee.callerWindow = caller;
       caller.calleeWindow = callee;
     },
@@ -698,7 +697,7 @@
       window.dispatchEvent(evt);
     },
 
-    _updateActiveApp: function awm__changeActiveApp(instanceID) {
+    _updateActiveApp: function awm__changeActiveApp(instanceID, closeOpened) {
       this._activeApp = this._apps[instanceID];
       if (!this._activeApp) {
         console.warn('no active app alive: ', instanceID);
@@ -721,6 +720,16 @@
       this._dumpAllWindows();
       this.debug('=== Active app changed: ',
         (this._activeApp.name || this._activeApp.origin), '===');
+      // XXX: Kill any opened instances
+      if (closeOpened) {
+        for (var id in this._apps) {
+          var app = this._apps[id];
+          if (id !== instanceID && app.isActive() && !app.isTransitioning()) {
+            app.close();
+            this.debug('Found an background app is opened. Closing..');
+          }
+        }
+      }
     },
 
     /**
