@@ -898,6 +898,44 @@ suite('system/TaskManager >', function() {
       assert.isFalse('http://sms.gaiamobile.org' in taskManager.cardsByOrigin);
     });
   });
+  suite('app is killed', function() {
+    setup(function(done) {
+      MockStackManager.mStack = [
+        apps['http://sms.gaiamobile.org'],
+        apps['http://game.gaiamobile.org']
+      ];
+      MockStackManager.mCurrent = 0;
+      MockAppWindowManager.mRunningApps = {
+        'http://sms.gaiamobile.org': apps['http://sms.gaiamobile.org'],
+        'http://game.gaiamobile.org': apps['http://game.gaiamobile.org']
+      };
+
+      assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
+      waitForEvent(window, 'cardviewshown')
+        .then(function() { done(); }, failOnReject);
+      taskManager.isRocketbar = false;
+      taskManager.show();
+    });
+    teardown(function() {
+      taskManager.hide(true);
+      cardsList.innerHTML = '';
+    });
+
+    test('removeCard is called on appterminated', function() {
+      var deadApp = apps['http://game.gaiamobile.org'];
+      var card = taskManager.cardsByOrigin['http://game.gaiamobile.org'];
+      var removeCardSpy = this.sinon.spy(taskManager, 'removeCard');
+      var destroySpy = this.sinon.spy(card, 'destroy');
+      var event = new CustomEvent('appterminated',
+                                  { detail: deadApp });
+      window.dispatchEvent(event);
+
+      assert.isTrue(removeCardSpy.calledOnce, 'removeCard was called');
+      assert.isTrue(destroySpy.calledOnce, 'card.destroy was called');
+      assert.equal(cardsList.childNodes.length, 1);
+    });
+  });
+
 });
 
 mocha.setup({ignoreLeaks: false});
