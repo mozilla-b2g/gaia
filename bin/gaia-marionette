@@ -39,8 +39,10 @@ fi
 # make sure node_modules are 100% up to date
 make node_modules
 
-# download b2g-desktop (if its not present)
-make -C $DIR/../ b2g
+if [ "$BUILDAPP" == "desktop" ]; then
+    # download b2g-desktop (if its not present)
+    make -C $DIR/../ b2g
+fi
 
 # tests can timeout without the profile-test folder so build it here.
 if [ ! -d $DIR/../profile-test ]; then
