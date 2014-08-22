@@ -340,6 +340,11 @@ Mockfb.utils = (function() {
       });
     },
 
+    SCHEDULE_SYNC_KEY: 'facebookShouldHaveScheduledAt',
+
+    setLastUpdate: function(date, callback) {
+      typeof callback === 'function' && callback();
+    },
     setCachedNumFriends: function() {
 
     },

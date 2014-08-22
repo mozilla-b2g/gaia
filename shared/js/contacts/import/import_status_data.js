@@ -75,7 +75,7 @@ var ImportStatusData = (function ImportStatusData() {
     });
   };
 
-  var clear = function clear(key) {
+  var clear = function clear() {
     return new Promise(function(resolve, reject) {
       getDatastore().then(function success(store) {
         store.clear().then(resolve, reject);
