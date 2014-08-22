@@ -1277,9 +1277,11 @@ suite('system/AppWindow', function() {
 
     test('Destroy should clear rearWindow.', function() {
       var popups = openPopups(2);
+      assert.isTrue(popups[0].element.classList.contains('front-window'));
       popups[1].destroy();
       assert.isNull(popups[0].frontWindow);
       assert.isNull(popups[1].rearWindow);
+      assert.isFalse(popups[0].element.classList.contains('front-window'));
     });
 
     test('Destroy should clear previousWindow.', function() {
@@ -1850,7 +1852,7 @@ suite('system/AppWindow', function() {
     for (var i = 0; i < count; i++) {
       popups.push(new AppWindow(genFakeConfig(i)));
       if (i > 0) {
-        popups[i - 1].frontWindow = popups[i];
+        popups[i - 1].setFrontWindow(popups[i]);
         popups[i].rearWindow = popups[i - 1];
       }
     }

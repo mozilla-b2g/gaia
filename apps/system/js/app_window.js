@@ -1771,11 +1771,14 @@
       this.frontWindow.kill();
     }
     this.frontWindow = frontWindow;
+
+    this.element.classList.toggle('front-window', !!frontWindow);
   };
 
   AppWindow.prototype.unsetFrontWindow = function aw_unsetFrontWindow() {
     if (this.frontWindow) {
       this.frontWindow = null;
+      this.element.classList.remove('front-window');
     }
   };
 
