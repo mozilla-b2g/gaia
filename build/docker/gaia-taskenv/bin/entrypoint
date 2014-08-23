@@ -1,0 +1,21 @@
+#! /bin/bash -vex
+
+export DISPLAY=:99
+Xvfb :99 > /dev/null 2>&1 &
+
+checkout_path="$PWD/git_checkout"
+
+# virtualenv setup so any python packages can be abused without root access
+virtualenv $HOME/.venv --system-site-packages
+source $HOME/.venv/bin/activate
+
+# move to the cached repo checkout
+cd $checkout_path
+
+# fetch the ref we need (something like refs/pull/$N/merge or refs/heads/master)
+git fetch --depth 1 origin $GH_REF
+# checkout the tip of the updated ref
+git checkout -qf FETCH_HEAD
+
+# run whatever command was intended on the branch (root of the repo)
+eval $@
