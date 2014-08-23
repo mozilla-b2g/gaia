@@ -1,7 +1,7 @@
 'use strict';
 
-/* global require, exports */
-
+/*global require, exports */
+/*jshint evil: true */
 var utils = require('utils');
 var sharedUtils = require('shared-utils');
 var { Cc, Ci } = require('chrome');
@@ -52,20 +52,78 @@ function writeCacheValue(options) {
   utils.writeContent(cacheFile, contents);
 }
 
-function optimize(options, r) {
+function runOptimizer(args, r) {
   var deferred = utils.Q.defer();
-  var optimizeOption = 'optimize=' + (options.GAIA_OPTIMIZE === '1' ?
-    'uglify2' : 'none');
-  var configFile = utils.getFile(options.APP_DIR, 'build', 'email.build.js');
-  var stageShared = utils.getFile(options.STAGE_APP_DIR, 'shared');
-  utils.ensureFolderExists(stageShared);
-
-  r.optimize([configFile.path, optimizeOption], function() {
-    deferred.resolve(options);
+  r.optimize(args, function(buildText) {
+    deferred.resolve(buildText);
   }, function(err) {
     deferred.reject(err);
   });
   return deferred.promise;
+}
+
+function optimize(options, r) {
+  var optimizeOption = 'optimize=' + (options.GAIA_OPTIMIZE === '1' ?
+    'uglify2' : 'none');
+  var gelamConfigFile = utils.getFile(options.APP_DIR,
+                        'build', 'gelam_worker.build.js');
+  var mainFrameConfigFile = utils.getFile(options.APP_DIR,
+                            'build', 'main-frame-setup.build.js');
+  var appConfigFile = utils.getFile(options.APP_DIR, 'build', 'email.build.js');
+  var stageShared = utils.getFile(options.STAGE_APP_DIR, 'shared');
+  var extPrefix = /^.*[\\\/]email[\\\/]js[\\\/]ext[\\\/]/;
+
+  utils.ensureFolderExists(stageShared);
+
+  // Do gelam worker stuff first. This will copy over all of the js/ext
+  // directory.
+  return runOptimizer([gelamConfigFile.path, optimizeOption], r)
+  .then(function() {
+    // Now do main-frame-setup build for the main thread side of gelam. It is
+    // a single file optimization, so need to manually delete files it combines
+    // from the staging area.
+
+    // Manually load and eval the options so that a function callback can be
+    // added to the build options.
+    var mainFrameOptions = eval('(' +
+                           utils.getFileContent(mainFrameConfigFile) +
+                           ')');
+    // Up the log level so we can see what was built. By default, passing object
+    // args to r.js will run it in silent mode.
+    mainFrameOptions.logLevel = 0;
+
+    // Update paths, since it is now relative to the current working directory
+    // of this script, not the gelamConfigFile.
+    mainFrameOptions.baseUrl = utils.getFile(options.APP_DIR, 'js').path;
+    mainFrameOptions.out = utils.getFile(options.STAGE_APP_DIR,
+                           'js', 'ext', 'main-frame-setup.js').path;
+
+    mainFrameOptions.optimize = (options.GAIA_OPTIMIZE === '1' ?
+                                'uglify2' : 'none');
+
+    mainFrameOptions.onModuleBundleComplete = function(data) {
+      // Called on layer completion. Get data.included for included files and
+      // remove those files from build_stage. This does not happen automatically
+      // because the gelam build is a single file optimization target from the
+      // source area to build_stage, so it does not know of the other files that
+      // are already in build_stage as the result of the main gaia app build.
+      data.included.forEach(function(sourceLocation) {
+        var destFile = utils.getFile(options.STAGE_APP_DIR, 'js', 'ext',
+                                     sourceLocation.replace(extPrefix, ''));
+        if (destFile.exists() &&
+            destFile.path.indexOf('main-frame-setup') === -1) {
+          destFile.remove(false);
+        }
+      });
+    };
+
+    return runOptimizer(mainFrameOptions, r);
+  })
+  .then(function() {
+    // Now the rest of the gaia app optimization. This build run explicitly
+    // ignores the ext directory.
+    return runOptimizer([appConfigFile.path, optimizeOption], r);
+  });
 }
 
 function removeLoader(options) {
@@ -112,9 +170,9 @@ exports.execute = function(options) {
     optimize(options, r),
     getParse(r)
   ];
-  utils.Q.all(promises)
+  return utils.Q.all(promises)
     .then(function(result) {
-      var [options, parse] = result;
+      var [buildText, parse] = result;
 
       shared.js = sharedUtils.getSharedJs(parse, options.APP_DIR,
         backendRegExp, onFileRead);
@@ -125,5 +183,8 @@ exports.execute = function(options) {
       writeCacheValue(options);
       removeLoader(options);
       removeFiles(options);
+    }, function (err) {
+      console.error(err);
+      throw err;
     });
 };

@@ -311,7 +311,8 @@ ComposeCard.prototype = {
    * description explaining why the send failed. Display it if so.
    *
    * The sendStatus information on this messages is provided through
-   * the sendOutboxMessages job; see `mailapi/jobs/outbox.js` for details.
+   * the sendOutboxMessages job; see `jobs/outbox.js` in GELAM for
+   * details.
    */
   renderSendStatus: function() {
     var sendStatus = this.composer.sendStatus || {};
