@@ -278,9 +278,6 @@
   };
 
   AppChrome.prototype.handleScrollEvent = function ac_handleScrollEvent(evt) {
-    if (this.isSearchApp()) {
-      return;
-    }
     // Ideally we'd animate based on scroll position, but until we have
     // the necessary spec and implementation, we'll animate completely to
     // the expanded or collapsed state depending on whether it's at the
