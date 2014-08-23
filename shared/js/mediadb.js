@@ -1947,7 +1947,7 @@ var MediaDB = (function() {
     }
     details.pendingNotificationTimer =
       setTimeout(function() { sendNotifications(media); },
-                 media.batchHoldTime);
+                 media.scanning ? media.batchHoldTime : 100);
   }
 
   // Send out notifications for creations and deletions
