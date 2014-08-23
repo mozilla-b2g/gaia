@@ -1,4 +1,5 @@
 'use strict';
+/* global marionette, require, setup, test, Cu, DebuggerServer */
 var assert = require('assert');
 
 marionette('Dev Tools server', function() {
