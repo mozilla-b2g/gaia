@@ -86,7 +86,8 @@
   z-index: 4094;
 }
 
-#screen > [data-z-index-level="gesture-panel"] {
+#screen > [data-z-index-level="gesture-panel"],
+#screen > div > [data-z-index-level="gesture-panel"] {
   z-index: 4093;
 }
 
