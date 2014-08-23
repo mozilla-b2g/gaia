@@ -195,6 +195,15 @@
       var manifest = this.app.manifest || this.app.updateManifest;
 
       if (this.entryPoint) {
+        // Bug 1048639 - Occasionally we have an entryPoint defined without
+        // it being contained within entry_points.
+        if (!manifest.entry_points || !manifest.entry_points[this.entryPoint]) {
+          console.log('Could not locate entryPoint for: ', this.entryPoint);
+          console.log('Entry points:', JSON.stringify(manifest.entry_points));
+          console.log('Manifest:', JSON.stringify(manifest));
+          return manifest;
+        }
+
         return manifest.entry_points[this.entryPoint];
       }
       return manifest;
