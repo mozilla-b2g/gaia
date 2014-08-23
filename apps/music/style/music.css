@@ -234,7 +234,8 @@ body.picker-mode #title-player {
 }
 
 #title-player[hidden],
-#title-done[hidden] {
+#title-done[hidden],
+#title-save[hidden] {
   display: none;
 }
 
