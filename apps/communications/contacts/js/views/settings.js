@@ -429,7 +429,7 @@ contacts.Settings = (function() {
       exportSDErrorMessage = _('noMemoryCardMsgExport');
 
       if (cardShared) {
-        importSDErrorMessage = exportSDErrorMessage = _('sdUMSEnabled');
+        importSDErrorMessage = exportSDErrorMessage = _('memoryCardUMSEnabled');
       }
     }
 

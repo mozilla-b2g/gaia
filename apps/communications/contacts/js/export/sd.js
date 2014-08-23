@@ -24,7 +24,7 @@ var ContactsSDExport = function ContactsSDExport() {
   };
 
   var getExportTitle = function getExportTitle() {
-    return _('sdExport-title');
+    return _('memoryCardExport-title');
   };
 
   var hasGivenName = function hasGivenName(contact) {
