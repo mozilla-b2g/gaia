@@ -90,6 +90,16 @@
   z-index: 4093;
 }
 
+/* In landscape the software home button is on the right side of the screen
+ * so we demote it below the gesture-panels to prevent edge gestures issues
+ * (the software home button doesn't need to be on top of the keyboard
+ * in landscape). */
+@media (orientation: landscape) {
+  #screen > [data-z-index-level="software-buttons"] {
+    z-index: 4092;
+  }
+}
+
 /*
  * Promote keyboards to attention screen level when
  * there is an active attention screen not minimized in

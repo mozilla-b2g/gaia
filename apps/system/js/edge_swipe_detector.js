@@ -107,8 +107,10 @@ var EdgeSwipeDetector = {
 
   _progress: null,
   _winWidth: null,
+  _moved: null,
   _direction: null,
   _forwarding: null,
+  _redispatching: null,
 
   _touchStart: function esd_touchStart(e) {
     this._winWidth = window.innerWidth;
@@ -124,7 +126,9 @@ var EdgeSwipeDetector = {
     this._startY = touch.clientY;
     this._deltaX = 0;
     this._deltaY = 0;
+    this._moved = false;
     this._forwarding = false;
+    this._redispatching = false;
 
     this._clearForwardTimeout();
     this._forwardTimeout = setTimeout((function longTouch() {
@@ -132,7 +136,7 @@ var EdgeSwipeDetector = {
       // this isn't a swipe
       this._forwardTimeout = null;
       this._forwarding = true;
-      this._touchForwarder.forward(this._touchStartEvt);
+      this._forward(this._touchStartEvt);
     }).bind(this), 300);
 
     SheetsTransition.begin(this._direction);
@@ -148,7 +152,7 @@ var EdgeSwipeDetector = {
     }
 
     if (this._forwarding) {
-      this._touchForwarder.forward(e);
+      this._forward(e);
       return;
     }
 
@@ -158,12 +162,13 @@ var EdgeSwipeDetector = {
       this._startForwarding(e);
     }
 
-    if (this._deltaX < 5) {
+    if (!this._moved && (this._deltaX < 5 || this._outsideApp(e))) {
       return;
     }
 
     this._clearForwardTimeout();
 
+    this._moved = true;
     SheetsTransition.moveInDirection(this._direction, this._progress);
   },
 
@@ -172,11 +177,13 @@ var EdgeSwipeDetector = {
     this._updateProgress(touch);
 
     if (this._forwarding) {
-      this._touchForwarder.forward(e);
+      this._forward(e);
     } else if ((this._deltaX < 5) && (this._deltaY < 5)) {
       setTimeout(function(self, touchstart, touchend) {
-        self._touchForwarder.forward(touchstart);
-        self._touchForwarder.forward(touchend);
+        self._forward(touchstart);
+        setTimeout(function() {
+          self._forward(touchend);
+        }, 100);
       }, 0, this, this._touchStartEvt, e);
       this._forwarding = true;
     }
@@ -204,8 +211,13 @@ var EdgeSwipeDetector = {
   },
 
   _updateProgress: function esd_updateProgress(touch) {
-    this._deltaX = Math.abs(touch.clientX - this._startX);
-    this._deltaY = Math.abs(touch.clientY - this._startY);
+    this._deltaX = touch.clientX - this._startX;
+    this._deltaY = touch.clientY - this._startY;
+
+    if (this._direction == 'rtl') {
+      this._deltaX *= -1;
+      this._deltaY *= -1;
+    }
     this._progress = this._deltaX / this._winWidth;
   },
 
@@ -219,11 +231,48 @@ var EdgeSwipeDetector = {
   _startForwarding: function esd_startForwarding(e) {
     this._clearForwardTimeout();
     this._forwarding = true;
-    this._touchForwarder.forward(this._touchStartEvt);
+    this._forward(this._touchStartEvt);
 
-    this._touchForwarder.forward(e);
+    this._forward(e);
 
     SheetsTransition.snapInPlace();
+  },
+
+  // Once we identify the gesture as something other than an horizontal
+  // swipe we replay and start forwarding the touch events:
+  //
+  // * either sending them to the current app through the sendTouchEvent
+  //   mozbrowser API
+  // * or redispatching the events to the system app if they were outside
+  //   the app frame
+  //
+  // When redispatching, since we don't know on which element they should be
+  // dispatched (the target is always the gesture-panel) we send a custom event
+  // instead.
+  _forward: function esd_forward(e) {
+    if (this._moved) {
+      return;
+    }
+
+    // We continue dispatching/forwarding where we started.
+    if (this._outsideApp(e) || this._redispatching) {
+      window.dispatchEvent(new CustomEvent('edge-touch-redispatch', {
+        bubbles: true,
+        detail: e
+      }));
+      this._redispatching = true;
+    } else {
+      this._touchForwarder.forward(e);
+    }
+  },
+
+  _outsideApp: function esd_outsideApp(e) {
+    var touch = (e.type === 'touchend') ? e.changedTouches[0] : e.touches[0];
+
+    var x = touch.pageX;
+    var y = touch.pageY;
+    return (x > layoutManager.width ||
+            y > layoutManager.height);
   }
 };
 

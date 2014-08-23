@@ -11,7 +11,7 @@
   left: 0;
   top: 6rem;
 
-  border-radius: 0 50% 50% 0;
+  border-radius: 0 4rem 4rem 0;
 
   background-color: red;
   opacity: 0;
@@ -24,7 +24,7 @@
   right: 0;
   top: 6rem;
 
-  border-radius: 50% 0 0 50%;
+  border-radius: 4rem 0 0 4rem;
 
   background-color: green;
   opacity: 0;
@@ -32,6 +32,13 @@
 
 #screen.edges-debug .gesture-panel {
   opacity: 0.5;
+}
+
+@media (orientation: portrait) {
+  #screen.software-button-enabled #right-panel,
+  #screen.software-button-enabled #left-panel {
+    height: calc(100% - 10rem - 5rem);
+  }
 }
 
 @media (orientation: landscape) {
@@ -43,5 +50,10 @@
   #right-panel {
     top: 3rem;
     height: calc(100% - 4rem);
+  }
+
+  #screen:not(:-moz-full-screen-ancestor).software-button-enabled #right-panel {
+    width: 7rem;
+    border-radius: 2rem 0 0 2rem;
   }
 }
