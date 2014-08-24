@@ -190,10 +190,9 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
       // "<GAIA_DIR>/apps/system/locales/system.<LANG>.properties"
       // to:
       // "<LOCALE_BASEDIR>/<LANG>/apps/system/system.properties"
-      dirLength = webapp.buildDirectoryFile.path.length;
+      dirLength = webapp.buildDirectoryFile.parent.path.length;
       paths.push(
         webapp.sourceDirectoryFile.parent.leafName,
-        webapp.sourceDirectoryFile.leafName,
         removeLocale(originalPath.substr(dirLength), locale)
       );
     }
