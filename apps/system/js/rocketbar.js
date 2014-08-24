@@ -1,6 +1,5 @@
 'use strict';
-/* global SettingsListener, AppWindowManager, SearchWindow, places,
-          SettingsURL */
+/* global AppWindowManager, SearchWindow, places */
 
 (function(exports) {
 
@@ -34,18 +33,6 @@
     this.results = document.getElementById('rocketbar-results');
     this.backdrop = document.getElementById('rocketbar-backdrop');
     this.start();
-
-    // TODO: We shouldnt be creating a blob for each wallpaper that needs
-    // changed in the system app
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=962902
-    var defaultWall = 'resources/images/backgrounds/default.png';
-    var wallpaperURL = new SettingsURL();
-
-    SettingsListener.observe('wallpaper.image', defaultWall, function(value) {
-      document.getElementById('rocketbar-backdrop').style.backgroundImage =
-        'url(' + wallpaperURL.set(value) + ')';
-    });
-
   }
 
   Rocketbar.prototype = {
