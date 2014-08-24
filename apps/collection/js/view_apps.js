@@ -9,6 +9,9 @@
 
   function ViewApps(collection) {
 
+    const CACHE_KEY =
+     'Collection.ViewApps.' + (collection.categoryId || collection.query);
+
     var rendered = false;
     var grid = document.getElementById('grid');
     var elements = {
@@ -21,7 +24,7 @@
     var asyncItems = [];
 
     var options = {
-      limit: 24
+      limit: 24  // see bug 1030820
     };
     if (collection.categoryId) {
       options.categoryId = collection.categoryId;
@@ -101,7 +104,7 @@
 
     function queueRequest() {
       if (navigator.onLine) {
-        makeRequest();
+        getWebApps();
       } else {
         onOffline();
       }
@@ -119,17 +122,36 @@
       elements.offline.classList.add('show');
     }
 
-    function makeRequest() {
+    function onResponse(response) {
+      loading(false);
+      removeListeners();
+
+      collection.addWebResults(response.response.apps);
+      collection.renderWebResults(grid);
+    }
+
+    // use cached response if exist
+    // update cache with a new response
+    function getWebApps() {
       loading();
 
+      var usedCached;
+
       eme.init()
+      .then(() => eme.Cache.get(CACHE_KEY))
+      .then((cachedResponse) => {
+        usedCached = true;
+        onResponse(cachedResponse);
+      }, () => {
+        // catch rejection to continue to next .then
+        usedCached = false;
+      })
       .then(() => eme.api.Apps.search(options))
-      .then(function success(response) {
-        onResponse();
-
-        collection.addWebResults(response.response.apps);
-        collection.renderWebResults(grid);
-
+      .then((response) => {
+        if (!usedCached) {
+          onResponse(response);
+        }
+        eme.Cache.add(CACHE_KEY, response);
       }, onOffline);
     }
 
@@ -138,18 +160,13 @@
       elements.offline.classList.remove('show');
     }
 
-    function onResponse() {
-      loading(false);
-      removeListeners();
-    }
-
     function addListeners() {
-      window.addEventListener('online', makeRequest);
+      window.addEventListener('online', getWebApps);
       window.addEventListener('offline', onOffline);
     }
 
     function removeListeners() {
-      window.removeEventListener('online', makeRequest);
+      window.removeEventListener('online', getWebApps);
       window.removeEventListener('offline', onOffline);
     }
   }

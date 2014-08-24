@@ -16,7 +16,14 @@
 
     add: function cache_add(key, value) {
       return new Promise(function ready(resolve, reject) {
-        asyncStorage.setItem(PREFIX + key, value);
+        try {
+          value = JSON.stringify(value);
+          asyncStorage.setItem(PREFIX + key, value, resolve);
+        }
+        catch (e) {
+          eme.error('Cache error: can\'t store', typeof value);
+          reject('invalid value');
+        }
       });
     },
     get: function cache_get(key) {
@@ -25,6 +32,7 @@
           if (value === null) {
             reject(null);
           } else {
+            value = JSON.parse(value);
             resolve(value);
           }
         });
