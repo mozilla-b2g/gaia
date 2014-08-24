@@ -44,7 +44,10 @@
         if (newPosition && newPosition.coords) {
           position = newPosition;
         }
-        eme.Cache.add('position', newPosition).then(() => {});
+        eme.Cache.add('position', {
+          coords: newPosition.coords,
+          timestamp: newPosition.timestamp
+        });
       },
       (error) => {
         eme.log('geolocation error', error.code, error.message);
