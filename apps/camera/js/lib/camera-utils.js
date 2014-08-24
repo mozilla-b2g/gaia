@@ -35,85 +35,161 @@ define(function(require) {
   };
 
   /**
-   * This implementation is loosely based around AOSP's
-   * Camera.Util.getOptimalPreviewSize() method:
+   * Given an array of supported preview resolutions, a photo size and
+   * a viewport size, pick the best preview size. The optimum size is
+   * the smallest preview that has the same aspect ratio as the photos
+   * we are taking and is larger than the viewport in both dimension.
    *
-   * http://androidxref.com/4.0.4/xref/packages/apps/Camera/src/com/android/camera/Util.java#374
-   *
-   * NOTE: All sizes are in *device* pixels. If passing a
-   * `viewportSize`, be sure to specify it in device pixels.
-   * Otherwise, the `viewportSize` will be determined by:
-   *
-   * window.innerWidth * window.devicePixelRatio
+   * If the viewport size is not specified, then the screen size
+   * (in device pixels) is used instead.
    *
    * @param  {Array} previewSizes
-   * @param  {Object} targetSize
-   * @param  {Object} viewportSize
+   * @param  {Object} photoSize
+   * @param  {Object} viewport
    * @return {Object}
    */
   CameraUtils.getOptimalPreviewSize =
-    function(previewSizes, targetSize, viewportSize) {
+    function(previewSizes, photoSize, viewport) {
 
-      // Use a very small tolerance because we want an exact match.
-      const ASPECT_TOLERANCE = 0.001;
-      
+      // If we don't have any preview sizes, we can't do anything
       if (!previewSizes || previewSizes.length === 0) {
         return null;
       }
 
-      var optimalSize;
-      var minDiff = Number.MAX_VALUE;
+      // What is the aspect ratio of the photos we are taking?
+      var photoAspectRatio = photoSize.width / photoSize.height;
 
-      // If no viewport size is specified, use screen height
-      var screenHeight = window.innerWidth * window.devicePixelRatio;
-      var targetHeight = viewportSize ?
-        Math.min(viewportSize.height, viewportSize.width) : screenHeight;
-
-      if (targetHeight <= 0) {
-        targetHeight = screenHeight;
+      // If no viewport size is specified, use the entire screen
+      if (!viewport) {
+        viewport = {
+          width: window.innerWidth * window.devicePixelRatio,
+          height: window.innerHeight * window.devicePixelRatio
+        };
       }
 
-      var targetRatio = targetSize.width / targetSize.height;
+      // Make sure the viewport is specified in landscape mode with
+      // width being the longer dimension
+      viewport = {
+        width: Math.max(viewport.width, viewport.height),
+        height: Math.min(viewport.width, viewport.height),
+      };
 
-      // Try to find an size match aspect ratio and size
-      previewSizes.forEach(function(previewSize) {
-        var ratio = previewSize.width / previewSize.height;
-        var diff;
+      // How many total pixels are in the viewport?
+      var viewportPixels = viewport.width * viewport.height;
 
-        if (Math.abs(ratio - targetRatio) <= ASPECT_TOLERANCE) {
-          // Use Math.sqrt() to err on the side of a slightly larger
-          // preview size in the event of a tie.
-          diff = Math.abs(
-            Math.sqrt(previewSize.height) - Math.sqrt(targetHeight));
+      // Is this preview size big enough to fill the viewport?
+      function bigEnough(preview) {
+        return preview.width >= viewport.width &&
+          preview.height >= viewport.height;
+      }
 
-          if (diff < minDiff) {
-            optimalSize = previewSize;
-            minDiff = diff;
+      // Does this preview size match the aspect ratio of the photos?
+      function aspectRatioMatches(preview) {
+        var previewRatio = preview.width / preview.height;
+        return Math.abs(previewRatio - photoAspectRatio) < 0.001;
+      }
+
+      // How well does this preview fit the viewport?
+      // Larger numbers are better matches.
+      // Returns Infinity for a perfect match.
+      function matchQuality(preview) {
+        var diff = Math.abs(preview.width * preview.height - viewportPixels);
+        return viewportPixels/diff;
+      }
+
+      var bestPreview = null;
+      var bestQuality = 0;
+      var i, preview, quality;
+
+      // Loop through the available preview sizes, looking for the best one
+      for(i = 0; i < previewSizes.length; i++) {
+        preview = previewSizes[i];
+
+        // Only consider preview sizes that are big enough and have the
+        // right aspect ratio
+        if (bigEnough(preview) && aspectRatioMatches(preview)) {
+          // If this preview size is closer to the viewport size than the
+          // previous best preview size, then remember it as the best
+          // we've seen so far.
+          quality = matchQuality(preview);
+          if (quality > bestQuality) {
+            bestPreview = preview;
+            bestQuality = quality;
           }
         }
-      });
-
-      // Cannot find the one match the aspect ratio. This should not happen.
-      // Ignore the requirement.
-      if (!optimalSize) {
-        debug('No preview size to match the aspect ratio');
-        minDiff = Number.MAX_VALUE;
-
-        previewSizes.forEach(function(previewSize) {
-
-          // Use Math.sqrt() to err on the side of a slightly larger
-          // preview size in the event of a tie.
-          var diff = Math.abs(
-            Math.sqrt(previewSize.height) - Math.sqrt(targetHeight));
-
-          if (diff < minDiff) {
-            optimalSize = previewSize;
-            minDiff = diff;
-          }
-        });
       }
 
-      return optimalSize;
+      // If we found a preview size that is big enough and has the
+      // right aspect ratio, return it now.
+      if (bestPreview) {
+        return bestPreview;
+      }
+      debug('No preview size is big enough and has right aspect ratio.');
+
+      // If we didn't find a preview size above, find a preview size
+      // that has the right aspect ratio and is as close as possible
+      // to the viewport size, even if it is smaller.
+      for(i = 0; i < previewSizes.length; i++) {
+        preview = previewSizes[i];
+
+        if (aspectRatioMatches(preview)) {
+          // If this preview size is closer to the viewport size than the
+          // previous best preview size, then remember it as the best
+          // we've seen so far.
+          quality = matchQuality(preview);
+          if (quality > bestQuality) {
+            bestPreview = preview;
+            bestQuality = quality;
+          }
+        }
+      }
+
+      // If we found something, return it.
+      if (bestPreview) {
+        return bestPreview;
+      }
+      debug('No preview size has right aspect ratio.');
+
+      // If we still haven't found a size, then ignore aspect ratio
+      // and pick the smallest size larger than the viewport
+      for(i = 0; i < previewSizes.length; i++) {
+        preview = previewSizes[i];
+
+        if (bigEnough(preview)) {
+          // If this preview size is closer to the viewport size than the
+          // previous best preview size, then remember it as the best
+          // we've seen so far.
+          quality = matchQuality(preview);
+          if (quality > bestQuality) {
+            bestPreview = preview;
+            bestQuality = quality;
+          }
+        }
+      }
+
+      // If we found something, return it.
+      if (bestPreview) {
+        return bestPreview;
+      }
+      debug('No preview size is big enough.');
+
+      // And if there is still nothing, then ignore aspect ratio and
+      // pick the closest size, even if it is smaller than the viewport
+      for(i = 0; i < previewSizes.length; i++) {
+        preview = previewSizes[i];
+
+        // If this preview size is closer to the viewport size than the
+        // previous best preview size, then remember it as the best
+        // we've seen so far.
+        quality = matchQuality(preview);
+        if (quality > bestQuality) {
+          bestPreview = preview;
+          bestQuality = quality;
+        }
+      }
+
+      // We're guaranteed to have found something by now.
+      return bestPreview;
     };
 
   /**
