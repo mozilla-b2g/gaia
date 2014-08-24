@@ -34,7 +34,7 @@ function SetupFixPassword(domNode, mode, args) {
     } else {
       l10nString = 'settings-account-clarify-smtp';
     }
-    mozL10n.localize(accountNode, l10nString,
+    mozL10n.setAttributes(accountNode, l10nString,
                      { 'account-name': this.account.name });
   }
 

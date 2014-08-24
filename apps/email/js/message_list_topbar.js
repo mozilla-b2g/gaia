@@ -134,7 +134,7 @@ define(function(require, exports, module) {
           setTimeout(this._hideNewMessage, 5000);
         } else if (state === 'top') {
           // Update content to be an accessibility friendly string.
-          this.domNode.textContent = mozL10n.get('message-list-top-action');
+          this.domNode.setAttribute('data-l10n-id', 'message-list-top-action');
         }
 
         this.domNode.dataset.state = state;
