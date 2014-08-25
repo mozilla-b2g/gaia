@@ -728,6 +728,110 @@ suite('message_manager.js >', function() {
 
   });
 
+  suite('resendMessage() >', function() {
+    suite('SMS message', function() {
+      var resendParameters;
+      setup(function() {
+        resendParameters = {
+          message: MockMessages.sms({
+            iccId: 100
+          }),
+          callback: sinon.stub()
+        };
+      });
+
+      test('uses message iccId to retrieve service Id in case of multiple SIMs',
+      function() {
+        var serviceId = 3;
+
+        this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+        this.sinon.stub(Settings, 'getServiceIdByIccId').returns(serviceId);
+
+        MessageManager.resendMessage(
+          resendParameters.message,
+          resendParameters.callback
+        );
+
+        sinon.assert.calledWith(
+          Settings.getServiceIdByIccId,
+          resendParameters.message.iccId
+        );
+        sinon.assert.calledWith(
+          MockNavigatormozMobileMessage.send,
+          sinon.match.any, sinon.match.any, {
+            serviceId: serviceId
+          }
+        );
+      });
+
+      test('correctly sends message', function() {
+        MessageManager.resendMessage(
+          resendParameters.message,
+          resendParameters.callback
+        );
+
+        sinon.assert.calledWithExactly(
+          MockNavigatormozMobileMessage.send,
+          resendParameters.message.receiver, resendParameters.message.body,
+          undefined
+        );
+      });
+    });
+
+    suite('MMS message', function() {
+      var resendParameters;
+      setup(function() {
+        resendParameters = {
+          message: MockMessages.mms({
+            iccId: 100
+          }),
+          callback: sinon.stub()
+        };
+      });
+
+      test('uses message iccId to retrieve service Id in case of multiple SIMs',
+      function() {
+        var serviceId = 3;
+
+        this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+        this.sinon.stub(Settings, 'getServiceIdByIccId').returns(serviceId);
+
+        MessageManager.resendMessage(
+          resendParameters.message,
+          resendParameters.callback
+        );
+
+        sinon.assert.calledWith(
+          Settings.getServiceIdByIccId,
+          resendParameters.message.iccId
+        );
+        sinon.assert.calledWith(
+          MockNavigatormozMobileMessage.sendMMS,
+          sinon.match.any, {
+            serviceId: serviceId
+          }
+        );
+      });
+
+      test('correctly sends message', function() {
+        MessageManager.resendMessage(
+          resendParameters.message,
+          resendParameters.callback
+        );
+
+        sinon.assert.calledWithExactly(
+          MockNavigatormozMobileMessage.sendMMS, {
+            receivers: resendParameters.message.receivers,
+            subject: resendParameters.message.subject,
+            smil: resendParameters.message.smil,
+            attachments: resendParameters.message.attachments
+          },
+          undefined
+        );
+      });
+    });
+  });
+
   suite('onHashChange', function() {
     setup(function() {
       this.sinon.spy(document.activeElement, 'blur');
