@@ -300,8 +300,6 @@ suite('system/AppChrome', function() {
       });
       chrome.app.element.dispatchEvent(evt);
       this.sinon.clock.tick(500);
-
-      assert.equal(chrome.title.textContent, 'Phone');
       chrome._unregisterEvents();
     });
 
