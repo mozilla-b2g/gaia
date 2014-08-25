@@ -1,3 +1,18 @@
+/* jshint moz:true */
+/* global ConfirmDialogHelper */
+/* global FtuLauncher */
+/* global KeyboardHelper */
+/* global KeyboardManager */
+/* global LazyLoader */
+/* global ManifestHelper */
+/* global ModalDialog */
+/* global NotificationScreen */
+/* global StatusBar */
+/* global SystemBanner */
+/* global Template */
+/* global UtilityTray */
+/* global applications */
+
 'use strict';
 /* global ModalDialog */
 /* global SystemBanner */
@@ -66,6 +81,9 @@ var AppInstallManager = {
       if (e.detail.type == 'webapps-ask-install') {
         this.handleAppInstallPrompt(e.detail);
       }
+      if (e.detail.type == 'webapps-ask-uninstall') {
+        this.handleAppUninstallPrompt(e.detail);
+      }
     }).bind(this));
 
     window.addEventListener('applicationinstall',
@@ -90,8 +108,9 @@ var AppInstallManager = {
                              this.handleSetupConfirmAction.bind(this);
     this.imeCancelButton.onclick = this.hideIMEList.bind(this);
     this.imeConfirmButton.onclick = this.handleImeConfirmAction.bind(this);
-    // lazy load template.js
-    LazyLoader.load('shared/js/template.js');
+    LazyLoader.load(['shared/js/template.js',
+                     'shared/js/homescreens/confirm_dialog_helper.js']);
+
     // bind these handlers so that we can have only one instance and check
     // them later on
     ['handleDownloadSuccess',
@@ -189,6 +208,58 @@ var AppInstallManager = {
     }
     this.installCallback = null;
     this.dialog.classList.remove('visible');
+  },
+
+  handleAppUninstallPrompt: function ai_handleUninstallPrompt(detail) {
+    var _ = navigator.mozL10n.get;
+    var app = detail.app;
+    var id = detail.id;
+
+    // updateManifest is used by packaged apps until they are installed
+    var manifest = app.manifest ? app.manifest : app.updateManifest;
+    if (!manifest) {
+      return;
+    }
+
+    // Wrap manifest to get localized properties
+    manifest = new ManifestHelper(manifest);
+
+    var unrecoverable = app.installState === 'pending' &&
+                        !app.downloadAvailable &&
+                        !app.readyToApplyDownload;
+
+    var dialogConfig;
+
+    if (unrecoverable) {
+      dialogConfig = {
+        type: 'unrecoverable',
+        title: _('unrecoverable-error-title'),
+        body: _('unrecoverable-error-body'),
+        confirm: {
+          title: _('unrecoverable-error-action'),
+          cb: () => { this.dispatchResponse(id, 'webapps-uninstall-granted'); }
+        }
+      };
+    } else {
+      var nameObj = { name: manifest.name };
+      dialogConfig = {
+        type: 'remove',
+        title: _('delete-title', nameObj),
+        body: _('delete-body', nameObj),
+        cancel: {
+          title: _('cancel'),
+          cb: () => { this.dispatchResponse(id, 'webapps-uninstall-denied'); }
+        },
+        confirm: {
+          title: _('delete'),
+          type: 'danger',
+          cb: () => { this.dispatchResponse(id, 'webapps-uninstall-granted'); }
+        }
+      };
+    }
+
+    var dialog = new ConfirmDialogHelper(dialogConfig);
+    dialog.show(document.body);
   },
 
   prepareForDownload: function ai_prepareForDownload(app) {
