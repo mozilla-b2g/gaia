@@ -133,6 +133,7 @@ form[role="dialog"][data-type="edit"] > menu {
 [data-type="list"] aside.icon-unread {
   margin: 0;
   width: 1.9rem;
+  visibility: hidden;
 }
 
 [data-type="list"] aside.pack-end {
@@ -141,6 +142,7 @@ form[role="dialog"][data-type="edit"] > menu {
 
 [data-type="list"] .unread aside.icon-unread {
   background: url("../style/images/unread.png") no-repeat left center / 1rem;
+  visibility: visible;
 }
 
 [data-type="list"] .threadlist-item a * {
@@ -149,6 +151,7 @@ form[role="dialog"][data-type="edit"] > menu {
 
 [data-type="list"] .draft .icon-draft {
   background: url("../style/images/draft.png") no-repeat left center / 1.2rem;
+  visibility: visible;
 }
 
 [data-type="list"] .is-draft .pack-end {
