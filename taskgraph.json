@@ -14,7 +14,7 @@
         "workerType": "v2",
         "payload": {
           "image": "lightsofapollo/ubuntu-node",
-          "command": ["/bin/bash", "-c", "node ./tests/taskcluster/graph.js > /graph.json"],
+          "command": ["/bin/bash", "-c", "node $PWD/tests/taskcluster/graph.js > /graph.json"],
           "graphs": ["/graph.json"]
         },
         "tags": {
