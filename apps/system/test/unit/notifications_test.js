@@ -6,8 +6,7 @@
   NotificationScreen,
   ScreenManager,
   MockNavigatorMozTelephony,
-  MockCall,
-  MockAudio
+  MockCall
  */
 
 'use strict';
