@@ -13,7 +13,7 @@
         "provisionerId": "aws-provisioner",
         "workerType": "v2",
         "payload": {
-          "image": "quay.io/mozilla/gaia-taskenv:0.4.0",
+          "image": "quay.io/mozilla/gaia-taskenv:0.4.1",
           "command": [
             "make node_modules &&",
             "node tests/taskcluster/graph.js > /graph.json &&",
