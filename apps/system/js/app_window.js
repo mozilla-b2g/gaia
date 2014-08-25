@@ -565,6 +565,10 @@
       this.element.classList.add('fullscreen-app');
     }
 
+    if (this.isBrowser()) {
+      this.element.classList.add('browser');
+    }
+
     this.browserContainer = this.element.querySelector('.browser-container');
     this.browserContainer.appendChild(this.browser.element);
 

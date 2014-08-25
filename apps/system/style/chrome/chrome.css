@@ -74,6 +74,15 @@
   width: calc(100% - 1rem);
 }
 
+/* Special cases for Rocketbar in apps with browser chrome */
+.appWindow:not(.browser) .chrome .controls .menu-button {
+  display: none;
+}
+
+.appWindow:not(.browser) .chrome .controls .urlbar {
+  width: calc(100% - 1rem);
+}
+
 /* URL bar */
 .chrome .controls .urlbar {
   width: calc(100% - 4.5rem);
@@ -148,6 +157,18 @@
 
 .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 12rem);
+}
+
+.appWindow:not(.browser) .controls .forward-button:not([disabled]) + .urlbar {
+  width: calc(100% - 4.5rem);
+}
+
+.appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
+  width: calc(100% - 4.5rem);
+}
+
+.appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
+  width: calc(100% - 8.5rem);
 }
 
 .controls .urlbar {
