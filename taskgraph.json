@@ -13,8 +13,9 @@
         "provisionerId": "aws-provisioner",
         "workerType": "v2",
         "payload": {
-          "image": "ubuntu:14.04",
-          "command": ["/bin/bash", "-c", "ls"]
+          "image": "lightsofapollo/ubuntu-node",
+          "command": ["/bin/bash", "-c", "node ./tests/taskcluster/graph.js > /graph.json"],
+          "graphs": ["/graph.json"]
         },
         "tags": {
           "treeherderProject": "gaia",

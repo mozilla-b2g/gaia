@@ -12,10 +12,13 @@ source $HOME/.venv/bin/activate
 # move to the cached repo checkout
 cd $checkout_path
 
-# fetch the ref we need (something like refs/pull/$N/merge or refs/heads/master)
-git fetch --depth 1 origin $COMMIT_REF
-# checkout the tip of the updated ref
-git checkout -qf FETCH_HEAD
+if [ "$COMMIT_REF" != "" ];
+then
+  # fetch the ref we need (something like refs/pull/$N/merge or refs/heads/master)
+  git fetch --depth 1 origin $COMMIT_REF
+  # checkout the tip of the updated ref
+  git checkout -qf FETCH_HEAD
+fi
 
 # run whatever command was intended on the branch (root of the repo)
 eval $@
