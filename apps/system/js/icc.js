@@ -586,6 +586,40 @@ var icc = {
       });
       callback(null);
     };
+  },
+
+  // Receives a MozStkIcon. Callback with new blobURL
+  getIconBlob: function(mozStkIcon, callback) {
+    if (!mozStkIcon || !mozStkIcon.pixels ||
+        !mozStkIcon.width || !mozStkIcon.height) {
+      return null;
+    }
+    if (!mozStkIcon.codingScheme) {
+      mozStkIcon.codingScheme = 'basic';
+    }
+
+    var canvas = document.createElement('canvas');
+    canvas.setAttribute('width', mozStkIcon.width);
+    canvas.setAttribute('height', mozStkIcon.height);
+    var ctx = canvas.getContext('2d', { willReadFrequently: true });
+    var imageData = ctx.createImageData(mozStkIcon.width, mozStkIcon.height);
+    var pixel = 0, pos = 0;
+    var data = imageData.data;
+    for (var y = 0; y < mozStkIcon.height; y++) {
+      for (var x = 0; x < mozStkIcon.width; x++) {
+        data[pos++] = (mozStkIcon.pixels[pixel] & 0xFF000000) >>> 24; // Red
+        data[pos++] = (mozStkIcon.pixels[pixel] & 0xFF0000) >>> 16;   // Green
+        data[pos++] = (mozStkIcon.pixels[pixel] & 0xFF00) >>> 8;      // Blue
+        data[pos++] = (mozStkIcon.pixels[pixel] & 0xFF);              // Alpha
+
+        pixel++;
+      }
+    }
+    ctx.putImageData(imageData, 0, 0);
+
+    canvas.toBlob(function(iconBlob) {
+      callback(URL.createObjectURL(iconBlob));
+    });
   }
 };
 
