@@ -3,7 +3,6 @@
 /* global ConfirmDialog */
 /* global contacts */
 /* global ContactsTag */
-/* global DatastoreMigration */
 /* global fb */
 /* global fbLoader */
 /* global LazyLoader */
@@ -13,6 +12,7 @@
 /* global utils */
 /* global TAG_OPTIONS */
 /* global ImportStatusData */
+/* global Migrator */
 
 /* exported COMMS_APP_ORIGIN */
 /* exported SCALE_RATIO */
@@ -282,13 +282,10 @@ var Contacts = (function() {
     checkFacebookSynchronization(config);
 
     // If the migration is not complete
-    if (!config || !config.fbMigrated) {
-      LazyLoader.load('js/fb/datastore_migrator.js', function() {
-        new DatastoreMigration().start();
+    if (!config || !config.fbMigrated || !config.accessTokenMigrated) {
+      LazyLoader.load('js/migrator.js', function() {
+        Migrator.start(config);
       });
-    }
-    else {
-      window.console.info('FB Already migrated!!!');
     }
 
     // Tell audio channel manager that we want to adjust the notification
