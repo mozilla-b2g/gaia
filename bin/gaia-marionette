@@ -94,18 +94,8 @@ if [ -z "$XULRUNNER_DIRECTORY" ] ; then
   XULRUNNER_DIRECTORY=$(ls -d "$DIR"/../b2g_sdk/* | sort -nr | head -n1 2> /dev/null)
 fi
 
-if [ ! -d "$XULRUNNER_DIRECTORY" ] ; then
-  echo "Couldn't find B2G. Please execute this file from 'make' or install B2G yourself."
-  exit 1
-fi
-
 if [ -z "$XPCSHELLSDK" ] ; then
   XPCSHELLSDK=$(find "$XULRUNNER_DIRECTORY" -type f -name xpcshell | sort -nr | head -n1 2> /dev/null)
-fi
-
-if [ ! -e "$XPCSHELLSDK" ] ; then
-  echo "Couldn't find B2G. Please execute this file from 'make' or install B2G yourself."
-  exit 1
 fi
 
 # find xpcshell and put it in the path
@@ -144,6 +134,13 @@ if [ "$BUILDAPP" != "desktop" ]; then
   SPAWNED_PID=$!
   trap "kill $SPAWNED_PID" SIGINT SIGKILL SIGTERM
   echo "spawned PID: $SPAWNED_PID"
+fi
+
+# Dirty hack until we can kill this file or fix passing DEBUG to profile
+# construction.
+if [ ! -z "$NODE_DEBUG" ];
+then
+  export DEBUG=$NODE_DEBUG
 fi
 
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to

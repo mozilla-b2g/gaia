@@ -1,3 +1,5 @@
+#! /bin/bash -e
+
 # using a venv avoids the need for any root weirdness and makes it somewhat easy
 # to replicate this setup locally. Original script taken from the gaia-ui-tests
 # install.
