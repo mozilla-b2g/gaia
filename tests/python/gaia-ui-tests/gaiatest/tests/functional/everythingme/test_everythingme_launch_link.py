@@ -10,7 +10,7 @@ class TestEverythingMeLaunchLink(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.apps.set_permission('Search', 'geolocation', 'deny')
+        self.apps.set_permission('Browser2', 'geolocation', 'deny')
         self.connect_to_network()
 
     def test_launch_everything_me_link(self):
