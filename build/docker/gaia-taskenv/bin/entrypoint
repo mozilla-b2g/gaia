@@ -13,7 +13,7 @@ source $HOME/.venv/bin/activate
 cd $checkout_path
 
 # fetch the ref we need (something like refs/pull/$N/merge or refs/heads/master)
-git fetch --depth 1 origin $GH_REF
+git fetch --depth 1 origin $COMMIT_REF
 # checkout the tip of the updated ref
 git checkout -qf FETCH_HEAD
 

@@ -1,0 +1,3 @@
+#! /bin/bash -vex
+
+docker build -t $(cat DOCKER_TAG):$(cat VERSION) $PWD

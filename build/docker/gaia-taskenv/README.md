@@ -5,28 +5,19 @@ along with the source code that needs to run on it. With docker we can
 get very very close (though limited to linux right now).
 
 The goal here is to provide a very simple base docker image for use in
-testing with the [docker test host](https://github.com/taskcluster/docker-taskhost) and [gaia](https://github.com/mozilla-b2g/gaia) (firefox os).
-
+testing with [taskcluster](http://docs.taskcluster.net/).
 
 # Development
 
 ## Building the docker image
 
-You need docker (version >= 1.2) installed already.
+You need docker (version >= 1.2) installed already (you must be in the
+[build/docker/gaia-taskenv](/build/docker/gaia-taskenv) directory.
 
 ```sh
-make docker_image
+./build.sh
 ```
 
-you now have a mozillab2g/gaia-testenv container. Pass DOCKER_TAG environment variable to make to change the container tag.
-
-## Testing
-
-### Script unit tests
-
-The unit tests are written in node and test the generator scripts
-throughly.
-
-```sh
-make test
-```
+You now have a mozillab2g/gaia-testenv container. Name and version
+are specified via the [DOCKER_TAG](./DOCKER_TAG) file and
+[VERSION](./VERSION) files.
