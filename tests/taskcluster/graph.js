@@ -44,11 +44,13 @@ function decorateTask(task) {
   output.task.created = new Date().toJSON();
   output.task.metadata.source = 'http://todo.com/soon';
 
+  // XXX: Should not be jlal@mozilla.com in all cases =p
+  output.task.metadata.owner = 'jlal@mozilla.com';
+
   // Expire all tasks in 24 hours...
   var deadline = new Date();
   deadline.setHours(deadline.getHours() + 24);
   output.task.deadline = deadline;
-
 
   // Default docker image...
   var payload = output.task.payload;
