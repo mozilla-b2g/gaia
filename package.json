@@ -49,6 +49,7 @@
   },
   "dependencies": {
     "archiver": "^0.10.0",
-    "mime": "^1.2.11"
+    "mime": "^1.2.11",
+    "slugid": "^1.0.2"
   }
 }
