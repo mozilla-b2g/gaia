@@ -370,8 +370,8 @@ define(function(require) {
      */
     _updateTimeFormat: function dt_updateTimeFormat() {
       var _ = navigator.mozL10n.get;
-      var localeTimeFormat = _('shortTimeFormat');
-      var is12hFormat = (localeTimeFormat.indexOf('%I') >= 0);
+
+      var is12hFormat = (this.currentHour12 == true)
       this.setCurrentHour12(is12hFormat);
     }
   };
