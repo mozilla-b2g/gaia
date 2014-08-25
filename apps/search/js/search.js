@@ -30,6 +30,7 @@
     offlineMessage: document.getElementById('offline-message'),
     settingsConnectivity: document.getElementById('settings-connectivity'),
     suggestionsWrapper: document.getElementById('suggestions-wrapper'),
+    loadingElement: document.getElementById('loading'),
 
     suggestionsEnabled: false,
 
@@ -150,6 +151,11 @@
 
           // If suggestions are disabled, only use local providers
           if (this.suggestionsEnabled || !provider.remote) {
+
+            if (provider.remote) {
+              this.loadingElement.classList.add('loading');
+            }
+
             provider.search(input).then((results) => {
               if (provider.name === 'Suggestions') {
                 var shown = (input.length > 2 &&
@@ -159,6 +165,10 @@
               }
 
               this.collect(provider, results);
+            }).catch((err) => {
+              if (provider.remote) {
+                this.loadingElement.classList.remove('loading');
+              }
             });
           }
         });
@@ -205,6 +215,11 @@
      * @param {Array} results The results of the provider search.
      */
     collect: function(provider, results) {
+
+      if (provider.remote) {
+        this.loadingElement.classList.remove('loading');
+      }
+
       if (!provider.dedupes) {
         provider.render(results);
         return;
@@ -212,6 +227,15 @@
 
       results = this.dedupe.reduce(results, provider.dedupeStrategy);
       provider.render(results);
+
+      if (provider.grid) {
+        var childNodes = provider.grid.childNodes;
+        if (childNodes.length) {
+          var item = childNodes[childNodes.length - 1];
+          var rect = item.getBoundingClientRect();
+          provider.grid.style.height = rect.bottom + 'px';
+        }
+      }
     },
 
     /**
