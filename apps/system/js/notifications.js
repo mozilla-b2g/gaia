@@ -532,8 +532,19 @@ var NotificationScreen = {
     if (notify && !this.isResending) {
       if (!this.silent) {
         var ringtonePlayer = new Audio();
+        var telephony = window.navigator.mozTelephony;
+        var isOnCall = telephony && telephony.calls.some(function(call) {
+            return (call.state == 'connected');
+        });
+
         ringtonePlayer.src = this._sound;
-        ringtonePlayer.mozAudioChannelType = 'notification';
+
+        if (isOnCall) {
+          ringtonePlayer.mozAudioChannelType = 'telephony';
+          ringtonePlayer.volume = 0.3;
+        } else {
+          ringtonePlayer.mozAudioChannelType = 'notification';
+        }
         ringtonePlayer.play();
         window.setTimeout(function smsRingtoneEnder() {
           ringtonePlayer.pause();
