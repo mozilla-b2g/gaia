@@ -3,6 +3,7 @@
   "description": "Gaia Web Browser",
   "launch_path": "/index.html",
   "type": "certified",
+  "role": "system",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -50,14 +51,19 @@
   "messages": [
      { "first-run-with-sim": "/index.html" }
    ],
-  "activities": {
-    "nfc-ndef-discovered": {
-      "filters": {
-        "type": "url",
-        "url": {
-          "required":true, "pattern":"https?:.{1,16384}", "patternFlags":"i"
-         }
-      }
+  "datastores-access": {
+    "bookmarks_store": {
+      "readonly": false,
+      "description": "Migrates legacy bookmarks to the datastore."
+    }
+  },
+  "connections": {
+    "migrate-bookmarks": {
+      "description": "Migrates bookmarks to the bookmarks datastore.",
+      "rules": {
+        "manifestURLs": ["app://ftu.gaiamobile.org/manifest.webapp"]
+      },
+      "handler_path": "/migrate.html"
     }
   }
 }

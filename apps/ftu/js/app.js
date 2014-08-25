@@ -6,7 +6,7 @@
 
 var _ = navigator.mozL10n.get;
 
-function notifyCollection() {
+function migrateCollections() {
   navigator.mozApps.getSelf().onsuccess = function(evt) {
     var app = evt.target.result;
     if (app.connect) {
@@ -29,6 +29,29 @@ function notifyCollection() {
   };
 }
 
+function migrateBookmarks() {
+  navigator.mozApps.getSelf().onsuccess = function(evt) {
+    var app = evt.target.result;
+    if (app.connect) {
+      app.connect('migrate-bookmarks').then(function onConnAccepted(ports) {
+        // Get the token data info to attach to message
+        var message = {
+          txt: 'migrate-bookmarks'
+        };
+        ports.forEach(function(port) {
+          port.postMessage(message);
+        });
+      }, function onConnRejected(reason) {
+        console.error('Cannot notify browser: ', reason);
+      });
+    } else {
+      console.error ('mozApps does not have a connect method. ' +
+                     'Cannot launch the collection preload process.');
+
+    }
+  };
+}
+
 var AppManager = {
 
   init: function init(versionInfo) {
@@ -39,10 +62,13 @@ var AppManager = {
 
     // Send message to populate preinstalled collections.
     // This needs to be done for both upgrade and non-upgrade flows.
-    notifyCollection();
+    migrateCollections();
 
     // if it's an upgrade we can jump to tutorial directly
     if (versionInfo && versionInfo.isUpgrade()) {
+      // Migrate bookmarks from the browser to the bookmarks database.
+      migrateBookmarks();
+
       var stepsKey = versionInfo.delta();
       // Play the FTU Tuto steps directly on update
       UIManager.splashScreen.classList.remove('show');
@@ -99,6 +125,7 @@ navigator.mozL10n.ready(function showBody() {
     if (!AppManager.isInitialized) {
       AppManager.init(versionInfo);
     } else {
+      migrateBookmarks();
       UIManager.initTZ();
       UIManager.mainTitle.innerHTML = _('language');
     }
