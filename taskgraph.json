@@ -8,7 +8,7 @@
     {
       "task": {
         "metadata": {
-          "name": "Gaia Marionette JS integration testing"
+          "name": "Graph construction"
         },
         "provisionerId": "aws-provisioner",
         "workerType": "v2",
@@ -18,7 +18,7 @@
         },
         "tags": {
           "treeherderProject": "gaia",
-          "treeherderSymbol": "GI"
+          "treeherderSymbol": "GRAPH"
         }
       }
     }
