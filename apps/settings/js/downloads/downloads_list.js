@@ -142,6 +142,11 @@
 
   function _onDownloadStateChange(event) {
     var download = event.download;
+    // We don't care about finalized as a state change. The DownloadList and
+    // DownloadItem are not designed to consume this state change.
+    if (download.state === 'finalized') {
+      return;
+    }
     _update(download);
   }
 
