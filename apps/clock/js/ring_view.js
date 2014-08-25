@@ -106,8 +106,13 @@ RingView.prototype = {
     var alert = this.alerts[0];
 
     // Set the label (blank or falsey becomes a default string).
-    this.ringLabel.textContent = alert.label ||
-      mozL10n.get(alert.type === 'alarm' ? 'alarm' : 'timer');
+    if (alert.label) {
+      this.ringLabel.removeAttribute('data-l10n-id');
+      this.ringLabel.textContent = alert.label;
+    } else {
+      this.ringLabel.setAttribute('data-l10n-id',
+                                  alert.type === 'alarm' ? 'alarm' : 'timer');
+    }
 
     // Display the proper screen widgets.
     this.ringDisplay.dataset.ringType = alert.type;
