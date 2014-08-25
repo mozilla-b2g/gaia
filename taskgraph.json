@@ -8,7 +8,7 @@
     {
       "task": {
         "metadata": {
-          "name": "Graph construction"
+          "name": "Graph construction "
         },
         "provisionerId": "aws-provisioner",
         "workerType": "v2",
