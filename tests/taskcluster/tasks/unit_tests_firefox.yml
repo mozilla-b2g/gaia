@@ -1,0 +1,17 @@
+requires:
+  - '{{tasks.linters}}'
+
+task:
+  metadata:
+    name: Gaia unit tests in firefox
+    description: Full gaia unit test suite
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+
+  payload:
+    command:
+      - entrypoint
+      - ./bin/ci run unit-tests-in-firefox
+  tags:
+    treeherderProject: GU

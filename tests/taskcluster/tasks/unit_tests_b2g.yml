@@ -1,0 +1,17 @@
+requires:
+  - '{{tasks.linters}}'
+
+task:
+  metadata:
+    name: Gaia unit tests in b2g-desktop
+    description: Full gaia unit test suite
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+
+  payload:
+    command:
+      - entrypoint
+      - ./bin/ci run unit-tests-in-b2g
+  tags:
+    treeherderProject: GU
