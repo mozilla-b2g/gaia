@@ -337,7 +337,7 @@
         this.timeFormat = window.navigator.mozHour12 ?
           navigator.mozL10n.get('shortTimeFormat12') :
           navigator.mozL10n.get('shortTimeFormat24');
-        this.refreshClock();
+        this.refreshClock(new Date());
         break;
     }
   };  // -- LockScreen#handleEvent --
