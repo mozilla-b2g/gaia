@@ -4,94 +4,23 @@
     "description": "Gaia taskgraph generator"
   },
   "tags": {},
-  "params": {
-    "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.2.0"
-  },
-  "tasks": {
-    "marionette integration tests": {
+  "tasks": [
+    {
       "task": {
         "metadata": {
           "name": "Gaia Marionette JS integration testing"
         },
+        "provisionerId": "aws-provisioner",
+        "workerType": "v2",
         "payload": {
-          "image": "{{image}}",
-          "command": [
-            "./bin/ci run marionette_js"
-          ]
+          "image": "ubuntu:14.04",
+          "command": ["/bin/bash", "-c", "ls"]
         },
         "tags": {
           "treeherderProject": "gaia",
           "treeherderSymbol": "GI"
         }
       }
-    },
-    "gaia ui tests": {
-      "task": {
-        "metadata": {
-          "name": "Gaia UI tests"
-        },
-        "payload": {
-          "image": "{{image}}",
-          "command": [
-            "./bin/ci run gaia_ui_tests"
-          ]
-        },
-        "tags": {
-          "treeherderProject": "gaia",
-          "treeherderSymbol": "GU"
-        }
-      }
-    },
-    "gaia unit tests in firefox": {
-      "task": {
-        "metadata": {
-          "name": "gaia unit tests in firefox"
-        },
-        "payload": {
-          "image": "{{image}}",
-          "command": [
-            "./bin/ci run unit-tests-in-firefox"
-          ]
-        },
-        "tags": {
-          "treeherderProject": "gaia",
-          "treeherderSymbol": "G"
-        }
-      }
-    },
-    "build tests": {
-      "task": {
-        "metadata": {
-          "name": "Gaia build system tests"
-        },
-        "payload": {
-          "image": "{{image}}",
-          "command": [
-            "./bin/ci run build_tests"
-          ]
-        },
-        "tags": {
-          "treeherderProject": "gaia",
-          "treeherderSymbol": "GB"
-        }
-      }
-    },
-    "lint": {
-      "task": {
-        "metadata": {
-          "name": "Gaia code linters"
-        },
-        "payload": {
-          "image": "{{image}}",
-          "command": [
-            "./bin/ci run linters"
-          ]
-        },
-        "tags": {
-          "treeherderProject": "gaia",
-          "treeherderSymbol": "HINT"
-        }
-      }
     }
-  }
+  ]
 }
