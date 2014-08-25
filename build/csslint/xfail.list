@@ -50,7 +50,7 @@ apps/music/style/music.css 0 2
 apps/pdfjs/content/web/viewer.css 0 1
 apps/settings/style/lists.css 2 0
 apps/settings/style/settings.css 0 2
-apps/settings/style/settings_large.css 0 1
+apps/settings/style/settings_large.css 1 1
 apps/sms/style/root.css 0 2
 apps/sms/style/sms.css 0 4
 apps/system/mobile_id/style/mobile_id.css 0 16
