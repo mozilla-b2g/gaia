@@ -40,6 +40,8 @@
     window.lockScreenNotificationBuilder
       .start(document.getElementById('notifications-lockscreen-container'));
     window.lockScreenNotifications.start(window.lockScreen);
+    window.lockScreenStateManager = new window.LockScreenStateManager();
+    window.lockScreenStateManager.start(window.lockScreen);
   };
 
   /**
