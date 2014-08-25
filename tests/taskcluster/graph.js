@@ -72,7 +72,8 @@ function decorateTask(task) {
 
 var graph = {
   tasks: [
-    decorateTask(require('./tasks/build_tests'))
+    decorateTask(require('./tasks/build_tests')),
+    decorateTask(require('./tasks/unit_tests_b2g')),
   ]
 };
 
