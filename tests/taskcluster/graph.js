@@ -41,6 +41,14 @@ function decorateTask(task) {
   // provisioning method and which worker type to run on.
   output.task.provisionerId = output.task.provisionerId || PROVISIONER_ID;
   output.task.workerType = output.task.workerType || WORKER_TYPE;
+  output.task.created = new Date().toJSON();
+  output.task.metadata.source = 'http://todo.com/soon';
+
+  // Expire all tasks in 24 hours...
+  var deadline = new Date();
+  deadline.setHours(deadline.getHours() + 24);
+  output.task.deadline = deadline;
+
 
   // Default docker image...
   var payload = output.task.payload;
