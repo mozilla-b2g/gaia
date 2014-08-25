@@ -16,7 +16,8 @@
           "image": "quay.io/mozilla/gaia-taskenv:0.4.0",
           "command": [
             "make node_modules &&",
-            "node tests/taskcluster/graph.js > /graph.json"
+            "node tests/taskcluster/graph.js > /graph.json &&",
+            "cat /graph.json"
           ],
           "graphs": ["/graph.json"]
         },
