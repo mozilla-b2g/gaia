@@ -44,6 +44,10 @@ function decorateTask(task) {
   output.task.created = new Date().toJSON();
   output.task.metadata.source = 'http://todo.com/soon';
 
+  // Ensure we are always using the correct scheduler so our tasks are routed
+  // correctly...
+  output.task.schedulerId = output.task.schedulerId || 'task-graph-scheduler';
+
   // XXX: Should not be jlal@mozilla.com in all cases =p
   output.task.metadata.owner = 'jlal@mozilla.com';
 
