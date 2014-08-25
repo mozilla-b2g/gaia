@@ -20,5 +20,8 @@ then
   git checkout -qf FETCH_HEAD
 fi
 
+# Current revision...
+git log -n 1
+
 # run whatever command was intended on the branch (root of the repo)
 eval $@
