@@ -1,11 +1,10 @@
-#!/usr/bin/env bash
-set -e
+#! /bin/bash -vex
 export GAIATEST_ACKNOWLEDGED_RISKS=true
 export GAIATEST_SKIP_WARNING=true
 source tests/travis_ci/venv.sh
 
 root=tests/python/gaia-ui-tests/gaiatest
-b2g=`find b2g -follow -name "b2g-bin" | tail -n 1`
+b2g=`find b2g_sdk -follow -name "b2g-bin" | tail -n 1`
 profile=profile
 gaiatest="python $root/cli.py"
 
@@ -15,6 +14,7 @@ $gaiatest --app=b2gdesktop \
           --profile=$profile \
           --type=b2g \
           --timeout=10000 \
+          --gecko-log artifacts/gaia_ui_tests_gecko.log \
           --html-output artifacts/gaia_ui_tests_report.html \
           --this-chunk=${THIS_CHUNK:=1} \
           --total-chunks=${TOTAL_CHUNKS:=1} \

@@ -1,0 +1,26 @@
+# Chunking task for marionette js tests...
+---
+requires:
+  - '{{tasks.linters}}'
+
+task:
+  metadata:
+    name: 'Marionette JS tests chunk {{chunk}}'
+    description: Run entire suite of marionette js tests
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+
+  payload:
+    # Chunking logic is actually in the Makefile here which may make it
+    # confusing to figure out who calls what this should be improved.
+    env:
+      PART: '{{chunk}}'
+      NBPARTS: '{{totalChunks}}'
+
+    command:
+      - entrypoint
+      - ./bin/ci run marionette_js
+
+  tags:
+    treeherderProject: Gij{{chunk}}
