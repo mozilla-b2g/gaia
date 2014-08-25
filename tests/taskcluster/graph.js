@@ -70,11 +70,13 @@ function decorateTask(task) {
   return output;
 }
 
+// Simply read all definitions for now...
+var tasks = fs.readdirSync(__dirname + '/tasks/').map(function(file) {
+  return decorateTask(require('./tasks/' + file));
+});
+
 var graph = {
-  tasks: [
-    decorateTask(require('./tasks/build_tests')),
-    decorateTask(require('./tasks/unit_tests_b2g')),
-  ]
+  tasks: tasks
 };
 
 // Output directly to stdout and allow pipe redirection to handle where it
