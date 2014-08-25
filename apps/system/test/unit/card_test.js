@@ -66,6 +66,7 @@ suite('system/Card', function() {
       assert.ok(card.element, 'element node');
       assert.equal(card.element.tagName, 'LI');
       assert.ok(card.screenshotView, 'screenshotView node');
+      assert.ok(card.titleNode, 'title node');
     });
 
     test('has expected classes/elements', function(){
@@ -92,16 +93,40 @@ suite('system/Card', function() {
       assert.isTrue(stub.calledOnce, 'onOutViewport was called');
     });
 
+    test('browser app title', function() {
+      var browserCard = new Card({
+        app: makeApp({ name: 'browserwindow' }),
+        manager: mockManager
+      });
+      browserCard.app.title = 'Page title';
+      this.sinon.stub(browserCard.app, 'isBrowser', function() {
+        return true;
+      });
+      browserCard.render();
+      assert.equal(browserCard.titleNode.textContent, 'Page title');
+    });
+
+    test('app name', function() {
+      var appCard = new Card({
+        app: makeApp({ name: 'otherapp' }),
+        manager: mockManager
+      });
+      appCard.app.title = 'Some title';
+      this.sinon.stub(appCard.app, 'isBrowser', function() {
+        return false;
+      });
+      appCard.render();
+      assert.equal(appCard.titleNode.textContent, 'otherapp');
+    });
+
   });
 
   suite('destroy', function() {
     setup(function(){
-      this.cardNode = document.createElement('li');
       this.card = new Card({
         app: makeApp({ name: 'dummyapp' }),
         manager: mockManager,
-        containerElement: mockManager.cardsList,
-        element: this.cardNode
+        containerElement: mockManager.cardsList
       });
       this.card.render();
     });
@@ -110,8 +135,10 @@ suite('system/Card', function() {
     });
 
     test('removes element from parentNode', function() {
+      var cardNode = this.card.element;
+      assert.ok(cardNode.parentNode, 'cardNode has parentNode when rendered');
       this.card.destroy();
-      assert.ok(!this.cardNode.parentNode, 'cardNode has no parentNode');
+      assert.ok(!cardNode.parentNode, 'cardNode has no parentNode');
       assert.equal(cardsList.childNodes.length, 0, 'cardsList has no children');
     });
 
