@@ -1,8 +1,8 @@
 module.exports = {
   task: {
     metadata: {
-      name: "Gaia build tests",
-      description: "Runs entire gaia build system through all known variants."
+      name: "Gaia unit tests in b2g-desktop",
+      description: "Full gaia unit test suite"
     },
     payload: {
       command: ["./bin/ci run unit-tests-in-b2g"]
