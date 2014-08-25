@@ -14,7 +14,10 @@
         "workerType": "v2",
         "payload": {
           "image": "quay.io/mozilla/gaia-taskenv:0.4.0",
-          "command": ["node tests/taskcluster/graph.js > /graph.json"],
+          "command": [
+            "make node_modules &&",
+            "node tests/taskcluster/graph.js > /graph.json"
+          ],
           "graphs": ["/graph.json"]
         },
         "tags": {
