@@ -10,10 +10,10 @@
         "metadata": {
           "name": "Graph construction "
         },
-        "image": "quay.io/mozilla/gaia-taskenv:0.4.0",
         "provisionerId": "aws-provisioner",
         "workerType": "v2",
         "payload": {
+          "image": "quay.io/mozilla/gaia-taskenv:0.4.0",
           "command": ["node tests/taskcluster/graph.js > /graph.json"],
           "graphs": ["/graph.json"]
         },
