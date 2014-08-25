@@ -396,3 +396,7 @@ Mockfb.contacts = {
     };
   }
 };
+
+Mockfb.sync = {
+  scheduleNextSync: function() {}
+};
