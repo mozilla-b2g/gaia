@@ -227,7 +227,7 @@ var icc_worker = {
     var activeApp = AppWindowManager.getActiveApp();
     var settingsOrigin = document.location.protocol + '//' +
       document.location.host.replace('system', 'settings');
-    if (!options.isHighPriority && !activeApp.isHomescreen &&
+    if (!options.isHighPriority && activeApp && !activeApp.isHomescreen &&
         activeApp.origin !== settingsOrigin) {
       DUMP('Do not display the text because normal priority.');
       icc.responseSTKCommand(message, {
