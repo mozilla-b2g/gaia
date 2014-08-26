@@ -116,7 +116,7 @@ var FxaModuleEnterEmail = (function() {
         this.entrySheet = null;
       }
       this.entrySheet = new EntrySheet(
-        window.top.document.getElementById('screen'),
+        window.top.document.getElementById('dialog-overlay'),
         url,
         new BrowserFrame({url: url})
       );
