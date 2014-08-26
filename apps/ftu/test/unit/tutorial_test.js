@@ -5,7 +5,7 @@
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('ftu/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('ftu/test/unit/mock_screenlayout.js');
 requireApp('ftu/test/unit/mock_finish_screen.js');
 

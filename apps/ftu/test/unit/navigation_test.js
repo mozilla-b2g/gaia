@@ -3,11 +3,11 @@
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_icc_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('ftu/js/external_links.js');
 requireApp('ftu/js/navigation.js');
 
-requireApp('ftu/test/unit/mock_l10n.js');
 requireApp('ftu/test/unit/mock_wifi_manager.js');
 requireApp('ftu/test/unit/mock_data_mobile.js');
 requireApp('ftu/test/unit/mock_sim_manager.js');
@@ -284,9 +284,11 @@ suite('navigation >', function() {
           assert.equal(UIManager.mainTitle.innerHTML, _('aboutBrowser'));
           var linkRef = document.getElementById('external-link-privacy');
           assert.equal(linkRef.textContent,
-                       '<a class="external" ' +
-                       'href="https://www.mozilla.org/privacy/firefox-os/">' +
-                       'learn-more-privacy-link</a>');
+                      'learn-more-privacy{"link":"' +
+                      '<a class=\\"external\\" ' +
+                      'href=\\"https://www.mozilla.org/privacy/firefox-os' +
+                      '/\\">' +
+                      'learn-more-privacy-link</a>"}');
         });
       });
       observer.observe(UIManager.mainTitle, observerConfig);

@@ -5,9 +5,8 @@
 
 'use strict';
 
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('wappush/js/activity_picker.js');
-
-requireApp('wappush/test/unit/mock_l10n.js');
 requireApp('wappush/test/unit/mock_moz_activity.js');
 
 var mocksHelperAP = new MocksHelper([

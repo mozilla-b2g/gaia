@@ -4,7 +4,7 @@
 require('/shared/js/download/download_formatter.js');
 require('/shared/test/unit/mocks/mock_download_formatter.js');
 require('/shared/test/unit/mocks/mock_download.js');
-requireApp('settings/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('settings/js/downloads/download_item.js');
 requireApp('sms/test/unit/mock_utils.js');
 

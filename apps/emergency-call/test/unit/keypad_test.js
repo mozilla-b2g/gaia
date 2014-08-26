@@ -3,9 +3,9 @@
 mocha.setup({ globals: ['kFontStep', 'minFontSize',
   'kMasterVolume', 'kShortPressDuration', 'gTonesFrequencies',
   'keypadSoundIsEnabled', 'TonePlayer', 'KeypadManager'] });
-/* globals MockMozL10n, MocksHelper */
+/* globals MockL10n, MocksHelper */
 
-require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksHelperForKeypad = new MocksHelper([
@@ -13,19 +13,19 @@ var mocksHelperForKeypad = new MocksHelper([
 ]).init();
 
 suite('Emergency Keypad', function() {
-  var realMozL10n;
+  var realL10n;
 
   mocksHelperForKeypad.attachTestHelpers();
 
   suiteSetup(function() {
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockMozL10n;
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
     document.body.classList.add('hidden');
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realMozL10n;
+    navigator.mozL10n = realL10n;
   });
 
   test('> waits for l10n before becoming visible', function(done) {

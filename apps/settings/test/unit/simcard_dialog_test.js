@@ -6,10 +6,10 @@ requireApp(
   'settings/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 requireApp('settings/shared/test/unit/load_body_html_helper.js');
-requireApp('settings/test/unit/mock_l10n.js');
 requireApp('settings/test/unit/mock_settings.js');
 requireApp('settings/js/simcard_dialog.js');
 requireApp('settings/js/utils.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForSettingsHelper = new MocksHelper([
   'Settings'
