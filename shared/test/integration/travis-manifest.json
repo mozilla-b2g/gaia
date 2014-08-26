@@ -1,5 +1,8 @@
 {
   "blacklist": {
+    "apps/keyboard/test/marionette/uninstallation_test.js": "Bug 1058362 - Temporary disabling",
+    "apps/settings/test/marionette/tests/ime_uninstallation_test.js": "Bug 1058362 - Temporary disabling",
+
     "apps/calendar/test/marionette/alarm_test.js": "Bug 994976 - Perma-red TBPL test, alarm > without alarm mocks create two events with simultaneous reminders",
     "apps/calendar/test/marionette/caldav_test.js": "Bug 972631 - CalDAV setup causing tbpl timeouts",
     "apps/calendar/test/marionette/server_test.js": "",
