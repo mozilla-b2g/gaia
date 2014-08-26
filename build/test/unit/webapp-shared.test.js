@@ -321,9 +321,7 @@ suite('webapp-shared.js', function() {
       webappShared.pushLocale(localePath);
       assert.equal(result[0].path, 'shared/locales/' + localePath);
       assert.equal(result[0].file.path, sharedFilePath);
-      assert.equal(result[1].path, 'shared/locales/' + localePath + '.ini');
-      assert.equal(result[1].file.path, sharedFilePath);
-      assert.equal(result[2].path, lsContentFilePath);
+      assert.equal(result[1].path, lsContentFilePath);
     });
 
     test('pushResource', function() {

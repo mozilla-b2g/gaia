@@ -9,7 +9,19 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "locales": {
+    "ar": {
+      "name": "WAP Push manager",
+      "description": "Receives, filters and displays WAP Push messages"
+    },
     "en-US": {
+      "name": "WAP Push manager",
+      "description": "Receives, filters and displays WAP Push messages"
+    },
+    "fr": {
+      "name": "WAP Push manager",
+      "description": "Receives, filters and displays WAP Push messages"
+    },
+    "zh-TW": {
       "name": "WAP Push manager",
       "description": "Receives, filters and displays WAP Push messages"
     }

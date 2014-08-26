@@ -12,7 +12,8 @@
  *   DownloadItem.update(li, download);
  *
  * This helper requires some l10n resources, make sure to import them:
- *   <link type="application/l10n" href="shared/locales/download.ini">
+ *   <link rel="localization"
+ *         href="/shared/locales/download/download.{locale}.properties">
  */
 
 var DownloadItem = (function DownloadItem() {
