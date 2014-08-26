@@ -250,8 +250,6 @@ suite('STK (icc) >', function() {
       (testCmd.command.options.maxLength -
       testCmd.command.options.defaultText.length) + ')');
     assert.equal(document.getElementById('icc-input-btn').disabled, false);
-    assert.equal(document.getElementById('icc-input-btn_back').textContent,
-      'back');
     assert.equal(document.getElementById('icc-input-btn_help').textContent,
       'Help');
   });

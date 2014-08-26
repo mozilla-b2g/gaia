@@ -11,7 +11,7 @@ var FxaModuleUI = {
   init: function(flow) {
     // Add listeners to the main elements
     HtmlHelper.importElements(this,
-      'fxa-module-close',
+      'fxa-module-header',
       'fxa-module-back',
       'fxa-module-next',
       'fxa-module-navigation',
@@ -19,7 +19,7 @@ var FxaModuleUI = {
       'fxa-progress'
     );
 
-    this.fxaModuleClose.addEventListener('click', function() {
+    this.fxaModuleHeader.addEventListener('action', function() {
       FxaModuleManager.close('DIALOG_CLOSED_BY_USER');
     });
 
