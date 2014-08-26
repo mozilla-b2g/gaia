@@ -701,7 +701,10 @@ contacts.Form = (function() {
       var callbacks = cookMatchingCallbacks(contact);
       cancelHandler = doCancel.bind(callbacks);
       cancelButton.addEventListener('click', cancelHandler);
-      doMatch(contact, callbacks);
+
+      Contacts.navigation.back(function() {
+        doMatch(contact, callbacks);
+      });
     });
   };
 
