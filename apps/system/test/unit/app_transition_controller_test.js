@@ -89,10 +89,10 @@ suite('system/AppTransitionController', function() {
   test('Opened notification', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
-    var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+    var stubRequestForeground = this.sinon.stub(app1, 'requestForeground');
     acn1._transitionState = 'opening';
     acn1.handleEvent({ type: '_opened' });
-    assert.isTrue(stubSetVisible.calledWith(true));
+    assert.isTrue(stubRequestForeground.calledOnce);
   });
 
   test('Animation start event', function() {
@@ -172,9 +172,9 @@ suite('system/AppTransitionController', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
     var stubReviveBrowser = this.sinon.stub(app1, 'reviveBrowser');
-    var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+    var stubRequestForeground = this.sinon.stub(app1, 'requestForeground');
     acn1.handle_opening();
-    assert.isTrue(stubSetVisible.calledWith(true));
+    assert.isTrue(stubRequestForeground.calledOnce);
     assert.isTrue(stubReviveBrowser.called);
   });
 
@@ -248,10 +248,10 @@ suite('system/AppTransitionController', function() {
     test('Handle opened', function() {
       var app1 = new MockAppWindow(fakeAppConfig1);
       var acn1 = new AppTransitionController(app1);
-      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+      var stubRequestForeground = this.sinon.stub(app1, 'requestForeground');
       var stubSetOrientation = this.sinon.stub(app1, 'setOrientation');
       acn1.handle_opened();
-      assert.isTrue(stubSetVisible.calledWith(true));
+      assert.isTrue(stubRequestForeground.calledOnce);
       assert.isTrue(stubSetOrientation.called);
     });
   });
