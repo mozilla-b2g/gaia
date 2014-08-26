@@ -39,6 +39,7 @@ suite('browser class > ', function() {
 
   test('expect system message', function() {
     var b = new BrowserFrame({
+      isSystemMessage: true,
       url: window.location.protocol + '//' + 'other.gaiamobile.org',
       manifestURL: window.location.protocol +
         '//' + 'other.gaiamobile.org/manifest.webapp'
@@ -47,9 +48,17 @@ suite('browser class > ', function() {
       'expecting-system-message');
 
     var b2 = new BrowserFrame({
-      url: window.location.protocol + '//' + 'other.gaiamobile.org'
+      url: window.location.protocol + '//' + 'other.gaiamobile.org',
+      manifestURL: window.location.protocol +
+        '//' + 'other.gaiamobile.org/manifest.webapp'
     });
     assert.isNull(b2.element.getAttribute('expecting-system-message'));
+
+    var b3 = new BrowserFrame({
+      isSystemMessage: true,
+      url: window.location.protocol + '//' + 'other.gaiamobile.org'
+    });
+    assert.isNull(b3.element.getAttribute('expecting-system-message'));
   });
 });
 
