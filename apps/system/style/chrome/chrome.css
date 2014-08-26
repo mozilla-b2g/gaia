@@ -113,6 +113,20 @@
   background-color: rgba(51,51,51,0.5);
   border-radius: 1.8rem;
   text-overflow: ellipsis;
+  font-style: italic;
+}
+
+.search-app .chrome.maximized .controls .urlbar:after {
+  content: '';
+  width: 2rem;
+  height: 100%;
+  top: 0;
+  right: 0.8rem;
+  position: absolute;
+  background-image: url('images/dark/search.png');
+  background-repeat: no-repeat;
+  background-size: 2rem auto;
+  background-position: center right;
 }
 
 .appWindow.light .chrome:not(.maximized) .controls .urlbar .title {

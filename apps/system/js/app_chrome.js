@@ -54,6 +54,7 @@
 
     if (this.isSearchApp()) {
       this.app.element.classList.add('search-app');
+      this.title.textContent = _('search-or-enter-address');
     }
 
     if (chrome.bar) {
@@ -370,6 +371,9 @@
     };
 
   AppChrome.prototype.setFreshTitle = function ac_setFreshTitle(title) {
+    if (this.isSearchApp()) {
+      return;
+    }
     this.title.textContent = title;
     clearTimeout(this._titleTimeout);
     this._recentTitle = true;
