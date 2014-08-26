@@ -1687,8 +1687,8 @@ contacts.List = (function() {
       deselectAll = document.getElementById('deselect-all');
       deselectAll.addEventListener('click', handleSelection);
 
-      selectForm.querySelector('.icon.icon-close').parentNode.
-                    addEventListener('click', exitSelectMode.bind(null, true));
+      selectForm.querySelector('#selectable-form-header').
+                    addEventListener('action', exitSelectMode.bind(null, true));
     }
 
     isDangerSelectList = options && options.isDanger;
