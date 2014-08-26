@@ -51,6 +51,7 @@ Contacts.Selectors = {
   formCustomTagDone: '#view-select-tag #settings-done',
   formNew: '#add-contact-button',
   formGivenName: '#givenName',
+  formOrg: '#org',
   formFamilyName: '#familyName',
   formSave: '#save-button',
   formTel: '#contacts-form-phones input[type="tel"]',
@@ -75,7 +76,9 @@ Contacts.Selectors = {
   bulkDelete: '#bulkDelete',
 
   editForm: '#selectable-form',
-  editMenu: '#select-all-wrapper'
+  editMenu: '#select-all-wrapper',
+
+  clearOrgButton: '#clear-org'
 };
 
 Contacts.prototype = {
@@ -161,7 +164,8 @@ Contacts.prototype = {
 
     details = details || {
       givenName: 'Hello',
-      familyName: 'Contact'
+      familyName: 'Contact',
+      org: 'Enterprise'
     };
 
     this.waitForFormShown();

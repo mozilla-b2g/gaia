@@ -671,6 +671,7 @@ contacts.Form = (function() {
       if (myContact.id) { //Editing a contact
         currentContact.tel = [];
         currentContact.email = [];
+        currentContact.org = [];
         currentContact.adr = [];
         currentContact.note = [];
         currentContact.photo = [];
