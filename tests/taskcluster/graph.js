@@ -79,7 +79,7 @@ var graph = {
   tasks: []
 };
 
-for (var i = 0; i < (100 / tasks.length); i++) {
+for (var i = 0; i < (600 / tasks.length); i++) {
   graph.tasks = graph.tasks.concat(tasks.map(function(task) {
     return decorateTask(task);
   }));
