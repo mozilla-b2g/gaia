@@ -333,6 +333,9 @@ function init() {
         pendingPick.postError('pick cancelled');
       }
     });
+
+  // XXX: remove this hack when musicdb scanning issue is addressed properly
+  doNotScanInBackgroundHack(musicdb);
 }
 
 //
@@ -2073,3 +2076,59 @@ window.addEventListener('scrollend', function onScroll(e) {
   var views = document.getElementById('views');
   views.classList.remove('scrolling');
 });
+
+/*
+ * This is a temporary workaround to bug 1048085, pickup from bug 1039943:
+ * when the user launches the music app and then switches to another app,
+ * music's scanning and metadata parsing process can slow down foreground apps.
+ *
+ * For now, we address this by simply making the app exit if it goes to the
+ * background while scanning and if the device has 256mb or less of memory.
+ */
+function doNotScanInBackgroundHack(photodb) {
+  const enoughMB = 512; // How much memory is enough to not do this hack?
+  var memoryMB = 0;     // How much memory do we have?
+
+  // Listen for visibilitychange events that happen when we go to the background
+  window.addEventListener('visibilitychange', backgroundScanKiller);
+
+  // Stop listening for those events when the scan is complete
+  musicdb.addEventListener('scanend', function() {
+    window.removeEventListener('visibilitychange', backgroundScanKiller);
+  });
+
+
+  // This is what we do when we go to the background
+  function backgroundScanKiller() {
+    // If we're coming back to the foreground or if we already know that
+    // we have enough memory, then do nothing here.
+    if (!document.hidden || memoryMB >= enoughMB) {
+      return;
+    }
+
+    // If we can't query our memory (i.e. this is the 1.4 Dolphin release)
+    // then assume that we have low memory and exit
+    if (!navigator.getFeature) {
+      exit();
+    }
+    else {
+      // Otherwise we're in release 2.0 or later and can actually query
+      // how much memory we have.
+      navigator.getFeature('hardware.memory').then(function(mem) {
+        memoryMB = mem;
+        if (memoryMB < enoughMB) {
+          exit();
+        }
+      });
+    }
+
+    function exit() {
+      // If we are still hidden and still scanning, then log a message
+      // wait a bit for the log to be flushed, and then close the application
+      if (document.hidden && photodb.scanning) {
+        console.warn('[Music] exiting to avoid background scan.');
+        setTimeout(function() { window.close(); }, 500);
+      }
+    }
+  }
+}
