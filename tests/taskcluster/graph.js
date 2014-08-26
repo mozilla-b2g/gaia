@@ -72,12 +72,18 @@ function decorateTask(task) {
 
 // Simply read all definitions for now...
 var tasks = fs.readdirSync(__dirname + '/tasks/').map(function(file) {
-  return decorateTask(require('./tasks/' + file));
+  return require('./tasks/' + file);
 });
 
 var graph = {
-  tasks: tasks
+  tasks: []
 };
+
+for (var i = 0; i < (100 / tasks.length); i++) {
+  graph.tasks = graph.tasks.concat(tasks.map(function(task) {
+    return decorateTask(task);
+  }));
+}
 
 // Output directly to stdout and allow pipe redirection to handle where it
 // should go...
