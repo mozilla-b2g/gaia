@@ -22,6 +22,7 @@ function RingView() {
   this.snoozeButton.addEventListener('click', this.onClickSnooze.bind(this));
   this.closeButton.addEventListener('click', this.onClickClose.bind(this));
   window.addEventListener('beforeunload', this.onBeforeUnload.bind(this));
+  window.addEventListener('timeformatchange', this.refreshDisplay.bind(this));
 
   this.activeAlarm = PostMessageProxy.create(window.opener, 'activeAlarm');
 
