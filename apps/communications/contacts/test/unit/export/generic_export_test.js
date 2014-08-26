@@ -9,11 +9,11 @@
 
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
-requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_export_strategy.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
-requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 
 requireApp('communications/contacts/js/export/contacts_exporter.js');
 

@@ -3,7 +3,7 @@
 /* global MockMozContacts */
 
 requireApp('communications/contacts/js/export/sim.js');
-requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 
 suite('Sim export', function() {
   var realMozContacts = null;

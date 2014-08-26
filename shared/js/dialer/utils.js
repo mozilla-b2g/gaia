@@ -83,18 +83,20 @@ var Utils = {
    * The type of the phone number will be localized if we have a matching key.
    */
   getPhoneNumberAdditionalInfo:
-    function ut_getPhoneNumberAdditionalInfo(matchingTel) {
+    function ut_getPhoneNumberAdditionalInfo(matchingTel, separator) {
     var result = this._getPhoneNumberType(matchingTel);
 
     var carrier = matchingTel.carrier;
     if (carrier) {
-      result += ', ' + carrier;
+      result += (separator || ', ') + carrier;
     }
 
     return result;
   },
 
-  getPhoneNumberAndType: function ut_getPhoneNumberAndType(matchingTel) {
-    return this._getPhoneNumberType(matchingTel) + ', ' + matchingTel.value;
+  getPhoneNumberAndType: function ut_getPhoneNumberAndType(
+    matchingTel, separator) {
+    return this._getPhoneNumberType(matchingTel) + (separator || ', ') +
+      matchingTel.value;
   }
 };

@@ -1,5 +1,5 @@
-'use strict';
 /* exported MockConfirmDialog */
+'use strict';
 
 var MockConfirmDialog = {
   showing: false,

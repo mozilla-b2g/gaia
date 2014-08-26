@@ -19,9 +19,9 @@ apps/communications/dialer/test/marionette/lib/dialer.js
 apps/communications/dialer/test/marionette/navigation_test.js
 apps/communications/dialer/test/unit/call_log_db_test.js
 apps/communications/dialer/test/unit/mock_call_handler.js
-apps/communications/dialer/test/unit/mock_confirm_dialog.js
+shared/test/unit/mocks/mock_confirm_dialog.js
 apps/communications/dialer/test/unit/mock_dialer_index.html.js
-apps/communications/dialer/test/unit/mock_icc_helper.js
+shared/test/unit/mocks/mock_icc_helper.js
 apps/communications/dialer/test/unit/mock_mozVoicemail.js
 apps/communications/dialer/test/unit/voicemail_test.js
 apps/communications/facebook/js/console.js
