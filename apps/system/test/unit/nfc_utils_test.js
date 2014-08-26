@@ -345,9 +345,9 @@ suite('NFC Utils', function() {
       assert.isNotNull(parsed);
       assert.equal(parsed.length, 3);
 
-      assert.equal(parsed[0].tnf, 1);
-      assert.equal(parsed[1].tnf, 3);
-      assert.equal(parsed[2].tnf, 4);
+      assert.equal(parsed[0].tnf, NDEF.TNF_WELL_KNOWN);
+      assert.equal(parsed[1].tnf, NDEF.TNF_ABSOLUTE_URI);
+      assert.equal(parsed[2].tnf, NDEF.TNF_EXTERNAL_TYPE);
 
       assert.deepEqual(parsed[0].type, [0x55], 'type 0');
       assert.deepEqual(parsed[1].type, [0xAA, 0xBB], 'type 1');
@@ -409,13 +409,13 @@ suite('NFC Utils', function() {
     test('Decodes TNF', function() {
       var parsed = nfcUtils._parseNDEFRecord(new NfcBuffer(record));
       assert.isNotNull(parsed);
-      assert.equal(parsed.tnf, 1);
+      assert.equal(parsed.tnf, NDEF.TNF_WELL_KNOWN);
 
       record[0] ^= 1;
       record[0] |= 5;
       parsed = nfcUtils._parseNDEFRecord(new NfcBuffer(record));
       assert.isNotNull(parsed);
-      assert.equal(parsed.tnf, 5);
+      assert.equal(parsed.tnf, NDEF.TNF_UNKNOWN);
     });
 
     test('Decodes type', function() {

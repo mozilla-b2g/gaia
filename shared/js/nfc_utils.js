@@ -21,14 +21,14 @@
 
     TNF: 0x07,
 
-    TNF_EMPTY: 0x00,
-    TNF_WELL_KNOWN: 0x01,
-    TNF_MIME_MEDIA: 0x02,
-    TNF_ABSOLUTE_URI: 0x03,
-    TNF_EXTERNAL_TYPE: 0x04,
-    TNF_UNKNOWN: 0x05,
-    TNF_UNCHANGED: 0x06,
-    TNF_RESERVED: 0x07,
+    TNF_EMPTY: 'empty',
+    TNF_WELL_KNOWN: 'well-known',
+    TNF_MIME_MEDIA: 'media-type',
+    TNF_ABSOLUTE_URI: 'absolute-uri',
+    TNF_EXTERNAL_TYPE: 'external',
+    TNF_UNKNOWN: 'unknown',
+    TNF_UNCHANGED: 'unchanged',
+    TNF_RESERVED: 'reserved',
 
     RTD_TEXT: 0,
     RTD_URI: 0,
@@ -122,7 +122,7 @@
       /**
        * Decodes NDEF record payload
        * @see NFCForum-TS-NDEF_1.0
-       * @param {Uint8Array} tnf - record TNF
+       * @param String tnf - record TNF
        * @param {Uint8Array} type - record type
        * @param {Uint8Array} payload - record payload
        * @returns {Object} data - decoded payload or null if invalid
@@ -504,6 +504,15 @@
     encodeNDEF: function encodeNDEF(records) {
       var result = [];
 
+      function getTnfNum(tnfString) {
+        var tnf = [
+          NDEF.TNF_EMPTY, NDEF.TNF_WELL_KNOWN, NDEF.TNF_MIME_MEDIA,
+          NDEF.TNF_ABSOLUTE_URI, NDEF.TNF_EXTERNAL_TYPE, NDEF.TNF_UNKNOWN,
+          NDEF.TNF_UNCHANGED, NDEF.TNF_RESERVED];
+
+        return tnf.indexOf(tnfString);
+      }
+
       records.forEach((record, recordIndex) => {
         record.payload = record.payload || [];
         record.id = record.id || [];
@@ -513,7 +522,7 @@
         var idLen = record.id.length;
         var typeLen = record.type.length;
 
-        var firstOctet = record.tnf & 0x07;
+        var firstOctet = getTnfNum(record.tnf) & 0x07;
         firstOctet |= (recordIndex === 0) ? NDEF.MB : 0;
         firstOctet |= (recordIndex === records.length - 1) ? NDEF.ME : 0;
         firstOctet |= (idLen > 0) ? NDEF.IL : 0;
@@ -593,6 +602,11 @@
     },
 
     _parseNDEFRecord: function parseNDEFRecord(buffer) {
+      var tnfArray = [
+        NDEF.TNF_EMPTY, NDEF.TNF_WELL_KNOWN, NDEF.TNF_MIME_MEDIA,
+        NDEF.TNF_ABSOLUTE_URI, NDEF.TNF_EXTERNAL_TYPE, NDEF.TNF_UNKNOWN,
+        NDEF.TNF_UNCHANGED, NDEF.TNF_RESERVED];
+
       var firstOctet = buffer.getOctet();
       var typeLen = buffer.getOctet();
       var payloadLen = buffer.getOctet();
@@ -613,7 +627,7 @@
       var type = buffer.getOctetArray(typeLen);
       var id = buffer.getOctetArray(idLen);
       var payload = buffer.getOctetArray(payloadLen);
-      return new MozNDEFRecord({tnf: tnf,
+      return new MozNDEFRecord({tnf: tnfArray[tnf],
                                 type: type || undefined,
                                 id: id || undefined,
                                 payload: payload || undefined});
