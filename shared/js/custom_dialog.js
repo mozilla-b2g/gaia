@@ -5,7 +5,8 @@
 
 var CustomDialog = (function() {
 
-  var screen = null;
+  var screen = document.getElementById('screen');
+  var form = null;
   var dialog = null;
   var header = null;
   var message = null;
@@ -14,12 +15,12 @@ var CustomDialog = (function() {
 
   return {
     hide: function dialog_hide() {
-      if (screen === null) {
+      if (form === null) {
         return;
       }
 
-      document.body.removeChild(screen);
-      screen = null;
+      screen.removeChild(form);
+      form = null;
       dialog = null;
       header = null;
       message = null;
@@ -39,14 +40,15 @@ var CustomDialog = (function() {
     * @param  {Object} confirm {title, callback} object when cancel.
     */
     show: function dialog_show(title, msg, cancel, confirm) {
-      if (screen === null) {
-        screen = document.createElement('form');
-        screen.setAttribute('role', 'dialog');
-        screen.setAttribute('data-type', 'confirm');
-        screen.id = 'dialog-screen';
+      if (form === null) {
+        form = document.createElement('form');
+        form.setAttribute('role', 'dialog');
+        form.setAttribute('data-type', 'confirm');
+        form.setAttribute('data-z-index-level', 'system-notification-banner');
+        form.id = 'dialog-screen';
 
         dialog = document.createElement('section');
-        screen.appendChild(dialog);
+        form.appendChild(dialog);
 
         // Create a reusable function to decorate elements with all
         // possible options, instead of scattering similar code about
@@ -131,19 +133,19 @@ var CustomDialog = (function() {
           no.classList.add('full');
         }
 
-        screen.appendChild(menu);
+        form.appendChild(menu);
 
-        document.body.appendChild(screen);
+        screen.appendChild(form);
       }
 
       // Make the screen visible
-      screen.classList.add('visible');
+      form.classList.add('visible');
 
       // This is the event listener function for the buttons
       function clickHandler(evt) {
 
         // Hide the dialog
-        screen.classList.remove('visible');
+        form.classList.remove('visible');
 
         // Call the appropriate callback, if it is defined
         if (evt.target === yes && confirm.callback) {
