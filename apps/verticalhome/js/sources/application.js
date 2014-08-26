@@ -3,6 +3,8 @@
 
 (function(exports) {
 
+  window.boottimes = {'verticalhome-start': Date.now()};
+
   var appMgr = navigator.mozApps.mgmt;
   var apps = null;
 
