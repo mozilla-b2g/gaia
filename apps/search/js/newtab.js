@@ -19,6 +19,12 @@
         console.log('Error connecting: ' + reason + '\n');
       });
     };
+
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        window.close();
+      }
+    });
   }
 
   Newtab.prototype = {
