@@ -561,6 +561,12 @@ suite('lib/camera/camera', function() {
       assert.isTrue(this.camera.mozCamera.takePicture.called);
     });
 
+    test('Should still take picture even when focus is interrupted', function() {
+      this.camera.focus.focus = sinon.stub().callsArgWith(1, 'interrupted');
+      this.camera.takePicture({});
+      assert.isTrue(this.camera.mozCamera.takePicture.called);
+    });
+
     test('Should pass the position value to `mozCamera.takePicture`', function() {
       this.camera.takePicture({ position: 123 });
       var config = this.camera.mozCamera.takePicture.args[0][0];
