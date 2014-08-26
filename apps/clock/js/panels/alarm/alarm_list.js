@@ -41,6 +41,24 @@ function AlarmListPanel(element) {
     this.removeAlarm(evt.detail.alarm);
     this.updateAlarmStatusBar();
   });
+  window.addEventListener('localized', () => {
+    var elems = this.alarms.querySelectorAll("[id^='alarm-']");
+    Array.prototype.forEach.call(elems,(elem) => {
+      var alarmId = parseInt(elem.dataset.id);
+      AlarmsDB.getAlarm(alarmId,function (err, alarm) {
+        console.log("ID is -- "+alarm.minute);
+        var d = new Date();
+        d.setHours(alarm.hour);
+        d.setMinutes(alarm.minute);
+        var atime = elem.querySelector('.time');
+        atime.innerHTML = Utils.getLocalizedTimeHtml(d);
+		var alabel = elem.querySelector('.label');
+		alabel.textContent = alarm.label || _('alarm');
+		var asummarizeday = elem.querySelector('.repeat');
+		asummarizeday.textContent = (alarm.isRepeating() ? alarm.summarizeDaysOfWeek() : '');
+      });
+    });
+  });
 }
 
 AlarmListPanel.prototype = {
