@@ -238,11 +238,11 @@ suite('Contacts', function() {
     });
 
     suite('> CancelableActivity', function() {
-      var settingsButton, cancelButton, addButton, appTitleElement;
+      var settingsButton, header, addButton, appTitleElement;
 
       setup(function() {
         settingsButton = document.getElementById('settings-button');
-        cancelButton = document.getElementById('cancel_activity');
+        header = document.getElementById('activity-header');
         addButton = document.getElementById('add-contact-button');
         appTitleElement = document.getElementById('app-title');
       });
@@ -256,7 +256,7 @@ suite('Contacts', function() {
         // Add contact is hidden
         assert.isTrue(addButton.classList.contains('hide'));
         // Cancel is visible
-        assert.isFalse(cancelButton.classList.contains('hide'));
+        assert.equal(header.getAttribute('action'), 'close');
         // Title shows CONTACTS
         assert.equal(appTitleElement.textContent, 'contacts');
 
@@ -269,7 +269,7 @@ suite('Contacts', function() {
         Contacts.checkCancelableActivity();
 
         // Cancel is hidden
-        assert.isTrue(cancelButton.classList.contains('hide'));
+        assert.equal(header.getAttribute('action'), '');
         // Settings is visible
         assert.isFalse(addButton.classList.contains('hide'));
         // Add contact is visible

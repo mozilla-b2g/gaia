@@ -7,7 +7,6 @@
     <title> Contacts </title>
 
     <!-- Building Blocks -->
-    <link href="/shared/style/headers.css" rel="stylesheet">
     <link href="/shared/style/input_areas.css" rel="stylesheet">
     <link href="/shared/style/lists.css" rel="stylesheet">
     <link href="/shared/style/scrolling.css" rel="stylesheet">
@@ -58,6 +57,14 @@
     <script defer src="/contacts/js/utilities/extract_params.js"></script>
     <script defer src="/contacts/js/utilities/performance_helper.js"></script>
     <script defer src="/shared/js/contacts/import/utilities/misc.js"></script>
+
+    <!-- Web Components -->
+    <script defer src="/shared/js/component_utils.js"></script>
+    <script defer src="/shared/elements/gaia_subheader/script.js"></script>
+    <script defer src="/shared/elements/config.js"></script>
+    <script defer src="/shared/elements/gaia-header/dist/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" /> -->
 
     <!-- For initializing FB integration -->
     <script defer src="/contacts/js/fb/fb_init.js"></script>
@@ -115,20 +122,15 @@
     -->
   </head>
 
-  <body role="application" class="app-contacts skin-comms">
+  <body role="application" class="app-contacts skin-comms theme-communications">
 
       <!-- Contacts List Section -->
       <section id='view-contacts-list' role="region" data-state="active" class="view view-noscroll view-contacts-list">
-        <header>
-          <a href="#" id="cancel_activity" class="hide">
-            <span class="icon icon-close" data-l10n-id="exit">Exit</span>
-          </a>
-          <menu id="standard-menu" type="toolbar">
-            <button role="menuitem" id="add-contact-button"><span class="icon icon-add" data-l10n-id="add">add</span></button>
-            <button role="menuitem" id="settings-button"><span class="icon icon-settings" data-l10n-id="settings">settings</span></button>
-          </menu>
+        <gaia-header id="activity-header" action="close">
           <h1 id="app-title" data-l10n-id="contacts">Contacts</h1>
-        </header>
+          <button role="menuitem" id="add-contact-button" data-icon="add" data-l10n-id="add"></button>
+          <button role="menuitem" id="settings-button" data-icon="settings" data-l10n-id="settings"></button>
+        </gaia-header>
 
         <article class="view-body">
           <div id="no-contacts" class="hide">
@@ -198,12 +200,11 @@
         </article>
       </section>
     <form id="selectable-form" role="dialog" data-type="edit" class="hide">
-      <section role="region">
-        <header>
-          <button type="button"><span class="icon icon-close">close</span></button>
-          <menu type="toolbar"><button type="button" id="select-action"></button></menu>
+      <section role="region" class="theme-settings">
+        <gaia-header id="selectable-form-header" action="close">
           <h1 id="edit-title" data-l10n-id="contacts"></h1>
-        </header>
+          <button type="button" id="select-action"></button>
+        </gaia-header>
       </section>
       <menu id="select-all-wrapper">
        <button id="deselect-all" class="edit-button" data-l10n-id="deselectAll" disabled>

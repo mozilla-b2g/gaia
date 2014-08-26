@@ -12,7 +12,7 @@
   margin-right: -1rem;
 }
 
-section[role="region"] > header:first-child .icon.icon-edit-contact {
+section[role="region"] > gaia-header .icon.icon-edit-contact {
   background-image: url(images/edit-contact.png);
 }
 
@@ -341,8 +341,9 @@ form p textarea + button[type="reset"].hide {
   padding: 0;
 }
 
-section[role="region"] > header .icon.icon-settings {
-  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png);
+section[role="region"] > header .icon.icon-settings,
+gaia-header [data-icon="settings"]:before {
+  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png) !important;
 }
 
 #view-settings {
@@ -689,7 +690,7 @@ section[role="region"] > header .icon.icon-settings {
   opacity: 0;
 }
 
-form[role="dialog"][data-type="edit"] header {
+form[role="dialog"][data-type="edit"] gaia-header {
   transform: translateY(-5rem);
 }
 
@@ -697,7 +698,7 @@ form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(110%);
 }
 
-form[role="dialog"][data-type="edit"].contacts-select.in-edit-mode header,
+form[role="dialog"][data-type="edit"].contacts-select.in-edit-mode gaia-header,
 form[role="dialog"][data-type="edit"].contacts-select.in-edit-mode > menu {
   transition: 0s;
 }
@@ -706,7 +707,7 @@ form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) > menu 
   transform: translateY(0);
 }
 
-form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) header {
+form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) gaia-header {
   transform: translateY(0);
 }
 
