@@ -1,3 +1,6 @@
+'use strict';
+/* global require, suite, process, test, suiteSetup, teardown */
+/* jshint -W101 */
 var assert = require('chai').assert;
 var fs = require('fs');
 var path = require('path');
@@ -5,13 +8,39 @@ var vm = require('vm');
 var helper = require('./helper');
 var dive = require('dive');
 var AdmZip = require('adm-zip');
+var walker = require('../libs/walk_dir');
 
 const MAX_PROFILE_SIZE_MB = 65;
 const MAX_PROFILE_SIZE = MAX_PROFILE_SIZE_MB * 1024 * 1024;
 
+const REBUILD_TEST_FILE = path.join(
+  process.cwd() + '/apps/system/rebuild_test.txt');
+const WEBAPP_DIR = path.join(process.cwd() + '/profile/webapps/');
+
 suite('make', function() {
   suiteSetup(helper.cleanupWorkspace);
-  teardown(helper.cleanupWorkspace);
+  teardown(function() {
+    helper.cleanupWorkspace();
+    cleanTestFiles();
+  });
+
+  function cleanTestFiles() {
+    if (fs.existsSync(REBUILD_TEST_FILE)) {
+      fs.unlinkSync(REBUILD_TEST_FILE);
+    }
+  }
+
+  function getTimestamp(dirPath, filter) {
+    var timestamp = {};
+
+    walker.walk(dirPath, filter, function(error, files) {
+      files.forEach(function(file) {
+        timestamp[file] = fs.statSync(file).mtime.getTime();
+      });
+    });
+
+    return timestamp;
+  }
 
   test('make without rule & variable', function(done) {
     helper.exec('make', function(error, stdout, stderr) {
@@ -155,8 +184,6 @@ suite('make', function() {
         'gallery', 'js', 'metadata_scripts.js');
       assert.ok(fs.existsSync(galleryMetadataScriptPath),
         'metadata_scripts.js should exist');
-      var galleryFrameScriptPath = path.join(process.cwd(), 'build_stage',
-        'gallery', 'js', 'frame_scripts.js');
       assert.ok(fs.existsSync(galleryMetadataScriptPath),
         'frame_scripts.js should exist');
 
@@ -173,6 +200,57 @@ suite('make', function() {
         }
       );
     });
+  });
+
+  test('make twice without modifying files should not rebuild all apps',
+    function(done) {
+      var previousSystemTime;
+      var currentSystemTime;
+
+      var filter = function(file) {
+        return /(\{.+\}|webapps\.json)/.test(file) === false;
+      };
+
+      helper.exec('make', function(error, stdout, stderr) {
+        previousSystemTime = getTimestamp(WEBAPP_DIR, filter);
+
+        helper.exec('make', function(error, stdout, stderr) {
+          currentSystemTime = getTimestamp(WEBAPP_DIR, filter);
+          assert.deepEqual(previousSystemTime, currentSystemTime);
+          done();
+        });
+      });
+  });
+
+  test('make twice with adding a file should rebuild specify app',
+    function(done) {
+      var previousSystemTime;
+      var currentSystemTime;
+      var previousOtherAppsTime;
+      var currentOtherAppsTime;
+
+      var systemAppfilter = function(file) {
+        return (file.indexOf('system.gaiamobile.org') !== -1);
+      };
+
+      var notSystemAppFilter = function(file) {
+        return /(\{.+\}|system\.gaiamobile\.org|webapps\.json)/
+          .test(file) === false;
+      };
+
+      helper.exec('make', function(error, stdout, stderr) {
+        previousSystemTime = getTimestamp(WEBAPP_DIR, systemAppfilter);
+        previousOtherAppsTime = getTimestamp(WEBAPP_DIR, notSystemAppFilter);
+        fs.writeFileSync(REBUILD_TEST_FILE, 'test');
+
+        helper.exec('make', function(error, stdout, stderr) {
+          currentSystemTime = getTimestamp(WEBAPP_DIR, systemAppfilter);
+          currentOtherAppsTime = getTimestamp(WEBAPP_DIR, notSystemAppFilter);
+          assert.notDeepEqual(previousSystemTime, currentSystemTime);
+          assert.deepEqual(previousOtherAppsTime, currentOtherAppsTime);
+          done();
+        });
+      });
   });
 
 });

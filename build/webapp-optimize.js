@@ -782,7 +782,7 @@ function execute(config) {
 
   var optimizeConfig = loadOptimizeConfig(config);
 
-  gaia.webapps.forEach(function(webapp) {
+  gaia.rebuildWebapps.forEach(function(webapp) {
     (new WebappOptimize()).execute({
       config: config,
       webapp: webapp,
