@@ -1,5 +1,5 @@
 {
-  "name": "Browser2",
+  "name": "Browser",
   "description": "Gaia System Web Browser",
   "type": "certified",
   "role": "search",
@@ -10,7 +10,7 @@
   },
   "locales": {
     "en-US": {
-      "name": "Browser2",
+      "name": "Browser",
       "description": "Gaia System Web Browser"
     }
   },
