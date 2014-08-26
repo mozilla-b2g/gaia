@@ -15,6 +15,7 @@ var EdgeSwipeDetector = {
     window.addEventListener('appopen', this);
     window.addEventListener('launchapp', this);
     window.addEventListener('cardviewclosed', this);
+    window.addEventListener('mozChromeEvent', this);
 
     ['touchstart', 'touchmove', 'touchend',
      'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
@@ -88,6 +89,20 @@ var EdgeSwipeDetector = {
           this.lifecycleEnabled = true;
         }
         break;
+      case 'mozChromeEvent':
+          if (e.detail.type !== 'accessibility-control') {
+            break;
+          }
+          var details = JSON.parse(e.detail.details);
+          switch (details.eventType) {
+            case 'edge-swipe-right':
+              this.autoSwipe('ltr');
+              break;
+            case 'edge-swipe-left':
+              this.autoSwipe('rtl');
+              break;
+          }
+          break;
     }
   },
 
@@ -273,6 +288,20 @@ var EdgeSwipeDetector = {
     var y = touch.pageY;
     return (x > layoutManager.width ||
             y > layoutManager.height);
+  },
+
+  autoSwipe: function esd_autoSwipe(direction) {
+    if (!this._lifecycleEnabled) {
+      return;
+    }
+    SheetsTransition.begin(direction);
+    if (direction === 'ltr') {
+      SheetsTransition.snapBack(1);
+      StackManager.goPrev();
+    } else {
+      SheetsTransition.snapForward(1);
+      StackManager.goNext();
+    }
   }
 };
 

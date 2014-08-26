@@ -894,4 +894,47 @@ suite('system/EdgeSwipeDetector >', function() {
       assert.isFalse(screen.classList.contains('edges-debug'));
     });
   });
+
+  suite('handleEvent: accessibility-control', function() {
+    setup(function() {
+      EdgeSwipeDetector.lifecycleEnabled = true;
+    });
+
+    test('edge-swipe-right should do an ltr autoSwipe', function() {
+      var beginSpy = this.sinon.spy(MockSheetsTransition, 'begin');
+      var snapBackSpy = this.sinon.spy(MockSheetsTransition, 'snapBack');
+      var prevSpy = this.sinon.spy(MockStackManager, 'goPrev');
+      var evt = new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'accessibility-control',
+          details: JSON.stringify({ eventType: 'edge-swipe-right' })
+        }
+      });
+      window.dispatchEvent(evt);
+      assert.isTrue(beginSpy.calledWith('ltr'));
+      assert.isTrue(snapBackSpy.calledWith(1));
+      assert.isTrue(prevSpy.calledOnce);
+    });
+
+    test('edge-swipe-left should do an rtl autoSwipe', function() {
+      var beginSpy = this.sinon.spy(MockSheetsTransition, 'begin');
+      var snapForwardSpy = this.sinon.spy(MockSheetsTransition, 'snapForward');
+      var nextSpy = this.sinon.spy(MockStackManager, 'goNext');
+      var evt = new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'accessibility-control',
+          details: JSON.stringify({ eventType: 'edge-swipe-left' })
+        }
+      });
+      window.dispatchEvent(evt);
+      assert.isTrue(beginSpy.calledWith('rtl'));
+      assert.isTrue(snapForwardSpy.calledWith(1));
+      assert.isTrue(nextSpy.calledOnce);
+    });
+
+    teardown(function() {
+      EdgeSwipeDetector.lifecycleEnabled = false;
+    });
+  });
+
 });

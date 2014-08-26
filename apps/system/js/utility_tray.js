@@ -43,6 +43,9 @@ var UtilityTray = {
     window.addEventListener('appopening', this);
     window.addEventListener('resize', this);
 
+    // Listen for screen reader edge gestures
+    window.addEventListener('mozChromeEvent', this);
+
     // Firing when the keyboard and the IME switcher shows/hides.
     window.addEventListener('keyboardimeswitchershow', this);
     window.addEventListener('keyboardimeswitcherhide', this);
@@ -197,6 +200,16 @@ var UtilityTray = {
       case 'resize':
         console.log('Window resized');
         this.validateCachedSizes(true);
+        break;
+
+      case 'mozChromeEvent':
+        if (evt.detail.type !== 'accessibility-control') {
+          break;
+        }
+        var eventType = JSON.parse(evt.detail.details).eventType;
+        if (eventType === 'edge-swipe-down') {
+          this[this.shown ? 'hide' : 'show']();
+        }
         break;
     }
   },

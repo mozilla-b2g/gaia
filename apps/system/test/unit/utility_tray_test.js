@@ -296,6 +296,32 @@ suite('system/UtilityTray', function() {
     });
   });
 
+  suite('handleEvent: accessibility-control', function() {
+    test('first swipe should show', function() {
+      UtilityTray.hide();
+      var evt = new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'accessibility-control',
+          details: JSON.stringify({ eventType: 'edge-swipe-down' })
+        }
+      });
+      UtilityTray.handleEvent(evt);
+      assert.equal(UtilityTray.shown, true);
+    });
+
+    test('second swipe should hide', function() {
+      UtilityTray.show();
+      var evt = new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'accessibility-control',
+          details: JSON.stringify({ eventType: 'edge-swipe-down' })
+        }
+      });
+      UtilityTray.handleEvent(evt);
+      assert.equal(UtilityTray.shown, false);
+    });
+  });
+
   suite('handleEvent: launchapp', function() {
     setup(function() {
       UtilityTray.show();
