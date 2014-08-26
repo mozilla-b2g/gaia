@@ -1,4 +1,5 @@
-/* global SimLock, MockL10n, MocksHelper, SimPinDialog, MockSIMSlotManager */
+/* global SimLock, MockL10n, MocksHelper, SimPinDialog */
+/* global MockSIMSlotManager, MockVersionHelper */
 /* global preInit, VersionHelper:true */
 
 'use strict';
@@ -60,7 +61,7 @@ suite('SimLock', function() {
     });
 
     test('no simpin dialog would show up on first run', function() {
-      VersionHelper = window.MockVersionHelper(false);
+      VersionHelper = MockVersionHelper(false);
       window.dispatchEvent(new window.CustomEvent('ftuopen'));
       VersionHelper.getVersionInfo();
       VersionHelper.resolve({ isUpgrade: function () {
@@ -71,7 +72,7 @@ suite('SimLock', function() {
     });
 
     test('simpin dialog would show up on upgrade', function() {
-      VersionHelper = window.MockVersionHelper(true);
+      VersionHelper = MockVersionHelper(true);
       window.dispatchEvent(new window.CustomEvent('ftuopen'));
       VersionHelper.getVersionInfo();
       VersionHelper.resolve({ isUpgrade: function () {

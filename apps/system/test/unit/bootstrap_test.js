@@ -1,12 +1,13 @@
 'use strict';
 /*global MockNavigatormozApps, MockNavigatorSettings, MocksHelper, MockL10n,
          MockApplications, Applications, MockNavigatormozSetMessageHandler,
-         MockGetDeviceStorages */
+         MockGetDeviceStorages, MockVersionHelper */
 
 requireApp('system/shared/js/async_storage.js');
 requireApp('system/shared/js/lazy_loader.js');
 requireApp('system/shared/js/screen_layout.js');
 requireApp('system/shared/js/nfc_utils.js');
+requireApp('system/shared/js/version_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -21,6 +22,7 @@ requireApp('system/js/activities.js');
 requireApp('system/js/activity_window_factory.js');
 requireApp('system/js/activity_window_manager.js');
 requireApp('system/js/airplane_mode.js');
+requireApp('system/js/app_migrator.js');
 requireApp('system/js/app_usage_metrics.js');
 requireApp('system/js/app_window_factory.js');
 requireApp('system/js/browser_settings.js');
@@ -64,6 +66,7 @@ requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_task_manager.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_version_helper.js');
 
 var mocksForBootstrap = new MocksHelper([
   'AirplaneMode',
@@ -75,7 +78,8 @@ var mocksForBootstrap = new MocksHelper([
   'SettingsURL',
   'TaskManager',
   'L10n',
-  'AppWindowManager'
+  'AppWindowManager',
+  'VersionHelper'
 ]).init();
 
 suite('system/Bootstrap', function() {
@@ -87,6 +91,7 @@ suite('system/Bootstrap', function() {
   var realDocumentElementDir;
   var realDocumentElementLang;
   var realApplications;
+  var realVersionHelper;
   var fakeElement;
 
   mocksForBootstrap.attachTestHelpers();
@@ -129,6 +134,9 @@ suite('system/Bootstrap', function() {
     realNavigatorGetDeviceStorages = navigator.getDeviceStorages;
     navigator.getDeviceStorages = MockGetDeviceStorages;
 
+    realVersionHelper = window.VersionHelper;
+    window.VersionHelper = MockVersionHelper(false);
+    
     requireApp('system/js/bootstrap.js', done);
   });
 
