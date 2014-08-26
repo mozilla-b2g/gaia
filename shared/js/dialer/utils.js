@@ -9,6 +9,21 @@ var Utils = {
     return dtf.localeFormat(new Date(time), _('shortTimeFormat'));
   },
 
+  prettyDuration: function(duration) {
+    function padNumber(n) {
+      return n > 9 ? n : '0' + n;
+    }
+
+    var elapsed = new Date(duration);
+    var durationL10n = {
+      h: padNumber(elapsed.getUTCHours()),
+      m: padNumber(elapsed.getUTCMinutes()),
+      s: padNumber(elapsed.getUTCSeconds())
+    };
+    return navigator.mozL10n.get(elapsed.getUTCHours() > 0 ?
+      'callDurationHours' : 'callDurationMinutes', durationL10n);
+  },
+
   headerDate: function ut_headerDate(time) {
     var _ = navigator.mozL10n.get;
     var dtf = new navigator.mozL10n.DateTimeFormat();

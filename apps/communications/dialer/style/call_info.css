@@ -4,4 +4,38 @@
   background: white;
   width: 100vw;
   height: calc(100vh - 4.5rem);
+
+  /* XXX Remove */
+  color: black;
+}
+
+.call-duration {
+  display: flex;
+}
+
+.cd__time {
+  flex-grow: 1;
+}
+
+.cd__duration {
+  text-align: right;
+}
+
+
+.ci__direction-icon {
+  width: 2rem;
+  height: 2rem;
+  background-size: cover;
+}
+
+.icon-outgoing {
+  background-image: url(images/call_info/callinfo_ic_outgoing.png);
+}
+
+.icon-incoming {
+  background-image: url(images/call_info/callinfo_ic_incoming.png);
+}
+
+.icon-missed {
+  background-image: url(images/call_info/callinfo_ic_missed.png);
 }
