@@ -79,8 +79,7 @@
     checkCardAndInternetSharing: function() {
       this._cardState = IccHelper.cardState;
       if (validCardState.indexOf(this._cardState) > -1) {
-        this.addObservers();
-        this.restoreInternetSharingState();
+        this.restoreInternetSharingState(this.addObservers.bind(this));
       }
     },
 
@@ -89,18 +88,25 @@
      * Grabs the state from asyncStorage and saves it to mozSettings.
      * @memberof InternetSharing.prototype
      */
-    restoreInternetSharingState: function() {
+    restoreInternetSharingState: function(callback) {
+      var settingsRemaining = 2;
+
       // the function restores settings based on type, cardId.
       function doRestore(type, cardId, forceDisabled) {
         // build the key for asyncStorage.
         var key = 'tethering.' + type + '.simstate.card-' + cardId;
-        asyncStorage.getItem(key, function callback(value) {
+        asyncStorage.getItem(key, function gotItem(value) {
           // if forceDisable is true, we need to disable it always.
           var simState = forceDisabled ? false : (value || false);
           // update value for type
           var cset = {};
           cset['tethering.' + type + '.enabled'] = simState;
           settings.createLock().set(cset);
+
+          // invoke the callback if both settings have been restore
+          if (--settingsRemaining === 0) {
+            callback();
+          }
         });
       }
       // the internet sharing is linked with iccid, if cardState is not ready,
