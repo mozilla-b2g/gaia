@@ -37,9 +37,13 @@
     this.lockscreen = new window.LockScreen();
     window.lockScreen = this.lockscreen;
     this.lockscreen.init();
+
+    var notificationContainer =
+      document.getElementById('notifications-lockscreen-container');
     window.lockScreenNotificationBuilder
-      .start(document.getElementById('notifications-lockscreen-container'));
-    window.lockScreenNotifications.start(window.lockScreen);
+      .start(notificationContainer);
+    window.lockScreenNotifications
+      .start(window.lockScreen, notificationContainer);
     window.lockScreenStateManager = new window.LockScreenStateManager();
     window.lockScreenStateManager.start(window.lockScreen);
   };

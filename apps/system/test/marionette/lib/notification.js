@@ -180,13 +180,21 @@ NotificationList.prototype = {
   },
 
   // make sure we have an item with given title and body from the lockscreen.
-  containsLockScreen: function(details) {
-    return this.getCount(true, details) > 0;
+  containsLockScreen: function(details, shouldNot) {
+    this.client.waitFor((function() {
+      var count = this.getCount(true, details);
+      return !shouldNot ? count > 0 : count === 0;
+    }).bind(this));
+    return true;
   },
 
   // make sure we have an item with given title and body
-  contains: function(details) {
-    return this.getCount(false, details) > 0;
+  contains: function(details, shouldNot) {
+    this.client.waitFor((function() {
+      var count = this.getCount(false, details);
+      return !shouldNot ? count > 0 : count === 0;
+    }).bind(this));
+    return true;
   }
 };
 
