@@ -30,7 +30,7 @@ RootPanel.Selectors = {
   'mediaStorageDesc': '.media-storage-desc',
   'simManagerItem': '#simCardManager-settings',
   'simSecurityItem': '#simSecurity-settings',
-  'screenLockDesc': '#screenLock-desc',
+  'screenLockDesc': '.screenLock-desc',
   'wifiDesc': '#wifi-desc',
   'usbStorageCheckbox': '.ums-switch-root',
   'usbStorageSpan': '.ums-switch-root ~ span',

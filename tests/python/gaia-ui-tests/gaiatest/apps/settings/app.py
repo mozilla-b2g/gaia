@@ -17,7 +17,7 @@ class Settings(Base):
     _application_storage_text_locator = (By.CSS_SELECTOR, '.application-storage-desc')
     _media_storage_text_locator = (By.ID, 'media-storage-desc')
     _usb_storage_text_locator = (By.CSS_SELECTOR, '.ums-desc-root')
-    _screen_lock_text_locator = (By.ID, 'screenLock-desc')
+    _screen_lock_text_locator = (By.CSS_SELECTOR, '.screenLock-desc')
     _language_text_locator = (By.ID, 'language-desc')
     _bluetooth_text_locator = (By.CSS_SELECTOR, '.bluetooth-desc')
 
