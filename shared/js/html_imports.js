@@ -48,9 +48,6 @@ var HtmlImports = {
   },
 
   getImportContent: function(path, callback) {
-    // bail out if the imported resource isn't in the same origin
-    var parsedURL = new URL(path, location.href);
-    if (parsedURL.origin !== location.origin) { return }
     var xhr = new XMLHttpRequest();
     xhr.onload = function(o) {
       callback(xhr.responseText);
