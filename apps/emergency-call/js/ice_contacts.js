@@ -31,24 +31,33 @@
       contactsToProcess = 0,
       processedContacts = 0,
       iceContactsBar = document.getElementById('ice-contacts-bar'),
-      iceContactsOverlay = document.getElementById('ice-contacts-overlay'),
-      iceContactOverlayItemTemplate =
-        document.getElementById('ice-contact-overlay-item-template'),
-      iceContactsList,
-      iceContactsCancel;
+      contactListOverlay = document.getElementById('contact-list-overlay'),
+      contactInOverlay = document.getElementById('contact-in-overlay'),
+      contactList,
+      contactListCancel;
 
   function init() {
     if (initiated) {
       return;
     }
 
-    iceContactsList = document.getElementById('ice-contacts-list');
-    iceContactsCancel = document.getElementById('ice-contact-cancel');
+    LazyLoader.load([contactListOverlay], function() {
+      var contactListOverlayHeader = contactListOverlay.querySelector('header');
 
-    iceContactsBar.addEventListener('click', showICEContactOverlay);
-    iceContactsCancel.addEventListener('click', hideICEContactOverlay);
+      navigator.mozL10n.ready(function() {
+        contactListOverlayHeader.textContent =
+          navigator.mozL10n.get('ice-contacts-overlay-title');
+      });
 
-    initiated = true;
+      contactList = document.getElementById('contact-list');
+      contactListCancel =
+        document.getElementById('contact-list-overlay-cancel');
+
+      iceContactsBar.addEventListener('click', showICEContactOverlay);
+      contactListCancel.addEventListener('click', hideICEContactOverlay);
+
+      initiated = true;
+    });
   }
 
   function showICEContactsBar() {
@@ -60,11 +69,11 @@
   }
 
   function showICEContactOverlay() {
-    iceContactsOverlay.classList.add('display');
+    contactListOverlay.classList.add('display');
   }
 
   function hideICEContactOverlay() {
-    iceContactsOverlay.classList.remove('display');
+    contactListOverlay.classList.remove('display');
   }
 
   function callICEContact(number) {
@@ -74,24 +83,27 @@
 
   function addContactToOverlay(contact, resolve) {
     contact.tel.forEach(function (tel) {
-      var iceContactOverlayEntry =
-        iceContactOverlayItemTemplate.cloneNode(true);
-      iceContactOverlayEntry.removeAttribute('id');
-      iceContactOverlayEntry.removeAttribute('hidden');
-      iceContactOverlayEntry.children[0].textContent =
-        Utils.getPhoneNumberPrimaryInfo(tel, contact);
-      iceContactOverlayEntry.children[1].textContent =
-        Utils.getPhoneNumberAndType(tel);
-      iceContactsList.insertBefore(iceContactOverlayEntry, iceContactsCancel);
-      iceContactOverlayEntry.addEventListener('click',
-        callICEContact.bind(null, tel.value));
-      // Set the ICE contacts bar visible as soon as there is some
-      //  ICE contact to call.
-      showICEContactsBar();
+      navigator.mozL10n.ready(function() {
+        var iceContactOverlayEntry = contactInOverlay.cloneNode(true);
+        iceContactOverlayEntry.removeAttribute('id');
+        iceContactOverlayEntry.removeAttribute('hidden');
+        iceContactOverlayEntry.querySelector('.js-name').textContent =
+          contact.name[0];
+        iceContactOverlayEntry.querySelector('.js-tel-type').textContent =
+          navigator.mozL10n.get(tel.type[0]);
+        iceContactOverlayEntry.querySelector('.js-tel').textContent =
+            tel.value;
+        contactList.insertBefore(iceContactOverlayEntry, contactListCancel);
+        iceContactOverlayEntry.addEventListener('click',
+          callICEContact.bind(null, tel.value));
+        // Set the ICE contacts bar visible as soon as there is some
+        //  ICE contact to call.
+        showICEContactsBar();
+        if (updateCompleted()) {
+          resolve();
+        }
+      });
     });
-    if (++processedContacts === contactsToProcess) {
-      resolve();
-    }
   }
 
   /**
@@ -160,6 +172,9 @@
     }
   }
 
+  function updateCompleted() {
+    return ++processedContacts === contactsToProcess;
+  }
   /**
    * Gets the ICE contacts, show the ICE contacts bar if appropriate and loads
    *  the ICE contacts on the overlay for future calling.
@@ -176,8 +191,7 @@
     // createICEContacts(0, 0, 0, function() {
     processedContacts = 0;
     return new Promise(function (resolve) {
-      LazyLoader.load([iceContactsOverlay,
-                       iceContactOverlayItemTemplate],
+      LazyLoader.load([contactInOverlay],
         function() {
           init();
           ICEStore.getContacts().then(function (iceContacts) {
@@ -197,13 +211,13 @@
                 contactRequest.onsuccess = function () {
                   var contact = this.result[0];
                   if (!contact || !contact.tel || contact.tel.length === 0) {
-                    if (iceContactsList.children.length === 1) {
+                    if (contactList.children.length === 1) {
                       // Hide the ICE contacts bar in case the contact has no
                       //  associated telephone numbers and there is no entry in
                       //  the ICE contacts overlay yet.
                       hideICEContactsBar();
                     }
-                    if (++processedContacts === contactsToProcess) {
+                    if (updateCompleted()) {
                       resolve();
                     }
                     return;

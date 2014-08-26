@@ -31,7 +31,7 @@ var SuggestionBar = {
   init: function sb_init() {
     // When the DOM is absent (in the call screen) we don't need
     // to initialize the module.
-    this.overlay = document.getElementById('suggestion-overlay');
+    this.overlay = document.getElementById('contact-list-overlay');
     if (!this.overlay) {
       return;
     }
@@ -39,7 +39,7 @@ var SuggestionBar = {
     this.bar = document.getElementById('suggestion-bar');
     this.barSuggestionItem = this.bar.querySelector('.js-suggestion-item');
     this.countTag = document.getElementById('suggestion-count');
-    this.template = document.getElementById('suggestion-item-template');
+    this.template = document.getElementById('contact-in-overlay-template');
 
     this.overlay.addEventListener('click', this);
     this.bar.addEventListener('click', this);
@@ -318,8 +318,8 @@ var SuggestionBar = {
       return;
     }
 
-    this.list = document.getElementById('suggestion-list');
-    this.overlayCancel = document.getElementById('suggestion-overlay-cancel');
+    this.list = document.getElementById('contact-list');
+    this.overlayCancel = document.getElementById('contact-list-overlay-cancel');
     this.overlayCancel.addEventListener('click', this.hideOverlay.bind(this));
   },
 
