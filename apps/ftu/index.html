@@ -262,22 +262,49 @@
       </section>
       <section role="region" id="configure_network">
         <section id="configure_network_params">
-          <form data-type="list">
+          <form data-type="list" id="wifi-configure-network-form">
             <ul>
               <li class="hidden">
-                <input type="text" id="wifi_ssid" value="" dir="auto"></input>
+                <input type="text" id="wifi-ssid" value="" dir="auto" />
+              </li>
+              <li class="for-eap">
+                <label for="wifi-eap-method" data-l10n-id="eap-method">EAP Method</label>
+                <span class="button icon icon-dialog">
+                  <select id="wifi-eap-method">
+                    <option data-l10n-id="eapMethodSIM" value="SIM" selected>SIM</option>
+                    <option data-l10n-id="eapMethodPEAP" value="PEAP">PEAP</option>
+                    <option data-l10n-id="eapMethodTTLS" value="TTLS">TTLS</option>
+                  </select>
+                </span>
+              </li>
+              <li class="for-eap">
+                <label for="wifi-phase-2-authentication" data-l10n-id="phase-2-authentication">Phase 2 Authentication</label>
+                <span class="button icon icon-dialog">
+                  <select id="wifi-phase-2-authentication">
+                    <option data-l10n-id="phase2AuthenticationNone" value="No" selected>None</option>
+                    <option data-l10n-id="phase2AuthenticationMSCHAPV2" value="MSCHAPV2">MSCHAPV2</option>
+                  </select>
+                </span>
+              </li>
+              <li class="for-eap">
+                <label id="label_wifi_user" for="wifi-user" data-l10n-id="identity">Identity</label>
+                <input type="text" id="wifi-user" data-l10n-id="identityInput" placeholder="User" x-inputmode="verbatim" dir="auto" />
               </li>
               <li>
-                <label id="label_wifi_user" for="wifi_user" data-l10n-id="identity">User</label>
-                <input type="text" id="wifi_user" data-l10n-id="identityInput" placeholder="User" x-inputmode="verbatim" dir="auto"></input>
-              </li>
-              <li>
-                <label for="wifi_password" data-l10n-id="password">Password</label>
-                <input type="password" id="wifi_password" data-l10n-id="passwordInput" placeholder="Password" value="" maxlength="63" x-inputmode="verbatim"></input>
+                <label for="wifi-password" data-l10n-id="password">Password</label>
+                <input type="password" id="wifi-password" data-l10n-id="passwordInput" placeholder="Password" value="" maxlength="63" x-inputmode="verbatim" />
                 <label class="pack-checkbox" id="label_show_password">
                   <input type="checkbox" data-ignore name="show_password" />
                   <span id="wifi_show_password" data-l10n-id="showPassword">Show Password</span>
                 </label>
+              </li>
+              <li class="for-eap">
+                <label for="wifi-server-certificate" data-l10n-id="server-certificate">Server Certificate</label>
+                <span class="button icon icon-dialog">
+                  <select id="wifi-server-certificate">
+                    <option data-l10n-id="serverCertificateUnspecified" value="none" selected>(Unspecified)</option>
+                  </select>
+                </span>
               </li>
             </ul>
           </form>
@@ -285,7 +312,7 @@
       </section>
       <section role="region" id="hidden-wifi-authentication">
         <div>
-          <form data-type="list">
+          <form data-type="list" id="hidden-wifi-configure-network-form">
             <ul>
               <li>
                 <label id="label_wifi_ssid" for="hidden-wifi-ssid" data-l10n-id="ssid-name">
@@ -294,19 +321,36 @@
                 <input type="text" name="wifi_ssid" id="hidden-wifi-ssid" dir="auto"/>
               </li>
               <li>
-                <label id="label_wifi_security" for="hidden-wifi-security" data-l10n-id="security">
-                  Security
-                </label>
+                <label id="label_wifi_security" for="hidden-wifi-security" data-l10n-id="security">Security</label>
                 <span class="button icon icon-dialog">
                   <select id="hidden-wifi-security">
-                    <option data-l10n-id="securityNone">none</option>
-                    <option data-l10n-id="securityWEP">WEP</option>
-                    <option data-l10n-id="securityWPA-PSK" selected>WPA-PSK</option>
-                    <option data-l10n-id="securityWPA-EAP">WPA-EAP</option>
+                    <option data-l10n-id="securityNone" value="none">none</option>
+                    <option data-l10n-id="securityWEP" value="WEP">WEP</option>
+                    <option data-l10n-id="securityWPA-PSK" value="WPA-PSK" selected>WPA-PSK</option>
+                    <option data-l10n-id="securityWPA-EAP" value="WPA-EAP">WPA-EAP</option>
                   </select>
                 </span>
               </li>
-              <li class="hidden" id="hidden-wifi-identity-box">
+              <li class="for-eap">
+                <label for="hidden-wifi-eap-method" data-l10n-id="eap-method">EAP Method</label>
+                <span class="button icon icon-dialog">
+                  <select id="hidden-wifi-eap-method">
+                    <option data-l10n-id="eapMethodSIM" value="SIM" selected>SIM</option>
+                    <option data-l10n-id="eapMethodPEAP" value="PEAP">PEAP</option>
+                    <option data-l10n-id="eapMethodTTLS" value="TTLS">TTLS</option>
+                  </select>
+                </span>
+              </li>
+              <li class="for-eap">
+                <label for="hidden-wifi-phase-2-authentication" data-l10n-id="phase-2-authentication">Phase 2 Authentication</label>
+                <span class="button icon icon-dialog">
+                  <select id="hidden-wifi-phase-2-authentication">
+                    <option data-l10n-id="phase2AuthenticationNone" value="No" selected>None</option>
+                    <option data-l10n-id="phase2AuthenticationMSCHAPV2" value="MSCHAPV2">MSCHAPV2</option>
+                  </select>
+                </span>
+              </li>
+              <li class="for-eap" id="hidden-wifi-identity-box">
                 <label id="label_wifi_identity" for="hidden-wifi-identity" data-l10n-id="identity">
                   Identity
                 </label>
@@ -323,6 +367,14 @@
                     Show Password
                   </span>
                 </label>
+              </li>
+              <li class="for-eap">
+                <label for="hidden-wifi-server-certificate" data-l10n-id="server-certificate">Server Certificate</label>
+                <span class="button icon icon-dialog">
+                  <select id="hidden-wifi-server-certificate">
+                    <option data-l10n-id="serverCertificateUnspecified" value="none" selected>(Unspecified)</option>
+                  </select>
+                </span>
               </li>
             </ul>
           </form>

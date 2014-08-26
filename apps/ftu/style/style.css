@@ -458,6 +458,16 @@ aside.connecting {
   pointer-events: auto;
 }
 
+#wifi-configure-network-form .for-eap,
+#hidden-wifi-configure-network-form .for-eap {
+  display: none;
+}
+
+#wifi-configure-network-form.is-eap .for-eap,
+#hidden-wifi-configure-network-form.is-eap .for-eap {
+  display: block;
+}
+
 /*
   Finish process
 */

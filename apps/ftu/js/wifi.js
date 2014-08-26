@@ -1,6 +1,7 @@
 /* global utils,
           UIManager,
-          WifiHelper */
+          WifiHelper,
+          SimManager */
 /* exported WifiManager, WifiUI */
 'use strict';
 
@@ -106,12 +107,10 @@ var WifiManager = {
     return network;
   },
 
-  connect: function wn_connect(ssid, password, user) {
+  connect: function wn_connect(ssid, password, user, eap, phase2, certificate) {
     var network = this.getNetwork(ssid);
     this.ssid = ssid;
-    // TODO: Hardcoded for resolving bug 1019146, replace hardcoded eap
-    //       method with user selected eap method after bug 1036829.
-    WifiHelper.setPassword(network, password, user, 'PEAP');
+    WifiHelper.setPassword(network, password, user, eap, phase2, certificate);
     this.gCurrentNetwork = network;
     this.api.associate(network);
   },
@@ -144,16 +143,31 @@ var WifiManager = {
         }
       };
     }
+  },
+
+  // Return the names of all the imported certificates
+  getCertificateNames: function wm_getImportedCertificates() {
+    var request = this.api.getImportedCerts();
+
+    return new Promise(function(resolve, reject) {
+      request.onsuccess = function() {
+        resolve(request.result.ServerCert);
+      };
+    });
   }
 };
 
 var WifiUI = {
 
   joinNetwork: function wui_jn() {
-    var password = document.getElementById('wifi_password').value;
-    var user = document.getElementById('wifi_user').value;
-    var ssid = document.getElementById('wifi_ssid').value;
-    WifiUI.connect(ssid, password, user);
+    var password = UIManager.wifiPassword.value;
+    var user = UIManager.wifiUser.value;
+    var ssid = UIManager.wifiSsid.value;
+    var eap = UIManager.wifiEapMethod.value;
+    var phase2 = UIManager.wifiPhase2Authentication.value;
+    var certificate = UIManager.wifiServerCertificate.value;
+
+    WifiUI.connect(ssid, password, user, eap, phase2, certificate);
     window.history.back();
   },
 
@@ -162,6 +176,10 @@ var WifiUI = {
     var user = UIManager.hiddenWifiIdentity.value;
     var ssid = UIManager.hiddenWifiSsid.value;
     var security = UIManager.hiddenWifiSecurity.value;
+    var eap = UIManager.hiddenWifiEapMethod.value;
+    var phase2 = UIManager.hiddenWifiPhase2Authentication.value;
+    var certificate = UIManager.hiddenWifiServerCertificate.value;
+
     if (ssid.length) {
       if (!Array.isArray(WifiManager.networks)) {
         WifiManager.networks = [];
@@ -173,7 +191,7 @@ var WifiUI = {
           relSignalStrength: 0
       });
       this.renderNetworks(WifiManager.networks);
-      WifiUI.connect(ssid, password, user);
+      WifiUI.connect(ssid, password, user, eap, phase2, certificate);
     }
 
     // like in Settings: if we don't provide correct
@@ -181,7 +199,8 @@ var WifiUI = {
     window.history.back();
   },
 
-  connect: function wui_connect(ssid, password, user) {
+  connect:
+    function wui_connect(ssid, password, user, eap, phase2, certificate) {
 
     // First we check if there is a previous selected network
     // and we remove their status
@@ -212,7 +231,7 @@ var WifiUI = {
 
 
     // Finally we try to connect to the network
-    WifiManager.connect(ssid, password, user);
+    WifiManager.connect(ssid, password, user, eap, phase2, certificate);
   },
 
   chooseNetwork: function wui_cn(event) {
@@ -232,41 +251,49 @@ var WifiUI = {
 
     // Update network
     var selectedNetwork = WifiManager.getNetwork(ssid);
-    var ssidHeader = document.getElementById('wifi_ssid');
-    var userLabel = document.getElementById('label_wifi_user');
-    var userInput = document.getElementById('wifi_user');
-    var passwordInput = document.getElementById('wifi_password');
+    var isEap = WifiHelper.isEap(selectedNetwork);
     var showPassword = document.querySelector('input[name=show_password]');
+    var wifiUser = UIManager.wifiUser;
+    var wifiPassword = UIManager.wifiPassword;
     var joinButton = UIManager.wifiJoinButton;
 
+    if (isEap) {
+      this.renderServerCertificates(UIManager.wifiServerCertificate);
+    }
+
     joinButton.disabled = true;
-    passwordInput.addEventListener('keyup', function validatePassword() {
+    wifiPassword.addEventListener('keyup', function validatePassword() {
+      var isValidInput = WifiHelper.isValidInput(
+        WifiHelper.getKeyManagement(selectedNetwork),
+        wifiPassword.value,
+        wifiUser.value);
+
       // disable the "Join" button if the password is too short
-      joinButton.disabled =
-        !WifiHelper.isValidInput(WifiHelper.getKeyManagement(selectedNetwork),
-          passwordInput.value, userInput.value);
+      joinButton.disabled = !isValidInput;
     });
 
     // Show / Hide password
-    passwordInput.type = 'password';
-    passwordInput.value = '';
+    wifiPassword.type = 'password';
+    wifiPassword.value = '';
     showPassword.checked = false;
     showPassword.onchange = function togglePasswordVisibility() {
-      passwordInput.type = this.checked ? 'text' : 'password';
+      wifiPassword.type = this.checked ? 'text' : 'password';
     };
 
     // Update form
-    passwordInput.value = '';
-    ssidHeader.value = ssid;
+    UIManager.wifiSsid.value = ssid;
+    wifiUser.value = '';
 
     // Activate secondary menu
     UIManager.navBar.classList.add('secondary-menu');
-    // Update changes in form
-    if (WifiHelper.isEap(WifiManager.getNetwork(ssid))) {
-      userInput.parentNode.classList.remove('hidden');
-    } else {
-      userInput.parentNode.classList.add('hidden');
+
+    // If there is no SIM available, switch the selected EAP method to PEAP
+    if (!SimManager.simAvailable()) {
+      UIManager.wifiEapMethod.querySelector('[value=PEAP]').selected = true;
     }
+
+    // Update changes in form
+    UIManager.wifiConfigureNetworkForm.classList.toggle('is-eap', isEap);
 
     // Change hash
     window.location.hash = '#configure_network';
@@ -278,15 +305,15 @@ var WifiUI = {
     // Update title
     UIManager.mainTitle.textContent = _('authentication');
     UIManager.navBar.classList.add('secondary-menu');
+    this.renderServerCertificates(UIManager.hiddenWifiServerCertificate);
     window.location.hash = '#hidden-wifi-authentication';
   },
 
   handleHiddenWifiSecurity: function wui_handleSecurity(securityType) {
-    if (securityType.indexOf('EAP') !== -1) {
-      UIManager.hiddenWifiIdentityBox.classList.remove('hidden');
-    } else {
-      UIManager.hiddenWifiIdentityBox.classList.add('hidden');
-    }
+    var isEap = securityType.indexOf('EAP') !== -1;
+
+    UIManager.hiddenWifiConfigureNetworkForm.classList
+      .toggle('is-eap', isEap);
   },
 
   renderNetworks: function wui_rn(networks) {
@@ -400,6 +427,30 @@ var WifiUI = {
     } else {
       icon.classList.remove('connecting');
     }
+  },
+
+  renderServerCertificates: function wui_rsc(element) {
+    // Fetch the names of all the imported certificates and insert those as
+    // options into the Server Certificate select element
+    WifiManager
+      .getCertificateNames()
+      .then(function(names) {
+        if (!names.length) {
+          return;
+        }
+
+        var fragment = document.createDocumentFragment();
+
+        names.forEach(function(name) {
+          var option = document.createElement('option');
+          option.value = name;
+          option.innerHTML = name;
+
+          fragment.appendChild(option);
+        });
+
+        element.appendChild(fragment);
+      });
   }
 
 };
