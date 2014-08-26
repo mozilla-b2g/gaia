@@ -274,8 +274,13 @@ var metadataParser = (function() {
       function previewerror(msg) {
         // The preview isn't a valid jpeg file, so use the full image to
         // create a preview and a thumbnail
-        console.error(msg);
-        useFullsizeImage();
+        if (msg !== 'Source image is corrupt') {
+          console.error(msg);
+          useFullsizeImage();
+        }
+        else {
+          metadataCallback(null);
+        }
       }
 
       // If we can't find a valid embedded EXIF preview image then we come here

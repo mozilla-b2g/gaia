@@ -476,13 +476,19 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
         }
       }
 
-      // Now we copy the image into the canvas
-      context.drawImage(offscreenImage,
-                        // What part of the image we're drawing
-                        inputCropRegion.left, inputCropRegion.top,
-                        inputCropRegion.width, inputCropRegion.height,
-                        // And what part of the canvas we're drawing it to
-                        0, 0, destWidth, destHeight);
+      try {
+        // Now we copy the image into the canvas
+        context.drawImage(offscreenImage,
+                          // What part of the image we're drawing
+                          inputCropRegion.left, inputCropRegion.top,
+                          inputCropRegion.width, inputCropRegion.height,
+                          // And what part of the canvas we're drawing it to
+                          0, 0, destWidth, destHeight);
+      }
+      catch(ex) {
+        console.warn('Source image is corrupt', ex);
+        return callback('Source image is corrupt');
+      }
 
       // Once the image has been copied, we can release the decoded image
       // memory and the blob URL.
