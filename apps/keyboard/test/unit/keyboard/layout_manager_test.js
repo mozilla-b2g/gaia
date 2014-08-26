@@ -959,6 +959,74 @@ suite('LayoutManager', function() {
       }).then(done, done);
     });
 
+    test('type=search, with IME switching', function (done) {
+      app.getBasicInputType.returns('search');
+      app.supportsSwitching.returns(true);
+
+      manager.switchCurrentLayout('spaceLayout').then(function() {
+        assert.deepEqual(manager.currentLayout, spaceLayout,
+          'Original layout not touched.');
+
+        var expectedModifiedLayout = {
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
+          keys: [ [ { value: 'S' } ],
+                  [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
+                      value: '12&',
+                      ratio: 2.0,
+                      ariaLabel: 'alternateLayoutKey',
+                      className: 'switch-key' },
+                    { value: '@', ratio: 1, keyCode: 64 },
+                    { ratio: 4.0 },
+                    { value: '.', ratio: 1, keyCode: 46 },
+                    { value: 'ENTER', ratio: 2.0,
+                      keyCode: KeyboardEvent.DOM_VK_RETURN,
+                      className: 'search-icon' } ] ] };
+
+        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assert.equal(manager.currentModifiedLayout.__proto__,
+          spaceLayout, 'proto is set correctly for layout.');
+        assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
+          spaceLayout.keys[1][0], 'proto is set correctly for space key.');
+      }, function() {
+        assert.isTrue(false, 'Should not reject.');
+      }).then(done, done);
+    });
+
+    test('type=search, without IME switching', function (done) {
+      app.getBasicInputType.returns('search');
+      app.supportsSwitching.returns(false);
+
+      manager.switchCurrentLayout('spaceLayout').then(function() {
+        assert.deepEqual(manager.currentLayout, spaceLayout,
+          'Original layout not touched.');
+
+        var expectedModifiedLayout = {
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
+          keys: [ [ { value: 'S' } ],
+                  [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
+                      value: '12&',
+                      ratio: 2.0,
+                      ariaLabel: 'alternateLayoutKey',
+                      className: 'switch-key' },
+                    { value: '@', ratio: 1, keyCode: 64 },
+                    { ratio: 4.0 },
+                    { value: '.', ratio: 1, keyCode: 46 },
+                    { value: 'ENTER', ratio: 2.0,
+                      keyCode: KeyboardEvent.DOM_VK_RETURN,
+                      className: 'search-icon' } ] ] };
+
+        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assert.equal(manager.currentModifiedLayout.__proto__,
+          spaceLayout, 'proto is set correctly for layout.');
+        assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
+          spaceLayout.keys[1][0], 'proto is set correctly for space key.');
+      }, function() {
+        assert.isTrue(false, 'Should not reject.');
+      }).then(done, done);
+    });
+
     test('type=text (suppress comma)', function(done) {
       app.getBasicInputType.returns('text');
       app.supportsSwitching.returns(false);
