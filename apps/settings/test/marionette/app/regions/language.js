@@ -18,7 +18,7 @@ module.exports = LanguagePanel;
 LanguagePanel.Selectors = {
   'languagePanel': '#languages',
   'body': 'body',
-  'back': 'a[href="#root"]',
+  'header': 'gaia-header',
   'languageChangeSelect': '#languages select[name="language.current"]',
   'languageLabel': 'p[data-l10n-id="language"]',
   'languageRegionDateLabel': '#region-date'
@@ -126,7 +126,7 @@ LanguagePanel.prototype = {
 
   back: function() {
     var parentSection = this.waitForElement('languagePanel');
-    this.findElement('back').tap();
+    this.findElement('header').tap(25, 25);
 
     var bodyWidth = this.findElement('body').size().width;
     this.client.waitFor(function() {

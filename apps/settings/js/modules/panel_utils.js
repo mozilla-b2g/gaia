@@ -146,7 +146,18 @@ define(function(require) {
       var i, count;
 
       for (i = 0, count = links.length; i < count; i++) {
-        links[i].onclick = _onclick;
+        if (links[i].tagName !== 'GAIA-HEADER') {
+          links[i].onclick = _onclick;
+        }
+      }
+
+      // Setup back listener
+      var backHeader = panel.querySelector('gaia-header[action="back"]');
+      var href = backHeader && backHeader.dataset.href;
+      if (backHeader && href) {
+        backHeader.addEventListener('action', function() {
+          Settings.currentPanel = this.dataset.href;
+        });
       }
     },
 

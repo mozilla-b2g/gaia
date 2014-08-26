@@ -19,7 +19,7 @@
 
   // Buttons
   var editButton = null;
-  var closeButton = null;
+  var editHeader = null;
   var deleteButton = null;
   var selectAllButton = null;
   var deselectAllButton = null;
@@ -352,37 +352,19 @@
   function _loadEditMode() {
     // Disable all checks
     _disableAllChecks();
-    // Ensure that header is the firstchild for using building blocks
-    var targetHeader = document.getElementById('edit-mode-header');
-    targetHeader.parentNode.insertBefore(
-      targetHeader,
-      targetHeader.parentNode.firstChild
-    );
-    targetHeader.hidden = downloadsEditMenu.hidden = false;
+
     // Add 'edit' stype
     downloadsPanel.classList.add('edit');
+
     // Change edit mdoe status
     isEditMode = true;
     _updateButtonsStatus();
-
-    // We're appending new elements to DOM so to make sure headers are
-    // properly resized and centered, we emmit a lazyload event.
-    // This will be removed when the gaia-header web component lands.
-    window.dispatchEvent(new CustomEvent('lazyload', {
-      detail: targetHeader
-    }));
   }
 
   function _closeEditMode() {
-    // Ensure the header
-    var targetHeader = document.getElementById('downloads-header');
-    targetHeader.parentNode.insertBefore(
-      targetHeader,
-      targetHeader.parentNode.firstChild
-    );
-    targetHeader.hidden = downloadsEditMenu.hidden = true;
     // Remove "edit" styles
     downloadsPanel.classList.remove('edit');
+
     // Clean vars
     isEditMode = false;
     numberOfDownloads = 0;
@@ -416,7 +398,7 @@
         downloadsEditMenu = document.getElementById('downloads-edit-menu');
         // Buttons
         editButton = document.getElementById('downloads-edit-button');
-        closeButton = document.getElementById('downloads-close-button');
+        editHeader = document.getElementById('downloads-edit-header');
         deleteButton = document.getElementById('downloads-delete-button');
         selectAllButton =
           document.getElementById('downloads-edit-select-all');
@@ -439,7 +421,7 @@
 
         // Add listener to edit mode
         editButton.addEventListener('click', _loadEditMode.bind(this));
-        closeButton.addEventListener('click', _closeEditMode.bind(this));
+        editHeader.addEventListener('action', _closeEditMode.bind(this));
         selectAllButton.addEventListener('click', _enableAllChecks.bind(this));
         deselectAllButton.addEventListener('click',
           _disableAllChecks.bind(this));

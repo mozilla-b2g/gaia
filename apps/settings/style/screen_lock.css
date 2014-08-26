@@ -62,8 +62,16 @@
   font-size: 1.8rem;
 }
 
+/**
+ * 1. Important required to override styles
+ *    inside <gaia-header> <style scoped>
+ *    Once we have ::content selector we
+ *    can drop the <style scoped> and this
+ *    !important won't be needed anymore.
+ */
+
 #screenLock-passcode [data-mode] {
-  display: none;
+  display: none !important; /* 1 */
 }
 
 #screenLock-passcode menu[type="toolbar"] {
@@ -74,12 +82,20 @@
   width: 100%;
 }
 
+/**
+ * 1. Important required to override styles
+ *    inside <gaia-header> <style scoped>
+ *    Once we have ::content selector we
+ *    can drop the <style scoped> and this
+ *    !important won't be needed anymore.
+ */
+
 #screenLock-passcode[data-mode="create"]  [data-mode*="create"],
 #screenLock-passcode[data-mode="confirm"] [data-mode*="confirm"],
 #screenLock-passcode[data-mode="confirmLock"] [data-mode*="confirmLock"],
 #screenLock-passcode[data-mode="edit"]    [data-mode*="edit"],
 #screenLock-passcode[data-mode="new"]     [data-mode*="new"] {
-  display: inherit;
+  display: block !important; /* 1 */
 }
 
 #passcode-confirm {

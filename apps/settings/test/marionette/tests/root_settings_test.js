@@ -94,7 +94,7 @@ marionette('check root panel settings', function() {
       });
     });
 
-    suite('usb storage', function() {
+    suite.only('usb storage', function() {
       test('check default value', function() {
         assert.ok(!rootPanel.usbStorageCheckboxChecked,
           'usb storage should be disabled by default');

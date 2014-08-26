@@ -15,7 +15,7 @@ module.exports = KeyboardPanel;
 
 KeyboardPanel.Selectors = {
   keyboardList: '.allKeyboardList li',
-  backButton: '#keyboard header a span',
+  header: '#keyboard gaia-header',
   panel: '#keyboard'
 };
 
@@ -23,8 +23,8 @@ KeyboardPanel.prototype = {
 
   __proto__: Base.prototype,
 
-  get backButton() {
-    return this.findElement('backButton');
+  get header() {
+    return this.findElement('header');
   },
 
   tapBuiltInKeyboardItem: function() {

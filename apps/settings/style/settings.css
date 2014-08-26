@@ -87,6 +87,25 @@ section[role="region"] > div {
   will-change: scroll-position;
 }
 
+/**
+ * The back button icon shouldn't be
+ * the same color as other icons.
+ */
+
+gaia-header a:first-child,
+gaia-header button:first-child {
+  color: var(--header-nav-button-color) !important;
+}
+
+/**
+ * :active
+ */
+
+gaia-header a:first-child:active,
+gaia-header button:first-child:active {
+  color: var(--header-nav-button-color-active) !important;
+}
+
 /*
  * Need this for scrollable background layer
  * optimization in gecko. See Bug 950250
@@ -94,6 +113,15 @@ section[role="region"] > div {
 section[role="region"],
 section[role="region"] > div > ul {
   background-color: #f4f4f4;
+}
+
+/**
+ * 1. Localized text in buttons
+ *    should be hidden.
+ */
+
+gaia-header [data-icon] > span {
+  font-size: 0; /* 1 */
 }
 
 /******************************************************************************
@@ -111,12 +139,18 @@ section[role="region"] > div > ul {
 /******************************************************************************
  * Activities section = "root" and filtered by category
  */
+
+/**
+ * 1. !important required to override scoped
+ *    styles in <gaia-header>
+ */
+
 #activityDoneButton {
-  display: none;
+  display: none !important; /* 1 */
 }
 
 body[data-filter-by] #activityDoneButton {
-  display: block;
+  display: inherit !important; /* 1 */
 }
 
 body[data-filter-by] #root > div header,
@@ -466,7 +500,6 @@ section ul.operate-certificate {
 }
 
 .wallpaper .wallpaper-button {
-  background: url(images/wallpaper_edit.png) no-repeat 25rem 11.5rem / 4.5rem;
   position: absolute;
   border: none;
   height: 100%;
@@ -474,10 +507,30 @@ section ul.operate-certificate {
   top: 0;
   left: 0;
   margin: 0;
+  background: none;
 }
 
-.wallpaper .wallpaper-button:active {
-  background-image: url(images/wallpaper_edit_pressed.png);
+.wallpaper .wallpaper-button > span {
+  position: absolute;
+  right: 0; bottom: 0;
+  width: 4.6rem;
+  height: 4.6rem;
+  margin: 1.5rem;
+  font-size: 21px;
+  line-height: 4.6rem;
+  text-align: center;
+  background: rgba(0,0,0,0.5);
+  border-radius: 50%;
+  color: #fff;
+}
+
+.wallpaper .wallpaper-button:active > span {
+ background: #00C7EF;
+}
+
+.wallpaper .wallpaper-button > span:before {
+  font-size: 40px;
+  margin-right: -2px;
 }
 
 .wallpaper .wallpaper-preview {
@@ -515,13 +568,23 @@ ul li > label.range-icons:before {
   pointer-events: none;
 }
 
-ul li > label.range-icons.brightness:before {
-  background:
-    url(images/range_icons_brightness_min.png) no-repeat 0 50%,
-    url(images/range_icons_brightness_max.png) no-repeat 100% 50%;
-  background-size: 3rem;
-  left: 1rem;
-  right: auto;
+ul li > label.range-icons span {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  padding: 0px;
+  margin: 0px 1.5rem;
+  pointer-events: none;
+  color: #657073;
+}
+
+ul li > label.range-icons span:last-child {
+  left: auto;
+  right: 0;
+}
+
+ul li.brightness-manual > label input[type="range"] {
+  width: calc(100% - 10.8rem);
 }
 
 li.brightness-manual div {
@@ -581,8 +644,14 @@ ul li > label.range-icons.volume input {
   background: none;
 }
 
+/**
+ * 1. !important required to override scoped
+ *    styles in <gaia-header>. When we have
+ *    ::content selector in the platform, this
+ *    shouldn't be requireed anymore.
+ */
 #icc .hidden {
-  display: none;
+  display: none !important; /* 1 */
 }
 
 /******************************************************************************
@@ -750,15 +819,6 @@ ul li > label.range-icons.volume input {
 #help[data-has-support-info] .no-support-info,
 #help:not([data-has-support-info]) .support-info {
   display: none;
-}
-
-/* Web activity handling */
-.skin-organic section[data-dialog] > header:first-child .icon.icon-back {
-  background-image: url(/shared/style/headers/images/icons/organic/close.png);
-}
-
-section[data-dialog] > header:first-child .icon.icon-back {
-  background-image: url(/shared/style/headers/images/icons/close.png);
 }
 
 /******************************************************************************
