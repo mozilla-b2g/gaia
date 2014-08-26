@@ -20,6 +20,43 @@ marionette('Contacts > Form', function() {
     subject.launch();
   });
 
+  suite('Review fields', function() {
+    test('Add and delete contact details', function() {
+      var givenName = 'Hello';
+      var familyName = 'World';
+      var org = 'Example Enterprise';
+
+      subject.addContact({
+        givenName: givenName,
+        familyName: familyName,
+        org: org
+      });
+
+      client.helper.waitForElement(selectors.listContactFirstText)
+        .click();
+
+      subject.waitSlideLeft('details');
+      client.helper.waitForElement(selectors.detailsEditContact)
+        .click();
+
+      subject.waitForFormShown();
+
+      client.helper.waitForElement(selectors.formOrg).clear();
+
+      client.helper.waitForElement(selectors.formSave)
+        .click();
+
+      subject.waitForFormTransition();
+
+      var listElementText = client.helper
+        .waitForElement(selectors.listContactFirst)
+        .text();
+
+      assert.equal(listElementText.indexOf(org), -1);
+      
+    });
+  });
+
   suite('Click phone number', function() {
     test('Add a simple contact', function() {
       var givenName = 'Hello';
