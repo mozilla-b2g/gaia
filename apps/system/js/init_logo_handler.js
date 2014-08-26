@@ -202,6 +202,7 @@ var InitLogoHandler = {
     }
 
     self.osLogo.addEventListener('transitionend', function transOsLogo() {
+      window.boottimes['os-logo-end'] = Date.now();
       self.osLogo.removeEventListener('transitionend', transOsLogo);
       self.osLogo.parentNode.removeChild(self.osLogo);
       delete self.osLogo; // Don't entrain the DOM nodes.

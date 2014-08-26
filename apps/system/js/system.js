@@ -1,6 +1,7 @@
 'use strict';
 
 (function(window) {
+  window.boottimes = {'system-app-start': Date.now() };
   var DEBUG = false;
   /**
    * Shared some global property.
