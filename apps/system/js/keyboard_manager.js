@@ -218,68 +218,62 @@ var KeyboardManager = {
     this.showIMESwitcher();
   },
 
+  // Decide the keyboard layout for the specific group and show it
+  activateKeyboard: function km_activateKeyboard(group) {
+    // if we already have layouts for the group, no need to check default
+    if (!this.inputLayouts.layouts[group]) {
+      KeyboardHelper.checkDefaults(function changedDefaults() {
+          KeyboardHelper.getLayouts({ enabled: true },
+            this.updateLayouts.bind(this));
+          KeyboardHelper.saveToSettings();
+      }.bind(this));
+    }
+    // if there are still no keyboards to use, use text
+    if (!this.inputLayouts.layouts[group]) {
+      group = 'text';
+    }
+
+    var previousLayout = this.showingLayoutInfo.layout;
+    this.setKeyboardToShow(group);
+
+    // We need to reset the previous frame only when we switch to a new frame
+    // this "frame" is decided by layout properties
+    if (previousLayout &&
+        (previousLayout.manifestURL !==
+         this.showingLayoutInfo.layout.manifestURL ||
+         previousLayout.id !== this.showingLayoutInfo.layout.id)
+       ) {
+      this._debug('reset previousFrame.');
+      this.inputFrameManager.resetFrame(previousLayout);
+    }
+  },
+
   inputFocusChange: function km_inputFocusChange(evt) {
     var type = evt.detail.inputType;
 
     // Skip the <select> element and inputs with type of date/time,
     // handled in system app for now
     if (!type || type in IGNORED_INPUT_TYPES) {
-      return this.hideKeyboard();
+      this.hideKeyboard();
+      return;
     }
 
-    var self = this;
     // Before a new focus event we get a blur event
     // So if that's the case, wait a bit and see if a focus comes in
     clearTimeout(this.focusChangeTimeout);
 
-    // Set one of the keyboard layout for the specific group as active.
-    function activateKeyboard() {
-      // if we already have layouts for the group, no need to check default
-      if (!self.inputLayouts.layouts[group]) {
-        KeyboardHelper.checkDefaults(function changedDefaults() {
-            KeyboardHelper.getLayouts({ enabled: true },
-              self.updateLayouts.bind(self));
-            KeyboardHelper.saveToSettings();
-        });
-      }
-      // if there are still no keyboards to use
-      if (!self.inputLayouts.layouts[group]) {
-        group = 'text';
-      }
-
-      var previousLayout = self.showingLayoutInfo.layout;
-      self.setKeyboardToShow(group);
-
-      // We need to reset the previous frame nly when we switch to a new frame
-      // this "frame" is decided by layout properties
-      if (previousLayout &&
-          (previousLayout.manifestURL !==
-           self.showingLayoutInfo.layout.manifestURL ||
-           previousLayout.id !== self.showingLayoutInfo.layout.id)
-         ) {
-        self._debug('reset previousFrame.');
-        self.inputFrameManager.resetFrame(previousLayout);
-      }
-    }
-
-    if (type === 'blur') {
+    if ('blur' === type) {
       this.focusChangeTimeout = setTimeout(function keyboardFocusChanged() {
-        self._debug('get blur event');
-        self.hideKeyboard();
-        self.imeSwitcher.hide();
-      }, BLUR_CHANGE_DELAY);
-    }
-    else {
+        this._debug('get blur event');
+        this.hideKeyboard();
+        this.imeSwitcher.hide();
+      }.bind(this), BLUR_CHANGE_DELAY);
+    } else {
+      // display the keyboard for that group decided by input type
+      // fallback to text for default if no group is found
       var group = TYPE_GROUP_MAPPING[type];
-      self._debug('get focus event ' + type);
-      // by the order in Settings app, we should display
-      // if target group (input type) does not exist, use text for default
-      if (!self.inputLayouts.layouts[group]) {
-        // ensure the helper has apps and settings data first:
-        KeyboardHelper.getLayouts(activateKeyboard);
-      } else {
-        activateKeyboard();
-      }
+      this._debug('get focus event ' + type);
+      this.activateKeyboard(group);
     }
   },
 
