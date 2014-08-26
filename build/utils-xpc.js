@@ -126,7 +126,9 @@ function writeContent(file, content) {
     converterStream.writeString(content);
     converterStream.close();
   } catch (e) {
-    dump('writeContent error, file.path: ' + file.path + '\n');
+    utils.log('utils-xpc', 'writeContent error, file.path: ' + file.path);
+    utils.log('utils-xpc', 'parent file object exists: ' +
+      file.parent.exists());
     throw(e);
   }
 }
