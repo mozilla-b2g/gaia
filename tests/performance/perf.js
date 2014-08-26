@@ -30,13 +30,13 @@ global.requireGaia = function(path)  {
 
 var Manifests = requireGaia('tests/performance/manifests.js');
 var appManifest = Manifests.readForApp(appPath);
-if (appManifest == null) {
+if (appManifest == null && appPath != 'boot') {
   console.error('Manifest for "%s" not found.', appPath);
 
   handleExcludedApp();
 }
 
-if (appManifest.role) {
+if (appPath != 'boot' && appManifest.role) {
   if (config.verbose) {
     console.error('Found role "%s". Skipping %s', appManifest.role, appPath);
   }

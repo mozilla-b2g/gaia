@@ -61,12 +61,22 @@ esac
 
 # All echo calls help create a JSON array
 echo '[' >&3
-SHARED_PERF=`find tests/performance -name "*_test.js" -type f`
+SHARED_PERF_TESTS=`find tests/performance -name "*_test.js" -type f`
+OLD_RESTART_B2G="$RESTART_B2G"
 for app in $APPS; do
   if [ -z "$FIRST_LOOP_ITERATION" ]; then
     FIRST_LOOP_ITERATION=done
   else
     echo ',' >&3
+  fi
+  if [ "$app" == "boot" ] ; then
+    # boot test works a bit differently, it requires a full reboot, so this is managed in the test itself
+    # As well, it isn't named boot_test.js, so that it isn't run with the general suite of application tests
+    export RESTART_B2G=0
+    SHARED_PERF="tests/performance/boot.js"
+  else
+    export RESTART_B2G=$OLD_RESTART_B2G
+    SHARED_PERF="$SHARED_PERF_TESTS"
   fi
   FILES_PERF=`test -d apps/$app/test/performance && find apps/$app/test/performance -name "*_test.js" -type f`
   # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
