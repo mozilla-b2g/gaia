@@ -42,12 +42,15 @@
       this.setThemeColor(this.app.themeColor);
     }
 
-    if (!this.app.isBrowser() && this.app.name) {
+    var chrome = this.app.config.chrome;
+    if (!this.app.isBrowser() && chrome && !chrome.scrollable) {
+      this._fixedTitle = true;
+      this.title.dataset.l10nId = 'search-the-web';
+    } else if (!this.app.isBrowser() && this.app.name) {
       this._gotName = true;
       this.setFreshTitle(this.app.name);
     }
 
-    var chrome = this.app.config.chrome;
     if (!chrome) {
       return;
     }
@@ -387,7 +390,7 @@
   };
 
   AppChrome.prototype.handleTitleChanged = function(evt) {
-    if (this._gotName) {
+    if (this._gotName || this._fixedTitle) {
       return;
     }
 
@@ -460,7 +463,8 @@
 
   AppChrome.prototype._updateLocation =
     function ac_updateTitle(title) {
-      if (this._titleChanged || this._gotName || this._recentTitle) {
+      if (this._titleChanged || this._gotName || this._recentTitle ||
+          this._fixedTitle) {
         return;
       }
       this.title.textContent = title;
