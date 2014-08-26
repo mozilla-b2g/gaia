@@ -16,7 +16,6 @@ class TestGeolocationPrompt(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.apps.set_permission('Geoloc', 'geolocation', 'prompt')
 
     def test_geolocation_prompt(self):
 

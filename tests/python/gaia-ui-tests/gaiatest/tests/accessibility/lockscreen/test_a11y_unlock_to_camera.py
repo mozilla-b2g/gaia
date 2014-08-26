@@ -11,7 +11,6 @@ class TestLockScreenAccessibility(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.apps.set_permission('Camera', 'geolocation', 'deny')
         self.device.lock()
 
     def test_a11y_unlock_to_camera(self):

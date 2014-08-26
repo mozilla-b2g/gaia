@@ -15,9 +15,6 @@ class TestEnduranceCameraViewfinder(GaiaEnduranceTestCase):
     def setUp(self):
         GaiaEnduranceTestCase.setUp(self)
 
-        # Turn off geolocation prompt
-        self.apps.set_permission('Camera', 'geolocation', 'deny')
-
     def test_endurance_camera_viewfinder(self):
         self.drive(test=self.camera_viewfinder, app='camera')
 

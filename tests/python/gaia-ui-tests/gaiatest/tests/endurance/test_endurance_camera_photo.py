@@ -15,9 +15,6 @@ class TestEnduranceCameraPhoto(GaiaEnduranceTestCase):
     def setUp(self):
         GaiaEnduranceTestCase.setUp(self)
 
-        # Turn off geolocation prompt
-        self.apps.set_permission('Camera', 'geolocation', 'deny')
-
     def test_endurance_camera_photo(self):
         self.drive(test=self.camera_photo, app='camera')
 

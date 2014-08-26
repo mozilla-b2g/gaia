@@ -10,7 +10,6 @@ class TestEverythingMeAddCollectionSaveBookmark(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.apps.set_permission('Smart Collections', 'geolocation', 'deny')
         self.connect_to_network()
 
     def test_everythingme_add_collection(self):
