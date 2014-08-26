@@ -115,7 +115,7 @@ function execute(options) {
     utils.ensureFolderExists(webappsBaseDir);
   }
 
-  gaia.webapps.forEach(function(app) {
+  gaia.rebuildWebapps.forEach(function(app) {
     var webappManifest = app.buildDirectoryFile.clone();
     var updateManifest = app.buildDirectoryFile.clone();
 

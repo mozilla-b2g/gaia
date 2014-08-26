@@ -395,12 +395,16 @@ var gaia = {
   getInstance: function(config) {
     if (JSON.stringify(this.config) !== JSON.stringify(config) ||
       !this.instance) {
+      config.rebuildAppDirs = config.rebuildAppDirs || [];
       this.config = config;
       this.instance = {
         stageDir: getFile(this.config.STAGE_DIR),
         engine: this.config.GAIA_ENGINE,
         sharedFolder: getFile(this.config.GAIA_DIR, 'shared'),
         webapps: makeWebappsObject(this.config.GAIA_APPDIRS.split(' '),
+          this.config.GAIA_DOMAIN, this.config.GAIA_SCHEME,
+          this.config.GAIA_PORT, this.config.STAGE_DIR),
+        rebuildWebapps: makeWebappsObject(this.config.rebuildAppDirs,
           this.config.GAIA_DOMAIN, this.config.GAIA_SCHEME,
           this.config.GAIA_PORT, this.config.STAGE_DIR),
         aggregatePrefix: 'gaia_build_',
