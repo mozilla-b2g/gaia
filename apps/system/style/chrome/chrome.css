@@ -103,11 +103,11 @@
 }
 
 .maximized .controls .urlbar {
-  background-color: rgba(51,51,51,0.5);
+  background-color: rgba(204,204,204,0.2);
 }
 
 .appWindow.light .maximized .controls .urlbar {
-  background-color: rgba(201,201,201,0.4);
+  background-color: rgba(204,204,204,0.4);
 }
 
 .chrome .controls .urlbar .title {
@@ -119,7 +119,7 @@
   font-weight: 300;
   font-size: 2rem;
   float: none;
-  background-color: rgba(51,51,51,0.5);
+  background-color: rgba(204,204,204,0.2);
   border-radius: 1.8rem;
   text-overflow: ellipsis;
   font-style: italic;
@@ -139,7 +139,7 @@
 }
 
 .appWindow.light .chrome:not(.maximized) .controls .urlbar .title {
-  background-color: rgba(201,201,201,0.4);
+  background-color: rgba(204,204,204,0.4);
 }
 
 .maximized .controls .urlbar .title {
