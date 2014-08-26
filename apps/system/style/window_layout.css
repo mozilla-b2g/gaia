@@ -187,6 +187,13 @@
   height: 100%;
 }
 
+/* The popup window does not collapse the rocketbar and has a static header. */
+.popupWindow .browser-container {
+  /* 5rem header + 3rem statusbar = 8rem */
+  top: 8rem;
+  height: calc(100% - 8rem);
+}
+
 /*****************************************************************************\
 | Scrollable Layout
 \*****************************************************************************/
