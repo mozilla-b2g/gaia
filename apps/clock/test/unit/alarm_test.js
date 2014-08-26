@@ -38,7 +38,7 @@ suite('Alarm Test', function() {
         hour: 4,
         minute: 20,
         label: '',
-        sound: 'ac_classic_clock_alarm.opus',
+        sound: 'ac_awake.opus',
         vibrate: true,
         snooze: 5
       });

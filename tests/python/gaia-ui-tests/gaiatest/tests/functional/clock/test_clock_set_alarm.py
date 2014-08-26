@@ -37,11 +37,11 @@ class TestClockSetAlarm(GaiaTestCase):
         self.assertEqual('Weekdays', new_alarm.alarm_repeat)
 
         # Ensure sound has the default value
-        self.assertEquals(new_alarm.alarm_sound, 'Classic Buzz')
+        self.assertEquals(new_alarm.alarm_sound, 'Awake')
 
         # Set sound
-        new_alarm.select_sound('Gem Echoes')
-        self.assertEqual('Gem Echoes', new_alarm.alarm_sound)
+        new_alarm.select_sound('Digicloud')
+        self.assertEqual('Digicloud', new_alarm.alarm_sound)
 
         # Ensure snooze has the default value
         self.assertEquals(new_alarm.alarm_snooze, '5 minutes')
@@ -59,7 +59,7 @@ class TestClockSetAlarm(GaiaTestCase):
 
         # Verify selected options
         self.assertEqual('Weekdays', edit_alarm.alarm_repeat)
-        self.assertEqual('Gem Echoes', new_alarm.alarm_sound)
+        self.assertEqual('Digicloud', new_alarm.alarm_sound)
         self.assertEqual('15 minutes', new_alarm.alarm_snooze)
 
         edit_alarm.tap_done()

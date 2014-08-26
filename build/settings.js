@@ -42,7 +42,7 @@ function setTone(settings, config, settingsKey, dir, name) {
 }
 
 function setMediatone(settings, config) {
-  // Grab ac_classic_clock_alarm.opus and convert it into a base64 string
+  // Grab notifier_firefox.opus and convert it into a base64 string
   let mediatone_name = 'shared/resources/media/notifications/' +
     'notifier_firefox.opus';
   let mediatone = utils.resolve(mediatone_name,
@@ -52,9 +52,9 @@ function setMediatone(settings, config) {
 }
 
 function setAlarmtone(settings, config) {
-  // Grab ac_classic_clock_alarm.opus and convert it into a base64 string
+  // Grab ac_awake.opus and convert it into a base64 string
   let alarmtone_name = 'shared/resources/media/alarms/' +
-    'ac_classic_clock_alarm.opus';
+    'ac_awake.opus';
   let alarmtone = utils.resolve(alarmtone_name,
     config.GAIA_DIR);
 
