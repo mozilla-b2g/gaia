@@ -18,7 +18,19 @@
     "audio-channel-content":{}
   },
   "locales": {
+    "ar": {
+      "name": "Stingray Homescreen",
+      "description": "Homescreen with Widgets"
+    },
     "en-US": {
+      "name": "Stingray Homescreen",
+      "description": "Homescreen with Widgets"
+    },
+    "fr": {
+      "name": "Stingray Homescreen",
+      "description": "Homescreen with Widgets"
+    },
+    "zh-TW": {
       "name": "Stingray Homescreen",
       "description": "Homescreen with Widgets"
     }

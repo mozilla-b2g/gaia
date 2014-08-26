@@ -284,14 +284,20 @@
   function l10nLink(href) {
     var resource = document.createElement('link');
     resource.setAttribute('href', href);
-    resource.setAttribute('rel', 'resource');
-    resource.setAttribute('type', 'application/l10n');
+    resource.setAttribute('rel', 'localization');
     document.head.appendChild(resource);
   }
 
+  function linkManifest(href) {
+    var resource = document.createElement('link');
+    resource.setAttribute('href', href);
+    resource.setAttribute('rel', 'manifest');
+    document.head.appendChild(resource);
+  }
 
-  l10nLink('/locales/locales.ini');
-  l10nLink('/shared/locales/date.ini');
+  l10nLink('/locales/calendar.{locale}.properties');
+  l10nLink('/shared/locales/date/date.{locale}.properties');
+  linkManifest('/manifest.webapp');
 
   requireApp('calendar/shared/js/l10n.js');
   // setup localization....

@@ -463,12 +463,8 @@ suite('webapp-optimize.js', function() {
       hasAttributeFlag = false;
       htmlOptimizer.concatL10nResources();
       assert.equal(createdDOMs[2].query,
-        'document/link[type="application/l10n"]',
-        'should modify document/link[type="application/l10n"]');
-      assert.equal(createdDOMs[3].query, 'document/link');
-      assert.equal(createdDOMs[3].href, '/locales-obj/{{locale}}.json');
-      assert.equal(createdDOMs[3].type, 'application/l10n');
-      assert.equal(createdDOMs[3].rel, 'prefetch');
+        'document/link[rel="localization"], link[rel="manifest"]',
+        'should modify document/link[rel="localization"]');
     });
 
     test('aggregateJsResources', function() {
