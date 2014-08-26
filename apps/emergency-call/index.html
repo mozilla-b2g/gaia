@@ -4,30 +4,37 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <title>Emergency Call Dialer</title>
-    <link rel="stylesheet" type="text/css" href="/shared/style/dialer/dialer.css">
-    <link rel="stylesheet" type="text/css" href="/shared/style/dialer/keypad.css">
-    <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
-    <!-- Shared code -->
-    <script defer type="application/javascript" src="/shared/js/settings_listener.js"></script>
-    <script src="/shared/js/l10n.js"></script>
+
     <link rel="resource" type="application/l10n" href="/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/keypad.ini">
 
-    <!-- Specific code -->
+    <link rel="stylesheet" type="text/css" href="/shared/style/animations.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/dialer/dialer.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/dialer/keypad.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/dialer/overlay.css">
+    <link rel="stylesheet" type="text/css" href="style/ice_contacts.css">
+
+    <script defer type="application/javascript" src="/shared/js/lazy_loader.js"></script>
+    <script defer type="application/javascript" src="/shared/js/l10n.js"></script>
+    <script defer type="application/javascript" src="/shared/js/dialer/utils.js"></script>
+    <script defer type="application/javascript" src="/shared/js/contacts/utilities/ice_store.js"></script>
+    <script defer type="application/javascript" src="/shared/js/settings_listener.js"></script>
+    <script defer type="application/javascript" src="js/ice_contacts.js"></script>
     <script defer type="application/javascript" src="js/keypad.js"></script>
     <script defer type="application/javascript" src="js/dialer.js"></script>
+
+    <!-- Lazy load all the things:
+    <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
+    <script defer src="/shared/js/confirm.js"></script>
+    <script defer src="/shared/js/sim_settings_helper.js"></script>
+    -->
+
+    <link rel="import" href="/shared/elements/confirmation-message.html">
+    <link rel="import" href="elements/ice_contacts_overlay_item.html">
+    <link rel="import" href="elements/ice_contacts_overlay.html">
   </head>
   <body class="hidden">
-    <form role="dialog" data-type="confirm" id="emergencyAlert" hidden>
-      <section>
-        <h1 id="emergencyAlert-title" data-l10n-id="emergency-call-only">Emergency Call Only</h1>
-        <p id="emergencyAlert-msg"></p>
-      </section>
-      <menu>
-        <button class="full" id="emergencyAlert-btn" data-l10n-id="ok">OK</button>
-      </menu>
-    </form>
-
     <article id="views" class="full-height">
       <section id="keyboard-view" class="full-height">
         <div id="phone-number-view-container">
@@ -38,6 +45,9 @@
           <button id="keypad-delete" class="reset-button" data-value="delete" data-l10n-id="keypadDelete">
           </button>
         </div>
+        <section id="ice-contacts-bar" class="ice-contacts-bar" hidden data-l10n-id="ice-contacts-bar-text">
+          ICE Contacts - In Case of Emergency
+        </section>
         <article id="keyboard-container">
           <section id="keypad">
             <div class="keypad-row">
@@ -107,5 +117,9 @@
         </article>
       </section>
     </article>
+    <form is="ice-contacts-overlay" id="ice-contacts-overlay" role="dialog" data-type="action" class="overlay">
+    </form>
+    <button is="ice-contact-overlay-item" id="ice-contact-overlay-item-template" hidden></button>
+    <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
   </body>
 </html>

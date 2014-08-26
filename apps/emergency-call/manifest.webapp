@@ -11,9 +11,17 @@
   "orientation": "default",
   "fullscreen": true,
   "permissions": {
-    "telephony":{},
-    "mobileconnection":{},
-    "phonenumberservice": {}
+    "telephony": {},
+    "mobileconnection": {},
+    "phonenumberservice": {},
+    "settings": { "access": "readonly" },
+    "contacts": { "access": "readwrite" }
+  },
+  "datastores-access": {
+    "ice_contacts": {
+      "readonly": false,
+      "description": "Temporal write access needed until it is possible to set ICE contacts via the Settings app"
+    }
   },
   "locales": {
     "ar": {

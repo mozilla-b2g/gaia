@@ -1,0 +1,46 @@
+.hide {
+  display: none;
+}
+
+.no-opacity {
+  opacity: 0;
+}
+
+.ice-contacts-bar {
+  margin-top: -4.5rem;
+  height: 4.5rem;
+  font-size: 1.6rem;
+  font-style: italic;
+  position: absolute;
+  width: 100%;
+  background-color: #e2443a;
+  color: #FFF;
+  line-height: 4.5rem;
+  padding: 0 1.6rem 0 1.5rem;
+  background-image: url('images/white_arrow.png');
+  background-repeat: no-repeat;
+  background-position: 28.8rem center;
+}
+
+form[role="dialog"][data-type="action"] button:not(:last-child) {
+  height: 5.5rem;
+}
+
+form[role="dialog"][data-type="action"] span {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+form[role="dialog"][data-type="action"] span:first-child {
+  font-size: 1.6rem;
+  font-weight: 500;
+  line-height: 1.6rem;
+  margin-bottom: 0.5rem;
+}
+
+form[role="dialog"][data-type="action"] span:last-child {
+  font-size: 1.5rem;
+  line-height: 1.5rem;
+}

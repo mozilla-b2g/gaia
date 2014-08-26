@@ -13,7 +13,7 @@ require('/shared/js/contacts/import/utilities/vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_contacts_match.js');
 requireApp('communications/contacts/test/unit/' +
  'mock_contacts_adapt_and_merge.js');
-requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('/shared/test/unit/mocks/mock_moz_contact.js');
 requireApp('communications/contacts/test/unit/import/mock_rest.js');
