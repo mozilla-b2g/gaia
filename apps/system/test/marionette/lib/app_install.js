@@ -24,7 +24,9 @@ AppInstall.Selector = Object.freeze({
   // Ime Layout selection menu
   imeDialog: '#ime-layout-dialog',
   imeLayoutOption: '#ime-list li',
-  imeConfirmButton: '#ime-confirm-button'
+  imeConfirmButton: '#ime-confirm-button',
+  // Uninstall confirmation dialog
+  uninstallButton: 'gaia-confirm .confirm'
 });
 
 AppInstall.prototype = {
@@ -112,6 +114,14 @@ AppInstall.prototype = {
         marionetteScriptFinished();
       };
     }, [manifestURL]);
+  },
+
+  confirmUninstallDialog: function() {
+    this.client.switchToFrame();
+    var confirm =
+      this.client.helper.waitForElement(AppInstall.Selector.uninstallButton);
+
+    confirm.click();
   },
 
   /**

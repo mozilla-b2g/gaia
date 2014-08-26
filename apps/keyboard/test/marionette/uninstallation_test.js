@@ -84,6 +84,7 @@ marionette('Show Keyboard App after uninstallation', function() {
 
     // Uninstall the current active IME
     appInstall.uninstall(ImeTestApp.MANIFEST_URL);
+    appInstall.confirmUninstallDialog();
 
     // Click the input field again to check the built-in keyboard
     client.switchToFrame();
