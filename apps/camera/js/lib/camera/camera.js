@@ -480,8 +480,7 @@ Camera.prototype.previewSizes = function() {
  */
 Camera.prototype.previewSize = function() {
   var sizes = this.previewSizes();
-  var profile = this.resolution();
-  var size = CameraUtils.getOptimalPreviewSize(sizes, profile);
+  var size = CameraUtils.getOptimalPreviewSize(sizes);
   debug('get optimal previewSize', size);
   return size;
 };
