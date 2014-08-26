@@ -71,8 +71,8 @@ var NotificationScreen = {
     this.externalNotificationsCount = 0;
 
     window.addEventListener('utilitytrayshow', this);
-    window.addEventListener('lockscreen-appclosed',
-      this.clearLockScreen.bind(this));
+    // Since UI expect there is a slight delay for the opened notification.
+    window.addEventListener('lockscreen-appclosed', this);
     window.addEventListener('visibilitychange', this);
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
@@ -157,6 +157,13 @@ var NotificationScreen = {
         if (this.resendExpecting) {
           this.isResending = true;
         }
+        break;
+      case 'lockscreen-appclosed':
+        // UX require to delay to clear notifications from
+        // LockScreen for the actionable LockScreen notifications.
+        setTimeout((function() {
+          this.clearLockScreen();
+        }).bind(this), 400);
         break;
     }
   },
@@ -670,7 +677,12 @@ var NotificationScreen = {
       id: notificationId
     });
     window.dispatchEvent(event);
-    this.removeLockScreenNotification(notificationId);
+    // UX require to give a tiny delay for actionable notification on
+    // LockScreen.
+    setTimeout((function() {
+      this.removeLockScreenNotification(notificationId);
+    }).bind(this), 400);
+
     this.updateNotificationIndicator();
     if (!this.container.querySelector('.notification')) {
       // no notifications left
