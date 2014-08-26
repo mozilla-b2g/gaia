@@ -110,8 +110,7 @@
     transform: function() {},
     hideContextMenu: function() {},
     lockOrientation: function() {},
-    isVisible: function() {},
-    requestForeground: function() {}
+    isVisible: function() {}
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];

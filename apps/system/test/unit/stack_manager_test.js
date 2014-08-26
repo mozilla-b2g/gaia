@@ -665,22 +665,6 @@ suite('system/StackManager >', function() {
         assert.deepEqual(StackManager.getCurrent().config, settings.config);
       });
     });
-
-  });
-
-  suite('When the last app terminates', function() {
-    setup(function() {
-      appLaunch(contact);
-      appCrash(contact);
-    });
-    test('the position should be -1',
-    function() {
-      assert.equal(StackManager.position, -1);
-    });
-    test('the stack should be empty',
-    function() {
-      assert.equal(StackManager._stack.length, 0);
-    });
   });
 
   test('open app from card should update the ordering', function() {

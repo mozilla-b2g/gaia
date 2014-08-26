@@ -36,9 +36,7 @@
       'utility-tray-overlayopened',
       'utility-tray-overlayclosed',
       'system-dialog-show',
-      'system-dialog-hide',
-      'apprequestforeground',
-      'homescreenrequestforeground'
+      'system-dialog-hide'
     ];
   };
 
@@ -58,13 +56,6 @@
       clearTimeout(this._attentionScreenTimer);
     }
     switch (evt.type) {
-      case 'homescreenrequestforeground':
-      case 'apprequestforeground':
-        if (!System.locked &&
-            !AttentionScreen.isFullyVisible()) {
-          evt.detail.setVisible(true);
-        }
-        break;
       // XXX: See Bug 999318.
       // Audio channel is always normal without going back to none.
       // We are actively discard audio channel state when homescreen

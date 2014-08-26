@@ -232,7 +232,7 @@
       this.app.reviveBrowser();
       this.app.launchTime = Date.now();
       this.app.fadeIn();
-      this.app.requestForeground();
+      this.app.setVisible(true);
 
       // TODO:
       // May have orientation manager to deal with lock orientation request.
@@ -250,7 +250,7 @@
       this.resetTransition();
       this.app.element.removeAttribute('aria-hidden');
       this.app.element.classList.add('active');
-      this.app.requestForeground();
+      this.app.setVisible(true);
 
       // TODO:
       // May have orientation manager to deal with lock orientation request.
