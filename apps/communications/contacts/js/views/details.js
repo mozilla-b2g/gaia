@@ -492,9 +492,10 @@ contacts.Details = (function() {
       var template = utils.templates.render(phonesTemplate, telField);
 
       // Add event listeners to the phone template components
-      var sendSmsButton = template.querySelector('#send-sms-button-' + tel);
+      var sendSmsButton =
+              template.querySelector('#send-sms-to-tel-button-' + tel);
       sendSmsButton.dataset.tel = telField.value;
-      sendSmsButton.addEventListener('click', onSendSmsClicked);
+      sendSmsButton.addEventListener('click', onSendSmsToTelClicked);
 
       var callOrPickButton = template.querySelector('#call-or-pick-' + tel);
       callOrPickButton.dataset.tel = telField.value;
@@ -551,7 +552,7 @@ contacts.Details = (function() {
     });
   }
 
-  var onSendSmsClicked = function onSendSmsClicked(evt) {
+  var onSendSmsToTelClicked = function onSendSmsToTelClicked(evt) {
     var tel = evt.target.dataset.tel;
     Contacts.sendSms(tel);
   };
@@ -573,6 +574,11 @@ contacts.Details = (function() {
       var template = utils.templates.render(emailsTemplate, emailField);
 
       // Add event listeners to the phone template components
+      var sendSmsButton =
+              template.querySelector('#send-sms-to-email-button-' + email);
+      sendSmsButton.dataset.email = emailField.value;
+      sendSmsButton.addEventListener('click', onSendSmsToEmailClicked);
+      
       var emailButton = template.querySelector('#email-or-pick-' + email);
       emailButton.dataset.email = emailField.value;
       emailButton.addEventListener('click', onEmailOrPickClick);
@@ -588,6 +594,11 @@ contacts.Details = (function() {
     return false;
   };
 
+  var onSendSmsToEmailClicked = function onSendSmsToEmailClicked(evt) {
+    var email = evt.target.dataset.email;
+    Contacts.sendSms(email);
+  };
+  
   var renderAddresses = function cd_renderAddresses(contact) {
     if (!contact.adr) {
       return;

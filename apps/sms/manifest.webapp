@@ -50,9 +50,7 @@
       "href": "/index.html#activity-new",
       "filters": {
         "type": "websms/sms",
-        "number": {
-          "pattern":"[\\w\\s+#*().-]{0,50}"
-        }
+        "number": {}
        },
       "disposition": "inline",
       "returnValue": true
