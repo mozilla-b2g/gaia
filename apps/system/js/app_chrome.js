@@ -12,12 +12,14 @@
   var _id = 0;
   var _ = navigator.mozL10n.get;
 
-  var newTabApp = null;
+  var newTabManifestURL = null;
   SettingsListener.observe('rocketbar.newTabAppURL', '',
     function(url) {
-      var manifestURL = url ? url.match(/(^.*?:\/\/.*?\/)/)[1] +
+      // The application list in applications.js is not yet ready, so we store
+      // only the manifestURL for now and we look up the application whenever
+      // we trigger a new window.
+      newTabManifestURL = url ? url.match(/(^.*?:\/\/.*?\/)/)[1] +
         'manifest.webapp' : '';
-      newTabApp = applications.getByManifestURL(manifestURL);
     });
 
   /**
@@ -621,9 +623,8 @@
   };
 
   AppChrome.prototype.onNewWindow = function ac_onNewWindow() {
-    if (newTabApp) {
-      newTabApp.launch();
-    }
+    var newTabApp = applications.getByManifestURL(newTabManifestURL);
+    newTabApp.launch();
 
     this.hideOverflowMenu();
   };
