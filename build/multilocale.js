@@ -1,24 +1,24 @@
 'use strict';
 
-/* global exports, require, dump, OS */
+/* global exports, require, OS */
 
 const { Cu } = require('chrome');
 Cu.import('resource://gre/modules/osfile.jsm');
 
 const utils = require('utils');
-const RE_SECTION_LINE = /\[(.*)\]/;
-const RE_IMPORT_LINE = /@import url\((.*)\)/;
 const RE_PROPERTY_LINE = /(.*)\s*[:=]\s*(.*)/;
-const RE_INI_FILE = /locales[\/\\].+\.ini$/;
-const RE_PROPERTIES_FILE = /\.([\w-]+)\.properties$/;
 const MODNAME = 'multilocale';
 
-function L10nManager(gaiaDir, localesFilePath, localeBasedir, subject) {
+function L10nManager(gaiaDir,
+                     localesFilePath,
+                     localeBasedir,
+                     subject,
+                     defaultLocale) {
   function checkArg(arg) {
     return Boolean(arg);
   }
 
-  if (arguments.length !== 4 &&
+  if (arguments.length !== 5 &&
     !Array.prototype.every.call(arguments, checkArg)) {
     throw new TypeError('Illegal constructor');
   }
@@ -41,219 +41,131 @@ function L10nManager(gaiaDir, localesFilePath, localeBasedir, subject) {
   this.deviceType = subject.deviceType;
 
   /**
-   * Modify original locales.ini file by keeping default 'en-US' .properties,
-   * and duplicating them for each locale specified in locales.
-   * We just replace "en-US" in .properties file path with the locale name.
-   *
-   * @param  {String} original - original content of INI file.
-   * @param  {String[]} locales - locale names such as ['zh-TW', 'en-US']
-   * @returns {String} returns a localized ini object
-   */
-  function modifyLocaleIni(original, locales) {
-    var imports = {
-      'default': parseIni(original)['default']
-    };
-    locales.forEach(function(locale) {
-      imports[locale] = [];
-      imports['default'].forEach(function(path) {
-        if (!path.contains('en-US')) {
-          throw new Error('"en-US" doesn\'t exist in path: ' + path);
-        }
-        var localePath = path.replace('en-US', locale);
-        imports[locale].push(localePath);
-      });
-    });
-    return imports;
-  }
-
-  /**
-   * parsing a ini file for localization to an object.
-   *
-   * @param {String}      content           - content of .ini properties file
-   * @returns {Object}    iniObject         - localization information from the
-   *                                          ini file
-   * @property {String[]} iniObject.default - properties files for default
-   *                                          language
-   * @property {String[]} iniObject[lang]   - properties files for other
-   *                                          languages.
-   */
-  function parseIni(content) {
-    // the first key/value which is not in any section will be the
-    // default localization
-    var section = 'default';
-    var ini = { 'default': [] };
-    content.split('\n').forEach(function(line) {
-      if (line.trim() === '' || line.startsWith('!') ||
-        line.startsWith('#')) {
-        return;
-      } else if (line.trim().startsWith('[')) {
-        // create a section for each language
-        section = line.match(RE_SECTION_LINE)[1];
-        ini[section] = [];
-      } else if (line.contains('@import')) {
-        var propertyLine = line.match(RE_IMPORT_LINE)[1];
-        ini[section].push(propertyLine);
-      } else {
-        dump('multilocale.js: found a line with unexpected content "' +
-          line.trim() + '"');
-      }
-    });
-    return ini;
-  }
-
-  /**
-   * For a given webapp object, localize one INI file and all related
-   * .properties files into build_stage directory
-   *
-   * @param {nsIFile}      iniFile      - INI file object
-   * @param {Object}       webapp       - A webapp object for specific app
-   */
-  function localizeIni(iniFile, webapp) {
-    var localesClone = JSON.parse(JSON.stringify(self.locales));
-    var enIndex = localesClone.indexOf('en-US');
-    if (enIndex !== -1) {
-      localesClone.splice(enIndex, 1);
-    }
-
-    var origin = utils.getFileContent(iniFile);
-    var ini = modifyLocaleIni(origin, localesClone);
-    var iniContent = serializeIni(ini);
-
-    utils.writeContent(iniFile, iniContent);
-
-    localesClone.forEach(function(locale) {
-      ini[locale].forEach(function(path) {
-        var targetFile = utils.getFile(iniFile.parent.path, path);
-        var propFile = getPropertiesFile(webapp, targetFile.path);
-        if (utils.isSubjectToBranding(propFile.parent.path)) {
-          var brandings = {
-            target: { original: targetFile },
-            src: { original: propFile }
-          };
-          for (var key in brandings) {
-            brandings[key].modified = brandings[key].original.parent.clone();
-            brandings[key].modified.append((self.official === '1') ?
-              'official' : 'unofficial');
-            brandings[key].modified.append(brandings[key].original.leafName);
-          }
-          targetFile = brandings.target.modified;
-          propFile = brandings.src.modified;
-        }
-        // XXX: We should use @formFactor for device specific L10N support,
-        // isSubjectToDeviceType should be removed after bug 936532 landed.
-        if (utils.isSubjectToDeviceType(propFile.parent.path)) {
-          var devices = {
-            target: { original: targetFile },
-            src: { original: propFile }
-          };
-          for (var dkey in devices) {
-            devices[dkey].modified = devices[dkey].original.parent.clone();
-            devices[dkey].modified.append(self.deviceType);
-            devices[dkey].modified.append(devices[dkey].original.leafName);
-          }
-          targetFile = devices.target.modified;
-          propFile = devices.src.modified;
-        }
-
-        if (!propFile.exists()) {
-          utils.log(MODNAME, 'Properties file not found: ' + propFile.path);
-          return;
-        }
-        if (targetFile.exists()) {
-          targetFile.remove(false);
-        }
-        propFile.copyTo(targetFile.parent, targetFile.leafName);
-      });
-    });
-  }
-
-  /**
-   * Remove locale files that aren't explicitely listed in locales file.
+   * Remove locale files from build stage dir
    */
   function cleanLocaleFiles(stageDir) {
-    utils.ls(stageDir, true).forEach(function(file) {
-      var matched = RE_PROPERTIES_FILE.exec(file.leafName);
-      if (matched && self.locales.indexOf(matched[1]) === -1) {
-        file.remove(false);
-      }
-    });
-  }
-
-  /**
-   * For a given properties file from gaia repo, returns the matching properties
-   * file from multilocale repos being hosted in LOCALE_BASEDIR
-   *
-   * @param   {Object} webapp        - A webapp object for specific app
-   * @param   {nsIFile} originalPath - original properties file object.
-   *
-   * @returns {nsIFile} returns a properties file object in LOCALE_BASEDIR
-   */
-  function getPropertiesFile(webapp, originalPath) {
-    // properties file name in multilocale repo don't contain locale name,
-    // instead, they are sorted in folder whose name is the locale name.
-    // Also, whereas ini and properties files are segregated in app 'locales'
-    // folder, in multilocale repos, they are just put in matching app folder.
-    // So /gaia/apps/system/locales/system.en-US.properties
-    // maps to /gaia-l10n/en-US/system/system.properties
-    function removeLocale(str, locale) {
-      return str.replace('.' + locale, '').replace(/locales[\\\/]/, '');
+    var localesDir = stageDir.clone();
+    localesDir.append('locales');
+    if (localesDir.exists()) {
+      localesDir.remove(true);
     }
 
-    var sharedDir = utils.joinPath(webapp.buildDirectoryFile.path, 'shared');
-    var isShared = originalPath.contains(sharedDir);
-    var locale = RE_PROPERTIES_FILE.exec(originalPath)[1];
-    var propFile, dirLength;
-    var {getFile} = utils;
-    var paths = [self.localeBasedir, locale];
+    var sharedLocalesDir = stageDir.clone();
+    sharedLocalesDir.append('shared');
+    sharedLocalesDir.append('locales');
+    if (sharedLocalesDir.exists()) {
+      sharedLocalesDir.remove(true);
+    }
+  }
 
-    originalPath = OS.Path.normalize(originalPath);
+  function getL10nResources(file, webapp) {
+    var content = utils.getFileContent(file);
+
+    // if there is no localization word in the file, don't even parse it
+    // exit early
+    if (content.indexOf('localization') === -1) {
+      return;
+    }
+
+    var doc = utils.getDocument(content);
+
+    // get all <link rel="localization">
+    var links = doc.querySelectorAll('link[rel="localization"]');
+    for (var i = 0; i < links.length; i++) {
+      var resURL = links[i].getAttribute('href');
+      var realURL = resURL;
+
+      // if the resource URL is a subject to branding, then
+      // add official/unofficial to the path
+      if (utils.isSubjectToBranding(utils.dirname(resURL))) {
+        realURL = utils.joinPath(utils.dirname(resURL),
+                                 self.official === '1' ?
+                                   'official' : 'unofficial',
+                                 utils.basename(resURL));
+      }
+
+      // XXX: We should use @formFactor for device specific L10N support,
+      // isSubjectToDeviceType should be removed after bug 936532 landed.
+      if (utils.isSubjectToDeviceType(resURL)) {
+        realURL = utils.joinPath(utils.dirname(resURL),
+                                 self.deviceType,
+                                 utils.basename(resURL));
+      }
+
+      for (var loc of self.locales) {
+        var propFile;
+        if (utils.isSubjectToBranding(utils.dirname(resURL)) &&
+            self.official === '1') {
+          // if we want official branding, then we will
+          // take the content of the en-US file from the gaia dir
+          var propPath = utils.joinPath(
+              webapp.sourceDirectoryFile.parent.parent.path,
+              utils.dirname(realURL),
+              utils.basename(realURL.replace('{locale}', defaultLocale)));
+          propFile = utils.getFile(propPath);
+        } else {
+          propFile = getPropertiesFile(webapp, realURL, loc);
+        }
+
+        var resFile = utils.getFile(webapp.buildDirectoryFile.path,
+                                    realURL.replace('{locale}', loc));
+        if (propFile.exists()) {
+          utils.ensureFolderExists(resFile.parent);
+          propFile.copyTo(resFile.parent, resFile.leafName);
+        }
+      }
+    }
+  }
+
+  function getPropertiesFile(webapp, resURL, loc) {
+    function cleanPath(str) {
+      // removes locales/ and {locale}
+      // so transforms:
+      // locales/foo.{locale}.res => foo.res
+      // ./shared/locales/foo/bar.{locale}.res => ./shared/foo/bar.res
+      // foo.properties
+      str = str.replace(/locales\/([^\.]*)\.\{locale\}/, '$1');
+      return OS.Path.normalize(str);
+    }
+    var isShared = /^\.?\/?shared/.test(resURL);
+    var paths = [self.localeBasedir, loc];
 
     if (isShared) {
-      // for shared directory, we need to change a path like:
-      // "<GAIA_DIR>/shared/locales/tz/tz.<LANG>.properties"
-      // to:
-      // "<LOCALE_BASEDIR>/<LANG>/shared/tz/tz.properties"
-      dirLength = sharedDir.length;
       paths.push(
-        'shared',
-        removeLocale(originalPath.substr(dirLength), locale)
+        cleanPath(resURL)
       );
     } else {
-      // for app directory, we need to change a path like:
-      // "<GAIA_DIR>/apps/system/locales/system.<LANG>.properties"
-      // to:
-      // "<LOCALE_BASEDIR>/<LANG>/apps/system/system.properties"
-      dirLength = webapp.buildDirectoryFile.path.length;
       paths.push(
         webapp.sourceDirectoryFile.parent.leafName,
         webapp.sourceDirectoryFile.leafName,
-        removeLocale(originalPath.substr(dirLength), locale)
+        cleanPath(resURL)
       );
     }
-    propFile = getFile.apply(null, paths);
+    var propFile = utils.getFile.apply(null, paths);
 
     return propFile;
   }
 
   /**
-   * localize all manifest, INI file and copy properties files.
+   * localize all manifest and copy properties files.
    *
    * @param {nsIFile[]} files        - all files in webapp source tree
    * @param {Object} webapp          - A webapp object for specific app
    */
+
   function localize(files, webapp) {
+    cleanLocaleFiles(webapp.buildDirectoryFile);
     // Using manifest.properties to localize manifest.webapp
     var manifest = localizeManifest(webapp);
     utils.writeContent(webapp.buildManifestFile, JSON.stringify(manifest));
 
-    // Localize ini files and copy properties files into build_stage directory
+    // Copy properties files into build_stage directory
     files.filter(function(file) {
-      return RE_INI_FILE.test(file.path);
-    }).forEach(function(iniFile) {
-      localizeIni(iniFile, webapp);
+      return utils.getExtension(file.path) == 'html';
+    }).forEach(function(htmlFile) {
+      getL10nResources(htmlFile, webapp);
     });
 
-    cleanLocaleFiles(webapp.buildDirectoryFile);
     var localeObjDir = webapp.buildDirectoryFile.clone();
     localeObjDir.append('locales-obj');
     if (localeObjDir.exists()) {
@@ -270,9 +182,6 @@ function L10nManager(gaiaDir, localesFilePath, localeBasedir, subject) {
   function localizeManifest(webapp) {
     var localesProps = [];
     var localesForManifest = self.locales.filter(function(locale) {
-      if (locale === 'en-US') {
-        return false;
-      }
       var parent = webapp.sourceDirectoryFile.parent.leafName;
       var propFile = utils.getFile(self.localeBasedir, locale, parent,
         webapp.sourceDirectoryName, 'manifest.properties');
@@ -309,34 +218,26 @@ function L10nManager(gaiaDir, localesFilePath, localeBasedir, subject) {
    */
   function addLocaleManifest(locales, localesProps, original) {
     var manifest = JSON.parse(JSON.stringify(original));
-    var isEntryPointsTranslated = true;
+
+    // reset the locales list
+    manifest.locales = {};
+
     locales.forEach(function(locale, index) {
       if (manifest.entry_points) {
         // localization for entry_points in manifest.
         for (var name in manifest.entry_points) {
           var ep = manifest.entry_points[name];
-          if (!ep.locales) {
-            utils.log(MODNAME, 'locales field doesn\'t exist in entry point "' +
-              name  + '" in ' + manifest.name + ' manifest file.');
-            isEntryPointsTranslated = false;
-            continue;
-          }
+          ep.locales = {};
           if (!localesProps[index].entry_points[name]) {
             utils.log(MODNAME, 'Translation of ' + locale + ' is not ' +
               'available for entry point "' + name + '" in ' + manifest.name +
               ' manifest file.');
-            isEntryPointsTranslated = false;
             continue;
           }
           ep.locales[locale] = localesProps[index].entry_points[name];
         }
       }
-      if (manifest.locales) {
-        manifest.locales[locale] = localesProps[index].default;
-      } else if (!isEntryPointsTranslated) {
-        utils.log(MODNAME, 'locales field doesn\'t exist in ' + manifest.name +
-          ' manifest file.');
-      }
+      manifest.locales[locale] = localesProps[index].default;
     });
     return manifest;
   }
@@ -384,43 +285,8 @@ function L10nManager(gaiaDir, localesFilePath, localeBasedir, subject) {
   }
 
 
-  /**
-   * Serialize an INI object to string
-   *
-   * @param  {Object} ini - INI object
-   * @returns {String} serialized content
-   */
-  function serializeIni(ini) {
-    var output = [];
-    function _section(locale) {
-      return '[' + locale + ']';
-    }
-    function _import(path) {
-      return '@import url(' + path + ')';
-    }
-    function _unshift(path) {
-      output.unshift(_import(path));
-    }
-    function _push(path) {
-      output.push(_import(path));
-    }
-    for (var locale in ini) {
-      if (locale === 'default') {
-        ini[locale].forEach(_unshift);
-        continue;
-      }
-      output.push(_section(locale));
-      ini[locale].forEach(_push);
-    }
-    return output.join('\n');
-  }
-
-  this.modifyLocaleIni = modifyLocaleIni;
-  this.localizeIni = localizeIni;
-  this.getPropertiesFile = getPropertiesFile;
   this.localize = localize;
   this.localizeManifest = localizeManifest;
-  this.serializeIni = serializeIni;
 }
 
 function execute(options) {
@@ -440,9 +306,15 @@ function execute(options) {
     {
       official: options.OFFICIAL,
       deviceType: options.GAIA_DEVICE_TYPE
-    });
+    },
+    options.GAIA_DEFAULT_LOCALE);
 
   gaia.webapps.forEach(function(webapp) {
+    if (options.BUILD_APP_NAME != '*' &&
+      webapp.sourceDirectoryName != options.BUILD_APP_NAME) {
+      return;
+    }
+
     if (utils.isExternalApp(webapp)) {
       return;
     }

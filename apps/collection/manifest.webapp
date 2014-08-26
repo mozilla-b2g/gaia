@@ -45,7 +45,19 @@
     }
   },
   "locales": {
+    "ar": {
+      "name": "Smart Collections",
+      "description": "Smart Collections Manager"
+    },
     "en-US": {
+      "name": "Smart Collections",
+      "description": "Smart Collections Manager"
+    },
+    "fr": {
+      "name": "Smart Collections",
+      "description": "Smart Collections Manager"
+    },
+    "zh-TW": {
       "name": "Smart Collections",
       "description": "Smart Collections Manager"
     }

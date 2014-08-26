@@ -1,0 +1,23 @@
+{
+  "name": "Facebook Import",
+  "description": "Facebook Import",
+  "locales": {
+    "ar": {
+      "name": "Facebook Import",
+      "description": "Facebook Import"
+    },
+    "en-US": {
+      "name": "Facebook Import",
+      "description": "Facebook Import"
+    },
+    "fr": {
+      "name": "Facebook Import",
+      "description": "Facebook Import"
+    },
+    "zh-TW": {
+      "name": "Facebook Import",
+      "description": "Facebook Import"
+    }
+  },
+  "default_locale": "en-US"
+}
