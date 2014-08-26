@@ -19,7 +19,7 @@ apps/camera/style/setting-options.css 0 1
 apps/clock/style/onring.css 0 1
 apps/clock/style/picker/picker.css 0 1
 apps/clock/style/alarm.css 0 3
-apps/communications/contacts/style/app.css 0 6
+apps/communications/contacts/style/app.css 0 5
 apps/communications/contacts/style/contacts.css 0 6
 apps/communications/contacts/style/matching_contacts.css 0 3
 apps/communications/contacts/style/overlay.css 0 1
@@ -82,6 +82,7 @@ shared/style/value_selector.css 0 1
 shared/style/edit_mode.css 0 2
 shared/style/action_menu.css 0 1
 shared/style/headers.css 0 0
+shared/style/contacts/contacts_buttons.css 0 4
 shared/pages/import/style/import.css 0 4
 shared/pages/import/style/search.css 0 3
 shared/style/action_menu.css 0 1
