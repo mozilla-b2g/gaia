@@ -269,12 +269,8 @@ class GaiaData(object):
 
     @property
     def is_cell_data_connected(self):
-        # XXX: check bug-926169
-        # this is used to keep all tests passing while introducing multi-sim APIs
-        return self.marionette.execute_script('var mobileConnection = window.navigator.mozMobileConnection || ' +
-                                              'window.navigator.mozMobileConnections && ' +
-                                              'window.navigator.mozMobileConnections[0]; ' +
-                                              'return mobileConnection.data.connected;')
+        return self.marionette.execute_script('return window.navigator.mozMobileConnections && ' +
+                                              'window.navigator.mozMobileConnections[0].data.connected;')
 
     def enable_cell_roaming(self):
         self.set_setting('ril.data.roaming_enabled', True)
@@ -521,12 +517,8 @@ class GaiaDevice(object):
 
     @property
     def has_mobile_connection(self):
-        # XXX: check bug-926169
-        # this is used to keep all tests passing while introducing multi-sim APIs
-        return self.marionette.execute_script('var mobileConnection = window.navigator.mozMobileConnection || ' +
-                                              'window.navigator.mozMobileConnections && ' +
-                                              'window.navigator.mozMobileConnections[0]; ' +
-                                              'return mobileConnection !== undefined')
+        return self.marionette.execute_script('return window.navigator.mozMobileConnections && ' +
+                                              'window.navigator.mozMobileConnections[0].voice.network !== null')
 
     @property
     def has_wifi(self):
