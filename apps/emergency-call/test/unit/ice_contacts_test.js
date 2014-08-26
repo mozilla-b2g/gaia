@@ -28,22 +28,22 @@ suite('ICE contacts bar', function() {
     iceContactBar.textContent = 'ICE Contacts - In Case of Emergency';
     container.appendChild(iceContactBar);
 
-    loadBodyHTML('/elements/ice_contacts_overlay.html');
+    loadBodyHTML('/shared/elements/contacts/contact_list_overlay.html');
     var iceContactsOverlayTemplate =
       document.body.querySelector('template').innerHTML;
     iceContactsOverlay = document.createElement('form');
-    iceContactsOverlay.id = 'ice-contacts-overlay';
+    iceContactsOverlay.id = 'contact-list-overlay';
     iceContactsOverlay.setAttribute('role', 'dialog');
     iceContactsOverlay.setAttribute('data-type', 'action');
     iceContactsOverlay.classList.add('overlay');
     iceContactsOverlay.innerHTML = iceContactsOverlayTemplate;
     container.appendChild(iceContactsOverlay);
 
-    loadBodyHTML('/elements/ice_contacts_overlay_item.html');
+    loadBodyHTML('/shared/elements/contacts/contact_in_overlay.html');
     var iceContactsOverlayItemTemplate =
       document.body.querySelector('template').innerHTML;
     var iceContactsOverlayItem = document.createElement('button');
-    iceContactsOverlayItem.id = 'ice-contact-overlay-item-template';
+    iceContactsOverlayItem.id = 'contact-in-overlay';
     iceContactsOverlayItem.setAttribute('hidden', '');
     iceContactsOverlayItem.innerHTML = iceContactsOverlayItemTemplate;
     container.appendChild(iceContactsOverlayItem);
@@ -53,7 +53,7 @@ suite('ICE contacts bar', function() {
 
   function resetDOM() {
     iceContactBar.setAttribute('hidden', '');
-    var iceContactsList = document.getElementById('ice-contacts-list');
+    var iceContactsList = document.getElementById('contact-list');
     while(iceContactsList.children.length > 1) {
       iceContactsList.removeChild(iceContactsList.children[0]);
     }
@@ -127,7 +127,7 @@ suite('ICE contacts bar', function() {
       iceContactBar.removeAttribute('hidden');
       ICEContacts.updateICEContacts().then(function() {
         assert.equal(
-          document.getElementById('ice-contacts-list').children.length, 1);
+          document.getElementById('contact-list').children.length, 1);
         done();
       });
     });
@@ -179,7 +179,7 @@ suite('ICE contacts bar', function() {
       iceContactBar.removeAttribute('hidden');
       ICEContacts.updateICEContacts().then(function() {
         assert.equal(
-          document.getElementById('ice-contacts-list').children.length, 1);
+          document.getElementById('contact-list').children.length, 1);
         done();
       });
     });
@@ -219,7 +219,7 @@ suite('ICE contacts bar', function() {
     });
 
     test('Should include the ICE contact in the overlay', function(done) {
-      var iceContactList = document.getElementById('ice-contacts-list');
+      var iceContactList = document.getElementById('contact-list');
       ICEContacts.updateICEContacts().then(function() {
         assert.equal(iceContactList.children.length, 2);
         done();
@@ -265,7 +265,7 @@ suite('ICE contacts bar', function() {
 
     test('Should include the ICE contact\'s phone numbers in the overlay',
       function(done) {
-        var iceContactList = document.getElementById('ice-contacts-list');
+        var iceContactList = document.getElementById('contact-list');
         ICEContacts.updateICEContacts().then(function() {
           assert.equal(iceContactList.children.length, 3);
           done();
@@ -350,7 +350,7 @@ suite('ICE contacts bar', function() {
 
     test('Should include the ICE contacts\' phone numbers in the overlay',
       function(done) {
-        var iceContactList = document.getElementById('ice-contacts-list');
+        var iceContactList = document.getElementById('contact-list');
         ICEContacts.updateICEContacts().then(function() {
           assert.equal(iceContactList.children.length, 8);
           done();
