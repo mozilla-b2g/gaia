@@ -11,9 +11,6 @@ class TestCamera(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # Turn off geolocation prompt
-        self.apps.set_permission('Camera', 'geolocation', 'deny')
-
     def test_capture_a_video(self):
         """https://moztrap.mozilla.org/manage/case/2477/"""
         self.previous_number_of_videos = len(self.data_layer.video_files)

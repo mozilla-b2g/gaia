@@ -19,9 +19,6 @@ class TestEnduranceCameraVideo(GaiaEnduranceTestCase):
         self.duration = 7
         self.marionette.log("Video capture duration is " + str(self.duration) + " seconds")
 
-        # Turn off geolocation prompt
-        self.apps.set_permission('Camera', 'geolocation', 'deny')
-
     def test_endurance_camera_video(self):
         self.drive(test=self.camera_video, app='camera')
 

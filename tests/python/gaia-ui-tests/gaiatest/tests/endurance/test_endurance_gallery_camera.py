@@ -15,9 +15,6 @@ class TestEnduranceGalleryCamera(GaiaEnduranceTestCase):
     def setUp(self):
         GaiaEnduranceTestCase.setUp(self)
 
-        # Turn off geolocation prompt
-        self.apps.set_permission('Camera', 'geolocation', 'deny')
-
         # add photo to storage
         self.push_resource('IMG_0001.jpg')
 

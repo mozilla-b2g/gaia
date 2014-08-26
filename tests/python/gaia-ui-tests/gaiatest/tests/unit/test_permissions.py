@@ -10,5 +10,5 @@ class TestPermissions(GaiaTestCase):
     def test_get_and_set_permission(self):
 
         for permission in ['deny', 'allow', 'prompt']:
-            self.apps.set_permission('Camera', 'geolocation', permission)
-            self.assertEqual(self.apps.get_permission('Camera', 'geolocation'), permission)
+            self.apps.set_permission('UI tests - Privileged App', 'geolocation', permission)
+            self.assertEqual(self.apps.get_permission('UI tests - Privileged App', 'geolocation'), permission)

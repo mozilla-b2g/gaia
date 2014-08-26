@@ -11,9 +11,6 @@ class TestLockScreen(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # Turn off geolocation prompt
-        self.apps.set_permission('Camera', 'geolocation', 'deny')
-
         # this time we need it locked!
         self.device.lock()
 
