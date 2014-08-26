@@ -14,7 +14,7 @@ require('/dialer/test/unit/mock_call_group_menu.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
-require('/dialer/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/dialer/test/unit/mock_performance_testing_helper.js');
 require('/dialer/test/unit/mock_call_handler.js');
 require('/dialer/test/unit/mock_keypad.js');

@@ -3,7 +3,7 @@
 suite('PanelUtils', function() {
   var realL10n;
   var modules = [
-    'unit/mock_l10n',
+    'shared_mocks/mock_l10n',
     'modules/panel_utils'
   ];
 

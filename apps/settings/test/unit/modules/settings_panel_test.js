@@ -16,7 +16,7 @@ suite('SettingsPanel', function() {
       'modules/settings_panel',
       'modules/panel_utils',
       'modules/settings_cache',
-      'unit/mock_l10n'
+      'shared_mocks/mock_l10n'
     ], (function(settingsPanelFunc, PanelUtils, SettingsCache, MockL10n) {
       this.realL10n = navigator.mozL10n;
       navigator.mozL10n = MockL10n;

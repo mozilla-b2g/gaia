@@ -19,7 +19,7 @@ suite('SettingsService', function() {
     navigator.addIdleObserver = sinon.spy();
 
     var modules = [
-      'unit/mock_l10n',
+      'shared_mocks/mock_l10n',
       'modules/settings_service',
       'modules/panel_cache',
       'unit/mock_settings_panel',

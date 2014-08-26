@@ -7,7 +7,7 @@ require('/js/hotspot_wifi_settings.js');
 require('/test/unit/mock_navigator_settings.js');
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
-require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/js/utils.js');
 require('/shared/test/unit/load_body_html_helper.js');
 
