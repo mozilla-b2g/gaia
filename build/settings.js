@@ -186,8 +186,10 @@ function setHomescreenURL(settings, config) {
 function writeSettings(settings, config) {
   // Finally write the settings file
   let settingsFile = utils.getFile(config.STAGE_DIR, 'settings_stage.json');
+  utils.log('settings.js', 'Writing settings file: ' + settingsFile.path);
   let content = JSON.stringify(settings);
   utils.writeContent(settingsFile, content + '\n');
+  utils.log('settings.js', 'Settings file has been written');
 }
 
 function execute(config) {
