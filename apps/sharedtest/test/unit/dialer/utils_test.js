@@ -31,8 +31,7 @@ suite('dialer/utils', function() {
     test('#additional info WITHOUT carrier', function() {
       MockContacts.mCarrier = null; // No carrier
       MockContacts.findByNumber(number, function(contact, matchingTel) {
-        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
-          contact, number);
+        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel);
         sinon.assert.calledWith(MockL10n.get, MockContacts.mType);
         assert.equal(MockContacts.mType, additionalInfo);
       });
@@ -41,18 +40,16 @@ suite('dialer/utils', function() {
     test('#additional info WITH carrier', function() {
       MockContacts.mCarrier = 'carrier'; // Carrier value
       MockContacts.findByNumber(number, function(contact, matchingTel) {
-        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
-          contact, number);
+        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel);
         sinon.assert.calledWith(MockL10n.get, MockContacts.mType);
-        assert.equal(MockContacts.mType + ', ' +
-          MockContacts.mCarrier, additionalInfo);
+        assert.equal(MockContacts.mType + ', ' + MockContacts.mCarrier,
+                     additionalInfo);
       });
     });
 
     test('phone number and type', function() {
       MockContacts.findByNumber(number, function(contact, matchingTel) {
-        var additionalInfo = subject.getPhoneNumberAndType(
-          matchingTel, contact, number);
+        var additionalInfo = subject.getPhoneNumberAndType(matchingTel);
         sinon.assert.calledWith(MockL10n.get, MockContacts.mType);
         assert.equal(MockContacts.mType + ', ' + number, additionalInfo);
       });
@@ -65,8 +62,7 @@ suite('dialer/utils', function() {
       MockContacts.mType = customType;
 
       MockContacts.findByNumber(number, function(contact, matchingTel) {
-        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
-          contact, number);
+        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel);
         sinon.assert.calledWith(MockL10n.get, customType);
         assert.equal(customType +', ' + MockContacts.mCarrier, additionalInfo);
       });

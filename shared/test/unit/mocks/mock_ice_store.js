@@ -1,14 +1,14 @@
-'use strict';
+/* globals Promise */
 /* exported MockICEStore */
+'use strict';
 
 var MockICEStore = {
-  setContacts: function(ids) {
-
+  setContacts: function mis_setContacts(ids) {
+    MockICEStore.ids = ids;
+    return Promise.resolve();
   },
-  getContacts: function() {
-
+  getContacts: function mis_getContacts() {
+    return Promise.resolve(MockICEStore.ids);
   },
-  onChange: function() {
-
-  }
+  onChange: function() {}
 };

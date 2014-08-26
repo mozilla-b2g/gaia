@@ -22,6 +22,7 @@
 
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/keypad.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/suggestion.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/contacts/contact_in_overlay.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/overlay.css">
 
     <link rel="stylesheet" type="text/css" href="/shared/style/tabs.css">
@@ -96,10 +97,10 @@
     -->
 
     <link rel="import" href="elements/edit-mode.html">
-    <link rel="import" href="elements/suggestion-item.html">
-    <link rel="import" href="elements/suggestion-overlay.html">
-    <link rel="import" href="elements/confirmation-message.html">
     <link rel="import" href="elements/call-info-view.html">
+    <link rel="import" href="/shared/elements/contacts/contact_in_overlay.html">
+    <link rel="import" href="/shared/elements/contacts/contact_list_overlay.html">
+    <link rel="import" href="/shared/elements/confirmation-message.html">
     <link rel="import" href="/shared/elements/sim_picker.html">
     <link rel="import" href="/contacts/elements/phone_details.html">
     <link rel="import" href="/contacts/elements/email_details.html">
@@ -162,10 +163,10 @@
             </button>
           </div>
           <section id="suggestion-bar" class="suggestion-bar" aria-hidden="true" hidden>
-            <div role="button" is="suggestion-item" class="js-suggestion-item suggestion-item"></div>
+            <div role="button" is="contact-in-overlay" class="js-suggestion-item contact-item"></div>
             <div role="button" id="suggestion-count" class="suggestion-count more"></div>
           </section>
-          <button role="button" is="suggestion-item" id="suggestion-item-template" class="js-suggestion-item suggestion-item" hidden></button>
+          <button role="button" is="contact-in-overlay" id="contact-in-overlay-template" class="js-suggestion-item contact-item" hidden></button>
 
           <article id="keyboard-container">
             <section id="keypad">
@@ -241,7 +242,7 @@
 
     <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
 
-    <form is="suggestion-overlay" id="suggestion-overlay" role="dialog" data-type="action" class="overlay" aria-hidden="true">
+    <form is="contact-list-overlay" id="contact-list-overlay" role="dialog" data-type="action" class="overlay" aria-hidden="true">
     </form>
 
     <section is="phone-details" id="phone-details" hidden></section>
