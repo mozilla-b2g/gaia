@@ -939,12 +939,20 @@
                     '\u029E\u0285\u026Fuodb\u0279s\u0287n\u028C\u028Dx\u028Ez';
 
   function makeLonger(val) {
-    return val.replace(reVowels, function(match) {
+    var updatedVal = val.replace(reVowels, function(match) {
       return match + match.toLowerCase();
     });
+
+    var valLength = updatedVal.length;
+    if (valLength < 6) {
+        // Duplicate last character for short strings
+        updatedVal += updatedVal.substr(valLength-1);
+    }
+
+    return updatedVal;
   }
 
-  function makeAccented(map, val) {
+  function remapAlphaCharacters(map, val) {
     // Replace each Latin letter with a Unicode character from map
     return val.replace(reAlphas, function(match) {
       return map.charAt(match.charCodeAt(0) - 65);
@@ -970,20 +978,32 @@
     if (!val) {
       return val;
     }
+
+    // Replace excluded elements with placeholders {i}
     var parts = val.split(reExcluded);
-    var modified = parts.map(function(part) {
-      if (reExcluded.test(part)) {
-        return part;
-      }
-      return fn(part);
-    });
-    return modified.join('');
+    var varIndex = 0;
+    var placeHolders = [];
+    for (var i=0; i < parts.length; i++) {
+        if (reExcluded.test(parts[i])) {
+            placeHolders[varIndex] = parts[i];
+            parts[i] = parts[i].replace(reExcluded, '{' + varIndex + '}');
+            varIndex++;
+        }
+    }
+    // Perform character transformations
+    var modifiedVal = fn(parts.join(''));
+    // Restore placeholders
+    for (i=0; i < placeHolders.length; i++) {
+        modifiedVal = modifiedVal.replace('{' + i + '}', placeHolders[i]);
+    }
+
+    return modifiedVal;
   }
 
   function Pseudo(id, name, charMap, modFn) {
     this.id = id;
     this.translate = mapContent.bind(null, function(val) {
-      return makeAccented(charMap, modFn(val));
+      return remapAlphaCharacters(charMap, modFn(val));
     });
     this.name = this.translate(name);
   }

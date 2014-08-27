@@ -66,12 +66,12 @@ describe('pseudo strategy', function() {
 
     it('walks the value', function(){
       var walked = walkContent(ast, strategy);
-      assert.strictEqual(walked.foo, 'Ƒǿǿǿǿ');
+      assert.strictEqual(walked.foo, 'Ƒǿǿǿǿǿ');
 
-      assert.strictEqual(walked.bar._.one, 'Ǿǿƞḗḗ');
-      assert.strictEqual(walked.bar._.two, 'Ŧẇǿǿ');
-      assert.strictEqual(walked.bar._.few, 'Ƒḗḗẇ');
-      assert.strictEqual(walked.bar._.many, 'Ḿȧȧƞẏ');
+      assert.strictEqual(walked.bar._.one, 'Ǿǿƞḗḗḗ');
+      assert.strictEqual(walked.bar._.two, 'Ŧẇǿǿǿ');
+      assert.strictEqual(walked.bar._.few, 'Ƒḗḗẇẇ');
+      assert.strictEqual(walked.bar._.many, 'Ḿȧȧƞẏẏ');
       assert.strictEqual(walked.bar._.other, 'Ǿǿŧħḗḗř');
 
       assert.strictEqual(walked.baz.attr, 'Ȧȧƞ ȧȧŧŧřīīƀŭŭŧḗḗ');
