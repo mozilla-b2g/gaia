@@ -3,8 +3,5 @@
     "en-US": [
         {"layoutId": "es", "app": ["apps", "keyboard"]}
     ]
-  },
-  "langIndependentLayouts": [
-      {"layoutId": "cs", "app": ["apps", "keyboard"]}
-  ]
+  }
 }

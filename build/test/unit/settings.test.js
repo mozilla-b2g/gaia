@@ -406,7 +406,7 @@ suite('settings.js', function() {
     var settings = {};
     var defaultManifestURL = 'app://keyboard.gaiamobile.org/manifest.webapp';
     var expectedLayouts = {};
-    expectedLayouts[defaultManifestURL] = {en: true, number: true};
+    expectedLayouts[defaultManifestURL] = {en: true};
 
     setup(function() {
       config = {
@@ -433,9 +433,7 @@ suite('settings.js', function() {
               {'layoutId': 'zhuyin', 'appManifestURL': defaultManifestURL},
               {'layoutId': 'en', 'appManifestURL': defaultManifestURL}
             ]
-          },
-          'langIndependentLayouts':
-            [{'layoutId': 'number', 'appManifestURL': defaultManifestURL}]
+          }
         };
 
       };
@@ -451,8 +449,7 @@ suite('settings.js', function() {
       app.setDefaultKeyboardLayouts('zh-TW', settings, config);
 
       var expectedLayoutsChinese = {};
-      expectedLayoutsChinese[defaultManifestURL] = {zhuyin: true, en: true,
-        number: true};
+      expectedLayoutsChinese[defaultManifestURL] = {zhuyin: true, en: true};
         assert.deepEqual(settings['keyboard.enabled-layouts'],
                          expectedLayoutsChinese);
     });

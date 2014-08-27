@@ -112,10 +112,6 @@ function setDefaultKeyboardLayouts(lang, settings, config) {
 
   defaultLayoutList.forEach(addLayoutEntry);
 
-  // Also add language-independent layouts into the sets
-  let langIndependentLayoutList = layoutConfig['langIndependentLayouts'];
-  langIndependentLayoutList.forEach(addLayoutEntry);
-
   settings['keyboard.enabled-layouts'] = keyboardSettings;
   settings['keyboard.default-layouts'] = keyboardSettings;
 }

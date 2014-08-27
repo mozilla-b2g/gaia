@@ -47,9 +47,7 @@ suite('keyboard-layouts.js', function() {
               {'layoutId': 'zhuyin', 'app': ['apps', 'keyboard']},
               {'layoutId': 'en', 'app': ['apps', 'keyboard']}
             ]
-          },
-          'langIndependentLayouts':
-            [{'layoutId': 'number', 'app': ['apps', 'keyboard']}]
+          }
       };
     };
   });
@@ -61,9 +59,7 @@ suite('keyboard-layouts.js', function() {
       'layout': {
         'en-US': [{'layoutId': 'en', 'appManifestURL': defaultManifestURL}],
         'zh-TW': [{'layoutId': 'zhuyin', 'appManifestURL': defaultManifestURL},
-                 {'layoutId': 'en', 'appManifestURL': defaultManifestURL}]},
-      'langIndependentLayouts':
-        [{'layoutId': 'number', 'appManifestURL': defaultManifestURL}]
+                 {'layoutId': 'en', 'appManifestURL': defaultManifestURL}]}
     };
 
     assert.equal(result, JSON.stringify(expectedResult));

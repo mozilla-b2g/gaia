@@ -211,6 +211,5 @@
     "zu": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ]
-  },
-  "langIndependentLayouts": []
+  }
 }
