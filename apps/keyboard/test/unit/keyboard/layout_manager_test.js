@@ -458,6 +458,34 @@ suite('LayoutManager', function() {
       }).then(done, done);
     });
 
+    test('numberLayout (number) on zh-pinyin', function(done) {
+      app.getBasicInputType.returns('number');
+      app.supportsSwitching.returns(false);
+
+      var layout = {
+        alt: {},
+        upperCase: {},
+        defaultNumberLayout: 'zh-Hans-Pinyin-Symbol-Default-Layout'
+      };
+
+      window.Keyboards['zh-Hans-Pinyin'] = layout;
+      manager.loader.initLayouts();
+
+      this.sinon.stub(manager, '_updateModifiedLayout');
+
+      manager.switchCurrentLayout('zh-Hans-Pinyin').then(function() {
+        assert.deepEqual(manager.currentLayout, layout,
+          'Original layout not touched.');
+
+        assert.equal(manager.currentForcedModifiedLayoutName,
+                     'zh-Hans-Pinyin-Symbol-Default-Layout',
+                     'Not changed to half-width forced layout');
+
+      }.bind(this), function() {
+        assert.isTrue(false, 'Should not reject.');
+      }).then(done, done);
+    });
+
     test('numberLayout (text/numeric)', function(done) {
       app.getBasicInputType.returns('text');
       app.inputContext.inputMode = 'numeric';

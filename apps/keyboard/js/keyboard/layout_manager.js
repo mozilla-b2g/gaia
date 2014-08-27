@@ -76,7 +76,7 @@ LayoutManager.prototype.switchCurrentLayout = function(layoutName) {
     this.currentLayout = layout;
     this.currentLayoutName = layoutName;
     this.currentLayoutPage = this._getInitLayoutPage();
-    this.currentForcedModifiedLayoutName = undefined;
+    this.currentForcedModifiedLayoutName = this._getInitForcedLayoutName();
 
     this._updateModifiedLayout();
   }.bind(this));
@@ -441,19 +441,30 @@ LayoutManager.prototype._updateModifiedLayout = function() {
 // we may launch into some alternative layout page
 // for some specific input types/modes
 // for bug 1024298, launch into symbols 1 page for number-type inputs
-LayoutManager.prototype._getInitLayoutPage = function() {
+// XXX: if the inputMode is 'digit', we need to launch 'pinLayout';
+//      the first switch-case in _getAlternativeLayoutName would not allow
+//      launching pinLayout if we set _SYMBOLS_I here,
+//      so need to bypass 'digit' case
+LayoutManager.prototype._isNumberTypeInput = function() {
   var inputMode = this.app.inputContext.inputMode;
   var basicInputType = this.app.getBasicInputType();
 
-  // XXX: but if the inputMode is 'digit', we need to launch 'pinLayout';
-  //      the first switch-case in _getAlternativeLayoutName would not allow
-  //      launching pinLayout if we set _SYMBOLS_I here.
-  if (('number' === basicInputType && 'digit' !== inputMode) ||
-      ('text' === basicInputType && 'numeric' === inputMode)) {
-    return this.LAYOUT_PAGE_SYMBOLS_I;
-  } else {
-    return this.LAYOUT_PAGE_DEFAULT;
-  }
+  return (('number' === basicInputType && 'digit' !== inputMode) ||
+          ('text' === basicInputType && 'numeric' === inputMode)) ;
+};
+
+LayoutManager.prototype._getInitLayoutPage = function() {
+  return this._isNumberTypeInput() ?
+           this.LAYOUT_PAGE_SYMBOLS_I : this.LAYOUT_PAGE_DEFAULT ;
+};
+
+// for some imes like chinese-pinyin/zhuyin, we want to launch into half-width
+// (forced) layout for number-type input
+LayoutManager.prototype._getInitForcedLayoutName = function() {
+  return ('defaultNumberLayout' in this.currentLayout &&
+          this._isNumberTypeInput()) ?
+         this.currentLayout.defaultNumberLayout :
+         undefined ;
 };
 
 LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
