@@ -8,6 +8,7 @@ form.search {
   left: 0;
   text-align: left;
   z-index: 5;
+  display: flex;
 }
 
 #search-container {
@@ -20,6 +21,14 @@ form.search {
 
 #search-view.insearchmode form.search input {
   pointer-events: auto;
+}
+
+form.search p {
+  flex-basis: 100%;
+}
+
+#search-view.insearchmode form.search p {
+  flex-basis: auto;
 }
 
 form.search label {

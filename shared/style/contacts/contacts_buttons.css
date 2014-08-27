@@ -73,6 +73,10 @@ li button.icon-email:before {
   overflow: hidden;
 }
 
+#contact-detail .item {
+  display: flex;
+}
+
 .item-media {
   float: left;
   margin-right: 1rem;
@@ -95,6 +99,10 @@ li button.icon-email:before {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+#contact-detail .item-body-exp {
+  flex-grow: 1;
 }
 
 /* PULLS: Float an element to the desired position; */
