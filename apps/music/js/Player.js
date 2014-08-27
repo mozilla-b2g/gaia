@@ -482,9 +482,9 @@ var PlayerView = {
    * Get a blob for the specified song, decrypting it if necessary,
    * and pass it to the specified callback
    */
-  getFile: function pv_getFile(songData, callback) {
+  getFile: function pv_getFile(songData, callback, errback) {
     if (!songData.metadata.locked) {
-      musicdb.getFile(songData.name, callback);
+      musicdb.getFile(songData.name, callback, errback);
       return;
     }
 
@@ -552,6 +552,12 @@ var PlayerView = {
           // until the SCO is disconnected.
           if (this.sourceType === TYPE_SINGLE || MusicComms.isSCOEnabled)
             this.pause();
+        }.bind(this), function(errmsg) {
+          // When we get error callback when playing music, it should be
+          // something happened with the file, we should update music db
+          // to ensure we have up-to-date info.
+          musicdb.scan();
+          this.next();
         }.bind(this));
       }.bind(this));
     } else if (this.sourceType === TYPE_BLOB && !this.audio.src) {
