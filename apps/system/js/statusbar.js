@@ -732,8 +732,7 @@ var StatusBar = {
       var f = new navigator.mozL10n.DateTimeFormat();
 
       var timeFormat = window.navigator.mozHour12 ?
-        _('shortTimeFormat12') : _('shortTimeFormat24');
-      timeFormat = timeFormat.replace('%p', '<span>%p</span>');
+        _('tinyTimeFormat12') : _('shortTimeFormat24');
       var formatted = f.localeFormat(now, timeFormat);
       this.icons.time.innerHTML = formatted;
 

@@ -133,11 +133,6 @@ body .utility-tray .statusbar > .sb-start {
   line-height: 1.6rem;
 }
 
-#statusbar-time span {
-  margin: 0;
-  font-size: 1.1rem;
-}
-
 /* signal and data icons */
 #statusbar-connections {
   margin: 0;
