@@ -39,7 +39,7 @@ suite('system/HomescreenLauncher', function() {
     });
 
     teardown(function() {
-      if (typeof window.homescreenLauncher !== undefined) {
+      if (typeof window.homescreenLauncher !== 'undefined') {
         window.homescreenLauncher.stop();
         window.homescreenLauncher = undefined;
       }
