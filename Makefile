@@ -493,7 +493,7 @@ include build/common.mk
 # Generate profile/
 $(PROFILE_FOLDER): preferences pre-app post-app test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit
 ifeq ($(BUILD_APP_NAME),*)
-    @echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
+	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
 
 $(STAGE_DIR):
