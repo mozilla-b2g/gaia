@@ -2640,7 +2640,6 @@ suite('thread_ui.js >', function() {
   });
 
   suite('not-downloaded', function() {
-    var setL10nAttributes;
     var ONE_DAY_TIME = 24 * 60 * 60 * 1000;
 
     function getTestMessage(index) {
@@ -2704,7 +2703,6 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(MessageManager, 'retrieveMMS', function() {
         return {};
       });
-      setL10nAttributes = this.sinon.spy(navigator.mozL10n, 'setAttributes');
     });
     suite('pending message', function() {
       var message;
@@ -2809,7 +2807,6 @@ suite('thread_ui.js >', function() {
         var showMessageErrorSpy;
 
         setup(function() {
-          setL10nAttributes.reset();
           if (!('mozSettings' in navigator)) {
            navigator.mozSettings = null;
           }
@@ -2820,10 +2817,12 @@ suite('thread_ui.js >', function() {
             target: button
           });
         });
-        assert.equal(
-          button.getAttribute('data-l10n-id'),
-          'downloading-attachment'
-        );
+        test('changes button text to "downloading"', function() {
+          assert.equal(
+            button.getAttribute('data-l10n-id'),
+            'downloading-attachment'
+          );
+        });
         test('error class absent', function() {
           assert.isFalse(element.classList.contains('error'));
         });
@@ -2835,7 +2834,6 @@ suite('thread_ui.js >', function() {
         });
         suite('response error', function() {
           setup(function() {
-            setL10nAttributes.reset();
             MessageManager.retrieveMMS.returnValues[0].onerror();
           });
           test('error class present', function() {
@@ -2844,11 +2842,10 @@ suite('thread_ui.js >', function() {
           test('pending class absent', function() {
             assert.isFalse(element.classList.contains('pending'));
           });
-          test('changes download text', function() {
-            sinon.assert.calledWith(
-              setL10nAttributes,
-              button,
-              'downloading-attachment'
+          test('changes button text to "download"', function() {
+            assert.equal(
+              button.getAttribute('data-l10n-id'),
+              'download-attachment'
             );
           });
           test('Message error dialog should not exist', function() {
@@ -2883,9 +2880,8 @@ suite('thread_ui.js >', function() {
             MockErrorDialog.calls[0][1].confirmHandler();
             assert.isTrue(element.classList.contains('pending'));
             assert.isFalse(element.classList.contains('error'));
-            sinon.assert.calledWith(
-              setL10nAttributes,
-              button,
+            assert.equal(
+              button.getAttribute('data-l10n-id'),
               'downloading-attachment'
             );
             sinon.assert.calledWith(Settings.switchMmsSimHandler, 1);
@@ -3004,15 +3000,13 @@ suite('thread_ui.js >', function() {
       });
       suite('clicking', function() {
         setup(function() {
-          setL10nAttributes.reset();
           ThreadUI.handleMessageClick({
             target: button
           });
         });
         test('changes download text', function() {
-          sinon.assert.calledWith(
-            setL10nAttributes,
-            button,
+          assert.equal(
+            button.getAttribute('data-l10n-id'),
             'downloading-attachment'
           );
         });
@@ -3027,7 +3021,6 @@ suite('thread_ui.js >', function() {
         });
         suite('response error', function() {
           setup(function() {
-            setL10nAttributes.reset();
             MessageManager.retrieveMMS.returnValues[0].onerror();
           });
           test('error class present', function() {
@@ -3036,11 +3029,10 @@ suite('thread_ui.js >', function() {
           test('pending class absent', function() {
             assert.isFalse(element.classList.contains('pending'));
           });
-          test('changes download text', function() {
-            sinon.assert.calledWith(
-              setL10nAttributes,
-              button,
-              'downloading-attachment'
+          test('changes button text to "download"', function() {
+            assert.equal(
+              button.getAttribute('data-l10n-id'),
+              'download-attachment'
             );
           });
         });
@@ -3158,7 +3150,6 @@ suite('thread_ui.js >', function() {
       return testMessages[index];
     }
 
-    var setL10nAttributes;
     setup(function() {
       this.sinon.stub(Utils.date.format, 'localeFormat', function() {
         return 'date_stub';
@@ -3166,10 +3157,6 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(MessageManager, 'retrieveMMS', function() {
         return {};
       });
-      setL10nAttributes = this.sinon.spy(
-        navigator.mozL10n,
-        'setL10nAttributes'
-      );
     });
 
     suite('no attachment message', function() {
@@ -3249,8 +3236,10 @@ suite('thread_ui.js >', function() {
         assert.isFalse(element.classList.contains('pending'));
       });
       test('message is Empty', function() {
-        sinon.assert.calledWithMatch(setL10nAttributes, noAttachmentMessage,
-          'no-attachment-text');
+        assert.equal(
+          noAttachmentMessage.getAttribute('data-l10n-id'),
+          'no-attachment-text'
+        );
       });
       suite('clicking', function() {
         setup(function() {
@@ -4294,11 +4283,9 @@ suite('thread_ui.js >', function() {
     });
 
     suite('Multi participant', function() {
-      var setL10nAttributes;
       setup(function() {
         MockActivityPicker.dial.mSetup();
         MockOptionMenu.mSetup();
-        setL10nAttributes = this.sinon.spy(navigator.mozL10n, 'setAttributes');
 
         Threads.set(1, {
           participants: ['999', '888']
@@ -5959,7 +5946,6 @@ suite('thread_ui.js >', function() {
 
       setup(function() {
         transitionArgs = getTransitionArgs();
-        this.sinon.spy(MockL10n, 'translate');
         this.sinon.spy(MockLazyLoader, 'load');
         this.sinon.spy(window, 'MultiSimActionButton');
         ThreadUI.beforeEnter(transitionArgs);
@@ -5988,7 +5974,6 @@ suite('thread_ui.js >', function() {
       test('loads and translates SIM picker', function() {
         var simPickerElt = document.getElementById('sim-picker');
 
-        sinon.assert.calledWith(MockL10n.translate, simPickerElt);
         sinon.assert.calledWith(MockLazyLoader.load, [simPickerElt]);
       });
 
