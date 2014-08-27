@@ -6,8 +6,8 @@
  'inspect',
  'presets',
  'worker/thread',
+ 'ext/dav',
  'ext/ical',
- 'ext/caldav',
  'ext/uuid',
  'service/ical_recur_expansion',
  'service/caldav'

@@ -16,7 +16,6 @@ Calendar.ns('Models').Account = (function() {
   }
 
   Account.prototype = {
-
     /**
      * Type of provider this
      * account requires.
@@ -59,6 +58,11 @@ Calendar.ns('Models').Account = (function() {
      * password for authentication
      */
     password: '',
+
+    /**
+     * JSON representation of account from dav library's perspective.
+     */
+    raw: null,
 
     get fullUrl() {
       return this.domain + this.entrypoint;
@@ -115,9 +119,12 @@ Calendar.ns('Models').Account = (function() {
         output._id = this._id;
       }
 
+      if (typeof this.raw === 'string') {
+        output.raw = this.raw;
+      }
+
       return output;
     }
-
   };
 
 
