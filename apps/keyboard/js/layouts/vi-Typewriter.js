@@ -10,7 +10,7 @@ Keyboards['vi-Typewriter'] = {
   imEngine: 'vietnamese',
   needsCandidatePanel: true,
   width: 10,
-  types: ['text', 'url', 'email', 'number'],
+  types: ['text', 'url', 'email'],
   alt: {
     'đ': 'z',
     'ư': 'f',

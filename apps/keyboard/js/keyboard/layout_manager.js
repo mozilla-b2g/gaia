@@ -75,7 +75,7 @@ LayoutManager.prototype.switchCurrentLayout = function(layoutName) {
 
     this.currentLayout = layout;
     this.currentLayoutName = layoutName;
-    this.currentLayoutPage = this._getInitLayoutPage();
+    this.currentLayoutPage = this.LAYOUT_PAGE_DEFAULT;
     this.currentForcedModifiedLayoutName = undefined;
 
     this._updateModifiedLayout();
@@ -438,24 +438,6 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   }
 };
 
-// we may launch into some alternative layout page
-// for some specific input types/modes
-// for bug 1024298, launch into symbols 1 page for number-type inputs
-LayoutManager.prototype._getInitLayoutPage = function() {
-  var inputMode = this.app.inputContext.inputMode;
-  var basicInputType = this.app.getBasicInputType();
-
-  // XXX: but if the inputMode is 'digit', we need to launch 'pinLayout';
-  //      the first switch-case in _getAlternativeLayoutName would not allow
-  //      launching pinLayout if we set _SYMBOLS_I here.
-  if (('number' === basicInputType && 'digit' !== inputMode) ||
-      ('text' === basicInputType && 'numeric' === inputMode)) {
-    return this.LAYOUT_PAGE_SYMBOLS_I;
-  } else {
-    return this.LAYOUT_PAGE_DEFAULT;
-  }
-};
-
 LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
                                                              inputMode) {
   switch (this.currentLayoutPage) {
@@ -474,6 +456,9 @@ LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
       switch (inputMode) {
         case 'digit':
           return 'pinLayout';
+
+        default:
+          return 'numberLayout';
       }
 
       break;
@@ -484,6 +469,9 @@ LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
       switch (inputMode) {
         case 'digit':
           return 'pinLayout';
+
+        case 'numeric':
+          return 'numberLayout';
 
         case '-moz-sms':
           var smsLayoutName = this.currentLayoutName + '-sms';
