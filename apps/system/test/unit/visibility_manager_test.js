@@ -1,16 +1,15 @@
 /* globals MocksHelper, VisibilityManager,
-           MockAttentionScreen, MockTaskManager, MockAppWindow */
+           MockAttentionScreen, MockTaskManager */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_task_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_attention_screen.js');
-requireApp('system/test/unit/mock_app_window.js');
 require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksForVisibilityManager = new MocksHelper([
-  'AttentionScreen', 'AppWindow', 'System'
+  'AttentionScreen', 'System'
 ]).init();
 
 suite('system/VisibilityManager', function() {
@@ -215,53 +214,6 @@ suite('system/VisibilityManager', function() {
 
       assert.isFalse(stubPublish.called);
       assert.isFalse(stubPublish.calledWith('hidewindowforscreenreader'));
-    });
-
-    test('move app to foreground', function () {
-      window.System.locked = false;
-      MockAttentionScreen.mFullyVisible = false;
-      var app = new MockAppWindow();
-      var setVisibleStub = this.sinon.stub(app, 'setVisible');
-      var event = new CustomEvent('apprequestforeground', {
-        detail: app
-      });
-      window.dispatchEvent(event);
-      assert.isTrue(setVisibleStub.calledWith(true));
-    });
-    test('move homescreen to foreground', function() {
-      var homescreen = new MockAppWindow();
-      var setVisibleStub = this.sinon.stub(homescreen, 'setVisible');
-      var event = new CustomEvent('homescreenrequestforeground', {
-        detail: homescreen
-      });
-      window.dispatchEvent(event);
-      assert.isTrue(setVisibleStub.calledWith(true));
-    });
-
-    test('dont foreground app when attentionscreen visible', function () {
-      window.System.locked = false;
-      MockAttentionScreen.mFullyVisible = true;
-      var app = new MockAppWindow();
-      this.sinon.stub(app, 'setVisible');
-
-      var event = new CustomEvent('apprequestforeground', {
-        detail: app
-      });
-      window.dispatchEvent(event);
-      assert.isFalse(app.setVisible.called);
-    });
-
-    test('dont foreground app when locked', function () {
-      window.System.locked = true;
-      MockAttentionScreen.mFullyVisible = false;
-      var app = new MockAppWindow();
-      this.sinon.stub(app, 'setVisible');
-
-      var event = new CustomEvent('apprequestforeground', {
-        detail: app
-      });
-      window.dispatchEvent(event);
-      assert.isFalse(app.setVisible.called);
     });
 
     test('system-dialog-show', function() {
