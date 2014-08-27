@@ -30,6 +30,9 @@ class BookmarkMenu(Base):
 
     def type_bookmark_title(self, value):
         element = self.marionette.find_element(*self._bookmark_title_input_locator)
+
+        # Wait for the default value to load into the input field
+        self.wait_for_condition(lambda m: element.get_attribute('value') != "")
         element.clear()
         self.keyboard.send(value)
         self.keyboard.dismiss()
