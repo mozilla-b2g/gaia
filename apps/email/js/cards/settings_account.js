@@ -68,7 +68,10 @@ function SettingsAccountCard(domNode, mode, args) {
     synchronizeNode.addEventListener(
       'change', this.onChangeSynchronize.bind(this), false);
   } else {
-    this.nodeFromClass('synchronize-setting').style.display = 'none';
+    // Remove it from the DOM so that css selectors for last-child can work
+    // efficiently. Also, it just makes the overall DOM smaller.
+    var syncSettingNode = this.nodeFromClass('synchronize-setting');
+        syncSettingNode.parentNode.removeChild(syncSettingNode);
   }
 
   this.account.servers.forEach(function(server, index) {
