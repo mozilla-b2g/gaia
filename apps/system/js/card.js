@@ -182,6 +182,8 @@
 
     this._fetchElements();
     this._registerEvents();
+
+    this.app.enterTaskManager();
     this.publish('rendered');
     return elem;
   };
@@ -221,6 +223,9 @@
     var element = this.element;
     if (element && element.parentNode) {
       element.parentNode.removeChild(element);
+    }
+    if (this.app) {
+      this.app.leaveTaskManager();
     }
     this.element = this.manager = this.app = null;
     this.publish('destroyed');
