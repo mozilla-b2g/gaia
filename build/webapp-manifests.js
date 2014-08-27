@@ -6,6 +6,7 @@ Cu.import('resource://gre/modules/Services.jsm');
 const INSTALL_TIME = Date.now();
 const UPDATE_TIME = Date.now();
 const DEBUG = false;
+const UUID_FILENAME = 'uuid.json'
 // Match this to value in applications-data.js
 
 function debug(msg) {
@@ -23,6 +24,7 @@ let uuidGenerator = Cc['@mozilla.org/uuid-generator;1']
 
 let manifests = {};
 let webapps = {};
+let uuidMapping = {};
 
 let id = 1;
 
@@ -167,12 +169,18 @@ function fillExternalAppManifest(webapp) {
   // Generate the webapp folder name in the profile. Only if it's privileged and it
   // has an origin in its manifest file it'll be able to specify a custom folder name.
   // Otherwise, generate an UUID to use as folder name.
-  let uuid = uuidGenerator.generateUUID().toString();
+
+  let uuid = (uuidMapping[webapp.sourceDirectoryName]) ?
+    uuidMapping[webapp.sourceDirectoryName] :
+    uuidGenerator.generateUUID().toString();
   let webappTargetDirName = uuid;
 
   if (type == 2 && isPackaged && webapp.pckManifest.origin) {
     let uri = io.newURI(webapp.pckManifest.origin, null, null);
     webappTargetDirName = uri.host;
+  } else {
+    // uuid is used for webapp directory name, save it for further usage
+    uuidMapping[webapp.sourceDirectoryName] = uuid;
   }
 
   let origin = isPackaged ? 'app://' + webappTargetDirName : webapp.metaData.origin;
@@ -305,6 +313,18 @@ function cleanProfile(webappsDir) {
 
 function execute(options) {
   config = options;
+
+  try {
+    let uuidFile = utils.getFile(options.GAIA_DISTRIBUTION_DIR, UUID_FILENAME);
+    if (uuidFile.exists()) {
+      utils.log('webapp-manifests',
+        'uuid.json in GAIA_DISTRIBUTION_DIR found.');
+      uuidMapping = JSON.parse(utils.getFileContent(uuidFile));
+    }
+  } catch (e) {
+    // ignore exception if GAIA_DISTRIBUTION_DIR does not exist.
+  }
+
   webappsTargetDir.initWithPath(config.PROFILE_DIR);
   // Create profile folder if doesn't exists
   if (!webappsTargetDir.exists())
@@ -358,6 +378,10 @@ function execute(options) {
   let mappingFile = stageDir.clone();
   mappingFile.append('webapps-mapping.json');
   utils.writeContent(mappingFile, JSON.stringify(mapping, null, 2));
+
+  let uuidMappingFile = stageDir.clone();
+  uuidMappingFile.append(UUID_FILENAME);
+  utils.writeContent(uuidMappingFile, JSON.stringify(uuidMapping, null, 2));
 
   return webapps;
 }
