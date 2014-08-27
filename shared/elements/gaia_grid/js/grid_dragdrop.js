@@ -31,6 +31,7 @@
     this.scrollable = document.documentElement;
     this.container.addEventListener('touchstart', this);
     this.container.addEventListener('contextmenu', this);
+    this.touchStartId = null;
   }
 
   DragDrop.prototype = {
@@ -124,7 +125,7 @@
       // place to avoid jank due to animations starting that are disabled
       // when dragging.
       this.icon.element.addEventListener('transitionend', this);
-      this.currentTouch = null;
+      this.currentTouch = this.touchStartId = null;
 
       if (this.doRearrange !== null) {
         if (this.rearrangeDelay) {
@@ -512,6 +513,14 @@
     },
 
     /**
+     * It returns true when the event received has been produced by the same
+     * finger which started dragging.
+     */
+    isDraggingFinger: function(event) {
+      return event.changedTouches.identifiedTouch(this.touchStartId);
+    },
+
+    /**
      * General event handler.
      */
     handleEvent: function(e) {
@@ -524,6 +533,10 @@
 
           case 'touchstart':
             this.canceled = e.touches.length > 1;
+            // Take the event that starts dragging (not the rest of touches)
+            if (this.touchStartId === null) {
+              this.touchStartId = e.changedTouches[0].identifier;
+            }
             break;
 
           case 'contextmenu':
@@ -577,11 +590,19 @@
             break;
 
           case 'touchcancel':
+            if (!this.isDraggingFinger(e)) {
+              return;
+            }
+
             this.removeDragHandlers();
             this.finish();
             this.finalize();
             break;
           case 'touchend':
+            if (!this.isDraggingFinger(e)) {
+              return;
+            }
+
             // Ensure the app is not launched
             e.stopImmediatePropagation();
             e.preventDefault();
