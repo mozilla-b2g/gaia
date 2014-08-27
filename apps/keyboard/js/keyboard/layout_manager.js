@@ -208,6 +208,12 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   var spaceKeyObject = layout.keys[spaceKeyRowCount][spaceKeyCount] =
     Object.create(layout.keys[spaceKeyRowCount][spaceKeyCount]);
 
+  var enterKeyFindResult = this._findKey(layout, KeyboardEvent.DOM_VK_RETURN);
+  var enterKeyCount = enterKeyFindResult.keyCount;
+  // Assume the [Enter] is at the same row as the space key
+  var enterKeyObject = layout.keys[spaceKeyRowCount][enterKeyCount] =
+    Object.create(layout.keys[spaceKeyRowCount][enterKeyCount]);
+
   // Keep the pageSwitchingKey here, because we may need to modify its ratio
   // at the end.
   var pageSwitchingKeyObject = null;
@@ -305,9 +311,16 @@ LayoutManager.prototype._updateModifiedLayout = function() {
         case 'text':
           modifyType = 'default';
           break;
+        case 'search':
+          modifyType = 'search';
+          break;
       }
     } else {
-      modifyType = 'default';
+      if ('search' === basicInputType) {
+        modifyType = 'search';
+      }else{
+        modifyType = 'default';
+      }
     }
 
     switch (modifyType) {
@@ -341,6 +354,13 @@ LayoutManager.prototype._updateModifiedLayout = function() {
 
         break;
 
+      case 'search':
+        if (enterKeyObject) {
+          enterKeyObject.className = 'search-icon';
+        }
+        // fall through to take modifications from default layouts
+
+      /* falls through */
       case 'default':
         var overwrites = layout.textLayoutOverwrite || {};
         // Add comma key if we are asked to,
@@ -395,14 +415,8 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   var keyCount = layout.width ? layout.width : 10;
   if (!layout.disableAlternateLayout) {
     if( spaceKeyCount == 3 && keyCount == 10) {
-      // Look for the [Enter] key in the layout. We're going to modify its size
-      // to sync with panel switching key or align with the above row.
-      var enterKeyFindResult = this._findKey(layout,
-                                             KeyboardEvent.DOM_VK_RETURN);
-      var enterKeyCount = enterKeyFindResult.keyCount;
-      // Assume the [Enter] is at the same row as the space key
-      var enterKeyObject = layout.keys[spaceKeyRowCount][enterKeyCount] =
-        Object.create(layout.keys[spaceKeyRowCount][enterKeyCount]);
+      // We're going to modify the [Enter] key size to sync with panel
+      // switching key or align with the above row.
       if (enterKeyObject) {
         enterKeyObject.ratio = 2.5;
       }
