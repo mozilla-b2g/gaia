@@ -7,6 +7,7 @@
   var detailsButton;
   var addToContactButton;
   var createContactButton;
+  var callInfoView;
 
   function updateGroupInformation(group) {
     var title = document.getElementById('call-info-title');
@@ -86,7 +87,7 @@
   }
 
   function close() {
-    document.getElementById('call-info-view').hidden = true;
+    callInfoView.hidden = true;
   }
 
   function viewContact() {
@@ -100,7 +101,7 @@
       src += '&back_to_previous_tab=1';
       // Contacts app needs to know if it's a missed call for different
       // highlight color of the phone number in contacts details
-      src += '&isMissedCall=0';// + isMissedCall;
+      src += '&isMissedCall=false';// + isMissedCall;
       var timestamp = new Date().getTime();
       contactsIframe.src = src + '&timestamp=' + timestamp;
     });
@@ -150,19 +151,21 @@
 
   var CallInfo = {
     show: function(number, date, type, status) {
-      LazyLoader.load(document.getElementById('call-info-view'), function() {
+      callInfoView = document.getElementById('call-info-view');
+      LazyLoader.load(callInfoView, function() {
         initListeners();
         date = parseInt(date, 10);
         CallLogDBManager.getGroup(number, date, type, status)
         .then(function(group) {
           currentGroup = group;
           updateGroupInformation(group);
-          document.getElementById('call-info-view').hidden = false;
+          callInfoView.hidden = false;
           updateCallDurations(group);
           updateActionButtons(group);
-        }).catch(function(error) {
-          console.log('OOPS', error.toString());
         });
+        // .catch(function(error) {
+          // console.log('OOPS', error.toString());
+        // });
       });
     }
   };
