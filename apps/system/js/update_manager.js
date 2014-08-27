@@ -247,8 +247,13 @@ var UpdateManager = {
         callback: this.cancelAllDownloads.bind(this)
       };
 
-      CustomDialog.show(_('cancelAllDownloads'), _('wantToCancelAll'),
-                        cancel, confirm);
+      var cancelAllDownloads = _('cancelAllDownloads');
+      var wantToCancelAll = _('wantToCancelAll');
+      var screen = document.getElementById('screen');
+
+      CustomDialog
+        .show(cancelAllDownloads, wantToCancelAll, cancel, confirm, screen)
+        .setAttribute('data-z-index-level', 'system-dialog');
     } else {
       this.launchDownload();
     }
@@ -264,10 +269,13 @@ var UpdateManager = {
       callback: this.cancelPrompt.bind(this)
     };
 
-    CustomDialog.show(
-    _('systemUpdate'),
-    _('downloadUpdatesVia2GForbidden2'),
-    ok);
+    var systemUpdate = _('systemUpdate');
+    var downloadUpdatesVia2GForbidden2 = _('downloadUpdatesVia2GForbidden2');
+    var screen = document.getElementById('screen');
+
+    CustomDialog
+      .show(systemUpdate, downloadUpdatesVia2GForbidden2, ok, null, screen)
+      .setAttribute('data-z-index-level', 'system-dialog');
   },
 
   showDownloadPrompt: function um_showDownloadPrompt() {
