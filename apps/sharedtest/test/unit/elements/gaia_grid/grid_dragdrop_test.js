@@ -1,5 +1,5 @@
 'use strict';
-/* global GaiaGrid, MocksHelper */
+/* global GaiaGrid, MocksHelper, GridDragDrop */
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/elements/gaia_grid/js/grid_dragdrop.js');
@@ -21,6 +21,8 @@ var mocksHelperForDragDrop = new MocksHelper([
 suite('GaiaGrid > DragDrop', function() {
   var grid;
   var dragdrop;
+  var isDraggingFingerStub;
+  var isDraggingFinger = true;
 
   var stubPage1 = {
     name: 'first',
@@ -48,9 +50,19 @@ suite('GaiaGrid > DragDrop', function() {
     grid = this.container.firstElementChild._grid;
     dragdrop = this.container.firstElementChild._grid;
 
+    isDraggingFingerStub = sinon.stub(GridDragDrop.prototype,
+      'isDraggingFinger', function() {
+        return isDraggingFinger;
+      }
+    );
+
     grid.add(new GaiaGrid.Bookmark(stubPage1));
     grid.add(new GaiaGrid.Bookmark(stubPage2));
     grid.render();
+  });
+
+  suiteTeardown(function() {
+    isDraggingFingerStub.restore();
   });
 
   test('changes position of icons', function() {
@@ -75,6 +87,17 @@ suite('GaiaGrid > DragDrop', function() {
       }]
     });
 
+    isDraggingFinger = false;
+
+    grid.dragdrop.handleEvent({
+      type: 'touchend'
+    });
+
+    assert.equal(grid.items[0].name, 'first');
+    assert.equal(grid.items[1].name, 'second');
+
+    isDraggingFinger = true;
+
     grid.dragdrop.handleEvent({
       type: 'touchend',
       stopImmediatePropagation: function() {},
@@ -93,6 +116,16 @@ suite('GaiaGrid > DragDrop', function() {
       {bubbles: true}));
     assert.ok(grid.dragdrop.inEditMode);
     assert.ok(firstBookmark.classList.contains('active'));
+
+    isDraggingFinger = false;
+
+    grid.dragdrop.handleEvent({
+      type: 'touchcancel'
+    });
+
+    assert.isTrue(firstBookmark.classList.contains('active'));
+
+    isDraggingFinger = true;
 
     grid.dragdrop.handleEvent({
       type: 'touchcancel',
