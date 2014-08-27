@@ -235,21 +235,16 @@ suite('system/ChildWindowFactory', function() {
 
   test('Target _blank support', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
-    var activitySpy = this.sinon.spy(window, 'MozActivity');
+    this.sinon.stub(app1, 'isActive').returns(true);
+
+    var spy = this.sinon.spy(window, 'AppWindow');
     var cwf = new ChildWindowFactory(app1);
-    var expectedActivity = {
-      name: 'view',
-      data: {
-        type: 'url',
-        url: 'http://blank.com/index.html'
-      }
-    };
     cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
       {
         detail: fakeWindowOpenBlank
       }));
-    assert.isTrue(activitySpy.calledWithNew());
-    sinon.assert.calledWith(activitySpy, expectedActivity);
+    assert.isTrue(spy.calledWithNew());
+    assert.deepEqual(spy.getCall(0).args[0].url, fakeWindowOpenBlank.url);
   });
 
   test('Create ActivityWindow', function() {
@@ -312,7 +307,6 @@ suite('system/ChildWindowFactory', function() {
         .dispatchEvent(new CustomEvent('_closing', {
           detail: spy.getCall(0).returnValue
         }));
-        console.log(spy.getCall(0).returnValue);
     assert.isTrue(stubVisible.calledWith(true));
     assert.isTrue(stubLockOrientation.called);
   });
