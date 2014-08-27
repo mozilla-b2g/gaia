@@ -26,6 +26,7 @@ contacts.Details = (function() {
   var PHONE_TYPE_MAP = {
   'cell' : 'mobile'
   };
+  var isAFavoriteChange = false;
   var contactData,
       contactDetails,
       listContainer,
@@ -189,6 +190,11 @@ contacts.Details = (function() {
   };
 
   var render = function cd_render(currentContact, fbContactData) {
+    // If it is a favourite on/off change, I cancel the render
+    if(isAFavoriteChange === true){
+      isAFavoriteChange = false;
+      return;
+    }
     contactData = currentContact || contactData;
 
     isFbContact = fb.isFbContact(contactData);
@@ -313,6 +319,7 @@ contacts.Details = (function() {
 
     var request = navigator.mozContacts.save(utils.misc.toMozContact(contact));
     request.onsuccess = function onsuccess() {
+      isAFavoriteChange = 1;
       var cList = contacts.List;
       /*
          Two contacts are returned because the enrichedContact is readonly
