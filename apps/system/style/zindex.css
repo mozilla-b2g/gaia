@@ -67,14 +67,17 @@
   z-index: 65535;
 }
 
+#screen.cards-view > [data-z-index-level="software-buttons"] {
+  z-index: 65538;
+}
+
 /* move app windows to sit above homescreen but below task manager */
 #screen.task-manager > #windows > .in-task-manager:not(.homescreen) {
   z-index: 2043;
 }
 
 /* Keyboard is shown above task manager */
-#screen.cards-view.task-manager > [data-z-index-level="keyboards"],
-#screen.cards-view.task-manager > [data-z-index-level="software-buttons"] {
+#screen.cards-view.task-manager > [data-z-index-level="keyboards"] {
   z-index: 65538;
 }
 

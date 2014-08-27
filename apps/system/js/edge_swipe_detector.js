@@ -286,6 +286,14 @@ var EdgeSwipeDetector = {
 
     var x = touch.pageX;
     var y = touch.pageY;
+    var softwareButtonOverlayed =
+      !System.locked &&
+      AppWindowManager.getActiveApp() &&
+      AppWindowManager.getActiveApp().isFullScreenLayout();
+    if (softwareButtonOverlayed) {
+      return x > (layoutManager.width - softwareButtonManager.width) ||
+          y > (layoutManager.height - softwareButtonManager.height);
+    }
     return (x > layoutManager.width ||
             y > layoutManager.height);
   },
