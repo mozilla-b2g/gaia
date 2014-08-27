@@ -492,7 +492,7 @@ export BUILD_CONFIG
 include build/common.mk
 
 # Generate profile/
-$(PROFILE_FOLDER): preferences pre-app post-app test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit create-default-data
+$(PROFILE_FOLDER): promise preferences pre-app post-app test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit create-default-data
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -1005,3 +1005,7 @@ docs: $(NPM_INSTALLED_PROGRAMS)
 .PHONY: watch
 watch: $(NPM_INSTALLED_PROGRAMS)
 	node build/watcher.js
+
+.PHONY: promise
+promise: $(XULRUNNER_BASE_DIRECTORY)
+	@$(call run-js-command,promise)
