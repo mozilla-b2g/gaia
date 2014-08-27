@@ -88,7 +88,7 @@
   width: calc(100% - 4.5rem);
   height: 3.6rem;
   line-height: 3.6rem;
-  margin: 0.4rem 0 0.6rem;
+  margin: 0.5rem 0 0.5rem;
   border-radius: 1.8rem;
   color: inherit;
   overflow: hidden;
@@ -112,7 +112,7 @@
 
 .chrome .controls .urlbar .title {
   width: calc(100% - 3.2rem);
-  padding-left: 1rem;
+  padding: 0 0.8rem 0 1rem;
   box-sizing: padding-box;
   overflow: hidden;
   white-space: nowrap;
@@ -236,7 +236,22 @@
   padding: 0 0.3rem;
   width: 3rem;
   height: 3rem;
+}
+
+.controls .reload-button::before,
+.controls .stop-button::before {
+  content: '';
+  position: relative;
+  right: 0.2rem;
+  display: block;
+  height: 2.4rem;
   border-left: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Vertically align butons outside of urlbar. */
+.controls > button {
+  position: relative;
+  top: 0.2rem;
 }
 
 .loading .controls .reload-button {
