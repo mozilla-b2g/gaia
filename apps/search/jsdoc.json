@@ -1,6 +1,10 @@
 {
   "search": {
-    "src": ["apps/search/js/**/*.js"],
+    "src": ["apps/search/js/**/*.js",
+            "!apps/search/js/contextmenu.js",
+            "!apps/search/js/places_idb.js",
+            "!apps/search/js/providers/contacts.js",
+            "!apps/search/js/providers/local_apps.js"],
     "options": {
       "destination": "docs/search"
     }

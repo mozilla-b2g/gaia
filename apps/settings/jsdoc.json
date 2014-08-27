@@ -1,8 +1,8 @@
 {
   "settings": {
     "src": ["apps/settings/README.md",
-            "apps/settings/js/**/*.js"
-    ],
+            "apps/settings/js/**/*.js",
+            "!apps/settings/js/panels/app_permissions_detail/app_permissions_detail.js"],
     "options": {
       "destination": "docs/settings"
     }
