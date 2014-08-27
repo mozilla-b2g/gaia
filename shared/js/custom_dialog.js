@@ -5,6 +5,7 @@
 
 var CustomDialog = (function() {
 
+  var container = null;
   var screen = null;
   var dialog = null;
   var header = null;
@@ -18,7 +19,11 @@ var CustomDialog = (function() {
         return;
       }
 
-      document.body.removeChild(screen);
+      if (!container) {
+        container = document.body;
+      }
+
+      container.removeChild(screen);
       screen = null;
       dialog = null;
       header = null;
@@ -37,8 +42,12 @@ var CustomDialog = (function() {
     *                  {icon: path or empty string, message: String}.
     * @param  {Object} cancel {title, callback} object when confirm.
     * @param  {Object} confirm {title, callback} object when cancel.
+    * @param  {Element} [element] an optional element for which the dialog
+    *                             will be injected
     */
-    show: function dialog_show(title, msg, cancel, confirm) {
+    show: function dialog_show(title, msg, cancel, confirm, element) {
+      container = element || document.body;
+
       if (screen === null) {
         screen = document.createElement('form');
         screen.setAttribute('role', 'dialog');
@@ -133,7 +142,7 @@ var CustomDialog = (function() {
 
         screen.appendChild(menu);
 
-        document.body.appendChild(screen);
+        container.appendChild(screen);
       }
 
       // Make the screen visible
@@ -152,6 +161,8 @@ var CustomDialog = (function() {
           cancel.callback();
         }
       }
+
+      return screen;
     }
   };
 }());

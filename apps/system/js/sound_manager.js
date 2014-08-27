@@ -552,6 +552,7 @@
     };
 
     var self = this;
+    var screen = document.getElementById('screen');
 
     if (okfn instanceof Function) {
       cancel.callback = function onCancel() {
@@ -565,7 +566,9 @@
       };
     }
 
-    CustomDialog.show(ceTitle, ceMsg, cancel);
+    CustomDialog
+      .show(ceTitle, ceMsg, cancel, null, screen)
+      .setAttribute('data-z-index-level', 'system-dialog');
   };
 
   /**
