@@ -72,6 +72,9 @@ require.config({
     },
     'shared/device_storage/enumerate_all': {
       exports: 'enumerateAll'
+    },
+    'shared/airplane_mode_helper': {
+      exports: 'AirplaneModeHelper'
     }
   },
   modules: [
