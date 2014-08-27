@@ -281,7 +281,7 @@ suite('Render contacts list', function() {
     loading.id = 'loading-overlay';
     settings = document.createElement('div');
     settings.id = 'view-settings';
-    settings.innerHTML = '<button id="settings-close" role="menuitem"' +
+    settings.innerHTML = '<button id="settings-close"' +
                                           'data-l10n-id="done">Done</button>';
     settings.innerHTML += '<div class="view-body-inner"></div>';
     noContacts = document.createElement('div');
