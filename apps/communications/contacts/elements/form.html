@@ -81,10 +81,10 @@
           </legend>
           <section>
             <p class="setbox-item">
-              <span id="date-text_#i#" class="datetime placeholder">
+              <span aria-hidden="true" id="date-text_#i#" class="datetime placeholder">
                 Date
               </span>
-              <input placeholder="date" data-l10n-id="date" name="date[#i#][value]" type="date" id="date_#i#">
+              <input placeholder="date" data-l10n-id="date" name="date[#i#][value]" type="date" id="date_#i#" aria-labelledby="date-text_#i#">
             </p>
           </section>
         </div>
@@ -108,7 +108,7 @@
         <form id="contact-form" action="#" class="fill-flow">
           <input name="id" id="contact-form-id" type="hidden" value="">
           <section class="item first">
-            <div aria-label="Photo" data-l10n-id="legendPhoto" role="group" id="thumbnail-action" href="#" class="item-media fillflow-media">
+            <div id="thumbnail-action" href="#" class="item-media fillflow-media">
               <div role="button" id="photo-button">
                 <p>
                   <span class="icon icon-addimage"></span>

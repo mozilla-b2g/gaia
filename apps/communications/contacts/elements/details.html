@@ -2,7 +2,7 @@
   <template>
     <gaia-header id='details-view-header' action="back">
       <h1 id='contact-name-title'></h1>
-      <button id="edit-contact-button" data-icon="edit-contact" data-l10n-id="edit"></button>
+      <button id="edit-contact-button" data-icon="edit-contact" data-l10n-id="editButton"></button>
     </gaia-header>
 
     <article id="contact-detail-wrapper" class="view-body">
@@ -13,7 +13,7 @@
             <div class="item">
               <div class="item-body-exp">
                 <button class="activity call-action icon icon-call" id="call-or-pick-#i#">
-                  <b>#value#</b>
+                  <b aria-label="Call" data-l10n-id="makeCall">#value#</b>
                   <span class="js-sim-indication"></span>
                 </button>
               </div>
@@ -71,7 +71,7 @@
             <div class="item">
               <div class="item-body-exp">
                 <button id="email-or-pick-#i#" class="activity icon icon-email">
-                  <b>#value#</b>
+                  <b aria-label="Email" data-l10n-id="composeEmail">#value#</b>
                 </button>
               </div>
             </div>

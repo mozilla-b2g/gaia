@@ -1027,6 +1027,7 @@ contacts.List = (function() {
       return;
     }
     photoTemplate = document.createElement('aside');
+    photoTemplate.setAttribute('aria-hidden', true);
     photoTemplate.className = 'pack-end';
     var img = document.createElement('span');
     img.dataset.type = 'img';
