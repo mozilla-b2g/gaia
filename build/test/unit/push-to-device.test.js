@@ -155,6 +155,9 @@ suite('push-to-device.js', function() {
               ' //data/local/user.js',
             '-c adb push "shared/elements/gaia-icons/fonts/gaia-icons.ttf"' +
               ' //system/fonts/hidden/gaia-icons.ttf',
+            '-c adb push "shared/style/keyboard_symbols/' +
+                         'Keyboard-Symbols.woff"' +
+              ' //system/fonts/hidden/Keyboard-Symbols.woff',
             '-c adb shell start b2g']});
         done();
       });
