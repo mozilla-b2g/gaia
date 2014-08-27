@@ -33,11 +33,11 @@ System.prototype = {
   },
 
   get appTitlebar() {
-    return this.client.findElement(System.Selector.appTitlebar);
+    return this.client.helper.waitForElement(System.Selector.appTitlebar);
   },
 
   get appUrlbar() {
-    return this.client.findElement(System.Selector.appUrlbar);
+    return this.client.helper.waitForElement(System.Selector.appUrlbar);
   },
 
   get appChromeContextLink() {
