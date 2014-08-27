@@ -402,12 +402,17 @@ contacts.List = (function() {
     }
 
     var letterAbbr = document.createElement('abbr');
+    var letterAbbrId = 'contacts-listed-abbr-' + group;
     letterAbbr.setAttribute('title', 'Contacts listed ' + group);
+    letterAbbr.setAttribute('aria-hidden', true);
+    letterAbbr.id = letterAbbrId;
     letterAbbr.textContent = letter;
+    title.setAttribute('aria-labelledby', letterAbbrId);
     title.appendChild(letterAbbr);
 
     var contactsContainer = document.createElement('ol');
     contactsContainer.setAttribute('role', 'listbox');
+    contactsContainer.setAttribute('aria-labelledby', letterAbbrId);
     contactsContainer.id = 'contacts-list-' + group;
     contactsContainer.dataset.group = group;
     letteredSection.appendChild(title);
@@ -566,6 +571,7 @@ contacts.List = (function() {
       order = getStringToBeOrdered(contact);
       group = getGroupNameByOrderString(order);
     }
+    ph.setAttribute('role', 'option');
     ph.dataset.group = group;
 
     // NOTE: We want the group value above to be based on the raw data so that

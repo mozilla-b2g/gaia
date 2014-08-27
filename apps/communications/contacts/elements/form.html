@@ -6,7 +6,7 @@
     </gaia-header>
     <progress id="throbber" value="0" max="100" class="pack-activity hide"></progress>
 
-    <div id='add-phone-#i#' data-template class='phone-template field-template' data-index="#i#">
+    <div id='add-phone-#i#' role="listitem" data-template class='phone-template field-template' data-index="#i#">
       <fieldset class="fillflow-row">
         <div class="two_fields">
           <legend class="action" role="combobox" aria-autocomplete="list" aria-haspopup="true">
@@ -29,7 +29,7 @@
       </fieldset>
     </div>
 
-    <div id='add-email-#i#' data-template class='email-template field-template' data-index="#i#">
+    <div id='add-email-#i#' role="listitem" data-template class='email-template field-template' data-index="#i#">
       <fieldset class="fillflow-row">
         <legend class="action" role="combobox" aria-autocomplete="list" aria-haspopup="true">
           <span data-taglist="email-type" name="email[#i#][type]" data-value="#type_value#" id="email_type_#i#" data-field="type" data-l10n-id="#type_l10n_id#">#type#</span>
@@ -43,7 +43,7 @@
       </fieldset>
     </div>
 
-    <div id='add-address-#i#' data-template class='address-template field-template' data-index="#i#">
+    <div id='add-address-#i#' role="listitem" data-template class='address-template field-template' data-index="#i#">
       <fieldset class="fillflow-row">
         <section>
           <p class="setbox-item">
@@ -73,7 +73,7 @@
       </fieldset>
     </div>
 
-    <div id='add-date-#i#' data-template class='date-template field-template' data-exclusive="true" data-custom="false" data-index="#i#">
+    <div id='add-date-#i#' role="listitem" data-template class='date-template field-template' data-exclusive="true" data-custom="false" data-index="#i#">
       <fieldset class="fillflow-row">
         <div class="two_fields">
           <legend class="action" role="combobox" aria-autocomplete="list" aria-haspopup="true">
@@ -91,8 +91,8 @@
       </fieldset>
     </div>
 
-    <div id='add-note-#i#' data-template class='note-template field-template' data-index="#i#">
-      <dl class="setbox fillflow-row">
+    <div id='add-note-#i#' role="listitem" data-template class='note-template field-template' data-index="#i#">
+      <dl role="presentation" class="setbox fillflow-row">
         <dd class="setbox-body">
           <p class="setbox-item">
            <input placeholder="Comment" data-l10n-id="comment" name="comment[#i#]" class="textfield" type="text" x-inputmode="latin-prose" value="#note#" id="note_#i#" dir="auto">
@@ -138,19 +138,19 @@
             </div>
           </section>
 
-          <ul>
-            <li>
+          <ul role="presentation">
+            <li role="region" aria-label="Phones" data-l10n-id="phones">
               <section>
-                <div id="contacts-form-phones"></div>
+                <div id="contacts-form-phones" role="list"></div>
               </section>
               <button data-field-type="tel" id='add-new-phone' data-l10n-id="addPhone" class="fillflow-row action action-add icon icon-add">
                 Add phone number
               </button>
             </li>
 
-            <li>
+            <li role="region" aria-label="Emails" data-l10n-id="emails">
               <section>
-                <div id="contacts-form-emails"></div>
+                <div id="contacts-form-emails" role="list"></div>
               </section>
 
               <button data-field-type="email" id='add-new-email' data-l10n-id="addEmail" class="fillflow-row action action-add icon icon-add">
@@ -158,9 +158,9 @@
               </button>
             </li>
 
-            <li>
+            <li role="region" aria-label="Addresses" data-l10n-id="addresses">
               <section>
-                <div id="contacts-form-addresses"></div>
+                <div id="contacts-form-addresses" role="list"></div>
               </section>
 
               <button data-field-type="adr" id='add-new-address' data-l10n-id="addAddress" class="fillflow-row action action-add icon icon-add">
@@ -168,9 +168,9 @@
               </button>
             </li>
 
-            <li>
+            <li role="region" aria-label="Dates" data-l10n-id="dates">
               <section>
-                <div id="contacts-form-dates"></div>
+                <div id="contacts-form-dates" role="list"></div>
               </section>
 
               <button data-field-type="date" id='add-new-date' data-l10n-id="addDate" class="fillflow-row action action-add icon icon-add">
@@ -178,9 +178,9 @@
               </button>
             </li>
 
-            <li>
+            <li role="region" aria-label="Notes" data-l10n-id="notes">
               <section>
-                <div id="contacts-form-notes"></div>
+                <div id="contacts-form-notes" role="list"></div>
               </section>
 
               <button data-field-type="note" id='add-new-note' data-l10n-id="addComment" class="fillflow-row action action-add icon icon-add">

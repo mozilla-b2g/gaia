@@ -8,8 +8,8 @@
 
       <article class="view-body" id="settings-article">
         <section role="region" class="view-body-inner">
-          <ul data-type="list">
             <li id="settingsOrder">
+          <ul data-type="list" role="presentation">
               <p data-l10n-id="contactsOrderBy">Order by last name</p>
               <aside class="pack-end">
                 <label class="pack-switch">
@@ -19,17 +19,17 @@
               </aside>
             </li>
           </ul>
-          <gaia-subheader skin="organic">
+          <gaia-subheader skin="organic" id="transfer-contacts-header">
             <span data-l10n-id="transferContactsTitle">Transfer Contacts</span>
           </gaia-subheader>
-          <ul data-type="list" id="sources">
-            <li id="importContacts" data-source="sim">
-              <button class="icon icon-import" data-l10n-id="importContactsButton">
+          <ul data-type="list" id="sources" role="listbox" aria-labelledby="transfer-contacts-header">
+            <li role="presentation" id="importContacts" data-source="sim">
+              <button role="option" class="icon icon-import" data-l10n-id="importContactsButton">
                 Import Contacts
               </button>
             </li>
-            <li id="exportContacts" data-source="sd">
-              <button class="icon icon-export" data-l10n-id="exportContactsButton">
+            <li role="presentation" id="exportContacts" data-source="sd">
+              <button role="option" class="icon icon-export" data-l10n-id="exportContactsButton">
                 Export Contacts
               </button>
             </li>
@@ -37,8 +37,8 @@
           <gaia-subheader id="fb-header" skin="organic">
             <span data-l10n-id="facebook">Facebook</span>
           </gaia-subheader>
-          <ul id="settingsFb" data-type="list" data-state="logged-out">
             <li class="fb-item">
+          <ul id="settingsFb" role="presentation" data-type="list" data-state="logged-out">
               <p data-l10n-id="facebookSwitchMsg">Sync friends</p>
               <p id="fb-totals"></p>
               <aside class="pack-end">
@@ -48,7 +48,7 @@
                 </label>
               </aside>
             </li>
-            <li id="fb-update-option">
+            <li id="fb-update-option" role="presentation">
               <button data-l10n-id="fbUpdateFriends" id="import-fb" class="icon">
                 Update imported friends
               </button>
@@ -56,17 +56,17 @@
               <p id="no-connection" data-l10n-id="noConnection11"></p>
             </li>
           </ul>
-          <gaia-subheader skin="organic">
+          <gaia-subheader skin="organic" id="contacts-management-header">
             <span data-l10n-id="ContactManagementTitle">Contacts Management</span>
           </gaia-subheader>
-          <ul data-type="list" id="contactsManagement">
-            <li>
-              <button id="set-ice" class="action" data-l10n-id="setICEButton">
+          <ul data-type="list" id="contactsManagement" role="listbox" aria-labelledby="contacts-management-header">
+            <li role="presentation">
+              <button role="option" id="set-ice" class="action" data-l10n-id="setICEButton">
                 Set ICE Contacts
               </button>
             </li>
-            <li>
-              <button id="bulkDelete" class="action" data-l10n-id="bulkDeleteButton">
+            <li role="presentation">
+              <button role="option" id="bulkDelete" class="action" data-l10n-id="bulkDeleteButton">
                 Delete Contacts
               </button>
             </li>
@@ -80,37 +80,37 @@
       </gaia-header>
       <article class="view-body">
         <section role="region" class="view-body-inner">
-          <ul data-type="list" id="import-options">
-            <li id="import-sd-option" data-source="sd">
-              <button class="icon icon-sd" data-l10n-id="importMemoryCard">
+          <ul role="listbox" data-type="list" id="import-options">
+            <li role="presentation" id="import-sd-option" data-source="sd">
+              <button role="option" class="icon icon-sd" data-l10n-id="importMemoryCard">
                 Memory card
                 <p><span></span><time></time></p>
               </button>
               <p class="error-message"></p>
             </li>
-            <li id="import-gmail-option" class="importService" data-source="gmail">
-              <button class="icon icon-gmail" data-l10n-id="importGmail">
+            <li role="presentation" id="import-gmail-option" class="importService" data-source="gmail">
+              <button role="option" class="icon icon-gmail" data-l10n-id="importGmail">
                 Gmail
                 <p><span></span><time></time></p>
               </button>
             </li>
-            <li id="import-live-option" class="importService" data-source="live">
-              <button class="icon icon-live" data-l10n-id="importOutlook">
+            <li role="presentation" id="import-live-option" class="importService" data-source="live">
+              <button role="option" class="icon icon-live" data-l10n-id="importOutlook">
                 Outlook
                 <p><span></span><time></time></p>
               </button>
               <p class="error-message" data-l10n-id="genericNoConnection"></p>
             </li>
           </ul>
-          <ul data-type="list" id="export-options">
-            <li id="export-sd-option" data-source="sd">
-              <button class="icon icon-sd" data-l10n-id="memoryCard">
+          <ul role="listbox" data-type="list" id="export-options">
+            <li role="presentation" id="export-sd-option" data-source="sd">
+              <button role="option" class="icon icon-sd" data-l10n-id="memoryCard">
                 Memory card
               </button>
               <p class="error-message"></p>
             </li>
-            <li id="export-bluetooth-option" data-source="bluetooth">
-              <button class="icon icon-bluetooth" data-l10n-id="bluetooth">
+            <li role="presentation" id="export-bluetooth-option" data-source="bluetooth">
+              <button role="option" class="icon icon-bluetooth" data-l10n-id="bluetooth">
                 Bluetooth
               </button>
             </li>
@@ -127,8 +127,8 @@
           <p class="description" data-l10n-id="ICEDescription">
             Add two contacts for making “In Case of Emergency” calls.
           </p>
-          <ul data-type="list">
-            <li id="ice-contacts-1-switch" class="ice-contacts-switch">
+          <ul data-type="list" role="listbox" aria-multiselectable="true">
+            <li role="option" id="ice-contacts-1-switch" class="ice-contacts-switch">
               <p data-l10n-id="ICEContact1">ICE Contact 1</p>
               <aside class="pack-end">
                 <label class="pack-switch">
@@ -137,12 +137,12 @@
                 </label>
               </aside>
             </li>
-            <li>
-              <button id="select-ice-contact-1" class="icon icon-view" data-l10n-id="ICESelectContact" disabled>
+            <li role="presentation">
+              <button role="option" id="select-ice-contact-1" class="icon icon-view" data-l10n-id="ICESelectContact" disabled>
                 Select a contact
               </button>
             </li>
-            <li id="ice-contacts-2-switch" class="ice-contacts-switch">
+            <li role="option" id="ice-contacts-2-switch" class="ice-contacts-switch">
               <p data-l10n-id="ICEContact2">ICE Contact 2</p>
               <aside class="pack-end">
                 <label class="pack-switch">
@@ -151,8 +151,8 @@
                 </label>
               </aside>
             </li>
-            <li>
-              <button id="select-ice-contact-2" class="icon icon-view" data-l10n-id="ICESelectContact" disabled>
+            <li role="presentation">
+              <button role="option" id="select-ice-contact-2" class="icon icon-view" data-l10n-id="ICESelectContact" disabled>
                 Select a contact
               </button>
             </li>
