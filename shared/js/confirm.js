@@ -76,18 +76,18 @@ var ConfirmDialog = (function() {
       oldzIndex = null;
     }
     if (title) {
-      titleNode.textContent = title;
+      titleNode.setAttribute('data-l10n-id', title);
     } else {
       titleNode.classList.add('hide');
     }
     if (msg) {
-      messageNode.textContent = msg;
+      messageNode.setAttribute('data-l10n-id', msg);
     } else {
       messageNode.classList.add('hide');
     }
     if (action1) {
       if (action1.title) {
-        action1Node.textContent = action1.title;
+        action1Node.setAttribute('data-l10n-id', action1.title);
       }
       if (action1.isDanger) {
         action1Node.classList.add('danger');
@@ -106,7 +106,7 @@ var ConfirmDialog = (function() {
     }
     if (action2) {
       if (action2.title) {
-        action2Node.textContent = action2.title;
+        action2Node.setAttribute('data-l10n-id', action2.title);
       }
       if (action2.isDanger) {
         action2Node.classList.add('danger');
@@ -166,11 +166,11 @@ var ConfirmDialog = (function() {
 
     /**
     * Method that shows the dialog
-    * @param  {String} title the title of the dialog. null or empty for
+    * @param  {String} titleId the l10nId title of the dialog. null or empty for
     *                        no title.
-    * @param  {String} msg message for the dialog.
-    * @param  {Object} action1 {title, isDanger, callback} object.
-    * @param  {Object} action2 {title, isDanger, callback} object.
+    * @param  {String} msgId l10nId  message for the dialog.
+    * @param  {Object} action1 {titleId, isDanger, callback} object.
+    * @param  {Object} action2 {titleId, isDanger, callback} object.
     */
     show: function dialog_show(title, msg, action1, action2, options) {
       if (!isAnimationPlaying) {
