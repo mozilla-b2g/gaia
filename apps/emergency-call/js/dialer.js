@@ -1,7 +1,7 @@
 'use strict';
 
-/* globals ConfirmDialog, KeypadManager, LazyLoader, SimSettingsHelper,
-           TonePlayer */
+/* globals ConfirmDialog, KeypadManager, ICEContacts, LazyLoader,
+           SimSettingsHelper, TonePlayer */
 /* exported CallHandler */
 
 var CallHandler = {
@@ -14,7 +14,7 @@ var CallHandler = {
         self = this;
     if (telephony) {
       var callPromise;
-      if (isICEContact) {
+      if (ICEContacts.isFromICEContact(number)) {
         LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
           SimSettingsHelper.getCardIndexFrom('outgoingCall',
             function(defaultCardIndex) {
