@@ -99,9 +99,4 @@
     height: 6rem;
     margin: 0 auto;
   }
-
-  .tutorial-screen-base .step-state:before {
-    width: calc(100% / 4);
-    background: #FFFFFF;
-  }
 }

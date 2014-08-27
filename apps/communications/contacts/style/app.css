@@ -183,7 +183,7 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
   left: 0;
   width: 100%;
   height: 100%;
-  transform: none;
+  transform: translate(0, 0);
 }
 
 .view:not(.view-noscroll) {
@@ -200,8 +200,8 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
 }
 
 /* Rewritting from buttons.css */
-section[role="region"] > header:first-child button,
-section[role="region"] > header:first-child a {
+section[role="region"] > gaia-header button,
+section[role="region"] > gaia-header a {
   white-space: normal;
 }
 
@@ -250,7 +250,7 @@ li button.activity > b {
   left: 0;
 }
 
-[data-type="list"] header {
+[data-type="list"] gaia-header {
   padding: 0 0 0 1.5rem;
   position: sticky;
   top: -1.5rem;
@@ -664,4 +664,23 @@ html[dir="rtl"] .fillflow-row-action {
 html[dir="rtl"] .view-body-inner,
 html[dir="rtl"] ::-moz-placeholder {
   text-align: right;
+}
+
+#contact-list-ice {
+  padding-left: 1rem
+}
+
+#contact-list-ice li {
+  display: flex;
+  align-items: baseline;
+}
+
+#contact-list-ice span {
+  width: 3rem;
+  height: 3rem;
+  background: url("/contacts/style/images/icon_ice.png");
+}
+
+#groups-list.selecting #contact-list-ice {
+  display:none;
 }

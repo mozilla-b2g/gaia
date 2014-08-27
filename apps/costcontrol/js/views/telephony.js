@@ -10,6 +10,8 @@
 var TelephonyTab = (function() {
   var costcontrol, initialized = false;
   var view, smscount, calltime, time, resetDate;
+  var telephonyPeriod = { begin: null, end: null };
+
   function setupTab() {
     if (initialized) {
       return;
@@ -32,6 +34,12 @@ var TelephonyTab = (function() {
       ConfigManager.observe('lastTelephonyActivity', updateCounters, true);
       ConfigManager.observe('lastTelephonyReset', updateUI, true);
       ConfigManager.observe('nextReset', updateNextReset, true);
+
+      // Timeformat
+      window.addEventListener('timeformatchange', function () {
+        updateTimePeriod(
+          telephonyPeriod.begin, null, null, telephonyPeriod.end);
+      });
 
       updateUI();
       initialized = true;
@@ -80,10 +88,10 @@ var TelephonyTab = (function() {
   }
 
   function updateTimePeriod(lastReset, old, key, settings) {
+    telephonyPeriod.begin = lastReset;
+    telephonyPeriod.end = settings.lastTelephonyActivity.timestamp;
     time.innerHTML = '';
-    time.appendChild(Formatting.formatTimeHTML(lastReset,
-                                    settings.lastTelephonyActivity.timestamp));
-
+    time.appendChild(Formatting.formatTimeHTML(lastReset, telephonyPeriod.end));
   }
 
   function updateCounters(activity) {

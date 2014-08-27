@@ -12,7 +12,6 @@ apps/browser/test/unit/browser_db_test.js
 apps/callscreen/js/fake-oncall-desktop.js
 apps/callscreen/js/index.js
 apps/callscreen/test/unit/mock_mozbluetooth.js
-apps/communications/dialer/js/call_log.js
 apps/communications/dialer/js/index.js
 apps/communications/dialer/js/mmi_ui.js
 apps/communications/dialer/js/phone_action_menu.js
@@ -448,7 +447,6 @@ apps/system/test/unit/updatable_test.js
 apps/system/test/unit/update_manager_test.js
 apps/system/test/unit/utility_tray_test.js
 apps/system/test/unit/value_picker_test.js
-apps/system/test/unit/value_selector_test.js
 apps/system/test/unit/voicemail_test.js
 apps/system/test/unit/wifi_test.js
 apps/system/test/unit/wrapper_factory_test.js

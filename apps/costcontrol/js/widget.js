@@ -169,7 +169,10 @@ var Widget = (function() {
       }
     );
 
-    LazyLoader.load(['js/utils/formatting.js'], function() {
+    LazyLoader.load([
+      'shared/js/date_time_helper.js',
+      'js/utils/formatting.js'
+    ], function() {
       updateUI();
     });
 

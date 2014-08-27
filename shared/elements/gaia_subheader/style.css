@@ -2,6 +2,13 @@ gaia-subheader[hidden] {
   display: none;
 }
 
+/**
+ * Gaia Subheader
+ *
+ * Dividing header usually found
+ * heading and separating lists.
+ */
+
 gaia-subheader {
   display: block;
   padding: 0.8rem 3rem;
@@ -11,11 +18,22 @@ gaia-subheader {
   line-height: 1.8rem;
 }
 
-/* -----------------------------------------------------------------
-  SKIN: organic
------------------------------------------------------------------ */
+/**
+ * [data-skin="organic"]
+ */
+
 gaia-subheader[skin="organic"] {
-  border: none;
+  border: 0;
   background-color: #e7e7e7;
   color: #4d4d4d;
+}
+
+/**
+ * [data-skin="dark"]
+ */
+
+gaia-subheader[skin="dark"] {
+  border: 0;
+  background-color: #2c353b;
+  color: #fff;
 }

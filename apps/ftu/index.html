@@ -68,9 +68,9 @@
   <script defer src="/shared/js/contacts/import/facebook/fb_data.js"></script>
   <script defer src="/shared/js/contacts/import/facebook/fb_utils.js"></script>
   <script defer src="/shared/js/contacts/import/facebook/fb_query.js"></script>
+  <!--<script defer src="/shared/js/contacts/import/import_status_data.js"></script>-->
   <script defer src="/shared/js/fb/fb_reader_utils.js"></script>
   <script defer src="/shared/js/contacts/import/facebook/fb_contact_utils.js"></script>
-  <script defer src="/shared/js/contacts/import/import_status_data.js"></script>
   <script defer src="/shared/js/async_storage.js"></script>
   <script defer src="/shared/js/mobile_operator.js"></script>
   <script defer src="/shared/js/icc_helper.js"></script>
@@ -228,17 +228,6 @@
       <h1 id="main-title"></h1>
       <button id="wifi-refresh-button" data-l10n-id="refresh">Refresh</button>
     </gaia-header>
-    <ol id="progress-bar" class="step-state" role="progressbar" aria-label="First Time Experience" data-l10n-id="progressbar">
-      <li id="progress-bar-state" class="step-state-bar" role="presentation"></li>
-      <li role="presentation">languages</li>
-      <li role="presentation">SIM_mandatory</li>
-      <li role="presentation">3g</li>
-      <li role="presentation">wifi</li>
-      <li role="presentation">configure network</li>
-      <li role="presentation">date and time</li>
-      <li role="presentation">geolocation</li>
-      <li role="presentation">browser privacy</li>
-    </ol>
     <article role="main">
       <section role="region" id="languages">
         <article data-type="list" class="pack-value-selector">
@@ -667,9 +656,6 @@
   </section>
 
   <section id="tutorial" role="region" data-step="1">
-    <ol id="tutorial-progress" class="step-state" role="progressbar" aria-label="Tutorial" data-l10n-id="tutorial">
-      <li id="tutorial-progress-bar" class="step-state-bar"></li>
-    </ol>
     <article id="tutorial-steps-container" role="main">
       <section id="tutorial-step-header">
         <p id="tutorial-step-title">

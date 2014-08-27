@@ -137,9 +137,7 @@ var ThreadListUI = {
     }
 
     if (!number) {
-      navigator.mozL10n.localize(
-        node.querySelector('.name'), 'no-recipient'
-      );
+      node.querySelector('.name').setAttribute('data-l10n-id', 'no-recipient');
       return;
     }
 
@@ -164,7 +162,7 @@ var ThreadListUI = {
         node.dataset.photoUrl = src;
       }
 
-      navigator.mozL10n.localize(name, 'thread-header-text', {
+      navigator.mozL10n.setAttributes(name, 'thread-header-text', {
         name: title,
         n: others
       });
@@ -235,16 +233,16 @@ var ThreadListUI = {
     var selected = ThreadListUI.selectedInputs.length;
 
     if (selected === ThreadListUI.allInputs.length) {
-      navigator.mozL10n.localize(this.checkUncheckAllButton, 'deselect-all');
+      this.checkUncheckAllButton.setAttribute('data-l10n-id', 'deselect-all');
     } else {
-      navigator.mozL10n.localize(this.checkUncheckAllButton, 'select-all');
+      this.checkUncheckAllButton.setAttribute('data-l10n-id', 'select-all');
     }
     if (selected) {
       this.deleteButton.disabled = false;
-      navigator.mozL10n.localize(this.editMode, 'selected', {n: selected});
+      navigator.mozL10n.setAttributes(this.editMode, 'selected', {n: selected});
     } else {
       this.deleteButton.disabled = true;
-      navigator.mozL10n.localize(this.editMode, 'selectThreads-title');
+      navigator.mozL10n.setAttributes(this.editMode, 'selectThreads-title');
     }
   },
 
@@ -571,6 +569,7 @@ var ThreadListUI = {
     var bodyHTML = record.body;
     var thread = Threads.get(id);
     var draft, draftId;
+    var iconLabel = '';
 
     // A new conversation "is" a draft
     var isDraft = typeof thread === 'undefined';
@@ -603,18 +602,16 @@ var ThreadListUI = {
     li.dataset.lastMessageType = type;
     li.classList.add('threadlist-item');
 
-    if (record.unreadCount > 0) {
-      li.classList.add('unread');
-    }
-
     if (hasDrafts || isDraft) {
       // Set the "draft" visual indication
       li.classList.add('draft');
 
       if (hasDrafts) {
         li.classList.add('has-draft');
+        iconLabel = 'has-draft';
       } else {
         li.classList.add('is-draft');
+        iconLabel = 'is-draft';
       }
 
 
@@ -626,6 +623,11 @@ var ThreadListUI = {
       this.draftRegistry[draftId] = true;
     }
 
+    if (record.unreadCount > 0) {
+      li.classList.add('unread');
+      iconLabel = 'unread-thread';
+    }
+
     // Render markup with thread data
     li.innerHTML = this.tmpl.thread.interpolate({
       hash: isDraft ? '#composer' : '#thread=' + id,
@@ -633,7 +635,8 @@ var ThreadListUI = {
       id: isDraft ? draftId : id,
       number: number,
       bodyHTML: bodyHTML,
-      timestamp: String(timestamp)
+      timestamp: String(timestamp),
+      iconLabel: iconLabel
     }, {
       safe: ['id', 'bodyHTML']
     });
@@ -750,6 +753,11 @@ var ThreadListUI = {
    * @return Boolean true if a time container was created, false otherwise
    */
   appendThread: function thlui_appendThread(thread) {
+    if (navigator.mozL10n.readyState !== 'complete') {
+      navigator.mozL10n.once(this.appendThread.bind(this, thread));
+      return;
+    }
+
     var timestamp = +thread.timestamp;
     var drafts = Drafts.byThreadId(thread.id);
     var firstThreadInContainer = false;

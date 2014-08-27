@@ -24,7 +24,7 @@ Music.Selector = Object.freeze({
   shareButton: '#player-cover-share',
   shareMenu: 'form[data-z-index-level="action-menu"]',
   pickDoneButton: '#title-done',
-  backButton: '#title-back',
+  header: '#title',
   playerIcon: '#title-player'
 });
 
@@ -70,8 +70,8 @@ Music.prototype = {
     return this.client.findElement(Music.Selector.pickDoneButton);
   },
 
-  get backButton() {
-    return this.client.findElement(Music.Selector.backButton);
+  get header() {
+    return this.client.findElement(Music.Selector.header);
   },
 
   get playerIcon() {
@@ -142,8 +142,8 @@ Music.prototype = {
     this.actions.tap(this.playButton).perform();
   },
 
-  tapBackButton: function() {
-    this.actions.tap(this.backButton).perform();
+  tapHeaderActionButton: function() {
+    this.header.tap(25, 25);
   },
 
   shareWith: function(appName) {

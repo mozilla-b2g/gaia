@@ -144,6 +144,12 @@ class GaiaData(object):
         js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_data_layer.js"))
         self.marionette.import_script(js)
 
+        # TODO Bugs 1043562/1049489 To perform ContactsAPI scripts from the chrome context, we need
+        # to import the js file into chrome context too
+        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
+        self.marionette.import_script(js)
+        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+
     def set_time(self, date_number):
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
         self.marionette.execute_script("window.navigator.mozTime.set(%s);" % date_number)
@@ -151,28 +157,37 @@ class GaiaData(object):
 
     @property
     def all_contacts(self):
-        self.marionette.switch_to_frame()
-        return self.marionette.execute_async_script('return GaiaDataLayer.getAllContacts();', special_powers=True)
+        # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
+        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
+        result = self.marionette.execute_async_script('return GaiaDataLayer.getAllContacts();', special_powers=True)
+        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+        return result
 
     @property
     def sim_contacts(self):
-        self.marionette.switch_to_frame()
+        # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
+        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
         adn_contacts = self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts("adn");', special_powers=True)
         sdn_contacts = self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts("sdn");', special_powers=True)
-
+        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
         return adn_contacts + sdn_contacts
 
     def insert_contact(self, contact):
-        self.marionette.switch_to_frame()
+        # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
+        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
         mozcontact = contact.create_mozcontact()
         result = self.marionette.execute_async_script('return GaiaDataLayer.insertContact(%s);' % json.dumps(mozcontact), special_powers=True)
         assert result, 'Unable to insert contact %s' % contact
+        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+
 
     def remove_all_contacts(self):
-        self.marionette.switch_to_frame()
+        # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
+        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
         timeout = max(self.marionette.timeout or 60000, 1000 * len(self.all_contacts))
         result = self.marionette.execute_async_script('return GaiaDataLayer.removeAllContacts();', special_powers=True, script_timeout=timeout)
         assert result, 'Unable to remove all contacts'
+        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def get_setting(self, name):
         return self.marionette.execute_async_script('return GaiaDataLayer.getSetting("%s")' % name, special_powers=True)
@@ -254,12 +269,8 @@ class GaiaData(object):
 
     @property
     def is_cell_data_connected(self):
-        # XXX: check bug-926169
-        # this is used to keep all tests passing while introducing multi-sim APIs
-        return self.marionette.execute_script('var mobileConnection = window.navigator.mozMobileConnection || ' +
-                                              'window.navigator.mozMobileConnections && ' +
-                                              'window.navigator.mozMobileConnections[0]; ' +
-                                              'return mobileConnection.data.connected;')
+        return self.marionette.execute_script('return window.navigator.mozMobileConnections && ' +
+                                              'window.navigator.mozMobileConnections[0].data.connected;')
 
     def enable_cell_roaming(self):
         self.set_setting('ril.data.roaming_enabled', True)
@@ -506,12 +517,8 @@ class GaiaDevice(object):
 
     @property
     def has_mobile_connection(self):
-        # XXX: check bug-926169
-        # this is used to keep all tests passing while introducing multi-sim APIs
-        return self.marionette.execute_script('var mobileConnection = window.navigator.mozMobileConnection || ' +
-                                              'window.navigator.mozMobileConnections && ' +
-                                              'window.navigator.mozMobileConnections[0]; ' +
-                                              'return mobileConnection !== undefined')
+        return self.marionette.execute_script('return window.navigator.mozMobileConnections && ' +
+                                              'window.navigator.mozMobileConnections[0].voice.network !== null')
 
     @property
     def has_wifi(self):
@@ -635,7 +642,7 @@ class GaiaDevice(object):
     @property
     def is_locked(self):
         self.marionette.switch_to_frame()
-        return self.marionette.execute_script('return window.wrappedJSObject.lockScreen.locked')
+        return self.marionette.execute_script('return window.wrappedJSObject.System.locked')
 
     def lock(self):
         self.marionette.import_script(self.lockscreen_atom)

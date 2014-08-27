@@ -10,11 +10,5 @@
     "options": {
       "destination": "docs/dialer"
     }
-  },
-  "ftu": {
-    "src": ["apps/communications/ftu/js/**/*.js"],
-    "options": {
-      "destination": "docs/ftu"
-    }
   }
 }

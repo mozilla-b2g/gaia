@@ -246,6 +246,9 @@
     },
     get isSimPresentOnFirstBoot() {
       return false;
+    },
+    getItems: function(role) {
+      return {};
     }
   };
   exports.app = new App();

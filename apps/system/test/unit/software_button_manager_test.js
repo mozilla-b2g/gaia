@@ -201,6 +201,8 @@ suite('enable/disable software home button', function() {
       });
     subject.handleEvent({type: 'touchstart'});
     assert.isTrue(ready);
+    assert.isTrue(subject.homeButton.classList.contains('active'));
+    assert.isTrue(subject.fullscreenHomeButton.classList.contains('active'));
   });
 
   test('release home button', function() {
@@ -222,6 +224,8 @@ suite('enable/disable software home button', function() {
       });
     subject.handleEvent({type: 'touchend'});
     assert.isTrue(ready);
+    assert.isFalse(subject.homeButton.classList.contains('active'));
+    assert.isFalse(subject.fullscreenHomeButton.classList.contains('active'));
   });
 
   test('receive homegesture-disabled when' +
@@ -247,5 +251,76 @@ suite('enable/disable software home button', function() {
     assert.equal(
       MockNavigatorSettings.
         mSettings['software-button.enabled'], false);
+  });
+
+  suite('Redispatched events support', function() {
+    var pressSpy, releaseSpy;
+
+    setup(function() {
+      this.sinon.useFakeTimers();
+
+      // Simulating the landscape software home button
+      this.sinon.stub(subject.homeButton, 'getBoundingClientRect').returns({
+        left: 430,
+        right: 480,
+        top: 135,
+        bottom: 185
+      });
+      window.dispatchEvent(new CustomEvent('system-resize'));
+
+      pressSpy = this.sinon.spy(subject, 'press');
+      releaseSpy = this.sinon.spy(subject, 'release');
+    });
+
+    function redispatch(clock, type, x, y) {
+      clock.tick();
+      window.dispatchEvent(new CustomEvent('edge-touch-redispatch', {
+        bubbles: true,
+        detail: {
+          type: type,
+          changedTouches: [{
+            pageX: x,
+            pageY: y
+          }],
+          touches: [{
+            pageX: x,
+            pageY: y
+          }]
+        }
+      }));
+    }
+
+    test('should ignore events outside of the button', function() {
+      redispatch(this.sinon.clock, 'touchstart', 460, 10);
+      redispatch(this.sinon.clock, 'touchmove', 460, 10);
+      redispatch(this.sinon.clock, 'touchend', 460, 10);
+
+      sinon.assert.notCalled(pressSpy);
+      sinon.assert.notCalled(releaseSpy);
+    });
+
+    test('should press then release on tap', function() {
+      redispatch(this.sinon.clock, 'touchstart', 460, 140);
+      redispatch(this.sinon.clock, 'touchmove', 460, 140);
+      redispatch(this.sinon.clock, 'touchend', 460, 140);
+
+      sinon.assert.callOrder(pressSpy, releaseSpy);
+    });
+
+    test('should fuzz the button rect a bit', function() {
+      redispatch(this.sinon.clock, 'touchstart', 428, 132);
+      redispatch(this.sinon.clock, 'touchmove', 428, 132);
+      redispatch(this.sinon.clock, 'touchend', 428, 132);
+
+      sinon.assert.callOrder(pressSpy, releaseSpy);
+    });
+
+    test('should release when exiting the button while swiping', function() {
+      redispatch(this.sinon.clock, 'touchstart', 460, 140);
+      redispatch(this.sinon.clock, 'touchmove', 460, 240);
+      redispatch(this.sinon.clock, 'touchend', 460, 240);
+
+      sinon.assert.callOrder(pressSpy, releaseSpy);
+    });
   });
 });

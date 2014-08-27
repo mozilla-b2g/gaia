@@ -184,3 +184,13 @@ gaia-grid {
   height: calc(3.88rem + 0.2rem);
   white-space: normal !important;
 }
+
+#loading {
+  padding: 2.5rem 0;
+  display: none;
+  text-align: center;
+}
+
+#loading.loading {
+  display: block;
+}

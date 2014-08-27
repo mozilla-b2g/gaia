@@ -60,6 +60,20 @@ suite('system/AppChrome', function() {
     }
   };
 
+  var fakeSearchApp = {
+    url: 'app://search.gaiamobile.org/newtab.html',
+    name: 'Browser',
+    manifest: {
+      name: 'Browser',
+      role: 'search',
+    },
+    manifestURL: 'app://search.gaiamobile.org/manifest.webapp',
+    origin: 'app://search.gaiamobile.org',
+    chrome: {
+        navigation: true
+    }
+  };
+
   var fakeAppConfigBar = {
     url: 'app://www.fake/index.html',
     chrome: {
@@ -286,8 +300,6 @@ suite('system/AppChrome', function() {
       });
       chrome.app.element.dispatchEvent(evt);
       this.sinon.clock.tick(500);
-
-      assert.equal(chrome.title.textContent, 'Phone');
       chrome._unregisterEvents();
     });
 
@@ -319,6 +331,31 @@ suite('system/AppChrome', function() {
       subject.app.element.dispatchEvent(titleEvent);
       this.sinon.clock.tick(500);
       assert.equal(subject.title.textContent, 'Bing');
+    });
+
+    test('browser start page should always have the same title',
+    function() {
+      var app = new AppWindow(fakeSearchApp);
+      var chrome = new AppChrome(app);
+      var titleEvent = new CustomEvent('mozbrowsertitlechange', {
+        detail: 'Bing'
+      });
+      chrome.app.element.dispatchEvent(titleEvent);
+      assert.equal(chrome.title.textContent, 'search-or-enter-address');
+    });
+
+    test('should expand if collapsed', function() {
+      var stubIsBrowser = sinon.stub(subject.app, 'isBrowser', function() {
+        return true;
+      });
+      subject.collapse();
+      var evt = new CustomEvent('mozbrowserlocationchange', {
+        detail: 'http://example.com'
+      });
+      subject.app.element.dispatchEvent(evt);
+      assert.isTrue(subject.element.classList.contains('maximized'));
+      assert.equal(subject.scrollable.scrollTop, 0);
+      stubIsBrowser.restore();
     });
   });
 

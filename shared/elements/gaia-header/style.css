@@ -188,6 +188,16 @@ button,
 }
 
 /**
+ * [disabled]
+ */
+
+.-content a[disabled],
+.-content button[disabled] {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/**
  * :active
  */
 
@@ -238,6 +248,7 @@ a:focus,
   font-family: "gaia-icons";
   font-style: normal;
   text-rendering: optimizeLegibility;
+  font-weight: 500;
 }
 
 .icon-back:before { content: 'back'; }

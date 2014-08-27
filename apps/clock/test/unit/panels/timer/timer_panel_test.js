@@ -4,7 +4,7 @@
 suite('Timer.Panel', function() {
   var clock, activeAlarm;
   var isHidden;
-  var View, Timer, Utils, mozL10n;
+  var View, Timer, Utils;
 
   suiteSetup(function(done) {
     isHidden = function(element) {
@@ -12,13 +12,12 @@ suite('Timer.Panel', function() {
     };
 
     require(['panels/alarm/active_alarm', 'timer', 'panels/timer/main',
-             'view', 'utils', 'l10n'],
-            function(ActiveAlarm, timer, timerPanel, view, utils, l10n) {
+             'view', 'utils'],
+            function(ActiveAlarm, timer, timerPanel, view, utils) {
       Timer = timer;
       Timer.Panel = timerPanel;
       View = view;
       Utils = utils;
-      mozL10n = l10n;
       activeAlarm = new ActiveAlarm();
       done();
     });
@@ -54,13 +53,6 @@ suite('Timer.Panel', function() {
     panel.dialog({ isVisible: false });
 
     assert.isFalse(dialog.visible);
-  });
-
-  test('panel is translated', function() {
-    /* jshint unused:false */
-    this.sinon.spy(mozL10n, 'translate');
-    var panel = new Timer.Panel(document.createElement('div'));
-    assert.ok(mozL10n.translate.called);
   });
 
   test('update ', function() {
@@ -241,17 +233,17 @@ suite('Timer.Panel', function() {
     test('blur: sound', function() {
       var menu = panel.soundButton.button;
       var sound = panel.nodes.sound;
-      Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
+      Utils.changeSelectByValue(sound, 'ac_digicloud.opus');
       sound.dispatchEvent(
         new CustomEvent('blur')
       );
 
-      assert.equal(menu.textContent, 'ac_normal_gem_echoes_opus');
+      assert.equal(menu.textContent, 'ac_digicloud_opus');
     });
 
     test('change: sound', function() {
       var sound = panel.nodes.sound;
-      Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
+      Utils.changeSelectByValue(sound, 'ac_digicloud.opus');
       var mockAudio = {
         pause: this.sinon.spy(),
         play: this.sinon.spy(),
@@ -267,13 +259,13 @@ suite('Timer.Panel', function() {
       assert.isTrue(mockAudio.play.called);
       assert.isTrue(mockAudio.loop);
       assert.equal(mockAudio.mozAudioChannelType, 'alarm');
-      var expected = 'shared/resources/media/alarms/ac_normal_gem_echoes.opus';
+      var expected = 'shared/resources/media/alarms/ac_digicloud.opus';
       assert.equal(mockAudio.src, expected);
     });
 
     test('blur: pause playing alarm', function() {
       var sound = panel.nodes.sound;
-      Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
+      Utils.changeSelectByValue(sound, 'ac_digicloud.opus');
 
       var mockAudio = {
         pause: this.sinon.spy(),

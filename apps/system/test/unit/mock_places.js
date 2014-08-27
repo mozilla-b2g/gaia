@@ -4,5 +4,6 @@
 function MockPlaces() {}
 
 MockPlaces.prototype = {
-  start: function() {}
+  start: function() {},
+  clear: function() {}
 };

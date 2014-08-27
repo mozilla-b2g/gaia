@@ -120,11 +120,13 @@ StorageController.prototype.storePicture = function(picture) {
   var memoryBlob = picture.blob;
   var self = this;
 
-  this.storage.addPicture(memoryBlob, function(filepath, abspath, fileBlob) {
-    picture.blob = fileBlob;
-    picture.filepath = filepath;
-    debug('stored picture', picture);
-    self.app.emit('newmedia', picture);
+  this.storage.addPicture(
+    memoryBlob,
+    function(error, filepath, abspath, fileBlob) {
+      picture.blob = fileBlob;
+      picture.filepath = filepath;
+      debug('stored picture', picture);
+      self.app.emit('newmedia', picture);
   });
 };
 
@@ -153,15 +155,16 @@ StorageController.prototype.storeVideo = function(video) {
   video.isVideo = true;
 
   this.storage.addPicture(
-    poster.blob, { filepath: poster.filepath },
-    function(path, absolutePath, fileBlob) {
+    poster.blob,
+    { filepath: poster.filepath },
+    function(error, path, absolutePath, fileBlob) {
       // Replace the memory-backed Blob with the DeviceStorage file-backed File.
       // Note that "video" references "poster", so video previews will use this
       // File.
       poster.blob = fileBlob;
       debug('new video', video);
       self.app.emit('newmedia', video);
-    });
+  });
 };
 
 /**

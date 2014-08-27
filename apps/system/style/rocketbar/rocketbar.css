@@ -19,7 +19,6 @@
 #rocketbar.active {
   opacity: 1;
   pointer-events: auto;
-  transform: scale(1) translateY(3rem);
 }
 
 #screen.locked:not(.attention) #rocketbar {
@@ -144,8 +143,11 @@
   pointer-events: none;
 }
 
+
+/* Rocketbar results is normally 7rem tall and should be adjusted by the
+   height of the SHB of 5rem when enabled */
 #screen.software-button-enabled #rocketbar-results {
-  height: calc(100% - 9.8rem);
+  height: calc(100% - 12rem);
 }
 
 #rocketbar-results.hidden, #rocketbar-results iframe.hidden,
@@ -157,4 +159,15 @@
 #rocketbar.navigation:not(.active) {
   display: flex;
   flex-direction: row;
+}
+
+@media (orientation:landscape) {
+  #screen.software-button-enabled #rocketbar {
+    width: calc(100% - 5rem);
+  }
+
+  #screen.software-button-enabled #rocketbar-results {
+    height: calc(100% - 7rem);
+    width: calc(100% - 5rem);
+  }
 }

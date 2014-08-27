@@ -28,6 +28,33 @@
   height: 4rem;
 }
 
+/* Override some styles set by header.css to allow flexbox content */
+section[role="region"] > header:first-child h1.msg-list-header-folder-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.msg-list-header-folder-name {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Display unread messages number */
+.msg-list-header-folder-unread {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0 1rem;
+  border-radius: 1.3rem;
+  background-color: #E06F14;
+  line-height: 2.1rem;
+  font-size: smaller;
+  font-weight: 200;
+  font-style: italic;
+}
+
 [data-mode="search"] .msg-search-tease-bar {
   display: none;
 }
@@ -516,7 +543,7 @@ reflows. Foreground/background colors should be safe.
 
 .msg-reader-load-infobar-text {
   flex: 1;
-  margin: 0px 1.5rem 0 0;
+  margin: 0 1.5rem 0 0;
 }
 
 .msg-reader-load-infobar-button {
@@ -600,7 +627,11 @@ reflows. Foreground/background colors should be safe.
 }
 
 .bb-tablist .msg-mark-read-btn {
-  background-image: url("images/icons/mark.png");
+  background-image: url("images/icons/mark_read.png");
+}
+
+.bb-tablist .msg-mark-read-btn.unread {
+  background-image: url("images/icons/mark_unread.png");
 }
 
 /* Scrollable Area has to have a solid

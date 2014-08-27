@@ -7,7 +7,7 @@ navigator.mozSetMessageHandler('activity', function(activity) {
   var tonePlayer = new TonePlayer();
 
   // Conclude the activity if the user taps "back".
-  document.getElementById('back').addEventListener('click', function() {
+  document.getElementById('header').addEventListener('action', function() {
     tonePlayer.stop();
     activity.postResult({});
   });

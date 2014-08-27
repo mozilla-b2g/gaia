@@ -55,6 +55,10 @@
   background-color: transparent;
 }
 
+.homescreen:not(.bar) > .chrome {
+  background-image: none;
+}
+
 #screen.attention .lockScreenWindow:not(.bar) > .chrome {
   background-color: black;
 }
@@ -67,6 +71,15 @@
 }
 
 .search-app .chrome .controls .urlbar {
+  width: calc(100% - 1rem);
+}
+
+/* Special cases for Rocketbar in apps with browser chrome */
+.appWindow:not(.browser) .chrome .controls .menu-button {
+  display: none;
+}
+
+.appWindow:not(.browser) .chrome .controls .urlbar {
   width: calc(100% - 1rem);
 }
 
@@ -90,11 +103,11 @@
 }
 
 .maximized .controls .urlbar {
-  background-color: rgba(51,51,51,0.5);
+  background-color: rgba(204,204,204,0.2);
 }
 
 .appWindow.light .maximized .controls .urlbar {
-  background-color: rgba(201,201,201,0.4);
+  background-color: rgba(204,204,204,0.4);
 }
 
 .chrome .controls .urlbar .title {
@@ -106,13 +119,27 @@
   font-weight: 300;
   font-size: 2rem;
   float: none;
-  background-color: rgba(51,51,51,0.5);
+  background-color: rgba(204,204,204,0.2);
   border-radius: 1.8rem;
   text-overflow: ellipsis;
+  font-style: italic;
+}
+
+.search-app .chrome.maximized .controls .urlbar:after {
+  content: '';
+  width: 2rem;
+  height: 100%;
+  top: 0;
+  right: 0.8rem;
+  position: absolute;
+  background-image: url('images/dark/search.png');
+  background-repeat: no-repeat;
+  background-size: 2rem auto;
+  background-position: center right;
 }
 
 .appWindow.light .chrome:not(.maximized) .controls .urlbar .title {
-  background-color: rgba(201,201,201,0.4);
+  background-color: rgba(204,204,204,0.4);
 }
 
 .maximized .controls .urlbar .title {
@@ -130,6 +157,18 @@
 
 .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   width: calc(100% - 12rem);
+}
+
+.appWindow:not(.browser) .controls .forward-button:not([disabled]) + .urlbar {
+  width: calc(100% - 4.5rem);
+}
+
+.appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
+  width: calc(100% - 4.5rem);
+}
+
+.appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
+  width: calc(100% - 8.5rem);
 }
 
 .controls .urlbar {
@@ -303,6 +342,7 @@
   left: 0;
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
   /* Same as titlebar */
   z-index: 1001;
   padding: 11.4rem 3rem 0;
@@ -352,7 +392,7 @@
 
 .overflow-menu > .list {
   background-color: white;
-  width: calc(100% - 6rem);
+  width: 100%;
   border: 0.1rem solid rgba(189, 189, 189, 0.1);
   border-bottom: none;
   transition: opacity 0.2s;

@@ -7,6 +7,7 @@ var MockUtils = {
   mCalledGetDayDate: false,
   mCalledGetPhoneNumberPrimaryInfo: false,
   mCalledGetPhoneNumberAdditionalInfo: false,
+  mCalledGetPhoneNumberAndType: false,
 
   prettyDate: function ut_prettyDate(time) {
     this.mCalledPrettyDate = true;
@@ -27,8 +28,12 @@ var MockUtils = {
   getPhoneNumberAdditionalInfo: function getPhoneNumberAdditionalInfo(
                                                                 matchingTel) {
     this.mCalledGetPhoneNumberAdditionalInfo = true;
-
-    return matchingTel.value % 2 === 0 ? matchingTel.value : undefined;
+    var result = matchingTel.type;
+    var carrier = matchingTel.carrier;
+    if (carrier) {
+      result += ', ' + carrier;
+    }
+    return result;
   },
 
   addEllipsis: function ut_addEllipsis() {},
@@ -44,6 +49,7 @@ var MockUtils = {
     this.mCalledGetDayDate = false;
     this.mCalledGetPhoneNumberPrimaryInfo = false;
     this.mCalledGetPhoneNumberAdditionalInfo = false;
+    this.mCalledGetPhoneNumberAndType = false;
   },
 
   getPhoneNumberPrimaryInfo: function ut_getPhoneNumberPrimaryInfo(matchingTel,
@@ -60,6 +66,11 @@ var MockUtils = {
       return matchingTel.value;
     }
     return null;
+  },
+
+  getPhoneNumberAndType: function ut_getPhoneNumberAndType(matchingTel) {
+    this.mCalledGetPhoneNumberAndType = true;
+    return matchingTel.type + ', ' + matchingTel.value;
   }
 };
 

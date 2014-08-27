@@ -1,0 +1,245 @@
+
+/**
+ * Gaia Header
+ */
+
+gaia-header {
+  display: block;
+}
+
+/**
+ * [hidden]
+ */
+
+gaia-header[hidden] {
+  display: none;
+}
+
+/** Reset
+ ---------------------------------------------------------*/
+
+::-moz-focus-inner { border: 0; }
+
+/** Inner
+ ---------------------------------------------------------*/
+
+.inner {
+  display: flex;
+  min-height: 50px;
+  background: var(--header-background, #fff);
+}
+
+/** Action Button
+ ---------------------------------------------------------*/
+
+/**
+ * 1. Hidden by default
+ */
+
+.action-button {
+  display: none; /* 1 */
+  position: relative;
+  align-items: center;
+  width: 50px;
+  font-size: 30px;
+  border: none;
+  color: var(--header-nav-button-color, #000);
+}
+
+/**
+ * .action-supported
+ *
+ * 1. For icon vertical-alignment
+ */
+
+.supported-action .action-button {
+  display: flex; /* 1 */
+}
+
+/**
+ * :active
+ */
+
+.action-button:active {
+  color: var(--header-nav-button-color-active, #fff);
+}
+
+/** Action Button Icon
+ ---------------------------------------------------------*/
+
+/**
+ * 1. To enable vertical alignment.
+ */
+
+.action-button:before {
+  display: block;
+}
+
+/** Action Button Text
+ ---------------------------------------------------------*/
+
+/**
+ * To provide custom localized content for
+ * the action-button, we allow the user
+ * to provide an element with the class
+ * `.l10n-action`. This node is then
+ * pulled inside the real action-button.
+ *
+ * Example:
+ *
+ *   <gaia-header action="back">
+ *     <span class="l10n-action" aria-label="Back">Localized text</span>
+ *     <h1>title</h1>
+ *   </gaia-header>
+ */
+
+.-content .l10n-action {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 0;
+}
+
+/** Title
+ ---------------------------------------------------------*/
+
+/**
+ * 1. Vertically center text. We can't use flexbox
+ *    here as it breaks text-overflow ellipsis
+ *    without an inner div.
+ */
+
+.-content h1 {
+  flex: 1;
+  margin: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  text-align: center;
+  line-height: 50px; /* 1 */
+  font-weight: 300;
+  font-style: italic;
+  font-size: 24px;
+  color: var(--header-title-color, #000);
+}
+
+/**
+ * .flush-left
+ *
+ * When the fitted text is flush with the
+ * edge of the left edge of the container
+ * we pad it in a bit.
+ */
+
+.-content h1.flush-left {
+  padding-left: 10px;
+}
+
+/**
+ * .flush-right
+ *
+ * When the fitted text is flush with the
+ * edge of the right edge of the container
+ * we pad it in a bit.
+ */
+
+.-content h1.flush-right {
+  padding-right: 10px; /* 1 */
+}
+
+/** Buttons
+ ---------------------------------------------------------*/
+
+a,
+button,
+.-content a,
+.-content button {
+  box-sizing: border-box;
+  display: flex;
+  border: none;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0 10px;
+  font-size: 14px;
+  line-height: 1;
+  min-width: 50px;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  text-align: center;
+  background: none;
+  border-radius: 0;
+  color: var(--header-button-color, #000);
+  font-style: italic;
+  transition: var(--button-transition);
+  transition-delay: var(--button-transition-delay);
+}
+
+/**
+ * [hidden]
+ */
+
+.-content a[hidden],
+.-content button[hidden] {
+  display: none;
+}
+
+/**
+ * :active
+ */
+
+a:active,
+button:active,
+.-content a:active,
+.-content button:active {
+  background: var(--header-button-background, #000);
+  color: var(--header-button-color-active, #fff);
+  transition: none;
+}
+
+/**
+ * :focus
+ */
+
+a:focus,
+.-content a:focus {
+  outline: none;
+}
+
+/** Icon Buttons
+ ---------------------------------------------------------*/
+
+/**
+ * Icons are a different color to text
+ */
+
+.-content .icon,
+.-content [data-icon] {
+  color: var(--header-nav-button-color, #000);
+}
+
+/**
+ * :active
+ */
+
+.-content .icon,
+.-content [data-icon]:active {
+  color: var(--header-nav-button-color-active, #fff);
+}
+
+/** Icons
+ ---------------------------------------------------------*/
+
+[class^="icon-"]:before,
+[class*="icon-"]:before {
+  font-family: "gaia-icons";
+  font-style: normal;
+  text-rendering: optimizeLegibility;
+}
+
+.icon-back:before { content: 'back'; }
+.icon-menu:before { content: 'menu'; }
+.icon-close:before { content: 'close'; }

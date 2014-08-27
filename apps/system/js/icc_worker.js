@@ -231,7 +231,7 @@ var icc_worker = {
     // Check if device is idle or settings
     var activeApp = AppWindowManager.getActiveApp();
     var settingsOrigin = window.location.origin.replace('system', 'settings');
-    if (!options.isHighPriority && !activeApp.isHomescreen &&
+    if (!options.isHighPriority && activeApp && !activeApp.isHomescreen &&
         activeApp.origin !== settingsOrigin) {
       DUMP('Do not display the text because normal priority.');
       icc.responseSTKCommand(message, {
@@ -458,10 +458,12 @@ var icc_worker = {
     switch (options.timerAction) {
       case icc._iccManager.STK_TIMER_START:
         a_timer.start(options.timerId, options.timerValue * 1000,
-          function() {
-            DUMP('Timer expiration - ' + options.timerId);
+          function(realUsedTimeMs) {
+            DUMP('Timer expiration - ' + options.timerId +
+              ' - real used time ' + realUsedTimeMs);
             (icc.getIcc(message.iccId)).sendStkTimerExpiration({
-              'timerId': options.timerId
+              'timerId': options.timerId,
+              'timerValue': realUsedTimeMs / 1000
             });
           });
         icc.responseSTKCommand(message, {
@@ -475,27 +477,47 @@ var icc_worker = {
         break;
 
       case icc._iccManager.STK_TIMER_DEACTIVATE:
-        pendingTime = a_timer.stop(options.timerId) / 1000;
-        icc.responseSTKCommand(message, {
-          timer: {
-            'timerId': options.timerId,
-            'timerValue': pendingTime,
-            'timerAction': icc._iccManager.STK_TIMER_DEACTIVATE
-          },
-          resultCode: icc._iccManager.STK_RESULT_OK
-        });
+        if (a_timer.queryPendingTime(options.timerId) === 0) {
+          icc.responseSTKCommand(message, {
+            timer: {
+              'timerId': options.timerId
+            },
+            resultCode:
+              icc._iccManager.STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE
+          });
+        } else {
+          pendingTime = a_timer.stop(options.timerId) / 1000;
+          icc.responseSTKCommand(message, {
+            timer: {
+              'timerId': options.timerId,
+              'timerValue': pendingTime,
+              'timerAction': icc._iccManager.STK_TIMER_DEACTIVATE
+            },
+            resultCode: icc._iccManager.STK_RESULT_OK
+          });
+        }
         break;
 
       case icc._iccManager.STK_TIMER_GET_CURRENT_VALUE:
         pendingTime = a_timer.queryPendingTime(options.timerId) / 1000;
-        icc.responseSTKCommand(message, {
-          timer: {
-            'timerId': options.timerId,
-            'timerValue': pendingTime,
-            'timerAction': icc._iccManager.STK_TIMER_GET_CURRENT_VALUE
-          },
-          resultCode: icc._iccManager.STK_RESULT_OK
-        });
+        if (pendingTime === 0) {
+          icc.responseSTKCommand(message, {
+            timer: {
+              'timerId': options.timerId
+            },
+            resultCode:
+              icc._iccManager.STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE
+          });
+        } else {
+          icc.responseSTKCommand(message, {
+            timer: {
+              'timerId': options.timerId,
+              'timerValue': pendingTime,
+              'timerAction': icc._iccManager.STK_TIMER_GET_CURRENT_VALUE
+            },
+            resultCode: icc._iccManager.STK_RESULT_OK
+          });
+        }
         break;
     }
   },

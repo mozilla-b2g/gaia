@@ -49,7 +49,7 @@
 [role="dialog"].generic-dialog menu:not([type="toolbar"]) {
   white-space: nowrap;
   margin: 0;
-  padding: 1.5rem;
+  padding: 1.5rem 1rem;
   border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
   background: #2d2d2d;
   display: block;
@@ -60,21 +60,10 @@
   bottom: 0;
 }
 
-[role="dialog"].generic-dialog menu:not([type="toolbar"]) button:last-child,
-[role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"]:last-child {
-  margin-left: 1rem;
-}
-
-[role="dialog"].generic-dialog menu:not([type="toolbar"]) button,
-[role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"],
-[role="dialog"].generic-dialog menu:not([type="toolbar"]) button:first-child,
-[role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"]:first-child {
-  margin: 0;
-}
-
 [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] button,
 [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] a[role="button"] {
-  width: calc((100% - 1rem) / 2);
+  width: calc((100% - 2rem) / 2);
+  margin: 0 0.5rem;
 }
 
 

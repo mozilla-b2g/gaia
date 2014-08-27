@@ -33,9 +33,6 @@
       }
 
       switch (item.detail.type) {
-        case 'app':
-          navigator.mozApps.mgmt.uninstall(item.app);
-          break;
         case 'bookmark':
           BookmarksDatabase.remove(item.identifier).catch(errorLogger);
           break;
@@ -62,6 +59,17 @@
 
       switch(e.type) {
         case 'removeitem':
+          if (e.detail.detail.type == 'app') {
+            var request = navigator.mozApps.mgmt.uninstall(e.detail.app);
+            request.onsuccess = () => {
+              e.detail.removeFromGrid();
+            };
+            request.onerror = () => {
+              console.error('Error while trying to remove',
+                            e.detail.name, request.error);
+            };
+            break;
+          }
           var dialog = new ConfirmDialogHelper({
             type: 'remove',
             title: _('delete-title', nameObj),

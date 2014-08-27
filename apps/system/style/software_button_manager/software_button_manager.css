@@ -48,8 +48,8 @@
   box-sizing: border-box;
 }
 
-#software-home-button:active,
-#fullscreen-software-home-button:active {
+#software-home-button.active,
+#fullscreen-software-home-button.active {
   box-shadow: 0 0 1rem white;
 }
 

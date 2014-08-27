@@ -25,7 +25,7 @@ var contacts = window.contacts || {};
 contacts.Settings = (function() {
 
   var navigationHandler,
-    importSettingsBack,
+    importSettingsHeader,
     orderCheckBox,
     orderByLastName,
     setICEButton,
@@ -136,8 +136,8 @@ contacts.Settings = (function() {
     });
 
     // Navigation back
-    importSettingsBack = document.getElementById('import-settings-back');
-    importSettingsBack.addEventListener('click', importSettingsBackHandler);
+    importSettingsHeader = document.getElementById('import-settings-header');
+    importSettingsHeader.addEventListener('action', importSettingsBackHandler);
 
     // Handlers for the navigation through the panels
     importContacts = document.getElementById('importContacts');

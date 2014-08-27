@@ -16,8 +16,6 @@ var UIManager = {
   domSelectors: [
     'splash-screen',
     'activation-screen',
-    'progress-bar',
-    'progress-bar-state',
     'finish-screen',
     'update-screen',
     'nav-bar',

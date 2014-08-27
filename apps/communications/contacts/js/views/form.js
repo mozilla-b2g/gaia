@@ -30,7 +30,7 @@ contacts.Form = (function() {
       thumb,
       thumbAction,
       saveButton,
-      cancelButton,
+      formHeader,
       formTitle,
       currentContactId,
       givenName,
@@ -97,8 +97,8 @@ contacts.Form = (function() {
     thumbAction.querySelector('#photo-button').onclick = pickImage;
     saveButton = dom.querySelector('#save-button');
     addNewDateButton = dom.querySelector('#add-new-date');
-    cancelButton = dom.querySelector('#cancel-edit');
     contactForm = dom.getElementById('contact-form');
+    formHeader = dom.querySelector('#contact-form-header');
     formTitle = dom.getElementById('contact-form-title');
     currentContactId = dom.getElementById('contact-form-id');
     givenName = dom.getElementById('givenName');
@@ -200,7 +200,12 @@ contacts.Form = (function() {
 
     // Add listeners
     utils.listeners.add({
-      '#cancel-edit': Contacts.cancel, // Cancel edition
+      '#contact-form-header': [
+        {
+          event: 'action',
+          handler: Contacts.cancel // Cancel edition
+        }
+      ],
       '#save-button': saveContact,
       '#contact-form button[data-field-type]': newField
     });
@@ -317,7 +322,7 @@ contacts.Form = (function() {
           deleteContact(currentContact);
           ConfirmDialog.hide();
           if (ActivityHandler.currentlyHandling) {
-            cancelButton.click();
+            formHeader.triggerAction();
           }
         }
       };
@@ -700,7 +705,7 @@ contacts.Form = (function() {
 
       var callbacks = cookMatchingCallbacks(contact);
       cancelHandler = doCancel.bind(callbacks);
-      cancelButton.addEventListener('click', cancelHandler);
+      formHeader.addEventListener('action', cancelHandler);
       doMatch(contact, callbacks);
     });
   };
@@ -763,7 +768,7 @@ contacts.Form = (function() {
 
             case 'ready':
               // The list of duplicate contacts has been loaded
-              cancelButton.removeEventListener('click', cancelHandler);
+              formHeader.removeEventListener('action', cancelHandler);
               hideThrobber();
               window.setTimeout(Contacts.goBack, 300);
 
@@ -783,7 +788,7 @@ contacts.Form = (function() {
       onmismatch: function() {
         // Saving because there aren't duplicate contacts
         doSave(contact);
-        cancelButton.removeEventListener('click', cancelHandler);
+        formHeader.removeEventListener('action', cancelHandler);
       }
     };
   };
@@ -848,7 +853,7 @@ contacts.Form = (function() {
   };
 
   var doCancel = function doCancel() {
-    cancelButton.removeEventListener('click', cancelHandler);
+    formHeader.removeEventListener('action', cancelHandler);
     window.removeEventListener('message', mergeHandler);
     this.onmatch = this.onmismatch = null;
     window.postMessage({

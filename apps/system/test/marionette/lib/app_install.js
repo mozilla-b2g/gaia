@@ -99,10 +99,18 @@ AppInstall.prototype = {
   uninstall: function(manifestURL) {
     this.client.switchToFrame();
 
-    this.client.executeScript(function uninstall(url) {
-      window.wrappedJSObject.navigator.mozApps.mgmt.uninstall({
-        manifestURL: url
-      });
+    this.client.executeAsyncScript(function uninstall(url) {
+      var win = window.wrappedJSObject;
+      var mgmt = win.navigator.mozApps.mgmt;
+
+      mgmt.getAll().onsuccess = function(e) {
+        var app = e.target.result.find(function(app) {
+          return app.manifestURL === url;
+        });
+
+        mgmt.uninstall(app);
+        marionetteScriptFinished();
+      };
     }, [manifestURL]);
   },
 

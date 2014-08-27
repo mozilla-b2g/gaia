@@ -25,8 +25,9 @@ navigator.mozL10n.once(function() {
 
     // Set up the UI, if it is not already set up
     if (!frame) {
+
       // Hook up the buttons
-      $('back').addEventListener('click', done);
+      $('header').addEventListener('action', done);
       $('save').addEventListener('click', save);
 
       // And register event handlers for gestures
@@ -56,12 +57,9 @@ navigator.mozL10n.once(function() {
     title = baseName(activityData.filename || '');
     $('filename').textContent = title;
 
-    // Start off with the Save button hidden.
-    // We'll enable it below in the open() function if needed.
-    $('menu').hidden = true;
-
     blob = activityData.blob;
     open(blob);
+    setNFCSharing(true);
   }
 
   // Display the specified blob, unless it is too big to display
@@ -73,7 +71,7 @@ navigator.mozL10n.once(function() {
     if (activityData.allowSave && activityData.filename && checkFilename()) {
       getStorageIfAvailable('pictures', blob.size, function(ds) {
         storage = ds;
-        $('menu').hidden = false;
+        showSaveButton();
       });
     }
 
@@ -213,6 +211,7 @@ navigator.mozL10n.once(function() {
   function done() {
     activity.postResult({ saved: saved });
     activity = null;
+    setNFCSharing(false);
   }
 
   function handleDoubleTap(e) {
@@ -243,10 +242,9 @@ navigator.mozL10n.once(function() {
   }
 
   function save() {
-    // Hide the menu that holds the save button: we can only save once
-    $('menu').hidden = true;
-    // XXX work around bug 870619
-    $('filename').textContent = $('filename').textContent;
+
+    // Hides the save button: we can only save once
+    hideSaveButton();
 
     getUnusedFilename(storage, activityData.filename, function(filename) {
       var savereq = storage.addNamed(blob, filename);
@@ -265,6 +263,18 @@ navigator.mozL10n.once(function() {
     });
   }
 
+  function showSaveButton() {
+    $('save').classList.remove('hidden');
+    // XXX work around bug 870619
+    $('filename').textContent = $('filename').textContent;
+  }
+
+  function hideSaveButton() {
+    $('save').classList.add('hidden');
+    // XXX work around bug 870619
+    $('filename').textContent = $('filename').textContent;
+  }
+
   function showBanner(msg) {
     $('message').textContent = msg;
     $('banner').hidden = false;
@@ -276,5 +286,24 @@ navigator.mozL10n.once(function() {
   // Strip directories and just return the base filename
   function baseName(filename) {
     return filename.substring(filename.lastIndexOf('/') + 1);
+  }
+
+  function setNFCSharing(enable) {
+    if (!window.navigator.mozNfc) {
+      return;
+    }
+
+    if (enable) {
+      // If we have NFC, we need to put the callback to have shrinking UI.
+      window.navigator.mozNfc.onpeerready = function(event) {
+        var peer = event.peer;
+        if (peer) {
+          peer.sendFile(blob);
+        }
+      };
+    } else {
+      // We need to remove onpeerready while out of fullscreen view.
+      window.navigator.mozNfc.onpeerready = null;
+    }
   }
 });

@@ -4,7 +4,7 @@ var contacts = window.contacts || {};
 
 contacts.ICE = (function() {
   var iceSettingsPanel,
-    iceSettingsBack,
+    iceSettingsHeader,
     iceContactItem1,
     iceContactItem2,
     iceContactCheckbox1,
@@ -19,7 +19,7 @@ contacts.ICE = (function() {
     }
     // ICE DOM elements
     iceSettingsPanel = document.getElementById('ice-settings');
-    iceSettingsBack = document.getElementById('ice-settings-back');
+    iceSettingsHeader = document.getElementById('ice-settings-header');
 
     iceContactItem1 = document.getElementById('ice-contacts-1-switch');
     iceContactItem2 = document.getElementById('ice-contacts-2-switch');
@@ -31,7 +31,7 @@ contacts.ICE = (function() {
     iceContactButton2 = document.getElementById('select-ice-contact-2');
 
     // ICE Events handlers
-    iceSettingsBack.addEventListener('click', function(){
+    iceSettingsHeader.addEventListener('action', function(){
       contacts.Settings.navigation.back();
     });
 

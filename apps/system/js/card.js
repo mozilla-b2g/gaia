@@ -116,7 +116,7 @@
    */
   Card.prototype._populateViewData = function() {
     var app = this.app;
-    this.title = app.name,
+    this.title = (app.isBrowser() && app.title) ? app.title : app.name;
     this.subTitle = '';
     this.iconValue = 'none';
     this.closeButtonVisibility = 'visible';
@@ -338,6 +338,7 @@
 
   Card.prototype._fetchElements = function c__fetchElements() {
     this.screenshotView = this.element.querySelector('.screenshotView');
+    this.titleNode = this.element.querySelector('h1.title');
   };
 
 

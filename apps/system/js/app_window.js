@@ -565,6 +565,10 @@
       this.element.classList.add('fullscreen-app');
     }
 
+    if (this.isBrowser()) {
+      this.element.classList.add('browser');
+    }
+
     this.browserContainer = this.element.querySelector('.browser-container');
     this.browserContainer.appendChild(this.browser.element);
 
@@ -928,7 +932,7 @@
         this.favicons[href] = {sizes: []};
       }
 
-      if (this.favicons[href].sizes.indexOf(sizes) === -1) {
+      if (sizes && this.favicons[href].sizes.indexOf(sizes) === -1) {
         this.favicons[href].sizes.push(sizes);
       }
 
@@ -950,21 +954,37 @@
 
   AppWindow.prototype._handle_mozbrowsermetachange =
     function aw__handle_mozbrowsermetachange(evt) {
+
       var detail = evt.detail;
-      if (detail.name !== 'theme-color' || !detail.type) {
-        return;
+
+      switch (detail.name) {
+        case 'theme-color':
+          if (!detail.type) {
+            return;
+          }
+          // If the theme-color meta is removed, let's reset the color.
+          var color = '';
+
+          // Otherwise, set it to the color that has been asked.
+          if (detail.type !== 'removed') {
+            color = detail.content;
+          }
+          this.themeColor = color;
+
+          this.publish('themecolorchange');
+          break;
+
+        case 'application-name':
+          // Apps have a compulsory name field in their manifest
+          // which takes precedence.
+          if (!this.isBrowser()) {
+            return;
+          }
+          this.updateName(detail.content);
+          this.publish('namechanged');
+          break;
       }
 
-      // If the theme-color meta is removed, let's reset the color.
-      var color = '';
-
-      // Otherwise, set it to the color that has been asked.
-      if (detail.type !== 'removed') {
-        color = detail.content;
-      }
-      this.themeColor = color;
-
-      this.publish('themecolorchange');
     };
 
   AppWindow.prototype._registerEvents = function aw__registerEvents() {

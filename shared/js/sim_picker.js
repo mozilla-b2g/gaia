@@ -27,7 +27,6 @@
         }
       }
 
-
       var dialViaElt = document.getElementById('sim-picker-dial-via');
       if (phoneNumber) {
         navigator.mozL10n.setAttributes(dialViaElt,
@@ -37,8 +36,10 @@
         dialViaElt.setAttribute('data-l10n-id', 'sim-picker-select-sim');
       }
 
+      this._buildDom();
+
       var simButtons = this._simPickerElt.querySelectorAll(
-          'button[data-card-index]');
+        'button[data-card-index]');
 
       for (var i = 0; i < simButtons.length; i++) {
         if (simButtons[i].dataset.cardIndex == defaultCardIndex) {
@@ -47,8 +48,6 @@
           simButtons[i].classList.remove('is-default');
         }
       }
-
-      this._buildDom();
 
       // we want to wait for l10n to happen before we display the UI
       navigator.mozL10n.once(function() {

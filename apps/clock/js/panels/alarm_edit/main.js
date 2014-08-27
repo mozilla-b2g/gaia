@@ -17,7 +17,6 @@ var AlarmEdit = function() {
   Panel.apply(this, arguments);
   this.element.innerHTML = html;
 
-  mozL10n.translate(this.element);
   var handleDomEvent = this.handleDomEvent.bind(this);
 
   this.element.addEventListener('panel-visibilitychange',
@@ -89,10 +88,8 @@ var AlarmEdit = function() {
     this.element.scrollTop = 0;
   }.bind(this));
 
-  mozL10n.translate(this.element);
   // When the language changes, the value of 'weekStartsOnMonday'
-  // might change. Since that's more than a simple text string, we
-  // can't just use mozL10n.translate().
+  // might change.
   mozL10n.ready(this.updateL10n.bind(this));
 
   this.headers.header.addEventListener('action', handleDomEvent);
@@ -209,7 +206,10 @@ Utils.extend(AlarmEdit.prototype, {
     // to be "undefined" rather than "".
     this.element.dataset.id = this.alarm.id || '';
     this.inputs.name.value = this.alarm.label;
-    this.inputs.volume.value = AudioManager.getAlarmVolume();
+
+    AudioManager.requestAlarmVolume().then(function(volume) {
+      this.inputs.volume.value = AudioManager.getAlarmVolume();
+    }.bind(this));
 
     // Init time, repeat, sound, snooze selection menu.
     this.initTimeSelect();

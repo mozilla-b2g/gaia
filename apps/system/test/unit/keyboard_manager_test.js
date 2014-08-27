@@ -274,6 +274,71 @@ suite('KeyboardManager', function() {
     });
   });
 
+  suite('Fallback layouts', function() {
+    var oldFallbackLayotus;
+    setup(function() {
+      oldFallbackLayotus = MockKeyboardHelper.fallbackLayouts;
+    });
+
+    teardown(function() {
+      MockKeyboardHelper.fallbackLayouts = oldFallbackLayotus;
+    });
+
+    test('Should detect fallback and insert them', function() {
+      MockKeyboardHelper.fallbackLayouts = {
+        password: {
+          app: {
+            origin: 'app://keyboard.gaiamobile.org',
+            manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp'
+          },
+          layoutId: 'pwLayout',
+          inputManifest: {
+            launch_path: '/settings.html',
+            name: 'pwInput'
+          },
+          manifest: {
+            name: 'pwInput'
+          }
+        }
+      };
+
+      MockKeyboardHelper.watchCallback(KeyboardHelper.layouts, { apps: true });
+
+      assert.isTrue('password' in KeyboardManager.keyboardLayouts);
+      assert.equal(KeyboardManager.keyboardLayouts.password[0].appName,
+        'pwInput');
+      assert.equal(KeyboardManager.keyboardLayouts.password[0].origin,
+        'app://keyboard.gaiamobile.org');
+    });
+
+    test('Should not insert extra fallback if already available', function() {
+      MockKeyboardHelper.fallbackLayouts = {
+        number: {
+          app: {
+            origin: 'app://app-number.gaiamobile.org',
+            manifestURL: 'app://app-number.gaiamobile.org/manifest.webapp'
+          },
+          layoutId: 'number2',
+          inputManifest: {
+            launch_path: '/settings.html',
+            name: 'anotherNumberInput'
+          },
+          manifest: {
+            name: 'anotherNumberInput'
+          }
+        }
+      };
+
+      MockKeyboardHelper.watchCallback(KeyboardHelper.layouts, { apps: true });
+
+      assert.isTrue(KeyboardManager.keyboardLayouts.number.every(
+        layout => ('number2' !== layout.layoutId &&
+                   'pwInput' !== layout.appName &&
+                   'app://app-number.gaiamobile.org' !== layout.origin)
+      ));
+    });
+  });
+
   suite('Switching keyboard focus before keyboard is shown', function() {
     setup(function() {
       this.sinon.stub(KeyboardManager, 'resetShowingKeyboard');

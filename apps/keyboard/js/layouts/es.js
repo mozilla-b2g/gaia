@@ -3,7 +3,7 @@ Keyboards.es = {
   shortLabel: 'Es',
   menuLabel: 'Español',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'number', 'password'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'es',
   alt: {
     a: 'áªàâäåãāæ',
@@ -66,7 +66,10 @@ Keyboards.es = {
         { value: '(' }, { value: ')' }, { value: '€', className: 'alternate-indicator' },
         { value: '&' }, { value: '@' }, { value: '%' }
       ], [
-        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyEvent.DOM_VK_ALT,
+          className: 'page-switch-key'
+        },
         { value: '*',
           supportsSwitching: {
             value: ','
@@ -92,7 +95,10 @@ Keyboards.es = {
         { value: '<' }, { value: '>' }, { value: '$' }, { value: '£' },
         { value: '¥' }, { value: '•' }
       ], [
-        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyEvent.DOM_VK_ALT,
+          className: 'page-switch-key'
+        },
         {value: '*' }, { value: '¿' }, { value: '?' },
         { value: '¡' }, { value: '!' },
         { value: '\"' }, { value: '\'' },

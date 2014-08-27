@@ -137,6 +137,7 @@ function navigationStack(currentView) {
     next.classList.add('current');
     var realCurrentView = document.getElementById(_currentView);
     var _callbackInner = function _callback() {
+      next.classList.add('current');
       realCurrentView.classList.remove('current');
       if (callback) {
         callback();
@@ -239,6 +240,7 @@ function navigationStack(currentView) {
 
     document.getElementById(nextView.view).classList.add('current');
     var _callbackInner = function _callbackInner() {
+      document.getElementById(nextView.view).classList.add('current');
       currentClassList.remove('current');
       if (callback) {
         callback();

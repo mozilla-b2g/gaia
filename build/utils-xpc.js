@@ -20,11 +20,13 @@ var subprocess = require('sdk/system/child_process/subprocess');
  *
  * @param  {nsIFile} dir       directory to read.
  * @param  {boolean} recursive set to true in order to walk recursively.
- * @param  {RegExp}  exclude   optional filter to exclude file/directories.
+ * @param  {RegExp}  filter    optional filter for file names.
+ * @param  {boolean} include   set to true in order to include file matched by
+ *                             filter, set to false to exclude.
  *
- * @returns {Array}   list of nsIFile's.
+ * @returns {Array}            list of nsIFile's.
  */
-function ls(dir, recursive, exclude) {
+function ls(dir, recursive, pattern, include) {
   let results = [];
   if (!dir.exists()) {
     return results;
@@ -33,10 +35,15 @@ function ls(dir, recursive, exclude) {
   let files = dir.directoryEntries;
   while (files.hasMoreElements()) {
     let file = files.getNext().QueryInterface(Ci.nsILocalFile);
-    if (!exclude || !exclude.test(file.leafName)) {
+    //  include |  pattern.test()  |  result
+    //    true  |     false        |   false
+    //    true  |     true         |   true
+    //    false |     false        |   true
+    //    false |     true         |   false
+    if (!pattern || !(include ^ pattern.test(file.leafName))) {
       results.push(file);
       if (recursive && file.isDirectory()) {
-        results = results.concat(ls(file, true, exclude));
+        results = results.concat(ls(file, true, pattern, include));
       }
     }
   }
@@ -119,7 +126,9 @@ function writeContent(file, content) {
     converterStream.writeString(content);
     converterStream.close();
   } catch (e) {
-    dump('writeContent error, file.path: ' + file.path + '\n');
+    utils.log('utils-xpc', 'writeContent error, file.path: ' + file.path);
+    utils.log('utils-xpc', 'parent file object exists: ' +
+      file.parent.exists());
     throw(e);
   }
 }
@@ -612,6 +621,11 @@ function copyDirTo(path, toParent, name, override) {
       copyDirTo(file.path, newFolderName, file.leafName, true);
     }
   });
+}
+
+function copyToStage(options) {
+  var appDir = getFile(options.APP_DIR);
+  copyDirTo(appDir, options.STAGE_DIR, appDir.leafName);
 }
 
 /**
@@ -1220,6 +1234,7 @@ exports.mkdirs = mkdirs;
 exports.joinPath = joinPath;
 exports.copyFileTo = copyFileTo;
 exports.copyDirTo = copyDirTo;
+exports.copyToStage = copyToStage;
 exports.createXMLHttpRequest = createXMLHttpRequest;
 exports.downloadJSON = downloadJSON;
 exports.readJSONFromPath = readJSONFromPath;

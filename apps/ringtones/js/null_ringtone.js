@@ -31,6 +31,13 @@ NullRingtone.prototype = {
   },
 
   /**
+   * @return {String} The filename of the ringtone (null in this case).
+   */
+  get filename() {
+    return null;
+  },
+
+  /**
    * @return {String} The URL of the ringtone (null in this case).
    */
   get url() {

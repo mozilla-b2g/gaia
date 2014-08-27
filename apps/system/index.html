@@ -46,6 +46,13 @@
     <script defer src="shared/js/template.js"></script>
     -->
 
+    <!-- Lazy load for Confirm dialog component -->
+    <script defer src="shared/js/component_utils.js"></script>
+    <!-- <script defer src="/shared/js/homescreens/confirm_dialog_helper.js"></script> -->
+    <!-- <script defer src="/shared/elements/gaia_confirm/script.js"></script> -->
+    <!-- <script defer src="/shared/elements/gaia_menu/script.js"></script> -->
+    <script defer src="shared/elements/gaia_buttons/script.js"></script>
+
     <!-- SIMSlot -->
     <script type="text/javascript" defer src="shared/js/simslot.js"></script>
     <script type="text/javascript" defer src="shared/js/simslot_manager.js"></script>
@@ -66,18 +73,26 @@
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/value_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/date_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/time_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/object_menu.css">
 
+    <!-- Gaia Components -->
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia_progress/style/external.css">
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css">
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css">
+
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
 
     <!-- Include shared web components -->
+    <script defer src="shared/elements/config.js"></script>
     <script defer src="shared/js/component_utils.js"></script>
     <script defer src="shared/elements/gaia_buttons/script.js"></script>
+    <script defer src="shared/elements/gaia_progress/script.js"></script>
+    <script defer src="shared/elements/gaia_subheader/script.js"></script>
+    <script defer src="shared/elements/gaia-header/dist/script.js"></script>
 
     <!-- Include shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
@@ -96,7 +111,9 @@
 
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/activities.js"></script>
-    <script defer src="js/storage.js"></script>
+    <script defer src="js/usb_storage.js"></script>
+    <script defer src="js/external_storage_monitor.js"></script>
+    <script defer src="js/browser_settings.js"></script>
     <script defer src="js/bootstrap.js"></script>
     <script defer src="js/screenshot.js"></script>
     <script defer src="js/async_semaphore.js"></script>
@@ -107,6 +124,7 @@
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/home_gesture.js"></script>
     <script defer src="js/wallpaper_manager.js"></script>
+    <script defer src="js/app_migrator.js"></script>
     <!--  WallpaperManager lazily loads this script if needed
         <script defer src="shared/js/image_utils.js"></script>
     -->
@@ -185,11 +203,22 @@
 
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
+    <link rel="stylesheet" type="text/css" href="style/lockscreen/notifications.css">
+    <!-- lockscreen pin keypad -->
+    <link rel="stylesheet" type="text/css" href="shared/style/keyboard_symbols.css"/>
     <script defer src="/shared/js/lockscreen_slide.js"></script>
     <script defer src="/shared/js/lockscreen_connection_info_manager.js"></script>
     <script defer src="js/lockscreen.js"></script>
+    <script defer src="js/lockscreen_state_slideshow.js"></script>
+    <script defer src="js/lockscreen_state_keypadshow.js"></script>
+    <script defer src="js/lockscreen_state_keypadrising.js"></script>
+    <script defer src="js/lockscreen_state_keypadhiding.js"></script>
+    <script defer src="js/lockscreen_state_panelhide.js"></script>
+    <script defer src="js/lockscreen_state_logger.js"></script>
+    <script defer src="js/lockscreen_state_manager.js"></script>
     <script defer src="js/lockscreen_notifications.js"></script>
     <script defer src="js/lockscreen_passcode_validator.js"></script>
+    <script defer src="js/lockscreen_notification_builder.js"></script>
 
     <!-- Airplane Mode -->
     <script defer src="js/airplane_mode.js"></script>
@@ -200,7 +229,7 @@
     <link rel="stylesheet" type="text/css" href="style/modal_dialog/modal_dialog.css">
     <script defer src="js/modal_dialog.js"></script>
 
-    <!-- Authentication Dialog -->    
+    <!-- Authentication Dialog -->
     <link rel="stylesheet" type="text/css" href="style/authentication_dialog.css">
 
     <!-- Carrier info notifier, shared by CDMA and Cell Broadcast -->
@@ -404,6 +433,7 @@
     <script defer src="js/search_window.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
     <link rel="stylesheet" type="text/css" href="style/rocketbar/rocketbar.css">
+    <!-- <script defer src="shared/js/icons_helper.js"></script> -->
 
     <!-- PIN Unlocking -->
     <script defer src="js/sim_lock.js"></script>
@@ -428,13 +458,12 @@
     <script defer src="js/mobileid_dialog.js"></script>
   </head>
 
-  <body role="application">
+  <body class="theme-settings" role="application">
     <div id="screen">
       <div id="os-logo" data-z-index-level="initlogo">
         <div id="carrier-logo"></div>
       </div>
       <!-- Statusbar -->
-      <div id="statusbar-background" data-z-index-level="statusbar"></div>
       <div id="statusbar" data-z-index-level="statusbar">
         <!-- Rocketbar-->
         <div id="rocketbar">
@@ -504,12 +533,12 @@
         <!-- Placeholder for notifications -->
         <div id="notifications-placeholder"></div>
 
-        <div id="utility-tray-grippy" role="button" data-l10n-id="utilityTrayGrippy">
+        <div id="utility-tray-grippy">
         </div>
       </div>
 
       <!-- Notifications -->
-      <div id="utility-tray-notifications" data-z-index-level="utility-tray-notifications">
+      <div id="utility-tray-notifications" data-l10n-id="utilityTray" role="dialog" aria-label="Utility tray" data-z-index-level="utility-tray-notifications">
         <div id="notification-bar">
           <span id="notification-some" data-l10n-id="notifications">Notifications</span>
 
@@ -632,11 +661,10 @@
           </form>
 
           <!-- "Crash Reports" information page -->
-          <section role="region" class="skin-dark">
-            <header>
-              <button id="crash-reports-close"><span class="icon icon-close">close</span></button>
+          <section role="region">
+            <gaia-header id="crash-reports-header" action="close">
               <h1 data-l10n-id="crashReports">Crash Reports</h1>
-            </header>
+            </gaia-header>
             <div>
               <ul>
                 <li class="description" data-l10n-id="crash-reports-description-1">
@@ -650,14 +678,13 @@
           </section>
         </div>
 
-        <div id="trustedui-container" class="up">
+        <div id="trustedui-container" class="up theme-settings">
           <div id="trustedui-inner">
             <section role="region" class="title-container skin-organic">
-              <header>
-                <button id="trustedui-close"><span class="icon icon-close">close</span></button>
+              <gaia-header id="trustedui-header" action="close">
                 <h1 id="trustedui-title"></h1>
-                <div id="trustedui-throbber"></div>
-              </header>
+              </gaia-header>
+              <div id="trustedui-throbber"></div>
             </section>
             <div id="trustedui-frame-container">
               <div id="trustedui-error-dialog" role="dialog" class="generic-dialog">
@@ -946,7 +973,7 @@
           <h1 data-l10n-id="downloadUpdatesViaDataConnection">
             Download updates via data connection?
           </h1>
-          <p data-l10n-id="downloadUpdatesViaDataConnectionMessage">
+          <p data-l10n-id="downloadUpdatesViaDataConnectionMessage2">
             Updates are downloaded via data connection when Wi-Fi is not available. When using data connection, phone calls may be blocked and additional charges may also apply.
           </p>
         </section>
@@ -1146,21 +1173,21 @@
       <!-- icc / stk -->
       <div id="icc-view" class="generic-dialog" data-z-index-level="icc-view" role="dialog">
         <section role="region" class="skin-organic" id="icc-alert">
-          <header>
+          <gaia-header>
             <h1 id="icc-alert-maintitle">STK Message</h1>
-            <h2 id="icc-alert-subtitle"></h2>
-          </header>
+          </gaia-header>
+          <gaia-subheader skin="organic"><span id="icc-alert-subtitle"></span></gaia-subheader>
           <p id="icc-alert-msg"></p>
           <menu>
             <button type="button" data-l10n-id="close" id="icc-alert-btn" class="recommend full">Close</button>
           </menu>
         </section>
         <section role="region" class="skin-organic" id="icc-confirm">
-          <header>
+          <gaia-header>
             <a href="#"><span class="icon icon-back" id="icc-confirm-btn_back">back</span></a>
             <h1 id="icc-confirm-maintitle">STK Query</h1>
-            <h2 id="icc-confirm-subtitle"></h2>
-          </header>
+          </gaia-header>
+          <gaia-subheader><span id="icc-confirm-subtitle"></span></gaia-subheader>
           <p id="icc-confirm-msg"></p>
           <menu data-items="2">
             <button type="button" data-l10n-id="close" id="icc-confirm-btn_close">Close</button>
@@ -1168,10 +1195,12 @@
           </menu>
         </section>
         <section role="region" class="skin-organic" id="icc-asyncconfirm">
-          <header>
+          <gaia-header>
             <h1 id="icc-asyncconfirm-maintitle">STK Query</h1>
-            <h2 id="icc-asyncconfirm-subtitle"></h2>
-          </header>
+          </gaia-header>
+          <gaia-subheader skin="organic">
+            <span id="icc-asyncconfirm-subtitle"></span>
+          </gaia-subheader>
           <p id="icc-asyncconfirm-msg"></p>
           <menu data-items="2">
             <button type="button" data-l10n-id="no" id="icc-asyncconfirm-btn-no">No</button>
@@ -1179,16 +1208,11 @@
           </menu>
         </section>
         <section role="region" class="skin-organic" id="icc-input">
-          <header>
-            <a href="#">
-                <span class="icon icon-back" id="icc-input-btn_back">back</span>
-            </a>
-            <menu type="toolbar">
-                <button type="button" data-l10n-id="help" id="icc-input-btn_help">Help</button>
-            </menu>
+          <gaia-header id="icc-input-header" action="back">
             <h1 id="icc-input-maintitle">STK Query</h1>
-            <h2 id="icc-input-subtitle"></h2>
-          </header>
+            <button type="button" data-l10n-id="help" id="icc-input-btn_help">Help</button>
+          </gaia-header>
+          <gaia-subheader skin="organic"><span id="icc-input-subtitle"></span></gaia-subheader>
           <form>
             <p id="icc-input-msg"></p>
             <input id="icc-input-box" required="" type="text" dir="auto"></input>

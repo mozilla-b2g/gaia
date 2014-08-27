@@ -20,7 +20,8 @@
 }
 
 #crash-dialog:not(.learn-more) > section {
-  display: none;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* "Crash Reports" information page */

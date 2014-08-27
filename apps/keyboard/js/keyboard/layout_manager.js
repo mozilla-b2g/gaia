@@ -75,7 +75,7 @@ LayoutManager.prototype.switchCurrentLayout = function(layoutName) {
 
     this.currentLayout = layout;
     this.currentLayoutName = layoutName;
-    this.currentLayoutPage = this._getInitLayoutPage();
+    this.currentLayoutPage = this.LAYOUT_PAGE_DEFAULT;
     this.currentForcedModifiedLayoutName = undefined;
 
     this._updateModifiedLayout();
@@ -208,6 +208,12 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   var spaceKeyObject = layout.keys[spaceKeyRowCount][spaceKeyCount] =
     Object.create(layout.keys[spaceKeyRowCount][spaceKeyCount]);
 
+  var enterKeyFindResult = this._findKey(layout, KeyboardEvent.DOM_VK_RETURN);
+  var enterKeyCount = enterKeyFindResult.keyCount;
+  // Assume the [Enter] is at the same row as the space key
+  var enterKeyObject = layout.keys[spaceKeyRowCount][enterKeyCount] =
+    Object.create(layout.keys[spaceKeyRowCount][enterKeyCount]);
+
   // Keep the pageSwitchingKey here, because we may need to modify its ratio
   // at the end.
   var pageSwitchingKeyObject = null;
@@ -221,14 +227,15 @@ LayoutManager.prototype._updateModifiedLayout = function() {
         value: layout.alternateLayoutKey || '12&',
         ratio: 2,
         ariaLabel: 'alternateLayoutKey',
-        className: 'switch-key'
+        className: 'page-switch-key'
       };
     } else {
       pageSwitchingKeyObject = {
         keyCode: this.KEYCODE_BASIC_LAYOUT,
         value: this.currentLayout.basicLayoutKey || 'ABC',
         ratio: 2,
-        ariaLabel: 'basicLayoutKey'
+        ariaLabel: 'basicLayoutKey',
+        className: 'page-switch-key'
       };
     }
 
@@ -304,9 +311,16 @@ LayoutManager.prototype._updateModifiedLayout = function() {
         case 'text':
           modifyType = 'default';
           break;
+        case 'search':
+          modifyType = 'search';
+          break;
       }
     } else {
-      modifyType = 'default';
+      if ('search' === basicInputType) {
+        modifyType = 'search';
+      }else{
+        modifyType = 'default';
+      }
     }
 
     switch (modifyType) {
@@ -340,6 +354,13 @@ LayoutManager.prototype._updateModifiedLayout = function() {
 
         break;
 
+      case 'search':
+        if (enterKeyObject) {
+          enterKeyObject.className = 'search-icon';
+        }
+        // fall through to take modifications from default layouts
+
+      /* falls through */
       case 'default':
         var overwrites = layout.textLayoutOverwrite || {};
         // Add comma key if we are asked to,
@@ -394,14 +415,8 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   var keyCount = layout.width ? layout.width : 10;
   if (!layout.disableAlternateLayout) {
     if( spaceKeyCount == 3 && keyCount == 10) {
-      // Look for the [Enter] key in the layout. We're going to modify its size
-      // to sync with panel switching key or align with the above row.
-      var enterKeyFindResult = this._findKey(layout,
-                                             KeyboardEvent.DOM_VK_RETURN);
-      var enterKeyCount = enterKeyFindResult.keyCount;
-      // Assume the [Enter] is at the same row as the space key
-      var enterKeyObject = layout.keys[spaceKeyRowCount][enterKeyCount] =
-        Object.create(layout.keys[spaceKeyRowCount][enterKeyCount]);
+      // We're going to modify the [Enter] key size to sync with panel
+      // switching key or align with the above row.
       if (enterKeyObject) {
         enterKeyObject.ratio = 2.5;
       }
@@ -423,24 +438,6 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   }
 };
 
-// we may launch into some alternative layout page
-// for some specific input types/modes
-// for bug 1024298, launch into symbols 1 page for number-type inputs
-LayoutManager.prototype._getInitLayoutPage = function() {
-  var inputMode = this.app.inputContext.inputMode;
-  var basicInputType = this.app.getBasicInputType();
-
-  // XXX: but if the inputMode is 'digit', we need to launch 'pinLayout';
-  //      the first switch-case in _getAlternativeLayoutName would not allow
-  //      launching pinLayout if we set _SYMBOLS_I here.
-  if (('number' === basicInputType && 'digit' !== inputMode) ||
-      ('text' === basicInputType && 'numeric' === inputMode)) {
-    return this.LAYOUT_PAGE_SYMBOLS_I;
-  } else {
-    return this.LAYOUT_PAGE_DEFAULT;
-  }
-};
-
 LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
                                                              inputMode) {
   switch (this.currentLayoutPage) {
@@ -459,6 +456,9 @@ LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
       switch (inputMode) {
         case 'digit':
           return 'pinLayout';
+
+        default:
+          return 'numberLayout';
       }
 
       break;
@@ -469,6 +469,9 @@ LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
       switch (inputMode) {
         case 'digit':
           return 'pinLayout';
+
+        case 'numeric':
+          return 'numberLayout';
 
         case '-moz-sms':
           var smsLayoutName = this.currentLayoutName + '-sms';

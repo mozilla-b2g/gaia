@@ -11,6 +11,7 @@ navigator.mozL10n.ready(function localized() {
   // This will be called during startup, and any time the languange is changed
 
   // Look for any iframes and localize them - mozL10n doesn't do this
+  // XXX: remove once bug 1020130 is fixed
   Array.prototype.forEach.call(document.querySelectorAll('iframe'),
     function forEachIframe(iframe) {
       var doc = iframe.contentDocument;
@@ -34,10 +35,12 @@ navigator.mozL10n.ready(function localized() {
       var date = new Date(+element.dataset.l10nDate);
       var localeData = Utils.date.format.localeFormat(date, format);
 
-      if (element.dataset.l10nId && element.dataset.l10nArgs) {
-        var args = JSON.parse(element.dataset.l10nArgs);
-        args.date = localeData;
-        navigator.mozL10n.localize(element, element.dataset.l10nId, args);
+      if (element.hasAttribute('data-l10n-id') &&
+          element.hasAttribute('data-l10n-args')) {
+
+        var l10nAttrs = navigator.mozL10n.getAttributes(element);
+        l10nAttrs.args.date = localeData;
+        navigator.mozL10n.setAttributes(element, l10nAttrs.id, l10nAttrs.args);
       } else {
         element.textContent = localeData;
       }

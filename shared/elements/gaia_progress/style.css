@@ -1,0 +1,14 @@
+gaia-progress {
+  width: 100%;
+  height: 0.4rem;
+  border: none;
+}
+
+#progress {
+  height: 0.4rem;
+  /* Since we animate, we need to extend the width to 100% + 1 full animation */
+  width: calc(100% + 15rem);
+  animation: moving-backward 1s infinite linear;
+  background: #00caf2 repeating-linear-gradient(135deg, #92F4FE, #92F4FE 5rem, #00CDF0 5rem, #00CDF0 10rem);
+  border: none;
+}

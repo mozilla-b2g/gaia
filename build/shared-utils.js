@@ -49,8 +49,7 @@ function getSharedJs(parse, appDir, exclude, onFileRead) {
   var sharedJs = [];
   var jsExtRegExp = /\.js$/;
 
-  var files = utils.ls(utils.getFile(appDir, 'js'), true,
-    /[^(\.js)|(\.html)]$/);
+  var files = utils.ls(utils.getFile(appDir, 'js'), true, /\.(js|html)/, true);
   files.forEach(function(file) {
     var contents = utils.getFileContent(file);
     onFileRead(contents);
@@ -85,7 +84,7 @@ function getSharedJs(parse, appDir, exclude, onFileRead) {
 function getSharedStyles(appDir, onFileRead) {
   var sharedStyle = [];
   var sharedStyleUnstable = [];
-  var files = utils.ls(utils.getFile(appDir, 'style'), true, /\[^(.css$)]/);
+  var files = utils.ls(utils.getFile(appDir, 'style'), true, /\.css$/, true);
   files.forEach(function(file) {
     var url, match, index,
         contents = utils.getFileContent(file);

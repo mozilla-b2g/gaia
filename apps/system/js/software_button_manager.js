@@ -85,6 +85,13 @@
           (this._cacheWidth = this.element.getBoundingClientRect().width);
     },
 
+    _buttonRect: null,
+    _updateButtonRect: function() {
+      var fullscreen = !!document.mozFullScreenElement;
+      var button = fullscreen ? this.fullscreenHomeButton : this.homeButton;
+      this._buttonRect = button.getBoundingClientRect();
+    },
+
     /**
      * The current device orientation.
      * @memberof SoftwareButtonManager.prototype
@@ -134,6 +141,10 @@
       window.addEventListener('mozfullscreenchange', this);
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
+
+      window.addEventListener('system-resize',
+                              this._updateButtonRect.bind(this));
+      window.addEventListener('edge-touch-redispatch', this);
     },
 
    /**
@@ -213,10 +224,13 @@
     handleEvent: function(evt) {
       switch (evt.type) {
         case 'touchstart':
-          this.publish('home-button-press');
+          this.press();
           break;
         case 'touchend':
-          this.publish('home-button-release');
+          this.release();
+          break;
+        case 'edge-touch-redispatch':
+          this.handleRedispatchedTouch(evt);
           break;
         case 'homegesture-disabled':
           // at least one of software home button or gesture is enabled
@@ -242,6 +256,8 @@
           } else {
             this.fullscreenHomeButton.classList.remove('visible');
           }
+
+          this._updateButtonRect();
           break;
         case 'mozorientationchange':
           // mozorientationchange is fired before 'system-resize'
@@ -265,6 +281,65 @@
           this.element.classList.remove('no-transition');
           break;
       }
+    },
+
+    press: function() {
+      this.homeButton.classList.add('active');
+      this.fullscreenHomeButton.classList.add('active');
+
+      this.publish('home-button-press');
+    },
+
+    release: function() {
+      this.homeButton.classList.remove('active');
+      this.fullscreenHomeButton.classList.remove('active');
+
+      this.publish('home-button-release');
+    },
+
+    _pressedByRedispatch: false,
+    handleRedispatchedTouch: function(evt) {
+      var type = evt.detail.type;
+
+      if (!this._onButton(evt)) {
+        if (type !== 'touchstart' && this._pressedByRedispatch) {
+          this._pressedByRedispatch = false;
+          this.release();
+        }
+        return;
+      }
+
+      evt.preventDefault();
+
+      switch (type) {
+        case 'touchstart':
+          this.press();
+          this._pressedByRedispatch = true;
+          break;
+        case 'touchend':
+          this._pressedByRedispatch = false;
+          this.release();
+          break;
+      }
+    },
+
+    _onButton: function(e) {
+      var type = e.detail.type;
+      var touch = (type === 'touchend') ?
+                  e.detail.changedTouches[0] : e.detail.touches[0];
+
+      var x = touch.pageX;
+      var y = touch.pageY;
+
+      var radius = 4;
+      var rect = this._buttonRect;
+      var leftBound = rect.left - radius;
+      var rightBound = rect.right + radius;
+      var topBound = rect.top - radius;
+      var bottomBound = rect.bottom + radius;
+
+      return (x >= leftBound && x <= rightBound &&
+               y >= topBound && y <= bottomBound);
     }
   };
 

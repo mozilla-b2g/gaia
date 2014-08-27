@@ -1,6 +1,7 @@
 'use strict';
 /* global GaiaGrid */
 /* global CollectionsDatabase */
+/* global configurator */
 
 (function(exports) {
 
@@ -99,10 +100,17 @@
      */
     populate: function(success) {
       var self = this;
+      var entriesByDefault = configurator.getItems('collection');
       CollectionsDatabase.getAll().then(function(systemCollections) {
         // We are going to iterate over system Collections
         Object.keys(systemCollections).forEach(function(id) {
           self.entries.push(new GaiaGrid.Collection(systemCollections[id]));
+          delete entriesByDefault[id];
+        });
+        // We are going to iterate over collections by default just in case
+        // the datastore has not been populated yet.
+        Object.keys(entriesByDefault).forEach(function(id) {
+          self.entries.push(new GaiaGrid.Collection(entriesByDefault[id]));
         });
         self._setListeners();
 

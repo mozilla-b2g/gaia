@@ -147,11 +147,11 @@
 
       function getDefaultTone(type, toneKey, callback) {
         var mediaToneURL = '/shared/resources/media/notifications/' +
-          'notifier_bop.opus';
+          'notifier_firefox.opus';
         var ringerToneURL = '/shared/resources/media/ringtones/' +
           'ringer_firefox.opus';
         var alarmToneURL = '/shared/resources/media/alarms/' +
-          'ac_classic_clock_alarm.opus';
+          'ac_awake.opus';
 
         var toneURLs = {
           'content' : mediaToneURL,

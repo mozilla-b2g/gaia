@@ -258,7 +258,7 @@ SystemUpdatable.prototype.showApplyPromptBatteryNok = function(minBattery) {
 
   var ok = {
     title: _('ok'),
-    callback: this.declineInstall.bind(this)
+    callback: this.declineInstallBattery.bind(this)
   };
 
   UtilityTray.hide();
@@ -277,7 +277,7 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
 
   var cancel = {
     title: _('later'),
-    callback: this.declineInstall.bind(this)
+    callback: this.declineInstallWait.bind(this)
   };
 
   var confirm = {
@@ -291,12 +291,29 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
                     cancel, confirm);
 };
 
-SystemUpdatable.prototype.declineInstall = function() {
+/**
+ * Decline install of update, forwarding `reason` to UpdatePrompt.jsm.
+ * `reason` is either 'wait' or 'low-battery'. 'wait' corresponds to the user
+ * deciding to delay the update, in which case the prompt will reappear after a
+ * few minutes of idle time. 'low-battery' means the battery is currently too
+ * low for an update to take place and the update prompt will not reappear.
+ * @param {String} reason
+ */
+SystemUpdatable.prototype.declineInstall = function(reason) {
   CustomDialog.hide();
-  this._dispatchEvent('update-prompt-apply-result', 'wait');
+  this._dispatchEvent('update-prompt-apply-result', reason);
 
   UpdateManager.removeFromDownloadsQueue(this);
 };
+
+SystemUpdatable.prototype.declineInstallBattery = function() {
+  this.declineInstall('low-battery');
+};
+
+SystemUpdatable.prototype.declineInstallWait = function() {
+  this.declineInstall('wait');
+};
+
 
 SystemUpdatable.prototype.acceptInstall = function() {
   CustomDialog.hide();

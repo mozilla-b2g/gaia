@@ -34,8 +34,6 @@ suite('SIM picker', function() {
   suiteSetup(function() {
     subject = SimPicker;
 
-    loadBody();
-
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
     navigator.mozIccManager.mTeardown();
@@ -45,8 +43,6 @@ suite('SIM picker', function() {
 
     realTelephonyHelper = window.TelephonyHelper;
     window.TelephonyHelper = null;
-
-    menu = document.querySelector('menu');
   });
 
   suiteTeardown(function() {
@@ -57,11 +53,16 @@ suite('SIM picker', function() {
   });
 
   setup(function() {
+    subject._domBuilt = false;
+
     navigator.mozIccManager.addIcc(0, {});
     navigator.mozIccManager.addIcc(1, {});
 
+    loadBody();
+
     subject.getOrPick(0, '1111', function() {});
 
+    menu = document.querySelector('menu');
     header = document.getElementById('sim-picker-dial-via');
   });
 

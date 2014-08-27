@@ -8,19 +8,29 @@ if (!utils.time) {
 
     var _ = navigator.mozL10n.get;
 
-    utils.time.pretty = function(time) {
+    utils.time.pretty = function(time, now) {
+      // 'now' attribute for test purposes.
       var prettyDate = '';
 
       if (!time) {
         return prettyDate;
       }
 
+      function roundToDay(date) {
+        var rounded = new Date(date);
+        rounded.setHours(0);
+        rounded.setMinutes(0);
+        rounded.setSeconds(0);
+        rounded.setMilliseconds(0);
+        return rounded;
+      }
+
       var dtf = new navigator.mozL10n.DateTimeFormat();
-      var diff = (Date.now() - time) / 1000;
-      var day_diff = Math.floor(diff / 86400);
+      now = now || Date.now();
+      var day_diff = (roundToDay(now) - roundToDay(time)) / 86400000;
       if (!isNaN(day_diff)) {
         // Woohh we are on the future here
-        if (day_diff < 0 || diff < 0) {
+        if (day_diff < 0) {
           prettyDate = dtf.localeFormat(new Date(time),
                                                     _('dateTimeFormat_%x'));
         } else {

@@ -8,8 +8,16 @@
   <link rel="stylesheet" type="text/css" href="style/uitest.css">
   <link rel="stylesheet" type="text/css" href="style/tabs.css" >
   <link rel="stylesheet" type="text/css" href="style/lists.css" >
-  <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
   <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
+
+    <!-- Gaia Components -->
+  <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css">
+  <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css">
+
+  <!-- Gaia Components -->
+  <script src="../shared/elements/config.js"></script>
+  <script src="../shared/elements/gaia-header/dist/script.js"></script>
+
   <script type="text/javascript" src="js/uitest.js"></script>
   <!-- <script src="shared/js/mime_mapper.js"></script> -->
   <!-- <script src="shared/js/settings_listener.js"></script> -->
@@ -19,13 +27,13 @@
   <script defer src="shared/js/lazy_loader.js"></script>
   <script defer src="shared/js/accessibility_helper.js"></script>
 </head>
-<body>
+<body class="theme-productivity">
   <div class="panel list-panel">
     <div id="UI-tests" class="page">
       <section role="region">
-        <header>
+        <gaia-header>
           <h1>UI Tests</h1>
-        </header>
+        </gaia-header>
       </section>
       <section data-type="list">
         <ul class="sublist">
@@ -47,9 +55,9 @@
     </div>
     <div id="API-tests" class="page invisible">
       <section role="region">
-        <header>
+        <gaia-header>
           <h1>API Tests</h1>
-        </header>
+        </gaia-header>
       </section>
       <section data-type="list">
         <ul class="sublist">
@@ -83,12 +91,12 @@
           <li><a href="#test=API/viewphoto">View Photo</a></li>
         </ul>
       </section>
-    </div>    
+    </div>
     <div id="HW-tests" class="page invisible">
       <section role="region">
-        <header>
+        <gaia-header>
           <h1 class="header-title">HW Tests</h1>
-        </header>
+        </gaia-header>
       </section>
       <section data-type="list">
         <ul class="sublist">
@@ -128,10 +136,9 @@
   </div>
   <div id="test-panel" class="panel test-panel">
     <section role="region">
-      <header>
-        <button id="test-panel-back"><span class="icon icon-back">back</span></button>
+      <gaia-header id="test-panel-header" action="back">
         <h1 id="test-panel-title" class="header-title"></h1>
-      </header>
+      </gaia-header>
     </section>
     <iframe id="test-iframe" mozallowfullscreen="true"></iframe>
   </div>

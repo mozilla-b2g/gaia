@@ -242,7 +242,7 @@ suite('KeyboardApp', function() {
       };
 
       var result = app.getBasicInputType();
-      assert.equal(result, 'text');
+      assert.equal(result, 'search');
     });
 
     test('inputType = foo', function() {

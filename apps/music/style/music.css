@@ -172,13 +172,6 @@ body {
   text-overflow: ellipsis;
 }
 
-body.tiles-mode #title-back,
-body.list-mode #title-back,
-body.search-from-tiles-mode #title-back,
-body.search-from-list-mode #title-back {
-  display: none;
-}
-
 body.search-from-tiles-mode #title,
 body.search-from-list-mode #title {
   transform: translateY(-5rem);
@@ -237,20 +230,12 @@ body.picker-mode #views {
 
 body.player-mode #title-player,
 body.picker-mode #title-player {
-  display: none;
+  display: none !important;
 }
 
 #title-player[hidden],
 #title-done[hidden] {
   display: none;
-}
-
-#title-player > .icon-player {
-  background-image: url("./images/now_playing.png");
-}
-
-#title-done > .icon-done {
-  background-image: url("./images/IconAction_Done_30x30.png");
 }
 
 #title {
@@ -409,14 +394,7 @@ body.picker-mode #title-player {
   background-position: center center;
   background-repeat: no-repeat;
   background-size: 3rem;
-}
-
-#views-sublist-controls-play {
-  background-image: url("./images/IconAction_Media_Play_30x30.png");
-}
-
-#views-sublist-controls-shuffle {
-  background-image: url("./images/IconAction_Media_ShuffleOn_30x30.png");
+  color: #fff;
 }
 
 .album-controls-button {
@@ -648,14 +626,11 @@ body.picker-mode #title-player {
   border-radius: 3.5rem;
   margin: 0 1rem;
   font-weight: 500;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 3rem;
-  background-image: url("./images/iconaction_media_share_30x30.png");
   position: absolute;
   top: 10%;
   right: -2%;
   z-index: 1;
+  color: #fff;
 }
 
 #player-cover-buttons {
@@ -678,31 +653,28 @@ body.picker-mode #title-player {
   border-radius: 3.5rem;
   margin: 0 1rem;
   font-weight: 500;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 3rem;
+  color: #777;
 }
 
-#player-album-shuffle {
-  background-image: url("./images/IconAction_Media_ShuffleOff_30x30.png");
-}
-
-#player-album-shuffle:disabled,
 #player-album-shuffle.shuffle-on {
-  background-image: url("./images/IconAction_Media_ShuffleOn_30x30.png");
+  color: #fff;
 }
 
-#player-album-repeat.repeat-off {
-  background-image: url("./images/IconAction_Media_RepeatOff_30x30.png");
+#player-album-shuffle:disabled {
+  color: #777;
 }
 
-#player-album-repeat:disabled,
-#player-album-repeat.repeat-list {
-  background-image: url("./images/IconAction_Media_RepeatList_30x30.png");
+#player-album-repeat:disabled {
+  color: #777;
 }
 
+#player-album-repeat.repeat-list,
 #player-album-repeat.repeat-song {
-  background-image: url("./images/IconAction_Media_RepeatSong_30x30.png");
+  color: #fff;
+}
+
+#player-album-repeat.repeat-song:before {
+  content: 'repeat-once';
 }
 
 #player-album-rating {
@@ -854,21 +826,18 @@ button::-moz-focus-inner {
 }
 
 #player-controls-previous {
-  background-image: url("./images/IconAction_Media_SkipBackwards_30x30.png");
   width: 33%;
 }
 
 #player-controls-play {
-  background-image: url("./images/IconAction_Media_Pause_30x30.png");
   width: 34%;
 }
 
-#player-controls-play.is-pause {
-  background-image: url("./images/IconAction_Media_Play_30x30.png");
+#player-controls-play.is-pause:before {
+  content: 'play';
 }
 
 #player-controls-next {
-  background-image: url("./images/IconAction_Media_SkipForward_30x30.png");
   width: 33%;
 }
 
@@ -907,30 +876,14 @@ button::-moz-focus-inner {
   outline: none;
 }
 
-#tabs-mix {
-  background-image: url("./images/iconaction_media_gridview.png");
-}
-
-#tabs-playlists {
-  background-image: url("./images/iconaction_media_playlistfilter.png");
-}
-
-#tabs-artists {
-  background-image: url("./images/iconaction_media_artistfilter.png");
-}
-
-#tabs-albums {
-  background-image: url("./images/iconaction_media_albumfilter.png");
-}
-
-#tabs-songs {
-  background-image: url("./images/iconaction_media_songsfilter.png");
+#tabs li {
+  overflow: hidden;
 }
 
 .player-cover-button {
   border: none;
   border-radius: 0;
-  background: transparent;
+  background: none;
   transition: background 200ms ease;
 }
 .player-cover-button:hover {
@@ -1050,10 +1003,7 @@ li.list-item a:active {
   right: 2rem;
   width: 4rem;
   height: 6rem;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-image: url("./images/IconAction_Media_ShuffleOn_30x30.png");
-  background-size: 3rem;
+  line-height: 6rem;
   pointer-events: none;
 }
 

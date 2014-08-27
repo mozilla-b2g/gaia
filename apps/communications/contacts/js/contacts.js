@@ -12,6 +12,7 @@
 /* global SmsIntegration */
 /* global utils */
 /* global TAG_OPTIONS */
+/* global ImportStatusData */
 
 /* exported COMMS_APP_ORIGIN */
 /* exported SCALE_RATIO */
@@ -42,7 +43,7 @@ var Contacts = (function() {
   var contactTag,
       settings,
       settingsButton,
-      cancelButton,
+      header,
       addButton,
       appTitleElement,
       editModeTitleElement,
@@ -60,7 +61,7 @@ var Contacts = (function() {
   var contactsDetails;
   var contactsForm;
 
-  var customTag, customTagReset, tagDone, tagCancel, lazyLoadedTagsDom = false;
+  var customTag, customTagReset, tagDone, tagHeader, lazyLoadedTagsDom = false;
 
   // Shows the edit form for the current contact being in an update activity
   // It receives an array of two elements with the facebook data && values
@@ -207,7 +208,7 @@ var Contacts = (function() {
   var initContainers = function initContainers() {
     settings = document.getElementById('view-settings');
     settingsButton = document.getElementById('settings-button');
-    cancelButton = document.getElementById('cancel_activity');
+    header = document.getElementById('contacts-list-header');
     addButton = document.getElementById('add-contact-button');
     editModeTitleElement = document.getElementById('edit-title');
     appTitleElement = document.getElementById('app-title');
@@ -229,6 +230,46 @@ var Contacts = (function() {
     });
   };
 
+  var checkFacebookSynchronization = function(config) {
+    if (config && config.fbScheduleDone) {
+      return;
+    }
+
+    LazyLoader.load([
+      '/facebook/js/fb_sync.js',
+      '/shared/js/contacts/import/import_status_data.js',
+      '/shared/js/contacts/import/facebook/fb_utils.js'
+    ], function() {
+      var fbutils = fb.utils;
+
+      var neverExecuteAgain = function() {
+        ImportStatusData.remove(fbutils.SCHEDULE_SYNC_KEY);
+        utils.cookie.update({fbScheduleDone: true});
+        navigator.removeIdleObserver(idleObserver);
+        idleObserver = null;
+      };
+
+      var idleObserver = {
+        time: 3,
+        onidle: function onidle() {
+          ImportStatusData.get(fbutils.SCHEDULE_SYNC_KEY).then(function(date) {
+            if (date) {
+              fbutils.setLastUpdate(date, function() {
+                var req = fb.sync.scheduleNextSync();
+                req.onsuccess = neverExecuteAgain;
+                req.onerror = neverExecuteAgain;
+              });
+            } else {
+              neverExecuteAgain();
+            }
+          });
+        }
+      };
+
+      navigator.addIdleObserver(idleObserver);
+    });
+  };
+
   var init = function init() {
     _ = navigator.mozL10n.get;
     initContainers();
@@ -236,8 +277,11 @@ var Contacts = (function() {
     utils.PerformanceHelper.chromeInteractive();
     window.addEventListener('hashchange', checkUrl);
 
-    // If the migration is not complete
     var config = utils.cookie.load();
+
+    checkFacebookSynchronization(config);
+
+    // If the migration is not complete
     if (!config || !config.fbMigrated) {
       LazyLoader.load('js/fb/datastore_migrator.js', function() {
         new DatastoreMigration().start();
@@ -272,13 +316,15 @@ var Contacts = (function() {
     //       load time.  For more info see bug 725221.
     var text;
     if (ActivityHandler.currentlyHandling) {
-      cancelButton.classList.remove('hide');
-      addButton.classList.add('hide');
-      settingsButton.classList.add('hide');
+      header.setAttribute('action', 'close');
+      settingsButton.hidden = true;
+      addButton.hidden = true;
+      // Trigger the title to re-run font-fit/centering logic
+      appTitleElement.textContent = appTitleElement.textContent;
     } else {
-      cancelButton.classList.add('hide');
-      addButton.classList.remove('hide');
-      settingsButton.classList.remove('hide');
+      header.removeAttribute('action');
+      settingsButton.hidden = false;
+      addButton.hidden = false;
     }
 
     text = (contactsList && contactsList.isSelecting)?
@@ -420,9 +466,9 @@ var Contacts = (function() {
       tagDone = document.querySelector('#settings-done');
       tagDone.addEventListener('click', handleSelectTagDone);
     }
-    if (!tagCancel) {
-      tagCancel = document.querySelector('#settings-cancel');
-      tagCancel.addEventListener('click', handleBack);
+    if (!tagHeader) {
+      tagHeader = document.querySelector('#settings-header');
+      tagHeader.addEventListener('action', handleBack);
     }
 
     for (var i in options) {
@@ -679,7 +725,12 @@ var Contacts = (function() {
   var initEventListeners = function initEventListener() {
     // Definition of elements and handlers
     utils.listeners.add({
-      '#cancel_activity': handleCancel, // Activity (any) cancellation
+      '#contacts-list-header': [
+        {
+          event: 'action',
+          handler: handleCancel // Activity (any) cancellation
+        }
+      ],
       '#add-contact-button': showAddContact,
       '#settings-button': showSettings, // Settings related
       '#search-start': [

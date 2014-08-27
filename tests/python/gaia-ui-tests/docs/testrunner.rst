@@ -88,6 +88,7 @@ Here is a list of the types used, and when to use them:
 * bluetooth - Bluetooth is required.
 * camera - Camera is required.
 * carrier - Active SIM card with carrier connection is required.
+* external - The test requires access to resources outside the host and device, eg the internet.
 * flash - Camera flash is required.
 * lan - Local area connection (not cell data) is required by these tests (see note below).
 * offline - Specifically requires no online connection.
@@ -95,6 +96,7 @@ Here is a list of the types used, and when to use them:
 * qemu - These tests require the Firefox OS emulator to run.
 * sdcard - Storage device (such as an SD card) must be present.
 * wifi - WiFi connection is required.
+* sanity - Tests exercising core device features (dialer, camera, browser, sms).
 
 .. note::
   You may be thinking that there is only WiFi or cell data, and why the need for

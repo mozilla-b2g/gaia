@@ -556,21 +556,23 @@ function resetCurrentVideo() {
 function deleteSelectedItems() {
   if (selectedFileNames.length === 0)
     return;
+  LazyLoader.load('shared/style/confirm.css', function() {
 
-  Dialogs.confirm({
-    message: navigator.mozL10n.get('delete-n-items?',
-             {n: selectedFileNames.length}),
-    cancelText: navigator.mozL10n.get('cancel'),
-    confirmText: navigator.mozL10n.get('delete'),
-    danger: true
-  }, function() { // onSuccess
-    // deleteFile is O(n), so this loop is O(n*n). If used with really large
-    // selections, it might have noticably bad performance.  If so, we
-    // can write a more efficient deleteFiles() function.
-    for (var i = 0; i < selectedFileNames.length; i++) {
-      deleteFile(selectedFileNames[i]);
-    }
-    clearSelection();
+    Dialogs.confirm({
+      messageId: 'delete-n-items?',
+      messageArgs: {n: selectedFileNames.length},
+      cancelId: 'cancel',
+      confirmId: 'delete',
+      danger: true
+    }, function() { // onSuccess
+      // deleteFile is O(n), so this loop is O(n*n). If used with really large
+      // selections, it might have noticably bad performance.  If so, we
+      // can write a more efficient deleteFiles() function.
+      for (var i = 0; i < selectedFileNames.length; i++) {
+        deleteFile(selectedFileNames[i]);
+      }
+      clearSelection();
+    });
   });
 }
 
@@ -736,36 +738,39 @@ function setPosterImage(dom, poster) {
 }
 
 function showOverlay(id) {
-  currentOverlay = id;
+  LazyLoader.load('shared/style/confirm.css', function() {
+    currentOverlay = id;
 
-  if (id === null) {
-    dom.overlay.classList.add('hidden');
-    return;
-  }
+    if (id === null) {
+      dom.overlay.classList.add('hidden');
+      return;
+    }
 
-  var _ = navigator.mozL10n.get;
+    var _ = navigator.mozL10n.get;
+    var text, title;
 
-  if (pendingPick || id === 'empty') {
-    // We cannot use hidden attribute because confirm.css overrides it.
-    dom.overlayMenu.classList.remove('hidden');
-    dom.overlayActionButton.classList.remove('hidden');
-    dom.overlayActionButton.textContent = _(pendingPick ?
-                                            'overlay-cancel-button' :
-                                            'overlay-camera-button');
-  } else {
-    dom.overlayMenu.classList.add('hidden');
-    dom.overlayActionButton.classList.add('hidden');
-  }
+    if (id === 'empty') {
+      dom.overlayMenu.classList.remove('hidden');
+      dom.overlayActionButton.classList.remove('hidden');
+      dom.overlayActionButton.setAttribute('data-l10n-id',
+                                           'overlay-camera-button');
+    } else {
+      dom.overlayMenu.classList.add('hidden');
+      dom.overlayActionButton.classList.add('hidden');
+    }
 
-  if (id === 'nocard') {
-    dom.overlayTitle.textContent = _('nocard2-title');
-    dom.overlayText.textContent = _('nocard3-text');
-  } else {
-    dom.overlayTitle.textContent = _(id + '-title');
-    dom.overlayText.textContent = _(id + '-text');
-  }
+    if (id === 'nocard') {
+      title = 'nocard2-title';
+      text = 'nocard3-text';
+    } else {
+      title = id + '-title';
+      text = id + '-text';
+    }
 
-  dom.overlay.classList.remove('hidden');
+    dom.overlayTitle.setAttribute('data-l10n-id', title);
+    dom.overlayText.setAttribute('data-l10n-id', text);
+    dom.overlay.classList.remove('hidden');
+  });
 }
 
 function setControlsVisibility(visible) {
@@ -824,29 +829,32 @@ function deleteCurrentVideo() {
   hideOptionsView();
   // We need to disable NFC sharing when showing delete confirmation dialog
   setNFCSharing(false);
-  // If we're deleting the file shown in the player we've got to
-  // return to the thumbnail list. We pass false to hidePlayer() to tell it
-  // not to record new metadata for the file we're about to delete.
-  Dialogs.confirm({
-    message: navigator.mozL10n.get('delete-video?'),
-    cancelText: navigator.mozL10n.get('cancel'),
-    confirmText: navigator.mozL10n.get('delete'),
-    danger: true
-  }, function _onSuccess() { // onSuccess
-    deleteFile(currentVideo.name);
-    if (!isPhone && !isPortrait) {
-      // If the file is deleted, we need to load another video file. This is
-      // only required at tablet and landscape mode. When there is no video in
-      // video app, the currentVideo is null and the overlay is shown.
-      if (currentVideo) {
-        showPlayer(currentVideo, false, true, true);
+
+  LazyLoader.load('shared/style/confirm.css', function() {
+    // If we're deleting the file shown in the player we've got to
+    // return to the thumbnail list. We pass false to hidePlayer() to tell it
+    // not to record new metadata for the file we're about to delete.
+    Dialogs.confirm({
+      messageId: 'delete-video?',
+      cancelId: 'cancel',
+      confirmId: 'delete',
+      danger: true
+    }, function _onSuccess() { // onSuccess
+      deleteFile(currentVideo.name);
+      if (!isPhone && !isPortrait) {
+        // If the file is deleted, we need to load another video file. This is
+        // only required at tablet and landscape mode. When there is no video in
+        // video app, the currentVideo is null and the overlay is shown.
+        if (currentVideo) {
+          showPlayer(currentVideo, false, true, true);
+        }
+      } else {
+        hidePlayer(false);
       }
-    } else {
-      hidePlayer(false);
-    }
-  }, function _onError() {
-     // Enable NFC sharing when cancels delete and returns to fullscreen mode
-     setNFCSharing(true);
+    }, function _onError() {
+       // Enable NFC sharing when cancels delete and returns to fullscreen mode
+       setNFCSharing(true);
+    });
   });
 }
 

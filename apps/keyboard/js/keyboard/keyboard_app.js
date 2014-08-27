@@ -153,13 +153,13 @@ KeyboardApp.prototype.getBasicInputType = function() {
     case 'tel':
     case 'email':
     case 'text':
+    case 'search':
       // Don't overwrite type
 
       break;
 
     // default fallback and textual types
     case 'password':
-    case 'search':
     /* falls through */
     default:
       type = 'text';

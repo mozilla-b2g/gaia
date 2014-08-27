@@ -3,7 +3,7 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
-    <meta name="theme-color" content="#00adad">
+    <meta name="theme-color" content="#00b7b7">
     <title>Messages</title>
     <!--App Style root.css-->
     <link rel="stylesheet" type="text/css" href="style/root.css">
@@ -366,7 +366,7 @@
 
     <div id="contact-photo-tmpl" class="hide">
       <!--
-      <aside class="pack-end">
+      <aside role="img" data-l10n-id="contact-photo" aria-label="Contact photo" class="pack-end">
         <span class="contact-photo" data-type="img"></span>
       </aside>
       -->
@@ -472,8 +472,8 @@
         <span></span>
       </label>
       <a href="${hash}">
-        <aside class="icon icon-unread icon-draft">icon</aside>
-        <aside class="pack-end empty">
+        <aside role="note" data-l10n-id="${iconLabel}" class="icon icon-unread icon-draft"></aside>
+        <aside role="img" data-l10n-id="contact-photo" aria-label="Contact photo" class="pack-end empty">
           <span data-type="img"></span>
         </aside>
         <p class="name">${number}</p>

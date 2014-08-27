@@ -3,6 +3,7 @@
   "description": "Handling network alerts (like CMAS)",
   "type": "certified",
   "launch_path": "/index.html",
+  "role": "system",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"

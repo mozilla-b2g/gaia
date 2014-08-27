@@ -39,10 +39,35 @@ PreferencesBuilder.prototype.execute = function(config) {
   this.preparePref();
   this.loadBuildPrefs();
   if (this.gaia.engine === 'xpcshell') {
-    this.writePrefs();
+    let jsPath = utils.getFile(this.config.PROFILE_DIR, 'user.js').path;
+    this.writePrefs(jsPath, this.prefs, this.userPrefs);
   } else if (this.gaia.engine === 'b2g') {
     this.setPrefs();
   }
+  this.writeDefaultUserJs();
+};
+
+PreferencesBuilder.prototype.writeDefaultUserJs = function() {
+  if (this.config.BUILD_APP_NAME !== '*') {
+    return;
+  }
+
+  // create a clean folder to store data for B2G, this folder will copy to
+  // b2g output folder.
+  let defaultsDir = utils.getFile(this.config.PROFILE_DIR, 'defaults');
+  if (defaultsDir.exists()) {
+    defaultsDir.remove(true);
+  }
+  defaultsDir.append('pref');
+  utils.ensureFolderExists(defaultsDir);
+  let userJs = defaultsDir.clone();
+  userJs.append('user.js');
+  let allPrefs = utils.cloneJSON(this.prefs);
+  for (let pref in this.userPrefs) {
+    allPrefs[pref] = this.userPrefs[pref];
+  }
+
+  this.writePrefs(userJs.path, allPrefs, {});
 };
 
 PreferencesBuilder.prototype.loadBuildPrefs = function() {
@@ -283,19 +308,19 @@ PreferencesBuilder.prototype.setDeviceDebugPref = function() {
   this.userPrefs['b2g.adb.timeout'] = 0;
 };
 
-PreferencesBuilder.prototype.writePrefs = function() {
-  var userJs = utils.getFile(this.config.PROFILE_DIR, 'user.js');
+PreferencesBuilder.prototype.writePrefs = function(jsPath, prefs, userPrefs) {
+  var userJs = utils.getFile(jsPath);
   var content = '';
   var pref;
   // output pref
-  for (pref in this.prefs) {
+  for (pref in prefs) {
     content += 'pref(\'' + pref + '\', ' +
-                JSON.stringify(this.prefs[pref]) + ');\n';
+                JSON.stringify(prefs[pref]) + ');\n';
   }
   // output user_pref
-  for (pref in this.userPrefs) {
+  for (pref in userPrefs) {
     content += 'user_pref(\'' + pref + '\', ' +
-                JSON.stringify(this.userPrefs[pref]) + ');\n';
+                JSON.stringify(userPrefs[pref]) + ');\n';
   }
   utils.writeContent(userJs, content + '\n');
 };

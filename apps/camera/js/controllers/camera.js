@@ -61,7 +61,6 @@ CameraController.prototype.bindEvents = function() {
   // App
   app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
-  app.on('attentionscreenopened', this.camera.stopRecording);
   app.on('settings:configured', this.onSettingsConfigured);
   app.on('previewgallery:opened', this.shutdownCamera);
   app.on('previewgallery:closed', this.onGalleryClosed);
@@ -72,6 +71,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('visible', this.camera.load);
   app.on('capture', this.capture);
   app.on('hidden', this.onHidden);
+  app.on('stoprecording', this.camera.stopRecording);
 
   // Settings
   settings.recorderProfiles.on('change:selected', this.updateRecorderProfile);
@@ -433,7 +433,8 @@ CameraController.prototype.shutdownCamera = function() {
  */
 CameraController.prototype.onGalleryClosed = function() {
   if (this.app.hidden) { return; }
-  this.camera.load(this.app.onReady);
+  this.app.showSpinner();
+  this.camera.load(this.app.clearSpinner);
 };
 
 /**

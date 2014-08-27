@@ -63,6 +63,13 @@ const SupportedAudioTypes = Object.freeze({
   'audio/ogg': true
 });
 
+// If we see one of the mime types on the left convert it
+// to the corresponding type on the right.
+// See normalizeMimeType in download.js
+const MimeTypeAliases = Object.freeze({
+  'audio/mp3': 'audio/mpeg'
+});
+
 // SettingsDB keys for ringtones and wallpaper
 RINGTONE_KEY = 'dialer.ringtone';
 RINGTONE_NAME_KEY = 'dialer.ringtone.name';

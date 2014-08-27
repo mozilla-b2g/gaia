@@ -3,7 +3,7 @@ Keyboards['pt-BR'] = {
   shortLabel: 'Pt',
   menuLabel: 'Português',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'number', 'password'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'pt_br',
   alt: {
     a: 'áãàâäåæª',
@@ -67,7 +67,10 @@ Keyboards['pt-BR'] = {
         { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
         { value: '(' }, { value: ')' }
       ], [
-        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyEvent.DOM_VK_ALT,
+          className: 'page-switch-key'
+        },
         { value: '+',
           supportsSwitching: {
             value: ','

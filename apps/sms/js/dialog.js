@@ -47,9 +47,9 @@
 function createLocalizedElement(tagName, param) {
   var element = document.createElement(tagName);
 
-  // if we passed an l10nId, use the l10n `localize' method
+  // if we passed an l10nId, use the l10n `setAttributes' method
   if (param.l10nId) {
-    navigator.mozL10n.localize(element, param.l10nId, param.l10nArgs);
+    navigator.mozL10n.setAttributes(element, param.l10nId, param.l10nArgs);
 
   // if we passed in a HTML Fragment, it is already localized
   } else if (param.value.nodeType) {

@@ -18,8 +18,9 @@ var advanced_timer = {
 
     var self = this;
     var _id = setTimeout(function advTimer() {
+      var realUsedTime = new Date().getTime() - self.timers[timerId].timestamp;
       delete(self.timers[timerId]);
-      callback();
+      callback(realUsedTime);
     }, timeout);
     this.timers[timerId] = {
       'timeout': timeout,

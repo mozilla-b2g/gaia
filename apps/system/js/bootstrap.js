@@ -5,13 +5,15 @@
          SecureWindowManager, HomescreenLauncher,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
-         VisibilityManager, Storage, InternetSharing, TaskManager,
+         VisibilityManager, UsbStorage, InternetSharing, TaskManager,
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
          SoftwareButtonManager, Accessibility, NfcUtils, ShrinkingUI,
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
-         LockScreenNotifications, LockScreenPasscodeValidator */
+         LockScreenNotifications, LockScreenPasscodeValidator, NfcManager,
+         ExternalStorageMonitor, LockScreenNotificationBuilder,
+         BrowserSettings, AppMigrator */
 'use strict';
 
 
@@ -113,6 +115,8 @@ window.addEventListener('load', function startup() {
   window.activities = new Activities();
   window.accessibility = new Accessibility();
   window.accessibility.start();
+  window.appMigrator = new AppMigrator();
+  window.appMigrator.start();
   window.appUsageMetrics = new AppUsageMetrics();
   window.appUsageMetrics.start();
   window.appWindowFactory = new AppWindowFactory();
@@ -121,6 +125,8 @@ window.addEventListener('load', function startup() {
   window.developerHUD.start();
   window.dialerAgent = new DialerAgent();
   window.dialerAgent.start();
+  window.externalStorageMonitor = new ExternalStorageMonitor();
+  window.externalStorageMonitor.start();
   window.homeGesture = new HomeGesture();
   window.homeGesture.start();
   if (!window.homescreenLauncher) {
@@ -134,9 +140,12 @@ window.addEventListener('load', function startup() {
   window.lockScreenNotifications = new LockScreenNotifications();
   window.lockScreenPasscodeValidator = new LockScreenPasscodeValidator();
   window.lockScreenPasscodeValidator.start();
+  window.lockScreenNotificationBuilder = new LockScreenNotificationBuilder();
   window.layoutManager = new LayoutManager();
   window.layoutManager.start();
   window.nfcUtils = new NfcUtils();
+  window.nfcManager = new NfcManager();
+  window.nfcManager.start();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
   window.places = new Places();
@@ -184,33 +193,18 @@ window.addEventListener('load', function startup() {
   window.dispatchEvent(evt);
 });
 
-window.storage = new Storage();
+window.usbStorage = new UsbStorage();
 
 // Define the default background to use for all homescreens
 window.addEventListener('wallpaperchange', function(evt) {
   document.getElementById('screen').style.backgroundImage =
+    'linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)),' +
     'url(' + evt.detail.url + ')';
 });
 
-// Use a setting in order to be "called" by settings app
-navigator.mozSettings.addObserver(
-  'clear.remote-windows.data',
-  function clearRemoteWindowsData(setting) {
-    var shouldClear = setting.settingValue;
-    if (!shouldClear) {
-      return;
-    }
+window.browserSettings = new BrowserSettings();
+window.browserSettings.start();
 
-    // Delete all storage and cookies from our content processes
-    var request = navigator.mozApps.getSelf();
-    request.onsuccess = function() {
-      request.result.clearBrowserData();
-    };
-
-    // Reset the setting value to false
-    var lock = navigator.mozSettings.createLock();
-    lock.set({'clear.remote-windows.data': false});
-  });
 
 /* === XXX Bug 900512 === */
 // On some devices touching the hardware home button triggers

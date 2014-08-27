@@ -4,7 +4,7 @@ Keyboards['dz-BT'] = {
   menuLabel: 'རྫོང་ཁ',
   alternateLayoutKey: '༡༢༣',
   basicLayoutKey: 'ཀཁག',
-  types: ['text', 'url', 'email', 'number'],
+  types: ['text', 'url', 'email'],
   width: 12,
   keys: [
     [
@@ -110,7 +110,10 @@ Keyboards['dz-BT'] = {
         { value: 'ཿ' }, { value: '༷' },
         { value: '༔' }, { value: '༼' }, { value: '༽' }
       ], [
-        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyEvent.DOM_VK_ALT,
+          className: 'page-switch-key'
+        },
         { value: '༃' }, { value: '༑' }, { value: '྅' }, { value: 'ྈ' },
         { value: 'ྉ' }, { value: '࿙' }, { value: '྿' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }

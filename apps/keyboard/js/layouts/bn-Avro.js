@@ -5,7 +5,7 @@ Keyboards['bn-Avro'] = {
   menuLabel: 'বাংলা - অভ্র',
   alternateLayoutKey: '?১২৩',
   basicLayoutKey: 'কখগ',
-  types: ['text', 'url', 'number'],
+  types: ['text', 'url'],
   alt: {
     a: 'A',
     b: 'B',
@@ -82,7 +82,10 @@ Keyboards['bn-Avro'] = {
         { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
         { value: '(' }, { value: ')' }
       ], [
-        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyEvent.DOM_VK_ALT,
+          className: 'page-switch-key'
+        },
         { value: '+',
           supportsSwitching: {
             value: ','

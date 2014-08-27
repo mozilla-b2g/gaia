@@ -4,7 +4,7 @@ Keyboards['bn-Probhat'] = {
   menuLabel: 'বাংলা - প্রভাত',
   alternateLayoutKey: '?১২',
   basicLayoutKey: 'কখগ',
-  types: ['text', 'url', 'email', 'number'],
+  types: ['text', 'url', 'email'],
   keys: [
     [
       { value: 'দ' }, { value: 'ূ' }, { value: 'ী' } , { value: 'র' },
@@ -88,7 +88,10 @@ Keyboards['bn-Probhat'] = {
         { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
         { value: '(' }, { value: ')' }
       ], [
-        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyEvent.DOM_VK_ALT,
+          className: 'page-switch-key'
+        },
         { value: '+',
           supportsSwitching: {
             value: ','

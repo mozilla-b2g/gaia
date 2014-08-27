@@ -28,7 +28,7 @@ var Formatting = (function() {
       return getFormattedDate(then, format);
     }
 
-    var date, time;
+    var date, time, timeFormat;
     var daysOfDifference = getDaysOfDifference(now, then);
     if (daysOfDifference === 0) {
       date = _('today');
@@ -40,7 +40,9 @@ var Formatting = (function() {
       date = getFormattedDate(timestamp, '%a');
     }
 
-    time = getFormattedDate(timestamp, _('shortTimeFormat'));
+    timeFormat = window.navigator.mozHour12 ?
+                 'shortTimeFormat12' : 'shortTimeFormat24';
+    time = getFormattedDate(timestamp, _(timeFormat));
     return _('day-hour-format', {
       day: date,
       time: time

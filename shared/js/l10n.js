@@ -1394,20 +1394,25 @@
     waitFor('interactive', init.bind(navigator.mozL10n, pretranslate));
   }
 
-  function init(pretranslate) {
+  function initObserver() {
     nodeObserver = new MutationObserver(onMutations.bind(navigator.mozL10n));
     nodeObserver.observe(document, moConfig);
+  }
 
+  function init(pretranslate) {
     if (pretranslate) {
-      //XXX: bring back if bug 994370 gets reverted
-      //inlineLocalization.call(navigator.mozL10n);
+      inlineLocalization.call(navigator.mozL10n);
       initResources.call(navigator.mozL10n);
     } else {
+      // if pretranslate is false, we want to initialize MO
+      // early, to collect nodes injected between now and when resources
+      // are loaded because we're not going to translate the whole
+      // document once l10n resources are ready.
+      initObserver();
       window.setTimeout(initResources.bind(navigator.mozL10n));
     }
   }
 
-  /*
   function inlineLocalization() {
     var locale = this.ctx.getLocale(navigator.language);
     var scriptLoc = locale.isPseudo ? this.ctx.defaultLocale : locale.id;
@@ -1435,7 +1440,6 @@
     // the visible DOM is now pretranslated
     isPretranslated = true;
   }
-  */
 
   function initResources() {
     var resLinks = document.head
@@ -1528,6 +1532,9 @@
       pendingElements = null;
     }
 
+    if (!nodeObserver) {
+      initObserver();
+    }
     fireLocalizedEvent.call(this);
   }
 
@@ -1673,7 +1680,7 @@
   }
 
   function translateElement(element) {
-    if (isPretranslated && !this.ctx.isReady) {
+    if (!this.ctx.isReady) {
       if (!pendingElements) {
         pendingElements = [];
       }

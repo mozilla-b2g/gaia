@@ -58,6 +58,9 @@ require.config({
     'shared/mobile_operator': {
       exports: 'MobileOperator'
     },
+    'shared/toaster': {
+      exports: 'Toaster'
+    },
     'utils': {
       exports: ''
     },
@@ -201,6 +204,14 @@ require.config({
         'modules/mvvm/observable',
         'modules/date_time'
       ]
+    },
+    {
+      name: 'panels/browser_privacy/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/search/panel',
+      exclude: ['main']
     }
   ]
 });

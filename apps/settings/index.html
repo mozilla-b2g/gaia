@@ -3,7 +3,7 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
-    <meta name="theme-color" content="#fff">
+    <meta name="theme-color" content="#eeeeee">
     <title>Settings</title>
 
     <!-- Debug/DUMP method support -->
@@ -54,7 +54,7 @@
     <link rel="resource" type="application/l10n" href="shared/locales/tz.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/sounds.ini">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <script defer="" src="shared/js/l10n.js"></script>
+    <script src="shared/js/l10n.js"></script>
     <script defer="" src="shared/js/l10n_date.js"></script>
 
     <!-- For perf-measurement related utilities -->
@@ -133,6 +133,7 @@
     <link rel="import" href="/elements/sound.html">
     <link rel="import" href="/elements/display.html">
     <link rel="import" href="/elements/homescreen.html">
+    <link rel="import" href="/elements/search.html">
     <link rel="import" href="/elements/navigation.html">
     <link rel="import" href="/elements/notifications.html">
     <link rel="import" href="/elements/date_time.html">
@@ -150,6 +151,7 @@
     <link rel="import" href="/elements/app_permissions_details.html">
     <link rel="import" href="/elements/app_permissions.html">
     <link rel="import" href="/elements/do_not_track.html">
+    <link rel="import" href="/elements/browser_privacy.html">
     <link rel="import" href="/elements/about_more_info.html">
     <link rel="import" href="/elements/about_your_rights.html">
     <link rel="import" href="/elements/about_your_privacy.html">
@@ -158,6 +160,7 @@
     <link rel="import" href="/elements/about_legal.html">
     <link rel="import" href="/elements/about.html">
     <link rel="import" href="/elements/battery.html">
+    <link rel="import" href="/elements/usb_storage.html">
     <link rel="import" href="/elements/application_storage.html">
     <link rel="import" href="/elements/media_storage.html">
     <link rel="import" href="/elements/accessibility.html">
@@ -275,6 +278,8 @@
     <section is="display" role="region" id="display"></section>
     <!-- Personalization :: Homescreen -->
     <section is="homescreen" role="region" id="homescreen"></section>
+    <!-- Personalization :: Search -->
+    <section is="search" role="region" id="search"></section>
     <!-- Personalization :: Navigation -->
     <section is="navigation" role="region" id="navigation"></section>
     <!-- Personalization :: Notifications -->
@@ -314,6 +319,8 @@
     <section is="appPermissions" role="region" id="appPermissions" data-require-sub-panels="true"></section>
     <!-- Security :: Do Not Track -->
     <section is="doNotTrack" role="region" id="doNotTrack"></section>
+    <!-- Security :: Browser -->
+    <section is="browserPrivacy" role="region" id="browserPrivacy"></section>
 
     <!-- Device :: Information :: More Information -->
     <section is="about-moreInfo" role="region" id="about-moreInfo"></section>
@@ -333,9 +340,11 @@
     <section is="downloads" role="region" id="downloads"></section>
     <!-- Device :: Battery -->
     <section is="battery" role="region" id="battery"></section>
-    <!-- Device :: Device Storage -->
+    <!-- Storage :: USB Transfer Protocol -->
+    <section is="usbStorage" role="region" id="usbStorage"></section>
+    <!-- Storage :: Device Storage -->
     <section is="applicationStorage" role="region" id="applicationStorage"></section>
-    <!-- Device :: Media Storage -->
+    <!-- Storage :: Media Storage -->
     <section is="mediaStorage" role="region" id="mediaStorage"></section>
     <!-- Device :: Accessibility -->
     <section is="accessibility" role="region" id="accessibility"></section>
@@ -454,6 +463,9 @@
             <a id="menuItem-homescreen" class="menu-item gaia-icon icon-settings-homescreen" href="#homescreen" data-l10n-id="homescreen">Homescreen</a>
           </li>
           <li>
+            <a id="menuItem-search" class="menu-item gaia-icon icon-browser-search" href="#search" data-l10n-id="search">Search</a>
+          </li>
+          <li>
             <a id="menuItem-navigation" class="menu-item gaia-icon icon-settings-gesture" href="#navigation" data-l10n-id="navigation">Navigation</a>
           </li>
           <li>
@@ -529,29 +541,36 @@
               <small id="doNotTrack-desc" class="menu-item-desc"></small>
             </a>
           </li>
+          <li>
+            <small id="browserPrivacy-desc" class="menu-item-desc"></small>
+            <a id="menuItem-browserPrivacy" class="menu-item gaia-icon icon-browsing" href="#browserPrivacy" data-l10n-id="browserPrivacy">Browser Privacy</a>
+          </li>
         </ul>
 
         <header>
           <h2 data-l10n-id="storage">Storage</h2>
         </header>
         <ul>
-          <li>
+          <li class="pack-split">
             <label class="pack-switch">
-              <input class="ums-switch-root" data-ignore type="checkbox">
-              <span id="menuItem-enableStorage" class="menu-item gaia-icon icon-settings-usbstorage" data-l10n-id="enableUSBStorage1">USB storage</span>
-              <small class="ums-desc-root menu-item-desc">Disabled</small>
+              <input class="usb-switch" data-ignore type="checkbox">
+              <span></span>
             </label>
-          </li>
-          <li>
-            <a class="menuItem-applicationStorage menu-item gaia-icon icon-settings-appstorage" href="#applicationStorage">
-              <span data-l10n-id="appStorage">Application Storage</span>
-              <small class="application-storage-desc menu-item-desc"></small>
-            </a>
+            <label id="menuItem-enableStorage" class="name">
+              <span class="menu-item gaia-icon icon-settings-usbstorage" data-l10n-id="enableUSBStorage1">USB storage</span>
+              <small class="usb-desc menu-item-desc">Disabled</small>
+            </label>
           </li>
           <li class="media-storage-section">
             <a class="menuItem-mediaStorage menu-item gaia-icon icon-settings-mediastorage" href="#mediaStorage">
               <span data-l10n-id="mediaStorage">Media Storage</span>
               <small class="media-storage-desc menu-item-desc"></small>
+            </a>
+          </li>
+          <li>
+            <a class="menuItem-applicationStorage menu-item gaia-icon icon-settings-appstorage" href="#applicationStorage">
+              <span data-l10n-id="appStorage">Application Storage</span>
+              <small class="application-storage-desc menu-item-desc"></small>
             </a>
           </li>
         </ul>
@@ -608,8 +627,8 @@
       <form role="dialog" data-type="confirm" class="turn-on-ums-dialog" hidden>
         <section>
           <h1 data-l10n-id="ums-warning-title">Enable USB storage?</h1>
-          <p data-l10n-id="turn-on-ums-confirm">
-            Turning on Enable USB storage allows another computer or device connected using USB to access files on this phone.
+          <p data-l10n-id="ums-confirm">
+            Enabling USB storage allows another computer or device connected using USB to access files on this phone.
           </p>
         </section>
         <menu>

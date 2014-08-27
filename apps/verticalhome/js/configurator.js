@@ -119,8 +119,12 @@
 
     function loadSVConfFileError(e) {
       singleVariantApps = {};
-      console.error('Failed parsing singleVariant configuration file [' +
-                    SINGLE_VARIANT_CONF_FILE + ']: ', e);
+      if (e.name === 'NS_ERROR_FILE_NOT_FOUND') {
+        console.log('No single variant configuration file found');
+      } else {
+        console.error('Failed parsing singleVariant configuration file [' +
+                      SINGLE_VARIANT_CONF_FILE + ']: ', e);
+      }
       dispatchSVReadyEvent();
     }
 
@@ -215,6 +219,20 @@
 
     getGrid: function() {
       return conf.grid;
+    },
+
+    getItems: function(role) {
+      var items = {};
+
+      conf.grid.forEach(function forEachSection(section) {
+        section.forEach(function forEachItem(item) {
+          if (item.role === role) {
+            items[item.id] = item;
+          }
+        });
+      });
+
+      return items;
     },
 
     getSingleVariantApp: function(manifestURL) {

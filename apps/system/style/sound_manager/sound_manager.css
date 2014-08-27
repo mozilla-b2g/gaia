@@ -127,7 +127,8 @@
 }
 
 #volume[data-channel="notification"].mute span.channel-type {
-  background-image: url('images/ringer-notifications_silent.png');
+  /* Use the same image as the content channel to sync with the status bar */
+  background-image: url('images/media_silent.png');
 }
 
 #volume[data-channel="notification"].mute.vibration span.channel-type {

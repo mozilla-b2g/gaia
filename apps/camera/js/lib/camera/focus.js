@@ -30,7 +30,6 @@ Focus.prototype.configure = function(mozCamera, focusMode) {
   var focusModes = mozCamera.capabilities.focusModes;
   this.mozCamera = mozCamera;
   this.configureFocusModes();
-
   // User preferences override defaults
   if (focusMode === 'continuous-picture' ||
       focusMode === 'continuous-video') {
@@ -48,25 +47,13 @@ Focus.prototype.configure = function(mozCamera, focusMode) {
     focusMode = focusModes[0];
   }
 
-  this.setMode(focusMode);
+  mozCamera.focusMode = focusMode;
 
 };
 
 Focus.prototype.getMode = function() {
-  return this.mode;
-};
-
-Focus.prototype.setMode = function(mode) {
   var mozCamera = this.mozCamera;
-  this.previousMode = this.mode;
-  mozCamera.focusMode = this.mode = mode;
-  this.reset();
-  return mode;
-};
-
-Focus.prototype.restoreMode = function() {
-  var mode = this.setMode(this.previousMode);
-  return mode;
+  return this.suspendedMode || mozCamera.focusMode;
 };
 
 /**
@@ -134,12 +121,15 @@ Focus.prototype.stopContinuousFocus = function() {
   // Clear suspension timers
   clearTimeout(this.continuousModeTimer);
   if (focusMode === 'continuous-picture' || focusMode === 'continuous-video') {
-    this.setMode('auto');
+    this.suspendedMode = this.mozCamera.focusMode;
+    this.mozCamera.focusMode = 'auto';
   }
 };
 
 Focus.prototype.resumeContinuousFocus = function() {
-  this.restoreMode();
+  this.mozCamera.focusMode = this.suspendedMode;
+  this.suspendedMode = null;
+  this.resetFocusAreas();
   this.mozCamera.resumeContinuousFocus();
 };
 
@@ -176,67 +166,14 @@ Focus.prototype.onFacesDetected = function(faces) {
   // NO OP by default
 };
 
-Focus.prototype.facesAlreadyDetected = function(faces) {
-  return faces.length === this.detectedFaces.length;
-};
-
-/**
- * It filters out the faces that have low likelihood of being a face
- * mozCamera API provides a faceScore for each face (0-100)
- * It also sorts the faces by area on the screen (largest is first)
- */
-Focus.prototype.filterAndSortDetectedFaces = function(faces) {
-  var maxArea = -1;
-  var minFaceScore = 60;
-  var area;
-  var detectedFaces = [];
-
-  faces.forEach(function(face, index) {
-    if (face.score < minFaceScore) {
-      return;
-    }
-    area = face.bounds.width * face.bounds.height;
-    if (area > maxArea) {
-      maxArea = area;
-      detectedFaces.unshift(face);
-    } else {
-      detectedFaces.push(face);
-    }
-  });
-
-  return detectedFaces;
-};
-
 Focus.prototype.focusOnLargestFace = function(faces) {
-  var self = this;
-  var detectedFaces = this.filterAndSortDetectedFaces(faces);
-  var facesAlreadyDetected = this.facesAlreadyDetected(detectedFaces);
-
-  // It touch to focus is not available we cannot focus on the face area
-  if (!this.touchFocus) {
-    return;
-  }
-
-  if (this.faceDetectionSuspended || detectedFaces.length === 0) {
+  if (this.faceDetectionSuspended) {
     this.onFacesDetected([]);
     return;
   }
 
-  if (!facesAlreadyDetected) {
-    this.detectedFaces = detectedFaces;
-    if (!this.faceFocused) {
-      // First face in the array is the one we focus on (largest area on image)
-      this.updateFocusArea(detectedFaces[0].bounds, focusDone);
-    }
-  }
-  this.onFacesDetected(detectedFaces);
-
-  function focusDone(error) {
-    self.faceFocused = true;
-    self.suspendContinuousFocus(4000);
-    self.suspendFaceDetection(2000);
-  }
-
+  this.detectedFaces = faces;
+  this.onFacesDetected(this.detectedFaces);
 };
 
 /**
@@ -290,7 +227,7 @@ Focus.prototype.focus = function(done) {
 /**
  * Resets focus regions
  */
-Focus.prototype.reset = function() {
+Focus.prototype.resetFocusAreas = function() {
   if (!this.touchFocus) {
     return;
   }

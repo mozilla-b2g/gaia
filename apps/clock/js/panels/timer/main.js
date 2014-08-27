@@ -5,7 +5,6 @@ var Panel = require('panel');
 var Picker = require('picker/picker');
 var View = require('view');
 
-var mozL10n = require('l10n');
 var Utils = require('utils');
 var Timer = require('timer');
 var Sounds = require('sounds');
@@ -82,8 +81,6 @@ Timer.Panel = function(element) {
 
     element.addEventListener('click', this.onclick.bind(this), false);
   }, this);
-
-  mozL10n.translate(this.element);
 
   var sound = this.nodes.sound;
 

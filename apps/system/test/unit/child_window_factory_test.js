@@ -87,6 +87,12 @@ suite('system/ChildWindowFactory', function() {
     manifest: {}
   };
 
+  var fakeOpenAppDetail = {
+    url: 'http://fake.com/index.html',
+    name: 'http://fake.com/manifest.webapp',
+    isApp: true
+  };
+
   test('Should only open inner sheet in setting enabled', function() {
     MockSettingsListener.mCallbacks['in-app-sheet.enabled'](false);
     var spyAppWindow = this.sinon.spy(window, 'AppWindow');
@@ -256,6 +262,24 @@ suite('system/ChildWindowFactory', function() {
     assert.isTrue(spy.calledWithNew());
     assert.deepEqual(spy.getCall(0).args[0], fakeActivityDetail);
     assert.deepEqual(spy.getCall(0).args[1], app1);
+  });
+
+  test('isApp support', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    new ChildWindowFactory(app1);
+    var spy = this.sinon.spy(app1, 'publish');
+    var event = new CustomEvent('mozbrowseropenwindow', {
+      detail: fakeOpenAppDetail
+    });
+    var eventSpy = this.sinon.spy(event, 'stopPropagation');
+    app1.element.dispatchEvent(event);
+    assert.isTrue(spy.called);
+    assert.deepEqual(spy.getCall(0).args[0], 'openwindow');
+    assert.deepEqual(spy.getCall(0).args[1],
+      { manifestURL: fakeOpenAppDetail.name,
+        url: fakeOpenAppDetail.url,
+        timestamp: 0 });
+    assert.isTrue(eventSpy.called);
   });
 
   test('No new ActivityWindow instance if the top window has same config',

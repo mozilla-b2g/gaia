@@ -20,10 +20,9 @@ function hasNumbers(t) {
 module.exports = MediaStoragePanel;
 
 MediaStoragePanel.Selectors = {
-  'formatSdcardButton': '#mediaStorage button[data-l10n-id="format-sdcard"]',
+  'formatSdcardButton':
+    '#mediaStorage button[data-l10n-id="format-sdcard-external-0"]',
   'formatSdcardDialog': '#format-sdcard-dialog',
-  'sharingUSBCheckbox': '#mediaStorage input[name="ums.volume..enabled"]',
-  'sharingUSBLabel': '#mediaStorage label.pack-switch',
   'mediaLocationSelector':
     '#mediaStorage select[name="device.storage.writable.name"]',
   'musicSpace': 'a[data-l10n-id="music-space"]>span',
@@ -44,15 +43,6 @@ MediaStoragePanel.prototype = {
   get isFormatSdcardDialogShowed() {
     return this.findElement('formatSdcardDialog')
       .getAttribute('hidden');
-  },
-
-  get isSharingUSBEnabled() {
-    return this.findElement('sharingUSBCheckbox')
-      .getAttribute('checked');
-  },
-
-  tapOnSharingUSB: function() {
-    this.waitForElement('sharingUSBLabel').tap();
   },
 
   get isMediaLocationSelectorEnabled() {

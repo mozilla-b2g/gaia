@@ -146,13 +146,13 @@
                   this.curJamo.push(jamo);
                   return this.changed();
                 } else {
-                  if (CHO_SEONG_MAP.hasOwnProperty(jamo)) {
-                    this.reset();
-                    return this.add(keyCode);
-                  } else if (JUNG_SEONG_MAP.hasOwnProperty(jamo)) {
+                  if (JUNG_SEONG_MAP.hasOwnProperty(jamo)) {
                     this.jungSeong.push(jamo);
                     this.curJamo = this.jungSeong;
                     return this.changed();
+                  } else {
+                    this.reset();
+                    return this.add(keyCode);
                   }
                 }
                 break;
@@ -161,10 +161,14 @@
                   this.curJamo.push(jamo);
                   return this.changed();
                 } else {
-                  if (JONG_SEONG_MAP.hasOwnProperty(jamo)) {
+                  if (this.choSeong.length > 0 &&
+                        JONG_SEONG_MAP.hasOwnProperty(jamo)) {
                     this.jongSeong.push(jamo);
                     this.curJamo = this.jongSeong;
                     return this.changed();
+                  } else {
+                    this.reset();
+                    return this.add(keyCode);
                   }
                 }
                 break;

@@ -257,6 +257,15 @@ console.log('FETCHED', i, 'known id', self.knownHeaders[i].id,
 console.warn('  FLAGS: "' + header.flags.toString() + '" VS "' +
 
          msg.flags.toString() + '"');
+
+          // Update number of unread messages
+          if (header.flags.indexOf('\\Seen') === -1 &&
+            msg.flags.indexOf('\\Seen') !== -1) {
+            self.storage.folderMeta.unreadCount--;
+          } else if (header.flags.indexOf('\\Seen') !== -1 &&
+            msg.flags.indexOf('\\Seen') === -1) {
+            self.storage.folderMeta.unreadCount++;
+          }
           header.flags = msg.flags;
           self.storage.updateMessageHeader(header.date, header.id, true,
                                            header, /* body hint */ null);

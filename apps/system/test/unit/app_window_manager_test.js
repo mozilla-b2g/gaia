@@ -1,6 +1,7 @@
 /* global AppWindowManager, AppWindow, homescreenLauncher,
           MockAttentionScreen, HomescreenWindow, MocksHelper,
-          MockSettingsListener, System, HomescreenLauncher */
+          MockSettingsListener, System, HomescreenLauncher,
+          MockRocketbar, rocketbar */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -17,6 +18,7 @@ requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_nfc_handler.js');
+requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/js/system.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
@@ -31,7 +33,7 @@ var mocksForAppWindowManager = new MocksHelper([
 suite('system/AppWindowManager', function() {
   mocksForAppWindowManager.attachTestHelpers();
   var stubById;
-  var app1, app2, app3, app4, app5, app6, app7, home;
+  var app1, app2, app3, app4, app5, app6, app7, browser1, home;
 
   var screenElement = document.createElement('div');
 
@@ -45,6 +47,7 @@ suite('system/AppWindowManager', function() {
     });
 
     window.layoutManager = new window.LayoutManager();
+    window.mediaRecording = { isRecording: false };
 
     home = new HomescreenWindow('fakeHome');
     window.homescreenLauncher = new HomescreenLauncher();
@@ -55,6 +58,8 @@ suite('system/AppWindowManager', function() {
       mReady: true
     });
 
+    window.rocketbar = new MockRocketbar();
+
     app1 = new AppWindow(fakeAppConfig1);
     app2 = new AppWindow(fakeAppConfig2);
     app3 = new AppWindow(fakeAppConfig3);
@@ -62,6 +67,7 @@ suite('system/AppWindowManager', function() {
     app5 = new AppWindow(fakeAppConfig5Background);
     app6 = new AppWindow(fakeAppConfig6Browser);
     app7 = new AppWindow(fakeAppConfig7Activity);
+    browser1 = new AppWindow(fakeBrowserConfig);
 
     requireApp('system/js/app_window_manager.js', function() {
       window.AppWindowManager.init();
@@ -72,6 +78,8 @@ suite('system/AppWindowManager', function() {
   teardown(function() {
     AppWindowManager.uninit();
     delete window.layoutManager;
+    delete window.mediaRecording;
+
     // MockHelper won't invoke mTeardown() for us
     // since MockHomescreenLauncher is instantiable now
     window.homescreenLauncher.mTeardown();
@@ -140,6 +148,12 @@ suite('system/AppWindowManager', function() {
     origin: 'app://www.fake7',
     isActivity: true,
     parentApp: ''
+  };
+
+  var fakeBrowserConfig = {
+    url: 'http://mozilla.org/index.html',
+    manifest: {},
+    origin: 'http://mozilla.org'
   };
 
   function injectRunningApps() {
@@ -465,6 +479,48 @@ suite('system/AppWindowManager', function() {
       window.MozActivity = originalActivity;
     });
 
+    test('Show top window than fire notification event when the request comes',
+    function() {
+      injectRunningApps(app1);
+      AppWindowManager._activeApp = app1;
+      MockAttentionScreen.mFullyVisible = false;
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent'),
+          stubInitCustomEvent =
+          function(type, flag1, flag2, content) {
+            // Assume the API event would be fired.
+            assert.equal('mozContentNotificationEvent', type);
+            assert.equal(true, flag1);
+            assert.equal(true, flag2);
+            assert.equal('desktop-notification-click', content.type);
+            assert.equal('foobar', content.id);
+          },
+          stubCustomEvent = this.sinon.stub(window, 'CustomEvent',
+          function(type, content) {
+            // Assume the custome event would be fired.
+            assert.equal('notification-clicked', type);
+            assert.equal('foobar', content.detail.id);
+          }),
+          stubCreateEvent = this.sinon.stub(document, 'createEvent',
+          function() {
+            return {
+              initCustomEvent: stubInitCustomEvent
+            };
+          });
+      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+
+      AppWindowManager.handleEvent({
+        type: 'showwindow',
+        detail: {
+          notificationId: 'foobar'
+        }
+      });
+
+      assert.isTrue(stubSetVisible.calledWith(true));
+      stubDispatchEvent.restore();  // For linter.
+      stubCreateEvent.restore();
+      stubCustomEvent.restore();
+    });
+
     test('Hide top window', function() {
       injectRunningApps(app1);
       AppWindowManager._activeApp = app1;
@@ -569,7 +625,11 @@ suite('system/AppWindowManager', function() {
       injectRunningApps(app1, app2);
       AppWindowManager._activeApp = app1;
       var stubSwitchApp = this.sinon.stub(AppWindowManager, 'switchApp');
+      var spySendStopRecording = this.sinon.spy(AppWindowManager,
+                                                'sendStopRecordingRequest');
+
       AppWindowManager.display(app2);
+      assert.isTrue(spySendStopRecording.calledOnce);
       assert.isTrue(stubSwitchApp.called);
       assert.deepEqual(stubSwitchApp.getCall(0).args[0], app1);
       assert.deepEqual(stubSwitchApp.getCall(0).args[1], app2);
@@ -584,6 +644,19 @@ suite('system/AppWindowManager', function() {
       AppWindowManager.display(app2);
 
       assert.deepEqual(AppWindowManager._activeApp, app2);
+    });
+
+    test('Ensuring the rocketbar transition', function() {
+      injectRunningApps(home, app1, app2);
+      AppWindowManager._activeApp = home;
+      AppWindowManager.display(app1);
+
+      rocketbar.active = true;
+      this.sinon.spy(AppWindowManager, 'switchApp');
+      AppWindowManager.display(app2);
+      sinon.assert.notCalled(AppWindowManager.switchApp);
+      window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
+      sinon.assert.calledOnce(AppWindowManager.switchApp);
     });
   });
 
@@ -797,5 +870,18 @@ suite('system/AppWindowManager', function() {
     injectRunningApps(app1, app2, app3, app4);
     assert.deepEqual(AppWindowManager.getApp('app://www.fake2'), app2);
     assert.isNull(AppWindowManager.getApp('app://no-this-origin'));
+  });
+
+  test('new browser window for getApp', function() {
+    injectRunningApps(app5);
+    var newApp1 = AppWindowManager.getApp(fakeAppConfig5Background.origin);
+    assert.deepEqual(newApp1.config, fakeAppConfig5Background);
+
+    var newApp2 = AppWindowManager.getApp(fakeBrowserConfig.origin);
+    assert.deepEqual(newApp2, null);
+
+    injectRunningApps(browser1);
+    newApp2 = AppWindowManager.getApp(fakeBrowserConfig.origin);
+    assert.deepEqual(newApp2.config, fakeBrowserConfig);
   });
 });

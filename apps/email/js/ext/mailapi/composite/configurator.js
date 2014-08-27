@@ -239,11 +239,76 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 
 }); // end define
 ;
+define('mailapi/db/folder_info_rep',['require'],function(require) {
+
+
+
+/**
+ *
+ * @typedef {Object} FolderMeta
+ *
+ * @property {string} id - ID assigned to the folder by the backend.
+ *
+ * @property {string} serverId - Optional. For ActiveSync folders, the
+ * server-issued id for the folder that we use to reference the folder.
+ *
+ * @property {string} name - The human-readable name of the folder with all utf-7
+ * decoding/etc performed. This is intended to be shown to the user,
+ * the path should not be. Folder names should be considered
+ * private/personal data and if logged should be marked to be
+ * sanitized unless the user has explicitly enabled super-verbose
+ * privacy-entraining logs.
+ *
+ * @property {string} type - The type of the folder, i.e. 'inbox' or 'drafts'.
+ * Refer to mailapi.js for a list of acceptable values.
+ *
+ * @property {string} path - The fully qualified path of the folder.
+ * For IMAP servers, this is the raw path including utf-7 encoded parts.
+ * For ActiveSync and POP3 this is just for super-verbose private-data-entraining
+ * debugging and testing.
+ * This should be considered private/personal data like the folder name.
+ *
+ * @property {number} depth - The depth of the folder in the folder tree.
+ * This is useful since the folders are stored as a flattened list, so
+ * attempts to display the folder hierarchy would otherwise have to compute
+ * this themsevles.
+ *
+ * @property {DateMS} lastSyncedAt - The last time the folder was synced.
+ *
+ * @property {number} unreadCount - The total number of locally stored unread
+ * messages in the folder.
+ *
+ * @property {string} syncKey - ActiveSync-only per-folder synchronization key.
+ */
+
+
+function makeFolderMeta(raw) {
+  return {
+    id: raw.id || null,
+    serverId: raw.serverId || null,
+    name: raw.name || null,
+    type: raw.type || null,
+    path: raw.path || null,
+    parentId: raw.parentId || null,
+    depth: raw.depth || 0,
+    lastSyncedAt: raw.lastSyncedAt || 0,
+    unreadCount: raw.unreadCount || 0,
+    syncKey: raw.syncKey || null,
+    version: raw.version || null
+  }
+};
+
+return {
+	makeFolderMeta: makeFolderMeta
+}
+
+}); // end define
+;
 define('mailapi/composite/incoming',[
   'rdcommon/log', '../a64', '../accountmixins', '../mailslice',
-  '../searchfilter', '../util', 'require', 'exports'],
+  '../searchfilter', '../util', '../db/folder_info_rep', 'require', 'exports'],
   function(log, $a64, $acctmixins, $mailslice,
-  $searchfilter, $util, require, exports) {
+  $searchfilter, $util, $folder_info, require, exports) {
 
 var bsearchForInsert = $util.bsearchForInsert;
 
@@ -392,7 +457,7 @@ CompositeIncomingAccount.prototype = {
                               suppressNotification) {
     var folderId = this.id + '/' + $a64.encodeInt(this.meta.nextFolderNum++);
     var folderInfo = this._folderInfos[folderId] = {
-      $meta: {
+      $meta: $folder_info.makeFolderMeta({
         id: folderId,
         name: name,
         type: type,
@@ -400,8 +465,9 @@ CompositeIncomingAccount.prototype = {
         parentId: parentId,
         delim: delim,
         depth: depth,
-        lastSyncedAt: 0
-      },
+        lastSyncedAt: 0,
+        version: $mailslice.FOLDER_DB_VERSION
+      }),
       $impl: {
         nextId: 0,
         nextHeaderBlock: 0,
@@ -2470,6 +2536,11 @@ ImapJobDriver.prototype = {
   local_undo_download: $jobmixins.local_undo_download,
 
   undo_download: $jobmixins.undo_download,
+
+  //////////////////////////////////////////////////////////////////////////////
+  // upgrade: perfom necessary upgrades when the db version changes
+
+  local_do_upgradeDB: $jobmixins.local_do_upgradeDB,
 
   //////////////////////////////////////////////////////////////////////////////
   // modtags: Modify tags on messages
@@ -8291,9 +8362,10 @@ Pop3FolderSyncer.prototype = {
     var latch = allback.latch();
     var saveNeeded = false;
     if (meta._TEST_pendingHeaderDeletes) {
-      meta._TEST_pendingHeaderDeletes.forEach(function(header) {
+      meta._TEST_pendingHeaderDeletes.forEach(function(namer) {
         saveNeeded = true;
-        this.storage.deleteMessageHeaderUsingHeader(header, latch.defer());
+        this.storage.deleteMessageHeaderAndBody(namer.suid, namer.date,
+                                                latch.defer());
       }, this);
       meta._TEST_pendingHeaderDeletes = null;
     }
@@ -8739,12 +8811,15 @@ Pop3JobDriver.prototype = {
   do_downloadBodyReps: jobmixins.do_downloadBodyReps,
   local_do_downloadBodyReps: jobmixins.local_do_downloadBodyReps,
 
+
   local_do_sendOutboxMessages: jobmixins.local_do_sendOutboxMessages,
   do_sendOutboxMessages: jobmixins.do_sendOutboxMessages,
   check_sendOutboxMessages: jobmixins.check_sendOutboxMessages,
   local_undo_sendOutboxMessages: jobmixins.local_undo_sendOutboxMessages,
   undo_sendOutboxMessages: jobmixins.undo_sendOutboxMessages,
   local_do_setOutboxSyncEnabled: jobmixins.local_do_setOutboxSyncEnabled,
+
+  local_do_upgradeDB: jobmixins.local_do_upgradeDB,
 
   // These utility functions are necessary.
   postJobCleanup: jobmixins.postJobCleanup,
@@ -9706,6 +9781,13 @@ CompositeAccount.prototype = {
   },
 
   getFirstFolderWithType: $acctmixins.getFirstFolderWithType,
+
+  upgradeFolderStoragesIfNeeded: function() {
+    for (var key in this._receivePiece._folderStorages) {
+      var storage = this._receivePiece._folderStorages[key];
+      storage.upgradeIfNeeded();
+    }
+  }
 };
 
 }); // end define
