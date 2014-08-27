@@ -1,8 +1,8 @@
 /**
  * For testing:
  *  1. Set as many ICE contacts as you wish uncommenting the desired option in
- *     lines 170 to 177.
- *  2. Uncomment line 220.
+ *     lines 186 to 193.
+ *  2. Uncomment line 236.
  *  3. Update the emergency-call app in yor device executing:
  *     |APP=emergency-call make install-gaia|
  *  4. Set a screen lock passcode using the Settings app.
@@ -19,15 +19,17 @@
  *  4. Remove the |jshint unused: false| directive.
  *  4. Remove the helper function createICEContacts().
  *  5. Remove the usage of createICEContacts() in updateICEContacts(), this is
- *      remove lines 170 to 177 and 220.
+ *      remove lines 186 to 193 and 236.
  */
 
-/* globals CallHandler, ICEStore, LazyLoader, mozContact, Utils */
+/* globals CallHandler, ICEStore, LazyLoader, mozContact */
 /*jshint unused: false*/
 'use strict';
 
 (function(exports) {
-  var initiated = false,
+  var l10n = navigator.mozL10n,
+      initiated = false,
+      iceContactsDetails = [],
       contactsToProcess = 0,
       processedContacts = 0,
       iceContactsBar = document.getElementById('ice-contacts-bar'),
@@ -44,9 +46,9 @@
     LazyLoader.load([contactListOverlay], function() {
       var contactListOverlayHeader = contactListOverlay.querySelector('header');
 
-      navigator.mozL10n.ready(function() {
+      l10n.ready(function() {
         contactListOverlayHeader.textContent =
-          navigator.mozL10n.get('ice-contacts-overlay-title');
+          l10n.get('ice-contacts-overlay-title');
       });
 
       contactList = document.getElementById('contact-list');
@@ -78,19 +80,19 @@
 
   function callICEContact(number) {
     hideICEContactOverlay();
-    CallHandler.call(number, true);
+    CallHandler.call(number);
   }
 
   function addContactToOverlay(contact, resolve) {
     contact.tel.forEach(function (tel) {
-      navigator.mozL10n.ready(function() {
+      l10n.ready(function() {
         var iceContactOverlayEntry = contactInOverlay.cloneNode(true);
         iceContactOverlayEntry.removeAttribute('id');
         iceContactOverlayEntry.removeAttribute('hidden');
         iceContactOverlayEntry.querySelector('.js-name').textContent =
           contact.name[0];
         iceContactOverlayEntry.querySelector('.js-tel-type').textContent =
-          navigator.mozL10n.get(tel.type[0]);
+          l10n.get(tel.type[0]);
         iceContactOverlayEntry.querySelector('.js-tel').textContent =
             tel.value;
         contactList.insertBefore(iceContactOverlayEntry, contactListCancel);
@@ -222,6 +224,7 @@
                     }
                     return;
                   }
+                  iceContactsDetails.push(this.result[0]);
                   addContactToOverlay(this.result[0], resolve);
                 };
               });
@@ -233,8 +236,22 @@
     // });
   }
 
+  /**
+   * Preliminary version of this function which checks if a telephone number
+   *  belongs to an ICE contact. A more advanced version of which should
+   *  probably consider phone number variants.
+   */
+  function isFromICEContact(number) {
+    return iceContactsDetails.some(function(iceContact) {
+      return iceContact.tel.some(function(tel) {
+        return number == tel.value;
+      });
+    });
+  }
+
   var ICEContacts = {
-    updateICEContacts: updateICEContacts
+    updateICEContacts: updateICEContacts,
+    isFromICEContact: isFromICEContact
   };
 
   exports.ICEContacts = ICEContacts;
