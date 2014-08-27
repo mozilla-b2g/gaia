@@ -21,6 +21,22 @@
   color: #fff;
 }
 
+@media not all and (-moz-physical-home-button) {
+  @media (orientation: portrait) {
+    form[role="dialog"][data-type="action"] {
+      right: 0;
+      bottom: 5rem;
+    }
+  }
+  @media (orientation: landscape) {
+
+    form[role="dialog"][data-type="action"] {
+      right: 5rem;
+      bottom: 0;
+    }
+  }
+}
+
 [role="dialog"][data-type="action"]:before {
   content: '';
   display: inline-block;
@@ -260,6 +276,21 @@
   border: none;
   margin-bottom: 1.5rem;
   border-radius: 2rem;
+}
+
+@media not all and (-moz-physical-home-button) {
+  @media (orientation: portrait) {
+    [role="dialog"][data-type="action"] > menu > button:last-child {
+      right: 0;
+      bottom: 5rem;
+    }
+  }
+  @media (orientation: landscape) {
+    [role="dialog"][data-type="action"] > menu > button:last-child {
+      right: 5rem; /* TODO: 'right' property is not being applied here */
+      bottom: 0;
+    }
+  }
 }
 
 [role="dialog"][data-type="action"] > menu > button:last-child:before {

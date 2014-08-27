@@ -66,6 +66,22 @@ form[role="dialog"][data-type="confirm"] menu {
   bottom: 0;
 }
 
+@media not all and (-moz-physical-home-button) {
+  @media (orientation: portrait) {
+    form[role="dialog"][data-type="confirm"] menu {
+      left: 0;
+      bottom: 5rem;
+    }
+  }
+  @media (orientation: landscape) {
+    form[role="dialog"][data-type="confirm"] menu {
+      right: 5rem;
+      bottom: 0;
+    }
+  }
+}
+
+
 form[role="dialog"][data-type="confirm"] menu button::-moz-focus-inner {
   border: none;
   outline: none;

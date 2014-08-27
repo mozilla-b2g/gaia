@@ -113,6 +113,21 @@ span.line-break {
   font-size: 2.1rem;
 }
 
+@media not all and (-moz-physical-home-button) {
+  @media (orientation: portrait) {
+    #thumbnail-list-view, #thumbnail-select-view, #player-view {
+      height: calc(100% - 5rem);
+      width: 100%;
+    }
+  }
+  @media (orientation: landscape) {
+    #thumbnail-list-view, #thumbnail-select-view, #player-view {
+      height: 100%;
+      width: calc(100% - 5rem);
+    }
+  }
+}
+
 /*
  * Thumbnails are implemented as <li> elements in a <ul> with background-image
  * set to display the image. We use background-size: cover to automatically

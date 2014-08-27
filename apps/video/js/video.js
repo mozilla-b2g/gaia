@@ -774,6 +774,19 @@ function showOverlay(id) {
 }
 
 function setControlsVisibility(visible) {
+
+  // On phone with a software home button
+  if (isPhone && !ScreenLayout.getCurrentLayout('hardwareHomeButton')) {
+    if (visible) {
+      // When showing the controls, show the software home button.
+      document.mozCancelFullScreen();
+    }
+    else {
+      // When hiding the controls, hide the software home button.
+      dom.player.mozRequestFullScreen();
+    }
+  }
+
   // in tablet landscape mode, we always shows controls in list layout. We
   // don't need to hide it.
   if (isPhone || isPortrait ||

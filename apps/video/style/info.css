@@ -39,3 +39,18 @@
   /* no separator after the last item in the list */
   border-bottom: none;
 }
+
+@media not all and (-moz-physical-home-button) {
+  @media (orientation: portrait) {
+    #info-view > menu button {
+      right: 0;
+      bottom: 5rem;
+    }
+  }
+  @media (orientation: landscape) {
+    #info-view > menu button {
+      right: 5rem;
+      bottom: 0;
+    }
+  }
+}
