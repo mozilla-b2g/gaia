@@ -186,8 +186,8 @@ function execute(options) {
   }).then(function() {
     if (buildAppName === '*') {
       return sh.run(['-c', adb + ' push ' +
-        '"shared/style/keyboard_symbols/Keyboard-Symbols.woff" ' +
-        '//system/fonts/hidden/Keyboard-Symbols.woff']);
+        '"shared/style/keyboard_symbols/Keyboard-Symbols.ttf" ' +
+        '//system/fonts/hidden/Keyboard-Symbols.ttf']);
     }
   }).then(function() {
     if (buildAppName === '*' || restartB2g) {
