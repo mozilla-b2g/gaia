@@ -47,6 +47,11 @@ Focus.prototype.configure = function(mozCamera, focusMode) {
     focusMode = focusModes[0];
   }
 
+  // If touch-to-focus is in progress we need to ensure
+  // the correct mode is restored when it is complete
+  if (this.suspendedMode) {
+    this.suspendedMode = focusMode;
+  }
   mozCamera.focusMode = focusMode;
 
 };
@@ -143,10 +148,16 @@ Focus.prototype.onAutoFocusMoving = function(moving) {
   var self = this;
   if (moving) {
     this.onAutoFocusChanged('focusing');
-    this.mozCamera.autoFocus(onFocused);
+    this.mozCamera.autoFocus(onSuccess, onError);
     return;
   }
-  function onFocused(state) {
+  function onError(err) {
+    if (err !== 'AutoFocusInterrupted') {
+      self.onAutoFocusChanged('error');
+      self.mozCamera.resumeContinuousFocus();
+    }
+  }
+  function onSuccess(state) {
     state = state ? 'focused' : 'fail';
     self.onAutoFocusChanged(state);
     self.mozCamera.resumeContinuousFocus();
@@ -208,12 +219,25 @@ Focus.prototype.focus = function(done) {
   // then call the done callback, which takes the picture and clears
   // the focus ring.
   //
-  this.mozCamera.autoFocus(onFocused);
+  this.mozCamera.autoFocus(onSuccess, onError);
+
+  // If focus fails with an error, we still need to signal the
+  // caller. Interruptions are a special case, but other errors
+  // can be treated the same as completing the operation but
+  // remaining unfocused.
+  function onError(err) {
+    self.focused = false;
+    if (err === 'AutoFocusInterrupted') {
+      done('interrupted');
+    } else {
+      done('error');
+    }
+  }
 
   // This is fixed focus: there is nothing we can do here so we
   // should just call the callback and take the photo. No focus
   // happens so we don't display a focus ring.
-  function onFocused(success) {
+  function onSuccess(success) {
     if (success) {
       self.focused = true;
       done('focused');
@@ -269,7 +293,6 @@ Focus.prototype.isFaceDetectionSupported = function() {
 };
 
 Focus.prototype.updateFocusArea = function(rect, done) {
-  var previousFlashMode = this.mozCamera.flashMode;
   done = done || function() {};
   var self = this;
   if (!this.touchFocus) {
@@ -280,16 +303,8 @@ Focus.prototype.updateFocusArea = function(rect, done) {
   this.stopFaceDetection();
   this.mozCamera.setFocusAreas([rect]);
   this.mozCamera.setMeteringAreas([rect]);
-  // Disables flash temporarily so it doesn't go off while focusing
-  this.mozCamera.flashMode = 'off';
   // Call auto focus to focus on focus area.
-  this.focus(focusDone);
-  function focusDone(state) {
-    // Restores previous flash mode
-    self.mozCamera.flashMode = previousFlashMode;
-    done(state);
-  }
-
+  this.focus(done);
 };
 
 });
