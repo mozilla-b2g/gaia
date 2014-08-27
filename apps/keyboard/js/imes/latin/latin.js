@@ -187,6 +187,12 @@
     inputMode = getInputMode(state.type, state.inputmode);
     inputText = state.value;
     cursor = state.selectionStart;
+
+    // Bug in Dolphin 1.4, selectionstart not updated when clearing out
+    // contenteditable (bug 1059163)
+    if (cursor > inputText.length)
+      cursor = 0;
+
     if (state.selectionEnd > state.selectionStart)
       selection = state.selectionEnd;
     else
