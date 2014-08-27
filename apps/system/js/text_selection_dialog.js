@@ -134,6 +134,7 @@
   TextSelectionDialog.prototype.pasteHandler =
     function tsd_pasteHandler(evt) {
       this._doCommand(evt, 'paste');
+      this._hasCutOrCopied = false;
       window.clearTimeout(this._resetCutOrCopiedTimeout);
   };
 

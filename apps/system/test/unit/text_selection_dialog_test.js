@@ -146,6 +146,7 @@ suite('system/TextSelectionDialog', function() {
     var stubClearTimeout = this.sinon.stub(window, 'clearTimeout');
     td._resetCutOrCopiedTimeout = 'testtimer';
     td.pasteHandler(null);
+    assert.isFalse(td._hasCutOrCopied);
     assert.isTrue(stubDoCommand.calledWith(null, 'paste'));
     assert.isTrue(stubClearTimeout.calledWith(td._resetCutOrCopiedTimeout));
   });
