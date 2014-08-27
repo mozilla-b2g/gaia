@@ -66,10 +66,6 @@
     iceContactsBar.removeAttribute('hidden');
   }
 
-  function hideICEContactsBar() {
-    iceContactsBar.setAttribute('hidden', '');
-  }
-
   function showICEContactOverlay() {
     contactListOverlay.classList.add('display');
   }
@@ -198,7 +194,6 @@
           init();
           ICEStore.getContacts().then(function (iceContacts) {
             if (!iceContacts || !iceContacts.length) {
-              hideICEContactsBar();
               resolve();
             } else {
               contactsToProcess = iceContacts.length;
@@ -213,12 +208,6 @@
                 contactRequest.onsuccess = function () {
                   var contact = this.result[0];
                   if (!contact || !contact.tel || contact.tel.length === 0) {
-                    if (contactList.children.length === 1) {
-                      // Hide the ICE contacts bar in case the contact has no
-                      //  associated telephone numbers and there is no entry in
-                      //  the ICE contacts overlay yet.
-                      hideICEContactsBar();
-                    }
                     if (updateCompleted()) {
                       resolve();
                     }
