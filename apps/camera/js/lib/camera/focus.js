@@ -47,6 +47,11 @@ Focus.prototype.configure = function(mozCamera, focusMode) {
     focusMode = focusModes[0];
   }
 
+  // If touch-to-focus is in progress we need to ensure
+  // the correct mode is restored when it is complete
+  if (this.suspendedMode) {
+    this.suspendedMode = focusMode;
+  }
   mozCamera.focusMode = focusMode;
 
 };
