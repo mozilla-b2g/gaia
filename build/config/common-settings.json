@@ -67,6 +67,7 @@
    "gaia.ui.windowtext": "#000000",
    "gaia.ui.highlight": "#b2f2ff",
    "geolocation.debugging.enabled": false,
+   "geolocation.debugging.gps-locations-ignored": false,
    "geolocation.enabled": true,
    "geolocation.suspended": false,
    "hud.logging": true,
