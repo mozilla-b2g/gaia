@@ -1,8 +1,13 @@
 'use strict';
 
-/* global CallLogDBManager, LazyL10n, LazyLoader, Utils */
+/* global CallLogDBManager, LazyL10n, LazyLoader, MozActivity, Utils */
 
 (function(exports) {
+  var currentGroup;
+  var detailsButton;
+  var addToContactButton;
+  var createContactButton;
+
   function updateGroupInformation(group) {
     var title = document.getElementById('call-info-title');
     if (group.contact) {
@@ -67,8 +72,64 @@
     });
   }
 
+  function updateActionButtons(group) {
+    detailsButton.hidden = true;
+    addToContactButton.hidden = true;
+    createContactButton.hidden = true;
+
+    if (group.contact) {
+      detailsButton.hidden = false;
+    } else {
+      addToContactButton.hidden = false;
+      createContactButton.hidden = false;
+    }
+  }
+
   function close() {
     document.getElementById('call-info-view').hidden = true;
+  }
+
+  function viewContact() {
+    window.location.hash = '#contacts-view';
+    setTimeout(function nextTick() { /* we'll have the iframe by then */
+      var contactsIframe = document.getElementById('iframe-contacts');
+      var src = '/contacts/index.html';
+      src += '#view-contact-details?id=' + currentGroup.contact.id;
+      src += '&tel=' + currentGroup.number;
+      // Enable the function of receiving the messages posted from the iframe.
+      src += '&back_to_previous_tab=1';
+      // Contacts app needs to know if it's a missed call for different
+      // highlight color of the phone number in contacts details
+      src += '&isMissedCall=0';// + isMissedCall;
+      var timestamp = new Date().getTime();
+      contactsIframe.src = src + '&timestamp=' + timestamp;
+    });
+  }
+
+  function createNewContact() {
+    launchActivity('new', currentGroup.number);
+  }
+
+  function addToExistingContact() {
+    launchActivity('update', currentGroup.number);
+  }
+
+  function launchActivity(name, phoneNumber) {
+    var options = {
+      name: name,
+      data: {
+        type: 'webcontacts/contact',
+        params: {
+          'tel': phoneNumber
+        }
+      }
+    };
+    try {
+      /* jshint nonew: false */
+      new MozActivity(options);
+    } catch (e) {
+      console.error('Error while creating activity');
+    }
   }
 
   var _initialised = false;
@@ -77,6 +138,13 @@
       return;
     }
     _initialised = true;
+
+    detailsButton = document.getElementById('call-info-details');
+    detailsButton.addEventListener('click', viewContact);
+    addToContactButton = document.getElementById('call-info-add');
+    addToContactButton.addEventListener('click', addToExistingContact);
+    createContactButton = document.getElementById('call-info-create');
+    createContactButton.addEventListener('click', createNewContact);
     document.getElementById('call-info-close').addEventListener('click', close);
   }
 
@@ -87,11 +155,13 @@
         date = parseInt(date, 10);
         CallLogDBManager.getGroup(number, date, type, status)
         .then(function(group) {
+          currentGroup = group;
           updateGroupInformation(group);
-          updateCallDurations(group);
           document.getElementById('call-info-view').hidden = false;
+          updateCallDurations(group);
+          updateActionButtons(group);
         }).catch(function(error) {
-          console.log('OOPS', error);
+          console.log('OOPS', error.toString());
         });
       });
     }
