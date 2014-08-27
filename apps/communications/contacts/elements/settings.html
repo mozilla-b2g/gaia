@@ -8,10 +8,10 @@
 
       <article class="view-body" id="settings-article">
         <section role="region" class="view-body-inner">
-            <li id="settingsOrder">
           <ul data-type="list" role="presentation">
+            <li id="settingsOrder" role="checkbox">
               <p data-l10n-id="contactsOrderBy">Order by last name</p>
-              <aside class="pack-end">
+              <aside class="pack-end" aria-hidden="true">
                 <label class="pack-switch">
                   <input type="checkbox" name="order.lastname" />
                   <span></span>
@@ -37,11 +37,11 @@
           <gaia-subheader id="fb-header" skin="organic">
             <span data-l10n-id="facebook">Facebook</span>
           </gaia-subheader>
-            <li class="fb-item">
           <ul id="settingsFb" role="presentation" data-type="list" data-state="logged-out">
+            <li class="fb-item" role="checkbox">
               <p data-l10n-id="facebookSwitchMsg">Sync friends</p>
               <p id="fb-totals"></p>
-              <aside class="pack-end">
+              <aside class="pack-end" aria-hidden="true">
                 <label class="pack-switch">
                   <input type="checkbox" name="fb.imported">
                   <span id="span-check-fb"></span>
