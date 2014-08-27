@@ -87,8 +87,7 @@ suite('ICE contacts bar', function() {
       resetDOM();
     });
 
-    test('Should hide the ICE contacts bar', function(done) {
-      iceContactBar.removeAttribute('hidden');
+    test('Should not show the ICE contacts bar', function(done) {
       ICEContacts.updateICEContacts().then(function() {
         assert.ok(iceContactBar.hasAttribute('hidden'));
         done();
@@ -115,8 +114,7 @@ suite('ICE contacts bar', function() {
       resetDOM();
     });
 
-    test('Should hide the ICE contacts bar', function(done) {
-      iceContactBar.removeAttribute('hidden');
+    test('Should not show the ICE contacts bar', function(done) {
       ICEContacts.updateICEContacts().then(function() {
         assert.ok(iceContactBar.hasAttribute('hidden'));
         done();
@@ -167,8 +165,7 @@ suite('ICE contacts bar', function() {
       resetDOM();
     });
 
-    test('Should hide the ICE contacts bar', function(done) {
-      iceContactBar.removeAttribute('hidden');
+    test('Should not show the ICE contacts bar', function(done) {
       ICEContacts.updateICEContacts().then(function() {
         assert.ok(iceContactBar.hasAttribute('hidden'));
         done();
