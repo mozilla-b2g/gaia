@@ -3,7 +3,7 @@ Keyboards['es-Americas'] = {
   shortLabel: 'Es',
   menuLabel: 'Español (Latinoamérica)',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'number', 'password'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'es',
   alt: {
     a: 'áªàâäåãāæ',

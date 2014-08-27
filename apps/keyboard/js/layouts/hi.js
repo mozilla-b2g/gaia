@@ -6,7 +6,7 @@ Keyboards.hi = {
   secondLayout: true,
   alternateLayoutKey: '?१२३',
   basicLayoutKey: 'कखग',
-  types: ['text', 'url', 'email', 'number'],
+  types: ['text', 'url', 'email'],
   width: 11,
   keyClassName: 'hindi',
   alt: {

@@ -1,7 +1,7 @@
 Keyboards.he = {
   label: 'Hebrew',
   shortLabel: 'He',
-  types: ['text', 'url', 'email', 'number'],
+  types: ['text', 'url', 'email'],
   menuLabel: 'עִבְרִית',
   alt: {
     // incomplete
