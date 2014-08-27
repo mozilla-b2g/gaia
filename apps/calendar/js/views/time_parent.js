@@ -37,7 +37,6 @@ Calendar.ns('Views').TimeParent = (function() {
 
     _initEvents: function() {
       this.app.timeController.on('purge', this);
-      this.app.store('Calendar').on('calendarVisibilityChange', this);
       this.element.addEventListener('swipe', this);
 
       this.gd = new GestureDetector(this.element);
@@ -63,9 +62,6 @@ Calendar.ns('Views').TimeParent = (function() {
 
     handleEvent: function(e) {
       switch (e.type) {
-        case 'calendarVisibilityChange':
-          this._onCalendarVisibilityChange();
-          break;
         case 'swipe':
           this._onswipe(e.detail);
           break;

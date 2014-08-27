@@ -123,49 +123,6 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   visibility: hidden;
 }
 
-.current-time {
-  pointer-events: none;
-  display: none;
-  position: absolute;
-  width: 100%;
-  color: #008EAB;
-  font-size: 1.2rem;
-  line-height: 1.2rem;
-  margin-top: -0.6rem;
-}
-
-.current-time.active {
-  display: block;
-}
-
-.current-time:before {
-  content: '';
-  display: block;
-  position: absolute;
-  top: 0;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0.4rem 0 0.4rem 0.6rem;
-  border-color: transparent transparent transparent #008EAB;
-  /* scale is for smooth edges and translate for centering the line */
-  transform: scale(0.99) translateY(0.25rem);
-  /* z-index here so that only the arrow goes above the events, we want the
-   * line to be behind the event name and alarm icon */
-  z-index: 15;
-}
-
-.current-time:after {
-  content: '';
-  display: block;
-  position: absolute;
-  top: 0.6rem;
-  height: 0.1rem;
-  /* we use border-top instead of background-color to avoid rouding issues on
-   * high resolution devices */
-  border-top: 0.1rem solid #008EAB;
-}
-
 /* view loading */
 
 .during-progress {

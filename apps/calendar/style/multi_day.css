@@ -1,0 +1,338 @@
+#week-view {
+  overflow: hidden;
+}
+
+.multi-day .sticky {
+  width: 100%;
+  height: 7rem;
+  background-color: #f8f8f8;
+  border-bottom: 0.1rem solid #e2e2e2;
+  position: relative;
+  overflow: hidden;
+}
+
+.multi-day .sticky .all-day {
+  top: 2rem;
+  height: 4.9rem;
+  line-height: 4.9rem;
+  color: #707070;
+  position: absolute;
+  border-top: 0.1rem solid #e2e2e2;
+  width: 3rem;
+}
+
+#week-view .day-name {
+  color: #707070;
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  font-weight: 400;
+  text-align: center;
+  height: 2rem;
+  line-height: 1.9rem;
+  width: 100%;
+}
+
+#week-view .day-name.is-today {
+  font-weight: 500;
+  color: #008eab;
+}
+
+.multi-day .allday-events {
+  border-left: 0.1rem solid #e2e2e2;
+  border-top: 0.1rem solid #e2e2e2;
+  height: 5rem;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  background-color: #f8f8f8;
+}
+
+.multi-day .main {
+  height: calc(100% - 7rem);
+  overflow-y: scroll;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.multi-day .main-content {
+  position: relative;
+  /* background color and z-index is important for APZ performance */
+  background-color: #fff;
+  z-index: 0;
+  height: 120rem;
+  width: 100%;
+}
+
+.multi-day .sidebar {
+  width: 100%;
+  color: #707070;
+  text-align: center;
+  font-size: 1.5rem;
+}
+
+.multi-day .sidebar li:last-child {
+  border-bottom: none;
+  height: 5rem;
+}
+
+.multi-day .sidebar > li {
+  width: 100%;
+  height: 5rem;
+  border-bottom: 0.1rem solid #f8f8f8;
+  overflow: hidden;
+}
+
+.multi-day .display-hour {
+  display: block;
+  width: 3rem;
+  padding: 0.2rem;
+  height: 4.9rem;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.multi-day .display-hour .ampm {
+  display: block;
+  font-size: 1.3rem;
+}
+
+.days-wrapper,
+.alldays-wrapper {
+  width: calc(100% - 3rem);
+  position: absolute;
+  right: 0;
+  top: 0;
+  overflow: hidden;
+}
+
+.days-wrapper {
+  height: 120rem;
+}
+
+.alldays-wrapper {
+  height: 100%;
+}
+
+.days,
+.alldays {
+  /* it contains 15 days, view only shows 5 each time (so 300% width) */
+  width: 300%;
+  overflow: hidden;
+  height: 100%;
+}
+
+.multi-day .day,
+.multi-day .allday {
+  float: left;
+  position: relative;
+  height: 100%;
+}
+
+#week-view .day,
+#week-view .allday {
+  width: 6.666%;
+}
+
+.multi-day .day {
+  border-left: 0.1rem solid #f8f8f8;
+}
+
+.multi-day .event,
+.multi-day .event:focus,
+.multi-day .event:active {
+  display: block;
+  border-left-style: solid;
+  border-left-width: 0.4rem;
+  width: 100%;
+  text-decoration: none;
+  overflow: hidden;
+  padding: 0.6rem 0.3rem 0.6rem 0.6rem;
+  outline: none;
+}
+
+.multi-day .main .event {
+  position: absolute;
+}
+
+.multi-day .event.is-allday {
+  margin-top: 0.1rem;
+}
+
+.multi-day .event.is-allday:first-child {
+  margin-top: 0;
+}
+
+#week-view .event.has-overlaps .event-title {
+  visibility: hidden;
+}
+
+.multi-day .event-title,
+.multi-day .event-location {
+  display: block;
+}
+
+.multi-day .event.has-alarm {
+  padding-right: 3rem;
+}
+
+.multi-day .icon-calendar-alarm {
+  position: absolute;
+  top: 0.2rem;
+  right: 0;
+  width: 3rem;
+  height: 3rem;
+}
+
+/* since week view displays more events we hide some of the data */
+#week-view .event-location,
+#week-view .event .icon-calendar-alarm {
+  display: none;
+}
+
+.multi-day .event-title {
+  min-height: 1.5rem;
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: #333;
+}
+
+#day-view.multi-day .event-title,
+.multi-day .partial-hour .event-title {
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.multi-day .event-location {
+  display: block;
+  top: 2.8rem;
+  min-height: 2.1rem;
+  padding-top: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #707070;
+  font-size: 1.3rem;
+  font-weight: 400;
+}
+
+.multi-day .event.many-overlaps .event-title,
+.multi-day .event.many-overlaps .event-location {
+  display: none;
+}
+
+.multi-day .event.partial-hour {
+  padding-top: 0.4rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.multi-day .event.partial-hour-tiny,
+.multi-day .event.partial-hour-small {
+  padding-top: 0;
+  padding-bottom: 0;
+  display: flex;
+  align-items: center;
+}
+
+.multi-day .event.partial-hour-micro,
+.multi-day .event.partial-hour-tiny {
+  /* since alarm icon is hidden we remove the padding right */
+  padding-right: 0.7rem;
+}
+
+.multi-day .event.partial-hour .event-location {
+  padding-top: 0.2rem;
+}
+
+.multi-day .event.partial-hour-tiny .event-title,
+.multi-day .event.partial-hour-tiny .event-location,
+.multi-day .event.partial-hour-small .event-title,
+.multi-day .event.partial-hour-small .event-location {
+  display: inline-block;
+  line-height: 1.6rem;
+  min-height: 0;
+  padding: 0;
+}
+
+.multi-day .event.partial-hour-tiny .event-title,
+.multi-day .event.partial-hour-small .event-title {
+  margin-right: 0.85rem;
+}
+
+.multi-day .event.partial-hour-micro .event-title,
+.multi-day .event.partial-hour-micro .event-location {
+  visibility: hidden;
+}
+
+.multi-day .event.partial-hour-micro .icon-calendar-alarm,
+.multi-day .event.partial-hour-tiny .icon-calendar-alarm {
+  /* hide icon since we don't have enough space for it and using a different
+   * size looks weird (not consistent) */
+  display: none;
+}
+
+.multi-day .event.partial-hour-small .icon-calendar-alarm {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* current time */
+
+.current-time {
+  pointer-events: none;
+  display: none;
+  position: absolute;
+  width: 100%;
+  color: #008EAB;
+  font-size: 1.2rem;
+  line-height: 1.2rem;
+  margin-top: -0.6rem;
+}
+
+.current-time.active {
+  display: block;
+}
+
+.current-time:before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0.4rem 0 0.4rem 0.6rem;
+  border-color: transparent transparent transparent #008EAB;
+  /* scale is for smooth edges and translate for centering the line */
+  transform: scale(0.99) translateY(0.25rem);
+  /* z-index here so that only the arrow goes above the events, we want the
+   * line to be behind the event name and alarm icon */
+  z-index: 15;
+}
+
+.current-time:after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0.6rem;
+  height: 0.1rem;
+  /* we use border-top instead of background-color to avoid rouding issues on
+   * high resolution devices */
+  border-top: 0.1rem solid #008EAB;
+}
+
+#week-view .current-time {
+  text-indent: 0.2rem;
+}
+
+#week-view .current-time:before {
+  left: 3rem;
+}
+
+#week-view .current-time:after {
+  width: calc(100% - 3rem);
+  left: 3rem;
+}

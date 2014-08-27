@@ -88,12 +88,48 @@ Calendar.LoadConfig = (function() {
 
     group: {
 
-      'Views.Week': {
+      'Views.Pan': {
+        js: [
+          'views/pan'
+        ]
+      },
+
+      'Views.SingleDay': {
+        js: [
+          'utils/overlap',
+          'views/single_day'
+        ]
+      },
+
+      'Views.MultiDay': {
         group: [
-          'Views.WeekChild',
-          'Views.Day',
+          'View',
+          'Views.SingleDay',
+          'Views.Pan',
           'Views.CurrentTime',
-          'Templates.Week'
+          'Views.HourDoubleTap'
+        ],
+
+        'js': [
+          'views/multi_day'
+        ]
+      },
+
+      'Views.HourDoubleTap': {
+        js: [
+          'querystring',
+          'utils/dom',
+          'views/hour_double_tap'
+        ]
+      },
+
+      'Views.Week': {
+        dom: [
+          'week-view'
+        ],
+
+        group: [
+          'Views.MultiDay'
         ],
 
         js: [
@@ -104,17 +140,6 @@ Calendar.LoadConfig = (function() {
       'Views.CurrentTime': {
         js: [
           'views/current_time'
-        ]
-      },
-
-      'Views.WeekChild': {
-        group: [
-          'Templates.Week',
-          'Views.DayBased'
-        ],
-
-        js: [
-          'views/week_child'
         ]
       },
 
@@ -312,15 +337,6 @@ Calendar.LoadConfig = (function() {
         js: [
           'views/first_time_use'
         ]
-      },
-
-      'Templates.Week': {
-        js: [
-          'template',
-          'templates/week'
-        ],
-
-        style: ['week_view']
       },
 
       'Templates.Month': {

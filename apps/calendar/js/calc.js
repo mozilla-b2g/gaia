@@ -4,6 +4,7 @@ Calendar.Calc = (function() {
   const SECOND = 1000;
   const MINUTE = (SECOND * 60);
   const HOUR = MINUTE * 60;
+  const DAY = HOUR * 24;
 
   var Calc = {
 
@@ -105,7 +106,7 @@ Calendar.Calc = (function() {
 
     /**
      * Intended to be used in combination
-     * with hoursOfOccurance used to sort
+     * with hoursOfOccurence used to sort
      * hours. ALLDAY is always first.
      */
     compareHours: function(a, b) {
@@ -164,21 +165,10 @@ Calendar.Calc = (function() {
      * @param {Date} end point of given span.
      * @return {Array} end end point of given span.
      */
-    hoursOfOccurance: function(day, start, end) {
+    hoursOfOccurence: function(day, start, end) {
       // beginning reference point (start of given date)
-      var refStart = new Date(
-        day.getFullYear(),
-        day.getMonth(),
-        day.getDate()
-      );
-
-      var refEnd = new Date(
-        day.getFullYear(),
-        day.getMonth(),
-        day.getDate() + 1
-      );
-
-      refEnd.setMilliseconds(-1);
+      var refStart = Calc.createDay(day);
+      var refEnd = Calc.endOfDay(day);
 
       var startBefore = start <= refStart;
       var endsAfter = end >= refEnd;
@@ -225,6 +215,13 @@ Calendar.Calc = (function() {
       end = end / HOUR;
 
       return end - start;
+    },
+
+    /**
+     * Calculates the difference (in days) between 2 dates.
+     */
+    dayDiff: function(startDate, endDate) {
+      return (endDate - startDate) / DAY;
     },
 
     /**
@@ -447,10 +444,16 @@ Calendar.Calc = (function() {
 
     createDay: function(date, day, month, year) {
       return new Date(
-        typeof year !== 'undefined' ? year : date.getFullYear(),
-        typeof month !== 'undefined' ? month : date.getMonth(),
-        typeof day !== 'undefined' ? day : date.getDate()
+        year != null ? year : date.getFullYear(),
+        month != null ? month : date.getMonth(),
+        day != null ? day : date.getDate()
       );
+    },
+
+    endOfDay: function(date) {
+      var day = Calc.createDay(date, date.getDate() + 1);
+      day.setMilliseconds(-1);
+      return day;
     },
 
     /**
@@ -466,9 +469,9 @@ Calendar.Calc = (function() {
       }
 
       if (Calc.startsOnMonday) {
-        return this.dayOfWeekFromMonday(number);
+        return Calc.dayOfWeekFromMonday(number);
       }
-      return this.dayOfWeekFromSunday(number);
+      return Calc.dayOfWeekFromSunday(number);
     },
 
     /**
@@ -572,11 +575,7 @@ Calendar.Calc = (function() {
       var result = [weeksDayStart];
 
       for (var i = 1; i < 7; i++) {
-        result.push(new Date(
-          weeksDayStart.getFullYear(),
-          weeksDayStart.getMonth(),
-          weeksDayStart.getDate() + i
-        ));
+        result.push(Calc.createDay(weeksDayStart, weeksDayStart.getDate() + i));
       }
 
       return result;
@@ -635,6 +634,61 @@ Calendar.Calc = (function() {
       }
 
       return states;
+    },
+
+    /**
+     * Computes the relative hour (0...23.9999) inside the given day.
+     * If `date` is on a different day than `baseDate` it will return `0`.
+     * Used by week view to compute the position of the busytimes relative to
+     * the top of the view.
+     */
+    relativeOffset: function(baseDate, date) {
+      if (Calc.isSameDate(baseDate, date)) {
+        return date.getHours() + (date.getMinutes() / 60);
+      }
+      // different day!
+      return 0;
+    },
+
+    /**
+     * Computes the relative duration between startDate and endDate inside
+     * a given baseDate. Returns a number between 0 and 24.
+     * Used by MultiDay view to compute the height of the busytimes relative to
+     * the length inside the baseDate.
+     */
+    relativeDuration: function(baseDate, startDate, endDate) {
+      if (!Calc.isSameDate(startDate, endDate)) {
+        if (Calc.isSameDate(baseDate, startDate)) {
+          endDate = Calc.endOfDay(baseDate);
+        } else if (Calc.isSameDate(baseDate, endDate)) {
+          startDate = Calc.createDay(endDate);
+        } else {
+          // started before baseDate and ends on a different day
+          return 24;
+        }
+      }
+      return Calc.hourDiff(startDate, endDate);
+    },
+
+    /**
+     * Checks if startDate and endDate are at first millisecond of the day and
+     * if the distance between both dates is a multiple of a full day.
+     */
+    isAllDay: function(startDate, endDate) {
+      var dayDiff = Calc.dayDiff(startDate, endDate);
+      return Calc.relativeTime(startDate) === 0 &&
+        Calc.relativeTime(endDate) === 0 &&
+        dayDiff > 0 && Number.isInteger(dayDiff);
+    },
+
+    /**
+     * Gets the milliseconds elapsed since the start of the day.
+     */
+    relativeTime: function(date) {
+      return date.getHours() * HOUR +
+        date.getMinutes() * MINUTE +
+        date.getSeconds() * SECOND +
+        date.getMilliseconds();
     }
 
   };
