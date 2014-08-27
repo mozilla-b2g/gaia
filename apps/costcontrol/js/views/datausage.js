@@ -946,9 +946,9 @@ var DataUsageTab = (function() {
       var appElement = document.createElement('li');
       appElement.className = 'app-item';
 
-      var imgElement = document.createElement('div');
+      var imgElement = document.createElement('img');
       imgElement.className = 'app-image';
-      imgElement.style.backgroundImage = 'url(' + getAppIcon(app) + ')';
+      imgElement.src = getAppIcon(app);
       appElement.appendChild(imgElement);
 
       var appInfoElement = document.createElement('div');

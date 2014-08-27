@@ -520,7 +520,9 @@ var CostControl = (function() {
         );
       }
 
-      function expandSamples(network) {
+      // Aggregate fine-grained app specific samples into a top level per-day
+      // and per-network sample list
+      function aggregateSamples(network) {
         if (!network.apps) {
           return;
         }
@@ -567,6 +569,8 @@ var CostControl = (function() {
         });
       }
 
+      // Handle results from requests to the network stats database
+      // for data usage on a specific network
       function handleResult(request, network) {
         var result = request.result;
         var data = adaptData(result);
@@ -586,14 +590,14 @@ var CostControl = (function() {
         simRequests.forEach(function(request) {
           handleResult(request, lastDataUsage.mobile);
         });
-        expandSamples(lastDataUsage.mobile);
+        aggregateSamples(lastDataUsage.mobile);
       }
 
       if (wifiRequests) {
         wifiRequests.forEach(function(request) {
           handleResult(request, lastDataUsage.wifi);
         });
-        expandSamples(lastDataUsage.wifi);
+        aggregateSamples(lastDataUsage.wifi);
       }
 
       saveLastDataUsage();
