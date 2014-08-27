@@ -160,6 +160,7 @@
     <link rel="import" href="/elements/about_legal.html">
     <link rel="import" href="/elements/about.html">
     <link rel="import" href="/elements/battery.html">
+    <link rel="import" href="/elements/usb_storage.html">
     <link rel="import" href="/elements/application_storage.html">
     <link rel="import" href="/elements/media_storage.html">
     <link rel="import" href="/elements/accessibility.html">
@@ -339,9 +340,11 @@
     <section is="downloads" role="region" id="downloads"></section>
     <!-- Device :: Battery -->
     <section is="battery" role="region" id="battery"></section>
-    <!-- Device :: Device Storage -->
+    <!-- Storage :: USB Transfer Protocol -->
+    <section is="usbStorage" role="region" id="usbStorage"></section>
+    <!-- Storage :: Device Storage -->
     <section is="applicationStorage" role="region" id="applicationStorage"></section>
-    <!-- Device :: Media Storage -->
+    <!-- Storage :: Media Storage -->
     <section is="mediaStorage" role="region" id="mediaStorage"></section>
     <!-- Device :: Accessibility -->
     <section is="accessibility" role="region" id="accessibility"></section>
@@ -548,11 +551,14 @@
           <h2 data-l10n-id="storage">Storage</h2>
         </header>
         <ul>
-          <li>
+          <li class="pack-split">
             <label class="pack-switch">
-              <input class="ums-switch-root" data-ignore type="checkbox">
-              <span id="menuItem-enableStorage" class="menu-item gaia-icon icon-settings-usbstorage" data-l10n-id="enableUSBStorage1">USB storage</span>
-              <small class="ums-desc-root menu-item-desc">Disabled</small>
+              <input class="usb-switch" data-ignore type="checkbox">
+              <span></span>
+            </label>
+            <label id="menuItem-enableStorage" class="name">
+              <span class="menu-item gaia-icon icon-settings-usbstorage" data-l10n-id="enableUSBStorage1">USB storage</span>
+              <small class="usb-desc menu-item-desc">Disabled</small>
             </label>
           </li>
           <li class="media-storage-section">
