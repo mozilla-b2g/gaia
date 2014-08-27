@@ -31,14 +31,19 @@ var TMPL = function createTemplate(tmpls) {
 });
 
 function completeLocaleFormat(timestamp) {
-  return Utils.date.format.localeFormat(new Date(+timestamp),
-    navigator.mozL10n.get('report-dateTimeFormat')
+  return Utils.date.format.localeFormat(
+    new Date(+timestamp),
+    navigator.mozL10n.get(
+      navigator.mozHour12 ? 'report-dateTimeFormat12' :
+        'report-dateTimeFormat24'
+    )
   );
 }
 
 function l10nContainsDateSetup(element, timestamp) {
   element.dataset.l10nDate = timestamp;
-  element.dataset.l10nDateFormat = 'report-dateTimeFormat';
+  element.dataset.l10nDateFormat12 = 'report-dateTimeFormat12';
+  element.dataset.l10nDateFormat24 = 'report-dateTimeFormat24';
   element.textContent = completeLocaleFormat(timestamp);
 }
 
@@ -54,7 +59,9 @@ function createReportDiv(reports) {
     readClass: '',
     readL10n: '',
     readDateL10n: '',
-    readTimestamp: ''
+    readTimestamp: '',
+    messageL10nDateFormat12: 'report-dateTimeFormat12',
+    messageL10nDateFormat24: 'report-dateTimeFormat24'
   };
 
   switch (reports.deliveryStatus) {

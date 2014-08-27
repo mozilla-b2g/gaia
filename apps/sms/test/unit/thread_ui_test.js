@@ -2982,12 +2982,21 @@ suite('thread_ui.js >', function() {
         assert.isFalse(element.classList.contains('pending'));
       });
       test('message is correct', function() {
-        assert.equal(notDownloadedMessage.dataset.l10nId,
+        assert.equal(
+          notDownloadedMessage.dataset.l10nId,
           'not-downloaded-attachment',
-          'localization id set correctly');
-        assert.equal(notDownloadedMessage.dataset.l10nArgs,
+          'localization id set correctly'
+        );
+        assert.equal(
+          notDownloadedMessage.dataset.l10nArgs,
           '{"date":"date_stub"}',
-          'localization arguments set correctly');
+          'localization arguments set correctly'
+        );
+        assert.equal(
+          notDownloadedMessage.dataset.l10nDateFormat,
+          'expiry-date-format',
+          'localization date format set correctly'
+        );
       });
       test('date is correctly determined', function() {
         assert.equal(+Utils.date.format.localeFormat.args[0][0],
@@ -3676,7 +3685,8 @@ suite('thread_ui.js >', function() {
           delivery: 'not-downloaded',
           deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
           attachments: [],
-          subject: 'error download'
+          subject: 'error download',
+          expiryDate: Date.now()
         });
 
         // Retrieve the message node
