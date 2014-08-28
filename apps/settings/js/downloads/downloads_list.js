@@ -43,7 +43,7 @@
       emptyDownloadsContainer.hidden = true;
     }
 
-    editButton.className = isEmpty ? 'disabled' : '';
+    editButton.disabled = isEmpty;
   }
 
   function _newDownload(download) {
@@ -59,14 +59,12 @@
       return;
     }
 
-    if (!downloads || downloads.length == 0) {
-      _checkEmptyList();
-      return;
-    }
     // Clean before rendering
     downloadsContainer.innerHTML = '';
     // Render
     downloads.forEach(_append);
+
+    _checkEmptyList();
 
     oncomplete && oncomplete();
   }
