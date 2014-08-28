@@ -116,16 +116,6 @@ suite('system/AppChrome', function() {
       assert.isTrue(stubSelectOne.called);
     });
 
-    test('Add to Home', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
-      chrome.showOverflowMenu();
-      var stubAddToHome = this.sinon.stub(chrome, 'onAddToHome');
-      chrome.handleEvent({ type: 'click',
-                           stopImmediatePropagation: function() {},
-                           target: chrome.addToHomeButton });
-      assert.isTrue(stubAddToHome.called);
-    });
   });
 
   suite('Views', function() {
