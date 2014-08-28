@@ -630,7 +630,9 @@ var Contacts = (function() {
     } else {
       Contacts.view('Details', function viewLoaded() {
         var simPickerNode = document.getElementById('sim-picker');
-        LazyLoader.load([simPickerNode], function() {
+        LazyLoader.load(
+          [simPickerNode, '/shared/js/contacts/contacts_buttons.js'],
+        function() {
           navigator.mozL10n.translate(simPickerNode);
           detailsReady = true;
           contactsDetails = contacts.Details;
@@ -769,7 +771,7 @@ var Contacts = (function() {
       '/contacts/js/utilities/normalizer.js',
       '/shared/js/text_normalizer.js',
       '/dialer/js/telephony_helper.js',
-      '/contacts/js/sms_integration.js',
+      '/shared/js/contacts/sms_integration.js',
       SHARED_UTILS_PATH + '/' + 'sdcard.js',
       SHARED_UTILS_PATH + '/' + 'vcard_parser.js',
       SHARED_UTILS_PATH + '/' + 'status.js',
