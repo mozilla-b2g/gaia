@@ -1,9 +1,21 @@
 Calendar.ns('Views').DayBased = (function() {
   'use strict';
 
-  var Calc = Calendar.Calc;
-  var hoursOfOccurence = Calendar.Calc.hoursOfOccurence;
-  var OrderedMap = Calendar.Utils.OrderedMap;
+  /**
+   * Module dependencies
+   */
+  var Day = Calendar.Templates.Day,
+      Calc = Calendar.Calc,
+      OrderedMap = Calendar.Utils.OrderedMap,
+      Overlap = Calendar.Utils.Overlap,
+      QueryString = Calendar.QueryString,
+      View = Calendar.View,
+      hoursOfOccurence = Calendar.Calc.hoursOfOccurence,
+      performance = Calendar.performance;
+
+  /**
+   * Constants
+   */
   const MINUTES_IN_HOUR = 60;
 
   /**
@@ -11,7 +23,7 @@ Calendar.ns('Views').DayBased = (function() {
    * details of day based views.
    */
   function DayBased() {
-    Calendar.View.apply(this, arguments);
+    View.apply(this, arguments);
 
     if (!this.timespan && this.date) {
       this.timespan = Calc.spanOfDay(this.date);
@@ -22,7 +34,7 @@ Calendar.ns('Views').DayBased = (function() {
   }
 
   DayBased.prototype = {
-    __proto__: Calendar.View.prototype,
+    __proto__: View.prototype,
 
     /**
      * Signifies the state of view.
@@ -66,7 +78,7 @@ Calendar.ns('Views').DayBased = (function() {
      *      - location
      *      - attendees
      */
-    template: Calendar.Templates.Day,
+    template: Day,
 
     /**
      * Date that this view represents.
@@ -105,7 +117,7 @@ Calendar.ns('Views').DayBased = (function() {
      */
     _resetHourCache: function() {
       this._idsToHours = Object.create(null);
-      this.overlaps = new Calendar.Utils.Overlap();
+      this.overlaps = new Overlap();
       this.hours = new OrderedMap([], Calc.compareHours);
     },
 
@@ -197,7 +209,7 @@ Calendar.ns('Views').DayBased = (function() {
         eventArea.insertAdjacentHTML('beforeend', html);
         var el = eventArea.lastChild;
 
-        if (hour !== Calendar.Calc.ALLDAY) {
+        if (hour !== Calc.ALLDAY) {
           this._assignPosition(busytime, el);
           this.overlaps.add(busytime, el);
         } else {
@@ -262,7 +274,7 @@ Calendar.ns('Views').DayBased = (function() {
       // check if start time is on same date.
       var startMin = 0;
       var startHour = 0;
-      if (Calendar.Calc.isSameDate(this.date, busytime.startDate)) {
+      if (Calc.isSameDate(this.date, busytime.startDate)) {
         startMin = start.getMinutes();
         startHour = start.getHours();
       }
@@ -270,8 +282,7 @@ Calendar.ns('Views').DayBased = (function() {
       // check if end time is on same date.
       var endMin = 59;
       var endHour = 23;
-      var isSameDateWithEndDate =
-          Calendar.Calc.isSameDate(this.date, busytime.endDate);
+      var isSameDateWithEndDate = Calc.isSameDate(this.date, busytime.endDate);
       if (isSameDateWithEndDate) {
         endHour = end.getHours();
         endMin = end.getMinutes();
@@ -346,7 +357,7 @@ Calendar.ns('Views').DayBased = (function() {
         this.allDayElement = document.createElement('section');
         this.element.appendChild(this.allDayElement);
 
-        this.allDayElement.classList.add(Calendar.Calc.ALLDAY);
+        this.allDayElement.classList.add(Calc.ALLDAY);
         this.allDayElement.classList.add(this.classType);
       }
 
@@ -363,7 +374,7 @@ Calendar.ns('Views').DayBased = (function() {
 
     _renderHour: function(hour) {
       return this.template.hour.render({
-        displayHour: Calendar.Calc.formatHour(hour),
+        displayHour: Calc.formatHour(hour),
         hour: hour
       });
     },
@@ -400,7 +411,7 @@ Calendar.ns('Views').DayBased = (function() {
 
     createHour: function(hour) {
       var html = this._renderHour(hour);
-      var parent = (hour === Calendar.Calc.ALLDAY) ?
+      var parent = (hour === Calc.ALLDAY) ?
         this.allDayElement : this.events;
       if (!parent) {
         throw new Error('parent must be specified');
@@ -494,8 +505,8 @@ Calendar.ns('Views').DayBased = (function() {
 
       this._removeTimespanObserver();
       this.id = date.valueOf();
-      this.date = Calendar.Calc.createDay(date);
-      this.timespan = Calendar.Calc.spanOfDay(date);
+      this.date = Calc.createDay(date);
+      this.timespan = Calc.spanOfDay(date);
 
       if (this.element) {
         this.element.dataset.date = this.date;
@@ -512,11 +523,11 @@ Calendar.ns('Views').DayBased = (function() {
       var records = this.controller.queryCache(this.timespan);
 
       if (records && records.length) {
-        this._loadRecords(records, () => Calendar.Performance.dayBasedReady());
+        this._loadRecords(records, performance.dayBasedReady);
       } else {
         // if we don't load records (no events today) we still need to let the
         // Performance controller know that the DayBased view is ready
-        Calendar.Performance.dayBasedReady();
+        performance.dayBasedReady();
       }
     },
 
@@ -573,7 +584,7 @@ Calendar.ns('Views').DayBased = (function() {
       endDate.setSeconds(0);
 
       var queryString = {};
-      if (hour === Calendar.Calc.ALLDAY) {
+      if (hour === Calc.ALLDAY) {
         queryString.isAllDay = true;
         endDate.setDate(startDate.getDate() + 1);
       } else {
@@ -586,10 +597,7 @@ Calendar.ns('Views').DayBased = (function() {
       queryString.startDate = startDate.toString();
       queryString.endDate = endDate.toString();
 
-      this.app.go(
-          '/event/add/?' +
-          Calendar.QueryString.stringify(queryString)
-      );
+      this.app.go('/event/add/?' + QueryString.stringify(queryString));
     },
 
     /**

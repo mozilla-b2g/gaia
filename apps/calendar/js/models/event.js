@@ -55,7 +55,6 @@ Calendar.ns('Models').Event = (function() {
   }
 
   Event.prototype = {
-
     /**
      * Sets default values of an event.
      */
@@ -192,6 +191,33 @@ Calendar.ns('Models').Event = (function() {
     set location(value) {
       this.remote.location = value;
       return this.remote.location;
+    },
+
+    get freq() {
+      return this.remote.freq;
+    },
+
+    set freq(value) {
+      this.remote.freq = value;
+      return this;
+    },
+
+    get count() {
+      return this.remote.count;
+    },
+
+    set count(value) {
+      this.remote.count = value;
+      return this;
+    },
+
+    get until() {
+      return this.remote.until;
+    },
+
+    set until(value) {
+      this.remote.until = value;
+      return this;
     },
 
     get alarms() {

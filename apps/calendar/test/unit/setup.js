@@ -1,5 +1,4 @@
-/*global Factory */
-
+/* global Factory */
 (function(window) {
   'use strict';
 
@@ -9,11 +8,11 @@
     if (path === 'stream') {
       throw new Error('skip');
     }
+
     return oldRequire.apply(this, arguments);
   };
 
-
-  if (typeof(window.testSupport) === 'undefined') {
+  if (!('testSupport' in window)) {
     window.testSupport = {};
   }
 
@@ -21,13 +20,8 @@
     _lastEnvId: 0,
 
     accountEnvironment: function(accOverrides, calOverrides) {
-
       // this requires a Calendar/Account model
-
-      testSupport.calendar.loadObjects(
-        'Models.Account',
-        'Models.Calendar'
-      );
+      testSupport.calendar.loadObjects('Models.Account', 'Models.Calendar');
 
       setup(function(done) {
         var id = ++testSupport.calendar._lastEnvId;
@@ -133,16 +127,13 @@
     },
 
     clearStore: function(db, name, done) {
-
       if (typeof(name) === 'function') {
         done = name;
         name = Object.keys(Calendar.Db.prototype.store);
       }
 
       var trans = db.transaction(name, 'readwrite');
-
       name = [].concat(name);
-
       name.forEach(function(storeName) {
         var store = trans.objectStore(storeName);
         store.clear();
@@ -155,7 +146,6 @@
       trans.onerror = function() {
         done(new Error('could not wipe accounts db'));
       };
-
     },
 
     app: function() {
@@ -177,7 +167,7 @@
       );
 
       Calendar.App.dateFormat = navigator.mozL10n.DateTimeFormat();
-
+      Calendar.App.provider = Calendar.Provider.provider;
       return Calendar.App;
     },
 
@@ -253,6 +243,33 @@
   window.requireLib = requireLib;
   window.requireSupport = requireSupport;
 
+  window.mochaPromise = function(mochaFn, description, callback) {
+    if (typeof description === 'function') {
+      callback = description;
+      description = null;
+    }
+
+    function execute(done) {
+      var promise;
+      try {
+        promise = callback.call();
+      } catch (error) {
+        return done(error);
+      }
+
+      return promise.then(() => {
+        done();
+      })
+      .catch(done);
+    }
+
+    if (description) {
+      mochaFn(description, execute);
+    } else {
+      mochaFn(execute);
+    }
+  };
+
   /* chai extensions */
 
   // XXX: this is a lame way to do this
@@ -313,47 +330,82 @@
     });
   });
 
+  /* Shared */
   requireApp('calendar/shared/js/l10n_date.js');
   requireApp('calendar/shared/js/lazy_loader.js');
+  requireApp('calendar/shared/js/notification_helper.js');
 
+  /* Root */
   requireLib('calendar.js');
-  requireLib('promise.js');
-  requireLib('performance.js');
-  requireLib('error.js');
-  requireApp('calendar/test/unit/loader.js');
-  requireLib('responder.js');
+  requireLib('ns.js');
+
+  /* Utilities */
+  requireLib('binsearch.js');
   requireLib('calc.js');
-  requireLib('load_config.js');
-  requireLib('view.js');
-  requireLib('router.js');
+  requireLib('compare.js');
+  requireLib('date_l10n.js');
+  requireLib('error.js');
+  requireLib('extend.js');
   requireLib('interval_tree.js');
+  requireLib('load_config.js');
+  requireLib('log.js');
+  requireLib('next_tick.js');
+  requireLib('notification.js');
+  requireLib('object.js');
+  requireLib('online.js');
+  requireLib('pending_manager.js');
+  requireLib('performance.js');
+  requireLib('presets.js');
+  requireLib('probably_parse_int.js');
+  requireLib('promise.js');
+  requireLib('responder.js');
+  requireLib('retry.js');
+  requireLib('router.js');
   requireLib('time_observer.js');
+
+  /* Provider */
+  requireLib('event_mutations.js');
+  requireLib('provider/caldav_pull_events.js');
+  requireLib('provider/local.js');
+  requireLib('provider/worker.js');
+  requireLib('provider/provider.js');
+
+  /* Store */
   requireLib('store/abstract.js');
   requireLib('store/alarm.js');
   requireLib('store/busytime.js');
   requireLib('store/account.js');
+  requireLib('store/alarm.js');
+  requireLib('store/busytime.js');
   requireLib('store/calendar.js');
   requireLib('store/event.js');
-  requireLib('store/setting.js');
   requireLib('store/ical_component.js');
-  requireLib('provider/abstract.js');
-  requireLib('provider/local.js');
-  requireSupport('mock_provider.js');
+  requireLib('store/setting.js');
+
+  /* Controllers */
   requireLib('worker/manager.js');
-  requireLib('controllers/service.js');
+  requireLib('controllers/alarm.js');
   requireLib('controllers/error.js');
-  requireLib('controllers/time.js');
+  requireLib('controllers/service.js');
   requireLib('controllers/sync.js');
   requireLib('controllers/alarm.js');
   requireLib('store/setting.js');
+  requireLib('controllers/time.js');
+
+  /* Models */
+  requireLib('models/account.js');
+  requireLib('models/calendar.js');
+  requireLib('models/event.js');
+
+  requireLib('view.js');
   requireLib('db.js');
   requireLib('ext/eventemitter2.js');
   requireLib('utils/mout.js');
   requireLib('day_observer.js');
   requireLib('app.js');
 
-  /* test helpers */
-
+  /* Test helpers */
+  requireApp('calendar/test/unit/loader.js');
   requireSupport('fake_page.js');
   requireSupport('factory.js');
   requireSupport('factories/all.js');
@@ -361,5 +413,4 @@
   // tell mocha its here..
   window.uuid = null;
   window.NotAmd = null;
-
 }(this));

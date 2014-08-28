@@ -1,3 +1,4 @@
+/* global NotificationHelper */
 /**
  * Notification helper that wraps process of fetching the apps icon and sending
  * app to the given url on click of the notification.

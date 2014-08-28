@@ -20,15 +20,6 @@ suiteGroup('Views.AdvancedSettings', function() {
     triggerEvent = testSupport.calendar.triggerEvent;
   });
 
-  [
-    'Provider.Caldav',
-    'Provider.Local'
-  ].forEach(function(klass) {
-    suiteSetup(function(done) {
-      Calendar.App.loadObject(klass, done);
-    });
-  });
-
   setup(function() {
     fixtures = {
       a: Factory('account', {

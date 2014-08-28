@@ -1,9 +1,10 @@
 /*global Factory */
 
 requireApp('calendar/shared/js/notification_helper.js');
+requireLib('controllers/alarm.js');
 requireLib('notification.js');
 
-suiteGroup('Controllers.Alarm', function() {
+suite('Controllers.Alarm', function() {
   'use strict';
 
   function mockRequestWakeLock(handler) {
@@ -63,10 +64,7 @@ suiteGroup('Controllers.Alarm', function() {
   });
 
   teardown(function(done) {
-    testSupport.calendar.clearStore(
-      db,
-      done
-    );
+    testSupport.calendar.clearStore(db, done);
   });
 
   teardown(function(done) {

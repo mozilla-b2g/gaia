@@ -14,7 +14,6 @@ Calendar.ns('Controllers').Service = (function() {
     start: function() {
       this.add('caldav', '/js/caldav_worker.js');
     }
-
   };
 
   return Service;

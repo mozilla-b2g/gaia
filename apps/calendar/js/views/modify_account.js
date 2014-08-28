@@ -1,6 +1,21 @@
 Calendar.ns('Views').ModifyAccount = (function() {
   'use strict';
 
+  /**
+   * Module dependencies
+   */
+  var Account = Calendar.Models.Account,
+      AccountCreation = Calendar.Utils.AccountCreation,
+      OAuthWindow = Calendar.OAuthWindow,
+      Presets = Calendar.Presets,
+      URI = Calendar.Utils.URI,
+      View = Calendar.View,
+      isOnline = Calendar.isOnline;
+
+  /**
+   * Constants
+   */
+  var ERROR = Calendar.ERROR;
   var DEFAULT_AUTH_TYPE = 'basic';
   var OAUTH_AUTH_CREDENTIALS = [
     'client_id',
@@ -10,24 +25,18 @@ Calendar.ns('Views').ModifyAccount = (function() {
   ];
 
   function ModifyAccount(options) {
-    Calendar.View.apply(this, arguments);
-
+    View.apply(this, arguments);
     this.deleteRecord = this.deleteRecord.bind(this);
     this.cancel = this.cancel.bind(this);
     this.displayOAuth2 = this.displayOAuth2.bind(this);
-
-    this.accountHandler = new Calendar.Utils.AccountCreation(
-      this.app
-    );
-
+    this.accountHandler = new AccountCreation(this.app);
     this.accountHandler.on('authorizeError', this);
-
     // bound so we can add remove listeners
     this._boundSaveUpdateModel = this.save.bind(this, { updateModel: true });
   }
 
   ModifyAccount.prototype = {
-    __proto__: Calendar.View.prototype,
+    __proto__: View.prototype,
 
     _changeToken: 0,
 
@@ -131,8 +140,8 @@ Calendar.ns('Views').ModifyAccount = (function() {
         var value = field.value;
         if (name === 'fullUrl') {
           // Prepend a scheme if url has neither port nor scheme
-          var port = Calendar.Utils.URI.getPort(value);
-          var scheme = Calendar.Utils.URI.getScheme(value);
+          var port = URI.getPort(value);
+          var scheme = URI.getScheme(value);
           if (!port && !scheme) {
             value = 'https://' + value;
           }
@@ -183,7 +192,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
       var list = this.element.classList;
       var self = this;
 
-      if (this.app.offline()) {
+      if (!isOnline()) {
         this.showErrors([{name: 'offline'}]);
         return;
       }
@@ -210,7 +219,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
       }
 
       var self = this;
-      this.oauth2Window.classList.add(Calendar.View.ACTIVE);
+      this.oauth2Window.classList.add(View.ACTIVE);
 
       navigator.mozApps.getSelf().onsuccess = function(e) {
         var app = e.target.result;
@@ -226,11 +235,8 @@ Calendar.ns('Views').ModifyAccount = (function() {
      * @param {String} preset name of value in Calendar.Presets.
      */
     _createModel: function(preset, callback) {
-      var settings = Calendar.Presets[preset];
-      var model = new Calendar.Models.Account(
-        settings.options
-      );
-
+      var settings = Presets[preset];
+      var model = new Account(settings.options);
       model.preset = preset;
       return model;
     },
@@ -255,7 +261,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
         }
       });
 
-      var oauth = this._oauthDialog = new Calendar.OAuthWindow(
+      var oauth = this._oauthDialog = new OAuthWindow(
         this.oauth2Window,
         apiCredentials.authorizationUrl,
         params
@@ -308,7 +314,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
       list.add('auth-' + this.authenticationType);
 
       if (this.model.error) {
-        list.add(Calendar.ERROR);
+        list.add(ERROR);
       }
 
       if (this.authenticationType === 'oauth2') {
@@ -338,7 +344,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
       list.remove('preset-' + this.model.preset);
       list.remove('provider-' + this.model.providerType);
       list.remove('auth-' + this.authenticationType);
-      list.remove(Calendar.ERROR);
+      list.remove(ERROR);
 
       this.fields.user.disabled = false;
       this.saveButton.disabled = false;
@@ -368,7 +374,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
 
       var self = this;
       function displayModel(err, model) {
-        self.preset = Calendar.Presets[model.preset];
+        self.preset = Presets[model.preset];
 
         // race condition another dispatch has queued
         // while we where waiting for an async event.
@@ -400,7 +406,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
     },
 
     oninactive: function() {
-      Calendar.View.prototype.oninactive.apply(this, arguments);
+      View.prototype.oninactive.apply(this, arguments);
 
       if (this._oauthDialog) {
         this._oauthDialog.close();

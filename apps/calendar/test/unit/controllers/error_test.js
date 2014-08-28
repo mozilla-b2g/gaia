@@ -1,4 +1,4 @@
-/*global Factory */
+/* global Factory */
 
 requireLib('controllers/error.js');
 requireLib('models/account.js');

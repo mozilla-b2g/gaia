@@ -35,10 +35,6 @@ suite('store/calendar', function() {
   });
 
   testSupport.calendar.accountEnvironment();
-  testSupport.calendar.loadObjects(
-    'Provider.Local',
-    'Provider.Caldav'
-  );
 
   teardown(function(done) {
     testSupport.calendar.clearStore(
@@ -318,14 +314,6 @@ suite('store/calendar', function() {
   });
 
 
-  test('#providerFor', function(done) {
-    subject.providerFor(this.calendar, function(err, provider) {
-      done(function() {
-        assert.equal(provider, app.provider('Mock'));
-      });
-    });
-  });
-
   suite('#_updateCalendarColor', function(done) {
     var palette = Calendar.Store.Calendar.REMOTE_COLORS;
 
@@ -339,7 +327,7 @@ suite('store/calendar', function() {
     test('> local calendar', function() {
       var calendar = Factory('calendar', {
         color: '#BADA55',
-        _id: Calendar.Provider.Local.calendarId
+        _id: 'local-first'
       });
       subject._updateCalendarColor(calendar);
       assert.equal(

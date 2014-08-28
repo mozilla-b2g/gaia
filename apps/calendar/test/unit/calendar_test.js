@@ -1,4 +1,3 @@
-requireApp('calendar/js/calendar.js');
 suite('calendar', function() {
   'use strict';
 
@@ -93,5 +92,4 @@ suite('calendar', function() {
 
     });
   });
-
 });

@@ -24,9 +24,7 @@ suite('load_config', function() {
   suiteSetup(function() {
     app = testSupport.calendar.app();
 
-    config = Object.create(
-      Calendar.LoadConfig
-    );
+    config = Object.create(Calendar.LoadConfig);
 
     var root = '/test/unit/fixtures/loader/';
 
@@ -48,10 +46,7 @@ suite('load_config', function() {
   });
 
   test('load js', function(done) {
-    subject.onerror = function(err) {
-      done(err);
-    };
-
+    subject.onerror = done;
     subject.load('group', 'FromLoaderTest', function() {
       done(function() {
         assert.ok(Calendar.LoadConfig, 'has load config');
@@ -66,10 +61,7 @@ suite('load_config', function() {
   });
 
   test('load style', function(done) {
-    subject.onerror = function(err) {
-      done(err);
-    };
-
+    subject.onerror = done;
     subject.load('style', 'load_test', function() {
       var link = document.querySelectorAll(
         'link[href*="load_test.css"]'
@@ -82,13 +74,11 @@ suite('load_config', function() {
   });
 
   test('load existing store', function(done) {
-    subject.onerror = function(err) {
-      done(err);
-    };
+    subject.onerror = done;
 
     var calledLoad = 0;
     // create a dummy store
-    Calendar.Store.MyCustomFoo = function() {
+    Calendar.ns('Store').MyCustomFoo = function() {
       return {
         load: function(cb) {
           calledLoad++;

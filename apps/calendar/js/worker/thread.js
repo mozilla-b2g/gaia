@@ -1,5 +1,10 @@
 'use strict';
 
+/**
+ * Module dependencies
+ */
+var debug = Calendar.debug('worker/thread');
+
 if (typeof(Calendar) === 'undefined') {
   /*global Calendar:true */
   Calendar = {};
@@ -44,6 +49,7 @@ Calendar.Thread.prototype = {
     var self = this;
 
     this.worker.addEventListener('message', function(e) {
+      debug('Received message from worker: ', e.data);
       self.respond(e.data);
     }, false);
 

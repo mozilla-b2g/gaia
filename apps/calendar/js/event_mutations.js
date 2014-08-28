@@ -1,3 +1,4 @@
+/* global uuid */
 /**
  * EventMutations are a simple wrapper for a
  * set of idb transactions that span multiple
@@ -72,7 +73,6 @@ Calendar.EventMutations = (function() {
   }
 
   Create.prototype = {
-
     commit: function(callback) {
       var alarmStore = Calendar.App.store('Alarm');
       var eventStore = Calendar.App.store('Event');
@@ -103,6 +103,7 @@ Calendar.EventMutations = (function() {
       busytimeStore.persist(this.busytime, trans);
 
       if (this.icalComponent) {
+        console.log(this.icalComponent);
         componentStore.persist(this.icalComponent, trans);
       }
 
@@ -123,7 +124,6 @@ Calendar.EventMutations = (function() {
         );
 
         for (; i < len; i++) {
-
           var alarm = {
             startDate: {
               offset: this.busytime.start.offset,
@@ -142,7 +142,6 @@ Calendar.EventMutations = (function() {
         }
       }
     }
-
   };
 
   function Update() {

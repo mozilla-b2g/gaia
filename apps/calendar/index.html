@@ -34,33 +34,77 @@
   <script defer src="/shared/js/input_parser.js"></script>
   -->
 
+  <script defer src="/js/ext/lodash.js"></script>
   <script defer src="/js/ext/page.js"></script>
   <script defer src="/js/ext/uuid.js"></script>
 
   <!-- lib root must load before anything else -->
   <script defer src="/js/calendar.js"></script>
+  <script defer src="/js/ns.js"></script>
+  <script defer src="/js/next_tick.js"></script>
 
   <!--- utils -->
-  <script defer src="/js/promise.js"></script>
-  <script defer src="/js/presets.js"></script>
-  <script defer src="/js/error.js"></script>
+  <script defer src="/js/binsearch.js"></script>
   <script defer src="/js/calc.js"></script>
-  <script defer src="/js/template.js"></script>
-  <script defer src="/js/responder.js"></script>
-  <script defer src="/js/view.js"></script>
-  <script defer src="/js/router.js"></script>
-  <script defer src="/js/db.js"></script>
-  <script defer src="/js/timespan.js"></script>
-  <script defer src="/js/time_observer.js"></script>
+  <script defer src="/js/compare.js"></script>
+  <script defer src="/js/date_l10n.js"></script>
+  <script defer src="/js/error.js"></script>
+  <script defer src="/js/ext/eventemitter2.js"></script>
+  <script defer src="/js/extend.js"></script>
+  <script defer src="/js/format.js"></script>
   <script defer src="/js/interval_tree.js"></script>
+  <script defer src="/js/log.js"></script>
+  <script defer src="/js/notification.js"></script>
+  <script defer src="/js/object.js"></script>
+  <script defer src="/js/online.js"></script>
+  <script defer src="/js/pending_manager.js"></script>
+  <script defer src="/js/performance.js"></script>
+  <script defer src="/js/presets.js"></script>
+  <script defer src="/js/probably_parse_int.js"></script>
+  <script defer src="/js/promise.js"></script>
+  <script defer src="/js/responder.js"></script>
+  <script defer src="/js/retry.js"></script>
+  <script defer src="/js/router.js"></script>
+  <script defer src="/js/template.js"></script>
+  <script defer src="/js/time_observer.js"></script>
+  <script defer src="/js/timespan.js"></script>
+  <script defer src="/js/utils/mout.js"></script>
 
   <!--- providers -->
-  <script defer src="/js/provider/abstract.js"></script>
+  <script defer src="/js/event_mutations.js"></script>
   <script defer src="/js/provider/local.js"></script>
-  <script defer src="/js/provider/caldav.js"></script>
+  <script defer src="/js/provider/worker.js"></script>
+  <script defer src="/js/provider/provider.js"></script>
   <script defer src="/js/provider/caldav_pull_events.js"></script>
 
+  <!--- store -->
+  <script defer src="/js/store/abstract.js"></script>
+  <script defer src="/js/store/busytime.js"></script>
+  <script defer src="/js/store/account.js"></script>
+  <script defer src="/js/store/calendar.js"></script>
+  <script defer src="/js/store/event.js"></script>
+  <script defer src="/js/store/setting.js"></script>
+  <script defer src="/js/store/alarm.js"></script>
+  <script defer src="/js/store/ical_component.js"></script>
+
+  <!--- models -->
+  <script defer src="/js/models/account.js"></script>
+  <script defer src="/js/models/calendar.js"></script>
+  <script defer src="/js/models/event.js"></script>
+
+  <script defer src="/js/db.js"></script>
+
+  <!-- workers / main / controller -->
+  <script defer src="/js/worker/manager.js"></script>
+  <script defer src="/js/controllers/service.js"></script>
+  <script defer src="/js/controllers/error.js"></script>
+  <script defer src="/js/controllers/time.js"></script>
+  <script defer src="/js/day_observer.js"></script>
+  <script defer src="/js/controllers/sync.js"></script>
+  <script defer src="/js/controllers/alarm.js"></script>
+
   <!-- It's possible to lazy load these, but we include them here to reduce flickering -->
+  <script defer src="/js/view.js"><script>
   <script defer src="/js/views/calendar_colors.js"></script>
   <script defer src="/js/views/time_header.js"></script>
   <script defer src="/js/templates/month.js"></script>
@@ -75,33 +119,7 @@
   <script defer src="/js/templates/months_day.js"></script>
   <script defer src="/js/views/months_day.js"></script>
 
-  <!--- store -->
-  <script defer src="/js/store/abstract.js"></script>
-  <script defer src="/js/store/busytime.js"></script>
-  <script defer src="/js/store/account.js"></script>
-  <script defer src="/js/store/calendar.js"></script>
-  <script defer src="/js/store/event.js"></script>
-  <script defer src="/js/store/setting.js"></script>
-  <script defer src="/js/store/alarm.js"></script>
-  <script defer src="/js/store/ical_component.js"></script>
-  <script defer src="/js/event_mutations.js"></script>
-
-  <!--- models -->
-  <script defer src="/js/models/account.js"></script>
-  <script defer src="/js/models/calendar.js"></script>
-  <script defer src="/js/models/event.js"></script>
-
-  <!-- workers / main / controller -->
-  <script defer src="/js/worker/manager.js"></script>
-  <script defer src="/js/controllers/service.js"></script>
-  <script defer src="/js/controllers/error.js"></script>
-  <script defer src="/js/controllers/time.js"></script>
-  <script defer src="/js/controllers/sync.js"></script>
-  <script defer src="/js/controllers/alarm.js"></script>
-  <script defer src="/js/performance.js"></script>
-  <script defer src="/js/ext/eventemitter2.js"></script>
-  <script defer src="/js/utils/mout.js"></script>
-  <script defer src="/js/day_observer.js"></script>
+>>>>>>> Bug 1023664 - Calendar recurring events
   <script defer src="/js/app.js"></script>
 
   <link rel="import" href="/elements/errors.html">

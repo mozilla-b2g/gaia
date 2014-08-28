@@ -364,12 +364,6 @@ suite('app', function() {
     });
   });
 
-  test('#provider', function() {
-    var result = subject.provider('Abstract');
-    assert.instanceOf(result, Calendar.Provider.Abstract);
-    assert.equal(result.app, subject);
-  });
-
   test('#store', function() {
     assert.instanceOf(
       subject.store('Account'),

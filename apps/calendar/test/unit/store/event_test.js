@@ -11,8 +11,7 @@ suite('store/event', function() {
 
   testSupport.calendar.loadObjects(
     'Models.Account',
-    'Model.Calendar',
-    'Provider.Local'
+    'Model.Calendar'
   );
 
   var subject;
@@ -109,17 +108,6 @@ suite('store/event', function() {
         }.bind(this));
       }.bind(this));
     });
-
-    test('#providerFor', function(done) {
-      subject.providerFor(event, function(err, provider) {
-        assert.equal(
-          provider,
-          Calendar.App.provider('Mock')
-        );
-        done();
-      });
-    });
-
   });
 
   suite('#eventsForCalendar', function() {

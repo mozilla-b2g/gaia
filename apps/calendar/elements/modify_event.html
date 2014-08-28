@@ -74,7 +74,60 @@
           </span>
         </li>
 
-        <li>
+        <li class="repeat">
+          <h3 data-l10n-id="repeat">Repeat</h3>
+          <span class="button icon icon-dialog">
+            <select name="repeat">
+              <option value="never" selected>
+                <span data-l10n-id="never">Never</span>
+              </option>
+              <option value="daily">
+                <span data-l10n-id="daily">Daily</span>
+              </option>
+              <option value="weekly">
+                <span data-l10n-id="weekly">Weekly</span>
+              </option>
+              <option value="monthly">
+                <span data-l10n-id="monthly">Monthly</span>
+              </option>
+              <option value="yearly">
+                <span data-l10n-id="yearly">Yearly</span>
+              </option>
+            </select>
+          </span>
+        </li>
+
+        <h3 class="repeat-until-header" data-l10n-id="repeat-until">Repeat Until</h3>
+
+        <li class="repeat-until">
+          <span class="button icon icon-dialog">
+            <select name="repeat-until">
+              <option value="forever" selected>
+                <span data-l10n-id="forever">Forever</span>
+              </option>
+              <option value="until-date">
+                <span data-l10n-id="until-date">Until date</span>
+              </option>
+              <option value="number-of-events">
+                <span data-l10n-id="number-of-events">Number of events</span>
+              </option>
+            </select>
+          </span>
+        </li>
+
+        <li class="repeat-until-date">
+          <span class="button icon icon-dialog">
+            <input name="repeat-until-date" placeholder="Date" type="date" class="hidden-input" />
+            <span class="datetime" id="repeat-until-date-locale"></span>
+          </span>
+        </li>
+
+        <li class="repeat-number-of-events">
+          <input type="number" x-inputmode="numeric" name="number-of-events" value="5" />
+          <span class="repeat-times" data-l10n-id="times">Times</span>
+        </li>
+
+        <li class="remind-me">
           <h3 data-l10n-id="remind-me">Remind me</h3>
           <div class="alarms">
           </div>
@@ -83,8 +136,8 @@
         <li class="notes">
           <textarea name="description" data-l10n-id="event-description" x-inputmode="latin-prose" placeholder="Notes" dir="auto"></textarea>
         </li>
-
       </ol>
+
       <div class="delete">
         <a role="button" data-l10n-id="event-delete" class="danger delete-record">
           Delete Event

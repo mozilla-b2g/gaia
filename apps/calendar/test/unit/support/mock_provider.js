@@ -1,8 +1,6 @@
 Calendar.ns('Provider').Mock = (function() {
   'use strict';
 
-  var Parent = Calendar.Provider.Abstract;
-
   function accountGeneric(mockName) {
     return function(account, callback) {
       // next tick is scheduled before _resolveStage intentionally
@@ -34,15 +32,11 @@ Calendar.ns('Provider').Mock = (function() {
   };
 
   function Mock() {
-    Parent.apply(this, arguments);
-
     // mock call storage
     this._stageObjects = Object.create(null);
   }
 
   Mock.prototype = {
-    __proto__: Parent.prototype,
-
     // opt-into sync by default
     canSync: true,
 

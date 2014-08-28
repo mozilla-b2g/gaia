@@ -1,4 +1,4 @@
-/*global Factory */
+/* global Factory */
 
 requireLib('responder.js');
 requireLib('timespan.js');

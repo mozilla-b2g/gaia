@@ -5,7 +5,6 @@
     Calendar.Store.Abstract.apply(this, arguments);
 
     Calendar.Promise.denodeifyAll(this, [
-      'providerFor',
       'findByIds',
       'ownersOf',
       'eventsForCalendar'
@@ -57,19 +56,6 @@
       var id = obj.calendarId + '-' + obj.remote.id;
       obj._id = id;
       return id;
-    },
-
-    /**
-     * Shortcut finds provider for given event.
-     *
-     * @param {Object} event full event record from db.
-     */
-    providerFor: function(event, callback) {
-      this.ownersOf(event, function(err, owners) {
-        callback(null, Calendar.App.provider(
-          owners.account.providerType
-        ));
-      });
     },
 
     /**

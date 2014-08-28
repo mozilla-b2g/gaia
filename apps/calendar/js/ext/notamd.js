@@ -1,4 +1,8 @@
 (function(exports) {
+  /**
+   * Module dependencies
+   */
+  var debug = Calendar.debug('NotAmd');
 
   function Observer() {
     this._waiting = [];
@@ -150,6 +154,8 @@
         name = id;
       }
 
+      debug('Load ', name, ' with plugin ', plugin);
+
       var pluginFn = this.plugins[plugin];
 
       if (!pluginFn || 'function' !== typeof pluginFn) {
@@ -182,4 +188,3 @@
 }(
   (typeof(window) !== 'undefined') ? window : exports
 ));
-

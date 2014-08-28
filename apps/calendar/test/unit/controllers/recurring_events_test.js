@@ -1,9 +1,7 @@
-/*global Factory */
-
 requireLib('models/account.js');
-requireLib('provider/abstract.js');
-requireLib('provider/local.js');
-requireLib('provider/caldav.js');
+requireLib('online.js');
+requireLib('provider/provider.js');
+requireLib('retry.js');
 
 suiteGroup('Controllers.RecurringEvents', function() {
   'use strict';
@@ -15,6 +13,7 @@ suiteGroup('Controllers.RecurringEvents', function() {
 
   setup(function(done) {
     app = testSupport.calendar.app();
+    Calendar.Provider.provider.app = app;
     db = app.db;
 
     subject = new Calendar.Controllers.RecurringEvents(app);
@@ -188,47 +187,21 @@ suiteGroup('Controllers.RecurringEvents', function() {
   });
 
   suite('#expand', function() {
-    var account;
     var provider;
     var expandDate = new Date(2012, 1, 1);
     var expectedDate;
 
     setup(function() {
+      provider = Calendar.Provider.provider;
       expectedDate = new Date(expandDate.valueOf());
       expectedDate.setDate(expectedDate.getDate() + subject.paddingInDays);
     });
-
-    function setupProvider(type) {
-      setup(function(done) {
-        account = Factory('account', {
-          providerType: type,
-          _id: type
-        });
-
-        provider = app.provider(type);
-        app.store('Account').persist(account, done);
-      });
-    }
 
     test('with no accounts', function(done) {
       subject.expand(expandDate, done);
     });
 
-    suite('provider that cannot expand', function() {
-      setupProvider('Local');
-
-      test('will not expand', function(done) {
-        provider.ensureRecurrencesExpanded = function() {
-          throw new Error('local should not expand');
-        };
-
-        subject.expand(expandDate, done);
-      });
-    });
-
     suite('provider that can expand', function() {
-      setupProvider('Caldav');
-
       // custom helper to allow each test
       // to inject specific logic while sharing the
       // spy/mock easily... override spyHandler to use.
