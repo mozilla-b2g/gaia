@@ -93,6 +93,15 @@ JSZhuyinGaiaKeyboardGlue.prototype.click = function jszg_click(code) {
   var BOPOMOFO_TONE_4 = 0x02cb;
   var BOPOMOFO_TONE_5 = 0x02d9;
 
+  if (code == -31) {
+    this.callbacks.alterKeyboard('zh-Hant-Zhuyin-AlternateLayout-Half');
+    return;
+  }
+  if (code == -32) {
+    this.callbacks.alterKeyboard('zh-Hant-Zhuyin-SymbolLayout-Half');
+    return;
+  }
+
   // We must handle Bopomofo symbols.
   if (code >= BOPOMOFO_START && code <= BOPOMOFO_END ||
       code === BOPOMOFO_TONE_1 || code === BOPOMOFO_TONE_2 ||
