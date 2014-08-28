@@ -139,12 +139,11 @@ suite('NFC Utils', function() {
     setup(function() {
       var tnf     = NDEF.TNF_WELL_KNOWN;
       var type    = NDEF.RTD_URI;
-      var id      = new Uint8Array(); // no id.
       // Short Record, 0x3 or "http://"
       var payload = new Uint8Array(nfcUtils.fromUTF8(
                                    '\u0003mozilla.org'));
 
-      urlNDEF = new MozNDEFRecord(tnf, type, id, payload);
+      urlNDEF = new MozNDEFRecord({tnf: tnf, type: type, payload: payload});
     });
 
     test('Subrecord', function() {
@@ -167,10 +166,9 @@ suite('NFC Utils', function() {
       var payload = new Uint8Array([0x04, 0x77, 0x69, 0x6b, 0x69, 0x2e, 0x6d,
                                     0x6f, 0x7a, 0x69, 0x6c, 0x6c, 0x61, 0x2e,
                                     0x6f, 0x72, 0x67]);
-      var ndefRecord = new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                         NDEF.RTD_URI,
-                                         new Uint8Array(),
-                                         payload);
+      var ndefRecord = new MozNDEFRecord({tnf: NDEF.TNF_WELL_KNOWN,
+                                          type: NDEF.RTD_URI,
+                                          payload: payload});
 
       var result = nfcUtils.encodeNDEF([ndefRecord]);
       assert.deepEqual(result, ndefMsg);
@@ -224,10 +222,9 @@ suite('NFC Utils', function() {
         .concat(payloadArray));
       var payload = new Uint8Array(payloadArray);
 
-      var ndefRecord = new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                         NDEF.RTD_TEXT,
-                                         new Uint8Array(),
-                                         payload);
+      var ndefRecord = new MozNDEFRecord({tnf: NDEF.TNF_WELL_KNOWN,
+                                          type: NDEF.RTD_TEXT,
+                                          payload: payload});
 
       var result = nfcUtils.encodeNDEF([ndefRecord]);
       assert.deepEqual(result, ndefMsg);
@@ -236,7 +233,7 @@ suite('NFC Utils', function() {
     test('No type, no paylod, no id', function() {
       var ndefMsg = new Uint8Array([0xd0, 0x00, 0x00]);
 
-      var result = nfcUtils.encodeNDEF([new MozNDEFRecord(NDEF.TNF_EMPTY)]);
+      var result = nfcUtils.encodeNDEF([new MozNDEFRecord()]);
       assert.deepEqual(result, ndefMsg);
     });
 
@@ -251,17 +248,15 @@ suite('NFC Utils', function() {
       var payload1 = new Uint8Array([0x04, 0x77, 0x69, 0x6b, 0x69, 0x2e, 0x6d,
                                      0x6f, 0x7a, 0x69, 0x6c, 0x6c, 0x61, 0x2e,
                                      0x6f, 0x72, 0x67]);
-      var rec1 = new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                   NDEF.RTD_URI,
-                                   new Uint8Array(),
-                                   payload1);
+      var rec1 = new MozNDEFRecord({tnf: NDEF.TNF_WELL_KNOWN,
+                                    type: NDEF.RTD_URI,
+                                    payload: payload1});
 
       var payload2 = new Uint8Array([0x03, 0x6d, 0x6f, 0x7a, 0x69, 0x6c, 0x6c,
                                      0x61, 0x2e, 0x6f, 0x72, 0x67]);
-      var rec2 = new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                   NDEF.RTD_URI,
-                                   new Uint8Array(),
-                                   payload2);
+      var rec2 = new MozNDEFRecord({tnf: NDEF.TNF_WELL_KNOWN,
+                                    type: NDEF.RTD_URI,
+                                    payload: payload2});
 
       var result = nfcUtils.encodeNDEF([rec1, rec2]);
       assert.deepEqual(result, ndefMsg);

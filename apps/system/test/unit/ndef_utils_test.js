@@ -125,11 +125,11 @@ suite('NDEFUtils tests', function() {
       };
 
       var makeBTRecord = function(id, mac) {
-        return new MozNDEFRecord(
-          NDEF.TNF_MIME_MEDIA,
-          NDEF.MIME_BLUETOOTH_OOB,
-          new Uint8Array([id]),
-          new Uint8Array([8, 0].concat(mac)));
+        return new MozNDEFRecord({
+          tnf: NDEF.TNF_MIME_MEDIA,
+          type: NDEF.MIME_BLUETOOTH_OOB,
+          id: new Uint8Array([id]),
+          payload: new Uint8Array([8, 0].concat(mac))});
       };
 
       var macs = [
@@ -138,13 +138,12 @@ suite('NDEFUtils tests', function() {
         [0xFF, 0, 0, 0, 0, 0]
       ];
 
-      var hin = [new MozNDEFRecord(
-                    NDEF.TNF_WELL_KNOWN,
-                    NDEF.RTD_HANDOVER_SELECT,
-                    new Uint8Array([]),
-                    new Uint8Array([0x12].concat(
+      var hin = [new MozNDEFRecord({
+                    tnf: NDEF.TNF_WELL_KNOWN,
+                    type: NDEF.RTD_HANDOVER_SELECT,
+                    payload: new Uint8Array([0x12].concat(
                       makeAC(0, 0, 'first'), makeAC(1, 1, 2),
-                      makeAC(2, 2, 'last')))),
+                      makeAC(2, 2, 'last')))}),
                  makeBTRecord(0, macs[0]),
                  makeBTRecord(1, macs[1]),
                  makeBTRecord(2, macs[2])];
@@ -492,7 +491,6 @@ suite('NDEFUtils tests', function() {
       recordsDefault = [{
         tnf: NDEF.TNF_WELL_KNOWN,
         type: new Uint8Array([72, 115]),
-        id: new Uint8Array(),
         payload: new Uint8Array([18, 209, 2, 4, 97, 99, 1, 1, 48, 0])
       }, {
         tnf: NDEF.TNF_MIME_MEDIA,
@@ -509,14 +507,36 @@ suite('NDEFUtils tests', function() {
 
     test('With MAC, CPS and device name', function() {
       var records = NDEFUtils.encodeHandoverSelect(btMac, cps, btName);
-      assert.deepEqual(records, recordsDefault);
+      for (var i = 0; i < records.length; i++) {
+        assert.deepEqual(records[i].tnf, recordsDefault[i].tnf);
+        if (records[i].type) {
+          assert.deepEqual(records[i].type, recordsDefault[i].type);
+        }
+        if (records[i].id) {
+          assert.deepEqual(records[i].id, recordsDefault[i].id);
+        }
+        if (records[i].payload) {
+          assert.deepEqual(records[i].payload, recordsDefault[i].payload);
+        }
+      }
     });
 
     test('With MAC and CPS only', function() {
       recordsDefault[1].payload =
         new Uint8Array([8, 0, 171, 149, 231, 68, 13, 0]);
       var records = NDEFUtils.encodeHandoverSelect(btMac, cps);
-      assert.deepEqual(records, recordsDefault);
+      for (var i = 0; i < records.length; i++) {
+        assert.deepEqual(records[i].tnf, recordsDefault[i].tnf);
+        if (records[i].type) {
+          assert.deepEqual(records[i].type, recordsDefault[i].type);
+        }
+        if (records[i].id) {
+          assert.deepEqual(records[i].id, recordsDefault[i].id);
+        }
+        if (records[i].payload) {
+          assert.deepEqual(records[i].payload, recordsDefault[i].payload);
+        }
+      }
     });
 
     test('Encodes CPS', function() {
