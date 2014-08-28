@@ -249,6 +249,33 @@
     return requireApp.apply(this, args);
   }
 
+window.mochaPromise = function(mochaFn, description, callback) {
+  if (typeof description === 'function') {
+    callback = description;
+    description = null;
+  }
+
+  function execute(done) {
+    var promise;
+    try {
+      promise = callback.call();
+    } catch (error) {
+     return done(error);
+    }
+
+    return promise.then(() => {
+      done();
+    })
+    .catch(done);
+  }
+
+  if (description) {
+    mochaFn(description, execute);
+  } else {
+    mochaFn(execute);
+  }
+};
+
   window.testSupport = testSupport;
   window.requireLib = requireLib;
   window.requireSupport = requireSupport;
@@ -317,6 +344,15 @@
   requireApp('calendar/shared/js/lazy_loader.js');
 
   requireLib('calendar.js');
+  requireLib('log.js');
+  requireLib('ns.js');
+  requireLib('compare.js');
+  requireLib('date_l10n.js');
+  requireLib('next_tick.js');
+  requireLib('object.js');
+  requireLib('pending_manager.js');
+  requireLib('probably_parse_int.js');
+  requireLib('retry.js');
   requireLib('promise.js');
   requireLib('performance.js');
   requireLib('error.js');
