@@ -37,6 +37,10 @@
   display: none;
 }
 
+#screen.utility-tray #statusbar-maximized {
+  display: flex;
+}
+
 body #statusbar {
   transition: transform 0.2s linear;
 }
@@ -59,17 +63,16 @@ body #statusbar {
 }
 
 .statusbar {
-  position: absolute;
   width: 100%;
   height: 3rem;
   margin: 0;
-  top: 0;
-  right: 0;
   padding: 0 0.8rem;
   transition: opacity 0.3s;
   overflow: hidden;
   white-space: nowrap;
   box-sizing: border-box;
+  display: flex;
+  justify-content: flex-end;
 }
 
 #statusbar-minimized {
@@ -78,7 +81,6 @@ body #statusbar {
 }
 
 .statusbar > * {
-  float: right;
   margin: 0.6rem 0.2rem 0.6rem 0.3rem;
 }
 
