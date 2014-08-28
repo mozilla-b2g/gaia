@@ -1,3 +1,4 @@
+boto>=2.32.1
 marionette_client==0.8.2
 mozdevice>=0.34
 moztest>=0.6
