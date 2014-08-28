@@ -555,7 +555,7 @@ class GaiaDevice(object):
         # Reset the storage path for desktop B2G
         self._set_storage_path()
 
-    def wait_for_b2g_ready(self, timeout):
+    def wait_for_b2g_ready(self, timeout=60):
         # Wait for the homescreen to finish loading
         Wait(self.marionette, timeout).until(expected.element_present(
             By.CSS_SELECTOR, '#homescreen[loading-state=false]'))
