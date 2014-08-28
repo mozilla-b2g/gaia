@@ -41,6 +41,11 @@ var AppManager = {
     // This needs to be done for both upgrade and non-upgrade flows.
     notifyCollection();
 
+    UIManager.splashScreen.addEventListener('transitionend', function onEnd() {
+      UIManager.splashScreen.removeEventListener('transitionend', onEnd);
+      UIManager.container.removeAttribute('aria-hidden');
+    });
+
     // if it's an upgrade we can jump to tutorial directly
     if (versionInfo && versionInfo.isUpgrade()) {
       var stepsKey = versionInfo.delta();

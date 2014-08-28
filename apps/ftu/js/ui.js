@@ -14,6 +14,7 @@ var UIManager = {
   // eg. instead of calling document.getElementById('splash-screen')
   // we can access this.splashScreen in our code.
   domSelectors: [
+    'container',
     'splash-screen',
     'activation-screen',
     'finish-screen',
