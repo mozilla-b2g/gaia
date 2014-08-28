@@ -2,11 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import hashlib
+import os
 import socket
 import time
 from urlparse import urljoin, urlparse
 import uuid
 
+import boto
 import mozversion
 import requests
 from thclient import TreeherderRequest, TreeherderJobCollection
@@ -166,11 +169,47 @@ class TreeherderTestRunnerMixin(object):
                 'content_type': 'link',
                 'title': 'CI build:'})
 
+        artifacts = [self.html_output, self.xml_output]
+        if any(artifacts):
+            required_envs = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY']
+            upload_artifacts = all([os.environ.get(v) for v in required_envs])
+
+            if upload_artifacts:
+                conn = boto.connect_s3()
+                bucket = conn.create_bucket(
+                    os.environ.get('S3_UPLOAD_BUCKET', 'gaiatest'))
+                bucket.set_acl('public-read')
+
+                for artifact in artifacts:
+                    if artifact and os.path.exists(artifact):
+                        h = hashlib.sha512()
+                        with open(artifact, 'rb') as f:
+                            for chunk in iter(lambda: f.read(1024 ** 2), b''):
+                                h.update(chunk)
+                        _key = h.hexdigest()
+                        key = bucket.get_key(_key)
+                        if not key:
+                            key = bucket.new_key(_key)
+                        key.set_contents_from_filename(artifact)
+                        key.set_acl('public-read')
+                        blob_url = key.generate_url(expires_in=0,
+                                                    query_auth=False)
+                        job_details.append({
+                            'url': blob_url,
+                            'value': artifact,
+                            'content_type': 'link',
+                            'title': 'Artifact:'})
+                        self.logger.info('Artifact %s uploaded to: %s' % (
+                            artifact, blob_url))
+            else:
+                self.logger.info(
+                    'Artifacts will not be included with the report. Please '
+                    'set the following environment variables to enable '
+                    'uploading of artifacts: %s' % ', '.join([
+                        v for v in required_envs if not os.environ.get(v)]))
+
         if job_details:
             job.add_artifact('Job Info', 'json', {'job_details': job_details})
-
-        # TODO: Add XML/HTML reports as artifacts
-        # job.add_artifact()
 
         job_collection.add(job)
 
