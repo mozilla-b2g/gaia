@@ -32,6 +32,7 @@ suite('system/AppWindowManager', function() {
   var stubById;
   var app1, app2, app3, app4, app5, app6, app7, home;
   setup(function(done) {
+    this.sinon.useFakeTimers();
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
 
@@ -391,6 +392,7 @@ suite('system/AppWindowManager', function() {
       var stubLaunch =
         this.sinon.stub(AppWindowManager, 'launch');
 
+      AppWindowManager._launchingApp = false;
       AppWindowManager.handleEvent(
         { type: 'launchapp', detail: fakeAppConfig1 });
       assert.isTrue(stubLaunch.calledWith(fakeAppConfig1));
@@ -773,5 +775,21 @@ suite('system/AppWindowManager', function() {
     injectRunningApps(app1, app2, app3, app4);
     assert.deepEqual(AppWindowManager.getApp('app://www.fake2'), app2);
     assert.isNull(AppWindowManager.getApp('app://no-this-origin'));
+  });
+
+  test('launching app request', function() {
+    injectRunningApps(app1, app2);
+    AppWindowManager._activeApp = app2;
+    this.sinon.stub(app2, 'isTransitioning').returns(false);
+
+    var spyReady = this.sinon.spy(app1, 'ready');
+    AppWindowManager.handleEvent(new CustomEvent('launchapp', {
+      detail: fakeAppConfig1
+    }));
+    assert.isTrue(AppWindowManager.isBusyLaunching());
+    spyReady.yield();
+    assert.isTrue(AppWindowManager.isBusyLaunching());
+    this.sinon.clock.tick(AppWindowManager.LAUNCHING_APP_TIMEOUT);
+    assert.isFalse(AppWindowManager.isBusyLaunching());
   });
 });

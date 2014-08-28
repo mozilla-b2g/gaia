@@ -1,10 +1,11 @@
 /* globals MocksHelper, MockLockScreen, VisibilityManager,
-           MockAttentionScreen */
+           MockAttentionScreen, MockRocketbar */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_attention_screen.js');
+requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 
 var mocksForVisibilityManager = new MocksHelper([
@@ -17,6 +18,7 @@ suite('system/VisibilityManager', function() {
   mocksForVisibilityManager.attachTestHelpers();
   setup(function(done) {
     window.lockScreen = MockLockScreen;
+    window.rocketbar = new MockRocketbar();
     this.sinon.useFakeTimers();
 
     stubById = this.sinon.stub(document, 'getElementById');
@@ -33,6 +35,45 @@ suite('system/VisibilityManager', function() {
   });
 
   suite('handle events', function() {
+    test('searchopened', function() {
+      visibilityManager._normalAudioChannelActive = false;
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'searchopened'
+      });
+
+      assert.isTrue(stubPublish.calledOnce);
+      assert.equal(stubPublish.getCall(0).args[0], 'hidewindow');
+
+      visibilityManager._normalAudioChannelActive = true;
+      visibilityManager.handleEvent({
+        type: 'searchopened'
+      });
+
+      assert.isTrue(stubPublish.calledOnce);
+
+      visibilityManager._normalAudioChannelActive = false;
+    });
+
+    test('searchclosed', function() {
+      MockAttentionScreen.mFullyVisible = false;
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+
+      visibilityManager.handleEvent({
+        type: 'searchclosed'
+      });
+
+      assert.isTrue(stubPublish.calledOnce);
+      assert.isTrue(stubPublish.getCall(0).args[0] === 'showwindow');
+
+      MockAttentionScreen.mFullyVisible = true;
+      visibilityManager.handleEvent({
+        type: 'searchclosed'
+      });
+
+      assert.isTrue(stubPublish.calledOnce);
+    });
+
     test('lock', function() {
       visibilityManager._normalAudioChannelActive = false;
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
