@@ -294,7 +294,6 @@ Focus.prototype.isFaceDetectionSupported = function() {
 
 Focus.prototype.updateFocusArea = function(rect, done) {
   done = done || function() {};
-  var self = this;
   if (!this.touchFocus) {
     done('touchToFocusNotAvailable');
     return;

@@ -644,13 +644,13 @@ Camera.prototype.setFlashMode = function(key) {
  * restore the original state.
  */
 Camera.prototype.suspendFlashMode = function() {
-  if (this.suspendedFlashCount == 0) {
+  if (this.suspendedFlashCount === 0) {
     this.suspendedFlashMode = this.mozCamera.flashMode;
     this.mozCamera.flashMode = 'off';
     debug('flash mode suspended');
   }
   ++this.suspendedFlashCount;
-}
+};
 
 /**
  * Restores flash mode to its
@@ -661,12 +661,12 @@ Camera.prototype.suspendFlashMode = function() {
  */
 Camera.prototype.restoreFlashMode = function() {
   --this.suspendedFlashCount;
-  if (this.suspendedFlashCount == 0) {
+  if (this.suspendedFlashCount === 0) {
     this.mozCamera.flashMode = this.suspendedFlashMode;
     debug('flash mode restored: %s', this.suspendedFlashMode);
     this.suspendedFlashMode = null;
   }
-}
+};
 
 /**
  * Releases the camera hardware.
