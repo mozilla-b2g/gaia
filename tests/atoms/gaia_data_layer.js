@@ -94,6 +94,24 @@ var GaiaDataLayer = {
     };
   },
 
+  insertSIMContact: function(aType, aContact) {
+    var contact = new mozContact(aContact);
+
+    // Get 1st SIM
+    var iccId = window.navigator.mozIccManager.iccIds[0];
+    var icc = window.navigator.mozIccManager.getIccById(iccId);
+
+    var req = icc.updateContact(aType, aContact);
+    req.onsuccess = function() {
+      console.log('success saving contact to SIM');
+      marionetteScriptFinished(true);
+    };
+    req.onerror = function() {
+      console.error('error saving contact to SIM', req.error.name);
+      marionetteScriptFinished(false);
+    };
+  },
+
   getAllContacts: function(aCallback) {
     var callback = aCallback || marionetteScriptFinished;
     SpecialPowers.addPermission('contacts-read', true, document);
