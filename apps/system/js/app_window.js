@@ -1311,10 +1311,25 @@
       return this._fullScreen;
     }
     // Fullscreen
-    this._fullScreen = this.manifest &&
-      ('fullscreen' in this.manifest ? this.manifest.fullscreen : false);
-
+    this._fullScreen = (this.manifest &&
+      ('fullscreen' in this.manifest ? this.manifest.fullscreen : false)) ||
+      this.isFullScreenLayout();
     return this._fullScreen;
+  };
+
+  /**
+   * Detect whether this app is resized 100% width and height by its manifest.
+   * @return {Boolean} We're a fullscreen_layout app or not.
+   */
+  AppWindow.prototype.isFullScreenLayout = function aw_isFullScreenLayout() {
+    if (typeof(this._fullScreenLayout) !== 'undefined') {
+      return this._fullScreenLayout;
+    }
+    // Fullscreen
+    this._fullScreenLayout = this.manifest &&
+      ('fullscreen_layout' in this.manifest ? this.manifest.fullscreen_layout :
+        false);
+    return this._fullScreenLayout;
   };
 
   AppWindow.prototype._defaultOrientation = null;

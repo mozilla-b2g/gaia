@@ -83,24 +83,32 @@
   }
 }
 
+#screen.fullscreen-layout-app #windows > .appWindow {
+  height: 100%;
+}
+
+#screen.fullscreen-layout-app.active-statusbar #windows > .appWindow {
+  height: calc(100% - 4rem);
+}
+
 @media (orientation: landscape) {
-  #screen.software-button-enabled #windows > .appWindow {
+  #screen.software-button-enabled:not(.fullscreen-layout-app) #windows > .appWindow {
     height: 100%;
     width: calc(100% - 5rem);
   }
 
-  #screen.software-button-enabled.active-statusbar #windows > .appWindow {
+  #screen.software-button-enabled.active-statusbar:not(.fullscreen-layout-app) #windows > .appWindow {
     height: calc(100% - 4rem);
     width: calc(100% - 5rem);
   }
 
   @media not all and (-moz-physical-home-button) {
-    #screen:not(.software-button-disabled) #windows > .appWindow {
+    #screen:not(.software-button-disabled):not(.fullscreen-layout-app) #windows > .appWindow {
       height: 100%;
       width: calc(100% - 5rem);
     }
 
-    #screen:not(.software-button-disabled).active-statusbar #windows > .appWindow {
+    #screen:not(.software-button-disabled).active-statusbar:not(.fullscreen-layout-app) #windows > .appWindow {
       height: calc(100% - 4rem);
       width: calc(100% - 5rem);
     }

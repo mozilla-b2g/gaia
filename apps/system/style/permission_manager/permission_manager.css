@@ -10,6 +10,16 @@
   display: none;
 }
 
+#screen.fullscreen-layout-app.software-button-enabled #permission-screen {
+  height: calc(100% - 5rem);
+}
+
+@media (orientation: landscape) {
+  #screen.fullscreen-layout-app.software-button-enabled #permission-screen {
+    height: 100%;
+  }
+}
+
 #screen:-moz-full-screen-ancestor > #permission-screen,
 #screen.fullscreen-app #permission-screen,
 #screen.lockscreen-camera #permission-screen {

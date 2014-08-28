@@ -264,6 +264,7 @@
         this.createWindow();
       } else {
         this.states.instance.open();
+        this.states.instance.resize();
       }
       this.elements.screen.classList.add('locked');
       this.states.active = true;

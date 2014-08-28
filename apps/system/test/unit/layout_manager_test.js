@@ -1,20 +1,24 @@
 /* global MocksHelper, LayoutManager, MockKeyboardManager,
           MockAttentionScreen, MocksoftwareButtonManager, MockLockScreen,
-          MockStatusBar */
+          MockStatusBar, MockAppWindowManager, MockSystem */
 'use strict';
 
+require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/js/layout_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_statusbar.js');
 
 var mocksForLayoutManager = new MocksHelper([
+  'AppWindowManager',
   'AttentionScreen',
   'KeyboardManager',
   'softwareButtonManager',
-  'LockScreen'
+  'LockScreen',
+  'System'
 ]).init();
 
 suite('system/LayoutManager >', function() {
@@ -22,6 +26,11 @@ suite('system/LayoutManager >', function() {
 
   var layoutManager;
   setup(function() {
+    MockAppWindowManager.mActiveApp = {
+      isFullScreenLayout: function() {
+        return false;
+      }
+    };
     window.lockScreen = MockLockScreen;
     layoutManager = new LayoutManager();
     layoutManager.start();
@@ -132,6 +141,8 @@ suite('system/LayoutManager >', function() {
         configurable: true,
         get: function() { return realIH; }
       });
+
+      MockSystem.locked = false;
     });
 
     test('should take into account statusbar, keyboard and home button',
@@ -145,6 +156,48 @@ suite('system/LayoutManager >', function() {
       assert.equal(layoutManager.clientWidth, _w);
       assert.isTrue(layoutManager.match(W, H - 100 - 30 - 50));
     });
+
+    test('should take into account statusbar, keyboard and home button with' +
+         'full screen layout',
+      function() {
+        this.sinon.stub(MockAppWindowManager.mActiveApp, 'isFullScreenLayout')
+          .returns(true);
+        var _w = document.documentElement.clientWidth;
+        MockKeyboardManager.mHeight = 100;
+        MocksoftwareButtonManager.height = 50;
+        layoutManager.keyboardEnabled = true;
+        assert.equal(layoutManager.height, H - 100 - 30);
+        assert.equal(layoutManager.width, W);
+        assert.equal(layoutManager.clientWidth, _w);
+        assert.isTrue(layoutManager.match(W, H - 100 - 30));
+      });
+
+    test('should take into account statusbar, keyboard and home button with' +
+         'full screen layout',
+      function() {
+        this.sinon.stub(MockAppWindowManager.mActiveApp, 'isFullScreenLayout')
+          .returns(true);
+        var _w = document.documentElement.clientWidth;
+        MockKeyboardManager.mHeight = 100;
+        MocksoftwareButtonManager.height = 50;
+        layoutManager.keyboardEnabled = true;
+        assert.equal(layoutManager.height, H - 100 - 30);
+        assert.equal(layoutManager.width, W);
+        assert.equal(layoutManager.clientWidth, _w);
+        assert.isTrue(layoutManager.match(W, H - 100 - 30));
+      });
+
+    test('should take into account statusbar, keyboard and home button with' +
+         'full screen layout, but screen is locked',
+      function() {
+        MockSystem.locked = true;
+        this.sinon.stub(MockAppWindowManager.mActiveApp, 'isFullScreenLayout')
+          .returns(true);
+        MockKeyboardManager.mHeight = 100;
+        MocksoftwareButtonManager.height = 50;
+        layoutManager.keyboardEnabled = true;
+        assert.equal(layoutManager.height, H - 100 - 30 - 50);
+      });
 
     test('should return integral values in device pixels', function() {
       stubDPX = 1.5;

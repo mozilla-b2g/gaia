@@ -589,7 +589,7 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubKill.called);
     });
   });
-
+ 
   suite('updateActiveApp()', function() {
     test('update', function() {
       injectRunningApps(app1, app2, app3, app4);
