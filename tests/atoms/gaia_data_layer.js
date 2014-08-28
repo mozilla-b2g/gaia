@@ -193,6 +193,7 @@ var GaiaDataLayer = {
   getSetting: function(aName, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
     SpecialPowers.addPermission('settings-read', true, document);
+    SpecialPowers.addPermission('settings-api-read', true, document);
     var req = window.navigator.mozSettings.createLock().get(aName);
     req.onsuccess = function() {
       console.log('setting retrieved');
@@ -205,7 +206,8 @@ var GaiaDataLayer = {
   },
 
   setSetting: function(aName, aValue, aReturnOnSuccess) {
-    SpecialPowers.addPermission('settings-readwrite', true, document);
+    SpecialPowers.addPermission('settings-write', true, document);
+    SpecialPowers.addPermission('settings-api-write', true, document);
     var returnOnSuccess = aReturnOnSuccess || aReturnOnSuccess === undefined;
     var setting = {};
     setting[aName] = aValue;
