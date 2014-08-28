@@ -517,7 +517,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"browser-foward"
+					"browser-forward"
 				]
 			},
 			"properties": {
@@ -525,7 +525,7 @@
 				"id": 219,
 				"prevSize": 32,
 				"code": 58904,
-				"name": "browser-foward",
+				"name": "browser-forward",
 				"ligatures": ""
 			},
 			"setIdx": 0,
