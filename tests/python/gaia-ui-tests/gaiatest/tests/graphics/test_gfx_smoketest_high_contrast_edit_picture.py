@@ -5,12 +5,13 @@
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from gaiatest.tests.graphics.edit_picture_base import GalleryEditPhotoBase
 
-class TestGalleryEditPhoto(GalleryEditPhotoBase):
+class TestGalleryEditPhotoHC(GalleryEditPhotoBase):
 
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
 
-    def test_gallery_edit_photo(self):
+    def test_gallery_edit_photo_high_contrast(self):
+        self.contrast("0.7")
         self.gallery_edit_photo()
 
     def tearDown(self):

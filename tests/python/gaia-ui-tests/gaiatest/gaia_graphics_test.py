@@ -230,6 +230,20 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
             fullpath = src + "/" + f
             os.system("mv" + " " + fullpath + " " + dst)
 
+    #screen configuration methods
+    # invert the screen when value=True
+    def invert(self,value):
+            self.data_layer.set_bool_pref('layers.effect.invert', value)
+
+    # set screen to grayscale mode when value=True
+    def grayscale(self,value):
+        self.data_layer.set_bool_pref('layers.effect.grayscale', value)
+
+    # adjust contrast value of screen.  0 is standard, negative values are of lower contrast, and positive values
+    # increase contrast. clips around -1.0 and 1.0
+    def contrast(self,value):
+        self.data_layer.set_char_pref('layers.effect.contrast', value)
+
     #UI action methods
 
     #scroll - works for gallery and Browser.  Consists of multiple micro-actions, like flick method.

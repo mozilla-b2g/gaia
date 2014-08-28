@@ -5,13 +5,15 @@
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 from gaiatest.tests.graphics.orientation_zoom_base import OrientationZoomBase
 
-class TestGfxSmokeTestOZ(OrientationZoomBase):
+class TestGfxSmokeTestOZColorInvert(OrientationZoomBase):
 
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
         self.data_layer.connect_to_wifi()
 
-    def test_gfx_smoke_test_oz(self):
+    def test_gfx_smoke_test_oz_grayscale(self):
+
+        self.invert(True)
         self.orientation_zoom_check()
 
     def tearDown(self):
