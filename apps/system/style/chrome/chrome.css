@@ -21,13 +21,14 @@
   transform: scaleY(1) translateY(0);
 }
 
-.appWindow:not(.bar).fullscreen-app > .chrome {
+.appWindow.fullscreen-app:not(.bar) > .chrome:not(.maximized) {
   height: 3rem;
   top: 0;
 }
 
 .appWindow:not(.bar).fullscreen-app > .chrome.maximized {
   top: 0;
+  transform: scaleY(1) translateY(-7.6rem);
 }
 
 .controls {
@@ -72,6 +73,7 @@
   display: none;
 }
 
+.appWindow.fullscreen-app:not(.browser) .chrome .controls .urlbar,
 .appWindow:not(.browser) .chrome .controls .urlbar {
   width: calc(100% - 1rem);
 }
@@ -186,7 +188,7 @@
   transition: transform 0.2s ease-in-out;
 }
 
-.appWindow.fullscreen-app .controls .urlbar {
+.appWindow.fullscreen-app .chrome:not(.maximized) .controls .urlbar {
   transform: scale(0.6521) translateY(0.2rem);
   transform-origin: bottom left;
 }
@@ -489,14 +491,14 @@
 }
 
 /* App specifics */
-.appWindow:not(.scrollable) > .chrome .controls button {
+.appWindow:not(.scrollable) > .chrome:not(.maximized) .controls button {
   display: none;
 }
 
-.appWindow:not(.scrollable) > .chrome .controls .forward-button:not([disabled]) + .urlbar,
-.appWindow:not(.scrollable) > .chrome .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
-.appWindow:not(.scrollable) > .chrome .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar,
-.appWindow:not(.scrollable) > .chrome .controls .urlbar {
+.appWindow:not(.scrollable) > .chrome:not(.maximized) .controls .forward-button:not([disabled]) + .urlbar,
+.appWindow:not(.scrollable) > .chrome:not(.maximized) .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
+.appWindow:not(.scrollable) > .chrome:not(.maximized) .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar,
+.appWindow:not(.scrollable) > .chrome:not(.maximized) .controls .urlbar {
   width: calc(100% - 8rem);
 }
 
