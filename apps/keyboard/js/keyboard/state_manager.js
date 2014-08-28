@@ -10,6 +10,12 @@ var StateManager = function(app) {
   this._layoutName = undefined;
 };
 
+// Don't switch away IMEngine right away since the transition won't
+// start until then, and we need to keep the keyboard responsive to user
+// touch when visible.
+// (This number corresponds to BLUR_CHANGE_DELAY in input management.)
+StateManager.prototype.DEACTIVATE_DELAY = 120;
+
 StateManager.prototype.start = function() {
   // Start with inactive state.
   this._isActive = false;
@@ -75,6 +81,13 @@ StateManager.prototype._updateActiveState = function(active) {
     // since eventually IMEngine will be switched.
     this.app.inputMethodManager.updateInputContextData();
 
+    // Before switching away, clean up anything pending in the previous
+    // active layout.
+    // We however don't clear active target here because the user might
+    // want to input continuously between two layouts.
+    this.app.candidatePanelManager.hideFullPanel();
+    this.app.candidatePanelManager.updateCandidates([]);
+
     // Perform the following async actions with a promise chain.
     // Switch the layout,
     this.app.layoutManager.switchCurrentLayout(this._layoutName)
@@ -97,29 +110,53 @@ StateManager.prototype._updateActiveState = function(active) {
     this.app.settingsPromiseManager.set({
       'keyboard.current': undefined
     });
-    // Finish off anything pending except removing the rendering --
-    // input management need it for transition.
-    this.app.candidatePanelManager.hideFullPanel();
-    this.app.candidatePanelManager.updateCandidates([]);
-    this.app.targetHandlersManager.activeTargetsManager.clearAllTargets();
-    this.app.inputMethodManager.switchCurrentIMEngine('default')
-    // ... make sure error is not silently ignored.
-    .catch(function(e) { (e !== undefined) && console.error(e); });
+
+    var imManager = this.app.inputMethodManager;
+
+    // Finish off anything pending except removing the rendering after a delay
+    // -- input management need it for transition.
+    this._delayDeactivate()
+      // ... cancel everything
+      .then(function() {
+        this.app.candidatePanelManager.hideFullPanel();
+        this.app.candidatePanelManager.updateCandidates([]);
+        this.app.targetHandlersManager.activeTargetsManager.clearAllTargets();
+      }.bind(this))
+      // ... switch away IMEngine
+      .then(imManager.switchCurrentIMEngine.bind(imManager, 'default'))
+      // ... make sure error is not silently ignored.
+      .catch(function(e) { (e !== undefined) && console.error(e); });
   }
 
   this._isActive = active;
 };
 
+StateManager.prototype._delayDeactivate = function() {
+  var p = new Promise(function(resolve, reject) {
+    setTimeout(function() {
+      // If state has switched to active, do not deactivate the keyboard.
+      if (this._isActive) {
+        console.warn('StateManager: Reactivated before DEACTIVATE_DELAY.');
+        reject();
+      }
+
+      resolve();
+    }.bind(this), this.DEACTIVATE_DELAY);
+  }.bind(this));
+
+  return p;
+};
+
 StateManager.prototype._preloadLayout = function() {
   var layoutLoader = this.app.layoutManager.loader;
   var p = layoutLoader.getLayoutAsync(this._layoutName).then(function(layout) {
-      var imEngineName = layout.imEngine;
-      var imEngineLoader = this.app.inputMethodManager.loader;
-      // Ask the loader to start loading IMEngine
-      if (imEngineName) {
-        var p = imEngineLoader.getInputMethodAsync(imEngineName);
-        return p;
-      }
+    var imEngineName = layout.imEngine;
+    var imEngineLoader = this.app.inputMethodManager.loader;
+    // Ask the loader to start loading IMEngine
+    if (imEngineName) {
+      var p = imEngineLoader.getInputMethodAsync(imEngineName);
+      return p;
+    }
   }.bind(this)).catch(function(e) {
     if (e !== undefined) {
       console.error(e);
@@ -157,11 +194,6 @@ StateManager.prototype._updateLayoutRendering = function() {
     return Promise.reject();
   }
   this.app.perfTimer.startTimer('_updateLayoutRendering');
-
-  // Clean up anything pending in the previous active layout.
-  this.app.candidatePanelManager.hideFullPanel();
-  this.app.candidatePanelManager.updateCandidates([]);
-  this.app.targetHandlersManager.activeTargetsManager.clearAllTargets();
 
   // everything.me uses this setting to improve searches,
   // but they really shouldn't.
