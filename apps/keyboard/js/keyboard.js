@@ -250,9 +250,6 @@ const SPECIAL_SOUND = './resources/sounds/special.ogg';
 var clicker;
 var specialClicker;
 
-// A MutationObserver we use to spy on the renderer module
-var dimensionsObserver;
-
 // A map of event names to event handlers.
 // We register these handlers on the keyboard renderer element
 var eventHandlers = {
@@ -364,16 +361,6 @@ function initKeyboard() {
     tipButton.addEventListener(evtName, function inActiveHandler(evt) {
       tipButton.classList.remove('active');
     });
-  });
-
-  dimensionsObserver = new MutationObserver(function() {
-    updateTargetWindowHeight();
-  });
-
-  // And observe mutation events on the renderer element
-  dimensionsObserver.observe(IMERender.ime, {
-    childList: true, // to detect changes in IMEngine
-    attributes: true, attributeFilter: ['class', 'style', 'data-hidden']
   });
 
   window.addEventListener('hashchange', function() {
@@ -775,6 +762,8 @@ function renderKeyboard(keyboardName, callback) {
       updateLayoutParams();
 
       IMERender.showCandidates(currentCandidates);
+
+      updateTargetWindowHeight();
       endTime('BLOCKING (nextTick) renderKeyboard');
     });
 
