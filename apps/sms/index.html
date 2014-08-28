@@ -152,7 +152,8 @@
             only scroll far enough to bring the cursor into view). A container
             element is necessary to consistently render this vertical space
             (instead realized with CSS `margin-bottom`). -->
-            <div id="messages-recipients-list-container" class="bb-editable">
+            <div id="messages-recipients-list-container" class="bb-editable"
+                 role="group" aria-labelledby="to-label">
               <section id="messages-recipients-list" class="singleline">
               </section>
             </div>
@@ -277,7 +278,7 @@
           </menu>
         </form>
         <section id="messages-recipient-suggestions" class="article-list hide" data-type="list">
-          <ul class="contact-list"></ul>
+          <ul class="contact-list" role="listbox"></ul>
         </section>
       </section>
     </article>
@@ -313,8 +314,8 @@
 
     <div id="contact-suggestion-tmpl" class="hide">
       <!--
-      <li>
-        <a class="suggestion"
+      <li role="presentation">
+        <a class="suggestion" role="option"
           data-number="${number}" data-source="contacts" data-name="${name}"
           data-type="${type}" data-carrier="${carrier}">
           ${photoHTML}
@@ -327,8 +328,8 @@
 
     <div id="contact-suggestion-unknown-tmpl" class="hide">
     <!--
-    <li>
-      <a class="suggestion"
+    <li role="presentation">
+      <a class="suggestion" role="option"
         data-number="${number}" data-source="contacts" data-name="${name}"
         data-type="${type}" data-carrier="${carrier}">
         ${photoHTML}
@@ -483,7 +484,7 @@
     <div id="messages-recipient-tmpl" class="hide">
       <!--
       <span class="${className}" x-inputmode="verbatim"
-        contenteditable="${editable}"
+        contenteditable="${editable}" role="${role}"
         data-number="${number}" data-source="${source}" data-name="${name}"
         data-carrier="${carrier}" data-type="${type}">
         ${name}
