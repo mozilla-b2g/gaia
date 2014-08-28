@@ -19,9 +19,7 @@
   exports.MockCollectionsDatabase = {
 
     getAllCategories: function() {
-      return new Promise(function doGet(resolve, reject) {
-        resolve(installed);
-      });
+      return Promise.resolve(installed);
     }
 
   };
