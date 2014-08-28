@@ -109,6 +109,7 @@ suite('launch ftu >', function() {
 
     test(' upgrade tutorial launched', function(done) {
       function onOutcome(name) {
+        assert.isTrue(FtuLauncher.isFtuUpgrading());
         assert.equal(name, 'launch', 'FtuLauncher.launch was called');
         done();
       }
