@@ -74,12 +74,9 @@ suite('create', function() {
     this.sinon.stub(mockEme.api.Categories, 'list')
       .returns(Promise.reject('network error'));
 
-    navigator.mozSetMessageHandler.mTrigger('activity', activity);
-
-    setTimeout(() => {
+    window.HandleCreate(activity).then(() => {
       assert.isTrue(alertStub.calledOnce);
       done();
-    }, 10);
-
+    });
   });
 });

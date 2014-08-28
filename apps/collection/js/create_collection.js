@@ -128,40 +128,43 @@
         });
     }
 
-    CollectionsDatabase.getAllCategories()
-    .then(function doRequest(installed) {
-      request = eme.api.Categories.list().then(
-        function success(response) {
-          loading.style.display = 'none';
+    var handlerPromise =
+      CollectionsDatabase.getAllCategories()
+      .then(function doRequest(installed) {
+        request = eme.api.Categories.list().then(
+          function success(response) {
+            loading.style.display = 'none';
 
-          var data = response.response;
-          var categories = data.categories.filter(function filter(category) {
-            return installed.indexOf(category.categoryId) === -1;
-          });
+            var data = response.response;
+            var categories = data.categories.filter(function filter(category) {
+              return installed.indexOf(category.categoryId) === -1;
+            });
 
-          Suggestions.load(categories)
-          .then(selected => {
-            createCollections(selected, data);
-          }, reason => {
-            eme.log('rejected with', reason);
+            Suggestions.load(categories)
+              .then(selected => {
+                createCollections(selected, data);
+              }, reason => {
+                eme.log('rejected with', reason);
+                activity.postResult(false);
+              });
+
+          }, function error(reason) {
+            eme.log('create-collection: error', reason);
+
+            if (reason === 'network error') {
+              alert(navigator.mozL10n.get('network-error-message'));
+            }
+
             activity.postResult(false);
-          });
 
-      }, function error(reason) {
-        eme.log('create-collection: error', reason);
+          }).catch(function fail(ex) {
+          eme.log('create-collection: failed', ex);
+          activity.postResult(false);
+        });
 
-        if (reason === 'network error') {
-          alert(navigator.mozL10n.get('network-error-message'));
-        }
+        return request;
 
-        activity.postResult(false);
-
-      }).catch(function fail(ex) {
-        eme.log('create-collection: failed', ex);
-        activity.postResult(false);
-      });
-
-    }, activity.postResult.bind(null, false));
+      }, activity.postResult.bind(null, false));
 
     cancel.addEventListener('click', function() {
       // TODO request should always have an 'abort' method
@@ -173,6 +176,8 @@
     });
 
     document.body.dataset.testReady = true;
+
+    return handlerPromise;
   }
 
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {
