@@ -10,6 +10,7 @@ from gaiatest.apps.phone.app import Phone
 class CallScreen(Phone):
 
     _call_screen_locator = (By.CSS_SELECTOR, "iframe[name='call_screen']")
+    _call_options_locator = (By.ID, 'call-options')
     _calling_contact_locator = (By.CSS_SELECTOR, 'div.number')
     _calling_contact_information_locator = (By.CSS_SELECTOR, 'div.additionalContactInfo')
     _outgoing_call_locator = (By.CSS_SELECTOR, '.handled-call.outgoing')
@@ -21,6 +22,8 @@ class CallScreen(Phone):
     _views_locator = (By.ID, 'views')
     _incoming_container_locator = (By.ID, 'incoming-container')
     _hangup_button_locator = (By.CSS_SELECTOR, '.handled-call .hangup-button')
+    _keypad_hangup_button_locator = (By.ID, 'keypad-hidebar-hang-up-action-wrapper')
+    _keypad_visibility_button_locator = (By.ID, 'keypad-visibility')
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
@@ -64,6 +67,9 @@ class CallScreen(Phone):
     def a11y_click_hang_up(self):
         self.accessibility.click(self.marionette.find_element(*self._hangup_bar_locator))
 
+    def a11y_click_keypad_hang_up(self):
+        self.accessibility.click(self.marionette.find_element(*self._keypad_hangup_button_locator))
+
     def hang_up(self):
         self.marionette.find_element(*self._hangup_bar_locator).tap()
         self.marionette.switch_to_frame()
@@ -71,6 +77,11 @@ class CallScreen(Phone):
 
     def a11y_hang_up(self):
         self.a11y_click_hang_up()
+        self.marionette.switch_to_frame()
+        self.wait_for_element_not_displayed(*self._call_screen_locator)
+
+    def a11y_keypad_hang_up(self):
+        self.a11y_click_keypad_hang_up()
         self.marionette.switch_to_frame()
         self.wait_for_element_not_displayed(*self._call_screen_locator)
 
@@ -93,3 +104,7 @@ class CallScreen(Phone):
         self.wait_for_element_displayed(*self._lockscreen_handle_locator)
         self._handle_incoming_call('reject')
         self.marionette.switch_to_frame()
+
+    def a11y_click_keypad_visibility_button(self):
+        self.accessibility.click(self.marionette.find_element(
+            *self._keypad_visibility_button_locator))
