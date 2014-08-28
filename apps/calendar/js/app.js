@@ -4,8 +4,17 @@ Calendar.App = (function() {
 /**
  * Module dependencies
  */
+var Controllers = Calendar.Controllers;
 var DateL10n = Calendar.dateL10n;
+var Db = Calendar.Db;
+var LoadConfig = Calendar.LoadConfig;
 var PendingManager = Calendar.PendingManager;
+var Performance = Calendar.performance;
+var Provider = Calendar.Provider;
+var Router = Calendar.Router;
+/*var Views = Calendar.Views*;*/
+var dayObserver = Calendar.dayObserver;
+var nextTick = Calendar.nextTick;
 
 /**
  * Focal point for state management
@@ -47,21 +56,21 @@ var App = {
     var self = this;
     this._pendingManager.oncomplete = function onpending() {
       document.body.classList.remove(self.pendingClass);
-      Calendar.Performance.pendingReady();
+      Performance.pendingReady();
     };
 
     this._pendingManager.onpending = function oncomplete() {
       document.body.classList.add(self.pendingClass);
     };
 
-    this.timeController = new Calendar.Controllers.Time(this);
-    this.syncController = new Calendar.Controllers.Sync(this);
-    this.serviceController = new Calendar.Controllers.Service(this);
-    this.alarmController = new Calendar.Controllers.Alarm(this);
-    this.errorController = new Calendar.Controllers.Error(this);
+    this.timeController = new Controllers.Time(this);
+    this.syncController = new Controllers.Sync(this);
+    this.serviceController = new Controllers.Service(this);
+    this.alarmController = new Controllers.Alarm(this);
+    this.errorController = new Controllers.Error(this);
 
-    Calendar.dayObserver.timeController = this.timeController;
-    Calendar.dayObserver.calendarStore = this.store('Calendar');
+    dayObserver.timeController = this.timeController;
+    dayObserver.calendarStore = this.store('Calendar');
 
     // observe sync events
     this.observePendingObject(this.syncController);
@@ -93,10 +102,10 @@ var App = {
    */
   observeDateLocalization: function() {
     window.addEventListener('localized', DateL10n.localizeElements);
-    window.addEventListener('timeformatchange', function() {
+    window.addEventListener('timeformatchange', () => {
       this.setCurrentTimeFormat();
       DateL10n.changeElementsHourFormat();
-    }.bind(this));
+    });
   },
 
   setCurrentTimeFormat: function() {
@@ -144,8 +153,8 @@ var App = {
 
     function next() {
       // initialize loader
-      NotAmd.nextTick = Calendar.nextTick;
-      self._loader = NotAmd(Calendar.LoadConfig);
+      NotAmd.nextTick = nextTick;
+      self._loader = NotAmd(LoadConfig);
       self.loadObject = loadObject;
 
       // begin processing existing requests
@@ -224,7 +233,7 @@ var App = {
     // at this point the tabs should be interactive and the router ready to
     // handle the path changes (meaning the user can start interacting with
     // the app)
-    Calendar.Performance.chromeInteractive();
+    Performance.chromeInteractive();
 
     var pathname = window.location.pathname;
     // default view
@@ -235,7 +244,6 @@ var App = {
   },
 
   _init: function() {
-    var self = this;
     // quick hack for today button
     var tablist = document.querySelector('#view-selector');
     var today = tablist.querySelector('.today a');
@@ -243,16 +251,16 @@ var App = {
 
     this._showTodayDate();
     this._syncTodayDate();
-    today.addEventListener('click', function(e) {
+    today.addEventListener('click', (e) => {
       var date = new Date();
-      self.timeController.move(date);
-      self.timeController.selectedDay = date;
+      this.timeController.move(date);
+      this.timeController.selectedDay = date;
 
       e.preventDefault();
     });
 
     // Handle aria-selected attribute for tabs.
-    tablist.addEventListener('click', function(event) {
+    tablist.addEventListener('click', (event) => {
       if (event.target !== today) {
         AccessibilityHelper.setAriaSelected(event.target, tabs);
       }
@@ -272,47 +280,34 @@ var App = {
 
     this.timeController.move(new Date());
 
-    this.view('TimeHeader', function(header) {
-      header.render();
-    });
-
-    this.view('CalendarColors', function(colors) {
-      colors.render();
-    });
+    this.view('TimeHeader', (header) => header.render());
+    this.view('CalendarColors', (colors) => color.render());
 
     document.body.classList.remove('loading');
 
     // at this point we remove the .loading class and user will see the main
     // app frame
-    Calendar.Performance.domLoaded();
+    Performance.domLoaded();
 
     this._routes();
 
-     //lazy load recurring event expander so as not to impact initial load.
-    this.loadObject('Controllers.RecurringEvents', function() {
-      self.recurringEventsController =
-        new Calendar.Controllers.RecurringEvents(self);
-
-      self.observePendingObject(
-        self.recurringEventsController
-      );
-
-      self.recurringEventsController.observe();
+    //lazy load recurring event expander so as not to impact initial load.
+    this.loadObject('Controllers.RecurringEvents', () => {
+      var recurringEventsController = new Controllers.RecurringEvents(this);
+      this.observePendingObject(recurringEventsController);
+      recurringEventsController.observe();
+      this.recurringEventsController = recurringEventsController;
     });
 
     // go ahead and show the first time use view if necessary
-    this.view('FirstTimeUse', function(firstTimeUse) {
-      firstTimeUse.doFirstTime();
-    });
+    this.view('FirstTimeUse', (ftu) => ftu.doFirstTime());
 
-    setTimeout(function nextTick() {
-      this.view('Errors');
-    }.bind(this), 0);
+    nextTick(() => this.view('Errors'));
   },
 
   _showTodayDate: function() {
-    document.querySelector('#today .icon-calendar-today').innerHTML =
-      new Date().getDate();
+    var element = document.querySelector('#today .icon-calendar-today');
+    element.innerHTML = new Date().getDate();
   },
 
   _syncTodayDate: function() {
@@ -321,12 +316,12 @@ var App = {
       now.getFullYear(), now.getMonth(), now.getDate() + 1,
       0, 0, 0
     );
-    var timeout = midnight.getTime() - now.getTime();
 
-    setTimeout(function() {
+    var timeout = midnight.getTime() - now.getTime();
+    setTimeout(() => {
       this._showTodayDate();
       this._syncTodayDate();
-    }.bind(this), timeout);
+    }, timeout);
   },
 
   /**
@@ -353,13 +348,9 @@ var App = {
     // start the workers
     this.serviceController.start(false);
 
-    navigator.mozL10n.once(function() {
-      next();
-    });
-
-    this.db.load(function() {
-      next();
-    });
+    var l10n = navigator.mozL10n;
+    l10n.once(next);
+    this.db.load(next);
   },
 
   /**
@@ -367,18 +358,14 @@ var App = {
    */
   provider: function(name) {
     if (!(name in this._providers)) {
-      this._providers[name] = new Calendar.Provider[name]({
-        app: this
-      });
+      this._providers[name] = new Calendar.Provider[name]({ app: this });
     }
 
     return this._providers[name];
   },
 
   _initView: function(name) {
-    this._views[name] = new Calendar.Views[name]({
-      app: this
-    });
+    this._views[name] = new Calendar.Views[name]({ app: this });
   },
 
   /**
@@ -404,31 +391,17 @@ var App = {
    * @param {Function} view loaded callback.
    */
   view: function(name, cb) {
-    var self = this;
-
-    if (!(name in this._views)) {
-
-      if (name in Calendar.Views) {
-        this._initView(name);
-
-        if (cb) {
-          cb.call(self, self._views[name]);
-        }
-      } else {
-        this.loadObject('Views.' + name, function() {
-          self._initView(name);
-
-          if (cb) {
-            cb.call(self, self._views[name]);
-          }
-        });
-      }
-
-    } else if (cb) {
-      Calendar.nextTick(function() {
-        cb.call(self, self._views[name]);
-      });
+    if (name in this._views) {
+      var view = this._views[name];
+      return nextTick(() => cb && cb.call(this, view));
     }
+
+    if (name in Calendar.Views) {
+      this._initView(name);
+      return this.view(name, cb);
+    }
+
+    this.loadObject('Views.' + name, () => this.view(name, cb));
   },
 
   /**
