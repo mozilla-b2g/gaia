@@ -55,6 +55,8 @@
         return;
       }
 
+      config.evtType = evt.type;
+
       switch (evt.type) {
         case 'webapps-launch':
           // TODO: Look up current opened window list,
@@ -106,6 +108,10 @@
       if (app) {
         app.reviveBrowser();
       } else if (config.origin !== HomescreenLauncher.origin) {
+        if (AppWindowManager.isBusyLaunching() &&
+            config.evtType == 'webapps-launch') {
+          return;
+        }
         new AppWindow(config);
       } else if (config.origin == HomescreenLauncher.origin) {
         HomescreenLauncher.getHomescreen().ensure();

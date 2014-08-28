@@ -193,5 +193,27 @@ suite('system/AppWindowFactory', function() {
       });
       assert.isTrue(stubReviveBrowser.called);
     });
+
+    test('do not launch app when busy launching', function() {
+      this.sinon.stub(MockAppWindowManager, 'getApp').returns(null);
+      this.sinon.stub(MockAppWindowManager, 'isBusyLaunching').returns(true);
+      var stubPublish = this.sinon.stub(AppWindowFactory, 'publish');
+      AppWindowFactory.handleEvent({
+        type: 'webapps-launch',
+        detail: fakeLaunchConfig5
+      });
+      assert.isFalse(stubPublish.called);
+    });
+
+    test('always launch system message required app', function() {
+      this.sinon.stub(MockAppWindowManager, 'getApp').returns(null);
+      this.sinon.stub(MockAppWindowManager, 'isBusyLaunching').returns(true);
+      var stubPublish = this.sinon.stub(AppWindowFactory, 'publish');
+      AppWindowFactory.handleEvent({
+        type: 'open-app',
+        detail: fakeLaunchConfig5
+      });
+      assert.isTrue(stubPublish.called);
+    });
   });
 });

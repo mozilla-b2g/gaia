@@ -660,6 +660,16 @@ suite('system/AppWindow', function() {
     assert.isTrue(callback.calledOnce);
   });
 
+  test('ready should always return', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    app1.destroy();
+    var caught = false;
+    app1.ready(function() {
+      caught = true;
+    });
+    assert.isTrue(caught);
+  });
+
   suite('Browser Mixin', function() {
     test('MozBrowser API: simple methods', function() {
       var app1 = new AppWindow(fakeAppConfig1);
