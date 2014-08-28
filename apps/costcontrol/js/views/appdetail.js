@@ -1,4 +1,5 @@
-/* global _, CostControl, Common, Formatting */
+/* global _, debug, CostControl, Common, Formatting, ChartUtils,
+          SimManager, ConfigManager */
 /* jshint -W120 */
 
 /**
@@ -11,7 +12,8 @@ var AppDetailView = (function() {
       initialized,
       els,
       app,
-      localizedAppName;
+      localizedAppName,
+      model;
 
   function initialize() {
     if (initialized) {
@@ -39,12 +41,55 @@ var AppDetailView = (function() {
       els.limitsLayer = els.graphicArea.querySelector('#app-limits-layer');
       els.graphicPattern =
         els.graphicArea.querySelector('#app-graphic-pattern');
+      els.dataUsedSince =
+        els.usage.querySelector('p[data-l10n-id="data-used-since"]');
+      els.dataUsedThisWeek =
+        els.usage.querySelector('p[data-l10n-id="data-used-this-week"]');
       els.dataUsedThisMonth =
         els.usage.querySelector('p[data-l10n-id="data-used-this-month"]');
       els.allowMobileDataUse =
         els.view.querySelector('input[data-option="allowMobileDataUse"]');
       els.allowMobileDataUseInfo =
         els.view.querySelector('p[data-l10n-id="allow-mobile-data-use-info"]');
+
+      // Setup the model
+      SimManager.requestDataSimIcc(function(dataSimIcc) {
+        ConfigManager.requestSettings(dataSimIcc.iccId,
+                                      function _onSettings(settings) {
+          debug('First time setup for model');
+          model = {
+            height: ChartUtils.toDevicePixels(els.graphicArea.clientHeight),
+            width: ChartUtils.toDevicePixels(els.graphicArea.clientWidth),
+            originX: Math.floor(
+              ChartUtils.toDevicePixels(els.graphicArea.clientWidth) * 0.15),
+            endX: Math.floor(
+              ChartUtils.toDevicePixels(els.graphicArea.clientWidth) * 0.95),
+            axis: {
+              Y: {
+                lower: 0,
+                margin: 0.20
+              },
+              X: {
+                lower: ChartUtils.calculateLowerDate(settings),
+                upper: ChartUtils.calculateUpperDate(settings)
+              }
+            },
+            limits: {
+              enabled: settings.dataLimit,
+              value: ChartUtils.getLimitInBytes(settings)
+            },
+            data: {
+              wifi: {
+                enabled: true
+              },
+              mobile: {
+                enabled: true
+              }
+            },
+            todayLabel: {}
+          };
+        });
+      });
 
       // Attach event listeners
       window.addEventListener('viewchanged', function(evt) {
@@ -62,11 +107,9 @@ var AppDetailView = (function() {
 
       els.allowMobileDataUse.addEventListener('change', function(evt) {
         if (els.allowMobileDataUse.checked) {
-          console.log('navigator.mozApps.enableMobileData()');
-          navigator.mozApps.enableMobileData(app);
+          navigator.mozApps.mgmt.enableMobileData(app);
         } else {
-          console.log('navigator.mozApps.disableMobileData()');
-          navigator.mozApps.disableMobileData(app);
+          navigator.mozApps.mgmt.disableMobileData(app);
         }
       });
 
@@ -81,12 +124,11 @@ var AppDetailView = (function() {
     // Update app usage data
     updateAppUsageData(app);
 
-    // 
-    // TODO: Get status of allowMobileDataUse
-    //
-
     // Localize app name
     localizedAppName = Common.getLocalizedAppName(app);
+
+    // Update the status of the `allowMobileDataUse` switch
+    els.allowMobileDataUse.checked = app.mobileDataEnabled;
 
     // Update the localized app name throughout the view
     els.headerHeading.textContent = localizedAppName;
@@ -119,14 +161,102 @@ var AppDetailView = (function() {
         Formatting.roundData(mobileDataTotal));
 
       // Localize the data usage info
+      els.dataUsedSince.textContent =
+        _('data-used-since', {
+          'amount': formattedMobileDataTotal,
+          'start-date':
+            Formatting.getFormattedDate(data.start, _('long-date-format'))
+        });
+      els.dataUsedThisWeek.textContent =
+        _('data-used-this-week', {
+          'amount': formattedMobileDataTotal
+        });
       els.dataUsedThisMonth.textContent =
         _('data-used-this-month', {
           'amount': formattedMobileDataTotal
         });
+      
+      els.dataUsedSince.setAttribute('aria-hidden', true);
+      els.dataUsedThisWeek.setAttribute('aria-hidden', true);
+      els.dataUsedThisMonth.setAttribute('aria-hidden', true);
 
-      // Fade in usage element
-      els.usage.classList.add('in');
+      // Update the charts
+      prepareChartData(result, function() {
+
+        // Render the charts
+        renderChart();
+
+        // Fade in usage element
+        els.usage.classList.add('in');
+      });
     });
+  }
+
+  function prepareChartData(result, callback) {
+    if (result.status === 'success') {
+      SimManager.requestDataSimIcc(function(dataSimIcc) {
+        ConfigManager.requestSettings(dataSimIcc.iccId,
+                                      function _onSettings(settings) {
+          debug('Updating model');
+          var modelData = result.data;
+          model.data.wifi.samples = modelData.wifi.samples;
+          model.data.wifi.total = modelData.wifi.total;
+          model.data.wifi.apps = modelData.wifi.apps;
+
+          model.data.mobile.samples = modelData.mobile.samples;
+          model.data.mobile.total = modelData.mobile.total;
+          model.data.mobile.apps = modelData.mobile.apps;
+
+          model.limits.enabled = settings.dataLimit;
+          model.limits.value = ChartUtils.getLimitInBytes(settings);
+          model.axis.X.upper = ChartUtils.calculateUpperDate(settings);
+          model.axis.X.lower = ChartUtils.calculateLowerDate(settings);
+          ChartUtils.expandModel(model);
+
+          // Show correct usage text label
+          switch (settings.trackingPeriod) {
+            case 'weekly':
+              els.dataUsedSince.setAttribute('aria-hidden', true);
+              els.dataUsedThisWeek.removeAttribute('aria-hidden');
+              els.dataUsedThisMonth.setAttribute('aria-hidden', true);
+              break;
+            case 'monthly':
+              els.dataUsedSince.setAttribute('aria-hidden', true);
+              els.dataUsedThisWeek.setAttribute('aria-hidden', true);
+              els.dataUsedThisMonth.removeAttribute('aria-hidden');
+              break;
+            default:
+              els.dataUsedSince.removeAttribute('aria-hidden');
+              els.dataUsedThisWeek.setAttribute('aria-hidden', true);
+              els.dataUsedThisMonth.setAttribute('aria-hidden', true);
+              break;
+          }
+
+          debug('Rendering');
+
+          callback();
+        });
+      });
+    } else {
+      console.error('Error requesting data usage. This should not happen.');
+    }
+  }
+
+  function renderChart() {
+    ChartUtils.drawBackgroundLayer(els.backgroundLayer, model, true);
+    ChartUtils.drawTodayLayer(els.todayLayer, model);
+    ChartUtils.drawAxisLayer(els.axisLayer, model, true);
+    ChartUtils.drawDataLayer(els.wifiLayer, model, 'wifi', {
+      stroke: ChartUtils.WIFI_CHART_STROKE,
+      fill: ChartUtils.WIFI_CHART_FILL
+    });
+    ChartUtils.drawDataLayer(els.mobileLayer, model, 'mobile', {
+      stroke: ChartUtils.MOBILE_CHART_STROKE,
+      fill: ChartUtils.MOBILE_CHART_FILL,
+      pattern: els.graphicPattern
+    });
+    ChartUtils.drawWarningLayer(els.warningLayer, model);
+    ChartUtils.drawLimits(els.limitsLayer, model, true);
   }
 
   function finalize() {

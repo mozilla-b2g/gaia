@@ -56,11 +56,13 @@ var Common = {
 
   COST_CONTROL_APP: 'app://costcontrol.gaiamobile.org',
 
-  allApps: [],
+  DATA_USAGE_WARNING: 0.8,
+
+  allApps: null,
 
   allAppsLoaded: false,
 
-  allNetworkInterfaces: [],
+  allNetworkInterfaces: null,
 
   allNetworkInterfaceLoaded: false,
 

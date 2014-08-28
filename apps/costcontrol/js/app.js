@@ -463,6 +463,7 @@ var CostControlApp = (function() {
           'js/sim_manager.js',
           'js/utils/debug.js',
           'shared/js/date_time_helper.js',
+          'js/utils/chart.js',
           'js/utils/formatting.js',
           'js/utils/toolkit.js',
           'js/settings/networkUsageAlarm.js',

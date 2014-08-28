@@ -15,7 +15,6 @@
  */
 
 var Widget = (function() {
-
   var costcontrol, activity;
   function checkSIMStatus(dataSim) {
     var dataSimIcc = dataSim.icc;
@@ -337,7 +336,7 @@ var Widget = (function() {
             views.limitedDataUsage.classList.add('reached-limit');
 
           //  Warning percentage of the limit reached
-          } else if (current >= limit * costcontrol.getDataUsageWarning()) {
+          } else if (current >= limit * Common.DATA_USAGE_WARNING) {
             views.limitedDataUsage.classList.add('nearby-limit');
           }
 

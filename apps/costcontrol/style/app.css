@@ -214,9 +214,9 @@ section.graph canvas {
 
 .fade.in {
   opacity: 1;
-  transition: opacity 0.2s linear;
+  transition: opacity 0.3s linear;
 }
 
 .fade.out {
-  transition: opacity 0.2s linear;
+  transition: opacity 0.3s linear;
 }

@@ -93,7 +93,7 @@ var ViewManager = (function() {
         delete view.dataset.viewport;
       }
 
-      if (callback) {
+      if (typeof callback === 'function') {
         callback(isTab, viewId, isTab ? currentViewId : previousViewId);
       }
       notifyViewChange(isTab, viewId, params);
@@ -114,7 +114,7 @@ var ViewManager = (function() {
   ViewManager.prototype.loadPanel = function _loadPanel(panel, callback) {
     if (!panel || panel.hidden === false) {
       if (typeof callback === 'function') {
-        setTimeout(callback, 1);
+        callback();
       }
       return;
     }
