@@ -112,11 +112,10 @@ var FxaModuleEnterEmail = (function() {
       e.preventDefault();
       var url = e.target.href;
       if (this.entrySheet) {
-        this.entrySheet.close();
         this.entrySheet = null;
       }
       this.entrySheet = new EntrySheet(
-        window.top.document.getElementById('screen'),
+        window.top.document.getElementById('dialog-overlay'),
         url,
         new BrowserFrame({url: url})
       );
