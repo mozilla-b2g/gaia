@@ -1,5 +1,5 @@
 'use strict';
-/* global Rocketbar */
+/* global Rocketbar, System */
 
 (function(exports) {
 
@@ -77,6 +77,8 @@
      * @memberof HomeSearchbar.prototype
      */
     handleEvent: function(e) {
+
+      System.debug('[Rocketbar] handling ' + e.type);
       switch(e.type) {
         case 'apploading':
         case 'appforeground':

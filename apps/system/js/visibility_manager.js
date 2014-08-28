@@ -1,8 +1,8 @@
-/* global AttentionScreen, System */
+/* global AttentionScreen, System, rocketbar */
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
   /**
    * VisibilityManager manages visibility events and broadcast
    * to AppWindowManager.
@@ -32,7 +32,9 @@
       'rocketbar-overlayopened',
       'rocketbar-overlayclosed',
       'utility-tray-overlayopened',
-      'utility-tray-overlayclosed'
+      'utility-tray-overlayclosed',
+      'searchopened',
+      'searchclosed'
     ];
   };
 
@@ -64,6 +66,7 @@
       case 'status-active':
       case 'attentionscreenhide':
       case 'will-unlock':
+      case 'searchclosed':
         var activityContent = (evt.detail && evt.detail.activity) ?
           evt.detail.activity : null;
         if (window.lockScreen && window.lockScreen.locked) {
@@ -71,7 +74,8 @@
           return;
         }
 
-        if (!AttentionScreen.isFullyVisible()) {
+        if (!AttentionScreen.isFullyVisible() &&
+            !rocketbar.active) {
           this.publish('showwindow', {
             type: evt.type,
             activity: activityContent
@@ -80,6 +84,7 @@
         this._resetDeviceLockedTimer();
         break;
       case 'lock':
+      case 'searchopened':
         // If the audio is active, the app should not set non-visible
         // otherwise it will be muted.
         // TODO: Remove this hack.

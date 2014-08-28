@@ -1,6 +1,6 @@
 'use strict';
 /* global applications, BrowserConfigHelper, AppWindowManager,
-          homescreenLauncher, AppWindow */
+          homescreenLauncher, AppWindow, System */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -95,6 +95,7 @@
     },
 
     handleEvent: function awf_handleEvent(evt) {
+      System.debug('handling ' + evt.type);
       var detail = evt.detail;
       var manifestURL = detail.manifestURL;
       if (!manifestURL) {
@@ -181,7 +182,10 @@
       if (app) {
         app.reviveBrowser();
       } else if (config.origin !== homescreenLauncher.origin) {
-        new AppWindow(config);
+        if (!AppWindowManager.isBusyLaunching()) {
+          System.debug('instantiating ' + config.url);
+          new AppWindow(config);
+        }
       } else if (config.origin == homescreenLauncher.origin) {
         homescreenLauncher.getHomescreen(true);
       }

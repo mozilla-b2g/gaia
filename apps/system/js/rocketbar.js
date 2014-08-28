@@ -1,6 +1,6 @@
 'use strict';
 /* global SettingsListener, AppWindow, AppWindowManager, SearchWindow, places,
-          SettingsURL */
+          SettingsURL, System */
 
 (function(exports) {
 
@@ -218,6 +218,7 @@
      * @memberof Rocketbar.prototype
      */
     handleEvent: function(e) {
+      System.debug('[Rocketbar] handling ' + e.type);
       switch(e.type) {
         case 'apploading':
         case 'appopened':
@@ -434,6 +435,8 @@
      */
     showResults: function() {
       if (this.searchWindow && !this.searchWindow.isDead()) {
+        System._dump();
+        System.debug('opening search result');
         this.searchWindow.open();
       }
       this.results.classList.remove('hidden');
@@ -444,7 +447,11 @@
      * @memberof Rocketbar.prototype
      */
     hideResults: function() {
+
+      System.debug('will close search result');
       if (this.searchWindow) {
+
+        System.debug('closing search result');
         this.searchWindow.close();
         this.searchWindow.hideContextMenu();
       }
