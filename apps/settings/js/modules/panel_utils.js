@@ -376,9 +376,9 @@ define(function(require) {
 
       // hide or unhide items
       rule = '[data-show-name="' + key + '"]:not([data-ignore])';
-      var item = document.querySelector(rule);
-      if (item) {
-        item.hidden = !value;
+      var items = document.querySelectorAll(rule);
+      for (i = 0; i < items.length; i++) {
+        items[i].hidden = !value;
       }
 
       // update <input> values when the corresponding setting is changed
