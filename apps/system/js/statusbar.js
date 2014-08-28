@@ -252,11 +252,13 @@ var StatusBar = {
         // when the lockscreen lock itself, the value must be true,
         // or we have some bugs.
         this.toggleTimeLabel(false);
+        this._updateIconVisibility();
         break;
 
       case 'lockscreen-appclosed':
         // Display the clock in the statusbar when screen is unlocked
         this.toggleTimeLabel(true);
+        this._updateIconVisibility();
         break;
 
       case 'attentionscreenshow':
