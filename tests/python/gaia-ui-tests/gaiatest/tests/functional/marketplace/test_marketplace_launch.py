@@ -27,10 +27,10 @@ class TestMarketplaceLaunch(GaiaTestCase):
         marketplace = homescreen.installed_app(app_name)
         marketplace.tap_icon()
         
-        marketplace.wait_for_element_not_displayed(*self._loading_fragment_locator)
+        self.wait_for_element_not_displayed(*self._loading_fragment_locator)
         
         iframe = self.marionette.find_element(*self._marketplace_iframe_locator)
         self.marionette.switch_to_frame(iframe)
         
-        marketplace.wait_for_element_displayed(*self._site_header_locator)
+        self.wait_for_element_displayed(*self._site_header_locator)
 

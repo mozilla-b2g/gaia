@@ -4,6 +4,7 @@
 
 from gaiatest.apps.testapp.app import TestContainer
 from gaiatest import GaiaTestCase
+from marionette import Marionette
 
 
 class TestSystemMessage(GaiaTestCase):
