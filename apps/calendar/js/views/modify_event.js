@@ -27,7 +27,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       errors: '#modify-event-view .errors',
       primaryButton: '#modify-event-view .save',
       deleteButton: '#modify-event-view .delete-record',
-      cancelButton: '#modify-event-view .cancel'
+      header: '#modify-event-header'
     },
 
     uiSelector: '[name="%"]',

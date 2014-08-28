@@ -29,7 +29,7 @@ body[data-path^='/settings'].pending-operation #progress-indicator {
   visibility: visible;
 }
 
-#settings header {
+#settings gaia-header {
   background: transparent;
 }
 

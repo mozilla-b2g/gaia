@@ -27,14 +27,14 @@ Calendar.ns('Views').EventBase = (function() {
     DEFAULT_VIEW: '/month/',
 
     _initEvents: function() {
-      this.cancelButton.addEventListener('click', this.cancel);
+      this.header.addEventListener('action', this.cancel);
       this.primaryButton.addEventListener('click', this.primary);
     },
 
     uiSelector: '.%',
 
-    get cancelButton() {
-      return this._findElement('cancelButton');
+    get header() {
+      return this._findElement('header');
     },
 
     get primaryButton() {

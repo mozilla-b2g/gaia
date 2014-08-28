@@ -39,7 +39,8 @@
       calendars: '#settings .calendars',
       calendarName: '.name',
       toolbar: '#settings [role="toolbar"]',
-      backButton: '#settings .settings-back',
+      header: '#settings-header',
+      headerTitle: '#settings-header h1',
 
       // A dark semi-opaque layer that is used to "gray out" the view behind
       // the element used for settings. Tapping on it will also close out
@@ -68,8 +69,12 @@
       return this._findElement('toolbar');
     },
 
-    get backButton() {
-      return this._findElement('backButton');
+    get header() {
+      return this._findElement('header');
+    },
+
+    get headerTitle() {
+      return this._findElement('headerTitle');
     },
 
     get shield() {
@@ -348,12 +353,16 @@
         this._activated = true;
         this._animateDrawer();
 
+        // Set header title to same as time view header
+        this.headerTitle.textContent =
+          document.getElementById('current-month-year').textContent;
+
         // Both the transparent back and clicking on the semi-opaque
         // shield should close the settings since visually those sections
         // do not look like part of the drawer UI, and UX wants to give
         // the user a few options to close the drawer since there is no
         // explicit close button.
-        this.backButton.addEventListener('click', this._hideSettings);
+        this.header.addEventListener('action', this._hideSettings);
         this.shield.addEventListener('click', this._hideSettings);
 
         this.drawer.addEventListener('transitionend',
@@ -364,7 +373,7 @@
     oninactive: function() {
       _super.oninactive.apply(this, arguments);
       this._activated = false;
-      this.backButton.removeEventListener('click', this._hideSettings);
+      this.header.removeEventListener('action', this._hideSettings);
       this.shield.removeEventListener('click', this._hideSettings);
       this.drawer.removeEventListener('transitionend',
                                    this._onDrawerTransitionEnd);
