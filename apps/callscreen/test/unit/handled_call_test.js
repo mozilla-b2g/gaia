@@ -8,6 +8,7 @@
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/test/unit/mock_call_screen.js');
+require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
@@ -24,6 +25,8 @@ require('/js/handled_call.js');
 require('/shared/js/dialer/voicemail.js');
 
 var mocksHelperForHandledCall = new MocksHelper([
+  'Audio',
+  'AudioContext',
   'Contacts',
   'CallScreen',
   'CallsHandler',
