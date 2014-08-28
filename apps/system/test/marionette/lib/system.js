@@ -93,6 +93,13 @@ System.prototype = {
     return this.client.findElement('iframe[src*="' + url + '"]');
   },
 
+  gotoBrowser: function(url) {
+    var frame = this.client.helper.waitForElement(
+      'div[transition-state="opened"] iframe[src="' + url + '"]');
+    this.client.switchToFrame(frame);
+    this.client.helper.waitForElement('body');
+  },
+
   getHomescreenIframe: function() {
     return this.client.findElement('#homescreen iframe');
   },
