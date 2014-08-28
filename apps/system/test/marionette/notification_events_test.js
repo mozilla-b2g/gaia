@@ -2,7 +2,9 @@
 
 /* globals Notification */
 
-var assert = require('assert');
+var assert = require('assert'),
+    fs = require('fs'),
+    NotificationList = require('./lib/notification').NotificationList;
 
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 var CALENDAR_APP_MANIFEST = CALENDAR_APP + '/manifest.webapp';
@@ -15,6 +17,13 @@ marionette('Notification events', function() {
       'lockscreen.enabled': false
     }
   });
+  var notificationList = new NotificationList(client);
+  var details = {tag: 'test tag',
+                 body: 'test body',
+                 data: {number: 2,
+                        string: '123',
+                        array: [1, 2, 3],
+                        obj: {test: 'test'}}};
 
   test('click event starts application', function(done) {
     var notificationTitle = 'Title:' + Date.now();
@@ -334,4 +343,68 @@ marionette('Notification events', function() {
     done();
   });
 
+  test('custom data available via mozChromeNotificationEvent', function(done) {
+    client.switchToFrame();
+    var result = client.executeAsyncScript(function(details) {
+      var notification;
+      notification = new Notification('testtitile', details);
+      window.addEventListener('mozChromeNotificationEvent', function(evt) {
+        var rv = JSON.stringify(evt.detail.data) ==
+                 JSON.stringify(details.data);
+        marionetteScriptFinished(rv);
+      });
+    }, [details]);
+
+    assert.equal(result, true, 'Notification data should match');
+    done();
+  });
+
+  test('custom data available via mozSetMessageHandler', function(done) {
+    client.switchToFrame();
+
+    client.apps.launch(CALENDAR_APP);
+    client.apps.switchToApp(CALENDAR_APP);
+
+    client.executeScript(function(details) {
+      var notification;
+      notification = new Notification('testtile', details);
+    }, [details]);
+
+    client.switchToFrame();
+    client.apps.close(CALENDAR_APP);
+
+    // after closing live handlers should be lost, the callbacks too
+    client.apps.launch(CALENDAR_APP);
+    client.apps.switchToApp(CALENDAR_APP);
+
+    client.executeScript(fs.readFileSync(
+      __dirname + '/lib/fake_moz_set_message_handler.js', 'utf8'));
+
+    // fake mozSetMessageHandler
+    client.executeScript(function() {
+      window.wrappedJSObject.mozSetMessageHandler('notification');
+    });
+
+    client.switchToFrame();
+
+    // show utility tray
+    client.executeScript(function() {
+      window.wrappedJSObject.UtilityTray.show();
+    });
+    notificationList.refresh();
+    var notifications = notificationList.getForApp(CALENDAR_APP_MANIFEST);
+
+    // tapping the container element should launch the app
+    notificationList.tap(notifications[0]);
+
+    // get into the context containing the mocked api and the data object
+    client.apps.switchToApp(CALENDAR_APP);
+    var data = client.executeScript(function() {
+      return window.wrappedJSObject.__getFakeData;
+    });
+
+    assert.equal(JSON.stringify(data), JSON.stringify(details.data),
+                 'Notification data should match');
+    done();
+  });
 });
