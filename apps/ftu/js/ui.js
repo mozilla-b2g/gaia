@@ -161,7 +161,6 @@ var UIManager = {
 
     this.timeConfiguration.addEventListener('input', this);
     this.dateConfiguration.addEventListener('input', this);
-    this.initTZ();
 
     this.geolocationSwitch.addEventListener('click', this);
 
@@ -305,10 +304,17 @@ var UIManager = {
 
   initTZ: function ui_initTZ() {
     // Initialize the timezone selector, see /shared/js/tz_select.js
+    var self = this;
     var tzRegion = document.getElementById('tz-region');
     var tzCity = document.getElementById('tz-city');
-    tzSelect(tzRegion, tzCity,
-             this.setTimeZone.bind(this), this.setTimeZone.bind(this));
+    return new Promise(function(resolve) {
+      var onchange = self.setTimeZone.bind(self);
+      var onload = function() {
+        self.setTimeZone.apply(self, arguments);
+        resolve();
+      };
+      tzSelect(tzRegion, tzCity, onchange, onload);
+    });
   },
 
   handleEvent: function ui_handleEvent(event) {

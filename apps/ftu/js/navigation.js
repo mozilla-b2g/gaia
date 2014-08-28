@@ -178,8 +178,22 @@ var Navigation = {
           UIManager.navBar.classList.remove('secondary-menu');
           return;
         }
-        // Avoid refresh when connecting
-        WifiManager.scan(WifiUI.renderNetworks);
+
+        // This might seem like an odd place to call UIManager.initTZ, but
+        // there's a reason for it. initTZ tries to determine the timezone
+        // using information about the current mobile network connection.
+        // We want to call initTZ as late as possible to give the mobile
+        // network time to connect before the function is called.
+        // But we have to call initTZ *before* the Date & Time page
+        // appears so that it doesn't delay the appearance of the page.
+        // This is the last good opportunity to call it.
+
+        WifiManager.scan((networks) => {
+          UIManager.initTZ().then(() => {
+            WifiUI.renderNetworks(networks);
+          });
+        });
+
         break;
       case '#date_and_time':
         UIManager.mainTitle.innerHTML = _('dateAndTime');
