@@ -156,15 +156,15 @@
         frame = runningKeybaord[id];
         frame.src = layout.origin + newPath;
         this._debug(id + ' is overwritten: ' + frame.src);
-        this.deleteRunningFrameRef(layout.manifestURL, id);
+        this._deleteRunningFrameRef(layout.manifestURL, id);
         break;
       }
     }
     return frame;
   };
 
-  InputFrameManager.prototype.destroyFrame =
-    function ifm_destroyFrame(kbManifestURL, layoutID) {
+  InputFrameManager.prototype._destroyFrame =
+    function ifm__destroyFrame(kbManifestURL, layoutID) {
     var frame = this.runningLayouts[kbManifestURL][layoutID];
     try {
       frame.parentNode.removeChild(frame);
@@ -182,14 +182,19 @@
     this.runningLayouts[layout.manifestURL][layout.id] = frame;
   };
 
-  InputFrameManager.prototype.deleteRunningKeyboardRef =
-    function ifm_deleteRunningKeyboardRef(kbManifestURL) {
-    delete this.runningLayouts[kbManifestURL];
+  InputFrameManager.prototype._deleteRunningFrameRef =
+    function ifm__deleteRunningLayoutRef(kbManifestURL, layoutID) {
+    delete this.runningLayouts[kbManifestURL][layoutID];
   };
 
-  InputFrameManager.prototype.deleteRunningFrameRef =
-    function ifm_deleteRunningLayoutRef(kbManifestURL, layoutID) {
-    delete this.runningLayouts[kbManifestURL][layoutID];
+  InputFrameManager.prototype.removeKeyboard =
+    function ifm_removeKeyboard(kbManifestURL) {
+    for (var id in this.runningLayouts[kbManifestURL]) {
+      this._destroyFrame(kbManifestURL, id);
+      this._deleteRunningFrameRef(kbManifestURL, id);
+    }
+
+    delete this.runningLayouts[kbManifestURL];
   };
 
   InputFrameManager.prototype._isRunningKeyboard =

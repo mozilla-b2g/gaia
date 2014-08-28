@@ -260,7 +260,7 @@ suite('InputFrameManager', function() {
     inputFrameManager.runningLayouts[layout.manifestURL] = {};
     inputFrameManager.runningLayouts[layout.manifestURL][layout.id] = frame;
 
-    inputFrameManager.destroyFrame(layout.manifestURL, layout.id);
+    inputFrameManager._destroyFrame(layout.manifestURL, layout.id);
 
     assert.isTrue(frame.parentNode.removeChild.calledWith(frame));
   });
@@ -390,7 +390,7 @@ suite('InputFrameManager', function() {
       .runningLayouts[newLayout.manifestURL][newLayout.id] = frame;
 
       var stubFrameManagerDelete =
-        this.sinon.stub(inputFrameManager, 'deleteRunningFrameRef');
+        this.sinon.stub(inputFrameManager, '_deleteRunningFrameRef');
       var f = inputFrameManager._getFrameFromExistingKeyboard(newLayout);
 
       assert.equal(f, frame);
@@ -417,7 +417,7 @@ suite('InputFrameManager', function() {
       .runningLayouts[oldLayout.manifestURL][oldLayout.id] = frame;
 
       var stubFrameManagerDelete =
-        this.sinon.stub(inputFrameManager, 'deleteRunningFrameRef');
+        this.sinon.stub(inputFrameManager, '_deleteRunningFrameRef');
 
       var f = inputFrameManager._getFrameFromExistingKeyboard(newLayout);
 
@@ -474,23 +474,45 @@ suite('InputFrameManager', function() {
       inputFrameManager.runningLayouts[layout.manifestURL][layout.id] =
         'dummy';
 
-      inputFrameManager.deleteRunningFrameRef(layout.manifestURL, layout.id);
+      inputFrameManager._deleteRunningFrameRef(layout.manifestURL, layout.id);
 
       assert.isFalse(
         inputFrameManager.runningLayouts[layout.manifestURL]
         .hasOwnProperty(layout.id)
       );
     });
-    test('deleteRunningKeyboardRef', function(){
+    test('removeKeyboard', function(){
       var layout = {
         manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
-        id: 'en'
+        ids: ['en', 'fr']
       };
       inputFrameManager.runningLayouts = {};
 
       inputFrameManager.runningLayouts[layout.manifestURL] = {};
 
-      inputFrameManager.deleteRunningKeyboardRef(layout.manifestURL);
+      var id;
+      for(id in layout.ids){
+        inputFrameManager.runningLayouts[layout.manifestURL][id] = 'dummy';
+      }
+
+      var stubDestroyFrame =
+        this.sinon.stub(inputFrameManager, '_destroyFrame');
+      var stubDeleteRunningFrameRef =
+        this.sinon.stub(inputFrameManager, '_deleteRunningFrameRef');
+
+      inputFrameManager.removeKeyboard(layout.manifestURL);
+
+      for(id in layout.ids){
+        assert.isTrue(
+          stubDestroyFrame.calledWith(layout.manifestURL, id),
+          `destroyFrame was not called with ${layout.manifestURL} and ${id}`
+        );
+        assert.isTrue(
+          stubDeleteRunningFrameRef.calledWith(layout.manifestURL, id),
+          `deleteRunningFrameRef was not called
+           with ${layout.manifestURL} and ${id}`
+        );
+      }
 
       assert.isFalse(
         inputFrameManager.runningLayouts.hasOwnProperty(layout.manifestURL)
