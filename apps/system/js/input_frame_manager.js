@@ -26,7 +26,7 @@
 
   InputFrameManager.prototype._debug = function ifm__debug(msg) {
     if (this._onDebug) {
-      console.log('[Keyboard Manager] ' + msg);
+      console.log('[InputFrameManager] ' + msg);
     }
   };
 
@@ -82,7 +82,7 @@
   };
 
   InputFrameManager.prototype.launchFrame =
-    function ifm_launchFrame(layout) {
+    function ifm_launchFrame(layout, keepInactive) {
     if (this._isRunningLayout(layout)) {
       this._debug('this layout is running');
       return;
@@ -97,9 +97,7 @@
 
     // Can't reuse, so create a new frame to load this new layout.
     if (!frame) {
-      frame = this._loadKeyboardLayoutToFrame(layout);
-      this._setFrameActive(frame, false);
-      frame.classList.add('hide');
+      frame = this._loadKeyboardLayoutToFrame(layout, keepInactive);
       frame.dataset.frameManifestURL = layout.manifestURL;
     }
 
@@ -110,22 +108,26 @@
   };
 
   InputFrameManager.prototype._loadKeyboardLayoutToFrame =
-    function ifm__loadKeyboardLayoutToFrame(layout) {
-    var keyboard = this._constructFrame(layout);
-    this._keyboardManager.keyboardFrameContainer.appendChild(keyboard);
-    return keyboard;
+    function ifm__loadKeyboardLayoutToFrame(layout, keepInactive) {
+    var frame = this._constructFrame(layout);
+    this._keyboardManager.keyboardFrameContainer.appendChild(frame);
+    if (keepInactive) {
+      frame.setVisible(false);
+      frame.classList.add('hide');
+    }
+    return frame;
   };
 
   InputFrameManager.prototype._constructFrame =
     function ifm__constructFrame(layout) {
 
     // Generate a <iframe mozbrowser> containing the keyboard.
-    var keyboard = document.createElement('iframe');
-    keyboard.src = layout.origin + layout.path;
-    keyboard.setAttribute('mozapptype', 'inputmethod');
-    keyboard.setAttribute('mozbrowser', 'true');
-    keyboard.setAttribute('mozpasspointerevents', 'true');
-    keyboard.setAttribute('mozapp', layout.manifestURL);
+    var frame = document.createElement('iframe');
+    frame.src = layout.origin + layout.path;
+    frame.setAttribute('mozapptype', 'inputmethod');
+    frame.setAttribute('mozbrowser', 'true');
+    frame.setAttribute('mozpasspointerevents', 'true');
+    frame.setAttribute('mozapp', layout.manifestURL);
 
     var manifest =
       window.applications.getByManifestURL(layout.manifestURL).manifest;
@@ -137,11 +139,11 @@
     if (this._keyboardManager.isOutOfProcessEnabled &&
         (!isCertifiedApp || this._keyboardManager.totalMemory >= 512)) {
       console.log('=== Enable keyboard: ' + layout.origin + ' run as OOP ===');
-      keyboard.setAttribute('remote', 'true');
-      keyboard.setAttribute('ignoreuserfocus', 'true');
+      frame.setAttribute('remote', 'true');
+      frame.setAttribute('ignoreuserfocus', 'true');
     }
 
-    return keyboard;
+    return frame;
   };
 
   InputFrameManager.prototype._getFrameFromExistingKeyboard =
