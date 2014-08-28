@@ -1,18 +1,54 @@
-.notification-toaster {
+
+@keyframes toaster {
+  0% {
+    opacity: 0.15;
+    width: 8.6rem;
+    background-color: transparent;
+    border-left: 0.2rem solid transparent;
+    border-right: 0.2rem solid transparent;
+    border-top: 0.2rem solid white;
+  }
+  10% {
+    width: 8.6rem;
+    background-color: transparent;
+    border-left: 0.2rem solid transparent;
+    border-right: 0.2rem solid transparent;
+    border-top: 0.2rem solid white;
+  }
+  30% {
+    opacity: 1;
+    width: 8.6rem;
+    background-color: transparent;
+    border-left: 0.2rem solid transparent;
+    border-right: 0.2rem solid transparent;
+    border-top: 0.2rem solid #B3F3FF;
+  }
+  60% {
+    opacity: 1;
+    width: 8.6rem;
+    background-color: transparent;
+    border-left: 0.2rem solid transparent;
+    border-right: 0.2rem solid transparent;
+    border-top: 0.2rem solid #B3F3FF;
+  }
+  100% {
+    background-color: #00BCE2;
+    width: 100%;
+  }
+}
+
+#notification-toaster {
   position: absolute;
-  top: 0;
   left: 0;
+  right: 0;
+  margin: auto;
+  top: -.2rem;
   width: 100%;
-  height: 5rem;
-  overflow: hidden;
-  background-image: url('images/grey-noise-bg.png');
-  background-repeat: repeat-x;
-  background-size: auto 100%;
-  -moz-box-sizing: border-box;
-  border-bottom: 0.1rem #2c2c2c solid;
-  transform: translateY(-5rem);
-  transition: transform .3s ease-in-out;
-  visibility: hidden;
+  height: 5.2rem;
+  background-color: #00BCE2;
+  transform: translateY(-5.2rem);
+  transition: transform 0s ease 1s, opacity .5s ease .5s;
+  opacity: 0;
 }
 
 /*
@@ -24,51 +60,117 @@
   position: relative;
 }
 
-.toaster-icon {
+.utility-tray #notification-toaster {
+  top: 0;
+}
+
+#toaster-icon {
   position: absolute;
-  width: 3rem;
-  height: 3rem;
-  top: 0.7rem;
-  left: 1rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  left: 1.5rem;
   pointer-events: none;
 }
 
-.notification-toaster > div,
-.fake-notification-toaster > div {
-  left: 5rem;
-  width: calc(100% - 5.5rem);
-  height: 1.9rem;
+#notification-container {
+  visibility: hidden;
+  transition: visibility 0s ease .2s;
+}
+
+.displayed #notification-container {
+  visibility: visible;
+  transition: none;
+}
+
+#notification-container > div {
+  left: 5.6rem;
+  width: calc(100% - 7.1rem);
   padding: 0;
-  line-height: 1.9rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 400;
 }
 
 .toaster-title {
   pointer-events: none;
   position: absolute;
-  top: 0.3rem;
-  color: #52b8cc;
-  font-size: 1.5rem;
-  font-weight: 500;
+  bottom: 2.3rem;
+  color: white;
+  font-size: 1.8rem;
 }
 
 .toaster-detail {
   pointer-events: none;
   position: absolute;
-  top: 2.2rem;
+  bottom: .6rem;
   color: white;
   font-size: 1.4rem;
-  font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.notification-toaster.displayed {
-  transform: translateY(0);
+#notifications-indicator {
+  position: absolute;
+  right: 0;
+  left: 0;
+  margin: auto;
+  border-left: 0.2rem solid transparent;
+  border-right: 0.2rem solid transparent;
+  border-top: 0.2rem solid #B3F3FF;
+  bottom: 0;
+  transition: opacity 0.5s ease 0.5s;
+}
+
+.displayed #notifications-indicator {
+  animation-name: toaster;
+  animation-duration: 1.2s;
+  border-color: #00BCE2;
+}
+
+#notification-toaster.displayed {
   visibility: visible;
+  transform: translateY(0);
+  transition: transform .2s ease 1.2s;
+  opacity: 1;
+}
+
+#notification-toaster.unread:not(.displayed) {
+  transform: translateY(-5rem);
+  transition: transform .2s ease-in-out;
+  opacity: 1;
+}
+
+:not(.unread) .displayed #notifications-indicator {
+  transform: translateY(.2rem);
+}
+
+.unread #notifications-indicator,
+.unread.displayed #notifications-indicator {
+  opacity: 1;
+  transition: none;
+  transform: translateY(0);
+}
+
+#notifications-indicator.small {
+  width: 8.6rem;
+}
+
+#notifications-indicator.medium {
+  width: 16.8rem;
+}
+
+#notifications-indicator.big {
+  width: 24.8rem;
+}
+
+#notifications-indicator.full {
+  width: 100%;
+  background-color: white;
 }
 
 #notification-bar {
