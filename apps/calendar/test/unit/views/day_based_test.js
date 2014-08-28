@@ -4,6 +4,8 @@ requireLib('querystring.js');
 requireLib('timespan.js');
 requireLib('utils/overlap.js');
 requireLib('utils/ordered_map.js');
+requireLib('template.js');
+requireLib('templates/date_span.js');
 requireLib('templates/day.js');
 requireLib('views/day_based.js');
 
@@ -480,7 +482,6 @@ suiteGroup('Views.DayBased', function() {
 
     function hourHTML(hour) {
       return subject.template.hour.render({
-        displayHour: Calendar.Calc.formatHour(hour),
         hour: hour
       });
     }
@@ -674,13 +675,13 @@ suiteGroup('Views.DayBased', function() {
     for (; hour < 24; hour++) {
       assert.include(
         html,
-        Calendar.Calc.formatHour(hour),
+        hour,
         'should have rendered:' + hour
       );
       today.setHours(hour, 0, 0, 0);
       assert.include(
         html,
-        'data-l10n-date-format="hour-format" data-date="' + today + '"',
+        'data-date="' + today + '"',
         'should have rendered:' + hour + ' locale data'
       );
     }

@@ -1,6 +1,8 @@
 Calendar.ns('Views').ModifyEvent = (function() {
   'use strict';
 
+  var getTimeL10nLabel = Calendar.Calc.getTimeL10nLabel;
+
   function ModifyEvent(options) {
     this.deleteRecord = this.deleteRecord.bind(this);
     this._toggleAllDay = this._toggleAllDay.bind(this);
@@ -696,6 +698,9 @@ Calendar.ns('Views').ModifyEvent = (function() {
       // we inject the targetElement to make it easier to test
       var localeFormat = Calendar.App.dateFormat.localeFormat;
       var formatKey = this.formats[type];
+      if (type === 'time') {
+        formatKey = getTimeL10nLabel(formatKey);
+      }
       var format = navigator.mozL10n.get(formatKey);
       targetElement.textContent = localeFormat(value, format);
       // we need to store the format and date for l10n

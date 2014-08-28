@@ -45,29 +45,8 @@ Calendar.Calc = (function() {
       return new Date();
     },
 
-    /**
-     * Formats a numeric value for an hour.
-     * Useful to convert absolute hour into
-     * a display hour localizes for am/pm
-     */
-    formatHour: function(hour) {
-      var format = navigator.mozL10n.get('hour-format');
-
-      if (hour === Calc.ALLDAY) {
-        return navigator.mozL10n.get('hour-allday');
-      }
-
-      Calc._hourDate.setHours(hour);
-
-      var result = Calendar.App.dateFormat.localeFormat(
-        Calc._hourDate,
-        format
-      );
-
-      // remove leading zero
-      result = result.replace(/^0/, '');
-
-      return result;
+    getTimeL10nLabel: function(timeLabel) {
+      return timeLabel + (navigator.mozHour12 ? '12' : '24');
     },
 
     daysInWeek: function() {

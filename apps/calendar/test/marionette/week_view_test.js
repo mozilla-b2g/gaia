@@ -276,8 +276,32 @@ marionette('week view', function() {
     assert.equal(editEvent.endTime, pad(time + 1) + ':00:00', 'endTime');
   });
 
+  suite('12/24 hour format', function() {
+    test('default format: 12 hour', function() {
+      assert.equal(week.sideBarHours[0].text(), '12\nAM');
+      assert.equal(week.sideBarHours[13].text(), '1\nPM');
+      assert.equal(week.sideBarHours[23].text(), '11\nPM');
+
+      var now = new Date();
+      var minutes = now.getMinutes();
+      minutes = minutes < 10 ? (0 + String(minutes)) : minutes;
+      var currentTime = (now.getHours() % 12) + ':' + minutes;
+      assert.equal(week.currentTime.text(), currentTime);
+    });
+
+    test('switch to 24 hour format', function() {
+      app.switch24HourTimeFormat();
+      assert.equal(week.sideBarHours[0].text(), '0');
+      assert.equal(week.sideBarHours[13].text(), '13');
+      assert.equal(week.sideBarHours[23].text(), '23');
+
+      var now = new Date();
+      var currentTime = pad(now.getHours()) + ':' + pad(now.getMinutes());
+      assert.equal(week.currentTime.text(), currentTime);
+    });
+  });
+
   function pad(n) {
     return n < 10 ? '0' + n : String(n);
   }
-
 });

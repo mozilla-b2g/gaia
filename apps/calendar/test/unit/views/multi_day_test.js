@@ -1,3 +1,5 @@
+requireLib('template.js');
+requireLib('templates/date_span.js');
 requireLib('views/multi_day.js');
 
 suiteGroup('Views.MultiDay', function() {
@@ -20,20 +22,20 @@ suiteGroup('Views.MultiDay', function() {
   });
 
   test('localized', function() {
+    var sidebar = subject.sidebar;
     subject._visibleRange = 123;
     subject.handleEvent({type: 'localized'});
 
     // make sure we rebuild all hours during localize
-    var i = -1, h;
+    var i = -1, date = new Date(), hour;
     while (++i < 24) {
-      h = i % 12 || 12;
-      assert.include(
-        subject.sidebar.innerHTML,
-        '<li class="hour hour-' + i + '">' +
-          '<span class="display-hour">' + h + '<span class="ampm">' +
-          (i < 12 ? 'AM' : 'PM') +
-          '</span></span>' +
-        '</li>'
+      date.setHours(i, 0, 0, 0);
+      hour = sidebar.querySelector('.hour-' + i);
+      assert.equal(hour.textContent, i, 'display hour');
+      assert.equal(
+        hour.querySelector('.display-hour').dataset.date,
+        date,
+        'date data'
       );
     }
 

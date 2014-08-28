@@ -95,19 +95,52 @@ Calendar.App = (function(window) {
       }
     },
 
+    changeElementsHourFormat: function() {
+      var isHour12 = navigator.mozHour12;
+      var currentFormat = isHour12 ? 12 : 24;
+      var previousFormat = isHour12 ? 24 : 12;
+      var elements = document.querySelectorAll(
+        `[data-l10n-date-format*="${previousFormat}"]`
+      );
+
+      Array.prototype.forEach.call(elements, function(element) {
+        var format = element.dataset.l10nDateFormat;
+        format = format.replace(previousFormat, currentFormat);
+        element.dataset.l10nDateFormat = format;
+
+        // Remove the leading zero of hour items
+        // in sidebar of day and week view.
+        var removeLeadingZero = format.contains('hour-format') ? true : false;
+        var addAmPmClass = format === 'week-hour-format12' ? true : false;
+        DateL10n.localizeElement(element, {
+          removeLeadingZero: removeLeadingZero,
+          addAmPmClass: addAmPmClass
+        });
+      });
+    },
+
     /**
      * Localize a single element expected to have data-l10n-date-format.
      */
-    localizeElement: function(element) {
+    localizeElement: function(element, options) {
       var date = element.dataset.date;
       var formatKey = element.dataset.l10nDateFormat;
       var format = navigator.mozL10n.get(formatKey);
 
       if (date) {
-        element.textContent = Calendar.App.dateFormat.localeFormat(
+        if (options && options.addAmPmClass) {
+          // we wrap the am/pm with JS because this keeps the locale file
+          // simpler and increases the flexibility.
+          // https://developer.mozilla.org/en-US/docs/Mozilla/Localization/Localization_best_practices#Avoid_unnecessary_complexity_in_strings
+          format = format.replace(/\s*%p\s*/, '<span class="ampm">%p</span>');
+        }
+
+        var string = Calendar.App.dateFormat.localeFormat(
           new Date(date),
           format
         );
+        element.innerHTML = options && options.removeLeadingZero ?
+          string.replace(/^0/, '') : string;
       }
     }
   };
@@ -198,6 +231,14 @@ Calendar.App = (function(window) {
      */
     observeDateLocalization: function() {
       window.addEventListener('localized', DateL10n.localizeElements);
+      window.addEventListener('timeformatchange', function() {
+        this.setCurrentTimeFormat();
+        DateL10n.changeElementsHourFormat();
+      }.bind(this));
+    },
+
+    setCurrentTimeFormat: function() {
+      document.body.dataset.timeFormat = navigator.mozHour12 ? '12' : '24';
     },
 
     /**
@@ -355,6 +396,7 @@ Calendar.App = (function(window) {
         }
       });
 
+      this.setCurrentTimeFormat();
       // re-localize dates on screen
       this.observeDateLocalization();
 

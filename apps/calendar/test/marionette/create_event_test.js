@@ -138,6 +138,34 @@ marionette('creating events', function() {
           'reminder'
         );
       }
+    },
+    {
+      name: '24 hour format',
+      allDay: false,
+      startDate: startDate,
+      endDate: startDateNextHour,
+      reminders: ['5 minutes before'],
+      verifyMonthView: function() {
+        app.switch24HourTimeFormat();
+        var event = app.monthDay.events[0];
+        assert.equal(event.startTime, '12:34', 'start time');
+        assert.equal(event.endTime, '13:34', 'end time');
+      },
+      verifyReadEventView: function() {
+        app.switch24HourTimeFormat();
+        var readEvent = app.readEvent;
+        assert.equal(
+          readEvent.durationTime,
+          'Sunday, September 08, 1991\n' +
+          'from 12:34 to 13:34',
+          'duration time'
+        );
+        assert.equal(
+          readEvent.reminders[0].text(),
+          '5 minutes before',
+          'reminder'
+        );
+      }
     }
   ];
 

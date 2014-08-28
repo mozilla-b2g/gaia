@@ -12,6 +12,10 @@ Week.prototype = {
 
   selector: '#week-view',
 
+  get sideBarHours() {
+    return this.findElements('.sidebar .hour .display-hour');
+  },
+
   get events() {
     return this.findElements('.event');
   },
