@@ -212,11 +212,8 @@ var StatusBar = {
     // Listen to 'timeformatchange'
     window.addEventListener('timeformatchange', this);
 
-    // Listen to 'lockscreen-appopened', 'lockscreen-appclosed', and
-    // 'lockpanelchange' in order to correctly set the visibility of
+    // Listen to 'lockpanelchange' in order to correctly set the visibility of
     // the statusbar clock depending on the active lockscreen panel
-    window.addEventListener('lockscreen-appopened', this);
-    window.addEventListener('lockscreen-appclosed', this);
     window.addEventListener('lockpanelchange', this);
 
     window.addEventListener('simpinshow', this);
@@ -243,20 +240,6 @@ var StatusBar = {
     switch (evt.type) {
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
-        break;
-
-      case 'lockscreen-appopened':
-        // Hide the clock in the statusbar when screen is locked
-        //
-        // It seems no need to detect the locked value because
-        // when the lockscreen lock itself, the value must be true,
-        // or we have some bugs.
-        this.toggleTimeLabel(false);
-        break;
-
-      case 'lockscreen-appclosed':
-        // Display the clock in the statusbar when screen is unlocked
-        this.toggleTimeLabel(true);
         break;
 
       case 'attentionscreenshow':
@@ -327,10 +310,6 @@ var StatusBar = {
           // part.
           this.toggleTimeLabel(false);
           this.toggleTimeLabel(true);
-
-          // But we still need to consider if we're locked. So may we need to
-          // hide it again.
-          this.toggleTimeLabel(!this.isLocked());
         }).bind(this));
         break;
 
@@ -646,7 +625,7 @@ var StatusBar = {
       window.addEventListener('moznetworkdownload', this);
 
       this.refreshCallListener();
-      this.toggleTimeLabel(!this.isLocked());
+      this.toggleTimeLabel(true);
     } else {
       battery = window.navigator.battery;
       if (battery) {
@@ -1248,13 +1227,11 @@ var StatusBar = {
   },
 
   toggleTimeLabel: function sb_toggleTimeLabel(enable) {
-    var icon = this.icons.time;
     if (enable) {
       this.clock.start(this.update.time.bind(this));
     } else {
       this.clock.stop();
     }
-    icon.hidden = !enable;
   },
 
   updateNotification: function sb_updateNotification(count) {
