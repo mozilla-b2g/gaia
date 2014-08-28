@@ -43,6 +43,7 @@ suite('system/AppWindowManager', function() {
 
       return document.createElement('div');
     });
+    this.sinon.useFakeTimers();
 
     window.layoutManager = new window.LayoutManager();
     window.mediaRecording = { isRecording: false };
@@ -431,6 +432,7 @@ suite('system/AppWindowManager', function() {
       var stubLaunch =
         this.sinon.stub(AppWindowManager, 'launch');
 
+      AppWindowManager._launchingApp = false;
       AppWindowManager.handleEvent(
         { type: 'launchapp', detail: fakeAppConfig1 });
       assert.isTrue(stubLaunch.calledWith(fakeAppConfig1));
@@ -897,5 +899,21 @@ suite('system/AppWindowManager', function() {
     injectRunningApps(browser1);
     newApp2 = AppWindowManager.getApp(fakeBrowserConfig.origin);
     assert.deepEqual(newApp2.config, fakeBrowserConfig);
+  });
+
+  test('launching app request', function() {
+    injectRunningApps(app1, app2);
+    AppWindowManager._activeApp = app2;
+    this.sinon.stub(app2, 'isTransitioning').returns(false);
+
+    var spyReady = this.sinon.spy(app1, 'ready');
+    AppWindowManager.handleEvent(new CustomEvent('launchapp', {
+      detail: fakeAppConfig1
+    }));
+    assert.isTrue(AppWindowManager.isBusyLaunching());
+    spyReady.yield();
+    assert.isTrue(AppWindowManager.isBusyLaunching());
+    this.sinon.clock.tick(AppWindowManager.LAUNCHING_APP_TIMEOUT);
+    assert.isFalse(AppWindowManager.isBusyLaunching());
   });
 });

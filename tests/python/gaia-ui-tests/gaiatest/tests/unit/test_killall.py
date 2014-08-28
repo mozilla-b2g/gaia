@@ -27,15 +27,15 @@ class TestKillAll(GaiaTestCase):
     def test_kill_all_twice(self):
         apps = [Calendar.name, Clock.name]
         for app in apps:
-            self.apps.launch(app)
             time.sleep(1)
+            self.apps.launch(app)
 
         self.apps.kill_all()
         self.check_no_apps_running()
 
         for app in apps:
-            self.apps.launch(app)
             time.sleep(1)
+            self.apps.launch(app)
 
         self.apps.kill_all()
 

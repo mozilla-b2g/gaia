@@ -332,6 +332,7 @@ suite('system/AppWindowFactory', function() {
       var spy = this.sinon.stub(MockAppWindowManager, 'getApp');
       var app = new AppWindow();
       var stubReviveBrowser = this.sinon.stub(app, 'reviveBrowser');
+      this.sinon.stub(MockAppWindowManager, 'isBusyLaunching').returns(false);
       spy.returns(app);
       appWindowFactory.handleEvent({
         type: 'open-app',
@@ -348,6 +349,28 @@ suite('system/AppWindowFactory', function() {
       fakeLaunchConfig7.url = 'app://search.gaiamobile.org/newtab.html';
       appWindowFactory.launch(fakeLaunchConfig7);
       assert.ok(stubDispatchEvent.calledOnce);
+    });
+
+    test('do not launch app when busy launching', function() {
+      this.sinon.stub(MockAppWindowManager, 'getApp').returns(null);
+      this.sinon.stub(MockAppWindowManager, 'isBusyLaunching').returns(true);
+      var stubPublish = this.sinon.stub(appWindowFactory, 'publish');
+      appWindowFactory.handleEvent({
+        type: 'webapps-launch',
+        detail: fakeLaunchConfig5
+      });
+      assert.isFalse(stubPublish.called);
+    });
+
+    test('always launch system message required app', function() {
+      this.sinon.stub(MockAppWindowManager, 'getApp').returns(null);
+      this.sinon.stub(MockAppWindowManager, 'isBusyLaunching').returns(true);
+      var stubPublish = this.sinon.stub(appWindowFactory, 'publish');
+      appWindowFactory.handleEvent({
+        type: 'open-app',
+        detail: fakeLaunchConfig5
+      });
+      assert.isTrue(stubPublish.called);
     });
   });
 });

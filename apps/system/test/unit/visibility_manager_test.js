@@ -1,4 +1,4 @@
-/* globals MocksHelper, VisibilityManager,
+/* globals MocksHelper, VisibilityManager, MockRocketbar,
            MockAttentionWindowManager, MockTaskManager, MockAppWindow */
 'use strict';
 
@@ -8,6 +8,7 @@ requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_attention_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_rocketbar.js');
 
 var mocksForVisibilityManager = new MocksHelper([
   'AttentionWindowManager', 'System', 'AppWindow'
@@ -19,6 +20,7 @@ suite('system/VisibilityManager', function() {
   mocksForVisibilityManager.attachTestHelpers();
   setup(function(done) {
     window.attentionWindowManager = MockAttentionWindowManager;
+    window.rocketbar = new MockRocketbar();
     this.sinon.useFakeTimers();
 
     stubById = this.sinon.stub(document, 'getElementById');
@@ -36,6 +38,50 @@ suite('system/VisibilityManager', function() {
   });
 
   suite('handle events', function() {
+    test('searchopened', function() {
+      visibilityManager._normalAudioChannelActive = false;
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'searchopened'
+      });
+
+      assert.isTrue(stubPublish.calledOnce);
+      assert.equal(stubPublish.getCall(0).args[0], 'hidewindow');
+
+      visibilityManager._normalAudioChannelActive = true;
+      visibilityManager.handleEvent({
+        type: 'searchopened'
+      });
+
+      assert.isTrue(stubPublish.calledOnce);
+
+      visibilityManager._normalAudioChannelActive = false;
+    });
+
+    test('searchclosed when there is not active attention window', function() {
+      this.sinon.stub(MockAttentionWindowManager, 'hasActiveWindow')
+                .returns(false);
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+
+      visibilityManager.handleEvent({
+        type: 'searchclosed'
+      });
+
+      assert.isTrue(stubPublish.calledOnce);
+      assert.isTrue(stubPublish.getCall(0).args[0] === 'showwindow');
+    });
+
+    test('searchclosed when there is active attention window', function() {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      this.sinon.stub(MockAttentionWindowManager, 'hasActiveWindow')
+                .returns(true);
+      visibilityManager.handleEvent({
+        type: 'searchclosed'
+      });
+
+      assert.isFalse(stubPublish.called);
+    });
+
     test('lock', function() {
       visibilityManager._normalAudioChannelActive = false;
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');

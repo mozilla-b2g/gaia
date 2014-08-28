@@ -1,4 +1,4 @@
-/* global attentionWindowManager, System */
+/* global attentionWindowManager, System, rocketbar */
 'use strict';
 
 (function(exports) {
@@ -35,7 +35,9 @@
       'system-dialog-hide',
       'searchrequestforeground',
       'apprequestforeground',
-      'homescreenrequestforeground'
+      'homescreenrequestforeground',
+      'searchopened',
+      'searchclosed'
     ];
   };
 
@@ -89,6 +91,7 @@
         this._resetDeviceLockedTimer();
         break;
       case 'lockscreen-request-unlock':
+      case 'searchclosed':
         var detail = evt.detail,
             activity = null,
             notificationId = null;
@@ -98,7 +101,8 @@
           notificationId = detail.notificationId;
         }
 
-        if (!attentionWindowManager.hasActiveWindow()) {
+        if (!attentionWindowManager.hasActiveWindow() &&
+            !rocketbar.active) {
           this.publish('showwindow', {
             activity: activity,  // Trigger activity opening in AWM
             notificationId: notificationId
@@ -106,7 +110,9 @@
         }
         this._resetDeviceLockedTimer();
         break;
+
       case 'lockscreen-appopened':
+      case 'searchopened':
         // If the audio is active, the app should not set non-visible
         // otherwise it will be muted.
         // TODO: Remove this hack.
