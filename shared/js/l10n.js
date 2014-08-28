@@ -1307,8 +1307,6 @@
   var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
   var nodeObserver = null;
   var pendingElements = null;
-  var headScanCompleted = false;
-  var manifestLoading = false;
   var manifest = {};
 
   var moConfig = {
@@ -1368,7 +1366,7 @@
         rePlaceables: rePlaceables,
         getTranslatableChildren:  getTranslatableChildren,
         translateDocument: translateDocument,
-        onLinkInjected: onLinkInjected,
+        onManifestInjected: onManifestInjected,
         onMetaInjected: onMetaInjected,
         fireLocalizedEvent: fireLocalizedEvent,
         PropertiesParser: PropertiesParser,
@@ -1470,20 +1468,27 @@
   }
 
   function initResources() {
+    /* jshint boss:true */
+    var manifestFound = false;
+
     var nodes = document.head
                         .querySelectorAll('link[rel="localization"],' +
                                           'link[rel="manifest"],' +
                                           'meta[name="locales"],' +
                                           'meta[name="default_locale"],' +
                                           'script[type="application/l10n"]');
-    for (var i = 0; i < nodes.length; i++) {
-      var nodeName = nodes[i].nodeName.toLowerCase();
-      switch (nodeName) {
-        case 'link':
-          onLinkInjected.call(this, nodes[i]);
+    for (var i = 0, node; node = nodes[i]; i++) {
+      var type = node.getAttribute('rel') || node.nodeName.toLowerCase();
+      switch (type) {
+        case 'manifest':
+          manifestFound = true;
+          onManifestInjected.call(this, node.getAttribute('href'), initLocale);
+          break;
+        case 'localization':
+          this.ctx.resLinks.push(node.getAttribute('href'));
           break;
         case 'meta':
-          onMetaInjected.call(this, nodes[i]);
+          onMetaInjected.call(this, node);
           break;
         case 'script':
           onScriptInjected.call(this, nodes[i]);
@@ -1491,44 +1496,38 @@
       }
     }
 
-    headScanCompleted = true;
-
-    if (Object.keys(manifest).length === 2 ||
-        manifestLoading === false) {
-      initLocale.call(this);
+    // if after scanning the head any locales have been registered in the ctx
+    // it's safe to initLocale without waiting for manifest.webapp
+    if (this.ctx.availableLocales.length) {
+      return initLocale.call(this);
     }
-  }
 
-  function onLinkInjected(node) {
-    var url = node.getAttribute('href');
-    var rel = node.getAttribute('rel');
-    switch (rel) {
-      case 'manifest':
-        loadManifest.call(this, url);
-        break;
-      case 'localization':
-        this.ctx.resLinks.push(url);
-        break;
+    // if no locales were registered so far and no manifest.webapp link was
+    // found we still call initLocale with just the default language available
+    if (!manifestFound) {
+      this.ctx.registerLocales(this.ctx.defaultLocale);
+      return initLocale.call(this);
     }
   }
 
   function onMetaInjected(node) {
-    if (Object.keys(manifest).length === 2) {
+    if (this.ctx.availableLocales.length) {
       return;
     }
-    var name = node.getAttribute('name');
-    switch (name) {
+
+    switch (node.getAttribute('name')) {
       case 'locales':
-        manifest[name] = node.getAttribute('content').split(',').map(
+        manifest.locales = node.getAttribute('content').split(',').map(
           Function.prototype.call, String.prototype.trim);
         break;
       case 'default_locale':
-        manifest[name] = node.getAttribute('content');
+        manifest.defaultLocale = node.getAttribute('content');
         break;
     }
 
     if (Object.keys(manifest).length === 2) {
-      parseManifest.call(this);
+      this.ctx.registerLocales(manifest.defaultLocale, manifest.locales);
+      manifest = {};
     }
   }
 
@@ -1538,52 +1537,60 @@
     locale.addAST(JSON.parse(node.textContent));
   }
 
-  function loadManifest(url) {
-    if (Object.keys(manifest).length === 2) {
+  function onManifestInjected(url, callback) {
+    if (this.ctx.availableLocales.length) {
       return;
     }
 
-    manifestLoading = true;
-
-    io.loadJSON(url, function(err, json) {
-      manifestLoading = false;
-
-      if (Object.keys(manifest).length === 2) {
+    io.loadJSON(url, function parseManifest(err, json) {
+      if (this.ctx.availableLocales.length) {
         return;
       }
 
       if (err) {
         this.ctx._emitter.emit('error', err);
-        if (headScanCompleted) {
-          initLocale.call(this);
+        this.ctx.registerLocales(this.ctx.defaultLocale);
+        if (callback) {
+          callback.call(this);
         }
         return;
       }
 
-      if (!('default_locale' in manifest)) {
-        manifest.default_locale = json.default_locale;
+      // default_locale and locales might have been already provided by meta
+      // elements which take precedence;  check if we already have them
+      if (!('defaultLocale' in manifest)) {
+        if (json.default_locale) {
+          manifest.defaultLocale = json.default_locale;
+        } else {
+          manifest.defaultLocale = this.ctx.defaultLocale;
+          this.ctx._emitter.emit(
+            'warning', new L10nError('default_locale missing from manifest'));
+        }
       }
       if (!('locales' in manifest)) {
-        manifest.locales = Object.keys(json.locales);
+        if (json.locales) {
+          manifest.locales = Object.keys(json.locales);
+        } else {
+          this.ctx._emitter.emit(
+            'warning', new L10nError('locales missing from manifest'));
+        }
       }
 
-      parseManifest.call(this);
+      this.ctx.registerLocales(manifest.defaultLocale, manifest.locales);
+      manifest = {};
+
+      if (callback) {
+        callback.call(this);
+      }
     }.bind(this));
   }
 
-  function parseManifest() {
-    this.ctx.registerLocales(manifest.default_locale,
-                             manifest.locales);
-    manifest = {};
-    if (headScanCompleted) {
-      initLocale.call(this);
-    }
-  }
-
   function initLocale() {
-    this.ctx.requestLocales.apply(this.ctx, navigator.languages);
+    this.ctx.requestLocales.apply(
+      this.ctx, navigator.languages || [navigator.language]);
     window.addEventListener('languagechange', function l10n_langchange() {
-      this.ctx.requestLocales.apply(this.ctx, navigator.languages);
+      this.ctx.requestLocales.apply(
+        this.ctx, navigator.languages || [navigator.language]);
     }.bind(this));
   }
 

@@ -31,6 +31,7 @@
   };
 
   function initResources(callback) {
+    /* jshint boss:true */
     var containsFetchableLocale = false;
 
     var nodes = document.head
@@ -39,17 +40,20 @@
                                           'meta[name="locales"],' +
                                           'meta[name="default_locale"]');
 
-    for (var i = 0; i < nodes.length; i++) {
-      var nodeName = nodes[i].nodeName.toLowerCase();
-      switch (nodeName) {
-        case 'link':
+    for (var i = 0, node; node = nodes[i]; i++) {
+      var type = node.getAttribute('rel') || node.nodeName.toLowerCase();
+      switch (type) {
+        case 'manifest':
+          L10n.onManifestInjected.call(this, node.getAttribute('href'));
+          break;
+        case 'localization':
           if (!('noFetch' in nodes[i].dataset)) {
             containsFetchableLocale = true;
           }
-          L10n.onLinkInjected.call(this, nodes[i]);
+          this.ctx.resLinks.push(node.getAttribute('href'));
           break;
         case 'meta':
-          L10n.onMetaInjected.call(this, nodes[i]);
+          L10n.onMetaInjected.call(this, node);
           break;
       }
     }
