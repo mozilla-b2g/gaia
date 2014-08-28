@@ -1,465 +1,472 @@
 Calendar.App = (function(window) {
-  'use strict';
+'use strict';
+
+/**
+ * Module dependencies
+ */
+var Controllers = Calendar.Controllers;
+var DateL10n = Calendar.dateL10n;
+var Db = Calendar.Db;
+var LoadConfig = Calendar.LoadConfig;
+var PendingManager = Calendar.PendingManager;
+var Performance = Calendar.performance;
+var Provider = Calendar.Provider;
+var Router = Calendar.Router;
+/*var Views = Calendar.Views*;*/
+var dayObserver = Calendar.dayObserver;
+var nextTick = Calendar.nextTick;
+
+/**
+ * Focal point for state management
+ * within calendar application.
+ *
+ * Contains tools for routing and central
+ * location to reference database.
+ */
+var App = {
+  PendingManager: PendingManager,
+
+  DateL10n: DateL10n,
+
+  dateFormat: navigator.mozL10n.DateTimeFormat(),
+
+  //XXX: always assumes that app is never lazy loaded
+  startingURL: window.location.href,
+
+  _location: window.location,
+
+  _mozTimeRefreshTimeout: 3000,
+
+  pendingClass: 'pending-operation',
 
   /**
-   * Module dependencies
+   * Entry point for application
+   * must be called at least once before
+   * using other methods.
    */
-  var PendingManager = Calendar.PendingManager,
-      DateL10n = Calendar.dateL10n;
+  configure: function(db, router) {
+    this.db = db;
+    this.router = router;
+
+    this._providers = Object.create(null);
+    this._views = Object.create(null);
+    this._routeViewFn = Object.create(null);
+    this._pendingManager = new PendingManager();
+
+    var self = this;
+    this._pendingManager.oncomplete = function onpending() {
+      document.body.classList.remove(self.pendingClass);
+      Performance.pendingReady();
+    };
+
+    this._pendingManager.onpending = function oncomplete() {
+      document.body.classList.add(self.pendingClass);
+    };
+
+    this.timeController = new Controllers.Time(this);
+    this.syncController = new Controllers.Sync(this);
+    this.serviceController = new Controllers.Service(this);
+    this.alarmController = new Controllers.Alarm(this);
+    this.errorController = new Controllers.Error(this);
+
+    dayObserver.timeController = this.timeController;
+    dayObserver.calendarStore = this.store('Calendar');
+
+    // observe sync events
+    this.observePendingObject(this.syncController);
+
+    // Tell audio channel manager that we want to adjust the notification
+    // channel if the user press the volumeup/volumedown buttons in Calendar.
+    if (navigator.mozAudioChannelManager) {
+      navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+    }
+  },
 
   /**
-   * Focal point for state management
-   * within calendar application.
+   * Observes localized events and localizes elements
+   * with data-l10n-date-format should be registered
+   * after the first localized event.
    *
-   * Contains tools for routing and central
-   * location to reference database.
+   *
+   * Example:
+   *
+   *
+   *    <span
+   *      data-date="Wed Jan 09 2013 19:25:38 GMT+0100 (CET)"
+   *      data-l10n-date-format="%x">
+   *
+   *      2013/9/19
+   *
+   *    </span>
+   *
    */
-  var App = {
-    PendingManager: PendingManager,
+  observeDateLocalization: function() {
+    window.addEventListener('localized', DateL10n.localizeElements);
+  },
 
-    DateL10n: DateL10n,
+  /**
+   * Adds observers to objects capable of being pending.
+   *
+   * Object must emit some kind of start/complete events
+   * and have the following properties:
+   *
+   *  - startEvent (used to register an observer)
+   *  - endEvent ( ditto )
+   *  - pending
+   *
+   * @param {Object} object to observe.
+   */
+  observePendingObject: function(object) {
+    this._pendingManager.register(object);
+  },
 
-    dateFormat: navigator.mozL10n.DateTimeFormat(),
+  isPending: function() {
+    return this._pendingManager.isPending();
+  },
 
-    //XXX: always assumes that app is never lazy loaded
-    startingURL: window.location.href,
+  loadObject: function initializeLoadObject(name, callback) {
 
-    _location: window.location,
+    function loadObject(name, callback) {
+      /*jshint validthis:true */
+      this._loader.load('group', name, callback);
+    }
 
-    _mozTimeRefreshTimeout: 3000,
+    if (!this._pendingObjects) {
+      this._pendingObjects = [[name, callback]];
+    } else {
+      this._pendingObjects.push([name, callback]);
+      return;
+    }
 
-    pendingClass: 'pending-operation',
+    // Loading NotAnd and the load config is not really needed
+    // for the initial load so we lazily load them the first time we
+    // need to load a file...
+    var self = this;
 
-    /**
-     * Entry point for application
-     * must be called at least once before
-     * using other methods.
-     */
-    configure: function(db, router) {
-      this.db = db;
-      this.router = router;
+    function next() {
+      // initialize loader
+      NotAmd.nextTick = nextTick;
+      self._loader = NotAmd(LoadConfig);
+      self.loadObject = loadObject;
 
-      this._providers = Object.create(null);
-      this._views = Object.create(null);
-      this._routeViewFn = Object.create(null);
-      this._pendingManager = new PendingManager();
+      // begin processing existing requests
+      self._pendingObjects.forEach(function(pair) {
+        // ['ObjectName', function() { ... }]
+        loadObject.call(self, pair[0], pair[1]);
+      });
 
-      var self = this;
-      this._pendingManager.oncomplete = function onpending() {
-        document.body.classList.remove(self.pendingClass);
-        Calendar.Performance.pendingReady();
-      };
+      delete self._pendingObjects;
+    }
 
-      this._pendingManager.onpending = function oncomplete() {
-        document.body.classList.add(self.pendingClass);
-      };
+    LazyLoader.load(['/js/ext/notamd.js', '/js/load_config.js'], next);
+  },
 
-      this.timeController = new Calendar.Controllers.Time(this);
-      this.syncController = new Calendar.Controllers.Sync(this);
-      this.serviceController = new Calendar.Controllers.Service(this);
-      this.alarmController = new Calendar.Controllers.Alarm(this);
-      this.errorController = new Calendar.Controllers.Error(this);
+  /**
+   * Internally restarts the application.
+   */
+  forceRestart: function() {
+    if (!this.restartPending) {
+      this.restartPending = true;
+      this._location.href = this.startingURL;
+    }
+  },
 
-      Calendar.dayObserver.timeController = this.timeController;
-      Calendar.dayObserver.calendarStore = this.store('Calendar');
+  /**
+   * Navigates app to a new location.
+   *
+   * @param {String} url new view url.
+   */
+  go: function(url) {
+    this.router.show(url);
+  },
 
-      // observe sync events
-      this.observePendingObject(this.syncController);
+  /**
+   * Shortcut for app.router.state
+   */
+  state: function() {
+    this.router.state.apply(this.router, arguments);
+  },
 
-      // Tell audio channel manager that we want to adjust the notification
-      // channel if the user press the volumeup/volumedown buttons in Calendar.
-      if (navigator.mozAudioChannelManager) {
-        navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+  /**
+   * Shortcut for app.router.modifier
+   */
+  modifier: function() {
+    this.router.modifier.apply(this.router, arguments);
+  },
+
+  /**
+   * Shortcut for app.router.resetState
+   */
+  resetState: function() {
+    this.router.resetState();
+  },
+
+  _routes: function() {
+
+    /* routes */
+    this.state('/week/', 'Week');
+    this.state('/day/', 'Day');
+    this.state('/month/', ['Month', 'MonthsDay']);
+    this.modifier('/settings/', 'Settings', { clear: false });
+    this.modifier('/advanced-settings/', 'AdvancedSettings');
+
+    this.state('/alarm-display/:id', 'ViewEvent', { path: false });
+
+    this.state('/event/add/', 'ModifyEvent');
+    this.state('/event/edit/:id', 'ModifyEvent');
+    this.state('/event/show/:id', 'ViewEvent');
+
+    this.modifier('/select-preset/', 'CreateAccount');
+    this.modifier('/create-account/:preset', 'ModifyAccount');
+    this.modifier('/update-account/:id', 'ModifyAccount');
+
+    this.router.start();
+
+    // at this point the tabs should be interactive and the router ready to
+    // handle the path changes (meaning the user can start interacting with
+    // the app)
+    Performance.chromeInteractive();
+
+    var pathname = window.location.pathname;
+    // default view
+    if (pathname === '/index.html' || pathname === '/') {
+      this.go('/month/');
+    }
+
+  },
+
+  _init: function() {
+    var self = this;
+    // quick hack for today button
+    var tablist = document.querySelector('#view-selector');
+    var today = tablist.querySelector('.today a');
+    var tabs = tablist.querySelectorAll('[role="tab"]');
+
+    this._showTodayDate();
+    this._syncTodayDate();
+    today.addEventListener('click', function(e) {
+      var date = new Date();
+      self.timeController.move(date);
+      self.timeController.selectedDay = date;
+
+      e.preventDefault();
+    });
+
+    // Handle aria-selected attribute for tabs.
+    tablist.addEventListener('click', function(event) {
+      if (event.target !== today) {
+        AccessibilityHelper.setAriaSelected(event.target, tabs);
       }
-    },
+    });
 
-    /**
-     * Observes localized events and localizes elements
-     * with data-l10n-date-format should be registered
-     * after the first localized event.
-     *
-     *
-     * Example:
-     *
-     *
-     *    <span
-     *      data-date="Wed Jan 09 2013 19:25:38 GMT+0100 (CET)"
-     *      data-l10n-date-format="%x">
-     *
-     *      2013/9/19
-     *
-     *    </span>
-     *
-     */
-    observeDateLocalization: function() {
-      window.addEventListener('localized', DateL10n.localizeElements);
-    },
+    // re-localize dates on screen
+    this.observeDateLocalization();
 
-    /**
-     * Adds observers to objects capable of being pending.
-     *
-     * Object must emit some kind of start/complete events
-     * and have the following properties:
-     *
-     *  - startEvent (used to register an observer)
-     *  - endEvent ( ditto )
-     *  - pending
-     *
-     * @param {Object} object to observe.
-     */
-    observePendingObject: function(object) {
-      this._pendingManager.register(object);
-    },
+    this.timeController.observe();
+    this.alarmController.observe();
 
-    isPending: function() {
-      return this._pendingManager.isPending();
-    },
+    // turn on the auto queue this means that when
+    // alarms are added to the database we manage them
+    // transparently. Defaults to off for tests.
+    this.store('Alarm').autoQueue = true;
 
-    loadObject: function initializeLoadObject(name, callback) {
+    this.timeController.move(new Date());
 
-      function loadObject(name, callback) {
-        /*jshint validthis:true */
-        this._loader.load('group', name, callback);
-      }
+    this.view('TimeHeader', function(header) {
+      header.render();
+    });
 
-      if (!this._pendingObjects) {
-        this._pendingObjects = [[name, callback]];
-      } else {
-        this._pendingObjects.push([name, callback]);
-        return;
-      }
+    this.view('CalendarColors', function(colors) {
+      colors.render();
+    });
 
-      // Loading NotAnd and the load config is not really needed
-      // for the initial load so we lazily load them the first time we
-      // need to load a file...
-      var self = this;
+    document.body.classList.remove('loading');
 
-      function next() {
-        // initialize loader
-        NotAmd.nextTick = Calendar.nextTick;
-        self._loader = NotAmd(Calendar.LoadConfig);
-        self.loadObject = loadObject;
+    // at this point we remove the .loading class and user will see the main
+    // app frame
+    Performance.domLoaded();
 
-        // begin processing existing requests
-        self._pendingObjects.forEach(function(pair) {
-          // ['ObjectName', function() { ... }]
-          loadObject.call(self, pair[0], pair[1]);
-        });
+    this._routes();
 
-        delete self._pendingObjects;
-      }
+     //lazy load recurring event expander so as not to impact initial load.
+    this.loadObject('Controllers.RecurringEvents', function() {
+      self.recurringEventsController =
+        new Controllers.RecurringEvents(self);
 
-      LazyLoader.load(['/js/ext/notamd.js', '/js/load_config.js'], next);
-    },
+      self.observePendingObject(
+        self.recurringEventsController
+      );
 
-    /**
-     * Internally restarts the application.
-     */
-    forceRestart: function() {
-      if (!this.restartPending) {
-        this.restartPending = true;
-        this._location.href = this.startingURL;
-      }
-    },
+      self.recurringEventsController.observe();
+    });
 
-    /**
-     * Navigates app to a new location.
-     *
-     * @param {String} url new view url.
-     */
-    go: function(url) {
-      this.router.show(url);
-    },
+    // go ahead and show the first time use view if necessary
+    this.view('FirstTimeUse', function(firstTimeUse) {
+      firstTimeUse.doFirstTime();
+    });
 
-    /**
-     * Shortcut for app.router.state
-     */
-    state: function() {
-      this.router.state.apply(this.router, arguments);
-    },
+    setTimeout(function nextTick() {
+      this.view('Errors');
+    }.bind(this), 0);
+  },
 
-    /**
-     * Shortcut for app.router.modifier
-     */
-    modifier: function() {
-      this.router.modifier.apply(this.router, arguments);
-    },
+  _showTodayDate: function() {
+    document.querySelector('#today .icon-calendar-today').innerHTML =
+      new Date().getDate();
+  },
 
-    /**
-     * Shortcut for app.router.resetState
-     */
-    resetState: function() {
-      this.router.resetState();
-    },
+  _syncTodayDate: function() {
+    var now = new Date();
+    var midnight = new Date(
+      now.getFullYear(), now.getMonth(), now.getDate() + 1,
+      0, 0, 0
+    );
+    var timeout = midnight.getTime() - now.getTime();
 
-    _routes: function() {
-
-      /* routes */
-      this.state('/week/', 'Week');
-      this.state('/day/', 'Day');
-      this.state('/month/', ['Month', 'MonthsDay']);
-      this.modifier('/settings/', 'Settings', { clear: false });
-      this.modifier('/advanced-settings/', 'AdvancedSettings');
-
-      this.state('/alarm-display/:id', 'ViewEvent', { path: false });
-
-      this.state('/event/add/', 'ModifyEvent');
-      this.state('/event/edit/:id', 'ModifyEvent');
-      this.state('/event/show/:id', 'ViewEvent');
-
-      this.modifier('/select-preset/', 'CreateAccount');
-      this.modifier('/create-account/:preset', 'ModifyAccount');
-      this.modifier('/update-account/:id', 'ModifyAccount');
-
-      this.router.start();
-
-      // at this point the tabs should be interactive and the router ready to
-      // handle the path changes (meaning the user can start interacting with
-      // the app)
-      Calendar.Performance.chromeInteractive();
-
-      var pathname = window.location.pathname;
-      // default view
-      if (pathname === '/index.html' || pathname === '/') {
-        this.go('/month/');
-      }
-
-    },
-
-    _init: function() {
-      var self = this;
-      // quick hack for today button
-      var tablist = document.querySelector('#view-selector');
-      var today = tablist.querySelector('.today a');
-      var tabs = tablist.querySelectorAll('[role="tab"]');
-
+    setTimeout(function() {
       this._showTodayDate();
       this._syncTodayDate();
-      today.addEventListener('click', function(e) {
-        var date = new Date();
-        self.timeController.move(date);
-        self.timeController.selectedDay = date;
+    }.bind(this), timeout);
+  },
 
-        e.preventDefault();
-      });
+  /**
+   * Primary code for app can go here.
+   */
+  init: function() {
+    var self = this;
+    var pending = 2;
 
-      // Handle aria-selected attribute for tabs.
-      tablist.addEventListener('click', function(event) {
-        if (event.target !== today) {
-          AccessibilityHelper.setAriaSelected(event.target, tabs);
-        }
-      });
+    function next() {
+      pending--;
+      if (!pending) {
+        self._init();
+      }
+    }
 
-      // re-localize dates on screen
-      this.observeDateLocalization();
-
-      this.timeController.observe();
-      this.alarmController.observe();
-
-      // turn on the auto queue this means that when
-      // alarms are added to the database we manage them
-      // transparently. Defaults to off for tests.
-      this.store('Alarm').autoQueue = true;
-
-      this.timeController.move(new Date());
-
-      this.view('TimeHeader', function(header) {
-        header.render();
-      });
-
-      this.view('CalendarColors', function(colors) {
-        colors.render();
-      });
-
-      document.body.classList.remove('loading');
-
-      // at this point we remove the .loading class and user will see the main
-      // app frame
-      Calendar.Performance.domLoaded();
-
-      this._routes();
-
-       //lazy load recurring event expander so as not to impact initial load.
-      this.loadObject('Controllers.RecurringEvents', function() {
-        self.recurringEventsController =
-          new Calendar.Controllers.RecurringEvents(self);
-
-        self.observePendingObject(
-          self.recurringEventsController
-        );
-
-        self.recurringEventsController.observe();
-      });
-
-      // go ahead and show the first time use view if necessary
-      this.view('FirstTimeUse', function(firstTimeUse) {
-        firstTimeUse.doFirstTime();
-      });
-
-      setTimeout(function nextTick() {
-        this.view('Errors');
-      }.bind(this), 0);
-    },
-
-    _showTodayDate: function() {
-      document.querySelector('#today .icon-calendar-today').innerHTML =
-        new Date().getDate();
-    },
-
-    _syncTodayDate: function() {
-      var now = new Date();
-      var midnight = new Date(
-        now.getFullYear(), now.getMonth(), now.getDate() + 1,
-        0, 0, 0
+    if (!this.db) {
+      this.configure(
+        new Db('b2g-calendar'),
+        new Router(page)
       );
-      var timeout = midnight.getTime() - now.getTime();
+    }
 
-      setTimeout(function() {
-        this._showTodayDate();
-        this._syncTodayDate();
-      }.bind(this), timeout);
-    },
+    // start the workers
+    this.serviceController.start(false);
 
-    /**
-     * Primary code for app can go here.
-     */
-    init: function() {
-      var self = this;
-      var pending = 2;
+    navigator.mozL10n.once(function() {
+      next();
+    });
 
-      function next() {
-        pending--;
-        if (!pending) {
-          self._init();
+    this.db.load(function() {
+      next();
+    });
+  },
+
+  /**
+   * Initializes a provider.
+   */
+  provider: function(name) {
+    if (!(name in this._providers)) {
+      this._providers[name] = new Provider[name]({ app: this });
+    }
+
+    return this._providers[name];
+  },
+
+  _initView: function(name) {
+    this._views[name] = new Calendar.Views[name]({
+      app: this
+    });
+  },
+
+  /**
+   * Initializes a view and stores
+   * a internal reference so when
+   * view is called a second
+   * time the same view is used.
+   *
+   * Makes an asynchronous call to
+   * load the script if we do not
+   * have the view cached.
+   *
+   *    // for example if you have
+   *    // a calendar view Foo
+   *
+   *    Calendar.Views.Foo = Klass;
+   *
+   *    app.view('Foo', function(view) {
+   *      (view instanceof Calendar.Views.Foo) === true
+   *    });
+   *
+   * @param {String} name view name.
+   * @param {Function} view loaded callback.
+   */
+  view: function(name, cb) {
+    var self = this;
+
+    if (!(name in this._views)) {
+
+      if (name in Calendar.Views) {
+        this._initView(name);
+
+        if (cb) {
+          cb.call(self, self._views[name]);
         }
-      }
-
-      if (!this.db) {
-        this.configure(
-          new Calendar.Db('b2g-calendar'),
-          new Calendar.Router(page)
-        );
-      }
-
-      // start the workers
-      this.serviceController.start(false);
-
-      navigator.mozL10n.once(function() {
-        next();
-      });
-
-      this.db.load(function() {
-        next();
-      });
-    },
-
-    /**
-     * Initializes a provider.
-     */
-    provider: function(name) {
-      if (!(name in this._providers)) {
-        this._providers[name] = new Calendar.Provider[name]({
-          app: this
-        });
-      }
-
-      return this._providers[name];
-    },
-
-    _initView: function(name) {
-      this._views[name] = new Calendar.Views[name]({
-        app: this
-      });
-    },
-
-    /**
-     * Initializes a view and stores
-     * a internal reference so when
-     * view is called a second
-     * time the same view is used.
-     *
-     * Makes an asynchronous call to
-     * load the script if we do not
-     * have the view cached.
-     *
-     *    // for example if you have
-     *    // a calendar view Foo
-     *
-     *    Calendar.Views.Foo = Klass;
-     *
-     *    app.view('Foo', function(view) {
-     *      (view instanceof Calendar.Views.Foo) === true
-     *    });
-     *
-     * @param {String} name view name.
-     * @param {Function} view loaded callback.
-     */
-    view: function(name, cb) {
-      var self = this;
-
-      if (!(name in this._views)) {
-
-        if (name in Calendar.Views) {
-          this._initView(name);
+      } else {
+        this.loadObject('Views.' + name, function() {
+          self._initView(name);
 
           if (cb) {
             cb.call(self, self._views[name]);
           }
-        } else {
-          this.loadObject('Views.' + name, function() {
-            self._initView(name);
-
-            if (cb) {
-              cb.call(self, self._views[name]);
-            }
-          });
-        }
-
-      } else if (cb) {
-        Calendar.nextTick(function() {
-          cb.call(self, self._views[name]);
         });
       }
-    },
 
-    /**
-     * Pure convenience function for
-     * referencing a object store.
-     *
-     * @param {String} name store name. (e.g events).
-     * @return {Calendar.Store.Abstact} store.
-     */
-    store: function(name) {
-      return this.db.getStore(name);
-    },
-
-    /**
-     * Returns the offline status.
-     */
-    offline: function() {
-      return (navigator && 'onLine' in navigator) ? !navigator.onLine : true;
+    } else if (cb) {
+      nextTick(function() {
+        cb.call(self, self._views[name]);
+      });
     }
-  };
+  },
 
-  // Restart the calendar when the timezone changes.
-  // We do this on a timer because this event may fire
-  // many times. Refreshing the url of the calendar frequently
-  // can result in crashes so we attempt to do this only after
-  // the user has completed their selection.
-  var _changeTimerId;
-  window.addEventListener('moztimechange', function onMozTimeChange() {
-    clearTimeout(_changeTimerId);
+  /**
+   * Pure convenience function for
+   * referencing a object store.
+   *
+   * @param {String} name store name. (e.g events).
+   * @return {Calendar.Store.Abstact} store.
+   */
+  store: function(name) {
+    return this.db.getStore(name);
+  },
 
-    _changeTimerId = setTimeout(function() {
-      App.forceRestart();
-    }, App._mozTimeRefreshTimeout);
-  });
+  /**
+   * Returns the offline status.
+   */
+  offline: function() {
+    return (navigator && 'onLine' in navigator) ? !navigator.onLine : true;
+  }
+};
 
-  window.addEventListener('load', function onLoad() {
-    window.removeEventListener('load', onLoad);
-    App.init();
-  });
+// Restart the calendar when the timezone changes.
+// We do this on a timer because this event may fire
+// many times. Refreshing the url of the calendar frequently
+// can result in crashes so we attempt to do this only after
+// the user has completed their selection.
+var _changeTimerId;
+window.addEventListener('moztimechange', function onMozTimeChange() {
+  clearTimeout(_changeTimerId);
 
-  return App;
+  _changeTimerId = setTimeout(function() {
+    App.forceRestart();
+  }, App._mozTimeRefreshTimeout);
+});
+
+window.addEventListener('load', function onLoad() {
+  window.removeEventListener('load', onLoad);
+  App.init();
+});
+
+return App;
 
 }(this));
