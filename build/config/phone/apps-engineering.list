@@ -30,3 +30,4 @@ dev_apps/test-findmydevice
 dev_apps/contacts-manager
 dev_apps/contacts-ds-provider1
 dev_apps/contacts-ds-provider2
+dev_apps/demo-hci-event
