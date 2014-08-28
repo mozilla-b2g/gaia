@@ -89,7 +89,7 @@ suite('SimPinLock > ', function() {
       assert.isNotNull(SimPinLock.dialog);
       assert.isNotNull(SimPinLock.simPinTmpl);
       assert.isNotNull(SimPinLock.simPinContainer);
-      assert.isNotNull(SimPinLock.simPinBackButton);
+      assert.isNotNull(SimPinLock.simPinHeader);
       assert.isNotNull(SimPinLock.simSecurityDesc);
     });
   });
@@ -100,7 +100,7 @@ suite('SimPinLock > ', function() {
 
     setup(function(done) {
       this.sinon.stub(SimPinLock, 'setAllElements');
-      this.sinon.stub(SimPinLock, 'initSimPinBackButton');
+      this.sinon.stub(SimPinLock, 'initSimPinBack');
       this.sinon.stub(SimPinLock, 'initSimPinsUI');
       this.sinon.stub(SimPinLock, 'updateSimPinUI');
       this.sinon.stub(SimPinLock, 'updateSimPinsUI');
@@ -114,7 +114,7 @@ suite('SimPinLock > ', function() {
 
     test('all methods are called', function() {
       assert.ok(SimPinLock.setAllElements.called);
-      assert.ok(SimPinLock.initSimPinBackButton.called);
+      assert.ok(SimPinLock.initSimPinBack.called);
       assert.ok(SimPinLock.initSimPinsUI.called);
       assert.ok(SimPinLock.updateSimPinsUI.called);
       assert.ok(SimPinLock.addChangeEventOnIccs.called);
@@ -124,24 +124,24 @@ suite('SimPinLock > ', function() {
     });
   });
 
-  suite('initSimPinBackButton > ', function() {
+  suite('initSimPinBack > ', function() {
     suite('single sim > ', function() {
       setup(function() {
         initConns(1);
-        SimPinLock.initSimPinBackButton();
+        SimPinLock.initSimPinBack();
       });
       test('href is #root', function() {
-        var href = SimPinLock.simPinBackButton.getAttribute('href');
+        var href = SimPinLock.simPinHeader.dataset.href;
         assert.equal(href, '#root');
       });
     });
     suite('dual sim > ', function() {
       setup(function() {
         initConns(2);
-        SimPinLock.initSimPinBackButton();
+        SimPinLock.initSimPinBack();
       });
       test('href is #sim-manager', function() {
-        var href = SimPinLock.simPinBackButton.getAttribute('href');
+        var href = SimPinLock.simPinHeader.dataset.href;
         assert.equal(href, '#sim-manager');
       });
     });

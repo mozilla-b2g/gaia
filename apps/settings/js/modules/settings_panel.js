@@ -95,7 +95,6 @@ define(function(require) {
         onUninit: function() {
           _removeListeners(_panel);
           _panel = null;
-
           options.onUninit();
         },
         onShow: function(panel, showOptions) {
