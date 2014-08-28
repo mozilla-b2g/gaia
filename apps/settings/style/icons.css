@@ -10,22 +10,26 @@
   background-position: 1.4rem center;
 }
 
-a.menu-item::after  {
-  content: "";
-  width: 3rem;
-  height: 3rem;
+a.menu-item:after  {
+  font-family: "gaia-icons";
+  content: "forward";
   position: absolute;
-  top: calc(50% - 1.5rem);
-  right: -0.5rem;
-  background: url(/shared/style/buttons/images/next.png) no-repeat center / 3rem auto;
+  top: 0;
+  right: 0.3rem;
+  font-size: 25px;
+  line-height: 6rem;
+  color: #657073;
 }
 
 .menu-item::before {
+  position: absolute;
   left: 0;
+  top: 0;
+  width: 3rem;
   height: 100%;
+  text-align: center;
   line-height: 6rem;
   color: #657073;
-  top: 0;
 }
 
 label > .menu-item::before {
@@ -56,6 +60,10 @@ label > .menu-item + small {
 /******************************************************************************
  * Wi-Fi icons
  */
+#menuItem-wifi:before {
+  font-size: 2.6rem;
+}
+
 aside.pack-end {
   position: absolute;
   z-index: 2;

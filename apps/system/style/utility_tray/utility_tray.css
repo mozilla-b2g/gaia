@@ -17,6 +17,19 @@
   visibility: visible;
 }
 
+@media (orientation: portrait) {
+  #screen.software-button-enabled #utility-tray {
+    top: calc(-100% + 6rem + 5rem);
+    height: calc(100% - 3rem - 5rem);
+  }
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled #utility-tray {
+    width: calc(100% - 5rem);
+  }
+}
+
 #notifications-placeholder {
   height: calc(100% - 2rem);
 }
@@ -41,4 +54,10 @@
   border-bottom: 0.1rem solid #111;
   border-top: 0.1rem solid #111;
   background: #111 url('images/grippy.png') no-repeat center / 2rem;
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled #utility-tray-notifications {
+    width: calc(100% - 5rem);
+  }
 }

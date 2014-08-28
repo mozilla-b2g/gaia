@@ -477,47 +477,27 @@ var icc_worker = {
         break;
 
       case icc._iccManager.STK_TIMER_DEACTIVATE:
-        if (a_timer.queryPendingTime(options.timerId) === 0) {
-          icc.responseSTKCommand(message, {
-            timer: {
-              'timerId': options.timerId
-            },
-            resultCode:
-              icc._iccManager.STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE
-          });
-        } else {
-          pendingTime = a_timer.stop(options.timerId) / 1000;
-          icc.responseSTKCommand(message, {
-            timer: {
-              'timerId': options.timerId,
-              'timerValue': pendingTime,
-              'timerAction': icc._iccManager.STK_TIMER_DEACTIVATE
-            },
-            resultCode: icc._iccManager.STK_RESULT_OK
-          });
-        }
+        pendingTime = a_timer.stop(options.timerId) / 1000;
+        icc.responseSTKCommand(message, {
+          timer: {
+            'timerId': options.timerId,
+            'timerValue': pendingTime,
+            'timerAction': icc._iccManager.STK_TIMER_DEACTIVATE
+          },
+          resultCode: icc._iccManager.STK_RESULT_OK
+        });
         break;
 
       case icc._iccManager.STK_TIMER_GET_CURRENT_VALUE:
         pendingTime = a_timer.queryPendingTime(options.timerId) / 1000;
-        if (pendingTime === 0) {
-          icc.responseSTKCommand(message, {
-            timer: {
-              'timerId': options.timerId
-            },
-            resultCode:
-              icc._iccManager.STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE
-          });
-        } else {
-          icc.responseSTKCommand(message, {
-            timer: {
-              'timerId': options.timerId,
-              'timerValue': pendingTime,
-              'timerAction': icc._iccManager.STK_TIMER_GET_CURRENT_VALUE
-            },
-            resultCode: icc._iccManager.STK_RESULT_OK
-          });
-        }
+        icc.responseSTKCommand(message, {
+          timer: {
+            'timerId': options.timerId,
+            'timerValue': pendingTime,
+            'timerAction': icc._iccManager.STK_TIMER_GET_CURRENT_VALUE
+          },
+          resultCode: icc._iccManager.STK_RESULT_OK
+        });
         break;
     }
   },

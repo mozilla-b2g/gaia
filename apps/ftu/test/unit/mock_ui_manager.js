@@ -2,6 +2,7 @@
 
 var MockUIManager = {
   domSelectors: [
+    'container',
     'splash-screen',
     'activation-screen',
     'finish-screen',

@@ -4,7 +4,7 @@
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
 /* globals dump, BluetoothTransfer, NDEFUtils, NfcConnectSystemDialog,
-           NDEF, NfcUtils, NotificationHelper */
+           NDEF, NfcUtils, NotificationHelper, SettingsListener */
 /* exported NfcHandoverManager */
 'use strict';
 
@@ -187,6 +187,9 @@ var NfcHandoverManager = {
         self._debug('In New event nfc-manager-send-file' + JSON.stringify(msg));
         self.handleFileTransfer(msg.sessionToken, msg.blob, msg.requestId);
     });
+
+    SettingsListener.observe('nfc.debugging.enabled', false,
+                             (enabled) => { this.DEBUG = enabled; });
   },
 
   /**

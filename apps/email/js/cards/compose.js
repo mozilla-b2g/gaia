@@ -333,7 +333,7 @@ ComposeCard.prototype = {
         l10nId = 'send-failure-unknown';
       }
 
-      mozL10n.localize(this.errorMessage, l10nId);
+      this.errorMessage.setAttribute('data-l10n-id', l10nId);
       this.errorMessage.classList.remove('collapsed');
     } else {
       this.errorMessage.classList.add('collapsed');

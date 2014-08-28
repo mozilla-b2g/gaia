@@ -173,6 +173,10 @@ var Settings = {
       delete currentPanel.dataset.dialog;
     }
     delete document.body.dataset.filterBy;
+
+    // Re-run the header title centering logic
+    var header = document.getElementById('main-header');
+    this.SettingsUtils.runHeaderFontFit(header);
   },
 
   visibilityHandler: function settings_visibilityHandler(evt) {
@@ -210,6 +214,9 @@ var Settings = {
           var filterBy = activityRequest.source.data.filterBy;
           if (filterBy) {
             document.body.dataset.filterBy = filterBy;
+            // Re-run the header title centering logic
+            var header = document.getElementById('main-header');
+            Settings.SettingsUtils.runHeaderFontFit(header);
           }
         }
 

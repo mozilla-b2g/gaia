@@ -338,9 +338,13 @@ InputMethodManager.prototype.updateInputContextData = function() {
     return;
   }
 
-  var p = this.app.inputContext.getText().then(function(value) {
+  // Save inputContext as a local variable;
+  // It is important that the promise is getting the inputContext
+  // it calls getText() on when resolved/rejected.
+  var inputContext = this.app.inputContext;
+
+  var p = inputContext.getText().then(function(value) {
     this.app.perfTimer.printTime('updateInputContextData:promise resolved');
-    var inputContext = this.app.inputContext;
 
     // Resolve to this object containing information of inputContext
     return {
@@ -353,7 +357,6 @@ InputMethodManager.prototype.updateInputContextData = function() {
     };
   }.bind(this), function(error) {
     console.warn('InputMethodManager: inputcontext.getText() was rejected.');
-    var inputContext = this.app.inputContext;
 
     // Resolve to this object containing information of inputContext
     // With empty string as value.

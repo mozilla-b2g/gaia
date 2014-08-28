@@ -66,6 +66,10 @@
   visibility: hidden;
 }
 
+#screen.attention #statusbar-minimized {
+  display: none;
+}
+
 /* Homescreen must show the maximised status bar */
 #homescreen .chrome + .titlebar .titlebar-maximized {
   opacity: 1;

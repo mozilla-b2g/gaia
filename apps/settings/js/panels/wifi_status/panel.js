@@ -37,7 +37,7 @@ define(function(require) {
         var info = wifiManager.connectionInformation || {};
         elements.ip.textContent = info.ipAddress || '';
         navigator.mozL10n.setAttributes(elements.speed,
-                                        'linkSpeedMba',
+                                        'linkSpeedMbs',
                                         { linkSpeed: info.linkSpeed });
       }
     });

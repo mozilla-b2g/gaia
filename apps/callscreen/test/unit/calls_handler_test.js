@@ -3,7 +3,7 @@
            MockMozL10n, MockNavigatormozApps, MockNavigatorMozIccManager,
            MockNavigatormozSetMessageHandler, MockNavigatorMozTelephony,
            MockNavigatorWakeLock, MocksHelper, MockTonePlayer, MockUtils,
-           telephonyAddCall, telephonyAddCdmaCall,
+           telephonyAddCall, telephonyAddCdmaCall, MockAudioContext,
            MockNavigatorMozMobileConnections, AudioCompetingHelper */
 
 'use strict';
@@ -40,6 +40,7 @@ var mocksHelperForCallsHandler = new MocksHelper([
   'BluetoothHelper',
   'Utils',
   'Audio',
+  'AudioContext',
   'SimplePhoneMatcher',
   'FontSizeManager'
 ]).init();
@@ -1948,12 +1949,14 @@ suite('calls handler', function() {
 
     test('should call onMozInterrupBegin', function() {
       this.sinon.spy(gsmcall, 'hold');
+      this.sinon.spy(MockAudioContext.prototype, 'addEventListener');
 
       MockNavigatorMozTelephony.active = gsmcall;
       AudioCompetingHelper.compete();
-      var evt = new CustomEvent('mozinterruptbegin');
 
-      AudioCompetingHelper.audioContext.dispatchEvent(evt);
+      sinon.assert.calledWith(MockAudioContext.prototype.addEventListener,
+                              'mozinterruptbegin');
+      MockAudioContext.prototype.addEventListener.yield();
       sinon.assert.called(gsmcall.hold);
       AudioCompetingHelper.leaveCompetition();
     });
@@ -1961,14 +1964,16 @@ suite('calls handler', function() {
     test('should call forceAnAudioCompetitionWin', function() {
       this.sinon.spy(AudioCompetingHelper, 'compete');
       this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
+      this.sinon.spy(MockAudioContext.prototype, 'addEventListener');
 
       var gsmcall2 = new MockCall('543552', 'connected');
       telephonyAddCall.call(this, gsmcall2);
 
       AudioCompetingHelper.compete();
-      var evt = new CustomEvent('mozinterruptbegin');
 
-      AudioCompetingHelper.audioContext.dispatchEvent(evt);
+      sinon.assert.calledWith(MockAudioContext.prototype.addEventListener,
+                              'mozinterruptbegin');
+      MockAudioContext.prototype.addEventListener.yield();
       sinon.assert.calledOnce(AudioCompetingHelper.leaveCompetition);
       sinon.assert.calledTwice(AudioCompetingHelper.compete);
     });

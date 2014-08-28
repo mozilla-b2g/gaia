@@ -205,6 +205,7 @@ var InitLogoHandler = {
       self.osLogo.removeEventListener('transitionend', transOsLogo);
       self.osLogo.parentNode.removeChild(self.osLogo);
       delete self.osLogo; // Don't entrain the DOM nodes.
+      window.dispatchEvent(new CustomEvent('logohidden'));
       if (callback) {
         callback();
       }

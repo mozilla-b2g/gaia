@@ -99,8 +99,8 @@ var CarrierSettings = (function(window, document, undefined) {
     // Set the navigation correctly when on a multi ICC card device.
     if (DsdsSettings.getNumberOfIccSlots() > 1) {
       var carrierSimPanel = document.getElementById('carrier');
-      var backButton = carrierSimPanel.querySelector('a');
-      backButton.setAttribute('href', '#carrier-iccs');
+      var header = carrierSimPanel.querySelector('gaia-header');
+      header.setAttribute('data-href', '#carrier-iccs');
     }
 
     /*

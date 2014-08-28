@@ -180,6 +180,14 @@ class GaiaData(object):
         assert result, 'Unable to insert contact %s' % contact
         self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
+    def insert_sim_contact(self, contact, contact_type='adn'):
+        # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context
+        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
+        mozcontact = contact.create_mozcontact()
+        result = self.marionette.execute_async_script('return GaiaDataLayer.insertSIMContact("%s", %s);'
+                                                      % (contact_type, json.dumps(mozcontact)), special_powers=True)
+        assert result, 'Unable to insert SIM contact %s' % contact
+        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     def remove_all_contacts(self):
         # TODO Bug 1049489 - In future, simplify executing scripts from the chrome context

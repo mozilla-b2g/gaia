@@ -8,6 +8,7 @@ apps/browser/style/browser.css 0 2
 apps/browser/style/modal_dialog/modal_dialog.css 0 1
 apps/calendar/style/month.css 0 6
 apps/calendar/style/ui.css 0 2
+apps/calendar/style/modify_event_view.css 0 4
 apps/callscreen/style/oncall.css 0 2
 apps/camera/bower_components/gaia-icons/style.css 0 0
 apps/camera/bower_components/gaia-theme/style.css 6 0
@@ -49,8 +50,10 @@ apps/music/bower_components/gaia-theme/style.css 6 0
 apps/music/style/music.css 0 2
 apps/pdfjs/content/web/viewer.css 0 1
 apps/settings/style/lists.css 2 0
-apps/settings/style/settings.css 0 2
+apps/settings/style/settings.css 0 10
 apps/settings/style/settings_large.css 1 1
+apps/settings/style/screen_lock.css 0 2
+apps/settings/style/downloads.css 0 3
 apps/sms/style/root.css 0 2
 apps/sms/style/sms.css 0 4
 apps/system/mobile_id/style/mobile_id.css 0 16

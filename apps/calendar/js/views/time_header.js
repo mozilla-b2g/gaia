@@ -9,7 +9,7 @@ Calendar.ns('Views').TimeHeader = (function() {
     this.controller = this.app.timeController;
     this.controller.on('scaleChange', this);
 
-    this.settings.addEventListener('click', function settingsClick(e) {
+    this.element.addEventListener('action', function settingsClick(e) {
       e.stopPropagation();
       var path = window.location.pathname;
       if (SETTINGS.test(path)) {
@@ -25,8 +25,7 @@ Calendar.ns('Views').TimeHeader = (function() {
 
     selectors: {
       element: '#time-header',
-      title: '#time-header h1',
-      settings: '#time-header .settings'
+      title: '#time-header h1'
     },
 
     scales: {
@@ -53,10 +52,6 @@ Calendar.ns('Views').TimeHeader = (function() {
           this._updateScale.apply(this, e.data);
           break;
       }
-    },
-
-    get settings() {
-      return this._findElement('settings');
     },
 
     get title() {
@@ -110,15 +105,13 @@ Calendar.ns('Views').TimeHeader = (function() {
     },
 
     _getLastWeekday: function(){
+      // we display 5 days at a time, controller.position is always the day on
+      // the left of the view
       var position = this.controller.position;
-      // since we break the week into Sun-Wed and Thr-Sat we need to compute
-      // what is going to be the last date displayed on the current view
-      var weekday = position.getDay();
-      var diff = ((weekday <= 3) ? 3 : 6) - weekday;
       return new Date(
         position.getFullYear(),
         position.getMonth(),
-        position.getDate() + diff
+        position.getDate() + 4
       );
     },
 

@@ -64,6 +64,9 @@ var UtilityTray = {
 
     this.overlay.addEventListener('transitionend', this);
 
+    window.addEventListener('software-button-enabled', this);
+    window.addEventListener('software-button-disabled', this);
+
     if (window.navigator.mozMobileConnections) {
       window.LazyLoader.load('js/cost_control.js');
     }
@@ -210,6 +213,11 @@ var UtilityTray = {
         if (eventType === 'edge-swipe-down') {
           this[this.shown ? 'hide' : 'show']();
         }
+        break;
+
+      case 'software-button-enabled':
+      case 'software-button-disabled':
+        this.validateCachedSizes(true);
         break;
     }
   },

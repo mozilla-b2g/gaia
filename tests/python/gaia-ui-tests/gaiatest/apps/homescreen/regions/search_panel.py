@@ -31,6 +31,7 @@ class SearchPanel(Base):
                                           > minimum_expected_results)
 
     def confirm_suggestion_notice(self):
+        self.wait_for_element_displayed(*self._search_suggestion_ok_button_locator)
         self.marionette.find_element(*self._search_suggestion_ok_button_locator).tap()
         self.wait_for_element_not_displayed(*self._search_suggestion_ok_button_locator)
 

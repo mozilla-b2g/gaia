@@ -13,7 +13,6 @@
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/icons.css">
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css">
@@ -45,6 +44,12 @@
     <link rel="resource" type="application/json" href="shared/resources/keyboard_layouts.json"/>
     <link rel="resource" type="image/png" href="shared/resources/branding/privacy_sprite.png"/>
     -->
+
+    <!-- Components -->
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" />
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
+    <script src="shared/elements/config.js"></script>
+    <script src="shared/elements/gaia-header/dist/script.js"></script>
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="shared/locales/download.ini">
@@ -178,7 +183,7 @@
     <link rel="import" href="/elements/frame.html">
     <link rel="import" href="/elements/templates/messaging.html">
   </head>
-  <body class="skin-organic uninit">
+  <body class="skin-organic uninit theme-settings">
     <!--
       - Lazy-Loading: to avoid parsing all settings panels before necessary, the
       - HTML markup is included in a comment node and applied with `.innerHTML'
@@ -375,12 +380,10 @@
 
     <!-- Main List -->
     <section role="region" id="root" class="current" data-rendered="true">
-      <header>
-        <menu id="activityDoneButton" type="toolbar">
-          <a href="#home" role="menuitem" data-l10n-id="done">Done</a>
-        </menu>
-        <h1 data-l10n-id="settings"> Settings </h1>
-      </header>
+      <gaia-header id="main-header">
+        <h1 id="main-list-title" data-l10n-id="settings"> Settings </h1>
+        <a id="activityDoneButton" href="#home" role="menuitem" data-l10n-id="done">Done</a>
+      </gaia-header>
 
       <div>
         <header data-category="connectivity">
@@ -390,47 +393,47 @@
           <li data-category="connectivity">
             <label class="pack-switch">
               <input id="airplaneMode-input" class="uninit" type="checkbox" disabled>
-              <span id="menuItem-airplaneMode" class="menu-item gaia-icon icon-settings-airplane" data-l10n-id="airplaneMode">Airplane Mode</span>
+              <span id="menuItem-airplaneMode" class="menu-item" data-icon="airplane" data-l10n-id="airplaneMode">Airplane Mode</span>
             </label>
           </li>
           <li>
             <label class="pack-switch">
               <input name="geolocation.enabled" class="uninit" type="checkbox">
-              <span id="menuItem-gps" class="menu-item gaia-icon icon-settings-gps" data-l10n-id="geolocation">Geolocation</span>
+              <span id="menuItem-gps" class="menu-item" data-icon="location" data-l10n-id="geolocation">Geolocation</span>
             </label>
           </li>
           <li data-category="connectivity">
-            <a id="menuItem-wifi" class="menu-item gaia-icon icon-settings-wifi" href="#wifi">
+            <a id="menuItem-wifi" class="menu-item" data-icon="wifi-4" href="#wifi">
               <span data-l10n-id="wifi">Wi-Fi</span>
               <small id="wifi-desc" class="menu-item-desc"></small>
             </a>
           </li>
           <li id="simCardManager-settings" aria-disabled="true">
-            <a id="menuItem-simManager" class="menu-item gaia-icon icon-settings-simcardlock" href="#sim-manager">
+            <a id="menuItem-simManager" class="menu-item" data-icon="sim" href="#sim-manager">
               <span data-l10n-id="simManager">SIM manager</span>
               <small id="simmanager-desc" class="menu-item-desc"></small>
             </a>
           </li>
           <li id="call-settings" aria-disabled="true">
-            <a id="menuItem-callSettings" class="menu-item gaia-icon icon-settings-call" href="#call">
+            <a id="menuItem-callSettings" class="menu-item" data-icon="call" href="#call">
               <span data-l10n-id="callSettings">Call Settings</span>
               <small id="call-desc" class="menu-item-desc"></small>
             </a>
           </li>
           <li id="messaging-settings" aria-disabled="true">
-            <a id="menuItem-messagingSettings" class="menu-item gaia-icon icon-settings-messages" href="#messaging">
+            <a id="menuItem-messagingSettings" class="menu-item" data-icon="messages" href="#messaging">
               <span data-l10n-id="messagingSettings">Messaging Settings</span>
               <small id="messaging-desc" class="menu-item-desc"></small>
             </a>
           </li>
           <li id="data-connectivity" data-category="connectivity" aria-disabled="true">
-            <a id="menuItem-cellularAndData" class="menu-item gaia-icon icon-settings-network" href="#carrier">
+            <a id="menuItem-cellularAndData" class="menu-item" data-icon="network" href="#carrier">
               <span data-l10n-id="cellularAndData">Cellular &amp; Data</span>
               <small id="data-desc" class="menu-item-desc"></small>
             </a>
           </li>
           <li>
-            <a class="menuItem-bluetooth menu-item gaia-icon icon-settings-bluetooth" href="#app:bluetooth">
+            <a class="menuItem-bluetooth menu-item" data-icon="bluetooth" href="#app:bluetooth">
               <span data-l10n-id="bluetooth">Bluetooth</span>
               <small class="bluetooth-desc menu-item-desc"></small>
             </a>
@@ -438,11 +441,11 @@
           <li class="nfc-settings" hidden>
             <label class="pack-switch">
               <input id="nfc-input" name="nfc.enabled" class="uninit" type="checkbox">
-              <span id="menuItem-nfc" class="menu-item gaia-icon icon-settings-nfc" data-l10n-id="nfc">NFC</span>
+              <span id="menuItem-nfc" class="menu-item" data-icon="nfc" data-l10n-id="nfc">NFC</span>
             </label>
           </li>
           <li>
-            <a id="menuItem-internetSharing" class="menu-item gaia-icon icon-settings-tethering" href="#hotspot">
+            <a id="menuItem-internetSharing" class="menu-item" data-icon="tethering" href="#hotspot">
               <span data-l10n-id="internetSharing">Internet Sharing</span>
               <small id="internetSharing-desc" class="menu-item-desc"></small>
             </a>
@@ -454,42 +457,42 @@
         </header>
         <ul>
           <li>
-            <a id="menuItem-sound" class="menu-item gaia-icon icon-settings-sound-max" href="#sound" data-l10n-id="sound">Sound</a>
+            <a id="menuItem-sound" class="menu-item" data-icon="sound-max" href="#sound" data-l10n-id="sound">Sound</a>
           </li>
           <li>
-            <a id="menuItem-display" class="menu-item gaia-icon icon-settings-display" href="#display" data-l10n-id="display">Display</a>
+            <a id="menuItem-display" class="menu-item" data-icon="brightness" href="#display" data-l10n-id="display">Display</a>
           </li>
           <li>
-            <a id="menuItem-homescreen" class="menu-item gaia-icon icon-settings-homescreen" href="#homescreen" data-l10n-id="homescreen">Homescreen</a>
+            <a id="menuItem-homescreen" class="menu-item" data-icon="homescreen" href="#homescreen" data-l10n-id="homescreen">Homescreen</a>
           </li>
           <li>
-            <a id="menuItem-search" class="menu-item gaia-icon icon-browser-search" href="#search" data-l10n-id="search">Search</a>
+            <a id="menuItem-search" class="menu-item" data-icon="search" href="#search" data-l10n-id="search">Search</a>
           </li>
           <li>
-            <a id="menuItem-navigation" class="menu-item gaia-icon icon-settings-gesture" href="#navigation" data-l10n-id="navigation">Navigation</a>
+            <a id="menuItem-navigation" class="menu-item" data-icon="gesture" href="#navigation" data-l10n-id="navigation">Navigation</a>
           </li>
           <li>
-            <a id="menuItem-notifications" class="menu-item gaia-icon icon-settings-notifications" href="#notifications" data-l10n-id="notifications">Notifications</a>
+            <a id="menuItem-notifications" class="menu-item" data-icon="notifications" href="#notifications" data-l10n-id="notifications">Notifications</a>
           </li>
           <li>
-            <a id="menuItem-dateAndTime" class="menu-item gaia-icon icon-settings-time" href="#dateTime">
+            <a id="menuItem-dateAndTime" class="menu-item" data-icon="time" href="#dateTime">
               <span data-l10n-id="dateAndTime">Date &amp; Time</span>
               <small id="time-desc" class="menu-item-desc"></small>
             </a>
           </li>
           <li>
-            <a class="menuItem-languageAndRegion menu-item gaia-icon icon-settings-languages2" href="#languages">
+            <a class="menuItem-languageAndRegion menu-item" data-icon="languages" href="#languages">
               <span data-l10n-id="language">Language</span>
               <small class="language-desc menu-item-desc"></small>
             </a>
           </li>
           <li id="homescreens-section" hidden>
-            <a id="menuItem-homescreens" class="menu-item gaia-icon icon-settings-apps" href="#homescreens">
+            <a id="menuItem-homescreens" class="menu-item" data-icon="storage" href="#homescreens">
             <span data-l10n-id="homescreens">Homescreens</span>
             </a>
           </li>
           <li>
-            <a id="menuItem-keyboard" class="menu-item gaia-icon icon-settings-keyboard" href="#keyboard">
+            <a id="menuItem-keyboard" class="menu-item" data-icon="keyboard" href="#keyboard">
               <span data-l10n-id="keyboards">Keyboards</span>
               <small id="keyboard-desc" class="menu-item-desc"></small>
             </a>
@@ -501,13 +504,13 @@
         </header>
         <ul>
           <li>
-            <a id="menuItem-fxa" class="menu-item gaia-icon icon-settings-persona" href="#fxa">
+            <a id="menuItem-fxa" class="menu-item" data-icon="firefox" href="#fxa">
               <span data-l10n-id="fxa-accounts">Firefox Accounts</span>
               <small id="fxa-desc" class="menu-item-desc"></small>
             </a>
           </li>
           <li data-show-name="findmydevice.ui.enabled" hidden>
-            <a id="menuItem-findmydevice" class="menu-item gaia-icon icon-settings-findmydevice" href="#findmydevice">
+            <a id="menuItem-findmydevice" class="menu-item" data-icon="find" href="#findmydevice">
               <span data-l10n-id="findmydevice">Find My Device</span>
               <small class="findmydevice-desc menu-item-desc"></small>
             </a>
@@ -519,31 +522,31 @@
         </header>
         <ul>
           <li>
-            <a id="menuItem-screenLock" class="menu-item gaia-icon icon-settings-phonelock" href="#screenLock">
+            <a id="menuItem-screenLock" class="menu-item" data-icon="lock" href="#screenLock">
               <span data-l10n-id="screenLock">Screen Lock</span>
-              <small id="screenLock-desc" class="menu-item-desc"></small>
+              <small class="screenLock-desc menu-item-desc"></small>
             </a>
           </li>
           <li id="simSecurity-settings" aria-disabled="true">
-            <a id="menuItem-simSecurity" class="menu-item gaia-icon icon-settings-simcardlock" href="#simpin">
+            <a id="menuItem-simSecurity" class="menu-item" data-icon="sim" href="#simpin">
               <span data-l10n-id="simSecurity">SIM security</span>
               <small id="simCardLock-desc" class="menu-item-desc"></small>
             </a>
           </li>
           <li>
-            <a id="menuItem-appPermissions" class="menu-item gaia-icon icon-settings-app-permissions" href="#appPermissions">
+            <a id="menuItem-appPermissions" class="menu-item" data-icon="tick-circle" href="#appPermissions">
               <span data-l10n-id="appPermissions">App permissions</span>
             </a>
           </li>
           <li>
-            <a id="menuItem-doNotTrack" class="menu-item gaia-icon icon-settings-donottrack" href="#doNotTrack">
+            <a id="menuItem-doNotTrack" class="menu-item" data-icon="do-not-track" href="#doNotTrack">
               <span data-l10n-id="doNotTrack">Do Not Track</span>
               <small id="doNotTrack-desc" class="menu-item-desc"></small>
             </a>
           </li>
           <li>
             <small id="browserPrivacy-desc" class="menu-item-desc"></small>
-            <a id="menuItem-browserPrivacy" class="menu-item gaia-icon icon-browsing" href="#browserPrivacy" data-l10n-id="browserPrivacy">Browser Privacy</a>
+            <a id="menuItem-browserPrivacy" class="menu-item" data-icon="browsing" href="#browserPrivacy" data-l10n-id="browserPrivacy">Browser Privacy</a>
           </li>
         </ul>
 
@@ -557,18 +560,18 @@
               <span></span>
             </label>
             <label id="menuItem-enableStorage" class="name">
-              <span class="menu-item gaia-icon icon-settings-usbstorage" data-l10n-id="enableUSBStorage1">USB storage</span>
+              <span class="menu-item" data-icon="usb" data-l10n-id="enableUSBStorage1">USB storage</span>
               <small class="usb-desc menu-item-desc">Disabled</small>
             </label>
           </li>
           <li class="media-storage-section">
-            <a class="menuItem-mediaStorage menu-item gaia-icon icon-settings-mediastorage" href="#mediaStorage">
+            <a class="menuItem-mediaStorage menu-item" data-icon="media-storage" href="#mediaStorage">
               <span data-l10n-id="mediaStorage">Media Storage</span>
               <small class="media-storage-desc menu-item-desc"></small>
             </a>
           </li>
           <li>
-            <a class="menuItem-applicationStorage menu-item gaia-icon icon-settings-appstorage" href="#applicationStorage">
+            <a class="menuItem-applicationStorage menu-item" data-icon="storage" href="#applicationStorage">
               <span data-l10n-id="appStorage">Application Storage</span>
               <small class="application-storage-desc menu-item-desc"></small>
             </a>
@@ -580,38 +583,38 @@
         </header>
         <ul>
           <li>
-            <a id="menuItem-deviceInfo" class="menu-item gaia-icon icon-settings-aboutphone" href="#about">
+            <a id="menuItem-deviceInfo" class="menu-item" data-icon="device-info" href="#about">
               <span data-l10n-id="deviceInfo">Device Information</span>
             </a>
           </li>
           <li>
-            <a id="menuItem-downloads" class="menu-item gaia-icon icon-settings-download" href="#downloads">
+            <a id="menuItem-downloads" class="menu-item" data-icon="download" href="#downloads">
               <span  data-l10n-id="downloads">Downloads</span>
             </a>
           </li>
           <li>
-            <a class="menuItem-battery menu-item gaia-icon icon-settings-battery" href="#battery">
+            <a class="menuItem-battery menu-item" data-icon="battery-10" href="#battery">
               <span data-l10n-id="battery">Battery</span>
               <small class="battery-desc menu-item-desc" hidden></small>
             </a>
           </li>
           <li data-show-name="accessibility.show-settings" hidden>
-            <a id="menuItem-accessibility" class="menu-item gaia-icon icon-settings-accessibility" href="#accessibility">
+            <a id="menuItem-accessibility" class="menu-item" data-icon="accessibility" href="#accessibility">
                 <span data-l10n-id="accessibility">Accessibility</span>
             </a>
           </li>
           <li data-show-name="developer.menu.enabled" hidden>
-            <a id="menuItem-developer" class="menu-item gaia-icon icon-settings-developer" href="#developer">
+            <a id="menuItem-developer" class="menu-item" data-icon="developer" href="#developer">
              <span data-l10n-id="developer">Developer</span>
              </a>
           </li>
           <li>
-            <a id="menuItem-improveBrowserOS" class="menu-item gaia-icon icon-settings-feedback" href="#improveBrowserOS">
+            <a id="menuItem-improveBrowserOS" class="menu-item" data-icon="feedback" href="#improveBrowserOS">
               <span data-l10n-id="improveBrowserOS">Improve Browser OS</span>
             </a>
           </li>
           <li>
-            <a id="menuItem-help" class="menu-item gaia-icon icon-settings-help" href="#help">
+            <a id="menuItem-help" class="menu-item" data-icon="help" href="#help">
               <span data-l10n-id="help">Help</span>
             </a>
           </li>

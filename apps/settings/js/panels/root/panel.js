@@ -11,6 +11,7 @@ define(function(require) {
   var StorageUSBItem = require('panels/root/storage_usb_item');
   var StorageAppItem = require('panels/root/storage_app_item');
   var WifiItem = require('panels/root/wifi_item');
+  var ScreenLockItem = require('panels/root/screen_lock_item');
 
   return function ctor_root_panel() {
     var root = Root();
@@ -22,6 +23,7 @@ define(function(require) {
     var storageUsbItem;
     var storageAppItem;
     var wifiItem;
+    var screenLockItem;
 
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
@@ -45,6 +47,8 @@ define(function(require) {
         storageAppItem = StorageAppItem(
           panel.querySelector('.application-storage-desc'));
         wifiItem = WifiItem(panel.querySelector('#wifi-desc'));
+        screenLockItem =
+          ScreenLockItem(panel.querySelector('.screenLock-desc'));
       },
       onBeforeShow: function rp_onBeforeShow() {
         bluetoothItem.enabled = true;
@@ -54,6 +58,7 @@ define(function(require) {
         storageUsbItem.enabled = true;
         storageAppItem.enabled = true;
         wifiItem.enabled = true;
+        screenLockItem.enabled = true;
       },
       onShow: function rp_onShow() {
         // XXX: Set data-ready to true to indicate that the first panel is
@@ -70,6 +75,7 @@ define(function(require) {
         storageUsbItem.enabled = false;
         storageAppItem.enabled = false;
         wifiItem.enabled = false;
+        screenLockItem.enabled = false;
       }
     });
   };

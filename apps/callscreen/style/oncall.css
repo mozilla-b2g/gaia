@@ -146,8 +146,9 @@
   }
 
   body.showKeypad #call-options {
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, visibility 0.3s;
     transform: translateY(16rem);
+    visibility: hidden;
   }
 
   body.showKeypad #group-show {
@@ -208,6 +209,7 @@
     height: 14rem;
     position: absolute;
     bottom: 0;
+    visibility: visible;
   }
 
   #co-advanced {

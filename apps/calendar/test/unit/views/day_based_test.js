@@ -617,7 +617,7 @@ suiteGroup('Views.DayBased', function() {
       list.push(item[1].element);
     });
 
-    var displayedHours = Calendar.Calc.hoursOfOccurance(
+    var displayedHours = Calendar.Calc.hoursOfOccurence(
       subject.date,
       busytime.startDate,
       busytime.endDate

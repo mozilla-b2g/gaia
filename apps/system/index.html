@@ -46,13 +46,6 @@
     <script defer src="shared/js/template.js"></script>
     -->
 
-    <!-- Lazy load for Confirm dialog component -->
-    <script defer src="shared/js/component_utils.js"></script>
-    <!-- <script defer src="/shared/js/homescreens/confirm_dialog_helper.js"></script> -->
-    <!-- <script defer src="/shared/elements/gaia_confirm/script.js"></script> -->
-    <!-- <script defer src="/shared/elements/gaia_menu/script.js"></script> -->
-    <script defer src="shared/elements/gaia_buttons/script.js"></script>
-
     <!-- SIMSlot -->
     <script type="text/javascript" defer src="shared/js/simslot.js"></script>
     <script type="text/javascript" defer src="shared/js/simslot_manager.js"></script>
@@ -79,16 +72,18 @@
     <link rel="stylesheet" type="text/css" href="shared/style/time_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/object_menu.css">
 
-    <!-- Gaia Components -->
+    <!-- Include shared web components -->
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia_progress/style/external.css">
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css">
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css">
 
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
 
-    <!-- Include shared web components -->
     <script defer src="shared/elements/config.js"></script>
     <script defer src="shared/js/component_utils.js"></script>
+    <!-- <script defer src="/shared/js/homescreens/confirm_dialog_helper.js"></script> -->
+    <!-- <script defer src="/shared/elements/gaia_confirm/script.js"></script> -->
+    <!-- <script defer src="/shared/elements/gaia_menu/script.js"></script> -->
     <script defer src="shared/elements/gaia_buttons/script.js"></script>
     <script defer src="shared/elements/gaia_progress/script.js"></script>
     <script defer src="shared/elements/gaia_subheader/script.js"></script>
@@ -459,7 +454,7 @@
   </head>
 
   <body class="theme-settings" role="application">
-    <div id="screen">
+    <div id="screen" aria-hidden="true">
       <div id="os-logo" data-z-index-level="initlogo">
         <div id="carrier-logo"></div>
       </div>
@@ -468,7 +463,7 @@
         <!-- Rocketbar-->
         <div id="rocketbar">
           <form id="rocketbar-form" class="hidden">
-            <input id="rocketbar-input" type="text" x-inputmode="verbatim" dir="auto"
+            <input id="rocketbar-input" type="search" x-inputmode="verbatim" dir="auto"
               placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="">
             </input>
             <button type="button" id="rocketbar-clear" data-l10n-id="clear" aria-label="Clear"></button>
