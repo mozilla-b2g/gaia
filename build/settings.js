@@ -32,13 +32,27 @@ function setWallpaper(settings, config) {
   settings['wallpaper.image'] = utils.getFileAsDataURI(wallpaper);
 }
 
-function setTone(settings, config, settingsKey, dir, name) {
+function setTone(settings, config, toneType, name) {
+  let settingsKey, dir;
+  switch (toneType) {
+  case 'ringtone':
+    settingsKey = 'dialer.ringtone';
+    dir = 'shared/resources/media/ringtones/';
+    break;
+  case 'alerttone':
+    settingsKey = 'notification.ringtone';
+    dir = 'shared/resources/media/notifications/';
+    break;
+  default:
+    throw new Error('unknown tone type: ' + toneType);
+  }
+
   let tone = utils.resolve(dir + name, config.GAIA_DIR);
 
   settings[settingsKey] = utils.getFileAsDataURI(tone);
   settings[settingsKey + '.name'] = {l10nID: name.replace(/\.\w+$/, '')};
   settings[settingsKey + '.id'] = settings[settingsKey + '.default.id'] =
-    'builtin:' + name.replace(/\.\w+$/, '');
+    'builtin:' + toneType + '/' + name.replace(/\.\w+$/, '');
 }
 
 function setMediatone(settings, config) {
@@ -63,17 +77,14 @@ function setAlarmtone(settings, config) {
 
 function setRingtone(settings, config) {
   // Grab ringer_firefox.opus and convert it into a base64 string
-  let ringtone_dir = 'shared/resources/media/ringtones/';
   let ringtone_name = 'ringer_firefox.opus';
-  setTone(settings, config, 'dialer.ringtone', ringtone_dir, ringtone_name);
+  setTone(settings, config, 'ringtone', ringtone_name);
 }
 
 function setNotification(settings, config) {
   // Grab notifier_firefox.opus and convert it into a base64 string
-  let notification_dir = 'shared/resources/media/notifications/';
   let notification_name = 'notifier_firefox.opus';
-  setTone(settings, config, 'notification.ringtone', notification_dir,
-          notification_name);
+  setTone(settings, config, 'alerttone', notification_name);
 }
 
 /* Setup the default keyboard layouts according to the current language */

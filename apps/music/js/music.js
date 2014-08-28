@@ -120,12 +120,22 @@ navigator.mozL10n.once(function onLocalizationInit() {
 var displayingScanProgress = false;
 
 function init() {
+  // We want to exclude some folders that store ringtones so they don't show up
+  // in the music app. The regex matches absolute paths starting with a volume
+  // name (e.g. "/volume-name/Ringtones/") or relative paths starting with the
+  // excluded folder name (e.g. "Ringtones/").
+  var excludedFolders = ['Ringtones', 'Notifications', 'Alarms'];
+  var excludeFilter = new RegExp(
+    '^(/[^/]*/)?(' + excludedFolders.join('|') + ')/', 'i'
+  );
+
   // Here we use the mediadb.js which gallery is using (in shared/js/)
   // to index our music contents with metadata parsed.
   // So the behaviors of musicdb are the same as the MediaDB in gallery
   musicdb = new MediaDB('music', metadataParserWrapper, {
     indexes: ['metadata.album', 'metadata.artist', 'metadata.title',
               'metadata.rated', 'metadata.played', 'date'],
+    excludeFilter: excludeFilter,
     batchSize: 1,
     autoscan: false, // We call scan() explicitly after listing music we know
     version: 2

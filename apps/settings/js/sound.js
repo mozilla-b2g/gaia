@@ -360,8 +360,8 @@
     };
   });
 
-  var manageRingtones = document.getElementById('manage-ringtones-button');
-  manageRingtones.onclick = function() {
+  var manageTones = document.getElementById('manage-tones-button');
+  manageTones.onclick = function() {
     var activity = new MozActivity({
       name: 'configure',
       data: {

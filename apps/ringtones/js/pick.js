@@ -26,7 +26,7 @@ navigator.mozSetMessageHandler('activity', function(activity) {
     activity.postError('cancelled');
   });
 
-  document.getElementById('done').addEventListener('click', function() {
+  document.getElementById('set').addEventListener('click', function() {
     tonePlayer.stop();
     tonePlayer.isValid(function(valid) {
       if (!valid) {
@@ -58,7 +58,7 @@ navigator.mozSetMessageHandler('activity', function(activity) {
     input.checked = (tone.id === currentToneID);
     input.addEventListener('click', function() {
       tonePlayer.setTone(tone);
-      document.getElementById('done').disabled = false;
+      document.getElementById('set').disabled = false;
     });
 
     return item;
@@ -68,12 +68,13 @@ navigator.mozSetMessageHandler('activity', function(activity) {
     var promises = [];
     var listParent = document.getElementById('list-parent');
 
-    // Add the asked-for built-in tones.
-    toneTypes.forEach(function(toneType, i) {
-      var list = new PickerToneList('list-title-' + toneType, listParent);
+    function addToneLists(toneType, includeNone) {
+      var builtInList = new PickerToneList(
+        'list-title-builtin-' + toneType, listParent
+      );
       promises.push(window.builtInRingtones.list(toneType)
                           .then(function(tones) {
-        list.add(tones);
+        builtInList.add(tones);
 
         // Add the empty ringtone to the first list if it's allowed. This is a
         // bit strange, since the empty ringtone doesn't *really* belong in any
@@ -81,24 +82,30 @@ navigator.mozSetMessageHandler('activity', function(activity) {
         // practice, this works out ok, since consumers generally set allowNone
         // to true when they want an alert tone, and the empty ringtone is
         // sort of an alert tone.
-        if (i === 0 && allowNone) {
-          list.add(new NullRingtone());
+        if (includeNone) {
+          builtInList.add(new NullRingtone());
         }
       }));
+
+      var customList = new PickerToneList(
+        'list-title-custom-' + toneType, listParent
+      );
+      promises.push(window.customRingtones.list(toneType).then(function(tones) {
+        customList.add(tones);
+      }));
+      promises.push(window.sdCardRingtones.list(toneType).then(function(tones) {
+        customList.add(tones);
+      }));
+    }
+
+    // Add the asked-for built-in tones.
+    toneTypes.forEach(function(toneType, i) {
+      addToneLists(toneType, i === 0 && allowNone);
     });
 
-    var customList = new PickerToneList('list-title-custom', listParent);
-    promises.push(window.customRingtones.list().then(function(tones) {
-      customList.add(tones);
-    }));
-
     // Add the unasked-for built-in tones.
-    otherToneTypes.forEach(function(toneType, i) {
-      var list = new PickerToneList('list-title-' + toneType, listParent);
-      promises.push(window.builtInRingtones.list(toneType)
-                          .then(function(tones) {
-        list.add(tones);
-      }));
+    otherToneTypes.forEach(function(toneType) {
+      addToneLists(toneType);
     });
 
     Promise.all(promises).then(function(listsData) {
