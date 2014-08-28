@@ -22,6 +22,7 @@ function HandledCall(aCall) {
   this._initialState = this.call.state;
   this._cachedInfo = '';
   this._cachedAdditionalInfo = '';
+  this._removed = false;
 
   this.node = document.getElementById('handled-call-template').cloneNode(true);
   this.node.id = '';
@@ -231,13 +232,7 @@ HandledCall.prototype.restoreAdditionalContactInfo =
 
 HandledCall.prototype.formatPhoneNumber =
   function hc_formatPhoneNumber(ellipsisSide, maxFontSize) {
-    /**
-     * To solve bug 1017365 the font-size in case of emergency calls is set to
-     *  the minimum one from the beginning and additional invocations of this
-     *  function (due to changes in the state of the call (on hold, ended,
-     *  etc.)) should be ignored.
-     */
-    if (this.node.classList.contains('emergency-call')) {
+    if (this._removed) {
       return;
     }
 
@@ -288,6 +283,7 @@ HandledCall.prototype.updateDirection = function hc_updateDirection() {
 };
 
 HandledCall.prototype.remove = function hc_remove() {
+  this._removed = true;
   this.call.removeEventListener('statechange', this);
   this.photo = null;
 
