@@ -208,20 +208,22 @@ suite('Contacts', function() {
     suite('> Send sms', function() {
       var number = '+445312973212';
       setup(function() {
-        this.sinon.spy(SmsIntegration, 'sendSms');
+        this.sinon.spy(SmsIntegration, '_send');
       });
 
       test('> send sms', function() {
         Contacts.sendSms(number);
-
-        sinon.assert.calledWith(SmsIntegration.sendSms, number);
+        sinon.assert.calledWith(SmsIntegration._send, {
+          type: 'websms/number',
+          number: number
+        });
       });
 
       test('> dont send sms while in an activity', function() {
         window.ActivityHandler.currentlyHandling = true;
         Contacts.sendSms(number);
 
-        sinon.assert.notCalled(SmsIntegration.sendSms);
+        sinon.assert.notCalled(SmsIntegration._send);
         window.ActivityHandler.currentlyHandling = false;
       });
 
@@ -230,7 +232,10 @@ suite('Contacts', function() {
         window.ActivityHandler.activityName = 'open';
         Contacts.sendSms(number);
 
-        sinon.assert.calledWith(SmsIntegration.sendSms, number);
+        sinon.assert.calledWith(SmsIntegration._send, {
+          type: 'websms/number',
+          number: number
+        });
 
         window.ActivityHandler.currentlyHandling = false;
         window.ActivityHandler.activityName = 'view';

@@ -508,7 +508,20 @@ var Contacts = (function() {
   var sendSms = function sendSms(number) {
     if (!ActivityHandler.currentlyHandling ||
         ActivityHandler.currentActivityIs(['open'])) {
-      SmsIntegration.sendSms(number);
+      SmsIntegration._send({
+        type: 'websms/number',
+        number: number
+      });
+    }
+  };
+
+  var sendMms = function sendMms(email) {
+    if (!ActivityHandler.currentlyHandling ||
+        ActivityHandler.currentActivityIs(['open'])) {
+      SmsIntegration._send({
+        type: 'websms/email',
+        email: email
+      });
     }
   };
 
@@ -1017,6 +1030,7 @@ var Contacts = (function() {
     'cancel': handleCancel,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
+    'sendMms': sendMms,
     'navigation': navigation,
     'sendEmailOrPick': sendEmailOrPick,
     'updatePhoto': updatePhoto,
