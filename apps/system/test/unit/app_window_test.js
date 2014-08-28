@@ -1309,9 +1309,13 @@ suite('system/AppWindow', function() {
     test('Destroy only the browser when app crashed and ' +
           'suspending is enabled',
       function() {
-        var app1 = new AppWindow(fakeAppConfig1);
+        var apps = openPopups(2);
+        var app1 = apps[0];
+        var popup1 = apps[1];
+        var stubKill = this.sinon.stub(popup1, 'kill');
         var stubDestroyBrowser = this.sinon.stub(app1, 'destroyBrowser');
         var stubIsActive = this.sinon.stub(app1, 'isActive');
+
         stubIsActive.returns(false);
         AppWindow.SUSPENDING_ENABLED = true;
         app1.handleEvent({
@@ -1322,6 +1326,7 @@ suite('system/AppWindow', function() {
         });
 
         assert.isTrue(stubDestroyBrowser.called);
+        assert.isTrue(stubKill.called);
         AppWindow.SUSPENDING_ENABLED = false;
       });
 

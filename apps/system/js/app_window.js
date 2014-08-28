@@ -846,6 +846,9 @@
       if (this.constructor.SUSPENDING_ENABLED && !this.isActive()) {
         this.debug(' ..sleep! I will come back.');
         this.destroyBrowser();
+        if (this.frontWindow) {
+          this.frontWindow.kill();
+        }
       } else {
         this.kill(evt);
       }
