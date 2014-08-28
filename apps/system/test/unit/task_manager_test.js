@@ -1116,4 +1116,30 @@ suite('system/TaskManager >', function() {
 
   });
 
+  suite('filtering > ', function() {
+    setup(function() {
+      taskManager.hide(true);
+      MockAppWindowManager.mRunningApps = apps;
+      MockAppWindowManager.mActiveApp = apps['http://sms.gaiamobile.org'];
+      taskManager.isTaskStrip = false;
+    });
+
+    teardown(function() {
+      taskManager.hide(true);
+    });
+
+    test('filter function is called and empty stack is the result', function() {
+      var _filterName = 'browser-only';
+      var stub = this.sinon.stub(taskManager, 'filter', function(filterName) {
+          assert.equal(filterName, _filterName);
+          taskManager.stack = [];
+        });
+      taskManager.show(_filterName);
+      stub.calledWith([_filterName]);
+      assert.isTrue(cardsView.classList.contains('empty'),
+                    'Should be displaying no recent browser windows');
+    });
+
+  });
+
 });
