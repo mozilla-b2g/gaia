@@ -661,10 +661,9 @@ ul li > label.range-icons.volume input {
 /******************************************************************************
  * Accessibility
  */
-#accessibility ul li > label.range-icons.volume input {
-  opacity: 1;
-  margin: 0 auto;
-  width: calc(100% - 3rem);
+
+#accessibility ul li > a.menu-item {
+  padding: 0 3rem;
 }
 
 /******************************************************************************
