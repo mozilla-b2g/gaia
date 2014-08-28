@@ -52,8 +52,10 @@
       browser.setAttribute('mozapp', config.manifestURL);
 
       // Only app with manifest could get system message.
-      browser.setAttribute('expecting-system-message',
-                            'expecting-system-message');
+      if (config.isSystemMessage) {
+        browser.setAttribute('expecting-system-message',
+                             'expecting-system-message');
+      }
     }
 
     if (config.parentApp) {
