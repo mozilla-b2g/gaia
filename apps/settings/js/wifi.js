@@ -490,9 +490,14 @@ navigator.mozL10n.once(function wifiSettings() {
       var dialog = document.querySelector('#wifi-manageNetworks form');
       dialog.hidden = false;
       dialog.onsubmit = function forget() {
-        gWifiManager.forget(network);
-        scan();
+        var req = gWifiManager.forget(network);
         dialog.hidden = true;
+        req.onsuccess = function() {
+          scan();
+        };
+        req.onerror = function() {
+          console.error('Failed to forget network');
+        };
         return false;
       };
       dialog.onreset = function cancel() {
