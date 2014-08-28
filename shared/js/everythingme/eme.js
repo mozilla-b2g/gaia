@@ -7,7 +7,7 @@
   const mozSettings = navigator.mozSettings;
 
   const DEBUG = true;
-  const API_URL = 'https://api.everything.me/partners/1.0/{resource}/';
+  const API_URL = 'http://api.stg.everything.me/partners/1.0/{resource}/';
 
   var initPromise = null;
   var slice = Function.call.bind(Array.prototype.slice);
@@ -23,7 +23,7 @@
         function success(settings) {
           // config overrides
           if (settings['everythingme.api.url']) {
-            this.config.apiUrl = settings['everythingme.api.url'];
+            this.config.apiUrl = API_URL;
           }
 
           // wait for device init
@@ -40,6 +40,7 @@
 
       // avoid multiple init calls
       this.init = function noop() {
+        this.config.apiUrl = API_URL;
         eme.log('init: noop');
         return initPromise;
       };

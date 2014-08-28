@@ -244,7 +244,7 @@
       }
     },
 
-    addWebResults: function addWebResult(arrayOfData) {
+    addWebResults: function addWebResults(arrayOfData) {
       var results = arrayOfData.map(function each(data) {
         return new WebResult(data, {
           isDraggable: false,
@@ -298,7 +298,7 @@
     /**
      * Turns a stored result into a GaiaGrid grid item.
      */
-    toGridObject: function(item) {
+    toGridObject: function toGridObject(item) {
       var icon;
       if (item.type === 'homeIcon') {
         if (!HomeIcons.ready) {
@@ -357,7 +357,7 @@
       this.renderIcon();
     },
 
-    renderWebResults: function render(grid) {
+    renderWebResults: function renderWebResults(grid) {
       if (!this.webResults.length) {
         return;
       }

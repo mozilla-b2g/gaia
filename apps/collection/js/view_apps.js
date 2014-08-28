@@ -103,12 +103,7 @@
     }
 
     function queueRequest() {
-      if (navigator.onLine) {
-        getWebApps();
-      } else {
-        onOffline();
-      }
-
+      getWebApps();
       addListeners();
     }
 

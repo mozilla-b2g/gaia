@@ -23,6 +23,14 @@
         mozSystem: true
       });
 
+
+      // icons from EverythingMe api requires clipping (they are rectangular),
+      // but everything else does not
+      console.log('evme', 'uri', uri);
+      if (/https?:\/\/.*everything.me/.test(uri)) {
+        uri = uri + '&foo=barz';
+      }
+
       xhr.open('GET', uri, true);
       xhr.responseType = 'blob';
       xhr.timeout = FETCH_XHR_TIMEOUT;
@@ -33,6 +41,7 @@
 
       xhr.onload = function() {
         var status = xhr.status;
+        console.log('evme', 'fetching icon from', uri, status, xhr.getResponseHeader('Cache-Control'),xhr.getResponseHeader('Last-Modified'));
         if (status !== 0 && status !== 200) {
           reject(
             new Error('Got HTTP status ' + status + ' trying to load ' + uri)
