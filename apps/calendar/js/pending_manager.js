@@ -1,4 +1,4 @@
-(function(exports) {
+(function() {
 'use strict';
 
 function PendingManager() {
@@ -7,7 +7,6 @@ function PendingManager() {
   this.onstart = this.onstart.bind(this);
   this.onend = this.onend.bind(this);
 }
-exports.PendingManager = PendingManager;
 
 PendingManager.prototype = {
   register: function(object) {
@@ -65,4 +64,6 @@ PendingManager.prototype = {
   }
 };
 
-}(Calendar));
+return PendingManager;
+
+}());
