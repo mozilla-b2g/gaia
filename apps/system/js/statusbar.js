@@ -528,11 +528,22 @@ var StatusBar = {
         }
 
         var translate = Math.min(deltaY, height);
-        titleBar.style.transform =
-          chromeBar.style.transform =
+        var heightThreshold = height;
+
+        if (app && app.isFullScreen() && app.config.chrome.navigation) {
+          translate = Math.min(deltaY, app.appChrome.height);
+          heightThreshold = app.appChrome.height;
+
+          titleBar.style.transform = 'translateY(calc(' +
+            (translate - app.appChrome.height) + 'px)';
+        } else {
+          titleBar.style.transform =
+            'translateY(calc(' + translate + 'px - 100%)';
+        }
+        chromeBar.style.transform =
           'translateY(calc(' + translate + 'px - 100%)';
 
-        if (translate == height) {
+        if (translate >= heightThreshold) {
           if (this._touchStart) {
             this._touchForwarder.forward(this._touchStart);
             this._touchStart = null;

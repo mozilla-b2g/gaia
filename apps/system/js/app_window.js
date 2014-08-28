@@ -111,12 +111,14 @@
 
     if (!this.config.chrome) {
       this.config.chrome = {
-        scrollable: this.isBrowser()
+        scrollable: this.isBrowser(),
+        maximized: this.isBrowser()
       };
     } else if (this.config.chrome.navigation) {
+      this.config.chrome.scrollable = !this.isFullScreen();
       // This is for backward compatibility with application that
       // requests the |navigation| flag in their manifest.
-      this.config.chrome.scrollable = true;
+      this.config.chrome.maximized = true;
     }
 
     if (!this.manifest && this.config && this.config.title) {
