@@ -3,7 +3,7 @@
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
   var screenElement = document.getElementById('screen');
 
   /**
@@ -599,7 +599,8 @@
     },
 
     _dumpWindow: function(app, prefix) {
-      console.log((prefix ? prefix : '') + '[' + app.instanceID + ']' +
+      console.log((prefix ? prefix : '') + (app.isActive() ? '*' : ' ') +
+        '[' + app.instanceID + ']' +
           (app.name || app.title || 'ANONYMOUS') + ' (' + app.url + ')');
       if (app.calleeWindow) {
         console.log('==>activity:[' + app.instanceID + ']' +
@@ -656,6 +657,7 @@
       var caller;
       var callee = this.getApp(config.origin);
       caller = this._activeApp.getTopMostWindow();
+      this.debug('Linking window disposition activity: ' + callee.name + '->' + caller.name );
       callee.callerWindow = caller;
       caller.calleeWindow = callee;
     },
@@ -715,7 +717,13 @@
       // is the same as its current value.
       this._activeApp.resize();
 
-      this.debug('=== Active app now is: ',
+      try {
+        throw new Error('e');
+      } catch (e) {
+        this.debug(e.stack);
+      }
+      this._dumpAllWindows();
+      this.debug('=== Active app changed: ',
         (this._activeApp.name || this._activeApp.origin), '===');
     },
 

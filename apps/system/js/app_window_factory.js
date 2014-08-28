@@ -107,6 +107,8 @@
         return;
       }
 
+      System.debug('[AppWindowFactory] handling ' + evt.type + config.url);
+
       switch (evt.type) {
         case 'webapps-launch':
           config.timestamp = detail.timestamp;
