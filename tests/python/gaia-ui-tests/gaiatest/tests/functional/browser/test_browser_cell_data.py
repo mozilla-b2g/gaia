@@ -26,6 +26,6 @@ class TestBrowserCellData(GaiaTestCase):
 
         browser.switch_to_content()
 
-        self.wait_for_element_present(*self._page_title_locator, timeout=120)
+        browser.wait_for_element_present(*self._page_title_locator, timeout=120)
         heading = self.marionette.find_element(*self._page_title_locator)
         self.assertEqual(heading.text, 'We believe that the internet should be public, open and accessible.')

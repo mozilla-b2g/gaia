@@ -25,7 +25,7 @@ class TestBrowserSearch(GaiaTestCase):
         browser.go_to_url(search_text)
 
         browser.switch_to_content()
-        self.wait_for_element_displayed(*self._google_search_input_locator)
+        browser.wait_for_element_displayed(*self._google_search_input_locator)
         self.assertTrue(search_text in self.marionette.title)
         self.assertEqual(search_text,
                          self.marionette.find_element(*self._google_search_input_locator).get_attribute('value'))

@@ -888,53 +888,8 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def resource(self, filename):
         return os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', filename))
 
-    def wait_for_element_present(self, by, locator, timeout=None):
-        return Wait(self.marionette, timeout, ignored_exceptions=NoSuchElementException).until(
-            lambda m: m.find_element(by, locator))
-
-    def wait_for_element_not_present(self, by, locator, timeout=None):
-        self.marionette.set_search_timeout(0)
-        try:
-            return Wait(self.marionette, timeout).until(
-                lambda m: not m.find_element(by, locator))
-        except NoSuchElementException:
-            pass
-        self.marionette.set_search_timeout(self.marionette.timeout or 10000)
-
-    def wait_for_element_displayed(self, by, locator, timeout=None):
-        Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException, StaleElementException]).until(
-            lambda m: m.find_element(by, locator).is_displayed())
-
-    def wait_for_element_not_displayed(self, by, locator, timeout=None):
-        self.marionette.set_search_timeout(0)
-        try:
-            Wait(self.marionette, timeout, ignored_exceptions=StaleElementException).until(
-                lambda m: not m.find_element(by, locator).is_displayed())
-        except NoSuchElementException:
-            pass
-        self.marionette.set_search_timeout(self.marionette.timeout or 10000)
-
     def wait_for_condition(self, method, timeout=None, message=None):
         Wait(self.marionette, timeout).until(method, message=message)
-
-    def is_element_present(self, by, locator):
-        self.marionette.set_search_timeout(0)
-        try:
-            self.marionette.find_element(by, locator)
-            return True
-        except NoSuchElementException:
-            return False
-        finally:
-            self.marionette.set_search_timeout(self.marionette.timeout or 10000)
-
-    def is_element_displayed(self, by, locator):
-        self.marionette.set_search_timeout(0)
-        try:
-            return self.marionette.find_element(by, locator).is_displayed()
-        except NoSuchElementException:
-            return False
-        finally:
-            self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
     def tearDown(self):
         if self.device.is_desktop_b2g and self.device.storage_path:
@@ -970,3 +925,11 @@ class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranc
         _close_button_locator = ('css selector', locator_part_two)
         close_card_app_button = self.marionette.find_element(*_close_button_locator)
         close_card_app_button.tap()
+
+    def wait_for_element_present(self, by, locator, timeout=None):
+        return Wait(self.marionette, timeout, ignored_exceptions=NoSuchElementException).until(
+            lambda m: m.find_element(by, locator))
+
+    def wait_for_element_displayed(self, by, locator, timeout=None):
+        Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException, StaleElementException]).until(
+            lambda m: m.find_element(by, locator).is_displayed())
