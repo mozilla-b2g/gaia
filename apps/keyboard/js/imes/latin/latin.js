@@ -83,7 +83,7 @@
   var autoCorrection;     // Correction to make if next input is space
   var revertTo;           // Revert to this on backspace after autocorrect
   var revertFrom;         // Revert away from this on backspace
-  var justAutoCorrected;  // Was last change an auto correction?
+  var disableOnRevert;    // Do we disable auto correction when reverting?
   var correctionDisabled; // Temporarily diabled after reverting?
 
   // Terminate the worker when the keyboard is inactive for this long.
@@ -207,7 +207,7 @@
     lastSpaceTimestamp = 0;
     autoCorrection = null;
     revertTo = revertFrom = '';
-    justAutoCorrected = false;
+    disableOnRevert = false;
     correctionDisabled = false;
 
     // The keyboard isn't idle anymore, so clear the timer
@@ -367,7 +367,7 @@
       // previous changes that we would otherwise revert.
       if (keyCode !== BACKSPACE) {
         revertTo = revertFrom = '';
-        justAutoCorrected = false;
+        disableOnRevert = false;
       }
 
       var handler;
@@ -507,12 +507,12 @@
       return replaceBeforeCursor(revertFrom, revertTo).then(function() {
         // If the change we just reverted was an auto-correction then
         // temporarily disable auto correction until the next space
-        if (justAutoCorrected) {
+        if (disableOnRevert) {
           correctionDisabled = true;
         }
 
         revertFrom = revertTo = '';
-        justAutoCorrected = false;
+        disableOnRevert = false;
       });
     }
     else {
@@ -555,11 +555,10 @@
       // user types backspace
       revertTo = currentWord;
       revertFrom = newWord;
-      justAutoCorrected = true;
+      disableOnRevert = true;
     }).then(function() {
-      // Send the keycode as seperate key event because it may get canceled
+      // Send the keycode as separate key event because it may get canceled
       return handleKey(keycode).then(function() {
-        revertTo += String.fromCharCode(keycode);
         revertFrom += String.fromCharCode(keycode);
       });
     });
@@ -612,7 +611,7 @@
           // Remember this change so we can revert it on backspace
           revertTo = ' ' + String.fromCharCode(revertToKeycode || keycode);
           revertFrom = newtext;
-          justAutoCorrected = false;
+          disableOnRevert = false;
         });
     }
   }
@@ -709,33 +708,42 @@
     keyboard.sendCandidates(words);
   }
 
+  //
   // If the user selects one of the suggestions offered by this input method
   // the keyboard calls this method to tell us it has been selected.
-  // We have to backspace over the current word, insert this new word, and
+  // We have to delete the current word, insert this new word, and
   // update our internal state to match.
   //   word: the text displayed as the suggestion, might contain ellipsis
   //   data: the actual data we need to output
+  // In the past we would automatically insert a space after the selected
+  // word, but that, combined with the revert-on-backspace behavior made
+  // it impossible to add a suffix to the selected word.
+  //
   function select(word, data) {
     var oldWord = wordBeforeCursor();
+    var newWord = data;
 
-    // Replace the current word with the selected suggestion plus space
-    var newWord = data += ' ';
+    // The user has selected a suggestion, so we don't need to display
+    // them anymore. Note that calling this function resets all the
+    // autocorrect state. We'll reset much of that state below after
+    // the word has been replace with the new one.
+    dismissSuggestions();
 
     return replaceBeforeCursor(oldWord, newWord).then(function() {
       // Remember the change we just made so we can revert it if the
-      // next key is a backspace. Note that it is not an autocorrection
-      // so we don't need to disable corrections.
+      // next key is a backspace. If the word is reverted we disable
+      // autocorrection for this word.
       revertFrom = newWord;
       revertTo = oldWord;
-      justAutoCorrected = false;
 
-      // We inserted a space after the selected word, so we're beginning
-      // a new word here, which means that if auto-correction was disabled
-      // we can re-enable it now.
-      correctionDisabled = false;
-
-      // Clear the suggestions
-      keyboard.sendCandidates([]);
+      // Given that the user has selected this word, we don't ever
+      // want to autocorrect the word because if they keep typing to
+      // add a suffix to the word, we don't want to modify the
+      // original. This also means that if they revert the selection
+      // autocorrect will still be disabled which is what we want.
+      // Note, however, that most often the user will type a space
+      // after this selection and autocorrect will be enabled again.
+      correctionDisabled = true;
 
       // And update the keyboard capitalization state, if necessary
       updateCapitalization();
@@ -751,7 +759,7 @@
     lastSpaceTimestamp = 0;
     autoCorrection = null;
     revertTo = revertFrom = '';
-    justAutoCorrected = false;
+    disableOnRevert = false;
     correctionDisabled = false;
   }
 
