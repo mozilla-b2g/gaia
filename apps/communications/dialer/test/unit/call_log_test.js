@@ -3,14 +3,14 @@
 /* global CallHandler, CallLog, CallLogDBManager, Contacts, KeypadManager,
           MockMozL10n, MockNavigatorMozIccManager, MockNotification,
           MocksHelper, MockSimSettingsHelper, Notification,
-          PhoneNumberActionMenu */
+          CallGroupMenu */
 
 require('/dialer/js/call_log.js');
 require('/shared/js/dialer/utils.js');
 
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/dialer/test/unit/mock_performance_testing_helper.js');
-require('/dialer/test/unit/mock_phone_action_menu.js');
+require('/dialer/test/unit/mock_call_group_menu.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
@@ -34,7 +34,7 @@ var mocksHelperForCallLog = new MocksHelper([
   'CallLogDBManager',
   'Contacts',
   'AccessibilityHelper',
-  'PhoneNumberActionMenu',
+  'CallGroupMenu',
   'PerformanceTestingHelper',
   'LazyLoader',
   'LazyL10n',
@@ -710,10 +710,10 @@ suite('dialer/call_log', function() {
 
   suite('Opening contact details', function() {
     var groupDOM;
-    var phoneNumberActionMenuSpy;
+    var callGroupMenuSpy;
 
     setup(function() {
-      phoneNumberActionMenuSpy = this.sinon.spy(PhoneNumberActionMenu, 'show');
+      callGroupMenuSpy = this.sinon.spy(CallGroupMenu, 'show');
     });
 
     test('regular number', function() {
@@ -721,11 +721,11 @@ suite('dialer/call_log', function() {
       CallLog.handleEvent({target: groupDOM, preventDefault: function() {}});
 
       sinon.assert.calledWith(
-        phoneNumberActionMenuSpy,
-        incomingGroup.contact.id,
+        callGroupMenuSpy,
+        incomingGroup.contact.primaryInfo,
         incomingGroup.contact.matchingTel.value,
-        null,
-        false
+        incomingGroup.lastEntryDate.toString(),
+        incomingGroup.type
       );
     });
 
@@ -734,11 +734,11 @@ suite('dialer/call_log', function() {
       CallLog.handleEvent({target: groupDOM, preventDefault: function() {}});
 
       sinon.assert.calledWith(
-        phoneNumberActionMenuSpy,
-        incomingGroup.contact.id,
-        incomingGroup.contact.matchingTel.value,
-        null,
-        true
+        callGroupMenuSpy,
+        missedGroup.contact.primaryInfo,
+        missedGroup.contact.matchingTel.value,
+        missedGroup.lastEntryDate.toString(),
+        missedGroup.type
       );
     });
   });
@@ -765,10 +765,10 @@ suite('dialer/call_log', function() {
     };
 
     var longPressShouldShowActionMenu = function() {
-      var showSpy = this.sinon.spy(PhoneNumberActionMenu, 'show');
+      var showSpy = this.sinon.spy(CallGroupMenu, 'show');
       simulateContextMenu(CallLog.appendGroup(missedGroup));
       sinon.assert.calledWith(
-        showSpy, missedGroup.contact.id, missedGroup.number);
+        showSpy, missedGroup.contact.primaryInfo, missedGroup.number);
     };
 
     [0, 1].forEach(function(cardIndex) {

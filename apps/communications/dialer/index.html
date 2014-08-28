@@ -61,6 +61,7 @@
     <script defer src="/shared/js/l10n_date.js"></script>
     <script defer src="/shared/js/mobile_operator.js"></script>
     <script defer src="/shared/js/notification_helper.js"></script>
+    <script defer src="/shared/js/option_menu.js"></script>
     <script defer src="/shared/js/sim_picker.js"></script>
     <script defer src="/shared/js/simple_phone_matcher.js"></script>
     <script defer src="/shared/js/settings_listener.js"></script>
@@ -87,8 +88,8 @@
     <link rel="import" href="elements/edit-mode.html">
     <link rel="import" href="elements/suggestion-item.html">
     <link rel="import" href="elements/suggestion-overlay.html">
-    <link rel="import" href="elements/add-contact-action-menu.html">
     <link rel="import" href="elements/confirmation-message.html">
+    <link rel="import" href="elements/call-info-view.html">
     <link rel="import" href="/shared/elements/sim_picker.html">
   </head>
   <body role="application" class="skin-comms">
@@ -124,6 +125,7 @@
               <div id="sticky"></div>
             </div>
           </section>
+          <section is="call-info-view" id="call-info-view" role="region" hidden></section>
         </div>
         <form role="dialog" data-type="confirm" id="call-log-upgrading" class="hide">
           <section>
@@ -224,8 +226,6 @@
     </section>
 
     <form is="edit-mode" id="edit-mode" role="dialog" data-l10n-id="callLogEditDialog" data-type="edit" hidden></form>
-
-    <form is="add-contact-action-menu" id="add-contact-action-menu" role="dialog" data-l10n-id="dialerAddContactDialog" data-type="action" hidden></form>
 
     <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" hidden></form>
 
