@@ -3,6 +3,7 @@
     "apps/calendar/test/marionette/alarm_test.js": "Bug 994976 - Perma-red TBPL test, alarm > without alarm mocks create two events with simultaneous reminders",
     "apps/calendar/test/marionette/caldav_test.js": "Bug 972631 - CalDAV setup causing tbpl timeouts",
     "apps/calendar/test/marionette/server_test.js": "",
+    "apps/calendar/test/marionette/week_view_test.js": "Bug 1060447 - Re-enable week_view_test.js",
     "apps/calendar/test/marionette/toggle_calendar_test.js": "Bug 1007519 - Perma failing test, toggle calendar > regular event disable calendar day view",
     "apps/camera/test/marionette/capture_test.js": "device only - missing desktop shims",
     "apps/camera/test/marionette/hud_test.js": "device only - missing desktop shims",
