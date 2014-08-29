@@ -24,7 +24,6 @@
     "apps/homescreen/test/marionette/install_bookmark_test.js": "legacy",
     "apps/homescreen/test/marionette/remove_bookmark_test.js": "legacy",
     "apps/homescreen/test/marionette/update_bookmark_test.js": "legacy",
-    "apps/ringtones/test/marionette/manage_test.js": " Bug 1037716 - TEST-UNEXPECTED-FAIL | Ringtone management Manage ringtones Create new ringtone",
     "apps/search/test/marionette/app_search_test.js": " Bug 1035936 - TEST-UNEXPECTED-FAIL | Search - App search Search for app with entry point",
     "apps/settings/test/marionette/tests/airplane_mode_settings_test.js": "",
     "apps/settings/test/marionette/tests/app_permission_settings_test.js": "Bug 1004348 - Disable intermittent failing test, manipulate app permissions set geolocation of first app to Grant",
