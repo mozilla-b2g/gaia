@@ -6,6 +6,7 @@ define([
   '../errorutils',
   './jobs',
   '../drafts/draft_rep',
+  '../disaster-recovery',
   'module',
   'require',
   'exports'],
@@ -17,6 +18,7 @@ function(
   errorutils,
   pop3jobs,
   draftRep,
+  DisasterRecovery,
   module,
   require,
   exports
@@ -48,6 +50,8 @@ function Pop3Account(universe, compositeAccount, accountId, credentials,
   // If we have an existing connection from setting up the account, we
   // can reuse that during the first sync.
   if (existingProtoConn) {
+    DisasterRecovery.associateSocketWithAccount(
+      existingProtoConn.socket, this);
     this._conn = existingProtoConn;
   }
 
@@ -177,6 +181,8 @@ var properties = {
           callback && callback(null, conn);
         }
       }.bind(this));
+
+      DisasterRecovery.associateSocketWithAccount(conn.socket, this);
     }.bind(this));
   },
 

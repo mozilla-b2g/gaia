@@ -15,6 +15,7 @@ define(
     './jobs',
     './client',
     '../errorutils',
+    '../disaster-recovery',
     'module',
     'require',
     'exports'
@@ -35,6 +36,7 @@ define(
     $imapjobs,
     $imapclient,
     errorutils,
+    DisasterRecovery,
     $module,
     require,
     exports
@@ -321,6 +323,8 @@ var properties = {
 
       $imapclient.createImapConnection(this._credentials, this._connInfo)
         .then(function(conn) {
+          DisasterRecovery.associateSocketWithAccount(conn.client.socket, this);
+
           this._pendingConn = null;
           this._bindConnectionDeathHandlers(conn);
           this._backoffEndpoint.noteConnectSuccess();
@@ -369,6 +373,8 @@ var properties = {
    * created ourselves.
    */
   _reuseConnection: function(existingProtoConn) {
+    DisasterRecovery.associateSocketWithAccount(
+      existingProtoConn.client.socket, this);
     this._ownedConns.push({
       conn: existingProtoConn,
       inUseBy: null

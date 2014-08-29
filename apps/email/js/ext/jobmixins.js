@@ -633,8 +633,8 @@ exports.local_do_setOutboxSyncEnabled = function(op, callback) {
 ////////////////////////////////////////////////////////////////
 
 
-exports.postJobCleanup = function(passed) {
-  if (passed) {
+exports.postJobCleanup = function(error) {
+  if (!error) {
     var deltaMap, fullMap;
     // - apply updates to the serverIdMap map
     if (this._stateDelta.serverIdMap) {
@@ -660,7 +660,7 @@ exports.postJobCleanup = function(passed) {
   }
 
   for (var i = 0; i < this._heldMutexReleasers.length; i++) {
-    this._heldMutexReleasers[i]();
+    this._heldMutexReleasers[i](error);
   }
   this._heldMutexReleasers = [];
 

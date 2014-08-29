@@ -50,27 +50,16 @@
  *
  **/
 
-define(
-  [
-    'rdcommon/log',
-    './util',
-    './a64',
-    './allback',
-    './date',
-    './syncbase',
-    'module',
-    'exports'
-  ],
-  function(
-    $log,
-    $util,
-    $a64,
-    $allback,
-    $date,
-    $sync,
-    $module,
-    exports
-  ) {
+define(function(require, exports, module) {
+
+var $log = require('rdcommon/log');
+var slog = require('./slog');
+var $util = require('./util');
+var $a64 = require('./a64');
+var $allback = require('./allback');
+var $date = require('./date');
+var $sync = require('./syncbase');
+
 var bsearchForInsert = $util.bsearchForInsert,
     bsearchMaybeExists = $util.bsearchMaybeExists,
     cmpHeaderYoungToOld = $util.cmpHeaderYoungToOld,
@@ -1093,12 +1082,14 @@ FolderStorage.prototype = {
     this._LOG.mutexedCall_begin(callInfo.name);
 
     try {
-      callInfo.func(function mutexedOpDone() {
+      var mutexedOpDone = function(err) {
         if (done) {
           self._LOG.tooManyCallbacks(callInfo.name);
           return;
         }
         self._LOG.mutexedCall_end(callInfo.name);
+        slog.log('mailslice:mutex-released',
+                 { folderId: self.folderId, err: err });
         done = true;
         if (self._mutexQueue[0] !== callInfo) {
           self._LOG.mutexInvariantFail(callInfo.name, self._mutexQueue[0].name);
@@ -1112,7 +1103,9 @@ FolderStorage.prototype = {
           window.setZeroTimeout(self._invokeNextMutexedCall.bind(self));
         else if (self._slices.length === 0)
           self.folderSyncer.allConsumersDead();
-      });
+      }
+
+      callInfo.func(mutexedOpDone);
     }
     catch (ex) {
       this._LOG.mutexedOpErr(ex);
@@ -2423,7 +2416,7 @@ FolderStorage.prototype = {
       slice.setStatus(reportSyncStatusAs, true, moreExpected, true);
       this._curSyncSlice = null;
 
-      releaseMutex();
+      releaseMutex(err);
     }.bind(this);
 
     // -- grab from database if we have ever synchronized this folder
@@ -2572,7 +2565,7 @@ FolderStorage.prototype = {
         slice.setStatus(err ? 'syncfailed' : 'synced', true, false, true);
         this._curSyncSlice = null;
 
-        releaseMutex();
+        releaseMutex(err);
       }.bind(this);
 
       var progressCallback = slice.setSyncProgress.bind(slice);
@@ -2729,7 +2722,7 @@ FolderStorage.prototype = {
           !userRequestsGrowth) {
         if (this.folderSyncer.syncable)
           slice.sendEmptyCompletion();
-        releaseMutex();
+        releaseMutex(null);
         return;
       }
 
@@ -2828,7 +2821,7 @@ FolderStorage.prototype = {
         break;
       }
 
-      releaseMutex();
+      releaseMutex(err);
       slice.waitingOnData = false;
       slice.setStatus(reportSyncStatusAs, true, false, false, null,
                       newEmailCount);
@@ -4602,7 +4595,7 @@ FolderStorage.prototype = {
   },
 };
 
-var LOGFAB = exports.LOGFAB = $log.register($module, {
+var LOGFAB = exports.LOGFAB = $log.register(module, {
   MailSlice: {
     type: $log.QUERY,
     events: {
