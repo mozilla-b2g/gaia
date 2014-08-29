@@ -193,9 +193,9 @@ suite('system/NotificationScreen >', function() {
 
   });
 
-  suite('updateStatusBarIcon >', function() {
+  suite('updateNotificationIndicator >', function() {
     setup(function() {
-      NotificationScreen.updateStatusBarIcon(true);
+      NotificationScreen.updateNotificationIndicator(true);
     });
 
     test('should show a small ambient indicator', function() {
