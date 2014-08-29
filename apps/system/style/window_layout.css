@@ -23,12 +23,6 @@
 | The window position/geometry is usually static, but some System app changes
 | may affect those.
 | The list here try to cover all the possible cases:
-|   * Minimized Attention Screen
-|     When an attention screen is minimized using the 'home' button, it change
-|     from a full window to a 40px wide window covering the top of the screen.
-|     The statusbar is covered, as well as the top rendering part of the
-|     window.
-|
 |   * Software home button
 |     The software home button is managed by the system app, and covers the
 |     bottom part of the screen.
@@ -60,26 +54,13 @@
   overflow: hidden;
 }
 
-#screen.active-statusbar #windows > .appWindow {
-  top: 4rem;
-  height: calc(100% - 4rem);
-}
-
 #screen.software-button-enabled #windows > .appWindow {
   height: calc(100% - 5rem);
-}
-
-#screen.software-button-enabled.active-statusbar #windows > .appWindow {
-  height: calc(100% - 5rem - 4rem);
 }
 
 @media not all and (-moz-physical-home-button) {
   #screen:not(.software-button-disabled) #windows > .appWindow {
     height: calc(100% - 5rem);
-  }
-
-  #screen:not(.software-button-disabled).active-statusbar #windows > .appWindow {
-    height: calc(100% - 5rem - 4rem);
   }
 }
 
@@ -152,17 +133,6 @@
 .appWindow > .fade-overlay,
 .appWindow > .identification-overlay {
   height: 100%;
-}
-
-/* Regular windows + active status bar */
-#screen.active-statusbar #windows .appWindow > div {
-  top: 0;
-  height: 100%;
-}
-
-#screen.active-statusbar #windows .appWindow > .chrome,
-#screen.active-statusbar #windows .appWindow > .titlebar {
-  height: 0;
 }
 
 /* Fullscreen windows */
@@ -258,3 +228,37 @@
   z-index: 0;
 }
 
+/*
+ * Attention window layout.
+ */
+.attentionWindow > div.browser-container > iframe {
+  border: 0;
+}
+
+.appWindow.attentionWindow.callscreenWindow,
+.appWindow.attentionWindow[transition-state="closed"] {
+  transform: translateY(calc(-100%));
+  opacity: 1;
+}
+
+.appWindow.attentionWindow[transition-state="closed"].toaster-mode {
+  transition: transform .3s ease-in-out;
+}
+
+.appWindow.attentionWindow[transition-state="closed"] > .chrome,
+.appWindow.attentionWindow[transition-state="closed"] > .titlebar {
+  display: none;
+}
+
+.appWindow.attentionWindow[transition-state="closed"] > div.browser-container {
+  height: 100%;
+  top: 0;
+}
+
+.appWindow.attentionWindow[transition-state="closed"].displayed {
+  transform: translateY(0);
+}
+
+.appWindow.attentionWindow[transition-state="closed"].toaster-mode[toaster-transition-state="opened"] {
+  transition: transform .2s linear;
+}

@@ -4,12 +4,15 @@
 
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_statusbar.js');
 require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([
   'AppWindowManager',
   'LazyLoader',
-  'System'
+  'System',
+  'StatusBar'
 ]);
 mocksHelperForUtilityTray.init();
 
@@ -106,7 +109,6 @@ suite('system/UtilityTray', function() {
     stubById.restore();
     window.System.locked = false;
   });
-
 
   suite('show', function() {
     setup(function() {
@@ -233,9 +235,9 @@ suite('system/UtilityTray', function() {
 
 
   // handleEvent
-  suite('handleEvent: attentionscreenshow', function() {
+  suite('handleEvent: attentionopened', function() {
     setup(function() {
-      fakeEvt = createEvent('attentionscreenshow');
+      fakeEvt = createEvent('attentionopened');
       UtilityTray.show();
       UtilityTray.handleEvent(fakeEvt);
     });
@@ -320,6 +322,18 @@ suite('system/UtilityTray', function() {
         }
       });
       UtilityTray.handleEvent(evt);
+      assert.equal(UtilityTray.shown, false);
+    });
+  });
+
+  suite('handleEvent: imemenushow', function() {
+    setup(function() {
+      UtilityTray.show();
+    });
+
+    test('should be hidden', function() {
+      fakeEvt = createEvent('imemenushow', false, true, {});
+      UtilityTray.handleEvent(fakeEvt);
       assert.equal(UtilityTray.shown, false);
     });
   });

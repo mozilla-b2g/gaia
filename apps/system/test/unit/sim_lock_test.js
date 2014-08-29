@@ -123,5 +123,24 @@ suite('SimLock', function() {
       assert.isTrue(stubShowIfLocked.called,
         'should call showIfLocked if app is closed');
     });
+
+    test('callscreen window opening event', function() {
+      SimLock.handleEvent(new CustomEvent('attentionopening', {
+        detail: {
+          CLASS_NAME: 'CallscreenWindow'
+        }
+      }));
+      assert.isTrue(SimLock._duringCall);
+    });
+
+
+    test('callscreen window ending event', function() {
+      SimLock.handleEvent(new CustomEvent('attentionterminated', {
+        detail: {
+          CLASS_NAME: 'CallscreenWindow'
+        }
+      }));
+      assert.isFalse(SimLock._duringCall);
+    });
   });
 });

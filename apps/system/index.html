@@ -57,6 +57,9 @@
     <link rel="stylesheet" type="text/css" href="style/chrome/chrome.css">
     <script defer src="shared/js/bookmarks_database.js"></script>
 
+
+    <link rel="stylesheet" type="text/css" href="style/attention_indicator.css">
+
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <link rel="stylesheet" type="text/css" href="style/system/keyboard.css">
@@ -115,7 +118,6 @@
     <script defer src="js/sound_manager.js"></script>
     <script defer src="js/source_view.js"></script>
     <script defer src="js/hardware_buttons.js"></script>
-    <script defer src="js/dialer_agent.js"></script>
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/home_gesture.js"></script>
     <script defer src="js/wallpaper_manager.js"></script>
@@ -149,10 +151,6 @@
     <!-- Utility Tray -->
     <link rel="stylesheet" type="text/css" href="style/utility_tray/utility_tray.css">
     <script defer src="js/utility_tray.js"></script>
-
-    <!-- Attention Screen -->
-    <link rel="stylesheet" type="text/css" href="style/attention_screen.css">
-    <script defer src="js/attention_screen.js"></script>
 
     <!-- Action Menu -->
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
@@ -361,6 +359,7 @@
     <script defer src="js/child_window_factory.js"></script>
     <script defer src="js/app_modal_dialog.js"></script>
     <script defer src="js/app_chrome.js"></script>
+    <script defer src="js/attention_toaster.js"></script>
     <script defer src="js/app_transition_controller.js"></script>
     <script defer src="js/app_authentication_dialog.js"></script>
     <script defer src="js/text_selection_dialog.js"></script>
@@ -375,6 +374,11 @@
     <script defer src="js/activity_window.js"></script>
     <script defer src="js/activity_window_manager.js"></script>
     <script defer src="js/app_window_factory.js"></script>
+    <script defer src="js/attention_window.js"></script>
+    <script defer src="js/callscreen_window.js"></script>
+    <script defer src="js/dialer_agent.js"></script>
+    <script defer src="js/attention_indicator.js"></script>
+    <script defer src="js/attention_window_manager.js"></script>
     <script defer src="js/app_window_manager.js"></script>
     <script defer src="js/secure_window.js"></script>
     <script defer src="js/secure_window_factory.js"></script>
@@ -541,6 +545,8 @@
         </div>
 
         <div id="notifications-container">
+          <!-- Attention Windows -->
+          <div id="attention-window-notifications-container"></div>
           <!-- Update Manager -->
           <div id="update-manager-container" class="fake-notification" role="link">
             <div class="icon">
@@ -1102,10 +1108,6 @@
             -->
       </div> <!-- end of lockscreen overlay template -->
 
-      <div id="attention-screen" data-z-index-level="attention-screen">
-        <div id="attention-bar"></div>
-      </div>
-
       <div id="update-manager-toaster" data-z-index-level="notification-toaster" aria-live="assertive" aria-atomic="true">
         <div class="icon">
         </div>
@@ -1122,10 +1124,10 @@
         </div>
       </div>
 
-      <div id="notification-toaster" data-z-index-level="notification-toaster" role="link" aria-live="assertive" aria-atomic="true">
-        <img id="toaster-icon" role="presentation"/>
-        <div id="toaster-title"></div>
-        <div id="toaster-detail"></div>
+      <div id="notification-toaster" data-z-index-level="notification-toaster" role="link" aria-live="assertive" aria-atomic="true" class="notification-toaster">
+        <img id="toaster-icon" role="presentation" class="toaster-icon"/>
+        <div id="toaster-title" class="toaster-title"></div>
+        <div id="toaster-detail" class="toaster-detail"></div>
       </div>
 
       <!-- keyboard -->

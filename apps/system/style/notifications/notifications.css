@@ -1,4 +1,4 @@
-#notification-toaster {
+.notification-toaster {
   position: absolute;
   top: 0;
   left: 0;
@@ -15,7 +15,16 @@
   visibility: hidden;
 }
 
-#toaster-icon {
+/*
+ * For attention window.
+ */
+.fake-notification-toaster {
+  height: 5rem;
+  width: 100%;
+  position: relative;
+}
+
+.toaster-icon {
   position: absolute;
   width: 3rem;
   height: 3rem;
@@ -24,7 +33,8 @@
   pointer-events: none;
 }
 
-#notification-toaster > div {
+.notification-toaster > div,
+.fake-notification-toaster > div {
   left: 5rem;
   width: calc(100% - 5.5rem);
   height: 1.9rem;
@@ -35,7 +45,7 @@
   white-space: nowrap;
 }
 
-#toaster-title {
+.toaster-title {
   pointer-events: none;
   position: absolute;
   top: 0.3rem;
@@ -44,7 +54,7 @@
   font-weight: 500;
 }
 
-#toaster-detail {
+.toaster-detail {
   pointer-events: none;
   position: absolute;
   top: 2.2rem;
@@ -56,7 +66,7 @@
   white-space: nowrap;
 }
 
-#notification-toaster.displayed {
+.notification-toaster.displayed {
   transform: translateY(0);
   visibility: visible;
 }
@@ -194,19 +204,19 @@ div:not(#notifications-lockscreen-container) > .notification:after{
 }
 
 .notification.snapback,
-#notification-toaster.snapback {
+.notification-toaster.snapback {
   transition: transform 0.3s ease-out;
   transform: translateX(0);
 }
 
 .notification.disappearing,
-#notification-toaster.disappearing {
+.notification-toaster.disappearing {
   transition: transform 0.2s linear;
   transform: translateX(100%);
 }
 
 .notification.disappearing.left,
-#notification-toaster.disappearing.left {
+.notification-toaster.disappearing.left {
   transform: translateX(-100%);
 }
 
@@ -227,18 +237,19 @@ div:not(#notifications-lockscreen-container) > .notification:after{
 
 /* RTL View */
 
-html[dir="rtl"] #toaster-icon {
+html[dir="rtl"] .toaster-icon {
   left: auto;
   right: 1rem;
 }
 
-html[dir="rtl"] #notification-toaster > div {
+html[dir="rtl"] .notification-toaster > div,
+html[dir="rtl"] .fake-notification-toaster > div {
   left: auto;
   right: 5rem;
   text-align: right;
 }
 
-html[dir="rtl"] #notification-bar span {
+html[dir="rtl"] .notification-bar span {
   margin-left: 0;
   margin-right: 1.5rem;
 }

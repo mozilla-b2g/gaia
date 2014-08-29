@@ -122,8 +122,6 @@
     this.closeButtonVisibility = 'visible';
     this.viewClassList = ['card', 'appIconPreview'];
 
-    var attentionScreenApps = this.manager.attentionScreenApps;
-
     // app icon overlays screenshot by default
     // and will be removed if/when we display the screenshot
     var iconURI = CardsHelper.getIconURIForApp(this.app);
@@ -147,7 +145,7 @@
       popupFrame = TrustedUIManager.getDialogFromOrigin(app.origin);
       this.title = CardsHelper.escapeHTML(popupFrame.name || '', true);
       this.viewClassList.push('trustedui');
-    } else if (attentionScreenApps.indexOf(app.origin) > -1) {
+    } else if (!this.app.killable()) {
       // unclosable app
       this.closeButtonVisibility = 'hidden';
     }

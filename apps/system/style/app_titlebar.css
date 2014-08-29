@@ -52,12 +52,14 @@
 }
 
 .homescreen:not(.bar) > .chrome + .titlebar .titlebar-minimized,
-.lockScreenWindow:not(.bar) > .chrome + .titlebar .titlebar-minimized {
+.lockScreenWindow:not(.bar) > .chrome + .titlebar .titlebar-minimized,
+.attentionWindow:not(.bar) > .chrome + .titlebar .titlebar-minimized {
   opacity: 0;
 }
 
 .homescreen:not(.bar) > .chrome + .titlebar .titlebar-maximized,
-.lockScreenWindow:not(.bar) > .chrome + .titlebar .titlebar-maximized {
+.lockScreenWindow:not(.bar) > .chrome + .titlebar .titlebar-maximized,
+.attentionWindow:not(.bar) > .chrome + .titlebar .titlebar-maximized {
   opacity: 1;
 }
 

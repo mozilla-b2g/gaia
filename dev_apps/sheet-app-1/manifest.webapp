@@ -2,9 +2,13 @@
   "name": "Sheet app 1",
   "description": "Web app template",
   "launch_path": "/index.html",
+  "type": "privileged",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "attention":{}
   },
   "locales": {
     "ar": {
