@@ -200,7 +200,7 @@ body .utility-tray .statusbar > .sb-start {
 #statusbar-connections[data-multiple="true"] .statusbar-data {
   position: relative;
   width: 1.3rem;
-  margin: 0.3rem 0 0 0;
+  margin: 0.6rem 0 0 0;
   font-size: 0.8rem;
   text-align: right;
 }
