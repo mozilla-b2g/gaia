@@ -461,8 +461,8 @@
           options.data.url = payload.uri;
         } else if (payload.uri.indexOf('http://') === 0 ||
                    payload.uri.indexOf('https://') === 0) {
-          options.name = 'view';
           // launch browser
+          options.name = 'view';
           options.data.type = 'url';
           options.data.url = payload.uri;
         } else {
@@ -471,8 +471,8 @@
       } else if (payload.type === 'smartposter' &&
         (payload.uri.indexOf('http://') === 0 ||
          payload.uri.indexOf('https://') === 0)) {
-        options.name = 'view';
         // smartposter adaptation for browser handling
+        options.name = 'view';
         options.data = payload;
         options.data.type = 'url';
         options.data.url = payload.uri;
@@ -483,6 +483,10 @@
         options.data = payload;
       } else {
         options.data = payload;
+      }
+
+      if (options.name !== 'nfc-ndef-discovered') {
+        options.data.src = 'nfc';
       }
 
       return options;
