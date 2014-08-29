@@ -15,8 +15,6 @@ window.console = {
   warn: consoleHelper.bind(null, '\x1b[33mWWAR')
 };
 
-var document = { cookie: null };
-
 // These pragmas are for r.js and tell it to remove this code section. It will
 // be replaced with inline content after a build.
 //>>excludeStart('buildExclude', pragmas.buildExclude);
