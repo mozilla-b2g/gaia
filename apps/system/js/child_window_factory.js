@@ -54,9 +54,9 @@
         return;
       }
 
-      // <a href="" target="_blank"> should never be part of the app
+      // <a href="" target="_blank"> should open a new window.
       if (evt.detail.name == '_blank') {
-        this.launchActivity(evt);
+        this.createChildBrowser(evt);
         evt.stopPropagation();
         return;
       }
@@ -129,6 +129,23 @@
     var a = url1.split('/');
     var b = url2.split('/');
     return (a[0] === b[0] && a[2] === b[2]);
+  };
+
+  ChildWindowFactory.prototype.createChildBrowser = function(evt) {
+    if (!this.app.isActive() || this.app.isTransitioning()) {
+      return false;
+    }
+
+    var configObject = {
+      url: evt.detail.url,
+      origin: evt.detail.url,
+      windowName: evt.detail.name || '_blank',
+      title: evt.detail.title || evt.detail.url
+    };
+
+    var childWindow = new AppWindow(configObject);
+    childWindow.requestOpen();
+    return true;
   };
 
   ChildWindowFactory.prototype.createChildWindow = function(evt) {
