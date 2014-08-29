@@ -63,9 +63,9 @@ HTMLOptimizer.prototype.process = function() {
   var ignore = this.optimizeConfig.L10N_OPTIMIZATION_BLACKLIST;
   // If this HTML document uses l10n.js, pre-localize it --
   //   note: a document can use l10n.js by including either l10n.js or
-  //   localization resource link elements (see /shared/js/lazy_l10n.js).
+  //   application/l10n resource link elements (see /shared/js/lazy_l10n.js).
   if ((!this.win.document.querySelector('script[src$="l10n.js"]') &&
-       !this.win.document.querySelector('link[rel="localization"]')) ||
+       !this.win.document.querySelector('link[type$="application/l10n"]')) ||
       ignore[this.webapp.sourceDirectoryName]) {
     this.done(this.files);
     return;
@@ -266,56 +266,33 @@ HTMLOptimizer.prototype.embed10nResources = function() {
 
 /**
  * Replaces all external l10n resource nodes by a single link:
- * <link rel="localization" href="/locales-obj/{locale}.json" />,
+ * <link type="application/l10n" href="/locales-obj/{{locale}}.json" />,
  * and merge the document dictionary into the webapp dictionary.
  */
 HTMLOptimizer.prototype.concatL10nResources = function() {
   var doc = this.win.document;
-  var links = doc.querySelectorAll('link[rel="localization"], ' +
-                                   'link[rel="manifest"]');
-  if (!links.length) {
+  var resources = doc.querySelectorAll('link[type="application/l10n"]');
+  if (!resources.length) {
     return;
   }
 
-  var parentNode = links[0].parentNode;
+  var parentNode = resources[0].parentNode;
   var fetch = false;
-  for (var i = 0; i < links.length; i++) {
-    var link = links[i];
-    var rel = link.getAttribute('rel');
-
-    switch (rel) {
-      case 'manifest':
-        var url = link.getAttribute('href');
-        var manifest = JSON.parse(this.getFileByRelativePath(url).content);
-
-        var defaultLocaleMeta = doc.createElement('meta');
-        defaultLocaleMeta.name = 'default_locale';
-        defaultLocaleMeta.content = manifest.default_locale;
-
-        var localesMeta = doc.createElement('meta');
-        localesMeta.name = 'locales';
-        localesMeta.content = Object.keys(manifest.locales).join(', ');
-
-        parentNode.insertBefore(defaultLocaleMeta, links[0]);
-        parentNode.insertBefore(localesMeta, links[0]);
-        break;
-      case 'localization':
-        // if any l10n link does not have the no-fetch
-        // attribute we will embed the locales json link
-        if (!link.hasAttribute('data-no-fetch')) {
-          fetch = true;
-        }
-        break;
+  for (var i = 0; i < resources.length; i++) {
+    var link = resources[i];
+    link.parentNode.removeChild(link);
+    // if any l10n link does no have the no-fetch
+    // attribute we will embed the locales json link
+    if (!link.hasAttribute('data-no-fetch')) {
+      fetch = true;
     }
   }
   if (fetch) {
     var jsonLink = doc.createElement('link');
-    jsonLink.href = '/locales-obj/{locale}.json';
-    jsonLink.rel = 'localization';
-    parentNode.insertBefore(jsonLink, links[0]);
-  }
-  for (i = 0; i < links.length; i++) {
-    parentNode.removeChild(links[i]); 
+    jsonLink.href = '/locales-obj/{{locale}}.json';
+    jsonLink.type = 'application/l10n';
+    jsonLink.rel = 'prefetch';
+    parentNode.appendChild(jsonLink);
   }
 };
 
@@ -607,30 +584,16 @@ HTMLOptimizer.prototype.mockWinObj = function() {
   };
 
   this.win.XMLHttpRequest = function() {
-    var mimeType = null;
-    var status = null;
-    var responseText = null;
-
     return {
       open: function(type, url, async) {
-        status = 200;
-        responseText = self.getFileByRelativePath(url).content;
-      },
-      overrideMimeType: function(type) {
-        mimeType = type;
+        this.status = 200;
+        this.responseText = self.getFileByRelativePath(url).content;
       },
       send: function() {
-        var response;
-        if (mimeType == 'application/json') {
-          response = JSON.parse(responseText);
-        } else {
-          response = responseText;
-        }
         this.onload({
           'target': {
-            'status': status,
-            'responseText': responseText,
-            'response': response
+            'status': this.status,
+            'responseText': this.responseText,
           }
         });
       },

@@ -14,25 +14,6 @@
       "description": "To send key events"
     }
   },
-  "locales": {
-    "ar": {
-      "name": "Demo Keyboard",
-      "description": "for Gaia 3rd-party keyboard testing"
-    },
-    "en-US": {
-      "name": "Demo Keyboard",
-      "description": "for Gaia 3rd-party keyboard testing"
-    },
-    "fr": {
-      "name": "Demo Keyboard",
-      "description": "for Gaia 3rd-party keyboard testing"
-    },
-    "zh-TW": {
-      "name": "Demo Keyboard",
-      "description": "for Gaia 3rd-party keyboard testing"
-    }
-  },
-  "default_locale": "en-US",
   "inputs": {
     "en": {
       "launch_path": "/index.html#en",

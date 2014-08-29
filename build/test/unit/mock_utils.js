@@ -97,7 +97,3 @@ exports.getAppNameRegex = function(buildAppName) {
 exports.scriptLoader = {
   load: function load() {}
 };
-
-exports.dirname = function(path) {
-  return path.substr(0, path.lastIndexOf('.'));
-};

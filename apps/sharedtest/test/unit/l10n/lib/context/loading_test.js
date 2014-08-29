@@ -21,7 +21,7 @@ describe('A non-loading context', function() {
 
   beforeEach(function() {
     ctx = new Context();
-    ctx.resLinks.push(path + '/fixtures/{locale}.properties');
+    ctx.resLinks.push(path + '/fixtures/{{locale}}.properties');
   });
 
   it('should throw on get', function() {
@@ -42,14 +42,13 @@ describe('A loading, non-ready context', function() {
   var ctx;
   beforeEach(function() {
     ctx = new Context();
-    ctx.resLinks.push(path + '/fixtures/{locale}.properties');
-    ctx.registerLocales('en-US');
-    ctx.requestLocales('en-US');
+    ctx.resLinks.push(path + '/fixtures/{{locale}}.properties');
+    ctx.requestLocales();
   });
 
   it('should throw on requestLocales', function() {
     assert.throws(function(){
-      ctx.requestLocales('en-US');
+      ctx.requestLocales();
     }, /Context not ready/);
   });
 
@@ -78,10 +77,9 @@ describe('A loading, ready context', function() {
 
   beforeEach(function(done) {
     ctx = new Context();
-    ctx.resLinks.push(path + '/fixtures/{locale}.properties');
+    ctx.resLinks.push(path + '/fixtures/{{locale}}.properties');
     ctx.once(done);
-    ctx.registerLocales('en-US');
-    ctx.requestLocales('en-US');
+    ctx.requestLocales();
   });
 
   it('should not throw on get of a known entity', function() {
@@ -118,7 +116,7 @@ describe('A loading, ready context', function() {
       done();
     });
     assert.doesNotThrow(function(){
-      ctx.requestLocales('pl', 'en-US');
+      ctx.requestLocales('pl');
     });
   });
 
@@ -129,9 +127,8 @@ describe('A loading, ready context', function() {
 
   beforeEach(function(done) {
     ctx = new Context();
-    ctx.resLinks.push(path + '/fixtures/{locale}.properties');
+    ctx.resLinks.push(path + '/fixtures/{{locale}}.properties');
     ctx.once(done);
-    ctx.registerLocales('en-US');
     ctx.requestLocales('en-US');
   });
 

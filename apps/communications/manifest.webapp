@@ -176,24 +176,5 @@
   "icons": {
         "30": "/style/icons/communications_30.png",
         "45": "/style/icons/communications_45.png"
-  },
-  "locales": {
-    "ar": {
-      "name": "Communications",
-      "description": "Gaia Communications"
-    },
-    "en-US": {
-      "name": "Communications",
-      "description": "Gaia Communications"
-    },
-    "fr": {
-      "name": "Communications",
-      "description": "Gaia Communications"
-    },
-    "zh-TW": {
-      "name": "Communications",
-      "description": "Gaia Communications"
-    }
-  },
-  "default_locale": "en-US"
+  }
 }

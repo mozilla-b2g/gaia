@@ -19,6 +19,7 @@ suite('multilocale Integration tests', function() {
       'settings.gaiamobile.org', 'application.zip');
     var cnPathInZip = 'locales-obj/zh-CN.json';
     var cnSettingsProperties = 'locales/settings.zh-CN.properties';
+    var cnTzIni = 'shared/locales/tz.ini';
     var langPathInZip = 'shared/resources/languages.json';
 
     var command = 'LOCALES_FILE=' + localesFilePath +
@@ -38,10 +39,12 @@ suite('multilocale Integration tests', function() {
       var zip = new AdmZip(settingsZipPath);
       if (inlineAndConcat) {
         assert.isNotNull(zip.getEntry(cnPathInZip),
-          'concat file ' + cnPathInZip + ' should exist');
+          'cancat file ' + cnPathInZip + ' should exist');
       } else {
         assert.isNotNull(zip.getEntry(cnSettingsProperties),
           'properties file ' + cnSettingsProperties + ' should exist');
+        assert.isNotNull(zip.getEntry(cnTzIni),
+          'ini file ' + cnTzIni + ' should exist');
       }
 
       assert.deepEqual(JSON.parse(zip.readAsText(langPathInZip)),

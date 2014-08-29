@@ -77,7 +77,8 @@ WebappZip.prototype.isExcludedFromZip = function(file) {
     },
     function isL10n(file) {
       return (self.config.GAIA_CONCAT_LOCALES === '1' &&
-        (file.leafName === 'locales' || file.parent.leafName === 'locales'));
+        (file.leafName === 'locales' || file.leafName === 'locales.ini' ||
+         file.parent.leafName === 'locales'));
     },
     function isConcatenatedL10n(file) {
       return ((file.leafName === 'locales-obj' ||

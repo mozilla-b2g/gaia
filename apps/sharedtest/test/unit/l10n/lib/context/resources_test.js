@@ -23,8 +23,7 @@ describe('Missing resources', function() {
     ctx.resLinks.push(path + '/fixtures/en-US.properties');
     ctx.resLinks.push(path + '/fixtures/missing.properties');
     ctx.once(done);
-    ctx.registerLocales('en-US');
-    ctx.requestLocales('en-US');
+    ctx.requestLocales();
   });
 
   it('should get ready', function() {
@@ -41,8 +40,7 @@ describe('No valid resources', function() {
     ctx.resLinks.push(path + '/fixtures/missing.properties');
     ctx.resLinks.push(path + '/fixtures/another.properties');
     ctx.once(done);
-    ctx.registerLocales('en-US');
-    ctx.requestLocales('en-US');
+    ctx.requestLocales();
   });
 
   it('should get ready', function() {

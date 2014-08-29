@@ -63,19 +63,7 @@
     }
   },
   "locales": {
-    "ar": {
-      "name": "Ringtones",
-      "description": "Gaia Ringtone Picker"
-    },
     "en-US": {
-      "name": "Ringtones",
-      "description": "Gaia Ringtone Picker"
-    },
-    "fr": {
-      "name": "Ringtones",
-      "description": "Gaia Ringtone Picker"
-    },
-    "zh-TW": {
       "name": "Ringtones",
       "description": "Gaia Ringtone Picker"
     }

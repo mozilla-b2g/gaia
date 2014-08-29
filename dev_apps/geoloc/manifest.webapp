@@ -12,10 +12,6 @@
     "device-storage:sdcard":{ "access": "readonly" }
   },
   "locales": {
-    "ar": {
-      "name": "Geoloc",
-      "description": "Geolocation Tracker"
-    },
     "en-US": {
       "name": "Geoloc",
       "description": "Geolocation Tracker"
@@ -23,10 +19,6 @@
     "fr": {
       "name": "Geoloc",
       "description": "Enregistrement de géolocalisation"
-    },
-    "zh-TW": {
-      "name": "Geoloc",
-      "description": "Geolocation Tracker"
     }
   },
   "icons": {

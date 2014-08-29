@@ -25,24 +25,11 @@
     "systemXHR": {}
   },
   "locales": {
-    "ar": {
-      "name": "Find My Device",
-      "description": "Find My Device helps find, lock and erase a lost phone"
-    },
     "en-US": {
-      "name": "Find My Device",
-      "description": "Find My Device helps find, lock and erase a lost phone"
-    },
-    "fr": {
-      "name": "Find My Device",
-      "description": "Find My Device helps find, lock and erase a lost phone"
-    },
-    "zh-TW": {
       "name": "Find My Device",
       "description": "Find My Device helps find, lock and erase a lost phone"
     }
   },
-  "default_locale": "en-US",
   "icons": {
     "84": "/style/icons/find_my_device_84.png",
     "126": "/style/icons/find_my_device_126.png",

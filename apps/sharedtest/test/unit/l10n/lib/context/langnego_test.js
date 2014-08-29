@@ -19,8 +19,7 @@ describe('Language negotiation without arguments', function() {
   beforeEach(function(done) {
     ctx = new Context();
     ctx.once(done);
-    ctx.registerLocales('en-US');
-    ctx.requestLocales('en-US');
+    ctx.requestLocales();
   });
 
   it('used the en-US locale', function() {
@@ -35,7 +34,6 @@ describe('Language negotiation with arguments', function() {
   beforeEach(function(done) {
     ctx = new Context();
     ctx.once(done);
-    ctx.registerLocales('en-US', ['pl']);
     ctx.requestLocales('pl');
   });
 

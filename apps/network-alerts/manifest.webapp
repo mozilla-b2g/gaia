@@ -19,24 +19,6 @@
     "desktop-notification":{},
     "cellbroadcast":{}
   },
-  "locales": {
-    "ar": {
-      "name": "Network Alerts",
-      "description": "Handling network alerts (like CMAS)"
-    },
-    "en-US": {
-      "name": "Network Alerts",
-      "description": "Handling network alerts (like CMAS)"
-    },
-    "fr": {
-      "name": "Network Alerts",
-      "description": "Handling network alerts (like CMAS)"
-    },
-    "zh-TW": {
-      "name": "Network Alerts",
-      "description": "Handling network alerts (like CMAS)"
-    }
-  },
   "default_locale": "en-US",
   "orientation": "default",
   "messages": [

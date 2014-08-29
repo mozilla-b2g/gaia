@@ -16,7 +16,6 @@ describe('ctx.ready', function() {
 
   beforeEach(function() {
     ctx = new Context();
-    ctx.registerLocales('en-US', ['pl']);
   });
 
   it('should fire asynchronously when context is ready', function(done) {

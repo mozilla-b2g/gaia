@@ -9,24 +9,11 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "locales": {
-    "ar": {
-      "name": "Bluetooth",
-      "description": "Gaia Bluetooth"
-    },
     "en-US": {
-      "name": "Bluetooth",
-      "description": "Gaia Bluetooth"
-    },
-    "fr": {
-      "name": "Bluetooth",
-      "description": "Gaia Bluetooth"
-    },
-    "zh-TW": {
       "name": "Bluetooth",
       "description": "Gaia Bluetooth"
     }
   },
-  "default_locale": "en-US",
   "icons": {
     "60": "/style/icons/Bluetooth_60.png",
     "90": "/style/icons/Bluetooth_90.png",

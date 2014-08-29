@@ -42,8 +42,6 @@ suite('L10n bindings', function() {
     // not to re-fetch resources;  hence, set the lang to something new
     lang = 'lang1';
 
-    navigator.mozL10n.ctx.registerLocales('en-US', ['lang1', 'lang2']);
-
     navigator.mozL10n.language.code = lang;
     navigator.mozL10n.once(done);
   });

@@ -31,7 +31,6 @@ describe('A simple context with one resource', function() {
     ctx = L20n.getContext();
     ctx.resLinks.push(path + '/fixtures/basic.properties');
     ctx.ready(done);
-    ctx.registerLocales('en-US');
     ctx.requestLocales('en-US');
   });
 
