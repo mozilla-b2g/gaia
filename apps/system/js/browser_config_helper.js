@@ -31,14 +31,18 @@
    *
    * * oop: indicate it's running out of process or in process.
    *
-   * @param {String} appURL The URL of the app or the page to be opened.
-   * @param {String} [manifestURL] The manifest URL of the app.
-   *
-   * @class BrowserConfigHelper
+   * @param {Object} [config] Config for creating appWindow.
+   * @param {String} [config.appURL] The URL of the app or the page to be
+   *                                 opened.
+   * @param {String} [config.manifestURL] The manifest URL of the app.
+   * @param {String} [config.name] - optional The name of the app.
+   * @param {DOMFRAMEElement} [config.iframe] - optionalThe exisiting frame to
+   *                                            inject.
    */
-  window.BrowserConfigHelper = function(appURL, manifestURL) {
-    var app = applications.getByManifestURL(manifestURL);
-    this.url = appURL;
+  window.BrowserConfigHelper = function(config) {
+    var app = config.manifestURL &&
+              applications.getByManifestURL(config.manifestURL);
+    this.url = config.url;
 
     if (app) {
       var manifest = app.manifest;
@@ -65,8 +69,8 @@
           }
 
           //Remove the origin and / to find if if the url is the entry point
-          if (path.indexOf('/' + ep) == 0 &&
-              (currentEp.launch_path == path)) {
+          if (path.indexOf('/' + ep) === 0 &&
+              (currentEp.launch_path === path)) {
             origin = origin + currentEp.launch_path;
             name = new ManifestHelper(currentEp).name;
             for (var key in currentEp) {
@@ -92,18 +96,19 @@
       ];
 
       if (!isOutOfProcessDisabled &&
-          outOfProcessBlackList.indexOf(manifestURL) === -1) {
+          outOfProcessBlackList.indexOf(config.manifestURL) === -1) {
         // FIXME: content shouldn't control this directly
         this.oop = true;
       }
 
       this.name = name;
-      this.manifestURL = manifestURL;
+      this.manifestURL = config.manifestURL;
       this.origin = origin;
       this.manifest = manifest;
     } else {
-      this.name = '';
-      this.origin = appURL;
+      this.iframe = config.iframe;
+      this.name = config.name || '';
+      this.origin = config.url;
       this.manifestURL = '';
       this.manifest = null;
     }

@@ -283,6 +283,18 @@ suite('system/AppWindowFactory', function() {
         fakeLaunchConfig2.url);
     });
 
+    test('open a new window', function() {
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+      appWindowFactory.handleEvent({
+        type: 'openwindow',
+        detail: fakeLaunchConfig2
+      });
+      assert.isTrue(stubDispatchEvent.called);
+      assert.equal(stubDispatchEvent.getCall(0).args[0].type, 'launchapp');
+      assert.equal(stubDispatchEvent.getCall(0).args[0].detail.url,
+        fakeLaunchConfig2.url);
+    });
+
     test('opening from a system message', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       appWindowFactory.handleEvent({

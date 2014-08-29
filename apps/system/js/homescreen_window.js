@@ -86,7 +86,10 @@
       this.url = app.origin + '/index.html#root';
 
       this.browser_config =
-        new BrowserConfigHelper(this.origin, this.manifestURL);
+        new BrowserConfigHelper({
+          url: this.origin,
+          manifestURL: this.manifestURL
+        });
 
       // Necessary for b2gperf now.
       this.name = this.browser_config.name;
