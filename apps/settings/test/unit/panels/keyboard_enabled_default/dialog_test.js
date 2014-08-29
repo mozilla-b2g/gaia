@@ -1,7 +1,7 @@
 /* globals MockL10n */
 'use strict';
 
-requireApp('settings/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('KeyboardEnabledDefaultDialog', function() {
   var realL10n;
