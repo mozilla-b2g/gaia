@@ -181,11 +181,11 @@ var icc_worker = {
     tonePlayer.loop = true;
 
     var timeout = 0;
-    if (options.duration &&
-        options.duration.timeUnit != undefined &&
-        options.duration.timeInterval != undefined) {
-      timeout = icc.calculateDurationInMS(options.duration.timeUnit,
-        options.duration.timeInterval);
+    var duration = options.duration;
+    if (duration && duration.timeUnit != undefined &&
+        duration.timeInterval != undefined) {
+      timeout = icc.calculateDurationInMS(duration.timeUnit,
+        duration.timeInterval);
     } else if (options.timeUnit != undefined &&
         options.timeInterval != undefined) {
       timeout = icc.calculateDurationInMS(options.timUnit,
@@ -242,14 +242,22 @@ var icc_worker = {
       return;
     }
 
+    var timeout = icc._displayTextTimeout;
+    var duration = options.duration;
+    if (duration && duration.timeUnit != undefined &&
+        duration.timeInterval != undefined) {
+      timeout = icc.calculateDurationInMS(duration.timeUnit,
+        duration.timeInterval);
+    }
+
     if (options.responseNeeded) {
       icc.responseSTKCommand(message, {
         resultCode: icc._iccManager.STK_RESULT_OK
       });
-      icc.confirm(message, options.text, icc._displayTextTimeout,
+      icc.confirm(message, options.text, timeout,
         null);
     } else {
-      icc.confirm(message, options.text, icc._displayTextTimeout,
+      icc.confirm(message, options.text, timeout,
         function(userCleared) {
           if (userCleared == null) {
             return;   // ICC Back or ICC Terminate
@@ -295,9 +303,10 @@ var icc_worker = {
         icc.hideViews();
       }, true);
 
-    var timeout = (options.duration &&
-      icc.calculateDurationInMS(options.duration.timeUnit,
-          options.duration.timeInterval)) || icc._inputTimeout;
+    var duration = options.duration;
+    var timeout = (duration &&
+      icc.calculateDurationInMS(duration.timeUnit, duration.timeInterval)) ||
+      icc._inputTimeout;
     icc.input(message, options.text, timeout, options,
       function(response, value) {
         if (response == null) {
