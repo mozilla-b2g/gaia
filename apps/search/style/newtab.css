@@ -119,3 +119,12 @@ h2 span {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+#history h3 {
+  text-align: center;
+  font-size: 1.4rem;
+  font-style: italic;
+  color: rgb(133, 133, 133);
+  font-weight: normal;
+  margin-top: 1rem;
+}
