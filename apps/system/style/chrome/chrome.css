@@ -39,6 +39,10 @@
   font-size: 0;
 }
 
+.chrome .controls .windows-button {
+  display: none;
+}
+
 /* Special cases */
 .searchWindow > .chrome {
   display: none;
@@ -63,17 +67,6 @@
   background-color: black;
 }
 
-/* Special cases for rocketbar on the Top Sites view */
-.search-app .menu-button,
-.search-app .controls .reload-button,
-.search-app .controls .stop-button {
-  display: none;
-}
-
-.search-app .chrome .controls .urlbar {
-  width: calc(100% - 1rem);
-}
-
 /* Special cases for Rocketbar in apps with browser chrome */
 .appWindow:not(.browser) .chrome .controls .menu-button {
   display: none;
@@ -81,6 +74,22 @@
 
 .appWindow:not(.browser) .chrome .controls .urlbar {
   width: calc(100% - 1rem);
+}
+
+/* Special cases for rocketbar on the Top Sites view */
+.search-app .menu-button,
+.search-app .controls .reload-button,
+.search-app .controls .stop-button
+.chrome .controls .windows-button {
+  display: none;
+}
+
+.appWindow.search-app .chrome .controls .urlbar {
+  width: calc(100% - 4.5rem);
+}
+
+.search-app .chrome .controls .windows-button {
+  display: inline;
 }
 
 /* URL bar */
@@ -343,6 +352,10 @@
 
 .light .controls .menu-button {
   background-image: url("images/dark/overflow.png");
+}
+
+.light .controls .windows-button {
+  background-image: url('images/dark/windows.png');
 }
 
 .light .controls .menu-button:active {

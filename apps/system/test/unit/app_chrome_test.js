@@ -180,6 +180,15 @@ suite('system/AppChrome', function() {
       assert.isTrue(stubStop.called);
     });
 
+    test('windows', function(done) {
+      var app = new AppWindow(fakeSearchApp);
+      var chrome = new AppChrome(app);
+      window.addEventListener('taskmanagershow', function() {
+        done();
+      });
+      chrome.handleEvent({ type: 'click', target: chrome.windowsButton });
+    });
+
     test('location changed', function() {
       var app = new AppWindow(fakeWebSite);
       var chrome = new AppChrome(app);
