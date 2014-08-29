@@ -10,7 +10,7 @@ from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 class TestAccessibilityPhoneKeypad(GaiaImageCompareTestCase):
 
     def setUp(self):
-        GaiaTestCase.setUp(self)
+        GaiaImageCompareTestCase.setUp(self)
         self.contact = MockContact()
 
         self.phone = Phone(self.marionette)
@@ -33,6 +33,7 @@ class TestAccessibilityPhoneKeypad(GaiaImageCompareTestCase):
         self.phone.keypad.a11y_dial_phone_number(number_to_verify)
 
         # Check that the number was entered correctly.
+        self.invoke_screen_capture()
         self.assertEqual(self.phone.keypad.phone_number, number_to_verify)
         # Delete is visible to the screen reader.
         self.assertFalse(self.accessibility.is_hidden(self.marionette.find_element(

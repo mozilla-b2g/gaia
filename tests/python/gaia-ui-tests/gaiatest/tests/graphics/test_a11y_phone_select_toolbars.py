@@ -63,8 +63,4 @@ class TestAccessibilityPhoneSelectToolbars(GaiaImageCompareTestCase):
 
     def tearDown(self):
 
-        # In case the assertion fails this will still kill the call
-        # An open call creates problems for future tests
-        self.execute_image_job()
-
         GaiaImageCompareTestCase.tearDown(self)
