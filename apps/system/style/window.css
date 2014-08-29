@@ -78,7 +78,7 @@
 
 @keyframes zoom-in {
   0%   { transform: scale(1); }
-  100% { transform: scale(5); }
+  100% { transform: scale(3); }
 }
 
 @keyframes openAppFromCardView {
@@ -165,13 +165,20 @@
   opacity: 0;
 }
 
+
+/* The scale transformation used to be 5. In order to benefit from async
+ * transform the frame width/height needs to be < 4096.
+ * The size of one side of the frame is equal to
+ * devicePixelRatio * frame.[width|height] * scale, and as a result we need
+ * to pick a value that fits well for pixel ratio between 1 and 2.
+ */
 .appWindow.zoom-out {
-  transform: scale(5);
+  transform: scale(3);
   animation: zoom-out 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes zoom-out {
-  0%   { transform: scale(5);}
+  0%   { transform: scale(3);}
   100% { transform: scale(1);}
 }
 
