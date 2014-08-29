@@ -29,7 +29,19 @@
     }
   },
   "locales": {
+    "ar": {
+      "name": "Bookmark",
+      "description": "Bookmark Manager"
+    },
     "en-US": {
+      "name": "Bookmark",
+      "description": "Bookmark Manager"
+    },
+    "fr": {
+      "name": "Bookmark",
+      "description": "Bookmark Manager"
+    },
+    "zh-TW": {
       "name": "Bookmark",
       "description": "Bookmark Manager"
     }

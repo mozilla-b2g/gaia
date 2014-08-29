@@ -1069,7 +1069,7 @@
 
     var idToFetch = this.isPseudo ? ctx.defaultLocale : this.id;
     for (var i = 0; i < ctx.resLinks.length; i++) {
-      var path = ctx.resLinks[i].replace('{{locale}}', idToFetch);
+      var path = ctx.resLinks[i].replace('{locale}', idToFetch);
       var type = path.substr(path.lastIndexOf('.') + 1);
 
       switch (type) {
@@ -1118,7 +1118,9 @@
     this.isLoading = false;
 
     this.defaultLocale = 'en-US';
+    this.availableLocales = [];
     this.supportedLocales = [];
+
     this.resLinks = [];
     this.locales = {};
 
@@ -1216,6 +1218,19 @@
       this._emitter.emit('ready');
     }
 
+    this.registerLocales = function (defLocale, available) {
+      /* jshint boss:true */
+      this.availableLocales.push(this.defaultLocale = defLocale);
+
+      if (available) {
+        for (var i = 0, loc; loc = available[i]; i++) {
+          if (this.availableLocales.indexOf(loc) === -1) {
+            this.availableLocales.push(loc);
+          }
+        }
+      }
+    };
+
     this.requestLocales = function requestLocales() {
       if (this.isLoading && !this.isReady) {
         throw new L10nError('Context not ready');
@@ -1223,8 +1238,15 @@
 
       this.isLoading = true;
       var requested = Array.prototype.slice.call(arguments);
+      if (requested.length === 0) {
+        throw new L10nError('No locales requested');
+      }
 
-      var supported = negotiate(requested.concat(this.defaultLocale),
+      var reqPseudo = requested.filter(function(loc) {
+        return loc in PSEUDO_STRATEGIES;
+      });
+
+      var supported = negotiate(this.availableLocales.concat(reqPseudo),
                                 requested,
                                 this.defaultLocale);
       freeze.call(this, supported);
@@ -1283,6 +1305,9 @@
   var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
   var nodeObserver = null;
   var pendingElements = null;
+  var headScanCompleted = false;
+  var manifestLoading = false;
+  var manifest = {};
 
   var moConfig = {
     attributes: true,
@@ -1341,7 +1366,8 @@
         rePlaceables: rePlaceables,
         getTranslatableChildren:  getTranslatableChildren,
         translateDocument: translateDocument,
-        loadINI: loadINI,
+        onLinkInjected: onLinkInjected,
+        onMetaInjected: onMetaInjected,
         fireLocalizedEvent: fireLocalizedEvent,
         PropertiesParser: PropertiesParser,
         compile: compile,
@@ -1442,45 +1468,111 @@
   }
 
   function initResources() {
-    var resLinks = document.head
-                           .querySelectorAll('link[type="application/l10n"]');
-    var iniLinks = [];
-
-    for (var i = 0; i < resLinks.length; i++) {
-      var link = resLinks[i];
-      var url = link.getAttribute('href');
-      var type = url.substr(url.lastIndexOf('.') + 1);
-      if (type === 'ini') {
-        iniLinks.push(url);
+    var nodes = document.head
+                        .querySelectorAll('link[rel="localization"],' +
+                                          'link[rel="manifest"],' +
+                                          'meta[name="locales"],' +
+                                          'meta[name="default_locale"]');
+    for (var i = 0; i < nodes.length; i++) {
+      var nodeName = nodes[i].nodeName.toLowerCase();
+      switch (nodeName) {
+        case 'link':
+          onLinkInjected.call(this, nodes[i]);
+          break;
+        case 'meta':
+          onMetaInjected.call(this, nodes[i]);
+          break;
       }
-      this.ctx.resLinks.push(url);
     }
 
-    var iniLoads = iniLinks.length;
-    if (iniLoads === 0) {
+    headScanCompleted = true;
+
+    if (Object.keys(manifest).length === 2 ||
+        manifestLoading === false) {
       initLocale.call(this);
+    }
+  }
+
+  function onLinkInjected(node) {
+    var url = node.getAttribute('href');
+    var rel = node.getAttribute('rel');
+    switch (rel) {
+      case 'manifest':
+        loadManifest.call(this, url);
+        break;
+      case 'localization':
+        this.ctx.resLinks.push(url);
+        break;
+    }
+  }
+
+  function onMetaInjected(node) {
+    if (Object.keys(manifest).length === 2) {
+      return;
+    }
+    var name = node.getAttribute('name');
+    switch (name) {
+      case 'locales':
+        manifest[name] = node.getAttribute('content').split(',').map(
+          Function.prototype.call, String.prototype.trim);
+        break;
+      case 'default_locale':
+        manifest[name] = node.getAttribute('content');
+        break;
+    }
+
+    if (Object.keys(manifest).length === 2) {
+      parseManifest.call(this);
+    }
+  }
+
+  function loadManifest(url) {
+    if (Object.keys(manifest).length === 2) {
       return;
     }
 
-    function onIniLoaded(err) {
+    manifestLoading = true;
+
+    io.loadJSON(url, function(err, json) {
+      manifestLoading = false;
+
+      if (Object.keys(manifest).length === 2) {
+        return;
+      }
+
       if (err) {
         this.ctx._emitter.emit('error', err);
+        if (headScanCompleted) {
+          initLocale.call(this);
+        }
+        return;
       }
-      if (--iniLoads === 0) {
-        initLocale.call(this);
-      }
-    }
 
-    for (i = 0; i < iniLinks.length; i++) {
-      loadINI.call(this, iniLinks[i], onIniLoaded.bind(this));
+      if (!('default_locale' in manifest)) {
+        manifest.default_locale = json.default_locale;
+      }
+      if (!('locales' in manifest)) {
+        manifest.locales = Object.keys(json.locales);
+      }
+
+      parseManifest.call(this);
+    }.bind(this));
+  }
+
+  function parseManifest() {
+    this.ctx.registerLocales(manifest.default_locale,
+                             manifest.locales);
+    manifest = {};
+    if (headScanCompleted) {
+      initLocale.call(this);
     }
   }
 
   function initLocale() {
-    this.ctx.requestLocales(navigator.language);
+    this.ctx.requestLocales.apply(this.ctx, navigator.languages);
     window.addEventListener('languagechange', function l10n_langchange() {
-      navigator.mozL10n.language.code = navigator.language;
-    });
+      this.ctx.requestLocales.apply(this.ctx, navigator.languages);
+    }.bind(this));
   }
 
   function localizeMutations(mutations) {
@@ -1547,83 +1639,6 @@
       }
     });
     window.dispatchEvent(event);
-  }
-
-  /* jshint -W104 */
-
-  function loadINI(url, callback) {
-    var ctx = this.ctx;
-    io.load(url, function(err, source) {
-      var pos = ctx.resLinks.indexOf(url);
-
-      if (err) {
-        // remove the ini link from resLinks
-        ctx.resLinks.splice(pos, 1);
-        return callback(err);
-      }
-
-      if (!source) {
-        ctx.resLinks.splice(pos, 1);
-        return callback(new Error('Empty file: ' + url));
-      }
-
-      var patterns = parseINI(source, url).resources.map(function(x) {
-        return x.replace('en-US', '{{locale}}');
-      });
-      ctx.resLinks.splice.apply(ctx.resLinks, [pos, 1].concat(patterns));
-      callback();
-    });
-  }
-
-  function relativePath(baseUrl, url) {
-    if (url[0] === '/') {
-      return url;
-    }
-
-    var dirs = baseUrl.split('/')
-      .slice(0, -1)
-      .concat(url.split('/'))
-      .filter(function(path) {
-        return path !== '.';
-      });
-
-    return dirs.join('/');
-  }
-
-  var iniPatterns = {
-    'section': /^\s*\[(.*)\]\s*$/,
-    'import': /^\s*@import\s+url\((.*)\)\s*$/i,
-    'entry': /[\r\n]+/
-  };
-
-  function parseINI(source, iniPath) {
-    var entries = source.split(iniPatterns.entry);
-    var locales = ['en-US'];
-    var genericSection = true;
-    var uris = [];
-    var match;
-
-    for (var i = 0; i < entries.length; i++) {
-      var line = entries[i];
-      // we only care about en-US resources
-      if (genericSection && iniPatterns['import'].test(line)) {
-        match = iniPatterns['import'].exec(line);
-        var uri = relativePath(iniPath, match[1]);
-        uris.push(uri);
-        continue;
-      }
-
-      // but we need the list of all locales in the ini, too
-      if (iniPatterns.section.test(line)) {
-        genericSection = false;
-        match = iniPatterns.section.exec(line);
-        locales.push(match[1]);
-      }
-    }
-    return {
-      locales: locales,
-      resources: uris
-    };
   }
 
   /* jshint -W104 */
