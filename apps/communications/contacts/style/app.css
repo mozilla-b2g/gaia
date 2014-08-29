@@ -211,14 +211,6 @@ li button.activity > b em {
   font-style: normal;
 }
 
-[data-type="list"] aside span[data-type="img"] {
-  box-shadow: none;
-}
-
-[data-type="list"] li[data-visited="true"] aside span[data-type="img"] {
-  box-shadow: 0 0 0 0.1rem #dedede;
-}
-
 [data-type="list"] li p {
   margin-left: 1.5rem;
 }
