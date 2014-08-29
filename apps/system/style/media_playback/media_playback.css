@@ -80,7 +80,9 @@
   font-size: 0; /* ensure there's no space between the buttons */
 }
 
-.media-playback-controls > button {
+.media-playback-controls > button.previous,
+.media-playback-controls > button.play-pause,
+.media-playback-controls > button.next {
   height: 100%;
   padding: 0;
   border-width: 0;
