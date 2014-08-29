@@ -1,0 +1,19 @@
+{
+  "name": "dlnaPlayer",
+  "description": "Gaia dlna player",
+  "type": "certified",
+  "launch_path": "index.html",
+  "developer": {
+    "name": "Rex Lee, Shih-Chiang Chien",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "systemXHR": {},
+    "udp-socket": {}
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  },
+  "orientation": "portrait"
+}
