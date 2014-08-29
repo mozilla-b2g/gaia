@@ -17,5 +17,11 @@
     "contacts":{ "access": "readwrite" },
     "webapps-manage":{},
     "wifi-manage":{}
+  },
+  "datastores-access": {
+    "bookmarks_store": {
+      "readonly": false,
+      "description": "Stores bookmarks"
+    }
   }
 }
