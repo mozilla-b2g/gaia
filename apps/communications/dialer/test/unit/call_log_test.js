@@ -77,7 +77,7 @@ suite('dialer/call_log', function() {
       'call-log-container',
       'call-log-edit-mode',
       'call-log-filter',
-      'call-log-icon-close',
+      'edit-mode-header',
       'call-log-icon-edit',
       'call-log-view',
       'deselect-all-threads',

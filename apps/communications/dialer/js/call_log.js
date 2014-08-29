@@ -69,11 +69,11 @@ var CallLog = {
         'call-log-container',
         'call-log-edit-mode',
         'call-log-filter',
-        'call-log-icon-close',
         'call-log-icon-edit',
         'call-log-view',
         'deselect-all-threads',
         'delete-button',
+        'edit-mode-header',
         'header-edit-mode-text',
         'missed-filter',
         'select-all-threads',
@@ -95,7 +95,7 @@ var CallLog = {
 
         self.callLogIconEdit.addEventListener('click',
           self.showEditMode.bind(self));
-        self.callLogIconClose.addEventListener('click',
+        self.editModeHeader.addEventListener('action',
           self.hideEditMode.bind(self));
         self.missedFilter.addEventListener('click',
           self.filter.bind(self));
@@ -733,8 +733,9 @@ var CallLog = {
       this.deleteButton.setAttribute('disabled', 'disabled');
       return;
     }
-    this.headerEditModeText.textContent = this._('edit-selected',
-                                            {n: selected});
+    this.headerEditModeText.textContent =
+      this._('edit-selected', {n: selected});
+
     this.deleteButton.removeAttribute('disabled');
     if (selected === allInputs) {
       this.deselectAllThreads.removeAttribute('disabled');
