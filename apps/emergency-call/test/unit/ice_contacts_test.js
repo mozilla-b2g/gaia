@@ -8,10 +8,12 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 require('/shared/js/dialer/utils.js');
 require('/shared/test/unit/mocks/mock_ice_store.js');
+require('/test/unit/mock_call_handler.js');
 
 var mocksHelperForDialer = new MocksHelper([
   'LazyLoader',
-  'ICEStore'
+  'ICEStore',
+  'CallHandler'
 ]).init();
 
 suite('ICE contacts bar', function() {
@@ -394,6 +396,12 @@ suite('ICE contacts bar', function() {
     test('Should include cancel button', function() {
       assert.ok(
         iceContactsOverlay.querySelector('#contact-list-overlay-cancel'));
+    });
+
+    test('Tapping a contact dials them', function() {
+      this.sinon.spy(CallHandler, 'call');
+      iceContactsOverlay.querySelector('button').click();
+      sinon.assert.calledWith(CallHandler.call, contact1.tel[0].value);
     });
   });
 });

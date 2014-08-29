@@ -17,7 +17,7 @@ var CallHandler = {
     }.bind(this));
   },
 
-  _throwError: function(sanitizedNumber) {
+  _throwEmergencyError: function(sanitizedNumber) {
     LazyLoader.load(['/shared/style/confirm.css'], function() {
       navigator.mozL10n.once(function() {
         this._emergencyMsg.textContent =
@@ -42,7 +42,7 @@ var CallHandler = {
               callPromise.then(function(call) {
                 self._installHandlers(call);
               }).catch(function(errorName) {
-                self._throwError(sanitizedNumber);
+                self._throwEmergencyError(sanitizedNumber);
               });
             }
           );
@@ -52,7 +52,7 @@ var CallHandler = {
         callPromise.then(function(call) {
           self._installHandlers(call);
         }).catch(function(errorName) {
-          self._throwError(sanitizedNumber);
+          self._throwEmergencyError(sanitizedNumber);
         });
       }
     }
