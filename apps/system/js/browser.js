@@ -5,7 +5,7 @@
   'use strict';
 
   function handleOpenUrl(url) {
-    var config = new BrowserConfigHelper(url);
+    var config = new BrowserConfigHelper({url: url});
     config.useAsyncPanZoom = true;
     config.oop = true;
     var newApp = new AppWindow(config);

@@ -21,7 +21,7 @@ marionette('Browser - Launch the same origin after navigating away',
       'lockscreen.enabled': false
     }
   });
-
+  client.scope({ searchTimeout: 20000 });
   var home, rocketbar, search, server, system;
 
   suiteSetup(function(done) {
@@ -58,7 +58,7 @@ marionette('Browser - Launch the same origin after navigating away',
     client.switchToFrame(frame);
 
     client.switchToFrame();
-    var browsers = client.findElements( 'iframe[src*="http://localhost"]');
+    var browsers = client.findElements( 'iframe[data-url*="http://localhost"]');
     assert.equal(browsers.length, 1);
 
     client.switchToFrame(frame);
@@ -68,8 +68,28 @@ marionette('Browser - Launch the same origin after navigating away',
     client.switchToFrame();
 
     client.waitFor(function() {
-      browsers = client.findElements('iframe[src*="http://localhost"]');
+      browsers = client.findElements('iframe[data-url*="http://localhost"]');
       return browsers.length === 2;
+    });
+  });
+
+  test('checks for web compat issues', function() {
+    var url = server.url('windowopen.html');
+    // rest condition, the alert might be show up quciker than new page
+    // Open the first URL in a sheet.
+    rocketbar.homescreenFocus();
+    rocketbar.enterText(url + '\uE006');
+
+    // Switch to the app, and navigate to a different url.
+    system.gotoBrowser(url);
+    client.helper.waitForElement('#trigger2').tap();
+    client.switchToFrame();
+
+    client.waitFor(function() {
+      return client.findElement(
+        '.appWindow .modal-dialog-alert-message')
+        .text()
+        .indexOf('caller received') !== -1;
     });
   });
 });
