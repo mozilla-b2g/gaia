@@ -28,8 +28,7 @@ suite('dialer/utils', function() {
     test('#additional info WITHOUT carrier', function(done) {
       MockContacts.mCarrier = null; // No carrier
       MockContacts.findByNumber(number, function(contact, matchingTel) {
-        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
-          contact, number);
+        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel);
         assert.equal('prefix-' + MockContacts.mType, additionalInfo);
         done();
       });
@@ -38,8 +37,7 @@ suite('dialer/utils', function() {
     test('#additional info WITH carrier', function(done) {
       MockContacts.mCarrier = 'carrier'; // Carrier value
       MockContacts.findByNumber(number, function(contact, matchingTel) {
-        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
-          contact, number);
+        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel);
         assert.equal('prefix-' + MockContacts.mType + ', ' +
           MockContacts.mCarrier, additionalInfo);
         done();
@@ -48,8 +46,7 @@ suite('dialer/utils', function() {
 
     test('phone number and type', function(done) {
       MockContacts.findByNumber(number, function(contact, matchingTel) {
-        var additionalInfo = subject.getPhoneNumberAndType(
-          matchingTel, contact, number);
+        var additionalInfo = subject.getPhoneNumberAndType(matchingTel);
         assert.equal('prefix-' + MockContacts.mType + ', ' + number,
                      additionalInfo);
         done();
@@ -63,8 +60,7 @@ suite('dialer/utils', function() {
       MockContacts.mType = 'totally custom';
 
       MockContacts.findByNumber(number, function(contact, matchingTel) {
-        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
-          contact, number);
+        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel);
         assert.equal('totally custom, ' +
           MockContacts.mCarrier, additionalInfo);
         done();

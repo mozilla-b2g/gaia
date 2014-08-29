@@ -115,11 +115,11 @@ suite('suggestion Bar', function() {
 
     MockNavigatorMozIccManager.addIcc(0, {});
 
-    loadBodyHTML('/dialer/elements/suggestion-item.html');
+    loadBodyHTML('/shared/elements/contacts/contact_in_overlay.html');
     var suggestionItemTemplate =
       document.body.querySelector('template').innerHTML;
 
-    loadBodyHTML('/dialer/elements/suggestion-overlay.html');
+    loadBodyHTML('/shared/elements/contacts/contact_list_overlay.html');
     var suggestionOverlayTemplate =
       document.body.querySelector('template').innerHTML;
 
@@ -127,24 +127,24 @@ suite('suggestion Bar', function() {
     domSuggestionBar.id = 'suggestion-bar';
     domSuggestionBar.innerHTML =
       '<div id="suggestion-count" class="more"></div>' +
-      '<div is="suggestion-item" ' +
-        'class="js-suggestion-item suggestion-item"></div>';
+      '<div is="contact-in-overlay" ' +
+        'class="js-suggestion-item contact-item"></div>';
     document.body.appendChild(domSuggestionBar);
     document.querySelector('.js-suggestion-item').innerHTML =
       suggestionItemTemplate;
 
     var domSuggestionItem = document.createElement('button');
-    domSuggestionItem.id = 'suggestion-item-template';
+    domSuggestionItem.id = 'contact-in-overlay-template';
     domSuggestionItem.setAttribute('role', 'button');
-    domSuggestionItem.setAttribute('is', 'suggestion-item');
-    domSuggestionItem.classList.add('js-suggestion-item', 'suggestion-item');
+    domSuggestionItem.setAttribute('is', 'contact-in-overlay');
+    domSuggestionItem.classList.add('js-suggestion-item', 'contact-item');
     domSuggestionItem.hidden = true;
     document.body.appendChild(domSuggestionItem);
     domSuggestionItem.innerHTML = suggestionItemTemplate;
 
     domOverlay = document.createElement('form');
-    domOverlay.id = 'suggestion-overlay';
-    domOverlay.setAttribute('is', 'suggestion-overlay');
+    domOverlay.id = 'contact-list-overlay';
+    domOverlay.setAttribute('is', 'contact-list-overlay');
     domOverlay.setAttribute('role', 'dialog');
     domOverlay.dataset.type = 'action';
     domOverlay.classList.add('overlay');
@@ -157,9 +157,9 @@ suite('suggestion Bar', function() {
     subject.overlay = domOverlay;
     subject.bar = domSuggestionBar;
     subject.countTag = document.getElementById('suggestion-count');
-    subject.list = document.getElementById('suggestion-list');
+    subject.list = document.getElementById('contact-list');
     subject.overlayCancel =
-        document.getElementById('suggestion-overlay-cancel');
+        document.getElementById('contact-list-overlay-cancel');
     subject.init();
 
     mozL10nGet = this.sinon.spy(function(id) {
@@ -432,7 +432,7 @@ suite('suggestion Bar', function() {
       test('should have a cancel button as the last button', function() {
         var buttons = subject.list.children;
         var cancel = buttons[buttons.length - 1];
-        assert.equal(cancel.id, 'suggestion-overlay-cancel');
+        assert.equal(cancel.id, 'contact-list-overlay-cancel');
       });
 
       test('should have 2 suggestions', function() {
@@ -513,7 +513,7 @@ suite('suggestion Bar', function() {
       subject.showOverlay();
 
       assert.equal(
-          subject.overlay.querySelector('#suggestion-list').childElementCount,
+          subject.overlay.querySelector('#contact-list').childElementCount,
           4, 'should have 3 items + cancel button into overlay list');
       assert.isFalse(subject.overlay.hidden, 'should show suggestion list');
     });
