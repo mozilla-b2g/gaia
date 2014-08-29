@@ -476,6 +476,32 @@ section ul.operate-certificate {
   padding-bottom: 1em;
 }
 
+.apn-list .apn-item .name {
+  position: absolute;
+  left: -1.5rem;
+  top: 0;
+  width: calc(100% - 3.5rem);
+  padding-left: 1.5rem;
+}
+
+.apn-list .apn-item .name:active {
+  background-color: #B2F2FF;
+}
+
+.apn-list .apn-item:after {
+  content: '';
+  position: absolute;
+  background-color: #E6E6E3;
+  right: 3.5rem;
+  width: 0.1rem;
+  height: calc(100% - 1rem);
+  top: 0.5rem;
+}
+
+.apn-list .apn-item .pack-radio > span {
+  background-color: transparent;
+}
+
 /******************************************************************************
  * Internet sharing (Wi-Fi HotSpot)
  */

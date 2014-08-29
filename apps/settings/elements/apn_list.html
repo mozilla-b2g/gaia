@@ -1,0 +1,41 @@
+<element name="apn-list" extends="section">
+  <template>
+
+    <gaia-header action="back" data-href="#apn-settings">
+      <h1> APN List </h1>
+    </gaia-header>
+
+    <div>
+      <ul class="apn-list"></ul>
+      <ul>
+        <li>
+          <button class="icon icon-view add-apn" data-l10n-id="add-apn">Add New APN</button>
+        </li>
+      </ul>
+    </div>
+
+    <form role="dialog" data-type="confirm" class="change-apn-warning" hidden>
+      <section>
+        <h1>
+          <span data-l10n-id="apnSettings">Apn Settings</span>
+        </h1>
+        <p>
+          <small data-l10n-id="change-apn-warning-message">
+            Depending on your service agreement, changing your APN setting may
+            result in extra charges when roaming.
+          </small>
+          <small data-l10n-id="change-apn-warning-question">
+            Do you want to proceed?
+          </small>
+        </p>
+      </section>
+      <menu>
+        <button class="cancel-btn" data-l10n-id="cancel">Cancel</button>
+        <button class="ok-btn recommend" data-l10n-id="yes">Yes</button>
+      </menu>
+    </form>
+
+    <panel data-path="panels/apn_list/panel"><panel>
+
+  </template>
+</element>
