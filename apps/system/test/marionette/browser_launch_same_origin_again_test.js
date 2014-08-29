@@ -58,9 +58,7 @@ marionette('Browser - Launch the same origin after navigating away',
     rocketbar.enterText(url1 + '\uE006');
 
     // Switch to the app, and navigate to a different url.
-    var frame = client.helper.waitForElement(
-      'div[transition-state="opened"] iframe[src="' + url1 + '"]');
-    client.switchToFrame(frame);
+    system.gotoBrowser(url1);
     client.executeScript(function(gotoUrl) {
       window.wrappedJSObject.location.href = gotoUrl;
     }, [url2]);
