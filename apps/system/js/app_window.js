@@ -525,7 +525,6 @@
             ' " id="' + this.instanceID +
             '" transition-state="closed">' +
               '<div class="titlebar">' +
-              ' <div class="notifications-shadow"></div>' +
               ' <div class="statusbar-shadow titlebar-maximized"></div>' +
               ' <div class="statusbar-shadow titlebar-minimized"></div>' +
               '</div>' +

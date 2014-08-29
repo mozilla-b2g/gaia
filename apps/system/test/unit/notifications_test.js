@@ -1,6 +1,7 @@
 /* global MockAudio,
   MockNavigatorMozChromeNotifications,
   MockNavigatorSettings,
+  MockStatusBar,
   MocksHelper,
   NotificationScreen,
   ScreenManager,
@@ -40,7 +41,7 @@ var mocksForNotificationScreen = new MocksHelper([
 suite('system/NotificationScreen >', function() {
   var fakeNotifContainer, fakeLockScreenContainer, fakeToaster,
     fakeButton, fakeNoNotifications, fakeToasterIcon, fakeToasterTitle,
-    fakeToasterDetail, fakeSomeNotifications, fakeAmbientIndicator;
+    fakeToasterDetail, fakeSomeNotifications;
   var fakePriorityNotifContainer, fakeOtherNotifContainer;
 
   function sendChromeNotificationEvent(detail) {
@@ -62,12 +63,6 @@ suite('system/NotificationScreen >', function() {
     elt.className = 'notification';
 
     return elt;
-  }
-
-  function incrementNotications(number) {
-    for (var i = 0; i <= number - 1; i++) {
-      NotificationScreen.incExternalNotifications();
-    }
   }
 
 
@@ -92,7 +87,6 @@ suite('system/NotificationScreen >', function() {
     fakeSomeNotifications = createFakeElement('span', 'notification-some');
     fakeNoNotifications = createFakeElement('span', 'notification-none');
     fakeButton = createFakeElement('button', 'notification-clear');
-    fakeAmbientIndicator = createFakeElement('span', 'notifications-indicator');
     fakeToasterIcon = createFakeElement('img', 'toaster-icon');
     fakeToasterTitle = createFakeElement('div', 'toaster-title');
     fakeToasterDetail = createFakeElement('div', 'toaster-detail');
@@ -104,7 +98,6 @@ suite('system/NotificationScreen >', function() {
     document.body.appendChild(fakeSomeNotifications);
     document.body.appendChild(fakeNoNotifications);
     document.body.appendChild(fakeButton);
-    document.body.appendChild(fakeAmbientIndicator);
     document.body.appendChild(fakeToasterIcon);
     document.body.appendChild(fakeToasterTitle);
     document.body.appendChild(fakeToasterDetail);
@@ -195,30 +188,43 @@ suite('system/NotificationScreen >', function() {
 
   suite('updateStatusBarIcon >', function() {
     setup(function() {
-      NotificationScreen.updateStatusBarIcon(true);
+      this.sinon.spy(MockStatusBar, 'updateNotification');
+      NotificationScreen.updateStatusBarIcon();
     });
 
-    test('should show a small ambient indicator', function() {
-      assert.equal(document.body.getElementsByClassName('small').length, 1);
+    test('should update the icon in the status bar', function() {
+      sinon.assert.called(MockStatusBar.updateNotification);
+      assert.equal(2, MockStatusBar.notificationsCount);
     });
 
-    test('should show a medium ambient indicator', function() {
-      incrementNotications(2);
-      assert.equal(document.body.getElementsByClassName('medium').length, 1);
+    test('external notif should not be able to decrease the global count',
+      function() {
+
+      NotificationScreen.decExternalNotifications();
+      assert.equal(2, MockStatusBar.notificationsCount);
     });
 
-    test('should show a big ambient indicator', function() {
-      incrementNotications(4);
-      assert.equal(document.body.getElementsByClassName('big').length, 1);
+    test('external notif should increase the global count',
+      function() {
+
+      NotificationScreen.incExternalNotifications();
+      assert.isTrue(MockStatusBar.mNotificationUnread);
+      assert.equal(3, MockStatusBar.notificationsCount);
     });
 
-    test('should show a full ambient indicator', function() {
-      incrementNotications(5);
-      assert.equal(document.body.getElementsByClassName('full').length, 1);
+    test('external notif should decrease the global count',
+      function() {
+
+      NotificationScreen.incExternalNotifications();
+      MockStatusBar.mNotificationUnread = false;
+      NotificationScreen.decExternalNotifications();
+      assert.isFalse(MockStatusBar.mNotificationUnread);
+      assert.equal(2, MockStatusBar.notificationsCount);
     });
 
     test('should change the read status', function() {
-      assert.equal(document.body.getElementsByClassName('unread').length, 1);
+      NotificationScreen.updateStatusBarIcon(true);
+      assert.isTrue(MockStatusBar.mNotificationUnread);
     });
   });
 
@@ -413,9 +419,9 @@ suite('system/NotificationScreen >', function() {
             fromNow: function(time, compact) {
               var retval;
               var delta = new Date().getTime() - time.getTime();
-              if (delta >= 0 && delta < 60 * 1000) {
+              if (delta >= 0 && delta < 60*1000) {
                 retval = 'now';
-              } else if (delta >= 60 * 1000) {
+              } else if (delta >= 60*1000) {
                 retval = '1m ago';
               }
               return retval;
@@ -444,7 +450,7 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('shows 1m ago', function() {
-      var timestamp = new Date(new Date().getTime() - 61 * 1000);
+      var timestamp = new Date(new Date().getTime() - 61*1000);
       var date = NotificationScreen.prettyDate(timestamp);
       assert.equal(date, '1m ago');
     });
@@ -684,7 +690,7 @@ suite('system/NotificationScreen >', function() {
           assert.isFalse(NotificationScreen.isResending);
           window.dispatchEvent(
             new CustomEvent('desktop-notification-resend',
-            { detail: { number: 1 } }));
+            { detail: { number: 1 } } ));
           this.sinon.clock.tick();
           assert.isTrue(NotificationScreen.isResending);
         }
@@ -695,7 +701,7 @@ suite('system/NotificationScreen >', function() {
           assert.isTrue(NotificationScreen.isResending);
           window.dispatchEvent(
             new CustomEvent('desktop-notification-resend',
-            { detail: { number: 1 } }));
+            { detail: { number: 1 } } ));
           this.sinon.clock.tick();
           sendChromeNotificationEvent({
             type: 'desktop-notification',
@@ -750,7 +756,7 @@ suite('system/NotificationScreen >', function() {
           this.sinon.clock.tick();
           var expectedEvent =
             new CustomEvent('desktop-notification-resend',
-              { detail: { number: 1 } });
+              { detail: { number: 1 } } );
           assert.ok(dispatchEventSpy.called);
           assert.equal(
             dispatchEventSpy.lastCall.args[0].type, expectedEvent.type);
@@ -773,7 +779,7 @@ suite('system/NotificationScreen >', function() {
         test('desktop-notification-resend not sent', function() {
           var expectedEvent =
             new CustomEvent('desktop-notification-resend',
-              { detail: { number: 1 } });
+              { detail: { number: 1 } } );
           assert.ok(dispatchEventSpy.called);
           assert.notEqual(
             dispatchEventSpy.lastCall.args[0].type, expectedEvent.type);

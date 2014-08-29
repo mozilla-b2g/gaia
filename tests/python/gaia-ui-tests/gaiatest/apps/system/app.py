@@ -16,7 +16,7 @@ class System(Base):
     _utility_tray_locator = (By.ID, 'utility-tray')
 
     _system_banner_locator = (By.CSS_SELECTOR, '.banner.generic-dialog')
-    _notification_toaster_locator = (By.ID, 'notification-container')
+    _notification_toaster_locator = (By.ID, 'notification-toaster')
     _update_manager_toaster_locator = (By.ID, 'update-manager-toaster')
 
     _software_home_button_locator = (By.ID, 'software-home-button')
@@ -26,6 +26,7 @@ class System(Base):
 
     def wait_for_notification_toaster_displayed(self, timeout=10, message=None):
         self.wait_for_element_displayed(*self._notification_toaster_locator)
+        self.wait_for_condition(lambda m: m.find_element(*self._notification_toaster_locator).location['y'] == 0, timeout=timeout, message=message)
 
     def wait_for_notification_toaster_not_displayed(self, timeout=10):
         self.wait_for_element_not_displayed(*self._notification_toaster_locator)

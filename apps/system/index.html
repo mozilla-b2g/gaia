@@ -513,6 +513,9 @@
             <div id="statusbar-playing" class="sb-icon sb-icon-playing" hidden role="listitem" data-l10n-id="statusbarPlaying"></div>
             <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden role="listitem" data-l10n-id="statusbarAlarm"></div>
 
+            <!-- Notifications -->
+            <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification" data-num="" hidden role="listitem"></div>
+
             <!-- Unused -->
             <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden role="listitem"></div>
 
@@ -1106,12 +1109,9 @@
       </div>
 
       <div id="notification-toaster" data-z-index-level="notification-toaster" role="link" aria-live="assertive" aria-atomic="true" class="notification-toaster">
-        <span id="notifications-indicator"></span>
         <img id="toaster-icon" role="presentation" class="toaster-icon"/>
-        <div id="notification-container">
-          <div id="toaster-title" class="toaster-title"></div>
-          <div id="toaster-detail" class="toaster-detail"></div>
-        </div>
+        <div id="toaster-title" class="toaster-title"></div>
+        <div id="toaster-detail" class="toaster-detail"></div>
       </div>
 
       <!-- keyboard -->
