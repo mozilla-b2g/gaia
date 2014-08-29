@@ -2,16 +2,16 @@
 PATH=/usr/lib/lightdm/lightdm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/home/webqa/android-sdk-linux/sdk/platform-tools:/home/webqa/android-sdk-linux/sdk/tools
 
 TIMESTAMP=$(date +'%Y-%m-%d-%H-%M')
-FLASHLOG=$timestamp'_flash.log'
-RUNLOG=$timestamp'_run.log'
-COMPARELOG=$timestamp'_compare.log'
-ZIPFILE=$timestamp'_zipped.zip'
+FLASHLOG=$TIMESTAMP'_flash.log'
+RUNLOG=$TIMESTAMP'_run.log'
+COMPARELOG=$TIMESTAMP'_compare.log'
+ZIPFILE=$TIMESTAMP'_zipped.zip'
 VENV=pathtoyourvirtualenv
 GAIAHOME=~/ImgCmpTest/gaia/tests/python/gaia-ui-tests
 USERNAME=putyourusername
 PASSWORD=putyourpassword
 TESTVAR=putyourtestvarname
-SHOTS = putyourshotfolder
+SHOTS=putyourshotfolder
 set -x #echo on
 
 # go to the flash tool and flash a new master build to the device
