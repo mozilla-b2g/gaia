@@ -53,6 +53,7 @@ var CarrierSettings = (function(window, document, undefined) {
   };
   /** Flag */
   var _restartingDataConnection = false;
+  var _restartDataWithRoamingEnabled = false;
   /**
    * allApnSettings is a list of all possible prefered APNs based on the SIM
    * operator numeric (MCC MNC codes in the ICC card)
@@ -874,10 +875,13 @@ var CarrierSettings = (function(window, document, undefined) {
      */
     function warningDataEnabledCb() {
        _settings.addObserver('ril.data.enabled', function observerCb(event) {
-         if (!event.settingValue && _restartingDataConnection) {
+         if (!event.settingValue && _restartingDataConnection &&
+             !_restartDataWithRoamingEnabled) {
            var cset = {};
            cset['ril.data.roaming_enabled'] = false;
            _settings.createLock().set(cset);
+         } else {
+            _restartDataWithRoamingEnabled = false;
          }
       });
     }
@@ -1357,20 +1361,40 @@ var CarrierSettings = (function(window, document, undefined) {
      * Store the APN settings and restart the data call if needed.
      */
     function onSubmit() {
-      setApnSettings();
-      setTimeout(function() {
-        cs_getDefaultServiceIdForData(
-          function getDefaultServiceIdForDataCb(defaultServiceId) {
-            var currentServiceId =
-              DsdsSettings.getIccCardIndexForCellAndDataSettings();
 
-            var restart = (defaultServiceId === currentServiceId);
-            if (!restart) {
-              return;
+      function onOkToChangeAPNWithRoaming() {
+          setApnSettings();
+          setTimeout(function() {
+              cs_getDefaultServiceIdForData(
+                  function getDefaultServiceIdForDataCb(defaultServiceId) {
+                      var currentServiceId =
+                          DsdsSettings.getIccCardIndexForCellAndDataSettings();
+
+                      var restart = (defaultServiceId === currentServiceId);
+                      if (!restart) {
+                          return;
+                      }
+                      _restartDataWithRoamingEnabled = true;
+                      restartDataConnection();
+                  });
+          });
+        }
+
+        function onCancelAPNSettings() {
+        }
+
+        var request = _settings.createLock().get('ril.data.roaming_enabled');
+        request.onsuccess = function onSuccessHandler() {
+            var roamingValue = request.result['ril.data.roaming_enabled'];
+            if(roamingValue) {
+                var explanationItem =
+                    document.getElementById('dataRoaming-apn-expl');
+                explanationItem.hidden = false;
+                openDialog('carrier-dr-apn-warning', onOkToChangeAPNWithRoaming,
+                    onCancelAPNSettings);
+            } else {
             }
-            restartDataConnection();
-        });
-      });
+        };
     }
 
     if (!_onSubmitEventListenerAdded[usage]) {
