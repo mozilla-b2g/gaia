@@ -75,6 +75,7 @@
     modifyURLatBackground: function() {},
     getFrameForScreenshot: function() { return this.browser.element; },
     getTopMostWindow: function() { return this; },
+    getBottomMostWindow: function() { return this; },
     determineClosingRotationDegree: function() { return 0; },
     isTransitioning: function() { return false; },
     calibratedHeight: function() { return false; },
