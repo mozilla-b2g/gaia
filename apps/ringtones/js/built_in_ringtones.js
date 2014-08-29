@@ -58,10 +58,12 @@ window.builtInRingtones = (function() {
    *
    * @param {String} toneType The kind of tone (ringtone or alerttone).
    * @param {String} filename The filename of the ringtone.
+   * @param {Object} toneDef The tone's definition from list.json.
    */
-  function BuiltInRingtone(toneType, filename) {
+  function BuiltInRingtone(toneType, filename, toneDef) {
     this._toneType = toneType;
     this._filename = filename;
+    this._l10nID = toneDef.l10nID;
   }
 
   BuiltInRingtone.prototype = {
@@ -69,6 +71,8 @@ window.builtInRingtones = (function() {
      * @return {String} The filename without the extension.
      */
     get _rootName() {
+      // Strip the file extension for the ID to make it easier to change the
+      // file extensions in the future.
       return this._filename.replace(/\.\w+$/, '');
     },
 
@@ -91,7 +95,7 @@ window.builtInRingtones = (function() {
      * @return {String} The l10n ID for the tone's name.
      */
     get l10nID() {
-      return this._rootName.replace('.', '_');
+      return this._l10nID;
     },
 
     /**
@@ -174,7 +178,8 @@ window.builtInRingtones = (function() {
     return id === ID_PREFIX + toneType + '/' + filename.replace(/\.\w+$/, '');
   }
 
-  var filenamesCache = {};
+  // Our cache of tone definitions from the list.json files.
+  var toneDefsCache = {};
 
   /**
    * Read the list.json file to get the names of all sounds we know about.
@@ -190,8 +195,8 @@ window.builtInRingtones = (function() {
     }
 
     return new Promise(function(resolve, reject) {
-      if (toneType in filenamesCache) {
-        resolve(filenamesCache[toneType]);
+      if (toneType in toneDefsCache) {
+        resolve(toneDefsCache[toneType]);
         return;
       }
 
@@ -201,11 +206,8 @@ window.builtInRingtones = (function() {
       xhr.send(null);
 
       xhr.onload = function() {
-        // The list.json file organizes the sound urls as an object instead of
-        // an array for some reason
-        var filenames = Object.keys(xhr.response);
-        filenamesCache[toneType] = filenames;
-        resolve(filenames);
+        toneDefsCache[toneType] = xhr.response;
+        resolve(xhr.response);
       };
 
       xhr.onerror = function() {
@@ -218,20 +220,22 @@ window.builtInRingtones = (function() {
   }
 
   function list(toneType) {
-    return getSoundFilenames(toneType).then(function(filenames) {
-      return filenames.map(function(filename) {
-        return new BuiltInRingtone(toneType, filename);
-      });
+    return getSoundFilenames(toneType).then(function(toneDefs) {
+      var tones = [];
+      for (var filename in toneDefs) {
+        tones.push(new BuiltInRingtone(toneType, filename, toneDefs[filename]));
+      }
+      return tones;
     });
   }
 
   function get(id) {
     return new Promise(function(resolve, reject) {
       var toneType = idToToneType(id);
-      resolve(getSoundFilenames(toneType).then(function(filenames) {
-        for (var i = 0; i < filenames.length; i++) {
-          if (idMatchesFilename(id, toneType, filenames[i])) {
-            return new BuiltInRingtone(toneType, filenames[i]);
+      resolve(getSoundFilenames(toneType).then(function(toneDefs) {
+        for (var filename in toneDefs) {
+          if (idMatchesFilename(id, toneType, filename)) {
+            return new BuiltInRingtone(toneType, filename, toneDefs[filename]);
           }
         }
         var err = new Error('No ' + toneType + ' found with id = ' + id);
