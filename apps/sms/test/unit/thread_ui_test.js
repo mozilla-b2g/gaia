@@ -2487,7 +2487,11 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
 
       ThreadUI.beforeEnter(transitionArgs);
-      document.getElementById('messages-back-button').click();
+
+      // Trigger the action button on the header
+      var event = document.createEvent('HTMLEvents');
+      event.initEvent('action', true, true);
+      document.getElementById('messages-header').dispatchEvent(event);
 
       Navigation.isCurrentPanel.withArgs('thread').returns(true);
       ThreadUI.afterEnter(transitionArgs);
@@ -5958,7 +5962,19 @@ suite('thread_ui.js >', function() {
         transitionArgs = getTransitionArgs();
         this.sinon.spy(MockLazyLoader, 'load');
         this.sinon.spy(window, 'MultiSimActionButton');
+        this.sinon.stub(ActivityHandler, 'isInActivity').returns(false);
         ThreadUI.beforeEnter(transitionArgs);
+      });
+
+      test('sets "back" header action if it is not in activity', function() {
+        var messagesHeader = document.getElementById('messages-header');
+
+        assert.equal(messagesHeader.getAttribute('action'), 'back');
+
+        ActivityHandler.isInActivity.returns(true);
+        ThreadUI.beforeEnter(transitionArgs);
+
+        assert.equal(messagesHeader.getAttribute('action'), 'close');
       });
 
       test('initializes MultiSimActionButton', function() {

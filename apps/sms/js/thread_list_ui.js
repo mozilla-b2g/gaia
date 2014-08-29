@@ -35,7 +35,7 @@ var ThreadListUI = {
     [
       'container', 'no-messages',
       'check-uncheck-all-button',
-      'delete-button', 'cancel-button',
+      'delete-button', 'edit-header',
       'options-icon', 'edit-mode', 'edit-form', 'draft-saved-banner'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('threads-' + id);
@@ -59,8 +59,8 @@ var ThreadListUI = {
       'click', this.delete.bind(this)
     );
 
-    this.cancelButton.addEventListener(
-      'click', this.cancelEdit.bind(this)
+    this.editHeader.addEventListener(
+      'action', this.cancelEdit.bind(this)
     );
 
     this.optionsIcon.addEventListener(
