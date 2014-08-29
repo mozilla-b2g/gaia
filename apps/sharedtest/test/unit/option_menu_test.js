@@ -4,7 +4,7 @@
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 
-requireApp('sms/js/action_menu.js');
+require('/shared/js/option_menu.js');
 
 suite('OptionMenu', function() {
   var options, menu, formHeader, formSection, realL10n;

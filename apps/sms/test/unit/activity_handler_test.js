@@ -28,7 +28,7 @@ requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_threads.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
-requireApp('sms/test/unit/mock_action_menu.js');
+require('/shared/test/unit/mocks/mock_option_menu.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_notify.js');
 require('/test/unit/mock_navigation.js');
