@@ -138,7 +138,7 @@
 /* Fullscreen windows */
 
 #screen:-moz-full-screen-ancestor .appWindow > div,
-.appWindow.fullscreen-app > div:not(.titlebar):not(.maximized) {
+.appWindow.fullscreen-app > div:not(.titlebar) {
   top: 0;
   height: 100%;
 }
@@ -155,7 +155,7 @@
   transform: translateY(0);
 }
 
-#screen .appWindow.fullscreen-app > .chrome.dragged {
+.appWindow.fullscreen-app > .chrome.dragged {
   transform: scaleY(1) translateY(0);
 }
 

@@ -70,9 +70,6 @@
       this.app.element.classList.add('scrollable');
       this.app.element.classList.add('light');
       this.scrollable.scrollgrab = true;
-    }
-
-    if (chrome.maximized) {
       this.element.classList.add('maximized');
     }
   };
@@ -150,15 +147,6 @@
            </div>`;
       return template;
   };
-
-  AppChrome.prototype.__defineGetter__('height', function ac_getHeight() {
-    if (this._height) {
-      return this._height;
-    }
-
-    this._height = this.element.getBoundingClientRect().height;
-    return this._height;
-  });
 
   AppChrome.prototype._fetchElements = function ac__fetchElements() {
     this.element = this.containerElement.querySelector('.chrome');
