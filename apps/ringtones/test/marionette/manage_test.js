@@ -55,10 +55,10 @@ marionette('Ringtone management', function() {
                      soundLists.length);
 
         var expectedInfo = [
-          {l10nID: 'list-title-builtin-ringtone', visible: true},
-          {l10nID: 'list-title-custom-ringtone', visible: false},
-          {l10nID: 'list-title-builtin-alerttone', visible: true},
-          {l10nID: 'list-title-custom-alerttone', visible: false}
+          {l10nID: 'section-title-builtin-ringtone', visible: true},
+          {l10nID: 'section-title-custom-ringtone', visible: false},
+          {l10nID: 'section-title-builtin-alerttone', visible: true},
+          {l10nID: 'section-title-custom-alerttone', visible: false}
         ];
         var getName = function(element) {
           return element.name.toLocaleLowerCase();

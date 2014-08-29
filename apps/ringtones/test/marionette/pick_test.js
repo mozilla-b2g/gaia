@@ -72,10 +72,10 @@ marionette('Ringtone picker', function() {
                        soundLists.length);
 
           var expectedInfo = [
-            {l10nID: 'list-title-builtin-' + suiteInfo.type, visible: true},
-            {l10nID: 'list-title-custom-' + suiteInfo.type, visible: false},
-            {l10nID: 'list-title-builtin-' + otherType, visible: true},
-            {l10nID: 'list-title-custom-' + otherType, visible: false}
+            {l10nID: 'section-title-builtin-' + suiteInfo.type, visible: true},
+            {l10nID: 'section-title-custom-' + suiteInfo.type, visible: false},
+            {l10nID: 'section-title-builtin-' + otherType, visible: true},
+            {l10nID: 'section-title-custom-' + otherType, visible: false}
           ];
           var getName = function(element) {
             return element.name.toLocaleLowerCase();
