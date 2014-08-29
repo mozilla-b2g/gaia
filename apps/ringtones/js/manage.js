@@ -100,7 +100,7 @@ navigator.mozSetMessageHandler('activity', function(activity) {
     window.builtInRingtones.toneTypes.forEach(function(toneType) {
       // Add the built-in ringtones.
       var builtInList = new ManagerToneList(
-        'list-title-builtin-' + toneType, listParent
+        'section-title-builtin-' + toneType, listParent
       );
       promises.push(window.builtInRingtones.list(toneType).then(
         function(tones) { builtInList.add(tones); }
@@ -108,7 +108,7 @@ navigator.mozSetMessageHandler('activity', function(activity) {
 
       // Add the custom ringtones.
       var customList = new ManagerToneList(
-        'list-title-custom-' + toneType, listParent);
+        'section-title-custom-' + toneType, listParent);
 
       promises.push(window.customRingtones.list(toneType).then(function(tones) {
         customList.add(tones);

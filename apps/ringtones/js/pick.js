@@ -70,7 +70,7 @@ navigator.mozSetMessageHandler('activity', function(activity) {
 
     function addToneLists(toneType, includeNone) {
       var builtInList = new PickerToneList(
-        'list-title-builtin-' + toneType, listParent
+        'section-title-builtin-' + toneType, listParent
       );
       promises.push(window.builtInRingtones.list(toneType)
                           .then(function(tones) {
@@ -88,7 +88,7 @@ navigator.mozSetMessageHandler('activity', function(activity) {
       }));
 
       var customList = new PickerToneList(
-        'list-title-custom-' + toneType, listParent
+        'section-title-custom-' + toneType, listParent
       );
       promises.push(window.customRingtones.list(toneType).then(function(tones) {
         customList.add(tones);
