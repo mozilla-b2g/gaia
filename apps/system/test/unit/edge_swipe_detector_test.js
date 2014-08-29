@@ -8,6 +8,8 @@
 /* global MockSheetsTransition */
 /* global MockTouchForwarder */
 /* global MockLayoutManager, layoutManager */
+/* global MockAppWindowManager */
+/* global MockSoftwareButtonManager, softwareButtonManager */
 
 requireApp('system/js/edge_swipe_detector.js');
 
@@ -18,11 +20,15 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_layout_manager.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_software_button_manager.js');
 
 var mocksForEdgeSwipeDetector = new MocksHelper([
+  'AppWindowManager',
   'SheetsTransition',
   'StackManager',
   'SettingsListener',
+  'SoftwareButtonManager',
   'TouchForwarder',
   'HomescreenLauncher',
   'FtuLauncher',
@@ -38,6 +44,7 @@ suite('system/EdgeSwipeDetector >', function() {
     window.homescreenLauncher.start();
 
     window.layoutManager = new MockLayoutManager();
+    window.softwareButtonManager = new MockSoftwareButtonManager();
     // DOM
     EdgeSwipeDetector.previous = document.createElement('div');
     EdgeSwipeDetector.previous.classList.add('gesture-panel');
@@ -54,6 +61,7 @@ suite('system/EdgeSwipeDetector >', function() {
   teardown(function() {
     window.homescreenLauncher = undefined;
     window.layoutManager = undefined;
+    window.softwareButtonManager = undefined;
   });
 
   var dialer = {
@@ -707,6 +715,38 @@ suite('system/EdgeSwipeDetector >', function() {
           swipe(this.sinon.clock, EdgeSwipeDetector.next, width, width,
                 240, 240);
           this.sinon.clock.tick(300);
+        });
+
+        suite('if the app is fullscreen_layout', function() {
+          setup(function() {
+            MockAppWindowManager.mActiveApp = {
+              isFullScreenLayout: function() {
+                return true;
+              }
+            };
+            layoutManager.width = width;
+            softwareButtonManager.width = 50;
+          });
+
+          test('it should take the software home button into account',
+          function(done) {
+            var redispatched = [];
+            window.addEventListener('edge-touch-redispatch', function recv(e) {
+              redispatched.push(e.detail);
+              if (redispatched.length < 2) {
+                return;
+              }
+
+              window.removeEventListener('edge-touch-redispatch', recv);
+              assert.equal(redispatched[0].type, 'touchstart');
+              assert.equal(redispatched[1].type, 'touchend');
+              done();
+            });
+
+            swipe(this.sinon.clock, EdgeSwipeDetector.next, width, width,
+                  240, 240);
+            this.sinon.clock.tick(300);
+          });
         });
       });
     });

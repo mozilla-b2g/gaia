@@ -67,6 +67,10 @@
   z-index: 65535;
 }
 
+#screen.cards-view > [data-z-index-level="software-buttons"] {
+  z-index: 65538;
+}
+
 /* move app windows to sit above homescreen but below task manager */
 #screen.task-manager > #windows > .in-task-manager:not(.homescreen) {
   z-index: 2043;
@@ -298,5 +302,12 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="fullscreen-software-home-button"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="gesture-panel"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="attention-indicator"] {
+  z-index: 2147483647;
+}
+
+/* In fullscreen_layout mode we optimize for easy enter/exit of the fullscreen mode
+ * and keep the potential software home button always on top. */
+#screen.fullscreen-layout-app > [data-z-index-level="gesture-panel"],
+#screen.fullscreen-layout-app > [data-z-index-level="fullscreen-layout-software-home-button"] {
   z-index: 2147483647;
 }
