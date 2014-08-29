@@ -56,6 +56,9 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/mmi.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/contacts/contacts_buttons.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/contacts.css">
+    <link rel="stylesheet" type="text/css" href="/dialer/style/buttons.css">
     <script defer src="/shared/js/accessibility_helper.js"></script>
     <script defer src="/shared/js/async_storage.js"></script>
     <script defer src="/shared/js/l10n.js"></script>
@@ -86,6 +89,9 @@
     <script defer src="/shared/js/icc_helper.js"></script>
     <script defer src="/shared/elements/config.js"></script>
     <script defer src="/shared/elements/gaia-header/dist/script.js"></script>
+    <script defer src="/shared/js/text_normalizer.js"></script>
+    <script defer src="/shared/js/contacts/utilities/templates.js"></script>
+    <script defer src="/shared/js/contacts/sms_integration.js"></script>
     <link rel="resource" type="application/json" href="shared/resources/media/tones/"/>
     -->
 
@@ -95,6 +101,8 @@
     <link rel="import" href="elements/confirmation-message.html">
     <link rel="import" href="elements/call-info-view.html">
     <link rel="import" href="/shared/elements/sim_picker.html">
+    <link rel="import" href="/contacts/elements/phone_details.html">
+    <link rel="import" href="/contacts/elements/email_details.html">
   </head>
   <body role="application" class="skin-comms theme-communications">
     <section id="views" role="tablist" class="bb-tablist">
@@ -235,6 +243,9 @@
 
     <form is="suggestion-overlay" id="suggestion-overlay" role="dialog" data-type="action" class="overlay" aria-hidden="true">
     </form>
+
+    <section is="phone-details" id="phone-details" hidden></section>
+    <section is="email-details" id="email-details" hidden></section>
 
     <article id="mmi-screen" role="region" hidden>
       <section role="region">
