@@ -25,7 +25,6 @@ contacts.List = (function() {
       imgLoader = null,
       needImgLoaderReload = false,
       orderByLastName = null,
-      defaultImage = null,
       photoTemplate,
       headers = {},
       loadedContacts = {},
@@ -107,7 +106,7 @@ contacts.List = (function() {
     monitor && monitor.pauseMonitoringMutations();
     renderLoadedContact(row, id);
     updateRowStyle(row, true);
-    renderPhoto(row, id, false, group);
+    renderPhoto(row, id);
     updateSingleRowSelection(row, id);
 
     // Since imgLoader.reload() causes sync reflows we only want to make this
@@ -183,14 +182,12 @@ contacts.List = (function() {
     groupsList = document.getElementById('groups-list');
     groupsList.addEventListener('click', onClickHandler);
 
-    initConfiguration();
+    initOrder();
 
     // Test code calls init() directly, so we may have to reset.
     if (reset) {
       resetDom();
     }
-
-    createPhotoTemplate();
   };
 
   function hide() {
@@ -254,7 +251,7 @@ contacts.List = (function() {
       updateRowStyle(node, true);
       updateSingleRowSelection(node, id);
       var out = node.cloneNode(true);
-      renderPhoto(out, id, true, node.dataset.group);
+      renderPhoto(out, id, true);
       return out;
     },
 
@@ -312,7 +309,7 @@ contacts.List = (function() {
     };
 
     var complete = function complete() {
-      initConfiguration(function onInitConfiguration() {
+      initOrder(function onInitOrder() {
         getContactsByGroup(onError, contacts);
       });
     };
@@ -338,18 +335,9 @@ contacts.List = (function() {
     return out;
   }
 
-  /**
-   * Reads configuration values setup at build time to change
-   * behaviour of the contacts list.
-   * Receives a callback as parameter to call once the
-   * parameters have been setup.
-   * Also tries to save from the external file to faster cookie
-   * values after the first file read.
-   * @param (Function) callback function to be invoked after process
-   */
-  var initConfiguration = function initConfiguration(callback) {
+  var initOrder = function initOrder(callback) {
     callback = callback || function() {};
-    if (orderByLastName !== null && defaultImage !== null) {
+    if (orderByLastName !== null) {
       callback();
       return;
     }
@@ -357,7 +345,6 @@ contacts.List = (function() {
     var config = utils.cookie.load();
     if (config) {
       orderByLastName = config.order;
-      defaultImage = config.defaultImage;
       callback();
       return;
     }
@@ -365,20 +352,12 @@ contacts.List = (function() {
     utils.config.load('/contacts/config.json').then(function ready(configData) {
       orderByLastName = (configData.defaultContactsOrder ===
                 ORDER_BY_FAMILY_NAME ? true : false);
-      defaultImage = configData.defaultImage === true;
-      utils.cookie.update({
-        order: orderByLastName,
-        defaultImage: defaultImage
-      });
+      utils.cookie.update({order: orderByLastName});
       callback();
     }, function configError(err) {
         window.console.error('Error while reading configuration file');
         orderByLastName = utils.cookie.getDefault('order');
-        defaultImage = utils.cookie.getDefault('defaultImage');
-        utils.cookie.update({
-          order: orderByLastName,
-          defaultImage: defaultImage
-        });
+        utils.cookie.update({order: orderByLastName});
         callback();
     });
   };
@@ -947,26 +926,26 @@ contacts.List = (function() {
   }
 
   // "Render" the photo by setting the img tag's dataset-src attribute to the
-  // value in our photo cache. This in turn will allow the imgLoader
-  // to load the image once we have stopped scrolling.
-  // We set dataset-group with the group letter
-  // if the contact doesn't have photo.
-  var renderPhoto = function renderPhoto(link, id, asClone, group) {
+  // value in our photo cache.  This in turn will allow the imgLoader to load
+  // the image once we have stopped scrolling.
+  var renderPhoto = function renderPhoto(link, id, asClone) {
     id = id || link.dataset.uuid;
-    var img = link.querySelector('aside > span[data-type=img]');
-
     var photo = photosById[id];
     if (!photo) {
-      if (defaultImage) {
-        renderDefaultPhoto(img, link, group);
-      }
       return;
     }
 
+    var img = link.querySelector('aside > span[data-type=img]');
     if (img) {
-      delete img.dataset.group;
       setImageURL(img, photo, asClone);
       return;
+    }
+    if (!photoTemplate) {
+      photoTemplate = document.createElement('aside');
+      photoTemplate.className = 'pack-end';
+      img = document.createElement('span');
+      img.dataset.type = 'img';
+      photoTemplate.appendChild(img);
     }
 
     var figure = photoTemplate.cloneNode(true);
@@ -975,56 +954,6 @@ contacts.List = (function() {
 
     link.insertBefore(figure, link.children[0]);
     return;
-  };
-
-  /**
-   * Build the template used for displaying the thumbnail
-   * image.
-   */
-  function createPhotoTemplate() {
-    if (photoTemplate) {
-      return;
-    }
-    photoTemplate = document.createElement('aside');
-    photoTemplate.className = 'pack-end';
-    var img = document.createElement('span');
-    img.dataset.type = 'img';
-    photoTemplate.appendChild(img);
-  }
-
-  /**
-   * Renders the default image for a contact using a random
-   * position of a background image and the group letter
-   */
-  var renderDefaultPhoto =
-    function renderDefaultPhoto(img, link, group) {
-    if (!img) {
-      var figure = photoTemplate.cloneNode(true);
-      img = figure.children[0];
-
-      var posH = ['left','center','right'];
-      var posV = ['top','center','bottom'];
-      var position =
-        posH[Math.floor(Math.random()*3)] + ' ' +
-        posV[Math.floor(Math.random()*3)];
-
-      img.style.backgroundPosition = position;
-
-      link.insertBefore(figure, link.children[0]);
-    }
-
-    // Special groups
-    if (group === 'favorites') {
-      // Recalculate group
-      var contact = loadedContacts[link.dataset.uuid][group];
-      var order = getStringToBeOrdered(contact);
-      group = getGroupNameByOrderString(order);
-    }
-    if (group === 'und') {
-      group = '#';
-    }
-    img.dataset.group = group;
-
   };
 
   // Remove the image for the given list item.  Leave the photo in our cache,
@@ -1177,7 +1106,7 @@ contacts.List = (function() {
 
   var getAllContacts = function cl_getAllContacts(errorCb, successCb) {
     loading = true;
-    initConfiguration(function onInitConfiguration() {
+    initOrder(function onInitOrder() {
       var sortBy = (orderByLastName === true ? 'familyName' : 'givenName');
       var options = {
         sortBy: sortBy,
@@ -1237,19 +1166,11 @@ contacts.List = (function() {
     var list = getGroupList(renderedNode.dataset.group);
     addToGroup(renderedNode, list);
 
-    if (!loadedContacts[contact.id]) {
-      loadedContacts[contact.id] = {};
-    }
-
-    loadedContacts[contact.id][renderedNode.dataset.group] = contact;
-
     // If is favorite add as well to the favorite group
     if (isFavorite(contact)) {
       list = getGroupList('favorites');
-      loadedContacts[contact.id].favorites = contact;
       var cloned = renderedNode.cloneNode(true);
       cloned.dataset.group = 'favorites';
-      renderPhoto(cloned, contact.id, false, 'favorites');
       addToGroup(cloned, list);
     }
     toggleNoContactsScreen(false);

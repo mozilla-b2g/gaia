@@ -70,8 +70,7 @@ function generateConfig (app, destination, gaia) {
     'operationsTimeout': 25000,
     'logLevel': 'DEBUG',
     'facebookSyncPeriod': 24,
-    'testToken': '',
-    'defaultImage': true
+    'testToken': ''
   };
   utils.writeContent(configFile,
     utils.getDistributionFileContent(app, defaultConfig, gaia.distributionDir));
