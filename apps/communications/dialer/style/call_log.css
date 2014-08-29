@@ -51,6 +51,11 @@ form[role="dialog"][data-type="edit"] > menu {
 
 #call-log-container[data-type="list"] header {
   margin: 0 1.5rem;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+  transition: top 0.5s;
 }
 
 #call-log-container[data-type="list"] ol {
@@ -109,15 +114,19 @@ ol, ul {
 
 .view-body {
   color: black;
-  height: -moz-calc(100% - 9.1rem);
+  height: -moz-calc(100% - 5rem);
   position: absolute;
   overflow: hidden;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .view-body-inner {
   height: 100%;
-  overflow: auto;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  flex: 1;
 }
 
 .view-body-inner ol {
@@ -246,8 +255,8 @@ ol, ul {
 */
 
 #no-result-container {
-  background: url('images/ComLog_200x200_clock.png') fixed no-repeat center / 20rem;
-  height: 100%;
+  background: url('images/ComLog_200x200_clock.png') no-repeat top 4rem center / 20rem;
+  height: calc(100% - 14rem);
   margin: 0 1.5rem;
 }
 
@@ -285,4 +294,75 @@ ol, ul {
 
 .filter .groupFiltered {
   display: none;
+}
+
+
+/* Prototyping */
+.favorite-contacts-container {
+  height: 9.8rem;
+  overflow: hidden;
+}
+
+ul.favorite-contacts {
+  height: 11rem;
+  padding: 0.8rem 0 0.8rem 0.8rem !important;
+  box-sizing: border-box;
+  overflow: scroll;
+  overflow-x: scroll !important;
+  white-space: nowrap;
+}
+
+ul.favorite-contacts li {
+  width: 5.6rem;
+  display: inline-block;
+  margin-right: 1.4rem;
+  text-align: center;
+  border: none;
+}
+
+ul.favorite-contacts .img {
+  width: 5.6rem;
+  height: 5.6rem;
+  border-radius: 50%;
+  border: 1px solid #999;
+  margin-bottom: 0.5rem;
+}
+
+ul.favorite-contacts .title {
+  display: block;
+  font-size: 1.2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#call-log-filter .bb-tablist li[role="presentation"] {
+  height: 100%;
+  padding: 0;
+}
+
+#call-log-filter .bb-tablist li[role="presentation"]:active:after {
+  background-color: transparent;
+}
+
+#call-log-filter.after-scroll {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 3;
+  transform: translate(0, -4rem);
+  transition: transform 0.5s;
+}
+
+#call-log-filter.after-scroll.visible {
+  transform: translate(0, 0rem);
+}
+
+#call-log-filter.after-scroll ~ section:first-of-type {
+  margin-top: 4rem;
+}
+
+#call-log-filter.after-scroll.visible ~ section header {
+  top: 4rem !important;
 }
