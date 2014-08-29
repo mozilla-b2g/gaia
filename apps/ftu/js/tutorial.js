@@ -340,7 +340,8 @@
      * @memberof Tutorial
      */
     done: function() {
-      FinishScreen.init();
+      var isUpgrade = this._stepsKey && this._stepsKey !== 'default';
+      FinishScreen.init(isUpgrade);
       dom.tutorial.classList.remove('show');
       dom.tutorialStepVideo.removeAttribute('src');
       dom.tutorialStepImage.removeAttribute('src');
