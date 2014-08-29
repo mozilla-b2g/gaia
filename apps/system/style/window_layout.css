@@ -73,6 +73,14 @@
   height: calc(100% - 5rem - 4rem);
 }
 
+#screen.fullscreen-layout-app #fullscreen-software-home-button {
+  visibility: hidden;
+}
+
+#screen:not(.fullscreen-layout-app) #software-buttons-fullscreen-layout {
+  visibility: hidden;
+}
+
 @media not all and (-moz-physical-home-button) {
   #screen:not(.software-button-disabled) #windows > .appWindow {
     height: calc(100% - 5rem);

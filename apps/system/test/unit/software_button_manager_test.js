@@ -29,6 +29,8 @@ suite('enable/disable software home button', function() {
   var fakeElement;
   var fakeHomeButton;
   var fakeFullScreenHomeButton;
+  var fakeFullScreenElement;
+  var fakeFullScreenLayoutHomeButton;
   var fakeScreen;
   var subject;
 
@@ -71,6 +73,16 @@ suite('enable/disable software home button', function() {
       'fullscreen-software-home-button';
     document.body.appendChild(fakeFullScreenHomeButton);
 
+    fakeFullScreenElement = document.createElement('div');
+    fakeFullScreenElement.id = 'software-buttons-fullscreen-layout';
+    fakeFullScreenElement.height = '100px';
+    document.body.appendChild(fakeFullScreenElement);
+
+    fakeFullScreenLayoutHomeButton = document.createElement('div');
+    fakeFullScreenLayoutHomeButton.id =
+      'fullscreen-layout-software-home-button';
+    fakeFullScreenElement.appendChild(fakeFullScreenLayoutHomeButton);
+
     requireApp('system/js/software_button_manager.js', done);
   });
 
@@ -80,6 +92,9 @@ suite('enable/disable software home button', function() {
     fakeScreen.parentNode.removeChild(fakeScreen);
     fakeFullScreenHomeButton.parentNode
       .removeChild(fakeFullScreenHomeButton);
+    fakeFullScreenLayoutHomeButton.parentNode
+      .removeChild(fakeFullScreenLayoutHomeButton);
+    fakeFullScreenElement.parentNode.removeChild(fakeFullScreenElement);
     window.ScreenLayout.mTeardown();
     MockNavigatorSettings.mTeardown();
   });
@@ -201,8 +216,9 @@ suite('enable/disable software home button', function() {
       });
     subject.handleEvent({type: 'touchstart'});
     assert.isTrue(ready);
-    assert.isTrue(subject.homeButton.classList.contains('active'));
-    assert.isTrue(subject.fullscreenHomeButton.classList.contains('active'));
+    subject.homeButtons.forEach(function(b) {
+      assert.isTrue(b.classList.contains('active'));
+    });
   });
 
   test('release home button', function() {
@@ -224,8 +240,9 @@ suite('enable/disable software home button', function() {
       });
     subject.handleEvent({type: 'touchend'});
     assert.isTrue(ready);
-    assert.isFalse(subject.homeButton.classList.contains('active'));
-    assert.isFalse(subject.fullscreenHomeButton.classList.contains('active'));
+    subject.homeButtons.forEach(function(b) {
+      assert.isFalse(b.classList.contains('active'));
+    });
   });
 
   test('receive homegesture-disabled when' +
@@ -260,7 +277,7 @@ suite('enable/disable software home button', function() {
       this.sinon.useFakeTimers();
 
       // Simulating the landscape software home button
-      this.sinon.stub(subject.homeButton, 'getBoundingClientRect').returns({
+      this.sinon.stub(subject.homeButtons[0], 'getBoundingClientRect').returns({
         left: 430,
         right: 480,
         top: 135,
