@@ -7,8 +7,9 @@
 6. Generate tests			-TBD
 7. Optimize performance			-DONE
 8. Keyboard settings options		-TBD
+9. Consider numbers in the predictions as we are storing them	-TBD
 
 Not in the GSoC proposal but are good to have:
 
-9. Support for export of dictionary	-TBD
-10. Support for import of dictionary	-TBD
+10. Support for export of dictionary	-TBD
+11. Support for import of dictionary	-TBD

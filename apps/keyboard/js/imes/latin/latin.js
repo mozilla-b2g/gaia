@@ -86,7 +86,7 @@
   var autoCorrection;     // Correction to make if next input is space
   var revertTo;           // Revert to this on backspace after autocorrect
   var revertFrom;         // Revert away from this on backspace
-  var justAutoCorrected;  // Was last change an auto correction?
+  var disableOnRevert;    // Do we disable auto correction when reverting?
   var correctionDisabled; // Temporarily diabled after reverting?
 
   // An empty dictionary object for the purpose of a user dictionary
@@ -94,9 +94,6 @@
   var dictionary = {};
   dictionary.iDBVersion = 0;
   dictionary.tempObjStore = {}; // Store the data to be passed to userWorker
-
-  // Flag to track if a new TST is needed
-  var hasVersionChanged = false;
 
   // The flag that allows us to identify new words as they are typed
   // if no suggestions are available
@@ -226,7 +223,7 @@
     lastSpaceTimestamp = 0;
     autoCorrection = null;
     revertTo = revertFrom = '';
-    justAutoCorrected = false;
+    disableOnRevert = false;
     correctionDisabled = false;
 
     // The keyboard isn't idle anymore, so clear the timer
@@ -298,9 +295,6 @@
 
       if(!userWorker) {
         userWorker =  new Worker('js/imes/latin/userWorker.js');
-
-        // Since we just made a new worker, it needs a dictionary to work with
-        hasVersionChanged = true;
 
         // For the first run, we need to open the iDB anyhow
         if(!localStorage.getItem("iDBVersion")) {
@@ -450,7 +444,7 @@
       // previous changes that we would otherwise revert.
       if (keyCode !== BACKSPACE) {
         revertTo = revertFrom = '';
-        justAutoCorrected = false;
+        disableOnRevert = false;
       }
 
       var handler;
@@ -598,7 +592,7 @@
       return replaceBeforeCursor(revertFrom, revertTo).then(function() {
         // If the change we just reverted was an auto-correction then
         // temporarily disable auto correction until the next space
-        if (justAutoCorrected) {
+        if (disableOnRevert) {
           // Use revertTo for the word as such
           insertWordInUserDictionary(revertTo.substring(0,
                                               revertTo.length - 1));
@@ -607,7 +601,7 @@
         }
 
         revertFrom = revertTo = '';
-        justAutoCorrected = false;
+        disableOnRevert = false;
       });
     }
     else {
@@ -707,7 +701,7 @@
           // Remember this change so we can revert it on backspace
           revertTo = ' ' + String.fromCharCode(revertToKeycode || keycode);
           revertFrom = newtext;
-          justAutoCorrected = false;
+          disableOnRevert = false;
         });
     }
   }
@@ -731,6 +725,7 @@
       workerSuggestions[1].splice(3);
       workerSuggestions[2] = workerSuggestions[0].concat(workerSuggestions[1]);
 
+      // Sort the words according to their weights
       var merged = [],
           counter = workerSuggestions[2].length - 1,
           maxWeight = 0,
@@ -757,9 +752,8 @@
         }
         counter--;
       }
-      // Use the top 3 suggestions only
-      merged.splice(3);
-      // and call handleSuggestions with this
+
+      // Call handleSuggestions with these suggestions
       handleSuggestions(input, merged);
       // Now clear the suggestions arrays just to be on the safe side
       workerSuggestions = [];
@@ -812,6 +806,7 @@
 
     // If we don't have any suggestions we're done
     if (suggestions.length === 0) {
+      markMyWord = true;
       keyboard.sendCandidates([]); // Clear any displayed suggestions
       return;
     }
@@ -857,17 +852,19 @@
   function select(word, data) {
     var oldWord = wordBeforeCursor();
 
-    // Replace the current word with the selected suggestion plus space
-    var newWord = data += ' ';
+    // Replace the current word with the selected suggestion.
+    // We used to also insert a space here for convenience but that
+    // made it hard to type compound words.
+    var newWord = data;
 
     pendingSelectionChange++;
     return replaceBeforeCursor(oldWord, newWord).then(function() {
       // Remember the change we just made so we can revert it if the
-      // next key is a backspace. Note that it is not an autocorrection
-      // so we don't need to disable corrections.
+      // next key is a backspace. If the word is reverted we disable
+      // autocorrection for this word.
       revertFrom = newWord;
       revertTo = oldWord;
-      justAutoCorrected = false;
+      disableOnRevert = true;
 
       // We inserted a space after the selected word, so we're beginning
       // a new word here, which means that if auto-correction was disabled
@@ -1220,15 +1217,95 @@
   }
 
   function handleIDB(iDBVersion, word) {
-    if(word !== null) {
-      // Open (or create) an indexedDB named userDict
-      // This db will contain separate stores for each language
-      dictionary.iDBRequest = window.indexedDB.open("userDict", iDBVersion);
-      
-      dictionary.iDBRequest.onerror = function(event) {
-        console.log("Database error: " + event.target.errorCode);
-      }
+    // Since indexedDB is an async API, we must use a Promise
+    var dictPromise = new Promise(function(resolve, reject) {
+      if(word !==null) {
+        // Open (or create) an indexedDB named userDict
+        // This db will contain separate stores for each language
+        dictionary.iDBRequest = window.indexedDB.open("userDict", iDBVersion);
+        
+        dictionary.iDBRequest.onerror = function(event) {
+          reject(event.target.errorCode);
+        }
 
+        dictionary.iDBRequest.onupgradeneeded = function(event) {
+          var db = event.target.result;
+          localStorage.setItem("iDBVersion", db.version);
+
+          // Check if the language object store already exists
+          // If not, just create a new objectstore
+          if(!db.objectStoreNames.contains(language)) {
+            var objectStore = db.createObjectStore(language, {keyPath: "word"});
+
+            objectStore.createIndex("word", "word", { unique: true });
+            objectStore.createIndex("frequency", "frequency", { unique: false });
+          }
+        }
+
+        dictionary.iDBRequest.onsuccess = function(event) {
+          var db = event.target.result;
+          
+          // Begin writing data to the objectStore
+          var dbTransaction = db.transaction([language], "readwrite")
+                                .objectStore(language);
+          var iDBGetRequest = dbTransaction.get(word);
+
+          iDBGetRequest.onerror = function(event) {
+            // There is no entry for this word, so make a new entry
+            var isAdded = dbTransaction.add({word: word, frequency: 1});
+            isAdded.onsuccess = function() {
+              resolve();
+            }
+            isAdded.onerror = function() {
+              reject(Error("Unable to add the word"));
+            }
+          }
+          iDBGetRequest.onsuccess = function(event) {
+            var data = event.target.result;
+            if(!data) {
+              var isAdded = dbTransaction.add({word: word, frequency: 1});
+              isAdded.onsuccess = function() {
+                resolve();
+              }
+              isAdded.onerror = function() {
+                reject(Error("Unable to add the word"));
+              }
+            }
+            else {
+              data.frequency++;
+              var updateRequest = dbTransaction.put(data);
+              updateRequest.onerror = function(event) {
+                reject(Error("Failed to update frequency"));
+              }
+              updateRequest.onsuccess = function() {
+                resolve();
+              }
+            }
+          }
+        }
+      }
+      else {
+        // We have to make a new dictionary now anyway
+        resolve();
+      }
+    });
+    dictPromise.then(function() {
+      // Post a message to worker and be happy!
+      instructUserWorker();
+    }, function(e) {
+      console.warn(e);
+    });
+  
+  }
+
+  function instructUserWorker() {
+    var dictPromise = new Promise(function(resolve, reject) {
+      dictionary.iDBRequest = window.indexedDB.open("userDict", 
+                              dictionary.iDBVersion);
+      dictionary.iDBRequest.onerror = function(event) {
+        reject(Error("Database error: " + event.target.errorCode));
+      }
+      // For the first time, there is no iDB, so unpgrade event is fired
       dictionary.iDBRequest.onupgradeneeded = function(event) {
         var db = event.target.result;
         localStorage.setItem("iDBVersion", db.version);
@@ -1236,83 +1313,31 @@
         // Check if the language object store already exists
         // If not, just create a new objectstore
         if(!db.objectStoreNames.contains(language)) {
-          var objectStore = db.createObjectStore(language, { keyPath: "word" });
+          var objectStore = db.createObjectStore(language, {keyPath: "word"});
 
-          objectStore.createIndex("word", "word", { unique: true });
-          objectStore.createIndex("frequency", "frequency", { unique: false });
+          objectStore.createIndex("word", "word", {unique: true});
+          objectStore.createIndex("frequency", "frequency", {unique: false});
         }
       }
-
       dictionary.iDBRequest.onsuccess = function(event) {
         var db = event.target.result;
-        
-        // Begin writing data to the objectStore
-        var dbTransaction = db.transaction([language], "readwrite")
-                              .objectStore(language);
-        var iDBGetRequest = dbTransaction.get(word);
-
-        iDBGetRequest.onerror = function(event) {
-          // There is no entry for this word, so make a new entry
-          dbTransaction.add({word: word, frequency: 1});
-
-          hasVersionChanged = true;
-        }
-        iDBGetRequest.onsuccess = function(event) {
-          var data = event.target.result;
-          if(!data) {
-            dbTransaction.add({word: word, frequency: 1});
-
-            // No entry for the word, hence version has changed
-            hasVersionChanged = true;
+        var objectStore = db.transaction(language).objectStore(language);
+        objectStore.openCursor().onsuccess = function(event) {
+          var cursor = event.target.result;
+          if (cursor) {
+            dictionary.tempObjStore[cursor.key] = cursor.value.frequency;
+            cursor.continue();
           }
-          else {
-            data.frequency++;
-            var updateRequest = dbTransaction.put(data);
-            updateRequest.onerror = function(event) {
-              console.log("Failed to update frequency");
-            }
-
-            // XXX: Just updating the frequency does not need a new TST?
-            hasVersionChanged = false;
-          }
+          resolve(dictionary.tempObjStore);
         }
       }
-    }
+    });
 
-    // We are only making a new TST if a new word is added, or the language
-    // changes, and not upon frequency update
-    // In future, we may create a new TST upon frequency update as well
-    // depending on the performance measurements
-    instructUserWorker();
-  }
-
-  function instructUserWorker() {
-    // Make a new TST if the version of indexedDB has changed
-    if(hasVersionChanged) {
-      try {
-        dictionary.iDBRequest = window.indexedDB.open("userDict", 
-                                dictionary.iDBVersion);
-        dictionary.iDBRequest.onerror = function(event) {
-          console.log("Database error: " + event.target.errorCode);
-        }
-        dictionary.iDBRequest.onsuccess = function(event) {
-          var db = event.target.result;
-          var objectStore = db.transaction(language).objectStore(language);
-          objectStore.openCursor().onsuccess = function(event) {
-            var cursor = event.target.result;
-            if (cursor) {
-              dictionary.tempObjStore[cursor.key] = cursor.value.frequency;
-              cursor.continue();
-            }
-          }
-        }
-        userWorker.postMessage({cmd: 'setDictionary', 
-                                args: [dictionary.tempObjStore]});
-      }
-      catch(e) {
-        console.error('userWorker data creation failed ' + e);
-      }
-    }
+    dictPromise.then(function(result) {
+      userWorker.postMessage({cmd: 'setDictionary', args: [result]});
+    }, function(e) {
+      console.warn(e);
+    });
   }
 
   if (!('LAYOUT_PAGE_DEFAULT' in window))
