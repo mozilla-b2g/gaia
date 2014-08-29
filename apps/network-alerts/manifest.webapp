@@ -16,11 +16,13 @@
   },
   "permissions": {
     "attention":{},
-    "desktop-notification":{}
+    "desktop-notification":{},
+    "cellbroadcast":{}
   },
   "default_locale": "en-US",
   "orientation": "default",
   "messages": [
-     { "notification": "/notification.html" }
+     { "notification": "/notification.html" },
+     { "cellbroadcast-received": "/index.html"}
   ]
 }

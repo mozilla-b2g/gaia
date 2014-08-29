@@ -17,8 +17,10 @@ suite('Network Alerts - Notification handling', function() {
   setup(function() {
     this.sinon.stub(window, 'close');
     this.sinon.stub(window, 'open');
+    // We only need titleID after parsing, so mock parseParams that simply
+    // return fake titleID for testing.
     this.sinon.stub(Utils, 'parseParams').returns({
-      style: 'style'
+      titleID: 'titleID'
     });
 
     if (!window.navigator.mozSetMessageHandler) {
@@ -40,9 +42,8 @@ suite('Network Alerts - Notification handling', function() {
 
     var expectedUrl = [
       'attention.html?',
-      'title=Some%20title&',
+      'title=titleID&',
       'body=Some%20body&',
-      'style=style&',
       'notification=1'
     ].join('');
 
