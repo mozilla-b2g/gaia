@@ -130,12 +130,24 @@ var CarrierSettings = (function(window, document, undefined) {
         }
 
         var currentHash = e.detail.current;
+        var previousHash = e.detail.previous;
         if (currentHash === '#carrier') {
           cs_updateNetworkTypeLimitedItemsVisibility(
             _mobileConnection.voice && _mobileConnection.voice.type);
           // Show carrier name.
           cs_showCarrierName();
           cs_disabeEnableDataCallCheckbox();
+          if (previousHash === '#carrier-dataSettings') {
+            cs_emptyApnList('data');
+          } else if (previousHash === '#carrier-mmsSettings') {
+            cs_emptyApnList('mms');
+          } else if (previousHash === '#carrier-suplSettings') {
+            cs_emptyApnList('supl');
+          } else if (previousHash === '#carrier-dunSettings') {
+            cs_emptyApnList('dun');
+          } else if (previousHash === '#carrier-imsSettings') {
+            cs_emptyApnList('ims');
+          }
           return;
         }
 
@@ -174,6 +186,17 @@ var CarrierSettings = (function(window, document, undefined) {
     // We need to refresh call setting items as they can be changed in dialer.
     document.addEventListener('visibilitychange', function() {
       if (document.hidden) {
+        if (Settings.currentPanel === '#carrier-dataSettings') {
+          cs_emptyApnList('data');
+        } else if (Settings.currentPanel === '#carrier-mmsSettings') {
+          cs_emptyApnList('mms');
+        } else if (Settings.currentPanel === '#carrier-suplSettings') {
+          cs_emptyApnList('supl');
+        } else if (Settings.currentPanel === '#carrier-dunSettings') {
+          cs_emptyApnList('dun');
+        } else if (Settings.currentPanel === '#carrier-imsSettings') {
+          cs_emptyApnList('ims');
+        }
         return;
       }
 
@@ -185,7 +208,7 @@ var CarrierSettings = (function(window, document, undefined) {
         cs_refreshItems('supl');
       } else if (Settings.currentPanel === '#carrier-dunSettings') {
         cs_refreshItems('dun');
-      } else if (Settings.currentPanel === '##carrier-imsSettings') {
+      } else if (Settings.currentPanel === '#carrier-imsSettings') {
         cs_refreshItems('ims');
       }
     });
@@ -981,6 +1004,29 @@ var CarrierSettings = (function(window, document, undefined) {
   function cs_switchRadioButtons(apnList, target) {
     var selector = 'input[type="radio"][value="' + target + '"]';
     apnList.querySelector(selector).checked = true;
+  }
+
+  /**
+   * Empty APN list.
+   *
+   * @param {String} usage The usage for the APNs in the panel.
+   * @param {Function} callback Callback function to be called once the list
+   *                            gets empty.
+   */
+  function cs_emptyApnList(usage, callback) {
+    var apnPanel = document.getElementById('carrier-' + usage + 'Settings');
+    if (!apnPanel) {
+      // unsupported APN type
+      return;
+    }
+
+    var apnList = apnPanel.querySelector('.apnSettings-list');
+    var lastItem = apnList.querySelector('.apnSettings-custom');
+
+    // empty the APN list
+    while (lastItem.previousElementSibling) {
+      apnList.removeChild(apnList.firstElementChild);
+    }
   }
 
   /**
