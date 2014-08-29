@@ -181,6 +181,7 @@
     }
     window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('tap', this);
+    window.addEventListener('wheel', this);
     window.addEventListener('opencurrentcard', this);
   };
   TaskManager.prototype._unregisterShowingEvents = function() {
@@ -188,6 +189,7 @@
     window.removeEventListener('appterminated', this);
     window.removeEventListener('lockscreen-appopened', this);
     window.removeEventListener('tap', this);
+    window.removeEventListener('wheel', this);
     window.removeEventListener('opencurrentcard', this);
 
     this.element && this.element.removeEventListener('touchstart', this);
@@ -372,6 +374,7 @@
     }
 
     this.setActive(true);
+    this.setAccessibilityAttributes();
     this.placeCards();
 
     // At the beginning only the current card can listen to tap events
@@ -534,6 +537,36 @@
   };
 
   /**
+   * Handle wheel events produced by the screen reader on two finger swipe.
+   * @memberOf TaskManager.prototype
+   * @param  {DOMEvent} evt The event.
+   */
+  TaskManager.prototype.handleWheel = function cs_handleWheel(evt) {
+    if (evt.deltaMode !== evt.DOM_DELTA_PAGE || evt.deltaY < 0) {
+      return;
+    }
+    if (evt.deltaY > 0) {
+      // Two finger swipe up.
+      var card = this.currentCard;
+      if (card.app.killable()) {
+        // Remove the card from the Task Manager for a smooth transition.
+        this.cardsList.removeChild(card.element);
+        this.closeApp(card);
+      } else {
+        card.applyStyle({ MozTransform: '' });
+      }
+    } else if (evt.deltaX > 0 &&
+      this.currentDisplayed < this.cardsList.childNodes.length - 1) {
+      // Two finger swipe left.
+      this.currentDisplayed = ++this.currentPosition;
+    } else if (this.currentDisplayed > 0) {
+      // Two finger swipe right.
+      this.currentDisplayed = --this.currentPosition;
+    }
+    this.alignCurrentCard();
+  };
+
+  /**
    * Handle (synthetic) tap events on the card list
    *
    * @memberOf TaskManager.prototype
@@ -544,27 +577,12 @@
     var targetNode = evt.target;
     var containerNode = targetNode.parentNode;
 
-    var tmpNode;
     var cardElem;
     var card;
 
     if (!this.isShown()) {
       // ignore any bogus events received after we already started to hide
       return;
-    }
-    if (this.isTaskStrip && ('buttonAction' in targetNode.dataset)) {
-      tmpNode = containerNode;
-      while ((tmpNode = tmpNode.parentNode)) {
-        if (tmpNode.classList && tmpNode.classList.contains('card')) {
-          cardElem = tmpNode;
-          break;
-        }
-      }
-      if (cardElem && (card = this.getCardForElement(cardElem))) {
-        evt.stopPropagation();
-        this.cardAction(card, targetNode.dataset.buttonAction);
-        return;
-      }
     }
     if (targetNode.classList.contains('close-card') &&
         this.cardsList.contains(containerNode)) {
@@ -574,9 +592,23 @@
       }
       return;
     }
-    if (('position' in targetNode.dataset) ||
-        targetNode.classList.contains('card')) {
-      card = this.getCardForElement(targetNode);
+    // Screen reader lands on one of card's children.
+    var tmpNode = targetNode;
+    while (tmpNode) {
+      if (tmpNode.classList && tmpNode.classList.contains('card')) {
+        cardElem = tmpNode;
+        break;
+      }
+      tmpNode = tmpNode.parentNode;
+    }
+    if (this.isTaskStrip && ('buttonAction' in targetNode.dataset) &&
+      cardElem && (card = this.getCardForElement(cardElem))) {
+      evt.stopPropagation();
+      this.cardAction(card, targetNode.dataset.buttonAction);
+      return;
+    }
+    if (('position' in targetNode.dataset) || cardElem) {
+      card = this.getCardForElement(cardElem);
       if (card) {
         this.cardAction(card, 'select');
       }
@@ -710,6 +742,10 @@
 
       case 'tap':
         this.handleTap(evt);
+        break;
+
+      case 'wheel':
+        this.handleWheel(evt);
         break;
 
       case 'home':
@@ -892,6 +928,22 @@
   };
 
   /**
+   * Add ARIA attributes to available cards.
+   * @memberOf TaskManager.prototype
+   */
+  TaskManager.prototype.setAccessibilityAttributes = function() {
+    this.stack.forEach(function(app, idx) {
+      var card = this.cardsByAppID[app.instanceID];
+      // Hide non-current apps from the screen reader.
+      card.setVisibleForScreenReader(idx === this.currentDisplayed);
+      // Update the screen reader card list size.
+      card.element.setAttribute('aria-setsize', this.stack.length);
+      // Update the screen reader card index.
+      card.element.setAttribute('aria-posinset', idx + 1);
+    }, this);
+  };
+
+  /**
    * Arrange the cards around the current position
    * @memberOf TaskManager.prototype
    */
@@ -1001,6 +1053,7 @@
       );
     }
 
+    this.setAccessibilityAttributes();
     this.placeCards();
 
     currentCard.applyStyle(currentCardStyle);

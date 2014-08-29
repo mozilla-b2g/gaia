@@ -117,6 +117,9 @@
 #screen.cards-view > #cards-view .card > *:not(.close-card) {
   pointer-events: none;
 }
+#screen.cards-view > #cards-view .card h1.title {
+  pointer-events: auto;
+}
 
 #cards-view .card > h1 {
   position: absolute;

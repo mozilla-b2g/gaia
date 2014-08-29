@@ -66,16 +66,18 @@ suite('system/Card', function() {
       assert.equal(card.element.tagName, 'LI');
       assert.ok(card.screenshotView, 'screenshotView node');
       assert.ok(card.titleNode, 'title node');
+      assert.ok(card.titleId, 'title id');
     });
 
     test('has expected classes/elements', function(){
       var card = this.card;
+      var header = card.element.querySelector('h1');
       assert.ok(card.element.classList.contains, '.card');
       assert.ok(card.element.querySelector('.close-card'), '.close-card');
       assert.ok(card.element.querySelector('.screenshotView'),
                 '.screenshotView');
-      assert.ok(card.element.querySelector('h1'),
-                'h1');
+      assert.ok(header, 'h1');
+      assert.ok(header.id, 'h1.id');
     });
 
     test('onviewport listener', function(){
