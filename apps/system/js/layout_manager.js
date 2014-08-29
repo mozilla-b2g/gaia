@@ -73,8 +73,9 @@
      */
     get width() {
       return window.innerWidth -
-        (AppWindowManager.getActiveApp().isFullScreenLayout() ? 0 :
-          softwareButtonManager.width);
+        ((AppWindowManager.getActiveApp() &&
+          AppWindowManager.getActiveApp().isFullScreenLayout()) ?
+          0 : softwareButtonManager.width);
     },
 
     /**
