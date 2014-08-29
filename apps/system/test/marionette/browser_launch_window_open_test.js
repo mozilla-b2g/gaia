@@ -53,13 +53,15 @@ marionette('Browser - Launch the same origin after navigating away',
     rocketbar.enterText(url + '\uE006');
 
     // Switch to the app, and navigate to a different url.
-    system.gotoBrowser(url);
+    var frame = client.helper.waitForElement(
+      'div[transition-state="opened"] iframe[src="' + url + '"]');
+    client.switchToFrame(frame);
 
     client.switchToFrame();
     var browsers = client.findElements( 'iframe[src*="http://localhost"]');
     assert.equal(browsers.length, 1);
 
-    system.gotoBrowser(url);
+    client.switchToFrame(frame);
     client.findElement('#trigger1').click();
 
     // Validate that a new sheet opens.

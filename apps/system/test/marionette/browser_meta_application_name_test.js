@@ -59,7 +59,11 @@ marionette('Browser - Site loading background', function() {
     rocketbar.homescreenFocus();
     rocketbar.enterText(url + '\uE006');
 
-    system.gotoBrowser(url);
+    var frame = client.helper.waitForElement(
+      'div[transition-state="opened"] iframe[src="' + url + '"]');
+    client.switchToFrame(frame);
+    client.helper.waitForElement('body');
+
     client.switchToFrame();
     assert.ok(system.appUrlbar.text().indexOf(expected) !== -1);
   });

@@ -90,13 +90,12 @@ marionette('Browser - Site loading background', function() {
     rocketbar.homescreenFocus();
     rocketbar.enterText(url + '\uE006');
 
-    system.gotoBrowser(url);
-    client.switchToFrame();
+    var frame = client.helper.waitForElement(
+      'div[transition-state="opened"] iframe[src="' + url + '"]');
     validateBackgroundColor(255, 255, 255);
 
-
     server.uncork(url);
-    system.gotoBrowser(url);
+    client.switchToFrame(frame);
     client.helper.waitForElement('body');
     validateBackgroundColor(0, 0, 0);
   });
