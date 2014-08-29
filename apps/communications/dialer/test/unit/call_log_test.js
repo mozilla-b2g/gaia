@@ -14,7 +14,6 @@ require('/dialer/test/unit/mock_call_group_menu.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
-require('/dialer/test/unit/mock_l10n.js');
 require('/dialer/test/unit/mock_performance_testing_helper.js');
 require('/dialer/test/unit/mock_call_handler.js');
 require('/dialer/test/unit/mock_keypad.js');
@@ -420,6 +419,51 @@ suite('dialer/call_log', function() {
       callback();
     }
   }
+
+  suite('timeformatchange', function() {
+
+    test('update times to new 12/24 timeformat', function(done) {
+      var prettyDateSpy = this.sinon.spy(Utils, 'prettyDate');
+      var numEntries = 2;
+      var fakeClockTime12 = '12:02 <span>PM</span>';
+      var fakeClockTime24 = '13:14';
+      var fakeDate = 'Monday, September 16';
+      window.navigator.mozHour12 = false;
+
+      var self = this;
+      // This calls checkGroupDOM which validates the time is there.
+      appendAndCheckGroupDOM(numEntries, null, function() {
+        self.sinon.stub(MockMozL10n, 'DateTimeFormat', function() {
+          this.localeFormat = function(date, format) {
+            if (format === 'shortTimeFormat12') {
+              return fakeClockTime12;
+            } else if (format === 'shortTimeFormat24') {
+              return fakeClockTime24;
+            }
+            return fakeDate;
+          };
+        });
+
+        sinon.assert.callCount(prettyDateSpy, numEntries);
+        prettyDateSpy.reset();
+
+        window.navigator.mozHour12 = true;
+        window.dispatchEvent(new CustomEvent('timeformatchange'));
+        sinon.assert.calledWith(prettyDateSpy, incomingGroup.lastEntryDate);
+        sinon.assert.callCount(prettyDateSpy, numEntries);
+
+        // Test that when we set it to 12 hr and update, items are updated.
+        var logItems = CallLog.callLogContainer.querySelectorAll('.log-item');
+        for (var i = 0; i < logItems.length; i++) {
+          var logItemElt = logItems[i];
+          var callTime = logItemElt.querySelector('.call-time');
+          assert.equal(callTime.textContent, fakeClockTime12 + ' ');
+        }
+
+        done();
+      });
+    });
+  });
 
   suite('createGroup', function() {
     test('Incoming call', function(done) {

@@ -30,7 +30,8 @@ var CallLog = {
       '/shared/js/confirm.js',
       '/shared/js/dialer/utils.js',
       '/shared/js/sticky_header.js',
-      '/shared/js/sim_settings_helper.js'
+      '/shared/js/sim_settings_helper.js',
+      '/shared/js/date_time_helper.js'
     ];
     var self = this;
 
@@ -92,6 +93,8 @@ var CallLog = {
         self._ = _;
         self.render();
 
+        window.addEventListener('timeformatchange',
+          self._updateCallTimes.bind(self));
         self.callLogIconEdit.addEventListener('click',
           self.showEditMode.bind(self));
         self.editModeHeader.addEventListener('action',
@@ -143,6 +146,17 @@ var CallLog = {
       self._dbupgrading = false;
       self.render();
     };
+  },
+
+  _updateCallTimes: function cl_updateCallTimes() {
+    var logItemElts = this.callLogContainer.querySelectorAll('.log-item');
+    for (var i = 0; i < logItemElts.length; i++) {
+      var logItemElt = logItemElts[i];
+      var timestamp = logItemElt.getAttribute('data-timestamp');
+      var formattedTime = Utils.prettyDate(parseInt(timestamp, 10)) + ' ';
+      var callTimeElt = logItemElt.querySelector('.call-time');
+      callTimeElt.textContent = formattedTime;
+    }
   },
 
   // Helper to update UI and clean notifications when we got visibility
@@ -652,7 +666,11 @@ var CallLog = {
 
       LazyLoader.load(['/dialer/js/call_group_menu.js'], function() {
         CallGroupMenu.show(
-          primaryInfo, phoneNumber, dataset.timestamp, dataset.type);
+          primaryInfo,
+          phoneNumber,
+          dataset.timestamp,
+          dataset.type,
+          dataset.status);
       });
     }
   },

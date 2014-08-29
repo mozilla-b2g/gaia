@@ -1124,4 +1124,44 @@ suite('dialer/call_log_db', function() {
     });
   });
 
+  suite('getGroup', function() {
+    var call = {
+      number: numbers[0],
+      serviceId: 1,
+      type: 'incoming',
+      date: days[0],
+      duration: duration,
+      status: 'connected'
+    };
+
+    setup(function(done) {
+      CallLogDBManager.add(call, function(result) {
+        done();
+      });
+    });
+
+    teardown(function(done) {
+      CallLogDBManager.deleteAll(function() {
+        done();
+      });
+    });
+
+    test('returns a known group', function(done) {
+      CallLogDBManager.getGroup(call.number, call.date, call.type, call.status)
+      .then(function(group) {
+        assert.equal(group.number, call.number);
+      }).then(done, done);
+    });
+
+    test('rejects when there is no known group', function(done) {
+      CallLogDBManager.getGroup(
+        call.number, call.date, call.type, 'wrongStatus')
+      .then(function() {
+        // We shouldn't reach this
+        assert.ok(false);
+      }, function() {
+        assert.ok(true);
+      }).then(done, done);
+    });
+  });
 });
