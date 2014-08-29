@@ -4,6 +4,8 @@
 /* exported AppManager */
 'use strict';
 
+// This is a dummy change to test gaia-try
+
 var _ = navigator.mozL10n.get;
 
 function notifyCollection() {
