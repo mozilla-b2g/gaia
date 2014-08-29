@@ -1,6 +1,4 @@
 /* global MozActivity, IconsHelper, LazyLoader */
-/* global applications */
-/* global BookmarksDatabase */
 
 (function(window) {
   'use strict';
@@ -224,8 +222,7 @@
     var data = {
       type: 'url',
       url: url,
-      name: name,
-      iconable: false
+      name: name
     };
     if (icon) {
       data.icon = icon;
@@ -234,11 +231,6 @@
       name: 'save-bookmark',
       data: data
     });
-  };
-
-  BrowserContextMenu.prototype.newWindow = function(manifest) {
-    var newTabApp = applications.getByManifestURL(manifest);
-    newTabApp.launch();
   };
 
   BrowserContextMenu.prototype.generateSystemMenuItem = function(item) {
@@ -297,42 +289,19 @@
     }
   };
 
-  BrowserContextMenu.prototype.showDefaultMenu = function(manifest, name) {
-    return new Promise((resolve) => {
-      var favicons = this.app.favicons;
-      var config = this.app.config;
-      LazyLoader.load('shared/js/icons_helper.js', (function() {
-
-        var icon = IconsHelper.getBestIcon(favicons);
-        var menuData = [];
-
-        menuData.push({
-          id: 'new-window',
-          label: _('new-window'),
-          callback: this.newWindow.bind(this, manifest)
-        });
-
-        BookmarksDatabase.get(config.url).then((result) => {
-          if (!result) {
-            menuData.push({
-              id: 'add-to-homescreen',
-              label: _('add-to-home-screen'),
-              callback: this.bookmarkUrl.bind(this, config.url, name, icon)
-            });
-          }
-
-          menuData.push({
-            id: 'share',
-            label: _('share'),
-            callback: this.shareUrl.bind(this, config.url)
-          });
-
-          this.showMenu(menuData);
-          resolve();
-        });
-
-      }).bind(this));
-    });
+  BrowserContextMenu.prototype.showDefaultMenu = function() {
+    var favicons = this.app.favicons;
+    var config = this.app.config;
+    LazyLoader.load('shared/js/icons_helper.js', (function() {
+      var icon = IconsHelper.getBestIcon(favicons);
+      this.showMenu([{
+        label: _('add-to-home-screen'),
+        callback: this.bookmarkUrl.bind(this, config.url, this.app.title, icon)
+      }, {
+        label: _('share'),
+        callback: this.shareUrl.bind(this, config.url)
+      }]);
+    }).bind(this));
   };
 
 }(this));
