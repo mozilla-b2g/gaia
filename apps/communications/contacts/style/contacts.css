@@ -702,6 +702,41 @@ form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) gaia-he
   transform: translateY(0);
 }
 
+[data-type='list'] .contact-item > aside > span:before {
+  content: attr(data-group);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: #fff;
+  font-size: 2.2rem;
+  font-style: italic;
+  line-height: 5rem;
+  text-align: center;
+}
+
+[data-type="list"] .contact-item > aside > span {
+  position: relative;
+  background: url(images/Imagery.png) no-repeat 50% 50% / 7rem auto;
+  display: none;
+}
+
+/* Photo by default is displayed when it is visited by image loader component */
+[data-type="list"] .contact-item[data-visited="true"] > aside > span {
+  display: block;
+}
+
+html[dir="rtl"] #no-contacts .icon {
+  padding-right: 3.5rem;
+  padding-left: 0;
+}
+
+html[dir="rtl"] #no-contacts .create.icon,
+html[dir="rtl"] #no-contacts .import.icon {
+  background-position: 100% 50%;
+}
+
 nav[data-type="scrollbar"] li .pack-icon-ice {
   width: 1.2rem;
   height: 1.2rem;
