@@ -646,8 +646,12 @@
       var caller;
       var callee = this.getApp(config.origin);
       caller = this._activeApp.getTopMostWindow();
-      callee.callerWindow = caller;
-      caller.calleeWindow = callee;
+      if (caller.getBottomMostWindow() === callee) {
+        callee.frontWindow.kill();
+      } else {
+        callee.callerWindow = caller;
+        caller.calleeWindow = callee;
+      }
     },
 
     debug: function awm_debug() {

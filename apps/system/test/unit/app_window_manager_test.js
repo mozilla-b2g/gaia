@@ -851,7 +851,6 @@ suite('system/AppWindowManager', function() {
         // callee is app7, caller is app2
         injectRunningApps(app7);
         AppWindowManager._activeApp = app1;
-        fakeAppConfig.parentApp = '';
         this.sinon.stub(app1, 'getTopMostWindow').returns(app2);
 
         AppWindowManager.linkWindowActivity(fakeAppConfig);
@@ -859,6 +858,25 @@ suite('system/AppWindowManager', function() {
         assert.deepEqual(app2.calleeWindow, app7);
         assert.deepEqual(app7.callerWindow, app2);
         assert.isFalse(homescreenLauncher.getHomescreen.called);
+    });
+
+    test('If there is a direct circular activity, ' +
+          'close the frontwindow to reveal the callee',
+      function() {
+        // callee is app1, caller is app3(a front window)
+        injectRunningApps(app1);
+        AppWindowManager._activeApp = app1;
+        fakeAppConfig.parentApp = '';
+        app1.frontWindow = app3;
+        this.sinon.stub(app1, 'getTopMostWindow').returns(app3);
+        this.sinon.stub(app3, 'getBottomMostWindow').returns(app1);
+        var stubKill = this.sinon.stub(app3, 'kill');
+
+        AppWindowManager.linkWindowActivity(fakeAppConfig1);
+
+        assert.isTrue(stubKill.called);
+        assert.isUndefined(app1.callerWindow);
+        app1.frontWindow = null;
     });
   });
 
