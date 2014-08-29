@@ -1,218 +1,71 @@
-#media-playback-container {
+.media-playback-container {
   height: auto;
+  padding: 0 1.8rem;
 }
 
-#media-playback-container.disabled {
+.media-playback-container.disabled {
   opacity: 0.3;
   pointer-events: none;
 }
-
-#lockscreen-media-container {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 10.6rem;
-  height: 12rem;
-  background: rgba(51, 51, 51, 0.3);
-  z-index: 1;
-}
-
-#lockscreen-media-container.disabled {
-  opacity: 0.3;
-  pointer-events: none;
-}
-
-/* The "Now Playing" section */
 
 .media-playback-nowplaying {
-  height: 4rem;
-  margin: 1rem;
+  height: 2.4rem;
 }
 
-.media-playback-nowplaying > .icon {
-  position: relative;
-  float: left;
-  width: 3rem;
-  height: 3rem;
-  margin: 0.5rem 0;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 3rem;
-}
-
-.media-playback-nowplaying > .albumart {
-  float: right;
-  width: 3rem;
-  height: 3rem;
-  margin: 0.5rem 0;
-  background-size: 3rem;
-}
-
-.media-playback-nowplaying > .title,
-.media-playback-nowplaying > .artist {
-  margin-left: 4rem;
-  margin-right: 5rem;
-  line-height: 1.9rem;
+.media-playback-nowplaying > .track {
+  padding: 1rem 1.5rem 0 1.5rem;
+  font: 1.4rem/1.4rem auto;
+  text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.media-playback-nowplaying > .title {
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: #ffffff;
-}
-
-.media-playback-nowplaying > .artist {
-  font-size: 1.4rem;
-  font-weight: 400;
-  color: #bfbfbf;
-}
-
-/* The playback controls section */
-
 .media-playback-controls {
-  height: 4.5rem;
-  margin-top: -1rem;
+  height: 5.6rem;
+  width: 100%;
   overflow: hidden;
   text-align: center;
   font-size: 0; /* ensure there's no space between the buttons */
 }
 
-.media-playback-controls > button {
+.media-playback-controls > [data-icon] {
+  width: calc(100% / 3);
   height: 100%;
   padding: 0;
-  border-width: 0;
+  margin: 0;
+  color: #e7e7e7;
+  border: none;
   border-radius: 0;
   overflow: hidden;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-color: transparent;
-  background-size: 3rem auto;
+  background: transparent;
 }
 
-.media-playback-controls > button:active {
-  background-color: #00aacc;
+.media-playback-controls > [data-icon]:before {
+  font-size: 4.4rem;
+  line-height: 4.4rem;
 }
 
 .media-playback-controls > .previous {
-  width: 9.7rem;
-  background-image: url("./images/icon-previous.png");
-}
-
-.media-playback-controls > .play-pause {
-  width: 10.6rem;
-  background-image: url("./images/icon-pause.png");
-}
-
-.media-playback-controls > .play-pause.is-paused {
-  background-image: url("./images/icon-play.png");
+  text-align: left;
+  padding-left: 1.5rem;
 }
 
 .media-playback-controls > .next {
-  width: 9.7rem;
-  background-image: url("./images/icon-next.png");
+  text-align: right;
+  padding-right: 1.5rem;
 }
 
-/* Overrides for the larger-sized playback controls */
-
-.media-playback-controls.big {
-  height: 7rem;
+.media-playback-controls > button:active {
+  background-color: #0ac;
 }
 
-.media-playback-controls.big > button {
-  background-size: 4rem auto;
-}
-
-.media-playback-controls.big > .previous {
-  background-image: url("./images/icon-big-previous.png");
-}
-
-.media-playback-controls.big > .play-pause {
-  background-image: url("./images/icon-big-pause.png");
-}
-
-.media-playback-controls.big > .play-pause.is-paused {
-  background-image: url("./images/icon-big-play.png");
-}
-
-.media-playback-controls.big > .next {
-  background-image: url("./images/icon-big-next.png");
-}
-
-#lockscreen-media-container .media-playback-nowplaying > .albumart {
-  float: left;
-  width: 3rem;
-  height: 3rem;
-  margin: 0.4rem 1.4rem 2.4rem;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 3rem;
-}
-
-#lockscreen-media-container .media-playback-nowplaying > .icon {
-  display: none;
-}
-
-#lockscreen-media-container .media-playback-nowplaying > .title {
-  width: calc(100% - 7.4rem);
-  font-size: 1.4rem;
-}
-
-#lockscreen-media-container .media-playback-nowplaying > .artist {
-  color: #ffffff;
-  font-style: italic;
-}
-
-#lockscreen-media-container .media-playback-controls {
-  clear: both;
-  width: 100%;
-  position: relative;
-  top: -1.8rem;
-}
-
-#lockscreen-media-container .media-playback-controls > .previous {
-  width: 10.6rem;
-  background-image: url("./images/lockscreen-icon-previous.png");
-}
-
-#lockscreen-media-container .media-playback-controls > .play-pause {
-  width: 10.8rem;
-  background-image: url("./images/lockscreen-icon-pause.png");
-}
-
-#lockscreen-media-container .media-playback-controls > .play-pause.is-paused {
-  background-image: url("./images/lockscreen-icon-play.png");
-}
-
-#lockscreen-media-container .media-playback-controls > .next {
-  width: 10.6rem;
-  background-image: url("./images/lockscreen-icon-next.png");
-}
-
-#lockscreen-media-container .media-playback-controls.big {
-  height: 7rem;
-}
-
-
-#lockscreen-media-container .media-playback-controls.big > .previous {
-  background-image: url("./images/lockscreen-icon-big-previous.png");
-  background-size: 2rem 2.2rem;
-}
-
-#lockscreen-media-container .media-playback-controls.big > .play-pause {
-  background-image: url("./images/lockscreen-icon-big-pause.png");
-  background-size: 2.4rem 3.2rem;
-}
-
-#lockscreen-media-container .media-playback-controls.big > .play-pause.is-paused {
-  background-image: url("./images/lockscreen-icon-big-play.png");
-  background-size: 2.8rem 3.4rem;
-  background-position: 4.1rem center;
-}
-
-#lockscreen-media-container .media-playback-controls.big > .next {
-  background-image: url("./images/lockscreen-icon-big-next.png");
-  background-size: 2rem 2.2rem;
+/* Lock screen music player */
+#lockscreen-media-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10.6rem;
+  background: rgba(51, 51, 51, 0.3);
+  z-index: 1;
 }

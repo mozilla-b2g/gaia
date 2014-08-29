@@ -312,39 +312,21 @@ var Widget = (function() {
 
       // Content for data statistics
       var requestObj = { type: 'datausage' };
+
       costcontrol.request(requestObj, function _onDataStatistics(result) {
         debug(result);
         var stats = result.data;
         var data = Formatting.roundData(stats.mobile.total);
+
         if (isLimited) {
-
           // UI elements
-          var leftTag = views.limitedDataUsage.querySelector('dt.start');
-          var leftValue = views.limitedDataUsage.querySelector('dd.start');
-          var rightTag = views.limitedDataUsage.querySelector('dt.end');
-          var rightValue = views.limitedDataUsage.querySelector('dd.end');
-          var progress = views.limitedDataUsage.querySelector('progress');
+          var dataLimit = views.limitedDataUsage.querySelector('#data-limit');
+          var dataAvailable =
+            views.limitedDataUsage.querySelector('#data-available');
 
-          // Progress bar
           var current = stats.mobile.total;
           var limit = Common.getDataLimit(settings);
           debug(limit);
-          progress.setAttribute('value', Math.min(current, limit));
-          progress.setAttribute('max', Math.max(current, limit));
-
-          // State
-          views.limitedDataUsage.classList.remove('nearby-limit');
-          views.limitedDataUsage.classList.remove('reached-limit');
-
-          // Limit trespassed
-          var limitTresspased = (current > limit);
-          if (limitTresspased) {
-            views.limitedDataUsage.classList.add('reached-limit');
-
-          //  Warning percentage of the limit reached
-          } else if (current >= limit * costcontrol.getDataUsageWarning()) {
-            views.limitedDataUsage.classList.add('nearby-limit');
-          }
 
           // Texts
           var currentText = Formatting.roundData(current);
@@ -357,17 +339,11 @@ var Widget = (function() {
             value: limitText[0],
             unit: limitText[1]
           });
-          Common.localize(
-            leftTag,
-            limitTresspased ? 'limit-passed' : 'used'
-          );
-          leftValue.textContent = limitTresspased ? limitText : currentText;
-          Common.localize(
-            rightTag,
-            limitTresspased ? 'used' : 'limit'
-          );
-          rightValue.textContent = limitTresspased ? currentText : limitText;
 
+          navigator.mozL10n.setAttributes(dataLimit, 'data-limit',
+            { value: limitText });
+          navigator.mozL10n.setAttributes(dataAvailable, 'data-available',
+            { value: currentText });
         } else {
           // Texts
           document.getElementById('mobile-usage-value').textContent =

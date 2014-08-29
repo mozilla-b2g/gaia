@@ -1,151 +1,77 @@
 #quick-settings {
-  display: block;
-  width: 100%;
   height: 6rem;
-  padding: 0;
-  background-color: #55595F;
-  background-size: 100% 6rem;
-  border-top:0.1rem solid black;
   pointer-events: none;
 }
 
-#quick-settings > a {
-  display: block;
+#quick-settings > li {
+  padding: 0 1.5rem;
+  margin: 0;
+  list-style: none;
+}
+
+#quick-settings ul {
   float: left;
-  width: calc(20% - 0.2rem);
-  height: 3rem;
-  margin: 1.5rem 0;
+  width: 20%;
   padding: 0;
-  color: #fff;
+  margin: 0;
+}
+
+#quick-settings.non-mobile ul {
+  width: 25%;
+}
+
+#quick-settings a {
+  display: block;
+  height: 5rem;
+  width: 100%;
+  padding: 1.5rem 0;
+  margin: 0;
+  color: #e7e7e7;
   text-align: center;
   text-decoration: none;
   outline: none;
-  font-size: 1.4rem;
-  line-height: 1.8rem;
-  background-color: transparent;
-  background-size: 3rem;
+  background: none;
 
   pointer-events: auto;
 }
 
-#quick-settings.non-mobile > a {
-  width: calc(25% - 0.2rem);
-}
-
-#quick-settings > .separator {
-  border-right: 0.1rem solid #6E7277;
-  margin: 1.5rem 0;
-  height: 3rem;
-  float: left;
-}
-
-#quick-settings > a:first-child {
-  width: calc(20% - 0.1rem);
-  border-left: 0;
-}
-
-#quick-settings > a:last-child {
-  width: calc(20% - 0.1rem);
-  border-right: 0;
-}
-
-#quick-settings.non-mobile > a:first-child,
-#quick-settings.non-mobile > a:last-child {
-  width: calc(25% - 0.1rem);
-}
-
-#quick-settings > a {
-  background-position: center;
-  background-repeat: no-repeat;
+#quick-settings a:before {
+  line-height: 4rem;
 }
 
 #quick-settings > *[data-initializing] {
   opacity: 0.5;
 }
-#quick-settings-wifi {
-  background-image: url(images/wifi-off.png);
-}
+
 #quick-settings-wifi[data-enabled] {
-  background-image: url(images/wifi-on.png);
+  color: #008eab;
 }
-#quick-settings-data {
-  background-image: url(images/data.png);
-  background-position: 15px 0;
-}
-.non-mobile #quick-settings-data,
-.non-mobile #quick-settings-data + .separator {
+
+.non-mobile #quick-settings-data {
   display: none;
 }
-#quick-settings-data[data-network="undefined"]  {
-  background-position: center 0;
+
+#quick-settings-data[data-enabled] {
+  color: #008eab;
 }
-#quick-settings-data[data-network="2G"]  {
-  background-position: center -30px;
-}
-#quick-settings-data[data-enabled][data-network="2G"] {
-  background-position: center -60px;
-}
-#quick-settings-data[data-network="3G"] {
-  background-position: center -90px;
-}
-#quick-settings-data[data-enabled][data-network="3G"] {
-  background-position: center -120px;
-}
-#quick-settings-data[data-network="4G"] {
-  background-position: center -150px;
-}
-#quick-settings-data[data-enabled][data-network="4G"] {
-  background-position: center -180px;
-}
-#quick-settings-data[data-network="E"] {
-  background-position: center -210px;
-}
-#quick-settings-data[data-enabled][data-network="E"] {
-  background-position: center -240px;
-}
-#quick-settings-data[data-network="H"] {
-  background-position: center -270px;
-}
-#quick-settings-data[data-enabled][data-network="H"] {
-  background-position: center -300px;
-}
-#quick-settings-data[data-network="H+"] {
-  background-position: center -330px;
-}
-#quick-settings-data[data-enabled][data-network="H+"] {
-  background-position: center -360px;
-}
-#quick-settings-data[data-network="O"] {
-  background-position: center -390px;
-}
-#quick-settings-data[data-enabled][data-network="O"] {
-  background-position: center -420px;
-}
-#quick-settings-bluetooth {
-  background-image: url(images/bluetooth-off.png);
-}
+
 #quick-settings-bluetooth[data-enabled] {
-  background-image: url(images/bluetooth-on.png);
+  color: #008eab;
 }
-#quick-settings-airplane-mode {
-  background-image: url(images/airplane-mode-off.png);
-}
+
 #quick-settings-airplane-mode[data-enabled] {
-  background-image: url(images/airplane-mode-on.png);
+  color: #008eab;
 }
+
 #quick-settings-airplane-mode[data-enabling] {
-  background-image: url(images/airplane-mode-on.png);
+  color: #008eab;
   opacity: 0.5;
 }
-#quick-settings-airplane-mode[data-disabling] {
-  background-image: url(images/airplane-mode-off.png);
+
+#quick-settings-full-app:active:before {
+  color: #008eab;
 }
-#quick-settings-full-app {
-  background-image: url(images/settings-off.png);
-}
-#quick-settings-full-app:active {
-  background-image: url(images/settings-on.png);
-}
+
 .quick-settings-airplane-mode {
   opacity: 0.5;
 }
