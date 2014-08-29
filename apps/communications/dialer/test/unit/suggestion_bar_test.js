@@ -460,15 +460,15 @@ suite('suggestion Bar', function() {
         });
       });
 
-      test('each match has a si--action-menu class', function() {
+      test('each match has a ci--action-menu class', function() {
         suggestions.forEach(function(suggestion) {
-          assert.isTrue(suggestion.classList.contains('si--action-menu'));
+          assert.isTrue(suggestion.classList.contains('ci--action-menu'));
         });
       });
 
       test('each match highlights the matching part', function() {
         suggestions.forEach(function(suggestion) {
-          assert.equal(suggestion.querySelector('.si__mark').textContent,
+          assert.equal(suggestion.querySelector('.ci__mark').textContent,
                        '1111');
         });
       });

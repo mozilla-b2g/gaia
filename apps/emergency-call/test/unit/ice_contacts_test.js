@@ -51,12 +51,19 @@ suite('ICE contacts bar', function() {
     document.body.appendChild(container);
   }
 
-  function resetDOM() {
-    iceContactBar.setAttribute('hidden', '');
-    var iceContactsList = document.getElementById('contact-list');
-    while(iceContactsList.children.length > 1) {
-      iceContactsList.removeChild(iceContactsList.children[0]);
-    }
+  function shouldNotShowICEContactsBar(done) {
+    ICEContacts.updateICEContacts().then(function() {
+      assert.ok(iceContactBar.hasAttribute('hidden'));
+      done();
+    });
+  }
+
+  function shouldIncludeICEContacts(done, length) {
+    var iceContactList = document.getElementById('contact-list');
+    ICEContacts.updateICEContacts().then(function() {
+      assert.equal(iceContactList.children.length, length);
+      done();
+    });
   }
 
   suiteSetup(function(done) {
@@ -77,22 +84,21 @@ suite('ICE contacts bar', function() {
     document.body.removeChild(container);
   });
 
+  teardown(function() {
+    iceContactBar.setAttribute('hidden', '');
+    var iceContactsList = document.getElementById('contact-list');
+    while(iceContactsList.children.length > 1) {
+      iceContactsList.removeChild(iceContactsList.children[0]);
+    }
+  });
+
   suite('No ICE contacts', function() {
     setup(function(done) {
       navigator.mozContacts.clear();
       ICEStore.setContacts([]).then(done);
     });
 
-    teardown(function() {
-      resetDOM();
-    });
-
-    test('Should not show the ICE contacts bar', function(done) {
-      ICEContacts.updateICEContacts().then(function() {
-        assert.ok(iceContactBar.hasAttribute('hidden'));
-        done();
-      });
-    });
+    test('Should not show the ICE contacts bar', shouldNotShowICEContactsBar);
   });
 
   suite('1 ICE contact with no telephone numbers', function() {
@@ -110,25 +116,7 @@ suite('ICE contacts bar', function() {
       };
     });
 
-    teardown(function() {
-      resetDOM();
-    });
-
-    test('Should not show the ICE contacts bar', function(done) {
-      ICEContacts.updateICEContacts().then(function() {
-        assert.ok(iceContactBar.hasAttribute('hidden'));
-        done();
-      });
-    });
-
-    test('Should not include any ICE contacts in the overlay', function(done) {
-      iceContactBar.removeAttribute('hidden');
-      ICEContacts.updateICEContacts().then(function() {
-        assert.equal(
-          document.getElementById('contact-list').children.length, 1);
-        done();
-      });
-    });
+    test('Should not show the ICE contacts bar', shouldNotShowICEContactsBar);
   });
 
   suite('2 ICE contact with no telephone numbers', function() {
@@ -161,22 +149,9 @@ suite('ICE contacts bar', function() {
       };
     });
 
-    teardown(function() {
-      resetDOM();
-    });
-
     test('Should not show the ICE contacts bar', function(done) {
       ICEContacts.updateICEContacts().then(function() {
         assert.ok(iceContactBar.hasAttribute('hidden'));
-        done();
-      });
-    });
-
-    test('Should not include any ICE contacts in the overlay', function(done) {
-      iceContactBar.removeAttribute('hidden');
-      ICEContacts.updateICEContacts().then(function() {
-        assert.equal(
-          document.getElementById('contact-list').children.length, 1);
         done();
       });
     });
@@ -203,10 +178,6 @@ suite('ICE contacts bar', function() {
       };
     });
 
-    teardown(function() {
-      resetDOM();
-    });
-
     test('Should show the ICE contacts bar', function(done) {
       ICEContacts.updateICEContacts().then(function() {
         assert.isFalse(
@@ -216,11 +187,7 @@ suite('ICE contacts bar', function() {
     });
 
     test('Should include the ICE contact in the overlay', function(done) {
-      var iceContactList = document.getElementById('contact-list');
-      ICEContacts.updateICEContacts().then(function() {
-        assert.equal(iceContactList.children.length, 2);
-        done();
-      });
+      shouldIncludeICEContacts(done, 2);
     });
   });
 
@@ -249,10 +216,6 @@ suite('ICE contacts bar', function() {
       };
     });
 
-    teardown(function() {
-      resetDOM();
-    });
-
     test('Should show the ICE contacts bar', function(done) {
       ICEContacts.updateICEContacts().then(function() {
         assert.isFalse(iceContactBar.hasAttribute('hidden'));
@@ -261,14 +224,9 @@ suite('ICE contacts bar', function() {
     });
 
     test('Should include the ICE contact\'s phone numbers in the overlay',
-      function(done) {
-        var iceContactList = document.getElementById('contact-list');
-        ICEContacts.updateICEContacts().then(function() {
-          assert.equal(iceContactList.children.length, 3);
-          done();
-        });
-      }
-    );
+    function(done) {
+      shouldIncludeICEContacts(done, 3);
+    });
   });
 
   suite('2 ICE contact with 3 telephone numbers the first one and 4 the ' +
@@ -334,10 +292,6 @@ suite('ICE contacts bar', function() {
       };
     });
 
-    teardown(function() {
-      resetDOM();
-    });
-
     test('Should show the ICE contacts bar', function(done) {
       ICEContacts.updateICEContacts().then(function() {
         assert.isFalse(iceContactBar.hasAttribute('hidden'));
@@ -346,13 +300,8 @@ suite('ICE contacts bar', function() {
     });
 
     test('Should include the ICE contacts\' phone numbers in the overlay',
-      function(done) {
-        var iceContactList = document.getElementById('contact-list');
-        ICEContacts.updateICEContacts().then(function() {
-          assert.equal(iceContactList.children.length, 8);
-          done();
-        });
-      }
-    );
+    function(done) {
+      shouldIncludeICEContacts(done, 8);
+    });
   });
 });

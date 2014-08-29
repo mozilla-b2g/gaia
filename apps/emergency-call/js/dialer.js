@@ -8,7 +8,7 @@ var CallHandler = {
   _telephony: window.navigator.mozTelephony,
   l10n: window.navigator.mozL10n,
 
-  call: function (number, isICEContact) {
+  call: function(number) {
     var sanitizedNumber = number.replace(/-/g, ''),
         telephony = this._telephony,
         self = this;
@@ -40,7 +40,7 @@ var CallHandler = {
     }
   },
 
-  _installHandlers: function (call) {
+  _installHandlers: function(call) {
     if (call) {
       var cb = function clearPhoneView() {
         KeypadManager.updatePhoneNumber('');
@@ -53,7 +53,9 @@ var CallHandler = {
     }
   },
 
-  displayMessage: function (message, number) {
+  // FIXME/bug 1060451: Copied-and-pasted from dialer/telephony_helper.js. We
+  // should refactor and share this.
+  displayMessage: function(message, number) {
     var dialogTitle, dialogBody;
 
     switch (message) {
@@ -113,7 +115,9 @@ var CallHandler = {
     );
   },
 
-  handleError: function (errorName, number) {
+  // FIXME/bug 1060451: Copied-and-pasted from dialer/telephony_helper.js. We
+  // should refactor and share this.
+  handleError: function(errorName, number) {
     if (errorName === 'BadNumberError') {
       this.displayMessage('NoNetwork');
     } else if (errorName === 'DeviceNotAcceptedError') {
