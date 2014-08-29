@@ -1,4 +1,5 @@
 /* global Notification,
+  NotificationHelper,
   Promise,
   Utils
 */
@@ -26,31 +27,39 @@ function sendNotification() {
     return Promise.resolve();
   }
 
-  var title = params.title;
-  var body = params.body;
-
-  // TODO: Use NotificationHelper.getIconURI for icon url instead of hardcoded
-  var notification = new Notification(
-    navigator.mozL10n.get(title), {
-      body: body,
-      tag: '' + Date.now(), // needs to be unique
-      icon: window.location.origin + '/style/icons/icon-68.png' +
-            '?titleID=' + title
-    }
-  );
-
   return new Promise(function(resolve, reject) {
-    notification.onerror = function onerror() {
-      reject(new Error());
+    var title = params.title;
+    var body = params.body;
+    var req = navigator.mozApps.getSelf();
+
+    req.onsuccess = function onsuccess(event) {
+      var app = event.target.result;
+
+      var notification = new Notification(
+        navigator.mozL10n.get(title), {
+          body: body,
+          tag: '' + Date.now(), // needs to be unique
+          icon: NotificationHelper.getIconURI(app) + '?titleID=' + title
+        }
+      );
+
+      notification.onerror = function onerror() {
+        reject(new Error('CMAS: notification API error'));
+      };
+
+      notification.onshow = resolve;
     };
 
-    notification.onshow = resolve;
+    req.onerror = function onerror() {
+      reject(new Error('CMAS: App getSelf request error'));
+    };
   });
 }
 
 function onFormSubmit(e) {
   e.preventDefault();
-  window.close();
+  // Close parent(if exist) and child attention window after user click ok
+  window.opener ? window.opener.close() : window.close();
 }
 
 function renderForm() {

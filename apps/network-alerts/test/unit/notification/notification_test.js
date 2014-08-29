@@ -51,7 +51,7 @@ suite('Network Alerts - Notification handling', function() {
       window.open,
       expectedUrl, '_blank', 'attention'
     );
-    sinon.assert.called(window.close);
+    sinon.assert.notCalled(window.close);
   });
 
   test('only closes window if user dismisses the notification', function() {

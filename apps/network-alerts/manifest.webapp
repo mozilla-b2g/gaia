@@ -17,7 +17,8 @@
   "permissions": {
     "attention":{},
     "desktop-notification":{},
-    "cellbroadcast":{}
+    "cellbroadcast":{},
+    "settings":{ "access": "readonly" }
   },
   "default_locale": "en-US",
   "orientation": "default",
