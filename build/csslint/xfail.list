@@ -77,7 +77,7 @@ apps/sms/style/root.css 0 2
 apps/sms/style/sms.css 0 4
 apps/search/style/search.css 0 2
 shared/elements/gaia_grid/style.css 0 5
-shared/elements/gaia-theme/style.css 6 0
+shared/elements/gaia-theme/style.css 5 0
 shared/style/value_selector.css 0 1
 shared/style/edit_mode.css 0 2
 shared/style/action_menu.css 0 1
