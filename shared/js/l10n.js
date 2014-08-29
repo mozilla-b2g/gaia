@@ -875,7 +875,9 @@
 
     var rv = {};
     for (var key in node) {
-      if (key !== '_index' && (key in node)) {
+      if (key === '_index') {
+        rv[key] = node[key];
+      } else {
         rv[key] = walkContent(node[key], fn);
       }
     }
