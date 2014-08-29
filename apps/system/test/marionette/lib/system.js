@@ -12,6 +12,8 @@ System.Selector = Object.freeze({
   appWindow: '.appWindow',
   appTitlebar: '.appWindow.active .titlebar',
   appUrlbar: '.appWindow.active .title',
+  appChromeBack: '.appWindow.active .back-button',
+  appChromeForward: '.appWindow.active .forward-button',
   appChromeContextLink: '.appWindow.active .menu-button',
   appChromeContextMenu: '.appWindow.active .overflow-menu',
   appChromeContextMenuNewWindow: '.appWindow.active #new-window',
@@ -38,6 +40,16 @@ System.prototype = {
 
   get appUrlbar() {
     return this.client.helper.waitForElement(System.Selector.appUrlbar);
+  },
+
+  get appChromeBack() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeBack);
+  },
+
+  get appChromeForward() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeForward);
   },
 
   get appChromeContextLink() {
