@@ -24,7 +24,7 @@
 
 var StatusBar = {
   /* all elements that are children nodes of the status bar */
-  ELEMENTS: ['notification', 'emergency-cb-notification', 'time', 'connections',
+  ELEMENTS: ['emergency-cb-notification', 'time', 'connections',
     'battery', 'wifi', 'data', 'flight-mode', 'network-activity', 'tethering',
     'alarm', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
     'bluetooth-transferring', 'recording', 'sms', 'geolocation', 'usb', 'label',
@@ -50,7 +50,6 @@ var StatusBar = {
     ['bluetooth', 16 + 4],
     ['nfc', 16 + 4],
     ['usb', 16 + 4],
-    ['notification', 32 + 4],
     ['alarm', 16 + 4],
     ['bluetooth-headphones', 16 + 4],
     ['mute', 16 + 4],
@@ -1266,31 +1265,6 @@ var StatusBar = {
       this.clock.stop();
     }
     icon.hidden = !enable;
-  },
-
-  updateNotification: function sb_updateNotification(count) {
-    var icon = this.icons.notification;
-    if (!count) {
-      icon.hidden = true;
-      return;
-    }
-
-    icon.hidden = false;
-    icon.dataset.num = count;
-    this.updateNotificationLabel(icon);
-  },
-
-  updateNotificationUnread: function sb_updateNotificationUnread(unread) {
-    var icon = this.icons.notification;
-    icon.dataset.unread = unread;
-    this.updateNotificationLabel(icon);
-  },
-
-  updateNotificationLabel: function sb_updateNotificationLabel(icon) {
-    icon.setAttribute('aria-label', navigator.mozL10n.get(icon.dataset.unread ?
-      'statusbarNotifications-unread' : 'statusbarNotifications', {
-      n: icon.dataset.num
-    }));
   },
 
   updateEmergencyCbNotification:
