@@ -249,7 +249,7 @@ var SuggestionBar = {
     var itemElm = this.template.cloneNode(true);
     itemElm.removeAttribute('id');
     itemElm.hidden = false;
-    itemElm.classList.add('si--action-menu');
+    itemElm.classList.add('ci--action-menu');
     this.list.insertBefore(itemElm, this.overlayCancel);
     return itemElm;
   },
@@ -309,7 +309,7 @@ var SuggestionBar = {
         end = i;
       }
     }
-    return str.substr(0, start) + '<mark class="si__mark">' +
+    return str.substr(0, start) + '<mark class="ci__mark">' +
            str.substr(start, end - start + 1) + '</mark>' + str.substr(end + 1);
   },
 

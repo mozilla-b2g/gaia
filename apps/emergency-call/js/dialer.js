@@ -6,9 +6,29 @@
 
 var CallHandler = {
   _telephony: window.navigator.mozTelephony,
+  _emergencyAlert: document.getElementById('emergencyAlert'),
+  _emergencyMsg: document.getElementById('emergencyAlert-msg'),
+  _emergencyAlertBtn: document.getElementById('emergencyAlert-btn'),
   l10n: window.navigator.mozL10n,
 
-  call: function (number, isICEContact) {
+  init: function() {
+    this._emergencyAlertBtn.addEventListener('click', function() {
+      this._emergencyAlert.hidden = true;
+    }.bind(this));
+  },
+
+  _throwError: function(sanitizedNumber) {
+    LazyLoader.load(['/shared/style/confirm.css'], function() {
+      navigator.mozL10n.once(function() {
+        this._emergencyMsg.textContent =
+          this.l10n.get('emergency-call-error',
+                        {number: sanitizedNumber});
+        this._emergencyAlert.hidden = false;
+      }.bind(this));
+    }.bind(this));
+  },
+
+  call: function(number) {
     var sanitizedNumber = number.replace(/-/g, ''),
         telephony = this._telephony,
         self = this;
@@ -21,10 +41,8 @@ var CallHandler = {
               callPromise = telephony.dial(number, defaultCardIndex);
               callPromise.then(function(call) {
                 self._installHandlers(call);
-              }).catch(function (errorName) {
-                self.l10n.ready(function() {
-                  self.handleError(errorName, number);
-                });
+              }).catch(function(errorName) {
+                self._throwError(sanitizedNumber);
               });
             }
           );
@@ -34,13 +52,13 @@ var CallHandler = {
         callPromise.then(function(call) {
           self._installHandlers(call);
         }).catch(function(errorName) {
-          self.handleError(errorName, number);
+          self._throwError(sanitizedNumber);
         });
       }
     }
   },
 
-  _installHandlers: function (call) {
+  _installHandlers: function(call) {
     if (call) {
       var cb = function clearPhoneView() {
         KeypadManager.updatePhoneNumber('');
@@ -53,7 +71,9 @@ var CallHandler = {
     }
   },
 
-  displayMessage: function (message, number) {
+  // FIXME/bug 1060451: Copied-and-pasted from dialer/telephony_helper.js. We
+  // should refactor and share this.
+  displayMessage: function(message, number) {
     var dialogTitle, dialogBody;
 
     switch (message) {
@@ -113,7 +133,9 @@ var CallHandler = {
     );
   },
 
-  handleError: function (errorName, number) {
+  // FIXME/bug 1060451: Copied-and-pasted from dialer/telephony_helper.js. We
+  // should refactor and share this.
+  handleError: function(errorName, number) {
     if (errorName === 'BadNumberError') {
       this.displayMessage('NoNetwork');
     } else if (errorName === 'DeviceNotAcceptedError') {
@@ -157,4 +179,5 @@ window.addEventListener('load', function onload() {
   window.removeEventListener('load', onload);
   window.ICEContacts.updateICEContacts();
   window.KeypadManager.init();
+  window.CallHandler.init();
 });

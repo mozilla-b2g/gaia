@@ -51,12 +51,19 @@ suite('ICE contacts bar', function() {
     document.body.appendChild(container);
   }
 
-  function resetDOM() {
-    iceContactBar.setAttribute('hidden', '');
-    var iceContactsList = document.getElementById('contact-list');
-    while(iceContactsList.children.length > 1) {
-      iceContactsList.removeChild(iceContactsList.children[0]);
-    }
+  function shouldNotShowICEContactsBar(done) {
+    ICEContacts.updateICEContacts().then(function() {
+      assert.ok(iceContactBar.hasAttribute('hidden'));
+      done();
+    });
+  }
+
+  function shouldIncludeICEContacts(done, length) {
+    var iceContactList = document.getElementById('contact-list');
+    ICEContacts.updateICEContacts().then(function() {
+      assert.equal(iceContactList.children.length, length);
+      done();
+    });
   }
 
   suiteSetup(function(done) {
@@ -77,22 +84,21 @@ suite('ICE contacts bar', function() {
     document.body.removeChild(container);
   });
 
+  teardown(function() {
+    iceContactBar.setAttribute('hidden', '');
+    var iceContactsList = document.getElementById('contact-list');
+    while(iceContactsList.children.length > 1) {
+      iceContactsList.removeChild(iceContactsList.children[0]);
+    }
+  });
+
   suite('No ICE contacts', function() {
     setup(function(done) {
       navigator.mozContacts.clear();
       ICEStore.setContacts([]).then(done);
     });
 
-    teardown(function() {
-      resetDOM();
-    });
-
-    test('Should not show the ICE contacts bar', function(done) {
-      ICEContacts.updateICEContacts().then(function() {
-        assert.ok(iceContactBar.hasAttribute('hidden'));
-        done();
-      });
-    });
+    test('Should not show the ICE contacts bar', shouldNotShowICEContactsBar);
   });
 
   suite('1 ICE contact with no telephone numbers', function() {
@@ -110,25 +116,7 @@ suite('ICE contacts bar', function() {
       };
     });
 
-    teardown(function() {
-      resetDOM();
-    });
-
-    test('Should not show the ICE contacts bar', function(done) {
-      ICEContacts.updateICEContacts().then(function() {
-        assert.ok(iceContactBar.hasAttribute('hidden'));
-        done();
-      });
-    });
-
-    test('Should not include any ICE contacts in the overlay', function(done) {
-      iceContactBar.removeAttribute('hidden');
-      ICEContacts.updateICEContacts().then(function() {
-        assert.equal(
-          document.getElementById('contact-list').children.length, 1);
-        done();
-      });
-    });
+    test('Should not show the ICE contacts bar', shouldNotShowICEContactsBar);
   });
 
   suite('2 ICE contact with no telephone numbers', function() {
@@ -161,22 +149,9 @@ suite('ICE contacts bar', function() {
       };
     });
 
-    teardown(function() {
-      resetDOM();
-    });
-
     test('Should not show the ICE contacts bar', function(done) {
       ICEContacts.updateICEContacts().then(function() {
         assert.ok(iceContactBar.hasAttribute('hidden'));
-        done();
-      });
-    });
-
-    test('Should not include any ICE contacts in the overlay', function(done) {
-      iceContactBar.removeAttribute('hidden');
-      ICEContacts.updateICEContacts().then(function() {
-        assert.equal(
-          document.getElementById('contact-list').children.length, 1);
         done();
       });
     });
@@ -203,10 +178,6 @@ suite('ICE contacts bar', function() {
       };
     });
 
-    teardown(function() {
-      resetDOM();
-    });
-
     test('Should show the ICE contacts bar', function(done) {
       ICEContacts.updateICEContacts().then(function() {
         assert.isFalse(
@@ -216,11 +187,7 @@ suite('ICE contacts bar', function() {
     });
 
     test('Should include the ICE contact in the overlay', function(done) {
-      var iceContactList = document.getElementById('contact-list');
-      ICEContacts.updateICEContacts().then(function() {
-        assert.equal(iceContactList.children.length, 2);
-        done();
-      });
+      shouldIncludeICEContacts(done, 2);
     });
   });
 
@@ -249,10 +216,6 @@ suite('ICE contacts bar', function() {
       };
     });
 
-    teardown(function() {
-      resetDOM();
-    });
-
     test('Should show the ICE contacts bar', function(done) {
       ICEContacts.updateICEContacts().then(function() {
         assert.isFalse(iceContactBar.hasAttribute('hidden'));
@@ -261,14 +224,9 @@ suite('ICE contacts bar', function() {
     });
 
     test('Should include the ICE contact\'s phone numbers in the overlay',
-      function(done) {
-        var iceContactList = document.getElementById('contact-list');
-        ICEContacts.updateICEContacts().then(function() {
-          assert.equal(iceContactList.children.length, 3);
-          done();
-        });
-      }
-    );
+    function(done) {
+      shouldIncludeICEContacts(done, 3);
+    });
   });
 
   suite('2 ICE contact with 3 telephone numbers the first one and 4 the ' +
@@ -334,10 +292,6 @@ suite('ICE contacts bar', function() {
       };
     });
 
-    teardown(function() {
-      resetDOM();
-    });
-
     test('Should show the ICE contacts bar', function(done) {
       ICEContacts.updateICEContacts().then(function() {
         assert.isFalse(iceContactBar.hasAttribute('hidden'));
@@ -346,13 +300,100 @@ suite('ICE contacts bar', function() {
     });
 
     test('Should include the ICE contacts\' phone numbers in the overlay',
-      function(done) {
-        var iceContactList = document.getElementById('contact-list');
-        ICEContacts.updateICEContacts().then(function() {
-          assert.equal(iceContactList.children.length, 8);
-          done();
+    function(done) {
+      shouldIncludeICEContacts(done, 8);
+    });
+  });
+
+  suite('Is from ICE contacts', function() {
+    var contact1;
+    var contact2;
+
+    setup(function(done) {
+      navigator.mozContacts.clear();
+      contact1 = new mozContact();
+      contact1.givenName = ['ICE Contact'];
+      contact1.familyName = ['1'];
+      contact1.name = [contact1.givenName[0] + ' ' + contact1.familyName[0]];
+      contact1.tel = [
+        {
+          type: ['home'],
+          value: '123'
+        }
+      ];
+      contact2 = new mozContact();
+      contact2.givenName = ['ICE Contact'];
+      contact2.familyName = ['2'];
+      contact2.name = [contact2.givenName[0] + ' ' + contact2.familyName[0]];
+      contact2.tel = [
+        {
+          type: ['home'],
+          value: '456'
+        }
+      ];
+      var contact1Req = navigator.mozContacts.save(contact1);
+      contact1Req.onsuccess = function() {
+        ICEStore.setContacts([contact1.id]).then(done);
+      };
+    });
+
+    test('Should include contact1', function() {
+      ICEContacts.updateICEContacts().then(function() {
+        assert.isTrue(ICEContacts.isFromICEContact('123'));
+      });
+    });
+
+    test('Should not include contact2', function() {
+      ICEContacts.updateICEContacts().then(function() {
+        assert.isFalse(ICEContacts.isFromICEContact('456'));
+      });
+    });
+  });
+
+  suite('Should create correct DOM', function() {
+    var contact1;
+
+    setup(function(done) {
+      this.sinon.spy(MockL10n, 'get');
+
+      navigator.mozContacts.clear();
+      contact1 = new mozContact();
+      contact1.givenName = ['ICE Contact'];
+      contact1.familyName = ['1'];
+      contact1.name = [contact1.givenName[0] + ' ' + contact1.familyName[0]];
+      contact1.tel = [
+        {
+          type: ['home'],
+          value: '123'
+        }
+      ];
+      var contact1Req = navigator.mozContacts.save(contact1);
+      contact1Req.onsuccess = function() {
+        ICEStore.setContacts([contact1.id]).then(function() {
+          ICEContacts.updateICEContacts().then(done);
         });
-      }
-    );
+      };
+    });
+
+    test('Should include name element', function() {
+      assert.equal(iceContactsOverlay.querySelector('.js-name').textContent,
+                   contact1.name);
+    });
+
+    test('Should include tel-type element', function() {
+      assert.equal(iceContactsOverlay.querySelector('.js-tel-type').textContent,
+                   contact1.tel[0].type);
+      sinon.assert.calledWith(MockL10n.get, contact1.tel[0].type[0]);
+    });
+
+    test('Should include time element', function() {
+      assert.equal(iceContactsOverlay.querySelector('.js-tel').textContent,
+                   contact1.tel[0].value);
+    });
+
+    test('Should include cancel button', function() {
+      assert.ok(
+        iceContactsOverlay.querySelector('#contact-list-overlay-cancel'));
+    });
   });
 });
