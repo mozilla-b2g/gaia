@@ -132,17 +132,16 @@ define(function(require) {
      */
     init: function(showLatest, callback) {
       // Set inited to false to indicate initialization is in progress.
-      this.inited = false;
-      require(['api'], function(MailAPI) {
+      require(['api'], function(api) {
         if (!this.api) {
-          this.api = MailAPI;
+          this.api = api;
           this._callEmit('api', this.api);
         }
 
         // If already initialized before, clear out previous state.
         this.die();
 
-        var acctsSlice = MailAPI.viewAccounts(false);
+        var acctsSlice = api.viewAccounts(false);
         acctsSlice.oncomplete = (function() {
           // To prevent a race between Model.init() and
           // acctsSlice.oncomplete, only assign model.acctsSlice when
@@ -155,7 +154,7 @@ define(function(require) {
             // XXX: Because we don't have unified account now, we should
             //      switch to the latest account which user just added.
             var account = showLatest ? acctsSlice.items.slice(-1)[0] :
-                                       acctsSlice.defaultAccount;
+                  acctsSlice.defaultAccount;
 
             this.changeAccount(account, callback);
           }

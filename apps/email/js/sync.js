@@ -358,7 +358,7 @@ define(function(require) {
     /**
      * The API passes through background send notifications with the
      * following data (see the "sendOutboxMessages" job and/or
-     * `mailapi/jobs/outbox.js`):
+     * `GELAM/js/jobs/outbox.js`):
      *
      * @param {int} accountId
      * @param {string} suid
