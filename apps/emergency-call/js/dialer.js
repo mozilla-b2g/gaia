@@ -32,29 +32,27 @@ var CallHandler = {
     var sanitizedNumber = number.replace(/-/g, ''),
         telephony = this._telephony,
         self = this;
-    if (telephony) {
-      var callPromise;
-      if (ICEContacts.isFromICEContact(number)) {
-        LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
-          SimSettingsHelper.getCardIndexFrom('outgoingCall',
-            function(defaultCardIndex) {
-              callPromise = telephony.dial(number, defaultCardIndex);
-              callPromise.then(function(call) {
-                self._installHandlers(call);
-              }).catch(function(errorName) {
-                self._throwEmergencyError(sanitizedNumber);
-              });
-            }
-          );
-        });
-      } else {
-        callPromise = telephony.dialEmergency(sanitizedNumber);
-        callPromise.then(function(call) {
-          self._installHandlers(call);
-        }).catch(function(errorName) {
-          self._throwEmergencyError(sanitizedNumber);
-        });
-      }
+    var callPromise;
+    if (ICEContacts.isFromICEContact(number)) {
+      LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
+        SimSettingsHelper.getCardIndexFrom('outgoingCall',
+          function(defaultCardIndex) {
+            callPromise = telephony.dial(number, defaultCardIndex);
+            callPromise.then(function(call) {
+              self._installHandlers(call);
+            }).catch(function(errorName) {
+              self._throwEmergencyError(sanitizedNumber);
+            });
+          }
+        );
+      });
+    } else {
+      callPromise = telephony.dialEmergency(sanitizedNumber);
+      callPromise.then(function(call) {
+        self._installHandlers(call);
+      }).catch(function(errorName) {
+        self._throwEmergencyError(sanitizedNumber);
+      });
     }
   },
 
