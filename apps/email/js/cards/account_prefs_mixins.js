@@ -90,8 +90,7 @@ define(function(require) {
 
       if (signatureButtonClassName) {
         this.signatureButton = this.nodeFromClass(signatureButtonClassName);
-        this.signatureButton.firstElementChild
-          .textContent = this.identity.signature;
+        this.updateSignatureButton();
         this.signatureButton.addEventListener('click',
           this.onClickSignature.bind(this), false);
       }
@@ -127,8 +126,20 @@ define(function(require) {
     },
 
     updateSignatureButton: function() {
-      this.signatureButton.firstElementChild
-        .textContent = this.identity.signature;
+      // Allow the text to be just whitespace, but treat it as
+      // empty as far as labeling is concerned.
+      var text = this.identity.signature,
+          isEmpty = text.trim().length === 0,
+          node = this.signatureButton.firstElementChild;
+
+      node.textContent = text;
+      node.classList.toggle('empty-placeholder', isEmpty);
+
+      if (isEmpty) {
+        mozL10n.setAttributes(node, 'settings-empty-signature-label');
+      } else {
+        node.removeAttribute('data-l10n-id');
+      }
     },
 
     onClickSignature: function(index) {

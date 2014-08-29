@@ -8,14 +8,15 @@ var templateNode = require('tmpl!./settings_signature.html'),
     editorMixin = require('./editor_mixins'),
     mix = require('mix'),
     common = require('mail_common'),
-    Cards = common.Cards;
+    Cards = common.Cards,
+    trailingRegExp = /\s+$/;
 
 function SettingsSignatureCard(domNode, mode, args) {
   this.domNode = domNode;
   this.account = args.account;
   this.identity = this.account.identities[0];
   this.signatureNode = domNode
-    .getElementsByClassName('tng-signature-input')[0];
+    .getElementsByClassName('tng-signature-text')[0];
 
   this._bindEditor(this.signatureNode);
 
@@ -26,18 +27,25 @@ function SettingsSignatureCard(domNode, mode, args) {
     .addEventListener('click', this.onClickDone.bind(this), false);
 
   this.populateEditor(this.identity.signature || '');
-
 }
 
 SettingsSignatureCard.prototype = {
 
+  // Removes any trailing whitespace, since it is just noise, and it also sets
+  // up the wrong expectation when the cursor is auto-focused at the end of the
+  // content -- it will sometimes show up on the far right of the text screen
+  // because of phantom \n (that are <br>s in the HTML).
+  getTextFromEditor: function() {
+    var text = this.fromEditor().replace(trailingRegExp, '');
+    return text;
+  },
 
   goBack: function() {
     Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
   },
 
   onBack: function() {
-    var signature = this.fromEditor();
+    var signature = this.getTextFromEditor();
     if (signature === this.identity.signature) {
       this.goBack();
       return;
@@ -69,7 +77,7 @@ SettingsSignatureCard.prototype = {
   },
 
   onClickDone: function() {
-    var signature = this.fromEditor();
+    var signature = this.getTextFromEditor();
 
     // Only push the signature if it was changed
     if (signature !== this.identity.signature) {
@@ -79,6 +87,31 @@ SettingsSignatureCard.prototype = {
     this.onBack();
   },
 
+  onCardVisible: function() {
+    // Need to wait until the card is shown and animation is done before
+    // focusing input in the editable area.
+
+    // Clear any existing selections
+    var selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      selection.removeAllRanges();
+    }
+
+    // If there is content, set the cursor at the
+    // end of it.
+    var node = this.signatureNode.lastChild;
+    if (node) {
+      var range = document.createRange();
+
+      range.setStartAfter(node);
+      range.setEndAfter(node);
+      selection.addRange(range);
+    }
+
+    // The selection sets up where the cursor will show, this ties it all
+    // together and brings up the keyboard.
+    this.signatureNode.focus();
+  },
 
   die: function() {
   },
