@@ -854,6 +854,25 @@ contacts.List = (function() {
      groupsList.firstChild).appendChild(list).appendChild(elem);
     elem.appendChild(icon);
     elem.appendChild(p);
+
+    iceGroup.addEventListener('click', onICEGroupClicked);
+  }
+
+  function onICEGroupClicked() {
+    Contacts.view('Ice', function() {
+      // Prebuild the rows here, we have all the data to
+      // build them. Current amount of rows is 2.
+      function rowBuilder(id, node) {
+        renderLoadedContact(node, id);
+        updateRowStyle(node, true);
+        updateSingleRowSelection(node, id);
+        var out = node.cloneNode(true);
+        renderPhoto(out, id, true);
+        return out;
+      }
+      contacts.ICEView.init(iceContacts, rowBuilder, onClickHandler);
+      contacts.ICEView.showICEList();
+    });
   }
 
   var isFavorite = function isFavorite(contact) {

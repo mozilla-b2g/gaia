@@ -576,3 +576,9 @@ html[dir="rtl"] ::-moz-placeholder {
 #groups-list.selecting #contact-list-ice {
   display:none;
 }
+
+#ice-list {
+  min-height: 100%;
+  background: #FFF;
+  text-align: left;
+}
