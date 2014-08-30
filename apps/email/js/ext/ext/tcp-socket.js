@@ -52,6 +52,7 @@ define(function(require, exports, module) {
 
   var router = require('worker-router');
   var routerMaker = router.registerInstanceType('netsocket');
+  var DisasterRecovery = require('disaster-recovery');
 
   function TCPSocketProxy(host, port, options) {
     options = options || {};
@@ -73,7 +74,9 @@ define(function(require, exports, module) {
       // Allow this class to update internal state first:
       internalHandler && internalHandler.call(this, data.args);
       // Then, emulate the real TCP socket events (vaguely):
-      externalHandler && externalHandler.call(this, { data: data.args });
+      DisasterRecovery.catchSocketExceptions(this, function() {
+        externalHandler && externalHandler.call(this, { data: data.args });
+      });
     }.bind(this));
 
     this._sendMessage = routerInfo.sendMessage;

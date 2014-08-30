@@ -1,8 +1,5 @@
 /**
- * slog: Structured Logging (WIP/Exploratory). I (:mcav) don't care
- * about the name, I just wanted something short that I could
- * regex-replace later when we combine this with :asuth's similar
- * exploratory work.
+ * slog: Structured Logging (WIP/Exploratory)
  *
  * A precursor to the future described in <https://bugzil.la/976850>;
  * WIP and intended to be exploratory as we figure out how to actually
@@ -19,7 +16,7 @@
  * - Private keys (right now, those with an underscore, but welcome to
  *   change) are hidden from the JSON representation by default,
  *   unless super-secret debug mode is enabled.
- * 
+ *
  * Usage:
  *
  *   slog.log('imap:error', {
@@ -27,9 +24,25 @@
  *     _pass: 'bar' // Private, due to the underscore.
  *   });
  *
- * The LogChecker for unit tests allows you to assert on logged
- * events. Presently it hooks in with a lazyLogger; in the future it
- * (and these structured logs) would be hooked directly into ArbPL:
+ * The LogChecker for unit tests allows you to assert on logged events or that
+ * events should not be logged.  Things are a little hacky right now.
+ *
+ * Current each LogChecker uses one lazyLogger to track the things that must be
+ * logged and one lazyLogger to track the things that must not be logged.
+ *
+ * The "must" subscribes to logs with that name type until all of its "musts"
+ * have been resolved, then it unsubscribes.  There is currently no way to
+ * express that after those things are logged that we should never see any
+ * more logs of that type.  (But based on the lazyLogger semantics if we
+ * didn't remove our event listener, it would do what we want.)
+ *
+ * The "must not" creates a lazy logger that is supposed to expect nothing
+ * to be logged and subscribes to that log type, logging it if it sees it.
+ *
+ * Sequence-wise, each LogChecker expects everything it is told to happen
+ * sequentially.  If you don't want this requirement enforced, then use
+ * separate LogChecker instances, one for each sequential thread of execution
+ * you want.
  *
  *   var log = new LogChecker(T, RT);
  *   log.mustLog('imap:error', function(details) {
@@ -48,10 +61,16 @@ define('slog', function(require, exports, module) {
 
   var logEmitter = new evt.Emitter();
 
-  var LogChecker = exports.LogChecker = function(T, RT) {
+  exports.resetEmitter = function() {
+    logEmitter = new evt.Emitter();
+  };
+
+  var LogChecker = exports.LogChecker = function(T, RT, name) {
     this.T = T;
     this.RT = RT;
-    this.eLazy = T.lazyLogger('slog');
+    this.eLazy = this.T.lazyLogger(name);
+    this.eNotLogLazy = null;
+    this._subscribedTo = {};
   };
 
   /**
@@ -61,12 +80,68 @@ define('slog', function(require, exports, module) {
    * @param {String} name
    * @param {function(details) => boolean} [predicate]
    *   Optional predicate; called with the 'details' (second argument)
-   *   of the slog.log() call. Return true if the log matched.
+   *   of the slog.log() call. Return true if the log matched.  Alternately,
+   *   if this is an object, we will use the loggest nested equivalence
+   *   checking logic.
    */
   LogChecker.prototype.mustLog = function(name, /* optional */ predicate) {
-    this.RT.reportActiveActorThisStep(this.eLazy);
-    var successDesc = predicate && predicate.toString() || 'ok';
-    this.eLazy.expect_namedValue(name, true);
+    var eLazy = this.eLazy;
+
+    var queued = this._subscribedTo[name];
+    if (queued === undefined) {
+      queued = this._subscribedTo[name] = [];
+      logEmitter.on(name, function(details) {
+        var predicate = queued.shift();
+        try {
+          if (predicate === null) {
+            eLazy.namedValue(name, details);
+          } else {
+            var result = true;
+            if (predicate) {
+              result = predicate(details);
+            }
+            eLazy.namedValueD(name, result, details);
+          }
+        } catch(e) {
+          console.error('Exception running LogChecker predicate:', e);
+        }
+        // When we run out of things that must be logged, stop listening.
+        if (queued.length === 0) {
+          logEmitter.removeListener(name);
+        }
+      });
+    }
+
+    this.RT.reportActiveActorThisStep(eLazy);
+    if (typeof(predicate) === 'object') {
+      // If it's an object, just expect that as the payload
+      eLazy.expect_namedValue(name, predicate);
+      queued.push(null);
+    } else {
+      // But for a predicate (or omitted predicate), expect it to return
+      // true.  But also pass the value through as a detail
+      eLazy.expect_namedValueD(name, true);
+      queued.push(predicate);
+    }
+  };
+
+  /**
+   * Assert that a log with the given name, and optionally matching
+   * the given predicate function, is NOT logged during this test
+   * step. This is the inverse of `mustLog`.
+   *
+   * @param {String} name
+   * @param {function(details) => boolean} [predicate]
+   *   Optional predicate; called with the 'details' (second argument)
+   *   of the slog.log() call. Return true if the log matched.
+   */
+  LogChecker.prototype.mustNotLog = function(name, /* optional */ predicate) {
+    var notLogLazy = this.eNotLogLazy;
+    if (!notLogLazy) {
+      notLogLazy = this.eNotLogLazy = this.T.lazyLogger('slog');
+    }
+    this.RT.reportActiveActorThisStep(notLogLazy);
+    notLogLazy.expectNothing();
 
     logEmitter.once(name, function(details) {
       try {
@@ -74,7 +149,7 @@ define('slog', function(require, exports, module) {
         if (predicate) {
           result = predicate(details);
         }
-        this.eLazy.namedValue(name, result);
+        notLogLazy.namedValue(name, JSON.stringify(details));
       } catch(e) {
         console.error('Exception running LogChecker predicate:', e);
       }

@@ -1,4 +1,8 @@
-define(['slog', './client'], function(slog, client) {
+define(function(require) {
+
+var slog = require('slog');
+var client = require('./client');
+var DisasterRecovery = require('../disaster-recovery');
 
 function SmtpAccount(universe, compositeAccount, accountId, credentials,
                      connInfo) {
@@ -212,6 +216,7 @@ SmtpAccount.prototype = {
     client.createSmtpConnection(this.credentials, this.connInfo)
       .then(function(newConn) {
         conn = newConn;
+        DisasterRecovery.associateSocketWithAccount(conn.socket, this);
         this._activeConnections.push(conn);
 
         // Intercept the 'ondrain' event, which is as close as we can

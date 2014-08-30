@@ -1,14 +1,6 @@
-/**
- *
- **/
+define(function(require, exports) {
 
-define(
-  [
-    'exports'
-  ],
-  function(
-    exports
-  ) {
+var DisasterRecovery = require('./disaster-recovery');
 
 /**
  * The no-op operation for job operations that are not implemented.
@@ -78,7 +70,7 @@ exports.runOp = function runOp(op, mode, callback) {
   console.log('runOp(' + mode + ': ' + JSON.stringify(op).substring(0, 160) +
               ')');
 
-  var methodName = mode + '_' + op.type, self = this;
+  var methodName = mode + '_' + op.type;
 
   // If the job driver doesn't support the operation, assume that it
   // is a moot operation that will succeed. Assign it a no-op callback
@@ -89,23 +81,39 @@ exports.runOp = function runOp(op, mode, callback) {
     method = unimplementedJobOperation;
   }
 
+  var alreadyCompleted = false;
+
+  var jobCompletedCallback = function(error, resultIfAny, accountSaveSuggested) {
+    // If DisasterRecovery already called the completion callback due
+    // to an unforeseen error, ensure that we don't try to
+    // double-resolve this job.
+    if (alreadyCompleted) {
+      console.warn('Job already completed, ignoring secondary completion:',
+                   mode, JSON.stringify(op).substring(0, 160), error, resultIfAny);
+      return;
+    }
+    alreadyCompleted = true;
+
+    DisasterRecovery.clearCurrentAccountOp(this);
+    this._jobDriver.postJobCleanup(error);
+    console.log('runOp_end(' + mode + ': ' +
+                JSON.stringify(op).substring(0, 160) + ')\n');
+    this._LOG.runOp_end(mode, op.type, error, op);
+    // defer the callback to the next tick to avoid deep recursion
+    window.setZeroTimeout(function() {
+      callback(error, resultIfAny, accountSaveSuggested);
+    });
+  }.bind(this);
+
+  DisasterRecovery.setCurrentAccountOp(this, op, jobCompletedCallback);
   this._LOG.runOp_begin(mode, op.type, null, op);
   // _LOG supports wrapping calls, but we want to be able to strip out all
   // logging, and that wouldn't work.
   try {
-    method.call(this._jobDriver, op,
-    function(error, resultIfAny, accountSaveSuggested) {
-      self._jobDriver.postJobCleanup(!error);
-      console.log('runOp_end(' + mode + ': ' +
-                  JSON.stringify(op).substring(0, 160) + ')\n');
-      self._LOG.runOp_end(mode, op.type, error, op);
-      // defer the callback to the next tick to avoid deep recursion
-      window.setZeroTimeout(function() {
-        callback(error, resultIfAny, accountSaveSuggested);
-      });
-    });
+    method.call(this._jobDriver, op, jobCompletedCallback);
   }
   catch (ex) {
+    DisasterRecovery.clearCurrentAccountOp(this);
     this._LOG.opError(mode, op.type, ex);
   }
 };
