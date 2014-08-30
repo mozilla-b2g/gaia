@@ -3,13 +3,15 @@
 /* global CallHandler, KeypadManager, MockNavigatorMozTelephony, MocksHelper,
           Promise */
 require('/test/unit/mock_keypad.js');
+require('/test/unit/mock_ice_contacts.js');
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 
 require('/js/dialer.js');
 
 var mocksHelperForDialer = new MocksHelper([
-  'KeypadManager'
+  'KeypadManager',
+  'ICEContacts'
 ]).init();
 
 suite('Emergency Dialer', function() {

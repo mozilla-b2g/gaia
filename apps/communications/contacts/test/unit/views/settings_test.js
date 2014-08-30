@@ -31,7 +31,7 @@ requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
 requireApp('communications/contacts/test/unit/mock_sdcard.js');
 requireApp('communications/contacts/test/unit/mock_icc_helper.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
-requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/js/utilities/icc_handler.js');
 requireApp('communications/contacts/js/utilities/sim_dom_generator.js');
@@ -403,7 +403,7 @@ suite('Contacts settings >', function() {
 
       require('/shared/js/l10n_date.js');
       require('/shared/js/date_time_helper.js', done);
-      
+
     });
 
     suiteTeardown(function() {

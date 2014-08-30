@@ -2,7 +2,7 @@
 /* global SimContactsImporter */
 /* global MockMozContacts, MocksHelper, MockIccManager */
 
-require('/contacts/test/unit/mock_mozContacts.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_iccmanager.js');
 require('/shared/js/text_normalizer.js');
@@ -134,22 +134,22 @@ suite('Sim import >', function() {
 
     importer.start();
   });
-  
+
   test('Imported Contacts are saved with the iccManager provided id',
        function(done) {
     iccManager.adnContacts = [mRequestResult.adn[0]];
-    
+
     var realMozContact = window.mozContact;
-    
+
     window.mozContact = function(contact) {
       assert.equal(contact.id, mRequestResult.adn[0].id);
     };
-    
+
     importer.onfinish = function() {
       window.mozContact = realMozContact;
       done();
     };
-    
+
     importer.start();
   });
 });

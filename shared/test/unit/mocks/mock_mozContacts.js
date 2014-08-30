@@ -9,25 +9,45 @@ function MockMozContactsObj(contacts) {
 MockMozContactsObj.prototype = {
   limit: 20,
 
-  _getRequest: function(result) {
-    function Req(result) {
+  _getRequest: function(options) {
+    var that = this;
+    function Req(options) {
       var self = this;
       Object.defineProperty(self, 'onsuccess', { set: function(cb) {
-        self.result = result;
-        cb({ target: self });
+        if (options.type === 'find') {
+          if (options.data.filterBy &&
+            options.data.filterBy.indexOf('id') !== -1) {
+            for (var i = 0; i < that.contacts.length; i++) {
+              if (options.data.filterValue === that.contacts[i].id) {
+                self.result = [that.contacts[i]];
+              }
+            }
+          } else {
+            self.result = that.contacts;
+          }
+        } else {
+          self.result = options.data;
+        }
+        cb.call(self, { target: self });
       }});
     }
-    return new Req(result);
+    return new Req(options);
   },
-  find: function find(aOptions) {
-    return this._getRequest(this.contacts);
+  find: function find(filter) {
+    return this._getRequest({
+      type: 'find',
+      data: filter
+    });
   },
   total: 0,
   set number(n) {
     this.total = n;
   },
   getCount: function() {
-    return this._getRequest(MockMozContacts.total);
+    return this._getRequest({
+      type: 'count',
+      data: MockMozContacts.total
+    });
   },
   getAll: function getAll() {
     return {
@@ -65,6 +85,7 @@ MockMozContactsObj.prototype = {
     };
   },
   save: function save(ct) {
+    ct.id = this.contacts.length;
     this.contacts.push(ct);
     return {
       set onsuccess(callback) {
@@ -86,7 +107,7 @@ MockMozContactsObj.prototype = {
     this.contacts = contacts;
   },
 
-    remove: function remove(ct) {
+  remove: function remove(ct) {
     var contactsIndex = this.contacts.indexOf(ct);
     if (contactsIndex > -1) {
       this.contacts.splice(contactsIndex, 1);
@@ -103,6 +124,10 @@ MockMozContactsObj.prototype = {
 
       }
     };
+  },
+
+  clear: function clear() {
+    this.contacts.splice(0, this.contacts.length);
   }
 };
 
