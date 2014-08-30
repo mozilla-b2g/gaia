@@ -258,6 +258,8 @@ var StatusBar = {
 
     this.systemDownloadsCount = 0;
     this.setActive(true);
+
+    UtilityTray.init();
   },
 
   handleEvent: function sb_handleEvent(evt) {
@@ -1525,6 +1527,5 @@ if (navigator.mozL10n) {
     // The utility tray and the status bar share event handling
     // for the top-panel, initialization order matters.
     StatusBar.init();
-    UtilityTray.init();
   });
 }
