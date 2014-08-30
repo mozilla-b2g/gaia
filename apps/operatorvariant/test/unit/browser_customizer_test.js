@@ -6,18 +6,20 @@
 requireApp('operatorvariant/js/customizers/customizer.js');
 requireApp('operatorvariant/js/customizers/browser_customizer.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
-require('/shared/js/browser_database.js');
+require('/shared/js/bookmarks_database.js');
 
 suite('BrowserCustomizer >', function() {
   var realDatastore = null,
       url = 'http://mozilla.org',
       name = 'mozilla',
       data = {
-        browser: [ {
-          id: '0',
-          uri: url,
-          title: name
+        browser: {
+          bookmarks: [ {
+            id: '0',
+            uri: url,
+            title: name
           }]
+        }
       };
 
   suiteSetup(function() {
