@@ -34,7 +34,8 @@ var OperatorVariantManager = {
     '/js/customizers/search_customizer.js',
     '/js/customizers/default_search_customizer.js',
     '/js/customizers/topsites_customizer.js',
-    '/js/customizers/data_roaming_customizer.js'
+    '/js/customizers/data_roaming_customizer.js',
+    '/js/customizers/browser_customizer.js'
   ],
 
   init: function ovm_init() {
