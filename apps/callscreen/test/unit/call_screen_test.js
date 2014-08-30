@@ -1,4 +1,4 @@
-/* globals CallScreen, FontSizeManager, MockCallsHandler, MockLazyL10n,
+/* globals CallScreen, FontSizeManager, MockCallsHandler, Utils,
            MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
            MockMozL10n, MocksHelper, MockSettingsListener */
 
@@ -10,6 +10,7 @@ require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
+require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/lockscreen_connection_info_manager.js');
 
@@ -17,7 +18,8 @@ var mocksHelperForCallScreen = new MocksHelper([
   'CallsHandler',
   'MozActivity',
   'LazyL10n',
-  'FontSizeManager'
+  'FontSizeManager',
+  'Utils'
 ]).init();
 
 // The CallScreen binds stuff when evaluated so we load it
@@ -922,12 +924,9 @@ suite('call screen', function() {
     });
 
     test('createTicker should update timer every second', function() {
+      this.sinon.spy(Utils, 'prettyDuration');
       this.sinon.clock.tick(1000);
-      assert.deepEqual(MockLazyL10n.keys.callDurationMinutes, {
-        h: '00',
-        m: '00',
-        s: '01'
-      });
+      sinon.assert.calledWith(Utils.prettyDuration, 1000);
     });
 
     test('stopTicker should stop counter on durationNode', function() {
