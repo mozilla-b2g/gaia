@@ -87,10 +87,15 @@
 
   function onLoad(access_token) {
     utils.listeners.add({
-      '#import-close': importer.ui.end,
       '#import-action': importer.ui.importAll,
       '#done-search': contacts.Search.exitSearchMode,
       '#groups-list': importer.ui.selection,
+      '#header': [
+        {
+          event: 'action',
+          handler: importer.ui.end
+        }
+      ],
       '#search-start': [
         {
           event: 'click',
