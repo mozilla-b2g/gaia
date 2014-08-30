@@ -18,6 +18,10 @@ Day.prototype = {
     return this.findElement('section[data-date].active');
   },
 
+  get sideBarHours() {
+    return this.dayEventsWrapper.findElements('.hour .display-hour');
+  },
+
   get events() {
     return this.activeDay.findElements('.event').map(function(el) {
       return new DayEvent(this.client, el);

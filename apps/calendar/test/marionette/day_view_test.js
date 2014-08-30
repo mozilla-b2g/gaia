@@ -290,4 +290,33 @@ marionette('day view', function() {
       );
     });
   });
+
+  suite('12/24 hour format', function() {
+    test('default format: 12 hour', function() {
+      assert.equal(day.sideBarHours[0].text(), '12 AM');
+      assert.equal(day.sideBarHours[13].text(), '1 PM');
+      assert.equal(day.sideBarHours[23].text(), '11 PM');
+
+      var now = new Date();
+      var minutes = now.getMinutes();
+      minutes = minutes < 10 ? (0 + String(minutes)) : minutes;
+      var currentTime = (now.getHours() % 12) + ':' + minutes;
+      assert.equal(day.currentTime.text(), currentTime);
+    });
+
+    test('switch to 24 hour format', function() {
+      app.switch24HourTimeFormat();
+      assert.equal(day.sideBarHours[0].text(), '0');
+      assert.equal(day.sideBarHours[13].text(), '13');
+      assert.equal(day.sideBarHours[23].text(), '23');
+
+      var now = new Date();
+      var currentTime = pad(now.getHours()) + ':' + pad(now.getMinutes());
+      assert.equal(day.currentTime.text(), currentTime);
+    });
+  });
+
+  function pad(n) {
+    return n < 10 ? '0' + n : String(n);
+  }
 });

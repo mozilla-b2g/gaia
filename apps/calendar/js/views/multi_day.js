@@ -6,8 +6,8 @@ var Pan = Calendar.Views.Pan;
 var SingleDay = Calendar.Views.SingleDay;
 var Timespan = Calendar.Timespan;
 var View = Calendar.View;
+var DateSpan = Calendar.Templates.DateSpan;
 var createDay = Calendar.Calc.createDay;
-var localeFormat = Calendar.App.dateFormat.localeFormat;
 var throttle = Calendar.Utils.mout.throttle;
 
 function MultiDay(opts) {
@@ -132,21 +132,13 @@ MultiDay.prototype = {
   _createHour: function(hour) {
     var el = document.createElement('li');
     el.className = 'hour hour-' + hour;
-    el.innerHTML = '<span class="display-hour">' +
-      this._formatDisplayHour(hour) + '</span>';
+    el.innerHTML = DateSpan.hour.render({
+      hour: hour,
+      format: 'week-hour-format',
+      addAmPmClass: true,
+      className: 'display-hour'
+    });
     return el;
-  },
-
-  _formatDisplayHour: function(hour) {
-    var date = new Date();
-    date.setHours(hour, 0, 0, 0);
-    // we wrap the am/pm with JS because this keeps the locale file simpler and
-    // increases the flexibility.
-    // https://developer.mozilla.org/en-US/docs/Mozilla/Localization/Localization_best_practices#Avoid_unnecessary_complexity_in_strings
-    var format = navigator.mozL10n.get('hour-format')
-      .replace(/\s*%p\s*/, '<span class="ampm">%p</span>');
-    // remove leading zero
-    return localeFormat(date, format).replace(/^0/, '');
   },
 
   _setupCurrentTime: function() {

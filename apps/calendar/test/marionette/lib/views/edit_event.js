@@ -73,12 +73,20 @@ EditEvent.prototype = {
     return this.getFormValue('startTime');
   },
 
+  get startTimeLocale() {
+    return this.findElement('#start-time-locale');
+  },
+
   set endDate(value) {
     this.setFormValue('endDate', value);
   },
 
   get endDate() {
     return this.getFormValue('endDate');
+  },
+
+  get endTimeLocale() {
+    return this.findElement('#end-time-locale');
   },
 
   set endTime(value) {

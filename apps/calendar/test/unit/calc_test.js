@@ -68,38 +68,6 @@ suite('calendar/calc', function() {
 
   });
 
-  suite('#formatHour', function() {
-    var realDateFormat;
-    var fmt;
-
-    suiteSetup(function() {
-      realDateFormat = Calendar.App.dateFormat;
-      fmt = navigator.mozL10n.DateTimeFormat();
-      Calendar.App.dateFormat = fmt;
-    });
-
-    suiteTeardown(function() {
-      Calendar.App.dateFormat = realDateFormat;
-    });
-
-/*
-// These tests are currently failing and have been temporarily disabled as per
-// Bug 838993. They should be fixed and re-enabled as soon as possible as per
-// Bug 840489.
-// These test appear to make incorrect assumptions about localization details
-// (they do not fail on systems configured for US English).
-    test('7 hours', function() {
-      var result = subject.formatHour(7);
-      assert.equal(result, '7 AM');
-    });
-
-    test('23 hours', function() {
-      var result = subject.formatHour(23);
-      assert.equal(result, '11 PM');
-    });
-*/
-  });
-
   test('#dayOfWeekFromSunday', function() {
     var expected = [
       ['sun', 0, 0],
