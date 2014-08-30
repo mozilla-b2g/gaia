@@ -1,4 +1,5 @@
 /*jshint loopfunc: true */
+/* global uuid */
 Calendar.Db = (function() {
 'use strict';
 
@@ -7,9 +8,10 @@ Calendar.Db = (function() {
  */
 /*var Account = Calendar.Models.Account;*/
 /*var Presets = Calendar.Presets;*/
-var Provider = Calendar.Provider;
+/*var Provider = Calendar.Provider;*/
 var Responder = Calendar.Responder;
-var Store = Calendar.Store;
+/*var Store = Calendar.Store;*/
+var debug = Calendar.debug('Db');
 var nextTick = Calendar.nextTick;
 var probablyParseInt = Calendar.probablyParseInt;
 
@@ -46,8 +48,9 @@ Db.prototype = {
   getStore: function(name) {
     if (!(name in this._stores)) {
       try {
-        this._stores[name] = new Store[name](this);
+        this._stores[name] = new Calendar.Store[name](this);
       } catch (e) {
+        console.log('Error', e.name, e.message);
         console.log('Failed to load store', name, e.stack);
       }
     }
@@ -56,6 +59,7 @@ Db.prototype = {
   },
 
   load: function(callback) {
+    debug('Will load b2g-calendar db.');
 
     var self = this;
     function setupDefaults() {
@@ -70,11 +74,7 @@ Db.prototype = {
       return setupDefaults();
     }
 
-    if (!this.isOpen) {
-      this.open(VERSION, function() {
-        setupDefaults();
-      }.bind(this));
-    }
+    this.open(VERSION, setupDefaults);
   },
 
 
@@ -413,6 +413,7 @@ Db.prototype = {
    * Setup default values for initial calendar load.
    */
   _setupDefaults: function(callback) {
+    debug('Will setup defaults.');
     var calendarStore = this.getStore('Calendar');
     var accountStore = this.getStore('Account');
 
@@ -431,14 +432,16 @@ Db.prototype = {
       });
     }
 
-    var account = new Calendar.Models.Account(Calendar.Presets.local.options);
+    var options = Calendar.Presets.local.options;
+    debug('Creating local calendar with options:', options);
+    var account = new Calendar.Models.Account(options);
     account.preset = 'local';
     account._id = uuid();
 
     var calendar = {
-      _id: Provider.Local.calendarId,
+      _id: Calendar.Provider.Local.calendarId,
       accountId: account._id,
-      remote: Provider.Local.defaultCalendar()
+      remote: Calendar.Provider.Local.defaultCalendar()
     };
 
     accountStore.persist(account, trans);

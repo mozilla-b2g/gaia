@@ -14,6 +14,7 @@
     Calendar.Promise.denodeifyAll(this, [
       'persist',
       'all',
+      '_allCached',
       'removeByIndex',
       'get',
       'remove',

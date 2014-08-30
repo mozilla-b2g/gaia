@@ -383,7 +383,6 @@ exports.dateFromId = function(id) {
         break;
       case 'm':
         date = new Date(parts[0], parts[1]);
->>>>>>> Calendar modularization part 2 r=millermedeiros
         break;
     }
   }

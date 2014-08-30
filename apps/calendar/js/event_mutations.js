@@ -1,3 +1,4 @@
+/* global uuid */
 /**
  * EventMutations are a simple wrapper for a
  * set of idb transactions that span multiple

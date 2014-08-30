@@ -1,3 +1,4 @@
+/* global LazyLoader */
 (function(exports) {
 'use strict';
 

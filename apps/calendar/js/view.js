@@ -221,8 +221,7 @@ View.prototype = {
       this.hideErrors();
     }
 
-    //seen can be set to anything other
-    //then false to override this behaviour
+    // seen can be set to anything other than false to override this behaviour
     if (this.seen === false) {
       this.onfirstseen();
     }
@@ -249,4 +248,4 @@ View.prototype = {
 
 return View;
 
-}(Calendar));
+}());

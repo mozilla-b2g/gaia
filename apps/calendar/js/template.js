@@ -24,7 +24,7 @@ function Template(fn) {
   this.template = fn;
 }
 
-Template.handlers = {
+Template.prototype = {
   arg: function(key) {
     if (typeof(this.data) === 'undefined') {
       return '';
@@ -72,18 +72,16 @@ Template.handlers = {
       value = prefix + value;
     }
     return navigator.mozL10n.get(value);
-  }
-};
+  },
 
-Template.prototype = {
   /**
    * Renders template with given slots.
    *
    * @param {Object} object key, value pairs for template.
    */
   render: function(data) {
-    Template.handlers.data = data;
-    return this.template.apply(Template.handlers);
+    this.data = data;
+    return this.template();
   },
 
   /**

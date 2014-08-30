@@ -1,3 +1,4 @@
+/* global Buffer */
 (function(exports) {
 'use strict';
 

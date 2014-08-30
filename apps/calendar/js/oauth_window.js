@@ -70,7 +70,7 @@ OAuthWindow.prototype = {
 
   selectors: {
     browserTitle: 'header > h1',
-    browerCancelButton: 'button.cancel',
+    browserCancelButton: 'button.cancel',
     browserContainer: '.browser-container'
   },
 
@@ -82,8 +82,8 @@ OAuthWindow.prototype = {
     return this._findElement('browserTitle', this.element);
   },
 
-  get browerCancelButton() {
-    return this._findElement('browerCancelButton', this.element);
+  get browserCancelButton() {
+    return this._findElement('browserCancelButton', this.element);
   },
 
   _handleFinalRedirect: function(url) {
@@ -137,7 +137,7 @@ OAuthWindow.prototype = {
     this.element.classList.add(View.ACTIVE);
 
     // handle cancel events
-    this.browerCancelButton.addEventListener(
+    this.browserCancelButton.addEventListener(
       'click', this._handleUserTriggeredClose
     );
 
@@ -162,7 +162,7 @@ OAuthWindow.prototype = {
       'mozbrowserlocationchange', this
     );
 
-    this.browerCancelButton.removeEventListener(
+    this.browserCancelButton.removeEventListener(
       'click', this._handleUserTriggeredClose
     );
 

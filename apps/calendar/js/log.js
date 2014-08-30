@@ -12,10 +12,7 @@ exports.debug = function(name) {
       return;
     }
 
-    var args = Array.prototype.slice.call(arguments);
-    args = args.map(function(item) {
-      return JSON.stringify(item);
-    });
+    var args = Array.prototype.slice.call(arguments).map(JSON.stringify);
     args.unshift('[calendar] ');
     args.unshift(name);
     console.log.apply(console, args);

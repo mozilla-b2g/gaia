@@ -1,20 +1,22 @@
-Calendar.App = (function() {
+/* global AccessibilityHelper, LazyLoader, NotAmd, page */
+Calendar.App = (function(window) {
 'use strict';
 
 /**
  * Module dependencies
  */
-var Controllers = Calendar.Controllers;
+var Controllers = Calendar.ns('Controllers');
 var DateL10n = Calendar.dateL10n;
 var Db = Calendar.Db;
-var LoadConfig = Calendar.LoadConfig;
+/*var LoadConfig = Calendar.LoadConfig;*/
 var PendingManager = Calendar.PendingManager;
-var Performance = Calendar.performance;
 var Provider = Calendar.Provider;
 var Router = Calendar.Router;
-/*var Views = Calendar.Views*;*/
+var Views = Calendar.ns('Views');
 var dayObserver = Calendar.dayObserver;
+var debug = Calendar.debug('App');
 var nextTick = Calendar.nextTick;
+var performance = Calendar.performance;
 
 /**
  * Focal point for state management
@@ -45,6 +47,7 @@ var App = {
    * using other methods.
    */
   configure: function(db, router) {
+    debug('Configure calendar with db and router.');
     this.db = db;
     this.router = router;
 
@@ -56,7 +59,7 @@ var App = {
     var self = this;
     this._pendingManager.oncomplete = function onpending() {
       document.body.classList.remove(self.pendingClass);
-      Performance.pendingReady();
+      performance.pendingReady();
     };
 
     this._pendingManager.onpending = function oncomplete() {
@@ -133,12 +136,12 @@ var App = {
   },
 
   loadObject: function initializeLoadObject(name, callback) {
-
     function loadObject(name, callback) {
       /*jshint validthis:true */
       this._loader.load('group', name, callback);
     }
 
+    debug('Queue load for', name);
     if (!this._pendingObjects) {
       this._pendingObjects = [[name, callback]];
     } else {
@@ -154,7 +157,7 @@ var App = {
     function next() {
       // initialize loader
       NotAmd.nextTick = nextTick;
-      self._loader = NotAmd(LoadConfig);
+      self._loader = NotAmd(Calendar.LoadConfig);
       self.loadObject = loadObject;
 
       // begin processing existing requests
@@ -233,7 +236,7 @@ var App = {
     // at this point the tabs should be interactive and the router ready to
     // handle the path changes (meaning the user can start interacting with
     // the app)
-    Performance.chromeInteractive();
+    performance.chromeInteractive();
 
     var pathname = window.location.pathname;
     // default view
@@ -281,13 +284,13 @@ var App = {
     this.timeController.move(new Date());
 
     this.view('TimeHeader', (header) => header.render());
-    this.view('CalendarColors', (colors) => color.render());
+    this.view('CalendarColors', (colors) => colors.render());
 
     document.body.classList.remove('loading');
 
     // at this point we remove the .loading class and user will see the main
     // app frame
-    Performance.domLoaded();
+    performance.domLoaded();
 
     this._routes();
 
@@ -328,6 +331,7 @@ var App = {
    * Primary code for app can go here.
    */
   init: function() {
+    debug('Will initialize calendar app.');
     var self = this;
     var pending = 2;
 
@@ -339,10 +343,7 @@ var App = {
     }
 
     if (!this.db) {
-      this.configure(
-        new Calendar.Db('b2g-calendar'),
-        new Calendar.Router(page)
-      );
+      this.configure(new Db('b2g-calendar'), new Router(page));
     }
 
     // start the workers
@@ -358,14 +359,15 @@ var App = {
    */
   provider: function(name) {
     if (!(name in this._providers)) {
-      this._providers[name] = new Calendar.Provider[name]({ app: this });
+      this._providers[name] = new Provider[name]({ app: this });
     }
 
     return this._providers[name];
   },
 
   _initView: function(name) {
-    this._views[name] = new Calendar.Views[name]({ app: this });
+    var view = new Views[name]({ app: this });
+    this._views[name] = view;
   },
 
   /**
@@ -392,16 +394,22 @@ var App = {
    */
   view: function(name, cb) {
     if (name in this._views) {
+      debug('Found view named ', name);
       var view = this._views[name];
-      return nextTick(() => cb && cb.call(this, view));
+      return cb && nextTick(() => cb.call(this, view));
     }
 
-    if (name in Calendar.Views) {
+    if (name in Views) {
+      debug('Must initialize view ', name);
       this._initView(name);
       return this.view(name, cb);
     }
 
-    this.loadObject('Views.' + name, () => this.view(name, cb));
+    debug('Will try to load view ', name);
+    this.loadObject('Views.' + name, () => {
+      debug('Loaded view', name);
+      return this.view(name, cb);
+    });
   },
 
   /**
@@ -437,11 +445,13 @@ window.addEventListener('moztimechange', function onMozTimeChange() {
   }, App._mozTimeRefreshTimeout);
 });
 
+debug('Will register load handler.');
 window.addEventListener('load', function onLoad() {
+  debug('Received load event.');
   window.removeEventListener('load', onLoad);
   App.init();
 });
 
 return App;
 
-}());
+}(this));

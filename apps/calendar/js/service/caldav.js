@@ -1,3 +1,4 @@
+/* global Caldav, ICAL, uuid */
 Calendar.ns('Service').Caldav = (function() {
   'use strict';
 
@@ -147,15 +148,20 @@ Calendar.ns('Service').Caldav = (function() {
 
     getAccount: function(account, callback) {
       var url = account.entrypoint;
+      debug('Fetching account from:', url);
+
       var connection = this._createConnection(account);
+      debug('Creating connection:', connection);
 
       var request = this._requestHome(connection, url);
+      debug('Will issue calendar home request.');
       return request.send(function(err, data) {
         if (err) {
-          callback(err);
-          return;
+          debug('Error sending home request:', err);
+          return callback(err);
         }
 
+        debug('Received data:', data);
         var result = {};
 
         if (data.url) {
@@ -638,14 +644,12 @@ Calendar.ns('Service').Caldav = (function() {
           var details = event.getOccurrenceDetails(next);
           var inFuture = details.endDate.compare(now);
 
-          if (Calendar.DEBUG) {
-            debug('alarm time',
-                  event.summary,
-                  'will add ' + String(inFuture),
-                  'start:', details.startDate.toJSDate().toString(),
-                  'end:', details.endDate.toJSDate().toString(),
-                  'now:', now.toJSDate().toString());
-          }
+          debug('alarm time',
+                event.summary,
+                'will add ' + String(inFuture),
+                'start:', details.startDate.toJSDate().toString(),
+                'end:', details.endDate.toJSDate().toString(),
+                'now:', now.toJSDate().toString());
 
           var occurrence = {
             start: self.formatICALTime(details.startDate),
