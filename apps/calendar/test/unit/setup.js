@@ -317,6 +317,15 @@
   requireApp('calendar/shared/js/lazy_loader.js');
 
   requireLib('calendar.js');
+  requireLib('log.js');
+  requireLib('ns.js');
+  requireLib('compare.js');
+  requireLib('date_l10n.js');
+  requireLib('next_tick.js');
+  requireLib('object.js');
+  requireLib('pending_manager.js');
+  requireLib('probably_parse_int.js');
+  requireLib('retry.js');
   requireLib('promise.js');
   requireLib('performance.js');
   requireLib('error.js');
