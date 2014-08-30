@@ -1442,7 +1442,7 @@ suite('system/Statusbar', function() {
         getTopMostWindow: function() {
           return app;
         },
-
+        config: {},
         _element: null,
         get element() {
           if (!this._element) {
