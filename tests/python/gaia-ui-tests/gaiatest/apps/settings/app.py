@@ -137,7 +137,9 @@ class Settings(Base):
     def open_language_settings(self):
         from gaiatest.apps.settings.regions.language import Language
         self._tap_menu_item(self._language_menu_item_locator)
-        return Language(self.marionette)
+        language_menu = Language(self.marionette)
+        language_menu.wait_for_languages_to_load()
+        return language_menu
 
     def open_do_not_track_settings(self):
         from gaiatest.apps.settings.regions.do_not_track import DoNotTrack
