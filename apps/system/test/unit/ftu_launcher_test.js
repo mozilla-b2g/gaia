@@ -38,7 +38,6 @@ suite('launch ftu >', function() {
         .mSettings['deviceinfo.previous_os'] = '1.4.1.whatever';
       function onOutcome(name) {
         assert.equal(name, 'launch', 'FtuLauncher.launch was called');
-        assert.isTrue(FtuLauncher.isFtuUpgrading());
         done();
       }
       this.sinon.stub(FtuLauncher, 'launch', function() {
@@ -55,7 +54,6 @@ suite('launch ftu >', function() {
         .mSettings['deviceinfo.previous_os'] = '2.0.1.whatever';
       function onOutcome(name) {
         assert.equal(name, 'launch', 'FtuLauncher.launch was called');
-        assert.isFalse(FtuLauncher.isFtuUpgrading());
         done();
       }
       this.sinon.stub(FtuLauncher, 'launch', function() {
@@ -72,7 +70,6 @@ suite('launch ftu >', function() {
         .mSettings['deviceinfo.previous_os'] = '2.0.1.whatever';
       function onOutcome(name) {
         assert.equal(name, 'skip', 'FtuLauncher.skip was called');
-        assert.isFalse(FtuLauncher.isFtuUpgrading());
         done();
       }
       this.sinon.stub(FtuLauncher, 'launch', function() {
@@ -89,7 +86,6 @@ suite('launch ftu >', function() {
         .mSettings['deviceinfo.previous_os'] = '1.4.1.whatever';
       function onOutcome(name) {
         assert.equal(name, 'launch', 'FtuLauncher.launch was called');
-        assert.isTrue(FtuLauncher.isFtuUpgrading());
         done();
       }
       this.sinon.stub(FtuLauncher, 'launch', function() {
@@ -117,7 +113,6 @@ suite('launch ftu >', function() {
     test(' upgrade tutorial launched', function(done) {
       function onOutcome(name) {
         assert.equal(name, 'launch', 'FtuLauncher.launch was called');
-        assert.isTrue(FtuLauncher.isFtuUpgrading());
         done();
       }
       this.sinon.stub(FtuLauncher, 'launch', function() {

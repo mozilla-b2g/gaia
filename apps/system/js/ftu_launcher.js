@@ -1,5 +1,4 @@
 'use strict';
-/* globals applications, VersionHelper, dump, FtuPing */
 /* This module deals with FTU stuff.
    FTU is known as First Time Usage,
    which is the first app the users would use, to configure their phone. */
@@ -26,10 +25,6 @@ var FtuLauncher = {
     return this._isRunningFirstTime;
   },
 
-  isFtuUpgrading: function fl_isFtuUpgrading() {
-    return this._isUpgrading;
-  },
-
   getFtuOrigin: function fl_getFtuOrigin() {
     return this._ftuOrigin;
   },
@@ -43,6 +38,8 @@ var FtuLauncher = {
   },
 
   init: function fl_init() {
+    var self = this;
+
     // We have to block home/holdhome event if FTU is first time running.
     // Note: FTU could be launched from Settings app too.
     // We don't want to block home/holdhome in that case.
@@ -116,7 +113,6 @@ var FtuLauncher = {
 
   close: function fl_close() {
     this._isRunningFirstTime = false;
-    this._isUpgrading = false;
     window.asyncStorage.setItem('ftu.enabled', false);
     // update the previous_os setting (asyn)
     // so we dont try and handle upgrade again
@@ -162,7 +158,6 @@ var FtuLauncher = {
 
   skip: function fl_skip() {
     this._isRunningFirstTime = false;
-    this._isUpgrading = false;
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('ftuskip',
       /* canBubble */ true, /* cancelable */ false, {});
@@ -183,11 +178,9 @@ var FtuLauncher = {
     // launch FTU when a version upgrade is detected
     VersionHelper.getVersionInfo().then(function(versionInfo) {
       if (versionInfo.isUpgrade()) {
-        self._isUpgrading = true;
         self.launch();
       } else {
         window.asyncStorage.getItem('ftu.enabled', function getItem(shouldFTU) {
-          self._isUpgrading = false;
           // launch full FTU when enabled
           if (shouldFTU !== false) {
             self.launch();

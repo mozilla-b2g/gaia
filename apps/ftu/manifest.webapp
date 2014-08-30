@@ -3,6 +3,7 @@
   "description": "First Time Experience",
   "type": "certified",
   "launch_path": "/index.html",
+  "fullscreen": "true",
   "role": "system",
 
   "developer": {

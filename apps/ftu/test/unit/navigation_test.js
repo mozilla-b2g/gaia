@@ -3,7 +3,6 @@
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_icc_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
 requireApp('ftu/js/external_links.js');
 requireApp('ftu/js/navigation.js');
@@ -42,7 +41,6 @@ suite('navigation >', function() {
   var realOnLine,
       realL10n,
       realMozMobileConnections,
-      realMozApps,
       realSettings,
       realHTML;
 
@@ -72,9 +70,6 @@ suite('navigation >', function() {
       set: setNavigatorOnLine
     });
     MockIccHelper.setProperty('cardState', 'ready');
-
-    realMozApps = navigator.mozApps;
-    navigator.mozApps = MockNavigatormozApps;
   });
 
   suiteTeardown(function() {
@@ -112,7 +107,6 @@ suite('navigation >', function() {
   // Navigation.init needs the mocks
   setup(function() {
     Navigation.init();
-    this.sinon.stub(Navigation, 'postStepMessage');
   });
 
   teardown(function() {
@@ -133,7 +127,6 @@ suite('navigation >', function() {
       assert.equal(Navigation.previousStep, i);
       assert.equal(Navigation.currentStep, (i + 1));
       assert.equal(window.location.hash, steps[(i + 1)].hash);
-      assert.isTrue(Navigation.postStepMessage.calledWith(i));
     }
   });
 
@@ -164,8 +157,6 @@ suite('navigation >', function() {
     assert.equal(Navigation.previousStep, 3);
     assert.equal(Navigation.currentStep, 5);
     assert.equal(window.location.hash, steps[5].hash);
-    // Make sure we posted both steps.
-    assert.isTrue(Navigation.postStepMessage.callCount > 1);
 
     UIManager.timeZoneNeedsConfirmation = oldTimeZoneNeedsConfirmation;
   });

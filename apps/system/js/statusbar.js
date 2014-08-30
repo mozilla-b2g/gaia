@@ -93,28 +93,6 @@ var StatusBar = {
     '1xrtt': true, 'is95a': true, 'is95b': true  // data call or voice call
   },
 
-  /* Settings to listen on for changes to statusbar icons. */
-  settings: {
-    'ril.radio.disabled': ['signal', 'data'],
-    'airplaneMode.status': ['flightMode'],
-    'ril.data.enabled': ['data'],
-    'wifi.enabled': ['wifi'],
-    'bluetooth.enabled': ['bluetooth'],
-    'tethering.usb.enabled': ['tethering'],
-    'tethering.wifi.enabled': ['tethering'],
-    'tethering.wifi.connectedClients': ['tethering'],
-    'tethering.usb.connectedClients': ['tethering'],
-    'audio.volume.notification': ['mute'],
-    'alarm.enabled': ['alarm'],
-    'vibration.enabled': ['vibration'],
-    'ril.cf.enabled': ['callForwarding'],
-    'operatorResources.data.icon': ['iconData'],
-    'statusbar.network-activity.disabled': ['networkActivity']
-  },
-
-  /* Track which settings are observed, so we don't add multiple listeners. */
-  observedSettings: {},
-
   geolocationActive: false,
   geolocationTimer: null,
 
@@ -162,41 +140,40 @@ var StatusBar = {
 
     this.listeningCallschanged = false;
 
-    window.addEventListener('ftudone', this);
-    window.addEventListener('ftuskip', this);
-    window.addEventListener('ftuopen', this);
-  },
-
-  addSettingsListener: function sb_addSettingsListener(settingKey) {
-    // Don't add observer if setting is already observered.
-    if (this.observedSettings[settingKey]) {
-      return;
-    }
-    this.observedSettings[settingKey] = true;
-
-    SettingsListener.observe(settingKey, false,
-      (value) => {
-        this.settingValues[settingKey] = value;
-        this.settings[settingKey].forEach(
-          (name) => this.update[name].call(this)
-        );
-      }
-    );
-    this.settingValues[settingKey] = false;
-  },
-
-  /**
-   * Finish all initializing statusbar event handlers
-   */
-  finishInit: function() {
-    this.createConnectionsElements();
-    this.createCallForwardingsElements();
-
     // Refresh the time to reflect locale changes
     this.toggleTimeLabel(true);
 
-    for (var key in this.settings) {
-      this.addSettingsListener(key);
+    var settings = {
+      'ril.radio.disabled': ['signal', 'data'],
+      'airplaneMode.status': ['flightMode'],
+      'ril.data.enabled': ['data'],
+      'wifi.enabled': ['wifi'],
+      'bluetooth.enabled': ['bluetooth'],
+      'tethering.usb.enabled': ['tethering'],
+      'tethering.wifi.enabled': ['tethering'],
+      'tethering.wifi.connectedClients': ['tethering'],
+      'tethering.usb.connectedClients': ['tethering'],
+      'audio.volume.notification': ['mute'],
+      'alarm.enabled': ['alarm'],
+      'vibration.enabled': ['vibration'],
+      'ril.cf.enabled': ['callForwarding'],
+      'operatorResources.data.icon': ['iconData'],
+      'statusbar.network-activity.disabled': ['networkActivity']
+    };
+
+    var setSettingsListener = (settingKey) => {
+      SettingsListener.observe(settingKey, false,
+        (value) => {
+          this.settingValues[settingKey] = value;
+          settings[settingKey].forEach(
+            (name) => this.update[name].call(this)
+          );
+        }
+      );
+      this.settingValues[settingKey] = false;
+    };
+    for (var key in settings) {
+      setSettingsListener(key);
     }
     // Listen to events from attention_window
     window.addEventListener('attentionopened', this);
@@ -399,34 +376,6 @@ var StatusBar = {
       case 'moznetworkupload':
       case 'moznetworkdownload':
         this.update.networkActivity.call(this);
-        break;
-
-      case 'ftuopen':
-        // If we are upgrading, we can show all the icons.
-        if (FtuLauncher.isFtuUpgrading()) {
-          this.finishInit();
-        } else {
-          // When first launching FTU, only show battery icon
-          // and listen for iac step events to show more icons.
-          this.setActiveBattery(true);
-          this._updateIconVisibility();
-          window.addEventListener('iac-ftucomms', this);
-        }
-        break;
-
-      case 'ftudone':
-        window.removeEventListener('iac-ftucomms', this);
-        this.finishInit();
-        break;
-
-      case 'ftuskip':
-        this.finishInit();
-        break;
-
-      case 'iac-ftucomms':
-        if (evt.detail.type === 'step') {
-          this.handleFtuStep(evt.detail.hash);
-        }
         break;
 
       case 'wheel':
@@ -670,38 +619,20 @@ var StatusBar = {
     window.addEventListener('touchstart', closeOnTap);
   },
 
-  /**
-   * Show pertinent statusbar icons as we recieve FTU step events.
-   */
-  handleFtuStep: function sb_handleFtuStep(stepHash) {
-    switch (stepHash) {
-      case '#data_3g':
-        this.createConnectionsElements();
-        this.addSettingsListener('ril.data.enabled');
-        this._updateIconVisibility();
-        break;
-
-      case '#wifi':
-        this.setActiveWifi(true);
-        this.addSettingsListener('wifi.enabled');
-        this._updateIconVisibility();
-        break;
-
-      case '#date_and_time':
-        this.toggleTimeLabel(true);
-        this._updateIconVisibility();
-        break;
-    }
-  },
-
   setActive: function sb_setActive(active) {
     var self = this,
+        battery,
         conns;
     this.active = active;
-
-    this.setActiveBattery(active);
-
     if (active) {
+      battery = window.navigator.battery;
+      if (battery) {
+        battery.addEventListener('chargingchange', this);
+        battery.addEventListener('levelchange', this);
+        battery.addEventListener('statuschange', this);
+        this.update.battery.call(this);
+      }
+
       conns = window.navigator.mozMobileConnections;
       if (conns) {
         Array.prototype.slice.call(conns).forEach(function(conn) {
@@ -716,8 +647,12 @@ var StatusBar = {
 
       window.addEventListener('wifi-statuschange', this);
 
-      this.setActiveWifi(true);
+      var wifiManager = window.navigator.mozWifiManager;
+      if (wifiManager) {
+        wifiManager.connectionInfoUpdate = this.update.wifi.bind(this);
+      }
 
+      this.update.wifi.call(this);
 
       window.addEventListener('moznetworkupload', this);
       window.addEventListener('moznetworkdownload', this);
@@ -725,6 +660,13 @@ var StatusBar = {
       this.refreshCallListener();
       this.toggleTimeLabel(!this.isLocked());
     } else {
+      battery = window.navigator.battery;
+      if (battery) {
+        battery.removeEventListener('chargingchange', this);
+        battery.removeEventListener('levelchange', this);
+        battery.removeEventListener('statuschange', this);
+      }
+
       conns = window.navigator.mozMobileConnections;
       if (conns) {
         Array.prototype.slice.call(conns).forEach(function(conn) {
@@ -743,35 +685,6 @@ var StatusBar = {
       this.removeCallListener();
       // Always prevent the clock from refreshing itself when the screen is off
       this.toggleTimeLabel(false);
-    }
-  },
-
-  setActiveBattery: function sb_setActiveBattery(active) {
-    var battery = window.navigator.battery;
-    if (!battery) {
-      return;
-    }
-
-    if (active) {
-      battery.addEventListener('chargingchange', this);
-      battery.addEventListener('levelchange', this);
-      battery.addEventListener('statuschange', this);
-      this.update.battery.call(this);
-    } else {
-      battery.removeEventListener('chargingchange', this);
-      battery.removeEventListener('levelchange', this);
-      battery.removeEventListener('statuschange', this);
-    }
-  },
-
-  setActiveWifi: function sb_setActiveWifi(active) {
-    if (active) {
-      var wifiManager = window.navigator.mozWifiManager;
-      if (wifiManager) {
-        wifiManager.connectionInfoUpdate = this.update.wifi.bind(this);
-      }
-
-      this.update.wifi.call(this);
     }
   },
 
@@ -1405,10 +1318,12 @@ var StatusBar = {
     this.update.systemDownloads.call(this);
   },
 
-  createConnectionsElements: function sb_createConnectionsElements() {
-    if (this.icons.signals) {
-      return;
-    }
+  getAllElements: function sb_getAllElements() {
+    // ID of elements to create references
+    this.ELEMENTS.forEach((function createElementRef(name) {
+      this.icons[this.toCamelCase(name)] =
+        document.getElementById('statusbar-' + name);
+    }).bind(this));
 
     var conns = window.navigator.mozMobileConnections;
     if (conns) {
@@ -1436,55 +1351,25 @@ var StatusBar = {
         this.icons.signals[i] = signal;
         this.icons.data[i] = data;
       }
-    }
-  },
 
-  createCallForwardingsElements: function sb_createCallForwardingsElements() {
-    if (this.icons.callForwardingsElements) {
-      return;
-    }
-
-    var conns = window.navigator.mozMobileConnections;
-    if (conns) {
-      var multipleSims = SIMSlotManager.isMultiSIM();
-
-      // Create call forwarding icons
-      var sbCallForwardings =
-        document.getElementById('statusbar-call-forwardings');
-      sbCallForwardings.dataset.multiple = multipleSims;
+      // Create call forwarding icons.
+      this.icons.callForwardings.dataset.multiple = multipleSims;
       this.icons.callForwardingsElements = {};
-      for (var idx = conns.length - 1; idx >= 0; idx--) {
+      for (i = conns.length - 1; i >= 0; i--) {
         var callForwarding = document.createElement('div');
         callForwarding.className = 'sb-icon sb-icon-call-forwarding';
         if (multipleSims) {
-          callForwarding.dataset.index = idx + 1;
+          callForwarding.dataset.index = i + 1;
         }
         callForwarding.setAttribute('role', 'listitem');
         callForwarding.setAttribute('aria-label', 'statusbarForwarding');
         this.icons.callForwardings.appendChild(callForwarding);
-        this.icons.callForwardingsElements[idx] = callForwarding;
+        this.icons.callForwardingsElements[i] = callForwarding;
       }
 
       this.updateConnectionsVisibility();
       this.updateCallForwardingsVisibility();
     }
-  },
-
-  getAllElements: function sb_getAllElements() {
-    this.icons = {};
-
-    var toCamelCase = function toCamelCase(str) {
-      return str.replace(/\-(.)/g, function replacer(str, p1) {
-        return p1.toUpperCase();
-      });
-    };
-
-    // ID of elements to create references
-    this.ELEMENTS.forEach((function createElementRef(name) {
-      this.icons[toCamelCase(name)] =
-        document.getElementById('statusbar-' + name);
-    }).bind(this));
-
 
     this.element = document.getElementById('statusbar');
     this.background = document.getElementById('statusbar-background');
