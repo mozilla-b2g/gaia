@@ -451,7 +451,11 @@ var CallScreen = {
   showClock: function cs_showClock(now) {
     LazyL10n.get(function localized(_) {
       var f = new navigator.mozL10n.DateTimeFormat();
-      var timeFormat = _('shortTimeFormat').replace('%p', '<span>%p</span>');
+      var timeFormat = window.navigator.mozHour12 ? _('shortTimeFormat12') :
+                                                    _('shortTimeFormat24');
+      // FIXME/bug 1060333: Replace span with hidden mechanism.
+      // Don't show am/pm (for 12 or 24 time) in the callscreen
+      timeFormat = timeFormat.replace('%p', '<span>%p</span>');
       var dateFormat = _('longDateFormat');
       this.lockedClockTime.innerHTML = f.localeFormat(now, timeFormat);
       this.lockedDate.textContent = f.localeFormat(now, dateFormat);
