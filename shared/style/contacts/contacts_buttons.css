@@ -23,8 +23,8 @@ li button.icon-email:before {
 }
 
 .has-preferred-sim .icon-call:before {
-  width: 9.5rem;
-  background-size: 3rem;
+  width: 9.5rem !important;
+  background-size: 3rem !important;
 }
 
 .call-action .js-sim-indication {
@@ -117,4 +117,12 @@ li button.activity > b {
   right: 3rem;
   top: 1rem;
   bottom: 0;
+}
+
+.remark {
+  color: #339999 !important;
+}
+
+.remark-missed {
+  color: #CC0000 !important;
 }

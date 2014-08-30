@@ -613,14 +613,6 @@ gaia-header [data-icon] {
   z-index: 1001;
 }
 
-.remark {
-  color: #339999;
-}
-
-.remark-missed {
-  color: #CC0000;
-}
-
 #sources {
   margin-top: 1rem;
 }

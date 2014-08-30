@@ -1,6 +1,7 @@
 'use strict';
 
-/* global CallLogDBManager, LazyLoader, MozActivity, Utils */
+/* global CallLogDBManager, LazyLoader, MozActivity, Utils, ContactsButtons,
+          Contacts */
 
 (function(exports) {
   var currentGroup;
@@ -8,6 +9,9 @@
   var addToContactButton;
   var createContactButton;
   var callInfoView;
+  var phoneDetailsElt;
+  var emailDetailsElt;
+  var listDetailsElt;
 
   function updateView(group) {
     currentGroup = group;
@@ -97,16 +101,41 @@
     }
   }
 
+  function renderPhones(group, contact) {
+    ContactsButtons.renderPhones(contact);
+    var remark = group.type === 'incoming' ? 'remark-missed' : 'remark';
+    ContactsButtons.reMark(
+      'tel', group.number || group.contact.matchingTel.number, remark);
+  }
+
   function updateActionButtons(group) {
+    listDetailsElt.innerHTML = '';
+
     detailsButton.hidden = true;
     addToContactButton.hidden = true;
     createContactButton.hidden = true;
 
     if (group.contact) {
       detailsButton.hidden = false;
+
+      Contacts.findByNumber(group.contact.matchingTel.number,
+      function(contact, matchingTel) {
+        ContactsButtons.renderEmails(contact);
+        renderPhones(group, contact);
+      });
     } else {
       addToContactButton.hidden = false;
       createContactButton.hidden = false;
+
+      var contact = {
+        tel: [
+          {
+            value: group.number,
+            type: 'mobile'
+          }
+        ]
+      };
+      renderPhones(group, contact);
     }
   }
 
@@ -161,13 +190,7 @@
     }
   }
 
-  var _initialised = false;
   function initListeners() {
-    if (_initialised) {
-      return;
-    }
-    _initialised = true;
-
     detailsButton = document.getElementById('call-info-details');
     detailsButton.addEventListener('click', viewContact);
     addToContactButton = document.getElementById('call-info-add');
@@ -180,11 +203,56 @@
     window.addEventListener('timeformatchange', updateStartTimes);
   }
 
+  // FIXME/bug 1060290: The build system doesn't allow nested fragments, so we
+  // can work around this for now by loading all elements at the root level and
+  // then resolving them to the correct location, e.g. fragment-name-stub, on
+  // runtime.
+  function replaceFragmentStub(stub, fragment) {
+    var parent = stub.parentNode;
+    parent.insertBefore(fragment, stub);
+    parent.removeChild(stub);
+    fragment.hidden = false;
+  }
+
+  function initFragments() {
+    var phoneDetailsStub = document.getElementById('phone-details-stub');
+    phoneDetailsElt = document.getElementById('phone-details');
+
+    var emailDetailsStub = document.getElementById('email-details-stub');
+    emailDetailsElt = document.getElementById('email-details');
+
+    var contactDetailsElt = document.getElementById('contact-detail');
+    listDetailsElt = document.getElementById('call-info-list-details');
+
+    LazyLoader.load([phoneDetailsElt, emailDetailsElt], function() {
+      replaceFragmentStub(phoneDetailsStub, phoneDetailsElt);
+      replaceFragmentStub(emailDetailsStub, emailDetailsElt);
+
+      ContactsButtons.init(listDetailsElt, contactDetailsElt);
+    });
+  }
+
   var CallInfo = {
+    _initialised: false,
     show: function(number, date, type, status) {
       callInfoView = document.getElementById('call-info-view');
-      LazyLoader.load(callInfoView, function() {
-        initListeners();
+      var self = this;
+      LazyLoader.load([callInfoView,
+                       '/shared/js/dialer/contacts.js',
+                       '/shared/js/dialer/utils.js',
+                       '/shared/js/contacts/contacts_buttons.js',
+                       '/shared/js/contacts/utilities/templates.js',
+                       '/shared/js/contacts/sms_integration.js',
+                       '/shared/js/text_normalizer.js',
+                       '/dialer/js/telephony_helper.js',
+                       '/shared/style/contacts/contacts_buttons.css',
+                       '/shared/style/contacts.css',
+                       '/dialer/style/buttons.css'], function() {
+        if (!self._initialised) {
+          self._initialised = true;
+          initListeners();
+          initFragments();
+        }
         date = parseInt(date, 10);
         CallLogDBManager.getGroup(number, date, type, status)
           .then(updateView);

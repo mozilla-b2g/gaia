@@ -1,12 +1,15 @@
 'use strict';
 
-/* globals CallInfo, CallLogDBManager, MockL10n, MocksHelper, Utils */
+/* globals CallInfo, CallLogDBManager, MockL10n, MocksHelper, Utils, LazyLoader,
+           MockContactsButtons */
 
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
+require('/shared/test/unit/mocks/dialer/mock_contacts.js');
+require('/shared/test/unit/mocks/contacts/mock_contacts_buttons.js');
 
 require('/dialer/js/call_info.js');
 
@@ -14,7 +17,9 @@ var mocksHelperForCallInfoView = new MocksHelper([
   'CallLogDBManager',
   'LazyLoader',
   'MozActivity',
-  'Utils'
+  'Utils',
+  'ContactsButtons',
+  'Contacts'
 ]).init();
 
 suite('Call Info', function(argument) {
@@ -23,28 +28,8 @@ suite('Call Info', function(argument) {
   mocksHelperForCallInfoView.attachTestHelpers();
 
   var contactsIframe;
-
-  suiteSetup(function() {
-    loadBodyHTML('/dialer/elements/call-info-view.html');
-    var section = document.createElement('section');
-    section.setAttribute('role', 'region');
-    section.id = 'call-info-view';
-    section.hidden = true;
-    section.innerHTML = document.body.querySelector('template').innerHTML;
-
-    document.body.appendChild(section);
-
-    contactsIframe = document.createElement('iframe');
-    contactsIframe.id = 'iframe-contacts';
-    document.body.appendChild(contactsIframe);
-
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
-  });
-
-  suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
-  });
+  var phoneDetailsHTML;
+  var emailDetailsHTML;
 
   var groupReturn = {
     number: '12345',
@@ -57,11 +42,199 @@ suite('Call Info', function(argument) {
   var fakeType = 'incoming';
   var fakeStatus = 'connected';
 
+  var injectFragmentAsSection = function(name) {
+    var section = document.createElement('section');
+    section = document.createElement('section');
+    section.setAttribute('role', 'region');
+    section.id = name;
+    section.hidden = true;
+    var html = section.innerHTML =
+      document.body.querySelector(
+        'element[name="' + name + '"] template').innerHTML;
+    document.body.appendChild(section);
+    return html;
+  };
+
+  var initCallInfo = function() {
+    document.body.innerHTML = '';
+
+    loadBodyHTML('/contacts/elements/phone_details.html');
+    var phoneDetailsTemplate = document.body.innerHTML;
+    loadBodyHTML('/contacts/elements/email_details.html');
+    var emailDetailsTemplate = document.body.innerHTML;
+    loadBodyHTML('/dialer/elements/call-info-view.html');
+    document.body.innerHTML += phoneDetailsTemplate + emailDetailsTemplate;
+
+    phoneDetailsHTML = injectFragmentAsSection('phone-details');
+    emailDetailsHTML = injectFragmentAsSection('email-details');
+    injectFragmentAsSection('call-info-view');
+
+    contactsIframe = document.createElement('iframe');
+    contactsIframe.id = 'iframe-contacts';
+    document.body.appendChild(contactsIframe);
+
+    CallInfo._initialised = false;
+    CallInfo.show(fakeNumber, fakeDate, fakeType, fakeStatus);
+  };
+
+  suiteSetup(function() {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozL10n = realL10n;
+  });
+
   setup(function() {
     this.sinon.stub(CallLogDBManager, 'getGroup').returns({
       then: function(callback) {
         callback(groupReturn);
       }
+    });
+
+    initCallInfo();
+  });
+
+  suite('fragment injection', function() {
+    var callInfoView;
+
+    setup(function() {
+      callInfoView = document.getElementById('call-info-view');
+
+      this.sinon.spy(LazyLoader, 'load');
+      initCallInfo();
+    });
+
+    test('lazy-loads styles', function() {
+      assert.include(LazyLoader.load.args[0][0],
+                     '/shared/style/contacts/contacts_buttons.css');
+      assert.include(LazyLoader.load.args[0][0],
+                     '/shared/style/contacts.css');
+      assert.include(LazyLoader.load.args[0][0],
+                     '/dialer/style/buttons.css');
+    });
+
+    test('lazy-loads fragments', function() {
+      var phoneDetailsElt = document.getElementById('phone-details');
+      var emailDetailsElt = document.getElementById('email-details');
+      sinon.assert.calledWith(LazyLoader.load,
+                              [phoneDetailsElt, emailDetailsElt]);
+    });
+
+    test('injects phone-details', function() {
+      var phoneDetailsElt = callInfoView.querySelector('#phone-details');
+      assert.equal(phoneDetailsElt.innerHTML, phoneDetailsHTML);
+      assert.isNull(document.getElementById('phone-details-stub'));
+    });
+
+    test('injects email-details', function() {
+      var emailDetailsElt = callInfoView.querySelector('#email-details');
+      assert.equal(emailDetailsElt.innerHTML, emailDetailsHTML);
+      assert.isNull(document.getElementById('email-details-stub'));
+    });
+  });
+
+  suite('ContactsButtons', function() {
+    test('initialized after loading fragments', function() {
+      this.sinon.spy(MockContactsButtons, 'init');
+
+      initCallInfo();
+
+      var listDetailsElt = document.getElementById('call-info-list-details');
+      var contactDetailsElt = document.getElementById('contact-detail');
+
+      sinon.assert.calledWith(MockContactsButtons.init,
+                              listDetailsElt, contactDetailsElt);
+    });
+
+    test('without contact, renders phones', function() {
+      this.sinon.spy(MockContactsButtons, 'renderPhones');
+
+      initCallInfo();
+
+      var contact = {
+        tel: [
+          {
+            value: fakeNumber,
+            type: 'mobile'
+          }
+        ]
+      };
+      sinon.assert.calledWith(MockContactsButtons.renderPhones, contact);
+    });
+
+    test('with contact, renders phones and emails', function() {
+      this.sinon.spy(MockContactsButtons, 'renderPhones');
+      this.sinon.spy(MockContactsButtons, 'renderEmails');
+
+      var contact = {
+        matchingTel: {
+          number: '54321'
+        }
+      };
+      var expectedContact = {
+        id: 'id',
+        name: ['test name'],
+        tel: [{
+          value: '54321',
+          carrier: 'carrier',
+          type: 'type'
+        }],
+        photo: ['test']
+      };
+      var oldContact = groupReturn.contact;
+      groupReturn.contact = contact;
+      initCallInfo();
+      groupReturn.contact = oldContact;
+
+      sinon.assert.calledWith(MockContactsButtons.renderPhones,
+                              expectedContact);
+      sinon.assert.calledWith(MockContactsButtons.renderEmails,
+                              expectedContact);
+    });
+
+    test('clears buttons before each render', function(done) {
+      initCallInfo();
+
+      var listDetailsElt = document.getElementById('call-info-list-details');
+      listDetailsElt.innerHTML = 'test<span>tset</span>';
+
+      function checkIsListDetailsClear() {
+        assert.equal(listDetailsElt.innerHTML, '');
+        done();
+      }
+
+      this.sinon.stub(MockContactsButtons, 'renderPhones',
+                      checkIsListDetailsClear);
+      this.sinon.stub(MockContactsButtons, 'renderEmails',
+                      checkIsListDetailsClear);
+
+      CallInfo.show(fakeNumber, fakeDate, fakeType, fakeStatus);
+    });
+
+    test('should highlight selected number', function() {
+      this.sinon.spy(MockContactsButtons, 'reMark');
+
+      var oldType = groupReturn.type;
+      groupReturn.type = 'not-incoming';
+      initCallInfo();
+      groupReturn.type = oldType;
+
+      sinon.assert.calledWith(MockContactsButtons.reMark,
+                              'tel', fakeNumber, 'remark');
+    });
+
+    test('should highlight selected and missed number', function() {
+      this.sinon.spy(MockContactsButtons, 'reMark');
+
+      var oldType = groupReturn.type;
+      groupReturn.type = 'incoming';
+      initCallInfo();
+      groupReturn.type = oldType;
+
+      sinon.assert.calledWith(MockContactsButtons.reMark,
+                              'tel', fakeNumber, 'remark-missed');
     });
   });
 
@@ -316,7 +489,8 @@ suite('Call Info', function(argument) {
     suite('with a contact', function() {
       setup(function() {
         groupReturn.contact = {
-          primaryInfo: 'WESH'
+          primaryInfo: 'WESH',
+          matchingTel: {}
         };
         CallInfo.show(fakeNumber, fakeDate, fakeType, fakeStatus);
         this.sinon.useFakeTimers();
@@ -347,7 +521,8 @@ suite('Call Info', function(argument) {
   suite('Displaying a contact', function() {
     setup(function() {
       groupReturn.contact = {
-        primaryInfo: 'WESH'
+        primaryInfo: 'WESH',
+        matchingTel: {}
       };
       CallInfo.show(fakeNumber, fakeDate, fakeType, fakeStatus);
     });
