@@ -18,7 +18,7 @@ suite('AlarmDatabase Test Suite', function() {
        minute: 3,
        enabled: true,
        repeat: '1010011',
-       sound: 'ac_classic_clock_alarm.opus',
+       sound: 'ac_awake.opus',
        vibrate: '1',
        snooze: 5 },
      { registeredAlarms: { normal: 7, snooze: 42 },
@@ -32,7 +32,7 @@ suite('AlarmDatabase Test Suite', function() {
        hour: 5,
        minute: 3,
        vibrate: true,
-       sound: 'ac_classic_clock_alarm.opus',
+       sound: 'ac_awake.opus',
        snooze: 5 } ],
 
     [{ normalAlarmId: 7,
@@ -69,7 +69,7 @@ suite('AlarmDatabase Test Suite', function() {
        minute: 43,
        enabled: true,
        repeat: '0000000',
-       sound: 'ac_classic_clock_alarm.opus',
+       sound: 'ac_awake.opus',
        snooze: 5 },
      { registeredAlarms: { normal: 7, snooze: 42 },
        repeat: { },
@@ -77,7 +77,7 @@ suite('AlarmDatabase Test Suite', function() {
        hour: 15,
        minute: 43,
        vibrate: false,
-       sound: 'ac_classic_clock_alarm.opus',
+       sound: 'ac_awake.opus',
        snooze: 5 } ],
 
     [{ normalAlarmId: 7,
@@ -87,7 +87,7 @@ suite('AlarmDatabase Test Suite', function() {
        minute: 43,
        enabled: true,
        repeat: '0101100',
-       sound: 'ac_classic_clock_alarm.opus',
+       sound: 'ac_awake.opus',
        snooze: 5 },
      { registeredAlarms: { normal: 7, snooze: 42 },
        repeat: {
@@ -99,7 +99,7 @@ suite('AlarmDatabase Test Suite', function() {
        hour: 15,
        vibrate: false,
        minute: 43,
-       sound: 'ac_classic_clock_alarm.opus',
+       sound: 'ac_awake.opus',
        snooze: 5 } ]
   ];
 

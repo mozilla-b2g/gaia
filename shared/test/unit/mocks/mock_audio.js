@@ -52,6 +52,12 @@ MockAudioContext.mTeardown = function() {
   MockAudioContext.instances = [];
 };
 
-MockAudioContext.prototype.createBuffer = function() {};
-MockAudioContext.prototype.createBufferSource = function() {};
+MockAudioContext.prototype.createBuffer = function() { return {}; };
+MockAudioContext.prototype.createBufferSource = function() { return {
+  connect: function() {},
+  start: function() {},
+  stop: function() {}
+};};
 MockAudioContext.prototype.createGain = function() {};
+MockAudioContext.prototype.addEventListener = function() {};
+MockAudioContext.prototype.removeEventListener = function() {};

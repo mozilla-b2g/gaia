@@ -3,7 +3,6 @@
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
   var screenElement = document.getElementById('screen');
 
   /**
@@ -18,6 +17,8 @@
    * @module AppWindowManager
    */
   var AppWindowManager = {
+    DEBUG: false,
+    CLASS_NAME: 'AppWindowManager',
     continuousTransition: false,
 
     element: document.getElementById('windows'),
@@ -53,9 +54,11 @@
      */
     getApp: function awm_getApp(origin, manifestURL) {
       for (var id in this._apps) {
-        if (this._apps[id].origin === origin &&
-            (!manifestURL || this._apps[id].manifestURL === manifestURL)) {
-          return this._apps[id];
+        var app = this._apps[id];
+        if (app.origin === origin &&
+            (!manifestURL || app.manifestURL === manifestURL) &&
+            (!app.isBrowser() || app.config.url === origin)) {
+          return app;
         }
       }
       return null;
@@ -206,7 +209,7 @@
 
         appNext.open(immediateTranstion ? 'immediate' :
                       ((switching === true) ? 'invoked' : openAnimation));
-        if (appCurrent) {
+        if (appCurrent && appCurrent.instanceID !== appNext.instanceID) {
           appCurrent.close(immediateTranstion ? 'immediate' :
             ((switching === true) ? 'invoking' : closeAnimation));
         } else {
@@ -263,7 +266,7 @@
       window.addEventListener('showwindow', this);
       window.addEventListener('hidewindowforscreenreader', this);
       window.addEventListener('showwindowforscreenreader', this);
-      window.addEventListener('overlaystart', this);
+      window.addEventListener('attentionopened', this);
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
       window.addEventListener('system-resize', this);
@@ -334,7 +337,7 @@
       window.removeEventListener('showwindow', this);
       window.removeEventListener('hidewindowforscreenreader', this);
       window.removeEventListener('showwindowforscreenreader', this);
-      window.removeEventListener('overlaystart', this);
+      window.removeEventListener('attentionopened', this);
       window.removeEventListener('homegesture-enabled', this);
       window.removeEventListener('homegesture-disabled', this);
       window.removeEventListener('system-resize', this);
@@ -454,23 +457,7 @@
           break;
 
         case 'hidewindow':
-          if (activeApp &&
-              activeApp.origin !== homescreenLauncher.origin) {
-            // This is coming from attention screen.
-            // If attention screen has the same origin as our active app,
-            // we cannot turn off its page visibility
-            // because they are sharing the same process and the same docShell,
-            // so turn off page visibility would overwrite the page visibility
-            // of the active attention screen.
-            if (detail && detail.origin &&
-                detail.origin === activeApp.origin) {
-              return;
-            }
-            activeApp.setVisible(false);
-          } else {
-            var home = homescreenLauncher.getHomescreen(); // jshint ignore:line
-            home && home.setVisible(false);
-          }
+          activeApp && activeApp.broadcast('hidewindow', evt.detail);
           break;
 
         case 'hidewindowforscreenreader':
@@ -485,7 +472,7 @@
           this.onShowWindow(detail);
           break;
 
-        case 'overlaystart':
+        case 'attentionopened':
           // Instantly blur the frame in order to ensure hiding the keyboard
           if (activeApp) {
             if (!activeApp.isOOP()) {
@@ -497,7 +484,7 @@
               // repaint issue.
               // So since the only in-process frame is the browser app
               // let's switch it's visibility as soon as possible when
-              // there is an attention screen and delegate the
+              // there is an attention window and delegate the
               // responsibility to blur the possible focused elements
               // itself.
               activeApp.setVisible(false, true);
@@ -550,6 +537,7 @@
             this._activeApp.getTopMostWindow().blur();
           }
           break;
+
         case 'sheetstransitionstart':
           if (document.mozFullScreen) {
             document.mozCancelFullScreen();
@@ -582,7 +570,7 @@
     },
 
     _dumpAllWindows: function() {
-      if (!DEBUG) {
+      if (!this.DEBUG) {
         return;
       }
       console.log('=====DUMPING APP WINDOWS BEGINS=====');
@@ -658,13 +646,17 @@
       var caller;
       var callee = this.getApp(config.origin);
       caller = this._activeApp.getTopMostWindow();
-      callee.callerWindow = caller;
-      caller.calleeWindow = callee;
+      if (caller.getBottomMostWindow() === callee) {
+        callee.frontWindow.kill();
+      } else {
+        callee.callerWindow = caller;
+        caller.calleeWindow = callee;
+      }
     },
 
     debug: function awm_debug() {
-      if (DEBUG) {
-        console.log('[AppWindowManager]' +
+      if (this.DEBUG) {
+        console.log('[' + this.CLASS_NAME + ']' +
           '[' + System.currentTime() + ']' +
           Array.slice(arguments).concat());
       }
@@ -709,11 +701,12 @@
         this.debug('no active app alive: ' + instanceID);
         return;
       }
-      if (this._activeApp && this._activeApp.isFullScreen()) {
-        screenElement.classList.add('fullscreen-app');
-      } else {
-        screenElement.classList.remove('fullscreen-app');
-      }
+      var fullscreen = this._activeApp.isFullScreen();
+      screenElement.classList.toggle('fullscreen-app', fullscreen);
+
+      var fullScreenLayout = this._activeApp.isFullScreenLayout();
+      screenElement.classList.toggle('fullscreen-layout-app', fullScreenLayout);
+
       // Resize when opened.
       // Note: we will not trigger reflow if the final size
       // is the same as its current value.

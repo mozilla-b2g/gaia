@@ -3,7 +3,7 @@ Keyboards.ko = {
   shortLabel: 'Ko',
   secondLayout: true,
   imEngine: 'jshangul',
-  types: ['text', 'url', 'email', 'number'],
+  types: ['text', 'url', 'email'],
   menuLabel: '한국어',
   upperCase: {
     'ㅂ': 'ㅃ',

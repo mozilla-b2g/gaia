@@ -446,8 +446,8 @@ suite('KeyboardManager', function() {
       assert.ok(removeKeyboard.calledWith(fakeManifestURL));
     });
 
-    test('attentionscreenshow event', function() {
-      trigger('attentionscreenshow');
+    test('attentionopening event', function() {
+      trigger('attentionopening');
 
       this.sinon.clock.tick();
       sinon.assert.callCount(hideKeyboardImmediately, 1);

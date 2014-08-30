@@ -27,9 +27,11 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/tabs.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/sim_picker.css">
 
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css">
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css"> 
+    
     <!-- JS -->
     <script defer src="/shared/js/lazy_loader.js"></script>
-    <script defer src="/shared/js/font_size_utils.js"></script>
     <script defer src="/shared/js/lazy_l10n.js"></script>
     <script defer src="/dialer/js/index.js"></script>
 
@@ -49,7 +51,6 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/edit_mode.css">
-    <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/lists.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/progress_activity.css">
@@ -61,6 +62,7 @@
     <script defer src="/shared/js/l10n_date.js"></script>
     <script defer src="/shared/js/mobile_operator.js"></script>
     <script defer src="/shared/js/notification_helper.js"></script>
+    <script defer src="/shared/js/option_menu.js"></script>
     <script defer src="/shared/js/sim_picker.js"></script>
     <script defer src="/shared/js/simple_phone_matcher.js"></script>
     <script defer src="/shared/js/settings_listener.js"></script>
@@ -74,6 +76,7 @@
     <script defer src="/shared/js/sim_settings_helper.js"></script>
     <script defer src="/shared/js/dialer/voicemail.js"></script>
     <script defer src="/shared/js/dialer/contacts.js"></script>
+    <script defer src="/shared/js/contacts/contacts_buttons.js"></script>
     <script defer src="/shared/js/custom_dialog.js"></script>
     <script defer src="/dialer/js/contact_data_manager.js"></script>
     <script defer src="/dialer/js/suggestion_bar.js"></script>
@@ -81,30 +84,29 @@
     <script defer src="/dialer/js/mmi.js"></script>
     <script defer src="/dialer/js/mmi_ui.js"></script>
     <script defer src="/shared/js/icc_helper.js"></script>
+    <script defer src="/shared/elements/config.js"></script>
+    <script defer src="/shared/elements/gaia-header/dist/script.js"></script>
     <link rel="resource" type="application/json" href="shared/resources/media/tones/"/>
     -->
 
     <link rel="import" href="elements/edit-mode.html">
     <link rel="import" href="elements/suggestion-item.html">
     <link rel="import" href="elements/suggestion-overlay.html">
-    <link rel="import" href="elements/add-contact-action-menu.html">
     <link rel="import" href="elements/confirmation-message.html">
     <link rel="import" href="/shared/elements/sim_picker.html">
   </head>
-  <body role="application" class="skin-comms">
+  <body role="application" class="skin-comms theme-communications">
     <section id="views" role="tablist" class="bb-tablist">
       <li role="presentation" class="view hidden" id="call-log-view">
         <a id="option-recents" role="tab" aria-controls="recents-panel" href="#call-log-view" class="icon icon-recents" data-l10n-id="recents" aria-selected="false"></a>
         <div id="recents-panel" role="tabpanel" class="bb-tabpanel" aria-labelledby="option-recents">
           <section role="region">
-            <header class="view-header regular-header">
-              <menu type="toolbar">
-                <a id="call-log-icon-edit" data-l10n-id="callLogEdit" disabled aria-disabled="true">
-                  <span id="call-log-edit-button" class="recents-icon icon icon-edit "></span>
-                </a>
-              </menu>
+            <gaia-header>
               <h1 data-l10n-id="callLog"></h1>
-            </header>
+              <button id="call-log-icon-edit" data-icon="edit" disabled>
+                <span data-l10n-id="callLogEdit" aria-disabled="true"></span>
+              </button>
+            </gaia-header>
             <nav id="call-log-filter" class="recents-filter-container">
               <ul role="tablist" class="bb-tablist" data-type="filter" aria-controls="call-log-container">
                 <li id="all-filter" role="presentation"><a id="all-filter-tab" role="tab" aria-selected="true" data-action="all" data-l10n-id="all"></a></li>
@@ -225,8 +227,6 @@
 
     <form is="edit-mode" id="edit-mode" role="dialog" data-l10n-id="callLogEditDialog" data-type="edit" hidden></form>
 
-    <form is="add-contact-action-menu" id="add-contact-action-menu" role="dialog" data-l10n-id="dialerAddContactDialog" data-type="action" hidden></form>
-
     <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" hidden></form>
 
     <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
@@ -236,13 +236,10 @@
 
     <article id="mmi-screen" role="region" hidden>
       <section role="region">
-        <header>
-          <button id="mmi-close"><span class="icon icon-close"> close </span></button>
-          <menu type="toolbar">
-            <button id="send" data-l10n-id="send" disabled> Send </button>
-          </menu>
+        <gaia-header id="mmi-header" action="close">
           <h1 id="header-title">USSD</h1>
-        </header>
+          <button id="send" data-l10n-id="send" disabled> Send </button>
+        </gaia-header>
       </section>
       <section id="mmi-container" role="region">
         <div id="message">

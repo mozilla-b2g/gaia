@@ -30,7 +30,7 @@
   MobileIdDialog.prototype.iframe = null;
 
   MobileIdDialog.prototype.view = function mobileid_view() {
-    return '<div id="' + this.instanceID + '" role="dialog" hidden></div>';
+    return '<div id="' + this.instanceID + '" role="dialog"></div>';
   };
 
   MobileIdDialog.prototype.createIframe =

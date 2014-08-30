@@ -97,6 +97,10 @@
 
       this._onSettingsChanged = (enabled) => this._nfcSettingsChanged(enabled);
       SettingsListener.observe('nfc.enabled', false, this._onSettingsChanged);
+
+      this._onDebugChanged = (enabled) => { DEBUG = enabled; };
+      SettingsListener.observe('nfc.debugging.enabled', false,
+                               this._onDebugChanged);
     },
 
     /**
@@ -115,6 +119,7 @@
       window.removeEventListener('lockscreen-appclosed', this);
 
       SettingsListener.unobserve('nfc.enabled', this._onSettingsChanged);
+      SettingsListener.unobserve('nfc.debugging.enabled', this._onDebugChanged);
     },
 
     /**

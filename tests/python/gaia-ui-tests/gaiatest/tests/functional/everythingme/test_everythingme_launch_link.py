@@ -10,7 +10,7 @@ class TestEverythingMeLaunchLink(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        self.apps.set_permission('Browser2', 'geolocation', 'deny')
+        self.apps.set_permission('Browser', 'geolocation', 'deny')
         self.connect_to_network()
 
     def test_launch_everything_me_link(self):
@@ -21,9 +21,8 @@ class TestEverythingMeLaunchLink(GaiaTestCase):
         search_panel = homescreen.tap_search_bar()
         search_panel.type_into_search_box(search_string)
 
-        search_panel.wait_for_everything_me_results_to_load(1)
-
         search_panel.confirm_suggestion_notice()
+        search_panel.wait_for_everything_me_results_to_load(1)
 
         first_app_name = search_panel.link_results[0].name
         search_panel.link_results[0].tap()

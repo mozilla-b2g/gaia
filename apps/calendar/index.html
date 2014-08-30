@@ -5,13 +5,13 @@
   <meta charset="utf-8">
   <meta name="theme-color" content="#ff7d14">
   <title>Calendar</title>
-  <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/toolbars.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/tabs.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/icons.css">
   <link rel="stylesheet" type="text/css" href="/style/calendar.css">
   <link rel="stylesheet" type="text/css" href="/style/ui.css">
   <link rel="stylesheet" type="text/css" href="/style/day_views.css">
+  <link rel="stylesheet" type="text/css" href="/style/multi_day.css">
   <link rel="stylesheet" type="text/css" href="/style/month.css">
   <link rel="stylesheet" type="text/css" href="/style/building_blocks.css">
   <link rel="stylesheet" type="text/css" href="/style/first_time_use.css">
@@ -25,13 +25,21 @@
   <script defer src="/shared/js/accessibility_helper.js"></script>
   <script defer src="/shared/js/gesture_detector.js"></script>
   <script defer src="/shared/js/lazy_loader.js"></script>
-  <script defer src="/shared/js/font_size_utils.js"></script>
   <script defer src="/shared/js/l10n_date.js"></script>
   <script defer src="/shared/js/notification_helper.js"></script>
   <script defer src='/shared/js/performance_testing_helper.js'></script>
   <!-- Lazily Loaded
   <script defer src="/shared/js/input_parser.js"></script>
   -->
+
+  <!-- Web Components -->
+  <script defer src="shared/js/component_utils.js"></script>
+  <script defer src="shared/elements/gaia_subheader/script.js"></script>
+  <script defer src="shared/elements/config.js"></script>
+  <script defer src="shared/elements/gaia-header/dist/script.js"></script>
+  <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
+  <!-- Icons are lazyloaded by gaia-header -->
+  <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" /> -->
 
   <script defer src="/js/ext/page.js"></script>
   <script defer src="/js/ext/uuid.js"></script>
@@ -98,6 +106,9 @@
   <script defer src="/js/controllers/sync.js"></script>
   <script defer src="/js/controllers/alarm.js"></script>
   <script defer src="/js/performance.js"></script>
+  <script defer src="/js/ext/eventemitter2.js"></script>
+  <script defer src="/js/utils/mout.js"></script>
+  <script defer src="/js/day_observer.js"></script>
   <script defer src="/js/app.js"></script>
 
   <link rel="import" href="/elements/errors.html">
@@ -109,31 +120,23 @@
   <link rel="import" href="/elements/oauth.html">
   <link rel="import" href="/elements/settings.html">
   <link rel="import" href="/elements/show_event.html">
+  <link rel="import" href="/elements/multi_day.html">
 </head>
 
-<body role="application" class="loading">
+<body role="application" class="loading theme-productivity">
 
 <section is="lazy-styles" id="lazy-styles"></section>
 <section is="errors" id="errors" role="status"></section>
 <section is="settings" id="settings" role="region"></section>
 
 <section id="time-views" role="region">
-  <header id="time-header">
-    <button class="settings">
-      <span class="icon icon-menu">Show Settings</span>
-    </button>
-
-    <menu type="toolbar">
-      <a href="/event/add/">
-        <span data-l10n-id="new-event" class="icon icon-add" >
-          Add Event
-        </span>
-      </a>
-    </menu>
-
+  <gaia-header id="time-header" action="menu">
     <h1 id="current-month-year">
     </h1>
-  </header>
+    <a href="/event/add/" data-icon="add">
+      <span data-l10n-id="new-event">Add Event</span>
+    </a>
+  </gaia-header>
 
   <div id="progress-indicator">
     <div id="throbber"></div>
@@ -163,7 +166,7 @@
 
   <section id="day-view" role="tabpanel" aria-labelledby="day"></section>
 
-  <section id="week-view" role="tabpanel" aria-labelledby="week"></section>
+  <section is="multi-day" id="week-view" class="multi-day" role="tabpanel" aria-labelledby="week"></section>
 
   <ul id="view-selector" role="tablist" class="bb-tablist">
     <li class="today" role="presentation">
@@ -175,8 +178,8 @@
   </ul>
 </section>
 
-<section is="create-account" class="fullscreen-view skin-organic" id="create-account-view" role="region"></section>
-<section is="advanced-settings" class="fullscreen-view in-progress skin-organic" role="region" id="advanced-settings-view"></section>
+<section is="create-account" class="fullscreen-view theme-settings" id="create-account-view" role="region"></section>
+<section is="advanced-settings" class="fullscreen-view in-progress theme-settings" role="region" id="advanced-settings-view"></section>
 <section is="modify-event" class="fullscreen-view" id="modify-event-view" role="region"></section>
 <section is="show-event" class="fullscreen-view" id="event-view" role="region"></section>
 <section is="oauth" class="fullscreen-view skin-dark" id="oauth2" role="region"></section>

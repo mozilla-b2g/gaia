@@ -35,7 +35,6 @@ suite('system/Card', function() {
 
   mocksForCard.attachTestHelpers();
   var mockManager = {
-    attentionScreenApps: [],
     useAppScreenshotPreviews: true
   };
   var cardsList;
@@ -147,6 +146,28 @@ suite('system/Card', function() {
       assert.ok(!this.card.manager, 'card.manager reference is falsey');
       assert.ok(!this.card.app, 'card.app reference is falsey');
       assert.ok(!this.card.element, 'card.element reference is falsey');
+    });
+  });
+
+  suite('Unkillable card', function() {
+    setup(function(){
+      this.cardNode = document.createElement('li');
+      var app = makeApp({ name: 'dummyapp' });
+      app.attentionWindow = true;
+      this.card = new Card({
+        app: app,
+        manager: mockManager,
+        containerElement: mockManager.cardsList,
+        element: this.cardNode
+      });
+      this.card.render();
+    });
+    teardown(function() {
+      mockManager.cardsList.innerHTML = '';
+    });
+
+    test('card whose app has attentionWindow should not be closed', function() {
+      assert.equal(this.card.closeButtonVisibility, 'hidden');
     });
   });
 

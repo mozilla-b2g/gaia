@@ -71,6 +71,11 @@ ActiveTargetsManager.prototype.stop = function() {
 };
 
 ActiveTargetsManager.prototype.clearAllTargets = function() {
+  if (this.activeTargets.size) {
+    console.warn('ActiveTargetsManager: clear ' +
+      this.activeTargets.size + ' active target(s).');
+  }
+
   this.activeTargets.forEach(function(target, id) {
     if (typeof this.ontargetcancelled === 'function') {
       this.ontargetcancelled(target);

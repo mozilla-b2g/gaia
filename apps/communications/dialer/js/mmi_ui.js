@@ -11,9 +11,9 @@ var MmiUI = {
     return this.headerTitleNode = document.getElementById('header-title');
   },
 
-  get closeNode() {
-    delete this.closeNode;
-    return this.closeNode = document.getElementById('mmi-close');
+  get headerNode() {
+    delete this.headerNode;
+    return this.headerNode = document.getElementById('mmi-header');
   },
 
   get cancelNode() {
@@ -58,7 +58,7 @@ var MmiUI = {
 
       this._ = _;
 
-      this.closeNode.addEventListener('click', this.closeWindow.bind(this));
+      this.headerNode.addEventListener('action', this.closeWindow.bind(this));
       this.cancelNode.addEventListener('click', this.cancel.bind(this));
       this.sendNode.addEventListener('click', this.reply.bind(this));
       this.responseTextResetNode.addEventListener('click',

@@ -2,7 +2,10 @@
 'use strict';
 
 (function(exports) {
+  // Turn on this flag to debug all windows.
   var DEBUG = false;
+  // Turn on this flag to print all trace in debugging function.
+  var TRACE = false;
   var _id = 0;
 
   /**
@@ -49,7 +52,7 @@
     this.publish('created');
 
     if (DEBUG || this._DEBUG) {
-      AppWindow[this.instanceID] = this;
+      this.constructor[this.instanceID] = this;
     }
 
     this.launchTime = Date.now();
@@ -400,8 +403,8 @@
       this._killed = true;
     }
 
-    if (DEBUG) {
-      AppWindow[this.instanceID] = null;
+    if (DEBUG || this._DEBUG) {
+      this.constructor[this.instanceID] = null;
     }
 
     // Remove callee <-> caller reference before we remove the window.
@@ -424,6 +427,12 @@
     if (this.nextWindow) {
       this.nextWindow.kill();
       this.nextWindow = null;
+    }
+
+    // Kill any attention window.
+    if (this.attentionWindow) {
+      this.attentionWindow.kill();
+      this.attentionWindow = null;
     }
 
     // If the app is the currently displayed app, switch to the homescreen
@@ -486,6 +495,13 @@
       this.rearWindow.unsetFrontWindow();
       this.rearWindow = null;
     }
+
+    // Remove attention reference.
+    if (this.parentWindow) {
+      this.parentWindow.unsetAttentionWindow();
+      this.parentWindow = null;
+    }
+
     this.publish('willdestroy');
     this.uninstallSubComponents();
     if (this.element) {
@@ -563,6 +579,10 @@
 
     if (this.isFullScreen()) {
       this.element.classList.add('fullscreen-app');
+    }
+
+    if (this.isBrowser()) {
+      this.element.classList.add('browser');
     }
 
     this.browserContainer = this.element.querySelector('.browser-container');
@@ -668,7 +688,7 @@
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
      'mozbrowsermetachange', 'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
-     '_orientationchange', '_focus'];
+     '_orientationchange', '_focus', '_hidewindow'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -678,31 +698,6 @@
     'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory,
   };
-
-  /**
-   * The event list is coming from current implemented mozbrowser events.
-   * https://developer.mozilla.org/en-US/docs/WebAPI/Browser
-   *
-   * We need to stop them from propgating to this window's parent.
-   * @type {Array}
-   */
-  var SELF_MANAGED_EVENTS = [
-    'mozbrowserasyncscroll',
-    'mozbrowserclose',
-    'mozbrowsercontextmenu',
-    'mozbrowsererror',
-    'mozbrowsericonchange',
-    'mozbrowserloadend',
-    'mozbrowserloadstart',
-    'mozbrowserlocationchange',
-    'mozbrowseropenwindow',
-    'mozbrowsersecuritychange',
-    'mozbrowsershowmodalprompt',
-    'mozbrowsertitlechange',
-    'mozbrowserusernameandpasswordrequired',
-    'mozbrowseropensearch',
-    'mozbrowsermetachange'
-  ];
 
   AppWindow.prototype.openAnimation = 'enlarge';
   AppWindow.prototype.closeAnimation = 'reduce';
@@ -729,6 +724,7 @@
         if (this.constructor.SUB_COMPONENTS[componentName]) {
           this[componentName] =
             new this.constructor.SUB_COMPONENTS[componentName](this);
+          this[componentName].start && this[componentName].start();
         }
       }
 
@@ -746,10 +742,10 @@
   AppWindow.prototype.uninstallSubComponents =
     function aw_uninstallSubComponents() {
       for (var componentName in this.constructor.prototype.SUB_COMPONENTS) {
-        if (this[componentName]) {
+        if (this[componentName] && this[componentName].destroy) {
           this[componentName].destroy();
-          this[componentName] = null;
         }
+        this[componentName] = null;
       }
 
       if (this.appChrome) {
@@ -842,6 +838,9 @@
       if (this.constructor.SUSPENDING_ENABLED && !this.isActive()) {
         this.debug(' ..sleep! I will come back.');
         this.destroyBrowser();
+        if (this.frontWindow) {
+          this.frontWindow.kill();
+        }
       } else {
         this.kill(evt);
       }
@@ -989,12 +988,8 @@
       return;
     }
     this.constructor.REGISTERED_EVENTS.forEach(function iterator(evt) {
+      this.debug('adding ' + evt + ' event handler ...');
       this.element.addEventListener(evt, this);
-    }, this);
-    SELF_MANAGED_EVENTS.forEach(function iterator(evt) {
-      if (this.constructor.REGISTERED_EVENTS.indexOf(evt) < 0) {
-        this.element.addEventListener(evt, this);
-      }
     }, this);
   };
 
@@ -1017,7 +1012,6 @@
     }
     this.debug(' Handling ' + evt.type + ' event...');
     if (this['_handle_' + evt.type]) {
-      this.debug(' Handling ' + evt.type + ' event...');
       this['_handle_' + evt.type](evt);
     }
   };
@@ -1034,11 +1028,15 @@
 
   AppWindow.prototype.debug = function aw_debug(msg) {
     if (DEBUG || this._DEBUG) {
-      console.log('[Dump: ' + this.CLASS_NAME + ']' +
+      console.log('[' + this.CLASS_NAME + ']' +
         '[' + (this.name || this.origin) + ']' +
         '[' + this.instanceID + ']' +
-        '[' + self.System.currentTime() + ']' +
+        '[' + self.System.currentTime() + '] ' +
         Array.slice(arguments).concat());
+
+      if (TRACE) {
+        console.trace();
+      }
     }
   };
 
@@ -1051,15 +1049,20 @@
   };
 
   AppWindow.prototype.show = function aw_show() {
-    if (!this.isActive()) {
-      this.element.classList.add('active');
+    if (!this.element || !this.element.classList.contains('hidden')) {
+      return;
     }
+    this.element.classList.remove('hidden');
+    this.publish('shown');
   };
 
   AppWindow.prototype.hide = function aw_hide() {
-    if (this.isActive()) {
-      this.element.classList.remove('active');
+    if (!this.element || this.element.classList.contains('hidden')) {
+      return;
     }
+    this.debug('hidden the entire app window.');
+    this.element.classList.add('hidden');
+    this.publish('hidden');
   };
 
   AppWindow.prototype.queueShow = function aw_queueShow() {
@@ -1220,8 +1223,8 @@
                   detail: detail || this
                 });
 
-    this.debug(' publishing external event: ' + event +
-      JSON.stringify(detail));
+    this.debug('publishing external event: ' + event +
+      (detail ? JSON.stringify(detail) : ''));
 
     // Publish external event.
     if (this.rearWindow && this.element) {
@@ -1240,7 +1243,7 @@
                               detail: detail || this
                             });
 
-      this.debug(' publishing internal event: ' + event);
+      this.debug('publishing internal event: ' + event);
       this.element.dispatchEvent(internalEvent);
     }
   };
@@ -1304,10 +1307,25 @@
       return this._fullScreen;
     }
     // Fullscreen
-    this._fullScreen = this.manifest &&
-      ('fullscreen' in this.manifest ? this.manifest.fullscreen : false);
-
+    this._fullScreen = (this.manifest &&
+      ('fullscreen' in this.manifest ? this.manifest.fullscreen : false)) ||
+      this.isFullScreenLayout();
     return this._fullScreen;
+  };
+
+  /**
+   * Detect whether this app is resized 100% width and height by its manifest.
+   * @return {Boolean} We're a fullscreen_layout app or not.
+   */
+  AppWindow.prototype.isFullScreenLayout = function aw_isFullScreenLayout() {
+    if (typeof(this._fullScreenLayout) !== 'undefined') {
+      return this._fullScreenLayout;
+    }
+    // Fullscreen
+    this._fullScreenLayout = this.manifest &&
+      ('fullscreen_layout' in this.manifest ? this.manifest.fullscreen_layout :
+        false);
+    return this._fullScreenLayout;
   };
 
   AppWindow.prototype._defaultOrientation = null;
@@ -1503,6 +1521,11 @@
       this.calleeWindow = null;
     };
 
+  AppWindow.prototype.unsetAttentionWindow =
+    function aw_unsetAttentionWindow() {
+      this.attentionWindow = null;
+    };
+
   /**
    * Modify an attribute on this.element
    * @param  {String} type  State type.
@@ -1612,8 +1635,10 @@
           this.element.style.backgroundSize =
             iconCSSSize + 'px ' + iconCSSSize + 'px';
 
-          this.identificationIcon.style.backgroundImage =
-            'url("' + this._splash + '")';
+          if (this.identificationIcon) {
+            this.identificationIcon.style.backgroundImage =
+              'url("' + this._splash + '")';
+          }
         }
 
         if (this.identificationTitle) {
@@ -1882,8 +1907,9 @@
    */
   AppWindow.prototype.enterTaskManager = function aw_enterTaskManager() {
     this._dirtyStyleProperties = {};
-    if (this.element) {
+    if (this.element && this.transitionController) {
       this.element.classList.add('in-task-manager');
+      this.close( this.isActive() ? 'to-cardview' : 'immediate' );
     }
   };
 
@@ -1893,8 +1919,10 @@
   AppWindow.prototype.leaveTaskManager = function aw_leaveTaskManager() {
     if (this.element) {
       this.element.classList.remove('in-task-manager');
-      this.unapplyStyle(this._dirtyStyleProperties);
-      this._dirtyStyleProperties = null;
+      if (this._dirtyStyleProperties) {
+        this.unapplyStyle(this._dirtyStyleProperties);
+        this._dirtyStyleProperties = null;
+      }
     }
   };
 
@@ -1971,5 +1999,77 @@
     win.focus();
   };
 
+  /**
+   * Request to be foreground to the visibilityManager.
+   * If it's fine to let us to be active, this.setVisible(true) will be called.
+   */
+  AppWindow.prototype.requestForeground =
+    function aw_requestForeground() {
+      this.publish('requestforeground');
+    };
+
+  /**
+   * The window is killable by user manual action or not.
+   * @return {Boolean} The app is killable or not.
+   */
+  AppWindow.prototype.killable = function() {
+    // This property is updated whenever an attentionWindow
+    // is created or destroyed.
+    if (this.attentionWindow || this.isHomescreen) {
+      return false;
+    } else {
+      return true;
+    }
+  };
+
+  AppWindow.prototype.hasPermission =
+    function aw_hasPermission(name) {
+      if (typeof(this._hasPermission) !== 'undefined' &&
+          this._hasPermission[name]) {
+        return this._hasPermission[name];
+      }
+
+      var mozPerms = navigator.mozPermissionSettings;
+      if (!mozPerms || !this.manifestURL) {
+        return false;
+      }
+
+      var value =
+        mozPerms.get(name, this.manifestURL, this.origin, false);
+
+      if (!this._hasPermission) {
+        this._hasPermission = {};
+      }
+      this._hasPermission[name] = (value === 'allow');
+      return this._hasPermission[name];
+    };
+
+  AppWindow.prototype.isHidden = function() {
+    return !this.element || this.element.classList.contains('hidden');
+  };
+
+  /**
+   * _hidewindow event handler.
+   *
+   * The event occurs when there's a higher priority window
+   * which is not an AppWindow show up.
+   * AppWindowManager will redirect the event to the current
+   * active app.
+   *
+   * If the event is because of attention window coming,
+   * evt.detail will be the instance of the attention window.
+   * If we are the opener of the attention window,
+   * we should not be sent to background due to
+   * @param  {Event} evt The hidewindow event
+   */
+  AppWindow.prototype._handle__hidewindow = function (evt) {
+    var attention = evt.detail;
+    if (attention.parentWindow &&
+        attention.parentWindow.instanceID === this.instanceID) {
+      return;
+    }
+
+    this.setVisible(false);
+  };
   exports.AppWindow = AppWindow;
 }(window));

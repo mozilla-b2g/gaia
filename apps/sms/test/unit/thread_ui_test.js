@@ -44,7 +44,6 @@ require('/test/unit/mock_contacts.js');
 require('/test/unit/mock_recipients.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_activity_picker.js');
-require('/test/unit/mock_action_menu.js');
 require('/test/unit/mock_dialog.js');
 require('/test/unit/mock_smil.js');
 require('/test/unit/mock_custom_dialog.js');
@@ -65,6 +64,7 @@ require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_notification.js');
+require('/shared/test/unit/mocks/mock_option_menu.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'asyncStorage',
@@ -1708,70 +1708,75 @@ suite('thread_ui.js >', function() {
   });
 
   suite('message status update handlers >', function() {
-    teardown(function() {
-      document.body.removeChild(this.container);
-    });
-    setup(function() {
-      this.fakeMessage = {
-        id: 24601,
-        type: null,
-        delivery: null,
-        deliveryStatus: null,
-        deliveryInfo: null
-      };
+    var statuses = [
+      'sending', 'pending', 'sent', 'received', 'delivered', 'read', 'error'
+    ];
 
-      this.container = document.createElement('div');
-      this.container.id = 'message-' + this.fakeMessage.id;
-      this.container.className = 'sending';
-      this.container.innerHTML = ThreadUI.tmpl.message.interpolate({});
-      document.body.appendChild(this.container);
+    var statusesWithIndicator = ['sending', 'delivered', 'read', 'error'];
+
+    var fakeMessage,
+        container;
+
+    function assertMessageStatus(statusToAssert) {
+      assert.isTrue(container.classList.contains(statusToAssert));
+
+      if (statusesWithIndicator.indexOf(statusToAssert) >= 0) {
+        assert.isNotNull(container.querySelector('.message-status'));
+      } else {
+        assert.isNull(container.querySelector('.message-status'));
+      }
+
+      statuses.filter((s) => s !== statusToAssert).forEach(
+        (status) => assert.isFalse(container.classList.contains(status))
+      );
+    }
+
+    setup(function() {
+      fakeMessage = MockMessages.sms({
+        id: 24601,
+        delivery: 'sending'
+      });
+
+      this.sinon.stub(Navigation, 'isCurrentPanel').
+        withArgs('thread', { id: fakeMessage.threadId }).
+        returns(true);
+
+      MessageManager.on.withArgs('message-sending').yield({
+        message: fakeMessage
+      });
+
+      container = document.getElementById('message-' + fakeMessage.id);
+    });
+
+    teardown(function() {
+      container.remove();
+    });
+
+    suite('onMessageSending >', function() {
+      test('sets correct status for message element', function() {
+        assertMessageStatus('sending');
+      });
     });
 
     suite('onMessageSent >', function() {
-      test('removes the "sending" class from the message element', function() {
+      test('sets correct status for message element', function() {
         MessageManager.on.withArgs('message-sent').yield({
-          message: this.fakeMessage
+          message: fakeMessage
         });
-        assert.isFalse(this.container.classList.contains('sending'));
-      });
-      test('adds the "sent" class to the message element', function() {
-        MessageManager.on.withArgs('message-sent').yield({
-          message: this.fakeMessage
-        });
-        assert.isTrue(this.container.classList.contains('sent'));
+
+        assertMessageStatus('sent');
       });
     });
 
     suite('onMessageFailed >', function() {
-      suite('messages that were *not* previously in the "error" state >',
-        function() {
-        test('removes the "sending" class from the message element',
-          function() {
-          MessageManager.on.withArgs('message-failed-to-send').yield({
-            message: this.fakeMessage
-          });
-          assert.isFalse(this.container.classList.contains('sending'));
+      test('sets correct status for message element', function() {
+        MessageManager.on.withArgs('message-failed-to-send').yield({
+          message: fakeMessage
         });
-        test('adds the "error" class to the message element', function() {
-          MessageManager.on.withArgs('message-failed-to-send').yield({
-            message: this.fakeMessage
-          });
-          assert.isTrue(this.container.classList.contains('error'));
-        });
+
+        assertMessageStatus('error');
       });
-      suite('messages that were previously in the "error" state >',
-        function() {
-        setup(function() {
-          this.container.classList.add('error');
-        });
-        test('does not remove the "sending" class to the message element',
-          function() {
-          MessageManager.on.withArgs('message-failed-to-send').yield({
-            message: this.fakeMessage
-          });
-          assert.isTrue(this.container.classList.contains('sending'));
-        });
-      });
+
       suite('Show error dialog while sending failed',
         function() {
         setup(function() {
@@ -1782,7 +1787,7 @@ suite('thread_ui.js >', function() {
         test('does not show dialog if error is not NonActiveSimCardError',
           function() {
           MessageManager.on.withArgs('message-failed-to-send').yield({
-            message: this.fakeMessage
+            message: fakeMessage
           });
           sinon.assert.notCalled(ThreadUI.showMessageError);
         });
@@ -1790,13 +1795,13 @@ suite('thread_ui.js >', function() {
           function() {
           ThreadUI.showErrorInFailedEvent = 'NonActiveSimCardError';
           MessageManager.on.withArgs('message-failed-to-send').yield({
-            message: this.fakeMessage
+            message: fakeMessage
           });
           sinon.assert.called(ThreadUI.showMessageError);
           assert.equal(ThreadUI.showErrorInFailedEvent, '');
           MockErrorDialog.calls[0][1].confirmHandler();
-          assert.isTrue(this.container.classList.contains('sending'));
-          assert.isFalse(this.container.classList.contains('error'));
+
+          assertMessageStatus('sending');
           sinon.assert.called(Settings.switchMmsSimHandler);
         });
       });
@@ -1804,94 +1809,101 @@ suite('thread_ui.js >', function() {
 
     suite('onDeliverySuccess >', function() {
       test('sms delivery success', function() {
-        this.fakeMessage.type = 'sms';
-        this.fakeMessage.delivery = 'sent';
-        this.fakeMessage.deliveryStatus = 'success';
+        fakeMessage.type = 'sms';
+        fakeMessage.delivery = 'sent';
+        fakeMessage.deliveryStatus = 'success';
         MessageManager.on.withArgs('message-delivered').yield({
-          message: this.fakeMessage
+          message: fakeMessage
         });
-        assert.isTrue(this.container.classList.contains('delivered'));
+
+        assertMessageStatus('delivered');
       });
       test('mms delivery success', function() {
-        this.fakeMessage.type = 'mms';
-        this.fakeMessage.delivery = 'sent';
-        this.fakeMessage.deliveryInfo = [{
+        fakeMessage.type = 'mms';
+        fakeMessage.delivery = 'sent';
+        fakeMessage.deliveryInfo = [{
           receiver: null, deliveryStatus: 'success'}];
         MessageManager.on.withArgs('message-delivered').yield({
-          message: this.fakeMessage
+          message: fakeMessage
         });
-        assert.isTrue(this.container.classList.contains('delivered'));
+
+        assertMessageStatus('delivered');
       });
       test('multiple recipients mms delivery success', function() {
-        this.fakeMessage.type = 'mms';
-        this.fakeMessage.delivery = 'sent';
-        this.fakeMessage.deliveryInfo = [
+        fakeMessage.type = 'mms';
+        fakeMessage.delivery = 'sent';
+        fakeMessage.deliveryInfo = [
           {receiver: null, deliveryStatus: 'success'},
           {receiver: null, deliveryStatus: 'success'}];
         MessageManager.on.withArgs('message-delivered').yield({
-          message: this.fakeMessage
+          message: fakeMessage
         });
-        assert.isTrue(this.container.classList.contains('delivered'));
+
+        assertMessageStatus('delivered');
       });
       test('not all recipients return mms delivery success', function() {
-        this.fakeMessage.type = 'mms';
-        this.fakeMessage.delivery = 'sent';
-        this.fakeMessage.deliveryInfo = [
+        fakeMessage.type = 'mms';
+        fakeMessage.delivery = 'sent';
+        fakeMessage.deliveryInfo = [
           {receiver: null, deliveryStatus: 'success'},
           {receiver: null, deliveryStatus: 'pending'}];
         MessageManager.on.withArgs('message-delivered').yield({
-          message: this.fakeMessage
+          message: fakeMessage
         });
-        assert.isFalse(this.container.classList.contains('delivered'));
+
+        assertMessageStatus('sending');
       });
     });
 
     suite('onReadSuccess >', function() {
       test('mms read success', function() {
-        this.fakeMessage.type = 'mms';
-        this.fakeMessage.delivery = 'sent';
-        this.fakeMessage.deliveryInfo = [{
+        fakeMessage.type = 'mms';
+        fakeMessage.delivery = 'sent';
+        fakeMessage.deliveryInfo = [{
           receiver: null, readStatus: 'success'}];
         MessageManager.on.withArgs('message-read').yield({
-          message: this.fakeMessage
+          message: fakeMessage
         });
-        assert.isTrue(this.container.classList.contains('read'));
+
+        assertMessageStatus('read');
       });
       test('display read icon when both delivery/read success', function() {
-        this.fakeMessage.type = 'mms';
-        this.fakeMessage.delivery = 'sent';
-        this.fakeMessage.deliveryInfo = [{
+        fakeMessage.type = 'mms';
+        fakeMessage.delivery = 'sent';
+        fakeMessage.deliveryInfo = [{
           receiver: null, deliveryStatus: 'success', readStatus: 'success'}];
         MessageManager.on.withArgs('message-delivered').yield({
-          message: this.fakeMessage
+          message: fakeMessage
         });
         MessageManager.on.withArgs('message-read').yield({
-          message: this.fakeMessage
+          message: fakeMessage
         });
-        assert.isFalse(this.container.classList.contains('delivered'));
-        assert.isTrue(this.container.classList.contains('read'));
+
+        assertMessageStatus('read');
       });
       test('multiple recipients mms read success', function() {
-        this.fakeMessage.type = 'mms';
-        this.fakeMessage.delivery = 'sent';
-        this.fakeMessage.deliveryInfo = [
+        fakeMessage.type = 'mms';
+        fakeMessage.delivery = 'sent';
+        fakeMessage.deliveryInfo = [
           {receiver: null, readStatus: 'success'},
           {receiver: null, readStatus: 'success'}];
         MessageManager.on.withArgs('message-read').yield({
-          message: this.fakeMessage
+          message: fakeMessage
         });
-        assert.isTrue(this.container.classList.contains('read'));
+
+        assertMessageStatus('read');
       });
       test('not all recipients return mms read success', function() {
-        this.fakeMessage.type = 'mms';
-        this.fakeMessage.delivery = 'sent';
-        this.fakeMessage.deliveryInfo = [
+        fakeMessage.type = 'mms';
+        fakeMessage.delivery = 'sent';
+        fakeMessage.deliveryInfo = [
           {receiver: null, readStatus: 'success'},
           {receiver: null, readStatus: 'pending'}];
         MessageManager.on.withArgs('message-read').yield({
-          message: this.fakeMessage
+          message: fakeMessage
         });
-        assert.isFalse(this.container.classList.contains('read'));
+
+        assertMessageStatus('sending');
       });
     });
   });
@@ -2261,8 +2273,7 @@ suite('thread_ui.js >', function() {
         id: '1',
         bodyHTML: '',
         timestamp: '' + now,
-        subject: 'subject',
-        progressIndicatorClassName: ''
+        subject: 'subject'
       });
     });
 
@@ -2315,19 +2326,38 @@ suite('thread_ui.js >', function() {
       });
     });
 
-    test('correctly sets progress indicator class name', function() {
-      var incomingMessage = MockMessages.sms({ delivery: 'received'}),
-          outgoingMessage = MockMessages.sms({ delivery: 'sent'});
+    test('add message status only when needed', function() {
+      var receivedMessage = MockMessages.sms({ delivery: 'received'}),
+          sentMessage = MockMessages.sms({
+            delivery: 'sent',
+            deliveryStatus: 'pending'
+          }),
+          deliveredMessage = MockMessages.sms({ delivery: 'sent' }),
+          readMessage = MockMessages.mms({ delivery: 'sent' }),
+          failedMessage = MockMessages.sms({ delivery: 'error' }),
+          sendingMessage = MockMessages.sms({ delivery: 'sending' });
 
-      var node = ThreadUI.buildMessageDOM(incomingMessage);
-      assert.isTrue(
-        node.querySelector('progress').classList.contains('light')
-      );
+      var node = ThreadUI.buildMessageDOM(receivedMessage);
+      assert.isNull(node.querySelector('.message-status'));
 
-      node = ThreadUI.buildMessageDOM(outgoingMessage);
-      assert.isFalse(
-        node.querySelector('progress').classList.contains('light')
-      );
+      node = ThreadUI.buildMessageDOM(sentMessage);
+      assert.isNull(node.querySelector('.message-status'));
+
+      node = ThreadUI.buildMessageDOM(deliveredMessage);
+      assert.isNotNull(node.querySelector('.message-status'));
+      assert.isTrue(node.classList.contains('delivered'));
+
+      node = ThreadUI.buildMessageDOM(readMessage);
+      assert.isNotNull(node.querySelector('.message-status'));
+      assert.isTrue(node.classList.contains('read'));
+
+      node = ThreadUI.buildMessageDOM(failedMessage);
+      assert.isNotNull(node.querySelector('.message-status'));
+      assert.isTrue(node.classList.contains('error'));
+
+      node = ThreadUI.buildMessageDOM(sendingMessage);
+      assert.isNotNull(node.querySelector('.message-status'));
+      assert.isTrue(node.classList.contains('sending'));
     });
 
     test('sets delivery class when delivery status is success', function() {
@@ -2487,7 +2517,11 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
 
       ThreadUI.beforeEnter(transitionArgs);
-      document.getElementById('messages-back-button').click();
+
+      // Trigger the action button on the header
+      var event = document.createEvent('HTMLEvents');
+      event.initEvent('action', true, true);
+      document.getElementById('messages-header').dispatchEvent(event);
 
       Navigation.isCurrentPanel.withArgs('thread').returns(true);
       ThreadUI.afterEnter(transitionArgs);
@@ -2640,7 +2674,6 @@ suite('thread_ui.js >', function() {
   });
 
   suite('not-downloaded', function() {
-    var setL10nAttributes;
     var ONE_DAY_TIME = 24 * 60 * 60 * 1000;
 
     function getTestMessage(index) {
@@ -2704,7 +2737,6 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(MessageManager, 'retrieveMMS', function() {
         return {};
       });
-      setL10nAttributes = this.sinon.spy(navigator.mozL10n, 'setAttributes');
     });
     suite('pending message', function() {
       var message;
@@ -2809,7 +2841,6 @@ suite('thread_ui.js >', function() {
         var showMessageErrorSpy;
 
         setup(function() {
-          setL10nAttributes.reset();
           if (!('mozSettings' in navigator)) {
            navigator.mozSettings = null;
           }
@@ -2820,10 +2851,12 @@ suite('thread_ui.js >', function() {
             target: button
           });
         });
-        assert.equal(
-          button.getAttribute('data-l10n-id'),
-          'downloading-attachment'
-        );
+        test('changes button text to "downloading"', function() {
+          assert.equal(
+            button.getAttribute('data-l10n-id'),
+            'downloading-attachment'
+          );
+        });
         test('error class absent', function() {
           assert.isFalse(element.classList.contains('error'));
         });
@@ -2835,7 +2868,6 @@ suite('thread_ui.js >', function() {
         });
         suite('response error', function() {
           setup(function() {
-            setL10nAttributes.reset();
             MessageManager.retrieveMMS.returnValues[0].onerror();
           });
           test('error class present', function() {
@@ -2844,11 +2876,10 @@ suite('thread_ui.js >', function() {
           test('pending class absent', function() {
             assert.isFalse(element.classList.contains('pending'));
           });
-          test('changes download text', function() {
-            sinon.assert.calledWith(
-              setL10nAttributes,
-              button,
-              'downloading-attachment'
+          test('changes button text to "download"', function() {
+            assert.equal(
+              button.getAttribute('data-l10n-id'),
+              'download-attachment'
             );
           });
           test('Message error dialog should not exist', function() {
@@ -2883,9 +2914,8 @@ suite('thread_ui.js >', function() {
             MockErrorDialog.calls[0][1].confirmHandler();
             assert.isTrue(element.classList.contains('pending'));
             assert.isFalse(element.classList.contains('error'));
-            sinon.assert.calledWith(
-              setL10nAttributes,
-              button,
+            assert.equal(
+              button.getAttribute('data-l10n-id'),
               'downloading-attachment'
             );
             sinon.assert.calledWith(Settings.switchMmsSimHandler, 1);
@@ -2986,12 +3016,21 @@ suite('thread_ui.js >', function() {
         assert.isFalse(element.classList.contains('pending'));
       });
       test('message is correct', function() {
-        assert.equal(notDownloadedMessage.dataset.l10nId,
+        assert.equal(
+          notDownloadedMessage.dataset.l10nId,
           'not-downloaded-attachment',
-          'localization id set correctly');
-        assert.equal(notDownloadedMessage.dataset.l10nArgs,
+          'localization id set correctly'
+        );
+        assert.equal(
+          notDownloadedMessage.dataset.l10nArgs,
           '{"date":"date_stub"}',
-          'localization arguments set correctly');
+          'localization arguments set correctly'
+        );
+        assert.equal(
+          notDownloadedMessage.dataset.l10nDateFormat,
+          'expiry-date-format',
+          'localization date format set correctly'
+        );
       });
       test('date is correctly determined', function() {
         assert.equal(+Utils.date.format.localeFormat.args[0][0],
@@ -3004,15 +3043,13 @@ suite('thread_ui.js >', function() {
       });
       suite('clicking', function() {
         setup(function() {
-          setL10nAttributes.reset();
           ThreadUI.handleMessageClick({
             target: button
           });
         });
         test('changes download text', function() {
-          sinon.assert.calledWith(
-            setL10nAttributes,
-            button,
+          assert.equal(
+            button.getAttribute('data-l10n-id'),
             'downloading-attachment'
           );
         });
@@ -3027,7 +3064,6 @@ suite('thread_ui.js >', function() {
         });
         suite('response error', function() {
           setup(function() {
-            setL10nAttributes.reset();
             MessageManager.retrieveMMS.returnValues[0].onerror();
           });
           test('error class present', function() {
@@ -3036,11 +3072,10 @@ suite('thread_ui.js >', function() {
           test('pending class absent', function() {
             assert.isFalse(element.classList.contains('pending'));
           });
-          test('changes download text', function() {
-            sinon.assert.calledWith(
-              setL10nAttributes,
-              button,
-              'downloading-attachment'
+          test('changes button text to "download"', function() {
+            assert.equal(
+              button.getAttribute('data-l10n-id'),
+              'download-attachment'
             );
           });
         });
@@ -3158,7 +3193,6 @@ suite('thread_ui.js >', function() {
       return testMessages[index];
     }
 
-    var setL10nAttributes;
     setup(function() {
       this.sinon.stub(Utils.date.format, 'localeFormat', function() {
         return 'date_stub';
@@ -3166,10 +3200,6 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(MessageManager, 'retrieveMMS', function() {
         return {};
       });
-      setL10nAttributes = this.sinon.spy(
-        navigator.mozL10n,
-        'setL10nAttributes'
-      );
     });
 
     suite('no attachment message', function() {
@@ -3249,8 +3279,10 @@ suite('thread_ui.js >', function() {
         assert.isFalse(element.classList.contains('pending'));
       });
       test('message is Empty', function() {
-        sinon.assert.calledWithMatch(setL10nAttributes, noAttachmentMessage,
-          'no-attachment-text');
+        assert.equal(
+          noAttachmentMessage.getAttribute('data-l10n-id'),
+          'no-attachment-text'
+        );
       });
       suite('clicking', function() {
         setup(function() {
@@ -3687,7 +3719,8 @@ suite('thread_ui.js >', function() {
           delivery: 'not-downloaded',
           deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
           attachments: [],
-          subject: 'error download'
+          subject: 'error download',
+          expiryDate: Date.now()
         });
 
         // Retrieve the message node
@@ -4294,11 +4327,9 @@ suite('thread_ui.js >', function() {
     });
 
     suite('Multi participant', function() {
-      var setL10nAttributes;
       setup(function() {
         MockActivityPicker.dial.mSetup();
         MockOptionMenu.mSetup();
-        setL10nAttributes = this.sinon.spy(navigator.mozL10n, 'setAttributes');
 
         Threads.set(1, {
           participants: ['999', '888']
@@ -5959,10 +5990,21 @@ suite('thread_ui.js >', function() {
 
       setup(function() {
         transitionArgs = getTransitionArgs();
-        this.sinon.spy(MockL10n, 'translate');
         this.sinon.spy(MockLazyLoader, 'load');
         this.sinon.spy(window, 'MultiSimActionButton');
+        this.sinon.stub(ActivityHandler, 'isInActivity').returns(false);
         ThreadUI.beforeEnter(transitionArgs);
+      });
+
+      test('sets "back" header action if it is not in activity', function() {
+        var messagesHeader = document.getElementById('messages-header');
+
+        assert.equal(messagesHeader.getAttribute('action'), 'back');
+
+        ActivityHandler.isInActivity.returns(true);
+        ThreadUI.beforeEnter(transitionArgs);
+
+        assert.equal(messagesHeader.getAttribute('action'), 'close');
       });
 
       test('initializes MultiSimActionButton', function() {
@@ -5988,7 +6030,6 @@ suite('thread_ui.js >', function() {
       test('loads and translates SIM picker', function() {
         var simPickerElt = document.getElementById('sim-picker');
 
-        sinon.assert.calledWith(MockL10n.translate, simPickerElt);
         sinon.assert.calledWith(MockLazyLoader.load, [simPickerElt]);
       });
 

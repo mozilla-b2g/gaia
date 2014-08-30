@@ -28,6 +28,7 @@ define(function(require) {
 
         panel.dataset.security = options.security;
         elements.ssid.textContent = network.ssid;
+
         elements.signal.setAttribute('data-l10n-id',
                                      'signalLevel' + options.sl);
         if (options.security) {

@@ -15,7 +15,9 @@ suiteGroup('Views.CreateAccount', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="create-account-view">',
-        '<button class="cancel">cancel</button>',
+        '<gaia-header id="create-account-header" action="back">',
+          '<h1>Add an account</h1>',
+        '</gaia-header>',
         '<ul id="create-account-presets"></ul>',
       '</div>'
     ].join('');

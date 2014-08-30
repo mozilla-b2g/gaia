@@ -101,7 +101,7 @@ marionette('check root panel settings', function() {
         assert.equal(rootPanel.usbStorageDesc, 'Disabled');
       });
 
-      test('enable usb storage', function() {
+      test.skip('enable usb storage', function() {
         rootPanel.usbStorage(true);
 
         // There will be confirmation dialog shown at the first time the usb

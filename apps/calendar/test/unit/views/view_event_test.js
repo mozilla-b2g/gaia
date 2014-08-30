@@ -111,8 +111,8 @@ suiteGroup('Views.ViewEvent', function() {
     assert.ok(subject.primaryButton);
   });
 
-  test('.cancelButton', function() {
-    assert.ok(subject.cancelButton);
+  test('.header', function() {
+    assert.ok(subject.header);
   });
 
   test('.fieldRoot', function() {
@@ -274,7 +274,7 @@ suiteGroup('Views.ViewEvent', function() {
 
       subject._returnTop = '/foo';
 
-      triggerEvent(subject.cancelButton, 'click');
+      triggerEvent(subject.header, 'action');
     });
 
     test('cancel button return top', function(done) {
@@ -286,7 +286,7 @@ suiteGroup('Views.ViewEvent', function() {
 
       subject._returnTo = '/bar';
 
-      triggerEvent(subject.cancelButton, 'click');
+      triggerEvent(subject.header, 'action');
     });
 
     test('edit button click', function(done) {

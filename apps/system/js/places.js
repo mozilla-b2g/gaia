@@ -143,6 +143,8 @@
         title: url,
         icons: {},
         frecency: 0,
+        // An array containing previous visits to this url
+        visits: [],
         screenshot: null
       };
     },
@@ -184,13 +186,45 @@
      * @memberof Places.prototype
      */
     addVisit: function(url) {
-      var self = this;
-      return this.editPlace(url, function(place, cb) {
+      return this.editPlace(url, (place, cb) => {
         place.visited = Date.now();
         place.frecency++;
-        self.checkTopSites(place);
+        place = this.addToVisited(place);
+        this.checkTopSites(place);
         cb(place);
       });
+    },
+
+    /*
+     * Add a recorded visit to the history, we prune them to the last
+     * TRUNCATE_VISITS number of visits and store them in a low enough
+     * resolution to render the view (one per day)
+     */
+    TRUNCATE_VISITS: 10,
+
+    addToVisited: function(place) {
+
+      place.visits = place.visits || [];
+
+      if (!place.visits.length) {
+        place.visits.unshift(place.visited);
+        return place;
+      }
+
+      // If the last visit was within the last 24 hours, remove
+      // it as we only need a resolution of one day
+      var lastVisit = place.visits[0];
+      if (lastVisit > (Date.now() - 60 * 60 * 24 * 1000)) {
+        place.visits.shift();
+      }
+
+      place.visits.unshift(place.visited);
+
+      if (place.visits.length > this.TRUNCATE_VISITS) {
+        place.visits.length = this.TRUNCATE_VISITS;
+      }
+
+      return place;
     },
 
     /**

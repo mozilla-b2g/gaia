@@ -46,15 +46,12 @@ repository's `make install-into-gaia` command. The files are as follows:
 * **js/ext/end.js**: Kickstarts back-end loading. If it detects no accounts have
 been set up, then it gives the UI a fake data object, then dynamically loads
 the bulk of the back-end.
-* **js/ext/mailapi/same-frame-setup.js**: the email back-end. It knows how to talk
+* **js/ext/ext/same-frame-setup.js**: the email back-end. It knows how to talk
 to the local databases and then dynamically loads account type rollup files.
-* **js/ext/mailapi/activesync/configurator.js**: Code for the activesync account
+* **js/ext/ext/activesync/configurator.js**: Code for the activesync account
 type.
-* **js/ext/mailapi/composite/configurator.js**: Code for the "imap+smtp" account
+* **js/ext/ext/composite/configurator.js**: Code for the "imap+smtp" account
 type.
-* **js/ext/mailapi/fake/configurator.js**: Code for the "fake" account type, used
-for testing.
-
 
 ## Running in Firefox ##
 

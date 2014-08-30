@@ -15,6 +15,7 @@ var EdgeSwipeDetector = {
     window.addEventListener('appopen', this);
     window.addEventListener('launchapp', this);
     window.addEventListener('cardviewclosed', this);
+    window.addEventListener('mozChromeEvent', this);
 
     ['touchstart', 'touchmove', 'touchend',
      'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
@@ -88,6 +89,20 @@ var EdgeSwipeDetector = {
           this.lifecycleEnabled = true;
         }
         break;
+      case 'mozChromeEvent':
+          if (e.detail.type !== 'accessibility-control') {
+            break;
+          }
+          var details = JSON.parse(e.detail.details);
+          switch (details.eventType) {
+            case 'edge-swipe-right':
+              this.autoSwipe('ltr');
+              break;
+            case 'edge-swipe-left':
+              this.autoSwipe('rtl');
+              break;
+          }
+          break;
     }
   },
 
@@ -271,8 +286,33 @@ var EdgeSwipeDetector = {
 
     var x = touch.pageX;
     var y = touch.pageY;
+
+    // In fullscreen_layout mode the app frame will always be fullscreen
+    // but we still want to redispatch touch events to the "overlayed"
+    // software home button
+    var softwareButtonOverlayed =
+      AppWindowManager.getActiveApp() &&
+      AppWindowManager.getActiveApp().isFullScreenLayout();
+    if (softwareButtonOverlayed) {
+      return x > (layoutManager.width - softwareButtonManager.width) ||
+          y > (layoutManager.height - softwareButtonManager.height);
+    }
     return (x > layoutManager.width ||
             y > layoutManager.height);
+  },
+
+  autoSwipe: function esd_autoSwipe(direction) {
+    if (!this._lifecycleEnabled) {
+      return;
+    }
+    SheetsTransition.begin(direction);
+    if (direction === 'ltr') {
+      SheetsTransition.snapBack(1);
+      StackManager.goPrev();
+    } else {
+      SheetsTransition.snapForward(1);
+      StackManager.goNext();
+    }
   }
 };
 

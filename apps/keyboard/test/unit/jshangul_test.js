@@ -201,6 +201,15 @@ suite('jshangul', function() {
         ]
       },
       {
+        info: 'should return 어ㅠㅠ when type "ㅇㅓㅠㅠ"',
+        scenario: [
+          [ 'ㅇ', [ 'ㅇ', 0 ] ],
+          [ 'ㅓ', [ '어', 0 ] ],
+          [ 'ㅠ', [ 'ㅠ', 1 ] ],
+          [ 'ㅠ', [ 'ㅠ', 2 ] ]
+        ]
+      },
+      {
         info: 'should 깎 rightly write and delete by jamo.',
         scenario: [
           [ 'ㄱ', [ 'ㄱ' , 0 ] ],

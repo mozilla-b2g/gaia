@@ -7,13 +7,15 @@
 (function(exports) {
 
 var form;
-var style;
 
 function init() {
   form = document.querySelector('form');
   form.addEventListener('submit', onFormSubmit);
-  sendNotification().catch((err) => {
-    console.error('Error while sending a notification', err);
+
+  navigator.mozL10n.once(function () {
+    sendNotification().catch((err) => {
+      console.error('Error while sending a notification', err);
+    });
   });
 }
 
@@ -27,11 +29,13 @@ function sendNotification() {
   var title = params.title;
   var body = params.body;
 
+  // TODO: Use NotificationHelper.getIconURI for icon url instead of hardcoded
   var notification = new Notification(
-    title, {
+    navigator.mozL10n.get(title), {
       body: body,
       tag: '' + Date.now(), // needs to be unique
-      icon: window.location.origin + '/style/icons/icon-68.png?style=' + style
+      icon: window.location.origin + '/style/icons/icon-68.png' +
+            '?titleID=' + title
     }
   );
 
@@ -52,15 +56,10 @@ function onFormSubmit(e) {
 function renderForm() {
   var params = Utils.parseParams();
 
-  if (params.style) {
-    document.body.classList.add(params.style);
-    style = params.style;
-  }
-
   var title = params.title;
   var body = params.body;
 
-  form.querySelector('h1').textContent = title;
+  form.querySelector('h1').setAttribute('data-l10n-id', title);
   form.querySelector('p').textContent = body;
 }
 

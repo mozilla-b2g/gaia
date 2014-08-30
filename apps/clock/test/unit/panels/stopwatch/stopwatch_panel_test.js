@@ -6,7 +6,7 @@ suite('Stopwatch.Panel', function() {
   var panel;
   var clock;
   var Stopwatch;
-  var localize;
+  var setAttributes;
   var mozL10n;
 
   suiteSetup(function(done) {
@@ -76,7 +76,7 @@ suite('Stopwatch.Panel', function() {
 
   setup(function() {
     clock = this.sinon.useFakeTimers();
-    localize = this.sinon.spy(mozL10n, 'localize');
+    setAttributes = this.sinon.spy(mozL10n, 'setAttributes');
   });
 
   test('Default', function() {

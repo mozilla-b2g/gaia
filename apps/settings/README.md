@@ -3,6 +3,8 @@ Settings app is a single place that
 - Allows the user to configure device settings
 - Responds to **incoming activities** ('configure'), which allows the user to navigate to a specific panel to configure from another app (eg. show the wifi settings panel if no data connection is available).
 
+For new settings key that will be used in system, please do the key migration in `apps/system/js/migrators/settings_migrator.js`.
+
 ## Current Status
 We are in the middle of the refactoring that targets on the following problem.
 

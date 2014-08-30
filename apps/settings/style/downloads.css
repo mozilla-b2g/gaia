@@ -33,16 +33,23 @@
   display: none;
 }
 
-#downloads #edit-mode-header {
-  display: none;
+/**
+ * 1. Important required to override styles
+ *    inside <gaia-header> <style scoped>
+ *    Once we have ::content selector we
+ *    can drop the <style scoped> and this
+ *    !important won't be needed anymore.
+ */
+#downloads-edit-header {
+  display: none !important; /* 1 */
+}
+
+#downloads.edit #downloads-edit-header {
+  display: block !important; /* 1 */
 }
 
 #downloads.edit #downloads-header {
-  display: none;
-}
-
-#downloads.edit #edit-mode-header {
-  display: block;
+  display: none !important; /* 1 */
 }
 
 #downloads.edit aside {

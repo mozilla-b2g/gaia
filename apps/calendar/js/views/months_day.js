@@ -56,7 +56,6 @@ Calendar.ns('Views').MonthsDay = (function() {
 
     _initEvents: function() {
       this.controller.on('selectedDayChange', this);
-      this.app.store('Calendar').on('calendarVisibilityChange', this);
       this.delegate(this.events, 'click', '[data-id]', function(e, target) {
         Calendar.App.router.show('/event/show/' + target.dataset.id + '/');
       });
@@ -99,11 +98,6 @@ Calendar.ns('Views').MonthsDay = (function() {
       Parent.prototype.handleEvent.apply(this, arguments);
 
       switch (e.type) {
-        case 'calendarVisibilityChange':
-          // we need to re-render the view when calendar visibility changes to
-          // keep event list in sync
-          this.changeDate(this.date, true);
-          break;
         case 'selectedDayChange':
           this.changeDate(e.data[0], true);
           break;

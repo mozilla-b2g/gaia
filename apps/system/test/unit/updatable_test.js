@@ -668,7 +668,7 @@ suite('system/Updatable', function() {
       test('apply prompt shown', function() {
         assert.isTrue(MockCustomDialog.mShown);
         assert.equal('systemUpdateReady', MockCustomDialog.mShowedTitle);
-        assert.equal('wantToInstall', MockCustomDialog.mShowedMsg);
+        assert.equal('wantToInstallNow', MockCustomDialog.mShowedMsg);
 
         assert.equal('later', MockCustomDialog.mShowedCancel.title);
         assert.equal('installNow', MockCustomDialog.mShowedConfirm.title);

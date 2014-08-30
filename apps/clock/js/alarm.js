@@ -18,7 +18,7 @@ define(function(require, exports, module) {
       hour: now.getHours(),
       minute: now.getMinutes(),
       label: '',
-      sound: 'ac_classic_clock_alarm.opus',
+      sound: 'ac_awake.opus',
       vibrate: true,
       snooze: 5 // Number of minutes to snooze
     };

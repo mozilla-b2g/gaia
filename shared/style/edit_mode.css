@@ -14,17 +14,20 @@
 }
 
 /* Header */
-[role="dialog"][data-type="edit"] [role="region"] > header:first-child {
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child,
+[role="dialog"][data-type="edit"] [role="region"] > gaia-header {
   background-color: #f4f4f4;
   transition: transform 0.4s ease;
   pointer-events: auto;
 }
 
-[role="dialog"][data-type="edit"] [role="region"] > header:first-child h1 {
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child h1,
+[role="dialog"][data-type="edit"] [role="region"] > gaia-header h1 {
   color: #868692;
 }
 
-[role="dialog"][data-type="edit"] [role="region"] > header:first-child menu[type="toolbar"] button {
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child menu[type="toolbar"] button,
+[role="dialog"][data-type="edit"] [role="region"] > gaia-header button {
   color: #00aac5;
 }
 

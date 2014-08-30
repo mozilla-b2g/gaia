@@ -809,27 +809,37 @@ contacts.List = (function() {
 
   function displayICEIndicator(ids) {
     if (!ids || ids.length === 0) {
-      if (utils.alphaScroll) {
-        utils.alphaScroll.hideGroup('ice');
-      }
-      hideICEIndicator();
+      hideICEGroup();
       return;
     }
 
     iceContacts = ids;
     if (iceGroup === null) {
       buildICEGroup();
-    } else {
-      iceGroup.classList.remove('hide');
+    }
+    showICEGroup();
+  }
+
+  function toggleICEGroup(bool) {
+    if (!iceGroup) {
+      return;
     }
 
+    if (!!bool) {
+      showICEGroup();
+    } else {
+      hideICEGroup();
+    }
+  }
+
+  function showICEGroup() {
+    iceGroup.classList.remove('hide');
     utils.alphaScroll.showGroup('ice');
   }
 
-  function hideICEIndicator() {
-    if (iceGroup) {
-      iceGroup.classList.add('hide');
-    }
+  function hideICEGroup() {
+    iceGroup.classList.add('hide');
+    utils.alphaScroll.hideGroup('ice');
   }
 
   function buildICEGroup() {
@@ -854,6 +864,25 @@ contacts.List = (function() {
      groupsList.firstChild).appendChild(list).appendChild(elem);
     elem.appendChild(icon);
     elem.appendChild(p);
+
+    iceGroup.addEventListener('click', onICEGroupClicked);
+  }
+
+  function onICEGroupClicked() {
+    Contacts.view('Ice', function() {
+      // Prebuild the rows here, we have all the data to
+      // build them. Current amount of rows is 2.
+      function rowBuilder(id, node) {
+        renderLoadedContact(node, id);
+        updateRowStyle(node, true);
+        updateSingleRowSelection(node, id);
+        var out = node.cloneNode(true);
+        renderPhoto(out, id, true);
+        return out;
+      }
+      contacts.ICEView.init(iceContacts, rowBuilder, onClickHandler);
+      contacts.ICEView.showICEList();
+    });
   }
 
   var isFavorite = function isFavorite(contact) {
@@ -1687,8 +1716,8 @@ contacts.List = (function() {
       deselectAll = document.getElementById('deselect-all');
       deselectAll.addEventListener('click', handleSelection);
 
-      selectForm.querySelector('.icon.icon-close').parentNode.
-                    addEventListener('click', exitSelectMode.bind(null, true));
+      selectForm.querySelector('#selectable-form-header').
+                    addEventListener('action', exitSelectMode.bind(null, true));
     }
 
     isDangerSelectList = options && options.isDanger;
@@ -1994,6 +2023,7 @@ contacts.List = (function() {
     get isSelecting() {
       return inSelectMode;
     },
-    'notifyRowOnScreenByUUID': notifyRowOnScreenByUUID
+    'notifyRowOnScreenByUUID': notifyRowOnScreenByUUID,
+    'toggleICEGroup': toggleICEGroup
   };
 })();

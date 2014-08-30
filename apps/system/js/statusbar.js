@@ -35,30 +35,30 @@ var StatusBar = {
   // * Index 0 is the icon id
   // * Index 1 is the icon element width or null if size is variable
   PRIORITIES: [
-    ['emergency-cb-notification', 16 + 5],
-    ['battery', 25 + 5],
-    ['recording', 16 + 5],
-    ['flight-mode', 16 + 5],
-    ['wifi', 16 + 5],
+    ['emergency-cb-notification', 16 + 4],
+    ['battery', 25 + 4],
+    ['recording', 16 + 4],
+    ['flight-mode', 16 + 4],
+    ['wifi', 16 + 4],
     ['connections', null], // Width can change
     ['time', null], // Width can change
-    ['geolocation', 16 + 5],
-    ['network-activity', 16 + 5],
-    ['tethering', 16 + 5],
-    ['system-downloads', 16 + 5],
-    ['bluetooth-transferring', 16 + 5],
-    ['bluetooth', 16 + 5],
-    ['nfc', 16 + 5],
-    ['usb', 16 + 5],
-    ['notification', 32 + 5],
-    ['alarm', 16 + 5],
-    ['bluetooth-headphones', 16 + 5],
-    ['mute', 16 + 5],
+    ['geolocation', 16 + 4],
+    ['network-activity', 16 + 4],
+    ['tethering', 16 + 4],
+    ['system-downloads', 16 + 4],
+    ['bluetooth-transferring', 16 + 4],
+    ['bluetooth', 16 + 4],
+    ['nfc', 16 + 4],
+    ['usb', 16 + 4],
+    ['notification', 32 + 4],
+    ['alarm', 16 + 4],
+    ['bluetooth-headphones', 16 + 4],
+    ['mute', 16 + 4],
     ['call-forwardings', null], // Width can change
-    ['playing', 16 + 5],
-    ['headphones', 16 + 5]
-    //['sms' 16 + 5], // Not currently implemented.
-    //['label' 16 + 5], // Only visible in the maximized status bar.
+    ['playing', 16 + 4],
+    ['headphones', 16 + 4]
+    //['sms' 16 + 4], // Not currently implemented.
+    //['label' 16 + 4], // Only visible in the maximized status bar.
   ],
 
   /* Timeout for 'recently active' indicators */
@@ -122,9 +122,7 @@ var StatusBar = {
 
   /* For other modules to acquire */
   get height() {
-    if (this.screen.classList.contains('active-statusbar')) {
-      return this.attentionBar.offsetHeight;
-    } else if (document.mozFullScreen ||
+    if (document.mozFullScreen ||
                (AppWindowManager.getActiveApp() &&
                 AppWindowManager.getActiveApp().isFullScreen())) {
       return 0;
@@ -177,9 +175,9 @@ var StatusBar = {
     for (var key in settings) {
       setSettingsListener(key);
     }
-    // Listen to 'attentionscreenshow/hide' from attention_screen.js
-    window.addEventListener('attentionscreenshow', this);
-    window.addEventListener('attentionscreenhide', this);
+    // Listen to events from attention_window
+    window.addEventListener('attentionopened', this);
+    window.addEventListener('attentionclosed', this);
 
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
@@ -252,18 +250,20 @@ var StatusBar = {
         // when the lockscreen lock itself, the value must be true,
         // or we have some bugs.
         this.toggleTimeLabel(false);
+        this._updateIconVisibility();
         break;
 
       case 'lockscreen-appclosed':
         // Display the clock in the statusbar when screen is unlocked
         this.toggleTimeLabel(true);
+        this._updateIconVisibility();
         break;
 
-      case 'attentionscreenshow':
+      case 'attentionopened':
         this.toggleTimeLabel(true);
         break;
 
-      case 'attentionscreenhide':
+      case 'attentionclosed':
         // Hide the clock in the statusbar when screen is locked
         this.toggleTimeLabel(!this.isLocked());
         break;
@@ -402,8 +402,8 @@ var StatusBar = {
 
   _getMaximizedStatusBarWidth: function sb_getMaximizedStatusBarWidth() {
     // Let's consider the style of the status bar:
-    // * padding-right: 0.8rem;
-    return window.innerWidth - 8;
+    // * padding: 0 0.3rem;
+    return window.innerWidth - (3 * 2);
   },
 
   _getMinimizedStatusBarWidth: function sb_getMinimizedStatusBarWidth() {
@@ -414,8 +414,8 @@ var StatusBar = {
     // * margin-left: 0.5rem;
     var urlBarWidth = ((window.innerWidth - 80) * 0.6521) - 5;
     // Then we consider the style of the status bar:
-    // * padding-right: 0.8rem;
-    return window.innerWidth - urlBarWidth - 8;
+    // * padding: 0 0.3rem 0 0;
+    return window.innerWidth - urlBarWidth - 3;
   },
 
   _updateIconVisibility: function sb_updateIconVisibility() {
@@ -1364,7 +1364,6 @@ var StatusBar = {
     this.statusbarIcons = document.getElementById('statusbar-icons');
     this.statusbarIconsMax = document.getElementById('statusbar-maximized');
     this.screen = document.getElementById('screen');
-    this.attentionBar = document.getElementById('attention-bar');
     this.topPanel = document.getElementById('top-panel');
 
     // Dummy element used at initialization.

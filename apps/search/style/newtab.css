@@ -51,7 +51,7 @@ h2 span {
   background-size: cover;
   position: relative;
   margin-bottom: 1rem;
-  border: 0.1rem inset rgb(133,133,133, 0.8);
+  border: 0.1rem solid rgba(133,133,133, 0.8);
   box-sizing: border-box;
 }
 
@@ -61,7 +61,7 @@ h2 span {
   font-style: italic;
   display: block;
   width: 100%;
-  text-align: center;
+  text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -78,20 +78,25 @@ h2 span {
 }
 
 #history .result {
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   display: flex;
   flex-direction: row;
   border-bottom: 0.1rem solid rgba(0, 0, 0, 0.1);
   padding: 1rem 0.7rem;
+  overflow: hidden;
+  color: #4d4d4d;
 }
 
 #history .result * {
   pointer-events: none;
 }
 
+#history .result .description {
+  width: calc(100% - 1.6rem);
+}
+
 #history .icon {
-  margin: 0.2rem 0.8rem 0 0;
-  margin-top: 0.2rem;
+  margin: 0.3rem 0.8rem 0 0;
   display: block;
   flex: 0 0 1.6rem;
   width: 1.6rem;
@@ -113,4 +118,13 @@ h2 span {
   white-space:nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+#history h3 {
+  text-align: center;
+  font-size: 1.4rem;
+  font-style: italic;
+  color: #858585;
+  font-weight: normal;
+  margin-top: 1rem;
 }

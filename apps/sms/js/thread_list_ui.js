@@ -35,7 +35,7 @@ var ThreadListUI = {
     [
       'container', 'no-messages',
       'check-uncheck-all-button',
-      'delete-button', 'cancel-button',
+      'delete-button', 'edit-header',
       'options-icon', 'edit-mode', 'edit-form', 'draft-saved-banner'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('threads-' + id);
@@ -59,8 +59,8 @@ var ThreadListUI = {
       'click', this.delete.bind(this)
     );
 
-    this.cancelButton.addEventListener(
-      'click', this.cancelEdit.bind(this)
+    this.editHeader.addEventListener(
+      'action', this.cancelEdit.bind(this)
     );
 
     this.optionsIcon.addEventListener(
@@ -569,6 +569,7 @@ var ThreadListUI = {
     var bodyHTML = record.body;
     var thread = Threads.get(id);
     var draft, draftId;
+    var iconLabel = '';
 
     // A new conversation "is" a draft
     var isDraft = typeof thread === 'undefined';
@@ -601,18 +602,16 @@ var ThreadListUI = {
     li.dataset.lastMessageType = type;
     li.classList.add('threadlist-item');
 
-    if (record.unreadCount > 0) {
-      li.classList.add('unread');
-    }
-
     if (hasDrafts || isDraft) {
       // Set the "draft" visual indication
       li.classList.add('draft');
 
       if (hasDrafts) {
         li.classList.add('has-draft');
+        iconLabel = 'has-draft';
       } else {
         li.classList.add('is-draft');
+        iconLabel = 'is-draft';
       }
 
 
@@ -624,6 +623,11 @@ var ThreadListUI = {
       this.draftRegistry[draftId] = true;
     }
 
+    if (record.unreadCount > 0) {
+      li.classList.add('unread');
+      iconLabel = 'unread-thread';
+    }
+
     // Render markup with thread data
     li.innerHTML = this.tmpl.thread.interpolate({
       hash: isDraft ? '#composer' : '#thread=' + id,
@@ -631,7 +635,8 @@ var ThreadListUI = {
       id: isDraft ? draftId : id,
       number: number,
       bodyHTML: bodyHTML,
-      timestamp: String(timestamp)
+      timestamp: String(timestamp),
+      iconLabel: iconLabel
     }, {
       safe: ['id', 'bodyHTML']
     });

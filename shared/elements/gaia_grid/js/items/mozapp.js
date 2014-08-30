@@ -171,6 +171,10 @@
     get name() {
       var userLang = document.documentElement.lang;
 
+      if (navigator.mozL10n && userLang in navigator.mozL10n.qps) {
+        return navigator.mozL10n.qps[userLang].translate(this.descriptor.name);
+      }
+
       var locales = this.descriptor.locales;
       var localized = locales && locales[userLang] && locales[userLang].name;
 
@@ -194,7 +198,8 @@
     get descriptor() {
       var manifest = this.app.manifest || this.app.updateManifest;
 
-      if (this.entryPoint) {
+      if (this.entryPoint && manifest.entry_points &&
+        manifest.entry_points[this.entryPoint]) {
         return manifest.entry_points[this.entryPoint];
       }
       return manifest;
@@ -223,20 +228,7 @@
     Show a dialog to handle unrecoverable errors.
     */
     unrecoverableError: function() {
-      var dialog = new ConfirmDialogHelper({
-        type: 'unrecoverable',
-        title: _('gaia-grid-unrecoverable-error-title'),
-        body: _('gaia-grid-unrecoverable-error-body'),
-        confirm: {
-          title: _('gaia-grid-unrecoverable-error-action'),
-          cb: () =>  {
-            // XXX: this means whoever uses gaia-grid must have the
-            //      webapps-manage permission
-            navigator.mozApps.mgmt.uninstall(this.app);
-          }
-        }
-      });
-      dialog.show(document.body);
+      navigator.mozApps.mgmt.uninstall(this.app);
     },
 
     cancel: function() {

@@ -1,12 +1,14 @@
 'use strict';
 /*global MockNavigatormozApps, MockNavigatorSettings, MocksHelper, MockL10n,
          MockApplications, Applications, MockNavigatormozSetMessageHandler,
-         MockGetDeviceStorages */
+         MockGetDeviceStorages, MockVersionHelper */
 
 requireApp('system/shared/js/async_storage.js');
 requireApp('system/shared/js/lazy_loader.js');
 requireApp('system/shared/js/screen_layout.js');
 requireApp('system/shared/js/nfc_utils.js');
+requireApp('system/shared/js/version_helper.js');
+requireApp('system/shared/js/settings_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -21,6 +23,7 @@ requireApp('system/js/activities.js');
 requireApp('system/js/activity_window_factory.js');
 requireApp('system/js/activity_window_manager.js');
 requireApp('system/js/airplane_mode.js');
+requireApp('system/js/app_migrator.js');
 requireApp('system/js/app_usage_metrics.js');
 requireApp('system/js/app_window_factory.js');
 requireApp('system/js/browser_settings.js');
@@ -48,7 +51,7 @@ requireApp('system/js/nfc_manager.js');
 requireApp('system/js/shrinking_ui.js');
 requireApp('system/js/software_button_manager.js');
 requireApp('system/js/source_view.js');
-requireApp('system/js/storage.js');
+requireApp('system/js/usb_storage.js');
 requireApp('system/js/system_dialog_manager.js');
 requireApp('system/js/telephony_settings.js');
 requireApp('system/js/base_ui.js');
@@ -56,7 +59,12 @@ requireApp('system/js/text_selection_dialog.js');
 requireApp('system/js/ttlview.js');
 requireApp('system/js/visibility_manager.js');
 requireApp('system/js/wallpaper_manager.js');
+requireApp('system/js/attention_window_manager.js');
+requireApp('system/js/attention_indicator.js');
 
+requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_attention_window.js');
+requireApp('system/test/unit/mock_callscreen_window.js');
 requireApp('system/test/unit/mock_airplane_mode.js');
 requireApp('system/test/unit/mock_applications.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -64,6 +72,7 @@ requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_task_manager.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_version_helper.js');
 
 var mocksForBootstrap = new MocksHelper([
   'AirplaneMode',
@@ -75,7 +84,9 @@ var mocksForBootstrap = new MocksHelper([
   'SettingsURL',
   'TaskManager',
   'L10n',
-  'AppWindowManager'
+  'AppWindowManager',
+  'VersionHelper',
+  'CallscreenWindow'
 ]).init();
 
 suite('system/Bootstrap', function() {
@@ -87,6 +98,7 @@ suite('system/Bootstrap', function() {
   var realDocumentElementDir;
   var realDocumentElementLang;
   var realApplications;
+  var realVersionHelper;
   var fakeElement;
 
   mocksForBootstrap.attachTestHelpers();
@@ -129,6 +141,9 @@ suite('system/Bootstrap', function() {
     realNavigatorGetDeviceStorages = navigator.getDeviceStorages;
     navigator.getDeviceStorages = MockGetDeviceStorages;
 
+    realVersionHelper = window.VersionHelper;
+    window.VersionHelper = MockVersionHelper(false);
+    
     requireApp('system/js/bootstrap.js', done);
   });
 
@@ -159,9 +174,18 @@ suite('system/Bootstrap', function() {
     var setting = 'gaia.system.checkForUpdates';
     suite('after First Time User setup has been done', function() {
       setup(function() {
+        // mock
+        window.SettingsMigrator = function() {
+          this.start = function() {};
+        };
+        // this.sinon.stub(SettingsMigrator, 'start');
         MockNavigatorSettings.mSettings[setting] = false;
         window.dispatchEvent(new CustomEvent('load'));
         window.dispatchEvent(new CustomEvent('ftudone'));
+      });
+
+      teardown(function() {
+        window.SettingsMigrator = null;
       });
 
       test('should be enabled', function() {
@@ -171,10 +195,18 @@ suite('system/Bootstrap', function() {
 
     suite('at boot, if NOFTU is defined (i.e in DEBUG mode)', function() {
       setup(function() {
+        // mock
+        window.SettingsMigrator = function() {
+          this.start = function() {};
+        };
         Applications.ready = true;
         MockNavigatorSettings.mSettings[setting] = false;
         window.dispatchEvent(new CustomEvent('load'));
         window.dispatchEvent(new CustomEvent('ftuskip'));
+      });
+
+      teardown(function() {
+        window.SettingsMigrator = null;
       });
 
       test('should be enabled', function() {

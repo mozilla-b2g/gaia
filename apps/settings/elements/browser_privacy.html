@@ -1,9 +1,9 @@
 <element name="browserPrivacy" extends="section">
   <template>
-    <header>
-      <a href="#root"><span class="icon icon-back">back</span></a>
+
+    <gaia-header action="back" data-href="#root">
       <h1 data-l10n-id="browserPrivacy-header"> Browser Privacy </h1>
-    </header>
+    </gaia-header>
 
     <div>
       <ul>
@@ -21,7 +21,7 @@
         </li>
         <li>
           <button class="clear-bookmarks-data-button"
-                  data-l10n-id="clearBookmarksAppsData">
+                  data-l10n-id="clear-boomarks-data">
             Clear bookmarks data
           </button>
         </li>
@@ -31,7 +31,7 @@
 
     <form data-type="confirm" role="dialog" class="clear-dialog" hidden>
       <section>
-        <h1 data-l10n-id="confirmation">Confirmation</h1>
+        <h1 data-l10n-id="confirm-clear-title">Confirmation</h1>
         <p class="clear-dialog-message"></p>
       </section>
       <menu>

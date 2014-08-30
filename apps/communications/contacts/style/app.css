@@ -1,9 +1,4 @@
 /* ROOT */
-/* Hidden elements */
-.hide, [data-template] {
-  display: none !important;
-}
-
 
 /* Global */
 html {
@@ -200,8 +195,8 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
 }
 
 /* Rewritting from buttons.css */
-section[role="region"] > header:first-child button,
-section[role="region"] > header:first-child a {
+section[role="region"] > gaia-header button,
+section[role="region"] > gaia-header a {
   white-space: normal;
 }
 
@@ -228,19 +223,6 @@ li button.activity > b em {
   margin-left: 1.5rem;
 }
 
-li button.activity > b {
-  font-weight: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block;
-  position: absolute;
-  left: 1.5rem;
-  right: 3rem;
-  top: 1rem;
-  bottom: 0;
-}
-
 /* BB Lists extending */
 #view-contacts-list [data-type="list"] {
   padding: 2.5rem 2.5rem 0 0;
@@ -250,7 +232,7 @@ li button.activity > b {
   left: 0;
 }
 
-[data-type="list"] header {
+[data-type="list"] gaia-header {
   padding: 0 0 0 1.5rem;
   position: sticky;
   top: -1.5rem;
@@ -316,47 +298,6 @@ li button.activity > b {
   width: -moz-calc(100% + 1.5rem);
 }
 
-
-/* LAYOUT */
-/* ITEM: The smallest complete structure; */
-.item {
-  display: block;
-  overflow: hidden;
-}
-
-.item-media {
-  float: left;
-  margin-right: 1rem;
-}
-
-.item-media.pull-right {
-  margin-left: 1rem;
-  margin-right: 0;
-}
-
-.item-media.pull-right button {
-  padding-right: 3rem;
-}
-
-.item-body {
-  display: table;
-}
-
-.item-body-exp {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* PULLS: Float an element to the desired position; */
-.pull-right {
-  float: right;
-}
-
-.pull-left {
-  float: left;
-}
-
 /* STACK: inline block list items; */
 .stack {
   letter-spacing: -0.4rem;
@@ -390,21 +331,6 @@ span.icon.icon-addimage {
   background-size: 3rem;
   width: 3rem;
   height: 2.9rem;
-}
-
-li button.icon-call:before {
-  background-image: url(/contacts/style/gphx/bitmap/default/buttons/call.png);
-}
-
-li button.icon-message:before {
-  background-image: url(/contacts/style/gphx/bitmap/default/buttons/sms.png);
-}
-
-li button.send-sms {
-  width: 0;
-}
-li button.icon-email:before {
-  background-image: url(/contacts/style/gphx/bitmap/default/buttons/mail.png);
 }
 
 span.icon.icon-address {
@@ -622,40 +548,6 @@ form[role="dialog"].no-overlay button {
   display:none !important;
 }
 
-.has-preferred-sim .icon-call b {
-  right: 6.5rem;
-}
-
-.has-preferred-sim .icon-call:before {
-  width: 9.5rem;
-  background-size: 3rem;
-}
-
-.js-sim-indication {
-  display: none;
-  font-size: 1.3rem;
-  color: #5F5F5F;
-  font-style: normal;
-  line-height: 4rem;
-  height: 4rem;
-  text-align: right;
-  width: 5.5rem;
-  right: 1rem;
-  top: 0;
-  margin: 0;
-  position: absolute;
-  background: url("/shared/style/sim_picker/images/long-tap-indicator.png") no-repeat right bottom 0.2rem / 1.4rem 1rem;
-}
-
-.has-preferred-sim .js-sim-indication {
-  display: block;
-}
-
-#sim-picker {
-  text-align: left;
-}
-
-
 html[dir="rtl"] .fillflow-row-action {
   right: auto;
   left: 0;
@@ -683,4 +575,10 @@ html[dir="rtl"] ::-moz-placeholder {
 
 #groups-list.selecting #contact-list-ice {
   display:none;
+}
+
+#ice-list {
+  min-height: 100%;
+  background: #FFF;
+  text-align: left;
 }

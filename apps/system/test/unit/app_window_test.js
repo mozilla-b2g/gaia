@@ -1,5 +1,6 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager,
-      LayoutManager, MocksHelper, MockContextMenu, layoutManager */
+      LayoutManager, MocksHelper, MockContextMenu, layoutManager,
+      MockAppTransitionController, MockPermissionSettings */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -11,24 +12,28 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
-requireApp('system/test/unit/mock_popup_window.js');
-requireApp('system/test/unit/mock_activity_window.js');
-requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/test/unit/mock_app_transition_controller.js');
+requireApp('system/shared/test/unit/mocks/mock_permission_settings.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'LayoutManager', 'ActivityWindow',
-  'ScreenLayout', 'AppChrome', 'PopupWindow', 'StatusBar'
+  'ManifestHelper', 'LayoutManager', 'ScreenLayout', 'AppChrome',
+  'AppTransitionController'
 ]).init();
 
 suite('system/AppWindow', function() {
   var stubById;
+  var realPermissionSettings;
   mocksForAppWindow.attachTestHelpers();
   setup(function(done) {
     this.sinon.useFakeTimers();
 
     window.layoutManager = new LayoutManager();
     window.layoutManager.start();
+
+    realPermissionSettings = navigator.mozPermissionSettings;
+    navigator.mozPermissionSettings = MockPermissionSettings;
+    MockPermissionSettings.mSetup();
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
@@ -44,6 +49,7 @@ suite('system/AppWindow', function() {
   });
 
   teardown(function() {
+    navigator.mozPermissionSettings = realPermissionSettings;
     delete window.layoutManager;
 
     stubById.restore();
@@ -521,7 +527,7 @@ suite('system/AppWindow', function() {
     });
   });
 
-  suite('Fullscreen', function() {
+  suite('Fullscreen, FullscreenLayout', function() {
     var fakeAppConfig1FullScreen = {
       url: 'app://www.fake/index.html',
       manifest: {
@@ -530,6 +536,16 @@ suite('system/AppWindow', function() {
       manifestURL: 'app://wwww.fake/ManifestURL',
       origin: 'app://www.fake'
     };
+
+    var fakeAppConfig1FullScreenLayout = {
+      url: 'app://www.fake/index.html',
+      manifest: {
+        'fullscreen_layout': true
+      },
+      manifestURL: 'app://wwww.fake/ManifestURL',
+      origin: 'app://www.fake'
+    };
+
     test('isFullScreen', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       assert.isFalse(app1.isFullScreen());
@@ -538,6 +554,18 @@ suite('system/AppWindow', function() {
       var app1f = new AppWindow(fakeAppConfig1FullScreen);
       assert.isTrue(app1f.isFullScreen());
       assert.isTrue(app1f.element.classList.contains('fullscreen-app'));
+
+      var app1fl = new AppWindow(fakeAppConfig1FullScreenLayout);
+      assert.isTrue(app1fl.isFullScreen());
+      assert.isTrue(app1fl.element.classList.contains('fullscreen-app'));
+    });
+
+    test('isFullScreenLayout', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      assert.isFalse(app1.isFullScreenLayout());
+
+      var app1f = new AppWindow(fakeAppConfig1FullScreenLayout);
+      assert.isTrue(app1f.isFullScreenLayout());
     });
   });
 
@@ -700,13 +728,10 @@ suite('system/AppWindow', function() {
   suite('Transition', function() {
     test('Open', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var fakeTransitionController = {
-        requireOpen: function() {},
-        requireClose: function() {}
-      };
-      app1.transitionController = fakeTransitionController;
+      var transitionController = new MockAppTransitionController();
+      app1.transitionController = transitionController;
       var stubRequireOpen =
-        this.sinon.stub(fakeTransitionController, 'requireOpen');
+        this.sinon.stub(transitionController, 'requireOpen');
       app1.open();
       assert.isTrue(stubRequireOpen.called);
       app1.open('Orz');
@@ -715,13 +740,10 @@ suite('system/AppWindow', function() {
 
     test('Close', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var fakeTransitionController = {
-        requireOpen: function() {},
-        requireClose: function() {}
-      };
-      app1.transitionController = fakeTransitionController;
+      var transitionController = new MockAppTransitionController();
+      app1.transitionController = transitionController;
       var stubRequireClose =
-        this.sinon.stub(fakeTransitionController, 'requireClose');
+        this.sinon.stub(transitionController, 'requireClose');
       app1.close();
       assert.isTrue(stubRequireClose.called);
       app1.close('XD');
@@ -1161,15 +1183,20 @@ suite('system/AppWindow', function() {
   suite('enter/leaveTaskManager', function() {
     test('class gets added and removed', function() {
       var app = new AppWindow(fakeAppConfig1);
+      var closeStub = this.sinon.stub(app, 'close');
+
+      app.transitionController = new MockAppTransitionController();
       assert.isFalse(app.element.classList.contains('in-task-manager'));
       app.enterTaskManager();
       assert.isTrue(app.element.classList.contains('in-task-manager'));
       app.leaveTaskManager();
       assert.isFalse(app.element.classList.contains('in-task-manager'));
+      assert.isTrue(closeStub.calledOnce, 'app.close was called');
     });
 
     test('leaveTaskManager: element.style cleanup', function() {
       var app = new AppWindow(fakeAppConfig1);
+      app.transitionController = new MockAppTransitionController();
       var unapplyStyleStub = sinon.stub(app, 'unapplyStyle');
       app.applyStyle({
         fontSize: '11',
@@ -1210,6 +1237,19 @@ suite('system/AppWindow', function() {
       requireOpen: function() {},
       requireClose: function() {}
     };
+
+    test('Hidewindow event', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var attention = new AppWindow(fakeAppConfig2);
+      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+      attention.parentWindow = app1;
+
+      app1.handleEvent({
+        type: '_hidewindow',
+        detail: attention
+      });
+      assert.isFalse(stubSetVisible.called);
+    });
 
     test('ActivityDone event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
@@ -1307,9 +1347,13 @@ suite('system/AppWindow', function() {
     test('Destroy only the browser when app crashed and ' +
           'suspending is enabled',
       function() {
-        var app1 = new AppWindow(fakeAppConfig1);
+        var apps = openPopups(2);
+        var app1 = apps[0];
+        var popup1 = apps[1];
+        var stubKill = this.sinon.stub(popup1, 'kill');
         var stubDestroyBrowser = this.sinon.stub(app1, 'destroyBrowser');
         var stubIsActive = this.sinon.stub(app1, 'isActive');
+
         stubIsActive.returns(false);
         AppWindow.SUSPENDING_ENABLED = true;
         app1.handleEvent({
@@ -1320,6 +1364,7 @@ suite('system/AppWindow', function() {
         });
 
         assert.isTrue(stubDestroyBrowser.called);
+        assert.isTrue(stubKill.called);
         AppWindow.SUSPENDING_ENABLED = false;
       });
 
@@ -1765,6 +1810,7 @@ suite('system/AppWindow', function() {
     var app2 = new AppWindow(fakeAppConfig4);
     assert.isFalse(app1.isBrowser());
     assert.isTrue(app2.isBrowser());
+    assert.isTrue(app2.element.classList.contains('browser'));
   });
 
   test('isCertified', function() {
@@ -2079,5 +2125,37 @@ suite('system/AppWindow', function() {
       assert.isFalse(stubPublish.calledOnce);
       stubPublish.restore();
     });
+  });
+
+  test('Should not be killable if it has an attention window', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var attention = new AppWindow(fakeAppConfig1);
+    app1.attentionWindow = attention;
+    assert.isFalse(app1.killable());
+  });
+
+  test('Should not be killable if we are homescreen window', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    app1.isHomescreen = true;
+    assert.isFalse(app1.killable());
+  });
+
+  test('Has attention permission', function() {
+    MockPermissionSettings.permissions.attention = 'deny';
+    var app1 = new AppWindow(fakeAppConfig1);
+    assert.isFalse(app1.hasPermission('attention'));
+
+    MockPermissionSettings.permissions.attention = 'allow';
+    var app2 = new AppWindow(fakeAppConfig2);
+    assert.isTrue(app2.hasPermission('attention'));
+  });
+
+  test('Show()', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    app1.hide();
+    assert.isTrue(app1.element.classList.contains('hidden'));
+
+    app1.show();
+    assert.isFalse(app1.element.classList.contains('hidden'));
   });
 });

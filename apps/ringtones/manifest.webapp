@@ -10,6 +10,7 @@
   },
   "permissions": {
     "settings": { "access": "readwrite" },
+    "device-storage:music": { "access": "readwrite" },
     "audio-channel-ringer": {},
     "desktop-notification": {}
   },

@@ -102,7 +102,7 @@ Provider.prototype = {
       }
       icon.setAttribute('role', 'presentation');
 
-      title.innerHTML = config.title;
+      title.innerHTML = config.title || config.url;
       if (config.meta) {
         meta.innerHTML = config.meta;
         // Expose meta infrormation as a helpful description for each result.

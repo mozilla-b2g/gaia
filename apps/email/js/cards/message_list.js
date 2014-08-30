@@ -1754,9 +1754,9 @@ MessageListCard.prototype = {
    *    we don't need to do anything special; the normal rendering logic
    *    will reset each message's status icon to the appropriate state.
    *
-   * But don't take my word for it; see `mailapi/jobs/outbox.js` and
-   * `mailapi/jobmixins.js` in GELAM for backend-centric descriptions
-   * of how the outbox sending process works.
+   * But don't take my word for it; see `jobs/outbox.js` and
+   * `jobmixins.js` in GELAM for backend-centric descriptions of how
+   * the outbox sending process works.
    */
   toggleOutboxSyncingDisplay: function(syncing) {
     // Use an internal guard so that we only trigger changes to the UI

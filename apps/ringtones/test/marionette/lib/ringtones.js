@@ -290,7 +290,7 @@ PickRingtoneContainer.prototype.constructor = PickRingtoneContainer;
 
 PickRingtoneContainer.Selectors = Object.freeze({
   cancelButton: '#header',
-  doneButton: 'button#done'
+  setButton: 'button#set'
 });
 
 PickRingtoneContainer.prototype.waitUntilLoaded = function() {
@@ -300,7 +300,7 @@ PickRingtoneContainer.prototype.waitUntilLoaded = function() {
 };
 
 createElementGetters(
-  PickRingtoneContainer, 'client', ['cancelButton', 'doneButton']
+  PickRingtoneContainer, 'client', ['cancelButton', 'setButton']
 );
 
 Object.defineProperty(PickRingtoneContainer.prototype, 'selectedSound', {
@@ -417,7 +417,7 @@ Ringtones.prototype = {
   },
 
   inManager: function(soundPanel, callback) {
-    soundPanel.clickManageRingtones();
+    soundPanel.clickManageTones();
     this.switchToMe();
 
     callback(new ManageRingtonesContainer(this.client));

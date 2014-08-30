@@ -1,12 +1,17 @@
 from gaiatest import GaiaTestCase
 
 from gaiatest.apps.contacts.app import Contacts
+from gaiatest.mocks.mock_contact import MockContact
 
 
 class TestImportContactsFromSIM(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+
+        if len(self.data_layer.sim_contacts) == 0:
+            contact = MockContact()
+            self.data_layer.insert_sim_contact(contact)
 
     def test_import_contacts_from_SIM(self):
         """ Insert a new prepaid SIM card (some contacts) in device and import the contacts
@@ -15,7 +20,6 @@ class TestImportContactsFromSIM(GaiaTestCase):
 
         """
 
-        self.assertGreater(len(self.data_layer.sim_contacts), 0, "There is no SIM contacts on SIM card.")
         contacts_app = Contacts(self.marionette)
         contacts_app.launch()
 

@@ -112,11 +112,24 @@ suite('system/permission manager', function() {
     });
   });
 
-  suite('attentionscreenshow Handler', function() {
+  suite('attentionopening Handler', function() {
     setup(function() {
       this.sinon.stub(permissionManager, 'discardPermissionRequest');
       var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('attentionscreenshow', true, true, {origin: ''});
+      evt.initCustomEvent('attentionopening', true, true, {origin: ''});
+      window.dispatchEvent(evt);
+    });
+
+    test('discardPermissionRequest is called', function() {
+      assert.isTrue(permissionManager.discardPermissionRequest.called);
+    });
+  });
+
+  suite('attentionopened Handler', function() {
+    setup(function() {
+      this.sinon.stub(permissionManager, 'discardPermissionRequest');
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('attentionopened', true, true, {origin: ''});
       window.dispatchEvent(evt);
     });
 

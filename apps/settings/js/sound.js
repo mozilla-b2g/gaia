@@ -151,7 +151,7 @@
         var ringerToneURL = '/shared/resources/media/ringtones/' +
           'ringer_firefox.opus';
         var alarmToneURL = '/shared/resources/media/alarms/' +
-          'ac_classic_clock_alarm.opus';
+          'ac_awake.opus';
 
         var toneURLs = {
           'content' : mediaToneURL,
@@ -360,8 +360,8 @@
     };
   });
 
-  var manageRingtones = document.getElementById('manage-ringtones-button');
-  manageRingtones.onclick = function() {
+  var manageTones = document.getElementById('manage-tones-button');
+  manageTones.onclick = function() {
     var activity = new MozActivity({
       name: 'configure',
       data: {

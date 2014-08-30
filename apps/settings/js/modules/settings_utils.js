@@ -78,7 +78,34 @@ define(function(require) {
           callback(templateElement.innerHTML);
         });
       }
-    }
+    },
+
+    /**
+     * Re-runs the font-fit title
+     * centering logic.
+     *
+     * The gaia-header has mutation observers
+     * that listen for changes in the header
+     * title and re-run the font-fit logic.
+     *
+     * If buttons around the title are shown/hidden
+     * then these mutation observers won't be
+     * triggered, but we want the font-fit logic
+     * to be re-run.
+     *
+     * This is a deficiency of <gaia-header>. If
+     * anyone knows a way to listen for changes
+     * in visibility, we won't need this anymore.
+     *
+     * @param {GaiaHeader} header
+     * @private
+     */
+    runHeaderFontFit: function su_runHeaderFontFit(header) {
+      var titles = header.querySelectorAll('h1');
+      [].forEach.call(titles, function(title) {
+        title.textContent = title.textContent;
+      });
+    },
   };
 
   return SettingsUtils;

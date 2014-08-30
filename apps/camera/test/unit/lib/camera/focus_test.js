@@ -264,6 +264,17 @@ suite('lib/camera/focus', function() {
     test('should call onAutoFocusChanged', function() {
       this.focus.onAutoFocusMoving(true);
       assert.ok(this.focus.onAutoFocusChanged.called);
+      assert.ok(this.mozCamera.autoFocus.called);
+      this.mozCamera.autoFocus.callsArgWith(0, 1);
+      assert.ok(this.focus.onAutoFocusChanged.called);
+    });
+
+    test('should call onAutoFocusChanged after error', function() {
+      this.focus.onAutoFocusMoving(true);
+      assert.ok(this.focus.onAutoFocusChanged.called);
+      assert.ok(this.mozCamera.autoFocus.called);
+      this.mozCamera.autoFocus.callsArgWith(1, 'GeneralFailure');
+      assert.ok(this.focus.onAutoFocusChanged.called);
     });
 
     test('should not call onAutoFocusChanged', function() {
@@ -380,6 +391,16 @@ suite('lib/camera/focus', function() {
       assert.ok(previousFocusState === this.focus.focused);
     });
 
+    test('Should call the focus callback with interrupted state if autofocus is interrupted', function() {
+      var onFocused = sinon.spy();
+      this.mozCamera.autoFocus = sinon.stub();
+      this.mozCamera.autoFocus.callsArgWith(1, 'AutoFocusInterrupted');
+      this.mozCamera.focusMode = 'auto';
+      this.focus.focused = true;
+      this.focus.focus(onFocused);
+      assert.ok(onFocused.calledWith('interrupted'));
+      assert.ok(this.focus.focused === false);
+    });
   });
 
   suite('Focus#pause()', function() {
@@ -509,6 +530,14 @@ suite('lib/camera/focus', function() {
       assert.ok(this.focus.focus.called);
     });
 
+    test('Should call focus callback with fail state if updating the focus area fails', function() {
+      this.focus.touchFocus = true;
+      var onFocused = sinon.spy();
+      this.focus.updateFocusArea(null, onFocused);
+      assert.ok(this.focus.focus.called);
+      this.focus.focus.callArgWith(0, 'failed');
+      assert.ok(onFocused.calledWith('failed'));
+    });
   });
 
 });

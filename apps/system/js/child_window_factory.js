@@ -1,6 +1,6 @@
 'use strict';
 /* global AppWindow, PopupWindow, ActivityWindow, SettingsListener,
-          AttentionScreen, MozActivity */
+          AttentionWindow, MozActivity */
 
 (function(exports) {
   var ENABLE_IN_APP_SHEET = false;
@@ -55,7 +55,8 @@
       }
 
       // <a href="" target="_blank"> should never be part of the app
-      if (evt.detail.name == '_blank') {
+      if (evt.detail.name == '_blank' &&
+          evt.detail.features !== 'attention') {
         this.launchActivity(evt);
         evt.stopPropagation();
         return;
@@ -84,7 +85,7 @@
         case 'attention':
           // Open attentionWindow
           if (!this.createAttentionWindow(evt)) {
-            this.createPopupWindow();
+            this.createPopupWindow(evt);
           }
           break;
         case 'mozhaidasheet':
@@ -154,9 +155,28 @@
   };
 
   ChildWindowFactory.prototype.createAttentionWindow = function(evt) {
-    // XXX: AttentionWindow is not implemented yet.
-    // Now AttentionScreen catches this event.
-    return false;
+    if (!this.app || !this.app.hasPermission('attention')) {
+      return false;
+    }
+
+    // Canceling any full screen web content
+    if (document.mozFullScreen) {
+      document.mozCancelFullScreen();
+    }
+
+    var attentionFrame = evt.detail.frameElement;
+    var attention = new AttentionWindow({
+      iframe: attentionFrame,
+      url: evt.detail.url,
+      name: evt.detail.name,
+      manifestURL: this.app.manifestURL,
+      origin: this.app.origin,
+      parentWindow: this.app
+    });
+
+    this.app.attentionWindow = attention;
+    attention.requestOpen();
+    return true;
   };
 
   ChildWindowFactory.prototype._handle_child__closing = function(evt) {
@@ -164,13 +184,9 @@
     if (!this.app.isVisible() || this.app._killed) {
       return;
     }
-    // XXX: Refine this in attention-window refactor.
-    if (AttentionScreen.isFullyVisible()) {
-      return;
-    }
 
     this.app.lockOrientation();
-    this.app.setVisible(true);
+    this.app.requestForeground();
   };
 
   ChildWindowFactory.prototype.createActivityWindow = function(evt) {
@@ -196,7 +212,8 @@
       }
     });
     activity.onerror = function() {
-      console.warn('view activity error:', activity.error.name);
+      this.app.debug(
+        'view activity error:' + activity.error.name + evt.detail.url);
     };
 
     return true;

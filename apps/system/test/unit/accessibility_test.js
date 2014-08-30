@@ -33,10 +33,15 @@ suite('system/Accessibility', function() {
     options: { enqueue: true }
   };
 
+  var fakeLogoHidden = {
+    type: 'logohidden'
+  };
+
   function getAccessFuOutput(aDetails) {
     return {
+      type: 'mozChromeEvent',
       detail: {
-        type: 'accessfu-output',
+        type: 'accessibility-output',
         details: JSON.stringify(aDetails)
       }
     };
@@ -44,6 +49,7 @@ suite('system/Accessibility', function() {
 
   function getVolumeUp() {
     return {
+      type: 'mozChromeEvent',
       detail: { type: 'volume-up-button-press' },
       timeStamp: Date.now() * 1000
     };
@@ -51,6 +57,7 @@ suite('system/Accessibility', function() {
 
   function getVolumeDown() {
     return {
+      type: 'mozChromeEvent',
       detail: { type: 'volume-down-button-press' },
       timeStamp: Date.now() * 1000
     };
@@ -59,6 +66,13 @@ suite('system/Accessibility', function() {
   mocksForA11y.attachTestHelpers();
   setup(function() {
     accessibility = new Accessibility();
+  });
+
+  test('logohidden handler', function() {
+    var stubActivateScreen = this.sinon.stub(accessibility,
+      'activateScreen');
+    accessibility.handleEvent(fakeLogoHidden);
+    assert.isTrue(stubActivateScreen.called);
   });
 
   suite('handle volume button events', function() {
@@ -98,7 +112,7 @@ suite('system/Accessibility', function() {
     });
   });
 
-  suite('handle accessfu-output events', function() {
+  suite('handle accessibility-output events', function() {
     test('handleAccessFuOutput', function() {
       var stubHandleAccessFuOutput = this.sinon.stub(accessibility,
         'handleAccessFuOutput');

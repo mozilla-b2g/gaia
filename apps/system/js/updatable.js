@@ -287,7 +287,7 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
   };
 
   UtilityTray.hide();
-  CustomDialog.show(_('systemUpdateReady'), _('wantToInstall'),
+  CustomDialog.show(_('systemUpdateReady'), _('wantToInstallNow'),
                     cancel, confirm);
 };
 

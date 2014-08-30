@@ -1,12 +1,9 @@
 <element name="view-contact-details" extends="section">
   <template>
-    <header id='details-view-header'>
-      <button id="details-back" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
-      <menu type="toolbar">
-        <button role="menuitem" id="edit-contact-button"><span class="icon icon-edit-contact" data-l10n-id="edit">edit</span></button>
-      </menu>
+    <gaia-header id='details-view-header' action="back">
       <h1 id='contact-name-title'></h1>
-    </header>
+      <button id="edit-contact-button" role="menuitem" data-icon="edit-contact" data-l10n-id="edit"></button>
+    </gaia-header>
 
     <article id="contact-detail-wrapper" class="view-body">
       <div id="cover-img"></div>
@@ -15,7 +12,7 @@
             <h2 data-l10n-id="#type_l10n_id#">#type# <span class="carrier">#carrier#</span></h2>
             <div class="item">
               <div class="item-media pull-right">
-                <button id="send-sms-button-#i#" class="activity send-sms icon icon-message"></button>
+                <button id="send-sms-button-#i#" class="activity send-sms icon icon-message" data-l10n-id="send-sms-button" aria-label="SMS"></button>
               </div>
               <div class="item-body-exp">
                 <button class="activity call-action icon icon-call" id="call-or-pick-#i#">

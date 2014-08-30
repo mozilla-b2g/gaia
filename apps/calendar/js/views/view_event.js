@@ -12,7 +12,7 @@ Calendar.ns('Views').ViewEvent = (function() {
 
     selectors: {
       element: '#event-view',
-      cancelButton: '#event-view .cancel',
+      header: '#show-event-header',
       primaryButton: '#event-view .edit'
     },
 

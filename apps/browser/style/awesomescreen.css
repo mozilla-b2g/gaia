@@ -192,16 +192,3 @@ li[role="listitem"] small {
 #history-list {
   -moz-box-flex: 1;
 }
-
-/* Language specific overrides, temporary hack as browser is soon to die */
-html[lang="fr"] #tab-headers #bookmarks-tab {
-  max-width: 27%;
-}
-
-html[lang="fr"] #tab-headers #top-sites-tab {
-  max-width: 15%;
-}
-
-html[lang="fr"] #tab-headers #history {
-  max-width: 20%;
-}

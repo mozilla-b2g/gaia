@@ -3,11 +3,12 @@
 /* global ScreenLayout */
 /* global SettingsListener */
 /* global OrientationManager */
+/* global AppWindowManager */
 
 (function(exports) {
 
   /**
-   * SoftwareButtonManager manages a home button for devides without
+   * SoftwareButtonManager manages a home button for devices without
    * physical home buttons. The software home button will display at the bottom
    * of the screen in portrait, and on the right in landscape and is meant to
    * function in the same way as a hardware home button.
@@ -24,10 +25,17 @@
     // enabled is true on mobile that has no hardware home button
     this.enabled = !this.hasHardwareHomeButton && this.isMobile;
     this.element = document.getElementById('software-buttons');
-    this.homeButton = document.getElementById('software-home-button');
-    this.fullscreenHomeButton =
-      document.getElementById('fullscreen-software-home-button');
+    this.fullscreenLayoutElement =
+      document.getElementById('software-buttons-fullscreen-layout');
+    this.homeButtons = [
+      document.getElementById('software-home-button'),
+      document.getElementById('fullscreen-software-home-button'),
+      document.getElementById('fullscreen-layout-software-home-button')
+    ];
     this.screenElement = document.getElementById('screen');
+    // Bind this to the tap function, if it's done in the
+    // addEventListener call the removeEventListener won't work properly
+    this._fullscreenTapFunction = this._fullscreenTapFunction.bind(this);
   }
 
   SoftwareButtonManager.prototype = {
@@ -87,8 +95,19 @@
 
     _buttonRect: null,
     _updateButtonRect: function() {
-      var fullscreen = !!document.mozFullScreenElement;
-      var button = fullscreen ? this.fullscreenHomeButton : this.homeButton;
+      var isFullscreen = !!document.mozFullScreenElement;
+      var activeApp = AppWindowManager.getActiveApp();
+      var isFullscreenLayout =  activeApp && activeApp.isFullScreenLayout();
+
+      var button;
+      if (isFullscreenLayout) {
+        button = this.homeButtons[2];
+      } else if (isFullscreen) {
+        button = this.homeButtons[1];
+      } else {
+        button = this.homeButtons[0];
+      }
+
       this._buttonRect = button.getBoundingClientRect();
     },
 
@@ -199,19 +218,19 @@
         this.screenElement.classList.add('software-button-enabled');
         this.screenElement.classList.remove('software-button-disabled');
 
-        this.homeButton.addEventListener('touchstart', this);
-        this.homeButton.addEventListener('touchend', this);
-        this.fullscreenHomeButton.addEventListener('touchstart', this);
-        this.fullscreenHomeButton.addEventListener('touchend', this);
+        this.homeButtons.forEach(function sbm_addTouchListeners(b) {
+          b.addEventListener('touchstart', this);
+          b.addEventListener('touchend', this);
+        }.bind(this));
         window.addEventListener('mozfullscreenchange', this);
       } else {
         this.screenElement.classList.remove('software-button-enabled');
         this.screenElement.classList.add('software-button-disabled');
 
-        this.homeButton.removeEventListener('touchstart', this);
-        this.homeButton.removeEventListener('touchend', this);
-        this.fullscreenHomeButton.removeEventListener('touchstart', this);
-        this.fullscreenHomeButton.removeEventListener('touchend', this);
+        this.homeButtons.forEach(function sbm_removeTouchListeners(b) {
+          b.removeEventListener('touchstart', this);
+          b.removeEventListener('touchend', this);
+        }.bind(this));
         window.removeEventListener('mozfullscreenchange', this);
       }
     },
@@ -251,10 +270,25 @@
             return;
           }
 
+          window.clearTimeout(this._fullscreenTimerId);
+          this._fullscreenTimerId = 0;
+
           if (document.mozFullScreenElement) {
-            this.fullscreenHomeButton.classList.add('visible');
-          } else {
-            this.fullscreenHomeButton.classList.remove('visible');
+            this.fullscreenLayoutElement.classList.add('hidden');
+
+            this._fullscreenElement = document.mozFullScreenElement;
+            this._fullscreenElement
+              .addEventListener('touchstart', this._fullscreenTapFunction);
+            this._fullscreenElement
+              .addEventListener('touchend', this._fullscreenTapFunction);
+          } else if (this._fullscreenElement) {
+            this.fullscreenLayoutElement.classList.remove('hidden');
+
+            this._fullscreenElement
+              .removeEventListener('touchstart', this._fullscreenTapFunction);
+            this._fullscreenElement
+              .removeEventListener('touchend', this._fullscreenTapFunction);
+            this._fullscreenElement = null;
           }
 
           this._updateButtonRect();
@@ -283,16 +317,82 @@
       }
     },
 
+    /**
+     * The id of the timer that hides the soft buttons in fullscreen.
+     * Saved so that the timer can be canceled if the user clicks/taps
+     * the screen again.
+     * @memberof SoftwareButtonManager.prototype
+     * @type {number}
+     */
+    _fullscreenTimerId: 0,
+
+    /**
+     * The element that entered fullscreen.
+     * Saved so that click eventListener can be removed when leaving fullscreen.
+     * @memberof SoftwareButtonManager.prototype
+     * @type {DomElement}
+     */
+    _fullscreenElement: null,
+
+    /**
+     * The starting position of a touch in fullscreen.
+     * Saved so that we can check whether the user taps or swipes.
+     * @memberof SoftwareButtonManager.prototype
+     * @type {Touch}
+     */
+    _fullscreenTouchStart: null,
+
+    /**
+     * Function to execute when user clicks/taps screen in fullscreen mode.
+     * @memberof SoftwareButtonManager.prototype
+     */
+    _fullscreenTapFunction: function (evt) {
+      switch (evt.type) {
+        case 'touchstart':
+          this._fullscreenTouchStart = evt.touches[0];
+          break;
+        case 'touchend':
+          var touch = evt.changedTouches[0];
+          var xDistance =
+            Math.abs(touch.pageX - this._fullscreenTouchStart.pageX);
+          var yDistance =
+            Math.abs(touch.pageY - this._fullscreenTouchStart.pageY);
+
+          var swipeThreshold = 10;
+          if (xDistance < swipeThreshold && yDistance < swipeThreshold) {
+            window.clearTimeout(this._fullscreenTimerId);
+
+            if (this.fullscreenLayoutElement.classList.contains('hidden')) {
+              this.fullscreenLayoutElement.classList.remove('hidden');
+              this._fullscreenTimerId =
+                window.setTimeout(function sbm_fullscreenHideTimer() {
+                  this.fullscreenLayoutElement.classList.add('hidden');
+                }.bind(this), 3000);
+            } else {
+              // We wait for a bit to get a chance to process a potential
+              // mozfullscreenchange
+              this._fullscreenTimerId =
+                window.setTimeout(function sbm_fullscreenHideTimer() {
+                  this.fullscreenLayoutElement.classList.add('hidden');
+                }.bind(this), 100);
+            }
+          }
+          break;
+      }
+    },
+
     press: function() {
-      this.homeButton.classList.add('active');
-      this.fullscreenHomeButton.classList.add('active');
+      this.homeButtons.forEach(function sbm_addActive(b) {
+        b.classList.add('active');
+      });
 
       this.publish('home-button-press');
     },
 
     release: function() {
-      this.homeButton.classList.remove('active');
-      this.fullscreenHomeButton.classList.remove('active');
+      this.homeButtons.forEach(function sbm_removeActive(b) {
+        b.classList.remove('active');
+      });
 
       this.publish('home-button-release');
     },

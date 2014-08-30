@@ -301,16 +301,13 @@ suite('system/ScreenManager', function() {
       setup(function() {
         stubTelephony = {};
         stubCpuWakeLock = {};
-        stubDialerAgent = {};
         stubTurnOn = this.sinon.stub(ScreenManager, 'turnScreenOn');
         stubRemoveListener = this.sinon.stub(window, 'removeEventListener');
 
         stubCpuWakeLock.unlock = this.sinon.stub();
-        stubDialerAgent.showCallScreen = this.sinon.stub();
         ScreenManager._cpuWakeLock = stubCpuWakeLock;
 
         switchProperty(navigator, 'mozTelephony', stubTelephony, reals);
-        switchProperty(window, 'dialerAgent', stubDialerAgent, reals);
       });
 
       teardown(function() {
@@ -323,11 +320,12 @@ suite('system/ScreenManager', function() {
         stubTelephony.conferenceGroup = {calls: []};
         ScreenManager._screenOffBy = 'proximity';
         ScreenManager.handleEvent({'type': 'callschanged'});
+        var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
 
         assert.isTrue(stubTurnOn.called);
         assert.isNull(ScreenManager._cpuWakeLock);
         assert.isTrue(stubCpuWakeLock.unlock.called);
-        assert.isFalse(stubDialerAgent.showCallScreen.called);
+        assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
       });
 
       test('screen off', function() {
@@ -339,15 +337,17 @@ suite('system/ScreenManager', function() {
       });
 
       test('with a call', function() {
+        var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
         var stubAddListener = this.sinon.stub();
         stubTelephony.calls = [{'addEventListener': stubAddListener}];
         stubTelephony.conferenceGroup = {calls: []};
         ScreenManager.handleEvent({'type': 'callschanged'});
-        assert.isTrue(stubDialerAgent.showCallScreen.called);
+        assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
         assert.isFalse(stubAddListener.called);
       });
 
       test('with a conference call', function() {
+        var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
         var stubAddListener = this.sinon.stub();
         stubTelephony.calls = [];
         stubTelephony.conferenceGroup = {
@@ -355,17 +355,18 @@ suite('system/ScreenManager', function() {
                   {'addEventListener': stubAddListener}]
         };
         ScreenManager.handleEvent({'type': 'callschanged'});
-        assert.isTrue(stubDialerAgent.showCallScreen.called);
+        assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
         assert.isFalse(stubAddListener.called);
       });
 
       test('without cpuWakeLock', function() {
+        var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
         var stubAddListener = this.sinon.stub();
         stubTelephony.calls = [{'addEventListener': stubAddListener}];
         stubTelephony.conferenceGroup = {calls: []};
         ScreenManager._cpuWakeLock = null;
         ScreenManager.handleEvent({'type': 'callschanged'});
-        assert.isFalse(stubDialerAgent.showCallScreen.called);
+        assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
         assert.isTrue(stubAddListener.called);
       });
     });
@@ -744,6 +745,38 @@ suite('system/ScreenManager', function() {
       ScreenManager.toggleScreen();
       assert.isTrue(stubTurnOn.called);
       assert.isFalse(stubTurnOff.called);
+    });
+  });
+
+  suite('Attention window openn events', function() {
+    test('handle attentionopening event', function() {
+      // The public interface is event, so we manually fire and forward it to
+      // the handler, to avoid the asynchronous part which is unnecessary in
+      // the test.
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent',
+        function(e) {
+          ScreenManager.handleEvent(e);
+        });
+      var stubTurnOn = this.sinon.stub(ScreenManager, 'turnScreenOn');
+      ScreenManager.enabled = false;
+      window.dispatchEvent(new CustomEvent('attentionopening'));
+      assert.isTrue(stubTurnOn.called);
+      stubDispatchEvent.restore();
+    });
+
+    test('handle attentionopened event', function() {
+      // The public interface is event, so we manually fire and forward it to
+      // the handler, to avoid the asynchronous part which is unnecessary in
+      // the test.
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent',
+        function(e) {
+          ScreenManager.handleEvent(e);
+        });
+      var stubTurnOn = this.sinon.stub(ScreenManager, 'turnScreenOn');
+      ScreenManager.enabled = false;
+      window.dispatchEvent(new CustomEvent('attentionopened'));
+      assert.isTrue(stubTurnOn.called);
+      stubDispatchEvent.restore();
     });
   });
 

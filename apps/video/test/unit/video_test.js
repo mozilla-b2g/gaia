@@ -1,6 +1,3 @@
-/*
-  Video Media Info Tests
-*/
 'use strict';
 
 require('/shared/js/lazy_loader.js');
@@ -8,6 +5,7 @@ require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
 require('/shared/js/media/media_utils.js');
 require('/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_screen_layout.js');
 require('/shared/test/unit/mocks/mock_video_stats.js');
 requireApp('/video/js/video_utils.js');
@@ -205,6 +203,7 @@ suite('Video App Unit Tests', function() {
 
   suite('#Update dialog tests', function() {
     var thumbnailItemName = 'dummy-file-name-09.3gp';
+    var realLazyLoader;
 
     suiteSetup(function() {
       MediaDB = new MockMediaDB();
@@ -220,104 +219,127 @@ suite('Video App Unit Tests', function() {
       dom.overlayMenu = document.createElement('overlay-menu');
       dom.overlayTitle = document.createElement('overlay-title');
       dom.overlayText = document.createElement('overlay-text');
+
+      realLazyLoader = LazyLoader;
+      LazyLoader = MockLazyLoader;
+    });
+
+    setup(function() {
+      dom.overlayTitle.setAttribute('data-l10n-id', '');
+      dom.overlayText.setAttribute('data-l10n-id', '');
+    });
+
+    suiteTeardown(function() {
+      LazyLoader = realLazyLoader;
     });
 
     /**
      * If there is at least one thumbnail loaded, hide overlay
      */
-    test('#Update dialog, hide overlay', function() {
+    test('#Update dialog, hide overlay', function(done) {
       thumbnailList.addItem({'name': thumbnailItemName});
       updateDialog();
-      assert.isTrue(dom.overlay.classList.contains('hidden'));
+      setTimeout(function() {
+        assert.isTrue(dom.overlay.classList.contains('hidden'));
+        done();
+      }, 1);
     });
 
     /**
      * DB being upraded
      */
-    test('#Update dialog, db upgrade, \'upgrade\' title and text', function() {
+    test('#Update dialog, db upgrade, \'upgrade\' title and text',
+        function(done) {
       thumbnailList.removeItem(thumbnailItemName);
       storageState = MediaDB.UPGRADING;
       dom.overlayMenu.classList.remove('hidden');
       dom.overlayActionButton.classList.remove('hidden');
-      dom.overlayTitle.textContent = '';
-      dom.overlayText.textContent = '';
 
       updateDialog();
 
-      assert.isTrue(dom.overlayMenu.classList.contains('hidden'));
-      assert.isTrue(dom.overlayActionButton.classList.contains('hidden'));
-      assert.equal(dom.overlayTitle.textContent, 'upgrade-title');
-      assert.equal(dom.overlayText.textContent, 'upgrade-text');
+      // Allow lazy loader to load
+      setTimeout(function() {
+        assert.isTrue(dom.overlayMenu.classList.contains('hidden'));
+        assert.isTrue(dom.overlayActionButton.classList.contains('hidden'));
+        assert.equal(dom.overlayTitle.getAttribute('data-l10n-id'),
+                                                   'upgrade-title');
+        assert.equal(dom.overlayText.getAttribute('data-l10n-id'),
+                                                  'upgrade-text');
+        done();
+      }, 1);
     });
 
-    test('#Update dialog, pick activity, cancel overlay menu', function() {
-      pendingPick = {'source': {'name': 'pick_name'}};
-      storageState = MediaDB.UNMOUNTED;
-      dom.overlayMenu.classList.add('hidden');
-      dom.overlayActionButton.classList.add('hidden');
-      dom.overlayTitle.textContent = '';
-      dom.overlayText.textContent = '';
-
-      updateDialog();
-
-      assert.isFalse(dom.overlayMenu.classList.contains('hidden'));
-      assert.isFalse(dom.overlayActionButton.classList.contains('hidden'));
-      assert.equal(dom.overlayActionButton.textContent,
-                   'overlay-cancel-button');
-      assert.equal(dom.overlayTitle.textContent, 'pluggedin-title');
-      assert.equal(dom.overlayText.textContent, 'pluggedin-text');
-    });
-
-    test('#Update dialog, empty list, \'empty\' overlay menu', function() {
+    test('#Update dialog, empty list, \'empty\' overlay menu',
+        function(done) {
       pendingPick = null;
       storageState = null;
       dom.overlayMenu.classList.add('hidden');
       dom.overlayActionButton.classList.add('hidden');
-      dom.overlayTitle.textContent = '';
-      dom.overlayText.textContent = '';
+      dom.overlayTitle.setAttribute('data-l10n-id', '');
+      dom.overlayText.setAttribute('data-l10n-id', '');
       firstScanEnded = true;
       metadataQueue = {'length': 0};
 
       updateDialog();
 
-      assert.isFalse(dom.overlayMenu.classList.contains('hidden'));
-      assert.isFalse(dom.overlayActionButton.classList.contains('hidden'));
-      assert.equal(dom.overlayActionButton.textContent,
-                   'overlay-camera-button');
-      assert.equal(dom.overlayTitle.textContent, 'empty-title');
-      assert.equal(dom.overlayText.textContent, 'empty-text');
+      // Allow lazy loader to load
+      setTimeout(function() {
+        assert.isFalse(dom.overlayMenu.classList.contains('hidden'));
+        assert.isFalse(dom.overlayActionButton.classList.contains('hidden'));
+        assert.equal(dom.overlayActionButton.getAttribute('data-l10n-id'),
+                     'overlay-camera-button');
+        assert.equal(dom.overlayTitle.getAttribute('data-l10n-id'),
+                                                   'empty-title');
+        assert.equal(dom.overlayText.getAttribute('data-l10n-id'),
+                                                  'empty-text');
+        done();
+      }, 1);
     });
 
-    test('#Update dialog, no card, \'no card\' title and text', function() {
+    test('#Update dialog, no card, \'no card\' title and text',
+        function(done) {
       thumbnailList.removeItem(thumbnailItemName);
       storageState = MediaDB.NOCARD;
       dom.overlayMenu.classList.remove('hidden');
       dom.overlayActionButton.classList.remove('hidden');
-      dom.overlayTitle.textContent = '';
-      dom.overlayText.textContent = '';
+      dom.overlayTitle.setAttribute('data-l10n-id', '');
+      dom.overlayText.setAttribute('data-l10n-id', '');
 
       updateDialog();
 
-      assert.isTrue(dom.overlayMenu.classList.contains('hidden'));
-      assert.isTrue(dom.overlayActionButton.classList.contains('hidden'));
-      assert.equal(dom.overlayTitle.textContent, 'nocard2-title');
-      assert.equal(dom.overlayText.textContent, 'nocard3-text');
+      // Allow lazy loader to load
+      setTimeout(function() {
+        assert.isTrue(dom.overlayMenu.classList.contains('hidden'));
+        assert.isTrue(dom.overlayActionButton.classList.contains('hidden'));
+        assert.equal(dom.overlayTitle.getAttribute('data-l10n-id'),
+                                                   'nocard2-title');
+        assert.equal(dom.overlayText.getAttribute('data-l10n-id'),
+                                                  'nocard3-text');
+        done();
+      }, 1);
     });
 
-    test('#Update dialog, media no mnt, \'no mount\' title/text', function() {
+    test('#Update dialog, media no mnt, \'no mount\' title/text',
+        function(done) {
       thumbnailList.removeItem(thumbnailItemName);
       storageState = MediaDB.UNMOUNTED;
       dom.overlayMenu.classList.remove('hidden');
       dom.overlayActionButton.classList.remove('hidden');
-      dom.overlayTitle.textContent = '';
-      dom.overlayText.textContent = '';
+      dom.overlayTitle.setAttribute('data-l10n-id', '');
+      dom.overlayText.setAttribute('data-l10n-id', '');
 
       updateDialog();
 
-      assert.isTrue(dom.overlayMenu.classList.contains('hidden'));
-      assert.isTrue(dom.overlayActionButton.classList.contains('hidden'));
-      assert.equal(dom.overlayTitle.textContent, 'pluggedin-title');
-      assert.equal(dom.overlayText.textContent, 'pluggedin-text');
+      // Allow lazy loader to load
+      setTimeout(function() {
+        assert.isTrue(dom.overlayMenu.classList.contains('hidden'));
+        assert.isTrue(dom.overlayActionButton.classList.contains('hidden'));
+        assert.equal(dom.overlayTitle.getAttribute('data-l10n-id'),
+                                                   'pluggedin-title');
+        assert.equal(dom.overlayText.getAttribute('data-l10n-id'),
+                                                  'pluggedin-text');
+        done();
+      }, 1);
     });
   });
 

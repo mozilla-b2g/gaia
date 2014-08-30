@@ -1,4 +1,5 @@
-#software-buttons {
+#software-buttons,
+#software-buttons-fullscreen-layout {
   display: flex;
   align-items: center;
   text-align: center;
@@ -8,7 +9,7 @@
   position: absolute;
   background: black;
   height: 5rem;
-  transition-duration: 0.3s;
+  transition-duration: 0.4s;
   transition-timing-function: ease-in-out;
   visibility: hidden;
 }
@@ -22,8 +23,25 @@
   visibility: visible;
 }
 
+#software-buttons-fullscreen-layout {
+  bottom: 0;
+}
+
+#screen.fullscreen-layout-app #software-buttons-fullscreen-layout {
+  visibility: visible;
+}
+
+#screen.fullscreen-layout-app #software-buttons {
+  visibility: hidden;
+}
+
+#screen.fullscreen-layout-app #software-buttons-fullscreen-layout.hidden {
+  opacity: 0;
+}
+
 @media (orientation: landscape) {
-  #software-buttons {
+  #software-buttons,
+  #software-buttons-fullscreen-layout {
     top: 0;
     right: -5rem;
     bottom: 0;
@@ -32,13 +50,18 @@
     height: auto;
   }
 
+  #software-buttons-fullscreen-layout {
+    right: 0;
+  }
+
   #software-buttons.visible {
     transform: translateX(-100%);
   }
 }
 
 #software-home-button,
-#fullscreen-software-home-button {
+#fullscreen-software-home-button,
+#fullscreen-layout-software-home-button {
   width: 4rem;
   height: 4rem;
   margin: 0 auto;
@@ -49,7 +72,8 @@
 }
 
 #software-home-button.active,
-#fullscreen-software-home-button.active {
+#fullscreen-software-home-button.active,
+#fullscreen-layout-software-home-button.active {
   box-shadow: 0 0 1rem white;
 }
 
@@ -58,11 +82,11 @@
   bottom: 0.5rem;
   left: calc(50% - 2.5rem);
   opacity: 0.5;
-  display: none;
+  visibility: hidden;
 }
 
-#fullscreen-software-home-button.visible {
-  display: block;
+#screen.software-button-enabled:-moz-full-screen-ancestor #fullscreen-software-home-button {
+  visibility: visible;
 }
 
 @media (orientation: landscape) {
@@ -71,7 +95,14 @@
     left: auto;
     right: 0.5rem;
     bottom: calc(50% - 2.5rem);
-    opacity: 0.5;
-    display: none;
   }
+}
+
+#screen.fullscreen-layout-app:-moz-full-screen-ancestor #fullscreen-software-home-button,
+#screen.fullscreen-layout-app #fullscreen-software-home-button {
+  visibility: hidden;
+}
+
+#screen:not(.fullscreen-layout-app) #software-buttons-fullscreen-layout {
+  visibility: hidden;
 }

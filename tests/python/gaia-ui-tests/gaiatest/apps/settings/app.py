@@ -10,14 +10,14 @@ class Settings(Base):
 
     name = 'Settings'
 
-    _header_text_locator = (By.CSS_SELECTOR, '#root > header > h1')
+    _header_text_locator = (By.CSS_SELECTOR, '#root > gaia-header > h1')
     _data_text_locator = (By.ID, 'data-desc')
     _wifi_text_locator = (By.ID, 'wifi-desc')
     _battery_text_locator = (By.ID, 'battery-desc')
     _application_storage_text_locator = (By.CSS_SELECTOR, '.application-storage-desc')
     _media_storage_text_locator = (By.ID, 'media-storage-desc')
-    _usb_storage_text_locator = (By.CSS_SELECTOR, '.ums-desc-root')
-    _screen_lock_text_locator = (By.ID, 'screenLock-desc')
+    _usb_storage_text_locator = (By.CSS_SELECTOR, '.usb-desc')
+    _screen_lock_text_locator = (By.CSS_SELECTOR, '.screenLock-desc')
     _language_text_locator = (By.ID, 'language-desc')
     _bluetooth_text_locator = (By.CSS_SELECTOR, '.bluetooth-desc')
 

@@ -57,7 +57,18 @@ function getImageSize(blob, callback, error) {
     else if (magic.substring(0, 2) === '\xFF\xD8') {
       parseJPEGMetadata(blob,
                         function(metadata) {
-                          metadata.type = 'jpeg';
+                          if (metadata.progressive) {
+                            // If the jpeg parser tells us that this is
+                            // a progressive jpeg, then treat that as a
+                            // distinct image type because pjpegs have
+                            // such different memory requirements than
+                            // regular jpegs.
+                            delete metadata.progressive;
+                            metadata.type = 'pjpeg';
+                          }
+                          else {
+                            metadata.type = 'jpeg';
+                          }
                           callback(metadata);
                         },
                         error);

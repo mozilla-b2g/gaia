@@ -22,8 +22,9 @@
     this._notificationContainer =
       this._utilityTrayContainer.querySelector('.fake-notification');
     this._notificationTitle =
-      this._notificationContainer.querySelector('.message');
-    this._notificationTip = this._notificationContainer.querySelector('.tip');
+      this._notificationContainer.querySelector('.title-container');
+    this._notificationTip =
+      this._notificationContainer.querySelector('.detail');
 
     this._notificationContainer.addEventListener('mousedown', this);
   };

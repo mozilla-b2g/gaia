@@ -229,7 +229,7 @@
     window.addEventListener('appopen', this);
     window.addEventListener('ftudone', this);
     window.addEventListener('holdhome', this);
-    window.addEventListener('home', this);
+    window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
 
     this.initVibrationUserPref();
@@ -265,7 +265,7 @@
     window.removeEventListener('appopen', this);
     window.removeEventListener('ftudone', this);
     window.removeEventListener('holdhome', this);
-    window.removeEventListener('home', this);
+    window.removeEventListener('homescreenopening', this);
     window.removeEventListener('homescreenopened', this);
   };
 
@@ -323,7 +323,7 @@
       case 'holdhome':
         CustomDialog.hide();
         break;
-      case 'home':
+      case 'homescreenopening':
       case 'homescreenopened':
         this.homescreenVisible = true;
         CustomDialog.hide();

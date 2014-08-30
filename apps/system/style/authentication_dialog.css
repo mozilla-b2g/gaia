@@ -9,6 +9,16 @@
   font-weight: normal;
 }
 
+#screen.fullscreen-layout-app.software-button-enabled .authentication-dialog {
+  height: calc(100% - 3rem - 5rem);
+}
+
+@media (orientation: landscape) {
+  #screen.fullscreen-layout-app.software-button-enabled .authentication-dialog {
+    height: calc(100% - 3rem);
+  }
+}
+
 .authentication-dialog-http-authentication-message {
   display: block;
   font-size: 1.5rem;

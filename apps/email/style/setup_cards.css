@@ -112,7 +112,7 @@ section[role="region"].skin-organic {
   text-align: center;
 }
 
-.tng-signature-input {
+.tng-signature-text {
   margin: 0;
   min-height: 100%;
   overflow-x: auto;
@@ -126,10 +126,15 @@ section[role="region"].skin-organic {
   box-shadow: none;
   background: white;
   outline: 0;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  white-space: pre-wrap;
+  word-wrap: break-word;
   padding: 1rem 1.5rem 0;
   font-size: 1.6rem;
+}
+
+.tng-list {
+  margin: 0;
+  padding: 0;
 }
 
 li button.signature-button.icon:before {
@@ -138,7 +143,7 @@ li button.signature-button.icon:before {
 }
 
 li button.signature-button.button.icon {
-  width: calc(100% - 3rem);
+  width: 100%;
   margin: 0 auto 2rem auto;
   padding-right: 3rem;
   padding-left: 0;
@@ -152,12 +157,26 @@ li button.signature-button.button.icon {
   margin-left: 1rem;
 }
 
+.signature-button-content.empty-placeholder {
+  color: #858585;
+}
+
 li:not([role]) {
   position: relative;
-  width: 100%;
-  min-height: 5.5rem;
   border-bottom: solid 0.1rem #dbd9d9;
   list-style-type: none;
+}
+
+.tng-list li:last-child {
+  border-bottom: 0;
+}
+
+/* Special override because delete button follows the
+   tng-acccount-server-container, and cannot place the button inside that ul
+   since items are dynamically appended to it. So just explicitly state the
+   desire for a bottom border in that case. */
+.tng-list.tng-account-server-container li:last-child {
+  border-bottom: solid 0.1rem #dbd9d9;
 }
 
 li a:active {
@@ -166,7 +185,7 @@ li a:active {
 }
 
 .list-text-with-sub {
-  padding: 2rem 0 1rem 0;
+  padding: 1.5rem 0;
 }
 
 .list-text-with-sub .list-text {
@@ -183,8 +202,8 @@ li.select-item {
   overflow: hidden;
   text-overflow: ellipsis;
   color: #000;
+  padding-left: 1.5rem;
   line-height: 5.5rem;
-  padding-left: 3rem;
   font-size: 1.8rem;
   outline: 0 none;
 }
@@ -209,21 +228,16 @@ li.select-item {
   white-space: nowrap;
   color: #5b5b5b;
   font-size: 1.6rem;
-  padding-left: 3rem;
+  padding-left: 1.5rem;
 }
 
 li .aside.start {
   float: left;
-  width: calc(100% - 13.5rem);
+  width: calc(100% - 9.5rem);
 }
 
 li .aside.end {
   float: right;
-}
-
-.aside.end .pack-switch {
-  padding-right: 3rem;
-  margin-right: 1.5rem;
 }
 
 li.align-center {
@@ -236,7 +250,7 @@ li.align-center {
   height: 3rem;
   position: absolute;
   top: calc(50% - 1.5rem);
-  right: 0.5rem;
+  right: 0;
   background: url(/shared/style/buttons/images/next.png) no-repeat center / 3rem auto;
 }
 
@@ -271,15 +285,7 @@ li.settings-input-list {
 }
 
 .tng-accounts-container li {
-  min-height: 6rem;
-  text-align: center;
-}
-
-.tng-accounts-container li > a {
-  padding: 0 3rem;
-  text-align: left;
-  font-size: 1.9rem;
-  line-height: 6rem;
+  margin: 0 1.5rem;
 }
 
 .settings-button {
@@ -292,9 +298,8 @@ li.settings-input-list {
 }
 
 section.card-settings-account-common li {
-  margin: 0 auto;
+  margin: 0 1.5rem;
   overflow: hidden;
-  width: 100%;
 }
 
 section.card-settings-account-common li.syncinterval-setting label,
@@ -307,7 +312,6 @@ section.card-settings-account-common li.synchronize-setting label {
 section.card-settings-account-common li span.button {
   display: block;
   margin: 0 auto 1rem auto;
-  width: calc(100% - 3rem);
 }
 
 section.card-settings-account-common li .pack-checkbox {

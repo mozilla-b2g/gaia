@@ -5,7 +5,7 @@
 
 // This object implements a prefix tree (aka trie) for FB tel numbers
 
-function Node(number) {
+function TrieNode(number) {
   this.keys = Object.create(null);
   this.leaves = null;
   this.value = number;
@@ -88,7 +88,7 @@ var TelIndexer = {
         insertObj.value = newString;
 
         if (restString.length > 0) {
-          var newNode = new Node(restString);
+          var newNode = new TrieNode(restString);
           for (var j = 0; j < keys.length; j++) {
             newNode.keys[keys[j]] = true;
           }
@@ -109,7 +109,7 @@ var TelIndexer = {
       }
     }
     else {
-      var nextObj = new Node(str);
+      var nextObj = new TrieNode(str);
       nextObj.keys[dsId] = true;
       node.leaves = node.leaves || [];
       node.leaves.push(nextObj);
@@ -158,7 +158,7 @@ var TelIndexer = {
     var rootObj = this._getFirstLevelNode(tree, firstThreeStr,
                                           this._INSERT_MODE);
     if (!rootObj) {
-      rootObj = new Node(firstThreeStr);
+      rootObj = new TrieNode(firstThreeStr);
       tree.push(rootObj);
     }
     rootObj.keys[dsId] = true;

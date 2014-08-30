@@ -320,7 +320,7 @@ WebappShared.prototype.pushFileByType = function(kind, path) {
 
 WebappShared.prototype.filterSharedUsage = function(file) {
   var SHARED_USAGE =
-      /<(?:script|link).+=['"]\.?\.?\/?shared\/([^\/]+)\/([^''\s]+)("|')/g;
+      /<(?:script|link).+=['"]\.?\.?\/?shared\/([^\/]+)\/([^'"\s]+)("|')/g;
   var content = utils.getFileContent(file);
   var matches = null;
   while((matches = SHARED_USAGE.exec(content)) !== null) {

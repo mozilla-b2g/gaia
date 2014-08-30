@@ -27,7 +27,7 @@
 
 #rocketbar-form {
   height: 3.4rem;
-  background: rgba(51, 51, 51, 0.5);
+  background: rgba(31, 31, 31, 1);
   border-radius: 1.7rem;
   padding: 0 1rem;
   margin: 0.3rem 0.5rem 0.6rem 0.5rem;
@@ -124,25 +124,11 @@
 
 #rocketbar-backdrop {
   top: 0;
-  height: 120%;
-  width: 120%;
-  margin-left: -10%;
-  margin-top: -10%;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: 50% 50%;
-
-  opacity: 1;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.95);
   transition: opacity 0.3s linear;
 }
-
-#rocketbar-backdrop-cover {
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.75);
-  pointer-events: none;
-}
-
 
 /* Rocketbar results is normally 7rem tall and should be adjusted by the
    height of the SHB of 5rem when enabled */

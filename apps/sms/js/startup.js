@@ -3,63 +3,11 @@
 
 'use strict';
 
-/*global Utils, ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
+/*global ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
          Settings, LazyLoader, TimeHeaders, Information, SilentSms,
-         PerformanceTestingHelper, App, Navigation, EventDispatcher */
-
-navigator.mozL10n.ready(function localized() {
-  // This will be called during startup, and any time the languange is changed
-
-  // Look for any iframes and localize them - mozL10n doesn't do this
-  // XXX: remove once bug 1020130 is fixed
-  Array.prototype.forEach.call(document.querySelectorAll('iframe'),
-    function forEachIframe(iframe) {
-      var doc = iframe.contentDocument;
-      doc.documentElement.lang = navigator.mozL10n.language.code;
-      doc.documentElement.dir = navigator.mozL10n.language.direction;
-      navigator.mozL10n.translateFragment(doc.body);
-    }
-  );
-
-  // Also look for l10n-contains-date and re-translate the date message.
-  // More complex because the argument to the l10n string is itself a formatted
-  // date using l10n.
-  Array.prototype.forEach.call(
-    document.getElementsByClassName('l10n-contains-date'),
-    function(element) {
-      if (!(element.dataset.l10nDate && element.dataset.l10nDateFormat)) {
-        return;
-      }
-
-      var format = navigator.mozL10n.get(element.dataset.l10nDateFormat);
-      var date = new Date(+element.dataset.l10nDate);
-      var localeData = Utils.date.format.localeFormat(date, format);
-
-      if (element.hasAttribute('data-l10n-id') &&
-          element.hasAttribute('data-l10n-args')) {
-
-        var l10nAttrs = navigator.mozL10n.getAttributes(element);
-        l10nAttrs.args.date = localeData;
-        navigator.mozL10n.setAttributes(element, l10nAttrs.id, l10nAttrs.args);
-      } else {
-        element.textContent = localeData;
-      }
-    }
-  );
-
-  // Re-translate the placeholder messages
-  Array.prototype.forEach.call(
-    document.getElementsByClassName('js-l10n-placeholder'),
-    function(element) {
-      var id = element.getAttribute('id');
-
-      var l10nId = Utils.camelCase(id);
-      element.dataset.placeholder =
-        navigator.mozL10n.get(l10nId + '_placeholder');
-    }
-  );
-
-});
+         PerformanceTestingHelper, App, Navigation, EventDispatcher,
+         LocalizationHelper
+*/
 
 var Startup = {
   _lazyLoadScripts: [
@@ -67,17 +15,16 @@ var Startup = {
     '/shared/js/sim_picker.js',
     '/shared/js/mime_mapper.js',
     '/shared/js/notification_helper.js',
+    '/shared/js/option_menu.js',
     '/shared/js/gesture_detector.js',
     '/shared/js/settings_url.js',
     '/shared/js/mobile_operator.js',
     '/shared/js/multi_sim_action_button.js',
-    '/shared/js/font_size_utils.js',
     'js/waiting_screen.js',
     'js/errors.js',
     'js/dialog.js',
     'js/error_dialog.js',
     'js/link_helper.js',
-    'js/action_menu.js',
     'js/link_action_handler.js',
     'js/contact_renderer.js',
     'js/activity_picker.js',
@@ -94,11 +41,14 @@ var Startup = {
     'js/wbmp.js',
     'js/smil.js',
     'js/notify.js',
-    'js/activity_handler.js'
+    'js/activity_handler.js',
+    'js/localization_helper.js'
   ],
 
   _lazyLoadInit: function() {
     LazyLoader.load(this._lazyLoadScripts, function() {
+      LocalizationHelper.init();
+
       // dispatch moz-content-interactive when all the modules initialized
       SilentSms.init();
       ActivityHandler.init();

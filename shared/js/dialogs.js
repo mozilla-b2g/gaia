@@ -13,12 +13,32 @@ var Dialogs = {
       var cancelButton = $('confirm-cancel');
       var confirmButton = $('confirm-ok');
 
+      /*
+       * this function handles the logic for adding the correct text
+       * to `element` given option fields prefixed with `prefix`
+       * failing to find an option, `defaultId` will be added if it exists
+       */
+      var addText = function (element, prefix, defaultId) {
+        if (options[prefix + 'Id']) {
+          navigator.mozL10n.setAttributes(
+            element,
+            options[prefix + 'Id'],
+            options[prefix + 'Args'] //may be undefined but will still work
+          );
+        }
+        else if (options[prefix] || options[prefix + 'Text']) {
+          var textOption = options[prefix] || options[prefix + 'Text'];
+          element.textContent = textOption;
+        }
+        else if (defaultId) {
+          element.setAttribute('data-l10n-id', defaultId);
+        }
+      };
+
       // set up the dialog based on the options
-      msgEle.textContent = options.message;
-      cancelButton.textContent = options.cancelText ||
-                                 navigator.mozL10n.get('cancel');
-      confirmButton.textContent = options.confirmText ||
-                                  navigator.mozL10n.get('ok');
+      addText(msgEle, 'message');
+      addText(cancelButton, 'cancel', 'cancel');
+      addText(confirmButton, 'confirm', 'ok');
 
       if (options.danger) {
         confirmButton.classList.add('danger');
@@ -79,39 +99,38 @@ var Dialogs = {
       $('overlay-cancel-button').classList.add('hidden');
       $('overlay-menu').classList.add('hidden');
       var title, text;
-      var _ = navigator.mozL10n.get;
       switch (id) {
         case null:
           $('overlay').classList.add('hidden');
           return;
         case 'nocard':
-          title = _('nocard3-title');
-          text = _('nocard4-text');
+          title = 'nocard3-title';
+          text = 'nocard4-text';
           if (pendingPick) {
             $('overlay-cancel-button').classList.remove('hidden');
             $('overlay-menu').classList.remove('hidden');
           }
           break;
         case 'pluggedin':
-          title = _('pluggedin2-title');
-          text = _('pluggedin2-text');
+          title = 'pluggedin2-title';
+          text = 'pluggedin2-text';
           if (pendingPick) {
             $('overlay-cancel-button').classList.remove('hidden');
             $('overlay-menu').classList.remove('hidden');
           }
           break;
         case 'scanning':
-          title = _('scanning-title');
-          text = _('scanning-text');
+          title = 'scanning-title';
+          text = 'scanning-text';
           if (pendingPick) {
             $('overlay-cancel-button').classList.remove('hidden');
             $('overlay-menu').classList.remove('hidden');
           }
           break;
         case 'emptygallery':
-          title = _(pendingPick ? 'emptygallery2-title-pick' :
-                                  'emptygallery2-title');
-          text = _('emptygallery2-text');
+          title = pendingPick ? 'emptygallery2-title-pick' :
+                                'emptygallery2-title';
+          text = 'emptygallery2-text';
           $('overlay-menu').classList.remove('hidden');
           if (pendingPick) {
             $('overlay-cancel-button').classList.remove('hidden');
@@ -120,8 +139,8 @@ var Dialogs = {
           }
           break;
         case 'upgrade':
-          title = _('upgrade-title');
-          text = _('upgrade-text');
+          title = 'upgrade-title';
+          text = 'upgrade-text';
           if (pendingPick) {
             $('overlay-cancel-button').classList.remove('hidden');
             $('overlay-menu').classList.remove('hidden');
@@ -136,9 +155,10 @@ var Dialogs = {
           return;
       }
 
-      $('overlay-title').textContent = title;
-      $('overlay-text').textContent = text;
+      $('overlay-title').setAttribute('data-l10n-id', title);
+      $('overlay-text').setAttribute('data-l10n-id', text);
       $('overlay').classList.remove('hidden');
     });
   }
+
 };

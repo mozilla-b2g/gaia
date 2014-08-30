@@ -29,6 +29,8 @@ function AlarmListPanel(element) {
     App.alarmListLoaded();
   });
 
+  window.addEventListener('timeformatchange', this.refreshDisplay.bind(this));
+
   window.addEventListener('alarm-changed', (evt) => {
     var alarm = evt.detail.alarm;
     this.addOrUpdateAlarm(alarm);
@@ -45,6 +47,13 @@ function AlarmListPanel(element) {
 
 AlarmListPanel.prototype = {
   alarmIdMap: {},
+
+  refreshDisplay: function(evt) {
+    for (var key in this.alarmIdMap) {
+      var alarm = this.alarmIdMap[key];
+      this.addOrUpdateAlarm(alarm);
+    }
+  },
 
   onClickNewAlarm: function(evt) {
     evt.preventDefault();

@@ -43,7 +43,9 @@ marionette('Uninstall an ime app', function() {
     appPermissionPanel.uninstallButton.click();
 
     // confirm to uninstall
-    systemApp.confirmOk();
+    client.switchToFrame();
+    // systemApp.confirmOk();
+    systemApp.confirmDialog('remove');
 
     // Switch back to settings app
     settingsApp.switchTo();

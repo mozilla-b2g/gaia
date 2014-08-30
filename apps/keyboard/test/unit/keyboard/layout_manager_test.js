@@ -26,6 +26,20 @@ suite('LayoutManager', function() {
     window.Keyboards = realKeyboards;
   });
 
+  // since bug 1035619, enter key's layout properties will always come
+  // from its prototype. and assert.deepEqual doesn't take prototype into
+  // consideration, so we do the comparison by ourselves with a helper function
+  var assertExpectedLayoutsWithEnter = function (test, expected, rowIndex,
+                                                 enterIndex, msg) {
+    var expectedEnter = expected.keys[rowIndex][enterIndex];
+    expected.keys[rowIndex][enterIndex] = {};
+    assert.deepEqual(test, expected, msg);
+    for(var key in expectedEnter) {
+      assert.equal(test.keys[rowIndex][enterIndex][key], expectedEnter[key],
+                   msg);
+    }
+  };
+
   test('start', function() {
     window.Keyboards = {};
 
@@ -41,9 +55,6 @@ suite('LayoutManager', function() {
     var manager = new LayoutManager({});
     manager.start();
     manager.loader.SOURCE_DIR = './fake-layouts/';
-
-    this.sinon.stub(manager, '_getInitLayoutPage')
-      .returns(manager.LAYOUT_PAGE_DEFAULT);
 
     var p = manager.switchCurrentLayout('foo');
 
@@ -82,9 +93,6 @@ suite('LayoutManager', function() {
     manager.start();
     manager.loader.SOURCE_DIR = './fake-layouts/';
 
-    this.sinon.stub(manager, '_getInitLayoutPage')
-      .returns(manager.LAYOUT_PAGE_DEFAULT);
-
     var p1 = manager.switchCurrentLayout('foo');
     var p2 = manager.switchCurrentLayout('foo');
     p1.then(function() {
@@ -111,9 +119,6 @@ suite('LayoutManager', function() {
     var manager = new LayoutManager({});
     manager.start();
     manager.loader.SOURCE_DIR = './fake-layouts/';
-
-    this.sinon.stub(manager, '_getInitLayoutPage')
-      .returns(manager.LAYOUT_PAGE_DEFAULT);
 
     var p = manager.switchCurrentLayout('foo');
     p.then(function() {
@@ -276,7 +281,9 @@ suite('LayoutManager', function() {
               { value: 'ENTER', ratio: 2.0,
                 keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 4);
         assert.equal(manager.currentModifiedLayout.__proto__,
           spaceLayout, 'proto is set correctly for layout.');
 
@@ -311,7 +318,9 @@ suite('LayoutManager', function() {
               { value: 'ENTER', ratio: 2.0,
                 keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 4);
         assert.equal(manager.currentModifiedLayout.__proto__,
           spaceLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
@@ -424,16 +433,12 @@ suite('LayoutManager', function() {
 
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
-          alternativeLayoutName: 'alternateLayout',
+          alternativeLayoutName: 'numberLayout',
           imEngine: 'test-imEngine' };
-
-        // for the sake of simplicity, delete 'keys' from the layout
-        // testing for 'keys' will be done at switchToAlternateTest.
-        delete manager.currentModifiedLayout.keys;
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
-          manager.loader.getLayout('alternateLayout'),
+          manager.loader.getLayout('numberLayout'),
           'proto is set correctly for layout.');
       }, function() {
         assert.isTrue(false, 'Should not reject.');
@@ -451,16 +456,12 @@ suite('LayoutManager', function() {
 
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
-          alternativeLayoutName: 'alternateLayout',
+          alternativeLayoutName: 'numberLayout',
           imEngine: 'test-imEngine' };
-
-        // for the sake of simplicity, delete 'keys' from the layout
-        // testing for 'keys' will be done at switchToAlternateTest.
-        delete manager.currentModifiedLayout.keys;
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
-          manager.loader.getLayout('alternateLayout'),
+          manager.loader.getLayout('numberLayout'),
           'proto is set correctly for layout.');
       }, function() {
         assert.isTrue(false, 'Should not reject.');
@@ -538,8 +539,9 @@ suite('LayoutManager', function() {
                       { value: 'ENTER', ratio: 2.0,
                         keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-          assert.deepEqual(manager.currentModifiedLayout,
-                           expectedModifiedLayout);
+          assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                         expectedModifiedLayout,
+                                         1, 4);
           assert.equal(manager.currentModifiedLayout.imEngine,
                        spaceLayout.imEngine);
           assert.equal(manager.currentModifiedLayout.__proto__,
@@ -583,7 +585,9 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 4);
         assert.equal(manager.currentModifiedLayout.__proto__,
           alternateLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
@@ -645,7 +649,9 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 4);
         assert.equal(manager.currentModifiedLayout.__proto__,
           symbolLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
@@ -674,7 +680,9 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 3);
         assert.equal(manager.currentModifiedLayout.__proto__,
           spaceLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][1].__proto__,
@@ -710,7 +718,9 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 4);
         assert.equal(manager.currentModifiedLayout.__proto__,
           spaceLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
@@ -747,7 +757,9 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 4);
         assert.equal(manager.currentModifiedLayout.__proto__,
           spaceLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
@@ -781,7 +793,9 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 4);
         assert.equal(manager.currentModifiedLayout.__proto__,
           spaceLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
@@ -814,7 +828,9 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 4);
         assert.equal(manager.currentModifiedLayout.__proto__,
           spaceLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
@@ -884,7 +900,9 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 4);
         assert.equal(manager.currentModifiedLayout.__proto__,
           spaceLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
@@ -949,10 +967,85 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 3);
         assert.equal(manager.currentModifiedLayout.__proto__,
           spaceLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][1].__proto__,
+          spaceLayout.keys[1][0], 'proto is set correctly for space key.');
+      }, function() {
+        assert.isTrue(false, 'Should not reject.');
+      }).then(done, done);
+    });
+
+    test('type=search, with IME switching', function (done) {
+      app.getBasicInputType.returns('search');
+      app.supportsSwitching.returns(true);
+
+      manager.switchCurrentLayout('spaceLayout').then(function() {
+        assert.deepEqual(manager.currentLayout, spaceLayout,
+          'Original layout not touched.');
+
+        var expectedModifiedLayout = {
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
+          keys: [ [ { value: 'S' } ],
+                  [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
+                      value: '12&',
+                      ratio: 2,
+                      ariaLabel: 'alternateLayoutKey',
+                      className: 'page-switch-key' },
+                    { value: '&#x1f310;',
+                      ratio: 1,
+                      keyCode: -3,
+                      className: 'switch-key' },
+                    { ratio: 4.0 },
+                    { value: '.', ratio: 1, keyCode: 46 },
+                    // The [ENTER] key would be cloned
+                    // and with modified className
+                    { className: 'search-icon'} ] ] };
+
+        assert.deepEqual(manager.currentModifiedLayout.keys,
+                         expectedModifiedLayout.keys);
+        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assert.equal(manager.currentModifiedLayout.__proto__,
+          spaceLayout, 'proto is set correctly for layout.');
+        assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
+          spaceLayout.keys[1][0], 'proto is set correctly for space key.');
+      }, function() {
+        assert.isTrue(false, 'Should not reject.');
+      }).then(done, done);
+    });
+
+    test('type=search, without IME switching', function (done) {
+      app.getBasicInputType.returns('search');
+      app.supportsSwitching.returns(false);
+
+      manager.switchCurrentLayout('spaceLayout').then(function() {
+        assert.deepEqual(manager.currentLayout, spaceLayout,
+          'Original layout not touched.');
+
+        var expectedModifiedLayout = {
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
+          keys: [ [ { value: 'S' } ],
+                  [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
+                      value: '12&',
+                      ratio: 2.0,
+                      ariaLabel: 'alternateLayoutKey',
+                      className: 'page-switch-key' },
+                    { value: ',', ratio: 1, keyCode: 44 },
+                    { ratio: 4.0 },
+                    { value: '.', ratio: 1, keyCode: 46 },
+                    // The [ENTER] key would be cloned
+                    // and with modified className
+                    { className: 'search-icon'} ] ] };
+
+        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assert.equal(manager.currentModifiedLayout.__proto__,
+          spaceLayout, 'proto is set correctly for layout.');
+        assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
           spaceLayout.keys[1][0], 'proto is set correctly for space key.');
       }, function() {
         assert.isTrue(false, 'Should not reject.');
@@ -984,7 +1077,9 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 3);
         assert.equal(manager.currentModifiedLayout.__proto__,
           spaceLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][1].__proto__,
@@ -1020,7 +1115,9 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 4);
         assert.equal(manager.currentModifiedLayout.__proto__,
           spaceLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
@@ -1055,7 +1152,9 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 3);
         assert.equal(manager.currentModifiedLayout.__proto__,
           spaceLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
@@ -1094,7 +1193,9 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 4);
         assert.equal(manager.currentModifiedLayout.__proto__,
           spaceLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
@@ -1130,7 +1231,9 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 4);
         assert.equal(manager.currentModifiedLayout.__proto__,
           spaceLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
@@ -1203,7 +1306,9 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 4);
         assert.equal(manager.currentModifiedLayout.__proto__,
           moreKeysLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
@@ -1239,7 +1344,9 @@ suite('LayoutManager', function() {
                     { value: 'ENTER', ratio: 2.0,
                       keyCode: KeyboardEvent.DOM_VK_RETURN } ] ] };
 
-        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assertExpectedLayoutsWithEnter(manager.currentModifiedLayout,
+                                       expectedModifiedLayout,
+                                       1, 4);
         assert.equal(manager.currentModifiedLayout.__proto__,
           supportsSwitchingLayout, 'proto is set correctly for layout.');
 

@@ -97,24 +97,36 @@ navigator.mozSetMessageHandler('activity', function(activity) {
     var promises = [];
     var listParent = document.getElementById('list-parent');
 
-    // Add the built-in ringtones.
-    var builtInList = new ManagerToneList('list-title-ringtone', listParent);
-    promises.push(window.builtInRingtones.list('ringtone')
-                        .then(function(tones) {
-      builtInList.add(tones);
-    }));
-
-    // Add the custom ringtones.
-    var customList = new ManagerToneList('list-title-custom', listParent);
-    promises.push(window.customRingtones.list().then(function(tones) {
-      customList.add(tones);
-
-      // Since we've built our custom tones list, we can now let the user add
-      // new tones to it!
-      document.getElementById('add').addEventListener(
-        'click', addNewTone.bind(null, customList)
+    window.builtInRingtones.toneTypes.forEach(function(toneType) {
+      // Add the built-in ringtones.
+      var builtInList = new ManagerToneList(
+        'section-title-builtin-' + toneType, listParent
       );
-    }));
+      promises.push(window.builtInRingtones.list(toneType).then(
+        function(tones) { builtInList.add(tones); }
+      ));
+
+      // Add the custom ringtones.
+      var customList = new ManagerToneList(
+        'section-title-custom-' + toneType, listParent);
+
+      promises.push(window.customRingtones.list(toneType).then(function(tones) {
+        customList.add(tones);
+
+        if (toneType === 'ringtone') {
+          // Since we've built our custom tones list, we can now let the user
+          // add new tones to it!
+          document.getElementById('add').addEventListener(
+            'click', addNewTone.bind(null, customList)
+          );
+        }
+      }));
+
+      // Add the SD card ringtones to the custom list.
+      promises.push(window.sdCardRingtones.list(toneType).then(function(tones) {
+        customList.add(tones);
+      }));
+    });
 
     Promise.all(promises).then(function() {
       // This just notifies the tests that we're finished building our lists.

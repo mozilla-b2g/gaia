@@ -3,26 +3,30 @@
 var Utils = {
   prettyDate: function ut_prettyDate(time) {
     var _ = navigator.mozL10n.get;
+    var timeFormat = window.navigator.mozHour12 ? _('shortTimeFormat12') :
+                                                  _('shortTimeFormat24');
     var dtf = new navigator.mozL10n.DateTimeFormat();
-    return dtf.localeFormat(new Date(time), _('shortTimeFormat'));
+    return dtf.localeFormat(new Date(time), timeFormat);
   },
 
   headerDate: function ut_headerDate(time) {
     var _ = navigator.mozL10n.get;
     var dtf = new navigator.mozL10n.DateTimeFormat();
-    var today = _('today');
-    var yesterday = _('yesterday');
     var diff = (Date.now() - time) / 1000;
     var day_diff = Math.floor(diff / 86400);
-    if (isNaN(day_diff))
-      return '(incorrect date)';
-    if (day_diff < 0 || diff < 0) {
-      return dtf.localeFormat(new Date(time), _('shortDateTimeFormat'));
+    var formattedTime;
+    if (isNaN(day_diff)) {
+      formattedTime = _('incorrectDate');
+    } else if (day_diff === 0) {
+      formattedTime = _('today');
+    } else if (day_diff === 1) {
+      formattedTime = _('yesterday');
+    } else if (day_diff < 6) {
+      formattedTime = dtf.localeFormat(new Date(time), '%A');
+    } else {
+      formattedTime = dtf.localeFormat(new Date(time), '%x');
     }
-    return day_diff == 0 && today ||
-      day_diff == 1 && yesterday ||
-      day_diff < 6 && dtf.localeFormat(new Date(time), '%A') ||
-      dtf.localeFormat(new Date(time), '%x');
+    return formattedTime;
   },
 
   getDayDate: function re_getDayDate(timestamp) {
