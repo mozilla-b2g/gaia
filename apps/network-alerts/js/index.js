@@ -2,7 +2,7 @@
 
 (function() {
   const CMAS_ID = 'emergency-alert-title',
-        CELLBROADCAST_ID = 'cellbroadcast-title';
+        CMAS_ENABLED_KEY = 'cmas.enabled';
 
   window.navigator.mozSetMessageHandler(
     'cellbroadcast-received',
@@ -16,8 +16,8 @@
    * details.
    * @param {number} Message ID 
    */
-  function getMessageTitle(id) {
-    return (id >= 4370 && id < 4400) ? CMAS_ID : CELLBROADCAST_ID;
+  function isEmergencyAlert(id) {
+    return (id >= 4370 && id < 4400);
   }
 
   /**
@@ -26,14 +26,28 @@
    * information like Identifier and body for displaying attention screen.
    */
   function onCellbroadcast(message) {
-    // TODO: bug 1051795 : Return directly if alert message settings is off
+    if (!isEmergencyAlert(message.messageId)) {
+      window.close();
+      return;
+    }
 
-    var opts = {
-      title: getMessageTitle(message.messageId),
-      body: message.body
+    var req = navigator.mozSettings.createLock().get(CMAS_ENABLED_KEY);
+
+    req.onsuccess = function() {
+      if (req.result[CMAS_ENABLED_KEY][message.serviceId]) {
+        sendAlert({
+          title: CMAS_ID,
+          body: message.body
+        });
+        // Do not close window here becaise it will close attention screen
+      } else {
+        window.close();
+      }
     };
-    
-    sendAlert(opts);
+    req.onerror = function() {
+      console.error('CMAS: Unable to query settings database');
+      window.close();
+    };
   }
 
   /**
@@ -50,12 +64,6 @@
       encodeURIComponent(opts.body)
     ].join('');
 
-    // TODO: We might need to show cellbroadcast by attention screen in the
-    // future.
-    if (opts.title === CMAS_ID) {
-      window.open(url, '_blank', 'attention');
-    }
-
-    window.close();
+    window.open(url, '_blank', 'attention');
   }
 })();

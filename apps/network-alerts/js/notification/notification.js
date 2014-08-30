@@ -29,7 +29,6 @@ function onNotification(message) {
   ].join('');
 
   window.open(url, '_blank', 'attention');
-  closeWindow();
 }
 
 exports.NotificationHandler = {
