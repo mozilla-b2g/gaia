@@ -29,6 +29,7 @@ requireApp('system/js/app_window_factory.js');
 requireApp('system/js/browser_settings.js');
 requireApp('system/js/devtools/developer_hud.js');
 requireApp('system/js/dialer_agent.js');
+requireApp('system/js/eu_roaming_manager.js');
 requireApp('system/js/external_storage_monitor.js');
 requireApp('system/js/ftu_launcher.js');
 requireApp('system/js/rocketbar.js');

@@ -14,6 +14,7 @@ define(function(require) {
   var MCC_SETTINGS_KEY = ApnConst.MCC_SETTINGS_KEY;
   var MNC_SETTINGS_KEY = ApnConst.MNC_SETTINGS_KEY;
   var APN_PROPS = ApnConst.APN_PROPS;
+  var EU_ROAMING_FILE_PATH = ApnConst.EU_ROAMING_FILE_PATH;
 
   function _getOperatorCode(serviceId, type) {
     var value;
@@ -93,6 +94,32 @@ define(function(require) {
     });
   }
 
+  var _euApnChecked = false;
+  var _euApns = null;
+  /**
+   * Return the EU apns for roaming.
+   */
+  function _getEuApns() {
+    if (_euApnChecked) {
+      return Promise.resolve(_euApns);
+    } else {
+      return _loadJSON(EU_ROAMING_FILE_PATH).then(function(result) {
+        _euApnChecked = true;
+        // Only return eu apns when both home and foreign operators are
+        // specified.
+        if (result.home && result.foreign &&
+            Object.keys(result.home).length > 0 &&
+            Object.keys(result.foreign).length > 0) {
+          _euApns = result.defaultApns;
+        }
+        return _euApns;
+      }).catch(function() {
+        _euApnChecked = true;
+        return null;
+      });
+    }
+  }
+
   function _generateId() {
     // should refine this
     return Math.random().toString(36).substr(2, 9);
@@ -157,11 +184,27 @@ define(function(require) {
     return JSON.parse(JSON.stringify(apn));
   }
 
+  function _loadJSON(path) {
+    return new Promise(function(resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.onerror = function() {
+        reject('Failed to fetch file: ' + path, xhr.statusText);
+      };
+      xhr.onload = function() {
+        resolve(xhr.response);
+      };
+      xhr.open('GET', path, true); // async
+      xhr.responseType = 'json';
+      xhr.send();
+    });
+  }
+
   return {
     getOperatorCode: _getOperatorCode,
     apnTypeFilter: _apnTypeFilter,
     getDefaultApns: _getDefaultApns,
     getCpApns: _getCpApns,
+    getEuApns: _getEuApns,
     generateId: _generateId,
     separateApnsByType: _separateApnsByType,
     isMatchedApn: _isMatchedApn,

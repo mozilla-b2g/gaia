@@ -183,10 +183,47 @@ define(function(require) {
     },
 
     /**
+     * Restore the apn items of a category.
+     *
+     * @access private
+     * @memberOf ApnSettingsManager.prototype
+     * @param {ApnList} apnList
+     * @param {Array<Object>} apnsForRestoring
+     *                        The function use this to restore the apn items.
+     * @param {ApnItem.APN_CATEGORY} category
+     *                               The category of the items to be resotred.
+     * @returns {Promise Array<String>} The id of the restored apn items.
+     */
+    _restoreApnItemsOfCategory:
+      function asc_restoreApnItems(apnList, apnsForRestoring, category) {
+        return apnList.items().then(function(apnItems) {
+          // Remove all existing preset apns.
+          apnItems = apnItems || [];
+          var promises = [];
+          apnItems.filter(function(apnItem) {
+            if (apnItem.category === category) {
+              return true;
+            }
+          }).forEach(function(apnItem) {
+            promises.push(apnList.remove(apnItem.id));
+          });
+
+          return Promise.all(promises);
+        }).then(function() {
+          // Add default preset apns.
+          var promises = [];
+          apnsForRestoring.forEach(function(apns) {
+            promises.push(apnList.add(apns, category));
+          });
+          return Promise.all(promises);
+        });
+    },
+
+    /**
      * Restore the apn settings to the default. Only apn items of the category
-     * ApnItem.APN_CATEGORY.PRESET are restored. User created apn items
-     * (custom apns) will not be affected. The preset apn items are from
-     * the apn.json database and client provisioning messages.
+     * ApnItem.APN_CATEGORY.PRESET and ApnItem.APN_CATEGORY.EU are restored.
+     * User created apn items (custom apns) will not be affected. The preset apn
+     * items are from the apn.json database and client provisioning messages.
      *
      * @access public
      * @memberOf ApnSettingsManager.prototype
@@ -196,6 +233,7 @@ define(function(require) {
     restore: function asc_restore(serviceId) {
       var mobileConnection = navigator.mozMobileConnections[serviceId];
       var networkType = mobileConnection.data.type;
+      var apnList = this._apnList(serviceId);
       var that = this;
 
       return Promise.all([
@@ -208,33 +246,21 @@ define(function(require) {
         var mnc = values[1];
 
         return Promise.all([
+          ApnUtils.getEuApns(),
           ApnUtils.getDefaultApns(mcc, mnc, networkType),
-          ApnUtils.getCpApns(mcc, mnc, networkType)
+          ApnUtils.getCpApns(mcc, mnc, networkType),
         ]);
       }).then(function(results) {
-        var apnList = that._apnList(serviceId);
+        // Restore preset and eu apns.
+        var euApns = ApnUtils.separateApnsByType(results[0]);
         var presetApns = ApnUtils.separateApnsByType(
-          Array.prototype.concat.apply([], results));
+          Array.prototype.concat.apply([], results.slice(1)));
 
-        return apnList.items().then(function(apnItems) {
-          // Remove all existing preset apns.
-          apnItems = apnItems || [];
-          var promises = [];
-          apnItems.filter(function(apnItem) {
-            if (apnItem.category === ApnItem.APN_CATEGORY.PRESET) {
-              return true;
-            }
-          }).forEach(function(apnItem) {
-            promises.push(apnList.remove(apnItem.id));
-          });
-          return Promise.all(promises);
-        }).then(function() {
-          // Add default preset apns.
-          var promises = [];
-          presetApns.forEach(function(presetApn) {
-            promises.push(apnList.add(presetApn, ApnItem.APN_CATEGORY.PRESET));
-          });
-          return Promise.all(promises);
+        return that._restoreApnItemsOfCategory(
+          apnList, euApns, ApnItem.APN_CATEGORY.EU)
+        .then(function() {
+          return that._restoreApnItemsOfCategory(
+            apnList, presetApns, ApnItem.APN_CATEGORY.PRESET);
         }).then(function(apnIds) {
           // Set all preset apns as the active ones for each type.
           var promises = [];

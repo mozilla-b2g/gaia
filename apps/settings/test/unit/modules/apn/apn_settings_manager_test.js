@@ -53,6 +53,7 @@ suite('ApnSettingsManager', function() {
       return {
         getOperatorCode: function() {},
         apnTypeFilter: function() {},
+        getEuApns: function() {},
         getDefaultApns: function() {},
         getCpApns: function() {},
         generateId: function() {},
@@ -375,10 +376,77 @@ suite('ApnSettingsManager', function() {
     });
   });
 
+  suite('_restoreApnItemsOfCategory', function() {
+    var serviceId = 0;
+
+    var APNS_FOR_RESTORING;
+
+    setup(function() {
+      var FAKE_APN_ITEMS = [
+        { id: 1, category: this.ApnItem.APN_CATEGORY.PRESET },
+        { id: 2, category: this.ApnItem.APN_CATEGORY.CUSTOM },
+        { id: 3, category: this.ApnItem.APN_CATEGORY.PRESET },
+        { id: 4, category: this.ApnItem.APN_CATEGORY.PRESET }
+      ];
+
+      APNS_FOR_RESTORING = [
+        {apn: 1, types: ['default']},
+        {apn: 2, types: ['supl']}
+      ];
+
+      this.fakeApnList = {
+        items: function() {
+          return Promise.resolve(FAKE_APN_ITEMS);
+        },
+        remove: this.sinon.spy(),
+        add: this.sinon.spy()
+      };
+      this.ApnSettingsManager._apnLists[serviceId] = this.fakeApnList;
+    });
+
+    test('should remove the original preset apn items', function(done) {
+      var that = this;
+
+      this.ApnSettingsManager._restoreApnItemsOfCategory(this.fakeApnList,
+        APNS_FOR_RESTORING, this.ApnItem.APN_CATEGORY.PRESET)
+      .then(function() {
+        assert.ok(that.fakeApnList.remove.getCall(0).calledWith(1));
+        assert.ok(that.fakeApnList.remove.getCall(1).calledWith(3));
+        assert.ok(that.fakeApnList.remove.getCall(2).calledWith(4));
+      }, function() {
+        // This function does not reject.
+        assert.isTrue(false);
+      }).then(done, done);
+    });
+
+    test('should add the new preset apn items', function(done) {
+      var that = this;
+
+      this.ApnSettingsManager._restoreApnItemsOfCategory(this.fakeApnList,
+        APNS_FOR_RESTORING, this.ApnItem.APN_CATEGORY.PRESET)
+      .then(function() {
+        assert.ok(that.fakeApnList.add.getCall(0)
+          .calledWith(APNS_FOR_RESTORING[0],
+            that.ApnItem.APN_CATEGORY.PRESET));
+        assert.ok(that.fakeApnList.add.getCall(1)
+          .calledWith(APNS_FOR_RESTORING[1],
+            that.ApnItem.APN_CATEGORY.PRESET));
+      }, function() {
+        // This function does not reject.
+        assert.isTrue(false);
+      }).then(done, done);
+    });
+  });
+
   suite('restore', function() {
     var FAKE_MCC = '000';
     var FAKE_MNC = '11';
 
+    var EU_APNS = [{
+      'carrier': 'EU Internet',
+      'apn': 'eu.apn',
+      'types': ['default']
+    }];
     var DEFAULT_APNS = [
       {apn: 1, types: ['default']},
       {apn: 2, types: ['supl']}
@@ -387,7 +455,7 @@ suite('ApnSettingsManager', function() {
       {apn: 3, types: ['mms']},
       {apn: 4, types: ['ims']}
     ];
-
+    var FAKE_APN_IDS = [0, 1, 2, 3];
     var FAKE_APN_ITEMS;
 
     var serviceId = 0;
@@ -417,6 +485,11 @@ suite('ApnSettingsManager', function() {
           } else if (type === 'mnc') {
             return Promise.resolve(FAKE_MNC);
           }
+      });
+
+      this.sinon.stub(this.MockApnUtils, 'getEuApns',
+        function() {
+          return Promise.resolve(EU_APNS);
       });
 
       this.sinon.stub(this.MockApnUtils, 'getDefaultApns',
@@ -452,7 +525,7 @@ suite('ApnSettingsManager', function() {
         },
         remove: this.sinon.spy(),
         add: function() {
-          var fakeId = this._count;
+          var fakeId = FAKE_APN_IDS[this._count];
           this._count++;
           return fakeId;
         }
@@ -460,35 +533,39 @@ suite('ApnSettingsManager', function() {
       this.sinon.spy(this.fakeApnList, 'add');
       this.ApnSettingsManager._apnLists[serviceId] = this.fakeApnList;
       this.sinon.stub(this.ApnSettingsManager, 'setActiveApnId');
+      this.sinon.stub(this.ApnSettingsManager, '_restoreApnItemsOfCategory',
+        function() {
+          return Promise.resolve(FAKE_APN_IDS);
+        });
     });
 
-    test('should remove the original preset apn items', function(done) {
+    test('should resotre EU roaming apns', function(done) {
       var that = this;
 
       this.ApnSettingsManager.restore(serviceId)
       .then(function() {
-        assert.ok(that.fakeApnList.remove.getCall(0).calledWith(1));
-        assert.ok(that.fakeApnList.remove.getCall(1).calledWith(3));
-        assert.ok(that.fakeApnList.remove.getCall(2).calledWith(4));
+        sinon.assert.calledWith(
+          that.ApnSettingsManager._restoreApnItemsOfCategory,
+            that.fakeApnList, EU_APNS, that.ApnItem.APN_CATEGORY.EU);
       }, function() {
         // This function does not reject.
         assert.isTrue(false);
       }).then(done, done);
     });
 
-    test('should add the new preset apn items', function(done) {
+
+    test('should resotre preset apns', function(done) {
       var that = this;
 
       this.ApnSettingsManager.restore(serviceId)
       .then(function() {
-        assert.ok(that.fakeApnList.add.getCall(0)
-          .calledWith(DEFAULT_APNS[0], that.ApnItem.APN_CATEGORY.PRESET));
-        assert.ok(that.fakeApnList.add.getCall(1)
-          .calledWith(DEFAULT_APNS[1], that.ApnItem.APN_CATEGORY.PRESET));
-        assert.ok(that.fakeApnList.add.getCall(2)
-          .calledWith(CP_APNS[0], that.ApnItem.APN_CATEGORY.PRESET));
-        assert.ok(that.fakeApnList.add.getCall(3)
-          .calledWith(CP_APNS[1], that.ApnItem.APN_CATEGORY.PRESET));
+        var presetApns = DEFAULT_APNS.concat(CP_APNS);
+        var restoreStub = that.ApnSettingsManager._restoreApnItemsOfCategory;
+
+        sinon.assert.called(restoreStub);
+        assert.equal(restoreStub.args[1][0], that.fakeApnList);
+        assert.deepEqual(restoreStub.args[1][1], presetApns);
+        assert.equal(restoreStub.args[1][2], that.ApnItem.APN_CATEGORY.PRESET);
       }, function() {
         // This function does not reject.
         assert.isTrue(false);

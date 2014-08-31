@@ -13,7 +13,7 @@
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
          LockScreenNotifications, LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor, LockScreenNotificationBuilder,
-         BrowserSettings, AppMigrator, SettingsMigrator */
+         BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager */
 'use strict';
 
 
@@ -133,6 +133,8 @@ window.addEventListener('load', function startup() {
   window.dialerAgent.start();
   window.externalStorageMonitor = new ExternalStorageMonitor();
   window.externalStorageMonitor.start();
+  window.euRoamingManager = new EuRoamingManager();
+  window.euRoamingManager.start();
   window.homeGesture = new HomeGesture();
   window.homeGesture.start();
   if (!window.homescreenLauncher) {

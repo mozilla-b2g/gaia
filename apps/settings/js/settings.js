@@ -160,9 +160,9 @@ var Settings = {
     if (Settings._currentActivity !== null) {
       Settings._currentActivity.postResult(null);
       Settings._currentActivity = null;
+      Settings._currentActivitySection = null;
+      Settings.SettingsService.navigate('root');
     }
-
-    Settings._currentActivitySection = null;
   },
 
   // When we finish an activity we need to leave the DOM
@@ -190,11 +190,13 @@ var Settings = {
   webActivityHandler: function settings_handleActivity(activityRequest) {
     var name = activityRequest.source.name;
     var section = 'root';
+    var options;
     Settings._currentActivity = activityRequest;
     switch (name) {
       case 'configure':
         section = Settings._currentActivitySection =
                   activityRequest.source.data.section;
+        options = activityRequest.source.data.options;
 
         if (!section) {
           // If there isn't a section specified,
@@ -222,8 +224,8 @@ var Settings = {
 
         // Go to that section
         setTimeout(function settings_goToSection() {
-          Settings.currentPanel = section;
-        });
+          Settings.SettingsService.navigate(section, options);
+        }.bind(this));
         break;
       default:
         Settings._currentActivity = Settings._currentActivitySection = null;
