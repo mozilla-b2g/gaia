@@ -159,9 +159,7 @@
         this.buildCompleteDefaultApnSettings(result);
 
         if (!persistKeyNotSet) {
-          this.retrieveOperatorVariantSettings(
-            this.applyOperatorVariantSettings.bind(this)
-          );
+          this.applyOperatorVariantSettings(result);
           this.retrieveWAPUserAgentProfileSettings(
             this.applyWAPUAProfileUrl.bind(this)
           );
@@ -170,7 +168,7 @@
             (function onFinishCb(filteredApnList) {
               this.buildApnSettings(filteredApnList);
           }).bind(this));
-          this.applyVoicemailSettings(result, /*isUpdate*/ true);
+          this.applyCellBroadcastSearchList(result);
         }
       }.bind(this));
 
@@ -379,8 +377,13 @@
           var item = {};
           switch (name) {
             case 'voicemail':
-              this.applyVoicemailSettings(result, /*isUpdate*/ false);
+              this.applyVoicemailSettings(result);
               break;
+
+            case 'cellBroadcastSearchList':
+              this.applyCellBroadcastSearchList(result);
+              break;
+
             // load values from the AUTH_TYPES
             case 'authtype':
               item[key] = apn[name] ? AUTH_TYPES[apn[name]] : 'notDefined';
@@ -413,21 +416,13 @@
     },
 
     /**
-     * Store the voicemail settings into the settings database.
+     * Get the value of a specific operator vatiant setting.
      *
      * @param {Array} allSettings Carrier settings.
-     * @param {Boolean} isSystemUpdate Indicating whether the function is called
-     *                                 due to system update or a new icc card is
-     *                                 detected.
+     * @param {String} prop The name of the property to be queried.
      */
-    applyVoicemailSettings:
-      function ovh_applyVoicemailSettings(allSettings, isSystemUpdate) {
-        var number = this.getVMNumberFromOperatorVariantSettings(allSettings);
-        this.updateVoicemailSettings(number, isSystemUpdate);
-    },
-
-    getVMNumberFromOperatorVariantSettings:
-      function ovh_getVMNumberFromOperatorVariantSettings(allSettings) {
+    getValueFromOperatorVariantSettings:
+      function ovh_getVMNumberFromOperatorVariantSettings(allSettings, prop) {
         var operatorVariantSettings = {};
         for (var i = 0; i < allSettings.length; i++) {
           if (allSettings[i] &&
@@ -436,27 +431,64 @@
             break;
           }
         }
-
-        // Load the voicemail number stored in the apn.json database.
-        return operatorVariantSettings['voicemail'] || '';
+        // Load the value stored in the apn.json database.
+        return operatorVariantSettings[prop] || '';
     },
 
-    updateVoicemailSettings:
-      function ovh_updateVoicemailSettings(number, isSystemUpdate) {
-        // Store settings into the database.
+    /**
+     * Store update the operator variant settings to database.
+     *
+     * @param {String} key The key of the settings field.
+     * @param {Object} value The value.
+     */
+    updateOperatorVariantSettings:
+      function ovh_updateOperatorVariantSettings(key, value) {
         var settings = window.navigator.mozSettings;
         var transaction = settings.createLock();
 
-        var request = transaction.get('ril.iccInfo.mbdn');
+        var request = transaction.get(key);
         request.onsuccess = (function() {
-          var originalSetting = request.result['ril.iccInfo.mbdn'] || ['', ''];
-          // - Use the passed in number when the function is called due to
-          //   new icc cards detected (not system update)
-          if (!isSystemUpdate) {
-            originalSetting[this._iccCardIndex] = number;
-            transaction.set({ 'ril.iccInfo.mbdn': originalSetting });
-          }
+          var originalSetting =
+            request.result[key] || ['', ''];
+
+          // If the key is 'ril.iccInfo.mbdn':
+          // We should only call to this function when new icc cards detected
+          // (not system update) in order to preserve user manual settings.
+
+          // If the key is 'ril.cellbroadcast.searchlist':
+          // Note that cellbroad cast search list is never touched by users,
+          // we should always apply the new value no matter the function is
+          // triggered by changing icc cards or system update.
+          originalSetting[this._iccCardIndex] = value;
+          var obj = {};
+          obj[key] = originalSetting;
+          transaction.set(obj);
         }).bind(this);
+    },
+
+    /**
+     * Store the voicemail settings into the settings database.
+     *
+     * @param {Array} allSettings Carrier settings.
+     */
+    applyVoicemailSettings:
+      function ovh_applyVoicemailSettings(allSettings) {
+        var number = this.getValueFromOperatorVariantSettings(allSettings,
+          'voicemail');
+        this.updateOperatorVariantSettings('ril.iccInfo.mbdn', number);
+    },
+
+    /**
+     * Store the cell broadcast settings into the settings database.
+     *
+     * @param {Array} allSettings Carrier settings.
+     */
+    applyCellBroadcastSearchList:
+      function ovh_applyCellBroadcastSearchList(allSettings) {
+        var searchList = this.getValueFromOperatorVariantSettings(allSettings,
+          'cellBroadcastSearchList');
+        this.updateOperatorVariantSettings('ril.cellbroadcast.searchlist',
+          searchList);
     },
 
     /**

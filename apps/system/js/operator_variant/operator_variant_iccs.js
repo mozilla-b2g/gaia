@@ -65,67 +65,45 @@ var OperatorVariant = (function() {
   }
 
   /**
-   * Helper function. Ensure the value of 'ril.iccInfo.mbdn' is an array.
+   * Helper function. Ensure the value stored under the specified key is an
+   * array.
    */
-  function ov_ensureVoicemailType(callback) {
-    callback = callback || function() {};
+  function ov_ensureValueUnderKeyIsArray(key) {
+    return new Promise(function(resolve, reject) {
+      var getReq = _settings.createLock().get(key);
+      getReq.onsuccess = function() {
+        var originalSetting = getReq.result[key];
+        var newSetting = null;
+        if (!originalSetting) {
+          newSetting = ['', ''];
+        } else if (!Array.isArray(originalSetting)) {
+          // Migrate settings field if needed
+          newSetting = [originalSetting, ''];
+        }
 
-    var getReq = _settings.createLock().get('ril.iccInfo.mbdn');
-    getReq.onsuccess = function() {
-      var originalSetting = getReq.result['ril.iccInfo.mbdn'];
-      var newSetting = null;
-      if (!originalSetting) {
-        newSetting = ['', ''];
-      } else if (!Array.isArray(originalSetting)) {
-        // Migrate settings field if needed
-        newSetting = [originalSetting, ''];
-      }
-
-      if (newSetting) {
-        var setReq = _settings.createLock().set({
-          'ril.iccInfo.mbdn': newSetting
-        });
-        setReq.onsuccess = callback;
-        setReq.onerror = callback;
-      } else {
-        callback();
-      }
-    };
-    getReq.onerror = callback;
-  }
-
-  function ov_ensureCBS(callback) {
-    callback = callback || function() {};
-
-    var getReq = _settings.createLock().get('ril.cellbroadcast.disabled');
-    getReq.onsuccess = function() {
-      var originalSetting = getReq.result['ril.cellbroadcast.disabled'];
-      var newSetting = null;
-      if (!originalSetting) {
-        newSetting = ['', ''];
-      } else if (!Array.isArray(originalSetting)) {
-        // Migrate settings field if needed
-        newSetting = [originalSetting, ''];
-      }
-
-      if (newSetting) {
-        var setReq = _settings.createLock().set({
-          'ril.cellbroadcast.disabled': newSetting
-        });
-        setReq.onsuccess = callback;
-        setReq.onerror = callback;
-      } else {
-        callback();
-      }
-    };
-    getReq.onerror = callback;
+        if (newSetting) {
+          var obj = {};
+          obj[key] = newSetting;
+          var setReq = _settings.createLock().set(obj);
+          setReq.onsuccess = resolve;
+          setReq.onerror = resolve;
+        } else {
+          resolve();
+        }
+      };
+      getReq.onerror = resolve;
+    });
   }
 
   return {
-    ov_ensureVoicemailType: ov_ensureVoicemailType,
+    ov_ensureValueUnderKeyIsArray: ov_ensureValueUnderKeyIsArray,
     init: function() {
-      ov_ensureVoicemailType(function() {
-        ov_ensureCBS(ov_init);
+      Promise.all([
+        ov_ensureValueUnderKeyIsArray('ril.iccInfo.mbdn'),
+        ov_ensureValueUnderKeyIsArray('ril.cellbroadcast.disabled'),
+        ov_ensureValueUnderKeyIsArray('ril.cellbroadcast.searchlist')
+      ]).then(function() {
+        ov_init();
       });
     }
   };

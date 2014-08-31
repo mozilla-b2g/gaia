@@ -151,8 +151,13 @@ document.addEventListener('DOMContentLoaded', function onload() {
             var cellBroadcastSearchList =
               otherSettings['cellBroadcastSearchList'];
             if (cellBroadcastSearchList) {
-              operatorVariantSettings.cellBroadcastSearchList =
-                cellBroadcastSearchList;
+              var searchListObj = {};
+              var lists = cellBroadcastSearchList.split('|');
+              lists.forEach(function(list) {
+                var parts = list.split(':');
+                searchListObj[parts[0]] = parts[1];
+              });
+              operatorVariantSettings.cellBroadcastSearchList = searchListObj;
             }
 
             var operatorSizeLimitation =

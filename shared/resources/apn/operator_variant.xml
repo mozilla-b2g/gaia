@@ -9,7 +9,7 @@
    <operator carrier="Test Network with Operator Variant Settings"
        mcc="001"
        mnc="01"
-       cellBroadcastSearchList="0,1,2,3"
+       cellBroadcastSearchList="gsm:0,1,2,3|cdma:4,5,6,7"
        voicemail="999999"
    />
    <operator
@@ -315,7 +315,7 @@
        mcc="724"
        mnc="06"
        enableStrict7BitEncodingForSms="true"
-       cellBroadcastSearchList="50"
+       cellBroadcastSearchList="gsm:50"
    />
    <operator
        name="SCTL GPRS"
@@ -328,14 +328,14 @@
        mcc="724"
        mnc="10"
        enableStrict7BitEncodingForSms="true"
-       cellBroadcastSearchList="50"
+       cellBroadcastSearchList="gsm:50"
    />
    <operator
        name="Vivo Internet"
        mcc="724"
        mnc="11"
        enableStrict7BitEncodingForSms="true"
-       cellBroadcastSearchList="50"
+       cellBroadcastSearchList="gsm:50"
    />
    <operator
        name="BrT Modem"
@@ -354,7 +354,7 @@
        mcc="724"
        mnc="23"
        enableStrict7BitEncodingForSms="true"
-       cellBroadcastSearchList="50"
+       cellBroadcastSearchList="gsm:50"
    />
    <operator
        name="AmazôniaC GPRS"
@@ -570,7 +570,7 @@
       name="T-mobile.pl"
       mcc="260"
       mnc="02"
-      cellBroadcastSearchList="0,9,19,28,112"
+      cellBroadcastSearchList="gsm:0,9,19,28,112"
   />
   <operator
       name="o2"

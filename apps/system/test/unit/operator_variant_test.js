@@ -18,7 +18,9 @@ suite('Operator variant', function() {
   const TEST_NETWORK_MCC = '001';
 
   const ORIGINAL_VOICEMAIL_NUMBER = '9999';
+  const ORIGINAL_CB_SEARCH_LIST = '1,2,3,4';
   const FAKE_VOICEMAIL_NUMBER = '1234';
+  const FAKE_CB_SEARCH_LIST = '5,6,7,8';
 
   const EXPECTED_MNC = '01';
   const EXPECTED_ICC_INFO = {
@@ -310,7 +312,7 @@ suite('Operator variant', function() {
     });
   });
 
-  suite('updateVoicemailSettings', function() {
+  suite('updateOperatorVariantSettings', function() {
     suiteSetup(function() {
       this.clock = sinon.useFakeTimers();
     });
@@ -328,50 +330,59 @@ suite('Operator variant', function() {
       MockNavigatorSettings.mTeardown();
     });
 
-    test('system update is true', function() {
+    test('should update the voicemail number', function() {
       MockNavigatorSettings.mSet({
         'ril.iccInfo.mbdn': ['', ORIGINAL_VOICEMAIL_NUMBER]
       });
-      this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, true);
-      this.clock.tick(1000);
-      assert.deepEqual(
-        MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
-        ['', ORIGINAL_VOICEMAIL_NUMBER]
-      );
-    });
-
-    test('system update is false', function() {
-      MockNavigatorSettings.mSet({
-        'ril.iccInfo.mbdn': ['', ORIGINAL_VOICEMAIL_NUMBER]
-      });
-      this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, false);
+      this.ovh.updateOperatorVariantSettings(
+        'ril.iccInfo.mbdn', FAKE_VOICEMAIL_NUMBER);
       this.clock.tick(1000);
       assert.deepEqual(
         MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
         ['', FAKE_VOICEMAIL_NUMBER]
       );
     });
+
+    test('should update the search list', function() {
+      MockNavigatorSettings.mSet({
+        'ril.cellbroadcast.searchlist': ['', ORIGINAL_CB_SEARCH_LIST]
+      });
+      this.ovh.updateOperatorVariantSettings(
+        'ril.cellbroadcast.searchlist', FAKE_CB_SEARCH_LIST);
+      this.clock.tick(1000);
+      assert.deepEqual(
+        MockNavigatorSettings.mSettings['ril.cellbroadcast.searchlist'],
+        ['', FAKE_CB_SEARCH_LIST]
+      );
+    });
   });
 
-  suite('getVMNumberFromOperatorVariantSettings', function() {
+  suite('getValueFromOperatorVariantSettings', function() {
     setup(function() {
       this.ovh = new OperatorVariantHandler(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
     });
 
-    test('with operator variant voicemail number', function() {
+    test('with specified operator variant value', function() {
       this.allSettings = [{
         'type': 'operatorvariant',
-        'voicemail': FAKE_VOICEMAIL_NUMBER
+        'voicemail': FAKE_VOICEMAIL_NUMBER,
+        'cellBroadcastSearchList': FAKE_CB_SEARCH_LIST
       }];
       var number =
-        this.ovh.getVMNumberFromOperatorVariantSettings(this.allSettings);
+        this.ovh.getValueFromOperatorVariantSettings(this.allSettings,
+          'voicemail');
+      var searchList =
+        this.ovh.getValueFromOperatorVariantSettings(this.allSettings,
+          'cellBroadcastSearchList');
       assert.equal(number, FAKE_VOICEMAIL_NUMBER);
+      assert.equal(searchList, FAKE_CB_SEARCH_LIST);
     });
 
-    test('without operator variant voicemail number', function() {
+    test('without specified operator variant value', function() {
       this.allSettings = [];
       var number =
-        this.ovh.getVMNumberFromOperatorVariantSettings(this.allSettings);
+        this.ovh.getValueFromOperatorVariantSettings(this.allSettings,
+          'FakeVariantType');
       assert.equal(number, '');
     });
   });
