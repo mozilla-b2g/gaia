@@ -11,7 +11,8 @@ html, body {
   overflow-x: hidden;
 }
 
-body {
+#scrollable-wrapper {
+  background-color: white;
   padding: 0.5rem 1rem;
 }
 
