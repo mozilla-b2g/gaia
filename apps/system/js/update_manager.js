@@ -470,7 +470,6 @@ var UpdateManager = {
     this._notificationTimeout = null;
     if (this.updatesQueue.length && !this._downloading) {
       this.lastUpdatesAvailable = this.updatesQueue.length;
-      StatusBar.updateNotificationUnread(true);
       this.displayNotificationIfHidden();
       this.toaster.classList.add('displayed');
       var self = this;
