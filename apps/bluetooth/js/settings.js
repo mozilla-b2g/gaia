@@ -22,10 +22,10 @@ navigator.mozL10n.once(function bluetoothSettings() {
     return;
   }
 
-  var header = document.getElementById('header');
-  header.addEventListener('action', function backToSettings() {
+  var backToSettingsBtn = document.getElementById('settings-back');
+  backToSettingsBtn.onclick = function backToSettings() {
     window.close();
-  });
+  };
 
   var gBluetoothCheckBox = document.querySelector('#bluetooth-status input');
 
