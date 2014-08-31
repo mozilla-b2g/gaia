@@ -1729,4 +1729,76 @@ suite('Render contacts list', function() {
       sinon.assert.calledWith(MockAlphaScroll.showGroup, 'ice');
     });
   });
+
+  suite('Default images', function() {
+    suiteSetup(function(done) {
+      mockContacts = new MockContactsList();
+      // Remove photo field from those contacts
+      mockContacts.forEach(function(ct) {
+        delete ct.photo;
+      });
+
+      // Make contact[0] favourite
+      mockContacts[0].category.push('favorite');
+      // Make contact[2] just a phone number
+      mockContacts[2] = {
+        'id': '3',
+        'updated': new Date(),
+        'tel': [
+          {
+            'value': '+346578888883',
+            'type': 'mobile',
+            'carrier': 'TEF'
+          }
+        ]
+      };
+
+      MockCookie.data = {
+        defaultImage: true
+      };
+
+      // Forces the cookie data to be reloaded
+      subject.setOrderByLastName(null);
+      // From now on we will have order by lastname
+      subject.init();
+      // Wait till the rows are being displayed on the screen
+      subject.notifyRowOnScreenByUUID('1', function() {
+        done();
+      });
+      doLoad(subject, mockContacts);
+    });
+
+    suiteTeardown(function() {
+      MockCookie.data = {};
+      subject.setOrderByLastName(true);
+    });
+
+    test('Check default image appears', function() {
+      var contact = document.querySelector('[data-uuid="2"]');
+      assert.isTrue(contact.innerHTML.indexOf('aside') !== -1);
+    });
+
+    test('Check favorites with default image have proper group',
+      function() {
+        var favorite =
+          document.querySelector('#section-group-favorites [data-uuid="1"]');
+        assert.isNotNull(favorite);
+        var img = favorite.querySelector('aside span');
+        /*
+          'familyName': ['AD']
+          'givenName': ['Pepito']
+        */
+        assert.equal(img.dataset.group, 'P');
+      }
+    );
+
+    test('Check contacts under # has # in the default image',
+      function() {
+        var justPhone = document.querySelector('[data-uuid="3"]');
+        assert.isNotNull(justPhone);
+        var img = justPhone.querySelector('aside span');
+        assert.equal(img.dataset.group, '#');
+      }
+    );
+  });
 });

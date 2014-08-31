@@ -97,6 +97,11 @@ if (!window.ImageLoader) {
       if (!image) {
         image = item.querySelector('img[data-src]');
         if (!image) {
+          // Image by default
+          image = item.querySelector('span[data-type=img][data-group]');
+          if (image) {
+            item.dataset.visited = 'true';
+          }
           return;
         }
       }
@@ -170,6 +175,11 @@ if (!window.ImageLoader) {
     function releaseImage(item) {
       var image = item.querySelector('span[data-type=img][data-src]');
       if (!image) {
+        // Image by default
+        image = item.querySelector('span[data-type=img][data-group]');
+        if (image) {
+          item.dataset.visited = 'false';
+        }
         return null;
       }
       image.style.backgroundImage = 'none';
