@@ -52,6 +52,7 @@ var NotificationScreen = {
     this.lockScreenContainer =
       document.getElementById('notifications-lockscreen-container');
     this.toaster = document.getElementById('notification-toaster');
+    this.ambientIndicator = document.getElementById('notifications-indicator');
     this.toasterIcon = document.getElementById('toaster-icon');
     this.toasterTitle = document.getElementById('toaster-title');
     this.toasterDetail = document.getElementById('toaster-detail');
@@ -137,7 +138,7 @@ var NotificationScreen = {
         this.wheel(evt);
       case 'utilitytrayshow':
         this.updateTimestamps();
-        StatusBar.updateNotificationUnread(false);
+        this.hideNotificationIndicator();
         break;
       case 'visibilitychange':
         //update timestamps in lockscreen notifications
@@ -158,6 +159,10 @@ var NotificationScreen = {
         }
         break;
     }
+  },
+
+  hideNotificationIndicator: function ns_hideNotificationIndicator() {
+    this.toaster.className = '';
   },
 
   // TODO: Remove this when we ditch mozNotification (bug 952453)
@@ -460,8 +465,6 @@ var NotificationScreen = {
       }
     }
 
-    this.updateStatusBarIcon(true);
-
     var notify = !('noNotify' in detail) &&
       // don't notify for network-alerts notifications
       (this.SILENT_APPLICATIONS.indexOf(manifestURL) === -1);
@@ -470,6 +473,16 @@ var NotificationScreen = {
     if (notify) {
       this.updateToaster(detail, type, dir);
       if (this.lockscreenPreview || !window.System.locked) {
+
+        this.ambientIndicator.addEventListener('animationend',
+          function onIndicatorAnimation() {
+            this.updateNotificationIndicator(true);
+            this.ambientIndicator.removeEventListener(
+              'animationend',
+              onIndicatorAnimation
+            );
+        }.bind(this));
+
         this.toaster.classList.add('displayed');
 
         if (this._toasterTimeout) {
@@ -481,6 +494,8 @@ var NotificationScreen = {
           this._toasterTimeout = null;
         }).bind(this), this.TOASTER_TIMEOUT);
       }
+    } else {
+      this.updateNotificationIndicator(true);
     }
 
     // Adding it to the lockscreen if locked and the privacy setting
@@ -656,7 +671,7 @@ var NotificationScreen = {
     });
     window.dispatchEvent(event);
     this.removeLockScreenNotification(notificationId);
-    this.updateStatusBarIcon();
+    this.updateNotificationIndicator();
     if (!this.container.querySelector('.notification')) {
       // no notifications left
       this.clearAllButton.disabled = true;
@@ -687,19 +702,22 @@ var NotificationScreen = {
     window.lockScreenNotifications.adjustContainerVisualHints();
   },
 
-  updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {
+  updateNotificationIndicator: function ns_updateNotificationIndicator(unread) {
     var notifCount = this.externalNotificationsCount;
+
     notifCount += this.container.querySelectorAll('.notification').length;
 
-    StatusBar.updateNotification(notifCount);
+    var indicatorSize = getIndicatorSize(notifCount);
 
-    if (unread)
-      StatusBar.updateNotificationUnread(true);
+    if (unread) {
+      this.toaster.classList.add('unread');
+      this.ambientIndicator.className = indicatorSize;
+    }
   },
 
   incExternalNotifications: function ns_incExternalNotifications() {
     this.externalNotificationsCount++;
-    this.updateStatusBarIcon(true);
+    this.updateNotificationIndicator(true);
   },
 
   decExternalNotifications: function ns_decExternalNotifications() {
@@ -707,10 +725,23 @@ var NotificationScreen = {
     if (this.externalNotificationsCount < 0) {
       this.externalNotificationsCount = 0;
     }
-    this.updateStatusBarIcon();
+    this.updateNotificationIndicator();
   }
 
 };
+
+function getIndicatorSize(count) {
+  if (!count || count <= 2)
+    return 'small';
+
+  if (count <= 4)
+    return 'medium';
+
+  if (count <= 6)
+    return 'big';
+
+  return 'full';
+}
 
 window.addEventListener('load', function() {
   window.removeEventListener('load', this);
