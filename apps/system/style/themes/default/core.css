@@ -92,11 +92,9 @@
   [role="dialog"].generic-dialog {
     -moz-box-sizing: border-box;
     position: absolute;
-    top: calc(50% - 24rem);
-    left: calc(50% - 34rem);
     width: 68rem;
     height: 48rem;
-    padding: 6rem;
+    padding: 0;
     font-size: 2.2rem;
     background-image: none;
     background-color: #333333;
