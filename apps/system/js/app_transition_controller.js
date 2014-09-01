@@ -208,6 +208,7 @@
       }
 
       this.resetTransition();
+      /* The AttentionToaster will take care of that for AttentionWindows */
       if (this.app.CLASS_NAME !== 'AttentionWindow' &&
           this.app.CLASS_NAME !== 'CallscreenWindow') {
         this.app.setVisible(false, true);

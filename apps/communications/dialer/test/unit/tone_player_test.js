@@ -22,12 +22,50 @@ suite('shared/dialer/TonePlayer', function() {
   });
 
   suite('init', function() {
+    var realHidden, stubHidden;
+    setup(function() {
+      realHidden = document.hidden;
+
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        get: function() { return stubHidden; }
+      });
+
+      stubHidden = false;
+    });
+
+    teardown(function() {
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        get: function() { return realHidden; }
+      });
+    });
+
     test('should instantiate an audio context with the channel', function() {
       TonePlayer.init('telephony');
 
       assert.equal(MockAudioContext.instances.length, 1);
       var ctx = MockAudioContext.instances[0];
       assert.equal(ctx.mozAudioChannelType, 'telephony');
+    });
+
+    suite('when the app is hidden', function() {
+      setup(function() {
+        stubHidden = true;
+        TonePlayer.init('telephony');
+      });
+
+      test('should not instantiate an audio context', function() {
+        assert.equal(MockAudioContext.instances.length, 0);
+      });
+
+      test('should keep track of the channel for later ensures', function() {
+        TonePlayer.ensureAudio();
+
+        assert.equal(MockAudioContext.instances.length, 1);
+        var ctx = MockAudioContext.instances[0];
+        assert.equal(ctx.mozAudioChannelType, 'telephony');
+      });
     });
   });
 
