@@ -30,31 +30,25 @@ button::-moz-focus-inner {
   color: white;
 }
 
+p {
+  font-size: 2rem;
+  font-weight: 400;
+  color: white;
+}
+
 p.meta {
-  font: italic 1.2rem/1.2rem auto;
-  color: #858585;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  font-weight: 400;
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 /* Main layout */
 #cost-control {
+  background-color: #414449;
   position: relative;
-  height: 5.2rem;
-  margin: 0 15px;
-  font: italic 1.4rem/2rem auto;
-  color: #e7e7e7;
   overflow: hidden;
-}
-
-#cost-control:before {
-  color: #858585;
-  font-size: 2.4rem;
-  line-height: 2.4rem;
-  position: absolute;
-  top: 1.4rem;
-  right: 0;
+  height: 4.5rem;
+  width: 100%;
 }
 
 #cost-control.full .credit,
@@ -78,18 +72,27 @@ p.meta {
   background: url(images/widget/sim/no-sim.png) no-repeat center center;
 }
 
-#fte-view p:not(.meta) {
+#fte-view .icon {
+  float:left;
+  margin-left: 0.5rem;
+  width: 3.75rem;
+  height: 4.5rem;
+  background-size: 2.6rem;
+  vertical-align: middle;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+#fte-view p.meta {
+  font-size:1.4em;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
 }
 
-#fte-view p.meta {
-  font: italic 1.2rem/1.2rem auto;
-  color: #858585;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+#fte-view p:not(.meta) {
+  font-weight: bold;
+  font-size: 1.5em;
 }
 
 /* Credit & Data structure */
@@ -98,20 +101,44 @@ p.meta {
   float: left;
   width: 50%;
   height: 100%;
-  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  background: url(images/widget/ui/glossy-gradient.png) repeat-x left bottom / auto 100%;
 }
 
 /* Inner structure */
 .view {
   overflow: hidden;
   height: 100%;
+  background: url(images/widget/icons/icon-go.png) no-repeat right -0.3rem center / 3rem;
+  background-color: #414449;
 }
 
 .info {
-  padding: 0.8rem 0 0.7rem 0;
+  padding: 0.7rem 0 0.7rem 0.8rem;
+}
+
+.info p:not(.meta) {
+  line-height: 1.5rem;
 }
 
 /* Credit */
+.credit .icon {
+  width: 4.5rem;
+  height: 4.5rem;
+  vertical-align: middle;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Balance view */
+#balance-view .icon,
+#balance-view .info {
+  display: inline-block;
+  vertical-align: middle;
+  transform: translateX(-4.5rem);
+  transition: transform 0.5s;
+}
+
 #balance-view .info {
   padding-left: 0;
 }
@@ -119,4 +146,136 @@ p.meta {
 /* Low balance credit warning */
 #balance-view.low-credit {
   background-color: #f9a722;
+}
+
+/* No balance credit warning */
+#balance-view.no-credit {
+  background: url(images/widget/icons/icon-go.png) no-repeat calc(100% - 0.8rem) center, url(images/widget/ui/zero-credit.png) repeat-x left bottom;
+}
+
+/* Updating */
+#balance-view.updating #balance-icon {
+  background-image: url(images/widget/icons/updating.png);
+  background-size: 3.1rem;
+  animation: balance-spin 1.75s infinite linear;
+  animation-delay: 0.5s;
+}
+
+/* Warning */
+#balance-view.warning #balance-icon {
+  background-image: url(images/widget/icons/warning.png);
+  background-size: 3rem;
+  animation: none;
+}
+
+@keyframes balance-spin {
+  0% { transform:rotate(0deg); }
+  100% { transform:rotate(360deg); }
+}
+
+/* Updating & Warning */
+#balance-view.updating .icon,
+#balance-view.updating .info,
+#balance-view.warning .icon,
+#balance-view.warning .info {
+  transform: none;
+}
+
+/* Data */
+.data .stats {
+  margin: 0.6rem 2.5rem 0 1rem;
+  position: relative;
+}
+
+.data .stats:before,
+.data .stats progress,
+.data .stats progress::-moz-progress-bar {
+  border-radius: 0.6rem;
+  height: 1.6rem;
+}
+
+/* Inner shadow */
+.data .stats:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0.1rem;
+  z-index: 5;
+  box-shadow: inset 0 0 2px 0 rgba(0, 0, 0, 0.9);
+}
+
+.data .stats progress {
+  width: 100%;
+  background: #35373a url(images/widget/ui/pattern-progress.png) repeat left top;
+  border: none;
+  border-top: solid 0.1rem rgba(0, 0, 0, 1);
+  border-bottom: solid 0.1rem rgba(255, 255, 255, 0.4);
+  overflow: hidden;
+}
+
+.data .stats progress::-moz-progress-bar {
+  background: #079d89;
+}
+
+/* Progress labels */
+.data .stats dl {
+  font-size: 1.1rem;
+}
+
+.data .stats dt {
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.data .stats dd {
+  font-weight: 600;
+  color: #fff;
+}
+
+.data .stats dl .start,
+.data .stats dl .end {
+  position: absolute;
+  z-index: 1;
+}
+
+.data .stats dt.start,
+.data .stats dd.start {
+  left: 0;
+  text-align: left;
+}
+
+.data .stats dt.end,
+.data .stats dd.end {
+  right: 0;
+  text-align: right;
+}
+
+.data .stats dt.start,
+.data .stats dt.end {
+  top: 2rem;
+  padding: 0 0.4rem;
+}
+
+.data .stats dd.start,
+.data .stats dd.end {
+  top: 0.1rem;
+  line-height: 1.6rem;
+  border-radius: 0.5rem;
+  padding: 0 0.4rem;
+}
+
+/* States */
+
+.nearby-limit .stats progress::-moz-progress-bar {
+  background: #ea9f2b;
+}
+
+.reached-limit .stats progress::-moz-progress-bar {
+  background: #9b0808;
+  border: solid 0.1rem #610707;
+}
+
+.reached-limit .stats progress {
+  background: #ca435b;
 }

@@ -3,9 +3,6 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
-    <!-- Icons -->
-    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css">
-
     <!-- Init Logo -->
     <link rel="stylesheet" type="text/css" href="style/system/initlogo.css">
 
@@ -535,15 +532,16 @@
       <div id="utility-tray" data-z-index-level="utility-tray">
         <!-- Placeholder for notifications -->
         <div id="notifications-placeholder"></div>
+
         <div id="utility-tray-grippy">
         </div>
       </div>
 
       <!-- Notifications -->
       <div id="utility-tray-notifications" data-l10n-id="utilityTray" role="dialog" aria-label="Utility tray" data-z-index-level="utility-tray-notifications">
-        <div id="notification-bar" class="fake-notification">
-          <div data-icon="notifications"></div>
-          <div id="notification-some" class="title-container" data-l10n-id="notifications">Notifications</div>
+        <div id="notification-bar">
+          <span id="notification-some" data-l10n-id="notifications">Notifications</span>
+
           <button id="notification-clear" data-l10n-id="clear-all" disabled>Clear all</button>
         </div>
 
@@ -552,72 +550,88 @@
           <div id="attention-window-notifications-container"></div>
           <!-- Update Manager -->
           <div id="update-manager-container" class="fake-notification" role="link">
-            <div data-icon="download-circle"></div>
-            <div class="icon activity"></div>
-            <div class="title-container"></div>
+            <div class="icon">
+            </div>
+            <div class="activity">
+            </div>
+            <div class="message">
+            </div>
           </div>
-          <!-- Emergency callback manager -->
+          <!-- Emergency callback Manager -->
           <div id="emergency-callback-notification" class="fake-notification" hidden role="link">
-            <div data-icon="call-emergency" class="alert"></div>
-            <div class="title-container" data-l10n-id="emergency-callback-mode"></div>
-            <div class="timer detail"></div>
+            <div class="icon">
+            </div>
+            <div class="message" data-l10n-id="emergency-callback-mode">
+            </div>
+            <div class="timer">
+            </div>
           </div>
           <!-- Storage watcher notification -->
           <div id="storage-watcher-container" class="fake-notification" role="link">
-            <div data-icon="storage-circle"></div>
-            <div class="title-container"></div>
-            <div class="detail"></div>
-          </div>
-          <!-- App install manager notification -->
-          <div id="install-manager-notification-container">
-          </div>
-          <!-- Bluetooth transfer -->
-          <div id="bluetooth-transfer-status-list">
-          </div>
-          <!-- IME list -->
-          <div id="keyboard-show-ime-list">
-            <div class="fake-notification" role="link">
-              <div data-icon="keyboard-circle"></div>
-              <div class="title-container"></div>
-              <div class="detail"></div>
+            <div class="icon">
+            </div>
+            <div class="message">
+            </div>
+            <div class="available-space">
             </div>
           </div>
-          <!-- Media recording status -->
-          <div id="media-recording-status-list" role="list">
+          <!-- Media playback notification -->
+          <div id="media-playback-container" class="fake-notification" hidden>
+            <div class="media-playback-nowplaying">
+              <div class="icon">
+              </div>
+              <div class="albumart">
+              </div>
+              <div class="title" data-l10n-id="mediaPlaybackTitle">
+              </div>
+              <div class="artist" data-l10n-id="mediaPlaybackArtist">
+              </div>
+            </div>
+            <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
+              <button class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
+              <button class="play-pause"></button>
+              <button class="next" data-l10n-id="mediaPlaybackNext"></button>
+            </div>
           </div>
-          <!-- Notifications container -->
+          <!-- App Install Manager -->
+          <div id="install-manager-notification-container">
+          </div>
+          <!-- bluetooth transfer -->
+          <div id="bluetooth-transfer-status-list">
+          </div>
+          <!-- Another entry to show IME list when the keyboard is activated -->
+          <div id="keyboard-show-ime-list">
+            <div class="fake-notification" role="link">
+                <div class="message">
+                </div>
+                <div class="tip">
+                </div>
+            </div>
+          </div>
+          <!-- media recording status -->
+          <div id="media-recoding-status-list" role="list">
+          </div>
+
           <div id="desktop-notifications-container">
-            <div class="priority-notifications"></div>
-            <div class="other-notifications"></div>
+            <div class='priority-notifications'></div>
+            <div class='other-notifications'></div>
           </div>
         </div>
 
-        <div id="utility-tray-footer">
-          <!-- Media playback notification -->
-          <div id="media-playback-container" class="media-playback-container fake-notification" hidden>
-            <div class="media-playback-nowplaying">
-              <div class="track" data-l10n-id="mediaPlaybackTrack"></div>
-            </div>
-            <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
-              <button data-icon="skip-back" class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
-              <button data-icon="play" class="play-pause"></button>
-              <button data-icon="skip-forward" class="next" data-l10n-id="mediaPlaybackNext"></button>
-            </div>
-          </div>
+        <!-- credit module -->
+        <div id="cost-control-widget"></div>
 
-          <!-- Credit module -->
-          <div id="cost-control-widget"></div>
-
-          <!-- Quick settings -->
-          <div id="quick-settings" role="toolbar">
-            <li>
-              <ul><a href="#" id="quick-settings-wifi" class="icon" data-icon="wifi-4" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-airplane-mode" class="icon" data-icon="airplane" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-bluetooth" class="icon" data-icon="bluetooth" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-data" class="icon" data-icon="data" data-enabled="false" role="button"></a></ul>
-              <ul><a href="#" id="quick-settings-full-app" class="icon" data-icon="settings" data-enabled="false" role="button" data-l10n-id="settingsButton"></a></ul>
-            </li>
-          </div>
+        <!-- quick settings -->
+        <div id="quick-settings" role="toolbar">
+          <a href="#" id="quick-settings-wifi" data-enabled="false" role="button"></a>
+          <div class="separator"></div>
+          <a href="#" id="quick-settings-data" data-enabled="false" role="button"></a>
+          <div class="separator"></div>
+          <a href="#" id="quick-settings-bluetooth" data-enabled="false" role="button"></a>
+          <div class="separator"></div>
+          <a href="#" id="quick-settings-airplane-mode" data-enabled="false" role="button"></a>
+          <div class="separator"></div>
+          <a href="#" id="quick-settings-full-app" data-enabled="false" role="button" data-l10n-id="settingsButton"></a>
         </div>
       </div>
 
@@ -1035,14 +1049,17 @@
             </div>
             <div id="lockscreen-message" hidden></div>
             <div id="lockscreen-area"></div>
-            <div id="lockscreen-media-container" class="media-playback-container fake-notification" hidden>
+            <div id="lockscreen-media-container" hidden>
               <div class="media-playback-nowplaying">
-                <div class="track" data-l10n-id="mediaPlaybackTrack"></div>
+                <div class="icon"></div>
+                <div class="albumart"></div>
+                <div class="title" data-l10n-id="mediaPlaybackTitle"></div>
+                <div class="artist" data-l10n-id="mediaPlaybackArtist"></div>
               </div>
-              <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
-                <button data-icon="skip-back" class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
-                <button data-icon="play" class="play-pause"></button>
-                <button data-icon="skip-forward" class="next" data-l10n-id="mediaPlaybackNext"></button>
+              <div class="media-playback-controls big" role="toolbar" data-l10n-id="mediaPlaybackControls">
+                <button class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
+                <button class="play-pause"></button>
+                <button class="next" data-l10n-id="mediaPlaybackNext"></button>
               </div>
             </div>
             <div id="lockscreen-icon-container">

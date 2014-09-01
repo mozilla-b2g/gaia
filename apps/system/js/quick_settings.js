@@ -1,6 +1,5 @@
-/* jshint loopfunc: true */
-/* global SettingsHelper, SettingsListener, AirplaneMode, applications,
-          UtilityTray, MozActivity */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
 
@@ -28,7 +27,7 @@ var QuickSettings = {
         if (!networkTypeValues) {
           return;
         }
-        var sprite = networkTypeValues.data_sprite;
+        var sprite = networkTypeValues['data_sprite'];
         if (sprite) {
           document.getElementById('quick-settings-data').style.backgroundImage =
             'url("' + sprite + '")';
@@ -53,15 +52,6 @@ var QuickSettings = {
       // hide data icon without mozMobileConnection object
       this.overlay.classList.add('non-mobile');
     } else {
-      var LABEL_TO_ICON = {
-        '4G': '4g',
-        'H+': 'hspa-plus',
-        'H': 'hspa',
-        '3G': '3g',
-        'E': 'edge',
-        '2G': '2g',
-        'undefined': 'data'
-      };
       var label = {
         'lte': '4G', // 4G LTE
         'ehrpd': '4G', // 4G CDMA
@@ -85,7 +75,6 @@ var QuickSettings = {
             dataType = label[conns[j].data.type] || dataType;
           }
           this.data.dataset.network = dataType;
-          this.data.dataset.icon = LABEL_TO_ICON[String(dataType)];
           this.setAccessibilityAttributes(this.data, 'dataButton', dataType);
         }.bind(this));
       }
@@ -118,9 +107,8 @@ var QuickSettings = {
     SettingsListener.observe('bluetooth.enabled', true, function(value) {
       // check self.bluetooth.dataset.enabled and value are identical
       if ((self.bluetooth.dataset.enabled && value) ||
-          (self.bluetooth.dataset.enabled === undefined && !value)) {
+          (self.bluetooth.dataset.enabled === undefined && !value))
         return;
-      }
 
       if (value) {
         self.bluetooth.dataset.enabled = 'true';
@@ -154,9 +142,8 @@ var QuickSettings = {
     SettingsListener.observe('wifi.enabled', true, function(value) {
       // check self.wifi.dataset.enabled and value are identical
       if ((self.wifi.dataset.enabled && value) ||
-          (self.wifi.dataset.enabled === undefined && !value)) {
+          (self.wifi.dataset.enabled === undefined && !value))
         return;
-      }
 
       if (value) {
         self.wifi.dataset.enabled = 'true';
@@ -217,31 +204,28 @@ var QuickSettings = {
 
   handleEvent: function qs_handleEvent(evt) {
     evt.preventDefault();
-    var enabled = false;
     switch (evt.type) {
       case 'click':
         switch (evt.target) {
           case this.wifi:
             // do nothing if wifi isn't ready
-            if (this.wifi.dataset.initializing) {
+            if (this.wifi.dataset.initializing)
               return;
-            }
-            enabled = !!this.wifi.dataset.enabled;
+            var enabled = !!this.wifi.dataset.enabled;
             SettingsListener.getSettingsLock().set({
               'wifi.enabled': !enabled
             });
             SettingsListener.getSettingsLock().set({
               'wifi.connect_via_settings': !enabled
             });
-            if (!enabled) {
+            if (!enabled)
               this.toggleAutoConfigWifi = true;
-            }
             break;
 
           case this.data:
             if (this.data.dataset.airplaneMode !== 'true') {
               // TODO should ignore the action if data initialization isn't done
-              enabled = !!this.data.dataset.enabled;
+              var enabled = !!this.data.dataset.enabled;
 
               SettingsListener.getSettingsLock().set({
                 'ril.data.enabled': !enabled
@@ -252,11 +236,10 @@ var QuickSettings = {
 
           case this.bluetooth:
             // do nothing if bluetooth isn't ready
-            if (this.bluetooth.dataset.initializing) {
+            if (this.bluetooth.dataset.initializing)
               return;
-            }
 
-            enabled = !!this.bluetooth.dataset.enabled;
+            var enabled = !!this.bluetooth.dataset.enabled;
             SettingsListener.getSettingsLock().set({
               'bluetooth.enabled': !enabled
             });
@@ -311,9 +294,8 @@ var QuickSettings = {
         break;
 
       case 'wifi-statuschange':
-        if (this.toggleAutoConfigWifi && !this.wifi.dataset.initializing) {
+        if (this.toggleAutoConfigWifi && !this.wifi.dataset.initializing)
           this.autoConfigWifi();
-        }
         break;
     }
   },
@@ -386,7 +368,6 @@ var QuickSettings = {
           section: 'wifi'
         }
       });
-      return activity;
     } else if (status == 'connectingfailed') {
       SettingsListener.getSettingsLock().set({
         'wifi.connect_via_settings': false

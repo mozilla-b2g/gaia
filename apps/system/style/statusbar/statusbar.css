@@ -31,10 +31,6 @@
   background-color: black;
 }
 
-#screen.utility-tray #statusbar {
-  background-color: #333;
-}
-
 /* When the utility tray is displayed, the title bar is hidden, so we only show
  the maximised status bar. */
 #screen.utility-tray #statusbar-minimized {

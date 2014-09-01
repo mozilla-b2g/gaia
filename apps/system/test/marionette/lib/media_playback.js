@@ -21,7 +21,8 @@ MediaPlaybackContainer.Selector = Object.freeze({
   nowPlayingElement: '.media-playback-nowplaying',
   controlsElement: '.media-playback-controls',
 
-  trackElement: '.track',
+  titleElement: '.title',
+  artistElement: '.artist',
 
   previousTrackElement: '.previous',
   playPauseElement: '.play-pause',
@@ -44,9 +45,15 @@ MediaPlaybackContainer.prototype = {
     );
   },
 
-  get trackElement() {
+  get titleElement() {
     return this.containerElement.findElement(
-      MediaPlaybackContainer.Selector.trackElement
+      MediaPlaybackContainer.Selector.titleElement
+    );
+  },
+
+  get artistElement() {
+    return this.containerElement.findElement(
+      MediaPlaybackContainer.Selector.artistElement
     );
   },
 
@@ -68,8 +75,12 @@ MediaPlaybackContainer.prototype = {
     );
   },
 
-  get trackText() {
-    return this.trackElement.getAttribute('textContent');
+  get titleText() {
+    return this.titleElement.getAttribute('textContent');
+  },
+
+  get artistText() {
+    return this.artistElement.getAttribute('textContent');
   },
 
   waitForContainerShown: function(shouldBeShown) {
@@ -81,7 +92,8 @@ MediaPlaybackContainer.prototype = {
 
   waitForNowPlayingText: function(artist, title) {
     this.client.waitFor(function() {
-      return this.trackText === title + ' — ' + artist;
+      return this.artistText === artist &&
+             this.titleText === title;
     }.bind(this));
   },
 
@@ -90,7 +102,8 @@ MediaPlaybackContainer.prototype = {
   },
 
   get isPlaying() {
-    return this.playPauseElement.dataset.icon === 'pause';
+    var className = this.playPauseElement.getAttribute('class');
+    return !(/\bis-paused\b/.test(className));
   },
 
   previousTrack: function() {

@@ -174,31 +174,31 @@
 }
 
 #notification-bar {
-  height: 4.5rem;
+  height: 3rem;
+  background-color: #52b6cc;
+  color: #1b3f46;
 }
 
-#notification-bar [data-icon] {
-  color: #008eab;
-  margin: 0.5rem 0;
+#notification-bar span {
+  display: inline-block;
+  margin-left: 1.5rem;
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 3rem;
 }
 
-#notification-bar .title-container {
-  line-height: 4.5rem;
-  margin-left: .7rem;
-  float: left;
+#notification-bar span[hidden] {
+  display: none;
 }
 
 #notification-bar button {
   float: right;
-  height: 4.5rem;
+  margin-right: 1.5rem;
+  height: 3rem;
   padding: 0;
   border: 0;
   background: none;
   text-align: right;
-  font-size: 1.3rem;
-  font-weight: normal;
-  font-style: italic;
-  color: #008eab;
   font-size: 1.4rem;
   font-weight: 500;
   width: auto;
@@ -206,7 +206,7 @@
 }
 
 #notification-bar button[disabled] {
-  color: rgba(255, 255, 255, 0.2);
+  color: #556365;
 }
 
 /* remove ugly dotted outline when focus */
@@ -217,25 +217,32 @@
 #notifications-container {
   width: 100%;
 
-  /* minus cost control, quick settings, bar and grippy */
-  height: calc(100% - 6rem - 6.8rem - 4.5rem - 1.2rem);
   flex: 1;
   overflow-y: scroll;
   overflow-x: hidden;
 }
 
 .notification {
+  position: relative;
   height: 6rem;
-  padding: 0 1.5rem;
-  font: 1.8rem/1.8rem auto;
-  color: #e7e7e7;
-  overflow: hidden;
+  font-size: 1.4rem;
+  font-weight: 400;
+  line-height: 1.9rem;
+  border-top: 0.1rem solid transparent;
+  border-bottom: 0.1rem solid transparent;
+}
 
-  border-bottom: .1rem solid rgba(255, 255, 255, .05);
+div:not(#notifications-lockscreen-container) > .notification:after{
+  content: "";
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  width: calc(100% - 7.2rem);
+  position: absolute;
+  left: 3.6rem;
+  bottom: 0;
 }
 
 .notification:active {
-  background-color: rgba(52, 140, 158, .6);
+  background-color: rgba(52,140,158, .6);
 }
 
 .notification:first-child {
@@ -246,58 +253,56 @@
   pointer-events: none;
 }
 
-.notification > img {
-  float: left;
-  display: block;
-  width: 2.4rem;
-  height: 2.4rem;
-  margin: 1.8rem 0 0;
-  pointer-events: none;
-}
-
-.notification > div {
-  width: calc(100% - 3.7rem);
-  margin-left: 3.7rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .notification > div.title-container {
-  padding-top: 1.4rem;
-  font-size: 1.7rem;
+  margin-top: 1rem;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #fff;
   display: flex;
 }
 
-.notification > div.title-container .title {
-  flex: 1;
-  margin-right: .5rem;
+.notification > div {
+  width: calc(100% - 6.5rem);
+  margin-left: 5rem;
+  color: #bfbfbf;
+  font-size: 1.4rem;
+  line-height: 1.9rem;
+  min-height: 1.9rem;
   overflow: hidden;
-  white-space: nowrap;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .notification > div.title-container .timestamp {
   flex: initial;
   top: -.2rem;
   right: 1.5rem;
+  color: #52B6CC;
   padding: 0;
   max-width: 6.5rem;
-  font-size: 1.4rem;
-  font-style: italic;
-  color: #858585;
+  font-size: 1.2rem;
+  font-weight: bold;
+  line-height: 1.6rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.notification > div.detail {
-  font-size: 1.4rem;
-  color: #858585;
+.notification > img {
+  float: left;
+  display: block;
+  width: 3rem;
+  height: 3rem;
+  margin: 1.5rem 1rem;
+  pointer-events: none;
 }
 
-#notifications-lockscreen-container .notification > img {
-  margin-top: 1.8rem;
+.notification > div.title-container .title {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-right: .5rem;
 }
 
 .notification.snapback,

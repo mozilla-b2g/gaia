@@ -25,8 +25,8 @@ var DeviceStorageWatcher = {
     this._container = document.getElementById('storage-watcher-container');
     this._container.onclick = this.containerClicked;
 
-    this._message = this._container.querySelector('.title-container');
-    this._availableSpace = this._container.querySelector('.detail');
+    this._message = this._container.querySelector('.message');
+    this._availableSpace = this._container.querySelector('.available-space');
   },
 
   containerClicked: function dsw_containerClicked() {

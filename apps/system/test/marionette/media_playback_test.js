@@ -1,5 +1,3 @@
-'use strict';
-
 var assert = require('assert'),
     MediaPlayback = require('./lib/media_playback'),
     FakeMusic = require('./lib/fake_music');

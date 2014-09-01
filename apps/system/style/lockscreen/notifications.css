@@ -163,10 +163,10 @@
   background-color: transparent;
   border-top: none;
   border-bottom: 0.1rem solid rgba(255, 255, 255, 0.3);
-  height: 6rem;
+  height: 4.8rem;
   width: calc(100% - 5.2rem);
-  margin: 0 2.4rem;
-  padding: 0;
+  margin-left: 2.4rem;
+  margin-right: 2.4rem;
 }
 
 #notifications-lockscreen-container .notification:first-child {
