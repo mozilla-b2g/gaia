@@ -188,7 +188,7 @@ class TreeherderTestRunnerMixin(object):
                                                     query_auth=False)
                         job_details.append({
                             'url': blob_url,
-                            'value': artifact,
+                            'value': os.path.split(artifact)[-1],
                             'content_type': 'link',
                             'title': 'Artifact:'})
                         self.logger.info('Artifact %s uploaded to: %s' % (
