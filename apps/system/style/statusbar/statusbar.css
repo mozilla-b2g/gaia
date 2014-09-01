@@ -161,6 +161,14 @@ body .utility-tray .statusbar > .sb-start {
   margin: 0.6rem 0.2rem;
 }
 
+#statusbar-connections .sb-icon-roaming {
+  margin: 0;
+  top: 0.6rem;
+  position: relative;
+  width: 1.4rem;
+  left: 0.1rem;
+}
+
 #statusbar-connections .statusbar-data:not(.sb-icon-data-circle) {
   color: #fff;
   font-size: 1.5rem;
@@ -175,6 +183,7 @@ body .utility-tray .statusbar > .sb-start {
 
 #statusbar-connections[data-multiple="true"] .statusbar-signal {
   position: relative;
+  margin-left: 0.8rem;
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-signal::before {
@@ -199,10 +208,11 @@ body .utility-tray .statusbar > .sb-start {
 
 #statusbar-connections[data-multiple="true"] .statusbar-data {
   position: relative;
-  width: 1.3rem;
-  margin: 0.6rem 0 0 0;
+  margin: 0;
   font-size: 0.8rem;
-  text-align: right;
+  text-align: left;
+  top: 0;
+  left: -.6rem;
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-data.sb-icon-data-circle {
@@ -408,18 +418,6 @@ body .utility-tray .statusbar > .sb-start {
   position: relative;
 }
 
-.sb-icon-signal[data-roaming="true"]::after {
-  content: '';
-  position: absolute;
-  width: 0.8rem;
-  height: 0.5rem;
-  top: 0;
-  left: 0;
-  background: url('images/icons.png') no-repeat;
-  background-position: -16rem -4rem;
-  background-size: 34rem 9.6rem;
-}
-
 .sb-icon-network-activity {
   width: 1.6rem;
   height: 1.6rem;
@@ -459,6 +457,10 @@ body .utility-tray .statusbar > .sb-start {
 
 .sb-icon-recording[data-active="true"] {
   background-position: -26rem -4rem;
+}
+
+.sb-icon-roaming {
+  background-position: -16rem -4rem;
 }
 
 .sb-icon-alarm {
