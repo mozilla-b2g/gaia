@@ -162,13 +162,34 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
 }
 
 /* Edit contact section */
-.view-edit-contact .item.first,
+.view-edit-contact,
 .view-edit-contact form li {
-  border-bottom: 0.1rem solid #dbdbdb;
+  background: transparent;
+}
+
+.view-edit-contact form li {
+  padding-right: 1rem;
+  padding-left: 1rem;
+}
+
+.view-edit-contact form li.closed {
+  height: 4.5rem;
+  background-color: transparent;
+  border: 0;
+}
+.view-edit-contact form li.closed > section {
+  display: none;
+}
+
+.item.first {
+  width: 30rem;
+  padding: 1rem 1rem 0 1rem;
 }
 
 .view-edit-contact .tail-actions {
-  margin: 1rem 0;
+  margin: 4rem 0 1rem 0;
+  width: 100%;
+  text-align: center;
 }
 
 .view-edit-contact form li > section {
@@ -189,11 +210,25 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
 }
 
 .view-edit-contact form li fieldset {
+  /* li already has a 0.5 padding */
+  margin-top: 1rem;
   overflow: visible;
+  width: 25rem;
 }
 
-.view-edit-contact form li fieldset legend {
-  width: calc(100% - 5rem);
+.two_fields {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.two_fields > :first-child {
+  margin-right: 1rem;
+  width: 12rem;
+}
+
+.two_fields > :nth-child(2) {
+  width: 12rem;
 }
 
 .view-edit-contact .fillflow-row-action {
@@ -201,8 +236,9 @@ section[role="region"] > gaia-header .icon.icon-edit-contact {
   height: 4rem;
 }
 
-#contacts-form-notes {
-  margin: 1rem 0 1.5rem 0;
+.view-edit-contact .fillflow-row-action {
+  width: 4rem;
+  height: 4rem;
 }
 
 #contacts-form-notes .setbox {
@@ -289,6 +325,10 @@ form p textarea + button[type="reset"].hide {
   opacity: 0.85;
 }
 
+.facebook fieldset {
+  margin-left: 4rem;
+}
+
 .facebook fieldset, .facebook legend, .facebook input {
   background-color: transparent;
   color: #ccc;
@@ -300,7 +340,6 @@ form p textarea + button[type="reset"].hide {
 }
 
 .with-photo {
-  padding-right: 5rem;
   background: none;
 }
 
@@ -352,7 +391,8 @@ gaia-header [data-icon] {
   background: #f4f4f4;
 }
 #view-contact-form #thumbnail-photo {
-   background-color: transparent;
+  background-color: transparent;
+  border-radius: 7rem;
 }
 
 /* Order switch */
@@ -736,4 +776,91 @@ nav[data-type="scrollbar"] li .pack-icon-ice {
   vertical-align: middle;
   background: transparent no-repeat center center / 1.2rem;
   background-image: url("/contacts/style/images/ice_small.png");
+}
+
+html[dir="rtl"] #no-contacts .icon {
+  padding-right: 3.5rem;
+  padding-left: 0;
+}
+
+html[dir="rtl"] #no-contacts .create.icon,
+html[dir="rtl"] #no-contacts .import.icon {
+  background-position: 100% 50%;
+}
+
+fieldset legend {
+  font-size: 1.6rem;
+  background-color: #f2f2f2;
+  border: 1px solid #c7c7c7;
+  color: #363636;
+}
+
+form[role="combobox"] span[data-field="type"] {
+  color: rgb(24,191,239);
+}
+
+.field-template {
+  display: flex;
+  border-radius: 15px 0 0;
+  background-color: #fff;
+  border: 1px solid #e7e7e7;
+}
+
+/* Add separation between templates */
+.field-template + .field-template {
+  margin-top: 1rem;
+}
+
+.img-delete-button {
+  padding: 0;
+  margin: 0.2rem 1rem 0 0.2rem;
+  width: 2.8rem;
+  color: #fff;
+  background-color: transparent;
+  background-image: url(images/icon_remove.png);
+  background-repeat:no-repeat;
+  border: 0;
+}
+
+.view-edit-contact form li > section > div {
+  display: block;
+  width: 30rem;
+}
+
+.view-edit-contact form li > section > div.empty {
+  display: none;
+}
+
+.action-add {
+  background: transparent;
+  border: 0;
+  font-style: normal;
+  font-size: 1.8rem;
+  color: #5f5f5f;
+  height: 5rem;
+  vertical-align: middle;
+  padding-left: 4rem;
+  margin: 0;
+}
+
+.action-add[disabled] {
+  background: transparent;
+}
+
+.note-template dl {
+  margin-top: 1rem;
+}
+
+.note-template input {
+  height: 9rem;
+  border: 1px solid #c7c7c7;
+}
+
+.action-delete {
+  width: 29rem;
+  height: 4rem;
+  background-color: #e51e1e;
+  font-size: 1.6rem;
+  font-style: italic;
+  font-weight: unset;
 }
