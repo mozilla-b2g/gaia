@@ -301,9 +301,14 @@
 .appWindow .screenshot-overlay {
   pointer-events: none;
   height: 100%;
+  visibility: hidden;
 
   /* We need this to resize hi-res screenshot */
   background-size: cover;
+}
+
+.appWindow .screenshot-overlay.visible {
+  visibility: visible;
 }
 
 .appWindow.collapsible .screenshot-overlay {
