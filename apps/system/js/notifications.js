@@ -97,6 +97,18 @@ var NotificationScreen = {
     SettingsListener.observe('notification.ringtone', '', function(value) {
       self._sound = self.ringtoneURL.set(value);
     });
+
+    // We have new default ringtones in 2.0, so check if the version is upgraded
+    // then execute the necessary migration.
+    VersionHelper.getVersionInfo().then(function(versionInfo) {
+      if (versionInfo.isUpgrade()) {
+        LazyLoader.load('js/tone_upgrader.js', function() {
+          toneUpgrader.perform('alerttone');
+        });
+      }
+    }, function(err) {
+      console.error('VersionHelper failed to lookup version settings.');
+    });
   },
 
   handleEvent: function ns_handleEvent(evt) {
