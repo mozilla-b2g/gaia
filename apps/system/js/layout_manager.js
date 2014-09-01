@@ -108,7 +108,8 @@
       window.addEventListener('keyboardhide', this);
       window.addEventListener('mozfullscreenchange', this);
       window.addEventListener('software-button-enabled', this);
-      window.addEventListener('software-button-disabled', this);
+      window.addEventListener('software-button-disabled', this); 
+      window.addEventListener('attention-inactive', this);
     },
 
     handleEvent: function lm_handleEvent(evt) {
