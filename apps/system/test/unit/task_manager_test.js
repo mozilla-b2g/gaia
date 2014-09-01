@@ -93,6 +93,8 @@ suite('system/TaskManager >', function() {
     };
     var evt = new CustomEvent('appopen', { detail: detail });
     window.dispatchEvent(evt);
+
+    detail.element.dispatchEvent(new CustomEvent('_opened'));
   }
 
   var apps, home;
@@ -105,6 +107,7 @@ suite('system/TaskManager >', function() {
       'http://sms.gaiamobile.org': new AppWindow({
         launchTime: 5,
         name: 'SMS',
+        element: document.createElement('div'),
         frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
@@ -123,6 +126,7 @@ suite('system/TaskManager >', function() {
       'http://game.gaiamobile.org': new AppWindow({
         launchTime: 4,
         name: 'GAME',
+        element: document.createElement('div'),
         frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
@@ -141,6 +145,7 @@ suite('system/TaskManager >', function() {
       'http://game2.gaiamobile.org': new AppWindow({
         launchTime: 3,
         name: 'GAME2',
+        element: document.createElement('div'),
         frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
@@ -159,6 +164,7 @@ suite('system/TaskManager >', function() {
       'http://game3.gaiamobile.org': new AppWindow({
         launchTime: 2,
         name: 'GAME3',
+        element: document.createElement('div'),
         frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
@@ -177,6 +183,7 @@ suite('system/TaskManager >', function() {
       'http://game4.gaiamobile.org': new AppWindow({
         launchTime: 1,
         name: 'GAME4',
+        element: document.createElement('div'),
         frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
@@ -198,6 +205,7 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-0',
       launchTime: 5,
       name: 'SMS',
+      element: document.createElement('div'),
       frame: document.createElement('div'),
       iframe: document.createElement('iframe'),
       manifest: {
@@ -218,6 +226,7 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-1',
       launchTime: 5,
       name: 'GAME',
+      element: document.createElement('div'),
       frame: document.createElement('div'),
       iframe: document.createElement('iframe'),
       manifest: {
@@ -238,6 +247,7 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-2',
       launchTime: 5,
       name: 'GAME2',
+      element: document.createElement('div'),
       frame: document.createElement('div'),
       iframe: document.createElement('iframe'),
       manifest: {
@@ -258,6 +268,7 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-3',
       launchTime: 5,
       name: 'GAME3',
+      element: document.createElement('div'),
       frame: document.createElement('div'),
       iframe: document.createElement('iframe'),
       manifest: {
@@ -278,6 +289,7 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-4',
       launchTime: 5,
       name: 'GAME4',
+      element: document.createElement('div'),
       frame: document.createElement('div'),
       iframe: document.createElement('iframe'),
       manifest: {
@@ -500,7 +512,9 @@ suite('system/TaskManager >', function() {
         assert.equal(taskManager.screenElement, screenNode);
       });
 
-      test('cardsview should be active', function() {
+      test('cardsview should be active once app is closed', function() {
+        assert.isFalse(screenNode.classList.contains('cards-view'));
+        window.dispatchEvent(new CustomEvent('appclosed'));
         assert.isTrue(taskManager.isShown(), 'taskManager.isShown');
         assert.isTrue(screenNode.classList.contains('cards-view'));
       });
@@ -872,8 +886,6 @@ suite('system/TaskManager >', function() {
   });
 
   suite('tapping on an app >', function() {
-    var displayStub;
-
     setup(function(done) {
       MockStackManager.mStack = [apps['http://sms.gaiamobile.org']];
       MockStackManager.mCurrent = 0;
@@ -890,7 +902,6 @@ suite('system/TaskManager >', function() {
 
     teardown(function() {
       taskManager.hide(true);
-      displayStub.restore();
     });
 
     test('displays the new app before dismissing the task manager',
@@ -909,10 +920,16 @@ suite('system/TaskManager >', function() {
 
       // stub the display method to fire the 'appopen' event normally
       // triggered by the transition controller
-      displayStub = sinon.stub(MockAppWindowManager, 'display', function() {
+      //displayStub = sinon.stub(MockAppWindowManager, 'display', function() {
+        //setTimeout(function() {
+          //displayStub.restore();
+          //sendAppopen(MockStackManager.mStack[0]);
+        //});
+      //});
+      var app = MockStackManager.mStack[0];
+      this.sinon.stub(app, 'open', function() {
         setTimeout(function() {
-          displayStub.restore();
-          sendAppopen(MockStackManager.mStack[0]);
+          sendAppopen(app);
         });
       });
       taskManager.handleEvent(fakeEvent);

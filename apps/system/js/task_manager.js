@@ -262,34 +262,19 @@
    * @param {Boolean} removeImmediately true to skip transitions when hiding
    *
    */
-  TaskManager.prototype.hide = function cs_hideCardSwitcher(removeImmediately) {
+  TaskManager.prototype.hide = function cs_hideCardSwitcher() {
     if (!this.isShown()) {
       return;
     }
 
-    var cardsView = this.element;
-
     // events to unhandle
     this._unregisterShowingEvents();
-
-    if (removeImmediately) {
-      this.element.classList.add('no-transition');
-    }
 
     // Make the cardsView overlay inactive
     this.setActive(false);
 
     // And remove all the cards from the document after the transition
-    if (removeImmediately) {
-      this.removeCards();
-      cardsView.classList.remove('no-transition');
-    } else {
-      var cardsViewHidden = (function onTransitionEnd() {
-        cardsView.removeEventListener('transitionend', cardsViewHidden);
-        this.removeCards();
-      }).bind(this);
-      cardsView.addEventListener('transitionend', cardsViewHidden);
-    }
+    this.removeCards();
     this.fireCardViewClosed();
   };
 
@@ -343,7 +328,6 @@
     // Homescreen fades (shows its fade-overlay) on cardviewbeforeshow events
     this.fireCardViewBeforeShow();
 
-    this.screenElement.classList.add('cards-view');
     if (this.isTaskStrip) {
       this.screenElement.classList.add('task-manager');
     }
@@ -359,10 +343,12 @@
     // Make sure we're in default orientation
     screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
+
     // First add an item to the cardsList for each running app
     stack.forEach(function(app, position) {
       this.addCard(position, app);
     }, this);
+
 
     // events to handle while shown
     this._registerShowingEvents();
@@ -378,6 +364,23 @@
     if (stack.length) {
       this.currentCard.applyStyle({pointerEvents: 'auto'});
     }
+
+    stack.forEach(function(app, position) {
+      app.enterTaskManager();
+    });
+
+    var screenElem = this.screenElement;
+    var activeApp = AppWindowManager.getActiveApp();
+
+    if (!activeApp || activeApp.isHomescreen) {
+      screenElem.classList.add('cards-view');
+      return;
+    }
+
+    window.addEventListener('appclosed', function clWait(evt) {
+      window.removeEventListener('appclosed', clWait);
+      screenElem.classList.add('cards-view');
+    });
   };
 
   /**
@@ -509,8 +512,24 @@
     if (position !== StackManager.position) {
       this.newStackPosition = position;
     }
+
+    var safetyTimeout = null;
+    var finish = (function() {
+      clearTimeout(safetyTimeout);
+      this.hide();
+    }).bind(this);
+
     app.open(openAnimation || 'from-cardview');
-    this.hide();
+    if (app.isHomescreen) {
+      finish();
+    } else {
+      app.element.addEventListener('_opened', function opWait() {
+        app.element.removeEventListener('_opened', opWait);
+        finish();
+      });
+    }
+
+    safetyTimeout = setTimeout(finish, 500);
   };
 
   /**
@@ -743,15 +762,8 @@
         if (this.isTaskStrip) {
           this.show();
         } else {
-          app = AppWindowManager.getActiveApp();
-          if (app) {
-            app.getScreenshot(function onGettingRealtimeScreenshot() {
-              this.show();
-            }.bind(this));
-          } else {
-            // empty list entry point
-            this.show();
-          }
+          // empty list entry point
+          this.show();
         }
         break;
 
