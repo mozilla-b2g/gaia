@@ -1,3 +1,6 @@
+/* global Downloads, exports, require */
+'use strict';
+
 /**
  * DownloadManager is a tool for downloading file from internet. This
  * implementation uses Downloads.jsm to do it. When downloads a https url which
@@ -8,7 +11,7 @@
 
 var utils = require('./utils');
 
-const { Cc, Ci, Cr, Cu } = require('chrome');
+const { Cc, Ci, Cu } = require('chrome');
 Cu.import('resource://gre/modules/FileUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/Downloads.jsm');
