@@ -29,6 +29,9 @@ define(function(require) {
           wifiCheckbox: panel.querySelector('.wifi-enabled input'),
           manageCertificatesBtn: panel.querySelector('.manageCertificates'),
           wifiAvailableNetworks: panel.querySelector('.wifi-availableNetworks'),
+          dialogElement: panel.querySelector('.wifi-bad-credentials-dialog'),
+          okBtn: panel.querySelector('.wifi-bad-credentials-confirm'),
+          cancelBtn: panel.querySelector('.wifi-bad-credentials-cancel')
         };
 
         elements.infoItem = elements.wifiAvailableNetworks.querySelector(
@@ -104,7 +107,6 @@ define(function(require) {
         WifiContext.addEventListener('wifiStatusChange', function(event) {
           var scanStates =
             new Set(['connected', 'connectingfailed', 'disconnected']);
-
           this._updateNetworkState();
           if (scanStates.has(event.status)) {
             if (this._wifiSectionVisible) {
@@ -114,7 +116,15 @@ define(function(require) {
             }
           }
         }.bind(this));
+
+        WifiContext.addEventListener('wifiWrongPassword', function(event) {
+          var currentNetwork = WifiContext.currentNetwork;
+          if (currentNetwork.known === false) {
+            this._openBadCredentialsDialog(currentNetwork);
+          }
+        }.bind(this));
       },
+
       onBeforeShow: function() {
         this._wifiSectionVisible = true;
         this._updateVisibilityStatus();
@@ -228,6 +238,35 @@ define(function(require) {
               this._wps.statusReset();
           }
         }
+      },
+      _openBadCredentialsDialog: function(network) {
+        var self = this;
+        var dialogElement = elements.dialogElement;
+
+        var onConfirm = function onConfirm() {
+          self._networkList._toggleNetwork(network);
+          enableDialog(false);
+        };
+
+        var onCancel = function onCancel() {
+          enableDialog(false);
+        };
+
+        var enableDialog = function enableDialog(enabled) {
+          if (enabled) {
+            navigator.mozL10n.setAttributes(dialogElement.querySelector('p'),
+              'wifi-bad-credentials-confirm', {ssid : network.ssid});
+            elements.okBtn.addEventListener('click', onConfirm);
+            elements.cancelBtn.addEventListener('click', onCancel);
+            dialogElement.hidden = false;
+          } else {
+            elements.okBtn.removeEventListener('click', onConfirm);
+            elements.cancelBtn.removeEventListener('click', onCancel);
+            dialogElement.hidden = true;
+          }
+        };
+
+        enableDialog(true);
       }
     });
   };
