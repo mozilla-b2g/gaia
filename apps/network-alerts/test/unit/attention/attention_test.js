@@ -62,6 +62,7 @@ suite('Network Alerts - Attention Screen', function() {
       title: title,
       body: body
     });
+    this.sinon.stub(window.opener, 'close');
 
     navigator.mozL10n = MockL10n;
     this.sinon.stub(navigator.mozL10n, 'once').yields();
@@ -107,9 +108,8 @@ suite('Network Alerts - Attention Screen', function() {
   });
 
   test('click button: closes window', function() {
-
-    this.sinon.stub(window.opener, 'close');
     document.querySelector('button').click();
+
     sinon.assert.called(window.opener.close);
   });
 
@@ -128,5 +128,56 @@ suite('Network Alerts - Attention Screen', function() {
       MockNotifications[0],
       'should not send a new notification'
     );
+  });
+
+  suite('on visibility change', function() {
+    var realVisibility,
+        isDocumentHidden;
+
+    suiteSetup(function() {
+      realVisibility = Object.getOwnPropertyDescriptor(document, 'hidden');
+
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        get: function() {
+          return isDocumentHidden;
+        }
+      });
+    });
+
+    suiteTeardown(function() {
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        get: function() {
+          return realVisibility;
+        }
+      });
+    });
+
+    setup(function() {
+      document.querySelector('h1').style.height = '10px';
+    });
+
+    test('do nothing while app visible',function() {
+      isDocumentHidden = false;
+      document.dispatchEvent(new CustomEvent('visibilitychange'));
+
+      sinon.assert.notCalled(window.opener.close);
+    });
+
+    test('do nothing while app hidden but not resized',function() {
+      isDocumentHidden = true;
+      document.dispatchEvent(new CustomEvent('visibilitychange'));
+
+      sinon.assert.notCalled(window.opener.close);
+    });
+
+    test('close window while app hidden and resized',function() {
+      isDocumentHidden = true;
+      document.querySelector('h1').style.height = '';
+      document.dispatchEvent(new CustomEvent('visibilitychange'));
+
+      sinon.assert.called(window.opener.close);
+    });
   });
 });
