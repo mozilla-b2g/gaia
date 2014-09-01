@@ -73,10 +73,13 @@
             <button type="reset"></button>
           </p>
           <p>
+            <!-- usernames may optionally want to be email addresses, but we
+                 don't want to validate them as email addresses, so stick with
+                 type=text, but use (x-)inputmode to get the email keyboard. -->
             <input class="sup-manual-composite-username" type="text"
                    data-l10n-id="setup-manual-username"
-                   x-inputmode="verbatim"
-                   inputmode="verbatim"
+                   x-inputmode="email"
+                   inputmode="email"
                    dir="auto"
                    data-maybe-required />
             <button type="reset"></button>
@@ -119,10 +122,13 @@
             <button type="reset"></button>
           </p>
           <p>
+            <!-- usernames may optionally want to be email addresses, but we
+                 don't want to validate them as email addresses, so stick with
+                 type=text, but use (x-)inputmode to get the email keyboard. -->
             <input class="sup-manual-smtp-username" type="text"
                    data-l10n-id="setup-manual-username"
-                   x-inputmode="verbatim"
-                   inputmode="verbatim"
+                   x-inputmode="email"
+                   inputmode="email"
                    dir="auto"
                    data-maybe-required />
             <button type="reset"></button>
@@ -169,7 +175,11 @@
             <button type="reset"></button>
           </p>
           <p>
+            <!-- usernames may optionally want to be email addresses, but we
+                 don't want to validate them as email addresses, so stick with
+                 type=text, but use (x-)inputmode to get the email keyboard. -->
             <input class="sup-manual-activesync-username" type="text"
+                   x-inputmode="email" inputmode="email"
                    data-l10n-id="setup-manual-activesync-username"
                    dir="auto" data-maybe-required />
             <button type="reset"></button>
