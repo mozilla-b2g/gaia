@@ -48,20 +48,18 @@
 
 #lockscreen .media-playback-controls > .previous {
   text-align: left;
-  padding-left: 1.5rem;
 }
 
 #lockscreen .media-playback-controls > .next {
   text-align: right;
-  padding-right: 1.5rem;
 }
 
-#lockscreen .media-playback-controls > button {
+#lockscreen .media-playback-controls > div {
   transition: 0s 0.3s; /* Delay transition post tap by some milliseconds. */
 }
 
-[role="dialog"] #lockscreen .media-playback-controls > button:active,
-#lockscreen .media-playback-controls > button:active {
+[role="dialog"] #lockscreen .media-playback-controls > div:active,
+#lockscreen .media-playback-controls > div:active {
   background-color: transparent;
   color: #0ac;
   transition: 0s;
