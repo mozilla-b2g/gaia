@@ -114,6 +114,13 @@ suite('Contacts', function() {
     window.ImportStatusData.clear();
 
     navigator.addIdleObserver = function() {};
+
+    // We don't want to trigger migrations in this test suite.
+    MockCookie.data = {
+      fbMigrated: true,
+      accessTokenMigrated: true
+    };
+
     Contacts.init();
     mockNavigation = window.navigationStack.firstCall.thisValue;
   });
