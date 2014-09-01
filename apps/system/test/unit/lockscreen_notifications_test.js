@@ -10,6 +10,24 @@ var mocksForLockScreenNotifications = new MocksHelper([
 ]).init();
 
 suite('system/LockScreenNotifications', function() {
+  // little helper to build an array filled with numbers from |from| to |to|.
+  // ex: range(1, 10) -> [1,2,3,...9]
+  // useful for looping a specific number of iterations
+  var range = (from, to) => {
+    if (undefined === to) {
+      to = from;
+      from = 0;
+    }
+
+    var rangeGenerator = function *() {
+      for(var i = from; i < to; i++){
+        yield i;
+      }
+    };
+
+    return Array.from(rangeGenerator());
+  };
+
   var lockScreenNotifications;
   mocksForLockScreenNotifications.attachTestHelpers();
 
@@ -377,4 +395,228 @@ suite('system/LockScreenNotifications', function() {
     );
   });
 
+  suite('_getNumNotificationInContainerViewport', function() {
+    var stubGetWindowInnerDimension;
+
+    setup(function(){
+      stubGetWindowInnerDimension =
+        this.sinon.stub(lockScreenNotifications, '_getWindowInnerDimension');
+    });
+
+    test('innerHeight > 480, without music player (4 notifications)',
+    function() {
+      stubGetWindowInnerDimension.returns({
+        width: window.innderWidth,
+        height: 640
+      });
+
+      assert.equal(
+        lockScreenNotifications._getNumNotificationInContainerViewport(),
+        4
+      );
+    });
+
+    test('innerHeight > 480, with music player (3 notifications)',
+    function() {
+      stubGetWindowInnerDimension.returns({
+        width: window.innderWidth,
+        height: 640
+      });
+      lockScreenNotifications.container.classList.add('collapsed');
+
+      assert.equal(
+        lockScreenNotifications._getNumNotificationInContainerViewport(),
+        3
+      );
+    });
+
+    test('innerHeight <= 480, without music player (3 notifications)',
+    function() {
+      stubGetWindowInnerDimension.returns({
+        width: window.innderWidth,
+        height: 360
+      });
+
+      assert.equal(
+        lockScreenNotifications._getNumNotificationInContainerViewport(),
+        3
+      );
+    });
+
+    test('innerHeight <= 480, with music player (2 notifications)',
+    function() {
+      stubGetWindowInnerDimension.returns({
+        width: window.innderWidth,
+        height: 360
+      });
+      lockScreenNotifications.container.classList.add('collapsed');
+
+      assert.equal(
+        lockScreenNotifications._getNumNotificationInContainerViewport(),
+        2
+      );
+    });
+  });
+
+
+  suite('Remove top mask when actionable notification is at the visual top of' +
+        'the container viewport', function(){
+    // for test's sake, add 4 notifications in the notifications container, and
+    // suppose 1-indexed one is the visually top notification in the viewport
+    // (i.e 3 notifications are visible in the viewport)
+
+    const numTestNotifications = 4;
+    const numNotificationInViewport = 3;
+
+    var stubGetNumNotificationInContainerViewport;
+
+    suiteSetup(function(){
+      stubGetNumNotificationInContainerViewport =
+        sinon.stub(lockScreenNotifications,
+                   '_getNumNotificationInContainerViewport')
+        .returns(numNotificationInViewport);
+    });
+
+    setup(function(){
+      range(numTestNotifications).forEach(index => {
+        var node = document.createElement('div');
+        node.classList.add('notification');
+        node.classList.add('actionable');
+        node.dataset.notificationId = 'id-' + index;
+        lockScreenNotifications.container.appendChild(node);
+      });
+    });
+
+    suite('top-actionable class is correctly added in ' +
+          'onNotificationHighlighted',
+      function() {
+      // we then see if the class is added correctly, or not added,
+      // when we try to highlight each notification.
+
+      var testTopActionableClass = function(notificationIndex, expected) {
+        var id = 'id-' + notificationIndex;
+
+        lockScreenNotifications.onNotificationHighlighted(id, 123000);
+
+        assert.equal(
+          lockScreenNotifications.container.classList.contains(
+            'top-actionable'
+          ),
+          expected,
+          'with notification index ' + notificationIndex + ' container should' +
+          (!expected ? ' not' : '') + ' have the top-actionable class'
+        );
+      };
+
+      range(numTestNotifications).forEach(index => {
+        // the notification is the visually top in the viewport if its rev-index
+        // is the number of notifications visible in the viewport; its (normal)
+        // index would be (numNotifications - numVisibleNotifications);
+        // we expect that notification, when highlighted, to trigger
+        // |top-actionable| class to be added.
+        test('test on ' + index + '-th notification', () => {
+          testTopActionableClass(
+            index,
+            (numTestNotifications - numNotificationInViewport) === index
+          );
+        });
+      });
+    });
+
+    suite('_tryAddTopMaskByNotification is correctly called in ' +
+          'onCleanHighlighted and onNotificationsBlur',
+      function() {
+      const testId = 'id-1';
+      var stubTryAddTopMaskByNotification;
+      var stubRemoveNotificationHighlight;
+      var targetNotificationNode;
+
+      setup(function(){
+        stubTryAddTopMaskByNotification =
+          this.sinon.stub(lockScreenNotifications,
+                          '_tryAddTopMaskByNotification');
+
+        stubRemoveNotificationHighlight =
+          this.sinon.stub(lockScreenNotifications,
+                          'removeNotificationHighlight');
+
+        targetNotificationNode =
+          lockScreenNotifications.container.querySelector(
+            '[data-notification-id="' + testId + '"]'
+          );
+
+        lockScreenNotifications.states.currentHighlighted =
+          targetNotificationNode;
+
+        lockScreenNotifications.states.currentHighlightedId = testId;
+
+        lockScreenNotifications.states.highlightedNotifications[testId] =
+          123000;
+      });
+
+      test('onCleanHighlighted', function (){
+        var timestamp =
+          123000 + lockScreenNotifications.configs.timeoutHighlighted + 1;
+
+        lockScreenNotifications.onCleanHighlighted(testId, timestamp);
+
+        assert.isTrue(
+          stubTryAddTopMaskByNotification.calledWith(targetNotificationNode)
+        );
+      });
+
+      test('onNotificationsBlur', function (){
+        lockScreenNotifications.onNotificationsBlur();
+
+        assert.isTrue(
+          stubTryAddTopMaskByNotification.calledWith(targetNotificationNode)
+        );
+      });
+    });
+
+    suite('top-actionable class is correctly removed with ' +
+          'tryAddTopMaskByNotification',
+      function() {
+      // we then see if the class is removed correctly, or not removed,
+      // when we try to un-highlight each notification.
+
+      setup(function(){
+        lockScreenNotifications.container.classList.add('top-actionable');
+      });
+
+      var testTopActionableClass = function(notificationIndex, expected) {
+        var id = 'id-' + notificationIndex;
+
+        var notificationNode =
+          lockScreenNotifications.container.querySelector(
+            '[data-notification-id="' + id + '"]'
+          );
+
+        lockScreenNotifications._tryAddTopMaskByNotification(notificationNode);
+
+        assert.equal(
+          lockScreenNotifications.container.classList.contains(
+            'top-actionable'
+          ),
+          expected,
+          'with notification index ' + notificationIndex + ' container should' +
+          (!expected ? ' not' : '') + ' have the top-actionable class'
+        );
+      };
+
+      range(numTestNotifications).forEach(index => {
+        // the notification is the visually top in the viewport if its rev-index
+        // is the number of notifications visible in the viewport; its (normal)
+        // index would be (numNotifications - numVisibleNotifications);
+        // we expect that notification, when unhighlighted, to trigger
+        // |top-actionable| class to be removed.
+        test('test on ' + index + '-th notification', () => {
+          testTopActionableClass(
+            index,
+            (numTestNotifications - numNotificationInViewport) !== index
+          );
+        });
+      });
+    });
+  });
 });

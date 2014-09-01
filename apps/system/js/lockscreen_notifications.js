@@ -149,6 +149,8 @@
       delete this.states.highlightedNotifications[id];
       this.states.currentHighlighted = null;
       this.states.currentHighlightedId = null;
+
+      this._tryAddTopMaskByNotification(notificationNode);
     }
   };
 
@@ -162,6 +164,39 @@
     this.states.currentHighlightedId = id;
     this.states.currentHighlighted = this.container.querySelector(
       '[data-notification-id="' + id + '"]');
+
+    // because background of an active actionable notification can be clipped
+    // by the top mask implemented in lockscreen visual refresh 2.0 (bug1023500)
+    // we need to cancel the mask when the 'top' (in the visible viewport, not
+    // the whole container) notification is active, by 'top-actionable' class.
+    // (note: the 'top mask' displays only when the container scrolls to bottom)
+
+    // such 'top'-ness is decided by the viewport size of the container:
+    // if the container can show N visible notifications,
+    // then the last-Nth notification is that 'top' notification.
+
+    // Illustration:
+    //
+    // --top------------------ container -------------bottom--
+    //                               ======= viewport ========
+    // ------------------------------=========================
+    // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |
+    // |     |     |     |     |     |  0  |  1  |  2  |  3  |
+    // ------------------------------=========================
+    // In this illustration, the ID of the visually top notification in the
+    // viewport is #5; the number of notifications in container viewport is 4.
+    // We can select the #5 notification by :nth-last-of-type(4).
+
+    var numNotificationInContainerViewport =
+        this._getNumNotificationInContainerViewport();
+
+    if (this.container.querySelector('div.notification:nth-last-of-type(' +
+          numNotificationInContainerViewport + ')') ===
+          this.states.currentHighlighted){
+      this.container.classList.add('top-actionable');
+    }else{
+      this.container.classList.remove('top-actionable');
+    }
   };
 
   /**
@@ -180,6 +215,8 @@
         delete this.states.highlightedNotifications[id];
         this.states.currentHighlighted = null;
         this.states.currentHighlightedId = null;
+
+        this._tryAddTopMaskByNotification(notificationNode);
       }
     }
   };
@@ -373,6 +410,50 @@
   LockScreenNotifications.prototype.scrollToTop =
   function lsn_scrollToTop() {
     this._lockScreen.notificationsContainer.scrollTop = 0;
+  };
+
+  LockScreenNotifications.prototype._getWindowInnerDimension =
+  function lsn_getWindowInnerDimension() {
+    return {
+            height: window.innerHeight,
+            width: window.innerWidth
+           };
+  };
+
+  /**
+   * Get the number of notifications visible in the container.
+   * we have 2 viewable notifications for HVGA lockscreen with music player
+   * widget, and for larger screen, and the absence of the widget,
+   * we can allow one, or two, more viewable notifications.
+   */
+  LockScreenNotifications.prototype._getNumNotificationInContainerViewport =
+  function lsn_getNumNotificationInContainerViewport() {
+    var numNotificationInContainerViewport = 2;
+
+    // monitor > HVGA => allow one more notification
+    if (this._getWindowInnerDimension().height > 480) {
+      numNotificationInContainerViewport++;
+    }
+
+    // no music player widget => also allow one more notification
+    if (!this.container.classList.contains('collapsed')) {
+      numNotificationInContainerViewport++;
+    }
+
+    return numNotificationInContainerViewport;
+  };
+
+  LockScreenNotifications.prototype._tryAddTopMaskByNotification =
+  function lsn_tryAddTopMaskByNotification(notificationNode) {
+    // if the unhighlighted node was the visually top notification of the
+    // viewport, add the top mask back by removing the top-actionable class.
+    // (see also: onNotificationHighlighted)
+    var numNotificationInContainerViewport =
+        this._getNumNotificationInContainerViewport();
+    if (this.container.querySelector('div.notification:nth-last-of-type(' +
+        numNotificationInContainerViewport + ')') === notificationNode){
+      this.container.classList.remove('top-actionable');
+    }
   };
 
   /** @exports LockScreenWindowManager */
