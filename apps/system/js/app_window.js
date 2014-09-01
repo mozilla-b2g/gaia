@@ -1310,7 +1310,7 @@
       return this._fullScreen;
     }
     // Fullscreen
-    this._fullScreen = (this.manifest &&
+    this._fullScreen = !!(this.manifest &&
       ('fullscreen' in this.manifest ? this.manifest.fullscreen : false)) ||
       this.isFullScreenLayout();
     return this._fullScreen;
@@ -1325,9 +1325,9 @@
       return this._fullScreenLayout;
     }
     // Fullscreen
-    this._fullScreenLayout = this.manifest &&
+    this._fullScreenLayout = !!(this.manifest &&
       ('fullscreen_layout' in this.manifest ? this.manifest.fullscreen_layout :
-        false);
+        false));
     return this._fullScreenLayout;
   };
 
