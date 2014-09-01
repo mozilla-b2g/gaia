@@ -5,8 +5,7 @@
   NotificationScreen,
   ScreenManager,
   MockNavigatorMozTelephony,
-  MockCall,
-  MockVersionHelper
+  MockCall
  */
 
 'use strict';
@@ -16,7 +15,6 @@ require('/test/unit/mock_screen_manager.js');
 require('/test/unit/mock_statusbar.js');
 require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_navigator_moz_chromenotifications.js');
-require('/test/unit/mock_version_helper.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
@@ -36,8 +34,7 @@ var mocksForNotificationScreen = new MocksHelper([
   'SettingsListener',
   'SettingsURL',
   'UtilityTray',
-  'System',
-  'VersionHelper'
+  'System'
 ]).init();
 
 suite('system/NotificationScreen >', function() {
@@ -45,7 +42,6 @@ suite('system/NotificationScreen >', function() {
     fakeButton, fakeNoNotifications, fakeToasterIcon, fakeToasterTitle,
     fakeToasterDetail, fakeSomeNotifications, fakeAmbientIndicator;
   var fakePriorityNotifContainer, fakeOtherNotifContainer;
-  var realVersionHelper;
 
   function sendChromeNotificationEvent(detail) {
     var event = new CustomEvent('mozChromeNotificationEvent', {
@@ -112,9 +108,6 @@ suite('system/NotificationScreen >', function() {
     document.body.appendChild(fakeToasterIcon);
     document.body.appendChild(fakeToasterTitle);
     document.body.appendChild(fakeToasterDetail);
-
-    realVersionHelper = window.VersionHelper;
-    window.VersionHelper = MockVersionHelper(false);
 
     this.sinon.useFakeTimers();
     NotificationScreen.init();
