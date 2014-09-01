@@ -26,45 +26,36 @@ DEVICE_GROUP_MAP = {
 class TreeherderOptionsMixin(object):
 
     def __init__(self, **kwargs):
-        self.add_option(
-            '--ci-url',
-            help='URL of the CI build running the tests.',
-            metavar='URL')
         treeherder = self.add_option_group('Treeherder')
         treeherder.add_option(
             '--treeherder',
-            action='store_true',
-            default=False,
-            help='Send test results to Treeherder.')
-        treeherder.add_option(
-            '--treeherder-url',
             default='https://treeherder.mozilla.org/',
-            help='Location of Treeherder instance. Default: %default',
+            dest='treeherder_url',
+            help='Location of Treeherder instance (default: %default). You '
+                 'must set the TREEHERDER_KEY and TREEHERDER_SECRET '
+                 'environment variables for posting to Treeherder. If you '
+                 'want to post attachments you will also need to set the '
+                 'AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment '
+                 'variables.',
             metavar='URL')
-        treeherder.add_option(
-            '--treeherder-key',
-            help='OAuth key for Treeherder instance.',
-            metavar='KEY')
-        treeherder.add_option(
-            '--treeherder-secret',
-            help='OAuth secret for Treeherder instance.',
-            metavar='SECRET')
 
 
 class TreeherderTestRunnerMixin(object):
 
-    def __init__(self, ci_url=None, treeherder=False,
-                 treeherder_url='https://treeherder.mozilla.org/',
-                 treeherder_key=None, treeherder_secret=None, **kwargs):
-        self.ci_url = ci_url
+    def __init__(self, treeherder_url='https://treeherder.mozilla.org/',
+                 **kwargs):
         self.treeherder_url = treeherder_url
-        self.treeherder_key = treeherder_key
-        self.treeherder_secret = treeherder_secret
-        if treeherder:
+        required_envs = ['TREEHERDER_KEY', 'TREEHERDER_SECRET']
+        if all([os.environ.get(v) for v in required_envs]):
             self.mixin_run_tests.append(self.post_to_treeherder)
+        else:
+            self.logger.info(
+                'Results will not be posted to Treeherder. Please set the '
+                'following environment variables to enable Treeherder '
+                'reports: %s' % ', '.join([
+                    v for v in required_envs if not os.environ.get(v)]))
 
     def post_to_treeherder(self, tests):
-        self.logger.info('\nTREEHERDER\n----------')
         version = mozversion.get_version(
             binary=self.bin, sources=self.sources,
             dm_type='adb', device_serial=self.device_serial)
@@ -162,10 +153,11 @@ class TreeherderTestRunnerMixin(object):
             'value': version.get('device_firmware_version_release')
         }]
 
-        if self.ci_url:
+        ci_url = os.environ.get('BUILD_URL')
+        if ci_url:
             job_details.append({
-                'url': self.ci_url,
-                'value': self.ci_url,
+                'url': ci_url,
+                'value': ci_url,
                 'content_type': 'link',
                 'title': 'CI build:'})
 
@@ -219,8 +211,8 @@ class TreeherderTestRunnerMixin(object):
             protocol=url.scheme,
             host=url.hostname,
             project=project,
-            oauth_key=self.treeherder_key,
-            oauth_secret=self.treeherder_secret)
+            oauth_key=os.environ.get('TREEHERDER_KEY'),
+            oauth_secret=os.environ.get('TREEHERDER_SECRET'))
         self.logger.debug('Sending results to Treeherder: %s' %
                           job_collection.to_json())
         response = request.post(job_collection)
