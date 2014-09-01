@@ -16,7 +16,7 @@
 
 .cmp-addr-container, .cmp-subject-text {
   flex:1;
-  width: -moz-available;
+  min-width: 0;
 }
 
 .cmp-bubble-container {
@@ -67,6 +67,10 @@ input.cmp-addr-text, input.cmp-dot-text {
   float: left;
   width: 0.5rem;
   max-width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  word-wrap: normal;
+  white-space: nowrap;
 }
 
 input.cmp-subject-text {
