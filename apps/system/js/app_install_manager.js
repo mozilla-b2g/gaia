@@ -211,7 +211,6 @@ var AppInstallManager = {
   },
 
   handleAppUninstallPrompt: function ai_handleUninstallPrompt(detail) {
-    var _ = navigator.mozL10n.get;
     var app = detail.app;
     var id = detail.id;
 
@@ -233,10 +232,10 @@ var AppInstallManager = {
     if (unrecoverable) {
       dialogConfig = {
         type: 'unrecoverable',
-        title: _('unrecoverable-error-title'),
-        body: _('unrecoverable-error-body'),
+        title: 'unrecoverable-error-title',
+        body: 'unrecoverable-error-body',
         confirm: {
-          title: _('unrecoverable-error-action'),
+          title: 'unrecoverable-error-action',
           cb: () => { this.dispatchResponse(id, 'webapps-uninstall-granted'); }
         }
       };
@@ -244,14 +243,14 @@ var AppInstallManager = {
       var nameObj = { name: manifest.name };
       dialogConfig = {
         type: 'remove',
-        title: _('delete-title', nameObj),
-        body: _('delete-body', nameObj),
+        title: {id: 'delete-title', args: nameObj},
+        body: {id: 'delete-body', args: nameObj},
         cancel: {
-          title: _('cancel'),
+          title: 'cancel',
           cb: () => { this.dispatchResponse(id, 'webapps-uninstall-denied'); }
         },
         confirm: {
-          title: _('delete'),
+          title: 'delete',
           type: 'danger',
           cb: () => { this.dispatchResponse(id, 'webapps-uninstall-granted'); }
         }
