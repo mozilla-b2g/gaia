@@ -39,7 +39,6 @@ footer {
 }
 
 body.fullscreenView #frames {
-  top: 0;
   height: 100%;
 }
 
@@ -407,7 +406,16 @@ body.thumbnailListView #fullscreen-view.toolbar-hidden .videoPlayerFooter.hidden
 
 /* XXX: Below css will move to building block til bug905065 is closed */
 
-#fullscreen-toolbar-header,
+/*
+ * 1. Introduced by bug 1059748
+ * In bug 1019841 we introduced !important for .large-only styles to hide
+ * tablet layout on phone devices, which will cause regression on tablet.
+ * We have to use !important here to override styles from phone layout.
+ */
+#fullscreen-toolbar-header {
+  display: block !important; /* 1 */
+}
+
 #thumbnails-list-top {
   display: block;
 }
