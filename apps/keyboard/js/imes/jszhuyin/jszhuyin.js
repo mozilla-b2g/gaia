@@ -128,6 +128,14 @@ JSZhuyinGaiaKeyboardGlue.prototype.select = function jszg_select(text, data) {
   this.sendMessage('selectCandidate', [text, data], ++this.requestId);
 };
 
+JSZhuyinGaiaKeyboardGlue.prototype.selectionChange = function(detail) {
+  if (detail.ownAction) {
+    return;
+  }
+
+  this.empty();
+};
+
 JSZhuyinGaiaKeyboardGlue.prototype.activate = function jszg_activate() {
   if (this.kDEBUG)
     console.log('zhuyin:activate:' + Date.now());
