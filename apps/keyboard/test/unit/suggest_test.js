@@ -289,43 +289,5 @@ suite('Latin suggestions', function() {
       sinon.assert.calledWith(imSettings.sendCandidates,
                               ['his', 'HUD', 'hide']);
     });
-
-    suite('Suggestion length mismatch', function() {
-      test('Length mismatch, low freq', function() {
-        testPrediction('zoolgy', 'zoolgy', [
-          ['zoology', 4.2],
-          ['Zoology\'s', 0.09504000000000001]
-        ]);
-
-        sinon.assert.callCount(imSettings.sendCandidates, 1);
-        sinon.assert.calledWith(imSettings.sendCandidates,
-                                ['zoology', 'Zoology\'s']);
-      });
-
-      test('Length mismatch, medium freq', function() {
-        testPrediction('Folow', 'Folow', [
-          ['Follow', 6.237],
-          ['Follows', 2.4948],
-          ['Followed', 1.0454400000000001],
-          ['Follower', 0.7603200000000001]
-        ]);
-
-        sinon.assert.callCount(imSettings.sendCandidates, 1);
-        sinon.assert.calledWith(imSettings.sendCandidates,
-                                ['*Follow', 'Follows', 'Followed']);
-      });
-
-      test('Length mismatch, high freq', function() {
-        testPrediction('awesomeo', 'awesomeo', [
-            ['awesome', 31],
-            ['trahlah', 8],
-            ['moarstu', 7]
-          ]);
-
-        sinon.assert.callCount(imSettings.sendCandidates, 1);
-        sinon.assert.calledWith(imSettings.sendCandidates,
-                                ['*awesome', 'trahlah', 'moarstu']);
-      });
-    });
   });
 });
