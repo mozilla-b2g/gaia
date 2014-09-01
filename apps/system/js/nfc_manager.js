@@ -461,6 +461,7 @@
           options.data.url = payload.uri;
         } else if (payload.uri.indexOf('http://') === 0 ||
                    payload.uri.indexOf('https://') === 0) {
+          options.name = 'view';
           // launch browser
           options.data.type = 'url';
           options.data.url = payload.uri;
@@ -470,6 +471,7 @@
       } else if (payload.type === 'smartposter' &&
         (payload.uri.indexOf('http://') === 0 ||
          payload.uri.indexOf('https://') === 0)) {
+        options.name = 'view';
         // smartposter adaptation for browser handling
         options.data = payload;
         options.data.type = 'url';

@@ -385,7 +385,7 @@ suite('Nfc Manager Functions', function() {
       nfcManager._handleTechDiscovered(sampleMsg);
 
       assert.deepEqual(MozActivity.firstCall.args[0], {
-        name: 'nfc-ndef-discovered',
+        name: 'view',
         data: {
                 type: 'url',
                 url: 'http://mozilla.org',
@@ -598,7 +598,7 @@ suite('Nfc Manager Functions', function() {
 
       nfcManager._fireNDEFDiscovered(msg, msg.techList[0]);
       assert.deepEqual(MozActivity.firstCall.args[0], {
-        name: 'nfc-ndef-discovered',
+        name: 'view',
         data: {
                 type: 'url',
                 url: 'http://mozilla.org',
@@ -742,7 +742,7 @@ suite('Nfc Manager Functions', function() {
 
       var options = nfcManager._createNDEFActivityOptions(payload);
       assert.deepEqual(options, {
-        name: NDEF_ACTIVITY_NAME,
+        name: 'view',
         data: {
           type: 'url',
           url: payload.uri
@@ -775,7 +775,7 @@ suite('Nfc Manager Functions', function() {
 
       var options = nfcManager._createNDEFActivityOptions(payload);
       assert.deepEqual(options, {
-        name: NDEF_ACTIVITY_NAME,
+        name: 'view',
         data: {
           type: 'url',
           text: payload.text,
