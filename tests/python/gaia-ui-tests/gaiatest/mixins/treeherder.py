@@ -10,6 +10,7 @@ from urlparse import urljoin, urlparse
 import uuid
 
 import boto
+from mozlog.structured.handlers import StreamHandler
 import mozversion
 import requests
 from thclient import TreeherderRequest, TreeherderJobCollection
@@ -21,6 +22,12 @@ DEVICE_GROUP_MAP = {
     'msm7627a': {
         'name': 'Buri/Hamachi Device Image',
         'symbol': 'Buri/Hamac'}}
+
+
+class S3UploadError(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, 'Error uploading to S3')
 
 
 class TreeherderOptionsMixin(object):
@@ -118,9 +125,6 @@ class TreeherderTestRunnerMixin(object):
         # All B2G device builds are currently opt builds
         job.add_option_collection({'opt': True})
 
-        # TODO: Add log reference
-        # job.add_log_reference()
-
         date_format = '%d %b %Y %H:%M:%S'
         job_details = [{
             'content_type': 'link',
@@ -161,44 +165,46 @@ class TreeherderTestRunnerMixin(object):
                 'content_type': 'link',
                 'title': 'CI build:'})
 
-        artifacts = [self.html_output, self.xml_output]
-        if any(artifacts):
-            required_envs = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY']
-            upload_artifacts = all([os.environ.get(v) for v in required_envs])
+        # Attach log files
+        handlers = [handler for handler in self.logger.handlers
+                    if isinstance(handler, StreamHandler) and
+                    os.path.exists(handler.stream.name)]
+        for handler in handlers:
+            path = handler.stream.name
+            filename = os.path.split(path)[-1]
+            try:
+                url = self.upload_to_s3(path)
+                job_details.append({
+                    'url': url,
+                    'value': filename,
+                    'content_type': 'link',
+                    'title': 'Log:'})
+                # TODO: Bug 1049723 - Add log reference
+                # if type(handler.formatter) is TbplFormatter or \
+                #         type(handler.formatter) is LogLevelFilter and \
+                #         type(handler.formatter.inner) is TbplFormatter:
+                #     job.add_log_reference(filename, url)
+            except S3UploadError:
+                job_details.append({
+                    'value': 'Failed to upload %s' % filename,
+                    'content_type': 'text',
+                    'title': 'Error:'})
 
-            if upload_artifacts:
-                conn = boto.connect_s3()
-                bucket = conn.create_bucket(
-                    os.environ.get('S3_UPLOAD_BUCKET', 'gaiatest'))
-                bucket.set_acl('public-read')
-
-                for artifact in artifacts:
-                    if artifact and os.path.exists(artifact):
-                        h = hashlib.sha512()
-                        with open(artifact, 'rb') as f:
-                            for chunk in iter(lambda: f.read(1024 ** 2), b''):
-                                h.update(chunk)
-                        _key = h.hexdigest()
-                        key = bucket.get_key(_key)
-                        if not key:
-                            key = bucket.new_key(_key)
-                        key.set_contents_from_filename(artifact)
-                        key.set_acl('public-read')
-                        blob_url = key.generate_url(expires_in=0,
-                                                    query_auth=False)
-                        job_details.append({
-                            'url': blob_url,
-                            'value': os.path.split(artifact)[-1],
-                            'content_type': 'link',
-                            'title': 'Artifact:'})
-                        self.logger.info('Artifact %s uploaded to: %s' % (
-                            artifact, blob_url))
-            else:
-                self.logger.info(
-                    'Artifacts will not be included with the report. Please '
-                    'set the following environment variables to enable '
-                    'uploading of artifacts: %s' % ', '.join([
-                        v for v in required_envs if not os.environ.get(v)]))
+        # Attach reports
+        for report in [self.html_output, self.xml_output]:
+            filename = os.path.split(report)[-1]
+            try:
+                url = self.upload_to_s3(report)
+                job_details.append({
+                    'url': url,
+                    'value': filename,
+                    'content_type': 'link',
+                    'title': 'Report:'})
+            except S3UploadError:
+                job_details.append({
+                    'value': 'Failed to upload %s' % filename,
+                    'content_type': 'text',
+                    'title': 'Error:'})
 
         if job_details:
             job.add_artifact('Job Info', 'json', {'job_details': job_details})
@@ -221,3 +227,42 @@ class TreeherderTestRunnerMixin(object):
         self.logger.info('Results are available to view at: %s' % (
             urljoin(self.treeherder_url, '/ui/#/jobs?repo=%s&revision=%s' % (
                 project, revision))))
+
+    def upload_to_s3(self, path):
+        if not hasattr(self, '_s3_bucket'):
+            try:
+                self.logger.debug('Connecting to S3')
+                conn = boto.connect_s3()
+                bucket = os.environ.get('S3_UPLOAD_BUCKET', 'gaiatest')
+                self.logger.debug('Creating bucket: %s' % bucket)
+                self._s3_bucket = conn.create_bucket(bucket)
+                self._s3_bucket.set_acl('public-read')
+            except boto.exception.NoAuthHandlerFound:
+                self.logger.info(
+                    'Please set the following environment variables to enable '
+                    'uploading of artifacts: %s' % ', '.join([v for v in [
+                        'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'] if not
+                        os.environ.get(v)]))
+                raise S3UploadError()
+            except boto.exception.S3ResponseError as e:
+                self.logger.warning('Upload to S3 failed: %s' % e.message)
+                raise S3UploadError()
+
+        h = hashlib.sha512()
+        with open(path, 'rb') as f:
+            for chunk in iter(lambda: f.read(1024 ** 2), b''):
+                h.update(chunk)
+        _key = h.hexdigest()
+        key = self._s3_bucket.get_key(_key)
+        if not key:
+            self.logger.debug('Creating key: %s' % _key)
+            key = self._s3_bucket.new_key(_key)
+        if os.path.splitext(path)[-1] == '.log':
+            key.set_metadata('Content-Type', 'text/plain')
+        self.logger.debug('Setting key contents from: %s' % path)
+        key.set_contents_from_filename(path)
+        key.set_acl('public-read')
+        blob_url = key.generate_url(expires_in=0,
+                                    query_auth=False)
+        self.logger.info('File %s uploaded to: %s' % (path, blob_url))
+        return blob_url
