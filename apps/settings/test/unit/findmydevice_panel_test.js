@@ -31,11 +31,12 @@ suite('Find My Device panel > ', function() {
 
   mocksForFindMyDevice.attachTestHelpers();
 
-  suiteSetup(function(done) {
+  setup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
       once: function(callback) {
-        callback();
+        // XXX(ggp) we'll manually init() below, so we don't
+        // need to call the callback now.
       },
       setAttributes: function(element, id) {
       },
@@ -99,6 +100,7 @@ suite('Find My Device panel > ', function() {
 
       require('/js/findmydevice.js', function() {
         subject = FindMyDevice;
+        subject.init();
         done();
       });
     });
@@ -231,6 +233,16 @@ suite('Find My Device panel > ', function() {
     window.wakeUpFindMyDevice.reset();
   });
 
+  test('hide error message for unverified account by default', function() {
+    assert.isTrue(unverifiedError.hidden);
+  });
+
+  test('don\'t display error message for unverified account when offline',
+  function() {
+    MockMozId.onerror('{"name": "OFFLINE"}');
+    assert.isTrue(unverifiedError.hidden);
+  });
+
   test('display error message for unverified accounts', function() {
     MockMozId.onerror('{"name": "UNVERIFIED_ACCOUNT"}');
     assert.isFalse(unverifiedError.hidden);
@@ -257,7 +269,7 @@ suite('Find My Device panel > ', function() {
     assert.isFalse(login.hidden);
   });
 
-  suiteTeardown(function() {
+  teardown(function() {
     navigator.mozL10n = realL10n;
     navigator.mozId = realMozId;
     window.loadJSON = realLoadJSON;
