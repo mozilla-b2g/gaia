@@ -12,7 +12,6 @@ build/csslinter.js
 build/image-resolution.js
 build/jsmin.js
 build/post-manifest.js
-build/pre-app.js
 build/push-to-device.js
 build/settings.js
 build/test/integration/build.test.js
