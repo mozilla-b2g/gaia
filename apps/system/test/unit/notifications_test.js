@@ -41,9 +41,10 @@ var mocksForNotificationScreen = new MocksHelper([
 ]).init();
 
 suite('system/NotificationScreen >', function() {
-  var fakeNotifContainer, fakeLockScreenContainer, fakeToaster,
+  var fakeDesktopNotifContainer, fakeLockScreenContainer, fakeToaster,
     fakeButton, fakeNoNotifications, fakeToasterIcon, fakeToasterTitle,
-    fakeToasterDetail, fakeSomeNotifications, fakeAmbientIndicator;
+    fakeToasterDetail, fakeSomeNotifications, fakeAmbientIndicator,
+    fakeNotifContainer;
   var fakePriorityNotifContainer, fakeOtherNotifContainer;
   var realVersionHelper;
 
@@ -77,14 +78,16 @@ suite('system/NotificationScreen >', function() {
 
   mocksForNotificationScreen.attachTestHelpers();
   setup(function() {
+    fakeDesktopNotifContainer = document.createElement('div');
+    fakeDesktopNotifContainer.id = 'desktop-notifications-container';
     fakeNotifContainer = document.createElement('div');
-    fakeNotifContainer.id = 'desktop-notifications-container';
+    fakeNotifContainer.id = 'notifications-container';
     fakePriorityNotifContainer = document.createElement('div');
     fakePriorityNotifContainer.className = 'priority-notifications';
     fakeOtherNotifContainer = document.createElement('div');
     fakeOtherNotifContainer.className = 'other-notifications';
-    fakeNotifContainer.appendChild(fakePriorityNotifContainer);
-    fakeNotifContainer.appendChild(fakeOtherNotifContainer);
+    fakeDesktopNotifContainer.appendChild(fakePriorityNotifContainer);
+    fakeDesktopNotifContainer.appendChild(fakeOtherNotifContainer);
 
     // add some children, we don't care what they are
     fakeOtherNotifContainer.appendChild(fakeNotification());
@@ -101,6 +104,7 @@ suite('system/NotificationScreen >', function() {
     fakeToasterTitle = createFakeElement('div', 'toaster-title');
     fakeToasterDetail = createFakeElement('div', 'toaster-detail');
 
+    document.body.appendChild(fakeDesktopNotifContainer);
     document.body.appendChild(fakeNotifContainer);
 
     document.body.appendChild(fakeLockScreenContainer);
@@ -121,7 +125,7 @@ suite('system/NotificationScreen >', function() {
   });
 
   teardown(function() {
-    fakeNotifContainer.parentNode.removeChild(fakeNotifContainer);
+    fakeDesktopNotifContainer.parentNode.removeChild(fakeDesktopNotifContainer);
     fakeLockScreenContainer.parentNode.removeChild(fakeLockScreenContainer);
     fakeToaster.parentNode.removeChild(fakeToaster);
     fakeButton.parentNode.removeChild(fakeButton);
@@ -205,22 +209,32 @@ suite('system/NotificationScreen >', function() {
       NotificationScreen.updateNotificationIndicator(true);
     });
 
+    test('should clear unread notifications after open tray', function() {
+      incrementNotications(2);
+      assert.equal(NotificationScreen.unreadNotifications, 2);
+      var event = new CustomEvent('utilitytrayshow');
+      window.dispatchEvent(event);
+      assert.equal(document.body.getElementsByClassName('unread').length, 0);
+      assert.equal(NotificationScreen.unreadNotifications, 0);
+    });
+
     test('should show a small ambient indicator', function() {
+      incrementNotications(2);
       assert.equal(document.body.getElementsByClassName('small').length, 1);
     });
 
     test('should show a medium ambient indicator', function() {
-      incrementNotications(2);
+      incrementNotications(4);
       assert.equal(document.body.getElementsByClassName('medium').length, 1);
     });
 
     test('should show a big ambient indicator', function() {
-      incrementNotications(4);
+      incrementNotications(6);
       assert.equal(document.body.getElementsByClassName('big').length, 1);
     });
 
     test('should show a full ambient indicator', function() {
-      incrementNotications(5);
+      incrementNotications(7);
       assert.equal(document.body.getElementsByClassName('full').length, 1);
     });
 
