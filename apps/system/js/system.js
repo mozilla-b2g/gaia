@@ -1,7 +1,7 @@
 'use strict';
 
 (function(window) {
-  var DEBUG = false;
+  var DEBUG = true;
   /**
    * Shared some global property.
    * @type {Object}
