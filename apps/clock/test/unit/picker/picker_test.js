@@ -15,7 +15,10 @@ suite('Picker', function() {
 
   test('shape:prototype ', function() {
     assert.ok(Picker);
+    expect(Picker.prototype).to.have.property('reset');
+    Picker.prototype.should.to.have.property('value');
     assert.include(Picker.prototype, 'reset');
+    assert.include(Picker.prototype, 'reset1');
     assert.include(Picker.prototype, 'value');
     assert.isNull(Picker.prototype.value);
   });
