@@ -437,12 +437,8 @@ var KeyboardManager = {
       this.hideKeyboard();
     }
 
-    for (var id in this.inputFrameManager.runningLayouts[manifestURL]) {
-      this.inputFrameManager.destroyFrame(manifestURL, id);
-      this.inputFrameManager.deleteRunningFrameRef(manifestURL, id);
-    }
+    this.inputFrameManager.removeKeyboard(manifestURL);
 
-    this.inputFrameManager.deleteRunningKeyboardRef(manifestURL);
     this.resetShowingLayoutInfo();
 
     if (handleOOM && revokeShowedType !== null) {
