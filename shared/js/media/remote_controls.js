@@ -81,6 +81,7 @@ function MediaRemoteControls() {
   this.defaultAdapter = null;
   this._commandListeners = {};
   this._isSCOConnected = false;
+  this._isA2DPConnected = false;
 
   // Create the empty object for all command listeners.
   for (var command in REMOTE_CONTROLS)
@@ -122,6 +123,12 @@ MediaRemoteControls.prototype.removeCommandListener = function(name, listener) {
  * Start to listen to the system message and configure the bluetooth.
  */
 MediaRemoteControls.prototype.start = function(callback) {
+  this._setupBluetooth(callback);
+  this._setupIAC();
+  this._setupWired();
+};
+
+MediaRemoteControls.prototype._setupBluetooth = function(callback) {
   var self = this;
 
   // AVRCP commands use system message.
@@ -187,6 +194,10 @@ MediaRemoteControls.prototype.start = function(callback) {
     self.defaultAdapter = null;
     // Do we need to do anything else?
   }
+};
+
+MediaRemoteControls.prototype._setupIAC = function() {
+  var self = this;
 
   this._queuedMessages = [];
   // Set up Inter-App Communications
@@ -202,7 +213,11 @@ MediaRemoteControls.prototype.start = function(callback) {
       self._ports = ports;
       self._ports.forEach(function(port) {
         port.onmessage = function(event) {
-          self._commandHandler(event.data.command);
+          if (event.data.bluetooth) {
+            self._isA2DPConnected = event.data.bluetooth.a2dp;
+          } else {
+            self._commandHandler(event.data.command);
+          }
         };
 
         self._queuedMessages.forEach(function(message) {
@@ -212,6 +227,20 @@ MediaRemoteControls.prototype.start = function(callback) {
       self._queuedMessages = null;
     });
   };
+};
+
+MediaRemoteControls.prototype._setupWired = function() {
+  var acm = navigator.mozAudioChannelManager;
+  if (acm) {
+    acm.addEventListener('headphoneschange', onheadphoneschange.bind(this));
+  }
+
+  function onheadphoneschange() {
+    if (!acm.headphones && !this._isA2DPConnected) {
+      // Send pause command if no a2dp connection is connected.
+      this._commandHandler(AVRCP.PAUSE_PRESS);
+    }
+  }
 };
 
 // Synchronous connection-oriented(SCO) link is the type of radio link used
