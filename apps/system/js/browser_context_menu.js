@@ -241,6 +241,10 @@
     newTabApp.launch();
   };
 
+  BrowserContextMenu.prototype.showWindows = function(manifest) {
+    window.dispatchEvent(new CustomEvent('taskmanagershow'));
+  };
+
   BrowserContextMenu.prototype.generateSystemMenuItem = function(item) {
 
     var nodeName = item.nodeName.toUpperCase();
@@ -310,6 +314,12 @@
           id: 'new-window',
           label: _('new-window'),
           callback: this.newWindow.bind(this, manifest)
+        });
+
+        menuData.push({
+          id: 'show-windows',
+          label: _('show-windows'),
+          callback: this.showWindows.bind(this)
         });
 
         BookmarksDatabase.get(config.url).then((result) => {
