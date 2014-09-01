@@ -121,9 +121,6 @@ suite('InputFrameManager', function() {
       };
 
       frame = {
-        classList: {
-          add: this.sinon.spy()
-        },
         dataset: {
           frameName: null,
           framePath: null,
@@ -190,14 +187,9 @@ suite('InputFrameManager', function() {
         this.sinon.stub(inputFrameManager, '_loadKeyboardLayoutToFrame')
         .returns(frame);
 
-      var stubSetFrameActive =
-        this.sinon.stub(inputFrameManager, '_setFrameActive');
-
       inputFrameManager.launchFrame(layout);
 
       assert.isTrue(stubLoadKeyboardLayout.calledWith(layout));
-      assert.isTrue(stubSetFrameActive.calledWith(frame, false));
-      assert.isTrue(frame.classList.add.calledWith('hide'));
       assert.equal(frame.dataset.frameManifestURL, layout.manifestURL);
     });
 
@@ -221,28 +213,82 @@ suite('InputFrameManager', function() {
       assert.isFalse(stubGetFrame.called);
       assert.isTrue(stubLoadKeyboardLayout.calledWith(layout));
     });
+
+    test('layout & keyboard not running & keepInactive = true', function(){
+      this.sinon.stub(inputFrameManager, '_isRunningLayout').returns(false);
+      this.sinon.stub(inputFrameManager, '_isRunningKeyboard')
+        .returns(false);
+
+      this.sinon.stub(inputFrameManager, '_getFrameFromExistingKeyboard');
+
+      var stubLoadKeyboardLayout =
+        this.sinon.stub(inputFrameManager, '_loadKeyboardLayoutToFrame')
+        .returns(frame);
+
+      this.sinon.stub(inputFrameManager, '_setFrameActive');
+      this.sinon.stub(inputFrameManager, '_insertFrameRef');
+
+      inputFrameManager.launchFrame(layout, true);
+
+      assert.isTrue(stubLoadKeyboardLayout.calledWith(layout, true));
+    });
   });
 
-  test('loadKeyboardLayoutToFrame', function(){
-    var inputFrameManager = new InputFrameManager(MockKeyboardManager);
+  suite('loadKeyboardLayoutToFrame', function(){
+    var inputFrameManager;
+    var mockFrame;
+    var oldKBFrameContainer;
+    var stubConstructFrame;
+    setup(function(){
+      inputFrameManager = new InputFrameManager(MockKeyboardManager);
+      mockFrame = {
+        setVisible: this.sinon.spy(),
+        classList: {
+          add: this.sinon.spy()
+        }
+      };
 
-    var stubConstructFrame =
-      this.sinon.stub(inputFrameManager, '_constructFrame').returns('kb');
+      stubConstructFrame =
+        this.sinon.stub(inputFrameManager, '_constructFrame')
+        .returns(mockFrame);
 
-    var oldKBFrameContainer = MockKeyboardManager.keyboardFrameContainer;
-    MockKeyboardManager.keyboardFrameContainer = {
-      appendChild: this.sinon.spy()
-    };
+      oldKBFrameContainer = MockKeyboardManager.keyboardFrameContainer;
+      MockKeyboardManager.keyboardFrameContainer = {
+        appendChild: this.sinon.spy()
+      };
+    });
 
-    var k = inputFrameManager._loadKeyboardLayoutToFrame('layout');
+    teardown(function(){
+      MockKeyboardManager.keyboardFrameContainer = oldKBFrameContainer;
+    });
 
-    assert.equal(k, 'kb');
-    assert.isTrue(stubConstructFrame.calledWith('layout'));
-    assert.isTrue(
-      MockKeyboardManager.keyboardFrameContainer.appendChild.calledWith('kb')
-    );
+    test('no keepInactive defined', function(){
+      var f = inputFrameManager._loadKeyboardLayoutToFrame('layout');
 
-    MockKeyboardManager.keyboardFrameContainer = oldKBFrameContainer;
+      assert.equal(f, mockFrame);
+      assert.isTrue(stubConstructFrame.calledWith('layout'));
+      assert.isTrue(
+        MockKeyboardManager.keyboardFrameContainer.appendChild.calledWith(
+          mockFrame
+        )
+      );
+      assert.isFalse(mockFrame.setVisible.calledWith(false));
+      assert.isFalse(mockFrame.classList.add.calledWith('hide'));
+    });
+
+    test('keepInactive = true', function(){
+      var f = inputFrameManager._loadKeyboardLayoutToFrame('layout', true);
+
+      assert.equal(f, mockFrame);
+      assert.isTrue(stubConstructFrame.calledWith('layout'));
+      assert.isTrue(
+        MockKeyboardManager.keyboardFrameContainer.appendChild.calledWith(
+          mockFrame
+        )
+      );
+      assert.isTrue(mockFrame.setVisible.calledWith(false));
+      assert.isTrue(mockFrame.classList.add.calledWith('hide'));
+    });
   });
 
   test('destroyFrame', function(){
@@ -267,7 +313,7 @@ suite('InputFrameManager', function() {
 
   suite('constructFrame', function() {
     var inputFrameManager;
-    var fakeKeyboardElem = {
+    var fakeFrame = {
       src: null,
       setAttribute: sinon.spy()
     };
@@ -282,15 +328,15 @@ suite('InputFrameManager', function() {
     });
     setup(function() {
       inputFrameManager = new InputFrameManager(MockKeyboardManager);
-      this.sinon.stub(document, 'createElement').returns(fakeKeyboardElem);
+      this.sinon.stub(document, 'createElement').returns(fakeFrame);
       oldWindowApplications = window.applications;
       window.applications = {
         getByManifestURL: function() {}
       };
     });
     teardown(function() {
-      fakeKeyboardElem.src = null;
-      fakeKeyboardElem.setAttribute.reset();
+      fakeFrame.src = null;
+      fakeFrame.setAttribute.reset();
       window.applications = oldWindowApplications;
     });
     test('constructFrame, OOP enabled, uncertified, memory >= 512', function(){
@@ -307,17 +353,17 @@ suite('InputFrameManager', function() {
           manifest: manifest
         });
 
-      var k = inputFrameManager._constructFrame(layout);
+      var f = inputFrameManager._constructFrame(layout);
 
-      assert.equal(k, fakeKeyboardElem);
-      assert.equal(k.src, layout.origin + layout.path);
-      assert.isTrue(k.setAttribute.calledWith('mozapptype', 'inputmethod'));
-      assert.isTrue(k.setAttribute.calledWith('mozbrowser', 'true'));
-      assert.isTrue(k.setAttribute.calledWith('mozpasspointerevents', 'true'));
-      assert.isTrue(k.setAttribute.calledWith('mozapp', layout.manifestURL));
+      assert.equal(f, fakeFrame);
+      assert.equal(f.src, layout.origin + layout.path);
+      assert.isTrue(f.setAttribute.calledWith('mozapptype', 'inputmethod'));
+      assert.isTrue(f.setAttribute.calledWith('mozbrowser', 'true'));
+      assert.isTrue(f.setAttribute.calledWith('mozpasspointerevents', 'true'));
+      assert.isTrue(f.setAttribute.calledWith('mozapp', layout.manifestURL));
 
-      assert.isTrue(k.setAttribute.calledWith('remote', 'true'));
-      assert.isTrue(k.setAttribute.calledWith('ignoreuserfocus', 'true' ));
+      assert.isTrue(f.setAttribute.calledWith('remote', 'true'));
+      assert.isTrue(f.setAttribute.calledWith('ignoreuserfocus', 'true' ));
 
       assert.isTrue(stubGetManifestURL.calledWith(layout.manifestURL));
 
@@ -338,11 +384,11 @@ suite('InputFrameManager', function() {
         manifest: manifest
       });
 
-      var k = inputFrameManager._constructFrame(layout);
+      var f = inputFrameManager._constructFrame(layout);
 
-      assert.equal(k, fakeKeyboardElem);
-      assert.isFalse(k.setAttribute.calledWith('remote', 'true'));
-      assert.isFalse(k.setAttribute.calledWith('ignoreuserfocus', 'true' ));
+      assert.equal(f, fakeFrame);
+      assert.isFalse(f.setAttribute.calledWith('remote', 'true'));
+      assert.isFalse(f.setAttribute.calledWith('ignoreuserfocus', 'true' ));
 
       MockKeyboardManager.isOutOfProcessEnabled = oldIsOutOfProcessEnabled;
       MockKeyboardManager.totalMemory = oldTotalMemory;
@@ -358,11 +404,11 @@ suite('InputFrameManager', function() {
         manifest: manifest
       });
 
-      var k = inputFrameManager._constructFrame(layout);
+      var f = inputFrameManager._constructFrame(layout);
 
-      assert.equal(k, fakeKeyboardElem);
-      assert.isFalse(k.setAttribute.calledWith('remote', 'true'));
-      assert.isFalse(k.setAttribute.calledWith('ignoreuserfocus', 'true' ));
+      assert.equal(f, fakeFrame);
+      assert.isFalse(f.setAttribute.calledWith('remote', 'true'));
+      assert.isFalse(f.setAttribute.calledWith('ignoreuserfocus', 'true' ));
 
       MockKeyboardManager.isOutOfProcessEnabled = oldIsOutOfProcessEnabled;
     });
