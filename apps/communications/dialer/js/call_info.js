@@ -76,7 +76,7 @@
           if (group.type === 'incoming') {
             duration.setAttribute('data-l10n-id', 'missed');
           } else {
-            duration.setAttribute('data-l10n-id', 'cancelled');
+            duration.setAttribute('data-l10n-id', 'canceled');
           }
         } else {
           duration.textContent = Utils.prettyDuration(call.duration);

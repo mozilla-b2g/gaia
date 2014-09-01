@@ -12,7 +12,7 @@ class MessageThread(Base):
 
     _all_messages_locator = (By.CSS_SELECTOR, '#messages-container li.message')
     _received_message_content_locator = (By.CSS_SELECTOR, "#messages-container li.message.received")
-    _back_header_link_locator = (By.ID, 'messages-back-button')
+    _back_header_link_locator = (By.ID, 'messages-header')
     _message_header_locator = (By.ID, 'messages-header-text')
     _call_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="call"]')
 

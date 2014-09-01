@@ -211,14 +211,6 @@ li button.activity > b em {
   font-style: normal;
 }
 
-[data-type="list"] aside span[data-type="img"] {
-  box-shadow: none;
-}
-
-[data-type="list"] li[data-visited="true"] aside span[data-type="img"] {
-  box-shadow: 0 0 0 0.1rem #dedede;
-}
-
 [data-type="list"] li p {
   margin-left: 1.5rem;
 }
@@ -286,7 +278,6 @@ li button.activity > b em {
   z-index: 5;
   width: 100%;
   -moz-box-sizing: border-box;
-  padding: 1.5rem;
   background: #fff;
   color: #333;
   text-align: left;
@@ -356,8 +347,8 @@ li button.icon-fb-profile:before {
 }
 
 li button.icon-add:before {
-  background-image: url(/contacts/style/gphx/bitmap/default/buttons/plus_sign.png);
-  background-size: 3rem;
+  background-image: url(/contacts/style/images/Add_button.png);
+  left: 0.2rem
 }
 
 li button.icon-find-and-merge:before {
@@ -428,12 +419,13 @@ li button.icon-find-and-merge:before {
 /* MEDIA: specific ratio used in forms; */
 .fillflow-media {
   margin: 0 1rem 0.5rem 0;
-  width: 8.8rem;
-  height: 8.8rem;
+  width: 7rem;
+  height: 7rem;
   position: relative;
   z-index: 0;
-  border: 0.1rem solid #c7c7c7;
-  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid #c7c7c7;
+  background-color: #fff;
+  border-radius: 7rem;
 }
 
 .fillflow-media:active {
@@ -447,9 +439,10 @@ li button.icon-find-and-merge:before {
 
 .fillflow-media p {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  margin:0;
+  padding:0;
+  left:0;
+  top: 2rem;
   text-align: center;
   z-index: -1;
 }
@@ -457,10 +450,10 @@ li button.icon-find-and-merge:before {
 .fillflow-media p em {
   display: block;
   color: #858585;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: normal;
   font-style: italic;
-  margin-top: 0.2rem;
+  margin-top: 1.8rem;
 }
 
 .fillflow-media .edit-photo {
@@ -474,13 +467,13 @@ li button.icon-find-and-merge:before {
 }
 
 .fillflow-media .edit-photo em {
-  color: #fff;
-  text-shadow: 0 0 2px rgba(0, 0, 0, 0.9);
-  margin-top: 6rem;
+  color: #858585;
+  margin-top: 7rem;
 }
 
 .with-photo .edit-photo {
   display: block;
+  width: 7rem;
 }
 
 .fillflow-media #photo-button {
@@ -489,6 +482,7 @@ li button.icon-find-and-merge:before {
   background: none;
   margin: inherit;
   line-height: inherit;
+  padding: 0;
 }
 
 .fillflow-media img {
@@ -496,6 +490,11 @@ li button.icon-find-and-merge:before {
   height: 100%;
   background: #fff no-repeat center center;
   background-size: cover;
+}
+
+/* We don't need a delete button on the first section */
+.fillflow-media .img-delete-button {
+  display: none;
 }
 
 /* JUMPER */

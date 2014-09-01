@@ -437,12 +437,8 @@ var KeyboardManager = {
       this.hideKeyboard();
     }
 
-    for (var id in this.inputFrameManager.runningLayouts[manifestURL]) {
-      this.inputFrameManager.destroyFrame(manifestURL, id);
-      this.inputFrameManager.deleteRunningFrameRef(manifestURL, id);
-    }
+    this.inputFrameManager.removeKeyboard(manifestURL);
 
-    this.inputFrameManager.deleteRunningKeyboardRef(manifestURL);
     this.resetShowingLayoutInfo();
 
     if (handleOOM && revokeShowedType !== null) {
@@ -460,7 +456,7 @@ var KeyboardManager = {
     }
     this._debug('set layout to display: type=' + group + ' index=' + index);
     var layout = this.keyboardLayouts[group][index];
-    this.inputFrameManager.launchFrame(layout);
+    this.inputFrameManager.launchFrame(layout, launchOnly);
     this.setShowingLayoutInfo(group, index, layout);
 
     // By setting launchOnly to true, we load the keyboard frame w/o bringing it
@@ -499,12 +495,6 @@ var KeyboardManager = {
   // Reset the current keyboard frame
   resetShowingKeyboard: function km_resetShowingKeyboard() {
     this._debug('resetShowingKeyboard');
-
-    // XXX: this should never 'return' because showingLayoutInfo
-    // is never null/undefined/...?
-    if (!this.showingLayoutInfo) {
-      return;
-    }
 
     this.inputFrameManager.resetFrame(this.showingLayoutInfo.layout);
 

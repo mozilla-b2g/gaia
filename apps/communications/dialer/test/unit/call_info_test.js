@@ -406,13 +406,13 @@ suite('Call Info', function(argument) {
         groupReturn.type = previousType;
       });
 
-      test('cancelled calls', function() {
+      test('canceled calls', function() {
         groupReturn.type = 'dialing';
         CallInfo.show(fakeNumber, fakeDate, fakeType, fakeStatus);
         this.sinon.clock.tick();
 
         var durations = document.getElementsByClassName('cd__duration');
-        assert.equal(durations[0].getAttribute('data-l10n-id'), 'cancelled');
+        assert.equal(durations[0].getAttribute('data-l10n-id'), 'canceled');
       });
 
       test('missed calls', function() {

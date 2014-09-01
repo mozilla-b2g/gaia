@@ -822,8 +822,7 @@ suite('system/AppInstallManager >', function() {
           });
 
           test('notification should have a message', function() {
-            assert.equal(
-              fakeNotif.querySelector('.title-container').textContent,
+            assert.equal(fakeNotif.querySelector('.message').textContent,
               'downloadingAppMessage{"appName":"Fake hosted app with cache"}');
             assert.equal(fakeNotif.querySelector('progress').textContent,
               'downloadingAppProgressIndeterminate');
@@ -969,7 +968,7 @@ suite('system/AppInstallManager >', function() {
         test('notification should have a message', function() {
           var expectedText = 'downloadingAppMessage{"appName":"' +
             mockAppName + '"}';
-        assert.equal(fakeNotif.querySelector('.title-container').textContent,
+        assert.equal(fakeNotif.querySelector('.message').textContent,
           expectedText);
         });
 
@@ -1035,7 +1034,7 @@ suite('system/AppInstallManager >', function() {
           test('notification should have a message', function() {
             var expectedText = 'downloadingAppMessage{"appName":"' +
               mockAppName + '"}';
-          assert.equal(fakeNotif.querySelector('.title-container').textContent,
+          assert.equal(fakeNotif.querySelector('.message').textContent,
             expectedText);
           });
 

@@ -620,6 +620,14 @@ button::-moz-focus-inner {
   vertical-align: middle;
 }
 
+#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func[data-key="e"] > div > span,
+#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func[data-key="c"] > div > span {
+  font-size: 1.3rem;
+  line-height: 1.4rem;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 #lockscreen-passcode-pad > a.disabled {
   pointer-events: none;
 }

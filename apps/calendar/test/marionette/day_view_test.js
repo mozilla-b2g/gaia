@@ -292,7 +292,8 @@ marionette('day view', function() {
   });
 
   suite('12/24 hour format', function() {
-    test('default format: 12 hour', function() {
+    // Refer to http://bugzil.la/1061135.
+    test.skip('default format: 12 hour', function() {
       assert.equal(day.sideBarHours[0].text(), '12 AM');
       assert.equal(day.sideBarHours[13].text(), '1 PM');
       assert.equal(day.sideBarHours[23].text(), '11 PM');
@@ -304,7 +305,8 @@ marionette('day view', function() {
       assert.equal(day.currentTime.text(), currentTime);
     });
 
-    test('switch to 24 hour format', function() {
+    // Refer to http://bugzil.la/1061135.
+    test.skip('switch to 24 hour format', function() {
       app.switch24HourTimeFormat();
       assert.equal(day.sideBarHours[0].text(), '0');
       assert.equal(day.sideBarHours[13].text(), '13');

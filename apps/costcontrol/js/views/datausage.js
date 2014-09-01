@@ -1,5 +1,5 @@
 /* global _, ConfigManager, CostControl, debug, Toolkit, Formatting,
-          SimManager */
+          SimManager, Common */
 /* jshint -W120 */
 
 /*
@@ -97,8 +97,17 @@ var DataUsageTab = (function() {
           ConfigManager.observe('lastDataReset', updateDataUsage, true);
           ConfigManager.observe('nextReset', changeNextReset, true);
 
-          initialized = true;
-          requestDataUsage();
+          function finishInit() {
+            initialized = true;
+            requestDataUsage();
+          }
+
+          Common.loadApps()
+            .then(finishInit)
+            .catch(function(reason) {
+              debug(reason);
+              finishInit();
+            });
         });
       });
     });
@@ -178,7 +187,11 @@ var DataUsageTab = (function() {
     SimManager.requestDataSimIcc(function(dataSimIcc) {
       ConfigManager.requestSettings(dataSimIcc.iccId,
                                     function _onSettings(settings) {
-        var requestObj = { type: 'datausage' };
+
+        var manifestURLs = Common.allApps.map(function(app) {
+          return app.manifestURL;
+        });
+        var requestObj = { type: 'datausage', apps: manifestURLs };
         costcontrol.request(requestObj, updateCharts);
       });
     });
@@ -193,8 +206,12 @@ var DataUsageTab = (function() {
           var modelData = result.data;
           model.data.wifi.samples = modelData.wifi.samples;
           model.data.wifi.total = modelData.wifi.total;
+          model.data.wifi.apps = modelData.wifi.apps;
+
           model.data.mobile.samples = modelData.mobile.samples;
           model.data.mobile.total = modelData.mobile.total;
+          model.data.mobile.apps = modelData.mobile.apps;
+
           model.limits.enabled = settings.dataLimit;
           model.limits.value = getLimitInBytes(settings);
           model.axis.X.upper = calculateUpperDate(settings);
@@ -295,6 +312,59 @@ var DataUsageTab = (function() {
     return Math.abs(a - b) <= threshold;
   }
 
+  function getAppManifest(app) {
+    return app.manifest || app.updateManifest;
+  }
+
+  function getAppName(app) {
+    var manifest = getAppManifest(app);
+    var userLang = document.documentElement.lang;
+    var locales = manifest.locales;
+    var localized = locales && locales[userLang] && locales[userLang].name;
+
+    return localized || manifest.name;
+  }
+
+  function getAppIcon(app) {
+    var manifest = getAppManifest(app);
+    var icons = manifest.icons;
+    var defaultImage = '../style/images/app/icons/default.png';
+
+    if (!icons || !Object.keys(icons).length) {
+      return defaultImage;
+    }
+
+    // The preferred size is 30 by the default. If we use HDPI device, we may
+    // use the image larger than 30 * 1.5 = 45 pixels.
+    var preferredIconSize = 30 * (window.devicePixelRatio || 1);
+    var preferredSize = Number.MAX_VALUE;
+    var max = 0;
+
+    for (var size in icons) {
+      size = parseInt(size, 10);
+      if (size > max) {
+        max = size;
+      }
+
+      if (size >= preferredIconSize && size < preferredSize) {
+        preferredSize = size;
+      }
+    }
+    // If there is an icon matching the preferred size, we return the result,
+    // if there isn't, we will return the maximum available size.
+    if (preferredSize === Number.MAX_VALUE) {
+      preferredSize = max;
+    }
+
+    var url = icons[preferredSize];
+
+    if (url) {
+      return !(/^(http|https|data):/.test(url)) ? app.origin + url : url;
+    } else {
+      return defaultImage;
+    }
+  }
+
   // USER INTERFACE
 
   // On tapping on wifi toggle
@@ -304,6 +374,10 @@ var DataUsageTab = (function() {
     wifiItem.setAttribute('aria-disabled', !isChecked);
     // save wifi toggled state
     ConfigManager.setOption({ isWifiChartVisible: isChecked });
+
+    if (model) {
+      drawApps(model);
+    }
   }
 
   // On tapping on mobile toggle
@@ -320,6 +394,7 @@ var DataUsageTab = (function() {
       drawBackgroundLayer(model);
       drawAxisLayer(model);
       drawLimits(model);
+      drawApps(model);
     }
   }
 
@@ -389,6 +464,7 @@ var DataUsageTab = (function() {
     drawMobileGraphic(model);
     drawWarningOverlay(model);
     drawLimits(model);
+    drawApps(model);
   }
 
   function drawBackgroundLayer(model) {
@@ -845,6 +921,99 @@ var DataUsageTab = (function() {
       model.originX, 0,
       model.axis.X.len + 0.5, limitValueExceeded
     );
+  }
+
+  var cachedAppItems = {};
+  function drawApps(model) {
+    var mobileTotal = model.data.mobile.total;
+    var mobileApps = model.data.mobile.apps;
+    if (!mobileToggle.checked || !mobileApps) {
+      return;
+    }
+
+    var appList = document.getElementById('app-usage-list');
+    appList.innerHTML = '';
+
+    var manifests = Object.keys(mobileApps);
+    var noData = document.getElementById('app-usage-no-data');
+    if (manifests.length === 0) {
+      noData.style.display = 'inline';
+    } else {
+      noData.style.display = 'none';
+    }
+
+    function createAppItem(app) {
+      var appElement = document.createElement('li');
+      appElement.className = 'app-item';
+
+      var imgElement = document.createElement('img');
+      imgElement.className = 'app-image';
+      imgElement.src = getAppIcon(app);
+      appElement.appendChild(imgElement);
+
+      var appInfoElement = document.createElement('div');
+      appInfoElement.className = 'app-info';
+      appElement.appendChild(appInfoElement);
+
+      var nameElement = document.createElement('div');
+      nameElement.className = 'app-info-row app-name';
+      nameElement.textContent = getAppName(app);
+      appInfoElement.appendChild(nameElement);
+
+      var barElement = document.createElement('div');
+      barElement.className = 'app-info-row app-usage-bar';
+      appInfoElement.appendChild(barElement);
+
+      var usedBarElement = document.createElement('div');
+      usedBarElement.className = 'app-usage-bar-used';
+      barElement.appendChild(usedBarElement);
+
+      var usageElement = document.createElement('div');
+      usageElement.className = 'app-info-row app-usage-total';
+      appInfoElement.appendChild(usageElement);
+
+      return appElement;
+    }
+
+    function updateAppItemUsage(appItem, total) {
+      var usedBarElement =
+        appItem.getElementsByClassName('app-usage-bar-used')[0];
+      var totalElement =
+        appItem.getElementsByClassName('app-usage-total')[0];
+
+      var barTotal = mobileTotal;
+      if (model.limits.enabled && model.limits.value !== null) {
+        barTotal = Math.max(barTotal, model.limits.value);
+      }
+
+      var usedPercent = (total / barTotal) * 100;
+      usedBarElement.style.width = usedPercent + '%';
+      totalElement.textContent = '' + Formatting.formatData(
+        Formatting.roundData(total));
+    }
+
+    // Sort by total data usage, descending
+    manifests.sort(function(a, b) {
+      return mobileApps[b].total - mobileApps[a].total;
+    });
+
+    var fragment = document.createDocumentFragment();
+    manifests.forEach(function(manifestURL) {
+      var app = Common.allApps.find(function(app) {
+        return app.manifestURL === manifestURL;
+      });
+
+      var appTotal = mobileApps[manifestURL].total;
+      var appItem = cachedAppItems[manifestURL];
+      if (!appItem) {
+        appItem = cachedAppItems[manifestURL] = createAppItem(app);
+      }
+
+      updateAppItemUsage(appItem, appTotal);
+      fragment.appendChild(appItem);
+    });
+
+    appList.appendChild(fragment);
   }
 
   return {
