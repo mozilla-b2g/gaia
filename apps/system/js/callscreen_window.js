@@ -155,6 +155,7 @@
     setTimeout(function nextTick() {
       this.browser.element.src = src;
     }.bind(this));
+    this.setVisible(false);
   };
 
   CallscreenWindow.prototype.free = function() {
