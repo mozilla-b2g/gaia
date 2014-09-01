@@ -43,6 +43,14 @@ suite('system/LayoutManager >', function() {
       assert.isTrue(stubPublish.calledWith('orientationchange'));
     });
 
+    test('attention-inactive', function() {
+      var stubPublish = this.sinon.stub(layoutManager, 'publish');
+      layoutManager.handleEvent({
+        type: 'attention-inactive'
+      });
+      assert.isTrue(stubPublish.calledWith('system-resize'));
+    });
+
     test('keyboardchange', function() {
       var stubPublish = this.sinon.stub(layoutManager, 'publish');
       layoutManager.handleEvent({

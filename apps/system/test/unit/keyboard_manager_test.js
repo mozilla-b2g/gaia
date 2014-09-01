@@ -446,10 +446,15 @@ suite('KeyboardManager', function() {
       assert.ok(removeKeyboard.calledWith(fakeManifestURL));
     });
 
-    test('attentionopening event', function() {
-      trigger('attentionopening');
+    test('attentionrequestopen event', function() {
+      trigger('attentionrequestopen');
 
-      this.sinon.clock.tick();
+      sinon.assert.callCount(hideKeyboardImmediately, 1);
+    });
+
+    test('attentionrecovering event', function() {
+      trigger('attentionrecovering');
+
       sinon.assert.callCount(hideKeyboardImmediately, 1);
     });
 

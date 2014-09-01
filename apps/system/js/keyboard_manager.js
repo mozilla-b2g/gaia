@@ -127,6 +127,8 @@ var KeyboardManager = {
     window.addEventListener('activityrequesting', this);
     window.addEventListener('activityopening', this);
     window.addEventListener('activityclosing', this);
+    window.addEventListener('attentionrequestopen', this);
+    window.addEventListener('attentionrecovering', this);
     window.addEventListener('attentionopening', this);
     window.addEventListener('attentionopened', this);
     window.addEventListener('attentionclosing', this);
@@ -382,15 +384,13 @@ var KeyboardManager = {
   handleEvent: function km_handleEvent(evt) {
     var self = this;
     switch (evt.type) {
+      case 'attentionrequestopen':
+      case 'attentionrecovering':
       case 'attentionopening':
       case 'attentionclosing':
       case 'attentionopened':
       case 'attentionclosed':
-        // If we call hideKeyboardImmediately synchronously,
-        // attention window will not show up.
-        setTimeout(function hideKeyboardAsync() {
-          self.hideKeyboardImmediately();
-        }, 0);
+        self.hideKeyboardImmediately();
         break;
       case 'applicationsetupdialogshow':
       case 'activityrequesting':

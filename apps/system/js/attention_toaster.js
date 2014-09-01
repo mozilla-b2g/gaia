@@ -167,6 +167,7 @@
         this.app.element.classList.remove('displayed');
         this.app.element.classList.remove('toaster-mode');
         this.app.resized = false;
+        this.app.publish('recovering');
         this.app._resize();
       }
     },
