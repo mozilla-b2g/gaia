@@ -2,14 +2,24 @@
 /* exported ActionMenu */
 'use strict';
 
-function ActionMenu(list) {
+function ActionMenu(title) {
   var data;
   var contactActionMenu;
   var listContainer;
   var btnCancel;
+  var titleId = title;
 
   function init() {
     contactActionMenu = document.getElementById('action-menu');
+    // Prevent submit in the form
+    contactActionMenu.addEventListener('submit', function(evt) {
+      evt.preventDefault();
+    });
+
+    if (titleId) {
+      contactActionMenu.querySelector('#org-title').setAttribute(
+        'data-l10n-id', titleId);
+    }
     listContainer = document.getElementById('value-menu');
 
     data = {
@@ -18,7 +28,7 @@ function ActionMenu(list) {
   }
 
   this.show = function() {
-    render();
+    render(this);
     contactActionMenu.classList.remove('hide');
   };
 
@@ -28,7 +38,7 @@ function ActionMenu(list) {
     listContainer.innerHTML = '';
   };
 
-  function render() {
+  function render(self) {
     for (var i = 0, l = data.list.length; i < l; i++) {
       var button = document.createElement('button');
       button.textContent = data.list[i].label;
@@ -46,7 +56,7 @@ function ActionMenu(list) {
     btnCancel.textContent = _('cancel');
 
     btnCancel.addEventListener('click', function() {
-      this.hide();
+      self.hide();
     });
 
     listContainer.appendChild(btnCancel);
@@ -57,9 +67,13 @@ function ActionMenu(list) {
   }
 
   this.addToList = function (label, callback) {
+    var self = this;
     data.list.push({
       label: label,
-      callback: callback
+      callback: function() {
+        callback();
+        self.hide();
+      }
     });
   };
 
