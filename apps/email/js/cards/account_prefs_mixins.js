@@ -128,7 +128,7 @@ define(function(require) {
     updateSignatureButton: function() {
       // Allow the text to be just whitespace, but treat it as
       // empty as far as labeling is concerned.
-      var text = this.identity.signature,
+      var text = this.identity.signature || '',
           isEmpty = text.trim().length === 0,
           node = this.signatureButton.firstElementChild;
 
