@@ -150,6 +150,10 @@
   z-index: 1001;
 }
 
+.appWindow.fullscreen-app[data-shrinking-state="true"] > .titlebar {
+  transform: translateY(0);
+}
+
 #screen:-moz-full-screen-ancestor .appWindow > .titlebar.dragged,
 .appWindow.fullscreen-app > .titlebar.dragged {
   transform: translateY(0);
