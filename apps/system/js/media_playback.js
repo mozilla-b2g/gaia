@@ -14,6 +14,13 @@ function MediaPlaybackWidget(container, options) {
   this.nextButton = container.querySelector('.next');
 
   this.container.addEventListener('click', this);
+  this.previousButton.addEventListener('contextmenu', this);
+  this.nextButton.addEventListener('contextmenu', this);
+  this.previousButton.addEventListener('touchend', this);
+  this.nextButton.addEventListener('touchend', this);
+
+  this.isFastSeeking = false;
+
   window.addEventListener('iac-mediacomms', this.handleMessage.bind(this));
   // When SCO status changes, we need to adjust the ui of the playback controls
   window.addEventListener(
@@ -132,29 +139,53 @@ MediaPlaybackWidget.prototype = {
 
   handleEvent: function mp_handleEvent(event) {
     var port = IACHandler.getPort('mediacomms');
-    if (!port) {
+    var target = event.target;
+    if (!port || !target) {
       return;
     }
 
-    var target = event.target;
     var command = null;
 
-    switch (target) {
-      case this.previousButton:
-        command = 'prevtrack';
-        break;
-      case this.playPauseButton:
-        // The play/pause indicator will get set once the music app replies with
-        // its "mode" message, but this will make us appear speedier.
-        if (target.dataset.icon === 'play') {
-          target.dataset.icon = 'pause';
-        } else {
-          target.dataset.icon = 'play';
+    switch (event.type) {
+      case 'click':
+        switch (target) {
+          case this.previousButton:
+            command = 'prevtrack';
+            break;
+          case this.playPauseButton:
+            // The play/pause indicator will get set once the music app replies
+            // with its "mode" message, but this will make us appear speedier.
+            target.classList.toggle('is-paused');
+            command = 'playpause';
+            break;
+          case this.nextButton:
+            command = 'nexttrack';
+            break;
         }
-        command = 'playpause';
         break;
-      case this.nextButton:
-        command = 'nexttrack';
+      case 'contextmenu':
+        this.isFastSeeking = true;
+        switch (target) {
+          case this.previousButton:
+            command = 'rewindstart';
+            break;
+          case this.nextButton:
+            command = 'fastforwardstart';
+            break;
+        }
+        break;
+      case 'touchend':
+        if (this.isFastSeeking) {
+          this.isFastSeeking = false;
+          switch (target) {
+            case this.previousButton:
+              command = 'rewindend';
+              break;
+            case this.nextButton:
+              command = 'fastforwardend';
+              break;
+          }
+        }
         break;
     }
 
