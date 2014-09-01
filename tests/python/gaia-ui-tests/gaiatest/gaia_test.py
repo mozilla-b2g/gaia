@@ -560,6 +560,15 @@ class GaiaDevice(object):
         Wait(self.marionette, timeout).until(expected.element_present(
             By.CSS_SELECTOR, '#homescreen[loading-state=false]'))
 
+        # Wait for logo to be hidden
+        self.marionette.set_search_timeout(0)
+        try:
+            Wait(self.marionette, timeout, ignored_exceptions=StaleElementException).until(
+                lambda m: not m.find_element(By.ID, 'os-logo').is_displayed())
+        except NoSuchElementException:
+            pass
+        self.marionette.set_search_timeout(self.marionette.timeout or 10000)
+
     @property
     def is_b2g_running(self):
         return 'b2g' in self.manager.shellCheckOutput(['toolbox', 'ps'])
