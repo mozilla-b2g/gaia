@@ -348,7 +348,14 @@
     if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) &&
         this.isOnCall()) {
       this.changeVolume(offset, 'bt_sco');
-    } else if (this.isHeadsetConnected && offset > 0) {
+      return;
+    }
+
+    if (System.locked && this.currentChannel === 'none') {
+      return;
+    }
+
+    if (this.isHeadsetConnected && offset > 0) {
       this.headsetVolumeup();
     } else {
       this.changeVolume(offset);

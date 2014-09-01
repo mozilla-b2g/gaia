@@ -2,7 +2,7 @@
 
 /* global MocksHelper, MockL10n, SoundManager, MockSettingsListener, MockLock,
           MockScreenManager, MockNavigatorSettings, MockasyncStorage,
-          MockCustomDialog */
+          MockCustomDialog, System */
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -332,6 +332,62 @@ suite('system/sound manager', function() {
 
         assert.isTrue(
                   MockNavigatorSettings.mSettings['audio.volume.content'] > 0);
+      });
+
+      suite('Locked screen', function() {
+        suiteSetup(function() {
+          System.locked = true;
+        });
+
+        suiteTeardown(function() {
+          System.locked = false;
+        });
+
+        test('volume up with channel none', function() {
+          soundManager.currentChannel = 'none';
+          window.dispatchEvent(new CustomEvent('volumeup'));
+          checkVolume({
+            'alarm': 5,
+            'bt_sco': 5,
+            'content': 5,
+            'notification': 5,
+            'telephony': 5
+          });
+        });
+
+        test('volume down with channel none', function() {
+          soundManager.currentChannel = 'none';
+          window.dispatchEvent(new CustomEvent('volumedown'));
+          checkVolume({
+            'alarm': 5,
+            'bt_sco': 5,
+            'content': 5,
+            'notification': 5,
+            'telephony': 5
+          });
+        });
+
+        test('volume up with channel-normal', function() {
+          window.dispatchEvent(new CustomEvent('volumeup'));
+          checkVolume({
+            'alarm': 5,
+            'bt_sco': 5,
+            'content': 6,
+            'notification': 5,
+            'telephony': 5
+          });
+        });
+
+        test('volume down with channel-normal', function() {
+          window.dispatchEvent(new CustomEvent('volumedown'));
+          checkVolume({
+            'alarm': 5,
+            'bt_sco': 5,
+            'content': 4,
+            'notification': 5,
+            'telephony': 5
+          });
+        });
       });
     });
 
