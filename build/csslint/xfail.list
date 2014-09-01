@@ -66,7 +66,6 @@ apps/system/style/system/system.css 0 2
 apps/system/style/lockscreen/lockscreen.css 1 2
 apps/system/style/system/keyboard.css 0 1
 apps/system/style/system/system.css 0 2
-apps/system/style/update_manager/update_manager.css 1 0
 apps/system/style/window.css 0 3
 apps/system/style/zindex.css 0 2
 apps/video/style/info.css 0 2

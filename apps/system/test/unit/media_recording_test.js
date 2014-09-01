@@ -90,8 +90,7 @@ suite('system/media recording', function() {
     });
 
     test('show icon', function() {
-      assert.equal(mediaRecording.messages[0].icon,
-        'url(style/media_recording/images/Microphone.png)');
+      assert.equal(mediaRecording.messages[0].icon, 'mic');
     });
   });
 
@@ -105,8 +104,7 @@ suite('system/media recording', function() {
     });
 
     test('show icon', function() {
-      assert.equal(mediaRecording.messages[0].icon,
-        'url(style/media_recording/images/Camera.png)');
+      assert.equal(mediaRecording.messages[0].icon, 'video');
     });
   });
 
@@ -120,8 +118,7 @@ suite('system/media recording', function() {
     });
 
     test('show icon', function() {
-      assert.equal(mediaRecording.messages[0].icon,
-        'url(style/media_recording/images/VideoRecorder.png)');
+      assert.equal(mediaRecording.messages[0].icon, 'video-mic');
     });
   });
 

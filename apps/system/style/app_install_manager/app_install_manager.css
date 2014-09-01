@@ -47,46 +47,40 @@
 #app-install-cancel-dialog small:first-child {
   margin-bottom: 1rem;
 }
+
 /* ... end of dialog */
 
 /* notification */
 #install-manager-notification-container > .fake-notification {
-  padding: 1rem 1rem 1rem 6rem;
-  -moz-box-sizing: border-box;
-
-  background-repeat: no-repeat;
-  background-position: 1.5rem center;
-  background-size: 3rem;
-  background-image: url(images/downloads.png);
+  position: relative;
+  border-bottom: none;
 }
 
 #install-manager-notification-container > .fake-notification > * {
   pointer-events: none;
 }
 
-#install-manager-notification-container progress {
-  width: 100%;
-  height: 0.3rem;
+#install-manager-notification-container [data-icon] {
+  color: #9ab0c0;
+  background-color: #edf1f4;
+}
 
+#install-manager-notification-container .title-container {
+  margin: 1.4rem 0 0 3.7rem;
+  line-height: 3rem;
+}
+
+#install-manager-notification-container progress {
+  position: absolute;
+  width: 100%;
+  height: 0.4rem;
+  left: 0;
+  top: 5.6rem;
   border: none;
 }
 
 #install-manager-notification-container progress::-moz-progress-bar {
-  background: #ec860f;
-  border-bottom: 0.1rem solid #b96100;
-  border-top: 0.2rem solid #e67200;
-}
-
-#install-manager-notification-container progress:indeterminate::-moz-progress-bar {
-  background: url(../shared/progress.gif) #f2aa56;
-  background-size: auto 0.3rem;
-  border: none;
-}
-
-#install-manager-notification-container .message {
-  line-height: 2rem;
-  font-weight: 700;
-  font-size: 1.6rem;
+  background: url(../shared/progress.gif) repeat-x;
 }
 
 /* ... end of notification */
@@ -135,6 +129,7 @@ ul#ime-list > li > label.pack-checkbox.ime ~ a {
 }
 
 ul#ime-list > li > label.pack-switch ~ a {
-   padding-right: 9rem;
+  padding-right: 9rem;
 }
+
 /* ... end of keyboard layout */

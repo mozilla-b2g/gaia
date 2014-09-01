@@ -45,6 +45,8 @@ var NotificationScreen = {
 
   init: function ns_init() {
     window.addEventListener('mozChromeNotificationEvent', this);
+    this.notificationsContainer =
+      document.getElementById('notifications-container');
     this.container =
       document.getElementById('desktop-notifications-container');
     this.lockScreenContainer =
@@ -316,7 +318,8 @@ var NotificationScreen = {
   },
 
   updateTimestamps: function ns_updateTimestamps() {
-    var timestamps = document.getElementsByClassName('timestamp');
+    var timestamps =
+      this.notificationsContainer.getElementsByClassName('timestamp');
     for (var i = 0, l = timestamps.length; i < l; i++) {
       timestamps[i].textContent =
         this.prettyDate(new Date(timestamps[i].dataset.timestamp));
