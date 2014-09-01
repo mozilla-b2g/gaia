@@ -1,3 +1,6 @@
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 // handle Bluetooth settings
@@ -9,23 +12,15 @@ navigator.mozL10n.once(function bluetoothSettings() {
   };
 
   var _ = navigator.mozL10n.get;
-  var l10n = navigator.mozL10n;
-  var settings = navigator.mozSettings;
-  var bluetooth = navigator.mozBluetooth;
+  var settings = Settings.mozSettings;
+  var bluetooth = getBluetooth();
   var defaultAdapter = null;
-
-  const DEVICE_CONNECTED_KEY = 'bluetooth.device.connected';
 
   var MAX_DEVICE_NAME_LENGTH = 20;
 
   if (!settings || !bluetooth) {
     return;
   }
-
-  var backToSettingsBtn = document.getElementById('settings-back');
-  backToSettingsBtn.onclick = function backToSettings() {
-    window.close();
-  };
 
   var gBluetoothCheckBox = document.querySelector('#bluetooth-status input');
 
@@ -101,16 +96,10 @@ navigator.mozL10n.once(function bluetoothSettings() {
     };
 
     updateNameCancelButton.onclick = function updateNameCancelClicked(evt) {
-      if (evt)
-        evt.preventDefault();
-
       updateNameDialog.hidden = true;
     };
 
     updateNameConfirmButton.onclick = function updateNameConfirmClicked(evt) {
-      if (evt)
-        evt.preventDefault();
-
       var nameEntered = updateNameInput.value;
       nameEntered = nameEntered.replace(/^\s+|\s+$/g, '');
 
@@ -347,26 +336,27 @@ navigator.mozL10n.once(function bluetoothSettings() {
       var deviceName = document.createElement('span');
       if (device.name !== '') {
         deviceName.textContent = device.name;
-        deviceName.dataset.l10nId = '';
+        deviceName.removeAttribute('data-l10n-id');
       } else {
-        l10n.localize(deviceName, 'unnamed-device');
+        deviceName.setAttribute('data-l10n-id', 'unnamed-device');
       }
 
       var deviceDesc = document.createElement('small');
       if (descL10nId) {
-        l10n.localize(deviceDesc, descL10nId);
+        deviceDesc.setAttribute('data-l10n-id', descL10nId);
       } else {
         deviceDesc.textContent = '';
-        deviceDesc.dataset.l10nId = '';
+        deviceDesc.removeAttribute('data-l10n-id');
       }
 
-      var a = document.createElement('a');
-      a.appendChild(deviceName);
-      a.appendChild(deviceDesc);
       var li = document.createElement('li');
+      var anchor = document.createElement('a');
       li.classList.add('bluetooth-device');
       li.classList.add('bluetooth-type-' + device.icon);
-      li.appendChild(a);
+
+      anchor.appendChild(deviceName);
+      anchor.appendChild(deviceDesc); // should append this first
+      li.appendChild(anchor);
 
       return li;
     }
@@ -443,17 +433,14 @@ navigator.mozL10n.once(function bluetoothSettings() {
     }
 
     function restoreConnection() {
-      // Reconnect the one kept in settings key.
-      var connectedDevice =
-        settings.createLock().get(DEVICE_CONNECTED_KEY);
-      connectedDevice.onsuccess = function bt_getConnectedDevice() {
-        var address = connectedDevice.result[DEVICE_CONNECTED_KEY];
-        if (!address || !pairList.index[address])
+      // Reconnect the one kept in the async storage.
+      window.asyncStorage.getItem('device.connected', function(value) {
+        if (!value || !pairList.index[value])
           return;
 
-        var device = pairList.index[address].device;
+        var device = pairList.index[value].device;
         setDeviceConnect(device);
-      };
+      });
     }
 
     function getPairedDevice(callback) {
@@ -490,7 +477,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
             if (device.address === connectingAddress &&
                 device.icon === 'audio-card') {
               var small = aItem.querySelector('small');
-              l10n.localize(small, 'device-status-connecting');
+              small.setAttribute('data-l10n-id', 'device-status-connecting');
               setTimeout(function() {
                 setDeviceConnect(device);
               }, 5000);
@@ -588,7 +575,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
       if (existingDevice) {
         var existingItem = existingDevice.item;
         if (device.name && existingItem) {
-          var deviceName = existingItem.querySelector('a > span');
+          var deviceName = existingItem.querySelector('span');
           if (deviceName) {
             deviceName.dataset.l10nId = '';
             deviceName.textContent = device.name;
@@ -606,7 +593,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
           return;
 
         var small = aItem.querySelector('small');
-        l10n.localize(small, 'device-status-pairing');
+        small.setAttribute('data-l10n-id', 'device-status-pairing');
         this.setAttribute('aria-disabled', true);
         stopDiscovery();
 
@@ -663,7 +650,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
           var item = openList.index[workingAddress].item;
           var small = item.querySelector('small');
           item.removeAttribute('aria-disabled');
-          l10n.localize(small, 'device-status-tap-connect');
+          small.setAttribute('data-l10n-id', 'device-status-tap-connect');
         }
       }
       // acquire a new paired list no matter paired or unpaired
@@ -741,7 +728,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
         var small =
           pairList.index[connectingAddress].item.querySelector('small');
-        l10n.localize(small, 'device-status-connecting');
+        small.setAttribute('data-l10n-id', 'device-status-connecting');
       };
 
       // disconnect current connected device first
@@ -774,13 +761,11 @@ navigator.mozL10n.once(function bluetoothSettings() {
         connectedAddress = deviceAddress;
         // record connected device so if Bluetooth is turned off and then on
         // we can restore the connection
-        settings.createLock().set({
-          'bluetooth.device.connected': connectedAddress
-        });
+        window.asyncStorage.setItem('device.connected', connectedAddress);
       } else {
         if (connectedAddress === deviceAddress) {
           connectedAddress = null;
-          settings.createLock().set({'bluetooth.device.connected': null});
+          window.asyncStorage.removeItem('device.connected');
         }
       }
 
@@ -788,9 +773,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
       var hfpConnected = deviceItem.connectedProfiles[Profiles.HFP];
       var a2dpConnected = deviceItem.connectedProfiles[Profiles.A2DP];
       if (hfpConnected && a2dpConnected) {
-        l10nId = 'device-status-connected-phone-media';
+        l10nId = 'device-status-connected-device-media';
       } else if (hfpConnected) {
-        l10nId = 'device-status-connected-phone';
+        l10nId = 'device-status-connected-device';
       } else if (a2dpConnected) {
         l10nId = 'device-status-connected-media';
       } else {
@@ -799,10 +784,10 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
       var small = pairList.index[deviceAddress].item.querySelector('small');
       if (l10nId) {
-        l10n.localize(small, l10nId);
+        small.setAttribute('data-l10n-id', l10nId);
       } else {
         small.textContent = '';
-        small.dataset.l10nId = '';
+        small.removeAttribute('data-l10n-id');
       }
     }
 
@@ -897,7 +882,6 @@ navigator.mozL10n.once(function bluetoothSettings() {
     initialDefaultAdapter();
     dispatchEvent(new CustomEvent('bluetooth-adapter-added'));
   });
-
   bluetooth.addEventListener('disabled', function() {
     gBluetoothCheckBox.disabled = false;  // enable UI toggle
     defaultAdapter = null;  // clear defaultAdapter
