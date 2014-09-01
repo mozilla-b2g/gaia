@@ -90,7 +90,7 @@ MediaPlaybackContainer.prototype = {
   },
 
   get isPlaying() {
-    return this.playPauseElement.getAttribute('data-icon') === 'pause';
+    return this.playPauseElement.dataset.icon === 'pause';
   },
 
   previousTrack: function() {
