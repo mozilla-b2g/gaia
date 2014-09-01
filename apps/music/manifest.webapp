@@ -63,5 +63,6 @@
   "orientation": "default",
   "messages": [
      { "media-button": "/index.html#mix" }
-  ]
+  ],
+ "messages": ["headset-button"]
 }

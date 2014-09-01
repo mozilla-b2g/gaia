@@ -36,6 +36,18 @@ if (acm) {
     }
   });
 }
+window.navigator.mozSetMessageHandler('headset-button',function headsetCommandHandler(message)
+{
+ if (message == 'headset-button-press' && PlayerView.playStatus === PLAYSTATUS_PLAYING) {
+      PlayerView.playStatus = PLAYSTATUS_PAUSED;
+      PlayerView.pause();
+      PlayerView.updateRemotePlayStatus();
+    } else if (message == 'headset-button-press' && PlayerView.playStatus === PLAYSTATUS_PAUSED ){
+      PlayerView.playStatus = PLAYSTATUS_PLAYING;
+      PlayerView.play();
+      PlayerView.updateRemotePlayStatus();
+    }
+ });
 
 // View of Player
 var PlayerView = {
