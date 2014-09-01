@@ -18,6 +18,8 @@ function init() {
       console.error('Error while sending a notification', err);
     });
   });
+
+  document.addEventListener('visibilitychange', onVisibilityChange);
 }
 
 function sendNotification() {
@@ -56,10 +58,22 @@ function sendNotification() {
   });
 }
 
+function closeApp() {
+  // make sure we close both parent and child window
+  window.opener ? window.opener.close() : window.close();
+}
+
 function onFormSubmit(e) {
   e.preventDefault();
   // Close parent(if exist) and child attention window after user click ok
-  window.opener ? window.opener.close() : window.close();
+  closeApp();
+}
+
+function onVisibilityChange() {
+  // Close app when app resized as top banner and moved to background
+  if (document.hidden && !document.querySelector('h1').clientHeight) {
+    closeApp();
+  }
 }
 
 function renderForm() {
