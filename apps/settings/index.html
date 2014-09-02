@@ -83,7 +83,6 @@
     <!--<script defer src="shared/js/mobile_operator.js"></script>-->
     <!--<script defer src="shared/js/async_storage.js"></script>-->
     <!--<script defer src="shared/js/wifi_helper.js"></script>-->
-    <!--<script defer src="shared/js/bluetooth_helper.js"></script>-->
     <!--<script defer src="shared/js/settings_helper.js"></script> -->
     <!--<script defer src="shared/js/settings_listener.js"></script> -->
     <!--<script defer src="shared/js/airplane_mode_helper.js"></script> -->
@@ -131,6 +130,7 @@
     <link rel="import" href="/elements/carrier_dr_warning.html">
     <link rel="import" href="/elements/carrier_iccs.html">
     <link rel="import" href="/elements/carrier.html">
+    <link rel="import" href="/elements/bluetooth.html">
     <link rel="import" href="/elements/hotspot_wifi_settings.html">
     <link rel="import" href="/elements/hotspot.html">
     <link rel="import" href="/elements/sound.html">
@@ -267,6 +267,8 @@
     <section is="carrier-iccs" role="region" id="carrier-iccs"></section>
     <!-- Connectivity :: Cellular & Data -->
     <section is="carrier" role="region" id="carrier" data-require-sub-panels="true"></section>
+    <!-- Connectivity :: Bluetooth -->
+    <section is="bluetooth" role="region" id="bluetooth"></section>
     <!-- Connectivity :: Internet Sharing :: Portable Wi-Fi Hotspot -->
     <section is="hotspot-wifiSettings" role="region" id="hotspot-wifiSettings"></section>
     <!-- Connectivity :: Internet Sharing -->
@@ -430,9 +432,9 @@
             </a>
           </li>
           <li>
-            <a class="menuItem-bluetooth menu-item" data-icon="bluetooth" href="#app:bluetooth">
+            <a id="menuItem-bluetooth" class="menu-item" data-icon="bluetooth" href="#bluetooth">
               <span data-l10n-id="bluetooth">Bluetooth</span>
-              <small class="bluetooth-desc menu-item-desc"></small>
+              <small id="bluetooth-desc" class="menu-item-desc"></small>
             </a>
           </li>
           <li class="nfc-settings" hidden>

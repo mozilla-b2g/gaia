@@ -25,13 +25,14 @@ define(function(require) {
           return;
         }
 
+        var self = this;
         iframe = document.createElement('iframe');
         iframe.setAttribute('mozapp', options.mozapp);
         iframe.setAttribute('mozbrowser', true);
         iframe.src = options.src;
         iframe.addEventListener('mozbrowserclose', this._onBrowserClose);
         iframe.addEventListener('mozbrowsershowmodalprompt', function(e) {
-          var message = e.detail.message;
+          var message = self._escapeHTML(e.detail.message);
           var initialValue = e.detail.initialValue;
           var type = e.detail.promptType;
 
@@ -58,6 +59,13 @@ define(function(require) {
       },
       _onBrowserClose: function() {
         SettingsService.back();
+      },
+      _escapeHTML: function(str) {
+        var span = document.createElement('span');
+        span.textContent = str;
+        // Escape space for displaying multiple space in message.
+        span.innerHTML = span.innerHTML.replace(/\n/g, '<br/>');
+        return span.innerHTML;
       }
     });
   };

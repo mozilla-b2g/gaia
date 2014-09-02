@@ -223,6 +223,23 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
 })();
 
 /**
+ * Connectivity accessors
+ */
+var getMobileConnection = function() {
+  var mobileConnection = navigator.mozMobileConnections &&
+      navigator.mozMobileConnections[0];
+
+  if (mobileConnection && mobileConnection.data) {
+    return mobileConnection;
+  }
+  return null;
+};
+
+var getBluetooth = function() {
+  return navigator.mozBluetooth;
+};
+
+/**
  * The function returns an object of the supporting state of category of network
  * types. The categories are 'gsm', 'cdma', and 'lte'.
  */
