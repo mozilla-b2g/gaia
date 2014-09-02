@@ -1756,6 +1756,12 @@ suite('Render contacts list', function() {
       sinon.assert.calledOnce(MockAlphaScroll.showGroup);
       sinon.assert.calledWith(MockAlphaScroll.showGroup, 'ice');
     });
+
+    test('> after a list reload, the ice group appears', function() {
+      subject.load(null, true);
+      var iceGroup = document.getElementById('section-group-ice');
+      assert.isNotNull(iceGroup);
+    });
   });
 
   suite('Default images', function() {

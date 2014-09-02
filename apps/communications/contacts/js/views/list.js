@@ -1577,6 +1577,7 @@ contacts.List = (function() {
       cancelLoadCB = resetDom.bind(null, cb);
       return;
     }
+    iceGroup = null;
     utils.dom.removeChildNodes(groupsList);
     headers = {};
     loadedContacts = {};
