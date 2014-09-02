@@ -1,5 +1,5 @@
 /* global fb, utils, ImportStatusData,
-          ServicesLauncher, LazyLoader */
+          ServicesLauncher */
 /* exported ImportIntegration,
             FacebookConfiguration */
 'use strict';
@@ -83,10 +83,7 @@ var ImportIntegration = {
         // token data and the number of imported friends in order to have
         // consistency
         this.updateContactsNumber();
-        LazyLoader.load(['/shared/js/contacts/import/import_status_data.js'], 
-            function() {
-          ImportStatusData.put(fb.utils.SCHEDULE_SYNC_KEY, Date.now());
-        });
+        ImportStatusData.put(fb.utils.SCHEDULE_SYNC_KEY, Date.now());
         break;
     }
   },
