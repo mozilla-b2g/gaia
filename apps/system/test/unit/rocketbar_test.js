@@ -266,6 +266,14 @@ suite('system/Rocketbar', function() {
     assert.ok(handleSearchMessageStub.calledOnce);
   });
 
+  test('handleEvent() - open-app', function() {
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    window.dispatchEvent(new CustomEvent('open-app'));
+    assert.ok(deactivateStub.calledOnce);
+    assert.ok(hideResultsStub.calledOnce);
+  });
+
   test('handleEvent() - permissiondialoghide: active', function() {
     var focusStub = this.sinon.stub(subject, 'focus');
     var event = {type: 'permissiondialoghide'};
