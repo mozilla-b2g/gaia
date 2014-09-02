@@ -23,32 +23,50 @@ suite('AlternativesCharMenuManager', function() {
       };
     }.bind(this);
 
+    // Create fake menu container element
+    container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '5px';
+    container.style.top = '40px';
+    container.style.width = '60px';
+    container.style.height = '10px';
+    container.id = 'test-menu';
+
+    var child1 = document.createElement('div');
+    child1.style.width = '30px';
+    child1.style.height = '100%';
+    child1.id = 'key1';
+    container.appendChild(child1);
+
+    var child2 = document.createElement('div');
+    child2.style.width = '30px';
+    child2.style.height = '100%';
+    child2.id = 'key2';
+    container.appendChild(child2);
+
+    document.body.appendChild(container);
+
     // Create fake IMERender
     window.IMERender = {
       showAlternativesCharMenu: function(target, alternatives) {
-        // Use an Array to simulate a NodeList
-        container.children = alternatives.map(function(key) {
-          return {};
-        });
+        return {
+          getMenuContainer: function() {
+            return container;
+          },
+          getBoundingClientRect: function() {
+            return container.getBoundingClientRect();
+          },
+          getLineHeight: function() {
+            return 10;
+          }
+        };
       },
       hideAlternativesCharMenu: this.sinon.stub()
     };
     this.sinon.spy(window.IMERender, 'showAlternativesCharMenu');
 
-    // Create fake menu container element
-    container = getFakeElementWithGetBoundingClientRect();
-    container.getBoundingClientRect.returns({
-      top: 35,
-      bottom: 45,
-      left: 5,
-      right: 95
-    });
-
     // Create fake app
     app = {
-      getMenuContainer: function() {
-        return container;
-      },
       upperCaseStateManager: {
         isUpperCaseLocked: undefined,
         isUpperCase: undefined
@@ -67,7 +85,8 @@ suite('AlternativesCharMenuManager', function() {
       top: 50,
       bottom: 60,
       left: 10,
-      right: 40
+      right: 40,
+      width: 30
     });
 
     // Show an alternatives chars menu
@@ -209,12 +228,21 @@ suite('AlternativesCharMenuManager', function() {
           clientY: 55
         };
 
-        assert.equal(manager.isInMenuArea(press), false);
+        assert.equal(manager.isInMenuArea(press), true);
       });
 
       test('right of menu', function() {
         var press = {
-          clientX: 105,
+          clientX: 80,
+          clientY: 55
+        };
+
+        assert.equal(manager.isInMenuArea(press), true);
+      });
+
+      test('right of menu, exceeds the key width', function() {
+        var press = {
+          clientX: 150,
           clientY: 55
         };
 
@@ -227,7 +255,8 @@ suite('AlternativesCharMenuManager', function() {
           clientY: 40
         };
 
-        assert.equal(manager.isInMenuArea(press), false);
+        // We've extend the locked area to include the menu itself.
+        assert.equal(manager.isInMenuArea(press), true);
       });
 
       test('on top of the key', function() {
