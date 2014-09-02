@@ -65,7 +65,8 @@ marionette('Vertical - Collection', function() {
     });
   });
 
-  test('create collection offline succeeds if response is cached',
+  // Refer to http://bugzil.la/1061458.
+  test.skip('create collection offline succeeds if response is cached',
     function() {
       var name1 = 'Around Me';
       var name2 = 'Astrology';
