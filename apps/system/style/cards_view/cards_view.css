@@ -14,14 +14,14 @@
 
 @media not all and (-moz-physical-home-button) {
   #screen:not(.software-button-disabled) #cards-view {
-    height: calc(100% - 5rem);
-    bottom: 5rem;
+    height: calc(100% - var(--software-home-button-height));
+    bottom: var(--software-home-button-height);
   }
 }
 
 #screen.software-button-enabled #cards-view {
-  height: calc(100% - 5rem);
-  bottom: 5rem;
+  height: calc(100% - var(--software-home-button-height));
+  bottom: var(--software-home-button-height);
 }
 
 #cards-view.active {

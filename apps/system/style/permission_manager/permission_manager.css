@@ -11,7 +11,7 @@
 }
 
 #screen.fullscreen-layout-app.software-button-enabled #permission-screen {
-  height: calc(100% - 5rem);
+  height: calc(100% - var(--software-home-button-height));
 }
 
 @media (orientation: landscape) {
@@ -44,29 +44,29 @@
 
 @media not all and (-moz-physical-home-button) {
   #screen:not(.software-button-disabled) #permission-screen {
-    height: calc(100% - 5rem);
+    height: calc(100% - var(--software-home-button-height));
   }
 
   #screen.attention:not(.software-button-disabled) #permission-screen {
-    height: calc(100% - 4rem - 5rem);
+    height: calc(100% - 4rem - var(--software-home-button-height));
   }
 
   #screen.fullscreen-app:not(.software-button-disabled) #permission-screen {
-    height: calc(100% - 5rem);
+    height: calc(100% - var(--software-home-button-height));
   }
 }
 
 #screen.software-button-enabled #permission-screen {
-  height: calc(100% - 5rem);
+  height: calc(100% - var(--software-home-button-height));
 }
 
 #screen.software-button-enabled.attention #permission-screen {
-  height: calc(100% - 4rem - 5rem);
+  height: calc(100% - 4rem - var(--software-home-button-height));
 }
 
 
 #screen.software-button-enabled.fullscreen-app #permission-screen {
-  height: calc(100% - 5rem);
+  height: calc(100% - var(--software-home-button-height));
 }
 
 #permission-title {

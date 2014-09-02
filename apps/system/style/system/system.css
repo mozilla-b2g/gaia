@@ -276,8 +276,8 @@ body {
 }
 
 #screen.software-button-enabled #windows + #dialog-overlay {
-  bottom: 5rem;
-  height: calc(100% - 3rem - 5rem);
+  bottom: var(--software-home-button-height);
+  height: calc(100% - 3rem - var(--software-home-button-height));
 }
 
 #screen.active-statusbar #dialog-overlay,
@@ -338,7 +338,7 @@ body {
 
 /* Banner should be offset when software home button is enabled */
 #screen.software-button-enabled .generic-dialog.banner {
-  bottom: 5rem;
+  bottom: var(--software-home-button-height);
 }
 
 .generic-dialog.banner.visible {

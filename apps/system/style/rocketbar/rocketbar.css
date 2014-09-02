@@ -131,9 +131,9 @@
 }
 
 /* Rocketbar results is normally 7rem tall and should be adjusted by the
-   height of the SHB of 5rem when enabled */
+   height of the SHB when enabled */
 #screen.software-button-enabled #rocketbar-results {
-  height: calc(100% - 12rem);
+  height: calc(100% - 7rem - var(--software-home-button-height));
 }
 
 #rocketbar-results.hidden, #rocketbar-results iframe.hidden,
@@ -149,11 +149,11 @@
 
 @media (orientation:landscape) {
   #screen.software-button-enabled #rocketbar {
-    width: calc(100% - 5rem);
+    width: calc(100% - var(--software-home-button-height));
   }
 
   #screen.software-button-enabled #rocketbar-results {
     height: calc(100% - 7rem);
-    width: calc(100% - 5rem);
+    width: calc(100% - var(--software-home-button-height));
   }
 }

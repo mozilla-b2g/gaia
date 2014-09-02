@@ -55,12 +55,12 @@
 }
 
 #screen.software-button-enabled #windows > .appWindow {
-  height: calc(100% - 5rem);
+  height: calc(100% - var(--software-home-button-height));
 }
 
 @media not all and (-moz-physical-home-button) {
   #screen:not(.software-button-disabled) #windows > .appWindow {
-    height: calc(100% - 5rem);
+    height: calc(100% - var(--software-home-button-height));
   }
 }
 
@@ -75,23 +75,23 @@
 @media (orientation: landscape) {
   #screen.software-button-enabled:not(.fullscreen-layout-app) #windows > .appWindow {
     height: 100%;
-    width: calc(100% - 5rem);
+    width: calc(100% - var(--software-home-button-height));
   }
 
   #screen.software-button-enabled.active-statusbar:not(.fullscreen-layout-app) #windows > .appWindow {
     height: calc(100% - 4rem);
-    width: calc(100% - 5rem);
+    width: calc(100% - var(--software-home-button-height));
   }
 
   @media not all and (-moz-physical-home-button) {
     #screen:not(.software-button-disabled):not(.fullscreen-layout-app) #windows > .appWindow {
       height: 100%;
-      width: calc(100% - 5rem);
+      width: calc(100% - var(--software-home-button-height));
     }
 
     #screen:not(.software-button-disabled).active-statusbar:not(.fullscreen-layout-app) #windows > .appWindow {
       height: calc(100% - 4rem);
-      width: calc(100% - 5rem);
+      width: calc(100% - var(--software-home-button-height));
     }
   }
 }

@@ -561,7 +561,7 @@
 
 @media (orientation: landscape) {
   #screen.software-button-enabled:not(.fullscreen-layout-app) #windows > .appWindow.outside-edges-right {
-    transform: translateX(calc(100% + 5rem));
+    transform: translateX(calc(100% + var(--software-home-button-height)));
   }
 }
 
