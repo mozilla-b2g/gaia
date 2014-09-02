@@ -112,7 +112,7 @@ suite('AlternativesCharMenuManager', function() {
     manager.show(target);
 
     assert.isTrue(window.IMERender.
-      showAlternativesCharMenu.calledWith(target, ['a', 'b', 'c', 'd']));
+      showAlternativesCharMenu.calledWith(target, ['x', 'a', 'b', 'c', 'd']));
     assert.isTrue(app.layoutManager.currentModifiedLayout.alt.x !==
       window.IMERender.showAlternativesCharMenu.getCall(0).args[1],
       'A copy of the array should be sent instead of the original one.');
@@ -131,7 +131,7 @@ suite('AlternativesCharMenuManager', function() {
     manager.show(target);
 
     assert.isTrue(window.IMERender.
-        showAlternativesCharMenu.calledWith(target, ['A', 'B', 'C', 'D']));
+        showAlternativesCharMenu.calledWith(target, ['X', 'A', 'B', 'C', 'D']));
     assert.isTrue(app.layoutManager.currentModifiedLayout.alt.x !==
       window.IMERender.showAlternativesCharMenu.getCall(0).args[1],
       'A copy of the array should be sent instead of the original one.');
@@ -150,7 +150,7 @@ suite('AlternativesCharMenuManager', function() {
     manager.show(target);
 
     assert.isTrue(window.IMERender.
-        showAlternativesCharMenu.calledWith(target, ['E', 'F', 'G', 'H']));
+        showAlternativesCharMenu.calledWith(target, ['X', 'E', 'F', 'G', 'H']));
     assert.isTrue(app.layoutManager.currentModifiedLayout.alt.x !==
       window.IMERender.showAlternativesCharMenu.getCall(0).args[1],
       'A copy of the array should be sent instead of the original one.');

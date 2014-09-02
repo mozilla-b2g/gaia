@@ -32,7 +32,8 @@ class TestKeyboard(GaiaTestCase):
         keyboard.send(self._string[15:])
 
         # select special character using extended character selector
-        keyboard.choose_extended_character('A', 8)
+        # Now the menu would include the original char, so the index should +1
+        keyboard.choose_extended_character('A', 9)
 
         # go back to app frame and finish this
         self.apps.switch_to_displayed_app()
