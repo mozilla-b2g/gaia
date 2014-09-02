@@ -13,15 +13,18 @@
  */
 require([
   'modules/settings_cache',
-  'shared/toaster'
-], function(exports, SettingsCache, Toaster) {
+  'shared/toaster',
+  'shared/settings_listener'
+], function(exports, SettingsCache, Toaster, SettingsListener) {
   const MEDIA_TYPE = ['music', 'pictures', 'videos', 'sdcard'];
   const ITEM_TYPE = ['music', 'pictures', 'videos', 'free'];
   const DEFAULT_MEDIA_VOLUME_KEY = 'device.storage.writable.name';
+  const EXTERNAL_UNRECOGNISED_KEY = 'volume.external.unrecognised';
 
   var Volume = function(name, external, externalIndex, storages) {
     this.name = name;
     this.external = external;
+    this.isUnrecognised = false;
     this.externalIndex = externalIndex;
     this.storages = storages;
     this.currentStorageStatus = null;
@@ -184,6 +187,7 @@ require([
       label = document.createElement('label');
       label.appendChild(button);
       li = document.createElement('li');
+      li.classList.add('eject-btn');
       li.appendChild(label);
       this.rootElement.appendChild(li);
     }
@@ -230,10 +234,16 @@ require([
 
   // Update external storage UI state only
   Volume.prototype.updateStorageUIState =
-    function volume_updateStorageUIState(enabled) {
+    function volume_updateStorageUIState(enabled, isUnrecognised) {
     // If storage is formatting, we keep the information to figure out the
     // status. Just do early return.
     if (this.isFormatting && !enabled) {
+      return;
+    }
+
+    // If storage is unrecognised, we keep the information to figure out the
+    // status. Just do early return.
+    if (this.isUnrecognised && !enabled) {
       return;
     }
 
@@ -248,6 +258,33 @@ require([
 
     // external storage information
     this.rootElement.hidden = !enabled;
+
+    // If storage is unrecognised, we just display header and format button.
+    // Then, do early return from here.
+    if (isUnrecognised) {
+      // set stacked bar to be hidden
+      this.rootElement.querySelector('.space-stackedbar').parentNode.hidden =
+        enabled;
+
+      // set eject button to be hidden
+      this.setUnmountSDCardBtnVisible(!enabled);
+
+      // disable storage details, total space size
+      // while the storage is unrecognised
+      if (enabled) {
+        // storage details
+        ITEM_TYPE.forEach(function(type) {
+          var rule = 'li[class="color-' + type + '"]';
+          this.rootElement.querySelector(rule).hidden = enabled;
+        }.bind(this));
+
+        // total space size
+        var rule = 'li[class="total-space"]';
+        this.rootElement.querySelector(rule).hidden = enabled;
+      }
+
+      return;
+    }
 
     // storage details
     ITEM_TYPE.forEach(function(type) {
@@ -329,6 +366,9 @@ require([
       case 'Formatting':
         this.enableUnmountSDCardBtn(false);
         this.enableFormatSDCardBtn(false, true);
+        // Set isFormatting flag to be false after button updated already,
+        // because we can not reset it in idle status.
+        this.isFormatting = false;
         break;
       case 'Checking':
         this.isFormatting = false;
@@ -443,7 +483,19 @@ require([
   Volume.prototype.enableUnmountSDCardBtn =
     function volume_enableUnmountSDCardBtn(enabled) {
     if (this.external && this.storages.sdcard.canBeMounted) {
-      this.rootElement.querySelector('.eject-btn').disabled = !enabled;
+      var rule = 'button[class="eject-btn"]';
+      this.rootElement.querySelector(rule).disabled = !enabled;
+      if (enabled) {
+        this.setUnmountSDCardBtnVisible(enabled);
+      }
+    }
+  };
+
+  Volume.prototype.setUnmountSDCardBtnVisible =
+    function volume_setUnmountSDCardBtnVisible(visible) {
+    if (this.external && this.storages.sdcard.canBeMounted) {
+      var rule = 'li[class="eject-btn"]';
+      this.rootElement.querySelector(rule).hidden = !visible;
     }
   };
 
@@ -468,11 +520,17 @@ require([
     init: function ms_init() {
       this._volumeList = this.initAllVolumeObjects();
 
-      this.documentStorageListener = false;
-      this.updateListeners();
+      this._handleExternalUnrecognisedChanged =
+        this.handleExternalUnrecognisedChanged.bind(this);
 
+      this._updateInfo = this.updateInfo.bind(this);
+
+      this.documentStorageListener = false;
       this.usmEnabledVolume = {};
       this.umsVolumeShareState = false;
+
+      // After updated listener, we will update information in the callback.
+      this.updateListeners(this._updateInfo);
 
       // Use visibilitychange so that we don't get notified of device
       // storage notifications when the settings app isn't visible.
@@ -487,8 +545,6 @@ require([
       this.makeDefaultLocationMenu();
 
       window.addEventListener('localized', this);
-
-      this.updateInfo();
     },
 
     initAllVolumeObjects: function ms_initAllVolumeObjects() {
@@ -551,7 +607,7 @@ require([
           this.showChangingDefaultStorageConfirmation();
           break;
         case 'visibilitychange':
-          this.updateListeners(this.updateInfo.bind(this));
+          this.updateListeners(this._updateInfo);
           break;
       }
     },
@@ -625,6 +681,13 @@ require([
             volumeStorage.removeEventListener('change', self);
             volumeStorage.removeEventListener('storage-state-change', self);
           });
+
+          // Unobserve 'unrecognised' state for external storage.
+          Settings.mozSettings.removeObserver(
+            EXTERNAL_UNRECOGNISED_KEY,
+            this._handleExternalUnrecognisedChanged
+          );
+
           this.documentStorageListener = false;
         }
       } else {
@@ -635,11 +698,58 @@ require([
             volumeStorage.addEventListener('change', self);
             volumeStorage.addEventListener('storage-state-change', self);
           });
+
+          // Init format SD card button for unrecognised storage.
+          SettingsCache.getSettings(function(allSettings) {
+            var isUnrecognised = allSettings[EXTERNAL_UNRECOGNISED_KEY];
+            this.enableFormatSDCardBtnForUnrecognisedStorage(isUnrecognised);
+            // Update storage information after checked the storage unrecognised
+            // status already.
+            if (callback) {
+              callback();
+            }
+          }.bind(this));
+
+          // Observe 'unrecognised' state for external storage.
+          Settings.mozSettings.addObserver(
+            EXTERNAL_UNRECOGNISED_KEY,
+            this._handleExternalUnrecognisedChanged
+          );
+
           this.documentStorageListener = true;
         }
-        if (callback && Settings.currentPanel === '#mediaStorage')
-          callback();
       }
+    },
+
+    enableFormatSDCardBtnForUnrecognisedStorage:
+    function ms_enableFormatSDCardBtnForUnrecognisedStorage(enabled) {
+      if (this._volumeList.length === 1) {
+        // one volume only, it should be an external storage
+        // enable header to display storage name
+        this._volumeList[0].isUnrecognised = enabled;
+        this._volumeList[0].updateStorageUIState(enabled, true);
+        // enable format button
+        this._volumeList[0].enableFormatSDCardBtn(enabled);
+      } else if (this._volumeList.length > 1) {
+        this._volumeList.forEach(function(volume) {
+          // The storage name is mapping to a hard code name. Because name of
+          // some external storeages are different. Such as, Flame: 'external',
+          // Helix: 'extsdcard'.
+          if (volume.external) {
+            // External
+            // enable header to display storage name
+            volume.isUnrecognised = enabled;
+            volume.updateStorageUIState(enabled, true);
+            // enable format button
+            volume.enableFormatSDCardBtn(enabled);
+          }
+        }.bind(this));
+      }
+    },
+
+    handleExternalUnrecognisedChanged:
+    function ms_handleExternalUnrecognisedChanged(event) {
+      this.enableFormatSDCardBtnForUnrecognisedStorage(event.settingValue);
     },
 
     updateInfo: function ms_updateInfo() {
@@ -731,6 +841,7 @@ require([
 
       refreshUI: function sb_refreshUI() {
         container.parentNode.setAttribute('aria-disabled', false);
+        container.parentNode.hidden = false;
         items.forEach(function(item) {
           var className = 'color-' + item.type;
           var ele = container.querySelector('.' + className);
@@ -748,6 +859,7 @@ require([
         items = [];
         totalSize = 0;
         container.parentNode.setAttribute('aria-disabled', true);
+        container.parentNode.hidden = true;
       }
     };
   };
