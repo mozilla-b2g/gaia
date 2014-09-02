@@ -2,27 +2,15 @@
   <template>
 
     <gaia-header action="back" data-href="#root">
-      <h1 data-l10n-id="doNotTrack-header"> Do Not Track </h1>
+      <h1 data-l10n-id="tracking-header">Tracking</h1>
     </gaia-header>
 
     <div>
       <ul>
-        <li class="description">
-          <label class="pack-radio">
-            <input type="radio" name="privacy.donottrackheader.value" value="1">
-            <span data-l10n-id="doNotTrackActions">Tell websites and apps that I do not want to be tracked</span>
-          </label>
-        </li>
-        <li class="description">
-          <label class="pack-radio">
-            <input type="radio" name="privacy.donottrackheader.value" value="0">
-            <span data-l10n-id="allowTracking">Tell websites and apps that I want to be tracked</span>
-          </label>
-        </li>
-        <li class="description">
-          <label class="pack-radio">
-            <input type="radio" name="privacy.donottrackheader.value" value="-1">
-            <span data-l10n-id="doNotHavePrefOnTracking">Do not tell websites and apps anything about my tracking preferences</span>
+        <li>
+          <label class="pack-switch">
+            <input type="checkbox" name="privacy.donottrackheader.enabled">
+            <span data-l10n-id="doNotTrack">Do Not Track</span>
           </label>
         </li>
       </ul>
@@ -48,7 +36,5 @@
         </li>
       </ul>
     </div>
-
-    <panel data-path="panels/do_not_track/panel"></panel>
   </template>
 </element>
