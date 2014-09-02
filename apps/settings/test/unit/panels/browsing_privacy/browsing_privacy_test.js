@@ -1,19 +1,19 @@
-suite('Browser Privacy >', function() {
+suite('Browsing Privacy >', function() {
   'use strict';
 
-  var realNavigatorSettings, browserPrivacy;
+  var realNavigatorSettings, browsingPrivacy;
 
   suiteSetup(function(done) {
     var modules = [
       'shared_mocks/mock_navigator_moz_settings',
-      'panels/browser_privacy/browser_privacy'
+      'panels/browsing_privacy/browsing_privacy'
     ];
 
-    testRequire(modules, {}, function(MockNavigatorSettings, BrowserPrivacy) {
+    testRequire(modules, {}, function(MockNavigatorSettings, BrowsingPrivacy) {
       realNavigatorSettings = navigator.mozSettings;
       navigator.mozSettings = MockNavigatorSettings;
 
-      browserPrivacy = BrowserPrivacy();
+      browsingPrivacy = BrowsingPrivacy();
 
       done();
     });
@@ -27,7 +27,7 @@ suite('Browser Privacy >', function() {
 
   suite('clear functions >', function() {
     test('clear history function sets setting', function() {
-      browserPrivacy.clearHistory();
+      browsingPrivacy.clearHistory();
       assert.isTrue(
         navigator.mozSettings.mSettings['clear.browser.history'],
         'clear browser history setting should be set'
@@ -35,7 +35,7 @@ suite('Browser Privacy >', function() {
     });
 
     test('clear private data function sets setting', function() {
-      browserPrivacy.clearPrivateData();
+      browsingPrivacy.clearPrivateData();
       assert.isTrue(
         navigator.mozSettings.mSettings['clear.browser.private-data'],
         'clear browser private data setting should be set'
@@ -43,7 +43,7 @@ suite('Browser Privacy >', function() {
     });
 
     test('clear history dialog sets setting', function() {
-      browserPrivacy.clearBookmarksData();
+      browsingPrivacy.clearBookmarksData();
       assert.isTrue(
         navigator.mozSettings.mSettings['clear.browser.bookmarks'],
         'clear browser bookmarks settings should be set'
