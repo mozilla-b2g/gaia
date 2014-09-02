@@ -19,7 +19,7 @@ class TestChangeLanguageRTL(GaiaTestCase):
 
         language_settings = settings.open_language_settings()
         language_settings.select_language(lang_name)
-        language_settings.go_back()
+        language_settings.go_back('rtl')
 
         # Verify that language has changed
         self.wait_for_condition(lambda m: settings.header_text == expected_header)
