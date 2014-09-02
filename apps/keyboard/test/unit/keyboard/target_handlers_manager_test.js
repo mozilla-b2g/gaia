@@ -1,11 +1,12 @@
 'use strict';
 
 /* global TargetHandlersManager, ActiveTargetsManager,
-          DefaultTargetHandler, KeyEvent, LayoutManager */
+          DefaultTargetHandler, KeyEvent, LayoutManager, KeyboardConsole */
 
 require('/js/keyboard/active_targets_manager.js');
 require('/js/keyboard/target_handlers.js');
 require('/js/keyboard/layout_manager.js');
+require('/js/keyboard/console.js');
 
 require('/js/keyboard/target_handlers_manager.js');
 
@@ -45,6 +46,7 @@ suite('TargetHandlersManager', function() {
       .returns(handlerStub);
 
     app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       layoutManager: this.sinon.stub(LayoutManager.prototype)
     };
     manager = new TargetHandlersManager(app);

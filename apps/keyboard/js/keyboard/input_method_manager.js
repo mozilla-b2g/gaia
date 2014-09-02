@@ -141,30 +141,46 @@ InputMethodGlue.prototype.init = function(app, imEngineName) {
 };
 
 InputMethodGlue.prototype.sendCandidates = function(candidates) {
+  this.app.console.trace();
   this.app.candidatePanelManager.updateCandidates(candidates);
 };
 
 InputMethodGlue.prototype.setComposition = function(symbols, cursor) {
+  this.app.console.trace();
   if (!this.app.inputContext) {
     console.warn('InputMethodGlue: call setComposition() when ' +
       'inputContext does not exist.');
     return;
   }
   cursor = cursor || symbols.length;
-  this.app.inputContext.setComposition(symbols, cursor);
+  this.app.console.info('inputContext.setComposition()');
+  this.app.inputContext.setComposition(symbols, cursor).catch(function(e) {
+    console.warn('InputMethodGlue: setComposition() rejected with error', e);
+    this.app.console.log(symbols, cursor);
+
+    return Promise.reject(e);
+  }.bind(this));
 };
 
 InputMethodGlue.prototype.endComposition = function(text) {
+  this.app.console.trace();
   if (!this.app.inputContext) {
     console.warn('InputMethodGlue: call endComposition() when ' +
       'inputContext does not exist.');
     return;
   }
   text = text || '';
-  this.app.inputContext.endComposition(text);
+  this.app.console.info('inputContext.endComposition()');
+  return this.app.inputContext.endComposition(text).catch(function(e) {
+    console.warn('InputMethodGlue: endComposition() rejected with error', e);
+    this.app.console.log(text);
+
+    return Promise.reject(e);
+  }.bind(this));
 };
 
 InputMethodGlue.prototype.sendKey = function(keyCode, isRepeat) {
+  this.app.console.trace();
   if (!this.app.inputContext) {
     console.warn('InputMethodGlue: call sendKey() when ' +
       'inputContext does not exist.');
@@ -173,6 +189,7 @@ InputMethodGlue.prototype.sendKey = function(keyCode, isRepeat) {
 
   var promise;
 
+  this.app.console.info('inputContext.sendKey()');
   switch (keyCode) {
     case KeyEvent.DOM_VK_BACK_SPACE:
       promise = this.app.inputContext.sendKey(keyCode, 0, 0, isRepeat);
@@ -187,11 +204,17 @@ InputMethodGlue.prototype.sendKey = function(keyCode, isRepeat) {
       break;
   }
 
-  return promise;
+  return promise.catch(function(e) {
+    console.warn('InputMethodGlue: sendKey() rejected with error', e);
+    this.app.console.log(keyCode, isRepeat);
+
+    return Promise.reject(e);
+  }.bind(this));
 };
 
 // XXX deprecated
 InputMethodGlue.prototype.sendString = function(str) {
+  this.app.console.trace();
   for (var i = 0; i < str.length; i++) {
     this.sendKey(str.charCodeAt(i));
   }
@@ -200,11 +223,13 @@ InputMethodGlue.prototype.sendString = function(str) {
 // Set the current rendered layout to a specific named layout
 // XXX deprecated; overwrite alternative/symbol layout instead.
 InputMethodGlue.prototype.alterKeyboard = function(layoutName) {
+  this.app.console.trace();
   this.app.layoutManager.updateForcedModifiedLayout(layoutName);
   this.app.layoutRenderingManager.updateLayoutRendering();
 };
 
 InputMethodGlue.prototype.setLayoutPage = function(newpage) {
+  this.app.console.trace();
   if (newpage !== this.app.layoutManager.LAYOUT_PAGE_DEFAULT) {
     throw new Error('InputMethodGlue: ' +
       'imEngine is only allowed to switch to default page');
@@ -213,22 +238,36 @@ InputMethodGlue.prototype.setLayoutPage = function(newpage) {
 };
 
 InputMethodGlue.prototype.setUpperCase = function(state) {
+  this.app.console.trace();
   this.app.upperCaseStateManager.switchUpperCaseState(state);
 };
 
 InputMethodGlue.prototype.isCapitalized = function() {
+  this.app.console.trace();
   return this.app.upperCaseStateManager.isUpperCase;
 };
 
 InputMethodGlue.prototype.replaceSurroundingText = function(text, offset,
                                                             length) {
+  this.app.console.trace();
+
   if (!this.app.inputContext) {
     console.warn('InputMethodGlue: call replaceSurroundingText() when ' +
       'inputContext does not exist.');
     return Promise.reject();
   }
 
-  return this.app.inputContext.replaceSurroundingText(text, offset, length);
+  this.app.console.info('inputContext.replaceSurroundingText()');
+  var p = this.app.inputContext.replaceSurroundingText(text, offset, length);
+  p.catch(function(e) {
+    console.warn('InputMethodGlue: ' +
+      'replaceSurroundingText() rejected with error', e);
+    this.app.console.log(text, offset, length);
+
+    return Promise.reject(e);
+  }.bind(this));
+
+  return p;
 };
 
 InputMethodGlue.prototype.getNumberOfCandidatesPerRow = function() {
@@ -333,6 +372,7 @@ InputMethodManager.prototype.start = function() {
  * the data needs to activate the IMEngine.
  */
 InputMethodManager.prototype.updateInputContextData = function() {
+  this.app.console.log('InputMethodManager.updateInputContextData()');
   // Do nothing if there is already a promise or there is no inputContext
   if (!this.app.inputContext || this._inputContextData) {
     return;
@@ -344,7 +384,7 @@ InputMethodManager.prototype.updateInputContextData = function() {
   var inputContext = this.app.inputContext;
 
   var p = inputContext.getText().then(function(value) {
-    this.app.perfTimer.printTime('updateInputContextData:promise resolved');
+    this.app.console.log('updateInputContextData:promise resolved');
 
     // Resolve to this object containing information of inputContext
     return {
@@ -381,7 +421,11 @@ InputMethodManager.prototype.updateInputContextData = function() {
  *
  */
 InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
+  this.app.console.log(
+    'InputMethodManager.switchCurrentIMEngine()', imEngineName);
+
   var switchStateId = ++this._switchStateId;
+  this.app.console.time('switchCurrentIMEngine' + switchStateId);
 
   // dataPromise is the one we previously created with updateInputContextData()
   var dataPromise = this._inputContextData;
@@ -397,6 +441,8 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
 
   // Deactivate and switch the currentIMEngine to 'default' first.
   if (this.currentIMEngine && this.currentIMEngine.deactivate) {
+    this.app.console.log(
+      'InputMethodManager::currentIMEngine.deactivate()');
     this.currentIMEngine.deactivate();
   }
   if (this.app.inputContext) {
@@ -413,7 +459,7 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
   var p = Promise.all([loaderPromise, dataPromise, settingsPromise])
   .then(function(values) {
     if (switchStateId !== this._switchStateId) {
-      console.log('InputMethodManager: ' +
+      console.warn('InputMethodManager: ' +
         'Promise is resolved after another switchCurrentIMEngine() call.');
 
       return Promise.reject();
@@ -429,6 +475,8 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
           currentLayout.autoCorrectPunctuation :
           true;
 
+      this.app.console.log(
+        'InputMethodManager::currentIMEngine.activate()');
       imEngine.activate(
         this.app.layoutManager.currentModifiedLayout.autoCorrectLanguage,
         dataValues,
@@ -448,19 +496,26 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
       this.app.inputContext.addEventListener('surroundingtextchange', this);
     }
     this.currentIMEngine = imEngine;
+    this.app.console.timeEnd('switchCurrentIMEngine' + switchStateId);
   }.bind(this));
 
   return p;
 };
 
 InputMethodManager.prototype.handleEvent = function(evt) {
+  this.app.console.info('InputMethodManager.handleEvent()', evt);
   switch (evt.type) {
     case 'selectionchange':
+      this.app.console.log(
+        'InputMethodManager::currentIMEngine.selectionChange()', evt.detail);
       this.currentIMEngine.selectionChange(evt.detail);
 
       break;
 
     case 'surroundingtextchange':
+      this.app.console.log(
+        'InputMethodManager::currentIMEngine.surroundingtextChange()',
+        evt.detail);
       this.currentIMEngine.surroundingtextChange(evt.detail);
 
       break;

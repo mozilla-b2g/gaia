@@ -1,9 +1,10 @@
 'use strict';
 
-/* global UserPress, UserPressManager, MockEventTarget */
+/* global UserPress, UserPressManager, KeyboardConsole, MockEventTarget */
 
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/js/keyboard/user_press_manager.js');
+require('/js/keyboard/console.js');
 
 suite('UserPress', function() {
   test('(constructor)', function() {
@@ -50,6 +51,7 @@ suite('UserPressManager', function() {
     this.sinon.spy(container, 'removeEventListener');
 
     app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       getContainer: function() {
         return container;
       }

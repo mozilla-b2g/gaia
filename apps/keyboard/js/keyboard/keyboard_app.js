@@ -1,6 +1,6 @@
 'use strict';
 
-/* global PerformanceTimer, InputMethodManager, LayoutManager,
+/* global KeyboardConsole, InputMethodManager, LayoutManager,
           SettingsPromiseManager, L10nLoader, TargetHandlersManager,
           FeedbackManager, VisualHighlightManager, CandidatePanelManager,
           UpperCaseStateManager, LayoutRenderingManager, IMERender,
@@ -9,7 +9,7 @@
 (function(exports) {
 
 var KeyboardApp = function() {
-  this.perfTimer = null;
+  this.console = null;
   this.inputMethodManager = null;
   this.layoutManager = null;
   this.settingsPromiseManager = null;
@@ -33,10 +33,11 @@ KeyboardApp.prototype.start = function() {
 
 KeyboardApp.prototype._startComponents = function() {
   // A timer for time measurement
-  this.perfTimer = new PerformanceTimer();
-  this.perfTimer.start();
-  this.perfTimer.printTime('KeyboardApp._startComponents()');
-  this.perfTimer.startTimer('KeyboardApp._startComponents()');
+  this.console = new KeyboardConsole();
+  this.console.start();
+  this.console.log('KeyboardApp._startComponents()');
+  this.console.trace();
+  this.console.time('KeyboardApp._startComponents()');
 
   // SettingsPromiseManager wraps Settings DB methods into promises.
   // This must be available to InputMethodManager and FeedbackManager.
@@ -82,18 +83,18 @@ KeyboardApp.prototype._startComponents = function() {
   this.stateManager = new StateManager(this);
   this.stateManager.start();
 
-  this.perfTimer.printTime('BLOCKING KeyboardApp._startComponents()',
-    'KeyboardApp._startComponents()');
+  this.console.timeEnd('KeyboardApp._startComponents()');
 };
 
 KeyboardApp.prototype.stop = function() {
+  this.console.log('KeyboardApp.stop()');
   this._stopComponents();
 
   this.inputContext = null;
 };
 
 KeyboardApp.prototype._stopComponents = function() {
-  this.perfTimer = null;
+  this.console = null;
 
   this.inputMethodManager = null;
 
@@ -132,6 +133,7 @@ KeyboardApp.prototype.getContainer = function() {
 };
 
 KeyboardApp.prototype.setInputContext = function(inputContext) {
+  this.console.log('KeyboardApp.setInputContext()', inputContext);
   this.inputContext = inputContext;
 };
 
@@ -175,6 +177,7 @@ KeyboardApp.prototype.supportsSwitching = function() {
 };
 
 KeyboardApp.prototype.setLayoutPage = function setLayoutPage(page) {
+  this.console.log('KeyboardApp.setLayoutPage()', page);
   this.layoutManager.updateLayoutPage(page);
   this.layoutRenderingManager.updateLayoutRendering();
 
@@ -191,6 +194,7 @@ KeyboardApp.prototype.getNumberOfCandidatesPerRow = function() {
 };
 
 KeyboardApp.prototype.handleUpperCaseStateChange = function() {
+  this.console.log('KeyboardApp.handleUpperCaseStateChange()');
   // When we have secondLayout, we need to force re-render on uppercase switch
   if (this.layoutManager.currentModifiedLayout.secondLayout) {
     this.layoutRenderingManager.updateLayoutRendering();
@@ -201,16 +205,14 @@ KeyboardApp.prototype.handleUpperCaseStateChange = function() {
   // Otherwise we can just update only the keys we need...
   // Try to block the event loop as little as possible
   window.requestAnimationFrame(function() {
-    this.perfTimer.startTimer('setUpperCase:requestAnimationFrame:callback');
+    this.console.time('setUpperCase:requestAnimationFrame:callback');
     // And make sure the caps lock key is highlighted correctly
     IMERender.setUpperCaseLock(this.upperCaseStateManager);
 
     //restore the previous candidates
     this.candidatePanelManager.showCandidates();
 
-    this.perfTimer.printTime(
-      'BLOCKING setUpperCase:requestAnimationFrame:callback',
-      'setUpperCase:requestAnimationFrame:callback');
+    this.console.timeEnd('setUpperCase:requestAnimationFrame:callback');
   }.bind(this));
 };
 

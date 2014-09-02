@@ -1,12 +1,12 @@
 'use strict';
 
-/* global KeyboardApp, PerformanceTimer, InputMethodManager, LayoutManager,
+/* global KeyboardApp, KeyboardConsole, InputMethodManager, LayoutManager,
           SettingsPromiseManager, L10nLoader, TargetHandlersManager,
           FeedbackManager, VisualHighlightManager, CandidatePanelManager,
           UpperCaseStateManager, LayoutRenderingManager, StateManager,
           MockInputMethodManager, IMERender */
 
-require('/js/keyboard/performance_timer.js');
+require('/js/keyboard/console.js');
 require('/js/keyboard/input_method_manager.js');
 require('/js/keyboard/layout_manager.js');
 require('/js/keyboard/settings.js');
@@ -25,7 +25,7 @@ requireApp('keyboard/shared/test/unit/mocks/mock_navigator_input_method.js');
 require('/js/keyboard/keyboard_app.js');
 
 suite('KeyboardApp', function() {
-  var perfTimerStub;
+  var consoleStub;
   var inputMethodManagerStub;
   var layoutManagerStub;
   var settingsPromiseManagerStub;
@@ -47,8 +47,8 @@ suite('KeyboardApp', function() {
       mgmt: this.sinon.stub(MockInputMethodManager.prototype)
     };
 
-    perfTimerStub = this.sinon.stub(PerformanceTimer.prototype);
-    this.sinon.stub(window, 'PerformanceTimer').returns(perfTimerStub);
+    consoleStub = this.sinon.stub(KeyboardConsole.prototype);
+    this.sinon.stub(window, 'KeyboardConsole').returns(consoleStub);
 
     inputMethodManagerStub = this.sinon.stub(InputMethodManager.prototype);
     this.sinon.stub(window, 'InputMethodManager')
@@ -108,7 +108,7 @@ suite('KeyboardApp', function() {
     app = new KeyboardApp();
     app.start();
 
-    assert.isTrue(window.PerformanceTimer.calledWithNew());
+    assert.isTrue(window.KeyboardConsole.calledWithNew());
     assert.isTrue(window.InputMethodManager.calledWithNew());
     assert.isTrue(window.LayoutManager.calledWithNew());
     assert.isTrue(window.SettingsPromiseManager.calledWithNew());
@@ -128,7 +128,7 @@ suite('KeyboardApp', function() {
     assert.isTrue(window.VisualHighlightManager.calledWith(app));
     assert.isTrue(window.CandidatePanelManager.calledWith(app));
 
-    assert.isTrue(perfTimerStub.start.calledOnce);
+    assert.isTrue(consoleStub.start.calledOnce);
     assert.isTrue(inputMethodManagerStub.start.calledOnce);
     assert.isTrue(layoutManagerStub.start.calledOnce);
     assert.isTrue(targetHandlersManagerStub.start.calledOnce);

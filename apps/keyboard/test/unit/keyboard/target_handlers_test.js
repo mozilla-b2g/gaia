@@ -6,7 +6,8 @@
           CandidateSelectionTargetHandler, CompositeTargetHandler,
           PageSwitchingTargetHandler, CapsLockTargetHandler,
           SwitchKeyboardTargetHandler, ToggleCandidatePanelTargetHandler,
-          DismissSuggestionsTargetHandler, BackspaceTargetHandler */
+          DismissSuggestionsTargetHandler, BackspaceTargetHandler,
+          KeyboardConsole */
 
 require('/js/keyboard/target_handlers.js');
 require('/js/keyboard/feedback_manager.js');
@@ -16,6 +17,7 @@ require('/js/keyboard/layout_manager.js');
 
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_navigator_input_method.js');
+require('/js/keyboard/console.js');
 
 suite('target handlers', function() {
   var app;
@@ -33,6 +35,7 @@ suite('target handlers', function() {
     this.sinon.stub(window, 'clearInterval');
 
     app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       feedbackManager: this.sinon.stub(FeedbackManager.prototype),
       visualHighlightManager: this.sinon.stub(VisualHighlightManager.prototype),
       candidatePanelManager: this.sinon.stub(CandidatePanelManager.prototype),
@@ -273,8 +276,6 @@ suite('target handlers', function() {
         dataset: {
         }
       };
-
-      app = {};
 
       handler = new NullTargetHandler(target, app);
     });
