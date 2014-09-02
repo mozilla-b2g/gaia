@@ -6,6 +6,8 @@
 
 (function(exports) {
 
+  var _id = 0;
+
   /**
    * A card in a card view, representing a single app
    *
@@ -20,6 +22,9 @@
         this[key] = config[key];
       }
     }
+
+    this.instanceID = _id++;
+
     return this;
   }
 
@@ -92,12 +97,13 @@
    * Template string representing the innerHTML of the instance's element
    * @memberOf Card.prototype
    */
-  Card.prototype._template = '<div class="screenshotView"></div>' +
+  Card.prototype._template =
+    '<div data-l10n-id="closeCard" class="close-card" role="button" ' +
+      'style="visibility: {closeButtonVisibility}"></div>' +
+    '<div class="screenshotView" data-l10n-id="openCard" role="button"></div>' +
     '<div class="appIconView" style="background-image:{iconValue}"></div>' +
-    '<h1 class="title">{title}</h1>' +
-    '<p class="subtitle">{subTitle}</p>' +
-    '<div class="close-card" role="button" ' +
-    '     style="visibility: {closeButtonVisibility}"></div>';
+    '<h1 id="{titleId}" class="title">{title}</h1>' +
+    '<p class="subtitle">{subTitle}</p>';
 
   /**
    * Card html view - builds the innerHTML for a card element
@@ -121,6 +127,7 @@
     this.iconValue = 'none';
     this.closeButtonVisibility = 'visible';
     this.viewClassList = ['card', 'appIconPreview'];
+    this.titleId = 'card-title-' + this.instanceID;
 
     // app icon overlays screenshot by default
     // and will be removed if/when we display the screenshot
@@ -170,6 +177,10 @@
 
     // populate the view
     elem.innerHTML = this.view();
+
+    // Label the card by title (for screen reader).
+    elem.setAttribute('aria-labelledby', this.titleId);
+
     this.viewClassList.forEach(function(cls) {
       elem.classList.add(cls);
     });
@@ -201,6 +212,16 @@
         style[property] = nameValues[property];
       }
     }
+  };
+
+  /**
+   * Set card's screen reader visibility.
+   * @type {Boolean} A flag indicating if it should be visible to the screen
+   * reader.
+   * @memberOf Card.prototype
+   */
+  Card.prototype.setVisibleForScreenReader = function(visible) {
+    this.element.setAttribute('aria-hidden', !visible);
   };
 
   /**
