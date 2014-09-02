@@ -122,6 +122,11 @@
   // this much more highly weighted than the second suggested word.
   var AUTO_CORRECT_THRESHOLD = 1.30;
 
+  // If the length doesn't match between input and first suggestion.
+  // The min. frequency the first suggestion needs to have if we turn it into
+  // an autocorrect action
+  var MIN_LENGTH_MISMATCH_THRESHOLD = 5;
+
   /*
    * Since inputContext.sendKey is an async fuction that will return a promise,
    * and we need to update the current state (capitalization, input value)
@@ -664,6 +669,20 @@
     // Now get an array of just the suggested words
     var words = suggestions.map(function(x) { return x[0]; });
 
+    // see whether words[0] and input have same length
+    var lengthMismatch;
+    switch (Math.abs(input.length - words[0].length)) {
+    case 0:
+      lengthMismatch = false;
+      break;
+    case 1:
+      lengthMismatch = suggestions[0][1] < MIN_LENGTH_MISMATCH_THRESHOLD;
+      break;
+    default:
+      lengthMismatch = true;
+      break;
+    }
+
     // Decide whether the first word is going to be an autocorrection.
     // If the user's input is already a valid word, then don't
     // autocorrect unless the first suggested word is more common than
@@ -679,7 +698,8 @@
         !correctionDisabled &&
         (!inputIsSuggestion ||
           suggestions[0][1] > inputWeight * AUTO_CORRECT_THRESHOLD) &&
-        (input.length > 1 || words[0].length === 1)) {
+        (input.length > 1 || words[0].length === 1) &&
+        !lengthMismatch) {
       // Remember the word to use if the next character is a space.
       autoCorrection = words[0];
       // Mark the auto-correction so the renderer can highlight it
