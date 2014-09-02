@@ -100,7 +100,7 @@
   function lsnb_createActionButton(notificationId) {
     var button = document.createElement('span');
     button.classList.add('button-actionable');
-    button.textContent = 'open';
+    button.dataset.l10nId = 'open-notification';
     button.addEventListener('touchstart', (evt) => {
       button.parentElement.classList.add('activated');
     });
