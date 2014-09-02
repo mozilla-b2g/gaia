@@ -26,28 +26,33 @@ class TestVolumeButtonsAccessibility(GaiaTestCase):
         self.apps.switch_to_displayed_app()
 
     def test_a11y_volume_buttons(self):
+        # Open accessibility settings panel
+        accessibility_settings = self.settings.a11y_open_accessibility_settings()
 
         # Panel should not be visible by default
-        self.assertFalse(self.data_layer.get_setting('accessibility.show-settings'))
+        self.assertFalse(self.data_layer.get_setting(
+            'accessibility.screenreader-show-settings'))
         self.assertFalse(self.is_element_displayed(
-            *self.settings._accessibility_menu_item_locator))
+            *accessibility_settings._accessibility_screenreader_menu_item_locator))
         self.assertTrue(self.accessibility.is_hidden(self.marionette.find_element(
-            *self.settings._accessibility_menu_item_locator)))
+            *accessibility_settings._accessibility_screenreader_menu_item_locator)))
 
         self.toggle_screen_reader()
 
         # Panel should become visible after screen reader turned ON
-        self.assertTrue(self.data_layer.get_setting('accessibility.show-settings'))
+        self.assertTrue(self.data_layer.get_setting(
+            'accessibility.screenreader-show-settings'))
         self.assertTrue(self.is_element_displayed(
-            *self.settings._accessibility_menu_item_locator))
+            *accessibility_settings._accessibility_screenreader_menu_item_locator))
         self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
-            *self.settings._accessibility_menu_item_locator)))
+            *accessibility_settings._accessibility_screenreader_menu_item_locator)))
 
         self.toggle_screen_reader()
 
         # Panel should still be visible
-        self.assertTrue(self.data_layer.get_setting('accessibility.show-settings'))
+        self.assertTrue(self.data_layer.get_setting(
+            'accessibility.screenreader-show-settings'))
         self.assertTrue(self.is_element_displayed(
-            *self.settings._accessibility_menu_item_locator))
+            *accessibility_settings._accessibility_screenreader_menu_item_locator))
         self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
-            *self.settings._accessibility_menu_item_locator)))
+            *accessibility_settings._accessibility_screenreader_menu_item_locator)))
