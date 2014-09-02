@@ -20,9 +20,11 @@ class Base(object):
         self.apps = GaiaApps(self.marionette)
         self.accessibility = Accessibility(self.marionette)
         self.frame = None
+        self.manifest_url = None
+        self.entry_point = None
 
     def launch(self, launch_timeout=None):
-        self.app = self.apps.launch(self.name, launch_timeout=launch_timeout)
+        self.app = self.apps.launch(self.name, self.manifest_url, self.entry_point, launch_timeout=launch_timeout)
 
     def wait_for_element_present(self, by, locator, timeout=None):
         return Wait(self.marionette, timeout, ignored_exceptions=NoSuchElementException).until(
