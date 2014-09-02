@@ -546,10 +546,19 @@ suite('system/AppWindow', function() {
       origin: 'app://www.fake'
     };
 
+    var fakeWrapper = {
+      url: 'app://www.fake.com/index.html',
+      origin: 'app://www.fake.com'
+    };
+
     test('isFullScreen', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       assert.isFalse(app1.isFullScreen());
       assert.isFalse(app1.element.classList.contains('fullscreen-app'));
+
+      var appW = new AppWindow(fakeWrapper);
+      assert.isFalse(appW.isFullScreen());
+      assert.isFalse(appW.element.classList.contains('fullscreen-app'));
 
       var app1f = new AppWindow(fakeAppConfig1FullScreen);
       assert.isTrue(app1f.isFullScreen());
@@ -563,6 +572,10 @@ suite('system/AppWindow', function() {
     test('isFullScreenLayout', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       assert.isFalse(app1.isFullScreenLayout());
+
+      var appW = new AppWindow(fakeWrapper);
+      assert.isFalse(appW.isFullScreenLayout());
+      assert.isFalse(app1.element.classList.contains('fullscreen-app'));
 
       var app1f = new AppWindow(fakeAppConfig1FullScreenLayout);
       assert.isTrue(app1f.isFullScreenLayout());
