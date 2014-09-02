@@ -40,6 +40,8 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
         currentUnit = oldUnit;
         settings.option('dataLimitValue', oldValue);
         settings.option('dataLimitUnit', oldUnit);
+        dataLimitInput.classList.remove('error');
+        okButton.disabled = false;
         viewManager.closeCurrentView();
       }
     );
