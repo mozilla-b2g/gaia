@@ -147,6 +147,7 @@
     <link rel="import" href="/elements/keyboard.html">
     <link rel="import" href="/elements/keyboard_enabled_default.html">
     <link rel="import" href="/elements/keyboard_selection_add_more.html">
+    <link rel="import" href="/elements/themes.html">
     <link rel="import" href="/elements/screen_lock_passcode.html">
     <link rel="import" href="/elements/screen_lock.html">
     <link rel="import" href="/elements/simpin_dialog.html">
@@ -300,6 +301,8 @@
     <!-- Personalization :: Keyboard -->
     <section is="keyboard" role="region" id="keyboard" data-require-sub-panels="true"></section>
     <section is="keyboard-enabled-default" role="region" id="keyboard-enabled-default"></section>
+    <!-- Personalization :: Themes -->
+    <section is="themes" role="region" id="themes"></section>
 
     <!-- Accounts :: Find My Device -->
     <section is="findmydevice" role="region" id="findmydevice"></section>
@@ -490,6 +493,9 @@
               <span data-l10n-id="keyboards">Keyboards</span>
               <small id="keyboard-desc" class="menu-item-desc"></small>
             </a>
+          </li>
+          <li>
+            <a id="menuItem-themes" class="menu-item gaia-icon icon-settings-themes" href="#themes" data-l10n-id="themes">Themes</a>
           </li>
         </ul>
 
