@@ -14,6 +14,7 @@ from gaiatest.apps.homescreen.regions.bookmark_menu import BookmarkMenu
 class Browser(Base):
 
     name = "Browser"
+    manifest_url = "app://browser.gaiamobile.org/manifest.webapp"
 
     _browser_frame_locator = (By.CSS_SELECTOR, 'iframe.browser-tab')
     _main_screen_locator = (By.ID, 'main-screen')
