@@ -25,9 +25,9 @@ class TestKeyboardPredictiveKey(GaiaTestCase):
         # tap the field "input type=text"
         keyboard = keyboard_page.tap_text_input()
 
-        # type first 6 letters of the expected word
+        # type first 7 letters of the expected word
         expected_word = 'keyboard '
-        keyboard.send(expected_word[:6])
+        keyboard.send(expected_word[:7])
 
         # tap the first predictive word
         keyboard.tap_first_predictive_word()
