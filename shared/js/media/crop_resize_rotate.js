@@ -489,11 +489,12 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
         console.warn('Source image is corrupt', ex);
         return callback('Source image is corrupt');
       }
-
-      // Once the image has been copied, we can release the decoded image
-      // memory and the blob URL.
-      offscreenImage.src = '';
-      URL.revokeObjectURL(baseURL);
+      finally {
+        // Once the image has been copied, we can release the decoded image
+        // memory and the blob URL.
+        offscreenImage.src = '';
+        URL.revokeObjectURL(baseURL);
+      }
 
       // Finally, encode the image into a blob
       canvas.toBlob(gotEncodedBlob, outputType || JPEG);

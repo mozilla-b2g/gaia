@@ -89,7 +89,7 @@ ThumbnailDateGroup.compareGroupID = function(id1, id2) {
 
 // Instance methods
 ThumbnailDateGroup.prototype.addItem = function(item) {
-  if (!item || !item.metadata) {
+  if (!item) {
     return;
   }
 

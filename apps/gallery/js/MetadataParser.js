@@ -279,7 +279,7 @@ var metadataParser = (function() {
           useFullsizeImage();
         }
         else {
-          metadataCallback(null);
+          metadataError(msg);
         }
       }
 

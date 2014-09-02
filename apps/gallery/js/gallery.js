@@ -453,12 +453,10 @@ function initThumbnails() {
   }
 
   function thumb(fileinfo) {
+    files.push(fileinfo); // remember the file
     // Create the thumbnail view for this file
     // and insert it at the right spot
-    var ele = thumbnailList.addItem(fileinfo);
-    if (ele) {
-      files.push(fileinfo);              // remember the file
-    }
+    thumbnailList.addItem(fileinfo);
   }
 
   function done() {
