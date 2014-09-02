@@ -303,6 +303,8 @@ contacts.List = (function() {
   var scrollToCb = function scrollCb(domTarget, group) {
     if (domTarget.offsetTop > 0) {
       scrollable.scrollTop = domTarget.offsetTop;
+    } else if (group === 'search-container') {
+      scrollable.scrollTop = 0;
     }
   };
 
