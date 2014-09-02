@@ -1,6 +1,6 @@
 'use strict';
 /* global ExternalStorageMonitor, MocksHelper, MockNotification, MockL10n,
-          MockGetDeviceStorages, MockMozActivity */
+          MockGetDeviceStorages, MockMozActivity, MockNavigatorSettings */
 
 requireApp('system/js/external_storage_monitor.js');
 
@@ -11,6 +11,7 @@ require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_dom_request.js');
 require('/shared/test/unit/mocks/mock_navigator_getdevicestorage.js');
 require('/shared/test/unit/mocks/mock_navigator_getdevicestorages.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 var mocksForExternalStorageMonitor = new MocksHelper([
   'MozActivity'
@@ -25,6 +26,7 @@ suite('system/ExternalStorageMonitor', function() {
   var realNotification;
   var realNavigatorGetDeviceStorages;
   var realMozActivity;
+  var realMozSettings;
 
   var externalStorageMonitor;
 
@@ -43,6 +45,9 @@ suite('system/ExternalStorageMonitor', function() {
     realMozActivity = window.MozActivity;
     window.MozActivity = MockMozActivity;
 
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+
     externalStorageMonitor = new ExternalStorageMonitor();
   });
 
@@ -51,6 +56,8 @@ suite('system/ExternalStorageMonitor', function() {
     window.Notification = realNotification;
     navigator.getDeviceStorages = realNavigatorGetDeviceStorages;
     window.MozActivity = realMozActivity;
+    navigator.mozSettings = realMozSettings;
+    MockNavigatorSettings.mTeardown();
   });
 
   suite('new > ', function() {
@@ -153,6 +160,7 @@ suite('system/ExternalStorageMonitor', function() {
       setup(function() {
         externalStorageMonitor.statusStack = [0, 2, 1, 3, 4];
         this.sinon.stub(externalStorageMonitor, 'clearStatus');
+        this.sinon.stub(externalStorageMonitor, 'enableStorageUnrecognised');
         this.sinon.stub(externalStorageMonitor, 'createMessage');
         externalStorageMonitor.recogniseStorageActions();
       });
@@ -164,6 +172,9 @@ suite('system/ExternalStorageMonitor', function() {
       test('match "Recognised"..', function() {
         assert.isTrue(externalStorageMonitor.clearStatus.called,
           'clearStatus() should be called');
+        assert.isTrue(
+          externalStorageMonitor.enableStorageUnrecognised.calledWith(false),
+          'enableStorageUnrecognised() should be called with "false"');
         assert.isTrue(externalStorageMonitor.createMessage.calledWith(
           'detected-recognised'),
           'createMessage() should be called with "detected-recognised"');
@@ -174,6 +185,7 @@ suite('system/ExternalStorageMonitor', function() {
       setup(function() {
         externalStorageMonitor.statusStack = [0, 1, 3, 1];
         this.sinon.stub(externalStorageMonitor, 'clearStatus');
+        this.sinon.stub(externalStorageMonitor, 'enableStorageUnrecognised');
         this.sinon.stub(externalStorageMonitor, 'createMessage');
         externalStorageMonitor.recogniseStorageActions();
       });
@@ -185,9 +197,54 @@ suite('system/ExternalStorageMonitor', function() {
       test('match "Unrecognised"..', function() {
         assert.isTrue(externalStorageMonitor.clearStatus.called,
           'clearStatus() should be called');
+        assert.isTrue(
+          externalStorageMonitor.enableStorageUnrecognised.calledWith(true),
+          'enableStorageUnrecognised() should be called with "true"');
         assert.isTrue(externalStorageMonitor.createMessage.calledWith(
           'detected-unrecognised'),
           'createMessage() should be called with "detected-unrecognised"');
+      });
+    });
+
+    suite('action: UnrecognisedAfterRechecked > ', function() {
+      setup(function() {
+        externalStorageMonitor.statusStack = [1, 3, 1];
+        this.sinon.stub(externalStorageMonitor, 'clearStatus');
+        this.sinon.stub(externalStorageMonitor, 'enableStorageUnrecognised');
+        externalStorageMonitor.recogniseStorageActions();
+      });
+
+      teardown(function() {
+        externalStorageMonitor.statusStack = [];
+      });
+
+      test('match "UnrecognisedAfterRechecked"..', function() {
+        assert.isTrue(externalStorageMonitor.clearStatus.called,
+          'clearStatus() should be called');
+        assert.isTrue(
+          externalStorageMonitor.enableStorageUnrecognised.calledWith(true),
+          'enableStorageUnrecognised() should be called with "true"');
+      });
+    });
+
+    suite('action: UnrecognisedAfterFormatted > ', function() {
+      setup(function() {
+        externalStorageMonitor.statusStack = [1, 6, 1];
+        this.sinon.stub(externalStorageMonitor, 'clearStatus');
+        this.sinon.stub(externalStorageMonitor, 'enableStorageUnrecognised');
+        externalStorageMonitor.recogniseStorageActions();
+      });
+
+      teardown(function() {
+        externalStorageMonitor.statusStack = [];
+      });
+
+      test('match "UnrecognisedAfterFormatted"..', function() {
+        assert.isTrue(externalStorageMonitor.clearStatus.called,
+          'clearStatus() should be called');
+        assert.isTrue(
+          externalStorageMonitor.enableStorageUnrecognised.calledWith(true),
+          'enableStorageUnrecognised() should be called with "true"');
       });
     });
 
@@ -197,6 +254,7 @@ suite('system/ExternalStorageMonitor', function() {
           externalStorageMonitor.statusStack = [4, 5, 1, 0];
           externalStorageMonitor.justEnterIdleLessThanOneSecond = false;
           this.sinon.stub(externalStorageMonitor, 'clearStatus');
+          this.sinon.stub(externalStorageMonitor, 'enableStorageUnrecognised');
           this.sinon.stub(externalStorageMonitor, 'createMessage');
           externalStorageMonitor.recogniseStorageActions();
         });
@@ -208,6 +266,9 @@ suite('system/ExternalStorageMonitor', function() {
         test('match "Removed"..', function() {
           assert.isTrue(externalStorageMonitor.clearStatus.called,
             'clearStatus() should be called');
+          assert.isTrue(
+            externalStorageMonitor.enableStorageUnrecognised.calledWith(false),
+            'enableStorageUnrecognised() should be called with "false"');
           assert.isTrue(externalStorageMonitor.createMessage.calledWith(
             'normally-removed'),
             'createMessage() should be called with "normally-removed"');
@@ -219,6 +280,7 @@ suite('system/ExternalStorageMonitor', function() {
           externalStorageMonitor.statusStack = [4, 5, 1, 0];
           externalStorageMonitor.justEnterIdleLessThanOneSecond = true;
           this.sinon.stub(externalStorageMonitor, 'clearStatus');
+          this.sinon.stub(externalStorageMonitor, 'enableStorageUnrecognised');
           this.sinon.stub(externalStorageMonitor, 'createMessage');
           externalStorageMonitor.recogniseStorageActions();
         });
@@ -230,10 +292,34 @@ suite('system/ExternalStorageMonitor', function() {
         test('match "Removed"..', function() {
           assert.isTrue(externalStorageMonitor.clearStatus.called,
             'clearStatus() should be called');
+          assert.isTrue(
+            externalStorageMonitor.enableStorageUnrecognised.calledWith(false),
+            'enableStorageUnrecognised() should be called with "false"');
           assert.isTrue(externalStorageMonitor.createMessage.calledWith(
             'unexpectedly-removed'),
             'createMessage() should be called with "unexpectedly-removed"');
         });
+      });
+    });
+
+    suite('action: UnrecognisedStorageRemoved > ', function() {
+      setup(function() {
+        externalStorageMonitor.statusStack = [1, 0];
+        this.sinon.stub(externalStorageMonitor, 'clearStatus');
+        this.sinon.stub(externalStorageMonitor, 'enableStorageUnrecognised');
+        externalStorageMonitor.recogniseStorageActions();
+      });
+
+      teardown(function() {
+        externalStorageMonitor.statusStack = [];
+      });
+
+      test('match "UnrecognisedStorageRemoved"..', function() {
+        assert.isTrue(externalStorageMonitor.clearStatus.called,
+          'clearStatus() should be called');
+        assert.isTrue(
+          externalStorageMonitor.enableStorageUnrecognised.calledWith(false),
+          'enableStorageUnrecognised() should be called with "false"');
       });
     });
 
@@ -314,6 +400,23 @@ suite('system/ExternalStorageMonitor', function() {
           assert.isTrue(externalStorageMonitor.fireNotification.calledWith(
             title, body));
         });
+      });
+    });
+
+    suite('enableStorageUnrecognised > ', function() {
+      setup(function() {
+        externalStorageMonitor.enableStorageUnrecognised(true);
+      });
+
+      teardown(function() {
+        delete MockNavigatorSettings.mSettings['volume.external.unrecognised'];
+      });
+
+      test('settings key "volume.external.unrecognised" should be set ' +
+        'after enableStorageUnrecognised() called.. ', function() {
+        assert.isTrue(
+          MockNavigatorSettings.mSettings['volume.external.unrecognised'],
+          'settings key "volume.external.unrecognised" should be true');
       });
     });
 

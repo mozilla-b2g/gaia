@@ -4,7 +4,7 @@
 (function(exports) {
 
   /**
-   * ExternalStorageMonitor listenes to external storage(should be
+   * ExternalStorageMonitor listens to external storage(should be
    * insterted/removed SD card slot) for the volume chagne event.
    * According to the status activity, we use regular expression to indentify
    * storage actions.
@@ -145,6 +145,38 @@
     actionUnrecognised: /0131$/,
 
     /**
+     * Volume RegExp "actionUnrecognisedAfterRechecked".
+     * If there is an unformatted or format-not-readable SD card in slot,
+     * volume storage will recheck it for mounting. Once the storage is not able
+     * to be mounted, Volume State Machine will run in this flow.
+     * State flow:
+     * Idle(Unmounted) --> Checking --> Idle(Unmounted)
+     *
+     * Enumerate value:
+     * 1 --> 3 --> 1
+     *
+     * @memberof ExternalStorageMonitor.prototype
+     * @type {RegExp}
+     */
+    actionUnrecognisedAfterRechecked: /131$/,
+
+    /**
+     * Volume RegExp "actionUnrecognisedAfterFormatted".
+     * A SD card is still unrecognised after a user formatted an unformatted or
+     * can not readable format SD card.
+     * Volume State Machine will run in this flow.
+     * State flow:
+     * Idle(Unmounted) --> Formatting --> Idle(Unmounted)
+     *
+     * Enumerate value:
+     * 1 --> 6 --> 1
+     *
+     * @memberof ExternalStorageMonitor.prototype
+     * @type {RegExp}
+     */
+    actionUnrecognisedAfterFormatted: /161$/,
+
+    /**
      * Volume RegExp "actionRemoved".
      * If a user unmount SD card successfully,
      * Volume State Machine will run in this flow.
@@ -158,6 +190,21 @@
      * @type {RegExp}
      */
     actionRemoved: /4510$/,
+
+    /**
+     * Volume RegExp "actionUnrecognisedStorageRemoved".
+     * If a user unmount SD card successfully,
+     * Volume State Machine will run in this flow.
+     * State flow:
+     * Idle(Unmounted) --> NoMedia
+     *
+     * Enumerate value:
+     * 1 --> 0
+     *
+     * @memberof ExternalStorageMonitor.prototype
+     * @type {RegExp}
+     */
+    actionUnrecognisedStorageRemoved: /10$/,
 
     /**
      * A flag to identify the storage status has been into Idle(Unmounted).
@@ -259,14 +306,34 @@
 
       if (actionsFlags.match(this.actionRecognised)) {
         this.clearStatus();
+        // reset settings key 'volume.external.unrecognised' to be false
+        this.enableStorageUnrecognised(false);
         // notify SD card detected
         this.createMessage('detected-recognised');
       } else if (actionsFlags.match(this.actionUnrecognised)) {
         this.clearStatus();
+        // XXX: Bug 1060252 - Request deviceStorages API pass volume storage
+        // activity event. Once API is ready to maintain state machine, it will
+        // pass storage activity immediately. Then, system and settings app is
+        // able to receive change event without maintain state machine. And we
+        // can remove set mozSettings key here.
+        // change settings key 'volume.external.unrecognised' to be true
+        this.enableStorageUnrecognised(true);
         // notify unknown SD card detected
         this.createMessage('detected-unrecognised');
+      } else if (actionsFlags.match(this.actionUnrecognisedAfterRechecked)) {
+        this.clearStatus();
+        // change settings key 'volume.external.unrecognised' to be true
+        this.enableStorageUnrecognised(true);
+      } else if (actionsFlags.match(this.actionUnrecognisedAfterFormatted)) {
+        this.clearStatus();
+        // change settings key 'volume.external.unrecognised' to be true
+        this.enableStorageUnrecognised(true);
       } else if (actionsFlags.match(this.actionRemoved)) {
         this.clearStatus();
+        // reset settings key 'volume.external.unrecognised' to be false
+        this.enableStorageUnrecognised(false);
+        // identify SD card removed expectedly or not
         if (!this.justEnterIdleLessThanOneSecond) {
           // notify SD card safely removed
           this.createMessage('normally-removed');
@@ -274,7 +341,33 @@
           // notify SD card unexpectedly removed
           this.createMessage('unexpectedly-removed');
         }
+      } else if (actionsFlags.match(this.actionUnrecognisedStorageRemoved)) {
+        this.clearStatus();
+        // reset settings key 'volume.external.unrecognised' to be false
+        this.enableStorageUnrecognised(false);
       }
+    },
+
+    /**
+     * Set settings key 'volume.external.unrecognised' to be boolean.
+     * @memberof ExternalStorageMonitor.prototype
+     * @type {Boolean}
+     */
+    enableStorageUnrecognised: function(enabled) {
+      var setRequest = navigator.mozSettings.createLock().set({
+        'volume.external.unrecognised': enabled
+      });
+
+      setRequest.onerror = function() {
+        var msg = '[ExternalStorageMonitor] set settings key error:' +
+                  setRequest.error.name;
+        this.debug(msg);
+      }.bind(this);
+
+      setRequest.onsuccess = function() {
+        var msg = '[ExternalStorageMonitor] set settings key onsuccess';
+        this.debug(msg);
+      }.bind(this);
     },
 
     /**
