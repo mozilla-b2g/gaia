@@ -38,7 +38,19 @@
     }
   },
   "locales": {
+    "ar": {
+      "name": "Usage",
+      "description": "Usage application to see credit and data usage statistics"
+    },
     "en-US": {
+      "name": "Usage",
+      "description": "Usage application to see credit and data usage statistics"
+    },
+    "fr": {
+      "name": "Usage",
+      "description": "Usage application to see credit and data usage statistics"
+    },
+    "zh-TW": {
       "name": "Usage",
       "description": "Usage application to see credit and data usage statistics"
     }

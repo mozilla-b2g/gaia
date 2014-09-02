@@ -5,7 +5,19 @@
   "description": "Gaia Feedback",
   "launch_path": "/index.html",
   "locales": {
+    "ar": {
+      "name": "Feedback",
+      "description": "Gaia Feedback"
+    },
     "en-US": {
+      "name": "Feedback",
+      "description": "Gaia Feedback"
+    },
+    "fr": {
+      "name": "Feedback",
+      "description": "Gaia Feedback"
+    },
+    "zh-TW": {
       "name": "Feedback",
       "description": "Gaia Feedback"
     }

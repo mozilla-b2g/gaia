@@ -64,6 +64,8 @@ suite('L10n', function() {
     inline.textContent = JSON.stringify(inlineL10Props);
     document.head.appendChild(inline);
 
+    navigator.mozL10n.ctx.registerLocales('en-US',
+                                          ['fr', 'zh-TW', 'ar']);
     navigator.mozL10n.language.code = lang;
     navigator.mozL10n.once(done);
   });

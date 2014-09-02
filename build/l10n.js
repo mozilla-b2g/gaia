@@ -31,43 +31,40 @@
   };
 
   function initResources(callback) {
-    var resLinks = document.head
-                           .querySelectorAll('link[type="application/l10n"]');
-    var iniLinks = [];
+    /* jshint boss:true */
     var containsFetchableLocale = false;
-    var i;
 
-    for (i = 0; i < resLinks.length; i++) {
-      var link = resLinks[i];
-      var url = link.getAttribute('href');
-      var type = url.substr(url.lastIndexOf('.') + 1);
-      if (type === 'ini') {
-        if (!('noFetch' in link.dataset)) {
-          containsFetchableLocale = true;
-        }
-        iniLinks.push(url);
-      }
-      this.ctx.resLinks.push(url);
-    }
+    var nodes = document.head
+                        .querySelectorAll('link[rel="localization"],' +
+                                          'link[rel="manifest"],' +
+                                          'meta[name="locales"],' +
+                                          'meta[name="default_locale"]');
 
-    var iniLoads = iniLinks.length;
-    if (iniLoads === 0) {
-      onIniLoaded();
-      return;
-    }
-
-    function onIniLoaded() {
-      if (--iniLoads <= 0) {
-        if (!containsFetchableLocale) {
-          document.documentElement.dataset.noCompleteBug = true;
-        }
-        callback();
+    for (var i = 0, node; node = nodes[i]; i++) {
+      var type = node.getAttribute('rel') || node.nodeName.toLowerCase();
+      switch (type) {
+        case 'manifest':
+          L10n.onManifestInjected.call(this, node.getAttribute('href'));
+          break;
+        case 'localization':
+          if (!('noFetch' in nodes[i].dataset)) {
+            containsFetchableLocale = true;
+          }
+          this.ctx.resLinks.push(node.getAttribute('href'));
+          break;
+        case 'meta':
+          L10n.onMetaInjected.call(this, node);
+          break;
       }
     }
 
-    for (i = 0; i < iniLinks.length; i++) {
-      L10n.loadINI.call(this, iniLinks[i], onIniLoaded);
+    if (!containsFetchableLocale) {
+      document.documentElement.dataset.noCompleteBug = true;
     }
+
+    // at buildtime, resource loading is synchronous, so we don't need to
+    // wait for any resource to be loaded
+    callback();
   }
 
 

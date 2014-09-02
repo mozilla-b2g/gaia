@@ -21,8 +21,9 @@ describe('One fallback locale', function() {
 
   beforeEach(function(done) {
     ctx = new Context();
-    ctx.resLinks.push(path + '/fixtures/{{locale}}.properties');
+    ctx.resLinks.push(path + '/fixtures/{locale}.properties');
     ctx.once(done);
+    ctx.registerLocales('en-US', ['pl']);
     ctx.requestLocales('pl');
   });
 

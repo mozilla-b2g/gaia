@@ -11,7 +11,19 @@
   },
 
   "locales": {
+    "ar": {
+      "name": "FTU",
+      "description": "First Time Experience"
+    },
     "en-US": {
+      "name": "FTU",
+      "description": "First Time Experience"
+    },
+    "fr": {
+      "name": "FTU",
+      "description": "First Time Experience"
+    },
+    "zh-TW": {
       "name": "FTU",
       "description": "First Time Experience"
     }
