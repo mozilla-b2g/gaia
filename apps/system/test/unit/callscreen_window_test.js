@@ -131,4 +131,32 @@ suite('system/CallscreenWindow', function() {
       });
     });
   });
+
+  suite('reloading the window', function() {
+    var subject;
+    setup(function() {
+      subject = new CallscreenWindow();
+      subject.browser.element = {
+        src: 'app://callscreen.gaiamobile.org/index.html#stuff'
+      };
+      this.sinon.spy(subject, 'setVisible');
+
+      subject.reloadWindow();
+    });
+
+    test('should empty the src at first', function() {
+      assert.equal(subject.browser.element.src, '');
+    });
+
+    test('should set the visibility to false', function() {
+      sinon.assert.calledOnce(subject.setVisible);
+      sinon.assert.calledWith(subject.setVisible, false);
+    });
+
+    test('should reset the src after a tick', function() {
+      this.sinon.clock.tick();
+      assert.equal(subject.browser.element.src,
+                   'app://callscreen.gaiamobile.org/index.html');
+    });
+  });
 });
