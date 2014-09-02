@@ -85,6 +85,18 @@ var GaiaApps = {
     });
   },
 
+  setPermissionByUrl: function(manifestUrl, permissionName, value, entryPoint) {
+    GaiaApps.locateWithManifestURL(manifestUrl, entryPoint, function(app) {
+      console.log("Setting permission '" + permissionName + "' for " +
+        manifestUrl + "to '" + value + "'");
+      var mozPerms = navigator.mozPermissionSettings;
+      mozPerms.set(
+        permissionName, value, app.manifestURL, app.origin, false
+      );
+      marionetteScriptFinished();
+    });
+  },
+
   sendLocateResponse: function(aCallback, app, appName, launchPath, entryPoint) {
     var callback = aCallback || marionetteScriptFinished;
     if (callback === marionetteScriptFinished) {
