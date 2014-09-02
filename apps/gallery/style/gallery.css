@@ -27,8 +27,15 @@ section {
   font-size: 1.4rem;
 }
 
+/*
+ * 1. Introduced by bug 1019841
+ * The important declaration is a necessary a workaround
+ * for one of the current limitations of web components.
+ * Styles inside the component applied to the projected content are more specific
+ * than those applied from the outside.
+ */
 .large-only {
-  display: none !important;
+  display: none !important; /* 1 */
 }
 
 .hidden {
