@@ -740,7 +740,7 @@
     this.writeSetting(false);
 
     if (this.unlockSoundEnabled) {
-      var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
+      var unlockAudio = new Audio('./resources/sounds/unlock.opus');
       unlockAudio.play();
     }
 
