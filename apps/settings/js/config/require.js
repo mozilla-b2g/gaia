@@ -225,6 +225,10 @@ require.config({
     {
       name: 'panels/search/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/sound/panel',
+      exclude: ['main']
     }
   ]
 });

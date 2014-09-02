@@ -31,9 +31,9 @@ SoundPanel.Selectors = {
   'unlockScreenCheckbox':
               '#sound input[name="lockscreen.unlock-sound.enabled"]',
   'unlockScreenSpan': '#sound span[data-l10n-id="unlock-screen"]',
-  'alerttoneButton': '#alert-tone-selection',
-  'ringtoneButton': '#ring-tone-selection',
-  'manageTonesButton': '#manage-tones-button'
+  'alerttoneButton': '.alert-tone-selection',
+  'ringtoneButton': '.ring-tone-selection',
+  'manageTonesButton': '.manage-tones-button'
 };
 
 SoundPanel.prototype = {

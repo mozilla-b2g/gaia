@@ -8,7 +8,7 @@
 
     <div>
       <ul>
-        <li id="vibration-setting">
+        <li class="vibration-setting">
           <label class="pack-switch">
             <input type="checkbox" name="vibration.enabled" checked class="uninit">
             <span data-l10n-id="vibrate">Vibrate</span>
@@ -44,15 +44,15 @@
         <h2 data-l10n-id="tones">Tones</h2>
       </header>
       <ul>
-        <li id="ringer" hidden>
+        <li class="ringer" hidden>
           <p data-l10n-id="ringtones">Ringtones</p>
-          <button id="ring-tone-selection" class="icon icon-view"></button>
+          <button class="ring-tone-selection icon icon-view"></button>
         </li>
         <li id="alerts">
           <p data-l10n-id="alerts">Alerts</p>
-          <button id="alert-tone-selection" class="icon icon-view"></button>
+          <button class="alert-tone-selection icon icon-view"></button>
         </li>
-        <li id="touch-tone-selector" hidden>
+        <li class="touch-tone-selector" hidden>
           <a data-l10n-id="touch-tones">Audible touch tones</a>
           <span class="button icon icon-dialog">
             <select name="phone.dtmf.type">
@@ -62,7 +62,7 @@
           </span>
         </li>
         <li id="manage-tones">
-          <a id="manage-tones-button" class="menu-item"
+          <a class="manage-tones-button menu-item"
              data-l10n-id="manage-tones"></a>
         </li>
       </ul>
@@ -98,8 +98,7 @@
       </ul>
     </div>
 
-    <script src="shared/js/omadrm/fl.js"></script>
-    <script src="js/sound.js"></script>
+    <panel data-path="panels/sound/panel"></panel>
 
   </template>
 </element>
