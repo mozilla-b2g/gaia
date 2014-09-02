@@ -44,6 +44,16 @@ function SetupAccountInfoCard(domNode, mode, args) {
     domNode.getElementsByClassName('sup-manual-config-btn')[0];
   this.manualConfig.addEventListener('click',
                                      this.onClickManualConfig.bind(this));
+  [].forEach.call(
+    this.domNode.querySelectorAll('button[type=reset]'), function(el) {
+      el.addEventListener('click', function(event) {
+        setTimeout(function() {
+          this.nextButton.disabled = this.manualConfig.disabled =
+            !this.formNode.checkValidity();
+        }.bind(this), 0);
+      }.bind(this));
+    }.bind(this));
+
 
   new FormNavigation({
     formElem: domNode.getElementsByTagName('form')[0],
