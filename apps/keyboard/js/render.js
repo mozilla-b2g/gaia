@@ -1,5 +1,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global AlternativesCharMenuView */
+
 'use strict';
 
 /** @fileoverview Render is in charge of draw and composite HTML elements
@@ -13,7 +15,9 @@
 // attributes.
 var IMERender = (function() {
 
-  var ime, activeIme, menu;
+  var ime, activeIme;
+  var alternativesCharMenu = null;
+  var _menuKey = null;
 
   // Return the upper value for a key object
   var getUpperCaseValue = function getUpperCaseValue(key, layout) {
@@ -32,8 +36,6 @@ var IMERender = (function() {
       SPECIAL_CODES.indexOf(key.keyCode) !== -1;
     return hasSpecialCode || key.keyCode <= 0;
   };
-
-  var _menuKey, _altContainer;
 
   var layoutWidth = 10;
 
@@ -81,7 +83,6 @@ var IMERender = (function() {
   //   2- When a key is a special key
   var init = function kr_init() {
     ime = document.getElementById('keyboard');
-    menu = document.getElementById('keyboard-accent-char-menu');
 
     cachedWindowHeight = window.innerHeight;
     cachedWindowWidth = window.innerWidth;
@@ -598,128 +599,28 @@ var IMERender = (function() {
 
   // Show char alternatives.
   var showAlternativesCharMenu = function(key, altChars) {
-    var content = document.createDocumentFragment();
-    var left = (cachedWindowWidth / 2 > key.offsetLeft);
 
-    // Place the menu to the left
-    if (!left) {
-      menu.classList.add('kbr-menu-left');
-      altChars = altChars.reverse();
-    }
+    var keyWidth = cachedWindowWidth / layoutWidth;
+    var renderer = {
+      ARIA_LABELS: ARIA_LABELS,
+      buildKey: buildKey,
+      keyWidth: keyWidth
+    };
 
-    // How wide (in characters) is the key that we're displaying
-    // these alternatives for?
-    var keycharwidth = key.dataset.compositeKey ?
-      key.dataset.compositeKey.length : 1;
-
-    // Build a key for each alternative
-    altChars.forEach(function(alt, index) {
-      var dataset = alt.length == 1 ?
-        [
-          { 'key': 'keycode', 'value': alt.charCodeAt(0) },
-          { 'key': 'keycodeUpper', 'value': alt.toUpperCase().charCodeAt(0) }
-        ] :
-        [{'key': 'compositeKey', 'value': alt}];
-
-      // Make each of these alternative keys 75% as wide as the key that
-      // it is an alternative for, but adjust for the relative number of
-      // characters in the original and the alternative
-      var width = 0.75 * key.offsetWidth / keycharwidth * alt.length;
-
-      var attributeList = [];
-
-      if (ARIA_LABELS[alt]) {
-        attributeList.push({
-          key: 'data-l10n-id',
-          value: ARIA_LABELS[alt]
-        });
-      } else {
-        attributeList.push({
-          key: 'aria-label',
-          value: alt
-        });
-      }
-
-      attributeList.push({
-        key: 'role',
-        value: 'key'
-      });
-
-      content.appendChild(
-        buildKey(alt, '', width + 'px', dataset, null, attributeList));
-    });
-    menu.innerHTML = '';
-    menu.appendChild(content);
-
-    // Replace with the container
-    _altContainer = document.createElement('div');
-    _altContainer.style.display = 'inline-block';
-    _altContainer.style.width = key.style.width;
-    _altContainer.innerHTML = key.innerHTML;
-    _altContainer.className = key.className;
-    _altContainer.classList.add('kbr-menu-on');
+    alternativesCharMenu = new AlternativesCharMenuView(activeIme,
+                                                        altChars,
+                                                        renderer);
+    alternativesCharMenu.show(key);
+    key.classList.add('kbr-menu-on');
     _menuKey = key;
-    key.parentNode.replaceChild(_altContainer, key);
 
-    // Adjust menu style
-    _altContainer
-      .querySelectorAll('.visual-wrapper > span')[0]
-      .appendChild(menu);
-    menu.style.display = 'block';
-
-    function getWindowLeft(obj) {
-      var left;
-      left = obj.offsetLeft;
-      while (!!(obj = obj.offsetParent)) {
-        left += obj.offsetLeft;
-      }
-      return left;
-    }
-
-    // Adjust offset when alternatives menu overflows
-    var alternativesLeft = getWindowLeft(menu);
-    var alternativesRight = alternativesLeft + menu.offsetWidth;
-
-    var offset;
-
-    if (alternativesLeft < 0 || alternativesRight > cachedWindowWidth) {
-      if (left) {  // alternatives menu extends to the right
-        // Figure out what the current offset is. This is set in CSS to -1.2rem
-        offset = parseInt(getComputedStyle(menu).left);
-        if (alternativesLeft < 0) {                       // extends past left
-          offset += -alternativesLeft;
-        }
-        else if (alternativesRight > cachedWindowWidth) { // extends past right
-          offset -= (alternativesRight - cachedWindowWidth);
-        }
-        menu.style.left = offset + 'px';
-      }
-      else {       // alternatives menu extends to the left
-        // Figure out what the current offset is. This is set in CSS to -1.2rem
-        offset = parseInt(getComputedStyle(menu).right);
-        if (alternativesRight > cachedWindowWidth) {      // extends past right
-          offset += (alternativesRight - cachedWindowWidth);
-        }
-        else if (alternativesLeft < 0) {                  // extends past left
-          offset += alternativesLeft;
-        }
-        menu.style.right = offset + 'px';
-      }
-    }
+    return alternativesCharMenu;
   };
 
   // Hide the alternative menu
   var hideAlternativesCharMenu = function km_hideAlternativesCharMenu() {
-    menu.style.display = 'none';
-    menu.className = ''; // clear classes except ID
-    menu.innerHTML = '';
-
-    if (_altContainer) {
-      _altContainer.parentNode.replaceChild(_menuKey, _altContainer);
-    }
-
-    menu.style.left = '';
-    menu.style.right = '';
+    alternativesCharMenu.hide();
+    _menuKey.classList.remove('kbr-menu-on');
   };
 
   var _keyArray = []; // To calculate proximity info for predictive text
@@ -1074,9 +975,6 @@ var IMERender = (function() {
     'draw': draw,
     get ime() {
       return ime;
-    },
-    get menu() {
-      return menu;
     },
     'highlightKey': highlightKey,
     'unHighlightKey': unHighlightKey,

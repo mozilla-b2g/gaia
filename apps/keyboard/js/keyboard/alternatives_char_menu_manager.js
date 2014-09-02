@@ -23,11 +23,11 @@ var AlternativesCharMenuManager = function(app) {
 };
 
 AlternativesCharMenuManager.prototype.start = function() {
-  this._menuContainer = this.app.getMenuContainer();
+  this._currentMenuView = null;
 };
 
 AlternativesCharMenuManager.prototype.stop = function() {
-  this._menuContainer = null;
+  this._currentMenuView = null;
 };
 
 AlternativesCharMenuManager.prototype.show = function(target) {
@@ -40,26 +40,34 @@ AlternativesCharMenuManager.prototype.show = function(target) {
   var targetRect = target.getBoundingClientRect();
 
   // XXX: Remove reference to IMERender in the global in the future.
-  IMERender.showAlternativesCharMenu(target, alternatives);
+  this._currentMenuView = IMERender.showAlternativesCharMenu(target,
+                                                             alternatives);
   this.isShown = true;
 
   this._originalTarget = target;
   this._hasMovedAwayFromOriginalTarget = false;
 
   // XXX: We probably introduced a sync reflow here.
-  var menuRect = this._menuContainer.getBoundingClientRect();
+  var menuRect = this._currentMenuView.getBoundingClientRect();
 
   // The menu area the area right under the menu where we should redirect
   // the active target from what's under the finger to a key on the menu.
 
   // This ensures there is no gap between the menu and the area.
-  this._menuAreaTop = Math.min(targetRect.top, menuRect.bottom);
+  this._menuAreaTop = menuRect.top;
   // Ensure the target key is entire covered by picking the leftmost value
   this._menuAreaLeft = Math.min(targetRect.left, menuRect.left);
+
+  // Extend a little bit for usability
+  this._menuAreaLeft -= targetRect.width;
+
   // Simply the bottom of the target key.
   this._menuAreaBottom = targetRect.bottom;
   // Ensure the target key is entire covered by picking the rightmost value
   this._menuAreaRight = Math.max(targetRect.right, menuRect.right);
+
+  // Extend a little bit for usability
+  this._menuAreaRight += targetRect.width;
 };
 
 AlternativesCharMenuManager.prototype._getAlternativesForTarget =
@@ -100,36 +108,64 @@ AlternativesCharMenuManager.prototype.hide = function() {
     this._menuAreaLeft =
     this._menuAreaRight =
     this._menuAreaBottom = 0;
+  this._currentMenuView = null;
 };
 
 AlternativesCharMenuManager.prototype.isMenuTarget = function(target) {
-  return (target.parentNode === this._menuContainer);
+  var menuContainer = this._currentMenuView.getMenuContainer();
+  return (target.parentNode === menuContainer ||
+          target === menuContainer);
 };
 
 AlternativesCharMenuManager.prototype.getMenuTarget = function(press) {
+  var menuContainer = this._currentMenuView.getMenuContainer();
+  var menuRect = this._currentMenuView.getBoundingClientRect();
+
   if (!this.isShown) {
     throw new Error('AlternativesCharMenuManager: ' +
       'getMenuTarget called but menu is not shown');
   }
 
-  var children = this._menuContainer.children;
-  var xOffset = press.clientX - this._menuAreaLeft - 1;
-  var menuWidth = this._menuAreaRight - this._menuAreaLeft;
-
+  var children = menuContainer.children;
   // If the press.target is still the original target, we should always
   // return the first alternative (the one on top of the key).
   if (!this._hasMovedAwayFromOriginalTarget &&
       press.target === this._originalTarget) {
     // Return the alternative right on the top of the target key.
-    // The alternative can be either the last one in the DOM or the first one.
-    // We figure out which one with math and rounding.
-    return children[Math.round(xOffset / menuWidth) * (children.length - 1)];
+    // The alternative should always be the first element in the DOM.
+    return children[0];
   }
 
   this._hasMovedAwayFromOriginalTarget = true;
 
-  // Simply get and return the nth children with linear math.
-  return children[Math.floor(xOffset / menuWidth * children.length)];
+  // Limit the x,y in the menu
+  var x = press.clientX;
+  if (x < menuRect.left) {
+    x = menuRect.left;
+  } else if (x >= menuRect.right) {
+    // Cannot find element if x hit the edge, so -1 here.
+    x = menuRect.right - 1;
+  }
+
+  var y = press.clientY - this._currentMenuView.getLineHeight();
+  if (y <= menuRect.top) {
+    // Cannot find element if y hit the edge, so +1 here.
+    y = menuRect.top + 1;
+  }
+
+  var target = document.elementFromPoint(x, y);
+
+  if (target.parentNode !== menuContainer) {
+    // The user presses an empty cell in the menu, so
+    // return the last element.
+    if (target === menuContainer) {
+      target = children[children.length - 1];
+    } else {
+      return;
+    }
+  }
+
+  return target;
 };
 
 AlternativesCharMenuManager.prototype.isInMenuArea = function(press) {

@@ -25,7 +25,6 @@ var KeyboardApp = function() {
   this.inputContext = null;
 };
 
-KeyboardApp.prototype.ACCENT_CHAR_MENU_ELEMENT_ID = 'keyboard-accent-char-menu';
 KeyboardApp.prototype.CONATINER_ELEMENT_ID = 'keyboard';
 
 KeyboardApp.prototype.start = function() {
@@ -125,11 +124,6 @@ KeyboardApp.prototype._stopComponents = function() {
 
   this.stateManager.stop();
   this.stateManager = null;
-};
-
-KeyboardApp.prototype.getMenuContainer = function() {
-  // This is equal to IMERender.menu.
-  return document.getElementById(this.ACCENT_CHAR_MENU_ELEMENT_ID);
 };
 
 KeyboardApp.prototype.getContainer = function() {

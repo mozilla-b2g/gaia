@@ -295,30 +295,40 @@ div.zh-encode-switcher-selected {
 alternative special (accented) characters. The menu "grows" out of the key
 and displays the list of alternatives. */
 #keyboard-accent-char-menu {
-  display: none;
   position: absolute;
   top: -6rem;
-  height: 6rem;
   font-size: 0;
   border-radius: 3rem;
   background-color: #00aacc;
   overflow: hidden;
-  white-space: nowrap;
-  left: -1.2rem; /* because the first child is 1.2rem wider than others */
-}
-
-#keyboard-accent-char-menu.show {
-  display: block;
+  text-align: left;
+  /* Special hack to make the keys in the menu flow upwards. */
+  transform: rotateX(180deg); 
+  margin-left: -1.0rem; /* because the last child is wider than others */
 }
 
 #keyboard-accent-char-menu.kbr-menu-left {
   left: auto;
-  right: -1.2rem; /* because the last child is 1.2rem wider than others */
+  margin-right: -1rem; /* because the last child is wider than others */
+}
+
+#keyboard-accent-char-menu.left-edge {
+  margin-left: 0.4rem;
+}
+
+#keyboard-accent-char-menu.right-edge {
+  margin-right: 0.4rem;
 }
 
 /* Non keyboard key styles in menu */
 #keyboard-accent-char-menu .keyboard-key {
   min-width: 3rem;
+  transform: rotateX(180deg);
+  float: left;
+}
+
+#keyboard-accent-char-menu.kbr-menu-left .keyboard-key {
+  float: right;
 }
 
 /* if it is the first or last key in the accent menu make it wider */
@@ -368,14 +378,57 @@ and displays the list of alternatives. */
   padding-right: 0.5rem;
 }
 
+#keyboard-accent-char-menu.kbr-menu-left .keyboard-key:first-child > .visual-wrapper > .key-element {
+  padding-right: 0.5rem;
+  padding-left: 0;
+}
+
+#keyboard-accent-char-menu.kbr-menu-left .keyboard-key:last-child > .visual-wrapper > .key-element {
+  padding-left: 0.5rem;
+  padding-right: 0;
+}
+
 /* Highlighted special accent characters. These keys appear in the popover
 bubble above the key when you tap and hold. */
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > .key-element {
-  background-color: #0099b8;
+  background-color: #008eab;
 }
 
-#keyboard-accent-char-menu > .keyboard-key:last-child .visual-wrapper {
-  border: none;
+/* Multi-row menu styles */
+#keyboard-accent-char-menu.multi-row {
+  border-radius: 0.2rem;
+  margin-left: 0;
+  background-color: #00a1c2;
+}
+
+#keyboard-accent-char-menu.multi-row::before {
+  content: '';
+  background-color: #19a8c2;
+  width: 100%;
+  height: 50%;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+}
+
+#keyboard-accent-char-menu.multi-row.kbr-menu-left {
+  margin-right: 0;
+}
+
+/* revert the expanded width because it won't have rounded corner */
+#keyboard-accent-char-menu.multi-row .keyboard-key:first-child,
+#keyboard-accent-char-menu.multi-row .keyboard-key:last-child {
+  min-width: 3rem;
+}
+
+#keyboard-accent-char-menu.multi-row .keyboard-key > .visual-wrapper {
+  border: 0;
+}
+
+#keyboard-accent-char-menu.multi-row .keyboard-key:first-child > .visual-wrapper > .key-element,
+#keyboard-accent-char-menu.multi-row .keyboard-key:last-child  > .visual-wrapper > .key-element {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 #keyboard.full-candidate-panel {

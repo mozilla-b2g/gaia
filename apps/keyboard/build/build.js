@@ -59,10 +59,14 @@ KeyboardAppBuilder.prototype.copyStaticFiles = function() {
     // Unfortunately we have to explicitly list many files here
     // because the whitelist most not include optional layout
     // specific files.
-    filenames = filenames.concat('index.html', 'locales',
-                                 'settings.html', 'style',
+    filenames = filenames.concat('index.html',
+                                 'locales',
+                                 'settings.html',
+                                 'style',
                                  'js/render.js',
-                                 'js/settings', 'js/keyboard',
+                                 'js/settings',
+                                 'js/keyboard',
+                                 'js/views',
                                  'js/imes/latin/latin.js',
                                  'js/imes/latin/predictions.js',
                                  'js/imes/latin/worker.js');
