@@ -422,17 +422,13 @@ section[role="region"].new > header:first-child form {
 }
 
 .article-list[data-type="list"] .message {
-  position: relative;
   z-index: 0; /* bug 970422 */
 
-  display: block;
   overflow: hidden;
   width: 100%;
   height: auto;
-  margin-bottom: 1rem;
+  padding-bottom: 1rem;
   border-bottom: none;
-
-  transition: none;
 }
 
 .article-list[data-type="list"] .message.hidden {
