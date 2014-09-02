@@ -38,7 +38,7 @@
 @media (orientation: portrait) {
   #screen.software-button-enabled #right-panel,
   #screen.software-button-enabled #left-panel {
-    height: calc(100% - 10rem - 5rem);
+    height: calc(100% - 10rem - var(--software-home-button-height));
   }
 }
 
