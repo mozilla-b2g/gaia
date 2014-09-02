@@ -205,6 +205,12 @@
     clickIcon: function(e) {
       e.preventDefault();
 
+      // Bug 1055299 - Prevent the user from launching multiple applications
+      // quickly or there is the possibility we will confuse the system app.
+      if (this.launchingTimeout) {
+        return;
+      }
+
       var container = e.target;
       var action = 'launch';
 
@@ -239,8 +245,9 @@
         // arbitrary time to restore the state. We want the icon to return
         // to it's original state after launching the app, but visibilitychange
         // will not work because activities do not fire it.
-        var returnTimeout = 500;
-        setTimeout(function stateReturn() {
+        var returnTimeout = 1000;
+        this.launchingTimeout = setTimeout(() => {
+          this.launchingTimeout = null;
           if (icon.element) {
             icon.element.classList.remove('launching');
           }
