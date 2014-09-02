@@ -15,6 +15,7 @@ var KeyboardApp = function() {
   this.settingsPromiseManager = null;
   this.l10nLoader = null;
   this.targetHandlersManager = null;
+  this.handwritingPadsManager = null;
   this.feedbackManager = null;
   this.visualHighlightManager = null;
   this.candidatePanelManager = null;
@@ -106,6 +107,11 @@ KeyboardApp.prototype._stopComponents = function() {
 
   this.targetHandlersManager.stop();
   this.targetHandlersManager = null;
+
+  if (this.handwritingPadsManager) {
+    this.handwritingPadsManager.stop();
+    this.handwritingPadsManager = null;
+  }
 
   this.feedbackManager.stop();
   this.feedbackManager = null;

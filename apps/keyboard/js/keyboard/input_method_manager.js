@@ -1,6 +1,6 @@
 'use strict';
 
-/* global IMEngineSettings, Promise, KeyEvent */
+/* global IMEngineSettings, Promise, KeyEvent, HandwritingPadsManager */
 
 /*
  * InputMethodManager manages life cycle of input methods.
@@ -24,13 +24,17 @@
  *    init(keyboard):
  *      Keyboard is the object that the IM uses to communicate with the keyboard
  *
- *    activate(language, suggestionsEnabled, inputstate):
+ *    activate(language, inputData, option):
  *      The keyboard calls this method when it becomes active.
- *      language is the current language.  suggestionsEnabled
- *      specifies whether the user wants word suggestions inputstate
- *      is an object that holds the state of the input field or
- *      textarea being typed into.  it includes content, cursor
- *      position and type and inputmode attributes.
+ *      language is the current language. inputData is an object
+ *      that holds the infomation of the input field or textarea
+ *      being typed into. it includes type, inputmode, value,
+ *      inputContext and selectionStart, selectionEnd attributes.
+ *      option is also an object, it includes suggest, correct,
+ *      layoutName attributes. suggest specifies whether the user
+ *      wants word suggestions and correct specifies whether auto
+ *      correct user's spelling mistakes, and layoutName is used
+ *      for handwriting input methods only.
  *
  *    deactivate():
  *      Called when the keyboard is hidden.
@@ -60,6 +64,10 @@
  *    getMoreCandidates(indicator, maxCount, callback):
  *      (optional) Called when the render needs more candidates to show on the
  *      candidate panel.
+ *
+ *    sendStrokePoints(strokePoints):
+ *      (optional) Send stroke points to handwriting input method engine.
+ *      Only handwrting input methods use it.
  *
  * The init method of each IM is passed an object that it uses to
  * communicate with the keyboard. That interface object defines the following
@@ -419,6 +427,13 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
       return Promise.reject();
     }
 
+    // If current IM engine is handwriting, start handwrting pads manager.
+    if (this.app.layoutManager.currentLayout.handwriting &&
+        !this.app.handwritingPadsManager) {
+      this.app.handwritingPadsManager = new HandwritingPadsManager(this.app);
+      this.app.handwritingPadsManager.start();
+    }
+
     var imEngine = values[0];
     if (typeof imEngine.activate === 'function') {
       var dataValues = values[1];
@@ -428,7 +443,8 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
         dataValues,
         {
           suggest: settingsValues.suggestionsEnabled,
-          correct: settingsValues.correctionsEnabled
+          correct: settingsValues.correctionsEnabled,
+          layoutName: this.app.layoutManager.currentLayoutName
         }
       );
     }

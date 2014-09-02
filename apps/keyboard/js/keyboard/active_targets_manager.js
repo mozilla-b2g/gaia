@@ -95,6 +95,12 @@ ActiveTargetsManager.prototype._handlePressStart = function(press, id) {
     return;
   }
 
+  // Ignore new touches when user is writing.
+  if (this.app.handwritingPadsManager &&
+      !this.app.handwritingPadsManager.handlePressStart(press)) {
+    return;
+  }
+
   // All targets before the new touch need to be committed,
   // according to UX requirement.
   this.activeTargets.forEach(function(target, id) {
@@ -148,12 +154,30 @@ ActiveTargetsManager.prototype._handlePressMove = function(press, id) {
     return;
   }
 
-  // Do nothing if the element is unchanged.
+  // If the element is unchanged, handle it with handwriting pads manager.
   if (target === oldTarget) {
+    if (this.app.handwritingPadsManager) {
+      this.app.handwritingPadsManager.handlePressMove(press);
+    }
+    return;
+  }
+
+  // For UX team's requirement
+  // When moving out from handwriting pad, keep event's target to handwriting
+  // pad, ensure handwritingPadsManager handle the press end event and avoid
+  // invoking ontargetmovedin for the new target.
+  if (this.app.handwritingPadsManager &&
+      this.app.handwritingPadsManager.handleMoveOut(oldTarget)) {
     return;
   }
 
   this.activeTargets.set(id, target);
+
+  // When moving in handwriting pad, update event's target to handwriting pad
+  // and ensure invoking ontargetmovedout for the original target.
+  if (this.app.handwritingPadsManager) {
+    this.app.handwritingPadsManager.handleMoveIn(press);
+  }
 
   if (typeof this.ontargetmovedout === 'function') {
     this.ontargetmovedout(oldTarget, press);
@@ -202,6 +226,11 @@ ActiveTargetsManager.prototype._handlePressEnd = function(press, id) {
 
   var target = this.activeTargets.get(id);
   this.activeTargets.delete(id);
+
+  if (this.app.handwritingPadsManager &&
+      this.app.handwritingPadsManager.handlePressEnd(target)) {
+    return;
+  }
 
   this.alternativesCharMenuManager.hide();
   clearTimeout(this.longPressTimer);
