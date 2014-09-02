@@ -423,12 +423,19 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
     if (typeof imEngine.activate === 'function') {
       var dataValues = values[1];
       var settingsValues = values[2];
+      var currentLayout = this.app.layoutManager.currentLayout;
+      var correctPunctuation =
+        'autoCorrectPunctuation' in currentLayout ?
+          currentLayout.autoCorrectPunctuation :
+          true;
+
       imEngine.activate(
         this.app.layoutManager.currentModifiedLayout.autoCorrectLanguage,
         dataValues,
         {
           suggest: settingsValues.suggestionsEnabled,
-          correct: settingsValues.correctionsEnabled
+          correct: settingsValues.correctionsEnabled,
+          correctPunctuation: correctPunctuation
         }
       );
     }

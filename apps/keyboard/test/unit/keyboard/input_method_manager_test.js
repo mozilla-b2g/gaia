@@ -400,6 +400,9 @@ suite('InputMethodManager', function() {
       layoutManager: {
         currentModifiedLayout: {
           autoCorrectLanguage: 'xx-XX'
+        },
+        currentLayout: {
+          autoCorrectPunctuation: true
         }
       },
       perfTimer: this.sinon.stub(PerformanceTimer.prototype),
@@ -454,10 +457,38 @@ suite('InputMethodManager', function() {
         value: 'foobar'
       }, {
         suggest: true,
-        correct: true
+        correct: true,
+        correctPunctuation: true
       }));
       assert.equal(activateStub.getCall(0).thisValue,
         imEngine);
+    }, function() {
+      assert.isTrue(false, 'should not reject');
+    }).then(done, done);
+  });
+
+  test('switchCurrentIMEngine, autoCorrectPunctuation false', function(done) {
+    initSettingsPromise = Promise.resolve({
+      suggestionsEnabled: true,
+      correctionsEnabled: true
+    });
+    imEngineSettingsStub.initSettings.returns(initSettingsPromise);
+
+    manager.app.layoutManager.currentLayout = {
+      autoCorrectPunctuation: false
+    };
+
+    var p = manager.switchCurrentIMEngine('foo');
+    p.then(function() {
+      assert.isTrue(true, 'resolved');
+      var imEngine = manager.loader.getInputMethod('foo');
+      var activateStub = imEngine.activate;
+
+      assert.deepEqual(activateStub.args[0][2], {
+        suggest: true,
+        correct: true,
+        correctPunctuation: false
+      });
     }, function() {
       assert.isTrue(false, 'should not reject');
     }).then(done, done);
@@ -499,7 +530,8 @@ suite('InputMethodManager', function() {
         value: ''
       }, {
         suggest: true,
-        correct: true
+        correct: true,
+        correctPunctuation: true
       }));
       assert.equal(activateStub.getCall(0).thisValue, imEngine);
     }, function() {
@@ -560,7 +592,8 @@ suite('InputMethodManager', function() {
         value: 'foobar'
       }, {
         suggest: true,
-        correct: true
+        correct: true,
+        correctPunctuation: true
       }));
       assert.equal(activateStub.getCall(0).thisValue,
         imEngine);
@@ -598,7 +631,8 @@ suite('InputMethodManager', function() {
         value: 'foobar'
       }, {
         suggest: true,
-        correct: true
+        correct: true,
+        correctPunctuation: true
       }));
       assert.equal(activateStub.getCall(1).thisValue,
         imEngine);
