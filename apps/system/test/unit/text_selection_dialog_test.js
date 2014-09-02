@@ -194,6 +194,32 @@ suite('system/TextSelectionDialog', function() {
         ' call calculateDialogPostion');
     });
 
+  suite('Value selector', function() {
+    setup(function() {
+      td._injected = true;
+    });
+
+    test('is hidden', function() {
+      var stubShow = this.sinon.stub(td, 'show');
+      td.handleEvent({ type: 'value-selector-hidden' });
+      assert.isFalse(td._ignoreSelectionChange);
+
+      fakeTextSelectInAppEvent.detail = mockDetail;
+      td.handleEvent(fakeTextSelectInAppEvent);
+      assert.isTrue(stubShow.calledOnce, 'dialog should display');
+    });
+
+    test('is shown', function() {
+      var stubShow = this.sinon.stub(td, 'show');
+      td.handleEvent({ type: 'value-selector-showed' });
+      assert.isTrue(td._ignoreSelectionChange);
+
+      fakeTextSelectInAppEvent.detail = mockDetail;
+      td.handleEvent(fakeTextSelectInAppEvent);
+      assert.isFalse(stubShow.calledOnce, 'dialog should not display');
+    });
+  });
+
   suite('Single click on text, and selection area is collapsed', function() {
     test('has not done anything before click', function() {
       var stubHide = this.sinon.stub(td, 'hide');
