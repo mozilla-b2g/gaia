@@ -73,7 +73,7 @@ SoundFeedback.prototype.stop = function() {
 };
 
 SoundFeedback.prototype.CLICK_SOUND_URL = './resources/sounds/key.wav';
-SoundFeedback.prototype.SPECIAL_SOUND_URL = './resources/sounds/special.wav';
+SoundFeedback.prototype.SPECIAL_SOUND_URL = './resources/sounds/special.opus';
 
 SoundFeedback.prototype.SPECIAL_KEY_CLASSNAME = 'special-key';
 
