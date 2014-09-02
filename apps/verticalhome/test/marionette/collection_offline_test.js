@@ -36,7 +36,8 @@ marionette('Vertical - Collection', function() {
     collection.setServerURL(server);
   });
 
-  test('create collection shows offline message if no server response',
+  // Refer to http://bugzil.la/1061457.
+  test.skip('create collection shows offline message if no server response',
     function() {
 
     server.failAll();
