@@ -192,6 +192,12 @@
     suggesting = (options.suggest && inputMode !== 'verbatim');
     correcting = (options.correct && inputMode !== 'verbatim');
 
+    // Some layouts (like French) need to disable punctuation autocorrection
+    // all the time.
+    if (options.correctPunctuation === false) {
+      punctuating = false;
+    }
+
     // Reset our state
     lastSpaceTimestamp = 0;
     autoCorrection = null;
