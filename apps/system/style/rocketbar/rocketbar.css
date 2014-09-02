@@ -98,7 +98,7 @@
   font-size: 1.4rem;
   font-style: italic;
   line-height: 1.8rem;
-  padding-left: 1.4rem;
+  padding: 0 .7rem 0 1.4rem;
 }
 
 #rocketbar-cancel::before {
