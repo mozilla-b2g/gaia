@@ -28,6 +28,7 @@
     this.onTouchEnd = this.onTouchEnd.bind(this);
     this.onScroll = this.onScroll.bind(this);
     this.onContextMenu = this.onContextMenu.bind(this);
+    this.onVisibilityChange = this.onVisibilityChange.bind(this);
     this.lastScrollTime = 0;
 
     if (config.features.zoom) {
@@ -71,6 +72,11 @@
     set cols(value) {
       this.layout.cols = value;
     },
+
+    /**
+     * We are in the state of launching an app.
+     */
+    _launchingApp: false,
 
     /**
      * Adds an item into the items array.
@@ -136,6 +142,7 @@
       this.element.addEventListener('touchend', this.onTouchEnd);
       this.element.addEventListener('contextmenu', this.onContextMenu);
       window.addEventListener('scroll', this.onScroll, true);
+      window.addEventListener('visibilitychange', this.onVisibilityChange);
       this.lastTouchStart = null;
     },
 
@@ -144,6 +151,7 @@
       this.element.removeEventListener('touchend', this.onTouchEnd);
       this.element.removeEventListener('contextmenu', this.onContextMenu);
       window.removeEventListener('scroll', this.onScroll, true);
+      window.removeEventListener('visibilitychange', this.onVisibilityChange);
       this.lastTouchStart = null;
     },
 
@@ -190,6 +198,10 @@
       if (move < SCROLL_THRESHOLD) {
         this.clickIcon(e);
       }
+    },
+
+    onVisibilityChange: function() {
+      this._launchingApp = false;
     },
 
     /**
@@ -239,6 +251,24 @@
             icon.element.classList.remove('launching');
           }
         }, returnTimeout);
+      }
+
+      if ((icon.detail.type === 'app' || icon.detail.type === 'bookmark') &&
+          this._launchingApp) {
+        return;
+      }
+      if ((icon.detail.type === 'app' && icon.appState === 'ready') ||
+          icon.detail.type === 'bookmark') {
+        this._launchingApp = true;
+        if (this._launchingTimeout) {
+          window.clearTimeout(this._launchingTimeout);
+          this._launchingTimeout = null;
+        }
+        // This avoids some edge cases if we didn't get visibilitychange anyway.
+        this._launchingTimeout = window.setTimeout(function() {
+          this._launchingTimeout = null;
+          this._launchingApp = false;
+        }.bind(this), 3000);
       }
 
       icon[action]();
