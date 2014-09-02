@@ -24,6 +24,7 @@ var mocksHelperForKeyboardManager = new MocksHelper([
 
 suite('KeyboardManager', function() {
   var BLUR_CHANGE_DELAY = 100;
+  var SWITCH_CHANGE_DELAY = 20;
 
   function trigger(event, detail) {
     if (!detail) {
@@ -271,6 +272,186 @@ suite('KeyboardManager', function() {
           assert.ok(KeyboardManager.setKeyboardToShow.calledWith('url'));
         });
       });
+    });
+  });
+
+  suite('Try using the same layout when switching input types', function() {
+    var oldKeyboardLayouts;
+    var oldlayoutToGroupMapping;
+    var stubLaunchFrame;
+    setup(function() {
+      stubLaunchFrame =
+        this.sinon.stub(KeyboardManager.inputFrameManager, 'launchFrame');
+
+      oldKeyboardLayouts = KeyboardManager.keyboardLayouts;
+      oldlayoutToGroupMapping = KeyboardManager.layoutToGroupMapping;
+
+      KeyboardManager.keyboardLayouts = {
+        text: [
+          {
+            manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+            id: 'en'
+          },
+          {
+            manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+            id: 'fr'
+          },
+          {
+            manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+            id: 'es'
+          }
+        ],
+        password: [
+          {
+            manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+            id: 'en'
+          },
+          {
+            manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+            id: 'fr'
+          },
+          {
+            manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+            id: 'es'
+          }
+        ],
+        number: [
+          {
+            manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+            id: 'number'
+          }
+        ]
+      };
+
+      KeyboardManager.layoutToGroupMapping = {
+        'app://keyboard.gaiamobile.org/manifest.webapp/en': [
+          {
+            group: 'text',
+            index: 0
+          },
+          {
+            group: 'password',
+            index: 0
+          }
+        ],
+        'app://keyboard.gaiamobile.org/manifest.webapp/fr': [
+          {
+            group: 'text',
+            index: 1
+          },
+          {
+            group: 'password',
+            index: 1
+          }
+        ],
+        'app://keyboard.gaiamobile.org/manifest.webapp/es': [
+          {
+            group: 'text',
+            index: 2
+          },
+          {
+            group: 'password',
+            index: 2
+          }
+        ],
+        'app://keyboard.gaiamobile.org/manifest.webapp/number': [
+          {
+            group: 'number',
+            index: 0
+          }
+        ]
+      };
+
+      KeyboardManager.keyboardLayouts.text.activeLayout = 0;
+      KeyboardManager.keyboardLayouts.password.activeLayout = 0;
+      KeyboardManager.keyboardLayouts.number.activeLayout = 0;
+      KeyboardManager.lastActivatedLayout = null;
+    });
+
+    teardown(function() {
+      KeyboardManager.keyboardLayouts = oldKeyboardLayouts;
+      KeyboardManager.layoutToGroupMapping = oldlayoutToGroupMapping;
+    });
+
+    test('change to text and to password', function() {
+      KeyboardManager.setKeyboardToShow('text');
+      assert.isTrue(stubLaunchFrame.calledWith({
+        manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+        id: 'en'
+      }), 'should change to first text layout');
+
+      stubLaunchFrame.reset();
+
+      KeyboardManager.switchToNext();
+      this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
+      assert.isTrue(stubLaunchFrame.calledWith({
+        manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+        id: 'fr'
+      }), 'should change to second text layout');
+
+      stubLaunchFrame.reset();
+
+      KeyboardManager.setKeyboardToShow('password');
+      assert.isTrue(stubLaunchFrame.calledWith({
+        manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+        id: 'fr'
+      }), 'should change to second password layout');
+    });
+
+    test('change to text and to number and to password', function() {
+      KeyboardManager.setKeyboardToShow('text');
+      assert.isTrue(stubLaunchFrame.calledWith({
+        manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+        id: 'en'
+      }), 'should change to first text layout');
+
+      stubLaunchFrame.reset();
+      KeyboardManager.switchToNext();
+      this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
+
+      assert.isTrue(stubLaunchFrame.calledWith({
+        manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+        id: 'fr'
+      }), 'should change to second text layout');
+
+      stubLaunchFrame.reset();
+
+      KeyboardManager.setKeyboardToShow('number');
+
+      stubLaunchFrame.reset();
+
+      KeyboardManager.setKeyboardToShow('password');
+      assert.isTrue(stubLaunchFrame.calledWith({
+        manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+        id: 'fr'
+      }), 'should change to second password layout');
+    });
+
+    test('change to text, blur, and to password', function() {
+      KeyboardManager.setKeyboardToShow('text');
+      assert.isTrue(stubLaunchFrame.calledWith({
+        manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+        id: 'en'
+      }), 'should change to first text layout');
+
+      stubLaunchFrame.reset();
+      KeyboardManager.switchToNext();
+      this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
+
+      assert.isTrue(stubLaunchFrame.calledWith({
+        manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+        id: 'fr'
+      }), 'should change to second text layout');
+
+      simulateInputChangeEvent('blur');
+
+      stubLaunchFrame.reset();
+
+      KeyboardManager.setKeyboardToShow('password');
+      assert.isTrue(stubLaunchFrame.calledWith({
+        manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+        id: 'fr'
+      }), 'should change to second password layout');
     });
   });
 

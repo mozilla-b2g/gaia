@@ -63,8 +63,19 @@ var KeyboardManager = {
    *    manifestURL: the keyboard's manifestURL
    *    path: the keyboard's launch path
    * }
+   *
+   * Additionally, each array has an |activeLayout|, which is the index, in that
+   * array, of the the currently-activated layout of the group.
    */
   keyboardLayouts: {},
+
+  /*
+   * This is the reverse mapping from layout (manifestURL+id) to
+   * an array of {group: , index: }, indicating the groups that are supported
+   * by the layout.
+   * index is the index of the layout in the group in keyboardLayouts.
+   */
+  layoutToGroupMapping: {},
 
   // this info keeps the current keyboard layout's information,
   // including its type, its index in the type array,
@@ -244,6 +255,17 @@ var KeyboardManager = {
         enabledApps.add(layout.app.manifestURL);
         insertLayout(this.keyboardLayouts, group, transformLayout(layout));
       }
+    }
+
+    for (var group in this.keyboardLayouts) {
+      this.keyboardLayouts[group].forEach(function(layout, index) {
+        var key = layout.manifestURL + '/' + layout.id;
+        this.layoutToGroupMapping[key] = this.layoutToGroupMapping[key] || [];
+        this.layoutToGroupMapping[key].push({
+          group: group,
+          index: index
+        });
+      }, this);
     }
 
     // Let chrome know about how many keyboards we have
@@ -458,6 +480,11 @@ var KeyboardManager = {
     var layout = this.keyboardLayouts[group][index];
     this.inputFrameManager.launchFrame(layout, launchOnly);
     this.setShowingLayoutInfo(group, index, layout);
+
+    this.layoutToGroupMapping[layout.manifestURL + '/' + layout.id].forEach(
+      function(groupInfo) {
+      this.keyboardLayouts[groupInfo.group].activeLayout = groupInfo.index;
+    }, this);
 
     // By setting launchOnly to true, we load the keyboard frame w/o bringing it
     // to the backgorund; this is convenient to call
