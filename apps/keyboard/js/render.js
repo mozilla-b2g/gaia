@@ -44,8 +44,8 @@ var IMERender = (function() {
 
   var inputMethodName; // used as a CSS class on the candidatePanel
 
-  var cachedWindowHeight = -1;
-  var cachedWindowWidth = -1;
+  var cachedWindowHeight = screen.availHeight;
+  var cachedWindowWidth = screen.availWidth;
 
   var SPECIAL_CODES = [
     KeyEvent.DOM_VK_BACK_SPACE,
@@ -202,7 +202,7 @@ var IMERender = (function() {
     // density used in media queries
 
     layoutWidth = layout.width || 10;
-    var totalWidth = ime.clientWidth;
+    var totalWidth = cachedWindowWidth;
     var placeHolderWidth = totalWidth / layoutWidth;
 
     layout.upperCase = layout.upperCase || {};
@@ -663,29 +663,62 @@ var IMERender = (function() {
         });
       });
 
-      requestAnimationFrame(getVisualData);
+      getVisualData();
     }
 
     function getVisualData() {
-      // Now that key sizes have been set and adjusted for the row,
-      // loop again and record the size and position of each. If we
-      // do this as part of the loop above, we get bad position data.
-      // We do this in a seperate loop to avoid reflowing
-      for (var r = 0, row; row = rows[r]; r++) {
-        for (var k = 0, key; key = row.childNodes[k]; k++) {
-          var visualKey = key.querySelector('.visual-wrapper');
-          _keyArray.push({
-            code: key.dataset.keycode | 0,
-            x: visualKey.offsetLeft,
-            y: visualKey.offsetTop,
-            width: visualKey.clientWidth,
-            height: visualKey.clientHeight
-          });
+      var scale = screenInPortraitMode() ?
+        cachedWindowWidth / 32 :
+        cachedWindowWidth / 64;
+
+      // browser round 0.45 up to 1...
+      function round(a) {
+        var af = a | 0;
+        return a - (af) > 0.45 ? (af) + 1 : af;
+      }
+
+      var y = 0.4 * scale;
+      if (activeIme.classList.contains('candidate-panel')) {
+        if (activeIme.querySelector('.keyboard-candidate-panel')
+            .classList.contains('latin')) {
+          y += 2.5 * scale;
+        }
+        else {
+          y += 2.6 * scale;
         }
       }
 
+      var keyHeight = 4.3 * scale;
+      var keyHeightWithMargin = 5.1 * scale;
+
+      for (var r = 0, row; row = rows[r]; r++) {
+        var totalRowWidthInPx = layout.keys[r].reduce(function(tot, k) {
+          tot += (placeHolderWidth * (k.ratio || 1) | 0);
+          return tot;
+        }, 0);
+
+        var x = (cachedWindowWidth - totalRowWidthInPx) / 2;
+
+        for (var k = 0, key; key = row.childNodes[k]; k++) {
+          var keyInfo = layout.keys[r][k];
+          var keyWidth = (placeHolderWidth * (keyInfo.ratio || 1) | 0);
+
+          _keyArray.push({
+            code: key.dataset.keycode | 0,
+            x: x | 0,
+            y: round(y),
+            width: keyWidth,
+            height: round(keyHeight)
+          });
+
+          x += keyWidth;
+        }
+
+        y += keyHeightWithMargin;
+      }
+
       candidateUnitWidth =
-        Math.floor(ime.clientWidth / numberOfCandidatesPerRow);
+        Math.floor(cachedWindowWidth / numberOfCandidatesPerRow);
 
       [].forEach.call(
         ime.querySelectorAll('.candidate-row span'),
@@ -724,12 +757,6 @@ var IMERender = (function() {
     if (!layout || !activeIme) {
       return;
     }
-
-    // Remove inline styles on rotation
-    [].forEach.call(ime.querySelectorAll('.visual-wrapper[style]'),
-      function(item) {
-        item.style.width = '';
-      });
 
     layoutWidth = layout.width || 10;
     // Hack alert! we always use 100% of width so we avoid calling
@@ -904,20 +931,18 @@ var IMERender = (function() {
     if (!activeIme)
       return 0;
 
-    return Math.ceil(ime.clientWidth / layoutWidth);
+    return Math.ceil(getWidth() / layoutWidth);
   };
 
   var getKeyHeight = function getKeyHeight() {
     if (!activeIme)
       return 0;
 
-    var rows = activeIme.querySelectorAll('.keyboard-row');
-    var rowCount = rows.length || 3;
+    var scale = screenInPortraitMode() ?
+      cachedWindowWidth / 32 :
+      cachedWindowWidth / 64;
 
-    var candidatePanel = activeIme.querySelector('.keyboard-candidate-panel');
-    var candidatePanelHeight = candidatePanel ? candidatePanel.clientHeight : 0;
-
-    return Math.ceil((ime.clientHeight - candidatePanelHeight) / rowCount);
+    return scale * 5.1;
   };
 
   // Measure the width of the element, and return the scale that
