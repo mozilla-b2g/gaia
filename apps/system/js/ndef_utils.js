@@ -3,7 +3,7 @@
 
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
-/* globals dump, MozNDEFRecord, NDEF, NfcUtils, NfcBuffer */
+/* globals MozNDEFRecord, NDEF, NfcUtils, NfcBuffer */
 /* exported NDEFUtils */
 'use strict';
 
@@ -36,18 +36,18 @@ var NDEFUtils = {
   /**
    * Debug method
    */
-  debug: function debug(msg, optObject) {
+  _debug: function _debug(msg, optObject) {
     if (this.DEBUG) {
-      var output = '[DEBUG] SYSTEM NFC-MANAGER-UTIL: ' + msg;
-      if (optObject) {
-        output += JSON.stringify(optObject);
-      }
-      if (typeof dump !== 'undefined') {
-        dump(output + '\n');
-      } else {
-        console.log(output);
-      }
+      this._logVisibly(msg, optObject);
     }
+  },
+
+  _logVisibly: function _logVisibly(msg, optObject) {
+    var output = '[NDEFUtils]: ' + msg;
+    if (optObject) {
+      output += JSON.stringify(optObject);
+    }
+    console.log(output);
   },
 
    /**
@@ -77,7 +77,7 @@ var NDEFUtils = {
     try {
       return this._doParseHandoverNDEF(ndefMsg);
     } catch (err) {
-      this.debug(err);
+      this._logVisibly(err);
       return null;
     }
   },
@@ -199,7 +199,7 @@ var NDEFUtils = {
 
     var btsspLen = buf.getOctet() | (buf.getOctet() << 8);
     if (cdr.payload.length !== btsspLen) {
-      this.debug('Invalid BT SSP record. Length indicated:' +
+      this._debug('Invalid BT SSP record. Length indicated:' +
         btsspLen + ', actual length: ' + cdr.payload.length);
       return null;
     }
@@ -212,7 +212,7 @@ var NDEFUtils = {
       var type = buf.getOctet();
 
       if (buf.offset + len > buf.uint8array.length) {
-        this.debug('EIR field ' + type + ' indicated length=' +
+        this._debug('EIR field ' + type + ' indicated length=' +
           len + ', but only ' + (buf.uint8array.length - buf.offset) +
           ' characters left in buffer.');
         return null;
@@ -314,12 +314,12 @@ var NDEFUtils = {
     var nfcUtils = new NfcUtils();
     var m = this.parseMAC(mac);
     if (!m) {
-      this.debug('Invalid BT MAC address: ' + mac);
+      this._debug('Invalid BT MAC address: ' + mac);
       return null;
     }
 
     if (!this.validateCPS(cps)) {
-      this.debug('Invalid CPS: ' + cps);
+      this._debug('Invalid CPS: ' + cps);
       return null;
     }
 
@@ -383,12 +383,12 @@ var NDEFUtils = {
     var nfcUtils = new NfcUtils();
     var m = this.parseMAC(mac);
     if (!m) {
-      this.debug('Invalid BT MAC address: ' + mac);
+      this._debug('Invalid BT MAC address: ' + mac);
       return null;
     }
 
     if (!this.validateCPS(cps)) {
-      this.debug('Invalid CPS: ' + cps);
+      this._debug('Invalid CPS: ' + cps);
       return null;
     }
 
