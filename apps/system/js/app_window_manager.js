@@ -564,10 +564,13 @@
           var config = evt.detail;
           this.debug('launching' + config.origin);
           if (this._launchingApp ||
-              (activeApp && activeApp.isTransitioning())) {
+              (activeApp && !activeApp.isHomescreen &&
+               activeApp.isTransitioning())) {
             this.debug(
               'Block the app launching request due to busy launching.');
-            return;
+            throw new Error('busy loading ' +
+              this._launchingAppReason +
+              ' then ignore ' + config.url);
           }
           this.launch(config);
           break;

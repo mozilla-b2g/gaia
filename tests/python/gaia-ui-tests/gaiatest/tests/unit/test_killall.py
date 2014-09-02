@@ -32,6 +32,7 @@ class TestKillAll(GaiaTestCase):
 
         self.apps.kill_all()
         self.check_no_apps_running()
+        time.sleep(1)
 
         for app in apps:
             self.apps.launch(app)
