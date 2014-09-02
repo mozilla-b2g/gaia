@@ -131,6 +131,18 @@ IMEngineBase.prototype = {
   },
 
   /**
+   * Notifies when selection changes
+   */
+  selectionChange: function engineBase_selectionChange(detail) {
+  },
+
+  /**
+   * Notifies when surrounding text changes
+   */
+  surroundingtextChange: function engineBase_surroundingtextChange(detail) {
+  },
+
+  /**
    * Notifies when the IM is shown
    */
   activate: function engineBase_activate(language, state, options) {
@@ -659,6 +671,19 @@ IMEngine.prototype = {
     this._firstCandidate = '';
     this._sendPendingSymbols();
     this._sendCandidates([]);
+  },
+
+  /**
+   * Override
+   */
+  selectionChange: function engine_selectionChange(detail) {
+    debug('selectionChange');
+
+    if (detail.ownAction) {
+      return;
+    }
+
+    this.empty();
   },
 
   /**

@@ -408,7 +408,11 @@ suite('InputMethodManager', function() {
         inputMode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        getText: this.sinon.stub()
+        textBeforeCursor: '',
+        textAfterCursor: '',
+        getText: this.sinon.stub(),
+        addEventListener: this.sinon.stub(),
+        removeEventListener: this.sinon.stub()
       }
     };
 
@@ -447,8 +451,7 @@ suite('InputMethodManager', function() {
         inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        value: 'foobar',
-        inputContext: app.inputContext
+        value: 'foobar'
       }, {
         suggest: true,
         correct: true
@@ -493,8 +496,7 @@ suite('InputMethodManager', function() {
         inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        value: '',
-        inputContext: app.inputContext
+        value: ''
       }, {
         suggest: true,
         correct: true
@@ -555,8 +557,7 @@ suite('InputMethodManager', function() {
         inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        value: 'foobar',
-        inputContext: app.inputContext
+        value: 'foobar'
       }, {
         suggest: true,
         correct: true
@@ -594,8 +595,7 @@ suite('InputMethodManager', function() {
         inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        value: 'foobar',
-        inputContext: app.inputContext
+        value: 'foobar'
       }, {
         suggest: true,
         correct: true
@@ -604,6 +604,62 @@ suite('InputMethodManager', function() {
         imEngine);
     }, function() {
       assert.isTrue(false, 'should not reject');
+    }).then(done, done);
+  });
+
+  test('selectionchange', function(done) {
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
+    manager.updateInputContextData();
+    var p = manager.switchCurrentIMEngine('foo');
+    p.then(function() {
+      assert.isTrue(app.inputContext.addEventListener.calledTwice);
+
+      manager.handleEvent({
+        type: 'selectionchange',
+        target: app.inputContext,
+        detail: {
+          selectionStart: 0,
+          selectionEnd: 0,
+          ownAction: true
+        }
+      });
+    }, function() {
+      assert.isTrue(false, 'should not reject');
+    }).then(function() {
+      var imEngine = manager.loader.getInputMethod('foo');
+      assert.isTrue(imEngine.selectionChange.calledWith({
+        selectionStart: 0,
+        selectionEnd: 0,
+        ownAction: true
+      }));
+    }).then(done, done);
+  });
+
+  test('surroundingtextchange', function(done) {
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
+    manager.updateInputContextData();
+    var p = manager.switchCurrentIMEngine('foo');
+    p.then(function() {
+      assert.isTrue(app.inputContext.addEventListener.calledTwice);
+
+      manager.handleEvent({
+        type: 'surroundingtextchange',
+        target: app.inputContext,
+        detail: {
+          textBeforeCursor: '',
+          textAfterCursor: '',
+          ownAction: true
+        }
+      });
+    }, function() {
+      assert.isTrue(false, 'should not reject');
+    }).then(function() {
+      var imEngine = manager.loader.getInputMethod('foo');
+      assert.isTrue(imEngine.surroundingtextChange.calledWith({
+        textBeforeCursor: '',
+        textAfterCursor: '',
+        ownAction: true
+      }));
     }).then(done, done);
   });
 });

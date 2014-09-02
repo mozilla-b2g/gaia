@@ -2,7 +2,7 @@
 suite('Latin en_us worker', function() {
   var worker;
   suiteSetup(function(next) {
-    worker = new Worker('../../js/imes/latin/worker.js');
+    worker = new Worker('../../../../js/imes/latin/worker.js');
 
     worker.postMessage({ cmd: 'setLanguage', args: ['en_us'] });
     worker.postMessage({
