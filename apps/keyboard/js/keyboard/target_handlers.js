@@ -54,7 +54,8 @@ DefaultTargetHandler.prototype.commit = function() {
     engine.click(keyCode, upperCaseKeyCode);
   } else {
     engine.click(
-      this.app.upperCaseStateManager.isUpperCase ? upperCaseKeyCode : keyCode);
+      this.app.upperCaseStateManager.getUpperCase() ?
+      upperCaseKeyCode : keyCode);
   }
 
   this.app.visualHighlightManager.hide(this.target);
@@ -244,10 +245,22 @@ var CapsLockTargetHandler = function(target, app) {
   DefaultTargetHandler.apply(this, arguments);
 };
 CapsLockTargetHandler.prototype = Object.create(DefaultTargetHandler.prototype);
+
+CapsLockTargetHandler.prototype.activate = function() {
+
+  this.app.feedbackManager.triggerFeedback(this.target);
+  this.app.visualHighlightManager.show(this.target);
+
+  this.app.upperCaseStateManager.switchUpperCaseState({
+    isUpperCasePressed: true
+  });
+};
+
 CapsLockTargetHandler.prototype.commit = function() {
   this.app.upperCaseStateManager.switchUpperCaseState({
     isUpperCase: !this.app.upperCaseStateManager.isUpperCase,
-    isUpperCaseLocked: false
+    isUpperCaseLocked: false,
+    isUpperCasePressed: false
   });
   this.app.visualHighlightManager.hide(this.target);
 };
