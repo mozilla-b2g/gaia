@@ -55,7 +55,9 @@ marionette('check root panel settings', function() {
       });
     });
 
-    test('language description on the root panel is translated', function() {
+    // Refer to http://bugzil.la/1061390.
+    test.skip('language description on the root panel is translated',
+      function() {
       settingsApp.currentLanguage = 'french';
       assert.ok(rootPanel.isLanguageDescTranslated('french'));
 
