@@ -14,7 +14,7 @@ function BluetoothApp(client) {
 module.exports = BluetoothApp;
 
 BluetoothApp.Selectors = {
-  'settingsBackButton': '#settings-back'
+  'settingsHeader' : '#header'
 };
 
 BluetoothApp.SETTINGS_LAUNCH_PATH = 'app://bluetooth.gaiamobile.org/' +
@@ -36,11 +36,15 @@ BluetoothApp.prototype = {
   },
 
   goBackToSettingsApp: function() {
-    var backButton = this.waitForElement('settingsBackButton');
-    backButton.click();
+    var header = this.waitForElement('settingsHeader');
+    var evt = new Event('action', {
+      cancelable: true,
+      bubbles: true
+    });
+    header.dispatchEvent(evt);
   },
 
-  get backButton() {
-    return this.waitForElement('settingsBackButton');
+  get header() {
+    return this.waitForElement('settingsHeader');
   }
 };

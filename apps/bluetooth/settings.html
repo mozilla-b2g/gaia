@@ -8,7 +8,6 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini" />
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <!-- Common style -->
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
@@ -17,7 +16,13 @@
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
-    <script type="text/javascript" defer src="shared/js/font_size_utils.js"></script>
+    <!-- Web Components -->
+    <script defer type="text/javascript" src="shared/js/component_utils.js"></script>
+    <script defer type="text/javascript" src="shared/elements/gaia_subheader/script.js"></script>
+    <script defer src="shared/elements/config.js"></script>
+    <script defer src="shared/elements/gaia-header/dist/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" /> -->
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css">
     <link rel="stylesheet" type="text/css" href="style/icons.css">
@@ -26,13 +31,12 @@
     <script type="text/javascript" defer src="js/settings.js"></script>
   </head>
 
-  <body role="application" class="skin-organic uninit">
+  <body role="application" class="skin-organic theme-settings uninit">
     <section role="region">
-      
-      <header>
-        <a href="#" id="settings-back"><span class="icon icon-back">back</span></a>
+
+      <gaia-header id="header" action="back">
         <h1 data-l10n-id="bluetooth-header"> Bluetooth </h1>
-      </header>
+      </gaia-header>
 
       <div>
         <ul>
@@ -56,21 +60,17 @@
             <button id="rename-device" data-l10n-id="rename-device" disabled>Rename My Device</button>
           </li>
         </ul>
-        
+
         <!-- Devices List View :: Paired Devices List -->
-        <header id="bluetooth-paired-title">
-          <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
-        </header>
+        <gaia-subheader id="bluetooth-paired-title" data-l10n-id="bluetooth-paired-devices" skin="organic">Paired Devices</gaia-subheader>
         <ul id="bluetooth-paired-devices" class="devices">
         </ul>
-        
+
         <!-- Devices List View :: Found Devices List -->
-        <header id="bluetooth-found-title">
-          <h2 data-l10n-id="bluetooth-devices-in-area">Devices found</h2>
-        </header>
+        <gaia-subheader id="bluetooth-found-title" data-l10n-id="bluetooth-devices-in-area" skin="organic">Devices found</gaia-subheader>
         <ul id="bluetooth-devices" class="devices">
         </ul>
-        
+
         <!-- Devices List View :: Search Button -->
         <div id="bluetooth-searching" data-l10n-id="search-for-device" class="explanation">
           Searching for devices…
@@ -81,7 +81,7 @@
           </li>
         </ul>
       </div>
-      
+
     </section>
 
     <form role="dialog" data-type="confirm" id="update-device-name" hidden>
