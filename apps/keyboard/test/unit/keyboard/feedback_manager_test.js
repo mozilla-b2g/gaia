@@ -45,8 +45,7 @@ suite('VibrationFeedback', function() {
       req.fireSuccess({ 'keyboard.vibration': true });
 
       feedback.settings.initSettings().then(function() {
-        done();
-      });
+      }).then(done, done);
     });
 
     test('vibrate', function() {
@@ -72,8 +71,7 @@ suite('VibrationFeedback', function() {
       req.fireSuccess({ 'keyboard.vibration': false });
 
       feedback.settings.initSettings().then(function() {
-        done();
-      });
+      }).then(done, done);
     });
 
     test('vibrate', function() {
@@ -159,28 +157,29 @@ suite('SoundFeedback', function() {
       req1.fireSuccess({ 'audio.volume.notification': 10 });
 
       feedback.settings.initSettings().then(function() {
-        done();
-      });
+      }).then(done, done);
     });
 
     test('sound (normal key)', function() {
-      var playStub = this.sinon.stub();
-      this.sinon.stub(feedback.clicker, 'cloneNode').returns({
-        play: playStub
-      });
+      var newAudio = {};
+      this.sinon.stub(window, 'Audio').returns(newAudio);
+      var clicker = feedback.clicker;
+      this.sinon.stub(clicker, 'play');
 
       feedback.triggerFeedback(normalTarget);
-      assert.isTrue(playStub.calledOnce);
+      assert.isTrue(clicker.play.calledOnce);
+      assert.equal(feedback.clicker, newAudio);
     });
 
     test('sound (special key)', function() {
-      var playStub = this.sinon.stub();
-      this.sinon.stub(feedback.specialClicker, 'cloneNode').returns({
-        play: playStub
-      });
+      var newAudio = {};
+      this.sinon.stub(window, 'Audio').returns(newAudio);
+      var clicker = feedback.specialClicker;
+      this.sinon.stub(clicker, 'play');
 
       feedback.triggerFeedback(specialTarget);
-      assert.isTrue(playStub.calledOnce);
+      assert.isTrue(clicker.play.calledOnce);
+      assert.equal(feedback.specialClicker, newAudio);
     });
 
     test('change to sound=false', function() {
@@ -203,8 +202,7 @@ suite('SoundFeedback', function() {
       req1.fireSuccess({ 'audio.volume.notification': 10 });
 
       feedback.settings.initSettings().then(function() {
-        done();
-      });
+      }).then(done, done);
     });
 
     test('sound (normal key)', function() {
@@ -223,31 +221,33 @@ suite('SoundFeedback', function() {
     test('change to sound=true and sound (normal key)', function() {
       mozSettings.dispatchSettingChange('keyboard.clicksound', true);
 
-      var playStub = this.sinon.stub();
-      this.sinon.stub(feedback.clicker, 'cloneNode').returns({
-        play: playStub
-      });
+      var newAudio = {};
+      this.sinon.stub(window, 'Audio').returns(newAudio);
+      var clicker = feedback.clicker;
+      this.sinon.stub(clicker, 'play');
 
       feedback.triggerFeedback(normalTarget);
-      assert.isTrue(playStub.calledOnce);
+      assert.isTrue(clicker.play.calledOnce);
+      assert.equal(feedback.clicker, newAudio);
     });
 
     test('change to sound=true and sound (special key)', function() {
       mozSettings.dispatchSettingChange('keyboard.clicksound', true);
 
-      var playStub = this.sinon.stub();
-      this.sinon.stub(feedback.specialClicker, 'cloneNode').returns({
-        play: playStub
-      });
+      var newAudio = {};
+      this.sinon.stub(window, 'Audio').returns(newAudio);
+      var clicker = feedback.specialClicker;
+      this.sinon.stub(clicker, 'play');
 
       feedback.triggerFeedback(specialTarget);
-      assert.isTrue(playStub.calledOnce);
+      assert.isTrue(clicker.play.calledOnce);
+      assert.equal(feedback.specialClicker, newAudio);
     });
   });
 });
 
 suite('FeedbackManager', function() {
-  test('start, feedback, stop', function() {
+  test('start, feedback, stop', function(done) {
     var mozSettings = navigator.mozSettings = new MockNavigatorMozSettings();
     var createLockStub = this.sinon.stub(mozSettings, 'createLock');
     var lock = new MockNavigatorMozSettingsLock();
@@ -288,27 +288,22 @@ suite('FeedbackManager', function() {
 
     feedbackManager.soundFeedback.settings.initSettings().then(function() {
       this.sinon.stub(navigator, 'vibrate');
-      var playStub = this.sinon.stub();
-      this.sinon.stub(this.soundFeedback.clicker, 'cloneNode').returns({
-        play: playStub
-      });
-
-      var specialPlayStub = this.sinon.stub();
-      this.sinon.stub(this.soundFeedback.specialClicker, 'cloneNode').returns({
-        play: playStub
-      });
+      var clicker = feedbackManager.soundFeedback.clicker;
+      this.sinon.stub(clicker, 'play');
+      var specialClicker = feedbackManager.soundFeedback.specialClicker;
+      this.sinon.stub(specialClicker, 'play');
 
       feedbackManager.triggerFeedback(normalTarget);
 
-      assert.isTrue(playStub.calledOnce);
+      assert.isTrue(clicker.play.calledOnce);
       assert.isTrue(navigator.vibrate.calledOnce);
 
       feedbackManager.triggerFeedback(specialTarget);
 
-      assert.isTrue(specialPlayStub.calledOnce);
-      assert.isTrue(navigator.vibrate.calledOnce);
+      assert.isTrue(specialClicker.play.calledOnce);
+      assert.isTrue(navigator.vibrate.calledTwice);
 
       feedbackManager.stop();
-    }.bind(this));
+    }.bind(this)).then(done, done);
   });
 });

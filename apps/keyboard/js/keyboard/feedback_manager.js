@@ -72,8 +72,8 @@ SoundFeedback.prototype.stop = function() {
   this.specialClicker = null;
 };
 
-SoundFeedback.prototype.CLICK_SOUND_URL = './resources/sounds/key.ogg';
-SoundFeedback.prototype.SPECIAL_SOUND_URL = './resources/sounds/special.ogg';
+SoundFeedback.prototype.CLICK_SOUND_URL = './resources/sounds/key.wav';
+SoundFeedback.prototype.SPECIAL_SOUND_URL = './resources/sounds/special.wav';
 
 SoundFeedback.prototype.SPECIAL_KEY_CLASSNAME = 'special-key';
 
@@ -95,12 +95,25 @@ SoundFeedback.prototype.triggerFeedback = function(target) {
     return;
   }
 
+  if (!this.clicker && !this.specialClicker) {
+    // Not enabled
+    return;
+  }
+
   var isSpecialKey = target.classList.contains('special-key') ||
     (parseInt(target.dataset.keyCode, 10) < 0);
-  var clicker = isSpecialKey ? this.specialClicker : this.clicker;
-  if (clicker) {
-    clicker.cloneNode(false).play();
+
+  // Take the audio interface available, play it,
+  // and create another one (so it can be readily available later)
+  var clicker;
+  if (!isSpecialKey) {
+    clicker = this.clicker;
+    this.clicker = new Audio(this.CLICK_SOUND_URL);
+  } else {
+    clicker = this.specialClicker;
+    this.specialClicker = new Audio(this.SPECIAL_SOUND_URL);
   }
+  clicker.play();
 };
 
 var FeedbackManager = function(app) {
