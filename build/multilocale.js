@@ -82,7 +82,7 @@ function L10nManager(gaiaDir,
     }
 
     var doc = utils.getDocument(content);
-    var isBranding = false;
+    var isBranding;
 
     // get all <link rel="localization">
     var links = doc.querySelectorAll('link[rel="localization"]');
@@ -98,6 +98,8 @@ function L10nManager(gaiaDir,
                                    'official' : 'unofficial',
                                  utils.basename(resURL));
         isBranding = true;
+      } else {
+        isBranding = false;
       }
 
       // XXX: We should use @formFactor for device specific L10N support,
