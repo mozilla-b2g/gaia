@@ -142,6 +142,11 @@ InputMethodGlue.prototype.init = function(app, imEngineName) {
 
 InputMethodGlue.prototype.sendCandidates = function(candidates) {
   this.app.console.trace();
+  if (!this.app.inputContext) {
+    console.warn('InputMethodGlue: call sendCandidates() when ' +
+      'inputContext does not exist.');
+    return;
+  }
   this.app.candidatePanelManager.updateCandidates(candidates);
 };
 
@@ -224,12 +229,22 @@ InputMethodGlue.prototype.sendString = function(str) {
 // XXX deprecated; overwrite alternative/symbol layout instead.
 InputMethodGlue.prototype.alterKeyboard = function(layoutName) {
   this.app.console.trace();
+  if (!this.app.inputContext) {
+    console.warn('InputMethodGlue: call alterKeyboard() when ' +
+      'inputContext does not exist.');
+    return;
+  }
   this.app.layoutManager.updateForcedModifiedLayout(layoutName);
   this.app.layoutRenderingManager.updateLayoutRendering();
 };
 
 InputMethodGlue.prototype.setLayoutPage = function(newpage) {
   this.app.console.trace();
+  if (!this.app.inputContext) {
+    console.warn('InputMethodGlue: call setLayoutPage() when ' +
+      'inputContext does not exist.');
+    return;
+  }
   if (newpage !== this.app.layoutManager.LAYOUT_PAGE_DEFAULT) {
     throw new Error('InputMethodGlue: ' +
       'imEngine is only allowed to switch to default page');
@@ -239,6 +254,11 @@ InputMethodGlue.prototype.setLayoutPage = function(newpage) {
 
 InputMethodGlue.prototype.setUpperCase = function(state) {
   this.app.console.trace();
+  if (!this.app.inputContext) {
+    console.warn('InputMethodGlue: call setUpperCase() when ' +
+      'inputContext does not exist.');
+    return;
+  }
   this.app.upperCaseStateManager.switchUpperCaseState(state);
 };
 

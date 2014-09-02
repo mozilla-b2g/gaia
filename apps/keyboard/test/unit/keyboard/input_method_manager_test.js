@@ -161,7 +161,8 @@ suite('InputMethodGlue', function() {
       },
       layoutRenderingManager: {
         updateLayoutRendering: this.sinon.stub()
-      }
+      },
+      inputContext: {}
     };
     var name = 'bar';
     glue.init(app, 'foo');
@@ -180,7 +181,8 @@ suite('InputMethodGlue', function() {
       layoutManager: {
         LAYOUT_PAGE_DEFAULT: 'bar'
       },
-      setLayoutPage: this.sinon.stub()
+      setLayoutPage: this.sinon.stub(),
+      inputContext: {}
     };
     var name = 'bar';
     glue.init(app, 'foo');
@@ -195,7 +197,8 @@ suite('InputMethodGlue', function() {
       console: this.sinon.stub(KeyboardConsole.prototype),
       upperCaseStateManager: {
         switchUpperCaseState: this.sinon.stub()
-      }
+      },
+      inputContext: {}
     };
     var state = {
       isUpperCase: true,
