@@ -118,6 +118,7 @@
       window.clearTimeout(this._launchingAppTimer);
       if (!appNext.isHomescreen) {
         this._launchingApp = true;
+        this._launchingAppReason = appNext.url;
       }
 
       screenElement.classList.remove('fullscreen-app');

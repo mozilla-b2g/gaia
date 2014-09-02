@@ -185,7 +185,9 @@
         // Block apps launch but not system message.
         if (AppWindowManager.isBusyLaunching() &&
             config.launchEvent === 'webapps-launch') {
-          return;
+          throw new Error('busy launching ' +
+            AppWindowManager._launchingAppReason +
+            ' then ignore ' + config.url);
         }
         new AppWindow(config);
       } else if (config.origin == homescreenLauncher.origin) {

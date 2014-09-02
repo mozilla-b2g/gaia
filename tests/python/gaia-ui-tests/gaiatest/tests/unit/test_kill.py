@@ -20,14 +20,14 @@ class TestKill(GaiaTestCase):
         running_apps = []
 
         for app in [Calendar.name, Clock.name]:
-            running_apps.append(self.apps.launch(app))
             time.sleep(1)
+            running_apps.append(self.apps.launch(app))
 
         for app in running_apps:
+            time.sleep(1)
             self.apps.launch(app.name)
             time.sleep(1)
             self.apps.kill(app)
-            time.sleep(1)
 
         self.check_no_apps_running()
 
