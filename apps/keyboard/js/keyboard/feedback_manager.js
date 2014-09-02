@@ -72,8 +72,8 @@ SoundFeedback.prototype.stop = function() {
   this.specialClicker = null;
 };
 
-SoundFeedback.prototype.CLICK_SOUND_URL = './resources/sounds/key.ogg';
-SoundFeedback.prototype.SPECIAL_SOUND_URL = './resources/sounds/special.ogg';
+SoundFeedback.prototype.CLICK_SOUND_URL = './resources/sounds/key.opus';
+SoundFeedback.prototype.SPECIAL_SOUND_URL = './resources/sounds/special.opus';
 
 SoundFeedback.prototype.SPECIAL_KEY_CLASSNAME = 'special-key';
 
