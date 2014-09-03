@@ -233,6 +233,11 @@ Calendar.IntervalTree = (function() {
       }
     },
 
+    toArray: function() {
+      // create a copy of the items array
+      return this.items.concat();
+    },
+
     _getId: function(item) {
       return item._id;
     },

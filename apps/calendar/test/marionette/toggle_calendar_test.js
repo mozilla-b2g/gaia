@@ -78,6 +78,7 @@ marionette('toggle calendar', function() {
         client.waitFor(function() {
           return app.monthDay.events.length;
         });
+        assert.equal(app.month.busyDots.length, 1, 'busy dots');
       });
 
       test('week view', function() {
@@ -115,6 +116,54 @@ marionette('toggle calendar', function() {
         app.day.allDay.displayed(),
         'all day should be displayed'
       );
+    });
+  });
+
+  suite('> month dots', function() {
+    setup(function() {
+      // we use the day 15 as a reference to make sure each month have a single
+      // dot, otherwise we might have intermittent failures during start/end of
+      // the month
+      var thisMonth = new Date();
+      thisMonth.setDate(15);
+      app.createEvent({
+        title: 'This month',
+        location: 'Here',
+        startDate: thisMonth
+      });
+
+      var prevMonth = new Date(thisMonth);
+      prevMonth.setMonth(thisMonth.getMonth() - 1);
+      app.createEvent({
+        title: 'Previous month',
+        location: 'Past',
+        startDate: prevMonth
+      });
+
+      var nextMonth = new Date(thisMonth);
+      nextMonth.setMonth(thisMonth.getMonth() + 1);
+      app.createEvent({
+        title: 'Next month',
+        location: 'Past',
+        startDate: nextMonth
+      });
+
+      toggleLocalCalendar();
+
+      client.waitFor(function() {
+        return app.month.busyDots.length === 0;
+      });
+    });
+
+    test('should disable on other months as well', function() {
+      var month = app.month;
+      assert.equal(month.busyDots.length, 0, 'no busy dots (current)');
+      month.goToPrev();
+      assert.equal(month.busyDots.length, 0, 'no busy dots (prev)');
+      month.goToNext();
+      assert.equal(month.busyDots.length, 0, 'no busy dots (current 2)');
+      month.goToNext();
+      assert.equal(month.busyDots.length, 0, 'no busy dots (next)');
     });
   });
 });
