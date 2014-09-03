@@ -2,9 +2,9 @@ define(function(require) {
   'use strict';
 
   var SettingsPanel = require('modules/settings_panel');
-  var BrowserPrivacy = require('panels/browser_privacy/browser_privacy');
+  var BrowsingPrivacy = require('panels/browsing_privacy/browsing_privacy');
 
-  var browserPrivacy = BrowserPrivacy();
+  var browsingPrivacy = BrowsingPrivacy();
 
   var clearDialog, clearDialogOk, clearDialogCancel, clearDialogMessage;
   var clearHistoryButton, clearPrivateDataButton, clearBookmarksDataButton;
@@ -33,7 +33,7 @@ define(function(require) {
    */
   function handleClearHistoryClick() {
     showClearDialog('confirm-clear-browsing-history',
-                    browserPrivacy.clearHistory);
+                    browsingPrivacy.clearHistory);
   }
 
   /**
@@ -41,7 +41,7 @@ define(function(require) {
    */
   function handleClearPrivateDataClick() {
     showClearDialog('confirm-clear-cookies-and-stored-data',
-                    browserPrivacy.clearPrivateData);
+                    browsingPrivacy.clearPrivateData);
   }
 
   /**
@@ -49,7 +49,7 @@ define(function(require) {
    */
   function handleClearBookmarksDataClick() {
     showClearDialog('confirmClearBookmarkAppsDataDesc',
-                    browserPrivacy.clearBookmarksData);
+                    browsingPrivacy.clearBookmarksData);
   }
 
   function showClearDialog(description, callback) {
