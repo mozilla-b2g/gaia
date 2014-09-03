@@ -265,34 +265,19 @@
    * @param {Boolean} removeImmediately true to skip transitions when hiding
    *
    */
-  TaskManager.prototype.hide = function cs_hideCardSwitcher(removeImmediately) {
+  TaskManager.prototype.hide = function cs_hideCardSwitcher() {
     if (!this.isShown()) {
       return;
     }
 
-    var cardsView = this.element;
-
     // events to unhandle
     this._unregisterShowingEvents();
-
-    if (removeImmediately) {
-      this.element.classList.add('no-transition');
-    }
 
     // Make the cardsView overlay inactive
     this.setActive(false);
 
     // And remove all the cards from the document after the transition
-    if (removeImmediately) {
-      this.removeCards();
-      cardsView.classList.remove('no-transition');
-    } else {
-      var cardsViewHidden = (function onTransitionEnd() {
-        cardsView.removeEventListener('transitionend', cardsViewHidden);
-        this.removeCards();
-      }).bind(this);
-      cardsView.addEventListener('transitionend', cardsViewHidden);
-    }
+    this.removeCards();
     this.fireCardViewClosed();
   };
 
@@ -380,13 +365,10 @@
     var currentApp = (stack.length && this.currentPosition > -1 &&
                      stack[this.currentPosition]);
 
-    // Return early if isTaskStrip and there are no apps.
-    if (this.isTaskStrip) {
-      if (!currentApp) {
-        // Fire a cardchange event to notify rocketbar that there are no cards
-        this.fireCardViewClosed();
-        return;
-      }
+    if (!currentApp) {
+      // Fire a cardchange event to notify rocketbar that there are no cards
+      this.fireCardViewClosed();
+      return;
     }
 
     // stash some measurements now to avoid unexpected reflow later
@@ -400,7 +382,6 @@
     // Homescreen fades (shows its fade-overlay) on cardviewbeforeshow events
     this.fireCardViewBeforeShow();
 
-    this.screenElement.classList.add('cards-view');
     if (this.isTaskStrip) {
       this.screenElement.classList.add('task-manager');
     }
@@ -433,9 +414,24 @@
     this.placeCards();
 
     // At the beginning only the current card can listen to tap events
-    if (stack.length) {
-      this.currentCard.applyStyle({pointerEvents: 'auto'});
+
+    stack.forEach(function(app, position) {
+      app.enterTaskManager();
+    });
+
+    var screenElem = this.screenElement;
+    var activeApp = AppWindowManager.getActiveApp();
+
+    if (!activeApp || activeApp.isHomescreen) {
+      screenElem.classList.add('cards-view');
+      return;
     }
+
+    window.addEventListener('appclosed', function clWait(evt) {
+      window.removeEventListener('appclosed', clWait);
+      screenElem.classList.add('cards-view');
+      screenElem.classList.add('hide-apps');
+    });
   };
 
   /**
@@ -568,8 +564,28 @@
     if (position !== StackManager.position) {
       this.newStackPosition = position;
     }
-    app.open(openAnimation || 'from-cardview');
-    this.hide();
+
+    var safetyTimeout = null;
+    var finish = (function() {
+      clearTimeout(safetyTimeout);
+      this.hide();
+    }).bind(this);
+
+    this.screenElement.classList.remove('hide-apps');
+
+    setTimeout(function() {
+      app.open(openAnimation || 'from-cardview');
+      if (app.isHomescreen) {
+        finish();
+      } else {
+        app.element.addEventListener('_opened', function opWait() {
+          app.element.removeEventListener('_opened', opWait);
+          finish();
+        });
+      }
+
+      safetyTimeout = setTimeout(finish, 500);
+    });
   };
 
   /**
@@ -739,7 +755,7 @@
         this.cardsList.removeChild(element);
         this.closeApp(card);
       } else {
-        card.applyStyle({ MozTransform: '' });
+        card.applyStyle({ transform: '' });
       }
       this.alignCurrentCard();
 
@@ -1010,68 +1026,10 @@
       return;
     }
 
-    var pseudoCard = this.pseudoCard;
-    var currentPosition = this.currentPosition;
-    var siblingScale = currentCard.SIBLING_SCALE_FACTOR;
-    var currentScale = currentCard.SCALE_FACTOR;
-    var siblingOpacity = currentCard.SIBLING_OPACITY;
-
-    currentCard.element.dispatchEvent(new CustomEvent('onviewport'));
-    // accumulate style property values on an object
-    // which we'll send to that card's applyStyle method
-    var currentCardStyle = {};
-
-    var prevCard = this.prevCard || pseudoCard;
-    prevCard.element.dispatchEvent(new CustomEvent('onviewport'));
-    var prevCardStyle = {};
-
-    var nextCard = this.nextCard || pseudoCard;
-    nextCard.element.dispatchEvent(new CustomEvent('onviewport'));
-    var nextCardStyle = {};
-
-    if (this.isTaskStrip) {
-      // Scaling and translating cards to reach target positions
-      this.stack.forEach(function(app, idx) {
-        var offset = idx - currentPosition;
-        var card = this.cardsByAppID[app.instanceID];
-        card.move(0, 0);
-        var style = {
-          opacity: 1
-        };
-        switch (offset) {
-          case -1:
-            card.element.dataset.cardPosition = 'previous';
-            break;
-          case 0:
-            card.element.dataset.cardPosition = 'current';
-            break;
-          case 1:
-            card.element.dataset.cardPosition = 'next';
-            break;
-        }
-        card.applyStyle(style);
-      }, this);
-    } else {
-      // Scaling and translating cards to reach target positions
-      prevCardStyle.MozTransform =
-        'scale(' + siblingScale + ') translateX(-100%)';
-      currentCardStyle.MozTransform =
-        'scale(' + currentScale + ') translateX(0)';
-      nextCardStyle.MozTransform =
-        'scale(' + siblingScale + ') translateX(100%)';
-
-      // Current card sets the z-index to level 2 and opacity to 1
-      currentCardStyle.zIndex = 2;
-      currentCardStyle.opacity = 1;
-
-      // Previous and next cards set the z-index to level 1 and opacity to 0.4
-      prevCardStyle.zIndex = nextCardStyle.zIndex = 1;
-      prevCardStyle.opacity = nextCardStyle.opacity = siblingOpacity;
-
-      currentCard.applyStyle(currentCardStyle);
-      prevCard.applyStyle(prevCardStyle);
-      nextCard.applyStyle(nextCardStyle);
-    }
+    this.stack.forEach(function(app, idx) {
+      var card = this.cardsByAppID[app.instanceID];
+      card.move(0, 0);
+    }.bind(this));
   };
 
   /**
@@ -1088,27 +1046,14 @@
     var prevCard = this.prevCard || pseudoCard;
     var nextCard = this.nextCard || pseudoCard;
     var prevCardStyle = {
-      pointerEvents: 'none',
       MozTransition: currentCard.MOVE_TRANSITION
     };
     var nextCardStyle = {
-      pointerEvents: 'none',
       MozTransition: currentCard.MOVE_TRANSITION
     };
     var currentCardStyle = {
-      pointerEvents: 'auto',
       MozTransition: currentCard.MOVE_TRANSITION
     };
-
-    if (this.deltaX < 0) {
-      prevCard && prevCard.element.dispatchEvent(
-        new CustomEvent('outviewport')
-      );
-    } else {
-      nextCard && nextCard.element.dispatchEvent(
-        new CustomEvent('outviewport')
-      );
-    }
 
     this.setAccessibilityAttributes();
     this.placeCards();
@@ -1120,7 +1065,7 @@
     var onCardTransitionEnd = function transitionend() {
       currentCard.element.removeEventListener('transitionend',
                                               onCardTransitionEnd);
-      var zeroTransitionStyle = { MozTransition: '' };
+      var zeroTransitionStyle = { transition: '' };
       prevCard.applyStyle(zeroTransitionStyle);
       nextCard.applyStyle(zeroTransitionStyle);
       currentCard.applyStyle(zeroTransitionStyle);
@@ -1141,54 +1086,12 @@
    */
   TaskManager.prototype.moveCards = function() {
     var deltaX = this.deltaX;
-    var pseudoCard = this.pseudoCard;
-    var nextStyle = {};
-    var prevStyle = {};
-    var currentCardStyle = {};
-    var translateSign = (deltaX > 0) ? 100 : -100;
     var sign = (deltaX > 0) ? -1 : 1;
-    var movementFactor = Math.abs(deltaX) / this.windowWidth;
-    var currentCard = this.currentCard;
 
-    if (this.isTaskStrip) {
-
-      this.stack.forEach(function(app, idx) {
-        var card = this.cardsByAppID[app.instanceID];
-        card.move(Math.abs(deltaX) * sign);
-      }, this);
-
-    } else {
-      var siblingScale = currentCard.SIBLING_SCALE_FACTOR;
-      var currentScale = currentCard.SCALE_FACTOR;
-      var scaleFactor = Math.abs((deltaX / this.windowWidth) *
-                        (currentScale - siblingScale));
-      var siblingOpacity = currentCard.SIBLING_OPACITY;
-
-      // Scaling and translating next or previous sibling
-      nextStyle.MozTransform = 'scale(' + (siblingScale + scaleFactor) +
-          ') translateX(' + (translateSign * (1 - movementFactor)) + '%)';
-      // Fading in new card
-      nextStyle.opacity = siblingOpacity + (movementFactor *
-                                            (1 - siblingOpacity));
-      // Hiding the opposite sibling card progressively
-      prevStyle.opacity = siblingOpacity - movementFactor;
-      // Fading out current card
-      currentCardStyle.opacity = 1 - (movementFactor * (1 - siblingOpacity));
-
-      // Scaling and translating current card
-      currentCardStyle.MozTransform = 'scale(' + (currentScale - scaleFactor) +
-                                      ') translateX(' + -deltaX + 'px)';
-
-      this.currentCard.applyStyle(currentCardStyle);
-      if (deltaX > 0) {
-        (this.nextCard || pseudoCard).applyStyle(nextStyle);
-        (this.prevCard || pseudoCard).applyStyle(prevStyle);
-      } else {
-        (this.prevCard || pseudoCard).applyStyle(nextStyle);
-        (this.nextCard || pseudoCard).applyStyle(prevStyle);
-      }
-    }
-
+    this.stack.forEach(function(app, idx) {
+      var card = this.cardsByAppID[app.instanceID];
+      card.move(Math.abs(deltaX) * sign);
+    }, this);
   };
 
   /**
@@ -1252,8 +1155,7 @@
         card.move(this.deltaX, -dy);
       } else {
         card.applyStyle({
-          MozTransform: 'scale(' + card.SCALE_FACTOR + ') ' +
-                        'translateY(' + (-dy) + 'px)'
+          transform: 'translateY(' + (-dy) + 'px)'
         });
       }
     }

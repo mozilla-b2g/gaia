@@ -38,32 +38,11 @@
   Card.prototype.EVENT_PREFIX = 'card-';
 
   /**
-   * How much to scale the current card
-   * @type {Float}
-   * @memberof Card.prototype
-   */
-  Card.prototype.SCALE_FACTOR = 0.8;
-
-  /**
-   * How much to scale card when not the current card
-   * @type {Float}
-   * @memberof Card.prototype
-   */
-  Card.prototype.SIBLING_SCALE_FACTOR = 0.6;
-
-  /**
-   * Opacity to apply when not the current card
-   * @type {Float}
-   * @memberof Card.prototype
-   */
-  Card.prototype.SIBLING_OPACITY = 0.4;
-
-  /**
    * Transition to apply when moving the card
    * @type {String}
    * @memberof Card.prototype
    */
-  Card.prototype.MOVE_TRANSITION = '-moz-transform .3s, opacity .3s';
+  Card.prototype.MOVE_TRANSITION = 'transform .3s';
 
   /**
    * The instance's element will get appended here if defined
@@ -160,6 +139,27 @@
     }
   };
 
+  Card.prototype.move = function(deltaX, deltaY) {
+    deltaX = deltaX || 0;
+    deltaY = deltaY || 0;
+
+    var windowWidth = this.manager.windowWidth;
+    var offset = this.position - this.manager.currentPosition;
+    var positionX = deltaX + offset * (windowWidth * 0.7);
+
+    var style = { transform: '' };
+
+    if (deltaX || offset) {
+      style.transform = 'translateX(' + positionX + 'px)';
+    }
+
+    if (deltaY) {
+      style.transform = 'translateY(' + deltaY + 'px)';
+    }
+
+    this.applyStyle(style);
+  };
+
   /**
    * Build a card representation of an app window.
    * @memberOf Card.prototype
@@ -192,9 +192,8 @@
     }
 
     this._fetchElements();
-    this._registerEvents();
+    this._updateDisplay();
 
-    this.app.enterTaskManager();
     this.publish('rendered');
     return elem;
   };
@@ -240,7 +239,6 @@
    */
   Card.prototype.destroy = function() {
     this.publish('willdestroy');
-    this._unregisterEvents();
     var element = this.element;
     if (element && element.parentNode) {
       element.parentNode.removeChild(element);
@@ -253,40 +251,13 @@
   };
 
   /**
-   * Default event handler
-   * @param  {DOMEvent} evt The event.
+   * Update the displayed content of a card
    * @memberOf Card.prototype
    */
-  Card.prototype.handleEvent = function(event) {
-    switch (event.type) {
-      case 'outviewport':
-        this.onOutViewport(event);
-        break;
-      case 'onviewport':
-        this.onViewport(event);
-        break;
-    }
-  };
-
-  /**
-   * Handle the card no longer being visible in the viewport
-   * @memberOf Card.prototype
-   * @param  {DOMEvent} evt The event.
-   */
-  Card.prototype.onOutViewport = function c_onOutViewport(event) {
-    this.element.style.display = 'none';
-  };
-
-  /**
-   * Update display of card when it enters the viewport
-   * @memberOf Card.prototype
-   * @param  {DOMEvent} evt The event.
-   */
-  Card.prototype.onViewport = function c_onViewport(event) {
+  Card.prototype._updateDisplay = function c_updateDisplay() {
     var elem = this.element;
     var screenshotView = this.screenshotView;
     var app = this.app;
-    elem.style.display = 'block';
 
     var isIconPreview = !this.getScreenshotPreviewsSetting();
     if (isIconPreview) {
@@ -322,44 +293,19 @@
     // If we have a cached screenshot, use that first
     var cachedLayer = app.requestScreenshotURL();
 
-    if (cachedLayer) {
-      screenshotView.style.backgroundImage = 'url(' + cachedLayer + ')';
+    if (cachedLayer && app.isActive()) {
+      screenshotView.classList.toggle('fullscreen',
+                                      app.isFullScreen());
+      screenshotView.classList.toggle('maximized',
+                                      app.appChrome.isMaximized());
+      screenshotView.style.backgroundImage =
+        'url(' + cachedLayer + '),' +
+        '-moz-element(#' + this.app.instanceID + ')';
+    } else {
+      screenshotView.style.backgroundImage =
+        'url(none),' +
+        '-moz-element(#' + this.app.instanceID + ')';
     }
-
-    //
-    // We used to try and forcibly refresh the screenshot for the current
-    // active application, this is absolutely not necessary anymore as the
-    // app window itself will always have a fresh screenshot for use as
-    // we transition from displaying the app to displaying the cards view.
-    //
-    return;
-  };
-
-  /**
-   * Register event listeners. Most events are registered and handled in
-   * the TaskManager
-   * @memberOf Card.prototype
-  */
-  Card.prototype._registerEvents = function c__registerEvents() {
-    var elem = this.element;
-    if (elem === null) {
-      return;
-    }
-    elem.addEventListener('outviewport', this);
-    elem.addEventListener('onviewport', this);
-  };
-
-  /**
-   * Un-register event listeners
-   * @memberOf Card.prototype
-  */
-  Card.prototype._unregisterEvents = function c__registerEvents() {
-    var elem = this.element;
-    if (elem === null) {
-      return;
-    }
-    elem.removeEventListener('outviewport', this);
-    elem.removeEventListener('onviewport', this);
   };
 
   Card.prototype._fetchElements = function c__fetchElements() {

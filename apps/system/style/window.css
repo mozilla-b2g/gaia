@@ -58,7 +58,8 @@
 }
 
 .appWindow.from-cardview {
-  animation: openAppFromCardView 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  overflow: hidden;
+  animation: openAppFromCardView 0.2s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 #screen.task-manager #windows > .appWindow.from-cardview {
@@ -82,7 +83,7 @@
 }
 
 @keyframes openAppFromCardView {
-  0%   { transform: scale(0.8); }
+  0%   { transform: scale(0.6); }
   100% { transform: scale(1.0); }
 }
 
@@ -183,7 +184,8 @@
 }
 
 .appWindow.to-cardview {
-  animation: closeAppTowardsCardView 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  overflow: hidden;
+  animation: closeAppTowardsCardView 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 #screen.task-manager #windows > .appWindow.to-cardview {
@@ -197,7 +199,7 @@
 
 @keyframes closeAppTowardsCardView {
   0%   { transform: scale(1.0); }
-  100% { transform: scale(0.8); }
+  100% { transform: scale(0.6); }
 }
 
 @keyframes closeAppTowardsTaskManager {
@@ -325,13 +327,14 @@
 }
 
 .appWindow.suspended > .identification-overlay,
-.appWindow:not(.active) > .identification-overlay.visible {
+.appWindow:not(.active):not(.in-task-manager) > .identification-overlay.visible {
   visibility: visible;
   opacity: 1;
 }
 
 /* we don't want to show the overlay at all during the opening
    transition (from the homescreen and from the cardview) */
+#screen .appWindow.in-task-manager > .identification-overlay.visible,
 .appWindow.enlarge > .identification-overlay.visible,
 .appWindow.from-cardview > .identification-overlay.visible {
   opacity: 0 !important;
@@ -524,6 +527,11 @@
   /* not in the viewport */
   transform: translateX(-100%);
   opacity: 1;
+}
+
+/* making the appWindows moz-elementable for the cardview */
+#screen #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow).in-task-manager {
+  transform: translateX(0);
 }
 
 #windows > .appWindow:not(.lockScreenWindow):not(.attentionWindow):not(.active) {

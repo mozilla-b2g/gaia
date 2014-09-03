@@ -61,15 +61,15 @@
 
 /* Promote the transitioning appWindow to this level as the entry and exiting
  * transition of the cards view. */
-#screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
-#screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.transition-opening:not(.homescreen),
-#screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.transition-closing.to-cardview:not(.homescreen),
-#screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.transition-opening.fullscreen-app:not(.homescreen),
-#screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.transition-closing.fullscreen-app.to-cardview:not(.homescreen) {
-  z-index: 65537;
+#screen > [data-z-index-level="app"] .appWindow.in-task-manager.active:not(.homescreen),
+#screen > [data-z-index-level="app"] .appWindow.in-task-manager.transition-opening:not(.homescreen),
+#screen > [data-z-index-level="app"] .appWindow.in-task-manager.transition-closing.to-cardview:not(.homescreen),
+#screen > [data-z-index-level="app"] .appWindow.in-task-manager.transition-opening.fullscreen-app:not(.homescreen),
+#screen > [data-z-index-level="app"] .appWindow.in-task-manager.transition-closing.fullscreen-app.to-cardview:not(.homescreen) {
+  z-index: 65537 !important;
 }
 
-#screen.cards-view > [data-z-index-level="cards-view"] {
+#screen > [data-z-index-level="cards-view"] {
   z-index: 65535;
 }
 

@@ -5,7 +5,6 @@
   left: 0;
   width: 100%;
   height: 100%;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
   opacity: 0;
   -moz-user-select: none;
   overflow: hidden;
@@ -19,6 +18,10 @@
   }
 }
 
+#screen.hide-apps #windows {
+  opacity: 0;
+}
+
 #screen.software-button-enabled #cards-view {
   height: calc(100% - 5rem);
   bottom: 5rem;
@@ -27,10 +30,6 @@
 #cards-view.active {
   visibility: inherit;
   opacity: 1;
-}
-
-#cards-view.no-transition {
-  transition: none;
 }
 
 #cards-view .no-recent-apps {
@@ -65,26 +64,31 @@
 }
 
 #cards-view .card {
-  vertical-align: top;
-  display: none;
-  width: 100%;
-  height: calc(100% - 3rem);
-  margin: 0;
-  margin-top: 3rem;
   position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(0.8);
-  will-change: transform, opacity;
+  top: 20%;
+  left: 20%;
+  width: 60%;
+  height: 60%;
+
+  margin: 0;
+  will-change: transform;
 }
 
 #cards-view .screenshotView {
-  background-size: cover;
-  background-position: left top;
+  background-size: 100% calc(100% - 1.8rem), cover;
+  background-position: left bottom, left top;
   background-repeat: no-repeat;
   width: 100%;
   height: 100%;
   position: relative;
+}
+
+#cards-view .screenshotView.maximized {
+  background-position: left calc(100% + 2.76rem), left top;
+}
+
+#cards-view .screenshotView.fullscreen {
+  background-size: 100% 100%, cover;
 }
 
 #cards-view .screenshotView.rotate-90 {
@@ -102,12 +106,12 @@
 
 #cards-view .card h1 {
   position: absolute;
-  z-index: 99999;
   text-align: left;
-  font-size: 2.2rem;
+  font-size: 1.75rem;
   font-weight: 300;
   text-overflow: ellipsis;
   overflow-x: hidden;
+  width: 100%;
 }
 
 #cards-view .card header {
@@ -119,12 +123,6 @@
 }
 #screen.cards-view > #cards-view .card h1.title {
   pointer-events: auto;
-}
-
-#cards-view .card .titles h1 {
-  position: absolute;
-  top: calc(100% - 1.5rem);
-  width: 100%;
 }
 
 #cards-view .card .titles p {
@@ -163,7 +161,12 @@
   height: 2.6rem;
   width: 2.6rem;
   background: url(close.png) no-repeat center / 2.6rem;
-  transform: scale(1.3);
+  opacity: 0;
+}
+
+#screen.cards-view #cards-view .close-card {
+  transition: opacity 0.4s linear;
+  opacity: 1;
 }
 
 #cards-view.filtered {
