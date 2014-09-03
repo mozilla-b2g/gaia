@@ -74,7 +74,7 @@
       navigator.mozL10n.once(function() {
         if (call.duration === 0) {
           if (group.type === 'incoming') {
-            duration.setAttribute('data-l10n-id', 'missed');
+            duration.setAttribute('data-l10n-id', 'info-missed');
           } else {
             duration.setAttribute('data-l10n-id', 'canceled');
           }
