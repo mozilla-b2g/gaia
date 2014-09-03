@@ -64,8 +64,7 @@ Services.obs.addObserver(function onSystemMessage(subject, topic, data) {
     url: msg.uri,
     manifestURL: msg.manifest,
     isActivity: (msg.type == 'activity'),
-    target: msg.target,
-    expectingSystemMessage: true
+    target: msg.target
   }, 'open-app');
 }, 'system-messages-open-app', false);
 
