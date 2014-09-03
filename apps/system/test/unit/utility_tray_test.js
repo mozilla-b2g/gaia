@@ -247,6 +247,17 @@ suite('system/UtilityTray', function() {
     });
   });
 
+  suite('handleEvent: cardviewbeforeshow', function() {
+    setup(function() {
+      fakeEvt = createEvent('cardviewbeforeshow');
+      UtilityTray.show();
+      UtilityTray.handleEvent(fakeEvt);
+    });
+
+    test('should be hidden', function() {
+      assert.equal(UtilityTray.shown, false);
+    });
+  });
 
   suite('handleEvent: home', function() {
     setup(function() {

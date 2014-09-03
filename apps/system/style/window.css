@@ -58,11 +58,8 @@
 }
 
 .appWindow.from-cardview {
-  animation: openAppFromCardView 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
-}
-
-#screen.task-manager #windows > .appWindow.from-cardview {
-  animation: openAppFromTaskManager 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  overflow: hidden;
+  animation: openAppFromCardView 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 /* Opacity increases start up time then we don't use it anymore for opening */
@@ -82,12 +79,7 @@
 }
 
 @keyframes openAppFromCardView {
-  0%   { transform: scale(0.8); }
-  100% { transform: scale(1.0); }
-}
-
-@keyframes openAppFromTaskManager {
-  0%   { transform: scale(0.6); }
+  0%   { transform: scale(0.48); }
   100% { transform: scale(1.0); }
 }
 
@@ -183,11 +175,8 @@
 }
 
 .appWindow.to-cardview {
-  animation: closeAppTowardsCardView 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
-}
-
-#screen.task-manager #windows > .appWindow.to-cardview {
-  animation: closeAppTowardsTaskManager 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  overflow: hidden;
+  animation: closeAppTowardsCardView 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes closeApp {
@@ -197,12 +186,7 @@
 
 @keyframes closeAppTowardsCardView {
   0%   { transform: scale(1.0); }
-  100% { transform: scale(0.8); }
-}
-
-@keyframes closeAppTowardsTaskManager {
-  0%   { transform: scale(1.0); }
-  100% { transform: scale(0.6); }
+  100% { transform: scale(0.48); }
 }
 
 .appWindow.back {
@@ -325,13 +309,14 @@
 }
 
 .appWindow.suspended > .identification-overlay,
-.appWindow:not(.active) > .identification-overlay.visible {
+.appWindow:not(.active):not(.in-task-manager) > .identification-overlay.visible {
   visibility: visible;
   opacity: 1;
 }
 
 /* we don't want to show the overlay at all during the opening
    transition (from the homescreen and from the cardview) */
+#screen .appWindow.in-task-manager > .identification-overlay.visible,
 .appWindow.enlarge > .identification-overlay.visible,
 .appWindow.from-cardview > .identification-overlay.visible {
   opacity: 0 !important;
@@ -496,19 +481,6 @@
   100% { transform: translateX(100%); }
 }
 
-/* Task Manager */
-#screen.task-manager:not(.software-button-enabled) > #windows > .appWindow.in-task-manager:not(.attentionWindow),
-#screen.task-manager:not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow.in-task-manager:not(.fullscreen-app):not(.attentionWindow) {
-  /* XXX sfoster - watch specificify here
-     Position values are 1/2 because of scaling */
-  top: calc(25% + 2.5rem);
-  margin: 0 auto;
-  overflow: hidden;
-  transform-origin: 50% 0;
-  transform: translateX(99.99%) scale(0.5, 0.5);
-  will-change: transform;
-}
-
 @keyframes slideFromUp {
   0%   { transform: translateY(calc(-100%)); }
   100% { transform: translateY(0); }
@@ -526,16 +498,13 @@
   opacity: 1;
 }
 
-#windows > .appWindow:not(.lockScreenWindow):not(.attentionWindow):not(.active) {
-  will-change: transform;
+/* making the appWindows moz-elementable for the cardview */
+#screen #windows > .appWindow:not(.homescreen):not(.lockScreenWindow):not(.attentionWindow).in-task-manager {
+  transform: none;
 }
 
 .appWindow.attentionWindow.hidden {
   display: none;
-}
-
-#screen:-moz-full-screen-ancestor > #windows .appWindow.active {
-  will-change: auto;
 }
 
 #screen #windows > .appWindow.will-become-inactive {

@@ -1,47 +1,36 @@
-/* global Card, TaskCard,
-          AppWindowManager, sleepMenu, SettingsListener,
-          OrientationManager, System, homescreenLauncher,
-          GestureDetector, UtilityTray, StackManager, Event */
-
-'use strict';
+/* global Card, AppWindowManager, SettingsListener,
+          System, homescreenLauncher, StackManager */
 
 (function(exports) {
+  'use strict';
+
   var DEBUG = false;
+
   /**
    * Represent a stack of apps as cards
-   *
-   * The view is built and event listeners attached when the show method
-   *
-   * Implements some of BaseUI interface (but does not extend that class)
-   *
    * @class TaskManager
    */
   function TaskManager() {
     this.stack = null;
-    this.unfilteredStack = null;
     this.cardsByAppID = {};
-    // Listen for settings changes
-    this.onTaskStripEnabled = function(value) {
-      debug('taskstrip.enabled: '+ value);
-      this.isTaskStrip = value;
-    }.bind(this);
-    SettingsListener.observe('taskstrip.enabled', false,
-                             this.onTaskStripEnabled);
   }
 
   TaskManager.prototype = Object.create({
-    /**
-     * Use the carousel-style card view (false) or
-     * the Haida-style horizontal task strip (true)
-     */
-    isTaskStrip: false,
-
     /**
      * The setting that enables/disables using screenshots vs. icons for the
      *  card preview
      * @memberof TaskCard.prototype
      */
     SCREENSHOT_PREVIEWS_SETTING_KEY: 'app.cards_view.screenshots.enabled',
+
+    DURATION: 200,
+
+    // Arbitrarily chosen to be 4x larger than the gecko18 drag
+    // threshold.  This constant should be a truemm/mozmm value, but
+    // it's hard for us to evaluate that here.
+    SWIPE_UP_THRESHOLD: 100,
+
+    SWITCH_CARD_THRESHOLD: 30,
 
     /**
      * Cached value of the screenshots.enabled setting
@@ -50,36 +39,15 @@
     useAppScreenshotPreviews: true,
 
     /**
-     * if 'true' user can close the app by dragging it upwards
+     * Index into the stack of the current app/card
      * @memberOf TaskManager.prototype
      */
-    allowSwipeToClose: true,
+    position: 0,
 
-    /**
-     * Index into the stack of the currently displayed app/card
-     * @memberOf TaskManager.prototype
-     */
-    currentDisplayed: 0,
+    _active: false,
 
-    /**
-     * Index into the stack of the currently app/card
-     * @memberOf TaskManager.prototype
-     */
-    currentPosition: 0,
-
-    /**
-     * Is a cross-axis drag going on?
-     * @memberOf TaskManager.prototype
-     */
-    draggingCardUp: false,
-
-    /**
-     * Are we moving card left or right?
-     * @memberOf TaskManager.prototype
-     */
-    sortingDirection: null,
-
-    _showing: false
+    windowWidth: window.innerWidth,
+    windowHeight: window.innerHeight
   }, {
     /**
      * Getter for the current card
@@ -87,47 +55,7 @@
      */
     currentCard: {
       get: function cs_getCurrentCard() {
-        return this.getCardAtIndex(this.currentDisplayed);
-      }
-    },
-    /**
-     * Getter for the previous card in the stack
-     * @memberOf TaskManager.prototype
-     */
-    prevCard: {
-      // e.g. stack looks like: 0:phone, 1:Contacts, 2:Settings
-      // if currentDisplayed is 0, prev is -1 i.e. null
-      get: function cs_getPrevCard() {
-        return this.getCardAtIndex(this.currentDisplayed - 1);
-      }
-    },
-    /**
-     * Getter for the next card in the stack
-     * @memberOf TaskManager.prototype
-     */
-    nextCard: {
-      // e.g. stack looks like: 0:phone, 1:Contacts, 2:Settings
-      // if currentDisplayed is 2, next is 3 i.e. null
-      get: function cs_getNextCard() {
-        return this.getCardAtIndex(this.currentDisplayed + 1);
-      }
-    },
-    /**
-     * Getter to access cached window innerWidth measurement
-     * @memberOf TaskManager.prototype
-     */
-    windowWidth: {
-      get: function cs_getWindowWidth() {
-        return this._windowWidth;
-      }
-    },
-    /**
-     * Getter to access cached window innerHeight measurement
-     * @memberOf TaskManager.prototype
-     */
-    windowHeight: {
-      get: function cs_getWindowHeight() {
-        return this._windowHeight;
+        return this.getCardAtIndex(this.position);
       }
     }
   });
@@ -138,73 +66,22 @@
    */
   TaskManager.prototype.start = function() {
     this._fetchElements();
-    // start gesture detecting asap, but defer most of the init until first
-    // call to .show();
-
-    var gd = this.constructor._gestureDetector;
-    if (!gd) {
-      gd = new GestureDetector(this.element);
-      this.constructor._gestureDetector = gd;
-      gd.startDetecting();
-    }
-
-    var previewSettingKey = this.SCREENSHOT_PREVIEWS_SETTING_KEY;
-    // get initial setting value for screenshot previews
-    // and watch for changes
-    var settingRequest = SettingsListener.getSettingsLock()
-                         .get(previewSettingKey);
-
-    settingRequest.onsuccess = function() {
-      var settingValue = settingRequest.result[previewSettingKey];
-      this.useAppScreenshotPreviews = settingValue;
-    }.bind(this);
-
     this._registerEvents();
-    this.stop = function() {
-      this._unregisterEvents();
-      gd.stopDetecting();
-    };
+  };
+
+  TaskManager.prototype.stop = function() {
+    this._unregisterEvents();
   };
 
   TaskManager.prototype._fetchElements = function() {
-    // the DOMElement for the card switcher
     this.element = document.getElementById('cards-view'),
-
     this.cardsList = document.getElementById('cards-list');
     this.screenElement = document.getElementById('screen');
   };
 
-  TaskManager.prototype._registerShowingEvents = function() {
-    window.addEventListener('appopen', this);
-    window.addEventListener('appterminated', this);
-    if (this.allowSwipeToClose) {
-      this.element.addEventListener('touchstart', this);
-    }
-    window.addEventListener('lockscreen-appopened', this);
-    window.addEventListener('tap', this);
-    window.addEventListener('wheel', this);
-    window.addEventListener('opencurrentcard', this);
-  };
-  TaskManager.prototype._unregisterShowingEvents = function() {
-    window.removeEventListener('appopen', this);
-    window.removeEventListener('appterminated', this);
-    window.removeEventListener('lockscreen-appopened', this);
-    window.removeEventListener('tap', this);
-    window.removeEventListener('wheel', this);
-    window.removeEventListener('opencurrentcard', this);
-
-    this.element && this.element.removeEventListener('touchstart', this);
-    window.removeEventListener('lockscreen-appopened', this);
-    window.removeEventListener('tap', this);
-    window.removeEventListener('opencurrentcard', this);
-  };
-
-
   TaskManager.prototype._registerEvents = function() {
-    window.addEventListener('home', this);
-    window.addEventListener('attentionopened', this);
-    window.addEventListener('taskmanagershow', this);
     window.addEventListener('holdhome', this);
+    window.addEventListener('taskmanagershow', this);
 
     this.onPreviewSettingsChange = function(settingValue) {
       this.useAppScreenshotPreviews = settingValue;
@@ -216,45 +93,64 @@
   };
 
   TaskManager.prototype._unregisterEvents = function() {
-    window.removeEventListener('home', this);
-    window.removeEventListener('attentionopened', this);
-    window.removeEventListener('taskmanagershow', this);
     window.removeEventListener('holdhome', this);
+    window.removeEventListener('taskmanagershow', this);
 
     SettingsListener.unobserve(this.SCREENSHOT_PREVIEWS_SETTING_KEY,
                                this.onPreviewSettingsChange);
-    SettingsListener.unobserve('taskstrip.enabled',
-                               this.onTaskStripEnabled);
   };
 
   /**
-   * Is the view currently showing
+   * Build and display the card switcher overlay
+   * Note that we rebuild the switcher each time we need it rather
+   * than trying to keep it in sync with app launches.
+   *
    * @memberOf TaskManager.prototype
+   * @param filterName {string} The name of the filter to apply. Only two fitler
+   *                            types are supported at this time: 'browser-only'
+   *                            and 'apps-only'.
    */
-  TaskManager.prototype.isShown = function() {
-    return this._showing;
-  };
+  TaskManager.prototype.show = function cs_showCardSwitcher(filterName) {
+    this.newStackPosition = null;
+    this._registerShowingEvents();
 
-  /**
-   * Toggle to activate/deactivate (mostly adding classes to elements)
-   * @param {Boolean} true to activate, false to deactivate
-   * @memberOf TaskManager.prototype
-   */
-  TaskManager.prototype.setActive = function(toActive) {
-    var cardsView = this.element;
-    if (toActive == cardsView.classList.contains('active')) {
-      // no change
+    if (this.filter(filterName)) {
+      // Update visual style to indicate we're filtered.
+      this.element.classList.add('filtered');
+    }
+
+    // First add an item to the cardsList for each running app
+    var stack = this.stack;
+    stack.forEach(function(app, position) {
+      this.addCard(position, app);
+    }, this);
+
+    this.unfilteredStack.forEach(function(app, position) {
+      app.enterTaskManager();
+    });
+
+    this.publish('cardviewbeforeshow');
+
+    this._placeCards();
+    this.setActive(true);
+
+    var screenElement = this.screenElement;
+    var activeApp = AppWindowManager.getActiveApp();
+    if (!activeApp) {
+      screenElement.classList.add('cards-view');
       return;
     }
-    if (toActive) {
-      cardsView.classList.add('active');
-      this._showing = true;
-      this.fireCardViewShown();
+
+    if (activeApp.isHomescreen) {
+      // Ensure the homescreen is in a closed state, as the user may choose
+      // one of the app.
+      activeApp.close();
+      screenElement.classList.add('cards-view');
     } else {
-      cardsView.classList.remove('active');
-      this._showing = false;
-      // Let everyone know we're about to close the cards view
-      this.fireCardViewBeforeClose();
+      window.addEventListener('appclosed', function finish() {
+        window.removeEventListener('appclosed', finish);
+        screenElement.classList.add('cards-view');
+      });
     }
   };
 
@@ -262,38 +158,86 @@
    * Hide the card switcher
    *
    * @memberOf TaskManager.prototype
-   * @param {Boolean} removeImmediately true to skip transitions when hiding
    *
    */
-  TaskManager.prototype.hide = function cs_hideCardSwitcher(removeImmediately) {
-    if (!this.isShown()) {
+  TaskManager.prototype.hide = function cs_hideCardSwitcher() {
+    this._unregisterShowingEvents();
+    this._removeCards();
+    this.setActive(false);
+    this.screenElement.classList.remove('cards-view');
+
+    var detail;
+    if (!isNaN(this.newStackPosition)) {
+      detail = { 'detail': { 'newStackPosition': this.newStackPosition }};
+    }
+    this.publishNextTick('cardviewclosed', detail);
+  };
+
+
+  TaskManager.prototype._registerShowingEvents = function() {
+    window.addEventListener('home', this);
+    window.addEventListener('lockscreen-appopened', this);
+    window.addEventListener('attentionopened', this);
+    window.addEventListener('appopen', this);
+    window.addEventListener('appterminated', this);
+    window.addEventListener('wheel', this);
+    window.addEventListener('resize', this);
+
+    this.element.addEventListener('touchstart', this);
+    this.element.addEventListener('touchmove', this);
+    this.element.addEventListener('touchend', this);
+  };
+
+  TaskManager.prototype._unregisterShowingEvents = function() {
+    window.removeEventListener('home', this);
+    window.removeEventListener('lockscreen-appopened', this);
+    window.removeEventListener('attentionopened', this);
+    window.removeEventListener('appopen', this);
+    window.removeEventListener('appterminated', this);
+    window.removeEventListener('wheel', this);
+    window.removeEventListener('resize', this);
+
+    this.element.removeEventListener('touchstart', this);
+    this.element.removeEventListener('touchmove', this);
+    this.element.removeEventListener('touchend', this);
+  };
+
+  /**
+   * Is the view currently active
+   * @memberOf TaskManager.prototype
+   *
+   * XXX It would be nice to rename that to isActive, in order to be synced
+   * with setActive method.
+   */
+  TaskManager.prototype.isShown = function() {
+    return this.isActive();
+  };
+
+  /**
+   * Is the view currently active
+   * @memberOf TaskManager.prototype
+   */
+  TaskManager.prototype.isActive = function() {
+    return this._active;
+  };
+
+  /**
+   * Toggle to activate/deactivate (mostly adding classes to elements)
+   * @param {Boolean} true to activate, false to deactivate
+   * @memberOf TaskManager.prototype
+   */
+  TaskManager.prototype.setActive = function(active) {
+    if (active == this._active) {
       return;
     }
+    this._active = active;
+    this.element.classList.toggle('active', active);
+    this.element.classList.toggle('empty', !this.stack.length && active);
 
-    var cardsView = this.element;
-
-    // events to unhandle
-    this._unregisterShowingEvents();
-
-    if (removeImmediately) {
-      this.element.classList.add('no-transition');
-    }
-
-    // Make the cardsView overlay inactive
-    this.setActive(false);
-
-    // And remove all the cards from the document after the transition
-    if (removeImmediately) {
-      this.removeCards();
-      cardsView.classList.remove('no-transition');
-    } else {
-      var cardsViewHidden = (function onTransitionEnd() {
-        cardsView.removeEventListener('transitionend', cardsViewHidden);
-        this.removeCards();
-      }).bind(this);
-      cardsView.addEventListener('transitionend', cardsViewHidden);
-    }
-    this.fireCardViewClosed();
+    // XXX This code is weird as it does not seems symetric.
+    // In one direction we considered that the card view is already shown,
+    // while on the other this is before it is closed!
+    this.publishNextTick(active ? 'cardviewshown' : 'cardviewbeforeclose');
   };
 
   /**
@@ -304,139 +248,41 @@
    * @returns true if a filter was applied, false if not.
    */
   TaskManager.prototype.filter = function cs_filterCardStack(filterName) {
+    var unfilteredStack = this.unfilteredStack = StackManager.snapshot();
+
     var noRecentWindows = document.getElementById('cards-no-recent-windows');
     switch (filterName) {
       // Filter out any application that is not a system browser window.
       case 'browser-only':
-        this.stack =
-          this.unfilteredStack
-              .filter(function(app) { return app.isBrowser(); });
+        this.stack = unfilteredStack.filter(function(app) {
+          return app.isBrowser();
+        });
         navigator.mozL10n.setAttributes(noRecentWindows,
                                         'no-recent-browser-windows');
         break;
+
       // Filter out any application that is not an application only window.
       case 'apps-only':
-        this.stack =
-          this.unfilteredStack
-              .filter(function(app) { return !app.isBrowser(); });
+        this.stack = unfilteredStack.filter(function(app) {
+          return !app.isBrowser();
+        });
         navigator.mozL10n.setAttributes(noRecentWindows,
                                         'no-recent-app-windows');
         break;
+
       default:
-        return false;
+        this.stack = unfilteredStack;
+        break;
     }
 
-    // We need to figure out where we are in this filtered stack as we may have
-    // removed apps from it!
-    if (this.currentPosition != -1) {
-      this.currentPosition =
-        this.stack.indexOf(this.unfilteredStack[this.currentPosition]);
+    this.position = this.stack.indexOf(unfilteredStack[StackManager.position]);
+    if (this.position === -1 || StackManager.outOfStack()) {
+      this.position = this.stack.length - 1;
     }
 
-    return true;
+    return this.stack !== unfilteredStack;
   };
 
-  /**
-   * Main entry point to show the card switcher
-   *
-   * @memberOf TaskManager.prototype
-   * @param filterName {string} The name of the filter to apply. Only two fitler
-   *                            types are supported at this time: 'browser-only'
-   *                            and 'apps-only'.
-   */
-  TaskManager.prototype.show = function cs_showCardSwitcher(filterName) {
-    // Build and display the card switcher overlay
-    // Note that we rebuild the switcher each time we need it rather
-    // than trying to keep it in sync with app launches.
-
-    // Apps info from Stack Manager.
-    this.unfilteredStack = StackManager.snapshot();
-    this.stack = this.unfilteredStack;
-    this.currentPosition = StackManager.position;
-    this.newStackPosition = null;
-    this.initialTouchPosition = null;
-
-    // Apply the filter. Noop if no filterName.
-    if (this.filter(filterName)) {
-      // Update visual style to indicate we're filtered.
-      this.element.classList.add('filtered');
-    }
-
-    // Short-hand, but we need to get reference to it here as filter can
-    // change the stack that will be used.
-    var stack = this.stack;
-
-    // If we are currently displaying the homescreen but we have apps in the
-    // stack we will display the most recently used application.
-    if (this.currentPosition == -1 || StackManager.outOfStack()) {
-      if (stack.length) {
-        this.currentPosition = this.isTaskStrip ? 0 : stack.length - 1;
-      } else {
-      // consider homescreen the active app
-        this.currentPosition = -1;
-      }
-    }
-    this.currentDisplayed = this.currentPosition;
-    var currentApp = (stack.length && this.currentPosition > -1 &&
-                     stack[this.currentPosition]);
-
-    // Return early if isTaskStrip and there are no apps.
-    if (this.isTaskStrip) {
-      if (!currentApp) {
-        // Fire a cardchange event to notify rocketbar that there are no cards
-        this.fireCardViewClosed();
-        return;
-      }
-    }
-
-    // stash some measurements now to avoid unexpected reflow later
-    this._windowWidth = window.innerWidth;
-    this._windowHeight = window.innerHeight;
-
-    // Close utility tray if it is opened.
-    UtilityTray && UtilityTray.hide(true);
-
-    // We're committed to showing the card switcher.
-    // Homescreen fades (shows its fade-overlay) on cardviewbeforeshow events
-    this.fireCardViewBeforeShow();
-
-    this.screenElement.classList.add('cards-view');
-    if (this.isTaskStrip) {
-      this.screenElement.classList.add('task-manager');
-    }
-
-    // If there is no running app, show "no recent apps" message
-    if (stack.length) {
-      this.element.classList.remove('empty');
-    } else {
-      // (we already bailed for the isTaskStrip case)
-      this.element.classList.add('empty');
-    }
-
-    // Make sure we're in default orientation
-    screen.mozLockOrientation(OrientationManager.defaultOrientation);
-
-    // First add an item to the cardsList for each running app
-    stack.forEach(function(app, position) {
-      this.addCard(position, app);
-    }, this);
-
-    // events to handle while shown
-    this._registerShowingEvents();
-    // only set up for card swiping if there's cards to show
-    if (!this.isTaskStrip && stack.length && !this.initialTouchPosition) {
-      this.setupCardSwiping();
-    }
-
-    this.setActive(true);
-    this.setAccessibilityAttributes();
-    this.placeCards();
-
-    // At the beginning only the current card can listen to tap events
-    if (stack.length) {
-      this.currentCard.applyStyle({pointerEvents: 'auto'});
-    }
-  };
 
   /**
    * Insert a new card for the given app
@@ -445,20 +291,23 @@
    * @param {Number} position in the stack for the new card
    * @param {AppWindow} app The appWindow the card should wrap and represent
    */
-  TaskManager.prototype.addCard = function cs_addCard(position,
-                                                      app) {
+  TaskManager.prototype.addCard = function cs_addCard(position, app) {
     var config = {
       manager: this,
       position: position,
       app: app,
-      _windowWidth: this.windowWidth,
-      _windowHeight: this.windowHeight
+      windowWidth: this.windowWidth,
+      windowHeight: this.windowHeight
     };
-    var card = (this.isTaskStrip) ?
-                  new TaskCard(config) :
-                  new Card(config);
+    var card = new Card(config);
     this.cardsByAppID[app.instanceID] = card;
     this.cardsList.appendChild(card.render());
+
+    if (position >= this.position - 2 && position <= this.position + 2) {
+      card.element.style.display = 'block';
+    } else {
+      card.element.style.display = 'none';
+    }
   };
 
   /**
@@ -466,10 +315,8 @@
    *
    * @memberOf TaskManager.prototype
    * @param {object} card the card instance to be removed
-   * @param {Boolean} removeImmediately Whether to skip animations
    */
-  TaskManager.prototype.removeCard = function cs_removeCard(card,
-                                                            removeImmediately) {
+  TaskManager.prototype.removeCard = function cs_removeCard(card) {
     var element = card.element;
     var position = element.dataset.position;
     delete this.cardsByAppID[card.app.instanceID];
@@ -478,6 +325,7 @@
 
     // stop tracking this app in our own stack.
     this.stack.splice(position, 1);
+
     // Update the card positions.
     var cardNodes = this.cardsList.childNodes;
     for (var i = position, remainingCard = null; i < cardNodes.length; i++) {
@@ -491,21 +339,14 @@
     // Fix for non selectable cards when we remove the last card
     // Described in https://bugzilla.mozilla.org/show_bug.cgi?id=825293
     var cardsLength = cardNodes.length;
-    if (cardsLength === this.currentDisplayed) {
-      this.currentPosition--;
-      if (this.currentPosition < 0) {
-        this.currentPosition = 0;
-      }
-      this.currentDisplayed = this.currentPosition;
-    }
-
-    // If there are no cards left, then dismiss the task switcher.
-    if (!cardsLength && this.isShown()) {
+    if (!cardsLength) {
       this.exitToApp();
     }
-    else {
-      this.alignCurrentCard();
+
+    if (cardsLength === this.position) {
+      this.position--;
     }
+    this.alignCurrentCard();
   };
 
   /**
@@ -513,20 +354,19 @@
    *
    * @memberOf TaskManager.prototype
    */
-  TaskManager.prototype.removeCards = function cs_removeCards() {
-    // bypass normal removeCards method to efficiently batch-remove all
-    Object.keys(this.cardsByAppID).forEach(function(instanceID) {
-      var card = this.cardsByAppID[instanceID];
-      card.destroy();
+  TaskManager.prototype._removeCards = function cs_removeCards() {
+    this.stack.forEach(function(app, idx) {
+      var card = this.cardsByAppID[app.instanceID];
+      card && card.destroy();
     }, this);
-    this.cardsByAppID = {};
 
-    this.screenElement.classList.remove('cards-view');
-    this.screenElement.classList.remove('task-manager');
+    this.unfilteredStack.forEach(function(app, position) {
+      app.leaveTaskManager();
+    });
+
+    this.cardsByAppID = {};
     this.element.classList.remove('filtered');
     this.cardsList.innerHTML = '';
-    this.currentDisplayed = -1;
-    this.deltaX = null;
   };
 
   /**
@@ -539,57 +379,67 @@
   TaskManager.prototype.cardAction = function cs_cardAction(card, actionName) {
     switch (actionName) {
       case 'close' :
-          this.closeApp(card);
-        return;
+        card.killApp();
+        break;
+
       case 'favorite' :
         debug('cardAction: TODO: favorite ' + card.element.dataset.origin);
-        return;
+        break;
+
       case 'select' :
-        this.exitToApp(
-          card.app,
-          'from-cardview',
-          null
-        );
-        // Card switcher will get hidden when 'appopen' is fired.
-        return;
+
+        if (this.position == card.position) {
+          this.exitToApp(card.app);
+        } else {
+          // Make the target app, the selected app
+          this.position = card.position;
+          this.alignCurrentCard();
+
+          var self = this;
+          this.currentCard.element.addEventListener('transitionend',
+                                                    function onCenter(e) {
+            e.target.removeEventListener('transitionend', onCenter);
+            self.exitToApp(card.app);
+          });
+        }
+        break;
     }
   };
 
-  TaskManager.prototype.exitToApp = function(app,
-                                             openAnimation) {
+  TaskManager.prototype.exitToApp = function(app) {
+    // The cards view class is removed here in order to let the window
+    // manager repaints everything.
+    this.screenElement.classList.remove('cards-view');
 
-    if (!app) {
-      // return if possible to previous app.
-      // else homescreen
-      app = StackManager.getCurrent() ||
-            homescreenLauncher.getHomescreen(true);
-    }
+    app = app ||
+          StackManager.getCurrent() ||
+          homescreenLauncher.getHomescreen(true);
+
     var position = this.unfilteredStack.indexOf(app);
     if (position !== StackManager.position) {
       this.newStackPosition = position;
     }
-    app.open(openAnimation || 'from-cardview');
-    this.hide();
-  };
 
-  /**
-   * Close (kill) the app associated with the given card and remove that card
-   *
-   * @memberOf TaskManager.prototype
-   * @param  {Card} card An instance of Card or similar
-   * @param  {Boolean} removeImmediately Skip any animations when closing
-   */
-  TaskManager.prototype.closeApp = function cs_closeApp(card,
-                                                        removeImmediately) {
-    var wasActive = AppWindowManager.getActiveApp() === card.app;
-    card.killApp();
+    setTimeout((function() {
+      var safetyTimeout = null;
+      var finish = (function() {
+        clearTimeout(safetyTimeout);
+        this.hide();
+      }).bind(this);
 
-    // if we killed the active app, make homescreen active
-    if (wasActive) {
-      AppWindowManager._updateActiveApp(homescreenLauncher
-                                          .getHomescreen().instanceID);
-    }
-    this.removeCard(card, removeImmediately);
+      if (app.isHomescreen) {
+        app.open();
+        finish();
+      } else {
+        app.open('from-cardview');
+        app.element.addEventListener('_opened', function opWait() {
+          app.element.removeEventListener('_opened', opWait);
+          finish();
+        });
+      }
+
+      safetyTimeout = setTimeout(finish, 400);
+    }).bind(this), 100);
   };
 
   /**
@@ -605,19 +455,17 @@
       // Two finger swipe up.
       var card = this.currentCard;
       if (card.app.killable()) {
-        // Remove the card from the Task Manager for a smooth transition.
-        this.cardsList.removeChild(card.element);
-        this.closeApp(card);
+        card.killApp();
       } else {
         card.applyStyle({ MozTransform: '' });
       }
     } else if (evt.deltaX > 0 &&
-      this.currentDisplayed < this.cardsList.childNodes.length - 1) {
+      this.position < this.cardsList.childNodes.length - 1) {
       // Two finger swipe left.
-      this.currentDisplayed = ++this.currentPosition;
-    } else if (this.currentDisplayed > 0) {
+      this.position++;
+    } else if (this.position > 0) {
       // Two finger swipe right.
-      this.currentDisplayed = --this.currentPosition;
+      this.position--;
     }
     this.alignCurrentCard();
   };
@@ -629,26 +477,9 @@
    * @param  {DOMEvent} evt The event.
    */
   TaskManager.prototype.handleTap = function cs_handleTap(evt) {
-    // Handle close events
     var targetNode = evt.target;
-    var containerNode = targetNode.parentNode;
 
-    var cardElem;
-    var card;
-
-    if (!this.isShown()) {
-      // ignore any bogus events received after we already started to hide
-      return;
-    }
-    if (targetNode.classList.contains('close-card') &&
-        this.cardsList.contains(containerNode)) {
-      card = this.getCardForElement(containerNode);
-      if (card) {
-        this.cardAction(card, 'close');
-      }
-      return;
-    }
-    // Screen reader lands on one of card's children.
+    var cardElem = null;
     var tmpNode = targetNode;
     while (tmpNode) {
       if (tmpNode.classList && tmpNode.classList.contains('card')) {
@@ -657,111 +488,21 @@
       }
       tmpNode = tmpNode.parentNode;
     }
-    if (this.isTaskStrip && ('buttonAction' in targetNode.dataset) &&
-      cardElem && (card = this.getCardForElement(cardElem))) {
-      evt.stopPropagation();
+
+    var card = this.getCardForElement(cardElem);
+    if (!card) {
+      return;
+    }
+
+    if ('buttonAction' in targetNode.dataset) {
       this.cardAction(card, targetNode.dataset.buttonAction);
       return;
     }
-    if (('position' in targetNode.dataset) || cardElem) {
-      card = this.getCardForElement(cardElem);
-      if (card) {
-        this.cardAction(card, 'select');
-      }
+
+    if ('position' in targetNode.dataset) {
+      this.cardAction(card, 'select');
       return;
     }
-  };
-
-  /**
-   * Handle end-of-drag events on the card list
-   *
-   * @memberOf TaskManager.prototype
-   * @param  {DOMEvent} evt The event.
-   */
-  TaskManager.prototype.onEndEvent = function cs_onEndEvent(evt) {
-    evt.stopPropagation();
-    var element = evt.target;
-    var eventDetail = evt.detail;
-    var cardsView = this.element;
-
-    document.releaseCapture();
-    cardsView.removeEventListener('touchmove', this);
-    cardsView.removeEventListener('touchend', this);
-    cardsView.removeEventListener('swipe', this);
-
-    var eventDetailEnd = eventDetail.end;
-    var dx, dy;
-
-    if (eventDetailEnd) {
-      dx = eventDetail.dx;
-      dy = eventDetail.dy;
-    } else {
-      if (evt.changedTouches) {
-        dx = evt.changedTouches[0].pageX - this.initialTouchPosition[0];
-        dy = evt.changedTouches[0].pageY - this.initialTouchPosition[1];
-      } else {
-        dx = evt.pageX - this.initialTouchPosition[0];
-        dy = evt.pageY - this.initialTouchPosition[1];
-      }
-    }
-
-    if (!this.draggingCardUp) {
-      if (Math.abs(dx) > this.threshold) {
-        this.onMoveEventForScrolling(dx + this.initialTouchPosition[0]);
-        if (this.scrollDirection) {
-          if (this.scrollDirection === 'left' &&
-                this.currentDisplayed < this.cardsList.childNodes.length - 1) {
-            this.currentDisplayed = ++this.currentPosition;
-
-          } else if (this.scrollDirection === 'right' &&
-                     this.currentDisplayed > 0) {
-            this.currentDisplayed = --this.currentPosition;
-          }
-        }
-        this.alignCurrentCard();
-      } else {
-        this.handleTap(evt);
-      }
-      return;
-    }
-
-    // if the element we start dragging on is a card
-    if (
-      element.classList.contains('card') &&
-      this.allowSwipeToClose &&
-      this.draggingCardUp
-    ) {
-      this.draggingCardUp = false;
-      var card = this.getCardForElement(element);
-      if (-dy > this.swipeUpThreshold &&
-          card.app.killable()) {
-        // Remove the card from the Task Manager for a smooth transition.
-        this.cardsList.removeChild(element);
-        this.closeApp(card);
-      } else {
-        card.applyStyle({ MozTransform: '' });
-      }
-      this.alignCurrentCard();
-
-      return;
-    }
-  };
-
-  /**
-   * Hide the switcher and show the homescreen
-   * @memberOf TaskManager.prototype
-   * @param  {DOMEvent} evt The event.
-   */
-  TaskManager.prototype.goToHomescreen = function cs_goToHomescreen(evt) {
-    if (!this.isShown()) {
-      return;
-    }
-
-    var homescreen = homescreenLauncher.getHomescreen(true);
-    window.dispatchEvent(new CustomEvent('cardviewclosedhome'));
-
-    evt.stopImmediatePropagation();
-    this.exitToApp(homescreen);
   };
 
   /**
@@ -770,34 +511,30 @@
    * @param  {DOMEvent} evt The event.
    */
   TaskManager.prototype.handleEvent = function cv_handleEvent(evt) {
-    var app, card;
-
+    var app;
     switch (evt.type) {
       case 'touchstart':
-        this.onStartEvent(evt);
+        this.onTouchStart(evt);
         evt.preventDefault();
+        evt.stopPropagation();
         break;
 
       case 'touchmove':
-        this.onMoveEvent(evt);
+        this.onTouchMove(evt);
+        evt.stopPropagation();
         evt.preventDefault();
         break;
 
       case 'touchend':
-      case 'swipe':
-        this.onEndEvent(evt);
+        this.onTouchEnd(evt);
+        evt.stopPropagation();
         evt.preventDefault();
         break;
 
-      case 'opencurrentcard':
-        this.exitToApp(
-          this.currentCard.app,
-          'from-cardview',
-          null);
-        break;
-
-      case 'tap':
-        this.handleTap(evt);
+      case 'resize':
+        this.windowWidth = window.innerWidth;
+        this.windowHeight = window.innerHeight;
+        this.alignCurrentCard();
         break;
 
       case 'wheel':
@@ -805,164 +542,69 @@
         break;
 
       case 'home':
-        if (this.isShown()) {
-          evt.stopImmediatePropagation();
-          this.exitToApp();
-        }
+        evt.stopImmediatePropagation();
+        this.exitToApp();
         break;
 
       case 'lockscreen-appopened':
       case 'attentionopened':
-        this.newStackPosition = null;
-        this.hide(true);
-        // no need to animate while in background
-        this.exitToApp(null, 'immediately');
+        this.hide();
+        this.exitToApp();
         break;
 
       case 'taskmanagershow':
-        var filter = (evt.detail && evt.detail.filter) || null;
-        this.show(filter);
+      case 'holdhome':
+        if (System.locked) {
+          return;
+        }
+
+        var filter = null;
+        if (evt.type === 'taskmanagershow') {
+          filter = (evt.detail && evt.detail.filter) || null;
+        }
+
+        app = AppWindowManager.getActiveApp();
+        if (app && !app.isHomescreen) {
+          app.getScreenshot(function onGettingRealtimeScreenshot() {
+            this.show(filter);
+          }.bind(this), 0, 0, 400);
+        } else {
+          this.show(filter);
+        }
         break;
 
       case 'taskmanagerhide':
+      case 'appopen':
         this.hide();
         break;
 
-      case 'holdhome':
-        if (this.isShown() || System.locked) {
-          return;
-        }
-        sleepMenu.hide();
-        if (this.isTaskStrip) {
-          this.show();
-        } else {
-          app = AppWindowManager.getActiveApp();
-          if (app) {
-            app.getScreenshot(function onGettingRealtimeScreenshot() {
-              this.show();
-            }.bind(this));
-          } else {
-            // empty list entry point
-            this.show();
-          }
-        }
-        break;
-
-      case 'appopen':
-        this.hide(/* immediately */ true);
-        break;
       case 'appterminated':
-        if (this.isShown()) {
-          app = evt.detail;
-          card = app && this.cardsByAppID[app.instanceID];
-          if (card && card.app &&
-              app.instanceID === card.app.instanceID) {
-            this.removeCard(card);
-          }
+        app = evt.detail;
+        var card = app && this.cardsByAppID[app.instanceID];
+        if (card && card.app && app.instanceID === card.app.instanceID) {
+          this.removeCard(card);
         }
+        break;
     }
   };
 
-  /**
-   * @memberOf TaskManager.prototype
-   * @param  {String} eventName
-   */
-  TaskManager.prototype.fireEventNextTick = function(eventName) {
-    setTimeout(function nextTick() {
-      window.dispatchEvent(new CustomEvent(eventName));
-    });
+  TaskManager.prototype.publish = function tm_publish(type, detail) {
+    var event = new CustomEvent(type, detail || null);
+    window.dispatchEvent(event);
   };
 
-  /**
-   * @memberOf TaskManager.prototype
-   */
-  TaskManager.prototype.fireCardViewBeforeShow = function() {
-    window.dispatchEvent(new CustomEvent('cardviewbeforeshow'));
-  };
-
-  /**
-   * @memberOf TaskManager.prototype
-   */
-  TaskManager.prototype.fireCardViewShown = function() {
-    this.fireEventNextTick('cardviewshown');
-  };
-
-  /**
-   * @memberOf TaskManager.prototype
-   */
-  TaskManager.prototype.fireCardViewBeforeClose = function() {
-    this.fireEventNextTick('cardviewbeforeclose');
-  };
-
-  /**
-   * @memberOf TaskManager.prototype
-   */
-  TaskManager.prototype.fireCardViewClosed = function() {
-    var detail;
-    if (!isNaN(this.newStackPosition)) {
-      detail = { 'detail': { 'newStackPosition': this.newStackPosition }};
-    }
-
-    var event = new CustomEvent('cardviewclosed', detail);
+  TaskManager.prototype.publishNextTick = function tm_publish(type, detail) {
+    var event = new CustomEvent(type, detail || null);
     setTimeout(function nextTick() {
       window.dispatchEvent(event);
     });
   };
 
-
-  /**
-   * Set/reset state to prepare for swipe/panning of the card list
-   * @memberOf TaskManager.prototype
-   */
-  TaskManager.prototype.setupCardSwiping = function() {
-    //scrolling cards (Positon 0 is x-coord and position 1 is y-coord)
-    this.initialTouchPosition = [0, 0];
-    // For tracking direction changes while scrolling cards
-    this.scrollChangePosition = 0;
-    this.scrollDirection = null;
-    this.lastScrollPosition = 0;
-    this.lastScrollDirection = null;
-    // If the pointer down event starts outside of a card, then there's
-    // no ambiguity between tap/pan, so we don't need a transition
-    // threshold.
-    //
-    // If pointerdown is on a card, then gecko's click detection will
-    // resolve the tap/pan ambiguitiy.  So favor responsiveness of
-    // switching the card.  It doesn't make sense for users to start
-    // swiping because they want to stay on the same card.
-    this.threshold = 1;
-    // Distance after which dragged card starts moving
-    this.moveCardThreshold = this.windowWidth / 6;
-
-    // Arbitrarily chosen to be 4x larger than the gecko18 drag
-    // threshold.  This constant should be a truemm/mozmm value, but
-    // it's hard for us to evaluate that here.
-    this.swipeUpThreshold = 100;
-    this.switchingCardThreshold = 30;
-
-    this.deltaX = 0;
-
-    // With this object we avoid several if statements
-    this.pseudoCard = {
-      applyStyle: function() {},
-      element: {
-        style: {
-          // Empty object
-        },
-        dataset: {},
-        dispatchEvent: function() {
-          // Do nothing
-        },
-        addEventListener: function() {}
-      }
-    };
-  };
-
-  /**
-   * Return the card object at the given index into the stack
-   * @memberOf TaskManager.prototype
-   * @param {Number} idx index into the stack
-   */
+   /**
+    * Return the card object at the given index into the stack
+    * @memberOf TaskManager.prototype
+    * @param {Number} idx index into the stack
+    */
   TaskManager.prototype.getCardAtIndex = function(idx) {
     if (this.stack && idx > -1 && idx < this.stack.length) {
       var app = this.stack[idx];
@@ -988,11 +630,11 @@
    * Add ARIA attributes to available cards.
    * @memberOf TaskManager.prototype
    */
-  TaskManager.prototype.setAccessibilityAttributes = function() {
+  TaskManager.prototype._setAccessibilityAttributes = function() {
     this.stack.forEach(function(app, idx) {
       var card = this.cardsByAppID[app.instanceID];
       // Hide non-current apps from the screen reader.
-      card.setVisibleForScreenReader(idx === this.currentDisplayed);
+      card.setVisibleForScreenReader(idx === this.position);
       // Update the screen reader card list size.
       card.element.setAttribute('aria-setsize', this.stack.length);
       // Update the screen reader card index.
@@ -1004,135 +646,30 @@
    * Arrange the cards around the current position
    * @memberOf TaskManager.prototype
    */
-  TaskManager.prototype.placeCards = function() {
-    var currentCard = this.currentCard;
-    if (!currentCard) {
-      return;
-    }
+  TaskManager.prototype._placeCards = function() {
+    this.stack.forEach(function(app, idx) {
+      var card = this.cardsByAppID[app.instanceID];
+      if (!card) {
+        return;
+      }
 
-    var pseudoCard = this.pseudoCard;
-    var currentPosition = this.currentPosition;
-    var siblingScale = currentCard.SIBLING_SCALE_FACTOR;
-    var currentScale = currentCard.SCALE_FACTOR;
-    var siblingOpacity = currentCard.SIBLING_OPACITY;
+      card.move(0, 0);
+      card.element.classList.toggle('current', (idx == this.position));
+    }.bind(this));
 
-    currentCard.element.dispatchEvent(new CustomEvent('onviewport'));
-    // accumulate style property values on an object
-    // which we'll send to that card's applyStyle method
-    var currentCardStyle = {};
-
-    var prevCard = this.prevCard || pseudoCard;
-    prevCard.element.dispatchEvent(new CustomEvent('onviewport'));
-    var prevCardStyle = {};
-
-    var nextCard = this.nextCard || pseudoCard;
-    nextCard.element.dispatchEvent(new CustomEvent('onviewport'));
-    var nextCardStyle = {};
-
-    if (this.isTaskStrip) {
-      // Scaling and translating cards to reach target positions
-      this.stack.forEach(function(app, idx) {
-        var offset = idx - currentPosition;
-        var card = this.cardsByAppID[app.instanceID];
-        card.move(0, 0);
-        var style = {
-          opacity: 1
-        };
-        switch (offset) {
-          case -1:
-            card.element.dataset.cardPosition = 'previous';
-            break;
-          case 0:
-            card.element.dataset.cardPosition = 'current';
-            break;
-          case 1:
-            card.element.dataset.cardPosition = 'next';
-            break;
-        }
-        card.applyStyle(style);
-      }, this);
-    } else {
-      // Scaling and translating cards to reach target positions
-      prevCardStyle.MozTransform =
-        'scale(' + siblingScale + ') translateX(-100%)';
-      currentCardStyle.MozTransform =
-        'scale(' + currentScale + ') translateX(0)';
-      nextCardStyle.MozTransform =
-        'scale(' + siblingScale + ') translateX(100%)';
-
-      // Current card sets the z-index to level 2 and opacity to 1
-      currentCardStyle.zIndex = 2;
-      currentCardStyle.opacity = 1;
-
-      // Previous and next cards set the z-index to level 1 and opacity to 0.4
-      prevCardStyle.zIndex = nextCardStyle.zIndex = 1;
-      prevCardStyle.opacity = nextCardStyle.opacity = siblingOpacity;
-
-      currentCard.applyStyle(currentCardStyle);
-      prevCard.applyStyle(prevCardStyle);
-      nextCard.applyStyle(nextCardStyle);
-    }
+    this._setAccessibilityAttributes();
   };
 
   /**
    * Get the current card front and center
    * @memberOf TaskManager.prototype
    */
-  TaskManager.prototype.alignCurrentCard = function(noTransition) {
-    // We're going to release memory hiding card out of screen
-    var currentCard = this.currentCard;
-    if (!currentCard) {
-      return;
-    }
-    var pseudoCard = this.pseudoCard;
-    var prevCard = this.prevCard || pseudoCard;
-    var nextCard = this.nextCard || pseudoCard;
-    var prevCardStyle = {
-      pointerEvents: 'none',
-      MozTransition: currentCard.MOVE_TRANSITION
-    };
-    var nextCardStyle = {
-      pointerEvents: 'none',
-      MozTransition: currentCard.MOVE_TRANSITION
-    };
-    var currentCardStyle = {
-      pointerEvents: 'auto',
-      MozTransition: currentCard.MOVE_TRANSITION
-    };
+  TaskManager.prototype.alignCurrentCard = function(duration, callback) {
+    this._setupCardsTransition(duration || this.DURATION);
 
-    if (this.deltaX < 0) {
-      prevCard && prevCard.element.dispatchEvent(
-        new CustomEvent('outviewport')
-      );
-    } else {
-      nextCard && nextCard.element.dispatchEvent(
-        new CustomEvent('outviewport')
-      );
-    }
-
-    this.setAccessibilityAttributes();
-    this.placeCards();
-
-    currentCard.applyStyle(currentCardStyle);
-    nextCard.applyStyle(nextCardStyle);
-    prevCard.applyStyle(prevCardStyle);
-
-    var onCardTransitionEnd = function transitionend() {
-      currentCard.element.removeEventListener('transitionend',
-                                              onCardTransitionEnd);
-      var zeroTransitionStyle = { MozTransition: '' };
-      prevCard.applyStyle(zeroTransitionStyle);
-      nextCard.applyStyle(zeroTransitionStyle);
-      currentCard.applyStyle(zeroTransitionStyle);
-    };
-
-    currentCard.element.addEventListener('transitionend', onCardTransitionEnd);
-
-    if (noTransition) {
-      currentCard.element.dispatchEvent(new Event('transitionend'));
-    }
-    // done with delta
-    this.deltaX = 0;
+    setTimeout(function(self) {
+      self._placeCards();
+    }, 0, this);
   };
 
   /**
@@ -1141,119 +678,51 @@
    */
   TaskManager.prototype.moveCards = function() {
     var deltaX = this.deltaX;
-    var pseudoCard = this.pseudoCard;
-    var nextStyle = {};
-    var prevStyle = {};
-    var currentCardStyle = {};
-    var translateSign = (deltaX > 0) ? 100 : -100;
     var sign = (deltaX > 0) ? -1 : 1;
-    var movementFactor = Math.abs(deltaX) / this.windowWidth;
-    var currentCard = this.currentCard;
 
-    if (this.isTaskStrip) {
+    // Resistance at the extremities of the strip
+    if (this.onExtremity()) {
+      deltaX /= 1.5;
+    }
 
-      this.stack.forEach(function(app, idx) {
-        var card = this.cardsByAppID[app.instanceID];
+    var current = this.position;
+    this.stack.forEach(function(app, idx) {
+      var card = this.cardsByAppID[app.instanceID];
+      if (idx >= current - 2 && idx <= current + 2) {
         card.move(Math.abs(deltaX) * sign);
-      }, this);
-
-    } else {
-      var siblingScale = currentCard.SIBLING_SCALE_FACTOR;
-      var currentScale = currentCard.SCALE_FACTOR;
-      var scaleFactor = Math.abs((deltaX / this.windowWidth) *
-                        (currentScale - siblingScale));
-      var siblingOpacity = currentCard.SIBLING_OPACITY;
-
-      // Scaling and translating next or previous sibling
-      nextStyle.MozTransform = 'scale(' + (siblingScale + scaleFactor) +
-          ') translateX(' + (translateSign * (1 - movementFactor)) + '%)';
-      // Fading in new card
-      nextStyle.opacity = siblingOpacity + (movementFactor *
-                                            (1 - siblingOpacity));
-      // Hiding the opposite sibling card progressively
-      prevStyle.opacity = siblingOpacity - movementFactor;
-      // Fading out current card
-      currentCardStyle.opacity = 1 - (movementFactor * (1 - siblingOpacity));
-
-      // Scaling and translating current card
-      currentCardStyle.MozTransform = 'scale(' + (currentScale - scaleFactor) +
-                                      ') translateX(' + -deltaX + 'px)';
-
-      this.currentCard.applyStyle(currentCardStyle);
-      if (deltaX > 0) {
-        (this.nextCard || pseudoCard).applyStyle(nextStyle);
-        (this.prevCard || pseudoCard).applyStyle(prevStyle);
-      } else {
-        (this.prevCard || pseudoCard).applyStyle(nextStyle);
-        (this.nextCard || pseudoCard).applyStyle(prevStyle);
       }
-    }
+    }, this);
+  };
 
+  /**
+   * Check if the current gesture happens at an extremity
+   * @memberOf TaskManager.prototype
+   */
+  TaskManager.prototype.onExtremity = function() {
+    var sign = (this.deltaX > 0) ? -1 : 1;
+    return (this.position === 0 && sign === 1 ||
+            this.position === this.stack.length - 1 && sign === -1);
   };
 
   /**
    * @memberOf TaskManager.prototype
    * @param {DOMEvent} evt
    */
-  TaskManager.prototype.onMoveEventForScrolling = function(touchPosition) {
-    this.deltaX = this.initialTouchPosition[0] - touchPosition;
+  TaskManager.prototype.onTouchMoveForDeleting = function(evt) {
+    var dx = this.deltaX;
+    var dy = this.deltaY;
 
-    var getScrollDirection = function(position) {
-      if (position > 0) {
-        if (this.deltaX > 0) {
-          return 'left';
-        }
-      } else if (position < 0) {
-        if (this.deltaX < 0) {
-          return 'right';
-        }
-      }
-      return null;
-    }.bind(this);
-
-    // Track touch direction and allow for scroll direction changes if the user
-    // starts dragging in a different direction than before.
-    var touchChange = this.lastScrollPosition - touchPosition;
-    if (Math.abs(touchChange) !== 0) {
-      var touchDirection = getScrollDirection(touchChange);
-      if (this.lastScrollDirection != touchDirection) {
-        this.scrollChangePosition = touchPosition;
-        this.lastScrollDirection = touchDirection;
-      }
-      this.lastScrollPosition = touchPosition;
-    }
-
-    // If the user has dragged past the threshold since the last touch
-    // direction change, mark that as the scroll direction.
-    var scrollChange = this.scrollChangePosition - touchPosition;
-    if (Math.abs(scrollChange) > this.switchingCardThreshold) {
-      var scrollDirection = getScrollDirection(scrollChange);
-      if (scrollDirection !== this.scrollDirection) {
-        this.scrollDirection = scrollDirection;
-        this.scrollChangePosition = touchPosition;
-      }
-    }
-  };
-
-  /**
-   * @memberOf TaskManager.prototype
-   * @param {DOMEvent} evt
-   */
-  TaskManager.prototype.onMoveEventForDeleting = function(evt, deltaY) {
-    var dy = deltaY | this.initialTouchPosition[1] -
-                              (evt.touches ? evt.touches[0].pageY : evt.pageY);
-    this.draggingCardUp = (dy > 0);
-    if (this.draggingCardUp) {
+    if (dy > 0) {
       var card = this.getCardForElement(evt.target);
       if (!card) {
         return;
       }
+
       if ('function' == typeof card.move) {
-        card.move(this.deltaX, -dy);
+        card.move(dx, -dy);
       } else {
         card.applyStyle({
-          MozTransform: 'scale(' + card.SCALE_FACTOR + ') ' +
-                        'translateY(' + (-dy) + 'px)'
+          transform: 'translateY(' + (-dy) + 'px)'
         });
       }
     }
@@ -1263,70 +732,176 @@
    * @memberOf TaskManager.prototype
    * @param {DOMEvent} evt
    */
-  TaskManager.prototype.onStartEvent = function cs_onStartEvent(evt) {
-    var cardsView = this.element;
-    evt.stopPropagation();
-
+  TaskManager.prototype.onTouchStart = function cs_onTouchStart(evt) {
     // If there is no card in the cardsView, go back to home screen
-    if (cardsView.classList.contains('empty')) {
-      this.goToHomescreen(evt);
+    if (this.element.classList.contains('empty')) {
+      this.exitToApp();
       return;
     }
 
-    evt.target.setCapture(true);
-    cardsView.addEventListener('touchmove', this);
-    cardsView.addEventListener('touchend', this);
-    cardsView.addEventListener('swipe', this);
     this._dragPhase = '';
-
-    if (evt.touches) {
-      this.initialTouchPosition = [evt.touches[0].pageX, evt.touches[0].pageY];
-    } else {
-      this.initialTouchPosition = [evt.pageX, evt.pageY];
-    }
-    this.scrollChangePosition = this.lastScrollPosition =
-      this.initialTouchPosition[0];
-    this.scrollDirection = this.lastScrollDirection = null;
+    this.deltaX = 0;
+    this.deltaY = 0;
+    this.startTouchPosition = [evt.touches[0].pageX, evt.touches[0].pageY];
+    this.startTouchDate = Date.now();
+    this._resetCardsTransition();
   };
+
+  /**
+   * Handle end-of-drag events on the card list
+   *
+   * @memberOf TaskManager.prototype
+   * @param  {DOMEvent} evt The event.
+   */
+  TaskManager.prototype.onTouchEnd = function cs_onTouchEnd(evt) {
+    this.deltaX = evt.changedTouches[0].pageX - this.startTouchPosition[0];
+    this.deltaY = evt.changedTouches[0].pageY - this.startTouchPosition[1];
+
+    // Does the gesture is a swipe to delete a card ?
+    if (this._dragPhase == 'cross-slide') {
+      var element = evt.target;
+      var card = this.getCardForElement(element);
+      if (!card) {
+        return;
+      }
+
+      if (-this.deltaY > this.SWIPE_UP_THRESHOLD && card.app.killable()) {
+        card.killApp();
+      } else {
+        card.applyStyle({ transform: '' });
+      }
+
+      this.alignCurrentCard();
+      return;
+    }
+
+    // Does the gesture is a tap ?
+    if (Math.abs(this.deltaX) <= /* tap threshold */ 1) {
+      this.handleTap(evt);
+      return;
+    }
+
+    // The gesture is a simple swipe, move the target card at the center.
+    var speed = this.deltaX / (Date.now() - this.startTouchDate);
+    var inertia = speed * 250;
+    var boosted = this.deltaX + inertia;
+    var progress = Math.abs(boosted) / this.windowWidth;
+
+    if (progress > 0.5) {
+      progress -= 0.5;
+    }
+
+    var switching = Math.abs(boosted) >= this.SWITCH_CARD_THRESHOLD;
+    if (switching) {
+      if (this.deltaX < 0 &&
+          this.position < this.cardsList.childNodes.length - 1) {
+        this.position++;
+      } else if (this.deltaX > 0 && this.position > 0) {
+        this.position--;
+      }
+    }
+
+    var durationLeft = Math.max(50, (1 - progress) * this.DURATION);
+    this.alignCurrentCard(durationLeft);
+  };
+
 
   /**
    * @memberOf TaskManager.prototype
    * @param {DOMEvent} evt
    */
-  TaskManager.prototype.onMoveEvent = function cs_onMoveEvent(evt) {
-    evt.stopPropagation();
-    var touchPosition = evt.touches ? [evt.touches[0].pageX,
-                                       evt.touches[0].pageY] :
-                                      [evt.pageX, evt.pageY];
-
-    var deltaY = this.initialTouchPosition[1] - touchPosition[1];
+  TaskManager.prototype.onTouchMove = function cs_onTouchMove(evt) {
+    this.deltaX = this.startTouchPosition[0] - evt.touches[0].pageX;
+    this.deltaY = this.startTouchPosition[1] - evt.touches[0].pageY;
 
     switch (this._dragPhase) {
-      case 'cross-slide':
-        this.onMoveEventForDeleting(evt, deltaY);
-        break;
-      case 'scrolling':
-        this.onMoveEventForScrolling(touchPosition[0]);
-        this.moveCards();
-        break;
-      default:
-        if (this.allowSwipeToClose && deltaY > this.moveCardThreshold &&
+      case '':
+        if (this.deltaY > this.SWIPE_UP_THRESHOLD &&
             evt.target.classList.contains('card')) {
           // We don't want user to scroll the CardsView when one of the card is
           // already dragger upwards
           this._dragPhase = 'cross-slide';
-          this.draggingCardUp = true;
-          this.onMoveEventForDeleting(evt, deltaY);
+          this.onTouchMoveForDeleting(evt);
         } else {
           // If we are not removing Cards now and Snapping Scrolling is enabled,
           // we want to scroll the CardList
-          this.onMoveEventForScrolling(touchPosition[0]);
-          if (Math.abs(this.deltaX) > this.switchingCardThreshold) {
+          if (Math.abs(this.deltaX) > this.SWITCH_CARD_THRESHOLD) {
             this._dragPhase = 'scrolling';
           }
+
           this.moveCards();
         }
+        break;
+
+      case 'cross-slide':
+        this.onTouchMoveForDeleting(evt);
+        break;
+
+      case 'scrolling':
+        this.moveCards();
+        break;
     }
+  };
+
+  TaskManager.prototype._setupCardsTransition = function(duration) {
+    var currentCard = this.currentCard;
+    var position = this.position;
+
+    var self = this;
+    this.stack.forEach(function(app, idx) {
+      var card = self.cardsByAppID[app.instanceID];
+
+      if (idx < position - 2 || idx > position + 2) {
+        window.mozRequestAnimationFrame(function() {
+          card.element.style.display = 'none';
+        });
+        return;
+      }
+
+      // The 5 cards at the center should be visible but we need to adjust the
+      // transitions durations/delays to account for the layer trickery.
+      // Layer Trickery: nf, cards that should be completely outside the
+      // viewport but are in fact 0.001 pixel in.
+      card.element.style.display = 'block';
+
+      var distance = card.element.dataset.keepLayerDelta;
+      var currentCardDistance = Math.abs(currentCard.element.dataset.positionX);
+      if (idx == position + 2 || idx == position - 2) {
+        var cardWidth = self.windowWidth * 0.48;
+        var destination = self.windowWidth / 2 + cardWidth / 2;
+        if (card.element.dataset.positionX < 0) {
+          destination *= -1;
+        }
+
+        distance = Math.abs(destination - card.element.dataset.positionX);
+
+        var shorterDuration = distance * duration / currentCardDistance;
+        var fast = { transition: 'transform ' + shorterDuration + 'ms linear'};
+        card.applyStyle(fast);
+        return;
+      }
+
+      if (!distance) {
+        var style = { transition: 'transform ' + duration + 'ms linear'};
+        card.applyStyle(style);
+        return;
+      }
+
+      var delay = duration * distance / currentCardDistance;
+      var delayed = { transition: 'transform ' +
+                                   (duration - delay) + 'ms linear ' +
+                                   delay + 'ms'};
+      card.applyStyle(delayed);
+    });
+
+  };
+
+  TaskManager.prototype._resetCardsTransition = function() {
+    var zeroTransitionStyle = { transition: '' };
+    this.stack.forEach(function(app, idx) {
+      var card = this.cardsByAppID[app.instanceID];
+      card.applyStyle(zeroTransitionStyle);
+    }, this);
   };
 
   exports.TaskManager = TaskManager;

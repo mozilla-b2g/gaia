@@ -43,6 +43,7 @@ var UtilityTray = {
     window.addEventListener('displayapp', this);
     window.addEventListener('appopening', this);
     window.addEventListener('resize', this);
+    window.addEventListener('cardviewbeforeshow', this);
 
     // Listen for screen reader edge gestures
     window.addEventListener('mozChromeEvent', this);
@@ -87,6 +88,10 @@ var UtilityTray = {
     var detail = evt.detail;
 
     switch (evt.type) {
+      case 'cardviewbeforeshow':
+        this.hide(true);
+        break;
+
       case 'attentionopened':
       case 'attentionwill-become-active':
       case 'home':

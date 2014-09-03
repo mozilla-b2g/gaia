@@ -5,11 +5,9 @@
   left: 0;
   width: 100%;
   height: 100%;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
-  opacity: 0;
   -moz-user-select: none;
   overflow: hidden;
-  background-color: rgba(0, 0, 0, 1);
+  background-color: black;
 }
 
 @media not all and (-moz-physical-home-button) {
@@ -19,6 +17,11 @@
   }
 }
 
+/* This reduce overpaint while the cards view is active */
+#screen.cards-view #windows {
+  opacity: 0;
+}
+
 #screen.software-button-enabled #cards-view {
   height: calc(100% - 5rem);
   bottom: 5rem;
@@ -26,11 +29,6 @@
 
 #cards-view.active {
   visibility: inherit;
-  opacity: 1;
-}
-
-#cards-view.no-transition {
-  transition: none;
 }
 
 #cards-view .no-recent-apps {
@@ -64,27 +62,42 @@
   text-align: center;
 }
 
+
+/* Cards */
+
 #cards-view .card {
-  vertical-align: top;
-  display: none;
-  width: 100%;
-  height: calc(100% - 3rem);
-  margin: 0;
-  margin-top: 3rem;
   position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(0.8);
-  will-change: transform, opacity;
+  top: 26%;
+  left: 26%;
+  width: 48%;
+  height: 48%;
+
+  margin: 0;
+  will-change: transform;
 }
 
+#cards-view .card > * {
+  pointer-events: none;
+}
+
+
+/* Screenshoots */
+
 #cards-view .screenshotView {
-  background-size: cover;
-  background-position: left top;
+  background-size: 100% calc(100% - 1.5rem), cover;
+  background-position: left bottom, left top;
   background-repeat: no-repeat;
   width: 100%;
   height: 100%;
   position: relative;
+}
+
+#cards-view .screenshotView.maximized {
+  background-position: left calc(100% + 2.3rem), left top;
+}
+
+#cards-view .screenshotView.fullscreen {
+  background-size: 100% 100%, cover;
 }
 
 #cards-view .screenshotView.rotate-90 {
@@ -100,39 +113,8 @@
   transform-origin: 50% 50%;
 }
 
-#cards-view .card h1 {
-  position: absolute;
-  z-index: 99999;
-  text-align: left;
-  font-size: 2.2rem;
-  font-weight: 300;
-  text-overflow: ellipsis;
-  overflow-x: hidden;
-}
 
-#cards-view .card header {
-  top: 1.5rem;
-}
-
-#screen.cards-view > #cards-view .card > *:not(.close-card) {
-  pointer-events: none;
-}
-#screen.cards-view > #cards-view .card h1.title {
-  pointer-events: auto;
-}
-
-#cards-view .card .titles h1 {
-  position: absolute;
-  top: calc(100% - 1.5rem);
-  width: 100%;
-}
-
-#cards-view .card .titles p {
-  position: absolute;
-  top: calc(100% + 1rem);
-  width: 100%;
-  font-size: 2rem;
-}
+/* Various */
 
 #cards-view .card.appIconPreview {
   background-color: rgba(255, 255, 255, 1);
@@ -152,18 +134,6 @@
 
 #cards-view .card.appIconPreview > .appIconView {
   opacity: 1;
-}
-
-#cards-view .close-card {
-  display: block;
-  position: absolute;
-  top: -1rem;
-  left: -1rem;
-  z-index: 99999;
-  height: 2.6rem;
-  width: 2.6rem;
-  background: url(close.png) no-repeat center / 2.6rem;
-  transform: scale(1.3);
 }
 
 #cards-view.filtered {
@@ -189,7 +159,104 @@
   width: 100%;
 }
 
-#cards-view.filtered .card .titles p {
+
+/* Card Tray */
+
+#cards-view .card-tray {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+
+  height: 3rem;
+  width: 100%;
+  overflow: visible;
+  padding: 0;
+  box-sizing: border-box;
+  color: #fff;
+  background-color: #f4f4f4;
+}
+
+#cards-view .card-tray > menu.buttonbar {
+  margin: 0;
+  padding: 0;
+}
+
+#cards-view .card-tray > menu.buttonbar > button {
+  position: absolute;
+  top: 0;
+  width: 20%;
+  height: 100%;
+
+  border: none;
+  pointer-events: auto;
+
+  background-size: 2rem auto;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-color: transparent;
+}
+
+#cards-view .card-tray .close-button {
+  background-image: url(../task-manager/close.png);
+  left: 0;
+}
+
+#cards-view .card-tray .favorite-button {
+  background-image: url(../task-manager/favorite.png);
+  right: 0;
+  display: none;
+}
+
+#cards-view .card-tray > button.appIcon {
+  top: 1rem;
+  left: calc(50% - 2rem);
+  width: 4rem;
+  height: 4rem;
+  background-image: url(../icons/Default.png);
+  background-color: transparent;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  display: block;
+  border: none;
+  position: absolute;
+
+  filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'shadow\'><feGaussianBlur in=\"SourceAlpha\" stdDeviation=\'2\'/><feOffset dx=\'0\' dy=\'0\' result=\'offsetblur\'/><feFlood flood-color=\'rgba(0,0,0,0.2)\'/><feComposite in2=\'offsetblur\' operator=\'in\'/><feMerge><feMergeNode/><feMergeNode in=\'SourceGraphic\'/></feMerge></filter></svg>#shadow");
+
+}
+#cards-view .card.browser .card-tray > button.appIcon {
+  background-image: url('../../shared/resources/branding/browser_126.png');
+}
+
+/* Titles */
+#cards-view .card .titles {
+  position: absolute;
+  top: -4rem;
+  left: 0;
+  width: 100%;
+}
+
+#cards-view .card .title {
+  width: 100%;
+  height: 3rem;
+  line-height: 3rem;
+
+  overflow-x: hidden;
+  margin: 0;
+
+  font-size: 1.4rem;
+  font-weight: 300;
+  font-style: italic;
+
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+#cards-view .card p.subtitle {
+  display: none;
+}
+
+#cards-view.filtered .card .titles p.subtitle {
   display: none;
 }
 
@@ -203,160 +270,16 @@
   width: 96%;
 }
 
-#screen.task-manager #cards-view {
-  margin-top: 5rem;
-  background-color: transparent;
-  transition-duration: 0.3s;
-}
 
-#screen.task-manager #cards-view li.card {
-  transform-origin: 50% 30%;
-  transform: scale(1.0);
-  margin: 0;
-  height: calc(100% - 5rem);
-  pointer-events: none;
-  z-index: 1;
-  opacity: 1;
-  transition: opacity 0.5s ease;
-  transition-delay: 0.3s;
-  will-change: transform, opacity;
-}
-#screen.task-manager #cards-view:not(.active) li.card {
+/* Animations */
+
+.card.current .titles,
+.card.current .card-tray {
   opacity: 0;
 }
 
-#screen.task-manager #cards-view li.card[data-card-position='current'] {
-  z-index: 1;
+#screen.cards-view .card.current .titles,
+#screen.cards-view .card.current .card-tray {
+  opacity: 1;
+  transition: opacity 1s ease;
 }
-
-#screen.task-manager #cards-view li.card > section.card-inner {
-  position: relative;
-  top: 0;
-  left: 25%;
-  width: 50%;
-  height: 100%;
-  overflow: hidden;
-}
-
-#screen.task-manager #cards-view .card .card-header {
-  position: absolute;
-  top: auto;
-  bottom: 50%;
-  left: 0;
-  width: 100%;
-  padding-bottom: 2.5rem;
-  -moz-box-sizing: border-box;
-  display: none;
-}
-
-#screen.task-manager #cards-view .card .appPreview {
-  display: block;
-  background-color: orange;
-}
-
-#screen.task-manager #cards-view li.card[data-card-position='current'] .card-header {
-  display: block;
-}
-
-#screen.task-manager #cards-view .card h1.title {
-  position: static;
-  z-index: auto;
-  text-align: center;
-  font-size: 1.4rem;
-  font-weight: 300;
-  text-overflow: ellipsis;
-  overflow-x: hidden;
-}
-
-#screen.task-manager #cards-view .card p.subtitle {
-  display: none;
-}
-
-#screen.task-manager #cards-view .card > .appIconView {
-  position: absolute;
-  top: calc(33.2rem - 20px);
-  left: calc(50% - 20px);
-  width: 40px;
-  height: 40px;
-  background-image: url(../icons/Default.png);
-  background-position: center center;
-  background-repeat: no-repeat;
-  box-shadow: 0 0 6px 0 rgba(0,0,0,0.2);
-  z-index: 1;
-}
-
-#screen.task-manager #cards-view .screenshotView {
-  display: none;
-}
-
-#screen.task-manager #cards-view .card-tray {
-  position: absolute;
-  /* position in vertical middle to align with app/screenshot */
-  top: calc(50% - 4rem);
-  left: 0;
-  height: 3rem;
-  width: 100%;
-  transform-origin: 50% 0;
-  pointer-events: auto;
-  overflow: visible;
-  z-index: 100;
-  padding: 0;
-  -moz-box-sizing: border-box;
-  color: #fff;
-}
-
-#screen.task-manager #cards-view .card-tray > menu.buttonbar {
-  height: 3rem;
-  margin: 0;
-  padding: 0;
-  background: rgba(255,255,255,0.95);
-}
-#screen.task-manager #cards-view .card-tray > menu.buttonbar > button {
-  background-size: 2rem auto;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-color: transparent;
-  width: 20%;
-  height: 100%;
-  border: none;
-  display: none;
-  position: absolute;
-  top: 0;
-  z-index: 99999;
-}
-#screen.task-manager #cards-view .card-tray .close-button {
-  background-image: url(../task-manager/close.png);
-  left: 0.8rem;
-}
-#screen.task-manager #cards-view .card-tray .favorite-button {
-  background-image: url(../task-manager/favorite.png);
-  right: 0.8rem;
-}
-#screen.task-manager #cards-view .card-tray > button.appIcon {
-  top: 1rem;
-  left: calc(50% - 2rem);
-  width: 4rem;
-  height: 4rem;
-  background-image: url(../icons/Default.png);
-  background-color: transparent;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  display: block;
-  border: none;
-  position: absolute;
-  z-index: 99999;
-}
-
-#screen.task-manager #cards-view li.card[data-card-position='current'] .close-button,
-#screen.task-manager #cards-view li.card[data-card-position='current'] .favorite-button {
-  display: block;
-}
-
-/*#screen.task-manager #homescreen > iframe {
-  visibility: hidden;
-}
-#screen.task-manager #homescreen > .fade-overlay {
-  visibility: visible;
-}
-*/
