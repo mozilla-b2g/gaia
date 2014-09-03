@@ -286,6 +286,14 @@ form[role="dialog"][data-type="edit"] > menu {
   Styles for Edit mode in Thread List
 */
 
+form[role="dialog"][data-type="edit"] {
+  visibility: hidden;
+}
+
+.edit form[role="dialog"][data-type="edit"] {
+  visibility: visible;
+}
+
 .edit form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(0);
 }
