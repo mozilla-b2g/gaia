@@ -24,32 +24,11 @@
   TaskCard.prototype.EVENT_PREFIX = 'taskcard-';
 
   /**
-   * How much to scale the current card
-   * @type {Float}
-   * @memberof TaskCard.prototype
-   */
-  TaskCard.prototype.SCALE_FACTOR = 0.5;
-
-  /**
-   * How much to scale card when not the current card
-   * @type {Float}
-   * @memberof TaskCard.prototype
-   */
-  TaskCard.prototype.SIBLING_SCALE_FACTOR = 0.5;
-
-  /**
-   * Opacity to apply when not the current card
-   * @type {Float}
-   * @memberof TaskCard.prototype
-   */
-  TaskCard.prototype.SIBLING_OPACITY = 1.0;
-
-  /**
    * Transition to apply when moving the card
    * @type {String}
    * @memberof TaskCard.prototype
    */
-  TaskCard.prototype.MOVE_TRANSITION = '-moz-transform .3s, opacity .3s';
+  TaskCard.prototype.MOVE_TRANSITION = 'transform .3s';
 
   TaskCard.prototype._populateViewData = function tc_populateViewData() {
     Card.prototype._populateViewData.call(this);
@@ -86,7 +65,6 @@
   TaskCard.prototype._fetchElements = function tc__fetchElements() {
     this.headerContent = this.element.querySelector('header.card-header');
     this.footerContent = this.element.querySelector('footer.card-tray');
-    this.footerMenu = this.element.querySelector('.buttonbar');
   };
 
   /**
@@ -98,10 +76,10 @@
   };
 
   /**
-   * Update display of card when it enters the viewport
+   * Update the displayed content of a card
    * @memberof TaskCard.prototype
    */
-  TaskCard.prototype.onViewport = function tc_onViewport(event) {
+  TaskCard.prototype._updateDisplay = function tc_updateDisplay() {
     var card = this.element;
     var windowHeight = this.manager.windowHeight;
 
@@ -109,8 +87,6 @@
                                           (windowHeight * 0.25) + 'px)';
     this.footerContent.style.transform = 'translateY(' +
                                           (windowHeight * 0.25) + 'px)';
-    card.style.display = 'block';
-
     if (this.getScreenshotPreviewsSetting()) {
       card.classList.remove('appIconPreview');
       return;
@@ -176,14 +152,10 @@
     for (pName in nameValues) {
       pValue = nameValues[pName];
       switch (pName) {
-        case 'MozTransform':
+        case 'transform':
           cardStyle[pName] = pValue.replace(/(scale|translateY)\([^\)]+\)\s*/gi,
                                         '');
           appWindowStyle[pName] = pValue;
-          break;
-        case 'zIndex':
-        case 'pointerEvents':
-          cardStyle[pName] = pValue;
           break;
         default:
           cardStyle[pName] = pValue;
