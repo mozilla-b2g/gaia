@@ -31,6 +31,10 @@
       highlighted: '.notification.actionable',
       notification: '.notification'
     };
+
+    // UX require to cancel the highlighted state after
+    // idle 3 seconds.
+    this.timeoutHighlighted = 3000;
   };
 
   /**
@@ -53,8 +57,20 @@
       node.classList.add('previous-actionable');
     }
 
-    node.addEventListener('click', this.highlight.bind(this, node));
+    node.addEventListener('click',
+      this.requestHighlight.bind(this, node));
     return node;
+  };
+
+  LockScreenNotificationBuilder.prototype.requestHighlight =
+  function lsnb_requestHighlight(node) {
+    window.dispatchEvent(new CustomEvent(
+      'lockscreen-notification-request-highlight', {
+        detail: {
+          node: node,
+          highlighter:  this.highlight.bind(this, node)
+        }
+      }));
   };
 
   /**
@@ -70,6 +86,24 @@
     var button = this.createActionButton(node.dataset.notificationId);
     node.appendChild(button);
     node.classList.add('actionable');
+    window.dispatchEvent(new CustomEvent(
+      'lockscreen-notification-highlighted', {
+      detail: {
+        id: node.dataset.notificationId,
+        timestamp: Date.now()
+      }
+    }));
+    setTimeout(() => {
+      // UX require to clean idle and highlighted notification
+      // after sevaral seconds.
+      window.dispatchEvent(new CustomEvent(
+        'lockscreen-notification-clean-highlighted', {
+        detail: {
+          id: node.dataset.notificationId,
+          timestamp: Date.now()
+        }
+      }));
+    }, this.timeoutHighlighted);
 
     // Find previous one and cancel it's bottom border.
     var previous = node.previousElementSibling;
