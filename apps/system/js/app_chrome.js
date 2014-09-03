@@ -66,13 +66,17 @@
     }
 
     if (chrome.scrollable) {
-      this.app.element.classList.add('scrollable');
+      this.app.element.classList.add('collapsible');
       this.app.element.classList.add('light');
       this.scrollable.scrollgrab = true;
     }
 
     if (chrome.maximized) {
       this.element.classList.add('maximized');
+
+      if (!this.app.isBrowser()) {
+        this.app.element.classList.add('scrollable');
+      }
     }
   };
 
@@ -204,6 +208,10 @@
         this.handleLocationChanged(evt);
         break;
 
+      case 'mozbrowserscrollareachanged':
+        this.handleScrollAreaChanged(evt);
+        break;
+
       case 'mozbrowsersecuritychange':
         this.handleSecurityChanged(evt);
         break;
@@ -279,6 +287,10 @@
   };
 
   AppChrome.prototype.handleScrollEvent = function ac_handleScrollEvent(evt) {
+    if (!this.containerElement.classList.contains('scrollable')) {
+      return;
+    }
+
     // Ideally we'd animate based on scroll position, but until we have
     // the necessary spec and implementation, we'll animate completely to
     // the expanded or collapsed state depending on whether it's at the
@@ -317,6 +329,7 @@
     this.app.element.addEventListener('mozbrowserlocationchange', this);
     this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('mozbrowsermetachange', this);
+    this.app.element.addEventListener('mozbrowserscrollareachanged', this);
     this.app.element.addEventListener('mozbrowsersecuritychange', this);
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
@@ -382,6 +395,26 @@
     this._titleTimeout = setTimeout((function() {
       this._recentTitle = false;
     }).bind(this), this.FRESH_TITLE);
+  };
+
+  AppChrome.prototype.handleScrollAreaChanged = function(evt) {
+    // Check if the page has become scrollable and add the scrollable class.
+    // We don't check if a page has stopped being scrollable to avoid oddness
+    // with a page oscillating between scrollable/non-scrollable states, and
+    // other similar issues that Firefox for Android is still dealing with
+    // today.
+    if (this.containerElement.classList.contains('scrollable')) {
+      return;
+    }
+
+    // We allow the bar to collapse if the page is greater than or equal to
+    // the area of the window with a collapsed bar. Strictly speaking, we'd
+    // allow it to collapse if it was greater than the area of the window with
+    // the expanded bar, but due to prevalent use of -webkit-box-sizing and
+    // plain mistakes, this causes too many false-positives.
+    if (evt.detail.height >= this.containerElement.clientHeight) {
+      this.containerElement.classList.add('scrollable');
+    }
   };
 
   AppChrome.prototype.handleSecurityChanged = function(evt) {
@@ -507,10 +540,15 @@
       }
 
       this.updateAddToHomeButton();
-      
+
       if (!this.app.isBrowser()) {
         return;
       }
+
+      // Make the rocketbar unscrollable until the page resizes to the
+      // appropriate height.
+      this.containerElement.classList.remove('scrollable');
+
       // Expand
       if (!this.isMaximized()) {
         this.element.classList.add('maximized');
