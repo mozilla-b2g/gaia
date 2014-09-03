@@ -78,7 +78,8 @@
         'axe',
         'errorutils',
         'db/folder_info_rep',
-        'mimetypes'
+        'mimetypes',
+        'mimefuncs'
       ]
     },
     {
@@ -87,7 +88,8 @@
     },
     {
       name: 'activesync/configurator',
-      exclude: ['worker-bootstrap']
+      // activesync/protocol needed for autodiscovery.
+      exclude: ['worker-bootstrap', 'activesync/protocol']
     }
   ],
 
