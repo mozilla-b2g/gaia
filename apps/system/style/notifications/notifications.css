@@ -140,7 +140,7 @@
 }
 
 #notification-toaster.unread:not(.displayed) {
-  transform: translateY(-5rem);
+  transform: translateY(-5.2rem);
   transition: transform .2s ease-in-out;
   opacity: 1;
 }
