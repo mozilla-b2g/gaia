@@ -421,7 +421,7 @@ suite('Call Info', function(argument) {
         this.sinon.clock.tick();
 
         var durations = document.getElementsByClassName('cd__duration');
-        assert.equal(durations[0].getAttribute('data-l10n-id'), 'missed');
+        assert.equal(durations[0].getAttribute('data-l10n-id'), 'info-missed');
       });
     });
 
