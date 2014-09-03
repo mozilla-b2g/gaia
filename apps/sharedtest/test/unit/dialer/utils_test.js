@@ -126,7 +126,7 @@ suite('dialer/utils', function() {
   suite('prettyDuration', function() {
     test('formats as minutes if less than one hour', function() {
       var pretty = Utils.prettyDuration(60 * 60 * 1000 - 1);
-      assert.equal(pretty, 'callDurationMinutes{"h":"00","m":59,"s":59}');
+      assert.equal(pretty, 'callDurationMinutes{"h":"00","m":"59","s":"59"}');
     });
 
     test('formats with hours if more than one hour', function() {
@@ -141,6 +141,31 @@ suite('dialer/utils', function() {
       var duration = hours * 60 * 60 + minutes * 60 + seconds;
       var pretty = Utils.prettyDuration(duration * 1000);
       assert.equal(pretty, 'callDurationHours{"h":"02","m":"04","s":"07"}');
+    });
+
+    suite('When using text format', function() {
+      test('single digits are not padded', function() {
+        var hours = 1;
+        var minutes = 4;
+        var seconds = 2;
+        var duration = hours * 60 * 60 + minutes * 60 + seconds;
+        var pretty = Utils.prettyDuration(duration * 1000,
+                                          'callDurationText');
+        assert.equal(pretty, 'callDurationTextHours{"h":"1","m":"4","s":"2"}');
+      });
+
+      test('formats as minutes if less than one hour', function() {
+        var pretty = Utils.prettyDuration(60 * 60 * 1000 - 1,
+                                          'callDurationText');
+        assert.equal(pretty,
+                     'callDurationTextMinutes{"h":"0","m":"59","s":"59"}');
+      });
+
+      test('formats as seconds if less than one minute', function() {
+        var pretty = Utils.prettyDuration(60 * 1000 - 1, 'callDurationText');
+        assert.equal(pretty,
+                     'callDurationTextSeconds{"h":"0","m":"0","s":"59"}');
+      });
     });
   });
 });
