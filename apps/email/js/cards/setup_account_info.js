@@ -4,6 +4,7 @@ define(function(require) {
 var templateNode = require('tmpl!./setup_account_info.html'),
     common = require('mail_common'),
     SETUP_ERROR_L10N_ID_MAP = require('./setup_l10n_map'),
+    mitigateForceGmailLogin = require('../mitigate_gmail'),
     evt = require('evt'),
     mozL10n = require('l10n!'),
     model = require('model'),
@@ -101,6 +102,24 @@ SetupAccountInfoCard.prototype = {
 
   // note: this method is also reused by the manual config card
   showError: function(errName, errDetails) {
+    if (errName === 'mitigate-force-gmail-login') {
+      this.domNode.getElementsByClassName('sup-error-region')[0]
+          .classList.add('collapsed');
+      // This page uses emailNode, but manual config is different.  Also,
+      // guard in a try-catch since it would be horrible if some DOM change
+      // broke us whereas it's not the end of the world to fail to autofill.
+      var emailAddress;
+      try {
+        emailAddress = this.emailNode ? this.emailNode.value :
+                         this.formItems.composite.username.value;
+      }
+      catch (ex) {
+        emailAddress = '';
+      }
+      mitigateForceGmailLogin(emailAddress);
+      return;
+    }
+
     this.domNode.getElementsByClassName('sup-error-region')[0]
         .classList.remove('collapsed');
     var errorMessageNode =

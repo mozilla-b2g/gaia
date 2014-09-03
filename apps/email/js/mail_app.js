@@ -68,6 +68,7 @@ var appMessages = require('app_messages'),
     evt = require('evt'),
     model = require('model'),
     headerCursor = require('header_cursor').cursor,
+    mitigateForceGmailLogin = require('mitigate_gmail'),
     Cards = common.Cards,
     slice = Array.prototype.slice,
     waitingForCreateAccountPrompt = false,
@@ -83,6 +84,22 @@ model.latestOnce('api', function(api) {
   // password.
   api.onbadlogin = function(account, problem, whichSide) {
     switch (problem) {
+      case 'mitigate-force-gmail-login':
+        // Under no circumstances should we trigger the UI if we're not visible!
+        // Because this notification is rising edge, this does introduce some
+        // edge-cases about us failing to pop up the UI if we are in the
+        // background.  We could listen for onvisibilitychange but since we
+        // already have other logic there and this is already a desperation
+        // mitigation mechanism, let's just reduce harm.  The user logging into
+        // the Google web UI in general for this device will clear any
+        // suspicious login for us as well.
+        //
+        // note that closing the app and reopening us should cause us to get a
+        // rising edge error at the next opportunity!
+        if (!document.hidden) {
+          mitigateForceGmailLogin(account.username);
+        }
+        break;
       case 'bad-user-or-pass':
         Cards.pushCard('setup_fix_password', 'default', 'animate',
                   { account: account,
