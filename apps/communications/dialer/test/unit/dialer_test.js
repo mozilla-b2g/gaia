@@ -539,11 +539,19 @@ suite('navigation bar', function() {
       [0, 1].forEach(function(serviceId) {
         test('> Dialing a specific number on user preferred SIM ' + serviceId,
         function() {
-          this.sinon.spy(MockSimPicker, 'getOrPick');
           MockSimSettingsHelper._defaultCards.outgoingCall = serviceId;
           sendCommand('ATD12345');
-          sinon.assert.calledWith(MockSimPicker.getOrPick, serviceId, '12345');
+          sinon.assert.calledWith(callSpy, '12345', serviceId);
         });
+      });
+
+      test('> Dialing a specific number with user preferred SIM always ask',
+      function() {
+        this.sinon.spy(MockSimPicker, 'getOrPick');
+        var serviceId = MockSimSettingsHelper._defaultCards.outgoingCall =
+          MockSimSettingsHelper.ALWAYS_ASK_OPTION_VALUE;
+        sendCommand('ATD12345');
+        sinon.assert.calledWith(MockSimPicker.getOrPick, serviceId, '12345');
       });
 
       suite('> Dialing the last recent entry', function() {
