@@ -602,7 +602,7 @@
       }
 
       safetyTimeout = setTimeout(finish, 500);
-    });
+    }, 100);
   };
 
   /**
@@ -1108,7 +1108,7 @@
 
     // Resistance at the extremities of the strip
     if (this.onExtremity()) {
-      deltaX /= 2;
+      deltaX /= 1.5;
     }
 
     this.stack.forEach(function(app, idx) {
