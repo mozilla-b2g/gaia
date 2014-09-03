@@ -885,3 +885,11 @@ form[role="combobox"] span[data-field="type"] {
   font-style: italic;
   font-weight: unset;
 }
+
+#groups-list {
+  margin-top: 1rem;
+}
+
+#group-favorites {
+  padding-top: 2rem;
+}
