@@ -542,11 +542,26 @@
         debug('cardAction: TODO: favorite ' + card.element.dataset.origin);
         return;
       case 'select' :
-        this.exitToApp(
-          card.app,
-          'from-cardview',
-          null
-        );
+
+        var self = this;
+        var showSelectedApp = function() {
+          setTimeout(function() {
+            self.exitToApp(
+              card.app,
+              'from-cardview',
+              null
+            );
+          });
+        };
+
+        // If the selected app is not the middle app, first move it into view
+        if (this.currentPosition != card.position) {
+          this.currentPosition = card.position;
+          this.alignCurrentCard(500, showSelectedApp);
+        } else {
+          showSelectedApp();
+        }
+
         // Card switcher will get hidden when 'appopen' is fired.
         return;
     }
@@ -1037,7 +1052,7 @@
    * Get the current card front and center
    * @memberOf TaskManager.prototype
    */
-  TaskManager.prototype.alignCurrentCard = function(duration) {
+  TaskManager.prototype.alignCurrentCard = function(duration, callback) {
     // We're going to release memory hiding card out of screen
     var currentCard = this.currentCard;
     if (!currentCard) {
@@ -1063,6 +1078,8 @@
       prevCard.applyStyle(zeroTransitionStyle);
       nextCard.applyStyle(zeroTransitionStyle);
       currentCard.applyStyle(zeroTransitionStyle);
+
+      callback && callback();
     };
 
     currentCard.element.addEventListener('transitionend', onCardTransitionEnd);
