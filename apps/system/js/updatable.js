@@ -261,12 +261,16 @@ SystemUpdatable.prototype.showApplyPromptBatteryNok = function(minBattery) {
     callback: this.declineInstallBattery.bind(this)
   };
 
+  var systemUpdateReady = _('systemUpdateReady');
+  var systemUpdateLowBatteryThreshold = _('systemUpdateLowBatteryThreshold', {
+    threshold: minBattery
+  });
+  var screen = document.getElementById('screen');
+
   UtilityTray.hide();
-  CustomDialog.show(
-    _('systemUpdateReady'),
-    _('systemUpdateLowBatteryThreshold', { threshold: minBattery }),
-    ok
-  );
+  CustomDialog
+    .show(systemUpdateReady, systemUpdateLowBatteryThreshold, ok, null, screen)
+    .setAttribute('data-z-index-level', 'system-dialog');
 };
 
 SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
@@ -286,9 +290,14 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
     recommend: true
   };
 
+  var systemUpdateReady = _('systemUpdateReady');
+  var wantToInstallNow = _('wantToInstallNow');
+  var screen = document.getElementById('screen');
+
   UtilityTray.hide();
-  CustomDialog.show(_('systemUpdateReady'), _('wantToInstallNow'),
-                    cancel, confirm);
+  CustomDialog
+    .show(systemUpdateReady, wantToInstallNow, cancel, confirm, screen)
+    .setAttribute('data-z-index-level', 'system-dialog');
 };
 
 /**

@@ -177,14 +177,18 @@ var BluetoothTransfer = {
     };
 
     var deviceName = '';
+    var acceptFileTransfer = _('acceptFileTransfer');
+    var wantToReceiveFile = _('wantToReceiveFile', {
+      deviceName: deviceName,
+      fileName: fileName,
+      fileSize: fileSize
+    });
+    var screen = document.getElementById('screen');
     this.getPairedDevice(function getPairedDeviceComplete() {
       deviceName = this.getDeviceName(address);
-      CustomDialog.show(_('acceptFileTransfer'),
-                        _('wantToReceiveFile',
-                        { deviceName: deviceName,
-                          fileName: fileName,
-                          fileSize: fileSize }),
-                        cancel, confirm);
+      CustomDialog
+        .show(acceptFileTransfer, wantToReceiveFile, cancel, confirm, screen)
+        .setAttribute('data-z-index-level', 'system-dialog');
     }.bind(this));
   },
 
@@ -232,7 +236,10 @@ var BluetoothTransfer = {
     };
 
     var body = msg;
-    CustomDialog.show(_('cannotReceiveFile'), body, confirm);
+    var screen = document.getElementById('screen');
+    CustomDialog
+      .show(_('cannotReceiveFile'), body, confirm, null, screen)
+      .setAttribute('data-z-index-level', 'system-dialog');
   },
 
   checkStorageSpace: function bt_checkStorageSpace(fileSize, callback) {
@@ -402,8 +409,12 @@ var BluetoothTransfer = {
       callback: this.cancelTransfer.bind(this, address)
     };
 
-    CustomDialog.show(_('cancelFileTransfer'), _('cancelFileTransfer'),
-                      cancel, confirm);
+    var cancelFileTransfer = _('cancelFileTransfer');
+    var screen = document.getElementById('screen');
+
+    CustomDialog
+      .show(cancelFileTransfer, cancelFileTransfer, cancel, confirm, screen)
+      .setAttribute('data-z-index-level', 'system-dialog');
   },
 
   continueTransfer: function bt_continueTransfer() {
@@ -595,7 +606,10 @@ var BluetoothTransfer = {
     };
 
     var body = _('unknownMediaTypeToOpen') + ' ' + fileName;
-    CustomDialog.show(_('cannotOpenFile'), body, confirm);
+    var screen = document.getElementById('screen');
+    CustomDialog
+      .show(_('cannotOpenFile'), body, confirm, null, screen)
+      .setAttribute('data-z-index-level', 'system-dialog');
   }
 };
 
