@@ -291,7 +291,7 @@
      * @param {Number} serviceId
      */
     _triggerSettingsActivity: function(serviceId) {
-      var params = {
+      var activity = new MozActivity({
         name: 'configure',
         data: {
           target: 'device',
@@ -302,9 +302,7 @@
             serviceId: serviceId
           }
         }
-      };
-
-      var activity = new MozActivity(params);
+      });
       activity.onsuccess = function() {};
     },
 
