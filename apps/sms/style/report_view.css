@@ -125,15 +125,15 @@
 
 .report-view span[data-type="received"] ~ aside,
 .report-view span[data-type="sent"] ~ aside {
-  background: url('images/icons/report_delivered.png') no-repeat center center;
+  background: url('images/icons/report_delivered.png') no-repeat center center / 3rem transparent;
 }
 
 .report-view span[data-type="error"] ~ aside {
-  background: url('images/icons/report_exclamation.png') no-repeat center center;
+  background: url('images/icons/report_exclamation.png') no-repeat center center / 3rem transparent;
 }
 
 .report-view span[data-type="not-downloaded"] ~ aside {
-  background: url('images/icons/download.png') no-repeat center center;
+  background: url('images/icons/download.png') no-repeat center center / 3rem transparent;
   opacity: 0.5;
 }
 
