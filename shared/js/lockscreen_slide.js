@@ -27,26 +27,8 @@
   var LockScreenSlidePrototype = {
     canvas: null,
     layout: '',
-    /**
-     * "new style" slider: as described in https://bugzil.la/950884
-     * if this is set true, slider will be rendered as specified there
-     * this module uses different render logics/data structures,
-     * when useNewStyle is set to true
-     * other callers of this module will see old-styled slider,
-     * when useNewStyle is not specified
-     */
-    useNewStyle: false,
-    track: {
-      length: {tiny: '280', large: '410'},
-      color: 'rgba(255, 255, 255, 0.4)',
-      backgroundColor: 'rgba(0, 0, 0, 0)',
-      from: 0,
-      to: 0,
-      radius: 0,
-      width: 0 // We need dynamic length here.
-    },
 
-    trackNew: {
+    track: {
       length: {tiny: '276', large: '406'},
       strokeColorTop: 'rgba(0, 0, 0, 0.2)',
       strokeColorBottom: 'rgba(0, 0, 0, 0)',
@@ -103,35 +85,6 @@
         sentinelWidth: 0   // Max width - offset
       },
       bounceBackTime: 200,  // ms
-      radius: 28, // The radius of the handle in pixel.
-      lineWidth: 1.6,
-      maxWidth: 0,  // We need dynamic length here.
-
-      // The colors here is the current color, which
-      // will be alternated with another side's color
-      // when user dragged across the center.
-
-      // If it slide across the boundary to color it.
-      touchedColor: '0, 170, 204', // RGB
-      // The intermediate color of touched color.
-      touchedColorStop: '178, 229, 239',
-      // The initial stroke color.
-      color: '255, 255, 255',
-      // The initial handle background color.
-      backgroundColor: '255, 255, 255',
-      // The initial handle background color alpha value.
-      backgroundAlpha: 0
-    },
-
-    handleNew: {
-      // Whether we need to auto extend the handle.
-      autoExpand: {
-        accState: 'normal', // In accelerating or not.
-        accFactor: 1.02,     // Accelerate sliding (y = x^accFactor).
-        sentinelOffset: 40,  // How many pixels before reaching end.
-        sentinelWidth: 0   // Max width - offset
-      },
-      bounceBackTime: 200,  // ms
       radius: 30, // The radius of the handle in pixel.
       innerRadius: 15,
       outerColor: 'rgba(255, 255, 255, 0.9)',
@@ -145,20 +98,17 @@
       // when user dragged across the center.
 
       // If it slide across the boundary to color it.
-      touchedColor: '0, 170, 204', // RGB
+      touchedColor: '0, 170, 204' // RGB
       // The intermediate color of touched color.
-      touchedColorStop: '178, 229, 239'
     },
 
     colors: {
       left: {
-        touchedColor: '255, 255, 255',
-        touchedColorStop: '255, 255, 255'
+        touchedColor: '255, 255, 255'
       },
 
       right: {
-        touchedColor: '255, 255, 255',
-        touchedColorStop: '255, 255, 255'
+        touchedColor: '255, 255, 255'
       }
     },
 
@@ -167,8 +117,6 @@
       initialized: false,
       sliding: false,
       slideReachEnd: false,
-      slidingColorful: false,   // Start to color the handle.
-      slidingColorGradientEnd: false, // Full color the handle.
 
       // Most of them need to be initialized later.
       touch: {
@@ -197,11 +145,6 @@
 
     // Paths to access the resources.
     resources: {
-      larrow: '/style/lockscreen/images/larrow.png',
-      rarrow: '/style/lockscreen/images/rarrow.png'
-    },
-
-    resourcesNew: {
       larrow: '/style/lockscreen/images/lockscreen_toggle_arrow_left.png',
       rarrow: '/style/lockscreen/images/lockscreen_toggle_arrow_right.png'
     }
@@ -219,11 +162,6 @@
     function(opts) {
       if (opts) {
         this._overwriteSettings(opts);
-      }
-      if (opts.useNewStyle) {
-        this.track = this.trackNew;
-        this.handle = this.handleNew;
-        this.resources = this.resourcesNew;
       }
       this._initializeCanvas();
       this.publish('lockscreenslide-unlocker-initializer');
@@ -346,10 +284,7 @@
 
       // XXX: Bet it would be OK while user start to drag the slide.
       larrow.onload = (function() {
-        var offset =
-          this.useNewStyle ?
-          (this.arrows.left.width + this.handle.radius) :
-          (this.arrows.left.width << 1);
+        var offset = this.arrows.left.width + this.handle.radius;
         this.arrows.ldraw.x =
           center.x - offset;
         this.arrows.ldraw.y =
@@ -362,8 +297,7 @@
           this.arrows.left.height);
       }).bind(this);
       rarrow.onload = (function() {
-        var offset =
-          this.useNewStyle ? this.handle.radius : this.arrows.right.width;
+        var offset = this.handle.radius;
         this.arrows.rdraw.x =
           center.x + offset;
         this.arrows.rdraw.y =
@@ -394,13 +328,11 @@
       this.handle.radius =
         this._dpx(this.handle.radius);
 
-      if (this.useNewStyle) {
-        this.handle.innerRadius =
-          this._dpx(this.handle.innerRadius);
-      }
+      this.handle.innerRadius =
+        this._dpx(this.handle.innerRadius);
 
       this.track.radius =
-        this.handle.radius + this._dpx(this.useNewStyle ? 2 : 1);
+        this.handle.radius + this._dpx(2);
 
       this.handle.lineWidth =
         this._dpx(this.handle.lineWidth);
@@ -456,8 +388,6 @@
    */
   LockScreenSlidePrototype._finalizeCanvas =
     function lss_finalizeCanvas() {
-      this.states.slidingColorful = false;
-      this.states.slidingColorGradientEnd = false,
       this._clearCanvas();
     };
 
@@ -761,10 +691,7 @@
       // The Y of arrows: need to put it from center to sink half of the arrow.
       if (isLeft) {
         // XXX:<<1: OK but don't know why!
-        var position =
-          this.useNewStyle ?
-          (tx - this.arrows.left.width - this.handle.radius) :
-          (tx - (this.arrows.left.width << 1));
+        var position = tx - this.arrows.left.width - this.handle.radius;
         var oldAlpha = ctx.globalAlpha;
         ctx.globalAlpha = alpha;
         ctx.drawImage(this.arrows.left,
@@ -780,10 +707,7 @@
           this.arrows.right.height);
 
       } else {
-        var position =
-          this.useNewStyle ?
-          (tx + this.handle.radius) :
-          (tx + this.arrows.right.width);
+        var position = tx + this.handle.radius;
         var oldAlpha = ctx.globalAlpha;
         ctx.globalAlpha = alpha;
         ctx.drawImage(this.arrows.right,
@@ -812,79 +736,50 @@
 
       var radius = this.track.radius;
 
-      if (this.useNewStyle) {
-        var startAngle = 1.5 * Math.PI;
-        var endAngle = 0.5 * Math.PI;
+      var startAngle = 1.5 * Math.PI;
+      var endAngle = 0.5 * Math.PI;
 
-        var draw = (function(fillStyle, strokeStyle) {
-          ctx.beginPath();
-          ctx.fillStyle = fillStyle;
-          ctx.strokeStyle = strokeStyle;
-          ctx.lineWidth = this.handle.lineWidth;
-          ctx.moveTo(this.track.from, this.track.y - radius);
-          ctx.lineTo(this.track.to, this.track.y - radius);
-          ctx.arc(this.track.to, this.track.y,
-                  radius, startAngle, endAngle, false);
-          ctx.lineTo(this.track.from, this.track.y + radius);
-          ctx.arc(this.track.from, this.track.y,
-                  radius, endAngle, startAngle, false);
-          ctx.fill();
-          ctx.closePath();
-          ctx.stroke();
-        }).bind(this);
-
-        // single-color background
-        draw(this.track.backColor, 'transparent');
-
-        // actual gradient
-        var gradientStroke =
-          ctx.createLinearGradient(
-            this.track.from - radius,
-            this.track.y - radius,
-            this.track.from - radius,
-            this.track.y + radius
-          );
-        var gradientFill =
-          ctx.createLinearGradient(
-            this.track.from - radius,
-            this.track.y - radius,
-            this.track.from - radius,
-            this.track.y + radius
-          );
-        gradientStroke.addColorStop(0, this.track.strokeColorTop);
-        gradientStroke.addColorStop(1, this.track.strokeColorBottom);
-        gradientFill.addColorStop(0, this.track.fillColorTop);
-        gradientFill.addColorStop(1, this.track.fillColorBottom);
-
-        draw(gradientFill, gradientStroke);
-
-      } else {
-        // 1.5 ~ 0.5 is the right part of a circle.
-        var startAngle = 1.5 * Math.PI;
-        var endAngle = 0.5 * Math.PI;
-        var strokeStyle = this.track.color;
-
-        ctx.fillStyle = this.track.backgroundColor;
-        ctx.lineWidth = this.handle.lineWidth;
-        ctx.strokeStyle = strokeStyle;
-
-        // Start to draw it.
-        // Can't use functions like rect or these individual parts
-        // would show its borders.
+      var draw = (function(fillStyle, strokeStyle) {
         ctx.beginPath();
-
-        ctx.arc(this.track.from, this.track.y,
-            radius, endAngle, startAngle, false);
-        ctx.lineTo(this.track.from, this.track.y - radius);
+        ctx.fillStyle = fillStyle;
+        ctx.strokeStyle = strokeStyle;
+        ctx.lineWidth = this.handle.lineWidth;
+        ctx.moveTo(this.track.from, this.track.y - radius);
         ctx.lineTo(this.track.to, this.track.y - radius);
         ctx.arc(this.track.to, this.track.y,
-          radius, startAngle, endAngle, false);
+                radius, startAngle, endAngle, false);
         ctx.lineTo(this.track.from, this.track.y + radius);
-
+        ctx.arc(this.track.from, this.track.y,
+                radius, endAngle, startAngle, false);
         ctx.fill();
-        ctx.stroke();
         ctx.closePath();
-      }
+        ctx.stroke();
+      }).bind(this);
+
+      // single-color background
+      draw(this.track.backColor, 'transparent');
+
+      // actual gradient
+      var gradientStroke =
+        ctx.createLinearGradient(
+          this.track.from - radius,
+          this.track.y - radius,
+          this.track.from - radius,
+          this.track.y + radius
+        );
+      var gradientFill =
+        ctx.createLinearGradient(
+          this.track.from - radius,
+          this.track.y - radius,
+          this.track.from - radius,
+          this.track.y + radius
+        );
+      gradientStroke.addColorStop(0, this.track.strokeColorTop);
+      gradientStroke.addColorStop(1, this.track.strokeColorBottom);
+      gradientFill.addColorStop(0, this.track.fillColorTop);
+      gradientFill.addColorStop(1, this.track.fillColorBottom);
+
+      draw(gradientFill, gradientStroke);
     };
 
   /**
@@ -922,10 +817,8 @@
 
       if (isLeft) {
         this.handle.touchedColor = this.colors.left.touchedColor;
-        this.handle.touchedColorStop = this.colors.left.touchedColorStop;
       } else if (isRight) {
         this.handle.touchedColor = this.colors.right.touchedColor;
-        this.handle.touchedColorStop = this.colors.right.touchedColorStop;
       }
 
       // 1.5 ~ 0.5 is the right part of a circle.
@@ -935,105 +828,40 @@
       var strokeStyle = 'white';
       const GRADIENT_LENGTH = 50;
 
-      if (this.useNewStyle) {
-        if (0 === urw) {  // Draw as the initial circle.
-          // outer circle
-          ctx.beginPath();
+      if (0 === urw) {  // Draw as the initial circle.
+        // outer circle
+        ctx.beginPath();
 
-          ctx.arc(center.x, center.y,
-              radius, 0, 2 * Math.PI, false);
-          ctx.fillStyle = this.handle.outerColor;
+        ctx.arc(center.x, center.y,
+            radius, 0, 2 * Math.PI, false);
+        ctx.fillStyle = this.handle.outerColor;
 
-          // Note: When setting both the fill and stroke for a shape,
-          // make sure that you use fill() before stroke().
-          // Otherwise, the fill will overlap half of the stroke.
-          ctx.closePath();
-          ctx.fill();
+        // Note: When setting both the fill and stroke for a shape,
+        // make sure that you use fill() before stroke().
+        // Otherwise, the fill will overlap half of the stroke.
+        ctx.closePath();
+        ctx.fill();
 
-          // outer circle
-          ctx.beginPath();
+        // outer circle
+        ctx.beginPath();
 
-          ctx.arc(center.x, center.y,
-              this.handle.innerRadius, 0, 2 * Math.PI, false);
-          ctx.fillStyle = this.handle.innerColor;
+        ctx.arc(center.x, center.y,
+            this.handle.innerRadius, 0, 2 * Math.PI, false);
+        ctx.fillStyle = this.handle.innerColor;
 
-          // Note: When setting both the fill and stroke for a shape,
-          // make sure that you use fill() before stroke().
-          // Otherwise, the fill will overlap half of the stroke.
-          ctx.closePath();
-          ctx.fill();
-        } else {
-          // from 0.9 to 0.2
-          fillAlpha = 0.9 - Math.min(0.7, (urw / this.handle.maxWidth) * 0.7);
+        // Note: When setting both the fill and stroke for a shape,
+        // make sure that you use fill() before stroke().
+        // Otherwise, the fill will overlap half of the stroke.
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        // from 0.9 to 0.2
+        fillAlpha = 0.9 - Math.min(0.7, (urw / this.handle.maxWidth) * 0.7);
 
-          strokeStyle = 'transparent';
+        strokeStyle = 'transparent';
 
-          ctx.fillStyle = 'rgba(' + this.handle.touchedColor + ', ' +
-            fillAlpha + ')';
-          ctx.strokeStyle = strokeStyle;
-
-          // Start to draw it.
-          // Can't use functions like rect or these individual parts
-          // would show its borders.
-          ctx.beginPath();
-
-          ctx.arc(center.x, center.y,
-              radius, endAngle, startAngle, counterclock);
-          ctx.lineTo(center.x, center.y - radius);
-          ctx.lineTo(center.x + (offset - center.x), center.y - radius);
-          ctx.arc(offset, center.y, radius, startAngle, endAngle, counterclock);
-          ctx.lineTo(center.x, center.y + radius);
-
-          // Note: When setting both the fill and stroke for a shape,
-          // make sure that you use fill() before stroke().
-          // Otherwise, the fill will overlap half of the stroke.
-          ctx.fill();
-          ctx.stroke();
-          ctx.closePath();
-        }
-      } else { // old style
-        var fillColor;
-        var strokeColor;
-        // If user move over 15px, fill the slide.
-        if (urw > 15 && true !== this.states.slidingColorful) {
-          // The color should be gradient in this length, from the origin.
-          // It would decide how long the color turning to the touched color.
-
-          fillAlpha = (urw - 15) / GRADIENT_LENGTH;
-          if (fillAlpha > 1.0) {
-            fillAlpha = 1.0;
-            this.states.slidingColorGradientEnd = true;
-          }
-
-          // The border must disappear during the sliding,
-          // so it's alpha would decrease to zero.
-          var borderAlpha = 1.0 - fillAlpha;
-
-          // From white to covered color.
-          strokeStyle = 'rgba(' + this.handle.touchedColorStop +
-            ',' + borderAlpha + ')';
-
-          // It's colorful now.
-          this.states.slidingColorful = true;
-        } else {
-
-          if (0 === urw) {  // Draw as the initial circle.
-            fillAlpha = this.handle.backgroundAlpha;
-            strokeColor = this.handle.color;
-            fillColor = this.handle.backgroundColor;
-          } else {
-            fillAlpha = (urw - 15) / GRADIENT_LENGTH;
-            if (fillAlpha > 1.0) {
-              fillAlpha = 1.0;
-            }
-            strokeColor = this.handle.touchedColorStop;
-            fillColor = this.handle.touchedColor;
-          }
-          var borderAlpha = 1.0 - fillAlpha;
-          strokeStyle = 'rgba(' + strokeColor + ',' + borderAlpha + ')';
-        }
-        ctx.fillStyle = 'rgba(' + fillColor + ',' + fillAlpha + ')';
-        ctx.lineWidth = this.handle.lineWidth;
+        ctx.fillStyle = 'rgba(' + this.handle.touchedColor + ', ' +
+          fillAlpha + ')';
         ctx.strokeStyle = strokeStyle;
 
         // Start to draw it.
@@ -1067,9 +895,6 @@
    */
   LockScreenSlidePrototype._drawIconBG =
     function lss_dibg() {
-      if (!this.useNewStyle)
-        return;
-
       var canvas = this.canvas;
       var ctx = canvas.getContext('2d');
 
@@ -1165,8 +990,6 @@
    */
   LockScreenSlidePrototype._resetHandle =
     function lss_resetHandle() {
-      this.states.slidingColorful = false;
-      this.states.slidingColorGradientEnd = false;
       var canvas = this.canvas;
       var centerx = this.center.x;
       this._drawSlideTo(centerx);

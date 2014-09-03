@@ -362,7 +362,7 @@
      * setting this parameter to true causes the LockScreenSlide to render
      * the slider specified in that bugzilla issue
      */
-    this._unlocker = new window.LockScreenSlide({useNewStyle: true});
+    this._unlocker = new window.LockScreenSlide();
     // The default one is 12 hour.
     this.timeFormat = window.navigator.mozHour12 ?
       navigator.mozL10n.get('shortTimeFormat12') :
