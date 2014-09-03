@@ -65,7 +65,6 @@
   TaskCard.prototype._fetchElements = function tc__fetchElements() {
     this.headerContent = this.element.querySelector('header.card-header');
     this.footerContent = this.element.querySelector('footer.card-tray');
-    this.footerMenu = this.element.querySelector('.buttonbar');
   };
 
   /**

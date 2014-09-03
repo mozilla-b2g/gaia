@@ -645,26 +645,18 @@
    * @param  {DOMEvent} evt The event.
    */
   TaskManager.prototype.handleTap = function cs_handleTap(evt) {
-    // Handle close events
-    var targetNode = evt.target;
-    var containerNode = targetNode.parentNode;
-
-    var cardElem;
-    var card;
-
     if (!this.isShown()) {
       // ignore any bogus events received after we already started to hide
       return;
     }
-    if (targetNode.classList.contains('close-card') &&
-        this.cardsList.contains(containerNode)) {
-      card = this.getCardForElement(containerNode);
-      if (card) {
-        this.cardAction(card, 'close');
-      }
-      return;
-    }
+
+    // Handle close events
+    var targetNode = evt.target;
+
     // Screen reader lands on one of card's children.
+    var cardElem;
+    var card;
+
     var tmpNode = targetNode;
     while (tmpNode) {
       if (tmpNode.classList && tmpNode.classList.contains('card')) {
@@ -673,12 +665,14 @@
       }
       tmpNode = tmpNode.parentNode;
     }
-    if (this.isTaskStrip && ('buttonAction' in targetNode.dataset) &&
+
+    if (('buttonAction' in targetNode.dataset) &&
       cardElem && (card = this.getCardForElement(cardElem))) {
       evt.stopPropagation();
       this.cardAction(card, targetNode.dataset.buttonAction);
       return;
     }
+
     if (('position' in targetNode.dataset) || cardElem) {
       card = this.getCardForElement(cardElem);
       if (card) {
