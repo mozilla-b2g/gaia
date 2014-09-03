@@ -242,6 +242,10 @@ li button.activity > b em {
   pointer-events: none;
 }
 
+[data-type="list"] li aside.pack-end {
+  margin: 0 2rem 0 0;
+}
+
 /* Selection tag extended from shared/style/buttons.css */
 .view-select-tag .selection-list li button {
   background-color: #fff;
