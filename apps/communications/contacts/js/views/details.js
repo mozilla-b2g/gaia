@@ -19,6 +19,8 @@ contacts.Details = (function() {
   var photoPos = 7;
   var initMargin = 8;
   var DEFAULT_TEL_TYPE = 'other';
+  // If it is a favourite on/off change, I cancel the render
+  var isAFavoriteChange = false;
   var contactData,
       contactDetails,
       listContainer,
@@ -180,6 +182,11 @@ contacts.Details = (function() {
   };
 
   var render = function cd_render(currentContact, fbContactData) {
+    if(isAFavoriteChange){
+      isAFavoriteChange = false;
+      return Promise.resolve(isAFavoriteChange);
+    }
+
     contactData = currentContact || contactData;
 
     isFbContact = fb.isFbContact(contactData);
@@ -302,28 +309,38 @@ contacts.Details = (function() {
     // Disabling button while saving the contact
     favoriteMessage.style.pointerEvents = 'none';
 
-    var request = navigator.mozContacts.save(utils.misc.toMozContact(contact));
-    request.onsuccess = function onsuccess() {
-      var cList = contacts.List;
-      /*
-         Two contacts are returned because the enrichedContact is readonly
-         and if the Contact is edited we need to prevent saving
-         FB data on the mozContacts DB.
-      */
-       cList.getContactById(contact.id,
-                           function onSuccess(savedContact, enrichedContact) {
-        renderFavorite(savedContact);
-        setContact(savedContact);
+    var promise = new Promise(function(resolve, reject) {
+      var request = 
+        navigator.mozContacts.save(utils.misc.toMozContact(contact));
+      request.onsuccess = function onsuccess() {
+        isAFavoriteChange = true;
+        var cList = contacts.List;
+        /*
+           Two contacts are returned because the enrichedContact is readonly
+           and if the Contact is edited we need to prevent saving
+           FB data on the mozContacts DB.
+        */
+         cList.getContactById(contact.id,
+                             function onSuccess(savedContact, enrichedContact) {
+          renderFavorite(savedContact);
+          setContact(savedContact);
+          favoriteMessage.style.pointerEvents = 'auto';
+        }, function onError() {
+          console.error('Error reloading contact');
+          favoriteMessage.style.pointerEvents = 'auto';
+        });
+        resolve(isAFavoriteChange);
+      };
+
+      request.onerror = function onerror() {
         favoriteMessage.style.pointerEvents = 'auto';
-      }, function onError() {
-        console.error('Error reloading contact');
-        favoriteMessage.style.pointerEvents = 'auto';
-      });
-    };
-    request.onerror = function onerror() {
-      favoriteMessage.style.pointerEvents = 'auto';
-      console.error('Error saving favorite');
-    };
+        console.error('Error saving favorite');
+        reject('Error saving favorite');
+        resolve(false);
+      };
+    }).then();
+
+    return promise;
   };
 
   var toggleFavoriteMessage = function toggleFavMessage(isFav) {
