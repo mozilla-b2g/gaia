@@ -79,7 +79,8 @@ marionette('notification tests', function() {
               'Lock screen replaced notification should exists');
   });
 
-  test('close notification', function() {
+  // Refer to http://bugzil.la/1062109.
+  test.skip('close notification', function() {
     client.executeScript(function(enabled) {
       window.wrappedJSObject.ScreenManager.turnScreenOff(true);
       window.wrappedJSObject.ScreenManager.turnScreenOn(true);
