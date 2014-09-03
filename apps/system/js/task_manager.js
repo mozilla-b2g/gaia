@@ -551,12 +551,13 @@
               'from-cardview',
               null
             );
-          });
+          }, 100);
         };
 
         // If the selected app is not the middle app, first move it into view
         if (this.currentPosition != card.position) {
           this.currentPosition = card.position;
+          this.currentDisplayed = card.position;
           this.alignCurrentCard(500, showSelectedApp);
         } else {
           showSelectedApp();

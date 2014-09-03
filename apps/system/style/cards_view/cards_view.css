@@ -7,7 +7,7 @@
   height: 100%;
   -moz-user-select: none;
   overflow: hidden;
-  background-color: rgba(0, 0, 0, 1);
+  background-color: black;
 }
 
 @media not all and (-moz-physical-home-button) {

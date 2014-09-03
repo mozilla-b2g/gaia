@@ -132,8 +132,6 @@
       this.subTitle = CardsHelper.getOffOrigin(
                         frameForScreenshot.src, origin);
     }
-    // XXX do we still need?
-    //  this.viewClassList.push('popup');
 
     if (TrustedUIManager.hasTrustedUI(app.origin)) {
       popupFrame = TrustedUIManager.getDialogFromOrigin(app.origin);
@@ -151,12 +149,7 @@
 
     var windowWidth = this.manager.windowWidth;
     var offset = this.position - this.manager.currentPosition;
-    var positionX = deltaX + offset * (windowWidth * 0.7);
-
-    positionX = Math.min(positionX,
-                         windowWidth - (windowWidth * 0.25) + 15.99);
-    positionX = Math.max(positionX,
-                         -(windowWidth * 0.75) - 15.99);
+    var positionX = deltaX + offset * (windowWidth * 0.65);
 
     var style = { transform: '' };
 
