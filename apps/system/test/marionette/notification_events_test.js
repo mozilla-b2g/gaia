@@ -2,10 +2,13 @@
 
 /* globals Notification */
 
-var assert = require('assert');
+var assert = require('assert'),
+    fs = require('fs');
 
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 var CALENDAR_APP_MANIFEST = CALENDAR_APP + '/manifest.webapp';
+var EMAIL_APP = 'app://email.gaiamobile.org';
+var EMAIL_APP_MANIFEST = EMAIL_APP + '/manifest.webapp';
 
 marionette('Notification events', function() {
 
@@ -15,6 +18,12 @@ marionette('Notification events', function() {
       'lockscreen.enabled': false
     }
   });
+  var details = {tag: 'test tag',
+                 body: 'test body',
+                 data: {number: 2,
+                        string: '123',
+                        array: [1, 2, 3],
+                        obj: {test: 'test'}}};
 
   test('click event starts application', function(done) {
     var notificationTitle = 'Title:' + Date.now();
@@ -335,4 +344,80 @@ marionette('Notification events', function() {
     done();
   });
 
+  test('custom data available via mozChromeNotificationEvent', function(done) {
+    client.switchToFrame();
+    var result = client.executeAsyncScript(function(details) {
+      var notification;
+      notification = new Notification('testtitle', details);
+      window.addEventListener('mozChromeNotificationEvent', function(evt) {
+        var rv = JSON.stringify(evt.detail.data) ==
+                 JSON.stringify(details.data);
+        marionetteScriptFinished(rv);
+      });
+    }, [details]);
+
+    assert.equal(result, true, 'Notification data should match');
+    done();
+  });
+
+  test('custom data available via mozSetMessageHandler', function(done) {
+    client.switchToFrame();
+
+    client.apps.launch(EMAIL_APP);
+    client.apps.switchToApp(EMAIL_APP);
+
+    client.executeScript(function(details) {
+      var notification;
+      notification = new Notification('testtitle', details);
+    }, [details]);
+
+    client.switchToFrame();
+    client.apps.close(EMAIL_APP);
+
+    // after closing live handlers should be lost, the callbacks too
+    client.apps.launch(EMAIL_APP);
+    client.apps.switchToApp(EMAIL_APP);
+
+    client.executeScript(fs.readFileSync(
+      __dirname + '/lib/fake_moz_set_message_handler.js', 'utf8'));
+
+    // fake mozSetMessageHandler
+    client.executeScript(function() {
+      window.wrappedJSObject.mozSetMessageHandler('notification');
+    });
+
+    client.switchToFrame();
+
+    client.executeScript(function(manifest) {
+      // get notifications
+      var container =
+        document.getElementById('desktop-notifications-container');
+      var selector = '[data-manifest-u-r-l="' + manifest + '"]';
+      var node = container.querySelectorAll(selector)[0];
+
+      // simulate tapping
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent('mozContentNotificationEvent', true, true, {
+        type: 'desktop-notification-click',
+        id: node.dataset.notificationId
+      });
+      window.dispatchEvent(event);
+    }, [EMAIL_APP_MANIFEST]);
+
+    // get into the context containing the mocked api and the data object
+    client.apps.switchToApp(EMAIL_APP);
+    client.waitFor(function() {
+      var data = client.executeScript(function() {
+        return window.wrappedJSObject.__getFakeData;
+      });
+      return data != null;
+    });
+    var data = client.executeScript(function() {
+      return window.wrappedJSObject.__getFakeData;
+    });
+
+    assert.equal(JSON.stringify(data), JSON.stringify(details.data),
+                 'Notification data should match');
+    done();
+  });
 });
