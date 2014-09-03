@@ -1,19 +1,19 @@
 define(function(require) {
   'use strict';
 
-  function BrowserPrivacy() {}
+  function BrowsingPrivacy() {}
 
   /**
    * Clear browser history.
    */
-  BrowserPrivacy.prototype.clearHistory = function() {
+  BrowsingPrivacy.prototype.clearHistory = function() {
     navigator.mozSettings.createLock().set({'clear.browser.history': true});
   };
 
   /**
    * Clear browser private data.
    */
-  BrowserPrivacy.prototype.clearPrivateData = function() {
+  BrowsingPrivacy.prototype.clearPrivateData = function() {
     navigator.mozSettings.createLock().set({
       'clear.browser.private-data': true
     });
@@ -22,11 +22,11 @@ define(function(require) {
   /**
    * Clear bookmarks data
    */
-  BrowserPrivacy.prototype.clearBookmarksData = function() {
+  BrowsingPrivacy.prototype.clearBookmarksData = function() {
     navigator.mozSettings.createLock().set({'clear.browser.bookmarks': true});
   };
 
   return function() {
-    return new BrowserPrivacy();
+    return new BrowsingPrivacy();
   };
 });

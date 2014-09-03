@@ -4,9 +4,9 @@
 
 requireApp('settings/shared/test/unit/load_body_html_helper.js');
 
-suite('Browser Privacy >', function() {
-  var browserPrivacyPanel;
-  var MockBrowserPrivacy = {
+suite('Browsing Privacy >', function() {
+  var browsingPrivacyPanel;
+  var MockBrowsingPrivacy = {
     clearBookmarksData: sinon.spy(),
     clearPrivateData: sinon.spy(),
     clearHistory: sinon.spy()
@@ -17,30 +17,30 @@ suite('Browser Privacy >', function() {
   suiteSetup(function(done) {
     var map = {
       '*': {
-        'panels/browser_privacy/browser_privacy': 'MockBrowserPrivacy'
+        'panels/browsing_privacy/browsing_privacy': 'MockBrowsingPrivacy'
       }
     };
 
     var modules = [
-      'panels/browser_privacy/panel',
-      'MockBrowserPrivacy'
+      'panels/browsing_privacy/panel',
+      'MockBrowsingPrivacy'
     ];
 
     var requireCtx = testRequire([], map, function() {});
-    define('MockBrowserPrivacy', function() {
+    define('MockBrowsingPrivacy', function() {
       return function() {
-        return MockBrowserPrivacy;
+        return MockBrowsingPrivacy;
       };
     });
 
-    loadBodyHTML('_browser_privacy.html');
+    loadBodyHTML('_browsing_privacy.html');
 
     clearDialog = document.body.querySelector('.clear-dialog');
     clearDialogOk = document.body.querySelector('.clear-dialog-ok');
 
-    requireCtx(modules, function(BrowserPrivacyPanel) {
-      browserPrivacyPanel = BrowserPrivacyPanel();
-      browserPrivacyPanel.init(document.body);
+    requireCtx(modules, function(BrowsingPrivacyPanel) {
+      browsingPrivacyPanel = BrowsingPrivacyPanel();
+      browsingPrivacyPanel.init(document.body);
 
       done();
     });
@@ -78,7 +78,7 @@ suite('Browser Privacy >', function() {
       assert.equal(clearDialog.hidden, false,
         'Clicking dangerous button should display danger dialog');
       clearDialogOk.click();
-      assert.isTrue(MockBrowserPrivacy[expectedFunction].called,
+      assert.isTrue(MockBrowsingPrivacy[expectedFunction].called,
         expectedFunction + ' should be called');
     };
   }
