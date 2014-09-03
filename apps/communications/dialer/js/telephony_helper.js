@@ -60,7 +60,7 @@ var TelephonyHelper = (function() {
                     [480, 620, 500], [0, 0, 500],
                     [480, 620, 500], [0, 0, 500],
                     [480, 620, 500], [0, 0, 500]];
-    
+
     TonePlayer.setChannel('telephony');
     TonePlayer.playSequence(sequence);
     TonePlayer.setChannel('normal');
@@ -263,7 +263,8 @@ var TelephonyHelper = (function() {
     var telephony = navigator.mozTelephony;
     if (telephony) {
       var isInCall = !!telephony.calls.length;
-      var isInConference = !!telephony.conferenceGroup.calls.length;
+      var isInConference = !!telephony.conferenceGroup &&
+                          !!telephony.conferenceGroup.calls.length;
 
       if (isInCall || isInConference) {
         return isInCall ?
