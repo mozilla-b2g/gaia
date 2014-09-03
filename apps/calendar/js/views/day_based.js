@@ -1,9 +1,17 @@
 Calendar.ns('Views').DayBased = (function() {
   'use strict';
 
+  /**
+   * Module dependencies
+   */
   var Calc = Calendar.Calc;
-  var hoursOfOccurence = Calendar.Calc.hoursOfOccurence;
   var OrderedMap = Calendar.Utils.OrderedMap;
+  var hoursOfOccurence = Calendar.Calc.hoursOfOccurence;
+  /*var performance = Calendar.performance;*/
+
+  /**
+   * Constants
+   */
   const MINUTES_IN_HOUR = 60;
 
   /**
@@ -511,11 +519,11 @@ Calendar.ns('Views').DayBased = (function() {
       var records = this.controller.queryCache(this.timespan);
 
       if (records && records.length) {
-        this._loadRecords(records, () => Calendar.Performance.dayBasedReady());
+        this._loadRecords(records, () => Calendar.performance.dayBasedReady());
       } else {
         // if we don't load records (no events today) we still need to let the
         // Performance controller know that the DayBased view is ready
-        Calendar.Performance.dayBasedReady();
+        Calendar.performance.dayBasedReady();
       }
     },
 

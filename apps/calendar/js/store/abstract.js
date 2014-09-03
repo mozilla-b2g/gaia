@@ -1,8 +1,6 @@
 (function(window) {
   'use strict';
 
-  var NUMERIC = /^([0-9]+)$/;
-
   /**
    * Creates an abstract store instance.
    * Every store must contain a reference
@@ -16,6 +14,7 @@
     Calendar.Promise.denodeifyAll(this, [
       'persist',
       'all',
+      '_allCached',
       'removeByIndex',
       'get',
       'remove',
@@ -64,17 +63,6 @@
           callback(null);
         });
       }
-    },
-
-    probablyParseInt: function(id) {
-      // by an unfortunate decision we have both
-      // string ids and number ids.. based on the
-      // input we run parseInt
-      if (id.match && id.match(NUMERIC)) {
-        return parseInt(id, 10);
-      }
-
-      return id;
     },
 
     /**
