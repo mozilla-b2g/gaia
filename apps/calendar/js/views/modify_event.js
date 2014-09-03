@@ -1,4 +1,3 @@
-/* global InputParser */
 Calendar.ns('Views').ModifyEvent = (function() {
   'use strict';
 

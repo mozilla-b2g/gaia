@@ -1,25 +1,27 @@
-(function(exports) {
-'use strict';
+(function(window) {
+  'use strict';
 
-/**
- * Constants
- */
-var FORMAT_REGEX = /%([0-9])?s/g;
+  var FORMAT_REGEX = /%([0-9])?s/g;
 
-exports.format = function() {
-  var i = 0,
-      str,
-      args = Array.prototype.slice.call(arguments),
-      result;
+  if (typeof(Calendar) === 'undefined') {
+    /*global Calendar:true */
+    Calendar = {};
+  }
 
-  str = args.shift();
+  Calendar.format = function() {
+    var i = 0,
+        str,
+        args = Array.prototype.slice.call(arguments),
+        result;
 
-  result = str.replace(FORMAT_REGEX, function(match, pos) {
-    var index = parseInt(pos || i++, 10);
-    return args[index];
-  });
+    str = args.shift();
 
-  return result;
-};
+    result = str.replace(FORMAT_REGEX, function(match, pos) {
+      var index = parseInt(pos || i++, 10);
+      return args[index];
+    });
 
-}(Calendar));
+    return result;
+  };
+
+}(this));

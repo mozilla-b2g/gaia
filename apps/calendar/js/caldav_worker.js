@@ -2,9 +2,6 @@
 
 [
  'calendar',
- 'log',
- 'ns',
- 'extend',
  'responder',
  'inspect',
  'presets',
