@@ -1,4 +1,5 @@
 /*global define*/
+'use strict';
 define(function(require) {
 
 var templateNode = require('tmpl!./setup_account_info.html'),
@@ -10,8 +11,16 @@ var templateNode = require('tmpl!./setup_account_info.html'),
     Cards = common.Cards,
     FormNavigation = common.FormNavigation;
 
+// Function to avoid jshint error about "Do not use 'new' for side effects"
+function bindFormNavigation(instance) {
+  return new FormNavigation({
+    formElem: instance.formNode,
+    onLast: instance.onNext
+  });
+}
+
 /**
- * Enter basic account info card (name, e-mail address, password) to try and
+ * Enter basic account info card (name, e-mail address) to try and
  * autoconfigure an account.
  */
 function SetupAccountInfoCard(domNode, mode, args) {
@@ -26,32 +35,38 @@ function SetupAccountInfoCard(domNode, mode, args) {
   }
 
   this.nextButton = domNode.getElementsByClassName('sup-info-next-btn')[0];
-  this.nextButton.addEventListener('click', this.onNext.bind(this), false);
+  this.onNext = this.onNext.bind(this);
+  this.nextButton.addEventListener('click', this.onNext, false);
 
   this.formNode = domNode.getElementsByClassName('sup-account-form')[0];
 
   this.nameNode = this.domNode.getElementsByClassName('sup-info-name')[0];
   this.emailNode = this.domNode.getElementsByClassName('sup-info-email')[0];
-  this.passwordNode =
-    this.domNode.getElementsByClassName('sup-info-password')[0];
 
-  // Add input event handler to prevent user submit empty name or password.
+  // Add input event handler to prevent user submit empty name.
   this.emailNode.addEventListener('input', this.onInfoInput.bind(this));
   this.nameNode.addEventListener('input', this.onInfoInput.bind(this));
-  this.passwordNode.addEventListener('input', this.onInfoInput.bind(this));
 
   this.manualConfig =
     domNode.getElementsByClassName('sup-manual-config-btn')[0];
   this.manualConfig.addEventListener('click',
                                      this.onClickManualConfig.bind(this));
 
-  new FormNavigation({
-    formElem: domNode.getElementsByTagName('form')[0],
-    onLast: this.onNext.bind(this)
-  });
+  this.needsFocus = true;
+
+  bindFormNavigation(this);
 }
 
 SetupAccountInfoCard.prototype = {
+  onCardVisible: function() {
+    // Only focus in the form fields if this is the first time the card is
+    // being shown.
+    if (this.needsFocus) {
+      this.nameNode.focus();
+      this.needsFocus = false;
+    }
+  },
+
   onBack: function(event) {
     if (!model.foldersSlice) {
       // No account has been formally initialized, but one
@@ -65,10 +80,6 @@ SetupAccountInfoCard.prototype = {
   },
   onNext: function(event) {
     event.preventDefault(); // Prevent FormNavigation from taking over.
-    var nameNode = this.domNode.getElementsByClassName('sup-info-name')[0],
-        emailNode = this.domNode.getElementsByClassName('sup-info-email')[0],
-        passwordNode =
-          this.domNode.getElementsByClassName('sup-info-password')[0];
 
     // The progress card is the dude that actually tries to create the account.
     Cards.pushCard(
@@ -76,7 +87,6 @@ SetupAccountInfoCard.prototype = {
       {
         displayName: this.nameNode.value,
         emailAddress: this.emailNode.value,
-        password: this.passwordNode.value,
         callingCard: this
       },
       'right');
@@ -93,13 +103,12 @@ SetupAccountInfoCard.prototype = {
       'setup_manual_config', 'default', 'animate',
       {
         displayName: this.nameNode.value,
-        emailAddress: this.emailNode.value,
-        password: this.passwordNode.value
+        emailAddress: this.emailNode.value
       },
       'right');
   },
 
-  // note: this method is also reused by the manual config card
+  // note: this method is also reused by the manual config and password cards
   showError: function(errName, errDetails) {
     this.domNode.getElementsByClassName('sup-error-region')[0]
         .classList.remove('collapsed');

@@ -22,8 +22,17 @@ define(['slog', './client', 'exports'], function(slog, client, exports) {
     });
 
     var conn;
-    return client.createSmtpConnection(credentials, connInfo)
-      .then(function(newConn) {
+    return client.createSmtpConnection(
+      credentials,
+      connInfo,
+      function onCredentialsUpdated() {
+        // Normally we shouldn't see a request to update credentials
+        // here, as the caller should have already passed a valid
+        // accessToken during account setup. This might indicate a
+        // problem with our OAUTH handling, so log it just in case.
+        slog.warn('probe:smtp:credentials-updated');
+      }
+    ).then(function(newConn) {
         conn = newConn;
         return verifyAddress(conn, connInfo.emailAddress);
       }).then(function() {

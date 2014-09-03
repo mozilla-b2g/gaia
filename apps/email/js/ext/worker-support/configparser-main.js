@@ -23,17 +23,35 @@ define(function() {
                             .singleNodeValue;
     };
 
+    var dictifyChildNodes = function(node) {
+      if (!node) {
+        return null;
+      }
+      var dict = {};
+      for (var kid = node.firstElementChild; kid;
+           kid = kid.nextElementSibling) {
+        dict[kid.tagName] = kid.textContent;
+      }
+      return dict;
+    };
+
     var provider = getNode('/clientConfig/emailProvider');
     // Get the first incomingServer we can use (we assume first == best).
     var incoming = getNode('incomingServer[@type="imap"] | ' +
                            'incomingServer[@type="activesync"] | ' +
                            'incomingServer[@type="pop3"]', provider);
     var outgoing = getNode('outgoingServer[@type="smtp"]', provider);
+    var oauth2Settings = dictifyChildNodes(getNode('oauth2Settings', provider));
 
     var config = null;
     var status = null;
     if (incoming) {
-      config = { type: null, incoming: {}, outgoing: {} };
+      config = {
+        type: null,
+        incoming: {},
+        outgoing: {},
+        oauth2Settings: oauth2Settings
+      };
       for (var iter in Iterator(incoming.children)) {
         var child = iter[1];
         config.incoming[child.tagName] = child.textContent;
@@ -69,7 +87,7 @@ define(function() {
     self.sendMessage(uid, cmd, [config, status]);
   }
 
-  function parseActiveSyncAccount(uid, cmd, text) {
+  function parseActiveSyncAccount(uid, cmd, text, aNoRedirect) {
     var doc = new DOMParser().parseFromString(text, 'text/xml');
 
     var getNode = function(xpath, rel) {
@@ -96,7 +114,11 @@ define(function() {
       return postResponse(error);
     }
 
-    var responseNode = getNode('/ad:Autodiscover/ms:Response', doc);
+    // Note: specs seem to indicate the root should be ms:Autodiscover too.
+    // It's not clear why we were using ad:Autodiscover or if it ever worked,
+    // but there's no meaningful cost to leave that around.
+    var responseNode = getNode('/ad:Autodiscover/ms:Response', doc) ||
+                       getNode('/ms:Autodiscover/ms:Response', doc);
     if (!responseNode) {
       error = 'Missing Autodiscover Response node';
       return postResponse(error);
@@ -168,7 +190,7 @@ define(function() {
           parseAccountCommon(uid, cmd, args[0]);
           break;
         case 'accountactivesync':
-          parseActiveSyncAccount(uid, cmd, args[0]);
+          parseActiveSyncAccount(uid, cmd, args[0], args[1]);
           break;
       }
     }

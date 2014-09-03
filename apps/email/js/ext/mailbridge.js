@@ -197,6 +197,24 @@ MailBridge.prototype = {
     $mailchewStrings.set(msg.strings);
   },
 
+  _cmd_learnAboutAccount: function(msg) {
+    this.universe.learnAboutAccount(msg.details).then(
+      function success(info) {
+        this.__sendMessage({
+            type: 'learnAboutAccountResults',
+            handle: msg.handle,
+            data: info
+          });
+      }.bind(this),
+      function errback(err) {
+        this.__sendMessage({
+            type: 'learnAboutAccountResults',
+            handle: msg.handle,
+            data: { result: 'no-config-info', configInfo: null }
+          });
+      }.bind(this));
+  },
+
   _cmd_tryToCreateAccount: function mb__cmd_tryToCreateAccount(msg) {
     var self = this;
     this.universe.tryToCreateAccount(msg.details, msg.domainInfo,
@@ -224,7 +242,7 @@ MailBridge.prototype = {
         return (!err || (
           err !== 'bad-user-or-pass' &&
           err !== 'bad-address' &&
-          err !== 'needs-app-pass' &&
+          err !== 'needs-oauth-reauth' &&
           err !== 'imap-disabled'
         ));
       }
@@ -288,6 +306,12 @@ MailBridge.prototype = {
           break;
         case 'outgoingPassword':
           accountDef.credentials.outgoingPassword = val;
+          break;
+        case 'oauthTokens':
+          var oauth2 = accountDef.credentials.oauth2;
+          oauth2.accessToken = val.accessToken;
+          oauth2.refreshToken = val.refreshToken;
+          oauth2.expireTimeMS = val.expireTimeMS;
           break;
 
         case 'identities':
