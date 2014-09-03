@@ -38,6 +38,12 @@
     TOGGLE_SCREEN_READER_COUNT: 6,
 
     /**
+     * Cap the full range of contrast. Actual -1 is completely gray, and 1
+     * makes things hard to see. This value is the max/min contrast.
+     */
+    CONTRAST_CAP: 0.6,
+
+    /**
      * Current counter for button presses in short succession.
      * @type {Number}
      * @memberof Accessibility.prototype
@@ -69,7 +75,11 @@
     settings: {
       'accessibility.screenreader': false,
       'accessibility.screenreader-volume': 1,
-      'accessibility.screenreader-rate': 0
+      'accessibility.screenreader-rate': 0,
+      'accessibility.colors.enable': false,
+      'accessibility.colors.invert': false,
+      'accessibility.colors.grayscale': false,
+      'accessibility.colors.contrast': '0.0'
     },
 
     /**
@@ -111,15 +121,43 @@
         SettingsListener.observe(settingKey, this.settings[settingKey],
           function observe(aValue) {
             this.settings[settingKey] = aValue;
+            switch (settingKey) {
+              case 'accessibility.screenreader':
+                // Show Accessibility panel if it is not already visible
+                if (aValue) {
+                  SettingsListener.getSettingsLock().set({
+                    'accessibility.screenreader-show-settings': true
+                  });
+                }
+                this.screen.classList.toggle('screenreader', aValue);
+                break;
 
-            if (settingKey === 'accessibility.screenreader') {
-              // Show Accessibility panel if it is not already visible
-              if (aValue) {
+              case 'accessibility.colors.enable':
                 SettingsListener.getSettingsLock().set({
-                  'accessibility.show-settings': true
+                  'layers.effect.invert': aValue ?
+                    this.settings['accessibility.colors.invert'] : false,
+                  'layers.effect.grayscale': aValue ?
+                    this.settings['accessibility.colors.grayscale'] : false,
+                  'layers.effect.contrast': aValue ?
+                    this.settings['accessibility.colors.contrast'] : '0.0'
                 });
-              }
-              this.screen.classList.toggle('screenreader', aValue);
+                break;
+
+              case 'accessibility.colors.invert':
+              case 'accessibility.colors.grayscale':
+              case 'accessibility.colors.contrast':
+                if (this.settings['accessibility.colors.enable']) {
+                  var effect = settingKey.split('.').pop();
+                  var gfxSetting = {};
+                  if (effect === 'contrast') {
+                    gfxSetting['layers.effect.contrast'] =
+                      aValue * this.CONTRAST_CAP;
+                  } else {
+                    gfxSetting['layers.effect.' + effect] = aValue;
+                  }
+                  SettingsListener.getSettingsLock().set(gfxSetting);
+                }
+                break;
             }
           }.bind(this));
       }, this);
