@@ -120,11 +120,11 @@ gaia-buttons.forward-only .icon-previous {
 
 #sim-info-screen .sim-image {
   height: 100%;
-  width: 3rem;
+  width: 5rem;
   background-position: center center;
   background-repeat: no-repeat;
   float: left;
-  margin-right: 1rem;
+  margin-right: 0.5rem;
 }
 #sim-info-1 .sim-image {
   background-image: url(images/sim01.png);
