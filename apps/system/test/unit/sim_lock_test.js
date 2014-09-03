@@ -1,5 +1,5 @@
 /* global SimLock, MockL10n, MocksHelper, SimPinDialog */
-/* global MockSIMSlotManager, MockVersionHelper */
+/* global MockSIMSlotManager, MockVersionHelper, FtuLauncher */
 /* global preInit, VersionHelper:true */
 
 'use strict';
@@ -9,6 +9,7 @@ requireApp('system/test/unit/mock_simcard_dialog.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_version_helper.js');
+requireApp('system/js/ftu_launcher.js');
 
 var mocksHelperForSimLock = new MocksHelper([
   'SimPinDialog',
@@ -54,10 +55,19 @@ suite('SimLock', function() {
   });
 
   suite('when we are in ftu on first use', function() {
+    var simLockSpy;
+
     setup(function() {
       this.sinon.stub(SimPinDialog, 'close');
-      this.sinon.stub(SimLock, 'showIfLocked');
+      simLockSpy = this.sinon.spy(SimLock, 'showIfLocked');
+      this.sinon.stub(FtuLauncher, 'isFtuRunning', function() {
+        return true;
+      });
       SimLock.init();
+    });
+
+    teardown(function() {
+      simLockSpy.restore();
     });
 
     test('no simpin dialog would show up on first run', function() {
@@ -69,6 +79,7 @@ suite('SimLock', function() {
                               }
                             });
       assert.isTrue(SimPinDialog.close.called);
+      assert.isFalse(simLockSpy.lastCall.returnValue);
     });
 
     test('simpin dialog would show up on upgrade', function() {
@@ -79,7 +90,22 @@ suite('SimLock', function() {
                                 return true;
                               }
                             });
-      assert.isFalse(SimPinDialog.close.called);
+      //On updgrade, system will send an appopned event so we need to check it
+      SimLock.handleEvent({
+        type: 'appopened',
+        detail: {
+          url: 'app://ftu.gaiamobile.org/index.html',
+          manifestURL: 'app://ftu.gaiamobile.org/manifest.webapp',
+          manifest: {
+            permissions: {
+              telephony: {access: 'readwrite'}
+            }
+          },
+          origin: 'app://ftu.gaiamobile.org'
+        }
+      });
+      assert.isTrue(SimPinDialog.close.called);
+      assert.isFalse(simLockSpy.lastCall.returnValue);
     });
   });
 
