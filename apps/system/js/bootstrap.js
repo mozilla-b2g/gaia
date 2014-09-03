@@ -13,7 +13,7 @@
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
          LockScreenNotifications, LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor, LockScreenNotificationBuilder,
-         BrowserSettings, AppMigrator */
+         BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager */
 'use strict';
 
 
@@ -102,6 +102,9 @@ window.addEventListener('load', function startup() {
     lock.set({
       'gaia.system.checkForUpdates': true
     });
+    // make sure new key is available in system
+    window.settingsMigrator = new SettingsMigrator();
+    window.settingsMigrator.start();
   }
 
   window.addEventListener('ftudone', doneWithFTU);
@@ -123,10 +126,15 @@ window.addEventListener('load', function startup() {
   window.appWindowFactory.start();
   window.developerHUD = new DeveloperHUD();
   window.developerHUD.start();
+  /** @global */
+  window.attentionWindowManager = new window.AttentionWindowManager();
+  window.attentionWindowManager.start();
   window.dialerAgent = new DialerAgent();
   window.dialerAgent.start();
   window.externalStorageMonitor = new ExternalStorageMonitor();
   window.externalStorageMonitor.start();
+  window.euRoamingManager = new EuRoamingManager();
+  window.euRoamingManager.start();
   window.homeGesture = new HomeGesture();
   window.homeGesture.start();
   if (!window.homescreenLauncher) {

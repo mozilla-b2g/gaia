@@ -3,6 +3,7 @@
 <head>
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
   <meta charset="utf-8">
+  <meta name="theme-color" content="#eeeeee">
 
   <!-- Common style -->
   <link rel="stylesheet" href="/shared/style/switches.css">
@@ -68,9 +69,9 @@
   <script defer src="/shared/js/contacts/import/facebook/fb_data.js"></script>
   <script defer src="/shared/js/contacts/import/facebook/fb_utils.js"></script>
   <script defer src="/shared/js/contacts/import/facebook/fb_query.js"></script>
-  <!--<script defer src="/shared/js/contacts/import/import_status_data.js"></script>-->
   <script defer src="/shared/js/fb/fb_reader_utils.js"></script>
   <script defer src="/shared/js/contacts/import/facebook/fb_contact_utils.js"></script>
+  <script defer src="/shared/js/contacts/import/import_status_data.js"></script>
   <script defer src="/shared/js/async_storage.js"></script>
   <script defer src="/shared/js/mobile_operator.js"></script>
   <script defer src="/shared/js/icc_helper.js"></script>
@@ -638,11 +639,11 @@
 
   <section id="update-screen" class="finish-screen-base" role="region">
     <section class="content">
-      <h1 data-l10n-id="whatsNew">
-        What's new
+      <h1 data-l10n-id="startYourPhone">
+        Start your phone tour!
       </h1>
-      <p data-l10n-id="updatedSuccessfully">
-        Your phone has updated successfully! Start the tour to find out more about the new features.
+      <p data-l10n-id="joinTutorialUpdated">
+        Join us for a quick tutorial about the updates to your phone!
       </p>
     </section>
     <gaia-buttons skin="dark">
@@ -676,8 +677,11 @@
       <h1 data-l10n-id="thatsIt">
         That's it!
       </h1>
-      <h2 data-l10n-id="enjoyYourPhone">
+      <h2 id="enjoyYourPhone" data-l10n-id="enjoyYourPhone">
         You're ready to enjoy your new phone ;)
+      </h2>
+      <h2 id="enjoyYourPhoneUpdated" data-l10n-id="enjoyYourPhoneUpdated" hidden>
+        You're ready to enjoy your updated phone.
       </h2>
       </section>
       <gaia-buttons skin="dark" class="forward-only">

@@ -21,8 +21,7 @@
     this.template = fn;
   }
 
-  Template.handlers = {
-
+  Template.prototype = {
     arg: function(key) {
       if (typeof(this.data) === 'undefined') {
         return '';
@@ -33,8 +32,7 @@
       return this.data[key];
     },
 
-    'h': function(a) {
-
+    h: function(a) {
       var arg = this.arg(a);
       // accept anything that can be converted into a string and we make sure
       // the only falsy values that are converted into empty strings are
@@ -51,7 +49,7 @@
       }
     },
 
-    's': function(a) {
+    s: function(a) {
       var arg = this.arg(a);
       return String((arg || ''));
     },
@@ -64,18 +62,14 @@
       }
     },
 
-    'l10n': function(key, prefix) {
+    l10n: function(key, prefix) {
       var value = this.arg(key);
 
       if (prefix) {
         value = prefix + value;
       }
       return navigator.mozL10n.get(value);
-    }
-
-  };
-
-  Template.prototype = {
+    },
 
     /**
      * Renders template with given slots.
@@ -83,8 +77,8 @@
      * @param {Object} object key, value pairs for template.
      */
     render: function(data) {
-      Template.handlers.data = data;
-      return this.template.apply(Template.handlers);
+      this.data = data;
+      return this.template.apply(this);
     },
 
     /**

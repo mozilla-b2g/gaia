@@ -25,6 +25,7 @@ contacts.List = (function() {
       imgLoader = null,
       needImgLoaderReload = false,
       orderByLastName = null,
+      defaultImage = null,
       photoTemplate,
       headers = {},
       loadedContacts = {},
@@ -106,7 +107,7 @@ contacts.List = (function() {
     monitor && monitor.pauseMonitoringMutations();
     renderLoadedContact(row, id);
     updateRowStyle(row, true);
-    renderPhoto(row, id);
+    renderPhoto(row, id, false, group);
     updateSingleRowSelection(row, id);
 
     // Since imgLoader.reload() causes sync reflows we only want to make this
@@ -182,12 +183,14 @@ contacts.List = (function() {
     groupsList = document.getElementById('groups-list');
     groupsList.addEventListener('click', onClickHandler);
 
-    initOrder();
+    initConfiguration();
 
     // Test code calls init() directly, so we may have to reset.
     if (reset) {
       resetDom();
     }
+
+    createPhotoTemplate();
   };
 
   function hide() {
@@ -251,7 +254,7 @@ contacts.List = (function() {
       updateRowStyle(node, true);
       updateSingleRowSelection(node, id);
       var out = node.cloneNode(true);
-      renderPhoto(out, id, true);
+      renderPhoto(out, id, true, node.dataset.group);
       return out;
     },
 
@@ -300,6 +303,8 @@ contacts.List = (function() {
   var scrollToCb = function scrollCb(domTarget, group) {
     if (domTarget.offsetTop > 0) {
       scrollable.scrollTop = domTarget.offsetTop;
+    } else if (group === 'search-container') {
+      scrollable.scrollTop = 0;
     }
   };
 
@@ -309,7 +314,7 @@ contacts.List = (function() {
     };
 
     var complete = function complete() {
-      initOrder(function onInitOrder() {
+      initConfiguration(function onInitConfiguration() {
         getContactsByGroup(onError, contacts);
       });
     };
@@ -335,9 +340,18 @@ contacts.List = (function() {
     return out;
   }
 
-  var initOrder = function initOrder(callback) {
+  /**
+   * Reads configuration values setup at build time to change
+   * behaviour of the contacts list.
+   * Receives a callback as parameter to call once the
+   * parameters have been setup.
+   * Also tries to save from the external file to faster cookie
+   * values after the first file read.
+   * @param (Function) callback function to be invoked after process
+   */
+  var initConfiguration = function initConfiguration(callback) {
     callback = callback || function() {};
-    if (orderByLastName !== null) {
+    if (orderByLastName !== null && defaultImage !== null) {
       callback();
       return;
     }
@@ -345,6 +359,7 @@ contacts.List = (function() {
     var config = utils.cookie.load();
     if (config) {
       orderByLastName = config.order;
+      defaultImage = config.defaultImage;
       callback();
       return;
     }
@@ -352,12 +367,20 @@ contacts.List = (function() {
     utils.config.load('/contacts/config.json').then(function ready(configData) {
       orderByLastName = (configData.defaultContactsOrder ===
                 ORDER_BY_FAMILY_NAME ? true : false);
-      utils.cookie.update({order: orderByLastName});
+      defaultImage = configData.defaultImage === true;
+      utils.cookie.update({
+        order: orderByLastName,
+        defaultImage: defaultImage
+      });
       callback();
     }, function configError(err) {
         window.console.error('Error while reading configuration file');
         orderByLastName = utils.cookie.getDefault('order');
-        utils.cookie.update({order: orderByLastName});
+        defaultImage = utils.cookie.getDefault('defaultImage');
+        utils.cookie.update({
+          order: orderByLastName,
+          defaultImage: defaultImage
+        });
         callback();
     });
   };
@@ -809,27 +832,37 @@ contacts.List = (function() {
 
   function displayICEIndicator(ids) {
     if (!ids || ids.length === 0) {
-      if (utils.alphaScroll) {
-        utils.alphaScroll.hideGroup('ice');
-      }
-      hideICEIndicator();
+      hideICEGroup();
       return;
     }
 
     iceContacts = ids;
     if (iceGroup === null) {
       buildICEGroup();
-    } else {
-      iceGroup.classList.remove('hide');
+    }
+    showICEGroup();
+  }
+
+  function toggleICEGroup(bool) {
+    if (!iceGroup) {
+      return;
     }
 
+    if (!!bool) {
+      showICEGroup();
+    } else {
+      hideICEGroup();
+    }
+  }
+
+  function showICEGroup() {
+    iceGroup.classList.remove('hide');
     utils.alphaScroll.showGroup('ice');
   }
 
-  function hideICEIndicator() {
-    if (iceGroup) {
-      iceGroup.classList.add('hide');
-    }
+  function hideICEGroup() {
+    iceGroup.classList.add('hide');
+    utils.alphaScroll.hideGroup('ice');
   }
 
   function buildICEGroup() {
@@ -854,6 +887,25 @@ contacts.List = (function() {
      groupsList.firstChild).appendChild(list).appendChild(elem);
     elem.appendChild(icon);
     elem.appendChild(p);
+
+    iceGroup.addEventListener('click', onICEGroupClicked);
+  }
+
+  function onICEGroupClicked() {
+    Contacts.view('Ice', function() {
+      // Prebuild the rows here, we have all the data to
+      // build them. Current amount of rows is 2.
+      function rowBuilder(id, node) {
+        renderLoadedContact(node, id);
+        updateRowStyle(node, true);
+        updateSingleRowSelection(node, id);
+        var out = node.cloneNode(true);
+        renderPhoto(out, id, true);
+        return out;
+      }
+      contacts.ICEView.init(iceContacts, rowBuilder, onClickHandler);
+      contacts.ICEView.showICEList();
+    });
   }
 
   var isFavorite = function isFavorite(contact) {
@@ -926,26 +978,26 @@ contacts.List = (function() {
   }
 
   // "Render" the photo by setting the img tag's dataset-src attribute to the
-  // value in our photo cache.  This in turn will allow the imgLoader to load
-  // the image once we have stopped scrolling.
-  var renderPhoto = function renderPhoto(link, id, asClone) {
+  // value in our photo cache. This in turn will allow the imgLoader
+  // to load the image once we have stopped scrolling.
+  // We set dataset-group with the group letter
+  // if the contact doesn't have photo.
+  var renderPhoto = function renderPhoto(link, id, asClone, group) {
     id = id || link.dataset.uuid;
+    var img = link.querySelector('aside > span[data-type=img]');
+
     var photo = photosById[id];
     if (!photo) {
+      if (defaultImage) {
+        renderDefaultPhoto(img, link, group);
+      }
       return;
     }
 
-    var img = link.querySelector('aside > span[data-type=img]');
     if (img) {
+      delete img.dataset.group;
       setImageURL(img, photo, asClone);
       return;
-    }
-    if (!photoTemplate) {
-      photoTemplate = document.createElement('aside');
-      photoTemplate.className = 'pack-end';
-      img = document.createElement('span');
-      img.dataset.type = 'img';
-      photoTemplate.appendChild(img);
     }
 
     var figure = photoTemplate.cloneNode(true);
@@ -954,6 +1006,56 @@ contacts.List = (function() {
 
     link.insertBefore(figure, link.children[0]);
     return;
+  };
+
+  /**
+   * Build the template used for displaying the thumbnail
+   * image.
+   */
+  function createPhotoTemplate() {
+    if (photoTemplate) {
+      return;
+    }
+    photoTemplate = document.createElement('aside');
+    photoTemplate.className = 'pack-end';
+    var img = document.createElement('span');
+    img.dataset.type = 'img';
+    photoTemplate.appendChild(img);
+  }
+
+  /**
+   * Renders the default image for a contact using a random
+   * position of a background image and the group letter
+   */
+  var renderDefaultPhoto =
+    function renderDefaultPhoto(img, link, group) {
+    if (!img) {
+      var figure = photoTemplate.cloneNode(true);
+      img = figure.children[0];
+
+      var posH = ['left','center','right'];
+      var posV = ['top','center','bottom'];
+      var position =
+        posH[Math.floor(Math.random()*3)] + ' ' +
+        posV[Math.floor(Math.random()*3)];
+
+      img.style.backgroundPosition = position;
+
+      link.insertBefore(figure, link.children[0]);
+    }
+
+    // Special groups
+    if (group === 'favorites') {
+      // Recalculate group
+      var contact = loadedContacts[link.dataset.uuid][group];
+      var order = getStringToBeOrdered(contact);
+      group = getGroupNameByOrderString(order);
+    }
+    if (group === 'und') {
+      group = '#';
+    }
+    img.dataset.group = group;
+
   };
 
   // Remove the image for the given list item.  Leave the photo in our cache,
@@ -1106,7 +1208,7 @@ contacts.List = (function() {
 
   var getAllContacts = function cl_getAllContacts(errorCb, successCb) {
     loading = true;
-    initOrder(function onInitOrder() {
+    initConfiguration(function onInitConfiguration() {
       var sortBy = (orderByLastName === true ? 'familyName' : 'givenName');
       var options = {
         sortBy: sortBy,
@@ -1166,11 +1268,19 @@ contacts.List = (function() {
     var list = getGroupList(renderedNode.dataset.group);
     addToGroup(renderedNode, list);
 
+    if (!loadedContacts[contact.id]) {
+      loadedContacts[contact.id] = {};
+    }
+
+    loadedContacts[contact.id][renderedNode.dataset.group] = contact;
+
     // If is favorite add as well to the favorite group
     if (isFavorite(contact)) {
       list = getGroupList('favorites');
+      loadedContacts[contact.id].favorites = contact;
       var cloned = renderedNode.cloneNode(true);
       cloned.dataset.group = 'favorites';
+      renderPhoto(cloned, contact.id, false, 'favorites');
       addToGroup(cloned, list);
     }
     toggleNoContactsScreen(false);
@@ -1994,6 +2104,7 @@ contacts.List = (function() {
     get isSelecting() {
       return inSelectMode;
     },
-    'notifyRowOnScreenByUUID': notifyRowOnScreenByUUID
+    'notifyRowOnScreenByUUID': notifyRowOnScreenByUUID,
+    'toggleICEGroup': toggleICEGroup
   };
 })();

@@ -156,17 +156,6 @@ suite('KeyboardApp', function() {
     window.IMERender = undefined;
   });
 
-  test('getMenuContainer', function() {
-    var el = {};
-    this.sinon.stub(document, 'getElementById').returns(el);
-
-    var result = app.getMenuContainer();
-    assert.isTrue(
-      document.getElementById.calledWith(app.ACCENT_CHAR_MENU_ELEMENT_ID));
-    assert.equal(result, el);
-  });
-
-
   test('getContainer', function() {
     var el = {};
     this.sinon.stub(document, 'getElementById').returns(el);

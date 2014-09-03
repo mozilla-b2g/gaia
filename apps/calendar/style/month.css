@@ -246,7 +246,6 @@ section.month .icon-calendar-dot:before {
 }
 
 #months-day-view .event-time {
-  align-items: center;
   color: #657073;
   display: flex;
   flex-direction: column;
@@ -274,10 +273,17 @@ section.month .icon-calendar-dot:before {
   flex-direction: column;
   height: 6rem;
   justify-content: center;
-  left: 11.5rem;
   position: absolute;
   top: 0;
   width: 17rem;
+}
+
+body[data-time-format="12"] #months-day-view .event-details {
+  left: 11.2rem;
+}
+
+body[data-time-format="24"] #months-day-view .event-details {
+  left: 8.5rem;
 }
 
 #months-day-view .event-details > h5 {

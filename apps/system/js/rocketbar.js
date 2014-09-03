@@ -1,6 +1,5 @@
 'use strict';
-/* global SettingsListener, AppWindowManager, SearchWindow, places,
-          SettingsURL */
+/* global AppWindowManager, SearchWindow, places */
 
 (function(exports) {
 
@@ -34,18 +33,6 @@
     this.results = document.getElementById('rocketbar-results');
     this.backdrop = document.getElementById('rocketbar-backdrop');
     this.start();
-
-    // TODO: We shouldnt be creating a blob for each wallpaper that needs
-    // changed in the system app
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=962902
-    var defaultWall = 'resources/images/backgrounds/default.png';
-    var wallpaperURL = new SettingsURL();
-
-    SettingsListener.observe('wallpaper.image', defaultWall, function(value) {
-      document.getElementById('rocketbar-backdrop').style.backgroundImage =
-        'url(' + wallpaperURL.set(value) + ')';
-    });
-
   }
 
   Rocketbar.prototype = {
@@ -166,9 +153,9 @@
       window.addEventListener('launchactivity', this, true);
       window.addEventListener('searchterminated', this);
       window.addEventListener('permissiondialoghide', this);
-      window.addEventListener('attentionscreenshow', this);
-      window.addEventListener('status-inactive', this);
       window.addEventListener('global-search-request', this);
+      window.addEventListener('attentionopening', this);
+      window.addEventListener('attentionopened', this);
 
       // Listen for events from Rocketbar
       this.input.addEventListener('focus', this);
@@ -191,11 +178,11 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+        case 'attentionopening':
+        case 'attentionopened':
         case 'apploading':
         case 'appforeground':
         case 'appopened':
-        case 'attentionscreenshow':
-        case 'status-inactive':
           this.hideResults();
           this.deactivate();
           break;
@@ -220,6 +207,7 @@
           } else if (e.target == this.clearBtn) {
             this.clear();
           } else if (e.target == this.backdrop) {
+            this.hideResults();
             this.deactivate();
           }
           break;

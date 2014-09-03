@@ -47,7 +47,8 @@ suite('battery manager >', function() {
         '<div id="battery">' +
           '<span class="icon-battery"></span>' +
           '<span class="battery-notification" ' +
-                 'data-l10n-id="battery-almost-empty">Battery almost empty' +
+                 'data-l10n-id="battery-almost-empty2">Battery almost empty. ' +
+                 'Plug charger.' +
           '</span>' +
         '</div>' +
       '</div>';

@@ -1169,7 +1169,19 @@ function removeFiles(dir, filenames) {
   filenames.forEach(function(fn) {
     var file = getFile(dir.path, fn);
     if (file.exists()) {
-      file.remove(file.isDirectory());
+      try {
+        file.remove(file.isDirectory());
+      } catch (e) {
+        utils.log('utils-xpc', (file.isDirectory() ? 'directory' : 'file')  +
+          ' cannot be removed: ' + file.path);
+        if (file.isDirectory()) {
+          utils.log('utils-xpc', 'files in ' + file.leafName + ' directory:');
+          utils.ls(file, true).forEach(function(f) {
+            dump('* ' + f.path + '\n');
+          });
+        }
+        throw e;
+      }
     }
   });
 }

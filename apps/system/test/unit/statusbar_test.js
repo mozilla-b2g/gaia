@@ -132,6 +132,7 @@ suite('system/Statusbar', function() {
 
       // executing init again
       StatusBar.init();
+      StatusBar.finishInit();
 
       var signalElements = document.querySelectorAll('.statusbar-signal');
       var dataElements = document.querySelectorAll('.statusbar-data');
@@ -173,6 +174,81 @@ suite('system/Statusbar', function() {
       assert.equal(Object.keys(fakeIcons.signals).length,
         mobileConnectionCount);
       assert.equal(Object.keys(fakeIcons.data).length, mobileConnectionCount);
+    });
+  });
+
+  suite('init when FTU is running', function() {
+    setup(function() {
+      this.sinon.stub(StatusBar, 'finishInit');
+    });
+
+    test('skipping FTU finishes initialization', function() {
+      var evt = new CustomEvent('ftuskip');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.finishInit.called);
+    });
+
+    test('finish init immediately during upgrade', function() {
+      FtuLauncher.mIsUpgrading = true;
+      var evt = new CustomEvent('ftuopen');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.finishInit.called);
+    });
+
+    test('finish init only after ftu', function() {
+      FtuLauncher.mIsUpgrading = false;
+      var evt = new CustomEvent('ftuopen');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.finishInit.notCalled);
+      evt = new CustomEvent('ftudone');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.finishInit.called);
+    });
+  });
+
+  suite('handle FTU progress events', function() {
+    setup(function() {
+      this.sinon.stub(StatusBar, 'addSettingsListener');
+    });
+
+    test('data step displays connections', function() {
+      this.sinon.stub(StatusBar, 'createConnectionsElements');
+      var evt = new CustomEvent('iac-ftucomms', {
+        detail: {
+          type: 'step',
+          hash: '#data_3g'
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.createConnectionsElements.called);
+      assert.isTrue(StatusBar.addSettingsListener
+                    .calledWith('ril.data.enabled'));
+    });
+
+    test('wifi step activates wifi', function() {
+      this.sinon.stub(StatusBar, 'setActiveWifi');
+      var evt = new CustomEvent('iac-ftucomms', {
+        detail: {
+          type: 'step',
+          hash: '#wifi'
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.setActiveWifi.called);
+      assert.isTrue(StatusBar.addSettingsListener
+                    .calledWith('wifi.enabled'));
+    });
+
+    test('timezone step activates time', function() {
+      this.sinon.stub(StatusBar, 'toggleTimeLabel');
+      var evt = new CustomEvent('iac-ftucomms', {
+        detail: {
+          type: 'step',
+          hash: '#date_and_time'
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.toggleTimeLabel.called);
     });
   });
 
@@ -254,6 +330,7 @@ suite('system/Statusbar', function() {
     test('first launch', function() {
       System.locked = true;
       StatusBar.init();
+      StatusBar.finishInit();
       assert.equal(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, true);
     });
@@ -270,8 +347,8 @@ suite('system/Statusbar', function() {
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
     });
-    test('attentionscreen show', function() {
-      var evt = new CustomEvent('attentionscreenshow');
+    test('attention opening', function() {
+      var evt = new CustomEvent('attentionopened');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
@@ -279,7 +356,7 @@ suite('system/Statusbar', function() {
     test('attentionsceen hide', function() {
       // Test this when lockscreen is off.
       System.locked = false;
-      var evt = new CustomEvent('attentionscreenhide');
+      var evt = new CustomEvent('attentionclosed');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
@@ -1365,7 +1442,7 @@ suite('system/Statusbar', function() {
         getTopMostWindow: function() {
           return app;
         },
-
+        config: {},
         _element: null,
         get element() {
           if (!this._element) {
@@ -1750,7 +1827,7 @@ suite('system/Statusbar', function() {
 
       assert.ok(StatusBar.PRIORITIES[iconIndex][1]);
       assert.equal(StatusBar._getIconWidth(StatusBar.PRIORITIES[iconIndex]),
-          16 + 5);
+          16 + 4);
     });
 
     test('should compute the width of variable size icons', function() {

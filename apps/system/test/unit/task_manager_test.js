@@ -114,6 +114,9 @@ suite('system/TaskManager >', function() {
         requestScreenshotURL: function() {
           return null;
         },
+        killable: function() {
+          return true;
+        },
         getScreenshot: function(callback) {
           callback();
         },
@@ -549,6 +552,47 @@ suite('system/TaskManager >', function() {
         element.dispatchEvent(createTouchEvent('touchstart', element, 0, 500));
         element.dispatchEvent(createTouchEvent('touchmove', element, 0, 250));
         element.dispatchEvent(createTouchEvent('touchend', element, 0, 450));
+      });
+
+      test('wheel up event', function() {
+        var card = taskManager.getCardAtIndex(0);
+        var closeAppStub = this.sinon.stub(taskManager, 'closeApp');
+        var alignCurrentCardStub = this.sinon.stub(taskManager,
+          'alignCurrentCard');
+
+        taskManager.handleEvent({
+          type: 'wheel',
+          deltaMode: 2,
+          DOM_DELTA_PAGE: 2,
+          deltaY: 1
+        });
+        assert.isTrue(closeAppStub.called);
+        assert.isTrue(closeAppStub.calledWith(card));
+        assert.isTrue(alignCurrentCardStub.called);
+      });
+
+      test('wheel left/right event', function() {
+        var alignCurrentCardSpy = this.sinon.spy(taskManager,
+          'alignCurrentCard');
+
+        assert.equal(taskManager.currentPosition, 0);
+        taskManager.handleEvent({
+          type: 'wheel',
+          deltaMode: 2,
+          DOM_DELTA_PAGE: 2,
+          deltaX: 1
+        });
+        assert.equal(taskManager.currentPosition, 1);
+
+        taskManager.handleEvent({
+          type: 'wheel',
+          deltaMode: 2,
+          DOM_DELTA_PAGE: 2,
+          deltaX: -1
+        });
+        assert.equal(taskManager.currentPosition, 0);
+
+        assert.equal(alignCurrentCardSpy.callCount, 2);
       });
 
       test('transitions are removed correctly after swiping', function(done) {
@@ -1068,6 +1112,32 @@ suite('system/TaskManager >', function() {
       .then(function() { done(); }, done);
 
       taskManager.exitToApp(targetApp);
+    });
+
+  });
+
+  suite('filtering > ', function() {
+    setup(function() {
+      taskManager.hide(true);
+      MockAppWindowManager.mRunningApps = apps;
+      MockAppWindowManager.mActiveApp = apps['http://sms.gaiamobile.org'];
+      taskManager.isTaskStrip = false;
+    });
+
+    teardown(function() {
+      taskManager.hide(true);
+    });
+
+    test('filter function is called and empty stack is the result', function() {
+      var _filterName = 'browser-only';
+      var stub = this.sinon.stub(taskManager, 'filter', function(filterName) {
+          assert.equal(filterName, _filterName);
+          taskManager.stack = [];
+        });
+      taskManager.show(_filterName);
+      stub.calledWith([_filterName]);
+      assert.isTrue(cardsView.classList.contains('empty'),
+                    'Should be displaying no recent browser windows');
     });
 
   });

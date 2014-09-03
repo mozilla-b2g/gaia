@@ -78,6 +78,12 @@
     <link href="/shared/style/scrolling.css" rel="stylesheet">
     <link href="/shared/style/animations.css" rel="stylesheet">
 
+    <!-- Web Components -->
+    <!-- <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" /> -->
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
+    <script defer src="/shared/elements/config.js"></script>
+    <script defer src="/shared/elements/gaia-header/dist/script.js"></script>
+
     <!--
     <link rel="stylesheet" href="/shared/pages/import/style/root.css">
     <link rel="stylesheet" href="/shared/pages/import/style/facebook.css">
@@ -86,20 +92,13 @@
     <link rel="stylesheet" href="/shared/pages/import/style/search.css">
   </head>
 
-  <body role="application" class="skin-comms">
+  <body role="application" class="theme-communications skin-comms">
     <section role="region" id="content" class="import">
 
-      <header>
-        <a href="#" id="import-close">
-          <span class="icon icon-close" data-l10n-id="close">close</span>
-        </a>
-        <menu type="toolbar">
-          <button  id="import-action" data-l10n-id="import" disabled>
-            Import
-          </button>
-        </menu>
+      <gaia-header id="header" action="close">
+        <button id="import-action" data-l10n-id="import" disabled>Import</button>
         <h1>Service</h1>
-      </header>
+      </gaia-header>
 
       <section id="main">
         <!-- Contacts List Section -->
@@ -129,8 +128,8 @@
                   <aside class="pack-end">
                     <span data-type="img" data-src="#contactPictureUri#"></span>
                   </aside>
-                  <p data-order-by="firstName"><strong>#givenName#</strong> #familyName#</p>
-                  <p data-order-by="lastName">#givenName# <strong>#familyName#</strong></p>
+                  <p data-order-by="firstName" class="contact-text"><strong>#givenName#</strong> #familyName#</p>
+                  <p data-order-by="lastName" class="contact-text">#givenName# <strong>#familyName#</strong></p>
                   <p>#email1#</p>
                 </li>
               </ol>

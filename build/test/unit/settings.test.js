@@ -113,11 +113,11 @@ suite('settings.js', function() {
       assert.equal(settings['dialer.ringtone'], config.GAIA_DIR + '/' +
         ringtoneLink);
       assert.deepEqual(settings['dialer.ringtone.name'],
-                       {l10nID: 'ringer_firefox'});
+                       {l10nID: 'ringer_firefox2'});
       assert.equal(settings['dialer.ringtone.id'],
-                   'builtin:ringer_firefox');
+                   'builtin:ringtone/ringer_firefox');
       assert.equal(settings['dialer.ringtone.default.id'],
-                   'builtin:ringer_firefox');
+                   'builtin:ringtone/ringer_firefox');
     });
 
     test('setNotification', function () {
@@ -133,11 +133,11 @@ suite('settings.js', function() {
       assert.equal(settings['notification.ringtone'],
         config.GAIA_DIR + '/' + notificationLink);
       assert.deepEqual(settings['notification.ringtone.name'],
-                       {l10nID: 'notifier_firefox'});
+                       {l10nID: 'notifier_firefox2'});
       assert.equal(settings['notification.ringtone.id'],
-                   'builtin:notifier_firefox');
+                   'builtin:alerttone/notifier_firefox');
       assert.equal(settings['notification.ringtone.default.id'],
-                   'builtin:notifier_firefox');
+                   'builtin:alerttone/notifier_firefox');
     });
 
     test('overrideSettings', function () {
@@ -273,13 +273,14 @@ suite('settings.js', function() {
           'wallpaper.image': undefined,
           'media.ringtone': undefined,
           'alarm.ringtone': undefined,
-          'dialer.ringtone.name': {l10nID: 'ringer_firefox'},
-          'dialer.ringtone.id': 'builtin:ringer_firefox',
-          'dialer.ringtone.default.id': 'builtin:ringer_firefox',
+          'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
+          'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
+          'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
           'dialer.ringtone': undefined,
-          'notification.ringtone.name': {l10nID: 'notifier_firefox'},
-          'notification.ringtone.id': 'builtin:notifier_firefox',
-          'notification.ringtone.default.id': 'builtin:notifier_firefox',
+          'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
+          'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
+          'notification.ringtone.default.id':
+            'builtin:alerttone/notifier_firefox',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL
       };
@@ -313,13 +314,14 @@ suite('settings.js', function() {
           'wallpaper.image': undefined,
           'media.ringtone': undefined,
           'alarm.ringtone': undefined,
-          'dialer.ringtone.name': {l10nID: 'ringer_firefox'},
-          'dialer.ringtone.id': 'builtin:ringer_firefox',
-          'dialer.ringtone.default.id': 'builtin:ringer_firefox',
+          'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
+          'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
+          'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
           'dialer.ringtone': undefined,
-          'notification.ringtone.name': {l10nID: 'notifier_firefox'},
-          'notification.ringtone.id': 'builtin:notifier_firefox',
-          'notification.ringtone.default.id': 'builtin:notifier_firefox',
+          'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
+          'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
+          'notification.ringtone.default.id':
+            'builtin:alerttone/notifier_firefox',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
@@ -346,13 +348,14 @@ suite('settings.js', function() {
           'wallpaper.image': undefined,
           'media.ringtone': undefined,
           'alarm.ringtone': undefined,
-          'dialer.ringtone.name': {l10nID: 'ringer_firefox'},
-          'dialer.ringtone.id': 'builtin:ringer_firefox',
-          'dialer.ringtone.default.id': 'builtin:ringer_firefox',
+          'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
+          'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
+          'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
           'dialer.ringtone': undefined,
-          'notification.ringtone.name': {l10nID: 'notifier_firefox'},
-          'notification.ringtone.id': 'builtin:notifier_firefox',
-          'notification.ringtone.default.id': 'builtin:notifier_firefox',
+          'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
+          'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
+          'notification.ringtone.default.id':
+            'builtin:alerttone/notifier_firefox',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
@@ -382,13 +385,14 @@ suite('settings.js', function() {
           'wallpaper.image': undefined,
           'media.ringtone': undefined,
           'alarm.ringtone': undefined,
-          'dialer.ringtone.name': {l10nID: 'ringer_firefox'},
-          'dialer.ringtone.id': 'builtin:ringer_firefox',
-          'dialer.ringtone.default.id': 'builtin:ringer_firefox',
+          'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
+          'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
+          'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
           'dialer.ringtone': undefined,
-          'notification.ringtone.name': {l10nID: 'notifier_firefox'},
-          'notification.ringtone.id': 'builtin:notifier_firefox',
-          'notification.ringtone.default.id': 'builtin:notifier_firefox',
+          'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
+          'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
+          'notification.ringtone.default.id':
+            'builtin:alerttone/notifier_firefox',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);

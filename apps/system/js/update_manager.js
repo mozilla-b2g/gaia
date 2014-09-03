@@ -67,7 +67,7 @@ var UpdateManager = {
     this.systemUpdatable = new SystemUpdatable();
 
     this.container = document.getElementById('update-manager-container');
-    this.message = this.container.querySelector('.message');
+    this.message = this.container.querySelector('.title-container');
 
     this.toaster = document.getElementById('update-manager-toaster');
     this.toasterMessage = this.toaster.querySelector('.message');
@@ -470,7 +470,6 @@ var UpdateManager = {
     this._notificationTimeout = null;
     if (this.updatesQueue.length && !this._downloading) {
       this.lastUpdatesAvailable = this.updatesQueue.length;
-      StatusBar.updateNotificationUnread(true);
       this.displayNotificationIfHidden();
       this.toaster.classList.add('displayed');
       var self = this;

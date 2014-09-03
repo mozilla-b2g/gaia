@@ -788,9 +788,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
       var hfpConnected = deviceItem.connectedProfiles[Profiles.HFP];
       var a2dpConnected = deviceItem.connectedProfiles[Profiles.A2DP];
       if (hfpConnected && a2dpConnected) {
-        l10nId = 'device-status-connected-device-media';
+        l10nId = 'device-status-connected-phone-media';
       } else if (hfpConnected) {
-        l10nId = 'device-status-connected-device';
+        l10nId = 'device-status-connected-phone';
       } else if (a2dpConnected) {
         l10nId = 'device-status-connected-media';
       } else {

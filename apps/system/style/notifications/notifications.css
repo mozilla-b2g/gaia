@@ -1,100 +1,210 @@
+
+@keyframes toaster {
+  0% {
+    opacity: 0.15;
+    width: 8.6rem;
+    background-color: transparent;
+    border-left: 0.2rem solid transparent;
+    border-right: 0.2rem solid transparent;
+    border-top: 0.2rem solid white;
+  }
+  10% {
+    width: 8.6rem;
+    background-color: transparent;
+    border-left: 0.2rem solid transparent;
+    border-right: 0.2rem solid transparent;
+    border-top: 0.2rem solid white;
+  }
+  30% {
+    opacity: 1;
+    width: 8.6rem;
+    background-color: transparent;
+    border-left: 0.2rem solid transparent;
+    border-right: 0.2rem solid transparent;
+    border-top: 0.2rem solid #B3F3FF;
+  }
+  60% {
+    opacity: 1;
+    width: 8.6rem;
+    background-color: transparent;
+    border-left: 0.2rem solid transparent;
+    border-right: 0.2rem solid transparent;
+    border-top: 0.2rem solid #B3F3FF;
+  }
+  100% {
+    background-color: #00BCE2;
+    width: 100%;
+  }
+}
+
 #notification-toaster {
   position: absolute;
-  top: 0;
   left: 0;
+  right: 0;
+  margin: auto;
+  top: -.2rem;
   width: 100%;
+  height: 5.2rem;
+  background-color: #00BCE2;
+  transform: translateY(-5.2rem);
+  transition: transform 0s ease 1s, opacity .5s ease .5s;
+  opacity: 0;
+}
+
+/*
+ * For attention window.
+ */
+.fake-notification-toaster {
   height: 5rem;
-  overflow: hidden;
-  background-image: url('images/grey-noise-bg.png');
-  background-repeat: repeat-x;
-  background-size: auto 100%;
-  -moz-box-sizing: border-box;
-  border-bottom: 0.1rem #2c2c2c solid;
-  transform: translateY(-5rem);
-  transition: transform .3s ease-in-out;
-  visibility: hidden;
+  width: 100%;
+  position: relative;
+}
+
+.utility-tray #notification-toaster {
+  top: 0;
 }
 
 #toaster-icon {
   position: absolute;
-  width: 3rem;
-  height: 3rem;
-  top: 0.7rem;
-  left: 1rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  left: 1.5rem;
   pointer-events: none;
 }
 
-#notification-toaster > div {
-  left: 5rem;
-  width: calc(100% - 5.5rem);
-  height: 1.9rem;
+#notification-container {
+  visibility: hidden;
+  transition: visibility 0s ease .2s;
+}
+
+.displayed #notification-container {
+  visibility: visible;
+  transition: none;
+}
+
+#notification-container > div {
+  left: 5.6rem;
+  width: calc(100% - 7.1rem);
   padding: 0;
-  line-height: 1.9rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 400;
 }
 
-#toaster-title {
+.toaster-title {
   pointer-events: none;
   position: absolute;
-  top: 0.3rem;
-  color: #52b8cc;
-  font-size: 1.5rem;
-  font-weight: 500;
+  bottom: 2.3rem;
+  color: white;
+  font-size: 1.8rem;
 }
 
-#toaster-detail {
+.toaster-detail {
   pointer-events: none;
   position: absolute;
-  top: 2.2rem;
+  bottom: .6rem;
   color: white;
   font-size: 1.4rem;
-  font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+#notifications-indicator {
+  position: absolute;
+  right: 0;
+  left: 0;
+  margin: auto;
+  border-left: 0.2rem solid transparent;
+  border-right: 0.2rem solid transparent;
+  border-top: 0.2rem solid #B3F3FF;
+  bottom: 0;
+  transition: opacity 0.5s ease 0.5s;
+}
+
+.displayed #notifications-indicator {
+  animation-name: toaster;
+  animation-duration: 1.2s;
+  border-color: #00BCE2;
 }
 
 #notification-toaster.displayed {
-  transform: translateY(0);
   visibility: visible;
+  transform: translateY(0);
+  transition: transform .2s ease 1.2s;
+  opacity: 1;
+}
+
+#notification-toaster.unread:not(.displayed) {
+  transform: translateY(-5rem);
+  transition: transform .2s ease-in-out;
+  opacity: 1;
+}
+
+:not(.unread) .displayed #notifications-indicator {
+  transform: translateY(.2rem);
+}
+
+.unread #notifications-indicator,
+.unread.displayed #notifications-indicator {
+  opacity: 1;
+  transition: none;
+  transform: translateY(0);
+}
+
+#notifications-indicator.small {
+  width: 8.6rem;
+}
+
+#notifications-indicator.medium {
+  width: 16.8rem;
+}
+
+#notifications-indicator.big {
+  width: 24.8rem;
+}
+
+#notifications-indicator.full {
+  width: 100%;
+  background-color: white;
 }
 
 #notification-bar {
-  height: 3rem;
-  background-color: #52b6cc;
-  color: #1b3f46;
+  height: 4.5rem;
 }
 
-#notification-bar span {
-  display: inline-block;
-  margin-left: 1.5rem;
-  font-size: 1.4rem;
-  font-weight: 500;
-  line-height: 3rem;
+#notification-bar [data-icon] {
+  color: #008eab;
+  margin: 0.5rem 0;
 }
 
-#notification-bar span[hidden] {
-  display: none;
+#notification-bar .title-container {
+  line-height: 4.5rem;
+  margin-left: .7rem;
+  float: left;
 }
 
 #notification-bar button {
   float: right;
-  margin-right: 1.5rem;
-  height: 3rem;
+  height: 4.5rem;
   padding: 0;
   border: 0;
   background: none;
   text-align: right;
+  font-style: italic;
+  color: #008eab;
   font-size: 1.4rem;
-  font-weight: 500;
+  font-weight: normal;
   width: auto;
   line-height: normal;
 }
 
 #notification-bar button[disabled] {
-  color: #556365;
+  color: rgba(255, 255, 255, 0.2);
 }
 
 /* remove ugly dotted outline when focus */
@@ -105,112 +215,103 @@
 #notifications-container {
   width: 100%;
 
+  /* minus cost control, quick settings, bar and grippy */
+  height: calc(100% - 6rem - 6.8rem - 4.5rem - 1.2rem);
   flex: 1;
   overflow-y: scroll;
   overflow-x: hidden;
 }
 
-.notification {
-  position: relative;
+#desktop-notifications-container .notification {
   height: 6rem;
-  font-size: 1.4rem;
-  font-weight: 400;
-  line-height: 1.9rem;
-  border-top: 0.1rem solid transparent;
-  border-bottom: 0.1rem solid transparent;
+  padding: 0 1.5rem;
+  font: 1.8rem/1.8rem auto;
+  color: #e7e7e7;
+  overflow: hidden;
+
+  border-bottom: .1rem solid rgba(255, 255, 255, .05);
 }
 
-div:not(#notifications-lockscreen-container) > .notification:after{
-  content: "";
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  width: calc(100% - 7.2rem);
-  position: absolute;
-  left: 3.6rem;
-  bottom: 0;
+#desktop-notifications-container .notification:active {
+  background-color: rgba(52, 140, 158, .6);
 }
 
-.notification:active {
-  background-color: rgba(52,140,158, .6);
-}
-
-.notification:first-child {
+#desktop-notifications-container .notification:first-child {
   border-top-color: black;
 }
 
-.notification div {
+#desktop-notifications-container .notification div {
   pointer-events: none;
 }
 
-.notification > div.title-container {
-  margin-top: 1rem;
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: #fff;
+#desktop-notifications-container .notification > img {
+  float: left;
+  display: block;
+  width: 2.4rem;
+  height: 2.4rem;
+  margin: 1.8rem 0 0;
+  pointer-events: none;
+}
+
+#desktop-notifications-container .notification > div {
+  width: calc(100% - 3.7rem);
+  margin-left: 3.7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#desktop-notifications-container .notification > div.title-container {
+  padding-top: 1.4rem;
+  font-size: 1.7rem;
   display: flex;
 }
 
-.notification > div {
-  width: calc(100% - 6.5rem);
-  margin-left: 5rem;
-  color: #bfbfbf;
-  font-size: 1.4rem;
-  line-height: 1.9rem;
-  min-height: 1.9rem;
+#desktop-notifications-container .notification > div.title-container .title {
+  flex: 1;
+  margin-right: .5rem;
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.notification > div.title-container .timestamp {
+#desktop-notifications-container .notification > div.title-container .timestamp {
   flex: initial;
   top: -.2rem;
   right: 1.5rem;
-  color: #52B6CC;
   padding: 0;
-  max-width: 6.5rem;
-  font-size: 1.2rem;
-  font-weight: bold;
-  line-height: 1.6rem;
+  max-width: 7.5rem;
+  font-size: 1.4rem;
+  font-style: italic;
+  color: #858585;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.notification > img {
-  float: left;
-  display: block;
-  width: 3rem;
-  height: 3rem;
-  margin: 1.5rem 1rem;
-  pointer-events: none;
+#desktop-notifications-container .notification > div.detail {
+  font-size: 1.4rem;
+  color: #858585;
 }
 
-.notification > div.title-container .title {
-  flex: 1;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  margin-right: .5rem;
-}
-
-.notification.snapback,
-#notification-toaster.snapback {
+#desktop-notifications-container .notification.snapback,
+.notification-toaster.snapback {
   transition: transform 0.3s ease-out;
   transform: translateX(0);
 }
 
-.notification.disappearing,
-#notification-toaster.disappearing {
+#desktop-notifications-container .notification.disappearing,
+.notification-toaster.disappearing {
   transition: transform 0.2s linear;
   transform: translateX(100%);
 }
 
-.notification.disappearing.left,
-#notification-toaster.disappearing.left {
+#desktop-notifications-container .notification.disappearing.left,
+.notification-toaster.disappearing.left {
   transform: translateX(-100%);
 }
 
-.notification.disappearing ~ .notification {
+#desktop-notifications-container .notification.disappearing ~ .notification {
   transition: transform 0.3s linear;
   transform: translateY(-6.2rem);
 }
@@ -227,18 +328,19 @@ div:not(#notifications-lockscreen-container) > .notification:after{
 
 /* RTL View */
 
-html[dir="rtl"] #toaster-icon {
+html[dir="rtl"] .toaster-icon {
   left: auto;
   right: 1rem;
 }
 
-html[dir="rtl"] #notification-toaster > div {
+html[dir="rtl"] .notification-toaster > div,
+html[dir="rtl"] .fake-notification-toaster > div {
   left: auto;
   right: 5rem;
   text-align: right;
 }
 
-html[dir="rtl"] #notification-bar span {
+html[dir="rtl"] .notification-bar span {
   margin-left: 0;
   margin-right: 1.5rem;
 }
@@ -250,37 +352,22 @@ html[dir="rtl"] #notification-bar button {
   text-align: left;
 }
 
-html[dir="rtl"] .notification > div {
+html[dir="rtl"] #desktop-notifications-container .notification > div {
   margin-left: 0;
   margin-right: 5rem;
   text-align: right;
 }
 
-html[dir="rtl"] .notification > div.title-container .title {
+html[dir="rtl"] #desktop-notifications-container .notification > div.title-container .title {
   margin-right: 0;
   margin-left: .5rem;
 }
 
-html[dir="rtl"] .notification > div.title-container .timestamp {
+html[dir="rtl"] #desktop-notifications-container .notification > div.title-container .timestamp {
   left: 1.5rem;
   right: auto;
 }
 
-html[dir="rtl"] .notification > img {
+html[dir="rtl"] #desktop-notifications-container .notification > img {
   float: right;
-}
-
-html[dir="rtl"] #notifications-lockscreen-container .notification > div {
-  margin-left: 0;
-  margin-right: 3.6rem;
-}
-
-html[dir="rtl"] #notifications-lockscreen-container .notification > div.title-container .timestamp {
-  left: 0;
-  right: auto;
-}
-
-html[dir="rtl"] #notifications-lockscreen-container .notification > img {
-  margin-left: 0;
-  margin-right: 0;
 }

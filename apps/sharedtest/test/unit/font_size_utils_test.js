@@ -74,6 +74,13 @@ suite('shared/js/text_utils.js', function() {
     return text;
   }
 
+  // string just barely smaller than the container width, with whitespace
+  // around it that should be discarded for size calculations
+  function setupMediumStringWithSpace(size, face) {
+    text = generateStringForPixels(kContainerWidth, size, face);
+    return  '  \n  ' + text + '  \n  ';
+  }
+
   // string just barely larger than the container width
   function setupMediumPlusString(size, face) {
     text = generateStringForPixels(kContainerWidth + 1, size, face) +
@@ -361,6 +368,18 @@ suite('shared/js/text_utils.js', function() {
       var style = FontSizeUtils.getStyleProperties(el);
 
       el.textContent = setupMediumString(parseInt(fontSizeBefore));
+      FontSizeUtils.autoResizeElement(el, style);
+
+      assert.equal(fontSizeBefore, getComputedStyle(el).fontSize);
+    });
+
+
+    test('Should not resize a medium header title with space', function() {
+      var el = setupHeaderElement();
+      var fontSizeBefore = getComputedStyle(el).fontSize;
+      var style = FontSizeUtils.getStyleProperties(el);
+
+      el.textContent = setupMediumStringWithSpace(parseInt(fontSizeBefore));
       FontSizeUtils.autoResizeElement(el, style);
 
       assert.equal(fontSizeBefore, getComputedStyle(el).fontSize);

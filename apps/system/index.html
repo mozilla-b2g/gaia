@@ -3,6 +3,9 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
+    <!-- Icons -->
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css">
+
     <!-- Init Logo -->
     <link rel="stylesheet" type="text/css" href="style/system/initlogo.css">
 
@@ -33,6 +36,7 @@
     <script defer src="js/touch_forwarder.js"></script>
     <script defer src="shared/js/version_helper.js"></script>
     <script defer src="shared/js/font_size_utils.js"></script>
+    <script defer src="js/migrators/settings_migrator.js"></script>
     <!-- XXX can be removed while gecko support navigator.mozHour12 API -->
     <script defer src="shared/js/date_time_helper.js"></script>
 
@@ -56,6 +60,9 @@
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
     <link rel="stylesheet" type="text/css" href="style/chrome/chrome.css">
     <script defer src="shared/js/bookmarks_database.js"></script>
+
+
+    <link rel="stylesheet" type="text/css" href="style/attention_indicator.css">
 
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
@@ -93,6 +100,8 @@
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
     <link rel="resource" type="image/png" href="shared/resources/branding/initlogo.png"/>
     <link rel="resource" type="image/png" href="shared/resources/branding/initlogo_large.png"/>
+    <link rel="resource" type="audio/ogg" href="shared/resources/media/ringtones/ringer_firefox.opus"/>
+    <link rel="resource" type="audio/ogg" href="shared/resources/media/notifications/notifier_firefox.opus"/>
     -->
 
     <link rel="resource" type="image/png" href="shared/resources/branding/browser_84.png"/>
@@ -115,7 +124,6 @@
     <script defer src="js/sound_manager.js"></script>
     <script defer src="js/source_view.js"></script>
     <script defer src="js/hardware_buttons.js"></script>
-    <script defer src="js/dialer_agent.js"></script>
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/home_gesture.js"></script>
     <script defer src="js/wallpaper_manager.js"></script>
@@ -144,15 +152,12 @@
     <script defer src="js/input_transition.js"></script>
     <script defer src="js/ime_switcher.js"></script>
     <script defer src="js/input_frame_manager.js"></script>
+    <script defer src="js/input_layouts.js"></script>
     <script defer src="js/keyboard_manager.js"></script>
 
     <!-- Utility Tray -->
     <link rel="stylesheet" type="text/css" href="style/utility_tray/utility_tray.css">
     <script defer src="js/utility_tray.js"></script>
-
-    <!-- Attention Screen -->
-    <link rel="stylesheet" type="text/css" href="style/attention_screen.css">
-    <script defer src="js/attention_screen.js"></script>
 
     <!-- Action Menu -->
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
@@ -319,6 +324,7 @@
     <link rel="resource" type="application/l10n" href="shared/locales/download.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/voicemail.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/lockscreen.ini">
+    <link rel="resource" type="application/l10n" href="shared/elements/gaia_menu/locales/locales.ini">
 
     <!-- Payment -->
     <script defer src="js/payment.js"></script>
@@ -361,6 +367,7 @@
     <script defer src="js/child_window_factory.js"></script>
     <script defer src="js/app_modal_dialog.js"></script>
     <script defer src="js/app_chrome.js"></script>
+    <script defer src="js/attention_toaster.js"></script>
     <script defer src="js/app_transition_controller.js"></script>
     <script defer src="js/app_authentication_dialog.js"></script>
     <script defer src="js/text_selection_dialog.js"></script>
@@ -375,6 +382,11 @@
     <script defer src="js/activity_window.js"></script>
     <script defer src="js/activity_window_manager.js"></script>
     <script defer src="js/app_window_factory.js"></script>
+    <script defer src="js/attention_window.js"></script>
+    <script defer src="js/callscreen_window.js"></script>
+    <script defer src="js/dialer_agent.js"></script>
+    <script defer src="js/attention_indicator.js"></script>
+    <script defer src="js/attention_window_manager.js"></script>
     <script defer src="js/app_window_manager.js"></script>
     <script defer src="js/secure_window.js"></script>
     <script defer src="js/secure_window_factory.js"></script>
@@ -411,6 +423,9 @@
 
     <!-- Telephony Settings  -->
     <script defer src="js/telephony_settings.js"></script>
+
+    <!-- EU Roaming -->
+    <script defer src="js/eu_roaming_manager.js"></script>
 
     <!-- Internet Sharing  -->
     <script defer src="js/internet_sharing.js"></script>
@@ -505,9 +520,6 @@
             <div id="statusbar-playing" class="sb-icon sb-icon-playing" hidden role="listitem" data-l10n-id="statusbarPlaying"></div>
             <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden role="listitem" data-l10n-id="statusbarAlarm"></div>
 
-            <!-- Notifications -->
-            <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification" data-num="" hidden role="listitem"></div>
-
             <!-- Unused -->
             <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden role="listitem"></div>
 
@@ -518,8 +530,8 @@
       </div>
 
       <!-- Rocketbar Results -->
-      <div id="rocketbar-backdrop" class="hidden" data-z-index-level="rocketbar-backdrop">
-        <div id="rocketbar-backdrop-cover"></div>
+      <div id="rocketbar-backdrop" class="hidden"
+           data-z-index-level="rocketbar-backdrop">
       </div>
       <div id="rocketbar-results" class="hidden" data-z-index-level="rocketbar-results"></div>
 
@@ -527,104 +539,89 @@
       <div id="utility-tray" data-z-index-level="utility-tray">
         <!-- Placeholder for notifications -->
         <div id="notifications-placeholder"></div>
-
         <div id="utility-tray-grippy">
         </div>
       </div>
 
       <!-- Notifications -->
       <div id="utility-tray-notifications" data-l10n-id="utilityTray" role="dialog" aria-label="Utility tray" data-z-index-level="utility-tray-notifications">
-        <div id="notification-bar">
-          <span id="notification-some" data-l10n-id="notifications">Notifications</span>
-
+        <div id="notification-bar" class="fake-notification">
+          <div data-icon="notifications"></div>
+          <div id="notification-some" class="title-container" data-l10n-id="notifications">Notifications</div>
           <button id="notification-clear" data-l10n-id="clear-all" disabled>Clear all</button>
         </div>
 
         <div id="notifications-container">
+          <!-- Attention Windows -->
+          <div id="attention-window-notifications-container"></div>
           <!-- Update Manager -->
           <div id="update-manager-container" class="fake-notification" role="link">
-            <div class="icon">
-            </div>
-            <div class="activity">
-            </div>
-            <div class="message">
-            </div>
+            <div data-icon="download-circle"></div>
+            <div class="icon activity"></div>
+            <div class="title-container"></div>
           </div>
-          <!-- Emergency callback Manager -->
+          <!-- Emergency callback manager -->
           <div id="emergency-callback-notification" class="fake-notification" hidden role="link">
-            <div class="icon">
-            </div>
-            <div class="message" data-l10n-id="emergency-callback-mode">
-            </div>
-            <div class="timer">
-            </div>
+            <div data-icon="call-emergency" class="alert"></div>
+            <div class="title-container" data-l10n-id="emergency-callback-mode"></div>
+            <div class="timer detail"></div>
           </div>
           <!-- Storage watcher notification -->
           <div id="storage-watcher-container" class="fake-notification" role="link">
-            <div class="icon">
-            </div>
-            <div class="message">
-            </div>
-            <div class="available-space">
-            </div>
+            <div data-icon="storage-circle"></div>
+            <div class="title-container"></div>
+            <div class="detail"></div>
           </div>
-          <!-- Media playback notification -->
-          <div id="media-playback-container" class="fake-notification" hidden>
-            <div class="media-playback-nowplaying">
-              <div class="icon">
-              </div>
-              <div class="albumart">
-              </div>
-              <div class="title" data-l10n-id="mediaPlaybackTitle">
-              </div>
-              <div class="artist" data-l10n-id="mediaPlaybackArtist">
-              </div>
-            </div>
-            <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
-              <button class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
-              <button class="play-pause"></button>
-              <button class="next" data-l10n-id="mediaPlaybackNext"></button>
-            </div>
-          </div>
-          <!-- App Install Manager -->
+          <!-- App install manager notification -->
           <div id="install-manager-notification-container">
           </div>
-          <!-- bluetooth transfer -->
+          <!-- Bluetooth transfer -->
           <div id="bluetooth-transfer-status-list">
           </div>
-          <!-- Another entry to show IME list when the keyboard is activated -->
+          <!-- IME list -->
           <div id="keyboard-show-ime-list">
             <div class="fake-notification" role="link">
-                <div class="message">
-                </div>
-                <div class="tip">
-                </div>
+              <div data-icon="keyboard-circle"></div>
+              <div class="title-container"></div>
+              <div class="detail"></div>
             </div>
           </div>
-          <!-- media recording status -->
-          <div id="media-recoding-status-list" role="list">
+          <!-- Media recording status -->
+          <div id="media-recording-status-list" role="list">
           </div>
-
+          <!-- Notifications container -->
           <div id="desktop-notifications-container">
-            <div class='priority-notifications'></div>
-            <div class='other-notifications'></div>
+            <div class="priority-notifications"></div>
+            <div class="other-notifications"></div>
           </div>
         </div>
 
-        <!-- credit module -->
-        <div id="cost-control-widget"></div>
+        <div id="utility-tray-footer">
+          <!-- Media playback notification -->
+          <div id="media-playback-container" class="media-playback-container fake-notification" hidden>
+            <div class="media-playback-nowplaying">
+              <div class="track" data-l10n-id="mediaPlaybackTrack"></div>
+            </div>
+            <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
+              <button data-icon="skip-back" class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
+              <button data-icon="play" class="play-pause"></button>
+              <button data-icon="skip-forward" class="next" data-l10n-id="mediaPlaybackNext"></button>
+            </div>
+          </div>
 
-        <!-- quick settings -->
-        <div id="quick-settings" role="toolbar">
-          <a href="#" id="quick-settings-wifi" data-enabled="false" role="button"></a>
-          <div class="separator"></div>
-          <a href="#" id="quick-settings-data" data-enabled="false" role="button"></a>
-          <div class="separator"></div>
-          <a href="#" id="quick-settings-bluetooth" data-enabled="false" role="button"></a>
-          <div class="separator"></div>
-          <a href="#" id="quick-settings-airplane-mode" data-enabled="false" role="button"></a>
-          <div class="separator"></div>
-          <a href="#" id="quick-settings-full-app" data-enabled="false" role="button" data-l10n-id="settingsButton"></a>
+          <!-- Credit module -->
+          <div id="cost-control-widget"></div>
+
+          <!-- Quick settings -->
+          <div id="quick-settings" role="toolbar">
+            <li>
+              <ul><a href="#" id="quick-settings-wifi" class="icon" data-icon="wifi-4" data-enabled="false" role="button"></a></ul>
+              <ul><a href="#" id="quick-settings-airplane-mode" class="icon" data-icon="airplane" data-enabled="false" role="button"></a></ul>
+              <ul><a href="#" id="quick-settings-bluetooth" class="icon" data-icon="bluetooth" data-enabled="false" role="button"></a></ul>
+              <ul><a href="#" id="quick-settings-data" class="icon" data-icon="data" data-enabled="false" role="button"></a></ul>
+              <ul><a href="#" id="quick-settings-full-app" class="icon" data-icon="settings" data-enabled="false" role="button" data-l10n-id="settingsButton"></a></ul>
+            </li>
+          </div>
         </div>
       </div>
 
@@ -1042,17 +1039,14 @@
             </div>
             <div id="lockscreen-message" hidden></div>
             <div id="lockscreen-area"></div>
-            <div id="lockscreen-media-container" hidden>
+            <div id="lockscreen-media-container" class="media-playback-container fake-notification" hidden>
               <div class="media-playback-nowplaying">
-                <div class="icon"></div>
-                <div class="albumart"></div>
-                <div class="title" data-l10n-id="mediaPlaybackTitle"></div>
-                <div class="artist" data-l10n-id="mediaPlaybackArtist"></div>
+                <div class="track" data-l10n-id="mediaPlaybackTrack"></div>
               </div>
-              <div class="media-playback-controls big" role="toolbar" data-l10n-id="mediaPlaybackControls">
-                <button class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
-                <button class="play-pause"></button>
-                <button class="next" data-l10n-id="mediaPlaybackNext"></button>
+              <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
+                <button data-icon="skip-back" class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
+                <button data-icon="play" class="play-pause"></button>
+                <button data-icon="skip-forward" class="next" data-l10n-id="mediaPlaybackNext"></button>
               </div>
             </div>
             <div id="lockscreen-icon-container">
@@ -1102,10 +1096,6 @@
             -->
       </div> <!-- end of lockscreen overlay template -->
 
-      <div id="attention-screen" data-z-index-level="attention-screen">
-        <div id="attention-bar"></div>
-      </div>
-
       <div id="update-manager-toaster" data-z-index-level="notification-toaster" aria-live="assertive" aria-atomic="true">
         <div class="icon">
         </div>
@@ -1122,10 +1112,13 @@
         </div>
       </div>
 
-      <div id="notification-toaster" data-z-index-level="notification-toaster" role="link" aria-live="assertive" aria-atomic="true">
-        <img id="toaster-icon" role="presentation"/>
-        <div id="toaster-title"></div>
-        <div id="toaster-detail"></div>
+      <div id="notification-toaster" data-z-index-level="notification-toaster" role="link" aria-live="assertive" aria-atomic="true" class="notification-toaster">
+        <span id="notifications-indicator"></span>
+        <img id="toaster-icon" role="presentation" class="toaster-icon"/>
+        <div id="notification-container">
+          <div id="toaster-title" class="toaster-title"></div>
+          <div id="toaster-detail" class="toaster-detail"></div>
+        </div>
       </div>
 
       <!-- keyboard -->
@@ -1162,7 +1155,7 @@
       <!-- cards view -->
       <div id="cards-view" data-z-index-level="cards-view">
         <ul id="cards-list"></ul>
-        <span class="no-recent-apps" data-l10n-id="no-recent-apps">No recent apps</span>
+        <span id="cards-no-recent-windows" class="no-recent-apps" data-l10n-id="no-recent-app-windows">No recent windows</span>
       </div>
 
       <!-- icc / stk -->
@@ -1243,7 +1236,7 @@
       <div id="system-overlay" data-z-index-level="system-overlay">
         <div id="battery">
           <span class="icon-battery"></span>
-          <span class="battery-notification" data-l10n-id="battery-almost-empty">Battery almost empty</span>
+          <span class="battery-notification" data-l10n-id="battery-almost-empty2">Battery almost empty</span>
         </div>
 
         <div id="volume" class="vibration">
@@ -1270,15 +1263,19 @@
       </div>
 
       <div id="TextSelectionDialogRoot" data-z-index-level="text-selection-dialog"></div>
-      <div id="top-panel" class="gesture-panel" data-z-index-level="statusbar"></div>
-      <div id="left-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
-      <div id="right-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
-      <div id="bottom-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>
+
       <div id="software-buttons" data-z-index-level="software-buttons">
         <button id="software-home-button" data-l10n-id="softwareHomeButton"></button>
       </div>
-
       <button id="fullscreen-software-home-button" data-z-index-level="fullscreen-software-home-button"></button>
+      <div id="software-buttons-fullscreen-layout" data-z-index-level="fullscreen-layout-software-home-button">
+        <button id="fullscreen-layout-software-home-button" data-z-index-level="fullscreen-layout-software-home-button"></button>
+      </div>
+
+      <div id="top-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>
+      <div id="left-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
+      <div id="right-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
+      <div id="bottom-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>
 
     </div> <!-- end of #screen -->
   </body>

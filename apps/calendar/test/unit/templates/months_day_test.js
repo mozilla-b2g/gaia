@@ -1,4 +1,5 @@
 requireLib('template.js');
+requireLib('templates/date_span.js');
 requireLib('templates/months_day.js');
 
 suiteGroup('Templates.MonthsDay', function() {
@@ -23,8 +24,8 @@ suiteGroup('Templates.MonthsDay', function() {
         title: 'Lorem Ipsum',
         location: 'Dolor Sit Amet',
         attendees: null,
-        startTime: '12:34 PM',
-        endTime: '4:56 PM',
+        startTime: new Date('October 13, 2014 12:34:00'),
+        endTime: new Date('October 13, 2014 16:56:00'),
         isAllDay: false
       });
 
@@ -33,8 +34,8 @@ suiteGroup('Templates.MonthsDay', function() {
       assert.include(result, 'calendar-id-42');
       assert.include(result, 'Lorem Ipsum');
       assert.include(result, 'Dolor Sit Amet');
-      assert.include(result, '12:34 PM');
-      assert.include(result, '4:56 PM');
+      assert.include(result, '12:34');
+      assert.include(result, '16:56');
     });
 
     test('> all day event', function() {
@@ -45,8 +46,8 @@ suiteGroup('Templates.MonthsDay', function() {
         title: 'Lorem Ipsum',
         location: 'Dolor Sit Amet',
         attendees: null,
-        startTime: '12:34 PM',
-        endTime: '4:56 PM',
+        startTime: new Date('October 13, 2014 12:34:00'),
+        endTime: new Date('October 13, 2014 16:56:00'),
         isAllDay: true
       });
 
@@ -56,8 +57,8 @@ suiteGroup('Templates.MonthsDay', function() {
       assert.include(result, 'Lorem Ipsum');
       assert.include(result, 'Dolor Sit Amet');
       assert.include(result, 'data-l10n-id="hour-allday"');
-      assert.ok(result.indexOf('12:34 PM') === -1, 'include start time');
-      assert.ok(result.indexOf('4:56 PM') === -1, 'include end time');
+      assert.ok(result.indexOf('12:34') === -1, 'include start time');
+      assert.ok(result.indexOf('16:56') === -1, 'include end time');
     });
   });
 

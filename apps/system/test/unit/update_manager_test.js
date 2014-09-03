@@ -130,12 +130,9 @@ suite('system/UpdateManager', function() {
     fakeNode = document.createElement('div');
     fakeNode.id = 'update-manager-container';
     fakeNode.innerHTML = [
-      '<div class="icon">',
-      '</div>',
-      '<div class="activity">',
-      '</div>',
-      '<div class="message">',
-      '</div>'
+      '<div data-icon="download-circle"></div>',
+      '<div class="icon activity"></div>',
+      '<div class="title-container"></div>'
     ].join('');
 
     fakeToaster = document.createElement('div');
@@ -252,7 +249,7 @@ suite('system/UpdateManager', function() {
     test('should bind dom elements', function() {
       UpdateManager.init();
       assert.equal('update-manager-container', UpdateManager.container.id);
-      assert.equal('message', UpdateManager.message.className);
+      assert.equal('title-container', UpdateManager.message.className);
 
       assert.equal('update-manager-toaster', UpdateManager.toaster.id);
       assert.equal('message', UpdateManager.toasterMessage.className);

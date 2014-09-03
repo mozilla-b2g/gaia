@@ -17,7 +17,7 @@ form[role="dialog"][data-type="confirm"] p {
   border-bottom: 0.1rem solid #686868;
 }
 
-form[role="dialog"][data-type="confirm"] p small{
+form[role="dialog"][data-type="confirm"] p small {
   line-height: 2rem;
 }
 
@@ -25,8 +25,9 @@ form[data-type="confirm"] .phone-details .phone-number {
   display: inline;
 }
 
-section[role="region"] > header:first-child form {
-  display: none;
+gaia-header {
+  position: relative;
+  z-index: 10;
 }
 
 /* Override Building Block [Imput areas] styles */
@@ -40,7 +41,7 @@ form.bottom[role="search"] {
 }
 
 /* Override Building Block [Edit mode] styles */
-form[role="dialog"][data-type="edit"] header {
+form[role="dialog"][data-type="edit"] gaia-header {
   transform: translateY(-110%);
 }
 
@@ -289,7 +290,7 @@ form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(0);
 }
 
-.edit form[role="dialog"][data-type="edit"] header {
+.edit form[role="dialog"][data-type="edit"] gaia-header {
   transform: translateY(0);
 }
 
@@ -312,12 +313,8 @@ form[role="dialog"][data-type="edit"] > menu {
   Styles for new message
 */
 
-section[role="region"].new > header:first-child h1 {
+section[role="region"].new > gaia-header h1 {
   pointer-events: none;
-}
-
-section[role="region"].new > header:first-child form {
-  display: block;
 }
 
 .new #messages-contact-pick-button {
@@ -325,6 +322,10 @@ section[role="region"].new > header:first-child form {
 
   width: 5rem;
   height: 4rem;
+}
+
+section[role="region"].new > header:first-child form {
+ display: block;
 }
 
 #messages-contact-pick-button .icon-user {
@@ -376,14 +377,13 @@ section[role="region"].new > header:first-child form {
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
-  border-bottom: 0.1rem solid #ebebeb;
 
   background: rgba(255, 255, 255, 0.95);
-  color: #575757;
+  color: #333;
 }
 
 .carrier-wrapper .phone-carrier {
-  color: #237171;
+  color: #008787;
 }
 
 .has-carrier .carrier-wrapper {
@@ -396,14 +396,15 @@ section[role="region"].new > header:first-child form {
   z-index: 1;
 
   height: 2.2rem;
-  margin: 0 0 0.6rem;
+  margin: 0;
+  padding: 0.6rem 3rem;
 
   font-size: 1.4rem;
   line-height: 2.2rem;
   text-transform: uppercase;
 
-  background: rgba(255, 255, 255, 0.85);
-  color: #575757;
+  background: rgba(225, 240, 236, 0.85);
+  color: #008787;
 }
 
 /* If has carrier change top position */
@@ -411,7 +412,7 @@ section[role="region"].new > header:first-child form {
   top: 2.2rem;
 }
 
-.has-carrier #messages-container .messages-date-group-header:first-child {
+.has-carrier #messages-container > .messages-date-group:first-child > .messages-date-group-header {
   margin-top: 2.2rem;
 }
 
@@ -421,35 +422,17 @@ section[role="region"].new > header:first-child form {
 }
 
 .article-list[data-type="list"] .message {
-  position: relative;
   z-index: 0; /* bug 970422 */
 
-  display: block;
   overflow: hidden;
   width: 100%;
   height: auto;
-  margin-bottom: 1rem;
+  padding-bottom: 1rem;
   border-bottom: none;
-
-  transition: none;
 }
 
 .article-list[data-type="list"] .message.hidden {
   display: none;
-}
-
-.article-list[data-type="list"] .message .bubble p {
-  padding: 0;
-
-  line-height: 2rem;
-  font-size: 1.8rem;
-  text-align: left;
-  white-space: pre-wrap;
-  color: #333;
-}
-
-.article-list[data-type="list"] .message.no-attachment .bubble p {
-  height: 2.3rem;
 }
 
 /* remove margin for notice-button class of button */
@@ -478,25 +461,13 @@ section[role="region"].new > header:first-child form {
   pointer-events: none;
 }
 
-/* In edit mode we hide progress bar for all message types and hide background
-   for the incoming messages as checkbox should appear at the same place */
-.edit .message .bubble .message-status progress {
-  display: none;
+.edit .message .bubble {
+  pointer-events: none;
 }
 
-.edit .message.incoming .bubble .message-status {
-  background: none;
-}
-
-.edit-button {
-  background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%);
-  height: 100%;
-  width: 100%;
-  box-sizing: border-box;
-  font-weight: 600;
-  font-size: 1.6rem;
-  color: white;
-  opacity: 0.99; /* hackaround for painting bug (bug 821221) */
+.edit .message.incoming .bubble {
+  transition: transform 0.4s ease 0s;
+  transform: translateX(2.5rem);
 }
 
 .disabled {
@@ -735,10 +706,6 @@ body[role="application"] form[role="dialog"][data-type="action"] > section:first
   padding-left: 2.5rem;
 }
 
-/* building blocks overload
- * TODO load building-blocks CSS before sms.css so that we don't need !important
- * Bug XXX
- */
 form[role="dialog"][data-type="action"].contact-prompt > header {
   height: auto;
   min-height: 5rem;
@@ -783,11 +750,7 @@ form[role="dialog"][data-type="action"].contact-prompt > header {
   margin-right: -1.5rem; /* compensate the header's 3rem padding */
 }
 
-body[role="application"] form[role="dialog"][data-type="action"] > header:first-child{
-  text-align: left;
-}
-
-section[role="region"].new .article-list[data-type="list"]  li:first-child {
+section[role="region"].new .article-list[data-type="list"] li:first-child {
   margin-top: 4.6rem;
 }
 
@@ -808,6 +771,10 @@ section[role="region"].new .article-list[data-type="list"]  li {
   top: 5rem;
 }
 
+body[role="application"] form[role="dialog"][data-type="action"] > header:first-child{
+ text-align: left;
+}
+
 .subheader menu {
   position: relative;
   flex-shrink: 0;
@@ -816,17 +783,21 @@ section[role="region"].new .article-list[data-type="list"]  li {
   height: 4rem;
 }
 
+/**
+ * 1. COMPLEX: Scoped style-sheets within <gaia-header>
+ * trump all other rules. !important is required
+ * for an app to over-ride the default appearance
+ * of content within the custom-element. This may
+ * change when we get `:host` and `:content` selectors
+ * in shadow-dom.
+ */
+
 /* Elements related to information view */
 section[role="region"][class$='information'] #messages-options-icon,
 section[role="region"][class$='information'] #messages-subheader,
 section[role="region"][class$='information'] #messages-container,
 section[role="region"][class$='information'] #messages-compose-form {
-  display: none;
-}
-
-/* Override icon style with close one */
-section[role="region"].report-information > header .icon-back {
-  background-image: url(/shared/style/headers/images/icons/close.png);
+  display: none !important; /* 1 */
 }
 
 #messages-back-button:hover {
@@ -837,19 +808,6 @@ section[role="region"].report-information > header .icon-back {
 #messages-close-button {
   display: none;
 }
-
-.request-activity-mode #messages-close-button,
-.request-activity-mode .report-information #messages-back-button,
-.request-activity-mode .participants-information #messages-back-button {
-  display: block;
-}
-
-.request-activity-mode #messages-back-button,
-.request-activity-mode .report-information #messages-close-button,
-.request-activity-mode .participants-information #messages-close-button {
-  display: none;
-}
-
 
 /* Phone details label styles */
 .phone-details > .phone-details-item {

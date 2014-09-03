@@ -484,7 +484,6 @@ var CallHandler = (function callHandler() {
     LazyLoader.load(['/shared/js/mobile_operator.js',
                      '/dialer/js/mmi.js',
                      '/dialer/js/mmi_ui.js',
-                     '/shared/style/headers.css',
                      '/shared/style/progress_activity.css',
                      '/dialer/style/mmi.css'], function() {
 

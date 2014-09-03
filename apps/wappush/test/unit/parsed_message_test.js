@@ -1,22 +1,15 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global MocksHelper, ParsedMessage */
+/* global ParsedMessage */
 
 'use strict';
 
-requireApp('wappush/test/unit/mock_messagedb.js');
 requireApp('wappush/js/parsed_message.js');
-
-var mocksHelperParsedMessage = new MocksHelper([
-  'MessageDB'
-]).init();
 
 suite('ParsedMessage', function() {
   var messages;
   var timestamp;
-
-  mocksHelperParsedMessage.attachTestHelpers();
 
   suiteSetup(function() {
     timestamp = Date.now();

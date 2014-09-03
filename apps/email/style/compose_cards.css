@@ -121,6 +121,7 @@ input.cmp-subject-text {
   background: #fff;
   outline: 0;
   white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 /* Attachment */

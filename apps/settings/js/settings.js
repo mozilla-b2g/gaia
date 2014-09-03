@@ -97,16 +97,19 @@ var Settings = {
     this.SettingsService = options.SettingsService;
     this.PageTransitions = options.PageTransitions;
     this.ScreenLayout = options.ScreenLayout;
+    this.Connectivity = options.Connectivity;
 
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
     this.currentPanel = '#root';
 
+    // init connectivity when we get a chance
     navigator.mozL10n.once(function loadWhenIdle() {
       var idleObserver = {
         time: 3,
         onidle: function() {
+          this.Connectivity.init();
           navigator.removeIdleObserver(idleObserver);
         }.bind(this)
       };
@@ -160,9 +163,9 @@ var Settings = {
     if (Settings._currentActivity !== null) {
       Settings._currentActivity.postResult(null);
       Settings._currentActivity = null;
+      Settings._currentActivitySection = null;
+      Settings.SettingsService.navigate('root');
     }
-
-    Settings._currentActivitySection = null;
   },
 
   // When we finish an activity we need to leave the DOM
@@ -190,11 +193,13 @@ var Settings = {
   webActivityHandler: function settings_handleActivity(activityRequest) {
     var name = activityRequest.source.name;
     var section = 'root';
+    var options;
     Settings._currentActivity = activityRequest;
     switch (name) {
       case 'configure':
         section = Settings._currentActivitySection =
                   activityRequest.source.data.section;
+        options = activityRequest.source.data.options;
 
         if (!section) {
           // If there isn't a section specified,
@@ -222,8 +227,8 @@ var Settings = {
 
         // Go to that section
         setTimeout(function settings_goToSection() {
-          Settings.currentPanel = section;
-        });
+          Settings.SettingsService.navigate(section, options);
+        }.bind(this));
         break;
       default:
         Settings._currentActivity = Settings._currentActivitySection = null;

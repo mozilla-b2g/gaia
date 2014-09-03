@@ -1,7 +1,6 @@
 /* global assert, require, suite, test */
 'use strict';
 
-require('/js/utils.js');
 require('/js/built_in_ringtones.js');
 
 suite('built-in ringtones', function() {
@@ -23,7 +22,7 @@ suite('built-in ringtones', function() {
         done(function() {
           assert.ok(Array.isArray(tones));
           tones.forEach(function(tone) {
-            assert.ok(/^builtin:/.test(tone.id));
+            assert.ok(new RegExp('^builtin:' + toneType + '/').test(tone.id));
             assert.equal(tone.url.substr(0, baseURLs[toneType].length),
                          baseURLs[toneType]);
             assert.equal(tone.shareable, true);
@@ -35,11 +34,11 @@ suite('built-in ringtones', function() {
       });
     });
 
-    test('get(\'' + toneType + '\', toneID)', function(done) {
+    test('get(toneID)', function(done) {
       window.builtInRingtones.list(toneType).then(function(tones) {
         var expectedTone = tones[0];
         var toneID = expectedTone.id;
-        window.builtInRingtones.get(toneType, toneID).then(function(tone) {
+        window.builtInRingtones.get(toneID).then(function(tone) {
           done(function() {
             assert.equal(tone.id, expectedTone.id);
             assert.equal(tone.l10nID, expectedTone.l10nID);

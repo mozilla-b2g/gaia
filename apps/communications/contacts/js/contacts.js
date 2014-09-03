@@ -3,7 +3,6 @@
 /* global ConfirmDialog */
 /* global contacts */
 /* global ContactsTag */
-/* global DatastoreMigration */
 /* global fb */
 /* global fbLoader */
 /* global LazyLoader */
@@ -13,6 +12,7 @@
 /* global utils */
 /* global TAG_OPTIONS */
 /* global ImportStatusData */
+/* global Migrator */
 
 /* exported COMMS_APP_ORIGIN */
 /* exported SCALE_RATIO */
@@ -282,13 +282,10 @@ var Contacts = (function() {
     checkFacebookSynchronization(config);
 
     // If the migration is not complete
-    if (!config || !config.fbMigrated) {
-      LazyLoader.load('js/fb/datastore_migrator.js', function() {
-        new DatastoreMigration().start();
+    if (!config || !config.fbMigrated || !config.accessTokenMigrated) {
+      LazyLoader.load('js/migrator.js', function() {
+        Migrator.start(config);
       });
-    }
-    else {
-      window.console.info('FB Already migrated!!!');
     }
 
     // Tell audio channel manager that we want to adjust the notification
@@ -630,7 +627,9 @@ var Contacts = (function() {
     } else {
       Contacts.view('Details', function viewLoaded() {
         var simPickerNode = document.getElementById('sim-picker');
-        LazyLoader.load([simPickerNode], function() {
+        LazyLoader.load(
+          [simPickerNode, '/shared/js/contacts/contacts_buttons.js'],
+        function() {
           navigator.mozL10n.translate(simPickerNode);
           detailsReady = true;
           contactsDetails = contacts.Details;
@@ -769,7 +768,7 @@ var Contacts = (function() {
       '/contacts/js/utilities/normalizer.js',
       '/shared/js/text_normalizer.js',
       '/dialer/js/telephony_helper.js',
-      '/contacts/js/sms_integration.js',
+      '/shared/js/contacts/sms_integration.js',
       SHARED_UTILS_PATH + '/' + 'sdcard.js',
       SHARED_UTILS_PATH + '/' + 'vcard_parser.js',
       SHARED_UTILS_PATH + '/' + 'status.js',
@@ -853,15 +852,14 @@ var Contacts = (function() {
                 contactsList.refresh(enrichedContact || currentContact,
                                      checkPendingChanges, event.reason);
               }
+              notifyContactChanged(event.contactID);
           });
         } else {
-          contactsList.refresh(event.contactID, checkPendingChanges,
-            event.reason);
+          refreshContactInList(event.contactID);
         }
         break;
       case 'create':
-        contactsList.refresh(event.contactID, checkPendingChanges,
-          event.reason);
+        refreshContactInList(event.contactID);
         break;
       case 'remove':
         if (currentContact != null && currentContact.id == event.contactID &&
@@ -872,9 +870,30 @@ var Contacts = (function() {
         contactsList.remove(event.contactID, event.reason);
         currentContact = {};
         checkPendingChanges(event.contactID);
+        notifyContactChanged(event.contactID);
         break;
     }
   };
+
+  // Refresh a contact in the list, and notifies of contact
+  // changed to possible listeners.
+  function refreshContactInList(id) {
+    contactsList.refresh(id, function() {
+      notifyContactChanged(id);
+      checkPendingChanges();
+    });
+  }
+
+  // Send a custom event when we know that a contact changed and
+  // the contact list was updated.
+  // Used internally in places where the contact list is a reference
+  function notifyContactChanged(id) {
+    document.dispatchEvent(new CustomEvent('contactChanged', {
+      detail: {
+        contactID: id
+      }
+    }));
+  }
 
   var close = function close() {
     window.removeEventListener('localized', initContacts);
@@ -936,7 +955,8 @@ var Contacts = (function() {
     settings: 'settings-wrapper',
     search: 'search-view',
     overlay: 'loading-overlay',
-    confirm: 'confirmation-message'
+    confirm: 'confirmation-message',
+    ice: 'ice-view'
   };
 
   function load(type, file, callback, path) {

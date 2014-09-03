@@ -1,19 +1,18 @@
 'use strict';
 /* global MocksHelper, MockAppWindow, ChildWindowFactory,
-          MockActivityWindow, MockPopupWindow, MockSettingsListener,
-          MockAttentionScreen */
+          MockActivityWindow, MockPopupWindow, MockSettingsListener */
 /* jshint nonew: false */
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_activity_window.js');
-requireApp('system/test/unit/mock_attention_screen.js');
+requireApp('system/test/unit/mock_attention_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_activity.js');
 
 var mocksForChildWindowFactory = new MocksHelper([
   'MozActivity', 'AppWindow', 'ActivityWindow', 'PopupWindow',
-  'AttentionScreen', 'SettingsListener'
+  'SettingsListener', 'AttentionWindow'
 ]).init();
 
 suite('system/ChildWindowFactory', function() {
@@ -93,6 +92,13 @@ suite('system/ChildWindowFactory', function() {
     isApp: true
   };
 
+  var fakeAttentionDetail = {
+    'url': 'app://fakeatt.gaiamobile.org/pick.html',
+    'manifestURL': 'app://fakeatt.gaiamobile.org/manifest.webapp',
+    iframe: document.createElement('iframe'),
+    features: 'attention'
+  };
+
   test('Should only open inner sheet in setting enabled', function() {
     MockSettingsListener.mCallbacks['in-app-sheet.enabled'](false);
     var spyAppWindow = this.sinon.spy(window, 'AppWindow');
@@ -105,6 +111,19 @@ suite('system/ChildWindowFactory', function() {
       }));
     assert.isFalse(spyAppWindow.calledWithNew());
     assert.isTrue(spyPopupWindow.calledWithNew());
+  });
+
+  test('Open attention window', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var spy = this.sinon.spy(window, 'AttentionWindow');
+    var cwf = new ChildWindowFactory(app1);
+    this.sinon.stub(app1, 'hasPermission').returns(true);
+    cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
+      {
+        detail: fakeAttentionDetail
+      }));
+    assert.isTrue(spy.calledWithNew());
+    assert.deepEqual(spy.getCall(0).args[0].parentWindow, app1);
   });
 
   test('Open same origin sheets', function() {
@@ -296,6 +315,7 @@ suite('system/ChildWindowFactory', function() {
     });
 
   test('closing of popup should resume visibility and orientation', function() {
+    MockSettingsListener.mCallbacks['in-app-sheet.enabled'](false);
     var app1 = new MockAppWindow(fakeAppConfig1);
     var spy = this.sinon.spy(window, 'PopupWindow');
     var cwf = new ChildWindowFactory(app1);
@@ -306,36 +326,12 @@ suite('system/ChildWindowFactory', function() {
         detail: fakeWindowOpenPopup
       }));
     var stubLockOrientation = this.sinon.stub(app1, 'lockOrientation');
-    var stubVisible = this.sinon.stub(app1, 'setVisible');
-    MockAttentionScreen.mFullyVisible = false;
+    var stubRequestForeground = this.sinon.stub(app1, 'requestForeground');
     spy.getCall(0).returnValue.element
         .dispatchEvent(new CustomEvent('_closing', {
           detail: spy.getCall(0).returnValue
         }));
-        console.log(spy.getCall(0).returnValue);
-    assert.isTrue(stubVisible.calledWith(true));
     assert.isTrue(stubLockOrientation.called);
-  });
-
-  test('closing of popup should not resume visibility and orientation' +
-        ' if attention screen is fully opened', function() {
-    var app1 = new MockAppWindow(fakeAppConfig1);
-    var spy = this.sinon.spy(window, 'PopupWindow');
-    var cwf = new ChildWindowFactory(app1);
-    this.sinon.stub(app1, 'isActive').returns(true);
-    this.sinon.stub(app1, 'isVisible').returns(true);
-    cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
-      {
-        detail: fakeWindowOpenPopup
-      }));
-    var stubLockOrientation = this.sinon.stub(app1, 'lockOrientation');
-    var stubVisible = this.sinon.stub(app1, 'setVisible');
-    MockAttentionScreen.mFullyVisible = true;
-    spy.getCall(0).returnValue.element
-        .dispatchEvent(new CustomEvent('_closing', {
-          detail: spy.getCall(0).returnValue
-        }));
-    assert.isFalse(stubVisible.calledWith(true));
-    assert.isFalse(stubLockOrientation.called);
+    assert.isTrue(stubRequestForeground.called);
   });
 });

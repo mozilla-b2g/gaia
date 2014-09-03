@@ -1,6 +1,8 @@
 (function(window) {
   'use strict';
 
+  var DateSpan = Calendar.Templates.DateSpan;
+
   var MonthsDay = Calendar.Template.create({
     event: function() {
       var calendarId = this.h('calendarId');
@@ -17,10 +19,13 @@
       ].join(' ');
 
       this.eventTime = function() {
-        return this.arg('isAllDay') ?
-          '<div class="all-day" data-l10n-id="hour-allday"></div>' :
-          ('<div class="start-time">' + this.h('startTime') + '</div>' +
-           '<div class="end-time">' + this.h('endTime') + '</div>');
+        if (this.arg('isAllDay')) {
+          return '<div class="all-day" data-l10n-id="hour-allday"></div>';
+        }
+        var startTime = formatTime(this.arg('startTime'));
+        var endTime = formatTime(this.arg('endTime'));
+        return `<div class="start-time">${startTime}</div>
+                <div class="end-time">${endTime}</div>`;
       };
 
       this.eventDetails = function() {
@@ -50,6 +55,13 @@
              '</section>';
     }
   });
+
+  function formatTime(time) {
+    return DateSpan.time.render({
+      time: time,
+      format: 'shortTimeFormat'
+    });
+  }
 
   MonthsDay.eventSelector = '.event';
   MonthsDay.hourEventsSelector = '.events';

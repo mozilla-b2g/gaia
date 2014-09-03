@@ -875,7 +875,9 @@
 
     var rv = {};
     for (var key in node) {
-      if (key !== '_index' && (key in node)) {
+      if (key === '_index') {
+        rv[key] = node[key];
+      } else {
         rv[key] = walkContent(node[key], fn);
       }
     }
@@ -1442,18 +1444,30 @@
   }
 
   function initResources() {
-    var resLinks = document.head
-                           .querySelectorAll('link[type="application/l10n"]');
+    var nodes =
+      document.head.querySelectorAll('link[type="application/l10n"],' +
+                                     'script[type="application/l10n"]');
     var iniLinks = [];
 
-    for (var i = 0; i < resLinks.length; i++) {
-      var link = resLinks[i];
-      var url = link.getAttribute('href');
-      var type = url.substr(url.lastIndexOf('.') + 1);
-      if (type === 'ini') {
-        iniLinks.push(url);
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      var nodeName = node.nodeName.toLowerCase();
+
+      switch (nodeName) {
+        case 'link':
+          var url = node.getAttribute('href');
+          var type = url.substr(url.lastIndexOf('.') + 1);
+          if (type === 'ini') {
+            iniLinks.push(url);
+          }
+          this.ctx.resLinks.push(url);
+          break;
+        case 'script':
+          var lang = node.getAttribute('lang');
+          var locale = this.ctx.getLocale(lang);
+          locale.addAST(JSON.parse(node.textContent));
+          break;
       }
-      this.ctx.resLinks.push(url);
     }
 
     var iniLoads = iniLinks.length;

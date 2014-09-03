@@ -4,6 +4,7 @@ Calendar.ns('Views').CurrentTime = (function() {
   var activeClass = Calendar.View.ACTIVE;
   var createDay = Calendar.Calc.createDay;
   var localeFormat = Calendar.App.dateFormat.localeFormat;
+  var getTimeL10nLabel = Calendar.Calc.getTimeL10nLabel;
 
   function CurrentTime(options) {
     this._container = options.container;
@@ -103,11 +104,17 @@ Calendar.ns('Views').CurrentTime = (function() {
 
     _render: function() {
       var now = new Date();
+      var format = getTimeL10nLabel('current-time');
 
       this.element.textContent = localeFormat(
         now,
         navigator.mozL10n.get('current-time')
       );
+
+      this.element.textContent =
+        localeFormat(now, navigator.mozL10n.get(format));
+      this.element.dataset.date = now;
+      this.element.dataset.l10nDateFormat = format;
 
       var hour = now.getHours();
       var elapsedMinutes = (hour * 60) + now.getMinutes();

@@ -69,23 +69,27 @@ function openDialog(dialogID, onSubmit, onReset) {
 
 function openIncompatibleSettingsDialog(dialogId, newSetting,
   oldSetting, callback) {
-  var newSettingL10n, oldSettingL10n;
+  var headerL10nMap = {
+    'ums.enabled': 'is-warning-storage-header',
+    'tethering.usb.enabled': 'is-warning-tethering-header',
+    'tethering.wifi.enabled': 'is-warning-wifi-header'
+  };
+  var messageL10nMap = {
+    'ums.enabled': {
+      'tethering.usb.enabled': 'is-warning-storage-tethering-message'
+    },
+    'tethering.usb.enabled': {
+      'ums.enabled': 'is-warning-tethering-storage-message',
+      'tethering.wifi.enabled': 'is-warning-tethering-wifi-message'
+    },
+    'tethering.wifi.enabled': {
+      'tethering.usb.enabled': 'is-warning-wifi-tethering-message'
+    }
+  };
 
-  if (newSetting == 'ums.enabled') {
-    newSettingL10n = 'enableUSBStorage1';
-  } else if (newSetting == 'tethering.usb.enabled') {
-    newSettingL10n = 'usb-tethering';
-  } else {
-    newSettingL10n = 'wifi-hotspot';
-  }
-
-  if (oldSetting == 'ums.enabled') {
-    oldSettingL10n = 'enableUSBStorage1';
-  } else if (oldSetting == 'tethering.usb.enabled') {
-    oldSettingL10n = 'usb-tethering';
-  } else {
-    oldSettingL10n = 'wifi-hotspot';
-  }
+  var headerL10n = headerL10nMap[newSetting];
+  var messageL10n =
+    messageL10nMap[newSetting] && messageL10nMap[newSetting][oldSetting];
 
   var dialogElement = document.querySelector('.incompatible-settings-dialog'),
     dialogHead = document.querySelector('.is-warning-head'),
@@ -94,11 +98,8 @@ function openIncompatibleSettingsDialog(dialogId, newSetting,
     cancelBtn = document.querySelector('.incompatible-settings-cancel-btn'),
     mozL10n = navigator.mozL10n;
 
-  mozL10n.setAttributes(dialogHead, 'is-warning-head',
-    {'newSetting' : mozL10n.get(newSettingL10n)});
-  mozL10n.setAttributes(dialogMessage, 'is-warning-message',
-    {'newSetting' : mozL10n.get(newSettingL10n),
-    'oldSetting' : mozL10n.get(oldSettingL10n)});
+  dialogHead.setAttribute('data-l10n-id', headerL10n);
+  dialogMessage.setAttribute('data-l10n-id', messageL10n);
 
   // User has requested enable the feature so the old feature
   // must be disabled
@@ -220,6 +221,23 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
     showFormatedSize: showFormatedSize
   };
 })();
+
+/**
+ * Connectivity accessors
+ */
+var getMobileConnection = function() {
+  var mobileConnection = navigator.mozMobileConnections &&
+      navigator.mozMobileConnections[0];
+
+  if (mobileConnection && mobileConnection.data) {
+    return mobileConnection;
+  }
+  return null;
+};
+
+var getBluetooth = function() {
+  return navigator.mozBluetooth;
+};
 
 /**
  * The function returns an object of the supporting state of category of network

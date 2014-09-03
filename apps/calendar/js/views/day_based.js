@@ -363,7 +363,6 @@ Calendar.ns('Views').DayBased = (function() {
 
     _renderHour: function(hour) {
       return this.template.hour.render({
-        displayHour: Calendar.Calc.formatHour(hour),
         hour: hour
       });
     },

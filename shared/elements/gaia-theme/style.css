@@ -22,15 +22,13 @@ Customizable styles?
   --dim-micro: 6px;
   --dim-small: 14px;
   --dim-mega: 60px;
-}
 
-:root {
   /* brand colors */
   --color-brand-darkblue: #00539f;
   --color-brand-blue: #00caf2;
-  --color-brand-turquoise: #27c8c2;
+  --color-brand-turquoise: #00adad;
   --color-brand-darkorange: #e66000;
-  --color-brand-orange: #ff9500;
+  --color-brand-orange: #f97C17;
   --color-brand-yellow: #ffcb00;
   --color-brand-violet: #c40c84;
   --color-brand-alpha: #00aac5;
@@ -137,13 +135,12 @@ Customizable styles?
   /* variables */
   --background: var(--color-iota);
   --header-background: var(--color-iota);
-  --header-nav-button-color:  var(--color-alpha);
+  --header-nav-button-color:  var(--color-epsilon);
   --header-nav-button-color-active: rgba(51,51,51,0.2);
   --header-button-color: var(--color-brand-blue);
   --header-button-background: transparent;
   --header-button-color-active: rgba(0,202,242,0.2);
-  --header-title-color: var(--color-alpha);
-
+  --header-title-color: var(--color-epsilon);
 
   --button-background-active: var(--color-brand-blue);
   --button-color-active: var(--color-beta);

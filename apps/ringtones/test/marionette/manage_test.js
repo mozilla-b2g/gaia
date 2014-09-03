@@ -3,6 +3,7 @@
 'use strict';
 
 var assert = require('assert');
+var sd_card = require('./lib/sd_card');
 var Ringtones = require('./lib/ringtones');
 var Settings = require('../../../settings/test/marionette/app/app');
 var Music = require('../../../music/test/marionette/lib/music');
@@ -49,31 +50,33 @@ marionette('Ringtone management', function() {
     test('Load list of sounds', function() {
       app.inManager(soundPanel, function(container) {
         var soundLists = container.soundLists;
-        assert.equal(soundLists.length, 2,
-                     'Should have found 2 sound lists');
+        assert.equal(soundLists.length, 4,
+                     'Should have found 4 sound lists, found ' +
+                     soundLists.length);
 
-        assert.equal(soundLists[0].header.getAttribute('data-l10n-id'),
-                     'list-title-ringtone');
-        assert.equal(soundLists[1].header.getAttribute('data-l10n-id'),
-                     'list-title-custom');
-
-        assert.notEqual(soundLists[0].sounds.length, 0,
-                        'Built-in ringtone list should not be empty');
-        assert.equal(soundLists[1].sounds.length, 0,
-                     'Custom ringtone list should be empty');
-
-        assert.equal(soundLists[0].displayed(), true,
-                     'Built-in ringtone list should be displayed');
-        assert.equal(soundLists[1].displayed(), false,
-                     'Custom ringtone list should be hidden');
-
-        var names = soundLists[0].sounds.map(function(element) {
+        var expectedInfo = [
+          {l10nID: 'section-title-builtin-ringtone', visible: true},
+          {l10nID: 'section-title-custom-ringtone', visible: false},
+          {l10nID: 'section-title-builtin-alerttone', visible: true},
+          {l10nID: 'section-title-custom-alerttone', visible: false}
+        ];
+        var getName = function(element) {
           return element.name.toLocaleLowerCase();
-        });
-        assert_sorted(names, 'Tones should be sorted by name');
+        };
+        for (var i = 0; i < soundLists.length; i++) {
+          // Check basic properties of each section.
+          assert.equal(soundLists[i].header.getAttribute('data-l10n-id'),
+                       expectedInfo[i].l10nID);
+          assert.equal(soundLists[i].sounds.length !== 0,
+                       expectedInfo[i].visible);
+          assert.equal(soundLists[i].displayed(), expectedInfo[i].visible);
+
+          // Check that the tones are in sorted order.
+          var names = soundLists[i].sounds.map(getName);
+          assert_sorted(names, 'Tones should be sorted by name');
+        }
       });
     });
-
 
     test('Load custom sound', function() {
       // Inject a custom ringtone, then close and reopen the app to show it.
@@ -87,95 +90,66 @@ marionette('Ringtone management', function() {
       });
 
       app.inManager(soundPanel, function(container) {
-        var customSounds = container.soundLists[1];
-        assert.equal(customSounds.sounds.length, 1,
-                     'Custom ringtone list should have one item');
-        assert.equal(customSounds.displayed(), true,
+        var customRingtones = container.soundLists[1];
+        assert.equal(customRingtones.sounds.length, 1,
+                     'Custom ringtone list should have one item, found ' +
+                     customRingtones.sounds.length);
+        assert.equal(customRingtones.displayed(), true,
                      'Custom ringtone list should be displayed');
 
-        var myTone = customSounds.sounds[0];
+        var myTone = customRingtones.sounds[0];
         assert.equal(myTone.name, 'My ringtone');
         assert.equal(myTone.subtitle, 'Bob\'s Ringtones');
       });
     });
 
-    test('Open action menu for built-in ringtone', function() {
-      app.inManager(soundPanel, function(container) {
-        var actionsMenu = container.soundLists[0].sounds[0].openActions();
-        assert.equal(actionsMenu.shareButton.displayed(), true,
-                     'Share button should be displayed');
-        assert.equal(actionsMenu.deleteButton.displayed(), false,
-                     'Delete button should be hidden');
+    test('Load sd card ringtone', function() {
+      sd_card.injectTone(client, {
+        type: 'ringtone', filePath: 'test_media/samples/Music/b2g.ogg'
       });
-    });
-
-    test('Open action menu for custom ringtone', function() {
-      // Inject a custom ringtone, then close and reopen the app to show it.
       app.inManager(soundPanel, function(container) {
-        container.addCustomRingtone({
-          name: 'My ringtone', subtitle: 'Bob\'s Ringtones'
-        });
-        container.backButton.tap(25, 25);
-      });
-
-      app.inManager(soundPanel, function(container) {
-        var customSounds = container.soundLists[1];
-        assert.equal(customSounds.sounds.length, 1,
-                     'Custom ringtone list should have one item');
-        assert.equal(customSounds.displayed(), true,
+        var customRingtones = container.soundLists[1];
+        assert.equal(customRingtones.sounds.length, 1,
+                     'Custom ringtone list should have one item, found ' +
+                     customRingtones.sounds.length);
+        assert.equal(customRingtones.displayed(), true,
                      'Custom ringtone list should be displayed');
 
-        var actionsMenu = customSounds.sounds[0].openActions();
-        assert.equal(actionsMenu.shareButton.displayed(), true,
-                     'Share button should be displayed');
-        assert.equal(actionsMenu.deleteButton.displayed(), true,
-                     'Delete button should be displayed');
+        var customAlertTones = container.soundLists[3];
+        assert.equal(customAlertTones.sounds.length, 0,
+                     'Custom alert tone list should have no items, found ' +
+                     customAlertTones.sounds.length);
+        assert.equal(customAlertTones.displayed(), false,
+                     'Custom alert tone list should be hidden');
+
+        var myTone = customRingtones.sounds[0];
+        assert.equal(myTone.name, 'b2g');
+        assert.equal(myTone.subtitle, 'SD Card');
       });
     });
 
-    test('Share ringtone', function() {
-      app.inManager(soundPanel, function(container) {
-        // Make sure we get at least as far as being able to share to the SMS
-        // app. XXX: Later, this could be more detailed and actually check that
-        // the right data was sent...
-        var actionsMenu = container.soundLists[0].sounds[0].openActions();
-        actionsMenu.shareButton.tap();
-
-        // Make sure we can't share with ourselves, since that's weird.
-        assert.equal(actionsMenu.shareWith('Ringtones'), null,
-                     'Ringtones app shouldn\'t be in Share menu');
-
-        // Share with the messages app.
-        actionsMenu.shareWith('Messages').tap();
+    test('Load sd card alert tone', function() {
+      sd_card.injectTone(client, {
+        type: 'alerttone', filePath: 'test_media/samples/Music/b2g.ogg'
       });
-    });
-
-    test('Delete ringtone', function() {
-      // Inject a custom ringtone, then close and reopen the app to show it.
       app.inManager(soundPanel, function(container) {
-        container.addCustomRingtone({
-          name: 'My ringtone', subtitle: 'Bob\'s Ringtones'
-        });
-        container.backButton.tap(25, 25);
-      });
+        var customRingtones = container.soundLists[1];
+        assert.equal(customRingtones.sounds.length, 0,
+                     'Custom ringtone list should have no items, found ' +
+                     customRingtones.sounds.length);
+        assert.equal(customRingtones.displayed(), false,
+                     'Custom ringtone list should be hidden');
 
-      app.inManager(soundPanel, function(container) {
-        var customSounds = container.soundLists[1];
-        var numTones = customSounds.sounds.length;
+        var customAlertTones = container.soundLists[3];
+        assert.equal(customAlertTones.sounds.length, 1,
+                     'Custom alert tone list should have one item, found ' +
+                     customAlertTones.sounds.length);
+        assert.equal(customAlertTones.displayed(), true,
+                     'Custom alert tone list should be displayed');
 
-        var actionsMenu = customSounds.sounds[0].openActions();
-        actionsMenu.deleteButton.tap();
-        var dialog = actionsMenu.waitForDialog();
-        dialog.cancelButton.tap();
-        assert.equal(customSounds.sounds.length, numTones,
-                     'Tone should not have been deleted');
-
-        actionsMenu = customSounds.sounds[0].openActions();
-        actionsMenu.deleteButton.tap();
-        dialog = actionsMenu.waitForDialog();
-        dialog.confirmButton.tap();
-        assert.equal(customSounds.sounds.length, numTones - 1,
-                     'Tone should have been deleted');
+        var myTone = customAlertTones.sounds[0];
+        assert.equal(myTone.name, 'b2g');
+        assert.equal(myTone.subtitle, 'SD Card');
       });
     });
 
@@ -203,6 +177,99 @@ marionette('Ringtone management', function() {
         var myTone = customSounds.sounds[0];
         assert.equal(myTone.name, 'Boot To Gecko (B2G)');
         assert.equal(myTone.subtitle, 'Minute With');
+      });
+    });
+
+    var toneInfos = [
+      {type: 'built-in', deletable: false, listIndex: 0, setup: function() {
+      }},
+
+      {type: 'custom', deletable: true, listIndex: 1, setup: function() {
+        // Inject a custom ringtone, then close and reopen the app to show it.
+        app.inManager(soundPanel, function(container) {
+          container.addCustomRingtone({
+            name: 'My ringtone', subtitle: 'Bob\'s Ringtones', blob: {
+              name: 'my_ringtone.mp3'
+            }
+          });
+          container.backButton.tap(25, 25);
+        });
+      }},
+
+      {type: 'sd card', deletable: true, listIndex: 1, setup: function() {
+        sd_card.injectTone(client, {
+          type: 'ringtone', filePath: 'test_media/samples/Music/b2g.ogg'
+        });
+      }}
+    ];
+
+    toneInfos.forEach(function(info) {
+      suite('Actions for ' + info.type + ' ringtone', function() {
+
+        setup(info.setup);
+
+        test('Open action menu', function() {
+         app.inManager(soundPanel, function(container) {
+            var list = container.soundLists[info.listIndex];
+            var actionsMenu = list.sounds[0].openActions();
+            assert.equal(actionsMenu.shareButton.displayed(), true,
+                         'Share button should be displayed');
+            assert.equal(actionsMenu.deleteButton.displayed(), info.deletable,
+                         'Delete button should be ' +
+                         (info.deletable ? 'displayed' : 'hidden'));
+          });
+        });
+
+        test('Share ringtone', function() {
+          app.inManager(soundPanel, function(container) {
+            var list = container.soundLists[info.listIndex];
+            // Make sure we get at least as far as being able to share to the
+            // SMS app. XXX: Later, this could be more detailed and actually
+            // check that the right data was sent...
+            var actionsMenu = list.sounds[0].openActions();
+            actionsMenu.shareButton.tap();
+
+            // Make sure we can't share with ourselves, since that's weird.
+            assert.equal(actionsMenu.shareWith('Ringtones'), null,
+                         'Ringtones app shouldn\'t be in Share menu');
+
+            // Share with the messages app.
+            actionsMenu.shareWith('Messages').tap();
+          });
+        });
+
+        if (info.deletable) {
+          test('Delete ringtone', function() {
+            var numTones;
+            app.inManager(soundPanel, function(container) {
+              var list = container.soundLists[info.listIndex];
+              numTones = list.sounds.length;
+
+              var actionsMenu = list.sounds[0].openActions();
+              actionsMenu.deleteButton.tap();
+              var dialog = actionsMenu.waitForDialog();
+              dialog.cancelButton.tap();
+              assert.equal(list.sounds.length, numTones,
+                           'Tone should not have been deleted');
+
+              actionsMenu = list.sounds[0].openActions();
+              actionsMenu.deleteButton.tap();
+              dialog = actionsMenu.waitForDialog();
+              dialog.confirmButton.tap();
+              assert.equal(list.sounds.length, numTones - 1,
+                           'Tone should have been deleted');
+
+              container.backButton.tap(25, 25);
+            });
+
+            app.inManager(soundPanel, function(container) {
+              var list = container.soundLists[info.listIndex];
+              assert.equal(list.sounds.length, numTones - 1,
+                           'Tone should have remained deleted');
+            });
+          });
+        }
+
       });
     });
 

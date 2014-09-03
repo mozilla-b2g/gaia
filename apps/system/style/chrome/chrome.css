@@ -21,13 +21,14 @@
   transform: scaleY(1) translateY(0);
 }
 
-.appWindow:not(.bar).fullscreen-app > .chrome {
+.appWindow.fullscreen-app:not(.bar) > .chrome:not(.maximized) {
   height: 3rem;
   top: 0;
 }
 
 .appWindow:not(.bar).fullscreen-app > .chrome.maximized {
   top: 0;
+  transform: scaleY(1) translateY(-7.6rem);
 }
 
 .controls {
@@ -39,11 +40,17 @@
   font-size: 0;
 }
 
+.chrome .controls .windows-button {
+  display: none;
+}
+
 /* Special cases */
 .searchWindow > .chrome {
   display: none;
 }
 
+[data-manifest-name="FTU"]:not(.bar) > .chrome .controls,
+[data-manifest-name="FTU"]:not(.bar) > .chrome .progress,
 .lockScreenWindow:not(.bar) > .chrome .controls,
 .lockScreenWindow:not(.bar) > .chrome gaia-progress,
 .homescreen:not(.bar) > .chrome .controls,
@@ -63,24 +70,30 @@
   background-color: black;
 }
 
-/* Special cases for rocketbar on the Top Sites view */
-.search-app .menu-button,
-.search-app .controls .reload-button,
-.search-app .controls .stop-button {
-  display: none;
-}
-
-.search-app .chrome .controls .urlbar {
-  width: calc(100% - 1rem);
-}
-
 /* Special cases for Rocketbar in apps with browser chrome */
 .appWindow:not(.browser) .chrome .controls .menu-button {
   display: none;
 }
 
+.appWindow.fullscreen-app:not(.browser) .chrome .controls .urlbar,
 .appWindow:not(.browser) .chrome .controls .urlbar {
   width: calc(100% - 1rem);
+}
+
+/* Special cases for rocketbar on the Top Sites view */
+.search-app .menu-button,
+.search-app .controls .reload-button,
+.search-app .controls .stop-button
+.chrome .controls .windows-button {
+  display: none;
+}
+
+.appWindow.search-app .chrome .controls .urlbar {
+  width: calc(100% - 4.5rem);
+}
+
+.search-app .chrome .controls .windows-button {
+  display: inline;
 }
 
 /* URL bar */
@@ -177,7 +190,7 @@
   transition: transform 0.2s ease-in-out;
 }
 
-.appWindow.fullscreen-app .controls .urlbar {
+.appWindow.fullscreen-app .chrome:not(.maximized) .controls .urlbar {
   transform: scale(0.6521) translateY(0.2rem);
   transform-origin: bottom left;
 }
@@ -345,6 +358,10 @@
   background-image: url("images/dark/overflow.png");
 }
 
+.light .controls .windows-button {
+  background-image: url('images/dark/windows.png');
+}
+
 .light .controls .menu-button:active {
   background-image: url("images/dark/overflow_active.png");
 }
@@ -476,14 +493,14 @@
 }
 
 /* App specifics */
-.appWindow:not(.scrollable) > .chrome .controls button {
+.appWindow:not(.scrollable) > .chrome:not(.maximized) .controls button {
   display: none;
 }
 
-.appWindow:not(.scrollable) > .chrome .controls .forward-button:not([disabled]) + .urlbar,
-.appWindow:not(.scrollable) > .chrome .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
-.appWindow:not(.scrollable) > .chrome .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar,
-.appWindow:not(.scrollable) > .chrome .controls .urlbar {
+.appWindow:not(.scrollable) > .chrome:not(.maximized) .controls .forward-button:not([disabled]) + .urlbar,
+.appWindow:not(.scrollable) > .chrome:not(.maximized) .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
+.appWindow:not(.scrollable) > .chrome:not(.maximized) .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar,
+.appWindow:not(.scrollable) > .chrome:not(.maximized) .controls .urlbar {
   width: calc(100% - 8rem);
 }
 

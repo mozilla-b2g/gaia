@@ -1,5 +1,5 @@
 /* globals CallsHandler, FontSizeManager, KeypadManager, LazyL10n,
-           LockScreenSlide, MozActivity, SettingsListener */
+           LockScreenSlide, MozActivity, SettingsListener, Utils */
 /* jshint nonew: false */
 
 'use strict';
@@ -268,7 +268,6 @@ var CallScreen = {
     }
 
     var screen = this.screen;
-    screen.classList.toggle('displayed');
 
     // If we toggle the class during the transition we'll loose the
     // transitionend ; and we have no opening transition for incoming locked
@@ -443,7 +442,6 @@ var CallScreen = {
         number: ''
       }
     });
-    window.resizeTo(100, 40);
   },
 
   render: function cs_render(layout_type) {
@@ -453,7 +451,11 @@ var CallScreen = {
   showClock: function cs_showClock(now) {
     LazyL10n.get(function localized(_) {
       var f = new navigator.mozL10n.DateTimeFormat();
-      var timeFormat = _('shortTimeFormat').replace('%p', '<span>%p</span>');
+      var timeFormat = window.navigator.mozHour12 ? _('shortTimeFormat12') :
+                                                    _('shortTimeFormat24');
+      // FIXME/bug 1060333: Replace span with hidden mechanism.
+      // Don't show am/pm (for 12 or 24 time) in the callscreen
+      timeFormat = timeFormat.replace('%p', '<span>%p</span>');
       var dateFormat = _('longDateFormat');
       this.lockedClockTime.innerHTML = f.localeFormat(now, timeFormat);
       this.lockedDate.textContent = f.localeFormat(now, dateFormat);
@@ -521,22 +523,11 @@ var CallScreen = {
     durationChildNode.textContent = '00:00';
     durationNode.classList.add('isTimer');
 
-    function padNumber(n) {
-      return n > 9 ? n : '0' + n;
-    }
-
     LazyL10n.get(function localized(_) {
       var ticker = setInterval(function ut_updateTimer(startTime) {
         // Bug 834334: Ensure that 28.999 -> 29.000
         var delta = Math.round((Date.now() - startTime) / 1000) * 1000;
-        var elapsed = new Date(delta);
-        var duration = {
-          h: padNumber(elapsed.getUTCHours()),
-          m: padNumber(elapsed.getUTCMinutes()),
-          s: padNumber(elapsed.getUTCSeconds())
-        };
-        durationChildNode.textContent = _(elapsed.getUTCHours() > 0 ?
-          'callDurationHours' : 'callDurationMinutes', duration);
+        durationChildNode.textContent = Utils.prettyDuration(delta);
       }, 1000, Date.now());
       durationNode.dataset.tickerId = ticker;
     });

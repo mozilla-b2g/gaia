@@ -3,7 +3,9 @@
     "apps/calendar/test/marionette/alarm_test.js": "Bug 994976 - Perma-red TBPL test, alarm > without alarm mocks create two events with simultaneous reminders",
     "apps/calendar/test/marionette/caldav_test.js": "Bug 972631 - CalDAV setup causing tbpl timeouts",
     "apps/calendar/test/marionette/server_test.js": "",
+    "apps/calendar/test/marionette/week_view_test.js": "Bug 1060447 - Re-enable week_view_test.js",
     "apps/calendar/test/marionette/toggle_calendar_test.js": "Bug 1007519 - Perma failing test, toggle calendar > regular event disable calendar day view",
+    "apps/calendar/test/marionette/create_event_test.js": "Bug 1059159 - Intermittent failing test, TEST-UNEXPECTED-FAIL | /builds/slave/test/gaia/apps/calendar/test/marionette/create_event_test.js",
     "apps/camera/test/marionette/capture_test.js": "device only - missing desktop shims",
     "apps/camera/test/marionette/hud_test.js": "device only - missing desktop shims",
     "apps/camera/test/marionette/settings_test.js": "device only - missing desktop shims",
@@ -23,7 +25,6 @@
     "apps/homescreen/test/marionette/install_bookmark_test.js": "legacy",
     "apps/homescreen/test/marionette/remove_bookmark_test.js": "legacy",
     "apps/homescreen/test/marionette/update_bookmark_test.js": "legacy",
-    "apps/ringtones/test/marionette/manage_test.js": " Bug 1037716 - TEST-UNEXPECTED-FAIL | Ringtone management Manage ringtones Create new ringtone",
     "apps/search/test/marionette/app_search_test.js": " Bug 1035936 - TEST-UNEXPECTED-FAIL | Search - App search Search for app with entry point",
     "apps/settings/test/marionette/tests/airplane_mode_settings_test.js": "",
     "apps/settings/test/marionette/tests/app_permission_settings_test.js": "Bug 1004348 - Disable intermittent failing test, manipulate app permissions set geolocation of first app to Grant",
@@ -34,6 +35,7 @@
     "apps/system/test/marionette/homescreen_navigation_test.js": "Bug 1043870 - TEST-UNEXPECTED-FAIL | Homescreen navigation > Going to the homescreen and back to a warm app",
     "apps/system/test/marionette/notification_get_test.js": "Bug 960126 - TEST-UNEXPECTED-FAIL | Notification.get(): should work across domains",
     "apps/system/test/marionette/notification_resend_test.js": " Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
-    "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon"
+    "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
+    "apps/verticalhome/test/marionette/bookmark_uninstall_test.js": "Bug 1033223 - [Vertical homescreen] Intermittent MarionetteJS failure on Travis: 1) Vertical - Bookmark Uninstall removal of bookmark: NoSuchElement: (7) Unable to locate element: gaia-confirm[data-type=\"remove\"]"
   }
 }

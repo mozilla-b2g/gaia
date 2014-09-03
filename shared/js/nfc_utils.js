@@ -3,7 +3,7 @@
 
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
-/* globals dump, MozNDEFRecord, TextEncoder, TextDecoder, StringHelper */
+/* globals MozNDEFRecord, TextEncoder, TextDecoder, StringHelper */
 /* exported NDEF, NfcBuffer, NfcUtils */
 'use strict';
 
@@ -385,23 +385,6 @@
   function NfcUtils() { }
 
   NfcUtils.prototype = {
-
-    DEBUG: false,
-
-    _debug: function debug(msg, optObject) {
-      if (this.DEBUG) {
-        var output = '[DEBUG] NFC-UTIL: ' + msg;
-        if (optObject) {
-          output += JSON.stringify(optObject);
-        }
-        if (typeof dump !== 'undefined') {
-          dump(output + '\n');
-        } else {
-          console.log(output);
-        }
-      }
-    },
-
     /**
      * Returns an Uint8Array representation of a string.
      *
@@ -573,7 +556,7 @@
       try {
         return this._doParseNDEF(buffer);
       } catch (err) {
-        this._debug(err);
+        console.error('[NfcUtils]: ' + err);
         return null;
       }
     },

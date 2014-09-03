@@ -230,7 +230,9 @@ contacts.Settings = (function() {
   }
 
   function showICEScreen(cb) {
-    LazyLoader.load(['/contacts/js/ice.js'], function(){
+    LazyLoader.load([
+      '/contacts/js/views/ice_settings.js',
+      '/shared/js/contacts/utilities/ice_store.js'], function(){
       contacts.ICE.init();
       navigationHandler.go('ice-settings', 'right-left');
       if (typeof cb === 'function') {

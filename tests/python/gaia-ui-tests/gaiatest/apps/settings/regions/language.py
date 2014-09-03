@@ -11,8 +11,12 @@ from gaiatest.apps.base import Base
 class Language(Base):
 
     _select_language_locator = (By.CSS_SELECTOR, "select[name='language.current']")
+    _language_options_locator = (By.CSS_SELECTOR, "select[name='language.current'] option")
     _header_locator = (By.CSS_SELECTOR, '.current gaia-header')
     _language_locator = (By.ID, 'languages')
+
+    def wait_for_languages_to_load(self):
+        self.wait_for_condition(lambda m: len(m.find_elements(*self._language_options_locator)) > 0)
 
     def go_back(self):
         self.wait_for_element_displayed(*self._header_locator)

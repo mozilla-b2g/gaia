@@ -18,6 +18,7 @@
     close: wpm_close,
     displayWapPushMessage: wpm_displayWapPushMessage,
     onVisibilityChange: wpm_onVisibilityChange,
+    onWapPushReceived: wpm_onWapPushReceived,
     setOnCloseCallback: wpm_setOnCloseCallback,
     clearNotifications: wpm_clearNotifications,
     enableAcceptButton: wpm_enableAcceptButton
@@ -27,29 +28,29 @@
   var wapPushEnableKey = 'wap.push.enabled';
 
   /** Enable/disable WAP Push notifications */
-  var wapPushEnabled = true;
+  var wapPushEnabled;
 
   /** A reference to the app's object */
-  var app = null;
+  var app;
 
   /** Accept button node */
-  var acceptButton = null;
+  var acceptButton;
 
   /** Header node - which has the close button */
-  var header = null;
+  var header;
 
   /** Callback function to be invoqued when closing the app from either mode
     * CP or SI/SL */
-  var onCloseCallback = null;
+  var onCloseCallback;
 
   /** Timer used to schedule a close operation */
-  var closeTimeout = null;
+  var closeTimeout;
 
   /**
    * Number of messages that have been received but haven't been fully
    * processed yet
    */
-  var pendingMessages = 0;
+  var pendingMessages;
 
   /**
    * Returns a promise used to retrieve the app's own object.
@@ -60,8 +61,8 @@
     return new Promise(function(resolve, reject) {
       var req = navigator.mozApps.getSelf();
 
-      req.onsuccess = function wpm_gotApp(event) {
-        resolve(event.target.result);
+      req.onsuccess = function wpm_gotApp() {
+        resolve(this.result);
       };
       req.onerror = function wpm_getAppError() {
         reject(this.error);
@@ -79,7 +80,7 @@
       var req = navigator.mozSettings.createLock().get(wapPushEnableKey);
 
       req.onsuccess = function wpm_settingsLockSuccess() {
-        resolve(req.result[wapPushEnableKey]);
+        resolve(this.result[wapPushEnableKey]);
       };
       req.onerror = function wpm_settingsLockError() {
         reject(this.error);
@@ -92,9 +93,16 @@
    * wappush-received message handler at the moment.
    *
    * @return {Object} A promise that will be fullfilled once the component has
-   *         been fully initialized
+   *         been fully initialized.
    */
   function wpm_init() {
+    // Reset the internal state to default values.
+    wapPushEnabled = true;
+    app = null;
+    onCloseCallback = null;
+    closeTimeout = null;
+    pendingMessages = 0;
+
     // Listen to settings changes right away
     navigator.mozSettings.addObserver(wapPushEnableKey, wpm_onSettingsChange);
 
@@ -123,7 +131,8 @@
       // If we encountered an error don't process messages
       wapPushEnabled = false;
       error = error || 'Unknown error';
-      console.error('Could not initialize:', error);
+      console.error('Could not initialize: ', error);
+      return error;
     });
 
     return promise;
@@ -241,9 +250,15 @@
   /**
    * Handler for the wappush-received system messages, stores the message into
    * the internal database and posts a notification which can be used to
-   * display the message.
+   * display the message. This method returns a promise which is currently used
+   * only when testing. It is also exposed for testing reasons but shouldn't be
+   * used outside of this file.
    *
    * @param {Object} wapMessage The WAP Push message as provided by the system.
+   *
+   * @return {Object} A promise that is resolved when the method executed
+   *         successfully or rejected with the error code that caused the
+   *         method to fail.
    */
   function wpm_onWapPushReceived(wapMessage) {
     DUMP('Received a message: ', wapMessage);
@@ -254,26 +269,25 @@
     if (!wpm_shouldDisplayMessage(message)) {
       DUMP('The message will not be displayed');
       wpm_finish();
-      return;
+      return Promise.resolve();
     }
 
-    message.save(
-      function wpm_saveSuccess(status) {
-        if (status === 'discarded') {
-          DUMP('The message was discarded');
-          wpm_finish();
-          return;
-        }
-
-        DUMP('The message was successfully saved to the DB');
-        wpm_sendNotification(message);
+    return message.save().then(function wpm_saveResolved(status) {
+      if (status === 'discarded') {
+        DUMP('The message was discarded');
         wpm_finish();
-      },
-      function wpm_saveError(error) {
-        console.log('Could not add a message to the database: ' + error + '\n');
-        wpm_finish();
+        return Promise.resolve();
       }
-    );
+
+      DUMP('The message was successfully saved to the DB');
+      wpm_sendNotification(message);
+      wpm_finish();
+      return Promise.resolve();
+    }).catch(function wpm_saveRejected(error) {
+      console.log('Could not add a message to the database: ' + error + '\n');
+      wpm_finish();
+      return error;
+    });
   }
 
   /**
@@ -299,19 +313,20 @@
    * Retrieves a WAP Push message from the database and displays it
    *
    * @param {String} timestamp The message timestamp as a string.
+   * @return {Promise} A promise that resolves once the message has been
+   *                   displayed and the associated notification cleared.
    */
   function wpm_displayWapPushMessage(timestamp) {
     DUMP('Displaying message ' + timestamp);
 
-    ParsedMessage.load(timestamp,
-      function wpm_loadSuccess(message) {
+    return ParsedMessage.load(timestamp).then(
+      function wpm_loadResolved(message) {
         if (message) {
           switch (message.type) {
             case 'text/vnd.wap.si':
             case 'text/vnd.wap.sl':
               SiSlScreenHelper.populateScreen(message);
-              wpm_clearNotifications(timestamp);
-              break;
+              return wpm_clearNotifications(timestamp);
             case 'text/vnd.wap.connectivity-xml':
               CpScreenHelper.populateScreen(message);
               break;
@@ -319,27 +334,31 @@
         } else {
           // Notify the user that the message has expired
           SiSlScreenHelper.populateScreen();
-          wpm_clearNotifications(timestamp);
+          return wpm_clearNotifications(timestamp);
         }
-      },
-      function wpm_loadError(error) {
-        console.log('Could not retrieve the message:' + error + '\n');
       }
-    );
+    ).catch(function(error) {
+      console.error('Could not retrieve the message: ' + error.name + '\n');
+      return error;
+    });
   }
 
   /**
-   * Remove notifications for a given tag
+   * Remove notifications for a given tag.
+   *
+   * @return {Promise} A promise that gets resolved once the notifications have
+   *                   been cleared and rejects in case of error.
    */
   function wpm_clearNotifications(tag) {
-    Notification.get({tag: tag}).then(
+    return Notification.get({tag: tag}).then(
       function onSuccess(notifications) {
         for (var i = 0; i < notifications.length; i++) {
           notifications[i].close();
         }
       },
-      function onError(reason) {
-        console.error('Notification.get() promise error: ' + reason);
+      function onError(error) {
+        console.error('Notification.get() promise error: ' + error.name);
+        return error;
       }
     );
   }

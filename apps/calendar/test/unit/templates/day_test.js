@@ -1,3 +1,6 @@
+requireLib('template.js');
+requireLib('templates/date_span.js');
+
 suiteGroup('Templates.Day', function() {
   'use strict';
 
@@ -23,14 +26,12 @@ suiteGroup('Templates.Day', function() {
 
       var result = renderHTML('hour', {
         hour: 1,
-        displayHour: 'fooz',
         items: a()
       });
 
       assert.ok(result);
-      assert.include(result, 'fooz');
       assert.include(result, a());
-      assert.include(result, 'data-l10n-date-format="hour-format"');
+      assert.include(result, 'data-l10n-date-format="hour-format24"');
       assert.include(result, 'data-date="' + date + '"');
       assert.include(result, 'data-hour="1"');
     });
@@ -38,12 +39,10 @@ suiteGroup('Templates.Day', function() {
     test('> all day', function() {
       var result = renderHTML('hour', {
         hour: Calendar.Calc.ALLDAY,
-        displayHour: 'foozbar',
         items: a()
       });
 
       assert.ok(result);
-      assert.include(result, 'foozbar');
       assert.include(result, a());
       assert.include(result, 'data-l10n-id="hour-allday"');
       assert.include(result, 'data-hour="allday"');

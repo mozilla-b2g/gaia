@@ -27,6 +27,8 @@
     <link href="/shared/pages/import/style/curtain_frame.css" rel="stylesheet">
     <link href="/contacts/style/status.css" rel="stylesheet">
     <link href="/contacts/style/fb_extensions.css" rel="stylesheet">
+    <link href="/shared/style/contacts.css" rel="stylesheet">
+    <link href="/shared/style/contacts/contacts_buttons.css" rel="stylesheet">
 
     <!-- For contacts import/export:
     <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/sdcard.js"></script>
@@ -94,6 +96,8 @@
     <link href="/shared/js/sim_settings_helper.js">
     <link href="/shared/js/sim_picker.js">
     <link href="/shared/js/nfc_utils.js">
+    <link href="/shared/js/contacts/sms_integration.js">
+    <link href="/shared/js/contacts/contacts_buttons.js">
 
     <link href="/shared/js/contacts/import/facebook/fb_data.js">
     <link href="/shared/js/contacts/import/facebook/fb_utils.js">
@@ -106,6 +110,8 @@
 
     <link rel="import" href="elements/confirm.html">
     <link rel="import" href="elements/details.html">
+    <link rel="import" href="elements/phone_details.html">
+    <link rel="import" href="elements/email_details.html">
     <link rel="import" href="elements/form.html">
     <link rel="import" href="elements/overlay.html">
     <link rel="import" href="elements/screenshot.html">
@@ -113,6 +119,7 @@
     <link rel="import" href="elements/settings.html">
     <link rel="import" href="elements/status.html">
     <link rel="import" href="elements/tag.html">
+    <link rel="import" href="elements/ice.html">
     <link rel="import" href="/shared/elements/sim_picker.html">
     <!--
     <link href="/shared/pages/import/oauth.html">
@@ -229,5 +236,6 @@
     <section is="status-message" id="statusMsg" role="status" class="hidden"></section>
     <form    is="confirmation-message" id="confirmation-message" class="hide" role="dialog" data-type="confirm"></form>
     <form    is="sim-picker" id="sim-picker" role="dialog" data-type="action" hidden></form>
+    <section is="ice-view" id="ice-view" role="region" class="view view-right hidden"></section>
   </body>
 </html>

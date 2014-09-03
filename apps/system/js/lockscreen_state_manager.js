@@ -68,7 +68,7 @@
   function lssm_start(lockScreen) {
     this.lockScreen = lockScreen;
     this.logger = (new LockScreenStateLogger()).start({
-      graph: true
+      debug: false
     });
     this.configs = {
       listenEvents: [
@@ -237,9 +237,8 @@
   LockScreenStateManager.prototype.transfer =
   function lssm_transfer(currentStates) {
     this.logger
-      .debug('Do transfer; input and stack: ', currentStates)
-      .debug('Previous state:', this.previousState.type)
-      .stack();
+      .debug('Do transfer; input: ', currentStates)
+      .debug('Previous state:', this.previousState.type);
 
     // Not unlocking and not locked.
     // Unlocking would be set false after the System got unlocked,

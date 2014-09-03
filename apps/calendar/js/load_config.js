@@ -339,6 +339,13 @@ Calendar.LoadConfig = (function() {
         ]
       },
 
+      'Templates.DurationTime': {
+        js: [
+          'template',
+          'templates/duration_time'
+        ]
+      },
+
       'Templates.Month': {
         js: [
           'template',
@@ -349,7 +356,7 @@ Calendar.LoadConfig = (function() {
       'Templates.MonthsDay': {
         js: [
           'template',
-          'templates/month'
+          'templates/months_day'
         ]
       },
 

@@ -1,127 +1,153 @@
+.message.incoming {
+  padding-left: 1.5rem;
+  padding-right: 4rem;
+}
+
+.message.outgoing {
+  padding-left: 4rem;
+  padding-right: 1.5rem;
+}
+
 .message .bubble {
   box-sizing: border-box;
   height: 100%;
-  max-width: calc(100% - 4rem);
+  max-width: 100%;
+  padding: 1rem 1.5rem;
   overflow: visible;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
 }
 
 .message.outgoing .bubble {
   float: right;
 
-  border-radius: 0.3rem 0 0 0.3rem;
+  border-radius: 1.5rem 0 1.5rem 1.5rem;
 
-  background: #f5f5f5;
+  background: #fff;
+  color: #333;
 }
 
 .message.incoming .bubble {
   float: left;
 
-  border-radius: 0 0.3rem 0.3rem 0;
+  border-radius: 0 1.5rem 1.5rem 1.5rem;
 
-  background: #9ef2e7;
+  background: #39c3c2;
+  color: #fff;
 }
 
-.message.error .bubble {
-  background: #fedcdc;
+/* BB overrides */
+
+.message.outgoing p:first-of-type:last-of-type,
+.message.incoming p:first-of-type:last-of-type {
+  padding-top: 0.5rem;
+
+  line-height: 2rem;
+  white-space: pre-wrap;
 }
+
+.message.incoming p:first-of-type {
+  color: #fff;
+}
+
+.message.sending p:first-of-type {
+  color: #bfbfbf;
+}
+
+/* End of BB overrides */
+
+.outgoing.error .bubble {
+  background: #fae1df;
+}
+
+.incoming.error .bubble {
+  background: #ff9898;
+}
+
 
 .message.sending .bubble {
-  color: #5f5f5f;
+  color: #bfbfbf;
 }
 
-/* Message content */
-.message .message-content {
-  display: flex;
-  align-items: center;
+.message.sending .attachment-container {
+  opacity: 0.5;
 }
-
-.message.outgoing .message-content {
-  flex-direction: row-reverse;
-}
-
 
 /* Message Subject */
 .message .message-subject {
   display: none;
 
-  padding: 0.65rem 0;
+  margin-bottom: 1rem;
 
   font-size: 1.4rem;
   font-style: italic;
   line-height: 1.7rem;
-
-  background: rgba(51, 51, 51, 0.05);
-}
-
-.message.incoming .message-subject {
-  padding-left: 4rem;
-  padding-right: 1.5rem;
-
-  border-top-right-radius: 0.3rem;
-}
-
-.message.outgoing .message-subject {
-  padding-left: 1.5rem;
-  padding-right: 4rem;
-
-  border-top-left-radius: 0.3rem;
 }
 
 .message.has-subject .message-subject {
   display: block;
 }
 
-
-/* Message Body styles */
-.message .message-body {
-  flex: 1;
-  padding: 1.5rem 1.5rem 1rem;
-  min-width: 0;
-}
-
-.message.incoming .message-body {
-  padding-left: 0;
-}
-
-.message.outgoing .message-body {
-  padding-right: 0;
-}
-
-.message .message-body a {
+/* Message content styles */
+.message .message-content a {
   color: #333;
   text-decoration: underline;
 }
 
-.message .message-body a:active {
+.message .message-content a:active {
   color: #ff4e00;
 }
 
 .message-details {
-  color: #000;
+  margin-top: 0.5rem;
+
   font-size: 1.4rem;
-  line-height: 2.3rem;
-  opacity: 0.7;
+  line-height: 2rem;
+}
+
+.message-details > * {
+  float: left;
 }
 
 .message-details time {
   display: unset;
 }
 
+.message.sending time,
+.message.sending .message-sim-information {
+  display: none;
+}
+
+.message.outgoing .message-details {
+  color: #858585;
+}
+
+.message.outgoing.error .message-details {
+  color: #e97f79;
+}
+
+.message.incoming .message-details {
+  color: #d1eeee;
+}
+
+.message.incoming.error .message-details {
+  color: #ffe0dc;
+}
+
+.message-sim-information {
+  margin-right: 0.4rem;
+}
+
 .message-sim-information::after {
-  content: ' ‧ '
+  content: ' ‧ ';
 }
 
 /* Message status aside panel */
 .message .message-status {
-  float: none;
+  height: 2rem;
+  min-width: 3rem;
 
-  /* We need to have height to show background */
-  min-height: 3rem;
-  width: 4rem;
-  margin: 0;
-
-  background: no-repeat center center / 3rem;
-  z-index: auto;
+  background: no-repeat center center / 1.6rem;
+  font-size: 1.4rem;
 }
 
 .message.error .message-status {
@@ -134,17 +160,6 @@
 
 .message.read .message-status {
   background-image: url('images/icons/message_read.png');
-}
-
-.message .message-status progress {
-  display: none;
-
-  margin: 0 auto;
-}
-
-.message.pending .message-status progress,
-.message.sending .message-status progress {
-  display: block;
 }
 
 .message.pending .message-status,
@@ -161,19 +176,18 @@
   width: auto;
   padding: 0;
   /* Eliminating container paragraph line-height */
-  margin-top: -1rem;
+  margin: -1.5rem 0 0;
 
   background: none;
+  color: #fff;
   border: none;
   /* We're using border-bottom instead of just underline style as line is too
      close to the text and doesn't look similar to visual spec. */
-  border-bottom: 1px solid #333;
-  font-size: 1.8rem;
+  border-bottom: 1px solid #fff;
 }
 
 .message .download:active {
-  border-color: #038282;
-  color: #038282;
+  opacity: 0.85;
 }
 
 /* hide download button via css on expired messages */
@@ -183,4 +197,5 @@
 
 .message.pending .download {
   border-color: transparent;
+  opacity: 0.8;
 }

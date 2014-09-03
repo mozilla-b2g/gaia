@@ -1,4 +1,5 @@
 /* global Notification,
+  NotificationHelper,
   Promise,
   Utils
 */
@@ -7,14 +8,18 @@
 (function(exports) {
 
 var form;
-var style;
 
 function init() {
   form = document.querySelector('form');
   form.addEventListener('submit', onFormSubmit);
-  sendNotification().catch((err) => {
-    console.error('Error while sending a notification', err);
+
+  navigator.mozL10n.once(function () {
+    sendNotification().catch((err) => {
+      console.error('Error while sending a notification', err);
+    });
   });
+
+  document.addEventListener('visibilitychange', onVisibilityChange);
 }
 
 function sendNotification() {
@@ -24,43 +29,60 @@ function sendNotification() {
     return Promise.resolve();
   }
 
-  var title = params.title;
-  var body = params.body;
-
-  var notification = new Notification(
-    title, {
-      body: body,
-      tag: '' + Date.now(), // needs to be unique
-      icon: window.location.origin + '/style/icons/icon-68.png?style=' + style
-    }
-  );
-
   return new Promise(function(resolve, reject) {
-    notification.onerror = function onerror() {
-      reject(new Error());
+    var title = params.title;
+    var body = params.body;
+    var req = navigator.mozApps.getSelf();
+
+    req.onsuccess = function onsuccess(event) {
+      var app = event.target.result;
+
+      var notification = new Notification(
+        navigator.mozL10n.get(title), {
+          body: body,
+          tag: '' + Date.now(), // needs to be unique
+          icon: NotificationHelper.getIconURI(app) + '?titleID=' + title
+        }
+      );
+
+      notification.onerror = function onerror() {
+        reject(new Error('CMAS: notification API error'));
+      };
+
+      notification.onshow = resolve;
     };
 
-    notification.onshow = resolve;
+    req.onerror = function onerror() {
+      reject(new Error('CMAS: App getSelf request error'));
+    };
   });
+}
+
+function closeApp() {
+  // make sure we close both parent and child window
+  window.opener ? window.opener.close() : window.close();
 }
 
 function onFormSubmit(e) {
   e.preventDefault();
-  window.close();
+  // Close parent(if exist) and child attention window after user click ok
+  closeApp();
+}
+
+function onVisibilityChange() {
+  // Close app when app resized as top banner and moved to background
+  if (document.hidden && !document.querySelector('h1').clientHeight) {
+    closeApp();
+  }
 }
 
 function renderForm() {
   var params = Utils.parseParams();
 
-  if (params.style) {
-    document.body.classList.add(params.style);
-    style = params.style;
-  }
-
   var title = params.title;
   var body = params.body;
 
-  form.querySelector('h1').textContent = title;
+  form.querySelector('h1').setAttribute('data-l10n-id', title);
   form.querySelector('p').textContent = body;
 }
 

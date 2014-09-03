@@ -1,7 +1,7 @@
 /* globals PerformanceTestingHelper, Contacts, CallLogDBManager, LazyLoader,
            Utils, LazyL10n, StickyHeader, KeypadManager, SimSettingsHelper,
-           CallHandler, PhoneNumberActionMenu, AccessibilityHelper,
-           ConfirmDialog, Notification, fb */
+           CallHandler, AccessibilityHelper,
+           ConfirmDialog, Notification, fb, CallGroupMenu */
 
 'use strict';
 
@@ -29,9 +29,9 @@ var CallLog = {
       '/shared/style/lists.css',
       '/shared/js/confirm.js',
       '/shared/js/dialer/utils.js',
-      '/dialer/js/phone_action_menu.js',
       '/shared/js/sticky_header.js',
-      '/shared/js/sim_settings_helper.js'
+      '/shared/js/sim_settings_helper.js',
+      '/shared/js/date_time_helper.js'
     ];
     var self = this;
 
@@ -69,11 +69,11 @@ var CallLog = {
         'call-log-container',
         'call-log-edit-mode',
         'call-log-filter',
-        'call-log-icon-close',
         'call-log-icon-edit',
         'call-log-view',
         'deselect-all-threads',
         'delete-button',
+        'edit-mode-header',
         'header-edit-mode-text',
         'missed-filter',
         'select-all-threads',
@@ -93,9 +93,11 @@ var CallLog = {
         self._ = _;
         self.render();
 
+        window.addEventListener('timeformatchange',
+          self._updateCallTimes.bind(self));
         self.callLogIconEdit.addEventListener('click',
           self.showEditMode.bind(self));
-        self.callLogIconClose.addEventListener('click',
+        self.editModeHeader.addEventListener('action',
           self.hideEditMode.bind(self));
         self.missedFilter.addEventListener('click',
           self.filter.bind(self));
@@ -144,6 +146,17 @@ var CallLog = {
       self._dbupgrading = false;
       self.render();
     };
+  },
+
+  _updateCallTimes: function cl_updateCallTimes() {
+    var logItemElts = this.callLogContainer.querySelectorAll('.log-item');
+    for (var i = 0; i < logItemElts.length; i++) {
+      var logItemElt = logItemElts[i];
+      var timestamp = logItemElt.getAttribute('data-timestamp');
+      var formattedTime = Utils.prettyDate(parseInt(timestamp, 10)) + ' ';
+      var callTimeElt = logItemElt.querySelector('.call-time');
+      callTimeElt.textContent = formattedTime;
+    }
   },
 
   // Helper to update UI and clean notifications when we got visibility
@@ -648,20 +661,17 @@ var CallLog = {
         });
       }
     } else {
-      var contactIds = (dataset.contactId) ? dataset.contactId : null;
-      var contactId = null;
-      if (contactIds !== null) {
-        contactId = contactIds.split(',')[0];
-      }
-
-      var isMissedCall = logItem.classList.contains('missed-call');
-      PhoneNumberActionMenu.show(
-        contactId,
-        phoneNumber,
-        null,
-        isMissedCall
-      );
       evt.preventDefault();
+      var primaryInfo = logItem.querySelector('.primary-info-main').textContent;
+
+      LazyLoader.load(['/dialer/js/call_group_menu.js'], function() {
+        CallGroupMenu.show(
+          primaryInfo,
+          phoneNumber,
+          dataset.timestamp,
+          dataset.type,
+          dataset.status);
+      });
     }
   },
 
@@ -733,8 +743,9 @@ var CallLog = {
       this.deleteButton.setAttribute('disabled', 'disabled');
       return;
     }
-    this.headerEditModeText.textContent = this._('edit-selected',
-                                            {n: selected});
+    this.headerEditModeText.textContent =
+      this._('edit-selected', {n: selected});
+
     this.deleteButton.removeAttribute('disabled');
     if (selected === allInputs) {
       this.deselectAllThreads.removeAttribute('disabled');

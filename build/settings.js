@@ -32,13 +32,27 @@ function setWallpaper(settings, config) {
   settings['wallpaper.image'] = utils.getFileAsDataURI(wallpaper);
 }
 
-function setTone(settings, config, settingsKey, dir, name) {
+function setTone(settings, config, toneType, name, l10nID) {
+  let settingsKey, dir;
+  switch (toneType) {
+  case 'ringtone':
+    settingsKey = 'dialer.ringtone';
+    dir = 'shared/resources/media/ringtones/';
+    break;
+  case 'alerttone':
+    settingsKey = 'notification.ringtone';
+    dir = 'shared/resources/media/notifications/';
+    break;
+  default:
+    throw new Error('unknown tone type: ' + toneType);
+  }
+
   let tone = utils.resolve(dir + name, config.GAIA_DIR);
 
   settings[settingsKey] = utils.getFileAsDataURI(tone);
-  settings[settingsKey + '.name'] = {l10nID: name.replace(/\.\w+$/, '')};
+  settings[settingsKey + '.name'] = {l10nID: l10nID};
   settings[settingsKey + '.id'] = settings[settingsKey + '.default.id'] =
-    'builtin:' + name.replace(/\.\w+$/, '');
+    'builtin:' + toneType + '/' + name.replace(/\.\w+$/, '');
 }
 
 function setMediatone(settings, config) {
@@ -63,17 +77,17 @@ function setAlarmtone(settings, config) {
 
 function setRingtone(settings, config) {
   // Grab ringer_firefox.opus and convert it into a base64 string
-  let ringtone_dir = 'shared/resources/media/ringtones/';
   let ringtone_name = 'ringer_firefox.opus';
-  setTone(settings, config, 'dialer.ringtone', ringtone_dir, ringtone_name);
+  let ringtone_l10nID = 'ringer_firefox2';
+  setTone(settings, config, 'ringtone', ringtone_name, ringtone_l10nID);
 }
 
 function setNotification(settings, config) {
   // Grab notifier_firefox.opus and convert it into a base64 string
-  let notification_dir = 'shared/resources/media/notifications/';
   let notification_name = 'notifier_firefox.opus';
-  setTone(settings, config, 'notification.ringtone', notification_dir,
-          notification_name);
+  let notification_l10nID = 'notifier_firefox2';
+  setTone(settings, config, 'alerttone', notification_name,
+          notification_l10nID);
 }
 
 /* Setup the default keyboard layouts according to the current language */

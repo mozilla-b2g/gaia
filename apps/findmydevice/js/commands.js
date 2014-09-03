@@ -66,28 +66,6 @@ var Commands = {
     return !!(this._lockscreenEnabled && this._lockscreenPassCodeEnabled);
   },
 
-  _setGeolocationPermission:
-  function fmdc_set_geolocation_permission(successCallback, errorCallback) {
-    var app = null;
-    var appreq = navigator.mozApps.getSelf();
-
-    appreq.onsuccess = function fmdc_getapp_success() {
-      app = this.result;
-
-      try {
-        navigator.mozPermissionSettings.set('geolocation', 'allow',
-            app.manifestURL, app.origin, false);
-      } catch (exc) {
-        errorCallback();
-        return;
-      }
-
-      successCallback();
-    };
-
-    appreq.onerror = errorCallback;
-  },
-
   _watchPositionId: null,
 
   _trackTimeoutId: null,
@@ -122,32 +100,26 @@ var Commands = {
 
       var lastPositionTimestamp = 0;
 
-      // set geolocation permission to true, and start watching
-      // the current position, but throttle updates to one every
-      // TRACK_UPDATE_INTERVAL_MS
-      this._setGeolocationPermission(function fmdc_permission_success() {
-        SettingsHelper('findmydevice.tracking').set(true);
-        self._watchPositionId = navigator.geolocation.watchPosition(
-        function(position) {
-          DUMP('received location (' +
-            position.coords.latitude + ', ' +
-            position.coords.longitude + ')'
-          );
+      // start watching the current position, but throttle updates to one
+      // every TRACK_UPDATE_INTERVAL_MS
+      SettingsHelper('findmydevice.tracking').set(true);
+      self._watchPositionId = navigator.geolocation.watchPosition(
+      function(position) {
+        DUMP('received location (' +
+          position.coords.latitude + ', ' +
+          position.coords.longitude + ')'
+        );
 
-          var timeElapsed = position.timestamp - lastPositionTimestamp;
-          if (timeElapsed < self.TRACK_UPDATE_INTERVAL_MS) {
-            DUMP('ignoring position due to throttling');
-            return;
-          }
+        var timeElapsed = position.timestamp - lastPositionTimestamp;
+        if (timeElapsed < self.TRACK_UPDATE_INTERVAL_MS) {
+          DUMP('ignoring position due to throttling');
+          return;
+        }
 
-          lastPositionTimestamp = position.timestamp;
-          reply(true, position);
-        }, function(error) {
-          reply(false, 'failed to get location: ' + error.message);
-        });
-      }, function fmdc_permission_error() {
-        FindMyDevice.endHighPriority('command');
-        reply(false, 'failed to set geolocation permission!');
+        lastPositionTimestamp = position.timestamp;
+        reply(true, position);
+      }, function(error) {
+        reply(false, 'failed to get location: ' + error.message);
       });
 
       duration = (isNaN(duration) || duration < 0) ? 1 : duration;

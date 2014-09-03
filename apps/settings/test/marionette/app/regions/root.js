@@ -16,13 +16,12 @@ function RootPanel(client) {
 module.exports = RootPanel;
 
 RootPanel.Selectors = {
-  'root': '#root',
   'airplaneModeCheckbox': '#airplaneMode-input',
   'airplaneModeMenuItem': '#menuItem-airplaneMode',
   'airplaneModeSpan': '#airplaneMode-input ~ span',
   'applicationStorageDesc': '.application-storage-desc',
   'batteryDesc': '.battery-desc',
-  'bluetoothDesc': '.bluetooth-desc',
+  'bluetoothDesc': '#bluetooth-desc',
   'firefoxAccountDesc': '#fxa-desc',
   'geolocationCheckbox': 'input[name="geolocation.enabled"]',
   'geolocationSpan': 'input[name="geolocation.enabled"] ~ span',
@@ -46,13 +45,13 @@ RootPanel.prototype = {
 
   _languageMap: {
     english: {
-      desc: 'English (US)'
+      desc: 'English (US)',
     },
     traditionalChinese: {
-      desc: '正體中文'
+      desc: '正體中文',
     },
     french: {
-      desc: 'Français'
+      desc: 'Français',
     }
   },
 
@@ -199,10 +198,6 @@ RootPanel.prototype = {
 
   get isSimSecurityItemVisible() {
     return this.findElement('simSecurityItem').displayed();
-  },
-
-  get isVisible() {
-    return this.findElement('root').displayed();
   }
 
 };

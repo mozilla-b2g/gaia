@@ -198,7 +198,8 @@
     get descriptor() {
       var manifest = this.app.manifest || this.app.updateManifest;
 
-      if (this.entryPoint) {
+      if (this.entryPoint && manifest.entry_points &&
+        manifest.entry_points[this.entryPoint]) {
         return manifest.entry_points[this.entryPoint];
       }
       return manifest;

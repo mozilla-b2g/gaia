@@ -1,9 +1,10 @@
 /* global AppWindow, AppChrome, MocksHelper, MockL10n,
-          MockModalDialog */
+          MockModalDialog, MockSystem */
 /* exported MockBookmarksDatabase */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
@@ -15,7 +16,8 @@ var MockBookmarksDatabase = {
 };
 
 var mocksForAppChrome = new MocksHelper([
-  'AppWindow', 'ModalDialog', 'PopupWindow', 'BookmarksDatabase'
+  'AppWindow', 'ModalDialog', 'PopupWindow', 'BookmarksDatabase',
+  'System'
 ]).init();
 
 suite('system/AppChrome', function() {
@@ -29,7 +31,6 @@ suite('system/AppChrome', function() {
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
-    requireApp('system/js/system.js');
     requireApp('system/js/base_ui.js');
     requireApp('system/js/app_chrome.js', done);
 
@@ -115,16 +116,6 @@ suite('system/AppChrome', function() {
       assert.isTrue(stubSelectOne.called);
     });
 
-    test('Add to Home', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
-      chrome.showOverflowMenu();
-      var stubAddToHome = this.sinon.stub(chrome, 'onAddToHome');
-      chrome.handleEvent({ type: 'click',
-                           stopImmediatePropagation: function() {},
-                           target: chrome.addToHomeButton });
-      assert.isTrue(stubAddToHome.called);
-    });
   });
 
   suite('Views', function() {
@@ -177,6 +168,15 @@ suite('system/AppChrome', function() {
       var stubStop = this.sinon.stub(app, 'stop');
       chrome.handleEvent({ type: 'click', target: chrome.stopButton });
       assert.isTrue(stubStop.called);
+    });
+
+    test('windows', function(done) {
+      var app = new AppWindow(fakeSearchApp);
+      var chrome = new AppChrome(app);
+      window.addEventListener('taskmanagershow', function() {
+        done();
+      });
+      chrome.handleEvent({ type: 'click', target: chrome.windowsButton });
     });
 
     test('location changed', function() {
@@ -501,6 +501,34 @@ suite('system/AppChrome', function() {
       assert.equal(chrome.scrollable.style.backgroundColor, '');
       chrome.setThemeColor('black');
       assert.equal(chrome.scrollable.style.backgroundColor, '');
+    });
+  });
+
+  suite('Search request', function() {
+    test('When screen is unlocked, dispatch the request.', function() {
+      var caught = false;
+      window.addEventListener('global-search-request', function search() {
+        window.removeEventListener('global-search-request', search);
+        caught = true;
+      });
+      MockSystem.locked = false;
+      var app = new AppWindow(fakeAppWithName);
+      var chrome = new AppChrome(app);
+      chrome.title.dispatchEvent(new CustomEvent('click'));
+      assert.isTrue(caught);
+    });
+
+    test('When screen is locked, do not dispatch the event.', function() {
+      var caught = false;
+      window.addEventListener('global-search-request', function search() {
+        window.removeEventListener('global-search-request', search);
+        caught = true;
+      });
+      MockSystem.locked = true;
+      var app = new AppWindow(fakeAppWithName);
+      var chrome = new AppChrome(app);
+      chrome.title.dispatchEvent(new CustomEvent('click'));
+      assert.isFalse(caught);
     });
   });
 });

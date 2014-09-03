@@ -286,6 +286,17 @@ var EdgeSwipeDetector = {
 
     var x = touch.pageX;
     var y = touch.pageY;
+
+    // In fullscreen_layout mode the app frame will always be fullscreen
+    // but we still want to redispatch touch events to the "overlayed"
+    // software home button
+    var softwareButtonOverlayed =
+      AppWindowManager.getActiveApp() &&
+      AppWindowManager.getActiveApp().isFullScreenLayout();
+    if (softwareButtonOverlayed) {
+      return x > (layoutManager.width - softwareButtonManager.width) ||
+          y > (layoutManager.height - softwareButtonManager.height);
+    }
     return (x > layoutManager.width ||
             y > layoutManager.height);
   },

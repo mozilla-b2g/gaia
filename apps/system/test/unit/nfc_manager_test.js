@@ -385,10 +385,11 @@ suite('Nfc Manager Functions', function() {
       nfcManager._handleTechDiscovered(sampleMsg);
 
       assert.deepEqual(MozActivity.firstCall.args[0], {
-        name: 'nfc-ndef-discovered',
+        name: 'view',
         data: {
                 type: 'url',
                 url: 'http://mozilla.org',
+                src: 'nfc',
                 records: sampleMsg.records,
                 tech: 'NDEF',
                 techList: sampleMsg.techList,
@@ -417,6 +418,7 @@ suite('Nfc Manager Functions', function() {
           type: 'text/vcard',
           blob: new Blob([nfcUtils.toUTF8(sampleMsg.records.payload)],
                          {'type': 'text/vcard'}),
+          src: 'nfc',
           tech: 'NDEF',
           techList: sampleMsg.techList,
           records: sampleMsg.records,
@@ -598,10 +600,11 @@ suite('Nfc Manager Functions', function() {
 
       nfcManager._fireNDEFDiscovered(msg, msg.techList[0]);
       assert.deepEqual(MozActivity.firstCall.args[0], {
-        name: 'nfc-ndef-discovered',
+        name: 'view',
         data: {
                 type: 'url',
                 url: 'http://mozilla.org',
+                src: 'nfc',
                 records: msg.records,
                 tech: msg.techList[0],
                 techList: msg.techList,
@@ -719,7 +722,8 @@ suite('Nfc Manager Functions', function() {
         data: {
           type: 'webtelephony/number',
           number: payload.uri.substring(4),
-          uri: payload.uri
+          uri: payload.uri,
+          src: 'nfc'
         }
       });
     });
@@ -732,7 +736,8 @@ suite('Nfc Manager Functions', function() {
         name: 'new',
         data: {
           type: 'mail',
-          url: payload.uri
+          url: payload.uri,
+          src: 'nfc'
         }
       });
     });
@@ -742,10 +747,11 @@ suite('Nfc Manager Functions', function() {
 
       var options = nfcManager._createNDEFActivityOptions(payload);
       assert.deepEqual(options, {
-        name: NDEF_ACTIVITY_NAME,
+        name: 'view',
         data: {
           type: 'url',
-          url: payload.uri
+          url: payload.uri,
+          src: 'nfc'
         }
       });
     });
@@ -775,11 +781,12 @@ suite('Nfc Manager Functions', function() {
 
       var options = nfcManager._createNDEFActivityOptions(payload);
       assert.deepEqual(options, {
-        name: NDEF_ACTIVITY_NAME,
+        name: 'view',
         data: {
           type: 'url',
           text: payload.text,
           url: 'http://mozilla.org',
+          src: 'nfc'
         }
       });
     });

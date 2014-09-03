@@ -187,6 +187,7 @@ var VIEWS = {
       navigator.mozL10n.setAttributes(ThreadUI.headerText, 'participant', {
         n: participants.length
       });
+      ThreadUI.setHeaderAction('back');
     },
 
     setEventListener: function setEventListener() {
@@ -290,6 +291,7 @@ var VIEWS = {
       }).bind(this);
 
       setL10nAttributes(ThreadUI.headerText, 'message-report');
+      ThreadUI.setHeaderAction('close');
     },
 
     onDeliverySuccess: function report_onDeliverySuccess(e) {

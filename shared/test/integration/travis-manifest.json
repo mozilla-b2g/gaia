@@ -2,6 +2,7 @@
   "blacklist": {
     "apps/calendar/test/marionette/alarm_test.js": "Bug 994976 - Perma-red TBPL test, alarm > without alarm mocks create two events with simultaneous reminders",
     "apps/calendar/test/marionette/caldav_test.js": "Bug 972631 - CalDAV setup causing tbpl timeouts",
+    "apps/calendar/test/marionette/create_event_test.js": "Bug 1059159 - Intermittent failing test, TEST-UNEXPECTED-FAIL | /builds/slave/test/gaia/apps/calendar/test/marionette/create_event_test.js",
     "apps/calendar/test/marionette/server_test.js": "",
     "apps/calendar/test/marionette/day_view_test.js": "",
     "apps/calendar/test/marionette/month_view_test.js": "",
@@ -24,7 +25,6 @@
     "apps/homescreen/test/marionette/install_bookmark_test.js": "legacy",
     "apps/homescreen/test/marionette/remove_bookmark_test.js": "legacy",
     "apps/homescreen/test/marionette/update_bookmark_test.js": "legacy",
-    "apps/ringtones/test/marionette/manage_test.js": " Bug 1037716 - TEST-UNEXPECTED-FAIL | Ringtone management Manage ringtones Create new ringtone",
     "apps/search/test/marionette/app_search_test.js": " Bug 1035936 - TEST-UNEXPECTED-FAIL | Search - App search Search for app with entry point",
     "apps/settings/test/marionette/tests/airplane_mode_settings_test.js": "",
     "apps/settings/test/marionette/tests/app_permission_settings_test.js": "Bug 1004348 - Disable intermittent failing test, manipulate app permissions set geolocation of first app to Grant",

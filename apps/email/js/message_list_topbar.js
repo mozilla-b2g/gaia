@@ -57,7 +57,6 @@ define(function(require, exports, module) {
       this.domNode.addEventListener('click', this._onClick.bind(this));
       this.domNode.addEventListener('transitionend',
                                     this._onTransitionEnd.bind(this));
-      this._hideNewMessage = this._hideNewMessage.bind(this);
     },
 
     /**
@@ -121,22 +120,27 @@ define(function(require, exports, module) {
       if (!state && this._getState()) {
         this.domNode.classList.add('closing');
       } else {
+        // Turn off animation to allow an immediate transform move to the
+        // correct horizontal position. This is mainly for the benefit of the
+        // New Messages state, where we want it centered, but it is a variable
+        // width, and we want to use the left: 50%, transformX -50% trick.
+        // However transformY is used for the sliding animation, so need to turn
+        // that off while the horizontal story is straightened out.
+        this.domNode.classList.add('no-anim');
+        this.domNode.classList.toggle('horiz-message', state === 'message');
+        this.domNode.classList.toggle('horiz-top', state === 'top');
+        this.domNode.clientWidth;
+
         if (state === 'message') {
-          mozL10n.setAttributes(this.domNode, 'new-emails',
+          mozL10n.setAttributes(this.domNode, 'new-messages',
                                 { n: this._newEmailCount });
-
-          // Get the node width to correctly center the contents. Since l10n and
-          // number of messages can change this value, do it after each content
-          // set.
-          var nodeWidth = this.domNode.getBoundingClientRect().width;
-          this.domNode.style.left = 'calc(50% - ' + nodeWidth + 'px)';
-
-          setTimeout(this._hideNewMessage, 5000);
         } else if (state === 'top') {
-          // Update content to be an accessibility friendly string.
-          this.domNode.setAttribute('data-l10n-id', 'message-list-top-action');
+          mozL10n.setAttributes(this.domNode, 'message-list-top-action');
         }
 
+        // Release the animation hounds!
+        this.domNode.classList.remove('no-anim');
+        this.domNode.clientWidth;
         this.domNode.dataset.state = state;
       }
     },
@@ -182,7 +186,7 @@ define(function(require, exports, module) {
       if (scrollTop !== this._scrollTop) {
         if (scrollTop <= this.visibleOffset) {
           this._showState('');
-        } else if (scrollingDown && nodeState !== 'message') {
+        } else if (scrollingDown) {
           this._showState('');
         } else if (nodeState !== 'top' && scrollTop > this._topThreshold) {
           this._showState('top');
@@ -195,12 +199,6 @@ define(function(require, exports, module) {
     _onClick: function(evt) {
       if (this._vScroll) {
         this._vScroll.jumpToIndex(0);
-        this._showState('');
-      }
-    },
-
-    _hideNewMessage: function() {
-      if (this.domNode.dataset.state === 'message') {
         this._showState('');
       }
     }

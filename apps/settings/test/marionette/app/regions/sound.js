@@ -33,7 +33,7 @@ SoundPanel.Selectors = {
   'unlockScreenSpan': '#sound span[data-l10n-id="unlock-screen"]',
   'alerttoneButton': '#alert-tone-selection',
   'ringtoneButton': '#ring-tone-selection',
-  'manageRingtonesButton': '#manage-ringtones-button'
+  'manageTonesButton': '#manage-tones-button'
 };
 
 SoundPanel.prototype = {
@@ -124,8 +124,8 @@ SoundPanel.prototype = {
     this.waitForElement('alerttoneButton').tap();
   },
 
-  clickManageRingtones: function() {
-    this.waitForElement('manageRingtonesButton').tap();
+  clickManageTones: function() {
+    this.waitForElement('manageTonesButton').tap();
   },
 
   get selectedRingtone() {

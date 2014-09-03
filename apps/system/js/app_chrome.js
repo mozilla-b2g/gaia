@@ -1,10 +1,10 @@
 /* global ModalDialog */
 /* global MozActivity */
 /* global BookmarksDatabase */
-/* global applications */
 /* global SettingsListener */
 /* global LazyLoader */
 /* global IconsHelper */
+/* global System */
 
 'use strict';
 
@@ -69,6 +69,9 @@
       this.app.element.classList.add('scrollable');
       this.app.element.classList.add('light');
       this.scrollable.scrollgrab = true;
+    }
+
+    if (chrome.maximized) {
       this.element.classList.add('maximized');
     }
   };
@@ -100,6 +103,7 @@
              </div>
              <button type="button" class="menu-button"
                alt="Menu"></button>
+             <button type="button" class="windows-button"></button>
             </div>`;
   };
 
@@ -146,6 +150,15 @@
       return template;
   };
 
+  AppChrome.prototype.__defineGetter__('height', function ac_getHeight() {
+    if (this._height) {
+      return this._height;
+    }
+
+    this._height = this.element.getBoundingClientRect().height;
+    return this._height;
+  });
+
   AppChrome.prototype._fetchElements = function ac__fetchElements() {
     this.element = this.containerElement.querySelector('.chrome');
 
@@ -155,6 +168,7 @@
     this.stopButton = this.element.querySelector('.stop-button');
     this.backButton = this.element.querySelector('.back-button');
     this.menuButton = this.element.querySelector('.menu-button');
+    this.windowsButton = this.element.querySelector('.windows-button');
     this.title = this.element.querySelector('.title');
 
     this.bar = this.element.querySelector('.bar');
@@ -246,15 +260,18 @@
         break;
 
       case this.title:
+        if (System && System.locked) {
+          return;
+        }
         window.dispatchEvent(new CustomEvent('global-search-request'));
         break;
 
       case this.menuButton:
         this.showOverflowMenu();
         break;
-
-      case this._overflowMenu:
-        this.hideOverflowMenu();
+      
+      case this.windowsButton:
+        this.showWindows();
         break;
 
       case this.newWindowButton:
@@ -304,6 +321,7 @@
       this.title.addEventListener('click', this);
       this.scrollable.addEventListener('scroll', this);
       this.menuButton.addEventListener('click', this);
+      this.windowsButton.addEventListener('click', this);
     } else {
       this.header.addEventListener('action', this);
     }
@@ -324,17 +342,12 @@
     if (this.useCombinedChrome()) {
       this.stopButton.removeEventListener('click', this);
       this.menuButton.removeEventListener('click', this);
+      this.windowsButton.removeEventListener('click', this);
       this.reloadButton.removeEventListener('click', this);
       this.backButton.removeEventListener('click', this);
       this.forwardButton.removeEventListener('click', this);
       this.title.removeEventListener('click', this);
       this.scrollable.removeEventListener('scroll', this);
-
-      if (this._overflowMenu) {
-        this._overflowMenu.removeEventListener('click', this);
-        this._overflowMenu.removeEventListener('animationend', this);
-        this._overflowMenu.removeEventListener('transitionend', this);
-      }
 
       if (this.newWindowButton) {
         this.newWindowButton.removeEventListener('click', this);
@@ -630,92 +643,16 @@
     ModalDialog.selectOne(data, selected);
   };
 
-  AppChrome.prototype.onNewWindow = function ac_onNewWindow() {
-    var newTabApp = applications.getByManifestURL(newTabManifestURL);
-    newTabApp.launch();
-
-    this.hideOverflowMenu();
+  AppChrome.prototype.showWindows = function ac_showWindows() {
+    window.dispatchEvent(new CustomEvent('taskmanagershow'));
   };
-
-  AppChrome.prototype.onAddToHome = function ac_onAddToHome() {
-    this.addBookmark();
-    this.hideOverflowMenu();
-  };
-
-  AppChrome.prototype.handleAnimationEnd =
-    function ac_handleAnimationEnd(evt) {
-      this.overflowMenu.classList.remove('showing');
-    };
-
-  AppChrome.prototype.handleTransitionEnd =
-    function ac_handleTransitionEnd(evt) {
-      if (evt.target === this.overflowMenu) {
-        if (this.overflowMenu.classList.contains('hiding')) {
-          this.overflowMenu.classList.remove('hiding');
-          this.overflowMenu.classList.add('hidden');
-        }
-      }
-    };
-
-  AppChrome.prototype.__defineGetter__('overflowMenu',
-    // Instantiate the overflow menu when it's needed
-    function ac_getOverflowMenu() {
-      if (!this._overflowMenu && this.useCombinedChrome()) {
-        this.app.element.insertAdjacentHTML('afterbegin',
-                                            this.overflowMenuView());
-        this._overflowMenu = this.containerElement.
-          querySelector('.overflow-menu');
-        this.newWindowButton = this._overflowMenu.
-          querySelector('#new-window');
-        this.addToHomeButton = this._overflowMenu.
-          querySelector('#add-to-home');
-        this.shareButton = this._overflowMenu.
-          querySelector('#share');
-
-        this._overflowMenu.addEventListener('click', this);
-        this._overflowMenu.addEventListener('animationend', this);
-        this._overflowMenu.addEventListener('transitionend', this);
-        this.newWindowButton.addEventListener('click', this);
-        this.addToHomeButton.addEventListener('click', this);
-        this.shareButton.addEventListener('click', this);
-
-        this.updateAddToHomeButton();
-      }
-
-      return this._overflowMenu;
-    });
 
   AppChrome.prototype.showOverflowMenu = function ac_showOverflowMenu() {
-    if (this.overflowMenu.classList.contains('hidden')) {
-      this.overflowMenu.classList.remove('hidden');
-      this.overflowMenu.classList.add('showing');
+    if (this.app.contextmenu) {
+      var name = this.isSearch() ?
+        this.app.config.searchName : this.title.textContent;
+      this.app.contextmenu.showDefaultMenu(newTabManifestURL, name);
     }
-  };
-
-  AppChrome.prototype.hideOverflowMenu = function ac_hideOverflowMenu() {
-    if (!this.overflowMenu.classList.contains('hidden') &&
-        !this.overflowMenu.classList.contains('showing')) {
-      this.overflowMenu.classList.add('hiding');
-    }
-  };
-
-  AppChrome.prototype.onShare = function ac_onShare() {
-    this.shareButton.dataset.disabled = true;
-
-    // Fire web activity to share URL
-    var activity = new MozActivity({
-      name: 'share',
-      data: {
-        type: 'url',
-        url: this._currentURL
-      }
-    });
-
-    activity.onsuccess = activity.onerror = (function() {
-      delete this.shareButton.dataset.disabled;
-    }).bind(this);
-
-    this.hideOverflowMenu();
   };
 
   exports.AppChrome = AppChrome;

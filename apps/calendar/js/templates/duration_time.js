@@ -2,6 +2,7 @@
   'use strict';
 
   var _ = navigator.mozL10n.get;
+  var DateSpan = Calendar.Templates.DateSpan;
 
   var DurationTime = Calendar.Template.create({
     durationTime: function() {
@@ -40,10 +41,10 @@
   }
 
   function formatTime(time) {
-    return Calendar.App.dateFormat.localeFormat(
-      time,
-      _('shortTimeFormat')
-    );
+    return DateSpan.time.render({
+      time: time,
+      format: 'shortTimeFormat'
+    });
   }
 
   Calendar.ns('Templates').DurationTime = DurationTime;

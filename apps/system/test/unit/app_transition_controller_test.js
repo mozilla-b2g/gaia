@@ -250,8 +250,10 @@ suite('system/AppTransitionController', function() {
       var acn1 = new AppTransitionController(app1);
       var stubRequestForeground = this.sinon.stub(app1, 'requestForeground');
       var stubSetOrientation = this.sinon.stub(app1, 'setOrientation');
+      var stubShow = this.sinon.stub(app1, 'show');
       acn1.handle_opened();
       assert.isTrue(stubRequestForeground.calledOnce);
+      assert.isTrue(stubShow.called);
       assert.isTrue(stubSetOrientation.called);
     });
   });
@@ -269,4 +271,15 @@ suite('system/AppTransitionController', function() {
     acn1.handle_closed();
     assert.isTrue(stubSetVisible.calledWith(false, true));
   });
+
+  test('Do not send to background in closed handler for attention windows',
+    function() {
+      var app1 = new MockAppWindow(fakeAppConfig1);
+      app1.CLASS_NAME = 'AttentionWindow';
+      var acn1 = new AppTransitionController(app1);
+      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+      acn1.handle_closed();
+      assert.isFalse(stubSetVisible.calledWith(false, true));
+      assert.isFalse(stubSetVisible.called);
+    });
 });

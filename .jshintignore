@@ -8,14 +8,10 @@ apps/camera/js/vendor/**
 apps/camera/test/**
 apps/system/camera/**
 build/r.js
-build/copy-build-stage-data.js
 build/csslinter.js
-build/download-manager.js
 build/image-resolution.js
-build/jshint/xfail.js
 build/jsmin.js
 build/post-manifest.js
-build/pre-app.js
 build/push-to-device.js
 build/settings.js
 build/test/integration/build.test.js

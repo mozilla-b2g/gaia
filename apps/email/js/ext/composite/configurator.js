@@ -1,0 +1,318 @@
+/**
+ * Configurator for imap+smtp and pop3+smtp.
+ **/
+
+define(
+  [
+    'rdcommon/log',
+    '../accountcommon',
+    '../a64',
+    '../allback',
+    './account',
+    '../date',
+    'require',
+    'exports'
+  ],
+  function(
+    $log,
+    $accountcommon,
+    $a64,
+    $allback,
+    $account,
+    $date,
+    require,
+    exports
+  ) {
+
+var allbackMaker = $allback.allbackMaker;
+
+exports.account = $account;
+exports.configurator = {
+  tryToCreateAccount: function(universe, userDetails, domainInfo,
+                               callback, _LOG) {
+    var credentials, incomingInfo, smtpConnInfo, incomingType;
+    if (domainInfo) {
+      incomingType = (domainInfo.type === 'imap+smtp' ? 'imap' : 'pop3');
+      var password = null;
+      // If the account has an outgoingPassword, use that; otherwise
+      // use the main password. We must take care to treat null values
+      // as potentially valid in the future, if we allow password-free
+      // account configurations.
+      if (userDetails.outgoingPassword !== undefined) {
+        password = userDetails.outgoingPassword;
+      } else {
+        password = userDetails.password;
+      }
+      credentials = {
+        username: domainInfo.incoming.username,
+        password: userDetails.password,
+        outgoingUsername: domainInfo.outgoing.username,
+        outgoingPassword: password,
+      };
+      incomingInfo = {
+        hostname: domainInfo.incoming.hostname,
+        port: domainInfo.incoming.port,
+        crypto: (typeof domainInfo.incoming.socketType === 'string' ?
+                 domainInfo.incoming.socketType.toLowerCase() :
+                 domainInfo.incoming.socketType),
+      };
+
+      if (incomingType === 'pop3') {
+        incomingInfo.preferredAuthMethod = null;
+      }
+      smtpConnInfo = {
+        emailAddress: userDetails.emailAddress, // used for probing
+        hostname: domainInfo.outgoing.hostname,
+        port: domainInfo.outgoing.port,
+        crypto: (typeof domainInfo.outgoing.socketType === 'string' ?
+                 domainInfo.outgoing.socketType.toLowerCase() :
+                 domainInfo.outgoing.socketType),
+      };
+    }
+
+    var incomingPromise = new Promise(function(resolve, reject) {
+      if (incomingType === 'imap') {
+        require(['../imap/probe'], function(probe) {
+          probe.probeAccount(credentials, incomingInfo).then(resolve, reject);
+        });
+      } else {
+        require(['../pop3/probe'], function(probe) {
+          probe.probeAccount(credentials, incomingInfo).then(resolve, reject);
+        });
+      }
+    });
+
+    var outgoingPromise = new Promise(function(resolve, reject) {
+      require(['../smtp/probe'], function(probe) {
+        probe.probeAccount(credentials, smtpConnInfo).then(resolve, reject);
+      });
+    });
+
+    // Note: Promise.all() will fire the catch handler as soon as one
+    // of the promises is rejected. While this means we will only see
+    // the first error that returns, it actually works well for our
+    // semantics, as we only notify the user about one side's problems
+    // at a time.
+    Promise.all([incomingPromise, outgoingPromise])
+      .then(function(results) {
+        var incomingConn = results[0].conn;
+        var timezoneOffset = null;
+        var defineAccount;
+
+        if (incomingType === 'imap') {
+          timezoneOffset = results[0].timezoneOffset;
+          defineAccount = this._defineImapAccount;
+        } else if (incomingType === 'pop3') {
+          incomingInfo.preferredAuthMethod = incomingConn.authMethod;
+          defineAccount = this._definePop3Account;
+        }
+        defineAccount.call(this,
+                           universe, userDetails, credentials,
+                           incomingInfo, smtpConnInfo, incomingConn,
+                           timezoneOffset, callback);
+      }.bind(this))
+      .catch(function(err) {
+        // One of the account sides failed. Normally we leave the
+        // IMAP/POP3 side open for reuse, but if the SMTP
+        // configuration falied we must close the incoming connection.
+        // (If the incoming side failed as well, we won't receive the
+        // `.then` callback.)
+        incomingPromise.then(function(result) {
+          result.conn.close();
+          callback(err, /* conn: */ null);
+        }).catch(function(/* ignored error */) {
+          callback(err, /* conn: */ null);
+        });
+     });
+ },
+
+  recreateAccount: function(universe, oldVersion, oldAccountInfo, callback) {
+    var oldAccountDef = oldAccountInfo.def;
+
+    var credentials = {
+      username: oldAccountDef.credentials.username,
+      password: oldAccountDef.credentials.password,
+      // (if these two keys are null, keep them that way:)
+      outgoingUsername: oldAccountDef.credentials.outgoingUsername,
+      outgoingPassword: oldAccountDef.credentials.outgoingPassword,
+    };
+    var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
+    var oldType = oldAccountDef.type || 'imap+smtp';
+    var accountDef = {
+      id: accountId,
+      name: oldAccountDef.name,
+
+      type: oldType,
+      receiveType: oldType.split('+')[0],
+      sendType: 'smtp',
+
+      syncRange: oldAccountDef.syncRange,
+      syncInterval: oldAccountDef.syncInterval || 0,
+      notifyOnNew: oldAccountDef.hasOwnProperty('notifyOnNew') ?
+                   oldAccountDef.notifyOnNew : true,
+      playSoundOnSend: oldAccountDef.hasOwnProperty('playSoundOnSend') ?
+                   oldAccountDef.playSoundOnSend : true,
+
+      credentials: credentials,
+      receiveConnInfo: {
+        hostname: oldAccountDef.receiveConnInfo.hostname,
+        port: oldAccountDef.receiveConnInfo.port,
+        crypto: oldAccountDef.receiveConnInfo.crypto,
+        preferredAuthMethod:
+          oldAccountDef.receiveConnInfo.preferredAuthMethod || null,
+      },
+      sendConnInfo: {
+        hostname: oldAccountDef.sendConnInfo.hostname,
+        port: oldAccountDef.sendConnInfo.port,
+        crypto: oldAccountDef.sendConnInfo.crypto,
+      },
+
+      identities: $accountcommon.recreateIdentities(universe, accountId,
+                                     oldAccountDef.identities),
+      // this default timezone here maintains things; but people are going to
+      // need to create new accounts at some point...
+      tzOffset: oldAccountInfo.tzOffset !== undefined ?
+                  oldAccountInfo.tzOffset : -7 * 60 * 60 * 1000,
+    };
+
+    this._loadAccount(universe, accountDef,
+                      oldAccountInfo.folderInfo, null, function(account) {
+      callback(null, account, null);
+    });
+  },
+
+  /**
+   * Define an account now that we have verified the credentials are good and
+   * the server meets our minimal functionality standards.  We are also
+   * provided with the protocol connection that was used to perform the check
+   * so we can immediately put it to work.
+   */
+  _defineImapAccount: function(universe, userDetails, credentials,
+                               incomingInfo, smtpConnInfo, imapProtoConn,
+                               tzOffset, callback) {
+    var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
+    var accountDef = {
+      id: accountId,
+      name: userDetails.accountName || userDetails.emailAddress,
+      defaultPriority: $date.NOW(),
+
+      type: 'imap+smtp',
+      receiveType: 'imap',
+      sendType: 'smtp',
+
+      syncRange: 'auto',
+      syncInterval: userDetails.syncInterval || 0,
+      notifyOnNew: userDetails.hasOwnProperty('notifyOnNew') ?
+                   userDetails.notifyOnNew : true,
+      playSoundOnSend: userDetails.hasOwnProperty('playSoundOnSend') ?
+                   userDetails.playSoundOnSend : true,
+
+      credentials: credentials,
+      receiveConnInfo: incomingInfo,
+      sendConnInfo: smtpConnInfo,
+
+      identities: [
+        {
+          id: accountId + '/' +
+                $a64.encodeInt(universe.config.nextIdentityNum++),
+          name: userDetails.displayName,
+          address: userDetails.emailAddress,
+          replyTo: null,
+          signature: null,
+          signatureEnabled: false
+        },
+      ],
+      tzOffset: tzOffset,
+    };
+
+    this._loadAccount(universe, accountDef, null,
+                      imapProtoConn, function(account) {
+      callback(null, account, null);
+    });
+  },
+
+  /**
+   * Define an account now that we have verified the credentials are good and
+   * the server meets our minimal functionality standards.  We are also
+   * provided with the protocol connection that was used to perform the check
+   * so we can immediately put it to work.
+   */
+  _definePop3Account: function(universe, userDetails, credentials,
+                               incomingInfo, smtpConnInfo, pop3ProtoConn,
+                               nullTZOffset, callback) {
+    var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
+    var accountDef = {
+      id: accountId,
+      name: userDetails.accountName || userDetails.emailAddress,
+      defaultPriority: $date.NOW(),
+
+      type: 'pop3+smtp',
+      receiveType: 'pop3',
+      sendType: 'smtp',
+
+      syncRange: 'auto',
+      syncInterval: userDetails.syncInterval || 0,
+      notifyOnNew: userDetails.hasOwnProperty('notifyOnNew') ?
+                   userDetails.notifyOnNew : true,
+      playSoundOnSend: userDetails.hasOwnProperty('playSoundOnSend') ?
+                   userDetails.playSoundOnSend : true,
+
+      credentials: credentials,
+      receiveConnInfo: incomingInfo,
+      sendConnInfo: smtpConnInfo,
+
+      identities: [
+        {
+          id: accountId + '/' +
+                $a64.encodeInt(universe.config.nextIdentityNum++),
+          name: userDetails.displayName,
+          address: userDetails.emailAddress,
+          replyTo: null,
+          signature: null,
+          signatureEnabled: false
+        },
+      ],
+    };
+
+    this._loadAccount(universe, accountDef, null,
+                      pop3ProtoConn, function(account) {
+      callback(null, account, null);
+    });
+  },
+
+  /**
+   * Save the account def and folder info for our new (or recreated) account and
+   * then load it.
+   */
+  _loadAccount: function(universe, accountDef, oldFolderInfo, protoConn,
+                         callback) {
+    var folderInfo;
+    if (accountDef.receiveType === 'imap') {
+      folderInfo = {
+        $meta: {
+          nextFolderNum: 0,
+          nextMutationNum: 0,
+          lastFolderSyncAt: 0,
+          capability: (oldFolderInfo && oldFolderInfo.$meta.capability) ||
+            protoConn.capability
+        },
+        $mutations: [],
+        $mutationState: {},
+      };
+    } else { // POP3
+      folderInfo = {
+        $meta: {
+          nextFolderNum: 0,
+          nextMutationNum: 0,
+          lastFolderSyncAt: 0,
+        },
+        $mutations: [],
+        $mutationState: {},
+      };
+    }
+    universe.saveAccountDef(accountDef, folderInfo);
+    universe._loadAccount(accountDef, folderInfo, protoConn, callback);
+  },
+};
+
+}); // end define
