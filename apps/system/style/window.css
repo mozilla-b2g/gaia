@@ -306,11 +306,11 @@
   background-size: cover;
 }
 
-.appWindow.scrollable .screenshot-overlay {
+.appWindow.collapsible .screenshot-overlay {
   background-color: inherit;
 }
 
-.appWindow.scrollable:not(.active) .screenshot-overlay {
+.appWindow.collapsible:not(.active) .screenshot-overlay {
   margin-top: 4.6rem;
 }
 
