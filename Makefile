@@ -74,6 +74,7 @@ GAIA_DOMAIN?=gaiamobile.org
 DEBUG?=0
 DEVICE_DEBUG?=0
 NO_LOCK_SCREEN?=0
+SCREEN_TIMEOUT?=-1
 PRODUCTION?=0
 DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
@@ -103,6 +104,7 @@ DESKTOP=1
 NOFTU=1
 NOFTUPING=1
 DEVICE_DEBUG=1
+SCREEN_TIMEOUT=0
 endif
 
 # Enable compatibility to run in Firefox Desktop
@@ -119,6 +121,11 @@ BUILD_DEBUG?=0
 ifeq ($(DEVICE_DEBUG),1)
 REMOTE_DEBUGGER=1
 NO_LOCK_SCREEN=1
+SCREEN_TIMEOUT=300
+endif
+
+ifeq ($(SIMULATOR),1)
+SCREEN_TIMEOUT=0
 endif
 
 # We also disable FTU when running in Firefox or in debug mode
@@ -450,6 +457,7 @@ define BUILD_CONFIG
   "DESKTOP" : $(DESKTOP), \
   "DEVICE_DEBUG" : $(DEVICE_DEBUG), \
   "NO_LOCK_SCREEN" : $(NO_LOCK_SCREEN), \
+  "SCREEN_TIMEOUT" : $(SCREEN_TIMEOUT), \
   "SYSTEM" : "$(SYSTEM)", \
   "GAIA_PORT" : "$(GAIA_PORT)", \
   "GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)", \
