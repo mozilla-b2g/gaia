@@ -98,6 +98,11 @@ model.latestOnce('api', function(api) {
                   { account: account, restoreCard: Cards.activeCardIndex },
                   'right');
         break;
+      case 'needs-oauth-reauth':
+        Cards.pushCard('setup_fix_oauth2', 'default', 'animate',
+                  { account: account, restoreCard: Cards.activeCardIndex },
+                  'right');
+        break;
     }
   };
 

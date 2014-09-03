@@ -1,4 +1,5 @@
 /*global define*/
+'use strict';
 define(function(require) {
 
 var templateNode = require('tmpl!./settings_account.html'),
@@ -8,7 +9,6 @@ var templateNode = require('tmpl!./settings_account.html'),
                               require('tmpl!./tng/account_delete_confirm.html'),
     evt = require('evt'),
     common = require('mail_common'),
-    model = require('model'),
     mozL10n = require('l10n!'),
     prefsMixin = require('./account_prefs_mixins'),
     mix = require('mix'),
@@ -86,8 +86,14 @@ function SettingsAccountCard(domNode, mode, args) {
     serversContainer.appendChild(serverNode);
   }.bind(this));
 
-  this.nodeFromClass('tng-account-credentials')
-    .addEventListener('click', this.onClickCredentials.bind(this), false);
+  this.accountCredNode = this.nodeFromClass('tng-account-credentials');
+  var credL10nId = 'settings-account-userpass';
+  if (this.account.authMechanism === 'oauth2') {
+    credL10nId = 'settings-account-useroauth2';
+  }
+  mozL10n.setAttributes(this.accountCredNode, credL10nId);
+  this.accountCredNode
+      .addEventListener('click', this.onClickCredentials.bind(this), false);
 }
 
 SettingsAccountCard.prototype = {
@@ -121,8 +127,9 @@ SettingsAccountCard.prototype = {
 
   onChangeDefaultAccount: function(event) {
     event.stopPropagation();
-    if (event.preventBubble)
+    if (event.preventBubble) {
       event.preventBubble();
+    }
 
     if (!this.defaultInputNode.disabled) {
       this.defaultInputNode.disabled = true;

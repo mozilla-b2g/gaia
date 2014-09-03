@@ -3,14 +3,14 @@
  * between connection-related setup in imap/account.js and
  * imap/probe.js.
  */
-define([
-  'browserbox',
-  'browserbox-imap',
-  'slog',
-  '../syncbase',
-  '../errorutils',
-  'exports'
-], function(BrowserBox, ImapClient, slog, syncbase, errorutils, exports) {
+define(function(require, exports) {
+
+  var BrowserBox = require('browserbox');
+  var ImapClient = require('browserbox-imap');
+  var slog = require('slog');
+  var syncbase = require('../syncbase');
+  var errorutils = require('../errorutils');
+  var oauth = require('../oauth');
 
   var setTimeout = window.setTimeout;
   var clearTimeout = window.clearTimeout;
@@ -30,46 +30,60 @@ define([
    * @param {object} credentials
    *   keys: hostname, port, crypto
    * @param {object} connInfo
-   *   keys: username, password
+   *   keys: username, password, accessToken and/or refreshToken
+   * @param {function(credentials)} credsUpdatedCallback
+   *   Callback, called if the credentials have been updated and
+   *   should be stored to disk. Not called if the credentials are
+   *   already up-to-date.
    * @return {Promise}
    *   resolve => {BrowserBox} conn
    *   reject => {String} normalized String error
    */
 
-  exports.createImapConnection = function(credentials, connInfo) {
-    var conn = new BrowserBox(
-      connInfo.hostname,
-      connInfo.port, {
-        auth: {
-          user: credentials.username,
-          pass: credentials.password
-        },
-        useSecureTransport: (connInfo.crypto === 'ssl' ||
-                             connInfo.crypto === true),
-        starttls: connInfo.crypto === 'starttls'
+  exports.createImapConnection = function(credentials, connInfo,
+                                          credsUpdatedCallback) {
+    var conn;
+
+    return oauth.ensureUpdatedCredentials(
+      credentials
+    ).then(function(credentialsChanged) {
+      if (credentialsChanged) {
+        credsUpdatedCallback(credentials);
+      }
+      return new Promise(function(resolve, reject) {
+        conn = new BrowserBox(
+          connInfo.hostname,
+          connInfo.port, {
+            auth: {
+              user: credentials.username,
+              pass: credentials.password,
+              xoauth2: credentials.oauth2 ?
+                         credentials.oauth2.accessToken : null
+            },
+            useSecureTransport: (connInfo.crypto === 'ssl' ||
+                                 connInfo.crypto === true),
+            starttls: connInfo.crypto === 'starttls'
+          });
+
+        var connectTimeout = setTimeout(function() {
+          conn.onerror('unresponsive-server');
+          conn.close();
+        }, syncbase.CONNECT_TIMEOUT_MS);
+
+        conn.onauth = function() {
+          clearTimeout(connectTimeout);
+          slog.info('imap:connected', connInfo);
+          conn.onauth = conn.onerror = noop;
+          resolve(conn);
+        };
+        conn.onerror = function(err) {
+          clearTimeout(connectTimeout);
+          // XXX: if error is just expired access token, try to refresh one time
+          reject(err);
+        };
+
+        conn.connect();
       });
-
-
-    var connectTimeout = setTimeout(function() {
-      conn.onerror('unresponsive-server');
-      conn.close();
-    }, syncbase.CONNECT_TIMEOUT_MS);
-
-    return new Promise(function(resolve, reject) {
-      conn.onauth = function() {
-        clearTimeout(connectTimeout);
-        resolve();
-      };
-      conn.onerror = function(err) {
-        clearTimeout(connectTimeout);
-        reject(err);
-      };
-
-      conn.connect();
-    }).then(function() {
-      slog.info('imap:connected', connInfo);
-      conn.onauth = conn.onerror = noop;
-      return conn;
     }).catch(function(errorObject) {
       var errorString = normalizeImapError(conn, errorObject);
       if (conn) {
@@ -82,7 +96,6 @@ define([
       throw errorString;
     });
   }
-
 
   //****************************************************************
   // UNFORTUNATE IMAP WORKAROUNDS & SHIMS BEGIN HERE
@@ -175,11 +188,14 @@ define([
    * and convert it to a normalized string if possible. Otherwise,
    * return null.
    */
-  function analyzeLastImapError(err, state) {
+  function analyzeLastImapError(err, conn) {
     // Make sure it's an error we know how to analyze:
     if (!err || !err.humanReadable) {
       return null;
     }
+
+    var state = conn && conn.state;
+    var wasOauth = conn && !!conn.options.auth.xoauth2;
 
     // Structure of an IMAP error response:
     // { "tag":"W2",
@@ -200,12 +216,17 @@ define([
 
     var str = (err.code || '') + (err.humanReadable || '');
 
-    if (/Application-specific password required/.test(str)) {
-      return 'needs-app-pass';
-    } else if (/Your account is not enabled for IMAP use/.test(str) ||
+    if (/Your account is not enabled for IMAP use/.test(str) ||
                /IMAP access is disabled for your domain/.test(str)) {
       return 'imap-disabled';
-    } else if (/AUTHENTICATIONFAILED/.test(str) ||
+    } else if (/UNAVAILABLE/.test(str)) {
+      return 'server-maintenance';
+    }
+    // The invalid-credentials case goes last, because we
+    // optimistically assume that any other not-authenticated failure
+    // is caused by the user's invalid credentials.
+    else if (/AUTHENTICATIONFAILED/.test(str) ||
+               /Invalid credentials/i.test(str) || // Gmail bad access token
                /login failed/i.test(str) ||
                /password/.test(str) ||
                state <= BrowserBox.prototype.STATE_NOT_AUTHENTICATED) {
@@ -214,9 +235,14 @@ define([
       // is the first thing we do. Any other socket-level connection
       // problems (including STARTTLS, since we pass that along as an
       // exception) will be surfaced before hitting this conditional.
-      return 'bad-user-or-pass';
-    } else if (/UNAVAILABLE/.test(str)) {
-      return 'server-maintenance';
+
+      if (wasOauth) {
+        // Gmail returns "NO [ALERT] Invalid credentials (Failure)" in
+        // the case of a failed OAUTH password.
+        return 'needs-oauth-reauth';
+      } else {
+        return 'bad-user-or-pass';
+      }
     } else {
       return null;
     }
@@ -240,7 +266,7 @@ define([
   var normalizeImapError = exports.normalizeImapError = function(conn, err) {
     var socketLevelError = errorutils.analyzeException(err);
     var protocolLevelError =
-          conn && analyzeLastImapError(conn.client._lastImapError, conn.state);
+          conn && analyzeLastImapError(conn.client._lastImapError, conn);
 
     var reportAs = (socketLevelError ||
                     protocolLevelError ||
