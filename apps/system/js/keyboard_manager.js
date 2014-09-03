@@ -561,13 +561,18 @@ var KeyboardManager = {
     this.showingLayoutInfo.layout = layout;
   },
 
-  switchToNext: function km_switchToNext() {
+  /* A small helper function for maintaining timeouts */
+  waitForSwitchTimeout: function km_waitForSwitchTimeout(callback) {
     clearTimeout(this.switchChangeTimeout);
 
+    this.switchChangeTimeout = setTimeout(callback, SWITCH_CHANGE_DELAY);
+  },
+
+  switchToNext: function km_switchToNext() {
     var showed = this.showingLayoutInfo;
     var oldLayout = showed.layout;
 
-    this.switchChangeTimeout = setTimeout(function keyboardSwitchLayout() {
+    this.waitForSwitchTimeout(function keyboardSwitchLayout() {
       if (!this.keyboardLayouts[showed.type]) {
         showed.type = 'text';
       }
@@ -583,61 +588,58 @@ var KeyboardManager = {
       }
 
       this.setKeyboardToShow(showed.type, index);
-    }.bind(this), SWITCH_CHANGE_DELAY);
+    }.bind(this));
+  },
+
+  /*
+   * Callback for ImeMenu.
+   * If selectedIndex is defined, then some item of imeMenu was selected;
+   * if it's not, then it was canceled.
+   * The showedType param is bind()'ed by showAll (resulting in a partial func)
+   */
+  imeMenuCallback: function km_imeMenuCallback(showedType, selectedIndex) {
+    if (typeof selectedIndex === 'number') {
+      // success: show the new keyboard
+      this.keyboardLayouts[showedType].activeLayout = selectedIndex;
+      this.setKeyboardToShow(showedType, selectedIndex);
+
+      // Hide the tray to show the app directly after user selected a new kb.
+      window.dispatchEvent(new CustomEvent('keyboardchanged'));
+    } else {
+      // cancel: mimic the success callback to show the current keyboard.
+      this.setKeyboardToShow(showedType);
+
+      // Hide the tray to show the app directly after user canceled.
+      window.dispatchEvent(new CustomEvent('keyboardchangecanceled'));
+    }
   },
 
   // Show the input method menu
   showAll: function km_showAll() {
-    clearTimeout(this.switchChangeTimeout);
-
-    var self = this;
     var showedType = this.showingLayoutInfo.type;
     var activeLayout = this.keyboardLayouts[showedType].activeLayout;
-    var _ = navigator.mozL10n.get;
-    var actionMenuTitle = _('choose-option');
+    var actionMenuTitle = navigator.mozL10n.get('choose-option');
 
-    this.switchChangeTimeout = setTimeout(function keyboardLayoutList() {
-      var items = [];
-      self.keyboardLayouts[showedType].forEach(function(layout, index) {
-        var item = {
-          layoutName: layout.name,
-          appName: layout.appName,
-          value: index,
-          selected: (index === activeLayout)
-        };
-        items.push(item);
-      });
-      self.hideKeyboard();
+    this.waitForSwitchTimeout(function keyboardLayoutList() {
+      var items = this.keyboardLayouts[showedType].map(
+        function(layout, index) {
+          return {
+            layoutName: layout.name,
+            appName: layout.appName,
+            value: index,
+            selected: (index === activeLayout)
+          };
+        });
+
+      this.hideKeyboard();
 
       var menu = new ImeMenu(items, actionMenuTitle,
-        function(selectedIndex) {
-        if (!self.keyboardLayouts[showedType]) {
-          showedType = 'text';
-        }
-        self.keyboardLayouts[showedType].activeLayout = selectedIndex;
-        self.setKeyboardToShow(showedType, selectedIndex);
+        this.imeMenuCallback.bind(this, showedType),
+        this.imeMenuCallback.bind(this, showedType));
 
-        // Hide the tray to show the app directly after
-        // user selected a new keyboard.
-        window.dispatchEvent(new CustomEvent('keyboardchanged'));
-
-        // Refresh the switcher, or the labled type and layout name
-        // won't change.
-      }, function() {
-        if (!self.keyboardLayouts[showedType]) {
-          showedType = 'text';
-        }
-
-        // Mimic the success callback to show the current keyboard
-        // when user canceled it.
-        self.setKeyboardToShow(showedType);
-
-        // Hide the tray to show the app directly after
-        // user canceled.
-        window.dispatchEvent(new CustomEvent('keyboardchangecanceled'));
-      });
       menu.start();
-    }, SWITCH_CHANGE_DELAY);
+
+    }.bind(this));
   }
 };
 
