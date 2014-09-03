@@ -457,7 +457,6 @@ li button.icon-find-and-merge:before {
 }
 
 .fillflow-media .edit-photo {
-  background: rgba(255, 255, 255, 0.4);
   top: 0;
   right: 5rem;
   z-index: 1;
