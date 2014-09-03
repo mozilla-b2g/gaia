@@ -222,7 +222,7 @@
   overflow-x: hidden;
 }
 
-#desktop-notifications-container .notification {
+.notification {
   height: 6rem;
   padding: 0 1.5rem;
   font: 1.8rem/1.8rem auto;
@@ -232,19 +232,19 @@
   border-bottom: .1rem solid rgba(255, 255, 255, .05);
 }
 
-#desktop-notifications-container .notification:active {
+.notification:active {
   background-color: rgba(52, 140, 158, .6);
 }
 
-#desktop-notifications-container .notification:first-child {
+.notification:first-child {
   border-top-color: black;
 }
 
-#desktop-notifications-container .notification div {
+.notification div {
   pointer-events: none;
 }
 
-#desktop-notifications-container .notification > img {
+.notification > img {
   float: left;
   display: block;
   width: 2.4rem;
@@ -253,7 +253,7 @@
   pointer-events: none;
 }
 
-#desktop-notifications-container .notification > div {
+.notification > div {
   width: calc(100% - 3.7rem);
   margin-left: 3.7rem;
   overflow: hidden;
@@ -261,13 +261,13 @@
   white-space: nowrap;
 }
 
-#desktop-notifications-container .notification > div.title-container {
+.notification > div.title-container {
   padding-top: 1.4rem;
   font-size: 1.7rem;
   display: flex;
 }
 
-#desktop-notifications-container .notification > div.title-container .title {
+.notification > div.title-container .title {
   flex: 1;
   margin-right: .5rem;
   overflow: hidden;
@@ -275,7 +275,7 @@
   text-overflow: ellipsis;
 }
 
-#desktop-notifications-container .notification > div.title-container .timestamp {
+.notification > div.title-container .timestamp {
   flex: initial;
   top: -.2rem;
   right: 1.5rem;
@@ -289,29 +289,33 @@
   white-space: nowrap;
 }
 
-#desktop-notifications-container .notification > div.detail {
+.notification > div.detail {
   font-size: 1.4rem;
   color: #858585;
 }
 
-#desktop-notifications-container .notification.snapback,
+#notifications-lockscreen-container .notification > img {
+  margin-top: 1.8rem;
+}
+
+.notification.snapback,
 .notification-toaster.snapback {
   transition: transform 0.3s ease-out;
   transform: translateX(0);
 }
 
-#desktop-notifications-container .notification.disappearing,
+.notification.disappearing,
 .notification-toaster.disappearing {
   transition: transform 0.2s linear;
   transform: translateX(100%);
 }
 
-#desktop-notifications-container .notification.disappearing.left,
+.notification.disappearing.left,
 .notification-toaster.disappearing.left {
   transform: translateX(-100%);
 }
 
-#desktop-notifications-container .notification.disappearing ~ .notification {
+.notification.disappearing ~ .notification {
   transition: transform 0.3s linear;
   transform: translateY(-6.2rem);
 }
@@ -352,22 +356,37 @@ html[dir="rtl"] #notification-bar button {
   text-align: left;
 }
 
-html[dir="rtl"] #desktop-notifications-container .notification > div {
+html[dir="rtl"] .notification > div {
   margin-left: 0;
   margin-right: 5rem;
   text-align: right;
 }
 
-html[dir="rtl"] #desktop-notifications-container .notification > div.title-container .title {
+html[dir="rtl"] .notification > div.title-container .title {
   margin-right: 0;
   margin-left: .5rem;
 }
 
-html[dir="rtl"] #desktop-notifications-container .notification > div.title-container .timestamp {
+html[dir="rtl"] .notification > div.title-container .timestamp {
   left: 1.5rem;
   right: auto;
 }
 
-html[dir="rtl"] #desktop-notifications-container .notification > img {
+html[dir="rtl"] .notification > img {
   float: right;
+}
+
+html[dir="rtl"] #notifications-lockscreen-container .notification > div {
+  margin-left: 0;
+  margin-right: 3.6rem;
+}
+
+html[dir="rtl"] #notifications-lockscreen-container .notification > div.title-container .timestamp {
+  left: 0;
+  right: auto;
+}
+
+html[dir="rtl"] #notifications-lockscreen-container .notification > img {
+  margin-left: 0;
+  margin-right: 0;
 }

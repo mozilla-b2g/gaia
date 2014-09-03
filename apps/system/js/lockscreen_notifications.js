@@ -13,185 +13,24 @@
   var LockScreenNotifications = function() {};
 
   LockScreenNotifications.prototype.start =
-  function lsn_start(lockScreen, container){
+  function lsn_start(lockScreen){
     this._lockScreen = lockScreen;
-    this.container = container;
-    this.arrow =
-      document.getElementById('lockscreen-notification-arrow');
-    // The 'scroll' event can't be forwarded via 'window'.
-    this.container.addEventListener('scroll', this);
     this.configs = {
       listens: [
-        'lockscreen-notification-request-highlight',
-        'lockscreen-notification-highlighted',
-        'lockscreen-notification-clean-highlighted',
-        'lockscreen-notification-clicked',
-        'touchstart'
-      ],
-      // UX require to cancel the highlighted state after
-      // idle 3 seconds.
-      timeoutHighlighted: 3000
+        'lockscreen-notification-clicked'
+      ]
     };
     this.configs.listens.forEach((ename) => {
       window.addEventListener(ename, this);
     });
-
-    this.states = {
-      // UX require to clean idle and highlighted notification
-      // after sevaral seconds.
-      highlightedNotifications: {},
-      currentHighlighted: null,
-      currentHighlightedId: null,
-      arrowVisible: false // container is scrollable
-    };
   };
 
   LockScreenNotifications.prototype.handleEvent =
   function lsn_handleEvent(evt) {
-    var detail = evt.detail || {};
-    var { id, timestamp } = detail;
     switch (evt.type) {
-      case 'lockscreen-notification-request-highlight':
-        if (!this.notificationOutOfViewport(evt.detail.node)) {
-          evt.detail.highlighter();
-        }
-      break;
-      case 'lockscreen-notification-highlighted':
-        this.onNotificationHighlighted(id, timestamp);
-      break;
-      case 'lockscreen-notification-clean-highlighted':
-        this.onCleanHighlighted(id, timestamp);
-      break;
       case 'lockscreen-notification-clicked':
         this.onNotificationClicked(evt.detail);
       break;
-      case 'touchstart':
-        if (!evt.target.classList.contains('notification') &&
-            !evt.target.classList.contains('button-actionable')) {
-          this.onNotificationsBlur();
-        }
-      break;
-      case 'scroll':
-        this.onContainerScrolling();
-      break;
-    }
-  };
-
-  LockScreenNotifications.prototype.onContainerScrolling =
-  function lsn_onContainerScrolling() {
-    if (this.notificationOutOfViewport(this.states.currentHighlighted)) {
-      this.onNotificationsBlur();
-    }
-  };
-
-  LockScreenNotifications.prototype.notificationOutOfViewport =
-  function lsn_notificationOutOfViewport(node) {
-    var top, bottom;
-    var topBoundary, bottomBoundary;
-    if (node) {
-      topBoundary = this.container.getBoundingClientRect().top;
-      bottomBoundary = this.container.getBoundingClientRect().bottom;
-      top = node.getBoundingClientRect().top;
-      bottom = node.getBoundingClientRect().bottom;
-      if (top < topBoundary ||
-          bottom > bottomBoundary) {
-        return true;
-      } else {
-        return false;
-      }
-    }
-    return false;
-  };
-
-  /**
-   * Get the notification at the buttom boundary.
-   */
-  LockScreenNotifications.prototype.notificationAtBottomBoundary =
-  function lsn_notificationAtBottomBoundary() {
-    var boundaryElement = this.arrow;
-    var detectingPoint = {
-      x: window.innerWidth >> 1,
-      y: boundaryElement.getBoundingClientRect().top +
-        this.configs.boundaryThresholdBottom
-    };
-    var element = document.elementFromPoint(detectingPoint.x, detectingPoint.y);
-    if (element.classList.contains('notification')) {
-      return element;
-    }
-    return null;
-  };
-
-  /**
-   * Get the notification at the top boundary.
-   */
-  LockScreenNotifications.prototype.notificationAtTopBoundary =
-  function lsn_notificationAtBottomBoundary() {
-    var boundaryElement = this.container;
-    var detectingPoint = {
-      x: window.innerWidth >> 1,
-      y: boundaryElement.getBoundingClientRect().top +
-        this.configs.boundaryThresholdTop
-    };
-    var element = document.elementFromPoint(detectingPoint.x, detectingPoint.y);
-    if (element.classList.contains('notification')) {
-      return element;
-    }
-    return null;
-  };
-
-  LockScreenNotifications.prototype.onNotificationsBlur =
-  function lsn_onNotificationsBlur() {
-    var id = this.states.currentHighlightedId;
-    var notificationNode = this.states.currentHighlighted;
-    if (notificationNode &&
-        notificationNode.classList.contains('actionable')) {
-      this.removeNotificationHighlight(notificationNode);
-      delete this.states.highlightedNotifications[id];
-      this.states.currentHighlighted = null;
-      this.states.currentHighlightedId = null;
-    }
-  };
-
-  /**
-   * Record the timestamp when a notification is highlighted.
-   */
-  LockScreenNotifications.prototype.onNotificationHighlighted =
-  function lsn_onNotificationHighlighted(id, timestamp) {
-    // Overwrite existing because re-clicking on it is legal.
-    this.states.highlightedNotifications[id] = timestamp;
-    this.states.currentHighlightedId = id;
-    this.states.currentHighlighted = this.container.querySelector(
-      '[data-notification-id="' + id + '"]');
-  };
-
-  /**
-   * Clean the highlighted notification.
-   */
-  LockScreenNotifications.prototype.onCleanHighlighted =
-  function lsn_onNotificationHighlighted(id, timestamp) {
-    var prevTimestamp = this.states.highlightedNotifications[id];
-    if (prevTimestamp &&
-        timestamp - prevTimestamp > this.configs.timeoutHighlighted) {
-      var notificationNode = this.container.querySelector(
-        '[data-notification-id="' + id + '"]');
-      if (notificationNode &&
-          notificationNode.classList.contains('actionable')) {
-        this.removeNotificationHighlight(notificationNode);
-        delete this.states.highlightedNotifications[id];
-        this.states.currentHighlighted = null;
-        this.states.currentHighlightedId = null;
-      }
-    }
-  };
-
-  LockScreenNotifications.prototype.removeNotificationHighlight =
-  function lsn_removeNotificationHighlight(node) {
-    node.classList.remove('actionable');
-    node.querySelector('.button-actionable').remove();
-    var oldPrevious = this.container.querySelector(
-      '.notification.previous-actionable');
-    if (null !== oldPrevious) {
-      oldPrevious.classList.remove('previous-actionable');
     }
   };
 
@@ -360,10 +199,8 @@
 
     if(visible){
       notificationArrow.classList.add('visible');
-      this.states.arrowVisible = true;
     }else{
       notificationArrow.classList.remove('visible');
-      this.states.arrowVisible = false;
     }
   };
 

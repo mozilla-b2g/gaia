@@ -16,8 +16,7 @@ suite('system/LockScreenNotifications', function() {
   setup(function() {
     lockScreenNotifications = new LockScreenNotifications();
     MockLockScreen.init();
-    lockScreenNotifications.start(MockLockScreen,
-      document.createElement('div'));
+    lockScreenNotifications.start(MockLockScreen);
   });
 
   teardown(function() {

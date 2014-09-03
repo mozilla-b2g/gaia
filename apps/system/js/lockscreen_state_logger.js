@@ -30,9 +30,9 @@
     this.configs = {
       verbose: false || configs.verbose,
       warning: false || configs.warning,
-      error: true && configs.error,
+      error: true || configs.error,
       graph: false || configs.graph,
-      debug: true && configs.debug,
+      debug: true || configs.debug,
       reporter: configs.reporter || this.consoleReporter.bind(this)
     };
     return this;
