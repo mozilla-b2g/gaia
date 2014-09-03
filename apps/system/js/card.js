@@ -153,6 +153,11 @@
     var offset = this.position - this.manager.currentPosition;
     var positionX = deltaX + offset * (windowWidth * 0.7);
 
+    positionX = Math.min(positionX,
+                         windowWidth - (windowWidth * 0.25) + 15.99);
+    positionX = Math.max(positionX,
+                         -(windowWidth * 0.75) - 15.99);
+
     var style = { transform: '' };
 
     if (deltaX || offset) {

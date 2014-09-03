@@ -733,7 +733,7 @@
         var time = Date.now() - this.gestureStart;
         var inertia = progress / time * 100;
 
-        var durationLeft = (1 - (progress + inertia)) * 300;
+        var durationLeft = Math.max(100, (1 - (progress + inertia)) * 300);
         this.alignCurrentCard(durationLeft);
       } else {
         this.handleTap(evt);
