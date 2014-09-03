@@ -18,6 +18,7 @@
    */
   function TaskManager() {
     this.stack = null;
+    this.unfilteredStack = null;
     this.cardsByAppID = {};
     // Listen for settings changes
     this.onTaskStripEnabled = function(value) {
@@ -296,26 +297,80 @@
   };
 
   /**
+   * Apply filter 'filterName' to the card stack.
+   *
+   * @memberOf TaskManager.prototype
+   * @param filterName {string} The name of the filter to apply.
+   * @returns true if a filter was applied, false if not.
+   */
+  TaskManager.prototype.filter = function cs_filterCardStack(filterName) {
+    var noRecentWindows = document.getElementById('cards-no-recent-windows');
+    switch (filterName) {
+      // Filter out any application that is not a system browser window.
+      case 'browser-only':
+        this.stack =
+          this.unfilteredStack
+              .filter(function(app) { return app.isBrowser(); });
+        navigator.mozL10n.setAttributes(noRecentWindows,
+                                        'no-recent-browser-windows');
+        break;
+      // Filter out any application that is not an application only window.
+      case 'apps-only':
+        this.stack =
+          this.unfilteredStack
+              .filter(function(app) { return !app.isBrowser(); });
+        navigator.mozL10n.setAttributes(noRecentWindows,
+                                        'no-recent-app-windows');
+        break;
+      default:
+        return false;
+    }
+
+    // We need to figure out where we are in this filtered stack as we may have
+    // removed apps from it!
+    if (this.currentPosition != -1) {
+      this.currentPosition =
+        this.stack.indexOf(this.unfilteredStack[this.currentPosition]);
+    }
+
+    return true;
+  };
+
+  /**
    * Main entry point to show the card switcher
    *
    * @memberOf TaskManager.prototype
+   * @param filterName {string} The name of the filter to apply. Only two fitler
+   *                            types are supported at this time: 'browser-only'
+   *                            and 'apps-only'.
    */
-  TaskManager.prototype.show = function cs_showCardSwitcher() {
+  TaskManager.prototype.show = function cs_showCardSwitcher(filterName) {
     // Build and display the card switcher overlay
     // Note that we rebuild the switcher each time we need it rather
     // than trying to keep it in sync with app launches.
 
     // Apps info from Stack Manager.
-    var stack = this.stack = StackManager.snapshot();
+    this.unfilteredStack = StackManager.snapshot();
+    this.stack = this.unfilteredStack;
     this.currentPosition = StackManager.position;
     this.newStackPosition = null;
     this.initialTouchPosition = null;
+
+    // Apply the filter. Noop if no filterName.
+    if (this.filter(filterName)) {
+      // Update visual style to indicate we're filtered.
+      this.element.classList.add('filtered');
+    }
+
+    // Short-hand, but we need to get reference to it here as filter can
+    // change the stack that will be used.
+    var stack = this.stack;
 
     // If we are currently displaying the homescreen but we have apps in the
     // stack we will display the most recently used application.
     if (this.currentPosition == -1 || StackManager.outOfStack()) {
       if (stack.length) {
-        this.currentPosition = this.isTaskStrip ? 0 : this.stack.length - 1;
+        this.currentPosition = this.isTaskStrip ? 0 : stack.length - 1;
       } else {
       // consider homescreen the active app
         this.currentPosition = -1;
@@ -468,6 +523,7 @@
 
     this.screenElement.classList.remove('cards-view');
     this.screenElement.classList.remove('task-manager');
+    this.element.classList.remove('filtered');
     this.cardsList.innerHTML = '';
     this.currentDisplayed = -1;
     this.deltaX = null;
@@ -508,7 +564,7 @@
       app = StackManager.getCurrent() ||
             homescreenLauncher.getHomescreen(true);
     }
-    var position = this.stack.indexOf(app);
+    var position = this.unfilteredStack.indexOf(app);
     if (position !== StackManager.position) {
       this.newStackPosition = position;
     }
@@ -764,7 +820,8 @@
         break;
 
       case 'taskmanagershow':
-        this.show();
+        var filter = (evt.detail && evt.detail.filter) || null;
+        this.show(filter);
         break;
 
       case 'taskmanagerhide':

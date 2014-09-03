@@ -121,13 +121,13 @@
   pointer-events: auto;
 }
 
-#cards-view .card > h1 {
+#cards-view .card .titles h1 {
   position: absolute;
   top: calc(100% - 1.5rem);
   width: 100%;
 }
 
-#cards-view .card > p {
+#cards-view .card .titles p {
   position: absolute;
   top: calc(100% + 1rem);
   width: 100%;
@@ -164,6 +164,43 @@
   width: 2.6rem;
   background: url(close.png) no-repeat center / 2.6rem;
   transform: scale(1.3);
+}
+
+#cards-view.filtered {
+  background-color: rgba(255, 255, 255, 1);
+}
+
+#cards-view.filtered .card {
+  margin: 0;
+}
+
+#cards-view.filtered .card .screenshotView {
+  border-left: solid 1px rgba(133, 133, 133, 0.8);
+  border-top:  solid 1px rgba(133, 133, 133, 0.8);
+  border-right: solid 1px rgba(133, 133, 133, 0.8);
+}
+
+#cards-view.filtered .card .titles {
+  background-color: rgba(0, 0, 0, 0.8);
+  border-left: solid 1px rgba(133, 133, 133, 0.8);
+  border-right: solid 1px rgba(133, 133, 133, 0.8);
+  border-bottom: solid 1px rgba(133, 133, 133, 0.8);
+  height: 3.33rem;
+  width: 100%;
+}
+
+#cards-view.filtered .card .titles p {
+  display: none;
+}
+
+#cards-view.filtered .card .titles h1 {
+  color: rgba(255, 255, 255, 1);
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 300;
+  top: auto;
+  margin-left: 0.8rem;
+  width: 96%;
 }
 
 #screen.task-manager #cards-view {
