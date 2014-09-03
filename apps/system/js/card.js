@@ -269,9 +269,13 @@
    */
   Card.prototype._updateDisplay = function c_updateDisplay() {
     var elem = this.element;
-    var screenshotView = this.screenshotView;
-    var app = this.app;
 
+    var app = this.app;
+    if (app.isActive()) {
+      elem.classList.add('current');
+    }
+
+    var screenshotView = this.screenshotView;
     var isIconPreview = !this.getScreenshotPreviewsSetting();
     if (isIconPreview) {
       elem.classList.add('appIconPreview');
@@ -319,6 +323,7 @@
         'url(none),' +
         '-moz-element(#' + this.app.instanceID + ')';
     }
+
   };
 
   Card.prototype._fetchElements = function c__fetchElements() {

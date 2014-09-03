@@ -264,7 +264,7 @@
 }
 
 /* Titles */
-#screen #cards-view .card .titles {
+#cards-view .card .titles {
   position: absolute;
   top: -4rem;
   left: 0;
@@ -303,4 +303,18 @@
   top: auto;
   margin-left: 0.8rem;
   width: 96%;
+}
+
+
+/* Animations */
+
+.card.current .titles,
+.card.current .card-tray {
+  opacity: 0;
+}
+
+#screen.cards-view .card.current .titles,
+#screen.cards-view .card.current .card-tray {
+  opacity: 1;
+  transition: opacity 1s ease;
 }
