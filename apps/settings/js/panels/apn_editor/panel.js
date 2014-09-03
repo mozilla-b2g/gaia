@@ -18,10 +18,6 @@ define(function(require) {
     var _rootElement;
     var _elements;
 
-    var _warningDialog;
-    var _warningDialogOkBtn;
-    var _warningDialogCancelBtn;
-
     var _apnEditor;
     var _editorSession;
 
@@ -31,23 +27,21 @@ define(function(require) {
 
     var _leftApp = false;
 
-    var _showApnChangeWarningDialog = function() {
-      if (!_warningDialog) {
-        _warningDialog = _rootElement.querySelector('.change-apn-warning');
-        _warningDialogOkBtn = _warningDialog.querySelector('.ok-btn');
-        _warningDialogCancelBtn = _warningDialog.querySelector('.cancel-btn');
-      }
-      _warningDialog.hidden = false;
+    var _showWarningDialog = function(dialogElement) {
+      var warningDialog = dialogElement;
+      var warningDialogOkBtn = dialogElement.querySelector('.ok-btn');
+      var warningDialogCancelBtn = dialogElement.querySelector('.cancel-btn');
+      warningDialog.hidden = false;
 
       return new Promise(function(resolve) {
-        _warningDialog.addEventListener('click', function onclick(event) {
-          if (event.target == _warningDialogOkBtn) {
-            _warningDialog.removeEventListener('click', onclick);
-            _warningDialog.hidden = true;
+        warningDialog.addEventListener('click', function onclick(event) {
+          if (event.target == warningDialogOkBtn) {
+            warningDialog.removeEventListener('click', onclick);
+            warningDialog.hidden = true;
             resolve(true);
-          } else if (event.target == _warningDialogCancelBtn) {
-            _warningDialog.removeEventListener('click', onclick);
-            _warningDialog.hidden = true;
+          } else if (event.target == warningDialogCancelBtn) {
+            warningDialog.removeEventListener('click', onclick);
+            warningDialog.hidden = true;
             resolve(false);
           }
         });
@@ -89,7 +83,8 @@ define(function(require) {
               var activeApnId = results[0];
               var dataRoamingEnabled = results[1];
               if (activeApnId === _apnItem.id && dataRoamingEnabled) {
-                return _showApnChangeWarningDialog();
+                return _showWarningDialog(
+                  _rootElement.querySelector('.change-apn-warning'));
               } else {
                 return true;
               }
@@ -103,9 +98,12 @@ define(function(require) {
         };
 
         _elements.deleteBtn.onclick = function() {
-          if (window.confirm(navigator.mozL10n.get('delete-apn-confirm'))) {
-            ApnSettingsManager.removeApn(_serviceId, _apnItem.id).then(_back);
-          }
+          _showWarningDialog(_rootElement.querySelector('.delete-apn-warning'))
+          .then(function(value) {
+            if (value) {
+              ApnSettingsManager.removeApn(_serviceId, _apnItem.id).then(_back);
+            }
+          });
         };
       },
       onBeforeShow: function ae_onBeforeShow(rootElement, options) {
