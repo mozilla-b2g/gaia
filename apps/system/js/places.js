@@ -195,19 +195,6 @@
       });
     },
 
-    /**
-     * Manually set the previous visits array of timestamps, used for
-     * migrations
-     */
-    setVisits: function(url, visits) {
-      return this.editPlace(url, (place, cb) => {
-        place.visits = place.visits || [];
-        place.visits.concat(visits);
-        place.visits.sort((a, b) => { return b - a; });
-        cb(place);
-      });
-    },
-
     /*
      * Add a recorded visit to the history, we prune them to the last
      * TRUNCATE_VISITS number of visits and store them in a low enough

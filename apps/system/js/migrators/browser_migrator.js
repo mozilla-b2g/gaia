@@ -1,6 +1,5 @@
 'use strict';
 /* global BookmarksDatabase */
-/* global Places */
 // https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabaseException
 // IDBDatabaseException obselete
 
@@ -17,7 +16,6 @@ var BrowserDB = {
   init: function browserDB_init(callback) {
     this.db.open(callback);
   },
-
   /**
    * Get all bookmarks.
    * @param {Function} callback Runs on success with an array of bookmarks
@@ -25,14 +23,6 @@ var BrowserDB = {
   getBookmarks: function browserDB_getBookmarks(callback) {
     this.db.getAllBookmarks(callback);
   },
-
-  /**
-   * Reads visits from the database.
-   */
-  readVisits: function browserDB_readVisits() {
-    return this.db.readVisits();
-  },
-
   removeDB: function browserDB_removeDB() {
     this.db.removeDB();
   }
@@ -110,49 +100,6 @@ BrowserDB.db = {
     transaction.oncomplete = function db_bookmarkTransactionComplete() {
       callback(bookmarks);
     };
-  },
-
-  readVisits: function db_readHistory() {
-
-    var places = {};
-    var db = this._db;
-
-    var transaction = db.transaction(['visits']);
-    var bookmarksStore = transaction.objectStore('visits');
-    var bookmarksIndex = bookmarksStore.index('timestamp');
-
-    function onCursor(e) {
-
-      var cursor = e.target.result;
-      if (cursor) {
-
-        if (!(cursor.value.uri in places)) {
-          places[cursor.value.uri] = {
-            visits: []
-          };
-        }
-
-        var place = places[cursor.value.uri];
-
-        if (cursor.value.title) {
-          place.title = cursor.value.title;
-        }
-
-        place.visits.unshift(cursor.value.timestamp);
-
-        if (place.visits.length > 20) {
-          place.visits.length = 20;
-        }
-        cursor.continue();
-      }
-    }
-
-    return new Promise(function(resolve) {
-      transaction.oncomplete = function() {
-        resolve(places);
-      };
-      bookmarksIndex.openCursor(null, 'prev').onsuccess = onCursor;
-    });
   }
 };
 
@@ -166,44 +113,15 @@ BrowserMigrator.prototype = {
   _pendingBookmarks: [],
 
   runMigration: function() {
-
-    this.iteratePendingBookmarks = this._iteratePendingBookmarks.bind(this);
-
+    this.iteratePending = this._iteratePending.bind(this);
     BrowserDB.init(() => {
-      BrowserDB.readVisits().then(visits => {
-        this._saveVisits(visits).then(() => {
-          BrowserDB.getBookmarks(bookmarks => {
-            this._pendingBookmarks = bookmarks;
-            this._iteratePendingBookmarks();
-          });
-        });
+      BrowserDB.getBookmarks(bookmarks => {
+        this._pendingBookmarks = bookmarks;
+        this.iteratePending();
       });
     });
   },
-
-  _saveVisits: function(visits) {
-
-    var urls = Object.keys(visits);
-    var places = new Places();
-
-    return new Promise(function(resolve) {
-
-      function saveVisit() {
-
-        if (!urls.length) {
-          resolve();
-          return;
-        }
-
-        var url = urls.shift();
-        places.setVisits(url, visits[url].visits).then(saveVisit);
-      }
-
-      places.start(saveVisit);
-    });
-  },
-
-  _iteratePendingBookmarks: function() {
+  _iteratePending: function() {
     // If there are no bookmarks left, we're done
     if (!this._pendingBookmarks.length) {
       BrowserDB.removeDB();
