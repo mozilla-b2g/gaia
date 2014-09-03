@@ -242,7 +242,10 @@
   };
 
   BrowserContextMenu.prototype.showWindows = function(manifest) {
-    window.dispatchEvent(new CustomEvent('taskmanagershow'));
+    window.dispatchEvent(
+      new CustomEvent('taskmanagershow',
+                      { detail: { filter: 'browser-only' }})
+    );
   };
 
   BrowserContextMenu.prototype.generateSystemMenuItem = function(item) {
