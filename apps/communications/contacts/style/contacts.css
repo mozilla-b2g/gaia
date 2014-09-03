@@ -804,6 +804,9 @@ form[role="combobox"] span[data-field="type"] {
   border-radius: 15px 0 0;
   background-color: #fff;
   border: 1px solid #e7e7e7;
+  overflow: hidden;
+  max-height: 0;
+  transition: all 0.4s ease;
 }
 
 /* Add separation between templates */
@@ -814,7 +817,8 @@ form[role="combobox"] span[data-field="type"] {
 .img-delete-button {
   padding: 0;
   margin: 0.2rem 1rem 0 0.2rem;
-  width: 2.8rem;
+  width: 3rem;
+  height: 3rem;
   color: #fff;
   background: url('images/icon_remove.png') no-repeat scroll 0 0 / 3rem auto transparent;
   border: 0;
@@ -823,6 +827,45 @@ form[role="combobox"] span[data-field="type"] {
 
 .img-delete-button:active {
   background: url('images/icon_remove.png') no-repeat scroll 0 0 / 3rem auto transparent;
+  border: 0;
+}
+
+.field-template .img-delete-button .plus,
+.field-template .img-delete-button .cross {
+  padding: 0;
+  width: 2.8rem;
+  height: 2.8rem;
+  background-color: transparent;
+  background-repeat:no-repeat;
+  border: 0;
+  transition: opacity 0.2s, transform 0.3s;
+  transition-delay: 0.1s;
+  position: absolute;
+  top: 0.2rem;
+  left: 0.2rem;
+  opacity: 0;
+}
+
+.field-template .img-delete-button .plus {
+  background-image: url(images/Add_button.png);
+  opacity: 1;
+  left: 0.41rem;
+  top: 0.2rem;
+}
+
+.field-template .img-delete-button .cross {
+  background-image: url(images/icon_remove.png);
+}
+
+.field-template.grown .img-delete-button .cross {
+  opacity: 1;
+  transition-delay: 0.3s;
+  transition-duration: 0.1s;
+}
+
+.field-template.grown .img-delete-button .plus {
+  transform-origin: center center;
+  transform: rotate(45deg);
 }
 
 .view-edit-contact form li > section > div {

@@ -509,8 +509,7 @@ contacts.Form = (function() {
     }
 
     if (infoFromFB) {
-      var nodeClass = rendered.classList;
-      nodeClass.add(FB_CLASS);
+      rendered.classList.add(FB_CLASS);
     }
 
     // The remove button should not appear on FB disabled fields
@@ -527,6 +526,10 @@ contacts.Form = (function() {
 
     container.classList.remove('empty');
     container.appendChild(rendered);
+    setTimeout(function() {
+      rendered.classList.add('grown');
+      rendered.style.maxHeight = '500px';
+    }, 10);
     counters[type]++;
 
     // Finally we need to check the status of the add date button
@@ -1164,6 +1167,14 @@ contacts.Form = (function() {
     delButton.setAttribute('data-l10n-id', 'removeField');
     delButton.setAttribute('data-type', type);
 
+    var btnImagePlus = document.createElement('img');
+    btnImagePlus.classList.add('plus');
+    delButton.appendChild(btnImagePlus);
+
+    var btnImageCross = document.createElement('img');
+    btnImageCross.classList.add('cross');
+    delButton.appendChild(btnImageCross);
+
     delButton.onclick = function removeElement(event) {
       // Workaround until 809452 is fixed.
       // What we are avoiding with this condition is removing / restoring
@@ -1176,7 +1187,11 @@ contacts.Form = (function() {
       var elem = document.getElementById(selector);
 
       if (type !== 'photo') {
-        elem.parentNode.removeChild(elem);
+        elem.style.maxHeight = '0';
+        setTimeout(function() {
+          elem.parentNode.removeChild(elem);
+        }, 400);
+
         if (container.querySelectorAll('section').length === 0) {
           container.classList.add('empty');
         }

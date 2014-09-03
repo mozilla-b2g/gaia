@@ -348,7 +348,8 @@ li button.icon-fb-profile:before {
 
 li button.icon-add:before {
   background-image: url(/contacts/style/images/Add_button.png);
-  left: 0.2rem
+  left: 0.5rem;
+  top: 2rem;
 }
 
 li button.icon-find-and-merge:before {
