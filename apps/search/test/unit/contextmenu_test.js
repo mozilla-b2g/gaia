@@ -4,10 +4,22 @@ require('/js/contextmenu.js');
 
 suite('search/contextmenu', function() {
 
-  var subject;
+  var subject = null,
+      realBookmarks = null,
+      isBookmarked = false;
 
   suiteSetup(function() {
+    realBookmarks = window.Bookmarks;
+    window.Bookmarks = {
+      get: function() {
+        return isBookmarked;
+      }
+    };
     loadBodyHTML('/index.html');
+  });
+
+  suiteTeardown(function() {
+    window.Bookmarks = realBookmarks;
   });
 
   setup(function() {
@@ -16,7 +28,7 @@ suite('search/contextmenu', function() {
   });
 
   suite('handleEvent', function() {
-    test('contextmenu', function() {
+    test('contextmenu icon not bookmarked', function() {
       var target = document.createElement('div');
       target.getIcon = function() {
         return {
@@ -40,6 +52,29 @@ suite('search/contextmenu', function() {
       assert.ok(stopStub.calledOnce);
       this.sinon.clock.tick();
       assert.ok(startStub.calledOnce);
+    });
+
+    test('contextmenu icon already bookmarked', function() {
+      var target = document.createElement('div');
+      target.getIcon = function() {
+        return {
+          detail: {
+            type: 'bookmark'
+          }
+        };
+      };
+      target.stop = function() {};
+      subject.grid = target;
+
+      var fakeContextMenuEvent = {
+        type: 'contextmenu',
+        target: target
+      };
+
+      isBookmarked = true;
+      var stopStub = this.sinon.stub(subject.grid, 'stop');
+      subject.handleEvent(fakeContextMenuEvent);
+      assert.isFalse(stopStub.called);
     });
   });
 });

@@ -1,5 +1,6 @@
 'use strict';
 /* global MozActivity */
+/* global Bookmarks */
 
 (function(exports) {
 
@@ -32,6 +33,12 @@
 
           // Only show for bookmark targets
           if (!icon || icon.detail.type !== 'bookmark') {
+            return;
+          }
+
+          var url = icon.detail.url;
+          if (Bookmarks.get(url)) {
+            // Bookmark already installed in device
             return;
           }
 
