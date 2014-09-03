@@ -735,6 +735,19 @@
     if (!this.draggingCardUp) {
       if (Math.abs(dx) > this.threshold) {
         this.onMoveEventForScrolling(dx + this.initialTouchPosition[0]);
+
+        var progress = Math.abs(dx) / this.windowWidth;
+        var time = Date.now() - this.gestureStart;
+        var inertia = progress / time * 100;
+        var durationLeft = (1 - (progress + inertia)) * 300;
+
+        // Snaping backward at the extremities
+        if (this.onExtremity()) {
+          durationLeft = 300 - durationLeft;
+        }
+
+        durationLeft = Math.max(100, durationLeft);
+
         if (this.scrollDirection) {
           if (this.scrollDirection === 'left' &&
                 this.currentDisplayed < this.cardsList.childNodes.length - 1) {
@@ -745,11 +758,7 @@
             this.currentDisplayed = --this.currentPosition;
           }
         }
-        var progress = Math.abs(dx) / this.windowWidth;
-        var time = Date.now() - this.gestureStart;
-        var inertia = progress / time * 100;
 
-        var durationLeft = Math.max(100, (1 - (progress + inertia)) * 300);
         this.alignCurrentCard(durationLeft);
       } else {
         this.handleTap(evt);
@@ -1098,15 +1107,24 @@
     var sign = (deltaX > 0) ? -1 : 1;
 
     // Resistance at the extremities of the strip
-    if (this.currentPosition === 0 ||
-        this.currentPosition === this.stack.length - 1) {
-      deltaX /= 1.5;
+    if (this.onExtremity()) {
+      deltaX /= 2;
     }
 
     this.stack.forEach(function(app, idx) {
       var card = this.cardsByAppID[app.instanceID];
       card.move(Math.abs(deltaX) * sign);
     }, this);
+  };
+
+  /**
+   * Check if the current gesture happens at an extremity
+   * @memberOf TaskManager.prototype
+   */
+  TaskManager.prototype.onExtremity = function() {
+    var sign = (this.deltaX > 0) ? -1 : 1;
+    return (this.currentPosition === 0 && sign === 1 ||
+            this.currentPosition === this.stack.length - 1 && sign === -1);
   };
 
   /**
