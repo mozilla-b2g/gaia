@@ -238,13 +238,15 @@ suite('KeyboardManager', function() {
 
           simulateInputChangeEvent('url');
           this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+          this.checkDefaults.getCall(0).args[0]();
         });
 
-        test('requests layouts', function() {
-          assert.ok(this.getLayouts.called);
-        });
         test('requests defaults', function() {
-          assert.ok(this.checkDefaults.calledAfter(this.getLayouts));
+          assert.ok(this.checkDefaults.called);
+        });
+        test('requests layouts', function() {
+          assert.ok(this.getLayouts.calledAfter(this.checkDefaults));
         });
         test('reverts to "text" when no defaults', function() {
           assert.ok(KeyboardManager.setKeyboardToShow.calledWith('text'));
