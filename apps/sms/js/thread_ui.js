@@ -100,10 +100,11 @@ var ThreadUI = {
       'input', 'compose-form', 'check-uncheck-all-button',
       'contact-pick-button', 'send-button', 'header', 'edit-header',
       'attach-button', 'delete-button', 'subject-input',
-      'new-message-notice', 'options-icon', 'edit-mode', 'edit-form',
+      'new-message-notice', 'options-button', 'edit-mode', 'edit-form',
       'tel-form', 'header-text', 'max-length-notice', 'convert-notice',
       'resize-notice', 'dual-sim-information', 'new-message-notice',
-      'subject-max-length-notice', 'counter-label', 'recipient-suggestions'
+      'subject-max-length-notice', 'counter-label', 'recipient-suggestions',
+      'call-number-button'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -174,9 +175,13 @@ var ThreadUI = {
       'action', this.onHeaderAction.bind(this)
     );
 
-    this.optionsIcon.addEventListener(
+    this.optionsButton.addEventListener(
       'click', this.showOptions.bind(this)
     );
+
+    this.callNumberButton.addEventListener('click', function() {
+      ActivityPicker.dial(Threads.active.participants[0]);
+    });
 
     this.deleteButton.addEventListener(
       'click', this.delete.bind(this)
@@ -611,6 +616,14 @@ var ThreadUI = {
     if (prevPanel !== 'group-view' && prevPanel !== 'report-view') {
       this.initializeRendering();
     }
+
+    // Call button should be shown only for non-email single-participant thread
+    if (Threads.active.participants.length === 1 &&
+        (!Settings.supportEmailRecipient ||
+         !Utils.isEmailAddress(Threads.active.participants[0]))) {
+      this.callNumberButton.classList.remove('hide');
+    }
+
     return this.updateHeaderData();
   },
 
@@ -693,6 +706,7 @@ var ThreadUI = {
 
     if (!Navigation.isCurrentPanel('thread')) {
       this.threadMessages.classList.remove('has-carrier');
+      this.callNumberButton.classList.add('hide');
     }
   },
 
@@ -2749,7 +2763,8 @@ var ThreadUI = {
       items: null
     };
 
-    // All non-email activations will see a "Call" option
+    // All non-email activations (except for single participant thread) will
+    // see a "Call" option
     if (email) {
       items.push({
         l10nId: 'sendEmail',
@@ -2759,17 +2774,16 @@ var ThreadUI = {
         params: [email]
       });
     } else {
-      items.push({
-        l10nId: 'call',
-        method: function oCall(param) {
-          ActivityPicker.dial(param);
-        },
-        params: [number]
-      });
-
       // Multi-participant activations or in-message numbers
-      // will include a "Send Message" option in the menu
+      // will include a "Call" and "Send Message" options in the menu
       if ((thread && thread.participants.length > 1) || inMessage) {
+        items.push({
+          l10nId: 'call',
+          method: function() {
+            ActivityPicker.dial(number);
+          }
+        });
+
         items.push({
           l10nId: 'sendMessage',
           method: function oMessage(param) {
