@@ -1,7 +1,5 @@
 'use strict';
 
-// --
-
 (function(exports) {
 
   /**
