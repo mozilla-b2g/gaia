@@ -38,13 +38,6 @@
   Card.prototype.EVENT_PREFIX = 'card-';
 
   /**
-   * Transition to apply when moving the card
-   * @type {String}
-   * @memberof Card.prototype
-   */
-  Card.prototype.MOVE_TRANSITION = 'transform .3s';
-
-  /**
    * The instance's element will get appended here if defined
    * @type {DOMNode}
    * @memberof Card.prototype

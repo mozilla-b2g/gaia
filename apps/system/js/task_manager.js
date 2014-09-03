@@ -1,7 +1,7 @@
 /* global Card, TaskCard,
           AppWindowManager, sleepMenu, SettingsListener,
           OrientationManager, System, homescreenLauncher,
-          GestureDetector, UtilityTray, StackManager, Event */
+          GestureDetector, UtilityTray, StackManager */
 
 'use strict';
 
@@ -340,6 +340,7 @@
     this.currentPosition = StackManager.position;
     this.newStackPosition = null;
     this.initialTouchPosition = null;
+    this.gestureStart = null;
 
     // Apply the filter. Noop if no filterName.
     if (this.filter(filterName)) {
@@ -728,7 +729,12 @@
             this.currentDisplayed = --this.currentPosition;
           }
         }
-        this.alignCurrentCard();
+        var progress = Math.abs(dx) / this.windowWidth;
+        var time = Date.now() - this.gestureStart;
+        var inertia = progress / time * 100;
+
+        var durationLeft = (1 - (progress + inertia)) * 300;
+        this.alignCurrentCard(durationLeft);
       } else {
         this.handleTap(evt);
       }
@@ -927,6 +933,7 @@
   TaskManager.prototype.setupCardSwiping = function() {
     //scrolling cards (Positon 0 is x-coord and position 1 is y-coord)
     this.initialTouchPosition = [0, 0];
+    this.gestureStart = null;
     // For tracking direction changes while scrolling cards
     this.scrollChangePosition = 0;
     this.scrollDirection = null;
@@ -1030,7 +1037,7 @@
    * Get the current card front and center
    * @memberOf TaskManager.prototype
    */
-  TaskManager.prototype.alignCurrentCard = function(noTransition) {
+  TaskManager.prototype.alignCurrentCard = function(duration) {
     // We're going to release memory hiding card out of screen
     var currentCard = this.currentCard;
     if (!currentCard) {
@@ -1039,22 +1046,15 @@
     var pseudoCard = this.pseudoCard;
     var prevCard = this.prevCard || pseudoCard;
     var nextCard = this.nextCard || pseudoCard;
-    var prevCardStyle = {
-      MozTransition: currentCard.MOVE_TRANSITION
-    };
-    var nextCardStyle = {
-      MozTransition: currentCard.MOVE_TRANSITION
-    };
-    var currentCardStyle = {
-      MozTransition: currentCard.MOVE_TRANSITION
-    };
+
+    var style = { transition: 'transform ' + (duration || 300) + 'ms'};
 
     this.setAccessibilityAttributes();
     this.placeCards();
 
-    currentCard.applyStyle(currentCardStyle);
-    nextCard.applyStyle(nextCardStyle);
-    prevCard.applyStyle(prevCardStyle);
+    currentCard.applyStyle(style);
+    nextCard.applyStyle(style);
+    prevCard.applyStyle(style);
 
     var onCardTransitionEnd = function transitionend() {
       currentCard.element.removeEventListener('transitionend',
@@ -1067,9 +1067,6 @@
 
     currentCard.element.addEventListener('transitionend', onCardTransitionEnd);
 
-    if (noTransition) {
-      currentCard.element.dispatchEvent(new Event('transitionend'));
-    }
     // done with delta
     this.deltaX = 0;
   };
@@ -1081,6 +1078,12 @@
   TaskManager.prototype.moveCards = function() {
     var deltaX = this.deltaX;
     var sign = (deltaX > 0) ? -1 : 1;
+
+    // Resistance at the extremities of the strip
+    if (this.currentPosition === 0 ||
+        this.currentPosition === this.stack.length - 1) {
+      deltaX /= 1.5;
+    }
 
     this.stack.forEach(function(app, idx) {
       var card = this.cardsByAppID[app.instanceID];
@@ -1175,6 +1178,7 @@
     cardsView.addEventListener('swipe', this);
     this._dragPhase = '';
 
+    this.gestureStart = Date.now();
     if (evt.touches) {
       this.initialTouchPosition = [evt.touches[0].pageX, evt.touches[0].pageY];
     } else {
