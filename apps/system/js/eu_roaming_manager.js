@@ -266,8 +266,11 @@
      */
     _showNotification: function(serviceId) {
       var _ = navigator.mozL10n.get;
+      var iconUrl =  window.location.origin + '/style/eu_roaming_manager/' +
+        'eu_roaming.png';
       var options = {
         body: _('euRoamingNotificationMsg'),
+        icon: iconUrl,
         tag: this.TAG_PREFIX + serviceId
       };
       var notification =
