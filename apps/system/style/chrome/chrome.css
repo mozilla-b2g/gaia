@@ -150,7 +150,7 @@
   top: 0;
   right: 0.8rem;
   position: absolute;
-  background-image: url('images/dark/search.png');
+  background-image: url('images/search.png');
   background-repeat: no-repeat;
   background-size: 2rem auto;
   background-position: center right;
@@ -206,12 +206,12 @@
 
 .chrome.maximized .title[data-ssl="secure"] {
   padding-left: 3rem;
-  background: url("images/ssl.png") no-repeat 0.1rem center / 3rem 3rem;
+  background: url("images/light/ssl.png") no-repeat 0.1rem center / 3rem 3rem;
 }
 
 .chrome.maximized .title[data-ssl="broken"] {
   padding-left: 3rem;
-  background: url("images/ssl_broken.png") no-repeat 0.1rem center / 3rem 3rem;
+  background: url("images/light/ssl_broken.png") no-repeat 0.1rem center / 3rem 3rem;
 }
 
 .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
@@ -306,73 +306,110 @@
 }
 
 
-/* Buttons Images */
+/* Default (dark) theme button styles */
 .controls .back-button {
-  background-image: url("images/back.png");
-}
-
-.controls .forward-button {
-  background-image: url("images/forward.png");
-}
-
-.controls .reload-button {
-  background-image: url("images/reload.png");
-}
-
-.controls .stop-button {
-  background-image: url("images/stop.png");
-}
-
-.controls .menu-button {
-  background-image: url("images/overflow.png");
-}
-
-.light .controls .back-button {
   background-image: url("images/dark/back.png");
 }
 
-.light .controls .back-button:active {
+.controls .back-button:active {
   background-image: url("images/dark/back_active.png");
 }
 
-.light .controls .forward-button {
+.controls .forward-button {
   background-image: url("images/dark/forward.png");
 }
 
-.light .controls .forward-button:active {
+.controls .forward-button:active {
   background-image: url("images/dark/forward_active.png");
 }
 
-.light .controls .reload-button {
+.controls .menu-button {
+  background-image: url("images/dark/options.png");
+}
+
+.controls .menu-button:active {
+  background-image: url("images/dark/options_active.png");
+}
+
+.controls .reload-button {
   background-image: url("images/dark/reload.png");
 }
 
-.light .controls .reload-button:active {
+.controls .reload-button:active {
   background-image: url("images/dark/reload_active.png");
 }
 
-.light .controls .stop-button {
+.controls .stop-button {
   background-image: url("images/dark/stop.png");
 }
 
-.light .controls .stop-button:active {
+.controls .stop-button:active {
   background-image: url("images/dark/stop_active.png");
 }
 
-.light .controls .menu-button {
-  background-image: url("images/dark/overflow.png");
-}
-
-.light .controls .windows-button {
+.controls .windows-button {
   background-image: url('images/dark/windows.png');
 }
 
-.light .controls .windows-button:active {
+.controls .windows-button:active {
   background-image: url('images/dark/windows_active.png');
 }
 
+/* Light theme button styles */
 .light .controls .menu-button:active {
-  background-image: url("images/dark/overflow_active.png");
+  background-image: url("images/light/overflow_active.png");
+}
+
+.light .controls .back-button {
+  background-image: url("images/light/back.png");
+}
+
+.light .controls .back-button:active {
+  background-image: url("images/light/back_active.png");
+}
+
+.light .controls .forward-button {
+  background-image: url("images/light/forward.png");
+}
+
+.light .controls .forward-button:active {
+  background-image: url("images/light/forward_active.png");
+}
+
+.light .controls .menu-button {
+  background-image: url("images/light/options.png");
+}
+
+.light .controls .menu-button:active {
+  background-image: url("images/light/options_active.png");
+}
+
+.light .controls .reload-button {
+  background-image: url("images/light/reload.png");
+}
+
+.light .controls .reload-button:active {
+  background-image: url("images/light/reload_active.png");
+}
+
+.light .controls .stop-button {
+  background-image: url("images/light/stop.png");
+}
+
+.light .controls .stop-button:active {
+  background-image: url("images/light/stop_active.png");
+}
+
+.light .controls .windows-button {
+  background-image: url('images/light/windows.png');
+}
+
+.light .controls .windows-button:active {
+  background-image: url('images/light/windows_active.png');
+}
+
+.light .controls .menu-button:active {
+  background-image: url("images/light/overflow_active.png");
 }
 
 /* Overflow menu */
