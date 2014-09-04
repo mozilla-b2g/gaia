@@ -374,13 +374,18 @@ var CallHandler = (function callHandler() {
     // Dialing a specific number
     if (isAtd && command[3] !== '>') {
       var phoneNumber = command.substring(3);
-      LazyLoader.load(['/shared/js/sim_settings_helper.js',
-                       '/shared/js/sim_picker.js'], function() {
+      LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
         SimSettingsHelper.getCardIndexFrom('outgoingCall',
         function(defaultCardIndex) {
-          SimPicker.getOrPick(defaultCardIndex, phoneNumber, function(ci) {
-            CallHandler.call(phoneNumber, ci);
-          });
+          if (defaultCardIndex === SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
+            LazyLoader.load(['/shared/js/sim_picker.js'], function() {
+              SimPicker.getOrPick(defaultCardIndex, phoneNumber, function(ci) {
+                CallHandler.call(phoneNumber, ci);
+              });
+            });
+          } else {
+            CallHandler.call(phoneNumber, defaultCardIndex);
+          }
         });
       });
       return;
