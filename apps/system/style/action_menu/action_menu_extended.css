@@ -1,3 +1,8 @@
+#screen.software-button-enabled [role="dialog"][data-type="action"],
+#screen.software-button-enabled [role="dialog"][data-type="object"] {
+  bottom: 5rem;
+}
+
 /* Extending action menu with icon capability & transition*/
 
 form[role="dialog"][data-type="action"] > menu > button.icon,
