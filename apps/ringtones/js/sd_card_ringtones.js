@@ -9,6 +9,29 @@ window.sdCardRingtones = (function() {
   };
 
   /**
+   * Given a path to an SD card tone, return its type ("ringtone" or
+   * "alerttone").
+   *
+   * @param {String} path The path to the tone.
+   * @return {String} The tone's type.
+   */
+  function pathToType(path) {
+    // Get the name of the folder the tone is stored in. We're looking for
+    // either "/volume-name/Folder/" or "Folder/". We can guarantee that the
+    // regex matches, or something horrible has happened, in which case we'll
+    // throw an exception automatically.
+    var folder = new RegExp('^(/[^/]*/)?([^/]*)/').exec(path)[2];
+    for (var type in BASE_DIRS) {
+      if (BASE_DIRS[type] === folder) {
+        return type;
+      }
+    }
+
+    // This should never happen.
+    throw new Error('unexpected SD card folder: ' + folder);
+  }
+
+  /**
    * Create a new SD card ringtone object.
    *
    * @param {File} file A File object for the ringtone.
@@ -17,6 +40,7 @@ window.sdCardRingtones = (function() {
     var leafname = file.name.substr(file.name.lastIndexOf('/') + 1);
     this._name = leafname.replace(/\.\w+$/, '');
     this._blob = file;
+    this._type = pathToType(this._blob.name);
   }
 
   SDCardRingtone.prototype = {
@@ -47,6 +71,13 @@ window.sdCardRingtones = (function() {
      */
     get id() {
       return ID_PREFIX + this._blob.name;
+    },
+
+    /**
+     * @return {String} The type of the tone. Either "ringtone" or "alerttone".
+     */
+    get type() {
+      return this._type;
     },
 
     /**

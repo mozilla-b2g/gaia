@@ -10,7 +10,7 @@ var MockEnumerateAll = function(storages, dir, options) {
     } else if (index == MockEnumerateAll.files[dir].length) {
       self.result = null;
     } else {
-      self.result = { name: MockEnumerateAll.files[dir][index++] };
+      self.result = { name: dir + '/' + MockEnumerateAll.files[dir][index++] };
     }
     callback.call(self);
   }
