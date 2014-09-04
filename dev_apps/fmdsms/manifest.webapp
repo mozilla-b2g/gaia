@@ -1,0 +1,33 @@
+{
+  "name": "Template",
+  "description": "Web app template",
+  "type": "certified",
+  "role": "system",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Template",
+      "description": "Web app template"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  },
+  "permissions": {
+    "sms": {}
+  },
+  "connections": {
+    "fmdsms-wakeup": {
+      "rules": {
+        "manifestURLs": [
+          "app://system.gaiamobile.org/manifest.webapp"
+        ]
+      }
+    }
+  }
+}
