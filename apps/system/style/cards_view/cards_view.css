@@ -7,7 +7,7 @@
   height: 100%;
   -moz-user-select: none;
   overflow: hidden;
-  background-color: black;
+  background-color: rgba(0,0,0,0.8);
 }
 
 @media not all and (-moz-physical-home-button) {
@@ -285,7 +285,7 @@
   overflow-x: hidden;
   margin: 0;
 
-  font-size: 1.95rem;
+  font-size: 1.4rem;
   font-weight: 300;
   font-style: italic;
 
