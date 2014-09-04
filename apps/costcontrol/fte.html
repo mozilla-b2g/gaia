@@ -10,6 +10,7 @@
   <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
   <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
+  <link rel="stylesheet" type="text/css" href="shared/style/layout.css">
 
   <!-- App and Views -->
   <link rel="stylesheet" type="text/css" href="style/app.css">
@@ -59,7 +60,7 @@
       <gaia-header>
         <h1 data-l10n-id="fte-welcome-title">Welcome</h1>
       </gaia-header>
-      <section class="content">
+      <section class="content vbox">
         <div class="authed-sim" aria-hidden="true">
           <h2 data-l10n-id="fte-authed-sim">Save money by keeping track of your phone and internet usage.</h2>
         </div>
@@ -77,25 +78,27 @@
     </section>
 
     <!-- Step 2 -->
-    <section role="region" class="view step" data-viewport="right" id="step-2">
+    <section role="region" class="view step gaia-list" data-viewport="right" id="step-2">
       <gaia-header>
         <h1 data-l10n-id="fte-plantype-title">Type of contract</h1>
       </gaia-header>
       <ul class="content choices">
-        <li>
+        <li class="active">
           <label for="prepaid-plan" class="pack-radio">
             <input type="radio" name="plan" id="prepaid-plan" value="prepaid">
             <span data-l10n-id="im-prepaid">I’m Pre-paid</span>
           </label>
         </li>
-        <li>
+        <li class="active">
           <label for="postpaid-plan" class="pack-radio">
             <input type="radio" name="plan" id="postpaid-plan" value="postpaid">
             <span data-l10n-id="im-postpaid">I’m Post-paid</span>
           </label>
         </li>
+        <li>
+          <p data-l10n-id="fte-plantype-hint">Select the type of contract you have with your mobile service provider.</p>
+        </li>
       </ul>
-      <p class="step-hint" data-l10n-id="fte-plantype-hint">Select the type of contract you have with your mobile service provider.</p>
       <bdo dir="ltr">
         <gaia-buttons data-items="2">
           <button data-navigation="back" class="icon icon-previous" data-l10n-id="back">Back</button>
@@ -105,28 +108,29 @@
     </section>
 
     <!-- Prepaid step 2 -->
-    <section role="region" class="view step" data-viewport="right" id="prepaid-step-2">
+    <section role="region" class="view step gaia-list" data-viewport="right" id="prepaid-step-2">
       <gaia-header>
         <h1 data-l10n-id="fte-prepaid2-title">Low balance alert</h1>
       </gaia-header>
       <section class="content">
         <ul class="settings">
-          <li>
+          <li class="active">
             <label class="pack-switch end">
               <input id="low-limit" class="settings-option" data-option="lowLimit" type="checkbox" checked="checked">
-              <span></span>
+              <span data-l10n-id="low-balance-alert">Low Balance alert</span>
             </label>
-            <p data-l10n-id="low-balance-alert">Low Balance alert</p>
+          </li>
+          <li class="vbox">
+            <label class="end" for="low-limit-input" data-l10n-id="low-balance-explanation2">When balance is below</label>
+            <div class="low-limit-container hbox middle">
+              <input id="low-limit-input" class="settings-option" data-option="lowLimitThreshold" data-disable-on="lowLimit=false" type="number" step="any">
+              <span id="currency"></span>
+            </div>
           </li>
           <li>
-            <label class="end" for="low-limit-input">
-              <span id="currency"></span>
-              <input id="low-limit-input" class="settings-option" data-option="lowLimitThreshold" data-disable-on="lowLimit=false" type="number" step="any">
-            </label>
-            <p data-l10n-id="low-balance-explanation2">When balance is below</p>
+           <p data-l10n-id="fte-prepaid2-hint">Set an alert to avoid running out of credit.</p>
           </li>
         </ul>
-        <p class="step-hint" data-l10n-id="fte-prepaid2-hint">Set an alert to avoid running out of credit.</p>
       </section>
       <bdo dir="ltr">
         <gaia-buttons data-items="2">
@@ -137,13 +141,13 @@
     </section>
 
     <!-- Prepaid step 3 -->
-    <section role="region" class="view step" data-viewport="right" id="prepaid-step-3">
+    <section role="region" class="view step gaia-list" data-viewport="right" id="prepaid-step-3">
       <gaia-header>
         <h1 data-l10n-id="fte-prepaid3-title">Data Report and Alert</h1>
       </gaia-header>
       <section class="content">
         <ul class="settings">
-          <li>
+          <li class="vbox">
             <p data-l10n-id="reset-report">Reset report</p>
             <span class="button icon icon-dialog fake-select">
               <select class="settings-option" data-option="trackingPeriod">
@@ -153,7 +157,7 @@
               </select>
             </span>
           </li>
-          <li>
+          <li class="vbox">
             <p data-l10n-id="starting-on">Starting on</p>
             <span class="button icon icon-dialog fake-select">
               <select id="pre3-select-weekday" class="settings-option" data-option="resetTime" data-hide-on="trackingPeriod!=weekly" data-disable-on="trackingPeriod!=weekly">
@@ -167,61 +171,60 @@
               </select>
             </span>
           </li>
-          <li>
-            <div class="end buttons-list">
-              <span class="button icon icon-dialog fake-select">
-                <select class="settings-option icon icon-dialog" data-option="resetTime" data-hide-on="trackingPeriod!=monthly" data-disable-on="trackingPeriod!=monthly">
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                  <option value="10">10</option>
-                  <option value="11">11</option>
-                  <option value="12">12</option>
-                  <option value="13">13</option>
-                  <option value="14">14</option>
-                  <option value="15">15</option>
-                  <option value="16">16</option>
-                  <option value="17">17</option>
-                  <option value="18">18</option>
-                  <option value="19">19</option>
-                  <option value="20">20</option>
-                  <option value="21">21</option>
-                  <option value="22">22</option>
-                  <option value="23">23</option>
-                  <option value="24">24</option>
-                  <option value="25">25</option>
-                  <option value="26">26</option>
-                  <option value="27">27</option>
-                  <option value="28">28</option>
-                  <option value="29">29</option>
-                  <option value="30">30</option>
-                  <option value="31">31</option>
-                </select>
-              </span>
-            </div>
+          <li class="vbox">
             <p data-l10n-id="starting-on">Starting on</p>
+            <span class="button icon icon-dialog fake-select">
+              <select class="settings-option icon icon-dialog" data-option="resetTime" data-hide-on="trackingPeriod!=monthly" data-disable-on="trackingPeriod!=monthly">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+                <option value="16">16</option>
+                <option value="17">17</option>
+                <option value="18">18</option>
+                <option value="19">19</option>
+                <option value="20">20</option>
+                <option value="21">21</option>
+                <option value="22">22</option>
+                <option value="23">23</option>
+                <option value="24">24</option>
+                <option value="25">25</option>
+                <option value="26">26</option>
+                <option value="27">27</option>
+                <option value="28">28</option>
+                <option value="29">29</option>
+                <option value="30">30</option>
+                <option value="31">31</option>
+              </select>
+            </span>
           </li>
-          <li>
+          <li class="active">
             <label class="pack-switch end">
               <input class="settings-option" data-option="dataLimit" type="checkbox">
-              <span></span>
+              <span data-l10n-id="data-limit-alert">Data use alert</span>
             </label>
-            <p data-l10n-id="data-limit-alert">Data use alert</p>
           </li>
-          <li>
+          <li class="vbox">
             <p data-l10n-id="data-limit-value2">When use is above</p>
             <button class="settings-option icon icon-dialog" data-widget-type="data-limit"  data-disable-on="dataLimit=false" data-hide-on="dataLimit=false">
               <span class="tag"></span>
             </button>
           </li>
+          <li>
+            <p data-l10n-id="fte-prepaid3-hint">Receive reports about your Internet usage and set an alert to avoid using too much.</p>
+          </li>
         </ul>
-        <p class="step-hint" data-l10n-id="fte-prepaid3-hint">Receive reports about your Internet usage and set an alert to avoid using too much.</p>
       </section>
       <bdo dir="ltr">
         <gaia-buttons data-items="2">
@@ -232,12 +235,12 @@
     </section>
 
     <!-- Postpaid step 2 -->
-    <section role="region" class="view step" data-viewport="right" id="postpaid-step-2">
+    <section role="region" class="view step gaia-list" data-viewport="right" id="postpaid-step-2">
       <gaia-header>
         <h1 data-l10n-id="fte-postpaid2-title">Phone and Data Report</h1>
       </gaia-header>
        <ul class="content settings">
-        <li>
+        <li class="vbox">
           <p data-l10n-id="reset-report">Reset report</p>
           <span class="button icon icon-dialog fake-select">
             <select class="settings-option" data-option="trackingPeriod">
@@ -247,7 +250,7 @@
             </select>
           </span>
         </li>
-        <li>
+        <li class="vbox">
           <p data-l10n-id="starting-on">Starting on</p>
           <span class="button icon icon-dialog fake-select">
             <select id="post2-select-weekday" class="settings-option" data-option="resetTime" data-hide-on="trackingPeriod!=weekly" data-disable-on="trackingPeriod!=weekly">
@@ -261,48 +264,48 @@
             </select>
           </span>
         </li>
-        <li>
-          <div class="end buttons-list">
-            <span class="button icon icon-dialog fake-select">
-              <select class="settings-option icon icon-dialog" data-option="resetTime" data-hide-on="trackingPeriod!=monthly" data-disable-on="trackingPeriod!=monthly">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
-                <option value="11">11</option>
-                <option value="12">12</option>
-                <option value="13">13</option>
-                <option value="14">14</option>
-                <option value="15">15</option>
-                <option value="16">16</option>
-                <option value="17">17</option>
-                <option value="18">18</option>
-                <option value="19">19</option>
-                <option value="20">20</option>
-                <option value="21">21</option>
-                <option value="22">22</option>
-                <option value="23">23</option>
-                <option value="24">24</option>
-                <option value="25">25</option>
-                <option value="26">26</option>
-                <option value="27">27</option>
-                <option value="28">28</option>
-                <option value="29">29</option>
-                <option value="30">30</option>
-                <option value="31">31</option>
-              </select>
-            </span>
-          </div>
+        <li class="vbox">
           <p data-l10n-id="starting-on">Starting on</p>
+          <span class="button icon icon-dialog fake-select">
+            <select class="settings-option icon icon-dialog" data-option="resetTime" data-hide-on="trackingPeriod!=monthly" data-disable-on="trackingPeriod!=monthly">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="13">13</option>
+              <option value="14">14</option>
+              <option value="15">15</option>
+              <option value="16">16</option>
+              <option value="17">17</option>
+              <option value="18">18</option>
+              <option value="19">19</option>
+              <option value="20">20</option>
+              <option value="21">21</option>
+              <option value="22">22</option>
+              <option value="23">23</option>
+              <option value="24">24</option>
+              <option value="25">25</option>
+              <option value="26">26</option>
+              <option value="27">27</option>
+              <option value="28">28</option>
+              <option value="29">29</option>
+              <option value="30">30</option>
+              <option value="31">31</option>
+            </select>
+          </span>
+        </li>
+        <li>
+          <p data-l10n-id="fte-postpaid2-hint">Receive reports about your phone and Internet usage.</p>
         </li>
       </ul>
-      <p class="step-hint" data-l10n-id="fte-postpaid2-hint">Receive reports about your phone and Internet usage.</p>
       <bdo dir="ltr">
         <gaia-buttons data-items="2">
           <button data-navigation="back" class="icon icon-previous" data-l10n-id="back">Back</button>
@@ -312,27 +315,28 @@
     </section>
 
     <!-- Postpaid step 3 -->
-    <section role="region" class="view step" data-viewport="right" id="postpaid-step-3">
+    <section role="region" class="view step gaia-list" data-viewport="right" id="postpaid-step-3">
       <gaia-header>
         <h1 data-l10n-id="fte-postpaid3-title">Data Alert</h1>
       </gaia-header>
       <section class="content">
         <ul class="settings">
-          <li>
+          <li class="active">
             <label class="pack-switch end">
               <input class="settings-option" data-option="dataLimit" type="checkbox">
-              <span></span>
+              <span data-l10n-id="data-limit-alert">Data use alert</span>
             </label>
-            <p data-l10n-id="data-limit-alert">Data use alert</p>
           </li>
-          <li>
+          <li class="vbox">
             <p data-l10n-id="data-limit-value2">When use is above</p>
             <button class="settings-option icon icon-dialog" data-widget-type="data-limit" data-disable-on="dataLimit=false" data-hide-on="dataLimit=false">
               <span class="tag"></span>
             </button>
           </li>
+          <li>
+            <p data-l10n-id="fte-postpaid3-hint">Set an alert to avoid using too much data.</p>
+          </li>
         </ul>
-        <p class="step-hint" data-l10n-id="fte-postpaid3-hint">Set an alert to avoid using too much data.</p>
       </section>
       <bdo dir="ltr">
         <gaia-buttons data-items="2">
@@ -343,12 +347,12 @@
     </section>
 
     <!-- Non VIVO step 2 -->
-    <section role="region" class="view step" data-viewport="right" id="non-vivo-step-1">
+    <section role="region" class="view step gaia-list" data-viewport="right" id="non-vivo-step-1">
       <gaia-header>
         <h1 data-l10n-id="fte-onlydata2-title">Data Report</h1>
       </gaia-header>
       <ul class="content settings">
-        <li>
+        <li class="vbox">
           <p data-l10n-id="reset-report">Reset report</p>
           <span class="button icon icon-dialog fake-select">
             <select class="settings-option" data-option="trackingPeriod">
@@ -358,7 +362,7 @@
             </select>
           </span>
         </li>
-        <li>
+        <li class="vbox">
           <p data-l10n-id="starting-on">Starting on</p>
           <span class="button icon icon-dialog fake-select">
             <select id="non2-select-weekday" class="settings-option" data-option="resetTime" data-hide-on="trackingPeriod!=weekly" data-disable-on="trackingPeriod!=weekly">
@@ -372,48 +376,48 @@
             </select>
           </span>
         </li>
-        <li>
-          <div class="end buttons-list">
-            <span class="button icon icon-dialog fake-select">
-              <select class="settings-option icon icon-dialog" data-option="resetTime" data-hide-on="trackingPeriod!=monthly" data-disable-on="trackingPeriod!=monthly">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
-                <option value="11">11</option>
-                <option value="12">12</option>
-                <option value="13">13</option>
-                <option value="14">14</option>
-                <option value="15">15</option>
-                <option value="16">16</option>
-                <option value="17">17</option>
-                <option value="18">18</option>
-                <option value="19">19</option>
-                <option value="20">20</option>
-                <option value="21">21</option>
-                <option value="22">22</option>
-                <option value="23">23</option>
-                <option value="24">24</option>
-                <option value="25">25</option>
-                <option value="26">26</option>
-                <option value="27">27</option>
-                <option value="28">28</option>
-                <option value="29">29</option>
-                <option value="30">30</option>
-                <option value="31">31</option>
-              </select>
-            </span>
-          </div>
+        <li class="vbox">
           <p data-l10n-id="starting-on">Starting on</p>
+          <span class="button icon icon-dialog fake-select">
+            <select class="settings-option icon icon-dialog" data-option="resetTime" data-hide-on="trackingPeriod!=monthly" data-disable-on="trackingPeriod!=monthly">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="13">13</option>
+              <option value="14">14</option>
+              <option value="15">15</option>
+              <option value="16">16</option>
+              <option value="17">17</option>
+              <option value="18">18</option>
+              <option value="19">19</option>
+              <option value="20">20</option>
+              <option value="21">21</option>
+              <option value="22">22</option>
+              <option value="23">23</option>
+              <option value="24">24</option>
+              <option value="25">25</option>
+              <option value="26">26</option>
+              <option value="27">27</option>
+              <option value="28">28</option>
+              <option value="29">29</option>
+              <option value="30">30</option>
+              <option value="31">31</option>
+            </select>
+          </span>
+        </li>
+        <li>
+          <p data-l10n-id="fte-onlydata2-hint">Set an alert to avoid using too much data.</p>
         </li>
       </ul>
-      <p class="step-hint" data-l10n-id="fte-onlydata2-hint">Set an alert to avoid using too much data.</p>
       <bdo dir="ltr">
         <gaia-buttons data-items="2">
           <button data-navigation="back" class="icon icon-previous" data-l10n-id="back">Back</button>
@@ -423,26 +427,27 @@
     </section>
 
     <!-- Non VIVO step 3 -->
-    <section role="region" class="view step" data-viewport="right" id="non-vivo-step-2">
+    <section role="region" class="view step gaia-list" data-viewport="right" id="non-vivo-step-2">
       <gaia-header>
         <h1 data-l10n-id="fte-onlydata3-title">Data Alert</h1>
       </gaia-header>
       <ul class="content settings">
-        <li>
+        <li class="active">
           <label class="pack-switch end">
             <input class="settings-option" data-option="dataLimit" type="checkbox">
-            <span></span>
+            <span data-l10n-id="data-limit-alert">Data use alert</span>
           </label>
-          <p data-l10n-id="data-limit-alert">Data use alert</p>
         </li>
-        <li>
+        <li class="vbox">
           <p data-l10n-id="data-limit-value2">When use is above</p>
           <button class="settings-option icon icon-dialog" data-widget-type="data-limit" data-disable-on="dataLimit=false" data-hide-on="dataLimit=false">
             <span class="tag"></span>
           </button>
         </li>
+        <li>
+          <p data-l10n-id="fte-onlydata3-hint">Set an alert to avoid using too much data.</p>
+        </li>
       </ul>
-      <p class="step-hint" data-l10n-id="fte-onlydata3-hint">Set an alert to avoid using too much data.</p>
       <bdo dir="ltr">
         <gaia-buttons data-items="2">
           <button data-navigation="back" class="icon icon-previous" data-l10n-id="back">Back</button>
@@ -458,7 +463,7 @@
       <h1 data-l10n-id="data-limit-header">Data Usage Limit</h1>
       <button id="data-usage-done-button" data-l10n-id="done" class="recommend">Done</button>
     </gaia-header>
-    <section class="content">
+    <section class="content" class="vbox">
       <div class="info">
         <h2 data-l10n-id="data-limit-dialog-title2">Enter a mobile data limit alert</h2>
         <p data-l10n-id="data-limit-dialog-explanation2">

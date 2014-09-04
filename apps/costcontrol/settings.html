@@ -11,8 +11,8 @@
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/layout.css">
 
     <!-- Gaia Components -->
     <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" />
@@ -54,9 +54,9 @@
         </gaia-header>
 
         <!-- Plantype -->
-        <section class="view-scroll" role="region">
-          <ul id="plantype-settings" class="settings" aria-hidden="true">
-           <li>
+        <section class="view-scroll gaia-list" role="region">
+          <ul class="settings" id="plantype-settings" aria-hidden="true">
+           <li class="vbox">
             <span class="button icon icon-dialog fake-select">
               <select id="widget-plantype" class="settings-option" data-option="plantype">
                <option value="prepaid" data-l10n-id="prepaid">Prepaid</option>
@@ -71,14 +71,12 @@
             <span data-l10n-id="phone-activity">Phone Activity</span>
           </gaia-subheader>
           <ul class="settings" aria-hidden="true">
-            <li>
-              <div class="end buttons-list">
-                <button data-l10n-id="reset" id="reset-telephony">Reset</button>
-              </div>
+           <li class="vbox">
               <p>
                 <span id="calltime"></span> <span id="smscount"></span>
               </p>
               <p id="telephony-timestamp"></p>
+              <button data-l10n-id="reset" id="reset-telephony">Reset</button>
             </li>
           </ul>
 
@@ -87,23 +85,22 @@
             <span data-l10n-id="balance">balance</span>
           </gaia-subheader>
           <ul class="settings" aria-hidden="true">
-            <li>
+            <li class="vbox">
                 <p id="balance"></p>
                 <p class="meta"></p>
             </li>
-            <li>
+            <li class="active">
               <label class="pack-switch end">
                 <input class="settings-option" data-option="lowLimit" type="checkbox" id="low-limit" />
-                <span></span>
+                <span data-l10n-id="low-balance-alert">Low balance alert</span>
               </label>
-              <p data-l10n-id="low-balance-alert">Low balance alert</p>
             </li>
-            <li>
-              <label class="end" for="low-limit-input">
-                <span id="settings-low-limit-currency"></span>
+           <li class="vbox">
+              <label class="end" for="low-limit-input" data-l10n-id="low-balance-explanation2">When balance is below</label>
+              <div class="low-limit-container hbox middle">
                 <input class="settings-option" data-option="lowLimitThreshold" data-disable-on="lowLimit=false" id="low-limit-input" type="number" step="any" />
-              </label>
-              <p data-l10n-id="low-balance-explanation2">When balance is below</p>
+                <span id="settings-low-limit-currency"></span>
+              </div>
             </li>
           </ul>
 
@@ -112,7 +109,7 @@
             <span data-l10n-id="data-usage">Data Usage</span>
           </gaia-subheader>
           <ul class="settings">
-            <li>
+            <li class="vbox">
               <p id="mobile-data-usage">
                 <span class="usage"></span> <span data-l10n-id="mobile-usage-settings">Mobile usage</span>
               </p>
@@ -122,14 +119,13 @@
               <p class="meta"></p>
               <button data-l10n-id="reset" id="reset-data-usage">Reset</button>
             </li>
-            <li>
+            <li class="active">
               <label class="pack-switch end">
                 <input class="settings-option" data-option="dataLimit" type="checkbox"/>
-                <span></span>
+                <span data-l10n-id="data-limit-alert">Data use alert</span>
               </label>
-              <p data-l10n-id="data-limit-alert">Data use alert</p>
             </li>
-            <li>
+            <li class="vbox not-last">
               <p data-l10n-id="data-limit-value2">When use is above</p>
               <button class="settings-option icon icon-dialog" data-widget-type="data-limit" data-disable-on="dataLimit=false">
                 <span class="tag"></span>
@@ -142,7 +138,7 @@
             <span data-l10n-id="internet-data-report">Internet data report</span>
           </gaia-subheader>
           <ul class="settings">
-            <li class="reset-entry">
+            <li class="vbox">
               <p data-l10n-id="reset-report">Reset report</p>
               <span class="button icon icon-dialog fake-select">
                  <select class="settings-option" data-option="trackingPeriod">
@@ -152,7 +148,7 @@
                  </select>
               </span>
             </li>
-            <li class="reset-entry">
+            <li class="vbox">
               <p data-l10n-id="starting-on">Starting on</p>
               <span class="button icon icon-dialog fake-select">
                 <select id="select-weekday" class="settings-option" data-option="resetTime" data-hide-on="trackingPeriod!=weekly" data-disable-on="trackingPeriod!=weekly">
@@ -166,7 +162,7 @@
                 </select>
               </span>
             </li>
-            <li class="reset-entry">
+            <li class="vbox">
               <p data-l10n-id="starting-on">Starting on</p>
               <span class="button icon icon-dialog fake-select">
                 <select class="settings-option icon icon-dialog" data-option="resetTime" data-hide-on="trackingPeriod!=monthly" data-disable-on="trackingPeriod!=monthly">
