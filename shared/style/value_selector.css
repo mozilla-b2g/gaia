@@ -102,6 +102,29 @@
   background-image: none;
 }
 
+/* Subheaders */
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] {
+  border: none;
+  background-color: #242424;
+  pointer-events: none;
+  -moz-user-select: none;
+}
+
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] label {
+  color: #858585;
+  font-size: 1.4rem;
+  font-weight: 500;
+}
+
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] label,
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] + li label {
+  border: none;
+}
+
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] label span {
+  line-height: 2rem;
+}
+
 /* Checked status */
 [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
   background: transparent url(value_selector/images/icons/checked.png) right 1.2rem top 50% / 2.1rem no-repeat;
