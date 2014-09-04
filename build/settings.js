@@ -263,9 +263,12 @@ function execute(config) {
   }
 
   if (config.NO_LOCK_SCREEN) {
-    settings['screen.timeout'] = 0;
     settings['lockscreen.enabled'] = false;
     settings['lockscreen.locked'] = false;
+  }
+
+  if (config.SCREEN_TIMEOUT >= 0) {
+    settings['screen.timeout'] = config.SCREEN_TIMEOUT;
   }
 
   setDefaultKeyboardLayouts(config.GAIA_DEFAULT_LOCALE, settings, config);
