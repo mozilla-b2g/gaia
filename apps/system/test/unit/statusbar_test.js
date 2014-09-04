@@ -957,10 +957,6 @@ suite('system/Statusbar', function() {
   });
 
   suite('data connection', function() {
-    test('createConnectionsElements shouldn\'t display icons', function() {
-      StatusBar.createConnectionsElements();
-      assert.isTrue(StatusBar.icons.connections.hidden);
-    });
 
     function slotIndexTests(slotIndex) {
       suite('slot: ' + slotIndex, function() {
@@ -1302,6 +1298,11 @@ suite('system/Statusbar', function() {
         assert.include(label_content, 'Orange');
         assert.include(label_content, 'PR');
       });
+
+      test('dataset-multiple is set to false', function() {
+        StatusBar.updateConnectionsVisibility();
+        assert.equal(fakeIcons.connections.dataset.multiple, 'false');
+      });
     });
 
     suite('multiple sims', function() {
@@ -1321,6 +1322,17 @@ suite('system/Statusbar', function() {
         var label_content = fakeIcons.label.textContent;
         assert.equal(-1, label_content.indexOf('Orange'));
         assert.equal(-1, label_content.indexOf('PR'));
+      });
+
+      test('multiple is set to true if any active sim', function() {
+        fakeIcons.signals[0].dataset.inactive = 'false';
+        StatusBar.updateConnectionsVisibility();
+        assert.equal(fakeIcons.connections.dataset.multiple, 'true');
+      });
+
+      test('multiple is set to false if no SIM insterted', function() {
+        StatusBar.updateConnectionsVisibility();
+        assert.equal(fakeIcons.connections.dataset.multiple, 'false');
       });
     });
   });
