@@ -524,6 +524,7 @@
     this.cardsList.innerHTML = '';
     this.currentDisplayed = -1;
     this.deltaX = null;
+    this.deltaY = null;
   };
 
   /**
@@ -734,8 +735,6 @@
 
     if (!this.draggingCardUp) {
       if (Math.abs(dx) > this.threshold) {
-        this.onMoveEventForScrolling(dx + this.initialTouchPosition[0]);
-
         var progress = Math.abs(dx) / this.windowWidth;
         var time = Date.now() - this.gestureStart;
         var inertia = progress / time * 100;
@@ -748,34 +747,27 @@
 
         durationLeft = Math.max(100, durationLeft);
 
-        if (this.scrollDirection) {
-          if (this.scrollDirection === 'left' &&
-                this.currentDisplayed < this.cardsList.childNodes.length - 1) {
-            this.currentDisplayed = ++this.currentPosition;
-
-          } else if (this.scrollDirection === 'right' &&
-                     this.currentDisplayed > 0) {
-            this.currentDisplayed = --this.currentPosition;
-          }
+        var current = this.currentDisplayed;
+        if (dx < 0 && current < this.cardsList.childNodes.length - 1) {
+          this.currentDisplayed = ++this.currentPosition;
+        } else if (dx > 0 && current > 0) {
+          this.currentDisplayed = --this.currentPosition;
         }
 
         this.alignCurrentCard(durationLeft);
       } else {
         this.handleTap(evt);
       }
+
       return;
     }
 
     // if the element we start dragging on is a card
-    if (
-      element.classList.contains('card') &&
-      this.allowSwipeToClose &&
-      this.draggingCardUp
-    ) {
+    if (element.classList.contains('card') && this.allowSwipeToClose) {
       this.draggingCardUp = false;
+
       var card = this.getCardForElement(element);
-      if (-dy > this.swipeUpThreshold &&
-          card.app.killable()) {
+      if (-dy > this.swipeUpThreshold && card.app.killable()) {
         // Remove the card from the Task Manager for a smooth transition.
         this.cardsList.removeChild(element);
         this.closeApp(card);
@@ -783,8 +775,6 @@
         card.applyStyle({ transform: '' });
       }
       this.alignCurrentCard();
-
-      return;
     }
   };
 
@@ -821,6 +811,7 @@
 
       case 'touchmove':
         this.onMoveEvent(evt);
+        evt.stopPropagation();
         evt.preventDefault();
         break;
 
@@ -959,11 +950,6 @@
     //scrolling cards (Positon 0 is x-coord and position 1 is y-coord)
     this.initialTouchPosition = [0, 0];
     this.gestureStart = null;
-    // For tracking direction changes while scrolling cards
-    this.scrollChangePosition = 0;
-    this.scrollDirection = null;
-    this.lastScrollPosition = 0;
-    this.lastScrollDirection = null;
     // If the pointer down event starts outside of a card, then there's
     // no ambiguity between tap/pan, so we don't need a transition
     // threshold.
@@ -983,6 +969,7 @@
     this.switchingCardThreshold = 30;
 
     this.deltaX = 0;
+    this.deltaY = 0;
 
     // With this object we avoid several if statements
     this.pseudoCard = {
@@ -1096,6 +1083,7 @@
 
     // done with delta
     this.deltaX = 0;
+    this.deltaY = 0;
   };
 
   /**
@@ -1131,61 +1119,19 @@
    * @memberOf TaskManager.prototype
    * @param {DOMEvent} evt
    */
-  TaskManager.prototype.onMoveEventForScrolling = function(touchPosition) {
-    this.deltaX = this.initialTouchPosition[0] - touchPosition;
+  TaskManager.prototype.onMoveEventForDeleting = function(evt) {
+    var dx = this.deltaX;
+    var dy = this.deltaY;
 
-    var getScrollDirection = function(position) {
-      if (position > 0) {
-        if (this.deltaX > 0) {
-          return 'left';
-        }
-      } else if (position < 0) {
-        if (this.deltaX < 0) {
-          return 'right';
-        }
-      }
-      return null;
-    }.bind(this);
-
-    // Track touch direction and allow for scroll direction changes if the user
-    // starts dragging in a different direction than before.
-    var touchChange = this.lastScrollPosition - touchPosition;
-    if (Math.abs(touchChange) !== 0) {
-      var touchDirection = getScrollDirection(touchChange);
-      if (this.lastScrollDirection != touchDirection) {
-        this.scrollChangePosition = touchPosition;
-        this.lastScrollDirection = touchDirection;
-      }
-      this.lastScrollPosition = touchPosition;
-    }
-
-    // If the user has dragged past the threshold since the last touch
-    // direction change, mark that as the scroll direction.
-    var scrollChange = this.scrollChangePosition - touchPosition;
-    if (Math.abs(scrollChange) > this.switchingCardThreshold) {
-      var scrollDirection = getScrollDirection(scrollChange);
-      if (scrollDirection !== this.scrollDirection) {
-        this.scrollDirection = scrollDirection;
-        this.scrollChangePosition = touchPosition;
-      }
-    }
-  };
-
-  /**
-   * @memberOf TaskManager.prototype
-   * @param {DOMEvent} evt
-   */
-  TaskManager.prototype.onMoveEventForDeleting = function(evt, deltaY) {
-    var dy = deltaY | this.initialTouchPosition[1] -
-                              (evt.touches ? evt.touches[0].pageY : evt.pageY);
     this.draggingCardUp = (dy > 0);
     if (this.draggingCardUp) {
       var card = this.getCardForElement(evt.target);
       if (!card) {
         return;
       }
+
       if ('function' == typeof card.move) {
-        card.move(this.deltaX, -dy);
+        card.move(dx, -dy);
       } else {
         card.applyStyle({
           transform: 'translateY(' + (-dy) + 'px)'
@@ -1220,9 +1166,6 @@
     } else {
       this.initialTouchPosition = [evt.pageX, evt.pageY];
     }
-    this.scrollChangePosition = this.lastScrollPosition =
-      this.initialTouchPosition[0];
-    this.scrollDirection = this.lastScrollDirection = null;
   };
 
   /**
@@ -1230,38 +1173,36 @@
    * @param {DOMEvent} evt
    */
   TaskManager.prototype.onMoveEvent = function cs_onMoveEvent(evt) {
-    evt.stopPropagation();
-    var touchPosition = evt.touches ? [evt.touches[0].pageX,
-                                       evt.touches[0].pageY] :
-                                      [evt.pageX, evt.pageY];
-
-    var deltaY = this.initialTouchPosition[1] - touchPosition[1];
+    this.deltaX = this.initialTouchPosition[0] - evt.touches[0].pageX;
+    this.deltaY = this.initialTouchPosition[1] - evt.touches[0].pageY;
 
     switch (this._dragPhase) {
       case 'cross-slide':
-        this.onMoveEventForDeleting(evt, deltaY);
+        this.onMoveEventForDeleting(evt);
         break;
+
       case 'scrolling':
-        this.onMoveEventForScrolling(touchPosition[0]);
         this.moveCards();
         break;
+
       default:
-        if (this.allowSwipeToClose && deltaY > this.moveCardThreshold &&
+        if (this.allowSwipeToClose && this.deltaY > this.moveCardThreshold &&
             evt.target.classList.contains('card')) {
           // We don't want user to scroll the CardsView when one of the card is
           // already dragger upwards
           this._dragPhase = 'cross-slide';
           this.draggingCardUp = true;
-          this.onMoveEventForDeleting(evt, deltaY);
+          this.onMoveEventForDeleting(evt);
         } else {
           // If we are not removing Cards now and Snapping Scrolling is enabled,
           // we want to scroll the CardList
-          this.onMoveEventForScrolling(touchPosition[0]);
           if (Math.abs(this.deltaX) > this.switchingCardThreshold) {
             this._dragPhase = 'scrolling';
           }
+
           this.moveCards();
         }
+        break;
     }
   };
 
