@@ -104,6 +104,34 @@ var About = {
     var updateStatus = document.getElementById('update-status');
     var systemStatus = updateStatus.querySelector('.system-update-status');
 
+    var checkStatus = {
+      'gecko.updateStatus': {},
+      'apps.updateStatus': {}
+    };
+
+    updateStatus.classList.add('checking', 'visible');
+
+    function checkIfStatusComplete() {
+      var hasAllCheckComplete =
+        Object.keys(checkStatus).every(function(setting) {
+          return checkStatus[setting].value === 'check-complete';
+        });
+
+      var hasAllResponses =
+        Object.keys(checkStatus).every(function(setting) {
+          return !!checkStatus[setting].value;
+        });
+
+      if (hasAllCheckComplete) {
+        updateStatus.classList.remove('visible');
+        systemStatus.textContent = '';
+      }
+
+      if (hasAllResponses) {
+        updateStatus.classList.remove('checking');
+      }
+    }
+
     function onUpdateStatus(setting, event) {
       var value = event.settingValue;
       checkStatus[setting].value = value;
@@ -131,9 +159,11 @@ var About = {
         'no-updates', 'already-latest-version', 'retry-when-online'];
 
       if (value !== 'check-complete') {
-        systemStatus.setAttribute('data-l10n-id',
-          l10nValues.indexOf(value) !== -1 ? value : 'check-error');
-        console.error('Error checking for system update:', value);
+        var id = l10nValues.indexOf(value) !== -1 ? value : 'check-error';
+        systemStatus.setAttribute('data-l10n-id', id);
+        if (id == 'check-error') {
+          console.error('Error checking for system update:', value);
+        }
       }
 
       checkIfStatusComplete();
@@ -142,39 +172,8 @@ var About = {
       checkStatus[setting].cb = null;
     }
 
-    function checkIfStatusComplete() {
-      var hasAllCheckComplete =
-        Object.keys(checkStatus).every(function(setting) {
-          return checkStatus[setting].value === 'check-complete';
-        });
-
-      var hasAllResponses =
-        Object.keys(checkStatus).every(function(setting) {
-          return !!checkStatus[setting].value;
-        });
-
-      if (hasAllCheckComplete) {
-        updateStatus.classList.remove('visible');
-        systemStatus.textContent = '';
-      }
-
-      if (hasAllResponses) {
-        updateStatus.classList.remove('checking');
-      }
-    }
-
-    /* Firefox currently doesn't implement adding 2 classes in one call */
-    /* see Bug 814014 */
-    updateStatus.classList.add('checking');
-    updateStatus.classList.add('visible');
-
     /* remove whatever was there before */
     systemStatus.textContent = '';
-
-    var checkStatus = {
-      'gecko.updateStatus': {},
-      'apps.updateStatus': {}
-    };
 
     for (var setting in checkStatus) {
       checkStatus[setting].cb = onUpdateStatus.bind(null, setting);
