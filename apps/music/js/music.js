@@ -119,6 +119,10 @@ navigator.mozL10n.once(function onLocalizationInit() {
 // bar (to show the titlebar) when we enter sublist mode or player mode
 var displayingScanProgress = false;
 
+// We need to know if we're in the middle of reparsing all the existing music
+// to show the correct overlay.
+var reparsingMetadata = false;
+
 function init() {
   // We want to exclude some folders that store ringtones so they don't show up
   // in the music app. The regex matches absolute paths starting with a volume
@@ -149,15 +153,12 @@ function init() {
     });
   }
 
-  var deleteAsyncStorage = false;
   function updateRecord(record, oldVersion, newVersion) {
     if (oldVersion === 2) {
       // Version 3 of the music DB changes ID3 parsing, so we need to reparse
       // the file from scratch!
       record.needsReparse = true;
-      // We also want to delete asyncStorage, which was used in version 2 to
-      // cache album art.
-      deleteAsyncStorage = true;
+      reparsingMetadata = true;
     }
     return record.metadata;
   }
@@ -171,8 +172,14 @@ function init() {
   }
 
   // show dialog in upgradestart, when it finished, it will turned to ready.
-  musicdb.onupgrading = function() {
+  musicdb.onupgrading = function(event) {
     showOverlay('upgrade');
+
+    if (event.detail.oldClientVersion === 2) {
+      // We want to delete asyncStorage, which was used in version 2 to cache
+      // album art.
+      window.indexedDB.deleteDatabase('asyncStorage');
+    }
   };
 
   // This is called when DeviceStorage becomes unavailable because the
@@ -222,12 +229,9 @@ function init() {
         currentOverlay === 'upgrade')
       showOverlay(null);
 
-    // Delete the asyncStorage DB if requested
-    if (deleteAsyncStorage)
-      window.indexedDB.deleteDatabase('asyncStorage');
-
     // Display music that we already know about
     showCurrentView(function() {
+      reparsingMetadata = false;
       // Hide the  spinner once we've displayed the initial screen
       document.getElementById('spinner-overlay').classList.add('hidden');
 
@@ -418,8 +422,10 @@ function showCorrectOverlay() {
   // If we do know about songs and the 'empty overlay is being displayed
   // then hide it.
   if (knownSongs.length > 0) {
-    if (currentOverlay === 'empty')
+    if (currentOverlay === 'empty' || currentOverlay === 'upgrade')
       showOverlay(null);
+  } else if (reparsingMetadata) {
+    showOverlay('upgrade');
   } else {
     showOverlay('empty');
   }

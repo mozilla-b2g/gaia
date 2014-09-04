@@ -1294,7 +1294,7 @@ var MediaDB = (function() {
       }
 
       return this.enumerate(key, range, direction, function(fileinfo) {
-        if (fileinfo !== null) {
+        if (fileinfo !== null && !fileinfo.needsReparse) {
           batch.push(fileinfo);
         } else {
           callback(batch);
