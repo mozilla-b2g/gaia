@@ -25,6 +25,7 @@
     "apps/settings/test/marionette/tests/app_permission_settings_test.js",
     "apps/settings/test/marionette/tests/hotspot_wifi_settings_test.js",
     "apps/system/test/marionette/edges_gesture_test.js",
+    "apps/system/test/marionette/homescreen_navigation_test.js",
     "apps/system/test/marionette/notification_get_test.js",
     "apps/verticalhome/test/marionette/app_packaged_resume_test.js",
     "apps/system/test/marionette/notification_resend_test.js"
