@@ -7,7 +7,7 @@
   height: 100%;
   -moz-user-select: none;
   overflow: hidden;
-  background-color: rgba(0,0,0,0.8);
+  background-color: black;
 }
 
 @media not all and (-moz-physical-home-button) {
@@ -67,10 +67,10 @@
 
 #cards-view .card {
   position: absolute;
-  top: 20%;
-  left: 20%;
-  width: 60%;
-  height: 60%;
+  top: 26%;
+  left: 26%;
+  width: 48%;
+  height: 48%;
 
   margin: 0;
   will-change: transform;
@@ -84,7 +84,7 @@
 /* Screenshoots */
 
 #cards-view .screenshotView {
-  background-size: 100% calc(100% - 1.8rem), cover;
+  background-size: 100% calc(100% - 1.5rem), cover;
   background-position: left bottom, left top;
   background-repeat: no-repeat;
   width: 100%;
@@ -93,7 +93,7 @@
 }
 
 #cards-view .screenshotView.maximized {
-  background-position: left calc(100% + 2.76rem), left top;
+  background-position: left calc(100% + 2.3rem), left top;
 }
 
 #cards-view .screenshotView.fullscreen {

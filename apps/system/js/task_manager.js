@@ -1,4 +1,4 @@
-/* global Card, TaskCard, StatusBar,
+/* global Card, TaskCard,
           AppWindowManager, sleepMenu, SettingsListener,
           OrientationManager, System, homescreenLauncher,
           GestureDetector, UtilityTray, StackManager */
@@ -42,6 +42,8 @@
      * @memberof TaskCard.prototype
      */
     SCREENSHOT_PREVIEWS_SETTING_KEY: 'app.cards_view.screenshots.enabled',
+
+    DURATION: 200,
 
     /**
      * Cached value of the screenshots.enabled setting
@@ -340,7 +342,6 @@
     this.currentPosition = StackManager.position;
     this.newStackPosition = null;
     this.initialTouchPosition = null;
-    this.gestureStart = null;
 
     // Apply the filter. Noop if no filterName.
     if (this.filter(filterName)) {
@@ -403,37 +404,48 @@
       this.addCard(position, app);
     }, this);
 
-    // events to handle while shown
-    this._registerShowingEvents();
-    // only set up for card swiping if there's cards to show
-    if (!this.isTaskStrip && stack.length && !this.initialTouchPosition) {
-      this.setupCardSwiping();
-    }
+    stack.forEach(function(app, idx) {
+      var card = this.cardsByAppID[app.instanceID];
+
+      if (idx >= this.currentPosition - 2 && idx <= this.currentPosition + 2) {
+        card.element.style.visibility = '';
+      } else {
+        card.element.style.visibility = 'hidden';
+      }
+    }, this);
+
+    this.placeCards();
 
     this.setActive(true);
     this.setAccessibilityAttributes();
-    this.placeCards();
 
-    // At the beginning only the current card can listen to tap events
+    var screenElem = this.screenElement;
+    var activeApp = AppWindowManager.getActiveApp();
+
+    var finish = (function() {
+      // events to handle while shown
+      this._registerShowingEvents();
+      // only set up for card swiping if there's cards to show
+      if (!this.isTaskStrip && stack.length && !this.initialTouchPosition) {
+        this.setupCardSwiping();
+      }
+
+      screenElem.classList.add('cards-view');
+      screenElem.classList.add('hide-apps');
+    }).bind(this);
 
     stack.forEach(function(app, position) {
       app.enterTaskManager();
     });
 
-    var screenElem = this.screenElement;
-    var activeApp = AppWindowManager.getActiveApp();
-
     if (!activeApp || activeApp.isHomescreen) {
-      screenElem.classList.add('cards-view');
+      finish();
       return;
     }
 
     window.addEventListener('appclosed', function clWait(evt) {
       window.removeEventListener('appclosed', clWait);
-      screenElem.classList.add('cards-view');
-      screenElem.classList.add('hide-apps');
-
-      StatusBar.pauseUpdate();
+      finish();
     });
   };
 
@@ -592,7 +604,6 @@
     }).bind(this);
 
     this.screenElement.classList.remove('hide-apps');
-    StatusBar.resumeUpdate();
 
     setTimeout(function() {
       app.open(openAnimation || 'from-cardview');
@@ -739,13 +750,16 @@
     if (!this.draggingCardUp) {
       if (Math.abs(dx) > this.threshold) {
         var progress = Math.abs(dx) / this.windowWidth;
-        var time = Date.now() - this.gestureStart;
-        var inertia = progress / time * 100;
-        var durationLeft = (1 - (progress + inertia)) * 300;
+
+        // We're going to snap back to the center
+        if (progress > 0.5) {
+          progress -= 0.5;
+        }
+        var durationLeft = (1 - progress) * this.DURATION;
 
         // Snaping backward at the extremities
         if (this.onExtremity()) {
-          durationLeft = 300 - durationLeft;
+          durationLeft = this.DURATION - durationLeft;
         }
 
         durationLeft = Math.max(100, durationLeft);
@@ -952,7 +966,6 @@
   TaskManager.prototype.setupCardSwiping = function() {
     //scrolling cards (Positon 0 is x-coord and position 1 is y-coord)
     this.initialTouchPosition = [0, 0];
-    this.gestureStart = null;
     // If the pointer down event starts outside of a card, then there's
     // no ambiguity between tap/pan, so we don't need a transition
     // threshold.
@@ -1045,6 +1058,7 @@
     this.stack.forEach(function(app, idx) {
       var card = this.cardsByAppID[app.instanceID];
       card.move(0, 0);
+      card.element.classList.toggle('current', (idx == this.currentPosition));
     }.bind(this));
   };
 
@@ -1058,31 +1072,75 @@
     if (!currentCard) {
       return;
     }
-    var pseudoCard = this.pseudoCard;
-    var prevCard = this.prevCard || pseudoCard;
-    var nextCard = this.nextCard || pseudoCard;
 
-    var style = { transition: 'transform ' + (duration || 300) + 'ms'};
+    duration = duration || this.DURATION;
 
-    this.setAccessibilityAttributes();
-    this.placeCards();
+    var self = this;
+    self.setAccessibilityAttributes();
 
-    currentCard.applyStyle(style);
-    nextCard.applyStyle(style);
-    prevCard.applyStyle(style);
+    self.stack.forEach(function(app, idx) {
+      var card = self.cardsByAppID[app.instanceID];
 
-    var onCardTransitionEnd = function transitionend() {
+      if (idx <= self.currentPosition - 2 && idx >= self.currentPosition + 2) {
+        card.element.style.visibility = 'hidden';
+        return;
+      }
+
+      // The 5 cards at the center should be visible but we need to adjust the
+      // transitions durations/delays to account for the layer trickery.
+      // Layer Trickery: nf, cards that should be completely outside the
+      // viewport but are in fact 0.001 pixel in.
+      card.element.style.visibility = '';
+
+      var distance = card.element.dataset.keepLayerDelta;
+      var currentCardDistance = Math.abs(currentCard.element.dataset.positionX);
+      if (idx == self.currentPosition + 2 || idx == self.currentPosition - 2) {
+        var cardWidth = self.windowWidth * 0.48;
+        var destination = self.windowWidth / 2 + cardWidth / 2;
+        if (card.element.dataset.positionX < 0) {
+          destination *= -1;
+        }
+
+        distance = Math.abs(destination - card.element.dataset.positionX);
+
+        var shorterDuration = distance * duration / currentCardDistance;
+        var fast = { transition: 'transform ' + shorterDuration + 'ms linear'};
+        card.applyStyle(fast);
+        return;
+      }
+
+      if (!distance) {
+        var style = { transition: 'transform ' + duration + 'ms linear'};
+        card.applyStyle(style);
+        return;
+      }
+
+      var delay = duration * distance / currentCardDistance;
+      var delayed = { transition: 'transform ' +
+                                   (duration - delay) + 'ms linear ' +
+                                   delay + 'ms'};
+      card.applyStyle(delayed);
+    });
+
+    var onCardTransitionEnd = function() {
       currentCard.element.removeEventListener('transitionend',
                                               onCardTransitionEnd);
-      var zeroTransitionStyle = { transition: '' };
-      prevCard.applyStyle(zeroTransitionStyle);
-      nextCard.applyStyle(zeroTransitionStyle);
-      currentCard.applyStyle(zeroTransitionStyle);
 
-      callback && callback();
+      var zeroTransitionStyle = { transition: '' };
+      self.stack.forEach(function(app, idx) {
+        var card = self.cardsByAppID[app.instanceID];
+        card.applyStyle(zeroTransitionStyle);
+      });
+
+      if (callback) {
+        setTimeout(callback);
+      }
     };
 
     currentCard.element.addEventListener('transitionend', onCardTransitionEnd);
+    setTimeout(function() {
+      self.placeCards();
+    });
 
     // done with delta
     this.deltaX = 0;
@@ -1103,8 +1161,8 @@
     }
 
     this.stack.forEach(function(app, idx) {
+      var card = this.cardsByAppID[app.instanceID];
       if (idx >= this.currentPosition - 2 && idx <= this.currentPosition + 2) {
-        var card = this.cardsByAppID[app.instanceID];
         card.move(Math.abs(deltaX) * sign);
       }
     }, this);
@@ -1165,7 +1223,12 @@
     cardsView.addEventListener('swipe', this);
     this._dragPhase = '';
 
-    this.gestureStart = Date.now();
+    var zeroTransitionStyle = { transition: '' };
+    this.stack.forEach(function(app, idx) {
+      var card = this.cardsByAppID[app.instanceID];
+      card.applyStyle(zeroTransitionStyle);
+    }, this);
+
     if (evt.touches) {
       this.initialTouchPosition = [evt.touches[0].pageX, evt.touches[0].pageY];
     } else {

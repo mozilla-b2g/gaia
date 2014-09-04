@@ -201,6 +201,9 @@ var StatusBar = {
     window.addEventListener('attentionopened', this);
     window.addEventListener('attentionclosed', this);
 
+    window.addEventListener('cardviewshown', this);
+    window.addEventListener('cardviewclosed', this);
+
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
 
@@ -290,6 +293,14 @@ var StatusBar = {
       case 'attentionclosed':
         // Hide the clock in the statusbar when screen is locked
         this.toggleTimeLabel(!this.isLocked());
+        break;
+
+      case 'cardviewshown':
+        this.pauseUpdate();
+        break;
+
+      case 'cardviewclosed':
+        this.resumeUpdate();
         break;
 
       case 'lockpanelchange':
