@@ -1,4 +1,5 @@
 /* global MocksHelper, MockNavigatorDatastore, MockDatastore, Places */
+/* global asyncStorage */
 
 'use strict';
 
@@ -23,11 +24,15 @@ suite('system/Places', function() {
 
   suiteSetup(function(done) {
 
+    asyncStorage.getItem = function(key, callback) {
+      callback(null);
+    };
+
     realDatastores = navigator.getDataStores;
     navigator.getDataStores = MockNavigatorDatastore.getDataStores;
 
     subject = new Places();
-    subject.start(done);
+    subject.start().then(done);
   });
 
   suiteTeardown(function() {

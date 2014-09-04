@@ -58,28 +58,30 @@
      * @param {Function} callback
      * @memberof Places.prototype
      */
-    start: function(callback) {
-      window.addEventListener('apptitlechange', this);
-      window.addEventListener('applocationchange', this);
-      window.addEventListener('appiconchange', this);
-      window.addEventListener('apploaded', this);
+    start: function() {
+      return new Promise(resolve => {
+        window.addEventListener('apptitlechange', this);
+        window.addEventListener('applocationchange', this);
+        window.addEventListener('appiconchange', this);
+        window.addEventListener('apploaded', this);
 
-      asyncStorage.getItem('top-sites', (function(results) {
-        this.topSites = results || [];
-      }).bind(this));
-
-      navigator.getDataStores(this.STORE_NAME)
-        .then(this.initStore.bind(this)).then(callback);
+        asyncStorage.getItem('top-sites', results => {
+          this.topSites = results || [];
+          resolve();
+        });
+      });
     },
 
-    /**
-     * Initializes the datastore after calling navigator.getDataStores.
-     * @param {Array} stores A list of places datastores.
-     * @memberof Places.prototype
-     */
-    initStore: function(stores) {
-      this.dataStore = stores[0];
-      return new Promise(function(resolve) { resolve(); });
+    getStore: function() {
+      return new Promise(resolve => {
+        if (this.dataStore) {
+          return resolve(this.dataStore);
+        }
+        navigator.getDataStores(this.STORE_NAME).then(stores => {
+          this.dataStore = stores[0];
+          return resolve(this.dataStore);
+        });
+      });
     },
 
     /**
@@ -156,19 +158,20 @@
      * @memberof Places.prototype
      */
     editPlace: function(url, fun) {
-      var self = this;
-      var rev = this.dataStore.revisionId;
-      return new Promise(function(resolve) {
-        self.dataStore.get(url).then(function(place) {
-          place = place || self.defaultPlace(url);
-          fun(place, function(newPlace) {
-            if (self.writeInProgress || self.dataStore.revisionId !== rev) {
-              return self.editPlace(url, fun);
-            }
-            self.writeInProgress = true;
-            self.dataStore.put(newPlace, url).then(function() {
-              self.writeInProgress = false;
-              resolve();
+      return new Promise(resolve => {
+        this.getStore().then(store => {
+          var rev = store.revisionId;
+          store.get(url).then(place => {
+            place = place || this.defaultPlace(url);
+            fun(place, newPlace => {
+              if (this.writeInProgress || store.revisionId !== rev) {
+                return this.editPlace(url, fun);
+              }
+              this.writeInProgress = true;
+              store.put(newPlace, url).then(() => {
+                this.writeInProgress = false;
+                resolve();
+              });
             });
           });
         });
@@ -273,7 +276,7 @@
      * @memberof Places.prototype
      */
     clear: function() {
-      return this.dataStore.clear();
+      return this.getStore().then(store => { store.clear(); });
     },
 
     /**
