@@ -272,15 +272,13 @@ var metadataParser = (function() {
       }
 
       function previewerror(msg) {
+        if (msg === 'EXIF preview is corrupt') {
+          delete metadata.preview;
+        }
+
         // The preview isn't a valid jpeg file, so use the full image to
         // create a preview and a thumbnail
-        if (msg !== 'Source image is corrupt') {
-          console.error(msg);
-          useFullsizeImage();
-        }
-        else {
-          metadataError(msg);
-        }
+        useFullsizeImage();
       }
 
       // If we can't find a valid embedded EXIF preview image then we come here

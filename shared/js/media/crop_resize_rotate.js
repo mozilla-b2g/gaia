@@ -486,8 +486,8 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
                           0, 0, destWidth, destHeight);
       }
       catch(ex) {
-        console.warn('Source image is corrupt', ex);
-        return callback('Source image is corrupt');
+        console.warn('EXIF preview is corrupt', ex);
+        return callback('EXIF preview is corrupt');
       }
       finally {
         // Once the image has been copied, we can release the decoded image
