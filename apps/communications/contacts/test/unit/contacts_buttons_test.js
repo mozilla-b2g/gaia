@@ -44,6 +44,11 @@ suite('Render contact', function() {
 
   var getSpy;
 
+  var assertCarrierWrapperVisibility = function(visibility) {
+    var carrierWrapperElt = listDetails.querySelector('.carrier-wrapper');
+    assert.equal(carrierWrapperElt.hidden, !visibility);
+  };
+
   mocksHelperForContactsButtons.attachTestHelpers();
 
   suiteSetup(function() {
@@ -80,7 +85,7 @@ suite('Render contact', function() {
         listDetails.querySelector('h2').innerHTML,
         mockContact.tel[0].carrier
       );
-      sinon.assert.calledWith(getSpy, 'separator');
+      assertCarrierWrapperVisibility(true);
     });
 
     test('with 1 phone and carrier undefined', function() {
@@ -98,6 +103,7 @@ suite('Render contact', function() {
                     contactNoCarrier.tel[0].value);
       var carrierContent = listDetails.querySelector('.carrier').textContent;
       assert.lengthOf(carrierContent, 0);
+      assertCarrierWrapperVisibility(false);
 
     });
 
@@ -134,6 +140,7 @@ suite('Render contact', function() {
       assert.include(listDetails.innerHTML, subject.DEFAULT_TEL_TYPE);
       assert.equal(
         -1, listDetails.innerHTML.indexOf('phone-details-template-2'));
+      assertCarrierWrapperVisibility(true);
     });
 
     test('highlight phone number', function() {
@@ -243,7 +250,7 @@ suite('Render contact', function() {
       stubCall.restore();
     }
 
-    test(' > Not loading MultiSimActionButton when we are on an activity',
+    test('> Not loading MultiSimActionButton when we are on an activity',
          function() {
       this.sinon.stub(MmiManager, 'isMMI').returns(true);
       ActivityHandler.currentlyHandling = true;
