@@ -217,7 +217,7 @@ InputMethodGlue.prototype.setUpperCase = function(state) {
 };
 
 InputMethodGlue.prototype.isCapitalized = function() {
-  return this.app.upperCaseStateManager.isUpperCase;
+  return this.app.upperCaseStateManager.getUpperCase();
 };
 
 InputMethodGlue.prototype.replaceSurroundingText = function(text, offset,

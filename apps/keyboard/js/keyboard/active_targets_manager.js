@@ -97,9 +97,13 @@ ActiveTargetsManager.prototype._handlePressStart = function(press, id) {
 
   // All targets before the new touch need to be committed,
   // according to UX requirement.
-  this.activeTargets.forEach(function(target, id) {
-    this._handlePressEnd(press, id);
-  }, this);
+  // Don't commit the CapsLock key itself, or we cannot keep the
+  // CapsLock key at the pressed state.
+  if (!this.app.upperCaseStateManager.isUpperCasePressed) {
+    this.activeTargets.forEach(function(target, id) {
+      this._handlePressEnd(press, id);
+    }, this);
+  }
 
   var target = press.target;
   this.activeTargets.set(id, target);
