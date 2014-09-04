@@ -82,6 +82,7 @@ suite('value selector/value selector', function() {
   });
 
   test('Time Picker (en-US)', function() {
+    var stubPublish = this.sinon.stub(vs, 'publish');
     stubMozl10nGet =
       this.sinon.stub(navigator.mozL10n, 'get').returns('%I:%M %p');
     navigator.mozHour12 = true;
@@ -90,6 +91,7 @@ suite('value selector/value selector', function() {
 
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
 
+    assert.isTrue(stubPublish.calledWith('shown'));
     assert.isFalse(vs.element.hidden);
     assert.isFalse(vs.elements.timePickerPopup.hidden);
     assert.isTrue(vs._timePicker.is12hFormat);
@@ -177,6 +179,7 @@ suite('value selector/value selector', function() {
   });
 
   test('hide', function() {
+    var stub_publish = this.sinon.stub(vs, 'publish');
     var stub_setVisibleForScreenReader = this.sinon.stub(app,
       '_setVisibleForScreenReader');
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
@@ -184,6 +187,7 @@ suite('value selector/value selector', function() {
     vs.hide();
     assert.isTrue(vs.element.hidden);
     assert.isTrue(stub_setVisibleForScreenReader.calledWith(true));
+    assert.isTrue(stub_publish.calledWith('hidden'));
   });
 
   test('cancel on "_sheetstransitionstart" event', function() {

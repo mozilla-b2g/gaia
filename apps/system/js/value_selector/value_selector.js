@@ -38,6 +38,8 @@
 
   ValueSelector.prototype.ELEMENT_PREFIX = 'value-selector-';
 
+  ValueSelector.prototype.EVENT_PREFIX = 'value-selector-';
+
   ValueSelector.prototype.customID = function vs_customID() {
     if (this.app) {
       return '[' + this.app.origin + ']';
@@ -181,6 +183,7 @@
       return;
     }
 
+    this.publish('shown');
     var min = detail.min;
     var max = detail.max;
 
@@ -234,6 +237,7 @@
     if (this.app) {
       this.app.focus();
     }
+    this.publish('hidden');
   };
 
   ValueSelector.prototype.handleSelect = function vs_handleSelect(target) {
