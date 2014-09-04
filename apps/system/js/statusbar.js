@@ -1403,6 +1403,7 @@ var StatusBar = {
           signal.dataset.index = i + 1;
         }
         signal.setAttribute('role', 'listitem');
+        signal.hidden = true;
         data.setAttribute('role', 'listitem');
         data.className = 'sb-icon statusbar-data';
         data.hidden = true;
@@ -1412,6 +1413,8 @@ var StatusBar = {
         this.icons.signals[i] = signal;
         this.icons.data[i] = data;
       }
+
+      this.updateConnectionsVisibility();
     }
   },
 
@@ -1437,11 +1440,11 @@ var StatusBar = {
         }
         callForwarding.setAttribute('role', 'listitem');
         callForwarding.setAttribute('aria-label', 'statusbarForwarding');
+        callForwarding.hidden = true;
         this.icons.callForwardings.appendChild(callForwarding);
         this.icons.callForwardingsElements[idx] = callForwarding;
       }
 
-      this.updateConnectionsVisibility();
       this.updateCallForwardingsVisibility();
     }
   },
