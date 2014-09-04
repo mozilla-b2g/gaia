@@ -19,7 +19,10 @@
     "128": "/style/icons/Blank.png"
   },
   "permissions": {
-    "sms": {}
+    "sms": {},
+    "settings": {
+      "access": "readonly"
+    }
   },
   "connections": {
     "fmdsms-wakeup": {
