@@ -1,6 +1,6 @@
 /*global KeyboardManager, sinon, KeyboardHelper, MockKeyboardHelper,
   MocksHelper, TransitionEvent, MockNavigatorSettings, Applications, Promise,
-  MockL10n, MockImeMenu */
+  MockL10n, MockImeMenu, TYPE_GROUP_MAPPING */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -279,6 +279,71 @@ suite('KeyboardManager', function() {
         test('keeps "url" when defaults found', function() {
           assert.ok(KeyboardManager.setKeyboardToShow.calledWith('url'));
         });
+      });
+    });
+
+    suite('Restore user selection from settings', function() {
+      var mkh, km;
+
+      setup(function() {
+        mkh = MockKeyboardHelper;
+        km = KeyboardManager;
+
+        TYPE_GROUP_MAPPING.chocola = 'chocola';
+
+        km.inputLayouts.layouts.chocola = [
+          { id: 'default', manifestURL: 'app://default' },
+          { id: 'trahlah', manifestURL: 'app://yolo' },
+          { id: 'another', manifestURL: 'app://yolo' }
+        ];
+      });
+
+      teardown(function() {
+        mkh.getCurrentActiveLayout = function() {};
+      });
+
+      test('Selection is present', function() {
+        mkh.getCurrentActiveLayout = sinon.stub().returns(
+          { id: 'trahlah', manifestURL: 'app://yolo' }
+        );
+
+        simulateInputChangeEvent('chocola');
+        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+        sinon.assert.calledWith(km.setKeyboardToShow, 'chocola', 1);
+      });
+
+      test('Selection is present, multiple from same manifest', function() {
+        mkh.getCurrentActiveLayout = sinon.stub().returns(
+          { id: 'another', manifestURL: 'app://yolo' }
+        );
+
+        simulateInputChangeEvent('chocola');
+        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+        sinon.assert.calledWith(km.setKeyboardToShow, 'chocola', 2);
+      });
+
+      test('Selection is not present', function() {
+        mkh.getCurrentActiveLayout = sinon.stub().returns(
+          { id: 'trahlah', manifestURL: 'app://dontexist' }
+        );
+
+        simulateInputChangeEvent('chocola');
+        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+        sinon.assert.calledWith(km.setKeyboardToShow, 'chocola');
+      });
+
+      test('No selection set', function() {
+        mkh.getCurrentActiveLayout = sinon.stub().returns(null);
+
+        simulateInputChangeEvent('chocola');
+        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+        sinon.assert.callCount(mkh.getCurrentActiveLayout, 1);
+        sinon.assert.calledWith(mkh.getCurrentActiveLayout, 'chocola');
+        sinon.assert.calledWith(km.setKeyboardToShow, 'chocola');
       });
     });
   });
@@ -1216,6 +1281,60 @@ suite('KeyboardManager', function() {
       this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
 
       KeyboardManager.switchChangeTimeout = oldSwitchChangeTimeout;
+    });
+  });
+
+  suite('Switching keyboard layout', function() {
+    var _layouts;
+
+    suiteSetup(function() {
+      _layouts = KeyboardManager.inputLayouts.layouts;
+    });
+
+    suiteTeardown(function() {
+      KeyboardManager.inputLayouts.layouts = _layouts;
+    });
+
+    setup(function() {
+      KeyboardManager.inputLayouts.layouts = {
+        'text': [
+          { id: 'fk', manifestURL: 'app://fake/manifest.webapp' },
+          { id: 'ur', manifestURL: 'app://unreal/manifest.webapp' }
+        ]
+      };
+      KeyboardManager.showingLayoutInfo.type = 'text';
+    });
+
+    test('Switching stores new layout in settings', function() {
+      MockKeyboardHelper.saveCurrentActiveLayout = this.sinon.stub();
+
+      KeyboardManager.showingLayoutInfo.index = 0;
+      KeyboardManager.inputLayouts.
+        _layoutToGroupMapping['app://unreal/manifest.webapp/ur'] =
+          [{
+            group: 'text',
+            index: 3
+          }];
+
+      KeyboardManager.switchToNext();
+      this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
+
+      sinon.assert.callCount(MockKeyboardHelper.saveCurrentActiveLayout, 1);
+      sinon.assert.calledWith(MockKeyboardHelper.saveCurrentActiveLayout,
+        'text', 'ur', 'app://unreal/manifest.webapp');
+    });
+
+    test('Switching calls setKeyboardToShow', function() {
+      KeyboardManager.setKeyboardToShow = this.sinon.stub();
+
+      KeyboardManager.showingLayoutInfo.index = 1;
+
+      KeyboardManager.switchToNext();
+      this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
+
+      sinon.assert.callCount(KeyboardManager.setKeyboardToShow, 1);
+      sinon.assert.calledWith(KeyboardManager.setKeyboardToShow,
+        'text', 0);
     });
   });
 });
