@@ -495,7 +495,6 @@ require([
       document.addEventListener('visibilitychange', this);
 
       this._elements.defaultMediaLocation.addEventListener('click', this);
-      this.makeDefaultLocationMenu();
 
       window.addEventListener('localized', this);
 
@@ -543,7 +542,8 @@ require([
           break;
         case 'change':
           if (evt.target.id === 'defaultMediaLocation') {
-            this.defaultLocationName = this.defaultMediaLocation.value;
+            this.defaultLocationName =
+              this._elements.defaultMediaLocation.value;
           } else {
             // we are handling storage changes
             // possible state: available, unavailable, shared
@@ -632,6 +632,8 @@ require([
           });
           this.documentStorageListener = false;
         }
+        this._elements.defaultMediaLocation.removeEventListener('change',
+            self);
       } else {
         if (!this.documentStorageListener) {
           this._volumeList.forEach(function(volume) {
@@ -642,6 +644,8 @@ require([
           });
           this.documentStorageListener = true;
         }
+        this.makeDefaultLocationMenu();
+
         if (callback && Settings.currentPanel === '#mediaStorage') {
           callback();
         }
