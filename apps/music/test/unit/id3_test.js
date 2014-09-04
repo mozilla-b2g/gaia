@@ -22,6 +22,9 @@ require('/test/unit/metadata_utils.js');
           assert.equal(metadata.album, 'Dirty Deeds Done Dirt Cheap');
           assert.equal(metadata.title, 'Problem Child');
           assert.equal(metadata.tracknum, 5);
+          if (version == 3) {
+            assert.equal(metadata.discnum, 1);
+          }
         });
       });
     });
@@ -35,6 +38,9 @@ require('/test/unit/metadata_utils.js');
           assert.equal(metadata.album, 'Dr. Feelgood');
           assert.equal(metadata.title, 'Kickstart My Heart');
           assert.equal(metadata.tracknum, 5);
+          if (version == 3) {
+            assert.equal(metadata.discnum, 1);
+          }
         });
       });
     });

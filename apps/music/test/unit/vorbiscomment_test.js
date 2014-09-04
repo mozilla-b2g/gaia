@@ -16,6 +16,7 @@ suite('vorbis comment', function() {
         assert.equal(metadata.album, 'Holy Land');
         assert.equal(metadata.title, 'Carolina IV');
         assert.equal(metadata.tracknum, 4);
+        assert.equal(metadata.discnum, 1);
       });
     });
   });

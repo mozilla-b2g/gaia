@@ -82,6 +82,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   var ARTIST = 'artist';
   var ALBUM = 'album';
   var TRACKNUM = 'tracknum';
+  var DISCNUM = 'discnum';
   var IMAGE = 'picture';
 
   // These two properties are for playlist functionalities
@@ -99,6 +100,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     TAL: ALBUM,
     TRCK: TRACKNUM,
     TRK: TRACKNUM,
+    TPA: DISCNUM,
+    TPOS: DISCNUM,
     APIC: IMAGE,
     PIC: IMAGE
   };
@@ -108,7 +111,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     title: TITLE,
     artist: ARTIST,
     album: ALBUM,
-    tracknumber: TRACKNUM
+    tracknumber: TRACKNUM,
+    discnumber: DISCNUM
   };
 
   // Map MP4 atom names to metadata property names
@@ -119,6 +123,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     'aART': ARTIST,
     '\xa9nam': TITLE,
     'trkn': TRACKNUM,
+    'disk': DISCNUM,
     'covr': IMAGE
   };
 
@@ -432,6 +437,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
             break;
           case 'TRCK':
           case 'TRK':
+          case 'TPOS':
+          case 'TPA':
             framevalue = parseInt(readTextFrame(frameview, framesize), 10);
             break;
           case 'APIC':
@@ -941,8 +948,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
         var datasize = size - 16; // the rest of the atom is the value
 
-        // Special case for track number
-        if (atomtype === 'trkn') {
+        // Special case for track number and disk number
+        if (atomtype === 'trkn' || atomtype === 'disk') {
           data.advance(2);
           return data.readUnsignedShort();
         }
