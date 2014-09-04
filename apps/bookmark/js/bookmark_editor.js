@@ -1,6 +1,6 @@
 'use strict';
 
-/* global UrlHelper, BookmarksDatabase, Icon */
+/* global UrlHelper, BookmarksDatabase */
 /* exported BookmarkEditor */
 
 var BookmarkEditor = {
@@ -21,17 +21,17 @@ var BookmarkEditor = {
   _init: function bookmarkEditor_init(mode) {
     this.mode = document.body.dataset.mode = mode;
     this.bookmarkTitle = document.getElementById('bookmark-title');
-    this.bookmarkIcon = document.getElementById('bookmark-icon');
+    this.bookmarkUrl = document.getElementById('bookmark-url');
     this.cancelButton = document.getElementById('cancel-button');
-    this.saveButton = document.getElementById('done-button');
+    this.saveButton = document.getElementById(mode === 'add' ? 'add-button' :
+                                                               'edit-button');
 
     this.cancelButton.addEventListener('click', this.close.bind(this));
     this.saveListener = this.save.bind(this);
     this.saveButton.addEventListener('click', this.saveListener);
 
     this.bookmarkTitle.value = this.data.name || '';
-
-    this._renderIcon();
+    this.bookmarkUrl.value = this.data.url || '';
 
     this._checkDoneButton();
     this.form = document.getElementById('bookmark-form');
@@ -49,11 +49,6 @@ var BookmarkEditor = {
     window.dispatchEvent(new CustomEvent('lazyload', {
       detail: document.body
     }));
-  },
-
-  _renderIcon: function renderIcon() {
-    var icon = new Icon(this.bookmarkIcon, this.data.icon);
-    icon.render();
   },
 
   _onEditMode: function bookmarkEditor_onEditMode() {
@@ -75,7 +70,9 @@ var BookmarkEditor = {
     // If one of the ﬁelds is blank, the “Done” button should be dimmed and
     // inactive
     var title = this.bookmarkTitle.value.trim();
-    this.saveButton.disabled = title === '';
+    var url = this.bookmarkUrl.value.trim();
+    this.saveButton.disabled = title === '' || url === '' ||
+                               UrlHelper.isNotURL(url);
   },
 
   save: function bookmarkEditor_save(evt) {
@@ -83,7 +80,7 @@ var BookmarkEditor = {
 
     // Only allow urls to be bookmarked.
     // This is defensive check - callers should filter out non-URLs.
-    var url = this.data.url.trim();
+    var url = this.bookmarkUrl.value.trim();
     if (UrlHelper.isNotURL(url)) {
       this.oncancelled();
       return;
