@@ -1,6 +1,4 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global DeviceStorageHelper */
 'use strict';
 
 /**
@@ -208,7 +206,7 @@ require([
       var element =
         self.rootElement.querySelector('[data-l10n-id="total-space"] + .size');
       DeviceStorageHelper.showFormatedSize(element, 'storageSize',
-                                           sizes['sdcard'] + sizes['free']);
+                                           sizes.sdcard + sizes.free);
       element.hidden = false;
     });
   };
@@ -256,7 +254,7 @@ require([
     }.bind(this));
 
     // total space size
-    var rule = 'li[class="total-space"]';
+    rule = 'li[class="total-space"]';
     this.rootElement.querySelector(rule).hidden = !enabled;
   };
 
@@ -269,11 +267,12 @@ require([
       storage.usedSpace().onsuccess = function(e) {
         results[type] = e.target.result;
         current--;
-        if (current == 0) {
+        if (current === 0) {
           storage.freeSpace().onsuccess = function(e) {
-            results['free'] = e.target.result;
-            if (callback)
+            results.free = e.target.result;
+            if (callback) {
               callback(results);
+            }
           };
         }
       };
@@ -304,8 +303,9 @@ require([
           self.enableFormatSDCardBtn(true);
           break;
       }
-      if (callback)
+      if (callback) {
         callback(state);
+      }
     };
   };
 
@@ -466,6 +466,22 @@ require([
 
   var MediaStorage = {
     init: function ms_init() {
+      this._elements = {
+        // default media location
+        volumeListRootElement:
+          document.getElementById('volume-list'),
+        defaultMediaLocationList:
+          document.querySelector('.default-media-location'),
+        defaultMediaLocation:
+          document.getElementById('defaultMediaLocation'),
+        popup:
+          document.getElementById('default-location-popup-container'),
+        cancelBtn:
+          document.getElementById('default-location-cancel-btn'),
+        changeBtn:
+          document.getElementById('default-location-change-btn')
+      };
+
       this._volumeList = this.initAllVolumeObjects();
 
       this.documentStorageListener = false;
@@ -478,12 +494,7 @@ require([
       // storage notifications when the settings app isn't visible.
       document.addEventListener('visibilitychange', this);
 
-      // default media location
-      this.defaultMediaLocationList =
-        document.querySelector('.default-media-location');
-      this.defaultMediaLocation =
-        document.getElementById('defaultMediaLocation');
-      this.defaultMediaLocation.addEventListener('click', this);
+      this._elements.defaultMediaLocation.addEventListener('click', this);
       this.makeDefaultLocationMenu();
 
       window.addEventListener('localized', this);
@@ -508,7 +519,6 @@ require([
 
       var volumeList = [];
       var externalIndex = 0;
-      var volumeListRootElement = document.getElementById('volume-list');
       for (var name in volumes) {
         var volume;
         // XXX: This is a heuristic to determine whether a storage is internal
@@ -520,7 +530,7 @@ require([
           volume = new Volume(name, true /* external */, externalIndex++,
                               volumes[name]);
         }
-        volume.createView(volumeListRootElement);
+        volume.createView(this._elements.volumeListRootElement);
         volumeList.push(volume);
       }
       return volumeList;
@@ -532,9 +542,7 @@ require([
           this.updateInfo();
           break;
         case 'change':
-          if (evt.target.id === 'ums-switch') {
-            Storage.umsMasterSettingChanged(evt);
-          } else if (evt.target.id === 'defaultMediaLocation') {
+          if (evt.target.id === 'defaultMediaLocation') {
             this.defaultLocationName = this.defaultMediaLocation.value;
           } else {
             // we are handling storage changes
@@ -561,7 +569,7 @@ require([
       SettingsCache.getSettings(function(allSettings) {
         self.defaultLocationName = allSettings[DEFAULT_MEDIA_VOLUME_KEY];
         var defaultName = allSettings[DEFAULT_MEDIA_VOLUME_KEY];
-        var selectionMenu = self.defaultMediaLocation;
+        var selectionMenu = self._elements.defaultMediaLocation;
         var selectedIndex = 0;
         self._volumeList.forEach(function(volume, index) {
           var option = document.createElement('option');
@@ -578,7 +586,8 @@ require([
 
         // disable option menu if we have only one option
         if (self._volumeList.length === 1) {
-          self.defaultMediaLocationList.setAttribute('aria-disabled', true);
+          self._elements.defaultMediaLocationList
+            .setAttribute('aria-disabled', true);
           selectionMenu.disabled = true;
           selectionMenu.parentNode.setAttribute('aria-disabled', true);
           var obj = {};
@@ -595,20 +604,16 @@ require([
     showChangingDefaultStorageConfirmation:
     function ms_showChangingDefaultStorageConfirmation() {
       //Pop up a confirm window before listing options.
-      var popup = document.getElementById('default-location-popup-container');
-      var cancelBtn = document.getElementById('default-location-cancel-btn');
-      var changeBtn = document.getElementById('default-location-change-btn');
-
-      this.defaultMediaLocation.blur();
+      this._elements.defaultMediaLocation.blur();
+      this._elements.popup.hidden = false;
       var self = this;
-      popup.hidden = false;
-      cancelBtn.onclick = function() {
-        popup.hidden = true;
+      this._elements.cancelBtn.onclick = function() {
+        self._elements.popup.hidden = true;
       };
-      changeBtn.onclick = function() {
-        popup.hidden = true;
+      this._elements.changeBtn.onclick = function() {
+        self._elements.popup.hidden = true;
         setTimeout(function() {
-          self.defaultMediaLocation.focus();
+          self._elements.defaultMediaLocation.focus();
         });
       };
     },
@@ -637,8 +642,9 @@ require([
           });
           this.documentStorageListener = true;
         }
-        if (callback && Settings.currentPanel === '#mediaStorage')
+        if (callback && Settings.currentPanel === '#mediaStorage') {
           callback();
+        }
       }
     },
 
@@ -679,10 +685,11 @@ require([
 
         // Update default location. If there is only one storage, do nothing.
         if (storageStatus !== 'Mounted') {
-          this.defaultMediaLocationList.setAttribute('aria-disabled', true);
-          this.defaultMediaLocation.disabled = true;
-          this.defaultMediaLocation.parentNode.setAttribute('aria-disabled',
-                                                            true);
+          this._elements.defaultMediaLocationList
+            .setAttribute('aria-disabled', true);
+          this._elements.defaultMediaLocation.disabled = true;
+          this._elements.defaultMediaLocation.parentNode
+            .setAttribute('aria-disabled', true);
           if ((storageName !== 'sdcard') &&
               (self.defaultLocationName !== 'sdcard')) {
             if (storageStatus === 'NoMedia') {
@@ -700,17 +707,18 @@ require([
             }
           }
         } else {
-          this.defaultMediaLocationList.setAttribute('aria-disabled', false);
-          this.defaultMediaLocation.disabled = false;
-          this.defaultMediaLocation.parentNode.setAttribute('aria-disabled',
-                                                            false);
+          this._elements.defaultMediaLocationList
+            .setAttribute('aria-disabled', false);
+          this._elements.defaultMediaLocation.disabled = false;
+          this._elements.defaultMediaLocation.parentNode
+            .setAttribute('aria-disabled', false);
         }
       }
     },
 
     setInternalStorageBeDefaultMediaLocation:
     function ms_setInternalStorageBeDefaultMediaLocation() {
-      var selectedOption = this.defaultMediaLocation.options[0];
+      var selectedOption = this._elements.defaultMediaLocation.options[0];
       selectedOption.selected = true;
       var obj = {};
       obj[DEFAULT_MEDIA_VOLUME_KEY] = selectedOption.value;
