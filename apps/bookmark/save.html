@@ -18,7 +18,12 @@
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
 
+    <!-- Link to component just to copy the default_icon here -->
+    <!-- <script defer src="shared/elements/gaia_grid/script.js"></script> -->
+    <script defer src="shared/elements/gaia_grid/js/grid_icon_renderer.js"></script>
+
     <!-- Specific code -->
+    <script type="text/javascript" defer src="js/icon.js"></script>
     <script type="text/javascript" defer src="js/bookmark_editor.js"></script>
     <script type="text/javascript" defer src="js/components/status.js"></script>
     <script type="text/javascript" defer src="js/activity_handler.js"></script>
@@ -32,22 +37,17 @@
           <span class="icon icon-close" data-l10n-id="cancel-action"></span>
         </button>
         <menu type="toolbar">
-          <button id="edit-button" disabled type="button" role="menuitem" data-l10n-id="done-action"></button>
+          <button id="done-button" type="button" role="menuitem" data-l10n-id="done-action"></button>
         </menu>
         <h1 id="add-bookmark-header" data-l10n-id="add-bookmark-header"></h1>
         <h1 id="edit-bookmark-header" data-l10n-id="edit-bookmark-header"></h1>
       </header>
       <form id="bookmark-form">
-        <label data-l10n-id="website-name">
-          <p>
-            <input type="text" id="bookmark-title" dir="auto"></input>
-            <button id="bookmark-title-clear" type="reset">Clear</button>
-          </p>
-        </label>
-        <label data-l10n-id="address">
-          <input type="url" id="bookmark-url"></input>
-        </label>
-        <button id="add-button" type="button" disabled data-l10n-id="add-action"></button>
+        <img id="bookmark-icon">
+        <p>
+          <input type="text" id="bookmark-title" dir="auto"></input>
+          <button id="bookmark-title-clear" type="reset">Clear</button>
+        </p>
       </form>
     </section>
   </body>
