@@ -51,7 +51,7 @@
       'alarms', 'icalComponents'
     ],
 
-    _parseId: Calendar.probablyParseInt,
+    _parseId: Calendar.Store.Abstract.prototype.probablyParseInt,
 
     _createModel: function(obj, id) {
       if (!(obj instanceof Calendar.Models.Calendar)) {

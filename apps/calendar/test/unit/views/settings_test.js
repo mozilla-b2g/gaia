@@ -184,7 +184,7 @@ suiteGroup('Views.Settings', function() {
   });
 
   suite('#_observeCalendarStore', function() {
-    var models = subject.calendarList = {
+    var models = stageModels({
       first: {
         localDisplayed: true,
         _id: 'first',
@@ -192,17 +192,16 @@ suiteGroup('Views.Settings', function() {
           name: 'first'
         }
       }
-    };
+    });
 
     var children;
     setup(function(done) {
       // we must wait until rendering completes
+      subject.render();
       subject.onrender = function() {
         children = subject.calendars.children;
         Calendar.nextTick(done);
       };
-
-      subject.render();
     });
 
     suite('calendar update / error', function() {

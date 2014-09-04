@@ -1,19 +1,15 @@
 /*global Calendar */
-Calendar.ns('Views').Settings = (function() {
+(function(window) {
   'use strict';
 
-  /**
-   * Module dependencies
-   */
-  var Templates = Calendar.ns('Templates');
-  var View = Calendar.View;
-  var debug = Calendar.debug('Views.Settings');
-  var forEach = Calendar.Object.forEach;
+  var CALENDAR_PREFIX = 'calendar-';
+
+  var template = Calendar.Templates.Calendar;
+  var _super = Calendar.View.prototype;
 
   function Settings(options) {
-    View.apply(this, arguments);
+    Calendar.View.apply(this, arguments);
 
-    this.calendarList = {};
     this._hideSettings = this._hideSettings.bind(this);
     this._onDrawerTransitionEnd = this._onDrawerTransitionEnd.bind(this);
     this._updateTimeouts = Object.create(null);
@@ -22,9 +18,7 @@ Calendar.ns('Views').Settings = (function() {
   }
 
   Settings.prototype = {
-    __proto__: View.prototype,
-
-    calendarList: null,
+    __proto__: _super,
 
     waitBeforePersist: 600,
 
@@ -130,7 +124,6 @@ Calendar.ns('Views').Settings = (function() {
 
       function handle(method) {
         return function() {
-          debug('Views.Settings', method);
           self[method].apply(self, arguments);
         };
       }
@@ -192,19 +185,49 @@ Calendar.ns('Views').Settings = (function() {
       this.app.syncController.all();
     },
 
-    _add: function(id, model) {
-      this.calendarList[id] = model;
-      this.render();
+    _update: function(id, model) {
+      var el = document.getElementById(this.idForModel(CALENDAR_PREFIX, id));
+      var check = el.querySelector('input[type="checkbox"]');
+
+      if (el.classList.contains(Calendar.ERROR) && !model.error) {
+        el.classList.remove(Calendar.ERROR);
+      }
+
+      if (model.error) {
+        el.classList.add(Calendar.ERROR);
+      }
+
+      el.querySelector(this.selectors.calendarName).textContent = model.name;
+      check.checked = model.localDisplayed;
     },
 
-    _update: function(id, model) {
-      this.calendarList[id] = model;
-      this.render();
+    _add: function(id, object) {
+      var idx = this.calendars.children.length;
+
+      var html = template.item.render(object);
+      this.calendars.insertAdjacentHTML(
+        'beforeend',
+        html
+      );
+
+      if (object.error) {
+        var el = this.calendars.children[
+          idx
+        ];
+
+        el.classList.add(Calendar.ERROR);
+      }
+
+      this._setCalendarContainerSize();
     },
 
     _remove: function(id) {
-      delete this.calendarList[id];
-      this.render();
+      var el = document.getElementById(this.idForModel(CALENDAR_PREFIX, id));
+      if (el) {
+        el.parentNode.removeChild(el);
+      }
+
+      this._setCalendarContainerSize();
     },
 
     // Ajust size of drawer scroll area to fit size of calendars, within
@@ -235,46 +258,55 @@ Calendar.ns('Views').Settings = (function() {
     },
 
     render: function() {
-      debug('Will render settings view.');
-      this.calendars.innerHTML = '';
+      var store = this.app.store('Calendar');
 
-      debug('Inject calendars into settings list.');
-      forEach(this.calendarList, function(id, object) {
-        debug('Will add object to settings view', id, object);
-        var html = Templates.Calendar.item.render(object);
-        this.calendars.insertAdjacentHTML('beforeend', html);
-
-        if (object.error) {
-          debug('Views.Settings error:', object.error);
-          var idx = this.calendars.children.length;
-          var el = this.calendars.children[idx];
-          el.classList.add(Calendar.ERROR);
+      store.all(function(err, calendars) {
+        if (err) {
+          console.log(
+            'Error fetching calendars in View.Settings'
+          );
+          return;
         }
 
-        this._setCalendarContainerSize();
-      }, this);
+        // clear list of calendars
+        this.calendars.innerHTML = '';
 
-      this.onrender && this.onrender();
+        // append each calendar
+        var id;
+        for (id in calendars) {
+          this._add(id, calendars[id]);
+        }
 
-      debug('Will update (show/hide) sync button.');
-      this._updateSyncButton();
+        // observe new calendar events
+        this._observeCalendarStore();
+
+        // observe accounts to hide sync button
+        this._observeAccountStore();
+
+        // show/hide sync button
+        this._updateSyncButton(function() {
+          if (this.onrender) {
+            this.onrender();
+          }
+        }.bind(this));
+      }.bind(this));
     },
 
     _updateSyncButton: function(callback) {
       var store = this.app.store('Account');
-      store.syncableAccounts((err, list) => {
+      var element = this.toolbar;
+      var self = this;
+
+      store.syncableAccounts(function(err, list) {
         if (err) {
-          debug('Error fetching syncable accounts:', err);
           return callback(err);
         }
 
-        debug('Found ', list.length, ' syncable accounts.');
-        var element = this.toolbar;
         element.classList.toggle('noaccount', list.length === 0);
 
         // test only event
         self.onupdatesyncbutton && self.onupdatesyncbutton();
-        return callback && callback();
+        typeof callback === 'function' ? callback() : '';
       });
     },
 
@@ -304,57 +336,20 @@ Calendar.ns('Views').Settings = (function() {
       // Also, set the style on the body, since other views will also
       // have items animate based on the class. For instance, the +
       // to add an event in the view-selector views fades out.
-      if (!this._rendered) {
-        return debug('Skip animation since not yet rendered.');
+      if (this._rendered && this._activated &&
+          !document.body.classList.contains('settings-drawer-visible')) {
+        this._updateDrawerAnimState('animating');
+        document.body.classList.add('settings-drawer-visible');
       }
-
-      if (!this._activated) {
-        return debug('Skip animation since not yet activated.');
-      }
-
-      var classList = document.body.classList;
-      if (classList.contains('settings-drawer-visible')) {
-        return debug('Skip animation since drawer already visible?');
-      }
-
-      this._updateDrawerAnimState('animating');
-      classList.add('settings-drawer-visible');
     },
 
     onactive: function() {
-      debug('Will do settings animation.');
+      _super.onactive.apply(this, arguments);
 
-      // If we haven't yet cached idb calendars, do that now.
-      var fetch;
-      if (this.calendarList && Object.keys(this.calendarList).length) {
-        fetch = Promise.resolve();
-      } else {
-        var store = this.app.store('Calendar');
-        fetch = store.all().then((calendars) => {
-          debug('Settings view found calendars:', calendars);
-          this.calendarList = calendars;
-
-          // observe new calendar events
-          this._observeCalendarStore();
-
-          // observe accounts to hide sync button
-          this._observeAccountStore();
-        });
-      }
-
-      return fetch.then(() => {
-        // View#onactive will call Views.Settings#render the first time.
-        View.prototype.onactive.apply(this, arguments);
-
-        // onactive can be called more times than oninactive, since
-        // settings can overlay over and not trigger an inactive state,
-        // so only bind these listeners and do the drawer animation once.
-        var body = document.body;
-        if (body.classList.contains('settings-drawer-visible')) {
-          return;
-        }
-
-        debug('Settings drawer is not visible... will activate.');
+      // onactive can be called more times than oninactive, since
+      // settings can overlay over and not trigger an inactive state,
+      // so only bind these listeners and do the drawer animation once.
+      if (!document.body.classList.contains('settings-drawer-visible')) {
         this._activated = true;
         this._animateDrawer();
 
@@ -372,15 +367,11 @@ Calendar.ns('Views').Settings = (function() {
 
         this.drawer.addEventListener('transitionend',
                                      this._onDrawerTransitionEnd);
-      })
-      .catch((err) => {
-        return debug('Error fetching calendars in View.Settings', err);
-      });
+      }
     },
 
     oninactive: function() {
-      debug('Will deactivate settings.');
-      View.prototype.oninactive.apply(this, arguments);
+      _super.oninactive.apply(this, arguments);
       this._activated = false;
       this.header.removeEventListener('action', this._hideSettings);
       this.shield.removeEventListener('click', this._hideSettings);
@@ -391,5 +382,7 @@ Calendar.ns('Views').Settings = (function() {
   };
 
   Settings.prototype.onfirstseen = Settings.prototype.render;
-  return Settings;
-}());
+  Calendar.ns('Views').Settings = Settings;
+
+}(this));
+
