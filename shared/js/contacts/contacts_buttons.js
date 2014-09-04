@@ -8,9 +8,6 @@
 var ContactsButtons = {
   DEFAULT_TEL_TYPE: 'other',
   DEFAULT_EMAIL_TYPE: 'other',
-  PHONE_TYPE_MAP: {
-    'cell' : 'mobile'
-  },
 
   _listContainer: null,
   _contactDetails: null,
@@ -104,19 +101,18 @@ var ContactsButtons = {
     var telLength = Contacts.getLength(contact.tel);
     for (var tel = 0; tel < telLength; tel++) {
       var currentTel = contact.tel[tel];
+      var typeKey = currentTel.type;
       var escapedType = Normalizer.escapeHTML(currentTel.type, true).trim();
       var carrier = Normalizer.escapeHTML(currentTel.carrier || '', true) || '';
+
       if (!escapedType) {
-        escapedType =
-          navigator.mozL10n.get(this.PHONE_TYPE_MAP[escapedType] ||
-                                escapedType ||
-                                this.DEFAULT_TEL_TYPE);
+        typeKey = this.DEFAULT_TEL_TYPE;
       }
 
       var telField = {
         value: Normalizer.escapeHTML(currentTel.value, true) || '',
-        type: escapedType + (carrier ? navigator.mozL10n.get('separator') : ''),
-        'type_l10n_id': currentTel.type,
+        type: escapedType,
+        'type_l10n_id': typeKey,
         carrier: carrier,
         i: tel
       };
@@ -134,6 +130,11 @@ var ContactsButtons = {
       var callOrPickButton = template.querySelector('#call-or-pick-' + tel);
       callOrPickButton.dataset.tel = telField.value;
       this._setupPhoneButtonListener(callOrPickButton, telField.value);
+
+      if (carrier) {
+        var carrierWrapperElt = template.querySelector('.carrier-wrapper');
+        carrierWrapperElt.hidden = false;
+      }
 
       this._listContainer.appendChild(template);
     }
