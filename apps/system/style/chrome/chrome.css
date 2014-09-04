@@ -206,12 +206,12 @@
 
 .chrome.maximized .title[data-ssl="secure"] {
   padding-left: 3rem;
-  background: url("images/ssl.png") no-repeat 1.3rem center;
+  background: url("images/ssl.png") no-repeat 0.1rem center / 3rem 3rem;
 }
 
 .chrome.maximized .title[data-ssl="broken"] {
   padding-left: 3rem;
-  background: url("images/ssl_broken.png") no-repeat 1.3rem center;
+  background: url("images/ssl_broken.png") no-repeat 0.1rem center / 3rem 3rem;
 }
 
 .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
