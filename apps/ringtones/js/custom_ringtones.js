@@ -99,6 +99,14 @@ window.customRingtones = (function() {
     },
 
     /**
+     * @return {String} The type of the ringtone. XXX: Currently always
+     *   "ringtone".
+     */
+    get type() {
+      return 'ringtone';
+    },
+
+    /**
      * @return {String} A URL pointing to the ringtone's audio data.
      */
     get url() {

@@ -73,9 +73,10 @@ suite('sd card ringtones', function() {
 
               var expected = [
                 { name: toneType + '-1',
-                  filename: toneType + '-1.mp3' },
+                  filename: folderNames[toneType] + '/' + toneType + '-1.mp3' },
                 { name: toneType + '-2',
-                  filename: 'folder/' + toneType + '-2.mp3' }
+                  filename: folderNames[toneType] + '/folder/' + toneType +
+                            '-2.mp3' }
               ];
               for (var i = 0; i < expected.length; i++) {
                 assert.equal(tones[i].name, expected[i].name);
@@ -91,12 +92,13 @@ suite('sd card ringtones', function() {
         });
 
         test('get()', function(done) {
-          var id = 'sdcard:' + toneType + '-1.mp3';
+          var filename = folderNames[toneType] + '/' + toneType + '-1.mp3';
+          var id = 'sdcard:' + filename;
           window.sdCardRingtones.get(id).then(function(tone) {
             done(function() {
               assert.equal(tone.name, toneType + '-1');
-              assert.equal(tone.filename, toneType + '-1.mp3');
-              assert.equal(tone.id, 'sdcard:' + toneType + '-1.mp3');
+              assert.equal(tone.filename, filename);
+              assert.equal(tone.id, id);
               assert.equal(tone.shareable, true);
               assert.equal(tone.deletable, true);
             });

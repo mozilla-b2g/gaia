@@ -38,13 +38,16 @@ ActionsMenu.prototype = {
       throw new Error('actions menu is already open');
     }
 
-    this._shareButton.hidden = !tone.shareable;
-    this._deleteButton.hidden = !tone.deletable;
     if (tone.shareable || tone.deletable) {
       this._tone = tone;
       this._callback = callback;
       this._menuElement.hidden = false;
       this._inUseAs = inUseAs;
+
+      this._shareButton.hidden = !tone.shareable;
+      this._shareButton.dataset.l10nId = 'actions-share-' + tone.type;
+      this._deleteButton.hidden = !tone.deletable;
+      this._deleteButton.dataset.l10nId = 'actions-delete-' + tone.type;
     }
     return !this._menuElement.hidden;
   },
@@ -126,7 +129,7 @@ ActionsMenu.prototype = {
       callback: function() {
         CustomDialog.hide();
         Toaster.showToast({
-          messageL10nId: 'deleted-tone',
+          messageL10nId: 'deleted-' + self._tone.type,
           latency: 3000,
           useTransition: true
         });

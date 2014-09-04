@@ -314,7 +314,7 @@
               if (!l10nId) {
                 oldRingtoneName = toneType.button.textContent;
               }
-              toneType.button.setAttribute('data-l10n-id', 'savingringtone');
+              toneType.button.setAttribute('data-l10n-id', 'saving-tone');
 
               var player = new Audio();
               player.preload = 'metadata';
