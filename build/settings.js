@@ -1,4 +1,5 @@
 'use strict';
+/* global exports, require */
 
 var utils = require('./utils');
 
@@ -26,7 +27,8 @@ function setWallpaper(settings, config) {
   }
 
   if (!wallpaper.exists()) {
-    wallpaper = utils.resolve(utils.joinPath('build', 'config', 'wallpaper.jpg'),
+    wallpaper = utils.resolve(
+      utils.joinPath('build', 'config', 'wallpaper.jpg'),
       config.GAIA_DIR);
   }
   settings['wallpaper.image'] = utils.getFileAsDataURI(wallpaper);
@@ -97,7 +99,7 @@ function setDefaultKeyboardLayouts(lang, settings, config) {
     config.GAIA_DIR);
 
   let layoutConfig = utils.getJSON(layoutConfigFile);
-  let keyboardLayouts = layoutConfig['layout'];
+  let keyboardLayouts = layoutConfig.layout;
 
   if (!keyboardLayouts) {
     utils.log('default keyboard layouts are not defined: ' +
@@ -127,7 +129,7 @@ function setDefaultKeyboardLayouts(lang, settings, config) {
   defaultLayoutList.forEach(addLayoutEntry);
 
   // Also add language-independent layouts into the sets
-  let langIndependentLayoutList = layoutConfig['langIndependentLayouts'];
+  let langIndependentLayoutList = layoutConfig.langIndependentLayouts;
   langIndependentLayoutList.forEach(addLayoutEntry);
 
   settings['keyboard.enabled-layouts'] = keyboardSettings;
@@ -216,7 +218,8 @@ function execute(config) {
 
   var settings = utils.getJSON(settingsFile);
   if (config.TARGET_BUILD_VARIANT != 'user') {
-    // We want the console to be disabled for device builds using the user variant.
+    // We want the console to be disabled
+    // for device builds using the user variant.
     settings['debug.console.enabled'] = true;
 
     // Activate developer menu under the system menu when long pressing
@@ -299,7 +302,7 @@ function execute(config) {
   });
 
   // Ensure not quitting xpcshell before all asynchronous code is done
-  utils.processEvents(function(){return {wait : false}});
+  utils.processEvents(function(){return {wait : false};});
 
   return result;
 }
