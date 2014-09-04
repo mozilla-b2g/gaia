@@ -57,12 +57,22 @@
       var cancel = element.querySelector('.cancel');
       var confirm = element.querySelector('.confirm');
 
-      title.textContent = config.title;
-      body.textContent = config.body;
-      confirm.textContent = config.confirm.title;
+      var setL10nAttributes = function (element, options){
+        if ('string' === typeof options) {
+          navigator.mozL10n.setAttributes(element, options);
+        }
+
+        if(options.id) {
+          navigator.mozL10n.setAttributes(element, options.id, options.args);
+        }
+      };
+
+      setL10nAttributes(title, config.title);
+      setL10nAttributes(body, config.body);
+      setL10nAttributes(confirm, config.confirm.title);
 
       if (config.cancel) {
-        cancel.textContent = config.cancel.title;
+        setL10nAttributes(cancel, config.cancel.title);
       }
 
       if (config.confirm.type) {

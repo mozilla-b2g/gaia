@@ -265,10 +265,10 @@ var UIManager = {
           Basket.send(emailValue, function emailSent(err, data) {
             if (err) {
               if (err.code && err.code === Basket.errors.INVALID_EMAIL) {
-                ConfirmDialog.show(_('invalid-email-dialog-title'),
-                                   _('invalid-email-dialog-text'),
+                ConfirmDialog.show('invalid-email-dialog-title',
+                                   'invalid-email-dialog-text',
                                    {
-                                    title: _('cancel'),
+                                    title: 'cancel',
                                     callback: function ok() {
                                       ConfirmDialog.hide();
                                     }
@@ -290,10 +290,10 @@ var UIManager = {
         }
       } else {
         utils.overlay.hide();
-        ConfirmDialog.show(_('invalid-email-dialog-title'),
-                           _('invalid-email-dialog-text'),
+        ConfirmDialog.show('invalid-email-dialog-title',
+                           'invalid-email-dialog-text',
                            {
-                            title: _('cancel'),
+                            title: 'cancel',
                             callback: function ok() {
                               ConfirmDialog.hide();
                             }

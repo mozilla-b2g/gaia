@@ -97,13 +97,12 @@ var TelephonyHelper = (function() {
         onerror();
         return;
       } else if (emergencyOnly) {
-        var _ = navigator.mozL10n.get;
         loadConfirm(function() {
           ConfirmDialog.show(
-            _('connecting') + ' ...',
+            'connectingEllipsis',
             '',
             {
-              title: _('emergencyDialogBtnOk'),
+              title: 'emergencyDialogBtnOk',
               callback: function() {
                 ConfirmDialog.hide();
               }
@@ -238,10 +237,10 @@ var TelephonyHelper = (function() {
 
       loadConfirm(function() {
         ConfirmDialog.show(
-          _(dialogTitle),
-          _(dialogBody, {number: number}),
+          dialogTitle,
+          {'id': dialogBody, 'args': {number: number}},
           {
-            title: _('emergencyDialogBtnOk'), // Just 'ok' would be better.
+            title: 'emergencyDialogBtnOk', // Just 'ok' would be better.
             callback: function() {
               ConfirmDialog.hide();
             }

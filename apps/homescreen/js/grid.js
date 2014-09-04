@@ -1357,7 +1357,7 @@ var GridManager = (function() {
   function doShowRestartDownloadDialog(icon) {
     var app = icon.app;
     var confirm = {
-      title: _('download'),
+      title: 'download',
       callback: function onAccept() {
         app.download();
         app.ondownloaderror = function(evt) {
@@ -1375,13 +1375,13 @@ var GridManager = (function() {
     };
 
     var cancel = {
-      title: _('cancel'),
+      title: 'cancel',
       callback: ConfirmDialog.hide
     };
 
     var localizedName = icon.descriptor.localizedName || icon.descriptor.name;
-    ConfirmDialog.show(_('restart-download-title'),
-      _('restart-download-body', {'name': localizedName}),
+    ConfirmDialog.show('restart-download-title',
+      {'id': 'restart-download-body', 'args': {'name': localizedName}},
       cancel,
       confirm);
     return;
