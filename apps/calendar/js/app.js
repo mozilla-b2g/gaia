@@ -1,6 +1,13 @@
 Calendar.App = (function(window) {
   'use strict';
 
+  /**
+   * Module dependencies
+   */
+  var debug = Calendar.debug('app'),
+      notifications = Calendar.Controllers.notifications,
+      periodicSync = Calendar.Controllers.periodicSync;
+
   function PendingManager() {
     this.objects = [];
     this.pending = 0;
@@ -192,10 +199,12 @@ Calendar.App = (function(window) {
         document.body.classList.add(self.pendingClass);
       };
 
+      this.messages = Calendar.registerSystemMessages();
       this.timeController = new Calendar.Controllers.Time(this);
       this.syncController = new Calendar.Controllers.Sync(this);
       this.serviceController = new Calendar.Controllers.Service(this);
-      this.alarmController = new Calendar.Controllers.Alarm(this);
+      notifications.app = this;
+      periodicSync.app = this;
       this.errorController = new Calendar.Controllers.Error(this);
 
       Calendar.dayObserver.timeController = this.timeController;
@@ -262,9 +271,10 @@ Calendar.App = (function(window) {
     },
 
     loadObject: function initializeLoadObject(name, callback) {
-
+      debug('Load:', name);
       function loadObject(name, callback) {
         /*jshint validthis:true */
+        debug('Currently loading', name);
         this._loader.load('group', name, callback);
       }
 
@@ -401,7 +411,8 @@ Calendar.App = (function(window) {
       this.observeDateLocalization();
 
       this.timeController.observe();
-      this.alarmController.observe();
+      notifications.observe();
+      periodicSync.observe();
 
       // turn on the auto queue this means that when
       // alarms are added to the database we manage them

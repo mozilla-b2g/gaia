@@ -485,10 +485,6 @@ Calendar.LoadConfig = (function() {
           'querystring',
           'oauth_window'
         ]
-      },
-
-      'Notification': {
-        js: ['notification']
       }
     }
   };

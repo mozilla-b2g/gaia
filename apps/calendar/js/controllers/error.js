@@ -56,26 +56,15 @@ Calendar.ns('Controllers').Error = (function() {
         return Calendar.nextTick(callback);
       }
 
+      var l10n = navigator.mozL10n;
+      var title = l10n.get('notification-error-sync-title'),
+          description = l10n.get('notification-error-sync-description'),
+          url = this.accountErrorUrl + account._id;
+
       var lock = navigator.requestWakeLock('cpu');
-
-      var title =
-        navigator.mozL10n.get('notification-error-sync-title');
-
-      var description =
-        navigator.mozL10n.get('notification-error-sync-description');
-
-      var url = this.accountErrorUrl + account._id;
-
-      this.app.loadObject('Notification', function() {
-        Calendar.Notification.send(
-          title,
-          description,
-          url,
-          function() {
-            callback && callback();
-            lock.unlock();
-          }
-        );
+      return Calendar.sendNotification(title, description, url).then(() => {
+        lock.unlock();
+        return callback && callback(account.error);
       });
     }
   };

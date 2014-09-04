@@ -5,7 +5,7 @@ var Calendar = require('./lib/calendar'),
 
 var SHARED_PATH = __dirname + '/../../../../shared/test/integration';
 
-marionette('alarm', function() {
+marionette('reminders', function() {
   var app;
   var client = marionette.client({
     prefs: {
@@ -18,10 +18,11 @@ marionette('alarm', function() {
     }
   });
 
-  suite(' > with alarm mocks', function() {
-
+  suite('> with web api mocks', function() {
     setup(function() {
       app = new Calendar(client);
+      client.contentScript.inject(SHARED_PATH +
+        '/mock_notification.js');
       client.contentScript.inject(SHARED_PATH +
         '/mock_navigator_mozalarms.js');
       client.contentScript.inject(SHARED_PATH +
@@ -41,16 +42,20 @@ marionette('alarm', function() {
         assert.include(reminders, '5 minutes before');
       });
 
-      test('should add alarm to alarms api', function() {
-        var alarms = getMozAlarms(client);
-        assert.equal(alarms.length, 1);
+      test('should fire reminder notification', function() {
+        var notifications = getFakeNotifications(client);
+        assert.lengthOf(notifications, 1);
+        assert.strictEqual(notifications[0].title, 'Panic! started just now');
+        assert.strictEqual(notifications[0].body, 'zomg');
       });
     });
 
     suite('create an event with two valid reminders', function() {
       setup(function() {
-        createEventWithReminders(app, ['5 minutes before',
-                                       '15 minutes before']);
+        createEventWithReminders(app, [
+          '5 minutes before',
+          '15 minutes before'
+        ]);
         app.monthDay.scrollToEvent();
       });
 
@@ -60,15 +65,10 @@ marionette('alarm', function() {
         assert.include(reminders, '5 minutes before');
         assert.include(reminders, '15 minutes before');
       });
-
-      test('should only fire one alarm', function() {
-        var alarms = getMozAlarms(client);
-        assert.equal(alarms.length, 1);
-      });
     });
   });
 
-  suite('> without alarm mocks', function() {
+  suite('> without web api mocks', function() {
     setup(function() {
       app = new Calendar(client);
       app.launch({ hideSwipeHint: true });
@@ -104,6 +104,7 @@ function createEventWithReminders(app, reminders) {
   app.createEvent({
     title: 'Panic!',
     location: 'The Disco',
+    description: 'zomg',
     startDate: new Date(),
     reminders: reminders
   });
@@ -117,15 +118,15 @@ function getEventReminders(app) {
   return app.readEvent.alarms;
 }
 
-function getMozAlarms(client) {
-  var alarms;
+function getFakeNotifications(client) {
+  var notifications;
   client.waitFor(function() {
-    alarms = client.executeScript(function() {
-      return window.wrappedJSObject.navigator.__mozFakeAlarms;
+    notifications = client.executeScript(function() {
+      return window.wrappedJSObject.__fakeNotifications;
     });
 
-    return alarms && alarms.length;
+    return notifications && notifications.length;
   });
 
-  return alarms;
+  return notifications;
 }

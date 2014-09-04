@@ -202,6 +202,7 @@
   };
 
   Responder.prototype.on = Responder.prototype.addEventListener;
+  Responder.prototype.off = Responder.prototype.removeEventListener;
 }(
   (typeof(module) === 'undefined') ? this : module.exports
 ));
