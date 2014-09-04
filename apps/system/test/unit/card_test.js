@@ -67,17 +67,34 @@ suite('system/Card', function() {
       assert.ok(card.screenshotView, 'screenshotView node');
       assert.ok(card.titleNode, 'title node');
       assert.ok(card.titleId, 'title id');
+      assert.ok(card.iconButton, 'iconButton');
     });
 
     test('has expected classes/elements', function(){
       var card = this.card;
       var header = card.element.querySelector('h1');
       assert.ok(card.element.classList.contains, '.card');
+      assert.isFalse(card.element.classList.contains('browser'),
+                     'no browser class for non-browser windows');
       assert.ok(card.element.querySelector('.close-card'), '.close-card');
       assert.ok(card.element.querySelector('.screenshotView'),
                 '.screenshotView');
       assert.ok(header, 'h1');
       assert.ok(header.id, 'h1.id');
+    });
+
+    test('adds browser class for browser windows', function(){
+      var app = makeApp({ name: 'browserwindow' });
+      this.sinon.stub(app, 'isBrowser', function() {
+        return true;
+      });
+      var card = new Card({
+        app: app,
+        manager: mockManager
+      });
+      card.render();
+      assert.ok(card.element.classList.contains('browser'),
+               'has browser class');
     });
 
     test('onviewport listener', function(){

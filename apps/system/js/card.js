@@ -1,4 +1,4 @@
-/* globals BaseUI, CardsHelper, TrustedUIManager */
+/* globals BaseUI, CardsHelper, IconsHelper, TrustedUIManager */
 
 /* exported Card */
 
@@ -25,6 +25,7 @@
 
     this.instanceID = _id++;
 
+    this._registerEventListeners();
     return this;
   }
 
@@ -79,8 +80,7 @@
     '</div>' +
     '' +
     '<footer class="card-tray">'+
-    ' <button class="appIcon" data-button-action="select" ' +
-    '   style="background-image:{iconValue}">' +
+    ' <button class="appIcon" data-button-action="select">' +
     ' </button>' +
     ' <menu class="buttonbar">' +
     '   <button class="close-button" data-button-action="close" ' +
@@ -111,7 +111,7 @@
     var app = this.app;
     this.title = (app.isBrowser() && app.title) ? app.title : app.name;
     this.subTitle = '';
-    this.iconValue = 'none';
+    this.iconValue = '';
     this.closeButtonVisibility = 'visible';
     this.viewClassList = ['card', 'appIconPreview'];
     this.titleId = 'card-title-' + this.instanceID;
@@ -197,6 +197,7 @@
 
     this._fetchElements();
     this._updateDisplay();
+    this._updateIcon();
 
     this.publish('rendered');
     return elem;
@@ -263,7 +264,9 @@
 
     var app = this.app;
     if (app.isActive()) {
-      elem.classList.add('current');
+    }
+    if (app.isBrowser()) {
+      elem.classList.add('browser');
     }
 
     var screenshotView = this.screenshotView;
@@ -317,11 +320,43 @@
 
   };
 
+  Card.prototype._updateIcon = function c__updateIcon(iconUrl) {
+    var app = this.app;
+    if (!iconUrl && app && app.favicons) {
+      iconUrl = IconsHelper.getBestIcon(app.favicons, 40);
+    }
+    // also try the app's identificationIcon
+    // TODO: AppWindow should probably expose this, as appWindow.icon?
+    if (!iconUrl && app && app.identificationIcon) {
+      iconUrl = app.identificationIcon.style.backgroundImage;
+      iconUrl = iconUrl && iconUrl.replace(/url\(|\)/g, '');
+    }
+    this.iconValue = iconUrl || '';
+    if (this.iconButton) {
+      this.iconButton.style.backgroundImage = this.iconValue ?
+        'url(' + this.iconValue + ')' : '';
+    }
+  };
+
   Card.prototype._fetchElements = function c__fetchElements() {
     this.screenshotView = this.element.querySelector('.screenshotView');
     this.titleNode = this.element.querySelector('h1.title');
+    this.iconButton = this.element.querySelector('.appIcon');
   };
 
+  Card.prototype._registerEventListeners = function c__fetchElements() {
+    if (this.app && this.app.element) {
+      this.app.element.addEventListener('_iconchange', this);
+    }
+  };
+
+  Card.prototype.handleEvent = function(evt) {
+    switch (evt.type) {
+      case '_iconchange':
+        this._updateIcon();
+        break;
+    }
+  };
 
   return (exports.Card = Card);
 
