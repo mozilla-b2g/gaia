@@ -1,11 +1,11 @@
 'use strict';
 
 /* global InputMethodGlue, InputMethodLoader, InputMethodManager,
-          PerformanceTimer, IMEngineSettings, KeyEvent, Promise */
+          KeyboardConsole, IMEngineSettings, KeyEvent, Promise */
 
 require('/js/keyboard/settings.js');
 require('/js/keyboard/input_method_manager.js');
-require('/js/keyboard/performance_timer.js');
+require('/js/keyboard/console.js');
 
 suite('InputMethodGlue', function() {
   test('init', function() {
@@ -20,9 +20,11 @@ suite('InputMethodGlue', function() {
   test('sendCandidates', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       candidatePanelManager: {
         updateCandidates: this.sinon.stub()
-      }
+      },
+      inputContext: {}
     };
     var data = [['foo', 1]];
     glue.init(app, 'foo');
@@ -34,8 +36,9 @@ suite('InputMethodGlue', function() {
   test('setComposition', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       inputContext: {
-        setComposition: this.sinon.stub()
+        setComposition: this.sinon.stub().returns(Promise.resolve())
       }
     };
     var symbols = 'bar';
@@ -49,8 +52,9 @@ suite('InputMethodGlue', function() {
   test('endComposition', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       inputContext: {
-        endComposition: this.sinon.stub()
+        endComposition: this.sinon.stub().returns(Promise.resolve())
       }
     };
     var data = 'bar';
@@ -67,11 +71,13 @@ suite('InputMethodGlue', function() {
     setup(function() {
       glue = new InputMethodGlue();
       app = {
+        console: this.sinon.stub(KeyboardConsole.prototype),
         inputContext: {
           sendKey: this.sinon.stub()
         }
       };
       p = Promise.resolve();
+      this.sinon.stub(p, 'catch').returns(p);
       app.inputContext.sendKey.returns(p);
     });
 
@@ -123,8 +129,9 @@ suite('InputMethodGlue', function() {
   test('sendString', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       inputContext: {
-        sendKey: this.sinon.stub()
+        sendKey: this.sinon.stub().returns(Promise.resolve())
       }
     };
     var text = 'foobar';
@@ -148,12 +155,14 @@ suite('InputMethodGlue', function() {
   test('alterKeyboard', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       layoutManager: {
         updateForcedModifiedLayout: this.sinon.stub()
       },
       layoutRenderingManager: {
         updateLayoutRendering: this.sinon.stub()
-      }
+      },
+      inputContext: {}
     };
     var name = 'bar';
     glue.init(app, 'foo');
@@ -168,10 +177,12 @@ suite('InputMethodGlue', function() {
   test('setLayoutPage', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       layoutManager: {
         LAYOUT_PAGE_DEFAULT: 'bar'
       },
-      setLayoutPage: this.sinon.stub()
+      setLayoutPage: this.sinon.stub(),
+      inputContext: {}
     };
     var name = 'bar';
     glue.init(app, 'foo');
@@ -183,9 +194,11 @@ suite('InputMethodGlue', function() {
   test('setUpperCase', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       upperCaseStateManager: {
         switchUpperCaseState: this.sinon.stub()
-      }
+      },
+      inputContext: {}
     };
     var state = {
       isUpperCase: true,
@@ -201,6 +214,7 @@ suite('InputMethodGlue', function() {
   test('replaceSurroundingText', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       inputContext: {
         replaceSurroundingText: this.sinon.stub()
       }
@@ -222,6 +236,7 @@ suite('InputMethodGlue', function() {
   test('getNumberOfCandidatesPerRow', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       getNumberOfCandidatesPerRow: this.sinon.stub()
     };
     app.getNumberOfCandidatesPerRow.returns(123);
@@ -405,7 +420,7 @@ suite('InputMethodManager', function() {
           autoCorrectPunctuation: true
         }
       },
-      perfTimer: this.sinon.stub(PerformanceTimer.prototype),
+      console: this.sinon.stub(KeyboardConsole.prototype),
       inputContext: {
         inputType: 'text',
         inputMode: '',

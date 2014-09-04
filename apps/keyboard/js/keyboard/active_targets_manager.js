@@ -43,6 +43,7 @@ ActiveTargetsManager.prototype.LONG_PRESS_TIMEOUT = 700;
 ActiveTargetsManager.prototype.DOUBLE_TAP_TIMEOUT = 450;
 
 ActiveTargetsManager.prototype.start = function() {
+  this.app.console.log('ActiveTargetsManager.start()');
   this.activeTargets = new Map();
   this.doubleTapTimers = new WeakMap();
 
@@ -59,6 +60,7 @@ ActiveTargetsManager.prototype.start = function() {
 };
 
 ActiveTargetsManager.prototype.stop = function() {
+  this.app.console.log('ActiveTargetsManager.stop()');
   this.activeTargets = null;
 
   this.userPressManager.stop();
@@ -71,6 +73,7 @@ ActiveTargetsManager.prototype.stop = function() {
 };
 
 ActiveTargetsManager.prototype.clearAllTargets = function() {
+  this.app.console.log('ActiveTargetsManager.clearAllTargets()');
   if (this.activeTargets.size) {
     console.warn('ActiveTargetsManager: clear ' +
       this.activeTargets.size + ' active target(s).');
@@ -90,6 +93,7 @@ ActiveTargetsManager.prototype.clearAllTargets = function() {
 };
 
 ActiveTargetsManager.prototype._handlePressStart = function(press, id) {
+  this.app.console.log('ActiveTargetsManager._handlePressStart()');
   // Ignore new touches if menu is shown
   if (this.alternativesCharMenuManager.isShown) {
     return;
@@ -117,6 +121,7 @@ ActiveTargetsManager.prototype._handlePressStart = function(press, id) {
 };
 
 ActiveTargetsManager.prototype._handlePressMove = function(press, id) {
+  this.app.console.log('ActiveTargetsManager._handlePressMove()');
   if (!this.activeTargets.has(id)) {
     return;
   }
@@ -178,6 +183,7 @@ ActiveTargetsManager.prototype._handlePressMove = function(press, id) {
 };
 
 ActiveTargetsManager.prototype._handleLongPress = function(press, id) {
+  this.app.console.log('ActiveTargetsManager._handleLongPress()');
   if (!this.activeTargets.has(id)) {
     return;
   }
@@ -196,6 +202,7 @@ ActiveTargetsManager.prototype._handleLongPress = function(press, id) {
 };
 
 ActiveTargetsManager.prototype._handlePressEnd = function(press, id) {
+  this.app.console.log('ActiveTargetsManager._handlePressEnd()');
   if (!this.activeTargets.has(id)) {
     return;
   }

@@ -11,11 +11,13 @@ var LayoutRenderingManager = function(app) {
 };
 
 LayoutRenderingManager.prototype.start = function() {
+  this.app.console.log('LayoutRenderingManager.start()');
+
   // We cannot listen to resize event right at start because of
   // https://bugzil.la/1007595 ;
   // only attach the event listener after 2000ms.
   this._resizeListenerTimer = setTimeout(function attachResizeListener() {
-    this.app.perfTimer.printTime('attachResizeListener');
+    this.app.console.log('LayoutRenderingManager.attachResizeListener()');
     // Handle resize events
     window.addEventListener('resize', this);
   }.bind(this), 2000);
@@ -29,7 +31,7 @@ LayoutRenderingManager.prototype.stop = function() {
 };
 
 LayoutRenderingManager.prototype.handleEvent = function() {
-  this.app.perfTimer.printTime('layoutRenderingManager.handleEvent');
+  this.app.console.log('LayoutRenderingManager.handleEvent()');
   if (document.hidden) {
     return;
   }
@@ -47,8 +49,8 @@ LayoutRenderingManager.prototype.handleEvent = function() {
 // This should be called when the keyboard changes or when the layout page
 // changes in order to actually render the layout.
 LayoutRenderingManager.prototype.updateLayoutRendering = function() {
-  this.app.perfTimer.printTime('layoutRenderingManager.updateLayoutRendering');
-  this.app.perfTimer.startTimer('updateLayoutRendering');
+  this.app.console.log('LayoutRenderingManager.updateLayoutRendering()');
+  this.app.console.time('LayoutRenderingManager.updateLayoutRendering()');
 
   var currentLayout = this.app.layoutManager.currentLayout;
   var currentModifiedLayout = this.app.layoutManager.currentModifiedLayout;
@@ -78,9 +80,7 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
   IMERender.setInputMethodName(
     this.app.layoutManager.currentModifiedLayout.imEngine || 'default');
 
-  this.app.perfTimer.printTime(
-    'BLOCKING layoutRenderingManager.updateLayoutRendering',
-    'updateLayoutRendering');
+  this.app.console.timeEnd('LayoutRenderingManager.updateLayoutRendering()');
 
   return p;
 };
@@ -88,8 +88,8 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
 // So there are a couple of things that we want don't want to block
 // on here, so we can do it if resizeUI is fully finished
 LayoutRenderingManager.prototype._afterRenderDrew = function() {
-  this.app.perfTimer.printTime('layoutRenderingManager._afterRenderDrew');
-  this.app.perfTimer.startTimer('_afterRenderDrew');
+  this.app.console.log('LayoutRenderingManager._afterRenderDrew()');
+  this.app.console.time('LayoutRenderingManager._afterRenderDrew()');
 
   IMERender.setUpperCaseLock(this.app.upperCaseStateManager);
 
@@ -100,8 +100,7 @@ LayoutRenderingManager.prototype._afterRenderDrew = function() {
   this._updateHeight();
 
   this.app.candidatePanelManager.showCandidates();
-  this.app.perfTimer.printTime(
-    'BLOCKING layoutRenderingManager._afterRenderDrew', '_afterRenderDrew');
+  this.app.console.timeEnd('LayoutRenderingManager._afterRenderDrew()');
 };
 
 // If the input method cares about layout details, get those details
@@ -111,6 +110,7 @@ LayoutRenderingManager.prototype._afterRenderDrew = function() {
 // the default, since the input methods we support don't do anything special
 // for symbols.
 LayoutRenderingManager.prototype._updateLayoutParams = function() {
+  this.app.console.log('LayoutRenderingManager._updateLayoutParams()');
   var currentIMEngine = this.app.inputMethodManager.currentIMEngine;
   var layoutManager = this.app.layoutManager;
 
@@ -132,11 +132,16 @@ LayoutRenderingManager.prototype._updateLayoutParams = function() {
 };
 
 LayoutRenderingManager.prototype._updateHeight = function() {
-  this.app.perfTimer.printTime(
-    'layoutRenderingManager._updateHeight');
+  this.app.console.log('LayoutRenderingManager._updateHeight()');
+  this.app.console.time('LayoutRenderingManager._updateHeight()');
   // height of the current active IME + 1px for the borderTop
   var imeHeight = IMERender.getHeight() + 1;
   var imeWidth = IMERender.getWidth();
+
+  this.app.console.timeEnd('LayoutRenderingManager._updateHeight()');
+  this.app.console.timeEnd('activate');
+  this.app.console.timeEnd('domLoading');
+
   window.resizeTo(imeWidth, imeHeight);
 };
 
