@@ -124,7 +124,6 @@ marionette('Notification events', function() {
     assert.equal(error, false, 'desktop-notification-close error: ' + error);
 
     // switch back to calendar, and fetch notifications
-    client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
     error = client.executeAsyncScript(function() {
       var promise = Notification.get();
