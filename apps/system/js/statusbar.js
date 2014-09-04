@@ -966,12 +966,16 @@ var StatusBar = {
         }
 
         icon.hidden = false;
+        icon.dataset.inactive = false;
 
         if (simslot.isAbsent()) {
           // no SIM
           delete icon.dataset.level;
           delete icon.dataset.searching;
           delete icon.dataset.roaming;
+          icon.hidden = true;
+          icon.dataset.inactive = true;
+
           icon.setAttribute('aria-label', _('noSimCard'));
         } else if (data && data.connected && data.type.startsWith('evdo')) {
           // "Carrier" / "Carrier (Roaming)" (EVDO)
@@ -1287,8 +1291,8 @@ var StatusBar = {
   },
 
   updateConnectionsVisibility: function sb_updateConnectionsVisibility() {
-    // Iterate through connections children and show the container if at least
-    // one of them is visible.
+    // Iterate through connections children and only show one icon
+    // in case no SIM card is inserted
     var conns = window.navigator.mozMobileConnections;
 
     if (!conns) {
@@ -1296,13 +1300,18 @@ var StatusBar = {
     }
 
     var icons = this.icons;
+    icons.connections.hidden = false;
+    icons.connections.dataset.multiple = (conns.length > 1);
+
     for (var index = 0; index < conns.length; index++) {
-      if (!icons.signals[index].hidden || !icons.data[index].hidden) {
-        icons.connections.hidden = false;
+      if (icons.signals[index].dataset.inactive === 'false') {
         return;
       }
     }
-    icons.connections.hidden = true;
+
+    // No SIM cards inserted
+    icons.connections.dataset.multiple = false;
+    icons.signals[0].hidden = false;
   },
 
   updateCallForwardingsVisibility: function sb_updateCallFwdingsVisibility() {
