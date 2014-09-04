@@ -117,14 +117,14 @@ var SdManager = {
 
       // Showing error message allowing user to retry
       var cancel = {
-        title: _('cancel'),
+        title: 'cancel',
         callback: function() {
           ConfirmDialog.hide();
         }
       };
 
       var retry = {
-        title: _('retry'),
+        title: 'retry',
         isRecommend: true,
         callback: function() {
           ConfirmDialog.hide();
@@ -132,7 +132,7 @@ var SdManager = {
           importButton.click();
         }
       };
-      ConfirmDialog.show(null, _('memoryCardContacts-error'), cancel, retry);
+      ConfirmDialog.show(null, 'memoryCardContacts-error', cancel, retry);
     }
   }
 };

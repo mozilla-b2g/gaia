@@ -20,7 +20,7 @@ contacts.BulkDelete = (function() {
   var showConfirm = function showConfirm(n) {
     return new Promise(function doShowConfirm(resolve, reject) {
       var cancelObject = {
-        title: _('cancel'),
+        title: 'cancel',
         callback: function onCancel() {
           ConfirmDialog.hide();
           reject();
@@ -28,7 +28,7 @@ contacts.BulkDelete = (function() {
       };
 
       var removeObject = {
-        title: _('delete'),
+        title: 'delete',
         isDanger: true,
         callback: function onRemove() {
           ConfirmDialog.hide();
@@ -36,8 +36,9 @@ contacts.BulkDelete = (function() {
         }
       };
 
-      Contacts.confirmDialog(null, _('ContactConfirmDel', {n: n}), cancelObject,
-                             removeObject);
+      Contacts.confirmDialog(null,
+        {'id': 'ContactConfirmDel', 'args': {n: n}}, cancelObject,
+          removeObject);
     });
   };
 

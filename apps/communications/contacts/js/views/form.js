@@ -309,9 +309,9 @@ contacts.Form = (function() {
     }
 
     deleteContactButton.onclick = function deleteClicked(event) {
-      var msg = _('deleteConfirmMsg');
+      var msg = 'deleteConfirmMsg';
       var yesObject = {
-        title: _('delete'),
+        title: 'delete',
         isDanger: true,
         callback: function onAccept() {
           deleteContact(currentContact);
@@ -323,7 +323,7 @@ contacts.Form = (function() {
       };
 
       var noObject = {
-        title: _('cancel'),
+        title: 'cancel',
         callback: function onCancel() {
           ConfirmDialog.hide();
         }

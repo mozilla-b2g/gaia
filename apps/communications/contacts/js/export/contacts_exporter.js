@@ -104,7 +104,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
         utils.overlay.hide();
       } else {
         var cancel = {
-          title: _('cancel'),
+          title: 'cancel',
           callback: function() {
             utils.overlay.hide();
             ConfirmDialog.hide();
@@ -113,7 +113,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
         };
 
         var retry = {
-          title: _('retry'),
+          title: 'retry',
           isRecommend: true,
           callback: function() {
             utils.overlay.hide();
@@ -128,8 +128,8 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
         }
 
         var errorString = 'exportError-' + strategy.name + '-';
-        Contacts.confirmDialog(_('exportErrorTitle'),
-                              _(errorString + error.reason), cancel, retry);
+        Contacts.confirmDialog('exportErrorTitle',
+                              errorString + error.reason, cancel, retry);
 
         Contacts.hideOverlay();
 

@@ -588,9 +588,9 @@ contacts.Settings = (function() {
       window.addEventListener('transitionend', function fb_remove_all(e) {
         if (e.target.id === 'span-check-fb') {
           window.removeEventListener('transitionend', fb_remove_all);
-          var msg = _('cleanFbConfirmMsg');
+          var msg = 'cleanFbConfirmMsg';
           var yesObject = {
-            title: _('remove'),
+            title: 'remove',
             isDanger: true,
             callback: function() {
               ConfirmDialog.hide();
@@ -599,7 +599,7 @@ contacts.Settings = (function() {
           };
 
           var noObject = {
-            title: _('cancel'),
+            title: 'cancel',
             callback: function onCancel() {
               fbImportCheck.checked = true;
               ConfirmDialog.hide();
@@ -760,13 +760,13 @@ contacts.Settings = (function() {
 
     importer.onerror = function import_error() {
       var cancel = {
-        title: _('cancel'),
+        title: 'cancel',
         callback: function() {
           ConfirmDialog.hide();
         }
       };
       var retry = {
-        title: _('retry'),
+        title: 'retry',
         isRecommend: true,
         callback: function() {
           ConfirmDialog.hide();
@@ -775,7 +775,7 @@ contacts.Settings = (function() {
             onSimImport.bind(this, iccId)), 0);
         }
       };
-      Contacts.confirmDialog(null, _('simContacts-error'), cancel, retry);
+      Contacts.confirmDialog(null, 'simContacts-error', cancel, retry);
       resetWait(wakeLock);
     };
 
@@ -876,14 +876,14 @@ contacts.Settings = (function() {
 
     function import_error(e, cb) {
       var cancel = {
-        title: _('cancel'),
+        title: 'cancel',
         callback: function() {
           ConfirmDialog.hide();
         }
       };
 
       var retry = {
-        title: _('retry'),
+        title: 'retry',
         isRecommend: true,
         callback: function() {
           ConfirmDialog.hide();
@@ -891,7 +891,7 @@ contacts.Settings = (function() {
           window.setTimeout(requireOverlay.bind(this, onSdImport), 0);
         }
       };
-      Contacts.confirmDialog(null, _('memoryCardContacts-error'), cancel,
+      Contacts.confirmDialog(null, 'memoryCardContacts-error', cancel,
         retry);
       resetWait(wakeLock);
       if (typeof cb === 'function') {

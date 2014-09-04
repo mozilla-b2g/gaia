@@ -1036,9 +1036,9 @@ contacts.List = (function() {
   };
 
   var showNoContactsAlert = function showNoContactsAlert() {
-    var msg = _('noContactsActivity');
+    var msg = 'noContactsActivity';
     var noObject = {
-      title: _('ok'),
+      title: 'ok',
       isDanger: false,
       callback: function onNoClicked() {
         ConfirmDialog.hide();

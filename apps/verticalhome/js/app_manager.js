@@ -51,8 +51,6 @@
      * General event handler.
      */
     handleEvent: function(e) {
-      var _ = navigator.mozL10n.get;
-
       var nameObj = {
         name: e.detail && e.detail.name
       };
@@ -72,13 +70,13 @@
           }
           var dialog = new ConfirmDialogHelper({
             type: 'remove',
-            title: _('delete-title', nameObj),
-            body: _('delete-body', nameObj),
+            title: {id: 'delete-title', args: nameObj},
+            body: {id: 'delete-body', args: nameObj},
             cancel: {
-              title: _('cancel')
+              title: 'cancel'
             },
             confirm: {
-              title: _('delete'),
+              title: 'delete',
               type: 'danger',
               cb: () => {
                 // immediately remove item from the grid!

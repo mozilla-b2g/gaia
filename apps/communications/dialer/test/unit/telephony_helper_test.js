@@ -117,7 +117,7 @@ suite('telephony helper', function() {
 
     test('should display the connecting message', function() {
       subject.call('112', 0);
-      sinon.assert.calledWith(spyConfirmShow, 'connecting ...', '');
+      sinon.assert.calledWith(spyConfirmShow, 'connectingEllipsis', '');
     });
 
     test('should hide the connecting message', function() {
@@ -222,7 +222,8 @@ suite('telephony helper', function() {
       [{number: '111111', serviceId: 0}, {number: '222222', serviceId: 0}];
     subject.call('333333', 0);
     assert.isTrue(spyConfirmShow.calledWith('unableToCallTitle',
-                                            'unableToCallMessage'));
+                                            {'id': 'unableToCallMessage',
+                                             'args': {number: undefined}}));
   });
 
   test('should not dial when call limit reached (1 normal call + 1 group call)',
@@ -232,7 +233,8 @@ suite('telephony helper', function() {
       [{number: '222222', serviceId: 0}, {number: '333333', serviceId: 0}];
     subject.call('444444', 0);
     assert.isTrue(spyConfirmShow.calledWith('unableToCallTitle',
-                                            'unableToCallMessage'));
+                                            {'id': 'unableToCallMessage',
+                                             'args': {number: undefined}}));
   });
 
   test('should return null serviceId - no call', function() {
@@ -255,14 +257,16 @@ suite('telephony helper', function() {
     var dialNumber = '01 45 34 55 20';
     subject.call(dialNumber, 0);
     assert.isTrue(spyConfirmShow.calledWith('emergencyDialogTitle',
-                                            'emergencyDialogBodyBadNumber'));
+                                  {'id': 'emergencyDialogBodyBadNumber',
+                                   'args': {number: undefined}}));
   });
 
   test('should display an error if the number is invalid', function() {
     var dialNumber = '01sfsafs45 34 55 20';
     subject.call(dialNumber, 0);
     assert.isTrue(spyConfirmShow.calledWith('invalidNumberToDialTitle',
-                                            'invalidNumberToDialMessage'));
+                                            {'id': 'invalidNumberToDialMessage',
+                                             'args': {number: undefined}}));
   });
 
   suite('Callbacks binding', function() {
@@ -309,7 +313,8 @@ suite('telephony helper', function() {
           mockPromise.then(function() {
             mockCall.onerror(createCallError('BadNumberError'));
             sinon.assert.calledWith(spyConfirmShow,'invalidNumberToDialTitle',
-                                                  'invalidNumberToDialMessage');
+                                            {'id': 'invalidNumberToDialMessage',
+                                             'args': {number: undefined}});
           }).then(done, done);
         });
 
@@ -322,7 +327,8 @@ suite('telephony helper', function() {
           mockPromise.then(function() {
             mockCall.onerror(createCallError('BadNumberError'));
             sinon.assert.calledWith(spyConfirmShow,'emergencyDialogTitle',
-                                                'emergencyDialogBodyBadNumber');
+                                      {'id': 'emergencyDialogBodyBadNumber',
+                                       'args': {number: undefined}});
           }).then(done, done);
         });
       });
@@ -332,7 +338,8 @@ suite('telephony helper', function() {
         mockPromise.then(function() {
           mockCall.onerror(createCallError('BusyError'));
           assert.isTrue(spyConfirmShow.calledWith('numberIsBusyTitle',
-                                                  'numberIsBusyMessage'));
+                                            {'id': 'numberIsBusyMessage',
+                                             'args': {number: undefined}}));
         }).then(done, done);
       });
 
@@ -362,10 +369,10 @@ suite('telephony helper', function() {
         subject.call('123', 0);
         mockPromise.then(function() {
           mockCall.onerror(createCallError('FDNBlockedError'));
+
           assert.isTrue(spyConfirmShow.calledWith('fdnIsActiveTitle',
-                                                  'fdnIsActiveMessage'));
-          assert.deepEqual(MockLazyL10n.keys.fdnIsActiveMessage,
-                           {number: '123'});
+                                            {'id': 'fdnIsActiveMessage',
+                                             'args': {number: '123'}}));
         }).then(done, done);
       });
 
@@ -374,9 +381,8 @@ suite('telephony helper', function() {
         mockPromise.then(function() {
           mockCall.onerror(createCallError('FdnCheckFailure'));
           assert.isTrue(spyConfirmShow.calledWith('fdnIsActiveTitle',
-                                                  'fdnIsActiveMessage'));
-          assert.deepEqual(MockLazyL10n.keys.fdnIsActiveMessage,
-                           {number: '123'});
+                                            {'id': 'fdnIsActiveMessage',
+                                             'args': {number: '123'}}));
         }).then(done, done);
       });
 
@@ -385,7 +391,8 @@ suite('telephony helper', function() {
         mockPromise.then(function() {
           mockCall.onerror(createCallError('DeviceNotAcceptedError'));
           assert.isTrue(spyConfirmShow.calledWith('emergencyDialogTitle',
-                                       'emergencyDialogBodyDeviceNotAccepted'));
+                            {'id': 'emergencyDialogBodyDeviceNotAccepted',
+                             'args': {number: undefined}}));
         }).then(done, done);
       });
     });
@@ -398,7 +405,8 @@ suite('telephony helper', function() {
           subject.call('123', 0);
           mockPromise.catch(function() {
             sinon.assert.calledWith(spyConfirmShow,'invalidNumberToDialTitle',
-                                                  'invalidNumberToDialMessage');
+                                            {'id': 'invalidNumberToDialMessage',
+                                             'args': {number: undefined}});
           }).then(done, done);
         });
 
@@ -411,7 +419,8 @@ suite('telephony helper', function() {
           subject.call('123', 0);
           mockPromise.catch(function() {
             sinon.assert.calledWith(spyConfirmShow,'emergencyDialogTitle',
-                                                'emergencyDialogBodyBadNumber');
+                                    {'id': 'emergencyDialogBodyBadNumber',
+                                     'args': {number: undefined}});
           }).then(done, done);
         });
       });
@@ -421,7 +430,8 @@ suite('telephony helper', function() {
         subject.call('123', 0);
         mockPromise.catch(function() {
           sinon.assert.calledWith(spyConfirmShow, 'callAirplaneModeTitle',
-                                                  'callAirplaneModeMessage');
+                                            {'id': 'callAirplaneModeMessage',
+                                             'args': {number: undefined}});
         }).then(done, done);
       });
 
@@ -430,7 +440,8 @@ suite('telephony helper', function() {
         subject.call('123', 0);
         mockPromise.catch(function() {
           sinon.assert.calledWith(spyConfirmShow, 'otherConnectionInUseTitle',
-                                                 'otherConnectionInUseMessage');
+                                        {'id': 'otherConnectionInUseMessage',
+                                         'args': {number: undefined}});
         }).then(done, done);
       });
 
@@ -440,7 +451,8 @@ suite('telephony helper', function() {
         subject.call('123', 0, null, null, null, onerrorSpy);
         mockPromise.catch(function() {
           sinon.assert.calledWith(spyConfirmShow, 'unableToCallTitle',
-                                                  'unableToCallMessage');
+                                            {'id': 'unableToCallMessage',
+                                             'args': {number: undefined}});
           sinon.assert.calledOnce(onerrorSpy);
         }).then(done, done);
       });
@@ -453,7 +465,8 @@ suite('telephony helper', function() {
     subject.call('123', 0);
     mockPromise.catch(function() {
       assert.isTrue(spyConfirmShow.calledWith('unableToCallTitle',
-                                              'unableToCallMessage'));
+                                            {'id': 'unableToCallMessage',
+                                             'args': {number: undefined}}));
     }).then(done, done);
   });
 
