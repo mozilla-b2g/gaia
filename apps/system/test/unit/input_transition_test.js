@@ -50,6 +50,10 @@ suite('InputAppsTransitionManager', function() {
     manager.onstatechange = this.sinon.stub();
     manager.start();
 
+    // Use devicePixelRatio = 1 for occupyingHeight-related calculation
+    // here to avoid unnecessary devicePixelRatio-related errors
+    this.sinon.stub(manager, '_getDpx').returns(1);
+
     // First handleResize() take us to STATE_TRANSITION_IN
     manager.handleResize(123);
     assert.equal(manager.occupyingHeight, 123);
@@ -352,5 +356,26 @@ suite('InputAppsTransitionManager', function() {
     assert.equal(document.body.dispatchEvent.callCount, 3);
     var evt2 = document.body.dispatchEvent.getCall(2).args[0];
     assert.equal(evt2.type, 'keyboardhidden');
+  });
+
+  suite('_setOccupyingHeight()', function() {
+    var manager;
+
+    setup(function() {
+      manager = new InputAppsTransitionManager();
+      this.sinon.stub(manager, '_getDpx').returns(2.5);
+    });
+
+    test('without rounding', function () {
+      manager._setOccupyingHeight(20);
+      assert.equal(manager.occupyingHeight, 20);
+    });
+
+    test('with rounding', function () {
+      manager._setOccupyingHeight(25);
+      assert.isTrue(
+        Math.abs(manager.occupyingHeight - 24.8) < Number.EPSILON
+      );
+    });
   });
 });
