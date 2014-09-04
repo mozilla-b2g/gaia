@@ -1100,8 +1100,10 @@
     }
 
     this.stack.forEach(function(app, idx) {
-      var card = this.cardsByAppID[app.instanceID];
-      card.move(Math.abs(deltaX) * sign);
+      if (idx >= this.currentPosition - 2 && idx <= this.currentPosition + 2) {
+        var card = this.cardsByAppID[app.instanceID];
+        card.move(Math.abs(deltaX) * sign);
+      }
     }, this);
   };
 
