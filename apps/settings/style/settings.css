@@ -69,6 +69,17 @@ body[data-ready="true"] section[role="region"].current {
 }
 
 /**
+ * Only accepts click events after the first panel gets ready
+ */
+body {
+  pointer-events: none;
+}
+
+body[data-ready="true"] {
+  pointer-events: auto;
+}
+
+/**
  * Headers should not scroll with the rest of the page, except for #root.
  */
 section[role="region"] > header {
