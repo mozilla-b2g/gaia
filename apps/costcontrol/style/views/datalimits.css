@@ -17,6 +17,7 @@
   float: right;
   margin: 0;
   width: 9rem;
+  height: 2rem;
 }
 
 #data-limit-dialog form label {
