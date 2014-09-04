@@ -8,8 +8,12 @@
    * InputLayouts is responsible for processing and bookkeeping layouts returned
    * from KeyboardHelper for use by KeyboardManager.
    */
-  var InputLayouts = function(keyboardManager) {
+  var InputLayouts = function(keyboardManager, TYPE_GROUP_MAPPING) {
     this._keyboardManager = keyboardManager;
+
+    // a mapping table from a group to an array of types mapped to the group.
+    // i.e. the reverse mapping of TYPE_GROUP_MAPPING
+    this._groupToTypeTable = {};
 
     /**
      *
@@ -46,6 +50,12 @@
 
     // A Set() of enabled KB apps
     this._enabledApps = null;
+
+    Object.keys(TYPE_GROUP_MAPPING).forEach(function(type) {
+      var group = TYPE_GROUP_MAPPING[type];
+      this._groupToTypeTable[group] = this._groupToTypeTable[group] || [];
+      this._groupToTypeTable[group].push(type);
+    }, this);
   };
 
   InputLayouts.prototype.start = function il_start() {
@@ -121,10 +131,10 @@
 
   InputLayouts.prototype._emitLayoutsCount = function il_emitLayoutsCount() {
     // Let chrome know about how many keyboards we have
-    // need to expose all input type from inputTypeTable
+    // need to expose all input type from groupToTypeTable
     var countLayouts = {};
     Object.keys(this.layouts).forEach(function(group) {
-      var types = this._keyboardManager.inputTypeTable[group];
+      var types = this._groupToTypeTable[group];
 
       types.forEach(function(type) {
         countLayouts[type] = this.layouts[group].length;

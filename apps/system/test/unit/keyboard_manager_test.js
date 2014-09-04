@@ -662,7 +662,7 @@ suite('KeyboardManager', function() {
       fakeFrame.dataset.frameManifestURL =
         'app://keyboard.gaiamobile.org/manifest.webapp';
 
-      KeyboardManager.showingLayoutInfo.type = 'text';
+      KeyboardManager.showingLayoutInfo.group = 'text';
       KeyboardManager.showingLayoutInfo.layout = {
         manifestURL: fakeFrame_A.manifestURL
       };
@@ -1033,7 +1033,7 @@ suite('KeyboardManager', function() {
     var oldShowingLayoutInfo = KeyboardManager.showingLayoutInfo;
     var oldInputLayouts = KeyboardManager.inputLayouts.layouts;
     KeyboardManager.showingLayoutInfo = {
-      type: 'text',
+      group: 'text',
       index: 0
     };
     KeyboardManager.inputLayouts.layouts = {
@@ -1074,25 +1074,25 @@ suite('KeyboardManager', function() {
     });
     test('resetShowingLayoutInfo', function(){
       KeyboardManager.showingLayoutInfo = {};
-      KeyboardManager.showingLayoutInfo.type = 'dummy';
+      KeyboardManager.showingLayoutInfo.group = 'dummy';
       KeyboardManager.showingLayoutInfo.index = 0xfff;
       KeyboardManager.showingLayoutInfo.layout = 'something';
 
       KeyboardManager.resetShowingLayoutInfo();
 
-      assert.equal(KeyboardManager.showingLayoutInfo.type, 'text');
+      assert.equal(KeyboardManager.showingLayoutInfo.group, 'text');
       assert.equal(KeyboardManager.showingLayoutInfo.index, 0);
       assert.strictEqual(KeyboardManager.showingLayoutInfo.layout, null);
     });
     test('setShowingLayoutInfo', function(){
       KeyboardManager.showingLayoutInfo = {};
-      KeyboardManager.showingLayoutInfo.type = 'dummy';
+      KeyboardManager.showingLayoutInfo.group = 'dummy';
       KeyboardManager.showingLayoutInfo.index = 0xfff;
       KeyboardManager.showingLayoutInfo.layout = 'something';
 
-      KeyboardManager.setShowingLayoutInfo('type', 1, 'someLayout');
+      KeyboardManager.setShowingLayoutInfo('group', 1, 'someLayout');
 
-      assert.equal(KeyboardManager.showingLayoutInfo.type, 'type');
+      assert.equal(KeyboardManager.showingLayoutInfo.group, 'group');
       assert.equal(KeyboardManager.showingLayoutInfo.index, 1);
       assert.equal(KeyboardManager.showingLayoutInfo.layout, 'someLayout');
     });
@@ -1100,7 +1100,7 @@ suite('KeyboardManager', function() {
 
   suite('Switching keyboards within same type', function() {
     var oldInputLayouts;
-    var oldShowingLayoutInfoType;
+    var oldShowingLayoutInfoGroup;
 
     setup(function() {
       oldInputLayouts = KeyboardManager.inputLayouts.layouts;
@@ -1124,16 +1124,16 @@ suite('KeyboardManager', function() {
 
       KeyboardManager.inputLayouts.layouts.text.activeLayout = 2;
 
-      oldShowingLayoutInfoType = KeyboardManager.showingLayoutInfo.type;
-      KeyboardManager.showingLayoutInfo.type = 'text';
+      oldShowingLayoutInfoGroup = KeyboardManager.showingLayoutInfo.group;
+      KeyboardManager.showingLayoutInfo.group = 'text';
     });
 
     teardown(function() {
-      KeyboardManager.showingLayoutInfo.type = oldShowingLayoutInfoType;
+      KeyboardManager.showingLayoutInfo.group = oldShowingLayoutInfoGroup;
       KeyboardManager.inputLayouts.layouts = oldInputLayouts;
     });
 
-    test('showAll / call to ImeMenu', function(){
+    test('showImeMenu / call to ImeMenu', function(){
       var oldMozL10n;
       var stubWaitForSwitchTimeout;
       var stubHideKeyboard;
@@ -1152,7 +1152,7 @@ suite('KeyboardManager', function() {
 
       MockImeMenu.mSetup();
 
-      KeyboardManager.showAll();
+      KeyboardManager.showImeMenu();
 
       stubWaitForSwitchTimeout.getCall(0).args[0]();
 
