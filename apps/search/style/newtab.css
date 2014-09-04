@@ -17,11 +17,11 @@ body {
 
 h2 {
   text-align: center;
-  border-top: 0.2rem solid #e7e7e7;
+  border-top: 0.2rem solid #e5e5e5;
   font-size: 1.4rem;
   margin-top: 0.9rem;
   margin-bottom: -0.9rem;
-  color: #858585;
+  color: #a6a6a6;
 }
 
 h2 span {
@@ -30,7 +30,7 @@ h2 span {
   background: #fff;
   padding: 0.5rem;
   margin-bottom: 0;
-  font-weight: normal;
+  font-weight: 500;
 }
 
 #top-sites {
