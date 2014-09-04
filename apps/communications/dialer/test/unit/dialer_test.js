@@ -545,13 +545,28 @@ suite('navigation bar', function() {
         });
       });
 
-      test('> Dialing a specific number with user preferred SIM always ask',
+      suite('> Dialing a specific number with user preferred SIM always ask',
       function() {
-        this.sinon.spy(MockSimPicker, 'getOrPick');
-        var serviceId = MockSimSettingsHelper._defaultCards.outgoingCall =
-          MockSimSettingsHelper.ALWAYS_ASK_OPTION_VALUE;
-        sendCommand('ATD12345');
-        sinon.assert.calledWith(MockSimPicker.getOrPick, serviceId, '12345');
+        var serviceId;
+
+        setup(function() {
+          serviceId = MockSimSettingsHelper._defaultCards.outgoingCall =
+            MockSimSettingsHelper.ALWAYS_ASK_OPTION_VALUE;
+        });
+
+        test('should show SIM picker', function() {
+          this.sinon.spy(MockSimPicker, 'getOrPick');
+          sendCommand('ATD12345');
+          sinon.assert.calledWith(MockSimPicker.getOrPick, serviceId, '12345');
+        });
+
+        test('should show/foreground the dialer', function() {
+          sendCommand('ATD12345');
+          MockNavigatormozApps.mTriggerLastRequestSuccess();
+          assert.isTrue(MockNavigatormozApps.mAppWasLaunched);
+          assert.equal(MockNavigatormozApps.mAppWasLaunchedWithEntryPoint,
+                       'dialer');
+        });
       });
 
       suite('> Dialing the last recent entry', function() {

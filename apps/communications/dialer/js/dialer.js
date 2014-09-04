@@ -382,6 +382,11 @@ var CallHandler = (function callHandler() {
               SimPicker.getOrPick(defaultCardIndex, phoneNumber, function(ci) {
                 CallHandler.call(phoneNumber, ci);
               });
+              // Show the dialer so the user can select the SIM.
+              navigator.mozApps.getSelf().onsuccess = function(selfEvt) {
+                var app = selfEvt.target.result;
+                app.launch('dialer');
+              };
             });
           } else {
             CallHandler.call(phoneNumber, defaultCardIndex);
