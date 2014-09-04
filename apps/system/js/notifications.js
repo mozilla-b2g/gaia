@@ -71,6 +71,7 @@ var NotificationScreen = {
     // will hold the count of external contributors to the notification
     // screen
     this.externalNotificationsCount = 0;
+    this.unreadNotifications = 0;
 
     window.addEventListener('utilitytrayshow', this);
     // Since UI expect there is a slight delay for the opened notification.
@@ -184,6 +185,7 @@ var NotificationScreen = {
 
   hideNotificationIndicator: function ns_hideNotificationIndicator() {
     this.toaster.className = '';
+    this.unreadNotifications = 0;
   },
 
   // TODO: Remove this when we ditch mozNotification (bug 952453)
@@ -395,6 +397,8 @@ var NotificationScreen = {
       (isPriorityNotification) ?
       this.container.querySelector('.priority-notifications') :
       this.container.querySelector('.other-notifications');
+
+    this.unreadNotifications++;
 
     var notificationNode = document.createElement('div');
     notificationNode.classList.add('notification');
@@ -732,11 +736,7 @@ var NotificationScreen = {
   },
 
   updateNotificationIndicator: function ns_updateNotificationIndicator(unread) {
-    var notifCount = this.externalNotificationsCount;
-
-    notifCount += this.container.querySelectorAll('.notification').length;
-
-    var indicatorSize = getIndicatorSize(notifCount);
+    var indicatorSize = getIndicatorSize(this.unreadNotifications);
 
     if (unread) {
       this.toaster.classList.add('unread');
@@ -746,6 +746,7 @@ var NotificationScreen = {
 
   incExternalNotifications: function ns_incExternalNotifications() {
     this.externalNotificationsCount++;
+    this.unreadNotifications++;
     this.updateNotificationIndicator(true);
   },
 
