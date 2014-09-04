@@ -928,6 +928,11 @@ suite('system/Statusbar', function() {
       StatusBar.settingValues['ril.cf.enabled'] = defaultValue;
     });
 
+    test('createCallForwardingsElements shouldn\'t display icons', function() {
+      StatusBar.createCallForwardingsElements();
+      assert.isTrue(StatusBar.icons.callForwardings.hidden);
+    });
+
     function slotIndexTests(slotIndex) {
       suite('slot: ' + slotIndex, function() {
         test('call forwarding enabled', function() {
@@ -952,6 +957,11 @@ suite('system/Statusbar', function() {
   });
 
   suite('data connection', function() {
+    test('createConnectionsElements shouldn\'t display icons', function() {
+      StatusBar.createConnectionsElements();
+      assert.isTrue(StatusBar.icons.connections.hidden);
+    });
+
     function slotIndexTests(slotIndex) {
       suite('slot: ' + slotIndex, function() {
         suite('data connection unavailable', function() {
