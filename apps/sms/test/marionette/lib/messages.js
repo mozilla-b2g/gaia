@@ -6,21 +6,39 @@
 
   var ORIGIN_URL = 'app://sms.gaiamobile.org';
 
+  var Chars = {
+    ENTER: '\ue007',
+    BACKSPACE: '\ue003'
+  };
+
   var SELECTORS = Object.freeze({
     main: '#main-wrapper',
 
     optionMenu: 'body > form[data-type=action] menu',
+    systemMenu: 'form[data-z-index-level="action-menu"]',
+    attachmentMenu: '#attachment-options-menu',
 
     Composer: {
       recipientsInput: '#messages-to-field [contenteditable=true]',
       messageInput: '#messages-input',
+      subjectInput: '#messages-subject-input',
       sendButton: '#messages-send-button',
-      header: '#messages-header'
+      attachButton: '#messages-attach-button',
+      header: '#messages-header',
+      charCounter: '.message-counter',
+      moreHeaderButton: '#messages-options-button',
+      mmsLabel: '.bottom-composer-section .mms-label',
+      subjectMmsLabel: '.top-composer-section > .mms-label',
+      attachment: '#messages-input .attachment-container'
     },
 
     Thread: {
       message: '.message .bubble',
       headerTitle: '#messages-header-text'
+    },
+
+    ThreadList: {
+      navigateToComposerHeaderButton: '#icon-add'
     },
 
     Report: {
@@ -50,12 +68,46 @@
             );
           },
 
+          get subjectInput() {
+            return client.helper.waitForElement(
+              SELECTORS.Composer.subjectInput
+            );
+          },
+
           get sendButton() {
             return client.helper.waitForElement(SELECTORS.Composer.sendButton);
           },
 
+          get attachButton() {
+            return client.helper.waitForElement(
+              SELECTORS.Composer.attachButton
+            );
+          },
+
           get header() {
             return client.helper.waitForElement(SELECTORS.Composer.header);
+          },
+
+          get charCounter() {
+            return client.findElement(SELECTORS.Composer.charCounter);
+          },
+
+          get mmsLabel() {
+            return client.findElement(SELECTORS.Composer.mmsLabel);
+          },
+
+          get subjectMmsLabel() {
+            return client.findElement(SELECTORS.Composer.subjectMmsLabel);
+          },
+
+          get attachment() {
+            return client.findElement(SELECTORS.Composer.attachment);
+          },
+
+          showOptions: function() {
+            client.helper.waitForElement(
+              SELECTORS.Composer.moreHeaderButton
+            ).tap();
           }
         },
 
@@ -66,6 +118,14 @@
 
           get headerTitle() {
             return client.helper.waitForElement(SELECTORS.Thread.headerTitle);
+          }
+        },
+
+        ThreadList: {
+          navigateToComposer: function() {
+            client.helper.waitForElement(
+              SELECTORS.ThreadList.navigateToComposerHeaderButton
+            ).tap();
           }
         },
 
@@ -81,8 +141,18 @@
           }
         },
 
+        get systemMenu() {
+          // Switch to the system app first.
+          client.switchToFrame();
+          return client.helper.waitForElement(SELECTORS.systemMenu);
+        },
+
         get optionMenu() {
           return client.helper.waitForElement(SELECTORS.optionMenu);
+        },
+
+        get attachmentMenu() {
+          return client.helper.waitForElement(SELECTORS.attachmentMenu);
         },
 
         launch: function() {
@@ -105,8 +175,20 @@
           );
         },
 
-        selectMenuOption: function(text) {
-          var menuOptions = this.optionMenu.findElements('button');
+        selectAppMenuOption: function(text) {
+          this.selectMenuOption(this.optionMenu, text);
+        },
+
+        selectAttachmentMenuOption: function(text) {
+          this.selectMenuOption(this.attachmentMenu, text);
+        },
+
+        selectSystemMenuOption: function(text) {
+          this.selectMenuOption(this.systemMenu, text);
+        },
+
+        selectMenuOption: function(menuElement, text) {
+          var menuOptions = menuElement.findElements('button');
           for (var i = 0; i < menuOptions.length; i++) {
             var menuOption = menuOptions[i];
             if (menuOption.text().toLowerCase() === text.toLowerCase()) {
@@ -120,8 +202,7 @@
         },
 
         addRecipient: function(number) {
-          // Enter number and press Enter ('\ue007')
-          this.Composer.recipientsInput.sendKeys(number + '\ue007');
+          this.Composer.recipientsInput.sendKeys(number + Chars.ENTER);
 
           client.helper.waitForElement(
             '#messages-recipients-list .recipient[data-number="' + number + '"]'
@@ -139,6 +220,16 @@
           client.helper.waitForElement(this.Thread.message);
         },
 
+        showSubject: function() {
+          this.Composer.showOptions();
+          this.selectAppMenuOption('Add subject');
+        },
+
+        hideSubject: function() {
+          this.Composer.showOptions();
+          this.selectAppMenuOption('Remove subject');
+        },
+
         contextMenu: function(element) {
           actions.longPress(element, 1).perform();
         },
@@ -151,6 +242,8 @@
           });
         }
       };
-    }
+    },
+
+    Chars: Chars
   };
 })(module);

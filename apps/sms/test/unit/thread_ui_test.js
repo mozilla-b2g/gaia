@@ -464,7 +464,6 @@ suite('thread_ui.js >', function() {
     var banner,
         convertBanner,
         form,
-        counterLabel,
         counterMsgContainer;
 
     var realCompose;
@@ -495,12 +494,11 @@ suite('thread_ui.js >', function() {
       banner = document.getElementById('messages-max-length-notice');
       convertBanner = document.getElementById('messages-convert-notice');
       form = document.getElementById('messages-compose-form');
-      counterLabel = document.getElementById('messages-counter-label');
-      counterMsgContainer = 
+      counterMsgContainer =
         document.getElementById('messages-sms-counter-notice');
     });
 
-    function yieldInputAndSegmentInfo(segmentInfo) {
+    function yieldInput() {
       /*jshint validthis: true */
       // display the banner to check that it is correctly hidden
       banner.classList.remove('hide');
@@ -509,9 +507,6 @@ suite('thread_ui.js >', function() {
       Compose.lock = true;
 
       Compose.on.withArgs('input').yield();
-
-      Compose.segmentInfo = segmentInfo;
-      Compose.on.withArgs('segmentinfochange').yield();
     }
 
     function yieldType(type) {
@@ -519,34 +514,13 @@ suite('thread_ui.js >', function() {
       Compose.on.withArgs('type').yield();
     }
 
-    test('hides the counter when no segment', function() {
-      counterLabel.classList.add('has-counter');
-
-      yieldInputAndSegmentInfo({
-        segments: 0,
-        charsAvailableInLastSegment: 0
-      });
-
-      assert.isFalse(
-        counterLabel.classList.contains('has-counter'),
-        'no counter is displayed'
-      );
-
-      assert.ok(
-        banner.classList.contains('hide'),
-        'no banner is displayed'
-      );
-
-      assert.isFalse(
-        Compose.lock,
-        'lock is disabled'
-      );
-    });
-
-    test('start the SMS', function() {
-      counterLabel.classList.add('has-counter');
-
-      yieldInputAndSegmentInfo({
+    function yieldSegmentInfo(segmentInfo) {
+      Compose.segmentInfo = segmentInfo;
+      Compose.on.withArgs('segmentinfochange').yield();
+    }
+    
+    test('from start to first segment', function() {
+      yieldSegmentInfo({
         segments: 0,
         charsAvailableInLastSegment: 0
       });
@@ -555,63 +529,56 @@ suite('thread_ui.js >', function() {
         counterMsgContainer.classList.contains('hide'),
         'sms counter toast not should not be showed'
       );
-    });
 
-    test('in first segment', function() {
-      counterLabel.classList.add('has-counter');
-
-      yieldInputAndSegmentInfo({
+      yieldSegmentInfo({
         segments: 1,
-        charsAvailableInLastSegment: 25
+        charsAvailableInLastSegment: 10
       });
 
-      assert.isFalse(
-        counterLabel.classList.contains('has-counter'),
-        'no counter is displayed'
-      );
-
-      assert.ok(
-        banner.classList.contains('hide'),
-        'no banner is displayed'
-      );
-
-      assert.isFalse(
-        Compose.lock,
-        'lock is disabled'
+      assert.isTrue(
+        counterMsgContainer.classList.contains('hide'),
+        'sms counter toast not should not be showed'
       );
     });
 
-    test('in first segment, less than 20 chars left', function() {
-      var segment = 1,
-          availableChars = 20;
-
-      yieldInputAndSegmentInfo({
-        segments: segment,
-        charsAvailableInLastSegment: availableChars
+    test('from start directly to segment segment', function() {
+      yieldSegmentInfo({
+        segments: 0,
+        charsAvailableInLastSegment: 0
       });
 
-      var expected = availableChars + '/' + segment;
-      assert.equal(
-        counterLabel.dataset.counter, expected,
-        'a counter is displayed'
+      assert.isTrue(
+        counterMsgContainer.classList.contains('hide'),
+        'sms counter toast not should not be showed'
       );
 
-      assert.ok(
-        banner.classList.contains('hide'),
-        'no banner is displayed'
-      );
+      yieldSegmentInfo({
+        segments: 2,
+        charsAvailableInLastSegment: 10
+      });
 
       assert.isFalse(
-        Compose.lock,
-        'lock is disabled'
+        counterMsgContainer.classList.contains('hide'),
+        'sms counter toast should be showed'
+      );
+
+      this.sinon.clock.tick(ThreadUI.ANOTHER_SMS_TOAST_DURATION);
+
+      assert.isTrue(
+        counterMsgContainer.classList.contains('hide'),
+        'sms counter toast should not be showed in 3 seconds'
       );
     });
-
+    
     test('from first segment to second segment', function() {
-      counterLabel.classList.add('has-counter');
-      ThreadUI.counterLabel.dataset.counter = '0/1';
+      yieldSegmentInfo({
+        segments: 1,
+        charsAvailableInLastSegment: 0
+      });
 
-      yieldInputAndSegmentInfo({
+      this.sinon.clock.tick(ThreadUI.ANOTHER_SMS_TOAST_DURATION);
+
+      yieldSegmentInfo({
         segments: 2,
         charsAvailableInLastSegment: 145
       });
@@ -621,7 +588,7 @@ suite('thread_ui.js >', function() {
         'sms counter toast should be showed'
       );
 
-      this.sinon.clock.tick(3100);
+      this.sinon.clock.tick(ThreadUI.ANOTHER_SMS_TOAST_DURATION);
 
       assert.isTrue(
         counterMsgContainer.classList.contains('hide'),
@@ -629,63 +596,35 @@ suite('thread_ui.js >', function() {
       );
     });
 
-    test('in second segment', function() {
-      var segment = 2,
-          availableChars = 20;
-
-      yieldInputAndSegmentInfo({
-        segments: segment,
-        charsAvailableInLastSegment: availableChars
+    test('from second to first segment', function() {
+      yieldSegmentInfo({
+        segments: 2,
+        charsAvailableInLastSegment: 10
       });
 
-      var expected = availableChars + '/' + segment;
-      assert.equal(
-        counterLabel.dataset.counter, expected,
-        'a counter is displayed'
-      );
+      this.sinon.clock.tick(ThreadUI.ANOTHER_SMS_TOAST_DURATION);
 
-      assert.ok(
-        banner.classList.contains('hide'),
-        'no banner is displayed'
-      );
-
-      assert.isFalse(
-        Compose.lock,
-        'lock is disabled'
-      );
-    });
-
-    test('in last segment', function() {
-      var segment = 10,
-          availableChars = 20;
-
-      yieldInputAndSegmentInfo({
-        segments: segment,
-        charsAvailableInLastSegment: availableChars
+      yieldSegmentInfo({
+        segments: 1,
+        charsAvailableInLastSegment: 10
       });
 
-      var expected = availableChars + '/' + segment;
-      assert.equal(
-        counterLabel.dataset.counter, expected,
-        'a counter is displayed'
-      );
-
-      assert.ok(
-        banner.classList.contains('hide'),
-        'no banner is displayed'
-      );
-
       assert.isFalse(
-        Compose.lock,
-        'lock is disabled'
+        counterMsgContainer.classList.contains('hide'),
+        'sms counter toast should be showed'
+      );
+
+      this.sinon.clock.tick(ThreadUI.ANOTHER_SMS_TOAST_DURATION);
+
+      assert.isTrue(
+        counterMsgContainer.classList.contains('hide'),
+        'sms counter toast should not be showed in 3 seconds'
       );
     });
-
-    test('from ninth segment to tenth segment', function() {
-      counterLabel.classList.add('has-counter');
-      ThreadUI.counterLabel.dataset.counter = '0/9';
-
-      yieldInputAndSegmentInfo({
+    
+    test('when type is changed to MMS', function() {
+      yieldType('mms');
+      yieldSegmentInfo({
         segments: 10,
         charsAvailableInLastSegment: 145
       });
@@ -696,41 +635,10 @@ suite('thread_ui.js >', function() {
       );
     });
 
-    test('in last segment, no characters left >', function() {
-      var segment = 10,
-          availableChars = 0;
-
-      yieldInputAndSegmentInfo({
-        segments: segment,
-        charsAvailableInLastSegment: availableChars
-      });
-
-      var expected = availableChars + '/' + segment;
-      assert.equal(
-        counterLabel.dataset.counter, expected,
-        'a counter is displayed'
-      );
-
-      assert.ok(
-        banner.classList.contains('hide'),
-        'no banner is displayed'
-      );
-
-      assert.isFalse(
-        Compose.lock,
-        'lock is disabled'
-      );
-    });
-
-    suite('too many segments >', function() {
-      var segmentInfo = {
-        segments: 11,
-        charsAvailableInLastSegment: 25
-      };
-
+    suite('type converted >', function() {
       setup(function() {
         yieldType('mms');
-        yieldInputAndSegmentInfo(segmentInfo);
+        yieldInput();
       });
 
       test('The composer has the correct state', function() {
@@ -748,7 +656,7 @@ suite('thread_ui.js >', function() {
       test('removing some characters', function() {
         // waiting some seconds so that the existing possible banner is hidden
         this.sinon.clock.tick(5000);
-        yieldInputAndSegmentInfo(segmentInfo);
+        yieldInput();
 
         assert.ok(
           convertBanner.classList.contains('hide'),
@@ -951,10 +859,7 @@ suite('thread_ui.js >', function() {
         // 2. Assert the correct state condition updates have occurred,
         // as described in step 1
         assert.isTrue(Compose.isSubjectVisible);
-        // Per discussion, this is being deferred to another bug
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=959360
-        //
-        // assert.isTrue(counterLabel.classList.contains('has-counter'));
+
         assert.equal(Compose.type, 'mms');
 
         // 3. To simulate the user "deleting" the subject,
@@ -967,10 +872,7 @@ suite('thread_ui.js >', function() {
         // 5. Confirm that the state of the compose
         // area has updated properly.
         assert.isFalse(Compose.isSubjectVisible);
-        // Per discussion, this is being deferred to another bug
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=959360
-        //
-        // assert.isFalse(counterLabel.classList.contains('has-counter'));
+
         assert.equal(Compose.type, 'sms');
       });
 
@@ -1076,7 +978,7 @@ suite('thread_ui.js >', function() {
 
   suite('message type conversion >', function() {
     var realCompose;
-    var convertBanner, convertBannerText, form, counterLabel;
+    var convertBanner, convertBannerText, form;
 
     suiteSetup(function() {
       realCompose = window.Compose;
@@ -1105,7 +1007,6 @@ suite('thread_ui.js >', function() {
       convertBanner = document.getElementById('messages-convert-notice');
       convertBannerText = convertBanner.querySelector('p');
       form = document.getElementById('messages-compose-form');
-      counterLabel = document.getElementById('messages-counter-label');
     });
 
     function yieldType(type) {
@@ -1116,7 +1017,6 @@ suite('thread_ui.js >', function() {
     test('sms to mms and back displays banner', function() {
       yieldType('mms');
 
-      assert.isFalse(counterLabel.classList.contains('has-counter'));
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for mms');
 
@@ -1136,7 +1036,6 @@ suite('thread_ui.js >', function() {
 
       yieldType('sms');
 
-      assert.isFalse(counterLabel.classList.contains('has-counter'));
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for sms');
       assert.equal(
