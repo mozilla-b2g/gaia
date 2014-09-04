@@ -367,6 +367,10 @@
   background-image: url('images/dark/windows.png');
 }
 
+.light .controls .windows-button:active {
+  background-image: url('images/dark/windows_active.png');
+}
+
 .light .controls .menu-button:active {
   background-image: url("images/dark/overflow_active.png");
 }
