@@ -64,7 +64,7 @@ suiteGroup('OAuthWindow', function() {
 
   test('.browserCancelButton', function() {
     assert.equal(
-      subject.browerCancelButton,
+      subject.browserCancelButton,
       element.querySelector('button.cancel')
     );
   });
@@ -138,7 +138,7 @@ suiteGroup('OAuthWindow', function() {
       };
 
       testSupport.calendar.triggerEvent(
-        subject.browerCancelButton,
+        subject.browserCancelButton,
         'click'
       );
     });
@@ -195,7 +195,7 @@ suiteGroup('OAuthWindow', function() {
       };
 
       testSupport.calendar.triggerEvent(
-        subject.browerCancelButton,
+        subject.browserCancelButton,
         'click'
       );
 
