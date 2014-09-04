@@ -3,6 +3,7 @@
 
   var Calc = Calendar.Calc,
       debug = Calendar.debug('month child'),
+      /*performance = Calendar.performance,*/
       template = Calendar.Templates.Month;
 
   // horrible hack to clear cache when we re-localize
@@ -280,7 +281,7 @@
         this._updateBusytimes({ added: busytimes });
         this._initEvents();
         // at this point the month view should be ready
-        Calendar.Performance.monthReady();
+        Calendar.performance.monthReady();
       }.bind(this));
 
       this.hasBeenActive = true;
