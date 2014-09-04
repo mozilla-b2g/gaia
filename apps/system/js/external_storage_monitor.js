@@ -358,15 +358,13 @@
         return;
       }
 
-      var activityOptions = {
+      var activityReq = new MozActivity({
         name: 'configure',
         data: {
           target: 'device',
           section: 'mediaStorage'
         }
-      };
-
-      var activityReq = new MozActivity(activityOptions);
+      });
       activityReq.onerror = function(e) {
         var msg = '[ExternalStorageMonitor] configure activity error:' +
                   activityReq.error.name;

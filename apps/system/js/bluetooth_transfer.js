@@ -554,7 +554,8 @@ var BluetoothTransfer = {
       var mappedType = (MimeMapper.isSupportedType(originalType)) ?
         originalType : MimeMapper.guessTypeFromExtension(extension);
 
-      var activityOptions = {
+      var a = new MozActivity({
+        name: mappedType == 'text/vcard' ? 'import' : 'open',
         data: {
           type: mappedType,
           blob: file,
@@ -562,16 +563,7 @@ var BluetoothTransfer = {
           // Pass the file name for Music APP since it can not open blob
           filename: fileName
         }
-      };
-
-      switch (mappedType) {
-        case 'text/vcard':
-          activityOptions.name = 'import';
-          break;
-        default:
-          activityOptions.name = 'open';
-      }
-      var a = new MozActivity(activityOptions);
+      });
 
       a.onerror = function(e) {
         var msg = 'open activity error:' + a.error.name;
