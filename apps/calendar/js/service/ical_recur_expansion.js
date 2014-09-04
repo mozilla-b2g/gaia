@@ -1,7 +1,7 @@
+/* global ICAL */
 'use strict';
 
 Calendar.ns('Service').IcalRecurExpansion = {
-
   /**
    * Maximum iterations must be > 0 && < Infinity.
    * Lower values are probably better as we can show progress

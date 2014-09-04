@@ -1,3 +1,4 @@
+/* global uuid */
 /**
  * EventMutations are a simple wrapper for a
  * set of idb transactions that span multiple
@@ -41,141 +42,141 @@
  *
  *
  */
-Calendar.EventMutations = (function() {
-  'use strict';
+(function(exports) {
+'use strict';
 
-  var Calc = Calendar.Calc;
+/**
+ * Module dependencies
+ */
+var Calc = Calendar.Calc;
 
-  /**
-   * Create a single instance busytime for the given event object.
-   *
-   * @param {Object} event to create busytime for.
-   */
-  function createBusytime(event) {
-    return {
-      _id: event._id + '-' + uuid.v4(),
-      eventId: event._id,
-      calendarId: event.calendarId,
-      start: event.remote.start,
-      end: event.remote.end
-    };
-  }
+/**
+ * Create a single instance busytime for the given event object.
+ *
+ * @param {Object} event to create busytime for.
+ */
+function createBusytime(event) {
+  return {
+    _id: event._id + '-' + uuid.v4(),
+    eventId: event._id,
+    calendarId: event.calendarId,
+    start: event.remote.start,
+    end: event.remote.end
+  };
+}
 
-  function Create(options) {
-    if (options) {
-      for (var key in options) {
-        if (options.hasOwnProperty(key)) {
-          this[key] = options[key];
-        }
+function Create(options) {
+  if (options) {
+    for (var key in options) {
+      if (options.hasOwnProperty(key)) {
+        this[key] = options[key];
       }
     }
   }
+}
 
-  Create.prototype = {
+Create.prototype = {
+  commit: function(callback) {
+    var alarmStore = Calendar.App.store('Alarm');
+    var eventStore = Calendar.App.store('Event');
+    var busytimeStore = Calendar.App.store('Busytime');
+    var componentStore = Calendar.App.store('IcalComponent');
 
-    commit: function(callback) {
-      var alarmStore = Calendar.App.store('Alarm');
-      var eventStore = Calendar.App.store('Event');
-      var busytimeStore = Calendar.App.store('Busytime');
-      var componentStore = Calendar.App.store('IcalComponent');
+    var controller = Calendar.App.timeController;
 
-      var controller = Calendar.App.timeController;
+    var trans = eventStore.db.transaction(
+      eventStore._dependentStores,
+      'readwrite'
+    );
 
-      var trans = eventStore.db.transaction(
-        eventStore._dependentStores,
+    trans.oncomplete = function commitComplete() {
+      callback(null);
+    };
+
+    trans.onerror = function commitError(e) {
+      callback(e.target.error);
+    };
+
+    eventStore.persist(this.event, trans);
+
+    if (!this.busytime) {
+      this.busytime = createBusytime(this.event);
+    }
+
+    busytimeStore.persist(this.busytime, trans);
+
+    if (this.icalComponent) {
+      componentStore.persist(this.icalComponent, trans);
+    }
+
+    controller.cacheEvent(this.event);
+    controller.cacheBusytime(
+      busytimeStore.initRecord(this.busytime)
+    );
+
+    var alarms = this.event.remote.alarms;
+    if (alarms && alarms.length) {
+      var i = 0;
+      var len = alarms.length;
+      var now = Date.now();
+
+      var alarmTrans = alarmStore.db.transaction(
+        ['alarms'],
         'readwrite'
       );
 
-      trans.oncomplete = function commitComplete() {
-        callback(null);
-      };
+      for (; i < len; i++) {
 
-      trans.onerror = function commitError(e) {
-        callback(e.target.error);
-      };
+        var alarm = {
+          startDate: {
+            offset: this.busytime.start.offset,
+            utc: this.busytime.start.utc + (alarms[i].trigger * 1000)
+          },
+          eventId: this.busytime.eventId,
+          busytimeId: this.busytime._id
+        };
 
-      eventStore.persist(this.event, trans);
-
-      if (!this.busytime) {
-        this.busytime = createBusytime(this.event);
-      }
-
-      busytimeStore.persist(this.busytime, trans);
-
-      if (this.icalComponent) {
-        componentStore.persist(this.icalComponent, trans);
-      }
-
-      controller.cacheEvent(this.event);
-      controller.cacheBusytime(
-        busytimeStore.initRecord(this.busytime)
-      );
-
-      var alarms = this.event.remote.alarms;
-      if (alarms && alarms.length) {
-        var i = 0;
-        var len = alarms.length;
-        var now = Date.now();
-
-        var alarmTrans = alarmStore.db.transaction(
-          ['alarms'],
-          'readwrite'
-        );
-
-        for (; i < len; i++) {
-
-          var alarm = {
-            startDate: {
-              offset: this.busytime.start.offset,
-              utc: this.busytime.start.utc + (alarms[i].trigger * 1000)
-            },
-            eventId: this.busytime.eventId,
-            busytimeId: this.busytime._id
-          };
-
-          var alarmDate = Calc.dateFromTransport(this.busytime.end).valueOf();
-          if (alarmDate < now) {
-            continue;
-          }
-
-          alarmStore.persist(alarm, alarmTrans);
+        var alarmDate = Calc.dateFromTransport(this.busytime.end).valueOf();
+        if (alarmDate < now) {
+          continue;
         }
+
+        alarmStore.persist(alarm, alarmTrans);
       }
     }
-
-  };
-
-  function Update() {
-    Create.apply(this, arguments);
   }
 
-  Update.prototype = {
-    commit: function(callback) {
-      var busytimeStore = Calendar.App.store('Busytime');
+};
 
-      var self = this;
+function Update() {
+  Create.apply(this, arguments);
+}
 
-      // required so UI knows to refresh even in the
-      // case where the start/end times are the same.
-      busytimeStore.removeEvent(this.event._id, function(err) {
-        if (err) {
-          callback(err);
-          return;
-        }
+Update.prototype = {
+  commit: function(callback) {
+    var busytimeStore = Calendar.App.store('Busytime');
 
-        Create.prototype.commit.call(self, callback);
-      });
-    }
-  };
+    var self = this;
 
-  return {
-    create: function createMutation(option) {
-      return new Create(option);
-    },
+    // required so UI knows to refresh even in the
+    // case where the start/end times are the same.
+    busytimeStore.removeEvent(this.event._id, function(err) {
+      if (err) {
+        callback(err);
+        return;
+      }
 
-    update: function updateMutation(option) {
-      return new Update(option);
-    }
-  };
+      Create.prototype.commit.call(self, callback);
+    });
+  }
+};
 
-}());
+exports.create = function createMutation(option) {
+  return new Create(option);
+};
+
+exports.update = function updateMutation(option) {
+  return new Update(option);
+};
+
+}(Calendar.EventMutations = {}));
