@@ -182,7 +182,7 @@
   top: calc(50% - 7.65rem);
   left: 0;
   width: 100%;
-  max-height: 24.6rem;
+  height: 24.6rem;
   overflow-x: hidden;
   overflow-y: auto;
 
@@ -197,7 +197,7 @@
  */
 #notifications-lockscreen-container.collapsed {
   top: calc(50% - 9.6rem);
-  max-height: 11.7rem;
+  height: 11.7rem;
 }
 
 #notifications-lockscreen-container.masked-both {
@@ -217,7 +217,7 @@
 
   #notifications-lockscreen-container {
     top: calc(50% - 4.7rem);
-    max-height: 18.8rem;
+    height: 18.8rem;
   }
 
  /* small screen, collapsed mode: for one notification...
@@ -227,7 +227,7 @@
   */
   #notifications-lockscreen-container.collapsed {
     top: calc(50% - 4.7rem);
-    max-height: 5.8rem;
+    height: 5.8rem;
     overflow-y: hidden;
   }
 
