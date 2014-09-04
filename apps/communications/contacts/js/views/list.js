@@ -831,6 +831,10 @@ contacts.List = (function() {
   }
 
   function displayICEIndicator(ids) {
+    if (!iceGroup) {
+      return;
+    }
+
     if (!ids || ids.length === 0) {
       hideICEGroup();
       return;
