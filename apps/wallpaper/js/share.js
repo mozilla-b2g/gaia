@@ -22,6 +22,10 @@ window.onload = function() {
   var scale;
   var previewImage = document.getElementById('previewImage');
 
+  // How big (in device pixels) is the screen?
+  var screenWidth = Math.ceil(screen.width * window.devicePixelRatio);
+  var screenHeight = Math.ceil(screen.height * window.devicePixelRatio);
+
   function startShare(request) {
     cancelButton.addEventListener('click', cancelShare);
 
@@ -31,30 +35,61 @@ window.onload = function() {
     blob = activity.source.data.blobs[0];
     url = URL.createObjectURL(blob);
 
-    previewImage.onload = function() {
-      var scalex = window.innerWidth / previewImage.width;
-      var scaley = window.innerHeight / previewImage.height;
+    // Find out the size and type of the image without decoding it.
+    // If it is a really big jpeg, we'll need to downsample it while
+    // decoding it so we don't run out of memory.
+    ImageUtils.getSizeAndType(blob).then(gotImageData, imageDataError);
 
-      previewImage.hidden = false;
-      scale = Math.max(scalex, scaley);
+    function imageDataError(err) {
+      console.error('Could not set wallpaper:', err);
+      activity.postError('Could not set wallpaper: ' + err);
+      endShare();
+    }
 
-      // The width is unsigned long. When assigning to width, we need to round
-      // off the value to prevent the round down problem of height.
-      previewImage.width = Math.round(previewImage.width * scale);
+    function gotImageData(imgdata) {
+      if (imgdata.type === ImageUtils.JPEG) {
+        var scale = Math.max(screenWidth / imgdata.width,
+                             screenHeight / imgdata.height);
+        var fragment = ImageUtils.Downsample.sizeNoMoreThan(scale);
+        loadImage(url, fragment);
+      }
+      else {
+        loadImage(url);
+      }
+    }
 
-      limitX = window.innerWidth - previewImage.width;
-      limitY = window.innerHeight - previewImage.height;
+    function loadImage(url, fragment) {
+      previewImage.src = url + (fragment ? fragment : '');
 
-      posX = Math.round(limitX / 2);
-      posY = Math.round(limitY / 2);
-      previewImage.style.transform =
-        'translate(' + posX + 'px, ' + posY + 'px)';
+      previewImage.onload = function() {
+        previewImage.hidden = false;
 
-      setButton.addEventListener('click', scaleImage);
-      previewImage.addEventListener('pan', moveBackground);
-    };
+        // Compute a scale that will make the image at least as big as
+        // the screen in both dimensions.
+        var scalex = window.innerWidth / previewImage.width;
+        var scaley = window.innerHeight / previewImage.height;
+        scale = Math.max(scalex, scaley);
 
-    previewImage.src = url;
+        // Apply that scale to the image. Note that scaling width will
+        // also alter the height to match.
+        previewImage.width = Math.round(previewImage.width * scale);
+
+        // One dimension is now probably bigger than the screen, so figure
+        // out how to center the image on the screen and compute how much
+        // the user will be able to pan the image left and right or up
+        // and down.
+        limitX = window.innerWidth - previewImage.width;
+        limitY = window.innerHeight - previewImage.height;
+
+        posX = Math.round(limitX / 2);
+        posY = Math.round(limitY / 2);
+        previewImage.style.transform =
+          'translate(' + posX + 'px, ' + posY + 'px)';
+
+        setButton.addEventListener('click', scaleImage);
+        previewImage.addEventListener('pan', moveBackground);
+      };
+    }
   }
 
   function moveBackground(evt) {
@@ -81,8 +116,8 @@ window.onload = function() {
       var canvas = document.createElement('canvas');
       // To have an image which matches the device pixel, we need to multiply
       // window.devicePixelRatio.
-      canvas.width = window.innerWidth * window.devicePixelRatio;
-      canvas.height = window.innerHeight * window.devicePixelRatio;
+      canvas.width = screenWidth;
+      canvas.height = screenHeight;
       var ctx = canvas.getContext('2d');
 
       var w = Math.round(window.innerWidth / scale);
