@@ -33,6 +33,18 @@ suite('lazy loader', function() {
     assert.equal(window.jsCount, 0);
     assert.typeOf(LazyLoader, 'object');
     assert.typeOf(LazyLoader.load, 'function');
+    assert.typeOf(LazyLoader.getJSON, 'function');
+  });
+
+  test('load json', function(done) {
+    LazyLoader.getJSON('/apps/sharedtest/test/unit/support/test.json')
+      .then(function(json) {
+        done(function() {
+          assert.typeOf(json, 'object');
+          assert.property(json, 'org');
+          assert.equal(json.org, 'Mozilla');
+        });
+      });
   });
 
   test('append single js script', function(done) {
