@@ -11,6 +11,11 @@
   color: white;
 }
 
+:not(.browser).appWindow[data-shrinking-state="true"] > .chrome {
+  height: 4.6rem;
+  transform: scaleY(0.651) translateY(0);
+}
+
 .appWindow.light > .chrome {
   background-image: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.05));
   background-color: white;
@@ -400,4 +405,3 @@ gaia-overflow-menu button#share {
 .appWindow:not(.scrollable) > .chrome .controls .urlbar .title {
   width: calc(100%);
 }
-

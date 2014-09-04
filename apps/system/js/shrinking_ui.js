@@ -50,10 +50,10 @@
       tiltTransitionCb: null // Last tilt transition
     },
     configs: {
-      degreeLandscape: '1.2deg',
-      degreePortrait: '0.5deg',
-      overDegreeLandscape: '1.4deg',
-      overDegreePortrait: '0.7deg'
+      degreeLandscape: '2.7deg',
+      degreePortrait: '0.65deg',
+      overDegreeLandscape: '2.9deg',
+      overDegreePortrait: '0.9deg'
     },
 
     get current() {
@@ -499,6 +499,9 @@
       // Nested callbacks: first animation is for sinking down,
       // and the second one is for bouncing back.
       var bounceBack = (function on_bounceBack(evt) {
+        if (evt.target !== element) {
+          return;
+        }
         element.removeEventListener('transitionend', bounceBack);
         element.addEventListener('transitionend', bounceBackEnd);
         this._updateTiltTransition(bounceBackEnd);
@@ -508,6 +511,9 @@
       }).bind(this);
 
       var bounceBackEnd = (function on_bounceBackEnd(evt) {
+        if (evt.target !== element) {
+          return;
+        }
         element.removeEventListener('transitionend',
           bounceBackEnd);
         element.style.transition = 'transform 0.5s ease 0s';
@@ -681,16 +687,16 @@
   };
 
   ShrinkingUI.prototype._getTiltingDegree = function su_getTiltingDegree() {
-    return 'landscape-primary' === window.OrientationManager.
-      fetchCurrentOrientation() ?
+    return window.OrientationManager.fetchCurrentOrientation()
+      .indexOf('landscape') !== -1 ?
       this.configs.degreeLandscape :
       this.configs.degreePortrait;
   };
 
   ShrinkingUI.prototype._getOverTiltingDegree =
     function su_getOverTiltingDegree() {
-      return 'landscape-primary' === window.OrientationManager.
-        fetchCurrentOrientation() ?
+      return window.OrientationManager.fetchCurrentOrientation()
+        .indexOf('landscape') !== -1 ?
         this.configs.overDegreeLandscape :
         this.configs.overDegreePortrait;
     };
