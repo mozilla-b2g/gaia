@@ -1,4 +1,4 @@
-/* global Card, TaskCard,
+/* global Card, TaskCard, StatusBar,
           AppWindowManager, sleepMenu, SettingsListener,
           OrientationManager, System, homescreenLauncher,
           GestureDetector, UtilityTray, StackManager */
@@ -432,6 +432,8 @@
       window.removeEventListener('appclosed', clWait);
       screenElem.classList.add('cards-view');
       screenElem.classList.add('hide-apps');
+
+      StatusBar.pauseUpdate();
     });
   };
 
@@ -590,6 +592,7 @@
     }).bind(this);
 
     this.screenElement.classList.remove('hide-apps');
+    StatusBar.resumeUpdate();
 
     setTimeout(function() {
       app.open(openAnimation || 'from-cardview');
