@@ -136,8 +136,10 @@ suite('system/Statusbar', function() {
 
       var signalElements = document.querySelectorAll('.statusbar-signal');
       var dataElements = document.querySelectorAll('.statusbar-data');
+      var roamingElems = document.querySelectorAll('.sb-icon-roaming');
 
       fakeIcons.signals = {};
+      fakeIcons.roaming = {};
       Array.prototype.slice.call(signalElements).forEach(
         function(signal, index) {
           fakeIcons.signals[mobileConnectionCount - index - 1] = signal;
@@ -146,6 +148,10 @@ suite('system/Statusbar', function() {
       fakeIcons.data = {};
       Array.prototype.slice.call(dataElements).forEach(function(data, index) {
         fakeIcons.data[mobileConnectionCount - index - 1] = data;
+      });
+
+      Array.prototype.slice.call(roamingElems).forEach(function(data, index) {
+        fakeIcons.roaming[mobileConnectionCount - index - 1] = data;
       });
 
       done();
@@ -716,7 +722,7 @@ suite('system/Statusbar', function() {
 
           StatusBar.update.signal.call(StatusBar);
 
-          assert.equal(dataset.roaming, 'true');
+          assert.equal(fakeIcons.roaming[0].hidden, false);
           assert.equal(dataset.level, 4);
           assert.notEqual(dataset.searching, 'true');
         });

@@ -907,6 +907,7 @@ var StatusBar = {
         var voice = conn.voice;
         var data = conn.data;
         var icon = self.icons.signals[index];
+        var roaming = self.icons.roaming[index];
 
         var _ = navigator.mozL10n.get;
 
@@ -925,7 +926,8 @@ var StatusBar = {
           // no SIM
           delete icon.dataset.level;
           delete icon.dataset.searching;
-          delete icon.dataset.roaming;
+          roaming.hidden = true;
+
           icon.setAttribute('aria-label', _('noSimCard'));
         } else if (data && data.connected && data.type.startsWith('evdo')) {
           // "Carrier" / "Carrier (Roaming)" (EVDO)
@@ -953,7 +955,7 @@ var StatusBar = {
           // searching icon if the device is searching. Or show the signal bars
           // with a red "x", which stands for emergency calls only.
           icon.dataset.searching = (voice.state === 'searching');
-          delete icon.dataset.roaming;
+          roaming.hidden = true;
           icon.setAttribute('aria-label', _(icon.dataset.searching ?
             'statusbarSignalNoneSearching' : 'emergencyCallsOnly'));
         }
@@ -1294,7 +1296,8 @@ var StatusBar = {
 
   updateSignalIcon: function sb_updateSignalIcon(icon, connInfo) {
     icon.dataset.level = Math.ceil(connInfo.relSignalStrength / 20); // 0-5
-    icon.dataset.roaming = connInfo.roaming;
+    var roaming = this.icons.roaming[icon.dataset.index || 0];
+    roaming.hidden = !connInfo.roaming;
 
     delete icon.dataset.searching;
 
@@ -1394,9 +1397,11 @@ var StatusBar = {
       this.icons.connections.dataset.multiple = multipleSims;
       this.icons.signals = {};
       this.icons.data = {};
+      this.icons.roaming = {};
       for (var i = conns.length - 1; i >= 0; i--) {
         var signal = document.createElement('div');
         var data = document.createElement('div');
+        var roaming = document.createElement('div');
         signal.className = 'sb-icon sb-icon-signal statusbar-signal';
         signal.dataset.level = '5';
         if (multipleSims) {
@@ -1407,10 +1412,16 @@ var StatusBar = {
         data.className = 'sb-icon statusbar-data';
         data.hidden = true;
 
+        roaming.setAttribute('role', 'listitem');
+        roaming.className = 'sb-icon sb-icon-roaming';
+        roaming.hidden = true;
+
+        signal.appendChild(data);
         this.icons.connections.appendChild(signal);
-        this.icons.connections.appendChild(data);
+        this.icons.connections.appendChild(roaming);
         this.icons.signals[i] = signal;
         this.icons.data[i] = data;
+        this.icons.roaming[i] = roaming;
       }
     }
   },
