@@ -356,10 +356,10 @@ var Widget = (function() {
 
           if (!limitTrespassed) {
             navigator.mozL10n.setAttributes(dataAvailable, 'data-available2',
-              { 'value': text[0], unit: text[1] });
+              { value: parseFloat(text[0]), unit: text[1] });
           } else {
-            navigator.mozL10n.setAttributes(dataAvailable, 'data-over-limit',
-              { 'value': text[0], unit: text[1] });
+            navigator.mozL10n.setAttributes(dataAvailable, 'over-limit',
+              { value: parseFloat(text[0]), unit: text[1] });
           }
         } else {
           // Texts
