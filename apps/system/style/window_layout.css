@@ -120,6 +120,10 @@
   overflow: hidden;
 }
 
+.appWindow.collapsible:not(.scrollable) > div > iframe {
+  height: calc(100% - 4.6rem);
+}
+
 .appWindow.searchWindow > div {
   top: 0;
   height: 100%;
@@ -180,12 +184,12 @@
 | Scrollable Layout
 \*****************************************************************************/
 
-.appWindow.scrollable > div.browser-container {
+.appWindow.collapsible > div.browser-container {
   overflow-x: hidden;
   overflow-y: scroll;
 }
 
-.appWindow.scrollable > div.browser-container > iframe {
+.appWindow.collapsible > div.browser-container > iframe {
   top: 4.6rem;
 }
 
