@@ -142,6 +142,10 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   // If there isn't an inputContext or there is no currentLayout,
   // clean up modified layout.
   if (!this.app.inputContext || !this.currentLayout) {
+    console.warn('LayoutManager: ' +
+      'calling _updateModifiedLayout() when there is no ' +
+      'inputContext or currentLayout.');
+
     this.currentModifiedLayout = null;
     return;
   }

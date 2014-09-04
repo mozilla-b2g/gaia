@@ -418,6 +418,9 @@
     }, function() {
       // the previous sendKey or replaceSurroundingText has been rejected,
       // No need to update the state.
+    })['catch'](function(e) { // ['catch'] for gjslint error
+      // Print the error and make sure inputSequencePromise always resolves.
+      console.error(e);
     });
 
     // Need to return the promise, so that the caller could know

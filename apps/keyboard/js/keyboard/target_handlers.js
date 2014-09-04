@@ -11,10 +11,12 @@ var DefaultTargetHandler = function(target, app) {
   this.ignoreCommitActions = false;
 };
 DefaultTargetHandler.prototype.activate = function() {
+  this.app.console.log('DefaultTargetHandler.activate()');
   this.app.feedbackManager.triggerFeedback(this.target);
   this.app.visualHighlightManager.show(this.target);
 };
 DefaultTargetHandler.prototype.longPress = function() {
+  this.app.console.log('DefaultTargetHandler.longPress()');
   // Does the key have an long press value?
   if (!('longPressValue' in this.target.dataset)) {
     return;
@@ -28,13 +30,17 @@ DefaultTargetHandler.prototype.longPress = function() {
   this.app.visualHighlightManager.hide(this.target);
 };
 DefaultTargetHandler.prototype.moveOut = function() {
+  this.app.console.log('DefaultTargetHandler.moveOut()');
   this.app.visualHighlightManager.hide(this.target);
 };
 DefaultTargetHandler.prototype.moveIn = function() {
+  this.app.console.log('DefaultTargetHandler.moveIn()');
   this.app.visualHighlightManager.show(this.target);
 };
 DefaultTargetHandler.prototype.commit = function() {
+  this.app.console.log('DefaultTargetHandler.commit()');
   if (this.ignoreCommitActions) {
+    this.app.console.log('DefaultTargetHandler.commit()::return early');
     return;
   }
 
@@ -51,18 +57,24 @@ DefaultTargetHandler.prototype.commit = function() {
    * maintained out of latin.js.
    */
   if (this.app.layoutManager.currentModifiedLayout.imEngine === 'latin') {
+    this.app.console.log('DefaultTargetHandler.commit()::latin::engine.click',
+      keyCode, upperCaseKeyCode);
     engine.click(keyCode, upperCaseKeyCode);
   } else {
-    engine.click(
-      this.app.upperCaseStateManager.isUpperCase ? upperCaseKeyCode : keyCode);
+    var code =
+      this.app.upperCaseStateManager.isUpperCase ? upperCaseKeyCode : keyCode;
+    this.app.console.log('DefaultTargetHandler.commit()::engine.click', code);
+    engine.click(code);
   }
 
   this.app.visualHighlightManager.hide(this.target);
 };
 DefaultTargetHandler.prototype.cancel = function() {
+  this.app.console.log('DefaultTargetHandler.cancel()');
   this.app.visualHighlightManager.hide(this.target);
 };
 DefaultTargetHandler.prototype.doubleTap = function() {
+  this.app.console.log('DefaultTargetHandler.doubleTap()');
   this.commit();
 };
 

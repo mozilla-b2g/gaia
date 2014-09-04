@@ -17,6 +17,7 @@ var StateManager = function(app) {
 StateManager.prototype.DEACTIVATE_DELAY = 120;
 
 StateManager.prototype.start = function() {
+  this.app.console.log('StateManager.start()');
   // Start with inactive state.
   this._isActive = false;
 
@@ -42,6 +43,7 @@ StateManager.prototype.start = function() {
 };
 
 StateManager.prototype.stop = function() {
+  this.app.console.log('StateManager.stop()');
   window.removeEventListener('hashchange', this);
   window.removeEventListener('visibilitychange', this);
   navigator.mozInputMethod.removeEventListener('inputcontextchange', this);
@@ -53,6 +55,7 @@ StateManager.prototype.stop = function() {
 StateManager.prototype.handleEvent = function(evt) {
   var active = (!document.hidden &&
                 !!navigator.mozInputMethod.inputcontext);
+  this.app.console.info('StateManager.handleEvent()', evt, active);
 
   switch (evt.type) {
     case 'hashchange':
@@ -76,7 +79,9 @@ StateManager.prototype.handleEvent = function(evt) {
 };
 
 StateManager.prototype._updateActiveState = function(active) {
+  this.app.console.log('StateManager._updateActiveState()', active);
   if (active) {
+    this.app.console.time('activate');
     // Make sure we are working in parallel,
     // since eventually IMEngine will be switched.
     this.app.inputMethodManager.updateInputContextData();
@@ -118,6 +123,7 @@ StateManager.prototype._updateActiveState = function(active) {
     this._delayDeactivate()
       // ... cancel everything
       .then(function() {
+        this.app.console.log('StateManager._delayDeactivate()::then');
         this.app.candidatePanelManager.hideFullPanel();
         this.app.candidatePanelManager.updateCandidates([]);
         this.app.targetHandlersManager.activeTargetsManager.clearAllTargets();
@@ -132,6 +138,7 @@ StateManager.prototype._updateActiveState = function(active) {
 };
 
 StateManager.prototype._delayDeactivate = function() {
+  this.app.console.log('StateManager._delayDeactivate()');
   var p = new Promise(function(resolve, reject) {
     setTimeout(function() {
       // If state has switched to active, do not deactivate the keyboard.
@@ -148,6 +155,7 @@ StateManager.prototype._delayDeactivate = function() {
 };
 
 StateManager.prototype._preloadLayout = function() {
+  this.app.console.log('StateManager._preloadLayout()');
   var layoutLoader = this.app.layoutManager.loader;
   var p = layoutLoader.getLayoutAsync(this._layoutName).then(function(layout) {
     var imEngineName = layout.imEngine;
@@ -167,14 +175,12 @@ StateManager.prototype._preloadLayout = function() {
 };
 
 StateManager.prototype._switchCurrentIMEngine = function() {
-  this.app.perfTimer.printTime('stateManager._switchCurrentIMEngine');
+  this.app.console.log('StateManager._switchCurrentIMEngine()');
 
   // Only start loading the IMEngine if we remain active.
   if (!this._isActive) {
     return Promise.reject();
   }
-
-  this.app.perfTimer.startTimer('_switchCurrentIMEngine');
 
   var layout = this.app.layoutManager.currentModifiedLayout;
   var imEngineName = layout.imEngine || 'default';
@@ -182,18 +188,14 @@ StateManager.prototype._switchCurrentIMEngine = function() {
   this.app.upperCaseStateManager.reset();
   var p = this.app.inputMethodManager.switchCurrentIMEngine(imEngineName);
 
-  this.app.perfTimer.printTime(
-    'BLOCKING stateManager._switchCurrentIMEngine', '_switchCurrentIMEngine');
-
   return p;
 };
 
 StateManager.prototype._updateLayoutRendering = function() {
-  this.app.perfTimer.printTime('stateManager._updateLayoutRendering');
+  this.app.console.log('StateManager._updateLayoutRendering()');
   if (!this._isActive) {
     return Promise.reject();
   }
-  this.app.perfTimer.startTimer('_updateLayoutRendering');
 
   // everything.me uses this setting to improve searches,
   // but they really shouldn't.
@@ -202,9 +204,6 @@ StateManager.prototype._updateLayoutRendering = function() {
   });
 
   var p = this.app.layoutRenderingManager.updateLayoutRendering();
-
-  this.app.perfTimer.printTime(
-    'BLOCKING stateManager._updateLayoutRendering', '_updateLayoutRendering');
 
   return p;
 };

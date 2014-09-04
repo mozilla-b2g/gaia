@@ -1,9 +1,9 @@
 'use strict';
 
-/* global LayoutRenderingManager, PerformanceTimer, CandidatePanelManager,
+/* global LayoutRenderingManager, KeyboardConsole, CandidatePanelManager,
           IMERender */
 
-require('/js/keyboard/performance_timer.js');
+require('/js/keyboard/console.js');
 require('/js/keyboard/candidate_panel_manager.js');
 
 require('/js/keyboard/layout_rendering_manager.js');
@@ -36,7 +36,7 @@ suite('LayoutRenderingManager', function() {
 
     app = {
       getBasicInputType: this.sinon.stub().returns('foo'),
-      perfTimer: this.sinon.stub(PerformanceTimer.prototype),
+      console: this.sinon.stub(KeyboardConsole.prototype),
       candidatePanelManager: this.sinon.stub(CandidatePanelManager.prototype),
       layoutManager: {
         currentModifiedLayout: {
