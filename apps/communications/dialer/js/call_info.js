@@ -170,18 +170,17 @@
   }
 
   function launchActivity(name, phoneNumber) {
-    var options = {
-      name: name,
-      data: {
-        type: 'webcontacts/contact',
-        params: {
-          'tel': phoneNumber
-        }
-      }
-    };
     try {
       /* jshint nonew: false */
-      new MozActivity(options);
+      new MozActivity({
+        name: name,
+        data: {
+          type: 'webcontacts/contact',
+          params: {
+            'tel': phoneNumber
+          }
+        }
+      });
     } catch (e) {
       console.error('Error while creating activity');
     }
