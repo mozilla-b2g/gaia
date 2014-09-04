@@ -79,8 +79,7 @@
     '</div>' +
     '' +
     '<footer class="card-tray">'+
-    ' <button class="appIcon" data-button-action="select" ' +
-    '   style="background-image:{iconValue}">' +
+    ' <button class="appIcon" data-button-action="select">' +
     ' </button>' +
     ' <menu class="buttonbar">' +
     '   <button class="close-button" data-button-action="close" ' +
@@ -111,7 +110,7 @@
     var app = this.app;
     this.title = (app.isBrowser() && app.title) ? app.title : app.name;
     this.subTitle = '';
-    this.iconValue = 'none';
+    this.iconValue = '';
     this.closeButtonVisibility = 'visible';
     this.viewClassList = ['card', 'appIconPreview'];
     this.titleId = 'card-title-' + this.instanceID;
@@ -271,7 +270,9 @@
 
     var app = this.app;
     if (app.isActive()) {
-      elem.classList.add('current');
+    }
+    if (app.isBrowser()) {
+      elem.classList.add('browser');
     }
 
     var screenshotView = this.screenshotView;
@@ -283,6 +284,9 @@
       if (screenshotView.style.backgroundImage) {
         return;
       }
+    }
+    if (this.iconValue) {
+      this.iconButton.style.backgroundImage = this.iconValue;
     }
 
     // Handling cards in different orientations
@@ -328,8 +332,8 @@
   Card.prototype._fetchElements = function c__fetchElements() {
     this.screenshotView = this.element.querySelector('.screenshotView');
     this.titleNode = this.element.querySelector('h1.title');
+    this.iconButton = this.element.querySelector('.appIcon');
   };
-
 
   return (exports.Card = Card);
 

@@ -7,7 +7,7 @@
   height: 100%;
   -moz-user-select: none;
   overflow: hidden;
-  background-color: black;
+  background-color: rgba(0,0,0,0.8);
 }
 
 @media not all and (-moz-physical-home-button) {
@@ -160,47 +160,6 @@
 }
 
 
-
-/* Task Manager Specifics */
-
-#screen.task-manager #cards-view .card .card-header {
-  position: absolute;
-  top: auto;
-  bottom: 50%;
-  left: 0;
-  width: 100%;
-  padding-bottom: 2.5rem;
-  box-sizing: border-box;
-  display: none;
-}
-
-#screen.task-manager #cards-view .card .appPreview {
-  display: block;
-  background-color: orange;
-}
-
-#screen.task-manager #cards-view li.card[data-card-position='current'] .card-header {
-  display: block;
-}
-
-#screen.task-manager #cards-view .card > .appIconView {
-  position: absolute;
-  top: calc(33.2rem - 20px);
-  left: calc(50% - 20px);
-  width: 40px;
-  height: 40px;
-  background-image: url(../icons/Default.png);
-  background-position: center center;
-  background-repeat: no-repeat;
-  box-shadow: 0 0 6px 0 rgba(0,0,0,0.2);
-  z-index: 1;
-}
-
-#screen.task-manager #cards-view .screenshotView {
-  display: none;
-}
-
-
 /* Card Tray */
 
 #cards-view .card-tray {
@@ -265,6 +224,9 @@
   filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'shadow\'><feGaussianBlur in=\"SourceAlpha\" stdDeviation=\'2\'/><feOffset dx=\'0\' dy=\'0\' result=\'offsetblur\'/><feFlood flood-color=\'rgba(0,0,0,0.2)\'/><feComposite in2=\'offsetblur\' operator=\'in\'/><feMerge><feMergeNode/><feMergeNode in=\'SourceGraphic\'/></feMerge></filter></svg>#shadow");
 
 }
+#cards-view .card.browser .card-tray > button.appIcon {
+  background-image: url('../../shared/resources/branding/browser_126.png');
+}
 
 /* Titles */
 #cards-view .card .titles {
@@ -282,7 +244,7 @@
   overflow-x: hidden;
   margin: 0;
 
-  font-size: 1.95rem;
+  font-size: 1.4rem;
   font-weight: 300;
   font-style: italic;
 

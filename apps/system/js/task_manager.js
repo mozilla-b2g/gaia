@@ -1,5 +1,4 @@
-/* global Card, TaskCard,
-          AppWindowManager, sleepMenu, SettingsListener,
+/* global Card, AppWindowManager, sleepMenu, SettingsListener,
           OrientationManager, System, homescreenLauncher,
           GestureDetector, UtilityTray, StackManager */
 
@@ -20,21 +19,9 @@
     this.stack = null;
     this.unfilteredStack = null;
     this.cardsByAppID = {};
-    // Listen for settings changes
-    this.onTaskStripEnabled = function(value) {
-      debug('taskstrip.enabled: '+ value);
-      this.isTaskStrip = value;
-    }.bind(this);
-    SettingsListener.observe('taskstrip.enabled', false,
-                             this.onTaskStripEnabled);
   }
 
   TaskManager.prototype = Object.create({
-    /**
-     * Use the carousel-style card view (false) or
-     * the Haida-style horizontal task strip (true)
-     */
-    isTaskStrip: false,
 
     /**
      * The setting that enables/disables using screenshots vs. icons for the
@@ -358,21 +345,13 @@
     // stack we will display the most recently used application.
     if (this.currentPosition == -1 || StackManager.outOfStack()) {
       if (stack.length) {
-        this.currentPosition = this.isTaskStrip ? 0 : stack.length - 1;
+        this.currentPosition = stack.length - 1;
       } else {
       // consider homescreen the active app
         this.currentPosition = -1;
       }
     }
     this.currentDisplayed = this.currentPosition;
-    var currentApp = (stack.length && this.currentPosition > -1 &&
-                     stack[this.currentPosition]);
-
-    if (!currentApp) {
-      // Fire a cardchange event to notify rocketbar that there are no cards
-      this.fireCardViewClosed();
-      return;
-    }
 
     // stash some measurements now to avoid unexpected reflow later
     this._windowWidth = window.innerWidth;
@@ -385,15 +364,10 @@
     // Homescreen fades (shows its fade-overlay) on cardviewbeforeshow events
     this.fireCardViewBeforeShow();
 
-    if (this.isTaskStrip) {
-      this.screenElement.classList.add('task-manager');
-    }
-
     // If there is no running app, show "no recent apps" message
     if (stack.length) {
       this.element.classList.remove('empty');
     } else {
-      // (we already bailed for the isTaskStrip case)
       this.element.classList.add('empty');
     }
 
@@ -427,7 +401,7 @@
       // events to handle while shown
       this._registerShowingEvents();
       // only set up for card swiping if there's cards to show
-      if (!this.isTaskStrip && stack.length && !this.initialTouchPosition) {
+      if (stack.length && !this.initialTouchPosition) {
         this.setupCardSwiping();
       }
 
@@ -466,9 +440,7 @@
       _windowWidth: this.windowWidth,
       _windowHeight: this.windowHeight
     };
-    var card = (this.isTaskStrip) ?
-                  new TaskCard(config) :
-                  new Card(config);
+    var card = new Card(config);
     this.cardsByAppID[app.instanceID] = card;
     this.cardsList.appendChild(card.render());
   };
@@ -534,7 +506,6 @@
     this.cardsByAppID = {};
 
     this.screenElement.classList.remove('cards-view');
-    this.screenElement.classList.remove('task-manager');
     this.element.classList.remove('filtered');
     this.cardsList.innerHTML = '';
     this.currentDisplayed = -1;
@@ -889,18 +860,14 @@
           return;
         }
         sleepMenu.hide();
-        if (this.isTaskStrip) {
-          this.show();
-        } else {
-          app = AppWindowManager.getActiveApp();
-          if (app) {
-            app.getScreenshot(function onGettingRealtimeScreenshot() {
-              this.show();
-            }.bind(this));
-          } else {
-            // empty list entry point
+        app = AppWindowManager.getActiveApp();
+        if (app) {
+          app.getScreenshot(function onGettingRealtimeScreenshot() {
             this.show();
-          }
+          }.bind(this));
+        } else {
+          // empty list entry point
+          this.show();
         }
         break;
 
