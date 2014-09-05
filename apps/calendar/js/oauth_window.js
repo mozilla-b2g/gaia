@@ -69,8 +69,8 @@ OAuthWindow.prototype = {
   },
 
   selectors: {
-    browserTitle: 'header > h1',
-    browserCancelButton: 'button.cancel',
+    browserHeader: 'gaia-header',
+    browserTitle: 'gaia-header > h1',
     browserContainer: '.browser-container'
   },
 
@@ -82,8 +82,8 @@ OAuthWindow.prototype = {
     return this._findElement('browserTitle', this.element);
   },
 
-  get browserCancelButton() {
-    return this._findElement('browserCancelButton', this.element);
+  get browserHeader() {
+    return this._findElement('browserHeader', this.element);
   },
 
   _handleFinalRedirect: function(url) {
@@ -137,8 +137,8 @@ OAuthWindow.prototype = {
     this.element.classList.add(View.ACTIVE);
 
     // handle cancel events
-    this.browserCancelButton.addEventListener(
-      'click', this._handleUserTriggeredClose
+    this.browserHeader.addEventListener(
+      'action', this._handleUserTriggeredClose
     );
 
     // setup browser iframe
@@ -162,8 +162,8 @@ OAuthWindow.prototype = {
       'mozbrowserlocationchange', this
     );
 
-    this.browserCancelButton.removeEventListener(
-      'click', this._handleUserTriggeredClose
+    this.browserHeader.removeEventListener(
+      'action', this._handleUserTriggeredClose
     );
 
     this.element.classList.remove(View.ACTIVE);
