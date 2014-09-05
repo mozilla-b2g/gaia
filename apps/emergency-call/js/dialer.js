@@ -1,7 +1,7 @@
 'use strict';
 
 /* globals ConfirmDialog, KeypadManager, ICEContacts, LazyLoader,
-           SimSettingsHelper, TonePlayer */
+           SimSettingsHelper, TonePlayer, SimPicker */
 /* exported CallHandler */
 
 var CallHandler = {
@@ -30,32 +30,43 @@ var CallHandler = {
 
   call: function(number) {
     var sanitizedNumber = number.replace(/-/g, ''),
-        telephony = this._telephony,
         self = this;
-    var callPromise;
+
     if (ICEContacts.isFromICEContact(number)) {
       LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
         SimSettingsHelper.getCardIndexFrom('outgoingCall',
-          function(defaultCardIndex) {
-            // FIXME/bug 1060729:
-            // Handle defaultCardIndex == ALWAYS_ASK_OPTION_VALUE (-1)
-            callPromise = telephony.dial(number, defaultCardIndex);
-            callPromise.then(function(call) {
-              self._installHandlers(call);
-            }).catch(function(errorName) {
-              self._throwEmergencyError(sanitizedNumber);
+        function(defaultCardIndex) {
+          if (defaultCardIndex == SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
+            var simPickerElt = document.getElementById('sim-picker');
+            var simFiles = [simPickerElt,
+                            '/shared/js/sim_picker.js',
+                            '/shared/style/sim_picker.css'];
+            LazyLoader.load(simFiles, function() {
+              SimPicker.getOrPick(defaultCardIndex, number, function(ci) {
+                var callPromise = self._telephony.dial(number, ci);
+                self._handleCallPromise(callPromise, sanitizedNumber);
+              });
             });
+          } else {
+            var callPromise = self._telephony.dial(number, defaultCardIndex);
+            self._handleCallPromise(callPromise, sanitizedNumber);
           }
-        );
+        });
       });
     } else {
-      callPromise = telephony.dialEmergency(sanitizedNumber);
-      callPromise.then(function(call) {
-        self._installHandlers(call);
-      }).catch(function(errorName) {
-        self._throwEmergencyError(sanitizedNumber);
-      });
+      var callPromise = self._telephony.dialEmergency(sanitizedNumber);
+      self._handleCallPromise(callPromise, sanitizedNumber);
     }
+  },
+
+  _handleCallPromise: function(callPromise, sanitizedNumber) {
+    var self = this;
+
+    callPromise.then(function(call) {
+      self._installHandlers(call);
+    }).catch(function(errorName) {
+      self._throwEmergencyError(sanitizedNumber);
+    });
   },
 
   _installHandlers: function(call) {
