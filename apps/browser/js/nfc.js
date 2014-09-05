@@ -80,9 +80,10 @@ var NfcURI = {
     }
 
     var payload = StringHelper.fromUTF8(urlPayload);
-    var ids = new Uint8Array(0);
 
-    var record = new MozNDEFRecord(tnfId, rtdUri, ids, payload);
+    var record = new MozNDEFRecord({tnf: tnfId,
+                                    type: rtdUri,
+                                    payload: payload});
 
     if (!record) {
       return null;
