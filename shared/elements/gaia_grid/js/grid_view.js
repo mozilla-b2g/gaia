@@ -183,6 +183,11 @@
 
       var lastTouchStart = this.lastTouchStart;
 
+      if (!lastTouchStart) {
+        // This variable is deleted once a contextmenu event is received
+        return;
+      }
+
       var touch = e.changedTouches.identifiedTouch(lastTouchStart.identifier);
       if (!touch) {
         return;
