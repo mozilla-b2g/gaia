@@ -8,29 +8,34 @@ html, body {
 }
 
 #bookmark-form {
-  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100% - 10rem);
+  padding: 0 1.5rem;
 }
 
-#bookmark-form label {
-  text-transform: uppercase;
-  font-size: 1.5rem;
-  padding-left: 1.5rem;
+#bookmark-form p {
+  width: 100%;
 }
 
-#bookmark-form input {
-  margin-bottom: 1.5rem;
-}
-
-menu[type="toolbar"], #add-button, #add-bookmark-header, #edit-bookmark-header {
+#add-bookmark-header, #edit-bookmark-header {
   display: none;
 }
 
-body[data-mode="add"] #add-bookmark-header,
-body[data-mode="add"] #add-button {
+body[data-mode="add"] #add-bookmark-header {
   display: block;
 }
 
-body[data-mode="put"] #edit-bookmark-header,
-body[data-mode="put"] menu[type="toolbar"] {
+body[data-mode="put"] #edit-bookmark-header {
   display: block;
+}
+
+#bookmark-icon {
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-image: url('../shared/elements/gaia_grid/images/default_icon.png');
+  display: block;
+  margin-bottom: 2.4rem;
 }
