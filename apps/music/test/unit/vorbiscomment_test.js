@@ -10,12 +10,13 @@ suite('vorbis comment', function() {
 
   test('vorbis comment', function(done) {
     parseMetadata('/test-data/vorbis-c.ogg').then(function(metadata) {
-      assert.equal(metadata.tag_type, 'vorbis');
-      assert.equal(metadata.artist, 'Angra');
-      assert.equal(metadata.album, 'Holy Land');
-      assert.equal(metadata.title, 'Carolina IV');
-      assert.equal(metadata.tracknum, 4);
-      done();
+      done(function() {
+        assert.equal(metadata.tag_type, 'vorbis');
+        assert.equal(metadata.artist, 'Angra');
+        assert.equal(metadata.album, 'Holy Land');
+        assert.equal(metadata.title, 'Carolina IV');
+        assert.equal(metadata.tracknum, 4);
+      });
     });
   });
 });

@@ -1,5 +1,5 @@
 /* global parseAudioMetadata */
-/* exported parseMetadata */
+/* exported parseMetadata, loadPicture */
 
 'use strict';
 
@@ -26,46 +26,41 @@ function _fetch(url) {
 
 
 function parseMetadata(filename, options) {
-
-  // Override getThumbnailURL, since we don't need/want to talk to the
-  // indexedDB here.
-  window.getThumbnailURL = function(fileinfo, callback) {
-    callback(null);
-  };
-
   return _fetch(filename).then(function(data) {
     return new Promise(function(resolve, reject) {
       parseAudioMetadata(
         new Blob([data]),
-        function(metadata) { resolve(metadata); },
+        function(metadata) {
+          if (metadata.picture) {
+            var reader = new FileReader();
+            reader.readAsArrayBuffer(metadata.picture.blob);
+            reader.onload = function(event) {
+              metadata.picture = {
+                flavor: metadata.picture.flavor,
+                type: metadata.picture.blob.type,
+                data: new Uint8Array(event.target.result)
+              };
+              resolve(metadata);
+            };
+            reader.onerror = function(event) {
+              reject(event.target.error);
+            };
+          } else {
+            resolve(metadata);
+          }
+        },
         function(error) { reject(error); }
       );
     });
   });
 }
 
-function fetchPicture(url) {
+function loadPicture(url, type, flavor) {
   return _fetch(url).then(function(data) {
-    return new Uint8Array(data);
+    return {
+      flavor: flavor,
+      type: type,
+      data: new Uint8Array(data)
+    };
   });
 }
-
-function checkPicture(actual, expectedBuffer, done) {
-  assert.equal(actual.type, 'image/jpeg');
-  assert.equal(actual.size, expectedBuffer.byteLength);
-
-  var reader = new FileReader();
-  reader.readAsArrayBuffer(actual);
-  reader.onload = function(e) {
-    var actualBuffer = new Uint8Array(e.target.result);
-    for (var i = 0; i < actualBuffer.byteLength; i++) {
-      assert.equal(actualBuffer[i], expectedBuffer[i]);
-    }
-    done();
-  };
-  reader.onerror = function() {
-    assert.ok(false);
-    done();
-  };
-}
-
