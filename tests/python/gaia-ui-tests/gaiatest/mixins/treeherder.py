@@ -5,11 +5,13 @@
 import hashlib
 import os
 import socket
+import tempfile
 import time
 from urlparse import urljoin, urlparse
 import uuid
 
 import boto
+from mozdevice import ADBDevice
 from mozlog.structured.handlers import StreamHandler
 import mozversion
 import requests
@@ -164,6 +166,24 @@ class TreeherderTestRunnerMixin(object):
                 'value': ci_url,
                 'content_type': 'link',
                 'title': 'CI build:'})
+
+        # Attach logcat
+        adb_device = ADBDevice(self.device_serial)
+        with tempfile.NamedTemporaryFile(suffix='logcat.txt') as f:
+            f.writelines(adb_device.get_logcat())
+            self.logger.debug('Logcat stored in: %s' % f.name)
+            try:
+                url = self.upload_to_s3(f.name)
+                job_details.append({
+                    'url': url,
+                    'value': 'logcat.txt',
+                    'content_type': 'link',
+                    'title': 'Log:'})
+            except S3UploadError:
+                job_details.append({
+                    'value': 'Failed to upload logcat.txt',
+                    'content_type': 'text',
+                    'title': 'Error:'})
 
         # Attach log files
         handlers = [handler for handler in self.logger.handlers
