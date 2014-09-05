@@ -16,7 +16,7 @@ class System(Base):
     _utility_tray_locator = (By.ID, 'utility-tray')
 
     _system_banner_locator = (By.CSS_SELECTOR, '.banner.generic-dialog')
-    _notification_toaster_locator = (By.ID, 'notification-container')
+    _notification_toaster_locator = (By.ID, 'notification-toaster')
     _update_manager_toaster_locator = (By.ID, 'update-manager-toaster')
 
     _software_home_button_locator = (By.ID, 'software-home-button')
@@ -55,6 +55,7 @@ class System(Base):
     def is_app_update_notification_displayed(self):
         update_manager_toaster = self.marionette.find_element(*self._update_manager_toaster_locator)
         return update_manager_toaster.location['y'] > (0 - update_manager_toaster.size['height'])
+        self.wait_for_condition(lambda m: m.find_element(*self._notification_toaster_locator).location['y'] == 0, timeout=timeout, message=message)
 
     def wait_for_app_update_to_clear(self):
         update_manager_toaster = self.marionette.find_element(*self._update_manager_toaster_locator)
