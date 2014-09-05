@@ -187,6 +187,21 @@ suite('Distribution mechanism', function() {
       path.join(cusDir, 'power', 'carrie_power_on.png'), false);
   }
 
+  function validateUuid() {
+    var uuidMapping = JSON.parse(fs.readFileSync(
+      path.join(process.cwd(), 'customization','uuid.json')
+    ));
+    var webappsPath = path.join(process.cwd(), 'profile', 'webapps');
+
+    for (let appname in uuidMapping) {
+      assert.ok(
+        fs.existsSync(path.join(webappsPath, uuidMapping[appname])),
+        'uuid for directory name in profile/webapps should exists, app name: ' +
+        appname + ', uuid: ' + uuidMapping[appname]
+      );
+    }
+  }
+
   function parseCustimizeImageSetting(appConfig) {
     if (typeof appConfig !== 'object') {
       return '';
@@ -302,6 +317,7 @@ suite('Distribution mechanism', function() {
       validateHomescreen();
       validateWallpaper();
       validateVariantSettings();
+      validateUuid();
       done();
     });
   });
