@@ -13,6 +13,8 @@ require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_nfc_handover_manager.js');
 require('/test/unit/mock_activity.js');
 
+var realCustomDialog = require('/shared/js/custom_dialog.js');
+
 var mocksForBluetoothTransfer = new MocksHelper([
   'Bluetooth',
   'NotificationHelper',
@@ -340,14 +342,20 @@ suite('system/bluetooth_transfer', function() {
 
         BluetoothTransfer.showStorageUnavaliablePrompt('message');
 
-        assert.equal(MockCustomDialog.mShowedTitle, _('cannotReceiveFile'));
+        assert.equal(
+          MockCustomDialog.mShowedTitle,
+          'cannotReceiveFile'
+        );
         assert.equal(
           MockCustomDialog.mShowedMsg,
           'message'
         );
         assert.isTrue(MockCustomDialog.mShown);
 
-        assert.equal(MockCustomDialog.mShowedCancel.title, _('confirm'));
+        assert.equal(
+          MockCustomDialog.mShowedCancel.title,
+          'confirm'
+        );
         MockCustomDialog.mShowedCancel.callback();
         assert.isFalse(MockCustomDialog.mShown);
 
@@ -368,28 +376,35 @@ suite('system/bluetooth_transfer', function() {
         var availreq = spyAvailable.getCall(0).returnValue;
 
         availreq.fireError(null);
-        assert.isTrue(spyCb.calledWith(false, _('cannotGetStorageState')));
+        assert.isTrue(spyCb.calledWithMatch(
+            false,
+            'cannotGetStorageState'
+        ));
         assert.isFalse(spyFreeSpace.called);
         spyFreeSpace.reset();
         spyCb.reset();
 
         availreq.readyState = 'pending';
         availreq.fireSuccess('unavailable');
-        assert.isTrue(spyCb.calledWith(false, _('sdcard-not-exist2')));
+        sinon.assert.calledWithMatch(
+          spyCb,
+          false,
+          'sdcard-not-exist2'
+        );
         assert.isFalse(spyFreeSpace.called);
         spyFreeSpace.reset();
         spyCb.reset();
 
         availreq.readyState = 'pending';
         availreq.fireSuccess('shared');
-        assert.isTrue(spyCb.calledWith(false, _('sdcard-in-use')));
+        sinon.assert.calledWithMatch(spyCb, false, 'sdcard-in-use');
         assert.isFalse(spyFreeSpace.called);
         spyFreeSpace.reset();
         spyCb.reset();
 
         availreq.readyState = 'pending';
         availreq.fireSuccess('some-default-case');
-        assert.isTrue(spyCb.calledWith(false, _('unknown-error')));
+        sinon.assert.calledWithMatch(spyCb, false, 'unknown-error');
         assert.isFalse(spyFreeSpace.called);
         spyFreeSpace.reset();
         spyCb.reset();
@@ -398,7 +413,10 @@ suite('system/bluetooth_transfer', function() {
         availreq.fireSuccess('available');
         var freereq = spyFreeSpace.getCall(0).returnValue;
         freereq.fireError();
-        assert.isTrue(spyCb.calledWith(false, _('cannotGetStorageState')));
+        assert.isTrue(spyCb.calledWithMatch(
+          false,
+          'cannotGetStorageState'
+        ));
         spyCb.reset();
 
         freereq.readyState = 'pending';
@@ -408,7 +426,10 @@ suite('system/bluetooth_transfer', function() {
 
         freereq.readyState = 'pending';
         freereq.fireSuccess(512);
-        assert.isTrue(spyCb.calledWith(false, 'sdcard-no-space2'));
+        assert.isTrue(spyCb.calledWithMatch(
+          false,
+          'sdcard-no-space2'
+        ));
         spyCb.reset();
 
         spyAvailable.reset();
@@ -537,14 +558,25 @@ suite('system/bluetooth_transfer', function() {
 
         BluetoothTransfer.showUnknownMediaPrompt('theFile.ext');
 
-        assert.equal(MockCustomDialog.mShowedTitle, _('cannotOpenFile'));
-        assert.equal(
+        assert.deepEqual(
+          MockCustomDialog.mShowedTitle,
+          'cannotOpenFile'
+        );
+        assert.deepEqual(
           MockCustomDialog.mShowedMsg,
-          _('unknownMediaTypeToOpen') + ' ' + 'theFile.ext'
+          {
+            id: 'unknownMediaTypeToOpenFile',
+            args: {
+              fileName: 'theFile.ext'
+            }
+          }
         );
         assert.isTrue(MockCustomDialog.mShown);
 
-        assert.equal(MockCustomDialog.mShowedCancel.title, _('confirm'));
+        assert.deepEqual(
+          MockCustomDialog.mShowedCancel.title,
+          'confirm'
+        );
         MockCustomDialog.mShowedCancel.callback();
         assert.isFalse(MockCustomDialog.mShown);
 
@@ -659,13 +691,22 @@ suite('system/bluetooth_transfer', function() {
         BluetoothTransfer.showCancelTransferPrompt('DD:FE:00:11:22:33');
 
         assert.isTrue(MockCustomDialog.mShown);
-        assert.equal(MockCustomDialog.mShowedTitle, _('cancelFileTransfer'));
-        assert.equal(MockCustomDialog.mShowedMsg, _('cancelFileTransfer'));
+        assert.equal(
+          MockCustomDialog.mShowedTitle,
+          'cancelFileTransfer'
+        );
+        assert.equal(
+          MockCustomDialog.mShowedMsg,
+          'cancelFileTransfer'
+        );
         assert.equal(
           MockCustomDialog.mShowedCancel.title,
-          _('continueFileTransfer')
+          'continueFileTransfer'
         );
-        assert.equal(MockCustomDialog.mShowedConfirm.title, _('cancel'));
+        assert.equal(
+          MockCustomDialog.mShowedConfirm.title,
+          'cancel'
+        );
 
         MockCustomDialog.mShowedCancel.callback();
         assert.isTrue(stubContinueTransfer.called);

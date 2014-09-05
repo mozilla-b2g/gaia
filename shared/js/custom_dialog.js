@@ -34,19 +34,20 @@ var CustomDialog = (function() {
 
     /**
     * Method that shows the dialog
-    * @param  {String} title the title of the dialog. null or empty for
-    *                  no title. or you can give a object with more options
-    *                  like {icon: path or empty string, title: String}.
+    * @param  {Object} title the l10n id for the title of the dialog. null or
+    *                  empty for no title. or you can give a object with more
+    *                  options like {icon: path or empty string,
+    *                  id: an l10n-id, args: an object of arguments that
+    *                  parameterise the 'id' field}.
     * @param  {String} msg message for the dialog. give a object like the
-    *                  title to enable more options:
-    *                  {icon: path or empty string, message: String}.
+    *                  title to enable more options.
     * @param  {Object} cancel {title, callback} object when confirm.
     * @param  {Object} confirm {title, callback} object when cancel.
-    * @param  {Element} [element] an optional element for which the dialog
-    *                             will be injected
+    * @param  {Element} [containerElement] an optional element for which the 
+    *                   dialog will be injected
     */
-    show: function dialog_show(title, msg, cancel, confirm, element) {
-      container = element || document.body;
+    show: function dialog_show(title, msg, cancel, confirm, containerElement) {
+      container = containerElement || document.body;
 
       if (screen === null) {
         screen = document.createElement('form');
@@ -64,12 +65,12 @@ var CustomDialog = (function() {
         // It's also possible to be extended with more usable decorating
         // options and elements.
         //
-        // 'title'|'message' -> Object|String -> dialog -> the element
+        // 'title'|'message' -> Object|String -> the element -> dialog
         // -> the decorated element
         var decorateWithOptions = function cd_decorateWithOptions(type, options,
                                                                   elm, dialog) {
           if ('string' === typeof options) {
-            elm.textContent = options;
+            elm.setAttribute('data-l10n-id', options);
             return elm;
           }
 
@@ -87,7 +88,25 @@ var CustomDialog = (function() {
           }
           // More decorating options goes here.
 
+          if (options.id) {
+            navigator.mozL10n.setAttributes(
+              elm,
+              options.id,
+              options.args
+            );
+          }
+
           return elm;
+        };
+
+        var setElementText = function (element, options) {
+          if ('string' === typeof options) {
+            element.setAttribute('data-l10n-id', options);
+          }
+
+          if(options.id) {
+            navigator.mozL10n.setAttributes(element, options.id, options.args);
+          }
         };
 
         header = document.createElement('h1');
@@ -111,8 +130,7 @@ var CustomDialog = (function() {
         // and form submit in system app would make system app reload.
         no.type = 'button';
 
-        var noText = document.createTextNode(cancel.title);
-        no.appendChild(noText);
+        setElementText(no, cancel.title);
         no.id = 'dialog-no';
         no.addEventListener('click', clickHandler);
         menu.appendChild(no);
@@ -125,8 +143,7 @@ var CustomDialog = (function() {
           // and form submit in system app would make system app reload.
           yes.type = 'button';
 
-          var yesText = document.createTextNode(confirm.title);
-          yes.appendChild(yesText);
+          setElementText(yes, confirm.title);
           yes.id = 'dialog-yes';
 
           //confirm can be with class "danger" or "recommend"
@@ -164,6 +181,7 @@ var CustomDialog = (function() {
 
       return screen;
     }
+
   };
 }());
 
