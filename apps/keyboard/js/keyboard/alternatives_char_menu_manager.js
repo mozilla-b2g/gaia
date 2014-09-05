@@ -75,22 +75,25 @@ function _getAlternativesForTarget(target) {
   // Handle key alternatives
   var alternatives;
   var altMap = this.app.layoutManager.currentModifiedLayout.alt;
+  var origKey = null;
 
   if (this.app.upperCaseStateManager.isUpperCaseLocked) {
-    alternatives = (altMap[target.dataset.uppercaseValue].upperCaseLocked) ?
-      altMap[target.dataset.uppercaseValue].upperCaseLocked :
-      altMap[target.dataset.uppercaseValue];
+    origKey = target.dataset.uppercaseValue;
+    alternatives = altMap[origKey].upperCaseLocked ||
+                   altMap[origKey];
   } else if (this.app.upperCaseStateManager.isUpperCase) {
-    alternatives = altMap[target.dataset.uppercaseValue];
+    origKey = target.dataset.uppercaseValue;
+    alternatives = altMap[origKey];
   } else {
-    alternatives = altMap[target.dataset.lowercaseValue];
+    origKey = target.dataset.lowercaseValue;
+    alternatives = altMap[origKey];
   }
 
   if (!alternatives || !alternatives.length) {
     return false;
   }
   // Copy the array so render.js can't modify the original.
-  return [].concat(alternatives);
+  return [].concat(origKey, alternatives);
 };
 
 AlternativesCharMenuManager.prototype.hide = function() {
