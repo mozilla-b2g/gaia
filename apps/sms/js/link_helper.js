@@ -111,8 +111,8 @@ var LINK_TYPES = {
   url: {
     regexp: new RegExp([
       // must begin at start of string, after whitespace,
-      // {1} match the protocol https?:// (optional)
-      '(https?://)?',
+      // {1} match the protocol https?:// or rtsp:// (optional)
+      '(https?://|rtsp://)?',
       // {2} match "server name": . must be followed by at least one letter
       '((?:\\.?[-\\w]){1,256})',
       // {3} match a . followed by one or more domain valid chars
@@ -141,7 +141,7 @@ var LINK_TYPES = {
 
       // For Cases where:
       //
-      //  1. There was no scheme (eg, "http", "https")
+      //  1. There was no scheme (eg, "http", "https", "rtsp")
       //  2. The matched tld is not a number
       //  3. The matched tld is not a known tld
       //
