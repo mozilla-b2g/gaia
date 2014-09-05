@@ -273,7 +273,7 @@ suite('Build Integration tests', function() {
         filePath = path.join(process.cwd(), 'apps', appName, filePath)
       }
 
-      if (path.existsSync(filePath)) {
+      if (fs.existsSync(filePath)) {
         fileInApps = fs.readFileSync(filePath);
       } else {
         filePath = filePath.replace('@' + reso + 'x', '');
