@@ -1209,42 +1209,42 @@ ImageEditor.prototype.drawCropControls = function(handle) {
   context.beginPath();
 
   // N
-  context.moveTo(centerX - 23, top - 1);
-  context.lineTo(centerX + 23, top - 1);
+  context.moveTo(centerX - 23, top + 1);
+  context.lineTo(centerX + 23, top + 1);
 
   // E
-  context.moveTo(right + 1, centerY - 23);
-  context.lineTo(right + 1, centerY + 23);
+  context.moveTo(right - 1, centerY - 23);
+  context.lineTo(right - 1, centerY + 23);
 
   // S
-  context.moveTo(centerX - 23, bottom + 1);
-  context.lineTo(centerX + 23, bottom + 1);
+  context.moveTo(centerX - 23, bottom - 1);
+  context.lineTo(centerX + 23, bottom - 1);
 
   // W
-  context.moveTo(left - 1, centerY - 23);
-  context.lineTo(left - 1, centerY + 23);
+  context.moveTo(left + 1, centerY - 23);
+  context.lineTo(left + 1, centerY + 23);
 
   // Don't draw the corner handles if there is an aspect ratio we're maintaining
   if (!this.cropAspectWidth) {
     // NE
-    context.moveTo(right - 23, top - 1);
-    context.lineTo(right + 1, top - 1);
-    context.lineTo(right + 1, top + 23);
+    context.moveTo(right - 23, top + 1);
+    context.lineTo(right - 1, top + 1);
+    context.lineTo(right - 1, top + 23);
 
     // SE
-    context.moveTo(right + 1, bottom - 23);
-    context.lineTo(right + 1, bottom + 1);
-    context.lineTo(right - 23, bottom + 1);
+    context.moveTo(right - 1, bottom - 23);
+    context.lineTo(right - 1, bottom - 1);
+    context.lineTo(right - 23, bottom - 1);
 
     // SW
-    context.moveTo(left + 23, bottom + 1);
-    context.lineTo(left - 1, bottom + 1);
-    context.lineTo(left - 1, bottom - 23);
+    context.moveTo(left + 23, bottom - 1);
+    context.lineTo(left + 1, bottom - 1);
+    context.lineTo(left + 1, bottom - 23);
 
     // NW
-    context.moveTo(left - 1, top + 23);
-    context.lineTo(left - 1, top - 1);
-    context.lineTo(left + 23, top - 1);
+    context.moveTo(left + 1, top + 23);
+    context.lineTo(left + 1, top + 1);
+    context.lineTo(left + 23, top + 1);
   }
 
   // Draw all the handles at once
