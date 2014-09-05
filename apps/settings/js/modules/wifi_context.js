@@ -63,6 +63,15 @@ define(function(require) {
     _wifiStatusTextChangeListeners: [],
 
     /**
+     * These listeners would be called when
+     *   1. wifi connection failed
+     *
+     * @memberOf WifiContext
+     * @type {Array}
+     */
+    _wifiWrongPasswordListeners: [],
+
+    /**
      * Desc about customized wifi status
      *
      * @memberOf WifiContext
@@ -214,9 +223,8 @@ define(function(require) {
           // password, delete network and force a new authentication dialog.
           delete(_currentNetwork.password);
           this.forgetNetwork(_currentNetwork);
+          this._wifiWrongPassword();
         }
-      } else if (networkStatus === 'disconnected') {
-        _currentNetwork = null;
       }
     },
 
@@ -269,6 +277,18 @@ define(function(require) {
      */
     _wifiStatusTextChange: function() {
       this._wifiStatusTextChangeListeners.forEach(function(listener) {
+        listener();
+      });
+    },
+
+    /**
+     * When wifi connection fails, we will call all registered
+     * listeners.
+     *
+     * @memberOf WifiContext
+     */
+    _wifiWrongPassword: function() {
+      this._wifiWrongPasswordListeners.forEach(function(listener) {
         listener();
       });
     },
@@ -377,6 +397,8 @@ define(function(require) {
         WifiContext._wifiStatusChangeListeners.push(callback);
       } else if (eventName === 'wifiStatusTextChange') {
         WifiContext._wifiStatusTextChangeListeners.push(callback);
+      } else if (eventName === 'wifiWrongPassword') {
+        WifiContext._wifiWrongPasswordListeners.push(callback);
       }
     },
     removeEventListener: function(eventName, callback) {
@@ -392,6 +414,9 @@ define(function(require) {
       } else if (eventName === 'wifiStatusTextChange') {
         WifiContext._removeEventListener(
           WifiContext._wifiStatusTextChangeListeners, callback);
+      } else if (eventName === 'wifiWrongPassword') {
+        WifiContext._removeEventListener(
+          WifiContext._wifiWrongPasswordListeners, callback);
       }
     },
     get wifiStatusText() {
@@ -412,6 +437,6 @@ define(function(require) {
     },
     get authOptions() {
       return _authOptions;
-    },
+    }
   };
 });
