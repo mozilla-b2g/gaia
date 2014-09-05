@@ -6142,6 +6142,7 @@ suite('thread_ui.js >', function() {
         };
         ThreadUI.afterEnter(transitionArgs);
         sinon.assert.calledWith(ThreadUI.handleForward, transitionArgs.forward);
+        sinon.assert.notCalled(ThreadUI.handleDraft);
       });
 
       test('focus the composer', function() {

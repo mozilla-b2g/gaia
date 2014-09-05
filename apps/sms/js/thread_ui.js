@@ -634,7 +634,9 @@ var ThreadUI = {
     // TODO Bug 1010223: should move to beforeEnter
     this.handleActivity(args.activity);
     this.handleForward(args.forward);
-    this.handleDraft(+args.draftId);
+    if (!args.forward) {
+      this.handleDraft(+args.draftId);
+    }
     this.recipients.focus();
 
     // not strictly necessary but better for consistency
@@ -2053,6 +2055,10 @@ var ThreadUI = {
           params.items.push({
             l10nId: 'forward',
             method: function forwardMessage(messageId) {
+              if (!Compose.isEmpty()) {
+                ThreadUI.saveDraft({preserve: true, autoSave: true});
+                Drafts.store();
+              }
               Navigation.toPanel('composer', {
                 forward: {
                   messageId: messageId
