@@ -12,7 +12,7 @@ var ActivityHandler = {
         });
         
         utils.status.show(
-          navigator.mozL10n.get(saved ? 'added-to-home-screen' :
+          navigator.mozL10n.get(saved ? 'added-to-home-screen-message' :
                                         'updated-bookmark'));
       },
       oncancelled: function oncancelled() {
