@@ -27,7 +27,7 @@ define(function(require) {
       this._elements = elements;
       this._customize();
       this._configureTones();
-      this._handleRingTones();
+      this._handleTones();
 
       this._elements.manageTones.addEventListener('click',
         this._manageTonesClickHandler);
@@ -93,7 +93,7 @@ define(function(require) {
      * @access private
      * @memberOf Sound.prototype
      */
-    _handleRingTones: function s_handleRingTones() {
+    _handleTones: function s_handleTones() {
       // For each kind of tone, hook up the button that will allow the user
       // to select a sound for that kind of tone.
       this._tones.forEach(function(tone) {

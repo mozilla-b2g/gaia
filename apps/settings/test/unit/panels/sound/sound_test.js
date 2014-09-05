@@ -75,22 +75,22 @@ suite('Sound > ', function() {
     setup(function() {
       this.sinon.stub(sound, '_customize');
       this.sinon.stub(sound, '_configureTones');
-      this.sinon.stub(sound, '_handleRingTones');
+      this.sinon.stub(sound, '_handleTones');
       sound.init(mockElements);
     });
 
-    test('we would call _configureTones and _handleRingTones in init',
+    test('we would call _configureTones and _handleTones in init',
       function() {
         assert.ok(sound._customize.called);
         assert.ok(sound._configureTones.called);
-        assert.ok(sound._handleRingTones.called);
+        assert.ok(sound._handleTones.called);
     });
   });
 
   suite('_customize', function() {
     setup(function() {
       this.sinon.stub(sound, '_configureTones');
-      this.sinon.stub(sound, '_handleRingTones');
+      this.sinon.stub(sound, '_handleTones');
       window.getSupportedNetworkInfo = function() {};
       window.loadJSON = function() {};
       this.sinon.stub(window, 'getSupportedNetworkInfo');
@@ -109,7 +109,7 @@ suite('Sound > ', function() {
   suite('_configureTones', function() {
     setup(function() {
       this.sinon.stub(sound, '_customize');
-      this.sinon.stub(sound, '_handleRingTones');
+      this.sinon.stub(sound, '_handleTones');
       this.sinon.stub(window, 'getSupportedNetworkInfo');
     });
 
@@ -133,10 +133,10 @@ suite('Sound > ', function() {
     });
   });
 
-  suite('_handleRingTones', function() {
+  suite('_handleTones', function() {
     var nameKey = 'notification.ringtone.name';
     setup(function() {
-      sound._handleRingTones();
+      sound._handleTones();
     });
 
     test('we would set button textContent in SettingsListener', function() {
