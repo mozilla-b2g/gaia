@@ -91,6 +91,13 @@
      */
     handleEvent: function(evt) {
       var app = evt.detail;
+
+      // If the app is not a browser, do not track places as tracking places
+      // currently has a non-trivial startup cost.
+      if (app && !app.isBrowser()) {
+        return;
+      }
+
       switch (evt.type) {
       case 'apptitlechange':
         this.setPlaceTitle(app.config.url, app.title);
