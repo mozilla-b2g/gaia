@@ -18,7 +18,8 @@ suite('Alarm Test', function() {
 
   suite('Date handling', function() {
 
-    var now = new Date(1398387324081); // thursday
+    //var now = new Date(1398387324081); // thursday
+    var now = new Date(Date.UTC(2014, 3, 24)); // thursday
 
     setup(function() {
       this.alarm = new Alarm({
