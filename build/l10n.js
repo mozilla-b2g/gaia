@@ -23,6 +23,12 @@
       DEBUG = true;
     }
 
+    ctx.addEventListener('warning', function(err) {
+      if (err.loc === 'en-US') {
+        throw err;
+      }
+    });
+
     if (DEBUG) {
       ctx.addEventListener('error', addBuildMessage.bind(this, 'error'));
       ctx.addEventListener('warning', addBuildMessage.bind(this, 'warn'));
