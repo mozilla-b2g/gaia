@@ -51,6 +51,7 @@ suite('system/Places', function() {
     function sendEvent(event, url) {
       window.dispatchEvent(new CustomEvent(event, {
         detail: {
+          isBrowser: function() { return true; },
           config: {
             url: url
           }
@@ -82,6 +83,7 @@ suite('system/Places', function() {
 
       window.dispatchEvent(new CustomEvent('apptitlechange', {
         detail: {
+          isBrowser: function() { return true; },
           title: title,
           config: {
             url: url1
@@ -103,6 +105,7 @@ suite('system/Places', function() {
 
       window.dispatchEvent(new CustomEvent('appiconchange', {
         detail: {
+          isBrowser: function() { return true; },
           favicons: oneIcon,
           config: {
             url: url1
