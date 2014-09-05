@@ -8,6 +8,7 @@
     <link rel="resource" type="application/l10n" href="/shared/locales/phone_types.ini">
     <link rel="resource" type="application/l10n" href="/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/keypad.ini">
+    <link rel="resource" type="application/l10n" href="/shared/locales/sim_picker.ini"/>
 
     <link rel="stylesheet" type="text/css" href="/shared/style/animations.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/dialer.css">
@@ -28,13 +29,16 @@
 
     <!-- Lazy load all the things:
     <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/sim_picker.css">
     <script defer src="/shared/js/confirm.js"></script>
     <script defer src="/shared/js/sim_settings_helper.js"></script>
+    <script defer src="/shared/js/sim_picker.js"></script>
     -->
 
     <link rel="import" href="/shared/elements/confirmation-message.html">
     <link rel="import" href="/shared/elements/contacts/contact_in_overlay.html">
     <link rel="import" href="/shared/elements/contacts/contact_list_overlay.html">
+    <link rel="import" href="/shared/elements/sim_picker.html">
   </head>
   <body class="hidden">
     <form role="dialog" data-type="confirm" id="emergencyAlert" hidden>
@@ -133,5 +137,6 @@
     </form>
     <button is="contact-in-overlay" id="contact-in-overlay" class="contact-item ci--action-menu" hidden></button>
     <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
+    <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" hidden></form>
   </body>
 </html>
