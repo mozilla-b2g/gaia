@@ -11,6 +11,7 @@ suite('m4a tags', function() {
 
   test('m4a tags', function(done) {
     parseMetadata('/test-data/aac-tags.m4a').then(function(metadata) {
+      assert.equal(metadata.tag_type, 'mp4');
       assert.equal(metadata.artist, 'The Tragically Hip');
       assert.equal(metadata.album, 'Trouble At The Henhouse');
       assert.equal(metadata.title, 'Giftshop');

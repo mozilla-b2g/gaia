@@ -79,6 +79,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   }
 
   // These are the property names we use in the returned metadata object
+  var TAG_TYPE = 'tag_type';
   var TITLE = 'title';
   var ARTIST = 'artist';
   var ALBUM = 'album';
@@ -293,6 +294,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     if (p !== -1)
       album = album.substring(0, p);
 
+    metadata[TAG_TYPE] = 'id3v1';
     metadata[TITLE] = title || undefined;
     metadata[ARTIST] = artist || undefined;
     metadata[ALBUM] = album || undefined;
@@ -322,6 +324,9 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     }
 
     var id3revision = header.readUnsignedByte();
+
+    metadata[TAG_TYPE] = 'id3v2.' + id3version + '.' + id3revision;
+
     var id3flags = header.readUnsignedByte();
     var tag_unsynchronized = ((id3flags & 0x80) !== 0);
     var has_extended_header = ((id3flags & 0x40) !== 0);
@@ -619,9 +624,11 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       switch (first_byte) {
         case 3:
           valid = page.readASCIIText(6) === 'vorbis';
+          metadata[TAG_TYPE] = 'vorbis';
           break;
         case 79:
           valid = page.readASCIIText(7) === 'pusTags';
+          metadata[TAG_TYPE] = 'opus';
           break;
       }
       if (!valid) {
@@ -714,6 +721,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   // http://atomicparsley.sourceforge.net/mpeg-4files.html
   //
   function parseMP4Metadata(header) {
+    metadata[TAG_TYPE] = 'mp4';
     //
     // XXX
     // I think I could probably restructure this somehow. The atoms or "boxes"
