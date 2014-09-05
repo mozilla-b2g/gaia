@@ -12,7 +12,7 @@ class BookmarkMenu(Base):
 
     # System app - add bookmark to homescreen dialog
     _add_bookmark_to_home_screen_frame_locator = (By.CSS_SELECTOR, 'iframe[src^="app://bookmark"][src$="save.html"]')
-    _add_bookmark_to_home_screen_dialog_button_locator = (By.ID, 'add-button')
+    _add_bookmark_to_home_screen_dialog_button_locator = (By.ID, 'done-button')
     _bookmark_title_input_locator = (By.ID, 'bookmark-title')
 
     def __init__(self, marionette):
