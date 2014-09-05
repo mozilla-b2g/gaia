@@ -1,5 +1,5 @@
 /*global MocksHelper, MockL10n, MockGestureDetector, MockDialog,
-         loadBodyHTML, ThreadUI, MessageManager, MockNavigatormozMobileMessage,
+         loadBodyHTML, ThreadUI, MessageManager,
          ThreadListUI, Contacts, MockContact, MockThreadList,
          MockThreadMessages, getMockupedDate, Utils */
 /*
@@ -16,7 +16,6 @@ require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_time_headers.js');
-requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_attachment_menu.js');
 requireApp('sms/test/unit/mock_information.js');
 requireApp('sms/test/unit/mock_dialog.js');
@@ -78,7 +77,6 @@ suite('SMS App Unit-Test', function() {
   }
 
   var nativeMozL10n = navigator.mozL10n;
-  var realMozMobileMessage;
   var realGestureDetector;
 
   suiteSetup(function() {
@@ -125,12 +123,9 @@ suite('SMS App Unit-Test', function() {
     // ...And render
     ThreadUI.init();
     ThreadListUI.init();
-    realMozMobileMessage = ThreadUI._mozMobileMessage;
-    ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
   });
 
   suiteTeardown(function() {
-    ThreadUI._mozMobileMessage = realMozMobileMessage;
     // cleanup
     window.document.body.innerHTML = '';
   });

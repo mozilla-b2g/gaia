@@ -110,11 +110,6 @@ var ThreadUI = {
     this.mainWrapper = document.getElementById('main-wrapper');
     this.threadMessages = document.getElementById('thread-messages');
 
-    // Allow for stubbing in environments that do not implement the
-    // `navigator.mozMobileMessage` API
-    this._mozMobileMessage = navigator.mozMobileMessage ||
-      window.DesktopMockNavigatormozMobileMessage;
-
     window.addEventListener('resize', this.resizeHandler.bind(this));
 
     // binding so that we can remove this listener later
@@ -1289,22 +1284,6 @@ var ThreadUI = {
 
     number = thread.participants[0];
     others = thread.participants.length - 1;
-
-    // For Desktop testing, there is a fake mozContacts but it's not working
-    // completely. So in the case of Desktop testing we are going to execute
-    // the callback directly in order to make it work!
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=836733
-    if (!this._mozMobileMessage) {
-      navigator.mozL10n.setAttributes(
-        this.headerText,
-        'thread-header-text',
-        {
-          name: number,
-          n: others
-        }
-      );
-      return Promise.resolve();
-    }
 
     // Add data to contact activity interaction
     this.headerText.dataset.number = number;

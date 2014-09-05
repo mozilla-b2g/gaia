@@ -1,5 +1,5 @@
 /*global mocha, MocksHelper, MockAttachment, MockL10n, loadBodyHTML, ThreadUI,
-         MockNavigatormozMobileMessage, Contacts, Compose, MockErrorDialog,
+         Contacts, Compose, MockErrorDialog,
          Template, MockSMIL, Utils, MessageManager, LinkActionHandler,
          LinkHelper, Attachment, MockContact, MockOptionMenu,
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
@@ -34,7 +34,6 @@ require('/test/unit/mock_attachment.js');
 require('/test/unit/mock_attachment_menu.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_utils.js');
-require('/test/unit/mock_navigatormoz_sms.js');
 require('/test/unit/mock_link_helper.js');
 require('/test/unit/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -113,7 +112,6 @@ suite('thread_ui.js >', function() {
   var recipientSuggestions;
 
   var realMozL10n;
-  var realMozMobileMessage;
 
   var mocksHelper = mocksHelperForThreadUI;
   var testImageBlob;
@@ -194,8 +192,7 @@ suite('thread_ui.js >', function() {
 
     ThreadUI.recipients = null;
     ThreadUI.init();
-    realMozMobileMessage = ThreadUI._mozMobileMessage;
-    ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
+
     sticky = MockStickyHeader;
   });
 
@@ -209,9 +206,8 @@ suite('thread_ui.js >', function() {
     document.body.innerHTML = '';
     Threads.currentId = null;
 
-    MockNavigatormozMobileMessage.mTeardown();
     mocksHelper.teardown();
-    ThreadUI._mozMobileMessage = realMozMobileMessage;
+
     sticky = null;
   });
 
