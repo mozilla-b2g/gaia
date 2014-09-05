@@ -239,7 +239,9 @@ var ThreadListUI = {
     }
     if (selected) {
       this.deleteButton.disabled = false;
-      navigator.mozL10n.setAttributes(this.editMode, 'selected', {n: selected});
+      navigator.mozL10n.setAttributes(this.editMode, 'selected-threads', {
+        n: selected
+      });
     } else {
       this.deleteButton.disabled = true;
       navigator.mozL10n.setAttributes(this.editMode, 'selectThreads-title');
