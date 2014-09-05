@@ -180,7 +180,6 @@ var Browser = {
 
     var filesToLoad = [
       // css files
-      'shared/style/headers.css',
       'shared/style/buttons.css',
       'shared/style/input_areas.css',
       'shared/style/status.css',
@@ -209,7 +208,7 @@ var Browser = {
       'tabs-list', 'settings-button',
       'close-tab', 'try-reloading', 'bookmark-menu-add',
       'bookmark-menu-remove', 'bookmark-menu-cancel', 'bookmark-menu-edit',
-      'bookmark-entry-sheet-cancel', 'bookmark-entry-sheet-done',
+      'bookmark-entry-sheet-header', 'bookmark-entry-sheet-done',
       'bookmark-title', 'bookmark-url', 'bookmark-previous-url',
       'bookmark-menu-add-home', 'new-tab-button',
       'danger-dialog-message', 'danger-dialog-cancel', 'danger-dialog-ok'
@@ -257,7 +256,7 @@ var Browser = {
        this.showBookmarkEntrySheet.bind(this));
      this.bookmarkMenuAddHome.addEventListener('click',
        this.addLinkToHome.bind(this));
-     this.bookmarkEntrySheetCancel.addEventListener('click',
+     this.bookmarkEntrySheetHeader.addEventListener('action',
        this.hideBookmarkEntrySheet.bind(this));
      this.bookmarkEntrySheetDone.addEventListener('click',
        this.saveBookmark.bind(this));

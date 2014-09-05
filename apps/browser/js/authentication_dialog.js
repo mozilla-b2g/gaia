@@ -26,7 +26,7 @@ var AuthenticationDialog = {
     var elementIDs = [
       'http-authentication-dialog', 'http-authentication-username',
       'http-authentication-password', 'http-authentication-message',
-      'http-authentication-ok', 'http-authentication-cancel'];
+      'http-authentication-ok', 'http-authentication-header'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
@@ -44,7 +44,7 @@ var AuthenticationDialog = {
     this.boundToWindow = bindToWindow || false;
 
     this.httpAuthenticationOk.addEventListener('click', this);
-    this.httpAuthenticationCancel.addEventListener('click', this);
+    this.httpAuthenticationHeader.addEventListener('action', this);
   },
 
   /**
@@ -65,7 +65,7 @@ var AuthenticationDialog = {
         break;
 
       case 'click':
-        if (evt.currentTarget === this.httpAuthenticationCancel) {
+        if (evt.currentTarget === this.httpAuthenticationHeader) {
           this.cancelHandler();
         } else {
           this.confirmHandler();

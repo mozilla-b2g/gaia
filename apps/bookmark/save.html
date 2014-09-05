@@ -11,10 +11,13 @@
     <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" defer src="shared/js/url_helper.js"></script>
     <script type="text/javascript" defer src="shared/js/bookmarks_database.js"></script>
-    <script type="text/javascript" defer src="shared/js/font_size_utils.js"></script>
+    <!-- Web Components -->
+    <script defer src="shared/elements/config.js"></script>
+    <script defer src="shared/elements/gaia-header/dist/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" /> -->
 
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
 
@@ -25,18 +28,13 @@
 
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
   </head>
-  <body>
+  <body class="theme-settings">
     <section id="bookmark-entry-sheet" role="region" class="skin-organic">
-      <header>
-        <button id="cancel-button" type="button">
-          <span class="icon icon-close" data-l10n-id="cancel-action"></span>
-        </button>
-        <menu type="toolbar">
-          <button id="edit-button" disabled type="button" role="menuitem" data-l10n-id="done-action"></button>
-        </menu>
+      <gaia-header id="bookmark-entry-header" action="close">
         <h1 id="add-bookmark-header" data-l10n-id="add-bookmark-header"></h1>
         <h1 id="edit-bookmark-header" data-l10n-id="edit-bookmark-header"></h1>
-      </header>
+        <button id="edit-button" disabled type="button" role="menuitem" data-l10n-id="done-action"></button>
+      </gaia-header>
       <form id="bookmark-form">
         <label data-l10n-id="website-name">
           <p>

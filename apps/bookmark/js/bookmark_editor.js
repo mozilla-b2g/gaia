@@ -22,11 +22,11 @@ var BookmarkEditor = {
     this.mode = document.body.dataset.mode = mode;
     this.bookmarkTitle = document.getElementById('bookmark-title');
     this.bookmarkUrl = document.getElementById('bookmark-url');
-    this.cancelButton = document.getElementById('cancel-button');
+    this.header = document.getElementById('bookmark-entry-header');
     this.saveButton = document.getElementById(mode === 'add' ? 'add-button' :
                                                                'edit-button');
 
-    this.cancelButton.addEventListener('click', this.close.bind(this));
+    this.header.addEventListener('action', this.close.bind(this));
     this.saveListener = this.save.bind(this);
     this.saveButton.addEventListener('click', this.saveListener);
 
