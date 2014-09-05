@@ -190,10 +190,12 @@
 
       case '_loading':
         this.show(this.progress);
+        this.progress.start();
         break;
 
       case '_loaded':
         this.hide(this.progress);
+        this.progress.stop();
         break;
 
       case 'mozbrowserloadstart':
