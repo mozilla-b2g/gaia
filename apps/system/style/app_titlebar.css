@@ -21,7 +21,7 @@
 }
 
 .appWindow .titlebar .notifications-shadow {
-  background-image: -moz-element(#notification-toaster);
+  background-image: -moz-element(#ambient-indicator);
   width: 100%;
   position: absolute;
   top: 0;

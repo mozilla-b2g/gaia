@@ -45,10 +45,10 @@
   top: -.2rem;
   width: 100%;
   height: 5.2rem;
-  background-color: #00BCE2;
-  transform: translateY(-5.2rem);
-  transition: transform 0s ease 1s, opacity .5s ease .5s;
-  opacity: 0;
+  background-color: transparent;
+  visibility: hidden;
+  transform: translateY(-5rem);
+  transition: transform ease .3s, background-color 0s ease .3s, visibility 0s ease .3s;
 }
 
 /*
@@ -60,7 +60,7 @@
   position: relative;
 }
 
-.utility-tray #notification-toaster {
+.utility-tray #ambient-indicator {
   top: 0;
 }
 
@@ -73,16 +73,6 @@
   margin: auto;
   left: 1.5rem;
   pointer-events: none;
-}
-
-#notification-container {
-  visibility: hidden;
-  transition: visibility 0s ease .2s;
-}
-
-.displayed #notification-container {
-  visibility: visible;
-  transition: none;
 }
 
 #notification-container > div {
@@ -114,7 +104,26 @@
   white-space: nowrap;
 }
 
-#notifications-indicator {
+#notification-toaster.displayed {
+  transform: translateY(0);
+  transition: transform .2s ease 1.2s, background-color 0s ease 1.2s, visibility 0s ease 1.2s;
+  background-color: #00BCE2;
+  visibility: visible;
+}
+
+#ambient-indicator {
+  position: absolute;
+  top: -.2rem;
+  height: .2rem;
+  width: 100%;
+  opacity: 0;
+  background-color: #00BCE2;
+  transform: translateY(-.2rem);
+  transition: opacity .5s ease .5s, transform 0s ease 1s;
+}
+
+#notification-toaster.displayed:after,
+#ambient-indicator:after {
   position: absolute;
   right: 0;
   left: 0;
@@ -123,52 +132,41 @@
   border-right: 0.2rem solid transparent;
   border-top: 0.2rem solid #B3F3FF;
   bottom: 0;
-  transition: opacity 0.5s ease 0.5s;
+  content: '';
 }
 
-.displayed #notifications-indicator {
+#notification-toaster:after {
+  border-color: white;
+  visibility: visible;
+}
+
+#notification-toaster.displayed:after {
   animation-name: toaster;
   animation-duration: 1.2s;
   border-color: #00BCE2;
-}
-
-#notification-toaster.displayed {
-  visibility: visible;
-  transform: translateY(0);
-  transition: transform .2s ease 1.2s;
-  opacity: 1;
-}
-
-#notification-toaster.unread:not(.displayed) {
-  transform: translateY(-5rem);
-  transition: transform .2s ease-in-out;
-  opacity: 1;
-}
-
-:not(.unread) .displayed #notifications-indicator {
   transform: translateY(.2rem);
+  transition: border-color 0s ease 1.2s;
 }
 
-.unread #notifications-indicator,
-.unread.displayed #notifications-indicator {
-  opacity: 1;
+#ambient-indicator.unread {
   transition: none;
   transform: translateY(0);
+  opacity: 1;
 }
 
-#notifications-indicator.small {
+#ambient-indicator.small:after {
   width: 8.6rem;
 }
 
-#notifications-indicator.medium {
+#ambient-indicator.medium:after {
   width: 16.8rem;
 }
 
-#notifications-indicator.big {
+#ambient-indicator.big:after {
   width: 24.8rem;
 }
 
-#notifications-indicator.full {
+#ambient-indicator.full:after {
   width: 100%;
   background-color: white;
 }
