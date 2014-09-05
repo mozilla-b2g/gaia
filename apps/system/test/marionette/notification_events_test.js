@@ -258,8 +258,7 @@ marionette('Notification events', function() {
     done();
   });
 
-  // Disable the test, refer to http://bugzil.la/1061221
-  test.skip('close event removes resent notification', function(done) {
+  test('close event removes resent notification', function(done) {
     var notificationTitle = 'Title:' + Date.now();
 
     // switch to calendar app and send notification
