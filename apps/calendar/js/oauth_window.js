@@ -63,8 +63,8 @@ Calendar.OAuthWindow = (function() {
     },
 
     selectors: {
-      browserTitle: 'header > h1',
-      browerCancelButton: 'button.cancel',
+      browserHeader: 'gaia-header',
+      browserTitle: 'gaia-header > h1',
       browserContainer: '.browser-container'
     },
 
@@ -76,8 +76,8 @@ Calendar.OAuthWindow = (function() {
       return this._findElement('browserTitle', this.element);
     },
 
-    get browerCancelButton() {
-      return this._findElement('browerCancelButton', this.element);
+    get browserHeader() {
+      return this._findElement('browserHeader', this.element);
     },
 
     _handleFinalRedirect: function(url) {
@@ -131,8 +131,8 @@ Calendar.OAuthWindow = (function() {
       this.element.classList.add(Calendar.View.ACTIVE);
 
       // handle cancel events
-      this.browerCancelButton.addEventListener(
-        'click', this._handleUserTriggeredClose
+      this.browserHeader.addEventListener(
+        'action', this._handleUserTriggeredClose
       );
 
       // setup browser iframe
@@ -156,8 +156,8 @@ Calendar.OAuthWindow = (function() {
         'mozbrowserlocationchange', this
       );
 
-      this.browerCancelButton.removeEventListener(
-        'click', this._handleUserTriggeredClose
+      this.browserHeader.removeEventListener(
+        'action', this._handleUserTriggeredClose
       );
 
       this.element.classList.remove(Calendar.View.ACTIVE);
