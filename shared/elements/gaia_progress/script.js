@@ -12,10 +12,33 @@ window.GaiaProgress = (function(win) {
     var shadow = this.createShadowRoot();
 
     this._template = template.content.cloneNode(true);
+    this._progress = this._template.getElementById('progress');
 
     shadow.appendChild(this._template);
 
     ComponentUtils.style.call(this, baseurl);
+
+    if (this.hasAttribute('animated')) {
+      this.start();
+    }
+  };
+
+  /**
+   * Starts the animation for the gaia-progress element.
+   * This is a workaround for bug 962594.
+   */
+  proto.start = function() {
+    this.setAttribute('animated', '');
+    this._progress.classList.add('animated');
+  };
+
+  /**
+   * Stops the animation for the gaia-progress element.
+   * This is a workaround for bug 962594.
+   */
+  proto.stop = function() {
+    this.removeAttribute('animated');
+    this._progress.classList.remove('animated');
   };
 
   var template = document.createElement('template');

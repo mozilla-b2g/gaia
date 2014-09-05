@@ -3,6 +3,8 @@
 /* exported MockBookmarksDatabase */
 'use strict';
 
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_progress/script.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_system.js');
@@ -88,16 +90,21 @@ suite('system/AppChrome', function() {
       var app = new AppWindow(fakeWebSite);
       var chrome = new AppChrome(app);
       var stubShowProgress = this.sinon.stub(chrome, 'show');
+      var progressStart = this.sinon.stub(chrome.progress, 'start');
+      assert.isFalse(chrome.progress.hasAttribute('animated'));
       chrome.handleEvent({ type: '_loading' });
       assert.isTrue(stubShowProgress.calledWith(chrome.progress));
+      assert.isTrue(progressStart.calledOnce);
     });
 
     test('app is loaded', function() {
       var app = new AppWindow(fakeWebSite);
       var chrome = new AppChrome(app);
       var stubHideProgress = this.sinon.stub(chrome, 'hide');
+      var progressStop = this.sinon.stub(chrome.progress, 'stop');
       chrome.handleEvent({ type: '_loaded' });
       assert.isTrue(stubHideProgress.calledWith(chrome.progress));
+      assert.isTrue(progressStop.calledOnce);
     });
 
     test('app location is changed', function() {
