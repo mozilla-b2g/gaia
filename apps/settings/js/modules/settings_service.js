@@ -102,12 +102,6 @@ define(function(require) {
         // We have to make sure l10n is ready before navigations
         navigator.mozL10n.once(function() {
           PanelCache.get(panelId, function(panel) {
-            // Check if there is any pending navigation.
-            if (_pendingNavigationRequest) {
-              callback();
-              return;
-            }
-
             var newPanelElement = document.getElementById(panelId);
             var currentPanelId =
                _currentNavigation && _currentNavigation.panelId;
