@@ -49,6 +49,11 @@ class GaiaApps(object):
         return self.marionette.execute_async_script("return GaiaApps.setPermission('%s', '%s', '%s')" %
                                                     (app_name, permission_name, value))
 
+    def set_permission_by_url(self, manifest_url, permission_name, value):
+        self.marionette.switch_to_frame()
+        return self.marionette.execute_async_script("return GaiaApps.setPermissionByUrl('%s', '%s', '%s')" %
+                                                    (manifest_url, permission_name, value))
+
     def launch(self, name, manifest_url=None, entry_point=None, switch_to_frame=True, launch_timeout=None):
         self.marionette.switch_to_frame()
 
