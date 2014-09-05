@@ -42,10 +42,10 @@ var StatusBar = {
     ['wifi', 16 + 4],
     ['connections', null], // Width can change
     ['time', null], // Width can change
+    ['system-downloads', 16 + 4],
     ['geolocation', 16 + 4],
     ['network-activity', 16 + 4],
     ['tethering', 16 + 4],
-    ['system-downloads', 16 + 4],
     ['bluetooth-transferring', 16 + 4],
     ['bluetooth', 16 + 4],
     ['nfc', 16 + 4],
