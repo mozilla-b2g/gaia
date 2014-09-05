@@ -113,8 +113,9 @@
       this.active = false;
 
       var backdrop = this.backdrop;
-
+      var finishTimeout;
       var finish = (function() {
+        clearTimeout(finishTimeout);
         this.form.classList.add('hidden');
         this.rocketbar.classList.remove('active');
         this.screen.classList.remove('rocketbar-focused');
@@ -132,6 +133,8 @@
           window.removeEventListener('keyboardhidden', onhiddenkeyboard);
           finish();
         });
+        // Fallback plan in case we don't get a keyboardhidden event.
+        finishTimeout = setTimeout(finish, 1000);
         this.blur();
       } else {
         finish();
