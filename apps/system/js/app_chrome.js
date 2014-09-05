@@ -644,7 +644,10 @@
   };
 
   AppChrome.prototype.showWindows = function ac_showWindows() {
-    window.dispatchEvent(new CustomEvent('taskmanagershow'));
+    window.dispatchEvent(
+      new CustomEvent('taskmanagershow',
+                      { detail: { filter: 'browser-only' }})
+    );
   };
 
   AppChrome.prototype.showOverflowMenu = function ac_showOverflowMenu() {
