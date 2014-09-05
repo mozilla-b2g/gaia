@@ -46,5 +46,26 @@ Month.prototype = {
 
   squareDots: function(square) {
     return square.findElements('.icon-calendar-dot');
-  }
+  },
+
+  goToNext: function() {
+    this._swipe(200, 40);
+  },
+
+  goToPrev: function() {
+    this._swipe(40, 200);
+  },
+
+  _swipe: function(startX, endX) {
+    var previousMonth = this.activeMonth;
+
+    this.actions
+      .flick(this.activeMonth, startX, 80, endX, 80)
+      .perform();
+
+    this.client.waitFor(function() {
+      return previousMonth.id !== this.activeMonth.id;
+    }.bind(this));
+  },
+
 };
