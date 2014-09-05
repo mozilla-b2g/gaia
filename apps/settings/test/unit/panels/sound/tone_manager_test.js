@@ -2,7 +2,7 @@
 'use strict';
 
 suite('Sound > ', function() {
-  var sound;
+  var toneManager;
   var realL10n, realTelephony, realMozSettings, realMozMobileConnections;
   var mockSettingsListener;
   var dom = document.createElement('div');
@@ -19,15 +19,14 @@ suite('Sound > ', function() {
     'unit/mock_l10n',
     'shared_mocks/mock_navigator_moz_settings',
     'shared_mocks/mock_settings_listener',
-    'panels/sound/sound',
+    'panels/sound/tone_manager',
     'shared_mocks/mock_navigator_moz_mobile_connections'
   ];
   var maps = {
     '*': {
       'shared/settings_listener': 'shared_mocks/mock_settings_listener',
       'modules/settings_cache': 'unit/mock_settings_cache',
-      'shared/omadrm/fl': 'shared_mocks/mock_omadrm_fl',
-      'panels/sound/volume': ''
+      'shared/omadrm/fl': 'shared_mocks/mock_omadrm_fl'
     }
   };
 
@@ -45,7 +44,7 @@ suite('Sound > ', function() {
     testRequire(modules, maps, function(
       MockNavigatorMozTelephony, MockL10n,
       MockNavigatorSettings, MockSettingsListener, module) {
-        sound = module();
+        toneManager = module();
         mockSettingsListener = MockSettingsListener;
         // mock l10n
         realL10n = window.navigator.mozL10n;
@@ -73,28 +72,28 @@ suite('Sound > ', function() {
 
   suite('initiation', function() {
     setup(function() {
-      this.sinon.stub(sound, '_customize');
-      this.sinon.stub(sound, '_configureTones');
-      this.sinon.stub(sound, '_handleTones');
-      sound.init(mockElements);
+      this.sinon.stub(toneManager, '_customize');
+      this.sinon.stub(toneManager, '_configureTones');
+      this.sinon.stub(toneManager, '_handleTones');
+      toneManager.init(mockElements);
     });
 
     test('we would call _configureTones and _handleTones in init',
       function() {
-        assert.ok(sound._customize.called);
-        assert.ok(sound._configureTones.called);
-        assert.ok(sound._handleTones.called);
+        assert.ok(toneManager._customize.called);
+        assert.ok(toneManager._configureTones.called);
+        assert.ok(toneManager._handleTones.called);
     });
   });
 
   suite('_customize', function() {
     setup(function() {
-      this.sinon.stub(sound, '_configureTones');
-      this.sinon.stub(sound, '_handleTones');
+      this.sinon.stub(toneManager, '_configureTones');
+      this.sinon.stub(toneManager, '_handleTones');
       window.getSupportedNetworkInfo = function() {};
       window.loadJSON = function() {};
       this.sinon.stub(window, 'getSupportedNetworkInfo');
-      sound.init(mockElements);
+      toneManager.init(mockElements);
     });
 
     teardown(function() {
@@ -108,8 +107,8 @@ suite('Sound > ', function() {
 
   suite('_configureTones', function() {
     setup(function() {
-      this.sinon.stub(sound, '_customize');
-      this.sinon.stub(sound, '_handleTones');
+      this.sinon.stub(toneManager, '_customize');
+      this.sinon.stub(toneManager, '_handleTones');
       this.sinon.stub(window, 'getSupportedNetworkInfo');
     });
 
@@ -119,35 +118,35 @@ suite('Sound > ', function() {
 
     test('we would push alerttone by default in tones list', function() {
       navigator.mozTelephony = null;
-      sound.init(mockElements);
-      assert.equal(sound._tones.length, 1);
-      assert.equal(sound._tones[0].pickType, 'alerttone');
+      toneManager.init(mockElements);
+      assert.equal(toneManager._tones.length, 1);
+      assert.equal(toneManager._tones[0].pickType, 'alerttone');
     });
 
     test('If device support telephony API, show the section for ringtones',
       function() {
         navigator.mozTelephony = true;
-        sound.init(mockElements);
-        assert.equal(sound._tones.length, 2);
-        assert.equal(sound._tones[1].pickType, 'ringtone');
+        toneManager.init(mockElements);
+        assert.equal(toneManager._tones.length, 2);
+        assert.equal(toneManager._tones[1].pickType, 'ringtone');
     });
   });
 
   suite('_handleTones', function() {
     var nameKey = 'notification.ringtone.name';
     setup(function() {
-      sound._handleTones();
+      toneManager._handleTones();
     });
 
     test('we would set button textContent in SettingsListener', function() {
       mockSettingsListener.mCallbacks[nameKey]('classic');
-      assert.equal(sound._tones[0].button.textContent, 'classic');
+      assert.equal(toneManager._tones[0].button.textContent, 'classic');
     });
   });
 
   suite('_checkRingtone', function() {
     setup(function(done) {
-      sound._tones = [{
+      toneManager._tones = [{
         pickType: 'alerttone',
         settingsKey: 'notification.ringtone',
         allowNone: true,
@@ -158,13 +157,13 @@ suite('Sound > ', function() {
         var result = {
           'blob': blob
         };
-        sound._checkRingtone(result, sound._tones[0]);
+        toneManager._checkRingtone(result, toneManager._tones[0]);
         done();
       });
     });
 
     test('button textContent is changed in _checkRingtone', function() {
-      assert.equal(sound._tones[0].button.textContent, 'classic');
+      assert.equal(toneManager._tones[0].button.textContent, 'classic');
     });
   });
 });

@@ -1,7 +1,7 @@
 /* global getSupportedNetworkInfo, loadJSON, URL, MozActivity */
 /**
- * Handle sound panel functionality
- * @module Sound
+ * Handle tone functionality in sound panel
+ * @module ToneManager
  */
 define(function(require) {
   'use strict';
@@ -9,21 +9,20 @@ define(function(require) {
   var SettingsListener = require('shared/settings_listener');
   var SettingsCache = require('modules/settings_cache');
   var ForwardLock = require('shared/omadrm/fl');
-  require('panels/sound/volume');
 
-  var Sound = function() {
+  var ToneManager = function() {
     this._elements = null;
     this._tones = null;
   };
 
-  Sound.prototype = {
+  ToneManager.prototype = {
     /**
      * initialization
      *
      * @access public
-     * @memberOf Sound.prototype
+     * @memberOf ToneManager.prototype
      */
-    init: function s_init(elements) {
+    init: function tm_init(elements) {
       this._elements = elements;
       this._customize();
       this._configureTones();
@@ -37,9 +36,9 @@ define(function(require) {
      * Change UI based on conditions
      *
      * @access private
-     * @memberOf Sound.prototype
+     * @memberOf ToneManager.prototype
      */
-    _customize: function s_customize() {
+    _customize: function tm_customize() {
       // Show/hide 'Virate' checkbox according to device-features.json
       loadJSON(['/resources/device-features.json'], function(data) {
         this._elements.vibrationSetting.hidden = !data.vibration;
@@ -63,16 +62,16 @@ define(function(require) {
      * Initialize the ring tone and alert tone menus.
      *
      * @access private
-     * @memberOf Sound.prototype
+     * @memberOf ToneManager.prototype
      */
-    _configureTones: function s_configureTones() {
+    _configureTones: function tm_configureTones() {
       // This array has one element for each selectable tone that
       // appears in the "Tones" section of ../elements/sound.html.
       this._tones = [{
-          pickType: 'alerttone',
-          settingsKey: 'notification.ringtone',
-          allowNone: true, // Allow "None" as a choice for alert tones.
-          button: this._elements.alertToneSelection
+        pickType: 'alerttone',
+        settingsKey: 'notification.ringtone',
+        allowNone: true, // Allow "None" as a choice for alert tones.
+        button: this._elements.alertToneSelection
       }];
 
       // If we're a telephone, then show the section for ringtones, too.
@@ -91,9 +90,9 @@ define(function(require) {
      * Update Ringtones list.
      *
      * @access private
-     * @memberOf Sound.prototype
+     * @memberOf ToneManager.prototype
      */
-    _handleTones: function s_handleTones() {
+    _handleTones: function tm_handleTones() {
       // For each kind of tone, hook up the button that will allow the user
       // to select a sound for that kind of tone.
       this._tones.forEach(function(tone) {
@@ -183,9 +182,9 @@ define(function(require) {
      * future.  And update the button text to the new name now.
      *
      * @access private
-     * @memberOf Sound.prototype
+     * @memberOf ToneManager.prototype
      */
-    _setRingtone: function s_setRingtone(result, tone) {
+    _setRingtone: function tm_setRingtone(result, tone) {
       var blobKey = tone.settingsKey;
       var nameKey = tone.settingsKey + '.name';
       var idKey = tone.settingsKey + '.id';
@@ -207,9 +206,9 @@ define(function(require) {
      * blob as a ringtone because then the phone wouldn't ring!
      *
      * @access private
-     * @memberOf Sound.prototype
+     * @memberOf ToneManager.prototype
      */
-    _checkRingtone: function s_checkRingtone(result, tone) {
+    _checkRingtone: function tm_checkRingtone(result, tone) {
       var oldRingtoneName = null;
 
       var l10nId = tone.button.getAttribute('data-l10n-id');
@@ -249,9 +248,9 @@ define(function(require) {
      * Call ringtone activity to manage tones
      *
      * @access private
-     * @memberOf Sound.prototype
+     * @memberOf ToneManager.prototype
      */
-    _manageTonesClickHandler: function s_manageTonesClickHandler() {
+    _manageTonesClickHandler: function tm_manageTonesClickHandler() {
       var activity = new MozActivity({
         name: 'configure',
         data: {
@@ -272,7 +271,7 @@ define(function(require) {
     }
   };
 
-  return function ctor_sound() {
-    return new Sound();
+  return function ctor_toneManager() {
+    return new ToneManager();
   };
 });
