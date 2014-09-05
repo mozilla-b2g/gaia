@@ -186,9 +186,12 @@ suite('ApnSettingsManager', function() {
       }).then(done, done);
     });
 
-    test('called without matched apn item', function(done) {
+    test('custom apn exists, called without matched apn item', function(done) {
       var that = this;
 
+      mockApnItemInSettings = {
+        carrier: '_custom_'
+      };
       this.sinon.stub(this.ApnSettingsManager, 'addApn', function() {
         return MATCHED_APN_ID;
       });
@@ -197,7 +200,32 @@ suite('ApnSettingsManager', function() {
       .then(function(matchedApnId) {
         // Ensure the existing apn is added.
         sinon.assert.calledWith(
-          that.ApnSettingsManager.addApn, serviceId, mockApnItemInSettings);
+          that.ApnSettingsManager.addApn, serviceId, mockApnItemInSettings,
+            that.ApnItem.APN_CATEGORY.CUSTOM);
+        // Ensure the id of the newly created apn is returned.
+        assert.equal(matchedApnId, MATCHED_APN_ID);
+      }, function() {
+        // This function does not reject.
+        assert.isTrue(false);
+      }).then(done, done);
+    });
+
+    test('preset apn exists, called without matched apn item', function(done) {
+      var that = this;
+
+      mockApnItemInSettings = {
+        carrier: 'Fake Carrier'
+      };
+      this.sinon.stub(this.ApnSettingsManager, 'addApn', function() {
+        return MATCHED_APN_ID;
+      });
+
+      this.ApnSettingsManager._deriveActiveApnIdFromSettings(serviceId, apnType)
+      .then(function(matchedApnId) {
+        // Ensure the existing apn is added.
+        sinon.assert.calledWith(
+          that.ApnSettingsManager.addApn, serviceId, mockApnItemInSettings,
+            that.ApnItem.APN_CATEGORY.PRESET);
         // Ensure the id of the newly created apn is returned.
         assert.equal(matchedApnId, MATCHED_APN_ID);
       }, function() {
