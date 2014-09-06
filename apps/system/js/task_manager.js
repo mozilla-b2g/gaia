@@ -43,7 +43,7 @@
      */
     SCREENSHOT_PREVIEWS_SETTING_KEY: 'app.cards_view.screenshots.enabled',
 
-    DURATION: 200,
+    DURATION: 300,
 
     /**
      * Cached value of the screenshots.enabled setting
@@ -408,9 +408,9 @@
       var card = this.cardsByAppID[app.instanceID];
 
       if (idx >= this.currentPosition - 2 && idx <= this.currentPosition + 2) {
-        card.element.style.visibility = '';
+        card.element.style.display = 'block';
       } else {
-        card.element.style.visibility = 'hidden';
+        card.element.style.display = 'none';
       }
     }, this);
 
@@ -762,7 +762,7 @@
           durationLeft = this.DURATION - durationLeft;
         }
 
-        durationLeft = Math.max(100, durationLeft);
+        durationLeft = Math.max(50, durationLeft);
 
         var current = this.currentDisplayed;
         if (dx < 0 && current < this.cardsList.childNodes.length - 1) {
@@ -1081,8 +1081,8 @@
     self.stack.forEach(function(app, idx) {
       var card = self.cardsByAppID[app.instanceID];
 
-      if (idx <= self.currentPosition - 2 && idx >= self.currentPosition + 2) {
-        card.element.style.visibility = 'hidden';
+      if (idx < self.currentPosition - 2 || idx > self.currentPosition + 2) {
+        card.element.style.display = 'none';
         return;
       }
 
@@ -1090,7 +1090,7 @@
       // transitions durations/delays to account for the layer trickery.
       // Layer Trickery: nf, cards that should be completely outside the
       // viewport but are in fact 0.001 pixel in.
-      card.element.style.visibility = '';
+      card.element.style.display = 'block';
 
       var distance = card.element.dataset.keepLayerDelta;
       var currentCardDistance = Math.abs(currentCard.element.dataset.positionX);
@@ -1160,9 +1160,10 @@
       deltaX /= 1.5;
     }
 
+    var current = this.currentPosition;
     this.stack.forEach(function(app, idx) {
       var card = this.cardsByAppID[app.instanceID];
-      if (idx >= this.currentPosition - 2 && idx <= this.currentPosition + 2) {
+      if (idx >= current - 2 && idx <= current + 2) {
         card.move(Math.abs(deltaX) * sign);
       }
     }, this);
