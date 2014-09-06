@@ -197,6 +197,9 @@
           break;
 
         case 'home':
+          if (!this.hasActiveWindow()) {
+            return;
+          }
           this._topMostWindow = null;
           var nextApp = homescreenLauncher.getHomescreen();
           if (System.locked) {
