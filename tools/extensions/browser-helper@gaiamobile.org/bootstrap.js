@@ -131,7 +131,7 @@ function startup(data, reason) {
     // Initialize various JSM instanciated by shell.js
     // All of them are usefull even if we don't use them in this file.
     Cu.import('resource://gre/modules/ContactService.jsm');
-    Cu.import('resource://gre/modules/SettingsChangeNotifier.jsm');
+    Cu.import('resource://gre/modules/SettingsRequestManager.jsm');
     Cu.import('resource://gre/modules/ActivitiesService.jsm');
 
     var mm = Cc['@mozilla.org/globalmessagemanager;1']
