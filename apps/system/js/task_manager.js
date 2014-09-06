@@ -43,7 +43,7 @@
      */
     SCREENSHOT_PREVIEWS_SETTING_KEY: 'app.cards_view.screenshots.enabled',
 
-    DURATION: 300,
+    DURATION: 200,
 
     /**
      * Cached value of the screenshots.enabled setting
@@ -573,7 +573,7 @@
         if (this.currentPosition != card.position) {
           this.currentPosition = card.position;
           this.currentDisplayed = card.position;
-          this.alignCurrentCard(500, showSelectedApp);
+          this.alignCurrentCard(this.DURATION, showSelectedApp);
         } else {
           showSelectedApp();
         }
@@ -1082,7 +1082,9 @@
       var card = self.cardsByAppID[app.instanceID];
 
       if (idx < self.currentPosition - 2 || idx > self.currentPosition + 2) {
-        card.element.style.display = 'none';
+        window.mozRequestAnimationFrame(function() {
+          card.element.style.display = 'none';
+        });
         return;
       }
 
