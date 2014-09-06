@@ -143,6 +143,14 @@ suite('system/AttentionWindowManager', function() {
       assert.isTrue(stubCloseForAtt3.called);
     });
 
+    test('Home button, but no active window', function() {
+      var stubGetHomescreen =
+        this.sinon.stub(homescreenLauncher, 'getHomescreen');
+      attentionWindowManager._openedInstances = new Map();
+      attentionWindowManager.handleEvent(new CustomEvent('home'));
+      assert.isFalse(stubGetHomescreen.called);
+    });
+
     test('HoldHome event', function() {
       attentionWindowManager._openedInstances =
         new Map([[att3, att3], [att2, att2]]);
