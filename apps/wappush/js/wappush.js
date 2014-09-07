@@ -111,7 +111,9 @@
     header = document.getElementById('header');
 
     // Get the app object and configuration
-    var promise = Promise.all([wpm_getApp(), wpm_getConfig()]);
+    var promise = Promise.all([
+      WhiteList.init(), wpm_getApp(), wpm_getConfig()
+    ]);
 
     promise = promise.then(function(values) {
       app = values[0];
