@@ -359,6 +359,8 @@ MessageReaderCard.prototype = {
 
   onDelete: function() {
     var dialog = msgDeleteConfirmNode.cloneNode(true);
+    var content = dialog.getElementsByTagName('p')[0];
+    mozL10n.setAttributes(content, 'message-edit-delete-confirm');
     ConfirmDialog.show(dialog,
       { // Confirm
         id: 'msg-delete-ok',
