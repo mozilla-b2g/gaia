@@ -18,7 +18,7 @@
 }
 
 /* This reduce overpaint while the cards view is active */
-#screen.hide-apps #windows {
+#screen.cards-view #windows {
   opacity: 0;
 }
 
@@ -157,47 +157,6 @@
   border-bottom: solid 1px rgba(133, 133, 133, 0.8);
   height: 3.33rem;
   width: 100%;
-}
-
-
-
-/* Task Manager Specifics */
-
-#screen.task-manager #cards-view .card .card-header {
-  position: absolute;
-  top: auto;
-  bottom: 50%;
-  left: 0;
-  width: 100%;
-  padding-bottom: 2.5rem;
-  box-sizing: border-box;
-  display: none;
-}
-
-#screen.task-manager #cards-view .card .appPreview {
-  display: block;
-  background-color: orange;
-}
-
-#screen.task-manager #cards-view li.card[data-card-position='current'] .card-header {
-  display: block;
-}
-
-#screen.task-manager #cards-view .card > .appIconView {
-  position: absolute;
-  top: calc(33.2rem - 20px);
-  left: calc(50% - 20px);
-  width: 40px;
-  height: 40px;
-  background-image: url(../icons/Default.png);
-  background-position: center center;
-  background-repeat: no-repeat;
-  box-shadow: 0 0 6px 0 rgba(0,0,0,0.2);
-  z-index: 1;
-}
-
-#screen.task-manager #cards-view .screenshotView {
-  display: none;
 }
 
 

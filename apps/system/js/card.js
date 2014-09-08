@@ -146,8 +146,8 @@
     deltaX = deltaX || 0;
     deltaY = deltaY || 0;
 
-    var windowWidth = this.manager.windowWidth;
-    var offset = this.position - this.manager.currentPosition;
+    var windowWidth = window.innerWidth;
+    var offset = this.position - this.manager.position;
     var positionX = deltaX + offset * (windowWidth * 0.55);
     var appliedX = positionX;
 
