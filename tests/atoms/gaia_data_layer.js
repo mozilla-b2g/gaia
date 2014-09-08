@@ -212,14 +212,15 @@ var GaiaDataLayer = {
     var setting = {};
     setting[aName] = aValue;
     console.log('setting ' + aName + ' to ' + aValue);
-    var req = window.navigator.mozSettings.createLock().set(setting);
-    req.onsuccess = function() {
+    var lock = window.navigator.mozSettings.createLock();
+    var req = lock.set(setting);
+    lock.onsettingstransactionsuccess = function() {
       console.log('setting changed');
       if (returnOnSuccess) {
         marionetteScriptFinished(true);
       }
     };
-    req.onerror = function() {
+    lock.onsettingstransactionfailure = function() {
       console.log('error changing setting ' + req.error.name);
       marionetteScriptFinished(false);
     };
