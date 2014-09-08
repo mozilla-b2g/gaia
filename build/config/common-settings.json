@@ -149,6 +149,8 @@
    "ril.data.mmsproxy": "",
    "ril.data.mmsport": 0,
    "ril.data.roaming_enabled": false,
+   "ril.data.roaming_enabled.warningDialog.enabled": true,
+   "ril.data.enabled.warningDialog.enabled": true,
    "ril.data.user": "",
    "ril.data.authtype": "notDefined",
    "ril.mms.apn": "",

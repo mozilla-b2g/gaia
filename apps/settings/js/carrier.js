@@ -792,15 +792,17 @@ var CarrierSettings = (function(window, document, undefined) {
        *                            work is done.
        */
       function getWarningEnabled(callback) {
-        window.asyncStorage.getItem(warningDialogEnabledKey,
-                                    function getItemCb(warningEnabled) {
+        var request = _settings.createLock().get(warningDialogEnabledKey);
+
+        request.onsuccess = function onSuccessHandler() {
+          var warningEnabled = request.result[warningDialogEnabledKey];
           if (warningEnabled === null) {
             warningEnabled = true;
           }
           if (callback) {
             callback(warningEnabled);
           }
-        });
+        };
       }
 
       /**
@@ -814,12 +816,18 @@ var CarrierSettings = (function(window, document, undefined) {
         _settings.createLock().set(cset);
       }
 
+      function setWarningDialogState(state) {
+        var cset = {};
+        cset[warningDialogEnabledKey] = !!state;
+        _settings.createLock().set(cset);
+      }
+
       /**
        * Helper function. Handler to be called once the user click on the
        * accept button form the warning dialog.
        */
       function onSubmit() {
-        window.asyncStorage.setItem(warningDialogEnabledKey, false);
+        setWarningDialogState(false);
         explanationItem.hidden = false;
         setState(true);
         if (warningDisabledCallback) {
@@ -832,7 +840,7 @@ var CarrierSettings = (function(window, document, undefined) {
        * cancel button form the warning dialog.
        */
       function onReset() {
-        window.asyncStorage.setItem(warningDialogEnabledKey, true);
+        setWarningDialogState(true);
       }
 
       // Register an observer to monitor setting changes.
@@ -860,7 +868,7 @@ var CarrierSettings = (function(window, document, undefined) {
               enabled = request.result[settingKey];
             }
             if (enabled) {
-              window.asyncStorage.setItem(warningDialogEnabledKey, false);
+              setWarningDialogState(false);
               explanationItem.hidden = false;
             }
           };
