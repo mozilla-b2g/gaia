@@ -1,9 +1,9 @@
 {
   "homescreens": [
     [
-      ["apps", "communications", "dialer"],
+      ["apps", "dialer"],
       ["apps", "sms"],
-      ["apps", "communications", "contacts"],
+      ["apps", "contacts"],
       ["apps", "search"],
       ["apps", "marketplace.firefox.com"],
       ["apps", "camera"]

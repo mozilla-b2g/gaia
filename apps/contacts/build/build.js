@@ -6,11 +6,11 @@ const importBuild = require('import-config.js');
 
 const DEBUG = false;
 
-var FtuAppBuilder = function() {
+var CommAppBuilder = function() {
 };
 
 // set destination directory and application directory
-FtuAppBuilder.prototype.setOptions = function(options) {
+CommAppBuilder.prototype.setOptions = function(options) {
   this.stageDir = utils.getFile(options.STAGE_APP_DIR);
   this.appDir = utils.getFile(options.APP_DIR);
 
@@ -22,7 +22,7 @@ FtuAppBuilder.prototype.setOptions = function(options) {
   this.gaia.gaiaDir = options.GAIA_DIR;
 };
 
-FtuAppBuilder.prototype.generateManifest = function() {
+CommAppBuilder.prototype.generateManifest = function() {
   var manifestObject =
     importBuild.generateManifest(this.webapp, this.gaia);
 
@@ -31,18 +31,18 @@ FtuAppBuilder.prototype.generateManifest = function() {
   utils.writeContent(file, JSON.stringify.apply(JSON, args));
 };
 
-FtuAppBuilder.prototype.generateAll = function() {
+CommAppBuilder.prototype.generateAll = function() {
   this.generateManifest();
 
-  importBuild.generateConfig('ftu', this.gaia);
+  importBuild.generateConfig('communications', this.gaia);
 };
 
-FtuAppBuilder.prototype.execute = function(options) {
+CommAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
   this.generateAll();
 };
 
 exports.execute = function(options) {
   utils.copyToStage(options);
-  (new FtuAppBuilder()).execute(options);
+  (new CommAppBuilder()).execute(options);
 };

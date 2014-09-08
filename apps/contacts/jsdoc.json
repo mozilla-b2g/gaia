@@ -1,0 +1,10 @@
+{
+  "contacts": {
+    "src": [
+      "apps/contacts/js/**/*.js"
+    ],
+    "options": {
+      "destination": "docs/contacts"
+    }
+  }
+}

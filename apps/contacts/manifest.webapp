@@ -1,0 +1,150 @@
+{
+  "name": "Contacts",
+  "description": "Gaia Communications",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "telephony": {},
+    "bluetooth": {},
+    "voicemail": {},
+    "contacts": {
+      "access": "readwrite"
+    },
+    "mobileconnection": {},
+    "settings": {
+      "access": "readwrite"
+    },
+    "desktop-notification": {},
+    "alarms": {},
+    "systemXHR": {},
+    "audio-channel-telephony": {},
+    "audio-channel-notification": {},
+    "idle": {},
+    "storage": {},
+    "device-storage:sdcard": {
+      "access": "readcreate"
+    },
+    "phonenumberservice": {},
+    "nfc": {
+      "access": "readwrite"
+    }
+  },
+  "orientation": "default",
+  "activities": {
+    "pick": {
+      "filters": {
+        "type": {
+          "required": true,
+          "value": [
+            "webcontacts/contact",
+            "webcontacts/email",
+            "webcontacts/tel",
+            "webcontacts/select"
+          ]
+        }
+      },
+      "disposition": "inline",
+      "href": "/index.html?pick",
+      "returnValue": true
+    },
+    "import": {
+      "filters": {
+        "type": "text/vcard"
+      },
+      "disposition": "inline",
+      "href": "/index.html?open",
+      "returnValue": true
+    },
+    "open": {
+      "filters": {
+        "type": "webcontacts/contact"
+      },
+      "disposition": "inline",
+      "href": "/index.html?open",
+      "returnValue": true
+    },
+    "new": {
+      "filters": {
+        "type": "webcontacts/contact"
+      },
+      "disposition": "inline",
+      "href": "/index.html?new",
+      "returnValue": true
+    },
+    "update": {
+      "filters": {
+        "type": "webcontacts/contact"
+      },
+      "disposition": "inline",
+      "href": "/index.html?update",
+      "returnValue": true
+    }
+  },
+  "messages": [
+    {
+      "alarm": "/facebook/fb_sync.html"
+    }
+  ],
+  "redirects": [
+    {
+      "from": "facebook",
+      "to": "/shared/pages/import/redirects/redirect.html"
+    },
+    {
+      "from": "facebook_dialogs",
+      "to": "/shared/pages/import/redirects/dialogs_end.html"
+    },
+    {
+      "from": "facebook_logout",
+      "to": "/shared/pages/import/redirects/dialogs_end.html"
+    },
+    {
+      "from": "live",
+      "to": "/shared/pages/import/redirects/redirect.html"
+    },
+    {
+      "from": "gmail",
+      "to": "/shared/pages/import/redirects/redirect.html"
+    }
+  ],
+  "datastores-owned": {
+    "Gaia_Facebook_Friends": {
+      "description": "Imported Facebook Friends"
+    },
+    "ice_contacts": {
+      "description": "Contains references to in case of emergency contacts"
+    },
+    "Import_Status_Data": {
+      "description": "Import status data shared between FTU and Contacts"
+    }
+  },
+  "icons": {
+    "84": "/style/icons/contacts_84.png",
+    "126": "/style/icons/contacts_126.png",
+    "142": "/style/icons/contacts_142.png",
+    "189": "/style/icons/contacts_189.png",
+    "284": "/style/icons/contacts_284.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "اتصالات",
+      "description": "Gaia اتصالات"
+    },
+    "en-US": {
+      "name": "Contacts",
+      "description": "Gaia Contacts"
+    },
+    "fr": {
+      "name": "Contacts",
+      "description": "Contacts Gaia"
+    },
+    "zh-TW": {
+      "name": "聯絡人",
+      "description": "Gaia 聯絡人"
+    }
+  }
+}

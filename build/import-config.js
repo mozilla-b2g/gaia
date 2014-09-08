@@ -60,9 +60,8 @@ function generateManifest (webapp, gaia) {
 }
 
 // Generates the configuration to be used by the importing processes
-function generateConfig (app, destination, gaia) {
-  var configFile = utils.getFile(gaia.stageDir.path, destination,
-                                'config.json');
+function generateConfig (app, gaia) {
+  var configFile = utils.getFile(gaia.stageDir.path, 'config.json');
 
   var defaultConfig = {
     'defaultContactsOrder': 'givenName',
