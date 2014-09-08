@@ -370,6 +370,29 @@ function getVideoFile(filename, callback) {
   };
 }
 
+// Return a Promise that resolves to the File object of the currently
+// displayed image or video.
+// XXX This function is temporarily added here as part of NFC
+// refactoring, but will be moved into the model module.
+function getCurrentFile() {
+  return new Promise(function(resolve, reject) {
+    var fileInfo = files[currentFileIndex];
+
+    if (fileInfo.metadata.video) {
+      getVideoFile(fileInfo.metadata.video, function(file) {
+        resolve(file);
+      });
+    } else {
+      // share photo
+      photodb.getFile(fileInfo.name, function(file) {
+        resolve(file);
+      }, function(errmsg) {
+        reject(errmsg);
+      });
+    }
+  });
+}
+
 // This comparison function is used for sorting arrays and doing binary
 // search on the resulting sorted arrays.
 function compareFilesByDate(a, b) {
@@ -700,12 +723,12 @@ function setView(view) {
       scrollToShowThumbnail(currentFileIndex);
       if (currentView === LAYOUT_MODE.fullscreen) {
         // only do it when we back from fullscreen.
-        setNFCSharing(false);
+        NFC.unshare();
       }
       break;
     case LAYOUT_MODE.fullscreen:
       resizeFrames();
-      setNFCSharing(true);
+      NFC.share(getCurrentFile);
       break;
     case LAYOUT_MODE.select:
       clearSelection();
@@ -714,7 +737,7 @@ function setView(view) {
         currentFrame.video.pause();
       break;
     case LAYOUT_MODE.edit:
-      setNFCSharing(false);
+      NFC.unshare();
       break;
   }
 
@@ -731,35 +754,6 @@ function setView(view) {
   }
   // Remember the current view
   currentView = view;
-}
-
-function setNFCSharing(enable) {
-  if (!window.navigator.mozNfc) {
-    return;
-  }
-
-  if (enable) {
-    // If we have NFC, we need to put the callback to have shrinking UI.
-    window.navigator.mozNfc.onpeerready = function(event) {
-      // The callback function is called when user confirm to share the
-      // content, send it with NFC Peer.
-      var fileInfo = files[currentFileIndex];
-      if (fileInfo.metadata.video) {
-        // share video
-        getVideoFile(fileInfo.metadata.video, function(file) {
-          event.peer.sendFile(file);
-        });
-      } else {
-        // share photo
-        photodb.getFile(fileInfo.name, function(file) {
-          event.peer.sendFile(file);
-        });
-      }
-    };
-  } else {
-    // We need to remove onpeerready while out of fullscreen view.
-    window.navigator.mozNfc.onpeerready = null;
-  }
 }
 
 //
