@@ -156,7 +156,7 @@ function BaseSoundList(client, element, Sound) {
 }
 
 BaseSoundList.Selectors = Object.freeze({
-  header: 'gaia-subheader',
+  header: 'gaia-subheader > span',
   sound: 'li'
 });
 
