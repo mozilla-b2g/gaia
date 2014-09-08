@@ -695,7 +695,9 @@ var CallLogDBManager = {
     group.retryCount++;
     var self = this;
     groupsStore.put(group).onsuccess = function onsuccess() {
-      self._asyncReturn(callback, self._getGroupObject(group));
+      var groupObject = self._getGroupObject(group);
+      self._dispatchCallLogDbNewCall(groupObject);
+      self._asyncReturn(callback, groupObject);
     };
   },
 
@@ -743,15 +745,25 @@ var CallLogDBManager = {
       self._newTxn('readwrite', [self._dbGroupsStore],
                    function(error, txn, store) {
         store.add(group).onsuccess = function onsuccess() {
+          var groupObject = self._getGroupObject(group);
+          self._dispatchCallLogDbNewCall(groupObject);
+
           // Once the group has successfully been added, we check that the
           // db size is below the max size set.
           self._keepDbPrettyAndFit(function() {
-            self._asyncReturn(callback, self._getGroupObject(group));
+            self._asyncReturn(callback, groupObject);
           });
         };
       });
     });
   },
+
+  _dispatchCallLogDbNewCall: function(group) {
+    var createOrUpdateEvt = new CustomEvent('CallLogDbNewCall',
+      {detail: {group: group}});
+    window.dispatchEvent(createOrUpdateEvt);
+  },
+
   /**
    * Delete a group of calls and all the calls belonging to that group.
    *

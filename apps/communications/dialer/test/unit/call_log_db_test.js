@@ -1164,4 +1164,50 @@ suite('dialer/call_log_db', function() {
       }).then(done, done);
     });
   });
+
+  suite('notifies new additions', function() {
+    var call = {
+      number: numbers[0],
+      serviceId: 1,
+      type: 'incoming',
+      status: 'connected',
+      date: days[0],
+      duration: duration
+    };
+
+    var call2 = {
+      number: numbers[0],
+      serviceId: 0,
+      type: 'incoming',
+      status: 'connected',
+      date: days[1],
+      duration: duration
+    };
+
+    teardown(function(done) {
+      CallLogDBManager.deleteAll(function() {
+        done();
+      });
+    });
+
+    test('when creating a group', function(done) {
+      window.addEventListener('CallLogDbNewCall', function checkEvt(evt) {
+        window.removeEventListener('CallLogDbNewCall', checkEvt);
+        assert.equal(evt.detail.group.lastEntryDate, call.date);
+        done();
+      });
+      CallLogDBManager.add(call);
+    });
+
+    test('when updating a group', function(done) {
+      CallLogDBManager.add(call, function() {
+        window.addEventListener('CallLogDbNewCall', function checkEvt(evt) {
+          window.removeEventListener('CallLogDbNewCall', checkEvt);
+          assert.equal(evt.detail.group.lastEntryDate, call2.date);
+          done();
+        });
+        CallLogDBManager.add(call2);
+      });
+    });
+  });
 });

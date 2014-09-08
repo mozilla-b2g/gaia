@@ -13,6 +13,14 @@
   var emailDetailsElt;
   var listDetailsElt;
 
+  function updateViewIfNeeded(evt) {
+    if (evt.detail.group.id !== currentGroup.id) {
+      return;
+    }
+
+    updateView(evt.detail.group);
+  }
+
   function updateView(group) {
     currentGroup = group;
     updateGroupInformation(group);
@@ -139,9 +147,12 @@
   }
 
   function close(evt) {
-    if (evt.detail.type === 'back') {
-      callInfoView.hidden = true;
+    if (evt.detail.type !== 'back') {
+      return;
     }
+
+    window.removeEventListener('CallLogDbNewCall', updateViewIfNeeded);
+    callInfoView.hidden = true;
   }
 
   function viewContact() {
@@ -252,6 +263,8 @@
         date = parseInt(date, 10);
         CallLogDBManager.getGroup(number, date, type, status)
           .then(updateView);
+
+        window.addEventListener('CallLogDbNewCall', updateViewIfNeeded);
       });
     }
   };
