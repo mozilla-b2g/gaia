@@ -42,10 +42,10 @@
       return null;
     }
 
-    if (iconPath.indexOf('data:') !== 0) {
+    if (iconPath.charAt(0) === '/') {
       // We need to resolve iconPath as a relative url to origin, since
       // origin can be a full url in some apps.
-      var base = getOriginObject(app.origin);
+      var base = new URL(app.origin);
       var port = base.port ? (':' + base.port) : '';
       iconPath = base.protocol + '//' + base.hostname + port + iconPath;
     }
@@ -53,23 +53,13 @@
     return iconPath;
   }
 
-  function getOriginObject(url) {
-    var parser = document.createElement('a');
-    parser.href = url;
-
-    return {
-      protocol: parser.protocol,
-      hostname: parser.hostname,
-      port: parser.port
-    };
-  }
-
   function getOffOrigin(src, origin) {
     // Use src and origin as cache key
+    src = src || origin;
     var cacheKey = JSON.stringify(Array.prototype.slice.call(arguments));
     if (!getOffOrigin.cache[cacheKey]) {
-      var native = getOriginObject(origin);
-      var current = getOriginObject(src);
+      var native = new URL(origin);
+      var current = new URL(src);
       if (current.protocol == 'http:') {
         // Display http:// protocol anyway
         getOffOrigin.cache[cacheKey] = current.protocol + '//' +
@@ -109,7 +99,6 @@
 
   exports.CardsHelper = {
     getIconURIForApp: getIconURIForApp,
-    getOriginObject: getOriginObject,
     getOffOrigin: getOffOrigin,
     escapeHTML: escapeHTML,
     isHVGA: isHVGA
