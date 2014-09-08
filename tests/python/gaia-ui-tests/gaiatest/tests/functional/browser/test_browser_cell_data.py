@@ -5,7 +5,7 @@
 from marionette.by import By
 
 from gaiatest import GaiaTestCase
-from gaiatest.apps.browser.app import Browser
+from gaiatest.apps.search.app import Search
 
 
 class TestBrowserCellData(GaiaTestCase):
@@ -14,15 +14,18 @@ class TestBrowserCellData(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
+
         self.data_layer.connect_to_cell_data()
 
     def test_browser_cell_data(self):
         """https://moztrap.mozilla.org/manage/case/1328/"""
 
-        browser = Browser(self.marionette)
-        browser.launch()
+        search = Search(self.marionette)
+        search.launch()
 
-        browser.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html', timeout=120)
+        browser = search.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html')
+        browser.wait_for_page_to_load(120)
 
         browser.switch_to_content()
 
