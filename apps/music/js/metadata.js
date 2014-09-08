@@ -25,13 +25,14 @@ var pictureStorage = navigator.getDeviceStorage('pictures');
 
 /*
  * Metadata describing the cover art for a track. Cover art comes in one of
- * three flavors: embedded (stored in the audio track's metadata), unsync (like
- * embedded, but stored in an unsynchronized block of ID3 data), or external
- * (stored as a separate file in the same directory as the audio track).
+ * three flavors: embedded (stored in the audio track's metadata), unsynced
+ * (like embedded, but stored in an unsynchronized block of ID3 data), or
+ * external (stored as a separate file in the same directory as the audio
+ * track).
  *
  * @typedef {Object} Picture
  * @property {string} flavor How the art was stored; one of "embedded",
- *   "unsync", or "external".
+ *   "unsynced", or "external".
  * @property {string} [thumbnail] The path on the filesystem to the thumbnail
  *   for the picture, if any.
  * @property {number} [start] The offset in bytes to where the picture is
@@ -1295,7 +1296,6 @@ function getThumbnailURL(fileinfo, callback) {
     callback(embeddedURL);
   }
 
-  // We should never get here! (XXX: Unless we're about to upgrade.)
   console.warn('unknown picture flavor: ' + picture.flavor);
   callback(null);
 }
