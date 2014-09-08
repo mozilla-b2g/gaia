@@ -131,7 +131,11 @@ contacts.ICE = (function() {
         var familyName = (contact.familyName && contact.familyName[0]) || '';
         var display = [givenName, familyName];
         
-        iceContactButtons[index].textContent = display.join(' ').trim();
+        var span = document.createElement('span');
+        span.classList.add('ice-contact');
+        span.textContent = display.join(' ').trim();
+        iceContactButtons[index].innerHTML = '';
+        iceContactButtons[index].appendChild(span);
       });
     });
   }
