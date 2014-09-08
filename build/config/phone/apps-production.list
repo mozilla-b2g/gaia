@@ -6,8 +6,9 @@ apps/callscreen
 apps/camera
 apps/clock
 apps/collection
-apps/communications
+apps/contacts
 apps/costcontrol
+apps/dialer
 apps/email
 apps/emergency-call
 apps/findmydevice

@@ -1,0 +1,10 @@
+{
+  "dialer": {
+    "src": [
+      "apps/dialer/js/**/*.js"
+    ],
+    "options": {
+      "destination": "docs/dialer"
+    }
+  }
+}
