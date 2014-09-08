@@ -1,11 +1,13 @@
 'use strict';
 
 requireApp('system/test/unit/mock_navigator_battery.js');
+requireApp('system/shared/js/settings_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/js/battery_manager.js');
 
 var mocksForBatteryManager = new MocksHelper([
@@ -20,6 +22,8 @@ suite('battery manager >', function() {
   var tinyTimeout = 10;
 
   var realL10n;
+  var realMozSettings;
+  var realSettingsListener;
 
   mocksForBatteryManager.attachTestHelpers();
   suiteSetup(function() {
@@ -32,6 +36,13 @@ suite('battery manager >', function() {
     // for PowerSaveHandler
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+    MockNavigatorSettings.mSetup();
+
+    realSettingsListener = window.SettingsListener;
+    window.SettingsListener = MockSettingsListener;
   });
 
   suiteTeardown(function() {
@@ -39,6 +50,8 @@ suite('battery manager >', function() {
     realBattery = null;
 
     navigator.mozL10n = realL10n;
+    navigator.mozSettings = realMozSettings;
+    window.SettingsListener = realSettingsListener;
   });
 
   setup(function() {
@@ -203,6 +216,57 @@ suite('battery manager >', function() {
         sendScreenChange(true);
 
         assertDisplayed();
+      });
+    });
+
+    suite('battery goes empty with powersave enabled>', function() {
+      var notificationSpy;
+      var notificationListenerSpy;
+      var showNotificationSpy;
+      var hideNotificationSpy;
+
+      setup(function() {
+        this.sinon.useFakeTimers();
+        SettingsListener.getSettingsLock().set({'powersave.enabled': true});
+        notificationListenerSpy = this.sinon.spy('');
+
+        notificationSpy = this.sinon.stub(window, 'Notification').returns({
+          addEventListener: notificationListenerSpy,
+          close: function() {}
+        });
+
+        showNotificationSpy = this.sinon.spy(
+          PowerSaveHandler,
+          'showPowerSavingNotification'
+        );
+        hideNotificationSpy = this.sinon.spy(
+          PowerSaveHandler,
+          'hidePowerSavingNotification'
+        );
+      });
+
+      test('below threshold with powersave enabled', function() {
+        sendLevelChange(0.05);
+        MockSettingsListener.mTriggerCallback('powersave.threshold', 0.1);
+        this.sinon.clock.tick(100);
+        sinon.assert.calledOnce(showNotificationSpy);
+        this.sinon.clock.tick(100);
+        sinon.assert.notCalled(hideNotificationSpy);
+      });
+
+      test('above threshold with powersave enabled', function() {
+        sendLevelChange(1);
+        MockSettingsListener.mTriggerCallback('powersave.threshold', 0.1);
+        this.sinon.clock.tick(100);
+        sinon.assert.notCalled(showNotificationSpy);
+        this.sinon.clock.tick(100);
+        sinon.assert.calledOnce(hideNotificationSpy);
+      });
+
+      test('showNotification should create a notification',
+        function() {
+          PowerSaveHandler.showNotification();
+          sinon.assert.calledOnce(notificationSpy);
       });
     });
   });
