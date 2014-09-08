@@ -191,6 +191,13 @@ suiteGroup('Views.Settings', function() {
         remote: {
           name: 'first'
         }
+      },
+      local: {
+        localDisplayed: true,
+        _id: 'local-first',
+        remote: {
+          name: 'this should not be used!!!!'
+        }
       }
     };
 
@@ -242,9 +249,27 @@ suiteGroup('Views.Settings', function() {
 
         store.emit('update', model._id, model);
 
-        assert.equal(children[0].textContent, 'foo');
+        assert.equal(children[0].textContent.trim(), 'foo');
         assert.isFalse(
           check.checked
+        );
+      });
+
+      test('toggle l10n', function() {
+        var check = children[1].querySelector('[type="checkbox"]');
+        assert.ok(
+          check.checked,
+          'should be checked'
+        );
+
+        var model = models.local;
+        model.localDisplayed = false;
+        store.emit('update', model._id, model);
+
+        assert.equal(children[1].textContent.trim(), 'Offline calendar');
+        assert.isFalse(
+          check.checked,
+          'should uncheck'
         );
       });
     });
@@ -252,10 +277,11 @@ suiteGroup('Views.Settings', function() {
     suite('add', function() {
       function addModel() {
         store.emit('add', 'two', model);
-        assert.equal(children.length, 2);
-        assert.equal(children[1].textContent, 'second');
+        assert.equal(children.length, 3);
+        var container = children[2];
+        assert.equal(container.textContent.trim(), 'second');
 
-        return children[1];
+        return container;
       }
 
       var model;
@@ -266,7 +292,7 @@ suiteGroup('Views.Settings', function() {
           remote: { name: 'second' }
         });
 
-        assert.equal(children.length, 1);
+        assert.equal(children.length, 2);
       });
 
       test('success', function() {
@@ -289,9 +315,10 @@ suiteGroup('Views.Settings', function() {
     });
 
     test('remove', function() {
+      assert.equal(children.length, 2);
       store.emit('preRemove', models.first._id);
       store.emit('remove', models.first._id);
-      assert.equal(children.length, 0);
+      assert.equal(children.length, 1);
     });
   });
 
@@ -441,8 +468,8 @@ suiteGroup('Views.Settings', function() {
       });
 
       test('naming', function() {
-        assert.equal(one.textContent, calendars.one.name);
-        assert.equal(two.textContent, calendars.two.name);
+        assert.equal(one.textContent.trim(), calendars.one.name);
+        assert.equal(two.textContent.trim(), calendars.two.name);
       });
 
       test('localDisplayed on calendar', function() {
