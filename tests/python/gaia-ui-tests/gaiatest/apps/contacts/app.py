@@ -23,7 +23,7 @@ class Contacts(Base):
     _status_message_locator = (By.ID, 'statusMsg')
 
     #  contacts
-    _contact_locator = (By.CSS_SELECTOR, 'li.contact-item')
+    _contact_locator = (By.CSS_SELECTOR, 'li.contact-item:not([data-group="ice"])')
 
     def launch(self):
         Base.launch(self)
