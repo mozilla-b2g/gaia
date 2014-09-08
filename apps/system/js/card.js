@@ -1,4 +1,4 @@
-/* globals BaseUI, CardsHelper, IconsHelper, TrustedUIManager */
+/* globals BaseUI, CardsHelper, TrustedUIManager */
 
 /* exported Card */
 
@@ -25,7 +25,6 @@
 
     this.instanceID = _id++;
 
-    this._registerEventListeners();
     return this;
   }
 
@@ -205,7 +204,6 @@
 
     this._fetchElements();
     this._updateDisplay();
-    this._updateIcon();
 
     this.publish('rendered');
     return elem;
@@ -287,6 +285,9 @@
         return;
       }
     }
+    if (this.iconValue) {
+      this.iconButton.style.backgroundImage = this.iconValue;
+    }
 
     // Handling cards in different orientations
     var degree = app.rotatingDegree;
@@ -328,42 +329,10 @@
 
   };
 
-  Card.prototype._updateIcon = function c__updateIcon(iconUrl) {
-    var app = this.app;
-    if (!iconUrl && app && app.favicons) {
-      iconUrl = IconsHelper.getBestIcon(app.favicons, 40);
-    }
-    // also try the app's identificationIcon
-    // TODO: AppWindow should probably expose this, as appWindow.icon?
-    if (!iconUrl && app && app.identificationIcon) {
-      iconUrl = app.identificationIcon.style.backgroundImage;
-      iconUrl = iconUrl && iconUrl.replace(/url\(|\)/g, '');
-    }
-    this.iconValue = iconUrl || '';
-    if (this.iconButton) {
-      this.iconButton.style.backgroundImage = this.iconValue ?
-        'url(' + this.iconValue + ')' : '';
-    }
-  };
-
   Card.prototype._fetchElements = function c__fetchElements() {
     this.screenshotView = this.element.querySelector('.screenshotView');
     this.titleNode = this.element.querySelector('h1.title');
     this.iconButton = this.element.querySelector('.appIcon');
-  };
-
-  Card.prototype._registerEventListeners = function c__fetchElements() {
-    if (this.app && this.app.element) {
-      this.app.element.addEventListener('_iconchange', this);
-    }
-  };
-
-  Card.prototype.handleEvent = function(evt) {
-    switch (evt.type) {
-      case '_iconchange':
-        this._updateIcon();
-        break;
-    }
   };
 
   return (exports.Card = Card);
