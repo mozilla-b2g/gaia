@@ -199,8 +199,8 @@ marionette('mozChromeNotifications:', function() {
           'Unexpected number of notifications: expected 1');
       }
 
-      nodes = container.removeChild(nodes[0]).querySelectorAll(selector);
-      if (nodes.length !== 0) {
+      nodes[0].remove();
+      if (container.querySelectorAll(selector).length !== 0) {
         marionetteScriptFinished('Node should have disappeared');
       }
 
