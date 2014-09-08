@@ -6,6 +6,7 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('view:controls');
+var debounce = require('lib/debounce');
 var bind = require('lib/bind');
 var View = require('view');
 var Drag = require('drag');
@@ -18,7 +19,8 @@ module.exports = View.extend({
   name: 'controls',
   className: 'test-controls',
 
-  initialize: function() {
+  initialize: function(options) {
+    this.drag = options && options.drag; // test hook
     this.render();
   },
 
@@ -50,24 +52,47 @@ module.exports = View.extend({
     return this.bindEvents();
   },
 
+  /**
+   * Respond to click events on the buttons
+   * other than the switch, which is a special
+   * case.
+   *
+   * We 'debouce' the callback to defend
+   * against button-bashing.
+   *
+   * @return {ControlsView} for chaining
+   * @private
+   */
   bindEvents: function() {
+    this.onButtonClick = debounce(this.onButtonClick, 300, true);
     bind(this.els.thumbnail, 'click', this.onButtonClick);
     bind(this.els.capture, 'click', this.onButtonClick);
     bind(this.els.cancel, 'click', this.onButtonClick);
     return this;
   },
 
+  /**
+   * Create the draggable switch.
+   *
+   * We debouce the tapped callback to
+   * defend against button-bashing.
+   *
+   * @private
+   */
   setupSwitch: function() {
     debug('setup dragger');
-    this.drag = new Drag({
+
+    // Prefer existing drag (test hook)
+    this.drag = this.drag || new Drag({
       handle: this.els.switchHandle,
       container: this.els.switch,
     });
 
+    this.drag.on('tapped', debounce(this.onSwitchTapped, 300, true));
     this.drag.on('ended', this.drag.snapToClosestEdge);
     this.drag.on('translate', this.onSwitchTranslate);
     this.drag.on('snapped', this.onSwitchSnapped);
-    this.drag.on('tapped', this.onSwitchTapped);
+
     this.drag.updateDimensions();
     this.updateSwitchPosition();
   },
@@ -75,17 +100,17 @@ module.exports = View.extend({
   onSwitchSnapped: function(edges) {
     var mode = this.switchPositions[edges.x];
     var changed = mode !== this.get('mode');
-    if (changed) { this.onSwitchChanged(mode); }
+    if (changed) { this.onSwitchChanged(); }
   },
 
-  onSwitchChanged: function(mode) {
-    this.emit('modechanged', mode);
+  onSwitchChanged: function() {
+    this.emit('modechanged');
   },
 
   onSwitchTapped: function(e) {
     e.preventDefault();
     debug('switch tapped');
-    this.emit('modechanged');
+    this.onSwitchChanged();
   },
 
   onSwitchTranslate: function(e) {
