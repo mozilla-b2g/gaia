@@ -93,6 +93,8 @@ suite('system/TaskManager >', function() {
     };
     var evt = new CustomEvent('appopen', { detail: detail });
     window.dispatchEvent(evt);
+
+    detail.element.dispatchEvent(new CustomEvent('_opened'));
   }
 
   var apps, home;
@@ -105,6 +107,7 @@ suite('system/TaskManager >', function() {
       'http://sms.gaiamobile.org': new AppWindow({
         launchTime: 5,
         name: 'SMS',
+        element: document.createElement('div'),
         frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
@@ -126,6 +129,7 @@ suite('system/TaskManager >', function() {
       'http://game.gaiamobile.org': new AppWindow({
         launchTime: 4,
         name: 'GAME',
+        element: document.createElement('div'),
         frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
@@ -144,6 +148,7 @@ suite('system/TaskManager >', function() {
       'http://game2.gaiamobile.org': new AppWindow({
         launchTime: 3,
         name: 'GAME2',
+        element: document.createElement('div'),
         frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
@@ -162,6 +167,7 @@ suite('system/TaskManager >', function() {
       'http://game3.gaiamobile.org': new AppWindow({
         launchTime: 2,
         name: 'GAME3',
+        element: document.createElement('div'),
         frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
@@ -180,6 +186,7 @@ suite('system/TaskManager >', function() {
       'http://game4.gaiamobile.org': new AppWindow({
         launchTime: 1,
         name: 'GAME4',
+        element: document.createElement('div'),
         frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
         manifest: {
@@ -201,6 +208,7 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-0',
       launchTime: 5,
       name: 'SMS',
+      element: document.createElement('div'),
       frame: document.createElement('div'),
       iframe: document.createElement('iframe'),
       manifest: {
@@ -221,6 +229,7 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-1',
       launchTime: 5,
       name: 'GAME',
+      element: document.createElement('div'),
       frame: document.createElement('div'),
       iframe: document.createElement('iframe'),
       manifest: {
@@ -241,6 +250,7 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-2',
       launchTime: 5,
       name: 'GAME2',
+      element: document.createElement('div'),
       frame: document.createElement('div'),
       iframe: document.createElement('iframe'),
       manifest: {
@@ -261,6 +271,7 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-3',
       launchTime: 5,
       name: 'GAME3',
+      element: document.createElement('div'),
       frame: document.createElement('div'),
       iframe: document.createElement('iframe'),
       manifest: {
@@ -281,6 +292,7 @@ suite('system/TaskManager >', function() {
       instanceID: 'AppWindow-4',
       launchTime: 5,
       name: 'GAME4',
+      element: document.createElement('div'),
       frame: document.createElement('div'),
       iframe: document.createElement('iframe'),
       manifest: {
@@ -404,36 +416,12 @@ suite('system/TaskManager >', function() {
       cardsList.innerHTML = '';
     });
 
-    test('isTaskStrip tracks taskstrip.enabled setting', function() {
-      // var withRocketBar = new TaskManager();
-      MockNavigatorSettings.mTriggerObservers('taskstrip.enabled',
-                                              { settingValue: true });
-      assert.isTrue(taskManager.isTaskStrip,
-                    'isTaskStrip is true when setting goes true');
-
-      taskManager.isTaskStrip = true;
-      MockNavigatorSettings.mTriggerObservers('taskstrip.enabled',
-                                              { settingValue: false });
-      assert.isFalse(taskManager.isTaskStrip,
-                    'isTaskStrip is false when setting goes false');
-    });
-
-    test('creates Card instances when isTaskStrip is false', function(){
-      taskManager.isTaskStrip = false;
+    test('creates Card instances', function(){
       var app = apps['http://sms.gaiamobile.org'];
       taskManager.addCard(0, app);
       var card = taskManager.cardsByAppID[app.instanceID];
       assert.ok(card && card instanceof Card,
-                'creates Card instances when isTaskStrip is false');
-    });
-
-    test('creates TaskCard instances when isTaskStrip is true', function(){
-      taskManager.isTaskStrip = true;
-      var app = apps['http://sms.gaiamobile.org'];
-      taskManager.addCard(0, app);
-      var card = taskManager.cardsByAppID[app.instanceID];
-      assert.ok(card && card instanceof TaskCard,
-                'creates TaskCard instances when isTaskStrip is true');
+                'creates Card instances');
     });
 
     suite('screenshots settings >', function() {
@@ -484,13 +472,26 @@ suite('system/TaskManager >', function() {
     });
 
     suite('display cardsview >', function() {
+      var realRAF;
+      suiteSetup(function() {
+        realRAF = window.mozRequestAnimationFrame;
+
+        window.mozRequestAnimationFrame = function(cb) {
+          cb();
+        };
+      });
+
+      suiteTeardown(function() {
+        window.mozRequestAnimationFrame = realRAF;
+      });
+
       setup(function(done) {
         taskManager.hide(true);
         MockAppWindowManager.mActiveApp = apps['http://sms.gaiamobile.org'];
         waitForEvent(window, 'cardviewshown')
           .then(function() { done(); }, failOnReject);
-        taskManager.isTaskStrip = false;
         taskManager.show();
+        window.dispatchEvent(new CustomEvent('appclosed'));
       });
 
       teardown(function() {
@@ -503,7 +504,7 @@ suite('system/TaskManager >', function() {
         assert.equal(taskManager.screenElement, screenNode);
       });
 
-      test('cardsview should be active', function() {
+      test('cardsview should be active once app is closed', function() {
         assert.isTrue(taskManager.isShown(), 'taskManager.isShown');
         assert.isTrue(screenNode.classList.contains('cards-view'));
       });
@@ -614,14 +615,20 @@ suite('system/TaskManager >', function() {
       });
 
       test('user can change swipe direction', function() {
+        this.sinon.useFakeTimers();
         var currentCard = taskManager.currentCard;
 
         // Simulate a swipe that goes to one side, then back again
         var el = currentCard.element;
         el.dispatchEvent(createTouchEvent('touchstart', el, 200, 500));
+        this.sinon.clock.tick(300);
         el.dispatchEvent(createTouchEvent('touchmove', el, 0, 500));
-        el.dispatchEvent(createTouchEvent('touchmove', el, 50, 500));
-        el.dispatchEvent(createTouchEvent('touchend', el, 100, 500));
+        this.sinon.clock.tick(300);
+        el.dispatchEvent(createTouchEvent('touchmove', el, 380, 500));
+        this.sinon.clock.tick(300);
+        el.dispatchEvent(createTouchEvent('touchmove', el, 190, 500));
+        this.sinon.clock.tick(300);
+        el.dispatchEvent(createTouchEvent('touchend', el, 180, 500));
 
         assert.isTrue(currentCard == taskManager.currentCard,
                       'current card remains unchanged');
@@ -669,26 +676,6 @@ suite('system/TaskManager >', function() {
       });
     });
 
-    suite('populated task manager in rocketbar >', function() {
-      setup(function(done) {
-        taskManager.isTaskStrip = true;
-        assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
-        waitForEvent(window, 'cardviewshown')
-          .then(function() { done(); }, failOnReject);
-        taskManager.show();
-      });
-
-      teardown(function() {
-        taskManager.hide(true);
-      });
-
-      test('has correct classes', function() {
-        assert.isTrue(cardsView.classList.contains('active'));
-        assert.isTrue(screenNode.classList.contains('task-manager'));
-      });
-
-    });
-
   });
 
   suite('empty task manager >', function() {
@@ -701,30 +688,7 @@ suite('system/TaskManager >', function() {
       taskManager.hide(true);
     });
 
-    test('when isTaskStrip is true, empty task manager closes', function(done) {
-      var events = [];
-      window.Promise.race([
-        waitForEvent(window, 'cardviewclosed').then(function() {
-          events.push('cardviewclosed');
-        }, failOnReject),
-        waitForEvent(window, 'cardviewshown').then(function() {
-          events.push('cardviewshown');
-        }, failOnReject)
-      ]).then(function() {
-        assert.equal(events.length, 1, 'sanity check, only one event received');
-        assert.equal(events[0],
-                    'cardviewclosed',
-                    'cardviewclosed event raised when shown with empty stack');
-        assert.isFalse(cardsView.classList.contains('active'));
-        assert.isFalse(taskManager.isShown());
-        done();
-      }, failOnReject);
-      // Haida/rocketbar mode: taskManager aborts show when empty
-      taskManager.isTaskStrip = true;
-      taskManager.show();
-    });
-
-    test('when isTaskStrip is false, empty task manager opens', function(done) {
+    test('empty task manager opens', function(done) {
       var events = [];
       window.Promise.race([
         waitForEvent(window, 'cardviewclosed').then(function() {
@@ -743,7 +707,6 @@ suite('system/TaskManager >', function() {
         done();
       }, failOnReject);
       // Pre-Haida/Cardsview mode: taskManager shows empty message
-      taskManager.isTaskStrip = false;
       taskManager.show();
     });
 
@@ -762,13 +725,13 @@ suite('system/TaskManager >', function() {
         assert.isTrue(cardsView.classList.contains('active'));
         assert.isTrue(taskManager.isShown());
 
-        waitForEvent(window, 'cardviewclosedhome').then(function(){
-          events.push('cardviewclosedhome');
+        waitForEvent(window, 'cardviewclosed').then(function(){
+          events.push('cardviewclosed');
         }, failOnReject).then(function() {
           assert.equal(events.length, 1, 'sanity check, only 1 event received');
           assert.equal(events[0],
-                      'cardviewclosedhome',
-                      'cardviewclosedhome event raised when touch starts');
+                      'cardviewclosed',
+                      'cardviewclosed event raised when touch starts');
           assert.isFalse(cardsView.classList.contains('active'));
           assert.isFalse(taskManager.isShown());
         }, failOnReject)
@@ -793,7 +756,6 @@ suite('system/TaskManager >', function() {
       assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
       waitForEvent(window, 'cardviewshown')
         .then(function() { done(); }, failOnReject);
-      taskManager.isTaskStrip = false;
       taskManager.show();
     });
 
@@ -894,7 +856,6 @@ suite('system/TaskManager >', function() {
       assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
       waitForEvent(window, 'cardviewshown')
         .then(function() { done(); }, failOnReject);
-      taskManager.isTaskStrip = false;
       taskManager.show();
     });
 
@@ -916,8 +877,6 @@ suite('system/TaskManager >', function() {
   });
 
   suite('tapping on an app >', function() {
-    var displayStub;
-
     setup(function(done) {
       MockStackManager.mStack = [apps['http://sms.gaiamobile.org']];
       MockStackManager.mCurrent = 0;
@@ -928,13 +887,11 @@ suite('system/TaskManager >', function() {
       assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
       waitForEvent(window, 'cardviewshown')
         .then(function() { done(); }, failOnReject);
-      taskManager.isTaskStrip = true;
       taskManager.show();
     });
 
     teardown(function() {
       taskManager.hide(true);
-      displayStub.restore();
     });
 
     test('displays the new app before dismissing the task manager',
@@ -951,12 +908,10 @@ suite('system/TaskManager >', function() {
         done();
       }, failOnReject);
 
-      // stub the display method to fire the 'appopen' event normally
-      // triggered by the transition controller
-      displayStub = sinon.stub(MockAppWindowManager, 'display', function() {
+      var app = MockStackManager.mStack[0];
+      this.sinon.stub(app, 'open', function() {
         setTimeout(function() {
-          displayStub.restore();
-          sendAppopen(MockStackManager.mStack[0]);
+          sendAppopen(app);
         });
       });
       taskManager.handleEvent(fakeEvent);
@@ -977,7 +932,6 @@ suite('system/TaskManager >', function() {
       assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
       waitForEvent(window, 'cardviewshown')
         .then(function() { done(); }, failOnReject);
-      taskManager.isTaskStrip = false;
       taskManager.show();
     });
     teardown(function() {
@@ -1046,18 +1000,27 @@ suite('system/TaskManager >', function() {
 
   suite('exit >', function() {
     setup(function(done) {
+      this.sinon.useFakeTimers();
       taskManager.hide(true);
       MockAppWindowManager.mRunningApps = apps;
       MockAppWindowManager.mActiveApp = apps['http://sms.gaiamobile.org'];
       waitForEvent(window, 'cardviewshown')
         .then(function() { done(); }, failOnReject);
-      taskManager.isTaskStrip = false;
       taskManager.show();
+      window.dispatchEvent(new CustomEvent('appclosed'));
+      this.sinon.clock.tick();
     });
 
     teardown(function() {
-      taskManager.hide(true);
+      this.sinon.clock.tick(500); // safety timeout
+      taskManager.hide();
     });
+
+    function fakeFinish(clock, app) {
+      clock.tick(100); // smooth timeout
+      app.element.dispatchEvent(new CustomEvent('_opened'));
+      clock.tick(); // timeout before close event is dispatched
+    }
 
     test('selected app is opened', function(done) {
       var targetApp = apps['http://game.gaiamobile.org'];
@@ -1069,6 +1032,7 @@ suite('system/TaskManager >', function() {
       .then(function() { done(); }, done);
 
       taskManager.exitToApp(targetApp);
+      fakeFinish(this.sinon.clock, targetApp);
     });
 
     test('when exitToApp is passed no app', function(done) {
@@ -1081,6 +1045,7 @@ suite('system/TaskManager >', function() {
       .then(function() { done(); }, done);
 
       taskManager.exitToApp();
+      fakeFinish(this.sinon.clock, activeApp);
     });
 
     test('active app is opened on home event', function(done) {
@@ -1094,6 +1059,7 @@ suite('system/TaskManager >', function() {
 
       var event = new CustomEvent('home');
       window.dispatchEvent(event);
+      fakeFinish(this.sinon.clock, activeApp);
     });
 
     test('newStackPosition is defined when app is selected', function(done) {
@@ -1112,8 +1078,8 @@ suite('system/TaskManager >', function() {
       .then(function() { done(); }, done);
 
       taskManager.exitToApp(targetApp);
+      fakeFinish(this.sinon.clock, targetApp);
     });
-
   });
 
   suite('filtering > ', function() {
@@ -1121,7 +1087,6 @@ suite('system/TaskManager >', function() {
       taskManager.hide(true);
       MockAppWindowManager.mRunningApps = apps;
       MockAppWindowManager.mActiveApp = apps['http://sms.gaiamobile.org'];
-      taskManager.isTaskStrip = false;
     });
 
     teardown(function() {

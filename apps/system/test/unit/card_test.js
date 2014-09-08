@@ -67,31 +67,34 @@ suite('system/Card', function() {
       assert.ok(card.screenshotView, 'screenshotView node');
       assert.ok(card.titleNode, 'title node');
       assert.ok(card.titleId, 'title id');
+      assert.ok(card.iconButton, 'iconButton');
     });
 
     test('has expected classes/elements', function(){
       var card = this.card;
       var header = card.element.querySelector('h1');
       assert.ok(card.element.classList.contains, '.card');
-      assert.ok(card.element.querySelector('.close-card'), '.close-card');
+      assert.isFalse(card.element.classList.contains('browser'),
+                     'no browser class for non-browser windows');
+      assert.ok(card.element.querySelector('.close-button'), '.close-button');
       assert.ok(card.element.querySelector('.screenshotView'),
                 '.screenshotView');
       assert.ok(header, 'h1');
       assert.ok(header.id, 'h1.id');
     });
 
-    test('onviewport listener', function(){
-      var card = this.card;
-      var stub = this.sinon.stub(card, 'onViewport', function() {});
-      card.element.dispatchEvent(new CustomEvent('onviewport'));
-      assert.isTrue(stub.calledOnce, 'onViewport was called');
-    });
-
-    test('outviewport listener', function(){
-      var card = this.card;
-      var stub = sinon.stub(card, 'onOutViewport', function() {});
-      card.element.dispatchEvent(new CustomEvent('outviewport'));
-      assert.isTrue(stub.calledOnce, 'onOutViewport was called');
+    test('adds browser class for browser windows', function(){
+      var app = makeApp({ name: 'browserwindow' });
+      this.sinon.stub(app, 'isBrowser', function() {
+        return true;
+      });
+      var card = new Card({
+        app: app,
+        manager: mockManager
+      });
+      card.render();
+      assert.ok(card.element.classList.contains('browser'),
+               'has browser class');
     });
 
     test('browser app title', function() {
@@ -252,10 +255,15 @@ suite('system/Card', function() {
     });
 
     test('card with screenshots disabled shows icon', function() {
-      var card = this.card;
-      var manager = card.manager;
-      manager.useAppScreenshotPreviews = false;
-      card.element.dispatchEvent(new CustomEvent('onviewport'));
+      var mockManager = {
+        useAppScreenshotPreviews: false
+      };
+
+      var card = new Card({
+        app: makeApp({ name: 'dummyapp-icons' }),
+        manager: mockManager
+      });
+      card.render();
 
       assert.isTrue(card.element.classList.contains('appIconPreview'),
                     'card has appIconPreview class');
