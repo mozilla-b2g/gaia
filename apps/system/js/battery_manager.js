@@ -17,7 +17,6 @@ var BatteryManager = {
   getAllElements: function bm_getAllElements() {
     this.screen = document.getElementById('screen');
     this.overlay = document.getElementById('system-overlay');
-    this.notification = document.getElementById('battery');
   },
 
   checkBatteryDrainage: function bm_checkBatteryDrainage() {
@@ -141,6 +140,7 @@ var PowerSaveHandler = (function PowerSaveHandler() {
   };
 
   var _powerSaveEnabledLock = false;
+  var _powerSaveNotification = null;
 
   function init() {
     SettingsListener.observe('powersave.enabled', false,
@@ -221,16 +221,36 @@ var PowerSaveHandler = (function PowerSaveHandler() {
       });
     };
 
-    NotificationHelper.send(_('notification-powersaving-mode-on-title'),
-                            _('notification-powersaving-mode-on-description'),
-                            'style/icons/Power_saving_mode.png',
-                            clickCB);
+    var closePowersaveNotification = function() {
+      _powerSaveNotification = null;
+    }
+
+    var powerSavingNotification = new Notification(
+      _('notification-powersaving-mode-on-title'),
+      {
+        body: _('notification-powersaving-mode-on-description'),
+        icon: 'style/icons/Power_saving_mode.png'
+      }
+    );
+    powerSavingNotification.addEventListener('click', clickCB);
+    powerSavingNotification.addEventListener('close', closePowersaveNotification);
+
+    _powerSaveNotification = powerSavingNotification;
+  }
+
+  function hidePowerSavingNotification() {
+    if (!_powerSaveNotification) {
+      return;
+    }
+
+    _powerSaveNotification.close();
   }
 
   function onBatteryChange() {
     var battery = BatteryManager._battery;
 
     if (battery.charging) {
+      hidePowerSavingNotification();
       if (_powerSaveEnabled)
         setMozSettings({'powersave.enabled' : false});
 
@@ -255,6 +275,8 @@ var PowerSaveHandler = (function PowerSaveHandler() {
 
         if (battery.level > value && _powerSaveEnabled) {
           setMozSettings({'powersave.enabled' : false});
+          hidePowerSavingNotification();
+          _powerSaveEnabledLock = false;
           return;
         }
     });
@@ -262,7 +284,9 @@ var PowerSaveHandler = (function PowerSaveHandler() {
 
   return {
     init: init,
-    onBatteryChange: onBatteryChange
+    onBatteryChange: onBatteryChange,
+    showPowerSavingNotification: showPowerSavingNotification,
+    hidePowerSavingNotification: hidePowerSavingNotification
   };
 })();
 
