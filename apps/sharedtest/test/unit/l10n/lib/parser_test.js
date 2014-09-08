@@ -78,8 +78,6 @@ describe('L10n Parser', function() {
       'id = {[ plural(m) \nid[one] = foo',
       'id = { plural(m) ]} \nid[one] = foo',
       'id = plural(m) ]} \nid[one] = foo',
-      'id = {[ m ]} \nid[one] = foo',
-      'id = {[ plural ]} \nid[one] = foo',
       'id = {[ plural(m ]} \nid[one] = foo',
       'id = {[ pluralm) ]} \nid[one] = foo',
 
