@@ -185,5 +185,12 @@ suite('system/HomescreenWindow', function() {
         homescreenWindow.fadeOverlay = originalOverlay;
       });
     });
+
+    suite('task manager interactions', function() {
+      test('enter taskmanager', function() {
+        homescreenWindow.enterTaskManager();
+        assert.isTrue(homescreenWindow.element.classList.contains('fadeout'));
+      });
+    });
   });
 });

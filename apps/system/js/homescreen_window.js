@@ -232,5 +232,14 @@
     this.fadeOverlay.classList.remove('hidden');
   };
 
+  /**
+   * override AppWindow, respond to display of the task manager,
+   */
+  HomescreenWindow.prototype.enterTaskManager = function aw_enterTaskManager() {
+    if (this.element) {
+      this.element.classList.add('fadeout');
+    }
+  };
+
   exports.HomescreenWindow = HomescreenWindow;
 }(window));
