@@ -367,7 +367,7 @@
     var currentApp = (stack.length && this.currentPosition > -1 &&
                      stack[this.currentPosition]);
 
-    if (!currentApp) {
+    if (!currentApp && this.isTaskStrip) {
       // Fire a cardchange event to notify rocketbar that there are no cards
       this.fireCardViewClosed();
       return;

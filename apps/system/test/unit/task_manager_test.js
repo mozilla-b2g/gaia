@@ -776,13 +776,13 @@ suite('system/TaskManager >', function() {
         assert.isTrue(cardsView.classList.contains('active'));
         assert.isTrue(taskManager.isShown());
 
-        waitForEvent(window, 'cardviewclosedhome').then(function(){
-          events.push('cardviewclosedhome');
+        waitForEvent(window, 'cardviewclosed').then(function(){
+          events.push('cardviewclosed');
         }, failOnReject).then(function() {
           assert.equal(events.length, 1, 'sanity check, only 1 event received');
           assert.equal(events[0],
-                      'cardviewclosedhome',
-                      'cardviewclosedhome event raised when touch starts');
+                      'cardviewclosed',
+                      'cardviewclosed event raised when touch starts');
           assert.isFalse(cardsView.classList.contains('active'));
           assert.isFalse(taskManager.isShown());
         }, failOnReject)
