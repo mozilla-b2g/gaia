@@ -37,7 +37,7 @@ marionette('Vertical Home - Hosted app cached icon fetch', function() {
     server.close(done);
   });
 
-  test('fallback to default icon', function() {
+  test.only('fallback to default icon', function() {
     var iconURL = server.manifest.icons['128'];
     // correctly install the app...
     client.switchToFrame();
@@ -62,6 +62,8 @@ marionette('Vertical Home - Hosted app cached icon fetch', function() {
       return hasSource && isCached;
     });
 
+    console.log('INITIAL Icon src is:', iconSrc(icon));
+
     // ensure http falls so we use the cached icon
     server.fail(iconURL);
 
@@ -71,6 +73,7 @@ marionette('Vertical Home - Hosted app cached icon fetch', function() {
 
     // check for the cached icon...
     client.waitFor(function() {
+      console.log('Icon src is:', iconSrc(icon), ' waiting for: blobcache');
       return iconSrc(icon) === 'blobcache';
     });
 
