@@ -1,5 +1,4 @@
 /* global MocksHelper */
-/* global MockPermissionSettings */
 /* global MockSettingsListener */
 /* global MockGeolocation */
 /* global Commands */
@@ -14,7 +13,6 @@ require('/shared/test/unit/mocks/mock_settings_helper.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_device_storage.js');
 require('/shared/test/unit/mocks/mock_geolocation.js');
-require('/shared/test/unit/mocks/mock_permission_settings.js');
 
 var mocksForFindMyDevice = new MocksHelper([
   'SettingsListener', 'SettingsURL', 'SettingsHelper', 'Audio',
@@ -23,7 +21,6 @@ var mocksForFindMyDevice = new MocksHelper([
 
 suite('FindMyDevice >', function() {
   var realL10n;
-  var realPermissionSettings;
   var realMozPower;
   var realMozApps;
   var fakeClock;
@@ -38,10 +35,6 @@ suite('FindMyDevice >', function() {
         callback();
       }
     };
-
-    realPermissionSettings = navigator.mozPermissionSettings;
-    navigator.mozPermissionSettings = MockPermissionSettings;
-    MockPermissionSettings.mSetup();
 
     realMozPower = navigator.mozPower;
     navigator.mozPower = {
@@ -143,14 +136,10 @@ suite('FindMyDevice >', function() {
   });
 
   test('Track command', function(done) {
-    // we want to make sure this is set to 'allow'
-    MockPermissionSettings.permissions.geolocation = 'deny';
-
     var times = 0;
     var duration = (5 * subject.TRACK_UPDATE_INTERVAL_MS) / 1000;
     subject.invokeCommand('track', [duration, function(retval, position) {
       assert.equal(retval, true);
-      assert.equal(MockPermissionSettings.permissions.geolocation, 'allow');
       assert.deepEqual(position, MockGeolocation.fakePosition);
 
       if (times++ === 3) {
@@ -189,7 +178,7 @@ suite('FindMyDevice >', function() {
 
       fakeClock.tick(5 * subject.TRACK_UPDATE_INTERVAL_MS);
 
-      assert.equal(positions, 2);
+      assert.equal(positions, 3);
       assert.equal(subject._trackTimeoutId, null);
       assert.equal(subject._trackIntervalId, null);
       done();
@@ -254,9 +243,6 @@ suite('FindMyDevice >', function() {
 
   teardown(function() {
     navigator.mozL10n = realL10n;
-
-    MockPermissionSettings.mTeardown();
-    navigator.mozPermissionSettings = realPermissionSettings;
 
     // clean up sinon.js stubs
     navigator.mozPower.factoryReset.restore();

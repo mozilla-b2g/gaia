@@ -66,28 +66,6 @@ var Commands = {
     return !!(this._lockscreenEnabled && this._lockscreenPassCodeEnabled);
   },
 
-  _setGeolocationPermission:
-  function fmdc_set_geolocation_permission(successCallback, errorCallback) {
-    var app = null;
-    var appreq = navigator.mozApps.getSelf();
-
-    appreq.onsuccess = function fmdc_getapp_success() {
-      app = this.result;
-
-      try {
-        navigator.mozPermissionSettings.set('geolocation', 'allow',
-            app.manifestURL, app.origin, false);
-      } catch (exc) {
-        errorCallback();
-        return;
-      }
-
-      successCallback();
-    };
-
-    appreq.onerror = errorCallback;
-  },
-
   _trackIntervalId: null,
 
   _trackTimeoutId: null,
@@ -115,27 +93,22 @@ var Commands = {
         return;
       }
 
-      // set geolocation permission to true, and start requesting
-      // the current position every TRACK_UPDATE_INTERVAL_MS milliseconds
-      this._setGeolocationPermission(function fmdc_permission_success() {
-        SettingsHelper('findmydevice.tracking').set(true);
-        self._trackIntervalId = setInterval(function fmdc_track_interval() {
-          navigator.geolocation.getCurrentPosition(
-            function fmdc_gcp_success(position) {
-              DUMP('updating location to (' +
-                position.coords.latitude + ', ' +
-                position.coords.longitude + ')'
-              );
+      // start requesting the current position every TRACK_UPDATE_INTERVAL_MS
+      // milliseconds
+      SettingsHelper('findmydevice.tracking').set(true);
+      self._trackIntervalId = setInterval(function fmdc_track_interval() {
+        navigator.geolocation.getCurrentPosition(
+          function fmdc_gcp_success(position) {
+            DUMP('updating location to (' +
+              position.coords.latitude + ', ' +
+              position.coords.longitude + ')'
+            );
 
-              reply(true, position);
-            }, function fmdc_gcp_error(error) {
-              reply(false, 'failed to get location: ' + error.message);
-            });
-        }, self.TRACK_UPDATE_INTERVAL_MS);
-      }, function fmdc_permission_error() {
-        FindMyDevice.endHighPriority('command');
-        reply(false, 'failed to set geolocation permission!');
-      });
+            reply(true, position);
+          }, function fmdc_gcp_error(error) {
+            reply(false, 'failed to get location: ' + error.message);
+          });
+      }, self.TRACK_UPDATE_INTERVAL_MS);
 
       duration = (isNaN(duration) || duration < 0) ? 1 : duration;
       self._trackTimeoutId = setTimeout(stop, duration * 1000);
