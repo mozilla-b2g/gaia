@@ -342,4 +342,34 @@ suite('AlternativesCharMenuManager', function() {
       });
     });
   });
+
+  suite('after hiding the menu', function() {
+    setup(function() {
+      app.upperCaseStateManager.isUpperCase = false;
+      app.upperCaseStateManager.isUpperCaseLocked = false;
+
+      app.layoutManager.currentModifiedLayout.alt.x =
+        ['a', 'b', 'c', 'd'];
+
+      manager.show(target);
+      manager.hide();
+    });
+
+    test('isMenuTarget should be false', function() {
+      var target = {
+        parentNode: container
+      };
+
+      assert.isFalse(manager.isMenuTarget(target));
+    });
+
+    test('isInMenuArea() should return false', function() {
+      var press = {
+        clientX: 65,
+        clientY: 47
+      };
+
+      assert.isFalse(manager.isInMenuArea(press));
+    });
+  });
 });

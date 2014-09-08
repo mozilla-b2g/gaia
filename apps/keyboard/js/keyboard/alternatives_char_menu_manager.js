@@ -115,6 +115,10 @@ AlternativesCharMenuManager.prototype.hide = function() {
 };
 
 AlternativesCharMenuManager.prototype.isMenuTarget = function(target) {
+  if (!this._currentMenuView) {
+    return false;
+  }
+
   var menuContainer = this._currentMenuView.getMenuContainer();
   return (target.parentNode === menuContainer ||
           target === menuContainer);
