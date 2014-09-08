@@ -157,4 +157,34 @@ suite('WifiContext', function() {
       assert.equal(wifiContext.currentNetwork, fakeNetowrk);
     });
   });
+
+  suite('Connecting failed', function() {
+    var fakeCb;
+
+    setup(function() {
+      fakeCb = sinon.spy();
+      this.sinon.spy(wifiManager, 'associate');
+      this.sinon.spy(wifiManager, 'forget');
+      wifiContext.addEventListener('wifiWrongPassword', fakeCb);
+    });
+
+    teardown(function() {
+      wifiContext.removeEventListener('wifiWrongPassword', fakeCb);
+    });
+
+    test('when connectingfailed, trigger cb', function() {
+      var fakeNetwork = {
+        known: false,
+        password: '1234',
+        ssid: 'fake-network'
+      };
+      wifiContext.associateNetwork(fakeNetwork);
+
+      wifiManager.enabled = true;
+      wifiManager.connection.status = 'connectingfailed';
+      wifiManager.onstatuschange();
+      assert.isTrue(fakeCb.calledWith());
+      assert.isTrue(wifiManager.forget.calledWith(fakeNetwork));
+    });
+  });
 });
