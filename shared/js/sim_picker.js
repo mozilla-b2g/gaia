@@ -79,13 +79,6 @@
       templateNode.remove();
 
       this._simPickerElt.addEventListener('click', this);
-
-      // because this code is not reacting to l10n.js Mutation Observer
-      // we need to manually retranslate the content
-      // XXX: Remove once bug 1040922 is fixed
-      navigator.mozL10n.ready(function() {
-        navigator.mozL10n.translateFragment(this._simPickerElt);
-      }.bind(this));
     },
 
     handleEvent: function(e) {
