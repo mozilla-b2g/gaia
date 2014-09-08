@@ -32,6 +32,7 @@
     "apps/settings/test/marionette/tests/message_settings_test.js": "",
     "apps/system/test/marionette/app_usage_metrics_test.js": "Bug 1049137 - Intermittent failing test, TEST-UNEXPECTED-FAIL | App Usage Metrics > Uninstalled apps are counted",
     "apps/system/test/marionette/edges_gesture_test.js": "Bug 1045729 - Intermittent failing test, Edges gesture > before each hook",
+    "apps/system/test/marionette/fxa_screen_flow_test.js": "Bug 1064305 - [Marionette] FxA tests - intermittent timeout failures on system/fxa/test/marionette/fxa_screen_flow_test.js",
     "apps/system/test/marionette/homescreen_navigation_test.js": "Bug 1043870 - TEST-UNEXPECTED-FAIL | Homescreen navigation > Going to the homescreen and back to a warm app",
     "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
     "apps/verticalhome/test/marionette/bookmark_uninstall_test.js": "Bug 1033223 - [Vertical homescreen] Intermittent MarionetteJS failure on Travis: 1) Vertical - Bookmark Uninstall removal of bookmark: NoSuchElement: (7) Unable to locate element: gaia-confirm[data-type=\"remove\"]"
