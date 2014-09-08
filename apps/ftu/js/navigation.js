@@ -361,6 +361,10 @@ var Navigation = {
       nextButton.firstChild.textContent = _('navbar-next');
     }
 
+    if (futureLocation.hash === '#firefox_accounts') {
+      nextButton.firstChild.textContent = _('skip');
+    }
+
     // Change hash to the right location
     window.location.hash = futureLocation.hash;
 
