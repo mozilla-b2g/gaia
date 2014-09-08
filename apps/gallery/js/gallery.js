@@ -117,8 +117,6 @@ var hasSaved = false;
 // selected thumbnails.
 var lastFocusedThumbnail = null;
 
-var currentOverlay;  // The id of the current overlay or null if none.
-
 // Have we completed our first scan yet?
 var firstScanDone = false;
 
@@ -168,7 +166,7 @@ function init() {
   fullscreenButtons.camera.onclick = launchCameraApp;
 
   $('thumbnails-camera-button').onclick = launchCameraApp;
-  $('overlay-camera-button').onclick = launchCameraApp;
+  Overlay.addEventListener('camera', launchCameraApp);
 
   // Clicking on the delete button in thumbnail select mode deletes all
   // selected items
@@ -177,9 +175,8 @@ function init() {
   // Clicking on the share button in select mode shares all selected images
   $('thumbnails-share-button').onclick = shareSelectedItems;
 
-  $('overlay-cancel-button').onclick = function() {
-    cancelPick();
-  };
+  Overlay.addEventListener('cancel', cancelPick);
+
   // Handle resize events
   window.onresize = resizeHandler;
 
@@ -264,7 +261,7 @@ function initDB() {
 
   // show dialog in upgradestart, when it finished, it will turned to ready.
   photodb.onupgrading = function(evt) {
-    showOverlay('upgrade');
+    Overlay.show('upgrade');
   };
 
   // This is called when DeviceStorage becomes unavailable because the
@@ -281,16 +278,16 @@ function initDB() {
     // Lock the user out of the app, and tell them why
     var why = event.detail;
     if (why === MediaDB.NOCARD)
-      showOverlay('nocard');
+      Overlay.show('nocard');
     else if (why === MediaDB.UNMOUNTED)
-      showOverlay('pluggedin');
+      Overlay.show('pluggedin');
   };
 
   photodb.onready = function() {
     // Hide the nocard or pluggedin overlay if it is displayed
-    if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin' ||
-        currentOverlay === 'upgrade')
-      showOverlay(null);
+    if (Overlay.current === 'nocard' || Overlay.current === 'pluggedin' ||
+        Overlay.current === 'upgrade')
+      Overlay.hide();
 
     initThumbnails();
   };
@@ -307,8 +304,8 @@ function initDB() {
     // Allows the user to edit images when scanning is finished
     fullscreenButtons.edit.classList.remove('disabled');
 
-    if (currentOverlay === 'scanning')
-      showOverlay('emptygallery');
+    if (Overlay.current === 'scanning')
+      Overlay.show('emptygallery');
     else if (!isPhone && !currentFrame.displayingImage &&
              !currentFrame.displayingVideo) {
       // focus on latest one if client hasn't clicked any of
@@ -491,7 +488,7 @@ function initThumbnails() {
   function done() {
     flush();
     if (files.length === 0) { // If we didn't find anything
-      showOverlay('scanning');
+      Overlay.show('scanning');
     }
 
     // Send a custom event to performance monitors to note that we're done
@@ -578,7 +575,7 @@ function fileDeleted(filename) {
   if (files.length === 0) {
     if (currentView !== LAYOUT_MODE.pick)
       setView(LAYOUT_MODE.list);
-    showOverlay('emptygallery');
+    Overlay.show('emptygallery');
   }
 }
 
@@ -625,8 +622,8 @@ function fileCreated(fileinfo) {
     var insertPosition;
 
     // If we were showing the 'no pictures' overlay, hide it
-    if (currentOverlay === 'emptygallery' || currentOverlay === 'scanning')
-      showOverlay(null);
+    if (Overlay.current === 'emptygallery' || Overlay.current === 'scanning')
+      Overlay.hide();
 
     // Create a thumbnailItem for this image and insert it at the right spot
     var thumbnailItem = thumbnailList.addItem(fileinfo);
@@ -1330,21 +1327,6 @@ function resizeHandler() {
     setFramesPosition();
   }
 }
-
-//
-// Overlay messages
-//
-function showOverlay(id) {
-  currentOverlay = id;
-  Dialogs.showOverlay(id);
-}
-
-// XXX
-// Until https://bugzilla.mozilla.org/show_bug.cgi?id=795399 is fixed,
-// we have to add a dummy click event handler on the overlay in order to
-// make it opaque to touch events. Without this, it does not prevent
-// the user from interacting with the UI.
-$('overlay').addEventListener('click', function dummyHandler() {});
 
 // Change the thumbnails quality while scrolling using the scrollstart/scrollend
 // events from shared/js/scroll_detector.js.
