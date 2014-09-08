@@ -15,6 +15,7 @@
   width: 100%;
   padding-bottom: 1rem;
   overflow: hidden;
+  direction: ltr;
 }
 
 /**
