@@ -84,11 +84,11 @@ function editPhoto(n) {
     var maxsize = CONFIG_MAX_EDIT_PIXEL_SIZE || CONFIG_MAX_IMAGE_PIXEL_SIZE;
 
     if (metadata.rotation || metadata.mirrored || imagesize > maxsize) {
-      showSpinner();
+      Spinner.show();
       cropResizeRotate(file, null, maxsize || null,
                        null, metadata,
                        function(error, rotatedBlob) {
-                         hideSpinner();
+                         Spinner.hide();
                          if (error) {
                            console.error('Error while rotating image:', error);
                            rotatedBlob = file;
