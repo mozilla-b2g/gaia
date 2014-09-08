@@ -2,10 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette import Wait
 from marionette.by import By
-from marionette.errors import StaleElementException
-from marionette.errors import NoSuchElementException
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -16,6 +13,7 @@ class SearchPanel(Base):
     _search_results_app_frame_locator = (By.CSS_SELECTOR, '.searchWindow.active iframe')
     _search_results_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
     _search_suggestion_ok_button_locator = (By.ID, 'suggestions-notice-confirm')
+    _rocketbar_input_locator = (By.ID, 'rocketbar-input')
 
     def _switch_to_search_results_frame(self):
         self.marionette.switch_to_frame()
@@ -25,6 +23,19 @@ class SearchPanel(Base):
         self.keyboard.send(search_term)
         # The search results frame is not findable with AppWindowManager
         self._switch_to_search_results_frame()
+
+    def go_to_url(self, url):
+        self.keyboard.send(url)
+
+        #TODO Remove hack once Bug 1062309 is fixed
+        self.marionette.switch_to_frame()
+        self.marionette.find_element(*self._rocketbar_input_locator).tap()
+
+        self.keyboard.tap_enter()
+        self.wait_for_condition(lambda m: url in self.apps.displayed_app.name)
+
+        from gaiatest.apps.search.regions.browser import Browser
+        return Browser(self.marionette)
 
     def wait_for_everything_me_results_to_load(self, minimum_expected_results=1):
         self.wait_for_condition(lambda m: len(m.find_elements(*self._search_results_locator))

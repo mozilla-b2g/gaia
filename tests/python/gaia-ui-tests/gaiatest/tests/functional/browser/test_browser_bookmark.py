@@ -5,8 +5,8 @@
 import time
 
 from gaiatest import GaiaTestCase
-from gaiatest.apps.browser.app import Browser
 from gaiatest.apps.homescreen.app import Homescreen
+from gaiatest.apps.search.app import Search
 
 
 class TestBrowserBookmark(GaiaTestCase):
@@ -16,6 +16,7 @@ class TestBrowserBookmark(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.connect_to_network()
+        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
         if self.device.is_desktop_b2g or self.data_layer.is_wifi_connected():
             self.test_url = self.marionette.absolute_url('mozilla.html')
@@ -26,13 +27,13 @@ class TestBrowserBookmark(GaiaTestCase):
         self.bookmark_title = 'gaia%s' % curr_time[10:]
 
     def test_browser_bookmark(self):
-        browser = Browser(self.marionette)
-        browser.launch()
+        search = Search(self.marionette)
+        search.launch()
 
-        browser.go_to_url(self.test_url)
-        browser.tap_bookmark_button()
+        browser = search.go_to_url(self.test_url)
+        browser.tap_menu_button()
+        bookmark = browser.tap_add_to_home()
 
-        bookmark = browser.tap_add_bookmark_to_home_screen_choice_button()
         bookmark.type_bookmark_title(self.bookmark_title)
         bookmark.tap_add_bookmark_to_home_screen_dialog_button()
 
