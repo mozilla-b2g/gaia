@@ -16,8 +16,6 @@ var FtuLauncher = {
   /* Store that if FTU is currently running */
   _isRunningFirstTime: false,
 
-  _isUpgrading: false,
-
   _bypassHomeEvent: false,
 
   isFtuRunning: function fl_isFtuRunning() {
