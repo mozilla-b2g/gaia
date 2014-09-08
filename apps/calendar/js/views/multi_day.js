@@ -186,7 +186,9 @@ MultiDay.prototype = {
   },
 
   _updateBaseDateAfterScroll: function(diff) {
-    this.timeController.move(createDayDiff(this.baseDate, diff));
+    var day = createDayDiff(this.baseDate, diff);
+    this.timeController.move(day);
+    this.timeController.selectedDay = day;
   },
 
   _render: function() {
