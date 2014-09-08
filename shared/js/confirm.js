@@ -39,10 +39,8 @@ var ConfirmDialog = (function() {
     messageNode.removeAttribute('data-l10n-id');
     messageNode.className = '';
     action1Node.removeAttribute('data-l10n-id');
-    action1Node.className = '';
     action1Node.onclick = null;
     action2Node.removeAttribute('data-l10n-id');
-    action2Node.className = '';
     action2Node.onclick = null;
     screen.classList.remove('fade-in');
     screen.classList.add('fade-out');
@@ -51,6 +49,8 @@ var ConfirmDialog = (function() {
     // changes.
     window.dispatchEvent(new CustomEvent('confirmdialoghiding'));
     screen.addEventListener('animationend', function cd_fadeOut(ev) {
+      action1Node.className = '';
+      action2Node.className = '';
       isAnimationPlaying = false;
       screen.removeEventListener('animationend', cd_fadeOut);
       screen.classList.add('no-opacity');
