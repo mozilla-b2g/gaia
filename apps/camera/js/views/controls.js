@@ -108,9 +108,12 @@ module.exports = View.extend({
   },
 
   onSwitchTapped: function(e) {
-    e.preventDefault();
     debug('switch tapped');
-    this.onSwitchChanged();
+    var enabled = this.get('enabled');
+    if (enabled === 'true') {
+      this.onSwitchChanged();
+    }
+    e.preventDefault();
   },
 
   onSwitchTranslate: function(e) {
@@ -129,12 +132,14 @@ module.exports = View.extend({
 
   onButtonClick: function(e) {
     debug('button click');
-    e.stopPropagation();
     var name = e.currentTarget.getAttribute('name');
     var enabled = this.get('enabled');
     if (enabled === 'true') {
       this.emit('click:' + name, e);
+      return;
     }
+
+    e.stopPropagation();
   },
 
   setMode: function(mode) {

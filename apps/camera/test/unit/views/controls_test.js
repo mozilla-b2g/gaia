@@ -165,6 +165,7 @@ suite('views/controls', function() {
     setup(function() {
       this.event = { preventDefault: sinon.spy() };
       this.spy = this.ControlsView.prototype.onSwitchTapped;
+      this.view.enable();
     });
 
     test('It emits a `modechanged` event', function() {
