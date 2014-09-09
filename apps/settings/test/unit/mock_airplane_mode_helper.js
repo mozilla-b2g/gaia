@@ -25,7 +25,5 @@ var MockAirplaneModeHelper = {
   },
   addEventListener: function(callback) {
     this._callbacks.push(callback);
-  },
-  removeEventListener: function() {
   }
 };

@@ -51,9 +51,6 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'unit/mock_wifi_utils': {
         exports: 'MockWifiUtils'
       },
-      'unit/mock_airplane_mode_helper': {
-        exports: 'MockAirplaneModeHelper'
-      },
       'shared_mocks/mock_navigator_moz_settings': {
         exports: 'MockNavigatorSettings'
       },
