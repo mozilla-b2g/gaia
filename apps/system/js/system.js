@@ -15,10 +15,21 @@
       'apps': navigator.mozApps,
       'telephony': navigator.mozTelephony,
       'mobileConnections': navigator.mozMobileConnections,
-      'wifi': navigator.wifiManager,
-      'settings': navigator.mozSettings
+      'wifi': navigator.wifiManager
     },
 
+    getAPI: function(name) {
+      return this.API[name];
+    },
+
+    /**
+     * Create a module based on base module and give properties.
+     * @param  {Function} constructor The constructor function.
+     * @param  {Object} properties
+     *                  The property object which includes getter/setter.
+     * @param  {Object} prototype
+     *                  The prototype which will be injected into the class.
+     */
     create: function(constructor, properties, prototype) {
       constructor.prototype = Object.create(BaseModule.prototype, properties);
       constructor.prototype.constructor = constructor;
@@ -26,6 +37,10 @@
         BaseModule.mixin(constructor.prototype, prototype);
       }
       return constructor;
+    },
+
+    request: function() {
+
     },
 
     lazyLoad: function(array, callback) {
@@ -68,51 +83,8 @@
      * Now it stands for the foreground app is not loaded yet.
      */
     isBusyLoading: function() {
-      return (window.appWindowManager &&
-              !window.appWindowManager.getActiveApp().loaded);
-    },
-
-    get screenOn() {
-      return window.systemApp &&
-             window.systemApp.screenManager &&
-             window.systemApp.screenManager.screenEnabled;
-    },
-
-    /**
-     * Get the running app window instance by the origin/manifestURL provided.
-     * @param {String} origin The url to be matched.
-     * @param {String} [manifestURL] The manifestURL to be matched.
-     */
-    getRunningApp: function(origin, manifestURL) {
-      return window.appWindowManager ?
-             window.appWindowManager.getApp(origin, manifestURL) : null;
-    },
-
-    /**
-     * Get the lists of running app window instances.
-     */
-    getRunningApps: function() {
-      return window.appWindowManager ?
-             window.appWindowManager.getApps() : [];
-    },
-
-    isBTProfileConnected: function(profile) {
-      return window.bluetoothHandler &&
-             window.bluetoothHandler.isProfileConnected(profile);
-    },
-
-    get bluetoothConnected() {
-      return window.bluetoothHandler &&
-             window.bluetoothHandler.connected;
-    },
-
-    get headphonesActive() {
-      return StatusBar && StatusBar.headphonesActive;
-    },
-
-    get keyboardHeight() {
-      return systemApp &&
-             systemApp.keyboardManager && systemApp.keyboardManager.getHeight();
+      var app = window.AppWindowManager.getActiveApp();
+      return app && !app.loaded;
     },
 
     /**
@@ -171,33 +143,81 @@
       window.dispatchEvent(evt);
     },
 
-    get topMostAppWindow() {
-      if ('undefined' === typeof window.appWindowManager) {
-        return null;
-      } else {
-        return window.appWindowManager.getActiveApp();
+    handleEvent: function(evt) {
+      if (evt.type == 'settings-core-started') {
+        this._observer_to_add &&
+        this._observer_to_add.forEach(function(observer) {
+          window.settingsCore.addObserver(observer.name, observer.context);
+        });
+        this._observer_to_remove &&
+        this._observer_to_remove.forEach(function(observer) {
+          window.settingsCore.removeObserver(observer.name, observer.context);
+        });
+        this._observer_to_notify &&
+        this._observer_to_notify.forEach(function(notifier) {
+          window.settingsCore.notifyObserver(notifier);
+        });
+        this._observer_to_add = [];
+        this._observer_to_remove = [];
+        this._observer_to_notify = [];
       }
     },
 
-    /**
-     * Detect there is fullscreen content or fullscreen app running.
-     */
-    get fullscreenMode() {
-      if (document.mozFullScreen) {
-        return true;
-      } else if ('undefined' === typeof window.appWindowManager ||
-                 !appWindowManager.getActiveApp()) {
-        return false;
+    notifyObserver: function(notifier) {
+      if (window.settingsCore) {
+        window.settingsCore.notifyObserver(notifier);
       } else {
-        return window.appWindowManager.getActiveApp().isFullScreen();
+        if (!this._observer_to_notify) {
+          this._observer_to_notify = [];
+        }
+        this._observer_to_notify.push(notifier);
+        window.addEventListener('settings-core-started', this);
+      }
+    },
+
+    addObserver: function(name, context) {
+      if (window.settingsCore) {
+        window.settingsCore.addObserver(name, context);
+      } else {
+        if (!this._observer_to_add) {
+          this._observer_to_add = [];
+        }
+        this._observer_to_add.push({
+          name: name,
+          context: context
+        });
+        window.addEventListener('settings-core-started', this);
+      }
+    },
+
+    removeObserver: function(key, context) {
+      if (window.settingsCore) {
+        window.settingsCore.removeObserver(key, callback);
+      } else {
+        if (!this._observer_to_remove) {
+          this._observer_to_remove = [];
+        }
+        this._observer_to_remove.push({
+          name: key,
+          context: context
+        });
+        window.addEventListener('settings-core-started', this);
       }
     },
 
     get runningFTU() {
-      if ('undefined' === typeof window.ftuLauncher) {
+      if ('undefined' === typeof window.FtuLauncher) {
         return false;
       } else {
-        return window.ftuLauncher.isFtuRunning();
+        return window.FtuLauncher.isFtuRunning();
+      }
+    },
+
+    get isUpgrading() {
+      if ('undefined' === typeof window.FtuLauncher) {
+        return false;
+      } else {
+        return window.FtuLauncher.isFtuUpgrading();
       }
     },
 
@@ -212,6 +232,18 @@
 
     get manifestURL() {
       return window.location.href.replace('index.html', 'manifest.webapp');
+    },
+
+    isMultiSIM: function() {
+      if (window.SIMSlotManager) {
+        return window.SIMSlotManager.isMultiSIM();
+      } else {
+        if (this.getAPI('mobileConnections')) {
+          return (this.getAPI('mobileConnections').length > 1);
+        } else {
+          return false;
+        }
+      }
     }
   };
 }(this));

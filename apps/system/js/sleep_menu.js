@@ -1,5 +1,5 @@
 'use strict';
-/* global AirplaneMode */
+/* global airplaneMode */
 /* global CustomLogoPath */
 /* global Event */
 /* global LogoLoader */
@@ -294,7 +294,7 @@
           //
           // It should also save the status of the latter 4 items so when
           // leaving the airplane mode we could know which one to turn on.
-          AirplaneMode.enabled = !this.isFlightModeEnabled;
+          airplaneMode.enabled = !this.isFlightModeEnabled;
           break;
 
         // About silent and silentOff

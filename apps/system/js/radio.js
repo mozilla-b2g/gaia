@@ -1,15 +1,11 @@
 /* exported Radio */
-/* global CustomEvent */
+/* global System */
 
 'use strict';
 
 (function(exports) {
-
-  if (!window.navigator.mozMobileConnections) {
-    return;
-  }
-
-  var Radio = function() {
+  var Radio = function(core) {
+    this.mobileConnections = Array.prototype.slice.call(core.mobileConnections);
     /*
      * An internal key used to make sure Radio is
      * enabled or not.
@@ -40,75 +36,37 @@
      * @default {Boolean} false
      */
     this._isSetRadioOpError = false;
-
-    /*
-     * An internal variable to cache mozMobileConnections
-     */
-    this._mozMobileConnections = null;
-
-    this._init();
   };
 
-  Radio.prototype = {
+  System.create(Radio, {
+    enabled: {
+      configurable: false,
+      get: function() {
+        return this._enabled;
+      },
+      
+      /*
+       * We can set this value to tell Radio service turn on / off
+       * radio.
+       *
+       * @param {Boolean} value
+       */
+      set: function(value) {
+        this.debug('will set to ' + value);
+        if (value !== this._enabled) {
+          this.debug('set to ' + value);
+          this._setRadioOpCount = 0;
+          this._isSetRadioOpError = false;
 
-    /*
-     * We can use this value to know Radio is enabled or not
-     *
-     * @return {Boolean}
-     */
-    get enabled() {
-      return this._enabled;
-    },
-
-    /*
-     * An internal helper to make mobileConnections iterable
-     */
-    get mobileConnections() {
-      if (!this._mozMobileConnections) {
-        this._mozMobileConnections =
-          Array.prototype.slice.call(window.navigator.mozMobileConnections);
+          this.mobileConnections.forEach(function(conn, index) {
+            this._setRadioEnabled(conn, value);
+          }, this);
+        }
       }
-      return this._mozMobileConnections;
-    },
-
-    /*
-     * We can set this value to tell Radio service turn on / off
-     * radio.
-     *
-     * @param {Boolean} value
-     */
-    set enabled(value) {
-      if (value !== this._enabled) {
-        this._setRadioOpCount = 0;
-        this._isSetRadioOpError = false;
-
-        this.mobileConnections.forEach(function(conn, index) {
-          this._setRadioEnabled(conn, value);
-        }, this);
-      }
-    },
-
-    /*
-     * We can addEventListener on conn with this helper.
-     * This is used only when one mobileConnection got enabled
-     * by Gecko when Emergency call happened.
-     *
-     * In order not to bind this on multiple connecitnos, we
-     * only bind on the first one with simcard inserted
-     *
-     * @param {String} key
-     * @param {Function} callback
-     */
-    addEventListener: function(key, callback) {
-      if (key === 'radiostatechange') {
-        this.mobileConnections.forEach(function(conn, index) {
-          conn.addEventListener(key, function() {
-            var connState = conn.radioState;
-            callback(connState);
-          });
-        });
-      }
-    },
+    }
+  }, {
+    name: 'Radio',
+    EVENT_PREFIX: 'radio',
 
     /*
      * Checks if the state change is expected. If not, we should re-enable the
@@ -128,13 +86,14 @@
         // there is an unexpected radio state change from gecko
         this._reEnableRadioIfNeeded(conn, index);
       }
+      this.publish('statechange', conn.radioState);
     },
 
     /*
      * An internal function used to make sure current radioState
      * is ok to do following operations.
      */
-    _init: function() {
+    _start: function() {
       this.mobileConnections.forEach(function(conn, index) {
         this._expectedRadioStates.push(null);
         conn.addEventListener('radiostatechange',
@@ -212,9 +171,9 @@
       } else {
         this._enabled = enabled;
         var evtName = enabled ?
-          'radio-enabled' : 'radio-disabled';
+          '-enabled' : '-disabled';
 
-        window.dispatchEvent(new CustomEvent(evtName));
+        this.publish(evtName);
       }
     },
 
@@ -223,7 +182,7 @@
         this._setRadioEnabled(conn, true);
       }
     }
-  };
+  });
 
-  window.Radio = new Radio();
+  exports.Radio = Radio;
 })(window);

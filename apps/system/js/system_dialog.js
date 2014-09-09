@@ -176,10 +176,6 @@
       keyboardHeight = keyboardHeight ? keyboardHeight : 0;
       this.containerElement.style.height = (height - keyboardHeight) + 'px';
       this.debug('updateHeight: new height = ' + (height - keyboardHeight));
-      // Scroll up so as to show simpin input box
-      if (this.instanceID === 'simpin-dialog') {
-        document.activeElement.scrollIntoView(false);
-      }
     };
 
   /**

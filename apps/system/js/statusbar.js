@@ -763,14 +763,14 @@ var StatusBar = {
   },
 
   setActive: function sb_setActive(active) {
-    var self = this,
-        conns;
+    var self = this;
+    var conns;
     this.active = active;
 
     this.setActiveBattery(active);
 
     if (active) {
-      conns = window.navigator.mozMobileConnections;
+      conns = System.getAPI('mobileConnections');
       if (conns) {
         Array.prototype.slice.call(conns).forEach(function(conn) {
           conn.addEventListener('voicechange', self);
@@ -793,7 +793,7 @@ var StatusBar = {
       this.refreshCallListener();
       this.toggleTimeLabel(!this.isLocked());
     } else {
-      conns = window.navigator.mozMobileConnections;
+      conns = System.getAPI('mobileConnections');
       if (conns) {
         Array.prototype.slice.call(conns).forEach(function(conn) {
           conn.removeEventListener('voicechange', self);
@@ -859,7 +859,7 @@ var StatusBar = {
     },
 
     label: function sb_updateLabel() {
-      var conns = window.navigator.mozMobileConnections;
+      var conns = System.getAPI('mobileConnections');
       var conn;
 
       // Do not show carrier's name if there are multiple sim cards.
@@ -966,6 +966,9 @@ var StatusBar = {
     },
 
     signal: function sb_updateSignal() {
+      if (typeof(window.SIMSlotManager) == 'undefined') {
+        return;
+      }
       var self = this;
       var simSlots = SIMSlotManager.getSlots();
       for (var index = 0; index < simSlots.length; index++) {
@@ -1035,8 +1038,8 @@ var StatusBar = {
     },
 
     data: function sb_updateSignal() {
-      var conns = window.navigator.mozMobileConnections;
-      if (!conns) {
+      var conns = System.getAPI('mobileConnections');
+      if (!conns || typeof(window.SIMSlotManager) === 'undefined') {
         this.updateConnectionsVisibility();
         return;
       }
@@ -1312,7 +1315,7 @@ var StatusBar = {
   updateConnectionsVisibility: function sb_updateConnectionsVisibility() {
     // Iterate through connections children and show the container if at least
     // one of them is visible.
-    var conns = window.navigator.mozMobileConnections;
+    var conns = System.getAPI('mobileConnections');
 
     if (!conns) {
       return;
@@ -1331,7 +1334,7 @@ var StatusBar = {
   updateCallForwardingsVisibility: function sb_updateCallFwdingsVisibility() {
     // Iterate through connections children and show the container if at least
     // one of them is visible.
-    var conns = window.navigator.mozMobileConnections;
+    var conns = System.getAPI('mobileConnections');
 
     if (!conns) {
       return;
@@ -1379,7 +1382,7 @@ var StatusBar = {
   refreshCallListener: function sb_refreshCallListener() {
     // Listen to callschanged only when connected to CDMA networks and emergency
     // calls.
-    var conns = window.navigator.mozMobileConnections;
+    var conns = System.getAPI('mobileConnections');
     if (!conns) {
       return;
     }
@@ -1452,13 +1455,13 @@ var StatusBar = {
   },
 
   createConnectionsElements: function sb_createConnectionsElements() {
-    if (this.icons.signals) {
+    if (this.icons.signals || !System.getAPI('mobileConnections')) {
       return;
     }
 
-    var conns = window.navigator.mozMobileConnections;
+    var conns = System.getAPI('mobileConnections');
     if (conns) {
-      var multipleSims = SIMSlotManager.isMultiSIM();
+      var multipleSims = System.isMultiSIM();
 
       // Create signal elements based on the number of SIM slots.
       this.icons.connections.dataset.multiple = multipleSims;
@@ -1497,13 +1500,14 @@ var StatusBar = {
   },
 
   createCallForwardingsElements: function sb_createCallForwardingsElements() {
-    if (this.icons.callForwardingsElements) {
+    if (this.icons.callForwardingsElements ||
+        !System.getAPI('mobileConnections')) {
       return;
     }
 
-    var conns = window.navigator.mozMobileConnections;
+    var conns = System.getAPI('mobileConnections');
     if (conns) {
-      var multipleSims = SIMSlotManager.isMultiSIM();
+      var multipleSims = System.isMultiSIM();
 
       // Create call forwarding icons
       var sbCallForwardings =

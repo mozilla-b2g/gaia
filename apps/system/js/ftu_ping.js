@@ -3,7 +3,7 @@
 
 'use strict';
 
-/* global MobileOperator, SIMSlotManager, uuid, dump */
+/* global MobileOperator, SIMSlotManager, uuid, dump, System */
 
 /**
  * A simple ping that is kicked off on first time use
@@ -236,7 +236,7 @@
         this.maybeThrowNetworkFailure('No SIM cards connected to a network');
       }
 
-      var conns = window.navigator.mozMobileConnections;
+      var conns = System.getAPI('mobileConnections');
       if (!conns || conns.length === 0) {
         this.maybeThrowNetworkFailure('No mobile connections');
         return;

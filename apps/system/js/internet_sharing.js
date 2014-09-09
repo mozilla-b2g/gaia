@@ -2,7 +2,7 @@
 /* global asyncStorage */
 /* global IccHelper */
 /* global ModalDialog */
-/* global AirplaneMode */
+/* global airplaneMode */
 
 (function(exports) {
 
@@ -152,7 +152,7 @@
         var buttonText;
         var message;
 
-        if (AirplaneMode.enabled && true === evt.settingValue) {
+        if (airplaneMode.enabled && true === evt.settingValue) {
           title = 'apmActivated';
           buttonText = 'ok';
           message = 'noHopspotWhenAPMisOn';
