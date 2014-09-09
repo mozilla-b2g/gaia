@@ -411,7 +411,14 @@ var ScreenManager = {
       return false;
     }
 
-    // Set the brightness before the screen is on.
+    // Actually turn the screen on.
+    var power = navigator.mozPower;
+    if (power) {
+      power.screenEnabled = true;
+    }
+    this.screenEnabled = true;
+
+    //Set the brightness before the screen is on.
     this.setScreenBrightness(this._savedBrightness, instant);
 
     // If we are in a call  or a conference call and there
@@ -435,11 +442,6 @@ var ScreenManager = {
       }
     }
 
-    // Actually turn the screen on.
-    var power = navigator.mozPower;
-    if (power)
-      power.screenEnabled = true;
-    this.screenEnabled = true;
     this.screen.classList.remove('screenoff');
 
     // Attaching the event listener effectively turn on the hardware
