@@ -61,13 +61,17 @@
 
     /**
      * It renders the icon. If the URI of the icon is not defined or there is an
-     * error fetching this one, the icon by default will be displayed (defined
-     * by style in save.css).
+     * error fetching this one, the icon by default will be displayed if it is
+     * defined in the stylesheet.
      *
-     * @param {Integer} Optional parameter which defines the size of the icon.
+     * @param {Object} It defines two optional parameters. "size" which defines
+     *                 the size of the icon and "type" that describes how the
+     *                 icon will be rendered ('clip', 'favicon' or 'standard').
+     *                 See GridIconRenderer.
      */
-    render: function render(size) {
-      size = (size || this.size) * devicePixelRatio;
+    render: function render(options) {
+      options = options || {};
+      var size = (options.size || this.size) * devicePixelRatio;
       var style = this.elem.style;
       style.backgroundSize = style.width = style.height = size + 'px';
 
@@ -94,7 +98,8 @@
             }
           });
 
-          renderer.favicon(img).then((blob) => {
+          var type = options.type || GridIconRenderer.TYPE.FAVICON;
+          renderer[type](img).then((blob) => {
             var url = URL.createObjectURL(blob);
             style.backgroundImage = 'url(' + url + ')';
           });
