@@ -30,7 +30,7 @@
   function OperatorVariantHandler(iccId, iccCardIndex) {
     /** Holds the OS version */
     this._deviceInfoOs = 'unknown';
-    /** Index of the ICC card on the mozMobileConnections array */
+    /** Index of the ICC card on the mobileConnections array */
     this._iccCardIndex = iccCardIndex;
     /** ICC id in the ICC card */
     this._iccId = iccId;
@@ -676,7 +676,7 @@
    *
    * @param {String} iccId The iccId code form the ICC card.
    * @param {Numeric} iccCardIndex Index of the ICC card on the
-   *                               mozMobileConnections array.
+   *                               mobileConnections array.
    *
    * @return {Object} A OperatorVariantHandler object.
    */

@@ -1,5 +1,6 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global OperatorVariantHandler */
 
 'use strict';
 
@@ -12,8 +13,6 @@ var OperatorVariant = (function() {
   var _settings = window.navigator.mozSettings;
   var _iccManager = window.navigator.mozIccManager;
   var _mobileConnections = window.navigator.mozMobileConnections;
-
-  var MAX_NUMBER_OF_ICC_CARDS = 2;
 
   /** Array of OperatorVariantHandler objects. */
   var operatorVariantHandlers = [];

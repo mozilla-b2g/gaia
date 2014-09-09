@@ -8,9 +8,9 @@
    * @requires SettingsHelper
    * @class TelephonySettings
    */
-  function TelephonySettings() {
+  function TelephonySettings(core) {
     this.started = false;
-    this.connections = Array.slice(navigator.mozMobileConnections || []);
+    this.connections = Array.slice(core.mobileConnections || []);
   }
 
   TelephonySettings.prototype = {

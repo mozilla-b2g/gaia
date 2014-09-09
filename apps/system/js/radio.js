@@ -4,12 +4,8 @@
 'use strict';
 
 (function(exports) {
-
-  if (!window.navigator.mozMobileConnections) {
-    return;
-  }
-
-  var Radio = function() {
+  var Radio = function(core) {
+    this.mobileConnections = Array.prototype.slice.call(core.mobileConnections);
     /*
      * An internal key used to make sure Radio is
      * enabled or not.
@@ -40,13 +36,6 @@
      * @default {Boolean} false
      */
     this._isSetRadioOpError = false;
-
-    /*
-     * An internal variable to cache mozMobileConnections
-     */
-    this._mozMobileConnections = null;
-
-    this._init();
   };
 
   Radio.prototype = {
@@ -58,17 +47,6 @@
      */
     get enabled() {
       return this._enabled;
-    },
-
-    /*
-     * An internal helper to make mobileConnections iterable
-     */
-    get mobileConnections() {
-      if (!this._mozMobileConnections) {
-        this._mozMobileConnections =
-          Array.prototype.slice.call(window.navigator.mozMobileConnections);
-      }
-      return this._mozMobileConnections;
     },
 
     /*
@@ -134,7 +112,7 @@
      * An internal function used to make sure current radioState
      * is ok to do following operations.
      */
-    _init: function() {
+    _start: function() {
       this.mobileConnections.forEach(function(conn, index) {
         this._expectedRadioStates.push(null);
         conn.addEventListener('radiostatechange',
@@ -225,5 +203,5 @@
     }
   };
 
-  window.Radio = new Radio();
+  exports.Radio = Radio;
 })(window);

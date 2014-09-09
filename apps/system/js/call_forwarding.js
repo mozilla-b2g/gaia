@@ -1,15 +1,7 @@
-/* global CallForwarding, asyncStorage, SIMSlotManager, SettingsHelper */
+/* global asyncStorage, SIMSlotManager, SettingsHelper */
 'use strict';
 
 (function(exports) {
-  if (!window.navigator.mozSettings) {
-    return;
-  }
-
-  if (!window.navigator.mozMobileConnections) {
-    return;
-  }
-
   // Must be in sync with nsIDOMMozMobileCFInfo interface.
   var _cfReason = {
     CALL_FORWARD_REASON_UNCONDITIONAL: 0,
@@ -203,8 +195,3 @@
   exports.CallForwarding = CallForwarding;
 
 })(window);
-
-if (CallForwarding) {
-  window.callForwarding = new CallForwarding();
-  window.callForwarding.start();
-}

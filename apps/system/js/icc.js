@@ -85,10 +85,11 @@ var icc = {
 
   getConnection: function icc_getConnection(iccId) {
     DUMP('ICC Getting Connection for ' + iccId);
-    for (var i = 0; i < window.navigator.mozMobileConnections.length; i++) {
-      if (window.navigator.mozMobileConnections[i].iccId === iccId) {
+    var conns = System.getAPI('mobileConnections');
+    for (var i = 0; i < conns.length; i++) {
+      if (conns[i].iccId === iccId) {
         DUMP('ICC Connection ' + i + ' found for ' + iccId);
-        return window.navigator.mozMobileConnections[i];
+        return conns[i];
       }
     }
     return null;
@@ -96,8 +97,9 @@ var icc = {
 
   getSIMNumber: function icc_getSIMNumber(iccId) {
     DUMP('ICC Getting SIM Number for ' + iccId);
-    for (var i = 0; i < window.navigator.mozMobileConnections.length; i++) {
-      if (window.navigator.mozMobileConnections[i].iccId === iccId) {
+    var conns = System.getAPI('mobileConnections');
+    for (var i = 0; i < conns.length; i++) {
+      if (conns[i].iccId === iccId) {
         return i + 1;
       }
     }

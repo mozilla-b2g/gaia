@@ -1,6 +1,6 @@
 /* jshint loopfunc: true */
 /* global SettingsHelper, SettingsListener, AirplaneMode, applications,
-          UtilityTray, MozActivity */
+          UtilityTray, MozActivity, System */
 
 'use strict';
 
@@ -46,8 +46,7 @@ var QuickSettings = {
   },
 
   monitorDataChange: function() {
-    var conns = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections;
+    var conns = System.getAPI('mobileConnection');
 
     if (!conns) {
       // hide data icon without mozMobileConnection object
