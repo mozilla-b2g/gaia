@@ -8,6 +8,10 @@
   z-index: 6;
 }
 
+#screen:not(.cards-view) .appWindow.active:not(.inside-edges):not(.transition-closing):not(.transition-opening) .titlebar .statusbar-shadow {
+  visibility: hidden;
+}
+
 .appWindow .titlebar .statusbar-shadow {
   height: 100%;
 
@@ -16,6 +20,7 @@
   background-position: bottom right;
 }
 
+#screen:not(.rocketbar-focused) #statusbar.light,
 .appWindow.light .titlebar .statusbar-shadow {
   filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'invert\'><feColorMatrix in=\'SourceGraphic\' color-interpolation-filters=\'sRGB\' type=\'matrix\' values=\'1 -1 0.3019 0 0 0 0.3019 0 0 0 0 0 0.3019 0 0 0 0 0 1 0\'/></filter></svg>#invert");
 }
@@ -82,7 +87,7 @@
   display: none;
 }
 
-/* Homescreen must show the maximised status bar */
+/* Homescreen must show the maximized status bar */
 #homescreen .chrome + .titlebar .titlebar-maximized {
   opacity: 1;
 }

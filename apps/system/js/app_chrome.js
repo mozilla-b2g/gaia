@@ -324,6 +324,10 @@
     } else {
       this.element.classList.add('maximized');
     }
+
+    if (this.app.isActive()) {
+      this.app.publish('titlestatechanged');
+    }
   };
 
   AppChrome.prototype._registerEvents = function ac__registerEvents() {
@@ -473,6 +477,7 @@
 
     if (color === 'transparent' || color === '') {
       this.app.element.classList.remove('light');
+      this.app.publish('titlestatechanged');
       return;
     }
 
@@ -491,6 +496,7 @@
         Math.sqrt((r*r) * 0.241 + (g*g) * 0.691 + (b*b) * 0.068);
 
       self.app.element.classList.toggle('light', brightness > 200);
+      self.app.publish('titlestatechanged');
     });
   };
 
@@ -503,6 +509,10 @@
     this._fetchElements();
     this._registerEvents();
     this.publish('rendered');
+  };
+
+  AppChrome.prototype.useLightTheming = function ac_useLightTheming() {
+    return this.app.element.classList.contains('light');
   };
 
   AppChrome.prototype.useCombinedChrome = function ac_useCombinedChrome(evt) {
