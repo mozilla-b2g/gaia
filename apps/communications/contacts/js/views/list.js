@@ -904,7 +904,7 @@ contacts.List = (function() {
         updateRowStyle(node, true);
         updateSingleRowSelection(node, id);
         var out = node.cloneNode(true);
-        renderPhoto(out, id, true);
+        renderPhoto(out, id, true, out.dataset.group);
         return out;
       }
       contacts.ICEView.init(iceContacts, rowBuilder, onClickHandler);
