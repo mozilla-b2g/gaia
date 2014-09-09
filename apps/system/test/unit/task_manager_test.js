@@ -49,7 +49,7 @@ function failOnReject(err) {
   assert.isTrue(false, 'Should not reject');
 }
 
-suite.only('system/TaskManager >', function() {
+suite('system/TaskManager >', function() {
   var fakeInnerHeight = 200;
 
   var screenNode, realMozSettings, realSettingsListener;
