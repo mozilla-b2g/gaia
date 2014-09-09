@@ -92,7 +92,8 @@
     sounds: {
       clickedAudio: null,
       vcKeyAudio: null,
-      vcMoveAudio: null
+      vcMoveAudio: null,
+      noMoveAudio: null
     },
 
     /**
@@ -103,7 +104,8 @@
     soundURLs: {
       clickedAudio: './resources/sounds/screen_reader_clicked.ogg',
       vcKeyAudio: './resources/sounds/screen_reader_virtual_cursor_key.ogg',
-      vcMoveAudio: './resources/sounds/screen_reader_virtual_cursor_move.ogg'
+      vcMoveAudio: './resources/sounds/screen_reader_virtual_cursor_move.ogg',
+      noMoveAudio: './resources/sounds/screen_reader_no_move.ogg'
     },
 
     /**
@@ -297,6 +299,9 @@
             return;
           }
           break;
+        case 'no-move':
+          this._playSound('noMoveAudio');
+          return;
       }
 
       this.speak(aDetails.data, null, {
