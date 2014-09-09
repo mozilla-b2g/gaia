@@ -78,6 +78,7 @@ suite('Recipients', function() {
       source: 'none',
       // Mapped to node attr, not true boolean
       editable: 'true',
+      role: 'textbox',
 
       // Disambiguation 'display' attributes
       type: 'Type',
@@ -96,6 +97,7 @@ suite('Recipients', function() {
       source: 'none',
       // Mapped to node attr, not true boolean
       editable: 'true',
+      role: 'textbox',
 
       // Disambiguation 'display' attributes
       type: 'Type',
@@ -387,7 +389,8 @@ suite('Recipients', function() {
     var is = {
       corresponding: function(recipient, avatar, value) {
         return is.recipient(recipient, value) &&
-          is.avatar(avatar, value);
+          is.avatar(avatar, value) &&
+          is.button(avatar);
       },
       recipient: function(candidate, value) {
         return (candidate.name === value || candidate.number === value);
@@ -399,7 +402,8 @@ suite('Recipients', function() {
       placeholder: function(candidate, opts) {
         opts = opts || { isEmpty: true };
         return candidate.isPlaceholder &&
-          ((opts.isEmpty && candidate.textContent.trim() === '') || true);
+          ((opts.isEmpty && candidate.textContent.trim() === '') || true) &&
+          is.textbox(candidate);
       },
       editable: function(candidate) {
         return candidate.contentEditable === false;
@@ -409,6 +413,12 @@ suite('Recipients', function() {
       },
       wide: function(elem) {
         return elem.offsetWidth > 0;
+      },
+      button: function(elem) {
+        return elem.getAttribute('role') === 'button';
+      },
+      textbox: function(elem) {
+        return elem.getAttribute('role') === 'textbox';
       }
     };
 

@@ -113,7 +113,7 @@ form[role="search"] button[type="submit"] + p > textarea {
   line-height: 2.1rem;
 }
 
-#messages-input.placeholder:after {
+#messages-input:after {
   content: attr(data-placeholder);
   position: absolute;
 
@@ -124,8 +124,12 @@ form[role="search"] button[type="submit"] + p > textarea {
   font-style: italic;
   white-space: nowrap;
   pointer-events: none;
+  visibility: hidden;
 }
 
+#messages-input.placeholder:after {
+  visibility: visible;
+}
 
 /* Overwrite BB because of the previous rule */
 form[role="search"] button[type="submit"]:after {
