@@ -83,6 +83,9 @@
      * @memberof NfcManager.prototype
      */
     start: function nm_start() {
+      this.shrinkingUI = new window.ShrinkingUI();
+      this.shrinkingUI.start();
+
       this._debug('Starting NFC Manager');
       this._hwState = this.NFC_HW_STATE.OFF;
 
@@ -152,7 +155,7 @@
       switch (tech) {
         case 'P2P':
           if (!msg.records.length) {
-            this._triggerP2PUI();
+            this.checkP2PRegistration();
           } else {
             // if there are records in the msg we've got NDEF message shared
             // by other device via P2P, this should be handled as regular NDEF
@@ -217,8 +220,7 @@
         case 'shrinking-sent':
           window.removeEventListener('shrinking-sent', this);
           // Notify lower layers that User has acknowledged to send NDEF msg
-          window.dispatchEvent(new CustomEvent(
-            'dispatch-p2p-user-response-on-active-app', {detail: this}));
+          this.dispatchP2PUserResponse();
           // Stop the P2P UI
           window.dispatchEvent(new CustomEvent('shrinking-stop'));
           break;
@@ -329,15 +331,20 @@
      * @memberof NfcManager.prototype
      * @param {string} manifestURL - manifest url of app to check
      */
-    checkP2PRegistration: function nm_checkP2PRegistration(manifestURL) {
+    checkP2PRegistration: function nm_checkP2PRegistration() {
       var nfcdom = window.navigator.mozNfc;
       if (!nfcdom) {
         return;
       }
-
+      var activeApp = window.AppWindowManager.getActiveApp();
+      var manifestURL = activeApp.getTopMostWindow().manifestURL ||
+        window.System.manifestURL;
       var status = nfcdom.checkP2PRegistration(manifestURL);
       status.onsuccess = () => {
         if (status.result) {
+          var bottomMost = activeApp.getBottomMostWindow();
+          this.shrinkingUI.setElements(bottomMost.element,
+            bottomMost.element.parentNode);
           // Top visible application's manifest Url is registered;
           // Start Shrink / P2P UI and wait for user to accept P2P event
           window.dispatchEvent(new CustomEvent('shrinking-start'));
@@ -360,12 +367,15 @@
      * @memberof NfcManager.prototype
      * @param {string} manifestURL - manifest url of the sharing app
      */
-    dispatchP2PUserResponse: function nm_dispatchP2PUserResponse(manifestURL) {
+    dispatchP2PUserResponse: function nm_dispatchP2PUserResponse() {
       var nfcdom = window.navigator.mozNfc;
       if (!nfcdom) {
         return;
       }
 
+      var activeApp = window.AppWindowManager.getActiveApp();
+      var manifestURL = activeApp.getTopMostWindow().manifestURL ||
+        window.System.manifestURL;
       nfcdom.notifyUserAcceptedP2P(manifestURL);
     },
 
