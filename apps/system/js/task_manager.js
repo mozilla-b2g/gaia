@@ -768,7 +768,7 @@
     }
 
     // The gesture is a simple swipe, move the target card at the center.
-    var speed = this.deltaX / (Date.now() - this.initialTouchDate);
+    var speed = this.deltaX / (Date.now() - this.startTouchDate);
     var inertia = speed * 250;
     var boosted = this.deltaX + inertia;
     var progress = Math.abs(boosted) / window.innerWidth;
@@ -778,7 +778,6 @@
     }
 
     var switching = Math.abs(boosted) >= this.SWITCH_CARD_THRESHOLD;
-
     if (switching) {
       if (this.deltaX < 0 &&
           this.position < this.cardsList.childNodes.length - 1) {
