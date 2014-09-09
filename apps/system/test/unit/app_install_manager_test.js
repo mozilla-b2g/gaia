@@ -335,6 +335,15 @@ suite('system/AppInstallManager >', function() {
           'install-app{"name":"Fake app"}');
       });
 
+      test('the dialog should be hidden after press home', function() {
+        var evt = {
+          type: 'home'
+        };
+        assert.equal('visible', AppInstallManager.dialog.className);
+        AppInstallManager.handleHomeButtonPressed(evt);
+        assert.notEqual('visible', AppInstallManager.dialog.className);
+      });
+
       test('should use the mini manifest if no manifest', function() {
         var evt = new MockChromeEvent({
           type: 'webapps-ask-install',
@@ -508,6 +517,17 @@ suite('system/AppInstallManager >', function() {
             assert.equal('visible',
               AppInstallManager.installCancelDialog.className);
             assert.equal('', AppInstallManager.dialog.className);
+          });
+
+          test('the dialog should be hidden after press home', function() {
+            var evt = {
+              type: 'home'
+            };
+            assert.equal('visible',
+              AppInstallManager.installCancelDialog.className);
+            AppInstallManager.handleHomeButtonPressed(evt);
+            assert.notEqual('visible',
+              AppInstallManager.installCancelDialog.className);
           });
         });
 
