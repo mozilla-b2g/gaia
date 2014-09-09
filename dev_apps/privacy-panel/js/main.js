@@ -1,3 +1,5 @@
+/* global Crypto */
+
 var app = app || {};
 
 (function() {
@@ -15,26 +17,29 @@ var app = app || {};
       RPP: {
         $link:    document.getElementById('menuItem-RPP'),
         $back:    document.getElementById('RPP-back'),
-        $box:     document.getElementById('RPP-box'),
+        $box:     document.getElementById('RPP'),
+        $menu:    document.getElementById('RPP-menu'),
+        $newPass: document.getElementById('RPP-new-password'),
+        $login:   document.getElementById('RPP-login'),
         RemoteLocate: {
-          $box:   document.querySelector('#RPP-box .remote-locate-box'),
-          $input: document.querySelector('#RPP-box .remote-locate-box input')
+          $box:   document.querySelector('#RPP .remote-locate'),
+          $input: document.querySelector('#RPP .remote-locate input')
         },
         RemoteRing: {
-          $box:   document.querySelector('#RPP-box .remote-ring-box'),
-          $input: document.querySelector('#RPP-box .remote-ring-box input')
+          $box:   document.querySelector('#RPP .remote-ring'),
+          $input: document.querySelector('#RPP .remote-ring input')
         },
         RemoteLock: {
-          $box:   document.querySelector('#RPP-box .remote-lock-box'),
-          $input: document.querySelector('#RPP-box .remote-lock-box input')
+          $box:   document.querySelector('#RPP .remote-lock'),
+          $input: document.querySelector('#RPP .remote-lock input')
         },
         RemoteWipe: {
-          $box:   document.querySelector('#RPP-box .remote-wipe-box'),
-          $input: document.querySelector('#RPP-box .remote-wipe-box input')
+          $box:   document.querySelector('#RPP .remote-wipe'),
+          $input: document.querySelector('#RPP .remote-wipe input')
         },
         Unlock: {
-          $box:   document.querySelector('#RPP-box .unlock-box'),
-          $input: document.querySelector('#RPP-box .unlock-box input')
+          $box:   document.querySelector('#RPP .unlock'),
+          $input: document.querySelector('#RPP .unlock input')
         }
       }
     };
@@ -42,6 +47,9 @@ var app = app || {};
     // add event listeners
     app.elements.RPP.$link.addEventListener('click', app.showRPPBox);
     app.elements.RPP.$back.addEventListener('click', app.showRootBox);
+
+    app.elements.RPP.$newPass.querySelector('button.rpp-new-password-ok').addEventListener('click', app.savePassword);
+    app.elements.RPP.$login.querySelector('button.rpp-login-ok').addEventListener('click', app.login);
 
     app.elements.RPP.RemoteLocate.$input.addEventListener('change', app.toggleRemoteLocate);
     app.elements.RPP.RemoteRing.$input.addEventListener('change', app.toggleRemoteRing);
@@ -51,7 +59,9 @@ var app = app || {};
   };
 
 
-  // show main screen
+  /**
+   * Show main Privacy Panel screen
+   */
   app.showRootBox = function() {
     app.elements.$root.style.display = 'block';
     app.elements.RPP.$box.style.display = 'none';
@@ -63,10 +73,32 @@ var app = app || {};
     app.elements.RPP.Unlock.$box.style.display = 'none';
   };
 
-  // show Remote Privacy Protection screen
+  /**
+   * Show RPP screen
+   */
   app.showRPPBox = function() {
     app.elements.$root.style.display = 'none';
     app.elements.RPP.$box.style.display = 'block';
+
+    // Get current pass phrase and display proper screen
+    var status = app.settings.createLock().get('rpp.password');
+    status.onsuccess = function() {
+      var password = status.result['rpp.password'];
+
+      app.elements.RPP.$menu.style.display = 'none';
+      app.elements.RPP.$newPass.style.display = (!password) ? 'block' : 'none';
+      app.elements.RPP.$login.style.display = (password) ? 'block' : 'none';
+    };
+  };
+
+  /**
+   * Show RPP menu
+   */
+  app.showRPPMenu = function() {
+    app.elements.RPP.$menu.style.display = 'block';
+    app.elements.RPP.$newPass.style.display = 'none';
+    app.elements.RPP.$login.style.display = 'none';
+
 
     // get Remote Locate value from settings
     var status1 = app.settings.createLock().get('rpp.locate.enabled');
@@ -105,22 +137,100 @@ var app = app || {};
   };
 
 
+  /**
+   * Save new password
+   */
+  app.savePassword = function() {
+    var pass1 = app.elements.RPP.$newPass.querySelector('#rpp-new-pass1').value,
+        pass2 = app.elements.RPP.$newPass.querySelector('#rpp-new-pass2').value,
+        passHash = Crypto.MD5(pass1).toString(),
+        $validationMessage = app.elements.RPP.$newPass.querySelector('.validation-message');
+
+    /** @todo: full password validation */
+    if (pass1 !== pass2) {
+      // passwords are valid
+      $validationMessage.textContent = 'Confirmation must match pass phrase!';
+      $validationMessage.style.display = 'block';
+    } else {
+      // clear validation message
+      $validationMessage.textContent = '';
+      $validationMessage.style.display = 'none';
+
+      // saving password
+      app.settings.createLock().set({ 'rpp.password': passHash });
+      app.showRPPMenu();
+    }
+  };
+
+
+  /**
+   * Login to RPP
+   */
+  app.login = function() {
+    var pass = app.elements.RPP.$login.querySelector('#rpp-login-pass').value,
+        passHash = Crypto.MD5(pass).toString(),
+        $validationMessage = app.elements.RPP.$login.querySelector('.validation-message'),
+        password;
+
+    var status = app.settings.createLock().get('rpp.password');
+    status.onsuccess = function() {
+      password = status.result['rpp.password'];
+
+      if (password === passHash) {
+        // clear validation message
+        $validationMessage.textContent = '';
+        $validationMessage.style.display = 'none';
+
+        // clear password input
+        app.elements.RPP.$login.querySelector('#rpp-login-pass').value = '';
+
+        // show RPP menu
+        app.showRPPMenu();
+      } else {
+        // passwords are valid
+        $validationMessage.textContent = 'Pass phrase is wrong!';
+        $validationMessage.style.display = 'block';
+      }
+    };
+  };
+
+
+  /**
+   * Save Remote Locate value
+   * @param event
+   */
   app.toggleRemoteLocate = function(event) {
     app.settings.createLock().set({ 'rpp.locate.enabled': event.target.checked });
   };
 
+  /**
+   * Save Remote Ring value
+   * @param event
+   */
   app.toggleRemoteRing = function(event) {
     app.settings.createLock().set({ 'rpp.ring.enabled': event.target.checked });
   };
 
+  /**
+   * Save Remote Lock value
+   * @param event
+   */
   app.toggleRemoteLock = function(event) {
     app.settings.createLock().set({ 'rpp.lock.enabled': event.target.checked });
   };
 
+  /**
+   * Save Remote Wipe value
+   * @param event
+   */
   app.toggleRemoteWipe = function(event) {
     app.settings.createLock().set({ 'rpp.wipe.enabled': event.target.checked });
   };
 
+  /**
+   * Save Unlock via... value
+   * @param event
+   */
   app.toggleUnlock = function(event) {
     app.settings.createLock().set({ 'rpp.unlock.enabled': event.target.checked });
   };

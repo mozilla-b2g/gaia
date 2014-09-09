@@ -12,6 +12,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="style/lists.css">
     <link rel="stylesheet" type="text/css" href="style/icons.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
     <link rel="stylesheet" type="text/css" href="style/settings.css">
     <link rel="stylesheet" type="text/css" href="style/settings_large.css" data-device-type="tablet">
 
@@ -29,6 +30,7 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <script src="shared/js/l10n.js"></script>
     <script defer="" src="shared/js/l10n_date.js"></script>
+    <script src="shared/js/crypto.js"></script>
 
     <title>Privacy Panel</title>
 
@@ -62,42 +64,85 @@
       </div>
     </section>
 
-    <section role="region" id="RPP-box" class="current skin-dark" data-rendered="true" style="display: none;">
+    <section role="region" id="RPP" class="current skin-dark" data-rendered="true" style="display: none;">
       <header>
         <a href="#" id="RPP-back"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="privacy-panel">Remote Privacy Protection</h1>
+        <h1 data-l10n-id="remotePrivacyProtection">Remote Privacy Protection</h1>
       </header>
-      <div>
+
+      <div id="RPP-new-password" >
         <ul>
-          <li class="remote-locate-box" style="display: none;">
-            <label class="pack-switch">
-              <input type="checkbox" class="uninit">
-              <span data-l10n-id="remote_locate">Remote Locate</span>
-            </label>
+          <li class="description">
+            <p data-l10n-id="rpp-new-password-description">
+              Please set a pass phrase to secure your remote features (maximum 30 characters).
+            </p>
           </li>
-          <li class="remote-ring-box" style="display: none;">
-            <label class="pack-switch">
-              <input type="checkbox" class="uninit">
-              <span data-l10n-id="remote_ring">Remote Ring</span>
-            </label>
+          <li>
+            <input id="rpp-new-pass1" type="password" placeholder="New pass phrase">
           </li>
-          <li class="remote-lock-box" style="display: none;">
-            <label class="pack-switch">
-              <input type="checkbox" class="uninit">
-              <span data-l10n-id="remote_lock">Remote Lock</span>
-            </label>
+          <li>
+            <input id="rpp-new-pass2" type="password" placeholder="Confirm new pass phrase">
+            <span class="validation-message" style="color: red; display: none;"></span>
           </li>
-          <li class="remote-wipe-box" style="display: none;">
-            <label class="pack-switch">
-              <input type="checkbox" class="uninit">
-              <span data-l10n-id="remote_wipe">Remote Wipe</span>
-            </label>
+          <li class="action-button-box-one">
+            <button class="rpp-new-password-ok">OK</button>
           </li>
-          <li class="unlock-box" style="display: none;">
+        </ul>
+      </div>
+
+      <div id="RPP-login">
+        <ul>
+          <li class="description">
+            <p data-l10n-id="rpp-login-description">
+              Please enter your pass phrase.
+            </p>
+          </li>
+          <li>
+            <input id="rpp-login-pass" type="password" placeholder="Pass phrase">
+            <span class="validation-message" style="color: red; display: none;"></span>
+          </li>
+          <li class="action-button-box-one">
+            <button class="rpp-login-ok">OK</button>
+          </li>
+        </ul>
+      </div>
+
+      <div id="RPP-menu">
+        <ul>
+          <li class="remote-locate hint" style="display: none;">
             <label class="pack-switch">
               <input type="checkbox" class="uninit">
-              <span data-l10n-id="unlock_via_passcode_lock_or_sim_pin">Unlock via Passcode lock or SIM Pin</span>
+              <span data-l10n-id="remoteLocate">Remote Locate</span>
             </label>
+            <p class="explanation" data-l10n-id="remoteLocateDesc">You can locate this device via SMS as following: “FmD: LocateDevice YOURPASSPHRASE”</p>
+          </li>
+          <li class="remote-ring hint" style="display: none;">
+            <label class="pack-switch">
+              <input type="checkbox" class="uninit">
+              <span data-l10n-id="remoteRing">Remote Ring</span>
+            </label>
+            <p class="explanation" data-l10n-id="remoteRingDesc">You can ring this device via SMS as following: “FmD: SoundAlarm YOURPASSPHRASE”</p>
+          </li>
+          <li class="remote-lock hint" style="display: none;">
+            <label class="pack-switch">
+              <input type="checkbox" class="uninit">
+              <span data-l10n-id="remoteLock">Remote Lock</span>
+            </label>
+            <p class="explanation" data-l10n-id="remoteLockDesc">You can lock this device via SMS as following: “FmD: LockDevice YOURPASSPHRASE”</p>
+          </li>
+          <li class="remote-wipe hint" style="display: none;">
+            <label class="pack-switch">
+              <input type="checkbox" class="uninit">
+              <span data-l10n-id="remoteWipe">Remote Wipe</span>
+            </label>
+            <p class="explanation" data-l10n-id="remoteWipeDesc">You can wipe this device via SMS as following: “FmD: WipeDevice YOURPASSPHRASE”</p>
+          </li>
+          <li class="unlock hint" style="display: none;">
+            <label class="pack-switch">
+              <input type="checkbox" class="uninit">
+              <span data-l10n-id="unlockViaPasscodeLockOrSimPin">Unlock via Passcode lock or SIM Pin</span>
+            </label>
+            <p class="explanation" data-l10n-id="unlockViaPasscodeLockOrSimPinDesc">With this function, you can unlock your Remote Security settings, if you forgot your pass phrase.</p>
           </li>
         </ul>
       </div>
