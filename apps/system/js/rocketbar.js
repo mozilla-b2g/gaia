@@ -319,6 +319,7 @@
      * Reset the Rocketbar to its initial empty state.
      */
     clear: function() {
+      this.hideResults();
       this.setInput('');
     },
 
