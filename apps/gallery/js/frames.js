@@ -44,10 +44,11 @@ fullscreenButtons.delete.onclick = deleteSingleItem;
 
 // Clicking the Edit button while viewing a photo switches to edit mode
 fullscreenButtons.edit.onclick = function() {
-  loader.load(['js/ImageEditor.js', 'shared/js/media/crop_resize_rotate.js'],
-              function() {
-                editPhotoIfCardNotFull(currentFileIndex);
-              });
+  LazyLoader.load(['js/ImageEditor.js',
+                   'shared/js/media/crop_resize_rotate.js'],
+                  function() {
+                    editPhotoIfCardNotFull(currentFileIndex);
+                  });
 };
 
 // In fullscreen mode, the share button shares the current item
@@ -55,10 +56,10 @@ fullscreenButtons.share.onclick = shareSingleItem;
 
 // Clicking the information button will display information about the photo.
 fullscreenButtons.info.onclick = function() {
-  loader.load(['js/info.js', 'shared/style/confirm.css', 'style/info.css'],
-              function() {
-                showFileInformation(files[currentFileIndex]);
-              });
+  LazyLoader.load(['js/info.js', 'shared/style/confirm.css', 'style/info.css'],
+                  function() {
+                    showFileInformation(files[currentFileIndex]);
+                  });
 };
 
 // Use the GestureDetector.js library to handle gestures.
@@ -176,8 +177,8 @@ function shareSingleItem() {
       // This is only tricky case. If we are sharing an image that uses
       // EXIF orientation for correct display, rotate it before sharing
       // so that the recieving app doesn't have to know about EXIF
-      loader.load(['shared/js/media/crop_resize_rotate.js'],
-                  shareModifiedImage);
+      LazyLoader.load(['shared/js/media/crop_resize_rotate.js'],
+                      shareModifiedImage);
     }
   }
 

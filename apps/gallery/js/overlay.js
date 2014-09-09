@@ -1,4 +1,4 @@
-/* global $, LazyLoader, pendingPick */
+/* global $, LazyLoader, picking */
 /* exported Overlay */
 
 'use strict';
@@ -52,7 +52,7 @@ var Overlay = {
         case 'nocard':
           title = 'nocard3-title';
           text = 'nocard4-text';
-          if (pendingPick) {
+          if (picking) {
             $('overlay-cancel-button').classList.remove('hidden');
             $('overlay-menu').classList.remove('hidden');
           }
@@ -60,7 +60,7 @@ var Overlay = {
         case 'pluggedin':
           title = 'pluggedin2-title';
           text = 'pluggedin2-text';
-          if (pendingPick) {
+          if (picking) {
             $('overlay-cancel-button').classList.remove('hidden');
             $('overlay-menu').classList.remove('hidden');
           }
@@ -68,17 +68,17 @@ var Overlay = {
         case 'scanning':
           title = 'scanning-title';
           text = 'scanning-text';
-          if (pendingPick) {
+          if (picking) {
             $('overlay-cancel-button').classList.remove('hidden');
             $('overlay-menu').classList.remove('hidden');
           }
           break;
         case 'emptygallery':
-          title = pendingPick ? 'emptygallery2-title-pick' :
+          title = picking ? 'emptygallery2-title-pick' :
                                 'emptygallery2-title';
           text = 'emptygallery2-text';
           $('overlay-menu').classList.remove('hidden');
-          if (pendingPick) {
+          if (picking) {
             $('overlay-cancel-button').classList.remove('hidden');
           } else {
             $('overlay-camera-button').classList.remove('hidden');
@@ -87,14 +87,14 @@ var Overlay = {
         case 'upgrade':
           title = 'upgrade-title';
           text = 'upgrade-text';
-          if (pendingPick) {
+          if (picking) {
             $('overlay-cancel-button').classList.remove('hidden');
             $('overlay-menu').classList.remove('hidden');
           }
           break;
         default:
           console.warn('Reference to undefined overlay', id);
-          if (pendingPick) {
+          if (picking) {
             $('overlay-cancel-button').classList.remove('hidden');
             $('overlay-menu').classList.remove('hidden');
           }

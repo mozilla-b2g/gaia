@@ -42,8 +42,6 @@ var TRANSITION_SPEED = 0.75;
 // Batch sizes are based on this.
 var PAGE_SIZE = 15;
 
-function $(id) { return document.getElementById(id); }
-
 // UI elements
 var thumbnails = $('thumbnails');
 
@@ -108,7 +106,8 @@ var videostorage;
 
 var isInitThumbnail = false;
 
-var loader = LazyLoader;
+// If we're doing a pick activity, this variable will be true
+var picking;
 
 // Flag that indicates that we've edited a picture and just saved it
 var hasSaved = false;
@@ -130,7 +129,7 @@ navigator.mozL10n.once(function showBody() {
 
   // load frame_script.js for preview mode and show loading background
   if (!isPhone) {
-    loader.load('js/frame_scripts.js');
+    LazyLoader.load('js/frame_scripts.js');
   }
 
   // Now initialize the rest of the app.
@@ -146,15 +145,6 @@ function init() {
   // back to thumbnail list mode
   $('selected-header').addEventListener('action',
     setView.bind(null, LAYOUT_MODE.list));
-
-  // Clicking on the pick back button cancels the pick activity.
-  $('pick-header').addEventListener('action', cancelPick);
-
-  // In crop view, the back button goes back to pick view
-  $('crop-top').addEventListener('action', function() {
-    setView(LAYOUT_MODE.pick);
-    cleanupCrop();
-  });
 
   if (!isPhone) {
     $('fullscreen-toolbar-header').addEventListener('action', function() {
@@ -175,7 +165,11 @@ function init() {
   // Clicking on the share button in select mode shares all selected images
   $('thumbnails-share-button').onclick = shareSelectedItems;
 
-  Overlay.addEventListener('cancel', cancelPick);
+  Overlay.addEventListener('cancel', function() {
+    if (picking) {
+      Pick.cancel();
+    }
+  });
 
   // Handle resize events
   window.onresize = resizeHandler;
@@ -217,12 +211,9 @@ function init() {
       }
       break;
     case 'pick':
-      if (pendingPick) // I don't think this can really happen anymore
-        cancelPick();
-      pendingPick = a; // We need pendingPick set before calling initDB()
-      if (!photodb)
-        initDB();
-      startPick();
+      picking = true;
+      initDB();
+      LazyLoader.load('js/pick.js', function() { Pick.start(a); });
       break;
     }
   });
@@ -252,8 +243,8 @@ function initDB() {
       return;
     }
 
-    loader.load(['js/metadata_scripts.js',
-                 'shared/js/media/crop_resize_rotate.js'], function() {
+    LazyLoader.load(['js/metadata_scripts.js',
+                     'shared/js/media/crop_resize_rotate.js'], function() {
       loaded = true;
       metadataParser(file, onsuccess, onerror, bigFile);
     });
@@ -333,8 +324,8 @@ function initDB() {
   // a photo that is no longer available.
   photodb.oncardremoved = function oncardremoved() {
     // If the user pulls the sdcard while trying to pick an image, give up
-    if (pendingPick) {
-      cancelPick();
+    if (picking) {
+      Pick.cancel();
       return;
     }
 
@@ -441,7 +432,7 @@ function initThumbnails() {
   photodb.enumerate('date', null, 'prev', function(fileinfo) {
     if (fileinfo) {
       // For a pick activity, don't display videos
-      if (pendingPick && fileinfo.metadata.video)
+      if (picking && fileinfo.metadata.video)
         return;
 
       // Bug 1003036 fixed an issue where explicitly created preview
@@ -608,7 +599,7 @@ function deleteFile(n) {
 function fileCreated(fileinfo) {
   // If the new file is a video and we're handling an image pick activity
   // then we won't display the new file.
-  if (pendingPick && fileinfo.metadata.video)
+  if (picking && fileinfo.metadata.video)
     return;
 
   // The fileinfo object that MediaDB sends us has a thumbnail blob in it,
@@ -753,290 +744,6 @@ function setView(view) {
   currentView = view;
 }
 
-//
-// Pick activity
-//
-
-var pendingPick;
-var pickType;
-var pickWidth, pickHeight;
-var pickedFileInfo;
-var cropEditor;
-
-function startPick() {
-  pickType = pendingPick.source.data.type;
-
-  if (pendingPick.source.data.width && pendingPick.source.data.height) {
-    pickWidth = pendingPick.source.data.width;
-    pickHeight = pendingPick.source.data.height;
-  }
-  else {
-    pickWidth = pickHeight = 0;
-  }
-
-  setView(LAYOUT_MODE.pick);
-}
-
-// Called when the user clicks on a thumbnail in pick mode
-function cropPickedImage(fileinfo) {
-  pickedFileInfo = fileinfo;
-
-  // Do we actually want to allow the user to crop the image?
-  var nocrop = pendingPick.source.data.nocrop;
-
-  if (nocrop) {
-    // If we're not cropping show file name in the title bar
-    // XXX: UX will probably get rid of this title bar soon, anyway.
-    var fileName = pickedFileInfo.name.split('/').pop();
-    $('crop-header').textContent =
-     fileName.substr(0, fileName.lastIndexOf('.')) || fileName;
-  }
-
-  setView(LAYOUT_MODE.crop);
-
-  // Before the picked image is loaded, the done button is disabled
-  // to avoid users picking a black/empty image.
-  var doneButton = $('crop-done-button');
-  doneButton.disabled = true;
-
-  // We need all of these for cropping the photo:
-  //  - ImageEditor to display the crop overlay.
-  //  - frame_scripts because it has gesture_detector in it.
-  //  - crop_resize_rotate.js scripts for cropResizeRotate().
-  loader.load(['js/frame_scripts.js',
-               'shared/js/media/crop_resize_rotate.js',
-               'js/ImageEditor.js'], gotScripts);
-
-  // When the scripts we need are loaded, load the picked file we need
-  function gotScripts() {
-    photodb.getFile(pickedFileInfo.name, gotFile);
-  }
-
-  // This is called with the file that needs to be cropped
-  function gotFile(pickedFile) {
-    var previewData = pickedFileInfo.metadata.preview;
-    if (!previewData) {
-      // If there is no preview at all, this is a small image and
-      // it is its own preview. Just crop with the full-size image
-      startCrop();
-    }
-    else if (previewData.filename) {
-      // If there is an external preview file, use that. This means that
-      // the EXIF preview was not big enough
-      var storage = navigator.getDeviceStorage('pictures');
-      var getreq = storage.get(previewData.filename);
-      getreq.onsuccess = function() {
-        startCrop(getreq.result);
-      };
-      // If we fail to get the preview file, just use the full-size image
-      getreq.onerror = function() {
-        startCrop();
-      };
-    }
-    else {
-      // Otherwise, use the internal EXIF preview.
-      // This should be the normal case.
-      startCrop(pickedFile.slice(previewData.start,
-                                 previewData.end,
-                                 'image/jpeg'));
-    }
-
-    function startCrop(previewBlob) {
-      // Before the user can crop the image we have to create a
-      // preview of the image at the correct size and orientation
-      // if we do not already have one.
-      var blob, metadata, outputSize, useSpinner;
-
-      if (previewBlob) {
-        // If there is a preview, use it at full size. If we're using
-        // a preview we need to pass the size of the preview, but the
-        // EXIF orientation data from the fullsize image.
-        blob = previewBlob;
-        metadata = {
-          width: previewData.width,
-          height: previewData.height,
-          rotation: pickedFileInfo.metadata.rotation,
-          mirrored: pickedFileInfo.metadata.mirrored
-        };
-        outputSize = null;
-        useSpinner = false;
-      }
-      else {
-        // If there is no preview, use the picked file, but specify a maximum
-        // size so we don't decode at a size larger than needed.
-        blob = pickedFile;
-        metadata = pickedFileInfo.metadata;
-        var windowSize = window.innerWidth * window.innerHeight *
-          window.devicePixelRatio * window.devicePixelRatio;
-        outputSize = Math.min(windowSize,
-                              CONFIG_MAX_PICK_PIXEL_SIZE ||
-                              CONFIG_MAX_IMAGE_PIXEL_SIZE);
-        useSpinner = metadata.width * metadata.height > outputSize;
-      }
-
-      // Make sure the image is rotated correctly so that it appears
-      // right side up in the crop UI. Note that we only display a spinner
-      // here if we have to downsample a large image.
-      if (useSpinner) {
-        Spinner.show();
-      }
-      cropResizeRotate(blob, null, outputSize, null, metadata, gotRotatedBlob);
-    }
-
-    function gotRotatedBlob(error, rotatedBlob) {
-      Spinner.hide();
-      if (error) {
-        console.error('Error while rotating image:', error);
-        rotatedBlob = pickedFile;
-      }
-      cropEditor = new ImageEditor(rotatedBlob, $('crop-frame'), {},
-                                   cropEditorReady, true);
-    }
-
-    function cropEditorReady() {
-      // Enable the done button so that users can finish picking image.
-      doneButton.onclick = cropAndEndPick;
-      doneButton.disabled = false;
-
-      // If the initiating app doesn't want to allow the user to crop
-      // the image, we don't display the crop overlay. But we still use
-      // this image editor to preview the image.
-      if (nocrop) {
-        // Set a fake crop region even though we won't display it
-        // so that hasBeenCropped() works.
-        cropEditor.cropRegion.left = cropEditor.cropRegion.top = 0;
-        cropEditor.cropRegion.right = cropEditor.dest.w;
-        cropEditor.cropRegion.bottom = cropEditor.dest.h;
-        return;
-      }
-
-      cropEditor.showCropOverlay();
-      if (pickWidth)
-        cropEditor.setCropAspectRatio(pickWidth, pickHeight);
-      else
-        cropEditor.setCropAspectRatio(); // free form cropping
-    }
-
-    function cropAndEndPick() {
-      // First, figure out what kind of image to return to the requesting app.
-      // If the activity request specifically included 'image/jpeg' or
-      // 'image/png', then we'll use that type. Otherwise, if a generic
-      // 'image/*' was requested (or if an unsupported type was requested)
-      // then we use null as the type. This value is passed to
-      // cropResizeRotate() and will leave the image unchanged if possible
-      // or will use jpeg if changes are needed.
-      if (Array.isArray(pickType)) {
-        if (pickType.indexOf(pickedFileInfo.type) !== -1) {
-          pickType = pickedFileInfo.type;
-        }
-        else if (pickType.indexOf('image/jpeg') !== -1) {
-          pickType = 'image/jpeg';
-        }
-        else if (pickType.indexOf('image/png') !== -1) {
-          pickType = 'image/png';
-        }
-        else {
-          pickType = null; // Return unchanged or convert to JPEG
-        }
-      }
-      else if (pickType === 'image/*') {
-        pickType = null;   // Return unchanged or convert to JPEG
-      }
-
-      if (pickType && pickType !== 'image/jpeg' && pickType !== 'image/png')
-        pickType = null;   // Return unchanged or convert to JPEG
-
-      // In order to determine the cropRegion and outputSize arguments to
-      // cropResizeRotate() below we need to know the actual image size.
-      // If the image has EXIF rotation, we need to take that into account.
-      var fullImageWidth, fullImageHeight;
-      var rotation = pickedFileInfo.metadata.rotation || 0;
-      if (rotation === 90 || rotation === 270) {
-        fullImageWidth = pickedFileInfo.metadata.height;
-        fullImageHeight = pickedFileInfo.metadata.width;
-      }
-      else {
-        fullImageWidth = pickedFileInfo.metadata.width;
-        fullImageHeight = pickedFileInfo.metadata.height;
-      }
-
-      var cropRegion;
-
-      if (pendingPick.source.data.nocrop || !cropEditor.hasBeenCropped()) {
-        cropRegion = null;
-      }
-      else {
-        // Get the user's crop region from the crop editor
-        cropRegion = cropEditor.getCropRegion();
-
-        // Scale to match the actual image size
-        cropRegion.left = Math.round(cropRegion.left * fullImageWidth);
-        cropRegion.top = Math.round(cropRegion.top * fullImageHeight);
-        cropRegion.width = Math.round(cropRegion.width * fullImageWidth);
-        cropRegion.height = Math.round(cropRegion.height * fullImageHeight);
-      }
-
-      var outputSize;
-      if (pickWidth && pickHeight) {
-        outputSize = { width: pickWidth, height: pickHeight };
-      }
-      else if (CONFIG_MAX_PICK_PIXEL_SIZE) {
-        outputSize = CONFIG_MAX_PICK_PIXEL_SIZE;
-      }
-      else {
-        outputSize = null;
-      }
-
-      // show spinner if cropResizeRotate will downsample image
-      if (cropRegion !== null ||
-          outputSize !== null ||
-          (pickedFileInfo.metadata !== undefined &&
-           pickedFileInfo.metadata.rotation !== undefined &&
-           pickedFileInfo.metadata.rotation) ||
-          (pickedFileInfo.metadata.mirrored !== undefined &&
-           pickedFileInfo.metadata.mirrored)) {
-        Spinner.show();
-      }
-      cropResizeRotate(pickedFile, cropRegion, outputSize, pickType,
-                       pickedFileInfo.metadata,
-                       function(error, blob) {
-                         Spinner.hide();
-                         if (error) {
-                           console.error('while resizing image: ' + error);
-                           blob = pickedFile;
-                         }
-                         endPick(blob);
-                       });
-    }
-  }
-}
-
-function endPick(blob) {
-  pendingPick.postResult({
-    type: blob.type,
-    blob: blob
-  });
-  cleanupPick();
-}
-
-function cancelPick() {
-  pendingPick.postError('pick cancelled');
-  cleanupPick();
-}
-
-function cleanupCrop() {
-  if (cropEditor) {
-    cropEditor.destroy();
-    cropEditor = null;
-  }
-}
-
-function cleanupPick() {
-  cleanupCrop();
-  pendingPick = null;
-  pickedFileInfo = null;
-  setView(LAYOUT_MODE.list);
-}
 
 //
 // Event handlers
@@ -1052,12 +759,12 @@ function thumbnailClickHandler(evt) {
     return;
 
   var index = getFileIndex(target.dataset.filename);
-  if (currentView === LAYOUT_MODE.pick && index >= 0) {
-      cropPickedImage(files[index]);
+  if (picking && currentView === LAYOUT_MODE.pick && index >= 0) {
+      Pick.select(files[index]);
   } else if (currentView === LAYOUT_MODE.select) {
     updateSelection(target);
   } else {
-    loader.load('js/frame_scripts.js', function() {
+    LazyLoader.load('js/frame_scripts.js', function() {
       if (isPortrait || isPhone) {
         setView(LAYOUT_MODE.fullscreen);
       }
