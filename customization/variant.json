@@ -46,7 +46,8 @@
       "data_ftu": true,
       "search": "mobizilla/mobizilla_search.json",
       "default_search": "mobizilla/mobizilla_default_search.json",
-      "topsites": "mobizilla/mobizilla_topsites.json"
+      "topsites": "mobizilla/mobizilla_topsites.json",
+      "bookmarks": "mobizilla/mobizilla_bookmarks.json"
     }
   ]
 }
