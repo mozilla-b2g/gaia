@@ -1,4 +1,6 @@
-/*global asyncStorage */
+/*global asyncStorage,
+         InterInstanceEventDispatcher
+*/
 (function(exports) {
   'use strict';
   var draftIndex = new Map();
@@ -233,7 +235,9 @@
       draftIndex.forEach(function(v, k) {
         entries.push([k, v]);
       });
-      asyncStorage.setItem('draft index', entries);
+      asyncStorage.setItem('draft index', entries, () => {
+        InterInstanceEventDispatcher.emit('drafts-changed');
+      });
     },
     /**
      * request
@@ -245,7 +249,7 @@
      *                            arguments.
      * @return {Undefined} void return.
      */
-    request: function(callback) {
+    request: function(callback, force) {
       function handler() {
         isCached = true;
 
@@ -258,7 +262,7 @@
 
       // Loading from storage only happens when the
       // app first opens.
-      if (isCached) {
+      if (isCached && !force) {
         setTimeout(function() {
           handler();
         });

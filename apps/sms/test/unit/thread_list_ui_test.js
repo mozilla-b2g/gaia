@@ -3,7 +3,8 @@
          MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI,
          MockOptionMenu, Utils, Contacts, MockContact, Navigation,
          MockSettings,
-         Dialog
+         Dialog,
+         InterInstanceEventDispatcher
          */
 
 'use strict';
@@ -37,6 +38,7 @@ require('/shared/test/unit/mocks/mock_performance_testing_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
 require('/test/unit/mock_navigation.js');
 require('/test/unit/mock_settings.js');
+require('/test/unit/mock_inter_instance_event_dispatcher.js');
 
 var mocksHelperForThreadListUI = new MocksHelper([
   'asyncStorage',
@@ -50,7 +52,8 @@ var mocksHelperForThreadListUI = new MocksHelper([
   'OptionMenu',
   'PerformanceTestingHelper',
   'StickyHeader',
-  'Navigation'
+  'Navigation',
+  'InterInstanceEventDispatcher',
 ]).init();
 
 suite('thread_list_ui', function() {
@@ -66,6 +69,7 @@ suite('thread_list_ui', function() {
     mainWrapper = document.getElementById('main-wrapper');
 
     this.sinon.stub(MessageManager, 'on');
+    this.sinon.stub(InterInstanceEventDispatcher, 'on');
 
     ThreadListUI.init();
 
@@ -1420,6 +1424,13 @@ suite('thread_list_ui', function() {
     test('click on a draft populates ThreadUI.draft', function() {
       document.querySelector('#thread-101 a').click();
       assert.equal(ThreadUI.draft, draft);
+    });
+
+    test('should re-request drafts if they are changed by another app instance',
+    function() {
+      InterInstanceEventDispatcher.on.withArgs('drafts-changed').yield();
+
+      sinon.assert.calledWith(Drafts.request, sinon.match.func, true);
     });
   });
 

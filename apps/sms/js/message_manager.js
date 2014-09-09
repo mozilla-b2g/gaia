@@ -16,12 +16,7 @@
 'use strict';
 (function(exports) {
 var MessageManager = {
-  init: function mm_init(callback) {
-    if (this.initialized) {
-      return;
-    }
-    this.initialized = true;
-
+  init: function mm_init() {
     this._mozMobileMessage = navigator.mozMobileMessage;
 
     this._mozMobileMessage.addEventListener(
@@ -45,11 +40,6 @@ var MessageManager = {
     this._mozMobileMessage.addEventListener(
       'deleted', this.onDeleted.bind(this)
     );
-
-    // Callback if needed
-    if (typeof callback === 'function') {
-      callback();
-    }
   },
 
   onMessageSending: function mm_onMessageSending(e) {
