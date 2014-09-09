@@ -155,9 +155,6 @@ var ScreenManager = {
         // Let's set the API value to that so setScreenBrightness() can
         // dim nicely to value set by user.
         power.screenBrightness = 0.5;
-
-        // Turn screen on with dim.
-        self.turnScreenOn(false);
       }
     });
 

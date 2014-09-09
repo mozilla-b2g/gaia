@@ -131,7 +131,6 @@ suite('system/ScreenManager', function() {
       ScreenManager.init();
       assert.isTrue(ScreenManager._firstOn);
       assert.equal(MockMozPower.screenBrightness, 0.5);
-      assert.isTrue(ScreenManager.turnScreenOn.called);
     });
 
     test('Testing SettingsListener.observe for ' +
