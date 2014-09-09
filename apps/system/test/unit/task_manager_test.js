@@ -514,6 +514,24 @@ suite('system/TaskManager >', function() {
         element.dispatchEvent(createTouchEvent('touchend', element, 0, 450));
       });
 
+      test('cards should be hidden for better performance', function() {
+        var card = taskManager.getCardAtIndex(0);
+        assert.equal(card.element.style.display, 'block');
+
+        var farAway = taskManager.getCardAtIndex(3);
+        assert.equal(farAway.element.style.display, 'none');
+      });
+
+      test('and shown when needed', function() {
+        taskManager.position = 3;
+        taskManager.alignCurrentCard();
+        var card = taskManager.getCardAtIndex(0);
+        assert.equal(card.element.style.display, 'none');
+
+        var farAway = taskManager.getCardAtIndex(3);
+        assert.equal(farAway.element.style.display, 'block');
+      });
+
       test('wheel up event', function() {
         var card = taskManager.getCardAtIndex(0);
         var killAppStub = this.sinon.stub(card, 'killApp');

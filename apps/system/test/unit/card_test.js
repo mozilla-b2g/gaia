@@ -272,7 +272,52 @@ suite('system/Card', function() {
       assert.ok(iconView.style.backgroundImage.indexOf('url') > -1,
                 '.appIconView element has backgroundImage value');
     });
-
   });
 
+  suite('move > ', function() {
+    var realIW;
+    suiteSetup(function() {
+      realIW = window.innerWidth;
+      Object.defineProperty(window, 'innerWidth', {
+        configurable: true,
+        get: function() { return 320; }
+      });
+    });
+
+    suiteTeardown(function() {
+      Object.defineProperty(window, 'innerWidth', {
+        configurable: true,
+        get: function() { return realIW; }
+      });
+    });
+
+    setup(function(){
+      this.card = new Card({
+        app: makeApp({ name: 'dummyapp' }),
+        manager: mockManager
+      });
+      this.card.render();
+      this.card.position = 0;
+      this.card.manager.position = 0;
+    });
+
+    test('should apply a transform', function() {
+      this.card.move(100, 0);
+      var style = this.card.element.style;
+      var expected = 'translateX(100px)';
+      assert.equal(style.transform, expected);
+    });
+
+    test('but trick gecko by always keeping it barely in the viewport',
+    function() {
+      this.card.move(400, 0);
+      var style = this.card.element.style;
+      var expected = 'translateX(236.799px)';
+      assert.equal(style.transform, expected);
+
+      var dataset = this.card.element.dataset;
+      assert.equal(dataset.positionX, 400);
+      assert.equal(dataset.keepLayerDelta, 163.201);
+    });
+  });
 });

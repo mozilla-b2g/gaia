@@ -16,7 +16,7 @@ class CardsView(Base):
     # Check that the origin contains the current app name, origin is in the format:
     # app://clock.gaiamobile.org
     _apps_cards_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"]')
-    _close_buttons_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"] .close-card')
+    _close_buttons_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"] .close-button')
 
     def _app_card_locator(self, app):
         return (self._apps_cards_locator[0], self._apps_cards_locator[1] % app.lower())
