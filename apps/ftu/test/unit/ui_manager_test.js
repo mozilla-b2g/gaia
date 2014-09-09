@@ -5,6 +5,7 @@
 require('/shared/test/unit/load_body_html_helper.js');
 
 requireApp('ftu/js/ui.js');
+requireApp('ftu/js/external_links.js');
 requireApp('ftu/js/navigation.js');
 
 requireApp('ftu/test/unit/mock_l10n.js');
