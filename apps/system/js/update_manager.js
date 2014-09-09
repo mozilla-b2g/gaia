@@ -203,9 +203,9 @@ var UpdateManager = {
         } else {
           // We can download the update only if the current connection
           // is not forbidden for download
-          var conns = window.navigator.mozMobileConnections;
+          var conns = System.getAPI('mobileConnections');
           if (!conns) {
-            console.error('mozMobileConnections is not available we can ' +
+            console.error('mobile connections is not available we can ' +
                           'not update the phone.');
             self.showForbiddenDownload();
           } else {
@@ -674,7 +674,7 @@ var UpdateManager = {
 
   _openDownloadViaDataDialog: function um_downloadViaDataDialog() {
     var _ = navigator.mozL10n.setAttributes;
-    var connections = window.navigator.mozMobileConnections;
+    var connections = System.getAPI('mobileConnections');
     var dataType;
     var sim;
 

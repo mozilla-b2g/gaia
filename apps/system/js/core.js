@@ -1,4 +1,4 @@
-/* global System, BaseModule */
+/* global System */
 'use strict';
 
 (function(exports) {
@@ -8,76 +8,31 @@
    */
   var Core = function() {
   };
-  Core.prototype = Object.create(BaseModule.prototype);
-  Core.prototype.constructor = Core;
-  Core.IMPORTS = [
-    'shared/js/nfc_utils.js',
-    'shared/js/gesture_detector.js',
-    'shared/js/settings_listener.js',
-    'shared/js/custom_dialog.js',
-    'shared/js/notification_helper.js',
-    'shared/js/async_storage.js',
-    'shared/js/mobile_operator.js',
-    'shared/js/manifest_helper.js'
-  ];
-  // This is environmental modules which don't rely on specific API.
-  Core.SUB_MODULES =
-    [
-      'InitLogoHandler',
-      'HardwareButtons',
-      'LayoutManager',
-      'OrientationManager',
-      'PermissionManager',
-      'RemoteDebugger',
-      'SleepMenu',
-      'SoftwareButtonManager',
-      'WallpaperManager',
-      'VisibilityManager',
-      'SourceView',
-      'RemoteDebugger',
-      'Places',
-      'Accessibility',
-      'HomeGesture',
-      'InternetSharing',
-      'Storage',
-      'TelephonySettings',
-      'Statusbar',
-      'UtilityTray'
-    ];
-
+  // XXX: Move shared file name here.
+  Core.IMPORTS = [];
+  // XXX: Move non-API sensitive modules here.
+  Core.SUB_MODULES = [];
   Core.SUB_MODULE_PARENT = window;
 
-  var proto = {
+  System.create(Core, {}, {
     name: 'Core',
 
     REGISTRY: {
-      'mozApps': 'AppsHandler',
-      'mozMobileConnections': 'MobileConnectionsHandler',
-      'mozNfc': 'NFCHandler',
-      'mozWifiManager': 'WifiHandler',
-      'mozBluetooth': 'BluetoothHandler',
-      'battery': 'BatteryHandler',
-      'mozPower': 'ScreenManager',
-      'mozVoicemail': 'Voicemail',
-      'mozInputMethod': 'KeyboardManager',
-      'mozDownloadManager': 'DownloadManager',
-      'mozIccManager': 'Icc'
+      'mozApps': 'AppCore',
+      'mozMobileConnections': 'MobileConnectionCore',
+      'mozNfc': 'NfcCore',
+      'mozWifiManager': 'WifiCore',
+      'mozBluetooth': 'BluetoothCore',
+      'battery': 'BatteryCore',
+      'mozPower': 'PowerCore',
+      'mozVoicemail': 'VoicemailCore',
+      'mozInputMethod': 'InputMethodCore',
+      'mozDownloadManager': 'DownloadCore',
+      'mozIccManager': 'IccCore',
+      'mozCellbroadcast': 'CellbroadcastCore'
     },
 
-    API_RETRY_COUNT: 20,
-    API_RETRY_ENABLED: true,
-
     _start: function() {
-      // With all important event handlers in place, we can now notify
-      // Gecko that we're ready for certain system services to send us
-      // messages (e.g. the radio).
-      // Note that shell.js starts listen for the mozContentEvent event at
-      // mozbrowserloadstart,
-      // which sometimes does not happen till window.onload.
-      this.publish('mozContentEvent',
-        { type: 'system-message-listener-ready' },
-        true);
-
       for (var api in this.REGISTRY) {
         this.debug('Detecting API: ' + api +
           ' and corresponding module: ' + this.REGISTRY[api]);
@@ -120,7 +75,6 @@
         this[moduleName] && this[moduleName].stop();
       }
     }
-  };
-  BaseModule.mixin(Core.prototype, proto);
+  });
   exports.Core = Core;
 }(window));

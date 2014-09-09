@@ -149,9 +149,8 @@ var icc_events = {
         // XXX: check bug-926169
         // this is used to keep all tests passing while introducing
         // multi-sim APIs
-        var conn = window.navigator.mozMobileConnection ||
-          window.navigator.mozMobileConnections &&
-            window.navigator.mozMobileConnections[0];
+        var conns = System.getAPI('mobileConnection');
+        var conn = conns ? conns[0] : null;
 
         conn.addEventListener('voicechange',
           function register_icc_event_voicechange(evt) {

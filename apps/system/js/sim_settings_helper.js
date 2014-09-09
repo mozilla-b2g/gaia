@@ -1,24 +1,17 @@
 /* exported SimSettingsHelper */
-/* global SIMSlotManager, SettingsListener */
+/* global SIMSlotManager, SettingsListener, System */
 'use strict';
 
 (function(exports) {
-
-  // we have to make sure we are in DSDS
-  if (!SIMSlotManager.isMultiSIM()) {
-    return;
-  }
-
-  var SimSettingsHelper = {
-    init: function ssh_init() {
-      window.addEventListener('simslotready', this);
-    },
-    handleEvent: function ssh_handleEvent(evt) {
-      switch (evt.type) {
-        case 'simslotready':
-          this.simslotUpdatedHandler();
-        break;
-      }
+  var SimSettingsHelper = function() {
+  };
+  SimSettingsHelper.EVENTS = [
+    'simslotready'
+  ];
+  System.create(SimSettingsHelper, {}, {
+    name: 'SimSettingsHelper',
+    _handle_simslotready: function() {
+      this.simslotUpdatedHandler();
     },
     overrideUserSimSettings: function() {
       var availableSIMIndex = SIMSlotManager.isSIMCardAbsent(0) ? 1 : 0;
@@ -56,9 +49,6 @@
         SettingsListener.getSettingsLock().set(setObj);
       });
     }
-  };
-
-  SimSettingsHelper.init();
+  });
   exports.SimSettingsHelper = SimSettingsHelper;
-
 })(window);

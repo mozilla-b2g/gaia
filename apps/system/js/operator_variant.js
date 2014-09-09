@@ -1,7 +1,4 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
-/* globals ApnHelper */
+/* globals ApnHelper, OperatorVariantHelper */
 
 (function(exports) {
   'use strict';
@@ -27,10 +24,10 @@
    * Helper object that handles some carrier-specific settings on the ICC card
    * from the mozMobileConnection.
    */
-  function OperatorVariantHandler(iccId, iccCardIndex) {
+  function OperatorVariant(iccId, iccCardIndex) {
     /** Holds the OS version */
     this._deviceInfoOs = 'unknown';
-    /** Index of the ICC card on the mozMobileConnections array */
+    /** Index of the ICC card on the mobileConnections array */
     this._iccCardIndex = iccCardIndex;
     /** ICC id in the ICC card */
     this._iccId = iccId;
@@ -40,7 +37,7 @@
     this._iccSettings = { mcc: '000', mnc: '00' };
   }
 
-  OperatorVariantHandler.prototype = {
+  OperatorVariant.prototype = {
     /**
      * Init function.
      */
@@ -670,24 +667,5 @@
     }
   };
 
-  /**
-   * Handle some carrier-specific settings on the ICC card whose id  we pass as
-   * parameter.
-   *
-   * @param {String} iccId The iccId code form the ICC card.
-   * @param {Numeric} iccCardIndex Index of the ICC card on the
-   *                               mozMobileConnections array.
-   *
-   * @return {Object} A OperatorVariantHandler object.
-   */
-  OperatorVariantHandler.handleICCCard =
-    function ovh_handleICCCard(iccId, iccCardIndex) {
-    var obj = new OperatorVariantHandler(iccId, iccCardIndex);
-    obj.init();
-
-    return obj;
-  };
-
-
-  exports.OperatorVariantHandler = OperatorVariantHandler;
+  exports.OperatorVariant = OperatorVariant;
 })(window);
