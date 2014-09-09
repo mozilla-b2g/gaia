@@ -319,10 +319,17 @@ var icc_worker = {
           });
         } else {
           DUMP('STK_CMD_GET_INPUT: Response = ', value);
-          icc.responseSTKCommand(message, {
-            resultCode: icc._iccManager.STK_RESULT_OK,
-            input: value
-          });
+          if (typeof value === 'boolean') {
+            icc.responseSTKCommand(message, {
+              resultCode: icc._iccManager.STK_RESULT_OK,
+              isYesNo: value
+            });
+          } else {
+            icc.responseSTKCommand(message, {
+              resultCode: icc._iccManager.STK_RESULT_OK,
+              input: value
+            });
+          }
         }
       });
   },
