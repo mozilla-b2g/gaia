@@ -635,6 +635,10 @@
   TaskManager.prototype._placeCards = function() {
     this.stack.forEach(function(app, idx) {
       var card = this.cardsByAppID[app.instanceID];
+      if (!card) {
+        return;
+      }
+
       card.move(0, 0);
       card.element.classList.toggle('current', (idx == this.position));
     }.bind(this));
