@@ -114,6 +114,7 @@
 
     // Notify the embedder we are handling the context menu
     evt.preventDefault();
+    evt.stopPropagation();
     this.showMenu(items);
   };
 

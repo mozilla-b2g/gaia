@@ -63,6 +63,7 @@ suite('system/BrowserContextMenu', function() {
     preventDefault: function() {
       this.defaultPrevented = true;
     },
+    stopPropagation: function() {},
     detail: {
       contextmenu: {
         items: [{
@@ -90,6 +91,7 @@ suite('system/BrowserContextMenu', function() {
       preventDefault: function() {
         this.defaultPrevented = true;
       },
+      stopPropagation: function() {},
       detail: {
         contextmenu: {
           items: []
@@ -135,8 +137,11 @@ suite('system/BrowserContextMenu', function() {
   test('launch menu', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var md1 = new BrowserContextMenu(app1);
+    var stubStopPropagation =
+      this.sinon.stub(fakeContextMenuEvent, 'stopPropagation');
 
     md1.handleEvent(fakeContextMenuEvent);
+    assert.isTrue(stubStopPropagation.called);
     assert.isTrue(md1.element.classList.contains('visible'));
     assert.equal(
       md1.elements.list.querySelector('button:first-child').textContent,
