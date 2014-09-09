@@ -2077,12 +2077,15 @@ var ThreadUI = {
           {
             l10nId: 'delete',
             method: function deleteMessage(messageId) {
-              // Complete deletion in DB and UI
-              MessageManager.deleteMessages(messageId,
-                function onDeletionDone() {
-                  ThreadUI.deleteUIMessages(messageId);
-                }
-              );
+              if (window.confirm(navigator.mozL10n
+                .get('deleteMessage-confirmation'))) {
+                // Complete deletion in DB and UI
+                MessageManager.deleteMessages(messageId,
+                  function onDeletionDone() {
+                    ThreadUI.deleteUIMessages(messageId);
+                  }
+                );
+              }
             },
             params: [messageId]
           }
