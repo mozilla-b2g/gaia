@@ -53,15 +53,15 @@ BatteryController.prototype.bindEvents = function() {
 BatteryController.prototype.notifications = {
   low: {
     text: 'battery-low-text',
-    attrs: { 'data-icon': 'battery-low' }
+    attrs: { 'data-icon': 'battery-3' }
   },
   verylow: {
     text: 'battery-verylow-text',
-    attrs: { 'data-icon': 'battery-very-low' }
+    attrs: { 'data-icon': 'battery-1' }
   },
   critical: {
     text: 'battery-critical-text',
-    attrs: { 'data-icon': 'battery-very-low' },
+    attrs: { 'data-icon': 'battery-1' },
     persistent: true
   }
 };

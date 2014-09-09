@@ -3,7 +3,7 @@
  * External
  */
 
-@import url("../bower_components/gaia-icons/style-embedded.css");
+@import url("../bower_components/gaia-icons/style.css");
 @import url("../bower_components/gaia-theme/style.css");
 @import url("../shared/style/progress_activity.css");
 @import url("../shared/style/action_menu.css");

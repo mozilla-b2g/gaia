@@ -144,7 +144,7 @@ li.indicator_geolocation:before {
 
 .indicators[battery='verylow'] .indicator_battery:before,
 .indicators[battery='critical'] .indicator_battery:before {
-  content: "battery-very-low";
+  content: "battery-1";
 }
 
 /**

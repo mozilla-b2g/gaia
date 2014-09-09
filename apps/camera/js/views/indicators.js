@@ -34,7 +34,7 @@ module.exports = View.extend({
     return '<li class="indicator_timer rotates" data-icon="self-timer"></li>' +
     '<li class="indicator_hdr rotates" data-icon="hdr"></li>' +
     '<li class="indicator_geolocation rotates" data-icon="location"></li>' +
-    '<li class="indicator_battery rotates" data-icon="battery-low"></li>';
+    '<li class="indicator_battery rotates" data-icon="battery-3"></li>';
   }
 });
 
