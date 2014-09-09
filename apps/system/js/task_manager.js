@@ -108,8 +108,6 @@
    *                            and 'apps-only'.
    */
   TaskManager.prototype.show = function cs_showCardSwitcher(filterName) {
-    this.publish('cardviewbeforeshow');
-
     this.newStackPosition = null;
     this._registerShowingEvents();
 
@@ -127,6 +125,8 @@
     stack.forEach(function(app, position) {
       this.addCard(position, app);
     }, this);
+
+    this.publish('cardviewbeforeshow');
 
     this._placeCards();
     this.setActive(true);

@@ -266,8 +266,6 @@
     var elem = this.element;
 
     var app = this.app;
-    if (app.isActive()) {
-    }
     if (app.isBrowser()) {
       elem.classList.add('browser');
     }
@@ -282,6 +280,7 @@
         return;
       }
     }
+
     if (this.iconValue) {
       this.iconButton.style.backgroundImage = this.iconValue;
     }
