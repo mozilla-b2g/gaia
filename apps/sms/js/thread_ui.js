@@ -2762,7 +2762,9 @@ var ThreadUI = {
       items.push({
         l10nId: 'call',
         method: function oCall(param) {
-          ActivityPicker.dial(param);
+          var leaveActivity =
+            ActivityHandler.leaveActivity.bind(ActivityHandler);
+          ActivityPicker.dial(param, leaveActivity);
         },
         params: [number]
       });
