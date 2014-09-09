@@ -2,7 +2,7 @@
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('system/media recording', function() {
   var realL10n;

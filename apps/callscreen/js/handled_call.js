@@ -66,6 +66,7 @@ function HandledCall(aCall) {
     this.updateDirection();
 
     if (navigator.mozIccManager.iccIds.length > 1) {
+      this.node.classList.add('sim-info');
       var n = this.call.serviceId + 1;
       this.viaSimNode.textContent = _('via-sim', { n: n });
       this.simNumberNode.textContent = _('sim-number', { n: n });

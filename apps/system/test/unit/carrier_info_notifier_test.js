@@ -4,7 +4,7 @@ requireApp('system/js/carrier_info_notifier.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_notification_screen.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 if (typeof window.ModalDialog == 'undefined') {
   window.ModalDialog = null;
