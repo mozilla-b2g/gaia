@@ -81,9 +81,9 @@
         var a = document.createElement('a');
         a.textContent = menu[SIMNumber].entries.title;
         a.id = 'menuItem-icc-' + menu[SIMNumber].iccId;
-        a.className =
-          'menu-item menuItem-icc gaia-icon icon-settings-simtoolkit';
+        a.className = 'menu-item menuItem-icc';
         a.href = '#icc';
+        a.dataset.icon = 'sim-toolkit';
         a.onclick = function menu_icc_onclick() {
           DUMP('Touched ' + menu[SIMNumber].iccId);
           loadIccPage(function() {
