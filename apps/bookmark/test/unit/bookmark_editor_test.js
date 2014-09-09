@@ -6,7 +6,7 @@
 
 require('/shared/test/unit/load_body_html_helper.js');
 
-requireApp('bookmark/js/icon.js');
+require('/shared/js/homescreens/icon.js');
 requireApp('bookmark/js/bookmark_editor.js');
 require('/shared/js/bookmarks_database.js');
 require('/shared/js/url_helper.js');

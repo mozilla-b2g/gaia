@@ -1,12 +1,12 @@
 'use strict';
 
 /* global Icon, GridIconRenderer, MocksHelper, devicePixelRatio */
-/* global require, requireApp, suite, test, assert, sinon */
+/* global require, suite, test, assert, sinon */
 
 require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
 require('/shared/test/unit/mocks/mock_image.js');
 
-requireApp('bookmark/js/icon.js');
+require('/shared/js/homescreens/icon.js');
 
 var mocksHelperForIcon = new MocksHelper([
   'Image'

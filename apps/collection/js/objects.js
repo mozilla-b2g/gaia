@@ -42,6 +42,7 @@
     // cf. BaseCollection.save
     this.id = props.id || null;
     this.name = props.name || '';
+    this.nonTranslatable = props.nonTranslatable || null;
     this.icon = props.icon || null;
     this.pinned = props.pinned || [];
 
@@ -91,6 +92,10 @@
     },
 
     get localizedName() {
+      if (this.nonTranslatable) {
+        return this.name;
+      }
+
       // l10n prefix taken from /shared/locales/collection_categories
       var l10nId = 'collection-categoryId-' + this.categoryId;
       return navigator.mozL10n.get(l10nId) || this.name;
@@ -103,6 +108,13 @@
       return CollectionsDatabase.get(this.id).then(function create(fresh) {
         this.pinned = fresh.pinned || [];
       }.bind(this));
+    },
+
+    rename: function rename(name) {
+      this.name = name;
+      this.nonTranslatable = true;
+
+      return this.write();
     },
 
     /**
@@ -129,6 +141,7 @@
       var toSave = {
         id: this.id,
         name: this.name,
+        nonTranslatable: this.nonTranslatable,
         query: this.query,
         categoryId: this.categoryId,
         cName: this.cName,
@@ -471,7 +484,10 @@
 
   function QueryCollection(props) {
     BaseCollection.call(this, props);
-    this.name = this.query = props.query;
+    this.query = props.query;
+    if (!this.name) {
+      this.name = this.query;
+    }
   }
 
   QueryCollection.prototype = {
