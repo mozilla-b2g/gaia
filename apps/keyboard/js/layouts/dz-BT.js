@@ -62,11 +62,11 @@ Keyboards['dz-BT'] = {
     'ས': 'ྶ',
     'ཧ': 'ྷ',
     'ཨ': 'ྸ ༁',
-    
+
     '་': '࿒',
     '།': '༎'
   },
-  alternateLayout: {
+  pages: [undefined, {
     needsCommaKey: true,
     alt: {
       '༡': '1',
@@ -111,8 +111,9 @@ Keyboards['dz-BT'] = {
         { value: '༔' }, { value: '༼' }, { value: '༽' }
       ], [
         { value: 'Alt', ratio: 1.5,
-          keyCode: KeyEvent.DOM_VK_ALT,
-          className: 'page-switch-key'
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
         },
         { value: '༃' }, { value: '༑' }, { value: '྅' }, { value: 'ྈ' },
         { value: 'ྉ' }, { value: '࿙' }, { value: '྿' },
@@ -122,5 +123,5 @@ Keyboards['dz-BT'] = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

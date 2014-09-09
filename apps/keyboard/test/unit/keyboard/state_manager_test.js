@@ -102,7 +102,7 @@ suite('StateManager', function() {
       var switchCurrentIMEnginePromise = Promise.resolve();
       var updateLayoutRenderingPromise = Promise.resolve();
 
-      app.layoutManager.currentModifiedLayout = {
+      app.layoutManager.currentPage = {
         imEngine: 'bar'
       };
 
@@ -173,7 +173,7 @@ suite('StateManager', function() {
       var switchCurrentIMEnginePromise = Promise.resolve();
       var updateLayoutRenderingPromise = Promise.resolve();
 
-      app.layoutManager.currentModifiedLayout = {
+      app.layoutManager.currentPage = {
         imEngine: 'bar2'
       };
 
@@ -416,7 +416,7 @@ suite('StateManager', function() {
         switchCurrentIMEnginePromise = Promise.resolve();
         updateLayoutRenderingPromise = Promise.resolve();
 
-        app.layoutManager.currentModifiedLayout = {
+        app.layoutManager.currentPage = {
           imEngine: 'bar'
         };
 

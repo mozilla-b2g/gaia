@@ -60,7 +60,7 @@ suite('target handlers', function() {
       }
     };
 
-    app.layoutManager.currentModifiedLayout = {
+    app.layoutManager.currentPage = {
       imEngine: 'not-latin'
     };
 
@@ -798,7 +798,8 @@ suite('target handlers', function() {
     setup(function() {
       target = {
         dataset: {
-          keycode: '99'
+          keycode: KeyEvent.DOM_VK_ALT,
+          targetPage: '99'
         }
       };
 
@@ -835,100 +836,16 @@ suite('target handlers', function() {
         'function not overwritten');
     });
 
-    suite('KEYCODE_BASIC_LAYOUT', function() {
-      setup(function() {
-        target.dataset.keycode =
-          app.layoutManager.KEYCODE_BASIC_LAYOUT.toString(10);
-      });
+    test('commit', function() {
+      handler.commit();
 
-      test('commit', function() {
-        handler.commit();
+      assert.isTrue(app.setLayoutPage.calledWith(99));
+      assert.isTrue(app.setLayoutPage.calledOnce);
 
-        assert.isTrue(
-          app.setLayoutPage.calledWith(app.layoutManager.LAYOUT_PAGE_DEFAULT));
-        assert.isTrue(app.setLayoutPage.calledOnce);
+      assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
+      assert.isTrue(app.visualHighlightManager.hide.calledOnce);
 
-        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
-        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
-
-        assert.isTrue(app.inputMethodManager.currentIMEngine.empty.calledOnce);
-      });
-    });
-
-    suite('KEYCODE_ALTERNATE_LAYOUT', function() {
-      setup(function() {
-        target.dataset.keycode =
-          app.layoutManager.KEYCODE_ALTERNATE_LAYOUT.toString(10);
-      });
-
-      test('commit', function() {
-        handler.commit();
-
-        assert.isTrue(app.setLayoutPage.calledWith(
-          app.layoutManager.LAYOUT_PAGE_SYMBOLS_I));
-        assert.isTrue(app.setLayoutPage.calledOnce);
-
-        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
-        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
-
-        assert.isTrue(app.inputMethodManager.currentIMEngine.empty.calledOnce);
-      });
-    });
-
-    suite('KEYCODE_SYMBOL_LAYOUT', function() {
-      setup(function() {
-        target.dataset.keycode =
-          app.layoutManager.KEYCODE_SYMBOL_LAYOUT.toString(10);
-      });
-
-      test('commit', function() {
-        handler.commit();
-
-        assert.isTrue(app.setLayoutPage.calledWith(
-          app.layoutManager.LAYOUT_PAGE_SYMBOLS_II));
-        assert.isTrue(app.setLayoutPage.calledOnce);
-
-        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
-        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
-      });
-    });
-
-    suite('DOM_VK_ALT', function() {
-      setup(function() {
-        target.dataset.keycode = KeyEvent.DOM_VK_ALT.toString(10);
-      });
-
-      test('commit (Symbols I -> II)', function() {
-        app.layoutManager.currentLayoutPage =
-          app.layoutManager.LAYOUT_PAGE_SYMBOLS_I;
-
-        handler.commit();
-
-        assert.isTrue(app.setLayoutPage.calledWith(
-          app.layoutManager.LAYOUT_PAGE_SYMBOLS_II));
-        assert.isTrue(app.setLayoutPage.calledOnce);
-
-        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
-        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
-
-        assert.isTrue(app.inputMethodManager.currentIMEngine.empty.calledOnce);
-      });
-
-      test('commit (Symbols II -> I)', function() {
-        app.layoutManager.currentLayoutPage =
-          app.layoutManager.LAYOUT_PAGE_SYMBOLS_II;
-
-        handler.commit();
-
-        assert.isTrue(app.setLayoutPage.calledWith(
-          app.layoutManager.LAYOUT_PAGE_SYMBOLS_I));
-        assert.isTrue(app.setLayoutPage.calledOnce);
-
-        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
-        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
-
-        assert.isTrue(app.inputMethodManager.currentIMEngine.empty.calledOnce);
-      });
+      assert.isTrue(app.inputMethodManager.currentIMEngine.empty.calledOnce);
     });
   });
 

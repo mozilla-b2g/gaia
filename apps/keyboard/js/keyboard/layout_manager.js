@@ -9,7 +9,7 @@
 (function(exports) {
 
 /**
- * LayoutManager do one and only simply job: Allow you to switch currentLayout,
+ * LayoutManager do one and only simply job: Allow you to switch currentPage,
  * tell you when it is ready, and give you access to it.
  * @class
  * @param {Object} app the keyboard app instance
@@ -17,20 +17,17 @@
 var LayoutManager = function(app) {
   this.app = app;
 
-  // Current Layout is the layout loaded.
-  // Other modules most likely need currentModifiedLayout instead of this one.
-  this.currentLayout = null;
-  this.currentLayoutName = undefined;
+  // When the layout is loaded, it's name is put here.
+  // We won't necessary use it since we might be using a type-specific layout
+  // for the layout page.
+  this._typeGenericLayoutName = undefined;
 
-  // IME sometimes want to force switch to a specific layout,
-  // we record that information here.
-  this.currentForcedModifiedLayoutName = undefined;
-
-  // currentModifiedLayout is the layout definition needed according to
+  // currentPage is the layout definition needed according to
   // the current input mode and the layout page.
-  // It's always an object with "modifications" of it's prototype parent.
-  this.currentModifiedLayout = null;
-  this.currentLayoutPage = this.LAYOUT_PAGE_DEFAULT;
+  // It's always an object with "modifications" of it's prototype parent, i.e.
+  // the page prototype of the layout used.
+  this.currentPage = null;
+  this.currentPageIndex = this.PAGE_INDEX_DEFAULT;
 };
 
 LayoutManager.prototype.start = function() {
@@ -41,15 +38,11 @@ LayoutManager.prototype.start = function() {
 };
 
 // Special key codes on special buttons
-LayoutManager.prototype.KEYCODE_BASIC_LAYOUT = -1;
-LayoutManager.prototype.KEYCODE_ALTERNATE_LAYOUT = -2;
 LayoutManager.prototype.KEYCODE_SWITCH_KEYBOARD = -3;
 LayoutManager.prototype.KEYCODE_TOGGLE_CANDIDATE_PANEL = -4;
-LayoutManager.prototype.KEYCODE_SYMBOL_LAYOUT = -5;
 
-LayoutManager.prototype.LAYOUT_PAGE_DEFAULT = 0;
-LayoutManager.prototype.LAYOUT_PAGE_SYMBOLS_I = 1;
-LayoutManager.prototype.LAYOUT_PAGE_SYMBOLS_II = 2;
+LayoutManager.prototype.DEFAULT_LAYOUT_NAME = 'defaultLayout';
+LayoutManager.prototype.PAGE_INDEX_DEFAULT = 0;
 
 /*
  * Switch switchCurrentLayout() will switch the current method to the
@@ -73,80 +66,47 @@ LayoutManager.prototype.switchCurrentLayout = function(layoutName) {
       return Promise.reject();
     }
 
-    this.currentLayout = layout;
-    this.currentLayoutName = layoutName;
-    this.currentLayoutPage = this.LAYOUT_PAGE_DEFAULT;
-    this.currentForcedModifiedLayoutName = undefined;
+    this._typeGenericLayoutName = layoutName;
+    this.currentPageIndex = this.PAGE_INDEX_DEFAULT;
 
-    this._updateModifiedLayout();
+    this._updateCurrentPage();
   }.bind(this));
 
   return p;
 };
 
 /*
- * Sometime IME may want to force render a specific layout.
- * Instead of overwrite currentLayout, we keep that information in
- * currentForcedModifiedLayoutName and update the currentModifiedLayout.
- *
- * Please consider specifying an layout specific alternative/symbol layout page
- * when possible, instead of leveraging this feature.
- *
- */
-LayoutManager.prototype.updateForcedModifiedLayout = function(layoutName) {
-  if (!this.loader.getLayout(layoutName)) {
-    throw new Error('LayoutManager: update to a non-exist forced layout ' +
-      layoutName);
-  }
-  this.currentForcedModifiedLayoutName = layoutName;
-  this._updateModifiedLayout();
-};
-
-/*
  * Layout page refer to alternative/symbol layout of the current layout.
- * It will be the default alternative/symbol layout if the currentLayout
+ * It will be the default alternative/symbol layout if the current layout
  * does not overwrite them.
  *
- * This function keep the information in currentLayoutPage and
- * update the specific layout to currentModifiedLayout.
+ * This function keep the information in currentPageIndex and
+ * update the specific layout to currentPage.
  *
  */
 LayoutManager.prototype.updateLayoutPage = function(page) {
-  switch (page) {
-    case this.LAYOUT_PAGE_DEFAULT:
-    case this.LAYOUT_PAGE_SYMBOLS_I:
-    case this.LAYOUT_PAGE_SYMBOLS_II:
-      this.currentLayoutPage = page;
-      // Reset currentForcedModifiedLayoutName, for the case to go back to
-      // default or symbol page from self-defined layout page.
-      this.currentForcedModifiedLayoutName = null;
-      this._updateModifiedLayout();
-
-      break;
-
-    default:
-      throw new Error('LayoutManager: undefined layout page.');
-  }
+  this.currentPageIndex = page;
+  this._updateCurrentPage();
 };
 
 /*
- * This function takes the currentLayout, makes and empty layout with prototype
- * points to the currentLayout, and then modifies it to add meta keys for
- * switching languages and switching to numbers and symbols.
+ * This function decide which layout to use, load it, and makes an empty object
+ * with prototype points to the page to use, and then modifies it to add
+ * meta keys for switching languages and switching to numbers and symbols.
  * It may also add keys (like a "/" and '@') that are specific to input
  * of basic input type.
  *
- * The result is saved to currentModifiedLayout.
+ * The result is saved to currentPage.
  */
-LayoutManager.prototype._updateModifiedLayout = function() {
-  // If there isn't an inputContext or there is no currentLayout,
+LayoutManager.prototype._updateCurrentPage = function() {
+  // If there isn't an inputContext or there is no typeGenericLayoutName,
   // clean up modified layout.
-  if (!this.app.inputContext || !this.currentLayout) {
+  if (!this.app.inputContext || !this._typeGenericLayoutName) {
     console.warn('LayoutManager: ' +
-      'calling _updateModifiedLayout() when there is no ' +
-      'inputContext or currentLayout.');
+      'calling _updateCurrentPage() when there is no ' +
+      'inputContext or _typeGenericLayoutName.');
 
-    this.currentModifiedLayout = null;
+    this.currentPage = null;
     return;
   }
 
@@ -156,43 +116,70 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   var basicInputType = this.app.getBasicInputType();
   var supportsSwitching = this.app.supportsSwitching();
 
-  // We might need to switch to a alternative layout
-  var alternativeLayoutName =
-    this._getAlternativeLayoutName(basicInputType, inputMode);
+  // It's possible we should point to a type-specific layout,
+  // instead of typeGenericLayoutName.
+  var typeSpecificLayoutName =
+    this._typeSpecificLayoutName(basicInputType, inputMode);
 
-  var layout;
-  if (this.currentForcedModifiedLayoutName) {
-    layout = this.loader.getLayout(this.currentForcedModifiedLayoutName);
-  } else if (alternativeLayoutName) {
-    layout = this.currentLayout[alternativeLayoutName] ||
-      this.loader.getLayout(alternativeLayoutName);
-  } else {
-    layout = this.currentLayout;
+  var layout = this.loader.getLayout(typeSpecificLayoutName ||
+                                     this._typeGenericLayoutName);
+
+  if (!layout) {
+    console.error(
+      'LayoutManager: Can\'t load the layout.',
+      'typeSpecificLayoutName=', typeSpecificLayoutName,
+      'typeGenericLayoutName=', this._typeGenericLayoutName,
+      'currentPageIndex=', this.currentPageIndex);
+
+    this.currentPage = null;
+    return;
+  }
+
+  var page = layout.pages[this.currentPageIndex];
+  if (!page) {
+    var defaultLayout = this.loader.getLayout(this.DEFAULT_LAYOUT_NAME);
+    page = defaultLayout.pages[this.currentPageIndex];
+  }
+
+  if (!page) {
+    console.error(
+      'LayoutManager: Can\'t load the page from layout.',
+      'typeSpecificLayoutName=', typeSpecificLayoutName,
+      'typeGenericLayoutName=', this._typeGenericLayoutName,
+      'currentPageIndex=', this.currentPageIndex);
+
+    this.currentPage = null;
+    return;
   }
 
   // Create an empty object with prototype point to the original one
   // to prevent from modifying it.
-  layout = Object.create(layout);
+  page = this.currentPage = Object.create(page);
 
-  // Look for the space key in the layout. We're going to insert
+  // These properties needs to be carry over to the page from the layout
+  // regardless where the page is come from.
+  ['imEngine', 'autoCorrectLanguage',
+    'autoCorrectPunctuation', 'needsCandidatePanel'
+  ].forEach(function(prop) {
+    if (prop in layout) {
+      page[prop] = layout[prop];
+    }
+  });
+
+  // render.js need these information to cache the DOM tree.
+  // StateManager need to upload this to mozSettings DB
+  page.layoutName = typeSpecificLayoutName || this._typeGenericLayoutName;
+  page.pageIndex = this.currentPageIndex;
+
+  // Look for the space key in the page. We're going to insert
   // meta keys before it or after it.
-  var spaceKeyFindResult = this._findKey(layout, KeyboardEvent.DOM_VK_SPACE);
+  var spaceKeyFindResult = this._findKey(page, KeyboardEvent.DOM_VK_SPACE);
   var spaceKeyRowCount = spaceKeyFindResult.keyRowCount;
   var spaceKeyCount = spaceKeyFindResult.keyCount;
 
   if (!spaceKeyFindResult.keyFound) {
     console.warn('LayoutManager:' +
       'No space key found. No special keys will be added.');
-    this.currentModifiedLayout = layout;
-    // renderer need these information to cache the DOM tree.
-    layout.layoutName = this.currentForcedModifiedLayoutName ||
-      this.currentLayoutName;
-    layout.alternativeLayoutName = alternativeLayoutName;
-    // inherit the same imEngine name if it's not set so render will apply the
-    // same style.
-    if (this.currentLayout.imEngine && !layout.imEngine) {
-      layout.imEngine = this.currentLayout.imEngine;
-    }
 
     return;
   }
@@ -202,21 +189,21 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   // an empty one.
   //
   // ... make a copy of the entire keys array,
-  layout.keys = [].concat(layout.keys);
+  page.keys = [].concat(page.keys);
   var copiedRows = [];
   // ... and point row containing space key object to a new array,
-  var spaceKeyRow = layout.keys[spaceKeyRowCount] =
-    [].concat(layout.keys[spaceKeyRowCount]);
+  var spaceKeyRow = page.keys[spaceKeyRowCount] =
+    [].concat(page.keys[spaceKeyRowCount]);
   copiedRows.push(spaceKeyRowCount);
   // ... the space key object should be point to a new object too.
-  var spaceKeyObject = layout.keys[spaceKeyRowCount][spaceKeyCount] =
-    Object.create(layout.keys[spaceKeyRowCount][spaceKeyCount]);
+  var spaceKeyObject = page.keys[spaceKeyRowCount][spaceKeyCount] =
+    Object.create(page.keys[spaceKeyRowCount][spaceKeyCount]);
 
-  var enterKeyFindResult = this._findKey(layout, KeyboardEvent.DOM_VK_RETURN);
+  var enterKeyFindResult = this._findKey(page, KeyboardEvent.DOM_VK_RETURN);
   var enterKeyCount = enterKeyFindResult.keyCount;
   // Assume the [Enter] is at the same row as the space key
-  var enterKeyObject = layout.keys[spaceKeyRowCount][enterKeyCount] =
-    Object.create(layout.keys[spaceKeyRowCount][enterKeyCount]);
+  var enterKeyObject = page.keys[spaceKeyRowCount][enterKeyCount] =
+    Object.create(page.keys[spaceKeyRowCount][enterKeyCount]);
 
   // Keep the pageSwitchingKey here, because we may need to modify its ratio
   // at the end.
@@ -225,21 +212,23 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   // Insert switch-to-symbol-and-back keys
   if (!layout.disableAlternateLayout) {
     spaceKeyObject.ratio -= 2;
-    if (this.currentLayoutPage === this.LAYOUT_PAGE_DEFAULT) {
+    if (this.currentPageIndex === this.PAGE_INDEX_DEFAULT) {
       pageSwitchingKeyObject = {
-        keyCode: this.KEYCODE_ALTERNATE_LAYOUT,
+        keyCode: KeyboardEvent.DOM_VK_ALT,
         value: layout.alternateLayoutKey || '12&',
         ratio: 2,
         ariaLabel: 'alternateLayoutKey',
-        className: 'page-switch-key'
+        className: 'page-switch-key',
+        targetPage: 1
       };
     } else {
       pageSwitchingKeyObject = {
-        keyCode: this.KEYCODE_BASIC_LAYOUT,
-        value: this.currentLayout.basicLayoutKey || 'ABC',
+        keyCode: KeyboardEvent.DOM_VK_ALT,
+        value: layout.basicLayoutKey || 'ABC',
         ratio: 2,
         ariaLabel: 'basicLayoutKey',
-        className: 'page-switch-key'
+        className: 'page-switch-key',
+        targetPage: this.PAGE_INDEX_DEFAULT
       };
     }
 
@@ -258,8 +247,8 @@ LayoutManager.prototype._updateModifiedLayout = function() {
     };
 
     // Replace the label with short label if there is one
-    if (this.currentLayout.shortLabel) {
-      imeSwitchKey.value = this.currentLayout.shortLabel;
+    if (layout.shortLabel) {
+      imeSwitchKey.value = layout.shortLabel;
       imeSwitchKey.className += ' alternate-indicator';
     }
 
@@ -270,31 +259,31 @@ LayoutManager.prototype._updateModifiedLayout = function() {
     // Replace the key with supportsSwitching alternative defined.
     // This is because we won't have ',' at the bottom, and we would
     // move it to other place.
-    var r = layout.keys.length, c, row, key;
+    var r = page.keys.length, c, row, key;
     while (r--) {
-      row = layout.keys[r];
+      row = page.keys[r];
       c = row.length;
       while (c--) {
         key = row[c];
         if (key.supportsSwitching) {
           if (copiedRows.indexOf(r) === -1) {
-            layout.keys[r] = [].concat(layout.keys[r]);
+            page.keys[r] = [].concat(page.keys[r]);
             copiedRows.push(r);
           }
-          layout.keys[r][c] = Object.create(key.supportsSwitching);
+          page.keys[r][c] = Object.create(key.supportsSwitching);
         }
       }
     }
   }
 
   // Respond to different input types
-  if (!layout.typeInsensitive) {
+  if (!page.typeInsensitive) {
     var periodKey = {
       value: '.',
       ratio: 1,
       keyCode: 46
     };
-    if (layout.alt && layout.alt['.']) {
+    if (page.alt && page.alt['.']) {
       periodKey.className = 'alternate-indicator';
     }
 
@@ -304,7 +293,7 @@ LayoutManager.prototype._updateModifiedLayout = function() {
     // symbol/alternate page.
     // Only insert special character, such as '@' for email, '/' for url
     // on the default layout page.
-    if (this.currentLayoutPage === this.LAYOUT_PAGE_DEFAULT) {
+    if (this.currentPageIndex === this.PAGE_INDEX_DEFAULT) {
       switch (basicInputType) {
         case 'url':
           modifyType = 'url';
@@ -366,14 +355,13 @@ LayoutManager.prototype._updateModifiedLayout = function() {
 
       /* falls through */
       case 'default':
-        var overwrites = layout.textLayoutOverwrite || {};
+        var overwrites = page.textLayoutOverwrite || {};
         // Add comma key if we are asked to,
         // Only add the key if we didn't add the switching key.
         // Add comma key in any page if needsCommaKey is
         // set explicitly.
         if (overwrites[','] !== false &&
-            (!needsSwitchingKey ||
-             layout.needsCommaKey)) {
+            (!needsSwitchingKey || page.needsCommaKey)) {
           var commaKey = {
             value: ',',
             ratio: 1,
@@ -416,7 +404,7 @@ LayoutManager.prototype._updateModifiedLayout = function() {
    *     [Enter] key: 2.5 x
    */
 
-  var keyCount = layout.width ? layout.width : 10;
+  var keyCount = page.width ? page.width : 10;
   if (!layout.disableAlternateLayout) {
     if( spaceKeyCount == 3 && keyCount == 10) {
       // We're going to modify the [Enter] key size to sync with panel
@@ -428,30 +416,10 @@ LayoutManager.prototype._updateModifiedLayout = function() {
       pageSwitchingKeyObject.ratio = 1.5;
     }
   }
-
-  this.currentModifiedLayout = layout;
-
-  // renderer need these information to cache the DOM tree.
-  layout.layoutName = this.currentForcedModifiedLayoutName ||
-    this.currentLayoutName;
-  layout.alternativeLayoutName = alternativeLayoutName;
-  // inherit the same imEngine name if it's not set so render will apply the
-  // same style.
-  if (this.currentLayout.imEngine && !layout.imEngine) {
-    layout.imEngine = this.currentLayout.imEngine;
-  }
 };
 
-LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
-                                                             inputMode) {
-  switch (this.currentLayoutPage) {
-    case this.LAYOUT_PAGE_SYMBOLS_I:
-      return 'alternateLayout';
-
-    case this.LAYOUT_PAGE_SYMBOLS_II:
-      return 'symbolLayout';
-  }
-
+LayoutManager.prototype._typeSpecificLayoutName = function(basicInputType,
+                                                           inputMode) {
   switch (basicInputType) {
     case 'tel':
       return 'telLayout';
@@ -478,7 +446,7 @@ LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
           return 'numberLayout';
 
         case '-moz-sms':
-          var smsLayoutName = this.currentLayoutName + '-sms';
+          var smsLayoutName = this._typeGenericLayoutName + '-sms';
           if (this.loader.getLayout(smsLayoutName)) {
             return smsLayoutName;
           }
@@ -487,28 +455,28 @@ LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
       break;
   }
 
-  // We don't need an alternative layout name.
+  // We don't need an type-specific layout name.
   return '';
 };
 
 /**
  * Find a key with the specific keyCode in the layout
  * @memberof LayoutManager.prototype
- * @param {Object} layout The layout object
+ * @param {Object} page The page object
  * @param {number} keyCode The keyCode we use to match the key
  * @returns {Object} findResult The result of the search
  * @returns {boolean} findResult.keyFound true if the key has been found
  * @returns {number} findResult.keyRowCount the row position of the key
  * @returns {number} findResult.keyCount the position of the key in the row
  */
-LayoutManager.prototype._findKey = function(layout, keyCode) {
+LayoutManager.prototype._findKey = function(page, keyCode) {
   // Look up from the last row because the key we need to modify, such as
   // the space key and the [Enter] key, are usually
   // at the last row.
-  var r = layout.keys.length, c, row, key;
+  var r = page.keys.length, c, row, key;
 
   while (r--) {
-    row = layout.keys[r];
+    row = page.keys[r];
     c = row.length;
     while (c--) {
       key = row[c];
@@ -530,15 +498,13 @@ LayoutManager.prototype._findKey = function(layout, keyCode) {
 };
 
 // Layouts references to these constants to define keys
-exports.BASIC_LAYOUT = LayoutManager.prototype.KEYCODE_BASIC_LAYOUT;
-exports.ALTERNATE_LAYOUT = LayoutManager.prototype.KEYCODE_ALTERNATE_LAYOUT;
 exports.SWITCH_KEYBOARD = LayoutManager.prototype.KEYCODE_SWITCH_KEYBOARD;
 exports.TOGGLE_CANDIDATE_PANEL =
   LayoutManager.prototype.KEYCODE_TOGGLE_CANDIDATE_PANEL;
 
 // IMEngines rely on this constant to understand the current layout page;
 // We'll set it to non-zero to tell it you are not on the default page.
-exports.LAYOUT_PAGE_DEFAULT = LayoutManager.prototype.LAYOUT_PAGE_DEFAULT;
+exports.PAGE_INDEX_DEFAULT = LayoutManager.prototype.PAGE_INDEX_DEFAULT;
 
 exports.LayoutManager = LayoutManager;
 

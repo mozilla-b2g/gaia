@@ -21,7 +21,6 @@ suite('jspinyin', function() {
     endComposition: dummyFunction,
     sendKey: dummyFunction,
     sendString: dummyFunction,
-    alterKeyboard: dummyFunction,
     setLayoutPage: dummyFunction,
     setUpperCase: dummyFunction,
     resetUpperCase: dummyFunction,
@@ -390,21 +389,6 @@ suite('jspinyin', function() {
     jspinyin.click(KeyEvent.DOM_VK_BACK_SPACE);
     jspinyin.click(KeyEvent.DOM_VK_BACK_SPACE);
     jspinyin.click(KeyEvent.DOM_VK_BACK_SPACE);
-  });
-
-  test('switch to symbol layout', function() {
-    this.sinon.spy(glue, 'alterKeyboard');
-
-    jspinyin.click(-31);
-    assert.isTrue(glue.alterKeyboard
-      .calledWith('zh-Hans-Pinyin-Symbol-En-1'));
-
-    glue.alterKeyboard.reset();
-    jspinyin.click(-32);
-    assert.isTrue(glue.alterKeyboard
-      .calledWith('zh-Hans-Pinyin-Symbol-En-2'));
-
-    glue.alterKeyboard.reset();
   });
 
   test('click a symbol', function(done) {

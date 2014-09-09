@@ -39,14 +39,11 @@ suite('LayoutRenderingManager', function() {
       console: this.sinon.stub(KeyboardConsole.prototype),
       candidatePanelManager: this.sinon.stub(CandidatePanelManager.prototype),
       layoutManager: {
-        currentModifiedLayout: {
-          keys: [ { value: 'currentModifiedLayout' } ]
+        currentPage: {
+          keys: [ { value: 'currentPage' } ]
         },
-        currentLayout: {
-          keys: [ { value: 'currentLayout' } ]
-        },
-        currentLayoutPage: 0,
-        LAYOUT_PAGE_DEFAULT: 0
+        currentPageIndex: 0,
+        PAGE_INDEX_DEFAULT: 0
       },
       inputMethodManager: {
         currentIMEngine: {
@@ -77,7 +74,7 @@ suite('LayoutRenderingManager', function() {
     manager.handleEvent(evt);
 
     assert.isTrue(
-      IMERender.resizeUI.calledWith(app.layoutManager.currentModifiedLayout));
+      IMERender.resizeUI.calledWith(app.layoutManager.currentPage));
 
     assert.isTrue(
       app.inputMethodManager.currentIMEngine.setLayoutParams.calledWith({
@@ -119,7 +116,7 @@ suite('LayoutRenderingManager', function() {
       p = manager.updateLayoutRendering();
 
       assert.isTrue(IMERender.draw.calledWith(
-        app.layoutManager.currentModifiedLayout,
+        app.layoutManager.currentPage,
         {
           uppercase: true,
           inputType: 'foo',
@@ -130,13 +127,13 @@ suite('LayoutRenderingManager', function() {
     });
 
     test('w/ secondLayout', function() {
-      app.layoutManager.currentModifiedLayout.secondLayout = true;
+      app.layoutManager.currentPage.secondLayout = true;
       app.upperCaseStateManager.isUpperCase = false;
 
       p = manager.updateLayoutRendering();
 
       assert.isTrue(IMERender.draw.calledWith(
-        app.layoutManager.currentModifiedLayout,
+        app.layoutManager.currentPage,
         {
           uppercase: false,
           inputType: 'foo',
@@ -145,12 +142,12 @@ suite('LayoutRenderingManager', function() {
     });
 
     test('w/ autoCorrectLanguage, w/o displaysCandidates()', function() {
-      app.layoutManager.currentLayout.autoCorrectLanguage = 'zz-ZZ';
+      app.layoutManager.currentPage.autoCorrectLanguage = 'zz-ZZ';
 
       p = manager.updateLayoutRendering();
 
       assert.isTrue(IMERender.draw.calledWith(
-        app.layoutManager.currentModifiedLayout,
+        app.layoutManager.currentPage,
         {
           uppercase: true,
           inputType: 'foo',
@@ -159,14 +156,14 @@ suite('LayoutRenderingManager', function() {
     });
 
     test('w/ autoCorrectLanguage, w/ displaysCandidates()', function() {
-      app.layoutManager.currentLayout.autoCorrectLanguage = 'zz-ZZ';
+      app.layoutManager.currentPage.autoCorrectLanguage = 'zz-ZZ';
       app.inputMethodManager.currentIMEngine.displaysCandidates =
         this.sinon.stub().returns(false);
 
       p = manager.updateLayoutRendering();
 
       assert.isTrue(IMERender.draw.calledWith(
-        app.layoutManager.currentModifiedLayout,
+        app.layoutManager.currentPage,
         {
           uppercase: true,
           inputType: 'foo',
@@ -175,12 +172,12 @@ suite('LayoutRenderingManager', function() {
     });
 
     test('w/ needsCandidatePanel, w/o displaysCandidates()', function() {
-      app.layoutManager.currentLayout.needsCandidatePanel = true;
+      app.layoutManager.currentPage.needsCandidatePanel = true;
 
       p = manager.updateLayoutRendering();
 
       assert.isTrue(IMERender.draw.calledWith(
-        app.layoutManager.currentModifiedLayout,
+        app.layoutManager.currentPage,
         {
           uppercase: true,
           inputType: 'foo',
@@ -189,14 +186,14 @@ suite('LayoutRenderingManager', function() {
     });
 
     test('w/ needsCandidatePanel, w/ displaysCandidates()', function() {
-      app.layoutManager.currentLayout.needsCandidatePanel = true;
+      app.layoutManager.currentPage.needsCandidatePanel = true;
       app.inputMethodManager.currentIMEngine.displaysCandidates =
         this.sinon.stub().returns(false);
 
       p = manager.updateLayoutRendering();
 
       assert.isTrue(IMERender.draw.calledWith(
-        app.layoutManager.currentModifiedLayout,
+        app.layoutManager.currentPage,
         {
           uppercase: true,
           inputType: 'foo',
