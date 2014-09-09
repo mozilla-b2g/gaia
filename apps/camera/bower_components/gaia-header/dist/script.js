@@ -1,12 +1,5 @@
-!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.GaiaHeader=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-(function(define){'use strict';define(function(_dereq_,exports,module){
-
-/**
- * Locals
- */
-
-var bodyClasses = document.body.classList;
-var loadedClass = 'gaia-icons-loaded';
+!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.GaiaHeader=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(define){'use strict';define(function(require,exports,module){
 
 /**
  * Exports
@@ -23,23 +16,22 @@ function load(href) {
   link.type = 'text/css';
   link.href = href;
   document.head.appendChild(link);
-  bodyClasses.add(loadedClass);
   exports.loaded = true;
 }
 
 function isLoaded() {
   return exports.loaded ||
     document.querySelector('link[href*=gaia-icons]') ||
-    bodyClasses.contains(loadedClass);
+    document.documentElement.classList.contains('gaia-icons-loaded');
 }
 
 });})((function(n,w){'use strict';return typeof define=='function'&&define.amd?
-define:typeof module=='object'?function(c){c(_dereq_,exports,module);}:
+define:typeof module=='object'?function(c){c(require,exports,module);}:
 function(c){var m={exports:{}},r=function(n){return w[n];};
 w[n]=c(r,m.exports,m)||m.exports;};})('gaia-icons',this));
 
-},{}],2:[function(_dereq_,module,exports){
-(function(define){'use strict';define(function(_dereq_,exports,module){
+},{}],2:[function(require,module,exports){
+(function(define){'use strict';define(function(require,exports,module){
 /*globals define,exports,module,require*/
 
   /**
@@ -81,6 +73,14 @@ w[n]=c(r,m.exports,m)||m.exports;};})('gaia-icons',this));
 
       // Cache the element style properties to avoid reflows.
       var style = this._getStyleProperties(heading);
+
+      // If the document is inside a hidden iframe
+      // `window.getComputedStyle()` returns null,
+      // and various canvas APIs throw errors; so we
+      // must abort here to avoid exceptions.
+      if (!style) {
+        return;
+      }
 
       // Perform auto-resize and center.
       style.textWidth = this._autoResizeElement(heading, style);
@@ -247,14 +247,14 @@ w[n]=c(r,m.exports,m)||m.exports;};})('gaia-icons',this));
      * @private
      */
     _getStyleProperties: function(heading) {
-      var style = window.getComputedStyle(heading);
+      var style = getComputedStyle(heading) || {};
       var contentWidth = this._getContentWidth(style);
       if (isNaN(contentWidth)) {
         contentWidth = 0;
       }
 
       return {
-        fontFamily: style.fontFamily,
+        fontFamily: style.fontFamily || 'unknown',
         contentWidth: contentWidth,
         paddingRight: parseInt(style.paddingRight, 10),
         paddingLeft: parseInt(style.paddingLeft, 10),
@@ -317,10 +317,16 @@ w[n]=c(r,m.exports,m)||m.exports;};})('gaia-icons',this));
         styleOptions.paddingLeft;
 
       // Get the amount of space on each side of the header text element.
+      var tightText = styleOptions.textWidth > (styleOptions.contentWidth - 30);
       var sideSpaceLeft = styleOptions.offsetLeft;
       var sideSpaceRight = this._getWindowWidth() - sideSpaceLeft -
         styleOptions.contentWidth - styleOptions.paddingRight -
         styleOptions.paddingLeft;
+
+      // If there is no space to the left or right of the title
+      // we apply padding so that it's not flush up against edge
+      heading.classList.toggle('flush-left', tightText && !sideSpaceLeft);
+      heading.classList.toggle('flush-right', tightText && !sideSpaceRight);
 
       // If both margins have the same width, the header is already centered.
       if (sideSpaceLeft === sideSpaceRight) {
@@ -359,20 +365,20 @@ w[n]=c(r,m.exports,m)||m.exports;};})('gaia-icons',this));
   module.exports = GaiaHeaderFontFit;
 
 });})((function(n,w){'use strict';return typeof define=='function'&&define.amd?
-define:typeof module=='object'?function(c){c(_dereq_,exports,module);}:
+define:typeof module=='object'?function(c){c(require,exports,module);}:
 function(c){var m={exports:{}},r=function(n){return w[n];};
 w[n]=c(r,m.exports,m)||m.exports;};})('./lib/font-fit',this));
 
-},{}],3:[function(_dereq_,module,exports){
-(function(define){'use strict';define(function(_dereq_,exports,module){
+},{}],3:[function(require,module,exports){
+(function(define){'use strict';define(function(require,exports,module){
 /*globals define*//*jshint node:true*/
 
 /**
  * Dependencies
  */
 
-var loadGaiaIcons = _dereq_('gaia-icons');
-var fontFit = _dereq_('./lib/font-fit');
+var loadGaiaIcons = require('gaia-icons');
+var fontFit = require('./lib/font-fit');
 
 /**
  * Locals
@@ -381,12 +387,11 @@ var fontFit = _dereq_('./lib/font-fit');
 var baseComponents = window.COMPONENTS_BASE_URL || 'bower_components/';
 var base = window.GAIA_HEADER_BASE_URL || baseComponents + 'gaia-header/';
 
-// Load icons into document, we run some
-// to try to determine if the icons have
-// already been loaded elsewhere
-loadGaiaIcons(baseComponents);
-
-// Extend from the HTMLElement prototype
+/**
+ * Element prototype, extends from HTMLElement
+ *
+ * @type {Object}
+ */
 var proto = Object.create(HTMLElement.prototype);
 
 /**
@@ -419,11 +424,11 @@ proto.createdCallback = function() {
     inner: tmpl.querySelector('.inner')
   };
 
-  // Action button
-  this.configureActionButton();
   this.els.actionButton.addEventListener('click',
     proto.onActionButtonClick.bind(this));
 
+  this.configureActionButton();
+  this.setupInteractionListeners();
   shadow.appendChild(tmpl);
   this.styleHack();
 
@@ -439,6 +444,12 @@ proto.createdCallback = function() {
  * stylesheet. When HTML-Imports are ready
  * we won't have to use @import anymore.
  *
+ * The `-content` class is added to the element
+ * as a simple 'polyfill' for `::content` selector.
+ * We can use `.-content` in our CSS to indicate
+ * we're styling 'distributed' nodes. This will
+ * make the transition to `::content` a lot simpler.
+ *
  * @private
  */
 proto.styleHack = function() {
@@ -448,7 +459,7 @@ proto.styleHack = function() {
   this.style.visibility = 'hidden';
   style.innerHTML = '@import url(' + base + 'style.css);';
   style.setAttribute('scoped', '');
-  this.classList.add('content');
+  this.classList.add('-content');
   this.appendChild(style);
 
   // There are platform issues around using
@@ -484,7 +495,10 @@ proto.attributeChangedCallback = function(attr, oldVal, newVal) {
 };
 
 /**
- * When called, trigger the action button.
+ * Triggers the 'action' button
+ * (used in testing).
+ *
+ * @public
  */
 proto.triggerAction = function() {
   if (this.isSupportedAction(this.getAttribute('action'))) {
@@ -504,6 +518,7 @@ proto.configureActionButton = function() {
   var type = this.getAttribute('action');
   var supported = this.isSupportedAction(type);
   this.els.actionButton.classList.remove('icon-' + old);
+  this.els.actionButton.setAttribute('icon', type);
   this.els.inner.classList.toggle('supported-action', supported);
   if (supported) { this.els.actionButton.classList.add('icon-' + type); }
 };
@@ -533,6 +548,27 @@ proto.onActionButtonClick = function(e) {
   setTimeout(this.dispatchEvent.bind(this, actionEvent));
 };
 
+/**
+ * Adds helper classes to allow us to style
+ * specifically when a touch interaction is
+ * taking place.
+ *
+ * We use this specifically to apply a
+ * transition-delay when the user releases
+ * their finger from a button so that they
+ * can momentarily see the :active state,
+ * reinforcing the UI has responded to
+ * their touch.
+ *
+ * We bind to mouse events to facilitate
+ * desktop usage.
+ *
+ * @private
+ */
+proto.setupInteractionListeners = function() {
+  stickyActive(this.els.inner);
+};
+
 // HACK: Create a <template> in memory at runtime.
 // When the custom-element is created we clone
 // this template and inject into the shadow-root.
@@ -553,16 +589,76 @@ template.innerHTML = [
   '</div>'
 ].join('');
 
+/**
+ * Adds a '.active' helper class to the given
+ * element that sticks around for the given
+ * lag period.
+ *
+ * Usually the native :active hook is far
+ * too quick for our UX needs.
+ *
+ * This may be needed in other components, so I've
+ * made sure it's decoupled from gaia-header.
+ *
+ * We support mouse events so that our visual
+ * demos still work correcly on desktop.
+ *
+ * Options:
+ *
+ *   - `on` {Function} active callback
+ *   - `off` {Function} inactive callback
+ *   - `ms` {Number} number of ms lag
+ *
+ * @param {Element} el
+ * @param {Object} options
+ * @private
+ */
+var stickyActive = (function() {
+  var noop = function() {};
+  var pointer = [
+    { down: 'touchstart', up: 'touchend' },
+    { down: 'mousedown', up: 'mouseup' }
+  ]['ontouchstart' in window ? 0 : 1];
+
+  function exports(el, options) {
+    options = options || {};
+    var on = options.on || noop;
+    var off = options.off || noop;
+    var lag = options.ms || 300;
+    var timeout;
+
+    el.addEventListener(pointer.down, function(e) {
+      var target = e.target;
+      clearTimeout(timeout);
+      target.classList.add(exports.class);
+      on();
+
+      el.addEventListener(pointer.up, function fn(e) {
+        el.removeEventListener(pointer.up, fn);
+        timeout = setTimeout(function() {
+          target.classList.remove(exports.class);
+          off();
+        }, lag);
+      });
+    });
+  }
+
+  exports.class = 'active';
+  return exports;
+})();
+
+// Header depends on gaia-icons
+loadGaiaIcons(baseComponents);
+
 // Register and return the constructor
 // and expose `protoype` (bug 1048339)
 module.exports = document.registerElement('gaia-header', { prototype: proto });
-module.exports.prototype = proto;
+module.exports._prototype = proto;
 
 });})((function(n,w){'use strict';return typeof define=='function'&&define.amd?
-define:typeof module=='object'?function(c){c(_dereq_,exports,module);}:
+define:typeof module=='object'?function(c){c(require,exports,module);}:
 function(c){var m={exports:{}},r=function(n){return w[n];};
 w[n]=c(r,m.exports,m)||m.exports;};})('gaia-header',this));
 
-},{"./lib/font-fit":2,"gaia-icons":1}]},{},[3])
-(3)
+},{"./lib/font-fit":2,"gaia-icons":1}]},{},[3])(3)
 });
