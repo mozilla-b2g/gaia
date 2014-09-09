@@ -45,6 +45,7 @@
     <script defer src="js/thumbnail_item.js"></script>
     <script defer src="js/thumbnail_date_group.js"></script>
     <script defer src="js/thumbnail_list.js"></script>
+    <script defer src="js/spinner.js"></script>
     <script defer src="js/overlay.js"></script>
     <script defer src="js/nfc.js"></script>
     <script defer src="js/gallery.js"></script>
@@ -229,10 +230,12 @@
       <div id="throbber"></div>
     </div>
 
+    <!-- See spinner.js -->
     <!-- a spinner that we display in the center of the screen when -->
     <!-- doing time-consuming operations like rotating images -->
     <progress id="spinner" class="hidden"></progress>
 
+    <!-- See overlay.js -->
     <!-- display messages like "No Photos" and "No SD Card" here -->
     <form id="overlay" role="dialog" data-type="confirm" class="hidden">
       <section id="overlay-content">

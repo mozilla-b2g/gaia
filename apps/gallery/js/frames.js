@@ -185,11 +185,11 @@ function shareSingleItem() {
     var metadata = fileinfo.metadata;
     var button = fullscreenButtons.share;
     button.classList.add('disabled');
-    showSpinner();
+    Spinner.show();
     cropResizeRotate(currentFrame.imageblob, null,
                      CONFIG_MAX_PICK_PIXEL_SIZE || null, null, metadata,
                      function(error, rotatedBlob) {
-                       hideSpinner();
+                       Spinner.hide();
                        button.classList.remove('disabled');
                        if (error) {
                          console.error('Error while rotating image: ', error);

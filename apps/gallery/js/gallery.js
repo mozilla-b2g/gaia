@@ -878,13 +878,13 @@ function cropPickedImage(fileinfo) {
       // right side up in the crop UI. Note that we only display a spinner
       // here if we have to downsample a large image.
       if (useSpinner) {
-        showSpinner();
+        Spinner.show();
       }
       cropResizeRotate(blob, null, outputSize, null, metadata, gotRotatedBlob);
     }
 
     function gotRotatedBlob(error, rotatedBlob) {
-      hideSpinner();
+      Spinner.hide();
       if (error) {
         console.error('Error while rotating image:', error);
         rotatedBlob = pickedFile;
@@ -995,12 +995,12 @@ function cropPickedImage(fileinfo) {
            pickedFileInfo.metadata.rotation) ||
           (pickedFileInfo.metadata.mirrored !== undefined &&
            pickedFileInfo.metadata.mirrored)) {
-        showSpinner();
+        Spinner.show();
       }
       cropResizeRotate(pickedFile, cropRegion, outputSize, pickType,
                        pickedFileInfo.metadata,
                        function(error, blob) {
-                         hideSpinner();
+                         Spinner.hide();
                          if (error) {
                            console.error('while resizing image: ' + error);
                            blob = pickedFile;
@@ -1338,13 +1338,6 @@ window.addEventListener('scrollend', function onScrollEnd(e) {
   thumbnails.classList.remove('scrolling');
 });
 
-function showSpinner() {
-  $('spinner').classList.remove('hidden');
-}
-
-function hideSpinner() {
-  $('spinner').classList.add('hidden');
-}
 
 /*
  * This is a temporary workaround to bug 1039943: when the user launches
