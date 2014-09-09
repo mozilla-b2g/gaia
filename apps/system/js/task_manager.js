@@ -136,6 +136,9 @@
     }
 
     if (activeApp.isHomescreen) {
+      // Ensure the homescreen is in a closed state, as the user may choose
+      // one of the app.
+      activeApp.close();
       screenElement.classList.add('cards-view');
     } else {
       window.addEventListener('appclosed', function finish() {
