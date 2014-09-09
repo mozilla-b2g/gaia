@@ -390,7 +390,11 @@ var StatusBar = {
             break;
 
           case 'audio-channel-changed':
-            this.playingActive = (evt.detail.channel === 'content');
+            var active = evt.detail.channel === 'content';
+            if (this.playingActive === active) {
+              break;
+            }
+            this.playingActive = active;
             this.update.playing.call(this);
             break;
         }

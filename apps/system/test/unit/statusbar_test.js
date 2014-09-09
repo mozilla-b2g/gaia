@@ -1336,6 +1336,7 @@ suite('system/Statusbar', function() {
 
     teardown(function() {
       StatusBar.recordingCount = 0;
+      StatusBar.playingActive = false;
       fakeClock.restore();
     });
 
@@ -1392,6 +1393,19 @@ suite('system/Statusbar', function() {
       });
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.icons.playing.hidden, false);
+    });
+
+    test('repeat audio-channel-changed event', function() {
+      var evt = new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'audio-channel-changed',
+          channel: 'content'
+        }
+      });
+      var updatePlayingSpy = sinon.spy(StatusBar.update, 'playing');
+      StatusBar.handleEvent(evt);
+      StatusBar.handleEvent(evt);
+      assert.equal(updatePlayingSpy.callCount, 1);
     });
   });
 
