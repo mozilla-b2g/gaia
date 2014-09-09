@@ -7,18 +7,66 @@
   --button-label-size: 1.4rem;
 }
 
-#notifications-lockscreen-container .notification.actionable {
-  margin: 0 0 0 0;
-  padding-left: 2.4rem;
-  padding-right: 2.4rem;
-  width: calc(100% - 4.8rem);
-  /* Can't set border as none because it affects layout,
-   * so we do this to hide them */
-  border-color: rgba(0, 0, 0, 0);
+
+/* Individual style; to avoid utility tray patches breark lockscreen notitifications. */
+#notifications-lockscreen-container .notification {
+  position: relative;
+  height: 6rem;
+  font-size: 1.4rem;
+  font-weight: 400;
+  line-height: 1.9rem;
+  border-top: 0.1rem solid transparent;
+  border-bottom: 0.1rem solid transparent;
 }
 
-/* since CSS don't have 'previous' selector */
-#notifications-lockscreen-container .notification.previous-actionable {
+#notifications-lockscreen-container .notification:first-child {
+  border-top-color: black;
+}
+
+#notifications-lockscreen-container .notification div {
+  pointer-events: none;
+}
+
+#notifications-lockscreen-container .notification > div.title-container {
+  margin-top: 1rem;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #fff;
+  display: flex;
+}
+
+#notifications-lockscreen-container .notification > div {
+  width: calc(100% - 6.5rem);
+  margin-left: 5rem;
+  color: #bfbfbf;
+  font-size: 1.4rem;
+  line-height: 1.9rem;
+  min-height: 1.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#notifications-lockscreen-container .notification > img {
+  float: left;
+  display: block;
+  width: 3rem;
+  height: 3rem;
+  margin: 1.5rem 1rem;
+  pointer-events: none;
+}
+
+#notifications-lockscreen-container .notification > div.title-container .title {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-right: .5rem;
+}
+
+#notifications-lockscreen-container .notification.actionable {
+  /* Can't set border as none because it affects layout,
+   * so we do this to hide them */
   border-color: rgba(0, 0, 0, 0);
 }
 
@@ -38,15 +86,46 @@
   display: none;
 }
 
-#notifications-lockscreen-container .notification.actionable::before {
+#notifications-lockscreen-container .notification::before {
   content: "";
   position: absolute;
   width: 100%;
   top: -1.1rem;
   left: 0;
+  height: 6rem;
   background-color: rgba(51, 51, 51, 0.3);
-  height: 7.2rem;
   z-index: -1;  /* make this as 'background' */
+  opacity: 0.0;
+  transition: opacity .25s ease-out;
+}
+
+#notifications-lockscreen-container .notification.actionable::before {
+  opacity: 1.0;
+  transition: opacity .25s ease-out;
+}
+
+/* for the border */
+#notifications-lockscreen-container .notification::after {
+  content: "";
+  position: absolute;
+  width: calc(100% - 4.8rem);
+  top: -1.1rem;
+  left: 0;
+  height: 6rem;
+  z-index: -1;  /* make this as 'background' */
+  border-top: none;
+  border-bottom: 0.1rem solid rgba(255, 255, 255, 0.3);
+  margin-left: 2.4rem;
+}
+
+#notifications-lockscreen-container > div:last-child::after {
+  border-bottom: 0.1rem solid rgba(255, 255, 255, 0.0);
+}
+
+/* since CSS don't have 'previous' selector */
+#notifications-lockscreen-container .notification.actionable::after,
+#notifications-lockscreen-container .notification.previous-actionable::after {
+  display: none;
 }
 
 #notifications-lockscreen-container .button-actionable {
@@ -65,7 +144,7 @@
   padding-left: var(--padleft-button);
 
   /* 0.3rem is the magic number to make it (with the border) vertical-align: middle*/
-  top: 1.3rem;
+  top: 0.3rem;
 
   /* 100% - the actionable area + the margin of the actionable area */
   /* The 0.8rem is for alignment of the position of previous timestamp */
@@ -73,15 +152,15 @@
   left: calc(100% - var(--width-actionable-button) + 1.4rem);
   height: 3.5rem;
   line-height: 3.3rem;  /* to make the lable vertical-align: middle */
+  transition-property: color, text;
+  transition-duration: 0.25s;
+  transition-timing-function: linear, ease-in;
 }
 
 /* When the notification be touched and the button has been tapped */
 #notifications-lockscreen-container .notification.actionable.activated  .button-actionable,
 #notifications-lockscreen-container .button-actionable.activated {
   color: rgba(0, 202, 242, 0.2);
-}
-
-#notifications-lockscreen-container .actionable {
 }
 
 /* notifications */
@@ -162,11 +241,13 @@
   position: relative;
   background-color: transparent;
   border-top: none;
-  border-bottom: 0.1rem solid rgba(255, 255, 255, 0.3);
-  height: 7.2rem;
-  width: calc(100% - 5.2rem);
-  margin: 0 2.4rem;
-  padding: 0;
+  /* delegate border to :after element while keeping layout correct */
+  border-bottom: 0.1rem solid rgba(0, 0, 0, 0);
+  height: 4.8rem;
+  margin: 0 0 0 0;
+  padding-left: 2.4rem;
+  padding-right: 2.4rem;
+  width: calc(100% - 4.8rem);
 }
 
 #notifications-lockscreen-container .notification:first-child {
@@ -200,12 +281,21 @@
 #notifications-lockscreen-container .notification > .title-container .timestamp {
   margin-top: 0.1rem;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 1.4rem;
-  line-height: 1.4rem;
+
+  flex: initial;
+  top: -.2rem;
+  right: 1.5rem;
+  padding: 0;
+  max-width: 6.5rem;
+  font-size: 1.2rem;
   font-style: italic;
-  font-weight: 400;
+  font-weight: bold;
+  line-height: 1.6rem;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
 
 #notifications-lockscreen-container .notification > img {
   margin-top: 0.8rem;
@@ -266,4 +356,39 @@
 /* Right-To-Left layout */
 html[dir="rtl"] #lockscreen-alt-camera {
   float: left;
+}
+
+html[dir="rtl"] #notifications-lockscreen-container .notification > div {
+  margin-left: 0;
+  margin-right: 5rem;
+  text-align: right;
+}
+
+html[dir="rtl"] #notifications-lockscreen-container .notification > div.title-container .title {
+  margin-right: 0;
+  margin-left: .5rem;
+}
+
+html[dir="rtl"] #notifications-lockscreen-container .notification > div.title-container .timestamp {
+  left: 1.5rem;
+  right: auto;
+}
+
+html[dir="rtl"] #notifications-lockscreen-container .notification > img {
+  float: right;
+}
+
+html[dir="rtl"] #notifications-lockscreen-container .notification > div {
+  margin-left: 0;
+  margin-right: 3.6rem;
+}
+
+html[dir="rtl"] #notifications-lockscreen-container .notification > div.title-container .timestamp {
+  left: 0;
+  right: auto;
+}
+
+html[dir="rtl"] #notifications-lockscreen-container .notification > img {
+  margin-left: 0;
+  margin-right: 0;
 }

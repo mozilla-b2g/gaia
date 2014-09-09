@@ -1,5 +1,7 @@
 var assert = require('assert'),
     NotificationTest = require('./lib/notification').NotificationTest,
+
+
     NotificationList = require('./lib/notification').NotificationList,
     Marionette = require('marionette-client'),
     util = require('util'),
@@ -58,22 +60,22 @@ marionette('notification tests', function() {
     notificationList.refresh();
     assert.ok(notificationList.contains(oldDetails),
               'Utility unreplaced notification should exist');
-    assert.ok(!notificationList.contains(newDetails),
+    assert.ok(notificationList.contains(newDetails, true),
               'Utility replaced notification should not exist');
     notificationList.refreshLockScreen();
     assert.ok(notificationList.containsLockScreen(oldDetails),
               'Lock screen unreplaced notification should exist');
-    assert.ok(!notificationList.containsLockScreen(newDetails),
+    assert.ok(notificationList.containsLockScreen(newDetails, true),
               'Lock screen replaced notification should not exist');
 
     var newNotify = new NotificationTest(client, newDetails);
     notificationList.refresh();
-    assert.ok(!notificationList.contains(oldDetails),
+    assert.ok(notificationList.contains(oldDetails, true),
               'Utility unreplaced notification should not exist');
     assert.ok(notificationList.contains(newDetails),
               'Utility replaced notification should exist');
     notificationList.refreshLockScreen();
-    assert.ok(!notificationList.containsLockScreen(oldDetails),
+    assert.ok(notificationList.containsLockScreen(oldDetails, true),
               'Lock screen unreplaced notification should not exist');
     assert.ok(notificationList.containsLockScreen(newDetails),
               'Lock screen replaced notification should exists');
@@ -96,14 +98,13 @@ marionette('notification tests', function() {
               'notification should be in list before calling close');
     assert.ok(notify.close(), 'notification closed correctly');
     notificationList.refresh();
-    assert.ok(!notificationList.contains(details),
+    assert.ok(notificationList.contains(details, true),
               'notification should not be in list after calling close');
+      // Do loop wait since we would close notification with delay
+      // on LockScreen notification, after we make it actionable.
     notificationList.refreshLockScreen();
-    client.waitFor(function() {
-      return !notificationList.containsLockScreen(details);
-    });
-    assert.ok(!notificationList.containsLockScreen(details),
-              'notification should not be in list before calling close');
+    assert.ok(notificationList.containsLockScreen(details, true),
+              'notification should not be in list after calling close');
   });
 
   // function to check if screen status is enabled/disabled
