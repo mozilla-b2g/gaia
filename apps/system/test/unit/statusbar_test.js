@@ -37,10 +37,10 @@ var mocksForStatusBar = new MocksHelper([
 suite('system/Statusbar', function() {
   var mobileConnectionCount = 2;
   var fakeStatusBarNode, fakeTopPanel, fakeStatusBarBackground,
-      fakeStatusBarIcons, fakeStatusbarIconsMax, fakeStatusbarIconsMin,
-      fakeStatusBarConnections,
-      fakeStatusBarCallForwardings, fakeStatusBarTime, fakeStatusBarLabel,
-      fakeStatusBarBattery;
+      fakeStatusBarIcons, fakeStatusbarIconsMaxWrapper, fakeStatusbarIconsMax,
+      fakeStatusbarIconsMinWrapper, fakeStatusbarIconsMin,
+      fakeStatusBarConnections, fakeStatusBarCallForwardings, fakeStatusBarTime,
+      fakeStatusBarLabel, fakeStatusBarBattery;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [];
 
   function prepareDOM() {
@@ -64,13 +64,21 @@ suite('system/Statusbar', function() {
     fakeStatusBarIcons.id = 'statusbar-icons';
     document.body.appendChild(fakeStatusBarIcons);
 
+    fakeStatusbarIconsMaxWrapper = document.createElement('div');
+    fakeStatusbarIconsMaxWrapper.id = 'statusbar-maximized-wrapper';
+    fakeStatusBarIcons.appendChild(fakeStatusbarIconsMaxWrapper);
+
+    fakeStatusbarIconsMinWrapper = document.createElement('div');
+    fakeStatusbarIconsMinWrapper.id = 'statusbar-minimized-wrapper';
+    fakeStatusBarIcons.appendChild(fakeStatusbarIconsMinWrapper);
+
     fakeStatusbarIconsMax = document.createElement('div');
     fakeStatusbarIconsMax.id = 'statusbar-maximized';
-    fakeStatusBarIcons.appendChild(fakeStatusbarIconsMax);
+    fakeStatusbarIconsMaxWrapper.appendChild(fakeStatusbarIconsMax);
 
     fakeStatusbarIconsMin = document.createElement('div');
     fakeStatusbarIconsMin.id = 'statusbar-minimized';
-    fakeStatusBarIcons.appendChild(fakeStatusbarIconsMin);
+    fakeStatusbarIconsMinWrapper.appendChild(fakeStatusbarIconsMin);
 
     fakeStatusBarConnections = document.createElement('div');
     fakeStatusBarConnections.id = 'statusbar-connections';
@@ -326,7 +334,10 @@ suite('system/Statusbar', function() {
   });
 
   suite('time bar', function() {
+    var app;
     setup(function() {
+      app = {};
+      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
       StatusBar.clock.stop();
       StatusBar.screen = document.createElement('div');
     });
@@ -342,14 +353,21 @@ suite('system/Statusbar', function() {
     });
     test('lock', function() {
       System.locked = true;
-      var evt = new CustomEvent('lockscreen-appopened');
+      var currentApp = {};
+      var setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
+      var evt = new CustomEvent('lockscreen-appopened', {detail: currentApp});
       StatusBar.handleEvent(evt);
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(currentApp));
       assert.equal(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, true);
     });
     test('unlock', function() {
-      var evt = new CustomEvent('lockscreen-appclosed');
+      var evt = new CustomEvent('lockscreen-appclosing');
+      var setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
       StatusBar.handleEvent(evt);
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(app));
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
     });
@@ -1877,6 +1895,97 @@ suite('system/Statusbar', function() {
       assert.isNull(StatusBar.PRIORITIES[iconIndex][1]);
       assert.equal(StatusBar._getIconWidth(StatusBar.PRIORITIES[iconIndex]),
         timeIcon.clientWidth);
+    });
+  });
+
+  suite('setAppearance', function() {
+    test('setAppearance light and maximized', function() {
+      StatusBar.setAppearance({
+        appChrome: {
+          useLightTheming: function useLightTheming() {
+            return true;
+          },
+          isMaximized: function isMaximized() {
+            return true;
+          }
+        }
+      });
+      assert.isTrue(StatusBar.element.classList.contains('light'));
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('setAppearance no appChrome', function() {
+      StatusBar.setAppearance({});
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+      assert.isFalse(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('setAppearance homescreen', function() {
+      StatusBar.setAppearance({
+        isHomescreen: true
+      });
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+    });
+  });
+
+  suite('handle events', function() {
+    var app;
+    var setAppearanceStub;
+
+    function testEventThatHides(event) {
+      var evt = new CustomEvent(event);
+      assert.isFalse(StatusBar.element.classList.contains('hidden'));
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.element.classList.contains('hidden'));
+    }
+
+    function testEventThatShows(event) {
+      var currentApp = {};
+      var evt = new CustomEvent(event, {detail: currentApp});
+      StatusBar.element.classList.add('hidden');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(currentApp));
+      assert.isFalse(StatusBar.element.classList.contains('hidden'));
+    }
+
+    setup(function() {
+      app = {};
+      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+      setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
+    });
+
+    test('stackchanged', function() {
+      var event = new CustomEvent('stackchanged');
+      StatusBar.handleEvent(event);
+      assert.isFalse(StatusBar.element.classList.contains('hidden'));
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(app));
+    });
+
+    test('homescreenopening', function() {
+      testEventThatHides.bind(this)('homescreenopening');
+    });
+
+    test('appopening', function() {
+      testEventThatHides.bind(this)('appopening');
+    });
+
+    test('sheetstransitionstart', function() {
+      testEventThatHides.bind(this)('sheetstransitionstart');
+    });
+
+    test('homescreenopened', function() {
+      testEventThatShows.bind(this)('homescreenopened');
+    });
+
+    test('appopened', function() {
+      testEventThatShows.bind(this)('appopened');
+    });
+
+    test('apptitlestatechanged', function() {
+      testEventThatShows.bind(this)('apptitlestatechanged');
     });
   });
 });
