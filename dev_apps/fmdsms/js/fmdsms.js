@@ -1,9 +1,12 @@
+/* global Crypto */
+
 'use strict';
 
 var RING_ENABLED = 'rpp.ring.enabled';
 var LOCK_ENABLED = 'rpp.lock.enabled';
 var LOCATE_ENABLED = 'rpp.locate.enabled';
 var WIPE_ENABLED = 'rpp.wipe.enabled';
+var PASSWORD = 'rpp.password';
 var PREFIX_CMD = 'FmD:';
 var RING_CMD = 'SoundAlarm';
 var LOCK_CMD = 'LockDevice';
@@ -16,6 +19,7 @@ var FmdSms = {
 	_lockEnabled : false,
 	_locateEnabled : false,
 	_wipeEnabled : false,
+	_password : null,
 
 	init : function () {
 		console.log('!!!!!!!!!!!!!! [fmdsms] init !!!!!!!!!!!!!!');
@@ -99,6 +103,18 @@ var FmdSms = {
 						console.log('!!!!!!!!!!!!!! [fmdsms] ' + reqWipe.error + ' !!!!!!!!!!!!!!');
 					};
 				}
+
+				var passReq = lock.get(PASSWORD);
+				if (passReq) {
+					passReq.onsuccess = function () {
+						self._password = passReq.result[PASSWORD];
+						console.log('!!!!!!!!!!!!!! [fmdsms] init value: ' + PASSWORD + ' = ' + self._password + ' !!!!!!!!!!!!!!');
+					};
+
+					passReq.onerror = function () {
+						console.log('!!!!!!!!!!!!!! [fmdsms] ' + passReq.error + ' !!!!!!!!!!!!!!');
+					};
+				}
 			}
 		}
 	},
@@ -110,6 +126,7 @@ var FmdSms = {
 			settings.addObserver(LOCK_ENABLED, this._onSettingsChanged.bind(this));
 			settings.addObserver(LOCATE_ENABLED, this._onSettingsChanged.bind(this));
 			settings.addObserver(WIPE_ENABLED, this._onSettingsChanged.bind(this));
+			settings.addObserver(PASSWORD, this._onSettingsChanged.bind(this));
 		}
 	},
 
@@ -144,6 +161,9 @@ var FmdSms = {
 				this._wipeEnabled = (value == 'true');
 			}
 			console.log('!!!!!!!!!!!!!! [fmdsms] new value: ' + WIPE_ENABLED + ' = ' + this._wipeEnabled + ' !!!!!!!!!!!!!!');
+		} else if (name == PASSWORD) {
+			this._password = value;
+			console.log('!!!!!!!!!!!!!! [fmdsms] new value: ' + PASSWORD + ' = ' + this._password + ' !!!!!!!!!!!!!!');
 		}
 	},
 
@@ -166,7 +186,11 @@ var FmdSms = {
 				if (arr && arr.length == 3) {
 					if (arr[0] == PREFIX_CMD) {
 						if (arr[1] == RING_CMD || arr[1] == LOCK_CMD || arr[1] == LOCATE_CMD || arr[1] == WIPE_CMD) {
-							console.log('!!!!!!!!!!!!!! [fmdsms] FmD SMS !!!!!!!!!!!!!!');
+							if (Crypto.MD5(arr[2]) == this._password) {
+								console.log('!!!!!!!!!!!!!! [fmdsms] FmD SMS !!!!!!!!!!!!!!');
+							} else {
+								console.log('!!!!!!!!!!!!!! [fmdsms] bad password !!!!!!!!!!!!!!');
+							}
 						}
 					}
 				}
