@@ -235,6 +235,7 @@ contacts.Settings = (function() {
 
   function showICEScreen(cb) {
     LazyLoader.load([
+      '/contacts/js/utilities/ice_data.js',
       '/contacts/js/views/ice_settings.js',
       '/shared/js/contacts/utilities/ice_store.js'], function(){
       contacts.ICE.init();

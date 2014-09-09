@@ -1,5 +1,5 @@
-/* global ICEStore */
 /* global Contacts */
+/* global ICEData */
 
 
 /**
@@ -20,8 +20,6 @@ contacts.ICE = (function() {
     iceContactCheckboxes = [],
     iceContactButtons = [],
     iceScreenLoaded = false,
-    ICE_CONTACTS_KEY = 'ice-contacts',
-    localIceContacts = [],
     currentICETarget;
 
   /**
@@ -30,8 +28,8 @@ contacts.ICE = (function() {
    * The first time executed will attach listeners for the
    * frame ui.
    */
-  var init = function ice_init() {
-    if (iceScreenLoaded) {
+  var init = function ice_init(forceReload) {
+    if (iceScreenLoaded && !forceReload) {
       return;
     }
     // ICE DOM elements
@@ -48,7 +46,7 @@ contacts.ICE = (function() {
     iceContactButtons.push(document.getElementById('select-ice-contact-1'));
     iceContactButtons.push(document.getElementById('select-ice-contact-2'));
 
-    getICEContactsFromInternalStore(setButtonsState);
+    reloadButtonsState();
 
     // ICE Events handlers
     iceSettingsHeader.addEventListener('action', function(){
@@ -60,6 +58,7 @@ contacts.ICE = (function() {
     iceContactItems.forEach(function(item, index) {
       item.addEventListener('click', function(i) {
         return function(evt) {
+          var localIceContacts = ICEData.iceContacts;
           var disabled = iceContactCheckboxes[i].checked;
           iceContactCheckboxes[i].checked = !disabled;
           iceContactItems[i].setAttribute('aria-checked', !disabled);
@@ -77,40 +76,14 @@ contacts.ICE = (function() {
       });
     });
 
+    // Listen for changes that happen in the ICE contacts
+    ICEData.listenForChanges(reloadButtonsState);
+
     iceScreenLoaded = true;
   };
 
-  /**
-   * This module saves a internal representation in indexeddb
-   * to keep track of the enabled/disabled feature.
-   * That option won't be available on the Datastore, that will
-   * contain just the enabled ICE contacts ids, if any.
-   * @param callback (function) callback when data ready
-  */
-  function getICEContactsFromInternalStore(callback) {
-    var iceContactsIds = [
-      {
-        id: undefined,
-        active: false
-      },
-      {
-        id: undefined,
-        active: false
-      }
-    ];
-
-    window.asyncStorage.getItem(ICE_CONTACTS_KEY, function(data) {
-      if (data) {
-        if (data[0]) {
-          iceContactsIds[0] = data[0];
-        }
-        if (data[1]) {
-          iceContactsIds[1] = data[1];
-        }
-      }
-      localIceContacts = iceContactsIds;
-      callback(iceContactsIds);
-    });
+  function reloadButtonsState() {
+    ICEData.load().then(setButtonsState);
   }
 
   /**
@@ -121,23 +94,26 @@ contacts.ICE = (function() {
   function setButtonsState(iceContactsIds) {
     iceContactsIds = iceContactsIds || [];
     iceContactsIds.forEach(function(iceContact, index) {
-      if (!iceContact.id) {
-        return;
-      }
+      iceContactCheckboxes[index].checked = iceContact.active || false;
+      iceContactButtons[index].disabled = !iceContact.active || false;
 
-      iceContactCheckboxes[index].checked = iceContact.active;
-      iceContactButtons[index].disabled = !iceContact.active;
-      contacts.List.getContactById(iceContact.id, function(contact) {
-        var givenName = (contact.givenName && contact.givenName[0]) || '';
-        var familyName = (contact.familyName && contact.familyName[0]) || '';
-        var display = [givenName, familyName];
-        
-        var span = document.createElement('span');
-        span.classList.add('ice-contact');
-        span.textContent = display.join(' ').trim();
+      if (iceContact.id) {
+        contacts.List.getContactById(iceContact.id, function(contact) {
+          var givenName = (contact.givenName && contact.givenName[0]) || '';
+          var familyName = (contact.familyName && contact.familyName[0]) || '';
+          var display = [givenName, familyName];
+          
+          var span = document.createElement('span');
+          span.classList.add('ice-contact');
+          span.textContent = display.join(' ').trim();
+          iceContactButtons[index].innerHTML = '';
+          iceContactButtons[index].appendChild(span);
+        });
+      } else {
         iceContactButtons[index].innerHTML = '';
-        iceContactButtons[index].appendChild(span);
-      });
+        iceContactButtons[index].setAttribute('data-l10n-id',
+         'ICESelectContact');
+      }
     });
   }
 
@@ -178,36 +154,14 @@ contacts.ICE = (function() {
    * @param cb (function) callback when ready
    */
   function setICEContact(id, pos, active, cb) {
-    active = active || false;
+    ICEData.setICEContact(id, pos, active).then(function() {
+      setButtonsState(ICEData.iceContacts);
 
-    // Save locally
-    localIceContacts[pos] = {
-      id: id,
-      active: active
-    };
-    window.asyncStorage.setItem(ICE_CONTACTS_KEY, localIceContacts);
-    // Save in the datastore
-    modifyICEInDS();
-    setButtonsState(localIceContacts);
-
-    if (typeof cb === 'function') {
-      cb();
-    }
-  }
-
-  /**
-   * Clone the current local ice contacts into the datastore,
-   * considering the active flag.
-   */
-  function modifyICEInDS() {
-    var contacts = [];
-    localIceContacts.forEach(function(iceContact) {
-      if (iceContact.id && iceContact.active) {
-        contacts.push(iceContact.id);
+      if (typeof cb === 'function') {
+        cb();
       }
     });
-
-    return ICEStore.setContacts(contacts);
+    
   }
 
   function reset() {
@@ -215,7 +169,6 @@ contacts.ICE = (function() {
     iceContactItems = [];
     iceContactCheckboxes = [];
     iceContactButtons = [];
-    localIceContacts = [];
     currentICETarget = null;
   }
 

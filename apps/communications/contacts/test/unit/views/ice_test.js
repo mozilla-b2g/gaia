@@ -1,23 +1,31 @@
 /* global MockImageLoader */
 /* global MocksHelper */
 /* global loadBodyHTML */
+/* global ICEData */
 
 'use strict';
 
-require('/shared/js/lazy_loader.js');
-require('/shared/js/lazy_loader.js');
+//require('/shared/js/lazy_loader.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/js/contacts/utilities/ice_store.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
+requireApp('communications/contacts/test/unit/mock_ice_data.js');
 
 var mocksForICe = new MocksHelper([
-  'Contacts'
+  'Contacts', 'ICEData', 'LazyLoader'
 ]).init();
+
+var fbResolver = {
+  resolver: {}
+};
 
 
 suite('ICE contacts view', function() {
   mocksForICe.attachTestHelpers();
+
+  var realFb;
 
   function dummyRowBuilder(id, node) {
     return node.cloneNode(true);
@@ -43,6 +51,8 @@ suite('ICE contacts view', function() {
     window.contacts = {};
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
+    realFb = window.fb;
+    window.fb = fbResolver;
     requireApp('communications/contacts/js/views/ice.js', done);
   });
 
@@ -52,6 +62,7 @@ suite('ICE contacts view', function() {
 
   suiteTeardown(function() {
     window.ImageLoader = realImageLoader;
+    window.fb = realFb;
     delete window.contacts;
   });
 
@@ -128,11 +139,13 @@ suite('ICE contacts view', function() {
       var contact1 = document.querySelector('#contacts-list [data-uuid="1"]');
       contact1.firstChild.textContent = 'Peter Pan';
       
-      document.dispatchEvent(new CustomEvent('contactChanged', {
-        detail: {
-          contactID: 1
-        }
-      }));
+      console.log(ICEData._mTriggerChange);
+      // Simulate a contact change
+      ICEData.iceContacts = [ {
+        id: 1,
+        active: true
+      }];
+      ICEData._mTriggerChange();
 
       this.clock.tick(500);
       ice1 = document.querySelector('#ice-list [data-uuid="1"]');
