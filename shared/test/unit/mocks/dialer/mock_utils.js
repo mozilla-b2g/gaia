@@ -73,6 +73,6 @@ var MockUtils = {
     return matchingTel.type + ', ' + matchingTel.value;
   },
 
-  prettyDuration: function(duration) {}
+  prettyDuration: function(node, duration, l10nPrefix) {}
 };
 

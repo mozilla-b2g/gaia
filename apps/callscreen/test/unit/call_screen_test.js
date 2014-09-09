@@ -926,7 +926,7 @@ suite('call screen', function() {
     test('createTicker should update timer every second', function() {
       this.sinon.spy(Utils, 'prettyDuration');
       this.sinon.clock.tick(1000);
-      sinon.assert.calledWith(Utils.prettyDuration, 1000);
+      sinon.assert.calledWith(Utils.prettyDuration, timeNode, 1000);
     });
 
     test('stopTicker should stop counter on durationNode', function() {
