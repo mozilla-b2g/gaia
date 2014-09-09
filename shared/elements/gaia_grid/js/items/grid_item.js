@@ -196,9 +196,7 @@
 
       // Handle relative URLs
       if (!UrlHelper.hasScheme(icon)) {
-        var a = document.createElement('a');
-        a.href = this.app.origin;
-        icon = a.protocol + '//' + a.host + icon;
+        icon = this.app.origin + icon;
       }
 
       return icon;
