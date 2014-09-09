@@ -23,11 +23,7 @@ module.exports = View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-    this.els.focus = this.find('.js-focus');
-
-    // Clean up
-    delete this.template;
-
+    delete this.template; // Clean up
     debug('rendered');
     return this;
   },
@@ -67,7 +63,8 @@ module.exports = View.extend({
   },
 
   template: function() {
-    return '<div class="focus-ring js-focus" data-icon="focus-locking"></div>';
+    return '<div class="focus_locking" data-icon="focus-locking"></div>' +
+      '<div class="focus_locked" data-icon="focus-locked"></div>';
   }
 
 });
