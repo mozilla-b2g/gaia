@@ -146,10 +146,10 @@ var DragDropManager = (function() {
             pageHelper.addPage([draggableIcon]);
           }
 
-          setDisabledCheckingLimits(true);
           if (pageHelper.getNext()) {
             transitioning = true;
             GridManager.goToNextPage(onNavigationEnd);
+            setDisabledCheckingLimits(true);
           }
 
           done();
