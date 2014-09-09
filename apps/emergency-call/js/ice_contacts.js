@@ -3,28 +3,29 @@
 'use strict';
 
 (function(exports) {
-  var l10n = navigator.mozL10n,
-      initiated = false,
-      iceContactsDetails = [],
+  var iceContactsDetails = [],
       contactsToProcess = 0,
       processedContacts = 0,
-      iceContactsBar = document.getElementById('ice-contacts-bar'),
-      contactListOverlay = document.getElementById('contact-list-overlay'),
-      contactInOverlay = document.getElementById('contact-in-overlay'),
+      iceContactsBar,
+      contactListOverlay,
+      contactInOverlay,
       contactList,
       contactListCancel;
 
   function init() {
-    if (initiated) {
+    if (ICEContacts._initialized) {
       return;
     }
+
+    iceContactsBar = document.getElementById('ice-contacts-bar');
+    contactListOverlay = document.getElementById('contact-list-overlay');
+    contactInOverlay = document.getElementById('contact-in-overlay');
 
     LazyLoader.load([contactListOverlay], function() {
       var contactListOverlayHeader = contactListOverlay.querySelector('header');
 
-      l10n.ready(function() {
-        contactListOverlayHeader.textContent =
-          l10n.get('ice-contacts-overlay-title');
+      navigator.mozL10n.ready(function() {
+        contactListOverlayHeader.dataset.l10nId = 'ice-contacts-overlay-title';
       });
 
       contactList = document.getElementById('contact-list');
@@ -34,7 +35,7 @@
       iceContactsBar.addEventListener('click', showICEContactOverlay);
       contactListCancel.addEventListener('click', hideICEContactOverlay);
 
-      initiated = true;
+      ICEContacts._initialized = true;
     });
   }
 
@@ -57,14 +58,14 @@
 
   function addContactToOverlay(contact, resolve) {
     contact.tel.forEach(function (tel) {
-      l10n.ready(function() {
+      navigator.mozL10n.ready(function() {
         var iceContactOverlayEntry = contactInOverlay.cloneNode(true);
         iceContactOverlayEntry.removeAttribute('id');
         iceContactOverlayEntry.removeAttribute('hidden');
         iceContactOverlayEntry.querySelector('.js-name').textContent =
           contact.name[0];
         iceContactOverlayEntry.querySelector('.js-tel-type').textContent =
-          l10n.get(tel.type[0]);
+          navigator.mozL10n.get(tel.type[0]);
         iceContactOverlayEntry.querySelector('.js-tel').textContent =
             tel.value;
         contactList.insertBefore(iceContactOverlayEntry, contactListCancel);
@@ -141,6 +142,7 @@
   }
 
   var ICEContacts = {
+    _initialized: false,
     updateICEContacts: updateICEContacts,
     isFromICEContact: isFromICEContact
   };
