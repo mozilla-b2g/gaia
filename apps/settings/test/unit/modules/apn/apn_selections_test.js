@@ -146,4 +146,24 @@ suite('ApnSelections', function() {
       }).then(done, done);
     });
   });
+
+  suite('clear', function() {
+    setup(function() {
+      this.apnSelections = new this.ApnSelections();
+      this.mockApnSelections = createMockApnSelections(this.ApnConst.APN_TYPES);
+      this.mockSettingsDB[this.ApnConst.APN_SELECTIONS_KEY] =
+        this.mockApnSelections;
+    });
+
+    test('should clear selection correctly', function(done) {
+      this.apnSelections.clear(0).then(function() {
+        this.ApnConst.APN_TYPES.forEach(function(apnType) {
+          assert.isTrue(this.mockApnSelections[apnType] == null);
+        }, this);
+      }.bind(this), function() {
+        // This function does not reject.
+        assert.isTrue(false);
+      }).then(done, done);
+    });
+  });
 });

@@ -14,7 +14,9 @@ suite('ApnSettingsManager', function() {
     'modules/apn/apn_item',
     'modules/apn/apn_utils',
     'modules/apn/apn_const',
-    'modules/apn/apn_list'
+    'modules/apn/apn_list',
+    'modules/apn/apn_selections',
+    'modules/async_storage'
   ];
 
   setup(function(done) {
@@ -33,7 +35,8 @@ suite('ApnSettingsManager', function() {
 
     var MockApnSelections = function() {
       return {
-        get: function() {}
+        get: function() {},
+        clear: function() {}
       };
     };
     define('MockApnSelections', function() {
@@ -64,14 +67,27 @@ suite('ApnSettingsManager', function() {
       };
     });
 
+    define('MockAsyncStorage', function() {
+      return {
+        getItem: function() {},
+        setItem: function() {}
+      };
+    });
+
     requireCtx(modules,
       function(ApnSettingsManager, ApnItem, MockApnUtils, MockApnConst,
-        MockApnList) {
+        MockApnList, MockApnSelections, MockAsyncStorage) {
           this.ApnSettingsManager = ApnSettingsManager;
           this.ApnItem = ApnItem;
           this.MockApnUtils = MockApnUtils;
           this.MockApnConst = MockApnConst;
           this.MockApnList = MockApnList;
+          this.MockApnSelections = MockApnSelections;
+          this.MockAsyncStorage = MockAsyncStorage;
+
+          this.sinon.stub(this.ApnSettingsManager, '_ready', function() {
+            return Promise.resolve();
+          });
           done();
     }.bind(this));
   });
@@ -344,6 +360,70 @@ suite('ApnSettingsManager', function() {
     });
   });
 
+  suite('_ready', function() {
+    var serviceId = 0;
+    var fakeIccId = '000';
+
+    var realMobileConnections;
+    var MockMobileConnections;
+
+    setup(function() {
+      this.ApnSettingsManager._ready.restore();
+
+      MockMobileConnections = [{
+        iccId: fakeIccId
+      }];
+      realMobileConnections = navigator.mozMobileConnections;
+      navigator.mozMobileConnections = MockMobileConnections;
+    });
+
+    teardown(function() {
+      navigator.mozMobileConnections = realMobileConnections;
+    });
+
+    test('called with updated iccid', function(done) {
+      var that = this;
+
+      this.sinon.stub(this.MockAsyncStorage, 'getItem', function() {
+        return Promise.resolve([fakeIccId]);
+      });
+      this.sinon.stub(this.MockAsyncStorage, 'setItem', function() {
+        return Promise.resolve();
+      });
+
+      this.ApnSettingsManager._ready(serviceId)
+      .then(function(apnItems) {
+        sinon.assert.notCalled(that.MockAsyncStorage.setItem);
+      }, function() {
+        // This function does not reject.
+        assert.isTrue(false);
+      }).then(done, done);
+    });
+
+    test('called with outdated iccid', function(done) {
+      var that = this;
+
+      this.sinon.stub(this.MockAsyncStorage, 'getItem', function() {
+        return Promise.resolve(['111']);
+      });
+      this.sinon.stub(this.MockAsyncStorage, 'setItem', function() {
+        return Promise.resolve();
+      });
+      this.sinon.stub(this.ApnSettingsManager, 'restore');
+
+      this.ApnSettingsManager._ready(serviceId)
+      .then(function(apnItems) {
+        // Should call to ApnSettingsManager.restore and update the cached
+        // iccId correctly.
+        sinon.assert.calledWith(that.ApnSettingsManager.restore, serviceId);
+        assert.deepEqual(that.MockAsyncStorage.setItem.args[0][1], [fakeIccId]);
+      }, function() {
+        // This function does not reject.
+        assert.isTrue(false);
+      }).then(done, done);
+    });
+  });
+
   suite('_apnItems', function() {
     var serviceId = 0;
     var apnType = 'default';
@@ -511,6 +591,11 @@ suite('ApnSettingsManager', function() {
           return apns;
       });
 
+      this.sinon.stub(this.ApnSettingsManager._apnSelections, 'clear',
+        function() {
+          return Promise.resolve();
+      });
+
       FAKE_APN_ITEMS = [
         { id: 1, category: this.ApnItem.APN_CATEGORY.PRESET },
         { id: 2, category: this.ApnItem.APN_CATEGORY.CUSTOM },
@@ -572,21 +657,13 @@ suite('ApnSettingsManager', function() {
       }).then(done, done);
     });
 
-    test('should set the preset apn as the active apn', function(done) {
+    test('should clear apn selections', function(done) {
       var that = this;
 
       this.ApnSettingsManager.restore(serviceId)
       .then(function() {
-        // The third parameter, id, is actually the called count of the fake
-        // add function of fakeApnList.
-        assert.ok(that.ApnSettingsManager.setActiveApnId.getCall(0)
-          .calledWith(serviceId, 'default', 0));
-        assert.ok(that.ApnSettingsManager.setActiveApnId.getCall(1)
-          .calledWith(serviceId, 'supl', 1));
-        assert.ok(that.ApnSettingsManager.setActiveApnId.getCall(2)
-          .calledWith(serviceId, 'mms', 2));
-        assert.ok(that.ApnSettingsManager.setActiveApnId.getCall(3)
-          .calledWith(serviceId, 'ims', 3));
+        sinon.assert.calledWith(
+          that.ApnSettingsManager._apnSelections.clear, serviceId);
       }, function() {
         // This function does not reject.
         assert.isTrue(false);

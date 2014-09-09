@@ -126,7 +126,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf ApnSettings.prototype
-     * @params {String} serviceId
+     * @params {Number} serviceId
      * @params {String} apnType
      * @params {Object} newApn
      * @returns {Promise}
@@ -166,7 +166,7 @@ define(function(require) {
      *
      * @access public
      * @memberOf ApnSettings.prototype
-     * @params {String} serviceId
+     * @params {Number} serviceId
      * @returns {Promise Array}
      */
     getAll: function as__get(serviceId) {
@@ -180,7 +180,7 @@ define(function(require) {
      *
      * @access public
      * @memberOf ApnSettings.prototype
-     * @params {String} serviceId
+     * @params {Number} serviceId
      * @params {String} apnType
      * @returns {Promise Object}
      */
@@ -200,7 +200,7 @@ define(function(require) {
      *
      * @access public
      * @memberOf ApnSettings.prototype
-     * @params {String} serviceId
+     * @params {Number} serviceId
      * @params {String} apnType
      * @params {Object} apn
      * @returns {Promise}
