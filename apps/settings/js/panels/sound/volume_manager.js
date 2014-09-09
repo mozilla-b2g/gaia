@@ -56,6 +56,28 @@ define(function(require) {
       slider.addEventListener('input', _inputHandler);
       slider.addEventListener('touchend', _touchEndHandler);
 
+      /**
+       * Change slider's value
+       *
+       * @access private
+       * @memberOf VolumeManager.prototype
+       * @param {[type]} value slider value
+       */
+      function _setSliderValue(value) {
+        slider.value = value;
+        // The slider is transparent if the value is not set yet, display it
+        // once the value is set.
+        if (slider.style.opacity !== 1) {
+          slider.style.opacity = 1;
+        }
+      }
+
+      /**
+       * Handle touchstart event
+       *
+       * @access private
+       * @memberOf VolumeManager.prototype
+       */
       function _touchStartHandler(event) {
         isTouching = true;
         isFirstInput = true;
@@ -85,6 +107,12 @@ define(function(require) {
         });
       }
 
+      /**
+       * Handle input event
+       *
+       * @access private
+       * @memberOf VolumeManager.prototype
+       */
       function _inputHandler(event) {
         // The mozSettings api is not designed to call rapidly, but ux want the
         // new volume to be applied immediately while previewing the tone, so
@@ -98,6 +126,12 @@ define(function(require) {
         }
       }
 
+      /**
+       * Handle touchend event
+       *
+       * @access private
+       * @memberOf VolumeManager.prototype
+       */
       function _touchEndHandler(event) {
         isTouching = false;
         // Clear the interval setVolume() and set it directly when the user's
@@ -117,15 +151,13 @@ define(function(require) {
         }, delay);
       }
 
-      function _setSliderValue(value) {
-        slider.value = value;
-        // The slider is transparent if the value is not set yet, display it
-        // once the value is set.
-        if (slider.style.opacity !== 1) {
-          slider.style.opacity = 1;
-        }
-      }
-
+      /**
+       * Change volume
+       *
+       * @access private
+       * @memberOf VolumeManager.prototype
+       * @param {[type]} value slider value
+       */
       function _setVolume() {
         var value = parseInt(slider.value);
         var settingObject = {};
@@ -138,6 +170,15 @@ define(function(require) {
         }
       }
 
+      /**
+       * get tone's blob object
+       *
+       * @access private
+       * @memberOf VolumeManager.prototype
+       * @param  {[type]}   type     tone type
+       * @param  {[type]}   toneKey  tone key
+       * @param  {Function} callback callback function
+       */
       function _getToneBlob(type, toneKey, callback) {
         SettingsCache.getSettings(function(results) {
           if (results[toneKey]) {
@@ -158,6 +199,15 @@ define(function(require) {
         });
       }
 
+      /**
+       * get default tone
+       *
+       * @access private
+       * @memberOf VolumeManager.prototype
+       * @param  {[type]}   type     tone type
+       * @param  {[type]}   toneKey  tone key
+       * @param  {Function} callback callback function
+       */
       function _getDefaultTone(type, toneKey, callback) {
         var mediaToneURL = '/shared/resources/media/notifications/' +
           'notifier_firefox.opus';
@@ -206,7 +256,7 @@ define(function(require) {
       /**
        * Stop the tone
        *
-       * @access public
+       * @access private
        * @memberOf VolumeManager.prototype
        * @param  {[type]} player sound player object
        */

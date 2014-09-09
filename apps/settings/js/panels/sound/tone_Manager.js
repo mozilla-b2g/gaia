@@ -115,8 +115,7 @@ define(function(require) {
 
         // When the user clicks the button, we launch an activity that lets
         // the user select new ringtone.
-        tone.button.onclick = function() {
-
+        tone.button.addEventListener('click', function() {
           // First, get the ID of the currently-selected tone.
           SettingsCache.getSettings(function(results) {
             var currentToneID = results[idKey];
@@ -128,6 +127,7 @@ define(function(require) {
             // until it is needed, so we can use its existance to
             // determine whether to show the Purchased Media app.
             ForwardLock.getKey(function(secret) {
+              _pickRingTone(currentToneID, secret);
               var activity = new MozActivity({
                 name: 'pick',
                 data: {
@@ -172,8 +172,12 @@ define(function(require) {
               }.bind(this);
             }.bind(this));
           }.bind(this));
-        }.bind(this);
+        }.bind(this));
       }.bind(this));
+
+      function _pickRingTone(currentToneID, secret) {
+        console.log('Error ADHOASIDHASD');
+      }
     },
 
     /**
