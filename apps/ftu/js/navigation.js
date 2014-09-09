@@ -225,6 +225,14 @@ var Navigation = {
         break;
       case '#welcome_browser':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
+        var welcome = document.getElementById('browser_os_welcome');
+        navigator.mozL10n.localize(welcome, 'htmlWelcome', {
+          link: getLocalizedLink('htmlWelcome')
+        });
+        var improve = document.getElementById('browser_os_improve');
+        navigator.mozL10n.localize(improve, 'helpImprove', {
+          link: getLocalizedLink('helpImprove')
+        });
         break;
       case '#browser_privacy':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
