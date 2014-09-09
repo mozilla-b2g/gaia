@@ -265,6 +265,37 @@ var Contacts = (function() {
     checkCancelableActivity();
   };
 
+  function setupCancelableHeader() {
+    header.setAttribute('action', 'close');
+    settingsButton.hidden = true;
+    addButton.hidden = true;
+    // Trigger the title to re-run font-fit/centering logic
+    appTitleElement.textContent = appTitleElement.textContent;
+  }
+
+  function setupActionableHeader() {
+    header.removeAttribute('action');
+    settingsButton.hidden = false;
+    addButton.hidden = false;
+    // Trigger the title to re-run font-fit/centering logic
+    appTitleElement.textContent = appTitleElement.textContent;
+  }
+
+  var lastCustomHeaderCallback;
+
+  var setCanceleableHeader = function setCanceleableHeader(cb) {
+    setupCancelableHeader();
+    header.removeEventListener('action', handleCancel);
+    lastCustomHeaderCallback = cb;
+    header.addEventListener('action', cb);
+  };
+
+  var setNormalHeader = function setNormalHeader() {
+    setupActionableHeader();
+    header.removeEventListener('action', lastCustomHeaderCallback);
+    header.addEventListener('action', handleCancel);
+  };
+
   var checkCancelableActivity = function cancelableActivity() {
     // NOTE: Only set textContent below if necessary to avoid repaints at
     //       load time.  For more info see bug 725221.
@@ -275,10 +306,12 @@ var Contacts = (function() {
       addButton.hidden = true;
       // Trigger the title to re-run font-fit/centering logic
       appTitleElement.textContent = appTitleElement.textContent;
+      setupCancelableHeader();
     } else {
       header.removeAttribute('action');
       settingsButton.hidden = false;
       addButton.hidden = false;
+      setupActionableHeader();
     }
 
     text = (contactsList && contactsList.isSelecting)?
@@ -1016,6 +1049,8 @@ var Contacts = (function() {
     'view': loadView,
     'utility': loadUtility,
     'updateSelectCountTitle': updateSelectCountTitle,
+    'setCanceleableHeader': setCanceleableHeader,
+    'setNormalHeader': setNormalHeader,
     get asyncScriptsLoaded() {
       return asyncScriptsLoaded;
     },

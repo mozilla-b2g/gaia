@@ -63,6 +63,7 @@ Contacts.Selectors = {
   list: '#view-contacts-list',
   listContactFirst: '.contact-item',
   listContactFirstText: '.contact-item .contact-text',
+  contactListHeader: '#contacts-list-header',
 
   searchLabel: '#search-start',
   searchInput: '#search-contact',
@@ -78,7 +79,12 @@ Contacts.Selectors = {
   editForm: '#selectable-form',
   editMenu: '#select-all-wrapper',
 
-  clearOrgButton: '#clear-org'
+  clearOrgButton: '#clear-org',
+  setIceButton: '#set-ice',
+  iceSwitch1: '#ice-contacts-1-switch',
+  iceSwitch2: '#ice-contacts-2-switch',
+  iceButton1: '#select-ice-contact-1',
+  iceButton2: '#select-ice-contact-2'
 };
 
 Contacts.prototype = {
