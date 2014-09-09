@@ -320,6 +320,13 @@
      */
     clear: function() {
       this.setInput('');
+
+      // Send a message to the search app to clear results
+      if (this._port) {
+        this._port.postMessage({
+          action: 'clear'
+        });
+      }
     },
 
     /**
