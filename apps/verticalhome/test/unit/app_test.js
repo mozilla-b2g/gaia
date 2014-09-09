@@ -40,11 +40,10 @@ suite('app.js > ', function() {
 
   test('Scrolls on hashchange', function() {
     window.scrollY = 100000;
-    var scrollBy = sinon.stub(window, 'scrollBy');
+    var scrollStub = sinon.stub(window, 'scrollTo');
     window.dispatchEvent(new CustomEvent('hashchange'));
 
-    assert.ok(scrollBy.called);
-    assert.isTrue(raf.called);
+    assert.ok(scrollStub.called);
   });
 
   test('No scrolling while context menu is displayed', function() {
