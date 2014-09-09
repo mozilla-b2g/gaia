@@ -10,11 +10,7 @@
 'use strict';
 
 var MessageManager = {
-  init: function mm_init(callback) {
-    if (this.initialized) {
-      return;
-    }
-    this.initialized = true;
+  init: function mm_init() {
     // Allow for stubbing in environments that do not implement the
     // `navigator.mozMobileMessage` API
     this._mozMobileMessage = navigator.mozMobileMessage ||
@@ -34,11 +30,6 @@ var MessageManager = {
       'deleted',
       this.onDeleted.bind(this)
     );
-
-    // Callback if needed
-    if (typeof callback === 'function') {
-      callback();
-    }
   },
 
   onMessageSending: function mm_onMessageSending(e) {
