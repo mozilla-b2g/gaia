@@ -72,7 +72,9 @@
      */
     setContacts: function(iceContacts) {
       return init().then(function() {
-        return store.put(iceContacts, FIELD);
+        return store.put(iceContacts, FIELD).then(function() {
+          return Promise.resolve(iceContacts);
+        });
       });
     },
     /**

@@ -1,4 +1,4 @@
-/* global ICEStore */
+/* global ICEData */
 /* global Contacts */
 /* global ImageLoader */
 /* global LazyLoader */
@@ -47,24 +47,26 @@
       'action', hideICEList);
     document.getElementById('ice-list').addEventListener('click', clickHandler);
     
-    listenForChanges();
+    LazyLoader.load(['/contacts/js/utilities/ice_data.js'], function() {
+      listenForChanges();
+    });
   }
 
   // Once the list is built, we need to be aware of possible changes in
   // contacts. In that case rebuild the whole list, since ICE list is meant
   // to be a small set (2 currently) of contacts.
   function listenForChanges() {
-    ICEStore.onChange(function(ids) {
-      contactsIds = ids;
-      buildICEContactsList();
-    });
-    document.addEventListener('contactChanged',
-     function(event) {
-      if (contactsIds.indexOf(event.detail.contactID) > -1) {
-          buildICEContactsList();
+    ICEData.listenForChanges(function(data) {
+      if (!Array.isArray(data) || data.length === 0) {
+        contactsIds = [];
+        ICEData.iceContacts.forEach(function(iceContact) {
+          if (iceContact.id && iceContact.active) {
+            contactsIds.push(iceContact.id);
+          }
+        });
+        buildICEContactsList();
       }
-     }
-    );
+    });
   }
 
   // Clone the nodes on the contacts list, also rebuild them with

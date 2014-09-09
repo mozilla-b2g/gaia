@@ -9,6 +9,7 @@
 
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
+requireApp('communications/contacts/js/utilities/ice_data.js');
 requireApp('communications/contacts/js/views/ice_settings.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 require('/shared/test/unit/mocks/mock_ice_store.js');
@@ -21,12 +22,34 @@ mocksHelper.init();
 suite('ICE Settings view', function() {
   var subject;
   var realContactsList;
+  var realPromise;
 
   suiteSetup(function() {
     mocksHelper.suiteSetup();
     subject = contacts.ICE;
     realContactsList = contacts.List;
     contacts.List = MockContactsListObj;
+    realPromise = window.Promise;
+    window.Promise = function(func, rj) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      return {
+        'then': function() {
+          var allArguments = args.concat(Array.prototype.slice.call(arguments));
+          return func.apply(this, allArguments);
+        }
+      };
+    };
+    window.Promise.resolve = function(args) {
+      return {
+        'then': function(fn) {
+          fn(args);
+        }
+      };
+    };
+  });
+
+  suiteTeardown(function() {
+    window.Promise = realPromise;
   });
 
   setup(function() {
@@ -72,12 +95,16 @@ suite('ICE Settings view', function() {
     });
 
     test('> No ice contacts', function() {
+      window.asyncStorage.keys = {
+        'ice-contacts': []
+      };
       subject.init();
-      sinon.assert.calledOnce(asyncStorage.getItem);
+      // On init and when we do the listening
+      sinon.assert.calledTwice(asyncStorage.getItem);
       var ice1 = document.getElementById('select-ice-contact-1');
-      assert.equal(ice1.textContent.trim(), 'Select a contact');
+      assert.equal(ice1.textContent.trim(), '');
       var ice2 = document.getElementById('select-ice-contact-2');
-      assert.equal(ice2.textContent.trim(), 'Select a contact');
+      assert.equal(ice2.textContent.trim(), '');
       assert.isTrue(ice1.disabled);
       assert.isTrue(ice2.disabled);
       var iceCheck1 = document.querySelector('[name="ice-contact-1-enabled"]');
@@ -101,7 +128,7 @@ suite('ICE Settings view', function() {
       var ice1 = document.getElementById('select-ice-contact-1');
       assert.equal(ice1.textContent.trim(), 'John Doe');
       var ice2 = document.getElementById('select-ice-contact-2');
-      assert.equal(ice2.textContent.trim(), 'Select a contact');
+      assert.equal(ice2.textContent.trim(), '');
       assert.isFalse(ice1.disabled);
       assert.isTrue(ice2.disabled);
       var iceCheck1 = document.querySelector('[name="ice-contact-1-enabled"]');
@@ -126,7 +153,7 @@ suite('ICE Settings view', function() {
       var ice1 = document.getElementById('select-ice-contact-1');
       assert.equal(ice1.textContent.trim(), 'John Doe');
       var ice2 = document.getElementById('select-ice-contact-2');
-      assert.equal(ice2.textContent.trim(), 'Select a contact');
+      assert.equal(ice2.textContent.trim(), '');
       assert.isTrue(ice1.disabled);
       assert.isTrue(ice2.disabled);
     });
