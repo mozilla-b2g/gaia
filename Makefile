@@ -986,6 +986,8 @@ really-clean: clean
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
 
+build-test-unit-apps: $(NPM_INSTALLED_PROGRAMS)
+	@$(call run-build-test, $(shell find apps/*/build/test/unit/*.test.js))
 
 build-test-unit: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-test, $(shell find build/test/unit/*.test.js))

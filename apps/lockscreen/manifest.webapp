@@ -1,0 +1,83 @@
+{
+  "name": "LockScreen",
+  "description": "The default LockScreen",
+  "type": "certified",
+  "role": "system",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "orientation": "default",
+  "fullscreen": "true",
+  "permissions": {
+    "webapps-manage":{
+      "description": "For fetching an icon for the media player widget"
+    },
+    "settings":{ "access": "readwrite" },
+    "telephony":{},
+    "mobileconnection":{},
+    "phonenumberservice": {},
+    "systemXHR": {}
+  },
+  "connections": {
+    "lockscreencomms": {
+      "description": "Communication with LockScreen app",
+      "rules": {}
+    },
+    "mediacomms": {
+      "description": "Communication with media apps for now playing info",
+      "rules": {}
+    }
+  },
+  "locales": {
+    "ar": {
+      "name": "LockScreen",
+      "description": "The default LockScreen"
+    },
+    "de": {
+      "name": "LockScreen",
+      "description": "The default LockScreen"
+    },
+    "el": {
+      "name": "LockScreen",
+      "description": "The default LockScreen"
+    },
+    "en-US": {
+      "name": "LockScreen",
+      "description": "The default LockScreen"
+    },
+    "es": {
+      "name": "LockScreen",
+      "description": "The default LockScreen"
+    },
+    "fr": {
+      "name": "LockScreen",
+      "description": "The default LockScreen"
+    },
+    "it": {
+      "name": "LockScreen",
+      "description": "The default LockScreen"
+    },
+    "pt-BR": {
+      "name": "LockScreen",
+      "description": "The default LockScreen"
+    },
+    "ru": {
+      "name": "LockScreen",
+      "description": "The default LockScreen"
+    },
+    "tr": {
+      "name": "LockScreen",
+      "description": "The default LockScreen"
+    },
+    "zh-TW": {
+      "name": "LockScreen",
+      "description": "The default LockScreen"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  }
+}
