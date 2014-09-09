@@ -123,6 +123,13 @@ var AppInstallManager = {
 
     window.addEventListener('applicationready',
         this.handleApplicationReady);
+
+    window.addEventListener('home', this.handleHomeButtonPressed.bind(this));
+  },
+
+  handleHomeButtonPressed: function ai_handleHomeButtonPressed(e) {
+    this.dialog.classList.remove('visible');
+    this.handleInstallCancel();
   },
 
   handleApplicationReady: function ai_handleApplicationReady(e) {
