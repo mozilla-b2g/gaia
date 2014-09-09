@@ -461,7 +461,7 @@ var icc = {
     // Help
     this.icc_input_btn_help.disabled = !options.isHelpAvailable;
 
-    if (!options.isYesNoRequired && !options.isYesNoRequested) {
+    if (!options.isYesNoRequested) {
       this.icc_input.classList.remove('yesnomode');
 
       // Workaround. See bug #818270. Followup: #895314
@@ -505,12 +505,12 @@ var icc = {
       this.icc_input_btn_yes.onclick = function(event) {
         clearInputTimeout();
         self.hideViews();
-        callback(true, 1);
+        callback(true, true);
       };
       this.icc_input_btn_no.onclick = function(event) {
         clearInputTimeout();
         self.hideViews();
-        callback(true, 0);
+        callback(true, false);
       };
     }
 
