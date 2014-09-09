@@ -46,7 +46,7 @@ h2 span {
   display: block;
   float: left;
   width: calc(50% - 0.5rem);
-  height: 10rem;
+  height: 9rem;
   background-color: rgba(255, 255, 255, 0.3);
   background-size: cover;
   position: relative;

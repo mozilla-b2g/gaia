@@ -74,6 +74,14 @@
       });
     },
 
+    addPlace: function(place) {
+      return new Promise((resolve, reject) => {
+        var txn = this.db.transaction([PLACES_STORE], 'readwrite');
+        txn.objectStore(PLACES_STORE).put(place);
+        txn.oncomplete = resolve;
+      });
+    },
+
     remove: function(id, rev) {
       return new Promise((resolve, reject) => {
         var txn = this.db.transaction([PLACES_STORE], 'readwrite');
