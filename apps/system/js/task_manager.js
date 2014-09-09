@@ -118,11 +118,14 @@
       this.element.classList.add('filtered');
     }
 
+    this.unfilteredStack.forEach(function(app, position) {
+      app.enterTaskManager();
+    });
+
     // First add an item to the cardsList for each running app
     var stack = this.stack;
     stack.forEach(function(app, position) {
       this.addCard(position, app);
-      app.enterTaskManager();
     }, this);
 
     this._placeCards();
@@ -354,6 +357,10 @@
       var card = this.cardsByAppID[app.instanceID];
       card && card.destroy();
     }).bind(this));
+
+    this.unfilteredStack.forEach(function(app, position) {
+      app.leaveTaskManager();
+    });
 
     this.cardsByAppID = {};
     this.element.classList.remove('filtered');

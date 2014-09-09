@@ -254,9 +254,6 @@
     if (element && element.parentNode) {
       element.parentNode.removeChild(element);
     }
-    if (this.app) {
-      this.app.leaveTaskManager();
-    }
     this.element = this.manager = this.app = null;
     this.publish('destroyed');
   };

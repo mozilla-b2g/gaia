@@ -767,6 +767,18 @@ suite('system/TaskManager >', function() {
       assert.isFalse(screenNode.classList.contains('cards-view'));
     });
 
+    test('all apps should leaveTaskManager', function() {
+      MockStackManager.mStack.forEach(function(app) {
+        this.sinon.spy(app, 'leaveTaskManager');
+      }, this);
+
+      taskManager.hide();
+
+      MockStackManager.mStack.forEach(function(app) {
+        sinon.assert.calledOnce(app.leaveTaskManager);
+      }, this);
+    });
+
     test('hide: raises cardviewclosed event', function(done) {
       taskManager.newStackPosition = 1;
       waitForEvent(window, 'cardviewclosed').then(function(event) {
@@ -1078,10 +1090,16 @@ suite('system/TaskManager >', function() {
   });
 
   suite('filtering > ', function() {
+    var stub, _filterName;
     setup(function() {
       taskManager.hide();
       MockAppWindowManager.mRunningApps = apps;
       MockAppWindowManager.mActiveApp = apps['http://sms.gaiamobile.org'];
+      _filterName = 'browser-only';
+      stub = this.sinon.stub(taskManager, 'filter', function(filterName) {
+          assert.equal(filterName, _filterName);
+          taskManager.stack = [];
+        });
     });
 
     teardown(function() {
@@ -1089,17 +1107,22 @@ suite('system/TaskManager >', function() {
     });
 
     test('filter function is called and empty stack is the result', function() {
-      var _filterName = 'browser-only';
-      var stub = this.sinon.stub(taskManager, 'filter', function(filterName) {
-          assert.equal(filterName, _filterName);
-          taskManager.stack = [];
-        });
       taskManager.show(_filterName);
       stub.calledWith([_filterName]);
       assert.isTrue(cardsView.classList.contains('empty'),
                     'Should be displaying no recent browser windows');
     });
 
-  });
+    test('but apps should still enterTaskManager', function() {
+      MockStackManager.mStack.forEach(function(app) {
+        this.sinon.spy(app, 'enterTaskManager');
+      }, this);
 
+      taskManager.show(_filterName);
+
+      MockStackManager.mStack.forEach(function(app) {
+        sinon.assert.calledOnce(app.enterTaskManager);
+      }, this);
+    });
+  });
 });
