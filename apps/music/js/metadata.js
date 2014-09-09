@@ -1168,7 +1168,10 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
     /**
      * Check for the existence of a thumbnail on the audio file's storage area,
-     * and if it's not present, save it.
+     * and if it's not present, try to save it. Note: If the original image is
+     * already small (and it's not from an unsynced ID3 frame), we won't bother
+     * saving, and will just grab the image out of the original file when we
+     * need it.
      *
      * @param {Blob} coverBlob The blob for the full-size cover art.
      * @param {string} thumbnailFilename A relative filename for the thumbnail.
