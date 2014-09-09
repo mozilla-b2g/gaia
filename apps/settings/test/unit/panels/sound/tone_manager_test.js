@@ -1,5 +1,7 @@
-/*global: MockNavigatorMozTelephony*/
+/*global: MockNavigatorMozTelephony, MockNavigatorMozMobileConnections*/
 'use strict';
+
+require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 
 suite('Sound > ToneManager', function() {
   var toneManager;
@@ -19,8 +21,7 @@ suite('Sound > ToneManager', function() {
     'unit/mock_l10n',
     'shared_mocks/mock_navigator_moz_settings',
     'shared_mocks/mock_settings_listener',
-    'panels/sound/tone_manager',
-    'shared_mocks/mock_navigator_moz_mobile_connections'
+    'panels/sound/tone_manager'
   ];
   var maps = {
     '*': {

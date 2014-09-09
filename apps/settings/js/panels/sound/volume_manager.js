@@ -46,32 +46,27 @@ define(function(require) {
       var player = new Audio();
 
       // Get the volume value for the slider, also observe the value change.
-      SettingsListener.observe(channelKey, '', setSliderValue);
-
-      function setSliderValue(value) {
-        slider.value = value;
-        // The slider is transparent if the value is not set yet, display it
-        // once the value is set.
-        if (slider.style.opacity !== 1) {
-          slider.style.opacity = 1;
-        }
-      }
+      SettingsListener.observe(channelKey, '', _setSliderValue);
 
       // The sliders listen to input, touchstart and touchend events to fit
       // the ux requirements, and when the user tap or drag the sliders, the
       // sequence of the events is:
       // touchstart -> input -> input(more if dragging) -> touchend -> input
-      slider.addEventListener('touchstart', function(event) {
+      slider.addEventListener('touchstart', _touchStartHandler);
+      slider.addEventListener('input', _inputHandler);
+      slider.addEventListener('touchend', _touchEndHandler);
+
+      function _touchStartHandler(event) {
         isTouching = true;
         isFirstInput = true;
         var toneKey;
         // Stop the tone previewing from the last touchstart if the delayed
         // stopTone() is not called yet.
-        stopTone();
+        _stopTone(player);
         // Stop observing when the user is adjusting the slider, this is to
         // get better ux that the slider won't be updated by both the observer
         // and the ui.
-        SettingsListener.unobserve(channelKey, setSliderValue);
+        SettingsListener.unobserve(channelKey, _setSliderValue);
 
         switch (channelType) {
           case 'content':
@@ -85,12 +80,12 @@ define(function(require) {
             break;
         }
 
-        getToneBlob(channelType, toneKey, function(blob) {
-          playTone(channelType, blob);
+        _getToneBlob(channelType, toneKey, function(blob) {
+          _playTone(player, channelType, blob);
         });
-      });
+      }
 
-      slider.addEventListener('input', function(event) {
+      function _inputHandler(event) {
         // The mozSettings api is not designed to call rapidly, but ux want the
         // new volume to be applied immediately while previewing the tone, so
         // here we use setInterval() as a timer to ease the number of calling,
@@ -98,31 +93,40 @@ define(function(require) {
         // which we are unable to avoid and make bad ux for the users.
         if (isFirstInput) {
           isFirstInput = false;
-          setVolume();
-          intervalID = setInterval(setVolume, interval);
+          _setVolume();
+          intervalID = setInterval(_setVolume, interval);
         }
-      });
+      }
 
-      slider.addEventListener('touchend', function(event) {
+      function _touchEndHandler(event) {
         isTouching = false;
         // Clear the interval setVolume() and set it directly when the user's
         // finger leaves the panel.
         clearInterval(intervalID);
-        setVolume();
+        _setVolume();
         // Re-observe the value change after the user finished tapping/dragging
         // on the slider and the preview is ended.
-        SettingsListener.observe(channelKey, '', setSliderValue);
+        SettingsListener.observe(channelKey, '', _setSliderValue);
         // If the user tap the slider very quickly, like the click event, then
         // we try to stop the player after a constant duration so that the user
         // is able to hear the tone's preview with the adjusted volume.
         setTimeout(function() {
           if (!isTouching) {
-            stopTone();
+            _stopTone(player);
           }
         }, delay);
-      });
+      }
 
-      function setVolume() {
+      function _setSliderValue(value) {
+        slider.value = value;
+        // The slider is transparent if the value is not set yet, display it
+        // once the value is set.
+        if (slider.style.opacity !== 1) {
+          slider.style.opacity = 1;
+        }
+      }
+
+      function _setVolume() {
         var value = parseInt(slider.value);
         var settingObject = {};
         settingObject[channelKey] = value;
@@ -134,14 +138,14 @@ define(function(require) {
         }
       }
 
-      function getToneBlob(type, toneKey, callback) {
+      function _getToneBlob(type, toneKey, callback) {
         SettingsCache.getSettings(function(results) {
           if (results[toneKey]) {
             callback(results[toneKey]);
           } else {
             // Fall back to the predefined tone if the value does not exist
             // in the mozSettings.
-            getDefaultTone(type, toneKey, function(blob) {
+            _getDefaultTone(type, toneKey, function(blob) {
               // Save the default tone to mozSettings so that next time we
               // don't have to fall back to it from the system files.
               var settingObject = {};
@@ -154,7 +158,7 @@ define(function(require) {
         });
       }
 
-      function getDefaultTone(type, toneKey, callback) {
+      function _getDefaultTone(type, toneKey, callback) {
         var mediaToneURL = '/shared/resources/media/notifications/' +
           'notifier_firefox.opus';
         var ringerToneURL = '/shared/resources/media/ringtones/' +
@@ -181,13 +185,13 @@ define(function(require) {
       /**
        * Play the tone
        *
-       * @access public
+       * @access private
        * @memberOf VolumeManager.prototype
        * @param  {Object} player sound player object
        * @param  {String} type tone type
        * @param  {Blob} blob tone blob
        */
-      function playTone(type, blob) {
+      function _playTone(player, type, blob) {
         // Don't set the audio channel type to content or it will interrupt the
         // background music and won't resume after the user previewed the tone.
         if (type !== 'content') {
@@ -206,7 +210,7 @@ define(function(require) {
        * @memberOf VolumeManager.prototype
        * @param  {[type]} player sound player object
        */
-      function stopTone() {
+      function _stopTone(player) {
         player.pause();
         player.removeAttribute('src');
         player.load();
