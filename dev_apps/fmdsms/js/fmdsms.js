@@ -1,4 +1,5 @@
 /* global Crypto */
+/* global Commands */
 
 'use strict';
 
@@ -7,6 +8,7 @@ var LOCK_ENABLED = 'rpp.lock.enabled';
 var LOCATE_ENABLED = 'rpp.locate.enabled';
 var WIPE_ENABLED = 'rpp.wipe.enabled';
 var PASSWORD = 'rpp.password';
+var PASSCODE_ENABLED = 'lockscreen.passcode-lock.enabled';
 var PREFIX_CMD = 'FmD:';
 var RING_CMD = 'SoundAlarm';
 var LOCK_CMD = 'LockDevice';
@@ -20,6 +22,7 @@ var FmdSms = {
 	_locateEnabled : false,
 	_wipeEnabled : false,
 	_password : null,
+	_passcodeEnabled : false,
 
 	init : function () {
 		console.log('!!!!!!!!!!!!!! [fmdsms] init !!!!!!!!!!!!!!');
@@ -31,6 +34,27 @@ var FmdSms = {
 
 	_getSettings : function () {
 		var self = this;
+
+		var apps = navigator.mozApps;
+		if (apps) {
+			var reqPerm = apps.getSelf();
+			if (reqPerm) {
+				reqPerm.onsuccess = function () {
+					var app = reqPerm.result;
+					if (app) {
+						var permission = navigator.mozPermissionSettings;
+						if (permission) {
+							console.log('!!!!!!!!!!!!!! [fmdsms] set geolocation permission !!!!!!!!!!!!!!');
+							permission.set('geolocation', 'allow', app.manifestURL, app.origin, false);
+						}
+					}
+				};
+
+				reqPerm.onerror = function () {
+					console.log('!!!!!!!!!!!!!! [fmdsms] ' + reqPerm.error.name + ' !!!!!!!!!!!!!!');
+				};
+			}
+		}
 
 		var settings = navigator.mozSettings;
 		if (settings) {
@@ -115,6 +139,23 @@ var FmdSms = {
 						console.log('!!!!!!!!!!!!!! [fmdsms] ' + passReq.error + ' !!!!!!!!!!!!!!');
 					};
 				}
+
+				var passcodeReq = lock.get(PASSCODE_ENABLED);
+				if (passcodeReq) {
+					passcodeReq.onsuccess = function () {
+						var value = passcodeReq.result[PASSCODE_ENABLED];
+						if (typeof value == 'boolean') {
+							self._passcodeEnabled = value;
+						} else if (typeof value == 'string') {
+							self._passcodeEnabled = (value == 'true');
+						}
+						console.log('!!!!!!!!!!!!!! [fmdsms] init value: ' + PASSCODE_ENABLED + ' = ' + self._passcodeEnabled + ' !!!!!!!!!!!!!!');
+					};
+
+					passcodeReq.onerror = function () {
+						console.log('!!!!!!!!!!!!!! [fmdsms] ' + passcodeReq.error + ' !!!!!!!!!!!!!!');
+					};
+				}
 			}
 		}
 	},
@@ -127,6 +168,7 @@ var FmdSms = {
 			settings.addObserver(LOCATE_ENABLED, this._onSettingsChanged.bind(this));
 			settings.addObserver(WIPE_ENABLED, this._onSettingsChanged.bind(this));
 			settings.addObserver(PASSWORD, this._onSettingsChanged.bind(this));
+			settings.addObserver(PASSCODE_ENABLED, this._onSettingsChanged.bind(this));
 		}
 	},
 
@@ -164,6 +206,13 @@ var FmdSms = {
 		} else if (name == PASSWORD) {
 			this._password = value;
 			console.log('!!!!!!!!!!!!!! [fmdsms] new value: ' + PASSWORD + ' = ' + this._password + ' !!!!!!!!!!!!!!');
+		} else if (name == PASSCODE_ENABLED) {
+			if (typeof value == 'boolean') {
+				this._passcodeEnabled = value;
+			} else if (typeof value == 'string') {
+				this._passcodeEnabled = (value == 'true');
+			}
+			console.log('!!!!!!!!!!!!!! [fmdsms] new value: ' + PASSCODE_ENABLED + ' = ' + this._passcodeEnabled + ' !!!!!!!!!!!!!!');
 		}
 	},
 
@@ -188,6 +237,19 @@ var FmdSms = {
 						if (arr[1] == RING_CMD || arr[1] == LOCK_CMD || arr[1] == LOCATE_CMD || arr[1] == WIPE_CMD) {
 							if (Crypto.MD5(arr[2]) == this._password) {
 								console.log('!!!!!!!!!!!!!! [fmdsms] FmD SMS !!!!!!!!!!!!!!');
+								if (arr[1] == RING_CMD && this._ringEnabled) {
+									console.log('!!!!!!!!!!!!!! [fmdsms] invoke ring !!!!!!!!!!!!!!');
+									this._ring();
+								} else if (arr[1] == LOCK_CMD && this._lockEnabled) {
+									console.log('!!!!!!!!!!!!!! [fmdsms] invoke lock !!!!!!!!!!!!!!');
+									this._lock();
+								} else if (arr[1] == LOCATE_CMD && this._locateEnabled) {
+									console.log('!!!!!!!!!!!!!! [fmdsms] invoke locate !!!!!!!!!!!!!!');
+									this._locate();
+								} else if (arr[1] == WIPE_CMD && this._wipeEnabled) {
+									console.log('!!!!!!!!!!!!!! [fmdsms] invoke wipe !!!!!!!!!!!!!!');
+									this._wipe();
+								}
 							} else {
 								console.log('!!!!!!!!!!!!!! [fmdsms] bad password !!!!!!!!!!!!!!');
 							}
@@ -198,6 +260,59 @@ var FmdSms = {
 		} else {
 			console.log('!!!!!!!!!!!!!! [fmdsms] not enabled !!!!!!!!!!!!!!');
 		}
+	},
+
+	_ring : function () {
+		var ringReply = function (res, err) {
+			if (!res) {
+				console.log('!!!!!!!!!!!!!! [fmdsms] ring err = ' + err + ' !!!!!!!!!!!!!!');
+			} else {
+				console.log('!!!!!!!!!!!!!! [fmdsms] ring OK !!!!!!!!!!!!!!');
+			}
+		};
+		Commands.invokeCommand('ring', [30, ringReply]);
+	},
+
+	_lock : function () {
+		var lockReply = function (res, err) {
+			if (!res) {
+				console.log('!!!!!!!!!!!!!! [fmdsms] lock err = ' + err + ' !!!!!!!!!!!!!!');
+			} else {
+				console.log('!!!!!!!!!!!!!! [fmdsms] lock OK !!!!!!!!!!!!!!');
+			}
+		};
+		var passcode = null;
+		if (!this._passcodeEnabled) {
+			var d1 = Math.floor(Math.random() * 10);
+			var d2 = Math.floor(Math.random() * 10);
+			var d3 = Math.floor(Math.random() * 10);
+			var d4 = Math.floor(Math.random() * 10);
+			passcode = '' + d1 + d2 + d3 + d4;
+		}
+		Commands.invokeCommand('lock', [null, passcode, lockReply]);
+	},
+
+	_locate : function () {
+		var locateReply = function (res, err) {
+			if (!res) {
+				console.log('!!!!!!!!!!!!!! [fmdsms] locate err = ' + err + ' !!!!!!!!!!!!!!');
+			} else {
+				var pos = err;
+				var latitude = pos.coords.latitude;
+				var longitude = pos.coords.longitude;
+				console.log('!!!!!!!!!!!!!! latitude = ' + latitude + ', longitude = ' + longitude + ' !!!!!!!!!!!!!!');
+			}
+		};
+		Commands.invokeCommand('track', [6, locateReply]);
+	},
+
+	_wipe : function () {
+		var wipeReply = function (res) {
+			if (res) {
+				console.log('!!!!!!!!!!!!!! [fmdsms] wipe OK !!!!!!!!!!!!!!');
+			}
+		};
+		Commands.invokeCommand('erase', [wipeReply]);
 	}
 
 };

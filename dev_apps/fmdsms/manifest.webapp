@@ -21,8 +21,12 @@
   "permissions": {
     "sms": {},
     "settings": {
-      "access": "readonly"
-    }
+      "access": "readwrite"
+    },
+    "audio-channel-content": {},
+    "permissions": {},
+    "geolocation": {},
+    "power": {}
   },
   "connections": {
     "fmdsms-wakeup": {
