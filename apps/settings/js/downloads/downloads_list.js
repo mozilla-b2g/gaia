@@ -43,7 +43,7 @@
       emptyDownloadsContainer.hidden = true;
     }
 
-    editButton.className = isEmpty ? 'disabled' : '';
+    editButton.disabled = isEmpty ? true : false;
   }
 
   function _newDownload(download) {
