@@ -151,13 +151,34 @@ define(function(require) {
      *
      * @access public
      * @memberOf ApnSelections.prototype
-     * @params {String} serviceId
+     * @params {Number} serviceId
      * @returns {Promise Observable}
      */
     get: function as_get(serviceId) {
       return this._ready().then(function() {
         return this._apnSelections[serviceId];
       }.bind(this));
+    },
+
+    /**
+     * Reset the apn selection to null.
+     *
+     * @access public
+     * @memberOf ApnSelections.prototype
+     * @params {Number} serviceId
+     * @returns {Promise}
+     */
+    clear: function as_clear(serviceId) {
+      var apnSelection = this._apnSelections[serviceId];
+      if (!apnSelection) {
+        return Promise.resolve();
+      }
+
+      return this._ready().then(function() {
+        APN_TYPES.forEach(function(apnType) {
+          apnSelection[apnType] = null;
+        });
+      });
     }
   };
 
