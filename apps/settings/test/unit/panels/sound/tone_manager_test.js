@@ -1,7 +1,7 @@
 /*global: MockNavigatorMozTelephony*/
 'use strict';
 
-suite('Sound > ', function() {
+suite('Sound > ToneManager', function() {
   var toneManager;
   var realL10n, realTelephony, realMozSettings, realMozMobileConnections;
   var mockSettingsListener;

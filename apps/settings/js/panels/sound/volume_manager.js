@@ -24,7 +24,7 @@ define(function(require) {
     init: function vm_init(element) {
       this._sliders = element;
 
-      Array.prototype.forEach.call(this._sliders, this.sliderHandler);
+      Array.prototype.forEach.call(this._sliders, this._sliderHandler);
     },
 
     /**
@@ -33,7 +33,7 @@ define(function(require) {
      * @access public
      * @memberOf VolumeManager.prototype
      */
-    sliderHandler: function vm_sliderHandler(slider, index) {
+    _sliderHandler: function vm_sliderHandler(slider, index) {
       var channelType = channelTypes[index];
       var channelKey = 'audio.volume.' + channelType;
       // The default volume is 15(MAX).
