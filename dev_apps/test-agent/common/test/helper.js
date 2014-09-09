@@ -111,6 +111,8 @@
     chai.Assertion.includeStack = true;
     patchChai(chai.Assertion);
     window.assert = chai.assert;
+    window.expect = chai.expect;
+    window.should = chai.should();
   });
 
   // mocha helpers
