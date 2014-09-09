@@ -62,10 +62,6 @@
   animation: openAppFromCardView 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-#screen.task-manager #windows > .appWindow.from-cardview {
-  animation: openAppFromTaskManager 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
-}
-
 /* Opacity increases start up time then we don't use it anymore for opening */
 @keyframes openApp {
   0%   { transform: scale(0.2);}
@@ -84,11 +80,6 @@
 
 @keyframes openAppFromCardView {
   0%   { transform: scale(0.48); }
-  100% { transform: scale(1.0); }
-}
-
-@keyframes openAppFromTaskManager {
-  0%   { transform: scale(0.6); }
   100% { transform: scale(1.0); }
 }
 
@@ -188,10 +179,6 @@
   animation: closeAppTowardsCardView 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-#screen.task-manager #windows > .appWindow.to-cardview {
-  animation: closeAppTowardsTaskManager 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
-}
-
 @keyframes closeApp {
   0%   { transform: scale(1.0); opacity: 1;}
   100% { transform: scale(0.01); opacity: 0;}
@@ -200,11 +187,6 @@
 @keyframes closeAppTowardsCardView {
   0%   { transform: scale(1.0); }
   100% { transform: scale(0.48); }
-}
-
-@keyframes closeAppTowardsTaskManager {
-  0%   { transform: scale(1.0); }
-  100% { transform: scale(0.6); }
 }
 
 .appWindow.back {
@@ -497,19 +479,6 @@
 @keyframes outToRight {
   0%   { transform: translateX(0); }
   100% { transform: translateX(100%); }
-}
-
-/* Task Manager */
-#screen.task-manager:not(.software-button-enabled) > #windows > .appWindow.in-task-manager:not(.attentionWindow),
-#screen.task-manager:not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow.in-task-manager:not(.fullscreen-app):not(.attentionWindow) {
-  /* XXX sfoster - watch specificify here
-     Position values are 1/2 because of scaling */
-  top: calc(25% + 2.5rem);
-  margin: 0 auto;
-  overflow: hidden;
-  transform-origin: 50% 0;
-  transform: translateX(99.99%) scale(0.5, 0.5);
-  will-change: transform;
 }
 
 @keyframes slideFromUp {
