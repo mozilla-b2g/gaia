@@ -184,6 +184,11 @@ suite('system/NotificationScreen >', function() {
       navigator.mozTelephony = realMozTelephony;
     });
 
+    setup(function() {
+      MockNavigatorMozTelephony.calls = [];
+      MockNavigatorMozTelephony.conferenceGroup.state = null;
+    });
+
     test('it should play it by default on notification channel', function() {
       var playSpy = this.sinon.spy(MockAudio.prototype, 'play');
       sendNotification();
@@ -196,6 +201,15 @@ suite('system/NotificationScreen >', function() {
       var playSpy = this.sinon.spy(MockAudio.prototype, 'play');
       var mockCall = new MockCall('123456', 'connected');
       MockNavigatorMozTelephony.calls.push(mockCall);
+      sendNotification();
+      var mockAudio = MockAudio.instances[0];
+      assert.equal(mockAudio.mozAudioChannelType, 'telephony');
+      assert.ok(playSpy.calledOnce);
+    });
+
+    test('if active multicall it should use telephony channel', function() {
+      var playSpy = this.sinon.spy(MockAudio.prototype, 'play');
+      MockNavigatorMozTelephony.conferenceGroup.state = 'connected';
       sendNotification();
       var mockAudio = MockAudio.instances[0];
       assert.equal(mockAudio.mozAudioChannelType, 'telephony');
