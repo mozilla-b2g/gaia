@@ -1,11 +1,15 @@
-suite('views/preview-gallery', function() {
+suite('views/controls', function() {
   /*jshint maxlen:false*/
   'use strict';
 
   suiteSetup(function(done) {
     var self = this;
-    requirejs(['views/controls'], function(ControlsView) {
+    requirejs([
+      'views/controls',
+      'drag'
+    ], function(ControlsView, Drag) {
       self.ControlsView = ControlsView;
+      self.Drag = Drag;
       done();
     });
   });
@@ -28,8 +32,10 @@ suite('views/preview-gallery', function() {
     this.sandbox.stub(window.URL, 'revokeObjectURL');
 
     this.sandbox.stub(window, 'Image', function() { return self.image; });
+    this.sandbox.spy(this.ControlsView.prototype, 'onSwitchTapped');
 
-    this.view = new this.ControlsView();
+    this.drag = sinon.createStubInstance(this.Drag);
+    this.view = new this.ControlsView({ drag: this.drag });
     this.view.els.image = undefined;
     this.classes = this.view.el.classList;
 
@@ -157,9 +163,8 @@ suite('views/preview-gallery', function() {
 
   suite('ControlsView#onSwitchTapped()', function() {
     setup(function() {
-      this.event = {
-        preventDefault: sinon.spy()
-      };
+      this.event = { preventDefault: sinon.spy() };
+      this.spy = this.ControlsView.prototype.onSwitchTapped;
     });
 
     test('It emits a `modechanged` event', function() {
@@ -170,6 +175,35 @@ suite('views/preview-gallery', function() {
     test('It prevents default to stop the event becoming a click', function() {
       this.view.onSwitchTapped(this.event);
       sinon.assert.called(this.event.preventDefault);
+    });
+
+    test('It is debounced to defend against button bashing', function() {
+      this.view.setupSwitch();
+      var callback = this.drag.on.withArgs('tapped').args[0][1];
+
+      callback(this.event);
+      callback(this.event);
+      callback(this.event);
+      callback(this.event);
+
+      sinon.assert.calledOnce(this.spy);
+    });
+  });
+
+  suite('ControlsView#onSwitchSnapped()', function() {
+    setup(function() {
+      this.view.set('mode', 'picture');
+    });
+
+    test('It fires \'modechanged\' when the switch changes position', function() {
+
+      // Didn't change
+      this.view.onSwitchSnapped({ x: 'left' });
+      assert.isFalse(this.view.emit.calledWith('modechanged'));
+
+      // Changed
+      this.view.onSwitchSnapped({ x: 'right' });
+      assert.isTrue(this.view.emit.calledWith('modechanged'));
     });
   });
 });
