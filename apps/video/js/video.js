@@ -26,8 +26,8 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
            'slider-wrapper', 'throbber', 'picker-close', 'picker-title',
-           'picker-done', 'options', 'options-view', 'options-cancel-button',
-           'seek-backward', 'seek-forward'];
+           'picker-header', 'picker-done', 'options', 'options-view',
+           'options-cancel-button', 'seek-backward', 'seek-forward'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
