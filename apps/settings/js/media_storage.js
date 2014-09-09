@@ -413,6 +413,18 @@ require([
     var popup = document.getElementById('format-sdcard-dialog');
     var cancelBtn = document.getElementById('format-sdcard-cancel-btn');
     var okBtn = document.getElementById('format-sdcard-ok-btn');
+    var dialogHeader = popup.querySelector('h1');
+    var dialogContent = popup.querySelector('p');
+
+    if (!this.external) {
+      dialogHeader.setAttribute('data-l10n-id',
+        'format-sdcard-internal-title');
+      dialogContent.setAttribute('data-l10n-id',
+        'format-sdcard-internal-message');
+    } else {
+      dialogHeader.setAttribute('data-l10n-id', 'format-sdcard-title');
+      dialogContent.setAttribute('data-l10n-id', 'format-sdcard-message');
+    }
 
     var self = this;
     var confirmHandler = function() {
