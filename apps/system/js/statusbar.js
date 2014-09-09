@@ -252,7 +252,7 @@ var StatusBar = {
     window.addEventListener('appopened', this);
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
-    window.addEventListener('sheetstransitionstart', this);
+    window.addEventListener('sheets-gesture-begin', this);
     window.addEventListener('apptitlestatechanged', this);
     window.addEventListener('stackchanged', this);
 
@@ -469,7 +469,7 @@ var StatusBar = {
 
       case 'homescreenopening':
       case 'appopening':
-      case 'sheetstransitionstart':
+      case 'sheets-gesture-begin':
         this.element.classList.add('hidden');
         break;
 

@@ -356,10 +356,10 @@ suite('system/AppWindowManager', function() {
         });
       });
 
-      test('should exit fullscreen when the sheet transition starts',
+      test('should exit fullscreen when the sheet gesture begins',
       function() {
         var cancelSpy = this.sinon.spy(document, 'mozCancelFullScreen');
-        AppWindowManager.handleEvent({ type: 'sheetstransitionstart' });
+        AppWindowManager.handleEvent({ type: 'sheets-gesture-begin' });
         sinon.assert.calledOnce(cancelSpy);
       });
     });
@@ -540,6 +540,24 @@ suite('system/AppWindowManager', function() {
       });
 
       assert.isTrue(stubSetVisibleForScreenReader.calledWith(true));
+    });
+
+    test('Sends sheetsgesturebegin and sheetsgestureend when expected',
+    function() {
+      injectRunningApps(app1);
+      AppWindowManager._activeApp = app1;
+
+      var stubBroadcast = this.sinon.stub(app1, 'broadcast');
+
+      // Should send sheetsgesturebegin.
+      AppWindowManager.handleEvent({ type: 'sheets-gesture-begin' });
+      assert.isTrue(stubBroadcast.calledWith('sheetsgesturebegin'));
+      stubBroadcast.reset();
+
+      // Should send sheetsgestureend.
+      AppWindowManager.handleEvent({type: 'sheets-gesture-end'});
+      assert.isTrue(stubBroadcast.calledWith('sheetsgestureend'));
+      stubBroadcast.reset();
     });
 
     test('Hide for screen reader top window', function() {

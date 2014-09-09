@@ -278,9 +278,9 @@ suite('system/AppWindow', function() {
       visibleSpy = this.sinon.stub(AppWindow.prototype, 'setVisible');
     });
 
-    test('do not screenshot apps launched in background', function() {
+    test('apps with background flag launched in background', function() {
       new AppWindow(fakeAppConfigBackground); // jshint ignore:line
-      sinon.assert.calledWith(visibleSpy, false, false);
+      sinon.assert.calledWith(visibleSpy, false);
     });
 
     test('homescreen is launched at background', function() {
@@ -583,52 +583,31 @@ suite('system/AppWindow', function() {
   });
 
   suite('ScreenshotOverlay State Control', function() {
-    test('show', function() {
+    test('when cards view is shown and hidden', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
 
-      var stub_setVisible = this.sinon.stub(app1, '_setVisible');
-      app1._screenshotOverlayState = 'frame';
-      app1._showFrame();
-      assert.isTrue(stub_setVisible.calledWith(true));
-      stub_setVisible.restore();
+      app1.element.dispatchEvent(new CustomEvent('_cardviewbeforeshow'));
+      assert.isTrue(app1.screenshotOverlay.classList.contains('visible'),
+                    'Overlay should be visible after beforeshow is received');
 
-      stub_setVisible = this.sinon.stub(app1, '_setVisible');
-      app1._screenshotOverlayState = 'screenshot';
-      app1._showFrame();
-      assert.isFalse(stub_setVisible.called);
-      stub_setVisible.restore();
-
-      stub_setVisible = this.sinon.stub(app1, '_setVisible');
-      app1._screenshotOverlayState = 'none';
-      app1._showFrame();
-      assert.isFalse(stub_setVisible.called);
-      stub_setVisible.restore();
+      app1.element.dispatchEvent(new CustomEvent('_cardviewclosed'));
+      assert.isFalse(app1.screenshotOverlay.classList.contains('visible'),
+                     'Overlay should be hidden after closed is received');
     });
 
-    test('hide', function() {
+    test('when sheets-gesture-begin and end are received', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
 
-      var stub_setVisible = this.sinon.stub(app1, '_setVisible');
-      app1._screenshotOverlayState = 'frame';
-      app1._hideFrame();
-      assert.isFalse(stub_setVisible.called);
-      stub_setVisible.restore();
+      app1.element.dispatchEvent(new CustomEvent('_sheetsgesturebegin'));
+      assert.isTrue(app1.screenshotOverlay.classList.contains('visible'),
+                    'Overlay should be visible after _sheets-gesture-begin');
 
-      stub_setVisible = this.sinon.stub(app1, '_setVisible');
-      app1._screenshotOverlayState = 'screenshot';
-      app1._hideFrame();
-      assert.isTrue(stub_setVisible.calledWith(false));
-      stub_setVisible.restore();
-
-      stub_setVisible = this.sinon.stub(app1, '_setVisible');
-      app1._screenshotOverlayState = 'none';
-      app1._hideFrame();
-      assert.isTrue(stub_setVisible.calledWith(false));
-      stub_setVisible.restore();
+      app1.element.dispatchEvent(new CustomEvent('_sheetsgestureend'));
+      assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
     });
 
     test('showScreenshotOverlay', function() {
@@ -636,37 +615,11 @@ suite('system/AppWindow', function() {
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
 
-      var stubGetScreenshot = this.sinon.stub(app1, 'getScreenshot');
-      var stubHideFrame = this.sinon.stub(app1, '_hideFrame');
       var stubRequestScreenshotURL =
         this.sinon.stub(app1, 'requestScreenshotURL');
-      app1._screenshotOverlayState = 'frame';
       app1._showScreenshotOverlay();
-      stubGetScreenshot.getCall(0).args[0]('');
-      assert.isFalse(stubHideFrame.called);
-      stubGetScreenshot.getCall(0).args[0]('fakeBlob');
-      assert.isFalse(stubRequestScreenshotURL.called);
-
-      stubHideFrame.reset();
-      stubRequestScreenshotURL.reset();
-
-      app1._screenshotOverlayState = 'screenshot';
-      app1._showScreenshotOverlay();
-      stubGetScreenshot.getCall(1).args[0]('');
-      assert.isTrue(stubHideFrame.called);
-      stubGetScreenshot.getCall(1).args[0]('fakeBlob');
       assert.isTrue(stubRequestScreenshotURL.called);
-
-      stubHideFrame.reset();
-      stubRequestScreenshotURL.reset();
-
-      app1._screenshotOverlayState = 'none';
-      app1._showScreenshotOverlay();
-      stubGetScreenshot.yield('');
-      assert.isTrue(stubHideFrame.called);
-      stubGetScreenshot.yield('fakeblob');
       assert.isTrue(app1.screenshotOverlay.classList.contains('visible'));
-      assert.isTrue(stubRequestScreenshotURL.called);
     });
 
     test('hideScreenshotOverlay', function() {
@@ -674,7 +627,6 @@ suite('system/AppWindow', function() {
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
 
-      app1._screenshotOverlayState = 'none';
       app1.screenshotOverlay.classList.add('visible');
       app1.identificationOverlay.classList.add('visible');
       app1._hideScreenshotOverlay();
@@ -716,11 +668,11 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubRevokeObjectURL.calledWith('fakeURL'));
     });
 
-    test('Show identification overlay when setVisible(false)', function() {
+    test('Show identification overlay when showing screenshot', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
-      app1.setVisible(false);
+      app1._showScreenshotOverlay();
       assert.isTrue(app1.identificationOverlay.classList.contains('visible'));
     });
   });
@@ -913,7 +865,7 @@ suite('system/AppWindow', function() {
         this.sinon.stub(app1, 'tryWaitForFullRepaint');
 
       app1.loaded = true;
-      app1._screenshotOverlayState = 'screenshot';
+      app1.screenshotOverlay.classList.add('visible');
       app1.ready(callback);
       assert.isFalse(stubEnsureFullRepaint.called);
       assert.isFalse(stubWaitForNextPaint.called);
@@ -1060,35 +1012,22 @@ suite('system/AppWindow', function() {
     test('setVisible: true', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
-      app1.screenshotOverlay = document.createElement('div');
       var stub_showFrame = this.sinon.stub(app1,
         '_showFrame');
 
       app1.setVisible(true);
-      assert.equal(app1._screenshotOverlayState, 'frame');
+      assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
       assert.isTrue(stub_showFrame.called);
     });
+
     test('setVisible: false', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
-      app1.screenshotOverlay = document.createElement('div');
       var stub_hideFrame = this.sinon.stub(app1,
         '_hideFrame');
 
       app1.setVisible(false);
-      assert.equal(app1._screenshotOverlayState, 'none');
       assert.isTrue(stub_hideFrame.called);
-    });
-    test('setVisible: false, true', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      injectFakeMozBrowserAPI(app1.browser.element);
-      app1.screenshotOverlay = document.createElement('div');
-      var stub_showScreenshotOverlay = this.sinon.stub(app1,
-        '_showScreenshotOverlay');
-
-      app1.setVisible(false, true);
-      assert.equal(app1._screenshotOverlayState, 'screenshot');
-      assert.isTrue(stub_showScreenshotOverlay.called);
     });
 
     test('setVisible to front window', function() {
@@ -1107,13 +1046,12 @@ suite('system/AppWindow', function() {
     test('setVisible: homescreen', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
-      app1.screenshotOverlay = document.createElement('div');
       var stub_hideFrame = this.sinon.stub(app1,
         '_hideFrame');
       app1.isHomescreen = true;
 
       app1.setVisible(false);
-      assert.equal(app1._screenshotOverlayState, 'none');
+      assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
       assert.isTrue(stub_hideFrame.called);
     });
 
@@ -1125,8 +1063,8 @@ suite('system/AppWindow', function() {
       app1.isHomescreen = true;
 
       app1.setVisible(false);
-      assert.equal(app1._screenshotOverlayState, 'none');
-      assert.equal(app2._screenshotOverlayState, 'none');
+      assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
+      assert.isFalse(app2.screenshotOverlay.classList.contains('visible'));
     });
   });
 
@@ -1413,8 +1351,14 @@ suite('system/AppWindow', function() {
 
     test('Kill a child window.', function() {
       var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+
       var app1parent = new AppWindow(fakeAppConfig2);
+      injectFakeMozBrowserAPI(app1parent.browser.element);
+
       var app1child = new AppWindow(fakeAppConfig3);
+      injectFakeMozBrowserAPI(app1child.browser.element);
+
       app1.nextWindow = app1child;
       app1child.previousWindow = app1;
       app1.previousWindow = app1parent;
@@ -1434,8 +1378,10 @@ suite('system/AppWindow', function() {
       assert.isNull(app1.nextWindow);
 
       var stubDestroy = this.sinon.stub(app1, 'destroy');
+
       /** global */
       app1.element.dispatchEvent(new CustomEvent('_closed'));
+
       assert.isTrue(stubDestroy.called);
     });
 
@@ -1708,6 +1654,7 @@ suite('system/AppWindow', function() {
 
     test('Swipe out event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
       var atc1 = {
         switchTransitionState: function() {}
       };

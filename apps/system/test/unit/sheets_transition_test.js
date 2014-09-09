@@ -133,9 +133,9 @@ suite('system/SheetsTransition >', function() {
     });
   });
 
-  test('it should dispatch a sheetstransitionstart event', function(done) {
-    window.addEventListener('sheetstransitionstart', function gotIt(evt) {
-      window.removeEventListener('sheetstransitionstart', gotIt);
+  test('it should dispatch a sheets-gesture-begin event', function(done) {
+    window.addEventListener('sheets-gesture-begin', function gotIt(evt) {
+      window.removeEventListener('sheets-gesture-begin', gotIt);
 
       assert.isTrue(true, 'got it');
       done();
