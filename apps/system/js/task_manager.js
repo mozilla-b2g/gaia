@@ -52,14 +52,7 @@
      */
     currentCard: {
       get: function cs_getCurrentCard() {
-        var app = this.stack[this.position];
-        var card = app && this.cardsByAppID[app.instanceID];
-        if (card) {
-          return card;
-        }
-
-        debug('getCurrentCard, no card at position: ' + this.position);
-        return null;
+        return this.getCardAtIndex(this.position);
       }
     }
   });
@@ -117,6 +110,7 @@
   TaskManager.prototype.show = function cs_showCardSwitcher(filterName) {
     this.publish('cardviewbeforeshow');
 
+    this.newStackPosition = null;
     this._registerShowingEvents();
 
     if (this.filter(filterName)) {
@@ -136,6 +130,11 @@
 
     var screenElement = this.screenElement;
     var activeApp = AppWindowManager.getActiveApp();
+    if (!activeApp) {
+      screenElement.classList.add('cards-view');
+      return;
+    }
+
     if (activeApp.isHomescreen) {
       screenElement.classList.add('cards-view');
     } else {
@@ -152,14 +151,15 @@
    * @memberOf TaskManager.prototype
    *
    */
-  TaskManager.prototype.hide = function cs_hideCardSwitcher(position) {
+  TaskManager.prototype.hide = function cs_hideCardSwitcher() {
     this._unregisterShowingEvents();
     this._removeCards();
     this.setActive(false);
+    this.screenElement.classList.remove('cards-view');
 
     var detail;
-    if (!isNaN(position)) {
-      detail = { 'detail': { 'newStackPosition': position }};
+    if (!isNaN(this.newStackPosition)) {
+      detail = { 'detail': { 'newStackPosition': this.newStackPosition }};
     }
     this.publishNextTick('cardviewclosed', detail);
   };
@@ -239,7 +239,7 @@
    * @returns true if a filter was applied, false if not.
    */
   TaskManager.prototype.filter = function cs_filterCardStack(filterName) {
-    var unfilteredStack = StackManager.snapshot();
+    var unfilteredStack = this.unfilteredStack = StackManager.snapshot();
 
     var noRecentWindows = document.getElementById('cards-no-recent-windows');
     switch (filterName) {
@@ -268,7 +268,7 @@
     }
 
     this.position = this.stack.indexOf(unfilteredStack[StackManager.position]);
-    if (this.position === -1) {
+    if (this.position === -1 || StackManager.outOfStack()) {
       this.position = this.stack.length - 1;
     }
 
@@ -399,16 +399,20 @@
     // manager repaints everything.
     this.screenElement.classList.remove('cards-view');
 
-    app = app || homescreenLauncher.getHomescreen(true);
+    app = app ||
+          StackManager.getCurrent() ||
+          homescreenLauncher.getHomescreen(true);
 
-    var card = app && this.cardsByAppID[app.instanceID];
-    var position = card ? card.position : undefined;
+    var position = this.unfilteredStack.indexOf(app);
+    if (position !== StackManager.position) {
+      this.newStackPosition = position;
+    }
 
     setTimeout((function() {
       var safetyTimeout = null;
       var finish = (function() {
         clearTimeout(safetyTimeout);
-        this.hide(position);
+        this.hide();
       }).bind(this);
 
       if (app.isHomescreen) {
@@ -582,6 +586,23 @@
     });
   };
 
+   /**
+    * Return the card object at the given index into the stack
+    * @memberOf TaskManager.prototype
+    * @param {Number} idx index into the stack
+    */
+  TaskManager.prototype.getCardAtIndex = function(idx) {
+    if (this.stack && idx > -1 && idx < this.stack.length) {
+      var app = this.stack[idx];
+      var card = app && this.cardsByAppID[app.instanceID];
+      if (card) {
+        return card;
+      }
+    }
+    debug('getCardAtIndex, no card at idx: ' + idx);
+    return null;
+  };
+
   /**
    * Return the card object that owns the given element
    * @memberOf TaskManager.prototype
@@ -704,6 +725,7 @@
     this.deltaX = 0;
     this.deltaY = 0;
     this.startTouchPosition = [evt.touches[0].pageX, evt.touches[0].pageY];
+    this.startTouchDate = Date.now();
     this._resetCardsTransition();
   };
 
@@ -742,16 +764,24 @@
     }
 
     // The gesture is a simple swipe, move the target card at the center.
-    if (this.deltaX < 0 &&
-        this.position < this.cardsList.childNodes.length - 1) {
-      this.position++;
-    } else if (this.deltaX > 0 && this.position > 0) {
-      this.position--;
-    }
+    var speed = this.deltaX / (Date.now() - this.initialTouchDate);
+    var inertia = speed * 250;
+    var boosted = this.deltaX + inertia;
+    var progress = Math.abs(boosted) / window.innerWidth;
 
-    var progress = Math.abs(this.deltaX) / window.innerWidth;
     if (progress > 0.5) {
       progress -= 0.5;
+    }
+
+    var switching = Math.abs(boosted) >= this.SWITCH_CARD_THRESHOLD;
+
+    if (switching) {
+      if (this.deltaX < 0 &&
+          this.position < this.cardsList.childNodes.length - 1) {
+        this.position++;
+      } else if (this.deltaX > 0 && this.position > 0) {
+        this.position--;
+      }
     }
 
     var durationLeft = Math.max(50, (1 - progress) * this.DURATION);
