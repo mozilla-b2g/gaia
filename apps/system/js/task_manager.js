@@ -116,15 +116,15 @@
       this.element.classList.add('filtered');
     }
 
-    this.unfilteredStack.forEach(function(app, position) {
-      app.enterTaskManager();
-    });
-
     // First add an item to the cardsList for each running app
     var stack = this.stack;
     stack.forEach(function(app, position) {
       this.addCard(position, app);
     }, this);
+
+    this.unfilteredStack.forEach(function(app, position) {
+      app.enterTaskManager();
+    });
 
     this.publish('cardviewbeforeshow');
 
