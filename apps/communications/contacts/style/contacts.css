@@ -816,13 +816,10 @@ form[role="combobox"] span[data-field="type"] {
   margin: 0.2rem 1rem 0 0.2rem;
   width: 2.8rem;
   color: #fff;
-  background: url('images/icon_remove.png') no-repeat scroll 0px 0px / 3rem auto transparent;
+  background-color: transparent;
+  background-image: url(images/icon_remove.png);
+  background-repeat:no-repeat;
   border: 0;
-  -moz-user-select: none;
-}
-
-.img-delete-button:active {
-  background: url('images/icon_remove.png') no-repeat scroll 0px 0px / 3rem auto transparent;
 }
 
 .view-edit-contact form li > section > div {
