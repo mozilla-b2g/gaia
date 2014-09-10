@@ -149,16 +149,13 @@ var SimLock = {
   },
 
   showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
-    if (lockScreen && lockScreen.locked)
+    if (System.lockScreen)
       return false;
 
     // FTU has its specific SIM PIN UI
-    if (FtuLauncher.isFtuRunning()) {
-      VersionHelper.getVersionInfo().then(function(info) {
-        if (!info.isUpgrade()) {
-          SimPinDialog.close();
-        }
-      });
+    if (FtuLauncher.isFtuRunning() && !FtuLauncher.isFtuUpgrading()) {
+      SimPinDialog.close();
+      return false;
     }
 
     if (this._duringCall) {
