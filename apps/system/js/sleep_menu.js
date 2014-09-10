@@ -91,6 +91,7 @@
       window.addEventListener('screenchange', this, true);
       window.addEventListener('home', this);
       window.addEventListener('batteryshutdown', this);
+      window.addEventListener('cardviewbeforeshow', this);
 
       window.addEventListener('attentionopened', this);
       this.elements.cancel.addEventListener('click', this);
@@ -230,6 +231,10 @@
      */
     handleEvent: function sm_handleEvent(evt) {
       switch (evt.type) {
+        case 'cardviewbeforeshow':
+          this.hide();
+          break;
+
         case 'batteryshutdown':
           window.dispatchEvent(
               new CustomEvent('requestshutdown', {detail: this}));

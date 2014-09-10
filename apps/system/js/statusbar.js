@@ -201,6 +201,9 @@ var StatusBar = {
     window.addEventListener('attentionopened', this);
     window.addEventListener('attentionclosed', this);
 
+    window.addEventListener('cardviewshown', this);
+    window.addEventListener('cardviewclosed', this);
+
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
 
@@ -290,6 +293,14 @@ var StatusBar = {
       case 'attentionclosed':
         // Hide the clock in the statusbar when screen is locked
         this.toggleTimeLabel(!this.isLocked());
+        break;
+
+      case 'cardviewshown':
+        this.pauseUpdate();
+        break;
+
+      case 'cardviewclosed':
+        this.resumeUpdate();
         break;
 
       case 'lockpanelchange':
@@ -471,7 +482,20 @@ var StatusBar = {
     return window.innerWidth - window.innerWidth * 0.6521 + 80 * 0.6521 - 5 - 3;
   },
 
+  pauseUpdate: function sb_pauseUpdate() {
+    this._paused = true;
+  },
+
+  resumeUpdate: function sb_resumeUpdate() {
+    this._paused = false;
+    this._updateIconVisibility();
+  },
+
   _updateIconVisibility: function sb_updateIconVisibility() {
+    if (this._paused) {
+      return;
+    }
+
     // Let's refresh the minimized clone.
     this.cloneStatusbar();
 
