@@ -219,7 +219,7 @@ require.config({
       ]
     },
     {
-      name: 'panels/browser_privacy/panel',
+      name: 'panels/browsing_privacy/panel',
       exclude: ['main']
     },
     {

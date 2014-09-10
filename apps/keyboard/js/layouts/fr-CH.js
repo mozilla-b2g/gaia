@@ -5,6 +5,7 @@ Keyboards['fr-CH'] = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'fr',
+  autoCorrectPunctuation: false,
   alt: {
     a: 'àâæáãäåā',
     c: 'çćč',

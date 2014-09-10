@@ -6,7 +6,9 @@
   var currentLayout = 'tiny';
 
   var elementIDs = [
-    'tutorialFinished'
+    'tutorialFinished',
+    'enjoyYourPhone',
+    'enjoyYourPhoneUpdated'
   ];
 
   var dom = {};
@@ -14,7 +16,7 @@
   var initialized = false;
 
   var FinishScreen = {
-    init: function () {
+    init: function (isUpgrade) {
       if (initialized) {
         return;
       }
@@ -34,6 +36,11 @@
       elementIDs.forEach(function (name) {
         dom[Utils.camelCase(name)] = document.getElementById(name);
       }, this);
+
+      if (isUpgrade) {
+        dom.enjoyYourPhone.hidden = true;
+        dom.enjoyYourPhoneUpdated.hidden = false;
+      }
 
       // Add regular listener if needed
       if (currentLayout === 'tiny') {

@@ -38,7 +38,7 @@ suite('Tutorial >', function() {
     for (; stepCount; stepCount--) {
       steps.push({
         video: '/style/images/tutorial/VerticalScroll.mp4',
-        l10nKey: 'tutorial-vertical-scroll-tiny'
+        l10nKey: 'tutorial-vertical-scroll-v2-tiny'
       });
     }
     var config = {
@@ -174,7 +174,7 @@ suite('Tutorial >', function() {
         'default': {
           steps: [{
             video: '/style/images/tutorial/NotThere.mp4',
-            l10nKey: 'tutorial-vertical-scroll-tiny'
+            l10nKey: 'tutorial-vertical-scroll-v2-tiny'
           }]
         }
       };

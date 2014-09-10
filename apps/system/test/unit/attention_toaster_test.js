@@ -148,11 +148,13 @@ suite('system/AttentionToaster', function() {
       var app1 = new MockAppWindow(fakeAppConfig1);
       var at1 = new AttentionToaster(app1);
       var stubRealResize = this.sinon.stub(app1, '_resize');
+      var stubPublish = this.sinon.stub(app1, 'publish');
       at1.becomeToaster();
       app1.element.classList.add('displayed');
       at1.recoverLayout();
       assert.isFalse(app1.element.classList.contains('toaster-mode'));
       assert.isFalse(app1.element.classList.contains('displayed'));
+      assert.isTrue(stubPublish.calledWith('recovering'));
       assert.isTrue(stubRealResize.called);
       assert.isFalse(app1.resized);
     });

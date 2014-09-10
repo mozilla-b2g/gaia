@@ -207,6 +207,7 @@
           } else if (e.target == this.clearBtn) {
             this.clear();
           } else if (e.target == this.backdrop) {
+            this.hideResults();
             this.deactivate();
           }
           break;

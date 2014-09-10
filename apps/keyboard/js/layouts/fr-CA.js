@@ -4,6 +4,7 @@ Keyboards['fr-CA'] = {
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'fr',
+  autoCorrectPunctuation: false,
   menuLabel: 'Français (Canadien)',
   alt: {
     a: 'áàâäåãāæ',

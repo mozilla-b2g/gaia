@@ -3,7 +3,7 @@
     "steps": [
       {
         "video": "/style/images/tutorial/VerticalScroll.mp4",
-        "l10nKey": "tutorial-vertical-scroll-tiny"
+        "l10nKey": "tutorial-vertical-scroll-v2-tiny"
       },
       {
         "video": "/style/images/tutorial/Notifications.mp4",
@@ -12,30 +12,22 @@
       {
         "video": "/style/images/tutorial/Sheets.mp4",
         "l10nKey": "tutorial-sheets-tiny"
+      },
+      {
+        "video": "/style/images/tutorial/Rocketbar.mp4",
+        "l10nKey": "tutorial-rocketbar-tiny"
       }
     ]
   },
-  "1.4..2.0": {
+  "2.0..2.1": {
     "steps": [
       {
         "video": "/style/images/tutorial/VerticalScroll.mp4",
-        "l10nKey": "tutorial-vertical-scroll-tiny"
+        "l10nKey": "tutorial-bookmark-migration-tiny"
       },
       {
-        "video": "/style/images/tutorial/Sheets.mp4",
-        "l10nKey": "tutorial-sheets-tiny"
-      }
-    ]
-  },
-  "1.3..2.0": {
-    "steps": [
-      {
-        "video": "/style/images/tutorial/VerticalScroll.mp4",
-        "l10nKey": "tutorial-vertical-scroll-tiny"
-      },
-      {
-        "video": "/style/images/tutorial/Sheets.mp4",
-        "l10nKey": "tutorial-sheets-tiny"
+        "video": "/style/images/tutorial/Rocketbar.mp4",
+        "l10nKey": "tutorial-rocketbar-tiny"
       }
     ]
   },
@@ -43,11 +35,15 @@
     "steps": [
       {
         "video": "/style/images/tutorial/VerticalScroll.mp4",
-        "l10nKey": "tutorial-vertical-scroll-tiny"
+        "l10nKey": "tutorial-vertical-scroll-v2-tiny"
       },
       {
         "video": "/style/images/tutorial/Sheets.mp4",
         "l10nKey": "tutorial-sheets-tiny"
+      },
+      {
+        "video": "/style/images/tutorial/Rocketbar.mp4",
+        "l10nKey": "tutorial-rocketbar-tiny"
       }
     ]
   },
@@ -55,11 +51,15 @@
     "steps": [
       {
         "video": "/style/images/tutorial/VerticalScroll.mp4",
-        "l10nKey": "tutorial-vertical-scroll-tiny"
+        "l10nKey": "tutorial-vertical-scroll-v2-tiny"
       },
       {
         "video": "/style/images/tutorial/Sheets.mp4",
         "l10nKey": "tutorial-sheets-tiny"
+      },
+      {
+        "video": "/style/images/tutorial/Rocketbar.mp4",
+        "l10nKey": "tutorial-rocketbar-tiny"
       }
     ]
   }

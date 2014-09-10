@@ -211,6 +211,8 @@ var UtilityTray = {
 
       case 'resize':
         this.validateCachedSizes(true);
+        if (this.shown)
+          this.updateSize();
         break;
 
       case 'mozChromeEvent':
@@ -368,6 +370,7 @@ var UtilityTray = {
 
   show: function ut_show(dy) {
     this.validateCachedSizes();
+    this.updateSize();
     var alreadyShown = this.shown;
     var style = this.overlay.style;
     style.MozTransition = '-moz-transform 0.2s linear';
@@ -377,11 +380,6 @@ var UtilityTray = {
     this.screen.classList.add('utility-tray');
     this.notifications.classList.add('visible');
     this.notifications.style.transition = 'clip 0.2s linear';
-    this.notifications.style.height = this.placeholderHeight + 'px';
-    var notificationBottom = Math.max(0, this.screenHeight - this.grippyHeight);
-    this.notifications.style.clip =
-      'rect(0, ' + this.screenWidth + 'px, ' + notificationBottom + 'px, 0)';
-    this.notifications.classList.add('visible');
     window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
 
     if (!alreadyShown) {
@@ -389,6 +387,13 @@ var UtilityTray = {
       evt.initCustomEvent('utilitytrayshow', true, true, null);
       window.dispatchEvent(evt);
     }
+  },
+
+  updateSize: function ut_updateSize() {
+    this.notifications.style.height = this.placeholderHeight + 'px';
+    var notificationBottom = Math.max(0, this.screenHeight - this.grippyHeight);
+    this.notifications.style.clip =
+      'rect(0, ' + this.screenWidth + 'px, ' + notificationBottom + 'px, 0)';
   },
 
   _pdIMESwitcherShow: function ut_pdIMESwitcherShow(evt) {

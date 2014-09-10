@@ -85,7 +85,7 @@ class Keyboard(Base):
     _keyboards_locator = (By.ID, 'keyboards')
     _keyboard_frame_locator = (By.CSS_SELECTOR, '#keyboards iframe:not([hidden])')
     _button_locator = (By.CSS_SELECTOR, '.keyboard-type-container[data-active] button.keyboard-key[data-keycode="%s"], .keyboard-type-container[data-active] button.keyboard-key[data-keycode-upper="%s"]')
-    _highlight_key_locator = (By.CSS_SELECTOR, 'div.highlighted button')
+    _highlight_key_locator = (By.CSS_SELECTOR, '#keyboard-accent-char-menu button')
     _predicted_word_locator = (By.CSS_SELECTOR, '.autocorrect')
     _candidate_panel_locator = (By.CSS_SELECTOR, '.keyboard-candidate-panel')
     _suggestions_container_locator = (By.CSS_SELECTOR, '.suggestions-container')
