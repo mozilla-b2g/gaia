@@ -24,7 +24,58 @@ define(function(require) {
     init: function vm_init(element) {
       this._sliders = element;
 
-      Array.prototype.forEach.call(this._sliders, this._sliderHandler);
+      Array.prototype.forEach.call(this._sliders,
+        this._sliderHandler.bind(this));
+    },
+
+    /**
+     * Stop the tone
+     *
+     * @access private
+     * @memberOf VolumeManager.prototype
+     * @param  {[type]} player sound player object
+     */
+    _stopTone: function vm_stopTone(player) {
+      player.pause();
+      player.removeAttribute('src');
+      player.load();
+    },
+
+    /**
+     * Play the tone
+     *
+     * @access private
+     * @memberOf VolumeManager.prototype
+     * @param  {Object} player sound player object
+     * @param  {String} type tone type
+     * @param  {Blob} blob tone blob
+     */
+    _playTone: function vm_playTone(player, type, blob) {
+      // Don't set the audio channel type to content or it will interrupt the
+      // background music and won't resume after the user previewed the tone.
+      if (type !== 'content') {
+        player.mozAudioChannelType = type;
+      }
+      player.src = URL.createObjectURL(blob);
+      player.load();
+      player.loop = true;
+      player.play();
+    },
+
+    /**
+     * Change slider's value
+     *
+     * @access private
+     * @memberOf VolumeManager.prototype
+     * @param {[type]} value slider value
+     */
+    _setSliderValue: function vm_setSliderValue(slider, value) {
+      slider.value = value;
+      // The slider is transparent if the value is not set yet, display it
+      // once the value is set.
+      if (slider.style.opacity !== 1) {
+        slider.style.opacity = 1;
+      }
     },
 
     /**
@@ -45,9 +96,14 @@ define(function(require) {
       var isFirstInput = false;
       var intervalID = null;
       var player = new Audio();
+      var self = this;
+
+      var _bindSetSliderValue = function(value) {
+        self._setSliderValue(slider, value);
+      };
 
       // Get the volume value for the slider, also observe the value change.
-      SettingsListener.observe(channelKey, '', _setSliderValue);
+      SettingsListener.observe(channelKey, '', _bindSetSliderValue);
 
       // The sliders listen to input, touchstart and touchend events to fit
       // the ux requirements, and when the user tap or drag the sliders, the
@@ -56,35 +112,6 @@ define(function(require) {
       slider.addEventListener('touchstart', _touchStartHandler);
       slider.addEventListener('input', _inputHandler);
       slider.addEventListener('touchend', _touchEndHandler);
-
-      /**
-       * Stop the tone
-       *
-       * @access private
-       * @memberOf VolumeManager.prototype
-       * @param  {[type]} player sound player object
-       */
-      function _stopTone(player) {
-        player.pause();
-        player.removeAttribute('src');
-        player.load();
-      }
-
-      /**
-       * Change slider's value
-       *
-       * @access private
-       * @memberOf VolumeManager.prototype
-       * @param {[type]} value slider value
-       */
-      function _setSliderValue(value) {
-        slider.value = value;
-        // The slider is transparent if the value is not set yet, display it
-        // once the value is set.
-        if (slider.style.opacity !== 1) {
-          slider.style.opacity = 1;
-        }
-      }
 
       /**
        * get default tone
@@ -149,27 +176,6 @@ define(function(require) {
       }
 
       /**
-       * Play the tone
-       *
-       * @access private
-       * @memberOf VolumeManager.prototype
-       * @param  {Object} player sound player object
-       * @param  {String} type tone type
-       * @param  {Blob} blob tone blob
-       */
-      function _playTone(player, type, blob) {
-        // Don't set the audio channel type to content or it will interrupt the
-        // background music and won't resume after the user previewed the tone.
-        if (type !== 'content') {
-          player.mozAudioChannelType = type;
-        }
-        player.src = URL.createObjectURL(blob);
-        player.load();
-        player.loop = true;
-        player.play();
-      }
-
-      /**
        * Handle touchstart event
        *
        * @access private
@@ -181,11 +187,11 @@ define(function(require) {
         var toneKey;
         // Stop the tone previewing from the last touchstart if the delayed
         // stopTone() is not called yet.
-        _stopTone(player);
+        self._stopTone(player);
         // Stop observing when the user is adjusting the slider, this is to
         // get better ux that the slider won't be updated by both the observer
         // and the ui.
-        SettingsListener.unobserve(channelKey, _setSliderValue);
+        SettingsListener.unobserve(channelKey, _bindSetSliderValue);
 
         switch (channelType) {
           case 'content':
@@ -200,7 +206,7 @@ define(function(require) {
         }
 
         _getToneBlob(channelType, toneKey, function(blob) {
-          _playTone(player, channelType, blob);
+          self._playTone(player, channelType, blob);
         });
       }
 
@@ -256,13 +262,13 @@ define(function(require) {
         _setVolume();
         // Re-observe the value change after the user finished tapping/dragging
         // on the slider and the preview is ended.
-        SettingsListener.observe(channelKey, '', _setSliderValue);
+        SettingsListener.observe(channelKey, '', _bindSetSliderValue);
         // If the user tap the slider very quickly, like the click event, then
         // we try to stop the player after a constant duration so that the user
         // is able to hear the tone's preview with the adjusted volume.
         setTimeout(function() {
           if (!isTouching) {
-            _stopTone(player);
+            self._stopTone(player);
           }
         }, DELAY);
       }
