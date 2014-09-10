@@ -1,7 +1,8 @@
 'use strict';
 /* global MockImportStatusData, Mockfb, MockContacts, MockNavigationStack,
-   MockCookie */
+   MockCookie, DeferredActions*/
 
+require('/shared/js/lazy_loader.js');
 requireApp('communications/contacts/test/unit/mock_import_status_data.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
@@ -9,6 +10,7 @@ requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_cookie.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
+requireApp('communications/contacts/js/deferred_actions.js');
 
 
 if (!navigator.addIdleObserver) {
@@ -21,10 +23,6 @@ if (!navigator.removeIdleObserver) {
 
 if (!window.ImportStatusData) {
   window.ImportStatusData = null;
-}
-
-if (!window.LazyLoader) {
-  window.LazyLoader = {load: function(){}};
 }
 
 if (!window.contacts) {
@@ -61,28 +59,14 @@ suite('Post rendering', function() {
     window.fb = Mockfb;
 
     mockNavigationStack = new MockNavigationStack();
-    sinon.stub(window.LazyLoader, 'load', function(files, callback) {
-      callback();
-    });
   });
 
   suiteTeardown(function() {
     window.ImportStatusData = realImportStatusData;
-    window.LazyLoader.load.restore();
   });
 
   suite('Post rendering actions', function() {
-    var realAddIdleObserver, realRemoveIdleObserver;
-
     suiteSetup(function() {
-      realAddIdleObserver = navigator.addIdleObserver;
-      navigator.addIdleObserver = function(idleObserver) {
-        idleObserver.onidle();
-      };
-
-      realRemoveIdleObserver = navigator.removeIdleObserver;
-      navigator.removeIdleObserver = function() {};
-
       sinon.stub(navigator, 'addIdleObserver', function(idleObserver) {
         idleObserver.onidle();
       });
@@ -93,8 +77,6 @@ suite('Post rendering', function() {
     suiteTeardown(function() {
       navigator.addIdleObserver.restore();
       navigator.removeIdleObserver.restore();
-      navigator.addIdleObserver = realAddIdleObserver;
-      navigator.removeIdleObserver = realRemoveIdleObserver;
     });
 
     setup(function() {
@@ -105,15 +87,34 @@ suite('Post rendering', function() {
     test('FB sync scheduling when synced in ftu', function(done) {
       sinon.stub(Mockfb.sync, 'scheduleNextSync', function() {
         done(function() {
-            Mockfb.sync.scheduleNextSync.restore();
-          });
+          Mockfb.sync.scheduleNextSync.restore();
+        });
+      });
+
+      MockCookie.update({
+        fbMigrated: true,
+        accessTokenMigrated: true
       });
 
       window.ImportStatusData.put(Mockfb.utils.SCHEDULE_SYNC_KEY, Date.now())
         .then(function() {
-          requireApp('communications/contacts/js/deferred_actions.js');
+          DeferredActions.execute();
         }
       );
+    });
+
+    test('Version migration triggered when needed', function(done) {
+      sinon.stub(window.LazyLoader, 'load', function(file) {
+        if (file.indexOf('migrator.js') > -1) {
+          done();
+        }
+      });
+
+      MockCookie.update({
+        fbScheduleDone: true
+      });
+
+      DeferredActions.execute();
     });
   });
 });
