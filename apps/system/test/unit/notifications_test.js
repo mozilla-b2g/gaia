@@ -6,7 +6,8 @@
   ScreenManager,
   MockNavigatorMozTelephony,
   MockCall,
-  MockVersionHelper
+  MockVersionHelper,
+  UtilityTray
  */
 
 'use strict';
@@ -255,6 +256,13 @@ suite('system/NotificationScreen >', function() {
     test('should change the read status', function() {
       incrementNotications(1);
       assert.equal(document.body.getElementsByClassName('unread').length, 1);
+    });
+
+    test('should not increment if the tray is open', function() {
+      UtilityTray.shown = true;
+      incrementNotications(1);
+      assert.equal(document.body.getElementsByClassName('unread').length, 0);
+      UtilityTray.shown = false;
     });
   });
 

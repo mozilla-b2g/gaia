@@ -649,6 +649,10 @@ var NotificationScreen = {
   },
 
   addUnreadNotification: function ns_addUnreadNotification() {
+    if (UtilityTray.shown) {
+      return;
+    }
+
     this.unreadNotifications++;
     this.updateNotificationIndicator();
   },
