@@ -87,6 +87,25 @@ define(function(require) {
     },
 
     /**
+     * The button looks like a select element and holds the name of the
+     * currently-selected tone. Sometimes the name is an l10n ID
+     * and sometimes it is just text.
+     *
+     * @access private
+     * @memberOf ToneManager.prototype
+     */
+    _renderToneName: function tm_renderToneName(tone, tonename) {
+      var l10nID = tonename && tonename.l10nID;
+
+      if (l10nID) {
+        tone.button.setAttribute('data-l10n-id', l10nID);
+      } else {
+        tone.button.removeAttribute('data-l10n-id');
+        tone.button.textContent = tonename;
+      }
+    },
+
+    /**
      * Update Ringtones list.
      *
      * @access private
@@ -99,19 +118,56 @@ define(function(require) {
         var nameKey = tone.settingsKey + '.name';
         var idKey = tone.settingsKey + '.id';
 
-        // The button looks like a select element and holds the name of the
-        // currently-selected tone. Sometimes the name is an l10n ID
-        // and sometimes it is just text.
-        SettingsListener.observe(nameKey, '', function(tonename) {
-          var l10nID = tonename && tonename.l10nID;
+        var _bindRenderToneName = function(tonename) {
+          this._renderToneName(tone, tonename);
+        };
 
-          if (l10nID) {
-            tone.button.setAttribute('data-l10n-id', l10nID);
-          } else {
-            tone.button.removeAttribute('data-l10n-id');
-            tone.button.textContent = tonename;
-          }
-        });
+        var _pickRingTone = function(tone, currentToneID, secret) {
+          var self = this;
+          var activity = new MozActivity({
+            name: 'pick',
+            data: {
+              type: tone.pickType,
+              allowNone: tone.allowNone,
+              currentToneID: currentToneID,
+              // If we have a secret then there is locked content on the
+              // phone so include it as a choice for the user
+              includeLocked: (secret !== null)
+            }
+          });
+
+          activity.onsuccess = function() {
+            var result = activity.result;
+            if (!result.blob) {
+              if (tone.allowNone) {
+                // If we allow a null blob, then everything is okay
+                self._setRingtone(result, tone);
+              }
+              else {
+                var _ = navigator.mozL10n.get;
+                // Otherwise this is an error and we should not change the
+                // current setting. (The ringtones app should never return
+                // a null blob if allowNone is false, but other apps might.)
+                alert(_('unplayable-ringtone'));
+              }
+              return;
+            }
+
+            // If we got a locked ringtone, we have to unlock it first
+            if (result.blob.type.split('/')[1] ===
+              ForwardLock.mimeSubtype) {
+                ForwardLock.unlockBlob(secret, result.blob,
+                  function(unlocked) {
+                    result.blob = unlocked;
+                    self._checkRingtone(result, tone);
+                });
+            } else {  // Otherwise we can just use the blob directly.
+              self._checkRingtone(result, tone);
+            }
+          };
+        };
+
+        SettingsListener.observe(nameKey, '', _bindRenderToneName.bind(this));
 
         // When the user clicks the button, we launch an activity that lets
         // the user select new ringtone.
@@ -127,57 +183,11 @@ define(function(require) {
             // until it is needed, so we can use its existance to
             // determine whether to show the Purchased Media app.
             ForwardLock.getKey(function(secret) {
-              _pickRingTone(currentToneID, secret);
-              var activity = new MozActivity({
-                name: 'pick',
-                data: {
-                  type: tone.pickType,
-                  allowNone: tone.allowNone,
-                  currentToneID: currentToneID,
-                  // If we have a secret then there is locked content on the
-                  // phone so include it as a choice for the user
-                  includeLocked: (secret !== null)
-                }
-              });
-
-              activity.onsuccess = function() {
-                var result = activity.result;
-
-                if (!result.blob) {
-                  if (tone.allowNone) {
-                    // If we allow a null blob, then everything is okay
-                    this._setRingtone(result, tone);
-                  }
-                  else {
-                    var _ = navigator.mozL10n.get;
-                    // Otherwise this is an error and we should not change the
-                    // current setting. (The ringtones app should never return
-                    // a null blob if allowNone is false, but other apps might.)
-                    alert(_('unplayable-ringtone'));
-                  }
-                  return;
-                }
-
-                // If we got a locked ringtone, we have to unlock it first
-                if (result.blob.type.split('/')[1] ===
-                  ForwardLock.mimeSubtype) {
-                    ForwardLock.unlockBlob(secret, result.blob,
-                      function(unlocked) {
-                        result.blob = unlocked;
-                        this._checkRingtone(result, tone);
-                    }.bind(this));
-                } else {  // Otherwise we can just use the blob directly.
-                  this._checkRingtone(result, tone);
-                }
-              }.bind(this);
+              _pickRingTone.call(this, tone, currentToneID, secret);
             }.bind(this));
           }.bind(this));
         }.bind(this));
       }.bind(this));
-
-      function _pickRingTone(currentToneID, secret) {
-        console.log('Error ADHOASIDHASD');
-      }
     },
 
     /**

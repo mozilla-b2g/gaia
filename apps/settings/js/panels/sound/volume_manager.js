@@ -34,15 +34,16 @@ define(function(require) {
      * @memberOf VolumeManager.prototype
      */
     _sliderHandler: function vm_sliderHandler(slider, index) {
+      var INTERVAL = 500;
+      var DELAY = 800;
+
       var channelType = channelTypes[index];
       var channelKey = 'audio.volume.' + channelType;
       // The default volume is 15(MAX).
       var previous = 15;
       var isTouching = false;
       var isFirstInput = false;
-      var interval = 500;
       var intervalID = null;
-      var delay = 800;
       var player = new Audio();
 
       // Get the volume value for the slider, also observe the value change.
@@ -55,6 +56,19 @@ define(function(require) {
       slider.addEventListener('touchstart', _touchStartHandler);
       slider.addEventListener('input', _inputHandler);
       slider.addEventListener('touchend', _touchEndHandler);
+
+      /**
+       * Stop the tone
+       *
+       * @access private
+       * @memberOf VolumeManager.prototype
+       * @param  {[type]} player sound player object
+       */
+      function _stopTone(player) {
+        player.pause();
+        player.removeAttribute('src');
+        player.load();
+      }
 
       /**
        * Change slider's value
@@ -70,6 +84,89 @@ define(function(require) {
         if (slider.style.opacity !== 1) {
           slider.style.opacity = 1;
         }
+      }
+
+      /**
+       * get default tone
+       *
+       * @access private
+       * @memberOf VolumeManager.prototype
+       * @param  {[type]}   type     tone type
+       * @param  {[type]}   toneKey  tone key
+       * @param  {Function} callback callback function
+       */
+      function _getDefaultTone(type, toneKey, callback) {
+        var mediaToneURL = '/shared/resources/media/notifications/' +
+          'notifier_firefox.opus';
+        var ringerToneURL = '/shared/resources/media/ringtones/' +
+          'ringer_firefox.opus';
+        var alarmToneURL = '/shared/resources/media/alarms/' +
+          'ac_awake.opus';
+
+        var toneURLs = {
+          'content' : mediaToneURL,
+          'notification' : ringerToneURL,
+          'alarm' : alarmToneURL
+        };
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', toneURLs[type]);
+        xhr.overrideMimeType('audio/ogg');
+        xhr.responseType = 'blob';
+        xhr.send();
+        xhr.onload = function() {
+          callback(xhr.response);
+        };
+      }
+
+      /**
+       * get tone's blob object
+       *
+       * @access private
+       * @memberOf VolumeManager.prototype
+       * @param  {[type]}   type     tone type
+       * @param  {[type]}   toneKey  tone key
+       * @param  {Function} callback callback function
+       */
+      function _getToneBlob(type, toneKey, callback) {
+        SettingsCache.getSettings(function(results) {
+          if (results[toneKey]) {
+            callback(results[toneKey]);
+          } else {
+            // Fall back to the predefined tone if the value does not exist
+            // in the mozSettings.
+            _getDefaultTone(type, toneKey, function(blob) {
+              // Save the default tone to mozSettings so that next time we
+              // don't have to fall back to it from the system files.
+              var settingObject = {};
+              settingObject[toneKey] = blob;
+              navigator.mozSettings.createLock().set(settingObject);
+
+              callback(blob);
+            });
+          }
+        });
+      }
+
+      /**
+       * Play the tone
+       *
+       * @access private
+       * @memberOf VolumeManager.prototype
+       * @param  {Object} player sound player object
+       * @param  {String} type tone type
+       * @param  {Blob} blob tone blob
+       */
+      function _playTone(player, type, blob) {
+        // Don't set the audio channel type to content or it will interrupt the
+        // background music and won't resume after the user previewed the tone.
+        if (type !== 'content') {
+          player.mozAudioChannelType = type;
+        }
+        player.src = URL.createObjectURL(blob);
+        player.load();
+        player.loop = true;
+        player.play();
       }
 
       /**
@@ -108,6 +205,25 @@ define(function(require) {
       }
 
       /**
+       * Change volume
+       *
+       * @access private
+       * @memberOf VolumeManager.prototype
+       * @param {[type]} value slider value
+       */
+      function _setVolume() {
+        var value = parseInt(slider.value);
+        var settingObject = {};
+        settingObject[channelKey] = value;
+
+        // Only set the new value if it does not equal to the previous one.
+        if (value !== previous) {
+          navigator.mozSettings.createLock().set(settingObject);
+          previous = value;
+        }
+      }
+
+      /**
        * Handle input event
        *
        * @access private
@@ -122,7 +238,7 @@ define(function(require) {
         if (isFirstInput) {
           isFirstInput = false;
           _setVolume();
-          intervalID = setInterval(_setVolume, interval);
+          intervalID = setInterval(_setVolume, INTERVAL);
         }
       }
 
@@ -148,122 +264,7 @@ define(function(require) {
           if (!isTouching) {
             _stopTone(player);
           }
-        }, delay);
-      }
-
-      /**
-       * Change volume
-       *
-       * @access private
-       * @memberOf VolumeManager.prototype
-       * @param {[type]} value slider value
-       */
-      function _setVolume() {
-        var value = parseInt(slider.value);
-        var settingObject = {};
-        settingObject[channelKey] = value;
-
-        // Only set the new value if it does not equal to the previous one.
-        if (value !== previous) {
-          navigator.mozSettings.createLock().set(settingObject);
-          previous = value;
-        }
-      }
-
-      /**
-       * get tone's blob object
-       *
-       * @access private
-       * @memberOf VolumeManager.prototype
-       * @param  {[type]}   type     tone type
-       * @param  {[type]}   toneKey  tone key
-       * @param  {Function} callback callback function
-       */
-      function _getToneBlob(type, toneKey, callback) {
-        SettingsCache.getSettings(function(results) {
-          if (results[toneKey]) {
-            callback(results[toneKey]);
-          } else {
-            // Fall back to the predefined tone if the value does not exist
-            // in the mozSettings.
-            _getDefaultTone(type, toneKey, function(blob) {
-              // Save the default tone to mozSettings so that next time we
-              // don't have to fall back to it from the system files.
-              var settingObject = {};
-              settingObject[toneKey] = blob;
-              navigator.mozSettings.createLock().set(settingObject);
-
-              callback(blob);
-            });
-          }
-        });
-      }
-
-      /**
-       * get default tone
-       *
-       * @access private
-       * @memberOf VolumeManager.prototype
-       * @param  {[type]}   type     tone type
-       * @param  {[type]}   toneKey  tone key
-       * @param  {Function} callback callback function
-       */
-      function _getDefaultTone(type, toneKey, callback) {
-        var mediaToneURL = '/shared/resources/media/notifications/' +
-          'notifier_firefox.opus';
-        var ringerToneURL = '/shared/resources/media/ringtones/' +
-          'ringer_firefox.opus';
-        var alarmToneURL = '/shared/resources/media/alarms/' +
-          'ac_awake.opus';
-
-        var toneURLs = {
-          'content' : mediaToneURL,
-          'notification' : ringerToneURL,
-          'alarm' : alarmToneURL
-        };
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', toneURLs[type]);
-        xhr.overrideMimeType('audio/ogg');
-        xhr.responseType = 'blob';
-        xhr.send();
-        xhr.onload = function() {
-          callback(xhr.response);
-        };
-      }
-
-      /**
-       * Play the tone
-       *
-       * @access private
-       * @memberOf VolumeManager.prototype
-       * @param  {Object} player sound player object
-       * @param  {String} type tone type
-       * @param  {Blob} blob tone blob
-       */
-      function _playTone(player, type, blob) {
-        // Don't set the audio channel type to content or it will interrupt the
-        // background music and won't resume after the user previewed the tone.
-        if (type !== 'content') {
-          player.mozAudioChannelType = type;
-        }
-        player.src = URL.createObjectURL(blob);
-        player.load();
-        player.loop = true;
-        player.play();
-      }
-
-      /**
-       * Stop the tone
-       *
-       * @access private
-       * @memberOf VolumeManager.prototype
-       * @param  {[type]} player sound player object
-       */
-      function _stopTone(player) {
-        player.pause();
-        player.removeAttribute('src');
-        player.load();
+        }, DELAY);
       }
     }
   };
