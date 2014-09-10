@@ -69,7 +69,7 @@
     this.elementClasses = [
       'http-username-input', 'http-password-input',
       'http-authentication-message', 'http-authentication-ok',
-      'http-authentication-cancel'
+      'http-authentication-cancel', 'http-authentication-header'
     ];
 
     this.elementClasses.forEach(function createElementRef(name) {
@@ -86,18 +86,16 @@
     return '<section class="authentication-dialog skin-organic" ' +
             'id="' + this.CLASS_NAME + this.instanceID + '"' +
             'role="region">' +
-            '<header>' +
+            '<gaia-header action="close" ' +
+              'class="authentication-dialog-http-authentication-header">' +
               '<button class="'+
               'authentication-dialog-http-authentication-cancel">' +
-                '<span class="icon icon-close">close</span>' +
               '</button>' +
-              '<menu type="toolbar">' +
-                '<button class="' +
-                'authentication-dialog-http-authentication-ok" ' +
-                'data-l10n-id="login">Login</button>' +
-              '</menu>' +
               '<h1 data-l10n-id="sign-in-to-website">Sign in to website</h1>' +
-            '</header>' +
+              '<button class="' +
+              'authentication-dialog-http-authentication-ok" ' +
+              'data-l10n-id="login">Login</button>' +
+            '</gaia-header>' +
             '<span class="authentication-dialog-http-authentication-message">' +
             '</span>' +
             '<label data-l10n-id="username">Username' +
@@ -134,8 +132,8 @@
     function aad__registerEvents() {
       this.elements.httpAuthenticationOk.
         addEventListener('click', this.confirmHandler.bind(this));
-      this.elements.httpAuthenticationCancel.
-        addEventListener('click', this.cancelHandler.bind(this));
+      this.elements.httpAuthenticationHeader.
+        addEventListener('action', this.cancelHandler.bind(this));
     };
 
   /**
