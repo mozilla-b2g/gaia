@@ -1,7 +1,8 @@
 'use strict';
 
-/* global LayoutLoader */
+/* global LayoutLoader, LayoutNormalizer */
 
+require('/js/keyboard/layout_normalizer.js');
 require('/js/keyboard/layout_loader.js');
 
 suite('LayoutLoader', function() {
@@ -49,6 +50,14 @@ suite('LayoutLoader', function() {
     ]
   };
 
+  // because LayoutLoader.start calls LayoutLoader.initLayouts which uses its
+  // instantiated _normalizer, we can't stub the instance after we call start().
+  var stubLayoutNormalizer;
+  setup(function() {
+    stubLayoutNormalizer = this.sinon.stub(LayoutNormalizer.prototype);
+    this.sinon.stub(window, 'LayoutNormalizer').returns(stubLayoutNormalizer);
+  });
+
   suiteSetup(function() {
     realKeyboards = window.Keyboards;
   });
@@ -77,6 +86,24 @@ suite('LayoutLoader', function() {
     var p = loader.getLayoutAsync('preloaded');
     p.then(function(layout) {
       assert.isTrue(true, 'loaded');
+      assert.deepEqual(
+        stubLayoutNormalizer.normalizePageKeys.getCall(0).args[0],
+        {
+          keys: [
+            [
+              { value: 'preloaded' }
+            ]
+          ],
+          alt: {},
+          upperCase: {}
+        },
+        'normalizer argument "page" incorrect'
+      );
+      assert.equal(
+        stubLayoutNormalizer.normalizePageKeys.getCall(0).args[1].pages.length,
+        1,
+        'normalizer argument "layout" incorrect'
+      );
       assert.deepEqual(loader.getLayout('preloaded'), { pages: [ {
         keys: [
           [
@@ -104,6 +131,24 @@ suite('LayoutLoader', function() {
 
     var p = loader.getLayoutAsync('foo');
     p.then(function(layout) {
+      assert.deepEqual(
+        stubLayoutNormalizer.normalizePageKeys.getCall(0).args[0],
+        {
+          keys: [
+            [
+              { value: 'foo' }
+            ]
+          ],
+          alt: {},
+          upperCase: {}
+        },
+        'normalizer argument "page" incorrect'
+      );
+      assert.equal(
+        stubLayoutNormalizer.normalizePageKeys.getCall(0).args[1].pages.length,
+        1,
+        'normalizer argument "layout" incorrect'
+      );
       assert.isTrue(true, 'loaded');
       assert.deepEqual(
         loader.getLayout('foo'), expectedFooLayout, 'foo loaded');
@@ -126,6 +171,42 @@ suite('LayoutLoader', function() {
     var p = loader.getLayoutAsync('foo2');
     p.then(function(layout) {
       assert.isTrue(true, 'loaded');
+      assert.deepEqual(
+        stubLayoutNormalizer.normalizePageKeys.getCall(0).args[0],
+        {
+          keys: [
+            [
+              { value: 'foo2' }
+            ]
+          ],
+          alt: {},
+          upperCase: {}
+        },
+        'normalizer argument "page" incorrect'
+      );
+      assert.equal(
+        stubLayoutNormalizer.normalizePageKeys.getCall(0).args[1].pages.length,
+        1,
+        'normalizer argument "layout" incorrect'
+      );
+      assert.deepEqual(
+        stubLayoutNormalizer.normalizePageKeys.getCall(1).args[0],
+        {
+          keys: [
+            [
+              { value: 'foo3' }
+            ]
+          ],
+          alt: {},
+          upperCase: {}
+        },
+        'normalizer argument "page" incorrect'
+      );
+      assert.equal(
+        stubLayoutNormalizer.normalizePageKeys.getCall(1).args[1].pages.length,
+        1,
+        'normalizer argument "layout" incorrect'
+      );
       assert.deepEqual(
         loader.getLayout('foo2'), expectedFoo2Layout, 'foo2 loaded');
       assert.equal(layout, loader.getLayout('foo2'));
@@ -159,7 +240,6 @@ suite('LayoutLoader', function() {
       assert.deepEqual(
         loader.getLayout('foo'), expectedFooLayout, 'foo loaded');
       assert.equal(layout, loader.getLayout('foo'));
-
       var p2 = loader.getLayoutAsync('foo');
       assert.equal(p2, p,
         'Should return the same promise without creating a new one');

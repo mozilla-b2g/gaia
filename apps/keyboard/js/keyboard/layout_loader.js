@@ -1,6 +1,6 @@
 'use strict';
 
-/* global Promise, KeyboardEvent */
+/* global Promise, KeyboardEvent, LayoutNormalizer */
 
 (function(exports) {
 
@@ -143,7 +143,9 @@ Keyboards.telLayout = {
   ]
 };
 
-var LayoutLoader = function() {
+var LayoutLoader = function(app) {
+  this.app = app;
+  this._normalizer = null;
 };
 
 LayoutLoader.prototype.SOURCE_DIR = './js/layouts/';
@@ -151,6 +153,7 @@ LayoutLoader.prototype.SOURCE_DIR = './js/layouts/';
 LayoutLoader.prototype.start = function() {
   this._initializedLayouts = {};
   this._layoutsPromises = {};
+  this._normalizer = new LayoutNormalizer();
   this.initLayouts();
 };
 
@@ -206,9 +209,13 @@ LayoutLoader.prototype._normalizeLayout = function(layoutName) {
     });
   }
 
-  // Go through each pages and inspect it's "alt" property;
+  // Normalize key properties such that other modules can deal with them easily
+  // Also, go through each pages and inspect it's "alt" property;
   // we want to normalize our existing mixed notations into arrays.
   pages.forEach(function(page) {
+    this._normalizer.normalizePageKeys(page, layout);
+
+    // XXX: move alt char normalization to the normalizer
     var alt = page.alt = page.alt || {};
     var upperCase = page.upperCase = page.upperCase || {};
     var altKeys = Object.keys(alt);

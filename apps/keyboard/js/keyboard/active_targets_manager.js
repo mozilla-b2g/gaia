@@ -143,7 +143,7 @@ ActiveTargetsManager.prototype._handlePressMove = function(press, id) {
 
   // Special handling for selection: since selections are scrollable,
   // if the press is moved, the press is consider ended and should be ignored.
-  if (press.moved && ('selection' in oldTarget.dataset)) {
+  if (press.moved && ('selection' in oldTarget)) {
     this.activeTargets.delete(id);
     this.ontargetcancelled(oldTarget);
 

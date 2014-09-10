@@ -15,6 +15,21 @@ suite('Renderer', function() {
     window.perfTimer = null;
   });
 
+  var fakeRenderingManager;
+  var stubRequestAnimationFrame;
+
+  setup(function() {
+    fakeRenderingManager = {
+      getTargetObject: function(elem) {
+        return this.domObjectMap.get(elem);
+      },
+      domObjectMap: new WeakMap()
+    };
+
+    stubRequestAnimationFrame =
+      this.sinon.stub(window, 'requestAnimationFrame');
+  });
+
   function makeDescriptor(val) {
     return {
       configurable: true,
@@ -39,19 +54,24 @@ suite('Renderer', function() {
   }
 
   suite('resizeUI', function() {
+    var ime, activeIme;
+
     function createKeyboardRow(chars, layoutWidth) {
       var row = document.createElement('div');
       row.classList.add('keyboard-row');
       row.dataset.layoutWidth = layoutWidth;
       chars.forEach(function(c) {
-        row.innerHTML += '<div class="keyboard-key">' +
-          '<div class="visual-wrapper">' + c + '</div></div>';
+        var keyElem = document.createElement('div');
+        keyElem.classList.add('keyboard-key');
+        keyElem.innerHTML = '<div class="visual-wrapper">' + c + '</div>';
+        row.appendChild(keyElem);
+        IMERender.setDomElemTargetObject(keyElem, {});
       });
       activeIme.appendChild(row);
+
       return row;
     }
 
-    var ime, activeIme;
     setup(function(next) {
       document.body.innerHTML = '';
 
@@ -64,7 +84,7 @@ suite('Renderer', function() {
 
       Object.defineProperty(ime, 'clientWidth', makeDescriptor(300));
 
-      IMERender.init();
+      IMERender.init(fakeRenderingManager);
       IMERender.activeIme = activeIme;
 
       loadKeyboardStyle(next);
@@ -100,6 +120,7 @@ suite('Renderer', function() {
       };
 
       IMERender.resizeUI(layout);
+      stubRequestAnimationFrame.getCall(0).args[0]();
 
       var all = [].map.call(row.querySelectorAll('.visual-wrapper'),
         function(el) {
@@ -129,6 +150,7 @@ suite('Renderer', function() {
 
         next();
       });
+      stubRequestAnimationFrame.getCall(0).args[0]();
     });
 
     test('Side keys should fill up space', function(next) {
@@ -165,6 +187,7 @@ suite('Renderer', function() {
 
         next();
       });
+      stubRequestAnimationFrame.getCall(0).args[0]();
     });
 
     test('Side keys should fill up space in landscape', function(next) {
@@ -197,6 +220,7 @@ suite('Renderer', function() {
 
         next();
       });
+      stubRequestAnimationFrame.getCall(0).args[0]();
     });
 
     test('Sidekeys should adjust space when rotating', function(next) {
@@ -225,8 +249,9 @@ suite('Renderer', function() {
 
             next();
         });
+        stubRequestAnimationFrame.getCall(1).args[0]();
       });
-
+      stubRequestAnimationFrame.getCall(0).args[0]();
     });
 
     test('GetKeyArray sanity', function(next) {
@@ -255,6 +280,7 @@ suite('Renderer', function() {
 
         next();
       });
+      stubRequestAnimationFrame.getCall(0).args[0]();
     });
 
     test('GetKeyArray sanity for filled up space', function(next) {
@@ -282,11 +308,13 @@ suite('Renderer', function() {
 
         next();
       });
+      stubRequestAnimationFrame.getCall(0).args[0]();
     });
   });
 
   suite('Draw', function() {
     var ime, activeIme;
+
     setup(function(next) {
       document.body.innerHTML = '';
 
@@ -298,7 +326,7 @@ suite('Renderer', function() {
       ime.appendChild(activeIme);
       IMERender.activeIme = activeIme;
 
-      IMERender.init();
+      IMERender.init(fakeRenderingManager);
 
       loadKeyboardStyle(next);
     });
@@ -407,7 +435,7 @@ suite('Renderer', function() {
       var layout = {
         width: 9,
         keys: [
-          [{ value: 'a', keyCode: 3 }, { value: 'b' }]
+          [{ value: 'a', keyCode: 3 }, { value: 'b', keyCode: 98 }]
         ]
       };
 
@@ -422,16 +450,17 @@ suite('Renderer', function() {
       var layout = {
         width: 2,
         keys: [
-          [{ value: 'a' }, { value: 'b' }]
+          [{ value: 'a', uppercaseValue: 'A' },
+           { value: 'b', uppercaseValue: 'B' }]
         ]
       };
 
-      IMERender.init();
+      IMERender.init(fakeRenderingManager);
       IMERender.draw(layout, { uppercase: true });
 
       var keys = document.querySelectorAll('.keyboard-key .key-element');
-      assert.equal(keys[0].textContent, 'A');
-      assert.equal(keys[1].textContent, 'B');
+      assert.equal(keys[0].firstChild.textContent, 'A');
+      assert.equal(keys[1].firstChild.textContent, 'B');
     });
 
     test('No uppercase flag, don\'t uppercase visually', function() {
@@ -442,7 +471,7 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.init();
+      IMERender.init(fakeRenderingManager);
       IMERender.draw(layout, { uppercase: false });
 
       var keys = document.querySelectorAll('.keyboard-key .key-element');
@@ -635,6 +664,7 @@ suite('Renderer', function() {
             IMERender.activeIme.scrollHeight, IMERender.getHeight());
           next();
         });
+        stubRequestAnimationFrame.getCall(0).args[0]();
       }
 
       var rows = [0, 1, 2, 3, 4, 5];
@@ -673,22 +703,28 @@ suite('Renderer', function() {
   });
 
   suite('Highlight Keys', function() {
+    var dummyKey = {
+      dummy: 'dummy'
+    };
+
     test('Highlight a key with uppercase', function() {
-      var key = document.createElement('div');
+      var keyElem = document.createElement('div');
 
-      IMERender.highlightKey(key, { showUpperCase: true });
+      IMERender.setDomElemTargetObject(keyElem, dummyKey);
+      IMERender.highlightKey(dummyKey, { showUpperCase: true });
 
-      assert.isTrue(key.classList.contains('highlighted'));
-      assert.isFalse(key.classList.contains('lowercase'));
+      assert.isTrue(keyElem.classList.contains('highlighted'));
+      assert.isFalse(keyElem.classList.contains('lowercase'));
     });
 
     test('Highlight a key with lowercase', function() {
-      var key = document.createElement('div');
+      var keyElem = document.createElement('div');
 
-      IMERender.highlightKey(key, { showUpperCase: false });
+      IMERender.setDomElemTargetObject(keyElem, dummyKey);
+      IMERender.highlightKey(dummyKey, { showUpperCase: false });
 
-      assert.isTrue(key.classList.contains('highlighted'));
-      assert.isTrue(key.classList.contains('lowercase'));
+      assert.isTrue(keyElem.classList.contains('highlighted'));
+      assert.isTrue(keyElem.classList.contains('lowercase'));
     });
   });
 });

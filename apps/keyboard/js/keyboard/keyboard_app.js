@@ -81,7 +81,7 @@ KeyboardApp.prototype._startComponents = function() {
   this.candidatePanelManager.start();
 
   // Initialize the rendering module
-  IMERender.init();
+  IMERender.init(this.layoutRenderingManager);
 
   this.stateManager = new StateManager(this);
   this.stateManager.start();
