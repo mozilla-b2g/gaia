@@ -254,8 +254,7 @@ var icc_worker = {
       icc.responseSTKCommand(message, {
         resultCode: icc._iccManager.STK_RESULT_OK
       });
-      icc.confirm(message, options.text, timeout,
-        null);
+      icc.confirm(message, options.text, timeout, null);
     } else {
       icc.confirm(message, options.text, timeout,
         function(userCleared) {
