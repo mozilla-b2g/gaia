@@ -1,5 +1,7 @@
 'use strict';
 
+/* globals IMERender */
+
 (function(exports) {
 
 /**
@@ -16,6 +18,7 @@ function AlternativesCharMenuView(rootElement, altChars, renderer) {
   this.buildKey = renderer.buildKey;
   this.keyWidth = renderer.keyWidth;
   this.screenInPortraitMode = renderer.screenInPortraitMode;
+  this.renderingManager = renderer.renderingManager;
 
   this.menu = null;
   this._rowCount = 0;
@@ -27,11 +30,12 @@ AlternativesCharMenuView.prototype.MENU_LINE_HEIGHT = 6;   // in rem
 
 AlternativesCharMenuView.prototype.show = function(key) {
   var content = document.createDocumentFragment();
+  var keyElem = IMERender.targetObjDomMap.get(key);
 
   // XXX: should not cause reflow by ref. innerWidth
   var cachedWindowWidth = window.innerWidth;
 
-  var left = (cachedWindowWidth / 2 > key.offsetLeft);
+  var left = (cachedWindowWidth / 2 > keyElem.offsetLeft);
   this._direction = left ? 'left' : 'right';
 
   var menu = document.createElement('div');
@@ -48,7 +52,7 @@ AlternativesCharMenuView.prototype.show = function(key) {
   if (this.altChars.length > 5) {
     widthRatio = Math.ceil(this.altChars.length / 2);
 
-    menu.style.top = (key.offsetTop - this.getLineHeight() * 2)  + 'px';
+    menu.style.top = (keyElem.offsetTop - this.getLineHeight() * 2)  + 'px';
     this._columnCount = widthRatio;
     this._rowCount = 2;
 
@@ -58,21 +62,21 @@ AlternativesCharMenuView.prototype.show = function(key) {
     menu.classList.add('multi-row');
   } else {
     // menu height -  4 (top margin of the visual wrapper)
-    menu.style.top = (key.offsetTop - this.getLineHeight() + 4) +  'px';
+    menu.style.top = (keyElem.offsetTop - this.getLineHeight() + 4) +  'px';
     this._rowCount = 1;
     this._columnCount = this.altChars.length;
   }
 
   // Determine the horizontal positioning of the menu
   if (left) {
-    var keyRight = key.offsetLeft + key.offsetWidth;
+    var keyRight = keyElem.offsetLeft + keyElem.offsetWidth;
     var posLeft = keyRight - this.keyWidth;
     menu.style.left = posLeft + 'px';
     if (posLeft === 0) {
       menu.classList.add('left-edge');
     }
   } else {
-    var menuRight = key.offsetLeft + this.keyWidth;
+    var menuRight = keyElem.offsetLeft + this.keyWidth;
     var posRight = cachedWindowWidth - menuRight;
     menu.style.right =  posRight + 'px';
     if (posRight === 0) {
@@ -82,12 +86,10 @@ AlternativesCharMenuView.prototype.show = function(key) {
 
   // Build a key for each alternative
   this.altChars.forEach(function(alt, index) {
-    var dataset = alt.length == 1 ?
-    [
-      { 'key': 'keycode', 'value': alt.charCodeAt(0) },
-      { 'key': 'keycodeUpper', 'value': alt.toUpperCase().charCodeAt(0) }
-    ] :
-    [ { 'key': 'compositeKey', 'value': alt } ];
+    var altKeyObj = alt.length == 1 ? {
+      keyCode: alt.charCodeAt(0),
+      keyCodeUpper: alt.toUpperCase().charCodeAt(0)
+    } : {'compositeKey': alt };
 
     // Make each of these alternative keys as wide as the key that
     // it is an alternative for, but adjust for the relative number of
@@ -121,8 +123,12 @@ AlternativesCharMenuView.prototype.show = function(key) {
       value: 'key'
     });
 
-    content.appendChild(
-        this.buildKey(alt, '', width + 'px', dataset, null, attributeList));
+    var altKeyElement =
+      this.buildKey(alt, '', width + 'px', altKeyObj, null, attributeList);
+
+    content.appendChild(altKeyElement);
+
+    IMERender.setDomElemTargetObject(altKeyElement, altKeyObj);
   }.bind(this));
 
   menu.appendChild(content);
@@ -199,7 +205,9 @@ AlternativesCharMenuView.prototype.getMenuTarget = function(x, y) {
   }
 
   var menuContainer = this.getMenuContainer();
-  return menuContainer.children[targetIndex];
+  return this.renderingManager.getTargetObject(
+           menuContainer.children[targetIndex]
+         );
 };
 
 })(window);

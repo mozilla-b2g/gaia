@@ -37,7 +37,8 @@ AlternativesCharMenuManager.prototype.show = function(target) {
   }
 
   // Get the targetRect before menu is shown.
-  var targetRect = target.getBoundingClientRect();
+  var targetRect =
+    IMERender.targetObjDomMap.get(target).getBoundingClientRect();
 
   // XXX: Remove reference to IMERender in the global in the future.
   this._currentMenuView = IMERender.showAlternativesCharMenu(target,
@@ -71,21 +72,21 @@ AlternativesCharMenuManager.prototype.show = function(target) {
 };
 
 AlternativesCharMenuManager.prototype._getAlternativesForTarget =
-function _getAlternativesForTarget(target) {
+function _getAlternativesForTarget(key) {
   // Handle key alternatives
   var alternatives;
   var altMap = this.app.layoutManager.currentPage.alt;
   var origKey = null;
 
   if (this.app.upperCaseStateManager.isUpperCaseLocked) {
-    origKey = target.dataset.uppercaseValue;
+    origKey = key.uppercaseValue;
     alternatives = altMap[origKey].upperCaseLocked ||
                    altMap[origKey];
   } else if (this.app.upperCaseStateManager.isUpperCase) {
-    origKey = target.dataset.uppercaseValue;
+    origKey = key.uppercaseValue;
     alternatives = altMap[origKey];
   } else {
-    origKey = target.dataset.lowercaseValue;
+    origKey = key.lowercaseValue;
     alternatives = altMap[origKey];
   }
 
@@ -120,8 +121,8 @@ AlternativesCharMenuManager.prototype.isMenuTarget = function(target) {
   }
 
   var menuContainer = this._currentMenuView.getMenuContainer();
-  return (target.parentNode === menuContainer ||
-          target === menuContainer);
+  return (IMERender.targetObjDomMap.get(target).parentNode === menuContainer ||
+          IMERender.targetObjDomMap.get(target) === menuContainer);
 };
 
 AlternativesCharMenuManager.prototype.getMenuTarget = function(press) {
@@ -138,7 +139,7 @@ AlternativesCharMenuManager.prototype.getMenuTarget = function(press) {
       press.target === this._originalTarget) {
     // Return the alternative right on the top of the target key.
     // The alternative should always be the first element in the DOM.
-    return children[0];
+    return this.app.layoutRenderingManager.getTargetObject(children[0]);
   }
 
   this._hasMovedAwayFromOriginalTarget = true;
