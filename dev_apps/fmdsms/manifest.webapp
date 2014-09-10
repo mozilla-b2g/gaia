@@ -26,7 +26,8 @@
     "audio-channel-content": {},
     "permissions": {},
     "geolocation": {},
-    "power": {}
+    "power": {},
+    "mobileconnection": {}
   },
   "connections": {
     "fmdsms-wakeup": {

@@ -23,6 +23,7 @@ var FmdSms = {
 	_wipeEnabled : false,
 	_password : null,
 	_passcodeEnabled : false,
+	_deviceId : null,
 
 	init : function () {
 		console.log('!!!!!!!!!!!!!! [fmdsms] init !!!!!!!!!!!!!!');
@@ -53,6 +54,24 @@ var FmdSms = {
 				reqPerm.onerror = function () {
 					console.log('!!!!!!!!!!!!!! [fmdsms] ' + reqPerm.error.name + ' !!!!!!!!!!!!!!');
 				};
+			}
+		}
+
+		var mobileConnections = navigator.mozMobileConnections;
+		if (mobileConnections && mobileConnections.length > 0) {
+			var mobileConnection = mobileConnections[0];
+			if (mobileConnection) {
+				var reqIMEI = mobileConnection.sendMMI('*#06#');
+				if (reqIMEI) {
+					reqIMEI.onsuccess = function () {
+						self._deviceId = reqIMEI.result['statusMessage'];
+						console.log('!!!!!!!!!!!!!! [fmdsms] deviceId = ' + self._deviceId + ' !!!!!!!!!!!!!!');
+					};
+
+					reqIMEI.onerror = function () {
+						console.log('!!!!!!!!!!!!!! [fmdsms] ' + reqIMEI.error + ' !!!!!!!!!!!!!!');
+					};
+				}
 			}
 		}
 
@@ -242,10 +261,10 @@ var FmdSms = {
 									this._ring();
 								} else if (arr[1] == LOCK_CMD && this._lockEnabled) {
 									console.log('!!!!!!!!!!!!!! [fmdsms] invoke lock !!!!!!!!!!!!!!');
-									this._lock();
+									this._lock(sms.sender);
 								} else if (arr[1] == LOCATE_CMD && this._locateEnabled) {
 									console.log('!!!!!!!!!!!!!! [fmdsms] invoke locate !!!!!!!!!!!!!!');
-									this._locate();
+									this._locate(sms.sender);
 								} else if (arr[1] == WIPE_CMD && this._wipeEnabled) {
 									console.log('!!!!!!!!!!!!!! [fmdsms] invoke wipe !!!!!!!!!!!!!!');
 									this._wipe();
@@ -273,12 +292,28 @@ var FmdSms = {
 		Commands.invokeCommand('ring', [30, ringReply]);
 	},
 
-	_lock : function () {
+	_lock : function (number) {
+		var self = this;
 		var lockReply = function (res, err) {
+			var msg;
+
 			if (!res) {
 				console.log('!!!!!!!!!!!!!! [fmdsms] lock err = ' + err + ' !!!!!!!!!!!!!!');
+
+				//FmD: <deviceId> not locked remotly, time: <time>
+				msg = 'FmD: ' + self._deviceId + ' not locked remotly, time: ' + self._getTime();
 			} else {
-				console.log('!!!!!!!!!!!!!! [fmdsms] lock OK !!!!!!!!!!!!!!');
+				//FmD: <deviceId> locked remotly at time: <time>[, code: <passcode>]
+				msg = 'FmD: ' + self._deviceId + ' locked remotly at time: ' + self._getTime();
+				if (passcode != null) {
+					msg = msg + ', code: ' + passcode;
+				}
+			}
+
+			var mobileMessage = navigator.mozMobileMessage;
+			if (mobileMessage) {
+				console.log('!!!!!!!!!!!!!! [fmdsms] send sms, to = ' + number + ', body = ' + msg + ' !!!!!!!!!!!!!!');
+				mobileMessage.send(number, msg);
 			}
 		};
 		var passcode = null;
@@ -292,15 +327,29 @@ var FmdSms = {
 		Commands.invokeCommand('lock', [null, passcode, lockReply]);
 	},
 
-	_locate : function () {
+	_locate : function (number) {
+		var self = this;
 		var locateReply = function (res, err) {
+			var msg;
+
 			if (!res) {
 				console.log('!!!!!!!!!!!!!! [fmdsms] locate err = ' + err + ' !!!!!!!!!!!!!!');
+
+				//FmD: <deviceId> not located, time: <time>
+				msg = 'FmD: ' + self._deviceId + ' not located, time: ' + self._getTime();
 			} else {
 				var pos = err;
 				var latitude = pos.coords.latitude;
 				var longitude = pos.coords.longitude;
-				console.log('!!!!!!!!!!!!!! latitude = ' + latitude + ', longitude = ' + longitude + ' !!!!!!!!!!!!!!');
+
+				//FmD: <deviceId> located <@latitude,longitude> time: <time>
+				msg = 'FmD: ' + self._deviceId + ' located @' + latitude + ',' + longitude + ', time: ' + self._getTime();
+			}
+
+			var mobileMessage = navigator.mozMobileMessage;
+			if (mobileMessage) {
+				console.log('!!!!!!!!!!!!!! [fmdsms] send sms, to = ' + number + ', body = ' + msg + ' !!!!!!!!!!!!!!');
+				mobileMessage.send(number, msg);
 			}
 		};
 		Commands.invokeCommand('track', [6, locateReply]);
@@ -313,6 +362,43 @@ var FmdSms = {
 			}
 		};
 		Commands.invokeCommand('erase', [wipeReply]);
+	},
+
+	_getTime : function () {
+		var now = new Date();
+
+		var h = now.getHours();
+		var m = now.getMinutes();
+		var s = now.getSeconds();
+		if (h < 10) {
+			h = '0' + h;
+		}
+		if (m < 10) {
+			m = '0' + m;
+		}
+		if (s < 10) {
+			s = '0' + s;
+		}
+
+		var tz = '';
+		var str = now.toString().split('(');
+		if (str.length == 2) {
+			var n = str[1].replace(')', '');
+			var parts = n.split(' ');
+			var abbr = '';
+			if (parts.length > 1) {
+				for (var i = 0; i < parts.length; i++) {
+					abbr += parts[i].charAt(0).toUpperCase();
+				}
+			} else {
+				abbr = parts[0];
+			}
+			tz = abbr;
+		}
+
+		var off = now.getTimezoneOffset() / 60;
+
+		return h + ':' + m + ':' + s + ' ' + tz + ' (UTC' + off + ')';
 	}
 
 };
