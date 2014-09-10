@@ -816,7 +816,9 @@ suite('system/shrinkingUI', function() {
     var stubGetTiltingDegree =
       this.sinon.stub(shrinkingUI, '_getTiltingDegree').returns('10deg');
 
-    fakeApp.element.addEventListener.getCall(0).args[1]();
+    fakeApp.element.addEventListener.getCall(0).args[1]({
+      target: fakeApp.element
+    });
     assert.isTrue(
       fakeApp.element.removeEventListener.calledWith(
         'transitionend',
@@ -845,7 +847,9 @@ suite('system/shrinkingUI', function() {
     stubGetTiltingDegree.restore(); // for gjslint's happy
 
     // call the bounceBackEnd
-    fakeApp.element.addEventListener.getCall(1).args[1]();
+    fakeApp.element.addEventListener.getCall(1).args[1]({
+      target: fakeApp.element
+    });
     assert.isTrue(
       fakeApp.element.removeEventListener.calledWith(
         'transitionend',
