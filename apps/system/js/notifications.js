@@ -401,7 +401,10 @@ var NotificationScreen = {
       this.container.querySelector('.priority-notifications') :
       this.container.querySelector('.other-notifications');
 
-    this.addUnreadNotification();
+
+    // We need to animate the ambient indicator when the toast
+    // timesout, so we skip updating it here, by passing a skip bool
+    this.addUnreadNotification(true);
 
     var notificationNode = document.createElement('div');
     notificationNode.classList.add('notification');
@@ -648,13 +651,15 @@ var NotificationScreen = {
     notification.style.transform = '';
   },
 
-  addUnreadNotification: function ns_addUnreadNotification() {
+  addUnreadNotification: function ns_addUnreadNotification(skipUpdate) {
     if (UtilityTray.shown) {
       return;
     }
 
     this.unreadNotifications++;
-    this.updateNotificationIndicator();
+    if (!skipUpdate) {
+      this.updateNotificationIndicator();
+    }
   },
 
   removeUnreadNotification: function ns_removeUnreadNotification() {
@@ -680,6 +685,7 @@ var NotificationScreen = {
 
   closeToast: function ns_closeToast() {
     this.toaster.classList.remove('displayed');
+    this.updateNotificationIndicator();
   },
 
   closeNotification: function ns_closeNotification(notificationNode) {

@@ -266,6 +266,26 @@ suite('system/NotificationScreen >', function() {
     });
   });
 
+  suite('addUnreadNotification', function() {
+    setup(function() {
+      sinon.spy(NotificationScreen, 'updateNotificationIndicator');
+    });
+
+    teardown(function() {
+      NotificationScreen.updateNotificationIndicator.restore();
+    });
+
+    test('should update the notifications indicator', function() {
+      NotificationScreen.addUnreadNotification();
+      assert.isTrue(NotificationScreen.updateNotificationIndicator.called);
+    });
+
+    test('shouldnt update the notif indicator when skipping', function() {
+      NotificationScreen.addUnreadNotification(true);
+      assert.isFalse(NotificationScreen.updateNotificationIndicator.called);
+    });
+  });
+
   suite('addNotification >', function() {
     test('calling addNotification without icon', function() {
       var toasterIcon = NotificationScreen.toasterIcon;
@@ -277,6 +297,15 @@ suite('system/NotificationScreen >', function() {
       delete detail.icon;
       NotificationScreen.addNotification(detail);
       assert.isTrue(toasterIcon.hidden);
+    });
+
+    test('doesnt update the ambient indicator', function() {
+      sinon.spy(NotificationScreen, 'updateNotificationIndicator');
+      var imgpath = 'http://example.com/test.png';
+      var detail = {icon: imgpath, title: 'title', detail: 'detail'};
+      NotificationScreen.addNotification(detail);
+      assert.isFalse(NotificationScreen.updateNotificationIndicator.called);
+      NotificationScreen.updateNotificationIndicator.restore();
     });
 
     function testNotificationWithDirection(dir) {
