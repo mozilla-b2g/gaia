@@ -1,5 +1,5 @@
 /* globals ICEContacts, ICEStore, MocksHelper, mozContact, MockMozContacts,
-           MockL10n, CallHandler */
+           MockL10n, CallHandler, MockLazyLoader */
 'use strict';
 
 require('/shared/test/unit/mocks/mocks_helper.js');
@@ -10,6 +10,7 @@ require('/shared/test/unit/mocks/mock_mozContacts.js');
 require('/shared/js/dialer/utils.js');
 require('/shared/test/unit/mocks/mock_ice_store.js');
 require('/test/unit/mock_call_handler.js');
+require('/js/ice_contacts.js');
 
 var mocksHelperForDialer = new MocksHelper([
   'LazyLoader',
@@ -18,11 +19,18 @@ var mocksHelperForDialer = new MocksHelper([
 ]).init();
 
 suite('ICE contacts bar', function() {
-  var container, iceContactBar, iceContactsOverlay, realL10n, realMozContacts;
+  var realMozContacts;
+  var realL10n;
+  var container;
+  var iceContactBar;
+  var iceContactsOverlay;
+  var iceContactList;
 
   mocksHelperForDialer.attachTestHelpers();
 
   function createDOM() {
+    document.body.innerHTML = '';
+
     container = document.createElement('div');
     iceContactBar = document.createElement('section');
     iceContactBar.id = 'ice-contacts-bar';
@@ -52,6 +60,8 @@ suite('ICE contacts bar', function() {
     container.appendChild(iceContactsOverlayItem);
 
     document.body.appendChild(container);
+
+    iceContactList = document.getElementById('contact-list');
   }
 
   function shouldNotShowICEContactsBar(done) {
@@ -62,23 +72,18 @@ suite('ICE contacts bar', function() {
   }
 
   function shouldIncludeICEContacts(done, length) {
-    var iceContactList = document.getElementById('contact-list');
     ICEContacts.updateICEContacts().then(function() {
       assert.equal(iceContactList.children.length, length);
       done();
     });
   }
 
-  suiteSetup(function(done) {
+  suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = window.MockL10n;
 
     realMozContacts = navigator.mozContacts;
     navigator.mozContacts = MockMozContacts;
-
-    createDOM();
-
-    require('/js/ice_contacts.js', done);
   });
 
   suiteTeardown(function() {
@@ -87,12 +92,30 @@ suite('ICE contacts bar', function() {
     document.body.removeChild(container);
   });
 
-  teardown(function() {
-    iceContactBar.setAttribute('hidden', '');
-    var iceContactsList = document.getElementById('contact-list');
-    while(iceContactsList.children.length > 1) {
-      iceContactsList.removeChild(iceContactsList.children[0]);
-    }
+  setup(function() {
+    ICEContacts._initialized = false;
+    createDOM();
+  });
+
+  suite('Initialization', function() {
+    setup(function(done) {
+      navigator.mozContacts.clear();
+      ICEStore.setContacts([]).then(done);
+    });
+
+    test('Lazyloads contact list overlay', function(done) {
+      this.sinon.spy(MockLazyLoader, 'load');
+      ICEContacts.updateICEContacts().then(function() {
+        sinon.assert.calledWith(MockLazyLoader.load, [iceContactsOverlay]);
+      }).then(done);
+    });
+
+    test('Sets header overlay title', function(done) {
+      ICEContacts.updateICEContacts().then(function() {
+        var header = iceContactsOverlay.querySelector('header');
+        assert.equal(header.dataset.l10nId, 'ice-contacts-overlay-title');
+      }).then(done);
+    });
   });
 
   suite('No ICE contacts', function() {
