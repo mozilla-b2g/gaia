@@ -118,6 +118,7 @@
   AppAuthenticationDialog.prototype.handleEvent = function(evt) {
     System.debug(' AAD>> got event: ' + evt.type);
     evt.preventDefault();
+    evt.stopPropagation();
     this._event = evt;
     if (!this._injected) {
       this.render();
