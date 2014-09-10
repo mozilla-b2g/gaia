@@ -9,7 +9,13 @@
       <div id="cover-img"></div>
         <section id="contact-detail" class="view-body-inner">
           <li data-phone id='phone-details-template-#i#' data-template role="region" aria-label="Phone" data-l10n-id="phoneDetail">
-            <h2 data-l10n-id="#type_l10n_id#">#type# <span class="carrier">#carrier#</span></h2>
+            <h2>
+              <span data-l10n-id="#type_l10n_id#">#type#</span>
+              <span class="carrier-wrapper" hidden>
+                <span data-l10n-id="separator"></span>
+                <span class="carrier">#carrier#</span>
+              </span>
+            </h2>
             <div class="item">
               <div class="item-body-exp">
                 <button class="activity call-action icon icon-call" id="call-or-pick-#i#">

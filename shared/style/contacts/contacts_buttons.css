@@ -52,12 +52,13 @@ li button.icon-email:before {
 }
 
 #contact-detail h2 {
+  display: flex;
+  margin: 0 1.5rem 0.2rem;
+
   text-transform: uppercase;
-  font-size: 1.6rem;
   font-size: 1.8rem;
   color: #4997a7;
   font-weight: normal;
-  margin: 0 1.5rem 0.2rem;
 }
 
 #contact-detail .carrier {
