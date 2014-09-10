@@ -12,7 +12,9 @@ suite('URL Helper', function() {
       'a?some b',
       'docshell site:mozilla.org',
       '?mozilla',
-      '?site:mozilla.org docshell'
+      '?site:mozilla.org docshell',
+      'http:',
+      'app:'
     ].forEach(function(input) {
       assert.ok(UrlHelper.isNotURL(input));
     });
