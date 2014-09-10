@@ -194,7 +194,6 @@
     this._fetchElements();
     this._registerEvents();
 
-    this.app.enterTaskManager();
     this.publish('rendered');
     return elem;
   };
@@ -319,12 +318,8 @@
       screenshotView.style.top = ((width - height) / 2) + 'px';
     }
 
-    // If we have a cached screenshot, use that first
-    var cachedLayer = app.requestScreenshotURL();
-
-    if (cachedLayer) {
-      screenshotView.style.backgroundImage = 'url(' + cachedLayer + ')';
-    }
+    screenshotView.style.backgroundImage = '-moz-element(#' +
+                                           this.app.instanceID + ')';
 
     //
     // We used to try and forcibly refresh the screenshot for the current
