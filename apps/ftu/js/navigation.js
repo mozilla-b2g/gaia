@@ -67,7 +67,9 @@ var Navigation = {
   previousStep: 1,
   totalSteps: numSteps,
   simMandatory: false,
-  skipDataScreen: false,
+  skipMobileDataScreen: false,
+  skipDateTimeScreen: false,
+  tzInitialized: false,
   init: function n_init() {
     _ = navigator.mozL10n.get;
     var settings = navigator.mozSettings;
@@ -159,6 +161,17 @@ var Navigation = {
     window.open(href, '', 'dialog');
   },
 
+  ensureTZInitialized: function () {
+    if (!this.tzInitialized) {
+      return UIManager.initTZ().then(() => {
+        this.skipDateTimeScreen = !UIManager.timeZoneNeedsConfirmation;
+        this.tzInitialized = true;
+      });
+    } else {
+      return Promise.resolve();
+    }
+  },
+
   handleEvent: function n_handleEvent(event) {
     var actualHash = window.location.hash;
     switch (actualHash) {
@@ -189,7 +202,7 @@ var Navigation = {
         // This is the last good opportunity to call it.
 
         WifiManager.scan((networks) => {
-          UIManager.initTZ().then(() => {
+          this.ensureTZInitialized().then(() => {
             WifiUI.renderNetworks(networks);
           });
         });
@@ -320,7 +333,7 @@ var Navigation = {
     // Reset totalSteps and skip screen flags at beginning of navigation
     if (self.currentStep == 1) {
       self.totalSteps = numSteps;
-      self.skipDataScreen = false;
+      self.skipMobileDataScreen = false;
     }
 
     // Retrieve future location
@@ -372,7 +385,7 @@ var Navigation = {
          futureLocation.hash !== '#data_3g')) {
           self.skipStep();
           if (self.currentStep > self.previousStep) {
-            self.skipDataScreen = true;
+            self.skipMobileDataScreen = true;
             self.totalSteps--;
           }
         }
@@ -388,7 +401,11 @@ var Navigation = {
     // timezone from the network. (We assume that if we can
     // determine the timezone, we can determine the time too.)
     if (steps[self.currentStep].hash === '#date_and_time') {
-      if (!UIManager.timeZoneNeedsConfirmation) {
+      if (!self.tzInitialized) {
+        self.skipDateTimeScreen = !UIManager.timeZoneNeedsConfirmation;
+      }
+
+      if (self.skipDateTimeScreen) {
         self.postStepMessage(self.currentStep);
         self.skipStep();
       }

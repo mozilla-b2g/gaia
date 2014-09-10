@@ -358,7 +358,7 @@ suite('navigation >', function() {
 
       // Skip step 2, sim pin entry
       Navigation.skipStep();
-      Navigation.skipDataScreen = true;
+      Navigation.skipMobileDataScreen = true;
       assert.equal(Navigation.previousStep, 1);
       assert.equal(Navigation.currentStep, 3);
 
@@ -385,7 +385,7 @@ suite('navigation >', function() {
 
       // Skip step 2, sim pin entry
       Navigation.skipStep();
-      Navigation.skipDataScreen = true;
+      Navigation.skipMobileDataScreen = true;
       assert.equal(Navigation.previousStep, 1);
       assert.equal(Navigation.currentStep, 3);
 
