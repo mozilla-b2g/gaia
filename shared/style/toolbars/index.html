@@ -9,6 +9,7 @@
     - they are not required for the real use case.
     -->
   <link rel="stylesheet" href="../toolbars.css">
+  <link rel="stylesheet" href="../../elements/gaia-icons/style-embedded.css">
   <style>
     html, body {
       margin: 0;
@@ -20,43 +21,15 @@
     body {
      background: none;
     }
-
-    /* Base icons */
-    [role="toolbar"] .pack-icon-mark {
-      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAG11AABzoAAA85kAAImUAAB+3gAA7PgAADObAAAQ5ap9ykMAAAEISURBVHja7JaxSgNREEXPihAIRkHRci1TCOJ/iIWVlb32gn6JfyAkkCpFOkHQzlYbm5BUlqKFEALH5qFbJHGjm12Rd+F28+4tZu7MS1SqwBIVIRqXhuUfvqsDTaABPAHPcyuo33FVPVdP1ZraVt/9wli9Uhs5tD6ZpygNBgN1zenozmNcZI8PgOOqhusS2KvCeAW4Bo4y2nVgo4w4rQMtoA/cAnfAW1FxyoM0cB8Ylb1AWkCvqB73w/TuAofAzZS6B+DkNwskm+Oaujmh5kwdZTJ9r27N0k1y3OMUGABDYHtG3U7o5xDoAONF7OpJeAyMZzEa//0fyAtwAbwWaZzEf3U0/nfGHwMAR/JD8ZrKeskAAAAASUVORK5CYII=);
-    }
-
-    [role="toolbar"] .pack-icon-share {
-      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAG11AABzoAAA85kAAImUAAB+3gAA7PgAADObAAAQ5ap9ykMAAAF4SURBVHja7Ja5SsRQFIa/kVFBHBjFpRMFQRgcUBSxElyw8AVsBX0EbewFC8HKRhBE1BdQC0GnGewEncpKH8AFphCsJr+FNxBCYm6SWZr5IRBuDufjLDfnZCTRCnXQIrXBTVM25LwAXAP5mP4c4BTYjjLMBHR1N3AADCcIZNXA+5OA0+gSWLPJlLfGXXUA+6NYAHL/gQvAfgN6aA94AAbDwDcJa2qjInDvh7vgvgbfniJQ8sKzKZyNA+vANDBighgDeoFHYzPhsZ808CXgA0lIqkq6MO9RT4+kI0k1JdOVpNgR54A7YC5FppwkqT72QGvAC/DuOgvQrO9OV4Ctv4tnn+p5k6qqpB1JeYuylD0pfpY04H6LE/EG8Gp+i28hNofAIjDlO68AK8Bnkuk0EwEFGAJGo6Bxa3weAQ3SLvAEfNuOxbDGiqtyPRaBn0ZtIE3dRtx5/AV0ArcBo83al2kiq3+/W+MTYBNYThmIA5zFibi93rbBddfvAA7eCHdE+L6kAAAAAElFTkSuQmCC);
-    }
-
-    [role="toolbar"] .pack-icon-send {
-      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAG11AABzoAAA85kAAImUAAB+3gAA7PgAADObAAAQ5ap9ykMAAADtSURBVHja7NYxSgNBFAbgbyWeQcucQRKsJOkCag7mARK1FCytBEEw4AXS2wVLT5DGYtMkYQlOdmfdNRbzYGC6D2be+2eyPM8doo4cqBL8Z9Up7DO84awla44RcsgKXd3DEi/oNowuMMYJ3nePuo8JrvDZAnqH89AdDxvGi+hFWXM1hQfRfV39W3yB6xBaNk518Q16H0KrzPEQ0wi8Elo1QAZr/LIEr4zGJNcAt3vwKDQ2MkN4NFonq4v463pFo7tZHYM/4AbHeKyT752a4dDHU3qPE/yf4O+funqGD5y2hH7hefvPSh/6BLdVqwEA+ck/PrIbaKkAAAAASUVORK5CYII=);
-
-    }
-
-    [role="toolbar"] .pack-icon-move {
-      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAG11AABzoAAA85kAAImUAAB+3gAA7PgAADObAAAQ5ap9ykMAAAFfSURBVHja7Ja9K4VhGMZ/R2fHoJSyUKSYJIsYlK9SijBY5T8w2ZSU1V8gZccgGUwYsFmOUiImHwMG8jN4FG8dPC/HMZyr7t6e7o/rfe6u+73fjEoxUEaRUCKORVMxiAeBQ6A3VbaaxprVW19xozbE1khDWqUe+xE5tSKmTppWjwAHwEU4n4aWj/9Fq1HXwm2X0+T/63GqBPoj6/YA5T8hbgT2gI5I4i5gB6jPF5D5ZEn0AivhzXeB7YR/GKgDjoDVhK8TaAeugVFg87vi6lOf/B08qt1Jjmye224AC8B0OF8C54mY+tCNK+Ak4asBqgGBeWArdpwm1Ad1LnKc5tR7dTRf7ewXIlkCckBbpLjOgiD38wVkv1FkN1gMFv/tPs6myBkI4ql9J7LJIL71Qn6rW9W7xMjcqS2FXouoY+pzIH1Wh/5iH7/ZbCCeSZP/E+KMOhWe0fmZ0g99ibhQeBkASTp/fZNajagAAAAASUVORK5CYII=);
-    }
-
-    [role="toolbar"] .pack-icon-delete {
-      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAG11AABzoAAA85kAAImUAAB+3gAA7PgAADObAAAQ5ap9ykMAAADhSURBVHja7NY/SgNBFMfxz0oEsbTXRiw8gNYJGEglOUVO4DE8kKCg2CUXSJNKe+uEgM9miyW4sju7sCDzg4GZN8P7zsx786eICEPoyEAaDDxqMfYYE9zhGifYYo0XvGLf1FnxR4zPcVvZlQs84glvlXEzjPGAj9L2jRU+a8kR8VuZR8QuumkXEfc1/mtXvMFlD6Hc4KrNVn/1mEdnbWM8WFY/V+rTg3ZT2zQlq6sdxUG7qa3IN1cGZ3AGZ/D/By862Dq9TqlKep2WHaHvqSs+xU35rW2rfTnxbQo4H6de9TMAgtWj/wSFyMoAAAAASUVORK5CYII=);
-    }
-
   </style>
 </head>
 
 <body role="application">
   <div role="toolbar">
-    <ul>
-      <li><button class="pack-icon-delete">Delete</button></li>
-    </ul>
-    <ul>
-      <li><button class="pack-icon-mark">Mark</button></li>
-      <li><button class="pack-icon-send">Send</button></li>
-      <li><button class="pack-icon-move">Move</button></li>
-      <li><button class="pack-icon-share">Share</button></li>
-    </ul>
+    <button data-icon="delete">Delete</button>
+    <button data-icon="send">Send</button>
+    <button data-icon="email-move">Move</button>
+    <button data-icon="share">Share</button>
   </div>
 </body>
 </html>
