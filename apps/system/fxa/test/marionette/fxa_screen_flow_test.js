@@ -35,7 +35,8 @@ marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
     server.stop();
   });
 
-  test('should walk screen flow for new user', function () {
+  // Please refer to http://bugzil.la/1064305.
+  test.skip('should walk screen flow for new user', function () {
     app.enterEmailNew();
     app.clickNext();
     app.clickNext();
@@ -44,7 +45,8 @@ marionette('Firefox Accounts Screen Flow Test (UITest app)', function() {
     app.clickDone();
   });
 
-  test('should walk screen flow for existing user', function () {
+  // Please refer to http://bugzil.la/1064305.
+  test.skip('should walk screen flow for existing user', function () {
     app.enterEmailExisting();
     app.clickNext();
     app.clickNext();
