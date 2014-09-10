@@ -60,6 +60,37 @@ var StatusBar = {
     ['label', null] // Only visible in the maximized status bar.
   ],
 
+  // These events provide immediate visual feedback to the user in the
+  // statusbar, but are not relevant if we are on fullscreen mode, because the
+  // user won't see them.
+  ignoredEventsOnFullScreen: [
+    'moznetworkupload',
+    'moznetworkdownload'
+  ],
+
+  // Thesse are events that are not incremental, meaning that every new event
+  // of the kind replaces completely the previous event.
+  nonIncrementalEvents: [
+    // Battery events
+    'chargingchange',
+    'levelchange',
+    'statuschange',
+
+    'voicechange',
+    'cardstatechange',
+    'callschanged',
+    'simslot-iccinfochange',
+    'wifi-statuschange',
+    'datachange',
+    'bluetoothconnectionchange',
+    'bluetoothprofileconnectionchange',
+    'moztimechange',
+    'recordingEvent',
+    'nfc-state-changed',
+    'mozChromeEvent',
+    'wheel'
+  ],
+
   /* Timeout for 'recently active' indicators */
   kActiveIndicatorTimeout: 5 * 1000,
 
@@ -156,6 +187,8 @@ var StatusBar = {
              (this._cacheHeight = this.element.getBoundingClientRect().height);
     }
   },
+
+  ignoreEvents: false,
 
   init: function sb_init() {
     this.getAllElements();
@@ -294,6 +327,17 @@ var StatusBar = {
     window.addEventListener('sheets-gesture-end', this);
     window.addEventListener('stackchanged', this);
 
+    var self = this;
+    window.addEventListener('mozfullscreenchange', function () {
+      var app = AppWindowManager.getActiveApp();
+      var appIsFullScreen = app && app.isFullScreen();
+      if (appIsFullScreen || document.mozFullScreen) {
+        self.ignoreEventFlow();
+      } else {
+        self.restoreEventFlow();
+      }
+    }, false);
+
     // We need to preventDefault on mouse events until
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1005815 lands
     var events = ['touchstart', 'touchmove', 'touchend',
@@ -310,18 +354,63 @@ var StatusBar = {
     UtilityTray.init();
   },
 
+  eventCache: {},
+
+  emitCachedEvents: function() {
+    var cache = this.eventCache;
+    Object.keys(cache).forEach(type => {
+      while (cache[type].length) {
+        window.dispatchEvent(cache[type].shift());
+      }
+    });
+  },
+
+  storeEventInCache: function(evt) {
+    var cache = this.eventCache;
+    console.log('Event received while in full screen mode', evt.type);
+
+    if (!cache[evt.type]) { cache[evt.type] = []; }
+
+    if (this.nonIncrementalEvents.indexOf(evt.type) !== -1) {
+      cache[evt.type] = [evt];
+    } else {
+      cache[evt.type].push(evt);
+    }
+
+    return evt;
+  },
+
+  ignoreEventFlow: function() {
+    this.ignoreEvents = true;
+  },
+
+  restoreEventFlow: function() {
+    this.ignoreEvents = false;
+    this.emitCachedEvents();
+  },
+
   handleEvent: function sb_handleEvent(evt) {
+    if (this.ignoreEvents === true) {
+      if (evt.type === 'homescreenopened') {
+        this.restoreEventFlow();
+      } else {
+        this.storeEventInCache(evt);
+        return;
+      }
+    }
+
+    console.log('Statusbar event received', evt.type);
+
     switch (evt.type) {
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
         break;
 
       case 'lockscreen-appopened':
-        // Hide the clock in the statusbar when screen is locked
-        //
-        // It seems no need to detect the locked value because
-        // when the lockscreen lock itself, the value must be true,
-        // or we have some bugs.
+        // Hide the clock in the statusbar when screen is locked.
+        // It seems no need to detect the locked value because when the
+        // lockscreen lock itself, the value must be true, or we have some bugs.
+
         this.toggleTimeLabel(false);
         this._updateIconVisibility();
         this.setAppearance(evt.detail);
@@ -356,7 +445,7 @@ var StatusBar = {
       case 'lockpanelchange':
         if (this.screen.classList.contains('locked')) {
           // Display the clock in the statusbar if on Emergency Call screen
-          var isHidden = (evt.detail.panel == 'emergency-call') ? false : true;
+          var isHidden = evt.detail.panel !== 'emergency-call';
           this.toggleTimeLabel(!isHidden);
         }
         break;
@@ -406,15 +495,6 @@ var StatusBar = {
       case 'timeformatchange':
       case 'moztimechange':
         navigator.mozL10n.ready((function _updateTime() {
-          // To stop clock for reseting the clock interval which runs every 60
-          // seconds. The reason to do this is that the time updated will be
-          // exactly aligned to minutes which means always getting 0 on seconds
-          // part.
-          this.toggleTimeLabel(false);
-          this.toggleTimeLabel(true);
-
-          // But we still need to consider if we're locked. So may we need to
-          // hide it again.
           this.toggleTimeLabel(!this.isLocked());
         }).bind(this));
         break;
@@ -525,6 +605,11 @@ var StatusBar = {
       case 'appopened':
       case 'homescreenopened':
       case 'activityopened':
+        console.log(this.ignoreEvents, evt.type);
+        if (evt.type === 'appopened' && evt.detail.isFullScreen()) {
+          this.ignoreEventFlow();
+        }
+
         this.setAppearance(evt.detail);
         this.element.classList.remove('hidden');
         break;
@@ -532,9 +617,8 @@ var StatusBar = {
   },
 
   setAppearance: function(app) {
-    // Avoid any attempt to update the statusbar when
-    // the phone is locked
     if (this._inLockScreenMode) {
+      // Avoid any attempt to update the statusbar when the phone is locked
       return;
     }
 
@@ -1473,13 +1557,12 @@ var StatusBar = {
 
     var emergencyCallsOnly = false;
     var cdmaConnection = false;
-    var self = this;
-    Array.prototype.slice.call(conns).forEach(function(conn) {
+    Array.from(conns).forEach(function(conn) {
       emergencyCallsOnly = emergencyCallsOnly ||
         (conn && conn.voice && conn.voice.emergencyCallsOnly);
       cdmaConnection = cdmaConnection ||
-        (conn && conn.data && !!self.dataExclusiveCDMATypes[conn.data.type]);
-    });
+        (conn && conn.data && !!this.dataExclusiveCDMATypes[conn.data.type]);
+    }, this);
 
     if (emergencyCallsOnly || cdmaConnection) {
       this.addCallListener();
@@ -1505,13 +1588,13 @@ var StatusBar = {
   },
 
   toggleTimeLabel: function sb_toggleTimeLabel(enable) {
-    var icon = this.icons.time;
     if (enable) {
       this.clock.start(this.update.time.bind(this));
     } else {
       this.clock.stop();
     }
-    icon.hidden = !enable;
+
+    this.icons.time.hidden = !enable;
   },
 
   updateEmergencyCbNotification:
