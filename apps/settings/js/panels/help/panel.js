@@ -3,11 +3,13 @@
  */
 define(function(require) {
   'use strict';
-  var SettingsPanel = require('modules/settings_panel'),
-      Support = require('panels/help/support');
+
+  var SettingsPanel = require('modules/settings_panel');
+  var Support = require('panels/help/support');
 
   return function ctor_support_panel() {
     var help = Support();
+
     return SettingsPanel({
       onInit: function(panel) {
         var elements = {
