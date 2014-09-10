@@ -344,8 +344,7 @@ var NotificationScreen = {
   },
 
   updateTimestamps: function ns_updateTimestamps() {
-    var timestamps =
-      this.notificationsContainer.getElementsByClassName('timestamp');
+    var timestamps = document.getElementsByClassName('timestamp');
     for (var i = 0, l = timestamps.length; i < l; i++) {
       timestamps[i].textContent =
         this.prettyDate(new Date(timestamps[i].dataset.timestamp));
