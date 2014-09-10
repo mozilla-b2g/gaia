@@ -823,7 +823,7 @@ var Contacts = (function() {
         }
         break;
       case 'create':
-        refreshContactInList(event.contactID);
+        Contacts.refreshContactInList(event.contactID);
         break;
       case 'remove':
         if (currentContact != null && currentContact.id == event.contactID &&
@@ -844,7 +844,7 @@ var Contacts = (function() {
   function refreshContactInList(id) {
     contactsList.refresh(id, function() {
       notifyContactChanged(id);
-      checkPendingChanges();
+      checkPendingChanges(id);
     });
   }
 
@@ -1015,6 +1015,7 @@ var Contacts = (function() {
     'hideOverlay': hideOverlay,
     'showContactDetail': contactListClickHandler,
     'updateContactDetail': updateContactDetail,
+    'refreshContactInList': refreshContactInList,
     'showStatus': showStatus,
     'loadFacebook': loadFacebook,
     'confirmDialog': loadConfirmDialog,
