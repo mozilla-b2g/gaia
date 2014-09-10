@@ -181,43 +181,60 @@ marionette('Ringtone management', function() {
     });
 
     var toneInfos = [
-      {type: 'built-in', deletable: false, listIndex: 0, setup: function() {
+      {location: 'built-in', type: 'ringtone', deletable: false,
+       listIndex: 0, setup: function() {}},
+
+      {location: 'built-in', type: 'alerttone', deletable: false, listIndex: 2,
+       setup: function() {}},
+
+      {location: 'custom', type: 'ringtone', deletable: true, listIndex: 1,
+       setup: function() {
+         // Inject a custom ringtone, then close and reopen the app to show it.
+         app.inManager(soundPanel, function(container) {
+           container.addCustomRingtone({
+             name: 'My ringtone', subtitle: 'Bob\'s Ringtones', blob: {
+               name: 'my_ringtone.mp3'
+             }
+           });
+           container.backButton.tap(25, 25);
+         });
       }},
 
-      {type: 'custom', deletable: true, listIndex: 1, setup: function() {
-        // Inject a custom ringtone, then close and reopen the app to show it.
-        app.inManager(soundPanel, function(container) {
-          container.addCustomRingtone({
-            name: 'My ringtone', subtitle: 'Bob\'s Ringtones', blob: {
-              name: 'my_ringtone.mp3'
-            }
-          });
-          container.backButton.tap(25, 25);
-        });
+      {location: 'sd card', type: 'ringtone', deletable: true, listIndex: 1,
+       setup: function() {
+         sd_card.injectTone(client, {
+           type: 'ringtone', filePath: 'test_media/samples/Music/b2g.ogg'
+         });
       }},
 
-      {type: 'sd card', deletable: true, listIndex: 1, setup: function() {
-        sd_card.injectTone(client, {
-          type: 'ringtone', filePath: 'test_media/samples/Music/b2g.ogg'
-        });
+      {location: 'sd card', type: 'alerttone', deletable: true, listIndex: 3,
+       setup: function() {
+         sd_card.injectTone(client, {
+           type: 'alerttone', filePath: 'test_media/samples/Music/b2g.ogg'
+         });
       }}
     ];
 
     toneInfos.forEach(function(info) {
-      suite('Actions for ' + info.type + ' ringtone', function() {
+      suite('Actions for ' + info.location + ' ' + info.type, function() {
 
         setup(info.setup);
 
         test('Open action menu', function() {
-         app.inManager(soundPanel, function(container) {
+          app.inManager(soundPanel, function(container) {
             var list = container.soundLists[info.listIndex];
             var actionsMenu = list.sounds[0].openActions();
+
+            assert.equal(actionsMenu.shareButton.getAttribute('data-l10n-id'),
+                         'actions-share-' + info.type);
             assert.equal(actionsMenu.shareButton.displayed(), true,
                          'Share button should be displayed');
+            assert.equal(actionsMenu.deleteButton.getAttribute('data-l10n-id'),
+                         'actions-delete-' + info.type);
             assert.equal(actionsMenu.deleteButton.displayed(), info.deletable,
                          'Delete button should be ' +
                          (info.deletable ? 'displayed' : 'hidden'));
-          });
+         });
         });
 
         test('Share ringtone', function() {
