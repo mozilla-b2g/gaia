@@ -16,15 +16,21 @@
 
   var L10n = navigator.mozL10n._getInternalAPI();
 
-  navigator.mozL10n.bootstrap = function(debug) {
-    var ctx = navigator.mozL10n.ctx = new L10n.Context();
+  navigator.mozL10n.bootstrap = function(file, debug) {
+    var ctx = navigator.mozL10n.ctx = new L10n.Context(file);
 
     if (debug) {
       DEBUG = true;
     }
 
-    ctx.addEventListener('warning', function(err) {
-      if (err.loc === 'en-US') {
+    ctx.addEventListener('missingentity', function(err) {
+      if (ctx.supportedLocales[0] === 'en-US') {
+        throw err;
+      }
+    });
+
+    ctx.addEventListener('missingplaceable', function(err) {
+      if (ctx.supportedLocales[0] === 'en-US') {
         throw err;
       }
     });
@@ -86,7 +92,7 @@
     }
   };
 
-  L10n.Context.prototype.getEntitySource = function(id) {
+  L10n.Context.prototype.getEntitySource = function(id, refId) {
     /* jshint -W084 */
 
     if (!this.isReady) {
@@ -107,8 +113,17 @@
         return locale.ast[id];
       }
 
-      var e = new L10n.Error(id + ' not found in ' + loc, id, loc);
-      this._emitter.emit('warning', e);
+      var msg;
+      var eventType;
+      if (refId) {
+        eventType = 'missingplaceable';
+        msg = id + ' not found in ' + loc + ', referenced from ' + refId;
+      } else {
+        eventType = 'missingentity';
+        msg = id + ' not found in ' + loc;
+      }
+      msg += ' (' + this.id + ')';
+      this._emitter.emit(eventType, new L10n.Error(msg, id, loc));
       cur++;
     }
     return '';
