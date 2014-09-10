@@ -92,6 +92,20 @@ suite('system/TaskManager >', function() {
     window.dispatchEvent(evt);
   }
 
+  function showAndWait(clock, done) {
+    waitForEvent(window, 'cardviewshown')
+      .then(function() { done(); }, failOnReject);
+    taskManager.show();
+    window.dispatchEvent(new CustomEvent('appclosed'));
+    clock.tick();
+  }
+
+  function fakeFinish(clock, app) {
+    clock.tick(100); // smooth timeout
+    app.element.dispatchEvent(new CustomEvent('_opened'));
+    clock.tick(); // timeout before close event is dispatched
+  }
+
   var apps, home;
   var sms, game, game2, game3, game4;
   var taskManager;
@@ -918,6 +932,7 @@ suite('system/TaskManager >', function() {
 
   suite('closeApp', function() {
     setup(function(done) {
+      this.sinon.useFakeTimers();
       MockStackManager.mStack = [
         apps['http://sms.gaiamobile.org'],
         apps['http://game.gaiamobile.org']
@@ -932,9 +947,12 @@ suite('system/TaskManager >', function() {
       waitForEvent(window, 'cardviewshown')
         .then(function() { done(); }, failOnReject);
       taskManager.show();
+      window.dispatchEvent(new CustomEvent('appclosed'));
+      this.sinon.clock.tick();
     });
     teardown(function() {
       taskManager.hide();
+      this.sinon.clock.tick(500); // safety timeout
       cardsList.innerHTML = '';
     });
 
@@ -955,6 +973,24 @@ suite('system/TaskManager >', function() {
       assert.isTrue(destroySpy.calledOnce);
       assert.equal(cardsList.childNodes.length, 1);
       assert.isFalse(instanceID in taskManager.cardsByAppID);
+    });
+
+    suite('after destroying all the cards', function() {
+      setup(function() {
+        sendAppTerminated(apps['http://sms.gaiamobile.org']);
+      });
+
+      test('should go back home', function(done) {
+        var stub = this.sinon.stub(home, 'open');
+
+        waitForEvent(window, 'cardviewclosed').then(function() {
+          assert.isTrue(stub.calledOnce, 'home was open');
+        }, failOnReject)
+        .then(function() { done(); }, done);
+
+        sendAppTerminated(apps['http://game.gaiamobile.org']);
+        fakeFinish(this.sinon.clock, home);
+      });
     });
   });
 
@@ -997,16 +1033,9 @@ suite('system/TaskManager >', function() {
   });
 
   suite('exit >', function() {
-    setup(function(done) {
+    setup(function() {
       this.sinon.useFakeTimers();
       taskManager.hide();
-      MockAppWindowManager.mRunningApps = apps;
-      MockAppWindowManager.mActiveApp = apps['http://sms.gaiamobile.org'];
-      waitForEvent(window, 'cardviewshown')
-        .then(function() { done(); }, failOnReject);
-      taskManager.show();
-      window.dispatchEvent(new CustomEvent('appclosed'));
-      this.sinon.clock.tick();
     });
 
     teardown(function() {
@@ -1014,69 +1043,107 @@ suite('system/TaskManager >', function() {
       taskManager.hide();
     });
 
-    function fakeFinish(clock, app) {
-      clock.tick(100); // smooth timeout
-      app.element.dispatchEvent(new CustomEvent('_opened'));
-      clock.tick(); // timeout before close event is dispatched
-    }
+    suite('when opening from the homescreen', function() {
+      setup(function(done) {
+        MockAppWindowManager.mRunningApps = apps;
+        MockAppWindowManager.mActiveApp = home;
+        MockStackManager.mCurrent = -1;
+        showAndWait(this.sinon.clock, done);
+      });
 
-    test('selected app is opened', function(done) {
-      var targetApp = apps['http://game.gaiamobile.org'];
-      var stub = this.sinon.stub(targetApp, 'open');
+      test('selected app is opened', function(done) {
+        var targetApp = apps['http://game.gaiamobile.org'];
+        var stub = this.sinon.stub(targetApp, 'open');
 
-      waitForEvent(window, 'cardviewclosed').then(function() {
-        assert.isTrue(stub.calledOnce, 'selected app open method was called');
-      }, failOnReject)
-      .then(function() { done(); }, done);
+        waitForEvent(window, 'cardviewclosed').then(function() {
+          assert.isTrue(stub.calledOnce, 'selected app open method was called');
+        }, failOnReject)
+        .then(function() { done(); }, done);
 
-      taskManager.exitToApp(targetApp);
-      fakeFinish(this.sinon.clock, targetApp);
+        taskManager.exitToApp(targetApp);
+        fakeFinish(this.sinon.clock, targetApp);
+      });
+
+      test('home should go back home', function(done) {
+        var stub = this.sinon.stub(home, 'open');
+
+        waitForEvent(window, 'cardviewclosed').then(function() {
+          assert.isTrue(stub.calledOnce, 'home was opened');
+        }, failOnReject)
+        .then(function() { done(); }, done);
+
+        var event = new CustomEvent('home');
+        window.dispatchEvent(event);
+        fakeFinish(this.sinon.clock, home);
+      });
     });
 
-    test('when exitToApp is passed no app', function(done) {
-      var activeApp = MockAppWindowManager.mActiveApp;
-      var stub = this.sinon.stub(activeApp, 'open');
+    suite('when opening from an app', function() {
+      setup(function(done) {
+        MockAppWindowManager.mRunningApps = apps;
+        MockAppWindowManager.mActiveApp = apps['http://sms.gaiamobile.org'];
+        MockStackManager.mCurrent = 0;
+        showAndWait(this.sinon.clock, done);
+      });
 
-      waitForEvent(window, 'cardviewclosed').then(function() {
-        assert.isTrue(stub.calledOnce, 'active app open method was called');
-      }, failOnReject)
-      .then(function() { done(); }, done);
+      test('selected app is opened', function(done) {
+        var targetApp = apps['http://game.gaiamobile.org'];
+        var stub = this.sinon.stub(targetApp, 'open');
 
-      taskManager.exitToApp();
-      fakeFinish(this.sinon.clock, activeApp);
-    });
+        waitForEvent(window, 'cardviewclosed').then(function() {
+          assert.isTrue(stub.calledOnce, 'selected app open method was called');
+        }, failOnReject)
+        .then(function() { done(); }, done);
 
-    test('active app is opened on home event', function(done) {
-      var activeApp = MockAppWindowManager.mActiveApp;
-      var stub = this.sinon.stub(activeApp, 'open');
+        taskManager.exitToApp(targetApp);
+        fakeFinish(this.sinon.clock, targetApp);
+      });
 
-      waitForEvent(window, 'cardviewclosed').then(function() {
-        assert.isTrue(stub.calledOnce, 'active app open method was called');
-      }, failOnReject)
-      .then(function() { done(); }, done);
+      test('when exitToApp is passed no app', function(done) {
+        var activeApp = MockAppWindowManager.mActiveApp;
+        var stub = this.sinon.stub(activeApp, 'open');
 
-      var event = new CustomEvent('home');
-      window.dispatchEvent(event);
-      fakeFinish(this.sinon.clock, activeApp);
-    });
+        waitForEvent(window, 'cardviewclosed').then(function() {
+          assert.isTrue(stub.calledOnce, 'active app open method was called');
+        }, failOnReject)
+        .then(function() { done(); }, done);
 
-    test('newStackPosition is defined when app is selected', function(done) {
-      MockStackManager.mCurrent = 0;
-      var targetApp = apps['http://game.gaiamobile.org'];
+        taskManager.exitToApp();
+        fakeFinish(this.sinon.clock, activeApp);
+      });
 
-      waitForEvent(window, 'cardviewclosed').then(function(evt) {
-        var stackPosition = taskManager.stack.indexOf(targetApp);
-        assert.equal(evt.detail.newStackPosition,
-                     stackPosition,
-                     'current newStackPosition in event.detail');
-        assert.equal(taskManager.newStackPosition,
-                     stackPosition,
-                     'current newStackPosition taskManager');
-      }, failOnReject)
-      .then(function() { done(); }, done);
+      test('active app is opened on home event', function(done) {
+        var activeApp = MockAppWindowManager.mActiveApp;
+        var stub = this.sinon.stub(activeApp, 'open');
 
-      taskManager.exitToApp(targetApp);
-      fakeFinish(this.sinon.clock, targetApp);
+        waitForEvent(window, 'cardviewclosed').then(function() {
+          assert.isTrue(stub.calledOnce, 'active app open method was called');
+        }, failOnReject)
+        .then(function() { done(); }, done);
+
+        var event = new CustomEvent('home');
+        window.dispatchEvent(event);
+        fakeFinish(this.sinon.clock, activeApp);
+      });
+
+      test('newStackPosition is defined when app is selected', function(done) {
+        MockStackManager.mCurrent = 0;
+        var targetApp = apps['http://game.gaiamobile.org'];
+
+        waitForEvent(window, 'cardviewclosed').then(function(evt) {
+          var stackPosition = taskManager.stack.indexOf(targetApp);
+          assert.equal(evt.detail.newStackPosition,
+                       stackPosition,
+                       'current newStackPosition in event.detail');
+          assert.equal(taskManager.newStackPosition,
+                       stackPosition,
+                       'current newStackPosition taskManager');
+        }, failOnReject)
+        .then(function() { done(); }, done);
+
+        taskManager.exitToApp(targetApp);
+        fakeFinish(this.sinon.clock, targetApp);
+      });
     });
   });
 
