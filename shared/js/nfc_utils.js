@@ -28,7 +28,6 @@
     TNF_EXTERNAL_TYPE: 'external',
     TNF_UNKNOWN: 'unknown',
     TNF_UNCHANGED: 'unchanged',
-    TNF_RESERVED: 'reserved',
 
     RTD_TEXT: 0,
     RTD_URI: 0,
@@ -143,7 +142,6 @@
             decodedPayload = { type: nfcUtils.toUTF8(type) };
             break;
           case NDEF.TNF_UNKNOWN:
-          case NDEF.TNF_RESERVED:
             decodedPayload = {};
             break;
           case NDEF.TNF_UNCHANGED:
