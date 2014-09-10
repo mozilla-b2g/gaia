@@ -198,6 +198,9 @@
       if (!this.app || !this.app.element) {
         return;
       }
+      if (!this.app.isHomescreen) {
+        this.app.setVisible(false);
+      }
       this.switchTransitionState('closing');
     };
 

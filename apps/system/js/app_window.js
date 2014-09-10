@@ -225,6 +225,9 @@
           this._screenshotOverlayState = 'screenshot';
           this._showScreenshotOverlay();
         } else {
+          if (this.identificationOverlay) {
+            this.identificationOverlay.classList.add('visible');
+          }
           this._screenshotOverlayState = 'none';
           this._hideFrame();
           this._hideScreenshotOverlay();
