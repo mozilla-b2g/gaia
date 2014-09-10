@@ -182,13 +182,7 @@ apps/keyboard/test/unit/imes/latin/latin_test.js
 apps/keyboard/test/unit/imes/latin/worker_test.js
 apps/keyboard/test/unit/setup_engine.js
 apps/keyboard/test/unit/suggest_test.js
-apps/music/js/Player.js
-apps/music/js/communications.js
 apps/music/js/metadata.js
-apps/music/js/music.js
-apps/music/js/open.js
-apps/music/js/utils.js
-apps/music/test/unit/remote_controls_test.js
 apps/settings/js/about.js
 apps/settings/js/bluetooth.js
 apps/settings/js/call.js
