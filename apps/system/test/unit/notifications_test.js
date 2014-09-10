@@ -99,7 +99,7 @@ suite('system/NotificationScreen >', function() {
     fakeSomeNotifications = createFakeElement('span', 'notification-some');
     fakeNoNotifications = createFakeElement('span', 'notification-none');
     fakeButton = createFakeElement('button', 'notification-clear');
-    fakeAmbientIndicator = createFakeElement('span', 'notifications-indicator');
+    fakeAmbientIndicator = createFakeElement('div', 'ambient-indicator');
     fakeToasterIcon = createFakeElement('img', 'toaster-icon');
     fakeToasterTitle = createFakeElement('div', 'toaster-title');
     fakeToasterDetail = createFakeElement('div', 'toaster-detail');
@@ -220,7 +220,7 @@ suite('system/NotificationScreen >', function() {
 
   suite('updateNotificationIndicator >', function() {
     setup(function() {
-      NotificationScreen.updateNotificationIndicator(true);
+      NotificationScreen.updateNotificationIndicator();
     });
 
     test('should clear unread notifications after open tray', function() {
@@ -253,6 +253,7 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('should change the read status', function() {
+      incrementNotications(1);
       assert.equal(document.body.getElementsByClassName('unread').length, 1);
     });
   });
