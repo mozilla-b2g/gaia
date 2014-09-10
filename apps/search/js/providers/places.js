@@ -1,6 +1,8 @@
 /* globals DataGridProvider, SyncDataStore, Promise, IconsHelper */
 /* globals Search, GaiaGrid, PlacesIdbStore */
 /* globals DateHelper */
+/* globals asyncStorage */
+/* globals LazyLoader */
 (function(exports) {
 
   'use strict';
@@ -248,6 +250,11 @@
         result.screenshot : URL.createObjectURL(result.screenshot);
       div.style.backgroundImage = 'url(' + objectURL + ')';
     }
+
+    if (result.tile) {
+      div.style.backgroundImage = 'url(' + result.tile + ')';
+    }
+
     return div;
   }
 
@@ -285,10 +292,11 @@
     click: itemClicked,
 
     init: function() {
+
       DataGridProvider.prototype.init.apply(this, arguments);
       this.persistStore = new PlacesIdbStore();
 
-      this.persistStore.init().then((function() {
+      this.persistStore.init().then(() => {
 
         this.syncStore =
           new SyncDataStore(STORE_NAME, this.persistStore, 'url');
@@ -302,15 +310,37 @@
         };
         // Make init return a promise, so we know when
         // we did the sync. Used right now for testing
-        // porpuses.
+        // porpoises.
         var rev = this.persistStore.latestRevision || 0;
-        return this.syncStore.sync(rev).then(function() {
-          return new Promise(function(resolve, reject) {
-            showStartPage();
-            resolve();
+        return this.syncStore.sync(rev).then(() => {
+          return new Promise(resolve => {
+
+            function done() {
+              showStartPage();
+              resolve();
+            }
+
+            asyncStorage.getItem('have-preloaded-sites', (havePreloaded) => {
+              if (!havePreloaded) {
+                this.preloadTopSites().then(() => {
+                  asyncStorage.setItem('have-preloaded-sites', true);
+                  done();
+                });
+              } else {
+                done();
+              }
+            });
           });
         });
-      }).bind(this));
+      });
+    },
+
+    preloadTopSites: function() {
+      return LazyLoader.getJSON('/js/inittopsites.json').then(sites => {
+        return Promise.all(sites.map(site => {
+          return this.persistStore.addPlace(site);
+        }));
+      });
     },
 
     search: function(filter) {
