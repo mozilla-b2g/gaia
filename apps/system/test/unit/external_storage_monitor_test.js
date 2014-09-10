@@ -280,7 +280,7 @@ suite('system/ExternalStorageMonitor', function() {
         test('fireNotification() should be called with three args', function() {
           var _ = navigator.mozL10n.get;
           var title = _('sdcard-detected-title');
-          var body = _('sdcard-unknown-size-tap-to-format-body');
+          var body = _('sdcard-unknown-size-then-tap-to-format-body');
           assert.isTrue(externalStorageMonitor.fireNotification.calledWith(
             title, body, true));
         });
@@ -295,7 +295,7 @@ suite('system/ExternalStorageMonitor', function() {
         test('fireNotification() should be called with two args', function() {
           var _ = navigator.mozL10n.get;
           var title = _('sdcard-removed-title');
-          var body = _('sdcard-removed-eject-successfully');
+          var body = _('sdcard-removed-ejected-successfully');
           assert.isTrue(externalStorageMonitor.fireNotification.calledWith(
             title, body));
         });
@@ -310,7 +310,7 @@ suite('system/ExternalStorageMonitor', function() {
         test('fireNotification() should be called with two args', function() {
           var _ = navigator.mozL10n.get;
           var title = _('sdcard-removed-title');
-          var body = _('sdcard-removed-not-eject-properly');
+          var body = _('sdcard-removed-not-ejected-properly');
           assert.isTrue(externalStorageMonitor.fireNotification.calledWith(
             title, body));
         });
