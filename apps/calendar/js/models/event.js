@@ -249,7 +249,7 @@ Calendar.ns('Models').Event = (function() {
 
       if (start >= end) {
         errors.push({
-          name: 'start-after-end'
+          name: 'start-date-after-end-date'
         });
       }
 
