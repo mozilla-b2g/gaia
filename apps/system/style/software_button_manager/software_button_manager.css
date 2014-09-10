@@ -27,7 +27,7 @@
   bottom: 0;
 }
 
-#screen.fullscreen-layout-app #software-buttons-fullscreen-layout {
+#screen.software-button-enabled.fullscreen-layout-app #software-buttons-fullscreen-layout {
   visibility: visible;
 }
 
