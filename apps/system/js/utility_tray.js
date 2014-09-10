@@ -74,6 +74,10 @@ var UtilityTray = {
     }
   },
 
+  addHomeListener: function ut_addHomeListener() {
+    window.addEventListener('home', this);
+  },
+
   startY: undefined,
   lastDelta: undefined,
   isTap: false,
@@ -402,3 +406,7 @@ var UtilityTray = {
     }
   }
 };
+
+// This listener is added here in order to stop the propagation of the 'home'
+// event while the utility tray is being closed
+UtilityTray.addHomeListener();
