@@ -844,7 +844,7 @@ var Contacts = (function() {
   function refreshContactInList(id) {
     contactsList.refresh(id, function() {
       notifyContactChanged(id);
-      checkPendingChanges();
+      checkPendingChanges(id);
     });
   }
 
