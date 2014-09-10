@@ -657,6 +657,12 @@ suite('system/EdgeSwipeDetector >', function() {
     });
 
     suite('During a tap', function() {
+      test('it should not begin a transition', function() {
+        var beginSpy = this.sinon.spy(MockSheetsTransition, 'begin');
+        swipe(this.sinon.clock, panel, 10, 10, 10, 10);
+        assert.isFalse(beginSpy.called);
+      });
+
       test('it should not move the sheets', function() {
         var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
         swipe(this.sinon.clock, panel, 10, 10, 10, 10);

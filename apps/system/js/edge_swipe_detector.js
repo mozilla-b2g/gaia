@@ -153,8 +153,6 @@ var EdgeSwipeDetector = {
       this._forwarding = true;
       this._forward(this._touchStartEvt);
     }).bind(this), 300);
-
-    SheetsTransition.begin(this._direction);
   },
 
   _touchMove: function esd_touchMove(e) {
@@ -183,6 +181,9 @@ var EdgeSwipeDetector = {
 
     this._clearForwardTimeout();
 
+    if (!this._moved) {
+      SheetsTransition.begin(this._direction);
+    }
     this._moved = true;
     SheetsTransition.moveInDirection(this._direction, this._progress);
   },
