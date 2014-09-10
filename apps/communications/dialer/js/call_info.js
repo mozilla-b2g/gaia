@@ -75,25 +75,24 @@
       startTime.dataset.date = call.date;
       startTime.textContent = Utils.prettyDate(call.date);
 
-      var duration = document.createElement('p');
-      duration.classList.add('cd__duration');
+      var durationElt = document.createElement('p');
+      durationElt.classList.add('cd__duration');
       navigator.mozL10n.once(function() {
         if (call.duration === 0) {
           if (group.type === 'incoming') {
-            duration.setAttribute('data-l10n-id', 'info-missed');
+            durationElt.setAttribute('data-l10n-id', 'info-missed');
           } else {
-            duration.setAttribute('data-l10n-id', 'canceled');
+            durationElt.setAttribute('data-l10n-id', 'canceled');
           }
         } else {
-          duration.textContent =
-            Utils.prettyDuration(call.duration, 'callDurationText');
+          Utils.prettyDuration(durationElt, call.duration, 'callDurationText');
         }
       });
 
       var row = document.createElement('div');
       row.classList.add('call-duration');
       row.appendChild(startTime);
-      row.appendChild(duration);
+      row.appendChild(durationElt);
 
       callDurationsElt.appendChild(row);
     });

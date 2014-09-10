@@ -12,28 +12,29 @@ var Utils = {
   },
 
   /**
-   * Return a translated string which represents a time duration
+   * Renders localized time duration to a given dom node
+   * @param {HTMLElement} node that will hold the time duration content
    * @param {Number} time duration in ms
    * @param {String} l10nPrefix prefix used to select the right l10n id.
    *        Default value 'callDuration'.
    */
-  prettyDuration: function(duration, l10nPrefix) {
+  prettyDuration: function(node, duration, l10nPrefix) {
     var elapsed = new Date(duration);
     var h = elapsed.getUTCHours();
     var m = elapsed.getUTCMinutes();
     var s = elapsed.getUTCSeconds();
 
-    var durationFormat = l10nPrefix || 'callDuration';
-    var durationArgs = {
+    var l10nId = l10nPrefix || 'callDuration';
+    var durationL10n = {
       h: h + '',
       m: m + '',
       s: s + ''
     };
 
-    if (durationFormat === 'callDuration') {
+    if (l10nId === 'callDuration') {
       // Pad the args with a leading 0 if we're displaying them in purely
       // digital format.
-      durationArgs = {
+      durationL10n = {
         h: (h > 9 ? '' : '0') + h,
         m: (m > 9 ? '' : '0') + m,
         s: (s > 9 ? '' : '0') + s
@@ -43,12 +44,12 @@ var Utils = {
     if (l10nPrefix === 'callDurationText' && h === 0 && m === 0) {
       // Special case: only display in seconds format (i.e. "5 s") with text
       // formatting, as digital formatting doesn't support this.
-      durationFormat += 'Seconds';
+      l10nId += 'Seconds';
     } else {
-      durationFormat += h > 0 ? 'Hours' : 'Minutes';
+      l10nId += h > 0 ? 'Hours' : 'Minutes';
     }
-
-    return navigator.mozL10n.get(durationFormat, durationArgs);
+ 
+    navigator.mozL10n.setAttributes(node, l10nId, durationL10n);
   },
 
   headerDate: function ut_headerDate(time) {

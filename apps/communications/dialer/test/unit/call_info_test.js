@@ -414,7 +414,8 @@ suite('Call Info', function(argument) {
     test('displays calls in the proper order', function() {
       var durations = document.getElementsByClassName('cd__duration');
       for (var i=1; i < durations.length; i++) {
-        assert.equal(durations[i].textContent, groupReturn.calls[i].duration);
+        sinon.assert.calledWith(Utils.prettyDuration, durations[i],
+          groupReturn.calls[i].duration, 'callDurationText');
       }
     });
 

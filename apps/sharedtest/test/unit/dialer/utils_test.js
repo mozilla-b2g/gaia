@@ -124,14 +124,23 @@ suite('dialer/utils', function() {
   });
 
   suite('prettyDuration', function() {
+    var durationNode;
+
+    setup(function() {
+      durationNode = document.createElement('div');
+      this.sinon.spy(MockL10n, 'setAttributes');
+    });
+
     test('formats as minutes if less than one hour', function() {
-      var pretty = Utils.prettyDuration(60 * 60 * 1000 - 1);
-      assert.equal(pretty, 'callDurationMinutes{"h":"00","m":"59","s":"59"}');
+      Utils.prettyDuration(durationNode, 60 * 60 * 1000 - 1);
+      sinon.assert.calledWith(MockL10n.setAttributes, durationNode,
+        'callDurationMinutes', { h: '00', m: '59', s: '59' });
     });
 
     test('formats with hours if more than one hour', function() {
-      var pretty = Utils.prettyDuration(60 * 60 * 1000);
-      assert.equal(pretty, 'callDurationHours{"h":"01","m":"00","s":"00"}');
+      Utils.prettyDuration(durationNode, 60 * 60 * 1000);
+      sinon.assert.calledWith(MockL10n.setAttributes, durationNode,
+        'callDurationHours', { h: '01', m: '00', s: '00' });
     });
 
     test('Single digits are padded', function() {
@@ -139,8 +148,9 @@ suite('dialer/utils', function() {
       var minutes = 4;
       var seconds = 7;
       var duration = hours * 60 * 60 + minutes * 60 + seconds;
-      var pretty = Utils.prettyDuration(duration * 1000);
-      assert.equal(pretty, 'callDurationHours{"h":"02","m":"04","s":"07"}');
+      Utils.prettyDuration(durationNode, duration * 1000);
+      sinon.assert.calledWith(MockL10n.setAttributes, durationNode,
+        'callDurationHours', { h: '02', m: '04', s: '07' });
     });
 
     suite('When using text format', function() {
@@ -149,22 +159,22 @@ suite('dialer/utils', function() {
         var minutes = 4;
         var seconds = 2;
         var duration = hours * 60 * 60 + minutes * 60 + seconds;
-        var pretty = Utils.prettyDuration(duration * 1000,
-                                          'callDurationText');
-        assert.equal(pretty, 'callDurationTextHours{"h":"1","m":"4","s":"2"}');
+        Utils.prettyDuration(durationNode, duration * 1000, 'callDurationText');
+        sinon.assert.calledWith(MockL10n.setAttributes, durationNode,
+          'callDurationTextHours', { h: '1', m: '4', s: '2' });
       });
 
       test('formats as minutes if less than one hour', function() {
-        var pretty = Utils.prettyDuration(60 * 60 * 1000 - 1,
-                                          'callDurationText');
-        assert.equal(pretty,
-                     'callDurationTextMinutes{"h":"0","m":"59","s":"59"}');
+        Utils.prettyDuration(durationNode, 60 * 60 * 1000 - 1,
+                             'callDurationText');
+        sinon.assert.calledWith(MockL10n.setAttributes, durationNode,
+          'callDurationTextMinutes', { h: '0', m: '59', s: '59' });
       });
 
       test('formats as seconds if less than one minute', function() {
-        var pretty = Utils.prettyDuration(60 * 1000 - 1, 'callDurationText');
-        assert.equal(pretty,
-                     'callDurationTextSeconds{"h":"0","m":"0","s":"59"}');
+        Utils.prettyDuration(durationNode, 60 * 1000 - 1, 'callDurationText');
+        sinon.assert.calledWith(MockL10n.setAttributes, durationNode,
+          'callDurationTextSeconds', { h: '0', m: '0', s: '59' });
       });
     });
   });

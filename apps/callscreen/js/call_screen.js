@@ -527,7 +527,7 @@ var CallScreen = {
       var ticker = setInterval(function ut_updateTimer(startTime) {
         // Bug 834334: Ensure that 28.999 -> 29.000
         var delta = Math.round((Date.now() - startTime) / 1000) * 1000;
-        durationChildNode.textContent = Utils.prettyDuration(delta);
+        Utils.prettyDuration(durationChildNode, delta);
       }, 1000, Date.now());
       durationNode.dataset.tickerId = ticker;
     });
