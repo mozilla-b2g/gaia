@@ -579,12 +579,14 @@ var NotificationScreen = {
         var ringtonePlayer = new Audio();
         var telephony = window.navigator.mozTelephony;
         var isOnCall = telephony && telephony.calls.some(function(call) {
-            return (call.state == 'connected');
+          return (call.state == 'connected');
         });
+        var isOnMultiCall = telephony && telephony.conferenceGroup &&
+          telephony.conferenceGroup.state === 'connected';
 
         ringtonePlayer.src = this._sound;
 
-        if (isOnCall) {
+        if (isOnCall || isOnMultiCall) {
           ringtonePlayer.mozAudioChannelType = 'telephony';
           ringtonePlayer.volume = 0.3;
         } else {
