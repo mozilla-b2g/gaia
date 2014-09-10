@@ -61,7 +61,7 @@ function MailAccount(api, wireRep, acctsSlice) {
    * @listof[@oneof[
    *   @case['bad-user-or-pass']
    *   @case['bad-address']
-   *   @case['needs-app-pass']
+   *   @case['needs-oauth-reauth']
    *   @case['imap-disabled']
    *   @case['pop-server-not-great']{
    *     The POP3 server doesn't support IDLE and TOP, so we can't use it.
@@ -87,6 +87,8 @@ function MailAccount(api, wireRep, acctsSlice) {
 
   this.username = wireRep.credentials.username;
   this.servers = wireRep.servers;
+
+  this.authMechanism = wireRep.credentials.oauth2 ? 'oauth2' : 'password';
 
   // build a place for the DOM element and arbitrary data into our shape
   this.element = null;
@@ -2722,8 +2724,88 @@ MailAPI.prototype = {
   },
 
   /**
+   * Given a user's email address, try and see if we can autoconfigure the
+   * account and what information we'll need to configure it, specifically
+   * a password or if XOAuth2 credentials will be needed.
+   *
+   * @param {Object} details
+   * @param {String} details.emailAddress
+   *   The user's email address.
+   * @param {Function} callback
+   *   Invoked once we have an answer.  The object will look something like
+   *   one of the following results:
+   *
+   *   No autoconfig information is available and the user has to do manual
+   *   setup:
+   *
+   *     {
+   *       result: 'no-config-info',
+   *       configInfo: null
+   *     }
+   *
+   *   Autoconfig information is available and to complete the autoconfig
+   *   we need the user's password.  For IMAP and POP3 this means we know
+   *   everything we need and can actually create the account.  For ActiveSync
+   *   we actually need the password to try and perform autodiscovery.
+   *
+   *     {
+   *       result: 'need-password',
+   *       configInfo: { incoming, outgoing }
+   *     }
+   *
+   *   Autoconfig information is available and XOAuth2 authentication should
+   *   be attempted and those credentials then provided to us.
+   *
+   *     {
+   *       result: 'need-oauth2',
+   *       configInfo: {
+   *         incoming,
+   *         outgoing,
+   *         oauth2Settings: {
+   *           secretGroup: 'google' or 'microsoft' or other arbitrary string,
+   *           authEndpoint: 'url to the auth endpoint',
+   *           tokenEndpoint: 'url to where you ask for tokens',
+   *           scope: 'space delimited list of scopes to request'
+   *         }
+   *       }
+   *     }
+   *
+   *   A `source` property will also be present in the result object.  Its
+   *   value will be one of: 'hardcoded', 'local', 'ispdb',
+   *   'autoconfig-subdomain', 'autoconfig-wellknown', 'mx local', 'mx ispdb',
+   *   'autodiscover'.
+   */
+  learnAboutAccount: function(details, callback) {
+    var handle = this._nextHandle++;
+    this._pendingRequests[handle] = {
+      type: 'learnAboutAccount',
+      details: details,
+      callback: callback
+    };
+    this.__bridgeSend({
+      type: 'learnAboutAccount',
+      handle: handle,
+      details: details
+    });
+  },
+
+  _recv_learnAboutAccountResults: function(msg) {
+    var req = this._pendingRequests[msg.handle];
+    if (!req) {
+      unexpectedBridgeDataError('Bad handle:', msg.handle);
+      return true;
+    }
+    delete this._pendingRequests[msg.handle];
+
+    req.callback.call(null, msg.data);
+    return true;
+  },
+
+
+  /**
    * Try to create an account.  There is currently no way to abort the process
-   * of creating an account.
+   * of creating an account.  You really want to use learnAboutAccount before
+   * you call this unless you are an automated test.
    *
    * @typedef[AccountCreationError @oneof[
    *   @case['offline']{
@@ -2773,9 +2855,10 @@ MailAPI.prototype = {
    *   @case['pop3-disabled']{
    *     POP3 support is not enabled for the Gmail account in use.
    *   }
-   *   @case['needs-app-pass']{
-   *     The Gmail account has two-factor authentication enabled, so the user
-   *     must provide an application-specific password.
+   *   @case['needs-oauth-reauth']{
+   *     The OAUTH refresh token was invalid, or there was some problem with
+   *     the OAUTH credentials provided. The user needs to go through the
+   *     OAUTH flow again.
    *   }
    *   @case['not-authorized']{
    *     The username and password are correct, but the user isn't allowed to
@@ -2804,6 +2887,37 @@ MailAPI.prototype = {
    *     No error, the account was created and everything is terrific.
    *   }
    * ]]
+   *
+   * @param {Object} details
+   * @param {String} details.emailAddress
+   * @param {String} [details.password]
+   *   The user's password
+   * @param {Object} [configInfo]
+   *   If continuing an autoconfig initiated by learnAboutAccount, the
+   *   configInfo it returned as part of its results, although you will need
+   *   to poke the following structured properties in if you're doing the oauth2
+   *   thing:
+   *
+   *     {
+   *       oauth2Secrets: { clientId, clientSecret }
+   *       oauth2Tokens: { accessToken, refreshToken, expireTimeMS }
+   *     }
+   *
+   *   If performing a manual config, a manually created configInfo object of
+   *   the following form:
+   *
+   *     {
+   *       incoming: { hostname, port, socketType, username, password }
+   *       outgoing: { hostname, port, socketType, username, password }
+   *     }
+   *
+   *
+   *
+   * @param {Function} callback
+   *   The callback to invoke upon success or failure.  The callback will be
+   *   called with 2 arguments in the case of failure: the error string code,
+   *   and the error details object.
+   *
    *
    * @args[
    *   @param[details @dict[

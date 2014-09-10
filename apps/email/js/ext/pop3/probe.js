@@ -98,7 +98,6 @@ exports.probeAccount = function(credentials, connInfo) {
 
 // These strings were taken verbatim from failed Gmail POP connection logs:
 var GMAIL_POP_DISABLED_RE = /\[SYS\/PERM\] Your account is not enabled for POP/;
-var GMAIL_APP_PASS_RE = /\[AUTH\] Application-specific password required/;
 var GMAIL_DOMAIN_DISABLED_RE =
       /\[SYS\/PERM\] POP access is disabled for your domain\./;
 
@@ -120,10 +119,6 @@ function analyzePop3LibraryError(err) {
   if (err.name === 'bad-user-or-pass' &&
       err.message && GMAIL_POP_DISABLED_RE.test(err.message)) {
     return 'pop3-disabled';
-  }
-  else if (err.name === 'bad-user-or-pass' &&
-             err.message && GMAIL_APP_PASS_RE.test(err.message)) {
-    return 'needs-app-pass';
   }
   else if (err.name === 'bad-user-or-pass' &&
              err.message && GMAIL_DOMAIN_DISABLED_RE.test(err.message)) {

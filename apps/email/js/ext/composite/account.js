@@ -113,7 +113,10 @@ CompositeAccount.prototype = {
 
       credentials: {
         username: this.accountDef.credentials.username,
+        outgoingUsername: this.accountDef.credentials.outgoingUsername,
         // no need to send the password to the UI.
+        // send all the oauth2 stuff we've got, though.
+        oauth2: this.accountDef.credentials.oauth2
       },
 
       servers: [

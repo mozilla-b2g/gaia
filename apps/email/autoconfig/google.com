@@ -4,48 +4,27 @@
     <domain>googlemail.com</domain>
     <!-- MX, for Google Apps -->
     <domain>google.com</domain>
-    <!-- HACK. Only add ISPs with 100000+ users here -->
-    <domain>jazztel.es</domain>
     <displayName>Google Mail</displayName>
     <displayShortName>GMail</displayShortName>
     <incomingServer type="imap">
-      <hostname>imap.googlemail.com</hostname>
+      <hostname>imap.gmail.com</hostname>
       <port>993</port>
       <socketType>SSL</socketType>
       <username>%EMAILADDRESS%</username>
-      <authentication>password-cleartext</authentication>
-    </incomingServer>
-    <incomingServer type="pop3">
-      <hostname>pop.googlemail.com</hostname>
-      <port>995</port>
-      <socketType>SSL</socketType>
-      <username>%EMAILADDRESS%</username>
-      <authentication>password-cleartext</authentication>
-      <pop3>
-        <leaveMessagesOnServer>true</leaveMessagesOnServer>
-      </pop3>
+      <authentication>xoauth2</authentication>
     </incomingServer>
     <outgoingServer type="smtp">
-      <hostname>smtp.googlemail.com</hostname>
+      <hostname>smtp.gmail.com</hostname>
       <port>465</port>
       <socketType>SSL</socketType>
       <username>%EMAILADDRESS%</username>
-      <authentication>password-cleartext</authentication>
+      <authentication>xoauth2</authentication>
     </outgoingServer>
-    <enable visiturl="https://mail.google.com/mail/?ui=2&amp;shva=1#settings/fwdandpop">
-      <instruction>You need to enable IMAP access</instruction>
-    </enable>
-    <documentation url="http://mail.google.com/support/bin/answer.py?answer=13273">
-      <descr>How to enable IMAP/POP3 in GMail</descr>
-    </documentation>
-    <documentation url="http://mail.google.com/support/bin/topic.py?topic=12806">
-      <descr>How to configure email clients for IMAP</descr>
-    </documentation>
-    <documentation url="http://mail.google.com/support/bin/topic.py?topic=12805">
-      <descr>How to configure email clients for POP3</descr>
-    </documentation>
-    <documentation url="http://mail.google.com/support/bin/answer.py?answer=86399">
-      <descr>How to configure TB 2.0 for POP3</descr>
-    </documentation>
+    <oauth2Settings>
+      <secretGroup>google</secretGroup>
+      <authEndpoint>https://accounts.google.com/o/oauth2/auth</authEndpoint>
+      <tokenEndpoint>https://accounts.google.com/o/oauth2/token</tokenEndpoint>
+      <scope>https://mail.google.com/</scope>
+    </oauth2Settings>
   </emailProvider>
 </clientConfig>

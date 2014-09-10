@@ -29,6 +29,32 @@ translations are inlined, but the HTML DOM is not pre-localized, as each card
 HTML is stored in its own .html file that is loaded on demand when the card
 is needed.
 
+## OAuth2 customization
+
+OAuth2 is used to connect to some email providers, and this requires some
+configuration information. There is a default configuration set up, but it is
+strongly recommended that you use specific configuration based on your
+deployment.
+
+To provide different configuration, create a file that contains a JSON structure
+that looks like this:
+
+```json
+{
+  "oauth2": {
+    "google": {
+      "clientId": "yourValueHere",
+      "clientSecret": "yourValueHere"
+    }
+  }
+}
+```
+
+Then, as part of the main Gaia build, set the DISTRIBUTION_EMAIL_SERVICES
+environment variable to the path of this JSON file. The email build step will
+overwrite the `js/services.js` file in the build area with this new
+configuration.
+
 ## Back-End Code Location ##
 
 The e-mail back-end is not developed in this repository.  All of the code in
@@ -40,18 +66,7 @@ that repository. This is particularly important since the e-mail back-end uses
 staged loading of some roll-up files to get the best performance.
 
 The e-mail back-end repo copies over a few files to this repository via that
-repository's `make install-into-gaia` command. The files are as follows:
-
-* **js/ext/alameda.js**: used for dynamic loading and module binding for back-end.
-* **js/ext/end.js**: Kickstarts back-end loading. If it detects no accounts have
-been set up, then it gives the UI a fake data object, then dynamically loads
-the bulk of the back-end.
-* **js/ext/ext/same-frame-setup.js**: the email back-end. It knows how to talk
-to the local databases and then dynamically loads account type rollup files.
-* **js/ext/ext/activesync/configurator.js**: Code for the activesync account
-type.
-* **js/ext/ext/composite/configurator.js**: Code for the "imap+smtp" account
-type.
+repository's `make install-into-gaia` command.
 
 ## Running in Firefox ##
 
@@ -115,20 +130,10 @@ Browse to http://email.gaiamobile.org:8080/ or whatever URL you used above.
 The email app takes advantage of some features in the gaia build system to do
 some optimizations:
 
-* Apps can define an app-specific Makefile in their directory. This is run
-before the rest of the general Gaia build steps. Email uses this to create
-a directory in `gaia/build_stage/email` and runs some optimizations around
-JS and CSS concatenation.
-* The Gaia build system knows to use `gaia/build_stage/email` to do the rest of
-the Gaia build steps because email specifies the "dir" in the `gaia_build.json`
-in this directory.
-* Since the shared resources referenced by email are not listed in the HTML,
-but as CSS @imports or via JS module dependencies, the email Makefile
-runs `email/build/make_gaia_shared.js` to generate a `gaia_shared.json` file
-in the `gaia/build_stage/email` directory to list out the shared items use by
-the email app. `gaia_shared.json` is used by the general Gaia build system to
-know what shared resources to keep. The Gaia build system also does HTML file
-scanning to find shared resources too.
+* Apps can define an app-specific build/build.js in their directory. This is run
+as part of the general Gaia build steps. Email uses this to create a directory
+in `gaia/build_stage/email` and runs some optimizations around JS and CSS
+concatenation.
 
 For DEBUG=1 builds, the email source directory is used as-is, and the shared
 resources are magically linked in via the Gaia build system.
@@ -138,7 +143,7 @@ runs some uglify2 minification on the files. This can take a while, so if you
 are doing multiple, rapid edit-device push cycles you should not use this.
 
 If you want to give snapshots of builds, say for UX reviews, you should use
-the contents of the `gaia/build_stage/email` directory as it will be a fully
-functional snapshot.
+the application.zip generated in the `profile/webapps/email.gaiamobile.org`
+directory.
 
 

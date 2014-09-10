@@ -65,12 +65,65 @@ define('slog', function(require, exports, module) {
     logEmitter = new evt.Emitter();
   };
 
+
   var LogChecker = exports.LogChecker = function(T, RT, name) {
     this.T = T;
     this.RT = RT;
     this.eLazy = this.T.lazyLogger(name);
     this.eNotLogLazy = null;
     this._subscribedTo = {};
+    this._interceptions = {};
+  };
+
+
+  ////////////////////////////////////////////////////////////////
+  // Interceptions: Hook into predefined 'intercept' log events,
+  // allowing you to dynamically "mock" internal details without
+  // a lot of boilerplate.
+
+  var interceptions = { }; // Map of { logName: handler }
+
+  /**
+   * Intercept one instance of an interceptible log event, causing the
+   * corresponding `slog.interceptable()` call to return the value of
+   * replaceFn instead (one time). The interception _must_ occur, i.e.
+   * this function also calls `mustLog(name)` itself.
+   */
+  LogChecker.prototype.interceptOnce = function(name, replaceFn) {
+    this.mustLog(name);
+    var handlers = interceptions[name] = (interceptions[name] || []);
+    handlers.push(replaceFn);
+  };
+
+  /**
+   * Log an event designed to provide a "hook" for tests to modify
+   * internal behavior and/or mocks. Usage:
+   *
+   *   var addFn = slog.interceptable('my-xhr', function() {
+   *     return new XMLHttpRequest();
+   *   });
+   *
+   *   // by default, addFn ==> the XHR object, unless you intercept
+   *   // the behavior in a test:
+   *
+   *   logChecker.intercept('my-xhr', function() {
+   *      return new SomeMockXHR();
+   *   });
+   *
+   *   // (now addFn ==> SomeMockXHR instance)
+   */
+  exports.interceptable = function(name, fn) {
+    var handler;
+    if (interceptions[name]) {
+      handler = interceptions[name].shift();
+    }
+
+    if (handler) {
+      exports.log(name);
+      return handler(fn);
+    } else {
+      return fn();
+    }
   };
 
   /**

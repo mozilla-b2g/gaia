@@ -187,9 +187,15 @@
    */
   function do_autodiscover(aHost, aEmailAddress, aPassword, aTimeout,
                            aNoRedirect, aCallback) {
+    var url = 'https://' + aHost + '/autodiscover/autodiscover.xml';
+    return raw_autodiscover(url, aEmailAddress, aPassword, aTimeout,
+                            aNoRedirect, aCallback);
+  }
+
+  function raw_autodiscover(aUrl, aEmailAddress, aPassword, aTimeout,
+                            aNoRedirect, aCallback) {
     var xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
-    xhr.open('POST', 'https://' + aHost + '/autodiscover/autodiscover.xml',
-             true);
+    xhr.open('POST', aUrl, true);
     setAuthHeader(xhr, aEmailAddress, aPassword);
     xhr.setRequestHeader('Content-Type', 'text/xml');
     xhr.setRequestHeader('User-Agent', USER_AGENT);
@@ -208,7 +214,7 @@
         uid: uid,
         type: 'configparser',
         cmd: 'accountactivesync',
-        args: [xhr.responseText]
+        args: [xhr.responseText, aNoRedirect]
       });
 
       self.addEventListener('message', function onworkerresponse(evt) {
@@ -251,6 +257,7 @@
 
     xhr.send(postdata);
   }
+  exports.raw_autodiscover = raw_autodiscover;
 
   /**
    * Create a new ActiveSync connection.

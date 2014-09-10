@@ -20,6 +20,29 @@ function toHexString(charCode) {
   return ('0' + charCode.toString(16)).slice(-2);
 }
 
+/**
+ * Copy the services.json file to the root of the staging dir.
+ */
+function generateServicesConfig(options) {
+  var servicesPath,
+      path = options.EMAIL_SERVICES_PATH,
+      stageJsPath = utils.joinPath(options.STAGE_APP_DIR, 'js');
+
+  // Just copy over the default file
+  if (!path) {
+    var sourcePath = utils.joinPath(options.APP_DIR, 'js', 'services.js');
+    utils.copyFileTo(sourcePath, stageJsPath, 'services.js', true);
+    return;
+  }
+
+  // read the pretty JSON
+  var services = utils.readJSONFromPath(path);
+  // and write out ugly JSON
+  utils.writeContent(
+    utils.getFile(stageJsPath, 'services.js'),
+    'define(' + JSON.stringify(services) + ');');
+}
+
 function onFileRead(contents) {
   digests.push(getDigest(contents));
 }
@@ -71,9 +94,14 @@ function optimize(options, r) {
                             'build', 'main-frame-setup.build.js');
   var appConfigFile = utils.getFile(options.APP_DIR, 'build', 'email.build.js');
   var stageShared = utils.getFile(options.STAGE_APP_DIR, 'shared');
+  var stageJs = utils.getFile(options.STAGE_APP_DIR, 'js');
   var extPrefix = /^.*[\\\/]email[\\\/]js[\\\/]ext[\\\/]/;
 
   utils.ensureFolderExists(stageShared);
+  utils.ensureFolderExists(stageJs);
+
+  // Make sure services.js is up to date.
+  generateServicesConfig(options);
 
   // Do gelam worker stuff first. This will copy over all of the js/ext
   // directory.
