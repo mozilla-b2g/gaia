@@ -46,6 +46,12 @@ suite('system/SearchWindow', function() {
     realApplications = null;
   });
 
+  test('constructor', function() {
+    var searchWindow = new SearchWindow();
+    assert.ok(searchWindow.constructor === SearchWindow,
+      'Uses the SearchWindow constructor');
+  });
+
   test('setBrowserConfig', function() {
     var searchWindow = new SearchWindow();
 
