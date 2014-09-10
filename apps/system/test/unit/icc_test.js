@@ -91,6 +91,24 @@ suite('STK (icc) >', function() {
         }
       },
 
+      STK_CMD_DISPLAY_TEXT: {
+        iccId: '1010011010',
+        command: {
+          commandNumber: 1,
+          typeOfCommand: navigator.mozIccManager.STK_CMD_DISPLAY_TEXT,
+          commandQualifier: 0,
+          options: {
+            text: 'stk display test text',
+            userClear: true,
+            responseNeeded: false,
+            duration: {
+              timeUnit: navigator.mozIccManager.STK_TIME_UNIT_TENTH_SECOND,
+              timeInterval: 5
+            }
+          }
+        }
+      },
+
       STK_CMD_SET_UP_IDLE_MODE_TEXT: {
         iccId: '1010011010',
         command: {
@@ -228,6 +246,28 @@ suite('STK (icc) >', function() {
     icc.handleSTKCommand({ command: { typeOfCommand: 0 } });
   });
 
+  test('UI: Display Text (timeout 1sec)', function(done) {
+    var fakeClock = this.sinon.useFakeTimers(),
+        testCmd = stkTestCommands.STK_CMD_DISPLAY_TEXT;
+    window.icc.confirm(testCmd, testCmd.command.options.text, 1000,
+      function(res, value) {
+        fakeClock.restore();
+        done();
+      });
+    fakeClock.tick(1000);
+  });
+
+  test('UI: Display Text (contents)', function() {
+    var testCmd = stkTestCommands.STK_CMD_DISPLAY_TEXT;
+    window.icc.confirm(testCmd, testCmd.command.options.text, 0, function() {});
+ 
+    assert.equal(document.getElementById('icc-confirm-msg').textContent,
+      testCmd.command.options.text);
+    assert.equal(document.getElementById('icc-confirm-btn').disabled, false);
+    assert.equal(document.getElementById('icc-confirm-btn_close').textContent,
+      'Close');
+  });
+
   test('UI: Input (timeout 1sec)', function(done) {
     var fakeClock = this.sinon.useFakeTimers(),
         testCmd = stkTestCommands.STK_CMD_GET_INPUT;
@@ -309,6 +349,14 @@ suite('STK (icc) >', function() {
     assert.equal(button.disabled, true);
     assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
       (testCmd.command.options.maxLength - inputbox.value.length) + ')');
+  });
+
+  test('launchStkCommand: STK_CMD_DISPLAY_TEXT', function(done) {
+    window.icc_worker.onmessagereceived = function(message) {
+      assert.equal(message, stkTestCommands.STK_CMD_DISPLAY_TEXT);
+      done();
+    };
+    launchStkCommand(stkTestCommands.STK_CMD_DISPLAY_TEXT);
   });
 
   test('launchStkCommand: STK_CMD_GET_INPUT', function(done) {
