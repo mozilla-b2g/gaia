@@ -13,5 +13,8 @@ var MockSystem = {
   },
   locked: false,
   runningFTU: false,
+  getAPI: function() {
+    return null;
+  },
   manifestURL: 'app://system.gaiamobile.org/manifest.webapp'
 };

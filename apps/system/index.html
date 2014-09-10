@@ -40,7 +40,9 @@
     <!-- XXX can be removed while gecko support navigator.mozHour12 API -->
     <script defer src="shared/js/date_time_helper.js"></script>
 
+    <script defer src="js/base_module.js"></script>
     <script defer src="js/system.js"></script>
+    <script defer src="js/core.js"></script>
     <script defer src="js/base_ui.js"></script>
     <script defer src="js/places.js"></script>
 
@@ -49,12 +51,6 @@
     <script defer src="shared/js/keyboard_helper.js"></script>
     <script defer src="shared/js/template.js"></script>
     -->
-
-    <!-- SIMSlot -->
-    <script type="text/javascript" defer src="shared/js/simslot.js"></script>
-    <script type="text/javascript" defer src="shared/js/simslot_manager.js"></script>
-    <script type="text/javascript" defer src="js/sim_settings_helper.js"></script>
-
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
@@ -336,11 +332,6 @@
     <!-- Identity -->
     <script defer src="js/identity.js"></script>
 
-    <!-- Operator Variant Mechanism -->
-    <script defer src="shared/js/operator_variant_helper.js"></script>
-    <script defer src="js/operator_variant/operator_variant.js"></script>
-    <script defer src="js/operator_variant/operator_variant_iccs.js"></script>
-
     <!-- Voicemail -->
     <script defer src="js/voicemail.js"></script>
 
@@ -357,7 +348,6 @@
     <script defer src="js/captive_portal.js"></script>
 
     <!-- CDMA Emergency Callback Mode Manager-->
-    <script defer src="js/emergency_callback_manager.js"></script>
     <link rel="stylesheet" type="text/css" href="style/emergency_callback_manager/emergency_callback_manager.css">
 
     <!-- Windows -->
@@ -397,7 +387,6 @@
     <script defer src="js/secure_window_manager.js"></script>
     <script defer src="js/system_dialog.js"></script>
     <script defer src="js/system_dialog_manager.js"></script>
-    <script defer src="js/system_simcard_dialog.js"></script>
     <script defer src="js/system_nfc_connect_dialog.js"></script>
     <script defer src="js/fxa_dialog.js"></script>
     <script defer src="js/lockscreen_window.js"></script>
@@ -422,15 +411,6 @@
     <script defer src="js/devtools/developer_hud.js"></script>
     <link rel="stylesheet" type="text/css" href="style/devtools/developer_hud.css">
 
-    <!-- Call Forwarding  -->
-    <script defer src="js/call_forwarding.js"></script>
-
-    <!-- Telephony Settings  -->
-    <script defer src="js/telephony_settings.js"></script>
-
-    <!-- EU Roaming -->
-    <script defer src="js/eu_roaming_manager.js"></script>
-
     <!-- Internet Sharing  -->
     <script defer src="js/internet_sharing.js"></script>
 
@@ -450,9 +430,7 @@
     <!-- <script defer src="shared/js/icons_helper.js"></script> -->
 
     <!-- PIN Unlocking -->
-    <script defer src="js/sim_lock.js"></script>
     <link rel="stylesheet" type="text/css" href="style/simcard.css">
-    <script defer src="js/simcard_dialog.js"></script>
 
     <!-- Bluetooth Connect via NFC -->
     <link rel="stylesheet" type="text/css" href="style/nfcconnect.css">
@@ -470,6 +448,11 @@
     <link rel="stylesheet" type="text/css" href="style/mobileid/mobileid.css">
     <script defer src="js/mobileid_manager.js"></script>
     <script defer src="js/mobileid_dialog.js"></script>
+
+    <!-- build system will move the shared file from this ->
+    <!-- <script defer src="shared/js/operator_variant_helper.js"></script> -->
+    <!-- <script defer src="shared/js/simslot.js"></script> -->
+    <!-- <script defer src="shared/js/simslot_manager.js"></script> -->
   </head>
 
   <body class="theme-settings" role="application">

@@ -1,3 +1,4 @@
+/* global System */
 'use strict';
 
 var CellBroadcastSystem = {
@@ -34,9 +35,8 @@ var CellBroadcastSystem = {
 
     // XXX: check bug-926169
     // this is used to keep all tests passing while introducing multi-sim APIs
-    var conn = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
+    var conns = System.getAPI('mobileConnections');
+    var conn = conns ? conns[0] : null;
 
     var msg = event.message;
 

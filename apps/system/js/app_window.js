@@ -2012,6 +2012,15 @@
     };
 
   /**
+   * Request to be foreground to the focusManager.
+   * If it's fine to let us to be focused, this.focus() will be called.
+   */
+  AppWindow.prototype.requestFocus =
+    function aw_requestFocus() {
+      this.publish('requestfocus');
+    };
+
+  /**
    * The window is killable by user manual action or not.
    * @return {Boolean} The app is killable or not.
    */

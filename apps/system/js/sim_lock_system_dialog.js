@@ -1,18 +1,15 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global SystemDialog */
 'use strict';
 
 (function(exports) {
 
   /**
-   * @class SimPinSystemDialog
+   * @class SimLockSystemDialog
    * @param {options} object for attributes `onShow`, `onHide` callback.
    * @extends SystemDialog
    */
-  var SimPinSystemDialog = function SimPinSystemDialog(options) {
-    if (options) {
-      this.options = options;
-    }
+  var SimLockSystemDialog = function(controller) {
+    this.controller = controller;
     /**
      * render the dialog
      */
@@ -20,13 +17,13 @@
     this.publish('created');
   };
 
-  SimPinSystemDialog.prototype = Object.create(window.SystemDialog.prototype);
+  SimLockSystemDialog.prototype = Object.create(SystemDialog.prototype);
 
-  SimPinSystemDialog.prototype.customID = 'simpin-dialog';
+  SimLockSystemDialog.prototype.customID = 'simpin-dialog';
 
-  SimPinSystemDialog.prototype.DEBUG = false;
+  SimLockSystemDialog.prototype.DEBUG = false;
 
-  SimPinSystemDialog.prototype.view = function spd_view() {
+  SimLockSystemDialog.prototype.view = function spd_view() {
     return '<div id="' + this.instanceID + '" role="dialog" ' +
            'class="generic-dialog" data-z-index-level="system-dialog" hidden>' +
            '<section role="region">' +
@@ -95,17 +92,21 @@
   };
 
   // Get all elements when inited.
-  SimPinSystemDialog.prototype._fetchElements =
+  SimLockSystemDialog.prototype._fetchElements =
     function spd__fetchElements() {
 
   };
 
+  SimLockSystemDialog.prototype.onHide = function() {
+    this.controller && this.controller.onHide();
+  };
+
   // Register events when all elements are got.
-  SimPinSystemDialog.prototype._registerEvents =
+  SimLockSystemDialog.prototype._registerEvents =
     function spd__registerEvents() {
 
     };
 
-  exports.SimPinSystemDialog = SimPinSystemDialog;
+  exports.SimLockSystemDialog = SimLockSystemDialog;
 
 }(window));
