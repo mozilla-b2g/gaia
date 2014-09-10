@@ -1,0 +1,108 @@
+{
+  "name": "Privacy Panel",
+  "description": "Web app Privacy Panel",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "storage":{},
+    "browser": {},
+    "embed-apps": {},
+    "mobileconnection":{},
+    "voicemail":{},
+    "bluetooth":{},
+    "device-storage:pictures":{ "access": "readonly" },
+    "device-storage:music":{ "access": "readonly" },
+    "device-storage:videos":{ "access": "readonly" },
+    "device-storage:sdcard":{ "access": "readwrite" },
+    "device-storage:apps":{ "access": "readonly" },
+    "webapps-manage":{},
+    "open-remote-window":{},
+    "permissions":{},
+    "systemXHR": {},
+    "settings":{ "access": "readwrite" },
+    "wifi-manage":{},
+    "time":{},
+    "desktop-notification":{},
+    "power":{},
+    "idle":{},
+    "telephony":{},
+    "audio-channel-notification":{},
+    "audio-channel-alarm":{},
+    "downloads":{},
+    "nfc":{ "access": "readonly" },
+    "sms":{},
+    "firefox-accounts": {}
+  },
+  "activities": {
+    "configure": {
+      "filters": {
+        "target": "device"
+       },
+      "disposition": "window"
+    }
+  },
+  "locales": {
+    "ar": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "de": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "el": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "en-US": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "es": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "fr": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "it": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "pt-BR": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "ru": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "tr": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    },
+    "zh-TW": {
+      "name": "Privacy Panel",
+      "description": "Web app Privacy Panel"
+    }
+  },
+  "datastores-access": {
+    "download_store": {
+      "readonly": false,
+      "description": "Stores download finished"
+    },
+    "vertical_preferences_store": {
+      "readonly": false,
+      "description": "Vertical homescreen preferences"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  }
+}

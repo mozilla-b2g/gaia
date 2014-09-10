@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+
+    <!-- Common style -->
+    <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
+
+    <!-- Specific style -->
+    <link rel="stylesheet" type="text/css" href="style/lists.css">
+    <link rel="stylesheet" type="text/css" href="style/icons.css">
+    <link rel="stylesheet" type="text/css" href="style/settings.css">
+    <link rel="stylesheet" type="text/css" href="style/settings_large.css" data-device-type="tablet">
+
+    <!-- Components -->
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" />
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
+
+    <title>Privacy Panel</title>
+    <script src="shared/js/l10n.js"></script>
+    <script src="js/template.js"></script>
+    <script src="js/settings-app.js"></script>
+  </head>
+
+  <body>
+    <section role="region" id="root" class="current skin-dark" data-rendered="true">
+      <header id="header">
+        <a id="back" href="#"><span class="icon icon-back">back</span></a>
+        <h1 id="privacy-panel-title" data-l10n-id="privacy-panel">Privacy Panel</h1>
+      </header>
+
+      <div>
+        <ul>
+          <li>
+            <a id="menuItem-location-accuracy" class="menu-item" data-icon="notifications" href="">
+              <span data-l10n-id="location-accuracy">Location Accuracy</span>
+            </a>
+          </li>
+          <li>
+            <a id="menuItem-remote-privacy-protection" class="menu-item" data-icon="notifications" href="">
+              <span data-l10n-id="remote-privacy-protection">Remote Privacy Protection</span>
+            </a>
+          </li>
+          <li>
+            <a id="menuItem-guided-tour" class="menu-item" data-icon="notifications" href="">
+              <span data-l10n-id="guided-tour">Guided Tour</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </body>
+</html>
