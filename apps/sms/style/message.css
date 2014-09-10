@@ -23,6 +23,10 @@
   border-radius: 1.5rem 0 1.5rem 1.5rem;
 
   background: #fff;
+}
+
+.message.outgoing .bubble,
+.message.outgoing a:active {
   color: #333;
 }
 
@@ -32,6 +36,10 @@
   border-radius: 0 1.5rem 1.5rem 1.5rem;
 
   background: #39c3c2;
+}
+
+.message.incoming .bubble,
+.message.incoming a:active {
   color: #fff;
 }
 
@@ -63,8 +71,9 @@
   background: #ff9898;
 }
 
-
-.message.sending .bubble {
+.message.sending .bubble,
+.message.sending a,
+.message.sending a:active {
   color: #bfbfbf;
 }
 
@@ -88,13 +97,9 @@
 }
 
 /* Message content styles */
-.message .message-content a {
-  color: #333;
+.message-content a {
+  color: #004eff;
   text-decoration: underline;
-}
-
-.message .message-content a:active {
-  color: #ff4e00;
 }
 
 .message-details {
