@@ -172,12 +172,12 @@ suite('system/HomescreenLauncher', function() {
     test('cards view before shown, then closed', function() {
       MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
       homescreen = window.homescreenLauncher.getHomescreen();
-      var stubFadeOut = this.sinon.stub(homescreen, 'fadeOut');
+      var stubEnterTM = this.sinon.stub(homescreen, 'enterTaskManager');
       window.homescreenLauncher.handleEvent({
         type: 'cardviewbeforeshow'
       });
-      assert.isTrue(stubFadeOut.called);
-      stubFadeOut.restore();
+      assert.isTrue(stubEnterTM.called);
+      stubEnterTM.restore();
 
       var stubFadeIn = this.sinon.stub(homescreen, 'fadeIn');
       window.homescreenLauncher.handleEvent({

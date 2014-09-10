@@ -43,4 +43,7 @@ var MockHomescreenWindow = function(value) {
   this.isOOP = function() { return true; };
   this.ensure = function() { return this; };
   this.isDead = function() { return false};
+
+  this.enterTaskManager = function() {};
+  this.leaveTaskManager = function() {};
 };
