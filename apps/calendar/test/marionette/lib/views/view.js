@@ -44,7 +44,18 @@ View.prototype = {
   },
 
   waitForDisplay: function() {
-    return this.client.waitFor(this.displayed.bind(this));
+    var waitFor = this.client.waitFor;
+    // The default value of `mozHour12` is null[1],
+    // so we need to make sure navigator.mozHour12 is ready(as true or false)
+    // to avoid race condition issue.
+    // [1] https://github.com/mozilla-b2g/gaia/blob/master/shared/js/date_time_helper.js#L15
+    waitFor(function() {
+      var mozHour12 = this.client.executeScript(function() {
+        return window.wrappedJSObject.navigator.mozHour12;
+      });
+      return mozHour12 != null;
+    }.bind(this));
+    return waitFor(this.displayed.bind(this));
   },
 
   waitForHide: function() {
