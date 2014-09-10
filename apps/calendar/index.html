@@ -5,9 +5,10 @@
   <meta charset="utf-8">
   <meta name="theme-color" content="#ff7d14">
   <title>Calendar</title>
+  <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css"> -->
+  <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/toolbars.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/tabs.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style/icons.css">
   <link rel="stylesheet" type="text/css" href="/style/calendar.css">
   <link rel="stylesheet" type="text/css" href="/style/ui.css">
   <link rel="stylesheet" type="text/css" href="/style/day_views.css">
@@ -34,13 +35,10 @@
   -->
 
   <!-- Web Components -->
+  <script defer src="shared/elements/config.js"></script>
   <script defer src="shared/js/component_utils.js"></script>
   <script defer src="shared/elements/gaia_subheader/script.js"></script>
-  <script defer src="shared/elements/config.js"></script>
   <script defer src="shared/elements/gaia-header/dist/script.js"></script>
-  <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
-  <!-- Icons are lazyloaded by gaia-header -->
-  <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" /> -->
 
   <script defer src="/js/ext/page.js"></script>
   <script defer src="/js/ext/uuid.js"></script>
@@ -184,7 +182,7 @@
 
   <ul id="view-selector" role="tablist" class="bb-tablist">
     <li class="today" role="presentation">
-      <a id="today" href="#today"><span class="gaia-icon icon-calendar-today"></span></a>
+      <a id="today" href="#today"><span class="icon-calendar-today" data-icon="calendar"></span></a>
     </li>
     <li class="month" role="presentation"><a role="tab" aria-selected="true" aria-controls="month-view" id="month" data-l10n-id="show-month-view" href="/month/">Month</a></li>
     <li class="week" role="presentation"><a role="tab" aria-selected="false" aria-controls="week-view" id="week" data-l10n-id="show-week-view" href="/week/">Week</a></li>

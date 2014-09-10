@@ -111,6 +111,12 @@ body[data-time-format="24"] .day-events .hour-header {
   right: 0;
   width: 3rem;
   height: 3rem;
+  text-align: center;
+  line-height: 3rem;
+}
+
+.day-events .icon-calendar-alarm:before {
+  font-size: 2.2rem;
 }
 
 .day-events .event-title {

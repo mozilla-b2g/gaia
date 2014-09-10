@@ -126,7 +126,7 @@
         var dot;
         for (; i < difference; i++) {
           dot = document.createElement('div');
-          dot.className = 'gaia-icon icon-calendar-dot';
+          dot.className = 'dot';
           element.appendChild(dot);
         }
 

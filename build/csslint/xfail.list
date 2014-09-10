@@ -6,7 +6,7 @@ apps/bluetooth/style/icons.css 0 1
 apps/bluetooth/style/settings.css 0 1
 apps/browser/style/browser.css 0 2
 apps/browser/style/modal_dialog/modal_dialog.css 0 1
-apps/calendar/style/month.css 0 6
+apps/calendar/style/month.css 0 7
 apps/calendar/style/ui.css 0 2
 apps/calendar/style/modify_event_view.css 0 4
 apps/callscreen/style/oncall.css 0 2

@@ -20,7 +20,8 @@
 
       return '<section class="' + classes + '" data-hour="' + hour + '">' +
           '<div class="hour-header">' +
-            (isAllDay ? '<i class="gaia-icon icon-calendar-allday"></i>' : '') +
+            (isAllDay ? '<i class="icon-calendar-allday" ' +
+              'data-icon="all-day"></i>' : '') +
             timeSpan +
           '</div>' +
           // we add a wrapper to allday events to improve the scroll
@@ -53,8 +54,8 @@
 
       if (hasAlarm) {
         containerClassName += ' has-alarm';
-        alarm = '<i class="gaia-icon icon-calendar-alarm ' +
-          'calendar-text-color"></i>';
+        alarm = '<i class="icon-calendar-alarm ' +
+          'calendar-text-color" data-icon="alarm"></i>';
       }
 
       return '<section class="' + eventClassName + '" ' +
