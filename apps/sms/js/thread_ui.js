@@ -1937,7 +1937,7 @@ var ThreadUI = {
 
     if (isAnySelected) {
       this.deleteButton.disabled = false;
-      navigator.mozL10n.setAttributes(this.editMode, 'selected',
+      navigator.mozL10n.setAttributes(this.editMode, 'selected-messages',
         {n: selected.length});
     } else {
       this.deleteButton.disabled = true;
