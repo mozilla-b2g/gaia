@@ -172,6 +172,7 @@ export BUILDAPP
 export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 TEST_MANIFEST?=./shared/test/integration/local-manifest.json
+BUILD_TEST_MANIFEST?=build/test/resources/local-manifest.json
 MOZPERFOUT?=""
 
 ifeq ($(MAKECMDGOALS), demo)
@@ -1019,11 +1020,11 @@ really-clean: clean
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
 
-build-test-unit: $(NPM_INSTALLED_PROGRAMS)
-	@$(call run-build-test, $(shell find build/test/unit/*.test.js))
+build-test-unit: $(NPM_INSTALLED_PROGRAMS) b2g_sdk
+	@$(call run-js-command,build-test,TEST_TYPE=unit REPORTER=$(REPORTER) BUILD_TEST_MANIFEST=$(BUILD_TEST_MANIFEST))
 
-build-test-integration: $(NPM_INSTALLED_PROGRAMS)
-	@$(call run-build-test, $(shell find build/test/integration/*.test.js))
+build-test-integration: $(NPM_INSTALLED_PROGRAMS) b2g_sdk
+	@$(call run-js-command,build-test,TEST_TYPE=integration REPORTER=$(REPORTER) BUILD_TEST_MANIFEST=$(BUILD_TEST_MANIFEST))
 
 .PHONY: docs
 docs: $(NPM_INSTALLED_PROGRAMS)

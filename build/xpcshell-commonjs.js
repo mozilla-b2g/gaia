@@ -74,6 +74,9 @@ var CommonjsRunner = function(module) {
   if (typeof btoa === 'function') {
     globals.btoa = btoa;
   }
+  if (typeof quit === 'function') {
+    globals.quit = quit;
+  }
 
   let loader = Loader.Loader({
     paths: paths,

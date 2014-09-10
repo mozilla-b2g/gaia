@@ -955,7 +955,7 @@ function Commander(cmd) {
       throw new Error('having trouble when execute ' + command +
         ' ' + args.join(' '));
     }
-    callback && callback();
+    callback && callback(process.exitValue);
   };
 
   /**
