@@ -20,6 +20,7 @@ require([
   const ITEM_TYPE = ['music', 'pictures', 'videos', 'free'];
   const DEFAULT_MEDIA_VOLUME_KEY = 'device.storage.writable.name';
   const EXTERNAL_UNRECOGNISED_KEY = 'volume.external.unrecognised';
+  const LATENCY_CHECK_STATUS_AFTER_IDLE_IN_MILLISECONDS = 600;
 
   var Volume = function(name, external, externalIndex, storages) {
     this.name = name;
@@ -653,6 +654,41 @@ require([
           obj[DEFAULT_MEDIA_VOLUME_KEY] = selectedOption.value;
           Settings.mozSettings.createLock().set(obj);
         } else if (self._volumeList.length > 1) {
+          // Disable default media location selection menu if external storage
+          // is not in slot.
+          var externalVolume = self._volumeList[1];
+          if (externalVolume.storages && externalVolume.storages.sdcard) {
+            var storageStatusReq =
+              externalVolume.storages.sdcard.storageStatus();
+            storageStatusReq.onsuccess = function storageStatusSuccess(evt) {
+              // save status
+              self._volumeList[1].currentStorageStatus = evt.target.result;
+              var storageStatus = evt.target.result;
+              if (storageStatus !== 'Mounted') {
+                self.enableDefaultMediaLocationSelection(false);
+                // If default storage is external, change it to be internal.
+                if (self.defaultLocationName !== 'sdcard') {
+                  if (storageStatus === 'NoMedia') {
+                    // Change the default storage to be internal.
+                    self.setInternalStorageBeDefaultMediaLocation();
+                  } else if (storageStatus === 'Idle') {
+                    // Change the default storage to be internal, if the storage
+                    // status is still in 'Idle'. Because 'Shared', 'Formatting'
+                    // status will go through 'Idle' status.
+                    setTimeout(function() {
+                      if (self._volumeList[1].currentStorageStatus === 'Idle') {
+                        self.setInternalStorageBeDefaultMediaLocation();
+                      }
+                    }, LATENCY_CHECK_STATUS_AFTER_IDLE_IN_MILLISECONDS);
+                  }
+                }
+              } else {
+                self.enableDefaultMediaLocationSelection(true);
+              }
+            };
+          }
+
+          // enableDefaultMediaLocationSelection
           // observe selection menu 'change' event for updating default location
           // name.
           selectionMenu.addEventListener('change', self);
@@ -801,10 +837,8 @@ require([
 
         // Update default location. If there is only one storage, do nothing.
         if (storageStatus !== 'Mounted') {
-          this.defaultMediaLocationList.setAttribute('aria-disabled', true);
-          this.defaultMediaLocation.disabled = true;
-          this.defaultMediaLocation.parentNode.setAttribute('aria-disabled',
-                                                            true);
+          this.enableDefaultMediaLocationSelection(false);
+          // If default storage is external, change it to be internal.
           if ((storageName !== 'sdcard') &&
               (self.defaultLocationName !== 'sdcard')) {
             if (storageStatus === 'NoMedia') {
@@ -818,14 +852,11 @@ require([
                 if (this._volumeList[1].currentStorageStatus === 'Idle') {
                   this.setInternalStorageBeDefaultMediaLocation();
                 }
-              }.bind(this), 600);
+              }.bind(this), LATENCY_CHECK_STATUS_AFTER_IDLE_IN_MILLISECONDS);
             }
           }
         } else {
-          this.defaultMediaLocationList.setAttribute('aria-disabled', false);
-          this.defaultMediaLocation.disabled = false;
-          this.defaultMediaLocation.parentNode.setAttribute('aria-disabled',
-                                                            false);
+          this.enableDefaultMediaLocationSelection(true);
         }
       }
     },
@@ -837,6 +868,14 @@ require([
       var obj = {};
       obj[DEFAULT_MEDIA_VOLUME_KEY] = selectedOption.value;
       Settings.mozSettings.createLock().set(obj);
+    },
+
+    enableDefaultMediaLocationSelection:
+    function ms_enableDefaultMediaLocationSelection(enabled) {
+      this.defaultMediaLocationList.setAttribute('aria-disabled', !enabled);
+      this.defaultMediaLocation.disabled = !enabled;
+      this.defaultMediaLocation.parentNode.setAttribute('aria-disabled',
+                                                        !enabled);
     }
   };
 
