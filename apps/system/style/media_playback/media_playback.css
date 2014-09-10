@@ -14,7 +14,7 @@
 
 .media-playback-nowplaying > .track {
   padding: 1rem 1.5rem 0 1.5rem;
-  font: 1.4rem/1.4rem auto;
+  font: italic 1.4rem/1.4rem auto;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -42,8 +42,8 @@
 }
 
 .media-playback-controls > [data-icon]:before {
-  font-size: 4.4rem;
-  line-height: 4.4rem;
+  font-size: 4rem;
+  line-height: 5.6rem;
 }
 
 .media-playback-controls > .previous {
@@ -56,8 +56,16 @@
   padding-right: 1.5rem;
 }
 
+.media-playback-controls > button {
+  transition: 0s 0.3s; /* Delay transition post tap by some milliseconds. */
+}
+
+/* This selector applies on the lockscreen too. */
+[role="dialog"] .media-playback-controls > button:active,
 .media-playback-controls > button:active {
-  background-color: #0ac;
+  background-color: transparent;
+  color: #0ac;
+  transition: 0s;
 }
 
 /* Lock screen music player */
