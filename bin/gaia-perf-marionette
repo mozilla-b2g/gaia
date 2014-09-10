@@ -31,16 +31,26 @@ fi
 
 if [ -z "$XULRUNNER_DIRECTORY" ] ; then
   # the xulrunner directory isn't in the environment
-  XULRUNNER_DIRECTORY=`ls -d "$DIR/../xulrunner-sdk"*/xulrunner-sdk | sort -nr | head -n1 2> /dev/null`
+  XULRUNNER_DIRECTORY=$(ls -d "$DIR"/../b2g_sdk/* | sort -nr | head -n1 2> /dev/null)
 fi
 
-if [ -z "$XULRUNNER_DIRECTORY" ] ; then
-  echo "Couldn't find XULrunner. Please execute this file from 'make' or install XULrunner yourself."
+if [ ! -d "$XULRUNNER_DIRECTORY" ] ; then
+  echo "Couldn't find B2G. Please execute this file from 'make' or install B2G yourself."
+  exit 1
+fi
+
+if [ -z "$XPCSHELLSDK" ] ; then
+  XPCSHELLSDK=$(find "$XULRUNNER_DIRECTORY" -type f -name xpcshell | sort -nr | head -n1 2> /dev/null)
+  exit 1
+fi
+
+if [ ! -e "$XPCSHELLSDK" ] ; then
+  echo "Couldn't find B2G. Please execute this file from 'make' or install B2G yourself."
   exit 1
 fi
 
 # find xpcshell and put it in the path
-XPCSHELL_DIR=$(dirname $(find "$XULRUNNER_DIRECTORY"/bin -type f -name "xpcshell" | head -n 1));
+XPCSHELL_DIR=$(dirname "$XPCSHELLSDK")
 
 if [ -z "$APPS" ] ; then
   echo "APPS isn't defined. Cannot continue."
