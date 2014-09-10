@@ -94,26 +94,6 @@
     }
   };
 
-  AppModalDialog.prototype.getTitle = function amd_getTitle() {
-    if (AirplaneMode && AirplaneMode.enabled) {
-      return _('airplane-is-on');
-    } else if (!navigator.onLine) {
-      return _('network-connection-unavailable');
-    } else {
-      return _('error-title', { name: this.app.name });
-    }
-  };
-
-  AppModalDialog.prototype.getMessage = function amd_getMessage() {
-    if (AirplaneMode && AirplaneMode.enabled) {
-      return _('airplane-is-turned-on', { name: this.app.name });
-    } else if (!navigator.onLine) {
-      return _('network-error', { name: this.app.name });
-    } else {
-      return _('error-message', { name: this.app.name });
-    }
-  };
-
   AppModalDialog.prototype.view = function amd_view() {
     return '<div class="modal-dialog"' +
             ' id="' + this.CLASS_NAME + this.instanceID + '">' +
