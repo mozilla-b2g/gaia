@@ -1747,6 +1747,13 @@ var SubListView = {
       var albumName;
       var albumNameL10nId;
 
+      if (option === 'album') {
+        dataArray.sort(function(e1, e2) {
+          return (e1.metadata.discnum - e2.metadata.discnum) ||
+            (e1.metadata.tracknum - e2.metadata.tracknum);
+        });
+      }
+
       if (option === 'artist') {
         albumName = data.metadata.artist || unknownArtist;
         albumNameL10nId = data.metadata.artist ? '' : unknownArtistL10nId;
