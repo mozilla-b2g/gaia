@@ -44,6 +44,8 @@
      */
     position: 0,
 
+
+    _shouldGoBackHome: false,
     _active: false,
 
     windowWidth: window.innerWidth,
@@ -278,6 +280,9 @@
     this.position = this.stack.indexOf(unfilteredStack[StackManager.position]);
     if (this.position === -1 || StackManager.outOfStack()) {
       this.position = this.stack.length - 1;
+      this._shouldGoBackHome = true;
+    } else {
+      this._shouldGoBackHome = false;
     }
 
     return this.stack !== unfilteredStack;
@@ -340,7 +345,8 @@
     // Described in https://bugzilla.mozilla.org/show_bug.cgi?id=825293
     var cardsLength = cardNodes.length;
     if (!cardsLength) {
-      this.exitToApp();
+      var homescreen = homescreenLauncher.getHomescreen(true);
+      this.exitToApp(homescreen);
     }
 
     if (cardsLength === this.position) {
@@ -411,9 +417,11 @@
     // manager repaints everything.
     this.screenElement.classList.remove('cards-view');
 
-    app = app ||
-          StackManager.getCurrent() ||
-          homescreenLauncher.getHomescreen(true);
+    if (this._shouldGoBackHome) {
+      app = app || homescreenLauncher.getHomescreen(true);
+    } else {
+      app = app || this.unfilteredStack[this.position];
+    }
 
     var position = this.unfilteredStack.indexOf(app);
     if (position !== StackManager.position) {
@@ -633,6 +641,10 @@
   TaskManager.prototype._setAccessibilityAttributes = function() {
     this.stack.forEach(function(app, idx) {
       var card = this.cardsByAppID[app.instanceID];
+      if (!card) {
+        return;
+      }
+
       // Hide non-current apps from the screen reader.
       card.setVisibleForScreenReader(idx === this.position);
       // Update the screen reader card list size.
