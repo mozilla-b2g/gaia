@@ -27,6 +27,7 @@ contacts.Settings = (function() {
   var navigationHandler,
     importSettingsHeader,
     orderCheckBox,
+    orderItem,
     orderByLastName,
     setICEButton,
     importSettingsPanel,
@@ -41,6 +42,7 @@ contacts.Settings = (function() {
     exportSDOption,
     fbImportOption,
     fbImportCheck,
+    fbImportCheckContainer,
     fbUpdateButton,
     fbOfflineMsg,
     fbTotalsMsg,
@@ -97,6 +99,7 @@ contacts.Settings = (function() {
     var value = newOrderByLastName === null ? orderByLastName :
       newOrderByLastName;
     orderCheckBox.checked = value;
+    orderItem.setAttribute('aria-checked', value);
   };
 
   var updateImportTitle = function updateImportTitle(l10nString) {
@@ -106,7 +109,7 @@ contacts.Settings = (function() {
 
   // Initialises variables and listener for the UI
   var initContainers = function initContainers() {
-    var orderItem = document.getElementById('settingsOrder');
+    orderItem = document.getElementById('settingsOrder');
     orderCheckBox = orderItem.querySelector('[name="order.lastname"]');
     orderItem.addEventListener('click', onOrderingChange.bind(this));
     // Creating a navigation handler from this view
@@ -163,7 +166,8 @@ contacts.Settings = (function() {
     bulkDeleteButton.addEventListener('click', bulkDeleteHandler);
     if (fb.isEnabled) {
       fbImportOption = document.querySelector('#settingsFb');
-      document.querySelector('#settingsFb > .fb-item').onclick = onFbEnable;
+      fbImportCheckContainer = fbImportOption.querySelector('.fb-item');
+      fbImportCheckContainer.onclick = onFbEnable;
 
       fbImportCheck = document.querySelector('[name="fb.imported"]');
 
@@ -469,11 +473,13 @@ contacts.Settings = (function() {
     fbGetTotals(false);
 
     fbImportCheck.checked = true;
+    fbImportCheckContainer.setAttribute('aria-checked', true);
     document.dispatchEvent(new CustomEvent('facebookEnabled'));
   }
 
   function fbSetDisabledState() {
     fbImportCheck.checked = false;
+    fbImportCheckContainer.setAttribute('aria-checked', false);
   }
 
   // Get total number of contacts imported from fb
@@ -571,6 +577,7 @@ contacts.Settings = (function() {
 
     if (fbImportedValue === 'logged-out') {
       fbImportCheck.checked = true;
+      fbImportCheckContainer.setAttribute('aria-checked', true);
       // For starting we wait for the switch transition to give feedback
       window.addEventListener('transitionend', function transendCheck(e) {
         if (e.target.id === 'span-check-fb') {
@@ -580,12 +587,14 @@ contacts.Settings = (function() {
           // without logging in (we don't have any mechanism to know that fact)
           window.setTimeout(function() {
             fbImportCheck.checked = false;
+            fbImportCheckContainer.setAttribute('aria-checked', false);
           }, WAIT_UNCHECK);
         }
       });
     }
     else {
       fbImportCheck.checked = false;
+      fbImportCheckContainer.setAttribute('aria-checked', false);
       // For starting we wait for the switch transition to give feedback
       window.addEventListener('transitionend', function fb_remove_all(e) {
         if (e.target.id === 'span-check-fb') {
@@ -604,6 +613,7 @@ contacts.Settings = (function() {
             title: 'cancel',
             callback: function onCancel() {
               fbImportCheck.checked = true;
+              fbImportCheckContainer.setAttribute('aria-checked', true);
               ConfirmDialog.hide();
             }
           };

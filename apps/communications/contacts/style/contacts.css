@@ -396,14 +396,21 @@ gaia-header [data-icon] {
 }
 
 /* Order switch */
+#view-settings [data-type="list"] li#settingsOrder {
+  display: flex;
+  justify-content: space-between;
+}
 #view-settings [data-type="list"] li#settingsOrder aside {
   pointer-events: none;
+  align-self: flex-end;
 }
 
 /* Cutom FB item */
 #view-settings [data-type="list"] .fb-item {
   height: auto;
   border-bottom: none;
+  display: flex;
+  flex-direction: column;
 }
 
 #view-settings [data-type="list"] .fb-item p {
@@ -425,6 +432,9 @@ gaia-header [data-icon] {
   width: 6.5rem;
   height: 6rem;
   pointer-events: none;
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
 #view-settings [data-type="list"] .fb-item aside label {
@@ -543,6 +553,14 @@ gaia-header [data-icon] {
 
 #import-settings [data-type="list"] li button.icon-bluetooth:before {
   background-image: url(/contacts/style/images/bluetooth_icon.png);
+}
+
+#ice-settings .ice-contacts-switch {
+  display: flex;
+  justify-content: space-between;
+}
+#ice-settings .ice-contacts-switch aside {
+  align-self: flex-end;
 }
 
 #ice-settings li button,

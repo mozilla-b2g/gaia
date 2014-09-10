@@ -58,8 +58,10 @@ SimDomGenerator.prototype.generateExportDOM = function() {
     li.id = 'export-sim-option-' + iccId;
     li.dataset.source = 'sim';
     li.dataset.iccid = iccId;
+    li.setAttribute('role', 'presentation');
 
     var button = generateButton(self.singleSim, sim, index + 1);
+    button.setAttribute('role', 'option');
 
     var p = document.createElement('p');
     p.classList.add('error-message');
@@ -99,8 +101,10 @@ SimDomGenerator.prototype.generateImportDOM = function() {
     li.dataset.source = 'sim-' + iccId;
     li.dataset.iccid = iccId;
     li.id = 'import-sim-option-' + iccId;
+    li.setAttribute('role', 'presentation');
 
     var button = generateButton(self.singleSim, sim, index + 1);
+    button.setAttribute('role', 'option');
 
     var pTime = document.createElement('p');
     pTime.appendChild(document.createElement('span'));
