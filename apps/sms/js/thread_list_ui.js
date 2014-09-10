@@ -313,71 +313,75 @@ var ThreadListUI = {
   // please make sure url will also be revoked if new delete api remove threads
   // without calling removeThread in the future.
   delete: function thlui_delete() {
-    var list, length, id, threadId, filter, count;
-
-    function checkDone(threadId) {
-      /* jshint validthis: true */
-      this.deleteThread(threadId);
-
-      if (--count === 0) {
-        this.cancelEdit();
-        Drafts.store();
-        WaitingScreen.hide();
-      }
-    }
-
-    function deleteMessage(message) {
-      MessageManager.deleteMessages(message.id);
-      return true;
-    }
-
     function performDeletion() {
       /* jshint validthis: true */
+
+      var threadIdsToDelete = [],
+          messageIdsToDelete = [],
+          threadCountToDelete = 0,
+          selectedInputs = this.getSelectedInputs();
+
+      function exitEditMode() {
+        ThreadListUI.cancelEdit();
+        WaitingScreen.hide();
+      }
+
+      function onAllThreadMessagesRetrieved() {
+        if (!--threadCountToDelete) {
+          MessageManager.deleteMessages(messageIdsToDelete);
+
+          threadIdsToDelete.forEach(function(threadId) {
+            ThreadListUI.deleteThread(threadId);
+          });
+
+          messageIdsToDelete = threadIdsToDelete = null;
+
+          exitEditMode();
+        }
+      }
+
+      function onThreadMessageRetrieved(message) {
+        messageIdsToDelete.push(message.id);
+        return true;
+      }
+
       WaitingScreen.show();
 
-      list = this.selectedInputs.reduce(function(list, input) {
-        list[input.dataset.mode].push(+input.value);
+      threadIdsToDelete = selectedInputs.reduce(function(list, input) {
+        // Coerce the threadId back to a number MobileMessageFilter and all
+        // other platform APIs expect this value to be a number.
+        var threadId = +input.value;
+
+        if (input.dataset.mode === 'drafts') {
+          Drafts.delete(Drafts.get(threadId));
+          ThreadListUI.removeThread(threadId);
+        } else {
+          list.push(threadId);
+        }
+
         return list;
-      }, { drafts: [], threads: [] });
+      }, []);
 
-      if (list.drafts.length) {
-        length = list.drafts.length;
-
-        for (var i = 0; i < length; i++) {
-          id = list.drafts[i];
-          Drafts.delete(Drafts.get(id));
-          this.removeThread(id);
-        }
-
+      // That means that we've just removed some drafts
+      if (threadIdsToDelete.length !== selectedInputs.length) {
         Drafts.store();
-
-        // In cases where no threads are being deleted,
-        // reset and restore the UI from edit mode and
-        // exit immediately.
-        if (list.threads.length === 0) {
-          this.cancelEdit();
-          WaitingScreen.hide();
-          return;
-        }
       }
 
-      count = list.threads.length;
+      if (!threadIdsToDelete.length) {
+        exitEditMode();
+        return;
+      }
+      
+      threadCountToDelete = threadIdsToDelete.length;
 
-      // Remove and coerce the threadId back to a number
-      // MobileMessageFilter and all other platform APIs
-      // expect this value to be a number.
-      while ((threadId = +list.threads.pop())) {
-
-        // Filter and request all messages with this threadId
-        filter = { threadId: threadId };
-
+      threadIdsToDelete.forEach(function(threadId) {
         MessageManager.getMessages({
-          filter: filter,
-          invert: true,
-          each: deleteMessage,
-          end: checkDone.bind(this, threadId)
+          // Filter and request all messages with this threadId
+          filter: { threadId: threadId },
+          each: onThreadMessageRetrieved,
+          end: onAllThreadMessagesRetrieved
         });
-      }
+      });
     }
 
     var dialog = new Dialog({

@@ -124,6 +124,7 @@
         Drafts.delete({
           threadId: id
         });
+        Drafts.store();
       }
       return threads.delete(id);
     },
