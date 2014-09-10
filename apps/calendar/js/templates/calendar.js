@@ -24,7 +24,7 @@ module.exports = create({
 
     return `<li id="calendar-${id}" class="calendar-id-${id}"
                 role="presentation">
-        <div class="gaia-icon icon-calendar-dot calendar-text-color"
+        <div class="dot calendar-text-color"
              aria-hidden="true"></div>
         <label class="pack-checkbox" role="option" ${ariaSelected}>
           <input value="${id}" type="checkbox" ${checked}/>

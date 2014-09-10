@@ -120,31 +120,31 @@ section.month .day {
 }
 
 section.month .busy-indicator {
-  bottom: 0.4rem;
-  color: #CBCBCB;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  left: 0;
   position: absolute;
   right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1.2rem;
+  text-align: center;
+  color: #CBCBCB;
 }
 
 section.month .selected > .busy-indicator {
   color: white;
 }
 
-section.month .icon-calendar-dot {
-  height: 0.4rem;
-  line-height: 0.4rem;
-  margin: 0 0.2rem;
+section.month .dot {
+  display: inline-block;
   position: relative;
   width: 0.4rem;
+  margin: 0 0.2rem;
+  font-size: 1.8rem;
 }
 
-section.month .icon-calendar-dot:before {
-  /* center dots */
-  margin-left: calc(50% - 1.8rem);
+section.month .dot:before {
+  content: "•";
+  display: block;
+  line-height: 0;
 }
 
 /* months-day-view
@@ -216,7 +216,7 @@ section.month .icon-calendar-dot:before {
   position: absolute;
   top: 0.2rem;
   right: 0;
-  width: 3rem;
+  width: 1.9rem;
   height: 3rem;
 }
 
@@ -244,16 +244,18 @@ section.month .icon-calendar-dot:before {
   font-weight: 400;
 }
 
-#months-day-view .icon-calendar-dot {
+#months-day-view .dot {
   position: absolute;
-  height: 3rem;
-  left: -1.4rem;
-  top: 50%;
-  margin-top: -3rem;
+  top: 0;
+  left: 1.1rem;
+  height: 100%;
+  line-height: 6rem;
 }
 
-#months-day-view .icon-calendar-dot:before {
-  font-size: 6rem;
+#months-day-view .dot:before {
+  content: "•";
+  display: block;
+  font-size: 3.5rem;
 }
 
 #months-day-view .event-time {
@@ -328,4 +330,8 @@ section.month .icon-calendar-dot:before {
   line-height: 6rem;
   position: absolute;
   right: 1rem;
+}
+
+#months-day-view .has-alarms .icon-calendar-alarm:before {
+  font-size: 2.2rem;
 }

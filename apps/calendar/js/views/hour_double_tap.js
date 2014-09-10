@@ -82,8 +82,9 @@ HourDoubleTap.prototype = {
 
     var link = document.createElement('a');
     link.href = '/event/add/?' + QueryString.stringify(data);
-    link.className = 'md__add-event gaia-icon icon-newadd';
+    link.className = 'md__add-event';
     link.dataset.l10nId = 'multi-day-new-event-link';
+    link.dataset.icon = 'add';
     link.style.top = (hour * this.hourHeight) + 'px';
     link.style.opacity = 0;
 
