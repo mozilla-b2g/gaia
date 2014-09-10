@@ -4,9 +4,9 @@
 (function(exports) {
 
   /**
-   * ExternalStorageMonitor listenes to external storage(should be 
-   * insterted/removed SD card slot) for the volume chagne event. 
-   * According to the status activity, we use regular expression to indentify 
+   * ExternalStorageMonitor listenes to external storage(should be
+   * insterted/removed SD card slot) for the volume chagne event.
+   * According to the status activity, we use regular expression to indentify
    * storage actions.
    * @class ExternalStorageMonitor
    */
@@ -303,17 +303,17 @@
           break;
         case 'detected-unrecognised':
           title = _('sdcard-detected-title');
-          body = _('sdcard-unknown-size-tap-to-format-body');
+          body = _('sdcard-unknown-size-then-tap-to-format-body');
           this.fireNotification(title, body, true);
           break;
         case 'normally-removed':
           title = _('sdcard-removed-title');
-          body = _('sdcard-removed-eject-successfully');
+          body = _('sdcard-removed-ejected-successfully');
           this.fireNotification(title, body);
           break;
         case 'unexpectedly-removed':
           title = _('sdcard-removed-title');
-          body = _('sdcard-removed-not-eject-properly');
+          body = _('sdcard-removed-not-ejected-properly');
           this.fireNotification(title, body);
           break;
       }
