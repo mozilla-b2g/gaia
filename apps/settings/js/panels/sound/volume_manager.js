@@ -79,6 +79,68 @@ define(function(require) {
     },
 
     /**
+     * get default tone
+     *
+     * @access private
+     * @memberOf VolumeManager.prototype
+     * @param  {[type]}   type     tone type
+     * @param  {[type]}   toneKey  tone key
+     * @param  {Function} callback callback function
+     */
+    _getDefaultTone: function vm_getDefaultTone(type, toneKey, callback) {
+      var mediaToneURL = '/shared/resources/media/notifications/' +
+        'notifier_firefox.opus';
+      var ringerToneURL = '/shared/resources/media/ringtones/' +
+        'ringer_firefox.opus';
+      var alarmToneURL = '/shared/resources/media/alarms/' +
+        'ac_awake.opus';
+
+      var toneURLs = {
+        'content' : mediaToneURL,
+        'notification' : ringerToneURL,
+        'alarm' : alarmToneURL
+      };
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', toneURLs[type]);
+      xhr.overrideMimeType('audio/ogg');
+      xhr.responseType = 'blob';
+      xhr.send();
+      xhr.onload = function() {
+        callback(xhr.response);
+      };
+    },
+
+    /**
+     * get tone's blob object
+     *
+     * @access private
+     * @memberOf VolumeManager.prototype
+     * @param  {[type]}   type     tone type
+     * @param  {[type]}   toneKey  tone key
+     * @param  {Function} callback callback function
+     */
+    _getToneBlob: function vm_getToneBlob(type, toneKey, callback) {
+      SettingsCache.getSettings(function(results) {
+        if (results[toneKey]) {
+          callback(results[toneKey]);
+        } else {
+          // Fall back to the predefined tone if the value does not exist
+          // in the mozSettings.
+          this._getDefaultTone(type, toneKey, function(blob) {
+            // Save the default tone to mozSettings so that next time we
+            // don't have to fall back to it from the system files.
+            var settingObject = {};
+            settingObject[toneKey] = blob;
+            navigator.mozSettings.createLock().set(settingObject);
+
+            callback(blob);
+          });
+        }
+      }.bind(this));
+    },
+
+    /**
      * Handle each slider's functionality
      *
      * @access public
@@ -114,68 +176,6 @@ define(function(require) {
       slider.addEventListener('touchend', _touchEndHandler);
 
       /**
-       * get default tone
-       *
-       * @access private
-       * @memberOf VolumeManager.prototype
-       * @param  {[type]}   type     tone type
-       * @param  {[type]}   toneKey  tone key
-       * @param  {Function} callback callback function
-       */
-      function _getDefaultTone(type, toneKey, callback) {
-        var mediaToneURL = '/shared/resources/media/notifications/' +
-          'notifier_firefox.opus';
-        var ringerToneURL = '/shared/resources/media/ringtones/' +
-          'ringer_firefox.opus';
-        var alarmToneURL = '/shared/resources/media/alarms/' +
-          'ac_awake.opus';
-
-        var toneURLs = {
-          'content' : mediaToneURL,
-          'notification' : ringerToneURL,
-          'alarm' : alarmToneURL
-        };
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', toneURLs[type]);
-        xhr.overrideMimeType('audio/ogg');
-        xhr.responseType = 'blob';
-        xhr.send();
-        xhr.onload = function() {
-          callback(xhr.response);
-        };
-      }
-
-      /**
-       * get tone's blob object
-       *
-       * @access private
-       * @memberOf VolumeManager.prototype
-       * @param  {[type]}   type     tone type
-       * @param  {[type]}   toneKey  tone key
-       * @param  {Function} callback callback function
-       */
-      function _getToneBlob(type, toneKey, callback) {
-        SettingsCache.getSettings(function(results) {
-          if (results[toneKey]) {
-            callback(results[toneKey]);
-          } else {
-            // Fall back to the predefined tone if the value does not exist
-            // in the mozSettings.
-            _getDefaultTone(type, toneKey, function(blob) {
-              // Save the default tone to mozSettings so that next time we
-              // don't have to fall back to it from the system files.
-              var settingObject = {};
-              settingObject[toneKey] = blob;
-              navigator.mozSettings.createLock().set(settingObject);
-
-              callback(blob);
-            });
-          }
-        });
-      }
-
-      /**
        * Handle touchstart event
        *
        * @access private
@@ -205,7 +205,7 @@ define(function(require) {
             break;
         }
 
-        _getToneBlob(channelType, toneKey, function(blob) {
+        self._getToneBlob(channelType, toneKey, function(blob) {
           self._playTone(player, channelType, blob);
         });
       }
