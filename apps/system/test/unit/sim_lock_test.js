@@ -111,18 +111,22 @@ suite('SimLock', function() {
 
   suite('to test events', function() {
     test('when unlocking request comes, to check if it\'s for Camera',
-    function() {
-      var stubShowIfLocked = this.sinon.stub(SimLock, 'showIfLocked');
-      SimLock.handleEvent('lockscreen-request-unlock');
-      assert.isFalse(stubShowIfLocked.called,
-        'should not show the dialog');
-    });
+      function() {
+        var stubShowIfLocked = this.sinon.stub(SimLock, 'showIfLocked');
+        SimLock.handleEvent('lockscreen-request-unlock');
+        assert.isFalse(stubShowIfLocked.called,
+          'should not show the dialog');
+      });
   });
 
   suite('lockscreen request to unlock', function() {
     var stubShowIfLocked;
     setup(function() {
       stubShowIfLocked = this.sinon.stub(SimLock, 'showIfLocked');
+    });
+
+    teardown(function() {
+      SimPinDialog.visible = false;
     });
 
     test('launch camera from lockscreen', function() {
@@ -138,6 +142,27 @@ suite('SimLock', function() {
       assert.isFalse(stubShowIfLocked.called,
         'should not call showIfLocked');
     });
+
+
+    test('when unlocking request comes, to check if it\'s for Camera, ' +
+         'and SimPinDialog is visible',
+      function() {
+        var stubSimPinDialogClose = this.sinon.stub(SimPinDialog, 'close');
+        SimPinDialog.visible = true;
+        var requestUnlockEvent = {
+          type: 'lockscreen-request-unlock',
+          detail: {
+            activity: {
+              name: 'record'
+            }
+          }
+        };
+        SimLock.handleEvent(requestUnlockEvent);
+        assert.isTrue(stubSimPinDialogClose.called,
+          'should close SimPinDialog');
+        assert.isFalse(stubShowIfLocked.called,
+          'should not show the dialog');
+      });
 
     test('unlock normally', function() {
       SimLock.handleEvent({
