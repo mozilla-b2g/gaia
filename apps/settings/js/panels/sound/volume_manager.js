@@ -33,7 +33,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf VolumeManager.prototype
-     * @param  {[type]} player sound player object
+     * @param  {Object} player sound player object
      */
     _stopTone: function vm_stopTone(player) {
       player.pause();
@@ -67,7 +67,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf VolumeManager.prototype
-     * @param {[type]} value slider value
+     * @param {Number} value slider value
      */
     _setSliderValue: function vm_setSliderValue(slider, value) {
       slider.value = value;
@@ -83,8 +83,8 @@ define(function(require) {
      *
      * @access private
      * @memberOf VolumeManager.prototype
-     * @param  {[type]}   type     tone type
-     * @param  {[type]}   toneKey  tone key
+     * @param  {String}   type     tone type
+     * @param  {String}   toneKey  tone key
      * @param  {Function} callback callback function
      */
     _getDefaultTone: function vm_getDefaultTone(type, toneKey, callback) {
@@ -116,8 +116,8 @@ define(function(require) {
      *
      * @access private
      * @memberOf VolumeManager.prototype
-     * @param  {[type]}   type     tone type
-     * @param  {[type]}   toneKey  tone key
+     * @param  {String}   type     tone type
+     * @param  {String}   toneKey  tone key
      * @param  {Function} callback callback function
      */
     _getToneBlob: function vm_getToneBlob(type, toneKey, callback) {
@@ -215,7 +215,7 @@ define(function(require) {
        *
        * @access private
        * @memberOf VolumeManager.prototype
-       * @param {[type]} value slider value
+       * @param {Number} value slider value
        */
       function _setVolume() {
         var value = parseInt(slider.value);

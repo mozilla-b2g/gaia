@@ -110,9 +110,9 @@ define(function(require) {
      *
      * @access private
      * @memberOf ToneManager.prototype
-     * @param  {[type]} tone          tone element
-     * @param  {[type]} currentToneID tone id
-     * @param  {[type]} secret        forwardlock secret key
+     * @param  {Object} tone          tone element
+     * @param  {Number} currentToneID tone id
+     * @param  {String} secret        forwardlock secret key
      */
     _pickTone: function tm_pickRingTone(tone, currentToneID, secret) {
       var self = this;

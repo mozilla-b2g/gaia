@@ -3,7 +3,6 @@
  */
 define(function(require) {
   'use strict';
-
   var SettingsPanel = require('modules/settings_panel'),
       Support = require('panels/help/support');
 
