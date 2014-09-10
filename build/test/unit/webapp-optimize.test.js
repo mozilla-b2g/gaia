@@ -227,7 +227,7 @@ suite('webapp-optimize.js', function() {
               };
             };
           },
-          bootstrap: function(localeBasedirFlag) {
+          bootstrap: function(file, localeBasedirFlag) {
           },
           ctx: {
             requestLocales: function(locale) {
