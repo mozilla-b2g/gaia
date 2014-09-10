@@ -119,7 +119,7 @@
   opacity: 0;
   background-color: #00BCE2;
   transform: translateY(-.2rem);
-  transition: opacity .5s ease .5s, transform 0s ease 1s;
+  transition: opacity .5s ease .5s, transform 0s ease 1s, background-color 0s ease 1s;
 }
 
 #notification-toaster.displayed:after,
@@ -130,7 +130,7 @@
   margin: auto;
   border-left: 0.2rem solid transparent;
   border-right: 0.2rem solid transparent;
-  border-top: 0.2rem solid #B3F3FF;
+  border-top: 0.2rem solid #00d3ff;
   bottom: 0;
   content: '';
 }
@@ -149,8 +149,9 @@
 }
 
 #ambient-indicator.unread {
-  transition: none;
+  background-color: #006e86;
   transform: translateY(0);
+  transition: background-color .3s ease .3s;
   opacity: 1;
 }
 
