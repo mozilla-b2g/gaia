@@ -1,3 +1,10 @@
+/* exported PlayerView */
+/* global TitleBar, MusicComms, playerHandle, musicdb, ModeManager, pendingPick,
+          unknownTitle, unknownTitleL10nId, unknownArtist, unknownArtistL10nId,
+          unknownAlbum, unknownAlbumL10nId, getThumbnailURL,
+          generateDefaultThumbnailURL, parseAudioMetadata, getAlbumArtBlob,
+          ListView, ForwardLock, formatTime, MozActivity, asyncStorage,
+          SETTINGS_OPTION_KEY, MODE_PLAYER */
 'use strict';
 
 // We have four types of the playing sources
@@ -19,22 +26,20 @@ var PLAYSTATUS_PLAYING = 'PLAYING';
 var PLAYSTATUS_PAUSED = 'PAUSED';
 var PLAYSTATUS_FWD_SEEK = 'FWD_SEEK';
 var PLAYSTATUS_REV_SEEK = 'REV_SEEK';
-var PLAYSTATUS_ERROR = 'ERROR';
+// var PLAYSTATUS_ERROR = 'ERROR';
 // Interrupt begin and end are the statuses for audio channel,
 // they will be used when music app is interrupt by some other channels.
 var INTERRUPT_BEGIN = 'mozinterruptbegin';
-var INTERRUPT_END = 'mozinterruptend';
+// var INTERRUPT_END = 'mozinterruptend';
 
 // View of Player
 var PlayerView = {
   get view() {
-    delete this._view;
-    return this._view = document.getElementById('views-player');
+    return document.getElementById('views-player');
   },
 
   get audio() {
-    delete this._audio;
-    return this._audio = document.getElementById('player-audio');
+    return document.getElementById('player-audio');
   },
 
   get playStatus() {
@@ -162,8 +167,9 @@ var PlayerView = {
 
   clean: function pv_clean() {
     // Cancel a pending enumeration before start a new one
-    if (typeof playerHandle !== 'undefined' && playerHandle)
+    if (typeof playerHandle !== 'undefined' && playerHandle) {
       musicdb.cancelEnumeration(playerHandle);
+    }
 
     this.dataSource = [];
     this.playingBlob = null;
@@ -188,8 +194,9 @@ var PlayerView = {
   showInfo: function pv_showInfo() {
     this.cover.classList.add('slideOut');
 
-    if (this.timeoutID)
+    if (this.timeoutID) {
       window.clearTimeout(this.timeoutID);
+    }
 
     this.timeoutID = window.setTimeout(
       function pv_hideInfo() {
@@ -246,11 +253,12 @@ var PlayerView = {
     }.bind(this));
 
     function pv_showImage(evt) {
+      /* jshint validthis:true */
       evt.target.removeEventListener('load', pv_showImage);
       var url = 'url(' + this.offscreenImage.src + ')';
       this.coverImage.style.backgroundImage = url;
       this.coverImage.classList.add('fadeIn');
-    };
+    }
   },
 
   setOptions: function pv_setOptions(settings) {
@@ -306,14 +314,16 @@ var PlayerView = {
   },
 
   shuffleList: function slv_shuffleList(index) {
-    if (this.dataSource.length === 0)
+    if (this.dataSource.length === 0) {
       return;
+    }
 
     this.shuffleIndex = 0;
     this.shuffledList = [];
 
-    for (var i = 0; i < this.dataSource.length; i++)
+    for (var i = 0; i < this.dataSource.length; i++) {
       this.shuffledList.push(i);
+    }
 
     // If with an index, that means the index is the currectIndex
     // so it doesn't need to be shuffled
@@ -350,8 +360,10 @@ var PlayerView = {
       callback(metadata);
     }
     function pv_metadataError(e) {
-      if (this.onerror)
+      /* jshint validthis:true */
+      if (this.onerror) {
         this.onerror(e);
+      }
       console.warn('parseAudioMetadata: error parsing metadata - ', e);
     }
   },
@@ -372,8 +384,9 @@ var PlayerView = {
     // when we no longer need them
     this.audio.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
     this.audio.onerror = (function(evt) {
-      if (this.onerror)
+      if (this.onerror) {
         this.onerror(evt);
+      }
     }).bind(this);
     // when play a new song, reset the seekBar first
     // this can prevent showing wrong duration
@@ -390,8 +403,9 @@ var PlayerView = {
   updateRemoteMetadata: function pv_updateRemoteMetadata() {
     // If MusicComms does not exist or data source is empty, we don't have to
     // update the metadata.
-    if (typeof MusicComms === 'undefined' || this.dataSource.length === 0)
+    if (typeof MusicComms === 'undefined' || this.dataSource.length === 0) {
       return;
+    }
 
     // Update the playing information to AVRCP devices
     var fileinfo = this.dataSource[this.currentIndex];
@@ -416,8 +430,9 @@ var PlayerView = {
     if (this.audio.currentTime === 0) {
       getAlbumArtBlob(fileinfo, function(err, blob) {
         if (!err) {
-          if (blob)
+          if (blob) {
             notifyMetadata.picture = blob;
+          }
         } else {
           notifyMetadata.picture = null;
         }
@@ -431,8 +446,9 @@ var PlayerView = {
 
   updateRemotePlayStatus: function pv_updateRemotePlayStatus() {
     // If MusicComms does not exist then no need to update the play status.
-    if (typeof MusicComms === 'undefined')
+    if (typeof MusicComms === 'undefined') {
       return;
+    }
 
     var position = this.pausedPosition ?
       this.pausedPosition : this.audio.currentTime;
@@ -550,8 +566,9 @@ var PlayerView = {
           // Also we pause at beginning when SCO is enabled, the user can still
           // select songs to the player but it won't start, they have to wait
           // until the SCO is disconnected.
-          if (this.sourceType === TYPE_SINGLE || MusicComms.isSCOEnabled)
+          if (this.sourceType === TYPE_SINGLE || MusicComms.isSCOEnabled) {
             this.pause();
+          }
         }.bind(this));
       }.bind(this));
     } else if (this.sourceType === TYPE_BLOB && !this.audio.src) {
@@ -700,8 +717,9 @@ var PlayerView = {
 
   stopFastSeeking: function pv_stopFastSeeking() {
     this.isTouching = this.isFastSeeking = false;
-    if (this.intervalID)
+    if (this.intervalID) {
       window.clearInterval(this.intervalID);
+    }
 
     // After we cancel the fast seeking, an 'playing' will be fired,
     // so that we don't have to update the remote play status here.
@@ -709,8 +727,9 @@ var PlayerView = {
 
   updateSeekBar: function pv_updateSeekBar() {
     // Don't update the seekbar when the user is seeking.
-    if (this.isTouching)
+    if (this.isTouching) {
       return;
+    }
 
     // If ModeManager is undefined, then the music app is launched by the open
     // activity. Otherwise, only seek the audio when the mode is PLAYER because
@@ -723,8 +742,9 @@ var PlayerView = {
   },
 
   seekAudio: function pv_seekAudio(seekTime) {
-    if (seekTime !== undefined)
+    if (seekTime !== undefined) {
       this.audio.currentTime = seekTime;
+    }
 
     var startTime = this.audio.startTime;
 
@@ -752,7 +772,7 @@ var PlayerView = {
     this.seekBar.value = currentTime;
 
     // if endTime is 0, that's a reset of seekBar
-    var ratio = (endTime != 0) ? (currentTime / endTime) : 0;
+    var ratio = (endTime !== 0) ? (currentTime / endTime) : 0;
     // The width of the seek indicator must be also considered
     // so we divide the width of seek indicator by 2 to find the center point
     var x = (ratio * this.seekBar.offsetWidth -
@@ -774,14 +794,14 @@ var PlayerView = {
     // The filepaths can be removed after Bug 811615 is fixed
     var songData = this.dataSource[this.currentIndex];
 
-    if (songData.metadata.locked)
+    if (songData.metadata.locked) {
       return;
+    }
 
     musicdb.getFile(songData.name, function(file) {
       getAlbumArtBlob(songData, function(err, pictureBlob) {
         var filename = songData.name,
-        name = filename.substring(filename.lastIndexOf('/') + 1),
-        type = file.type;
+        name = filename.substring(filename.lastIndexOf('/') + 1);
 
         var activityData = {
           type: 'audio/*',
@@ -870,8 +890,9 @@ var PlayerView = {
             function cleanup() {
               navigator.mozSettings.removeObserver(hack_setting_property,
                                                    observer);
-              if (PlayerView.playStatus === PLAYSTATUS_PAUSED)
+              if (PlayerView.playStatus === PLAYSTATUS_PAUSED) {
                 PlayerView.play();
+              }
             }
           }());
         }
@@ -881,8 +902,9 @@ var PlayerView = {
 
   handleEvent: function pv_handleEvent(evt) {
     var target = evt.target;
-    if (!target)
+    if (!target) {
       return;
+    }
 
     switch (evt.type) {
       case 'click':
@@ -892,10 +914,11 @@ var PlayerView = {
             this.showInfo();
             break;
           case 'player-controls-play':
-            if (this.playStatus === PLAYSTATUS_PLAYING)
+            if (this.playStatus === PLAYSTATUS_PLAYING) {
               this.pause();
-            else
+            } else {
               this.play();
+            }
             break;
           case 'player-album-repeat':
             this.showInfo();
@@ -912,14 +935,13 @@ var PlayerView = {
           case 'player-album-shuffle':
             this.showInfo();
 
-            var newValue = !this.shuffleOption;
             // Store the option when it's triggered by users
             asyncStorage.setItem(SETTINGS_OPTION_KEY, {
               repeat: this.repeatOption,
-              shuffle: newValue
+              shuffle: !this.shuffleOption
             });
 
-            this.setShuffle(newValue, this.currentIndex);
+            this.setShuffle(!this.shuffleOption, this.currentIndex);
             break;
           case 'player-cover-share':
             this.share();
@@ -965,10 +987,12 @@ var PlayerView = {
           // target is the seek bar
           var touch = evt.touches[0];
           var x = (touch.clientX - target.offsetLeft) / target.offsetWidth;
-          if (x < 0)
+          if (x < 0) {
             x = 0;
-          if (x > 1)
+          }
+          if (x > 1) {
             x = 1;
+          }
           this.seekTime = x * this.seekBar.max;
           this.setSeekBar(this.audio.startTime,
             this.audio.duration, this.seekTime);
@@ -994,10 +1018,11 @@ var PlayerView = {
         }
         break;
       case 'contextmenu':
-        if (target.id === 'player-controls-next')
+        if (target.id === 'player-controls-next') {
           this.startFastSeeking(1);
-        else if (target.id === 'player-controls-previous')
+        } else if (target.id === 'player-controls-previous') {
           this.startFastSeeking(-1);
+        }
         break;
       case 'durationchange':
       case 'timeupdate':
@@ -1006,8 +1031,9 @@ var PlayerView = {
         // Update the metadata when the new track is really loaded
         // when it just started to play, or the duration will be 0 then it will
         // break the duration that the connected A2DP has.
-        if (evt.type === 'durationchange' || this.audio.currentTime === 0)
+        if (evt.type === 'durationchange' || this.audio.currentTime === 0) {
           this.updateRemoteMetadata();
+        }
 
         // Since we don't always get reliable 'ended' events, see if
         // we've reached the end this way.
@@ -1026,8 +1052,9 @@ var PlayerView = {
       case 'ended':
         // Because of the workaround above, we have to ignore real ended
         // events if we already have a timer set to emulate them
-        if (!this.endedTimer)
+        if (!this.endedTimer) {
           this.next(true);
+        }
         break;
 
       case 'visibilitychange':
