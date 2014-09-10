@@ -18,6 +18,8 @@
 
   const distanceBetweenIconsWithMaxIconsPerRow = 38;
 
+  const eachTextRowHeight = 20;
+
   var windowWidth = window.innerWidth;
 
   function GridLayout(gridView) {
@@ -81,10 +83,20 @@
      * The height of each grid item.
      */
     get gridItemHeight() {
-      return this.gridIconSize +
+      var height = this.gridIconSize +
             (this._cols === minIconsPerRow ?
                              distanceBetweenIconsWithMinIconsPerRow :
                              distanceBetweenIconsWithMaxIconsPerRow);
+
+      // Increase height for additional rows of text.
+      var defaultTextRows = 2;
+      var definedRows = parseInt(
+        this.gridView.element.getAttribute('text-rows'), 10);
+      if (definedRows > defaultTextRows) {
+        height += (definedRows - defaultTextRows) * eachTextRowHeight;
+      }
+
+      return height;
     },
 
     /**

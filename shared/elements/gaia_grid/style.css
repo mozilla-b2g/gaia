@@ -85,6 +85,11 @@
   vertical-align: top;
 }
 
+/* We allow more space for text in the search app by hooking into the text-rows attribute on gaia-grid. */
+[text-rows="3"] .icon .title {
+  height: 5.8rem;
+}
+
 [cols="4"] .icon .title {
   /* Font size is the same independent on grid configuration */
   font-size: calc(1.2rem * 1.333);
