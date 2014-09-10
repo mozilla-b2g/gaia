@@ -38,34 +38,6 @@
   Card.prototype.EVENT_PREFIX = 'card-';
 
   /**
-   * How much to scale the current card
-   * @type {Float}
-   * @memberof Card.prototype
-   */
-  Card.prototype.SCALE_FACTOR = 0.8;
-
-  /**
-   * How much to scale card when not the current card
-   * @type {Float}
-   * @memberof Card.prototype
-   */
-  Card.prototype.SIBLING_SCALE_FACTOR = 0.6;
-
-  /**
-   * Opacity to apply when not the current card
-   * @type {Float}
-   * @memberof Card.prototype
-   */
-  Card.prototype.SIBLING_OPACITY = 0.4;
-
-  /**
-   * Transition to apply when moving the card
-   * @type {String}
-   * @memberof Card.prototype
-   */
-  Card.prototype.MOVE_TRANSITION = '-moz-transform .3s, opacity .3s';
-
-  /**
    * The instance's element will get appended here if defined
    * @type {DOMNode}
    * @memberof Card.prototype
@@ -98,14 +70,26 @@
    * @memberOf Card.prototype
    */
   Card.prototype._template =
-    '<div data-l10n-id="closeCard" class="close-card" role="button" ' +
-      'style="visibility: {closeButtonVisibility}"></div>' +
     '<div class="screenshotView" data-l10n-id="openCard" role="button"></div>' +
     '<div class="appIconView" style="background-image:{iconValue}"></div>' +
+    '' +
     '<div class="titles">' +
-    '<h1 id="{titleId}" class="title">{title}</h1>' +
-    '<p class="subtitle">{subTitle}</p>' +
-    '</div>';
+    ' <h1 id="{titleId}" class="title">{title}</h1>' +
+    ' <p class="subtitle">{subTitle}</p>' +
+    '</div>' +
+    '' +
+    '<footer class="card-tray">'+
+    ' <button class="appIcon" data-button-action="select">' +
+    ' </button>' +
+    ' <menu class="buttonbar">' +
+    '   <button class="close-button" data-button-action="close" ' +
+    '     role="button" ' +
+    '     style="visibility: {closeButtonVisibility}"></button>' +
+    '  <button class="favorite-button" data-button-action="favorite" ' +
+    '    role="button" ' +
+    '    style="visibility: {favoriteButtonVisibility}"></button>' +
+    ' </menu>' +
+    '</footer>';
 
   /**
    * Card html view - builds the innerHTML for a card element
@@ -126,7 +110,7 @@
     var app = this.app;
     this.title = (app.isBrowser() && app.title) ? app.title : app.name;
     this.subTitle = '';
-    this.iconValue = 'none';
+    this.iconValue = '';
     this.closeButtonVisibility = 'visible';
     this.viewClassList = ['card', 'appIconPreview'];
     this.titleId = 'card-title-' + this.instanceID;
@@ -147,8 +131,6 @@
       this.subTitle = CardsHelper.getOffOrigin(
                         frameForScreenshot.src, origin);
     }
-    // XXX do we still need?
-    //  this.viewClassList.push('popup');
 
     if (TrustedUIManager.hasTrustedUI(app.origin)) {
       popupFrame = TrustedUIManager.getDialogFromOrigin(app.origin);
@@ -158,6 +140,35 @@
       // unclosable app
       this.closeButtonVisibility = 'hidden';
     }
+  };
+
+  Card.prototype.move = function(deltaX, deltaY) {
+    deltaX = deltaX || 0;
+    deltaY = deltaY || 0;
+
+    var windowWidth = this.manager.windowWidth || window.innerWidth;
+    var offset = this.position - this.manager.position;
+    var positionX = deltaX + offset * (windowWidth * 0.55);
+    var appliedX = positionX;
+
+    var rightLimit =  windowWidth / 2 + windowWidth * 0.24 - 0.001;
+    appliedX = Math.min(appliedX, rightLimit);
+    appliedX = Math.max(appliedX, -1 * rightLimit);
+
+    this.element.dataset.positionX = positionX;
+    this.element.dataset.keepLayerDelta = Math.abs(positionX - appliedX);
+
+    var style = { transform: '' };
+
+    if (deltaX || offset) {
+      style.transform = 'translateX(' + appliedX + 'px)';
+    }
+
+    if (deltaY) {
+      style.transform = 'translateY(' + deltaY + 'px)';
+    }
+
+    this.applyStyle(style);
   };
 
   /**
@@ -192,9 +203,8 @@
     }
 
     this._fetchElements();
-    this._registerEvents();
+    this._updateDisplay();
 
-    this.app.enterTaskManager();
     this.publish('rendered');
     return elem;
   };
@@ -240,54 +250,27 @@
    */
   Card.prototype.destroy = function() {
     this.publish('willdestroy');
-    this._unregisterEvents();
     var element = this.element;
     if (element && element.parentNode) {
       element.parentNode.removeChild(element);
-    }
-    if (this.app) {
-      this.app.leaveTaskManager();
     }
     this.element = this.manager = this.app = null;
     this.publish('destroyed');
   };
 
   /**
-   * Default event handler
-   * @param  {DOMEvent} evt The event.
+   * Update the displayed content of a card
    * @memberOf Card.prototype
    */
-  Card.prototype.handleEvent = function(event) {
-    switch (event.type) {
-      case 'outviewport':
-        this.onOutViewport(event);
-        break;
-      case 'onviewport':
-        this.onViewport(event);
-        break;
-    }
-  };
-
-  /**
-   * Handle the card no longer being visible in the viewport
-   * @memberOf Card.prototype
-   * @param  {DOMEvent} evt The event.
-   */
-  Card.prototype.onOutViewport = function c_onOutViewport(event) {
-    this.element.style.display = 'none';
-  };
-
-  /**
-   * Update display of card when it enters the viewport
-   * @memberOf Card.prototype
-   * @param  {DOMEvent} evt The event.
-   */
-  Card.prototype.onViewport = function c_onViewport(event) {
+  Card.prototype._updateDisplay = function c_updateDisplay() {
     var elem = this.element;
-    var screenshotView = this.screenshotView;
-    var app = this.app;
-    elem.style.display = 'block';
 
+    var app = this.app;
+    if (app.isBrowser()) {
+      elem.classList.add('browser');
+    }
+
+    var screenshotView = this.screenshotView;
     var isIconPreview = !this.getScreenshotPreviewsSetting();
     if (isIconPreview) {
       elem.classList.add('appIconPreview');
@@ -296,6 +279,10 @@
       if (screenshotView.style.backgroundImage) {
         return;
       }
+    }
+
+    if (this.iconValue) {
+      this.iconButton.style.backgroundImage = this.iconValue;
     }
 
     // Handling cards in different orientations
@@ -322,51 +309,27 @@
     // If we have a cached screenshot, use that first
     var cachedLayer = app.requestScreenshotURL();
 
-    if (cachedLayer) {
-      screenshotView.style.backgroundImage = 'url(' + cachedLayer + ')';
+    if (cachedLayer && app.isActive()) {
+      screenshotView.classList.toggle('fullscreen',
+                                      app.isFullScreen());
+      screenshotView.classList.toggle('maximized',
+                                      app.appChrome.isMaximized());
+      screenshotView.style.backgroundImage =
+        'url(' + cachedLayer + '),' +
+        '-moz-element(#' + this.app.instanceID + ')';
+    } else {
+      screenshotView.style.backgroundImage =
+        'url(none),' +
+        '-moz-element(#' + this.app.instanceID + ')';
     }
 
-    //
-    // We used to try and forcibly refresh the screenshot for the current
-    // active application, this is absolutely not necessary anymore as the
-    // app window itself will always have a fresh screenshot for use as
-    // we transition from displaying the app to displaying the cards view.
-    //
-    return;
-  };
-
-  /**
-   * Register event listeners. Most events are registered and handled in
-   * the TaskManager
-   * @memberOf Card.prototype
-  */
-  Card.prototype._registerEvents = function c__registerEvents() {
-    var elem = this.element;
-    if (elem === null) {
-      return;
-    }
-    elem.addEventListener('outviewport', this);
-    elem.addEventListener('onviewport', this);
-  };
-
-  /**
-   * Un-register event listeners
-   * @memberOf Card.prototype
-  */
-  Card.prototype._unregisterEvents = function c__registerEvents() {
-    var elem = this.element;
-    if (elem === null) {
-      return;
-    }
-    elem.removeEventListener('outviewport', this);
-    elem.removeEventListener('onviewport', this);
   };
 
   Card.prototype._fetchElements = function c__fetchElements() {
     this.screenshotView = this.element.querySelector('.screenshotView');
     this.titleNode = this.element.querySelector('h1.title');
+    this.iconButton = this.element.querySelector('.appIcon');
   };
-
 
   return (exports.Card = Card);
 
