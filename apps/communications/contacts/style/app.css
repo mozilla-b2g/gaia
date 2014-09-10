@@ -580,3 +580,11 @@ html[dir="rtl"] ::-moz-placeholder {
   background: #FFF;
   text-align: left;
 }
+
+.ice-contact {
+  font-size: 1.6rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 24rem;
+}
