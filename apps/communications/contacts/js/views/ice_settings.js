@@ -130,6 +130,10 @@ contacts.ICE = (function() {
       contacts.List.toggleICEGroup(true);
     }
 
+    if (contacts.Search && contacts.Search.isInSearchMode()) {
+      contacts.Search.exitSearchMode();
+    }
+
     contacts.Settings.navigation.back();
   }
 
