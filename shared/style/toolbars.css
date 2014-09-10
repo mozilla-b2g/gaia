@@ -3,40 +3,31 @@
 * ---------------------------------- */
 
 [role="toolbar"] {
-  height: 4rem;
-  width: 100%;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  z-index: 100;
-  background: rgba(0,0,0, 0.85);
+  display: flex;
+  height: 45px;
+  background: #fff;
 }
 
-[role="toolbar"] ul {
-  float: left;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-[role="toolbar"] ul:last-child {
-  float: right;
-}
-
-[role="toolbar"] li {
-  float: left;
-}
-
-[role="toolbar"] button {
-  width: 5.5rem;
-  height: 4rem;
+[role="toolbar"] button,
+[role="toolbar"] a {
+  flex: 1;
   border: none;
-  font-size: 0;
-  background: transparent no-repeat 50% 50% / 3rem auto;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  margin: 0;
   padding: 0;
+  text-align: center;
+  color: #858585;
   border-radius: 0;
+  height: 100%;
 }
 
-[role="toolbar"] button:active {
-  background-color: #008aaa;
+[role="toolbar"] button:active,
+[role="toolbar"] a:active {
+  color: #fff;
+  background-color: #b2f2ff;
+}
+
+[role="toolbar"] [data-icon] {
+  font-size: 0;
 }

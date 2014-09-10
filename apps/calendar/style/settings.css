@@ -152,22 +152,11 @@ not actually shown since the top header should be transparent.
 #settings [role="toolbar"] {
   display: flex;
   position: absolute;
-  text-align: center;
-  background: white;
-  color: black;
   bottom: 0;
-  height: 4.5rem;
-  line-height: 4.5rem;
+  width: 100%;
 }
 
 #settings .toolbar-item {
-  position: relative;
-  display: inline-block;
-  flex: 1;
-  height: 100%;
-  line-height: 4.5rem;
-  text-align: center;
-  color: #858585;
   font-size: 0;
 }
 
