@@ -199,7 +199,7 @@ BrowserMigrator.prototype = {
         places.setVisits(url, visits[url].visits).then(saveVisit);
       }
 
-      places.start(saveVisit);
+      places.start().then(saveVisit);
     });
   },
 
