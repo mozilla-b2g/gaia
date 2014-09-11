@@ -57,13 +57,9 @@ exports.on = function(date, callback) {
       exports.DISPATCH_DELAY
     );
     exports.timeController.observeTime(Calc.spanOfDay(date), dispatch);
-
-    // if there is some busytime cached on the time controller we dispatch
-    // an update to all the listeners
-    var busytimes = getBusytimes(date);
-    if (busytimes.length) {
-      dispatch();
-    }
+    // we need to trigger callbacks to re-render the views if needed,
+    // cachedRecords is only built after first dispatch
+    dispatch();
   } else if (dayId in cachedRecords) {
     // if it is not the first listener and we have some records in memory we
     // should also call the callback
