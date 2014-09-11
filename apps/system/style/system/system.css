@@ -244,7 +244,7 @@ body {
   position: absolute;
   top: 0;
   width: 100%;
-  height: 3rem;
+  height: var(--statusbar-height);
 
   background: rgba(0, 0, 0, .15);
   content: '';
@@ -267,17 +267,17 @@ body {
 
 #dialog-overlay {
   position: absolute;
-  top: 3rem;
+  top: var(--statusbar-height);
   left: 0;
   width: 100%;
-  height: calc(100% - 3rem);
+  height: calc(100% - var(--statusbar-height));
   visibility: hidden;
   pointer-events: none;
 }
 
 #screen.software-button-enabled #windows + #dialog-overlay {
   bottom: var(--software-home-button-height);
-  height: calc(100% - 3rem - var(--software-home-button-height));
+  height: calc(100% - var(--statusbar-height) - var(--software-home-button-height));
 }
 
 #screen.active-statusbar #dialog-overlay,

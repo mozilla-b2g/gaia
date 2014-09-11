@@ -7,7 +7,7 @@
   display: block;
   pointer-events: none;
   opacity: 0;
-  transform: scale(1) translateY(3rem);
+  transform: scale(1) translateY(var(--statusbar-height));
   transition: opacity 0.25s linear;
 }
 

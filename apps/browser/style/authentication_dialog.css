@@ -41,7 +41,7 @@
 
 #authentication-dialog input {
   width: -moz-calc(100% - 2em);
-  height: 3rem;
+  height: var(--statusbar-height);
 }
 
 #authentication-dialog-http-authentication-ok {
