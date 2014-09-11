@@ -32,6 +32,7 @@ AlternativesCharMenuView.prototype.show = function(key) {
   var cachedWindowWidth = window.innerWidth;
 
   var left = (cachedWindowWidth / 2 > key.offsetLeft);
+  this._direction = left ? 'left' : 'right';
 
   var menu = document.createElement('div');
   menu.id = 'keyboard-accent-char-menu';
@@ -48,6 +49,7 @@ AlternativesCharMenuView.prototype.show = function(key) {
     widthRatio = Math.ceil(this.altChars.length / 2);
 
     menu.style.top = (key.offsetTop - this.getLineHeight() * 2)  + 'px';
+    this._columnCount = widthRatio;
     this._rowCount = 2;
 
     // Specify the width so that it will be folded into 2 rows.
@@ -58,6 +60,7 @@ AlternativesCharMenuView.prototype.show = function(key) {
     // menu height -  4 (top margin of the visual wrapper)
     menu.style.top = (key.offsetTop - this.getLineHeight() + 4) +  'px';
     this._rowCount = 1;
+    this._columnCount = this.altChars.length;
   }
 
   // Determine the horizontal positioning of the menu
@@ -86,41 +89,42 @@ AlternativesCharMenuView.prototype.show = function(key) {
     ] :
     [ { 'key': 'compositeKey', 'value': alt } ];
 
-  // Make each of these alternative keys as wide as the key that
-  // it is an alternative for, but adjust for the relative number of
-  // characters in the original and the alternative.
-  var width = this.keyWidth;
+    // Make each of these alternative keys as wide as the key that
+    // it is an alternative for, but adjust for the relative number of
+    // characters in the original and the alternative.
+    var width = this.keyWidth;
 
-  // Only adjust the width when there is one row, since the key width
-  // would be fixed in 2-row case.
-  if (alt.length > 1 && this._rowCount === 1) {
-    // Add some padding to the composite key.
-    width = this._getCharWidth(alt) + 10;
-    width = Math.max(width, this.keyWidth);
-  }
+    // Only adjust the width when there is one row, since the key width
+    // would be fixed in 2-row case.
+    if (alt.length > 1 && this._rowCount === 1) {
+      // Add some padding to the composite key.
+      width = this._getCharWidth(alt) + 10;
+      width = Math.max(width, this.keyWidth);
+    }
 
-  var attributeList = [];
+    var attributeList = [];
 
-  if (this.ARIA_LABELS && this.ARIA_LABELS[alt]) {
+    if (this.ARIA_LABELS && this.ARIA_LABELS[alt]) {
+      attributeList.push({
+        key: 'data-l10n-id',
+        value: this.ARIA_LABELS[alt]
+      });
+    } else {
+      attributeList.push({
+        key: 'aria-label',
+        value: alt
+      });
+    }
+
     attributeList.push({
-      key: 'data-l10n-id',
-      value: this.ARIA_LABELS[alt]
+      key: 'role',
+      value: 'key'
     });
-  } else {
-    attributeList.push({
-      key: 'aria-label',
-      value: alt
-    });
-  }
 
-  attributeList.push({
-    key: 'role',
-    value: 'key'
-  });
-
-  content.appendChild(
-      this.buildKey(alt, '', width + 'px', dataset, null, attributeList));
+    content.appendChild(
+        this.buildKey(alt, '', width + 'px', dataset, null, attributeList));
   }.bind(this));
+
   menu.appendChild(content);
 
   // Adjust menu style
@@ -158,6 +162,44 @@ AlternativesCharMenuView.prototype._getCharWidth = function(textContent) {
   scaleContext.font = fontSize + ' sans-serif';
 
   return scaleContext.measureText(textContent).width;
+};
+
+AlternativesCharMenuView.prototype.getMenuTarget = function(x, y) {
+  var menuRect = this.getBoundingClientRect();
+
+  // Limit the x,y in the menu
+  if (x <= menuRect.left) {
+    x = menuRect.left + 1;
+  } else if (x >= menuRect.right) {
+    // Cannot find element if x hit the edge, so -1 here.
+    x = menuRect.right - 1;
+  }
+
+  var xOffset = 0;
+  if (this._direction === 'left') {
+    // menu extends to left
+    xOffset = x - menuRect.left;
+  } else {
+    // menu extends to right
+    xOffset = menuRect.right - x;
+  }
+
+  // Redirect to upper row
+  y = y - this.getLineHeight();
+  if (y <= menuRect.top) {
+    // Cannot find element if y hit the edge, so +1 here.
+    y = menuRect.top + 1;
+  }
+
+  var columnCount = this._columnCount;
+  var targetIndex = Math.floor(xOffset / menuRect.width * columnCount);
+
+  if ((menuRect.bottom - y) > this.getLineHeight()) {
+    targetIndex += columnCount;
+  }
+
+  var menuContainer = this.getMenuContainer();
+  return menuContainer.children[targetIndex];
 };
 
 })(window);

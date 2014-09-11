@@ -125,14 +125,12 @@ AlternativesCharMenuManager.prototype.isMenuTarget = function(target) {
 };
 
 AlternativesCharMenuManager.prototype.getMenuTarget = function(press) {
-  var menuContainer = this._currentMenuView.getMenuContainer();
-  var menuRect = this._currentMenuView.getBoundingClientRect();
-
   if (!this.isShown) {
     throw new Error('AlternativesCharMenuManager: ' +
       'getMenuTarget called but menu is not shown');
   }
 
+  var menuContainer = this._currentMenuView.getMenuContainer();
   var children = menuContainer.children;
   // If the press.target is still the original target, we should always
   // return the first alternative (the one on top of the key).
@@ -145,34 +143,7 @@ AlternativesCharMenuManager.prototype.getMenuTarget = function(press) {
 
   this._hasMovedAwayFromOriginalTarget = true;
 
-  // Limit the x,y in the menu
-  var x = press.clientX;
-  if (x < menuRect.left) {
-    x = menuRect.left;
-  } else if (x >= menuRect.right) {
-    // Cannot find element if x hit the edge, so -1 here.
-    x = menuRect.right - 1;
-  }
-
-  var y = press.clientY - this._currentMenuView.getLineHeight();
-  if (y <= menuRect.top) {
-    // Cannot find element if y hit the edge, so +1 here.
-    y = menuRect.top + 1;
-  }
-
-  var target = document.elementFromPoint(x, y);
-
-  if (target.parentNode !== menuContainer) {
-    // The user presses an empty cell in the menu, so
-    // return the last element.
-    if (target === menuContainer) {
-      target = children[children.length - 1];
-    } else {
-      return;
-    }
-  }
-
-  return target;
+  return this._currentMenuView.getMenuTarget(press.clientX, press.clientY);
 };
 
 AlternativesCharMenuManager.prototype.isInMenuArea = function(press) {
