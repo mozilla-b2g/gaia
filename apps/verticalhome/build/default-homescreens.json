@@ -20,7 +20,8 @@
       ["apps", "clock"],
       ["apps", "email"],
       ["apps", "calendar"],
-      ["apps", "costcontrol"]
+      ["apps", "costcontrol"],
+      ["apps", "stklauncher"]
     ]
   ],
   "preferences": {

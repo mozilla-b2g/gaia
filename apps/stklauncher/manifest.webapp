@@ -1,0 +1,28 @@
+{
+  "name": "stklauncher",
+  "type": "certified",
+  "description": "Operator menu - STK",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "webapps-manage":{},
+    "settings":{ "access": "readonly" }
+  },
+  "locales": {
+    "en-US": {
+      "name": "Operator menu",
+      "description": "Operator menu - STK"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "84": "/style/icons/Icon_SIMToolkit@1.png",
+    "126": "/style/icons/Icon_SIMToolkit@1.5.png",
+    "142": "/style/icons/Icon_SIMToolkit@2.png",
+    "189": "/style/icons/Icon_SIMToolkit@2.25.png",
+    "284": "/style/icons/Icon_SIMToolkit@3.375.png"
+  }
+}
