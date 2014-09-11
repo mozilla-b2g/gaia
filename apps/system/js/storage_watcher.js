@@ -14,6 +14,8 @@
 
 var DeviceStorageWatcher = {
 
+  LOW_DISK_NOTIF_ID: 'low-disk-space',
+
   init: function dsw_init() {
     this._lowDeviceStorage = false;
 
@@ -48,7 +50,7 @@ var DeviceStorageWatcher = {
     this._lowDeviceStorage = false;
     if (this._container.classList.contains('displayed')) {
       this._container.classList.remove('displayed');
-      NotificationScreen.decExternalNotifications();
+      NotificationScreen.removeUnreadNotification(this.LOW_DISK_NOTIF_ID);
     }
   },
 
@@ -56,7 +58,7 @@ var DeviceStorageWatcher = {
     this._lowDeviceStorage = true;
     if (!this._container.classList.contains('displayed')) {
       this._container.classList.add('displayed');
-      NotificationScreen.incExternalNotifications();
+      NotificationScreen.addUnreadNotification(this.LOW_DISK_NOTIF_ID);
     }
   },
 

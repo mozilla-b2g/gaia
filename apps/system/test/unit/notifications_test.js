@@ -72,7 +72,7 @@ suite('system/NotificationScreen >', function() {
 
   function incrementNotications(number) {
     for (var i = 0; i <= number - 1; i++) {
-      NotificationScreen.incExternalNotifications();
+      NotificationScreen.addUnreadNotification(i);
     }
   }
 
@@ -226,11 +226,11 @@ suite('system/NotificationScreen >', function() {
 
     test('should clear unread notifications after open tray', function() {
       incrementNotications(2);
-      assert.equal(NotificationScreen.unreadNotifications, 2);
+      assert.equal(NotificationScreen.unreadNotifications.length, 2);
       var event = new CustomEvent('utilitytrayshow');
       window.dispatchEvent(event);
       assert.equal(document.body.getElementsByClassName('unread').length, 0);
-      assert.equal(NotificationScreen.unreadNotifications, 0);
+      assert.equal(NotificationScreen.unreadNotifications.length, 0);
     });
 
     test('should show a small ambient indicator', function() {
@@ -264,6 +264,21 @@ suite('system/NotificationScreen >', function() {
       assert.equal(document.body.getElementsByClassName('unread').length, 0);
       UtilityTray.shown = false;
     });
+
+    test('should not clear the ambient after decrement unread', function() {
+      var imgpath = 'http://example.com/test.png';
+      var detail = {
+        id: 'my-id',
+        icon: imgpath,
+        title: 'title',
+        detail: 'detail'
+      };
+      NotificationScreen.addNotification(detail);
+      assert.equal(NotificationScreen.unreadNotifications.length, 1);
+      NotificationScreen.removeUnreadNotification('other-id');
+      assert.equal(NotificationScreen.unreadNotifications.length, 1);
+    });
+
   });
 
   suite('addUnreadNotification', function() {
@@ -281,7 +296,7 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('shouldnt update the notif indicator when skipping', function() {
-      NotificationScreen.addUnreadNotification(true);
+      NotificationScreen.addUnreadNotification('other-id', true);
       assert.isFalse(NotificationScreen.updateNotificationIndicator.called);
     });
   });
