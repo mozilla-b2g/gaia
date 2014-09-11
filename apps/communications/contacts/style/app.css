@@ -560,6 +560,11 @@ html[dir="rtl"] ::-moz-placeholder {
   text-align: right;
 }
 
+#import-settings button {
+  margin: 1.5rem;
+  width: calc(100% - 3rem);
+}
+
 #contact-list-ice {
   padding-left: 1rem
 }
