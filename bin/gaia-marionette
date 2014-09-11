@@ -101,7 +101,6 @@ fi
 
 if [ -z "$XPCSHELLSDK" ] ; then
   XPCSHELLSDK=$(find "$XULRUNNER_DIRECTORY" -type f -name xpcshell | sort -nr | head -n1 2> /dev/null)
-  exit 1
 fi
 
 if [ ! -e "$XPCSHELLSDK" ] ; then
