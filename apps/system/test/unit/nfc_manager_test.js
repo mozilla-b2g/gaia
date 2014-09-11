@@ -148,6 +148,28 @@ suite('Nfc Manager Functions', function() {
     });
   });
 
+  suite('isActive', function() {
+    test('returns false if hardware state is OFF', function() {
+      nfcManager._hwState = nfcManager.NFC_HW_STATE.OFF;
+      assert.isFalse(nfcManager.isActive());
+    });
+
+    test('returns true if hardware state is ON', function() {
+      nfcManager._hwState = nfcManager.NFC_HW_STATE.ON;
+      assert.isTrue(nfcManager.isActive());
+    });
+
+    test('returns true if hardware state is ENABLE_DISCOVERY', function() {
+      nfcManager._hwState = nfcManager.NFC_HW_STATE.ENABLE_DISCOVERY;
+      assert.isTrue(nfcManager.isActive());
+    });
+
+    test('returns true if hardware state is DISABLE_DISCOVERY', function() {
+      nfcManager._hwState = nfcManager.NFC_HW_STATE.DISABLE_DISCOVERY;
+      assert.isTrue(nfcManager.isActive());
+    });
+  });
+
   suite('handleEvent', function() {
     test('proper handling of lock, unlock, screenchange', function() {
       var stubChangeHardwareState = this.sinon.stub(nfcManager,
