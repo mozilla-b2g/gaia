@@ -564,7 +564,8 @@
       app = StackManager.getCurrent() ||
             homescreenLauncher.getHomescreen(true);
     }
-    var position = this.unfilteredStack.indexOf(app);
+    var position = this.unfilteredStack ? this.unfilteredStack.indexOf(app) :
+                                          StackManager.position;
     if (position !== StackManager.position) {
       this.newStackPosition = position;
     }
