@@ -768,8 +768,12 @@ form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) gaia-he
 
 [data-type="list"] .contact-item > aside > span {
   position: relative;
-  background: url(images/Imagery.png) no-repeat 50% 50% / 7rem auto;
   display: none;
+}
+
+/* Photo by default redefines the background property */
+[data-type="list"] .contact-item > aside > span[data-group] {
+  background: url(images/Imagery.png) no-repeat 50% 50% / 7rem auto;
 }
 
 /* Photo by default is displayed when it is visited by image loader component */
