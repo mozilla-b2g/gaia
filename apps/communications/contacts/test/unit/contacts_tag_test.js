@@ -59,7 +59,7 @@ suite('Fill tag options', function() {
       var tags = container.querySelectorAll('button');
       triggerEvent(customTag, 'touchend');
       for (var i = 0; i < tags.length; i++) {
-        assert.lengthOf(tags[i].classList, 0);
+        assert.isFalse(tags[i].classList.contains('icon-selected'));
       }
     });
 
