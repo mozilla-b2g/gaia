@@ -159,22 +159,24 @@ suite('dialer/utils', function() {
         var minutes = 4;
         var seconds = 2;
         var duration = hours * 60 * 60 + minutes * 60 + seconds;
-        Utils.prettyDuration(durationNode, duration * 1000, 'callDurationText');
+        Utils.prettyDuration(durationNode, duration * 1000,
+                             'callDurationTextFormat');
         sinon.assert.calledWith(MockL10n.setAttributes, durationNode,
-          'callDurationTextHours', { h: '1', m: '4', s: '2' });
+          'callDurationTextFormatHours', { h: '1', m: '4', s: '2' });
       });
 
       test('formats as minutes if less than one hour', function() {
         Utils.prettyDuration(durationNode, 60 * 60 * 1000 - 1,
-                             'callDurationText');
+                             'callDurationTextFormat');
         sinon.assert.calledWith(MockL10n.setAttributes, durationNode,
-          'callDurationTextMinutes', { h: '0', m: '59', s: '59' });
+          'callDurationTextFormatMinutes', { h: '0', m: '59', s: '59' });
       });
 
       test('formats as seconds if less than one minute', function() {
-        Utils.prettyDuration(durationNode, 60 * 1000 - 1, 'callDurationText');
+        Utils.prettyDuration(durationNode, 60 * 1000 - 1,
+                             'callDurationTextFormat');
         sinon.assert.calledWith(MockL10n.setAttributes, durationNode,
-          'callDurationTextSeconds', { h: '0', m: '0', s: '59' });
+          'callDurationTextFormatSeconds', { h: '0', m: '0', s: '59' });
       });
     });
   });

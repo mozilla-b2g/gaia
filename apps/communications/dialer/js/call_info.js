@@ -85,7 +85,8 @@
             durationElt.setAttribute('data-l10n-id', 'canceled');
           }
         } else {
-          Utils.prettyDuration(durationElt, call.duration, 'callDurationText');
+          Utils.prettyDuration(durationElt, call.duration,
+                               'callDurationTextFormat');
         }
       });
 
