@@ -235,11 +235,11 @@ var StatusBar = {
     // Listen to 'timeformatchange'
     window.addEventListener('timeformatchange', this);
 
-    // Listen to 'lockscreen-appopened', 'lockscreen-appclosed', and
+    // Listen to 'lockscreen-appopened', 'lockscreen-appclosing', and
     // 'lockpanelchange' in order to correctly set the visibility of
     // the statusbar clock depending on the active lockscreen panel
     window.addEventListener('lockscreen-appopened', this);
-    window.addEventListener('lockscreen-appclosed', this);
+    window.addEventListener('lockscreen-appclosing', this);
     window.addEventListener('lockpanelchange', this);
 
     window.addEventListener('simpinshow', this);
@@ -247,6 +247,14 @@ var StatusBar = {
 
     // Listen to orientation change.
     window.addEventListener('resize', this);
+
+    window.addEventListener('appopening', this);
+    window.addEventListener('appopened', this);
+    window.addEventListener('homescreenopening', this);
+    window.addEventListener('homescreenopened', this);
+    window.addEventListener('sheetstransitionstart', this);
+    window.addEventListener('apptitlestatechanged', this);
+    window.addEventListener('stackchanged', this);
 
     // We need to preventDefault on mouse events until
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1005815 lands
@@ -278,12 +286,14 @@ var StatusBar = {
         // or we have some bugs.
         this.toggleTimeLabel(false);
         this._updateIconVisibility();
+        this.setAppearance(evt.detail);
         break;
 
-      case 'lockscreen-appclosed':
+      case 'lockscreen-appclosing':
         // Display the clock in the statusbar when screen is unlocked
         this.toggleTimeLabel(true);
         this._updateIconVisibility();
+        this.setAppearance(AppWindowManager.getActiveApp());
         break;
 
       case 'attentionopened':
@@ -456,7 +466,35 @@ var StatusBar = {
         // Reprioritize icons when orientation changes.
         this._updateIconVisibility();
         break;
+
+      case 'homescreenopening':
+      case 'appopening':
+      case 'sheetstransitionstart':
+        this.element.classList.add('hidden');
+        break;
+
+      case 'stackchanged':
+        this.setAppearance(AppWindowManager.getActiveApp());
+        this.element.classList.remove('hidden');
+        break;
+
+      case 'apptitlestatechanged':
+      case 'appopened':
+      case 'homescreenopened':
+        this.setAppearance(evt.detail);
+        this.element.classList.remove('hidden');
+        break;
     }
+  },
+
+  setAppearance: function(app) {
+    this.element.classList.toggle('light',
+      !!(app.appChrome && app.appChrome.useLightTheming())
+    );
+
+    this.element.classList.toggle('maximized', app.isHomescreen ||
+      !!(app.appChrome && app.appChrome.isMaximized())
+    );
   },
 
   _startX: null,
@@ -664,11 +702,15 @@ var StatusBar = {
     titleBar.style.transform = '';
     titleBar.style.transition = '';
 
+    this.screen.classList.remove('minimized-tray');
+
     clearTimeout(this._releaseTimeout);
     this._releaseTimeout = null;
   },
 
   _releaseAfterTimeout: function sb_releaseAfterTimeout(titleBar) {
+    this.screen.classList.add('minimized-tray');
+
     var chromeBar = titleBar.parentNode.querySelector('.chrome');
 
     var self = this;
@@ -1517,8 +1559,10 @@ var StatusBar = {
 
   cloneStatusbar: function() {
     this.statusbarIcons.removeChild(this.statusbarIconsMin);
-    this.statusbarIconsMin = this.statusbarIconsMax.cloneNode(true);
-    this.statusbarIconsMin.setAttribute('id', 'statusbar-minimized');
+    this.statusbarIconsMin = this.statusbarIconsMax.parentNode.cloneNode(true);
+    this.statusbarIconsMin.setAttribute('id', 'statusbar-minimized-wrapper');
+    this.statusbarIconsMin.firstElementChild.setAttribute('id',
+      'statusbar-minimized');
     this.statusbarIcons.appendChild(this.statusbarIconsMin);
   },
 

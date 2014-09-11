@@ -14,8 +14,65 @@
   position: fixed;
   width: 100%;
   height: 3rem;
-  top: -3rem;
+  top: 0;
   left: 0;
+  pointer-events: none;
+}
+
+.statusbar > div,
+.statusbar > img {
+  pointer-events: auto;
+}
+
+#statusbar.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#statusbar-maximized-wrapper {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#statusbar-minimized-wrapper {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#statusbar.maximized #statusbar-maximized-wrapper {
+  opacity: 1;
+  visibility: visible;
+}
+
+#statusbar:not(.maximized) #statusbar-minimized-wrapper {
+  opacity: 1;
+  visibility: visible;
+}
+
+#screen:not(.locked):not(.minimized-tray).fullscreen-app #statusbar {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#screen.locked #statusbar,
+#screen:not(.locked).utility-tray #statusbar {
+  visibility: visible;
+  filter: none;
+}
+
+#screen:not(.locked).utility-tray #statusbar-maximized-wrapper {
+  opacity: 1;
+  visibility: visible;
+}
+
+#screen:not(.locked).utility-tray #statusbar-minimized-wrapper {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#screen.cards-view #statusbar {
+  opacity: 0;
+  visibility: hidden;
 }
 
 @media (orientation: landscape) {
@@ -70,7 +127,6 @@ body #statusbar {
   top: 0;
   right: 0;
   padding: 0 0.3rem;
-  transition: opacity 0.3s;
   overflow: hidden;
   white-space: nowrap;
   box-sizing: border-box;
@@ -227,6 +283,7 @@ body .utility-tray .statusbar > .sb-start {
 #statusbar-connections[data-multiple="true"] .statusbar-data[hidden] {
   display: block;
   opacity: 0;
+  visibility: hidden;
 }
 
 /* call forwarding icons */
