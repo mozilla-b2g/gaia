@@ -290,8 +290,7 @@ marionette('week view', function() {
       assert.equal(week.currentTime.text(), currentTime);
     });
 
-    // Refer to http://bugzil.la/1061135.
-    test.skip('switch to 24 hour format', function() {
+    test('switch to 24 hour format', function() {
       app.switch24HourTimeFormat();
       assert.equal(week.sideBarHours[0].text(), '0');
       assert.equal(week.sideBarHours[13].text(), '13');
