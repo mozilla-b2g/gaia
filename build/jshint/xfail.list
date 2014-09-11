@@ -259,7 +259,6 @@ apps/settings/js/call_iccs.js
 apps/settings/js/carrier.js
 apps/settings/js/carrier_iccs.js
 apps/settings/js/connectivity.js
-apps/settings/js/date_time.js
 apps/settings/js/downloads/download_api_manager.js
 apps/settings/js/downloads/download_item.js
 apps/settings/js/downloads/downloads_list.js

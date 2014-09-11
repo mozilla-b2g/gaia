@@ -580,7 +580,7 @@ section ul.operate-certificate {
  * Sound settings
  */
 
-#manage-tones-button {
+.manage-tones-button {
   padding-left: 3rem;
 }
 
