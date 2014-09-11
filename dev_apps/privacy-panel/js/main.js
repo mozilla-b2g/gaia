@@ -21,6 +21,7 @@ var app = app || {};
         $menu:    document.getElementById('RPP-menu'),
         $newPass: document.getElementById('RPP-new-password'),
         $login:   document.getElementById('RPP-login'),
+        $changePass: document.getElementById('RPP-change-password'),
         RemoteLocate: {
           $box:   document.querySelector('#RPP .remote-locate'),
           $input: document.querySelector('#RPP .remote-locate input')
@@ -40,16 +41,19 @@ var app = app || {};
         Unlock: {
           $box:   document.querySelector('#RPP .unlock'),
           $input: document.querySelector('#RPP .unlock input')
-        }
+        },
+        $changePassLink: document.querySelector('li.change-password')
       }
     };
 
     // add event listeners
     app.elements.RPP.$link.addEventListener('click', app.showRPPBox);
     app.elements.RPP.$back.addEventListener('click', app.showRootBox);
+    app.elements.RPP.$changePassLink.querySelector('a').addEventListener('click', app.showChangePassBox);
 
     app.elements.RPP.$newPass.querySelector('button.rpp-new-password-ok').addEventListener('click', app.savePassword);
     app.elements.RPP.$login.querySelector('button.rpp-login-ok').addEventListener('click', app.login);
+    app.elements.RPP.$changePassword.querySelector('button.rpp-change-password-ok').addEventListener('click', app.changePassword);
 
     app.elements.RPP.RemoteLocate.$input.addEventListener('change', app.toggleRemoteLocate);
     app.elements.RPP.RemoteRing.$input.addEventListener('change', app.toggleRemoteRing);
@@ -87,7 +91,34 @@ var app = app || {};
 
       app.elements.RPP.$menu.style.display = 'none';
       app.elements.RPP.$newPass.style.display = (!password) ? 'block' : 'none';
+
       app.elements.RPP.$login.style.display = (password) ? 'block' : 'none';
+
+      app.elements.RPP.$changePass.style.display = 'none';
+
+      app.elements.RPP.$changePassLink.style.display = 'none';
+      if (password) {
+      	var unlockReq = app.settings.createLock().get('rpp.unlock.enabled');
+      	unlockReq.onsuccess = function () {
+      		if (unlockReq.result['rpp.unlock.enabled'] === true) {
+      			var mobileConnections = navigator.mozMobileConnections;
+      			if (mobileConnections && mobileConnections.length > 0) {
+      				var mobileConnection = mobileConnections[0];
+      				if (mobileConnection) {
+      					var icc = navigator.mozIccManager.getIccById(mobileConnection.iccId);
+      					if (icc) {
+      						var req = icc.getCardLock('pin');
+      						req.onsuccess = function () {
+      							if (req.result.enabled) {
+      								app.elements.RPP.$changePassLink.style.display = 'block';
+      							}
+      						};
+      					}
+      				}
+      			}
+      		}
+      	};
+      }
     };
   };
 
@@ -132,10 +163,82 @@ var app = app || {};
     var status5 = app.settings.createLock().get('rpp.unlock.enabled');
     status5.onsuccess = function() {
       app.elements.RPP.Unlock.$input.checked = (status5.result['rpp.unlock.enabled'] === true);
+
+      app.elements.RPP.Unlock.$input.disabled = 'disbaled';
+      var mobileConnections = navigator.mozMobileConnections;
+      if (mobileConnections && mobileConnections.length > 0) {
+      	var mobileConnection = mobileConnections[0];
+      	if (mobileConnection) {
+      		var icc = navigator.mozIccManager.getIccById(mobileConnection.iccId);
+      		if (icc) {
+      			var req = icc.getCardLock('pin');
+      			req.onsuccess = function () {
+      				if (req.result.enabled) {
+      					app.elements.RPP.Unlock.$input.disabled = '';
+      				}
+      			};
+      		}
+      	}
+      }
+
       app.elements.RPP.Unlock.$box.style.display = 'block';
     };
   };
 
+  app.showChangePassBox = function () {
+  	app.elements.RPP.$login.style.display = 'none';
+  	app.elements.RPP.$changePass.style.display = 'block';
+  };
+
+  app.changePassword = function () {
+  	var pin = app.elements.RPP.$changePass.querySelector('#rpp-pin').value,
+  	pass1 = app.elements.RPP.$changePass.querySelector('#rpp-new-pass1').value,
+  	pass2 = app.elements.RPP.$changePass.querySelector('#rpp-new-pass2').value,
+  	passHash = Crypto.MD5(pass1).toString(),
+  	$pinValidationMessage = app.elements.RPP.$changePass.querySelector('.pin-validation-message'),
+  	$validationMessage = app.elements.RPP.$changePass.querySelector('.validation-message');
+
+  	if (pass1 !== pass2) {
+  		$validationMessage.textContent = 'Confirmation must match pass phrase!';
+  		$validationMessage.style.display = 'block';
+
+  		$pinValidationMessage.textContent = '';
+  		$pinValidationMessage.style.display = 'none';
+  	} else {
+  		var mobileConnections = navigator.mozMobileConnections;
+  		if (mobileConnections && mobileConnections.length > 0) {
+  			var mobileConnection = mobileConnections[0];
+  			if (mobileConnection) {
+  				var icc = navigator.mozIccManager.getIccById(mobileConnection.iccId);
+  				if (icc) {
+  					var unlockOptions = {};
+  					unlockOptions['lockType'] = 'pin';
+  					unlockOptions['pin'] = pin;
+  					var unlock = icc.unlockCardLock(unlockOptions);
+  					unlock.onsuccess = function () {
+  						$validationMessage.textContent = '';
+  						$validationMessage.style.display = 'none';
+
+  						$pinValidationMessage.textContent = '';
+  						$pinValidationMessage.style.display = 'none';
+
+  						app.settings.createLock().set({
+  							'rpp.password' : passHash
+  						});
+  						app.showRPPBox();
+  					};
+  					unlock.onerror = function () {
+  						$pinValidationMessage.textContent = 'Wrong SIM Pin!';
+  						$pinValidationMessage.style.display = 'block';
+
+  						$validationMessage.textContent = '';
+  						$validationMessage.style.display = 'none';
+  					};
+  				}
+  			}
+  		}
+  	}
+  };
 
   /**
    * Save new password

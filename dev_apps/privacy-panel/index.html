@@ -101,8 +101,37 @@
             <input id="rpp-login-pass" type="password" placeholder="Pass phrase">
             <span class="validation-message" style="color: red; display: none;"></span>
           </li>
+          <li class="change-password" style="display: none;">
+            <a href="#change-password">
+              <span data-l10n-id="change-password">Forgot/Change your pass phrase?</span>
+            </a>
+          </li>
           <li class="action-button-box-one">
             <button class="rpp-login-ok">OK</button>
+          </li>
+        </ul>
+      </div>
+
+      <div id="RPP-change-password">
+        <ul>
+          <li class="description">
+            <p data-l10n-id="rpp-change-password-description">
+              To reset your pass phrase please enter SIM Pin and new pass phrase.
+            </p>
+          </li>
+          <li>
+            <input id="rpp-pin" type="password" placeholder="SIM Pin">
+            <span class="pin-validation-message" style="color: red; display: none;"></span>
+          </li>
+          <li>
+            <input id="rpp-new-pass1" type="password" placeholder="New pass phrase">
+          </li>
+          <li>
+            <input id="rpp-new-pass2" type="password" placeholder="Confirm new pass phrase">
+            <span class="validation-message" style="color: red; display: none;"></span>
+          </li>
+          <li class="action-button-box-one">
+            <button class="rpp-change-password-ok">OK</button>
           </li>
         </ul>
       </div>
