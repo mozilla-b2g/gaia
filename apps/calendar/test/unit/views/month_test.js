@@ -147,7 +147,7 @@ suiteGroup('Views.Month', function() {
 
     subject._onswipe({
       dy: 0,
-      dx: 100,
+      dx: window.innerWidth / 5,
       direction: 'left'
     });
 
