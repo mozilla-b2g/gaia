@@ -1006,6 +1006,7 @@ contacts.List = (function() {
 
     if (img) {
       delete img.dataset.group;
+      img.style.backgroundPosition = img.dataset.backgroundPosition || '';
       setImageURL(img, photo, asClone);
       return;
     }
@@ -1043,6 +1044,8 @@ contacts.List = (function() {
     if (!img) {
       var figure = photoTemplate.cloneNode(true);
       img = figure.children[0];
+
+      img.dataset.backgroundPosition = img.style.backgroundPosition;
 
       var posH = ['left','center','right'];
       var posV = ['top','center','bottom'];

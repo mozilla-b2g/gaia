@@ -980,7 +980,7 @@ suite('Render contacts list', function() {
 
         doOnscreen(subject, contact, function() {
           var img = contact.querySelector('span[data-type=img]');
-
+          assert.equal(img.style.backgroundPosition, '');
           assert.equal(img.dataset.src, 'test.png',
                         'At the begining contact 1 img === "test.png"');
           var prevUpdated = contact.dataset.updated;
@@ -1788,6 +1788,12 @@ suite('Render contacts list', function() {
     test('Check default image appears', function() {
       var contact = document.querySelector('[data-uuid="2"]');
       assert.isTrue(contact.innerHTML.indexOf('aside') !== -1);
+    });
+
+    test('Check default image saves the backgroundPosition properly',
+          function() {
+      var img = document.querySelector('[data-uuid="2"] aside span');
+      assert.equal(img.dataset.backgroundPosition, '');
     });
 
     test('Check favorites with default image have proper group',
