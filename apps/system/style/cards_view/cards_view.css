@@ -27,6 +27,15 @@
   bottom: var(--software-home-button-height);
 }
 
+@media (orientation:landscape) {
+  #screen.software-button-enabled #cards-view {
+    height: 100%;
+    width: calc(100% - var(--software-home-button-height));
+    bottom: 0;
+    right: var(--software-home-button-height);
+  }
+}
+
 #cards-view.active {
   visibility: inherit;
 }
