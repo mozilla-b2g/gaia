@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsHelper */
+/* global SettingsHelper, System */
 
 (function(exports) {
   /**
@@ -8,28 +8,21 @@
    * @requires SettingsHelper
    * @class TelephonySettings
    */
-  function TelephonySettings() {
-    this.started = false;
-    this.connections = Array.slice(navigator.mozMobileConnections || []);
-  }
+  var TelephonySettings = function(core) {
+    this.connections = Array.slice(core.mobileConnections || []);
+  };
 
-  TelephonySettings.prototype = {
-
+  System.create(TelephonySettings, {}, {
+    name: 'TelephonySettings',
     /**
      * Initialzes all settings.
      * @memberof TelephonySettings.prototype
      */
-    start: function() {
-      if (this.started || !this.connections.length) {
-        return;
-      }
-
+    _start: function() {
       this.initVoicePrivacy();
       this.initRoaming();
       this.initCallerIdPreference();
       this.initPreferredNetworkType();
-
-      this.started = true;
     },
 
     /**
@@ -249,7 +242,7 @@
         return (hwSupportedTypes && hwSupportedTypes.indexOf(type) !== -1);
       }).join('/');
     }
-  };
+  });
 
   exports.TelephonySettings = TelephonySettings;
 

@@ -1,4 +1,4 @@
-/* global AppModalDialog, AirplaneMode */
+/* global AppModalDialog, airplaneMode */
 'use strict';
 
 (function(window) {
@@ -95,7 +95,7 @@
   };
 
   AppModalDialog.prototype.getTitle = function amd_getTitle() {
-    if (AirplaneMode && AirplaneMode.enabled) {
+    if (airplaneMode && airplaneMode.enabled) {
       return _('airplane-is-on');
     } else if (!navigator.onLine) {
       return _('network-connection-unavailable');
@@ -105,7 +105,7 @@
   };
 
   AppModalDialog.prototype.getMessage = function amd_getMessage() {
-    if (AirplaneMode && AirplaneMode.enabled) {
+    if (airplaneMode && airplaneMode.enabled) {
       return _('airplane-is-turned-on', { name: this.app.name });
     } else if (!navigator.onLine) {
       return _('network-error', { name: this.app.name });

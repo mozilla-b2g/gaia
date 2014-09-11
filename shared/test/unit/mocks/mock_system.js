@@ -5,7 +5,9 @@ var MockSystem = {
   isBusyLoading: function() {
     return false;
   },
-  currentTime: function() {},
+  currentTime: function() {
+    return Date.now();
+  },
   slowTransition: false,
   publish: function(eventName, detail) {
     var evt = new CustomEvent(eventName, { detail: detail });
@@ -13,5 +15,14 @@ var MockSystem = {
   },
   locked: false,
   runningFTU: false,
+  getAPI: function() {
+    return null;
+  },
+  lazyLoad: function() {
+
+  },
+  lowerCapital: function(s) {
+    return s;
+  },
   manifestURL: 'app://system.gaiamobile.org/manifest.webapp'
 };

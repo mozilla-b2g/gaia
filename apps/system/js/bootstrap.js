@@ -1,21 +1,21 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/*global ActivityWindowManager, SecureWindowFactory,
+/*global Core, ActivityWindowManager, SecureWindowFactory,
          SecureWindowManager, HomescreenLauncher,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
          VisibilityManager, UsbStorage, InternetSharing, TaskManager,
-         TelephonySettings, SuspendingAppPriorityManager, TTLView,
+         SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
          SoftwareButtonManager, Accessibility, NfcUtils, ShrinkingUI,
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
          LockScreenNotifications, LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor, LockScreenNotificationBuilder,
-         BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager */
+         BrowserSettings, AppMigrator, SettingsMigrator, AirplaneMode,
+         QuickSettings */
 'use strict';
-
 
 /* === Shortcuts === */
 /* For hardware key handling that doesn't belong to anywhere */
@@ -133,8 +133,6 @@ window.addEventListener('load', function startup() {
   window.dialerAgent.start();
   window.externalStorageMonitor = new ExternalStorageMonitor();
   window.externalStorageMonitor.start();
-  window.euRoamingManager = new EuRoamingManager();
-  window.euRoamingManager.start();
   window.homeGesture = new HomeGesture();
   window.homeGesture.start();
   if (!window.homescreenLauncher) {
@@ -169,8 +167,6 @@ window.addEventListener('load', function startup() {
   window.sourceView = new SourceView();
   window.taskManager = new TaskManager();
   window.taskManager.start();
-  window.telephonySettings = new TelephonySettings();
-  window.telephonySettings.start();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager();
   window.visibilityManager.start();
@@ -182,6 +178,8 @@ window.addEventListener('load', function startup() {
     navigator.mozL10n.once(function l10n_ready() {
       window.mediaRecording = new MediaRecording();
       window.mediaRecording.start();
+      window.quickSettings = new QuickSettings();
+      window.quickSettings.start();
     });
   }
 
@@ -199,6 +197,15 @@ window.addEventListener('load', function startup() {
       { bubbles: true, cancelable: false,
         detail: { type: 'system-message-listener-ready' } });
   window.dispatchEvent(evt);
+
+  try {
+    window.airplaneMode = new AirplaneMode();
+    window.airplaneMode.start();
+    window.systemApp = new Core();
+    window.systemApp.start();
+  } catch (e) {
+    console.log(e);
+  }
 });
 
 window.usbStorage = new UsbStorage();

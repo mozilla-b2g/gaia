@@ -1,11 +1,8 @@
-/* global SettingsListener, AirplaneMode */
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global SettingsListener, AirplaneMode, System */
 
 'use strict';
 
 (function(exports) {
-
   var AirplaneModeServiceHelper = {
     _settings: {},
     _initSetting: function(settingID) {
@@ -96,12 +93,8 @@
       var wifiManager = window.navigator.mozWifiManager;
       var nfc = window.navigator.mozNfc;
 
-      // Radio is a special service (might not exist e.g. tablet)
-      // if value is true,
-      // it means Radio.enabled is false
-      if (window.Radio) {
-        window.Radio.enabled = !value;
-      }
+      window.dispatchEvent(new CustomEvent(!!value ?
+        'airplanemode-enabled' : 'airplanemode-disabled'));
 
       if (value) {
 
@@ -165,7 +158,47 @@
   };
 
   // main
-  var AirplaneMode = {
+  var AirplaneMode = function() {
+  };
+  AirplaneMode.SETTINGS = [
+    'airplaneMode.enabled'
+  ];
+  AirplaneMode.EVENTS = [
+    'radiostatechange'
+  ];
+  System.create(AirplaneMode, {
+    enabled: {
+      configurable: false,
+      /*
+       * This is a ES5 feature that can help the others easily get/set
+       * AirplaneMode.
+       *
+       * @param {boolean} value
+       */
+      set: function(value) {
+        if (value !== this._enabled) {
+          this._enabled = value;
+
+          // start watching events
+          this.watchEvents(value, this._getCheckedActions(value));
+
+          // tell services to do their own operations
+          this._serviceHelper.updateStatus(value);
+        }
+      },
+
+      /*
+       * This is a ES5 feature that can help the others easily get AirplaneMode
+       * states.
+       *
+       * @return {boolean}
+       */
+      get: function() {
+        return this._enabled;
+      }
+    }
+  }, {
+    name: 'AirplaneMode',
     /*
      * We will cache the helper as our internal value
      */
@@ -196,6 +229,20 @@
       }
     },
 
+    '_observe_airplaneMode.enabled': function(value) {
+      this.enabled = value;
+    },
+
+    /*
+     * If we are in airplane mode and the user just dial out an
+     * emergency call, we have to exit airplane mode.
+     */
+    _handle_radiostatechange: function(state) {
+      if (state === 'enabled' && this._enabled === true) {
+        this.enabled = false;
+      }
+    },
+
     /*
      * When turning on / off airplane mode, we will start watching
      * needed events to make sure we are in airplane mode or not.
@@ -220,6 +267,7 @@
           window.addEventListener(eventName,
             (function(eventName, serviceName) {
               return function toUpdateAirplaneMode() {
+                self.debug('handling ' + eventName);
                 window.removeEventListener(eventName, toUpdateAirplaneMode);
                 checkedActions[serviceName] = true;
                 self._updateAirplaneModeStatus(checkedActions);
@@ -227,34 +275,6 @@
           }(eventName, serviceName)));
         }
       }
-    },
-
-    /*
-     * This is a ES5 feature that can help the others easily get/set
-     * AirplaneMode.
-     *
-     * @param {boolean} value
-     */
-    set enabled(value) {
-      if (value !== this._enabled) {
-        this._enabled = value;
-
-        // start watching events
-        this.watchEvents(value, this._getCheckedActions(value));
-
-        // tell services to do their own operations
-        this._serviceHelper.updateStatus(value);
-      }
-    },
-
-    /*
-     * This is a ES5 feature that can help the others easily get AirplaneMode
-     * states.
-     *
-     * @return {boolean}
-     */
-    get enabled() {
-      return this._enabled;
     },
 
     /*
@@ -269,6 +289,7 @@
       areAllActionsDone = this._areCheckedActionsAllDone(checkActions);
 
       if (areAllActionsDone) {
+        this.debug('write settings...', self._enabled);
         SettingsListener.getSettingsLock().set({
           'airplaneMode.enabled': self._enabled,
           'airplaneMode.status': self._enabled ? 'enabled' : 'disabled',
@@ -299,7 +320,7 @@
 
       if (value === true) {
         // check connection
-        if (window.Radio) {
+        if (System.getAPI('mobileConnections')) {
           checkedActions.radio = false;
         }
 
@@ -314,7 +335,7 @@
         }
       } else {
         // check connection
-        if (window.Radio) {
+        if (System.getAPI('mobileConnections')) {
           checkedActions.radio = false;
         }
 
@@ -339,50 +360,26 @@
      * @return {boolean}
      */
     _areCheckedActionsAllDone: function(checkedActions) {
+      this.debug('checking action is all done ?');
       for (var key in checkedActions) {
         if (checkedActions[key] === false) {
+          this.debug(key + '...not yet.');
           return false;
         }
       }
+      this.debug('...all done');
       return true;
     },
 
     /*
      * Entry point
      */
-    init: function apm_init() {
+    _start: function apm_init() {
       var self = this;
 
       this._serviceHelper.init();
-
-      // monitor airplaneMode communication key change
-      SettingsListener.observe('airplaneMode.enabled', false, function(value) {
-        self.enabled = value;
-      });
-
-      /*
-       * If we are in airplane mode and the user just dial out an
-       * emergency call, we have to exit airplane mode.
-       */
-      if (window.Radio) {
-        window.Radio.addEventListener('radiostatechange', function(state) {
-          if (state === 'enabled' && this._enabled === true) {
-            this.enabled = false;
-          }
-        }.bind(this));
-      }
     }
-  };
+  });
 
   exports.AirplaneMode = AirplaneMode;
 })(window);
-
-if (document && (document.readyState === 'complete' ||
-                 document.readyState === 'interactive')) {
-  setTimeout(AirplaneMode.init.bind(AirplaneMode));
-} else {
-  window.addEventListener('load', function onload() {
-    window.removeEventListener('load', onload);
-    AirplaneMode.init();
-  });
-}

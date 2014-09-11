@@ -1,3 +1,4 @@
+/* global LazyLoader */
 'use strict';
 
 (function(window) {
@@ -8,6 +9,80 @@
    * @module  System
    */
   window.System = {
+    'API': {
+      'nfc': navigator.mozNFC,
+      'bluetooth': navigator.mozBluetooth,
+      'apps': navigator.mozApps,
+      'telephony': navigator.mozTelephony,
+      'mobileConnections': navigator.mozMobileConnections,
+      'wifi': navigator.wifiManager,
+      'settings': navigator.mozSettings
+    },
+
+    getConnection: function icc_getConnection(iccId) {
+      return window.systemApp.mobileConnectionCore.getConnection(iccId);
+    },
+
+    getAPI: function(name) {
+      return this.API[name];
+    },
+
+    /**
+     * Create a module based on base module and give properties.
+     * @param  {Function} constructor The constructor function.
+     * @param  {Object} properties
+     *                  The property object which includes getter/setter.
+     * @param  {Object} prototype
+     *                  The prototype which will be injected into the class.
+     */
+    create: function(constructor, properties, prototype) {
+      constructor.prototype = Object.create(BaseModule.prototype, properties);
+      constructor.prototype.constructor = constructor;
+      if (prototype) {
+        BaseModule.mixin(constructor.prototype, prototype);
+      }
+      return constructor;
+    },
+
+    request: function() {
+
+    },
+
+    lazyLoad: function(array, callback) {
+      var fileList = [];
+      array.forEach(function(module) {
+        fileList.push(this.object2fileName(module));
+      }, this);
+      LazyLoader.load(fileList, callback);
+    },
+
+    lowerCapital: function(str) {
+      return str.charAt(0).toLowerCase() + str.slice(1);
+    },
+
+    object2fileName: function(strings) {
+      var i = 0;
+      var ch = '';
+      while (i <= strings.length) {
+        var character = strings.charAt(i);
+        if (character !== character.toLowerCase()) {
+          if (ch === '') {
+            ch += character.toLowerCase();
+          } else {
+            ch += '_' + character.toLowerCase();
+          }
+        } else {
+          ch += character;
+        }
+        i++;
+      }
+      return '/js/' + ch + '.js';
+    },
+
+    get applicationReady() {
+      return window.applications && window.applications.ready;
+    },
+
     /**
      * Indicates the system is busy doing something.
      * Now it stands for the foreground app is not loaded yet.
@@ -16,6 +91,7 @@
       var app = window.AppWindowManager.getActiveApp();
       return app && !app.loaded;
     },
+
     /**
      * Record the start time of the system for later debugging usage.
      * @access private
@@ -77,6 +153,14 @@
         return false;
       } else {
         return window.FtuLauncher.isFtuRunning();
+      }
+    },
+
+    get isUpgrading() {
+      if ('undefined' === typeof window.FtuLauncher) {
+        return false;
+      } else {
+        return window.FtuLauncher.isFtuUpgrading();
       }
     },
 
