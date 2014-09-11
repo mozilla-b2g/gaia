@@ -14,58 +14,83 @@ var app = app || {};
 
     app.elements = {
       $root:      document.getElementById('root'),
+      ALA: {
+        $link:      document.getElementById('menuItem-ALA'),
+        $back:      document.getElementById('ALA-back'),
+        $box:       document.getElementById('ALA'),
+        geo: {
+          $switch:  document.getElementById('geolocation-switch'),
+          $box:     document.getElementById('geolocation-box')
+        },
+        blur: {
+          $switch:  document.getElementById('blur-switch'),
+          $elements:document.getElementById('geolocation-box').querySelectorAll('.blur-box')
+        }
+      },
       RPP: {
-        $link:    document.getElementById('menuItem-RPP'),
-        $back:    document.getElementById('RPP-back'),
-        $box:     document.getElementById('RPP'),
-        $menu:    document.getElementById('RPP-menu'),
-        $newPass: document.getElementById('RPP-new-password'),
-        $login:   document.getElementById('RPP-login'),
+        $link:      document.getElementById('menuItem-RPP'),
+        $back:      document.getElementById('RPP-back'),
+        $box:       document.getElementById('RPP'),
+        $menu:      document.getElementById('RPP-menu'),
+        $newPass:   document.getElementById('RPP-new-password'),
+        $login:     document.getElementById('RPP-login'),
         RemoteLocate: {
-          $box:   document.querySelector('#RPP .remote-locate'),
-          $input: document.querySelector('#RPP .remote-locate input')
+          $box:     document.querySelector('#RPP .remote-locate'),
+          $input:   document.querySelector('#RPP .remote-locate input')
         },
         RemoteRing: {
-          $box:   document.querySelector('#RPP .remote-ring'),
-          $input: document.querySelector('#RPP .remote-ring input')
+          $box:     document.querySelector('#RPP .remote-ring'),
+          $input:   document.querySelector('#RPP .remote-ring input')
         },
         RemoteLock: {
-          $box:   document.querySelector('#RPP .remote-lock'),
-          $input: document.querySelector('#RPP .remote-lock input')
+          $box:     document.querySelector('#RPP .remote-lock'),
+          $input:   document.querySelector('#RPP .remote-lock input')
         },
         RemoteWipe: {
-          $box:   document.querySelector('#RPP .remote-wipe'),
-          $input: document.querySelector('#RPP .remote-wipe input')
+          $box:     document.querySelector('#RPP .remote-wipe'),
+          $input:   document.querySelector('#RPP .remote-wipe input')
         },
         Unlock: {
-          $box:   document.querySelector('#RPP .unlock'),
-          $input: document.querySelector('#RPP .unlock input')
+          $box:     document.querySelector('#RPP .unlock'),
+          $input:   document.querySelector('#RPP .unlock input')
         }
       }
     };
 
-    // add event listeners
+    // add event listeners for ALA
+    app.elements.ALA.$link.addEventListener('click', app.showALABox);
+    app.elements.ALA.$back.addEventListener('click', app.showRootBox);
+
+    app.elements.ALA.geo.$switch.addEventListener('click', function(event) { app.toggleGeolocation(event.target.checked); });
+    app.elements.ALA.blur.$switch.addEventListener('click', function(event) { app.toggleBlur(event.target.checked); });
+
+    // add event listeners for RPP
     app.elements.RPP.$link.addEventListener('click', app.showRPPBox);
     app.elements.RPP.$back.addEventListener('click', app.showRootBox);
 
     app.elements.RPP.$newPass.querySelector('button.rpp-new-password-ok').addEventListener('click', app.savePassword);
     app.elements.RPP.$login.querySelector('button.rpp-login-ok').addEventListener('click', app.login);
 
-    app.elements.RPP.RemoteLocate.$input.addEventListener('change', app.toggleRemoteLocate);
-    app.elements.RPP.RemoteRing.$input.addEventListener('change', app.toggleRemoteRing);
-    app.elements.RPP.RemoteLock.$input.addEventListener('change', app.toggleRemoteLock);
-    app.elements.RPP.RemoteWipe.$input.addEventListener('change', app.toggleRemoteWipe);
-    app.elements.RPP.Unlock.$input.addEventListener('change', app.toggleUnlock);
+    app.elements.RPP.RemoteLocate.$input.addEventListener('change', function(event) { app.toggleRemoteLocate(event.target.checked); });
+    app.elements.RPP.RemoteRing.$input.addEventListener('change', function(event) { app.toggleRemoteRing(event.target.checked); });
+    app.elements.RPP.RemoteLock.$input.addEventListener('change', function(event) { app.toggleRemoteLock(event.target.checked); });
+    app.elements.RPP.RemoteWipe.$input.addEventListener('change', function(event) { app.toggleRemoteWipe(event.target.checked); });
+    app.elements.RPP.Unlock.$input.addEventListener('change', function(event) { app.toggleUnlock(event.target.checked); });
   };
 
 
   /**
-   * Show main Privacy Panel screen
+   * Show main Privacy Panel screen.
    */
   app.showRootBox = function() {
+    // show main panel
     app.elements.$root.style.display = 'block';
-    app.elements.RPP.$box.style.display = 'none';
 
+    // hide ALA panel
+    app.elements.ALA.$box.style.display = 'none';
+
+    // hide RPP panel
+    app.elements.RPP.$box.style.display = 'none';
     app.elements.RPP.RemoteLocate.$box.style.display = 'none';
     app.elements.RPP.RemoteRing.$box.style.display = 'none';
     app.elements.RPP.RemoteLock.$box.style.display = 'none';
@@ -73,6 +98,74 @@ var app = app || {};
     app.elements.RPP.Unlock.$box.style.display = 'none';
   };
 
+  /**** ALA part **************************************************************/
+  /**
+   * Show ALA screen.
+   */
+  app.showALABox = function() {
+    app.elements.$root.style.display = 'none';
+    app.elements.ALA.$box.style.display = 'block';
+    app.elements.ALA.geo.$box.style.display = 'none';
+
+    // check if geolocation is enabled
+    var status1 = app.settings.createLock().get('ala.geolocation.enabled');
+    status1.onsuccess = function() {
+      var showGeolocation = status1.result['ala.geolocation.enabled'];
+
+      // show Geolocation box if enabled
+      app.elements.ALA.geo.$box.style.display = (showGeolocation) ? 'block' : 'none';
+
+      // set switch position
+      app.elements.ALA.geo.$switch.checked = showGeolocation;
+    };
+
+    // check if blur is enabled
+    var status2 = app.settings.createLock().get('ala.blur.enabled');
+    status2.onsuccess = function() {
+      var showBlur = status2.result['ala.blur.enabled'];
+
+      // show Geolocation box if enabled
+      var style = (showBlur) ? 'block' : 'none';
+      for (var $el of app.elements.ALA.blur.$elements) {
+        $el.style.display = style;
+      }
+
+      // set switch position
+      app.elements.ALA.blur.$switch.checked = showBlur;
+    };
+
+
+  };
+
+  /**
+   * Toggle Geolocation box.set
+   * @param {Boolean} value
+   */
+  app.toggleGeolocation = function(value) {
+    // toggle geolocation box
+    app.elements.ALA.geo.$box.style.display = (value) ? 'block' : 'none';
+
+    // save current value to settins
+    app.settings.createLock().set({ 'ala.geolocation.enabled': value });
+  };
+
+
+  /**
+   * Toggle Blur box.
+   * @param {Boolean} value
+   */
+  app.toggleBlur = function(value) {
+    var style = (value) ? 'block' : 'none';
+
+    for (var $el of app.elements.ALA.blur.$elements) {
+      $el.style.display = style;
+    }
+
+    app.settings.createLock().set({ 'ala.blur.enabled': value });
+  };
+
+
+  /**** RPP part **************************************************************/
   /**
    * Show RPP screen
    */
@@ -162,7 +255,6 @@ var app = app || {};
     }
   };
 
-
   /**
    * Login to RPP
    */
@@ -197,42 +289,42 @@ var app = app || {};
 
   /**
    * Save Remote Locate value
-   * @param event
+   * @param {Boolean} value
    */
-  app.toggleRemoteLocate = function(event) {
-    app.settings.createLock().set({ 'rpp.locate.enabled': event.target.checked });
+  app.toggleRemoteLocate = function(value) {
+    app.settings.createLock().set({ 'rpp.locate.enabled': value });
   };
 
   /**
    * Save Remote Ring value
-   * @param event
+   * @param {Boolean} value
    */
-  app.toggleRemoteRing = function(event) {
-    app.settings.createLock().set({ 'rpp.ring.enabled': event.target.checked });
+  app.toggleRemoteRing = function(value) {
+    app.settings.createLock().set({ 'rpp.ring.enabled': value });
   };
 
   /**
    * Save Remote Lock value
-   * @param event
+   * @param {Boolean} value
    */
-  app.toggleRemoteLock = function(event) {
-    app.settings.createLock().set({ 'rpp.lock.enabled': event.target.checked });
+  app.toggleRemoteLock = function(value) {
+    app.settings.createLock().set({ 'rpp.lock.enabled': value });
   };
 
   /**
    * Save Remote Wipe value
-   * @param event
+   * @param {Boolean} value
    */
-  app.toggleRemoteWipe = function(event) {
-    app.settings.createLock().set({ 'rpp.wipe.enabled': event.target.checked });
+  app.toggleRemoteWipe = function(value) {
+    app.settings.createLock().set({ 'rpp.wipe.enabled': value });
   };
 
   /**
    * Save Unlock via... value
-   * @param event
+   * @param {Boolean} value
    */
-  app.toggleUnlock = function(event) {
-    app.settings.createLock().set({ 'rpp.unlock.enabled': event.target.checked });
+  app.toggleUnlock = function(value) {
+    app.settings.createLock().set({ 'rpp.unlock.enabled': value });
   };
 
 
