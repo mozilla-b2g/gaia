@@ -424,11 +424,15 @@
 
     if (this._shouldGoBackHome) {
       app = app || homescreenLauncher.getHomescreen(true);
-    } else {
-      app = app || this.unfilteredStack[this.position];
+    } else if (!app) {
+      app = this.stack ? this.stack[this.position] :
+                         homescreenLauncher.getHomescreen(true);
     }
 
-    var position = this.unfilteredStack.indexOf(app);
+    // to know if position has changed we need index into original stack,
+    var position = this.unfilteredStack ? this.unfilteredStack.indexOf(app) :
+                                          -1;
+
     if (position !== StackManager.position) {
       this.newStackPosition = position;
     }
