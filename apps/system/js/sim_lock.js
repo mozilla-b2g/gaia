@@ -113,6 +113,9 @@ var SimLock = {
         // unlock, because the camera will be opened (Bug 849718)
         if (evt.detail && evt.detail.activity &&
             'record' === evt.detail.activity.name) {
+          if (SimPinDialog.visible) {
+            SimPinDialog.close();
+          }
           return;
         }
         var self = this;
