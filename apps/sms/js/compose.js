@@ -837,10 +837,19 @@ var Compose = (function() {
 
       activity.onsuccess = function() {
         var result = activity.result;
+        var originalBlob = result.blob;
+        var exceedLimit = Settings.mmsSizeLimitation &&
+          originalBlob.size > Settings.mmsSizeLimitation;
+        var isImage = Utils.typeFromMimeType(originalBlob.type) === 'img';
 
-        if (Settings.mmsSizeLimitation &&
-          result.blob.size > Settings.mmsSizeLimitation &&
-          Utils.typeFromMimeType(result.blob.type) !== 'img') {
+        function newAttachment(blob) {
+          return new Attachment(blob, {
+            name: result.name,
+            isDraft: true
+          });
+        }
+
+        if (exceedLimit && !isImage) {
           if (typeof requestProxy.onerror === 'function') {
             requestProxy.onerror('file too large');
           }
@@ -848,10 +857,22 @@ var Compose = (function() {
         }
 
         if (typeof requestProxy.onsuccess === 'function') {
-          requestProxy.onsuccess(new Attachment(result.blob, {
-            name: result.name,
-            isDraft: true
-          }));
+          // We ought to just be able to call the onsuccess function now.
+          // But to workaround bug 944276, if we get a blob that is not a File
+          // and is not a big image that we are going to resize we need to
+          // make a private copy of it. Otherwise, it won't work if we
+          // pass it to another activity. Need to remove this part once
+          // bug 990123 fixed.
+          if (!(originalBlob instanceof Blob) || (isImage && exceedLimit)) {
+            requestProxy.onsuccess(newAttachment(originalBlob));
+          } else {
+            Utils.cloneBlob(originalBlob).then(function(newBlob) {
+              requestProxy.onsuccess(newAttachment(newBlob));
+            }).catch(function(error) {
+              console.error('Blob clone error :', error);
+              requestProxy.onsuccess(newAttachment(originalBlob));
+            });
+          }
         }
       };
 

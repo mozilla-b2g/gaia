@@ -35,5 +35,6 @@ var MockUtils = {
   imageToDataUrl: Utils.imageToDataUrl,
   imageUrlToDataUrl: Utils.imageUrlToDataUrl,
   debounce: Utils.debounce,
-  Promise: Utils.Promise
+  Promise: Utils.Promise,
+  cloneBlob: Utils.cloneBlob
 };
