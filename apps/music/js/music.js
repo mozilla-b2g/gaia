@@ -29,9 +29,6 @@ var recentlyAddedTitleL10nId = 'playlists-recently-added';
 var mostPlayedTitleL10nId = 'playlists-most-played';
 var leastPlayedTitleL10nId = 'playlists-least-played';
 
-// The MediaDB object that manages the filesystem and the database of metadata
-// See init()
-var musicdb;
 // Pick activity
 var pendingPick;
 // Key for store the player options of repeat and shuffle
@@ -39,7 +36,6 @@ var SETTINGS_OPTION_KEY = 'settings_option_key';
 var playerSettings;
 
 var chromeInteractive = false;
-var firstScanDone = false;
 
 // Get prepared for the localized strings, these will be used later
 navigator.mozL10n.ready(function onLanguageChange() {
