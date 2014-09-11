@@ -223,5 +223,17 @@ suite('system/LockScreenStateManager', function() {
       assert.isTrue(stubTransferTo.called,
         'the state wasn\'t transferred from keypadShow to keypadHiding');
     });
+
+    test('When screenchanged, the unlocking value should be false.',
+    function() {
+      subject.handleEvent({
+        type: 'screenchange', detail: {
+          screenEnabled: false
+        }
+      });
+      this.sinon.stub(subject, 'transfer');
+      assert.isFalse(subject.lockScreenStates.unlocking,
+        'the screenchange event doesn\'t restore the unlocking state');
+    });
   });
 });
