@@ -13,6 +13,7 @@
 
     this.grid.addEventListener('iconblobdecorated', this);
     this.grid.addEventListener('gaiagrid-iconbloberror', this);
+    this.grid.addEventListener('cached-icons-rendered', this);
     window.addEventListener('hashchange', this);
     window.addEventListener('gaiagrid-saveitems', this);
     window.addEventListener('online', this.retryFailedIcons.bind(this));
@@ -156,6 +157,13 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+        // Expose the cached-icons-rendered to the window. This makes it so
+        // we don't have to couple the item store and the app object.
+        case 'cached-icons-rendered':
+          window.dispatchEvent(
+            new CustomEvent('gaiagrid-cached-icons-rendered'));
+          break;
+
         case 'iconblobdecorated':
           var item = e.detail;
 
