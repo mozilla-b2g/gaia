@@ -1,7 +1,7 @@
 /* global SIMSlotManager */
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global VersionHelper, SimPinDialog, FtuLauncher, System */
 'use strict';
 
 var SimLock = {
@@ -10,9 +10,9 @@ var SimLock = {
 
   init: function sl_init() {
     // Do not do anything if there's no SIMSlot instance.
-    if (!SIMSlotManager.length)
+    if (!SIMSlotManager.length) {
       return;
-
+    }
     this.onClose = this.onClose.bind(this);
 
     // for bootup special case
@@ -54,6 +54,7 @@ var SimLock = {
   },
 
   handleEvent: function sl_handleEvent(evt) {
+    var index;
     switch (evt.type) {
       case 'ftuopen':
         VersionHelper.getVersionInfo().then(function(info) {
@@ -63,12 +64,12 @@ var SimLock = {
         });
         break;
       case 'simpinback':
-        var index = evt.detail._currentSlot.index;
+        index = evt.detail._currentSlot.index;
         this.showIfLocked(index - 1);
         break;
       // Test if there's still any card is locking.
       case 'simpinskip':
-        var index = evt.detail._currentSlot.index;
+        index = evt.detail._currentSlot.index;
         if (index + 1 >= this.length - 1) {
           evt.detail.close('skip');
         } else {
@@ -78,7 +79,7 @@ var SimLock = {
         }
         break;
       case 'simpinrequestclose':
-        var index = evt.detail.dialog._currentSlot.index;
+        index = evt.detail.dialog._currentSlot.index;
         if (index + 1 >= this.length - 1) {
           evt.detail.dialog.close(evt.detail.reason);
         } else {
@@ -104,9 +105,12 @@ var SimLock = {
         // Check whether the lock screen was unlocked from the camera or not.
         // If the former is true, the SIM PIN dialog should not displayed after
         // unlock, because the camera will be opened (Bug 849718)
-        if (evt.detail && evt.detail.areaCamera)
+        if (evt.detail && evt.detail.areaCamera) {
+          if (SimPinDialog.visible) {
+            SimPinDialog.close();
+          }
           return;
-
+        }
         this.showIfLocked();
         break;
       case 'appopened':
@@ -116,26 +120,26 @@ var SimLock = {
 
         var app = evt.detail;
 
-        if (!app || !app.manifest || !app.manifest.permissions)
+        if (!app || !app.manifest || !app.manifest.permissions) {
           return;
-
+        }
         // Ignore first time usage (FTU) app which already asks for the PIN code
         // XXX: We should have a better way to detect this app is FTU or not.
-        if (app.origin == FtuLauncher.getFtuOrigin())
+        if (app.origin == FtuLauncher.getFtuOrigin()) {
           return;
-
+        }
         // Ignore apps that don't require a mobile connection
         if (!('telephony' in app.manifest.permissions ||
-              'sms' in app.manifest.permissions))
+              'sms' in app.manifest.permissions)) {
           return;
-
+        }
         // If the Settings app will open, don't prompt for SIM PIN entry
         // although it has 'telephony' permission (Bug 861206)
         var settingsManifestURL =
           'app://settings.gaiamobile.org/manifest.webapp';
-        if (app.manifestURL == settingsManifestURL)
+        if (app.manifestURL == settingsManifestURL) {
           return;
-
+        }
         // If SIM is locked, cancel app opening in order to display
         // it after the SIM PIN dialog is shown
         this.showIfLocked();
@@ -149,9 +153,9 @@ var SimLock = {
   },
 
   showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
-    if (System.lockScreen)
+    if (System.lockScreen) {
       return false;
-
+    }
     // FTU has its specific SIM PIN UI
     if (FtuLauncher.isFtuRunning() && !FtuLauncher.isFtuUpgrading()) {
       SimPinDialog.close();
@@ -162,7 +166,6 @@ var SimLock = {
       this._showPrevented = true;
       return false;
     }
-    var locked = false;
 
     return SIMSlotManager.getSlots().some(function iterator(slot, index) {
       if (currentSlotIndex && index !== currentSlotIndex) {

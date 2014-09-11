@@ -108,5 +108,17 @@ suite('SimLock', function() {
       assert.isFalse(simLockSpy.lastCall.returnValue);
     });
 
+    test('launch camera from lockscreen when simpin is locked', function() {
+      SimPinDialog.visible = true;
+      SimLock.handleEvent({
+        type: 'will-unlock',
+        detail: {
+          areaCamera: true
+        }
+      });
+      assert.isTrue(SimPinDialog.close.called);
+      assert.isTrue(simLockSpy.called);
+      SimPinDialog.visible = false;
+    });
   });
 });
