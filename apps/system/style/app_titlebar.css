@@ -2,7 +2,7 @@
   position: absolute;
   top: 0;
   width: 100%;
-  height: 3rem;
+  height: var(--statusbar-height);
 
   overflow: hidden;
   z-index: 6;
@@ -56,7 +56,7 @@
 }
 
 .chrome + .titlebar .titlebar-minimized {
-  transform: translateY(-3rem);
+  transform: translateY(calc(var(--statusbar-height) * -1));
   opacity: 1;
 }
 
