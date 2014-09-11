@@ -711,6 +711,8 @@
     },
 
     _updateActiveApp: function awm__changeActiveApp(instanceID) {
+      var appHasChanged = (this._activeApp !== this._apps[instanceID]);
+
       this._activeApp = this._apps[instanceID];
       if (!this._activeApp) {
         this.debug('no active app alive: ' + instanceID);
@@ -726,6 +728,9 @@
       // Note: we will not trigger reflow if the final size
       // is the same as its current value.
       this._activeApp.resize();
+      if (appHasChanged) {
+        this.publish('activeappchanged');
+      }
 
       this.debug('=== Active app now is: ',
         (this._activeApp.name || this._activeApp.origin), '===');
