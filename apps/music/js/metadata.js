@@ -82,7 +82,9 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   var ARTIST = 'artist';
   var ALBUM = 'album';
   var TRACKNUM = 'tracknum';
+  var TRACKCOUNT = 'trackcount';
   var DISCNUM = 'discnum';
+  var DISCCOUNT = 'disccount';
   var IMAGE = 'picture';
 
   // These two properties are for playlist functionalities
@@ -112,7 +114,9 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     artist: ARTIST,
     album: ALBUM,
     tracknumber: TRACKNUM,
-    discnumber: DISCNUM
+    tracktotal: TRACKCOUNT,
+    discnumber: DISCNUM,
+    disctotal: DISCCOUNT
   };
 
   // Map MP4 atom names to metadata property names
@@ -415,7 +419,10 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
         // Wrap it in try so we don't crash the whole thing on one bad frame
         try {
-          var frameview, framevalue;
+          var frameview, framevalue, frametext;
+          var framevalue2, propname2;
+          framevalue2 = null;
+          propname2 = null;
 
           if (frame_unsynchronized) {
             frameview = deunsync(id3, framesize);
@@ -439,7 +446,26 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           case 'TRK':
           case 'TPOS':
           case 'TPA':
-            framevalue = parseInt(readTextFrame(frameview, framesize), 10);
+            frametext = readTextFrame(frameview, framesize);
+            framevalue = parseInt(frametext, 10);
+            // in id3 the count is in the second part of the frame
+            // after '/'
+            var idx = frametext ? frametext.indexOf('/') : -1;
+            if (idx != -1) {
+              var s = frametext.substring(idx + 1);
+              framevalue2 = parseInt(s, 10);
+
+              switch (frameid) {
+              case 'TRCK':
+              case 'TRK':
+                propname2 = TRACKCOUNT;
+                break;
+              case 'TPOS':
+              case 'TPA':
+                propname2 = DISCCOUNT;
+                break;
+              }
+            }
             break;
           case 'APIC':
           case 'PIC':
@@ -459,6 +485,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
           if (framevalue !== null)
             metadata[propname] = framevalue;
+          if (framevalue2 !== null && propname2 !== null)
+            metadata[propname2] = framevalue2;
         }
         catch (e) {
           console.warn('Error parsing mp3 metadata frame', frameid, ':', e);
@@ -919,7 +947,17 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         if (propname) {
           try {
             var value = getMetadataValue(data, next, type);
-            metadata[propname] = value;
+            if (type === 'trkn' || type === 'disk') {
+              var n = value.n;
+              var c = value.c;
+              metadata[propname] = n;
+              if (c) {
+                metadata[(type === 'trkn') ? 'trackcount' : 'disccount'] = c;
+              }
+            }
+            else {
+              metadata[propname] = value;
+            }
           }
           catch (e) {
             console.warn('skipping', type, ':', e);
@@ -951,7 +989,9 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         // Special case for track number and disk number
         if (atomtype === 'trkn' || atomtype === 'disk') {
           data.advance(2);
-          return data.readUnsignedShort();
+          var trkn = data.readUnsignedShort();
+          var trkc = data.readUnsignedShort();
+          return { n: trkn, c: trkc };
         }
 
         switch (datatype) {

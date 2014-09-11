@@ -17,7 +17,9 @@ suite('m4a tags', function() {
         assert.equal(metadata.album, 'Trouble At The Henhouse');
         assert.equal(metadata.title, 'Giftshop');
         assert.equal(metadata.tracknum, 1);
+        assert.equal(metadata.trackcount, 12);
         assert.equal(metadata.discnum, 1);
+        assert.equal(metadata.disccount, 1);
       });
     });
   });

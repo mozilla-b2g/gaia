@@ -23,7 +23,9 @@ require('/test/unit/metadata_utils.js');
           assert.equal(metadata.title, 'Problem Child');
           assert.equal(metadata.tracknum, 5);
           if (version == 3) {
+            assert.equal(metadata.trackcount, 9);
             assert.equal(metadata.discnum, 1);
+            assert.equal(metadata.disccount, 1);
           }
         });
       });
