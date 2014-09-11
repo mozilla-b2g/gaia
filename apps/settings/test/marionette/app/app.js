@@ -20,6 +20,7 @@ var RootPanel = require('./regions/root');
 var ScreenLockPanel = require('./regions/screen_lock');
 var SoundPanel = require('./regions/sound');
 var SupportPanel = require('./regions/support');
+var DeviceInfoPanel = require('./regions/device_info');
 
 /**
  * Abstraction around settings app
@@ -58,7 +59,8 @@ Settings.Selectors = {
   'appStorageMenuItem': '.menuItem-applicationStorage',
   'mediaStorageMenuItem': '.menuItem-mediaStorage',
   'keyboardMenuItem': '#menuItem-keyboard',
-  'messageMenuItem': '#menuItem-messagingSettings'
+  'messageMenuItem': '#menuItem-messagingSettings',
+  'deviceInfoMenuItem': '#menuItem-deviceInfo'
 };
 
 Settings.prototype = {
@@ -193,6 +195,13 @@ Settings.prototype = {
     this.openPanel('messageMenuItem');
     this._messagePanel = this._messagePanel || new MessagePanel(this.client);
     return this._messagePanel;
+  },
+
+  get aboutPanel() {
+    this.openPanel('deviceInfoMenuItem');
+    this._aboutPanel = this._aboutPanel ||
+      new DeviceInfoPanel(this.client);
+    return this._aboutPanel;
   },
 
   set currentLanguage(value) {
