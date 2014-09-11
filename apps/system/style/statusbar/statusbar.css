@@ -78,7 +78,7 @@
 @media (orientation: landscape) {
   #screen.software-button-enabled #statusbar-background,
   #screen.software-button-enabled #statusbar {
-    width: calc(100% - 5rem);
+    width: calc(100% - var(--software-home-button-height));
   }
 }
 

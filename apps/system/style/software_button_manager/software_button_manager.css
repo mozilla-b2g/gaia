@@ -4,14 +4,17 @@
   align-items: center;
   text-align: center;
   right: 0;
-  bottom: -5rem;
+  bottom: calc(var(--software-home-button-height) * -1);
   left: 0;
   position: absolute;
-  background: black;
-  height: 5rem;
+  height: var(--software-home-button-height);
   transition-duration: 0.4s;
   transition-timing-function: ease-in-out;
   visibility: hidden;
+}
+
+#software-buttons {
+  background: black;
 }
 
 #software-buttons.no-transition {
@@ -25,6 +28,7 @@
 
 #software-buttons-fullscreen-layout {
   bottom: 0;
+  background: none;
 }
 
 #screen.fullscreen-layout-app #software-buttons-fullscreen-layout {
@@ -43,10 +47,10 @@
   #software-buttons,
   #software-buttons-fullscreen-layout {
     top: 0;
-    right: -5rem;
+    right: calc(var(--software-home-button-height) * -1);
     bottom: 0;
     left: auto;
-    width: 5rem;
+    width: var(--software-home-button-height);
     height: auto;
   }
 
@@ -62,25 +66,34 @@
 #software-home-button,
 #fullscreen-software-home-button,
 #fullscreen-layout-software-home-button {
-  width: 4rem;
-  height: 4rem;
+  --button-width: 2.6rem;
+  width: var(--button-width);
+  height: var(--button-width);
   margin: 0 auto;
   background: transparent;
-  border: 0.2rem solid white;
+  border-width: 0.35rem;
+  border-style: solid;
+  border-color: #ffffff;
   border-radius: 50%;
   box-sizing: border-box;
+}
+
+#fullscreen-software-home-button,
+#fullscreen-layout-software-home-button {
+  opacity: 0.8;
+  box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.45), inset 0 1px 5px 0 rgba(0, 0, 0, 0.45);
 }
 
 #software-home-button.active,
 #fullscreen-software-home-button.active,
 #fullscreen-layout-software-home-button.active {
-  box-shadow: 0 0 1rem white;
+  border-color: #00caf2;
 }
 
 #fullscreen-software-home-button {
   position: absolute;
   bottom: 0.5rem;
-  left: calc(50% - 2.5rem);
+  left: calc(50% - var(--button-width) / 2);
   opacity: 0.5;
   visibility: hidden;
 }
@@ -94,7 +107,7 @@
     top: auto;
     left: auto;
     right: 0.5rem;
-    bottom: calc(50% - 2.5rem);
+    bottom: calc(50% - var(--button-width) / 2);
   }
 }
 

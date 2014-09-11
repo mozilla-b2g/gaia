@@ -17,16 +17,6 @@
   font-family: sans-serif;
 }
 
-#screen.fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="time-selector"] {
-  height: calc(100% - 5rem - 7rem);
-}
-
-@media (orientation: landscape) {
-  #screen.fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="time-selector"] {
-    height: calc(100% - 7rem);
-  }
-}
-
 [role="dialog"][data-type="time-selector"] h1 {
   font-weight: 400;
   font-size: 1.9rem;
