@@ -600,11 +600,12 @@ var IMERender = (function() {
   // Show char alternatives.
   var showAlternativesCharMenu = function(key, altChars) {
 
-    var keyWidth = cachedWindowWidth / layoutWidth;
+    var keyWidth = (cachedWindowWidth / layoutWidth) | 0;
     var renderer = {
       ARIA_LABELS: ARIA_LABELS,
       buildKey: buildKey,
-      keyWidth: keyWidth
+      keyWidth: keyWidth,
+      screenInPortraitMode: screenInPortraitMode
     };
 
     alternativesCharMenu = new AlternativesCharMenuView(activeIme,

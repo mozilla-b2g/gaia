@@ -309,7 +309,10 @@ and displays the list of alternatives. */
 
 #keyboard-accent-char-menu.kbr-menu-left {
   left: auto;
-  margin-right: -1rem; /* because the last child is wider than others */
+
+  /* because the last child is wider than others, shift 1 pixel to align with
+   * the key row. */
+  margin-right: -0.9rem;
 }
 
 #keyboard-accent-char-menu.left-edge {
@@ -322,7 +325,6 @@ and displays the list of alternatives. */
 
 /* Non keyboard key styles in menu */
 #keyboard-accent-char-menu .keyboard-key {
-  min-width: 3rem;
   transform: rotateX(180deg);
   float: left;
 }
@@ -349,12 +351,12 @@ and displays the list of alternatives. */
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper {
   height: 6rem;
   margin: 0;
-  border-right: 1px solid #0099b8;
 }
 
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper .key-element {
   background: none;
   border-radius: 0;
+  border-right: 1px solid #008eab;
 }
 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:after,
@@ -364,7 +366,6 @@ and displays the list of alternatives. */
 
 /* Styles for keys in accent menu (not highlighted). */
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper > .key-element {
-  border: none;
   line-height: 6rem;
   font-weight: 500;
   color: #fff;
@@ -376,6 +377,11 @@ and displays the list of alternatives. */
 
 #keyboard-accent-char-menu .keyboard-key:last-child > .visual-wrapper > .key-element {
   padding-right: 0.5rem;
+}
+
+#keyboard-accent-char-menu.kbr-menu-left .keyboard-key > .visual-wrapper > .key-element {
+  border-left: 1px solid #008eab;
+  border-right: 0;
 }
 
 #keyboard-accent-char-menu.kbr-menu-left .keyboard-key:first-child > .visual-wrapper > .key-element {
@@ -412,23 +418,34 @@ bubble above the key when you tap and hold. */
 }
 
 #keyboard-accent-char-menu.multi-row.kbr-menu-left {
-  margin-right: 0;
+  /* To make the divider align the key row */
+  margin-right: 1px;
 }
 
 /* revert the expanded width because it won't have rounded corner */
 #keyboard-accent-char-menu.multi-row .keyboard-key:first-child,
 #keyboard-accent-char-menu.multi-row .keyboard-key:last-child {
-  min-width: 3rem;
-}
-
-#keyboard-accent-char-menu.multi-row .keyboard-key > .visual-wrapper {
-  border: 0;
+  min-width: 2.6rem;
 }
 
 #keyboard-accent-char-menu.multi-row .keyboard-key:first-child > .visual-wrapper > .key-element,
 #keyboard-accent-char-menu.multi-row .keyboard-key:last-child  > .visual-wrapper > .key-element {
   padding-left: 0;
   padding-right: 0;
+}
+
+/*
+ * Reset the margin used to align with the underneath key row, this is because
+ * generally, the key in alternatives char menu would have the same width as a
+ * normal key.
+ */
+#keyboard.landscape #keyboard-accent-char-menu {
+  margin-left: 0;
+}
+
+#keyboard.landscape #keyboard-accent-char-menu.kbr-menu-left {
+  /* Shift 1 pixel to align with the key row. */
+  margin-right: 0.1rem;
 }
 
 #keyboard.full-candidate-panel {

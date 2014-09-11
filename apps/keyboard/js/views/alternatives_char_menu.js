@@ -15,6 +15,7 @@ function AlternativesCharMenuView(rootElement, altChars, renderer) {
   this.ARIA_LABELS = renderer.ARIA_LABELS;
   this.buildKey = renderer.buildKey;
   this.keyWidth = renderer.keyWidth;
+  this.screenInPortraitMode = renderer.screenInPortraitMode;
 
   this.menu = null;
   this._rowCount = 0;
@@ -76,11 +77,6 @@ AlternativesCharMenuView.prototype.show = function(key) {
     }
   }
 
-  // How wide (in characters) is the key that we're displaying
-  // these alternatives for?
-  var keycharwidth = key.dataset.compositeKey ?
-    key.dataset.compositeKey.length : 1;
-
   // Build a key for each alternative
   this.altChars.forEach(function(alt, index) {
     var dataset = alt.length == 1 ?
@@ -90,16 +86,16 @@ AlternativesCharMenuView.prototype.show = function(key) {
     ] :
     [ { 'key': 'compositeKey', 'value': alt } ];
 
-  // Make each of these alternative keys 75% as wide as the key that
+  // Make each of these alternative keys as wide as the key that
   // it is an alternative for, but adjust for the relative number of
   // characters in the original and the alternative.
-  // XXX: not sure if this is still necessary to keep it 75%, will ask visual
-  // to confirm.
   var width = 0;
-  if (this._rowCount === 1 ) {
-    width = 0.75 * key.offsetWidth / keycharwidth * alt.length;
+  if (alt.length == 1) {
+    width = this.keyWidth;
   } else {
-    width = this.keyWidth  / keycharwidth * alt.length;
+    // Add some padding to the composite key.
+    width = this._getCharWidth(alt) + 10;
+    width = Math.max(width, this.keyWidth);
   }
 
   var attributeList = [];
@@ -151,6 +147,16 @@ AlternativesCharMenuView.prototype.getBoundingClientRect = function() {
 AlternativesCharMenuView.prototype.getLineHeight = function() {
   var scale = parseFloat(document.documentElement.style.fontSize);
   return this.MENU_LINE_HEIGHT * scale;
+};
+
+AlternativesCharMenuView.prototype._getCharWidth = function(textContent) {
+  var scaleContext = document.createElement('canvas')
+    .getContext('2d', { willReadFrequently: true });
+
+  var fontSize = this.screenInPortraitMode() ? '2.4rem' : '2.8rem';
+  scaleContext.font = fontSize + ' sans-serif';
+
+  return scaleContext.measureText(textContent).width;
 };
 
 })(window);
