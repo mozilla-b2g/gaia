@@ -10,6 +10,7 @@
 /* global Normalizer */
 /* global utils */
 /* global ICEStore */
+/* global ICEData */
 
 var contacts = window.contacts || {};
 contacts.List = (function() {
@@ -831,7 +832,9 @@ contacts.List = (function() {
    * Check if we have ICE contacts information
    */
   function loadICE() {
-    LazyLoader.load(['/shared/js/contacts/utilities/ice_store.js'],
+    LazyLoader.load([
+      '/contacts/js/utilities/ice_data.js',
+      '/shared/js/contacts/utilities/ice_store.js'],
      function() {
       ICEStore.getContacts().then(displayICEIndicator);
       ICEStore.onChange(function() {
@@ -901,6 +904,14 @@ contacts.List = (function() {
     elem.appendChild(p);
 
     iceGroup.addEventListener('click', onICEGroupClicked);
+
+    // Set a listener in case ice contacts are modified
+    // and we need to remove the group.
+    ICEData.listenForChanges(function(data) {
+      if (!Array.isArray(data) || data.length === 0) {
+        hideICEGroup();
+      }
+    });
   }
 
   function onICEGroupClicked() {
