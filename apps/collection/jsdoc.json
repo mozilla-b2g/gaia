@@ -12,7 +12,8 @@
             "!apps/collection/js/setup.js",
             "!apps/collection/js/synchronize.js",
             "!apps/collection/js/view_apps.js",
-            "!apps/collection/js/view_editmode.js"],
+            "!apps/collection/js/view_editmode.js",
+            "!apps/collection/js/update_collection.js"],
     "options": {
       "destination": "docs/collection"
     }
