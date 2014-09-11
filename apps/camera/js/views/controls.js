@@ -109,6 +109,7 @@ module.exports = View.extend({
 
   onSwitchTapped: function(e) {
     e.preventDefault();
+    e.stopPropagation();
     debug('switch tapped');
     this.onSwitchChanged();
   },
@@ -128,13 +129,10 @@ module.exports = View.extend({
   },
 
   onButtonClick: function(e) {
-    debug('button click');
     e.stopPropagation();
+    debug('button click');
     var name = e.currentTarget.getAttribute('name');
-    var enabled = this.get('enabled');
-    if (enabled === 'true') {
-      this.emit('click:' + name, e);
-    }
+    this.emit('click:' + name, e);
   },
 
   setMode: function(mode) {

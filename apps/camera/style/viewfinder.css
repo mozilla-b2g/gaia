@@ -13,10 +13,10 @@
 }
 
 /**
- * disabled
+ * enabled="false"
  */
 
-.viewfinder.disabled {
+.viewfinder[enabled="false"] {
   pointer-events: none;
 }
 

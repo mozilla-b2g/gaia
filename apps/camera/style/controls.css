@@ -25,6 +25,14 @@
   pointer-events: none;
 }
 
+/**
+ * disabled
+ */
+
+.controls.disabled {
+  pointer-events: none;
+}
+
 /** Left and Right
  ---------------------------------------------------------*/
 
