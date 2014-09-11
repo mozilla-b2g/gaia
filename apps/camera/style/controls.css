@@ -18,6 +18,14 @@
   direction: ltr;
 }
 
+/**
+ * disabled
+ */
+
+.controls.disabled {
+  pointer-events: none;
+}
+
 /** Left and Right
  ---------------------------------------------------------*/
 
@@ -94,7 +102,7 @@
  * :active
  */
 
-.controls:not(.disabled) .controls-button:active {
+.controls-button:active {
   background-color: #00b9df;
 }
 
@@ -109,7 +117,7 @@
   display: block;
 }
 
-.controls:not(.disabled) .controls-thumbnail-button > img:active {
+.controls-thumbnail-button > img:active {
   border-color:#008EAB;
   background-color:#008EAB;
 }
@@ -311,7 +319,7 @@
  * capture-active=true & mode=picture
  */
 
-.controls:not(.disabled) .capture-button:active .inner-circle,
+.capture-button:active .inner-circle,
 .recording .capture-button .inner-circle,
 .capture-active .capture-button .inner-circle {
   background-color: #00caf2;
@@ -333,7 +341,7 @@
  * mode=vide & recording=true
  */
 
-.controls:not(.disabled) .controls.mode-video .capture-button:active .inner-circle,
+.controls.mode-video .capture-button:active .inner-circle,
 .controls.mode-video.capture-active .capture-button .inner-circle,
 .controls.mode-video.recording .capture-button .inner-circle {
   background-color: #D92E2E;
@@ -359,7 +367,7 @@
  * capture-active && mode-picture
  */
 
-.controls:not(.disabled) .capture-button:active .center:before,
+.capture-button:active .center:before,
 .recording .capture-button .center:before,
 .capture-active .capture-button .center:before {
   color: white;
@@ -391,7 +399,7 @@
  * mode-video & capture-active
  */
 
-.controls:not(.disabled) .controls.mode-video .capture-button:active .center:before,
+.controls.mode-video .capture-button:active .center:before,
 .controls.mode-video.recording .capture-button .center:before,
 .controls.mode-video.capture-active .capture-button .center:before {
   border-radius: 3px;
