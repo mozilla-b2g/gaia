@@ -41,7 +41,7 @@ var Utils = {
       };
     }
 
-    if (l10nPrefix === 'callDurationText' && h === 0 && m === 0) {
+    if (l10nPrefix === 'callDurationTextFormat' && h === 0 && m === 0) {
       // Special case: only display in seconds format (i.e. "5 s") with text
       // formatting, as digital formatting doesn't support this.
       l10nId += 'Seconds';

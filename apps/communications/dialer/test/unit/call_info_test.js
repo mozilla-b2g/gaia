@@ -415,7 +415,7 @@ suite('Call Info', function(argument) {
       var durations = document.getElementsByClassName('cd__duration');
       for (var i=1; i < durations.length; i++) {
         sinon.assert.calledWith(Utils.prettyDuration, durations[i],
-          groupReturn.calls[i].duration, 'callDurationText');
+          groupReturn.calls[i].duration, 'callDurationTextFormat');
       }
     });
 
