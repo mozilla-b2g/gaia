@@ -10,7 +10,6 @@ class SetupEmail(Base):
 
     _name_locator = (By.CSS_SELECTOR, 'section.card-setup-account-info input.sup-info-name')
     _email_locator = (By.CSS_SELECTOR, 'section.card-setup-account-info input.sup-info-email')
-    _password_locator = (By.CSS_SELECTOR, 'section.card-setup-account-info input.sup-info-password')
     _next_locator = (By.CSS_SELECTOR, '.sup-info-next-btn')
     _continue_button_locator = ('class name', 'sup-show-mail-btn sup-form-btn recommend')
     _check_for_new_messages_locator = (By.CSS_SELECTOR, '.tng-account-check-interval.mail-select')
@@ -28,13 +27,8 @@ class SetupEmail(Base):
     def type_email(self, value):
         self.marionette.find_element(*self._email_locator).send_keys(value)
 
-    def type_password(self, value):
-        self.marionette.find_element(*self._password_locator).send_keys(value)
-
     def tap_next(self):
         self.marionette.find_element(*self._next_locator).tap()
-        self.wait_for_condition(lambda m: m.find_element(
-            *self._account_prefs_section_locator).location['x'] == 0)
 
     def tap_account_prefs_next(self):
         self.wait_for_element_displayed(*self._account_prefs_next_locator, timeout=120)
@@ -58,10 +52,12 @@ class ManualSetupEmail(Base):
     _account_type_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-account-type')
 
     _imap_username_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-username')
+    _imap_password_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-password')
     _imap_hostname_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-hostname')
     _imap_port_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-port')
 
     _smtp_username_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-smtp-username')
+    _smtp_password_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-smtp-password')
     _smtp_hostname_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-smtp-hostname')
     _smtp_port_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-smtp-port')
 
@@ -115,6 +111,11 @@ class ManualSetupEmail(Base):
         el.clear()
         el.send_keys(value)
 
+    def type_imap_password(self, value):
+        el = self.marionette.find_element(*self._imap_password_locator)
+        el.clear()
+        el.send_keys(value)
+
     def type_imap_port(self, value):
         el = self.marionette.find_element(*self._imap_port_locator)
         el.clear()
@@ -127,6 +128,11 @@ class ManualSetupEmail(Base):
 
     def type_smtp_hostname(self, value):
         el = self.marionette.find_element(*self._smtp_hostname_locator)
+        el.clear()
+        el.send_keys(value)
+
+    def type_smtp_password(self, value):
+        el = self.marionette.find_element(*self._smtp_password_locator)
         el.clear()
         el.send_keys(value)
 
