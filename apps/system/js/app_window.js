@@ -1473,10 +1473,12 @@
                      this.origin, 'orientation', orientation);
       } else {
         this.debug(' locking screen orientation to ' + orientation);
+        console.log('appWindow locking orientation to ' + orientation);
       }
     } else {  // If no orientation was requested, then let it rotate
       screen.mozUnlockOrientation();
       this.debug(' Unlocking screen orientation..');
+      console.log('appWindow Unlocking screen orientation..');
     }
   };
 

@@ -184,6 +184,7 @@
     if (!this.app.isVisible() || this.app._killed) {
       return;
     }
+    console.log('going to lockOrientation and requestForeground');
 
     this.app.lockOrientation();
     this.app.requestForeground();
