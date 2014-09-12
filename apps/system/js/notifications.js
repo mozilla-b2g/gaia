@@ -679,8 +679,11 @@ var NotificationScreen = {
     if (this.unreadNotifications.length) {
       var indicatorSize = getIndicatorSize(this.unreadNotifications.length);
       this.ambientIndicator.className = 'unread ' + indicatorSize;
+      this.ambientIndicator.setAttribute('aria-label', navigator.mozL10n.get(
+        'statusbarNotifications-unread', {n: this.unreadNotifications.length}));
     } else {
       this.ambientIndicator.classList.remove('unread');
+      this.ambientIndicator.removeAttribute('aria-label');
     }
   },
 
