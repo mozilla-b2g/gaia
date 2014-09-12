@@ -9,6 +9,7 @@ from gaiatest.apps.base import PageRegion
 from gaiatest.apps.email.regions.setup import SetupEmail
 from gaiatest.apps.email.regions.setup import ManualSetupEmail
 from gaiatest.apps.email.regions.settings import Settings
+from gaiatest.apps.email.regions.google import GoogleLogin
 
 
 class Email(Base):
@@ -26,8 +27,22 @@ class Email(Base):
         setup = SetupEmail(self.marionette)
         setup.type_name(name)
         setup.type_email(email)
-        setup.type_password(password)
+
         setup.tap_next()
+
+        google_login = GoogleLogin(self.marionette)
+
+        # check if the google autocomplete on email field works as expected
+        assert google_login.email == email
+
+        google_login.type_password(password)
+        google_login.tap_sign_in()
+
+        # approve access to your account
+        google_login.wait_for_approve_access()
+        google_login.tap_approve_access()
+
+        self.apps.switch_to_displayed_app()
 
         setup.tap_account_prefs_next()
 
@@ -40,16 +55,18 @@ class Email(Base):
         basic_setup = SetupEmail(self.marionette)
         basic_setup.type_name(imap['name'])
         basic_setup.type_email(imap['email'])
-        basic_setup.type_password(imap['password'])
+
         setup = self.tap_manual_setup()
 
         setup.select_account_type('IMAP+SMTP')
 
         setup.type_imap_hostname(imap['imap_hostname'])
         setup.type_imap_name(imap['imap_name'])
+        setup.type_imap_password(imap['password'])
         setup.type_imap_port(imap['imap_port'])
 
         setup.type_smtp_hostname(imap['smtp_hostname'])
+        setup.type_smtp_password(imap['password'])
         setup.type_smtp_name(imap['smtp_name'])
         setup.type_smtp_port(imap['smtp_port'])
 
@@ -65,13 +82,14 @@ class Email(Base):
         basic_setup = SetupEmail(self.marionette)
         basic_setup.type_name(active_sync['name'])
         basic_setup.type_email(active_sync['email'])
-        basic_setup.type_password(active_sync['password'])
+
         setup = self.tap_manual_setup()
 
         setup.select_account_type('ActiveSync')
 
         setup.type_activesync_hostname(active_sync['active_sync_hostname'])
         setup.type_activesync_name(active_sync['active_sync_username'])
+        setup.type_password(active_sync['password'])
 
         setup.tap_next()
 
