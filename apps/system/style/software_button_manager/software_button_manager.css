@@ -21,7 +21,7 @@
   transition: none;
 }
 
-#software-buttons.visible {
+#screen:not(.locked) #software-buttons.visible {
   transform: translateY(-100%);
   visibility: visible;
 }
@@ -31,7 +31,7 @@
   background: none;
 }
 
-#screen.software-button-enabled.fullscreen-layout-app #software-buttons-fullscreen-layout {
+#screen.software-button-enabled.fullscreen-layout-app:not(.locked) #software-buttons-fullscreen-layout {
   visibility: visible;
 }
 
@@ -98,7 +98,7 @@
   visibility: hidden;
 }
 
-#screen.software-button-enabled:-moz-full-screen-ancestor #fullscreen-software-home-button {
+#screen.software-button-enabled:not(.locked):-moz-full-screen-ancestor #fullscreen-software-home-button {
   visibility: visible;
 }
 
