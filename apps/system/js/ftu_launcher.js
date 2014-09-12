@@ -16,10 +16,16 @@ var FtuLauncher = {
   /* Store that if FTU is currently running */
   _isRunningFirstTime: false,
 
+  _isUpgrading: false,
+
   _bypassHomeEvent: false,
 
   isFtuRunning: function fl_isFtuRunning() {
     return this._isRunningFirstTime;
+  },
+
+  isFtuUpgrading: function fl_isFtuUpgrading() {
+    return this._isUpgrading;
   },
 
   getFtuOrigin: function fl_getFtuOrigin() {
@@ -173,9 +179,11 @@ var FtuLauncher = {
     // launch FTU when a version upgrade is detected
     VersionHelper.getVersionInfo().then(function(versionInfo) {
       if (versionInfo.isUpgrade()) {
+        self._isUpgrading = true;
         self.launch();
       } else {
         window.asyncStorage.getItem('ftu.enabled', function getItem(shouldFTU) {
+          self._isUpgrading = false;
           // launch full FTU when enabled
           if (shouldFTU !== false) {
             self.launch();

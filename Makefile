@@ -670,11 +670,11 @@ ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell test -d $(XULRUNNER_DIRECTORY) && cat $
 	@echo "Downloading XULRunner..."
 	$(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD)
 ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
-	mkdir "$(XULRUNNER_BASE_DIRECTORY)"
+	mkdir -p "$(XULRUNNER_BASE_DIRECTORY)"
 	@echo "Unzipping XULRunner..."
 	unzip -q xulrunner*.zip -d "$(XULRUNNER_BASE_DIRECTORY)" && rm -f xulrunner*.zip
 else
-	mkdir $(XULRUNNER_BASE_DIRECTORY)
+	mkdir -p $(XULRUNNER_BASE_DIRECTORY)
 	tar xjf xulrunner*.tar.bz2 -C $(XULRUNNER_BASE_DIRECTORY) && rm -f xulrunner*.tar.bz2 || \
 		( echo; \
 		echo "We failed extracting the XULRunner SDK archive which may be corrupted."; \

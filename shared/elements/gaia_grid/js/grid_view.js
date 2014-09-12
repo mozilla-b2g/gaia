@@ -4,6 +4,7 @@
 /* global GridLayout */
 /* global GridZoom */
 /* global LazyLoader */
+/* global performance */
 
 (function(exports) {
 
@@ -157,7 +158,7 @@
 
     // bug 1015000
     onScroll: function() {
-      this.lastScrollTime = Date.now();
+      this.lastScrollTime = performance.now();
     },
 
     onTouchStart: function(e) {
@@ -170,11 +171,19 @@
     // Gecko does that automatically but since we want to use touch events for
     // more responsiveness, we also need to replicate that behavior.
     onTouchEnd: function(e) {
-      if (Date.now() - this.lastScrollTime < PREVENT_TAP_TIMEOUT) {
+      var lastScrollTime = this.lastScrollTime;
+      this.lastScrollTime = 0;
+      var diff = performance.now() - lastScrollTime;
+      if (diff > 0 && diff < PREVENT_TAP_TIMEOUT) {
         return;
       }
 
       var lastTouchStart = this.lastTouchStart;
+
+      if (!lastTouchStart) {
+        // This variable is deleted once a contextmenu event is received
+        return;
+      }
 
       var touch = e.changedTouches.identifiedTouch(lastTouchStart.identifier);
       if (!touch) {

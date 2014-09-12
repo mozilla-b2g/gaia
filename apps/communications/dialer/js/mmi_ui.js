@@ -94,6 +94,11 @@ var MmiUI = {
     } else {
       this.headerTitleNode.textContent = '';
     }
+
+    // Make sure the app is displayed
+    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+      evt.target.result.launch('dialer');
+    };
   },
 
   showLoading: function mui_showLoading() {
