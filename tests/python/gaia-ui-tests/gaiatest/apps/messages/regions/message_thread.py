@@ -12,7 +12,7 @@ class MessageThread(Base):
 
     _all_messages_locator = (By.CSS_SELECTOR, '#messages-container li.message')
     _received_message_content_locator = (By.CSS_SELECTOR, "#messages-container li.message.received")
-    _back_header_link_locator = (By.ID, 'messages-header')
+    _header_link_locator = (By.ID, 'messages-header')
     _message_header_locator = (By.ID, 'messages-header-text')
     _call_button_locator = (By.ID, 'messages-call-number-button')
 
@@ -21,8 +21,10 @@ class MessageThread(Base):
 
     def tap_back_button(self):
         # In a message thread, tap the back button to return to main message list
-        back_header_button = self.marionette.find_element(*self._back_header_link_locator)
-        back_header_button.tap()
+
+        # TODO: remove tap with coordinates after Bug 1061698 is fixed
+        self.marionette.find_element(*self._header_link_locator).tap(25, 25)
+
         messages = Messages(self.marionette)
         messages.wait_for_message_list()
         return messages
@@ -41,7 +43,7 @@ class MessageThread(Base):
         return self.marionette.find_element(*self._message_header_locator).text
 
     def tap_header(self):
-        self.wait_for_condition(lambda m: m.find_element(*self._back_header_link_locator).location['x'] == 0)
+        self.wait_for_condition(lambda m: m.find_element(*self._header_link_locator).location['x'] == 0)
         self.marionette.find_element(*self._message_header_locator).tap()
 
         from gaiatest.apps.messages.regions.activities import Activities

@@ -68,7 +68,10 @@ class ContactDetails(Base):
 
     def tap_back(self):
         self.wait_for_element_displayed(*self._details_header_locator)
+
+        # TODO: remove tap with coordinates after Bug 1061698 is fixed
         self.marionette.find_element(*self._details_header_locator).tap(25, 25)
+
         self.wait_for_element_not_displayed(*self._details_header_locator)
         from gaiatest.apps.contacts.app import Contacts
         return Contacts(self.marionette)
