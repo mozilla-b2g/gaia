@@ -6,7 +6,6 @@ var app = app || {};
   'use strict';
 
   app.init = function() {
-
     app.settings = window.navigator.mozSettings;
     if (!app.settings) {
       return;
@@ -64,7 +63,8 @@ var app = app || {};
           $box:       document.querySelector('#RPP .unlock'),
           $input:     document.querySelector('#RPP .unlock input')
         }
-      }
+      },
+      DCL: new CustomLocationPanel(),
     };
 
     // add event listeners for ALA
@@ -76,6 +76,7 @@ var app = app || {};
 
     app.elements.ALA.type.$select.addEventListener('change', function(event) { app.changeType(event.target.value); });
     app.elements.ALA.type.$blurSlider.addEventListener('change', function(event) { app.changeBlurSlider(event.target.value); });
+    app.elements.ALA.type.$customBox.addEventListener('click', app.showCustomLocationBox);
 
     // add event listeners for RPP
     app.elements.RPP.$link.addEventListener('click', app.showRPPBox);
@@ -89,6 +90,8 @@ var app = app || {};
     app.elements.RPP.RemoteLock.$input.addEventListener('change', function(event) { app.toggleRemoteLock(event.target.checked); });
     app.elements.RPP.RemoteWipe.$input.addEventListener('change', function(event) { app.toggleRemoteWipe(event.target.checked); });
     app.elements.RPP.Unlock.$input.addEventListener('change', function(event) { app.toggleUnlock(event.target.checked); });
+
+    app.elements.DCL.onChange = app.toggleCustomLocationSettings;
   };
 
 
@@ -152,6 +155,56 @@ var app = app || {};
 
     // display settings
     app.displaySettingsInRootContext();
+  };
+
+  /**
+   * Show main Custom location screen.
+   */
+  app.showCustomLocationBox = function() {
+    var customSettings = {};
+    var customSettingsKeys = [{ key: 'geolocation.blur.cl.type', name: "type" },
+               { key: 'geolocation.blur.cl.country', name: "country" },
+               { key: 'geolocation.blur.cl.city', name: "city" },
+               { key: 'geolocation.blur.longitude', name: "longitude" },
+               { key: 'geolocation.blur.latitude', name: "latitude" },
+               { key: 'geolocation.blur.cl.type', name: "type" }
+             ];
+
+    var lock = app.settings.createLock();
+    var toCompletion = customSettingsKeys.length;
+
+    [].forEach.call(customSettingsKeys, function(item) {
+      var getReq = lock.get(item.key);
+      getReq.onsuccess = function() {
+        if (getReq.result[item.key] !== undefined) {
+         customSettings[item.name] = getReq.result[item.key];
+        }
+
+        if (--toCompletion === 0) {
+          app.elements.DCL.initAndShow(customSettings);
+        }
+      };
+      getReq.onerror = function() {
+        if (--toCompletion === 0) {
+          app.elements.DCL.initAndShow(customSettings);
+        }
+      };
+    });
+  };
+
+  /**
+   * Toggle custom setting box.
+   * @param {Boolean} value
+   */
+  app.toggleCustomLocationSettings = function(settings) {
+    var lock = app.settings.createLock();
+
+    lock.set({ 'geolocation.blur.cl.type': settings.type,
+               'geolocation.blur.cl.country': settings.country,
+               'geolocation.blur.cl.city': settings.city,
+               'geolocation.blur.longitude': settings.longitude,
+               'geolocation.blur.latitude': settings.longitude
+             });
   };
 
   /**
