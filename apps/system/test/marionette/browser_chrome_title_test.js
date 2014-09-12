@@ -75,13 +75,39 @@ marionette('Browser Chrome - Title content', function() {
     var url = server.url('sample.html');
     rocketbar.homescreenFocus();
     rocketbar.enterText(url + '\uE006');
-
-    // Confirm title of the website.
+    system.gotoBrowser(url);
     client.switchToFrame();
+
     client.waitFor(function(){
       // Hard-coded from the fixture.
       var expectedTitle = 'Sample page';
       return system.appUrlbar.text() === expectedTitle;
     });
   });
+
+  test('Dont persist application-name', function() {
+
+    // Use the home-screen search box to open up the system browser
+    var customAppUrl = server.url('app-name.html');
+    var sampleUrl = server.url('sample.html');
+
+    rocketbar.homescreenFocus();
+    rocketbar.enterText(customAppUrl + '\uE006');
+    system.gotoBrowser(customAppUrl);
+    client.switchToFrame();
+
+    client.waitFor(function(){
+      return system.appUrlbar.text() === 'Custom App Name';
+    });
+
+    system.appUrlbar.tap();
+    rocketbar.enterText(sampleUrl + '\uE006');
+    system.gotoBrowser(sampleUrl);
+    client.switchToFrame();
+
+    client.waitFor(function(){
+      return system.appUrlbar.text() === 'Sample page';
+    });
+  });
+
 });
