@@ -557,6 +557,9 @@
         return;
       }
 
+      // We havent got a name for this location
+      this._gotName = false;
+
       // Make the rocketbar unscrollable until the page resizes to the
       // appropriate height.
       this.containerElement.classList.remove('scrollable');
