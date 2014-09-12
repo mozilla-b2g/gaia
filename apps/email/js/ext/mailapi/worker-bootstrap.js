@@ -17077,7 +17077,8 @@ MailBridge.prototype = {
           err !== 'bad-user-or-pass' &&
           err !== 'bad-address' &&
           err !== 'needs-app-pass' &&
-          err !== 'imap-disabled'
+          err !== 'imap-disabled' &&
+          err !== 'mitigate-gmail-sumo'
         ));
       }
       if (canIgnoreError(incomingErr) && canIgnoreError(outgoingErr)) {
@@ -20449,6 +20450,7 @@ MailUniverse.prototype = {
       case 'bad-address':
       case 'imap-disabled':
       case 'needs-app-pass':
+      case 'mitigate-gmail-sumo':
         this.__notifyBadLogin(account, problem, whichSide);
         break;
     }
