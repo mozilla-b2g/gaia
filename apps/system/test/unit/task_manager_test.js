@@ -948,7 +948,7 @@ suite('system/TaskManager >', function() {
         .then(function() { done(); }, failOnReject);
       taskManager.show();
       window.dispatchEvent(new CustomEvent('appclosed'));
-      this.sinon.clock.tick();
+      this.sinon.clock.tick(500);
     });
     teardown(function() {
       taskManager.hide();
