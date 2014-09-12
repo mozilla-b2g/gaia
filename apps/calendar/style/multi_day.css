@@ -1,8 +1,17 @@
-#week-view {
+/*
+ `.multi-day` is used by week and day views; we use the classes `.day-view` and
+ `.week-view` to override specific rules instead of IDs to avoid specificity
+ conflicts.
+ ---
+ all classes are prefixed with "md__" to avoid collisions ("md" == "multi-day")
+ following the BEM naming convention.
+*/
+
+.multi-day {
   overflow: hidden;
 }
 
-.multi-day .sticky {
+.md__sticky {
   width: 100%;
   height: 7rem;
   background-color: #f8f8f8;
@@ -11,7 +20,11 @@
   overflow: hidden;
 }
 
-.multi-day .sticky .all-day {
+.day-view .md__sticky {
+  height: 5rem;
+}
+
+.md__all-day {
   top: 2rem;
   height: 4.9rem;
   line-height: 4.9rem;
@@ -21,7 +34,19 @@
   width: 3rem;
 }
 
-#week-view .day-name {
+.day-view .md__all-day {
+  border-top: 0;
+  width: 7rem;
+  top: 0;
+  left: 0;
+}
+
+.day-view .icon-calendar-allday:before {
+  position: relative;
+  left: 2rem;
+}
+
+.md__day-name {
   color: #707070;
   font-size: 1.3rem;
   text-transform: uppercase;
@@ -32,12 +57,16 @@
   width: 100%;
 }
 
-#week-view .day-name.is-today {
+.day-view .md__day-name {
+  display: none;
+}
+
+.week-view .md__day-name.is-today {
   font-weight: 500;
   color: #008eab;
 }
 
-.multi-day .allday-events {
+.md__allday-events {
   border-left: 0.1rem solid #e2e2e2;
   border-top: 0.1rem solid #e2e2e2;
   height: 5rem;
@@ -47,14 +76,22 @@
   background-color: #f8f8f8;
 }
 
-.multi-day .main {
+.day-view .md__allday-events {
+  border: none;
+}
+
+.md__main {
   height: calc(100% - 7rem);
   overflow-y: scroll;
   overflow-x: hidden;
   position: relative;
 }
 
-.multi-day .main-content {
+.day-view .md__main {
+  height: calc(100% - 5rem);
+}
+
+.md__main-content {
   position: relative;
   /* background color and z-index is important for APZ performance */
   background-color: #fff;
@@ -63,26 +100,26 @@
   width: 100%;
 }
 
-.multi-day .sidebar {
+.md__sidebar {
   width: 100%;
   color: #707070;
   text-align: center;
   font-size: 1.5rem;
 }
 
-.multi-day .sidebar li:last-child {
+.md__sidebar li:last-child {
   border-bottom: none;
   height: 5rem;
 }
 
-.multi-day .sidebar > li {
+.md__sidebar > li {
   width: 100%;
   height: 5rem;
   border-bottom: 0.1rem solid #f8f8f8;
   overflow: hidden;
 }
 
-.multi-day .display-hour {
+.md__display-hour {
   display: block;
   width: 3rem;
   padding: 0.2rem;
@@ -91,13 +128,23 @@
   line-height: 1.2;
 }
 
-.multi-day .display-hour .ampm {
+.md__display-hour.is-hidden {
+  visibility: hidden;
+}
+
+.day-view .md__display-hour {
+  width: 7rem;
+  text-align: left;
+  padding-left: 1.5rem;
+}
+
+.week-view .md__display-hour .ampm {
   display: block;
   font-size: 1.3rem;
 }
 
-.days-wrapper,
-.alldays-wrapper {
+.md__days-wrapper,
+.md__alldays-wrapper {
   width: calc(100% - 3rem);
   position: absolute;
   right: 0;
@@ -105,77 +152,105 @@
   overflow: hidden;
 }
 
-.days-wrapper {
+.md__days-wrapper {
   height: 120rem;
 }
 
-.alldays-wrapper {
+.md__alldays-wrapper {
   height: 100%;
 }
 
-.days,
-.alldays {
+.day-view .md__days-wrapper,
+.day-view .md__alldays-wrapper {
+  width: calc(100% - 7rem);
+}
+
+.md__days,
+.md__alldays {
   /* it contains 15 days, view only shows 5 each time (so 300% width) */
   width: 300%;
   overflow: hidden;
   height: 100%;
 }
 
-.multi-day .day,
-.multi-day .allday {
+.md__day,
+.md__allday {
   float: left;
   position: relative;
   height: 100%;
 }
 
-#week-view .day,
-#week-view .allday {
+.week-view .md__day,
+.week-view .md__allday {
   width: 6.666%;
 }
 
-.multi-day .day {
+.day-view .md__day,
+.day-view .md__allday {
+  width: 33.333%;
+}
+
+.md__day {
   border-left: 0.1rem solid #f8f8f8;
 }
 
-.multi-day .event,
-.multi-day .event:focus,
-.multi-day .event:active {
+.md__event,
+.md__event:focus,
+.md__event:active {
+  text-decoration: none;
+  outline: none;
+}
+
+.md__event {
+  position: relative;
   display: block;
   border-left-style: solid;
   border-left-width: 0.4rem;
   width: 100%;
-  text-decoration: none;
   overflow: hidden;
   padding: 0.6rem 0.3rem 0.6rem 0.6rem;
-  outline: none;
 }
 
-.multi-day .main .event {
+.day-view .md__event {
+  padding: 0.8rem 0.3rem 0.8rem 0.7rem;
+}
+
+.md__main .md__event {
   position: absolute;
 }
 
-.multi-day .event.is-allday {
+.md__event.is-allday {
   margin-top: 0.1rem;
 }
 
-.multi-day .event.is-allday:first-child {
+.day-view .md__event.is-allday {
+  height: 3.8rem;
+}
+
+.day-view .md__event.is-allday:only-of-type {
+  /* center it vertically if only one allday event */
+  margin-top: 0.6rem;
+}
+
+.md__event.is-allday:first-child {
   margin-top: 0;
 }
 
-#week-view .event.has-overlaps .event-title {
+.week-view .md__event.has-overlaps {
+  /* avoid expanding event beyond desired width */
+  padding: 0;
+}
+
+.week-view .md__event.has-overlaps .md__event-title {
   visibility: hidden;
 }
 
-.multi-day .event-title,
-.multi-day .event-location {
+.md__event-title,
+.md__event-location {
   display: block;
 }
 
-.multi-day .event.has-alarm {
-  padding-right: 3rem;
-}
-
-.multi-day .icon-calendar-alarm {
+.md__event .icon-calendar-alarm {
   position: absolute;
   top: 0.2rem;
   right: 0;
@@ -184,12 +259,12 @@
 }
 
 /* since week view displays more events we hide some of the data */
-#week-view .event-location,
-#week-view .event .icon-calendar-alarm {
+.week-view .md__event-location,
+.week-view .md__event .icon-calendar-alarm {
   display: none;
 }
 
-.multi-day .event-title {
+.md__event-title {
   min-height: 1.5rem;
   font-size: 1.4rem;
   font-weight: 500;
@@ -199,13 +274,13 @@
   color: #333;
 }
 
-#day-view.multi-day .event-title,
-.multi-day .partial-hour .event-title {
+.day-view .md__event-title,
+.md__event.is-partial .md__event-title {
   line-height: 1;
   white-space: nowrap;
 }
 
-.multi-day .event-location {
+.md__event-location {
   display: block;
   top: 2.8rem;
   min-height: 2.1rem;
@@ -218,70 +293,82 @@
   font-weight: 400;
 }
 
-.multi-day .event.many-overlaps .event-title,
-.multi-day .event.many-overlaps .event-location {
+.md__event.many-overlaps .md__event-title,
+.md__event.many-overlaps .md__event-location {
   display: none;
 }
 
-.multi-day .event.partial-hour {
+.md__event.is-partial {
   padding-top: 0.4rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.multi-day .event.partial-hour-tiny,
-.multi-day .event.partial-hour-small {
+.md__event.is-partial-tiny,
+.md__event.is-partial-small {
   padding-top: 0;
   padding-bottom: 0;
   display: flex;
   align-items: center;
 }
 
-.multi-day .event.partial-hour-micro,
-.multi-day .event.partial-hour-tiny {
+.md__event.is-partial-micro,
+.md__event.is-partial-tiny {
   /* since alarm icon is hidden we remove the padding right */
   padding-right: 0.7rem;
 }
 
-.multi-day .event.partial-hour .event-location {
+.md__event.is-partial .md__event-location {
   padding-top: 0.2rem;
 }
 
-.multi-day .event.partial-hour-tiny .event-title,
-.multi-day .event.partial-hour-tiny .event-location,
-.multi-day .event.partial-hour-small .event-title,
-.multi-day .event.partial-hour-small .event-location {
+.md__event.is-partial-tiny .md__event-title,
+.md__event.is-partial-tiny .md__event-location,
+.md__event.is-partial-small .md__event-title,
+.md__event.is-partial-small .md__event-location {
   display: inline-block;
   line-height: 1.6rem;
   min-height: 0;
   padding: 0;
 }
 
-.multi-day .event.partial-hour-tiny .event-title,
-.multi-day .event.partial-hour-small .event-title {
+.md__event.is-partial-tiny .md__event-title,
+.md__event.is-partial-small .md__event-title {
   margin-right: 0.85rem;
 }
 
-.multi-day .event.partial-hour-micro .event-title,
-.multi-day .event.partial-hour-micro .event-location {
+.md__event.is-partial-micro .md__event-title,
+.md__event.is-partial-micro .md__event-location {
   visibility: hidden;
 }
 
-.multi-day .event.partial-hour-micro .icon-calendar-alarm,
-.multi-day .event.partial-hour-tiny .icon-calendar-alarm {
+.md__event.is-partial-micro .icon-calendar-alarm,
+.md__event.is-partial-tiny .icon-calendar-alarm {
   /* hide icon since we don't have enough space for it and using a different
    * size looks weird (not consistent) */
   display: none;
 }
 
-.multi-day .event.partial-hour-small .icon-calendar-alarm {
+.day-view .md__event.has-alarms {
+  /* avoid text overlap with alarm icon */
+  padding-right: 1rem;
+}
+
+.day-view .md__event.is-partial-tiny,
+.day-view .md__event.is-partial-micro {
+  /* these doesn't display alarm, so we can display more text */
+  padding-right: 0.3rem;
+}
+
+.md__event.is-partial-small .icon-calendar-alarm {
+  /* center the icon vertically if partial hour since it looks better */
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-56%);
 }
 
 /* current time */
 
-.current-time {
+.md__current-time {
   pointer-events: none;
   display: none;
   position: absolute;
@@ -292,11 +379,11 @@
   margin-top: -0.6rem;
 }
 
-.current-time.active {
+.md__current-time.active {
   display: block;
 }
 
-.current-time:before {
+.md__current-time:before {
   content: '';
   display: block;
   position: absolute;
@@ -313,7 +400,7 @@
   z-index: 15;
 }
 
-.current-time:after {
+.md__current-time:after {
   content: '';
   display: block;
   position: absolute;
@@ -324,15 +411,28 @@
   border-top: 0.1rem solid #008EAB;
 }
 
-#week-view .current-time {
+.week-view .md__current-time {
   text-indent: 0.2rem;
 }
 
-#week-view .current-time:before {
+.week-view .md__current-time:before {
   left: 3rem;
 }
 
-#week-view .current-time:after {
+.week-view .md__current-time:after {
   width: calc(100% - 3rem);
   left: 3rem;
+}
+
+.day-view .md__current-time {
+  text-indent: 2.2rem;
+}
+
+.day-view .md__current-time:before {
+  left: 7rem;
+}
+
+.day-view .md__current-time:after {
+  width: calc(100% - 7rem);
+  left: 7rem;
 }

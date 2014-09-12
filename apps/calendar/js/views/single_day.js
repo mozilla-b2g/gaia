@@ -25,19 +25,19 @@ SingleDay.prototype = {
 
   setup: function() {
     this.day = document.createElement('div');
-    this.day.className = 'day';
+    this.day.className = 'md__day';
     this.day.dataset.date = this.date;
 
     this.allday = document.createElement('div');
-    this.allday.className = 'allday';
+    this.allday.className = 'md__allday';
     this.allday.dataset.date = this.date;
 
     this._dayName = document.createElement('h1');
-    this._dayName.className = 'day-name';
+    this._dayName.className = 'md__day-name';
     this.allday.appendChild(this._dayName);
 
     this._alldayEvents = document.createElement('div');
-    this._alldayEvents.className = 'allday-events';
+    this._alldayEvents.className = 'md__allday-events';
     this.allday.appendChild(this._alldayEvents);
 
     this._updateDayName();
@@ -106,7 +106,7 @@ SingleDay.prototype = {
     el.style.height = hei + 'px';
 
     if (duration < 1) {
-      el.classList.add('partial-hour');
+      el.classList.add('is-partial');
       var size = '';
       // we need to toggle layout if event lasts less than 20, 30 and 45min
       if (duration < 0.3) {
@@ -117,7 +117,7 @@ SingleDay.prototype = {
         size = 'small';
       }
       if (size) {
-        el.classList.add('partial-hour-' + size);
+        el.classList.add('is-partial-' + size);
       }
     }
 
@@ -135,21 +135,21 @@ SingleDay.prototype = {
     var el = document.createElement('a');
     el.href = '/event/show/' + busytime._id;
     el.className = [
-      'event',
+      'md__event',
       'calendar-id-' + event.calendarId,
       'calendar-border-color',
       'calendar-bg-color'
     ].join(' ');
 
     var title = document.createElement('span');
-    title.className = 'event-title';
+    title.className = 'md__event-title';
     // since we use "textContent" there is no risk of XSS
     title.textContent = remote.title;
     el.appendChild(title);
 
     if (remote.location) {
       var location = document.createElement('span');
-      location.className = 'event-location';
+      location.className = 'md__event-location';
       // since we use "textContent" there is no risk of XSS
       location.textContent = remote.location;
       el.appendChild(location);

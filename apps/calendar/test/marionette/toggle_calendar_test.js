@@ -60,18 +60,6 @@ marionette('toggle calendar', function() {
         client.waitFor(function() {
           return app.day.events.length === 0;
         });
-
-        // on day view hour can't be hidden otherwise it affects events on other
-        // calendars and it also looks weird
-        var hour = app.day.currentHour;
-        assert(
-          hour.displayed(),
-          'hour should be displayed on day view'
-        );
-
-        // clicking on hour should trigger add event screen
-        hour.click();
-        app.editEvent.waitForDisplay();
       });
     });
 
