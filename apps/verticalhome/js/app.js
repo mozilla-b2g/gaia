@@ -217,27 +217,7 @@
             return;
           }
 
-          var step;
-
-          var doScroll = function() {
-            var scrollY = window.scrollY;
-            step = step || (scrollY / 20);
-
-            if (!scrollY) {
-              return;
-            }
-
-            if (scrollY <= step) {
-              window.scrollBy(0, -scrollY);
-              return;
-            }
-
-            window.scrollBy(0, -step);
-            window.requestAnimationFrame(doScroll);
-          };
-
-          doScroll();
-          break;
+          window.scrollTo(0, 0, {behavior: 'smooth'});
       }
     }
   };

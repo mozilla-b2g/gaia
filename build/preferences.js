@@ -145,6 +145,7 @@ PreferencesBuilder.prototype.preparePref = function() {
 
   this.userPrefs['network.http.max-connections-per-server'] = 15;
   this.userPrefs['dom.mozInputMethod.enabled'] = true;
+  this.userPrefs['layout.css.scroll-behavior.enabled'] = true;
   this.userPrefs['layout.css.sticky.enabled'] = true;
   this.userPrefs['intl.uidirection.qps-plocm'] = 'rtl';
 
