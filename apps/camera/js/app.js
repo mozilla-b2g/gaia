@@ -8,6 +8,7 @@ require('performance-testing-helper');
  * Dependencies
  */
 
+var stopRecordingEvent = require('stop-recording-event');
 var NotificationView = require('views/notification');
 var LoadingView = require('views/loading-screen');
 var orientation = require('lib/orientation');
@@ -17,7 +18,6 @@ var debug = require('debug')('app');
 var Pinch = require('lib/pinch');
 var bind = require('lib/bind');
 var model = require('model');
-var StopRecordingEvent = require('StopRecordingEvent');
 
 /**
  * Exports
@@ -463,15 +463,12 @@ App.prototype.onReady = function() {
 App.prototype.listenForStopRecordingEvent = function() {
   debug('listen for stop recording events');
 
-  // Start the module that generates the stoprecording events
-  StopRecordingEvent.start();
-
-  // Now listen for those custom DOM events
-  // and emit them using our internal event emitter
-  window.addEventListener('stoprecording', function(event) {
-    debug('got stoprecording DOM event');
-    this.emit('stoprecording');
-  }.bind(this));
+  // Start the module that generates
+  // the stoprecording events and listen
+  // for those custom DOM events and emit
+  // them using our internal event emitter
+  stopRecordingEvent.start();
+  addEventListener('stoprecording', this.firer('stoprecording'));
 };
 
 });
