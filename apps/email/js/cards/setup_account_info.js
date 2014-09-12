@@ -4,6 +4,7 @@ define(function(require) {
 var templateNode = require('tmpl!./setup_account_info.html'),
     common = require('mail_common'),
     SETUP_ERROR_L10N_ID_MAP = require('./setup_l10n_map'),
+    mitigateGmail = require('../mitigate_gmail'),
     evt = require('evt'),
     mozL10n = require('l10n!'),
     model = require('model'),
@@ -101,6 +102,11 @@ SetupAccountInfoCard.prototype = {
 
   // note: this method is also reused by the manual config card
   showError: function(errName, errDetails) {
+    if (errName === 'mitigate-gmail-sumo') {
+      mitigateGmail();
+      return;
+    }
+
     this.domNode.getElementsByClassName('sup-error-region')[0]
         .classList.remove('collapsed');
     var errorMessageNode =
