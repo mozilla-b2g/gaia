@@ -30,6 +30,7 @@ Contacts.Selectors = {
 
   confirmHeader: '#confirmation-message h1',
   confirmBody: '#confirmation-message p',
+  confirmButton: '#confirmation-message .full',
 
   details: '#view-contact-details',
   detailsEditContact: '#edit-contact-button',
@@ -78,7 +79,12 @@ Contacts.Selectors = {
   editForm: '#selectable-form',
   editMenu: '#select-all-wrapper',
 
-  clearOrgButton: '#clear-org'
+  clearOrgButton: '#clear-org',
+  setIceButton: '#set-ice',
+  iceSwitch1: '#ice-contacts-1-switch',
+  iceSwitch2: '#ice-contacts-2-switch',
+  iceButton1: '#select-ice-contact-1',
+  iceButton2: '#select-ice-contact-2'
 };
 
 Contacts.prototype = {
