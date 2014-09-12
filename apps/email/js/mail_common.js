@@ -1299,6 +1299,8 @@ function FormNavigation(options) {
 
   this.options.formElem.addEventListener('keypress',
     this.onKeyPress.bind(this));
+  this.options.formElem.addEventListener('click',
+    this.onClick.bind(this));
 }
 
 FormNavigation.prototype = {
@@ -1312,7 +1314,18 @@ FormNavigation.prototype = {
       }
     }
   },
-
+  onClick: function formNav_onClick(event) {
+    if (event.target.type === 'reset') {
+      var formValidity = this.options.checkFormValidity();
+      var buttonElems = this.options.formElem.getElementsByTagName('button');
+      for (var i = 0; i < buttonElems.length; i++) {
+        var button = buttonElems[i];
+        if (button.type !== 'reset') {
+            button.disabled = !formValidity;
+        }
+      }
+    }
+  },
   focusNextInput: function formNav_focusNextInput(event) {
     var currentInput = event.target;
     var inputElems = this.options.formElem.getElementsByTagName('input');
