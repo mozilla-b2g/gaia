@@ -1995,6 +1995,61 @@ suite('system/Statusbar', function() {
     });
   });
 
+  suite('updateSignalIcon', function() {
+    var mockIcon = {},
+        connInfo = {
+          relSignalStrength: 75,
+          roaming: true,
+          network: {
+            shortName: 'name'
+          }
+        };
+
+    setup(function() {
+      sinon.stub(MockL10n, 'get').returns('test');
+      mockIcon.dataset = {};
+      mockIcon.setAttribute = sinon.spy();
+    });
+
+    teardown(function() {
+      MockL10n.get.restore();
+    });
+
+    test('should set the data-level attribute', function() {
+      StatusBar.updateSignalIcon(mockIcon, connInfo);
+      assert.equal(mockIcon.dataset.level, 4);
+    });
+
+    test('roaming visibility with one sim', function() {
+      fakeIcons.roaming[0].hidden = connInfo.roaming;
+      StatusBar.updateSignalIcon(mockIcon, connInfo);
+      assert.equal(fakeIcons.roaming[0].hidden, !connInfo.roaming);
+    });
+
+    test('roaming visibility with multisim', function() {
+      mockIcon.dataset.index = 2;
+      fakeIcons.roaming[1].hidden = connInfo.roaming;
+      StatusBar.updateSignalIcon(mockIcon, connInfo);
+      assert.equal(fakeIcons.roaming[1].hidden, !connInfo.roaming);
+    });
+
+    test('should remove the searching dataset', function() {
+      mockIcon.dataset.searching = true;
+      StatusBar.updateSignalIcon(mockIcon, connInfo);
+      assert.isTrue(!mockIcon.dataset.searching);
+    });
+
+    test('should set the aria-label', function() {
+      mockIcon.dataset.searching = true;
+      StatusBar.updateSignalIcon(mockIcon, connInfo);
+      assert.isTrue(MockL10n.get.calledWith('statusbarSignalRoaming', {
+        level: mockIcon.dataset.level,
+        operator: connInfo.network && connInfo.network.shortName
+      }));
+      sinon.assert.calledWith(mockIcon.setAttribute, 'aria-label', 'test');
+    });
+  });
+
   suite('handle events', function() {
     var app;
     var setAppearanceStub;

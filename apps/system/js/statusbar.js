@@ -1371,7 +1371,8 @@ var StatusBar = {
 
   updateSignalIcon: function sb_updateSignalIcon(icon, connInfo) {
     icon.dataset.level = Math.ceil(connInfo.relSignalStrength / 20); // 0-5
-    var roaming = this.icons.roaming[icon.dataset.index || 0];
+    var slotIndex = icon.dataset.index ? (icon.dataset.index - 1) : 0;
+    var roaming = this.icons.roaming[slotIndex];
     roaming.hidden = !connInfo.roaming;
 
     delete icon.dataset.searching;
