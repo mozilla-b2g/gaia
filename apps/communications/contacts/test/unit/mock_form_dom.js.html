@@ -35,7 +35,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '        <dd class="setbox-body">';
     MockFormDom += '          <p class="setbox-item">';
     MockFormDom += '            <label class="hide" for="email_#i#" data-l10n-id="labelEmail">e-mail:</label>';
-    MockFormDom += '            <input data-cancelable placeholder="Email" data-l10n-id="email" name="email" class="textfield" type="email" value="#value#" id="email_#i#">';
+    MockFormDom += '            <input data-cancelable placeholder="Email" data-field="value" data-l10n-id="email" name="email" class="textfield" type="email" value="#value#" id="email_#i#">';
     MockFormDom += '          </p>';
     MockFormDom += '        </dd>';
     MockFormDom += '      </dl>';
@@ -81,7 +81,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '              <span id="date-text_#i#" data-l10n-id="date.placeholder" class="datetime">'
     MockFormDom += '                Date'
     MockFormDom += '              </span>'
-    MockFormDom += '              <input placeholder="date" data-l10n-id="date" name="date[#i#][value]" class="textfield hidden-input" type="date" id="date_#i#">'
+    MockFormDom += '              <input placeholder="date" data-field="#type#" data-l10n-id="date" name="date[#i#][value]" class="textfield hidden-input" type="date" id="date_#i#">'
     MockFormDom += '            </span>'
     MockFormDom += '           </p>'
     MockFormDom += '        </section>'
@@ -94,7 +94,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '        <dd class="setbox-body">';
     MockFormDom += '          <p class="setbox-item">';
     MockFormDom += '            <label class="hide" for="note_#i#" data-l10n-id="labelComment">comment:</label>';
-    MockFormDom += '            <input data-cancelable placeholder="Comment" data-l10n-id="comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">';
+    MockFormDom += '            <input data-cancelable placeholder="Comment" data-field="note" data-l10n-id="comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">';
     MockFormDom += '          </p>';
     MockFormDom += '        </dd>';
     MockFormDom += '      </dl>';
@@ -119,15 +119,15 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '            <div class="item-body-exp">';
     MockFormDom += '              <p class="fillflow-row">';
     MockFormDom += '                <label class="hide" for="givenName" data-l10n-id="labelName">Name:</label>';
-    MockFormDom += '                <input data-cancelable placeholder="Name" data-l10n-id="givenName" name="givenName" class="textfield" type="text" value="#givenName#" id="givenName">';
+    MockFormDom += '                <input data-cancelable placeholder="Name" data-field="givenName" data-l10n-id="givenName" name="givenName" class="textfield" type="text" value="#givenName#" id="givenName">';
     MockFormDom += '              </p>';
     MockFormDom += '              <p class="fillflow-row">';
     MockFormDom += '                <label class="hide" for="user_lastname" data-l10n-id="labelLastName">Last name:</label>';
-    MockFormDom += '                <input data-cancelable placeholder="Last name" data-l10n-id="familyName" name="familyName" class="textfield" type="text" value="#familyName#" id="familyName">';
+    MockFormDom += '                <input data-cancelable placeholder="Last name" data-field="familyName" data-l10n-id="familyName" name="familyName" class="textfield" type="text" value="#familyName#" id="familyName">';
     MockFormDom += '              </p>';
     MockFormDom += '            </div>';
     MockFormDom += '            <p class="fillflow-row">';
-    MockFormDom += '              <input data-cancelable placeholder="Company Name" data-l10n-id="org" name="org" class="textfield" type="text" value="" id="org">';
+    MockFormDom += '              <input data-cancelable placeholder="Company Name" data-field="org" familyName data-l10n-id="org" name="org" class="textfield" type="text" value="" id="org">';
     MockFormDom += '            </p>';
     MockFormDom += '          </fieldset>';
 
