@@ -79,11 +79,11 @@
     '</div>' +
     '' +
     '<footer class="card-tray">'+
-    ' <button class="appIcon" data-button-action="select">' +
-    ' </button>' +
+    ' <button class="appIcon" data-l10n-id="openCard" ' +
+    '   data-button-action="select"></button>' +
     ' <menu class="buttonbar">' +
-    '   <button class="close-button" data-button-action="close" ' +
-    '     role="button" ' +
+    '   <button class="close-button" data-l10n-id="closeCard" ' +
+    '     data-button-action="close" role="button" ' +
     '     style="visibility: {closeButtonVisibility}"></button>' +
     '  <button class="favorite-button" data-button-action="favorite" ' +
     '    role="button" ' +

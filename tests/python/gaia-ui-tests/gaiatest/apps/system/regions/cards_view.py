@@ -7,12 +7,14 @@ from marionette.by import By
 from marionette.marionette import Actions
 
 from gaiatest.apps.base import Base
+from gaiatest.apps.base import PageRegion
 
 
 class CardsView(Base):
 
     # Home/Cards view locators
     _cards_view_locator = (By.ID, 'cards-view')
+    _cards_locator = (By.CSS_SELECTOR, '#cards-view .card')
     # Check that the origin contains the current app name, origin is in the format:
     # app://clock.gaiamobile.org
     _apps_cards_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"]')
@@ -25,8 +27,18 @@ class CardsView(Base):
         return (self._close_buttons_locator[0], self._close_buttons_locator[1] % app.lower())
 
     @property
+    def cards(self):
+        return [Card(self.marionette, card)
+                for card in self.marionette.find_elements(*self._cards_locator)]
+
+    @property
     def is_cards_view_displayed(self):
         return self.is_element_displayed(*self._cards_view_locator)
+
+    @property
+    def is_cards_view_a11y_hidden(self):
+        return self.accessibility.is_hidden(self.marionette.find_element(
+            *self._cards_view_locator))
 
     def wait_for_card_ready(self, app):
         cards = self.marionette.find_element(*self._cards_view_locator)
@@ -37,6 +49,17 @@ class CardsView(Base):
 
     def is_app_displayed(self, app):
         return self.is_element_displayed(*self._app_card_locator(app))
+
+    def is_app_a11y_visible(self, app):
+        return self.accessibility.is_visible(self.marionette.find_element(
+            *self._app_card_locator(app)))
+
+    def is_app_a11y_hidden(self, app):
+        return self.accessibility.is_hidden(self.marionette.find_element(
+            *self._app_card_locator(app)))
+
+    def a11y_wheel_cards_view(self, direction):
+        self.accessibility.wheel(self.marionette.find_element(*self._cards_view_locator), direction)
 
     def is_app_present(self, app):
         return self.is_element_present(*self._app_card_locator(app))
@@ -66,3 +89,18 @@ class CardsView(Base):
         # swipe forward to get previous app card
         Actions(self.marionette).flick(
             current_frame, start_x_position, start_y_position, final_x_position, start_y_position).perform()
+
+
+class Card(PageRegion):
+    _close_button_locator = (By.CLASS_NAME, 'close-button')
+    _screenshot_view_locator = (By.CLASS_NAME, 'screenshotView')
+    _app_icon_locator = (By.CLASS_NAME, 'appIcon')
+
+    def a11y_click_close_button(self):
+        self.accessibility.click(self.root_element.find_element(*self._close_button_locator))
+
+    def a11y_click_screenshot_view(self):
+        self.accessibility.click(self.root_element.find_element(*self._screenshot_view_locator))
+
+    def a11y_click_app_icon(self):
+        self.accessibility.click(self.root_element.find_element(*self._app_icon_locator))
