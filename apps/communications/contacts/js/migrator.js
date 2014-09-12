@@ -23,7 +23,6 @@ var Migrator = (function(){
   function migrateFbToken() {
     LazyLoader.load([
       '/shared/js/contacts/import/import_status_data.js',
-      '/shared/js/contacts/import/facebook/fb_utils.js'
     ], function() {
       var STORAGE_KEY = fb.utils.TOKEN_DATA_KEY;
 

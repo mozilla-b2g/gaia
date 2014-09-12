@@ -1,11 +1,14 @@
 'use strict';
-/* global ImportStatusData, LazyLoader, fb, utils */
+/* global ImportStatusData, LazyLoader, fb, utils, Migrator */
+/* exported DeferredActions */
 
 // Methods not related with the list rendering that must be executed after
 // render to not damage performance.
-(function() {
-  var init = function init() {
-    checkFacebookSynchronization(utils.cookie.load());
+var DeferredActions = (function() {
+  var execute = function execute() {
+    var config = utils.cookie.load();
+    checkFacebookSynchronization(config);
+    checkVersionMigration(config);
   };
 
   function checkFacebookSynchronization(config) {
@@ -16,8 +19,7 @@
 
     LazyLoader.load([
       '/facebook/js/fb_sync.js',
-      '/shared/js/contacts/import/import_status_data.js',
-      '/shared/js/contacts/import/facebook/fb_utils.js'
+      '/shared/js/contacts/import/import_status_data.js'
     ], function() {
       var fbutils = fb.utils;
 
@@ -49,5 +51,15 @@
     });
   }
 
-  init();
+  function checkVersionMigration(config) {
+    if (!config || !config.fbMigrated || !config.accessTokenMigrated) {
+      LazyLoader.load('js/migrator.js', function() {
+        Migrator.start(config);
+      });
+    }
+  }
+
+  return {
+    'execute': execute
+  };
 })();

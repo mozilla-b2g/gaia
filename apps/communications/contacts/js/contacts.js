@@ -10,8 +10,8 @@
 /* global navigationStack */
 /* global SmsIntegration */
 /* global utils */
+/* global DeferredActions */
 /* global TAG_OPTIONS */
-/* global Migrator */
 
 /* exported COMMS_APP_ORIGIN */
 /* exported SCALE_RATIO */
@@ -231,7 +231,9 @@ var Contacts = (function() {
 
   var loadDeferredActions = function loadDeferredActions() {
     window.removeEventListener('listRendered', loadDeferredActions);
-    LazyLoader.load('js/deferred_actions.js');
+    LazyLoader.load('js/deferred_actions.js', function() {
+      DeferredActions.execute();
+    });
   };
 
   var init = function init() {
@@ -242,15 +244,6 @@ var Contacts = (function() {
     window.addEventListener('hashchange', checkUrl);
 
     window.addEventListener('listRendered', loadDeferredActions);
-
-    var config = utils.cookie.load();
-
-    // If the migration is not complete
-    if (!config || !config.fbMigrated || !config.accessTokenMigrated) {
-      LazyLoader.load('js/migrator.js', function() {
-        Migrator.start(config);
-      });
-    }
 
     // Tell audio channel manager that we want to adjust the notification
     // channel if the user press the volumeup/volumedown buttons in Contacts.
