@@ -2,7 +2,7 @@
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
   var _id = 0;
 
   /**
@@ -575,7 +575,7 @@
     // Launched as background: set visibility and overlay screenshot.
     if (this.config.stayBackground) {
       this.setVisible(false, true /* screenshot */);
-    } else if (this.isHomescreen) {
+    } else {
       // homescreen is launched at background under FTU/lockscreen too.
       this.setVisible(false);
     }
@@ -1604,6 +1604,7 @@
    */
   AppWindow.prototype.ready = function aw_ready(callback) {
     if (!this.element) {
+      callback(false);
       return;
     }
 

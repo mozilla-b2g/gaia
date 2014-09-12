@@ -26,7 +26,7 @@
   SearchWindow.prototype = {
     __proto__: AppWindow.prototype,
 
-    _DEBUG: false,
+    _DEBUG: true,
 
     CLASS_NAME: 'Search',
 

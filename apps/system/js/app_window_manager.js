@@ -3,7 +3,7 @@
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
   var screenElement = document.getElementById('screen');
 
   /**
@@ -72,6 +72,14 @@
     // store all callback functions in order to unobserve them when uninit.
     _settingsObserveHandler: null,
 
+    isBusyLaunching: function() {
+      return this._launchingApp;
+    },
+
+    _launchingApp: false,
+
+    LAUNCING_APP_TIMEOUT: 1000,
+
     /**
      * Switch to a different app
      * @param {AppWindow} newApp The new app window instance.
@@ -106,6 +114,9 @@
       if (document.mozFullScreen) {
         document.mozCancelFullScreen();
       }
+
+      window.clearTimeout(this._launchingAppTimer);
+      this._launchingApp = true;
 
       screenElement.classList.remove('fullscreen-app');
 
@@ -151,7 +162,10 @@
     switchApp: function awm_switchApp(appCurrent, appNext, switching,
                                       openAnimation, closeAnimation) {
       this.debug('before ready check' + appCurrent + appNext);
-      appNext.ready(function() {
+      appNext.ready(function(killed) {
+        this._launchingAppTimer = setTimeout(function() {
+          this._launchingApp = false;
+        }.bind(this), this.LAUNCING_APP_TIMEOUT);
         if (appNext.isDead()) {
           if (!appNext.isHomescreen) {
             // The app was killed while we were opening it,
@@ -338,6 +352,7 @@
 
     handleEvent: function awm_handleEvent(evt) {
       this.debug('handling ' + evt.type);
+      this.debug('launching app ?' + this._launchingApp);
       var detail = evt.detail;
       var activeApp = this._activeApp;
       switch (evt.type) {
@@ -545,6 +560,12 @@
         case 'launchapp':
           var config = evt.detail;
           this.debug('launching' + config.origin);
+          if (this._launchingApp || 
+              (activeApp && activeApp.isTransitioning())) {
+            this.debug(
+              'Block the app launching request due to busy launching.');
+            return;
+          }
           this.launch(config);
           break;
 
