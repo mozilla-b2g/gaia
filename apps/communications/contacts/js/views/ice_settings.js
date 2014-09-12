@@ -1,6 +1,6 @@
 /* global Contacts */
 /* global ICEData */
-/* global ConfirmDialog */
+
 
 /**
  * ICE Settings view. In charge of selecting
@@ -123,9 +123,6 @@ contacts.ICE = (function() {
    * @param id (string) contact id
    */
   function selectICEHandler(id) {
-    if(!checkContact(id)){
-      return;
-    }
     contacts.List.toggleICEGroup(true);
     setICEContact(id, currentICETarget, true,
      contacts.Settings.navigation.back.bind(
@@ -164,42 +161,7 @@ contacts.ICE = (function() {
         cb();
       }
     });
-  }
-
-  /**
-   * Revise if the contact is already on the ICE contacts
-   * list
-   */
-  function iceContactRepeat(id) {
-    var isRepeat = false;
-    ICEData.iceContacts.forEach( function(iceCont){
-      if(iceCont.id === id){
-        isRepeat = true;
-      }
-    });
-    return isRepeat;
-  }
-
-  /**
-   * Check if the selected contact can be used as an ICE
-   * contact
-   */
-  function checkContact(id) {
-    var dismiss = {
-      title: 'ok',
-      callback: function() {
-        ConfirmDialog.hide();
-      }
-    };
-    var msg = null;
-
-    if(iceContactRepeat(id)){
-      msg = 'ICERepeatContact';
-      Contacts.confirmDialog(null, msg, dismiss);
-      return false;
-    }
-
-    return true;
+    
   }
 
   function reset() {
