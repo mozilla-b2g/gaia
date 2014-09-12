@@ -1,41 +1,45 @@
-'use strict';
-/* global UrlHelper, MockNavigatormozSetMessageHandler */
+/*global MockNavigatormozSetMessageHandler */
 
-requireApp(
-  'system/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+'use strict';
+
+require('/js/browser_config_helper.js');
 require('/shared/js/url_helper.js');
 
-suite('system/browser', function() {
-  var realMozSetMessageHandler;
+require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 
-  setup(function(done) {
+suite('system/Browser', function() {
+  var realMozSetMessageHandler;
+  suiteSetup(function(done) {
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
     MockNavigatormozSetMessageHandler.mSetup();
-    requireApp('system/js/browser.js', done);
+
+    require('/js/browser.js', done);
   });
 
-  teardown(function() {
-    MockNavigatormozSetMessageHandler.mTeardown();
+  suiteTeardown(function() {
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
+    MockNavigatormozSetMessageHandler.mTeardown();
   });
 
-  test('on url activity received', function(done) {
+  test('should open a new app window with the correct config', function(done) {
     window.addEventListener('openwindow', function onOpenWindow(evt) {
       window.removeEventListener('openwindow', onOpenWindow);
-      assert.deepEqual(evt.detail, {
-        oop: true,
-        useAsyncPanZoom: true,
-        url: UrlHelper.getUrlFromInput('test')
-      });
+
+      var app = evt.detail;
+      assert.equal(app.useAsyncPanZoom, true);
+      assert.equal(app.oop, true);
+      assert.equal(app.url, 'http://arandomurl.com/');
+      assert.equal(app.origin, 'http://arandomurl.com/');
       done();
     });
 
     MockNavigatormozSetMessageHandler.mTrigger('activity', {
       source: {
         data: {
+          name: 'view',
           type: 'url',
-          url: 'test'
+          url: 'http://arandomurl.com'
         }
       }
     });
