@@ -333,6 +333,90 @@ suite('Import Friends Test Suite', function() {
       });
     });
 
+    suite('Number of contacts available to import', function() {
+      var fbContacts;
+      var deviceContacts;
+      var observer;
+
+      function setObserver(callback) {
+        observer = new MutationObserver(callback);
+        var observerTarget = document.getElementById('friends-msg');
+        observer.observe(observerTarget, {childList: true});
+
+        var MockFbConnector = {
+          name: 'facebook',
+          listAllContacts: function(token, cb) {
+            cb.success({data: fbContacts});
+          },
+          listDeviceContacts: function(cb) {
+            cb.success(deviceContacts);
+          },
+          adaptDataForShowing: function(data) {
+            return data;
+          },
+          getContactUid: function(data) {
+            return data;
+          }
+        };
+
+        window.importer.start('test_token', MockFbConnector);
+      }
+
+      suiteSetup(function() {
+        sinon.stub(window.Curtain, 'hide', function() {});
+      });
+
+      suiteTeardown(function() {
+        window.Curtain.hide.restore();
+      });
+
+      teardown(function() {
+        observer.disconnect();
+      });
+
+      test('If fb contacts < device contacts, 0', function(done) {
+        fbContacts = ['contact1', 'contact2'];
+        deviceContacts = ['contact1', 'contact2', 'contact3'];
+
+        setObserver(function(mutations) {
+          done(function() {
+            assert.isTrue(mutations[0].target.textContent.indexOf('-') < 0,
+              'The number must not be negative');
+            assert.isTrue(mutations[0].target.textContent.indexOf('0') >= 0,
+              'The number must be 0');
+          });
+        });
+      });
+
+      test('If fb contacts = device contacts, 0', function(done) {
+        fbContacts = ['contact1', 'contact2', 'contact3'];
+        deviceContacts = ['contact1', 'contact2', 'contact3'];
+
+        setObserver(function(mutations) {
+          done(function() {
+            assert.isTrue(mutations[0].target.textContent.indexOf('0') >= 0,
+              'The number must be 0');
+          });
+        });
+      });
+
+      test('If fb contacts > device contacts, >0', function(done) {
+        fbContacts = ['contact1', 'contact2', 'contact3'];
+        deviceContacts = ['contact1', 'contact2'];
+
+        setObserver(function(mutations) {
+          done(function() {
+            assert.isTrue(mutations[0].target.textContent.indexOf('-') < 0,
+              'The number must not be negative');
+            assert.isTrue(mutations[0].target.textContent.indexOf('0') < 0,
+              'The number must not be 0');
+            assert.isTrue(mutations[0].target.textContent.indexOf('1') >= 0,
+              'The number must be 1 in this case');
+          });
+        });
+      });
+    });
+
     teardown(function() {
       stubParentPostMessage.restore();
     });
