@@ -163,6 +163,9 @@
    *
    */
   TaskManager.prototype.hide = function cs_hideCardSwitcher() {
+    if (!this._active) {
+      return;
+    }
     this._unregisterShowingEvents();
     this._removeCards();
     this.setActive(false);
@@ -747,7 +750,8 @@
   TaskManager.prototype.onTouchStart = function cs_onTouchStart(evt) {
     // If there is no card in the cardsView, go back to home screen
     if (this.element.classList.contains('empty')) {
-      this.exitToApp();
+      var homescreen = homescreenLauncher.getHomescreen(true);
+      this.exitToApp(homescreen);
       return;
     }
 

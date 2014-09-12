@@ -92,11 +92,11 @@ suite('system/TaskManager >', function() {
     window.dispatchEvent(evt);
   }
 
-  function showAndWait(clock, done) {
-    waitForEvent(window, 'cardviewshown')
-      .then(function() { done(); }, failOnReject);
+  function showTaskManager(clock) {
     taskManager.show();
+    // We wait for the app to close
     window.dispatchEvent(new CustomEvent('appclosed'));
+    // Then dispatch the cardviewshow event after a tick
     clock.tick();
   }
 
@@ -390,6 +390,19 @@ suite('system/TaskManager >', function() {
     window.SettingsListener = realSettingsListener;
   });
 
+  // The whole suite should use fakeTimers to prevent intemittents
+  // since the code logic is timer-heavy
+  setup(function() {
+    this.sinon.useFakeTimers();
+  });
+
+  // We make sure to end each test with a hidden cardview
+  // and all setTimeouts triggered
+  teardown(function() {
+    taskManager.hide();
+    this.sinon.clock.tick(500); // 100ms exit + 400ms safety
+  });
+
   suite('sanity check > ', function() {
     test('instantiable TaskManager', function(){
       assert.isTrue(taskManager instanceof window.TaskManager,
@@ -465,16 +478,9 @@ suite('system/TaskManager >', function() {
         window.mozRequestAnimationFrame = realRAF;
       });
 
-      setup(function(done) {
+      setup(function() {
         MockAppWindowManager.mActiveApp = apps['http://sms.gaiamobile.org'];
-        waitForEvent(window, 'cardviewshown')
-          .then(function() { done(); }, failOnReject);
-        taskManager.show();
-        window.dispatchEvent(new CustomEvent('appclosed'));
-      });
-
-      teardown(function() {
-        taskManager.hide();
+        showTaskManager(this.sinon.clock);
       });
 
       test('fetch elements', function() {
@@ -602,7 +608,6 @@ suite('system/TaskManager >', function() {
       });
 
       test('user can change swipe direction', function() {
-        this.sinon.useFakeTimers();
         var currentCard = taskManager.currentCard;
 
         // Simulate a swipe that goes to one side, then back again
@@ -651,10 +656,8 @@ suite('system/TaskManager >', function() {
         waitForEvent(window, 'cardviewshown')
           .then(function() { done(); }, failOnReject);
         sendHoldhome();
-      });
-
-      teardown(function() {
-        taskManager.hide();
+        window.dispatchEvent(new CustomEvent('appclosed'));
+        this.sinon.clock.tick();
       });
 
       test('cardsview should be active', function() {
@@ -664,33 +667,20 @@ suite('system/TaskManager >', function() {
     });
 
     suite('populated task manager in rocketbar >', function() {
-      setup(function(done) {
-        assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
-        waitForEvent(window, 'cardviewshown')
-          .then(function() { done(); }, failOnReject);
-        taskManager.show();
-      });
-
-      teardown(function() {
-        taskManager.hide();
+      setup(function() {
+        showTaskManager(this.sinon.clock);
       });
 
       test('has correct classes', function() {
         assert.isTrue(cardsView.classList.contains('active'));
       });
-
     });
-
   });
 
   suite('empty task manager >', function() {
     setup(function() {
       MockStackManager.mStack = [];
       MockStackManager.mCurrent = -1;
-    });
-
-    teardown(function() {
-      taskManager.hide();
     });
 
     test('Empty task manager opens', function(done) {
@@ -712,15 +702,12 @@ suite('system/TaskManager >', function() {
         done();
       }, failOnReject);
       // Pre-Haida/Cardsview mode: taskManager shows empty message
-      taskManager.show();
+      showTaskManager(this.sinon.clock);
     });
 
     suite('display empty cardsview >', function() {
-      setup(function(done) {
-        assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
-        waitForEvent(window, 'cardviewshown')
-          .then(function() { done(); }, failOnReject);
-        taskManager.show();
+      setup(function() {
+        showTaskManager(this.sinon.clock);
       });
 
       test('on touchstart, empty cardsview is closed and back to home screen',
@@ -744,12 +731,13 @@ suite('system/TaskManager >', function() {
 
         cardsView.dispatchEvent(
           createTouchEvent('touchstart', cardsView, 100, 100));
+        this.sinon.clock.tick(101);
       });
     });
   });
 
   suite('hide > ', function() {
-    setup(function(done) {
+    setup(function() {
       MockStackManager.mStack = [
         apps['http://sms.gaiamobile.org'],
         apps['http://game.gaiamobile.org']
@@ -758,14 +746,10 @@ suite('system/TaskManager >', function() {
       MockAppWindowManager.mRunningApps = apps;
       MockAppWindowManager.mDisplayedApp = 'http://sms.gaiamobile.org';
 
-      assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
-      waitForEvent(window, 'cardviewshown')
-        .then(function() { done(); }, failOnReject);
-      taskManager.show();
+      showTaskManager(this.sinon.clock);
     });
 
     teardown(function() {
-      taskManager.hide();
       cardsList.innerHTML = '';
     });
 
@@ -803,6 +787,7 @@ suite('system/TaskManager >', function() {
         delete taskManager.newStackPosition;
       }, failOnReject).then(done, done);
       taskManager.hide();
+      this.sinon.clock.tick(101);
     });
 
     test('hide: removes cards', function(done) {
@@ -814,6 +799,7 @@ suite('system/TaskManager >', function() {
         done();
       }, failOnReject);
       taskManager.hide();
+      this.sinon.clock.tick(101);
     });
 
     test('hide: calls card.destroy', function(done) {
@@ -832,6 +818,7 @@ suite('system/TaskManager >', function() {
         done();
       }, failOnReject);
       taskManager.hide();
+      this.sinon.clock.tick(101);
     });
 
   });
@@ -848,8 +835,11 @@ suite('system/TaskManager >', function() {
       // minimal-setup
       cardsView.classList.remove('active');
       taskManager.setActive(true);
+      this.sinon.clock.tick();
     });
     test('setActive false', function(done) {
+      taskManager.setActive(true);
+      this.sinon.clock.tick();
       // setActive(false) should fire cardsviewbeforeclose event
       waitForEvent(window, 'cardviewbeforeclose').then(function(event) {
         assert.isFalse(cardsView.classList.contains('active'));
@@ -859,24 +849,18 @@ suite('system/TaskManager >', function() {
       // minimal-setup
       cardsView.classList.add('active');
       taskManager.setActive(false);
+      this.sinon.clock.tick();
     });
   });
 
   suite('one app is displayed >', function() {
-    setup(function(done) {
+    setup(function() {
       MockStackManager.mStack = [apps['http://sms.gaiamobile.org']];
       MockStackManager.mCurrent = 0;
       MockAppWindowManager.mRunningApps = {
         'http://sms.gaiamobile.org': apps['http://sms.gaiamobile.org']
       };
-      assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
-      waitForEvent(window, 'cardviewshown')
-        .then(function() { done(); }, failOnReject);
-      taskManager.show();
-    });
-
-    teardown(function() {
-      taskManager.hide();
+      showTaskManager(this.sinon.clock);
     });
 
     test('Prevent reflowing during swipe to remove', function() {
@@ -893,21 +877,13 @@ suite('system/TaskManager >', function() {
   });
 
   suite('tapping on an app >', function() {
-    setup(function(done) {
+    setup(function() {
       MockStackManager.mStack = [apps['http://sms.gaiamobile.org']];
       MockStackManager.mCurrent = 0;
       MockAppWindowManager.mRunningApps = {
         'http://sms.gaiamobile.org': apps['http://sms.gaiamobile.org']
       };
-
-      assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
-      waitForEvent(window, 'cardviewshown')
-        .then(function() { done(); }, failOnReject);
-      taskManager.show();
-    });
-
-    teardown(function() {
-      taskManager.hide();
+      showTaskManager(this.sinon.clock);
     });
 
     test('displays the new app before dismissing the task manager',
@@ -920,19 +896,17 @@ suite('system/TaskManager >', function() {
 
       var app = MockStackManager.mStack[0];
       this.sinon.stub(app, 'open', function() {
-        setTimeout(function() {
-          sendAppopen(app);
-        });
+        sendAppopen(app);
       });
 
       var target = cardsList.firstElementChild;
       taskManager.handleTap({ target: target });
+      this.sinon.clock.tick(100);
     });
   });
 
   suite('closeApp', function() {
-    setup(function(done) {
-      this.sinon.useFakeTimers();
+    setup(function() {
       MockStackManager.mStack = [
         apps['http://sms.gaiamobile.org'],
         apps['http://game.gaiamobile.org']
@@ -942,17 +916,9 @@ suite('system/TaskManager >', function() {
         'http://sms.gaiamobile.org': apps['http://sms.gaiamobile.org'],
         'http://game.gaiamobile.org': apps['http://game.gaiamobile.org']
       };
-
-      assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
-      waitForEvent(window, 'cardviewshown')
-        .then(function() { done(); }, failOnReject);
-      taskManager.show();
-      window.dispatchEvent(new CustomEvent('appclosed'));
-      this.sinon.clock.tick();
+      showTaskManager(this.sinon.clock);
     });
     teardown(function() {
-      taskManager.hide();
-      this.sinon.clock.tick(500); // safety timeout
       cardsList.innerHTML = '';
     });
 
@@ -995,7 +961,7 @@ suite('system/TaskManager >', function() {
   });
 
   suite('app is killed', function() {
-    setup(function(done) {
+    setup(function() {
       MockStackManager.mStack = [
         apps['http://sms.gaiamobile.org'],
         apps['http://game.gaiamobile.org']
@@ -1005,15 +971,11 @@ suite('system/TaskManager >', function() {
         'http://sms.gaiamobile.org': apps['http://sms.gaiamobile.org'],
         'http://game.gaiamobile.org': apps['http://game.gaiamobile.org']
       };
-
-      assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
-      waitForEvent(window, 'cardviewshown')
-        .then(function() { done(); }, failOnReject);
       taskManager.isRocketbar = false;
-      taskManager.show();
+      showTaskManager(this.sinon.clock);
     });
+
     teardown(function() {
-      taskManager.hide();
       cardsList.innerHTML = '';
     });
 
@@ -1034,21 +996,15 @@ suite('system/TaskManager >', function() {
 
   suite('exit >', function() {
     setup(function() {
-      this.sinon.useFakeTimers();
-      taskManager.hide();
-    });
-
-    teardown(function() {
-      this.sinon.clock.tick(500); // safety timeout
       taskManager.hide();
     });
 
     suite('when opening from the homescreen', function() {
-      setup(function(done) {
+      setup(function() {
         MockAppWindowManager.mRunningApps = apps;
         MockAppWindowManager.mActiveApp = home;
         MockStackManager.mCurrent = -1;
-        showAndWait(this.sinon.clock, done);
+        showTaskManager(this.sinon.clock);
       });
 
       test('selected app is opened', function(done) {
@@ -1079,11 +1035,11 @@ suite('system/TaskManager >', function() {
     });
 
     suite('when opening from an app', function() {
-      setup(function(done) {
+      setup(function() {
         MockAppWindowManager.mRunningApps = apps;
         MockAppWindowManager.mActiveApp = apps['http://sms.gaiamobile.org'];
         MockStackManager.mCurrent = 0;
-        showAndWait(this.sinon.clock, done);
+        showTaskManager(this.sinon.clock);
       });
 
       test('selected app is opened', function(done) {
@@ -1158,10 +1114,6 @@ suite('system/TaskManager >', function() {
           assert.equal(filterName, _filterName);
           taskManager.stack = [];
         });
-    });
-
-    teardown(function() {
-      taskManager.hide();
     });
 
     test('filter function is called and empty stack is the result', function() {
