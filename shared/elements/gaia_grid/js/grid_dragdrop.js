@@ -27,7 +27,7 @@
   function DragDrop(gridView) {
     this.gridView = gridView;
     this.container = gridView.element;
-    this.scrollable = this.container.parentNode;
+    this.scrollable = document.documentElement;
     this.container.addEventListener('touchstart', this);
     this.container.addEventListener('contextmenu', this);
   }
@@ -112,7 +112,7 @@
       // Make the icon larger
       this.icon.transform(
         e.pageX - this.xAdjust,
-        e.pageY - this.yAdjust + this.scrollable.scrollTop,
+        e.pageY - this.yAdjust,
         this.icon.scale + ACTIVE_SCALE_ADJUST);
     },
 
@@ -451,7 +451,7 @@
           case 'touchmove':
             var touch = e.touches[0];
 
-            var pageY = touch.pageY + this.scrollable.scrollTop;
+            var pageY = touch.pageY;
             this.positionIcon(touch.pageX, pageY);
 
             this.currentTouch = {
