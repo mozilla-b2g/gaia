@@ -76,6 +76,7 @@
       'accessibility.screenreader': false,
       'accessibility.screenreader-volume': 1,
       'accessibility.screenreader-rate': 0,
+      'accessibility.screenreader-captions': false,
       'accessibility.colors.enable': false,
       'accessibility.colors.invert': false,
       'accessibility.colors.grayscale': false,
@@ -113,6 +114,8 @@
 
       this.screen = document.getElementById('screen');
 
+      this.speechSynthesizer = speechSynthesizer;
+
       window.addEventListener('mozChromeEvent', this);
       window.addEventListener('logohidden', this);
 
@@ -141,6 +144,14 @@
                   'layers.effect.contrast': aValue ?
                     this.settings['accessibility.colors.contrast'] : '0.0'
                 });
+                break;
+
+              case 'accessibility.screenreader-captions':
+                this.speechSynthesizer.captions = aValue;
+                // If captions are displayed hide them.
+                if (!aValue) {
+                  this.speechSynthesizer.hideSpeech(true);
+                }
                 break;
 
               case 'accessibility.colors.invert':
@@ -215,14 +226,14 @@
       this.reset();
 
       if (!this.isSpeaking && timeStamp > this.expectedCompleteTimeStamp) {
-        speechSynthesizer.cancel();
+        this.speechSynthesizer.cancel();
         this.announceScreenReader(function onEnd() {
           this.resetSpeaking(timeStamp + this.REPEAT_BUTTON_PRESS);
         }.bind(this));
         return;
       }
 
-      speechSynthesizer.cancel();
+      this.speechSynthesizer.cancel();
       this.resetSpeaking();
       SettingsListener.getSettingsLock().set({
         'accessibility.screenreader':
@@ -237,10 +248,6 @@
      * @memberof Accessibility.prototype
      */
     _playSound: function ar__playSound(aSoundKey) {
-      // If volume is at 0, do not play sound.
-      if (!this.volume) {
-        return;
-      }
       if (!this.sounds[aSoundKey]) {
         this.sounds[aSoundKey] = new Audio(this.soundURLs[aSoundKey]);
         this.sounds[aSoundKey].load();
@@ -357,11 +364,7 @@
      * @memberof Accessibility.prototype
      */
     speak: function ar_speak(aData, aCallback, aOptions = {}) {
-      // If volume is at 0, do not speak.
-      if (!this.volume) {
-        return;
-      }
-      speechSynthesizer.speak(aData, aOptions, this.rate, this.volume,
+      this.speechSynthesizer.speak(aData, aOptions, this.rate, this.volume,
         aCallback);
     }
   };
@@ -372,18 +375,46 @@
    * @type {Object}
    */
   var speechSynthesizer = {
+
+    /**
+     * A delay before hiding screen reader caption.
+     * @type {Number}
+     * @memberof speechSynthesizer
+     */
+    CAPTIONS_DELAY: 1500,
+
+    /**
+     * A flag used for speech captions rendering.
+     * @type {Boolean}
+     * @memberof speechSynthesizer
+     */
+    captions: false,
+
+    /**
+     * Screen container getter.
+     * @type {Object}
+     * @memberof speechSynthesizer
+     */
+    get screen() {
+      delete this.screen;
+      this.screen = document.getElementById('screen');
+      return this.screen;
+    },
+
     /**
      * Speech Synthesis
      * @type {Object}
      * @memberof speechSynthesizer
      */
     get speech() {
+      delete this.speech;
       // If there are no voices bundled, consider speech synthesis unavailable.
       if (!window.speechSynthesis ||
         window.speechSynthesis.getVoices().length === 0) {
-        return null;
+        this.speech = null;
       }
-      return window.speechSynthesis;
+      this.speech = window.speechSynthesis;
+      return this.speech;
     },
 
     /**
@@ -392,7 +423,9 @@
      * @memberof speechSynthesizer
      */
     get utterance() {
-      return window.SpeechSynthesisUtterance;
+      delete this.utterance;
+      this.utterance = window.SpeechSynthesisUtterance;
+      return this.utterance;
     },
 
     /**
@@ -460,6 +493,45 @@
     },
 
     /**
+     * Show caption for the screen reader.
+     * @param  {String} aUtterance Current screen reader caption.
+     * @memberof speechSynthesizer
+     */
+    showSpeech: function ar_showSpeech(aUtterance) {
+      if (!this.captionsBox) {
+        this.captionsBox = document.createElement('div');
+        this.captionsBox.id = 'accessibility-captions-box';
+        this.captionsBox.setAttribute('data-z-index-level',
+          'accessibility-captions');
+        this.captionsBox.setAttribute('aria-hidden', true);
+        this.screen.appendChild(this.captionsBox);
+      }
+      window.clearTimeout(this.captionsHideTimeout);
+      this.captionsHideTimeout = null;
+      this.captionsBox.innerHTML = aUtterance;
+      this.captionsBox.classList.add('visible');
+    },
+
+    /**
+     * Hide current screen reader caption.
+     * @param {Boolean} aImmediately A flag to hide captionsBox immediately.
+     * @memberof speechSynthesizer
+     */
+    hideSpeech: function ar_hideSpeech(aImmediately) {
+      if (!this.captionsBox) {
+        return;
+      }
+      // Hide the caption after CAPTIONS_DELAY.
+      if (aImmediately) {
+        this.captionsBox.classList.remove('visible');
+      } else {
+        this.captionsHideTimeout = window.setTimeout(function() {
+          this.captionsBox.classList.remove('visible');
+        }.bind(this), this.CAPTIONS_DELAY);
+      }
+    },
+
+    /**
      * Utter a message with a speechSynthesizer.
      * @param {?Array} aData A messages array to be localized.
      * @param {JSON} aOptions Options to be used when speaking. For example: {
@@ -483,10 +555,29 @@
         this.cancel();
       }
 
-      var utterance = new this.utterance(this.buildUtterance(aData));
+      var sentence = this.buildUtterance(aData);
+      if (!sentence) {
+        if (aCallback) {
+          aCallback();
+        }
+        return;
+      }
+
+      var utterance = new this.utterance(sentence);
       utterance.volume = aVolume;
       utterance.rate = aRate;
-      utterance.addEventListener('end', aCallback);
+      utterance.addEventListener('end', function() {
+        if (this.captions) {
+          this.hideSpeech();
+        }
+        if (aCallback) {
+          aCallback();
+        }
+      }.bind(this));
+
+      if (this.captions) {
+        this.showSpeech(sentence);
+      }
       this.speech.speak(utterance);
     }
   };
