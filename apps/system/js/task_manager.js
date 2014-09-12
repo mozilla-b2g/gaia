@@ -113,6 +113,7 @@
    *                            and 'apps-only'.
    */
   TaskManager.prototype.show = function cs_showCardSwitcher(filterName) {
+    this.calculateDimensions();
     this.newStackPosition = null;
     this._registerShowingEvents();
 
@@ -517,6 +518,17 @@
   };
 
   /**
+   * Gets current sizing information on resize or render.
+   * @memberOf TaskManager.prototype
+   * @param  {DOMEvent} evt The event.
+   */
+  TaskManager.prototype.calculateDimensions =
+    function cv_calculateDimensions(evt) {
+    this.windowWidth = window.innerWidth;
+    this.windowHeight = window.innerHeight;
+  };
+
+  /**
    * Default event handler
    * @memberOf TaskManager.prototype
    * @param  {DOMEvent} evt The event.
@@ -543,8 +555,7 @@
         break;
 
       case 'resize':
-        this.windowWidth = window.innerWidth;
-        this.windowHeight = window.innerHeight;
+        this.calculateDimensions();
         this.alignCurrentCard();
         break;
 
