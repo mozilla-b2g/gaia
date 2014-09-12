@@ -288,18 +288,34 @@
       if (skipDivider) {
         return;
       }
-      var lastItem = this.items[this.items.length - 1];
-      if (!(lastItem instanceof GaiaGrid.Divider)) {
-        this.items.push(new GaiaGrid.Divider());
-      }
 
-      // In dragdrop also append a row of placeholders.
-      // These placeholders are used for drop detection as we ignore dividers
-      // and will create a new group when an icon is dropped on them.
+      var lastItem = this.items[this.items.length - 1];
       if (this.dragdrop && this.dragdrop.inEditMode) {
+        // Check if there are only placeholders in the last row,
+        // to prevent additional dividers from created.
+        // First get the last item that is not a placeholder.
+        var i = this.items.length - 1;
+        while ((i > 0) && (this.items[i] instanceof GaiaGrid.Placeholder)) {
+          i--;
+        }
+
+        // If the last item is neither a divider nor an icon being dragged,
+        // we add a new divier at the end.
+        if (this.items[i] &&
+            !(this.items[i] instanceof GaiaGrid.Divider) &&
+            !this.items[i].element.classList.contains('active')) {
+          this.items.push(new GaiaGrid.Divider());
+        }
+
+        // In dragdrop also append a row of placeholders.
+        // These placeholders are used for drop detection as we ignore dividers
+        // and will create a new group when an icon is dropped on them.
         var coords = [0, lastItem.y + 2];
         this.createPlaceholders(coords, this.items.length, this.layout.cols,
           true);
+
+      } else if (!(lastItem instanceof GaiaGrid.Divider)) {
+        this.items.push(new GaiaGrid.Divider());
       }
     },
 
