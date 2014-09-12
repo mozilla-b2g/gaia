@@ -8,7 +8,6 @@
 
   function App() {
     window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
-    this.scrollable = document.querySelector('.scrollable');
     this.grid = document.getElementById('icons');
 
     this.grid.addEventListener('iconblobdecorated', this);
@@ -219,10 +218,9 @@
           }
 
           var step;
-          var scrollable = this.scrollable;
 
           var doScroll = function() {
-            var scrollY = scrollable.scrollTop;
+            var scrollY = window.scrollY;
             step = step || (scrollY / 20);
 
             if (!scrollY) {
@@ -230,11 +228,11 @@
             }
 
             if (scrollY <= step) {
-              scrollable.scrollTop = 0;
+              window.scrollBy(0, -scrollY);
               return;
             }
 
-            scrollable.scrollTop -= step;
+            window.scrollBy(0, -step);
             window.requestAnimationFrame(doScroll);
           };
 
