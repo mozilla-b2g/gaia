@@ -897,3 +897,9 @@ form[role="combobox"] span[data-field="type"] {
 #group-favorites {
   padding-top: 2rem;
 }
+
+.tagItem,
+.textfield.tagItem {
+  margin: 1rem;
+  width: calc(100% - 2rem);
+}

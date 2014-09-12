@@ -24,10 +24,27 @@ var ContactsTag = (function() {
     }
   };
 
-  var touchCustomTag = function touchCustomTag(callback) {
-    if (selectedTag) {
-      selectedTag.removeAttribute('class');
+  var unMarkTag = function unMarkTag(tag) {
+    if (tag) {
+      tag.classList.remove('icon');
+      tag.classList.remove('icon-selected');
+
+      tag.removeAttribute('aria-selected');
     }
+  };
+
+   var markTag = function markTag(tag) {
+    if (tag) {
+      tag.classList.add('icon');
+      tag.classList.add('icon-selected');
+
+      tag.setAttribute('aria-selected', true);
+    }
+  };
+
+  var touchCustomTag = function touchCustomTag(callback) {
+    unMarkTag(selectedTag);
+
     selectedTag = null;
 
     if (callback !== undefined && typeof callback === 'function') {
@@ -48,6 +65,7 @@ var ContactsTag = (function() {
       tagLink.setAttribute('data-l10n-id', options[option].type);
       tagLink.setAttribute('data-value', options[option].type);
       tagLink.setAttribute('role', 'option');
+      tagLink.classList.add('tagItem');
 
       tagLink.addEventListener('click', function(event) {
         var tag = event.target;
@@ -80,12 +98,10 @@ var ContactsTag = (function() {
     //Clean any trace of the custom tag
     customTag.value = '';
 
-    if (selectedTag) {
-      selectedTag.removeAttribute('class');
-      selectedTag.removeAttribute('aria-selected');
-    }
-    tag.className = 'icon icon-selected';
-    tag.setAttribute('aria-selected', true);
+    unMarkTag(selectedTag);
+
+    markTag(tag);
+    
     selectedTag = tag;
   };
 
