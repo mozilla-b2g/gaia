@@ -26,3 +26,16 @@ input[type="range"].blur-slider {
 .type-box {
   border-top: none;
 }
+
+#app-list li img {
+  height: 3rem;
+  margin-right: 1.4rem;
+  width: 3rem;
+}
+
+#app-list li > a  {
+  align-items: center;
+  flex-direction: row;
+  justify-content: flex-start;
+  padding-left: 2rem;
+}
