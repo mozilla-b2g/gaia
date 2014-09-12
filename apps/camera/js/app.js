@@ -161,12 +161,13 @@ App.prototype.bindEvents = function() {
   debug('binding events');
 
   // App
-  this.once('viewfinder:visible', this.onCriticalPathDone);
   this.once('storage:checked:healthy', this.geolocationWatch);
-  this.on('busy', this.onBusy);
+  this.once('viewfinder:visible', this.onCriticalPathDone);
+  this.on('camera:willchange', this.firer('busy'));
   this.on('ready', this.clearSpinner);
   this.on('visible', this.onVisible);
   this.on('hidden', this.onHidden);
+  this.on('busy', this.onBusy);
 
   // Pinch
   this.pinch.on('changed', this.firer('pinch:changed'));

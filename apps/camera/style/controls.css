@@ -18,6 +18,14 @@
   direction: ltr;
 }
 
+/**
+ * disabled
+ */
+
+.controls.disabled {
+  pointer-events: none;
+}
+
 /** Left and Right
  ---------------------------------------------------------*/
 
