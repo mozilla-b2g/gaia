@@ -36,7 +36,7 @@
         </legend>
         <section>
           <p class="setbox-item">
-            <input placeholder="Email" data-l10n-id="email" name="email[#i#][value]" class="textfield" type="email" value="#value#" id="email_#i#">
+            <input placeholder="Email" data-field="value" data-l10n-id="email" name="email[#i#][value]" class="textfield" type="email" value="#value#" id="email_#i#">
             <button type="reset">Clear</button>
           </p>
         </section>
@@ -84,7 +84,7 @@
               <span aria-hidden="true" id="date-text_#i#" class="datetime placeholder">
                 Date
               </span>
-              <input placeholder="date" data-l10n-id="date" name="date[#i#][value]" type="date" id="date_#i#" aria-labelledby="date-text_#i#">
+              <input placeholder="date" data-field="#type#"  data-l10n-id="date" name="date[#i#][value]" type="date" id="date_#i#" aria-labelledby="date-text_#i#">
             </p>
           </section>
         </div>
@@ -95,7 +95,7 @@
       <dl role="presentation" class="setbox fillflow-row">
         <dd class="setbox-body">
           <p class="setbox-item">
-           <input placeholder="Comment" data-l10n-id="comment" name="comment[#i#]" class="textfield" type="text" x-inputmode="latin-prose" value="#note#" id="note_#i#" dir="auto">
+           <input placeholder="Comment" data-field="note" data-l10n-id="comment" name="comment[#i#]" class="textfield" type="text" x-inputmode="latin-prose" value="#note#" id="note_#i#" dir="auto">
            <button type="reset">Clear</button>
           </p>
         </dd>
@@ -122,17 +122,17 @@
             </div>
             <div class="item-body-exp">
               <p class="fillflow-row">
-                <input placeholder="Name" data-l10n-id="givenName" name="givenName" class="textfield" type="text" x-inputmode="latin-prose" value="" id="givenName" dir="auto">
+                <input placeholder="Name" data-field="givenName" data-l10n-id="givenName" name="givenName" class="textfield" type="text" x-inputmode="latin-prose" value="" id="givenName" dir="auto">
                 <button type="reset">Clear</button>
               </p>
               <p class="fillflow-row">
-                <input placeholder="Last name" data-l10n-id="familyName" name="familyName" class="textfield" type="text" x-inputmode="latin-prose" value="" id="familyName" dir="auto">
+                <input placeholder="Last name" data-field="familyName" data-l10n-id="familyName" name="familyName" class="textfield" type="text" x-inputmode="latin-prose" value="" id="familyName" dir="auto">
                 <button type="reset">Clear</button>
               </p>
             </div>
             <div>
               <p class="fillflow-row">
-                <input placeholder="Company Name" data-l10n-id="org" name="org" class="textfield" type="text" x-inputmode="latin-prose" value="" id="org" dir="auto">
+                <input placeholder="Company Name" data-field="org" data-l10n-id="org" name="org" class="textfield" type="text" x-inputmode="latin-prose" value="" id="org" dir="auto">
                 <button type="reset" id="clear-org">Clear</button>
               </p>
             </div>

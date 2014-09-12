@@ -239,6 +239,19 @@ suite('Render contact form', function() {
       assertSaveState(null);
     });
 
+    test('with date params', function() {
+      var params = {
+        date: new Date(0)
+      };
+      subject.render(params);
+
+      var valueDate = document.querySelector('#date_0').valueAsDate;
+
+      assert.equal(valueDate.toDateString(), params.date.toDateString());
+
+      assertSaveState(null);
+    });
+
     test('Initially the carrier field must be in disabled state', function() {
       subject.render();
       var element = document.body.querySelector('#add-phone-0');

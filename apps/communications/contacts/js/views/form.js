@@ -69,13 +69,14 @@ contacts.Form = (function() {
 
     get: function textFieldsCache_get() {
       if (!this._textFields) {
-        var fields = contactForm.querySelectorAll('input.textfield');
+        var fields = contactForm.querySelectorAll('input[data-field]');
 
         var fbFields =
           Array.slice(contactForm.querySelectorAll(
-                                                  '.facebook input.textfield'));
+                                                '.facebook input[data-field]'));
         var invalidFields =
-          Array.slice(contactForm.querySelectorAll('.invalid input.textfield'));
+          Array.slice(contactForm.querySelectorAll(
+                                                '.invalid input[data-field]'));
 
         this._textFields = Array.filter(fields, function(field) {
           return (fbFields.indexOf(field) === -1 &&
