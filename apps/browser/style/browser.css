@@ -458,6 +458,7 @@ input::-moz-focus-inner {
   height: 10rem;
   background-color: rgba(255, 255, 255, 0.3);
   background-size: cover;
+  outline: 0;
 }
 
 #top-site-thumbnails li span {
