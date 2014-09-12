@@ -21,12 +21,19 @@
     'mozbrowsererror'
   ];
 
-  SearchWindow.SUB_COMPONENTS = {};
+  SearchWindow.SUB_COMPONENTS = {
+    'childWindowFactory': window.ChildWindowFactory,
+    'transitionController': window.AppTransitionController
+  };
 
   SearchWindow.prototype = {
     __proto__: AppWindow.prototype,
 
+    constructor: SearchWindow,
+
     _DEBUG: false,
+
+    SUSPENDING_ENABLED: false,
 
     CLASS_NAME: 'Search',
 
