@@ -55,6 +55,11 @@
            '</div>';
   };
 
+  // The search window orientation depends on the orientation of the
+  // current displayed app. So don't do anything here.
+  SearchWindow.prototype.lockOrientation = function() {
+  };
+
   // We don't need to wait.
   // Kill process will call requestclose to let manager decide
   // if we want to wait the background needs repaint,
