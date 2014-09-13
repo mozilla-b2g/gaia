@@ -5,7 +5,7 @@ Keyboards['bn-Avro'] = {
   menuLabel: 'বাংলা - অভ্র',
   alternateLayoutKey: '?১২৩',
   basicLayoutKey: 'কখগ',
-  types: ['text', 'url'],
+  types: ['text', 'url', 'number'],
   alt: {
     a: 'A',
     b: 'B',

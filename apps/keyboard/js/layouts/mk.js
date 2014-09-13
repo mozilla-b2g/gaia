@@ -3,7 +3,7 @@ Keyboards.mk = {
   shortLabel: 'Mk',
   menuLabel: 'Македонски',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'password'],
+  types: ['text', 'url', 'email', 'number', 'password'],
   alt: {
     'е': 'ѐ',
     'и': 'ѝ'

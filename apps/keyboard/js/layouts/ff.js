@@ -3,7 +3,7 @@ Keyboards.ff = {
   shortLabel: 'Ff',
   menuLabel: 'Pulaar-Fulfulde',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'password'],
+  types: ['text', 'url', 'email', 'number', 'password'],
   alt: {
     a: 'àâæáãäåā',
     c: 'çćč',

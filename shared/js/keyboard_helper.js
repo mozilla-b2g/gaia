@@ -12,7 +12,7 @@
  * The set of "basic keyboard" types
  */
 var BASE_TYPES = new Set([
-  'text', 'url', 'email', 'password', 'number', 'option'
+  'text', 'url', 'email', 'password', 'digit', 'number', 'option'
 ]);
 
 /**
@@ -68,8 +68,7 @@ var currentSettings = {
 
 // until we read otherwise, asssume the default keyboards are en and number
 currentSettings.defaultLayouts[defaultKeyboardManifestURL] = {
-  en: true,
-  number: true
+  en: true
 };
 
 // and also assume that the defaults are the enabled
@@ -251,7 +250,8 @@ function kh_parseEnabled() {
         currentSettings.enabledLayouts = {};
         var oldSettings = JSON.parse(value);
         oldSettings.forEach(function(layout) {
-          if (layout.enabled) {
+          // ignore number keyboard since bug 1024298
+          if ('number' !== layout.layoutId && layout.enabled) {
             var manifestURL = layout.manifestURL;
             if (!manifestURL)
               manifestURL = layout.appOrigin + '/manifest.webapp';
@@ -291,7 +291,6 @@ function kh_migrateDeprecatedSettings(deprecatedSettings) {
 
   // reset the enabled layouts
   currentSettings.enabledLayouts[defaultKeyboardManifestURL] = {
-    number: true
   };
 
   var hasEnabledLayout = false;
@@ -494,7 +493,8 @@ var KeyboardHelper = exports.KeyboardHelper = {
   // selected for that group (if it's not enforced in settings)
   // please see the bug and its related UX spec for the sense of 'fallback'
   fallbackLayoutNames: {
-    password: 'en'
+    password: 'en',
+    number: 'en'
   },
 
   fallbackLayouts: {},
@@ -592,7 +592,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
   checkDefaults: function kh_checkDefaults(callback) {
     var layoutsEnabled = [];
     var missingTypes = [];
-    ['text', 'url', 'number'].forEach(function eachType(type) {
+    ['text', 'url'].forEach(function eachType(type) {
       // getLayouts is sync when we already have data
       var enabled;
       this.getLayouts({ type: type, enabled: true }, function(layouts) {

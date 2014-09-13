@@ -7,7 +7,7 @@ from gaiatest.apps.base import Base
 
 
 class KeyboardPage(Base):
-    _number_input_locator = (By.CSS_SELECTOR, 'input[type="number"]')
+    _number_input_locator = (By.CSS_SELECTOR, 'input[x-inputmode="numeric"]')
     _text_input_locator = (By.CSS_SELECTOR, 'input[type="text"]')
     _email_input_locator = (By.CSS_SELECTOR, 'input[type="email"]')
     _url_input_locator = (By.CSS_SELECTOR, 'input[type="url"]')

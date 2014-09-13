@@ -19,7 +19,7 @@ class TestNumberKeyboard(GaiaTestCase):
 
         keyboard = keyboard_page.tap_number_input()
 
-        self.assertEqual(str(keyboard.current_keyboard), 'number')
+        self.assertEqual(str(keyboard.current_keyboard), 'en')
 
         keyboard.switch_to_keyboard()
         keyboard._tap('1')

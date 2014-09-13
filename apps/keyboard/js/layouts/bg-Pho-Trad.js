@@ -2,7 +2,7 @@ Keyboards['bg-Pho-Trad'] = {
   label: 'Bulgarian (Phonetic)',
   shortLabel: 'Bg',
   menuLabel: 'Български (Фонетична)',
-  types: ['text', 'url', 'email', 'password'],
+  types: ['text', 'url', 'email', 'number', 'password'],
   imEngine: 'latin',
   autoCorrectLanguage: 'bg',
   width: 11,

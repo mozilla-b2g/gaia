@@ -12,20 +12,7 @@
     "settings": { "access": "readwrite" },
     "input": {}
   },
-  "inputs": {
-    "number": {
-      "launch_path": "/index.html#numberLayout",
-      "name": "Number",
-      "description": "Numeric layout",
-      "types": ["number"],
-      "locales": {
-        "en-US": {
-          "name": "Number",
-          "description": "Numeric layout"
-        }
-      }
-    }
-  },
+  "inputs": {},
   "locales": {
     "en-US": {
       "name": "Built-in Keyboard",

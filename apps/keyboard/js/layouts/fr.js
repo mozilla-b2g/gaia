@@ -3,7 +3,7 @@ Keyboards.fr = {
   shortLabel: 'Fr',
   menuLabel: 'Français',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'password'],
+  types: ['text', 'url', 'email', 'number', 'password'],
   autoCorrectLanguage: 'fr',
   autoCorrectPunctuation: false,
   alt: {

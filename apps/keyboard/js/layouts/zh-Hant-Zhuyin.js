@@ -6,7 +6,7 @@ Keyboards['zh-Hant-Zhuyin'] = {
   needsCandidatePanel: true,
   needsCommaKey: true,
   imEngine: 'jszhuyin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'number'],
   width: 11,
   specificCssRule: true,
   textLayoutOverwrite: {

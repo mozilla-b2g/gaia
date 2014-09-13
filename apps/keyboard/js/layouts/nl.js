@@ -4,7 +4,7 @@ Keyboards.nl = {
   menuLabel: 'Nederlands',
   imEngine: 'latin',
   autoCorrectLanguage: 'nl',
-  types: ['text', 'url', 'email', 'password'],
+  types: ['text', 'url', 'email', 'number', 'password'],
   alt: {
     a: 'áäâàæãåā',
     e: 'éëêèęėē€',

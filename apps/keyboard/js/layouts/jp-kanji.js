@@ -3,7 +3,7 @@ Keyboards['jp-kanji'] = {
   shortLabel: 'Ja',
   menuLabel: 'Japanese - Kanji',
   imEngine: 'jskanji',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'number'],
   needsCandidatePanel: true,
   disableAlternateLayout: true,
   hidesSwitchKey: true,
