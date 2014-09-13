@@ -235,7 +235,6 @@ suite('LayoutManager', function() {
         'alternateLayout': alternateLayout,
         'symbolLayout': symbolLayout,
         'telLayout': { keys: [] },
-        'numberLayout': { keys: [] },
         'pinLayout': { keys: [] },
         'spaceLayoutSpecial': { keys: [] },
         'moreKeysLayout': moreKeysLayout,
