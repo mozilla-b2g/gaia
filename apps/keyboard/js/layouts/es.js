@@ -4,6 +4,7 @@ Keyboards.es = {
   menuLabel: 'Español',
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
+  dictionaryLabel: 'Español',
   autoCorrectLanguage: 'es',
   alt: {
     a: 'áªàâäåãāæ',

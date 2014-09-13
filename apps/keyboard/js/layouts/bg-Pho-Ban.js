@@ -4,6 +4,7 @@ Keyboards['bg-Pho-Ban'] = {
   menuLabel: 'Български (БАН)',
   types: ['text', 'url', 'email', 'password'],
   imEngine: 'latin',
+  dictionaryLabel: 'Български',
   autoCorrectLanguage: 'bg',
   width: 11,
   alt: {

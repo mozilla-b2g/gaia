@@ -4,6 +4,7 @@ Keyboards['bg-BDS'] = {
   menuLabel: 'Български (БДС)',
   types: ['text', 'url', 'email'],
   imEngine: 'latin',
+  dictionaryLabel: 'Български',
   autoCorrectLanguage: 'bg',
   width: 11,
   alt: {

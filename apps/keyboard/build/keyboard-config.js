@@ -5,7 +5,8 @@ Cu.import('resource://gre/modules/Services.jsm');
 exports.copyLayoutsAndResources = copyLayoutsAndResources;
 exports.addEntryPointsToManifest = addEntryPointsToManifest;
 
-function copyLayoutsAndResources(appDir, distDir, layoutNames) {
+function copyLayoutsAndResources(appDir, distDir, layoutNames,
+                                 preloadDictLayoutNames) {
   // Here is where the layouts and dictionaries get copied to
   let layoutDest = utils.getFile(distDir.path, 'js', 'layouts');
   let dictDest = utils.getFile(distDir.path,
@@ -21,14 +22,31 @@ function copyLayoutsAndResources(appDir, distDir, layoutNames) {
   // Now get the set of layouts for this build
   let layouts = getLayouts(appDir, layoutNames);
 
+  let dictionaries = {};
+
   // Loop through the layouts and copy the layout file and dictionary file
   layouts.forEach(function(layout) {
+    var preloaded = (preloadDictLayoutNames.indexOf(layout.name) !== -1);
+
+    if (layout.dictName) {
+      if (!(layout.dictName in dictionaries)) {
+        dictionaries[layout.dictName] = {
+          label: layout.dictionaryLabel || layout.label,
+          name: layout.dictName,
+          preloaded: preloaded
+        };
+      } else if (preloaded) {
+        dictionaries[layout.dictName].preloaded = preloaded;
+      }
+    }
+
     // Copy the layout file to where it needs to go
     layout.file.copyTo(layoutDest, layout.file.leafName);
 
     try {
-      if (layout.imEngineDir)
+      if (layout.imEngineDir) {
         layout.imEngineDir.copyTo(imeDest, layout.imEngineDir.leafName);
+      }
     }
     catch(e) {
       throw new Error('Unknown ime directory ' + layout.imEngineDir.path +
@@ -36,16 +54,27 @@ function copyLayoutsAndResources(appDir, distDir, layoutNames) {
 
     }
 
+    // Don't copy the dictionary if we are asked not to.
+    if (!preloaded) {
+      return;
+    }
+
     try {
-      if (layout.dictFile)
+      if (layout.dictFile) {
         layout.dictFile.copyTo(dictDest, layout.dictFile.leafName);
+      }
     }
     catch(e) {
       throw new Error('Unknown dictionary file ' + layout.dictFile.path +
                       ' for keyboard layout ' + layout.name);
-
     }
   });
+
+  return {
+    dictionaries: Object.keys(dictionaries).map(function(dictName) {
+      return dictionaries[dictName]
+    })
+  };
 }
 
 function addEntryPointsToManifest(appDir, distDir, layoutNames, manifest) {
@@ -112,7 +141,7 @@ function getLayouts(appDir, layoutNames) {
                KeyEvent: {},
                KeyboardEvent: {}};
     Services.scriptloader.loadSubScript('file://' + layoutFile.path, win, 'UTF-8');
-    let dictName = win.Keyboards[layoutName].autoCorrectLanguage;
+    let dictName = win.Keyboards[layoutName].autoCorrectLanguage || null;
     let dictFile = dictName
       ? utils.getFile(dictSrc.path, dictName + '.dict')
       : null;
@@ -126,7 +155,9 @@ function getLayouts(appDir, layoutNames) {
       label: win.Keyboards[layoutName].menuLabel,
       file: layoutFile,
       types: win.Keyboards[layoutName].types,
+      dictionaryLabel: win.Keyboards[layoutName].dictionaryLabel,
       dictFile: dictFile,
+      dictName: dictName,
       imEngineDir: imEngineDir
     };
   }

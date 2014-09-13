@@ -4,6 +4,7 @@ Keyboards['fr-Dvorak-bepo'] = {
   menuLabel: 'Bépo',
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
+  dictionaryLabel: 'Français',
   autoCorrectLanguage: 'fr',
   autoCorrectPunctuation: false,
   alt: {

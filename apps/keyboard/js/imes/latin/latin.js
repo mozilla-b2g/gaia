@@ -43,7 +43,7 @@
 (function() {
   // Register ourselves in the keyboard's set of input methods
   // The functions used here are all defined below
-  InputMethods.latin = {
+  var latin = InputMethods.latin = {
     init: init,
     activate: activate,
     deactivate: deactivate,
@@ -136,10 +136,19 @@
    */
   var inputSequencePromise = Promise.resolve();
 
+  // DatabasePromiseManager instance
+  var database = null;
+  // We keep this variable global so that we don't anwser
+  // |displaysCandidates| prematurely.
+  var getDictionaryDataPromise = null;
+
   // keyboard.js calls this to pass us the interface object we need
   // to communicate with it
   function init(interfaceObject) {
     keyboard = interfaceObject;
+
+    database = new DatabasePromiseManager();
+    database.start();
   }
 
   // Given the type property and inputmode attribute of a form element,
@@ -262,6 +271,18 @@
       return;
     }
 
+    getDictionaryDataPromise = null;
+    var preloaded = isDictionaryPreloaded(newlang);
+
+    if (preloaded) {
+      setLanguageSync(newlang, undefined);
+    } else {
+      // This will call setLanguageSync() eventually if the dictionary exists.
+      setLanguageFromDatabase(newlang);
+    }
+  }
+
+  function setLanguageSync(newlang, dict) {
     // If we get here, then we have to create a worker and set its language
     // or change the language of an existing worker.
     if (!worker) {
@@ -292,16 +313,55 @@
       };
     }
 
-    // Tell the worker what language we're using. They may cause it to
-    // load or reload its dictionary.
+    // Tell the worker what language we're using.
     language = newlang;  // Remember the new language
-    worker.postMessage({ cmd: 'setLanguage', args: [language]});
+    if (!dict) {
+      // The worker may load or reload its dictionary by itself.
+      worker.postMessage({ cmd: 'setLanguage', args: [language]});
+    } else {
+      // set the language with the arraybuffer we have set.
+      // Transfer the ownership of dict to the worker too.
+      worker.postMessage({ cmd: 'setLanguage', args: [language, dict]}, [dict]);
+    }
 
     // And now that we've changed the language, ask for new suggestions
     updateSuggestions();
   }
 
+  function setLanguageFromDatabase(newlang) {
+    // Unfornately loading a downloaded dictionary from IndexedDB takes extra
+    // async loop. We need to terminate the worker here in order to prevent
+    // the race condition of asking a prediction before language is actually
+    // set.
+    // Eventually the complexity should go inside the worker when IndexedDB
+    // is available inside the worker.
+    terminateWorker();
+
+    var p = database.getItem(newlang).then(function(data) {
+      getDictionaryDataPromise = null;
+      if (data) {
+        setLanguageSync(newlang, data);
+      }
+    });
+    getDictionaryDataPromise = p;
+  }
+
   function displaysCandidates() {
+    // If getDictionaryDataPromise exists, that means we have not figured out
+    // whether or not to offer suggestions, since we don't know if the
+    // dictionary exists. In this case, we return a promise that will
+    // resolve to the right anwser, when we can answer the question
+    // deterministically.
+    if (getDictionaryDataPromise) {
+      var p = getDictionaryDataPromise.then(function() {
+        return !!(suggesting && worker);
+      }, function() {
+        return !!(suggesting && worker);
+      });
+
+      return p;
+    }
+
     return !!(suggesting && worker);
   }
 
@@ -953,6 +1013,18 @@
     }
   }
 
+  // Figure out if the dictionary is considered preloaded,
+  // if not, we will have to try to get it from IndexedDB first.
+  function isDictionaryPreloaded(lang) {
+    if (!('PRELOADED_DICTIONARIES' in latin)) {
+      // We are running directly from the source tree.
+      // Everything is "preloaded".
+      return true;
+    }
+
+    return (latin.PRELOADED_DICTIONARIES.indexOf(lang) !== -1);
+  }
+
   // Return true if all characters of s are uppercase. A character
   // is uppercase if toLowerCase() on that character is returns something
   // different than the character
@@ -1046,6 +1118,73 @@
 
     updateSuggestions();
   }
+
+  var DatabasePromiseManager = function() {
+    this._openPromise = null;
+  };
+
+  DatabasePromiseManager.prototype.DB_NAME = 'dictionaries';
+  DatabasePromiseManager.prototype.DB_VERSION = 1;
+  DatabasePromiseManager.prototype.STORE_NAME = 'keyvaluepairs';
+
+  DatabasePromiseManager.prototype.start = function() {
+    this._getDatabase()['catch'](function(e) {
+      e && console.error(e);
+
+      return Promise.reject();
+    });
+  };
+
+  DatabasePromiseManager.prototype._getDatabase = function() {
+    if (this._openPromise) {
+      return this._openPromise;
+    }
+
+    var p = new Promise(function(resolve, reject) {
+      var req = window.indexedDB.open(this.DB_NAME, this.DB_VERSION);
+      req.onerror = reject;
+      req.onsuccess = function(evt) {
+        resolve(req.result);
+      };
+      req.onupgradeneeded = (function(evt) {
+        var db = req.result;
+        if (evt.oldVersion < 1) {
+          db.createObjectStore(this.STORE_NAME);
+        }
+        // ... put next database upgrade here.
+        // See http://www.w3.org/TR/IndexedDB/#introduction
+        // on how upgradeneeded should be handled.
+      }).bind(this);
+    }.bind(this));
+
+    this._openPromise = p;
+    return p;
+  };
+
+  DatabasePromiseManager.prototype._getTxn = function(type) {
+    return this._getDatabase().then(function(db) {
+      var txn = db.transaction(this.STORE_NAME, type);
+      return txn;
+    }.bind(this));
+  };
+
+  DatabasePromiseManager.prototype.getItem = function(name) {
+    return this._getTxn().then(function(txn) {
+      return new Promise(function(resolve, reject) {
+        var req = txn.objectStore(this.STORE_NAME).get(name);
+        req.onerror = function(e) {
+          reject(e);
+        };
+        txn.oncomplete = function() {
+          resolve(req.result);
+        };
+      }.bind(this));
+    }.bind(this))['catch'](function(e) {
+      e && console.error(e);
+
+      return Promise.reject();
+    });
+  };
 
   if (!('LAYOUT_PAGE_DEFAULT' in window))
     window.LAYOUT_PAGE_DEFAULT = null;

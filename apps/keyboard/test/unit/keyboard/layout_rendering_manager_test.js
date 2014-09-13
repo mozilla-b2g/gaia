@@ -21,7 +21,9 @@ suite('LayoutRenderingManager', function() {
 
     window.IMERender = {
       setInputMethodName: this.sinon.stub(),
-      draw: this.sinon.stub(),
+      draw: this.sinon.spy(function(layout, opt, callback) {
+        callback();
+      }),
       resizeUI: this.sinon.stub(),
       setUpperCaseLock: this.sinon.stub(),
       getWidth: this.sinon.stub().returns(600),
@@ -95,8 +97,6 @@ suite('LayoutRenderingManager', function() {
     var p;
 
     teardown(function(done) {
-      IMERender.draw.getCall(0).args[2].call(window);
-
       p.then(function() {
         assert.isTrue(
           IMERender.setUpperCaseLock.calledWith(app.upperCaseStateManager));
@@ -115,93 +115,123 @@ suite('LayoutRenderingManager', function() {
       }).then(done, done);
     });
 
-    test('w/o secondLayout & autoCorrectLanguage', function() {
-      p = manager.updateLayoutRendering();
+    test('w/o secondLayout & autoCorrectLanguage', function(done) {
+      p = manager.updateLayoutRendering().then(function() {
+        assert.isTrue(IMERender.draw.calledWith(
+          app.layoutManager.currentModifiedLayout,
+          {
+            uppercase: true,
+            inputType: 'foo',
+            showCandidatePanel: false
+          }));
 
-      assert.isTrue(IMERender.draw.calledWith(
-        app.layoutManager.currentModifiedLayout,
-        {
-          uppercase: true,
-          inputType: 'foo',
-          showCandidatePanel: false
-        }));
-
-      assert.isTrue(IMERender.setInputMethodName.calledWith('default'));
+        assert.isTrue(IMERender.setInputMethodName.calledWith('default'));
+      }, function(e) {
+        if (e) {
+          throw e;
+        }
+        assert.isTrue(false, 'Should not reject.');
+      }).then(done, done);
     });
 
-    test('w/ secondLayout', function() {
+    test('w/ secondLayout', function(done) {
       app.layoutManager.currentModifiedLayout.secondLayout = true;
       app.upperCaseStateManager.isUpperCase = false;
 
-      p = manager.updateLayoutRendering();
-
-      assert.isTrue(IMERender.draw.calledWith(
-        app.layoutManager.currentModifiedLayout,
-        {
-          uppercase: false,
-          inputType: 'foo',
-          showCandidatePanel: false
-        }));
+      p = manager.updateLayoutRendering().then(function() {
+        assert.isTrue(IMERender.draw.calledWith(
+          app.layoutManager.currentModifiedLayout,
+          {
+            uppercase: false,
+            inputType: 'foo',
+            showCandidatePanel: false
+          }));
+      }, function(e) {
+        if (e) {
+          throw e;
+        }
+        assert.isTrue(false, 'Should not reject.');
+      }).then(done, done);
     });
 
-    test('w/ autoCorrectLanguage, w/o displaysCandidates()', function() {
+    test('w/ autoCorrectLanguage, w/o displaysCandidates()', function(done) {
       app.layoutManager.currentLayout.autoCorrectLanguage = 'zz-ZZ';
 
-      p = manager.updateLayoutRendering();
-
-      assert.isTrue(IMERender.draw.calledWith(
-        app.layoutManager.currentModifiedLayout,
-        {
-          uppercase: true,
-          inputType: 'foo',
-          showCandidatePanel: true
-        }));
+      p = manager.updateLayoutRendering().then(function() {
+        assert.isTrue(IMERender.draw.calledWith(
+          app.layoutManager.currentModifiedLayout,
+          {
+            uppercase: true,
+            inputType: 'foo',
+            showCandidatePanel: true
+          }));
+      }, function(e) {
+        if (e) {
+          throw e;
+        }
+        assert.isTrue(false, 'Should not reject.');
+      }).then(done, done);
     });
 
-    test('w/ autoCorrectLanguage, w/ displaysCandidates()', function() {
+    test('w/ autoCorrectLanguage, w/ displaysCandidates()', function(done) {
       app.layoutManager.currentLayout.autoCorrectLanguage = 'zz-ZZ';
       app.inputMethodManager.currentIMEngine.displaysCandidates =
         this.sinon.stub().returns(false);
 
-      p = manager.updateLayoutRendering();
-
-      assert.isTrue(IMERender.draw.calledWith(
-        app.layoutManager.currentModifiedLayout,
-        {
-          uppercase: true,
-          inputType: 'foo',
-          showCandidatePanel: false
-        }));
+      p = manager.updateLayoutRendering().then(function() {
+        assert.isTrue(IMERender.draw.calledWith(
+          app.layoutManager.currentModifiedLayout,
+          {
+            uppercase: true,
+            inputType: 'foo',
+            showCandidatePanel: false
+          }));
+      }, function(e) {
+        if (e) {
+          throw e;
+        }
+        assert.isTrue(false, 'Should not reject.');
+      }).then(done, done);
     });
 
-    test('w/ needsCandidatePanel, w/o displaysCandidates()', function() {
+    test('w/ needsCandidatePanel, w/o displaysCandidates()', function(done) {
       app.layoutManager.currentLayout.needsCandidatePanel = true;
 
-      p = manager.updateLayoutRendering();
-
-      assert.isTrue(IMERender.draw.calledWith(
-        app.layoutManager.currentModifiedLayout,
-        {
-          uppercase: true,
-          inputType: 'foo',
-          showCandidatePanel: true
-        }));
+      p = manager.updateLayoutRendering().then(function() {
+        assert.isTrue(IMERender.draw.calledWith(
+          app.layoutManager.currentModifiedLayout,
+          {
+            uppercase: true,
+            inputType: 'foo',
+            showCandidatePanel: true
+          }));
+      }, function(e) {
+        if (e) {
+          throw e;
+        }
+        assert.isTrue(false, 'Should not reject.');
+      }).then(done, done);
     });
 
-    test('w/ needsCandidatePanel, w/ displaysCandidates()', function() {
+    test('w/ needsCandidatePanel, w/ displaysCandidates()', function(done) {
       app.layoutManager.currentLayout.needsCandidatePanel = true;
       app.inputMethodManager.currentIMEngine.displaysCandidates =
         this.sinon.stub().returns(false);
 
-      p = manager.updateLayoutRendering();
-
-      assert.isTrue(IMERender.draw.calledWith(
-        app.layoutManager.currentModifiedLayout,
-        {
-          uppercase: true,
-          inputType: 'foo',
-          showCandidatePanel: false
-        }));
+      p = manager.updateLayoutRendering().then(function() {
+        assert.isTrue(IMERender.draw.calledWith(
+          app.layoutManager.currentModifiedLayout,
+          {
+            uppercase: true,
+            inputType: 'foo',
+            showCandidatePanel: false
+          }));
+      }, function(e) {
+        if (e) {
+          throw e;
+        }
+        assert.isTrue(false, 'Should not reject.');
+      }).then(done, done);
     });
   });
 });

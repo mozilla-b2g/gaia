@@ -3,6 +3,7 @@ Keyboards['fr-CA'] = {
   shortLabel: 'Fr',
   imEngine: 'latin',
   types: ['text', 'url', 'email', 'password'],
+  dictionaryLabel: 'Français',
   autoCorrectLanguage: 'fr',
   autoCorrectPunctuation: false,
   menuLabel: 'Français (Canadien)',

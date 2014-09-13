@@ -52,7 +52,7 @@ var currentLanguage;
 var pendingPrediction;
 
 var Commands = {
-  setLanguage: function setLanguage(language) {
+  setLanguage: function setLanguage(language, data) {
     if (language === currentLanguage) {
       return;
     }
@@ -65,6 +65,22 @@ var Commands = {
     }
 
     currentLanguage = language;
+
+    if (data) {
+      try {
+        Predictions.setDictionary(data);
+        postMessage({
+          cmd: 'success',
+          fn: 'setLanguage',
+          language: language
+        });
+      }
+      catch (e) {
+        postError('setDictionary failed: ' + e);
+      }
+
+      return;
+    }
 
     var dicturl = 'dictionaries/' + language + '.dict';
     var xhr = new XMLHttpRequest();

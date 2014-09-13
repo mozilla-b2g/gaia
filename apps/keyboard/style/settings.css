@@ -34,3 +34,53 @@ section[data-type="list"] p>label {
   width: 100%;
   display: inline-block;
 }
+
+#dictionary-download.hide {
+  display: none;
+}
+
+[data-type="list"] li.description {
+  font-size: 1.7rem;
+  line-height: 2.3rem;
+  white-space: normal;
+  -moz-hyphens: auto;
+
+  height: auto;
+  overflow: visible;
+}
+
+[data-type="list"] li.description p,
+[data-type="list"] li.description p:only-child,
+[data-type="list"] li.description p:first-of-type:last-of-type {
+  font-size: 1.7rem;
+  line-height: 2.3rem;
+  white-space: normal;
+  padding: 1.5rem 1.5rem 1rem;
+}
+
+ul li button {
+  display: inline-block;
+  margin: 1rem 0;
+}
+
+@keyframes fn-rotate {
+  from {
+    transform: rotate(1deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading {
+  display: block;
+  width: 3.2rem;
+  height: 3rem;
+  margin: 1.4rem 1rem;
+  background-image: url(images/loader.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 3.1rem;
+  animation: 0.9s fn-rotate infinite linear;
+}

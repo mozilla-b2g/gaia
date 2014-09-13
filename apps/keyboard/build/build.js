@@ -10,41 +10,36 @@ var KeyboardAppBuilder = function() {
 
 // set options
 KeyboardAppBuilder.prototype.setOptions = function(options) {
-  this.allLayouts = options.GAIA_KEYBOARD_LAYOUTS.split(',');
+  this.enabledLayouts = options.GAIA_KEYBOARD_LAYOUTS.split(',');
+  this.preloadDictLayouts =
+    options.GAIA_KEYBOARD_PRELOAD_DICT_LAYOUTS.split(',');
   this.distDir = utils.getFile(options.STAGE_APP_DIR);
   this.appDir = utils.getFile(options.APP_DIR);
 };
 
-KeyboardAppBuilder.prototype.getLayoutsForVersion = function(version) {
-  var layouts = [];
-  switch (version) {
-    case 'one':
-      this.allLayouts.forEach(function(layoutName) {
-        var file = utils.getFile(
-          this.appDir.path, 'js', 'layouts', layoutName + '.js');
-        if (file.exists()) {
-          layouts.push(layoutName);
-        }
-      }.bind(this));
+KeyboardAppBuilder.prototype.includeAllLayouts = function() {
+  var layoutDir = utils.getFile(this.appDir.path, 'js', 'layouts');
+  var enabledLayouts = [];
+  utils.ls(layoutDir, false).forEach(function(file) {
+    if (!file.leafName.endsWith('.js')) {
+      return;
+    }
 
-      break;
+    enabledLayouts.push(file.leafName.substr(0, file.leafName.length - 3));
+  });
 
-    case 'two':
-      // TBD
-
-      break;
-  }
-
-  return layouts;
+  this.enabledLayouts = enabledLayouts;
 };
 
 KeyboardAppBuilder.prototype.throwForNoneExistLayouts = function() {
-  this.allLayouts.forEach(function(layoutName) {
-    if (this.versionOneLayouts.indexOf(layoutName) === -1 &&
-      this.versionTwoLayouts.indexOf(layoutName) === -1) {
-      throw new Error('Keyboard layout ' + layoutName + '.js specified by ' +
-        'GAIA_KEYBOARD_LAYOUTS not found.');
+  this.enabledLayouts.forEach(function(layoutName) {
+    var file = utils.getFile(
+      this.appDir.path, 'js', 'layouts', layoutName + '.js');
+    if (file.exists()) {
+      return;
     }
+    throw new Error('Keyboard layout ' + layoutName + '.js specified by ' +
+      'GAIA_KEYBOARD_LAYOUTS not found.');
   }.bind(this));
 };
 
@@ -54,32 +49,20 @@ KeyboardAppBuilder.prototype.copyStaticFiles = function() {
   var filenames = ['resources'];
   var dirs = [];
 
-  if (this.versionOneLayouts.length) {
-    dirs = dirs.concat('js', 'js/imes', 'js/imes/latin');
-    // Unfortunately we have to explicitly list many files here
-    // because the whitelist most not include optional layout
-    // specific files.
-    filenames = filenames.concat('index.html',
-                                 'locales',
-                                 'settings.html',
-                                 'style',
-                                 'js/render.js',
-                                 'js/settings',
-                                 'js/keyboard',
-                                 'js/views',
-                                 'js/imes/latin/latin.js',
-                                 'js/imes/latin/predictions.js',
-                                 'js/imes/latin/worker.js');
-  }
-  if (this.versionTwoLayouts.length) {
-    /* TBD, maybe
-
-    filenames = filenames.concat('index2.html', 'style2', 'js2');
-
-    and move more shared files out of the two `if` blocks.
-
-    */
-  }
+  dirs = dirs.concat('js', 'js/imes', 'js/imes/latin');
+  // Unfortunately we have to explicitly list many files here
+  // because the whitelist most not include optional layout
+  // specific files.
+  filenames = filenames.concat('index.html',
+                               'locales',
+                               'settings.html',
+                               'style',
+                               'js/render.js',
+                               'js/settings',
+                               'js/keyboard',
+                               'js/views',
+                               'js/imes/latin/predictions.js',
+                               'js/imes/latin/worker.js');
 
   dirs.forEach(function(dirName) {
     var dir = utils.getFile.apply(utils,
@@ -107,11 +90,43 @@ KeyboardAppBuilder.prototype.copyLayouts = function() {
   // XXX we probably need better separation between this
   // and keyboard-config.js
 
-  // For v1 keyboard
-  keyboardConfig.copyLayoutsAndResources(
-    this.appDir, this.distDir, this.versionOneLayouts);
+  this.layoutsCopied = keyboardConfig.copyLayoutsAndResources(
+                    this.appDir, this.distDir,
+                    this.enabledLayouts, this.preloadDictLayouts);
+};
 
-  // TBD: v2
+KeyboardAppBuilder.prototype.setDictDownloadableConfig = function() {
+  // Write a dictionary list file into keyboard/js/settings/
+  // This file is noly used in keyboard settings page.
+  // (That's why we annotate latin.js too.)
+  var configFileDesc = utils.getFile(
+    this.distDir.path, 'js', 'settings', 'dictionaries.json');
+  utils.writeContent(
+    configFileDesc, JSON.stringify(this.layoutsCopied.dictionaries, null, 2));
+
+  // Copy latin.js with last line containing information on
+  // preloaded dictionaries.
+  var latinJSSrc = utils.getFile(
+    this.appDir.path, 'js', 'imes', 'latin', 'latin.js');
+
+  var preloadedDictNames = [];
+  this.layoutsCopied.dictionaries.forEach(function(dict) {
+    var name = dict.name;
+    if (dict.preloaded && preloadedDictNames.indexOf(name) === -1) {
+      preloadedDictNames.push(name);
+    }
+  });
+
+  var content = utils.getFileContent(latinJSSrc);
+  content += '\n' +
+    '// The following line is generated by keyboard build script.\n' +
+    'InputMethods.latin.PRELOADED_DICTIONARIES = ' +
+    JSON.stringify(preloadedDictNames) + ';\n';
+
+  var latinJSDist = utils.getFile(
+    this.distDir.path, 'js', 'imes', 'latin', 'latin.js');
+
+  utils.writeContent(latinJSDist, content);
 };
 
 KeyboardAppBuilder.prototype.generateManifest = function() {
@@ -121,11 +136,8 @@ KeyboardAppBuilder.prototype.generateManifest = function() {
   var manifest =
     utils.getJSON(utils.getFile(this.appDir.path, 'manifest.webapp'));
 
-  // For v1 keyboard
   manifest = keyboardConfig.addEntryPointsToManifest(
-    this.appDir, this.distDir, this.versionOneLayouts, manifest);
-
-  // TBD: v2
+    this.appDir, this.distDir, this.enabledLayouts, manifest);
 
   // Write content to build_stage
   utils.writeContent(utils.getFile(this.distDir.path, 'manifest.webapp'),
@@ -136,12 +148,14 @@ KeyboardAppBuilder.prototype.generateManifest = function() {
 KeyboardAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
 
-  // Check against allLayouts. Most of the code should be gone with v1 keyboard.
-  this.versionOneLayouts = this.getLayoutsForVersion('one');
-  this.versionTwoLayouts = this.getLayoutsForVersion('two');
-  this.throwForNoneExistLayouts();
+  if (this.enabledLayouts.indexOf('*') !== -1) {
+    this.includeAllLayouts();
+  } else {
+    this.throwForNoneExistLayouts();
+  }
   this.copyStaticFiles();
   this.copyLayouts();
+  this.setDictDownloadableConfig();
   this.generateManifest();
 };
 
