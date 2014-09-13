@@ -15,8 +15,9 @@ suite('Picker', function() {
 
   test('shape:prototype ', function() {
     assert.ok(Picker);
-    assert.include(Picker.prototype, 'reset');
-    assert.include(Picker.prototype, 'value');
+    assert.include(Picker.prototype, 'reset_reset');
+    expect(Picker.prototype).to.have.property('reset');
+    expect(Picker.prototype).to.have.property('value');
     assert.isNull(Picker.prototype.value);
   });
 
@@ -42,15 +43,15 @@ suite('Picker', function() {
   });
 
   test('shape:instance ', function() {
-    assert.include(picker, 'nodes');
-    assert.include(picker, 'spinners');
-    assert.include(picker, 'pickers');
+    expect(picker).to.have.property('nodes');
+    expect(picker).to.have.property('spinners');
+    expect(picker).to.have.property('pickers');
 
-    assert.include(picker.nodes, 'hours');
-    assert.include(picker.nodes, 'minutes');
+    expect(picker.nodes).to.have.property('hours');
+    expect(picker.nodes).to.have.property('minutes');
 
-    assert.include(picker.spinners, 'hours');
-    assert.include(picker.spinners, 'minutes');
+    expect(picker.spinners).to.have.property('hours');
+    expect(picker.spinners).to.have.property('minutes');
 
     assert.deepEqual(picker.pickers, ['hours', 'minutes']);
   });
