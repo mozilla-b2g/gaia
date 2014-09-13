@@ -102,6 +102,7 @@ var About = {
     }
 
     var updateStatus = document.getElementById('update-status');
+    var generalInfo  = updateStatus.querySelector('.general-information');
     var systemStatus = updateStatus.querySelector('.system-update-status');
 
     var checkStatus = {
@@ -112,8 +113,8 @@ var About = {
     updateStatus.classList.add('checking', 'visible');
 
     function checkIfStatusComplete() {
-      var hasAllCheckComplete =
-        Object.keys(checkStatus).every(function(setting) {
+      var hasSomeCheckComplete =
+        Object.keys(checkStatus).some(function(setting) {
           return checkStatus[setting].value === 'check-complete';
         });
 
@@ -122,9 +123,8 @@ var About = {
           return !!checkStatus[setting].value;
         });
 
-      if (hasAllCheckComplete) {
-        updateStatus.classList.remove('visible');
-        systemStatus.textContent = '';
+      if (hasSomeCheckComplete) {
+        systemStatus.setAttribute('data-l10n-id', 'check-complete');
       }
 
       if (hasAllResponses) {
@@ -140,6 +140,7 @@ var About = {
        * possible return values:
        *
        * - for system updates:
+       *   - active-update
        *   - no-updates
        *   - already-latest-version
        *   - check-complete
@@ -164,7 +165,6 @@ var About = {
         if (id == 'check-error') {
           console.error('Error checking for system update:', value);
         }
-      }
 
       checkIfStatusComplete();
 

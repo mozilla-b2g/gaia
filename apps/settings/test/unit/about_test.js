@@ -152,6 +152,8 @@ suite('about >', function() {
           assert.isFunction(removedObserver);
           assert.equal(removedObserver, geckoUpdateHandlers[0]);
         });
+
+
       });
 
 
@@ -161,6 +163,15 @@ suite('about >', function() {
         });
         assert.equal(systemStatus.getAttribute('data-l10n-id'),
                                                'no-updates');
+      });
+
+      test('has-updates', function() {
+        MockNavigatorSettings.mTriggerObservers(geckoUpdateSetting, {
+          settingValue: 'check-complete'
+        });
+        assert.equal(systemStatus.getAttribute('data-l10n-id'),
+                                               'check-complete');
+
       });
 
       test('already-latest-version', function() {
