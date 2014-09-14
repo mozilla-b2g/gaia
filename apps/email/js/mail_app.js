@@ -68,6 +68,7 @@ var appMessages = require('app_messages'),
     evt = require('evt'),
     model = require('model'),
     headerCursor = require('header_cursor').cursor,
+    mitigateGmail = require('mitigate_gmail'),
     Cards = common.Cards,
     slice = Array.prototype.slice,
     waitingForCreateAccountPrompt = false,
@@ -83,6 +84,27 @@ model.latestOnce('api', function(api) {
   // password.
   api.onbadlogin = function(account, problem, whichSide) {
     switch (problem) {
+      case 'mitigate-gmail-sumo':
+        // Under no circumstances should we trigger the UI if we're not visible!
+        // This would be very confusing to the user since they would not be sure
+        // what action or app triggered the activity.
+        //
+        // This does introduce some edge-cases about us failing to pop up the UI
+        // if we are in the background.  We could listen for onvisibilitychange
+        // but since we already have other logic there and this is already a
+        // desperation mitigation mechanism, let's just reduce harm.  The user
+        // logging into the Google web UI in general for this device will clear
+        // any suspicious login for us as well.
+        //
+        // This edge case should also be have a very very small chance of ever
+        // occurring. Usually, once the user is able to log in with name/pw in
+        // the app, they continue to be able to do so. If the user was going to
+        // hit a mitigation case, it usually be from the setup_account_info
+        // flow.
+        if (!document.hidden) {
+          mitigateGmail();
+        }
+        break;
       case 'bad-user-or-pass':
         Cards.pushCard('setup_fix_password', 'default', 'animate',
                   { account: account,

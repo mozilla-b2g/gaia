@@ -2870,6 +2870,13 @@ var normalizeError = exports.normalizeError = function normalizeError(err) {
       if (err.serverResponse.indexOf(
         '[ALERT] Application-specific password required') !== -1)
         errName = 'needs-app-pass';
+      // gmail thinks it's either a suspicious login or we are running afoul of
+      // the "less secure apps" setting.  Either way we want the user to use the
+      // browser.
+      else if (err.serverResponse.indexOf(
+        '/support.google.com/mail/accounts/bin/answer.py?answer=78754')
+               !== -1)
+        errName = 'mitigate-gmail-sumo';
       else if (err.serverResponse.indexOf(
             '[ALERT] Your account is not enabled for IMAP use.') !== -1 ||
           err.serverResponse.indexOf(
