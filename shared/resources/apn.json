@@ -3296,6 +3296,33 @@
     {"carrier":"亞太電信(APBW) (MMS)","apn":"aptmms","mmsc":"http://mms.aptg.com.tw","mmsproxy":"210.200.66.196","mmsport":"80","user":"aptwap@nsip.qma.com.tw","password":"aptwap","type":["mms"]}
   ]
 },
+"470": {
+  "01": [
+    {"carrier":"GP INTERNET","apn":"gpinternet","type":["default","supl"]},
+    {"carrier":"GP WAP","apn":"gpwap","proxy":"010.128.001.002","port":"8080","type":["default","supl"]},
+    {"carrier":"GP MMS","apn":"gpmms","mmsc":"http://mms.gpsurf.net/servlets/mms","mmsproxy":"010.128.001.002","mmsport":"8080","type":["mms"]}
+  ],
+  "02": [
+    {"carrier":"Robi-INTERNET","apn":"internet","type":["default","supl"]},
+    {"carrier":"Robi-WAP","apn":"wap","proxy":"10.16.18.77","port":"9028","type":["default","supl"]},
+    {"carrier":"Robi-MMS","apn":"wap","mmsc":"http://10.16.18.40:38090/was","mmsproxy":"10.16.18.77","mmsport":"9028","type":["mms"]}
+  ],
+  "03": [
+    {"carrier":"Banglalink-WEB","apn":"blweb","type":["default","supl"]},
+    {"carrier":"Banglalink-WAP","apn":"blwap","proxy":"10.10.55.34","port":"8799","type":["default","supl"]},
+    {"carrier":"Banglalink-MMS","apn":"blmms","mmsc":"http://mmsc1:10021/mmsc/01","mmsproxy":"10.10.55.34","mmsport":"8799","type":["mms"]}
+  ],
+  "07": [
+    {"carrier":"Airtel Internet","apn":"internet","type":["default","supl"]},
+    {"carrier":"Airtel WAP","apn":"wap","type":["default","supl"]},
+    {"carrier":"Airtel MMS","apn":"mms","mmsc":"http://bd.airtel.com","mmsproxy":"10.128.5.6","type":["mms"]}
+  ],
+  "04": [
+    {"carrier":"TT-INTERNET","apn":"wap","type":["default","supl"]},
+    {"carrier":"TT-WAP","apn":"wap","proxy":"192.168.145.101","port":"9201","type":["default","supl"]},
+    {"carrier":"Teletalk-MMS","apn":"mms","mmsc":"http://10.5.4.22:38090/was","mmsproxy":"10.5.4.40","mmsport":"8080","type":["mms"]}
+  ]
+},
 "472": {
   "01": [
     {"carrier":"Dhiraagu","apn":"default","type":["default","supl"]}
