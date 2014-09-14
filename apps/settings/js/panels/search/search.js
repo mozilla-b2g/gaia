@@ -2,6 +2,7 @@
 
 define(function(require) {
   var SettingsCache = require('modules/settings_cache');
+  var LazyLoader = require('shared/lazy_loader');
 
   function Search() {
     this._searchUrlTemplate = null;
@@ -41,32 +42,26 @@ define(function(require) {
    * @param {Function} callback function to call with retrieved data.
    */
   Search.prototype.populateSearchEngines = function(callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/resources/search/providers.json', true);
+    LazyLoader.getJSON('/resources/search/providers.json')
+      .then(function(data) {
+        if (!data) {
+          return;
+        }
 
-    xhr.onload = function() {
-      if (!(xhr.status === 200 | xhr.status === 0)) {
+        if (callback) {
+          callback(data);
+        }
+        var result = navigator.mozSettings.createLock().set({
+          'search.providers': data
+        });
+        result.onerror = function() {
+          console.error('Unable to set search providers setting');
+        };
+      })
+      .catch(function () {
         console.error('Unable to get default search provider file.');
         return;
-      }
-
-      var data = JSON.parse(xhr.responseText);
-      if (!data) {
-        return;
-      }
-
-      if (callback) {
-        callback(data);
-      }
-      var result = navigator.mozSettings.createLock().set({
-        'search.providers': data
       });
-      result.onerror = function() {
-        console.error('Unable to set search providers setting');
-      };
-    };
-
-    xhr.send();
   };
 
   /**

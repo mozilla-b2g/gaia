@@ -1,5 +1,5 @@
 /* global getSupportedNetworkInfo, SettingsListener, ForwardLock, URL,
-          MozActivity, loadJSON */
+          MozActivity, LazyLoader */
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -10,12 +10,13 @@
   // option should be removed from Settings
   // https://bugzilla.mozilla.org/show_bug.cgi?id=964776
   //
-  // Show/Hide 'Virate' checkbox according to device-features.json
+  // Show/Hide 'Vibrate' checkbox according to device-features.json
   (function() {
-    loadJSON(['/resources/device-features.json'], function(data) {
-      var vibrationSetting = document.getElementById('vibration-setting');
-      vibrationSetting.hidden = !data.vibration;
-    });
+    LazyLoader.getJSON(['/resources/device-features.json'])
+      .then(function(data) {
+        var vibrationSetting = document.getElementById('vibration-setting');
+        vibrationSetting.hidden = !data.vibration;
+      });
   })();
 
   // Setup the sliders for previewing the tones.

@@ -1,10 +1,11 @@
-/* global openLink, loadJSON */
+/* global openLink */
 /**
  * Handle support panel functionality with SIM and without SIM
  */
 define(function(require) {
   'use strict';
   var SettingsCache = require('modules/settings_cache');
+  var LazyLoader = require('shared/lazy_loader');
 
   var Support = function() {};
 
@@ -44,10 +45,11 @@ define(function(require) {
         callback(this._supportInfo);
         return;
       }
-      loadJSON('/resources/support.json', function loadSupportInfo(data) {
-        this._supportInfo = data;
-        callback(this._supportInfo);
-      }.bind(this));
+      LazyLoader.getJSON('/resources/support.json')
+        .then(function loadSupportInfo(data) {
+          this._supportInfo = data;
+          callback(this._supportInfo);
+        }.bind(this));
     },
     /**
      * create support url items

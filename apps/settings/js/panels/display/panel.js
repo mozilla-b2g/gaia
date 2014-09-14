@@ -1,4 +1,3 @@
-/* global loadJSON */
 /**
  * The display panel allow user to modify timeout forscreen-off, brightness, and
  * change wallpaper.
@@ -9,6 +8,7 @@ define(function(require) {
   var SettingsPanel = require('modules/settings_panel');
   var DisplayModule = require('panels/display/display');
   var WallpaperModule = require('panels/display/wallpaper');
+  var LazyLoader = require('shared/lazy_loader');
 
   var wallpaperElements = {};
   var displayElements = {};
@@ -31,9 +31,11 @@ define(function(require) {
 
         wallpaperElements.wallpaper.addEventListener('click',
           wallpaper.selectWallpaper.bind(wallpaper));
-        loadJSON(['/resources/device-features.json'], function(data) {
-          display.init(displayElements, data);
-        });
+
+        LazyLoader.getJSON(['/resources/device-features.json'])
+          .then(function(data) {
+            display.init(displayElements, data);
+          });
       },
 
       onBeforeShow: function dp_onBeforeShow() {

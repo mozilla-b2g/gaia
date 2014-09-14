@@ -1,6 +1,6 @@
 /* global SettingsListener */
 /* global SettingsHelper */
-/* global loadJSON */
+/* global LazyLoader */
 /* global wakeUpFindMyDevice */
 /* global IAC_API_WAKEUP_REASON_TRY_DISABLE */
 
@@ -18,38 +18,39 @@ var FindMyDevice = {
     var self = this;
     self._loginButton = document.querySelector('#findmydevice-login > button');
 
-    loadJSON('/resources/findmydevice.json', function(data) {
-      SettingsListener.observe('findmydevice.logged-in', false,
-        self._togglePanel.bind(self));
+    LazyLoader.getJSON('/resources/findmydevice.json')
+      .then(function(data) {
+        SettingsListener.observe('findmydevice.logged-in', false,
+          self._togglePanel.bind(self));
 
-      navigator.mozId.watch({
-        wantIssuer: 'firefox-accounts',
-        audience: data.api_url,
-        onlogin: self._onChangeLoginState.bind(self, true),
-        onlogout: self._onChangeLoginState.bind(self, false),
-        onready: function fmd_fxa_onready() {
-          self._loginButton.removeAttribute('disabled');
-          console.log('Find My Device: onready fired');
-        },
-        onerror: function fmd_fxa_onerror(err) {
-          console.error('Find My Device: onerror fired: ' + err);
-          self._interactiveLogin = false;
-          self._loginButton.removeAttribute('disabled');
-          var errorName = JSON.parse(err).name;
-          if (errorName !== 'OFFLINE') {
-            if (errorName === 'UNVERIFIED_ACCOUNT') {
-              var unverifiedError = document.getElementById(
-                'findmydevice-fxa-unverified-error');
-              unverifiedError.hidden = false;
-              var login = document.getElementById('findmydevice-login');
-              login.hidden = true;
+        navigator.mozId.watch({
+          wantIssuer: 'firefox-accounts',
+          audience: data.api_url,
+          onlogin: self._onChangeLoginState.bind(self, true),
+          onlogout: self._onChangeLoginState.bind(self, false),
+          onready: function fmd_fxa_onready() {
+            self._loginButton.removeAttribute('disabled');
+            console.log('Find My Device: onready fired');
+          },
+          onerror: function fmd_fxa_onerror(err) {
+            console.error('Find My Device: onerror fired: ' + err);
+            self._interactiveLogin = false;
+            self._loginButton.removeAttribute('disabled');
+            var errorName = JSON.parse(err).name;
+            if (errorName !== 'OFFLINE') {
+              if (errorName === 'UNVERIFIED_ACCOUNT') {
+                var unverifiedError = document.getElementById(
+                  'findmydevice-fxa-unverified-error');
+                unverifiedError.hidden = false;
+                var login = document.getElementById('findmydevice-login');
+                login.hidden = true;
+              }
+
+              SettingsHelper('findmydevice.logged-in').set(false);
             }
-
-            SettingsHelper('findmydevice.logged-in').set(false);
           }
-        }
+        });
       });
-    });
 
     SettingsListener.observe('findmydevice.tracking', false,
       this._setTracked.bind(this));
