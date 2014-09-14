@@ -289,6 +289,16 @@ suite('system/Rocketbar', function() {
   test('handleEvent() - open-app', function() {
     var deactivateStub = this.sinon.stub(subject, 'deactivate');
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+
+    // Does not hide with frontWindow
+    subject.searchWindow = {
+      frontWindow: {}
+    };
+    window.dispatchEvent(new CustomEvent('open-app'));
+    assert.ok(deactivateStub.notCalled);
+    assert.ok(hideResultsStub.notCalled);
+    subject.searchWindow = null;
+
     window.dispatchEvent(new CustomEvent('open-app'));
     assert.ok(deactivateStub.calledOnce);
     assert.ok(hideResultsStub.calledOnce);
