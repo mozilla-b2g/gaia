@@ -936,11 +936,6 @@ var StatusBar = {
     },
 
     networkActivity: function sb_updateNetworkActivity() {
-      // XXX: Allow network activity icon to be disabled through a setting.
-      // This should be removed once bug 1054220 is fixed.
-      if (this.settingValues['statusbar.network-activity.disabled']) {
-        return;
-      }
       // Each time we receive an update, make network activity indicator
       // show up for 500ms.
 
