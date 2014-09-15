@@ -102,7 +102,7 @@ var About = {
     }
 
     var updateStatus = document.getElementById('update-status');
-    var generalInfo  = updateStatus.querySelector('.general-information');
+    var generalInfo = updateStatus.querySelector('.general-information');
 
     var checkStatus = {
       'gecko.updateStatus': {},
@@ -173,7 +173,7 @@ var About = {
     }
 
     /* remove whatever was there before */
-    generalInfo.setAttribute('data-l10n-id', "checking-for-update");
+    generalInfo.setAttribute('data-l10n-id', 'checking-for-update');
 
     for (var setting in checkStatus) {
       checkStatus[setting].cb = onUpdateStatus.bind(null, setting);
