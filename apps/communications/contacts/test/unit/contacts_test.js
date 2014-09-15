@@ -185,6 +185,22 @@ suite('Contacts', function() {
       });
     });
 
+    test('> oncontactchange create event refresh contact in list', function() {
+      var contactId = 'abcde1234';
+      var spyContacts = sinon.spy(Contacts, 'refreshContactInList');
+
+      var evt = {
+        contactID: contactId,
+        reason: 'create'
+      };
+
+      navigator.mozContacts.oncontactchange(evt);
+
+      sinon.assert.calledWith(Contacts.refreshContactInList, contactId);
+
+      spyContacts.restore();
+    });
+
     suite('> Custom contact change', function() {
       test('> Trigger custom event on contact change', function(done) {
         Contacts.onLocalized();
