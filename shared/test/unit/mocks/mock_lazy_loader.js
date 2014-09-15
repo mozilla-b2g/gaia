@@ -10,10 +10,7 @@ var MockLazyLoader = {
     }
   },
   getJSON: function(file) {
-  	var self = this;
-    return new Promise(function (resolve, reject) {
-      resolve(self._response);
-    });
+    return Promise.resolve(this._response);
   },
 
   // custom response

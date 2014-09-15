@@ -93,7 +93,7 @@ suite('Search >', function() {
     test('populateSearchEngines()', function(done) {
       var callback = sinon.spy();
       sinon.spy(mockLazyLoader, 'getJSON');
-      mockLazyLoader.mockResponse([{ 'foo': 'bar'}]);
+      mockLazyLoader.mockResponse([{ 'foo': 'bar' }]);
 
       searchModule.populateSearchEngines(callback);
       assert.ok(mockLazyLoader.getJSON.called, 'getJSON should be called');
@@ -105,7 +105,7 @@ suite('Search >', function() {
 
         assert.equal(
           (navigator.mozSettings.mSettings['search.providers']).toString(),
-          ([{ 'foo': 'bar'}]).toString(),
+          ([{ 'foo': 'bar' }]).toString(),
           'should update search.providers in settings'
         );
 
