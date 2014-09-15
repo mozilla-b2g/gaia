@@ -211,7 +211,10 @@ Composer.prototype = {
     // it has been encoded for transport.
     var splits = str.split(btoa(this._uniqueBlobBoundary) + '\r\n');
     this._blobReplacements.forEach(function(blob, i) {
-      splits.splice(i + 1, 0, blob);
+      // blob 0 => index 1
+      // blob 1 => index 3
+      // blob 2 => index 5 ...
+      splits.splice((i * 2) + 1, 0, blob);
     });
 
     // Build a super-blob from any subparts.
