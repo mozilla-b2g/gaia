@@ -582,6 +582,17 @@ suite('compose_test.js', function() {
     });
 
     suite('requestAttachment', function() {
+      var originalLimit;
+
+      setup(function() {
+        this.sinon.spy(Utils, 'cloneBlob');
+        originalLimit = Settings.mmsSizeLimitation;
+      });
+
+      teardown(function() {
+        Settings.mmsSizeLimitation = originalLimit;
+      });
+
       test('correctly invokes the "pick" MozActivity', function() {
         Compose.requestAttachment();
         assert.equal(MockMozActivity.calls.length, 1);
@@ -591,29 +602,98 @@ suite('compose_test.js', function() {
         assert.isArray(call.data.type);
         assert.include(call.data.type, 'image/*');
       });
-      test('Invokes the provided "onsuccess" handler with an appropriate ' +
-        'Attachment instance', function(done) {
+
+      test('Invokes "onsuccess" handler with image attachment instance ' +
+        'which need copy for image size not over the limit)', function(done) {
         var req = Compose.requestAttachment();
         req.onsuccess = function(attachment) {
-          assert.instanceOf(attachment, Attachment);
+          done(function() {
+            assert.instanceOf(attachment, Attachment);
 
-          // TODO: Move these assertions to a higher-level test suite that
-          // concerns interactions between disparate units.
-          // See: Bug 868056
-          assert.equal(attachment.name, activity.result.name);
-          assert.equal(attachment.blob, activity.result.blob);
+            // TODO: Move these assertions to a higher-level test suite that
+            // concerns interactions between disparate units.
+            // See: Bug 868056
+            assert.equal(attachment.name, activity.result.name);
 
-          done();
+            // The blob in the attachment may be a copy of the blob in the
+            // activity result, but the size and type must be the same.
+            sinon.assert.calledWith(Utils.cloneBlob, activity.result.blob);
+            assert.equal(attachment.blob.type, activity.result.blob.type);
+            assert.equal(attachment.blob.size, activity.result.blob.size);
+          });
         };
 
         // Simulate a successful 'pick' MozActivity
         var activity = MockMozActivity.instances[0];
         activity.result = {
           name: 'test',
-          blob: new Blob()
+          blob: new Blob(['fake jpeg'], { type: 'image/jpeg' })
         };
         activity.onsuccess();
       });
+
+      test('Invokes "onsuccess" handler with image attachment instance ' +
+        'which does not need copy for size over limit)', function(done) {
+        var req = Compose.requestAttachment();
+        req.onsuccess = function(attachment) {
+          done(function() {
+            assert.instanceOf(attachment, Attachment);
+
+            // TODO: Move these assertions to a higher-level test suite that
+            // concerns interactions between disparate units.
+            // See: Bug 868056
+            assert.equal(attachment.name, activity.result.name);
+
+            // The image blob in the attachment doesn't need a copy of the blob
+            // if it need resize later.
+            sinon.assert.notCalled(Utils.cloneBlob);
+            assert.equal(attachment.blob, activity.result.blob);
+          });
+        };
+
+        Settings.mmsSizeLimitation = 1;
+
+        // Simulate a successful 'pick' MozActivity
+        var activity = MockMozActivity.instances[0];
+        activity.result = {
+          name: 'test',
+          blob: new Blob(['fake jpeg'], { type: 'image/jpeg' })
+        };
+        activity.onsuccess();
+      });
+
+      test('Invokes "onsuccess" handler with non-image attachment instance ',
+        function(done) {
+
+        var req = Compose.requestAttachment();
+        req.onsuccess = function(attachment) {
+          done(function() {
+            assert.instanceOf(attachment, Attachment);
+
+            // TODO: Move these assertions to a higher-level test suite that
+            // concerns interactions between disparate units.
+            // See: Bug 868056
+            assert.equal(attachment.name, activity.result.name);
+
+            // The  blob in the attachment doesn't need a copy of the blob
+            // if it's not image.
+            sinon.assert.notCalled(Utils.cloneBlob);
+            assert.equal(attachment.blob, activity.result.blob);
+          });
+        };
+
+        // Simulate a successful 'pick' MozActivity
+        var activity = MockMozActivity.instances[0];
+        activity.result = {
+          name: 'test',
+          blob: {
+            size: 100,
+            type: 'video/mp4'
+          }
+        };
+        activity.onsuccess();
+      });
+
       test('Invokes the provided "failure" handler when the MozActivity fails',
         function(done) {
         var req = Compose.requestAttachment();
