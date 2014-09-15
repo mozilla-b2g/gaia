@@ -1,0 +1,127 @@
+/* ----------------------------------
+ * Edit mode
+ * ---------------------------------- */
+
+[role="dialog"][data-type="edit"] {
+  overflow: hidden;
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  transition: visibility 0.4s;
+}
+
+/* Header */
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child,
+[role="dialog"][data-type="edit"] [role="region"] > gaia-header {
+  background-color: #f4f4f4;
+  transition: transform 0.4s ease;
+  pointer-events: auto;
+}
+
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child h1,
+[role="dialog"][data-type="edit"] [role="region"] > gaia-header h1 {
+  color: #868692;
+}
+
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child menu[type="toolbar"] button,
+[role="dialog"][data-type="edit"] [role="region"] > gaia-header button {
+  color: #00aac5;
+}
+
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child .icon.icon-close {
+  background-image: url(headers/images/icons/organic/close.png);
+}
+
+/* Menu */
+[role="dialog"][data-type="edit"] > menu {
+  white-space: nowrap;
+  margin: 0;
+  padding: 1.5rem;
+  border-top: solid 0.1rem rgba(189,189,189,0.2);
+  background: #fff;
+  display: block;
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  transition: transform 0.4s ease;
+  pointer-events: auto;
+}
+
+[role="dialog"][data-type="edit"] > menu button {
+  font-family: sans-serif;
+  font-style: italic;
+  height: 4rem;
+  margin: 0 0 0 1rem;
+  padding: 0 1.2rem;
+  -moz-box-sizing: border-box;
+  display: block;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background: #e7e7e7;
+  border: none;
+  border-radius: 2rem;
+  font-weight: normal;
+  font-size: 1.6rem;
+  line-height: 4rem;
+  color: #333;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  flex: 1;
+}
+
+/* Press (default & recommend) */
+[role="dialog"][data-type="edit"] > menu button:not(:disabled):active {
+  background: #b2f2ff;
+  color: #fff;
+}
+
+/* Recommend */
+[role="dialog"][data-type="edit"] > menu button.recommend {
+  background-color: #00caf2;
+  color: #fff;
+}
+
+/* Danger */
+[role="dialog"][data-type="edit"] > menu button.danger {
+  background-color: #e51e1e;
+  color: #fff;
+}
+
+/* Danger Press */
+[role="dialog"][data-type="edit"] > menu button.danger:active {
+  background-color: #b2f2ff;
+}
+
+/* Disabled */
+/* Using pointer-events: none, makes events go through the button. As edit mode is an overlay is quite possible we have active buttons underneath */
+[role="dialog"][data-type="edit"] button[disabled] {
+  pointer-events: auto;
+}
+
+[role="dialog"][data-type="edit"] > menu button[disabled] {
+  opacity: 0.6;
+  color: rgba(51,51,51,0.5);
+}
+
+[role="dialog"][data-type="edit"] button[disabled]::-moz-selection {
+  -moz-user-select: none;
+}
+
+/* Danger disabled */
+[role="dialog"][data-type="edit"] > menu button[disabled].danger {
+  background-color: #e51e1e;
+  color: #fff;
+}
+
+[role="dialog"][data-type="edit"] > menu button:first-child {
+  margin-left: 0;
+}

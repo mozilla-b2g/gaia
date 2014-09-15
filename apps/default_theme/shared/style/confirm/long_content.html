@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+
+  <title>Confirm</title>
+  <meta name="description" content="Prompts user to take action">
+
+  <link rel="stylesheet" href="../confirm.css">
+
+  <!--
+    - This <style> element is only used for the example code;
+    - it is not required for the real use case.
+    -->
+  <style type="text/css">
+    html, body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+    body {
+      background: none;
+    }
+  </style>
+</head>
+
+<body role="application">
+  <p dir="ltr">
+    <label>
+      <input type="checkbox"
+        onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
+      RTL mode
+    </label>
+  </p>
+
+  <form role="dialog" data-type="confirm">
+    <section>
+      <h1>Confirmation</h1>
+      <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+    </section>
+    <menu>
+      <button>Cancel</button>
+      <button class="danger">Delete</button>
+    </menu>
+  </form>
+
+</body>
+</html>
+

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Headers</title>
+  <meta name="description" content="Providing top-level navigation and inputs for the active view">
+  <!--
+    - This <style> and <link> is only used for the example preview,
+    - it isn't needed for the real use case.
+    -->
+  <link rel="stylesheet" href="../headers.css">
+  <style type="text/css">
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+    body {
+      background: none;
+    }
+
+    h2.bb-docs {
+      font-size: 1.8rem;
+      font-weight: 300;
+      color: #666;
+      margin: -0.1rem 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      border: solid 0.1rem #e8e8e8;
+      margin: 3rem 0 1rem;
+    }
+
+    section[role="region"] {
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+  </style>
+</head>
+<body role="application">
+  <p dir="ltr">
+    <label>
+      <input type="checkbox"
+        onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
+      RTL mode
+    </label>
+  </p>
+
+  <section role="region">
+    <header>
+      <a href="#"><span class="icon icon-close">close</span></a>
+      <menu type="toolbar">
+        <button>done</button>
+      </menu>
+      <h1>Email</h1>
+    </header>
+  </section>
+
+  <section role="region">
+    <header>
+      <a href="#"><span class="icon icon-back">back</span></a>
+      <menu type="toolbar">
+        <button><span class="icon icon-edit">edit</span></button>
+        <button><span class="icon icon-add">add</span></button>
+      </menu>
+      <h1>Email</h1>
+    </header>
+    <header>
+      <h2>Subheader text</h2>
+    </header>
+  </section>
+
+  <section role="region">
+    <header>
+      <button><span class="icon icon-menu">menu</span></button>
+      <menu type="toolbar">
+        <button><span class="icon icon-edit">edit</span></button>
+        <button><span class="icon icon-add">add</span></button>
+      </menu>
+      <h1>Inbox <em>(2)</em></h1>
+    </header>
+  </section>
+
+  <h2 class="bb-docs">Skin: Dark</h2>
+  <section role="region" class="skin-dark">
+    <header>
+      <a href="#"><span class="icon icon-close">close</span></a>
+      <menu type="toolbar">
+        <button>done</button>
+      </menu>
+      <h1>Music</h1>
+    </header>
+  </section>
+
+  <section role="region" class="skin-dark">
+    <header>
+      <a href="#"><span class="icon icon-back">back</span></a>
+      <menu type="toolbar">
+        <button><span class="icon icon-edit">edit</span></button>
+        <button><span class="icon icon-add">add</span></button>
+      </menu>
+      <h1>Music</h1>
+    </header>
+    <header>
+      <h2>Subheader text</h2>
+    </header>
+  </section>
+
+  <h2 class="bb-docs">Skin: Organic</h2>
+  <section role="region" class="skin-organic">
+    <header>
+      <a href="#"><span class="icon icon-close">close</span></a>
+      <menu type="toolbar">
+        <button>done</button>
+      </menu>
+      <h1>Settings</h1>
+    </header>
+  </section>
+
+  <div class="skin-organic">
+    <section role="region">
+      <header>
+        <a href="#"><span class="icon icon-back">back</span></a>
+        <menu type="toolbar">
+          <button><span class="icon icon-edit">edit</span></button>
+          <button><span class="icon icon-add">add</span></button>
+        </menu>
+        <h1>Settings</h1>
+      </header>
+      <header>
+        <h2>Subheader text</h2>
+      </header>
+    </section>
+  </div>
+
+  <h2 class="bb-docs">Skin: Comms</h2>
+  <div class="skin-comms">
+    <section role="region">
+      <header>
+        <a href="#"><span class="icon icon-close">close</span></a>
+        <menu type="toolbar">
+          <button>done</button>
+        </menu>
+        <h1>Contacts</h1>
+      </header>
+    </section>
+
+    <section role="region">
+      <header>
+        <a href="#"><span class="icon icon-back">back</span></a>
+        <menu type="toolbar">
+          <button><span class="icon icon-edit">edit</span></button>
+          <button><span class="icon icon-add">add</span></button>
+        </menu>
+        <h1>Contacts</h1>
+      </header>
+      <header>
+        <h2>Subheader text</h2>
+      </header>
+    </section>
+  </div>
+
+</body>
+</html>

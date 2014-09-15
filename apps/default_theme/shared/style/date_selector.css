@@ -1,0 +1,279 @@
+/* ----------------------------------
+ * Date selector
+ * ---------------------------------- */
+
+/* Main dialog setup */
+[role="dialog"][data-type="date-selector"] {
+  background: #2d2d2d;
+  overflow: hidden;
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 0 7rem;
+  color: #fff;
+  font-family: sans-serif;
+}
+
+[role="dialog"][data-type="date-selector"] h1 {
+  font-weight: 400;
+  font-size: 1.9rem;
+  line-height: 4.8rem;
+  color: #fff;
+  border-bottom: 0.1rem solid #616262;
+  background: rgba(0 ,0, 0, .2);
+  margin: 0;
+  padding: 0 3rem 1rem;
+  height: 4.8rem;
+  -moz-box-sizing: border-box;
+}
+
+/* Date picker */
+[role="dialog"][data-type="date-selector"] .picker-container {
+  -moz-box-sizing: border-box;
+  position: relative;
+  width: calc(100% - 5rem);
+  height: 22.5rem;
+  margin: 5.4rem auto 0;
+  padding-top: 8.8rem;
+  border-left:  0.1rem solid #111;
+  border-right: 0.1rem solid #111;
+  overflow: hidden;
+}
+
+[role="dialog"][data-type="date-selector"] .picker-container:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  border-top: solid 0.7rem;
+  -moz-border-top-colors:
+    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
+    rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+[role="dialog"][data-type="date-selector"] .picker-container:after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-bottom: solid 0.7rem;
+  -moz-border-bottom-colors:
+    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
+    rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+[role="dialog"][data-type="date-selector"] .picker-bar-background {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 27%;
+  height: 100%;
+  background: #4d4d4d;
+}
+
+[role="dialog"][data-type="date-selector"] .value-picker-date-wrapper,
+[role="dialog"][data-type="date-selector"] .value-picker-month-wrapper,
+[role="dialog"][data-type="date-selector"] .value-picker-year-wrapper {
+  -moz-box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 21%;
+  height: 100%;
+  padding-top: 8.3rem;
+  border-right: solid 0.2rem;
+  -moz-border-right-colors: #1d1d1d #4a4a4a;
+}
+
+[role="dialog"][data-type="date-selector"] .value-picker-month-wrapper {
+  left: 21%;
+  width: 52%;
+}
+
+[role="dialog"][data-type="date-selector"] .value-picker-year-wrapper {
+  left: auto;
+  right: 0;
+  width: 27%;
+}
+
+/*DMY*/
+[role="dialog"][data-type="date-selector"] .DMY .value-picker-year-wrapper {
+  border: none;
+}
+
+/*YMD*/
+[role="dialog"][data-type="date-selector"] .YMD .value-picker-year-wrapper {
+  left: 0;
+  right: auto;
+}
+
+[role="dialog"][data-type="date-selector"] .YMD .value-picker-month-wrapper {
+  left: 27%;
+}
+
+[role="dialog"][data-type="date-selector"] .YMD .value-picker-date-wrapper {
+  left: auto;
+  right: 0;
+  border: none;
+}
+
+
+[role="dialog"][data-type="date-selector"]  .YMD .picker-bar-background {
+  width: 21%;
+}
+
+/*MDY*/
+[role="dialog"][data-type="date-selector"] .MDY .value-picker-month-wrapper {
+  left: 0;
+}
+
+[role="dialog"][data-type="date-selector"] .MDY .value-picker-date-wrapper {
+  left: 52%;
+}
+
+[role="dialog"][data-type="date-selector"] .MDY .value-picker-year-wrapper {
+  border: none;
+}
+
+[role="dialog"][data-type="date-selector"] .value-picker-date,
+[role="dialog"][data-type="date-selector"] .value-picker-month,
+[role="dialog"][data-type="date-selector"] .value-picker-year {
+  -moz-user-select: none;
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+[role="dialog"][data-type="date-selector"] .value-picker-date > *[data-disabled="true"],
+[role="dialog"][data-type="date-selector"] .value-picker-month > *[data-disabled="true"],
+[role="dialog"][data-type="date-selector"] .value-picker-year > *[data-disabled="true"] {
+  visibility: hidden;
+}
+
+[role="dialog"][data-type="date-selector"] .value-indicator {
+  position: absolute;
+  width: 100%;
+  height: 4.6rem;
+  background-color: #00A5C5;
+  box-shadow: 0 0 0.7rem rgba(0,0,0, .4);
+  opacity: .99;
+  pointer-events: none;
+}
+
+[role="dialog"][data-type="date-selector"] .animation-on {
+  transition-duration: 0.5s;
+  transition-property: transform;
+}
+
+[role="dialog"][data-type="date-selector"]  .picker-unit {
+  position: relative;
+  font: 2.2rem/5.6rem sans-serif;
+  color: #fff;
+  text-align: center;
+  vertical-align: middle;
+  width: 100%;
+  height: 5.6rem;
+  pointer-events: none;
+  opacity: 0.6;
+  transform: scale(0.8);
+}
+
+[role="dialog"][data-type="date-selector"]  .picker-unit.selected {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Menu & buttons setup */
+[role="dialog"][data-type="date-selector"] menu {
+  white-space: nowrap;
+  margin: 0;
+  padding: 1.5rem;
+  background: #4d4d4d;
+  display: block;
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+[role="dialog"][data-type="date-selector"] menu button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
+
+[role="dialog"][data-type="date-selector"] menu button {
+  width: calc((100% - 1rem) / 2);
+  font-family: sans-serif;
+  font-style: italic;
+  height: 4rem;
+  margin: 0 0 1rem;
+  padding: 0 1.2rem;
+  -moz-box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background: #d8d8d8;
+  border: none;
+  border-radius: 2rem;
+  font-weight: normal;
+  font-size: 1.6rem;
+  line-height: 4rem;
+  color: #333;
+  text-align: center;
+  text-shadow: none;
+  text-decoration: none;
+  outline: none;
+}
+
+/* Affirmative */
+[role="dialog"][data-type="date-selector"] menu button.affirmative,
+[role="dialog"][data-type="date-selector"] menu button.recommend {
+  background-color: #00caf2;
+  color: #fff;
+}
+
+/* Pressed */
+[role="dialog"][data-type="date-selector"] menu button:active {
+  background: #00aacc;
+  color: #fff;
+}
+
+/* Disabled */
+[role="dialog"][data-type="date-selector"] > menu > button[disabled] {
+  background-color: #565656;
+  color: rgba(255,255,255,0.4);
+  pointer-events: none;
+}
+
+[role="dialog"][data-type="date-selector"] > menu > button[disabled].recommend {
+  background-color: #006579;
+}
+
+button[disabled]::-moz-selection {
+  -moz-user-select: none;
+}
+
+[role="dialog"][data-type="date-selector"] menu button:last-child {
+  margin-left: 1rem;
+}
+
+[role="dialog"][data-type="date-selector"] menu button,
+[role="dialog"][data-type="date-selector"] menu button:first-child {
+  margin: 0;
+}
+
+[role="dialog"][data-type="date-selector"] menu button.full {
+  width: 100%;
+}

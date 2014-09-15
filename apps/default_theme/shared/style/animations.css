@@ -1,0 +1,147 @@
+.fade-in {
+  animation: fade-in 0.2s forwards;
+}
+
+.fade-out {
+  animation: fade-out 0.2s forwards;
+}
+
+@keyframes fade-in {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fade-out {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.app-go-deeper-out {
+  animation: current-to-left 0.4s forwards;
+}
+
+.app-go-deeper-in {
+  animation: right-to-current 0.4s forwards;
+}
+
+.app-go-deeper-back-in {
+  animation: left-to-current 0.4s forwards;
+}
+
+.app-go-deeper-back-out {
+  animation: current-to-right 0.4s forwards;
+}
+
+@keyframes show {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes hide {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes right-to-current {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes current-to-left {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes current-to-right {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes left-to-current {
+  /* To pre-render the incoming screen and avoid a flick we are getting if
+      setting it to 100%. */
+  0%   { transform: translateX(-99.99%); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes header-current-to-left {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-30%); }
+}
+
+@keyframes header-left-to-current {
+  0%   { transform: translateX(-30%); }
+  100% { transform: translateX(0); }
+}
+
+.app-go-up-in {
+  animation: app-go-up-in 0.5s forwards ease-in;
+}
+
+.app-go-up-back-out {
+  animation: app-go-up-back-out 0.5s forwards ease-in;
+}
+
+@keyframes app-go-up-in {
+  0% { transform: translateY(100%); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes app-go-up-back-out {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(100%); }
+}
+
+.app-go-left-in {
+  animation: app-go-left-in 0.5s forwards ease-in;
+}
+
+.app-go-left-back-out {
+  animation: app-go-left-back-out 0.5s forwards ease-in;
+}
+
+@keyframes app-go-left-in {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes app-go-left-back-out {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
+
+.move-left-in {
+  animation: move-left-in 0.4s forwards;
+}
+
+.move-left-out {
+  animation: move-left-out 0.4s forwards;
+}
+
+.move-right-in {
+  animation: move-right-in 0.4s forwards;
+}
+
+.move-right-out {
+  animation: move-right-out 0.4s forwards;
+}
+
+@keyframes move-left-in {
+  0% { transform: translateX(100%);}
+  100% { transform: translateX(0);}
+}
+
+@keyframes move-left-out {
+  0% { transform: translateX(0);}
+  100% { transform: translateX(-100%);}
+}
+
+@keyframes move-right-in {
+  0% { transform: translateX(-100%);}
+  100% { transform: translateX(0%);}
+}
+
+@keyframes move-right-out {
+  0% { transform: translateX(0%);}
+  100% { transform: translateX(100%);}
+}

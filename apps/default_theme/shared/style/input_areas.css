@@ -1,0 +1,532 @@
+/* ----------------------------------
+* Input areas
+* ---------------------------------- */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="tel"],
+input[type="search"],
+input[type="url"],
+input[type="number"],
+textarea {
+  font-family: sans-serif;
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: 4rem;
+  line-height: 4rem;
+  resize: none;
+  padding: 0 1.5rem;
+  font-size: 1.6rem;
+  border: 0.1rem solid #c7c7c7;
+  border-radius: 0;
+  box-shadow: none; /* override the box-shadow from the system (performance issue) */
+  color: #333;
+  background: #fff;
+  margin: 0 0 1rem 0;
+}
+
+label:active {
+  background-color: transparent;
+}
+
+textarea {
+  height: 10rem;
+  max-height: 10rem;
+  line-height: 2rem;
+}
+
+input::-moz-placeholder,
+textarea::-moz-placeholder {
+  color: #a9a9a9;
+  opacity: 1;
+  font-style: italic;
+  font-weight: 400;
+}
+
+input[disabled],
+textarea[disabled] {
+  opacity: 0.5;
+}
+
+.skin-dark input[type="text"],
+.skin-dark input[type="password"],
+.skin-dark input[type="email"],
+.skin-dark input[type="tel"],
+.skin-dark input[type="search"],
+.skin-dark input[type="url"],
+.skin-dark input[type="number"],
+.skin-dark textarea  {
+  color: #fff;
+  background-color: transparent;
+  border-color: #454545;
+}
+
+form p {
+  position: relative;
+  margin: 0;
+}
+
+form p input + button[type="reset"],
+form p textarea + button[type="reset"] {
+  position: absolute;
+  top: 0;
+  right: -0.3rem;
+  width: 4rem;
+  height: 4rem;
+  padding: 0;
+  border: none;
+  font-size: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: url(input_areas/images/clear.png) no-repeat 50% 50% / 2.4rem auto;
+}
+
+
+.skin-dark p input + button[type="reset"],
+.skin-dark p textarea + button[type="reset"] {
+  background-image: url(input_areas/images/clear_dark.png);
+}
+
+/* To avoid colission with BB butons */
+li input + button[type="reset"]:after,
+li textarea + button[type="reset"]:after {
+  background: none;
+}
+
+textarea {
+  padding: 1.2rem;
+}
+
+form p input:focus {
+  padding-right: 3rem;
+}
+
+form p input:focus + button[type="reset"],
+form p textarea:focus + button[type="reset"] {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Fieldset */
+fieldset {
+  position: relative;
+  overflow: hidden;
+  margin: 1.5rem 0 0 0;
+  padding: 0;
+  font-size: 2rem;
+  line-height: 1em;
+  background: none;
+  border: 0;
+}
+
+fieldset legend,
+input[type="date"],
+input[type="time"],
+input[type="datetime"],
+input[type="datetime-local"] {
+  border: 0.1rem solid #c7c7c7;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: sans-serif;
+  font-style: italic;
+  font-size: 1.6rem;
+  margin: 0 0 1.5rem;
+  padding: 0 1.5rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  height: 4rem;
+  color: #333;
+  border-radius: 0;
+  background: #fff url(input_areas/images/dialog.svg) no-repeat calc(100% - 1rem) calc(100% - 1rem);
+}
+
+fieldset legend {
+  margin: 0 0 1rem;
+  padding: 1rem 1.5rem 0;
+  background-color: rgba(0,0,0,0.05);
+}
+
+fieldset[disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.skin-dark fieldset legend,
+.skin-dark input[type="date"],
+.skin-dark input[type="time"],
+.skin-dark input[type="datetime"],
+.skin-dark input[type="datetime-local"] {
+  color: #fff;
+  background-color: transparent;
+  border-color: #454545;
+}
+
+fieldset[disabled] legend,
+input[type="date"][disabled],
+input[type="time"][disabled],
+input[type="datetime"][disabled],
+input[type="datetime-local"][disabled] {
+  background-image: url(input_areas/images/dialog_disabled.svg);
+  background-color: transparent
+}
+
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="datetime"]:focus,
+input[type="datetime-local"]:focus {
+  box-shadow: none;
+  border-bottom-color: #c7c7c7;
+}
+
+.skin-dark input[type="date"]:focus,
+.skin-dark input[type="time"]:focus,
+.skin-dark input[type="datetime"]:focus,
+.skin-dark input[type="datetime-local"]:focus {
+  box-shadow: none;
+  border-bottom-color: #454545;
+}
+
+input[type="date"]:active,
+input[type="time"]:active,
+input[type="datetime"]:active,
+input[type="datetime-local"]:active {
+  background-color: #b2f2ff;
+  color: #fff;
+}
+
+.skin-dark input[type="date"]:active,
+.skin-dark input[type="time"]:active,
+.skin-dark input[type="datetime"]:active,
+.skin-dark input[type="datetime-local"]:active {
+  background-color: #00aacc;
+  background-image: url(input_areas/images/dialog_active.svg);
+}
+
+
+/* fix for required inputs with wrong or empty value e.g. [type=email] */
+input:invalid,
+textarea:invalid,
+.skin-dark input:invalid,
+.skin-dark textarea:invalid {
+  color: #b90000;
+}
+
+input:focus,
+textarea:focus,
+.skin-dark input:focus,
+.skin-dark textarea:focus {
+  box-shadow: inset 0 -0.1rem 0 #00caf2;
+  border-bottom-color: #00caf2;
+}
+
+input:invalid:focus,
+textarea:invalid:focus,
+.skin-dark input:invalid:focus,
+.skin-dark textarea:invalid:focus {
+  box-shadow: inset 0 -0.1rem 0 #820000;
+  border-bottom-color: #820000;
+}
+
+/* Tidy (search/submit) */
+form[role="search"] {
+  position: relative;
+  height: 3.7rem;
+  background: #f4f4f4;
+}
+
+form[role="search"].skin-dark {
+  background: #202020;
+}
+
+form[role="search"] p {
+  padding: 0 1.5rem 0 3rem;
+  overflow: hidden;
+  position: relative;
+}
+
+form[role="search"] p input,
+form[role="search"] p textarea {
+  height: 3.7rem;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+}
+
+form[role="search"] p textarea {
+  padding: 1rem 0 0 0;
+}
+
+form[role="search"] p input::-moz-placeholder {
+  background: url(input_areas/images/search.svg) right -0.5rem center no-repeat;
+  background-size: 3rem;
+}
+
+form[role="search"].skin-dark p input::-moz-placeholder {
+  background-image: url(input_areas/images/search_dark.svg);
+}
+
+form[role="search"] p input:focus::-moz-placeholder {
+  background: none;
+}
+
+form[role="search"] p input:invalid,
+form[role="search"] p textarea:invalid,
+form[role="search"] p input:focus,
+form[role="search"] p textarea:focus {
+  border: none;
+  box-shadow: none;
+}
+
+form[role="search"].skin-dark p input,
+form[role="search"].skin-dark p textarea {
+  color: #fff;
+  background: none;
+  box-shadow: none;
+}
+
+form[role="search"] button[type="submit"] {
+  float: right;
+  min-width: 6rem;
+  height: 3.7rem;
+  padding: 0 1.5rem;
+  border: none;
+  color: #00aac5;
+  font-weight: normal;
+  font-size: 1.6rem;
+  line-height: 3.7rem;
+  width: auto;
+  border-radius: 0;
+  margin: 0;
+  position: relative;
+  background-image: none;
+  background-color: unset;
+  font-style: italic;
+  overflow: visible;
+}
+
+form[role="search"] button[type="submit"]:after {
+  content: "";
+  position: absolute;
+  left: -0.1rem;
+  top: 0.7rem;
+  bottom: 0.7rem;
+  width: 0.1rem;
+  background: #c7c7c7;
+}
+
+form[role="search"] button[type="submit"].icon {
+  font-size: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 3rem;
+}
+
+form[role="search"] p input + button[type="reset"]{
+  height: 3.7rem;
+  right: 0.5rem;
+}
+
+form[role="search"].skin-dark button[type="submit"]:after {
+  background-color: #575757;
+}
+
+form[role="search"] button[type="submit"] + p > textarea {
+  height: 3.7rem;
+  line-height: 2rem;
+}
+
+form[role="search"] button[type="submit"] + p button {
+  height: 3.7rem;
+}
+
+form[role="search"].full button[type="submit"] {
+  display: none;
+}
+
+form[role="search"] button.icon:active,
+form[role="search"] button[type="submit"]:active {
+  background-color: #b2f2ff;
+  color: #fff;
+}
+
+form[role="search"].skin-dark button.icon:active,
+form[role="search"].skin-dark button[type="submit"]:active {
+  background: #00aacc;
+}
+
+form[role="search"] button[type="submit"][disabled] {
+  color: #adadad;
+  pointer-events: none;
+}
+
+form button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
+
+/* .bb-editable - e.g email & SMS recipients */
+.bb-editable [contenteditable] {
+  display: inline-block;
+  box-sizing: border-box;
+  position: relative;
+  max-width: calc(100% - 1.4rem);
+  overflow: hidden;
+  padding: 0 1.5rem;
+  margin: 0 0 0.6rem 0;
+  line-height: 2.8rem;
+  border-radius: 1.4rem;
+  text-overflow: ellipsis;
+  font-size: 1.6rem;
+  font-style: italic;
+  white-space: nowrap;
+  color: #333;
+  background: #fff;
+}
+
+.bb-editable [contenteditable].icon {
+  padding-right: 3.7rem;
+}
+
+.bb-editable [contenteditable="false"].invalid {
+  background-color: #fedcdc;
+  padding-left: 3.3rem;
+}
+
+.bb-editable [contenteditable="false"].invalid:before {
+    content: "!";
+    position: absolute;
+    top: 0.6rem;
+    left: 0.8rem;
+    display: block;
+    width: 1.7rem;
+    height: 1.6rem;
+    padding: 0;
+    border-radius: 50%;
+    line-height: 1.6rem;
+    font-size: 1.2rem;
+    text-align: center;
+    text-indent: -0.1rem;
+    font-style: normal;
+    font-weight: 600;
+    color: #fff;
+    background-color: #b80404;
+}
+
+.bb-editable [contenteditable="false"].invalid:hover:before,
+.bb-editable [contenteditable="false"].invalid:active:before {
+  color: #b2f2ff;
+  background-color: #fff;
+}
+
+.bb-editable [contenteditable]:hover,
+.bb-editable [contenteditable]:active,
+.bb-editable [contenteditable].invalid:hover,
+.bb-editable [contenteditable].invalid:active {
+  color: #fff;
+  background-color: #b2f2ff;
+}
+
+.bb-editable [contenteditable].icon:after {
+  content: "";
+  position: absolute;
+  top: 0.7rem;
+  right: 0;
+  width: 3rem;
+  height: 3rem;
+  background-position: -0.7rem -3.8rem;
+  background-repeat: no-repeat;
+  background-size: 3rem;
+}
+
+.bb-editable [contenteditable].icon:hover:after,
+.bb-editable [contenteditable].icon:active:after {
+  background-position: -0.7rem -0.8rem;
+}
+
+.bb-editable [contenteditable].invalid.icon:after {
+  background-position: -0.7rem -6.8rem;
+}
+
+.bb-editable [contenteditable].invalid.icon:hover:after,
+.bb-editable [contenteditable].invalid.icon:active:after {
+  background-position: -0.7rem -0.8rem;
+}
+
+.bb-editable [contenteditable="true"],
+.bb-editable [contenteditable="true"]:hover,
+.skin-comms .bb-editable [contenteditable="true"]:hover {
+    padding: 0 0.2rem;
+    white-space: normal;
+    font-size: 1.8rem;
+    font-style: normal;
+    color: #000;
+    background: none repeat scroll 0 0 transparent;
+}
+
+.skin-comms .bb-editable [contenteditable]:hover,
+.skin-comms .bb-editable [contenteditable]:active {
+  color: #fff;
+  background-color: #29bbb5;
+}
+
+/******************************************************************************
+ * Right-to-Left layout
+ */
+
+html[dir="rtl"] ::-moz-placeholder {
+  text-align: right;
+}
+
+html[dir="rtl"] fieldset legend {
+  background: rgba(0,0,0,0.05) url(input_areas/images/dialog_rtl.svg) no-repeat 1rem calc(100% - 1rem);
+}
+
+html[dir="rtl"] input[type="date"],
+html[dir="rtl"] input[type="time"],
+html[dir="rtl"] input[type="datetime"],
+html[dir="rtl"] input[type="datetime-local"] {
+  background: #fff url(input_areas/images/dialog_rtl.svg) no-repeat 1rem calc(100% - 1rem);
+}
+
+html[dir="rtl"] fieldset[disabled] legend,
+html[dir="rtl"] input[type="date"][disabled],
+html[dir="rtl"] input[type="time"][disabled],
+html[dir="rtl"] input[type="datetime"][disabled],
+html[dir="rtl"] input[type="datetime-local"][disabled] {
+  background-image: url(input_areas/images/dialog_disabled_rtl.svg);
+}
+
+html[dir="rtl"] form p input:focus {
+  padding: 0 1.5rem 0 3rem;
+}
+
+html[dir="rtl"] form p input + button[type="reset"],
+html[dir="rtl"] form p textarea + button[type="reset"] {
+  right: auto;
+  left: -0.3rem;
+}
+
+html[dir="rtl"] form[role="search"] p {
+  padding: 0 3rem 0 1.5rem;
+}
+
+html[dir="rtl"] form[role="search"] p input + button[type="reset"]{
+  left: 0.5rem;
+}
+
+html[dir="rtl"] form[role="search"] p input::-moz-placeholder {
+  background-position: -0.5rem center;
+}
+
+html[dir="rtl"] form[role="search"] button[type="submit"] {
+  float: left;
+}
+
+html[dir="rtl"] form[role="search"] button[type="submit"]:after {
+  right: 0;
+  left: auto;
+}

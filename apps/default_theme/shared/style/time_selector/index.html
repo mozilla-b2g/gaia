@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <title>Time selector</title>
+    <link rel="stylesheet" href="../time_selector.css">
+
+    <!--
+      This <style> and <link> is only used for the example code, is no needed for the real case use
+    -->
+    <style type="text/css">
+      html, body { font-size: 10px; margin: 0; padding: 0; }
+    </style>
+
+  </head>
+
+  <body>
+
+    <!-- Time Picker -->
+        <form id="time-picker-popup" role="dialog" data-type="time-selector">
+          <h1 data-l10n-id="select-time">Select time</h1>
+          <div class="picker-container format12h">
+            <div class="picker-bar-background"></div>
+            <div class="value-picker-hours-wrapper">
+              <div style="transform: translateY(-110px);" class="value-picker-hours">
+                <div class="picker-unit">1</div>
+                <div class="picker-unit">2</div>
+                <div class="picker-unit">3</div>
+                <div class="picker-unit">4</div>
+                <div class="picker-unit">5</div>
+                <div class="picker-unit">6</div>
+                <div class="picker-unit">7</div>
+                <div class="picker-unit">8</div>
+                <div class="picker-unit">9</div>
+                <div class="picker-unit">10</div>
+                <div class="picker-unit">11</div>
+                <div class="picker-unit">12</div>
+              </div>
+            </div>
+            <div class="value-picker-minutes-wrapper">
+              <div style="transform: translateY(0px);" class="value-picker-minutes">
+                <div class="picker-unit">00</div>
+                <div class="picker-unit">01</div>
+                <div class="picker-unit">02</div>
+                <div class="picker-unit">03</div>
+                <div class="picker-unit">04</div>
+                <div class="picker-unit">05</div>
+                <div class="picker-unit">06</div>
+                <div class="picker-unit">07</div>
+                <div class="picker-unit">08</div>
+                <div class="picker-unit">09</div>
+                <div class="picker-unit">10</div>
+                <div class="picker-unit">11</div>
+                <div class="picker-unit">12</div>
+                <div class="picker-unit">13</div>
+                <div class="picker-unit">14</div>
+                <div class="picker-unit">15</div>
+                <div class="picker-unit">16</div>
+                <div class="picker-unit">17</div>
+                <div class="picker-unit">18</div>
+                <div class="picker-unit">19</div>
+                <div class="picker-unit">20</div>
+                <div class="picker-unit">21</div>
+                <div class="picker-unit">22</div>
+                <div class="picker-unit">23</div>
+                <div class="picker-unit">24</div>
+                <div class="picker-unit">25</div>
+                <div class="picker-unit">26</div>
+                <div class="picker-unit">27</div>
+                <div class="picker-unit">28</div>
+                <div class="picker-unit">29</div>
+                <div class="picker-unit">30</div>
+                <div class="picker-unit">31</div>
+                <div class="picker-unit">32</div>
+                <div class="picker-unit">33</div>
+                <div class="picker-unit">34</div>
+                <div class="picker-unit">35</div>
+                <div class="picker-unit">36</div>
+                <div class="picker-unit">37</div>
+                <div class="picker-unit">38</div>
+                <div class="picker-unit">39</div>
+                <div class="picker-unit">40</div>
+                <div class="picker-unit">41</div>
+                <div class="picker-unit">42</div>
+                <div class="picker-unit">43</div>
+                <div class="picker-unit">44</div>
+                <div class="picker-unit">45</div>
+                <div class="picker-unit">46</div>
+                <div class="picker-unit">47</div>
+                <div class="picker-unit">48</div>
+                <div class="picker-unit">49</div>
+                <div class="picker-unit">50</div>
+                <div class="picker-unit">51</div>
+                <div class="picker-unit">52</div>
+                <div class="picker-unit">53</div>
+                <div class="picker-unit">54</div>
+                <div class="picker-unit">55</div>
+                <div class="picker-unit">56</div>
+                <div class="picker-unit">57</div>
+                <div class="picker-unit">58</div>
+                <div class="picker-unit">59</div>
+              </div>
+            </div>
+            <div class="value-picker-hour24-wrapper">
+              <div style="transform: translateY(0px);" class="value-picker-hour24-state">
+                <div class="picker-unit">AM</div>
+                <div class="picker-unit">PM</div>
+              </div>
+            </div>
+            <div class="value-indicator">
+              <div class="value-indicator-colon">:</div>
+            </div>
+          </div>
+          <menu>
+            <button>Cancel</button>
+            <button class="affirmative">Ok</button>
+          </menu>
+        </form>
+
+  </body>
+</html>

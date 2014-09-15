@@ -1,0 +1,53 @@
+html {
+  font-size: 10px;
+}
+
+html,body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  color: white;
+  background-color: white;
+}
+
+#call-log-view > div {
+  background-color: white;
+  z-index: 1;
+}
+
+.font-light {
+  font-weight: 300;
+}
+
+a {
+  outline: 0;
+}
+
+a:hover, a:active, a:focus {
+  outline: 0;
+}
+
+.hide {
+  display: none !important;
+}
+
+.contact-primary-info {
+  font-size: -moz-calc(15*0.226rem);
+  color: black;
+}
+
+.contact-secondary-info {
+  font-size: -moz-calc(6*0.226rem);
+  color: white;
+}
+
+.grid-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+body.hidden *[data-l10n-id] {
+  visibility: hidden;
+}
+

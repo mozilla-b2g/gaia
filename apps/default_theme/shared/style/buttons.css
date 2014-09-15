@@ -1,0 +1,380 @@
+/* ----------------------------------
+ * Buttons
+ * ---------------------------------- */
+
+.button::-moz-focus-inner,
+[role="button"]::-moz-focus-inner,
+button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
+
+button,
+[role="button"],
+.button {
+  font-family: sans-serif;
+  font-style: italic;
+  width: 100%;
+  height: 4rem;
+  margin: 0 0 1rem;
+  padding: 0 1.2rem;
+  -moz-box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background: #d8d8d8;
+  border: none;
+  border-radius: 2rem;
+  font-weight: normal;
+  font-size: 1.6rem;
+  line-height: 4rem;
+  color: #333;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+}
+
+/* Recommend */
+button.recommend,
+[role="button"].recommend {
+  background-color: #00caf2;
+  color: #fff;
+}
+
+/* Danger */
+button.danger,
+.danger[role="button"] {
+  background-color: #e51e1e;
+  color: #fff;
+}
+
+/* Pressed */
+button:active,
+[role="button"]:active,
+.button:active {
+  background-color: #b2f2ff;
+  color: #fff;
+}
+
+/* Pressed with dark skin */
+.skin-dark button:active,
+.skin-dark [role="button"]:active,
+.skin-dark .button:active {
+  background-color: #00aacc;
+}
+
+/* Disabled */
+button[disabled],
+[role="button"][aria-disabled="true"],
+.button[aria-disabled="true"] {
+  background-color: rgba(0,0,0,0.05);
+  color: #c7c7c7;
+  pointer-events: none;
+}
+
+button[disabled].recommend,
+[role="button"][aria-disabled="true"].recommend,
+.button[aria-disabled="true"].recommend {
+  background-color: #97cbd5;
+  color: rgba(255,255,255,0.5);
+}
+
+button[disabled].danger,
+[role="button"][aria-disabled="true"].danger,
+.button[aria-disabled="true"].danger {
+  background-color: #eb7474;
+  color: rgba(255,255,255,0.5);
+}
+
+/* Disabled with dark background */
+.skin-dark button[disabled],
+.skin-dark .button[aria-disabled="true"],
+.skin-dark [role="button"][aria-disabled="true"] {
+  background-color: #565656;
+  color: rgba(255,255,255,0.4);
+}
+
+.skin-dark button[disabled].recommend,
+.skin-dark .button[aria-disabled="true"].recommend,
+.skin-dark [role="button"][aria-disabled="true"].recommend {
+  background-color: #006579;
+}
+
+.skin-dark button[disabled].danger,
+.skin-dark .button[aria-disabled="true"].danger,
+.skin-dark [role="button"][aria-disabled="true"].danger {
+  background-color: #730f0f;
+}
+
+button[disabled]::-moz-selection,
+.button[aria-disabled="true"]::-moz-selection,
+[role="button"][aria-disabled="true"]::-moz-selection {
+  -moz-user-select: none;
+}
+
+/* ----------------------------------
+ * Buttons inside lists
+ * ---------------------------------- */
+
+li button,
+li [role="button"],
+li .button {
+  position: relative;
+  text-align: left;
+  border: 0.1rem solid #c7c7c7;
+  background: rgba(0,0,0,0.05);
+  margin: 0 0 1rem;
+  overflow: hidden;
+  border-radius: 0;
+  display: flex;
+  height: auto;
+  min-height: 4rem;
+  text-overflow: initial;
+  white-space: normal;
+  line-height: 2rem;
+  padding: 1rem 1.2rem;
+}
+
+/* Press */
+li [role="button"]:active:after,
+li .button:active:after,
+li button:active:after {
+  opacity: 0;
+}
+
+/* Disabled */
+li button:disabled,
+li [role="button"][aria-disabled="true"],
+li .button[aria-disabled="true"] {
+  opacity: 0.5;
+}
+
+/* Icons */
+li button.icon,
+li [role="button"].icon,
+li .button.icon {
+  padding-right: 4rem;
+}
+
+li button.icon:before,
+li [role="button"].icon:before,
+li .button.icon:before {
+  content: "";
+  width: 3rem;
+  height: 3rem;
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  margin-top: -1.5rem;
+  background: transparent no-repeat center center / 100% auto;
+  pointer-events: none;
+}
+
+li button.icon-view:active,
+li [role="button"].icon-view:active {
+  background-color: #b2f2ff;
+}
+
+li button.icon-view:before,
+li [role="button"].icon-view:before {
+  background-image: url(buttons/images/next.png);
+  right: 0;
+}
+
+/* Getting more space for text, as icon is shorter */
+li button.icon-dialog,
+li [role="button"].icon-dialog,
+li .button.icon-dialog {
+  padding-right: 3rem;
+}
+
+li button.icon-dialog:before,
+li [role="button"].icon-dialog:before,
+li .button.icon-dialog:before {
+  width: 0;
+  height: 0;
+  top: auto;
+  right: 0.8rem;
+  bottom: 0.5rem;
+  border-top: 0.7rem solid transparent;
+  border-bottom: 0.7rem solid transparent;
+  border-left: 0.7rem solid #00aac5;
+  transform: rotate(45deg);
+  z-index: 1;
+}
+
+li button.icon-dialog:disabled:before,
+li [role="button"][aria-disabled="true"].icon-dialog:before,
+li .button[aria-disabled="true"].icon-dialog:before {
+  border-left: 0.7rem solid #a9a9a9;
+}
+
+/* ----------------------------------
+ * Theme: Dark
+ * ---------------------------------- */
+
+.skin-dark li button,
+.skin-dark li [role="button"],
+.skin-dark li .button {
+  background-color: #454545;
+  border: none;
+  color: #fff;
+  font-weight: normal;
+}
+
+.skin-dark li button:active,
+.skin-dark li [role="button"]:active {
+  background-color: #00aacc;
+}
+
+.skin-dark li button.icon-view:active,
+.skin-dark li [role="button"].icon-view:active {
+  background-color: #00aacc;
+}
+
+.skin-dark li button.icon-dialog:active:before,
+.skin-dark li [role="button"].icon-dialog:active:before,
+.skin-dark li .button.icon-dialog:active:before {
+  border-left: 0.7rem solid #b2f2ff;
+}
+
+.skin-dark li button:disabled,
+.skin-dark li [role="button"][aria-disabled="true"],
+.skin-dark li .button[aria-disabled="true"] {
+  background-color: #454545;
+  opacity: 0.5;
+}
+
+/* Inputs inside of .button */
+.button input,
+body[role="application"] .button input {
+  border: 0;
+  background: none;
+}
+
+/* select */
+select {
+  width: 100%;
+  -moz-box-sizing: border-box;
+  font-family: sans-serif;
+  font-style: italic;
+  font-size: 1.6rem;
+  color: #333;
+  margin: 0 0 1rem;
+  padding: 0 0 0 1.1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  height: 4rem;
+  border: 0.1rem solid #c7c7c7;
+  background: rgba(0,0,0,0.05);
+}
+
+.skin-dark select {
+  background-color: rgba(87, 87, 87, 0.8);
+  border: none;
+  color: #fff;
+}
+
+/* remove dotted outline */
+select:-moz-focusring {
+  color: transparent;
+  text-shadow: 0 0 0 #333;
+}
+
+.skin-dark select:-moz-focusring {
+  text-shadow: 0 0 0 #fff;
+}
+
+/* Hides dropdown arrow until bug #649849 is fixed */
+.button.icon select {
+  position: absolute;
+  top: -0.6rem;
+  left: 0;
+  width: calc(100% + 3rem);
+  height: 100%;
+  margin: 0;
+  padding: 0 5rem 0 0;
+  text-indent: 0;
+  font-weight: 400;
+  font-size: 1.7rem;
+  /*
+    The select element uses the text color to determine the color of the outline.
+    We put a text shadow with needed offset and no blur, so that replaces the text.
+  */
+  color: rgba(0,0,0,0);
+  text-shadow: 1rem 0.5rem 0 #333;
+  border: none;
+  background: none;
+}
+
+.button.icon select option {
+  color: #000;
+  border: 0;
+  padding: 0.6rem 1.3rem;
+  text-shadow: 0 0 0 rgba(0,0,0,0);
+}
+
+.button.icon-dialog {
+  overflow: hidden;
+}
+
+/******************************************************************************
+ * Right-To-Left layout
+ */
+
+html[dir="rtl"] li button,
+html[dir="rtl"] li a[role="button"],
+html[dir="rtl"] li .button {
+  text-align: right;
+}
+
+html[dir="rtl"] li button.icon,
+html[dir="rtl"] li .icon[role="button"],
+html[dir="rtl"] li .button.icon {
+  padding: 1rem 1.3rem 1rem 4rem;
+}
+
+html[dir="rtl"] li button.icon:before,
+html[dir="rtl"] li [role="button"].icon:before,
+html[dir="rtl"] li .button.icon:before {
+  right: auto;
+  left: 0.5rem;
+}
+
+html[dir="rtl"] li button.icon-dialog,
+html[dir="rtl"] li [role="button"].icon-dialog,
+html[dir="rtl"] li .button.icon-dialog {
+  padding-left: 3rem;
+}
+
+html[dir="rtl"] li button.icon-view:before,
+html[dir="rtl"] li .icon-view[role="button"]:before {
+  left: 0;
+  right: auto;
+  transform: rotate(180deg);
+}
+
+html[dir="rtl"] li button.icon-dialog:before,
+html[dir="rtl"] li .icon-dialog[role="button"]:before,
+html[dir="rtl"] li .button.icon-dialog:before {
+  left: 0.8rem;
+  right: auto;
+  transform: rotate(135deg);
+}
+
+html[dir="rtl"] select {
+  padding: 0 1.2rem 0 0; /* .3rem right space because of italic */
+  text-align: right;
+}
+
+/* Hides dropdown arrow until bug #649849 is fixed */
+html[dir="rtl"] .button.icon-dialog select {
+  left: auto;
+  right: 0.3rem; /* .3rem space because of italic */
+  text-indent: 1rem;
+  padding: 0 0 0 4rem;
+}
+

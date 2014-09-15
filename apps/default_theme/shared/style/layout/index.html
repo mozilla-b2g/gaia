@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Layout</title>
+  <meta name="description" content="Displaying an enumeration of a set of items ">
+
+  <link rel="stylesheet" href="../layout.css">
+
+  <!--
+    This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <link rel="stylesheet" href="../../style/headers.css">
+  <link rel="stylesheet" href="../../style/switches.css">
+  <link rel="stylesheet" href="../../style/buttons.css">
+  <link rel="stylesheet" href="../../style/toolbars.css">
+  <style>
+    html {
+      font-size: 10px;
+    }
+    .gaia-list li img[alt="placeholder"] {
+      background: #ccc url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNS4wLjIsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkNhcGFfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiDQoJIHdpZHRoPSI1MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgNTAgNTAiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPGxpbmUgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHgxPSIwIiB5MT0iMCIgeDI9IjUwIiB5Mj0iNTAiLz4NCjxsaW5lIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMDAwMCIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiB4MT0iNTAiIHkxPSIwIiB4Mj0iMC4wODIiIHkyPSI0OS45MTkiLz4NCjwvc3ZnPg0K);
+      background-size: 100% 100%;
+      font-size: 0;
+    }
+
+    .gaia-list .icon-call-incoming {
+      background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0ZWQgYnkgSWNvTW9vbi5pbyAtLT4KPCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCIgdmlld0JveD0iMCAwIDMwIDMwIj4KPGc+Cgk8bGluZSBzdHJva2Utd2lkdGg9IjEiIHgxPSIiIHkxPSIiIHgyPSIiIHkyPSIiIHN0cm9rZT0iIzQ0OUZEQiIgb3BhY2l0eT0iIj48L2xpbmU+CjwvZz4KCTxwYXRoIGQ9Ik0xNy43MTQgOS44MzN2Mi42NTZjLTAuMzE3IDAuMDY1LTAuNjU3LTAuMDA3LTAuOTA2LTAuMjUzbC0zLjAyMS0zLjAyMWMtMC4zODktMC4zOTItMC4zODktMS4wMjUgMC0xLjQxNGwzLjAyMS0zLjAyMWMwLjI0OS0wLjI0NiAwLjU4OS0wLjMyIDAuOTA2LTAuMjU1djIuNjcxaDcuMDM1YzAuMTc3IDAuODcxIDAuMTc3IDEuNzY4LTAuMDAzIDIuNjM2aC03LjAzMnpNMTguMzU2IDIxLjY0N2wwLjAyMiAwLjAyMmMwLjYwOC0wLjMzNiAxLjIwOC0wLjczOCAxLjgwMy0xLjE3bDUuNjg0IDUuMDM0Yy0xLjE5OSAxLjAzNi0yLjQ5NyAxLjg4NC0zLjg2NiAyLjUyMy0zLjYzOS0wLjY3MS04LjI5OS0zLjM3Ni0xMi40ODUtNy41NjItNC4xODItNC4xODItNi44ODctOC44MzgtNy41NjEtMTIuNDc0IDAuNjQtMS4zNzIgMS40OS0yLjY3NCAyLjUyNi0zLjg3NWw1LjAzOSA1LjY5Yy0wLjQzMyAwLjU5My0wLjgzNSAxLjE5NS0xLjE3MSAxLjgwMWwwLjAyMSAwLjAyMmMtMC41ODkgMS4yOTMgMC43NzQgNC4xMSAzLjMyNyA2LjY2M3M1LjM2NyAzLjkxNyA2LjY2MSAzLjMyNnoiIGZpbGw9IiMwMDAwMDAiPjwvcGF0aD4KPC9zdmc+Cg==);
+    }
+
+    [role="toolbar"] {
+      position: static;
+    }
+
+    [role="toolbar"] .icon-share {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAG11AABzoAAA85kAAImUAAB+3gAA7PgAADObAAAQ5ap9ykMAAAF4SURBVHja7Ja5SsRQFIa/kVFBHBjFpRMFQRgcUBSxElyw8AVsBX0EbewFC8HKRhBE1BdQC0GnGewEncpKH8AFphCsJr+FNxBCYm6SWZr5IRBuDufjLDfnZCTRCnXQIrXBTVM25LwAXAP5mP4c4BTYjjLMBHR1N3AADCcIZNXA+5OA0+gSWLPJlLfGXXUA+6NYAHL/gQvAfgN6aA94AAbDwDcJa2qjInDvh7vgvgbfniJQ8sKzKZyNA+vANDBighgDeoFHYzPhsZ808CXgA0lIqkq6MO9RT4+kI0k1JdOVpNgR54A7YC5FppwkqT72QGvAC/DuOgvQrO9OV4Ctv4tnn+p5k6qqpB1JeYuylD0pfpY04H6LE/EG8Gp+i28hNofAIjDlO68AK8Bnkuk0EwEFGAJGo6Bxa3weAQ3SLvAEfNuOxbDGiqtyPRaBn0ZtIE3dRtx5/AV0ArcBo83al2kiq3+/W+MTYBNYThmIA5zFibi93rbBddfvAA7eCHdE+L6kAAAAAElFTkSuQmCC);
+    }
+
+    .fb-example > div {
+      border-bottom: 1px solid #e7e7e7;
+      overflow: hidden;
+      padding: 10px 15px;
+      margin: 0 15px;
+    }
+
+    .fb-example > div > div {
+      position: relative;
+      text-indent: 10px;
+    }
+
+    .fb-example > div > div:before {
+      content: "";
+      top: 5px;
+      left: 0;
+      height: 6px;
+      width: 6px;
+      background-color: #333;
+      border-radius: 50%;
+      position: absolute;
+    }
+
+    .fb-example .vbox {
+      height: 100px;
+    }
+
+    .fb-example .hbox {
+      height: 70px;
+    }
+
+    .fb-example .hbox > div {
+      margin-left: 10px;
+    }
+
+    .fb-example .hbox > div:first-child {
+      margin-left: 0;
+    }
+  </style>
+</head>
+
+<body class="skin-comms">
+
+  <section role="region" class="vbox fit">
+    <header>
+      <h1>App name</h1>
+    </header>
+    <section class="gaia-list fit scroll sticky">
+      <article>
+        <header>Paragraphs</header>
+        <ul>
+          <li>
+            <p>Only one paragraph</p>
+          </li>
+          <li class="vbox">
+            <p></p>
+            <p>Paragraph 2 (Paragraph 1 is empty)</p>
+          </li>
+          <li class="vbox">
+            <p>Paragraph 1</p>
+            <p>Paragraph 2</p>
+            <p>Paragraph 3</p>
+          </li>
+        </ul>
+      </article>
+      <article>
+        <header>Active state</header>
+        <ul>
+          <li class="active">
+            <p>This row has active state</p>
+          </li>
+        </ul>
+      </article>
+      <article>
+        <header>Text + image</header>
+        <ul>
+          <li>
+            <p class="fit">Contact name</p>
+            <img src="noimage" alt="placeholder">
+          </li>
+          <li class="icon icon-call-incoming">
+            <p class="fit">Contact name</p>
+            <img src="noimage" alt="placeholder">
+          </li>
+        </ul>
+      </article>
+      <article>
+        <header>Buttons</header>
+        <ul>
+          <li>
+            <button>Default button</button>
+          </li>
+          <li>
+            <button class="icon icon-view">View button</button>
+          </li>
+          <li>
+            <button class="icon icon-dialog">Dialog button</button>
+          </li>
+          <li class="vbox">
+            <button>Button</button>
+            <p>Paragraph</p>
+          </li>
+          <li class="vbox">
+            <p>Paragraph</p>
+            <button>Button</button>
+          </li>
+          <li class="vbox">
+            <label>Label</label>
+            <button>Button</button>
+          </li>
+          <li class="vbox">
+            <button>Button 1</button>
+            <button>Button 2</button>
+          </li>
+          <li>
+            <div class="fit">
+              <p>Text (fit)</p>
+            </div>
+            <div>
+              <button class="icon icon-dialog">Select</button>
+            </div>
+          </li>
+          <li>
+            <div class="fit">
+              <p>text (1/2)</p>
+            </div>
+            <div class="fit">
+              <button class="icon icon-dialog">Select</button>
+            </div>
+          </li>
+          <li>
+            <div class="fit">
+              <p>text (1/3)</p>
+            </div>
+            <div class="fit two">
+              <button class="icon icon-dialog">Select</button>
+            </div>
+          </li>
+          <li>
+            <div class="fit">
+              <p>text (1/4)</p>
+            </div>
+            <div class="fit three">
+              <button class="icon icon-dialog">Select</button>
+            </div>
+          </li>
+          <li>
+            <div class="fit">
+              <p>text (1/5)</p>
+            </div>
+            <div class="fit four">
+              <button class="icon icon-dialog">Select</button>
+            </div>
+          </li>
+          <li>
+            <div class="fit">
+              <p>text (1/6)</p>
+            </div>
+            <div class="fit five">
+              <button class="icon icon-dialog">Select</button>
+            </div>
+          </li>
+          <li>
+            <div class="fit">
+              <p>text (1/7)</p>
+            </div>
+            <div class="fit six">
+              <button class="icon icon-dialog">Select</button>
+            </div>
+          </li>
+        </ul>
+      </article>
+      <article>
+        <header>Checkboxes</header>
+        <ul>
+          <li class="active">
+            <label class="pack-checkbox">
+              <input type="checkbox" checked>
+              <span>Default checkbox</span>
+            </label>
+          </li>
+          <li class="active">
+            <label class="pack-checkbox danger">
+              <input type="checkbox" checked>
+              <span>Danger checkbox</span>
+            </label>
+          </li>
+          <li class="active">
+            <label class="pack-checkbox reverse">
+              <input type="checkbox">
+              <span>Reverse checkbox</span>
+            </label>
+          </li>
+          <li class="active">
+            <label class="pack-checkbox reverse danger">
+              <input type="checkbox">
+              <span>Reverse danger checkbox</span>
+            </label>
+          </li>
+        </ul>
+      </article>
+      <article>
+        <header>Radio buttons</header>
+        <ul>
+          <li class="active">
+            <label class="pack-radio">
+              <input name="radio" type="radio">
+              <span>Default radio button</span>
+            </label>
+          </li>
+          <li class="active">
+            <label class="pack-radio danger">
+              <input name="radio" checked type="radio">
+              <span>Danger radio button</span>
+            </label>
+          </li>
+        </ul>
+      </article>
+      <article>
+        <header>Switches</header>
+        <ul>
+          <li class="active">
+            <label class="pack-switch">
+              <input type="checkbox">
+              <span>Default switch</span>
+            </label>
+          </li>
+          <li class="active">
+            <label class="pack-switch">
+              <input type="checkbox" checked>
+              <span>Checked switch</span>
+            </label>
+          </li>
+        </ul>
+      </article>
+
+      <!-- flexbox properties -->
+      <article class="fb-example">
+        <header>vbox: left</header>
+        <div class="vbox left">
+          <div>Item 1</div>
+          <div>Item 2</div>
+          <div>Item 3</div>
+        </div>
+        <header>vbox: center</header>
+        <div class="vbox center">
+          <div>Item 1</div>
+          <div>Item 2</div>
+          <div>Item 3</div>
+        </div>
+        <header>vbox: right</header>
+        <div class="vbox right">
+          <div>Item 1</div>
+          <div>Item 2</div>
+          <div>Item 3</div>
+        </div>
+        <header>vbox: top</header>
+        <div class="vbox top">
+          <div>Item 1</div>
+          <div>Item 2</div>
+          <div>Item 3</div>
+        </div>
+        <header>vbox: middle</header>
+        <div class="vbox middle">
+          <div>Item 1</div>
+          <div>Item 2</div>
+          <div>Item 3</div>
+        </div>
+        <header>vbox: bottom</header>
+        <div class="vbox bottom">
+          <div>Item 1</div>
+          <div>Item 2</div>
+          <div>Item 3</div>
+        </div>
+        <header>vbox: children positioning</header>
+        <div class="vbox">
+          <div class="self-left">Item 1: left</div>
+          <div class="self-center">Item 2: center</div>
+          <div class="self-right">Item 3: right</div>
+        </div>
+      </article>
+      <article class="fb-example">
+        <header>hbox: left</header>
+        <div class="hbox">
+          <div>Item 1</div>
+          <div>Item 2</div>
+          <div>Item 3</div>
+        </div>
+        <header>hbox: center</header>
+        <div class="hbox center">
+          <div>Item 1</div>
+          <div>Item 2</div>
+          <div>Item 3</div>
+        </div>
+        <header>hbox: right</header>
+        <div class="hbox right">
+          <div>Item 1</div>
+          <div>Item 2</div>
+          <div>Item 3</div>
+        </div>
+        <header>hbox: top</header>
+        <div class="hbox top">
+          <div>Item 1</div>
+          <div>Item 2</div>
+          <div>Item 3</div>
+        </div>
+        <header>hbox: middle</header>
+        <div class="hbox middle">
+          <div>Item 1</div>
+          <div>Item 2</div>
+          <div>Item 3</div>
+        </div>
+        <header>hbox: bottom</header>
+        <div class="hbox bottom">
+          <div>Item 1</div>
+          <div>Item 2</div>
+          <div>Item 3</div>
+        </div>
+        <header>hbox: children positioning</header>
+        <div class="hbox">
+          <div class="self-top">Item 1: top</div>
+          <div class="self-middle">Item 2: middle</div>
+          <div class="self-bottom">Item 3: bottom</div>
+        </div>
+      </article>
+    </section>
+    <footer role="toolbar">
+      <ul>
+        <li><button class="icon-share">share</button></li>
+      </ul>
+    </footer>
+  </section>
+</body>
+</html>

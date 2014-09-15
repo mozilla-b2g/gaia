@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lists</title>
+  <meta name="description" content="Displaying an enumeration of a set of items ">
+
+  <link rel="stylesheet" href="../lists.css">
+
+  <!--
+    This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <link rel="stylesheet" href="../../style/headers.css">
+  <link rel="stylesheet" href="../../style/switches.css">
+  <link rel="stylesheet" href="../../style/buttons.css">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    body {
+      background: none;
+    }
+
+    h2.pack-docs {
+      font-size: 1.8rem;
+      font-weight: 300;
+      color: #666;
+      margin: -1px 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      border: solid 1px #e8e8e8;
+    }
+
+    h2.pack-docs:first-child {
+      margin-top: 0;
+    }
+
+    [data-type="list"] li img[alt="placeholder"] {
+      background: #ccc url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNS4wLjIsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkNhcGFfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiDQoJIHdpZHRoPSI1MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgNTAgNTAiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPGxpbmUgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHgxPSIwIiB5MT0iMCIgeDI9IjUwIiB5Mj0iNTAiLz4NCjxsaW5lIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMDAwMCIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiB4MT0iNTAiIHkxPSIwIiB4Mj0iMC4wODIiIHkyPSI0OS45MTkiLz4NCjwvc3ZnPg0K);
+      background-size: 100% 100%;
+      font-size: 0;
+    }
+
+    [data-type="list"] aside.icon-callout {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MDAzRTc0NDcxNTU2MTFFMjg1RkRBQkIxMEI1NkNEN0EiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MDAzRTc0NDgxNTU2MTFFMjg1RkRBQkIxMEI1NkNEN0EiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMDNFNzQ0NTE1NTYxMUUyODVGREFCQjEwQjU2Q0Q3QSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowMDNFNzQ0NjE1NTYxMUUyODVGREFCQjEwQjU2Q0Q3QSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PncAgYwAAAHfSURBVHjarJZNKERRFMffzCATJaIUSVGU1IhsUGODlYmNj7KQSZGipCgrKWUhZaKU2PiKjYmsLJSIEhvKSqnJYiILpSYv/kfn1e10n+m9mX/9mnvu3HfPu+fcc+/zBNtCBuQHi2ASJAx3ygKd4FDt9PLvMhgDm4Z70UsegFXpoBkMs90PFozUNMIv/KcM1WBNgxewpnm4BBzZTOxT2uPApJB7kIM3NArEYPqzG0RFfwDcOVhNKa3gHHRp3mYPtIBbpT8ubPlMQLEpAjFysKNxYK3iXfTFQIONgzzwwe0NMGolOcoxl5oDzy6SvAXC6i6ifb+kGXjlcOIETxzW1QHF60mTUCf64tCYOgeWd1NsNV+KNWH4yiuqrTbloQg0sl3ASb5OxYFX2DMi4fOgKp0OPkGI40nKBce8srQ4IN2DQcWuBKegOF0OSPtgQrHrwaWbcKlJlqLk/oBWtvPBEIdP1kgZr/TViQODzykq/w62M0E76OPznyIwAHbZOdXSozqBh2+0ZOrhy8ifZJzJoY0ky4EuJ0GbM0ueqCt8/TpyQLoBNTYXkdQU2KZ7OlkOdAfaCTgDTaDwn7G1INvrsn4uQB1/hcRtxqyDWacrUPXN2zXCxZnDu+wB9HIozV8BBgCRzF4kkpLxhwAAAABJRU5ErkJggg==);
+    }
+
+    [data-type="list"] aside.icon-nopic {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QkUxNjQwQkQxNUYwMTFFMjk2MkZDOURGRDUxMTgyQzkiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QkUxNjQwQkUxNUYwMTFFMjk2MkZDOURGRDUxMTgyQzkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpCRTE2NDBCQjE1RjAxMUUyOTYyRkM5REZENTExODJDOSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpCRTE2NDBCQzE1RjAxMUUyOTYyRkM5REZENTExODJDOSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PhHqZXkAAAB7SURBVHjaYvz//z8DNQHjqIEUAyZcEm5+keJUMxBq2BMgnYXHwt9EG7hr0/KXQCofiCfjMZSFJC8DDZ0GpHIJGEq8gUQY+oNkA8lxKRMx3iDFUJLSIdSwyUA8B4jjgBZxkuVCLC5NAWJmoqMeyUX/SQ2u0dJmEBoIEGAA+6FL5hxHUrsAAAAASUVORK5CYII=);
+      background-position: bottom right;
+    }
+
+    #settings-list { background-color: #eff0eb; }
+    #settings-list li { border-color: #dcdcdc; }
+    #settings-list button { max-width: 8rem; margin: 1rem 1rem 0 0; }
+    #settings-list aside label { margin: 0 1rem 0 0; height: 100%; }
+    #settings-list > header h2 { margin: 0 1.5rem; }
+
+  </style>
+</head>
+
+<body role="application">
+
+  <section data-type="list">
+    <header>Title</header>
+    <ul>
+      <li>
+        <p>Margherita <strong>Gomez</strong></p>
+      </li>
+      <li>
+        <a href="#">
+          <p>Margherita Clickable <strong>Gomez</strong></p>
+        </a>
+      </li>
+      <li>
+        <aside class="pack-end">
+          <img alt="placeholder" src="myimage.jpg">
+        </aside>
+        <a href="#">
+          <p>Margherita <strong>Gomez</strong></p>
+          <p>Family</p>
+        </a>
+      </li>
+    </ul>
+
+    <header>Another title</header>
+    <ul>
+      <li aria-disabled="true">
+        <aside class="pack-end">
+          <img alt="placeholder" src="myimage.jpg">
+        </aside>
+        <a href="#">
+          <p>Margherita <strong>Gomez</strong></p>
+          <p>Family</p>
+        </a>
+      </li>
+      <li>
+        <aside class="pack-end icon icon-nopic"></aside>
+        <a href="#">
+          <aside class="icon icon-callout">
+            asidecall
+          </aside>
+          <p>
+            Margherita <strong>Gomez</strong>
+            <em>(2)</em>
+          </p>
+          <p>
+            <time datetime="17:43">5:43PM</time>
+            Mobile, Vivo
+          </p>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section data-type="list">
+    <header>Edit mode</header>
+    <ul data-type="edit">
+      <li>
+        <label class="pack-checkbox danger">
+          <input type="checkbox">
+          <span></span>
+        </label>
+        <aside class="pack-end">
+          <img alt="placeholder" src="myimage.jpg">
+        </aside>
+        <a href="#">
+          <p>Margherita <strong>Gomez</strong></p>
+          <p>Family</p>
+        </a>
+      </li>
+      <li>
+        <label class="pack-checkbox danger">
+          <input type="checkbox">
+          <span></span>
+        </label>
+        <aside class="pack-end icon icon-nopic"></aside>
+        <a href="#">
+          <aside class="icon icon-callout"></aside>
+          <p>
+            Margherita <strong>Gomez</strong>
+            <em>(2)</em>
+          </p>
+          <p>
+            <time datetime="17:43">5:43PM</time>
+            Mobile, Vivo
+          </p>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section id="settings-list" role="region" class="skin-organic">
+    <section data-type="list">
+      <ul>
+      <li>
+        <a href="#">
+          <aside class="icon icon-callout"></aside>
+          <p>Phone lock</p>
+        </a>
+      </li>
+      </ul>
+    </section>
+    <header>
+      <h2>Settings style</h2>
+    </header>
+    <section data-type="list">
+      <ul>
+        <li>
+          <aside class="pack-end">
+            <button class="icon icon-dialog">Spain</button>
+          </aside>
+          <p>Time zone</p>
+          <p>Choose your country</p>
+        </li>
+        <li>
+          <aside class="pack-end">
+            <label class="pack-switch">
+              <input type="checkbox" checked>
+              <span></span>
+            </label>
+          </aside>
+          <p>Phone lock</p>
+        </li>
+      </ul>
+    </section>
+  </section>
+
+</body>
+</html>

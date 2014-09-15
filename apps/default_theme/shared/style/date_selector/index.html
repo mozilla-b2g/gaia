@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    
+    <title>Date selector</title>
+    
+    <link rel="stylesheet" href="../date_selector.css">
+    <!--
+      This <style> and <link> is only used for the example code, is no needed for the real case use
+    -->
+    <style type="text/css">
+      html, body { font-size: 10px; margin: 0; padding: 0; }
+    </style>
+    
+  </head>
+  
+  <body>
+    <form role="dialog" data-type="date-selector">
+      <h1>Select day</h1>
+      <div class="picker-container MDY">
+        <div class="picker-bar-background"></div>
+        <div class="value-picker-date-wrapper">
+          <div style="transform: translateY(-392px);" class="value-picker-date animation-on">
+            <div class="picker-unit">01</div>
+            <div class="picker-unit">02</div>
+            <div class="picker-unit">03</div>
+            <div class="picker-unit">04</div>
+            <div class="picker-unit">05</div>
+            <div class="picker-unit">06</div>
+            <div class="picker-unit">07</div>
+            <div class="picker-unit">08</div>
+            <div class="picker-unit">09</div>
+            <div class="picker-unit">10</div>
+            <div class="picker-unit">11</div>
+            <div class="picker-unit">12</div>
+            <div class="picker-unit">13</div>
+            <div class="picker-unit">14</div>
+            <div class="picker-unit">15</div>
+            <div class="picker-unit">16</div>
+            <div class="picker-unit">17</div>
+            <div class="picker-unit">18</div>
+            <div class="picker-unit">19</div>
+            <div class="picker-unit">20</div>
+            <div class="picker-unit">21</div>
+            <div class="picker-unit">22</div>
+            <div class="picker-unit">23</div>
+            <div class="picker-unit">24</div>
+            <div class="picker-unit">25</div>
+            <div class="picker-unit">26</div>
+            <div class="picker-unit">27</div>
+            <div class="picker-unit">28</div>
+            <div class="picker-unit">29</div>
+            <div class="picker-unit">30</div>
+            <div class="picker-unit">31</div>
+          </div>
+        </div>
+        <div class="value-picker-month-wrapper">
+          <div style="transform: translateY(-392px);" class="value-picker-month">
+            <div class="picker-unit">January</div>
+            <div class="picker-unit">February</div>
+            <div class="picker-unit">March</div>
+            <div class="picker-unit">April</div>
+            <div class="picker-unit">May</div>
+            <div class="picker-unit">June</div>
+            <div class="picker-unit">July</div>
+            <div class="picker-unit">August</div>
+            <div class="picker-unit">September</div>
+            <div class="picker-unit">October</div>
+            <div class="picker-unit">November</div>
+            <div class="picker-unit">December</div>
+          </div>
+        </div>
+        <div class="value-picker-year-wrapper">
+          <div style="transform: translateY(-6328px);" class="value-picker-year">
+          <div class="picker-unit">1900</div>
+          <div class="picker-unit">1901</div>
+          <div class="picker-unit">1902</div>
+          <div class="picker-unit">1903</div>
+          <div class="picker-unit">1904</div>
+          <div class="picker-unit">1905</div>
+          <div class="picker-unit">1906</div>
+          <div class="picker-unit">1907</div>
+          <div class="picker-unit">1908</div>
+          <div class="picker-unit">1909</div>
+          <div class="picker-unit">1910</div>
+          <div class="picker-unit">1911</div>
+          <div class="picker-unit">1912</div>
+          <div class="picker-unit">1913</div>
+          <div class="picker-unit">1914</div>
+          <div class="picker-unit">1915</div>
+          <div class="picker-unit">1916</div>
+          <div class="picker-unit">1917</div>
+          <div class="picker-unit">1918</div>
+          <div class="picker-unit">1919</div>
+          <div class="picker-unit">1920</div>
+          <div class="picker-unit">1921</div>
+          <div class="picker-unit">1922</div>
+          <div class="picker-unit">1923</div>
+          <div class="picker-unit">1924</div>
+          <div class="picker-unit">1925</div>
+          <div class="picker-unit">1926</div>
+          <div class="picker-unit">1927</div>
+          <div class="picker-unit">1928</div>
+          <div class="picker-unit">1929</div>
+          <div class="picker-unit">1930</div>
+          <div class="picker-unit">1931</div>
+          <div class="picker-unit">1932</div>
+          <div class="picker-unit">1933</div>
+          <div class="picker-unit">1934</div>
+          <div class="picker-unit">1935</div>
+          <div class="picker-unit">1936</div>
+          <div class="picker-unit">1937</div>
+          <div class="picker-unit">1938</div>
+          <div class="picker-unit">1939</div>
+          <div class="picker-unit">1940</div>
+          <div class="picker-unit">1941</div>
+          <div class="picker-unit">1942</div>
+          <div class="picker-unit">1943</div>
+          <div class="picker-unit">1944</div>
+          <div class="picker-unit">1945</div>
+          <div class="picker-unit">1946</div>
+          <div class="picker-unit">1947</div>
+          <div class="picker-unit">1948</div>
+          <div class="picker-unit">1949</div>
+          <div class="picker-unit">1950</div>
+          <div class="picker-unit">1951</div>
+          <div class="picker-unit">1952</div>
+          <div class="picker-unit">1953</div>
+          <div class="picker-unit">1954</div>
+          <div class="picker-unit">1955</div>
+          <div class="picker-unit">1956</div>
+          <div class="picker-unit">1957</div>
+          <div class="picker-unit">1958</div>
+          <div class="picker-unit">1959</div>
+          <div class="picker-unit">1960</div>
+          <div class="picker-unit">1961</div>
+          <div class="picker-unit">1962</div>
+          <div class="picker-unit">1963</div>
+          <div class="picker-unit">1964</div>
+          <div class="picker-unit">1965</div>
+          <div class="picker-unit">1966</div>
+          <div class="picker-unit">1967</div>
+          <div class="picker-unit">1968</div>
+          <div class="picker-unit">1969</div>
+          <div class="picker-unit">1970</div>
+          <div class="picker-unit">1971</div>
+          <div class="picker-unit">1972</div>
+          <div class="picker-unit">1973</div>
+          <div class="picker-unit">1974</div>
+          <div class="picker-unit">1975</div>
+          <div class="picker-unit">1976</div>
+          <div class="picker-unit">1977</div>
+          <div class="picker-unit">1978</div>
+          <div class="picker-unit">1979</div>
+          <div class="picker-unit">1980</div>
+          <div class="picker-unit">1981</div>
+          <div class="picker-unit">1982</div>
+          <div class="picker-unit">1983</div>
+          <div class="picker-unit">1984</div>
+          <div class="picker-unit">1985</div>
+          <div class="picker-unit">1986</div>
+          <div class="picker-unit">1987</div>
+          <div class="picker-unit">1988</div>
+          <div class="picker-unit">1989</div>
+          <div class="picker-unit">1990</div>
+          <div class="picker-unit">1991</div>
+          <div class="picker-unit">1992</div>
+          <div class="picker-unit">1993</div>
+          <div class="picker-unit">1994</div>
+          <div class="picker-unit">1995</div>
+          <div class="picker-unit">1996</div>
+          <div class="picker-unit">1997</div>
+          <div class="picker-unit">1998</div>
+          <div class="picker-unit">1999</div>
+          <div class="picker-unit">2000</div>
+          <div class="picker-unit">2001</div>
+          <div class="picker-unit">2002</div>
+          <div class="picker-unit">2003</div>
+          <div class="picker-unit">2004</div>
+          <div class="picker-unit">2005</div>
+          <div class="picker-unit">2006</div>
+          <div class="picker-unit">2007</div>
+          <div class="picker-unit">2008</div>
+          <div class="picker-unit">2009</div>
+          <div class="picker-unit">2010</div>
+          <div class="picker-unit">2011</div>
+          <div class="picker-unit">2012</div>
+          <div class="picker-unit">2013</div>
+          <div class="picker-unit">2014</div>
+          <div class="picker-unit">2015</div>
+          <div class="picker-unit">2016</div>
+          <div class="picker-unit">2017</div>
+          <div class="picker-unit">2018</div>
+          <div class="picker-unit">2019</div>
+          <div class="picker-unit">2020</div>
+          <div class="picker-unit">2021</div>
+          <div class="picker-unit">2022</div>
+          <div class="picker-unit">2023</div>
+          <div class="picker-unit">2024</div>
+          <div class="picker-unit">2025</div>
+          <div class="picker-unit">2026</div>
+          <div class="picker-unit">2027</div>
+          <div class="picker-unit">2028</div>
+          <div class="picker-unit">2029</div>
+          <div class="picker-unit">2030</div>
+          <div class="picker-unit">2031</div>
+          <div class="picker-unit">2032</div>
+          <div class="picker-unit">2033</div>
+          <div class="picker-unit">2034</div>
+          <div class="picker-unit">2035</div>
+          <div class="picker-unit">2036</div>
+          <div class="picker-unit">2037</div>
+          <div class="picker-unit">2038</div>
+          <div class="picker-unit">2039</div>
+          <div class="picker-unit">2040</div>
+          <div class="picker-unit">2041</div>
+          <div class="picker-unit">2042</div>
+          <div class="picker-unit">2043</div>
+          <div class="picker-unit">2044</div>
+          <div class="picker-unit">2045</div>
+          <div class="picker-unit">2046</div>
+          <div class="picker-unit">2047</div>
+          <div class="picker-unit">2048</div>
+          <div class="picker-unit">2049</div>
+          <div class="picker-unit">2050</div>
+          <div class="picker-unit">2051</div>
+          <div class="picker-unit">2052</div>
+          <div class="picker-unit">2053</div>
+          <div class="picker-unit">2054</div>
+          <div class="picker-unit">2055</div>
+          <div class="picker-unit">2056</div>
+          <div class="picker-unit">2057</div>
+          <div class="picker-unit">2058</div>
+          <div class="picker-unit">2059</div>
+          <div class="picker-unit">2060</div>
+          <div class="picker-unit">2061</div>
+          <div class="picker-unit">2062</div>
+          <div class="picker-unit">2063</div>
+          <div class="picker-unit">2064</div>
+          <div class="picker-unit">2065</div>
+          <div class="picker-unit">2066</div>
+          <div class="picker-unit">2067</div>
+          <div class="picker-unit">2068</div>
+          <div class="picker-unit">2069</div>
+          <div class="picker-unit">2070</div>
+          <div class="picker-unit">2071</div>
+          <div class="picker-unit">2072</div>
+          <div class="picker-unit">2073</div>
+          <div class="picker-unit">2074</div>
+          <div class="picker-unit">2075</div>
+          <div class="picker-unit">2076</div>
+          <div class="picker-unit">2077</div>
+          <div class="picker-unit">2078</div>
+          <div class="picker-unit">2079</div>
+          <div class="picker-unit">2080</div>
+          <div class="picker-unit">2081</div>
+          <div class="picker-unit">2082</div>
+          <div class="picker-unit">2083</div>
+          <div class="picker-unit">2084</div>
+          <div class="picker-unit">2085</div>
+          <div class="picker-unit">2086</div>
+          <div class="picker-unit">2087</div>
+          <div class="picker-unit">2088</div>
+          <div class="picker-unit">2089</div>
+          <div class="picker-unit">2090</div>
+          <div class="picker-unit">2091</div>
+          <div class="picker-unit">2092</div>
+          <div class="picker-unit">2093</div>
+          <div class="picker-unit">2094</div>
+          <div class="picker-unit">2095</div>
+          <div class="picker-unit">2096</div>
+          <div class="picker-unit">2097</div>
+          <div class="picker-unit">2098</div>
+          <div class="picker-unit">2099</div></div>
+        </div>
+        <div class="value-indicator"></div>
+      </div>
+      <menu>
+        <button>Cancel</button>
+        <button class="affirmative">OK</button>
+      </menu>
+    </form>
+  </body>
+</html>

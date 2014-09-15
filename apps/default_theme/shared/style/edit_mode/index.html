@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+
+  <title>Edit mode</title>
+  <meta name="description" content="Starts an edition mode for adding or removing items">
+
+  <link rel="stylesheet" href="../headers.css">
+  <link rel="stylesheet" href="../edit_mode.css">
+
+  <!--
+    - This <style> element is only used for the example code;
+    - it is not required for the real use case.
+    -->
+  <style type="text/css">
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+    body {
+      background: none;
+    }
+  </style>
+</head>
+
+<body role="application">
+
+  <form role="dialog" data-type="edit">
+    <section role="region">
+      <header>
+        <button><span class="icon icon-close">close</span></button>
+        <menu type="toolbar">
+          <button>done</button>
+        </menu>
+        <h1>Edit</h1>
+      </header>
+    </section>
+    <menu>
+      <button disabled>Deselect all</button>
+      <button>Select all</button>
+    </menu>
+  </form>
+
+</body>
+</html>

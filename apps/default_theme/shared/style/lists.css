@@ -1,0 +1,217 @@
+/* ----------------------------------
+ * Lists
+ * ---------------------------------- */
+[data-type="list"] {
+  font-weight: 400;
+  padding: 0 1.5rem;
+}
+
+[data-type="list"] ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+[data-type="list"] strong {
+  font-weight: 500;
+}
+
+/* Title divisors */
+[data-type="list"] header {
+  padding: 0 1.5rem;
+  margin: 0;
+  font-size: 1.6rem;
+  height: 3rem;
+  line-height: 4rem;
+  font-weight: normal;
+  color: #ff4e00;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* List items */
+[data-type="list"] li {
+  width: 100%;
+  height: 6rem;
+  box-sizing: border-box;
+  border-bottom: solid 0.1rem #e7e7e7;
+  color: #333;
+  margin: 0;
+  display: block;
+  position: relative;
+}
+
+[data-type="list"] li:last-child {
+  border: none;
+}
+
+/* Pressed State */
+li a:active {
+  background-color: transparent; /* remove default color for active state */
+}
+
+[data-type="list"] li > a {
+  text-decoration: none;
+  color: #333;
+  display: block;
+  height: 6rem;
+  position: relative;
+  border: none;
+  outline: none;
+}
+
+[data-type="list"].active li:after,
+[data-type="list"] li > a:after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  left: -1.5rem;
+  top: 0;
+  right: -1.5rem;
+  bottom: 0;
+}
+
+[data-type="list"].active li:active:after,
+[data-type="list"] li > a:active:after {
+  background-color: rgba(0,213,255,0.3);
+}
+
+/* Disabled */
+[data-type="list"] li[aria-disabled="true"] {
+  pointer-events: none;
+  opacity: 0.2;
+  border-color: #888;
+}
+
+/* Graphic content */
+[data-type="list"] aside {
+  float: left;
+  margin: 0 0.5rem 0 0;
+  height: 100%;
+  position: relative;
+}
+
+[data-type="list"] li > a aside,
+[data-type="list"] li > a aside.icon {
+  background-color: transparent;
+}
+
+[data-type="list"] aside.pack-end {
+  float: right;
+  margin: 0 0 0 0.5rem;
+  text-align: right;
+}
+
+[data-type="list"] aside.icon {
+  width: 3rem;
+  height: 6rem;
+  background: #fff no-repeat left center / 100% auto;
+  font-size: 0;
+  display: block;
+  overflow: hidden;
+}
+
+[data-type="list"] aside span[data-type=img],
+[data-type="list"] aside img {
+  display: block;
+  overflow: hidden;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 2.5rem;
+  margin-top: 0.5rem;
+  box-sizing: border-box;
+  background: transparent center center / cover;
+  position: relative;
+
+  /* Favor performance over quality */
+  image-rendering: -moz-crisp-edges;
+}
+
+/* Text content */
+[data-type="list"] li p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: none;
+  display: block;
+  margin: 0;
+  color: #858585;
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+[data-type="list"] li p:first-of-type {
+  font-size: 1.8rem;
+  line-height: 2.2rem;
+  color: #333;
+  padding: 1rem 0 0;
+}
+
+[data-type="list"] li p:only-child,
+[data-type="list"] li p:first-of-type:last-of-type {
+  line-height: 4rem;
+}
+
+[data-type="list"] li p em {
+  font-size: 1.5rem;
+  font-style: normal;
+}
+
+[data-type="list"] li p time {
+  margin-right: 0.3rem;
+  text-transform: uppercase;
+}
+
+/* Checkable content */
+[data-type="list"] li > .pack-checkbox,
+[data-type="list"] li > .pack-radio,
+[data-type="list"] li > .pack-switch {
+  pointer-events: none;
+  position: absolute;
+  top: -0.1rem;
+  bottom: 0;
+  right: 0;
+  left: -4rem;
+  width: auto;
+  height: auto;
+}
+
+[data-type="list"] li > .pack-checkbox input ~ span:after,
+[data-type="list"] li > .pack-radio input ~ span:after,
+[data-type="list"] li > .pack-switch input ~ span:after {
+  left: 0;
+  margin-left: 0;
+}
+
+/* Edit mode */
+[data-type="list"] [data-type="edit"] li {
+  padding-left: 4rem;
+}
+
+[data-type="list"] [data-type="edit"] li > .pack-checkbox,
+[data-type="list"] [data-type="edit"] li > .pack-radio,
+[data-type="list"] [data-type="edit"] li > .pack-switch {
+  pointer-events: auto;
+  left: 0;
+}
+
+[data-type="list"] [data-type="edit"] li > a {
+  pointer-events: none;
+}
+
+[data-type="list"] [data-type="edit"] li > a:active:after,
+[data-type="list"] [data-type="edit"] li > a:hover:after {
+  display: none;
+}
+
+[data-type="list"] [data-type="edit"] aside.pack-end {
+  display: none;
+}
+
+/* Themes */
+.skin-comms [data-type="list"] header {
+  color: #4997a7;
+}

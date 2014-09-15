@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+
+  <title>Status</title>
+  <meta name="description" content="Most common used after Multi-Select edit, to confirm user action, and optional provide 'Undo' input">
+
+  <link rel="stylesheet" href="../status.css">
+
+  <!--
+  This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    body {
+      background: none;
+    }
+  </style>
+</head>
+
+<body role="application">
+  <p dir="ltr">
+    <label>
+      <input type="checkbox"
+        onchange="document.documentElement.dir = this.checked ? 'rtl' : 'ltr'">
+      RTL mode
+    </label>
+  </p>
+
+  <section role="status">
+    <p>The Alarm is set for <strong>7 hours</strong> and <strong>14 minutes</strong> from now</p>
+  </section>
+
+</body>
+</html>
