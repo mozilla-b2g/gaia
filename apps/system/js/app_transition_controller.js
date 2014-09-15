@@ -1,4 +1,5 @@
-/* global SettingsListener, System, SimPinDialog, rocketbar */
+/* global SettingsListener, System, SimPinDialog, rocketbar,
+          AttentionScreen, lockScreen */
 'use strict';
 
 (function(exports) {
@@ -232,7 +233,11 @@
       this.app.reviveBrowser();
       this.app.launchTime = Date.now();
       this.app.fadeIn();
-      this.app.setVisible(true);
+      // XXX: This dependency will be fixed in v2.1+.
+      if (!AttentionScreen.isFullyVisible() &&
+          !(window.lockScreen && lockScreen.locked)) {
+        this.app.setVisible(true);
+      }
 
       // TODO:
       // May have orientation manager to deal with lock orientation request.
@@ -250,7 +255,11 @@
       this.resetTransition();
       this.app.element.removeAttribute('aria-hidden');
       this.app.element.classList.add('active');
-      this.app.setVisible(true);
+      // XXX: This dependency will be fixed in v2.1+.
+      if (!AttentionScreen.isFullyVisible() &&
+          !(window.lockScreen && lockScreen.locked)) {
+        this.app.setVisible(true);
+      }
 
       // TODO:
       // May have orientation manager to deal with lock orientation request.

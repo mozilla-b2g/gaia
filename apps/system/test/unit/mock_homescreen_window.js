@@ -2,6 +2,7 @@ var MockHomescreenWindow = function(value) {
   this.isHomescreen = true;
   this.manifestURL = value;
   this.origin = 'home';
+  this.instanceID = 'mock-homescreen';
 
   this.open = function() {};
   this.close = function() {};

@@ -1,6 +1,7 @@
 /* global MockStackManager, MockNavigatorSettings, MockAppWindowManager,
           TaskManager, Card, TaskCard, AppWindow,
-          MockLockScreen, MockScreenLayout, MocksHelper */
+          MockLockScreen, MockScreenLayout, MocksHelper, MockHomescreenWindow,
+          MockHomescreenLauncher, MockAppWindow */
 'use strict';
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -9,6 +10,7 @@ requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_trusted_ui_manager.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -16,6 +18,7 @@ requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_homescreen_window.js');
 
 
 var mocksForTaskManager = new MocksHelper([
@@ -28,7 +31,8 @@ var mocksForTaskManager = new MocksHelper([
   'sleepMenu',
   'OrientationManager',
   'StackManager',
-  'AppWindow'
+  'AppWindow',
+  'HomescreenLauncher'
 ]).init();
 
 function waitForEvent(target, name, timeout) {
@@ -90,6 +94,15 @@ suite('system/TaskManager >', function() {
   var apps;
   var sms, game, game2, game3, game4;
   var taskManager;
+  setup(function() {
+    window.homescreenLauncher = new MockHomescreenLauncher();
+    window.homescreenLauncher.mFeedFixtures({
+      mHomescreenWindow: new MockHomescreenWindow()
+    });
+  });
+  teardown(function() {
+    window.homescreenLauncher = null;
+  });
 
   mocksForTaskManager.attachTestHelpers();
   suiteSetup(function cv_suiteSetup(done) {
@@ -356,6 +369,28 @@ suite('system/TaskManager >', function() {
     screen.mozLockOrientation = realMozLockOrientation;
     navigator.mozSettings = realMozSettings;
     window.SettingsListener = realSettingsListener;
+  });
+
+  test('update AppWindowManager and close active app on shown', function() {
+    taskManager.hide(true);
+    var stubUpdateActiveApp =
+      this.sinon.stub(MockAppWindowManager, '_updateActiveApp');
+    var app = new MockAppWindow();
+    this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+    var stubClose = this.sinon.stub(app, 'close');
+    taskManager.show();
+    assert.isTrue(stubClose.called);
+    assert.isTrue(stubUpdateActiveApp.calledWith('mock-homescreen'));
+  });
+
+  test('Reopen active app on hidden', function() {
+    taskManager.show();
+    var app = new MockAppWindow();
+    this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+    var stubOpen = this.sinon.stub(app, 'open').returns(false);
+    this.sinon.stub(app, 'isActive').returns(false);
+    taskManager.hide();
+    assert.isTrue(stubOpen.called);
   });
 
   suite('sanity check > ', function() {
