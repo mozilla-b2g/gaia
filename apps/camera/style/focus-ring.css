@@ -4,19 +4,22 @@
 
 .focus {
   position: absolute;
-  width: 8.2rem;
+  width: 10rem;
   height: 10rem;
   margin-top: -5rem;
-  margin-left: -4.1rem;
+  margin-left: -5rem;
   pointer-events: none;
   opacity: 0;
   transform-origin: 50% 50%;
   transform: rotate(0deg) scale(1);
   transition: transform 0.2s ease-in;
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+  color: #fff;
 }
 
 /**
- * mode
+ * [mode=fixed]
+ * [mode=none]
  */
 
 .focus[mode="fixed"],
@@ -25,9 +28,9 @@
 }
 
 /**
- * state="focusing",
- * state="focused",
- * state="fail"
+ * [state=focusing]
+ * [state=focused]
+ * [state=fail]
  */
 
 .focus[state="focusing"],
@@ -36,92 +39,114 @@
   opacity: 0.8;
 }
 
-/** Icon
- ---------------------------------------------------------*/
-
-.focus-ring {
-  color: #ffffff;
-  text-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
-}
-
-.focus-ring:before,
-.focus-ring:after {
-  font-family: 'gaia-icons';
-  font-size: 10rem;
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.focus-ring:before {
-  content: "focus-locking";
-}
-
-.focus-ring:after {
-  content: "focus-locked";
-}
-
 /**
- * state="focusing"
+ * [state=focusing]
  */
 
 .focus[state="focusing"] {
   animation: 0.35s ring-animation 1 ease-in forwards;
 }
 
-@keyframes ring-animation {
-  0% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(60deg) scale(1.1); }
-  100% { transform: rotate(45deg) scale(1); }
-}
-
-.focus[state="focusing"] .focus-ring:before {
-  opacity: 1;
-}
-
-.focus[state="focusing"] .focus-ring:after {
-  opacity: 0;
-}
-
 /**
- * state="focused"
+ * [state=focused]
  */
 
 .focus[state="focused"] {
+  color: #afff3d;
   transform: rotate(45deg) scale(0.8478);
   transition-duration: 0.1s;
 }
 
-.focus[state="focused"] .focus-ring{
-  color: #afff3d;
-}
-
-.focus[state="focused"] .focus-ring:before {
-  opacity: 0;
-}
-
-.focus[state="focused"] .focus-ring:after {
-  opacity: 1;
-}
-
 /**
- * state="fail"
+ * [state=fail]
  */
 
 .focus[state="fail"] {
+  color: #ff0000;
   transform: rotate(45deg) scale(1);
   transition-duration: 0.1s;
 }
 
-.focus[state="fail"] .focus-ring{
-  color: #ff0000;
+/** Icon Wrappers
+ ---------------------------------------------------------*/
+
+.focus_locking,
+.focus_locked {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
 }
 
-.focus[state="fail"] .focus-ring:before{
+/** Icons
+ ---------------------------------------------------------*/
+
+.focus_locking:before,
+.focus_locked:before {
+  font-size: 10rem;
+  line-height: 1;
+}
+
+/** Locking
+ ---------------------------------------------------------*/
+
+/**
+ * [state=focusing]
+ */
+
+.focus[state="focusing"] .focus_locking {
+  opacity: 1;
+}
+
+/**
+ * [state=focused]
+ */
+
+.focus[state="focused"] .focus_locking {
   opacity: 0;
 }
 
-.focus[state="fail"] .focus-ring:after{
+/**
+ * [state=fail]
+ */
+
+.focus[state="fail"] .focus_locking {
+  opacity: 0;
+}
+
+/** Locked
+ ---------------------------------------------------------*/
+
+/**
+ * [state=focusing]
+ */
+
+.focus[state="focusing"] .focus_locked {
+  opacity: 0;
+}
+
+/**
+ * [state=focused]
+ */
+
+.focus[state="focused"] .focus_locked {
   opacity: 1;
+}
+
+/**
+ * [state=fail]
+ */
+
+.focus[state="fail"] .focus_locked {
+  opacity: 1;
+}
+
+/** Animation
+ ---------------------------------------------------------*/
+
+@keyframes ring-animation {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(60deg) scale(1.1); }
+  100% { transform: rotate(45deg) scale(1); }
 }
