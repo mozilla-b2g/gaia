@@ -74,22 +74,6 @@ marionette('Places tests', function() {
     home.focusRocketBar();
     rocketbar.enterText(url2 + '\uE006');
     rocketbar.switchToBrowserFrame(url2);
-
-    // Go home
-    client.switchToFrame();
-    home.pressHomeButton();
-    client.apps.switchToApp(Home2.URL);
-
-    // Redo search for server url
-    home.focusRocketBar();
-    rocketbar.enterText(server.url(''));
-
-    // Sample page should be shown, but the favicon page should be
-    // dedupped
-    search.goToResults();
-    id = search.getResultSelector(url);
-    client.helper.waitForElement(id);
-    assert.equal(search.getResult(url2).length, 0);
   });
 
   test.skip('Search for a string that doesnt match visited url', function() {

@@ -125,5 +125,6 @@ GalleryAppBuilder.prototype.execute = function(options) {
 };
 
 exports.execute = function(options) {
+  utils.copyToStage(options);
   (new GalleryAppBuilder()).execute(options);
 };

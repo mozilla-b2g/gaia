@@ -6,8 +6,8 @@ var MockNavigatorMozWifiManager = (function() {
   var networks;
   var knownNetworks = [];
 
-  function mwm_setNetworks(networks) {
-    networks = networks;
+  function mwm_setNetworks(aNetworks) {
+    networks = aNetworks;
   }
 
   function mwm_associate(network) {

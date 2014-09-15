@@ -1,3 +1,5 @@
+/* global Bluetooth, AppWindowManager, IACHandler */
+
 'use strict';
 
 function MediaPlaybackWidget(container, options) {
@@ -5,10 +7,7 @@ function MediaPlaybackWidget(container, options) {
   this.nowPlaying = container.querySelector('.media-playback-nowplaying');
   this.controls = container.querySelector('.media-playback-controls');
 
-  this.icon = container.querySelector('.icon');
-  this.trackTitle = container.querySelector('.title');
-  this.trackArtist = container.querySelector('.artist');
-  this.albumArt = container.querySelector('.albumart');
+  this.track = container.querySelector('.track');
 
   this.previousButton = container.querySelector('.previous');
   this.playPauseButton = container.querySelector('.play-pause');
@@ -21,8 +20,9 @@ function MediaPlaybackWidget(container, options) {
     'bluetoothprofileconnectionchange', this.handleSCOChange.bind(this)
   );
 
-  if (options && options.nowPlayingAction === 'openapp')
+  if (options && options.nowPlayingAction === 'openapp') {
     this.nowPlaying.addEventListener('click', this.openMediaApp.bind(this));
+  }
 
   // Listen for when the music app is terminated. We know which app to look
   // for because we got it from the "appinfo" message. Then we hide the Now
@@ -30,8 +30,9 @@ function MediaPlaybackWidget(container, options) {
   // <https://bugzilla.mozilla.org/show_bug.cgi?id=915880>. If you're thinking
   // about doing something similar, step away from your keyboard immediately.
   window.addEventListener('appterminated', function(event) {
-    if (event.detail.origin === this.origin)
+    if (event.detail.origin === this.origin) {
       this.hidden = true;
+    }
   }.bind(this));
 }
 
@@ -41,21 +42,21 @@ MediaPlaybackWidget.prototype = {
   },
 
   set hidden(value) {
-    return this.container.hidden = value;
+    this.container.hidden = value;
   },
 
   handleMessage: function mpw_handleMessage(event) {
     var message = event.detail;
     switch (message.type) {
-    case 'appinfo':
-      this.updateAppInfo(message.data);
-      break;
-    case 'nowplaying':
-      this.updateNowPlaying(message.data);
-      break;
-    case 'status':
-      this.updatePlaybackStatus(message.data);
-      break;
+      case 'appinfo':
+        this.updateAppInfo(message.data);
+        break;
+      case 'nowplaying':
+        this.updateNowPlaying(message.data);
+        break;
+      case 'status':
+        this.updatePlaybackStatus(message.data);
+        break;
     }
   },
 
@@ -63,39 +64,36 @@ MediaPlaybackWidget.prototype = {
     var name = event.detail.name;
     var connected = event.detail.connected;
 
-    if (name === Bluetooth.Profiles.SCO)
+    if (name === Bluetooth.Profiles.SCO) {
       this.container.classList.toggle('disabled', connected);
+    }
   },
 
   updateAppInfo: function mpw_updateAppInfo(info) {
-    if (!info)
+    if (!info) {
       return;
+    }
 
     this.origin = info.origin;
-    this.icon.style.backgroundImage = 'url(' + info.icon + ')';
   },
 
   updateNowPlaying: function mpw_updateNowPlaying(metadata) {
-    if (!metadata)
+    if (!metadata) {
       return;
-
-    this.trackTitle.textContent = metadata.title;
-    this.trackArtist.textContent = metadata.artist;
-
-    // The music app doesn't send a .picture attribute if it hasn't changed
-    // (and it was a placeholder image). Don't bother updating the picture if
-    // so. However, if .picture is null, something probably went wrong, so we
-    // just won't show a picture at all.
-    if ('picture' in metadata) {
-      if (this.url)
-        URL.revokeObjectURL(this.url);
-      if (metadata.picture) {
-        this.url = URL.createObjectURL(metadata.picture);
-        this.albumArt.style.backgroundImage = 'url(' + this.url + ')';
-      } else {
-        this.albumArt.style.backgroundImage = '';
-      }
     }
+
+    var title = metadata.title.trim();
+    var artist = metadata.artist.trim();
+    var track = [];
+
+    if (title) {
+      track.push(title);
+    }
+    if (artist) {
+      track.push(artist);
+    }
+    track = track.join(' — '); // Using a &mdash; here.
+    this.track.textContent = track || navigator.mozL10n.get('UnknownTrack');
   },
 
   updatePlaybackStatus: function mp_updatePlaybackStatus(status) {
@@ -103,13 +101,13 @@ MediaPlaybackWidget.prototype = {
     switch (status.playStatus) {
       case 'PLAYING':
         this.hidden = false;
-        this.playPauseButton.classList.remove('is-paused');
+        this.playPauseButton.dataset.icon = 'pause';
         this.playPauseButton.setAttribute('aria-label',
           _('mediaPlaybackPause'));
         break;
       case 'PAUSED':
         this.hidden = false;
-        this.playPauseButton.classList.add('is-paused');
+        this.playPauseButton.dataset.icon = 'play';
         this.playPauseButton.setAttribute('aria-label', _('mediaPlaybackPlay'));
         break;
       case 'STOPPED':
@@ -134,8 +132,9 @@ MediaPlaybackWidget.prototype = {
 
   handleEvent: function mp_handleEvent(event) {
     var port = IACHandler.getPort('mediacomms');
-    if (!port)
+    if (!port) {
       return;
+    }
 
     var target = event.target;
     var command = null;
@@ -147,7 +146,11 @@ MediaPlaybackWidget.prototype = {
       case this.playPauseButton:
         // The play/pause indicator will get set once the music app replies with
         // its "mode" message, but this will make us appear speedier.
-        target.classList.toggle('is-paused');
+        if (target.dataset.icon === 'play') {
+          target.dataset.icon = 'pause';
+        } else {
+          target.dataset.icon = 'play';
+        }
         command = 'playpause';
         break;
       case this.nextButton:
@@ -155,7 +158,8 @@ MediaPlaybackWidget.prototype = {
         break;
     }
 
-    if (command)
+    if (command) {
       port.postMessage({command: command});
+    }
   }
 };

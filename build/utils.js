@@ -3,6 +3,8 @@
  * implementations inside the 'utils-node' and 'utils-xpc' files.
  */
 
+'use strict';
+/* global exports, require, process*/
 const FILE_TYPE_FILE = 0;
 const FILE_TYPE_DIRECTORY = 1;
 
@@ -71,8 +73,9 @@ function getExtension(filename) {
  */
 function psParser(psresult) {
   var rows = psresult.split('\n');
-  if (rows.length < 2)
+  if (rows.length < 2) {
     return {};
+  }
 
   // We use indexes of each title of the first row to
   // get correct position of each values.
@@ -155,6 +158,8 @@ function getAppStatus(status) {
       appStatus = 2;
       break;
     case 'web':
+      appStatus = 1;
+      break;
     default: // By default, apps are installed
       appStatus = 1;
       break;
@@ -193,6 +198,18 @@ function jsComparator(jsa, jsb) {
   } catch (e) {
     throw e;
   }
+}
+
+/**
+ * convert BUILD_APP_NAME to regular expression and automatically convert to
+ * /.+/ if BUILD_APP_NAME is *
+ *
+ * @param buildAppName {string} BUILD_APP_NAME from Makefile
+ *
+ * @return {RegExp}             a RegExp object
+ */
+function getAppNameRegex(buildAppName) {
+  return buildAppName === '*' ? /.+/ : new RegExp(buildAppName);
 }
 
 /**
@@ -268,6 +285,7 @@ exports.fileExists = utils.fileExists;
 exports.mkdirs = utils.mkdirs;
 exports.joinPath = utils.joinPath;
 exports.copyFileTo = utils.copyFileTo;
+exports.copyToStage = utils.copyToStage;
 exports.createXMLHttpRequest = utils.createXMLHttpRequest;
 exports.downloadJSON = utils.downloadJSON;
 exports.readJSONFromPath = utils.readJSONFromPath;
@@ -290,6 +308,7 @@ exports.copyDirTo = utils.copyDirTo;
 exports.existsInAppDirs = utils.existsInAppDirs;
 exports.getCompression = utils.getCompression;
 exports.removeFiles = utils.removeFiles;
+exports.getAppNameRegex = getAppNameRegex;
 
 /**
  * Common function.

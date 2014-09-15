@@ -38,6 +38,12 @@
     TOGGLE_SCREEN_READER_COUNT: 6,
 
     /**
+     * Cap the full range of contrast. Actual -1 is completely gray, and 1
+     * makes things hard to see. This value is the max/min contrast.
+     */
+    CONTRAST_CAP: 0.6,
+
+    /**
      * Current counter for button presses in short succession.
      * @type {Number}
      * @memberof Accessibility.prototype
@@ -69,7 +75,11 @@
     settings: {
       'accessibility.screenreader': false,
       'accessibility.screenreader-volume': 1,
-      'accessibility.screenreader-rate': 0
+      'accessibility.screenreader-rate': 0,
+      'accessibility.colors.enable': false,
+      'accessibility.colors.invert': false,
+      'accessibility.colors.grayscale': false,
+      'accessibility.colors.contrast': '0.0'
     },
 
     /**
@@ -100,21 +110,54 @@
      * @memberof Accessibility.prototype
      */
     start: function ar_init() {
+
+      this.screen = document.getElementById('screen');
+
       window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('logohidden', this);
 
       // Attach all observers.
       Object.keys(this.settings).forEach(function attach(settingKey) {
         SettingsListener.observe(settingKey, this.settings[settingKey],
           function observe(aValue) {
             this.settings[settingKey] = aValue;
+            switch (settingKey) {
+              case 'accessibility.screenreader':
+                // Show Accessibility panel if it is not already visible
+                if (aValue) {
+                  SettingsListener.getSettingsLock().set({
+                    'accessibility.screenreader-show-settings': true
+                  });
+                }
+                this.screen.classList.toggle('screenreader', aValue);
+                break;
 
-            if (settingKey === 'accessibility.screenreader') {
-              // Show Accessibility panel if it is not already visible
-              if (aValue) {
+              case 'accessibility.colors.enable':
                 SettingsListener.getSettingsLock().set({
-                  'accessibility.show-settings': true
+                  'layers.effect.invert': aValue ?
+                    this.settings['accessibility.colors.invert'] : false,
+                  'layers.effect.grayscale': aValue ?
+                    this.settings['accessibility.colors.grayscale'] : false,
+                  'layers.effect.contrast': aValue ?
+                    this.settings['accessibility.colors.contrast'] : '0.0'
                 });
-              }
+                break;
+
+              case 'accessibility.colors.invert':
+              case 'accessibility.colors.grayscale':
+              case 'accessibility.colors.contrast':
+                if (this.settings['accessibility.colors.enable']) {
+                  var effect = settingKey.split('.').pop();
+                  var gfxSetting = {};
+                  if (effect === 'contrast') {
+                    gfxSetting['layers.effect.contrast'] =
+                      aValue * this.CONTRAST_CAP;
+                  } else {
+                    gfxSetting['layers.effect.' + effect] = aValue;
+                  }
+                  SettingsListener.getSettingsLock().set(gfxSetting);
+                }
+                break;
             }
           }.bind(this));
       }, this);
@@ -190,6 +233,7 @@
     /**
      * Play audio for a screen reader notification.
      * @param  {String} aSoundKey a key for the screen reader audio.
+     * XXX: When Bug 848954 lands we should be able to use Web Audio API.
      * @memberof Accessibility.prototype
      */
     _playSound: function ar__playSound(aSoundKey) {
@@ -199,9 +243,11 @@
       }
       if (!this.sounds[aSoundKey]) {
         this.sounds[aSoundKey] = new Audio(this.soundURLs[aSoundKey]);
+        this.sounds[aSoundKey].load();
       }
-      this.sounds[aSoundKey].volume = this.volume;
-      this.sounds[aSoundKey].play();
+      var audio = this.sounds[aSoundKey].cloneNode(false);
+      audio.volume = this.volume;
+      audio.play();
     },
 
     /**
@@ -252,18 +298,37 @@
     },
 
     /**
+     * Remove aria-hidden from the screen element to make content accessible to
+     * the screen reader.
+     * @memberof Accessibility.prototype
+     */
+    activateScreen: function ar_activateScreen() {
+      // Screen reader will not say anything until the splash animation is
+      // hidden and the aria-hidden attribute is removed from #screen.
+      this.screen.removeAttribute('aria-hidden');
+      window.removeEventListener('logohidden', this);
+    },
+
+    /**
      * Handle a mozChromeEvent event.
      * @param  {Object} aEvent mozChromeEvent.
      * @memberof Accessibility.prototype
      */
     handleEvent: function ar_handleEvent(aEvent) {
-      switch (aEvent.detail.type) {
-        case 'accessfu-output':
-          this.handleAccessFuOutput(JSON.parse(aEvent.detail.details));
+      switch (aEvent.type) {
+        case 'logohidden':
+          this.activateScreen();
           break;
-        case 'volume-up-button-press':
-        case 'volume-down-button-press':
-          this.handleVolumeButtonPress(aEvent);
+        case 'mozChromeEvent':
+          switch (aEvent.detail.type) {
+            case 'accessibility-output':
+              this.handleAccessFuOutput(JSON.parse(aEvent.detail.details));
+              break;
+            case 'volume-up-button-press':
+            case 'volume-down-button-press':
+              this.handleVolumeButtonPress(aEvent);
+              break;
+          }
           break;
       }
     },

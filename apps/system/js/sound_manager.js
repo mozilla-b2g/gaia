@@ -229,7 +229,7 @@
     window.addEventListener('appopen', this);
     window.addEventListener('ftudone', this);
     window.addEventListener('holdhome', this);
-    window.addEventListener('home', this);
+    window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
 
     this.initVibrationUserPref();
@@ -265,7 +265,7 @@
     window.removeEventListener('appopen', this);
     window.removeEventListener('ftudone', this);
     window.removeEventListener('holdhome', this);
-    window.removeEventListener('home', this);
+    window.removeEventListener('homescreenopening', this);
     window.removeEventListener('homescreenopened', this);
   };
 
@@ -323,7 +323,7 @@
       case 'holdhome':
         CustomDialog.hide();
         break;
-      case 'home':
+      case 'homescreenopening':
       case 'homescreenopened':
         this.homescreenVisible = true;
         CustomDialog.hide();
@@ -539,19 +539,19 @@
    */
   SoundManager.prototype.showCEWarningDialog = function sm_showCEDialog(okfn) {
     // Show dialog.
-    var _ = navigator.mozL10n.get;
 
     var ceTitle = {
       'icon': '/style/sound_manager/images/icon_Volumewarning.png',
-      'title': _('ceWarningtitle')
+      'id': 'ceWarningtitle'
     };
-    var ceMsg = _('ceWarningcontent');
+    var ceMsg = 'ceWarningcontent';
 
     var cancel = {
-      'title': _('ok')
+      'title': 'ok'
     };
 
     var self = this;
+    var screen = document.getElementById('screen');
 
     if (okfn instanceof Function) {
       cancel.callback = function onCancel() {
@@ -565,7 +565,9 @@
       };
     }
 
-    CustomDialog.show(ceTitle, ceMsg, cancel);
+    CustomDialog
+      .show(ceTitle, ceMsg, cancel, null, screen)
+      .setAttribute('data-z-index-level', 'system-dialog');
   };
 
   /**

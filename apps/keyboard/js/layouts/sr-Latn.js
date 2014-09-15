@@ -3,7 +3,7 @@ Keyboards['sr-Latn'] = {
   shortLabel: 'Sr',
   menuLabel: 'Srpski',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'number', 'password'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'sr-Latn',
   alt: {
     c: 'čć',
@@ -31,7 +31,7 @@ Keyboards['sr-Latn'] = {
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
       '0': 'º',
       '$': '€£¥',
@@ -50,7 +50,11 @@ Keyboards['sr-Latn'] = {
         { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
         { value: '(' }, { value: ')' }
       ], [
-        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
+        },
         { value: '+',
           supportsSwitching: {
             value: ','
@@ -63,5 +67,5 @@ Keyboards['sr-Latn'] = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

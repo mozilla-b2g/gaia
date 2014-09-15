@@ -30,7 +30,7 @@
   MobileIdDialog.prototype.iframe = null;
 
   MobileIdDialog.prototype.view = function mobileid_view() {
-    return '<div id="' + this.instanceID + '" role="dialog" hidden></div>';
+    return '<div id="' + this.instanceID + '" role="dialog"></div>';
   };
 
   MobileIdDialog.prototype.createIframe =
@@ -104,6 +104,7 @@
       this.panel.innerHTML = '';
       this.panel.classList.remove('closing');
       this.panel.classList.remove('opening');
+      this.panel.parentNode.removeChild(this.panel);
       this.panel = null;
 
       if (typeof onClosed === 'function') {

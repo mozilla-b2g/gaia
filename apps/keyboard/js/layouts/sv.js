@@ -4,7 +4,7 @@ Keyboards.sv = {
   menuLabel: 'Svenska',
   imEngine: 'latin',
   autoCorrectLanguage: 'sv',
-  types: ['text', 'url', 'email', 'number', 'password'],
+  types: ['text', 'url', 'email', 'password'],
   alt: {
     a: 'äáàâąã',
     e: 'éèêëę€',

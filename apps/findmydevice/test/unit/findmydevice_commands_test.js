@@ -1,5 +1,4 @@
 /* global MocksHelper */
-/* global MockPermissionSettings */
 /* global MockSettingsListener */
 /* global MockGeolocation */
 /* global Commands */
@@ -14,7 +13,6 @@ require('/shared/test/unit/mocks/mock_settings_helper.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_device_storage.js');
 require('/shared/test/unit/mocks/mock_geolocation.js');
-require('/shared/test/unit/mocks/mock_permission_settings.js');
 
 var mocksForFindMyDevice = new MocksHelper([
   'SettingsListener', 'SettingsURL', 'SettingsHelper', 'Audio',
@@ -23,7 +21,6 @@ var mocksForFindMyDevice = new MocksHelper([
 
 suite('FindMyDevice >', function() {
   var realL10n;
-  var realPermissionSettings;
   var realMozPower;
   var realMozApps;
   var fakeClock;
@@ -38,10 +35,6 @@ suite('FindMyDevice >', function() {
         callback();
       }
     };
-
-    realPermissionSettings = navigator.mozPermissionSettings;
-    navigator.mozPermissionSettings = MockPermissionSettings;
-    MockPermissionSettings.mSetup();
 
     realMozPower = navigator.mozPower;
     navigator.mozPower = {
@@ -201,13 +194,6 @@ suite('FindMyDevice >', function() {
   });
 
   suite('Track command', function() {
-    test('Set geolocation permission to "allow"', function() {
-      MockPermissionSettings.permissions.geolocation = 'deny';
-      Commands.invokeCommand('track', [30, function() {}]);
-      fakeClock.tick();
-      assert.equal(MockPermissionSettings.permissions.geolocation, 'allow');
-    });
-
     test('Track receives positions correctly', function() {
       // track for a period of time
       var duration = (subject.TRACK_UPDATE_INTERVAL_MS) / 1000;
@@ -406,9 +392,6 @@ suite('FindMyDevice >', function() {
 
   teardown(function() {
     navigator.mozL10n = realL10n;
-
-    MockPermissionSettings.mTeardown();
-    navigator.mozPermissionSettings = realPermissionSettings;
 
     // clean up sinon.js stubs
     navigator.mozPower.factoryReset.restore();

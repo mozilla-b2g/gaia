@@ -25,8 +25,7 @@ marionette('manipulate keyboard settings', function() {
 
     // switch back to settings frame and verify
     settingsApp.switchTo();
-    var backButton = keyboardPanel.backButton;
-    assert.ok(backButton.displayed());
+    assert.equal(keyboardPanel.header.getAttribute('action'), 'back');
 
     // Check the icon is not shown as [X], which is for dialog style.
     assert.ok(!keyboardPanel.isDialog());

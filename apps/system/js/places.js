@@ -1,5 +1,5 @@
 'use strict';
-/* globals Promise, AppWindowManager */
+/* globals Promise, AppWindowManager, asyncStorage */
 /* exported Places */
 
 (function(exports) {
@@ -44,29 +44,44 @@
     screenshotQueue: [],
 
     /**
+     * Maximum number of top sites we display
+     * @memberof Places.prototype
+     * @type {Integer}
+     */
+    MAX_TOP_SITES: 6,
+
+    topSites: [],
+
+    /**
      * Starts places.
      * Adds necessary event listeners and gets the datastore.
      * @param {Function} callback
      * @memberof Places.prototype
      */
-    start: function(callback) {
-      window.addEventListener('apptitlechange', this);
-      window.addEventListener('applocationchange', this);
-      window.addEventListener('appiconchange', this);
-      window.addEventListener('apploaded', this);
+    start: function() {
+      return new Promise(resolve => {
+        window.addEventListener('apptitlechange', this);
+        window.addEventListener('applocationchange', this);
+        window.addEventListener('appiconchange', this);
+        window.addEventListener('apploaded', this);
 
-      navigator.getDataStores(this.STORE_NAME)
-        .then(this.initStore.bind(this)).then(callback);
+        asyncStorage.getItem('top-sites', results => {
+          this.topSites = results || [];
+          resolve();
+        });
+      });
     },
 
-    /**
-     * Initializes the datastore after calling navigator.getDataStores.
-     * @param {Array} stores A list of places datastores.
-     * @memberof Places.prototype
-     */
-    initStore: function(stores) {
-      this.dataStore = stores[0];
-      return new Promise(function(resolve) { resolve(); });
+    getStore: function() {
+      return new Promise(resolve => {
+        if (this.dataStore) {
+          return resolve(this.dataStore);
+        }
+        navigator.getDataStores(this.STORE_NAME).then(stores => {
+          this.dataStore = stores[0];
+          return resolve(this.dataStore);
+        });
+      });
     },
 
     /**
@@ -76,6 +91,13 @@
      */
     handleEvent: function(evt) {
       var app = evt.detail;
+
+      // If the app is not a browser, do not track places as tracking places
+      // currently has a non-trivial startup cost.
+      if (app && !app.isBrowser()) {
+        return;
+      }
+
       switch (evt.type) {
       case 'apptitlechange':
         this.setPlaceTitle(app.config.url, app.title);
@@ -129,7 +151,10 @@
         url: url,
         title: url,
         icons: {},
-        frecency: 0
+        frecency: 0,
+        // An array containing previous visits to this url
+        visits: [],
+        screenshot: null
       };
     },
 
@@ -140,19 +165,20 @@
      * @memberof Places.prototype
      */
     editPlace: function(url, fun) {
-      var self = this;
-      var rev = this.dataStore.revisionId;
-      return new Promise(function(resolve) {
-        self.dataStore.get(url).then(function(place) {
-          place = place || self.defaultPlace(url);
-          fun(place, function(newPlace) {
-            if (self.writeInProgress || self.dataStore.revisionId !== rev) {
-              return self.editPlace(url, fun);
-            }
-            self.writeInProgress = true;
-            self.dataStore.put(newPlace, url).then(function() {
-              self.writeInProgress = false;
-              resolve();
+      return new Promise(resolve => {
+        this.getStore().then(store => {
+          var rev = store.revisionId;
+          store.get(url).then(place => {
+            place = place || this.defaultPlace(url);
+            fun(place, newPlace => {
+              if (this.writeInProgress || store.revisionId !== rev) {
+                return this.editPlace(url, fun);
+              }
+              this.writeInProgress = true;
+              store.put(newPlace, url).then(() => {
+                this.writeInProgress = false;
+                resolve();
+              });
             });
           });
         });
@@ -170,11 +196,79 @@
      * @memberof Places.prototype
      */
     addVisit: function(url) {
-      return this.editPlace(url, function(place, cb) {
+      return this.editPlace(url, (place, cb) => {
         place.visited = Date.now();
         place.frecency++;
+        place = this.addToVisited(place);
+        this.checkTopSites(place);
         cb(place);
       });
+    },
+
+    /**
+     * Manually set the previous visits array of timestamps, used for
+     * migrations
+     */
+    setVisits: function(url, visits) {
+      return this.editPlace(url, (place, cb) => {
+        place.visits = place.visits || [];
+        place.visits.concat(visits);
+        place.visits.sort((a, b) => { return b - a; });
+        cb(place);
+      });
+    },
+
+    /*
+     * Add a recorded visit to the history, we prune them to the last
+     * TRUNCATE_VISITS number of visits and store them in a low enough
+     * resolution to render the view (one per day)
+     */
+    TRUNCATE_VISITS: 10,
+
+    addToVisited: function(place) {
+
+      place.visits = place.visits || [];
+
+      if (!place.visits.length) {
+        place.visits.unshift(place.visited);
+        return place;
+      }
+
+      // If the last visit was within the last 24 hours, remove
+      // it as we only need a resolution of one day
+      var lastVisit = place.visits[0];
+      if (lastVisit > (Date.now() - 60 * 60 * 24 * 1000)) {
+        place.visits.shift();
+      }
+
+      place.visits.unshift(place.visited);
+
+      if (place.visits.length > this.TRUNCATE_VISITS) {
+        place.visits.length = this.TRUNCATE_VISITS;
+      }
+
+      return place;
+    },
+
+    /**
+     * Check if we need to render a screenshot of the current visit
+     * in the case that it is in the top most visited sites
+     */
+    checkTopSites: function(place) {
+      var numTopSites = this.topSites.length;
+      var lastTopSite = this.topSites[numTopSites - 1];
+      if (numTopSites < this.MAX_TOP_SITES ||
+          place.frecency > lastTopSite.frecency) {
+        this.topSites.push(place);
+        this.screenshotRequested(place.url);
+        this.topSites.sort(function(a, b) {
+          return b.frecency - a.frecency;
+        });
+        if (this.topSites.length > this.MAX_TOP_SITES) {
+          this.topSites.length = this.MAX_TOP_SITES;
+        }
+        asyncStorage.setItem('top-sites', this.topSites);
+      }
     },
 
     saveScreenshot: function(url, screenshot) {
@@ -189,7 +283,7 @@
      * @memberof Places.prototype
      */
     clear: function() {
-      return this.dataStore.clear();
+      return this.getStore().then(store => { store.clear(); });
     },
 
     /**

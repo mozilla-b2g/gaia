@@ -374,13 +374,23 @@ var CallHandler = (function callHandler() {
     // Dialing a specific number
     if (isAtd && command[3] !== '>') {
       var phoneNumber = command.substring(3);
-      LazyLoader.load(['/shared/js/sim_settings_helper.js',
-                       '/shared/js/sim_picker.js'], function() {
+      LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
         SimSettingsHelper.getCardIndexFrom('outgoingCall',
         function(defaultCardIndex) {
-          SimPicker.getOrPick(defaultCardIndex, phoneNumber, function(ci) {
-            CallHandler.call(phoneNumber, ci);
-          });
+          if (defaultCardIndex === SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
+            LazyLoader.load(['/shared/js/sim_picker.js'], function() {
+              SimPicker.getOrPick(defaultCardIndex, phoneNumber, function(ci) {
+                CallHandler.call(phoneNumber, ci);
+              });
+              // Show the dialer so the user can select the SIM.
+              navigator.mozApps.getSelf().onsuccess = function(selfEvt) {
+                var app = selfEvt.target.result;
+                app.launch('dialer');
+              };
+            });
+          } else {
+            CallHandler.call(phoneNumber, defaultCardIndex);
+          }
         });
       });
       return;
@@ -484,7 +494,6 @@ var CallHandler = (function callHandler() {
     LazyLoader.load(['/shared/js/mobile_operator.js',
                      '/dialer/js/mmi.js',
                      '/dialer/js/mmi_ui.js',
-                     '/shared/style/headers.css',
                      '/shared/style/progress_activity.css',
                      '/dialer/style/mmi.css'], function() {
 

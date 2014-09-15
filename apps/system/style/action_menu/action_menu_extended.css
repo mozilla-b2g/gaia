@@ -1,3 +1,18 @@
+#screen.software-button-enabled [role="dialog"][data-type="action"],
+#screen.software-button-enabled [role="dialog"][data-type="object"] {
+  bottom: var(--software-home-button-height);
+}
+
+#screen.fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="action"] {
+  height: calc(100% - 7rem - var(--software-home-button-height));
+}
+
+@media (orientation: landscape) {
+  #screen.fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="action"] {
+    height: calc(100% - 7rem);
+  }
+}
+
 /* Extending action menu with icon capability & transition*/
 
 form[role="dialog"][data-type="action"] > menu > button.icon,
@@ -90,7 +105,6 @@ form[role="dialog"][data-type="object"].visible {
   form[role="dialog"][data-type="action"] > menu > button:last-child,
   form[role="dialog"][data-type="object"] > menu > button:last-child {
     position: absolute;
-    background: #2d2d2d;
     margin-top: 1.5rem;
     font-size: 2.3rem;
     line-height: 2.3rem;

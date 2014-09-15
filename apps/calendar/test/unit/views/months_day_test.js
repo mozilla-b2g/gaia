@@ -1,3 +1,5 @@
+requireLib('template.js');
+requireLib('templates/date_span.js');
 requireLib('timespan.js');
 
 suiteGroup('Views.MonthsDay', function() {

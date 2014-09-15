@@ -11,7 +11,12 @@
   }
 
   utils.listeners.add({
-    '#link-close': fb.link.ui.end,
+    '#link-header': [
+      {
+        event: 'action',
+        handler: fb.link.ui.end
+      }
+    ],
     '#friends-list': fb.link.ui.selected
   });
 

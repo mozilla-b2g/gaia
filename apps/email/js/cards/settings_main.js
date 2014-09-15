@@ -6,7 +6,6 @@ var templateNode = require('tmpl!./settings_main.html'),
     common = require('mail_common'),
     MailAPI = require('api'),
     Cards = common.Cards;
-
 /**
  * Global settings, list of accounts.
  */

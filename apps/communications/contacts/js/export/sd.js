@@ -24,7 +24,7 @@ var ContactsSDExport = function ContactsSDExport() {
   };
 
   var getExportTitle = function getExportTitle() {
-    return _('sdExport-title');
+    return _('memoryCardExport-title');
   };
 
   var hasGivenName = function hasGivenName(contact) {
@@ -64,9 +64,9 @@ var ContactsSDExport = function ContactsSDExport() {
     } else {
       var today = new Date();
       filename.push(
-        today.getDate(),
-        today.getMonth() + 1,
         today.getFullYear(),
+        today.getMonth() + 1,
+        today.getDate(),
         contacts.length
       );
     }

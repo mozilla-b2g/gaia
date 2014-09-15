@@ -156,7 +156,7 @@ function BaseSoundList(client, element, Sound) {
 }
 
 BaseSoundList.Selectors = Object.freeze({
-  header: 'h2',
+  header: 'gaia-subheader > span',
   sound: 'li'
 });
 
@@ -236,7 +236,7 @@ ManageRingtonesContainer.prototype = Object.create(
 ManageRingtonesContainer.prototype.constructor = ManageRingtonesContainer;
 
 ManageRingtonesContainer.Selectors = Object.freeze({
-  backButton: 'button#back',
+  backButton: '#header',
   addButton: 'button#add',
   shareFrame: 'iframe[data-url$="share.html"]'
 });
@@ -289,8 +289,8 @@ PickRingtoneContainer.prototype = Object.create(
 PickRingtoneContainer.prototype.constructor = PickRingtoneContainer;
 
 PickRingtoneContainer.Selectors = Object.freeze({
-  cancelButton: 'button#cancel',
-  doneButton: 'button#done'
+  cancelButton: '#header',
+  setButton: 'button#set'
 });
 
 PickRingtoneContainer.prototype.waitUntilLoaded = function() {
@@ -300,7 +300,7 @@ PickRingtoneContainer.prototype.waitUntilLoaded = function() {
 };
 
 createElementGetters(
-  PickRingtoneContainer, 'client', ['cancelButton', 'doneButton']
+  PickRingtoneContainer, 'client', ['cancelButton', 'setButton']
 );
 
 Object.defineProperty(PickRingtoneContainer.prototype, 'selectedSound', {
@@ -331,7 +331,7 @@ function NewRingtoneContainer(client) {
 }
 
 NewRingtoneContainer.Selectors = Object.freeze({
-  cancelButton: 'button#cancel',
+  cancelButton: '#header',
   saveButton: 'button#save',
 
   songTitle: 'p#songtitle',
@@ -417,7 +417,7 @@ Ringtones.prototype = {
   },
 
   inManager: function(soundPanel, callback) {
-    soundPanel.clickManageRingtones();
+    soundPanel.clickManageTones();
     this.switchToMe();
 
     callback(new ManageRingtonesContainer(this.client));

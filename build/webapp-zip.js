@@ -50,7 +50,7 @@ WebappZip.prototype.getCompression = function(pathInZip) {
 
 WebappZip.prototype.isExcludedFromZip = function(file) {
   try {
-    if (!file || !file.isFile()) {
+    if (!(file && file.exists() && file.isFile())) {
       return true;
     }
   } catch (e) {

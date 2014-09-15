@@ -5,8 +5,6 @@
 
   const IDENTIFIER_SEP = '-';
 
-  var _ = navigator.mozL10n.get;
-
   var MOZAPP_EVENTS = [
     'downloadsuccess',
     'downloaderror',
@@ -171,6 +169,10 @@
     get name() {
       var userLang = document.documentElement.lang;
 
+      if (navigator.mozL10n && userLang in navigator.mozL10n.qps) {
+        return navigator.mozL10n.qps[userLang].translate(this.descriptor.name);
+      }
+
       var locales = this.descriptor.locales;
       var localized = locales && locales[userLang] && locales[userLang].name;
 
@@ -194,7 +196,8 @@
     get descriptor() {
       var manifest = this.app.manifest || this.app.updateManifest;
 
-      if (this.entryPoint) {
+      if (this.entryPoint && manifest.entry_points &&
+        manifest.entry_points[this.entryPoint]) {
         return manifest.entry_points[this.entryPoint];
       }
       return manifest;
@@ -223,32 +226,19 @@
     Show a dialog to handle unrecoverable errors.
     */
     unrecoverableError: function() {
-      var dialog = new ConfirmDialogHelper({
-        type: 'unrecoverable',
-        title: _('gaia-grid-unrecoverable-error-title'),
-        body: _('gaia-grid-unrecoverable-error-body'),
-        confirm: {
-          title: _('gaia-grid-unrecoverable-error-action'),
-          cb: () =>  {
-            // XXX: this means whoever uses gaia-grid must have the
-            //      webapps-manage permission
-            navigator.mozApps.mgmt.uninstall(this.app);
-          }
-        }
-      });
-      dialog.show(document.body);
+      navigator.mozApps.mgmt.uninstall(this.app);
     },
 
     cancel: function() {
       var dialog = new ConfirmDialogHelper({
         type: 'pause',
-        title: _('gaia-grid-stop-download-title', { name: this.name }),
-        body: _('gaia-grid-stop-download-body'),
+        title: {id: 'gaia-grid-stop-download-title', args: { name: this.name }},
+        body: 'gaia-grid-stop-download-body',
         cancel: {
-          title: _('gaia-grid-cancel')
+          title: 'gaia-grid-cancel'
         },
         confirm: {
-          title: _('gaia-grid-stop-download-action'),
+          title: 'gaia-grid-stop-download-action',
           type: 'danger',
           cb: () =>  this.app.cancelDownload()
         }
@@ -259,13 +249,13 @@
     resume: function() {
       var dialog = new ConfirmDialogHelper({
         type: 'resume',
-        title: _('gaia-grid-resume-download-title'),
-        body: _('gaia-grid-resume-download-body', { name: this.name }),
+        title: 'gaia-grid-resume-download-title',
+        body: {id: 'gaia-grid-resume-download-body', args: { name: this.name }},
         cancel: {
-          title: _('gaia-grid-cancel')
+          title: 'gaia-grid-cancel'
         },
         confirm: {
-          title: _('gaia-grid-resume-download-action'),
+          title: 'gaia-grid-resume-download-action',
           cb: () => {
             // enter the loading state optimistically
             this.setAppState(APP_LOADING);

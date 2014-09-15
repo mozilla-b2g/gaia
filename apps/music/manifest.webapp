@@ -2,7 +2,7 @@
   "name": "Music",
   "description": "Gaia Music",
   "type": "certified",
-  "launch_path": "/index.html",
+  "launch_path": "/index.html#mix",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -62,6 +62,6 @@
   },
   "orientation": "default",
   "messages": [
-     { "media-button": "/index.html" }
+     { "media-button": "/index.html#mix" }
   ]
 }

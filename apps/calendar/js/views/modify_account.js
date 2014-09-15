@@ -38,7 +38,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
       saveButton: '#modify-account-view .save',
       deleteButton: '#modify-account-view .delete-confirm',
       cancelDeleteButton: '#modify-account-view .delete-cancel',
-      backButton: '#modify-account-view .cancel',
+      header: '#modify-account-header',
       status: '#modify-account-view section[role="status"]',
       errors: '#modify-account-view .errors',
       oauth2Window: '#oauth2',
@@ -71,8 +71,8 @@ Calendar.ns('Views').ModifyAccount = (function() {
       return this._findElement('cancelDeleteButton');
     },
 
-    get backButton() {
-      return this._findElement('backButton');
+    get header() {
+      return this._findElement('header');
     },
 
     get saveButton() {
@@ -291,7 +291,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
 
       this.form.addEventListener('submit', this._boundSaveUpdateModel);
       this.saveButton.addEventListener('click', this._boundSaveUpdateModel);
-      this.backButton.addEventListener('click', this.cancel);
+      this.header.addEventListener('action', this.cancel);
 
       if (this.model._id) {
         this.type = 'update';
@@ -351,8 +351,8 @@ Calendar.ns('Views').ModifyAccount = (function() {
       this.deleteButton.removeEventListener('click', this.deleteRecord);
       this.cancelDeleteButton.removeEventListener('click',
                                                   this.cancel);
-      this.backButton.removeEventListener('click',
-                                                this.cancel);
+      this.header.removeEventListener('action',
+                                      this.cancel);
       this.form.removeEventListener('submit', this._boundSaveUpdateModel);
     },
 

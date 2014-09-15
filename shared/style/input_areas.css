@@ -477,6 +477,10 @@ form button::-moz-focus-inner {
  * Right-to-Left layout
  */
 
+html[dir="rtl"] ::-moz-placeholder {
+  text-align: right;
+}
+
 html[dir="rtl"] fieldset legend {
   background: rgba(0,0,0,0.05) url(input_areas/images/dialog_rtl.svg) no-repeat 1rem calc(100% - 1rem);
 }

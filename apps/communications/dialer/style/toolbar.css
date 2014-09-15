@@ -55,7 +55,6 @@
 }
 
 #views > li > .icon {
-  transform: translateY(0%);
   z-index: 2;
 }
 
@@ -67,6 +66,7 @@
 #views.hide-toolbar > li:before,
 #views.hide-toolbar > li > .icon {
   transform: translateY(100%);
+  visibility: hidden;
 }
 
 #views.hide-toolbar #iframe-contacts-container {
@@ -79,4 +79,5 @@
 
 #contacts-view .bb-tabpanel {
   height: calc(100% - 4.5rem);
+  z-index: 1;
 }

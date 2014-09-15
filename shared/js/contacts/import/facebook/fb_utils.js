@@ -16,6 +16,7 @@ window.fb = fb;
     var CACHE_FRIENDS_KEY = Utils.CACHE_FRIENDS_KEY = 'numFacebookFriends';
     var LAST_UPDATED_KEY = Utils.LAST_UPDATED_KEY = 'lastUpdatedTime';
     Utils.ALARM_ID_KEY = 'nextAlarmId';
+    Utils.SCHEDULE_SYNC_KEY = 'facebookShouldHaveScheduledAt';
 
     var REDIRECT_LOGOUT_URI = window.oauthflow ?
       oauthflow.params.facebook.redirectLogout : '';

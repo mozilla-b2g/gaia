@@ -7,7 +7,7 @@ marionette('FontSizeUtils >', function() {
   var assert = require('assert');
   var System = require('./lib/system.js');
 
-  var SMS_APP = 'app://sms.gaiamobile.org';
+  var EMAIL_APP = 'app://email.gaiamobile.org';
   var client = marionette.client({
     settings: {
       'ftu.manifestURL': null,
@@ -22,17 +22,17 @@ marionette('FontSizeUtils >', function() {
   setup(function() {
     reflowHelper = new ReflowHelper(client);
 
-    var sms = sys.waitForLaunch(SMS_APP);
+    var email = sys.waitForLaunch(EMAIL_APP);
     client.waitFor(function() {
-      return sms.displayed();
+      return email.displayed();
     });
 
-    client.apps.switchToApp(SMS_APP);
+    client.apps.switchToApp(EMAIL_APP);
   });
 
   test('FontSizeUtils._reformatHeaderText creates 1 reflow a header',
   function() {
-    reflowHelper.startTracking(SMS_APP);
+    reflowHelper.startTracking(EMAIL_APP);
     var beforeCount = reflowHelper.getCount();
 
     var headerCount = client.executeAsyncScript(function() {
@@ -56,7 +56,7 @@ marionette('FontSizeUtils >', function() {
 
     // Make sure we have at most as many reflows as there are headers.
     var reflowCount = reflowHelper.getCount() - beforeCount;
-    assert(reflowCount < headerCount, 'Performed too many reflows');
+    assert(reflowCount <= headerCount, 'Performed too many reflows');
 
     // Now set all the header text really small, and check reflow count;
     beforeCount = reflowHelper.getCount();
@@ -80,7 +80,7 @@ marionette('FontSizeUtils >', function() {
 
     assert.equal(headerCount, newHeaderCount, 'header count stays the same');
     reflowCount = reflowHelper.getCount() - beforeCount;
-    assert(reflowCount < newHeaderCount, 'Performed too many reflows');
+    assert(reflowCount <= newHeaderCount, 'Performed too many reflows');
 
     reflowHelper.stopTracking();
     assert(true, 'created 1 reflow per header');

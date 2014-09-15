@@ -85,6 +85,10 @@ suiteGroup('Views.ModifyAccount', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="modify-account-view">',
+        '<gaia-header id="modify-account-header" action="back">',
+          '<h1>Account</h1>',
+          '<button class="save">Save</button>',
+        '</gaia-header>',
         '<button class="save">save</button>',
         '<button class="cancel">cancel</button>',
         '<button class="delete-cancel">cancel</button>',
@@ -100,12 +104,9 @@ suiteGroup('Views.ModifyAccount', function() {
         '<a class="force-oauth2"></a>',
       '</div>',
       '<section id="oauth2">',
-        '<header>',
-          '<button class="cancel">',
-            '<a>cancel</a>',
-          '</button>',
-          '<h1 class="toolbar"></h1>',
-        '</header>',
+        '<gaia-header id="oauth-header" action="back">',
+          '<h1 class="oauth-browser-title"> </h1>',
+        '</gaia-header>',
         '<div class="browser-container"></div>',
       '</section>'
     ].join('');

@@ -7,10 +7,6 @@
  * Tiny devices. Number of steps is 3
  */
 
-#tutorial #tutorial-progress {
-  display: none;
-}
-
 #tutorial-steps-container {
   top: 0.5rem;
 }
@@ -57,30 +53,6 @@
  */
 #tutorial[data-step="1"] #back-tutorial {
  display: none !important;
-}
-
-/*
- * Visible progress-bar (used for > 3 steps)
- */
-
-#tutorial[data-progressbar] #tutorial-progress {
-  visibility: visible;
-}
-
-#tutorial[data-progressbar] .step-state {
-  top: 2.5rem;
-}
-
-#tutorial[data-progressbar] #tutorial-steps-container {
-  top: 4rem;
-}
-
-#tutorial[data-progressbar] #tutorial-step-header {
-  height: 5rem;
-}
-
-#tutorial[data-progressbar] #tutorial-step-media {
-  height: calc(100% - 6rem);
 }
 
 /*

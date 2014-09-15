@@ -1,6 +1,5 @@
 'use strict';
-/* global SettingsListener, AppWindowManager, SearchWindow, places,
-          SettingsURL */
+/* global AppWindowManager, SearchWindow, places */
 
 (function(exports) {
 
@@ -34,18 +33,6 @@
     this.results = document.getElementById('rocketbar-results');
     this.backdrop = document.getElementById('rocketbar-backdrop');
     this.start();
-
-    // TODO: We shouldnt be creating a blob for each wallpaper that needs
-    // changed in the system app
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=962902
-    var defaultWall = 'resources/images/backgrounds/default.png';
-    var wallpaperURL = new SettingsURL();
-
-    SettingsListener.observe('wallpaper.image', defaultWall, function(value) {
-      document.getElementById('rocketbar-backdrop').style.backgroundImage =
-        'url(' + wallpaperURL.set(value) + ')';
-    });
-
   }
 
   Rocketbar.prototype = {
@@ -124,12 +111,34 @@
         return;
       }
       this.active = false;
-      this.rocketbar.classList.remove('active');
-      this.form.classList.add('hidden');
-      this.backdrop.classList.add('hidden');
-      this.blur();
-      this.screen.classList.remove('rocketbar-focused');
-      window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
+
+      var backdrop = this.backdrop;
+      var finishTimeout;
+      var finish = (function() {
+        clearTimeout(finishTimeout);
+        this.form.classList.add('hidden');
+        this.rocketbar.classList.remove('active');
+        this.screen.classList.remove('rocketbar-focused');
+
+        backdrop.classList.add('hidden');
+
+        backdrop.addEventListener('transitionend', function trWait() {
+          backdrop.removeEventListener('transitionend', trWait);
+          window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
+        });
+      }).bind(this);
+
+      if (this.focused) {
+        window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
+          window.removeEventListener('keyboardhidden', onhiddenkeyboard);
+          finish();
+        });
+        // Fallback plan in case we don't get a keyboardhidden event.
+        finishTimeout = setTimeout(finish, 1000);
+        this.blur();
+      } else {
+        finish();
+      }
     },
 
     /**
@@ -143,13 +152,15 @@
       window.addEventListener('apptitlechange', this);
       window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('appopened', this);
+      window.addEventListener('launchapp', this);
+      window.addEventListener('open-app', this);
       window.addEventListener('home', this);
       window.addEventListener('launchactivity', this, true);
       window.addEventListener('searchterminated', this);
       window.addEventListener('permissiondialoghide', this);
-      window.addEventListener('attentionscreenshow', this);
-      window.addEventListener('status-inactive', this);
       window.addEventListener('global-search-request', this);
+      window.addEventListener('attentionopening', this);
+      window.addEventListener('attentionopened', this);
 
       // Listen for events from Rocketbar
       this.input.addEventListener('focus', this);
@@ -172,11 +183,19 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+        case 'launchapp':
+          // Do not close the search app if something opened in the background.
+          var detail = e.detail;
+          if (detail && detail.stayBackground) {
+            return;
+          }
+          /* falls through */
+        case 'attentionopening':
+        case 'attentionopened':
         case 'apploading':
         case 'appforeground':
         case 'appopened':
-        case 'attentionscreenshow':
-        case 'status-inactive':
+        case 'open-app':
           this.hideResults();
           this.deactivate();
           break;
@@ -201,6 +220,7 @@
           } else if (e.target == this.clearBtn) {
             this.clear();
           } else if (e.target == this.backdrop) {
+            this.hideResults();
             this.deactivate();
           }
           break;
@@ -225,24 +245,27 @@
           // XXX: fix the WindowManager coupling
           // but currently the transition sequence is crucial for performance
           var app = AppWindowManager.getActiveApp();
-          if (app && !app.manifestURL) {
-            this.setInput(app.config.url);
-          } else {
-            this.setInput('');
+
+          // If the app is not a browser, retain the search value and activate.
+          if (app && !app.isBrowser()) {
+            this.activate(this.focus.bind(this));
+            return;
           }
 
-          var self = this;
-          var focusAndSelect = function() {
-            self.hideResults();
-            setTimeout(function() {
-              self.focus();
-              self.selectAll();
+          // Set the input to be the URL in the case of a browser.
+          this.setInput(app.config.url);
+
+          var focusAndSelect = () => {
+            this.hideResults();
+            setTimeout(() => {
+              this.focus();
+              this.selectAll();
             });
           };
 
           if (app && app.appChrome && !app.appChrome.isMaximized()) {
-            app.appChrome.maximize(function() {
-              self.activate(focusAndSelect);
+            app.appChrome.maximize(() => {
+              this.activate(focusAndSelect);
             });
           } else {
             this.activate(focusAndSelect);
@@ -303,6 +326,13 @@
      */
     clear: function() {
       this.setInput('');
+
+      // Send a message to the search app to clear results
+      if (this._port) {
+        this._port.postMessage({
+          action: 'clear'
+        });
+      }
     },
 
     /**
@@ -332,7 +362,7 @@
      * @memberof Rocketbar.prototype
      */
     selectAll: function() {
-      this.input.select();
+      this.input.setSelectionRange(0, this.input.value.length, 'forward');
     },
 
     /**

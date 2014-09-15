@@ -72,7 +72,9 @@
      */
     setContacts: function(iceContacts) {
       return init().then(function() {
-        return store.put(iceContacts, FIELD);
+        return store.put(iceContacts, FIELD).then(function() {
+          return Promise.resolve(iceContacts);
+        });
       });
     },
     /**
@@ -82,6 +84,17 @@
     getContacts: function() {
       return init().then(function() {
         return store.get(FIELD);
+      });
+    },
+    /**
+     * Subscribe to changes in the store
+     * @param {Function} Callback when a change happens
+     */
+    onChange: function(cb) {
+      return init().then(function() {
+        store.addEventListener('change', function() {
+          store.get(FIELD).then(cb);
+        });
       });
     }
   };

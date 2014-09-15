@@ -155,17 +155,17 @@ var ActivityHandler = {
       case 'webcontacts/tel':
         type = 'contact';
         dataSet = theContact.tel;
-        noDataStr = _('no_contact_phones');
+        noDataStr = 'no_contact_phones';
         break;
       case 'webcontacts/contact':
         type = 'number';
         dataSet = theContact.tel;
-        noDataStr = _('no_contact_phones');
+        noDataStr = 'no_contact_phones';
         break;
       case 'webcontacts/email':
         type = 'email';
         dataSet = theContact.email;
-        noDataStr = _('no_contact_email');
+        noDataStr = 'no_contact_email';
         break;
       case 'webcontacts/select':
         type = 'select';
@@ -182,19 +182,19 @@ var ActivityHandler = {
         }
 
         dataSet = data;
-        noDataStr = _('no_contact_data');
+        noDataStr = 'no_contact_data';
         break;
     }
     var hasData = dataSet && dataSet.length;
     var numOfData = hasData ? dataSet.length : 0;
 
-    
+
     result.name = theContact.name;
     switch (numOfData) {
       case 0:
         // If no required type of data
         var dismiss = {
-          title: _('ok'),
+          title: 'ok',
           callback: function() {
             ConfirmDialog.hide();
           }

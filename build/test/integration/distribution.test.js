@@ -100,7 +100,8 @@ suite('Distribution mechanism', function() {
         'data_ftu':true,
         'search': '/resources/mobizilla_search.json',
         'default_search': '/resources/mobizilla_default_search.json',
-        'topsites':'/resources/mobizilla_topsites.json'
+        'topsites':'/resources/mobizilla_topsites.json',
+        'browser': '/resources/mobizilla_bookmarks.json'
     };
     var expectedCustom = {
       '310-260': variantConfig,
@@ -161,6 +162,10 @@ suite('Distribution mechanism', function() {
       'resources/mobizilla_topsites.json',
       path.join(cusDir, 'mobizilla',
         'mobizilla_expected_topsites.json'));
+    helper.checkFileInZip(zipPath,
+      'resources/mobizilla_bookmarks.json',
+      path.join(cusDir, 'mobizilla',
+        'mobizilla_expected_bookmarks.json'));
   }
 
   function validateCalendar() {
@@ -213,6 +218,21 @@ suite('Distribution mechanism', function() {
     helper.checkFileContentByPathInZip(sysZipPath,
       'resources/power/carrie_power_on.png',
       path.join(cusDir, 'power', 'carrie_power_on.png'), false);
+  }
+
+  function validateUuid() {
+    var uuidMapping = JSON.parse(fs.readFileSync(
+      path.join(process.cwd(), 'customization','uuid.json')
+    ));
+    var webappsPath = path.join(process.cwd(), 'profile', 'webapps');
+
+    for (let appname in uuidMapping) {
+      assert.ok(
+        fs.existsSync(path.join(webappsPath, uuidMapping[appname])),
+        'uuid for directory name in profile/webapps should exists, app name: ' +
+        appname + ', uuid: ' + uuidMapping[appname]
+      );
+    }
   }
 
   function parseCustimizeImageSetting(appConfig) {
@@ -330,6 +350,7 @@ suite('Distribution mechanism', function() {
       validateHomescreen();
       validateWallpaper();
       validateVariantSettings();
+      validateUuid();
       done();
     });
   });

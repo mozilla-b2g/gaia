@@ -43,10 +43,10 @@ var SimLock = {
       self.showIfLocked(evt.detail.index);
     });
 
-    // Listen to callscreenwillopen and callscreenwillclose event
+    // Listen to callscreen window's opening and terminated events
     // to discard the cardstatechange event.
-    window.addEventListener('callscreenwillopen', this);
-    window.addEventListener('callscreenwillclose', this);
+    window.addEventListener('attentionopening', this);
+    window.addEventListener('attentionterminated', this);
 
     // Listen to events fired from SIMPINDialog
     window.addEventListener('simpinskip', this);
@@ -88,10 +88,16 @@ var SimLock = {
           }
         }
         break;
-      case 'callscreenwillopen':
+      case 'attentionopening':
+        if (evt.detail.CLASS_NAME !== 'CallscreenWindow') {
+          return;
+        }
         this._duringCall = true;
         break;
-      case 'callscreenwillclose':
+      case 'attentionterminated':
+        if (evt.detail.CLASS_NAME !== 'CallscreenWindow') {
+          return;
+        }
         this._duringCall = false;
         if (this._showPrevented) {
           this._showPrevented = false;
@@ -107,6 +113,9 @@ var SimLock = {
         // unlock, because the camera will be opened (Bug 849718)
         if (evt.detail && evt.detail.activity &&
             'record' === evt.detail.activity.name) {
+          if (SimPinDialog.visible) {
+            SimPinDialog.close();
+          }
           return;
         }
         var self = this;
@@ -167,12 +176,9 @@ var SimLock = {
     }
 
     // FTU has its specific SIM PIN UI
-    if (FtuLauncher.isFtuRunning()) {
-      VersionHelper.getVersionInfo().then(function(info) {
-        if (!info.isUpgrade()) {
-          SimPinDialog.close();
-        }
-      });
+    if (FtuLauncher.isFtuRunning() && !FtuLauncher.isFtuUpgrading()) {
+      SimPinDialog.close();
+      return false;
     }
 
     if (this._duringCall) {

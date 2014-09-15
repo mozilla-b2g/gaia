@@ -59,7 +59,7 @@ suite('Information view', function() {
 
   setup(function() {
     loadBodyHTML('/index.html');
-    this.sinon.spy(navigator.mozL10n, 'localize');
+    this.sinon.spy(navigator.mozL10n, 'setAttributes');
     this.sinon.stub(MessageManager, 'on');
     contact = MockContact();
   });
@@ -218,13 +218,22 @@ suite('Information view', function() {
       reportView.id = 1;
       reportView.render();
       assert.isFalse(reportView.container.classList.contains('received'));
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-sms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-sending');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.type,
+        'message-type-sms'
+      );
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.status,
+        'message-status-sending'
+      );
       assert.equal(reportView.status.dataset.type, 'sending');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
-        reportView.contactTitle, 'report-recipients');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.contactTitle,
+        'report-recipients'
+      );
       assert.isTrue(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.called(reportView.renderContactList);
     });
@@ -240,13 +249,22 @@ suite('Information view', function() {
       reportView.id = 1;
       reportView.render();
       assert.isFalse(reportView.container.classList.contains('received'));
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-sms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-sent');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.type,
+        'message-type-sms'
+      );
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.status,
+        'message-status-sent'
+      );
       assert.equal(reportView.status.dataset.type, 'sent');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
-        reportView.contactTitle, 'report-recipients');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.contactTitle,
+        'report-recipients'
+      );
       assert.isTrue(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.called(reportView.renderContactList);
     });
@@ -261,13 +279,22 @@ suite('Information view', function() {
       reportView.id = 1;
       reportView.render();
       assert.isFalse(reportView.container.classList.contains('received'));
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-sms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-error');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.type,
+        'message-type-sms'
+      );
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.status,
+        'message-status-error'
+      );
       assert.equal(reportView.status.dataset.type, 'error');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
-        reportView.contactTitle, 'report-recipients');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.contactTitle,
+        'report-recipients'
+      );
       assert.isTrue(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.called(reportView.renderContactList);
     });
@@ -286,13 +313,22 @@ suite('Information view', function() {
       reportView.render();
       assert.isFalse(reportView.container.classList.contains('received'));
       assert.equal(reportView.subject.textContent, messageOpts.subject);
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-mms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-sent');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.type,
+        'message-type-mms'
+      );
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.status,
+        'message-status-sent'
+      );
       assert.equal(reportView.status.dataset.type, 'sent');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
-        reportView.contactTitle, 'report-recipients');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.contactTitle,
+        'report-recipients'
+      );
       assert.isTrue(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.called(reportView.renderContactList);
     });
@@ -310,15 +346,28 @@ suite('Information view', function() {
       reportView.render();
       assert.isFalse(reportView.container.classList.contains('received'));
       assert.equal(reportView.subject.textContent, '');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-mms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.size,
-        'attachmentSize', { n: (testImageBlob.size / 1024).toFixed(1) });
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-sent');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.type,
+        'message-type-mms'
+      );
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.size,
+        'attachmentSize',
+        { n: (testImageBlob.size / 1024).toFixed(1) }
+      );
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.status,
+        'message-status-sent'
+      );
       assert.equal(reportView.status.dataset.type, 'sent');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
-        reportView.contactTitle, 'report-recipients');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.contactTitle,
+        'report-recipients'
+      );
       assert.isFalse(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.called(reportView.renderContactList);
     });
@@ -331,13 +380,22 @@ suite('Information view', function() {
       reportView.id = 1;
       reportView.render();
       assert.isTrue(reportView.container.classList.contains('received'));
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-sms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-received');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.type,
+        'message-type-sms'
+      );
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.status,
+        'message-status-received'
+      );
       assert.equal(reportView.status.dataset.type, 'received');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
-        reportView.contactTitle, 'report-from');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.contactTitle,
+        'report-from'
+      );
       assert.isTrue(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.calledWith(reportView.renderContactList, [message.sender]);
     });
@@ -353,15 +411,28 @@ suite('Information view', function() {
       reportView.render();
       assert.isTrue(reportView.container.classList.contains('received'));
       assert.equal(reportView.subject.textContent, message.subject);
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-mms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.size,
-        'attachmentSize', { n: (testImageBlob.size / 1024).toFixed(1) });
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-received');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.type,
+        'message-type-mms'
+      );
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.size,
+        'attachmentSize',
+        { n: (testImageBlob.size / 1024).toFixed(1) }
+      );
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.status,
+        'message-status-received'
+      );
       assert.equal(reportView.status.dataset.type, 'received');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
-        reportView.contactTitle, 'report-from');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.contactTitle,
+        'report-from'
+      );
       assert.isFalse(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.calledWith(reportView.renderContactList, [message.sender]);
     });
@@ -375,28 +446,63 @@ suite('Information view', function() {
       reportView.id = 2;
       reportView.render();
       assert.isTrue(reportView.container.classList.contains('received'));
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-mms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-not-downloaded');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.type,
+        'message-type-mms'
+      );
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.status,
+        'message-status-not-downloaded'
+      );
       assert.equal(reportView.status.dataset.type, 'not-downloaded');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
-        reportView.contactTitle, 'report-from');
+      sinon.assert.calledWith(
+        navigator.mozL10n.setAttributes,
+        reportView.contactTitle,
+        'report-from'
+      );
       sinon.assert.called(reportView.renderContactList);
     });
 
-    test('Incoming Message with valid sent timestamp', function() {
-      messageOpts = {
-        delivery: 'received',
-        sentTimestamp: Date.now()
-      };
+    suite('Incoming Message with valid sent timestamp >', function() {
+      setup(function() {
+        messageOpts = {
+          delivery: 'received',
+          sentTimestamp: Date.now()
+        };
+        reportView.id = 1;
+      });
 
-      reportView.id = 1;
-      reportView.render();
+      [true, false].forEach((isMozHour12) => {
+        var hourPostfix = isMozHour12 ? '12' : '24';
 
-      assert.isFalse(
-        reportView.container.classList.contains('no-valid-sent-timestamp')
-      );
+        test('with ' + hourPostfix + ' hour format', function() {
+          navigator.mozHour12 = isMozHour12;
+
+          reportView.render();
+
+          var sentTimestampNode = reportView.container.querySelector(
+            '.sent-timeStamp'
+          );
+
+          assert.isFalse(
+            reportView.container.classList.contains('no-valid-sent-timestamp')
+          );
+          assert.equal(
+            sentTimestampNode.textContent,
+            Utils.date.format.localeFormat(
+              new Date(messageOpts.sentTimestamp),
+              'report-dateTimeFormat' + hourPostfix
+            )
+          );
+          assert.equal(
+            sentTimestampNode.dataset.l10nDate, messageOpts.sentTimestamp
+          );
+          assert.ok(sentTimestampNode.dataset.l10nDateFormat12);
+          assert.ok(sentTimestampNode.dataset.l10nDateFormat24);
+        });
+      });
     });
 
     test('Incoming Message with invalid sent timestamp', function() {
@@ -456,7 +562,6 @@ suite('Information view', function() {
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
         this.sinon.stub(Settings, 'getServiceIdByIccId').returns(0);
         this.sinon.stub(Settings, 'getOperatorByIccId').returns('operator');
-        this.sinon.stub(navigator.mozL10n, 'setAttributes');
         reportView.render();
 
         sinon.assert.calledWithMatch(
@@ -485,7 +590,6 @@ suite('Information view', function() {
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
         this.sinon.stub(Settings, 'getServiceIdByIccId').returns(0);
         this.sinon.stub(Settings, 'getOperatorByIccId').returns('');
-        this.sinon.stub(navigator.mozL10n, 'setAttributes');
         reportView.render();
 
         sinon.assert.calledWithMatch(
@@ -514,7 +618,6 @@ suite('Information view', function() {
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
         this.sinon.stub(Settings, 'getServiceIdByIccId').returns(1);
         this.sinon.stub(Settings, 'getOperatorByIccId').returns('operator');
-        this.sinon.stub(navigator.mozL10n, 'setAttributes');
         reportView.render();
 
         sinon.assert.calledWithMatch(
@@ -543,7 +646,9 @@ suite('Information view', function() {
           readClass: 'hide',
           readL10n: '',
           readDateL10n: '',
-          readTimestamp: ''
+          readTimestamp: '',
+          messageL10nDateFormat12: 'report-dateTimeFormat12',
+          messageL10nDateFormat24: 'report-dateTimeFormat24'
         };
       });
 
@@ -573,22 +678,34 @@ suite('Information view', function() {
         sinon.assert.calledWith(Template.prototype.interpolate, data);
       });
 
-      test('delivery report success', function() {
-        messageOpts = {
-          sender: null,
-          delivery: 'sent',
-          deliveryStatus: 'success',
-          deliveryTimestamp: Date.now()
-        };
+      suite('delivery report success >', function() {
+        setup(function() {
+          messageOpts = {
+            sender: null,
+            delivery: 'sent',
+            deliveryStatus: 'success',
+            deliveryTimestamp: Date.now()
+          };
 
-        reportView.id = 1;
-        reportView.render();
-        data.deliveryDateL10n = Utils.date.format.localeFormat(
-          new Date(messageOpts.deliveryTimestamp),
-          navigator.mozL10n.get('report-dateTimeFormat')
-        );
-        data.deliveryTimestamp = '' + messageOpts.deliveryTimestamp;
-        sinon.assert.calledWith(Template.prototype.interpolate, data);
+          reportView.id = 1;
+        });
+
+        [true, false].forEach((isMozHour12) => {
+          var hourPostfix = isMozHour12 ? '12' : '24';
+
+          test('with ' + hourPostfix + ' hour format', function() {
+            navigator.mozHour12 = isMozHour12;
+
+            reportView.render();
+
+            data.deliveryDateL10n = Utils.date.format.localeFormat(
+              new Date(messageOpts.deliveryTimestamp),
+              navigator.mozL10n.get('report-dateTimeFormat' + hourPostfix)
+            );
+            data.deliveryTimestamp = '' + messageOpts.deliveryTimestamp;
+            sinon.assert.calledWith(Template.prototype.interpolate, data);
+          });
+        });
       });
 
       test('delivery report error', function() {
@@ -617,7 +734,9 @@ suite('Information view', function() {
           readClass: '',
           readL10n: '',
           readDateL10n: '',
-          readTimestamp: ''
+          readTimestamp: '',
+          messageL10nDateFormat12: 'report-dateTimeFormat12',
+          messageL10nDateFormat24: 'report-dateTimeFormat24'
         };
       });
 
@@ -651,24 +770,37 @@ suite('Information view', function() {
         sinon.assert.calledWith(Template.prototype.interpolate, data);
       });
 
-      test('read report success', function() {
-        messageOpts = {
-          sender: null,
-          delivery: 'sent',
-          deliveryInfo: [{
-            receiver: 'receiver',
-            readStatus: 'success',
-            readTimestamp: Date.now()
-          }]
-        };
-        reportView.id = 2;
-        reportView.render();
-        data.readDateL10n = Utils.date.format.localeFormat(
-          new Date(messageOpts.deliveryInfo[0].readTimestamp),
-          navigator.mozL10n.get('report-dateTimeFormat')
-        );
-        data.readTimestamp = '' + messageOpts.deliveryInfo[0].readTimestamp;
-        sinon.assert.calledWith(Template.prototype.interpolate, data);
+      suite('read report success >', function() {
+        setup(function() {
+          messageOpts = {
+            sender: null,
+            delivery: 'sent',
+            deliveryInfo: [{
+              receiver: 'receiver',
+              readStatus: 'success',
+              readTimestamp: Date.now()
+            }]
+          };
+
+          reportView.id = 2;
+        });
+
+        [true, false].forEach((isMozHour12) => {
+          var hourPostfix = isMozHour12 ? '12' : '24';
+
+          test('with ' + hourPostfix + ' hour format', function() {
+            navigator.mozHour12 = isMozHour12;
+
+            reportView.render();
+
+            data.readDateL10n = Utils.date.format.localeFormat(
+              new Date(messageOpts.deliveryInfo[0].readTimestamp),
+              navigator.mozL10n.get('report-dateTimeFormat' + hourPostfix)
+            );
+            data.readTimestamp = '' + messageOpts.deliveryInfo[0].readTimestamp;
+            sinon.assert.calledWith(Template.prototype.interpolate, data);
+          });
+        });
       });
 
       test('read report error', function() {
@@ -743,8 +875,12 @@ suite('Information view', function() {
     });
     test('view status before show method', function() {
       sinon.assert.calledWith(groupView.renderContactList, participants);
-      sinon.assert.calledWithMatch(navigator.mozL10n.localize,
-        ThreadUI.headerText, 'participant', {n: participants.length});
+      sinon.assert.calledWithMatch(
+        navigator.mozL10n.setAttributes,
+        ThreadUI.headerText,
+        'participant',
+        {n: participants.length}
+      );
     });
   });
 

@@ -241,19 +241,19 @@ ControlsController.prototype.captureHighlightOff = function() {
 };
 
 /**
- * Switch to the next capture
- * mode: 'picture' or 'video'.
+ * Switch to the next capture mode:
+ * 'picture' or 'video', when the
+ * mode is changed via the view.
+ *
+ * Them mode can be changed by either
+ * tapping or swiping the mode switch.
  *
  * @private
  */
-ControlsController.prototype.onViewModeChanged = function(mode) {
-  debug('view mode changed mode: %s', mode);
-  var setting = this.app.settings.mode;
-  this.view.disable();
-  if (mode) { setting.select(mode); }
-  else { setting.next(); }
+ControlsController.prototype.onViewModeChanged = function() {
+  debug('view mode changed');
+  this.app.settings.mode.next();
 };
-
 
 ControlsController.prototype.onCancelButtonClick = function() {
   this.app.emit('activitycanceled');

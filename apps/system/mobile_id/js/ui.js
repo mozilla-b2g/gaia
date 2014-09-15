@@ -6,7 +6,7 @@
   'use strict';
   var initialized;
 
-  var allowButton, closeButton, verificationCodeButton,
+  var allowButton, header, verificationCodeButton,
       multistateButton, panelsContainer,
       verificationCodeInput, msisdnInput,
       msisdnAutomaticOptions, typeMSISDNButton,
@@ -250,8 +250,8 @@
   }
 
   function _addEventListeners() {
-    closeButton.addEventListener(
-      'click',
+    header.addEventListener(
+      'action',
       function onClose() {
         Controller.postCloseAction(isVerified);
       }
@@ -359,8 +359,8 @@
                      params.callback :
                      function() {};
 
+      header = document.getElementById('header');
       allowButton = document.getElementById('allow-button');
-      closeButton = document.getElementById('close-button');
       verificationCodeButton = document.getElementById('verify-button');
       multistateButton = document.getElementById('msb');
       panelsContainer = document.getElementById('panels-container');
@@ -398,6 +398,12 @@
         callback();
       });
 
+      // HACK: We must reposition the gaia-header
+      // text once we know the dialog is visible.
+      window.addEventListener('shown', function() {
+        var title = header.querySelector('h1');
+        title.textContent = title.textContent;
+      });
     },
     localize: function ui_localize(name) {
       // Cache the name of the app

@@ -31,12 +31,12 @@ var SimPinDialog = {
 
   initElements: function spl_initElements() {
     // All of the simpin dialog elements are appended via SimPinSystemDialog.
-    this.dialogTitle = document.querySelector('#simpin-dialog header h1');
+    this.dialogTitle = document.querySelector('#simpin-dialog gaia-header h1');
     this.dialogDone =
       document.querySelector('#simpin-dialog button[type="submit"]');
     this.dialogSkip =
       document.querySelector('#simpin-dialog button[type="reset"]');
-    this.dialogBack = document.querySelector('#simpin-dialog button.back');
+    this.header = document.querySelector('#simpin-dialog gaia-header');
 
     this.pinArea = document.getElementById('pinArea');
     this.pukArea = document.getElementById('pukArea');
@@ -305,9 +305,12 @@ var SimPinDialog = {
     }
 
     if (skipped) {
-      delete this.dialogBack.hidden;
+      this.header.setAttribute('action', 'back');
+      // Force header-text to be repositioned
+      // now the action-button is present
+      this.dialogTitle.textContent = this.dialogTitle.textContent;
     } else {
-      this.dialogBack.hidden = true;
+      this.header.removeAttribute('action');
     }
   },
 
@@ -368,7 +371,7 @@ var SimPinDialog = {
 
     this.dialogDone.onclick = this.verify.bind(this);
     this.dialogSkip.onclick = this.skip.bind(this);
-    this.dialogBack.onclick = this.back.bind(this);
+    this.header.addEventListener('action', this.back.bind(this));
     this.pinInput = this.getNumberPasswordInputField('simpin');
     this.pukInput = this.getNumberPasswordInputField('simpuk');
     this.xckInput = this.getNumberPasswordInputField('xckpin');

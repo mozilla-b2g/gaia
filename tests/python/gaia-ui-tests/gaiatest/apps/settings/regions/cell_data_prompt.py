@@ -22,5 +22,4 @@ class CellDataPrompt(Base):
 
     @property
     def is_displayed(self):
-        # The prompt container and its contents return True is_displayed erroneously
-        return 'current' in self.marionette.find_element(*self._cell_data_prompt_container_locator).get_attribute('class')
+        return self.marionette.find_element(*self._cell_data_prompt_container_locator).is_displayed()

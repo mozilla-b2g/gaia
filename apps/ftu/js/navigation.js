@@ -87,6 +87,14 @@ var Navigation = {
       self.simMandatory = reqSIM.result['ftu.sim.mandatory'] || false;
     };
 
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      app.connect('ftucomms').then(function onConnAccepted(ports) {
+        self.ports = ports;
+      }, function onConnRejected(reason) {
+        console.warn('FTU navigation cannot use IAC: ' + reason);
+      });
+    };
   },
 
   back: function n_back(event) {
@@ -151,25 +159,8 @@ var Navigation = {
     window.open(href, '', 'dialog');
   },
 
-  // Compute the position of the navigation progress bar
-  getProgressBarState: function n_getProgressBarState() {
-    // Initial step
-    if (this.currentStep == 1) {
-      return 1;
-    }
-
-    var progressBarPosition = this.currentStep - (this.skipDataScreen ? 1 : 0);
-
-    if (progressBarPosition > this.totalSteps) {
-      return this.totalSteps;
-    }
-
-    return progressBarPosition;
-  },
-
   handleEvent: function n_handleEvent(event) {
     var actualHash = window.location.hash;
-    UIManager.progressBar.classList.remove('hidden');
     switch (actualHash) {
       case '#languages':
         UIManager.mainTitle.innerHTML = _('language');
@@ -187,8 +178,22 @@ var Navigation = {
           UIManager.navBar.classList.remove('secondary-menu');
           return;
         }
-        // Avoid refresh when connecting
-        WifiManager.scan(WifiUI.renderNetworks);
+
+        // This might seem like an odd place to call UIManager.initTZ, but
+        // there's a reason for it. initTZ tries to determine the timezone
+        // using information about the current mobile network connection.
+        // We want to call initTZ as late as possible to give the mobile
+        // network time to connect before the function is called.
+        // But we have to call initTZ *before* the Date & Time page
+        // appears so that it doesn't delay the appearance of the page.
+        // This is the last good opportunity to call it.
+
+        WifiManager.scan((networks) => {
+          UIManager.initTZ().then(() => {
+            WifiUI.renderNetworks(networks);
+          });
+        });
+
         break;
       case '#date_and_time':
         UIManager.mainTitle.innerHTML = _('dateAndTime');
@@ -220,6 +225,14 @@ var Navigation = {
         break;
       case '#welcome_browser':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
+        var welcome = document.getElementById('browser_os_welcome');
+        navigator.mozL10n.localize(welcome, 'htmlWelcome', {
+          link: getLocalizedLink('htmlWelcome')
+        });
+        var improve = document.getElementById('browser_os_improve');
+        navigator.mozL10n.localize(improve, 'helpImprove', {
+          link: getLocalizedLink('helpImprove')
+        });
         break;
       case '#browser_privacy':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
@@ -234,12 +247,10 @@ var Navigation = {
       case '#about-your-rights':
       case '#about-your-privacy':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
-        UIManager.progressBar.classList.add('hidden');
         UIManager.navBar.classList.add('back-only');
         break;
       case '#sharing-performance-data':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
-        UIManager.progressBar.classList.add('hidden');
         UIManager.navBar.classList.add('back-only');
         var linkTelemetry = document.getElementById('external-link-telemetry');
         navigator.mozL10n.localize(linkTelemetry, 'learn-more-telemetry', {
@@ -251,18 +262,6 @@ var Navigation = {
         });
         break;
     }
-
-    var progressBarState = this.getProgressBarState();
-    UIManager.progressBarState.style.width =
-      'calc(100% / ' + this.totalSteps + ')';
-    UIManager.progressBarState.style.transform =
-      'translateX(' + ((progressBarState - 1) * 100) + '%)';
-    UIManager.progressBar.setAttribute('aria-valuetext', _('progressbar', {
-      step: progressBarState,
-      total: this.totalSteps
-    }));
-    UIManager.progressBar.setAttribute('aria-valuemin', 1);
-    UIManager.progressBar.setAttribute('aria-valuemax', this.totalSteps);
 
     // If SIM card is mandatory, we hide the button skip
     if (this.simMandatory) {
@@ -286,6 +285,21 @@ var Navigation = {
     }
   },
 
+  /**
+   * Posts IAC message about FTU steps passed.
+   */
+  postStepMessage: function n_postStepMessage(stepNumber) {
+    if (!this.ports) {
+      return;
+    }
+    this.ports.forEach(function(port) {
+      port.postMessage({
+        type: 'step',
+        hash: steps[stepNumber].hash
+      });
+    });
+  },
+
   skipStep: function n_skipStep() {
     this.currentStep = this.currentStep +
                       (this.currentStep - this.previousStep);
@@ -300,6 +314,12 @@ var Navigation = {
 
   manageStep: function n_manageStep() {
     var self = this;
+
+    // If we moved forward in FTU, post iac message about progress.
+    if (self.currentStep > self.previousStep) {
+      self.postStepMessage(self.previousStep);
+    }
+
     //SV - We need remember if phone startup with SIM
     if (self.currentStep >= numSteps) {
       OperatorVariant.setSIMOnFirstBootState();
@@ -359,8 +379,6 @@ var Navigation = {
           // Don't skip it if next step is data 3g
          futureLocation.hash !== '#data_3g')) {
           self.skipStep();
-          // To avoid jumping the progress bar, update its width to match the
-          // new total number of steps
           if (self.currentStep > self.previousStep) {
             self.skipDataScreen = true;
             self.totalSteps--;
@@ -379,6 +397,7 @@ var Navigation = {
     // determine the timezone, we can determine the time too.)
     if (steps[self.currentStep].hash === '#date_and_time') {
       if (!UIManager.timeZoneNeedsConfirmation) {
+        self.postStepMessage(self.currentStep);
         self.skipStep();
       }
     }

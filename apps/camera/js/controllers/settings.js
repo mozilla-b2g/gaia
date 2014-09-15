@@ -198,7 +198,7 @@ SettingsController.prototype.closeSettings = function(done) {
     self.view = null;
     self.app.emit('settings:closed');
     debug('settings closed');
-    if (done) { done(); }
+    if (typeof done === 'function') { done(); }
   });
 };
 

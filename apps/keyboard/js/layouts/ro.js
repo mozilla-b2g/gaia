@@ -3,7 +3,7 @@ Keyboards.ro = {
   shortLabel: 'Ro',
   menuLabel: 'Română',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'number', 'password'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'ro',
   alt: {
     a: 'ăâ',
@@ -34,7 +34,7 @@ Keyboards.ro = {
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
       '0': 'º',
       '$': '€£¥',
@@ -54,7 +54,11 @@ Keyboards.ro = {
         { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
         { value: '(' }, { value: ')' }
       ], [
-        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
+        },
         { value: '+',
           supportsSwitching: {
             value: ','
@@ -67,5 +71,5 @@ Keyboards.ro = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

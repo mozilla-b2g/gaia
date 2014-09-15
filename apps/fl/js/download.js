@@ -86,9 +86,8 @@ function view(activity) {
   // First a little bit of cleanup. Sometimes we get a content-type like
   // Content-type: a/type; boundary=somethingelse
   // And we don't really want anything after the ;
-  var activityType = activity.source.data.type;
-  if (removeMimeTypeParameters(activityType) ===
-      'application/vnd.oma.drm.message') {
+  var activityType = normalizeMimeType(activity.source.data.type);
+  if (activityType === 'application/vnd.oma.drm.message') {
     hasDescriptor = false;
 
     var url = (activity.source.data.url || '');
@@ -104,10 +103,22 @@ function view(activity) {
     downloadDescriptor(activity.source.data.url);
   }
 
+  // We call this function on all mime type values we read from .dm or .dd
+  // files or we get in XHR headers. This strips off trailing parameters,
+  // converts to lower case, and fixes incorrect types (like audio/mp3).
+  function normalizeMimeType(type) {
+    // Strip off any mime type parameters
+    type = type.split(';')[0];
 
-  // Removes the extra information from a type
-  function removeMimeTypeParameters(type) {
-    return (type.split(';'))[0];
+    // convert to lower case
+    type = type.toLowerCase();
+
+    // Map bad types like "audio/mp3" to the correct type like "audio/mpeg"
+    if (type in MimeTypeAliases) {
+      type = MimeTypeAliases[type];
+    }
+
+    return type;
   }
 
   function askSongOrRingtone(aCallback) {
@@ -237,7 +248,7 @@ function view(activity) {
     if (types) {
       descriptor.types = [];
       for (var i = 0; i < types.length; i++) {
-        descriptor.types.push(types[i].textContent.trim());
+        descriptor.types.push(normalizeMimeType(types[i].textContent.trim()));
       }
     }
 
@@ -301,7 +312,7 @@ function view(activity) {
     var types = descriptor.types;
 
     for (var i = 0; i < types.length; i++) {
-      var type = removeMimeTypeParameters(types[i]);
+      var type = types[i];
 
       if (type === 'application/vnd.oma.drm.message') {
         // This type just indicates that the download will be a multi-part
@@ -467,8 +478,8 @@ function view(activity) {
       }
 
       // Move on to step 6
-      extractContent(download.getResponseHeader('Content-Type'),
-                     download.response);
+      var type = normalizeMimeType(download.getResponseHeader('Content-Type'));
+      extractContent(type, download.response);
     };
 
     // Add another cancel button handler to abort the download if the
@@ -480,7 +491,6 @@ function view(activity) {
 
   // Step 6: extract the downloaded content from the array buffer
   function extractContent(type, buffer) {
-    type = removeMimeTypeParameters(type);
     debug('Step 6a: extractContent', type, buffer.byteLength);
 
     if (type !== 'application/vnd.oma.drm.message') {
@@ -560,7 +570,7 @@ function view(activity) {
     for (var i = 0; i < headers.length; i++) {
       var header = headers[i].toLowerCase();
       if (header.startsWith('content-type:')) {
-        contentType = header.substring(13).trim();
+        contentType = normalizeMimeType(header.substring(13).trim());
       }
     }
 
@@ -575,8 +585,6 @@ function view(activity) {
   // Step 7
   function previewContent(type, bytes) {
     if (!hasDescriptor) {
-      type = removeMimeTypeParameters(type);
-
       mimeType = type;
       if (type in SupportedImageTypes) {
         isImage = true;

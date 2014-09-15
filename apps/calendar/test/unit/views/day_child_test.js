@@ -4,6 +4,8 @@ requireLib('templates/day.js');
 requireLib('views/day_based.js');
 requireLib('views/day_child.js');
 */
+requireLib('template.js');
+requireLib('templates/date_span.js');
 requireLib('timespan.js');
 
 suiteGroup('Views.DayChild', function() {

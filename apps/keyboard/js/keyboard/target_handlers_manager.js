@@ -16,6 +16,8 @@ var TargetHandlersManager = function(app) {
 };
 
 TargetHandlersManager.prototype.start = function() {
+  this.app.console.log('TargetHandlersManager.start()');
+
   this.handlers = new WeakMap();
 
   var activeTargetsManager = this.activeTargetsManager =
@@ -41,6 +43,8 @@ TargetHandlersManager.prototype.start = function() {
 };
 
 TargetHandlersManager.prototype.stop = function() {
+  this.app.console.log('TargetHandlersManager.stop()');
+
   this.handlers = null;
   this.activeTargetsManager.stop();
   this.activeTargetsManager = null;
@@ -67,6 +71,9 @@ TargetHandlersManager.prototype._callTargetAction = function(action,
                                                              setHandler,
                                                              deleteHandler,
                                                              target) {
+  this.app.console.log('TargetHandlersManager._callTargetAction()',
+    action, setHandler, deleteHandler, target);
+
   var handler;
   if (this.handlers.has(target)) {
     handler = this.handlers.get(target);
@@ -95,6 +102,8 @@ TargetHandlersManager.prototype._callTargetAction = function(action,
 // handle the active target. It decide the TargetHandler to use and create
 // and instance of it, and return the instance.
 TargetHandlersManager.prototype._createHandlerForTarget = function(target) {
+  this.app.console.log('TargetHandlersManager._createHandlerForTarget()');
+
   var handler;
 
   // This is unfortunately very complex but this is essentially what's already
@@ -118,9 +127,6 @@ TargetHandlersManager.prototype._createHandlerForTarget = function(target) {
         handler = new SpaceKeyTargetHandler(target, this.app);
         break;
 
-      case this.app.layoutManager.KEYCODE_BASIC_LAYOUT:
-      case this.app.layoutManager.KEYCODE_ALTERNATE_LAYOUT:
-      case this.app.layoutManager.KEYCODE_SYMBOL_LAYOUT:
       case KeyEvent.DOM_VK_ALT:
         handler = new PageSwitchingTargetHandler(target, this.app);
         break;

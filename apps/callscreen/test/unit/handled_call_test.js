@@ -8,6 +8,7 @@
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/test/unit/mock_call_screen.js');
+require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
@@ -24,6 +25,8 @@ require('/js/handled_call.js');
 require('/shared/js/dialer/voicemail.js');
 
 var mocksHelperForHandledCall = new MocksHelper([
+  'Audio',
+  'AudioContext',
   'Contacts',
   'CallScreen',
   'CallsHandler',
@@ -328,8 +331,8 @@ suite('dialer/handled_call', function() {
       assert.isTrue(MockUtils.mCalledGetPhoneNumberPrimaryInfo);
     });
 
-    test('additional contact info', function() {
-      assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
+    test('phone number and type', function() {
+      assert.isTrue(MockUtils.mCalledGetPhoneNumberAndType);
     });
 
     test('mute initially off', function() {
@@ -596,13 +599,7 @@ suite('dialer/handled_call', function() {
     test('check additional info updated', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall);
-      assert.equal(subject.additionalInfoNode.textContent, '888');
-    });
-
-    test('check without additional info', function() {
-      mockCall = new MockCall('999', 'incoming');
-      subject = new HandledCall(mockCall);
-      assert.equal('', subject.additionalInfoNode.textContent);
+      assert.equal(subject.additionalInfoNode.textContent, 'type, 888');
     });
 
     test('check switch-calls mode', function() {
@@ -650,14 +647,6 @@ suite('dialer/handled_call', function() {
           assert.isFalse(subject.node.classList.contains('additionalInfo'));
         });
       });
-    });
-
-    test('check restore additional info', function() {
-      mockCall = new MockCall('888', 'incoming');
-      subject = new HandledCall(mockCall);
-      subject.replaceAdditionalContactInfo('test additional info');
-      subject.restoreAdditionalContactInfo();
-      assert.equal(subject.additionalInfoNode.textContent, '888');
     });
   });
 

@@ -4,16 +4,8 @@ section[role="region"] > header:first-child .icon {
 }
 
 /* Overriding BB styles for edit mode */
-form[role="dialog"][data-type="edit"] header .icon {
+form[role="dialog"][data-type="edit"] gaia-header {
   pointer-events: auto;
-}
-
-form[role="dialog"][data-type="edit"] header {
-  transform: translateY(-110%);
-}
-
-form[role="dialog"][data-type="edit"] > menu {
-  transform: translateY(110%);
 }
 
 #call-log-container[data-type="list"] section {
@@ -31,9 +23,6 @@ form[role="dialog"][data-type="edit"] > menu {
 
   /* The height needs to be kept in sync with the header height. */
   height: 3.1rem;
-
-  /* The sticky element needs to be above the list. */
-  z-index: 2;
 
   /* Those style will affect the bagroundImage: -moz-element. */
   background-repeat: no-repeat;
@@ -63,8 +52,7 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 #call-log-container[data-type="list"] li {
-  height: 7rem;
-  padding: 0.5rem 0 0;
+  height: 6rem;
   -moz-box-sizing: border-box;
 }
 
@@ -75,16 +63,11 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 #call-log-container[data-type="list"] li a p {
-  line-height: 1.9rem;
+  line-height: 2rem;
 }
 
 #call-log-container[data-type="list"] li a p:nth-last-of-type(3) {
   padding: 0;
-  line-height: 2rem;
-}
-
-.call-additional-info {
-  text-transform: capitalize;
 }
 
 button[disabled], input[type="text"][disabled],
@@ -114,7 +97,6 @@ ol, ul {
 }
 
 .view-body {
-  background : white;
   color: black;
   height: -moz-calc(100% - 9.1rem);
   position: absolute;
@@ -180,40 +162,39 @@ ol, ul {
   pointer-events: none;
 }
 
-.log-item .pack-end {
-  position: absolute;
-  right: 0;
-}
-
-.log-item:not(.hasPhoto) .pack-end {
-  display: none;
-}
-
 .log-item .primary-info {
-  text-overflow: clip;
+  text-overflow: ellipsis;
 }
 
 .log-item a > p {
-  width: calc(100% - 9.5rem);
+  width: calc(100% - 4rem);
 }
 
-.log-item:not(.hasPhoto) a > p {
-  width: calc(100% - 3.5rem);
+.log-item.missed-call .primary-info {
+  color: #bc1515;
 }
 
-.log-item .primary-info span {
-  display: block;
+.log-item .primary-info-main {
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.log-item .call-log-contact-photo {
-  pointer-events: auto;
+.log-item .retry-count {
+  margin-left: 0.5rem;
 }
 
-.log-item.missed-call .call-time {
-  color: #b90000;
+.log-item .additional-info {
+  display: inline-flex;
+  justify-content: space-between;
+}
+
+.log-item .type-carrier {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.log-item .call-time {
+  margin-left: 0.5rem;
 }
 
 .log-item .pack-checkbox {
@@ -242,13 +223,6 @@ ol, ul {
 
 .recents-edit .log-item a > p {
   width: calc(100% - 6.5rem);
-}
-.recents-edit .pack-end {
-  display: none
-}
-
-.recents-edit .call-log-contact-photo {
-  pointer-events: none;
 }
 
 .recents-edit .log-item .pack-checkbox {

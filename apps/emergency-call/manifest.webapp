@@ -11,9 +11,17 @@
   "orientation": "default",
   "fullscreen": true,
   "permissions": {
-    "telephony":{},
-    "mobileconnection":{},
-    "phonenumberservice": {}
+    "telephony": {},
+    "mobileconnection": {},
+    "phonenumberservice": {},
+    "settings": { "access": "readonly" },
+    "contacts": { "access": "readonly" }
+  },
+  "datastores-access": {
+    "ice_contacts": {
+      "readonly": true,
+      "description": "Contains references to in case of emergency contacts"
+    }
   },
   "locales": {
     "ar": {

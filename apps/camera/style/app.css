@@ -23,7 +23,7 @@ body.no-background {
  ---------------------------------------------------------*/
 
 * {
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   font-weight: inherit;
   margin: 0;
   padding: 0;

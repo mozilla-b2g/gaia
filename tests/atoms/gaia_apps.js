@@ -85,6 +85,18 @@ var GaiaApps = {
     });
   },
 
+  setPermissionByUrl: function(manifestUrl, permissionName, value, entryPoint) {
+    GaiaApps.locateWithManifestURL(manifestUrl, entryPoint, function(app) {
+      console.log("Setting permission '" + permissionName + "' for " +
+        manifestUrl + "to '" + value + "'");
+      var mozPerms = navigator.mozPermissionSettings;
+      mozPerms.set(
+        permissionName, value, app.manifestURL, app.origin, false
+      );
+      marionetteScriptFinished();
+    });
+  },
+
   sendLocateResponse: function(aCallback, app, appName, launchPath, entryPoint) {
     var callback = aCallback || marionetteScriptFinished;
     if (callback === marionetteScriptFinished) {
@@ -155,20 +167,19 @@ var GaiaApps = {
     var callback = aCallback || marionetteScriptFinished;
     var apps = window.wrappedJSObject.applications || window.wrappedJSObject.Applications;
     var app = apps.getByManifestURL(manifestURL);
-    var appName;
+    var appName, launchPath;
 
     if (entryPoint) {
       if (app.manifest.entry_points[entryPoint]) {
-        let appName = app.manifest.entry_points[entryPoint].name;
-        let launchPath = app.manifest.entry_points[entryPoint].launchPath;
+        appName = app.manifest.entry_points[entryPoint].name;
+        launchPath = app.manifest.entry_points[entryPoint].launch_path;
       } else {
         app = null;
       }
     } else {
-      let appName = app.manifest.name;
-      let launchPath = app.manifest.launchPath;
+      appName = app.manifest.name;
+      launchPath = app.manifest.launch_path;
     }
-
     GaiaApps.sendLocateResponse(callback, app, appName, launchPath, entryPoint);
   },
 

@@ -46,6 +46,47 @@ SystemApp.prototype = {
     return displayed;
   },
 
+ /**
+  Fetch a particular type of a gaia-confirm dialog.
+
+  @param {String} type of dialog.
+  */
+  getConfirmDialog: function(type) {
+    var selector = 'gaia-confirm[data-type="' + type + '"]';
+    return this.client.helper.waitForElement(selector);
+  },
+
+  /**
+  Click confirm on a particular type of confirmation dialog.
+
+  @param {String} type of dialog.
+  @param {String} selector of the button. Defaults to .confirm.
+  */
+  confirmDialog: function(type, button) {
+    var dialog = this.getConfirmDialog(type);
+    var confirm = dialog.findElement(button || '.confirm');
+
+    // XXX: Hack to use faster polling
+    var quickly = this.client.scope({ searchTimeout: 50 });
+    confirm.client = quickly;
+
+    // tricky logic to ensure the dialog has been removed and clicked
+    this.client.waitFor(function() {
+      try {
+        // click the dialog to dismiss it
+        confirm.click();
+        // ensure it is either hidden or hits the stale element ref
+        return !confirm.displayed();
+      } catch (e) {
+        if (e.type === 'StaleElementReference') {
+          // element was successfully removed
+          return true;
+        }
+        throw e;
+      }
+    });
+  },
+
   /*
   /* Click the ok button on window.confirm dialog.
    */

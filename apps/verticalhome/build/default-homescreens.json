@@ -4,7 +4,7 @@
       ["apps", "communications", "dialer"],
       ["apps", "sms"],
       ["apps", "communications", "contacts"],
-      ["apps", "browser"],
+      ["apps", "search"],
       ["apps", "marketplace.firefox.com"],
       ["apps", "camera"]
     ], [

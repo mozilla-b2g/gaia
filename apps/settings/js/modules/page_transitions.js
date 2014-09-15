@@ -25,6 +25,11 @@ define(function() {
      * @param {Function} callback
      */
     oneColumn: function pt_one_column(oldPanel, newPanel, callback) {
+      if (oldPanel === newPanel) {
+        callback();
+        return;
+      }
+
       // switch previous/current classes
       if (oldPanel) {
         oldPanel.className = newPanel.className ? '' : 'previous';
@@ -86,6 +91,11 @@ define(function() {
      * @param {Function} callback
      */
     twoColumn: function pt_two_column(oldPanel, newPanel, callback) {
+      if (oldPanel === newPanel) {
+        callback();
+        return;
+      }
+
       if (oldPanel) {
         oldPanel.className = newPanel.className ? '' : 'previous';
         newPanel.className = 'current';

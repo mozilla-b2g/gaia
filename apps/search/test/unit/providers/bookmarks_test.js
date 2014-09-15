@@ -74,4 +74,19 @@ suite('search/providers/providers', function() {
     });
   });
 
+  suite('get', function() {
+    test('ok', function() {
+      var bookmark = subject.get('http://mozilla.org');
+      assert.equal(bookmark.data.detail.url, 'http://mozilla.org');
+      assert.equal(bookmark.data.detail.name, 'homepage');
+      assert.equal(bookmark.data.detail.id, 'http://mozilla.org');
+      assert.equal(bookmark.data.detail.icon, ICON);
+    });
+
+    test('fail', function() {
+      var bookmark = subject.get('http://catanddog.org');
+      assert.isNull(bookmark);
+    });
+  });
+
 });

@@ -8,7 +8,12 @@ var assert = require('assert'),
 var SHARED_PATH = __dirname + '/../../../../shared/test/integration/';
 
 marionette('notification tests', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null
+    }
+  });
+  var actions = new Marionette.Actions(client);
   var notificationList = new NotificationList(client);
 
   test('fire notification', function() {
@@ -22,7 +27,6 @@ marionette('notification tests', function() {
                    body: 'test body',
                    dir: 'rtl',
                    lang: 'en'};
-    //console.log(client.screenshot());
     var notify = new NotificationTest(client, details);
     notificationList.refresh();
     assert.ok(notificationList.contains(details),
@@ -32,6 +36,20 @@ marionette('notification tests', function() {
               'Lock screen notification contains all fields: ' +
                JSON.stringify(notificationList.lockScreenNotifications));
               // Would be empty array...
+  });
+
+  test('swipe up should hide the toast', function() {
+    var toaster = dispatchNotification(client);
+    actions.flick(toaster, 50, 30, 50, 1, 300).perform(function() {
+      assert.equal(toaster.displayed(), false);
+    });
+  });
+
+  test('swipe right should not hide the toast', function() {
+    var toaster = dispatchNotification(client);
+    actions.flick(toaster, 10, 30, 80, 30, 300).perform(function() {
+      assert.equal(toaster.displayed(), true);
+    });
   });
 
   test('system replace notification', function() {
@@ -55,22 +73,22 @@ marionette('notification tests', function() {
     notificationList.refresh();
     assert.ok(notificationList.contains(oldDetails),
               'Utility unreplaced notification should exist');
-    assert.ok(!notificationList.contains(newDetails),
+    assert.ok(notificationList.contains(newDetails, true),
               'Utility replaced notification should not exist');
     notificationList.refreshLockScreen();
     assert.ok(notificationList.containsLockScreen(oldDetails),
               'Lock screen unreplaced notification should exist');
-    assert.ok(!notificationList.containsLockScreen(newDetails),
+    assert.ok(notificationList.containsLockScreen(newDetails, true),
               'Lock screen replaced notification should not exist');
 
     var newNotify = new NotificationTest(client, newDetails);
     notificationList.refresh();
-    assert.ok(!notificationList.contains(oldDetails),
+    assert.ok(notificationList.contains(oldDetails, true),
               'Utility unreplaced notification should not exist');
     assert.ok(notificationList.contains(newDetails),
               'Utility replaced notification should exist');
     notificationList.refreshLockScreen();
-    assert.ok(!notificationList.containsLockScreen(oldDetails),
+    assert.ok(notificationList.containsLockScreen(oldDetails, true),
               'Lock screen unreplaced notification should not exist');
     assert.ok(notificationList.containsLockScreen(newDetails),
               'Lock screen replaced notification should exists');
@@ -93,11 +111,13 @@ marionette('notification tests', function() {
               'notification should be in list before calling close');
     assert.ok(notify.close(), 'notification closed correctly');
     notificationList.refresh();
-    assert.ok(!notificationList.contains(details),
+    assert.ok(notificationList.contains(details, true),
               'notification should not be in list after calling close');
+      // Do loop wait since we would close notification with delay
+      // on LockScreen notification, after we make it actionable.
     notificationList.refreshLockScreen();
-    assert.ok(!notificationList.containsLockScreen(details),
-              'notification should be in list before calling close');
+    assert.ok(notificationList.containsLockScreen(details, true),
+              'notification should not be in list after calling close');
   });
 
   // function to check if screen status is enabled/disabled
@@ -178,6 +198,19 @@ marionette('notification tests', function() {
                  'the phone should have vibrated once');
   });
 });
+
+function dispatchNotification(client) {
+  var details = {tag: 'test tag',
+                 title: 'test title',
+                 body: 'test body',
+                 dir: 'rtl',
+                 lang: 'en'};
+  var toaster = client.findElement('#notification-toaster');
+  var notify = new NotificationTest(client, details);
+
+  client.helper.waitForElement('#notification-toaster.displayed');
+  return toaster;
+}
 
 function dispatchVisibilityChangeEvent() {
   client.executeScript(function() {

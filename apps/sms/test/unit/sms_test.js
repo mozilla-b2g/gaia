@@ -196,7 +196,7 @@ suite('SMS App Unit-Test', function() {
     // Setup. We need an async. way due to threads are rendered
     // async.
     setup(function(done) {
-      this.sinon.spy(navigator.mozL10n, 'localize');
+      this.sinon.spy(navigator.mozL10n, 'setAttributes');
       ThreadListUI.renderThreads(done);
       _tci = ThreadListUI.checkInputs;
     });
@@ -278,8 +278,12 @@ suite('SMS App Unit-Test', function() {
         // Given a number, we should retrieve the contact and update the info
         var threadWithContact = document.getElementById('thread-1');
         var contactName = threadWithContact.getElementsByClassName('name')[0];
-        assert.deepEqual(navigator.mozL10n.localize.args[0],
-          [contactName, 'thread-header-text', {name: 'Pepito O\'Hare', n: 0}]);
+        sinon.assert.calledWith(
+          navigator.mozL10n.setAttributes,
+          contactName,
+          'thread-header-text',
+          { name: 'Pepito O\'Hare', n: 0 }
+        );
       });
     });
 
@@ -305,25 +309,28 @@ suite('SMS App Unit-Test', function() {
         var checkUncheckAllButton =
           document.getElementById('threads-check-uncheck-all-button');
 
-        navigator.mozL10n.localize.reset();
         ThreadListUI.checkInputs();
-        sinon.assert.calledWith(
-          navigator.mozL10n.localize, checkUncheckAllButton, 'deselect-all');
+        assert.equal(
+          checkUncheckAllButton.getAttribute('data-l10n-id'),
+          'deselect-all'
+        );
         // Deactivate all inputs
         for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = false;
         }
-        navigator.mozL10n.localize.reset();
         ThreadListUI.checkInputs();
-        sinon.assert.calledWith(
-          navigator.mozL10n.localize, checkUncheckAllButton, 'select-all');
+        assert.equal(
+          checkUncheckAllButton.getAttribute('data-l10n-id'),
+          'select-all'
+        );
         assert.isFalse(checkUncheckAllButton.disabled);
         // Activate only one
         inputs[0].checked = true;
-        navigator.mozL10n.localize.reset();
         ThreadListUI.checkInputs();
-        sinon.assert.calledWith(
-          navigator.mozL10n.localize, checkUncheckAllButton, 'select-all');
+        assert.equal(
+          checkUncheckAllButton.getAttribute('data-l10n-id'),
+          'select-all'
+        );
         assert.isFalse(checkUncheckAllButton.disabled);
       });
 

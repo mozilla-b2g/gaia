@@ -1,22 +1,19 @@
 'use strict';
 /* global contacts */
-/* global LazyLoader */
-/* global MmiManager */
-/* global ActivityHandler */
 /* global MockContactAllFields */
 /* global MockContacts */
+/* global MockContactsButtons */
 /* global MockContactsListObj */
 /* global MockDetailsDom */
 /* global MockExtFb */
 /* global Mockfb */
 /* global MocksHelper */
 /* global MockUtils */
-/* global MultiSimActionButton */
 /* global Normalizer */
-/* global TelephonyHelper */
 /* global utils */
 /* global MockWebrtcClient */
 /* global ActivityHandler */
+/* global triggerEvent */
 /* export TAG_OPTIONS */
 /* exported SCALE_RATIO */
 /* exported _ */
@@ -33,9 +30,7 @@ require('/shared/js/contacts/utilities/templates.js');
 requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
-require('/dialer/test/unit/mock_mmi_manager.js');
-require('/dialer/test/unit/mock_telephony_helper.js');
+require('/shared/test/unit/mocks/contacts/mock_contacts_buttons.js');
 
 
 requireApp('communications/contacts/js/views/details.js');
@@ -45,6 +40,7 @@ requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
+requireApp('communications/contacts/test/unit/helper.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
@@ -77,7 +73,7 @@ var _ = function(key) { return key; },
     linkButtons,
     realContactsList,
     mozL10nGetSpy,
-    backButton,
+    header,
     realListeners;
 
 requireApp('communications/contacts/js/tag_optionsstem.js');
@@ -88,10 +84,8 @@ var mocksHelperForDetailView = new MocksHelper([
   'ContactPhotoHelper',
   'WebrtcClient',
   'LazyLoader',
-  'MmiManager',
-  'MultiSimActionButton',
-  'TelephonyHelper',
-  'ActivityHandler'
+  'ActivityHandler',
+  'ContactsButtons'
 ]).init();
 
 suite('Render contact', function() {
@@ -166,7 +160,7 @@ suite('Render contact', function() {
     cover = dom.querySelector('#cover-img');
     detailsInner = dom.querySelector('#contact-detail-inner');
     favoriteMessage = dom.querySelector('#toggle-favorite').children[0];
-    backButton = dom.querySelector('#details-back');
+    header = dom.querySelector('#details-view-header');
 
     fbButtons = [
       '#profile_button',
@@ -382,155 +376,38 @@ suite('Render contact', function() {
     });
   });
 
-  suite('Render phones', function() {
-    test('with 1 phone', function() {
+  suite('Render ContactsButtons', function() {
+    setup(function() {
+      this.sinon.stub(MockContactsButtons, 'renderPhones');
+      this.sinon.stub(MockContactsButtons, 'renderEmails');
+
       subject.render(null, TAG_OPTIONS);
-      assert.include(container.innerHTML, 'phone-details-template-0');
-      assert.include(container.innerHTML, mockContact.tel[0].value);
-      assert.include(container.innerHTML, mockContact.tel[0].carrier);
-      assert.include(container.innerHTML, mockContact.tel[0].type);
-      assert.include(
-        container.querySelector('h2').innerHTML,
-        mockContact.tel[0].carrier
-      );
-      assert.isTrue(mozL10nGetSpy.calledWith('separator'));
     });
 
-    test('with 1 phone and carrier undefined', function() {
-
-      var contactNoCarrier = new MockContactAllFields(true);
-      contactNoCarrier.tel = [
-        {
-          value: '+34678987123',
-          type: ['Personal']
-        }
-      ];
-      subject.setContact(contactNoCarrier);
-      subject.render(null, TAG_OPTIONS);
-      var phoneButton = container.querySelector('#call-or-pick-0');
-      assert.equal(phoneButton.querySelector('b').textContent,
-                    contactNoCarrier.tel[0].value);
-      var carrierContent = container.querySelector('.carrier').textContent;
-      assert.lengthOf(carrierContent, 0);
-
+    test('initializes ContactsButtons', function() {
+      this.sinon.stub(MockContactsButtons, 'init');
+      subject.init(dom);
+      sinon.assert.calledWith(MockContactsButtons.init, listContainer,
+                              contactDetails, ActivityHandler);
     });
 
-    test('with no phones', function() {
-      var contactWoTel = new MockContactAllFields(true);
-      contactWoTel.tel = [];
-      subject.setContact(contactWoTel);
-      subject.render(null, TAG_OPTIONS);
-      assert.equal(-1, container.innerHTML.indexOf('phone-details-template'));
+    test('reMark should call ContactsButtons.reMark', function() {
+      this.sinon.stub(MockContactsButtons, 'reMark');
+      var element = document.createElement('span');
+      subject.reMark(element, '123', 'highlight');
+      sinon.assert.calledWith(MockContactsButtons.reMark,
+                              element, '123', 'highlight');
     });
 
-    test('with null phones', function() {
-      var contactWoTel = new MockContactAllFields(true);
-      contactWoTel.tel = null;
-      subject.setContact(contactWoTel);
-      subject.render(null, TAG_OPTIONS);
-      assert.equal(-1, container.innerHTML.indexOf('phone-details-template'));
+    test('calls renderPhones', function() {
+      sinon.assert.calledWith(MockContactsButtons.renderPhones, mockContact);
     });
 
-    test('with more than 1 phone', function() {
-      var contactMultTel = new MockContactAllFields(true);
-      contactMultTel.tel[1] = contactMultTel.tel[0];
-      for (var elem in contactMultTel.tel[1]) {
-        var currentElem = contactMultTel.tel[1][elem] + 'dup';
-        contactMultTel.tel[1][elem] = currentElem;
-      }
-      contactMultTel.tel[1].type = '';
-      subject.setContact(contactMultTel);
-      subject.render(null, TAG_OPTIONS);
-      assert.include(container.innerHTML, 'phone-details-template-0');
-      assert.include(container.innerHTML, 'phone-details-template-1');
-      assert.include(container.innerHTML, contactMultTel.tel[0].value);
-      assert.include(container.innerHTML, contactMultTel.tel[0].carrier);
-      assert.include(container.innerHTML, contactMultTel.tel[0].type);
-      assert.include(container.innerHTML, contactMultTel.tel[1].value);
-      assert.include(container.innerHTML, contactMultTel.tel[1].carrier);
-      assert.include(container.innerHTML, subject.defaultTelType);
-      assert.equal(-1, container.innerHTML.indexOf('phone-details-template-2'));
-    });
-
-    test('highlight phone number', function() {
-
-      var contact = new MockContactAllFields(true);
-      contact.tel = [
-        {
-          value: '+48225363636',
-          type: ['Personal']
-        }
-      ];
-      subject.setContact(contact);
-      subject.render(null, TAG_OPTIONS);
-      subject.reMark('tel', contact.tel[0].value);
-      var phoneButton = container.querySelector('#call-or-pick-0');
-      assert.isTrue(phoneButton.classList.contains('remark'));
-
-    });
-
-    test('highlight phone number as missed', function() {
-
-      var contact = new MockContactAllFields(true);
-      contact.tel = [
-        {
-          value: '+48225363636',
-          type: ['Personal']
-        }
-      ];
-      subject.setContact(contact);
-      subject.render(null, TAG_OPTIONS);
-      subject.reMark('tel', contact.tel[0].value, 'remark-missed');
-      var phoneButton = container.querySelector('#call-or-pick-0');
-      assert.isTrue(phoneButton.classList.contains('remark-missed'));
-
+    test('calls renderEmails', function() {
+      sinon.assert.calledWith(MockContactsButtons.renderEmails, mockContact);
     });
   });
 
-  suite('Render emails', function() {
-    test('with 1 email', function() {
-      subject.render(null, TAG_OPTIONS);
-      assert.include(container.innerHTML, 'email-details-template-0');
-      assert.include(container.innerHTML, mockContact.email[0].value);
-      assert.include(container.innerHTML, mockContact.email[0].type);
-    });
-
-    test('with no emails', function() {
-      var contactWoEmail = new MockContactAllFields(true);
-      contactWoEmail.email = [];
-      subject.setContact(contactWoEmail);
-      subject.render(null, TAG_OPTIONS);
-      assert.equal(-1, container.innerHTML.indexOf('email-details-template'));
-    });
-
-    test('with null emails', function() {
-      var contactWoEmail = new MockContactAllFields(true);
-      contactWoEmail.email = null;
-      subject.setContact(contactWoEmail);
-      subject.render(null, TAG_OPTIONS);
-      assert.equal(-1, container.innerHTML.indexOf('email-details-template'));
-    });
-
-    test('with more than 1 email', function() {
-      var contactMultEmail = new MockContactAllFields(true);
-      contactMultEmail.email[1] = contactMultEmail.email[0];
-      for (var elem in contactMultEmail.email[1]) {
-        var currentElem = contactMultEmail.email[1][elem] + 'dup';
-        contactMultEmail.email[1][elem] = currentElem;
-      }
-      subject.setContact(contactMultEmail);
-      subject.render(null, TAG_OPTIONS);
-      assert.include(container.innerHTML, 'email-details-template-0');
-      assert.include(container.innerHTML, 'email-details-template-1');
-      var email0 = contactMultEmail.email[0];
-      var email1 = contactMultEmail.email[1];
-      assert.include(container.innerHTML, email0.value);
-      assert.include(container.innerHTML, email0.type);
-      assert.include(container.innerHTML, email1.value);
-      assert.include(container.innerHTML, email1.type);
-      assert.equal(-1, container.innerHTML.indexOf('email-details-template-2'));
-    });
-  });
   suite('Render addresses', function() {
     test('with 1 address', function() {
       subject.render(null, TAG_OPTIONS);
@@ -782,137 +659,6 @@ suite('Render contact', function() {
     });
   });
 
-  suite('> User actions', function() {
-    var realMozTelephony;
-    var realMozMobileConnections;
-    suiteSetup(function() {
-      realMozTelephony = navigator.mozTelephony;
-      realMozMobileConnections = navigator.mozMobileConnections;
-      navigator.mozTelephony = true;
-      navigator.mozMobileConnections = [true];
-      sinon.spy(window, 'MultiSimActionButton');
-    });
-
-    suiteTeardown(function() {
-      navigator.mozTelephony = realMozTelephony;
-      navigator.mozMobileConnections = realMozMobileConnections;
-    });
-
-    setup(function() {
-      this.sinon.spy(LazyLoader, 'load');
-    });
-
-    teardown(function() {
-      LazyLoader.load.reset();
-    });
-
-    function makeCall(cb) {
-      var theContact = new MockContactAllFields(true);
-      subject.setContact(theContact);
-      subject.render(null, TAG_OPTIONS);
-
-      var stubCall = sinon.stub(TelephonyHelper, 'call', cb);
-      MultiSimActionButton.args[0][1]();
-      stubCall.restore();
-    }
-
-    test(' > Not loading MultiSimActionButton when we are on an activity',
-         function() {
-      this.sinon.stub(MmiManager, 'isMMI').returns(true);
-      ActivityHandler.currentlyHandling = true;
-      subject.render(null, TAG_OPTIONS);
-
-      sinon.assert.notCalled(MmiManager.isMMI);
-      sinon.assert.neverCalledWith(LazyLoader.load,
-       ['/shared/js/multi_sim_action_button.js']);
-      ActivityHandler.currentlyHandling = false;
-    });
-
-    test('> Not loading MultiSimActionButton if we have a MMI code',
-         function() {
-      this.sinon.stub(MmiManager, 'isMMI').returns(true);
-
-      subject.render(null, TAG_OPTIONS);
-
-      sinon.assert.called(MmiManager.isMMI);
-      sinon.assert.neverCalledWith(LazyLoader.load,
-       ['/shared/js/multi_sim_action_button.js']);
-    });
-
-    test('> Load call button', function() {
-      this.sinon.stub(MmiManager, 'isMMI').returns(false);
-      subject.render(null, TAG_OPTIONS);
-
-      // We have two buttons, 2 calls per button created plus webrtc
-      // client call
-      assert.equal(LazyLoader.load.callCount, 5);
-      var spyCall = LazyLoader.load.getCall(1);
-      assert.deepEqual(
-        ['/shared/js/multi_sim_action_button.js'], spyCall.args[0]);
-    });
-
-    test('> Multiple MultiSimActionButtons initialized with correct values',
-         function() {
-      var theContact = new MockContactAllFields(true);
-      subject.setContact(theContact);
-      this.sinon.stub(MmiManager, 'isMMI').returns(false);
-
-      subject.render(null, TAG_OPTIONS);
-
-      var phone1 = container.querySelector('#call-or-pick-0');
-      var phone2 = container.querySelector('#call-or-pick-1');
-      var phoneNumber1 = theContact.tel[0].value;
-      var phoneNumber2 = theContact.tel[1].value;
-
-      sinon.assert.calledWith(MultiSimActionButton, phone1,
-           sinon.match.func, 'ril.telephony.defaultServiceId',
-           sinon.match.func);
-      // Check the getter contains the correct phone number
-      var getterResult = MultiSimActionButton.args[0][3]();
-      assert.equal(phoneNumber1, getterResult);
-
-      sinon.assert.calledWith(MultiSimActionButton, phone2,
-           sinon.match.func, 'ril.telephony.defaultServiceId',
-           sinon.match.func);
-      // Second call getter result
-      getterResult = MultiSimActionButton.args[1][3]();
-      assert.equal(phoneNumber2, getterResult);
-
-    });
-
-    test('> Calling and oncall ', function() {
-      makeCall(function(num, cIndex, oncall, connected, disconnected, error) {
-        assert.isTrue(contactDetails.classList.contains('calls-disabled'));
-        oncall();
-        assert.isFalse(contactDetails.classList.contains('calls-disabled'));
-      });
-    });
-
-    test('> Calling and connected ', function() {
-      makeCall(function(num, cIndex, oncall, connected, disconnected, error) {
-        assert.isTrue(contactDetails.classList.contains('calls-disabled'));
-        connected();
-        assert.isFalse(contactDetails.classList.contains('calls-disabled'));
-      });
-    });
-
-    test('> Calling and disconnected ', function() {
-      makeCall(function(num, cIndex, oncall, connected, disconnected, error) {
-        assert.isTrue(contactDetails.classList.contains('calls-disabled'));
-        disconnected();
-        assert.isFalse(contactDetails.classList.contains('calls-disabled'));
-      });
-    });
-
-    test('> Calling and error ', function() {
-      makeCall(function(num, cIndex, oncall, connected, disconnected, error) {
-        assert.isTrue(contactDetails.classList.contains('calls-disabled'));
-        error();
-        assert.isFalse(contactDetails.classList.contains('calls-disabled'));
-      });
-    });
-  });
-
   suite('> Handle back button', function() {
     setup(function () {
       this.sinon.spy(MockWebrtcClient, 'stop');
@@ -921,7 +667,7 @@ suite('Render contact', function() {
     });
 
     test('> going back from details', function () {
-      backButton.click();
+      triggerEvent(header, 'action');
 
       sinon.assert.calledOnce(MockWebrtcClient.stop);
       sinon.assert.notCalled(ActivityHandler.postCancel);
@@ -930,7 +676,7 @@ suite('Render contact', function() {
 
     test('> going back from details during an activity', function () {
       ActivityHandler.currentlyHandling = true;
-      backButton.click();
+      triggerEvent(header, 'action');
 
       sinon.assert.calledOnce(MockWebrtcClient.stop);
       sinon.assert.calledOnce(ActivityHandler.postCancel);
@@ -942,7 +688,7 @@ suite('Render contact', function() {
     test('> going back from details during an IMPORT activity', function () {
       ActivityHandler.currentlyHandling = true;
       ActivityHandler.activityName = 'import';
-      backButton.click();
+      triggerEvent(header, 'action');
 
       sinon.assert.calledOnce(MockWebrtcClient.stop);
       sinon.assert.notCalled(ActivityHandler.postCancel);

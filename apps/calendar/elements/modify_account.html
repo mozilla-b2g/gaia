@@ -1,18 +1,9 @@
 <element name="modify-account" extends="section">
   <template>
-    <header>
-      <button class="cancel">
-        <span data-l10n-id="back" class="cancel icon icon-back">Back</span>
-      </button>
-
-      <menu type="toolbar">
-        <button class="save">
-          <span data-l10n-id="save">Save</span>
-        </button>
-      </menu>
-
+    <gaia-header id="modify-account-header" action="back">
       <h1 data-l10n-id="account-header">Account</h1>
-    </header>
+      <button class="save" data-l10n-id="save">Save</button>
+    </gaia-header>
 
     <section class="during-progress">
       <div>

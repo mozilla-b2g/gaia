@@ -39,7 +39,7 @@ suite('system/HomescreenLauncher', function() {
     });
 
     teardown(function() {
-      if (typeof window.homescreenLauncher !== undefined) {
+      if (typeof window.homescreenLauncher !== 'undefined') {
         window.homescreenLauncher.stop();
         window.homescreenLauncher = undefined;
       }
@@ -167,24 +167,6 @@ suite('system/HomescreenLauncher', function() {
       });
       assert.isTrue(stubFadeOut.called);
       stubFadeOut.restore();
-    });
-
-    test('cards view before shown, then closed', function() {
-      MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
-      homescreen = window.homescreenLauncher.getHomescreen();
-      var stubFadeOut = this.sinon.stub(homescreen, 'fadeOut');
-      window.homescreenLauncher.handleEvent({
-        type: 'cardviewbeforeshow'
-      });
-      assert.isTrue(stubFadeOut.called);
-      stubFadeOut.restore();
-
-      var stubFadeIn = this.sinon.stub(homescreen, 'fadeIn');
-      window.homescreenLauncher.handleEvent({
-        type: 'cardviewbeforeclose'
-      });
-      assert.isTrue(stubFadeIn.called);
-      stubFadeIn.restore();
     });
 
     test('shrinking UI start; hide homescreen fade-overlay', function() {

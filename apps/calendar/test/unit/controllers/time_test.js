@@ -20,7 +20,8 @@ suite('Controllers.Time', function() {
     subject.calendarStore = {
       shouldDisplayCalendar: function(id) {
         return true;
-      }
+      },
+      on: function() {}
     };
 
     busytimeStore = app.store('Busytime');

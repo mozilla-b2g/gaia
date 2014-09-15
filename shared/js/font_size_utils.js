@@ -289,7 +289,7 @@
         getComputedStyle(element).fontFamily;
 
       var info = this.getMaxFontSizeInfo(
-        element.textContent,
+        element.textContent.trim(),
         allowedSizes,
         fontFamily,
         contentWidth

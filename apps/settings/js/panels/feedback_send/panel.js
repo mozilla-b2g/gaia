@@ -14,7 +14,7 @@ define(function(require) {
       { elementName: 'sendBtn', eventType: 'click', methodName: 'send' },
       { elementName: 'emailEnable', eventType: 'click',
         methodName: 'enableEmail' },
-      { elementName: 'backBtn', eventType: 'click', methodName: 'back' }
+      { elementName: 'header', eventType: 'action', methodName: 'back' }
     ];
 
     function bindEvents(elements) {
@@ -49,7 +49,7 @@ define(function(require) {
           emailColumn: panel.querySelector('#feedback-emailbar'),
           emailEnable: panel.querySelector('#email-enable'),
           sendBtn: panel.querySelector('#feedback-send-btn'),
-          backBtn: panel.querySelector('#feedback-back-button')
+          header: panel.querySelector('#feedback-header')
         };
         sendFeedback.init(elements);
       },

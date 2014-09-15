@@ -355,3 +355,18 @@ suite('Import Friends Test Suite', function() {
   });
 
 });
+
+suite('HTML format', function() {
+  test('Contact name is tagged with the right class', function() {
+    function loadImportHTML() {
+      var req = new XMLHttpRequest();
+      req.open('GET', '/shared/pages/import/import.html', false);
+      req.send(null);
+      return req.responseText;
+    }
+
+    document.body.innerHTML = loadImportHTML();
+    assert.ok(document.getElementsByClassName('contact-text'), 'Some element' + 
+        'with class contact-text should exist for search highlighting to work');
+  });
+});

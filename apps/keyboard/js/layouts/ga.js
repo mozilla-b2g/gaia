@@ -47,7 +47,7 @@ Keyboards.ga = {
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
       '0': 'º',
       '1': '1ú ',
@@ -74,7 +74,11 @@ Keyboards.ga = {
         { value: '+' }, { value: '(' }, { value: ')' },
         { value: '_', visible: ['email'] }
       ], [
-        { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
+        },
         { value: '!' }, { value: '\"' }, { value: "'" }, { value: ':' },
         { value: ';' }, { value: '/' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
@@ -83,5 +87,5 @@ Keyboards.ga = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

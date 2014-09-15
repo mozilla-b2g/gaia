@@ -1,8 +1,8 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global ParsedProvisioningDoc, ProvisioningAuthentication,
-          StoreProvisioning, WapPushManager, ParsedMessage */
+/* global MessageDB, ParsedProvisioningDoc, ProvisioningAuthentication,
+          StoreProvisioning, WapPushManager */
 
 /* exported CpScreenHelper */
 
@@ -190,18 +190,6 @@ var CpScreenHelper = (function() {
   }
 
   /**
-   * Deletes a message from the database
-   */
-  function cpsh_deleteMessage(messageTag) {
-    ParsedMessage.delete(messageTag,
-      function cpsh_deleteSuccess() {},
-      function cpsh_deleteError(error) {
-        console.error('Could not remove message from database: ' + error);
-      }
-    );
-  }
-
-  /**
    * Handles the application flow when the user clicks on the 'Quit' button
    * from the client provisioning quit app confirm dialog.
    */
@@ -209,8 +197,12 @@ var CpScreenHelper = (function() {
     evt.preventDefault();
     quitAppConfirmDialog.hidden = true;
     WapPushManager.clearNotifications(messageTag);
-    cpsh_deleteMessage(messageTag);
-    WapPushManager.close();
+    MessageDB.deleteByTimestamp(messageTag).then(function() {
+      WapPushManager.close();
+    }, function() {
+      console.error('Could not delete message from the database');
+      WapPushManager.close();
+    });
   }
 
   /**
@@ -315,11 +307,15 @@ var CpScreenHelper = (function() {
       StoreProvisioning.provision(apns, iccCardIndex);
 
       WapPushManager.clearNotifications(messageTag);
-      cpsh_deleteMessage(messageTag);
 
-      // Show finish confirm dialog.
-      finishConfirmDialog.hidden = false;
-      return;
+      /* Show finish confirm dialog after having deleted the message, this is
+       * done even if the deletion fails for some reason. */
+      MessageDB.deleteByTimestamp(messageTag).then(function() {
+        finishConfirmDialog.hidden = false;
+      }, function(e) {
+        console.error('Could not delete message from the database: ', e);
+        finishConfirmDialog.hidden = false;
+      });
     }
   }
 

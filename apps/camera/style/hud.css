@@ -11,6 +11,10 @@
   justify-content: space-between;
   opacity: 1;
   transition: opacity 200ms linear;
+
+  /* Reduce the overpaint of the camera app */
+  border-left: 0.1rem solid transparent;
+  border-right: 0.1rem solid transparent;
 }
 
 /**

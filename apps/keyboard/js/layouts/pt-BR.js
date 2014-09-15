@@ -3,7 +3,7 @@ Keyboards['pt-BR'] = {
   shortLabel: 'Pt',
   menuLabel: 'Português',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'number', 'password'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'pt_br',
   alt: {
     a: 'áãàâäåæª',
@@ -39,7 +39,7 @@ Keyboards['pt-BR'] = {
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
       '0': 'º',
       '1': '1º 1ª',
@@ -67,7 +67,11 @@ Keyboards['pt-BR'] = {
         { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
         { value: '(' }, { value: ')' }
       ], [
-        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
+        },
         { value: '+',
           supportsSwitching: {
             value: ','
@@ -80,5 +84,5 @@ Keyboards['pt-BR'] = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

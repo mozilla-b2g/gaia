@@ -23,11 +23,7 @@
     // One to one mapping.
     this.instanceID = _id++;
     this._injected = false;
-    try {
-      app.element.addEventListener('mozbrowsershowmodalprompt', this);
-    } catch (e) {
-      app._dump();
-    }
+    app.element.addEventListener('mozbrowsershowmodalprompt', this);
     return this;
   };
 
@@ -48,6 +44,7 @@
   AppModalDialog.prototype.handleEvent = function amd_handleEvent(evt) {
     this.app.debug('handling ' + evt.type);
     evt.preventDefault();
+    evt.stopPropagation();
     this.events.push(evt);
     if (!this._injected) {
       this.render();

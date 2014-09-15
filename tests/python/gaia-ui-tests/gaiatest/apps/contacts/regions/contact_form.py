@@ -189,7 +189,13 @@ class NewContact(ContactForm):
 
     def tap_done(self, return_contacts=True):
         self.marionette.find_element(*self._done_button_locator).tap()
+        return self.wait_for_done(return_contacts)
 
+    def a11y_click_done(self, return_contacts=True):
+        self.accessibility.click(self.marionette.find_element(*self._done_button_locator))
+        return self.wait_for_done(return_contacts)
+
+    def wait_for_done(self, return_contacts=True):
         # NewContact can be opened as an Activity from other apps. In this scenario we don't return Contacts
         if return_contacts:
             self.wait_for_element_not_displayed(*self._done_button_locator)

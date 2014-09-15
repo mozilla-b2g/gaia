@@ -15,8 +15,7 @@ var Homescreen = {
     this._container = document.querySelector('#homescreens > div > ul');
     this._container.addEventListener('click', this.handleListClick.bind(this));
 
-    this._detailTitle =
-      document.querySelector('#homescreens-details > header > h1');
+    this._detailTitle = document.querySelector('#homescreens-details-title');
     this._detailDescription =
       document.querySelector('#homescreens-details > div > p');
 

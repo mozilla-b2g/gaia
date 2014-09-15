@@ -61,7 +61,6 @@ CameraController.prototype.bindEvents = function() {
   // App
   app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
-  app.on('attentionscreenopened', this.camera.stopRecording);
   app.on('settings:configured', this.onSettingsConfigured);
   app.on('previewgallery:opened', this.shutdownCamera);
   app.on('previewgallery:closed', this.onGalleryClosed);
@@ -72,6 +71,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('visible', this.camera.load);
   app.on('capture', this.capture);
   app.on('hidden', this.onHidden);
+  app.on('stoprecording', this.camera.stopRecording);
 
   // Settings
   settings.recorderProfiles.on('change:selected', this.updateRecorderProfile);
@@ -218,7 +218,10 @@ CameraController.prototype.setMode = function(mode) {
   // if the value is an object. Quite a risky change
   // to make, but would remove the need for us to check
   // here and in other change callbacks. Food 4 thought :)
-  if (this.camera.isMode(mode)) { return; }
+  if (this.camera.isMode(mode)) {
+    debug('mode didn\'t change');
+    return;
+  }
 
   this.setFlashMode();
   this.app.emit('camera:willchange');

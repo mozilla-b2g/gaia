@@ -8,14 +8,17 @@
   utils.cookie = {};
 
   // Bump this number if the format of the cookie changes
-  var COOKIE_VERSION = 2;
+  var COOKIE_VERSION = 5;
 
   // Default values for items stored in the configuration
   var COOKIE_DEFAULTS = {
     order: false,
     viewHeight: -1,
     rowsPerPage: -1,
-    fbMigrated: false
+    fbMigrated: false,
+    fbScheduleDone: false,
+    defaultImage: true,
+    accessTokenMigrated: false
   };
 
   // Only allow these properties to be stored in the config

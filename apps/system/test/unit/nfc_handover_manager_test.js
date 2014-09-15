@@ -2,7 +2,7 @@
 
 /* globals MocksHelper, MockBluetooth, MockNavigatorSettings,
            NDEF, NfcConnectSystemDialog, MockBluetoothTransfer,
-           MockL10n, NfcManager, NfcHandoverManager, NDEFUtils,
+           MockL10n, NfcHandoverManager, NDEFUtils,
            MockMozNfc, NfcUtils, MockNavigatormozSetMessageHandler */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -127,7 +127,8 @@ suite('Nfc Handover Manager Functions', function() {
       var spyName = this.sinon.spy(NfcConnectSystemDialog.prototype, 'show');
       var spyPairing = this.sinon.spy(NfcHandoverManager, '_doPairing');
 
-      NfcManager._handleTechDiscovered(activityInjection1);
+      NfcHandoverManager.tryHandover(activityInjection1.records,
+                                     activityInjection1.sessionToken);
       assert.isTrue(spyName.withArgs('UE MINI BOOM').calledOnce);
       assert.isTrue(spyPairing.withArgs('00:0D:44:E7:95:AB').calledOnce);
     });
@@ -136,7 +137,8 @@ suite('Nfc Handover Manager Functions', function() {
       var spyName = this.sinon.spy(NfcConnectSystemDialog.prototype, 'show');
       var spyPairing = this.sinon.spy(NfcHandoverManager, '_doPairing');
 
-      NfcManager._handleTechDiscovered(activityInjection2);
+      NfcHandoverManager.tryHandover(activityInjection2.records,
+                                     activityInjection2.sessionToken);
       assert.isTrue(spyName.withArgs('MBH10').calledOnce);
       assert.isTrue(spyPairing.withArgs('4C:21:D0:9F:12:F1').calledOnce);
     });

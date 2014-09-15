@@ -10,16 +10,16 @@ class Settings(Base):
 
     name = 'Settings'
 
-    _header_text_locator = (By.CSS_SELECTOR, '#root > header > h1')
+    _header_text_locator = (By.CSS_SELECTOR, '#root > gaia-header > h1')
     _data_text_locator = (By.ID, 'data-desc')
     _wifi_text_locator = (By.ID, 'wifi-desc')
     _battery_text_locator = (By.ID, 'battery-desc')
     _application_storage_text_locator = (By.CSS_SELECTOR, '.application-storage-desc')
     _media_storage_text_locator = (By.ID, 'media-storage-desc')
-    _usb_storage_text_locator = (By.CSS_SELECTOR, '.ums-desc-root')
-    _screen_lock_text_locator = (By.ID, 'screenLock-desc')
+    _usb_storage_text_locator = (By.CSS_SELECTOR, '.usb-desc')
+    _screen_lock_text_locator = (By.CSS_SELECTOR, '.screenLock-desc')
     _language_text_locator = (By.ID, 'language-desc')
-    _bluetooth_text_locator = (By.CSS_SELECTOR, '.bluetooth-desc')
+    _bluetooth_text_locator = (By.ID, 'bluetooth-desc')
 
     _app_loaded_locator = (By.CSS_SELECTOR, 'body[data-ready="true"]')
     _airplane_switch_locator = (By.XPATH, "//input[@id='airplaneMode-input']/..")
@@ -28,7 +28,7 @@ class Settings(Base):
     _gps_switch_locator = (By.XPATH, "//input[@name='geolocation.enabled']/..")
     _accessibility_menu_item_locator = (By.ID, 'menuItem-accessibility')
     _cell_data_menu_item_locator = (By.ID, 'menuItem-cellularAndData')
-    _bluetooth_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-bluetooth')
+    _bluetooth_menu_item_locator = (By.ID, 'menuItem-bluetooth')
     _keyboard_menu_item_locator = (By.ID, "menuItem-keyboard")
     _language_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-languageAndRegion')
     _do_not_track_menu_item_locator = (By.ID, 'menuItem-doNotTrack')
@@ -137,7 +137,9 @@ class Settings(Base):
     def open_language_settings(self):
         from gaiatest.apps.settings.regions.language import Language
         self._tap_menu_item(self._language_menu_item_locator)
-        return Language(self.marionette)
+        language_menu = Language(self.marionette)
+        language_menu.wait_for_languages_to_load()
+        return language_menu
 
     def open_do_not_track_settings(self):
         from gaiatest.apps.settings.regions.do_not_track import DoNotTrack

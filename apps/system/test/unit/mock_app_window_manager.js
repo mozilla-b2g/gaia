@@ -45,5 +45,11 @@ var MockAppWindowManager = {
   broadcastMessage: function() {
   },
 
+  sendStopRecordingRequest: function(callback) {
+    if (callback) {
+      callback();
+    }
+  },
+
   init: function() {}
 };

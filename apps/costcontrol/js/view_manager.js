@@ -148,9 +148,9 @@ var ViewManager = (function() {
     }
 
     //add listeners
-    var closeButtons = panel.querySelectorAll('.close-dialog');
-    [].forEach.call(closeButtons, function(closeButton) {
-      closeButton.addEventListener('click', function() {
+    var headers = panel.querySelectorAll('gaia-header[action="close"]');
+    [].forEach.call(headers, function(headerWithClose) {
+      headerWithClose.addEventListener('action', function() {
         window.parent.location.hash = '#';
       });
     });

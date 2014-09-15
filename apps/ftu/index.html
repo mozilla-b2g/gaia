@@ -3,6 +3,7 @@
 <head>
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
   <meta charset="utf-8">
+  <meta name="theme-color" content="#eeeeee">
 
   <!-- Common style -->
   <link rel="stylesheet" href="/shared/style/switches.css">
@@ -122,7 +123,7 @@
     <link href="/shared/js/contacts/utilities/http_rest.js">
   -->
 </head>
-<body class="theme-settings">
+<body id="container" class="theme-settings" aria-hidden="true">
   <section id="splash-screen" role="region" class="show">
   </section>
 
@@ -228,17 +229,6 @@
       <h1 id="main-title"></h1>
       <button id="wifi-refresh-button" data-l10n-id="refresh">Refresh</button>
     </gaia-header>
-    <ol id="progress-bar" class="step-state" role="progressbar" aria-label="First Time Experience" data-l10n-id="progressbar">
-      <li id="progress-bar-state" class="step-state-bar" role="presentation"></li>
-      <li role="presentation">languages</li>
-      <li role="presentation">SIM_mandatory</li>
-      <li role="presentation">3g</li>
-      <li role="presentation">wifi</li>
-      <li role="presentation">configure network</li>
-      <li role="presentation">date and time</li>
-      <li role="presentation">geolocation</li>
-      <li role="presentation">browser privacy</li>
-    </ol>
     <article role="main">
       <section role="region" id="languages">
         <article data-type="list" class="pack-value-selector">
@@ -257,7 +247,9 @@
             </li>
           </ul>
         </article>
-        <gaia-subheader id="dataCaution" data-l10n-id="caution" skin="organic"></gaia-subheader>
+        <gaia-subheader id="dataCaution" skin="organic">
+          <span data-l10n-id="caution" />
+        </gaia-subheader>
         <section class="content">
           <p id="dataExplanation" data-l10n-id="dataConnectionInfo">Some text here</p>
         </section>
@@ -396,7 +388,9 @@
             </li>
           </ul>
         </article>
-        <gaia-subheader id="geolocationNotice" data-l10n-id="notice" skin="organic"></gaia-subheader>
+        <gaia-subheader id="geolocationNotice" skin="organic">
+          <span data-l10n-id="notice" />
+        </gaia-subheader>
         <section class="content">
           <p id="geolocationInfo" data-l10n-id="geolocationInfo2">Some text here</p>
           <p id="geolocationInfoMore" data-l10n-id="geolocationInfoMore">Some text here</p>
@@ -430,8 +424,8 @@
             </li>
           </ul>
         </article>
-        <gaia-subheader data-l10n-id="otherAccount" skin="organic">
-          Other accounts
+        <gaia-subheader skin="organic">
+          <span data-l10n-id="otherAccount">Other accounts</span>
         </gaia-subheader>
         <article data-type="list">
           <ul id="fb_container">
@@ -500,7 +494,7 @@
       <section role="region" id="about-your-privacy">
         <i class='hack-first-child'></i> <!-- see Bug 819886 -->
         <gaia-subheader skin="organic">
-          Mozilla
+          <span>Mozilla</span>
         </gaia-subheader>
         <article data-type="list">
           <ul>
@@ -520,8 +514,8 @@
             </li>
           </ul>
         </article>
-        <gaia-subheader data-l10n-id="about-other" skin="organic">
-          Other
+        <gaia-subheader skin="organic">
+          <span data-l10n-id="about-other">Other</span>
         </gaia-subheader>
         <article data-type="list">
           <ul>
@@ -580,7 +574,7 @@
         <section id="browser_logo_horizontal">
           <img src="/shared/resources/branding/logosmall.png" role="presentation">
         </section>
-        <p data-l10n-id="welcomeBrowser">
+        <p id="browser_os_welcome" data-l10n-id="htmlWelcome">
           Welcome to Browser OS, the free and
           open source operating system from
           Mozilla. Our mission is to promote
@@ -588,19 +582,16 @@
           by keeping the power of the Web in
           your hands.
         </p>
-        <section id="browser_os_privacy_links">
-          <a href="#about-your-rights" data-l10n-id="aboutBrowser"> About Your Rights </a>
-          <a href="#about-your-privacy" data-l10n-id="aboutYourPrivacy2">Your Privacy</a>
-        </section>
+        <p id="browser_os_improve" data-l10n-id="helpImprove">
+          You can help us improve our products and services by automatically
+          sending analytics data. See our Privacy Notice to learn how we
+          handle data from your device.
+        </p>
         <section id="form_share_statistics">
           <label class="pack-checkbox">
             <input type="checkbox" id="share-performance" name="debug.performance_data.shared"/>
             <span></span>
-            <p data-l10n-id="sharePerformanceAndUsageData">
-              I want to help improve Browser OS by sharing data about
-              my phone and the way I use it.
-              <a href='#sharing-performance-data' data-l10n-id="learnMore">Learn more.</a>
-            </p>
+            <p data-l10n-id="sharePerformanceAndUsageData2">Yes! Send data.</p>
           </label>
         </section>
       </section>
@@ -649,11 +640,11 @@
 
   <section id="update-screen" class="finish-screen-base" role="region">
     <section class="content">
-      <h1 data-l10n-id="whatsNew">
-        What's new
+      <h1 data-l10n-id="startYourPhone">
+        Start your phone tour!
       </h1>
-      <p data-l10n-id="updatedSuccessfully">
-        Your phone has updated successfully! Start the tour to find out more about the new features.
+      <p data-l10n-id="joinTutorialUpdated">
+        Join us for a quick tutorial about the updates to your phone!
       </p>
     </section>
     <gaia-buttons skin="dark">
@@ -667,9 +658,6 @@
   </section>
 
   <section id="tutorial" role="region" data-step="1">
-    <ol id="tutorial-progress" class="step-state" role="progressbar" aria-label="Tutorial" data-l10n-id="tutorial">
-      <li id="tutorial-progress-bar" class="step-state-bar"></li>
-    </ol>
     <article id="tutorial-steps-container" role="main">
       <section id="tutorial-step-header">
         <p id="tutorial-step-title">
@@ -690,8 +678,11 @@
       <h1 data-l10n-id="thatsIt">
         That's it!
       </h1>
-      <h2 data-l10n-id="enjoyYourPhone">
+      <h2 id="enjoyYourPhone" data-l10n-id="enjoyYourPhone">
         You're ready to enjoy your new phone ;)
+      </h2>
+      <h2 id="enjoyYourPhoneUpdated" data-l10n-id="enjoyYourPhoneUpdated" hidden>
+        You're ready to enjoy your updated phone.
       </h2>
       </section>
       <gaia-buttons skin="dark" class="forward-only">

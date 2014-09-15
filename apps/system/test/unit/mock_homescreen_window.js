@@ -29,6 +29,7 @@ var MockHomescreenWindow = function(value) {
   this.back = function() {};
   this.reload = function() {};
   this.isFullScreen = function() {};
+  this.isFullScreenLayout = function() {};
   this._changeState = function() {};
   this._setVisible = function() {};
   this.modifyURLatBackground = function() {};

@@ -19,7 +19,7 @@ marionette('Timer', function() {
     timer.advanceTime(500);
 
     // Make sure the default sound is properly selected.
-    assert.equal(timer.sound, 'ac_classic_clock_alarm.opus');
+    assert.equal(timer.sound, 'ac_awake.opus');
 
     assert.ok(timer.countdown > durationMs - 5000);
     assert.ok(timer.countdown <= durationMs);

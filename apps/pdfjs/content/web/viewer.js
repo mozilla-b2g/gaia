@@ -2261,6 +2261,8 @@ var PasswordPrompt = {
 
 var DocumentProperties = {
   overlayName: null,
+  fileName: '',
+  fileSize: '',
   rawFileSize: 0,
 
   // Document property fields (in the viewer).
@@ -2312,21 +2314,23 @@ var DocumentProperties = {
       // don't bother updating the properties.
       return;
     }
-    // Get the file size (if it hasn't already been set).
+    // Get the file name.
+    this.fileName = getPDFFileNameFromURL(PDFView.url);
+
+    // Get the file size.
     PDFView.pdfDocument.getDownloadInfo().then(function(data) {
       if (data.length === this.rawFileSize) {
         return;
       }
       this.setFileSize(data.length);
-      this.updateUI(this.fileSizeField, this.parseFileSize());
+      this.updateUI(this.fileSizeField, this.fileSize);
     }.bind(this));
 
-    // Get the document properties.
+    // Get the other document properties.
     PDFView.pdfDocument.getMetadata().then(function(data) {
       var fields = [
-        { field: this.fileNameField,
-          content: getPDFFileNameFromURL(PDFView.url) },
-        { field: this.fileSizeField, content: this.parseFileSize() },
+        { field: this.fileNameField, content: this.fileName },
+        { field: this.fileSizeField, content: this.fileSize },
         { field: this.titleField, content: data.info.Title },
         { field: this.authorField, content: data.info.Author },
         { field: this.subjectField, content: data.info.Subject },
@@ -2356,22 +2360,14 @@ var DocumentProperties = {
   },
 
   setFileSize: function documentPropertiesSetFileSize(fileSize) {
-    if (fileSize > 0) {
-      this.rawFileSize = fileSize;
-    }
-  },
-
-  parseFileSize: function documentPropertiesParseFileSize() {
-    var fileSize = this.rawFileSize, kb = fileSize / 1024;
-    if (!kb) {
-      return;
-    } else if (kb < 1024) {
-      return mozL10n.get('document_properties_kb', {
+    var kb = (this.rawFileSize = fileSize) / 1024;
+    if (kb < 1024) {
+      this.fileSize = mozL10n.get('document_properties_kb', {
         size_kb: (+kb.toPrecision(3)).toLocaleString(),
         size_b: fileSize.toLocaleString()
       }, '{{size_kb}} KB ({{size_b}} bytes)');
     } else {
-      return mozL10n.get('document_properties_mb', {
+      this.fileSize = mozL10n.get('document_properties_mb', {
         size_mb: (+(kb / 1024).toPrecision(3)).toLocaleString(),
         size_b: fileSize.toLocaleString()
       }, '{{size_mb}} MB ({{size_b}} bytes)');

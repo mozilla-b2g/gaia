@@ -23,7 +23,7 @@ class Contacts(Base):
     _status_message_locator = (By.ID, 'statusMsg')
 
     #  contacts
-    _contact_locator = (By.CSS_SELECTOR, 'li.contact-item')
+    _contact_locator = (By.CSS_SELECTOR, 'li.contact-item:not([data-group="ice"])')
 
     def launch(self):
         Base.launch(self)
@@ -52,6 +52,13 @@ class Contacts(Base):
 
     def tap_new_contact(self):
         self.marionette.find_element(*self._new_contact_button_locator).tap()
+        from gaiatest.apps.contacts.regions.contact_form import NewContact
+        new_contact = NewContact(self.marionette)
+        new_contact.wait_for_new_contact_form_to_load()
+        return new_contact
+
+    def a11y_click_new_contact(self):
+        self.accessibility.click(self.marionette.find_element(*self._new_contact_button_locator))
         from gaiatest.apps.contacts.regions.contact_form import NewContact
         new_contact = NewContact(self.marionette)
         new_contact.wait_for_new_contact_form_to_load()
@@ -96,7 +103,13 @@ class Contacts(Base):
 
         def tap(self, return_class='ContactDetails'):
             self.root_element.find_element(*self._name_locator).tap()
+            return self._return_class_from_tap(return_class)
 
+        def a11y_click(self, return_class='ContactDetails'):
+            self.accessibility.click(self.root_element)
+            return self._return_class_from_tap(return_class)
+
+        def _return_class_from_tap(self, return_class='ContactDetails'):
             if return_class == 'ContactDetails':
                 from gaiatest.apps.contacts.regions.contact_details import ContactDetails
                 return ContactDetails(self.marionette)

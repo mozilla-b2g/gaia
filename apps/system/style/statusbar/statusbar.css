@@ -10,33 +10,86 @@
   pointer-events: none;
 }
 
-#statusbar-background {
-  width: 100%;
-  height: 3rem;
-  background-color: #000;
-  opacity: 1;
-  padding: 0;
-  transform: scaleY(1);
-  transition: transform 0.1s, opacity 0.5s;
-  transform-origin: left top;
-}
-
-#screen #statusbar-background {
-  visibility: hidden;
-}
-
 #statusbar {
   position: fixed;
   width: 100%;
-  height: 3rem;
-  top: -3rem;
+  height: var(--statusbar-height);
+  top: 0;
   left: 0;
+  pointer-events: none;
+}
+
+.statusbar > div,
+.statusbar > img {
+  pointer-events: auto;
+}
+
+#statusbar.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#statusbar-maximized-wrapper {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#statusbar-minimized-wrapper {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#statusbar.maximized #statusbar-maximized-wrapper {
+  opacity: 1;
+  visibility: visible;
+}
+
+#statusbar:not(.maximized) #statusbar-minimized-wrapper {
+  opacity: 1;
+  visibility: visible;
+}
+
+#screen:not(.locked):not(.minimized-tray).fullscreen-app #statusbar {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#screen.locked #statusbar,
+#screen:not(.locked).utility-tray #statusbar {
+  visibility: visible;
+  filter: none;
+}
+
+#screen:not(.locked).utility-tray #statusbar-maximized-wrapper {
+  opacity: 1;
+  visibility: visible;
+}
+
+#screen:not(.locked).utility-tray #statusbar-minimized-wrapper {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#screen.cards-view #statusbar {
+  opacity: 0;
+  visibility: hidden;
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled #statusbar-background,
+  #screen.software-button-enabled #statusbar {
+    width: calc(100% - var(--software-home-button-height));
+  }
 }
 
 #screen.utility-tray #statusbar,
 #screen.attention #statusbar {
   top: 0;
   background-color: black;
+}
+
+#screen.utility-tray #statusbar {
+  background-color: #333;
 }
 
 /* When the utility tray is displayed, the title bar is hidden, so we only show
@@ -49,12 +102,6 @@ body #statusbar {
   transition: transform 0.2s linear;
 }
 
-#screen:not(.utility-tray):not(.attention) #statusbar-background:not(.opaque) {
-  /* We want to show both the statusbar and homesearch bar at 15% opacity.
-     The homescreen has a 5% wallpaper overlay, so 0.1 is needed to match. */
-  opacity: 0.1;
-}
-
 /* Hiding the black background while the homescreen is in foreground but not
  * utility tray or attention screen */
 #screen.lockscreen-camera > #statusbar {
@@ -62,23 +109,10 @@ body #statusbar {
   transform-origin: left top;
 }
 
-#statusbar-background.hidden {
-  display: none;
-}
-
-#screen.lockscreen-camera > #statusbar-background {
-  display: none;
-}
-
-#screen.locked:not(.attention) #statusbar,
-#screen.locked:not(.attention) #statusbar-background {
+#screen.locked:not(.attention) #statusbar {
   background-color: transparent;
   display: block;
   transform: scaleY(1);
-}
-
-#screen.locked:not(.attention) #statusbar-background:before {
-  background-color: transparent;
 }
 
 #screen.attention.locked #statusbar-time {
@@ -86,14 +120,15 @@ body #statusbar {
 }
 
 .statusbar {
+  display: flex;
+  justify-content: flex-end;
   position: absolute;
   width: 100%;
-  height: 3rem;
+  height: var(--statusbar-height);
   margin: 0;
   top: 0;
   right: 0;
-  padding: 0 0.8rem;
-  transition: opacity 0.3s;
+  padding: 0 0.3rem;
   overflow: hidden;
   white-space: nowrap;
   box-sizing: border-box;
@@ -101,20 +136,14 @@ body #statusbar {
 
 #statusbar-minimized {
   width: calc(100% - 100% * 0.6521 + 8rem * 0.6521 - 0.5rem);
-  padding: 0 0.8rem 0 0;
+  padding: 0 0.3rem 0 0;
 }
 
 .statusbar > * {
-  float: right;
-  margin: 0.6rem 0.2rem 0.6rem 0.3rem;
+  margin: 0.6rem 0.2rem 0.6rem 0.2rem;
 }
 
 #screen.rocketbar-focused:not(.locked) .statusbar {
-  visibility: hidden;
-  opacity: 0;
-}
-
-#screen.rocketbar-focused #statusbar-background {
   visibility: hidden;
   opacity: 0;
 }
@@ -124,19 +153,11 @@ body #statusbar {
   left: 0;
 }
 
-*[dir=rtl] .statusbar > * {
-  float: left;
-}
-
-*[dir=rtl] body .statusbar > .sb-start {
-  float: right;
-}
-
 .statusbar > .sb-start-upper {
   visibility: hidden;
   position: absolute;
   left: 0;
-  top: -3rem;
+  top: calc(var(--statusbar-height) * -1);
 }
 
 *[dir=rtl] .statusbar > .sb-start-upper {
@@ -148,12 +169,12 @@ body .utility-tray .statusbar > .sb-start-upper,
 .utility-tray #statusbar > #statusbar-title,
 #statusbar-title.hidden {
   visibility: visible;
-  transform: translateY(3rem);
+  transform: translateY(var(--statusbar-height));
 }
 
 body .utility-tray .statusbar > .sb-start {
   visibility: hidden;
-  transform: translateY(3rem);
+  transform: translateY(var(--statusbar-height));
 }
 
 #statusbar-label {
@@ -189,6 +210,14 @@ body .utility-tray .statusbar > .sb-start {
   margin: 0.6rem 0.2rem;
 }
 
+#statusbar-connections .sb-icon-roaming {
+  margin: 0;
+  top: 0.6rem;
+  position: relative;
+  width: 1.4rem;
+  left: 0.1rem;
+}
+
 #statusbar-connections .statusbar-data:not(.sb-icon-data-circle) {
   color: #fff;
   font-size: 1.5rem;
@@ -203,6 +232,7 @@ body .utility-tray .statusbar > .sb-start {
 
 #statusbar-connections[data-multiple="true"] .statusbar-signal {
   position: relative;
+  margin-left: 0.8rem;
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-signal::before {
@@ -227,10 +257,11 @@ body .utility-tray .statusbar > .sb-start {
 
 #statusbar-connections[data-multiple="true"] .statusbar-data {
   position: relative;
-  width: 1.3rem;
-  margin: 0.3rem 0 0 0;
+  margin: 0;
   font-size: 0.8rem;
-  text-align: right;
+  text-align: left;
+  top: 0;
+  left: -.6rem;
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-data.sb-icon-data-circle {
@@ -245,6 +276,7 @@ body .utility-tray .statusbar > .sb-start {
 #statusbar-connections[data-multiple="true"] .statusbar-data[hidden] {
   display: block;
   opacity: 0;
+  visibility: hidden;
 }
 
 /* call forwarding icons */
@@ -436,18 +468,6 @@ body .utility-tray .statusbar > .sb-start {
   position: relative;
 }
 
-.sb-icon-signal[data-roaming="true"]::after {
-  content: '';
-  position: absolute;
-  width: 0.8rem;
-  height: 0.5rem;
-  top: 0;
-  left: 0;
-  background: url('images/icons.png') no-repeat;
-  background-position: -16rem -4rem;
-  background-size: 34rem 9.6rem;
-}
-
 .sb-icon-network-activity {
   width: 1.6rem;
   height: 1.6rem;
@@ -487,6 +507,10 @@ body .utility-tray .statusbar > .sb-start {
 
 .sb-icon-recording[data-active="true"] {
   background-position: -26rem -4rem;
+}
+
+.sb-icon-roaming {
+  background-position: -16rem -4rem;
 }
 
 .sb-icon-alarm {

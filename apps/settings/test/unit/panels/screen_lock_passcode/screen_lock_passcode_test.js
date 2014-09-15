@@ -10,6 +10,8 @@ suite('ScreenLockPasscode > ', function() {
   var realSettingsService;
 
   suiteSetup(function(done) {
+    navigator.addIdleObserver = sinon.spy();
+
     var modules = [
       'shared_mocks/mock_navigator_moz_settings',
       'shared_mocks/mock_settings_listener',

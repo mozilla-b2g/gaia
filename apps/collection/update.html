@@ -5,13 +5,44 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
 
     <script defer src="shared/js/l10n.js"></script>
+
+    <!-- Gaia Components -->
+    <script defer src="shared/elements/config.js"></script>
+    <script defer src="shared/elements/gaia-header/dist/script.js"></script>
+
+    <link rel="stylesheet" href="shared/elements/gaia-theme/style.css">
+    <link rel="stylesheet" href="shared/style/input_areas.css">
+    <link rel="stylesheet" href="style/css/base.css">
+    <link rel="stylesheet" href="style/css/update.css">
+
     <script defer src="shared/js/collections_database.js"></script>
 
+    <script defer src="shared/js/everythingme/eme.js"></script>
+
+    <script defer src="js/common.js"></script>
+    <script defer src="js/objects.js"></script>
+
+    <script defer src="shared/elements/gaia_grid/js/grid_icon_renderer.js"></script>
+    <script defer src="shared/js/homescreens/icon.js"></script>
+    <script defer src="js/update_collection.js"></script>
     <script defer src="js/activities.js"></script>
 
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
   </head>
-  <body>
-    View a smart collection.
+  <body class="theme-media">
+    <section role="region">
+      <gaia-header id="header" action="close">
+        <h1 data-l10n-id="edit-collection-header"></h1>
+        <button id="done-button" disabled type="button" data-l10n-id="done"></button>
+      </gaia-header>
+
+      <form>
+        <img id="collection-icon">
+        <p>
+          <input type="text" id="collection-title" dir="auto"></input>
+          <button id="collection-title-clear" type="reset">Clear</button>
+        </p>
+      </form>
+    </section>
   </body>
 </html>

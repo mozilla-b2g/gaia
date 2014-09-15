@@ -1,21 +1,13 @@
 'use strict';
-/* global MockLock, MockMozApps, MockPermissionSettings */
+/* global MockMozApps, MockPermissionSettings */
 
 suite('app permission list > ', function() {
   var PermissionList;
 
-  var mock_elements = {
-    dialog: {
-      hidden: false
-    },
-    list: {
-      children: [],
-      appendChild: function(item) {
-        this.children.push(item);
-      }
-    },
-    mainButton: {
-      hidden: false
+  var mock_listRoot = {
+    children: [],
+    appendChild: function(item) {
+      this.children.push(item);
     }
   };
 
@@ -86,14 +78,14 @@ suite('app permission list > ', function() {
     setup(function() {
       MockMozApps.mAddToCurrentApp(mock_app2);
       permissionList = PermissionList();
-      permissionList.init(mock_elements);
+      permissionList.init(mock_listRoot);
       permissionList.setPermissionsTable(mock_permissionsTable);
       permissionList._permissionTableHaveProcessed = false;
       permissionList.refresh();
     });
 
     teardown(function() {
-      permissionList._elements.list.children.length = 0;
+      permissionList._listRoot.children.length = 0;
     });
 
     test('the app list content when push mock_app1 to permission list',
@@ -103,7 +95,7 @@ suite('app permission list > ', function() {
         MockMozApps.mTriggerGetCurrentAppCallback();
         MockMozApps.mTriggerGetAllAppsCallback();
 
-        var list = permissionList._elements.list.children[0];
+        var list = permissionList._listRoot.children[0];
 
         assert.equal(list.querySelector('li:nth-child(1) a')
           .dataset.appIndex, 0, 'the appIndex of first app should be 0');
@@ -120,27 +112,12 @@ suite('app permission list > ', function() {
         assert.equal(permissionList._permissionTableHaveProcessed, true);
     });
 
-    test('confirmGoClicked', function() {
-      permissionList.confirmGoClicked();
-      assert.equal(permissionList._elements.dialog.hidden, true,
-        'should hide the dialog if user click confirm button');
-      assert.deepEqual(MockLock.locks[0], {
-        'clear.remote-windows.data': true
-      }, 'should set the clear.remote-windows.data as true in settingsLock');
-    });
-
-    test('confirmCancelClicked', function() {
-      permissionList.confirmCancelClicked();
-      assert.equal(permissionList._elements.dialog.hidden, true,
-        'should hide the dialog if user click cancel button');
-    });
-
     test('onApplicationInstall', function() {
       permissionList.onApplicationInstall({
         application: mock_app1
       });
 
-      var list = permissionList._elements.list.children[0];
+      var list = permissionList._listRoot.children[0];
       assert.equal(list.querySelector('li:nth-child(1) img').src,
         'app://settings.gaiamobile.org/test/style/images/default.png',
         'should display info of mock_app1 after we install it');
@@ -154,7 +131,7 @@ suite('app permission list > ', function() {
         }
       });
 
-      var list = permissionList._elements.list.children[0];
+      var list = permissionList._listRoot.children[0];
       assert.equal(list.querySelector('li:nth-child(1) a').dataset.appIndex, 0);
       assert.equal(list.querySelector('li:nth-child(1) img').src,
         'app://settings.gaiamobile.org/test/style/images/default.png',

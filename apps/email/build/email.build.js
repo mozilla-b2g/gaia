@@ -77,7 +77,7 @@
     }
   },
 
-  fileExclusionRegExp: /^\.|^test$|^build$/,
+  fileExclusionRegExp: /^\.|^test$|^build$|^ext$|^services.js$/,
 
   // Keeping build dir since Makefile cleans it up and
   // preps build dir with the shared directory

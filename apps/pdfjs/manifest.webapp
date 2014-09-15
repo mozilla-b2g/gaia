@@ -1,7 +1,7 @@
 {
   "name": "PDF Viewer",
   "description": "Portable Document Format (PDF) Viewer",
-  "type": "privileged",
+  "type": "certified",
   "role": "system",
   "developer": {
     "name": "The pdf.js Team",

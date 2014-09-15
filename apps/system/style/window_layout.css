@@ -23,12 +23,6 @@
 | The window position/geometry is usually static, but some System app changes
 | may affect those.
 | The list here try to cover all the possible cases:
-|   * Minimized Attention Screen
-|     When an attention screen is minimized using the 'home' button, it change
-|     from a full window to a 40px wide window covering the top of the screen.
-|     The statusbar is covered, as well as the top rendering part of the
-|     window.
-|
 |   * Software home button
 |     The software home button is managed by the system app, and covers the
 |     bottom part of the screen.
@@ -48,60 +42,56 @@
   width: 100%;
   height: 100%;
 
-  overflow: hidden;
-
   border: 0;
   margin: 0;
   padding: 0;
 
   background-repeat: no-repeat;
   background-position: center center;
-  transform: translateX(0);
 }
 
-#screen.active-statusbar #windows > .appWindow {
-  top: 4rem;
-  height: calc(100% - 4rem);
+.homescreen {
+  overflow: hidden;
 }
 
-#screen.software-button-enabled #windows > .appWindow {
-  height: calc(100% - 5rem);
-}
-
-#screen.software-button-enabled.active-statusbar #windows > .appWindow {
-  height: calc(100% - 5rem - 4rem);
+#screen.software-button-enabled #windows > .appWindow:not(.lockScreenWindow) {
+  height: calc(100% - var(--software-home-button-height));
 }
 
 @media not all and (-moz-physical-home-button) {
-  #screen:not(.software-button-disabled) #windows > .appWindow {
-    height: calc(100% - 5rem);
-  }
-
-  #screen:not(.software-button-disabled).active-statusbar #windows > .appWindow {
-    height: calc(100% - 5rem - 4rem);
+  #screen:not(.software-button-disabled) #windows > .appWindow:not(.lockScreenWindow) {
+    height: calc(100% - var(--software-home-button-height));
   }
 }
 
+#screen.fullscreen-layout-app #windows > .appWindow {
+  height: 100%;
+}
+
+#screen.fullscreen-layout-app.active-statusbar #windows > .appWindow {
+  height: calc(100% - 4rem);
+}
+
 @media (orientation: landscape) {
-  #screen.software-button-enabled #windows > .appWindow {
+  #screen.software-button-enabled:not(.fullscreen-layout-app) #windows > .appWindow:not(.lockScreenWindow) {
     height: 100%;
-    width: calc(100% - 5rem);
+    width: calc(100% - var(--software-home-button-height));
   }
 
-  #screen.software-button-enabled.active-statusbar #windows > .appWindow {
+  #screen.software-button-enabled.active-statusbar:not(.fullscreen-layout-app) #windows > .appWindow:not(.lockScreenWindow) {
     height: calc(100% - 4rem);
-    width: calc(100% - 5rem);
+    width: calc(100% - var(--software-home-button-height));
   }
 
   @media not all and (-moz-physical-home-button) {
-    #screen:not(.software-button-disabled) #windows > .appWindow {
+    #screen:not(.software-button-disabled):not(.fullscreen-layout-app) #windows > .appWindow:not(.lockScreenWindow) {
       height: 100%;
-      width: calc(100% - 5rem);
+      width: calc(100% - var(--software-home-button-height));
     }
 
-    #screen:not(.software-button-disabled).active-statusbar #windows > .appWindow {
+    #screen:not(.software-button-disabled).active-statusbar:not(.fullscreen-layout-app) #windows > .appWindow:not(.lockScreenWindow) {
       height: calc(100% - 4rem);
-      width: calc(100% - 5rem);
+      width: calc(100% - var(--software-home-button-height));
     }
   }
 }
@@ -114,10 +104,10 @@
 
 .appWindow > div {
   position: absolute;
-  top: 3rem;
+  top: var(--statusbar-height);
   left: 0;
   width: 100%;
-  height: calc(100% - 3rem);
+  height: calc(100% - var(--statusbar-height));
   overflow: hidden;
 }
 
@@ -128,6 +118,10 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+}
+
+.appWindow.collapsible:not(.scrollable) > div > iframe {
+  height: calc(100% - 4.6rem);
 }
 
 .appWindow.searchWindow > div {
@@ -145,30 +139,23 @@
   height: 100%;
 }
 
-/* Regular windows + active status bar */
-#screen.active-statusbar #windows .appWindow > div {
-  top: 0;
-  height: 100%;
-}
-
-#screen.active-statusbar #windows .appWindow > .chrome,
-#screen.active-statusbar #windows .appWindow > .titlebar {
-  height: 0;
-}
-
 /* Fullscreen windows */
 
 #screen:-moz-full-screen-ancestor .appWindow > div,
-.appWindow.fullscreen-app > div:not(.titlebar) {
+.appWindow.fullscreen-app > div:not(.titlebar):not(.maximized) {
   top: 0;
   height: 100%;
 }
 
 #screen:-moz-full-screen-ancestor .appWindow > .titlebar,
 .appWindow.fullscreen-app > .titlebar {
-  transform: translateY(-3rem);
+  transform: translateY(calc(var(--statusbar-height) * -1));
   /* Same z-index as: https://github.com/mozilla-b2g/gaia/pull/22174/files#diff-889fcaf0800608d5aaa275a452c7492fR23 */
   z-index: 1001;
+}
+
+.appWindow.fullscreen-app[data-shrinking-state="true"] > .titlebar {
+  transform: translateY(0);
 }
 
 #screen:-moz-full-screen-ancestor .appWindow > .titlebar.dragged,
@@ -176,7 +163,7 @@
   transform: translateY(0);
 }
 
-.appWindow.fullscreen-app > .chrome.dragged {
+#screen .appWindow.fullscreen-app > .chrome.dragged {
   transform: scaleY(1) translateY(0);
 }
 
@@ -186,29 +173,24 @@
   height: 100%;
 }
 
+/* The popup window does not collapse the rocketbar and has a static header. */
+.popupWindow .browser-container {
+  /* 5rem header + statusbar height */
+  top: calc(5rem + var(--statusbar-height));
+  height: calc(100% - 5rem - var(--statusbar-height));
+}
+
 /*****************************************************************************\
 | Scrollable Layout
 \*****************************************************************************/
 
-.appWindow.scrollable > div.browser-container {
+.appWindow.collapsible > div.browser-container {
   overflow-x: hidden;
   overflow-y: scroll;
-
-  /*
-     Bug 1041576. The +1rem size is a workaround around the current lack of
-     overflow property that hides browser scrollbars but still authorize a
-     scrollable area to be scrollable.
-  */
-  width: calc(100% + 1rem);
 }
 
-.appWindow.scrollable > div.browser-container > div {
-  width: calc(100% - 1rem);
-}
-
-.appWindow.scrollable > div.browser-container > iframe {
+.appWindow.collapsible > div.browser-container > iframe {
   top: 4.6rem;
-  width: calc(100% - 1rem);
 }
 
 /*****************************************************************************\
@@ -236,8 +218,8 @@
  */
 .appWindow.searchWindow .activityWindow,
 .appWindow.searchWindow .popupWindow {
-  height: calc(100% + 7rem + 3rem);
-  top: calc(-7rem - 3rem);
+  height: calc(100% + 7rem + var(--statusbar-height));
+  top: calc(-7rem - var(--statusbar-height));
 }
 
 .appWindow.searchWindow > .titlebar {
@@ -254,3 +236,37 @@
   z-index: 0;
 }
 
+/*
+ * Attention window layout.
+ */
+.attentionWindow > div.browser-container > iframe {
+  border: 0;
+}
+
+.appWindow.attentionWindow.callscreenWindow,
+.appWindow.attentionWindow[transition-state="closed"] {
+  transform: translateY(calc(-100%));
+  opacity: 1;
+}
+
+.appWindow.attentionWindow[transition-state="closed"].toaster-mode {
+  transition: transform .3s ease-in-out;
+}
+
+.appWindow.attentionWindow[transition-state="closed"] > .chrome,
+.appWindow.attentionWindow[transition-state="closed"] > .titlebar {
+  display: none;
+}
+
+.appWindow.attentionWindow[transition-state="closed"] > div.browser-container {
+  height: 100%;
+  top: 0;
+}
+
+.appWindow.attentionWindow[transition-state="closed"].displayed {
+  transform: translateY(0);
+}
+
+.appWindow.attentionWindow[transition-state="closed"].toaster-mode[toaster-transition-state="opened"] {
+  transition: transform .2s linear;
+}

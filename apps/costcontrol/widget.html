@@ -3,6 +3,7 @@
 <head>
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
   <meta charset="utf-8">
+  <meta name="theme-color" content="#eeeeee">
   <title data-l10n-id="widget">Usage Widget</title>
   <link rel="stylesheet" type="text/css" href="style/views/timestamp-highlights.css">
   <link rel="stylesheet" type="text/css" href="style/widget.css">
@@ -11,6 +12,9 @@
 
   <script type="text/javascript" src="shared/js/l10n.js"></script>
   <script type="text/javascript" src="shared/js/l10n_date.js"></script>
+  <!-- TODO: Lazyly loaded, remove when mozHour12 is part of the platform
+  <script type="text/javascript" defer src="shared/js/date_time_helper.js"></script>
+  -->
   <script type="text/javascript" defer src="shared/js/format.js"></script>
   <script type="text/javascript" src="shared/js/async_storage.js"></script>
   <script type="text/javascript" src="shared/js/settings_listener.js"></script>
@@ -30,36 +34,12 @@
       </div>
     </section>
 
-    <section class="credit" id="left-panel">
-
-      <section class="view" id="balance-view">
-        <span id="balance-icon" class="icon"></span>
-        <div class="info">
-            <p id="balance-credit" data-l10n-id="not-available"></p>
-            <p class="meta"></p>
-        </div>
-      </section>
-
-      <section class="view" id="telephony-view" aria-hidden="true">
-        <div class="info">
-          <p><span id="telephony-calltime"></span> <span id="telephony-smscount"></span></p>
-          <p class="meta"></p>
-        </div>
-      </section>
-
-    </section>
-
-    <section class="data" id="right-panel">
+    <section class="data" id="left-panel">
 
       <section class="view" id="datausage-limit-view">
-        <div class="stats">
-          <progress max="100" value="0"></progress>
-          <dl>
-            <dt class="start"></dt>
-            <dd class="start"></dd>
-            <dt class="end"></dt>
-            <dd class="end"></dd>
-          </dl>
+        <div class="info">
+          <p id="data-limit"></p>
+          <p id="data-available" class="meta"></p>
         </div>
       </section>
 
@@ -67,6 +47,24 @@
         <div class="info">
           <p id="mobile-usage-value"></p>
           <p class="meta"><time id="datausage-from-date"></time> – <time id="datausage-to-date"></time></p>
+        </div>
+      </section>
+
+    </section>
+
+    <section class="credit" id="right-panel">
+
+      <section class="view" id="balance-view">
+        <div class="info">
+          <p id="balance-credit" data-l10n-id="not-available"></p>
+          <p class="meta"></p>
+        </div>
+      </section>
+
+      <section class="view" id="telephony-view" aria-hidden="true">
+        <div class="info">
+          <p><span id="telephony-calltime"></span> <span id="telephony-smscount"></span></p>
+          <p class="meta"></p>
         </div>
       </section>
 

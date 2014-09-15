@@ -575,7 +575,7 @@
       comment: /^\s*#|^\s*$/,
       entity: /^([^=\s]+)\s*=\s*(.+)$/,
       multiline: /[^\\]\\$/,
-      macro: /\{\[\s*(\w+)\(([^\)]*)\)\s*\]\}/i,
+      index: /\{\[\s*(\w+)(?:\(([^\)]*)\))?\s*\]\}/i,
       unicode: /\\u([0-9a-fA-F]{1,4})/g,
       entries: /[\r\n]+/,
       controlChars: /\\([\\\n\r\t\b\f\{\}\"\'])/g
@@ -635,7 +635,7 @@
       if (!(prop in obj)) {
         obj[prop] = {'_': {}};
       } else if (typeof(obj[prop]) === 'string') {
-        obj[prop] = {'_index': parseMacro(obj[prop]), '_': {}};
+        obj[prop] = {'_index': parseIndex(obj[prop]), '_': {}};
       }
       obj[prop]._[key] = value;
     }
@@ -687,16 +687,21 @@
       return unescapeUnicode(str);
     }
 
-    function parseMacro(str) {
-      var match = str.match(parsePatterns.macro);
+    function parseIndex(str) {
+      var match = str.match(parsePatterns.index);
       if (!match) {
-        throw new L10nError('Malformed macro');
+        throw new L10nError('Malformed index');
       }
-      return [match[1], match[2]];
+      var parts = Array.prototype.slice.call(match, 1);
+      return parts.filter(function(part) {
+        return !!part;
+      });
     }
   }
 
 
+
+  var KNOWN_MACROS = ['plural'];
 
   var MAX_PLACEABLE_LENGTH = 2500;
   var MAX_PLACEABLES = 100;
@@ -739,7 +744,7 @@
     // if resolve fails, we want the exception to bubble up and stop the whole
     // resolving process;  however, we still need to clean up the dirty flag
     try {
-      val = resolve(ctxdata, this.env, this.value, this.index);
+      val = resolveValue(ctxdata, this.env, this.value, this.index);
     } finally {
       this.dirty = false;
     }
@@ -772,7 +777,11 @@
     return entity;
   };
 
-  function subPlaceable(ctxdata, env, match, id) {
+  function resolveIdentifier(ctxdata, env, id) {
+    if (KNOWN_MACROS.indexOf(id) > -1) {
+      return env['__' + id];
+    }
+
     if (ctxdata && ctxdata.hasOwnProperty(id) &&
         (typeof ctxdata[id] === 'string' ||
          (typeof ctxdata[id] === 'number' && !isNaN(ctxdata[id])))) {
@@ -785,17 +794,29 @@
       if (!(env[id] instanceof Entity)) {
         env[id] = new Entity(id, env[id], env);
       }
-      var value = env[id].resolve(ctxdata);
-      if (typeof value === 'string') {
-        // prevent Billion Laughs attacks
-        if (value.length >= MAX_PLACEABLE_LENGTH) {
-          throw new L10nError('Too many characters in placeable (' +
-                              value.length + ', max allowed is ' +
-                              MAX_PLACEABLE_LENGTH + ')');
-        }
-        return value;
-      }
+      return env[id].resolve(ctxdata);
     }
+
+    return undefined;
+  }
+
+  function subPlaceable(ctxdata, env, match, id) {
+    var value = resolveIdentifier(ctxdata, env, id);
+
+    if (typeof value === 'number') {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      // prevent Billion Laughs attacks
+      if (value.length >= MAX_PLACEABLE_LENGTH) {
+        throw new L10nError('Too many characters in placeable (' +
+                            value.length + ', max allowed is ' +
+                            MAX_PLACEABLE_LENGTH + ')');
+      }
+      return value;
+    }
+
     return match;
   }
 
@@ -813,7 +834,43 @@
     return value;
   }
 
-  function resolve(ctxdata, env, expr, index) {
+  function resolveSelector(ctxdata, env, expr, index) {
+      var selector = resolveIdentifier(ctxdata, env, index[0]);
+      if (selector === undefined) {
+        throw new L10nError('Unknown selector: ' + index[0]);
+      }
+
+      if (typeof selector !== 'function') {
+        // selector is a simple reference to an entity or ctxdata
+        return selector;
+      }
+
+      var argLength = index.length - 1;
+      if (selector.length !== argLength) {
+        throw new L10nError('Macro ' + index[0] + ' expects ' +
+                            selector.length + ' argument(s), yet ' + argLength +
+                            ' given');
+      }
+
+      var argValue = resolveIdentifier(ctxdata, env, index[1]);
+
+      if (selector === env.__plural) {
+        // special cases for zero, one, two if they are defined on the hash
+        if (argValue === 0 && 'zero' in expr) {
+          return 'zero';
+        }
+        if (argValue === 1 && 'one' in expr) {
+          return 'one';
+        }
+        if (argValue === 2 && 'two' in expr) {
+          return 'two';
+        }
+      }
+
+      return selector(argValue);
+  }
+
+  function resolveValue(ctxdata, env, expr, index) {
     if (typeof expr === 'string') {
       return interpolate(ctxdata, env, expr);
     }
@@ -825,30 +882,17 @@
     }
 
     // otherwise, it's a dict
-
-    if (index && ctxdata && ctxdata.hasOwnProperty(index[1])) {
-      var argValue = ctxdata[index[1]];
-
-      // special cases for zero, one, two if they are defined on the hash
-      if (argValue === 0 && 'zero' in expr) {
-        return resolve(ctxdata, env, expr.zero);
-      }
-      if (argValue === 1 && 'one' in expr) {
-        return resolve(ctxdata, env, expr.one);
-      }
-      if (argValue === 2 && 'two' in expr) {
-        return resolve(ctxdata, env, expr.two);
-      }
-
-      var selector = env.__plural(argValue);
+    if (index) {
+      // try to use the index in order to select the right dict member
+      var selector = resolveSelector(ctxdata, env, expr, index);
       if (expr.hasOwnProperty(selector)) {
-        return resolve(ctxdata, env, expr[selector]);
+        return resolveValue(ctxdata, env, expr[selector]);
       }
     }
 
     // if there was no index or no selector was found, try 'other'
     if ('other' in expr) {
-      return resolve(ctxdata, env, expr.other);
+      return resolveValue(ctxdata, env, expr.other);
     }
 
     return undefined;
@@ -875,7 +919,9 @@
 
     var rv = {};
     for (var key in node) {
-      if (key !== '_index' && (key in node)) {
+      if (key === '_index') {
+        rv[key] = node[key];
+      } else {
         rv[key] = walkContent(node[key], fn);
       }
     }
@@ -1394,20 +1440,25 @@
     waitFor('interactive', init.bind(navigator.mozL10n, pretranslate));
   }
 
-  function init(pretranslate) {
+  function initObserver() {
     nodeObserver = new MutationObserver(onMutations.bind(navigator.mozL10n));
     nodeObserver.observe(document, moConfig);
+  }
 
+  function init(pretranslate) {
     if (pretranslate) {
-      //XXX: bring back if bug 994370 gets reverted
-      //inlineLocalization.call(navigator.mozL10n);
+      inlineLocalization.call(navigator.mozL10n);
       initResources.call(navigator.mozL10n);
     } else {
+      // if pretranslate is false, we want to initialize MO
+      // early, to collect nodes injected between now and when resources
+      // are loaded because we're not going to translate the whole
+      // document once l10n resources are ready.
+      initObserver();
       window.setTimeout(initResources.bind(navigator.mozL10n));
     }
   }
 
-  /*
   function inlineLocalization() {
     var locale = this.ctx.getLocale(navigator.language);
     var scriptLoc = locale.isPseudo ? this.ctx.defaultLocale : locale.id;
@@ -1435,21 +1486,32 @@
     // the visible DOM is now pretranslated
     isPretranslated = true;
   }
-  */
 
   function initResources() {
-    var resLinks = document.head
-                           .querySelectorAll('link[type="application/l10n"]');
+    var nodes =
+      document.head.querySelectorAll('link[type="application/l10n"],' +
+                                     'script[type="application/l10n"]');
     var iniLinks = [];
 
-    for (var i = 0; i < resLinks.length; i++) {
-      var link = resLinks[i];
-      var url = link.getAttribute('href');
-      var type = url.substr(url.lastIndexOf('.') + 1);
-      if (type === 'ini') {
-        iniLinks.push(url);
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      var nodeName = node.nodeName.toLowerCase();
+
+      switch (nodeName) {
+        case 'link':
+          var url = node.getAttribute('href');
+          var type = url.substr(url.lastIndexOf('.') + 1);
+          if (type === 'ini') {
+            iniLinks.push(url);
+          }
+          this.ctx.resLinks.push(url);
+          break;
+        case 'script':
+          var lang = node.getAttribute('lang');
+          var locale = this.ctx.getLocale(lang);
+          locale.addAST(JSON.parse(node.textContent));
+          break;
       }
-      this.ctx.resLinks.push(url);
     }
 
     var iniLoads = iniLinks.length;
@@ -1528,6 +1590,9 @@
       pendingElements = null;
     }
 
+    if (!nodeObserver) {
+      initObserver();
+    }
     fireLocalizedEvent.call(this);
   }
 
@@ -1673,7 +1738,7 @@
   }
 
   function translateElement(element) {
-    if (isPretranslated && !this.ctx.isReady) {
+    if (!this.ctx.isReady) {
       if (!pendingElements) {
         pendingElements = [];
       }

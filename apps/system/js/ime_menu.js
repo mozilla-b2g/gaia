@@ -51,12 +51,14 @@
       this.container.addEventListener('submit', this);
       this.container.addEventListener('click', this);
 
-      window.addEventListener('attentionscreenshow', this, true);
+      window.addEventListener('attentionopened', this, true);
       window.addEventListener('screenchange', this, true);
       window.addEventListener('home', this);
       window.addEventListener('holdhome', this);
 
       this.container.addEventListener('mousedown', this.preventFocusChange);
+
+      window.dispatchEvent(new CustomEvent('imemenushow'));
     },
 
     /**
@@ -66,7 +68,7 @@
     stop: function() {
       document.getElementById('screen').removeChild(this.container);
 
-      window.removeEventListener('attentionscreenshow', this, true);
+      window.removeEventListener('attentionopened', this, true);
       window.removeEventListener('screenchange', this, true);
       window.removeEventListener('home', this);
       window.removeEventListener('holdhome', this);
@@ -164,7 +166,7 @@
           this.oncancel();
           break;
 
-        case 'attentionscreenshow':
+        case 'attentionopened':
           this.hide();
           break;
       }

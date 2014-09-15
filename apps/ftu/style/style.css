@@ -75,30 +75,6 @@ gaia-buttons.forward-only .icon-previous {
   display: none !important;
 }
 
-/* Steps state */
-.step-state {
-  height: 0;
-  font-size: 0;
-  border-top: solid 0.1rem #b7b7b7;
-  border-bottom: solid 0.1rem #fff;
-  position: absolute;
-  top: 5.5rem;
-  left: 1.5rem;
-  right: 1.5rem;
-  z-index: 100;
-}
-
-.step-state-bar {
-  content: "";
-  height: 0.3rem;
-  position: absolute;
-  top: 50%;
-  left: 0;
-  margin-top: -0.2rem;
-  background: #858585;
-  transition: all 0.35s cubic-bezier(0.000, 1.000, 0.535, 1.110);
-}
-
 /*
   Header conditional button
 */
@@ -144,11 +120,11 @@ gaia-buttons.forward-only .icon-previous {
 
 #sim-info-screen .sim-image {
   height: 100%;
-  width: 3rem;
+  width: 5rem;
   background-position: center center;
   background-repeat: no-repeat;
   float: left;
-  margin-right: 1rem;
+  margin-right: 0.5rem;
 }
 #sim-info-1 .sim-image {
   background-image: url(images/sim01.png);
@@ -784,7 +760,8 @@ aside.connecting {
 #welcome_browser {
   padding: 1.5rem 3rem 0 3rem;
   width: calc(100% - 6rem);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
 
 #welcome_browser p {
@@ -833,7 +810,7 @@ aside.connecting {
 }
 
 #welcome_browser #form_share_statistics label {
-  width: auto;
+  width: 100%;
   height: auto;
   margin: 0 3rem 0 0;
   padding-right: 3rem;
@@ -847,6 +824,7 @@ aside.connecting {
 #welcome_browser #form_share_statistics p {
   width: calc(100% - 3.5rem);
   float: right;
+  font-size: 1.5rem;
 }
 
 /*

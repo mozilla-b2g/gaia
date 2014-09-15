@@ -4,13 +4,6 @@
 
   var MAX_FREQUENCY = 10000;
 
-  var IMELayouts = {
-    'EN': 'jp-kanji-en',
-    'EN-CAPS': 'jp-kanji-en-caps',
-    'JP': 'jp-kanji',
-    'NUM': 'jp-kanji-number'
-  };
-
   // IME special key code map
   // see `layout.js`
   var IMESpecialKey = {
@@ -21,11 +14,7 @@
     TRANSFORM: -14,
     CASE_CHANGE: -16,
     FULL: -17,
-    H2K: -18,
-    CAPSLOCK: -19,
-    EN_LAYOUT: -20,
-    NUM_LAYOUT: -21,
-    BASIC_LAYOUT: -22
+    H2K: -18
   };
 
   // Keyboard mode mapping
@@ -286,9 +275,6 @@
     // Code of previous key pressed
     var _previousKeycode = 0;
 
-    // Current keyboard
-    var _currLayout = IMELayouts.JP;
-
     var KeyMode = {
       'NORMAL': 0,
       'TRANSFORM': 1,
@@ -299,7 +285,7 @@
 
     var _keyboardMode = IMEMode.FULL_HIRAGANA;
 
-    var _layoutPage = LAYOUT_PAGE_DEFAULT;
+    var _layoutPage = PAGE_INDEX_DEFAULT;
 
     // ** The following functions are compulsory functions in IME
     // and explicitly called in `keyboard.js` **
@@ -318,7 +304,7 @@
     };
 
     this.click = function ime_click(keyCode) {
-      if (_layoutPage !== LAYOUT_PAGE_DEFAULT) {
+      if (_layoutPage !== PAGE_INDEX_DEFAULT) {
         _glue.sendKey(keyCode);
         return;
       }
@@ -370,15 +356,7 @@
     };
 
     this.activate = function ime_activate(language, state, options) {
-      var inputType = state.type;
-      debug('Activate. Input type: ' + inputType);
-      var layout = IMELayouts.JP;
-      if (inputType === '' || inputType === 'text' ||
-          inputType === 'textarea') {
-        layout = _currLayout;
-      }
-
-      _glue.alterKeyboard(layout);
+      debug('Activate.');
     };
 
 
@@ -603,29 +581,6 @@
           handleInputBuf();
           break;
 
-        case IMESpecialKey.CAPSLOCK:
-          if (_currLayout === IMELayouts.EN) {
-            alterKeyboard(IMELayouts['EN-CAPS']);
-          } else {
-            alterKeyboard(IMELayouts.EN);
-          }
-          break;
-
-        // Switch to basic layout
-        case IMESpecialKey.BASIC_LAYOUT:
-          alterKeyboard(IMELayouts.JP);
-          break;
-
-        // Switch to english layout
-        case IMESpecialKey.EN_LAYOUT:
-          alterKeyboard(IMELayouts.EN);
-          break;
-
-        // Switch to number layout
-        case IMESpecialKey.NUM_LAYOUT:
-          alterKeyboard(IMELayouts.NUM);
-          break;
-
         // Default key event
         case KeyEvent.DOM_VK_RETURN:
           handleReturn();
@@ -678,12 +633,6 @@
 
       return 0;
 
-    };
-
-    var alterKeyboard = function ime_alterKeyboard(layout) {
-      _currLayout = layout;
-      self.empty();
-      _glue.alterKeyboard(layout);
     };
 
     var handleH2K = function ime_handleH2K(kanaArr) {

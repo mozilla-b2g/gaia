@@ -31,7 +31,7 @@ var TrustedUIManager = {
 
   throbber: document.getElementById('trustedui-throbber'),
 
-  closeButton: document.getElementById('trustedui-close'),
+  header: document.getElementById('trustedui-header'),
 
   errorTitle: document.getElementById('trustedui-error-title'),
 
@@ -60,7 +60,7 @@ var TrustedUIManager = {
     window.addEventListener('appterminated', this);
     window.addEventListener('keyboardhide', this);
     window.addEventListener('keyboardchange', this);
-    this.closeButton.addEventListener('click', this);
+    this.header.addEventListener('action', this);
     this.errorClose.addEventListener('click', this);
   },
 
@@ -376,6 +376,7 @@ var TrustedUIManager = {
         }
         this._hideTrustedApp();
         break;
+      case 'action':
       case 'click':
         // cancel button or error close button
         this.container.classList.remove('error');

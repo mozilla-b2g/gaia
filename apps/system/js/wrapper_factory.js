@@ -70,6 +70,15 @@
       // otherwise always open a new window for '_blank'.
       var origin = null;
       if (name == '_blank') {
+
+        // If we already have a browser and we receive an open request,
+        // display it in the current browser frame.
+        var activeApp = AppWindowManager.getActiveApp();
+        if (activeApp && activeApp.isBrowser()) {
+          activeApp.navigate(url);
+          return;
+        }
+
         origin = url;
         app = AppWindowManager.getApp(origin);
         // Just bring on top if a wrapper window is

@@ -335,6 +335,21 @@ suite('system/sound manager', function() {
       });
     });
 
+    suite('homescreen showing', function() {
+      test('hide dialog when homescreen is opening', function() {
+        var event = new CustomEvent('homescreenopening');
+        window.dispatchEvent(event);
+        assert.isFalse(MockCustomDialog.mShown);
+        assert.isTrue(soundManager.homescreenVisible);
+      });
+      test('hide dialog when homescreen is opened', function() {
+        var event = new CustomEvent('homescreenopened');
+        window.dispatchEvent(event);
+        assert.isFalse(MockCustomDialog.mShown);
+        assert.isTrue(soundManager.homescreenVisible);
+      });
+    });
+
     suite('CE accumulator', function() {
       var fakeTimer;
 

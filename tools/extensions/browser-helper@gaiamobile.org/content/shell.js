@@ -42,7 +42,8 @@ Services.obs.addObserver(function onLaunch(subject, topic, data) {
     if (!aManifest)
       return;
 
-    let manifest = new ManifestHelper(aManifest, json.origin);
+    let manifest = new ManifestHelper(aManifest, json.origin,
+      json.manifestURL);
     let data = {
       'timestamp': json.timestamp,
       'url': manifest.fullLaunchPath(json.startPoint),

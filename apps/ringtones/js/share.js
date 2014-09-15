@@ -73,7 +73,7 @@ function handleShare(data, callback) {
 
     function showError(title, message, okCallback) {
       var okButton = {
-        title: _('ok'),
+        title: 'ok',
         callback: function() {
           CustomDialog.hide();
           okCallback();
@@ -83,7 +83,7 @@ function handleShare(data, callback) {
     }
 
     var save = document.getElementById('save');
-    var cancel = document.getElementById('cancel');
+    var header = document.getElementById('header');
     var control = document.getElementById('playpause');
     var preview = document.getElementById('preview');
 
@@ -191,7 +191,7 @@ function handleShare(data, callback) {
     });
 
     preview.addEventListener('error', function() {
-      showError(_('play-error-title'), _('play-error-desc'),
+      showError('play-error-title', 'play-error-desc',
                 callback.bind(null, 'error'));
     });
 
@@ -203,7 +203,7 @@ function handleShare(data, callback) {
       control.classList.remove('playing');
     });
 
-    cancel.addEventListener('click', function() {
+    header.addEventListener('action', function() {
       callback('cancel');
     });
 
@@ -237,7 +237,7 @@ function handleShare(data, callback) {
         callback('save', details);
       }, function(error) {
         console.log('Error saving ringtone', error);
-        showError(_('save-error-title'), _('save-error-desc'),
+        showError('save-error-title', 'save-error-desc',
                   callback.bind(null, 'error'));
       });
     });

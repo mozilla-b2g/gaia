@@ -2,10 +2,14 @@
   position: absolute;
   top: 0;
   width: 100%;
-  height: 3rem;
+  height: var(--statusbar-height);
 
   overflow: hidden;
   z-index: 6;
+}
+
+#screen:not(.cards-view) .appWindow.active:not(.inside-edges):not(.transition-closing):not(.transition-opening) .titlebar .statusbar-shadow {
+  visibility: hidden;
 }
 
 .appWindow .titlebar .statusbar-shadow {
@@ -16,8 +20,17 @@
   background-position: bottom right;
 }
 
+#screen:not(.rocketbar-focused) #statusbar.light,
 .appWindow.light .titlebar .statusbar-shadow {
   filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'invert\'><feColorMatrix in=\'SourceGraphic\' color-interpolation-filters=\'sRGB\' type=\'matrix\' values=\'1 -1 0.3019 0 0 0 0.3019 0 0 0 0 0 0.3019 0 0 0 0 0 1 0\'/></filter></svg>#invert");
+}
+
+.appWindow .titlebar .notifications-shadow {
+  background-image: -moz-element(#ambient-indicator);
+  width: 100%;
+  position: absolute;
+  top: 0;
+  height: .2rem;
 }
 
 .appWindow .titlebar .titlebar-maximized {
@@ -43,7 +56,7 @@
 }
 
 .chrome + .titlebar .titlebar-minimized {
-  transform: translateY(-3rem);
+  transform: translateY(calc(var(--statusbar-height) * -1));
   opacity: 1;
 }
 
@@ -51,8 +64,34 @@
   opacity: 0;
 }
 
+[data-manifest-name="FTU"]:not(.bar) > .chrome + .titlebar .titlebar-minimized,
+.homescreen:not(.bar) > .chrome + .titlebar .titlebar-minimized,
+.lockScreenWindow:not(.bar) > .chrome + .titlebar .titlebar-minimized,
+.attentionWindow:not(.bar) > .chrome + .titlebar .titlebar-minimized {
+  opacity: 0;
+}
+
+[data-manifest-name="FTU"]:not(.bar) > .chrome + .titlebar .titlebar-maximized,
+.homescreen:not(.bar) > .chrome + .titlebar .titlebar-maximized,
+.lockScreenWindow:not(.bar) > .chrome + .titlebar .titlebar-maximized,
+.attentionWindow:not(.bar) > .chrome + .titlebar .titlebar-maximized {
+  opacity: 1;
+}
+
 /* Special cases */
 #screen.utility-tray .appWindow .titlebar {
   visibility: hidden;
 }
 
+#screen.attention #statusbar-minimized {
+  display: none;
+}
+
+/* Homescreen must show the maximized status bar */
+#homescreen .chrome + .titlebar .titlebar-maximized {
+  opacity: 1;
+}
+
+#homescreen .chrome + .titlebar .titlebar-minimized {
+  opacity: 0;
+}

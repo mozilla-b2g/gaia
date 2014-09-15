@@ -397,4 +397,33 @@ suite('Cost Control Service Hub Suite >', function() {
       });
     }
   );
+
+  test(
+    'Get datausage per app',
+    function(done) {
+      sinon.stub(SimManager, 'requestDataSimIcc', function (callback) {
+        (typeof callback === 'function') && callback({iccId:'12345'});
+      });
+
+      CostControl.getInstance(function(service) {
+        var manifests = [MockMozNetworkStats.APP_MANIFEST_1,
+                         MockMozNetworkStats.APP_MANIFEST_2];
+        service.request({type: 'datausage', apps: manifests}, function(result) {
+          assert.equal(result.status, 'success');
+          assert.equal(Object.keys(result.data.mobile.apps).length, 2);
+
+          var apps = result.data.mobile.apps;
+          var app1 = apps[MockMozNetworkStats.APP_MANIFEST_1];
+          var app2 = apps[MockMozNetworkStats.APP_MANIFEST_2];
+
+          assert.equal(app1.total, 1047);
+          assert.equal(app2.total, 2268);
+          assert.equal(result.data.mobile.total, app1.total + app2.total);
+
+          SimManager.requestDataSimIcc.restore();
+          done();
+        });
+      });
+    }
+  );
 });

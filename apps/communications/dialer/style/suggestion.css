@@ -31,64 +31,8 @@
   background-size: 3rem;
 }
 
-.suggestion-bar .suggestion-item:active,
+.suggestion-bar .contact-item:active,
 .suggestion-bar .suggestion-count:active {
   background-color: #94eee9;
   transition: background-color 0.2s ease;
-}
-
-/* Overrides building blocks */
-#suggestion-list .suggestion-item {
-  height: auto;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-}
-/* End overrides building blocks */
-
-.suggestion-item {
-  flex: 1;
-  padding: .2rem 2rem 0;
-  min-width: 0;
-}
-
-.suggestion-item .si__tel-type:not(:empty):after {
-  content: '|';
-  padding-left: 0.6rem;
-}
-
-.si__name {
-  line-height: 1.9rem;
-  pointer-events: none;
-}
-
-.si--action-menu .si__name {
-  font-size: 1.7rem;
-  line-height: 2.1rem;
-  font-weight: 500;
-}
-
-.si__details {
-  line-height: 1.7rem;
-  pointer-events: none;
-}
-
-.si--action-menu .si__details {
-  font-size: 1.5rem;
-}
-
-.si__mark {
-  background-color: #94EEE9;
-  color: unset;
-}
-
-.si--action-menu .si__mark {
-  background: #333;
-  color: #94eee9;
-}
-
-/* FIXME Move to some kind of "building blocks" file? */
-.ellipsis {
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
 }

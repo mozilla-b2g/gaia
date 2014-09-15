@@ -15,12 +15,11 @@ var fontFit = require('./lib/font-fit');
 var baseComponents = window.COMPONENTS_BASE_URL || 'bower_components/';
 var base = window.GAIA_HEADER_BASE_URL || baseComponents + 'gaia-header/';
 
-// Load icons into document, we run some
-// to try to determine if the icons have
-// already been loaded elsewhere
-loadGaiaIcons(baseComponents);
-
-// Extend from the HTMLElement prototype
+/**
+ * Element prototype, extends from HTMLElement
+ *
+ * @type {Object}
+ */
 var proto = Object.create(HTMLElement.prototype);
 
 /**
@@ -53,11 +52,11 @@ proto.createdCallback = function() {
     inner: tmpl.querySelector('.inner')
   };
 
-  // Action button
-  this.configureActionButton();
   this.els.actionButton.addEventListener('click',
     proto.onActionButtonClick.bind(this));
 
+  this.configureActionButton();
+  this.setupInteractionListeners();
   shadow.appendChild(tmpl);
   this.styleHack();
 
@@ -124,7 +123,10 @@ proto.attributeChangedCallback = function(attr, oldVal, newVal) {
 };
 
 /**
- * When called, trigger the action button.
+ * Triggers the 'action' button
+ * (used in testing).
+ *
+ * @public
  */
 proto.triggerAction = function() {
   if (this.isSupportedAction(this.getAttribute('action'))) {
@@ -144,6 +146,7 @@ proto.configureActionButton = function() {
   var type = this.getAttribute('action');
   var supported = this.isSupportedAction(type);
   this.els.actionButton.classList.remove('icon-' + old);
+  this.els.actionButton.setAttribute('icon', type);
   this.els.inner.classList.toggle('supported-action', supported);
   if (supported) { this.els.actionButton.classList.add('icon-' + type); }
 };
@@ -173,6 +176,27 @@ proto.onActionButtonClick = function(e) {
   setTimeout(this.dispatchEvent.bind(this, actionEvent));
 };
 
+/**
+ * Adds helper classes to allow us to style
+ * specifically when a touch interaction is
+ * taking place.
+ *
+ * We use this specifically to apply a
+ * transition-delay when the user releases
+ * their finger from a button so that they
+ * can momentarily see the :active state,
+ * reinforcing the UI has responded to
+ * their touch.
+ *
+ * We bind to mouse events to facilitate
+ * desktop usage.
+ *
+ * @private
+ */
+proto.setupInteractionListeners = function() {
+  stickyActive(this.els.inner);
+};
+
 // HACK: Create a <template> in memory at runtime.
 // When the custom-element is created we clone
 // this template and inject into the shadow-root.
@@ -192,6 +216,67 @@ template.innerHTML = [
     '<content select="h1,h2,h3,h4,a,button"></content>',
   '</div>'
 ].join('');
+
+/**
+ * Adds a '.active' helper class to the given
+ * element that sticks around for the given
+ * lag period.
+ *
+ * Usually the native :active hook is far
+ * too quick for our UX needs.
+ *
+ * This may be needed in other components, so I've
+ * made sure it's decoupled from gaia-header.
+ *
+ * We support mouse events so that our visual
+ * demos still work correcly on desktop.
+ *
+ * Options:
+ *
+ *   - `on` {Function} active callback
+ *   - `off` {Function} inactive callback
+ *   - `ms` {Number} number of ms lag
+ *
+ * @param {Element} el
+ * @param {Object} options
+ * @private
+ */
+var stickyActive = (function() {
+  var noop = function() {};
+  var pointer = [
+    { down: 'touchstart', up: 'touchend' },
+    { down: 'mousedown', up: 'mouseup' }
+  ]['ontouchstart' in window ? 0 : 1];
+
+  function exports(el, options) {
+    options = options || {};
+    var on = options.on || noop;
+    var off = options.off || noop;
+    var lag = options.ms || 300;
+    var timeout;
+
+    el.addEventListener(pointer.down, function(e) {
+      var target = e.target;
+      clearTimeout(timeout);
+      target.classList.add(exports.class);
+      on();
+
+      el.addEventListener(pointer.up, function fn(e) {
+        el.removeEventListener(pointer.up, fn);
+        timeout = setTimeout(function() {
+          target.classList.remove(exports.class);
+          off();
+        }, lag);
+      });
+    });
+  }
+
+  exports.class = 'active';
+  return exports;
+})();
+
+// Header depends on gaia-icons
+loadGaiaIcons(baseComponents);
 
 // Register and return the constructor
 // and expose `protoype` (bug 1048339)

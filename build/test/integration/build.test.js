@@ -273,7 +273,7 @@ suite('Build Integration tests', function() {
         filePath = path.join(process.cwd(), 'apps', appName, filePath)
       }
 
-      if (path.existsSync(filePath)) {
+      if (fs.existsSync(filePath)) {
         fileInApps = fs.readFileSync(filePath);
       } else {
         filePath = filePath.replace('@' + reso + 'x', '');
@@ -565,8 +565,7 @@ suite('Build Integration tests', function() {
     // avoid downloading extension from addon website
     var extConfigPath  = path.join('build', 'config',
       'additional-extensions.json');
-    fs.renameSync(extConfigPath, extConfigPath + '.bak');
-    fs.writeFileSync(extConfigPath, '{}');
+    var restoreFunc = helper.emptyJsonFile(extConfigPath);
 
     helper.exec('DEBUG=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
@@ -670,8 +669,7 @@ suite('Build Integration tests', function() {
           assert.equal(zipCount, 2, 'we should have two zip files in ' +
             'profile-debug directory');
 
-          fs.unlinkSync(extConfigPath);
-          fs.renameSync(extConfigPath + '.bak', extConfigPath);
+          restoreFunc();
           done();
         }
       );
@@ -722,6 +720,10 @@ suite('Build Integration tests', function() {
     fs.renameSync(appsListPath, appsListPath + '.bak');
     fs.writeFileSync(appsListPath, 'apps/*\ndev_apps/custom-origin\n');
 
+    var extConfigPath  = path.join('build', 'config',
+      'additional-extensions.json');
+    var restoreFunc = helper.emptyJsonFile(extConfigPath);
+
     helper.exec('DEBUG=1 make', function(error, stdout, stderr) {
       fs.unlinkSync(appsListPath);
       fs.renameSync(appsListPath + '.bak', appsListPath);
@@ -735,6 +737,7 @@ suite('Build Integration tests', function() {
       assert.isNotNull(webapps['test.mozilla.com']);
       assert.equal(webapps['test.mozilla.com'].origin, 'app://test.mozilla.com');
 
+      restoreFunc();
       done();
     });
   });
@@ -784,6 +787,24 @@ suite('Build Integration tests', function() {
         done();
       });
     });
+  });
+
+  test('make test-l10n-optimize build noFetch file', function(done) {
+    helper.exec('APP=test-l10n-optimize make',
+      function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+
+        var expectedScript = '<script type="application/l10n" lang="en-US">\n'+
+                             '  {"entity1":"My Entity"}\n' +
+                             '</script>';
+        var testZip = new AdmZip(path.join(process.cwd(), 'profile',
+          'webapps', 'test-l10n-optimize.gaiamobile.org', 'application.zip'));
+        var indexHtml =
+          testZip.readAsText(testZip.getEntry('index.html'));
+        assert.ok(indexHtml.indexOf(expectedScript) !== -1);
+        done();
+      }
+    );
   });
 
   teardown(function() {

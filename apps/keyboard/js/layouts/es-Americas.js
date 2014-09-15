@@ -3,7 +3,7 @@ Keyboards['es-Americas'] = {
   shortLabel: 'Es',
   menuLabel: 'Español (Latinoamérica)',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'number', 'password'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'es',
   alt: {
     a: 'áªàâäåãāæ',
@@ -37,7 +37,7 @@ Keyboards['es-Americas'] = {
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
       '$': '€ £ ¥',
       '0': 'º',
@@ -63,7 +63,11 @@ Keyboards['es-Americas'] = {
         { value: '(' }, { value: ')' }, { value: '$', className: 'alternate-indicator' },
         { value: '&' }, { value: '@' }, { value: '%' }
       ], [
-        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
+        },
         { value: '*',
           supportsSwitching: {
             value: ','
@@ -77,8 +81,7 @@ Keyboards['es-Americas'] = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  },
-  symbolLayout: {
+  }, {
     keys: [
       [
         { value: '[' }, { value: ']' }, { value: '{' }, { value: '}' },
@@ -89,7 +92,11 @@ Keyboards['es-Americas'] = {
         { value: '<' }, { value: '>' }, { value: '€' }, { value: '£' },
         { value: '¥' }, { value: '•' }
       ], [
-        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 1
+        },
         {value: '*' }, { value: '¿' }, { value: '?' },
         { value: '¡' }, { value: '!' },
         { value: '\"' }, { value: '\'' },
@@ -99,5 +106,5 @@ Keyboards['es-Americas'] = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

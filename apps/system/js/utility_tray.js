@@ -37,15 +37,21 @@ var UtilityTray = {
     window.addEventListener('screenchange', this);
     window.addEventListener('emergencyalert', this);
     window.addEventListener('home', this);
-    window.addEventListener('attentionscreenshow', this);
+    window.addEventListener('attentionopened', this);
+    window.addEventListener('attentionwill-become-active', this);
     window.addEventListener('launchapp', this);
     window.addEventListener('displayapp', this);
     window.addEventListener('appopening', this);
     window.addEventListener('resize', this);
+    window.addEventListener('cardviewbeforeshow', this);
+
+    // Listen for screen reader edge gestures
+    window.addEventListener('mozChromeEvent', this);
 
     // Firing when the keyboard and the IME switcher shows/hides.
     window.addEventListener('keyboardimeswitchershow', this);
     window.addEventListener('keyboardimeswitcherhide', this);
+    window.addEventListener('imemenushow', this);
 
     window.addEventListener('simpinshow', this);
 
@@ -61,9 +67,16 @@ var UtilityTray = {
 
     this.overlay.addEventListener('transitionend', this);
 
+    window.addEventListener('software-button-enabled', this);
+    window.addEventListener('software-button-disabled', this);
+
     if (window.navigator.mozMobileConnections) {
       window.LazyLoader.load('js/cost_control.js');
     }
+  },
+
+  addHomeListener: function ut_addHomeListener() {
+    window.addEventListener('home', this);
   },
 
   startY: undefined,
@@ -79,13 +92,20 @@ var UtilityTray = {
     var detail = evt.detail;
 
     switch (evt.type) {
+      case 'cardviewbeforeshow':
+        this.hide(true);
+        break;
+
+      case 'attentionopened':
+      case 'attentionwill-become-active':
       case 'home':
         if (this.shown) {
           this.hide();
-          evt.stopImmediatePropagation();
+          if (evt.type == 'home') {
+            evt.stopImmediatePropagation();
+          }
         }
         break;
-      case 'attentionscreenshow':
       case 'emergencyalert':
       case 'displayapp':
       case 'keyboardchanged':
@@ -112,6 +132,10 @@ var UtilityTray = {
         if (!isBlockedApp && this.shown) {
           this.hide();
         }
+        break;
+
+      case 'imemenushow':
+        this.hide();
         break;
 
       // When IME switcher shows, prevent the keyboard's focus getting changed.
@@ -195,7 +219,23 @@ var UtilityTray = {
         break;
 
       case 'resize':
-        console.log('Window resized');
+        this.validateCachedSizes(true);
+        if (this.shown)
+          this.updateSize();
+        break;
+
+      case 'mozChromeEvent':
+        if (evt.detail.type !== 'accessibility-control') {
+          break;
+        }
+        var eventType = JSON.parse(evt.detail.details).eventType;
+        if (eventType === 'edge-swipe-down') {
+          this[this.shown ? 'hide' : 'show']();
+        }
+        break;
+
+      case 'software-button-enabled':
+      case 'software-button-disabled':
         this.validateCachedSizes(true);
         break;
     }
@@ -339,6 +379,7 @@ var UtilityTray = {
 
   show: function ut_show(dy) {
     this.validateCachedSizes();
+    this.updateSize();
     var alreadyShown = this.shown;
     var style = this.overlay.style;
     style.MozTransition = '-moz-transform 0.2s linear';
@@ -348,11 +389,6 @@ var UtilityTray = {
     this.screen.classList.add('utility-tray');
     this.notifications.classList.add('visible');
     this.notifications.style.transition = 'clip 0.2s linear';
-    this.notifications.style.height = this.placeholderHeight + 'px';
-    var notificationBottom = Math.max(0, this.screenHeight - this.grippyHeight);
-    this.notifications.style.clip =
-      'rect(0, ' + this.screenWidth + 'px, ' + notificationBottom + 'px, 0)';
-    this.notifications.classList.add('visible');
     window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
 
     if (!alreadyShown) {
@@ -362,9 +398,20 @@ var UtilityTray = {
     }
   },
 
+  updateSize: function ut_updateSize() {
+    this.notifications.style.height = this.placeholderHeight + 'px';
+    var notificationBottom = Math.max(0, this.screenHeight - this.grippyHeight);
+    this.notifications.style.clip =
+      'rect(0, ' + this.screenWidth + 'px, ' + notificationBottom + 'px, 0)';
+  },
+
   _pdIMESwitcherShow: function ut_pdIMESwitcherShow(evt) {
     if (evt.target.id !== 'rocketbar-input') {
       evt.preventDefault();
     }
   }
 };
+
+// This listener is added here in order to stop the propagation of the 'home'
+// event while the utility tray is being closed
+UtilityTray.addHomeListener();

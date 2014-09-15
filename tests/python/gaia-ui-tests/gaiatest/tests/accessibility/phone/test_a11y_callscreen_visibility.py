@@ -35,5 +35,15 @@ class TestAccessibilityCallscreenVisibility(GaiaTestCase):
         self.assertTrue(self.accessibility.is_hidden(self.marionette.find_element(
             *self.phone.call_screen._hangup_button_locator)))
 
-        # Hang up
-        self.phone.a11y_hang_up()
+        # Check that the call options footer is visible by default
+        self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
+            *self.phone.call_screen._call_options_locator)))
+
+        self.phone.call_screen.a11y_click_keypad_visibility_button()
+
+        # Check that the call options footer is now hidden
+        self.assertTrue(self.accessibility.is_hidden(self.marionette.find_element(
+            *self.phone.call_screen._call_options_locator)))
+
+        # Hang up from keypad
+        self.phone.call_screen.a11y_keypad_hang_up()

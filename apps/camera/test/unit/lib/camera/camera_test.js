@@ -561,6 +561,12 @@ suite('lib/camera/camera', function() {
       assert.isTrue(this.camera.mozCamera.takePicture.called);
     });
 
+    test('Should still take picture even when focus is interrupted', function() {
+      this.camera.focus.focus = sinon.stub().callsArgWith(1, 'interrupted');
+      this.camera.takePicture({});
+      assert.isTrue(this.camera.mozCamera.takePicture.called);
+    });
+
     test('Should pass the position value to `mozCamera.takePicture`', function() {
       this.camera.takePicture({ position: 123 });
       var config = this.camera.mozCamera.takePicture.args[0][0];
@@ -1191,6 +1197,80 @@ suite('lib/camera/camera', function() {
       this.camera.configure.reset();
       this.camera.setRecorderProfile('720p');
       sinon.assert.notCalled(this.camera.configure);
+    });
+  });
+
+  suite('Camera#setFlashMode()', function() {
+    setup(function() {
+      this.camera.mozCamera = { flashMode: null };
+    });
+
+    test('Should set `this.mozCamera.flashMode`', function() {
+      this.camera.mozCamera.flashMode = 'off';
+      this.camera.setFlashMode('auto');
+      assert.equal(this.camera.mozCamera.flashMode, 'auto');
+    });
+
+    test('Should suspend `this.mozCamera.flashMode`', function() {
+      this.camera.mozCamera.flashMode = 'on';
+      this.camera.suspendFlashMode();
+      assert.equal(this.camera.mozCamera.flashMode, 'off');
+      this.camera.restoreFlashMode();
+      assert.equal(this.camera.mozCamera.flashMode, 'on');
+    });
+
+    test('Should not set `this.mozCamera.flashMode` while suspensed', function() {
+      this.camera.mozCamera.flashMode = 'on';
+      this.camera.suspendFlashMode();
+      assert.equal(this.camera.mozCamera.flashMode, 'off');
+      this.camera.setFlashMode('auto');
+      assert.equal(this.camera.mozCamera.flashMode, 'off');
+      this.camera.restoreFlashMode();
+      assert.equal(this.camera.mozCamera.flashMode, 'auto');
+    });
+
+    test('Should remain suspended `this.mozCamera.flashMode` after first restore', function() {
+      this.camera.mozCamera.flashMode = 'on';
+      this.camera.suspendFlashMode();
+      assert.equal(this.camera.mozCamera.flashMode, 'off');
+      this.camera.suspendFlashMode();
+      assert.equal(this.camera.mozCamera.flashMode, 'off');
+      this.camera.restoreFlashMode();
+      assert.equal(this.camera.mozCamera.flashMode, 'off');
+      this.camera.restoreFlashMode();
+      assert.equal(this.camera.mozCamera.flashMode, 'on');
+    });
+  });
+
+  suite('Camera#updateFocusArea()', function() {
+    setup(function() {
+      sinon.stub(this.camera, 'set');
+      this.camera.mozCamera = { flashMode: null };
+      this.camera.focus = {
+        updateFocusArea: sinon.spy(),
+      };
+    });
+
+    test('Should suspend flash mode and restore when complete', function() {
+      this.camera.mozCamera.flashMode = 'on';
+      this.camera.updateFocusArea();
+      assert.ok(this.camera.set.firstCall.calledWith('focus', 'focusing'));
+      assert.equal(this.camera.mozCamera.flashMode, 'off');
+      assert.ok(this.camera.focus.updateFocusArea.called);
+      this.camera.focus.updateFocusArea.callArgWith(1, 'focused');
+      assert.ok(this.camera.set.secondCall.calledWith('focus', 'focused'));
+      assert.equal(this.camera.mozCamera.flashMode, 'on');
+    });
+
+    test('Should suspend flash mode and restore when interrupted but leave state as focusing', function() {
+      this.camera.mozCamera.flashMode = 'on';
+      this.camera.updateFocusArea();
+      assert.ok(this.camera.set.firstCall.calledWith('focus', 'focusing'));
+      assert.equal(this.camera.mozCamera.flashMode, 'off');
+      assert.ok(this.camera.focus.updateFocusArea.called);
+      this.camera.focus.updateFocusArea.callArgWith(1, 'interrupted');
+      assert.ok(this.camera.set.calledOnce);
+      assert.equal(this.camera.mozCamera.flashMode, 'on');
     });
   });
 

@@ -48,6 +48,9 @@ var MobileIdManager = {
         this.openDialog(params);
         break;
       default:
+        if (!this.dialog) {
+          return;
+        }
         this.dialog.dispatchEvent(message.eventName, params);
         break;
     }

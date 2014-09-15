@@ -39,7 +39,7 @@ class KeyboardAddMoreKeyboards(Base):
         By.XPATH,
         "//div[contains(@class,'keyboardAppContainer')]//li[label[span[text()='%s']]]"
     )
-    _back_button_locator = (By.CSS_SELECTOR, '.current header > a')
+    _header_locator = (By.CSS_SELECTOR, '.current gaia-header')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -61,4 +61,4 @@ class KeyboardAddMoreKeyboards(Base):
         self.wait_for_condition(lambda m: checkbox.is_selected())
 
     def go_back(self):
-        self.marionette.find_element(*self._back_button_locator).tap()
+        self.marionette.find_element(*self._header_locator).tap(25, 25)

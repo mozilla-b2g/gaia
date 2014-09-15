@@ -49,7 +49,6 @@ suite('wifi > ', function() {
 
   function createDOM() {
     var markup =
-    '<ol id="progress-bar" class="step-state"></ol>' +
     '<section id="activation-screen">' +
     ' <gaia-header>' +
     '  <h1 id="main-title"></h1>' +

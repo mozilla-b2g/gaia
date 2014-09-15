@@ -6,6 +6,8 @@ function BalanceView(balanceLabel, timestampLabel, minimumDelay) {
 
   minimumDelay = minimumDelay || 0;
 
+  var viewTimestamp;
+
   var timeHighlightColors = [
     {threshold: minimumDelay / 3, className: 'first-third'},
     {threshold: 2 * minimumDelay / 3, className: 'second-third'},
@@ -35,8 +37,13 @@ function BalanceView(balanceLabel, timestampLabel, minimumDelay) {
     });
   }
 
+  function updateTimeFormat() {
+    updateTimestamp(viewTimestamp);
+  }
+
   function updateTimestamp(timestamp, isUpdating) {
     timestampLabel.innerHTML = '';
+    viewTimestamp = timestamp;
 
     if (isUpdating) {
       timestampLabel.textContent = _('updating-ellipsis');
@@ -49,7 +56,7 @@ function BalanceView(balanceLabel, timestampLabel, minimumDelay) {
 
   function getTimeTagFor(timestamp) {
     var time = document.createElement('time');
-    time.dateTime = timestamp.toISOString();
+    time.setAttribute('datetime', timestamp.toISOString());
     time.textContent = Formatting.formatTimeSinceNow(timestamp);
     return time;
   }
@@ -69,6 +76,8 @@ function BalanceView(balanceLabel, timestampLabel, minimumDelay) {
     }
     return timeHighlightColors[l - 1].className;
   }
+
+  window.addEventListener('timeformatchange', updateTimeFormat);
 
   this.update = update;
 }

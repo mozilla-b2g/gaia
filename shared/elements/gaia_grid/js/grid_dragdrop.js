@@ -21,13 +21,13 @@
 
   const scrollStep = Math.round(SCREEN_HEIGHT / EDGE_PAGE_THRESHOLD);
 
-  /* The scroll step will be 10 times bigger over the edge */
-  const maxScrollStepFactor = 10;
+  /* The scroll step will be 5 times bigger over the edge */
+  const maxScrollStepFactor = 5;
 
   function DragDrop(gridView) {
     this.gridView = gridView;
     this.container = gridView.element;
-    this.scrollable = this.container.parentNode;
+    this.scrollable = document.documentElement;
     this.container.addEventListener('touchstart', this);
     this.container.addEventListener('contextmenu', this);
   }
@@ -112,7 +112,7 @@
       // Make the icon larger
       this.icon.transform(
         e.pageX - this.xAdjust,
-        e.pageY - this.yAdjust + this.scrollable.scrollTop,
+        e.pageY - this.yAdjust,
         this.icon.scale + ACTIVE_SCALE_ADJUST);
     },
 
@@ -223,8 +223,8 @@
 
     /**
      * The closer to edge the faster (bigger step).
-     ** Distance 0px -> 10 times faster
-     ** Distance 25px -> 5 times faster
+     ** Distance 0px -> 5 times faster
+     ** Distance 25px -> 2.5 times faster
      ** Distance 50px (EDGE_PAGE_THRESHOLD) -> 0 times
      */
     getScrollStep: function(distanceToEdge) {
@@ -451,7 +451,7 @@
           case 'touchmove':
             var touch = e.touches[0];
 
-            var pageY = touch.pageY + this.scrollable.scrollTop;
+            var pageY = touch.pageY;
             this.positionIcon(touch.pageX, pageY);
 
             this.currentTouch = {

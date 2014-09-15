@@ -74,6 +74,7 @@ function Camera(options) {
   };
 
   this.focus = new Focus(options.focus);
+  this.suspendedFlashCount = 0;
 
   // Indicate this first
   // load hasn't happened yet.
@@ -480,8 +481,7 @@ Camera.prototype.previewSizes = function() {
  */
 Camera.prototype.previewSize = function() {
   var sizes = this.previewSizes();
-  var profile = this.resolution();
-  var size = CameraUtils.getOptimalPreviewSize(sizes, profile);
+  var size = CameraUtils.getOptimalPreviewSize(sizes);
   debug('get optimal previewSize', size);
   return size;
 };
@@ -612,6 +612,9 @@ Camera.prototype.setThumbnailSize = function() {
  * Sets the current flash mode,
  * both on the Camera instance
  * and on the cameraObj hardware.
+ * If flash is suspended, it
+ * updates the cached state that
+ * will be restored.
  *
  * @param {String} key
  */
@@ -621,11 +624,48 @@ Camera.prototype.setFlashMode = function(key) {
     // a valid flash mode.
     key = key || 'off';
 
-    this.mozCamera.flashMode = key;
-    debug('flash mode set: %s', key);
+    if (this.suspendedFlashCount > 0) {
+      this.suspendedFlashMode = key;
+      debug('flash mode set while suspended: %s', key);
+    } else {
+      this.mozCamera.flashMode = key;
+      debug('flash mode set: %s', key);
+    }
   }
 
   return this;
+};
+
+/**
+ * Disables flash until it is
+ * restored. restoreFlashMode
+ * must be called the same
+ * number of times in order to
+ * restore the original state.
+ */
+Camera.prototype.suspendFlashMode = function() {
+  if (this.suspendedFlashCount === 0) {
+    this.suspendedFlashMode = this.mozCamera.flashMode;
+    this.mozCamera.flashMode = 'off';
+    debug('flash mode suspended');
+  }
+  ++this.suspendedFlashCount;
+};
+
+/**
+ * Restores flash mode to its
+ * original state. If it was
+ * disabled multiple times,
+ * only the final call will
+ * do the restoration.
+ */
+Camera.prototype.restoreFlashMode = function() {
+  --this.suspendedFlashCount;
+  if (this.suspendedFlashCount === 0) {
+    this.mozCamera.flashMode = this.suspendedFlashMode;
+    debug('flash mode restored: %s', this.suspendedFlashMode);
+    this.suspendedFlashMode = null;
+  }
 };
 
 /**
@@ -778,7 +818,11 @@ Camera.prototype.takePicture = function(options) {
   }
 
   function onFocused(state) {
-    self.set('focus', state);
+    // State remains focusing if we are interrupted
+    // as the last caller should update it
+    if (state !== 'interrupted') {
+      self.set('focus', state);
+    }
     takePicture();
   }
 
@@ -820,9 +864,17 @@ Camera.prototype.takePicture = function(options) {
 Camera.prototype.updateFocusArea = function(rect, done) {
   var self = this;
   this.set('focus', 'focusing');
+  // Disables flash temporarily so it doesn't go off while focusing
+  this.suspendFlashMode();
   this.focus.updateFocusArea(rect, focusDone);
   function focusDone(state) {
-    self.set('focus', state);
+    // Restores previous flash mode
+    self.restoreFlashMode();
+    // State remains focusing if we are interrupted
+    // as the last caller should update it
+    if (state !== 'interrupted') {
+      self.set('focus', state);
+    }
     if (done) {
       done(state);
     }

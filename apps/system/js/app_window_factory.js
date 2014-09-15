@@ -49,6 +49,7 @@
       window.addEventListener('webapps-launch', this.preHandleEvent);
       window.addEventListener('webapps-close', this.preHandleEvent);
       window.addEventListener('open-app', this.preHandleEvent);
+      window.addEventListener('appopenwindow', this.preHandleEvent);
       window.addEventListener('applicationready', (function appReady(e) {
         window.removeEventListener('applicationready', appReady);
         this._handlePendingEvents();
@@ -68,6 +69,7 @@
       window.removeEventListener('webapps-launch', this.preHandleEvent);
       window.removeEventListener('webapps-close', this.preHandleEvent);
       window.removeEventListener('open-app', this.preHandleEvent);
+      window.removeEventListener('appopenwindow', this.preHandleEvent);
     },
 
     /**
@@ -107,7 +109,10 @@
         return;
       }
 
+      config.evtType = evt.type;
+
       switch (evt.type) {
+        case 'appopenwindow':
         case 'webapps-launch':
           config.timestamp = detail.timestamp;
           // TODO: Look up current opened window list,
@@ -181,6 +186,9 @@
       }
       var app = AppWindowManager.getApp(config.origin, config.manifestURL);
       if (app) {
+        if (config.evtType == 'appopenwindow') {
+          app.browser.element.src = config.url;
+        }
         app.reviveBrowser();
       } else if (config.origin !== homescreenLauncher.origin) {
         new AppWindow(config);

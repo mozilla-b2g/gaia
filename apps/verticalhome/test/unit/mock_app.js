@@ -15,7 +15,8 @@ MockApp.prototype = {
     return MockApp.initialized;
   },
   itemStore: {
-    save: function() {}
+    save: function() {},
+    deferredSave: function() {}
   },
   grid: {
     add: function(detail) {

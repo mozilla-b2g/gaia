@@ -35,7 +35,7 @@ function SimPinDialog(dialog) {
    * User Interface constants
    */
 
-  var dialogTitle = dialog.querySelector('header h1');
+  var dialogTitle = dialog.querySelector('gaia-header h1');
   var dialogDone = dialog.querySelector('button[type="submit"]');
   var dialogClose = dialog.querySelector('button[type="reset"]');
   dialogDone.onclick = verify;

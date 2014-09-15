@@ -38,9 +38,9 @@ suite('Alarm Test', function() {
         hour: 4,
         minute: 20,
         label: '',
-        sound: 'ac_classic_clock_alarm.opus',
+        sound: 'ac_awake.opus',
         vibrate: true,
-        snooze: 5
+        snooze: 10
       });
     });
 
@@ -81,7 +81,7 @@ suite('Alarm Test', function() {
 
     test('getNextSnoozeFireTime', function() {
       assert.equal(this.alarm.getNextSnoozeFireTime(now).getTime(),
-                   now.getTime() + (5 * 60 * 1000));
+                   now.getTime() + (10 * 60 * 1000));
     });
   });
 });

@@ -93,9 +93,9 @@ describe('walkContent', function() {
       assert.strictEqual(walked.foo._.other, 2);
     });
 
-    it('does not walk the index', function(){
+    it('does not modify the index', function(){
       var walked = L10n.walkContent(ast, digest);
-      assert.strictEqual(walked.foo._index, undefined);
+      assert.deepEqual(walked.foo._index, ['plural', 'n']);
     });
 
   });
@@ -124,10 +124,10 @@ describe('walkContent', function() {
       assert.strictEqual(walked.foo._.other._.other, 2);
     });
 
-    it('does not walk the indexes', function(){
+    it('does not modify the indexes', function(){
       var walked = L10n.walkContent(ast, digest);
-      assert.strictEqual(walked.foo._index, undefined);
-      assert.strictEqual(walked.foo._.other._index, undefined);
+      assert.deepEqual(walked.foo._index, ['plural', 'n']);
+      assert.deepEqual(walked.foo._.other._index, ['plural', 'n']);
     });
 
   });
@@ -154,9 +154,9 @@ describe('walkContent', function() {
       assert.strictEqual(walked.foo.attr._.other, 2);
     });
 
-    it('does not walk the indexes', function(){
+    it('does not modify the indexes', function(){
       var walked = L10n.walkContent(ast, digest);
-      assert.strictEqual(walked.foo.attr._index, undefined);
+      assert.deepEqual(walked.foo.attr._index, ['plural', 'n']);
     });
 
   });

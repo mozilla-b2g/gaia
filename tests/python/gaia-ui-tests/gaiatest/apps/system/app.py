@@ -26,7 +26,6 @@ class System(Base):
 
     def wait_for_notification_toaster_displayed(self, timeout=10, message=None):
         self.wait_for_element_displayed(*self._notification_toaster_locator)
-        self.wait_for_condition(lambda m: m.find_element(*self._notification_toaster_locator).location['y'] == 0, timeout=timeout, message=message)
 
     def wait_for_notification_toaster_not_displayed(self, timeout=10):
         self.wait_for_element_not_displayed(*self._notification_toaster_locator)
@@ -56,6 +55,7 @@ class System(Base):
     def is_app_update_notification_displayed(self):
         update_manager_toaster = self.marionette.find_element(*self._update_manager_toaster_locator)
         return update_manager_toaster.location['y'] > (0 - update_manager_toaster.size['height'])
+        self.wait_for_condition(lambda m: m.find_element(*self._notification_toaster_locator).location['y'] == 0, timeout=timeout, message=message)
 
     def wait_for_app_update_to_clear(self):
         update_manager_toaster = self.marionette.find_element(*self._update_manager_toaster_locator)

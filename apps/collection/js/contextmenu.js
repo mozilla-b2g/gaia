@@ -1,6 +1,7 @@
 'use strict';
 /* global GaiaGrid */
 /* global MozActivity */
+/* global BookmarksDatabase */
 
 (function(exports) {
 
@@ -16,18 +17,17 @@
     this.grid.addEventListener('contextmenu', this, true);
 
     /**
-     * The current contextmenu target.
+     * The current contextmenu icon.
      * @type {DomElement}
      */
-    this.target = null;
+    this.icon = null;
 
     this.menu.addEventListener('gaiamenu-cancel', function() {
-      this.target = null;
+      this.icon = null;
     });
 
     this.bookmarkButton.addEventListener('click', function bookmark() {
-      var identifier = this.target.dataset.identifier;
-      var icon = this.grid.getIcon(identifier);
+      var icon = this.icon;
 
       /* jshint nonew: false */
       new MozActivity({
@@ -40,14 +40,13 @@
         }
       });
 
-      this.target = null;
+      this.icon = null;
       this.menu.hide();
     }.bind(this));
 
     this.pinButton.addEventListener('click', function pin() {
-      if (this.target) {
-        var identifier = this.target.dataset.identifier;
-        var icon = this.grid.getIcon(identifier);
+      if (this.icon) {
+        var icon = this.icon;
 
         collection.pinWebResult(icon.detail);
 
@@ -67,7 +66,7 @@
 
         // Change the location of the icon in the grid to be after the current
         // pinned items, then re-render results.
-        this.grid.removeIconByIdentifier(identifier);
+        this.grid.removeIconByIdentifier(this.identifier);
         this.grid.removeItemByIndex(icon.detail.index);
         this.grid.add(icon, collection.pinned.length - 1);
 
@@ -83,19 +82,25 @@
         });
       }
 
-      this.target = null;
+      this.icon = null;
       this.menu.hide();
 
     }.bind(this));
   }
 
   Contextmenu.prototype = {
-    isPinned: function(elem) {
-      var identifier = elem.dataset.identifier;
-
+    isPinned: function(identifier) {
       return this.collection.isPinned({
         identifier: identifier
       });
+    },
+
+    show: function() {
+      this.menu.show();
+
+      setTimeout(function nextTick() {
+        this.grid.start();
+      }.bind(this));
     },
 
     /**
@@ -104,22 +109,23 @@
     handleEvent: function(e) {
       switch(e.type) {
           case 'contextmenu':
-            if (!e.target.dataset.identifier) {
+            var identifier = this.identifier = e.target.dataset.identifier;
+            if (!identifier) {
               return;
             }
 
-            if (!this.isPinned(e.target)) {
+            if (!this.isPinned(identifier)) {
               // prevent click events from firing
               this.grid.stop();
 
               e.preventDefault();
 
-              this.target = e.target;
-              this.menu.show();
-
-              setTimeout(function nextTick() {
-                this.grid.start();
-              }.bind(this));
+              var icon = this.icon = this.grid.getIcon(identifier);
+              return BookmarksDatabase.get(icon.detail.url).then((bookmark) => {
+                this.bookmarkButton.hidden = bookmark ? true : false;
+              }, () => {
+                this.bookmarkButton.hidden = false;
+              }).then(this.show.bind(this));
             }
 
             break;

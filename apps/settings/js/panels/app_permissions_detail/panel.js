@@ -1,6 +1,7 @@
 define(function(require) {
   'use strict';
 
+  var SettingsListener = require('shared/settings_listener');
   var SettingsPanel = require('modules/settings_panel');
   var PermissionDetail =
     require('panels/app_permissions_detail/app_permissions_detail');
@@ -14,18 +15,19 @@ define(function(require) {
 
     function bindEvents(doms) {
       doms.uninstallButton.addEventListener('click', uninstall);
-      doms.back.addEventListener('click', back);
+      doms.panelHeader.addEventListener('action', back);
     }
 
     function unbindEvents(doms) {
       doms.uninstallButton.removeEventListener('click', uninstall);
-      doms.back.removeEventListener('click', back);
+      doms.panelHeader.removeEventListener('action', back);
     }
 
     return SettingsPanel({
       onInit: function(panel, options) {
+        this._verbose = null;
         elements = {
-          back: panel.querySelector('.app-permissions-back'),
+          panelHeader: panel.querySelector('gaia-header'),
           uninstallButton: panel.querySelector('.uninstall-app'),
           list: panel.querySelector('.permissionsListHeader + ul'),
           header: panel.querySelector('.permissionsListHeader'),
@@ -34,14 +36,17 @@ define(function(require) {
           developerUrl: panel.querySelector('.developer-infos > a > small'),
           developerInfos: panel.querySelector('.developer-infos'),
           developerHeader: panel.querySelector('.developer-header'),
-          detailTitle:
-            panel.querySelector('.app-permissions-back + h1')
+          detailTitle: panel.querySelector('.detail-title')
         };
+        SettingsListener.observe('debug.verbose_app_permissions', false,
+          function(enabled) {
+            this._verbose = enabled;
+          }.bind(this));
         permissionDetailModule.init(elements, options.permissionsTable);
       },
 
       onBeforeShow: function(panel, options) {
-        permissionDetailModule.showAppDetails(options.app);
+        permissionDetailModule.showAppDetails(options.app, this._verbose);
         bindEvents(elements);
       },
 

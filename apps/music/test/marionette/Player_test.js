@@ -129,7 +129,7 @@ marionette('Music player tests', function() {
       music.switchToSongsView();
       music.playFirstSong();
 
-      music.tapBackButton();
+      music.tapHeaderActionButton();
       music.checkPlayerIconShown(true);
     });
   });

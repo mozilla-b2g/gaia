@@ -207,6 +207,14 @@
     });
   }
 
+  function clear() {
+    return new Promise(function doClear(resolve, reject) {
+      init().then(function onInitialized() {
+        datastore.clear().then(resolve, reject);
+      }, reject);
+    });
+  }
+
   exports.BookmarksDatabase = {
    /*
     * This method returns a bookmark object
@@ -266,7 +274,14 @@
      *
      * @param{String} The bookmark's id
      */
-     remove: remove
+     remove: remove,
+
+    /*
+     *
+     * This method clears the entire datastore, removing all entries.
+     *
+     */
+     clear: clear
   };
 
 }(window));

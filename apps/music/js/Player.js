@@ -25,18 +25,6 @@ var PLAYSTATUS_ERROR = 'ERROR';
 var INTERRUPT_BEGIN = 'mozinterruptbegin';
 var INTERRUPT_END = 'mozinterruptend';
 
-// We get headphoneschange event when the headphones is plugged or unplugged
-// A related Bug 809106 in Bugzilla
-var acm = navigator.mozAudioChannelManager;
-
-if (acm) {
-  acm.addEventListener('headphoneschange', function onheadphoneschange() {
-    if (!acm.headphones && PlayerView.playStatus === PLAYSTATUS_PLAYING) {
-      PlayerView.pause();
-    }
-  });
-}
-
 // View of Player
 var PlayerView = {
   get view() {

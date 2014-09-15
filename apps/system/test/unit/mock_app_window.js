@@ -14,18 +14,22 @@
       }
       this.config = config;
     }
-    this.instanceID = 'mock-app-' + _id++;
+    this.instanceID = this.prefix + _id++;
     this.groupID = this.instanceID;
     MockAppWindowHelper.mInstances.push(this);
     MockAppWindowHelper.mLatest = this;
   };
   MockAppWindow.prototype = {
+    prefix: 'mock-app-',
     isHomescreen: false,
     get browserContainer() {
       if (!this._browserContainer) {
         this._browserContainer = document.createElement('div');
       }
       return this._browserContainer;
+    },
+    set element(ele) {
+      this._element = ele;
     },
     get element() {
       if (!this._element) {
@@ -78,12 +82,14 @@
     isCertified: function() {},
     navigate: function() {},
     isFullScreen: function() {},
+    isFullScreenLayout: function() {},
     _changeState: function() {},
     _setVisible: function() {},
     _setVisibleForScreenReader: function() {},
     modifyURLatBackground: function() {},
     getFrameForScreenshot: function() { return this.browser.element; },
     getTopMostWindow: function() { return this; },
+    getBottomMostWindow: function() { return this; },
     determineClosingRotationDegree: function() { return 0; },
     isTransitioning: function() { return false; },
     calibratedHeight: function() { return false; },
@@ -106,7 +112,13 @@
     transform: function() {},
     hideContextMenu: function() {},
     lockOrientation: function() {},
-    isVisible: function() {}
+    isVisible: function() {},
+    hasPermission: function() { return false; },
+    requestForeground: function() {},
+    isHidden: function() { return false; },
+    '_resize': function() {},
+    isForeground: function() {},
+    killable: function() {}
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];

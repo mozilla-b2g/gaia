@@ -163,13 +163,16 @@ var Widget = (function() {
     });
 
     // Open application with the proper view
-    rightPanel.addEventListener('click',
+    leftPanel.addEventListener('click',
       function _openCCDataUsage() {
         activity = new MozActivity({ name: 'costcontrol/data_usage' });
       }
     );
 
-    LazyLoader.load(['js/utils/formatting.js'], function() {
+    LazyLoader.load([
+      'shared/js/date_time_helper.js',
+      'js/utils/formatting.js'
+    ], function() {
       updateUI();
     });
 
@@ -293,7 +296,7 @@ var Widget = (function() {
       views.limitedDataUsage.setAttribute('aria-hidden', !isLimited);
 
       // Always data usage
-      leftPanel.setAttribute('aria-hidden', isDataUsageOnly);
+      rightPanel.setAttribute('aria-hidden', isDataUsageOnly);
 
       // And the other view if applies...
       if (isDataUsageOnly) {
@@ -316,26 +319,21 @@ var Widget = (function() {
         if (isLimited) {
 
           // UI elements
-          var leftTag = views.limitedDataUsage.querySelector('dt.start');
-          var leftValue = views.limitedDataUsage.querySelector('dd.start');
-          var rightTag = views.limitedDataUsage.querySelector('dt.end');
-          var rightValue = views.limitedDataUsage.querySelector('dd.end');
-          var progress = views.limitedDataUsage.querySelector('progress');
+          var dataLimit = views.limitedDataUsage.querySelector('#data-limit');
+          var dataAvailable =
+            views.limitedDataUsage.querySelector('#data-available');
 
-          // Progress bar
           var current = stats.mobile.total;
           var limit = Common.getDataLimit(settings);
           debug(limit);
-          progress.setAttribute('value', Math.min(current, limit));
-          progress.setAttribute('max', Math.max(current, limit));
 
           // State
           views.limitedDataUsage.classList.remove('nearby-limit');
           views.limitedDataUsage.classList.remove('reached-limit');
 
           // Limit trespassed
-          var limitTresspased = (current > limit);
-          if (limitTresspased) {
+          var limitTrespassed = (current > limit);
+          if (limitTrespassed) {
             views.limitedDataUsage.classList.add('reached-limit');
 
           //  Warning percentage of the limit reached
@@ -344,27 +342,25 @@ var Widget = (function() {
           }
 
           // Texts
-          var currentText = Formatting.roundData(current);
-          currentText = _('magnitude', {
-            value: currentText[0],
-            unit: currentText[1]
-          });
           var limitText = Formatting.roundData(limit);
           limitText = _('magnitude', {
             value: limitText[0],
             unit: limitText[1]
           });
-          Common.localize(
-            leftTag,
-            limitTresspased ? 'limit-passed' : 'used'
-          );
-          leftValue.textContent = limitTresspased ? limitText : currentText;
-          Common.localize(
-            rightTag,
-            limitTresspased ? 'used' : 'limit'
-          );
-          rightValue.textContent = limitTresspased ? currentText : limitText;
 
+          navigator.mozL10n.setAttributes(dataLimit, 'data-limit',
+            { value: limitText });
+
+          var rawValue = Math.abs(limit - current);
+          var text = Formatting.roundData(rawValue);
+
+          if (!limitTrespassed) {
+            navigator.mozL10n.setAttributes(dataAvailable, 'data-available2',
+              { value: parseFloat(text[0]), unit: text[1] });
+          } else {
+            navigator.mozL10n.setAttributes(dataAvailable, 'over-limit',
+              { value: parseFloat(text[0]), unit: text[1] });
+          }
         } else {
           // Texts
           document.getElementById('mobile-usage-value').textContent =

@@ -62,6 +62,13 @@ suite('controllers/timer', function() {
       var controller = new this.TimerController(this.app);
       assert.ok(this.app.on.calledWith('hidden', controller.clear));
     });
+
+    test('Should call onBatteryStatusChange ' + 
+      'when the app \'batteryStatus\' event fires', function() {
+      var controller = new this.TimerController(this.app);
+      assert.ok(this.app.on.calledWith('change:batteryStatus',
+                                             controller.onBatteryChanged));
+    });
   });
 
   suite('TimerController#start()', function() {
@@ -166,6 +173,22 @@ suite('controllers/timer', function() {
 
     test('Should unbind the app listeners', function() {
       assert.ok(this.app.off.calledWith('click', this.controller.clear));
+    });
+  });
+
+  suite('TimerController#onBatteryChanged()', function() {
+    setup(function() {
+      this.controller.start();
+    });
+
+    test('Should stop the timer if status is shutdown', function() {
+      this.controller.onBatteryChanged('shutdown');
+     assert.ok(this.app.emit.calledWith('timer:cleared'));
+    });
+
+    test('Should not stop the timer if status is healthy', function() {
+      this.controller.onBatteryChanged('healthy');
+      assert.isFalse(this.app.emit.calledWith('timer:cleared'));
     });
   });
 });

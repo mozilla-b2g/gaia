@@ -245,11 +245,14 @@ var icc = {
 
   setupView: function icc_setupView(viewId) {
     viewId.style.marginTop = StatusBar.height + 'px';
-    this.keyboardChangedEvent(viewId);
-    window.addEventListener('keyboardchange',
-      this.keyboardChangedEvent.bind(undefined, viewId, false));
-    window.addEventListener('keyboardhide',
-      this.keyboardChangedEvent.bind(undefined, viewId, true));
+    // If the view has a form, we should be care of the keyboard changes
+    if (viewId.getElementsByTagName('form').length > 0) {
+      this.keyboardChangedEvent(viewId);
+      window.addEventListener('keyboardchange',
+        this.keyboardChangedEvent.bind(undefined, viewId, false));
+      window.addEventListener('keyboardhide',
+        this.keyboardChangedEvent.bind(undefined, viewId, true));
+    }
   },
 
   keyboardChangedEvent: function(viewId, hidden) {
@@ -262,9 +265,9 @@ var icc = {
       (window.innerHeight - keyboardHeight - StatusBar.height) + 'px';
     if (form && viewId.clientHeight > 0) {
       var input = viewId.getElementsByTagName('input')[0];
-      var header = viewId.getElementsByTagName('header')[0];
-      var headerSubtitle = viewId.getElementsByTagName('h2')[0];
-      var menu = viewId.getElementsByTagName('menu')[1];
+      var header = viewId.getElementsByTagName('gaia-header')[0];
+      var headerSubtitle = viewId.getElementsByTagName('gaia-subheader')[0];
+      var menu = viewId.getElementsByTagName('menu')[0];
       form[0].style.height = viewId.clientHeight -
         (header.clientHeight + headerSubtitle.clientHeight) -
         menu.clientHeight + 'px';
@@ -488,7 +491,7 @@ var icc = {
       this.icc_input_btn = document.getElementById('icc-input-btn');
       this.icc_input_btn_yes = document.getElementById('icc-input-btn_yes');
       this.icc_input_btn_no = document.getElementById('icc-input-btn_no');
-      this.icc_input_btn_back = document.getElementById('icc-input-btn_back');
+      this.icc_input_header = document.getElementById('icc-input-header');
       this.icc_input_btn_close = document.getElementById('icc-input-btn_close');
       this.icc_input_btn_help = document.getElementById('icc-input-btn_help');
       this.setupView(this.icc_input);
@@ -566,12 +569,12 @@ var icc = {
     this.icc_view.classList.add('visible');
 
     // STK Default response (BACK, CLOSE and HELP)
-    this.icc_input_btn_back.onclick = function() {
+    this.icc_input_header.addEventListener('action', function() {
       clearInputTimeout();
       self.hideViews();
       self.backResponse(stkMessage);
       callback(null);
-    };
+    });
     this.icc_input_btn_close.onclick = function() {
       clearInputTimeout();
       self.hideViews();

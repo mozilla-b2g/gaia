@@ -11,7 +11,6 @@
   };
 
   function StatusBar() {
-    this.scrollable = document.querySelector('.scrollable');
     this.threshold = document.getElementById('search').clientHeight;
 
     if (!appManager.app) {
@@ -42,7 +41,7 @@
           /* falls through */
         case 'context-menu-open':
         case 'gaia-confirm-open':
-          this.scrollable.removeEventListener('scroll', this);
+          window.removeEventListener('scroll', this);
           this.setAppearance(APPEARANCE.OPAQUE);
           break;
         case 'editmode-end':
@@ -53,7 +52,7 @@
           /* falls through */
         case 'context-menu-close':
         case 'gaia-confirm-close':
-          this.scrollable.addEventListener('scroll', this);
+          window.addEventListener('scroll', this);
           // We still want to toggle the appearance of the scroll bar on exit
           /* falls through */
         case 'collection-close':
@@ -75,37 +74,27 @@
     },
 
     onAppReady: function() {
-      appManager.app.connect('change-appearance-statusbar').then(
-        function ok(ports) {
-          ports.forEach(function(port) {
-            this.port = port;
-          }.bind(this));
-
-          var grid = app.grid;
-          this.scrollable.addEventListener('scroll', this);
-          grid.addEventListener('collection-launch', this);
-          grid.addEventListener('collection-close', this);
-          grid.addEventListener('editmode-start', this);
-          grid.addEventListener('editmode-end', this);
-          window.addEventListener('collections-create-begin', this);
-          window.addEventListener('collections-create-return', this);
-          window.addEventListener('context-menu-close', this);
-          window.addEventListener('context-menu-open', this);
-          window.addEventListener('gaia-confirm-open', this);
-          window.addEventListener('gaia-confirm-close', this);
-          window.addEventListener('visibilitychange', this);
-          this.setAppearance(APPEARANCE.SEMI_TRANSPARENT);
-        }.bind(this), function fail(reason) {
-          console.error('Cannot notify changes of appearance: ', reason);
-        }
-      );
+      var grid = app.grid;
+      window.addEventListener('scroll', this);
+      grid.addEventListener('collection-launch', this);
+      grid.addEventListener('collection-close', this);
+      grid.addEventListener('editmode-start', this);
+      grid.addEventListener('editmode-end', this);
+      window.addEventListener('collections-create-begin', this);
+      window.addEventListener('collections-create-return', this);
+      window.addEventListener('context-menu-close', this);
+      window.addEventListener('context-menu-open', this);
+      window.addEventListener('gaia-confirm-open', this);
+      window.addEventListener('gaia-confirm-close', this);
+      window.addEventListener('visibilitychange', this);
+      this.setAppearance(APPEARANCE.SEMI_TRANSPARENT);
     },
 
     /**
      * Calculate the appearance of the status bar based on scroll state.
      */
     calculateAppearance: function() {
-      return this.scrollable.scrollTop > this.threshold ?
+      return window.scrollY > this.threshold ?
         APPEARANCE.OPAQUE : APPEARANCE.SEMI_TRANSPARENT;
     },
 
@@ -115,7 +104,6 @@
       }
 
       this.appearance = value;
-      this.port.postMessage(value);
 
       var meta = document.head.querySelector('meta[name="theme-color"]');
       if (value == APPEARANCE.OPAQUE) {

@@ -19,7 +19,6 @@ var AttachmentMenu = {
   open: function(attachment) {
     var name = attachment.name;
     var blob = attachment.blob;
-    var l10n = navigator.mozL10n;
     var fileName = name.substr(name.lastIndexOf('/') + 1);
 
     // Localize the name of the file type
@@ -34,9 +33,18 @@ var AttachmentMenu = {
 
     this.header.textContent = fileName;
 
-    l10n.localize(this.viewButton, 'view-attachment-' + fileType);
-    l10n.localize(this.removeButton, 'remove-attachment-' + fileType);
-    l10n.localize(this.replaceButton, 'replace-attachment-' + fileType);
+    this.viewButton.setAttribute(
+      'data-l10n-id',
+      'view-attachment-' + fileType
+    );
+    this.removeButton.setAttribute(
+      'data-l10n-id',
+      'remove-attachment-' + fileType
+    );
+    this.replaceButton.setAttribute(
+      'data-l10n-id',
+      'replace-attachment-' + fileType
+    );
 
     this.el.className = '';
 

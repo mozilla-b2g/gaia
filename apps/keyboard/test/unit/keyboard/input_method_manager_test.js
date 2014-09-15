@@ -1,11 +1,11 @@
 'use strict';
 
 /* global InputMethodGlue, InputMethodLoader, InputMethodManager,
-          PerformanceTimer, IMEngineSettings, KeyEvent, Promise */
+          KeyboardConsole, IMEngineSettings, KeyEvent, Promise */
 
 require('/js/keyboard/settings.js');
 require('/js/keyboard/input_method_manager.js');
-require('/js/keyboard/performance_timer.js');
+require('/js/keyboard/console.js');
 
 suite('InputMethodGlue', function() {
   test('init', function() {
@@ -20,9 +20,11 @@ suite('InputMethodGlue', function() {
   test('sendCandidates', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       candidatePanelManager: {
         updateCandidates: this.sinon.stub()
-      }
+      },
+      inputContext: {}
     };
     var data = [['foo', 1]];
     glue.init(app, 'foo');
@@ -34,8 +36,9 @@ suite('InputMethodGlue', function() {
   test('setComposition', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       inputContext: {
-        setComposition: this.sinon.stub()
+        setComposition: this.sinon.stub().returns(Promise.resolve())
       }
     };
     var symbols = 'bar';
@@ -49,8 +52,9 @@ suite('InputMethodGlue', function() {
   test('endComposition', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       inputContext: {
-        endComposition: this.sinon.stub()
+        endComposition: this.sinon.stub().returns(Promise.resolve())
       }
     };
     var data = 'bar';
@@ -67,11 +71,13 @@ suite('InputMethodGlue', function() {
     setup(function() {
       glue = new InputMethodGlue();
       app = {
+        console: this.sinon.stub(KeyboardConsole.prototype),
         inputContext: {
           sendKey: this.sinon.stub()
         }
       };
       p = Promise.resolve();
+      this.sinon.stub(p, 'catch').returns(p);
       app.inputContext.sendKey.returns(p);
     });
 
@@ -123,8 +129,9 @@ suite('InputMethodGlue', function() {
   test('sendString', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       inputContext: {
-        sendKey: this.sinon.stub()
+        sendKey: this.sinon.stub().returns(Promise.resolve())
       }
     };
     var text = 'foobar';
@@ -145,47 +152,31 @@ suite('InputMethodGlue', function() {
       app.inputContext.sendKey.getCall(5).calledWith(0, text.charCodeAt(5), 0));
   });
 
-  test('alterKeyboard', function() {
-    var glue = new InputMethodGlue();
-    var app = {
-      layoutManager: {
-        updateForcedModifiedLayout: this.sinon.stub()
-      },
-      layoutRenderingManager: {
-        updateLayoutRendering: this.sinon.stub()
-      }
-    };
-    var name = 'bar';
-    glue.init(app, 'foo');
-    glue.alterKeyboard(name);
-
-    assert.isTrue(
-      app.layoutManager.updateForcedModifiedLayout.calledWith(name));
-    assert.isTrue(
-      app.layoutRenderingManager.updateLayoutRendering.calledOnce);
-  });
-
   test('setLayoutPage', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       layoutManager: {
-        LAYOUT_PAGE_DEFAULT: 'bar'
+        PAGE_INDEX_DEFAULT: 0
       },
-      setLayoutPage: this.sinon.stub()
+      setLayoutPage: this.sinon.stub(),
+      inputContext: {}
     };
-    var name = 'bar';
+    var pageIndex = 0;
     glue.init(app, 'foo');
-    glue.setLayoutPage(name);
+    glue.setLayoutPage(pageIndex);
 
-    assert.isTrue(app.setLayoutPage.calledWith(name));
+    assert.isTrue(app.setLayoutPage.calledWith(pageIndex));
   });
 
   test('setUpperCase', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       upperCaseStateManager: {
         switchUpperCaseState: this.sinon.stub()
-      }
+      },
+      inputContext: {}
     };
     var state = {
       isUpperCase: true,
@@ -201,6 +192,7 @@ suite('InputMethodGlue', function() {
   test('replaceSurroundingText', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       inputContext: {
         replaceSurroundingText: this.sinon.stub()
       }
@@ -222,6 +214,7 @@ suite('InputMethodGlue', function() {
   test('getNumberOfCandidatesPerRow', function() {
     var glue = new InputMethodGlue();
     var app = {
+      console: this.sinon.stub(KeyboardConsole.prototype),
       getNumberOfCandidatesPerRow: this.sinon.stub()
     };
     app.getNumberOfCandidatesPerRow.returns(123);
@@ -398,17 +391,22 @@ suite('InputMethodManager', function() {
     app = {
       promiseManager: {},
       layoutManager: {
-        currentModifiedLayout: {
-          autoCorrectLanguage: 'xx-XX'
+        currentPage: {
+          autoCorrectLanguage: 'xx-XX',
+          autoCorrectPunctuation: true
         }
       },
-      perfTimer: this.sinon.stub(PerformanceTimer.prototype),
+      console: this.sinon.stub(KeyboardConsole.prototype),
       inputContext: {
         inputType: 'text',
         inputMode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        getText: this.sinon.stub()
+        textBeforeCursor: '',
+        textAfterCursor: '',
+        getText: this.sinon.stub(),
+        addEventListener: this.sinon.stub(),
+        removeEventListener: this.sinon.stub()
       }
     };
 
@@ -447,15 +445,48 @@ suite('InputMethodManager', function() {
         inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        value: 'foobar',
-        inputContext: app.inputContext
+        value: 'foobar'
       }, {
         suggest: true,
-        correct: true
+        correct: true,
+        correctPunctuation: true
       }));
       assert.equal(activateStub.getCall(0).thisValue,
         imEngine);
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw e;
+      }
+      assert.isTrue(false, 'should not reject');
+    }).then(done, done);
+  });
+
+  test('switchCurrentIMEngine, autoCorrectPunctuation false', function(done) {
+    initSettingsPromise = Promise.resolve({
+      suggestionsEnabled: true,
+      correctionsEnabled: true
+    });
+    imEngineSettingsStub.initSettings.returns(initSettingsPromise);
+
+    manager.app.layoutManager.currentPage = {
+      autoCorrectPunctuation: false
+    };
+
+    var p = manager.switchCurrentIMEngine('foo');
+    p.then(function() {
+      assert.isTrue(true, 'resolved');
+      var imEngine = manager.loader.getInputMethod('foo');
+      var activateStub = imEngine.activate;
+
+      assert.deepEqual(activateStub.args[0][2], {
+        suggest: true,
+        correct: true,
+        correctPunctuation: false
+      });
+    }, function(e) {
+      if (e) {
+        throw e;
+      }
       assert.isTrue(false, 'should not reject');
     }).then(done, done);
   });
@@ -493,14 +524,17 @@ suite('InputMethodManager', function() {
         inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        value: '',
-        inputContext: app.inputContext
+        value: ''
       }, {
         suggest: true,
-        correct: true
+        correct: true,
+        correctPunctuation: true
       }));
       assert.equal(activateStub.getCall(0).thisValue, imEngine);
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw e;
+      }
       assert.isTrue(false, 'should not reject');
     }).then(done, done);
   });
@@ -531,7 +565,10 @@ suite('InputMethodManager', function() {
       assert.equal(manager.currentIMEngine,
         manager.loader.getInputMethod('foo'),
         'currentIMEngine is set');
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw e;
+      }
       assert.isTrue(false, 'should not reject');
     }).then(done, done);
   });
@@ -555,11 +592,11 @@ suite('InputMethodManager', function() {
         inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        value: 'foobar',
-        inputContext: app.inputContext
+        value: 'foobar'
       }, {
         suggest: true,
-        correct: true
+        correct: true,
+        correctPunctuation: true
       }));
       assert.equal(activateStub.getCall(0).thisValue,
         imEngine);
@@ -578,7 +615,10 @@ suite('InputMethodManager', function() {
         'currentIMEngine is set to default');
 
       return p2;
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw e;
+      }
       assert.isTrue(false, 'should not reject');
     }).then(function() {
       assert.isTrue(true, 'resolved');
@@ -594,16 +634,75 @@ suite('InputMethodManager', function() {
         inputmode: '',
         selectionStart: 0,
         selectionEnd: 0,
-        value: 'foobar',
-        inputContext: app.inputContext
+        value: 'foobar'
       }, {
         suggest: true,
-        correct: true
+        correct: true,
+        correctPunctuation: true
       }));
       assert.equal(activateStub.getCall(1).thisValue,
         imEngine);
+    }, function(e) {
+      if (e) {
+        throw e;
+      }
+      assert.isTrue(false, 'should not reject');
+    }).then(done, done);
+  });
+
+  test('selectionchange', function(done) {
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
+    manager.updateInputContextData();
+    var p = manager.switchCurrentIMEngine('foo');
+    p.then(function() {
+      assert.isTrue(app.inputContext.addEventListener.calledTwice);
+
+      manager.handleEvent({
+        type: 'selectionchange',
+        target: app.inputContext,
+        detail: {
+          selectionStart: 0,
+          selectionEnd: 0,
+          ownAction: true
+        }
+      });
     }, function() {
       assert.isTrue(false, 'should not reject');
+    }).then(function() {
+      var imEngine = manager.loader.getInputMethod('foo');
+      assert.isTrue(imEngine.selectionChange.calledWith({
+        selectionStart: 0,
+        selectionEnd: 0,
+        ownAction: true
+      }));
+    }).then(done, done);
+  });
+
+  test('surroundingtextchange', function(done) {
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
+    manager.updateInputContextData();
+    var p = manager.switchCurrentIMEngine('foo');
+    p.then(function() {
+      assert.isTrue(app.inputContext.addEventListener.calledTwice);
+
+      manager.handleEvent({
+        type: 'surroundingtextchange',
+        target: app.inputContext,
+        detail: {
+          textBeforeCursor: '',
+          textAfterCursor: '',
+          ownAction: true
+        }
+      });
+    }, function() {
+      assert.isTrue(false, 'should not reject');
+    }).then(function() {
+      var imEngine = manager.loader.getInputMethod('foo');
+      assert.isTrue(imEngine.surroundingtextChange.calledWith({
+        textBeforeCursor: '',
+        textAfterCursor: '',
+        ownAction: true
+      }));
     }).then(done, done);
   });
 });

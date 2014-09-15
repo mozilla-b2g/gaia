@@ -94,14 +94,14 @@ utils.importFromVcard = function(file, callback) {
       console.error('Error importing from vcard: ' + e.message);
       // Showing error message allowing user to retry
       var cancel = {
-        title: _('cancel'),
+        title: 'cancel',
         callback: function() {
           ConfirmDialog.hide();
         }
       };
 
       var retry = {
-        title: _('retry'),
+        title: 'retry',
         isRecommend: true,
         callback: function() {
           ConfirmDialog.hide();
@@ -109,7 +109,7 @@ utils.importFromVcard = function(file, callback) {
           processTextFromFile(text);
         }
       };
-      Contacts.confirmDialog(null, _('memoryCardContacts-error'),
+      Contacts.confirmDialog(null, 'memoryCardContacts-error',
                              cancel, retry);
       utils.overlay.hide();
     }

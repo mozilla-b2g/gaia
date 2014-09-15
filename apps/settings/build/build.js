@@ -71,6 +71,17 @@ SettingsAppBuilder.prototype.writeFindMyDeviceConfigJSON = function(options) {
   utils.writeContent(file, content);
 };
 
+SettingsAppBuilder.prototype.writeEuRoamingJSON = function(options) {
+  var distDir = options.GAIA_DISTRIBUTION_DIR;
+
+  var file = utils.getFile(options.STAGE_APP_DIR, 'resources',
+                           'eu-roaming.json');
+  var defaultContent = {};
+  var content = utils.getDistributionFileContent('eu-roaming',
+                                                  defaultContent, distDir);
+  utils.writeContent(file, content);
+};
+
 /**
  * Override default search providers if customized version found in
  * in /customization/search
@@ -164,6 +175,7 @@ SettingsAppBuilder.prototype.execute = function(options) {
   this.writeDeviceFeaturesJSON(options);
   this.writeSupportsJSON(options);
   this.writeFindMyDeviceConfigJSON(options);
+  this.writeEuRoamingJSON(options);
   this.overrideSearchProviders(options);
 };
 

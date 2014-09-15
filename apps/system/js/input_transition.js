@@ -91,7 +91,7 @@ InputAppsTransitionManager.prototype.handleResize = function(height) {
   switch (this.currentState) {
     case this.STATE_HIDDEN:
     case this.STATE_TRANSITION_OUT:
-      this.occupyingHeight = height;
+      this._setOccupyingHeight(height);
       this._changeState(this.STATE_TRANSITION_IN);
 
       // Start or revert transition
@@ -105,7 +105,7 @@ InputAppsTransitionManager.prototype.handleResize = function(height) {
         return;
 
       }
-      this.occupyingHeight = height;
+      this._setOccupyingHeight(height);
       // No state change, but we need to publish a event.
       this._publish('keyboardchange');
 
@@ -113,7 +113,7 @@ InputAppsTransitionManager.prototype.handleResize = function(height) {
 
     case this.STATE_TRANSITION_IN:
       // No state change, simply update the cached height.
-      this.occupyingHeight = height;
+      this._setOccupyingHeight(height);
 
       break;
   }
@@ -198,6 +198,28 @@ InputAppsTransitionManager.prototype._publish = function (type) {
   document.body.dispatchEvent(evt);
 };
 
+// wrap it so we can mock it for testing
+InputAppsTransitionManager.prototype._getDpx = function () {
+  return window.devicePixelRatio;
+};
+
+InputAppsTransitionManager.prototype._setOccupyingHeight = function (height) {
+  // bug 1059683: when we're on a HiDPI device with non-integer devicePixelRatio
+  // the system may calculate (from available screen height and keyboard height)
+  // the available height for current window/layout that is a fraction smaller
+  // than the ideal value, which can result in a 1-device-px gap between the
+  // current window/layout and keyboard, on such devices.
+  // to mitigate this, the keyboard tries to report 1 less pixel of height if
+  // it sees that the height of the keyboard is a fraction when expressed in
+  // device pixel.
+
+  var dpx = this._getDpx();
+  if ((height * dpx) % 1 !== 0) {
+    height = Math.floor(height * dpx) / dpx;
+  }
+
+  this.occupyingHeight = height;
+};
 
 exports.InputAppsTransitionManager = InputAppsTransitionManager;
 

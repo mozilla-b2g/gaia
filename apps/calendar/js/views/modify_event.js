@@ -1,5 +1,8 @@
+/* global InputParser */
 Calendar.ns('Views').ModifyEvent = (function() {
   'use strict';
+
+  var getTimeL10nLabel = Calendar.Calc.getTimeL10nLabel;
 
   function ModifyEvent(options) {
     this.deleteRecord = this.deleteRecord.bind(this);
@@ -27,7 +30,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       errors: '#modify-event-view .errors',
       primaryButton: '#modify-event-view .save',
       deleteButton: '#modify-event-view .delete-record',
-      cancelButton: '#modify-event-view .cancel'
+      header: '#modify-event-header'
     },
 
     uiSelector: '[name="%"]',
@@ -663,8 +666,8 @@ Calendar.ns('Views').ModifyEvent = (function() {
             this._setEndDateTimeWithCurrentDuration();
             this.showErrors({
               name: type === 'date' ?
-                'start-after-end' :
-                'start-after-end-on-same-date'
+                'start-date-after-end-date' :
+                'start-time-after-end-time'
             });
           }
 
@@ -696,6 +699,9 @@ Calendar.ns('Views').ModifyEvent = (function() {
       // we inject the targetElement to make it easier to test
       var localeFormat = Calendar.App.dateFormat.localeFormat;
       var formatKey = this.formats[type];
+      if (type === 'time') {
+        formatKey = getTimeL10nLabel(formatKey);
+      }
       var format = navigator.mozL10n.get(formatKey);
       targetElement.textContent = localeFormat(value, format);
       // we need to store the format and date for l10n

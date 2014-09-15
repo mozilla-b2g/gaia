@@ -32,8 +32,7 @@ define(function() {
       setTimeout(cb);
       onreadycbs.push(cb);
     },
-    translate: function() {},
-    localize: function() {},
+    setAttributes: function() {},
     DateTimeFormat: DateTimeFormat,
 
     // for unit tests

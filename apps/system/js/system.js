@@ -13,7 +13,8 @@
      * Now it stands for the foreground app is not loaded yet.
      */
     isBusyLoading: function() {
-      return !window.AppWindowManager.getActiveApp().loaded;
+      var app = window.AppWindowManager.getActiveApp();
+      return app && !app.loaded;
     },
     /**
      * Record the start time of the system for later debugging usage.

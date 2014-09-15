@@ -1,0 +1,6 @@
+/*csslint empty-rules: false*/
+/* See bug 1053721 */
+:root {
+  --software-home-button-height: 4.4rem;
+  --statusbar-height: 3rem;
+}

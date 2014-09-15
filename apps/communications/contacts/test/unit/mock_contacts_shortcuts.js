@@ -7,5 +7,11 @@ var MockAlphaScroll = {
   },
   toggleFormat: function() {
     return;
+  },
+  showGroup: function(name) {
+
+  },
+  hideGroup: function(name) {
+    
   }
 };

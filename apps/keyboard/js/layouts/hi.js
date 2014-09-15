@@ -6,7 +6,7 @@ Keyboards.hi = {
   secondLayout: true,
   alternateLayoutKey: '?१२३',
   basicLayoutKey: 'कखग',
-  types: ['text', 'url', 'email', 'number'],
+  types: ['text', 'url', 'email'],
   width: 11,
   keyClassName: 'hindi',
   alt: {
@@ -74,7 +74,7 @@ Keyboards.hi = {
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
       '१': '1',
       '२': '2',
@@ -102,7 +102,11 @@ Keyboards.hi = {
         { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
         { value: '(' }, { value: ')' }
       ], [
-        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
+        },
         { value: '+',
           supportsSwitching: {
             value: ','
@@ -115,5 +119,5 @@ Keyboards.hi = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

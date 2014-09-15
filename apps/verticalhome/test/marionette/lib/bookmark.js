@@ -9,7 +9,7 @@ function Bookmark(client, server) {
 Bookmark.prototype = {
 
   Selectors: {
-    'bookmarkAddButton': '#add-button',
+    'bookmarkAddButton': '#done-button',
     'mozbrowser': '.inline-activity.active iframe[mozbrowser]',
   },
 

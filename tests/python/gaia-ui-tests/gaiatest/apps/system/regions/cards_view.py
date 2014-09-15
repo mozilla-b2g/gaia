@@ -16,7 +16,7 @@ class CardsView(Base):
     # Check that the origin contains the current app name, origin is in the format:
     # app://clock.gaiamobile.org
     _apps_cards_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"]')
-    _close_buttons_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"] .close-card')
+    _close_buttons_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"] .close-button')
 
     def _app_card_locator(self, app):
         return (self._apps_cards_locator[0], self._apps_cards_locator[1] % app.lower())
@@ -29,9 +29,9 @@ class CardsView(Base):
         return self.is_element_displayed(*self._cards_view_locator)
 
     def wait_for_card_ready(self, app):
-        current_frame = self.apps.displayed_app.frame
+        cards = self.marionette.find_element(*self._cards_view_locator)
         card = self.marionette.find_element(*self._app_card_locator(app))
-        self.wait_for_condition(lambda m: current_frame.size['width'] - card.size['width'] == 2 * card.location['x'])
+        self.wait_for_condition(lambda m: cards.size['width'] - card.size['width'] == 2 * card.location['x'])
         # TODO: Remove sleep when we find a better wait
         time.sleep(0.2)
 
@@ -59,9 +59,8 @@ class CardsView(Base):
     def swipe_to_previous_app(self):
         current_frame = self.apps.displayed_app.frame
 
-        final_x_position = current_frame.size['width']
-        # start swipe from center of window
-        start_x_position = final_x_position // 2
+        start_x_position = current_frame.size['width']
+        final_x_position = start_x_position * 2
         start_y_position = current_frame.size['height'] // 2
 
         # swipe forward to get previous app card

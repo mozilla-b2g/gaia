@@ -98,6 +98,23 @@ if (!utils.alphaScroll) {
       alreadyRendered = true;
     };
 
+    // Provide a mechanism to hide/show groups at will
+    alphaScroll.showGroup = function(name) {
+      var selector = '[data-anchor="group-'+ name + '"]';
+      var group = jumper.querySelector(selector);
+      if (group) {
+        group.classList.remove('hide');
+      }
+    };
+
+    alphaScroll.hideGroup = function(name) {
+      var selector = '[data-anchor="group-'+ name + '"]';
+      var group = jumper.querySelector(selector);
+      if (group) {
+        group.classList.add('hide');
+      }
+    };
+
     function hideExtraItems(value) {
       if (!liSearch) {
         liSearch = jumper.querySelector('li[data-anchor="search-container"]');

@@ -201,9 +201,9 @@ Collection.prototype = {
         });
       } else {
         // If E.me has not been initialzed for the smart collections,
-        // we early-return. We let the default smart collections be populated
+        // we skip migration. We let the default smart collections be populated
         // for the vertical homescreen instead.
-        return;
+        descriptor.skipMigration = true;
       }
       var categoryId = descriptor.categoryId || this.providerId;
       var id = parseInt(categoryId);

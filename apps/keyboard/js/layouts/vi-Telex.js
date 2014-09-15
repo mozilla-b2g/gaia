@@ -3,7 +3,7 @@ Keyboards['vi-Telex'] = {
   shortLabel: 'Vi',
   menuLabel: 'Tiếng Việt (Telex)',
   imEngine: 'jstelex',
-  types: ['text', 'url', 'email', 'number'],
+  types: ['text', 'url', 'email'],
   keys: [
     [
       { value: 'q' }, { value: 'w' }, { value: 'e' } , { value: 'r' },

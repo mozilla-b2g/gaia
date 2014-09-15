@@ -36,6 +36,13 @@ function enumerateAll(storages, dir, options) {
 
   function onerror(e) {
     cursor.error = e.target.error;
+    if (cursor.error.name === 'NotFoundError' &&
+        storageIndex !== storages.length - 1) {
+      storageIndex++;
+      enumerateNextStorage();
+      return;
+    }
+
     if (cursor.onerror) {
       try {
         cursor.onerror(e);

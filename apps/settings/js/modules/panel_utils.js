@@ -146,7 +146,18 @@ define(function(require) {
       var i, count;
 
       for (i = 0, count = links.length; i < count; i++) {
-        links[i].onclick = _onclick;
+        if (links[i].tagName !== 'GAIA-HEADER') {
+          links[i].onclick = _onclick;
+        }
+      }
+
+      // Setup back listener
+      var backHeader = panel.querySelector('gaia-header[action="back"]');
+      var href = backHeader && backHeader.dataset.href;
+      if (backHeader && href) {
+        backHeader.addEventListener('action', function() {
+          Settings.currentPanel = this.dataset.href;
+        });
       }
     },
 
@@ -365,9 +376,9 @@ define(function(require) {
 
       // hide or unhide items
       rule = '[data-show-name="' + key + '"]:not([data-ignore])';
-      var item = document.querySelector(rule);
-      if (item) {
-        item.hidden = !value;
+      var items = document.querySelectorAll(rule);
+      for (i = 0; i < items.length; i++) {
+        items[i].hidden = !value;
       }
 
       // update <input> values when the corresponding setting is changed

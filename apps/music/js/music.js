@@ -120,12 +120,22 @@ navigator.mozL10n.once(function onLocalizationInit() {
 var displayingScanProgress = false;
 
 function init() {
+  // We want to exclude some folders that store ringtones so they don't show up
+  // in the music app. The regex matches absolute paths starting with a volume
+  // name (e.g. "/volume-name/Ringtones/") or relative paths starting with the
+  // excluded folder name (e.g. "Ringtones/").
+  var excludedFolders = ['Ringtones', 'Notifications', 'Alarms'];
+  var excludeFilter = new RegExp(
+    '^(/[^/]*/)?(' + excludedFolders.join('|') + ')/', 'i'
+  );
+
   // Here we use the mediadb.js which gallery is using (in shared/js/)
   // to index our music contents with metadata parsed.
   // So the behaviors of musicdb are the same as the MediaDB in gallery
   musicdb = new MediaDB('music', metadataParserWrapper, {
     indexes: ['metadata.album', 'metadata.artist', 'metadata.title',
               'metadata.rated', 'metadata.played', 'date'],
+    excludeFilter: excludeFilter,
     batchSize: 1,
     autoscan: false, // We call scan() explicitly after listing music we know
     version: 2
@@ -506,10 +516,23 @@ var ModeManager = {
   },
 
   pop: function() {
-    if (this._modeStack.length <= 1)
+    if (this._modeStack.length <= 1) {
       return;
+    }
     this._modeStack.pop();
     this._updateMode();
+  },
+
+  updateBackArrow: function() {
+    var noBackArrow = [
+      MODE_TILES,
+      MODE_LIST,
+      MODE_SEARCH_FROM_TILES,
+      MODE_SEARCH_FROM_LIST
+    ];
+
+    var hide = noBackArrow.indexOf(this.currentMode) > -1;
+    TitleBar.showBackArrow(!hide);
   },
 
   updateTitle: function() {
@@ -549,8 +572,11 @@ var ModeManager = {
     // because the title is already localized in HTML
     // And if title does exist, it should be the localized "Music"
     // so it will be just fine to update changeTitleText() again
-    if (title)
+    if (title) {
       TitleBar.changeTitleText(title);
+    }
+
+
   },
 
   _updateMode: function(callback) {
@@ -558,6 +584,7 @@ var ModeManager = {
     var playerLoaded = (typeof PlayerView != 'undefined');
 
     this.updateTitle();
+    this.updateBackArrow();
 
     if (mode === MODE_PLAYER) {
       // Here if Player is not loaded yet and we are going to play
@@ -595,14 +622,16 @@ var ModeManager = {
       // Disable the NFC sharing when it's in the other modes.
       this.enableNFCSharing(false);
 
-      if (callback)
+      if (callback) {
         callback();
+      }
     }
 
     // We have to show the done button when we are in picker mode
     // and previewing the selecting song
-    if (pendingPick)
+    if (pendingPick) {
       document.getElementById('title-done').hidden = (mode !== MODE_PLAYER);
+    }
 
     // Remove all mode classes before applying a new one
     var modeClasses = ['tiles-mode', 'list-mode', 'sublist-mode', 'player-mode',
@@ -627,8 +656,9 @@ var ModeManager = {
   },
 
   enableNFCSharing: function(enabled) {
-    if (!navigator.mozNfc)
+    if (!navigator.mozNfc) {
       return;
+    }
 
     if (enabled && !pendingPick) {
       // Assign the sharing function to onpeerready so that it will trigger
@@ -665,10 +695,29 @@ var TitleBar = {
 
   init: function tb_init() {
     this.view.addEventListener('click', this);
+    this.view.addEventListener('action', this.onActionBack);
   },
 
   changeTitleText: function tb_changeTitleText(content) {
     this.titleText.textContent = content;
+  },
+
+  showBackArrow: function(show) {
+    if (show) { this.view.setAttribute('action', 'back'); }
+    else { this.view.removeAttribute('action'); }
+  },
+
+  onActionBack: function() {
+    if (pendingPick) {
+      if (ModeManager.currentMode === MODE_PICKER) {
+        pendingPick.postError('pick cancelled');
+        return;
+      }
+
+      PlayerView.stop();
+    }
+
+    ModeManager.pop();
   },
 
   handleEvent: function tb_handleEvent(evt) {
@@ -680,23 +729,11 @@ var TitleBar = {
 
     switch (evt.type) {
       case 'click':
-        if (!target)
+        if (!target) {
           return;
+        }
 
         switch (target.id) {
-          case 'title-back':
-            if (pendingPick) {
-              if (ModeManager.currentMode === MODE_PICKER) {
-                pendingPick.postError('pick cancelled');
-                return;
-              }
-
-              cleanupPick();
-            }
-
-            ModeManager.pop();
-
-            break;
           case 'title-player':
             // We cannot to switch to player mode
             // when there is no song in the dataSource of player
@@ -1041,6 +1078,7 @@ function createListElement(option, data, index, highlight) {
       if (index === 0) {
         var shuffleIcon = document.createElement('div');
         shuffleIcon.className = 'list-playlist-icon';
+        shuffleIcon.dataset.icon = 'shuffle';
         li.appendChild(shuffleIcon);
       }
 

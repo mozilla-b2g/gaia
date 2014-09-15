@@ -16,7 +16,9 @@
     "alarms": {},
     "telephony": {},
     "storage": {},
-    "audio-channel-notification":{}
+    "audio-channel-notification":{},
+    "webapps-manage":{},
+    "device-storage:apps":{ "access": "readonly" }
   },
   "activities": {
     "costcontrol/balance": {

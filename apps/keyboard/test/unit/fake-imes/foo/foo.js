@@ -8,5 +8,7 @@ InputMethods.foo = {
   },
   activate: sinon.stub(),
   deactivate: sinon.stub(),
-  click: sinon.stub()
+  click: sinon.stub(),
+  selectionChange: sinon.stub(),
+  surroundingtextChange: sinon.stub()
 };

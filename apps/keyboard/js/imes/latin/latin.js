@@ -53,7 +53,8 @@
     dismissSuggestions: dismissSuggestions,
     setLayoutParams: setLayoutParams,
     setLanguage: setLanguage,
-    handleEvent: handleEvent
+    selectionChange: selectionChange,
+    generateNearbyKeyMap: nearbyKeys
   };
 
   // This is the object that is passed to init().
@@ -122,6 +123,11 @@
   // this much more highly weighted than the second suggested word.
   var AUTO_CORRECT_THRESHOLD = 1.30;
 
+  // If the length doesn't match between input and first suggestion.
+  // The min. frequency the first suggestion needs to have if we turn it into
+  // an autocorrect action
+  var MIN_LENGTH_MISMATCH_THRESHOLD = 5;
+
   /*
    * Since inputContext.sendKey is an async fuction that will return a promise,
    * and we need to update the current state (capitalization, input value)
@@ -129,12 +135,6 @@
    * or the key would be sent with a wrong state.
    */
   var inputSequencePromise = Promise.resolve();
-
-  // Flag to stop updating suggestions for selectionchange when we're going
-  // to do some actions that will cause selectionchange, such as sendKey()
-  // or replaceSurroundingText().
-  var pendingSelectionChange = 0;
-  var inputContext = null;
 
   // keyboard.js calls this to pass us the interface object we need
   // to communicate with it
@@ -198,9 +198,10 @@
     suggesting = (options.suggest && inputMode !== 'verbatim');
     correcting = (options.correct && inputMode !== 'verbatim');
 
-    if (state.inputContext) {
-      inputContext = state.inputContext;
-      inputContext.addEventListener('selectionchange', this);
+    // Some layouts (like French) need to disable punctuation autocorrection
+    // all the time.
+    if (options.correctPunctuation === false) {
+      punctuating = false;
     }
 
     // Reset our state
@@ -231,10 +232,6 @@
   }
 
   function deactivate() {
-    if (inputContext) {
-      inputContext.removeEventListener('selectionchange', this);
-    }
-
     if (!worker || idleTimer)
       return;
     idleTimer = setTimeout(terminateWorker, WORKER_TIMEOUT);
@@ -363,8 +360,6 @@
     // Wait for the previous keys have been resolved and then handle the next
     // key.
 
-    pendingSelectionChange++;
-
     var nextKeyPromise = inputSequencePromise.then(function() {
       keyCode = keyboard.isCapitalized() && upperKeyCode ? upperKeyCode :
                                                            keyCode;
@@ -422,15 +417,16 @@
 
       // Exit symbol layout mode after space or return key is pressed.
       if (keyCode === SPACE || keyCode === RETURN) {
-        keyboard.setLayoutPage(LAYOUT_PAGE_DEFAULT);
+        keyboard.setLayoutPage(PAGE_INDEX_DEFAULT);
       }
 
       lastSpaceTimestamp = (keyCode === SPACE) ? Date.now() : 0;
-      pendingSelectionChange--;
     }, function() {
       // the previous sendKey or replaceSurroundingText has been rejected,
       // No need to update the state.
-      pendingSelectionChange--;
+    })['catch'](function(e) { // ['catch'] for gjslint error
+      // Print the error and make sure inputSequencePromise always resolves.
+      console.error(e);
     });
 
     // Need to return the promise, so that the caller could know
@@ -677,6 +673,20 @@
     // Now get an array of just the suggested words
     var words = suggestions.map(function(x) { return x[0]; });
 
+    // see whether words[0] and input have same length
+    var lengthMismatch;
+    switch (Math.abs(input.length - words[0].length)) {
+    case 0:
+      lengthMismatch = false;
+      break;
+    case 1:
+      lengthMismatch = suggestions[0][1] < MIN_LENGTH_MISMATCH_THRESHOLD;
+      break;
+    default:
+      lengthMismatch = true;
+      break;
+    }
+
     // Decide whether the first word is going to be an autocorrection.
     // If the user's input is already a valid word, then don't
     // autocorrect unless the first suggested word is more common than
@@ -692,7 +702,8 @@
         !correctionDisabled &&
         (!inputIsSuggestion ||
           suggestions[0][1] > inputWeight * AUTO_CORRECT_THRESHOLD) &&
-        (input.length > 1 || words[0].length === 1)) {
+        (input.length > 1 || words[0].length === 1) &&
+        !lengthMismatch) {
       // Remember the word to use if the next character is a space.
       autoCorrection = words[0];
       // Mark the auto-correction so the renderer can highlight it
@@ -714,7 +725,6 @@
     // Replace the current word with the selected suggestion plus space
     var newWord = data += ' ';
 
-    pendingSelectionChange++;
     return replaceBeforeCursor(oldWord, newWord).then(function() {
       // Remember the change we just made so we can revert it if the
       // next key is a backspace. Note that it is not an autocorrection
@@ -733,7 +743,6 @@
 
       // And update the keyboard capitalization state, if necessary
       updateCapitalization();
-      pendingSelectionChange--;
     });
   }
 
@@ -826,6 +835,9 @@
 
       var dx = (cx1 - cx2) / radius;
       var dy = (cy1 - cy2) / radius;
+      // We calculate distance from center to center, but this gives
+      // too high of a penalty to vertical keys, so normalize dx/dy
+      dy /= (key1.height / key1.width);
       var distanceSquared = dx * dx + dy * dy;
 
       if (distanceSquared < 1) {
@@ -1015,32 +1027,26 @@
     return c === '.' || c === '?' || c === '!';
   }
 
-  function handleEvent(evt) {
-    var type = evt.type;
-    switch (type) {
-      case 'selectionchange':
-      // We would get selectionchange event when the user type each char,
-      // or accept a word suggestion, so don't update suggestions in these
-      // cases.
-      if (cursor === evt.target.selectionStart ||
-          pendingSelectionChange > 0) {
-        return;
-      }
-
-      //XXX: Don't update inputText here, since textBeforeCursor would only
-      // contain 100 chars at most.
-      cursor = evt.target.selectionStart;
-      if (evt.target.selectionEnd > evt.target.selectionStart) {
-        selection = evt.target.selectionEnd;
-      } else {
-        selection = 0;
-      }
-
-      updateSuggestions();
-      break;
+  function selectionChange(detail) {
+    // We would get selectionchange event when the user type each char,
+    // or accept a word suggestion, so don't update suggestions in these
+    // cases.
+    if (detail.ownAction) {
+      return;
     }
+
+    //XXX: Don't update inputText here, since textBeforeCursor would only
+    // contain 100 chars at most.
+    cursor = detail.selectionStart;
+    if (detail.selectionEnd > detail.selectionStart) {
+      selection = detail.selectionEnd;
+    } else {
+      selection = 0;
+    }
+
+    updateSuggestions();
   }
 
-  if (!('LAYOUT_PAGE_DEFAULT' in window))
-    window.LAYOUT_PAGE_DEFAULT = null;
+  if (!('PAGE_INDEX_DEFAULT' in window))
+    window.PAGE_INDEX_DEFAULT = null;
 }());

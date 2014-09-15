@@ -1,4 +1,4 @@
-/* global fb, utils,
+/* global fb, utils, ImportStatusData,
           ServicesLauncher */
 /* exported ImportIntegration,
             FacebookConfiguration */
@@ -57,8 +57,6 @@ var ImportIntegration = {
       'fb_after_import2'));
   },
 
-  _contactsNotified: false,
-
   init: function fb_init() {
     this.fbImportButton.addEventListener('click', this);
     this.liveImportButton.addEventListener('click', this);
@@ -85,6 +83,7 @@ var ImportIntegration = {
         // token data and the number of imported friends in order to have
         // consistency
         this.updateContactsNumber();
+        ImportStatusData.put(fb.utils.SCHEDULE_SYNC_KEY, Date.now());
         break;
     }
   },

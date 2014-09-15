@@ -12,16 +12,19 @@
  * off UMS, and we put some text to that effect on the settings screen.
  */
 require([
-  'modules/settings_cache'
-], function(exports, SettingsCache) {
+  'modules/settings_cache',
+  'shared/toaster'
+], function(exports, SettingsCache, Toaster) {
   const MEDIA_TYPE = ['music', 'pictures', 'videos', 'sdcard'];
   const ITEM_TYPE = ['music', 'pictures', 'videos', 'free'];
+  const DEFAULT_MEDIA_VOLUME_KEY = 'device.storage.writable.name';
 
   var Volume = function(name, external, externalIndex, storages) {
     this.name = name;
     this.external = external;
     this.externalIndex = externalIndex;
     this.storages = storages;
+    this.currentStorageStatus = null;
     this.rootElement = null;  //<ul></ul>
     this.stackedbar = null;
   };
@@ -62,38 +65,40 @@ require([
   //      <span class="size"></span>
   //    </a>
   //  </li>
-  //  <li>
+  //  <li class="total-space">
   //    <span></span>
   //    <a data-l10n-id="total-space">Total space
   //      <span class="size"></span>
   //    </a>
   //  </li>
-  //  <label>
-  //    <button data-l10n-id="format-sdcard" disabled="true">
-  //    Format SD card
-  //    </button>
-  //  </label>
-  // </li>
-  //  <li>
-  //    <label class="pack-switch">
-  //      <input type="checkbox" name="ums.volume.sdcard.enabled" />
-  //      <span data-l10n-id="share-using-usb">Share using USB</span>
+  //  </li>
+  //    <label>
+  //      <button data-l10n-id="format-sdcard" disabled="true">
+  //      Format SD card
+  //      </button>
+  //    </label>
+  //  </li>
+  //  </li> <!-- unmount button for displaying external storage only -->
+  //    <label>
+  //      <button data-l10n-id="eject-sdcard" disabled="true">
+  //      Eject SD card
+  //      </button>
   //    </label>
   //  </li>
   //</ul>
 
+  Volume.prototype.getVolumeId = function volume_getVolumeId() {
+    return (this.external) ? 'external-' + this.externalIndex : 'internal';
+  };
+
   Volume.prototype.getL10nId = function volume_getL10nId(useShort) {
     var prefix = useShort ? 'short-storage-name-' : 'storage-name-';
-    if (this.external) {
-      return prefix + 'external-' + this.externalIndex;
-    } else {
-      return prefix + 'internal';
-    }
+    return prefix + this.getVolumeId();
   };
 
   Volume.prototype.createView = function volume_createView(listRoot) {
     // declair re-useable variables
-    var l10nId, li, label, text, size, anchor;
+    var l10nId, li, label, text, size, anchor, button, buttonType;
 
     // create header
     var h2 = document.createElement('h2');
@@ -101,6 +106,7 @@ require([
     h2.setAttribute('data-l10n-id', l10nId);
     var header = document.createElement('header');
     header.appendChild(h2);
+    header.dataset.id = this.getVolumeId();
     listRoot.appendChild(header);
     // create ul
     this.rootElement = document.createElement('ul');
@@ -144,33 +150,43 @@ require([
     anchor.appendChild(text);
     anchor.appendChild(size);
     li = document.createElement('li');
+    li.classList.add('total-space');
     li.appendChild(anchor);
     this.rootElement.appendChild(li);
 
-    var buttonType = 'format-sdcard';
-    var button = document.createElement('button');
-    button.setAttribute('data-l10n-id', buttonType);
-    button.disabled = true;
-    button.onclick = this.formatSDCard.bind(this);
-    label = document.createElement('label');
-    label.appendChild(button);
-    li = document.createElement('li');
-    li.appendChild(label);
-    this.rootElement.appendChild(li);
+    if (this.storages.sdcard.canBeFormatted) {
+      buttonType = 'format-sdcard-' + this.getVolumeId();
+      button = document.createElement('button');
+      button.classList.add('format-btn');
+      button.setAttribute('data-l10n-id', buttonType);
+      button.disabled = true;
+      button.onclick = this.formatSDCard.bind(this);
+      label = document.createElement('label');
+      label.appendChild(button);
+      li = document.createElement('li');
+      li.appendChild(label);
+      this.rootElement.appendChild(li);
+    }
 
-    var input = document.createElement('input');
-    input.type = 'checkbox';
-    input.name = 'ums.volume.' + this.name + '.enabled';
-    label = document.createElement('label');
-    label.classList.add('pack-switch');
-    label.appendChild(input);
-    var span = document.createElement('span');
-    span.setAttribute('data-l10n-id', 'share-using-usb');
-    label.appendChild(span);
+    // Since bug 1007053 landed, deviceStorage API provides attribute
+    // 'canBeFormatted', 'canBeMounted', 'canBeShared' for query capability.
+    // Example: Some of the devices(Nexus 4/5) are not supported external
+    // storage. And its internal storage is not supported format functionality.
 
-    var ele = document.createElement('li');
-    ele.appendChild(label);
-    this.rootElement.appendChild(ele);
+    // Internal storage is not supported unmount(eject sdcard).
+    if (this.external && this.storages.sdcard.canBeMounted) {
+      buttonType = 'eject-sdcard-' + this.getVolumeId();
+      button = document.createElement('button');
+      button.classList.add('eject-btn');
+      button.setAttribute('data-l10n-id', buttonType);
+      button.disabled = true;
+      button.onclick = this.unmountSDCard.bind(this);
+      label = document.createElement('label');
+      label.appendChild(button);
+      li = document.createElement('li');
+      li.appendChild(label);
+      this.rootElement.appendChild(li);
+    }
   };
 
   Volume.prototype.updateStorageInfo = function volume_updateStorageInfo() {
@@ -195,6 +211,53 @@ require([
                                            sizes['sdcard'] + sizes['free']);
       element.hidden = false;
     });
+  };
+
+  Volume.prototype.enableStorageInfo =
+    function volume_enableStorageInfo(enabled) {
+    // the storage details
+    ITEM_TYPE.forEach(function(type) {
+      var rule = 'li[class="color-' + type + '"]';
+      var element = this.rootElement.querySelector(rule);
+      element.setAttribute('aria-disabled', !enabled);
+    }.bind(this));
+
+    // total space size
+    var rule = 'li[class="total-space"]';
+    var element = this.rootElement.querySelector(rule);
+    element.setAttribute('aria-disabled', !enabled);
+  };
+
+  // Update external storage UI state only
+  Volume.prototype.updateStorageUIState =
+    function volume_updateStorageUIState(enabled) {
+    // If storage is formatting, we keep the information to figure out the
+    // status. Just do early return.
+    if (this.isFormatting && !enabled) {
+      return;
+    }
+
+    // set enabled/disabled information for external storage only
+    if (this.getVolumeId() === 'internal') {
+      return;
+    }
+
+    // external storage header
+    var rule = 'header[data-id=' + this.getVolumeId() + ']';
+    this.rootElement.parentNode.querySelector(rule).hidden = !enabled;
+
+    // external storage information
+    this.rootElement.hidden = !enabled;
+
+    // storage details
+    ITEM_TYPE.forEach(function(type) {
+      var rule = 'li[class="color-' + type + '"]';
+      this.rootElement.querySelector(rule).hidden = !enabled;
+    }.bind(this));
+
+    // total space size
+    var rule = 'li[class="total-space"]';
+    this.rootElement.querySelector(rule).hidden = !enabled;
   };
 
   Volume.prototype.getStats = function volume_getStats(callback) {
@@ -224,18 +287,74 @@ require([
       var state = evt.target.result;
       switch (state) {
         case 'shared':
+          self.updateStorageUIState(true);
+          self.setInfoUnavailable();
+          self.enableStorageInfo(false);
+          break;
         case 'unavailable':
           self.setInfoUnavailable();
-          self.enableFormatSDCardBtn(false);
+          self.enableStorageInfo(false);
+          self.updateStorageUIState(false);
           break;
         case 'available':
+          self.updateStorageUIState(true);
           self.updateStorageInfo();
+          self.enableStorageInfo(true);
+          self.enableUnmountSDCardBtn(true);
           self.enableFormatSDCardBtn(true);
           break;
       }
       if (callback)
         callback(state);
     };
+  };
+
+  Volume.prototype.updateUIState =
+  function volume_updateUIState(storageStatus) {
+    switch (storageStatus) {
+      case 'Init':
+      case 'NoMedia':
+      case 'Pending':
+      case 'Unmounting':
+        this.updateStorageUIState(false);
+        this.enableUnmountSDCardBtn(false);
+        this.enableFormatSDCardBtn(false);
+        break;
+      case 'Shared':
+      case 'Shared-Mounted':
+        this.updateStorageUIState(true);
+        this.enableUnmountSDCardBtn(false);
+        this.enableFormatSDCardBtn(false);
+        break;
+      case 'Formatting':
+        this.enableUnmountSDCardBtn(false);
+        this.enableFormatSDCardBtn(false, true);
+        break;
+      case 'Checking':
+        this.isFormatting = false;
+        break;
+      case 'Idle': // means Unmounted
+        // pop up a toast to guide a user to remove SD card
+        if (this.isUnmounting) {
+          this.isUnmounting = false;
+          var toast = {
+            messageL10nId: 'sdcardUnmounted',
+            latency: 3000,
+            useTransition: true
+          };
+          // create toast
+          Toaster.showToast(toast);
+        }
+
+        this.updateStorageUIState(false);
+        this.enableUnmountSDCardBtn(false);
+        break;
+      case 'Mounted':
+        this.updateStorageUIState(true);
+        this.enableUnmountSDCardBtn(true);
+        this.enableFormatSDCardBtn(true);
+        break;
+    }
   };
 
   Volume.prototype.setInfoUnavailable = function volume_setInfoUnavailable() {
@@ -247,10 +366,46 @@ require([
     });
     // set total space info.
     var element =
-      this.rootElement.querySelector('a[data-l10n-id="total-space"] .size');
+      this.rootElement.querySelector('.total-space .size');
     element.setAttribute('data-l10n-id', 'size-not-available');
     // stacked bar reset
     this.stackedbar.reset();
+  };
+
+  Volume.prototype.mountSDCard = function volume_mountSDCard(evt) {
+    this.storages.sdcard.mount();
+  };
+
+  Volume.prototype.unmountSDCard = function volume_unmountSDCard(evt) {
+    // Pop up a confirm window before unmount SD card.
+    var popup = document.getElementById('unmount-sdcard-dialog');
+    var cancelBtn = document.getElementById('unmount-sdcard-cancel-btn');
+    var okBtn = document.getElementById('unmount-sdcard-ok-btn');
+
+    var self = this;
+    var confirmHandler = function() {
+      enablePopup(false);
+      // Unmount SD card
+      self.storages.sdcard.unmount();
+      self.isUnmounting = true;
+    };
+
+    var cancelHandler = function() {
+      enablePopup(false);
+    };
+
+    var enablePopup = function Vf_enablePopup(enabled) {
+      if (enabled) {
+        okBtn.addEventListener('click', confirmHandler);
+        cancelBtn.addEventListener('click', cancelHandler);
+        popup.hidden = false;
+      } else {
+        okBtn.removeEventListener('click', confirmHandler);
+        cancelBtn.removeEventListener('click', cancelHandler);
+        popup.hidden = true;
+      }
+    };
+    enablePopup(true);
   };
 
   Volume.prototype.formatSDCard = function volume_formatSDCard(evt) {
@@ -263,6 +418,7 @@ require([
     var confirmHandler = function() {
       enablePopup(false);
       // Format SD card
+      self.isFormatting = true;
       self.storages.sdcard.format();
     };
 
@@ -284,10 +440,28 @@ require([
     enablePopup(true);
   };
 
+  Volume.prototype.enableUnmountSDCardBtn =
+    function volume_enableUnmountSDCardBtn(enabled) {
+    if (this.external && this.storages.sdcard.canBeMounted) {
+      this.rootElement.querySelector('.eject-btn').disabled = !enabled;
+    }
+  };
+
   Volume.prototype.enableFormatSDCardBtn =
-    function volume_enableFormatSDCardBtn(enabled) {
-      var rule = 'button[data-l10n-id="format-sdcard"]';
-      this.rootElement.querySelector(rule).disabled = !enabled;
+    function volume_enableFormatSDCardBtn(enabled, isFormatting) {
+    if (this.storages.sdcard.canBeFormatted) {
+      // enable/disable button
+      var formatBtn = this.rootElement.querySelector('.format-btn');
+      formatBtn.disabled = !enabled;
+
+      // update text description on button
+      var l10nId = 'format-sdcard-' + this.getVolumeId();
+      if (!enabled && isFormatting) {
+        l10nId = 'formatting';
+      }
+
+      formatBtn.setAttribute('data-l10n-id', l10nId);
+    }
   };
 
   var MediaStorage = {
@@ -299,14 +473,14 @@ require([
 
       this.usmEnabledVolume = {};
       this.umsVolumeShareState = false;
+
       // Use visibilitychange so that we don't get notified of device
       // storage notifications when the settings app isn't visible.
       document.addEventListener('visibilitychange', this);
-      this.registerUmsListener();
 
-      var self = this;
-      var umsSettingKey = 'ums.enabled';
-
+      // default media location
+      this.defaultMediaLocationList =
+        document.querySelector('.default-media-location');
       this.defaultMediaLocation =
         document.getElementById('defaultMediaLocation');
       this.defaultMediaLocation.addEventListener('click', this);
@@ -352,22 +526,6 @@ require([
       return volumeList;
     },
 
-    registerUmsListener: function ms_registerUmsListener() {
-      var self = this;
-      var settings = Settings.mozSettings;
-      this._volumeList.forEach(function(volume, index) {
-        var key = 'ums.volume.' + volume.name + '.enabled';
-        SettingsCache.getSettings(function(allSettings) {
-          var input = document.querySelector('input[name="' + key + '"]');
-          input.checked = allSettings[key] || false;
-          self.usmEnabledVolume[index] = input.checked;
-        });
-        settings.addObserver(key, function(evt) {
-          self.usmEnabledVolume[index] = evt.settingValue;
-        });
-      });
-    },
-
     handleEvent: function ms_handleEvent(evt) {
       switch (evt.type) {
         case 'localized':
@@ -376,14 +534,21 @@ require([
         case 'change':
           if (evt.target.id === 'ums-switch') {
             Storage.umsMasterSettingChanged(evt);
+          } else if (evt.target.id === 'defaultMediaLocation') {
+            this.defaultLocationName = this.defaultMediaLocation.value;
           } else {
-            // we are handling storage state changes
+            // we are handling storage changes
             // possible state: available, unavailable, shared
             this.updateInfo();
           }
           break;
+        case 'storage-state-change':
+          var storageStatus = evt.reason;
+          var storageName = evt.currentTarget.storageName;
+          this.updateStorageStatus(storageStatus, storageName);
+          break;
         case 'click':
-          this.changeDefaultStorage();
+          this.showChangingDefaultStorageConfirmation();
           break;
         case 'visibilitychange':
           this.updateListeners(this.updateInfo.bind(this));
@@ -393,9 +558,9 @@ require([
 
     makeDefaultLocationMenu: function ms_makeDefaultLocationMenu() {
       var self = this;
-      var defaultMediaVolumeKey = 'device.storage.writable.name';
       SettingsCache.getSettings(function(allSettings) {
-        var defaultName = allSettings[defaultMediaVolumeKey];
+        self.defaultLocationName = allSettings[DEFAULT_MEDIA_VOLUME_KEY];
+        var defaultName = allSettings[DEFAULT_MEDIA_VOLUME_KEY];
         var selectionMenu = self.defaultMediaLocation;
         var selectedIndex = 0;
         self._volumeList.forEach(function(volume, index) {
@@ -413,15 +578,22 @@ require([
 
         // disable option menu if we have only one option
         if (self._volumeList.length === 1) {
+          self.defaultMediaLocationList.setAttribute('aria-disabled', true);
           selectionMenu.disabled = true;
+          selectionMenu.parentNode.setAttribute('aria-disabled', true);
           var obj = {};
-          obj[defaultMediaVolumeKey] = selectedOption.value;
+          obj[DEFAULT_MEDIA_VOLUME_KEY] = selectedOption.value;
           Settings.mozSettings.createLock().set(obj);
+        } else if (self._volumeList.length > 1) {
+          // observe selection menu 'change' event for updating default location
+          // name.
+          selectionMenu.addEventListener('change', self);
         }
       });
     },
 
-    changeDefaultStorage: function ms_changeDefaultStorage() {
+    showChangingDefaultStorageConfirmation:
+    function ms_showChangingDefaultStorageConfirmation() {
       //Pop up a confirm window before listing options.
       var popup = document.getElementById('default-location-popup-container');
       var cancelBtn = document.getElementById('default-location-cancel-btn');
@@ -451,6 +623,7 @@ require([
             // use sdcard storage to represent this volume
             var volumeStorage = volume.storages.sdcard;
             volumeStorage.removeEventListener('change', self);
+            volumeStorage.removeEventListener('storage-state-change', self);
           });
           this.documentStorageListener = false;
         }
@@ -460,6 +633,7 @@ require([
             // use sdcard storage to represent this volume
             var volumeStorage = volume.storages.sdcard;
             volumeStorage.addEventListener('change', self);
+            volumeStorage.addEventListener('storage-state-change', self);
           });
           this.documentStorageListener = true;
         }
@@ -478,6 +652,69 @@ require([
           }
         });
       });
+    },
+
+    // update storage status corresponding to each volume storage
+    updateStorageStatus:
+    function ms_updateStorageStatus(storageStatus, storageName) {
+      if (this._volumeList.length === 1) {
+        // one volume only, so fire event to the volume instance directly
+        this._volumeList[0].currentStorageStatus = storageStatus;
+        this._volumeList[0].updateUIState(storageStatus);
+      } else if (this._volumeList.length > 1) {
+        this._volumeList.forEach(function(volume) {
+          // The storage name is mapping to a hard code name. Because name of
+          // some external storeages are different. Such as, Flame: 'external',
+          // Helix: 'extsdcard'.
+          if ((storageName !== 'sdcard') && volume.external) {
+            // External
+            volume.currentStorageStatus = storageStatus;
+            volume.updateUIState(storageStatus);
+          } else if ((storageName === 'sdcard') && !volume.external) {
+            // Internal
+            volume.currentStorageStatus = storageStatus;
+            volume.updateUIState(storageStatus);
+          }
+        }.bind(this));
+
+        // Update default location. If there is only one storage, do nothing.
+        if (storageStatus !== 'Mounted') {
+          this.defaultMediaLocationList.setAttribute('aria-disabled', true);
+          this.defaultMediaLocation.disabled = true;
+          this.defaultMediaLocation.parentNode.setAttribute('aria-disabled',
+                                                            true);
+          if ((storageName !== 'sdcard') &&
+              (self.defaultLocationName !== 'sdcard')) {
+            if (storageStatus === 'NoMedia') {
+              // Change the default storage to be internal.
+              this.setInternalStorageBeDefaultMediaLocation();
+            } else if (storageStatus === 'Idle') {
+              // Change the default storage to be internal, if the storage
+              // status is still in 'Idle'. Because 'Shared', 'Formatting'
+              // status will go through 'Idle' status.
+              setTimeout(function() {
+                if (this._volumeList[1].currentStorageStatus === 'Idle') {
+                  this.setInternalStorageBeDefaultMediaLocation();
+                }
+              }.bind(this), 600);
+            }
+          }
+        } else {
+          this.defaultMediaLocationList.setAttribute('aria-disabled', false);
+          this.defaultMediaLocation.disabled = false;
+          this.defaultMediaLocation.parentNode.setAttribute('aria-disabled',
+                                                            false);
+        }
+      }
+    },
+
+    setInternalStorageBeDefaultMediaLocation:
+    function ms_setInternalStorageBeDefaultMediaLocation() {
+      var selectedOption = this.defaultMediaLocation.options[0];
+      selectedOption.selected = true;
+      var obj = {};
+      obj[DEFAULT_MEDIA_VOLUME_KEY] = selectedOption.value;
+      Settings.mozSettings.createLock().set(obj);
     }
   };
 
@@ -493,7 +730,7 @@ require([
       },
 
       refreshUI: function sb_refreshUI() {
-        container.parentNode.hidden = false;
+        container.parentNode.setAttribute('aria-disabled', false);
         items.forEach(function(item) {
           var className = 'color-' + item.type;
           var ele = container.querySelector('.' + className);
@@ -510,7 +747,7 @@ require([
       reset: function sb_reset() {
         items = [];
         totalSize = 0;
-        container.parentNode.hidden = true;
+        container.parentNode.setAttribute('aria-disabled', true);
       }
     };
   };

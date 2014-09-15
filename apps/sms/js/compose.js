@@ -101,24 +101,6 @@ var Compose = (function() {
       );
       return this;
     },
-    isMultiline: function sub_isMultuLine() {
-      // We don't check for subject emptiness because of the new line symbols
-      // that aren't respected by isEmpty, see bug 1030160 for details
-      if (!this.isShowing) {
-        return false;
-      }
-      // If subject can fit more than one line then it's considered as
-      // multiline one (currently it can have one or two lines)
-      return dom.subject.clientHeight / this.getLineHeight() >= 2;
-    },
-    getLineHeight: function sub_getLineHeight() {
-      if (!Number.isInteger(this.lineHeight)) {
-        var computedStyle = window.getComputedStyle(dom.subject);
-        // Line-height is not going to change, so cache it
-        this.lineHeight = Number.parseInt(computedStyle.lineHeight, 10);
-      }
-      return this.lineHeight;
-    },
     getMaxLength: function sub_getMaxLength() {
       return +dom.subject.dataset.maxLength;
     },
@@ -238,9 +220,6 @@ var Compose = (function() {
       placeholderClass,
       subject.isShowing && subject.isEmpty
     );
-
-    // Indicates that subject has multiple lines to change layout accordingly
-    dom.form.classList.toggle('multiline-subject', subject.isMultiline());
 
     Compose.updateEmptyState();
     Compose.updateSendButton();
@@ -479,10 +458,6 @@ var Compose = (function() {
 
     isSubjectEmpty: function() {
       return subject.isEmpty;
-    },
-
-    isMultilineSubject: function() {
-      return subject.isMultiline();
     },
 
     toggleSubject: function() {
@@ -862,10 +837,19 @@ var Compose = (function() {
 
       activity.onsuccess = function() {
         var result = activity.result;
+        var originalBlob = result.blob;
+        var exceedLimit = Settings.mmsSizeLimitation &&
+          originalBlob.size > Settings.mmsSizeLimitation;
+        var isImage = Utils.typeFromMimeType(originalBlob.type) === 'img';
 
-        if (Settings.mmsSizeLimitation &&
-          result.blob.size > Settings.mmsSizeLimitation &&
-          Utils.typeFromMimeType(result.blob.type) !== 'img') {
+        function newAttachment(blob) {
+          return new Attachment(blob, {
+            name: result.name,
+            isDraft: true
+          });
+        }
+
+        if (exceedLimit && !isImage) {
           if (typeof requestProxy.onerror === 'function') {
             requestProxy.onerror('file too large');
           }
@@ -873,10 +857,22 @@ var Compose = (function() {
         }
 
         if (typeof requestProxy.onsuccess === 'function') {
-          requestProxy.onsuccess(new Attachment(result.blob, {
-            name: result.name,
-            isDraft: true
-          }));
+          // We ought to just be able to call the onsuccess function now.
+          // But to workaround bug 944276, if we get a blob that is not a File
+          // and is not a big image that we are going to resize we need to
+          // make a private copy of it. Otherwise, it won't work if we
+          // pass it to another activity. Need to remove this part once
+          // bug 990123 fixed.
+          if (!(originalBlob instanceof Blob) || (isImage && exceedLimit)) {
+            requestProxy.onsuccess(newAttachment(originalBlob));
+          } else {
+            Utils.cloneBlob(originalBlob).then(function(newBlob) {
+              requestProxy.onsuccess(newAttachment(newBlob));
+            }).catch(function(error) {
+              console.error('Blob clone error :', error);
+              requestProxy.onsuccess(newAttachment(originalBlob));
+            });
+          }
         }
       };
 

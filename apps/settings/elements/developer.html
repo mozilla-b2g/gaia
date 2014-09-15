@@ -1,10 +1,9 @@
 <element name="developer" extends="section">
   <template>
 
-    <header>
-      <a href="#root"><span class="icon icon-back">Back</span></a>
+    <gaia-header action="back" data-href="#root">
       <h1 data-l10n-id="developer-header">Developer</h1>
-    </header>
+    </gaia-header>
 
     <div>
       <header>
@@ -166,6 +165,12 @@
         </li>
         <li>
           <label class="pack-checkbox">
+            <input type="checkbox" name="geolocation.debugging.gps-locations-ignored">
+            <span data-l10n-id="geolocation-debugging-gps-locations-ignored">Ignore GPS locations</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
             <input type="checkbox" name="wifi.debugging.enabled">
             <span data-l10n-id="wifi-debugging">Wi-Fi output in ADB</span>
           </label>
@@ -174,6 +179,12 @@
           <label class="pack-checkbox">
             <input type="checkbox" name="bluetooth.debugging.enabled">
             <span data-l10n-id="bluetooth-debugging">Bluetooth output in ADB</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="nfc.debugging.enabled">
+            <span data-l10n-id="nfc-debugging">NFC output in ADB</span>
           </label>
         </li>
         <li>
@@ -190,8 +201,8 @@
         </li>
         <li>
           <label class="pack-checkbox">
-            <input type="checkbox" name="accessibility.show-settings">
-            <span data-l10n-id="showA11ySettings">Show accessibility settings</span>
+            <input type="checkbox" name="accessibility.screenreader-show-settings">
+            <span data-l10n-id="showScreenReaderSettings">Show screen reader settings</span>
           </label>
         </li>
         <li>
@@ -204,6 +215,12 @@
           <label class="pack-checkbox">
             <input type="checkbox" name="devtools.logshake">
             <span data-l10n-id="shake-to-log">Shake to save system log</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="debug.verbose_app_permissions">
+            <span data-l10n-id="verbose-app-permissions">Verbose App Permissions</span>
           </label>
         </li>
         <li>

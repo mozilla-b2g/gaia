@@ -15,13 +15,6 @@ marionette('manipulate media storage settings', function() {
   });
 
   suite('check media storage basics', function() {
-    test('check initial state', function() {
-      assert.ok(
-        !mediaStoragePanel.isSharingUSBEnabled,
-        'Sharing USB is disabled by default'
-      );
-    });
-
     test.skip('check storage data contain numbers', function() {
       assert.ok(mediaStoragePanel.containNumberInMusicSpace);
       assert.ok(mediaStoragePanel.containNumberInPictureSpace);
@@ -33,15 +26,11 @@ marionette('manipulate media storage settings', function() {
       assert.ok(mediaStoragePanel.containNumberInTotalSpace);
     });
 
-    test('change Sharing USB mode', function() {
-      mediaStoragePanel.tapOnSharingUSB();
-      assert.ok(
-        mediaStoragePanel.isSharingUSBEnabled,
-        'Sharing USB mode has been enabled'
-      );
-    });
-
-    test('tap on Format SD card button', function() {
+    // Since 'canBeFormatted' attribute is false on b2g desktop,
+    // there is no foramt button for the functionality.
+    // So we have to skip over the test case.
+    // Once bug 1055992 fixed, we can re-enable the test case.
+    test.skip('tap on Format SD card button', function() {
       mediaStoragePanel.tapOnFormatSdcardButton();
       assert.ok(
         mediaStoragePanel.isFormatSdcardDialogShowed,

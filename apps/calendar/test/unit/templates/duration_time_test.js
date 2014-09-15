@@ -1,4 +1,5 @@
 requireLib('template.js');
+requireLib('templates/date_span.js');
 requireLib('templates/duration_time.js');
 
 suiteGroup('Templates.DurationTime', function() {
@@ -16,6 +17,17 @@ suiteGroup('Templates.DurationTime', function() {
   }
 
   suite('#durationTime', function() {
+    var container;
+
+    setup(function() {
+      container = document.createElement('div');
+      document.body.appendChild(container);
+    });
+
+    teardown(function() {
+      container.parentNode.removeChild(container);
+    });
+
     test('one day', function() {
       var startDate = new Date('1991-09-08T10:10:00');
       var endDate = new Date('1991-09-08T17:17:00');
@@ -25,10 +37,17 @@ suiteGroup('Templates.DurationTime', function() {
         isAllDay: false
       });
 
-      assert.equal(
-        durationDescription,
-        'Sunday, September 08, 1991<br>' +
-        'from 10:10 AM to 5:17 PM'
+      container.innerHTML = durationDescription;
+      var spans = container.querySelectorAll('span');
+      assert.include(
+        spans[0].dataset.date,
+        'Sun Sep 08 1991 10:10:00',
+        'start time'
+      );
+      assert.include(
+        spans[1].dataset.date,
+        'Sun Sep 08 1991 17:17:00',
+        'end time'
       );
     });
 
@@ -41,10 +60,17 @@ suiteGroup('Templates.DurationTime', function() {
         isAllDay: false
       });
 
-      assert.equal(
-        durationDescription,
-        'From 10:10 AM Sunday, September 08, 1991<br>' +
-        'to 5:17 PM Sunday, September 15, 1991'
+      container.innerHTML = durationDescription;
+      var spans = container.querySelectorAll('span');
+      assert.include(
+        spans[0].dataset.date,
+        'Sun Sep 08 1991 10:10:00',
+        'start time'
+      );
+      assert.include(
+        spans[1].dataset.date,
+        'Sun Sep 15 1991 17:17:00',
+        'end time'
       );
     });
 

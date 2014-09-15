@@ -4,6 +4,7 @@
 /* global GridLayout */
 /* global GridZoom */
 /* global LazyLoader */
+/* global performance */
 
 (function(exports) {
 
@@ -28,7 +29,7 @@
     this.onTouchEnd = this.onTouchEnd.bind(this);
     this.onScroll = this.onScroll.bind(this);
     this.onContextMenu = this.onContextMenu.bind(this);
-    this.lastTouchStart = null;
+    this.lastScrollTime = 0;
 
     if (config.features.zoom) {
       this.zoom = new GridZoom(this);
@@ -164,15 +165,7 @@
 
     // bug 1015000
     onScroll: function() {
-      clearTimeout(this.preventTapTimeout);
-
-      this.element.removeEventListener('touchstart', this.onTouchStart);
-
-      this.preventTapTimeout = setTimeout(function() {
-        this.element.addEventListener('touchstart', this.onTouchStart);
-      }.bind(this), PREVENT_TAP_TIMEOUT);
-
-      this.lastTouchStart = null;
+      this.lastScrollTime = performance.now();
     },
 
     onTouchStart: function(e) {
@@ -185,8 +178,17 @@
     // Gecko does that automatically but since we want to use touch events for
     // more responsiveness, we also need to replicate that behavior.
     onTouchEnd: function(e) {
+      var lastScrollTime = this.lastScrollTime;
+      this.lastScrollTime = 0;
+      var diff = performance.now() - lastScrollTime;
+      if (diff > 0 && diff < PREVENT_TAP_TIMEOUT) {
+        return;
+      }
+
       var lastTouchStart = this.lastTouchStart;
+
       if (!lastTouchStart) {
+        // This variable is deleted once a contextmenu event is received
         return;
       }
 
@@ -233,7 +235,7 @@
 
       // We do not allow users to launch icons in edit mode
       if (action === 'launch' && inEditMode) {
-        if (icon.detail.type !== 'bookmark' || !icon.isEditable()) {
+        if (!icon.isEditable()) {
           return;
         }
         // Editing a bookmark in edit mode
@@ -376,6 +378,7 @@
      * @param {Object} options Options to render with including:
      *  - from {Integer} The index to start rendering from.
      *  - skipDivider {Boolean} Whether or not to skip the divider
+     *  - rerender {Boolean} Whether we should clean elements and re-render.
      */
     render: function(options) {
       var self = this;
@@ -423,6 +426,12 @@
 
       for (var idx = 0; idx <= to; idx++) {
         var item = this.items[idx];
+
+        // Remove the element if we are re-rendering.
+        if (options.rerender && item.element) {
+          this.element.removeChild(item.element);
+          item.element = null;
+        }
 
         // If the item would go over the boundary before rendering,
         // step the y-axis.

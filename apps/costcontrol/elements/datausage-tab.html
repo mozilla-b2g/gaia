@@ -16,30 +16,37 @@
 
         <ul class="toggle-data" data-type="list">
           <li id="mobileItem" aria-disabled="true">
+            <span data-l10n-id="mobile-usage">Mobile usage</span>
+            <span class="overview" id="mobileOverview"></span>
             <label class="pack-checkbox">
               <input type="checkbox" id="mobileCheck">
               <span>
               </span>
             </label>
-            <p>
-              <strong class="overview" id="mobileOverview"></strong>
-              <span data-l10n-id="mobile-usage">Mobile usage</span>
-            </p>
           </li>
           <li id="wifiItem" aria-disabled="true">
+            <span data-l10n-id="wifi-usage">Wi-Fi usage</span>
+            <span class="overview" id="wifiOverview"></span>
             <label class="pack-checkbox">
               <input type="checkbox" id="wifiCheck">
               <span>
               </span>
             </label>
-            <p>
-              <strong class="overview" id="wifiOverview"></strong>
-              <span data-l10n-id="wifi-usage">Wi-Fi</span>
-            </p>
           </li>
         </ul>
-      </section>
 
+        <header id="app-usage-header">
+          <h2 data-l10n-id="app-usage">Mobile App Usage</h2>
+        </header>
+
+        <div id="app-usage-no-data" data-l10n-id="app-usage-no-data">
+          You have not used any mobile data yet. Usage for each application will
+          show up here when you do.
+        </div>
+
+        <ul id="app-usage-list">
+        </ul>
+      </section>
     </div>
     <script type="text/javascript" defer src="js/views/datausage.js"></script>
 

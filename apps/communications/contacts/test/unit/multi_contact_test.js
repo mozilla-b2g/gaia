@@ -2,12 +2,12 @@
 
 /* globals MockDatastoreObj, MockNavigatorDatastore, MockMozContactsObj */
 /* globals MultiContact */
-  
+
 require('/shared/js/lazy_loader.js');
 require('/shared/js/simple_phone_matcher.js');
 require('/shared/js/contacts/multi_contact.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
-requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 
 mocha.globals(['contacts']);
 

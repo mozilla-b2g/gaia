@@ -33,7 +33,7 @@
 
     CollectionsDatabase.addEventListener('updated', function onUpdate(e) {
       var data = e.target;
-      if (collection.categoryId !== data.categoryId) {
+      if (collection.id !== data.id) {
         // Other collection was updated
         return;
       }

@@ -6,8 +6,14 @@ require.config({
     'shared': '../shared/js'
   },
   shim: {
+    'connectivity': {
+      exports: 'Connectivity'
+    },
     'settings': {
       exports: 'Settings'
+    },
+    'shared/apn_helper': {
+      exports: 'ApnHelper'
     },
     'shared/async_storage': {
       exports: 'asyncStorage'
@@ -38,6 +44,9 @@ require.config({
     },
     'shared/settings_listener': {
       exports: 'SettingsListener'
+    },
+    'shared/toaster': {
+      exports: 'Toaster'
     },
     'shared/tz_select': {
       exports: 'tzSelect'
@@ -70,11 +79,18 @@ require.config({
       name: 'main'
     },
     {
+      name: 'modules/apn/apn_settings_manager',
+      exclude: [
+        'main',
+        'modules/async_storage',
+        'modules/mvvm/observable'
+      ]
+    },
+    {
       name: 'panels/root/panel',
       exclude: [
         'main',
-        'modules/battery',
-        'modules/bluetooth'
+        'modules/battery'
       ]
     },
     {
@@ -201,6 +217,14 @@ require.config({
         'modules/mvvm/observable',
         'modules/date_time'
       ]
+    },
+    {
+      name: 'panels/browsing_privacy/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/search/panel',
+      exclude: ['main']
     }
   ]
 });

@@ -33,9 +33,6 @@
       }
 
       switch (item.detail.type) {
-        case 'app':
-          navigator.mozApps.mgmt.uninstall(item.app);
-          break;
         case 'bookmark':
           BookmarksDatabase.remove(item.identifier).catch(errorLogger);
           break;
@@ -54,23 +51,32 @@
      * General event handler.
      */
     handleEvent: function(e) {
-      var _ = navigator.mozL10n.get;
-
       var nameObj = {
         name: e.detail && e.detail.name
       };
 
       switch(e.type) {
         case 'removeitem':
+          if (e.detail.detail.type == 'app') {
+            var request = navigator.mozApps.mgmt.uninstall(e.detail.app);
+            request.onsuccess = () => {
+              e.detail.removeFromGrid();
+            };
+            request.onerror = () => {
+              console.error('Error while trying to remove',
+                            e.detail.name, request.error);
+            };
+            break;
+          }
           var dialog = new ConfirmDialogHelper({
             type: 'remove',
-            title: _('delete-title', nameObj),
-            body: _('delete-body', nameObj),
+            title: {id: 'delete-title', args: nameObj},
+            body: {id: 'delete-body', args: nameObj},
             cancel: {
-              title: _('cancel')
+              title: 'cancel'
             },
             confirm: {
-              title: _('delete'),
+              title: 'delete',
               type: 'danger',
               cb: () => {
                 // immediately remove item from the grid!

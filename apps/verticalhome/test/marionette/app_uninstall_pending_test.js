@@ -72,8 +72,10 @@ marionette('Vertical - App uninstall while pending', function() {
     // remove the icon
     remove.tap();
     // confirm the dialog to ensure it was removed.
+    client.switchToFrame();
     home.confirmDialog('remove');
     // ensure the icon disappears
+    client.switchToFrame(system.getHomescreenIframe());
     client.helper.waitForElementToDisappear(icon);
 
     home.restart();
