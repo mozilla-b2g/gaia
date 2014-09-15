@@ -103,7 +103,6 @@ var About = {
 
     var updateStatus = document.getElementById('update-status');
     var generalInfo  = updateStatus.querySelector('.general-information');
-    var systemStatus = updateStatus.querySelector('.system-update-status');
 
     var checkStatus = {
       'gecko.updateStatus': {},
@@ -124,7 +123,7 @@ var About = {
         });
 
       if (hasSomeCheckComplete) {
-        systemStatus.setAttribute('data-l10n-id', 'check-complete');
+        generalInfo.setAttribute('data-l10n-id', 'check-complete');
       }
 
       if (hasAllResponses) {
@@ -161,10 +160,11 @@ var About = {
 
       if (value !== 'check-complete') {
         var id = l10nValues.indexOf(value) !== -1 ? value : 'check-error';
-        systemStatus.setAttribute('data-l10n-id', id);
+        generalInfo.setAttribute('data-l10n-id', id);
         if (id == 'check-error') {
           console.error('Error checking for system update:', value);
         }
+      }
 
       checkIfStatusComplete();
 
@@ -173,7 +173,7 @@ var About = {
     }
 
     /* remove whatever was there before */
-    systemStatus.textContent = '';
+    generalInfo.setAttribute('data-l10n-id', "checking-for-update");
 
     for (var setting in checkStatus) {
       checkStatus[setting].cb = onUpdateStatus.bind(null, setting);
