@@ -1,12 +1,12 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+import pdb
 from marionette.by import By
+from marionette import Wait
 
-from gaiatest.apps.browser.app import Browser
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
-
+from gaiatest.apps.search.app import Search
 
 class TestBrowserNavigation(GaiaImageCompareTestCase):
 
@@ -15,20 +15,24 @@ class TestBrowserNavigation(GaiaImageCompareTestCase):
 
     def setUp(self):
         GaiaImageCompareTestCase.setUp(self)
-        #self.connect_to_network()
         self.data_layer.connect_to_wifi()
+        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
+
+        if self.device.is_desktop_b2g or self.data_layer.is_wifi_connected():
+            self.test_url = self.marionette.absolute_url('mozilla.html')
+        else:
+            self.test_url = 'http://mozqa.com/data/firefox/layout/mozilla.html'
 
     def test_browser_back_button(self):
-        browser = Browser(self.marionette)
-        browser.launch()
-
-        browser.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html')
+        search = Search(self.marionette)
+        search.launch()
+        browser = search.go_to_url(self.test_url)
 
         browser.switch_to_content()
         self.verify_home_page()
 
-        self.invoke_screen_capture(browser=browser)
-
+        Wait(self.marionette).until(lambda m: m.title == 'Mozilla')
+        self.invoke_screen_capture()
         community_link = self.marionette.find_element(*self._community_link_locator)
         # TODO: remove the explicit scroll once bug 833370 is fixed
         self.marionette.execute_script("arguments[0].scrollIntoView(false);", [community_link])
