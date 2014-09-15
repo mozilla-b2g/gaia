@@ -325,13 +325,13 @@ suite('system/ChildWindowFactory', function() {
       {
         detail: fakeWindowOpenPopup
       }));
-    var stubLockOrientation = this.sinon.stub(app1, 'lockOrientation');
+    var stubSetOrientation = this.sinon.stub(app1, 'setOrientation');
     var stubRequestForeground = this.sinon.stub(app1, 'requestForeground');
     spy.getCall(0).returnValue.element
         .dispatchEvent(new CustomEvent('_closing', {
           detail: spy.getCall(0).returnValue
         }));
-    assert.isTrue(stubLockOrientation.called);
+    assert.isTrue(stubSetOrientation.called);
     assert.isTrue(stubRequestForeground.called);
   });
 });
