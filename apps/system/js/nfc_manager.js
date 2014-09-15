@@ -123,6 +123,15 @@
     },
 
     /**
+     * Returns if NFC is active or not, depending on the hardware state
+     * @memberof NfcManager.prototype
+     * returns {boolean} isActive
+     */
+    isActive: function nm_isActive() {
+      return (this._hwState !== this.NFC_HW_STATE.OFF) ? true : false;
+    },
+
+    /**
      * Handler for nfc-manager-tech-discovered messages which originate from
      * gecko. Basing on the first NDEF record tnf and type this method can use
      * NfcHandoverManager to handle handover scenarios. Basing on the techList
@@ -269,7 +278,7 @@
       // update statusbar status via custom event
       var event = new CustomEvent('nfc-state-changed', {
         detail: {
-          active: (state !== this.NFC_HW_STATE.OFF) ? true : false
+          active: this.isActive()
         }
       });
       window.dispatchEvent(event);

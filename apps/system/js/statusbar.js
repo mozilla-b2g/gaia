@@ -18,7 +18,7 @@
 /*global TouchForwarder, FtuLauncher */
 /*global MobileOperator, SIMSlotManager, System */
 /*global Bluetooth */
-/*global UtilityTray */
+/*global UtilityTray, nfcManager */
 
 'use strict';
 
@@ -389,8 +389,7 @@ var StatusBar = {
         break;
 
       case 'nfc-state-changed':
-        this.nfcActive = evt.detail.active;
-        this.update.nfc.call(this);
+        this.setActiveNfc(evt.detail.active);
         break;
 
       case 'mozChromeEvent':
@@ -770,6 +769,7 @@ var StatusBar = {
     this.setActiveBattery(active);
 
     if (active) {
+      this.setActiveNfc(nfcManager.isActive());
       conns = window.navigator.mozMobileConnections;
       if (conns) {
         Array.prototype.slice.call(conns).forEach(function(conn) {
@@ -841,6 +841,11 @@ var StatusBar = {
 
       this.update.wifi.call(this);
     }
+  },
+
+  setActiveNfc: function sb_setActiveNfc(active) {
+    this.nfcActive = active;
+    this.update.nfc.call(this);
   },
 
   update: {
