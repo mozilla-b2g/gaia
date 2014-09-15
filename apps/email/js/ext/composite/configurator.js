@@ -139,11 +139,11 @@ exports.configurator = {
         // configuration falied we must close the incoming connection.
         // (If the incoming side failed as well, we won't receive the
         // `.then` callback.)
-        incomingPromise.then(function(result) {
+        incomingPromise.then(function incomingOkButOutgoingFailed(result) {
           result.conn.close();
-          callback(err, /* conn: */ null);
-        }).catch(function(/* ignored error */) {
-          callback(err, /* conn: */ null);
+          callback(err, /* conn: */ null, { server: smtpConnInfo.hostname });
+        }).catch(function incomingFailed(/* ignored error */) {
+          callback(err, /* conn: */ null, { server: incomingInfo.hostname });
         });
      });
  },
