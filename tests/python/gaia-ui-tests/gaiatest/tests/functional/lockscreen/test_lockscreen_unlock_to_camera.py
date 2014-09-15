@@ -22,9 +22,7 @@ class TestLockScreen(GaiaTestCase):
 
         lock_screen = LockScreen(self.marionette)
         camera = lock_screen.unlock_to_camera()
-        lock_screen.wait_for_lockscreen_not_visible()
-
-        self.assertFalse(self.device.is_locked)
+        self.wait_for_condition(lambda m: not self.device.is_locked)
 
         # Wait fot the capture button displayed. no need to take a photo.
         self.apps.switch_to_displayed_app()

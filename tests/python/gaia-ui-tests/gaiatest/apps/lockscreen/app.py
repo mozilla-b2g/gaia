@@ -13,8 +13,6 @@ from gaiatest.apps.lockscreen.regions.passcode_pad import PasscodePad
 class LockScreen(Base):
 
     _lockscreen_window_locator = (By.CLASS_NAME, 'lockScreenWindow')
-
-    _lockscreen_locator = (By.ID, 'lockscreen')
     _lockscreen_handle_locator = (By.ID, 'lockscreen-area-slide')
     _lockscreen_passcode_panel_locator = (By.ID, 'lockscreen-panel-passcode')
 
@@ -53,9 +51,6 @@ class LockScreen(Base):
         Actions(self.marionette).flick(
             lockscreen_handle, lockscreen_handle_x_centre, lockscreen_handle_y_centre, handle_destination, 0
         ).perform()
-
-    def wait_for_lockscreen_not_visible(self):
-        self.wait_for_element_not_displayed(*self._lockscreen_locator)
 
     def wait_for_notification(self):
         self.wait_for_element_displayed(*self._notification_locator)
