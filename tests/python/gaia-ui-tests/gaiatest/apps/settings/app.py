@@ -39,6 +39,8 @@ class Settings(Base):
     _device_info_menu_item_locator = (By.ID, 'menuItem-deviceInfo')
     _battery_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-battery')
     _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
+    _firefox_accounts_menu_item_locator = (By.ID, 'menuItem-fxa')
+    _findmydevice_menu_item_locator = (By.ID, 'menuItem-findmydevice')
 
     def launch(self):
         Base.launch(self)
@@ -187,8 +189,17 @@ class Settings(Base):
         # Some menu items require some async setup to be completed
         self.wait_for_condition(lambda m: not menu_item.find_element(
             By.XPATH, 'ancestor::li').get_attribute('aria-disabled'))
-
         return menu_item
+
+    def open_firefox_accounts_settings(self):
+        from gaiatest.apps.system.regions.firefox_accounts import FirefoxAccounts
+        self._tap_menu_item(self._firefox_accounts_menu_item_locator)
+        return FirefoxAccounts(self.marionette)
+
+    def open_findmydevice_settings(self):
+        from gaiatest.apps.system.regions.firefox_accounts import FirefoxAccounts
+        self._tap_menu_item(self._findmydevice_menu_item_locator)
+        return FirefoxAccounts(self.marionette)
 
     def _wait_for_parent_section_not_displayed(self, menu_item):
         parent_section = menu_item.find_element(By.XPATH, 'ancestor::section')
