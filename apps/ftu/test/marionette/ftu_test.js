@@ -17,12 +17,19 @@ marionette('First Time Use >', function() {
       // things to fail.
       client.helper.waitForElementToDisappear('#loading-overlay');
     }
+
+    if (panel_id == '#date_and_time') {
+      client.findElement('#dt_skip').scriptWith(function(el){ 
+        el.scrollIntoView(false); 
+      });
+    } 
+
     // waitForElement is used to make sure animations and page changes have
     // finished, and that the panel is displayed.
     client.helper.waitForElement(panel_id);
     if (button_id) {
       var button = client.helper.waitForElement(button_id);
-      button.click();
+      button.tap();
     }
   };
 
@@ -32,14 +39,14 @@ marionette('First Time Use >', function() {
 
   test('FTU click thru', function() {
     client.apps.switchToApp(FTU);
-    clickThruPanel('#languages', '#forward');
-    clickThruPanel('#wifi', '#forward');
-    clickThruPanel('#date_and_time', '#forward');
-    clickThruPanel('#geolocation', '#forward');
-    clickThruPanel('#import_contacts', '#forward');
-    clickThruPanel('#firefox_accounts', '#forward');
-    clickThruPanel('#welcome_browser', '#forward');
-    clickThruPanel('#browser_privacy', '#forward');
+    clickThruPanel('#languages', '#languages .nav-item');
+    clickThruPanel('#wifi', '#wifi .forward');
+    clickThruPanel('#date_and_time', '#date_and_time .forward');
+    clickThruPanel('#geolocation', '#disable-geolocation');
+    clickThruPanel('#import_contacts', '#import_contacts .forward');
+    clickThruPanel('#firefox_accounts', '#fxa-wo-account li.forward');
+    clickThruPanel('#welcome_browser', '#welcome_browser .forward');
+    clickThruPanel('#browser_privacy', '#browser_privacy .forward');
     clickThruPanel('#finish-screen', undefined);
   });
 
@@ -57,30 +64,30 @@ marionette('First Time Use >', function() {
       quickly.apps.switchToApp(FTU);
       quickly.helper.waitForElement('#languages');
       // the input is hidden so we can't use waitForElement
-      quickly.findElement('input[value="en-US"]');
-      quickly.helper.waitForElementToDisappear('input[value="qps-ploc"]');
+      quickly.findElement('#en-US');
+      quickly.helper.waitForElementToDisappear('#qps-ploc');
     });
 
     test('FTU Languages with pseudo localization', function() {
       quickly.settings.set('devtools.qps.enabled', true);
       quickly.apps.switchToApp(FTU);
       quickly.helper.waitForElement('#languages');
-      quickly.findElement('input[value="en-US"]');
-      quickly.findElement('input[value="qps-ploc"]');
+      quickly.findElement('#en-US');
+      quickly.findElement('#qps-ploc');
     });
   });
 
   test('FTU Wifi Scanning Tests', function() {
     client.apps.switchToApp(FTU);
-    clickThruPanel('#languages', '#forward');
-    clickThruPanel('#wifi', '#forward');
-    clickThruPanel('#date_and_time', '#back');
+    clickThruPanel('#languages', '#languages .nav-item');
+    clickThruPanel('#wifi', '#wifi .forward');
+    clickThruPanel('#date_and_time', '#back-button');
     clickThruPanel('#wifi', undefined);
   });
 
   test('Wi-Fi hidden network password 64 characters', function() {
     client.apps.switchToApp(FTU);
-    clickThruPanel('#languages', '#forward');
+    clickThruPanel('#languages', '#languages .nav-item');
     clickThruPanel('#wifi', '#join-hidden-button');
 
     var input = client.findElement('#hidden-wifi-password');

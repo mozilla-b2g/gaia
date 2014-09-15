@@ -27,8 +27,6 @@ var SdManager = {
     var DELAY_FEEDBACK = 200;
     var importedContacts = 0;
 
-    UIManager.navBar.setAttribute('aria-disabled', 'true');
-
     var cancelled = false;
     var importer = null;
 
@@ -40,7 +38,6 @@ var SdManager = {
       if (importer) {
         importer.finish();
       } else {
-        UIManager.navBar.removeAttribute('aria-disabled');
         utils.overlay.hide();
       }
     };
@@ -85,7 +82,6 @@ var SdManager = {
       importer.process(function import_finish() {
         window.setTimeout(function onfinish_import() {
           utils.misc.setTimestamp('sd');
-          UIManager.navBar.removeAttribute('aria-disabled');
           utils.overlay.hide();
           if (!cancelled) {
             SdManager.alreadyImported = true;
@@ -114,7 +110,6 @@ var SdManager = {
     }
 
     function import_error(e) {
-      UIManager.navBar.removeAttribute('aria-disabled');
       utils.overlay.hide();
       // Just in case the user decides to do so later
       importButton.removeAttribute('disabled');

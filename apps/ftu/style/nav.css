@@ -1,0 +1,103 @@
+[data-type="nav-list"] li:first-child {
+    border-top: 0.1rem solid #E7E7E7;
+}
+
+[data-type="nav-list"] ul {
+    margin-top: 0;
+}
+
+[data-type="nav-list"] ul {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+#wifi [data-type="nav-list"]{
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+#wifi [data-type="nav-list"] li:first-child,
+#languages [data-type="nav-list"] li:first-child,
+#import_contacts [data-type="nav-list"] li:first-child {
+    border-top: none;
+}
+
+.nav-item aside {
+    float: right;
+    margin: 0 1.5rem 0 0;
+    height: 100%;
+}
+
+.nav-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: medium none;
+    display: block;
+    margin: 0;
+    line-height: 6rem;
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: 200;
+    padding: 0 1.5rem;
+    width: 100%;
+    height: 6rem;
+    box-sizing: border-box;
+    border-bottom: 0.1rem solid #E7E7E7;
+    color: #333;
+    position: relative;
+}
+
+.nav-item:after {
+    content: "";
+    width: 3rem;
+    height: 3rem;
+    position: absolute;
+    top: calc(50% - 1.5rem);
+    right: 0.5rem;
+    background: url('/shared/style/buttons/images/next.png') no-repeat scroll center center / 3rem auto transparent;
+}
+
+.active.nav-item:after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    left: -1.5rem;
+    top: 0;
+    right: -1.5rem;
+    bottom: 0;
+}
+
+.nav-item p {
+    margin-top: 0;
+    margin-bottom: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 5rem;
+}
+
+/*RTL adjustments*/
+html[dir="rtl"] .nav-item:after {
+    right: auto;
+    left: -0.5rem;
+    transform: rotate(180deg);
+}
+
+html[dir="rtl"] #import_contacts .nav-item:after {
+    transform: none;
+}
+
+html[dir="rtl"] #import_contacts li:last-child:after {
+    transform: rotate(180deg);
+}
+
+html[dir="rtl"] #wifi .nav-item > aside {
+    left: 1.5rem;
+    right: auto;
+    margin: 0 0 0 1.5rem;
+}
+
+html[dir="rtl"] .nav-item p {
+    margin-right: auto;
+    margin-left: 5rem;
+}

@@ -53,9 +53,6 @@ suite('languages >', function() {
     LanguageManager.buildLanguageList();
     assert.equal(document.querySelectorAll('li').length,
                  Object.keys(LanguageList._languages).length);
-    var selected = document.querySelectorAll('input[type="radio"]:checked');
-    assert.equal(selected.length, 1);
-    assert.equal(selected[0].value, 'en-US');
     done();
   });
 
