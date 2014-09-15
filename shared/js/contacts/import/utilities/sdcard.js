@@ -12,7 +12,9 @@ if (!utils.sdcard) {
   };
 
   SdCard.status = SdCard.NOT_INITIALIZED;
-  SdCard.deviceStorage = navigator.getDeviceStorage('sdcard');
+  SdCard.deviceStorages = navigator.getDeviceStorages('sdcard');
+  SdCard.deviceStorage = Array.isArray(SdCard.deviceStorages) &&
+                                                      SdCard.deviceStorages[0];
 
   SdCard._toStatus = function toStatus(state) {
     switch (state) {
@@ -66,6 +68,12 @@ if (!utils.sdcard) {
   };
 
   SdCard.getStatus = function(cb) {
+    if (!SdCard.deviceStorage) {
+      SdCard._toStatus('unavailable');
+      cb(SdCard.status);
+      return;
+    }
+
     var req = SdCard.deviceStorage.available();
 
     req.onsuccess = function() {
