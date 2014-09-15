@@ -163,7 +163,10 @@ suite('views/controls', function() {
 
   suite('ControlsView#onSwitchTapped()', function() {
     setup(function() {
-      this.event = { preventDefault: sinon.spy() };
+      this.event = {
+        preventDefault: sinon.spy(),
+        stopPropagation: sinon.spy()
+      };
       this.spy = this.ControlsView.prototype.onSwitchTapped;
       this.view.enable();
     });
