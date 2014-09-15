@@ -185,7 +185,13 @@
       return;
     }
 
-    this.app.lockOrientation();
+    // There might be multiple child window when closing current one,
+    // here we try retrieve the next possible child window,
+    // and lock the corresponding orientation.
+    var top = this.app.getTopMostWindow();
+    var topRear = top.rearWindow || this.app;
+    topRear.lockOrientation();
+
     this.app.requestForeground();
   };
 
