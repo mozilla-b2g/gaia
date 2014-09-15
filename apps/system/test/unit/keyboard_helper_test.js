@@ -16,6 +16,7 @@ suite('KeyboardHelper', function() {
     'applicationuninstall'];
   var DEFAULT_KEY = 'keyboard.default-layouts';
   var ENABLED_KEY = 'keyboard.enabled-layouts';
+  var CURRENT_ACTIVE = 'keyboard.current-active-layouts';
   var THIRD_PARTY_APP_ENABLED_KEY = 'keyboard.3rd-party-app.enabled';
   var keyboardAppOrigin = 'app://keyboard.gaiamobile.org';
   var keyboardAppManifestURL =
@@ -154,15 +155,16 @@ suite('KeyboardHelper', function() {
 
   test('requests initial settings', function() {
     var requests = MockNavigatorSettings.mRequests;
-    assert.equal(requests.length, 26);
+    assert.equal(requests.length, 27);
     assert.ok(DEFAULT_KEY in requests[0].result, 'requested defaults');
     assert.ok(ENABLED_KEY in requests[1].result, 'requested enabled');
-    assert.ok(THIRD_PARTY_APP_ENABLED_KEY in requests[2].result,
+    assert.ok(CURRENT_ACTIVE in requests[2].result, 'active enabled');
+    assert.ok(THIRD_PARTY_APP_ENABLED_KEY in requests[3].result,
       'requested 3rd-party keyboard app enabled');
 
     var i = 0;
     for (var key in DEPRECATE_KEYBOARD_SETTINGS) {
-      assert.ok(DEPRECATE_KEYBOARD_SETTINGS[key] in requests[3 + i].result,
+      assert.ok(DEPRECATE_KEYBOARD_SETTINGS[key] in requests[4 + i].result,
                 'requested deprecated settings - ' +
                 DEPRECATE_KEYBOARD_SETTINGS[key]);
       i++;
@@ -816,9 +818,9 @@ suite('KeyboardHelper', function() {
     suite('old settings: cs enabled', function() {
       setup(function() {
         this.sinon.stub(KeyboardHelper, 'saveToSettings');
-        MockNavigatorSettings.mRequests[3].
+        MockNavigatorSettings.mRequests[4].
           result[DEPRECATE_KEYBOARD_SETTINGS.en] = false;
-        MockNavigatorSettings.mRequests[5].
+        MockNavigatorSettings.mRequests[6].
           result[DEPRECATE_KEYBOARD_SETTINGS.cs] = true;
         MockNavigatorSettings.mReplyToRequests();
       });
@@ -839,9 +841,9 @@ suite('KeyboardHelper', function() {
     suite('old settings: serbian enabled', function() {
       setup(function() {
         this.sinon.stub(KeyboardHelper, 'saveToSettings');
-        MockNavigatorSettings.mRequests[3].
+        MockNavigatorSettings.mRequests[4].
           result[DEPRECATE_KEYBOARD_SETTINGS.en] = false;
-        MockNavigatorSettings.mRequests[23].
+        MockNavigatorSettings.mRequests[24].
           result[DEPRECATE_KEYBOARD_SETTINGS.sr] = true;
         MockNavigatorSettings.mReplyToRequests();
       });
@@ -934,6 +936,15 @@ suite('KeyboardHelper', function() {
 
       assert.deepEqual(KeyboardHelper.settings.enabled,
                        expectedSettings.enabled);
+    });
+  });
+
+  suite('Active layouts', function() {
+    test('save layout stores in settings', function() {
+      KeyboardHelper.saveCurrentActiveLayout('yolo', 'en', 'app://something');
+
+      assert.deepEqual(KeyboardHelper.settings.active,
+        { 'yolo': { id: 'en', manifestURL: 'app://something' } });
     });
   });
 });

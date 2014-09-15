@@ -14,7 +14,7 @@ class MessageThread(Base):
     _received_message_content_locator = (By.CSS_SELECTOR, "#messages-container li.message.received")
     _back_header_link_locator = (By.ID, 'messages-header')
     _message_header_locator = (By.ID, 'messages-header-text')
-    _call_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="call"]')
+    _call_button_locator = (By.ID, 'messages-call-number-button')
 
     def wait_for_received_messages(self, timeout=180):
         self.wait_for_element_displayed(*self._received_message_content_locator, timeout=timeout)
@@ -48,8 +48,8 @@ class MessageThread(Base):
         return Activities(self.marionette)
 
     def tap_call(self):
+        self.wait_for_element_displayed(*self._call_button_locator)
         self.marionette.find_element(*self._call_button_locator).tap()
-        self.wait_for_element_not_displayed(*self._call_button_locator)
         from gaiatest.apps.phone.regions.keypad import Keypad
         keypad = Keypad(self.marionette)
         keypad.wait_for_phone_number_ready()

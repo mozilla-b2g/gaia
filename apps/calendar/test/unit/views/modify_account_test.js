@@ -104,12 +104,9 @@ suiteGroup('Views.ModifyAccount', function() {
         '<a class="force-oauth2"></a>',
       '</div>',
       '<section id="oauth2">',
-        '<header>',
-          '<button class="cancel">',
-            '<a>cancel</a>',
-          '</button>',
-          '<h1 class="toolbar"></h1>',
-        '</header>',
+        '<gaia-header id="oauth-header" action="back">',
+          '<h1 class="oauth-browser-title"> </h1>',
+        '</gaia-header>',
         '<div class="browser-container"></div>',
       '</section>'
     ].join('');

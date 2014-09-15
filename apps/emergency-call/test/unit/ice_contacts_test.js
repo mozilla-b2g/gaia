@@ -1,5 +1,5 @@
 /* globals ICEContacts, ICEStore, MocksHelper, mozContact, MockMozContacts,
-           MockL10n, CallHandler */
+           MockL10n, CallHandler, MockLazyLoader */
 'use strict';
 
 require('/shared/test/unit/mocks/mocks_helper.js');
@@ -10,6 +10,7 @@ require('/shared/test/unit/mocks/mock_mozContacts.js');
 require('/shared/js/dialer/utils.js');
 require('/shared/test/unit/mocks/mock_ice_store.js');
 require('/test/unit/mock_call_handler.js');
+require('/js/ice_contacts.js');
 
 var mocksHelperForDialer = new MocksHelper([
   'LazyLoader',
@@ -18,11 +19,18 @@ var mocksHelperForDialer = new MocksHelper([
 ]).init();
 
 suite('ICE contacts bar', function() {
-  var container, iceContactBar, iceContactsOverlay, realL10n, realMozContacts;
+  var realMozContacts;
+  var realL10n;
+  var container;
+  var iceContactBar;
+  var iceContactsOverlay;
+  var iceContactList;
 
   mocksHelperForDialer.attachTestHelpers();
 
   function createDOM() {
+    document.body.innerHTML = '';
+
     container = document.createElement('div');
     iceContactBar = document.createElement('section');
     iceContactBar.id = 'ice-contacts-bar';
@@ -52,6 +60,8 @@ suite('ICE contacts bar', function() {
     container.appendChild(iceContactsOverlayItem);
 
     document.body.appendChild(container);
+
+    iceContactList = document.getElementById('contact-list');
   }
 
   function shouldNotShowICEContactsBar(done) {
@@ -62,23 +72,18 @@ suite('ICE contacts bar', function() {
   }
 
   function shouldIncludeICEContacts(done, length) {
-    var iceContactList = document.getElementById('contact-list');
     ICEContacts.updateICEContacts().then(function() {
       assert.equal(iceContactList.children.length, length);
       done();
     });
   }
 
-  suiteSetup(function(done) {
+  suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = window.MockL10n;
 
     realMozContacts = navigator.mozContacts;
     navigator.mozContacts = MockMozContacts;
-
-    createDOM();
-
-    require('/js/ice_contacts.js', done);
   });
 
   suiteTeardown(function() {
@@ -87,18 +92,42 @@ suite('ICE contacts bar', function() {
     document.body.removeChild(container);
   });
 
-  teardown(function() {
-    iceContactBar.setAttribute('hidden', '');
-    var iceContactsList = document.getElementById('contact-list');
-    while(iceContactsList.children.length > 1) {
-      iceContactsList.removeChild(iceContactsList.children[0]);
-    }
+  setup(function() {
+    ICEContacts._initialized = false;
+    createDOM();
+  });
+
+  suite('Initialization', function() {
+    setup(function(done) {
+      navigator.mozContacts.clear();
+      ICEStore.setContacts([]).then(function() {
+        done();
+      });
+    });
+
+    test('Lazyloads contact list overlay', function(done) {
+      this.sinon.spy(MockLazyLoader, 'load');
+      ICEContacts.updateICEContacts().then(function() {
+        sinon.assert.calledWith(MockLazyLoader.load, [iceContactsOverlay]);
+        done();
+      });
+    });
+
+    test('Sets header overlay title', function(done) {
+      ICEContacts.updateICEContacts().then(function() {
+        var header = iceContactsOverlay.querySelector('header');
+        assert.equal(header.dataset.l10nId, 'ice-contacts-overlay-title');
+        done();
+      });
+    });
   });
 
   suite('No ICE contacts', function() {
     setup(function(done) {
       navigator.mozContacts.clear();
-      ICEStore.setContacts([]).then(done);
+      ICEStore.setContacts([]).then(function() {
+        done();
+      });
     });
 
     test('Should not show the ICE contacts bar', shouldNotShowICEContactsBar);
@@ -115,7 +144,9 @@ suite('ICE contacts bar', function() {
       contact1.name = [contact1.givenName[0] + ' ' + contact1.familyName[0]];
       var contact1Req = navigator.mozContacts.save(contact1);
       contact1Req.onsuccess = function() {
-        ICEStore.setContacts([contact1.id]).then(done);
+        ICEStore.setContacts([contact1.id]).then(function() {
+          done();
+        });
       };
     });
 
@@ -136,7 +167,9 @@ suite('ICE contacts bar', function() {
       contact1Req.onsuccess = function() {
         iceContacts.push(contact1.id);
         if (iceContacts.length === 2) {
-          ICEStore.setContacts(iceContacts).then(done);
+          ICEStore.setContacts(iceContacts).then(function() {
+            done();
+          });
         }
       };
       contact2 = new mozContact();
@@ -147,7 +180,9 @@ suite('ICE contacts bar', function() {
       contact2Req.onsuccess = function() {
         iceContacts.push(contact2.id);
         if (iceContacts.length === 2) {
-          ICEStore.setContacts(iceContacts).then(done);
+          ICEStore.setContacts(iceContacts).then(function() {
+            done();
+          });
         }
       };
     });
@@ -177,7 +212,9 @@ suite('ICE contacts bar', function() {
       ];
       var contact1Req = navigator.mozContacts.save(contact1);
       contact1Req.onsuccess = function() {
-        ICEStore.setContacts([contact1.id]).then(done);
+        ICEStore.setContacts([contact1.id]).then(function() {
+          done();
+        });
       };
     });
 
@@ -215,7 +252,9 @@ suite('ICE contacts bar', function() {
       ];
       var contact1Req = navigator.mozContacts.save(contact1);
       contact1Req.onsuccess = function() {
-        ICEStore.setContacts([contact1.id]).then(done);
+        ICEStore.setContacts([contact1.id]).then(function() {
+          done();
+        });
       };
     });
 
@@ -261,7 +300,9 @@ suite('ICE contacts bar', function() {
       contact1Req.onsuccess = function() {
         iceContacts.push(contact1.id);
         if (iceContacts.length === 2) {
-          ICEStore.setContacts(iceContacts).then(done);
+          ICEStore.setContacts(iceContacts).then(function() {
+            done();
+          });
         }
       };
       contact2 = new mozContact();
@@ -290,7 +331,9 @@ suite('ICE contacts bar', function() {
       contact2Req.onsuccess = function() {
         iceContacts.push(contact2.id);
         if (iceContacts.length === 2) {
-          ICEStore.setContacts(iceContacts).then(done);
+          ICEStore.setContacts(iceContacts).then(function() {
+            done();
+          });
         }
       };
     });
@@ -336,7 +379,9 @@ suite('ICE contacts bar', function() {
       ];
       var contact1Req = navigator.mozContacts.save(contact1);
       contact1Req.onsuccess = function() {
-        ICEStore.setContacts([contact1.id]).then(done);
+        ICEStore.setContacts([contact1.id]).then(function() {
+          done();
+        });
       };
     });
 
@@ -373,7 +418,9 @@ suite('ICE contacts bar', function() {
       var contact1Req = navigator.mozContacts.save(contact1);
       contact1Req.onsuccess = function() {
         ICEStore.setContacts([contact1.id]).then(function() {
-          ICEContacts.updateICEContacts().then(done);
+          ICEContacts.updateICEContacts().then(function() {
+            done();
+          });
         });
       };
     });

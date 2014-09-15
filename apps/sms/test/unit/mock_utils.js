@@ -9,9 +9,6 @@ var MockUtils = {
   camelCase: Utils.camelCase,
   date: Utils.date,
   extend: Utils.extend,
-  getFontSize: function() {
-    return 12;
-  },
   getDayDate: Utils.getDayDate,
   getHeaderDate: Utils.getHeaderDate,
   getFormattedHour: Utils.getFormattedHour,
@@ -22,7 +19,6 @@ var MockUtils = {
   getContactDisplayInfo: Utils.getContactDisplayInfo,
   getContactDetails: Utils.getContactDetails,
   getResizedImgBlob: Utils.getResizedImgBlob,
-  getDownsamplingSrcUrl: Utils.getDownsamplingSrcUrl,
   getPhoneDetails: Utils.getPhoneDetails,
   removeNonDialables: Utils.removeNonDialables,
   multiRecipientMatch: Utils.multiRecipientMatch,
@@ -33,7 +29,7 @@ var MockUtils = {
   isEmailAddress: Utils.isEmailAddress,
   closeNotificationsForThread: () => Promise.resolve(),
   imageToDataUrl: Utils.imageToDataUrl,
-  imageUrlToDataUrl: Utils.imageUrlToDataUrl,
   debounce: Utils.debounce,
-  Promise: Utils.Promise
+  Promise: Utils.Promise,
+  cloneBlob: Utils.cloneBlob
 };

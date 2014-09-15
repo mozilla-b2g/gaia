@@ -79,6 +79,16 @@ section[role="region"].skin-organic {
   bottom: 1.5rem;
 }
 
+.sup-oauth-description {
+  font-size: 1.8rem;
+}
+
+.sup-oauth2-name {
+  font-size: 1.6rem;
+  color: #585858;
+  word-wrap: break-word;
+}
+
 /* get some margin around the form elements; I'm not sure how BB wants it */
 .tng-form {
   margin: 0 3rem;
@@ -225,10 +235,15 @@ li.select-item {
   text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  word-wrap: break-word;
   color: #5b5b5b;
   font-size: 1.6rem;
   padding-left: 1.5rem;
+}
+
+.sup-no-list .list-text,
+.sup-no-list .list-sub-text {
+  padding-left: 0;
 }
 
 li .aside.start {

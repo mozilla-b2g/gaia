@@ -19,9 +19,9 @@ define(['exports'], function(exports) {
 
     // Permanent Account Errors (user intervention required)
     'bad-user-or-pass': { reachable: true, retry: false, report: true },
+    'needs-oauth-reauth': { reachable: true, retry: false, report: true },
     'imap-disabled': { reachable: true, retry: false, report: true },
     'pop3-disabled': { reachable: true, retry: false, report: true },
-    'needs-app-pass': { reachable: true, retry: false, report: true },
     'not-authorized': { reachable: true, retry: false, report: true },
 
     // Account Configuration Errors

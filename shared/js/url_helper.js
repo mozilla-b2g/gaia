@@ -35,8 +35,10 @@ var UrlHelper = {
     var case2Reg = /[\?\.\s\:]/;
     // for cases, data:uri
     var case3Reg = /^(data\:)/;
+    // for cases, only scheme but no domain provided
+    var case4Reg = /^\w+\:\/*$/;
     var str = input.trim();
-    if (case1Reg.test(str) || !case2Reg.test(str)) {
+    if (case1Reg.test(str) || !case2Reg.test(str) || case4Reg.test(str)) {
       return true;
     }
     if (case3Reg.test(str)) {

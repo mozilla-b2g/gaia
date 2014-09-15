@@ -213,72 +213,85 @@ SmtpAccount.prototype = {
   establishConnection: function(callbacks) {
     var conn;
     var sendingMessage = false;
-    client.createSmtpConnection(this.credentials, this.connInfo)
-      .then(function(newConn) {
-        conn = newConn;
-        DisasterRecovery.associateSocketWithAccount(conn.socket, this);
-        this._activeConnections.push(conn);
+    client.createSmtpConnection(
+      this.credentials,
+      this.connInfo,
+      function onCredentialsUpdated() {
+        return new Promise(function(resolve) {
+          // Note: Since we update the credentials object in-place,
+          // there's no need to explicitly assign the changes here;
+          // just save the account information.
+          this.universe.saveAccountDef(
+            this.compositeAccount.accountDef,
+            /* folderInfo: */ null,
+            /* callback: */ resolve);
+        }.bind(this));
+      }.bind(this)
+    ).then(function(newConn) {
+      conn = newConn;
+      DisasterRecovery.associateSocketWithAccount(conn.socket, this);
+      this._activeConnections.push(conn);
 
-        // Intercept the 'ondrain' event, which is as close as we can
-        // get to knowing that we are still sending data to the
-        // server. We use this to hold a wakelock open.
-        var oldOnDrain = conn.socket.ondrain;
-        conn.socket.ondrain = function() {
-          oldOnDrain && oldOnDrain.call(conn.socket);
-          callbacks.onProgress && callbacks.onProgress();
-        };
+      // Intercept the 'ondrain' event, which is as close as we can
+      // get to knowing that we are still sending data to the
+      // server. We use this to hold a wakelock open.
+      var oldOnDrain = conn.socket.ondrain;
+      conn.socket.ondrain = function() {
+        oldOnDrain && oldOnDrain.call(conn.socket);
+        callbacks.onProgress && callbacks.onProgress();
+      };
 
-        callbacks.sendEnvelope(conn, conn.close.bind(conn));
+      callbacks.sendEnvelope(conn, conn.close.bind(conn));
 
-        // We sent the envelope; see if we can now send the message.
-        conn.onready = function(badRecipients) {
-          slog.log('smtp:onready');
+      // We sent the envelope; see if we can now send the message.
+      conn.onready = function(badRecipients) {
+        slog.log('smtp:onready');
 
-          if (badRecipients.length) {
-            conn.close();
-            slog.warn('smtp:bad-recipients', { badRecipients: badRecipients });
-            callbacks.onError('bad-recipient', badRecipients);
-          } else {
-            sendingMessage = true;
-            callbacks.sendMessage(conn);
-          }
-        };
-
-        // Done sending the message, ideally successfully.
-        conn.ondone = function(success) {
+        if (badRecipients.length) {
           conn.close();
+          slog.warn('smtp:bad-recipients', { badRecipients: badRecipients });
+          callbacks.onError('bad-recipient', badRecipients);
+        } else {
+          sendingMessage = true;
+          callbacks.sendMessage(conn);
+        }
+      };
 
-          if (success) {
-            slog.log('smtp:sent');
-            callbacks.onSendComplete(conn);
-          } else {
-            slog.error('smtp:send-failed');
-            // We don't have an error to reference here, but we stored
-            // the most recent SMTP error, which should tell us why the
-            // server rejected the message.
-            var err = client.analyzeSmtpError(conn, null, sendingMessage);
-            callbacks.onError(err, /* badAddresses: */ null);
-          }
-        };
+      // Done sending the message, ideally successfully.
+      conn.ondone = function(success) {
+        conn.close();
 
-        conn.onerror = function(err) {
-          // Some sort of error occurred; analyze and report.
-          conn.close();
-          err = client.analyzeSmtpError(conn, err, sendingMessage);
+        if (success) {
+          slog.log('smtp:sent');
+          callbacks.onSendComplete(conn);
+        } else {
+          slog.error('smtp:send-failed');
+          // We don't have an error to reference here, but we stored
+          // the most recent SMTP error, which should tell us why the
+          // server rejected the message.
+          var err = client.analyzeSmtpError(conn, null, sendingMessage);
           callbacks.onError(err, /* badAddresses: */ null);
-        };
+        }
+      };
 
-        conn.onclose = function() {
-          slog.log('smtp:onclose');
+      conn.onerror = function(err) {
+        // Some sort of error occurred; analyze and report.
+        conn.close();
+        err = client.analyzeSmtpError(conn, err, sendingMessage);
+        callbacks.onError(err, /* badAddresses: */ null);
+      };
 
-          var idx = this._activeConnections.indexOf(conn);
-          if (idx !== -1) {
-            this._activeConnections.splice(idx, 1);
-          } else {
-            slog.error('smtp:dead-unknown-connection');
-          }
-        }.bind(this);
-      }.bind(this))
+      conn.onclose = function() {
+        slog.log('smtp:onclose');
+
+        var idx = this._activeConnections.indexOf(conn);
+        if (idx !== -1) {
+          this._activeConnections.splice(idx, 1);
+        } else {
+          slog.error('smtp:dead-unknown-connection');
+        }
+      }.bind(this);
+    }.bind(this))
       .catch(function(err) {
         err = client.analyzeSmtpError(conn, err, sendingMessage);
         callbacks.onError(err);

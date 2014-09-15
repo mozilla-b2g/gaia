@@ -8,18 +8,6 @@ var About = {
     document.getElementById('check-update-now').onclick = this.checkForUpdates;
     this.loadHardwareInfo();
     this.loadLastUpdated();
-    this.networkStatus();
-  },
-
-  networkStatus: function about_networkStatus() {
-    var button = document.getElementById('check-update-now');
-    var status = {
-      offline: function() { button.disabled = true; },
-      online: function() { button.disabled = false; }
-    };
-    window.addEventListener('offline', status.offline);
-    window.addEventListener('online', status.online);
-    status[(window.navigator.onLine ? 'online' : 'offline')]();
   },
 
   loadLastUpdated: function about_loadLastUpdated() {
@@ -31,6 +19,7 @@ var About = {
     var lock = settings.createLock();
     var key = 'deviceinfo.last_updated';
     var request = lock.get(key);
+
     request.onsuccess = function() {
       var lastUpdated = request.result[key];
       if (!lastUpdated) {
@@ -101,11 +90,47 @@ var About = {
 
   checkForUpdates: function about_checkForUpdates() {
     var settings = Settings.mozSettings;
-    if (!settings)
-      return;
+    var _ = navigator.mozL10n.get;
 
-    var updateStatus = document.getElementById('update-status'),
-        systemStatus = updateStatus.querySelector('.system-update-status');
+    if (!settings) {
+      return;
+    }
+
+    if (!navigator.onLine) {
+      alert(_('no-network-when-update'));
+      return;
+    }
+
+    var updateStatus = document.getElementById('update-status');
+    var systemStatus = updateStatus.querySelector('.system-update-status');
+
+    var checkStatus = {
+      'gecko.updateStatus': {},
+      'apps.updateStatus': {}
+    };
+
+    updateStatus.classList.add('checking', 'visible');
+
+    function checkIfStatusComplete() {
+      var hasAllCheckComplete =
+        Object.keys(checkStatus).every(function(setting) {
+          return checkStatus[setting].value === 'check-complete';
+        });
+
+      var hasAllResponses =
+        Object.keys(checkStatus).every(function(setting) {
+          return !!checkStatus[setting].value;
+        });
+
+      if (hasAllCheckComplete) {
+        updateStatus.classList.remove('visible');
+        systemStatus.textContent = '';
+      }
+
+      if (hasAllResponses) {
+        updateStatus.classList.remove('checking');
+      }
+    }
 
     function onUpdateStatus(setting, event) {
       var value = event.settingValue;
@@ -130,14 +155,15 @@ var About = {
        * to check if this is still current
        */
 
-      var l10nValues = ['no-updates',
-                        'already-latest-version',
-                        'retry-when-online'];
+      var l10nValues = [
+        'no-updates', 'already-latest-version', 'retry-when-online'];
 
       if (value !== 'check-complete') {
-        systemStatus.setAttribute('data-l10n-id',
-          l10nValues.indexOf(value) !== -1 ? value : 'check-error');
-        console.error('Error checking for system update:', value);
+        var id = l10nValues.indexOf(value) !== -1 ? value : 'check-error';
+        systemStatus.setAttribute('data-l10n-id', id);
+        if (id == 'check-error') {
+          console.error('Error checking for system update:', value);
+        }
       }
 
       checkIfStatusComplete();
@@ -146,39 +172,8 @@ var About = {
       checkStatus[setting].cb = null;
     }
 
-    function checkIfStatusComplete() {
-      var hasAllCheckComplete =
-        Object.keys(checkStatus).every(function(setting) {
-          return checkStatus[setting].value === 'check-complete';
-        });
-
-      var hasAllResponses =
-        Object.keys(checkStatus).every(function(setting) {
-          return !!checkStatus[setting].value;
-        });
-
-      if (hasAllCheckComplete) {
-        updateStatus.classList.remove('visible');
-        systemStatus.textContent = '';
-      }
-
-      if (hasAllResponses) {
-        updateStatus.classList.remove('checking');
-      }
-    }
-
-    /* Firefox currently doesn't implement adding 2 classes in one call */
-    /* see Bug 814014 */
-    updateStatus.classList.add('checking');
-    updateStatus.classList.add('visible');
-
     /* remove whatever was there before */
     systemStatus.textContent = '';
-
-    var checkStatus = {
-      'gecko.updateStatus': {},
-      'apps.updateStatus': {}
-    };
 
     for (var setting in checkStatus) {
       checkStatus[setting].cb = onUpdateStatus.bind(null, setting);

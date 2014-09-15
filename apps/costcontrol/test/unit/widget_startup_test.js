@@ -167,9 +167,9 @@ suite('Widget Startup Modes Test Suite >', function() {
 
   function assertDataUseOnlyLayout(dataTag) {
     assert.equal(fte.getAttribute('aria-hidden'), 'true');
-    assert.equal(leftPanel.getAttribute('aria-hidden'), 'true');
-    assert.equal(rightPanel.getAttribute('aria-hidden'), 'false');
-    assert.ok(rightPanel.textContent.trim().contains(dataTag));
+    assert.equal(leftPanel.getAttribute('aria-hidden'), 'false');
+    assert.equal(rightPanel.getAttribute('aria-hidden'), 'true');
+    assert.ok(leftPanel.textContent.trim().contains(dataTag));
   }
 
   function assertNonDataUseOnlyLayout(leftDataTag, rightDataTag) {
@@ -395,7 +395,7 @@ suite('Widget Startup Modes Test Suite >', function() {
           unit: 'min'
         });
 
-        assertNonDataUseOnlyLayout(telephonyDataText, mobileDataText);
+        assertNonDataUseOnlyLayout(mobileDataText, telephonyDataText);
 
         SimManager.requestDataSimIcc(function (dataSimIcc) {
           assert.equal(dataSimIcc.icc.cardState, 'ready');
@@ -454,7 +454,7 @@ suite('Widget Startup Modes Test Suite >', function() {
         var balanceView = document.getElementById('balance-view');
         assert.isTrue(balanceView.classList.contains('updating'));
 
-        assertNonDataUseOnlyLayout(balanceDataText, mobileDataText);
+        assertNonDataUseOnlyLayout(mobileDataText, balanceDataText);
 
         SimManager.requestDataSimIcc(function (dataSimIcc) {
           assert.equal(dataSimIcc.icc.cardState, 'ready');

@@ -4,7 +4,6 @@
 /* jshint -W079, -W118 */
 
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
-const { btoa } = Cu.import('resource://gre/modules/Services.jsm', {});
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');

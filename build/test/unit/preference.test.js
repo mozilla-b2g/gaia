@@ -451,6 +451,7 @@ suite('preferences.js', function() {
         'network.http.max-connections-per-server': 15,
         'dom.mozInputMethod.enabled': true,
         'intl.uidirection.qps-plocm': 'rtl',
+        'layout.css.scroll-behavior.enabled': true,
         'layout.css.sticky.enabled': true,
         'ril.debugging.enabled': false,
         'dom.mms.version': 0x11,

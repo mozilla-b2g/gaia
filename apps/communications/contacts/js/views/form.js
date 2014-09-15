@@ -69,13 +69,14 @@ contacts.Form = (function() {
 
     get: function textFieldsCache_get() {
       if (!this._textFields) {
-        var fields = contactForm.querySelectorAll('input.textfield');
+        var fields = contactForm.querySelectorAll('input[data-field]');
 
         var fbFields =
           Array.slice(contactForm.querySelectorAll(
-                                                  '.facebook input.textfield'));
+                                                '.facebook input[data-field]'));
         var invalidFields =
-          Array.slice(contactForm.querySelectorAll('.invalid input.textfield'));
+          Array.slice(contactForm.querySelectorAll(
+                                                '.invalid input[data-field]'));
 
         this._textFields = Array.filter(fields, function(field) {
           return (fbFields.indexOf(field) === -1 &&
@@ -313,9 +314,9 @@ contacts.Form = (function() {
     });
 
     deleteContactButton.onclick = function deleteClicked(event) {
-      var msg = _('deleteConfirmMsg');
+      var msg = 'deleteConfirmMsg';
       var yesObject = {
-        title: _('delete'),
+        title: 'delete',
         isDanger: true,
         callback: function onAccept() {
           deleteContact(currentContact);
@@ -327,7 +328,7 @@ contacts.Form = (function() {
       };
 
       var noObject = {
-        title: _('cancel'),
+        title: 'cancel',
         callback: function onCancel() {
           ConfirmDialog.hide();
         }
@@ -671,6 +672,7 @@ contacts.Form = (function() {
       if (myContact.id) { //Editing a contact
         currentContact.tel = [];
         currentContact.email = [];
+        currentContact.org = [];
         currentContact.adr = [];
         currentContact.note = [];
         currentContact.photo = [];

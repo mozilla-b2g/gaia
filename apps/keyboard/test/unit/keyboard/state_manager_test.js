@@ -2,11 +2,11 @@
 
 /* global LayoutManager, InputMethodManager, L10nLoader, CandidatePanelManager,
           ActiveTargetsManager, UpperCaseStateManager, SettingsPromiseManager,
-          LayoutRenderingManager, PerformanceTimer, LayoutLoader,
+          LayoutRenderingManager, KeyboardConsole, LayoutLoader,
           InputMethodLoader, StateManager, MockInputMethod, MockInputContext,
           MockEventTarget, MockPromise, Promise */
 
-require('/js/keyboard/performance_timer.js');
+require('/js/keyboard/console.js');
 require('/js/keyboard/input_method_manager.js');
 require('/js/keyboard/layout_manager.js');
 require('/js/keyboard/layout_loader.js');
@@ -53,7 +53,7 @@ suite('StateManager', function() {
       setInputContext: this.sinon.stub(),
       settingsPromiseManager: this.sinon.stub(SettingsPromiseManager.prototype),
       layoutRenderingManager: this.sinon.stub(LayoutRenderingManager.prototype),
-      perfTimer: this.sinon.stub(PerformanceTimer.prototype)
+      console: this.sinon.stub(KeyboardConsole.prototype)
     };
 
     app.layoutManager.loader = this.sinon.stub(LayoutLoader.prototype);
@@ -102,7 +102,7 @@ suite('StateManager', function() {
       var switchCurrentIMEnginePromise = Promise.resolve();
       var updateLayoutRenderingPromise = Promise.resolve();
 
-      app.layoutManager.currentModifiedLayout = {
+      app.layoutManager.currentPage = {
         imEngine: 'bar'
       };
 
@@ -173,7 +173,7 @@ suite('StateManager', function() {
       var switchCurrentIMEnginePromise = Promise.resolve();
       var updateLayoutRenderingPromise = Promise.resolve();
 
-      app.layoutManager.currentModifiedLayout = {
+      app.layoutManager.currentPage = {
         imEngine: 'bar2'
       };
 
@@ -416,7 +416,7 @@ suite('StateManager', function() {
         switchCurrentIMEnginePromise = Promise.resolve();
         updateLayoutRenderingPromise = Promise.resolve();
 
-        app.layoutManager.currentModifiedLayout = {
+        app.layoutManager.currentPage = {
           imEngine: 'bar'
         };
 

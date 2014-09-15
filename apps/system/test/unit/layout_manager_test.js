@@ -184,7 +184,9 @@ suite('system/LayoutManager >', function() {
         MockKeyboardManager.mHeight = 100;
         MocksoftwareButtonManager.height = 50;
         layoutManager.keyboardEnabled = true;
-        assert.equal(layoutManager.height, H - 100 - 50);
+        // Even though the software home button is enabled and reports a height
+        // its height should not affect the lockscreen
+        assert.equal(layoutManager.height, H - 100);
       });
 
     test('should return integral values in device pixels', function() {

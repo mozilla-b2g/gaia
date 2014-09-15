@@ -163,8 +163,7 @@ marionette('month view', function() {
     var event = events[0];
     var text = event.text();
 
-    // Disable the assert, refer to http://bugzil.la/1061135.
-    // assert.include(text, '1:00 AM', 'should show start time');
+    assert.include(text, '1:00 AM', 'should show start time');
     assert.include(text, 'Launch', 'should show title');
     assert.include(event.text(), 'Alderaan', 'should show location');
   });

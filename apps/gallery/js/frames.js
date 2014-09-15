@@ -33,7 +33,11 @@ if (CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH) {
 var transitioning = false;
 
 // Clicking on the back button will go to the preview view
-fullscreenButtons.back.onclick = setView.bind(null, LAYOUT_MODE.list);
+// Note that tablet doesn't have a back button, it's bind to header instead,
+// so we don't try to register click event on a non-existent button
+if (fullscreenButtons.back) {
+  fullscreenButtons.back.onclick = setView.bind(null, LAYOUT_MODE.list);
+}
 
 // Clicking the delete button while viewing a single item deletes that item
 fullscreenButtons.delete.onclick = deleteSingleItem;
@@ -238,7 +242,8 @@ function resizeFrames() {
 // fullscreen mode directly.
 function singletap(e) {
   if (currentView === LAYOUT_MODE.fullscreen) {
-    if (currentFrame.displayingImage || currentFrame.video.player.paused) {
+    if ((currentFrame.displayingImage || currentFrame.video.player.paused) &&
+         isPhone) {
       fullscreenView.classList.toggle('toolbar-hidden');
     }
   } else if (currentView === LAYOUT_MODE.list &&

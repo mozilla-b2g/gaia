@@ -11,10 +11,12 @@ var DefaultTargetHandler = function(target, app) {
   this.ignoreCommitActions = false;
 };
 DefaultTargetHandler.prototype.activate = function() {
+  this.app.console.log('DefaultTargetHandler.activate()');
   this.app.feedbackManager.triggerFeedback(this.target);
   this.app.visualHighlightManager.show(this.target);
 };
 DefaultTargetHandler.prototype.longPress = function() {
+  this.app.console.log('DefaultTargetHandler.longPress()');
   // Does the key have an long press value?
   if (!('longPressValue' in this.target.dataset)) {
     return;
@@ -28,13 +30,17 @@ DefaultTargetHandler.prototype.longPress = function() {
   this.app.visualHighlightManager.hide(this.target);
 };
 DefaultTargetHandler.prototype.moveOut = function() {
+  this.app.console.log('DefaultTargetHandler.moveOut()');
   this.app.visualHighlightManager.hide(this.target);
 };
 DefaultTargetHandler.prototype.moveIn = function() {
+  this.app.console.log('DefaultTargetHandler.moveIn()');
   this.app.visualHighlightManager.show(this.target);
 };
 DefaultTargetHandler.prototype.commit = function() {
+  this.app.console.log('DefaultTargetHandler.commit()');
   if (this.ignoreCommitActions) {
+    this.app.console.log('DefaultTargetHandler.commit()::return early');
     return;
   }
 
@@ -50,19 +56,25 @@ DefaultTargetHandler.prototype.commit = function() {
    * This hack should be removed and the state/input queue should be
    * maintained out of latin.js.
    */
-  if (this.app.layoutManager.currentModifiedLayout.imEngine === 'latin') {
+  if (this.app.layoutManager.currentPage.imEngine === 'latin') {
+    this.app.console.log('DefaultTargetHandler.commit()::latin::engine.click',
+      keyCode, upperCaseKeyCode);
     engine.click(keyCode, upperCaseKeyCode);
   } else {
-    engine.click(
-      this.app.upperCaseStateManager.isUpperCase ? upperCaseKeyCode : keyCode);
+    var code =
+      this.app.upperCaseStateManager.isUpperCase ? upperCaseKeyCode : keyCode;
+    this.app.console.log('DefaultTargetHandler.commit()::engine.click', code);
+    engine.click(code);
   }
 
   this.app.visualHighlightManager.hide(this.target);
 };
 DefaultTargetHandler.prototype.cancel = function() {
+  this.app.console.log('DefaultTargetHandler.cancel()');
   this.app.visualHighlightManager.hide(this.target);
 };
 DefaultTargetHandler.prototype.doubleTap = function() {
+  this.app.console.log('DefaultTargetHandler.doubleTap()');
   this.commit();
 };
 
@@ -201,34 +213,7 @@ var PageSwitchingTargetHandler = function(target, app) {
 PageSwitchingTargetHandler.prototype =
   Object.create(DefaultTargetHandler.prototype);
 PageSwitchingTargetHandler.prototype.commit = function() {
-  var keyCode = parseInt(this.target.dataset.keycode, 10);
-
-  var page;
-  switch (keyCode) {
-    case this.app.layoutManager.KEYCODE_BASIC_LAYOUT:
-      // Return to default page
-      page = this.app.layoutManager.LAYOUT_PAGE_DEFAULT;
-      break;
-
-    case this.app.layoutManager.KEYCODE_ALTERNATE_LAYOUT:
-      // Switch to numbers+symbols page
-      page = this.app.layoutManager.LAYOUT_PAGE_SYMBOLS_I;
-      break;
-
-     case this.app.layoutManager.KEYCODE_SYMBOL_LAYOUT:
-      page = this.app.layoutManager.LAYOUT_PAGE_SYMBOLS_II;
-      break;
-
-    case KeyEvent.DOM_VK_ALT:
-      // alternate between pages 1 and 2 of SYMBOLS
-      if (this.app.layoutManager.currentLayoutPage ===
-          this.app.layoutManager.LAYOUT_PAGE_SYMBOLS_I) {
-        page = this.app.layoutManager.LAYOUT_PAGE_SYMBOLS_II;
-      } else {
-        page = this.app.layoutManager.LAYOUT_PAGE_SYMBOLS_I;
-      }
-      break;
-  }
+  var page = parseInt(this.target.dataset.targetPage, 10);
 
   this.app.setLayoutPage(page);
   this.app.visualHighlightManager.hide(this.target);

@@ -158,6 +158,12 @@ function init() {
     cleanupCrop();
   });
 
+  if (!isPhone) {
+    $('fullscreen-toolbar-header').addEventListener('action', function() {
+      setView(LAYOUT_MODE.list);
+    });
+  }
+
   // The camera buttons should launch the camera app
   fullscreenButtons.camera.onclick = launchCameraApp;
 

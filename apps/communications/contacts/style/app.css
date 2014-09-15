@@ -242,6 +242,10 @@ li button.activity > b em {
   pointer-events: none;
 }
 
+[data-type="list"] li aside.pack-end {
+  margin: 0 2rem 0 0;
+}
+
 /* Selection tag extended from shared/style/buttons.css */
 .view-select-tag .selection-list li button {
   background-color: #fff;
@@ -556,6 +560,11 @@ html[dir="rtl"] ::-moz-placeholder {
   text-align: right;
 }
 
+#import-settings button {
+  margin: 1.5rem;
+  width: calc(100% - 3rem);
+}
+
 #contact-list-ice {
   padding-left: 1rem
 }
@@ -579,4 +588,12 @@ html[dir="rtl"] ::-moz-placeholder {
   min-height: 100%;
   background: #FFF;
   text-align: left;
+}
+
+.ice-contact {
+  font-size: 1.6rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 24rem;
 }

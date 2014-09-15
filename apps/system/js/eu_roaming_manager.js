@@ -266,8 +266,11 @@
      */
     _showNotification: function(serviceId) {
       var _ = navigator.mozL10n.get;
+      var iconUrl =  window.location.origin + '/style/eu_roaming_manager/' +
+        'eu_roaming.png';
       var options = {
         body: _('euRoamingNotificationMsg'),
+        icon: iconUrl,
         tag: this.TAG_PREFIX + serviceId
       };
       var notification =
@@ -291,7 +294,7 @@
      * @param {Number} serviceId
      */
     _triggerSettingsActivity: function(serviceId) {
-      var params = {
+      var activity = new MozActivity({
         name: 'configure',
         data: {
           target: 'device',
@@ -302,9 +305,7 @@
             serviceId: serviceId
           }
         }
-      };
-
-      var activity = new MozActivity(params);
+      });
       activity.onsuccess = function() {};
     },
 

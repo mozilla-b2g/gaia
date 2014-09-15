@@ -3,6 +3,8 @@
  * implementations inside the 'utils-node' and 'utils-xpc' files.
  */
 
+'use strict';
+/* global exports, require, process*/
 const FILE_TYPE_FILE = 0;
 const FILE_TYPE_DIRECTORY = 1;
 
@@ -71,8 +73,9 @@ function getExtension(filename) {
  */
 function psParser(psresult) {
   var rows = psresult.split('\n');
-  if (rows.length < 2)
+  if (rows.length < 2) {
     return {};
+  }
 
   // We use indexes of each title of the first row to
   // get correct position of each values.
@@ -155,6 +158,8 @@ function getAppStatus(status) {
       appStatus = 2;
       break;
     case 'web':
+      appStatus = 1;
+      break;
     default: // By default, apps are installed
       appStatus = 1;
       break;

@@ -1,8 +1,9 @@
 /*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
          MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI,
-         MockOptionMenu, Utils, Contacts, MockContact, Navigation, MockDialog,
-         MockSettings
+         MockOptionMenu, Utils, Contacts, MockContact, Navigation,
+         MockSettings,
+         Dialog
          */
 
 'use strict';
@@ -12,6 +13,7 @@
 mocha.setup({ globals: ['alert', 'confirm'] });
 
 requireApp('sms/js/utils.js');
+require('/js/dialog.js');
 requireApp('sms/js/recipients.js');
 requireApp('sms/js/drafts.js');
 requireApp('sms/js/threads.js');
@@ -25,7 +27,6 @@ requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_utils.js');
-requireApp('sms/test/unit/mock_dialog.js');
 requireApp('sms/test/unit/mock_waiting_screen.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/test/unit/thread_list_mockup.js');
@@ -42,7 +43,6 @@ var mocksHelperForThreadListUI = new MocksHelper([
   'Contacts',
   'MessageManager',
   'Utils',
-  'Dialog',
   'WaitingScreen',
   'TimeHeaders',
   'ThreadUI',
@@ -580,123 +580,278 @@ suite('thread_list_ui', function() {
   });
 
   suite('delete', function() {
-    setup(function() {
-      this.selectedInputs = [
-        {value: 1, dataset: { mode: 'threads'} },
-        {value: 2, dataset: { mode: 'threads'} }
-      ];
+    var threadDraftIds = [100, 200],
+        threadIds = [1, 2, 3];
 
-      this.sinon.stub(ThreadListUI, 'getSelectedInputs', function() {
-        return this.selectedInputs;
-      }.bind(this));
+    setup(function() {
       this.sinon.stub(MessageManager, 'getMessages');
+
+      var drafts = threadDraftIds.map((id) => {
+        var draft = new Draft({
+          id: id,
+          threadId: id,
+          recipients: [],
+          content: ['An explicit id'],
+          timestamp: Date.now(),
+          type: 'sms'
+        });
+
+        Drafts.add(draft);
+
+        return Thread.create(draft);
+      });
+
+      var threads = threadIds.map((id) => {
+        var thread = Thread.create(MockMessages.sms({
+          threadId: id,
+          timestamp: Date.now()
+        }));
+
+        Threads.set(id, thread);
+
+        return thread;
+      });
+
+      drafts.concat(threads).forEach(function(thread) {
+        ThreadListUI.appendThread(thread);
+
+        assert.isNotNull(document.getElementById('thread-' +thread.id));
+      });
+    });
+
+    teardown(function() {
+      ThreadListUI.container = '';
+      Drafts.clear();
     });
 
     suite('confirm true', function() {
+      var dialogStub;
+
+      function getMessagesCallParams(threadId) {
+        return  {
+          each: sinon.match.func,
+          end: sinon.match.func,
+          filter: { threadId: threadId }
+        };
+      }
+
+      function selectThreadsAndDelete(threadIds) {
+        threadIds.forEach((threadId) => {
+          ThreadListUI.container.querySelector(
+            '#thread-' + threadId + ' input[type=checkbox]'
+          ).checked = true;
+        });
+
+        Dialog.firstCall.args[0].options.confirm.method();
+      }
+
       setup(function() {
+        dialogStub = sinon.createStubInstance(Dialog);
+
         this.sinon.stub(WaitingScreen, 'show');
         this.sinon.stub(WaitingScreen, 'hide');
+        this.sinon.stub(MessageManager, 'deleteMessages');
+        this.sinon.stub(window, 'Dialog').returns(dialogStub);
+
         ThreadListUI.delete();
-        MockDialog.triggers.confirm();
       });
+
       test('called dialog with proper message', function() {
-        assert.isTrue(MockDialog.prototype.show.called);
-        assert.equal(MockDialog.calls[0].body.l10nId,
-                        'deleteThreads-confirmation2');
-        assert.equal(MockDialog.calls[0].options.confirm.text.l10nId,
-                        'delete', 'right text on button');
-        assert.equal(MockDialog.calls[0].options.confirm.className,
-                        'danger', 'right styling on button');
-      });
-      test('dialog confirmed', function() {
-        assert.ok(MockDialog.triggers.confirm.called);
-        assert.isFalse(MockDialog.triggers.cancel.called);
-      });
-      test('shows WaitingScreen', function() {
-        assert.ok(WaitingScreen.show.called);
-      });
-      test('called MessageManager.getMessages twice', function() {
-        assert.equal(MessageManager.getMessages.args.length, 2);
-      });
-      suite('getMessages({ each: })', function() {
-        setup(function() {
-          this.sinon.stub(MessageManager, 'deleteMessages');
-          // call the "each" function passed to getMessages with fake message
-          MessageManager.getMessages.args[0][0].each({ id: 3 });
-        });
-        test('MessageManager.deleteMessages called', function() {
-          assert.ok(MessageManager.deleteMessages.calledWith(3));
+        sinon.assert.called(dialogStub.show);
+
+        sinon.assert.calledWith(Dialog, {
+          title: { l10nId: 'messages' },
+          body: { l10nId: 'deleteThreads-confirmation2' },
+          options: {
+            cancel: {
+              text: { l10nId: 'cancel' }
+            },
+            confirm: {
+              text: { l10nId: 'delete' },
+              className: 'danger',
+              method: sinon.match.func
+            }
+          }
         });
       });
-      suite('first getMessages', function() {
+
+      suite('delete drafts only', function() {
         setup(function() {
-          this.sinon.stub(Threads, 'delete');
-          this.sinon.stub(ThreadListUI, 'removeThread');
+          this.sinon.spy(Drafts, 'store');
+
+          threadDraftIds.forEach((id) => {
+            assert.isTrue(Drafts.byThreadId(id).length > 0);
+          });
+
+          selectThreadsAndDelete(threadDraftIds);
+        });
+
+        test('removes thread draft from the DOM', function() {
+          sinon.assert.called(WaitingScreen.show);
+
+          threadDraftIds.forEach((id) => {
+            assert.isTrue(Drafts.byThreadId(id).length === 0);
+          });
+
+          assert.isNull(document.getElementById('thread-100'));
+          assert.isNull(document.getElementById('thread-200'));
+
+          sinon.assert.called(Drafts.store);
+          sinon.assert.called(WaitingScreen.hide);
+          sinon.assert.notCalled(MessageManager.getMessages);
+          sinon.assert.notCalled(MessageManager.deleteMessages);
+        });
+      });
+
+      suite('delete real threads only', function() {
+        var threadsToDelete = threadIds.slice(0, 2);
+
+        setup(function() {
+          this.sinon.spy(Drafts, 'store');
           this.sinon.spy(Utils, 'closeNotificationsForThread');
 
-          // call the "end" function passed to getMessages with fake message
-          MessageManager.getMessages.args[0][0].end();
+          selectThreadsAndDelete(threadsToDelete);
         });
-        test('is for the right thread', function() {
-          assert.equal(
-            MessageManager.getMessages.args[0][0].filter.threadId, 2);
-        });
-        test('end calls removeThread for correct thread', function() {
-          assert.equal(ThreadListUI.removeThread.args[0][0], 2);
-        });
-        test('end calls Threads.delete with correct thread', function() {
-          assert.equal(Threads.delete.args[0][0], 2);
-        });
-        test('end calls closeNotificationsForThread', function() {
-          sinon.assert.calledWith(Utils.closeNotificationsForThread, 2);
-        });
-        test('end doesnt hide waiting screen (yet)', function() {
-          assert.isFalse(WaitingScreen.hide.called);
-        });
-        suite('sencond getMessages', function() {
-          setup(function() {
-            MessageManager.getMessages.args[1][0].end();
+
+        test('getMessages is called for the right thread', function() {
+          sinon.assert.calledTwice(MessageManager.getMessages);
+
+          threadsToDelete.forEach((id) => {
+            sinon.assert.calledWith(
+              MessageManager.getMessages, getMessagesCallParams(id)
+            );
           });
-          test('is for the right thread', function() {
+        });
+
+        test('MessageManager.deleteMessages is called', function() {
+          sinon.assert.called(WaitingScreen.show);
+
+          threadsToDelete.forEach((id) => {
+            MessageManager.getMessages.withArgs(getMessagesCallParams(id)).
+              yieldTo('each', { id: id * 10 });
+            MessageManager.getMessages.withArgs(getMessagesCallParams(id)).
+              yieldTo('each', { id: id * 100 });
+
+            sinon.assert.notCalled(MessageManager.deleteMessages);
+          });
+
+          threadsToDelete.forEach((id, index, list) => {
+            MessageManager.getMessages.withArgs(getMessagesCallParams(id)).
+              yieldTo('end');
+
+            // Delete call is performed only if messages for all threads to
+            // delete were retrieved, the same is for WaitingScreen.hide
             assert.equal(
-              MessageManager.getMessages.args[1][0].filter.threadId, 1);
+              MessageManager.deleteMessages.called, index === list.length - 1
+            );
+            assert.equal(
+              WaitingScreen.hide.called, index === list.length - 1
+            );
           });
-          test('end calls removeThread for correct thread', function() {
-            assert.equal(ThreadListUI.removeThread.args[1][0], 1);
+
+          sinon.assert.calledOnce(MessageManager.deleteMessages);
+          sinon.assert.calledWith(
+            MessageManager.deleteMessages, [10, 100, 20, 200]
+          );
+
+          threadsToDelete.forEach(function(threadId) {
+            assert.isNull(document.getElementById('thread-' + threadId));
+            assert.isFalse(Threads.has(threadId));
+            sinon.assert.calledWith(
+              Utils.closeNotificationsForThread, threadId
+            );
           });
-          test('end calls Threads.delete with correct thread', function() {
-            assert.equal(Threads.delete.args[1][0], 1);
+
+          sinon.assert.notCalled(Drafts.store);
+          sinon.assert.called(WaitingScreen.hide);
+        });
+      });
+
+      suite('delete both real threads and drafts', function() {
+        var threadsToDelete = threadDraftIds.concat(threadIds);
+
+        setup(function() {
+          this.sinon.spy(Drafts, 'store');
+          this.sinon.spy(Utils, 'closeNotificationsForThread');
+
+          selectThreadsAndDelete(threadsToDelete);
+        });
+
+        test('getMessages is called for the right thread', function() {
+          sinon.assert.calledThrice(MessageManager.getMessages);
+
+          threadIds.forEach((id) => {
+            sinon.assert.calledWith(
+              MessageManager.getMessages, getMessagesCallParams(id)
+            );
           });
-          test('end calls closeNotificationsForThread', function() {
-            sinon.assert.calledWith(Utils.closeNotificationsForThread, 1);
+        });
+
+        test('MessageManager.deleteMessages is called', function() {
+          sinon.assert.called(WaitingScreen.show);
+
+          // First drafts are deleted
+          threadDraftIds.forEach((id) => {
+            assert.isTrue(Drafts.byThreadId(id).length === 0);
           });
-          test('end calls hide waiting screen', function() {
-            assert.isTrue(WaitingScreen.hide.called);
+
+          assert.isNotNull(document.getElementById('thread-1'));
+          assert.isNotNull(document.getElementById('thread-2'));
+          assert.isNotNull(document.getElementById('thread-3'));
+          assert.isNull(document.getElementById('thread-100'));
+          assert.isNull(document.getElementById('thread-200'));
+
+          // Don't hide waiting screen until full deletion is finished
+          sinon.assert.notCalled(WaitingScreen.hide);
+          sinon.assert.called(Drafts.store);
+
+          threadIds.forEach((id) => {
+            MessageManager.getMessages.withArgs(getMessagesCallParams(id)).
+              yieldTo('each', { id: id * 10 });
+            MessageManager.getMessages.withArgs(getMessagesCallParams(id)).
+              yieldTo('each', { id: id * 100 });
+
+            sinon.assert.notCalled(MessageManager.deleteMessages);
+          });
+
+          threadIds.forEach((id, index, list) => {
+            MessageManager.getMessages.withArgs(getMessagesCallParams(id)).
+              yieldTo('end');
+
+            // Delete call is performed only if messages for all threads to
+            // delete were retrieved, the same is for WaitingScreen.hide
+            assert.equal(
+              MessageManager.deleteMessages.called, index === list.length - 1
+            );
+            assert.equal(
+              WaitingScreen.hide.called, index === list.length - 1
+            );
+          });
+
+          sinon.assert.calledOnce(MessageManager.deleteMessages);
+          sinon.assert.calledWith(
+            MessageManager.deleteMessages, [10, 100, 20, 200, 30, 300]
+          );
+
+          threadIds.forEach((id) => {
+            assert.isNull(document.getElementById('thread-' + id));
+            assert.isFalse(Threads.has(id));
+            sinon.assert.calledWith(
+              Utils.closeNotificationsForThread, id
+            );
           });
         });
       });
     });
 
     test('onThreadsDeleted', function() {
-      var threadIds = [3, 4, 5];
-      this.sinon.stub(Threads, 'has', (id) => threadIds.indexOf(id) >= 0);
+      MessageManager.on.withArgs('threads-deleted').yield({ ids: [1, 2, 4] });
 
-      threadIds.forEach(function(threadId) {
-        var thread = Thread.create(MockMessages.sms({
-          threadId: threadId,
-          timestamp: +(new Date())
-        }));
-
-        ThreadListUI.appendThread(thread);
-
-        assert.ok(document.getElementById('thread-' + threadId));
-      });
-
-      MessageManager.on.withArgs('threads-deleted').yield({ ids: [3, 4, 6] });
-
-      assert.ok(!document.getElementById('thread-3'));
-      assert.ok(!document.getElementById('thread-4'));
-      assert.ok(document.getElementById('thread-5'));
+      assert.isNull(document.getElementById('thread-1'));
+      assert.isNull(document.getElementById('thread-2'));
+      assert.isNotNull(document.getElementById('thread-3'));
+      assert.isNotNull(document.getElementById('thread-100'));
+      assert.isNotNull(document.getElementById('thread-200'));
     });
   });
 

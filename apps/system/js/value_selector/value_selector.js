@@ -38,6 +38,8 @@
 
   ValueSelector.prototype.ELEMENT_PREFIX = 'value-selector-';
 
+  ValueSelector.prototype.EVENT_PREFIX = 'value-selector-';
+
   ValueSelector.prototype.customID = function vs_customID() {
     if (this.app) {
       return '[' + this.app.origin + ']';
@@ -181,6 +183,7 @@
       return;
     }
 
+    this.publish('shown');
     var min = detail.min;
     var max = detail.max;
 
@@ -234,6 +237,7 @@
     if (this.app) {
       this.app.focus();
     }
+    this.publish('hidden');
   };
 
   ValueSelector.prototype.handleSelect = function vs_handleSelect(target) {
@@ -378,6 +382,7 @@
       return;
     }
 
+    var groupTemplate = new Template('value-selector-groupoption-template');
     var template = new Template('value-selector-option-template');
 
     // Add ARIA property to notify if this is a multi-select or not.
@@ -385,13 +390,20 @@
       this._currentPickerType !== 'select-one');
 
     options.forEach(function(option) {
-      this.elements.optionsContainer.insertAdjacentHTML('beforeend',
-        template.interpolate({
-          index: option.optionIndex.toString(10),
-          checked: option.selected.toString(),
-          for: 'gaia-option-' + option.optionIndex,
-          text: option.text
-        }));
+      if (option.group) {
+        this.elements.optionsContainer.insertAdjacentHTML('beforeend',
+          groupTemplate.interpolate({
+            text: option.text
+          }));
+      } else {
+        this.elements.optionsContainer.insertAdjacentHTML('beforeend',
+          template.interpolate({
+            index: option.optionIndex.toString(10),
+            checked: option.selected.toString(),
+            for: 'gaia-option-' + option.optionIndex,
+            text: option.text
+          }));
+      }
     }, this);
 
     // Apply different style when the options are more than 1 page

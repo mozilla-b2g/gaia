@@ -370,7 +370,6 @@ apps/system/test/marionette/notification_test.js
 apps/system/test/unit/app_install_manager_test.js
 apps/system/test/unit/battery_manager_test.js
 apps/system/test/unit/bluetooth_transfer_test.js
-apps/system/test/unit/browser_frame_test.js
 apps/system/test/unit/carrier_info_notifier_test.js
 apps/system/test/unit/date_picker_test.js
 apps/system/test/unit/download_manager_test.js

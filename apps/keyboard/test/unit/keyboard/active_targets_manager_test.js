@@ -1,10 +1,12 @@
 'use strict';
 
-/* global ActiveTargetsManager, AlternativesCharMenuManager, UserPressManager */
+/* global ActiveTargetsManager, AlternativesCharMenuManager, UserPressManager,
+          KeyboardConsole */
 
 require('/js/keyboard/active_targets_manager.js');
 require('/js/keyboard/alternatives_char_menu_manager.js');
 require('/js/keyboard/user_press_manager.js');
+require('/js/keyboard/console.js');
 
 suite('ActiveTargetsManager', function() {
   var app;
@@ -24,7 +26,9 @@ suite('ActiveTargetsManager', function() {
     this.sinon.stub(window, 'setTimeout');
     this.sinon.stub(window, 'clearTimeout');
 
-    app = {};
+    app = {
+      console: this.sinon.stub(KeyboardConsole.prototype)
+    };
 
     manager = new ActiveTargetsManager(app);
     manager.ontargetactivated = this.sinon.stub();

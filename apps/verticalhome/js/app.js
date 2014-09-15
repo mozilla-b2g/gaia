@@ -4,15 +4,15 @@
 (function(exports) {
 
   // Hidden manifest roles that we do not show
-  const HIDDEN_ROLES = ['system', 'input', 'homescreen'];
+  const HIDDEN_ROLES = ['system', 'input', 'homescreen', 'theme'];
 
   function App() {
     window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
-    this.scrollable = document.querySelector('.scrollable');
     this.grid = document.getElementById('icons');
 
     this.grid.addEventListener('iconblobdecorated', this);
     this.grid.addEventListener('gaiagrid-iconbloberror', this);
+    this.grid.addEventListener('cached-icons-rendered', this);
     window.addEventListener('hashchange', this);
     window.addEventListener('gaiagrid-saveitems', this);
     window.addEventListener('online', this.retryFailedIcons.bind(this));
@@ -156,6 +156,13 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+        // Expose the cached-icons-rendered to the window. This makes it so
+        // we don't have to couple the item store and the app object.
+        case 'cached-icons-rendered':
+          window.dispatchEvent(
+            new CustomEvent('gaiagrid-cached-icons-rendered'));
+          break;
+
         case 'iconblobdecorated':
           var item = e.detail;
 
@@ -210,28 +217,7 @@
             return;
           }
 
-          var step;
-          var scrollable = this.scrollable;
-
-          var doScroll = function() {
-            var scrollY = scrollable.scrollTop;
-            step = step || (scrollY / 20);
-
-            if (!scrollY) {
-              return;
-            }
-
-            if (scrollY <= step) {
-              scrollable.scrollTop = 0;
-              return;
-            }
-
-            scrollable.scrollTop -= step;
-            window.requestAnimationFrame(doScroll);
-          };
-
-          doScroll();
-          break;
+          window.scrollTo(0, 0, {behavior: 'smooth'});
       }
     }
   };

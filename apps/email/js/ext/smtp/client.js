@@ -3,12 +3,12 @@
  * between connection-related setup in smtp/account.js and
  * smtp/probe.js.
  */
-define([
-  'slog',
-  'smtpclient',
-  '../syncbase',
-  'exports'
-], function(slog, SmtpClient, syncbase, exports) {
+define(function(require, exports) {
+
+  var slog = require('slog');
+  var SmtpClient = require('smtpclient');
+  var syncbase = require('../syncbase');
+  var oauth = require('../oauth');
 
   var setTimeout = window.setTimeout;
   var clearTimeout = window.clearTimeout;
@@ -25,70 +25,87 @@ define([
    *   keys: hostname, port, crypto
    * @param {object} connInfo
    *   keys: username, password
+   * @param {function(credentials)} credsUpdatedCallback
+   *   Callback, called if the credentials have been updated and
+   *   should be stored to disk. Not called if the credentials are
+   *   already up-to-date.
    * @return {Promise}
    *   resolve => {SmtpClient} connection
    *   reject => {String} normalized error
    */
-  exports.createSmtpConnection = function(credentials, connInfo) {
+  exports.createSmtpConnection = function(credentials, connInfo,
+                                          credsUpdatedCallback) {
     var conn;
-    return new Promise(function(resolve, reject) {
 
-      var auth = {
-        // Someday, `null` might be a valid value, so be careful here
-        user: (credentials.outgoingUsername !== undefined ?
-               credentials.outgoingUsername :
-               credentials.username),
-        pass: (credentials.outgoingPassword !== undefined ?
-               credentials.outgoingPassword :
-               credentials.password)
-      };
-      slog.log('smtp:connect', {
-        _auth: auth,
-        connInfo: connInfo
-      });
-      conn = new SmtpClient(
-        connInfo.hostname, connInfo.port,
-        {
-          useSecureTransport: (connInfo.crypto === 'ssl' ||
-                               connInfo.crypto === true),
-          starttls: connInfo.crypto === 'starttls',
-          auth: auth
-        });
-
-      var connectTimeout = setTimeout(function() {
-        conn.onerror('unresponsive-server');
-        conn.close();
-      }, syncbase.CONNECT_TIMEOUT_MS);
-
-      function clearConnectTimeout() {
-        if (connectTimeout) {
-          clearTimeout(connectTimeout);
-          connectTimeout = null;
-        }
+    return oauth.ensureUpdatedCredentials(
+      credentials
+    ).then(function(credentialsChanged) {
+      if (credentialsChanged) {
+        credsUpdatedCallback(credentials);
       }
+      return new Promise(function(resolve, reject) {
 
-      conn.onidle = function() {
-        clearConnectTimeout();
-        resolve(conn);
-      };
-      conn.onerror = function(err) {
-        clearConnectTimeout();
-        reject(err);
-      };
-      // if the connection closes without any of the other callbacks,
-      // the server isn't responding properly.
-      conn.onclose = function() {
-        clearConnectTimeout();
-        reject('server-maybe-offline');
-      };
+        var auth = {
+          // Someday, `null` might be a valid value, so be careful here
+          user: (credentials.outgoingUsername !== undefined ?
+                 credentials.outgoingUsername :
+                 credentials.username),
+          pass: (credentials.outgoingPassword !== undefined ?
+                 credentials.outgoingPassword :
+                 credentials.password),
+          xoauth2: credentials.oauth2 ?
+                     credentials.oauth2.accessToken : null
+        };
+        slog.log('smtp:connect', {
+          _auth: auth,
+          usingOauth2: !!credentials.oauth2,
+          connInfo: connInfo
+        });
+        conn = new SmtpClient(
+          connInfo.hostname, connInfo.port,
+          {
+            useSecureTransport: (connInfo.crypto === 'ssl' ||
+                                 connInfo.crypto === true),
+            starttls: connInfo.crypto === 'starttls',
+            auth: auth
+          });
 
-      conn.connect();
-    }).then(function(conn) {
-      slog.info('smtp:connected', connInfo);
-      conn.onidle = conn.onclose = conn.onerror = function() { /* noop */ };
-      return conn;
+        var connectTimeout = setTimeout(function() {
+          conn.onerror('unresponsive-server');
+          conn.close();
+        }, syncbase.CONNECT_TIMEOUT_MS);
+
+        function clearConnectTimeout() {
+          if (connectTimeout) {
+            clearTimeout(connectTimeout);
+            connectTimeout = null;
+          }
+        }
+
+        conn.onidle = function() {
+          clearConnectTimeout();
+          slog.info('smtp:connected', connInfo);
+          conn.onidle = conn.onclose = conn.onerror = function() { /* noop */ };
+          resolve(conn);
+        };
+        conn.onerror = function(err) {
+          clearConnectTimeout();
+          reject(err);
+        };
+        // if the connection closes without any of the other callbacks,
+        // the server isn't responding properly.
+        conn.onclose = function() {
+          clearConnectTimeout();
+          reject('server-maybe-offline');
+        };
+
+        conn.connect();
+      });
     }).catch(function(err) {
       var errorString = analyzeSmtpError(conn, err, /* wasSending: */ false);
+      if (conn) {
+        conn.close();
+      }
       slog.error('smtp:connect-error', {
         error: errorString,
         connInfo: connInfo
@@ -195,6 +212,7 @@ define([
       err = 'null-error';
     }
 
+    var wasOauth = conn && !!conn.options.auth.xoauth2;
     var normalizedError = 'unknown';
 
     // If we were able to extract a negative SMTP response, we can
@@ -208,7 +226,11 @@ define([
       //     "success": false }
       switch (err.statusCode) {
       case 535:
-        normalizedError = 'bad-user-or-pass';
+        if (wasOauth) {
+          normalizedError = 'needs-oauth-reauth';
+        } else {
+          normalizedError = 'bad-user-or-pass';
+        }
         break;
       case 501: // Invalid Syntax
         if (wasSending) {

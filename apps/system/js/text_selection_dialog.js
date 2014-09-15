@@ -13,7 +13,10 @@
     this._hideTimeout = null;
     this._injected = false;
     this._hasCutOrCopied = false;
+    this._ignoreSelectionChange = false;
     window.addEventListener('mozChromeEvent', this);
+    window.addEventListener('value-selector-shown', this);
+    window.addEventListener('value-selector-hidden', this);
   };
 
   TextSelectionDialog.prototype = Object.create(window.BaseUI.prototype);
@@ -57,20 +60,29 @@
   };
 
   TextSelectionDialog.prototype.handleEvent = function tsd_handleEvent(evt) {
-    if (evt.type === 'mozChromeEvent' &&
-        evt.detail.type !== 'selectionchange') {
-      return;
+    switch(evt.type) {
+      case 'value-selector-showed':
+        this._ignoreSelectionChange = true;
+        break;
+      case 'value-selector-hidden':
+        this._ignoreSelectionChange = false;
+        break;
+      case 'mozChromeEvent':
+        if (evt.detail.type !== 'selectionchange' ||
+            this._ignoreSelectionChange) {
+          return;
+        }
+        this.event = evt;
+        evt.preventDefault();
+        evt.stopPropagation();
+        this.textualmenuDetail = this.event.detail.detail;
+        if (!this._injected) {
+          this.render();
+        }
+        this.show();
+        this._injected = true;
+        break;
     }
-
-    this.event = evt;
-    evt.preventDefault();
-    evt.stopPropagation();
-    this.textualmenuDetail = this.event.detail.detail;
-    if (!this._injected) {
-      this.render();
-    }
-    this.show();
-    this._injected = true;
   };
 
   TextSelectionDialog.prototype._fetchElements = function tsd__fetchElements() {

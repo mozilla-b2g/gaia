@@ -43,6 +43,7 @@ var UtilityTray = {
     window.addEventListener('displayapp', this);
     window.addEventListener('appopening', this);
     window.addEventListener('resize', this);
+    window.addEventListener('cardviewbeforeshow', this);
 
     // Listen for screen reader edge gestures
     window.addEventListener('mozChromeEvent', this);
@@ -74,6 +75,10 @@ var UtilityTray = {
     }
   },
 
+  addHomeListener: function ut_addHomeListener() {
+    window.addEventListener('home', this);
+  },
+
   startY: undefined,
   lastDelta: undefined,
   isTap: false,
@@ -87,6 +92,10 @@ var UtilityTray = {
     var detail = evt.detail;
 
     switch (evt.type) {
+      case 'cardviewbeforeshow':
+        this.hide(true);
+        break;
+
       case 'attentionopened':
       case 'attentionwill-become-active':
       case 'home':
@@ -402,3 +411,7 @@ var UtilityTray = {
     }
   }
 };
+
+// This listener is added here in order to stop the propagation of the 'home'
+// event while the utility tray is being closed
+UtilityTray.addHomeListener();

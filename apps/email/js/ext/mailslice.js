@@ -3597,6 +3597,7 @@ FolderStorage.prototype = {
     /*lastSyncedAt depends on current timestamp of the client device
      should not be added timezone offset*/
     this.folderMeta.lastSyncedAt = NOW();
+    this._dirty = true;
   },
 
   /**
@@ -3617,6 +3618,11 @@ FolderStorage.prototype = {
     // (If aranges is the empty list, there are deep invariant problems and
     // the exception is desired.)
     aranges[aranges.length - 1].startTS = $sync.OLDEST_SYNC_DATE;
+
+    /*lastSyncedAt depends on current timestamp of the client device
+     should not be added timezone offset*/
+    this.folderMeta.lastSyncedAt = NOW();
+    this._dirty = true;
   },
 
   /**

@@ -19,7 +19,7 @@ define([
    * @param {object} credentials
    *   keys: hostname, port, crypto
    * @param {object} connInfo
-   *   keys: username, password
+   *   keys: username, password, xoauth2 (if OAUTH)
    * @return {Promise}
    *   resolve => { conn, timezoneOffset }
    *   reject => String (normalized)
@@ -30,8 +30,17 @@ define([
     });
 
     var conn;
-    return imapclient.createImapConnection(credentials, connInfo)
-      .then(function(newConn) {
+    return imapclient.createImapConnection(
+      credentials,
+      connInfo,
+      function onCredentialsUpdated() {
+        // Normally we shouldn't see a request to update credentials
+        // here, as the caller should have already passed a valid
+        // accessToken during account setup. This might indicate a
+        // problem with our OAUTH handling, so log it just in case.
+        slog.warn('probe:imap:credentials-updated');
+      }
+    ).then(function(newConn) {
         conn = newConn;
         return getInboxMetadata(conn);
       })

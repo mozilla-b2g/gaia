@@ -899,60 +899,6 @@ suite('Utils', function() {
     });
   });
 
-  suite('Utils.getDownsamplingSrcUrl', function() {
-    var testOptions;
-
-    setup(function() {
-      testOptions = {
-        url: 'test url',
-        size: 300 * 1024,
-        type: 'thumbnail'
-      };
-    });
-    test('no size information', function() {
-      testOptions = {
-        url: 'test url',
-        type: 'thumbnail'
-      };
-      assert.equal(Utils.getDownsamplingSrcUrl(testOptions), testOptions.url);
-    });
-    test('no downsampling reference type ', function() {
-      testOptions = {
-        url: 'test url',
-        size: 300 * 1024
-      };
-      assert.equal(Utils.getDownsamplingSrcUrl(testOptions), testOptions.url);
-    });
-    test('No need to add -moz-samplesize postfix when ratio < 2', function() {
-      testOptions = {
-        url: 'test url',
-        size: 1,
-        type: 'thumbnail'
-      };
-      assert.equal(Utils.getDownsamplingSrcUrl(testOptions), testOptions.url);
-    });
-    test('Add -moz-samplesize postfix with ratio when ratio >= 2', function() {
-      testOptions = {
-        url: 'test url',
-        size: 300 * 1024,
-        type: 'thumbnail'
-      };
-      var result =
-        Utils.getDownsamplingSrcUrl(testOptions).split('#-moz-samplesize=');
-      assert.equal(testOptions.url, result[0]);
-      assert.isTrue(+result[1] > 0 && Number.isInteger(+result[1]));
-    });
-    test('Maximum samplesize ratio reached', function() {
-      testOptions = {
-        url: 'test url',
-        size: Number.MAX_VALUE,
-        type: 'thumbnail'
-      };
-      assert.equal(Utils.getDownsamplingSrcUrl(testOptions),
-        testOptions.url + '#-moz-samplesize=16');
-    });
-  });
-
   suite('Utils.typeFromMimeType', function() {
     var tests = {
       'text/plain': 'text',
@@ -1118,74 +1064,6 @@ suite('Utils', function() {
     });
   });
 
-  suite('Utils.imageUrlToDataUrl', function() {
-    test('generates the same image if size is not adjusted', function(done) {
-      var type = 'image/png',
-          actualWidth = 100,
-          actualHeight = 200,
-          imageURL = AssetsHelper.generateImageDataURL(
-            actualWidth, actualHeight, type
-          );
-
-      Utils.imageUrlToDataUrl(imageURL, type).then((result) => {
-        assert.deepEqual(result, {
-          dataUrl: imageURL,
-          width: actualWidth,
-          height: actualHeight
-        });
-      }).then(done, done);
-    });
-
-    test('generates image with the adjusted size', function(done) {
-      var type = 'image/png',
-          actualWidth = 100,
-          actualHeight = 200,
-          scaleFactor = 2,
-          imageURL = AssetsHelper.generateImageDataURL(
-            actualWidth, actualHeight, type
-          );
-
-      Utils.imageUrlToDataUrl(imageURL, type, (width, height) => {
-        return {
-          width: width * scaleFactor,
-          height: height * scaleFactor
-        };
-      }).then((result) => {
-        assert.equal(result.dataUrl.indexOf('data:' + type), 0);
-        assert.equal(result.width, actualWidth * scaleFactor);
-        assert.equal(result.height, actualHeight * scaleFactor);
-      }).then(done, done);
-    });
-
-    test('rejects in case of invalid image URL', function(done) {
-      var invalidImageURL = 'null';
-
-      Utils.imageUrlToDataUrl(invalidImageURL, 'image/png').then(() => {
-        return Promise.reject(new Error('Success callback is not expected!'));
-      }, (e) => {
-        assert.ok(e);
-      }).then(done, done);
-    });
-
-    test('rejects in case of sizeAdjuster fails', function(done) {
-      var type = 'image/png',
-          actualWidth = 100,
-          actualHeight = 200,
-          imageURL = AssetsHelper.generateImageDataURL(
-            actualWidth, actualHeight, type
-          );
-
-      Utils.imageUrlToDataUrl(imageURL, type, () => {
-        throw new Error('Something went wrong!');
-      }).then(
-        () => Promise.reject(new Error('Success callback is not expected!')),
-        (e) => {
-          assert.ok(e);
-        }
-      ).then(done, done);
-    });
-  });
-
   suite('Utils.debounce', function() {
     setup(function() {
       this.sinon.useFakeTimers();
@@ -1256,6 +1134,23 @@ suite('Utils', function() {
 
         deferred.reject(rejectResult);
       });
+    });
+  });
+
+  suite('Utils.cloneBlob', function() {
+    test('return blob copy while success', function(done) {
+      var testBlob = new Blob(['test blob'], { type: 'text/plain' });
+
+      Utils.cloneBlob(testBlob).then(function(blob) {
+        assert.equal(testBlob.size, blob.size);
+        assert.equal(testBlob.type, blob.type);
+      }).then(done, done);
+    });
+
+    test('return error while failed to make a copy', function(done) {
+      Utils.cloneBlob('invalid blob').catch(function(error) {
+        assert.instanceOf(error, Error);
+      }).then(done, done);
     });
   });
 });

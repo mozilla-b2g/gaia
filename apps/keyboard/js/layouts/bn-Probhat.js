@@ -59,7 +59,7 @@ Keyboards['bn-Probhat'] = {
     '।': '॥',
     'ঞ': 'ঋ'
   },
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
       '০': '0 º',
       '১': '১ম 1',
@@ -89,8 +89,9 @@ Keyboards['bn-Probhat'] = {
         { value: '(' }, { value: ')' }
       ], [
         { value: 'Alt', ratio: 1.5,
-          keyCode: KeyEvent.DOM_VK_ALT,
-          className: 'page-switch-key'
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
         },
         { value: '+',
           supportsSwitching: {
@@ -104,5 +105,5 @@ Keyboards['bn-Probhat'] = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

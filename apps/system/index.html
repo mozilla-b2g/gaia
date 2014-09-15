@@ -59,9 +59,13 @@
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
     <link rel="stylesheet" type="text/css" href="style/chrome/chrome.css">
+    <link rel="stylesheet" href="shared/elements/gaia_overflow_menu/style/external.css">
+    <!--
     <script defer src="shared/js/bookmarks_database.js"></script>
+    <script defer src="shared/elements/gaia_overflow_menu/script.js"></script>
+    -->
 
-
+    <link rel="stylesheet" type="text/css" href="style/definitions.css">
     <link rel="stylesheet" type="text/css" href="style/attention_indicator.css">
 
     <!-- System -->
@@ -163,6 +167,10 @@
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
     <link rel="stylesheet" type="text/css" href="style/action_menu/action_menu_extended.css">
     <script defer src="js/action_menu.js"></script>
+
+    <!-- Date and Time Selector Extension -->
+    <link rel="stylesheet" type="text/css" href="style/date_selector/date_selector_extended.css">
+    <link rel="stylesheet" type="text/css" href="style/time_selector/time_selector_extended.css">
 
     <!-- Ime Menu -->
     <script defer src="js/ime_menu.js"></script>
@@ -288,7 +296,6 @@
     <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
     <script defer src="js/cards_helper.js"></script>
     <script defer src="js/card.js"></script>
-    <script defer src="js/task_card.js"></script>
     <script defer src="js/task_manager.js"></script>
 
     <!-- Bluetooth -->
@@ -488,43 +495,45 @@
         </div>
         <!-- Statusbar icons -->
         <div id="statusbar-icons" role="group" data-l10n-id="statusbar">
-          <div id="statusbar-maximized" class="statusbar">
-            <!-- General -->
-            <div id="statusbar-time" class="sb-icon-time" role="listitem"></div>
-            <div id="statusbar-battery" class="sb-icon sb-icon-battery" role="listitem"></div>
+          <div id="statusbar-maximized-wrapper">
+            <div id="statusbar-maximized" class="statusbar">
+              <!-- Carrier & date label -->
+              <div id="statusbar-label" class="sb-start-upper sb-icon-label" role="listitem"></div>
 
-            <!-- Connectivity -->
-            <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden role="listitem" data-l10n-id="statusbarFlightMode"></div>
-            <div id="statusbar-wifi" class="sb-icon sb-icon-wifi" data-level="4" hidden role="listitem"></div>
-            <div id="statusbar-connections" class="sb-icon-connections" hidden role="presentation"></div>
-            <!-- HACK: We use images instead of divs to enforce allocation of a
-                 dedicated layer just for this animated icons, remove after
-                 https://bugzil.la/717872 gets fixed -->
-            <img id="statusbar-network-activity" src="style/statusbar/images/network-activity.png" class="sb-icon-network-activity" hidden role="listitem" data-l10n-id="statusbarNetworkActivity">
-            <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden role="listitem"></div>
-            <div id="statusbar-bluetooth" class="sb-icon sb-icon-bluetooth" hidden role="listitem"></div>
-            <div id="statusbar-bluetooth-transferring" class="sb-icon sb-icon-bluetooth-transferring" role="listitem" hidden data-l10n-id="statusbarBluetoothTransferring"></div>
-            <div id="statusbar-nfc" class="sb-icon sb-icon-nfc" hidden role="listitem" data-l10n-id="statusbarNfc"></div>
+              <!-- Unused -->
+              <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden role="listitem"></div>
 
-            <!-- System -->
-            <div id="statusbar-emergency-cb-notification" class="sb-icon sb-icon-emergency-cb-notification" hidden role="listitem" data-l10n-id="statusbarEmergencyCBNotification"></div>
-            <!-- See note on <img> above. -->
-            <img id="statusbar-system-downloads" src="style/statusbar/images/system-downloads.png" class="sb-icon-system-downloads" hidden role="listitem" data-l10n-id="statusbarDownloads">
-            <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden role="listitem" data-l10n-id="statusbarUsb"></div>
-            <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden role="listitem"></div>
-            <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden role="listitem" data-l10n-id="statusbarRecording"></div>
-            <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden role="listitem" data-l10n-id="statusbarGeolocation"></div>
-            <div id="statusbar-call-forwardings" class="sb-icon-call-forwardings" hidden role="presentation"></div>
-            <div id="statusbar-bluetooth-headphones" class="sb-icon sb-icon-bluetooth-headphones" role="listitem" hidden data-l10n-id="statusbarBluetoothHeadphones"></div>
-            <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden role="listitem" data-l10n-id="statusbarHeadphones"></div>
-            <div id="statusbar-playing" class="sb-icon sb-icon-playing" hidden role="listitem" data-l10n-id="statusbarPlaying"></div>
-            <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden role="listitem" data-l10n-id="statusbarAlarm"></div>
+              <!-- System -->
+              <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden role="listitem" data-l10n-id="statusbarAlarm"></div>
+              <div id="statusbar-playing" class="sb-icon sb-icon-playing" hidden role="listitem" data-l10n-id="statusbarPlaying"></div>
+              <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden role="listitem" data-l10n-id="statusbarHeadphones"></div>
+              <div id="statusbar-bluetooth-headphones" class="sb-icon sb-icon-bluetooth-headphones" role="listitem" hidden data-l10n-id="statusbarBluetoothHeadphones"></div>
+              <div id="statusbar-call-forwardings" class="sb-icon-call-forwardings" hidden role="presentation"></div>
+              <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden role="listitem" data-l10n-id="statusbarGeolocation"></div>
+              <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden role="listitem" data-l10n-id="statusbarRecording"></div>
+              <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden role="listitem"></div>
+              <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden role="listitem" data-l10n-id="statusbarUsb"></div>
+              <!-- See note on <img> above. -->
+              <img id="statusbar-system-downloads" src="style/statusbar/images/system-downloads.png" class="sb-icon-system-downloads" hidden role="listitem" data-l10n-id="statusbarDownloads">
+              <div id="statusbar-emergency-cb-notification" class="sb-icon sb-icon-emergency-cb-notification" hidden role="listitem" data-l10n-id="statusbarEmergencyCBNotification"></div>
 
-            <!-- Unused -->
-            <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden role="listitem"></div>
+              <!-- Connectivity -->
+              <div id="statusbar-nfc" class="sb-icon sb-icon-nfc" hidden role="listitem" data-l10n-id="statusbarNfc"></div>
+              <div id="statusbar-bluetooth-transferring" class="sb-icon sb-icon-bluetooth-transferring" role="listitem" hidden data-l10n-id="statusbarBluetoothTransferring"></div>
+              <div id="statusbar-bluetooth" class="sb-icon sb-icon-bluetooth" hidden role="listitem"></div>
+              <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden role="listitem"></div>
+              <!-- HACK: We use images instead of divs to enforce allocation of a
+                   dedicated layer just for this animated icons, remove after
+                   https://bugzil.la/717872 gets fixed -->
+              <img id="statusbar-network-activity" src="style/statusbar/images/network-activity.png" class="sb-icon-network-activity" hidden role="listitem" data-l10n-id="statusbarNetworkActivity">
+              <div id="statusbar-connections" class="sb-icon-connections" hidden role="presentation"></div>
+              <div id="statusbar-wifi" class="sb-icon sb-icon-wifi" data-level="4" hidden role="listitem"></div>
+              <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden role="listitem" data-l10n-id="statusbarFlightMode"></div>
 
-            <!-- Carrier & date label -->
-            <div id="statusbar-label" class="sb-start-upper sb-icon-label" role="listitem"></div>
+              <!-- General -->
+              <div id="statusbar-battery" class="sb-icon sb-icon-battery" role="listitem"></div>
+              <div id="statusbar-time" class="sb-icon-time" role="listitem"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -817,6 +826,15 @@
       -->
       </div>
 
+      <div id="value-selector-groupoption-template" hidden>
+      <!--
+      <li role="subheader">
+        <label role="presentation">
+          <span>${text}</span>
+        </label>
+      </li>
+      -->
+      </div>
       <div id="value-selector-option-template" hidden>
       <!--
       <li role="option" data-option-index="${index}" aria-selected="${checked}">
@@ -1014,6 +1032,17 @@
         </section>
       </form>
 
+      <form data-type="confirm" role="dialog" id="quick-setting-data-enabled-dialog" class="generic-dialog" data-z-index-level="quick-setting-data-enabled-dialog">
+        <section>
+          <h1 data-l10n-id="data-roaming-enabled-title"></h1>
+          <p data-l10n-id="data-roaming-enabled-warning"></p>
+        </section>
+        <menu>
+          <button type="button" class="quick-setting-data-cancel-btn recommend" data-l10n-id="notNow">Not now</button>
+          <button type="button" class="quick-setting-data-ok-btn" data-l10n-id="turnOn">Turn ON</button>
+        </menu>
+      </form>
+
       <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>
 
       <!-- template for LockScreen window. -->
@@ -1113,13 +1142,14 @@
       </div>
 
       <div id="notification-toaster" data-z-index-level="notification-toaster" role="link" aria-live="assertive" aria-atomic="true" class="notification-toaster">
-        <span id="notifications-indicator"></span>
         <img id="toaster-icon" role="presentation" class="toaster-icon"/>
         <div id="notification-container">
           <div id="toaster-title" class="toaster-title"></div>
           <div id="toaster-detail" class="toaster-detail"></div>
         </div>
       </div>
+
+      <div id="ambient-indicator" data-z-index-level="notification-toaster"></div>
 
       <!-- keyboard -->
       <div id="keyboards" class="hide" data-z-index-level="keyboards"></div>
@@ -1236,7 +1266,10 @@
       <div id="system-overlay" data-z-index-level="system-overlay">
         <div id="battery">
           <span class="icon-battery"></span>
-          <span class="battery-notification" data-l10n-id="battery-almost-empty2">Battery almost empty</span>
+          <div class="battery-notification">
+            <span data-l10n-id="battery-almost-empty3">Battery almost empty.</span>
+            <span data-l10n-id="plug-in-your-charger">Plug in your charger.</span>
+          </div>
         </div>
 
         <div id="volume" class="vibration">

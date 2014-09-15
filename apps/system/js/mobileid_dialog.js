@@ -104,6 +104,7 @@
       this.panel.innerHTML = '';
       this.panel.classList.remove('closing');
       this.panel.classList.remove('opening');
+      this.panel.parentNode.removeChild(this.panel);
       this.panel = null;
 
       if (typeof onClosed === 'function') {

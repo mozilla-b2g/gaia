@@ -15,8 +15,6 @@
 (function(exports) {
   'use strict';
 
-  var ACTIVITY_NAME = 'webrtc-call';
-
   var WEBRTC_CLIENTNAME = 'Firefox Hello';
 
   var _webrtcClientIntegrationDOM, _detailListDOM;
@@ -29,7 +27,7 @@
 
   function _launchActivity(videoEnabled) {
     var activity = new MozActivity({
-      name: ACTIVITY_NAME,
+      name: 'webrtc-call',
       data: {
         video: videoEnabled,
         type: 'webcontacts/contact',
@@ -52,7 +50,7 @@
       var activity =
         new MozActivity(
           {
-            name: ACTIVITY_NAME,
+            name: 'webrtc-call',
             data: {
               type: 'webcontacts/contact',
               video: false,

@@ -10,6 +10,9 @@ var QuickSettings = {
   WIFI_STATUSCHANGE_TIMEOUT: 2000,
   // ID of elements to create references
   ELEMENTS: ['wifi', 'data', 'bluetooth', 'airplane-mode', 'full-app'],
+  WARNING_DIALOG_ENABLED_KEY: 'ril.data.roaming_enabled.warningDialog.enabled',
+  DATA_KEY: 'ril.data.enabled',
+  DATA_ROAMING_KEY: 'ril.data.roaming_enabled',
 
   init: function qs_init() {
     var settings = window.navigator.mozSettings;
@@ -242,12 +245,15 @@ var QuickSettings = {
             if (this.data.dataset.airplaneMode !== 'true') {
               // TODO should ignore the action if data initialization isn't done
               enabled = !!this.data.dataset.enabled;
-
-              SettingsListener.getSettingsLock().set({
-                'ril.data.enabled': !enabled
-              });
+              if (enabled) {
+                var cset = {};
+                cset[this.DATA_KEY] = !enabled;
+                this.setMozSettings(cset);
+              } else {
+                //Data is not active we want to enable it
+                this.showDataRoamingEnabledPromptIfNeeded();
+              }
             }
-
             break;
 
           case this.bluetooth:
@@ -392,6 +398,108 @@ var QuickSettings = {
         'wifi.connect_via_settings': false
       });
     }
+  },
+
+  checkDataRoaming: function qs_checkDataRoaming() {
+    var lock = SettingsListener.getSettingsLock();
+    var reqSetting = lock.get(this.DATA_ROAMING_KEY);
+    var self = this;
+    return new Promise(function(resolve, reject) {
+      reqSetting.onerror = function() {
+        resolve(true);
+      };
+      reqSetting.onsuccess = function() {
+        resolve(reqSetting.result[self.DATA_ROAMING_KEY]);
+      };
+    });
+  },
+
+  showDataRoamingEnabledPromptIfNeeded:
+    function qs_showDataRoamingEnabledPromptIfNeeded() {
+    var dialog = document.querySelector('#quick-setting-data-enabled-dialog'),
+    enableBtn = document.querySelector('.quick-setting-data-ok-btn'),
+    cancelBtn = document.querySelector('.quick-setting-data-cancel-btn');
+    var self = this;
+    var connections = window.navigator.mozMobileConnections;
+    var dataType;
+    var sim;
+
+    if (!connections) {
+      return;
+    }
+    // In DualSim only one of them will have data active
+    for (var i = 0; i < connections.length && !dataType; i++) {
+      dataType = connections[i].data.type;
+      sim = connections[i];
+    }
+    if (!dataType) {
+      //No connection available
+      return;
+    }
+
+    this.checkDataRoaming().then(function(roaming) {
+      if (!roaming && sim.data.roaming) {
+        disabledDefaultDialogIfNeeded();
+      } else {
+        var cset = {};
+        cset[self.DATA_KEY] = true;
+        self.setMozSettings(cset);
+        return;
+      }
+    });
+
+    // Hides the warning dialog to prevent to show it in settings app again
+    var disabledDefaultDialogIfNeeded = function() {
+      self.getDataRoamingWarning().then(function(warningEnabled) {
+        if (warningEnabled === null || warningEnabled) {
+          var cset = {};
+          cset[self.WARNING_DIALOG_ENABLED_KEY] = false;
+          self.setMozSettings(cset);
+        }
+        enableDialog(true);
+      });
+    };
+
+    var enableSetting = function() {
+      var cset = {};
+      cset[self.DATA_KEY] = true;
+      cset[self.DATA_ROAMING_KEY] = true;
+      self.setMozSettings(cset);
+      enableDialog(false);
+    };
+
+    var cancel = function() {
+      enableDialog(false);
+    };
+
+    function enableDialog(enabled) {
+      if (enabled) {
+        UtilityTray.hide();
+        enableBtn.addEventListener('click', enableSetting);
+        cancelBtn.addEventListener('click', cancel);
+        dialog.classList.add('visible');
+      } else {
+        enableBtn.removeEventListener('click', enableSetting);
+        cancelBtn.removeEventListener('click', cancel);
+        dialog.classList.remove('visible');
+      }
+    }
+  },
+
+  getDataRoamingWarning: function qs_getDataRoamingWarning() {
+    var lock = SettingsListener.getSettingsLock();
+    var reqSetting = lock.get(this.WARNING_DIALOG_ENABLED_KEY);
+    var self = this;
+
+    return new Promise(function(resolve, reject) {
+      reqSetting.onerror = function() {
+        resolve(true);
+      };
+
+      reqSetting.onsuccess = function() {
+        resolve(reqSetting.result[self.WARNING_DIALOG_ENABLED_KEY]);
+      };
+    });
   }
 };
 

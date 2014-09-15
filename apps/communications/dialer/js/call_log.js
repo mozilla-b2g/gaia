@@ -785,10 +785,9 @@ var CallLog = {
           this.callLogContainer.querySelectorAll(selector);
 
     var self = this;
-    var msg = this._('delete-n-log?',
-      {n: inputsSelected.length});
+    var msg = {'id': 'delete-n-log?', 'args': {n: inputsSelected.length}};
     var yesObject = {
-      title: this._('delete'),
+      title: 'delete',
       isDanger: true,
       callback: function deleteLogGroup() {
 
@@ -832,7 +831,7 @@ var CallLog = {
     };
 
     var noObject = {
-      title: this._('cancel'),
+      title: 'cancel',
       callback: function onCancel() {
         ConfirmDialog.hide();
       }

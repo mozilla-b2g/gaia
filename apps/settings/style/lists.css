@@ -338,7 +338,8 @@ input[type=range]:-moz-focusring {
 
 ul li > label input[type="range"] {
   height: 3rem;
-  width: calc(100% - 15rem);
+  width: calc(100% - 3rem);
+  margin: 1.5rem;
 }
 
 input[type=range]::-moz-range-track {

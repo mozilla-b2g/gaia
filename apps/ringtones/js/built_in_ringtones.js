@@ -106,6 +106,13 @@ window.builtInRingtones = (function() {
     },
 
     /**
+     * @return {String} The type of the tone. Either "ringtone" or "alerttone".
+     */
+    get type() {
+      return this._toneType;
+    },
+
+    /**
      * @return {String} A URL pointing to the tone's audio data.
      */
     get url() {

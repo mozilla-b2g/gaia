@@ -1,5 +1,5 @@
-/* global requireApp, suite, suiteSetup, suiteTeardown, setup, teardown, test,
-   assert, MockNavigatorDatastore, MockDatastore, browserCustomizer */
+/* global MockNavigatorDatastore, MockDatastore,
+   browserCustomizer, BookmarksDatabase */
 
 'use strict';
 
@@ -10,28 +10,29 @@ require('/shared/js/bookmarks_database.js');
 
 suite('BrowserCustomizer >', function() {
   var realDatastore = null,
+      bookmarkDBSpy = null,
       url = 'http://mozilla.org',
       name = 'mozilla',
       data = {
-        browser: {
-          bookmarks: [ {
-            id: '0',
-            uri: url,
-            title: name
-          }]
-        }
+        bookmarks: [ {
+          id: '0',
+          uri: url,
+          title: name
+        }]
       };
 
   suiteSetup(function() {
-    realDatastore = navigator.getDataStores;
+    bookmarkDBSpy = sinon.spy(BookmarksDatabase, 'add');
+    navigator.getDataStores = MockNavigatorDatastore.getDataStores;
   });
 
   suiteTeardown(function() {
     navigator.getDataStores = realDatastore;
+    bookmarkDBSpy.restore();
   });
 
   setup(function() {
-    navigator.getDataStores = MockNavigatorDatastore.getDataStores;
+    bookmarkDBSpy.reset();
   });
 
   teardown(function() {
@@ -39,18 +40,14 @@ suite('BrowserCustomizer >', function() {
     MockDatastore._records = Object.create(null);
   });
 
-  test('First run with valid SIM. Set bookmarks.', function(done) {
+  test('First run with valid SIM. Set bookmarks.', function() {
     browserCustomizer.simPresentOnFirstBoot = true;
-    var passcb = function(bookmark) {
-      assert.equal(bookmark.name, data.title);
-      assert.equal(bookmark.url, data.uri);
-      assert.equal(bookmark.id, data.id);
-      done();
-    };
-    var failcb = function(bookmark) {
-      assert.ok(false, 'Bookmark Datastore failed to update!');
-      done();
-    };
-    browserCustomizer.set(data, passcb, failcb);
+    browserCustomizer.set(data);
+    assert.deepEqual(bookmarkDBSpy.args[0][0], {
+      type: 'url',
+      name: name,
+      url: url,
+      icon: undefined
+    }, 'Arguments not equal');
   });
 });

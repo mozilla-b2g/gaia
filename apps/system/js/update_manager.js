@@ -22,6 +22,7 @@ var UpdateManager = {
   _dataConnectionWarningEnabled: true,
   _startedDownloadUsingDataConnection: false,
   _settings: null,
+  UPDATE_NOTIF_ID: 'update-notification',
   NOTIFICATION_BUFFERING_TIMEOUT: 30 * 1000,
   TOASTER_TIMEOUT: 1200,
   UPDATE_2G_SETT: 'update.2g.enabled',
@@ -238,17 +239,25 @@ var UpdateManager = {
 
     if (this._downloading) {
       var cancel = {
-        title: _('no'),
+        title: 'no',
         callback: this.cancelPrompt.bind(this)
       };
 
       var confirm = {
-        title: _('yes'),
+        title: 'yes',
         callback: this.cancelAllDownloads.bind(this)
       };
 
-      CustomDialog.show(_('cancelAllDownloads'), _('wantToCancelAll'),
-                        cancel, confirm);
+      var screen = document.getElementById('screen');
+
+      CustomDialog.show(
+        'cancelAllDownloads',
+        'wantToCancelAll',
+        cancel,
+        confirm,
+        screen
+      )
+      .setAttribute('data-z-index-level', 'system-dialog');
     } else {
       this.launchDownload();
     }
@@ -264,10 +273,13 @@ var UpdateManager = {
       callback: this.cancelPrompt.bind(this)
     };
 
-    CustomDialog.show(
-    _('systemUpdate'),
-    _('downloadUpdatesVia2GForbidden2'),
-    ok);
+    var systemUpdate = _('systemUpdate');
+    var downloadUpdatesVia2GForbidden2 = _('downloadUpdatesVia2GForbidden2');
+    var screen = document.getElementById('screen');
+
+    CustomDialog
+      .show(systemUpdate, downloadUpdatesVia2GForbidden2, ok, null, screen)
+      .setAttribute('data-z-index-level', 'system-dialog');
   },
 
   showDownloadPrompt: function um_showDownloadPrompt() {
@@ -550,14 +562,14 @@ var UpdateManager = {
   hideNotificationIfDisplayed: function() {
     if (this.container.classList.contains('displayed')) {
       this.container.classList.remove('displayed');
-      NotificationScreen.decExternalNotifications();
+      NotificationScreen.removeUnreadNotification(this.UPDATE_NOTIF_ID);
     }
   },
 
   displayNotificationIfHidden: function() {
     if (!this.container.classList.contains('displayed')) {
       this.container.classList.add('displayed');
-      NotificationScreen.incExternalNotifications();
+      NotificationScreen.addUnreadNotification(this.UPDATE_NOTIF_ID);
     }
   },
 

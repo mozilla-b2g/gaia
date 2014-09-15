@@ -1,6 +1,6 @@
 /*global KeyboardManager, sinon, KeyboardHelper, MockKeyboardHelper,
   MocksHelper, TransitionEvent, MockNavigatorSettings, Applications, Promise,
-  MockL10n, MockImeMenu */
+  MockL10n, MockImeMenu, TYPE_GROUP_MAPPING */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -279,6 +279,71 @@ suite('KeyboardManager', function() {
         test('keeps "url" when defaults found', function() {
           assert.ok(KeyboardManager.setKeyboardToShow.calledWith('url'));
         });
+      });
+    });
+
+    suite('Restore user selection from settings', function() {
+      var mkh, km;
+
+      setup(function() {
+        mkh = MockKeyboardHelper;
+        km = KeyboardManager;
+
+        TYPE_GROUP_MAPPING.chocola = 'chocola';
+
+        km.inputLayouts.layouts.chocola = [
+          { id: 'default', manifestURL: 'app://default' },
+          { id: 'trahlah', manifestURL: 'app://yolo' },
+          { id: 'another', manifestURL: 'app://yolo' }
+        ];
+      });
+
+      teardown(function() {
+        mkh.getCurrentActiveLayout = function() {};
+      });
+
+      test('Selection is present', function() {
+        mkh.getCurrentActiveLayout = sinon.stub().returns(
+          { id: 'trahlah', manifestURL: 'app://yolo' }
+        );
+
+        simulateInputChangeEvent('chocola');
+        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+        sinon.assert.calledWith(km.setKeyboardToShow, 'chocola', 1);
+      });
+
+      test('Selection is present, multiple from same manifest', function() {
+        mkh.getCurrentActiveLayout = sinon.stub().returns(
+          { id: 'another', manifestURL: 'app://yolo' }
+        );
+
+        simulateInputChangeEvent('chocola');
+        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+        sinon.assert.calledWith(km.setKeyboardToShow, 'chocola', 2);
+      });
+
+      test('Selection is not present', function() {
+        mkh.getCurrentActiveLayout = sinon.stub().returns(
+          { id: 'trahlah', manifestURL: 'app://dontexist' }
+        );
+
+        simulateInputChangeEvent('chocola');
+        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+        sinon.assert.calledWith(km.setKeyboardToShow, 'chocola');
+      });
+
+      test('No selection set', function() {
+        mkh.getCurrentActiveLayout = sinon.stub().returns(null);
+
+        simulateInputChangeEvent('chocola');
+        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+        sinon.assert.callCount(mkh.getCurrentActiveLayout, 1);
+        sinon.assert.calledWith(mkh.getCurrentActiveLayout, 'chocola');
+        sinon.assert.calledWith(km.setKeyboardToShow, 'chocola');
       });
     });
   });
@@ -597,7 +662,7 @@ suite('KeyboardManager', function() {
       fakeFrame.dataset.frameManifestURL =
         'app://keyboard.gaiamobile.org/manifest.webapp';
 
-      KeyboardManager.showingLayoutInfo.type = 'text';
+      KeyboardManager.showingLayoutInfo.group = 'text';
       KeyboardManager.showingLayoutInfo.layout = {
         manifestURL: fakeFrame_A.manifestURL
       };
@@ -968,7 +1033,7 @@ suite('KeyboardManager', function() {
     var oldShowingLayoutInfo = KeyboardManager.showingLayoutInfo;
     var oldInputLayouts = KeyboardManager.inputLayouts.layouts;
     KeyboardManager.showingLayoutInfo = {
-      type: 'text',
+      group: 'text',
       index: 0
     };
     KeyboardManager.inputLayouts.layouts = {
@@ -1009,25 +1074,25 @@ suite('KeyboardManager', function() {
     });
     test('resetShowingLayoutInfo', function(){
       KeyboardManager.showingLayoutInfo = {};
-      KeyboardManager.showingLayoutInfo.type = 'dummy';
+      KeyboardManager.showingLayoutInfo.group = 'dummy';
       KeyboardManager.showingLayoutInfo.index = 0xfff;
       KeyboardManager.showingLayoutInfo.layout = 'something';
 
       KeyboardManager.resetShowingLayoutInfo();
 
-      assert.equal(KeyboardManager.showingLayoutInfo.type, 'text');
+      assert.equal(KeyboardManager.showingLayoutInfo.group, 'text');
       assert.equal(KeyboardManager.showingLayoutInfo.index, 0);
       assert.strictEqual(KeyboardManager.showingLayoutInfo.layout, null);
     });
     test('setShowingLayoutInfo', function(){
       KeyboardManager.showingLayoutInfo = {};
-      KeyboardManager.showingLayoutInfo.type = 'dummy';
+      KeyboardManager.showingLayoutInfo.group = 'dummy';
       KeyboardManager.showingLayoutInfo.index = 0xfff;
       KeyboardManager.showingLayoutInfo.layout = 'something';
 
-      KeyboardManager.setShowingLayoutInfo('type', 1, 'someLayout');
+      KeyboardManager.setShowingLayoutInfo('group', 1, 'someLayout');
 
-      assert.equal(KeyboardManager.showingLayoutInfo.type, 'type');
+      assert.equal(KeyboardManager.showingLayoutInfo.group, 'group');
       assert.equal(KeyboardManager.showingLayoutInfo.index, 1);
       assert.equal(KeyboardManager.showingLayoutInfo.layout, 'someLayout');
     });
@@ -1035,7 +1100,7 @@ suite('KeyboardManager', function() {
 
   suite('Switching keyboards within same type', function() {
     var oldInputLayouts;
-    var oldShowingLayoutInfoType;
+    var oldShowingLayoutInfoGroup;
 
     setup(function() {
       oldInputLayouts = KeyboardManager.inputLayouts.layouts;
@@ -1059,16 +1124,16 @@ suite('KeyboardManager', function() {
 
       KeyboardManager.inputLayouts.layouts.text.activeLayout = 2;
 
-      oldShowingLayoutInfoType = KeyboardManager.showingLayoutInfo.type;
-      KeyboardManager.showingLayoutInfo.type = 'text';
+      oldShowingLayoutInfoGroup = KeyboardManager.showingLayoutInfo.group;
+      KeyboardManager.showingLayoutInfo.group = 'text';
     });
 
     teardown(function() {
-      KeyboardManager.showingLayoutInfo.type = oldShowingLayoutInfoType;
+      KeyboardManager.showingLayoutInfo.group = oldShowingLayoutInfoGroup;
       KeyboardManager.inputLayouts.layouts = oldInputLayouts;
     });
 
-    test('showAll / call to ImeMenu', function(){
+    test('showImeMenu / call to ImeMenu', function(){
       var oldMozL10n;
       var stubWaitForSwitchTimeout;
       var stubHideKeyboard;
@@ -1087,7 +1152,7 @@ suite('KeyboardManager', function() {
 
       MockImeMenu.mSetup();
 
-      KeyboardManager.showAll();
+      KeyboardManager.showImeMenu();
 
       stubWaitForSwitchTimeout.getCall(0).args[0]();
 
@@ -1216,6 +1281,60 @@ suite('KeyboardManager', function() {
       this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
 
       KeyboardManager.switchChangeTimeout = oldSwitchChangeTimeout;
+    });
+  });
+
+  suite('Switching keyboard layout', function() {
+    var _layouts;
+
+    suiteSetup(function() {
+      _layouts = KeyboardManager.inputLayouts.layouts;
+    });
+
+    suiteTeardown(function() {
+      KeyboardManager.inputLayouts.layouts = _layouts;
+    });
+
+    setup(function() {
+      KeyboardManager.inputLayouts.layouts = {
+        'text': [
+          { id: 'fk', manifestURL: 'app://fake/manifest.webapp' },
+          { id: 'ur', manifestURL: 'app://unreal/manifest.webapp' }
+        ]
+      };
+      KeyboardManager.showingLayoutInfo.type = 'text';
+    });
+
+    test('Switching stores new layout in settings', function() {
+      MockKeyboardHelper.saveCurrentActiveLayout = this.sinon.stub();
+
+      KeyboardManager.showingLayoutInfo.index = 0;
+      KeyboardManager.inputLayouts.
+        _layoutToGroupMapping['app://unreal/manifest.webapp/ur'] =
+          [{
+            group: 'text',
+            index: 3
+          }];
+
+      KeyboardManager.switchToNext();
+      this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
+
+      sinon.assert.callCount(MockKeyboardHelper.saveCurrentActiveLayout, 1);
+      sinon.assert.calledWith(MockKeyboardHelper.saveCurrentActiveLayout,
+        'text', 'ur', 'app://unreal/manifest.webapp');
+    });
+
+    test('Switching calls setKeyboardToShow', function() {
+      KeyboardManager.setKeyboardToShow = this.sinon.stub();
+
+      KeyboardManager.showingLayoutInfo.index = 1;
+
+      KeyboardManager.switchToNext();
+      this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
+
+      sinon.assert.callCount(KeyboardManager.setKeyboardToShow, 1);
+      sinon.assert.calledWith(KeyboardManager.setKeyboardToShow,
+        'text', 0);
     });
   });
 });

@@ -18,7 +18,7 @@
 
     _store: 'accounts',
 
-    _parseId: Calendar.Store.Abstract.prototype.probablyParseInt,
+    _parseId: Calendar.probablyParseInt,
 
     /**
      * Checks if a given account is a duplicate of another.

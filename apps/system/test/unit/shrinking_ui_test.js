@@ -132,15 +132,6 @@ suite('system/shrinkingUI', function() {
     assert.isTrue(stubReceivingEffects.called);
   });
 
-  test('Handle "shrinking-rejected" event', function() {
-    var evt = {
-      type: 'shrinking-rejected'
-    };
-    var stubRejected = this.sinon.stub(shrinkingUI, '_rejected');
-    shrinkingUI.handleEvent(evt);
-    assert.isTrue(stubRejected.called);
-  });
-
   test('Handle "check-p2p-registration-for-active-app" event', function() {
     var evt = {
       type: 'check-p2p-registration-for-active-app',
@@ -312,32 +303,6 @@ suite('system/shrinkingUI', function() {
       });
 
     shrinkingUI.stopTilt();
-  });
-
-  test('Shrinking UI Rejected', function(done) {
-    var stubEnableSlidingCover =
-      this.sinon.stub(shrinkingUI, '_enableSlidingCover');
-    var stubSetTip = this.sinon.stub(shrinkingUI, '_setTip');
-    var stubStop = this.sinon.stub(shrinkingUI, 'stopTilt');
-    var stubSendSlideTo =
-      this.sinon.stub(shrinkingUI, '_sendingSlideTo', function(y, cb){
-        assert.equal(y, 'BOTTOM');
-
-        cb();
-
-        assert.isTrue(stubEnableSlidingCover.called);
-        assert.isTrue(stubSetTip.called);
-        assert.isTrue(stubStop.called);
-
-        stubEnableSlidingCover.restore();
-        stubSetTip.restore();
-        stubSendSlideTo.restore();
-        stubStop.restore();
-
-        done();
-      });
-
-    shrinkingUI._rejected();
   });
 
   test('Shrinking UI State', function() {
@@ -816,7 +781,9 @@ suite('system/shrinkingUI', function() {
     var stubGetTiltingDegree =
       this.sinon.stub(shrinkingUI, '_getTiltingDegree').returns('10deg');
 
-    fakeApp.element.addEventListener.getCall(0).args[1]();
+    fakeApp.element.addEventListener.getCall(0).args[1]({
+      target: fakeApp.element
+    });
     assert.isTrue(
       fakeApp.element.removeEventListener.calledWith(
         'transitionend',
@@ -845,7 +812,9 @@ suite('system/shrinkingUI', function() {
     stubGetTiltingDegree.restore(); // for gjslint's happy
 
     // call the bounceBackEnd
-    fakeApp.element.addEventListener.getCall(1).args[1]();
+    fakeApp.element.addEventListener.getCall(1).args[1]({
+      target: fakeApp.element
+    });
     assert.isTrue(
       fakeApp.element.removeEventListener.calledWith(
         'transitionend',

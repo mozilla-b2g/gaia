@@ -12,24 +12,9 @@ const kDecayDuration = 0.025;
 const kReleaseDuration = 0.05;
 
 var TonePlayer = {
-  _audioElement: null,
   _audioContext: null,
   _gainNode: null,
   _playingNodes: [],
-  _tonesSamples: {
-    '/shared/resources/media/tones/tone_1.opus': [697, 1209],
-    '/shared/resources/media/tones/tone_2.opus': [697, 1336],
-    '/shared/resources/media/tones/tone_3.opus': [697, 1477],
-    '/shared/resources/media/tones/tone_4.opus': [770, 1209],
-    '/shared/resources/media/tones/tone_5.opus': [770, 1336],
-    '/shared/resources/media/tones/tone_6.opus': [770, 1477],
-    '/shared/resources/media/tones/tone_7.opus': [852, 1209],
-    '/shared/resources/media/tones/tone_8.opus': [852, 1336],
-    '/shared/resources/media/tones/tone_9.opus': [852, 1477],
-    '/shared/resources/media/tones/tone_star.opus': [941, 1209],
-    '/shared/resources/media/tones/tone_0.opus': [941, 1336],
-    '/shared/resources/media/tones/tone_hash.opus': [941, 1477]
-  },
 
   init: function tp_init(channel) {
     if (document.hidden) {
@@ -54,59 +39,6 @@ var TonePlayer = {
       this._audioContext.mozAudioChannelType = 'normal';
     }
     this._audioContext = null;
-  },
-
-  /**
-   * Plays a brief, dummy, inaudible but not empty sound. This is used to
-   * prevent glitches and work around AudioContext.currentTime not being set
-   * properly the first time it's used. The provided callback is invoked after
-   * the sound has played. XXX workaround for bug 848954.
-   *
-   * @param {Function} [callback] An optional callback function which will be
-   *        invoked after the sound has been issued for playing.
-   */
-  dummySound: function tp_dummySound(callback) {
-    var context = this._audioContext;
-    var gainNode = context.createGain();
-
-    gainNode.gain.value = 0.001;
-    gainNode.connect(context.destination);
-
-    var oscNode = context.createOscillator();
-
-    oscNode.type = 'sine';
-    oscNode.frequency.value = 1000; // Whatever
-    oscNode.start(this._audioContext.currentTime);
-    oscNode.stop(this._audioContext.currentTime + 0.025);
-    oscNode.connect(gainNode);
-
-    setTimeout(callback);
-  },
-
-  /**
-   * XXX workaround for bug 848954, uses samples instead of the Web Audio API
-   * to play short tones. Remove this once the original problem is fixed.
-   *
-   * @param {Array} frequencies Frequencies of the tone to be played, these
-   *        will be matched with the appropriate sample
-   */
-  _playSample: function tp_playSample(frequencies) {
-    if (!this._audioElement) {
-      this._audioElement = new Audio();
-    }
-
-    var sample = this._audioElement;
-    for (var i in this._tonesSamples) {
-      if ((frequencies.length === 2) &&
-          (frequencies[0] === this._tonesSamples[i][0]) &&
-          (frequencies[1] === this._tonesSamples[i][1])) {
-        sample.src = i;
-        break;
-      }
-    }
-
-    sample.volume = kMasterVolume;
-    sample.play();
   },
 
   // Pass 0.0 for |when| to play as soon as possible.
@@ -174,14 +106,7 @@ var TonePlayer = {
   },
 
   start: function tp_start(frequencies, shortPress) {
-    if (shortPress) {
-      this._playSample(frequencies);
-    } else {
-      this.dummySound((function() {
-        this._startAt(frequencies, this._audioContext.currentTime + 0.050,
-                      shortPress ? kShortPressDuration : 0);
-      }).bind(this));
-    }
+    this._startAt(frequencies, 0, shortPress ? kShortPressDuration : 0);
   },
 
   stop: function tp_stop() {
@@ -222,24 +147,22 @@ var TonePlayer = {
   // - duration
   playSequence: function tp_playSequence(sequence) {
     this.ensureAudio();
-    this.dummySound((function() {
-      // AudioContext.currentTime is the last time received on the main thread
-      // from the audio graph.  Trying to start a tone at currentTime will not
-      // start playing until this main thread returns to the event loop and
-      // sends a message to the audio graph thread.  Allow a little time for
-      // this.  The way Gecko processes audio in chunks of 30ms means this
-      // should be at least 60 ms.  Experiments on Buri indicate that in
-      // practice this delay is 165 to 190 ms, much of which is the code that
-      // runs before returning to the event loop.
-      var when = this._audioContext.currentTime + 0.2;
-      for (var index = 0; index < sequence.length; ++index) {
-        var step = sequence[index];
-        var frequencies = step.slice(0, 2);
-        var duration = step[2] / 1000;
-        this._startAt(frequencies, when, duration);
-        when += duration;
-      }
-    }).bind(this));
+    // AudioContext.currentTime is the last time received on the main thread
+    // from the audio graph.  Trying to start a tone at currentTime will not
+    // start playing until this main thread returns to the event loop and
+    // sends a message to the audio graph thread.  Allow a little time for
+    // this.  The way Gecko processes audio in chunks of 30ms means this
+    // should be at least 60 ms.  Experiments on Buri indicate that in
+    // practice this delay is 165 to 190 ms, much of which is the code that
+    // runs before returning to the event loop.
+    var when = this._audioContext.currentTime + 0.2;
+    for (var index = 0; index < sequence.length; ++index) {
+      var step = sequence[index];
+      var frequencies = step.slice(0, 2);
+      var duration = step[2] / 1000;
+      this._startAt(frequencies, when, duration);
+      when += duration;
+    }
   },
 
   _channel: null,

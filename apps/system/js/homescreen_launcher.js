@@ -124,8 +124,6 @@
       window.addEventListener('appopening', this);
       window.addEventListener('appopened', this);
       window.addEventListener('keyboardchange', this);
-      window.addEventListener('cardviewbeforeshow', this);
-      window.addEventListener('cardviewbeforeclose', this);
       window.addEventListener('shrinking-start', this);
       window.addEventListener('shrinking-stop', this);
       window.addEventListener('software-button-enabled', this);
@@ -151,8 +149,6 @@
       window.removeEventListener('trusteduihide', this);
       window.removeEventListener('trusteduishow', this);
       window.removeEventListener('applicationready', this._onAppReady);
-      window.removeEventListener('cardviewbeforeshow', this);
-      window.removeEventListener('cardviewbeforeclose', this);
       window.removeEventListener('shrinking-start', this);
       window.removeEventListener('shrinking-stop', this);
       window.removeEventListener('software-button-enabled', this);
@@ -192,15 +188,6 @@
           // Fade out the homescreen, so that it won't be seen when showing/
           // hiding/switching keyboard.
           this.getHomescreen().fadeOut();
-          break;
-        case 'cardviewbeforeshow':
-          // Fade out the homescreen before showing the cards view to avoid
-          // having it bleed through during the transition animation.
-          this.getHomescreen().fadeOut();
-          break;
-        case 'cardviewbeforeclose':
-          // Fade homescreen back in before the cards view closes.
-          this.getHomescreen().fadeIn();
           break;
         case 'shrinking-start':
           // To hide the homescreen overlay while we set the background behind

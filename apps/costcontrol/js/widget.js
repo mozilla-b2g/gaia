@@ -163,7 +163,7 @@ var Widget = (function() {
     });
 
     // Open application with the proper view
-    rightPanel.addEventListener('click',
+    leftPanel.addEventListener('click',
       function _openCCDataUsage() {
         activity = new MozActivity({ name: 'costcontrol/data_usage' });
       }
@@ -296,7 +296,7 @@ var Widget = (function() {
       views.limitedDataUsage.setAttribute('aria-hidden', !isLimited);
 
       // Always data usage
-      leftPanel.setAttribute('aria-hidden', isDataUsageOnly);
+      rightPanel.setAttribute('aria-hidden', isDataUsageOnly);
 
       // And the other view if applies...
       if (isDataUsageOnly) {
@@ -356,10 +356,10 @@ var Widget = (function() {
 
           if (!limitTrespassed) {
             navigator.mozL10n.setAttributes(dataAvailable, 'data-available2',
-              { 'value': text[0], unit: text[1] });
+              { value: parseFloat(text[0]), unit: text[1] });
           } else {
-            navigator.mozL10n.setAttributes(dataAvailable, 'data-over-limit',
-              { 'value': text[0], unit: text[1] });
+            navigator.mozL10n.setAttributes(dataAvailable, 'over-limit',
+              { value: parseFloat(text[0]), unit: text[1] });
           }
         } else {
           // Texts

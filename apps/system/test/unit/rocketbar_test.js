@@ -178,6 +178,26 @@ suite('system/Rocketbar', function() {
     assert.ok(deactivateStub.calledOnce);
   });
 
+  test('handleEvent() - launchapp', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'launchapp'};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
+  });
+
+  test('handleEvent() - launchapp /w background', function() {
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var event = {type: 'launchapp', detail: {
+      stayBackground: true
+    }};
+    subject.handleEvent(event);
+    assert.ok(hideResultsStub.notCalled);
+    assert.ok(deactivateStub.notCalled);
+  });
+
   test('handleEvent() - lockscreen-appopened', function() {
     var handleLockStub = this.sinon.stub(subject, 'handleLock');
     var event = {type: 'lockscreen-appopened'};
@@ -264,6 +284,14 @@ suite('system/Rocketbar', function() {
     var event = {type: 'iac-search-results'};
     subject.handleEvent(event);
     assert.ok(handleSearchMessageStub.calledOnce);
+  });
+
+  test('handleEvent() - open-app', function() {
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
+    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+    window.dispatchEvent(new CustomEvent('open-app'));
+    assert.ok(deactivateStub.calledOnce);
+    assert.ok(hideResultsStub.calledOnce);
   });
 
   test('handleEvent() - permissiondialoghide: active', function() {

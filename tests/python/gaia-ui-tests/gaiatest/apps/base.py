@@ -20,8 +20,8 @@ class Base(object):
         self.apps = GaiaApps(self.marionette)
         self.accessibility = Accessibility(self.marionette)
         self.frame = None
-        self.manifest_url = None
-        self.entry_point = None
+        self.manifest_url = hasattr(self, 'manifest_url') and self.manifest_url or None
+        self.entry_point = hasattr(self, 'entry_point') and self.entry_point or None
 
     def launch(self, launch_timeout=None):
         self.app = self.apps.launch(self.name, self.manifest_url, self.entry_point, launch_timeout=launch_timeout)

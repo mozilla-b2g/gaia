@@ -1,14 +1,19 @@
 .appWindow:not(.bar) > .chrome {
   pointer-events: none;
   top: 0;
-  height: 7.6rem;
-  transform: scaleY(0.6521) translateY(-3rem);
+  height: calc(var(--statusbar-height) * 2.53);
+  transform: scaleY(0.6521) translateY(calc(var(--statusbar-height) * -1));
   transform-origin: top left;
   transition: transform 0.2s ease-in-out, background-color 0.5s ease;
 
   background-color: black;
   background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1));
   color: white;
+}
+
+:not(.browser).appWindow[data-shrinking-state="true"] > .chrome {
+  height: calc(var(--statusbar-height) / 0.651);
+  transform: scaleY(0.651) translateY(0);
 }
 
 .appWindow.light > .chrome {
@@ -22,7 +27,7 @@
 }
 
 .appWindow.fullscreen-app:not(.bar) > .chrome:not(.maximized) {
-  height: 3rem;
+  height: var(--statusbar-height);
   top: 0;
 }
 
@@ -110,8 +115,8 @@
   margin-left: 0.5rem;
 }
 
-.scrollable .chrome .controls button:not([disabled]) + button[disabled] + .urlbar,
-.scrollable .chrome .controls button:not([disabled]) + .urlbar {
+.collapsible .chrome .controls button:not([disabled]) + button[disabled] + .urlbar,
+.collapsible .chrome .controls button:not([disabled]) + .urlbar {
   margin-left: 0;
 }
 
@@ -201,20 +206,20 @@
 
 .chrome.maximized .title[data-ssl="secure"] {
   padding-left: 3rem;
-  background: url("images/ssl.png") no-repeat 1.3rem center;
+  background: url("images/ssl.png") no-repeat 0.1rem center / 3rem 3rem;
 }
 
 .chrome.maximized .title[data-ssl="broken"] {
   padding-left: 3rem;
-  background: url("images/ssl_broken.png") no-repeat 1.3rem center;
+  background: url("images/ssl_broken.png") no-repeat 0.1rem center / 3rem 3rem;
 }
 
-.scrollable .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
-.scrollable .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
+.collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
+.collapsible .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
   transform: scaleX(0.6521) translateX(-5.5rem);
 }
 
-.scrollable .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
+.collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
   transform: scaleX(0.6521) translateX(-12rem);
 }
 
@@ -362,149 +367,45 @@
   background-image: url('images/dark/windows.png');
 }
 
+.light .controls .windows-button:active {
+  background-image: url('images/dark/windows_active.png');
+}
+
 .light .controls .menu-button:active {
   background-image: url("images/dark/overflow_active.png");
 }
 
 /* Overflow menu */
 
-.appWindow > .overflow-menu {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  /* Same as titlebar */
-  z-index: 1001;
-  padding: 11.4rem 3rem 0;
-  background-color: rgba(231, 231, 231, 0.6);
-  transition: opacity 0.3s;
-  pointer-events: auto;
-}
-
-.appWindow > .overflow-menu.hidden {
-  display: none;
-}
-
-.appWindow > .overflow-menu.showing {
-  background-color: transparent;
-}
-
-/* XXX Possibly a Gecko bug, if you don't specify this pseudo-element, the
- *     animation set on it below won't re-play subsequent times.
- */
-.overflow-menu::before {
-  content: '';
-}
-
-.overflow-menu.showing::before {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(231, 231, 231, 0.6);
-  border-radius: 0 0 0 100%;
-  transform-origin: 100% 0;
-  will-change: transform;
-
-  animation-name: grow;
-  animation-duration: 0.4s;
-}
-
-@keyframes grow {
-  from { transform: scale(0, 0); }
-  to { transform: scale(2, 2); }
-}
-
-.appWindow > .overflow-menu.hiding {
-  opacity: 0;
-}
-
-.overflow-menu > .list {
-  background-color: white;
-  width: 100%;
-  border: 0.1rem solid rgba(189, 189, 189, 0.1);
-  border-bottom: none;
-  transition: opacity 0.2s;
-  box-sizing: border-box;
-}
-
-.overflow-menu.showing > .list {
-  opacity: 0;
-}
-
-.overflow-menu > .list > .option {
-  height: 5rem;
-  border-bottom: 0.1rem solid rgba(189, 189, 189, 0.1);
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-}
-
-.overflow-menu > .list > :not(#share).option[data-disabled] {
-  display: none;
-}
-
-.overflow-menu > .list > #share.option[data-disabled] {
-  pointer-events: none;
-}
-
-.overflow-menu > .list > .option * {
-  pointer-events: none;
-  transition: opacity 0.2s;
-}
-
-.overflow-menu > .list > #share.option[data-disabled] * {
-  opacity: 0.5;
-}
-
-.overflow-menu > .list > .option > .icon {
-  display: inline-block;
-  width: 6rem;
-  height: 100%;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.overflow-menu > .list > .option > .label {
-  font-size: 1.6rem;
-  font-style: italic;
-  color: #00aac5;
-  display: inline-block;
-}
-
-.option#new-window > .icon {
+gaia-overflow-menu button#new-window {
   background-image: url("images/menu_new_window.png");
 }
 
-.option#add-to-home > .icon {
+gaia-overflow-menu button#add-to-home {
   background-image: url("images/menu_add_to_homescreen.png");
 }
 
-.option#share > .icon {
+gaia-overflow-menu button#share {
   background-image: url("images/menu_share.png");
 }
 
 /* Progress */
-.appWindow:not(.bar).scrollable > .chrome gaia-progress {
+.appWindow:not(.bar).collapsible > .chrome gaia-progress {
   top: 7.3rem;
 }
 
 /* App specifics */
-.appWindow:not(.scrollable) > .chrome:not(.maximized) .controls button {
+.appWindow:not(.collapsible) > .chrome:not(.maximized) .controls button {
   display: none;
 }
 
-.appWindow:not(.scrollable) > .chrome:not(.maximized) .controls .forward-button:not([disabled]) + .urlbar,
-.appWindow:not(.scrollable) > .chrome:not(.maximized) .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
-.appWindow:not(.scrollable) > .chrome:not(.maximized) .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar,
-.appWindow:not(.scrollable) > .chrome:not(.maximized) .controls .urlbar {
+.appWindow:not(.collapsible) > .chrome:not(.maximized) .controls .forward-button:not([disabled]) + .urlbar,
+.appWindow:not(.collapsible) > .chrome:not(.maximized) .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
+.appWindow:not(.collapsible) > .chrome:not(.maximized) .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar,
+.appWindow:not(.collapsible) > .chrome:not(.maximized) .controls .urlbar {
   width: calc(100% - 8rem);
 }
 
-.appWindow:not(.scrollable) > .chrome .controls .urlbar .title {
+.appWindow:not(.collapsible) > .chrome .controls .urlbar .title {
   width: calc(100%);
 }
-

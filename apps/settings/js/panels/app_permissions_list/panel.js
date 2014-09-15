@@ -19,21 +19,6 @@ define(function(require) {
         methodName: 'onAppChoose'
       },
       {
-        elementName: 'goButton',
-        eventType: 'click',
-        methodName: 'confirmGoClicked'
-      },
-      {
-        elementName: 'mainButton',
-        eventType: 'click',
-        methodName: 'clearBookmarksData'
-      },
-      {
-        elementName: 'cancelButton',
-        eventType: 'click',
-        methodName: 'confirmCancelClicked'
-      },
-      {
         eventType: 'applicationinstall',
         methodName: 'onApplicationInstall'
       },
@@ -72,13 +57,9 @@ define(function(require) {
     return SettingsPanel({
       onInit: function(panel) {
         elements = {
-          list: panel.querySelector('.app-list'),
-          dialog: panel.querySelector('.cb-alert'),
-          goButton: panel.querySelector('.cb-alert-clear'),
-          cancelButton: panel.querySelector('.cb-alert-cancel'),
-          mainButton: panel.querySelector('.clear-bookmarks-app')
+          list: panel.querySelector('.app-list')
         };
-        permissionListModule.init(elements);
+        permissionListModule.init(elements.list);
       },
 
       onBeforeShow: function() {

@@ -10,7 +10,6 @@
  * 'shrinking-start': tilt the window and let user can drag it
  * 'shrinking-stop' : tilt the window back immediately and let user can use it
  * 'shrinking-receiving' : after the app launched, do the receiving animation
- * 'shrinking-rejected': show the animation when the sending was rejected
  *
  * It would send an event out to nofify that the user has dragged the window
  * to the top of the frame, which means the content should be sent:
@@ -50,10 +49,10 @@
       tiltTransitionCb: null // Last tilt transition
     },
     configs: {
-      degreeLandscape: '1.2deg',
-      degreePortrait: '0.5deg',
-      overDegreeLandscape: '1.4deg',
-      overDegreePortrait: '0.7deg'
+      degreeLandscape: '2.7deg',
+      degreePortrait: '0.65deg',
+      overDegreeLandscape: '2.9deg',
+      overDegreePortrait: '0.9deg'
     },
 
     get current() {
@@ -105,7 +104,6 @@
     window.addEventListener('shrinking-start', this);
     window.addEventListener('shrinking-stop', this);
     window.addEventListener('shrinking-receiving', this);
-    window.addEventListener('shrinking-rejected', this);
     window.addEventListener('check-p2p-registration-for-active-app', this);
     window.addEventListener('dispatch-p2p-user-response-on-active-app', this);
   };
@@ -121,7 +119,6 @@
     window.removeEventListener('shrinking-start', this);
     window.removeEventListener('shrinking-stop', this);
     window.removeEventListener('shrinking-receiving', this);
-    window.removeEventListener('shrinking-rejected', this);
     window.removeEventListener('check-p2p-registration-for-active-app', this);
     window.removeEventListener('dispatch-p2p-user-response-on-active-app',
       this);
@@ -161,9 +158,6 @@
           // It should be launched, then received.
           // So we'll get a new app.
           this._receivingEffects();
-          break;
-        case 'shrinking-rejected':
-          this._rejected();
           break;
         case 'check-p2p-registration-for-active-app':
           if (evt.detail && evt.detail.checkP2PRegistration) {
@@ -252,20 +246,6 @@
     this.tip.remove();
     this.tip = null;
     this._shrinkingTiltBack(true, afterTiltBack);
-  };
-
-  /**
-   * Sending has been rejected. It would fly back.
-   *
-   * @this {ShrinkingUI}
-   */
-  ShrinkingUI.prototype._rejected = function su_rejected() {
-    this._sendingSlideTo('BOTTOM' , (function() {
-      this._enableSlidingCover();
-      this._setTip();
-      // will stop once flied back
-      this.stopTilt();
-    }).bind(this));
   };
 
   /**
@@ -499,6 +479,9 @@
       // Nested callbacks: first animation is for sinking down,
       // and the second one is for bouncing back.
       var bounceBack = (function on_bounceBack(evt) {
+        if (evt.target !== element) {
+          return;
+        }
         element.removeEventListener('transitionend', bounceBack);
         element.addEventListener('transitionend', bounceBackEnd);
         this._updateTiltTransition(bounceBackEnd);
@@ -508,6 +491,9 @@
       }).bind(this);
 
       var bounceBackEnd = (function on_bounceBackEnd(evt) {
+        if (evt.target !== element) {
+          return;
+        }
         element.removeEventListener('transitionend',
           bounceBackEnd);
         element.style.transition = 'transform 0.5s ease 0s';
@@ -681,16 +667,16 @@
   };
 
   ShrinkingUI.prototype._getTiltingDegree = function su_getTiltingDegree() {
-    return 'landscape-primary' === window.OrientationManager.
-      fetchCurrentOrientation() ?
+    return window.OrientationManager.fetchCurrentOrientation()
+      .indexOf('landscape') !== -1 ?
       this.configs.degreeLandscape :
       this.configs.degreePortrait;
   };
 
   ShrinkingUI.prototype._getOverTiltingDegree =
     function su_getOverTiltingDegree() {
-      return 'landscape-primary' === window.OrientationManager.
-        fetchCurrentOrientation() ?
+      return window.OrientationManager.fetchCurrentOrientation()
+        .indexOf('landscape') !== -1 ?
         this.configs.overDegreeLandscape :
         this.configs.overDegreePortrait;
     };

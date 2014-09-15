@@ -1,9 +1,9 @@
+/* global BookmarksDatabase */
+/* global IconsHelper */
+/* global LazyLoader */
 /* global ModalDialog */
 /* global MozActivity */
-/* global BookmarksDatabase */
 /* global SettingsListener */
-/* global LazyLoader */
-/* global IconsHelper */
 /* global System */
 
 'use strict';
@@ -66,13 +66,17 @@
     }
 
     if (chrome.scrollable) {
-      this.app.element.classList.add('scrollable');
+      this.app.element.classList.add('collapsible');
       this.app.element.classList.add('light');
       this.scrollable.scrollgrab = true;
     }
 
     if (chrome.maximized) {
       this.element.classList.add('maximized');
+
+      if (!this.app.isBrowser()) {
+        this.app.element.classList.add('scrollable');
+      }
     }
   };
 
@@ -121,33 +125,22 @@
   };
 
   AppChrome.prototype.overflowMenuView = function an_overflowMenuView() {
-    var template = `<div class="overflow-menu hidden">
-             <div class="list">
+    var template = `<gaia-overflow-menu>
 
-               <div class="option" id="new-window">
-                 <div class="icon"></div>
-                 <div class="label" data-l10n-id="new-window">
-                   New Window
-                 </div>
-               </div>
+             <button id="new-window" data-l10n-id="new-window">
+               New Window
+             </button>
 
-               <div class="option" id="add-to-home" data-disabled="true">
-                 <div class="icon"></div>
-                 <div class="label" data-l10n-id="add-to-home-screen">
-                   Add to Home Screen
-                 </div>
-               </div>
+             <button id="add-to-home" data-l10n-id="add-to-home-screen" hidden>
+               Add to Home Screen
+             </button>
 
-               <div class="option" id="share">
-                 <div class="icon"></div>
-                 <div class="label" data-l10n-id="share">
-                   Share
-                 </div>
-               </div>
+             <button id="share" data-l10n-id="share">
+                 Share
+             </button>
 
-             </div>
-           </div>`;
-      return template;
+           </gaia-overflow-menu>`;
+    return template;
   };
 
   AppChrome.prototype.__defineGetter__('height', function ac_getHeight() {
@@ -197,10 +190,12 @@
 
       case '_loading':
         this.show(this.progress);
+        this.progress.start();
         break;
 
       case '_loaded':
         this.hide(this.progress);
+        this.progress.stop();
         break;
 
       case 'mozbrowserloadstart':
@@ -213,6 +208,10 @@
 
       case 'mozbrowserlocationchange':
         this.handleLocationChanged(evt);
+        break;
+
+      case 'mozbrowserscrollareachanged':
+        this.handleScrollAreaChanged(evt);
         break;
 
       case 'mozbrowsersecuritychange':
@@ -229,14 +228,6 @@
 
       case '_namechanged':
         this.handleNameChanged(evt);
-        break;
-
-      case 'transitionend':
-        this.handleTransitionEnd(evt);
-        break;
-
-      case 'animationend':
-        this.handleAnimationEnd(evt);
         break;
     }
   };
@@ -269,7 +260,7 @@
       case this.menuButton:
         this.showOverflowMenu();
         break;
-      
+
       case this.windowsButton:
         this.showWindows();
         break;
@@ -298,6 +289,10 @@
   };
 
   AppChrome.prototype.handleScrollEvent = function ac_handleScrollEvent(evt) {
+    if (!this.containerElement.classList.contains('scrollable')) {
+      return;
+    }
+
     // Ideally we'd animate based on scroll position, but until we have
     // the necessary spec and implementation, we'll animate completely to
     // the expanded or collapsed state depending on whether it's at the
@@ -310,10 +305,19 @@
     } else {
       this.element.classList.add('maximized');
     }
+
+    if (this.app.isActive()) {
+      this.app.publish('titlestatechanged');
+    }
   };
 
   AppChrome.prototype._registerEvents = function ac__registerEvents() {
     if (this.useCombinedChrome()) {
+      LazyLoader.load('shared/js/bookmarks_database.js', function() {
+        this.updateAddToHomeButton();
+      }.bind(this));
+      LazyLoader.load('shared/elements/gaia_overflow_menu/script.js');
+
       this.stopButton.addEventListener('click', this);
       this.reloadButton.addEventListener('click', this);
       this.backButton.addEventListener('click', this);
@@ -331,6 +335,7 @@
     this.app.element.addEventListener('mozbrowserlocationchange', this);
     this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('mozbrowsermetachange', this);
+    this.app.element.addEventListener('mozbrowserscrollareachanged', this);
     this.app.element.addEventListener('mozbrowsersecuritychange', this);
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
@@ -398,6 +403,26 @@
     }).bind(this), this.FRESH_TITLE);
   };
 
+  AppChrome.prototype.handleScrollAreaChanged = function(evt) {
+    // Check if the page has become scrollable and add the scrollable class.
+    // We don't check if a page has stopped being scrollable to avoid oddness
+    // with a page oscillating between scrollable/non-scrollable states, and
+    // other similar issues that Firefox for Android is still dealing with
+    // today.
+    if (this.containerElement.classList.contains('scrollable')) {
+      return;
+    }
+
+    // We allow the bar to collapse if the page is greater than or equal to
+    // the area of the window with a collapsed bar. Strictly speaking, we'd
+    // allow it to collapse if it was greater than the area of the window with
+    // the expanded bar, but due to prevalent use of -webkit-box-sizing and
+    // plain mistakes, this causes too many false-positives.
+    if (evt.detail.height >= this.containerElement.clientHeight) {
+      this.containerElement.classList.add('scrollable');
+    }
+  };
+
   AppChrome.prototype.handleSecurityChanged = function(evt) {
     this.title.dataset.ssl = evt.detail.state;
   };
@@ -438,6 +463,7 @@
 
     if (color === 'transparent' || color === '') {
       this.app.element.classList.remove('light');
+      this.app.publish('titlestatechanged');
       return;
     }
 
@@ -456,6 +482,7 @@
         Math.sqrt((r*r) * 0.241 + (g*g) * 0.691 + (b*b) * 0.068);
 
       self.app.element.classList.toggle('light', brightness > 200);
+      self.app.publish('titlestatechanged');
     });
   };
 
@@ -468,6 +495,10 @@
     this._fetchElements();
     this._registerEvents();
     this.publish('rendered');
+  };
+
+  AppChrome.prototype.useLightTheming = function ac_useLightTheming() {
+    return this.app.element.classList.contains('light');
   };
 
   AppChrome.prototype.useCombinedChrome = function ac_useCombinedChrome(evt) {
@@ -485,20 +516,16 @@
 
   AppChrome.prototype.updateAddToHomeButton =
     function ac_updateAddToHomeButton() {
-      if (!this.addToHomeButton) {
+      if (!this.addToHomeButton || !BookmarksDatabase) {
         return;
       }
 
       // Enable/disable the bookmark option
       BookmarksDatabase.get(this._currentURL).then(function resolve(result) {
-        if (result) {
-          this.addToHomeButton.dataset.disabled = true;
-        } else {
-          delete this.addToHomeButton.dataset.disabled;
-        }
+        this.addToHomeButton.hidden = !!result;
       }.bind(this),
       function reject() {
-        this.addToHomeButton.dataset.disabled = true;
+        this.addToHomeButton.hidden = true;
       }.bind(this));
     };
 
@@ -525,10 +552,18 @@
       }
 
       this.updateAddToHomeButton();
-      
+
       if (!this.app.isBrowser()) {
         return;
       }
+
+      // We havent got a name for this location
+      this._gotName = false;
+
+      // Make the rocketbar unscrollable until the page resizes to the
+      // appropriate height.
+      this.containerElement.classList.remove('scrollable');
+
       // Expand
       if (!this.isMaximized()) {
         this.element.classList.add('maximized');
@@ -614,7 +649,7 @@
 
       if (this.addToHomeButton) {
         activity.onsuccess = function onsuccess() {
-          this.addToHomeButton.dataset.disabled = true;
+          this.addToHomeButton.hidden = true;
         }.bind(this);
       }
     }).bind(this));
@@ -644,9 +679,50 @@
   };
 
   AppChrome.prototype.showWindows = function ac_showWindows() {
-    window.dispatchEvent(new CustomEvent('taskmanagershow'));
+    window.dispatchEvent(
+      new CustomEvent('taskmanagershow',
+                      { detail: { filter: 'browser-only' }})
+    );
   };
 
+  AppChrome.prototype.__defineGetter__('overflowMenu',
+    // Instantiate the overflow menu when it's needed
+    function ac_getOverflowMenu() {
+      if (!this._overflowMenu && this.useCombinedChrome() &&
+          window.GaiaOverflowMenu) {
+        this.app.element.insertAdjacentHTML('afterbegin',
+                                            this.overflowMenuView());
+        this._overflowMenu = this.containerElement.
+          querySelector('gaia-overflow-menu');
+        this.newWindowButton = this._overflowMenu.
+          querySelector('#new-window');
+        this.addToHomeButton = this._overflowMenu.
+          querySelector('#add-to-home');
+        this.shareButton = this._overflowMenu.
+          querySelector('#share');
+
+        this.newWindowButton.addEventListener('click', this);
+        this.addToHomeButton.addEventListener('click', this);
+        this.shareButton.addEventListener('click', this);
+
+        this.updateAddToHomeButton();
+      }
+
+      return this._overflowMenu;
+    });
+
+  AppChrome.prototype.showOverflowMenu = function ac_showOverflowMenu() {
+    this.overflowMenu.show();
+  };
+
+  AppChrome.prototype.hideOverflowMenu = function ac_hideOverflowMenu() {
+    this.overflowMenu.hide();
+  };
+
+  /* Bug 1054466 switched the browser overflow menu to use the system style,
+   * but we eventually want to switch back to the new style. We can do that
+   * by removing this function.
+   */
   AppChrome.prototype.showOverflowMenu = function ac_showOverflowMenu() {
     if (this.app.contextmenu) {
       var name = this.isSearch() ?

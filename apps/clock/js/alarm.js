@@ -20,7 +20,7 @@ define(function(require, exports, module) {
       label: '',
       sound: 'ac_awake.opus',
       vibrate: true,
-      snooze: 5 // Number of minutes to snooze
+      snooze: 10 // Number of minutes to snooze
     };
 
     for (var key in defaults) {

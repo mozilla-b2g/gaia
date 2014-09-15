@@ -2,7 +2,7 @@
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
            MockSystem, MockTouchForwarder, StatusBar, System,
-           AppWindowManager */
+           AppWindowManager, MockNfcManager */
 
 'use strict';
 
@@ -19,6 +19,7 @@ require('/shared/test/unit/mocks/mock_simslot.js');
 require('/shared/test/unit/mocks/mock_simslot_manager.js');
 require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_ftu_launcher.js');
+require('/test/unit/mock_nfc_manager.js');
 require('/test/unit/mock_touch_forwarder.js');
 require('/test/unit/mock_sim_pin_dialog.js');
 require('/test/unit/mock_utility_tray.js');
@@ -37,11 +38,12 @@ var mocksForStatusBar = new MocksHelper([
 suite('system/Statusbar', function() {
   var mobileConnectionCount = 2;
   var fakeStatusBarNode, fakeTopPanel, fakeStatusBarBackground,
-      fakeStatusBarIcons, fakeStatusbarIconsMax, fakeStatusbarIconsMin,
-      fakeStatusBarConnections,
-      fakeStatusBarCallForwardings, fakeStatusBarTime, fakeStatusBarLabel,
-      fakeStatusBarBattery;
-  var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [];
+      fakeStatusBarIcons, fakeStatusbarIconsMaxWrapper, fakeStatusbarIconsMax,
+      fakeStatusbarIconsMinWrapper, fakeStatusbarIconsMin,
+      fakeStatusBarConnections, fakeStatusBarCallForwardings, fakeStatusBarTime,
+      fakeStatusBarLabel, fakeStatusBarBattery;
+  var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [],
+      realNfcManager;
 
   function prepareDOM() {
     for (var i = 1; i < mobileConnectionCount; i++) {
@@ -64,13 +66,21 @@ suite('system/Statusbar', function() {
     fakeStatusBarIcons.id = 'statusbar-icons';
     document.body.appendChild(fakeStatusBarIcons);
 
+    fakeStatusbarIconsMaxWrapper = document.createElement('div');
+    fakeStatusbarIconsMaxWrapper.id = 'statusbar-maximized-wrapper';
+    fakeStatusBarIcons.appendChild(fakeStatusbarIconsMaxWrapper);
+
+    fakeStatusbarIconsMinWrapper = document.createElement('div');
+    fakeStatusbarIconsMinWrapper.id = 'statusbar-minimized-wrapper';
+    fakeStatusBarIcons.appendChild(fakeStatusbarIconsMinWrapper);
+
     fakeStatusbarIconsMax = document.createElement('div');
     fakeStatusbarIconsMax.id = 'statusbar-maximized';
-    fakeStatusBarIcons.appendChild(fakeStatusbarIconsMax);
+    fakeStatusbarIconsMaxWrapper.appendChild(fakeStatusbarIconsMax);
 
     fakeStatusbarIconsMin = document.createElement('div');
     fakeStatusbarIconsMin.id = 'statusbar-minimized';
-    fakeStatusBarIcons.appendChild(fakeStatusbarIconsMin);
+    fakeStatusbarIconsMinWrapper.appendChild(fakeStatusbarIconsMin);
 
     fakeStatusBarConnections = document.createElement('div');
     fakeStatusBarConnections.id = 'statusbar-connections';
@@ -104,6 +114,10 @@ suite('system/Statusbar', function() {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
 
+    realNfcManager = window.nfcManager;
+    window.nfcManager = new MockNfcManager();
+    sinon.spy(window.nfcManager, 'isActive');
+
     prepareDOM();
 
     requireApp('system/js/clock.js', function() {
@@ -136,8 +150,10 @@ suite('system/Statusbar', function() {
 
       var signalElements = document.querySelectorAll('.statusbar-signal');
       var dataElements = document.querySelectorAll('.statusbar-data');
+      var roamingElems = document.querySelectorAll('.sb-icon-roaming');
 
       fakeIcons.signals = {};
+      fakeIcons.roaming = {};
       Array.prototype.slice.call(signalElements).forEach(
         function(signal, index) {
           fakeIcons.signals[mobileConnectionCount - index - 1] = signal;
@@ -146,6 +162,10 @@ suite('system/Statusbar', function() {
       fakeIcons.data = {};
       Array.prototype.slice.call(dataElements).forEach(function(data, index) {
         fakeIcons.data[mobileConnectionCount - index - 1] = data;
+      });
+
+      Array.prototype.slice.call(roamingElems).forEach(function(data, index) {
+        fakeIcons.roaming[mobileConnectionCount - index - 1] = data;
       });
 
       done();
@@ -160,6 +180,8 @@ suite('system/Statusbar', function() {
     navigator.mozL10n = realMozL10n;
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozTelephony = realMozTelephony;
+    window.nfcManager.isActive.restore();
+    window.nfcManager = realNfcManager;
   });
 
   suite('airplane mode icon', function() {
@@ -320,7 +342,10 @@ suite('system/Statusbar', function() {
   });
 
   suite('time bar', function() {
+    var app;
     setup(function() {
+      app = {};
+      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
       StatusBar.clock.stop();
       StatusBar.screen = document.createElement('div');
     });
@@ -336,14 +361,21 @@ suite('system/Statusbar', function() {
     });
     test('lock', function() {
       System.locked = true;
-      var evt = new CustomEvent('lockscreen-appopened');
+      var currentApp = {};
+      var setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
+      var evt = new CustomEvent('lockscreen-appopened', {detail: currentApp});
       StatusBar.handleEvent(evt);
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(currentApp));
       assert.equal(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, true);
     });
     test('unlock', function() {
-      var evt = new CustomEvent('lockscreen-appclosed');
+      var evt = new CustomEvent('lockscreen-appclosing');
+      var setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
       StatusBar.handleEvent(evt);
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(app));
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
     });
@@ -716,7 +748,7 @@ suite('system/Statusbar', function() {
 
           StatusBar.update.signal.call(StatusBar);
 
-          assert.equal(dataset.roaming, 'true');
+          assert.equal(fakeIcons.roaming[0].hidden, false);
           assert.equal(dataset.level, 4);
           assert.notEqual(dataset.searching, 'true');
         });
@@ -922,6 +954,11 @@ suite('system/Statusbar', function() {
       StatusBar.settingValues['ril.cf.enabled'] = defaultValue;
     });
 
+    test('createCallForwardingsElements shouldn\'t display icons', function() {
+      StatusBar.createCallForwardingsElements();
+      assert.isTrue(StatusBar.icons.callForwardings.hidden);
+    });
+
     function slotIndexTests(slotIndex) {
       suite('slot: ' + slotIndex, function() {
         test('call forwarding enabled', function() {
@@ -946,6 +983,7 @@ suite('system/Statusbar', function() {
   });
 
   suite('data connection', function() {
+
     function slotIndexTests(slotIndex) {
       suite('slot: ' + slotIndex, function() {
         suite('data connection unavailable', function() {
@@ -1286,6 +1324,11 @@ suite('system/Statusbar', function() {
         assert.include(label_content, 'Orange');
         assert.include(label_content, 'PR');
       });
+
+      test('dataset-multiple is set to false', function() {
+        StatusBar.updateConnectionsVisibility();
+        assert.equal(fakeIcons.connections.dataset.multiple, 'false');
+      });
     });
 
     suite('multiple sims', function() {
@@ -1306,6 +1349,17 @@ suite('system/Statusbar', function() {
         assert.equal(-1, label_content.indexOf('Orange'));
         assert.equal(-1, label_content.indexOf('PR'));
       });
+
+      test('multiple is set to true if any active sim', function() {
+        fakeIcons.signals[0].dataset.inactive = 'false';
+        StatusBar.updateConnectionsVisibility();
+        assert.equal(fakeIcons.connections.dataset.multiple, 'true');
+      });
+
+      test('multiple is set to false if no SIM insterted', function() {
+        StatusBar.updateConnectionsVisibility();
+        assert.equal(fakeIcons.connections.dataset.multiple, 'false');
+      });
     });
   });
 
@@ -1320,6 +1374,7 @@ suite('system/Statusbar', function() {
 
     teardown(function() {
       StatusBar.recordingCount = 0;
+      StatusBar.playingActive = false;
       fakeClock.restore();
     });
 
@@ -1376,6 +1431,19 @@ suite('system/Statusbar', function() {
       });
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.icons.playing.hidden, false);
+    });
+
+    test('repeat audio-channel-changed event', function() {
+      var evt = new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'audio-channel-changed',
+          channel: 'content'
+        }
+      });
+      var updatePlayingSpy = sinon.spy(StatusBar.update, 'playing');
+      StatusBar.handleEvent(evt);
+      StatusBar.handleEvent(evt);
+      assert.equal(updatePlayingSpy.callCount, 1);
     });
   });
 
@@ -1684,6 +1752,20 @@ suite('system/Statusbar', function() {
   });
 
   suite('NFC', function() {
+    setup(function() {
+      sinon.spy(StatusBar, 'setActiveNfc');
+    });
+
+    teardown(function() {
+      StatusBar.setActiveNfc.restore();
+    });
+
+    test('checks initial state from nfcManager', function() {
+      StatusBar.init();
+      StatusBar.finishInit();
+      assert.isTrue(window.nfcManager.isActive.called);
+    });
+
     test('NFC is off', function() {
       var evt = new CustomEvent('nfc-state-changed', {
         detail: {
@@ -1702,6 +1784,38 @@ suite('system/Statusbar', function() {
       });
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.icons.nfc.hidden, false);
+    });
+
+    test('should call to setActiveNfc when changing', function() {
+      var evt = new CustomEvent('nfc-state-changed', {
+        detail: {
+          active: true
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.setActiveNfc.calledWith(evt.detail.active));
+    });
+  });
+
+  suite('setActiveNfc', function() {
+    setup(function() {
+      sinon.spy(StatusBar.update, 'nfc');
+    });
+
+    teardown(function() {
+      StatusBar.update.nfc.restore();
+    });
+
+    test('should set nfcActive', function() {
+      var isActive = true;
+      StatusBar.nfcActive = false;
+      StatusBar.setActiveNfc(isActive);
+      assert.equal(StatusBar.nfcActive, isActive);
+    });
+
+    test('should update the icon', function() {
+      StatusBar.setActiveNfc(true);
+      assert.isTrue(StatusBar.update.nfc.called);
     });
   });
 
@@ -1847,6 +1961,97 @@ suite('system/Statusbar', function() {
       assert.isNull(StatusBar.PRIORITIES[iconIndex][1]);
       assert.equal(StatusBar._getIconWidth(StatusBar.PRIORITIES[iconIndex]),
         timeIcon.clientWidth);
+    });
+  });
+
+  suite('setAppearance', function() {
+    test('setAppearance light and maximized', function() {
+      StatusBar.setAppearance({
+        appChrome: {
+          useLightTheming: function useLightTheming() {
+            return true;
+          },
+          isMaximized: function isMaximized() {
+            return true;
+          }
+        }
+      });
+      assert.isTrue(StatusBar.element.classList.contains('light'));
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('setAppearance no appChrome', function() {
+      StatusBar.setAppearance({});
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+      assert.isFalse(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('setAppearance homescreen', function() {
+      StatusBar.setAppearance({
+        isHomescreen: true
+      });
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+    });
+  });
+
+  suite('handle events', function() {
+    var app;
+    var setAppearanceStub;
+
+    function testEventThatHides(event) {
+      var evt = new CustomEvent(event);
+      assert.isFalse(StatusBar.element.classList.contains('hidden'));
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.element.classList.contains('hidden'));
+    }
+
+    function testEventThatShows(event) {
+      var currentApp = {};
+      var evt = new CustomEvent(event, {detail: currentApp});
+      StatusBar.element.classList.add('hidden');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(currentApp));
+      assert.isFalse(StatusBar.element.classList.contains('hidden'));
+    }
+
+    setup(function() {
+      app = {};
+      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+      setAppearanceStub = this.sinon.stub(StatusBar, 'setAppearance');
+    });
+
+    test('stackchanged', function() {
+      var event = new CustomEvent('stackchanged');
+      StatusBar.handleEvent(event);
+      assert.isFalse(StatusBar.element.classList.contains('hidden'));
+      assert.isTrue(setAppearanceStub.called);
+      assert.isTrue(setAppearanceStub.calledWith(app));
+    });
+
+    test('homescreenopening', function() {
+      testEventThatHides.bind(this)('homescreenopening');
+    });
+
+    test('appopening', function() {
+      testEventThatHides.bind(this)('appopening');
+    });
+
+    test('sheetstransitionstart', function() {
+      testEventThatHides.bind(this)('sheetstransitionstart');
+    });
+
+    test('homescreenopened', function() {
+      testEventThatShows.bind(this)('homescreenopened');
+    });
+
+    test('appopened', function() {
+      testEventThatShows.bind(this)('appopened');
+    });
+
+    test('apptitlestatechanged', function() {
+      testEventThatShows.bind(this)('apptitlestatechanged');
     });
   });
 });

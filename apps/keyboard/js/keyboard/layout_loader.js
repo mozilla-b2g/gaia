@@ -1,85 +1,91 @@
 'use strict';
 
-/* global Promise, KeyboardEvent, KeyEvent */
+/* global Promise, KeyboardEvent */
 
 (function(exports) {
 
 // Keyboard layouts register themselves in this object, for now.
 var Keyboards = {};
 
-Keyboards.alternateLayout = {
-  alt: {
-    '1': ['¹'],
-    '2': ['²'],
-    '3': ['³'],
-    '4': ['⁴'],
-    '5': ['⁵'],
-    '6': ['⁶'],
-    '7': ['⁷'],
-    '8': ['⁸'],
-    '9': ['⁹'],
-    '0': ['⁰', 'º'],
-    '$': ['¥', '€', '£', 'R$', '¢', '₠'],
-    '?': ['¿'],
-    '!': ['¡']
-  },
-  keys: [
-    [
-      { value: '1' }, { value: '2' }, { value: '3' }, { value: '4' },
-      { value: '5' }, { value: '6' }, { value: '7' }, { value: '8' },
-      { value: '9' }, { value: '0' }
-    ], [
-      { value: '@' }, { value: '#' },
-      { value: '$', className: 'alternate-indicator' }, { value: '&' },
-      { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
-      { value: '(' }, { value: ')' }
-    ], [
-      { value: 'Alt', ratio: 1.5,
-        keyCode: KeyEvent.DOM_VK_ALT,
-        className: 'page-switch-key'
+Keyboards.defaultLayout = {
+  pages: [
+    { /* The 0th page of the defaultLayout should never be used */ },
+    { /* The 1st page, used to be called 'alternateLayout' */
+      alt: {
+        '1': ['¹'],
+        '2': ['²'],
+        '3': ['³'],
+        '4': ['⁴'],
+        '5': ['⁵'],
+        '6': ['⁶'],
+        '7': ['⁷'],
+        '8': ['⁸'],
+        '9': ['⁹'],
+        '0': ['⁰', 'º'],
+        '$': ['¥', '€', '£', 'R$', '¢', '₠'],
+        '?': ['¿'],
+        '!': ['¡']
       },
-      { value: '+',
-        supportsSwitching: {
-          value: ','
-        }
+      keys: [
+        [
+          { value: '1' }, { value: '2' }, { value: '3' }, { value: '4' },
+          { value: '5' }, { value: '6' }, { value: '7' }, { value: '8' },
+          { value: '9' }, { value: '0' }
+        ], [
+          { value: '@' }, { value: '#' },
+          { value: '$', className: 'alternate-indicator' }, { value: '&' },
+          { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
+          { value: '(' }, { value: ')' }
+        ], [
+          { value: 'Alt', ratio: 1.5,
+            keyCode: KeyboardEvent.DOM_VK_ALT,
+            className: 'page-switch-key',
+            targetPage: 2
+          },
+          { value: '+',
+            supportsSwitching: {
+              value: ','
+            }
+          },
+          { value: ':' },
+          { value: ';' }, { value: '"' },
+          { value: '\'' }, { value: '?' }, { value: '!' },
+          { value: '⌫', ratio: 1.5, keyCode: KeyboardEvent.DOM_VK_BACK_SPACE }
+        ], [
+          { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+          { value: '↵', ratio: 2, keyCode: KeyboardEvent.DOM_VK_RETURN }
+        ]
+      ]
+    },
+    { /* The 2nd page, used to be called 'symbolLayout' */
+      alt: {
+        '+': '±'
       },
-      { value: ':' },
-      { value: ';' }, { value: '"' },
-      { value: '\'' }, { value: '?' }, { value: '!' },
-      { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
-    ], [
-      { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
-      { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
-    ]
-  ]
-};
-
-Keyboards.symbolLayout = {
-  alt: {
-    '+': '±'
-  },
-  keys: [
-    [
-      { value: '¥' }, { value: '€' }, { value: '£' }, { value: '¢' },
-      { value: '₠' }, { value: '%' }, { value: '©' }, { value: '®' },
-      { value: '|' }, { value: '\\' }
-    ], [
-      { value: '~' }, { value: '°C', compositeKey: '°C' },
-      { value: '°F', compositeKey: '°F' }, { value: '°' },
-      { value: '<' }, { value: '>' }, { value: '[' }, { value: ']' },
-      { value: '{' }, { value: '}' }
-    ], [
-      { value: 'Alt', ratio: 1.5,
-        keyCode: KeyEvent.DOM_VK_ALT,
-        className: 'page-switch-key'
-      },
-      { value: '+' }, { value: '=' }, { value: '`' },
-      { value: '^' }, { value: '§' }, { value: '¿'}, {value: '¡'},
-      { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
-    ], [
-      { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
-      { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
-    ]
+      keys: [
+        [
+          { value: '¥' }, { value: '€' }, { value: '£' }, { value: '¢' },
+          { value: '₠' }, { value: '%' }, { value: '©' }, { value: '®' },
+          { value: '|' }, { value: '\\' }
+        ], [
+          { value: '~' }, { value: '°C', compositeKey: '°C' },
+          { value: '°F', compositeKey: '°F' }, { value: '°' },
+          { value: '<' }, { value: '>' }, { value: '[' }, { value: ']' },
+          { value: '{' }, { value: '}' }
+        ], [
+          { value: 'Alt', ratio: 1.5,
+            keyCode: KeyboardEvent.DOM_VK_ALT,
+            className: 'page-switch-key',
+            targetPage: 1
+          },
+          { value: '+' }, { value: '=' }, { value: '`' },
+          { value: '^' }, { value: '§' }, { value: '¿'}, {value: '¡'},
+          { value: '⌫', ratio: 1.5, keyCode: KeyboardEvent.DOM_VK_BACK_SPACE }
+        ], [
+          { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+          { value: '↵', ratio: 2, keyCode: KeyboardEvent.DOM_VK_RETURN }
+        ]
+      ]
+    }
   ]
 };
 
@@ -92,7 +98,7 @@ Keyboards.numberLayout = {
     [ { value: '7'}, { value: '8'}, { value: '9'} ],
     [ { value: '.', longPressValue: ',' },
       { value: '0', longPressValue: '-' },
-      { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE } ]
+      { value: '⌫', keyCode: KeyboardEvent.DOM_VK_BACK_SPACE } ]
   ]
 };
 
@@ -104,7 +110,7 @@ Keyboards.pinLayout = {
     [ { value: '4'}, { value: '5'}, { value: '6'} ],
     [ { value: '7'}, { value: '8'}, { value: '9'} ],
     [ { value: ''}, { value: '0'},
-      { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE } ]
+      { value: '⌫', keyCode: KeyboardEvent.DOM_VK_BACK_SPACE } ]
   ]
 };
 
@@ -129,7 +135,7 @@ Keyboards.telLayout = {
       [
         { value: '*', longPressValue: '#'},
         { value: '0', longPressValue: '+'},
-        { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
+        { value: '⌫', keyCode: KeyboardEvent.DOM_VK_BACK_SPACE }
       ]
   ]
 };
@@ -156,7 +162,7 @@ LayoutLoader.prototype.initLayouts = function() {
       console.warn('LayoutLoader: ' + layoutName + ' is overwritten.');
     }
     this._initializedLayouts[layoutName] = Keyboards[layoutName];
-    this._normalizeAlternatives(layoutName);
+    this._normalizeLayout(layoutName);
 
     // Create a promise so that these panels can be loaded async
     // even if they are not loaded with file of their name.
@@ -167,28 +173,43 @@ LayoutLoader.prototype.initLayouts = function() {
   }
 };
 
-// This function go through the 'alt' property of the layout and normalize
-// our existing mixed notation into arrays, so others won't have to do it again.
-LayoutLoader.prototype._normalizeAlternatives = function(layoutName) {
-  var mainLayout = this.getLayout(layoutName);
-  var layouts = [mainLayout];
-  // We need to process not only the layout but it's "sub-layout".
-  // Sub-layouts are getting loaded by their alternative layout name,
-  // so trying to match every possible returned value of
-  // layoutManager._getAlternativeLayoutName() is sufferent here.
-  var subLayoutNames = ['alternateLayout', 'symbolLayout', 'telLayout',
-    'pinLayout', 'numberLayout', layoutName + '-sms'];
-  subLayoutNames.forEach(function(name) {
-    if (name in mainLayout) {
-      layouts.push(mainLayout[name]);
-    }
-  });
+// In order to keep the commit log sane, some amendments of the
+// layout JS structure are fix here in runtime instead of hardcoded.
+// TODO: normalize the layout files and maybe remove this function.
+LayoutLoader.prototype._normalizeLayout = function(layoutName) {
+  var layout = this.getLayout(layoutName);
 
-  layouts.forEach(function(layout) {
-    var alt = layout.alt = layout.alt || {};
-    var upperCase = layout.upperCase = layout.upperCase || {};
-    var keys = Object.keys(alt);
-    keys.forEach(function(key) {
+  var pages;
+  if ('pages' in layout) {
+    pages = layout.pages;
+  } else {
+    pages = layout.pages = [];
+  }
+
+  if (!pages[0]) {
+    pages[0] = {};
+
+    // These are properties of the basic page that previously put in the layout
+    // itself. We should move them to the page object and remove them from
+    // the layout object.
+    ['alt', 'keys', 'upperCase', 'width', 'keyClassName',
+      'typeInsensitive', 'textLayoutOverwrite',
+      'needsCommaKey', 'secondLayout', 'specificCssRule'
+    ].forEach(function(prop) {
+      if (layout[prop]) {
+        pages[0][prop] = layout[prop];
+        delete layout[prop];
+      }
+    });
+  }
+
+  // Go through each pages and inspect it's "alt" property;
+  // we want to normalize our existing mixed notations into arrays.
+  pages.forEach(function(page) {
+    var alt = page.alt = page.alt || {};
+    var upperCase = page.upperCase = page.upperCase || {};
+    var altKeys = Object.keys(alt);
+    altKeys.forEach(function(key) {
       var alternatives = alt[key];
 
       // Split alternatives
@@ -215,7 +236,7 @@ LayoutLoader.prototype._normalizeAlternatives = function(layoutName) {
       if (!alt[upperCaseKey]) {
         var needDifferentUpperCaseLockedAlternatives = false;
         // Creating an array for upper case too.
-        // XXX: The original code does not respect layout.upperCase here.
+        // XXX: The original code does not respect page.upperCase here.
         alt[upperCaseKey] = alternatives.map(function(key) {
           if (key.length === 1) {
             return key.toUpperCase();

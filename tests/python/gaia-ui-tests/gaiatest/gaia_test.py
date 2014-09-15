@@ -653,7 +653,7 @@ class GaiaDevice(object):
             else:
                 # touching home button inside homescreen will scroll it to the top
                 Wait(self.marionette).until(lambda m: m.execute_script(
-                    "return document.querySelector('.scrollable').scrollTop") == 0)
+                    "return window.wrappedJSObject.scrollY") == 0)
 
     def _dispatch_home_button_event(self):
         self.marionette.switch_to_frame()
@@ -814,18 +814,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                     self.device.file_manager.remove('/'.join([path, item]))
 
     def cleanup_gaia(self, full_reset=True):
-        # restore settings from testvars
-        [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
-
-        # restore prefs from testvars
-        for name, value in self.testvars.get('prefs', {}).items():
-            if type(value) is int:
-                self.data_layer.set_int_pref(name, value)
-            elif type(value) is bool:
-                self.data_layer.set_bool_pref(name, value)
-            else:
-                self.data_layer.set_char_pref(name, value)
-
         # unlock
         if self.data_layer.get_setting('lockscreen.enabled'):
             self.device.unlock()
@@ -879,6 +867,18 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
         # disable auto-correction of keyboard
         self.data_layer.set_setting('keyboard.autocorrect', False)
+
+        # restore settings from testvars
+        [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
+
+        # restore prefs from testvars
+        for name, value in self.testvars.get('prefs', {}).items():
+            if type(value) is int:
+                self.data_layer.set_int_pref(name, value)
+            elif type(value) is bool:
+                self.data_layer.set_bool_pref(name, value)
+            else:
+                self.data_layer.set_char_pref(name, value)
 
     def connect_to_network(self):
         if not self.device.is_online:

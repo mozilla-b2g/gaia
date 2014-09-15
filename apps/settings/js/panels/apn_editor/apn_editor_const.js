@@ -7,13 +7,13 @@ define(function(require) {
   var APN_PROPERTY_DEFAULTS = {
     'apn': '',
     'user': '',
-    'passwd': '',
-    'httpProxyHost': '',
-    'httpProxyPort': '',
+    'password': '',
+    'proxy': '',
+    'port': '',
     'mmsc': '',
     'mmsproxy': '',
     'mmsport': '',
-    'authType': 'notDefined',
+    'authtype': 'notDefined',
     'types': ['default'],
     'protocol': 'notDefined',
     'roaming_protocol': 'notDefined'

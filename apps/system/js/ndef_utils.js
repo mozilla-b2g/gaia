@@ -332,17 +332,16 @@ var NDEFUtils = {
     // Payload ID
     var pid = nfcUtils.fromUTF8('0');
 
-    var hr = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                NDEF.RTD_HANDOVER_REQUEST,
-                                new Uint8Array([]),
-                                new Uint8Array([0x12, 0x91, 0x02, 0x02, 0x63,
-                                                0x72, rndMSB, rndLSB, 0x51,
-                                                0x02, 0x04, 0x61, 0x63, cps,
-                                                0x01, pid[0], 0x00])),
-              new MozNDEFRecord(NDEF.TNF_MIME_MEDIA,
-                                NDEF.MIME_BLUETOOTH_OOB,
-                                pid,
-                                new Uint8Array(OOB))];
+    var hr = [
+      new MozNDEFRecord({tnf: NDEF.TNF_WELL_KNOWN,
+                         type: NDEF.RTD_HANDOVER_REQUEST,
+                         payload: new Uint8Array([0x12, 0x91, 0x02, 0x02, 0x63,
+                           0x72, rndMSB, rndLSB, 0x51, 0x02, 0x04, 0x61, 0x63,
+                           cps, 0x01, pid[0], 0x00])}),
+      new MozNDEFRecord({tnf: NDEF.TNF_MIME_MEDIA,
+                         type: NDEF.MIME_BLUETOOTH_OOB,
+                         id: pid,
+                         payload: new Uint8Array(OOB)})];
     return hr;
   },
 
@@ -409,16 +408,15 @@ var NDEFUtils = {
     // Payload ID
     var pid = nfcUtils.fromUTF8('0');
 
-    var hs = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                NDEF.RTD_HANDOVER_SELECT,
-                                new Uint8Array([]),
-                                new Uint8Array([0x12, 0xD1, 0x02, 0x04,
-                                                0x61, 0x63, cps, 0x01,
-                                                pid[0], 0x00])),
-              new MozNDEFRecord(NDEF.TNF_MIME_MEDIA,
-                                NDEF.MIME_BLUETOOTH_OOB,
-                                pid,
-                                new Uint8Array(OOB))];
+    var hs = [new MozNDEFRecord({tnf: NDEF.TNF_WELL_KNOWN,
+                                 type: NDEF.RTD_HANDOVER_SELECT,
+                                 payload: new Uint8Array(
+                                  [0x12, 0xD1, 0x02, 0x04, 0x61, 0x63, cps,
+                                   0x01, pid[0], 0x00])}),
+              new MozNDEFRecord({tnf: NDEF.TNF_MIME_MEDIA,
+                                 type: NDEF.MIME_BLUETOOTH_OOB,
+                                 id: pid,
+                                 payload: new Uint8Array(OOB)})];
 
     return hs;
   }

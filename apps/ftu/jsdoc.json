@@ -1,6 +1,7 @@
 {
   "ftu": {
-    "src": ["apps/ftu/js/**/*.js"],
+    "src": ["apps/ftu/js/**/*.js",
+            "!apps/ftu/js/navigation.js"],
     "options": {
       "destination": "docs/ftu"
     }

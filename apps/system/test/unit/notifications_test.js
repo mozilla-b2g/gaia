@@ -6,7 +6,8 @@
   ScreenManager,
   MockNavigatorMozTelephony,
   MockCall,
-  MockVersionHelper
+  MockVersionHelper,
+  UtilityTray
  */
 
 'use strict';
@@ -41,9 +42,10 @@ var mocksForNotificationScreen = new MocksHelper([
 ]).init();
 
 suite('system/NotificationScreen >', function() {
-  var fakeNotifContainer, fakeLockScreenContainer, fakeToaster,
+  var fakeDesktopNotifContainer, fakeLockScreenContainer, fakeToaster,
     fakeButton, fakeNoNotifications, fakeToasterIcon, fakeToasterTitle,
-    fakeToasterDetail, fakeSomeNotifications, fakeAmbientIndicator;
+    fakeToasterDetail, fakeSomeNotifications, fakeAmbientIndicator,
+    fakeNotifContainer;
   var fakePriorityNotifContainer, fakeOtherNotifContainer;
   var realVersionHelper;
 
@@ -70,21 +72,23 @@ suite('system/NotificationScreen >', function() {
 
   function incrementNotications(number) {
     for (var i = 0; i <= number - 1; i++) {
-      NotificationScreen.incExternalNotifications();
+      NotificationScreen.addUnreadNotification(i);
     }
   }
 
 
   mocksForNotificationScreen.attachTestHelpers();
   setup(function() {
+    fakeDesktopNotifContainer = document.createElement('div');
+    fakeDesktopNotifContainer.id = 'desktop-notifications-container';
     fakeNotifContainer = document.createElement('div');
-    fakeNotifContainer.id = 'desktop-notifications-container';
+    fakeNotifContainer.id = 'notifications-container';
     fakePriorityNotifContainer = document.createElement('div');
     fakePriorityNotifContainer.className = 'priority-notifications';
     fakeOtherNotifContainer = document.createElement('div');
     fakeOtherNotifContainer.className = 'other-notifications';
-    fakeNotifContainer.appendChild(fakePriorityNotifContainer);
-    fakeNotifContainer.appendChild(fakeOtherNotifContainer);
+    fakeDesktopNotifContainer.appendChild(fakePriorityNotifContainer);
+    fakeDesktopNotifContainer.appendChild(fakeOtherNotifContainer);
 
     // add some children, we don't care what they are
     fakeOtherNotifContainer.appendChild(fakeNotification());
@@ -96,11 +100,12 @@ suite('system/NotificationScreen >', function() {
     fakeSomeNotifications = createFakeElement('span', 'notification-some');
     fakeNoNotifications = createFakeElement('span', 'notification-none');
     fakeButton = createFakeElement('button', 'notification-clear');
-    fakeAmbientIndicator = createFakeElement('span', 'notifications-indicator');
+    fakeAmbientIndicator = createFakeElement('div', 'ambient-indicator');
     fakeToasterIcon = createFakeElement('img', 'toaster-icon');
     fakeToasterTitle = createFakeElement('div', 'toaster-title');
     fakeToasterDetail = createFakeElement('div', 'toaster-detail');
 
+    document.body.appendChild(fakeDesktopNotifContainer);
     document.body.appendChild(fakeNotifContainer);
 
     document.body.appendChild(fakeLockScreenContainer);
@@ -121,7 +126,7 @@ suite('system/NotificationScreen >', function() {
   });
 
   teardown(function() {
-    fakeNotifContainer.parentNode.removeChild(fakeNotifContainer);
+    fakeDesktopNotifContainer.parentNode.removeChild(fakeDesktopNotifContainer);
     fakeLockScreenContainer.parentNode.removeChild(fakeLockScreenContainer);
     fakeToaster.parentNode.removeChild(fakeToaster);
     fakeButton.parentNode.removeChild(fakeButton);
@@ -180,6 +185,11 @@ suite('system/NotificationScreen >', function() {
       navigator.mozTelephony = realMozTelephony;
     });
 
+    setup(function() {
+      MockNavigatorMozTelephony.calls = [];
+      MockNavigatorMozTelephony.conferenceGroup.state = null;
+    });
+
     test('it should play it by default on notification channel', function() {
       var playSpy = this.sinon.spy(MockAudio.prototype, 'play');
       sendNotification();
@@ -198,34 +208,96 @@ suite('system/NotificationScreen >', function() {
       assert.ok(playSpy.calledOnce);
     });
 
+    test('if active multicall it should use telephony channel', function() {
+      var playSpy = this.sinon.spy(MockAudio.prototype, 'play');
+      MockNavigatorMozTelephony.conferenceGroup.state = 'connected';
+      sendNotification();
+      var mockAudio = MockAudio.instances[0];
+      assert.equal(mockAudio.mozAudioChannelType, 'telephony');
+      assert.ok(playSpy.calledOnce);
+    });
+
   });
 
   suite('updateNotificationIndicator >', function() {
     setup(function() {
-      NotificationScreen.updateNotificationIndicator(true);
+      NotificationScreen.updateNotificationIndicator();
+    });
+
+    test('should clear unread notifications after open tray', function() {
+      incrementNotications(2);
+      assert.equal(NotificationScreen.unreadNotifications.length, 2);
+      var event = new CustomEvent('utilitytrayshow');
+      window.dispatchEvent(event);
+      assert.equal(document.body.getElementsByClassName('unread').length, 0);
+      assert.equal(NotificationScreen.unreadNotifications.length, 0);
     });
 
     test('should show a small ambient indicator', function() {
+      incrementNotications(2);
       assert.equal(document.body.getElementsByClassName('small').length, 1);
     });
 
     test('should show a medium ambient indicator', function() {
-      incrementNotications(2);
+      incrementNotications(4);
       assert.equal(document.body.getElementsByClassName('medium').length, 1);
     });
 
     test('should show a big ambient indicator', function() {
-      incrementNotications(4);
+      incrementNotications(6);
       assert.equal(document.body.getElementsByClassName('big').length, 1);
     });
 
     test('should show a full ambient indicator', function() {
-      incrementNotications(5);
+      incrementNotications(7);
       assert.equal(document.body.getElementsByClassName('full').length, 1);
     });
 
     test('should change the read status', function() {
+      incrementNotications(1);
       assert.equal(document.body.getElementsByClassName('unread').length, 1);
+    });
+
+    test('should not increment if the tray is open', function() {
+      UtilityTray.shown = true;
+      incrementNotications(1);
+      assert.equal(document.body.getElementsByClassName('unread').length, 0);
+      UtilityTray.shown = false;
+    });
+
+    test('should not clear the ambient after decrement unread', function() {
+      var imgpath = 'http://example.com/test.png';
+      var detail = {
+        id: 'my-id',
+        icon: imgpath,
+        title: 'title',
+        detail: 'detail'
+      };
+      NotificationScreen.addNotification(detail);
+      assert.equal(NotificationScreen.unreadNotifications.length, 1);
+      NotificationScreen.removeUnreadNotification('other-id');
+      assert.equal(NotificationScreen.unreadNotifications.length, 1);
+    });
+
+  });
+
+  suite('addUnreadNotification', function() {
+    setup(function() {
+      sinon.spy(NotificationScreen, 'updateNotificationIndicator');
+    });
+
+    teardown(function() {
+      NotificationScreen.updateNotificationIndicator.restore();
+    });
+
+    test('should update the notifications indicator', function() {
+      NotificationScreen.addUnreadNotification();
+      assert.isTrue(NotificationScreen.updateNotificationIndicator.called);
+    });
+
+    test('shouldnt update the notif indicator when skipping', function() {
+      NotificationScreen.addUnreadNotification('other-id', true);
+      assert.isFalse(NotificationScreen.updateNotificationIndicator.called);
     });
   });
 
@@ -240,6 +312,15 @@ suite('system/NotificationScreen >', function() {
       delete detail.icon;
       NotificationScreen.addNotification(detail);
       assert.isTrue(toasterIcon.hidden);
+    });
+
+    test('doesnt update the ambient indicator', function() {
+      sinon.spy(NotificationScreen, 'updateNotificationIndicator');
+      var imgpath = 'http://example.com/test.png';
+      var detail = {icon: imgpath, title: 'title', detail: 'detail'};
+      NotificationScreen.addNotification(detail);
+      assert.isFalse(NotificationScreen.updateNotificationIndicator.called);
+      NotificationScreen.updateNotificationIndicator.restore();
     });
 
     function testNotificationWithDirection(dir) {

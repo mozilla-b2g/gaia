@@ -168,6 +168,8 @@
     <link rel="import" href="/elements/application_storage.html">
     <link rel="import" href="/elements/media_storage.html">
     <link rel="import" href="/elements/accessibility.html">
+    <link rel="import" href="/elements/accessibility_screenreader.html">
+    <link rel="import" href="/elements/accessibility_colors.html">
     <link rel="import" href="/elements/developer_hud.html">
     <link rel="import" href="/elements/developer.html">
     <link rel="import" href="/elements/crash_reports.html">
@@ -350,6 +352,10 @@
     <section is="applicationStorage" role="region" id="applicationStorage"></section>
     <!-- Storage :: Media Storage -->
     <section is="mediaStorage" role="region" id="mediaStorage"></section>
+    <!-- Device :: Accessibility :: Color Filter -->
+    <section is="accessibility-colors" role="region" id="accessibility-colors"></section>
+    <!-- Device :: Accessibility :: Screen Reader -->
+    <section is="accessibility-screenreader" role="region" id="accessibility-screenreader"></section>
     <!-- Device :: Accessibility -->
     <section is="accessibility" role="region" id="accessibility"></section>
     <!-- Device :: Developer :: HUD -->
@@ -426,7 +432,7 @@
             </a>
           </li>
           <li id="data-connectivity" data-category="connectivity" aria-disabled="true">
-            <a id="menuItem-cellularAndData" class="menu-item" data-icon="network" href="#carrier">
+            <a id="menuItem-cellularAndData" class="menu-item" data-icon="signal-5" href="#carrier">
               <span data-l10n-id="cellularAndData">Cellular &amp; Data</span>
               <small id="data-desc" class="menu-item-desc"></small>
             </a>
@@ -497,7 +503,7 @@
             </a>
           </li>
           <li>
-            <a id="menuItem-themes" class="menu-item gaia-icon icon-settings-themes" href="#themes" data-l10n-id="themes">Themes</a>
+            <a id="menuItem-themes" class="menu-item" data-icon="themes" href="#themes" data-l10n-id="themes">Themes</a>
           </li>
         </ul>
 
@@ -585,7 +591,7 @@
         </header>
         <ul>
           <li>
-            <a id="menuItem-deviceInfo" class="menu-item" data-icon="device-info" href="#about">
+            <a id="menuItem-deviceInfo" class="menu-item" data-icon="info" href="#about">
               <span data-l10n-id="deviceInfo">Device Information</span>
             </a>
           </li>
@@ -600,7 +606,7 @@
               <small class="battery-desc menu-item-desc" hidden></small>
             </a>
           </li>
-          <li data-show-name="accessibility.show-settings" hidden>
+          <li>
             <a id="menuItem-accessibility" class="menu-item" data-icon="accessibility" href="#accessibility">
                 <span data-l10n-id="accessibility">Accessibility</span>
             </a>

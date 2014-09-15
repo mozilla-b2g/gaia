@@ -39,6 +39,7 @@ suite('controllers/controls', function() {
     // Aliases
     this.controls = this.app.views.controls;
     this.view = this.app.views.controls;
+    this.settings = this.app.settings;
 
     this.controller = new this.ControlsController(this.app);
     this.state = {};
@@ -147,6 +148,13 @@ suite('controllers/controls', function() {
 
     test('Should fire a \'capture\' event on the app', function() {
       assert.isTrue(this.app.emit.calledWith('capture'));
+    });
+  });
+
+  suite('ControlsController.onViewModeChanged()', function() {
+    test('It switches to the next mode setting', function() {
+      this.controller.onViewModeChanged();
+      sinon.assert.called(this.settings.mode.next);
     });
   });
 });

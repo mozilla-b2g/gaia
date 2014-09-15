@@ -14,23 +14,9 @@
     height = screen.height - 20;
   }
 
-  function setDimensionsInternal() {
+  function setDimensions() {
     width = window.innerWidth;
     height = window.innerHeight;
-  }
-
-  function setDimensions() {
-    var isPortrait = '(orientation: portrait)';
-    if (window.matchMedia(isPortrait).matches) {
-      setDimensionsInternal();
-    } else {
-      window.matchMedia(isPortrait).addListener(function onOrientation(evt) {
-        if (evt.matches) {
-          window.matchMedia(isPortrait).removeListener(onOrientation);
-          setTimeout(setDimensionsInternal);
-        }
-      });
-    }
   }
 
   if (document.hidden) {

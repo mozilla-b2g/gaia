@@ -739,6 +739,11 @@ MailUniverse.prototype = {
       this._bridges.splice(idx, 1);
   },
 
+  learnAboutAccount: function(details) {
+    var configurator = new $acctcommon.Autoconfigurator(this._LOG);
+    return configurator.learnAboutAccount(details);
+  },
+
   tryToCreateAccount: function mu_tryToCreateAccount(userDetails, domainInfo,
                                                      callback) {
     if (!this.online) {
@@ -908,9 +913,9 @@ MailUniverse.prototype = {
 
     switch (problem) {
       case 'bad-user-or-pass':
+      case 'needs-oauth-reauth':
       case 'bad-address':
       case 'imap-disabled':
-      case 'needs-app-pass':
         this.__notifyBadLogin(account, problem, whichSide);
         break;
     }

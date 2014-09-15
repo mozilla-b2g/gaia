@@ -239,6 +239,7 @@ var CostControlApp = (function() {
     isApplicationLocalized = true;
     if (initialized) {
       updateUI();
+      loadSettings();
     }
   });
 

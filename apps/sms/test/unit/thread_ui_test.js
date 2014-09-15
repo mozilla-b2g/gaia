@@ -4005,16 +4005,13 @@ suite('thread_ui.js >', function() {
             // no section is passed for contact
             assert.isUndefined(call.section);
 
-            assert.equal(items.length, 3);
+            assert.equal(items.length, 2);
 
-            // The first item is a "call" option
-            assert.equal(items[0].l10nId, 'call');
+            // The first item is a "viewContact" option
+            assert.equal(items[0].l10nId, 'viewContact');
 
-            // The second item is a "viewContact" option
-            assert.equal(items[1].l10nId, 'viewContact');
-
-            // The fourth and last item is a "cancel" option
-            assert.equal(items[2].l10nId, 'cancel');
+            // The last item is a "cancel" option
+            assert.equal(items[1].l10nId, 'cancel');
           });
 
           test('Unknown recipient (phone)', function() {
@@ -4035,19 +4032,16 @@ suite('thread_ui.js >', function() {
             // Only known Contact details should appear in the "section"
             assert.isUndefined(call.section);
 
-            assert.equal(items.length, 4);
+            assert.equal(items.length, 3);
 
-            // The first item is a "call" option
-            assert.equal(items[0].l10nId, 'call');
+            // The first item is a "createNewContact" option
+            assert.equal(items[0].l10nId, 'createNewContact');
 
-            // The second item is a "createNewContact" option
-            assert.equal(items[1].l10nId, 'createNewContact');
+            // The second item is a "addToExistingContact" option
+            assert.equal(items[1].l10nId, 'addToExistingContact');
 
-            // The third item is a "addToExistingContact" option
-            assert.equal(items[2].l10nId, 'addToExistingContact');
-
-            // The fourth and last item is a "cancel" option
-            assert.equal(items[3].l10nId, 'cancel');
+            // The last item is a "cancel" option
+            assert.equal(items[2].l10nId, 'cancel');
           });
 
           test('Unknown recipient (email)', function() {
@@ -4117,7 +4111,7 @@ suite('thread_ui.js >', function() {
               target: calls[0].header
             });
 
-            assert.equal(calls[0].items.length, 3);
+            assert.equal(calls[0].items.length, 2);
             assert.equal(typeof calls[0].complete, 'function');
           });
 
@@ -4136,7 +4130,7 @@ suite('thread_ui.js >', function() {
 
             assert.equal(calls.length, 1);
             assert.equal(calls[0].header, '777');
-            assert.equal(calls[0].items.length, 4);
+            assert.equal(calls[0].items.length, 3);
             assert.equal(typeof calls[0].complete, 'function');
           });
 
@@ -5978,9 +5972,13 @@ suite('thread_ui.js >', function() {
       ThreadUI.updateCarrier(thread, [contact]);
       assert.isTrue(threadMessages.classList.contains('has-carrier'));
 
+      // Show call button
+      ThreadUI.callNumberButton.classList.remove('hide');
+
       ThreadUI.afterLeave();
 
       assert.isFalse(threadMessages.classList.contains('has-carrier'));
+      assert.isTrue(ThreadUI.callNumberButton.classList.contains('hide'));
     });
   });
 
@@ -6152,8 +6150,10 @@ suite('thread_ui.js >', function() {
   });
 
   suite('switch to thread panel >', function() {
-    var threadId = 100;
-    var transitionArgs;
+    var threadId = 100,
+        multiParticipantThreadId = 200;
+    var transitionArgs,
+        multiParticipantTransitionArgs;
 
     setup(function() {
       transitionArgs = {
@@ -6163,6 +6163,22 @@ suite('thread_ui.js >', function() {
           prev: { panel: 'thread-list', args: {} }
         }
       };
+
+      Threads.set(threadId, {
+        participants: ['999']
+      });
+
+      multiParticipantTransitionArgs = {
+        id: multiParticipantThreadId,
+        meta: {
+          next: { panel: 'thread', args: { id: multiParticipantThreadId } },
+          prev: { panel: 'thread-list', args: {} }
+        }
+      };
+
+      Threads.set(multiParticipantThreadId, {
+        participants: ['999', '888']
+      });
 
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       this.sinon.stub(ThreadListUI, 'mark');
@@ -6194,6 +6210,28 @@ suite('thread_ui.js >', function() {
 
         test('updates Threads.currentId', function() {
           assert.equal(Threads.currentId, threadId);
+        });
+
+        test('correctly shows "Call" header button', function() {
+          // It's shown for single participant non-email thread
+          assert.isFalse(ThreadUI.callNumberButton.classList.contains('hide'));
+
+          ThreadUI.callNumberButton.classList.add('hide');
+          ThreadUI.beforeEnter(multiParticipantTransitionArgs);
+
+          // Hidden for multi participant thread
+          assert.isTrue(ThreadUI.callNumberButton.classList.contains('hide'));
+
+          ThreadUI.callNumberButton.classList.add('hide');
+          Settings.supportEmailRecipient = true;
+          Threads.set(threadId, {
+            participants: ['nobody@mozilla.com']
+          });
+
+          ThreadUI.beforeEnter(transitionArgs);
+
+          // Hidden for email participant thread
+          assert.isTrue(ThreadUI.callNumberButton.classList.contains('hide'));
         });
       });
     });

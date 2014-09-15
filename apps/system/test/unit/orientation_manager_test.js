@@ -70,17 +70,13 @@ suite('system/OrientationManager >', function() {
       window.System.locked = false;
     });
 
-    test('shrinking-stop and shrinking-rejected', function() {
+    test('shrinking-stop', function() {
       var stubPublish = this.sinon.stub(OrientationManager, 'publish');
       OrientationManager.handleEvent({
         type: 'shrinking-stop'
       });
 
-      OrientationManager.handleEvent({
-        type: 'shrinking-rejected'
-      });
-
-      assert.isTrue(stubPublish.alwaysCalledWith('reset-orientation'));
+      assert.isTrue(stubPublish.withArgs('reset-orientation').calledOnce);
     });
   });
 });

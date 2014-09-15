@@ -289,7 +289,7 @@ suite('Contacts settings >', function() {
 
     var noCardErrorImport = 'noMemoryCardMsg',
         noCardErrorExport = 'noMemoryCardMsgExport',
-        umsEnabledError = 'sdUMSEnabled';
+        umsEnabledError = 'memoryCardUMSEnabled';
 
     function shareSDCard() {
       utils.sdcard.status = MockSdCard.SHARED;

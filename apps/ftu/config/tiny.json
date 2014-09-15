@@ -23,7 +23,7 @@
     "steps": [
       {
         "video": "/style/images/tutorial/VerticalScroll.mp4",
-        "l10nKey": "tutorial-bookmark-migration-tiny"
+        "l10nKey": "tutorial-bookmarks-migration-tiny"
       },
       {
         "video": "/style/images/tutorial/Rocketbar.mp4",

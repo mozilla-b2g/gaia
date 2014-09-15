@@ -11,20 +11,45 @@ var Utils = {
     return dtf.localeFormat(new Date(time), timeFormat);
   },
 
-  prettyDuration: function(duration) {
-    function padNumber(n) {
-      return n > 9 ? n : '0' + n;
+  /**
+   * Renders localized time duration to a given dom node
+   * @param {HTMLElement} node that will hold the time duration content
+   * @param {Number} time duration in ms
+   * @param {String} l10nPrefix prefix used to select the right l10n id.
+   *        Default value 'callDuration'.
+   */
+  prettyDuration: function(node, duration, l10nPrefix) {
+    var elapsed = new Date(duration);
+    var h = elapsed.getUTCHours();
+    var m = elapsed.getUTCMinutes();
+    var s = elapsed.getUTCSeconds();
+
+    var l10nId = l10nPrefix || 'callDuration';
+    var durationL10n = {
+      h: h + '',
+      m: m + '',
+      s: s + ''
+    };
+
+    if (l10nId === 'callDuration') {
+      // Pad the args with a leading 0 if we're displaying them in purely
+      // digital format.
+      durationL10n = {
+        h: (h > 9 ? '' : '0') + h,
+        m: (m > 9 ? '' : '0') + m,
+        s: (s > 9 ? '' : '0') + s
+      };
     }
 
-    var elapsed = new Date(duration);
-    var durationL10n = {
-      h: padNumber(elapsed.getUTCHours()),
-      m: padNumber(elapsed.getUTCMinutes()),
-      s: padNumber(elapsed.getUTCSeconds())
-    };
-    var durationFormat = elapsed.getUTCHours() > 0 ?
-      'callDurationHours' : 'callDurationMinutes';
-    return navigator.mozL10n.get(durationFormat, durationL10n);
+    if (l10nPrefix === 'callDurationTextFormat' && h === 0 && m === 0) {
+      // Special case: only display in seconds format (i.e. "5 s") with text
+      // formatting, as digital formatting doesn't support this.
+      l10nId += 'Seconds';
+    } else {
+      l10nId += h > 0 ? 'Hours' : 'Minutes';
+    }
+ 
+    navigator.mozL10n.setAttributes(node, l10nId, durationL10n);
   },
 
   headerDate: function ut_headerDate(time) {

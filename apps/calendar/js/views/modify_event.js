@@ -1,3 +1,4 @@
+/* global InputParser */
 Calendar.ns('Views').ModifyEvent = (function() {
   'use strict';
 
@@ -665,8 +666,8 @@ Calendar.ns('Views').ModifyEvent = (function() {
             this._setEndDateTimeWithCurrentDuration();
             this.showErrors({
               name: type === 'date' ?
-                'start-after-end' :
-                'start-after-end-on-same-date'
+                'start-date-after-end-date' :
+                'start-time-after-end-time'
             });
           }
 

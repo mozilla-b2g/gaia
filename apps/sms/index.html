@@ -71,6 +71,7 @@
     <script defer src="shared/js/sim_picker.js"></script>
     <script defer src="shared/js/multi_sim_action_button.js"></script>
     <script defer src="shared/js/option_menu.js"></script>
+    <script defer src="shared/js/image_utils.js"></script>
     <script defer src="js/errors.js"></script>
     <script defer src="js/shared_components.js"></script>
     <script defer src="js/dialog.js"></script>
@@ -135,10 +136,11 @@
         <div id="sticky"></div>
       </section>
 
-      <section id="thread-messages" class="panel" role="region">
+      <section id="thread-messages" class="panel" role="region" aria-hidden="true">
         <gaia-header id="messages-header" class="view-header regular-header" action="back">
           <h1 id="messages-header-text" aria-hidden="true"></h1>
-          <a id="messages-options-icon" data-icon="more"></a>
+          <button id="messages-call-number-button" data-icon="call" class="hide"></button>
+          <button id="messages-options-button" data-icon="more"></button>
         </gaia-header>
         <div id="messages-subheader" class="subheader">
           <section id="messages-to-field">
@@ -152,7 +154,8 @@
             only scroll far enough to bring the cursor into view). A container
             element is necessary to consistently render this vertical space
             (instead realized with CSS `margin-bottom`). -->
-            <div id="messages-recipients-list-container" class="bb-editable">
+            <div id="messages-recipients-list-container" class="bb-editable"
+                 role="group" aria-labelledby="to-label">
               <section id="messages-recipients-list" class="singleline">
               </section>
             </div>
@@ -277,7 +280,7 @@
           </menu>
         </form>
         <section id="messages-recipient-suggestions" class="article-list hide" data-type="list">
-          <ul class="contact-list"></ul>
+          <ul class="contact-list" role="listbox"></ul>
         </section>
       </section>
     </article>
@@ -313,8 +316,8 @@
 
     <div id="contact-suggestion-tmpl" class="hide">
       <!--
-      <li>
-        <a class="suggestion"
+      <li role="presentation">
+        <a class="suggestion" role="option"
           data-number="${number}" data-source="contacts" data-name="${name}"
           data-type="${type}" data-carrier="${carrier}">
           ${photoHTML}
@@ -327,8 +330,8 @@
 
     <div id="contact-suggestion-unknown-tmpl" class="hide">
     <!--
-    <li>
-      <a class="suggestion"
+    <li role="presentation">
+      <a class="suggestion" role="option"
         data-number="${number}" data-source="contacts" data-name="${name}"
         data-type="${type}" data-carrier="${carrier}">
         ${photoHTML}
@@ -483,7 +486,7 @@
     <div id="messages-recipient-tmpl" class="hide">
       <!--
       <span class="${className}" x-inputmode="verbatim"
-        contenteditable="${editable}"
+        contenteditable="${editable}" role="${role}"
         data-number="${number}" data-source="${source}" data-name="${name}"
         data-carrier="${carrier}" data-type="${type}">
         ${name}

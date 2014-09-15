@@ -1,4 +1,11 @@
-/* global SettingsListener, OrientationManager */
+/* global AppChrome */
+/* global BrowserFrame */
+/* global layoutManager */
+/* global ManifestHelper */
+/* global OrientationManager */
+/* global ScreenLayout */
+/* global SettingsListener */
+/* global System */
 'use strict';
 
 (function(exports) {
@@ -124,7 +131,7 @@
     if (!this.manifest && this.config && this.config.title) {
       this.updateName(this.config.title);
     } else {
-      this.name = new self.ManifestHelper(this.manifest).name;
+      this.name = new ManifestHelper(this.manifest).name;
     }
 
     // Get icon splash
@@ -180,13 +187,13 @@
   AppWindow.prototype.rotatingDegree = 0;
 
   AppWindow.prototype._dump = function aw__dump() {
-    self.dump('======================');
+    console.log('======================');
     try {
       throw new Error('e');
     } catch (e) {
       this.debug(e.stack);
     }
-    self.dump('======================');
+    console.log('======================');
   };
 
   /**
@@ -359,7 +366,7 @@
       return;
     }
     this.debug(' ...revived!');
-    this.browser = new self.BrowserFrame(this.browser_config);
+    this.browser = new BrowserFrame(this.browser_config);
     this.browserContainer.appendChild(this.browser.element);
     this.iframe = this.browser.element;
     this.launchTime = Date.now();
@@ -565,7 +572,7 @@
         element: this.iframe
       };
     } else {
-      this.browser = new self.BrowserFrame(this.browser_config);
+      this.browser = new BrowserFrame(this.browser_config);
     }
     this.element = document.getElementById(this.instanceID);
 
@@ -735,10 +742,10 @@
         var that = this;
         that.element.addEventListener('_opened', function onOpened() {
           that.element.removeEventListener('_opened', onOpened);
-          that.appChrome = new self.AppChrome(that);
+          that.appChrome = new AppChrome(that);
         });
       } else {
-        this.appChrome = new self.AppChrome(this);
+        this.appChrome = new AppChrome(this);
       }
     };
 
@@ -761,7 +768,7 @@
     if (!this.manifest) {
       return;
     }
-    this.name = new self.ManifestHelper(this.manifest).name;
+    this.name = new ManifestHelper(this.manifest).name;
 
     if (this.identificationTitle) {
       this.identificationTitle.textContent = this.name;
@@ -779,8 +786,8 @@
     }
 
     // Resize only the overlays not the app
-    var width = self.layoutManager.width;
-    var height = self.layoutManager.height;
+    var width = layoutManager.width;
+    var height = layoutManager.height;
 
     this.iframe.style.width = this.width + 'px';
     this.iframe.style.height = this.height + 'px';
@@ -1034,7 +1041,7 @@
       console.log('[' + this.CLASS_NAME + ']' +
         '[' + (this.name || this.origin) + ']' +
         '[' + this.instanceID + ']' +
-        '[' + self.System.currentTime() + '] ' +
+        '[' + System.currentTime() + '] ' +
         Array.slice(arguments).concat());
 
       if (TRACE) {
@@ -1047,7 +1054,7 @@
   AppWindow.prototype.forceDebug = function aw_debug(msg) {
     console.log('[Dump:' + this.CLASS_NAME + ']' +
       '[' + (this.name || this.origin) + ']' +
-      '[' + self.System.currentTime() + ']' +
+      '[' + System.currentTime() + ']' +
       Array.slice(arguments).concat());
   };
 
@@ -1354,7 +1361,7 @@
   AppWindow.prototype._resize = function aw__resize() {
     var height, width;
     this.debug('force RESIZE...');
-    if (self.layoutManager.keyboardEnabled) {
+    if (layoutManager.keyboardEnabled) {
       /**
        * The event is dispatched on the app window only when keyboard is up.
        *
@@ -1371,10 +1378,10 @@
        */
       this.broadcast('withoutkeyboard');
     }
-    height = self.layoutManager.height;
+    height = layoutManager.height;
 
     // If we have sidebar in the future, change layoutManager then.
-    width = self.layoutManager.width;
+    width = layoutManager.width;
 
     this.width = width;
     this.height = height;
@@ -1592,7 +1599,7 @@
         return null;
       }
 
-      var targetedPixelSize = 2 * (self.ScreenLayout.getCurrentLayout('tiny') ?
+      var targetedPixelSize = 2 * (ScreenLayout.getCurrentLayout('tiny') ?
         this.SPLASH_ICON_SIZE_TINY : this.SPLASH_ICON_SIZE_NOT_TINY) *
         Math.ceil(window.devicePixelRatio || 1);
 
@@ -1633,7 +1640,7 @@
           this.splashed = true;
           this.element.style.backgroundImage = 'url("' + this._splash + '")';
 
-          var iconCSSSize = 2 * (self.ScreenLayout.getCurrentLayout('tiny') ?
+          var iconCSSSize = 2 * (ScreenLayout.getCurrentLayout('tiny') ?
           this.SPLASH_ICON_SIZE_TINY : this.SPLASH_ICON_SIZE_NOT_TINY);
           this.element.style.backgroundSize =
             iconCSSSize + 'px ' + iconCSSSize + 'px';

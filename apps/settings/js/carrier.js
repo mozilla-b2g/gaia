@@ -7,6 +7,8 @@
  * Singleton object that handles some cell and data settings.
  */
 var CarrierSettings = (function(window, document, undefined) {
+  var DATA_KEY = 'ril.data.enabled';
+  var DATA_ROAMING_KEY = 'ril.data.roaming_enabled';
   var NETWORK_TYPE_SETTING = 'operatorResources.data.icon';
   var networkTypeMapping = {};
 
@@ -42,6 +44,9 @@ var CarrierSettings = (function(window, document, undefined) {
 
   /* Store the states of automatic operator selection */
   var _opAutoSelectStates = null;
+
+  var dataInput = null;
+  var dataRoamingInput = null;
 
   /**
    * Init function.
@@ -94,6 +99,7 @@ var CarrierSettings = (function(window, document, undefined) {
 
       cs_initOperatorSelector();
       cs_initRoamingPreferenceSelector();
+      cs_refreshDataUI();
 
       // Init warnings the user sees before enabling data calls and roaming.
       cs_initWarnings();
@@ -131,6 +137,109 @@ var CarrierSettings = (function(window, document, undefined) {
         }
       });
     });
+  }
+
+  function cs_refreshDataUI() {
+    var data = document.getElementById('menuItem-enableDataCall');
+    dataInput = data.querySelector('input');
+    var roaming = document.getElementById('menuItem-enableDataRoaming');
+    dataRoamingInput = roaming.querySelector('input');
+
+    dataRoamingInput.addEventListener('change', function() {
+      var state = dataRoamingInput.checked;
+      cs_saveRoamingState(state);
+    }.bind(this));
+
+    var dataPromise = cs_getDataCellState();
+    var roamingStatePromise = cs_getDataRoamingState();
+
+    Promise.all([dataPromise, roamingStatePromise]).then(function(values) {
+      var dataCell = values[0];
+      var savedState = values[1];
+
+      cs_updateRoamingToggle(dataCell, savedState);
+    });
+
+    _settings.addObserver(DATA_KEY, function observerCb(event) {
+      if (_restartingDataConnection) {
+        return;
+      }
+
+      if (!event.settingValue) {
+        cs_updateRoamingToggle(event.settingValue, dataRoamingInput.checked);
+        return;
+      }
+
+      cs_getDataRoamingState().then(function(roamingState) {
+        cs_updateRoamingToggle(event.settingValue, roamingState);
+      });
+    });
+  }
+
+  function cs_updateRoamingToggle(dataCell, roamingState) {
+    if (dataCell) {
+      dataRoamingInput.disabled = false;
+      dataRoamingInput.checked = roamingState;
+    } else {
+      dataRoamingInput.disabled = true;
+      dataRoamingInput.checked = false;
+      cs_saveRoamingState(roamingState);
+    }
+  }
+
+  function cs_getDataRoamingState() {
+    return new Promise(function(resolve, reject) {
+      var transaction = _settings.createLock();
+      var req = transaction.get(DATA_ROAMING_KEY);
+      req.onsuccess = function() {
+        var roamingState = req.result[DATA_ROAMING_KEY];
+        if (roamingState === null) {
+          roamingState = dataRoamingInput.checked;
+          cs_saveRoamingState(roamingState);
+        }
+        resolve(roamingState);
+      };
+
+      req.onerror = function() {
+        resolve(false);
+      };
+    }.bind(this));
+  }
+
+  function cs_getDataCellState() {
+    return new Promise(function(resolve, reject) {
+      var transaction = _settings.createLock();
+      var req = transaction.get(DATA_KEY);
+      req.onsuccess = function() {
+        var dataCell = req.result[DATA_KEY];
+        if (dataCell === null) {
+          dataCell = dataInput.checked;
+        }
+        resolve(dataCell);
+      };
+
+      req.onerror = function() {
+        resolve(false);
+      };
+    }.bind(this));
+  }
+
+  function cs_saveRoamingState(state) {
+    var transaction = _settings.createLock();
+    var req = transaction.get(DATA_ROAMING_KEY);
+    var cset = {};
+    cset[DATA_ROAMING_KEY] = state;
+
+    req.onsuccess = function() {
+      var roamingState = req.result[DATA_ROAMING_KEY];
+      if (roamingState === null || roamingState != state) {
+        _settings.createLock().set(cset);
+      }
+    };
+
+    req.onerror = function() {
+      _settings.createLock().set(cset);
+    };
   }
 
   /**
@@ -683,15 +792,17 @@ var CarrierSettings = (function(window, document, undefined) {
        *                            work is done.
        */
       function getWarningEnabled(callback) {
-        window.asyncStorage.getItem(warningDialogEnabledKey,
-                                    function getItemCb(warningEnabled) {
+        var request = _settings.createLock().get(warningDialogEnabledKey);
+
+        request.onsuccess = function onSuccessHandler() {
+          var warningEnabled = request.result[warningDialogEnabledKey];
           if (warningEnabled === null) {
             warningEnabled = true;
           }
           if (callback) {
             callback(warningEnabled);
           }
-        });
+        };
       }
 
       /**
@@ -705,12 +816,18 @@ var CarrierSettings = (function(window, document, undefined) {
         _settings.createLock().set(cset);
       }
 
+      function setWarningDialogState(state) {
+        var cset = {};
+        cset[warningDialogEnabledKey] = !!state;
+        _settings.createLock().set(cset);
+      }
+
       /**
        * Helper function. Handler to be called once the user click on the
        * accept button form the warning dialog.
        */
       function onSubmit() {
-        window.asyncStorage.setItem(warningDialogEnabledKey, false);
+        setWarningDialogState(false);
         explanationItem.hidden = false;
         setState(true);
         if (warningDisabledCallback) {
@@ -723,7 +840,7 @@ var CarrierSettings = (function(window, document, undefined) {
        * cancel button form the warning dialog.
        */
       function onReset() {
-        window.asyncStorage.setItem(warningDialogEnabledKey, true);
+        setWarningDialogState(true);
       }
 
       // Register an observer to monitor setting changes.
@@ -751,7 +868,7 @@ var CarrierSettings = (function(window, document, undefined) {
               enabled = request.result[settingKey];
             }
             if (enabled) {
-              window.asyncStorage.setItem(warningDialogEnabledKey, false);
+              setWarningDialogState(false);
               explanationItem.hidden = false;
             }
           };
@@ -764,23 +881,9 @@ var CarrierSettings = (function(window, document, undefined) {
       });
     }
 
-    /**
-     * Turn off data roaming automatically when users turn off data calls.
-     */
-    function warningDataEnabledCb() {
-       _settings.addObserver('ril.data.enabled', function observerCb(event) {
-         if (!event.settingValue && _restartingDataConnection) {
-           var cset = {};
-           cset['ril.data.roaming_enabled'] = false;
-           _settings.createLock().set(cset);
-         }
-      });
-    }
-
     initWarning('ril.data.enabled',
                 'carrier-dc-warning',
-                'dataConnection-expl',
-                warningDataEnabledCb);
+                'dataConnection-expl');
     initWarning('ril.data.roaming_enabled',
                 'carrier-dr-warning',
                 'dataRoaming-expl');

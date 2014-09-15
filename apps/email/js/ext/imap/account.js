@@ -321,8 +321,21 @@ var properties = {
     require(['./client'], function ($imapclient) {
       this._LOG.createConnection(whyFolderId, whyLabel);
 
-      $imapclient.createImapConnection(this._credentials, this._connInfo)
-        .then(function(conn) {
+      $imapclient.createImapConnection(
+        this._credentials,
+        this._connInfo,
+        function onCredentialsUpdated() {
+          return new Promise(function(resolve) {
+            // Note: Since we update the credentials object in-place,
+            // there's no need to explicitly assign the changes here;
+            // just save the account information.
+            this.universe.saveAccountDef(
+              this.compositeAccount.accountDef,
+              /* folderInfo: */ null,
+              /* callback: */ resolve);
+          }.bind(this));
+        }.bind(this)
+      ).then(function(conn) {
           DisasterRecovery.associateSocketWithAccount(conn.client.socket, this);
 
           this._pendingConn = null;

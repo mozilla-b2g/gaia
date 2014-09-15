@@ -10,9 +10,8 @@
 /* global navigationStack */
 /* global SmsIntegration */
 /* global utils */
+/* global DeferredActions */
 /* global TAG_OPTIONS */
-/* global ImportStatusData */
-/* global Migrator */
 
 /* exported COMMS_APP_ORIGIN */
 /* exported SCALE_RATIO */
@@ -230,43 +229,10 @@ var Contacts = (function() {
     });
   };
 
-  var checkFacebookSynchronization = function(config) {
-    if (config && config.fbScheduleDone) {
-      return;
-    }
-
-    LazyLoader.load([
-      '/facebook/js/fb_sync.js',
-      '/shared/js/contacts/import/import_status_data.js',
-      '/shared/js/contacts/import/facebook/fb_utils.js'
-    ], function() {
-      var fbutils = fb.utils;
-
-      var neverExecuteAgain = function() {
-        ImportStatusData.remove(fbutils.SCHEDULE_SYNC_KEY);
-        utils.cookie.update({fbScheduleDone: true});
-        navigator.removeIdleObserver(idleObserver);
-        idleObserver = null;
-      };
-
-      var idleObserver = {
-        time: 3,
-        onidle: function onidle() {
-          ImportStatusData.get(fbutils.SCHEDULE_SYNC_KEY).then(function(date) {
-            if (date) {
-              fbutils.setLastUpdate(date, function() {
-                var req = fb.sync.scheduleNextSync();
-                req.onsuccess = neverExecuteAgain;
-                req.onerror = neverExecuteAgain;
-              });
-            } else {
-              neverExecuteAgain();
-            }
-          });
-        }
-      };
-
-      navigator.addIdleObserver(idleObserver);
+  var loadDeferredActions = function loadDeferredActions() {
+    window.removeEventListener('listRendered', loadDeferredActions);
+    LazyLoader.load('js/deferred_actions.js', function() {
+      DeferredActions.execute();
     });
   };
 
@@ -277,16 +243,7 @@ var Contacts = (function() {
     utils.PerformanceHelper.chromeInteractive();
     window.addEventListener('hashchange', checkUrl);
 
-    var config = utils.cookie.load();
-
-    checkFacebookSynchronization(config);
-
-    // If the migration is not complete
-    if (!config || !config.fbMigrated || !config.accessTokenMigrated) {
-      LazyLoader.load('js/migrator.js', function() {
-        Migrator.start(config);
-      });
-    }
+    window.addEventListener('listRendered', loadDeferredActions);
 
     // Tell audio channel manager that we want to adjust the notification
     // channel if the user press the volumeup/volumedown buttons in Contacts.
@@ -852,7 +809,7 @@ var Contacts = (function() {
                 contactsList.refresh(enrichedContact || currentContact,
                                      checkPendingChanges, event.reason);
               }
-              notifyContactChanged(event.contactID);
+              notifyContactChanged(event.contactID, event.reason);
           });
         } else {
           refreshContactInList(event.contactID);
@@ -870,7 +827,7 @@ var Contacts = (function() {
         contactsList.remove(event.contactID, event.reason);
         currentContact = {};
         checkPendingChanges(event.contactID);
-        notifyContactChanged(event.contactID);
+        notifyContactChanged(event.contactID, event.reason);
         break;
     }
   };
@@ -880,17 +837,18 @@ var Contacts = (function() {
   function refreshContactInList(id) {
     contactsList.refresh(id, function() {
       notifyContactChanged(id);
-      checkPendingChanges();
+      checkPendingChanges(id);
     });
   }
 
   // Send a custom event when we know that a contact changed and
   // the contact list was updated.
   // Used internally in places where the contact list is a reference
-  function notifyContactChanged(id) {
+  function notifyContactChanged(id, reason) {
     document.dispatchEvent(new CustomEvent('contactChanged', {
       detail: {
-        contactID: id
+        contactID: id,
+        reason: reason
       }
     }));
   }

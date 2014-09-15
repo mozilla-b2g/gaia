@@ -6,7 +6,7 @@ from marionette import By
 from marionette import Wait
 
 from gaiatest import GaiaTestCase
-from gaiatest.apps.browser.app import Browser
+from gaiatest.apps.search.app import Search
 
 
 class TestBrowserNavigation(GaiaTestCase):
@@ -14,6 +14,7 @@ class TestBrowserNavigation(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.connect_to_network()
+        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
         if self.device.is_desktop_b2g or self.data_layer.is_wifi_connected():
             self.test_url = self.marionette.absolute_url('mozilla.html')
@@ -21,9 +22,9 @@ class TestBrowserNavigation(GaiaTestCase):
             self.test_url = 'http://mozqa.com/data/firefox/layout/mozilla.html'
 
     def test_browser_back_button(self):
-        browser = Browser(self.marionette)
-        browser.launch()
-        browser.go_to_url(self.test_url)
+        search = Search(self.marionette)
+        search.launch()
+        browser = search.go_to_url(self.test_url)
 
         browser.switch_to_content()
         Wait(self.marionette).until(lambda m: m.title == 'Mozilla')

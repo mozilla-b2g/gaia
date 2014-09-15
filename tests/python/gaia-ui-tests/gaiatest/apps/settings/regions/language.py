@@ -18,9 +18,14 @@ class Language(Base):
     def wait_for_languages_to_load(self):
         self.wait_for_condition(lambda m: len(m.find_elements(*self._language_options_locator)) > 0)
 
-    def go_back(self):
+    def go_back(self, direction='ltr'):
         self.wait_for_element_displayed(*self._header_locator)
-        self.marionette.find_element(*self._header_locator).tap(25, 25)
+        header = self.marionette.find_element(*self._header_locator)
+        # TODO: replace this condition with tap on the back button, after Bug 1061698 is fixed
+        if direction == 'rtl':
+            header.tap(x=header.size['width']-10)
+        else:
+            header.tap(x=header.size['width']-300)
         self.wait_for_condition(lambda m:
                                 m.execute_script(
                                     "return window.wrappedJSObject.Settings && window.wrappedJSObject.Settings._currentPanel === '#root'"))

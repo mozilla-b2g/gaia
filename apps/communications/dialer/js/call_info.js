@@ -13,12 +13,24 @@
   var emailDetailsElt;
   var listDetailsElt;
 
+  function updateViewIfNeeded(evt) {
+    if (evt.detail.group.id !== currentGroup.id) {
+      return;
+    }
+
+    updateView(evt.detail.group);
+  }
+
   function updateView(group) {
     currentGroup = group;
     updateGroupInformation(group);
     updateCallDurations(group);
     updateActionButtons(group);
     callInfoView.hidden = false;
+  }
+
+  function isMissedCall(group) {
+    return group.type === 'incoming' && group.status !== 'connected';
   }
 
   function updateGroupInformation(group) {
@@ -38,18 +50,12 @@
 
     var classList = document.getElementById('call-info-direction').classList;
     classList.remove('icon-outgoing', 'icon-incoming', 'icon-missed');
-    switch (group.type) {
-      case 'dialing':
-      case 'alerting':
-        classList.add('icon-outgoing');
-        break;
-      case 'incoming':
-        if (group.status === 'connected') {
-          classList.add('icon-incoming');
-        } else {
-          classList.add('icon-missed');
-        }
-        break;
+    if (isMissedCall(group)) {
+      classList.add('icon-missed');
+    } else if (group.type === 'dialing' || group.type === 'alerting') {
+      classList.add('icon-outgoing');
+    } else if (group.type === 'incoming'){
+      classList.add('icon-incoming');
     }
   }
 
@@ -69,24 +75,25 @@
       startTime.dataset.date = call.date;
       startTime.textContent = Utils.prettyDate(call.date);
 
-      var duration = document.createElement('p');
-      duration.classList.add('cd__duration');
+      var durationElt = document.createElement('p');
+      durationElt.classList.add('cd__duration');
       navigator.mozL10n.once(function() {
         if (call.duration === 0) {
           if (group.type === 'incoming') {
-            duration.setAttribute('data-l10n-id', 'missed');
+            durationElt.setAttribute('data-l10n-id', 'info-missed');
           } else {
-            duration.setAttribute('data-l10n-id', 'canceled');
+            durationElt.setAttribute('data-l10n-id', 'canceled');
           }
         } else {
-          duration.textContent = Utils.prettyDuration(call.duration);
+          Utils.prettyDuration(durationElt, call.duration,
+                               'callDurationTextFormat');
         }
       });
 
       var row = document.createElement('div');
       row.classList.add('call-duration');
       row.appendChild(startTime);
-      row.appendChild(duration);
+      row.appendChild(durationElt);
 
       callDurationsElt.appendChild(row);
     });
@@ -103,7 +110,7 @@
 
   function renderPhones(group, contact) {
     ContactsButtons.renderPhones(contact);
-    var remark = group.type === 'incoming' ? 'remark-missed' : 'remark';
+    var remark = isMissedCall(group) ? 'remark-missed' : 'remark';
     ContactsButtons.reMark(
       'tel', group.number || group.contact.matchingTel.number, remark);
   }
@@ -140,9 +147,12 @@
   }
 
   function close(evt) {
-    if (evt.detail.type === 'back') {
-      callInfoView.hidden = true;
+    if (evt.detail.type !== 'back') {
+      return;
     }
+
+    window.removeEventListener('CallLogDbNewCall', updateViewIfNeeded);
+    callInfoView.hidden = true;
   }
 
   function viewContact() {
@@ -156,9 +166,7 @@
       src += '&back_to_previous_tab=1';
       // Contacts app needs to know if it's a missed call for different
       // highlight color of the phone number in contacts details
-      var isMissedCall = currentGroup.type == 'incoming' &&
-                         currentGroup.status !== 'connected';
-      src += '&isMissedCall=' + isMissedCall;
+      src += '&isMissedCall=' + isMissedCall(currentGroup);
       var timestamp = new Date().getTime();
       contactsIframe.src = src + '&timestamp=' + timestamp;
     });
@@ -173,18 +181,17 @@
   }
 
   function launchActivity(name, phoneNumber) {
-    var options = {
-      name: name,
-      data: {
-        type: 'webcontacts/contact',
-        params: {
-          'tel': phoneNumber
-        }
-      }
-    };
     try {
       /* jshint nonew: false */
-      new MozActivity(options);
+      new MozActivity({
+        name: name,
+        data: {
+          type: 'webcontacts/contact',
+          params: {
+            'tel': phoneNumber
+          }
+        }
+      });
     } catch (e) {
       console.error('Error while creating activity');
     }
@@ -256,6 +263,8 @@
         date = parseInt(date, 10);
         CallLogDBManager.getGroup(number, date, type, status)
           .then(updateView);
+
+        window.addEventListener('CallLogDbNewCall', updateViewIfNeeded);
       });
     }
   };

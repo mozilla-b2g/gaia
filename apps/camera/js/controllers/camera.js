@@ -218,7 +218,10 @@ CameraController.prototype.setMode = function(mode) {
   // if the value is an object. Quite a risky change
   // to make, but would remove the need for us to check
   // here and in other change callbacks. Food 4 thought :)
-  if (this.camera.isMode(mode)) { return; }
+  if (this.camera.isMode(mode)) {
+    debug('mode didn\'t change');
+    return;
+  }
 
   this.setFlashMode();
   this.app.emit('camera:willchange');

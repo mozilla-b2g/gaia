@@ -254,19 +254,22 @@ SystemUpdatable.prototype.getBatteryPercentageThreshold = function() {
 };
 
 SystemUpdatable.prototype.showApplyPromptBatteryNok = function(minBattery) {
-  var _ = navigator.mozL10n.get;
-
   var ok = {
-    title: _('ok'),
+    title: 'ok',
     callback: this.declineInstallBattery.bind(this)
   };
 
+  var screen = document.getElementById('screen');
+
   UtilityTray.hide();
   CustomDialog.show(
-    _('systemUpdateReady'),
-    _('systemUpdateLowBatteryThreshold', { threshold: minBattery }),
-    ok
-  );
+    'systemUpdateReady',
+    { id: 'systemUpdateLowBatteryThreshold', args: { threshold: minBattery } },
+    ok,
+    null,
+    screen
+  )
+  .setAttribute('data-z-index-level', 'system-dialog');
 };
 
 SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
@@ -276,19 +279,27 @@ SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
   this.forgetKnownUpdate();
 
   var cancel = {
-    title: _('later'),
+    title: 'later',
     callback: this.declineInstallWait.bind(this)
   };
 
   var confirm = {
-    title: _('installNow'),
+    title: 'installNow',
     callback: this.acceptInstall.bind(this),
     recommend: true
   };
 
+  var screen = document.getElementById('screen');
+
   UtilityTray.hide();
-  CustomDialog.show(_('systemUpdateReady'), _('wantToInstallNow'),
-                    cancel, confirm);
+  CustomDialog.show(
+    'systemUpdateReady',
+    'wantToInstallNow',
+    cancel,
+    confirm,
+    screen
+  )
+  .setAttribute('data-z-index-level', 'system-dialog');
 };
 
 /**

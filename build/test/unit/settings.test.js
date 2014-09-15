@@ -379,7 +379,6 @@ suite('settings.js', function() {
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'debugger.remote-mode': 'adb-devtools',
-          'screen.timeout': 0,
           'lockscreen.enabled': false,
           'lockscreen.locked': false,
           'wallpaper.image': undefined,
@@ -395,6 +394,41 @@ suite('settings.js', function() {
             'builtin:alerttone/notifier_firefox',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
+          result);
+        done();
+      });
+    });
+
+    test('SCREEN_TIMEOUT === 600', function(done) {
+      config.DEVICE_DEBUG = true;
+      config.SCREEN_TIMEOUT = 600;
+      config.TARGET_BUILD_VARIANT = 'user';
+      var queue = app.execute(config);
+      queue.done(function(result) {
+        assert.deepEqual({
+          'homescreen.manifestURL': config.GAIA_SCHEME +
+            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            '/manifest.webapp',
+          'rocketbar.newTabAppURL': config.GAIA_SCHEME + 'search.' +
+                      config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
+            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'language.current': config.GAIA_DEFAULT_LOCALE,
+          'debugger.remote-mode': 'adb-devtools',
+          'wallpaper.image': undefined,
+          'media.ringtone': undefined,
+          'alarm.ringtone': undefined,
+          'dialer.ringtone.name': {l10nID: 'ringer_firefox2'},
+          'dialer.ringtone.id': 'builtin:ringtone/ringer_firefox',
+          'dialer.ringtone.default.id': 'builtin:ringtone/ringer_firefox',
+          'dialer.ringtone': undefined,
+          'notification.ringtone.name': {l10nID: 'notifier_firefox2'},
+          'notification.ringtone.id': 'builtin:alerttone/notifier_firefox',
+          'notification.ringtone.default.id':
+            'builtin:alerttone/notifier_firefox',
+          'notification.ringtone': undefined,
+          'ftu.pingURL': config.FTU_PING_URL,
+          'screen.timeout': 600 },
           result);
         done();
       });

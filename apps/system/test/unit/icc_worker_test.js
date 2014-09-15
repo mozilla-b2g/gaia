@@ -5,12 +5,14 @@
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_dump.js');
 requireApp('system/js/icc_worker.js');
 
 var mocksForIcc = new MocksHelper([
+  'AppWindowManager',
   'L10n',
   'Dump',
   'Notification'
@@ -37,6 +39,24 @@ suite('STK (icc_worker) >', function() {
 
   setup(function() {
     stkTestCommands = {
+      STK_CMD_DISPLAY_TEXT: {
+        iccId: '1010011010',
+        command: {
+          commandNumber: 1,
+          typeOfCommand: navigator.mozIccManager.STK_CMD_DISPLAY_TEXT,
+          commandQualifier: 0,
+          options: {
+            text: 'stk display test text',
+            userClear: true,
+            responseNeeded: false,
+            duration: {
+              timeUnit: navigator.mozIccManager.STK_TIME_UNIT_TENTH_SECOND,
+              timeInterval: 5
+            }
+          }
+        }
+      },
+
       STK_CMD_GET_INPUT: {
         iccId: '1010011010',
         command: {
@@ -114,6 +134,26 @@ suite('STK (icc_worker) >', function() {
       done();
     };
     icc_worker.dummy();
+  });
+
+  test('STK_CMD_DISPLAY_TEXT (User response)', function(done) {
+    window.icc.onresponse = function(message, response) {
+      assert.equal(response.resultCode, navigator.mozIccManager.STK_RESULT_OK);
+      done();
+    };
+    launchStkCommand(stkTestCommands.STK_CMD_DISPLAY_TEXT);
+  });
+
+  test('STK_CMD_DISPLAY_TEXT (Timeout)', function(done) {
+    window.icc.confirm = function(stkMsg, message, timeout, callback) {
+      callback(false);
+    };
+    window.icc.onresponse = function(message, response) {
+      assert.equal(response.resultCode,
+        navigator.mozIccManager.STK_RESULT_NO_RESPONSE_FROM_USER);
+      done();
+    };
+    launchStkCommand(stkTestCommands.STK_CMD_DISPLAY_TEXT);
   });
 
   test('STK_CMD_GET_INPUT (User response)', function(done) {

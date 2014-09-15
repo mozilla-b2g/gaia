@@ -201,6 +201,12 @@ Storage.prototype.configure = function(storageVolumeName) {
     }
   }
 
+  // Shouldn't happen?
+  if (!this.picture) {
+    this.setState('unavailable');
+    return;
+  }
+
   this.picture.addEventListener('change', this.onStorageChange);
   this.emit('volumechanged',{
     video: this.video,
@@ -299,6 +305,13 @@ Storage.prototype.isSpace = function(done) {
  * @param  {Function} done
  */
 Storage.prototype.getState = function(done) {
+  if (!this.picture) {
+    setTimeout(function() {
+      done('unavailable');
+    });
+    return;
+  }
+
   this.picture
     .available()
     .onsuccess = function(e) {

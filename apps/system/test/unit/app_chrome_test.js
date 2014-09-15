@@ -3,7 +3,10 @@
 /* exported MockBookmarksDatabase */
 'use strict';
 
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_progress/script.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
@@ -17,7 +20,7 @@ var MockBookmarksDatabase = {
 
 var mocksForAppChrome = new MocksHelper([
   'AppWindow', 'ModalDialog', 'PopupWindow', 'BookmarksDatabase',
-  'System'
+  'System', 'LazyLoader'
 ]).init();
 
 suite('system/AppChrome', function() {
@@ -82,21 +85,33 @@ suite('system/AppChrome', function() {
     }
   };
 
+  var fakeAppMaximized = {
+    url: 'app://search.gaiamobile.org/newtab.html',
+    chrome: {
+      maximized: true
+    }
+  };
+
   suite('Old Navigation - Application events', function() {
     test('app is loading', function() {
       var app = new AppWindow(fakeWebSite);
       var chrome = new AppChrome(app);
       var stubShowProgress = this.sinon.stub(chrome, 'show');
+      var progressStart = this.sinon.stub(chrome.progress, 'start');
+      assert.isFalse(chrome.progress.hasAttribute('animated'));
       chrome.handleEvent({ type: '_loading' });
       assert.isTrue(stubShowProgress.calledWith(chrome.progress));
+      assert.isTrue(progressStart.calledOnce);
     });
 
     test('app is loaded', function() {
       var app = new AppWindow(fakeWebSite);
       var chrome = new AppChrome(app);
       var stubHideProgress = this.sinon.stub(chrome, 'hide');
+      var progressStop = this.sinon.stub(chrome.progress, 'stop');
       chrome.handleEvent({ type: '_loaded' });
       assert.isTrue(stubHideProgress.calledWith(chrome.progress));
+      assert.isTrue(progressStop.calledOnce);
     });
 
     test('app location is changed', function() {
@@ -463,10 +478,14 @@ suite('system/AppChrome', function() {
 
         cb();
       });
+      var appPublishStub = this.sinon.stub(app, 'publish');
 
       chrome.setThemeColor('black');
       assert.isTrue(stubRequestAnimationFrame.called);
       assert.isFalse(app.element.classList.contains('light'));
+      assert.isFalse(chrome.useLightTheming());
+      assert.isTrue(appPublishStub.called);
+      assert.isTrue(appPublishStub.calledWith('titlestatechanged'));
     });
 
     test('light color have dark icons', function() {
@@ -477,10 +496,14 @@ suite('system/AppChrome', function() {
 
         cb();
       });
+      var appPublishStub = this.sinon.stub(app, 'publish');
 
       chrome.setThemeColor('white');
       assert.isTrue(stubRequestAnimationFrame.called);
       assert.isTrue(app.element.classList.contains('light'));
+      assert.isTrue(chrome.useLightTheming());
+      assert.isTrue(appPublishStub.called);
+      assert.isTrue(appPublishStub.calledWith('titlestatechanged'));
     });
 
     test('browser scrollable background is black', function() {
@@ -529,6 +552,49 @@ suite('system/AppChrome', function() {
       var chrome = new AppChrome(app);
       chrome.title.dispatchEvent(new CustomEvent('click'));
       assert.isFalse(caught);
+    });
+  });
+
+  suite('titlestatechanged', function() {
+    test('scroll event - active app', function() {
+      var app = new AppWindow(fakeAppMaximized);
+      var chrome = new AppChrome(app);
+      var appPublishStub = this.sinon.stub(app, 'publish');
+      this.sinon.stub(app, 'isActive').returns(true);
+
+      chrome.handleEvent({ type: 'scroll' });
+      assert.isTrue(appPublishStub.called);
+      assert.isTrue(appPublishStub.calledWith('titlestatechanged'));
+    });
+
+    test('scroll event - inactive app', function() {
+      var app = new AppWindow(fakeAppMaximized);
+      var chrome = new AppChrome(app);
+      var appPublishStub = this.sinon.stub(app, 'publish');
+      this.sinon.stub(app, 'isActive').returns(false);
+
+      chrome.handleEvent({ type: 'scroll' });
+      assert.isTrue(appPublishStub.notCalled);
+    });
+
+    test('set transparent color', function() {
+      var app = new AppWindow(fakeWebSite);
+      var chrome = new AppChrome(app);
+      var appPublishStub = this.sinon.stub(app, 'publish');
+
+      chrome.setThemeColor('transparent');
+      assert.isTrue(appPublishStub.called);
+      assert.isTrue(appPublishStub.calledWith('titlestatechanged'));
+    });
+
+    test('unset color', function() {
+      var app = new AppWindow(fakeWebSite);
+      var chrome = new AppChrome(app);
+      var appPublishStub = this.sinon.stub(app, 'publish');
+
+      chrome.setThemeColor('');
+      assert.isTrue(appPublishStub.called);
+      assert.isTrue(appPublishStub.calledWith('titlestatechanged'));
     });
   });
 });

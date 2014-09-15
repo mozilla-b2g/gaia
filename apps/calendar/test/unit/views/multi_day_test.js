@@ -52,4 +52,23 @@ suiteGroup('Views.MultiDay', function() {
     );
   });
 
+  test('#_updateBaseDateAfterScroll', function() {
+    // we need to make sure it's updating the timeController position and
+    // selectedDay after the drag so moving to day/month views have the
+    // expected output (highlight first day of the week view)
+    subject.baseDate = new Date(2014, 6, 23);
+    subject._updateBaseDateAfterScroll(-3);
+    var expected = (new Date(2014, 6, 20)).toISOString();
+    assert.equal(
+      subject.timeController.position.toISOString(),
+      expected,
+      'position'
+    );
+    assert.equal(
+      subject.timeController.selectedDay.toISOString(),
+      expected,
+      'selectedDay'
+    );
+  });
+
 });

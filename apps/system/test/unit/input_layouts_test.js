@@ -37,7 +37,18 @@ suite('InputLayouts', function() {
   mocksForInputLayouts.attachTestHelpers();
 
   setup(function() {
-    inputLayouts = new InputLayouts(MockKeyboardManager);
+    inputLayouts = new InputLayouts(MockKeyboardManager, {
+      'text': 'textG',
+      'password': 'password',
+      'text2': 'textG'
+    });
+  });
+
+  test('groupToTypeTable generation', function() {
+    assert.deepEqual(inputLayouts._groupToTypeTable, {
+      'textG': ['text', 'text2'],
+      'password': ['password']
+    });
   });
 
   test('transformLayout', function() {
@@ -121,8 +132,8 @@ suite('InputLayouts', function() {
       'password': ['en', 'fr']
     };
 
-    var oldInputTypeTable = inputLayouts._keyboardManager.inputTypeTable;
-    inputLayouts._keyboardManager.inputTypeTable = {
+    var oldGroupToTypeTable = inputLayouts._groupToTypeTable;
+    inputLayouts._groupToTypeTable = {
       'text': ['text', 'textarea'],
       'password': ['password']
     };
@@ -151,7 +162,7 @@ suite('InputLayouts', function() {
 
     assert.isTrue(stubDispatchEvent.calledWith(evt));
 
-    inputLayouts._keyboardManager.inputTypeTable = oldInputTypeTable;
+    inputLayouts._groupToTypeTable = oldGroupToTypeTable;
   });
 
   test('generateToGroupMapping', function() {

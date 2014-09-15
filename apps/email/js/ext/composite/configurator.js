@@ -49,6 +49,24 @@ exports.configurator = {
         outgoingUsername: domainInfo.outgoing.username,
         outgoingPassword: password,
       };
+      if (domainInfo.oauth2Tokens) {
+        // We need to save off all the information so:
+        // - the front-end can reauthorize exclusively from this info.
+        // - the back-end can refresh its token
+        // - on upgrades so we can know if our scope isn't good enough.  (Note
+        //   that we're not saving off the secret group; upgrades would need to
+        //   factor in the auth or token endpoints.)
+        credentials.oauth2 = {
+          authEndpoint: domainInfo.oauth2Settings.authEndpoint,
+          tokenEndpoint: domainInfo.oauth2Settings.tokenEndpoint,
+          scope: domainInfo.oauth2Settings.scope,
+          clientId: domainInfo.oauth2Secrets.clientId,
+          clientSecret: domainInfo.oauth2Secrets.clientSecret,
+          refreshToken: domainInfo.oauth2Tokens.refreshToken,
+          accessToken: domainInfo.oauth2Tokens.accessToken,
+          expireTimeMS: domainInfo.oauth2Tokens.expireTimeMS
+        };
+      }
       incomingInfo = {
         hostname: domainInfo.incoming.hostname,
         port: domainInfo.incoming.port,
@@ -70,6 +88,10 @@ exports.configurator = {
       };
     }
 
+    // Note: For OAUTH accounts, the credentials may be updated
+    // in-place if a new access token was required. We don't need to
+    // explicitly save those changes here because we define the
+    // account with the same object below.
     var incomingPromise = new Promise(function(resolve, reject) {
       if (incomingType === 'imap') {
         require(['../imap/probe'], function(probe) {
@@ -135,6 +157,8 @@ exports.configurator = {
       // (if these two keys are null, keep them that way:)
       outgoingUsername: oldAccountDef.credentials.outgoingUsername,
       outgoingPassword: oldAccountDef.credentials.outgoingPassword,
+      authMechanism: oldAccountDef.credentials.authMechanism,
+      oauth2: oldAccountDef.credentials.oauth2
     };
     var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
     var oldType = oldAccountDef.type || 'imap+smtp';

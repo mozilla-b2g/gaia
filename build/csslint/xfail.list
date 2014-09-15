@@ -37,7 +37,7 @@ apps/ftu/style/style.css 0 10
 apps/ftu/style/tutorial.css 0 1
 apps/gallery/style/gallery.css 0 4
 apps/gallery/style/open.css 0 1
-apps/gallery/style/gallery_tablet.css 0 2
+apps/gallery/style/gallery_tablet.css 0 3
 apps/gallery/style/info.css 0 2
 apps/homescreen/everything.me/css/common.css 0 2
 apps/homescreen/everything.me/modules/Helper/Helper.css 0 5
@@ -67,7 +67,7 @@ apps/system/style/lockscreen/lockscreen.css 1 2
 apps/system/style/system/keyboard.css 0 1
 apps/system/style/system/system.css 0 2
 apps/system/style/window.css 0 3
-apps/system/style/zindex.css 0 2
+apps/system/style/zindex.css 0 3
 apps/video/style/info.css 0 2
 apps/video/style/video.css 0 8
 apps/video/style/video_tablet.css 0 4

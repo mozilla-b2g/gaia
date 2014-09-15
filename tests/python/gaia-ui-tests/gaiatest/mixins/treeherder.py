@@ -2,14 +2,18 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import gzip
 import hashlib
 import os
 import socket
+import tempfile
 import time
 from urlparse import urljoin, urlparse
 import uuid
 
 import boto
+from mozdevice import ADBDevice
+from mozlog.structured.handlers import StreamHandler
 import mozversion
 import requests
 from thclient import TreeherderRequest, TreeherderJobCollection
@@ -23,48 +27,45 @@ DEVICE_GROUP_MAP = {
         'symbol': 'Buri/Hamac'}}
 
 
+class S3UploadError(Exception):
+
+    def __init__(self):
+        Exception.__init__(self, 'Error uploading to S3')
+
+
 class TreeherderOptionsMixin(object):
 
     def __init__(self, **kwargs):
-        self.add_option(
-            '--ci-url',
-            help='URL of the CI build running the tests.',
-            metavar='URL')
         treeherder = self.add_option_group('Treeherder')
         treeherder.add_option(
             '--treeherder',
-            action='store_true',
-            default=False,
-            help='Send test results to Treeherder.')
-        treeherder.add_option(
-            '--treeherder-url',
             default='https://treeherder.mozilla.org/',
-            help='Location of Treeherder instance. Default: %default',
+            dest='treeherder_url',
+            help='Location of Treeherder instance (default: %default). You '
+                 'must set the TREEHERDER_KEY and TREEHERDER_SECRET '
+                 'environment variables for posting to Treeherder. If you '
+                 'want to post attachments you will also need to set the '
+                 'AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment '
+                 'variables.',
             metavar='URL')
-        treeherder.add_option(
-            '--treeherder-key',
-            help='OAuth key for Treeherder instance.',
-            metavar='KEY')
-        treeherder.add_option(
-            '--treeherder-secret',
-            help='OAuth secret for Treeherder instance.',
-            metavar='SECRET')
 
 
 class TreeherderTestRunnerMixin(object):
 
-    def __init__(self, ci_url=None, treeherder=False,
-                 treeherder_url='https://treeherder.mozilla.org/',
-                 treeherder_key=None, treeherder_secret=None, **kwargs):
-        self.ci_url = ci_url
+    def __init__(self, treeherder_url='https://treeherder.mozilla.org/',
+                 **kwargs):
         self.treeherder_url = treeherder_url
-        self.treeherder_key = treeherder_key
-        self.treeherder_secret = treeherder_secret
-        if treeherder:
+        required_envs = ['TREEHERDER_KEY', 'TREEHERDER_SECRET']
+        if all([os.environ.get(v) for v in required_envs]):
             self.mixin_run_tests.append(self.post_to_treeherder)
+        else:
+            self.logger.info(
+                'Results will not be posted to Treeherder. Please set the '
+                'following environment variables to enable Treeherder '
+                'reports: %s' % ', '.join([
+                    v for v in required_envs if not os.environ.get(v)]))
 
     def post_to_treeherder(self, tests):
-        self.logger.info('\nTREEHERDER\n----------')
         version = mozversion.get_version(
             binary=self.bin, sources=self.sources,
             dm_type='adb', device_serial=self.device_serial)
@@ -127,9 +128,6 @@ class TreeherderTestRunnerMixin(object):
         # All B2G device builds are currently opt builds
         job.add_option_collection({'opt': True})
 
-        # TODO: Add log reference
-        # job.add_log_reference()
-
         date_format = '%d %b %Y %H:%M:%S'
         job_details = [{
             'content_type': 'link',
@@ -162,51 +160,72 @@ class TreeherderTestRunnerMixin(object):
             'value': version.get('device_firmware_version_release')
         }]
 
-        if self.ci_url:
+        ci_url = os.environ.get('BUILD_URL')
+        if ci_url:
             job_details.append({
-                'url': self.ci_url,
-                'value': self.ci_url,
+                'url': ci_url,
+                'value': ci_url,
                 'content_type': 'link',
                 'title': 'CI build:'})
 
-        artifacts = [self.html_output, self.xml_output]
-        if any(artifacts):
-            required_envs = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY']
-            upload_artifacts = all([os.environ.get(v) for v in required_envs])
+        # Attach logcat
+        adb_device = ADBDevice(self.device_serial)
+        with tempfile.NamedTemporaryFile(suffix='logcat.txt') as f:
+            f.writelines(adb_device.get_logcat())
+            self.logger.debug('Logcat stored in: %s' % f.name)
+            try:
+                url = self.upload_to_s3(f.name)
+                job_details.append({
+                    'url': url,
+                    'value': 'logcat.txt',
+                    'content_type': 'link',
+                    'title': 'Log:'})
+            except S3UploadError:
+                job_details.append({
+                    'value': 'Failed to upload logcat.txt',
+                    'content_type': 'text',
+                    'title': 'Error:'})
 
-            if upload_artifacts:
-                conn = boto.connect_s3()
-                bucket = conn.create_bucket(
-                    os.environ.get('S3_UPLOAD_BUCKET', 'gaiatest'))
-                bucket.set_acl('public-read')
+        # Attach log files
+        handlers = [handler for handler in self.logger.handlers
+                    if isinstance(handler, StreamHandler) and
+                    os.path.exists(handler.stream.name)]
+        for handler in handlers:
+            path = handler.stream.name
+            filename = os.path.split(path)[-1]
+            try:
+                url = self.upload_to_s3(path)
+                job_details.append({
+                    'url': url,
+                    'value': filename,
+                    'content_type': 'link',
+                    'title': 'Log:'})
+                # TODO: Bug 1049723 - Add log reference
+                # if type(handler.formatter) is TbplFormatter or \
+                #         type(handler.formatter) is LogLevelFilter and \
+                #         type(handler.formatter.inner) is TbplFormatter:
+                #     job.add_log_reference(filename, url)
+            except S3UploadError:
+                job_details.append({
+                    'value': 'Failed to upload %s' % filename,
+                    'content_type': 'text',
+                    'title': 'Error:'})
 
-                for artifact in artifacts:
-                    if artifact and os.path.exists(artifact):
-                        h = hashlib.sha512()
-                        with open(artifact, 'rb') as f:
-                            for chunk in iter(lambda: f.read(1024 ** 2), b''):
-                                h.update(chunk)
-                        _key = h.hexdigest()
-                        key = bucket.get_key(_key)
-                        if not key:
-                            key = bucket.new_key(_key)
-                        key.set_contents_from_filename(artifact)
-                        key.set_acl('public-read')
-                        blob_url = key.generate_url(expires_in=0,
-                                                    query_auth=False)
-                        job_details.append({
-                            'url': blob_url,
-                            'value': artifact,
-                            'content_type': 'link',
-                            'title': 'Artifact:'})
-                        self.logger.info('Artifact %s uploaded to: %s' % (
-                            artifact, blob_url))
-            else:
-                self.logger.info(
-                    'Artifacts will not be included with the report. Please '
-                    'set the following environment variables to enable '
-                    'uploading of artifacts: %s' % ', '.join([
-                        v for v in required_envs if not os.environ.get(v)]))
+        # Attach reports
+        for report in [self.html_output, self.xml_output]:
+            filename = os.path.split(report)[-1]
+            try:
+                url = self.upload_to_s3(report)
+                job_details.append({
+                    'url': url,
+                    'value': filename,
+                    'content_type': 'link',
+                    'title': 'Report:'})
+            except S3UploadError:
+                job_details.append({
+                    'value': 'Failed to upload %s' % filename,
+                    'content_type': 'text',
+                    'title': 'Error:'})
 
         if job_details:
             job.add_artifact('Job Info', 'json', {'job_details': job_details})
@@ -219,8 +238,8 @@ class TreeherderTestRunnerMixin(object):
             protocol=url.scheme,
             host=url.hostname,
             project=project,
-            oauth_key=self.treeherder_key,
-            oauth_secret=self.treeherder_secret)
+            oauth_key=os.environ.get('TREEHERDER_KEY'),
+            oauth_secret=os.environ.get('TREEHERDER_SECRET'))
         self.logger.debug('Sending results to Treeherder: %s' %
                           job_collection.to_json())
         response = request.post(job_collection)
@@ -229,3 +248,53 @@ class TreeherderTestRunnerMixin(object):
         self.logger.info('Results are available to view at: %s' % (
             urljoin(self.treeherder_url, '/ui/#/jobs?repo=%s&revision=%s' % (
                 project, revision))))
+
+    def upload_to_s3(self, path):
+        if not hasattr(self, '_s3_bucket'):
+            try:
+                self.logger.debug('Connecting to S3')
+                conn = boto.connect_s3()
+                bucket = os.environ.get('S3_UPLOAD_BUCKET', 'gaiatest')
+                self.logger.debug('Creating bucket: %s' % bucket)
+                self._s3_bucket = conn.create_bucket(bucket)
+                self._s3_bucket.set_acl('public-read')
+            except boto.exception.NoAuthHandlerFound:
+                self.logger.info(
+                    'Please set the following environment variables to enable '
+                    'uploading of artifacts: %s' % ', '.join([v for v in [
+                        'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'] if not
+                        os.environ.get(v)]))
+                raise S3UploadError()
+            except boto.exception.S3ResponseError as e:
+                self.logger.warning('Upload to S3 failed: %s' % e.message)
+                raise S3UploadError()
+
+        h = hashlib.sha512()
+        with open(path, 'rb') as f:
+            for chunk in iter(lambda: f.read(1024 ** 2), b''):
+                h.update(chunk)
+        _key = h.hexdigest()
+        key = self._s3_bucket.get_key(_key)
+        if not key:
+            self.logger.debug('Creating key: %s' % _key)
+            key = self._s3_bucket.new_key(_key)
+        ext = os.path.splitext(path)[-1]
+        if ext == '.log':
+            key.set_metadata('Content-Type', 'text/plain')
+
+        with tempfile.NamedTemporaryFile('w+b', suffix=ext) as tf:
+            self.logger.debug('Compressing: %s' % path)
+            with gzip.GzipFile(path, 'wb', fileobj=tf) as gz:
+                with open(path, 'rb') as f:
+                    gz.writelines(f)
+            tf.flush()
+            tf.seek(0)
+            key.set_metadata('Content-Encoding', 'gzip')
+            self.logger.debug('Setting key contents from: %s' % tf.name)
+            key.set_contents_from_filename(tf.name)
+
+        key.set_acl('public-read')
+        blob_url = key.generate_url(expires_in=0,
+                                    query_auth=False)
+        self.logger.info('File %s uploaded to: %s' % (path, blob_url))
+        return blob_url

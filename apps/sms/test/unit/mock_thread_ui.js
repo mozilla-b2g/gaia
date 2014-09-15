@@ -17,7 +17,8 @@ var MockThreadUI = {
   recipientsList: document.createElement('div'),
 
   // For Information view testing. Need to be updated with ThreadUI layout
-  optionsIcon: document.createElement('a'),
+  optionsButton: document.createElement('button'),
+  callNumberButton: document.createElement('button'),
   attachButton: document.createElement('button'),
   subheader: document.createElement('div'),
   container: document.createElement('article'),

@@ -24,6 +24,7 @@
     this.number = (opts.number || '') + '';
     this.email = opts.email || '';
     this.editable = opts.editable || 'true';
+    this.role = this.editable ? 'textbox' : 'button';
     this.source = opts.source || 'manual';
     this.type = opts.type || '';
     this.carrier = opts.carrier || '';
@@ -544,12 +545,14 @@
       // in the recipients list.
       node.isPlaceholder = false;
       node.contentEditable = false;
+      node.setAttribute('role', 'button');
 
       // The last node should be contentEditable=true
       // and isPlaceholder=true
       if (i === nodes.length - 1) {
         node.isPlaceholder = true;
         node.contentEditable = true;
+        node.setAttribute('role', 'textbox');
       } else {
         // Map the node to it's entry in the list
         // (only for actual recipient nodes)
@@ -1015,6 +1018,7 @@
           number: typed,
           editable: editable,
           source: 'manual',
+          role: editable ? 'textbox' : 'button',
           isLookupable: isLookupable
         });
 
@@ -1032,6 +1036,7 @@
     if (isEdittingRecipient) {
       // Make the last added entry "editable"
       target.contentEditable = true;
+      target.setAttribute('role', 'textbox');
       target.isPlaceholder = true;
       this.focus(target);
     }

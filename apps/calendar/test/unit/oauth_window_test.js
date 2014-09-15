@@ -21,12 +21,9 @@ suiteGroup('OAuthWindow', function() {
     element = document.createElement('section');
     element.innerHTML = [
       '<section role="region">',
-        '<header>',
-          '<button class="cancel">',
-            '<a>cancel</a>',
-          '</button>',
-          '<h1 class="toolbar"></h1>',
-        '</header>',
+        '<gaia-header id="oauth-header" action="cancel">',
+          '<h1 class="oauth-browser-title"></h1>',
+        '</gaia-header>',
         '<div class="browser-container"></div>',
       '</section>'
     ].join('');
@@ -62,10 +59,10 @@ suiteGroup('OAuthWindow', function() {
     );
   });
 
-  test('.browserCancelButton', function() {
+  test('.browserHeader', function() {
     assert.equal(
-      subject.browerCancelButton,
-      element.querySelector('button.cancel')
+      subject.browserHeader,
+      element.querySelector(subject.selectors.browserHeader)
     );
   });
 
@@ -138,8 +135,8 @@ suiteGroup('OAuthWindow', function() {
       };
 
       testSupport.calendar.triggerEvent(
-        subject.browerCancelButton,
-        'click'
+        subject.browserHeader,
+        'action'
       );
     });
 
@@ -195,8 +192,8 @@ suiteGroup('OAuthWindow', function() {
       };
 
       testSupport.calendar.triggerEvent(
-        subject.browerCancelButton,
-        'click'
+        subject.browserHeader,
+        'action'
       );
 
       assert.ok(!triggedClose, 'does not trigger close');

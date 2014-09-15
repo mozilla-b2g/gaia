@@ -1,7 +1,5 @@
 var assert = require('assert'),
     NotificationTest = require('./lib/notification').NotificationTest,
-
-
     NotificationList = require('./lib/notification').NotificationList,
     Marionette = require('marionette-client'),
     util = require('util'),
@@ -15,6 +13,7 @@ marionette('notification tests', function() {
       'ftu.manifestURL': null
     }
   });
+  var actions = new Marionette.Actions(client);
   var notificationList = new NotificationList(client);
 
   test('fire notification', function() {
@@ -37,6 +36,20 @@ marionette('notification tests', function() {
               'Lock screen notification contains all fields: ' +
                JSON.stringify(notificationList.lockScreenNotifications));
               // Would be empty array...
+  });
+
+  test('swipe up should hide the toast', function() {
+    var toaster = dispatchNotification(client);
+    actions.flick(toaster, 50, 30, 50, 1, 300).perform(function() {
+      assert.equal(toaster.displayed(), false);
+    });
+  });
+
+  test('swipe right should not hide the toast', function() {
+    var toaster = dispatchNotification(client);
+    actions.flick(toaster, 10, 30, 80, 30, 300).perform(function() {
+      assert.equal(toaster.displayed(), true);
+    });
   });
 
   test('system replace notification', function() {
@@ -185,6 +198,19 @@ marionette('notification tests', function() {
                  'the phone should have vibrated once');
   });
 });
+
+function dispatchNotification(client) {
+  var details = {tag: 'test tag',
+                 title: 'test title',
+                 body: 'test body',
+                 dir: 'rtl',
+                 lang: 'en'};
+  var toaster = client.findElement('#notification-toaster');
+  var notify = new NotificationTest(client, details);
+
+  client.helper.waitForElement('#notification-toaster.displayed');
+  return toaster;
+}
 
 function dispatchVisibilityChangeEvent() {
   client.executeScript(function() {

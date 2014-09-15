@@ -120,11 +120,11 @@ gaia-buttons.forward-only .icon-previous {
 
 #sim-info-screen .sim-image {
   height: 100%;
-  width: 3rem;
+  width: 5rem;
   background-position: center center;
   background-repeat: no-repeat;
   float: left;
-  margin-right: 1rem;
+  margin-right: 0.5rem;
 }
 #sim-info-1 .sim-image {
   background-image: url(images/sim01.png);
@@ -760,7 +760,8 @@ aside.connecting {
 #welcome_browser {
   padding: 1.5rem 3rem 0 3rem;
   width: calc(100% - 6rem);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
 
 #welcome_browser p {
@@ -809,7 +810,7 @@ aside.connecting {
 }
 
 #welcome_browser #form_share_statistics label {
-  width: auto;
+  width: 100%;
   height: auto;
   margin: 0 3rem 0 0;
   padding-right: 3rem;
@@ -823,6 +824,7 @@ aside.connecting {
 #welcome_browser #form_share_statistics p {
   width: calc(100% - 3.5rem);
   float: right;
+  font-size: 1.5rem;
 }
 
 /*

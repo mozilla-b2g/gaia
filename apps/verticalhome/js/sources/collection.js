@@ -90,7 +90,7 @@
         this.addIconToGrid(toAdd[i].detail);
       }
 
-      app.itemStore.save(app.grid.getItems());
+      app.itemStore.deferredSave(app.grid.getItems());
       this._setListeners();
     },
 
@@ -128,13 +128,13 @@
         case 'updated':
           this.addIconToGrid(e.target);
           app.grid.render();
-          app.itemStore.save(app.grid.getItems());
+          app.itemStore.deferredSave(app.grid.getItems());
           break;
         case 'removed':
           // The 'id' of a Collection is really the url.
           this.removeIconFromGrid(e.target.id);
           // Save the layout once a collection has been removed
-          app.itemStore.save(app.grid.getItems());
+          app.itemStore.deferredSave(app.grid.getItems());
           break;
         case 'context-menu-open':
           this.insertPosition = e.detail.nearestIndex;

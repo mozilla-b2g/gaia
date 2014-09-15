@@ -501,7 +501,8 @@
         // be included in index.html before this one, so they can register their
         // event handlers before we do.
         case 'home':
-          if (!homescreenLauncher.ready) {
+          if (!homescreenLauncher.ready ||
+              (window.taskManager && window.taskManager.isActive())) {
             return;
           }
 

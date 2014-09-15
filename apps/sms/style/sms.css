@@ -286,6 +286,14 @@ form[role="dialog"][data-type="edit"] > menu {
   Styles for Edit mode in Thread List
 */
 
+form[role="dialog"][data-type="edit"] {
+  visibility: hidden;
+}
+
+.edit form[role="dialog"][data-type="edit"] {
+  visibility: visible;
+}
+
 .edit form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(0);
 }
@@ -604,6 +612,9 @@ section[role="region"].new #messages-to-field.multiline {
   box-sizing: border-box;
   min-height: 4rem;
   padding: 0 0.6rem 0.6rem 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 /*
@@ -631,11 +642,14 @@ Do not remove.
   * discussion of this behavior, see "Bug 905260 - [messages] padding issues
   * in the recipient panel". */
   margin: 0.6rem 0.6rem 0 0;
-  max-width: calc(100% - 2rem);
   padding-right: 1.6rem;
 
   display: block;
   float: left;
+
+   /* override BB [role="button"] selector (bug 1055363) */
+  height: auto;
+  width: auto;
 }
 
 .recipient[contenteditable].email {
@@ -643,29 +657,37 @@ Do not remove.
   background: white url(images/icons/icon_sms_compose_email.png) calc(100% - 1.5rem) center no-repeat;
 }
 
-/* Disable padding and margin on empty contenteditable recipients when they do
- * not have focus. This allows the Recipients List to intelligently collapse
- * when the final row contains no "assimilated" (i.e. non-contenteditable)
- * recipients. */
-.recipient[contenteditable=true]:empty {
-  margin: 0;
-  padding: 0;
-
-  word-wrap: unset;
-  background: none;
-}
-
-.recipient[contenteditable=true]:focus,
-.recipient[contenteditable=true]:empty:focus {
-  margin: 0.6rem 0.5rem 0 0;
-  padding: 0 0.3rem 0 0;
-
+#messages-recipients-list > .recipient[contenteditable=true] {
+  flex-grow: 1;
   height: 2.8rem;
   line-height: 2.8rem;
   border-radius: 0;
 
   word-wrap: unset;
+
+  /* Building blocks override (bug xxx) */
   background: none;
+  color: #000;
+}
+
+.recipient[contenteditable=true]:empty:not(:last-of-type) {
+  display: none;
+}
+
+/* Disable padding and give negative margin-right on empty contenteditable
+ * recipients when they do not have focus. This allows the Recipients List
+ * to intelligently collapse when the final row contains no "assimilated"
+ * (i.e. non-contenteditable) recipients. */
+.recipient[contenteditable=true]:empty {
+  margin-right: -0.5rem;
+  padding: 0;
+}
+
+.recipient[contenteditable=true]:focus,
+.recipient[contenteditable=true]:hover,
+.recipient[contenteditable=true]:empty:focus {
+  margin-right: 0.5rem;
+  padding-right: 0.3rem;
 }
 
 #messages-recipient-suggestions {
@@ -733,7 +755,7 @@ form[role="dialog"][data-type="action"].contact-prompt > header {
   padding: 0 0 0.7rem;
   margin: 0;
   overflow: hidden;
-
+  text-overflow: ellipsis;
   font-size: 1.5rem;
 }
 
@@ -793,7 +815,7 @@ body[role="application"] form[role="dialog"][data-type="action"] > header:first-
  */
 
 /* Elements related to information view */
-section[role="region"][class$='information'] #messages-options-icon,
+section[role="region"][class$='information'] #messages-options-button,
 section[role="region"][class$='information'] #messages-subheader,
 section[role="region"][class$='information'] #messages-container,
 section[role="region"][class$='information'] #messages-compose-form {

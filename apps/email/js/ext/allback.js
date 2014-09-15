@@ -137,6 +137,34 @@ exports.latch = function() {
       return ret;
     }
   };
-}
+};
+
+exports.latchedWithRejections = function(namedPromises) {
+  return new Promise(function(resolve, reject) {
+    var results = {};
+    var pending = 0;
+    Object.keys(namedPromises).forEach(function(name) {
+      pending++;
+      var promise = namedPromises[name];
+      promise.then(
+        function(result) {
+          results[name] = { resolved: true, value: result };
+          if (--pending === 0) {
+            resolve(results);
+          }
+        },
+        function(err) {
+          results[name] = { resolved: false, value: err };
+          if (--pending === 0) {
+            resolve(results);
+          }
+        });
+    });
+    // If we didn't end up scheduling anything
+    if (!pending) {
+      resolve(results);
+    }
+  });
+};
 
 }); // end define

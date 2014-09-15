@@ -281,7 +281,7 @@ suite('Render contacts list', function() {
     loading.id = 'loading-overlay';
     settings = document.createElement('div');
     settings.id = 'view-settings';
-    settings.innerHTML = '<button id="settings-close" role="menuitem"' +
+    settings.innerHTML = '<button id="settings-close"' +
                                           'data-l10n-id="done">Done</button>';
     settings.innerHTML += '<div class="view-body-inner"></div>';
     noContacts = document.createElement('div');
@@ -980,7 +980,7 @@ suite('Render contacts list', function() {
 
         doOnscreen(subject, contact, function() {
           var img = contact.querySelector('span[data-type=img]');
-
+          assert.equal(img.style.backgroundPosition, '');
           assert.equal(img.dataset.src, 'test.png',
                         'At the begining contact 1 img === "test.png"');
           var prevUpdated = contact.dataset.updated;
@@ -1724,15 +1724,43 @@ suite('Render contacts list', function() {
       this.sinon.spy(MockAlphaScroll, 'hideGroup');
     });
 
+    test('> ICE group is always build but is hidden', function() {
+      var stub = ICEStore.getContacts;
+      ICEStore.getContacts = function() {
+        return {
+          then: function(cb) {
+            cb();
+          }
+        };
+      };
+
+      mockContacts = new MockContactsList();
+      subject.load(mockContacts);
+      // ICE group created, even if we don't have contacts
+      var iceGroup = document.getElementById('section-group-ice');
+      assert.isNotNull(iceGroup);
+      // ICE group not visible
+      assert.isTrue(iceGroup.classList.contains('hide'));
+
+      ICEStore.getContacts = stub;
+    });
+
     test('Display the ICE group if ICE contacts present', function() {
       mockContacts = new MockContactsList();
       subject.load(mockContacts);
       // Check ice group present
       var iceGroup = document.getElementById('section-group-ice');
       assert.isNotNull(iceGroup);
+      assert.isFalse(iceGroup.classList.contains('hide'));
       // Check that we are displaying the extra item in the alphascroll
       sinon.assert.calledOnce(MockAlphaScroll.showGroup);
       sinon.assert.calledWith(MockAlphaScroll.showGroup, 'ice');
+    });
+
+    test('> after a list reload, the ice group appears', function() {
+      subject.load(null, true);
+      var iceGroup = document.getElementById('section-group-ice');
+      assert.isNotNull(iceGroup);
     });
   });
 
@@ -1782,6 +1810,12 @@ suite('Render contacts list', function() {
     test('Check default image appears', function() {
       var contact = document.querySelector('[data-uuid="2"]');
       assert.isTrue(contact.innerHTML.indexOf('aside') !== -1);
+    });
+
+    test('Check default image saves the backgroundPosition properly',
+          function() {
+      var img = document.querySelector('[data-uuid="2"] aside span');
+      assert.equal(img.dataset.backgroundPosition, '');
     });
 
     test('Check favorites with default image have proper group',

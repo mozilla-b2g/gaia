@@ -142,7 +142,7 @@ var IMERender = (function() {
       navigator.mozInputMethod.mgmt.supportsSwitching() : false;
     var keyboardClass = [
       layout.layoutName,
-      layout.alternativeLayoutName,
+      layout.pageIndex,
       ('' + flags.inputType).substr(0, 1),
       ('' + flags.showCandidatePanel).substr(0, 1),
       ('' + flags.uppercase).substr(0, 1),
@@ -298,6 +298,14 @@ var IMERender = (function() {
             key.longPressValue.charCodeAt(0);
           dataset.push({'key': 'longPressValue', 'value': key.longPressValue });
           dataset.push({'key': 'longPressKeyCode', 'value': longPressKeyCode });
+        }
+
+        if (code === KeyboardEvent.DOM_VK_ALT) {
+          if (!('targetPage' in key)) {
+            console.error('render.js: no targetPage for switching key.');
+          }
+
+          dataset.push({'key': 'targetPage', 'value': key.targetPage });
         }
 
         dataset.push({'key': 'lowercaseValue', 'value': keyChar });
@@ -600,11 +608,12 @@ var IMERender = (function() {
   // Show char alternatives.
   var showAlternativesCharMenu = function(key, altChars) {
 
-    var keyWidth = cachedWindowWidth / layoutWidth;
+    var keyWidth = (cachedWindowWidth / layoutWidth) | 0;
     var renderer = {
       ARIA_LABELS: ARIA_LABELS,
       buildKey: buildKey,
-      keyWidth: keyWidth
+      keyWidth: keyWidth,
+      screenInPortraitMode: screenInPortraitMode
     };
 
     alternativesCharMenu = new AlternativesCharMenuView(activeIme,

@@ -97,9 +97,9 @@ if (typeof window.importer === 'undefined') {
       parent.LazyLoader.load(dialog, function() {
         LazyLoader.load('/shared/js/confirm.js',
           function() {
-          ConfirmDialog.show(_('connectionLost'), _('connectionLostMsg'),
+          ConfirmDialog.show('connectionLost', 'connectionLostMsg',
           {
-            title: _('noOption'),
+            title: 'noOption',
             isRecommend: !recommend,
             callback: function() {
               ConfirmDialog.hide();
@@ -107,7 +107,7 @@ if (typeof window.importer === 'undefined') {
             }
           },
           {
-            title: _('yesOption'),
+            title: 'yesOption',
             // FB friends can later resync data
             isRecommend: recommend,
             callback: function() {

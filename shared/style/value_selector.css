@@ -17,16 +17,6 @@
   font-family: sans-serif;
 }
 
-#screen.fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="value-selector"] {
-  height: calc(100% - 5rem - 7rem);
-}
-
-@media (orientation: landscape) {
-  #screen.fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="value-selector"] {
-    height: calc(100% - 7rem);
-  }
-}
-
 [role="dialog"][data-type="value-selector"] > section {
   padding: 0 1.5rem 0;
   -moz-box-sizing: padding-box;
@@ -102,9 +92,32 @@
   background-image: none;
 }
 
+/* Subheaders */
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] {
+  border: none;
+  background-color: #242424;
+  pointer-events: none;
+  -moz-user-select: none;
+}
+
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] label {
+  color: #858585;
+  font-size: 1.4rem;
+  font-weight: 500;
+}
+
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] label,
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] + li label {
+  border: none;
+}
+
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[role="subheader"] label span {
+  line-height: 2rem;
+}
+
 /* Checked status */
 [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
-  background: transparent url(value_selector/images/icons/checked.png) right 1.2rem top 50% / 2.1rem no-repeat;
+  background: transparent url(value_selector/images/icons/checked.png) right 1.2rem top 50% / 2.4rem no-repeat;
 }
 
 [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {

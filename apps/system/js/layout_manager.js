@@ -49,12 +49,13 @@
      * @memberOf LayoutManager
      */
     get height() {
-      var softwareButtonOverlayed =
-        !System.locked && (AppWindowManager.getActiveApp() &&
-          AppWindowManager.getActiveApp().isFullScreenLayout());
-      var height = window.innerHeight -
-        (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
-        (softwareButtonOverlayed ? 0 : softwareButtonManager.height);
+      var activeApp = AppWindowManager.getActiveApp();
+      var isFullScreenLayout = activeApp && activeApp.isFullScreenLayout();
+      var softwareButtonHeight = System.locked || isFullScreenLayout ?
+        0 : softwareButtonManager.height;
+      var keyboardHeight = this.keyboardEnabled ?
+        KeyboardManager.getHeight() : 0;
+      var height = window.innerHeight - keyboardHeight - softwareButtonHeight;
 
       // Normalizing the height so that it always translates to an integral
       // number of device pixels

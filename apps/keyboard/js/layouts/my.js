@@ -61,7 +61,7 @@ Keyboards.my = {
     '\u100A'/*ည*/: '\u1009'/*ဉ*/,
     '\u102C'/*ာ*/: '\u1026'/*ဦ*/
   },
-  alternateLayout: {
+  pages: [undefined, {
     needsCommaKey: true,
     keys: [
       [
@@ -77,8 +77,9 @@ Keyboards.my = {
         { value: '/' }, { value: '?' }, { value: '(' }, { value: ')' }
       ], [
         { value: '#+=', ratio: 1.5,
-          keyCode: KeyEvent.DOM_VK_ALT,
-          className: 'page-switch-key'
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
         },
         { value: '\u104F'/*၏*/ }, { value: '\u1029'/*ဩ*/, ratio: 1.5 },
         { value: '\u102A'/*ဪ*/, ratio: 2 },
@@ -89,8 +90,7 @@ Keyboards.my = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  },
-  symbolLayout: {
+  }, {
     needsCommaKey: true,
     alt: {
       '€': '€ ¥'
@@ -106,7 +106,7 @@ Keyboards.my = {
         { value: '+' }, { value: '=' }
       ], [
         { value: '\u1041\u1042\u1043'/*၁၂၃*/, ratio: 1.5,
-          keyCode: KeyEvent.DOM_VK_ALT },
+          keyCode: KeyboardEvent.DOM_VK_ALT, targetPage: 1 },
         { value: '\\' }, { value: '\'' }, { value: '[' }, { value: ']' },
         { value: '<' }, { value: '>' }, {value: ';' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
@@ -115,5 +115,5 @@ Keyboards.my = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

@@ -5,126 +5,34 @@
 
 #settings-view .view-scroll {
   top: 5rem;
+  bottom: 1rem;
 }
 
 #settings-view.view {
   top: 0;
 }
-
-#settings-view .buttons-list button {
-  margin: 0;
-}
-
-#mobile-data-usage span,
-#wifi-data-usage span {
-  font-size: 1.3rem;
-  font-weight: normal;
-}
-
-#mobile-data-usage span.usage,
-#wifi-data-usage span.usage {
-  font-size: 1.7rem;
-  font-weight: bold;
-}
-
-/* SETTINGS LISTS */
-.settings li {
-  border-bottom: solid 0.1rem #e0e0dd;
-  font-size: 1.6rem;
-  padding: 1.2rem 0;
-  margin-left: 1.5rem;
-  margin-right: 1.5rem;
-  position: relative;
-  overflow: hidden;
-  min-height: 3.6rem;
-}
-
-.settings li p {
-  margin: 0 1.5rem;
-  overflow: hidden;
-}
-
-.settings li p:only-of-type {
-  padding-top: 0.8rem;
-  padding-bottom: 0.8rem;
-  line-height: 2rem;
-}
-
-.settings li .meta {
-  font-size: 1.4rem;
-  color: #505859;
-}
-
-.settings li sub {
-  vertical-align: baseline;
-  font-size: 1.2rem;
-}
-
-/* End elements */
-.settings li > .end {
-  position: relative;
-  height: 4.6rem;
-  float: right;
-  margin: -0.5rem 0.4rem -0.5rem;
-}
-
-.settings li > label.end {
-  margin-right: 1rem;
-}
-
-.settings li > .end:before {
-  content: "";
-  display: inline-block;
-  vertical-align: middle;
-  width: 0.1rem;
-  height: 100%;
-  margin-left: -0.8rem;
-}
-
-.settings li > .end button,
-.settings li > .end .button {
-  display: inline-block;
-  vertical-align: middle;
-  width: 10.0rem;
-  margin: 0;
+#settings-view label span {
   padding-left: 0.5rem;
-  overflow: hidden;
 }
 
-.settings li > .end button .tag {
-  margin: 0;
-  float: none;
-  height: auto;
-  width: auto;
+
+/* low limit */
+.low-limit-container {
+  padding-top: 1rem;
+  width: 100%;
 }
 
-.settings li .toggle.end {
-  margin-top: -2.3rem;
-}
-
-.settings li label {
-  font-size: 1.4rem;
-  color: #505859;
-}
-
-.settings li .toggle input[type="checkbox"] {
-  pointer-events: none;
-}
-
-.settings li input[type="number"] {
-  width: 6rem;
-  height: 2.5rem;
-  line-height: 2.5rem;
-  display: inline-block;
+.low-limit-container input {
   text-align: right;
 }
 
-/* PLANTYPE SELECTOR */
-#plantype-settings li {
-  margin: 1rem 1.5rem;
-  padding: 0;
+.low-limit-container span {
+  padding: 0 0 1rem 1rem
 }
 
-#plantype-settings li span {
-  margin: 0;
+/* Settings view data usage */
+#wifi-data-usage {
+  line-height: 20px;
+  font-size: 18px;
+  color: #333;
 }

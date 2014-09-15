@@ -1,7 +1,12 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ContactPhotoHelper, Notification, Promise, Threads, Settings */
+/* globals ContactPhotoHelper,
+           FileReader,
+           Notification,
+           Promise,
+           Settings,
+           Threads */
 
 (function(exports) {
   'use strict';
@@ -10,13 +15,6 @@
   var rparams = /([^?=&]+)(?:=([^&]*))?/g;
   var rnondialablechars = /[^,#+\*\d]/g;
   var rmail = /[\w-]+@[\w\-]/;
-  var downsamplingRefSize = {
-    // Estimate average Thumbnail size:
-    // 120 X 60 (max pixel) X 3 (full color) / 20 (average jpeg compress ratio)
-    // = 1080 (byte)
-    'thumbnail' : 1080
-    // TODO: For mms resizing
-  };
 
   var Utils = {
     date: {
@@ -71,13 +69,6 @@
         dayDiff === 1 && _('yesterday') ||
         dayDiff < 6 && this.date.format.localeFormat(this.date.shared, '%A') ||
         this.date.format.localeFormat(this.date.shared, '%x');
-    },
-    getFontSize: function ut_getFontSize() {
-      if (!this.rootFontSize) {
-        var htmlCss = window.getComputedStyle(document.documentElement, null);
-        this.rootFontSize = parseInt(htmlCss.getPropertyValue('font-size'), 10);
-      }
-      return this.rootFontSize;
     },
 
     // We will apply createObjectURL for details.photoURL if contact image exist
@@ -422,23 +413,6 @@
       return 1;
     },
 
-    // Return the url path with #-moz-samplesize postfix and downsampled image
-    // could be loaded directly from backend graphics lib.
-    getDownsamplingSrcUrl: function ut_getDownsamplingSrcUrl(options) {
-      var newUrl = options.url;
-      var size = options.size;
-      var ref = downsamplingRefSize[options.type];
-
-      if (size && ref) {
-        // Estimate average Thumbnail size
-        var ratio = Math.min(Math.sqrt(size / ref), 16);
-
-        if (ratio >= 2) {
-          newUrl += '#-moz-samplesize=' + Math.floor(ratio);
-        }
-      }
-      return newUrl;
-    },
     camelCase: function ut_camelCase(str) {
       return str.replace(rdashes, function replacer(str, p1) {
         return p1.toUpperCase();
@@ -621,76 +595,6 @@
     },
 
     /**
-     * Converts image URL to data URL using specified image mime type. Preferred
-     * image dimensions can be retrieved via optional sizeRetriever delegate,
-     * otherwise actual dimensions will be used.
-     * @param imageURL Image URL to convert.
-     * @param type Image MIME type.
-     * @param sizeAdjuster Optional delegate that accepts actual image width and
-     * height as parameters and should return both these dimensions adjusted
-     * depending on consumer's code needs. These adjusted dimensions then will
-     * be used to generate image data URL.
-     * @returns {Promise.<string>} Promise that will be resolved to Data URL.
-     */
-    imageUrlToDataUrl: function(imageURL, type, sizeAdjuster) {
-      var img = new Image(),
-          deferred = Utils.Promise.defer();
-
-      img.src = imageURL;
-
-      img.onload = function onBlobLoaded() {
-        var adjustedSize = null,
-            canvas = null;
-
-        try {
-          window.URL.revokeObjectURL(img.src);
-
-          adjustedSize = sizeAdjuster ? sizeAdjuster(img.width, img.height) : {
-            width: img.width,
-            height: img.height
-          };
-
-          canvas = Utils.imageToCanvas(
-            img, adjustedSize.width, adjustedSize.height
-          );
-
-          deferred.resolve({
-            width: adjustedSize.width,
-            height: adjustedSize.height,
-            dataUrl: canvas.toDataURL(type)
-          });
-        } catch (e) {
-          deferred.reject(e);
-        } finally {
-          // Freeing up resources occupied by canvas
-          if (canvas) {
-            canvas.width = canvas.height = 0;
-            canvas = null;
-          }
-        }
-      };
-
-      img.onerror = function() {
-        deferred.reject(new Error('The image could not be loaded.'));
-      };
-
-      function cleanup() {
-        img.height = img.width = 0;
-        img = img.src = null;
-      }
-
-      // TODO: it would be helpful to have Utils.Promise.finally for such clean
-      // up cases that don't care whether promise was resolved or rejected.
-      return deferred.promise.then(function(result) {
-        cleanup();
-        return result;
-      }, function(e) {
-        cleanup();
-        return Promise.reject(e);
-      });
-    },
-
-    /**
      * Returns a function that will call specified "func" function only after it
      * stops being called for a specified wait time.
      * @param {function} func Function to call.
@@ -737,6 +641,26 @@
 
         return deferred;
       }
+    },
+
+    /**
+     * Make a local copy of data to prevent any possible access violation while
+     * using the data returning from other activity.
+     * @param {Blob} blob Target blob which we want to make a clone in local.
+     * @returns {Promise}
+     */
+    cloneBlob: function(blob) {
+      return new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+
+        reader.onload = function() {
+          resolve(new Blob([reader.result], { type: blob.type }));
+        };
+
+        reader.onerror = reject;
+
+        reader.readAsArrayBuffer(blob);
+      });
     }
   };
 

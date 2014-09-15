@@ -1,32 +1,32 @@
 (function(window) {
   'use strict';
 
-  var Cal = Calendar.Template.create({
+  var LocalProvider = Calendar.Provider.Local;
+  var Template = Calendar.Template;
+
+  var Cal = Template.create({
     item: function() {
       var id = this.h('_id');
       var l10n = '';
       var name = '';
 
-      // hack localize the only default calendar
-      if (id && Calendar.Provider.Local.calendarId === id) {
-        // localize the default calendar name
+      // localize only the default calendar; there is no need to set the name,
+      // the [data-l10n-id] will take care of setting the proper value
+      if (id && LocalProvider.calendarId === id) {
         l10n = 'data-l10n-id="calendar-local"';
-        name = navigator.mozL10n.get('calendar-local');
       } else {
         name = this.h('name');
       }
 
-      return '<li id="calendar-' + id + '" class="calendar-id-' + id + '">' +
-          '<div class="gaia-icon icon-calendar-dot calendar-text-color">' +
-          '</div>' +
-          '<label class="pack-checkbox">' +
-            '<input ' +
-              'value="' + id + '" ' +
-              'type="checkbox" ' +
-              this.bool('localDisplayed', 'checked') + ' />' +
-            '<span ' + l10n + ' class="name">' + name + '</span>' +
-          '</label>' +
-        '</li>';
+      var checked = this.bool('localDisplayed', 'checked');
+
+      return `<li id="calendar-${id}" class="calendar-id-${id}">
+          <div class="gaia-icon icon-calendar-dot calendar-text-color"></div>
+          <label class="pack-checkbox">
+            <input value="${id}" type="checkbox" ${checked} />
+            <span ${l10n} class="name">${name}</span>
+          </label>
+        </li>`;
     }
   });
 

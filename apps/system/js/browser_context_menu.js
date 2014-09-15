@@ -114,6 +114,7 @@
 
     // Notify the embedder we are handling the context menu
     evt.preventDefault();
+    evt.stopPropagation();
     this.showMenu(items);
   };
 
@@ -242,13 +243,17 @@
   };
 
   BrowserContextMenu.prototype.showWindows = function(manifest) {
-    window.dispatchEvent(new CustomEvent('taskmanagershow'));
+    window.dispatchEvent(
+      new CustomEvent('taskmanagershow',
+                      { detail: { filter: 'browser-only' }})
+    );
   };
 
   BrowserContextMenu.prototype.generateSystemMenuItem = function(item) {
 
     var nodeName = item.nodeName.toUpperCase();
     var uri = item.data.uri;
+    var text = item.data.text;
 
     switch (nodeName) {
       case 'A':
@@ -257,13 +262,10 @@
           label: _('open-in-new-tab'),
           callback: this.openUrl.bind(this, uri)
         }, {
-        // TODO: requires the text description from the link
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=1009351
-        //
-        //   id: 'bookmark-link',
-        //   label: _('add-link-to-home-screen'),
-        //   callback: this.bookmarkUrl.bind(this, [item.data.uri])
-        // }, {
+          id: 'bookmark-link',
+          label: _('add-link-to-home-screen'),
+          callback: this.bookmarkUrl.bind(this, uri, text)
+        }, {
           id: 'save-link',
           label: _('save-link'),
           callback: this.app.browser.element.download.bind(this, uri)

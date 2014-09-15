@@ -44,7 +44,7 @@ class TestClockSetAlarm(GaiaTestCase):
         self.assertEqual('Digicloud', new_alarm.alarm_sound)
 
         # Ensure snooze has the default value
-        self.assertEquals(new_alarm.alarm_snooze, '5 minutes')
+        self.assertEquals(new_alarm.alarm_snooze, '10 minutes')
 
         # Set snooze
         new_alarm.select_snooze('15 minutes')

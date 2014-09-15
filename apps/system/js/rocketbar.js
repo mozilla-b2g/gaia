@@ -113,8 +113,9 @@
       this.active = false;
 
       var backdrop = this.backdrop;
-
+      var finishTimeout;
       var finish = (function() {
+        clearTimeout(finishTimeout);
         this.form.classList.add('hidden');
         this.rocketbar.classList.remove('active');
         this.screen.classList.remove('rocketbar-focused');
@@ -132,6 +133,8 @@
           window.removeEventListener('keyboardhidden', onhiddenkeyboard);
           finish();
         });
+        // Fallback plan in case we don't get a keyboardhidden event.
+        finishTimeout = setTimeout(finish, 1000);
         this.blur();
       } else {
         finish();
@@ -149,6 +152,8 @@
       window.addEventListener('apptitlechange', this);
       window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('appopened', this);
+      window.addEventListener('launchapp', this);
+      window.addEventListener('open-app', this);
       window.addEventListener('home', this);
       window.addEventListener('launchactivity', this, true);
       window.addEventListener('searchterminated', this);
@@ -178,11 +183,19 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+        case 'launchapp':
+          // Do not close the search app if something opened in the background.
+          var detail = e.detail;
+          if (detail && detail.stayBackground) {
+            return;
+          }
+          /* falls through */
         case 'attentionopening':
         case 'attentionopened':
         case 'apploading':
         case 'appforeground':
         case 'appopened':
+        case 'open-app':
           this.hideResults();
           this.deactivate();
           break;
@@ -313,6 +326,13 @@
      */
     clear: function() {
       this.setInput('');
+
+      // Send a message to the search app to clear results
+      if (this._port) {
+        this._port.postMessage({
+          action: 'clear'
+        });
+      }
     },
 
     /**

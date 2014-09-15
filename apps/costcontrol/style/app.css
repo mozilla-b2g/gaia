@@ -151,18 +151,6 @@ gaia-header [data-icon]:before {
   list-style: none;
 }
 
-li button {
-  text-align: center;
-}
-
-li button.icon {
-  text-align: left;
-}
-
-li button:after {
-  top: calc(100% + 0.1rem);
-}
-
 .fake-select select {
   height: 100%;
   position: absolute;

@@ -100,7 +100,8 @@ suite('Distribution mechanism', function() {
         'data_ftu':true,
         'search': '/resources/mobizilla_search.json',
         'default_search': '/resources/mobizilla_default_search.json',
-        'topsites':'/resources/mobizilla_topsites.json'
+        'topsites':'/resources/mobizilla_topsites.json',
+        'browser': '/resources/mobizilla_bookmarks.json'
     };
     var expectedCustom = {
       '310-260': variantConfig,
@@ -161,6 +162,10 @@ suite('Distribution mechanism', function() {
       'resources/mobizilla_topsites.json',
       path.join(cusDir, 'mobizilla',
         'mobizilla_expected_topsites.json'));
+    helper.checkFileInZip(zipPath,
+      'resources/mobizilla_bookmarks.json',
+      path.join(cusDir, 'mobizilla',
+        'mobizilla_expected_bookmarks.json'));
   }
 
   function validateCalendar() {

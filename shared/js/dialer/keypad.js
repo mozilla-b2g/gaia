@@ -661,18 +661,17 @@ var KeypadManager = {
   },
 
   _showNoVoicemailDialog: function hk_showNoVoicemailDialog() {
-    var _ = window.navigator.mozL10n.get;
 
     var voicemailDialog = {
-      title: _('voicemailNoNumberTitle'),
-      text: _('voicemailNoNumberText'),
+      title: 'voicemailNoNumberTitle',
+      text: 'voicemailNoNumberText',
       confirm: {
-        title: _('voicemailNoNumberSettings'),
+        title: 'voicemailNoNumberSettings',
         recommend: true,
         callback: this.showVoicemailSettings
       },
       cancel: {
-        title: _('voicemailNoNumberCancel'),
+        title: 'voicemailNoNumberCancel',
         callback: this._hideNoVoicemailDialog
       }
     };

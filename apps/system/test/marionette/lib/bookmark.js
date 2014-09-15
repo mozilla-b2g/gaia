@@ -8,7 +8,7 @@ function Bookmark(client) {
 Bookmark.prototype = {
 
   Selectors: {
-    'bookmarkAddButton': '#add-button',
+    'bookmarkAddButton': '#done-button',
     'mozbrowser': '.inline-activity.active iframe[mozbrowser]',
   },
 

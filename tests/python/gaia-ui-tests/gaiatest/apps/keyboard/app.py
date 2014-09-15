@@ -73,8 +73,7 @@ class Keyboard(Base):
     # special keys locators
     _language_key_locator = (By.CSS_SELECTOR, ".keyboard-type-container[data-active='true'] .keyboard-row button[data-keycode='-3']")
     _dotcom_key_locator = (By.CSS_SELECTOR, ".keyboard-row button[data-compositekey='.com']")
-    _numeric_sign_key = '-2'
-    _alpha_key = '-1'
+    _page_switching_key_locator = (By.CSS_SELECTOR, '.keyboard-type-container[data-active] button.keyboard-key[data-target-page="%s"]')
     _backspace_key = '8'
     _enter_key = '13'
     _alt_key = '18'
@@ -98,19 +97,19 @@ class Keyboard(Base):
                 return key_to_press
 
     # Try to switch to the correct layout. There are 3 keyboard layers:
-    # ABC (layoutPage = 0), 123 (layoutPage = 1) and ALT (layoutPage = 2)
+    # Basic (layoutPage = 0), Alternate (layoutPage = 1) and Symbol (layoutPage = 2)
     def _switch_to_correct_layout(self, val):
         layout_page = self._layout_page
         current_input_type = self._current_input_type
         if val.isspace():
             # Space is available on every keyboard panel
             pass
-        # Alphabetic keys available on the Default page
+        # Alphabetic keys available on the basic page
         elif val.isalpha():
             is_upper_case = self._is_upper_case
-            # If the key to press isalpha and the keyboard layout is not, go back to Default
+            # If the key to press isalpha and the keyboard layout is not, go back to Basic
             if not layout_page == 0:
-                self._tap(self._alpha_key)
+                self._tap_page_switching_key(0)
                 self.wait_for_condition(lambda m: self._layout_page == 0)
             # If the key to press isupper and the keyboard is not (or vice versa) then press shift
             if not val.isupper() == is_upper_case:
@@ -118,16 +117,24 @@ class Keyboard(Base):
                 self.wait_for_condition(lambda m: is_upper_case != self._is_upper_case)
         # Numbers and symbols are in other keyboard panels
         else:
-            # If it's not space or alpha then it must be in 123 or ALT.
-            # It can't be in Default so let's go into 123 and then try to find it
+            # If it's not space or alpha then it must be in Alternate or Symbol.
+            # It can't be in Basic so let's go into Alternate and then try to find it
             if not current_input_type == 'number' and layout_page == 0:
-                self._tap(self._numeric_sign_key)
-                self.wait_for_element_displayed(*self._key_locator(self._alpha_key))
-            # If it is not present here then it must be in one of the ALT section
+                self._tap_page_switching_key(1)
+                page_0_key_locator = (self._page_switching_key_locator[0], self._page_switching_key_locator[1] % (0))
+                self.wait_for_element_displayed(*page_0_key_locator)
+            # If it is not present here then it must be in the other non-Basic page
+            # (since we must be in either Alternate or Symbol at this stage)
             if not self.is_element_present(*self._key_locator(val)):
                 layout_page = self._layout_page
-                self._tap(self._alt_key)
-                self.wait_for_condition(lambda m: layout_page != self._layout_page)
+                if layout_page == 1:
+                    self._tap_page_switching_key(2)
+                    page_1_key_locator = (self._page_switching_key_locator[0], self._page_switching_key_locator[1] % (1))
+                    self.wait_for_element_displayed(*page_1_key_locator)
+                else:
+                    self._tap_page_switching_key(1)
+                    page_2_key_locator = (self._page_switching_key_locator[0], self._page_switching_key_locator[1] % (2))
+                    self.wait_for_element_displayed(*page_2_key_locator)
 
     @property
     def _is_upper_case(self):
@@ -143,7 +150,7 @@ class Keyboard(Base):
 
     @property
     def _layout_page(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.app.layoutManager.currentLayoutPage;')
+        return self.marionette.execute_script('return window.wrappedJSObject.app.layoutManager.currentPageIndex;')
 
     # this is to switch to the frame of keyboard
     def switch_to_keyboard(self):
@@ -186,6 +193,13 @@ class Keyboard(Base):
             # Tapping key with shift enabled causes the keyboard to switch back to lower
             self.wait_for_condition(lambda m: not self._is_upper_case)
 
+    def _tap_page_switching_key(self, val):
+        locator = (self._page_switching_key_locator[0], self._page_switching_key_locator[1] % val)
+
+        self.wait_for_element_displayed(*locator)
+        key = self.marionette.find_element(*locator)
+        Actions(self.marionette).press(key).wait(0.1).release().perform()
+
     # This is for selecting special characters after long pressing
     # "selection" is the nth special element you want to select (n>=1)
     def choose_extended_character(self, long_press_key, selection, movement=True):
@@ -208,8 +222,6 @@ class Keyboard(Base):
 
     def enable_caps_lock(self):
         self.switch_to_keyboard()
-        if self.is_element_present(*self._key_locator(self._alpha_key)):
-            self._tap(self._alpha_key)
         key_obj = self.marionette.find_element(*self._key_locator(self._upper_case_key))
         self.marionette.double_tap(key_obj)
         self.apps.switch_to_displayed_app()
@@ -278,23 +290,9 @@ class Keyboard(Base):
         self.marionette.find_element(*self._language_key_locator).tap()
         self.apps.switch_to_displayed_app()
 
-    # switch to keyboard with numbers and special characters
-    def switch_to_number_keyboard(self):
-        self.switch_to_keyboard()
-        self._tap(self._numeric_sign_key)
-        self.apps.switch_to_displayed_app()
-
-    # switch to keyboard with alphabetic keys
-    def switch_to_alpha_keyboard(self):
-        self.switch_to_keyboard()
-        self._tap(self._alpha_key)
-        self.apps.switch_to_displayed_app()
-
     # following are "5 functions" to substitute finish switch_to_frame()s and tap() for you
     def tap_shift(self):
         self.switch_to_keyboard()
-        if self.is_element_present(*self._key_locator(self._alpha_key)):
-            self._tap(self._alpha_key)
         self._tap(self._upper_case_key)
         self.apps.switch_to_displayed_app()
 
@@ -312,13 +310,6 @@ class Keyboard(Base):
     def tap_enter(self):
         self.switch_to_keyboard()
         self._tap(self._enter_key)
-        self.apps.switch_to_displayed_app()
-
-    def tap_alt(self):
-        self.switch_to_keyboard()
-        if self.is_element_present(*self._key_locator(self._numeric_sign_key)):
-            self._tap(self._numeric_sign_key)
-        self._tap(self._alt_key)
         self.apps.switch_to_displayed_app()
 
     def tap_dotcom(self):
