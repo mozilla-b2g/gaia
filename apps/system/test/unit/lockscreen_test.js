@@ -147,11 +147,31 @@ suite('system/LockScreen >', function() {
     mockLO.restore();
   });
 
-  test('Unlock: can actually unlock', function() {
-    subject.overlay = domOverlay;
-    subject.unlock(true);
-    assert.isFalse(subject.locked);
-  });
+  test('Unlock: can actually unlock with non-homescreen APP, ' +
+       'and wait repainting.',
+    function() {
+      var app = new MockAppWindow();
+      app.manifest = {role: ''};
+      var spy = this.sinon.stub(app, 'ready');
+      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+      subject.overlay = domOverlay;
+      subject.unlock(true);
+      assert.isFalse(subject.locked);
+      assert.ok(spy.called);
+    });
+
+  test('Unlock: can actually unlock with fake homescreen APP,' +
+       ' without waiting it to repaint .',
+    function() {
+      var app = new MockAppWindow();
+      app.manifest = {role: 'homescreen'};
+      var spy = this.sinon.stub(app, 'ready');
+      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+      subject.overlay = domOverlay;
+      subject.unlock(true);
+      assert.isFalse(subject.locked);
+      assert.isFalse(spy.called);
+    });
 
   test('Passcode: enter passcode can unlock the screen', function() {
     subject.passCodeEntered = '0000';
@@ -202,6 +222,7 @@ suite('system/LockScreen >', function() {
       'would fire event to turn secure mode off',
       function() {
         var app = new MockAppWindow();
+        app.manifest = {role: ''};
         var spy = this.sinon.stub(app, 'ready');
         this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
         var stubDispatch = this.sinon.stub(window, 'dispatchEvent');

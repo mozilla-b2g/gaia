@@ -340,6 +340,7 @@
       this.debug('handling ' + evt.type);
       var detail = evt.detail;
       var activeApp = this._activeApp;
+      var home;
       switch (evt.type) {
         case 'permissiondialoghide':
           activeApp && activeApp.broadcast('focus');
@@ -449,7 +450,7 @@
             }
             activeApp.setVisible(false);
           } else {
-            var home = homescreenLauncher.getHomescreen(); // jshint ignore:line
+            home = homescreenLauncher.getHomescreen();
             home && home.setVisible(false);
           }
           break;
@@ -465,13 +466,14 @@
         case 'showwindow':
           var fireActivity = () => {
             // Need to invoke activity
+            homescreenLauncher.getHomescreen().fadeOut();
             var a = new window.MozActivity(detail.activity);
             a.onerror = function ls_activityError() {
               console.log('MozActivity: activity error.');
             };
           };
 
-          if (activeApp && activeApp.origin !== homescreenLauncher.origin) {
+          if (activeApp && 'homescreen' !== activeApp.manifest.role) {
             activeApp.setVisible(true);
             // If we need to invoke activity after we show the window.
             if (detail && detail.activity) {
@@ -479,10 +481,11 @@
             }
           } else {
             // If we only have activity, we don't open the homescreen.
+            home = homescreenLauncher.getHomescreen(true);
             if (detail && detail.activity) {
+              home.close();
               fireActivity();
             } else {
-              var home = homescreenLauncher.getHomescreen(true); // jshint ignore:line
               if (home) {
                 if (home.isActive()) {
                   home.setVisible(true);
