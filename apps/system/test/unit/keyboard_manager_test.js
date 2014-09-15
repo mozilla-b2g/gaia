@@ -29,7 +29,6 @@ var mocksHelperForKeyboardManager = new MocksHelper([
 ]).init();
 
 suite('KeyboardManager', function() {
-  var BLUR_CHANGE_DELAY = 100;
   var SWITCH_CHANGE_DELAY = 20;
 
   function trigger(event, detail) {
@@ -169,10 +168,8 @@ suite('KeyboardManager', function() {
       });
       test('Switching from "text" to "number"', function() {
         simulateInputChangeEvent('text');
-        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
 
         simulateInputChangeEvent('number');
-        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
 
         sinon.assert.calledWith(KeyboardManager.setKeyboardToShow, 'text');
         sinon.assert.calledWith(KeyboardManager.setKeyboardToShow, 'number');
@@ -181,9 +178,7 @@ suite('KeyboardManager', function() {
 
       test('Switching from "text" to "text"', function() {
         simulateInputChangeEvent('text');
-        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
         simulateInputChangeEvent('text');
-        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
 
         sinon.assert.calledWith(KeyboardManager.setKeyboardToShow, 'text');
         sinon.assert.notCalled(KeyboardManager.resetShowingKeyboard);
@@ -191,9 +186,7 @@ suite('KeyboardManager', function() {
 
       test('Switching from "text" to "select-one"', function() {
         simulateInputChangeEvent('text');
-        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
         simulateInputChangeEvent('select-one');
-        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
 
         sinon.assert.called(KeyboardManager.hideKeyboard);
       });
@@ -207,7 +200,6 @@ suite('KeyboardManager', function() {
           { apps: true });
 
         simulateInputChangeEvent('url');
-        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
       });
       test('does not request layouts or defaults', function() {
         assert.isFalse(this.getLayouts.called);
@@ -237,7 +229,6 @@ suite('KeyboardManager', function() {
           this.checkDefaults = this.sinon.stub(KeyboardHelper, 'checkDefaults');
 
           simulateInputChangeEvent('url');
-          this.sinon.clock.tick(BLUR_CHANGE_DELAY);
 
           this.checkDefaults.getCall(0).args[0]();
         });
@@ -261,7 +252,6 @@ suite('KeyboardManager', function() {
               callback();
             }.bind(this));
           simulateInputChangeEvent('url');
-          this.sinon.clock.tick(BLUR_CHANGE_DELAY);
         });
 
         test('requests layouts', function() {
@@ -308,7 +298,6 @@ suite('KeyboardManager', function() {
         );
 
         simulateInputChangeEvent('chocola');
-        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
 
         sinon.assert.calledWith(km.setKeyboardToShow, 'chocola', 1);
       });
@@ -319,7 +308,6 @@ suite('KeyboardManager', function() {
         );
 
         simulateInputChangeEvent('chocola');
-        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
 
         sinon.assert.calledWith(km.setKeyboardToShow, 'chocola', 2);
       });
@@ -330,7 +318,6 @@ suite('KeyboardManager', function() {
         );
 
         simulateInputChangeEvent('chocola');
-        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
 
         sinon.assert.calledWith(km.setKeyboardToShow, 'chocola');
       });
@@ -339,7 +326,6 @@ suite('KeyboardManager', function() {
         mkh.getCurrentActiveLayout = sinon.stub().returns(null);
 
         simulateInputChangeEvent('chocola');
-        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
 
         sinon.assert.callCount(mkh.getCurrentActiveLayout, 1);
         sinon.assert.calledWith(mkh.getCurrentActiveLayout, 'chocola');
@@ -949,7 +935,6 @@ suite('KeyboardManager', function() {
       dispatchTransitionEvents();
 
       simulateInputChangeEvent('blur');
-      this.sinon.clock.tick(BLUR_CHANGE_DELAY);
 
       // fire a resize event again after the keyboard frame is hiding
       fakeMozbrowserResize(200);
@@ -1004,8 +989,6 @@ suite('KeyboardManager', function() {
     test('Blur should hide', function() {
       simulateInputChangeEvent('blur');
 
-      this.sinon.clock.tick(BLUR_CHANGE_DELAY);
-
       sinon.assert.callCount(KeyboardManager.hideKeyboard, 1);
       sinon.assert.notCalled(KeyboardManager.setKeyboardToShow);
       sinon.assert.callCount(imeSwitcherHide, 1,
@@ -1016,15 +999,6 @@ suite('KeyboardManager', function() {
       simulateInputChangeEvent('text');
 
       sinon.assert.notCalled(KeyboardManager.hideKeyboard);
-      sinon.assert.callCount(KeyboardManager.setKeyboardToShow, 1);
-    });
-
-    test('Blur followed by focus should not hide', function() {
-      simulateInputChangeEvent('blur');
-      simulateInputChangeEvent('text');
-      this.sinon.clock.tick(BLUR_CHANGE_DELAY);
-
-      sinon.assert.callCount(KeyboardManager.hideKeyboard, 0);
       sinon.assert.callCount(KeyboardManager.setKeyboardToShow, 1);
     });
   });
