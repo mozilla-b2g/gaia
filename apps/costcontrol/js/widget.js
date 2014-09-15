@@ -233,7 +233,6 @@ var Widget = (function() {
         rightPanel.setAttribute('aria-hidden', true);
       }
       var className = 'widget-' + status;
-      document.getElementById('fte-icon').classList.add(className);
       Common.localize(fte.querySelector('p:first-child'), className +
         '-heading');
       Common.localize(fte.querySelector('p:last-child'), className + '-meta');
@@ -259,7 +258,6 @@ var Widget = (function() {
     };
     var simKey = keyLookup[mode];
 
-    document.getElementById('fte-icon').className = 'icon ' + simKey;
     Common.localize(
       fte.querySelector('p:first-child'),
       simKey + '-heading',

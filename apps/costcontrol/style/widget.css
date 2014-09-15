@@ -55,19 +55,6 @@ p.meta {
 }
 
 /* FTE */
-.widget-authed-sim {
-  background: url(images/widget/sim/authed-sim.png) no-repeat center center;
-}
-
-.widget-nonauthed-sim {
-  background: url(images/widget/sim/nonauthed-sim.png) no-repeat center center;
-}
-
-.widget-no-sim2,
-.widget-airplane-mode,
-.widget-sim-locked {
-  background: url(images/widget/sim/no-sim.png) no-repeat center center;
-}
 
 #fte-view p:not(.meta) {
   white-space: nowrap;
