@@ -693,7 +693,7 @@ suite('system/AppInstallManager >', function() {
           });
 
           test('should not remove a notification', function() {
-            var method = 'decExternalNotifications';
+            var method = 'removeUnreadNotification';
             assert.isUndefined(MockNotificationScreen.wasMethodCalled[method]);
           });
 
@@ -719,7 +719,7 @@ suite('system/AppInstallManager >', function() {
           });
 
           test('should not remove a notification', function() {
-            var method = 'decExternalNotifications';
+            var method = 'removeUnreadNotification';
             assert.isUndefined(MockNotificationScreen.wasMethodCalled[method]);
           });
 
@@ -836,7 +836,7 @@ suite('system/AppInstallManager >', function() {
           });
 
           test('should add a notification', function() {
-            var method = 'incExternalNotifications';
+            var method = 'addUnreadNotification';
             assert.equal(fakeNotif.childElementCount, 1);
             assert.ok(MockNotificationScreen.wasMethodCalled[method]);
           });
@@ -864,7 +864,7 @@ suite('system/AppInstallManager >', function() {
             });
 
             test('should remove the notif', function() {
-              var method = 'decExternalNotifications';
+              var method = 'removeUnreadNotification';
               assert.equal(fakeNotif.childElementCount, 0);
               assert.ok(MockNotificationScreen.wasMethodCalled[method]);
             });
@@ -924,7 +924,7 @@ suite('system/AppInstallManager >', function() {
             });
 
             test('should remove the notif', function() {
-              var method = 'decExternalNotifications';
+              var method = 'removeUnreadNotification';
               assert.equal(fakeNotif.childElementCount, 0);
               assert.ok(MockNotificationScreen.wasMethodCalled[method]);
             });
@@ -981,7 +981,7 @@ suite('system/AppInstallManager >', function() {
         });
 
         test('should add a notification', function() {
-          var method = 'incExternalNotifications';
+          var method = 'addUnreadNotification';
           assert.equal(fakeNotif.childElementCount, 1);
           assert.ok(MockNotificationScreen.wasMethodCalled[method]);
         });
@@ -1047,7 +1047,7 @@ suite('system/AppInstallManager >', function() {
           });
 
           test('should add a notification', function() {
-            var method = 'incExternalNotifications';
+            var method = 'addUnreadNotification';
             assert.equal(fakeNotif.childElementCount, 1);
             assert.ok(MockNotificationScreen.wasMethodCalled[method]);
           });
@@ -1083,7 +1083,7 @@ suite('system/AppInstallManager >', function() {
             });
 
             test('should remove the notif', function() {
-              var method = 'decExternalNotifications';
+              var method = 'removeUnreadNotification';
               assert.equal(fakeNotif.childElementCount, 0);
               assert.ok(MockNotificationScreen.wasMethodCalled[method]);
             });
@@ -1142,7 +1142,7 @@ suite('system/AppInstallManager >', function() {
             });
 
             test('should remove the notif', function() {
-              var method = 'decExternalNotifications';
+              var method = 'removeUnreadNotification';
               assert.equal(fakeNotif.childElementCount, 0);
               assert.ok(MockNotificationScreen.wasMethodCalled[method]);
             });
@@ -1208,7 +1208,7 @@ suite('system/AppInstallManager >', function() {
         });
 
         test('should add a notification', function() {
-          var method = 'incExternalNotifications';
+          var method = 'addUnreadNotification';
           assert.equal(fakeNotif.childElementCount, 1);
           assert.ok(MockNotificationScreen.wasMethodCalled[method]);
         });
@@ -1304,7 +1304,7 @@ suite('system/AppInstallManager >', function() {
     test('should add a notification for the pending app', function() {
       mockApp.mTriggerDownloadProgress(50);
 
-      var method = 'incExternalNotifications';
+      var method = 'addUnreadNotification';
       assert.equal(fakeNotif.childElementCount, 1);
       assert.ok(MockNotificationScreen.wasMethodCalled[method]);
     });
@@ -1312,7 +1312,7 @@ suite('system/AppInstallManager >', function() {
     test('should not add a notification for the installed app', function() {
       installedMockApp.mTriggerDownloadProgress(50);
 
-      var method = 'incExternalNotifications';
+      var method = 'addUnreadNotification';
       assert.equal(fakeNotif.childElementCount, 0);
       assert.isUndefined(MockNotificationScreen.wasMethodCalled[method]);
     });
