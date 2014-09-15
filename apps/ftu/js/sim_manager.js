@@ -742,7 +742,6 @@ var SimManager = (function() {
   importContacts: function sm_importContacts() {
     // Delay for showing feedback to the user after importing
     var DELAY_FEEDBACK = 300;
-    UIManager.navBar.setAttribute('aria-disabled', 'true');
     var progress = utils.overlay.show('simContacts-reading',
                                       'activityBar');
 
@@ -784,7 +783,6 @@ var SimManager = (function() {
 
     importer.onfinish = function sim_import_finish(numDupsMerged, iccId) {
       window.setTimeout(function do_sim_import_finish() {
-        UIManager.navBar.removeAttribute('aria-disabled');
         utils.overlay.hide();
         if (importedContacts > 0) {
           utils.misc.setTimestamp('sim-' + iccId);
@@ -803,7 +801,6 @@ var SimManager = (function() {
     };
 
     importer.onerror = function sim_import_error() {
-      UIManager.navBar.removeAttribute('aria-disabled');
       utils.overlay.hide();
       // Just in case the user decides to do so later
       importButton.removeAttribute('disabled');

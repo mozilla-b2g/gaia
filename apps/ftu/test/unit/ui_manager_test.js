@@ -168,7 +168,7 @@ suite('UI Manager > ', function() {
 
     setup(function() {
       localizeSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
-      nextButton = document.getElementById('forward');
+      nextButton = document.getElementById('fxa-no');
     });
 
     teardown(function() {

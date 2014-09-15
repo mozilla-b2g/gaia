@@ -42,6 +42,11 @@ Ftu.prototype = {
       // things to fail.
       this.client.helper.waitForElementToDisappear('#loading-overlay');
     }
+    if (panel_id == '#date_and_time') {
+      this.client.findElement('#dt_skip').scriptWith(function(el){
+        el.scrollIntoView(false);
+      });
+    }
     // waitForElement is used to make sure animations and page changes have
     // finished, and that the panel is displayed.
     this.client.helper.waitForElement(panel_id);
