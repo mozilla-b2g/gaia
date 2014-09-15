@@ -18,9 +18,8 @@ Keyboards.pl = {
     l: 'ł£',
     y: '¥',
     z: 'żźž',
-    '.': '?!…,',
-    ',': '„”',
-    ':': ';-—'
+    '.': ',?!;:…',
+    ',': '„”'
   },
   keys: [
     [
@@ -43,9 +42,12 @@ Keyboards.pl = {
   ],
   pages: [undefined, {
     alt: {
-      '$': '€£¥',
-      '?': '¿',
-      '!': '¡'
+      '$': [ '€', '£', '¢', '¥'],
+      '"': ['“', '”'],
+      '\'':['‘', '’'],
+      '?': ['¿'],
+      '!': ['¡'],
+      '+': ['-', '×', '÷', '±']
     },
     // These are based on the en layout.
     keys: [
@@ -69,7 +71,7 @@ Keyboards.pl = {
             value: ','
           }
         }, { value: ':' }, { value: ';' }, { value: '"' },
-        { value: '\'' }, { value: '?' }, { value: '!' },
+        { value: '\'' }, { value: '!' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },

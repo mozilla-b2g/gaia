@@ -18,7 +18,7 @@ Keyboards.en = {
     l: 'ł£',
     y: 'ÿ¥',
     z: 'žźż',
-    '.': ',?!;:'
+    '.': ',?!;:…'
   },
   keys: [
     [
@@ -51,9 +51,12 @@ Keyboards.en = {
       '8': ['⁸', '8th'],
       '9': ['⁹', '9th'],
       '0': ['⁰', 'º'],
-      '$': ['¥', '€', '£', '¢', '₠'],
+      '$': [ '€', '£', '¢', '¥'],
+      '"': ['“', '”'],
+      '\'':['‘', '’'],
       '?': ['¿'],
-      '!': ['¡']
+      '!': ['¡'],
+      '+': ['-', '×', '÷', '±']
     },
     keys: [
       [
@@ -76,7 +79,7 @@ Keyboards.en = {
             value: ','
           }
         }, { value: ':' }, { value: ';' }, { value: '"' },
-        { value: '\'' }, { value: '?' }, { value: '!' },
+        { value: '\'' }, { value: '!' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },

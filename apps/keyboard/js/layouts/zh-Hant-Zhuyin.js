@@ -16,7 +16,7 @@ Keyboards['zh-Hant-Zhuyin'] = {
     },
     alt: {
       '.': ',?!;:',
-      '。': '，？！；：'
+      '。': '，？！；：…'
     },
     keys: [
       [
@@ -75,7 +75,7 @@ Keyboards['zh-Hant-Zhuyin'] = {
           }
         },
         { value: '：' }, { value: '；' }, { value: '「' },
-        { value: '」' }, { value: '？' }, { value: '！' },
+        { value: '」' }, { value: '！' }, { value: '？' },
         { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
@@ -90,8 +90,8 @@ Keyboards['zh-Hant-Zhuyin'] = {
     },
     keys: [
       [
-        { value: '￥' }, { value: '€' }, { value: '￡' } , { value: '￠' },
-        { value: '₠' }, { value: '％' }, { value: '©' } , { value: '®' },
+        { value: '€' }, { value: '￡' } , { value: '￠' }, { value: '￥' },
+        { value: '％' }, { value: '©' } , { value: '®' }, { value: '·' },
         { value: '｜' }, { value: '＼' }
       ], [
         { value: '～' }, { value: '℃' }, { value: '℉' }, { value: '°' },
@@ -111,7 +111,7 @@ Keyboards['zh-Hant-Zhuyin'] = {
           targetPage: 4
         },
         { value: '＋' }, { value: '＝' }, { value: '｀' }, { value: '＾' },
-        { value: '§' }, { value: '¿' }, { value: '¡' },
+        { value: '§' }, { value: '《' }, { value: '》' },
         { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
@@ -148,7 +148,7 @@ Keyboards['zh-Hant-Zhuyin'] = {
           }
         },
         { value: ':' }, { value: ';' }, { value: '"' },
-        { value: '\'' }, { value: '?' }, { value: '!' },
+        { value: '\'' }, { value: '!' }, { value: '?' },
         { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
@@ -159,8 +159,8 @@ Keyboards['zh-Hant-Zhuyin'] = {
     width: 10,
     keys: [
       [
-        { value: '¥' }, { value: '€' }, { value: '£' } , { value: '¢' },
-        { value: '₠' }, { value: '%' }, { value: '©' } , { value: '®' },
+        { value: '€' }, { value: '£' } , { value: '¢' }, { value: '¥' },
+        { value: '%' }, { value: '©' } , { value: '®' }, { value: '·' },
         { value: '|' }, { value: '\\' }
       ], [
         { value: '~' }, { value: '℃' }, { value: '℉' }, { value: '°' },
@@ -180,7 +180,7 @@ Keyboards['zh-Hant-Zhuyin'] = {
           targetPage: 2
         },
         { value: '+' }, { value: '=' }, { value: '`' }, { value: '^' },
-        { value: '§' }, { value: '¿' }, { value: '¡' },
+        { value: '§' }, { value: '«' }, { value: '»' },
         { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
