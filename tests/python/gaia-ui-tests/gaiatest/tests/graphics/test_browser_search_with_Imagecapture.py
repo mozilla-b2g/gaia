@@ -3,7 +3,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import time
 from marionette.by import By
-import pdb
 from gaiatest.apps.search.app import Search
 from gaiatest.gaia_graphics_test import GaiaImageCompareTestCase
 
@@ -23,7 +22,6 @@ class TestBrowserSearch(GaiaImageCompareTestCase):
         self.invoke_screen_capture()
         search = Search(self.marionette)
         search.launch()
-        pdb.set_trace()
         search_text = 'Mozilla Web QA'
         browser = search.go_to_url(search_text)
         time.sleep(5)
