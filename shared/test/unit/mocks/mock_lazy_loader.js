@@ -9,6 +9,11 @@ var MockLazyLoader = {
       callback();
     }
   },
+  /**
+   * This method returns a Promise. if needed you should install a
+   * sinon.spy on the method and retrive the Promise instance with
+   * 'spy.getCall(0).returnValue'.
+   */
   getJSON: function(file) {
     return Promise.resolve(this._response);
   },
