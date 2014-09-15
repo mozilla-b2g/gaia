@@ -306,7 +306,7 @@ suite('KeyboardApp', function() {
       assert.isTrue(
         app.layoutRenderingManager.updateUpperCaseRendering.calledOnce);
       assert.isTrue(
-        app.candidatePanelManager.showCandidates.calledOnce);
+        app.layoutRenderingManager.updateCandidatesRendering.calledOnce);
     });
 
     test('w secondLayout', function() {

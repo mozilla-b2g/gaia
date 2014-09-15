@@ -44,6 +44,10 @@ LayoutRenderingManager.prototype.handleEvent = function() {
   this._updateLayoutParams();
 };
 
+LayoutRenderingManager.prototype.updateCandidatesRendering = function() {
+  IMERender.showCandidates(this.app.candidatePanelManager.currentCandidates);
+};
+
 LayoutRenderingManager.prototype.updateUpperCaseRendering = function() {
   IMERender.setUpperCaseLock(this.app.upperCaseStateManager);
 };
@@ -78,6 +82,9 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
     }, resolve);
   }.bind(this)).then(this._afterRenderDrew.bind(this));
 
+  // Make sure JS error is not sliently ignored.
+  p.catch(function(e) { console.error(e); });
+
   // Tell the renderer what input method we're using. This will set a CSS
   // classname that can be used to style the keyboards differently
   IMERender.setInputMethodName(
@@ -97,13 +104,15 @@ LayoutRenderingManager.prototype._afterRenderDrew = function() {
   // Reflect the current upper case state on the newly rendered layout.
   this.updateUpperCaseRendering();
 
+  // Reflect the current candidates on the current layout.
+  this.updateCandidatesRendering();
+
   // Tell the input method about the new keyboard layout
   this._updateLayoutParams();
 
   // Show the keyboard or update to the current height.
   this._updateHeight();
 
-  this.app.candidatePanelManager.showCandidates();
   this.app.console.timeEnd('LayoutRenderingManager._afterRenderDrew()');
 };
 

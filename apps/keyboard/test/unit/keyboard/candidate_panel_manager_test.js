@@ -11,7 +11,6 @@ suite('CandidatePanelManager', function() {
 
   setup(function() {
     window.IMERender = {
-      showCandidates: this.sinon.stub(),
       showMoreCandidates: this.sinon.stub(),
       candidatePanel: new MockEventTarget(),
       getNumberOfCandidatesPerRow: this.sinon.stub(),
@@ -37,6 +36,7 @@ suite('CandidatePanelManager', function() {
     };
 
     manager = new CandidatePanelManager(app);
+    manager.oncandidateschange = this.sinon.stub();
     manager.start();
   });
 
@@ -66,17 +66,19 @@ suite('CandidatePanelManager', function() {
 
       manager.updateCandidates(candidates);
 
-      assert.isTrue(window.IMERender.showCandidates.calledWith(candidates));
+      assert.equal(manager.currentCandidates, candidates);
+      assert.isTrue(manager.oncandidateschange.calledOnce);
 
       window.IMERender.candidatePanel.dataset.truncated = 'true';
       window.IMERender.candidatePanel.dataset.rowCount = '1';
     });
 
-    test('showCandidates', function() {
-      manager.showCandidates();
+    test('reset', function() {
+      this.sinon.stub(manager, 'hideFullPanel');
+      manager.reset();
 
-      assert.isTrue(
-        window.IMERender.showCandidates.getCall(1).calledWith(candidates));
+      assert.isTrue(manager.hideFullPanel.calledOnce);
+      assert.deepEqual(manager.currentCandidates, []);
     });
 
     test('toggleFullPanel', function() {

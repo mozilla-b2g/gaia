@@ -66,16 +66,19 @@ KeyboardApp.prototype._startComponents = function() {
   this.visualHighlightManager = new VisualHighlightManager(this);
   this.visualHighlightManager.start();
 
-  this.candidatePanelManager = new CandidatePanelManager(this);
-  this.candidatePanelManager.start();
-
   this.upperCaseStateManager = new UpperCaseStateManager();
   this.upperCaseStateManager.onstatechange =
     this.handleUpperCaseStateChange.bind(this);
   this.upperCaseStateManager.start();
 
-  this.layoutRenderingManager = new LayoutRenderingManager(this);
-  this.layoutRenderingManager.start();
+  var renderingManager = this.layoutRenderingManager =
+    new LayoutRenderingManager(this);
+  renderingManager.start();
+
+  this.candidatePanelManager = new CandidatePanelManager(this);
+  this.candidatePanelManager.oncandidateschange =
+    renderingManager.updateCandidatesRendering.bind(renderingManager);
+  this.candidatePanelManager.start();
 
   // Initialize the rendering module
   IMERender.init();
@@ -210,7 +213,7 @@ KeyboardApp.prototype.handleUpperCaseStateChange = function() {
     this.layoutRenderingManager.updateUpperCaseRendering();
 
     //restore the previous candidates
-    this.candidatePanelManager.showCandidates();
+    this.layoutRenderingManager.updateCandidatesRendering();
 
     this.console.timeEnd('setUpperCase:requestAnimationFrame:callback');
   }.bind(this));

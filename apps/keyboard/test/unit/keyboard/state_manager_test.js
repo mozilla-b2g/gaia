@@ -140,6 +140,7 @@ suite('StateManager', function() {
       var p = switchCurrentLayoutPromise;
       var pReturn = p.mFulfillToValue();
       assert.isTrue(app.upperCaseStateManager.reset.calledOnce);
+      assert.isTrue(app.candidatePanelManager.reset.calledOnce);
       assert.isTrue(
         app.inputMethodManager.switchCurrentIMEngine.calledWith('bar'));
       assert.isTrue(app.upperCaseStateManager.reset.calledBefore(

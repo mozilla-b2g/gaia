@@ -1,10 +1,8 @@
 'use strict';
 
-/* global LayoutRenderingManager, KeyboardConsole, CandidatePanelManager,
-          IMERender */
+/* global LayoutRenderingManager, KeyboardConsole, IMERender */
 
 require('/js/keyboard/console.js');
-require('/js/keyboard/candidate_panel_manager.js');
 
 require('/js/keyboard/layout_rendering_manager.js');
 
@@ -24,6 +22,7 @@ suite('LayoutRenderingManager', function() {
       draw: this.sinon.stub(),
       resizeUI: this.sinon.stub(),
       setUpperCaseLock: this.sinon.stub(),
+      showCandidates: this.sinon.stub(),
       getWidth: this.sinon.stub().returns(600),
       getHeight: this.sinon.stub().returns(400),
       getKeyArray: this.sinon.stub().returns([]),
@@ -37,7 +36,9 @@ suite('LayoutRenderingManager', function() {
     app = {
       getBasicInputType: this.sinon.stub().returns('foo'),
       console: this.sinon.stub(KeyboardConsole.prototype),
-      candidatePanelManager: this.sinon.stub(CandidatePanelManager.prototype),
+      candidatePanelManager: {
+        currentCandidates: []
+      },
       layoutManager: {
         currentPage: {
           keys: [ { value: 'currentPage' } ]
@@ -88,6 +89,14 @@ suite('LayoutRenderingManager', function() {
     assert.isTrue(window.resizeTo.calledWith(600, 401));
   });
 
+  test('updateCandidatesRendering', function() {
+    manager.updateCandidatesRendering();
+
+    assert.isTrue(IMERender.showCandidates.calledOnce);
+    assert.equal(IMERender.showCandidates.firstCall.args[0],
+      app.candidatePanelManager.currentCandidates);
+  });
+
   test('updateUpperCaseRendering', function() {
     manager.updateUpperCaseRendering();
 
@@ -103,8 +112,11 @@ suite('LayoutRenderingManager', function() {
       IMERender.draw.getCall(0).args[2].call(window);
 
       p.then(function() {
-        assert.isTrue(
-          IMERender.setUpperCaseLock.calledWith(app.upperCaseStateManager));
+        assert.equal(
+          IMERender.setUpperCaseLock.firstCall.args[0],
+          app.upperCaseStateManager);
+        assert.equal(IMERender.showCandidates.firstCall.args[0],
+          app.candidatePanelManager.currentCandidates);
         assert.isTrue(
           app.inputMethodManager.currentIMEngine.setLayoutParams.calledWith({
             keyboardWidth: 600,
@@ -113,9 +125,11 @@ suite('LayoutRenderingManager', function() {
             keyWidth: 15,
             keyHeight: 12
           }));
-
         assert.isTrue(window.resizeTo.calledWith(600, 401));
-      }, function() {
+      }, function(e) {
+        if (e) {
+          throw e;
+        }
         assert.isTrue(false, 'Should not reject.');
       }).then(done, done);
     });

@@ -66,6 +66,8 @@ var CandidatePanelManager = function(app) {
 CandidatePanelManager.prototype.FIRST_PAGE_ROWS = 11;
 CandidatePanelManager.prototype.PAGE_ROWS = 12;
 
+CandidatePanelManager.prototype.oncandidateschange = null;
+
 CandidatePanelManager.prototype.start = function() {
   this.currentCandidates = [];
   this.isFullPanelShown = false;
@@ -172,13 +174,17 @@ CandidatePanelManager.prototype.hideFullPanel = function() {
   IMERender.toggleCandidatePanel(false);
 };
 
-CandidatePanelManager.prototype.updateCandidates = function(candidates) {
-  this.currentCandidates = candidates;
-  this.showCandidates();
+CandidatePanelManager.prototype.reset = function() {
+  this.hideFullPanel();
+  this.currentCandidates = [];
 };
 
-CandidatePanelManager.prototype.showCandidates = function() {
-  IMERender.showCandidates(this.currentCandidates);
+CandidatePanelManager.prototype.updateCandidates = function(candidates) {
+  this.currentCandidates = candidates;
+
+  if (typeof this.oncandidateschange === 'function') {
+    this.oncandidateschange();
+  }
 };
 
 exports.CandidatePanelScrollingMonitor = CandidatePanelScrollingMonitor;
