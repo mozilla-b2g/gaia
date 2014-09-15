@@ -443,7 +443,7 @@ var UIManager = {
     // Reset the field
     navigator.mozL10n.localize(
       UIManager.fxaIntro,
-      'fxa-overview'
+      'fxa-upsell'
     );
     // Enable the button
     UIManager.fxaCreateAccount.disabled = false;
