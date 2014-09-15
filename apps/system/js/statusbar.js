@@ -108,7 +108,8 @@ var StatusBar = {
     'vibration.enabled': ['vibration'],
     'ril.cf.enabled': ['callForwarding'],
     'operatorResources.data.icon': ['iconData'],
-    'statusbar.network-activity.disabled': ['networkActivity']
+    'statusbar.network-activity.disabled': ['networkActivity'],
+    'statusbar.show-am-pm': ['time']
   },
 
   /* Track which settings are observed, so we don't add multiple listeners. */
@@ -621,6 +622,16 @@ var StatusBar = {
     return iconWidth;
   },
 
+  _getTimeFormat: function sb_getTimeFormat(timeFormat) {
+    if (this.settingValues['statusbar.show-am-pm']) {
+      timeFormat = timeFormat.replace('%p', '<span>%p</span>');
+    } else {
+      timeFormat = timeFormat.replace('%p', '').trim();
+    }
+
+    return timeFormat;
+  },
+
   panelHandler: function sb_panelHandler(evt) {
     var app = AppWindowManager.getActiveApp().getTopMostWindow();
     var chromeBar = app.element.querySelector('.chrome');
@@ -918,12 +929,13 @@ var StatusBar = {
     },
 
     time: function sb_updateTime(now) {
+      now = now || new Date();
       var _ = navigator.mozL10n.get;
       var f = new navigator.mozL10n.DateTimeFormat();
 
       var timeFormat = window.navigator.mozHour12 ?
         _('shortTimeFormat12') : _('shortTimeFormat24');
-      timeFormat = timeFormat.replace('%p', '<span>%p</span>');
+      timeFormat = this._getTimeFormat(timeFormat);
       var formatted = f.localeFormat(now, timeFormat);
       this.icons.time.innerHTML = formatted;
 

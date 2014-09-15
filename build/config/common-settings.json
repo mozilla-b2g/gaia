@@ -193,6 +193,7 @@
    "homegesture.enabled": false,
    "edgesgesture.enabled": true,
    "continuous-transition.enabled": false,
+   "statusbar.show-am-pm": true,
    "support.onlinesupport.title": "",
    "support.onlinesupport.href": "",
    "support.callsupport1.title": "",

@@ -1818,6 +1818,27 @@ suite('system/Statusbar', function() {
     });
   });
 
+  suite('Time format', function() {
+    test('should be 24 hour', function() {
+      var timeFormat = StatusBar._getTimeFormat('shortTimeFormat24');
+      assert.equal(timeFormat, 'shortTimeFormat24');
+    });
+
+    test('should be 12 hour with AM/PM', function() {
+      StatusBar.settingValues['statusbar.show-am-pm'] = true;
+
+      var timeFormat = StatusBar._getTimeFormat('123 %p');
+      assert.equal(timeFormat, '123 <span>%p</span>');
+    });
+
+    test('should be 12 hour without AM/PM', function() {
+      StatusBar.settingValues['statusbar.show-am-pm'] = false;
+
+      var timeFormat = StatusBar._getTimeFormat('123 %p');
+      assert.equal(timeFormat, '123');
+    });
+  });
+
   suite('Icons', function() {
     test('visibility should be updated on screen resize', function() {
       var spyUpdateIconVisibility =
