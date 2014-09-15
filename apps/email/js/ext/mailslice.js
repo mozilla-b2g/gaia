@@ -2391,9 +2391,17 @@ FolderStorage.prototype = {
     // mutex.
     slice.setStatus('synchronizing', false, true, false,
                     SYNC_START_MINIMUM_PROGRESS);
-    this.runMutexed(
-      'sync',
-      this._sliceOpenMostRecent.bind(this, slice, forceRefresh));
+
+    var sliceFn = this._sliceOpenMostRecent.bind(this, slice, forceRefresh);
+
+    // Local-only folders don't have a real sync process, so we don't
+    // need to hold the mutex when syncing; all mutating operations
+    // run in job-ops.
+    if (this.isLocalOnly) {
+      sliceFn(function fakeReleaseMutex() { /* nothing to do */ });
+    } else {
+      this.runMutexed('sync', sliceFn);
+    }
   },
   _sliceOpenMostRecent: function fs__sliceOpenMostRecent(slice, forceRefresh,
                                                          releaseMutex) {
@@ -2802,9 +2810,18 @@ FolderStorage.prototype = {
     // being processed, even though it might take a little bit to acquire the
     // mutex.
     slice.setStatus('synchronizing', false, true, false, 0.0);
-    this.runMutexed(
-      'refresh',
-      this._refreshSlice.bind(this, slice, false));
+
+    var refreshFn = this._refreshSlice.bind(this, slice, false);
+
+    // Local-only folders don't have a real sync process, so we don't
+    // need to hold the mutex when syncing; all mutating operations
+    // run in job-ops.
+    if (this.isLocalOnly) {
+      refreshFn(function fakeReleaseMutex() { /* nothing to do */ });
+    } else {
+      this.runMutexed('refresh', refreshFn);
+    }
+
   },
   _refreshSlice: function fs__refreshSlice(slice, checkOpenRecency,
                                            releaseMutex) {
