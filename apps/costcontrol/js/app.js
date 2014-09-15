@@ -196,7 +196,7 @@ var CostControlApp = (function() {
     }
 
     if (thereIsNextReset) {
-      window.addEventListener('messagehandlerready',  function _setNextReset() {
+      window.addEventListener('messagehandlerready', function _setNextReset() {
         window.removeEventListener('messagehandlerready', _setNextReset);
         setNextReset(ConfigManager.option('nextReset'));
       });

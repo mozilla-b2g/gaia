@@ -277,7 +277,9 @@ var Settings = (function() {
         var textReportsTitle = (mode === 'POSTPAID') ?
           'phone-and-internet-data-report' : 'internet-data-report';
 
-        reportsTitle.querySelector('span').textContent = _(textReportsTitle);
+        reportsTitle.querySelector('span').setAttribute(
+          'data-l10n-id', textReportsTitle
+        );
 
         balanceLowLimitView.disabled = (mode !== 'PREPAID');
         plantypeSelector.setAttribute('aria-hidden', hidePlantypeSelector);
@@ -346,11 +348,11 @@ var Settings = (function() {
   function updateTelephony(activity, lastTelephonyReset) {
     var calltimeSpan = document.getElementById('calltime');
     var smscountSpan = document.getElementById('smscount');
-    calltimeSpan.textContent = _('magnitude', {
+    Common.localize(calltimeSpan, 'magnitude', {
       value: Formatting.computeTelephonyMinutes(activity),
       unit: 'min.'
     });
-    smscountSpan.textContent = _('magnitude', {
+    Common.localize(smscountSpan, 'magnitude', {
       value: activity.smscount,
       unit: 'SMS'
     });
