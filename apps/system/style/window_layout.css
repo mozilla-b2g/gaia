@@ -50,10 +50,6 @@
   background-position: center center;
 }
 
-.homescreen {
-  overflow: hidden;
-}
-
 #screen.software-button-enabled #windows > .appWindow:not(.lockScreenWindow) {
   height: calc(100% - var(--software-home-button-height));
 }
