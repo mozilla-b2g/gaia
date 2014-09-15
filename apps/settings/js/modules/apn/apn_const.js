@@ -15,6 +15,7 @@ define(function(require) {
   var APN_LIST_KEY = 'apn.list';
   var APN_SELECTIONS_KEY = 'apn.selections';
   var APN_SETTINGS_KEY = 'ril.data.apnSettings';
+  var DEFAULT_APN_SETTINGS_KEY = 'ril.data.default.apnSettings';
 
   var MCC_SETTINGS_KEY = 'operatorvariant.mcc';
   var MNC_SETTINGS_KEY = 'operatorvariant.mnc';
@@ -41,6 +42,7 @@ define(function(require) {
     get APN_LIST_KEY() { return APN_LIST_KEY; },
     get APN_SELECTIONS_KEY() { return APN_SELECTIONS_KEY; },
     get APN_SETTINGS_KEY() { return APN_SETTINGS_KEY; },
+    get DEFAULT_APN_SETTINGS_KEY() { return DEFAULT_APN_SETTINGS_KEY; },
     get MCC_SETTINGS_KEY() { return MCC_SETTINGS_KEY; },
     get MNC_SETTINGS_KEY() { return MNC_SETTINGS_KEY; },
     get EU_ROAMING_ENABLED_KEY() { return EU_ROAMING_ENABLED_KEY; },

@@ -33,6 +33,11 @@ define(function(require) {
   var APN_LIST_KEY = ApnConst.APN_LIST_KEY;
   var CACHED_ICCIDS_KEY = ApnConst.CACHED_ICCIDS_KEY;
 
+  var RESTORE_MODE = {
+    ALL: 0,
+    ONLY_APN_ITEMS: 1,
+  };
+
   /**
    * @class ApnSettingsManager
    * @requires module:modules/async_storage
@@ -50,6 +55,13 @@ define(function(require) {
     this._apnSettings = ApnSettings();
 
     this._readyPromises = {};
+
+    Object.defineProperty(this, 'RESTORE_MODE', {
+      configurable: false,
+      get: function() {
+        return RESTORE_MODE;
+      }
+    });
   }
 
   ApnSettingsManager.prototype = {
@@ -77,7 +89,8 @@ define(function(require) {
           cachedIccIds[serviceId] = curIccId;
           // Get the default preset apns by restoring.
           return Promise.all([
-            this.restore(serviceId),
+            // In this case we only restore apn items but not apn settings.
+            this.restore(serviceId, RESTORE_MODE.ONLY_APN_ITEMS),
             AsyncStorage.setItem(CACHED_ICCIDS_KEY, cachedIccIds)
           ]);
         });
@@ -250,17 +263,23 @@ define(function(require) {
     },
 
     /**
-     * Restore the apn settings to the default. Only apn items of the category
-     * ApnItem.APN_CATEGORY.PRESET and ApnItem.APN_CATEGORY.EU are restored.
-     * User created apn items (custom apns) will not be affected. The preset apn
-     * items are from the apn.json database and client provisioning messages.
+     * Restore the apn items and apn settings to the default. Only apn items of
+     * the category ApnItem.APN_CATEGORY.PRESET and ApnItem.APN_CATEGORY.EU are
+     * restored. User created apn items (custom apns) will not be affected. The
+     * preset apn items are from the apn.json database and client provisioning
+     * messages.
      *
      * @access public
      * @memberOf ApnSettingsManager.prototype
-     * @param {Number} serviceId
+     * @param {String} serviceId
+     * @param {Number} mode
+     *                 The possible values are defined in RESTORE_MODE. We
+     *                 restore both apn items and apn settings by default. Only
+     *                 apn items are restored when mode is
+     *                 RESTORE_MODE.ONLY_APN_ITEMS.
      * @returns {Promise}
      */
-    restore: function asc_restore(serviceId) {
+    restore: function asc_restore(serviceId, mode) {
       var mobileConnection = navigator.mozMobileConnections[serviceId];
       var networkType = mobileConnection.data.type;
       var apnList = this._apnList(serviceId);
@@ -296,6 +315,10 @@ define(function(require) {
         // We simply clear the apn selections. The selections will be restored
         // based on the current apn settings when it is being queried.
         return that._apnSelections.clear(serviceId);
+      }).then(function() {
+        if (mode !== RESTORE_MODE.ONLY_APN_ITEMS) {
+          return that._apnSettings.restore(serviceId);
+        }
       });
     },
 
@@ -310,44 +333,15 @@ define(function(require) {
      * @returns {Promise Array<ApnItem>} The apn items
      */
     queryApns: function asc_queryApns(serviceId, apnType) {
-      var that = this;
-
       return this.getActiveApnId(serviceId, apnType)
       .then(function(activeApnId) {
-        if (activeApnId) {
-          return activeApnId;
-        } else {
-          // If there is no existing active apn id, try to derive the id from
-          // the current apn settings.
-          return that._deriveActiveApnIdFromSettings(serviceId, apnType)
-          .then(function(apnId) {
-            // Set the id as the active apn id.
-            that.setActiveApnId(serviceId, apnType, apnId);
-            return apnId;
-          });
-        }
-      }).then(function(activeApnId) {
-        // If there is still no active apn id, means that the apn settings have
-        // not been set and we need to derive a default id from the current apn
-        // items (stored in the apn list).
-        if (activeApnId) {
-          return activeApnId;
-        } else {
-          return that._deriveActiveApnIdFromItems(serviceId, apnType)
-          .then(function(apnId) {
-            // Set the id as the active apn id.
-            that.setActiveApnId(serviceId, apnType, apnId);
-            return apnId;
-          });
-        }
-      }).then(function(activeApnId) {
-        return that._apnItems(serviceId, apnType).then(function(items) {
+        return this._apnItems(serviceId, apnType).then(function(items) {
           items.forEach(function(apnItem) {
             apnItem.active = (apnItem.id === activeApnId);
           });
           return items;
         });
-      });
+      }.bind(this));
     },
 
     /**
@@ -427,10 +421,38 @@ define(function(require) {
      * @returns {Promise String}
      */
     getActiveApnId: function asc_getActiveApnId(serviceId, apnType) {
-      return this._ready(serviceId).then(() => {
-        return this._apnSelections.get(serviceId);
-      }).then((apnSelection) => {
+      var that = this;
+      return this._ready(serviceId).then(function() {
+        return that._apnSelections.get(serviceId);
+      }).then(function(apnSelection) {
         return apnSelection && apnSelection[apnType];
+      }).then(function(activeApnId) {
+        if (activeApnId) {
+          return activeApnId;
+        } else {
+          // If there is no existing active apn id, try to derive the id from
+          // the current apn settings.
+          return that._deriveActiveApnIdFromSettings(serviceId, apnType)
+          .then(function(apnId) {
+            // Set the id as the active apn id.
+            that.setActiveApnId(serviceId, apnType, apnId);
+            return apnId;
+          });
+        }
+      }).then(function(activeApnId) {
+        // If there is still no active apn id, means that the apn settings have
+        // not been set and we need to derive a default id from the current apn
+        // items (stored in the apn list).
+        if (activeApnId) {
+          return activeApnId;
+        } else {
+          return that._deriveActiveApnIdFromItems(serviceId, apnType)
+          .then(function(apnId) {
+            // Set the id as the active apn id.
+            that.setActiveApnId(serviceId, apnType, apnId);
+            return apnId;
+          });
+        }
       });
     },
 
