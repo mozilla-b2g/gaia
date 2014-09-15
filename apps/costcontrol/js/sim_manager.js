@@ -126,9 +126,9 @@ var SimManager = (function() {
       // If it is not a DSDS device, the slotId is correct
       var _initialized = !SimManager.isMultiSim();
       serviceIcc[serviceId] = {
-        dirty : true,
-        icc : null,
-        iccId : null,
+        dirty: true,
+        icc: null,
+        iccId: null,
         // The default value for slotId is 0  on the no DSDS device
         slotId: 0,
         initialized: _initialized

@@ -235,7 +235,8 @@ var Widget = (function() {
       var className = 'widget-' + status;
       Common.localize(fte.querySelector('p:first-child'), className +
         '-heading');
-      Common.localize(fte.querySelector('p:last-child'), className + '-meta');
+      Common.localize(fte.querySelector('p:last-child'), className +
+        '-meta');
     });
   }
 
@@ -263,7 +264,8 @@ var Widget = (function() {
       simKey + '-heading',
       {provider: provider}
     );
-    Common.localize(fte.querySelector('p:last-child'), simKey + '-meta');
+    Common.localize(fte.querySelector('p:last-child'), simKey +
+      '-meta');
   }
 
   var hashMark = 0;

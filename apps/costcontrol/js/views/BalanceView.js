@@ -1,4 +1,4 @@
-/* global  _, Formatting */
+/* global _, Formatting */
 /* exported BalanceView */
 'use strict';
 
@@ -26,7 +26,7 @@ function BalanceView(balanceLabel, timestampLabel, minimumDelay) {
   }
 
   function setBalanceToNotAvailable() {
-    balanceLabel.textContent = _('not-available');
+    balanceLabel.setAttribute('data-l10n-id', 'not-available');
     timestampLabel.innerHTML = '';
   }
 
@@ -46,7 +46,7 @@ function BalanceView(balanceLabel, timestampLabel, minimumDelay) {
     viewTimestamp = timestamp;
 
     if (isUpdating) {
-      timestampLabel.textContent = _('updating-ellipsis');
+      timestampLabel.setAttribute('data-l10n-id', 'updating-ellipsis');
     } else if (typeof timestamp !== 'undefined') {
       var time = getTimeTagFor(timestamp);
       timestampLabel.appendChild(time);

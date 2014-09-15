@@ -2,7 +2,7 @@
 /* exported IACManager  */
 'use strict';
 
-var IACManager = (function () {
+var IACManager = (function() {
   var TIMEOUT = 60 * 1000; // 1 minute
   var configuration;
 
@@ -19,7 +19,7 @@ var IACManager = (function () {
   }
 
   function _sendBroadcastMessage(msg) {
-    return new Promise(function (resolve, reject) {
+    return new Promise(function(resolve, reject) {
       navigator.mozApps.getSelf().onsuccess = function(evt) {
         var app = evt.target.result;
         app.connect('costcontrolSmsQuery').then(function onConnAccepted(ports) {
