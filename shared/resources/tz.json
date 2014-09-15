@@ -44,7 +44,7 @@
   {"cc":"SO", "offset":"+03:00,+03:00", "city":"Mogadishu"},
   {"cc":"LR", "offset":"+00:00,+00:00", "city":"Monrovia"},
   {"cc":"KE", "offset":"+03:00,+03:00", "city":"Nairobi"},
-  {"cc":"TD", "offset":"+01:00,+01:00", "city":"Ndjamena"},
+  {"cc":"TD", "offset":"+01:00,+01:00", "city":"N'djamena"},
   {"cc":"NE", "offset":"+01:00,+01:00", "city":"Niamey"},
   {"cc":"MR", "offset":"+00:00,+00:00", "city":"Nouakchott"},
   {"cc":"BF", "offset":"+00:00,+00:00", "city":"Ouagadougou"},
