@@ -7,6 +7,11 @@
 var LayoutRenderingManager = function(app) {
   this.app = app;
 
+  // Reference of the layoutManager.currentPage that is
+  // currently being rendered. Only updates when updateLayoutRendering()
+  // is called.
+  this._currentRenderingPage = null;
+
   this._resizeListenerTimer = undefined;
 };
 
@@ -33,6 +38,18 @@ LayoutRenderingManager.prototype.stop = function() {
 LayoutRenderingManager.prototype.handleEvent = function() {
   this.app.console.log('LayoutRenderingManager.handleEvent()');
   if (document.hidden) {
+    this.app.console.log(
+      'LayoutRenderingManager: Ignore resizing call since ' +
+      'document is hidden.');
+
+    return;
+  }
+
+  if (this._currentRenderingPage !== this.app.layoutManager.currentPage) {
+    this.app.console.log(
+      'LayoutRenderingManager: Ignore resizing call since ' +
+      'layout is not ready yet.');
+
     return;
   }
 
@@ -45,11 +62,27 @@ LayoutRenderingManager.prototype.handleEvent = function() {
 };
 
 LayoutRenderingManager.prototype.updateCandidatesRendering = function() {
+  if (this._currentRenderingPage !== this.app.layoutManager.currentPage) {
+    this.app.console.log(
+      'LayoutRenderingManager: Ignore updateCandidatesRendering() call since ' +
+      'layout is not ready yet.');
+
+    return;
+  }
+
   IMERender.showCandidates(this.app.candidatePanelManager.currentCandidates);
 };
 
 LayoutRenderingManager.prototype.updateUpperCaseRendering = function() {
   this.app.console.log('LayoutRenderingManager.updateUpperCaseRendering()');
+  if (this._currentRenderingPage !== this.app.layoutManager.currentPage) {
+    this.app.console.log(
+      'LayoutRenderingManager: Ignore updateUpperCaseRendering() call since ' +
+      'layout is not ready yet.');
+
+    return;
+  }
+
   // When we have secondLayout, we need to force re-render on uppercase switch
   if (this.app.layoutManager.currentPage.secondLayout) {
     this.updateLayoutRendering();
@@ -75,7 +108,8 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
   this.app.console.log('LayoutRenderingManager.updateLayoutRendering()');
   this.app.console.time('LayoutRenderingManager.updateLayoutRendering()');
 
-  var currentPage = this.app.layoutManager.currentPage;
+  var currentPage = this._currentRenderingPage =
+    this.app.layoutManager.currentPage;
   var currentIMEngine = this.app.inputMethodManager.currentIMEngine;
 
   // Determine if the candidate panel for word suggestion is needed
