@@ -5,6 +5,7 @@ suite('Search >', function() {
   var realMozSettings = null;
 
   var mockSettingsCache;
+  var mockLazyLoader;
 
   var searchModule;
   var searchEngineSelect = document.createElement('select');
@@ -14,17 +15,20 @@ suite('Search >', function() {
       'unit/mock_l10n',
       'shared_mocks/mock_navigator_moz_settings',
       'unit/mock_settings_cache',
+      'shared_mocks/mock_lazy_loader',
       'panels/search/search'
     ];
 
     var map = {
       '*': {
-        'modules/settings_cache': 'unit/mock_settings_cache'
+        'modules/settings_cache': 'unit/mock_settings_cache',
+        'shared/lazy_loader': 'shared_mocks/mock_lazy_loader'
       }
     };
 
     testRequire(modules, map, function(MockL10n, MockNavigatorSettings,
-                                       MockSettingsCache, Search) {
+                                       MockSettingsCache, MockLazyLoader,
+                                       Search) {
       realL10n = navigator.mozL10n;
       navigator.mozL10n = MockL10n;
 
@@ -32,6 +36,7 @@ suite('Search >', function() {
       navigator.mozSettings = MockNavigatorSettings;
 
       mockSettingsCache = MockSettingsCache;
+      mockLazyLoader = MockLazyLoader;
 
       searchModule = Search();
       searchModule.init(searchEngineSelect);
@@ -49,21 +54,15 @@ suite('Search >', function() {
   });
 
   suite('Initialise search engines', function() {
-    var xhr;
-    var requests = [];
 
     setup(function() {
       navigator.mozSettings.mSetup();
-      xhr = sinon.useFakeXMLHttpRequest();
-      xhr.onCreate = function(xhr) {
-        requests.push(xhr);
-      };
     });
 
     teardown(function() {
       navigator.mozSettings.mTeardown();
       mockSettingsCache.mTeardown();
-      xhr.restore();
+      mockLazyLoader.mTeardown();
     });
 
     test('getCurrentSearchEngine()', function() {
@@ -91,21 +90,27 @@ suite('Search >', function() {
       generateSearchEngineOptionsStub.restore();
     });
 
-    test('populateSearchEngines()', function() {
+    test('populateSearchEngines()', function(done) {
       var callback = sinon.spy();
+      sinon.spy(mockLazyLoader, 'getJSON');
+      mockLazyLoader.mockResponse([{ 'foo': 'bar'}]);
+
       searchModule.populateSearchEngines(callback);
-      assert.equal(1, requests.length, 'there should be one request');
+      assert.ok(mockLazyLoader.getJSON.called, 'getJSON should be called');
 
-      requests[0].respond(200, { 'Content-Type': 'application/json' },
-        '[{ "foo": "bar"}]');
-      assert.ok(callback.called,
-                'populateSearchEngines should invoke callback');
+      // Can't run other checks till promise is done
+      mockLazyLoader.getJSON.returnValues[0].then(function() {
+        assert.ok(callback.called,
+                  'populateSearchEngines should invoke callback');
 
-      assert.equal(
-        (navigator.mozSettings.mSettings['search.providers']).toString(),
-        ([{ 'foo': 'bar'}]).toString(),
-        'should update search.providers in settings'
-      );
+        assert.equal(
+          (navigator.mozSettings.mSettings['search.providers']).toString(),
+          ([{ 'foo': 'bar'}]).toString(),
+          'should update search.providers in settings'
+        );
+
+        done();
+      });
     });
 
     test('generateSearchEngineOptions()', function() {
