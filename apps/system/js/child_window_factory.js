@@ -185,7 +185,7 @@
       return;
     }
 
-    this.app.lockOrientation();
+    this.app.setOrientation();
     this.app.requestForeground();
   };
 

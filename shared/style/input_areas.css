@@ -229,6 +229,12 @@ textarea:invalid:focus,
   border-bottom-color: #820000;
 }
 
+input[type="range"]:focus,
+.skin-dark input[type="range"]:focus {
+  box-shadow: none;
+  border-bottom: 0;
+}
+
 /* Tidy (search/submit) */
 form[role="search"] {
   position: relative;
