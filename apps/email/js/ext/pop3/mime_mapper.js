@@ -37,9 +37,10 @@ return {
     // Video
     'video/mp4': 'mp4',
     'video/mpeg': 'mpg',
-    'video/ogg': 'ogg',
+    'video/ogg': 'ogv',
     'video/webm': 'webm',
     'video/3gpp': '3gp',
+    'video/3gpp2': '3g2',
     // Application
     // If we want to support some types, like pdf, just add
     // 'application/pdf': 'pdf'
@@ -67,6 +68,8 @@ return {
     'm4r': 'audio/mp4',
     'aac': 'audio/aac',
     'opus': 'audio/ogg',
+    'ogg': 'audio/ogg',
+    'oga': 'audio/ogg',
     'amr': 'audio/amr',
     // Video
     'mp4': 'video/mp4',
@@ -76,7 +79,7 @@ return {
     'ogx': 'video/ogg',
     'webm': 'video/webm',
     '3gp': 'video/3gpp',
-    'ogg': 'video/ogg',
+    '3g2': 'video/3gpp2',
     // Application
     // If we want to support some extensions, like pdf, just add
     // 'pdf': 'application/pdf'

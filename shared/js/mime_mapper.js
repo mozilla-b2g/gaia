@@ -35,7 +35,7 @@ var MimeMapper = {
     // Video
     'video/mp4': 'mp4',
     'video/mpeg': 'mpg',
-    'video/ogg': 'ogg',
+    'video/ogg': 'ogv',
     'video/webm': 'webm',
     'video/3gpp': '3gp',
     'video/3gpp2': '3g2',
@@ -66,6 +66,8 @@ var MimeMapper = {
     'm4r': 'audio/mp4',
     'aac': 'audio/aac',
     'opus': 'audio/ogg',
+    'ogg': 'audio/ogg',
+    'oga': 'audio/ogg',
     'amr': 'audio/amr',
     // Video
     'mp4': 'video/mp4',
@@ -76,7 +78,6 @@ var MimeMapper = {
     'webm': 'video/webm',
     '3gp': 'video/3gpp',
     '3g2': 'video/3gpp2',
-    'ogg': 'video/ogg',
     // Application
     // If we want to support some extensions, like pdf, just add
     // 'pdf': 'application/pdf'
