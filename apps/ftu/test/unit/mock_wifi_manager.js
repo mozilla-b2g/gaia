@@ -1,7 +1,7 @@
 'use strict';
 
 var MockWifiManager = {
-  scan: function() {},
+  getNetworks: function() {},
   init: function() {}
 };
 

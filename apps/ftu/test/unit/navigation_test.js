@@ -223,7 +223,6 @@ suite('navigation >', function() {
         done(function() {
           observer.disconnect();
           assert.equal(UIManager.mainTitle.innerHTML, _('selectNetwork'));
-          assert.isFalse(UIManager.navBar.classList.contains('secondary-menu'));
           assert.isFalse(UIManager.activationScreen.classList.contains(
                         'no-options'));
         });
