@@ -1,4 +1,4 @@
-/* global _, BalanceView, TopUpLayoutView, CostControl, ConfigManager,
+/* global BalanceView, TopUpLayoutView, CostControl, ConfigManager,
           ViewManager, debug, MozActivity, getTopUpTimeout, LazyLoader,
           sendBalanceThresholdNotification
 */
@@ -440,12 +440,14 @@ var BalanceTab = (function() {
 
     if (!error) {
       messageArea.setAttribute('aria-hidden', true);
+      message.removeAttribute('data-l10n-id');
+      message.textContent = '';
     } else {
       messageArea.setAttribute('aria-hidden', false);
       var curPriority = currentError ? ERRORS[currentError].priority : 0;
       var newPriority = ERRORS[error] ? ERRORS[error].priority : 0;
       if (newPriority >= curPriority) {
-        message.textContent = _(ERRORS[error].string);
+        message.setAttribute('data-l10n-id', ERRORS[error].string);
         currentError = error;
       }
     }

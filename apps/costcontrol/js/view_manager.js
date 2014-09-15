@@ -132,9 +132,6 @@ var ViewManager = (function() {
       }
     }
 
-    // translate content
-    navigator.mozL10n.translate(panel);
-
     // activate all scripts
     var scripts = panel.querySelectorAll('script');
     for (var j = 0; j < scripts.length; j++) {
