@@ -314,6 +314,13 @@ suite('Render contact form', function() {
       assert.equal(date2.dataset.value, 'anniversary');
     });
 
+    test('Reset button phone field', function() {
+      var phoneNumberField = document.getElementById('number_0');
+      phoneNumberField.value = '123456';
+      phoneNumberField.nextElementSibling.click();
+
+      assert.isTrue(phoneNumberField.value === '');
+    });
   });
 
   suite('Render edit form', function() {
@@ -942,7 +949,7 @@ suite('Render contact form', function() {
     var data = phoneData || mockContact;
 
     var valuePhone = document.querySelector('#number_' + c).value;
-    var typePhone = document.querySelector('#tel_type_' + c).textContent;
+    var typePhone = document.querySelector('#tel_type_' + c).textContent.trim();
     var carrierPhone = document.querySelector('#carrier_' + c).value;
     assert.isTrue(valuePhone === data.tel[c].value);
     assert.isTrue(typePhone === data.tel[c].type[0]);

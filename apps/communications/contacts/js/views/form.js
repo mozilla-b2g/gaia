@@ -173,9 +173,15 @@ contacts.Form = (function() {
       if (tgt.tagName == 'BUTTON' && tgt.getAttribute('type') == 'reset') {
         event.preventDefault();
         var input = tgt.previousElementSibling;
+
         if (input.getAttribute('name').startsWith('tel') &&
             input.dataset.field === 'value') {
-          input.parentNode.nextElementSibling.classList.add(INVALID_CLASS);
+          var telId = input.id;
+          var telIndex = telId.substring(telId.indexOf('_') + 1);
+          var carrierField =
+                        document.getElementById('carrier' + '_' + telIndex);
+          carrierField.parentNode.classList.add(INVALID_CLASS);
+
           textFieldsCache.clear();
         }
         input.value = '';
