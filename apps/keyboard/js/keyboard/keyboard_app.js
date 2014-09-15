@@ -183,7 +183,7 @@ KeyboardApp.prototype.setLayoutPage = function setLayoutPage(page) {
 
   var engine = this.inputMethodManager.currentIMEngine;
   if (typeof engine.setLayoutPage === 'function') {
-    engine.setLayoutPage(this.layoutManager.currentLayoutPage);
+    engine.setLayoutPage(this.layoutManager.currentPageIndex);
   }
 };
 
@@ -196,7 +196,7 @@ KeyboardApp.prototype.getNumberOfCandidatesPerRow = function() {
 KeyboardApp.prototype.handleUpperCaseStateChange = function() {
   this.console.log('KeyboardApp.handleUpperCaseStateChange()');
   // When we have secondLayout, we need to force re-render on uppercase switch
-  if (this.layoutManager.currentModifiedLayout.secondLayout) {
+  if (this.layoutManager.currentPage.secondLayout) {
     this.layoutRenderingManager.updateLayoutRendering();
 
     return;

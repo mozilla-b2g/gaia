@@ -36,7 +36,7 @@ Keyboards.lt = {
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
       '"': '„“',
       '-': '–',
@@ -57,8 +57,9 @@ Keyboards.lt = {
         { value: '(' }, { value: ')' }
       ], [
         { value: 'Alt', ratio: 1.5,
-          keyCode: KeyEvent.DOM_VK_ALT,
-          className: 'page-switch-key'
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
         },
         { value: '+',
           supportsSwitching: {
@@ -72,5 +73,5 @@ Keyboards.lt = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

@@ -37,7 +37,7 @@ Keyboards['es-Americas'] = {
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
       '$': '€ £ ¥',
       '0': 'º',
@@ -64,8 +64,9 @@ Keyboards['es-Americas'] = {
         { value: '&' }, { value: '@' }, { value: '%' }
       ], [
         { value: 'Alt', ratio: 1.5,
-          keyCode: KeyEvent.DOM_VK_ALT,
-          className: 'page-switch-key'
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
         },
         { value: '*',
           supportsSwitching: {
@@ -80,8 +81,7 @@ Keyboards['es-Americas'] = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  },
-  symbolLayout: {
+  }, {
     keys: [
       [
         { value: '[' }, { value: ']' }, { value: '{' }, { value: '}' },
@@ -93,8 +93,9 @@ Keyboards['es-Americas'] = {
         { value: '¥' }, { value: '•' }
       ], [
         { value: 'Alt', ratio: 1.5,
-          keyCode: KeyEvent.DOM_VK_ALT,
-          className: 'page-switch-key'
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 1
         },
         {value: '*' }, { value: '¿' }, { value: '?' },
         { value: '¡' }, { value: '!' },
@@ -105,5 +106,5 @@ Keyboards['es-Americas'] = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

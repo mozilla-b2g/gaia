@@ -320,82 +320,23 @@ suite('TargetHandlersManager', function() {
       assert.isTrue(handlerStub.activate.calledOnce);
     });
 
-    suite('PageSwitchingTargetHandler', function() {
-      test('KEYCODE_BASIC_LAYOUT', function() {
-        var target = {
-          classList: {
-            contains: this.sinon.stub()
-          },
-          dataset: {
-            keycode: app.layoutManager.KEYCODE_BASIC_LAYOUT
-          }
-        };
-        target.classList.contains.returns(false);
+    test('PageSwitchingTargetHandler', function() {
+      var target = {
+        classList: {
+          contains: this.sinon.stub()
+        },
+        dataset: {
+          keycode: KeyEvent.DOM_VK_ALT
+        }
+      };
+      target.classList.contains.returns(false);
 
-        activeTargetsManagerStub.ontargetactivated(target);
+      activeTargetsManagerStub.ontargetactivated(target);
 
-        assert.isTrue(
-          window.PageSwitchingTargetHandler.calledWith(target, app));
+      assert.isTrue(
+        window.PageSwitchingTargetHandler.calledWith(target, app));
 
-        assert.isTrue(handlerStub.activate.calledOnce);
-      });
-
-      test('KEYCODE_ALTERNATE_LAYOUT', function() {
-        var target = {
-          classList: {
-            contains: this.sinon.stub()
-          },
-          dataset: {
-            keycode: app.layoutManager.KEYCODE_ALTERNATE_LAYOUT
-          }
-        };
-        target.classList.contains.returns(false);
-
-        activeTargetsManagerStub.ontargetactivated(target);
-
-        assert.isTrue(
-          window.PageSwitchingTargetHandler.calledWith(target, app));
-
-        assert.isTrue(handlerStub.activate.calledOnce);
-      });
-
-      test('KEYCODE_SYMBOL_LAYOUT', function() {
-        var target = {
-          classList: {
-            contains: this.sinon.stub()
-          },
-          dataset: {
-            keycode: app.layoutManager.KEYCODE_SYMBOL_LAYOUT
-          }
-        };
-        target.classList.contains.returns(false);
-
-        activeTargetsManagerStub.ontargetactivated(target);
-
-        assert.isTrue(
-          window.PageSwitchingTargetHandler.calledWith(target, app));
-
-        assert.isTrue(handlerStub.activate.calledOnce);
-      });
-
-      test('KeyEvent.DOM_VK_ALT', function() {
-        var target = {
-          classList: {
-            contains: this.sinon.stub()
-          },
-          dataset: {
-            keycode: KeyEvent.DOM_VK_ALT
-          }
-        };
-        target.classList.contains.returns(false);
-
-        activeTargetsManagerStub.ontargetactivated(target);
-
-        assert.isTrue(
-          window.PageSwitchingTargetHandler.calledWith(target, app));
-
-        assert.isTrue(handlerStub.activate.calledOnce);
-      });
+      assert.isTrue(handlerStub.activate.calledOnce);
     });
 
     test('SwitchKeyboardTargetHandler', function() {

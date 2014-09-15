@@ -274,12 +274,12 @@ suite('KeyboardApp', function() {
     app.inputMethodManager.currentIMEngine = {
       setLayoutPage: this.sinon.stub()
     };
-    app.layoutManager.currentLayoutPage = 42;
+    app.layoutManager.currentPageIndex = 42;
 
-    app.setLayoutPage('foo');
+    app.setLayoutPage(12);
 
     assert.isTrue(
-      app.layoutManager.updateLayoutPage.calledWith('foo'));
+      app.layoutManager.updateLayoutPage.calledWith(12));
     assert.isTrue(
       app.layoutRenderingManager.updateLayoutRendering.calledOnce);
     assert.isTrue(
@@ -296,7 +296,7 @@ suite('KeyboardApp', function() {
 
   suite('app.upperCaseStateManager.onstatechange', function() {
     test('w/o secondLayout', function() {
-      app.layoutManager.currentModifiedLayout = {
+      app.layoutManager.currentPage = {
       };
 
       app.upperCaseStateManager.onstatechange();
@@ -310,7 +310,7 @@ suite('KeyboardApp', function() {
     });
 
     test('w secondLayout', function() {
-      app.layoutManager.currentModifiedLayout = {
+      app.layoutManager.currentPage = {
         secondLayout: true
       };
 

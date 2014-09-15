@@ -44,7 +44,7 @@ Keyboards.ca = {
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
       '0': 'º',
       '1': '1r 1a',
@@ -76,8 +76,9 @@ Keyboards.ca = {
         { value: '(' }, { value: ')' }
       ], [
         { value: 'Alt', ratio: 1.5,
-          keyCode: KeyEvent.DOM_VK_ALT,
-          className: 'page-switch-key'
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
         },
         { value: '+',
           supportsSwitching: {
@@ -91,5 +92,5 @@ Keyboards.ca = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

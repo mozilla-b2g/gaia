@@ -127,9 +127,6 @@ TargetHandlersManager.prototype._createHandlerForTarget = function(target) {
         handler = new SpaceKeyTargetHandler(target, this.app);
         break;
 
-      case this.app.layoutManager.KEYCODE_BASIC_LAYOUT:
-      case this.app.layoutManager.KEYCODE_ALTERNATE_LAYOUT:
-      case this.app.layoutManager.KEYCODE_SYMBOL_LAYOUT:
       case KeyEvent.DOM_VK_ALT:
         handler = new PageSwitchingTargetHandler(target, this.app);
         break;

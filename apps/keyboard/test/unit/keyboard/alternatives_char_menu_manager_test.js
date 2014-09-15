@@ -72,7 +72,7 @@ suite('AlternativesCharMenuManager', function() {
         isUpperCase: undefined
       },
       layoutManager: {
-        currentModifiedLayout: {
+        currentPage: {
           alt: {
           }
         }
@@ -106,14 +106,14 @@ suite('AlternativesCharMenuManager', function() {
     app.upperCaseStateManager.isUpperCase = false;
     app.upperCaseStateManager.isUpperCaseLocked = false;
 
-    app.layoutManager.currentModifiedLayout.alt.x =
+    app.layoutManager.currentPage.alt.x =
       ['a', 'b', 'c', 'd'];
 
     manager.show(target);
 
     assert.isTrue(window.IMERender.
       showAlternativesCharMenu.calledWith(target, ['x', 'a', 'b', 'c', 'd']));
-    assert.isTrue(app.layoutManager.currentModifiedLayout.alt.x !==
+    assert.isTrue(app.layoutManager.currentPage.alt.x !==
       window.IMERender.showAlternativesCharMenu.getCall(0).args[1],
       'A copy of the array should be sent instead of the original one.');
     assert.isTrue(manager.isShown);
@@ -123,16 +123,16 @@ suite('AlternativesCharMenuManager', function() {
     app.upperCaseStateManager.isUpperCase = true;
     app.upperCaseStateManager.isUpperCaseLocked = false;
 
-    app.layoutManager.currentModifiedLayout.alt.X =
+    app.layoutManager.currentPage.alt.X =
       ['A', 'B', 'C', 'D'];
-    app.layoutManager.currentModifiedLayout.alt.X.upperCaseLocked =
+    app.layoutManager.currentPage.alt.X.upperCaseLocked =
       ['E', 'F', 'G', 'H'];
 
     manager.show(target);
 
     assert.isTrue(window.IMERender.
         showAlternativesCharMenu.calledWith(target, ['X', 'A', 'B', 'C', 'D']));
-    assert.isTrue(app.layoutManager.currentModifiedLayout.alt.x !==
+    assert.isTrue(app.layoutManager.currentPage.alt.x !==
       window.IMERender.showAlternativesCharMenu.getCall(0).args[1],
       'A copy of the array should be sent instead of the original one.');
     assert.isTrue(manager.isShown);
@@ -142,16 +142,16 @@ suite('AlternativesCharMenuManager', function() {
     app.upperCaseStateManager.isUpperCase = true;
     app.upperCaseStateManager.isUpperCaseLocked = true;
 
-    app.layoutManager.currentModifiedLayout.alt.X =
+    app.layoutManager.currentPage.alt.X =
       ['A', 'B', 'C', 'D'];
-    app.layoutManager.currentModifiedLayout.alt.X.upperCaseLocked =
+    app.layoutManager.currentPage.alt.X.upperCaseLocked =
       ['E', 'F', 'G', 'H'];
 
     manager.show(target);
 
     assert.isTrue(window.IMERender.
         showAlternativesCharMenu.calledWith(target, ['X', 'E', 'F', 'G', 'H']));
-    assert.isTrue(app.layoutManager.currentModifiedLayout.alt.x !==
+    assert.isTrue(app.layoutManager.currentPage.alt.x !==
       window.IMERender.showAlternativesCharMenu.getCall(0).args[1],
       'A copy of the array should be sent instead of the original one.');
     assert.isTrue(manager.isShown);
@@ -172,7 +172,7 @@ suite('AlternativesCharMenuManager', function() {
       app.upperCaseStateManager.isUpperCase = false;
       app.upperCaseStateManager.isUpperCaseLocked = false;
 
-      app.layoutManager.currentModifiedLayout.alt.x =
+      app.layoutManager.currentPage.alt.x =
         ['a', 'b', 'c', 'd'];
 
       manager.show(target);
@@ -348,7 +348,7 @@ suite('AlternativesCharMenuManager', function() {
       app.upperCaseStateManager.isUpperCase = false;
       app.upperCaseStateManager.isUpperCaseLocked = false;
 
-      app.layoutManager.currentModifiedLayout.alt.x =
+      app.layoutManager.currentPage.alt.x =
         ['a', 'b', 'c', 'd'];
 
       manager.show(target);

@@ -8,33 +8,45 @@ suite('LayoutLoader', function() {
   var realKeyboards;
 
   var expectedFooLayout = {
-    keys: [
-      [
-        { value: 'foo' }
-      ]
-    ],
-    alt: {},
-    upperCase: {}
+    pages: [
+      {
+        keys: [
+          [
+            { value: 'foo' }
+          ]
+        ],
+        alt: {},
+        upperCase: {}
+      }
+    ]
   };
 
   var expectedFoo2Layout = {
-    keys: [
-      [
-        { value: 'foo2' }
-      ]
-    ],
-    alt: {},
-    upperCase: {}
+    pages: [
+      {
+        keys: [
+          [
+            { value: 'foo2' }
+          ]
+        ],
+        alt: {},
+        upperCase: {}
+      }
+    ]
   };
 
   var expectedFoo3Layout = {
-    keys: [
-      [
-        { value: 'foo3' }
-      ]
-    ],
-    alt: {},
-    upperCase: {}
+    pages: [
+      {
+        keys: [
+          [
+            { value: 'foo3' }
+          ]
+        ],
+        alt: {},
+        upperCase: {}
+      }
+    ]
   };
 
   suiteSetup(function() {
@@ -65,7 +77,7 @@ suite('LayoutLoader', function() {
     var p = loader.getLayoutAsync('preloaded');
     p.then(function(layout) {
       assert.isTrue(true, 'loaded');
-      assert.deepEqual(loader.getLayout('preloaded'), {
+      assert.deepEqual(loader.getLayout('preloaded'), { pages: [ {
         keys: [
           [
             { value: 'preloaded' }
@@ -73,15 +85,14 @@ suite('LayoutLoader', function() {
         ],
         alt: {},
         upperCase: {}
-      }, 'preloaded loaded');
+      } ] }, 'preloaded loaded');
       assert.equal(layout, loader.getLayout('preloaded'));
-
-      done();
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw (e);
+      }
       assert.isTrue(false, 'should not reject');
-
-      done();
-    });
+    }).then(done, done);
   });
 
   test('getLayoutAsync', function(done) {
@@ -97,13 +108,12 @@ suite('LayoutLoader', function() {
       assert.deepEqual(
         loader.getLayout('foo'), expectedFooLayout, 'foo loaded');
       assert.equal(layout, loader.getLayout('foo'));
-
-      done();
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw (e);
+      }
       assert.isTrue(false, 'should not reject');
-
-      done();
-    });
+    }).then(done, done);
   });
 
   test('getLayoutAsync (init two layouts)', function(done) {
@@ -124,20 +134,16 @@ suite('LayoutLoader', function() {
       assert.deepEqual(
         loader.getLayout('foo3'), expectedFoo3Layout, 'foo3 loaded');
       var p2 = loader.getLayoutAsync('foo3');
-      p2.then(function(layout) {
-        assert.equal(layout, loader.getLayout('foo3'));
 
-        done();
-      }, function() {
-        assert.isTrue(false, 'should not reject');
-
-        done();
-      });
-    }, function() {
+      return p2;
+    }).then(function(layout) {
+      assert.equal(layout, loader.getLayout('foo3'));
+    }, function(e) {
+      if (e) {
+        throw (e);
+      }
       assert.isTrue(false, 'should not reject');
-
-      done();
-    });
+    }).then(done, done);
   });
 
   test('getLayoutAsync (twice after first one)', function(done) {
@@ -158,21 +164,16 @@ suite('LayoutLoader', function() {
       assert.equal(p2, p,
         'Should return the same promise without creating a new one');
 
-      p.then(function(layout) {
-        assert.isTrue(true, 'loaded');
-        assert.equal(layout, loader.getLayout('foo'));
-
-        done();
-      }, function() {
-        assert.isTrue(false, 'should not reject');
-
-        done();
-      });
-    }, function() {
+      return p2;
+    }).then(function(layout) {
+      assert.isTrue(true, 'loaded');
+      assert.equal(layout, loader.getLayout('foo'));
+    }, function(e) {
+      if (e) {
+        throw (e);
+      }
       assert.isTrue(false, 'should not reject');
-
-      done();
-    });
+    }).then(done, done);
   });
 
   test('getLayoutAsync (failed)', function(done) {
@@ -185,13 +186,12 @@ suite('LayoutLoader', function() {
     var p = loader.getLayoutAsync('bar');
     p.then(function() {
       assert.isTrue(false, 'should not resolve');
-
-      done();
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw (e);
+      }
       assert.isTrue(true, 'rejected');
-
-      done();
-    });
+    }).then(done, done);
   });
 
   test('getLayoutAsync (twice at the same time)', function(done) {
@@ -210,13 +210,12 @@ suite('LayoutLoader', function() {
       assert.isTrue(true, 'loaded');
       assert.deepEqual(
         loader.getLayout('foo'), expectedFooLayout, 'foo loaded');
-
-      done();
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw (e);
+      }
       assert.isTrue(false, 'should not reject');
-
-      done();
-    });
+    }).then(done, done);
   });
 
   test('normalize alt menu (single char keys)', function(done) {
@@ -242,7 +241,7 @@ suite('LayoutLoader', function() {
     var p = loader.getLayoutAsync('preloaded');
     p.then(function(layout) {
       assert.isTrue(true, 'loaded');
-      assert.deepEqual(loader.getLayout('preloaded'), {
+      assert.deepEqual(loader.getLayout('preloaded'), { pages: [ {
         keys: [
           [
             { value: 'preloaded' }
@@ -251,18 +250,17 @@ suite('LayoutLoader', function() {
         alt: { 'a': [ 'á', 'à', 'â', 'ä', 'å', 'ã', 'ā', 'æ' ],
                'A': [ 'Á', 'À', 'Â', 'Ä', 'Å', 'Ã', 'Ā', 'Æ' ] },
         upperCase: {}
-      }, 'preloaded loaded');
+      } ] }, 'preloaded loaded');
       assert.equal(layout, loader.getLayout('preloaded'));
-
-      done();
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw (e);
+      }
       assert.isTrue(false, 'should not reject');
-
-      done();
-    });
+    }).then(done, done);
   });
 
-  test('normalize alt menu of sub-layout alternateLayout', function(done) {
+  test('normalize alt menu of multiple pages', function(done) {
     window.Keyboards = {
       'preloaded': {
         keys: [
@@ -270,7 +268,7 @@ suite('LayoutLoader', function() {
             { value: 'preloaded' }
           ]
         ],
-        alternateLayout: {
+        pages: [ undefined, {
           keys: [
             [
               { value: 'preloaded-alternateLayout' }
@@ -279,7 +277,7 @@ suite('LayoutLoader', function() {
           alt: {
             'a': 'áàâäåãāæ'
           }
-        }
+        } ]
       }
     };
 
@@ -292,33 +290,31 @@ suite('LayoutLoader', function() {
     var p = loader.getLayoutAsync('preloaded');
     p.then(function(layout) {
       assert.isTrue(true, 'loaded');
-      assert.deepEqual(loader.getLayout('preloaded'), {
+      assert.deepEqual(loader.getLayout('preloaded'), { pages: [ {
         keys: [
           [
             { value: 'preloaded' }
           ]
         ],
-        alternateLayout: {
-          keys: [
-            [
-              { value: 'preloaded-alternateLayout' }
-            ]
-          ],
-          alt: { 'a': [ 'á', 'à', 'â', 'ä', 'å', 'ã', 'ā', 'æ' ],
-                 'A': [ 'Á', 'À', 'Â', 'Ä', 'Å', 'Ã', 'Ā', 'Æ' ] },
-          upperCase: {}
-        },
         alt: {},
         upperCase: {}
-      }, 'preloaded loaded');
+      }, {
+        keys: [
+          [
+            { value: 'preloaded-alternateLayout' }
+          ]
+        ],
+        alt: { 'a': [ 'á', 'à', 'â', 'ä', 'å', 'ã', 'ā', 'æ' ],
+               'A': [ 'Á', 'À', 'Â', 'Ä', 'Å', 'Ã', 'Ā', 'Æ' ] },
+        upperCase: {}
+      } ] }, 'preloaded loaded');
       assert.equal(layout, loader.getLayout('preloaded'));
-
-      done();
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw (e);
+      }
       assert.isTrue(false, 'should not reject');
-
-      done();
-    });
+    }).then(done, done);
   });
 
   test('normalize alt menu (with multi-char keys)', function(done) {
@@ -344,7 +340,7 @@ suite('LayoutLoader', function() {
     var p = loader.getLayoutAsync('preloaded');
     p.then(function(layout) {
       assert.isTrue(true, 'loaded');
-      assert.deepEqual(loader.getLayout('preloaded'), {
+      assert.deepEqual(loader.getLayout('preloaded'), { pages: [ {
         keys: [
           [
             { value: 'preloaded' }
@@ -353,15 +349,14 @@ suite('LayoutLoader', function() {
         alt: { 'a': [ 'á', 'à', 'â', 'A$' ],
                'A': [ 'Á', 'À', 'Â', 'A$' ] },
         upperCase: {}
-      }, 'preloaded loaded');
+      } ] }, 'preloaded loaded');
       assert.equal(layout, loader.getLayout('preloaded'));
-
-      done();
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw (e);
+      }
       assert.isTrue(false, 'should not reject');
-
-      done();
-    });
+    }).then(done, done);
   });
 
   test('normalize alt menu (with one multi-char keys)', function(done) {
@@ -387,7 +382,7 @@ suite('LayoutLoader', function() {
     var p = loader.getLayoutAsync('preloaded');
     p.then(function(layout) {
       assert.isTrue(true, 'loaded');
-      assert.deepEqual(loader.getLayout('preloaded'), {
+      assert.deepEqual(loader.getLayout('preloaded'), { pages: [ {
         keys: [
           [
             { value: 'preloaded' }
@@ -396,15 +391,14 @@ suite('LayoutLoader', function() {
         alt: { 'a': [ 'A$' ],
                'A': [ 'A$' ] },
         upperCase: {}
-      }, 'preloaded loaded');
+      } ] }, 'preloaded loaded');
       assert.equal(layout, loader.getLayout('preloaded'));
-
-      done();
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw (e);
+      }
       assert.isTrue(false, 'should not reject');
-
-      done();
-    });
+    }).then(done, done);
   });
 
   test('normalize alt menu (with Turkish \'i\' key)', function(done) {
@@ -433,7 +427,7 @@ suite('LayoutLoader', function() {
     var p = loader.getLayoutAsync('preloaded');
     p.then(function(layout) {
       assert.isTrue(true, 'loaded');
-      assert.deepEqual(loader.getLayout('preloaded'), {
+      assert.deepEqual(loader.getLayout('preloaded'), { pages: [ {
         keys: [
           [
             { value: 'preloaded' }
@@ -444,15 +438,14 @@ suite('LayoutLoader', function() {
         upperCase: {
           'i': 'İ'
         }
-      }, 'preloaded loaded');
+      } ] }, 'preloaded loaded');
       assert.equal(layout, loader.getLayout('preloaded'));
-
-      done();
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw (e);
+      }
       assert.isTrue(false, 'should not reject');
-
-      done();
-    });
+    }).then(done, done);
   });
 
   test('normalize alt menu (with Catalan \'l·l\' key)', function(done) {
@@ -476,6 +469,7 @@ suite('LayoutLoader', function() {
     assert.isTrue(!!loader.getLayout('preloaded'), 'preloaded loaded');
 
     var expectedLayout = {
+      pages: [ {
         keys: [
           [
             { value: 'preloaded' }
@@ -484,8 +478,9 @@ suite('LayoutLoader', function() {
         alt: { 'l': [ 'l·l', 'ł', '£' ],
                'L': [ 'L·l', 'Ł', '£' ] },
         upperCase: {}
+      } ]
     };
-    expectedLayout.alt.L.upperCaseLocked = [ 'L·L', 'Ł', '£' ];
+    expectedLayout.pages[0].alt.L.upperCaseLocked = [ 'L·L', 'Ł', '£' ];
 
     var p = loader.getLayoutAsync('preloaded');
     p.then(function(layout) {
@@ -493,12 +488,11 @@ suite('LayoutLoader', function() {
       assert.deepEqual(loader.getLayout('preloaded'), expectedLayout,
         'preloaded loaded');
       assert.equal(layout, loader.getLayout('preloaded'));
-
-      done();
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw (e);
+      }
       assert.isTrue(false, 'should not reject');
-
-      done();
-    });
+    }).then(done, done);
   });
 });

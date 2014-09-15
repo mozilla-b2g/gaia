@@ -56,7 +56,7 @@ DefaultTargetHandler.prototype.commit = function() {
    * This hack should be removed and the state/input queue should be
    * maintained out of latin.js.
    */
-  if (this.app.layoutManager.currentModifiedLayout.imEngine === 'latin') {
+  if (this.app.layoutManager.currentPage.imEngine === 'latin') {
     this.app.console.log('DefaultTargetHandler.commit()::latin::engine.click',
       keyCode, upperCaseKeyCode);
     engine.click(keyCode, upperCaseKeyCode);
@@ -213,34 +213,7 @@ var PageSwitchingTargetHandler = function(target, app) {
 PageSwitchingTargetHandler.prototype =
   Object.create(DefaultTargetHandler.prototype);
 PageSwitchingTargetHandler.prototype.commit = function() {
-  var keyCode = parseInt(this.target.dataset.keycode, 10);
-
-  var page;
-  switch (keyCode) {
-    case this.app.layoutManager.KEYCODE_BASIC_LAYOUT:
-      // Return to default page
-      page = this.app.layoutManager.LAYOUT_PAGE_DEFAULT;
-      break;
-
-    case this.app.layoutManager.KEYCODE_ALTERNATE_LAYOUT:
-      // Switch to numbers+symbols page
-      page = this.app.layoutManager.LAYOUT_PAGE_SYMBOLS_I;
-      break;
-
-     case this.app.layoutManager.KEYCODE_SYMBOL_LAYOUT:
-      page = this.app.layoutManager.LAYOUT_PAGE_SYMBOLS_II;
-      break;
-
-    case KeyEvent.DOM_VK_ALT:
-      // alternate between pages 1 and 2 of SYMBOLS
-      if (this.app.layoutManager.currentLayoutPage ===
-          this.app.layoutManager.LAYOUT_PAGE_SYMBOLS_I) {
-        page = this.app.layoutManager.LAYOUT_PAGE_SYMBOLS_II;
-      } else {
-        page = this.app.layoutManager.LAYOUT_PAGE_SYMBOLS_I;
-      }
-      break;
-  }
+  var page = parseInt(this.target.dataset.targetPage, 10);
 
   this.app.setLayoutPage(page);
   this.app.visualHighlightManager.hide(this.target);

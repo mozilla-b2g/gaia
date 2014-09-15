@@ -417,7 +417,7 @@
 
       // Exit symbol layout mode after space or return key is pressed.
       if (keyCode === SPACE || keyCode === RETURN) {
-        keyboard.setLayoutPage(LAYOUT_PAGE_DEFAULT);
+        keyboard.setLayoutPage(PAGE_INDEX_DEFAULT);
       }
 
       lastSpaceTimestamp = (keyCode === SPACE) ? Date.now() : 0;
@@ -1047,6 +1047,6 @@
     updateSuggestions();
   }
 
-  if (!('LAYOUT_PAGE_DEFAULT' in window))
-    window.LAYOUT_PAGE_DEFAULT = null;
+  if (!('PAGE_INDEX_DEFAULT' in window))
+    window.PAGE_INDEX_DEFAULT = null;
 }());

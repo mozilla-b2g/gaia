@@ -152,43 +152,21 @@ suite('InputMethodGlue', function() {
       app.inputContext.sendKey.getCall(5).calledWith(0, text.charCodeAt(5), 0));
   });
 
-  test('alterKeyboard', function() {
-    var glue = new InputMethodGlue();
-    var app = {
-      console: this.sinon.stub(KeyboardConsole.prototype),
-      layoutManager: {
-        updateForcedModifiedLayout: this.sinon.stub()
-      },
-      layoutRenderingManager: {
-        updateLayoutRendering: this.sinon.stub()
-      },
-      inputContext: {}
-    };
-    var name = 'bar';
-    glue.init(app, 'foo');
-    glue.alterKeyboard(name);
-
-    assert.isTrue(
-      app.layoutManager.updateForcedModifiedLayout.calledWith(name));
-    assert.isTrue(
-      app.layoutRenderingManager.updateLayoutRendering.calledOnce);
-  });
-
   test('setLayoutPage', function() {
     var glue = new InputMethodGlue();
     var app = {
       console: this.sinon.stub(KeyboardConsole.prototype),
       layoutManager: {
-        LAYOUT_PAGE_DEFAULT: 'bar'
+        PAGE_INDEX_DEFAULT: 0
       },
       setLayoutPage: this.sinon.stub(),
       inputContext: {}
     };
-    var name = 'bar';
+    var pageIndex = 0;
     glue.init(app, 'foo');
-    glue.setLayoutPage(name);
+    glue.setLayoutPage(pageIndex);
 
-    assert.isTrue(app.setLayoutPage.calledWith(name));
+    assert.isTrue(app.setLayoutPage.calledWith(pageIndex));
   });
 
   test('setUpperCase', function() {
@@ -413,10 +391,8 @@ suite('InputMethodManager', function() {
     app = {
       promiseManager: {},
       layoutManager: {
-        currentModifiedLayout: {
-          autoCorrectLanguage: 'xx-XX'
-        },
-        currentLayout: {
+        currentPage: {
+          autoCorrectLanguage: 'xx-XX',
           autoCorrectPunctuation: true
         }
       },
@@ -477,7 +453,10 @@ suite('InputMethodManager', function() {
       }));
       assert.equal(activateStub.getCall(0).thisValue,
         imEngine);
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw e;
+      }
       assert.isTrue(false, 'should not reject');
     }).then(done, done);
   });
@@ -489,7 +468,7 @@ suite('InputMethodManager', function() {
     });
     imEngineSettingsStub.initSettings.returns(initSettingsPromise);
 
-    manager.app.layoutManager.currentLayout = {
+    manager.app.layoutManager.currentPage = {
       autoCorrectPunctuation: false
     };
 
@@ -504,7 +483,10 @@ suite('InputMethodManager', function() {
         correct: true,
         correctPunctuation: false
       });
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw e;
+      }
       assert.isTrue(false, 'should not reject');
     }).then(done, done);
   });
@@ -549,7 +531,10 @@ suite('InputMethodManager', function() {
         correctPunctuation: true
       }));
       assert.equal(activateStub.getCall(0).thisValue, imEngine);
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw e;
+      }
       assert.isTrue(false, 'should not reject');
     }).then(done, done);
   });
@@ -580,7 +565,10 @@ suite('InputMethodManager', function() {
       assert.equal(manager.currentIMEngine,
         manager.loader.getInputMethod('foo'),
         'currentIMEngine is set');
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw e;
+      }
       assert.isTrue(false, 'should not reject');
     }).then(done, done);
   });
@@ -627,7 +615,10 @@ suite('InputMethodManager', function() {
         'currentIMEngine is set to default');
 
       return p2;
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw e;
+      }
       assert.isTrue(false, 'should not reject');
     }).then(function() {
       assert.isTrue(true, 'resolved');
@@ -651,7 +642,10 @@ suite('InputMethodManager', function() {
       }));
       assert.equal(activateStub.getCall(1).thisValue,
         imEngine);
-    }, function() {
+    }, function(e) {
+      if (e) {
+        throw e;
+      }
       assert.isTrue(false, 'should not reject');
     }).then(done, done);
   });

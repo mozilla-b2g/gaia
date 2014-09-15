@@ -88,10 +88,6 @@
  *    sendString(str):
  *      Outputs a string of text by repeated calls to sendKey().
  *
- *    alterKeyboard(layout):
- *      Allows the IM to modify the keyboard layout by specifying a new layout
- *      name. Only used by asian ims currently.
- *
  *    setLayoutPage():
  *      Allows the IM to switch between default and symbol layouts on the
  *      keyboard. Used by the latin IM.
@@ -225,19 +221,6 @@ InputMethodGlue.prototype.sendString = function(str) {
   }
 };
 
-// Set the current rendered layout to a specific named layout
-// XXX deprecated; overwrite alternative/symbol layout instead.
-InputMethodGlue.prototype.alterKeyboard = function(layoutName) {
-  this.app.console.trace();
-  if (!this.app.inputContext) {
-    console.warn('InputMethodGlue: call alterKeyboard() when ' +
-      'inputContext does not exist.');
-    return;
-  }
-  this.app.layoutManager.updateForcedModifiedLayout(layoutName);
-  this.app.layoutRenderingManager.updateLayoutRendering();
-};
-
 InputMethodGlue.prototype.setLayoutPage = function(newpage) {
   this.app.console.trace();
   if (!this.app.inputContext) {
@@ -245,7 +228,7 @@ InputMethodGlue.prototype.setLayoutPage = function(newpage) {
       'inputContext does not exist.');
     return;
   }
-  if (newpage !== this.app.layoutManager.LAYOUT_PAGE_DEFAULT) {
+  if (newpage !== this.app.layoutManager.PAGE_INDEX_DEFAULT) {
     throw new Error('InputMethodGlue: ' +
       'imEngine is only allowed to switch to default page');
   }
@@ -489,16 +472,16 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
     if (typeof imEngine.activate === 'function') {
       var dataValues = values[1];
       var settingsValues = values[2];
-      var currentLayout = this.app.layoutManager.currentLayout;
+      var currentPage = this.app.layoutManager.currentPage;
       var correctPunctuation =
-        'autoCorrectPunctuation' in currentLayout ?
-          currentLayout.autoCorrectPunctuation :
+        'autoCorrectPunctuation' in currentPage ?
+          currentPage.autoCorrectPunctuation :
           true;
 
       this.app.console.log(
         'InputMethodManager::currentIMEngine.activate()');
       imEngine.activate(
-        this.app.layoutManager.currentModifiedLayout.autoCorrectLanguage,
+        this.app.layoutManager.currentPage.autoCorrectLanguage,
         dataValues,
         {
           suggest: settingsValues.suggestionsEnabled,
