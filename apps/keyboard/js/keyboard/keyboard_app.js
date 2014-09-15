@@ -207,7 +207,7 @@ KeyboardApp.prototype.handleUpperCaseStateChange = function() {
   window.requestAnimationFrame(function() {
     this.console.time('setUpperCase:requestAnimationFrame:callback');
     // And make sure the caps lock key is highlighted correctly
-    IMERender.setUpperCaseLock(this.upperCaseStateManager);
+    this.layoutRenderingManager.updateUpperCaseRendering();
 
     //restore the previous candidates
     this.candidatePanelManager.showCandidates();

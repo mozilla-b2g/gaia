@@ -88,6 +88,14 @@ suite('LayoutRenderingManager', function() {
     assert.isTrue(window.resizeTo.calledWith(600, 401));
   });
 
+  test('updateUpperCaseRendering', function() {
+    manager.updateUpperCaseRendering();
+
+    assert.isTrue(IMERender.setUpperCaseLock.calledOnce);
+    assert.equal(IMERender.setUpperCaseLock.firstCall.args[0],
+      app.upperCaseStateManager);
+  });
+
   suite('updateLayoutRendering', function() {
     var p;
 

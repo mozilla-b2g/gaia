@@ -4,7 +4,7 @@
           SettingsPromiseManager, L10nLoader, TargetHandlersManager,
           FeedbackManager, VisualHighlightManager, CandidatePanelManager,
           UpperCaseStateManager, LayoutRenderingManager, StateManager,
-          MockInputMethodManager, IMERender */
+          MockInputMethodManager */
 
 require('/js/keyboard/console.js');
 require('/js/keyboard/input_method_manager.js');
@@ -304,7 +304,7 @@ suite('KeyboardApp', function() {
       window.requestAnimationFrame.getCall(0).args[0].call(window);
 
       assert.isTrue(
-        IMERender.setUpperCaseLock.calledWith(app.upperCaseStateManager));
+        app.layoutRenderingManager.updateUpperCaseRendering.calledOnce);
       assert.isTrue(
         app.candidatePanelManager.showCandidates.calledOnce);
     });
