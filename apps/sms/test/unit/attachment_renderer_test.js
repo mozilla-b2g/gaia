@@ -1,6 +1,7 @@
 /*global MocksHelper, MockL10n, loadBodyHTML, Attachment, AttachmentRenderer,
-         Promise, Utils,
-         AssetsHelper
+         AssetsHelper,
+         ImageUtils,
+         Promise
 */
 
 'use strict';
@@ -9,6 +10,7 @@ requireApp('sms/js/attachment.js');
 requireApp('sms/js/attachment_renderer.js');
 requireApp('sms/js/utils.js');
 
+require('/shared/js/image_utils.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('sms/test/unit/mock_utils.js');
 
@@ -31,7 +33,7 @@ suite('AttachmentRenderer >', function() {
     assert.isNull(el.querySelector('div.placeholder'));
     var thumbnail = el.querySelector('div.thumbnail');
     assert.ok(thumbnail);
-    assert.include(thumbnail.style.backgroundImage, 'data:image');
+    assert.include(thumbnail.style.backgroundImage, 'blob:');
   }
 
   function assertThumbnailPlaceholder(el, type) {
@@ -116,25 +118,6 @@ suite('AttachmentRenderer >', function() {
       }).then(done, done);
     });
 
-    test('encodes thumbnail URL', function(done) {
-      this.sinon.spy(window, 'encodeURI');
-
-      var attachment = new Attachment(testImageBlob_small, {
-        name: 'Image attachment'
-      });
-
-      var attachmentRenderer = AttachmentRenderer.for(attachment);
-
-      // Loading thumbnail in parallel only to verify later that render method
-      // actually encodes exact the same thumbnail URL.
-      Promise.all([
-        attachmentRenderer.getThumbnail(),
-        attachmentRenderer.render()
-      ]).then((results) => {
-        sinon.assert.calledWith(encodeURI, results[0].dataUrl);
-      }).then(done, done);
-    });
-
     test('small image attachment (thumbnail)', function(done) {
       var attachment = new Attachment(testImageBlob_small, {
         name: 'Image attachment'
@@ -148,7 +131,7 @@ suite('AttachmentRenderer >', function() {
           attachmentContainer.classList.contains('attachment-container')
         );
         assert.equal(attachmentContainer.dataset.attachmentType, 'img');
-        // image < message limit => dataURL thumbnail
+        // image < message limit => thumbnail blob
         assertThumbnailPreview(attachmentContainer);
         assert.isNull(attachmentContainer.querySelector('div.corrupted'));
       }).then(done, done);
@@ -189,7 +172,7 @@ suite('AttachmentRenderer >', function() {
           attachmentContainer.classList.contains('attachment-container')
         );
         assert.equal(attachmentContainer.dataset.attachmentType, 'img');
-        // image < message limit => dataURL thumbnail
+        // image < message limit => thumbnail blob
         assertThumbnailPreview(attachmentContainer);
         assert.isNull(attachmentContainer.querySelector('div.corrupted'));
       }).then(done, done);
@@ -274,194 +257,73 @@ suite('AttachmentRenderer >', function() {
   });
 
   suite('getThumbnail >', function() {
-    // Taken from attachment.js
-    var MIN_THUMBNAIL_DIMENSION = 80;
-    var MAX_THUMBNAIL_DIMENSION = 120;
-
-    var getCustomImageBlob = function(width, height) {
-      var canvas = document.createElement('canvas'),
-          context = canvas.getContext('2d');
-
-      canvas.width = width;
-      canvas.height = height;
-
-      context.fillStyle = 'rgb(255, 0, 0)';
-      context.fillRect (0, 0, width, height);
-
-      return new Promise(function(resolve) {
-        canvas.toBlob(function(blob) {
-          resolve(blob);
-        }, 'image/jpeg');
-      });
-    };
 
     setup(function() {
-      this.sinon.spy(CanvasRenderingContext2D.prototype, 'drawImage');
+      this.sinon.stub(ImageUtils, 'getSizeAndType');
+      this.sinon.spy(ImageUtils.Downsample, 'sizeNoMoreThan');
     });
 
-    test('1:1 ratio image with both dimensions less than MIN', function(done) {
-      var width = MIN_THUMBNAIL_DIMENSION / 2,
-          height = MIN_THUMBNAIL_DIMENSION / 2;
-
-      getCustomImageBlob(width, height).then(function(blob) {
-        var attachmentRenderer = AttachmentRenderer.for(new Attachment(blob, {
+    test('Use ImageUtils for no resize case', function(done) {
+      var attachmentRenderer = AttachmentRenderer.for(new Attachment(
+        testImageBlob, {
           name: 'auto_generated'
-        }));
+        }
+      ));
 
-        attachmentRenderer.getThumbnail().then(function(thumbnail) {
-          assert.isTrue(thumbnail.dataUrl.length > 0);
-          assert.equal(thumbnail.width, MIN_THUMBNAIL_DIMENSION);
-          assert.equal(thumbnail.height, MIN_THUMBNAIL_DIMENSION);
+      ImageUtils.getSizeAndType.returns(
+        Promise.resolve({
+          width: 100,
+          height: 100
+        })
+      );
 
-          sinon.assert.calledWith(
-            CanvasRenderingContext2D.prototype.drawImage,
-            sinon.match.instanceOf(Image),
-            0, 0, thumbnail.width, thumbnail.height
-          );
-        });
+      attachmentRenderer.getThumbnail().then(function(url) {
+        assert.include(url, 'blob:');
+        assert.equal(url.indexOf('#-moz-samplesize='), -1);
+        sinon.assert.calledWith(
+          ImageUtils.Downsample.sizeNoMoreThan,
+          sinon.match.number
+        );
       }).then(done, done);
     });
 
-    test('1:1 ratio image with both dimensions greater than MAX',
-      function(done) {
-      var width = MAX_THUMBNAIL_DIMENSION * 2,
-          height = MAX_THUMBNAIL_DIMENSION * 2;
-
-      getCustomImageBlob(width, height).then(function(blob) {
-        var attachmentRenderer = AttachmentRenderer.for(new Attachment(blob, {
+    test('Use ImageUtils for resize needed case', function(done) {
+      var attachmentRenderer = AttachmentRenderer.for(new Attachment(
+        testImageBlob, {
           name: 'auto_generated'
-        }));
+        }
+      ));
 
-        attachmentRenderer.getThumbnail().then(function(thumbnail) {
-          assert.isTrue(thumbnail.dataUrl.length > 0);
-          assert.equal(thumbnail.width, MIN_THUMBNAIL_DIMENSION);
-          assert.equal(thumbnail.height, MIN_THUMBNAIL_DIMENSION);
+      ImageUtils.getSizeAndType.returns(
+        Promise.resolve({
+          width: 300,
+          height: 300
+        })
+      );
 
-          sinon.assert.calledWith(
-            CanvasRenderingContext2D.prototype.drawImage,
-            sinon.match.instanceOf(Image),
-            0, 0, thumbnail.width, thumbnail.height
-          );
-        });
+      attachmentRenderer.getThumbnail().then(function(url) {
+        assert.include(url, 'blob:');
+        assert.include(url, '#-moz-samplesize=');
+        sinon.assert.calledWith(ImageUtils.Downsample.sizeNoMoreThan,
+                                sinon.match.number);
       }).then(done, done);
     });
 
-    test('2:1 ratio image', function(done) {
-      var aspectRatio = 2,
-          width = MIN_THUMBNAIL_DIMENSION,
-          height = MIN_THUMBNAIL_DIMENSION / aspectRatio;
-
-      getCustomImageBlob(width, height).then(function(blob) {
-        var attachmentRenderer = AttachmentRenderer.for(new Attachment(blob, {
+    test('throw error if image is corrupted', function(done) {
+      var attachmentRenderer = AttachmentRenderer.for(
+        new Attachment(testImageBlob_bogus, {
           name: 'auto_generated'
-        }));
+        })
+      );
+      var imgError = 'image error';
 
-        attachmentRenderer.getThumbnail().then(function(thumbnail) {
-          assert.isTrue(thumbnail.dataUrl.length > 0);
-          assert.equal(thumbnail.width, MAX_THUMBNAIL_DIMENSION);
-          assert.equal(thumbnail.height, MIN_THUMBNAIL_DIMENSION);
+      ImageUtils.getSizeAndType.returns(
+        Promise.reject(imgError)
+      );
 
-          sinon.assert.calledWith(
-            CanvasRenderingContext2D.prototype.drawImage,
-            sinon.match.instanceOf(Image),
-            0, 0, thumbnail.width, thumbnail.width / aspectRatio
-          );
-        });
-      }).then(done, done);
-    });
-
-    test('1.4:1 ratio image', function(done) {
-      var aspectRatio = 1.4,
-          width = MAX_THUMBNAIL_DIMENSION * aspectRatio,
-          height = MAX_THUMBNAIL_DIMENSION;
-
-      getCustomImageBlob(width, height).then(function(blob) {
-        var attachmentRenderer = AttachmentRenderer.for(new Attachment(blob, {
-          name: 'auto_generated'
-        }));
-
-        attachmentRenderer.getThumbnail().then(function(thumbnail) {
-          assert.isTrue(thumbnail.dataUrl.length > 0);
-          assert.equal(thumbnail.width, MIN_THUMBNAIL_DIMENSION * aspectRatio);
-          assert.equal(thumbnail.height, MIN_THUMBNAIL_DIMENSION);
-
-          sinon.assert.calledWith(
-            CanvasRenderingContext2D.prototype.drawImage,
-            sinon.match.instanceOf(Image),
-            0, 0, thumbnail.width, thumbnail.width / aspectRatio
-          );
-        });
-      }).then(done, done);
-    });
-
-    test('1:2 ratio image', function(done) {
-      var aspectRatio = 2,
-          width = MIN_THUMBNAIL_DIMENSION / aspectRatio,
-          height = MIN_THUMBNAIL_DIMENSION;
-
-      getCustomImageBlob(width, height).then(function(blob) {
-        var attachmentRenderer = AttachmentRenderer.for(new Attachment(blob, {
-          name: 'auto_generated'
-        }));
-
-        attachmentRenderer.getThumbnail().then(function(thumbnail) {
-          assert.isTrue(thumbnail.dataUrl.length > 0);
-          assert.equal(thumbnail.width, MIN_THUMBNAIL_DIMENSION);
-          assert.equal(thumbnail.height, MAX_THUMBNAIL_DIMENSION);
-
-          sinon.assert.calledWith(
-            CanvasRenderingContext2D.prototype.drawImage,
-            sinon.match.instanceOf(Image),
-            0, 0, thumbnail.height / aspectRatio, thumbnail.height
-          );
-        });
-      }).then(done, done);
-    });
-
-    test('1:1.4 ratio image', function(done) {
-      var aspectRatio = 1.4,
-          width = MAX_THUMBNAIL_DIMENSION,
-          height = MAX_THUMBNAIL_DIMENSION * aspectRatio;
-
-      getCustomImageBlob(width, height).then(function(blob) {
-        var attachmentRenderer = AttachmentRenderer.for(new Attachment(blob, {
-          name: 'auto_generated'
-        }));
-
-        attachmentRenderer.getThumbnail().then(function(thumbnail) {
-          assert.isTrue(thumbnail.dataUrl.length > 0);
-          assert.equal(thumbnail.width, MIN_THUMBNAIL_DIMENSION);
-          assert.equal(thumbnail.height, MIN_THUMBNAIL_DIMENSION * aspectRatio);
-
-          sinon.assert.calledWith(
-            CanvasRenderingContext2D.prototype.drawImage,
-            sinon.match.instanceOf(Image),
-            0, 0, thumbnail.height / aspectRatio, thumbnail.height
-          );
-        });
-      }).then(done, done);
-    });
-
-    test('reset to MIN values if failed', function(done) {
-      var width = MAX_THUMBNAIL_DIMENSION,
-          height = MAX_THUMBNAIL_DIMENSION;
-
-      this.sinon.stub(Utils, 'getDownsamplingSrcUrl', function() {
-        return null;
-      });
-
-      getCustomImageBlob(width, height).then(function(blob) {
-        var attachmentRenderer = AttachmentRenderer.for(new Attachment(blob, {
-          name: 'auto_generated'
-        }));
-
-        attachmentRenderer.getThumbnail().then(function(thumbnail) {
-          assert.isTrue(thumbnail.error);
-          assert.equal(thumbnail.width, MIN_THUMBNAIL_DIMENSION);
-          assert.equal(thumbnail.height, MIN_THUMBNAIL_DIMENSION);
-
-          sinon.assert.notCalled(CanvasRenderingContext2D.prototype.drawImage);
-        });
+      attachmentRenderer.getThumbnail().catch(function(error) {
+        sinon.assert.calledWith(ImageUtils.getSizeAndType, testImageBlob_bogus);
+        assert.equal(imgError, error);
       }).then(done, done);
     });
   });
