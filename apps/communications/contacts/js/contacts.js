@@ -865,11 +865,6 @@ var Contacts = (function() {
     }
 
     document.addEventListener('visibilitychange', function visibility(e) {
-      if (ActivityHandler.currentlyHandling && document.hidden) {
-        ActivityHandler.postCancel();
-        return;
-      }
-
       Contacts.checkCancelableActivity();
       if (document.hidden === false &&
                                 navigation.currentView() === 'view-settings') {

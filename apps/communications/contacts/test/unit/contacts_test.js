@@ -498,14 +498,6 @@ suite('Contacts', function() {
         }
       });
 
-      test('> handling an activity, should be cancelled', function() {
-        ActivityHandler.currentlyHandling = true;
-
-        fireVisibilityChange();
-
-        sinon.assert.called(ActivityHandler.postCancel);
-        ActivityHandler.currentlyHandling = false;
-      });
     });
   });
 });
