@@ -51,7 +51,9 @@ define(function(require, exports, module) {
      */
     isEnabled: function() {
       for (var i in this.registeredAlarms) {
-        if (i === 'normal') {
+        // Both 'normal' and 'snooze' registered alarms should be
+        // treated as enabled, because the alarm will imminently fire.
+        if (i === 'normal' || i === 'snooze') {
           return true;
         }
       }
