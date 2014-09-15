@@ -39,8 +39,3 @@ class TestFirefoxAccounts(GaiaTestCase):
         fxa.enter_password_user_new(password)
         fxa.tap_button_next()
         fxa.tap_button_done()
-
-    def tearDown(self):
-
-        self.cleanup_data()
-
