@@ -87,10 +87,9 @@ suite('UI Manager > ', function() {
 
     suite('change Time Zone >', function() {
       var timezoneTitle,
-          timezoneOverlay,
-          regionLabel,
-          cityLabel,
-          timeLabel,
+          regionButton,
+          cityButton,
+          timeButton,
           FAKE_TIMEZONE;
       var localizeSpy,
           localeFormatSpy;
@@ -103,10 +102,9 @@ suite('UI Manager > ', function() {
         };
 
         timezoneTitle = document.getElementById('time-zone-title');
-        timezoneOverlay = document.getElementById('time_zone_overlay');
-        regionLabel = document.getElementById('tz-region-label');
-        cityLabel = document.getElementById('tz-city-label');
-        timeLabel = document.getElementById('time-configuration-label');
+        regionButton = document.getElementById('tz-region-button');
+        cityButton = document.getElementById('tz-city-button');
+        timeButton = document.getElementById('time-configuration-button');
 
         localizeSpy = this.sinon.spy(navigator.mozL10n, 'localize');
         localeFormatSpy =
@@ -130,16 +128,11 @@ suite('UI Manager > ', function() {
       });
 
       test('should update region', function() {
-        assert.equal(regionLabel.textContent, FAKE_TIMEZONE.region);
-      });
-
-      test('should highlight timezone in map', function() {
-        assert.equal(timezoneOverlay.className,
-                     'UTC' + FAKE_TIMEZONE.utcOffset.replace(/[+:]/g, ''));
+        assert.equal(regionButton.textContent, FAKE_TIMEZONE.region);
       });
 
       test('should update city', function() {
-        assert.equal(cityLabel.textContent, FAKE_TIMEZONE.city);
+        assert.equal(cityButton.textContent, FAKE_TIMEZONE.city);
       });
 
       test('should format the time', function() {

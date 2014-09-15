@@ -333,46 +333,34 @@
       </section>
 
       <section role="region" id="date_and_time">
-        <section id="time_zone_overlay" class="gmt0">
-        </section>
-        <section id="time_zone_map">
-          <h1 data-l10n-id="timeZone">
-            Time zone
-          </h1>
-          <h2 id="time-zone-title">
-            UTC +00:00 Greenwich Mean Time
-          </h2>
-        </section>
+        <h2 id="time-zone-title">
+        </h2>
         <form id="time-form" data-type="list">
           <ul>
             <!-- timezones -->
             <li>
               <p id="tz-region-label" aria-label="region" data-l10n-id="region"></p>
               <select id="tz-region" class="invisible"></select>
-              <button id="tz-region-button" class="change icon icon-dialog" data-l10n-id="change" type="button" aria-describedby="tz-region-label">
-                Change
+              <button id="tz-region-button" class="change icon" data-l10n-id="change" type="button">
               </button>
             </li>
             <li>
-              <p id="tz-city-label" aria-label="city" data-l10n-id="city">GMT</p>
+              <p id="tz-city-label" aria-label="city" data-l10n-id="city"></p>
               <select id="tz-city" class="invisible"></select>
-              <button id="tz-city-button" class="change icon icon-dialog" data-l10n-id="change" type="button" aria-describedby="tz-city-label">
-                Change
+              <button id="tz-city-button" class="change icon" data-l10n-id="change" type="button" aria-describedby="tz-city-label">
               </button>
             </li>
             <!-- date/time -->
             <li>
               <p id="date-configuration-label" aria-label="date" data-l10n-id="date"></p>
               <input id="date-configuration" class="invisible" type="date" min="1970-1-1" max="2037-12-31"></input>
-              <button id="date-configuration-button" class="change icon icon-dialog" data-l10n-id="change" aria-describedby="date-configuration-label">
-                Change
+              <button id="date-configuration-button" class="change icon" data-l10n-id="change">
               </button>
             </li>
             <li>
-              <p id="time-configuration-label" aria-label="time" data-l10n-id="time">00:00</p>
+              <p id="time-configuration-label" aria-label="time" data-l10n-id="time"></p>
               <input id="time-configuration" class="invisible" type="time"></input>
-              <button id="time-configuration-button" class="change icon icon-dialog" data-l10n-id="change" type="button" aria-describedby="time-configuration-label">
-                Change
+              <button id="time-configuration-button" class="change icon" data-l10n-id="change" type="button">
               </button>
             </li>
           </ul>
