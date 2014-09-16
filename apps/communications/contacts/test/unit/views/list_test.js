@@ -1745,16 +1745,21 @@ suite('Render contacts list', function() {
       ICEStore.getContacts = stub;
     });
 
-    test('Display the ICE group if ICE contacts present', function() {
+    test('Display the ICE group if ICE contacts present', function(done) {
       mockContacts = new MockContactsList();
-      subject.load(mockContacts);
-      // Check ice group present
-      var iceGroup = document.getElementById('section-group-ice');
-      assert.isNotNull(iceGroup);
-      assert.isFalse(iceGroup.classList.contains('hide'));
-      // Check that we are displaying the extra item in the alphascroll
-      sinon.assert.calledOnce(MockAlphaScroll.showGroup);
-      sinon.assert.calledWith(MockAlphaScroll.showGroup, 'ice');
+      subject.load(mockContacts, false, callback);
+
+      function callback() {
+        // Check ice group present
+        var iceGroup = document.getElementById('section-group-ice');
+        done(function() {
+          assert.isNotNull(iceGroup);
+          assert.isFalse(iceGroup.classList.contains('hide'));
+          // Check that we are displaying the extra item in the alphascroll
+          sinon.assert.calledOnce(MockAlphaScroll.showGroup);
+          sinon.assert.calledWith(MockAlphaScroll.showGroup, 'ice');
+        });
+      }
     });
 
     test('> after a list reload, the ice group appears', function() {

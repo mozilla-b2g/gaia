@@ -313,7 +313,7 @@ contacts.List = (function() {
     }
   };
 
-  var load = function load(contacts, forceReset) {
+  var load = function load(contacts, forceReset, callback) {
     var onError = function() {
       console.log('ERROR Retrieving contacts');
     };
@@ -321,6 +321,9 @@ contacts.List = (function() {
     var complete = function complete() {
       initConfiguration(function onInitConfiguration() {
         getContactsByGroup(onError, contacts);
+        if (typeof callback === 'function') {
+          callback();
+        } // Used in unit testing.
       });
     };
 
