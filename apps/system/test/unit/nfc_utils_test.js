@@ -623,10 +623,8 @@ suite('NDEF.payload', function() {
       assert.deepEqual(decoded, { type: 'mozilla.org:bug' });
     });
 
-    test('TNF unknown, reserved', function() {
+    test('TNF unknown', function() {
       var decUnknown = NDEF.payload.decode(NDEF.TNF_UNKNOWN, null, 'data1');
-      var decReserved = NDEF.payload.decode(NDEF.TNF_RESERVED, null, 'data2');
-      assert.deepEqual(decUnknown, decReserved, 'should be decoded the same');
       assert.deepEqual(decUnknown, {}, 'should be empty initialized object');
     });
 
