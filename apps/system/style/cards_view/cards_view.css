@@ -149,25 +149,9 @@
   background-color: rgba(255, 255, 255, 1);
 }
 
-#cards-view.filtered .card {
-  margin: 0;
-}
-
 #cards-view.filtered .card .screenshotView {
-  border-left: solid 1px rgba(133, 133, 133, 0.8);
-  border-top:  solid 1px rgba(133, 133, 133, 0.8);
-  border-right: solid 1px rgba(133, 133, 133, 0.8);
+  outline: solid 1px rgba(133, 133, 133, 0.8);
 }
-
-#cards-view.filtered .card .titles {
-  background-color: rgba(0, 0, 0, 0.8);
-  border-left: solid 1px rgba(133, 133, 133, 0.8);
-  border-right: solid 1px rgba(133, 133, 133, 0.8);
-  border-bottom: solid 1px rgba(133, 133, 133, 0.8);
-  height: 3.33rem;
-  width: 100%;
-}
-
 
 /* Card Tray */
 
@@ -275,13 +259,7 @@
 }
 
 #cards-view.filtered .card .titles h1 {
-  color: rgba(255, 255, 255, 1);
-  text-align: center;
-  font-size: 1.4rem;
-  font-weight: 300;
-  top: auto;
-  margin-left: 0.8rem;
-  width: 96%;
+  color: #4d4d4d;
 }
 
 
