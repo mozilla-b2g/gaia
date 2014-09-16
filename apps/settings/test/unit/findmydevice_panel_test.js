@@ -1,14 +1,12 @@
 /* global MocksHelper */
-/* global MockLoadJSON */
 /* global HtmlImports */
 /* global FindMyDevice */
 /* global MockSettingsListener */
 /* global MockSettingsHelper */
+/* global MockLazyLoader */
 /* global IAC_API_WAKEUP_REASON_TRY_DISABLE */
 
 'use strict';
-
-require('mock_load_json.js');
 
 // require helpers for managing html
 require('/shared/test/unit/load_body_html_helper.js');
@@ -17,15 +15,16 @@ require('/shared/js/html_imports.js');
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_helper.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/js/findmydevice_iac_api.js');
 
 var mocksForFindMyDevice = new MocksHelper([
-  'SettingsListener', 'SettingsHelper'
+  'SettingsListener', 'SettingsHelper', 'LazyLoader'
 ]).init();
 
 suite('Find My Device panel > ', function() {
   var MockMozId, realMozId;
-  var realL10n, realLoadJSON, subject;
+  var realL10n, subject;
   var signinSection, settingsSection, trackingSection, login, loginButton,
       checkbox, unverifiedError;
 
@@ -68,8 +67,8 @@ suite('Find My Device panel > ', function() {
 
     navigator.mozId = MockMozId;
 
-    realLoadJSON = window.loadJSON;
-    window.loadJSON = MockLoadJSON.loadJSON;
+    MockLazyLoader.mockResponse({});
+    this.sinon.spy(MockLazyLoader, 'getJSON');
 
     // first, load settings app
     loadBodyHTML('/index.html');
@@ -101,7 +100,10 @@ suite('Find My Device panel > ', function() {
       require('/js/findmydevice.js', function() {
         subject = FindMyDevice;
         subject.init();
-        done();
+        // Ensure promise is resolved before tests start
+        MockLazyLoader.getJSON.returnValues[0].then(function () {
+          done();
+        });
       });
     });
   });
@@ -272,6 +274,5 @@ suite('Find My Device panel > ', function() {
   teardown(function() {
     navigator.mozL10n = realL10n;
     navigator.mozId = realMozId;
-    window.loadJSON = realLoadJSON;
   });
 });
