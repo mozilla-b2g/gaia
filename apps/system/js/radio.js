@@ -27,13 +27,6 @@
     this._setRadioOpCount = 0;
 
     /*
-     * An internal array storing the expecting radio states.
-     *
-     * @default {Boolean} false
-     */
-    this._expectedRadioStates = [];
-
-    /*
      * An internal key used to track whether there is any error
      * happened when calling setRadioEnabled
      *
@@ -45,8 +38,6 @@
      * An internal variable to cache mozMobileConnections
      */
     this._mozMobileConnections = null;
-
-    this._init();
   };
 
   Radio.prototype = {
@@ -111,38 +102,6 @@
     },
 
     /*
-     * Checks if the state change is expected. If not, we should re-enable the
-     * radio when necessary.
-     */
-    _onRadioStateChange: function(conn, index) {
-      if (this._expectedRadioStates[index] !== null) {
-        // we are expecting radio state changes
-        if (this._expectedRadioStates[index] &&
-            conn.radioState === 'enabled' ||
-            !this._expectedRadioStates[index] &&
-            conn.radioState === 'disabled') {
-          // clear the expected state if the real state meets the expection.
-          this._expectedRadioStates[index] = null;
-        }
-      } else {
-        // there is an unexpected radio state change from gecko
-        this._reEnableRadioIfNeeded(conn, index);
-      }
-    },
-
-    /*
-     * An internal function used to make sure current radioState
-     * is ok to do following operations.
-     */
-    _init: function() {
-      this.mobileConnections.forEach(function(conn, index) {
-        this._expectedRadioStates.push(null);
-        conn.addEventListener('radiostatechange',
-          this._onRadioStateChange.bind(this, conn, index));
-      }, this);
-    },
-
-    /*
      * An internal function used to make sure current radioState
      * is ok to do following operations.
      *
@@ -155,7 +114,7 @@
           conn.radioState !== null) {
         this._doSetRadioEnabled(conn, enabled);
       } else {
-        var radioStateChangeHandler = (function onchange() {
+        var radioStateChangeHandler = (function radioStateChangeHandler() {
           if (conn.radioState == 'enabling' ||
               conn.radioState == 'disabling' ||
               conn.radioState == null) {
@@ -176,10 +135,6 @@
      * @param {Boolean} enabled
      */
     _doSetRadioEnabled: function(conn, enabled) {
-      // Set the expected state so that we can tell whether a radio change
-      // results from gaia or gecko.
-      this._expectedRadioStates[this.mobileConnections.indexOf(conn)] = enabled;
-
       var self = this;
       var req = conn.setRadioEnabled(enabled);
 
@@ -215,12 +170,6 @@
           'radio-enabled' : 'radio-disabled';
 
         window.dispatchEvent(new CustomEvent(evtName));
-      }
-    },
-
-    _reEnableRadioIfNeeded: function(conn) {
-      if (conn.radioState === 'disabled' && this.enabled) {
-        this._setRadioEnabled(conn, true);
       }
     }
   };
