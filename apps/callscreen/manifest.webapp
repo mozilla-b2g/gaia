@@ -10,6 +10,7 @@
   },
   "orientation": "portrait",
   "permissions": {
+    "themeable":{},
     "telephony":{},
     "bluetooth":{},
     "voicemail":{},

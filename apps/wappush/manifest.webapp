@@ -24,6 +24,7 @@
      { "wappush-received": "/index.html" }
   ],
   "permissions": {
+    "themeable":{},
     "desktop-notification": {},
     "settings": { "access": "readwrite" },
     "wappush": {},

@@ -15,6 +15,7 @@
     "68": "/style/icons/icon-68.png"
   },
   "permissions": {
+    "themeable":{},
     "attention":{},
     "desktop-notification":{},
     "cellbroadcast":{},

@@ -12,6 +12,7 @@
     { "notification": "/index.html" }
   ],
   "permissions": {
+    "themeable":{},
     "alarms":{},
     "audio-channel-notification":{},
     "contacts":{ "access": "readcreate" },
