@@ -87,6 +87,11 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   var DISCCOUNT = 'disccount';
   var IMAGE = 'picture';
 
+  // Fields that should be stored as integers, not strings
+  var INTFIELDS = [
+    TRACKNUM, TRACKCOUNT, DISCNUM, DISCCOUNT
+  ];
+
   // These two properties are for playlist functionalities
   // not originally metadata from the files
   var RATED = 'rated';
@@ -696,6 +701,9 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           var propname = OGGFIELDS[fieldname];
           if (propname) { // Do we care about this field?
             var value = comment.substring(equal + 1);
+            if (INTFIELDS.indexOf(propname) !== -1) {
+              value = parseInt(value, 10);
+            }
             if (seen_fields.hasOwnProperty(propname)) {
               // If we already have a value, append this new one.
               metadata[propname] += ' / ' + value;
