@@ -130,6 +130,10 @@ define(function(require) {
     if (evt.detail.isVisible) {
       this.setState(stopwatch.getState());
     }
+    if (this.screenWakeLock) {
+      this.screenWakeLock.unlock();
+      this.screenWakeLock = null;
+    }
   };
 
   Stopwatch.Panel.prototype.checkLapButton = function() {
