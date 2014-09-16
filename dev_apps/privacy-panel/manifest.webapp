@@ -8,7 +8,9 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "settings":{ "access": "readwrite" },
+    "settings":{ 
+      "access": "readwrite" 
+    },
     "sms": {}
   },
   "connections": {
