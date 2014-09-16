@@ -37,6 +37,8 @@
     <script src="shared/js/crypto.js"></script>
     <script src="js/custom_location_panel.js"></script>"
     <script src="js/settings-app.js"></script>
+    <script src="js/app_list.js"></script>
+    <script src="js/custom_location_panel.js"></script>
     <script defer src="js/commands.js"></script>
     <script defer src="js/settings.js"></script>
     <script defer src="js/privacy-panel.js"></script>
@@ -77,9 +79,11 @@
     </section>
 
     <!-- Location Accuracy -->
-    <section role="region" id="ALA" class="current skin-dark" data-rendered="true" style="display: none;">
+    <section role="region" id="ALA" class="current skin-dark context-ROOT" data-rendered="true" style="display: none;">
       <header>
-        <a href="#" id="ALA-back"><span class="icon icon-back">back</span></a>
+        <a href="#" id="ALA-back">
+          <span class="icon icon-back">back</span>
+        </a>
         <h1 data-l10n-id="ALA-panel">Location Accuracy</h1>
       </header>
 
@@ -131,20 +135,41 @@
             </a>
           </li>
 
-          <li class="setting-box">
+          <li class="setting-box add-exception-box">
             <a id="add-exception" class="menu-item" data-icon="notifications" href="#add-exception">
               <span data-l10n-id="addException">Add exceptions</span>
             </a>
           </li>
         </ul>
       </div>
+    </section>
 
+    <!-- Exceptions -->
+    <section role="region" id="excepions-panel" class="current skin-dark" data-rendered="true" style="display: none;">
+      <header>
+        <a href="#location-accuracy" id="exceptions-back">
+          <span class="icon icon-back">back</span>
+        </a>
+        <h1 data-l10n-id="ALA-panel">Location Accuracy</h1>
+      </header>
+
+      <div>
+        <ul id="app-list">
+          <li class="description">
+            <p>
+              <small data-l10n-id="appListDescritpion">This list shows all the apps, which are allowed to use your location.</small>
+            </p>
+          </li>
+        </ul>
+      </div>
     </section>
 
     <!-- Remote Privacy Protection -->
     <section role="region" id="RPP" class="current skin-dark" data-rendered="true" style="display: none;">
       <header>
-        <a href="#" id="RPP-back"><span class="icon icon-back">back</span></a>
+        <a href="#" id="RPP-back">
+          <span class="icon icon-back">back</span>
+        </a>
         <h1 data-l10n-id="rpp-panel">Remote Privacy Protection</h1>
       </header>
 

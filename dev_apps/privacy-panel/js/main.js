@@ -1,3 +1,4 @@
+/* global AppList */
 /* global Crypto */
 
 var app = app || {};
@@ -34,7 +35,16 @@ var app = app || {};
           $blurSlider:document.getElementById('blur-slider'),
           $blurLabel: document.getElementById('blur-label'),
           $customBox: document.getElementById('type-custom-location')
+        },
+        exception: {
+          $box:       document.getElementById('add-exception-box'),
+          $link:      document.getElementById('add-exception')
         }
+      },
+      Exceptions: {
+        $box:         document.getElementById('excepions-panel'),
+        $back:        document.getElementById('exceptions-back'),
+        $appBox:      document.getElementById('app-list')
       },
       RPP: {
         $link:        document.getElementById('menuItem-RPP'),
@@ -64,10 +74,16 @@ var app = app || {};
           $input:     document.querySelector('#RPP .unlock input')
         }
       },
-      DCL: new CustomLocationPanel(),
+      DCL: new CustomLocationPanel()
     };
 
-    // add event listeners for ALA
+    // prepare app list that uses geolocation
+    AppList.get('geolocation', function(apps) {
+      app.elements.appList = apps;
+    });
+
+
+    // listeners for ALA
     app.elements.ALA.$link.addEventListener('click', app.showALABox);
     app.elements.ALA.$back.addEventListener('click', app.showRootBox);
 
@@ -78,7 +94,12 @@ var app = app || {};
     app.elements.ALA.type.$blurSlider.addEventListener('change', function(event) { app.changeBlurSlider(event.target.value); });
     app.elements.ALA.type.$customBox.addEventListener('click', app.showCustomLocationBox);
 
-    // add event listeners for RPP
+    app.elements.ALA.exception.$link.addEventListener('click', app.showExceptions);
+
+    // listeners for Exceptions
+    app.elements.Exceptions.$back.addEventListener('click', app.backToALA);
+
+    // listeners for RPP
     app.elements.RPP.$link.addEventListener('click', app.showRPPBox);
     app.elements.RPP.$back.addEventListener('click', app.showRootBox);
 
@@ -363,6 +384,57 @@ var app = app || {};
       case 12:  return 1000;
       default:  return null;
     }
+  };
+
+  /**** Exceptions part *******************************************************/
+  /**
+   * Show Exception panel
+   */
+  app.showExceptions = function() {
+    app.elements.ALA.$box.style.display = 'none';
+    app.elements.Exceptions.$box.style.display = 'block';
+
+    // render app list
+    var manifest, icon, li;
+
+    app.elements.appList.forEach(function(item, index) {
+      manifest = item.manifest || item.updateManifest;
+      icon = AppList.icon(item);
+
+      li = app.genAppItemTemplate({
+        name: manifest.name,
+        index: index,
+        iconSrc: icon
+      });
+      app.elements.Exceptions.$appBox.appendChild(li);
+    });
+  };
+
+  /**
+   * Render App item
+   * @param itemData
+   * @returns {HTMLElement}
+   */
+  app.genAppItemTemplate = function(itemData) {
+    var icon = document.createElement('img');
+    var item = document.createElement('li');
+    var link = document.createElement('a');
+    var name = document.createTextNode(itemData.name);
+    icon.src = itemData.iconSrc;
+    link.dataset.appIndex = itemData.index;
+    link.classList.add('menu-item');
+    link.appendChild(icon);
+    link.appendChild(name);
+    item.appendChild(link);
+    return item;
+  };
+
+  /**
+   * Go back to ALA panel
+   */
+  app.backToALA = function() {
+    app.elements.ALA.$box.style.display = 'block';
+    app.elements.Exceptions.$box.style.display = 'none';
   };
 
   /**** RPP part **************************************************************/
