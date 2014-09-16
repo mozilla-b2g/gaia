@@ -494,6 +494,31 @@ suite('system/TaskManager >', function() {
         assert.isTrue(screenNode.classList.contains('cards-view'));
       });
 
+      test('cardsview shouldnt show while already showing', function() {
+        this.sinon.stub(taskManager, 'setActive');
+        var onCardViewBeforeShowSpy = sinon.spy();
+        window.addEventListener('cardviewbeforeshow', onCardViewBeforeShowSpy);
+
+        taskManager.show();
+        assert.isFalse(taskManager.setActive.called);
+        assert.isFalse(onCardViewBeforeShowSpy.called);
+        window.removeEventListener('cardviewbeforeshow',
+                                   onCardViewBeforeShowSpy);
+      });
+
+      test('cardsview shouldnt respond to holdhome while already showing',
+      function() {
+        this.sinon.stub(taskManager, 'setActive');
+        var onCardViewBeforeShowSpy = sinon.spy();
+        window.addEventListener('cardviewbeforeshow', onCardViewBeforeShowSpy);
+
+        sendHoldhome();
+        assert.isFalse(taskManager.setActive.called);
+        assert.isFalse(onCardViewBeforeShowSpy.called);
+        window.removeEventListener('cardviewbeforeshow',
+                                   onCardViewBeforeShowSpy);
+      });
+
       test('cardsview shouldnt display no recent apps message', function() {
         assert.isFalse(cardsView.classList.contains('empty'));
       });
@@ -626,27 +651,27 @@ suite('system/TaskManager >', function() {
                       'current card remains unchanged');
       });
 
-      suite('when the currently displayed app is out of the stack',
+    });
+    suite('when the currently displayed app is out of the stack',
+    function() {
+      setup(function() {
+        MockStackManager.mOutOfStack = true;
+        MockStackManager.mStack = [
+          apps['http://sms.gaiamobile.org'],
+          apps['http://game.gaiamobile.org'],
+          apps['http://game2.gaiamobile.org']
+        ];
+        MockStackManager.mCurrent = 1;
+        taskManager.show();
+      });
+
+      teardown(function() {
+        MockStackManager.mOutOfStack = false;
+      });
+
+      test('position should be the last position in the stack',
       function() {
-        setup(function() {
-          MockStackManager.mOutOfStack = true;
-          MockStackManager.mStack = [
-            apps['http://sms.gaiamobile.org'],
-            apps['http://game.gaiamobile.org'],
-            apps['http://game2.gaiamobile.org']
-          ];
-          MockStackManager.mCurrent = 1;
-          taskManager.show();
-        });
-
-        teardown(function() {
-          MockStackManager.mOutOfStack = false;
-        });
-
-        test('position should be the last position in the stack',
-        function() {
-          assert.equal(taskManager.position, 2);
-        });
+        assert.equal(taskManager.position, 2);
       });
     });
 
