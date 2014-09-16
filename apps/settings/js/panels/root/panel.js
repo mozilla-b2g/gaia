@@ -11,6 +11,7 @@ define(function(require) {
   var StorageAppItem = require('panels/root/storage_app_item');
   var WifiItem = require('panels/root/wifi_item');
   var ScreenLockItem = require('panels/root/screen_lock_item');
+  var AirplaneModeItem = require('panels/root/airplane_mode_item');
 
   return function ctor_root_panel() {
     var root = Root();
@@ -22,6 +23,7 @@ define(function(require) {
     var storageAppItem;
     var wifiItem;
     var screenLockItem;
+    var airplaneModeItem;
 
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
@@ -46,6 +48,8 @@ define(function(require) {
         wifiItem = WifiItem(panel.querySelector('#wifi-desc'));
         screenLockItem =
           ScreenLockItem(panel.querySelector('.screenLock-desc'));
+        airplaneModeItem =
+          AirplaneModeItem(panel.querySelector('.airplaneMode-input'));
       },
       onBeforeShow: function rp_onBeforeShow() {
         languageItem.enabled = true;
@@ -55,6 +59,7 @@ define(function(require) {
         storageAppItem.enabled = true;
         wifiItem.enabled = true;
         screenLockItem.enabled = true;
+        airplaneModeItem.enabled = true;
       },
       onShow: function rp_onShow() {
         // XXX: Set data-ready to true to indicate that the first panel is
@@ -71,6 +76,7 @@ define(function(require) {
         storageAppItem.enabled = false;
         wifiItem.enabled = false;
         screenLockItem.enabled = false;
+        airplaneModeItem.enabled = false;
       }
     });
   };

@@ -30,6 +30,7 @@
     'shared/device_storage/enumerate_all': 'empty:',
     'shared/wifi_helper': 'empty:',
     'shared/mobile_operator': 'empty:',
+    'shared/airplane_mode_helper': 'empty:',
     'modules/wifi_utils': 'empty:',
     'modules/wifi_context': 'empty:',
     'shared/tz_select': 'empty:'
