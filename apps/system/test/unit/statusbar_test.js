@@ -2093,8 +2093,8 @@ suite('system/Statusbar', function() {
       testEventThatHides.bind(this)('appopening');
     });
 
-    test('sheetstransitionstart', function() {
-      testEventThatHides.bind(this)('sheetstransitionstart');
+    test('sheets-gesture-begin', function() {
+      testEventThatHides.bind(this)('sheets-gesture-begin');
     });
 
     test('homescreenopened', function() {

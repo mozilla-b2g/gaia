@@ -719,9 +719,9 @@ suite('KeyboardManager', function() {
       assert.ok(hideKeyboardImmediately.called);
     });
 
-    test('sheetstransitionstart event: do nothing if no keyboard', function() {
+    test('sheets-gesture-begin event: do nothing if no keyboard', function() {
       var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
-      trigger('sheetstransitionstart');
+      trigger('sheets-gesture-begin');
       assert.ok(spy.notCalled);
     });
 
@@ -729,7 +729,7 @@ suite('KeyboardManager', function() {
       var realActive = KeyboardManager.hasActiveKeyboard;
       KeyboardManager.hasActiveKeyboard = true;
       var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
-      trigger('sheetstransitionstart');
+      trigger('sheets-gesture-begin');
       sinon.assert.calledOnce(spy);
 
       KeyboardManager.hasActiveKeyboard = realActive;

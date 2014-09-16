@@ -162,16 +162,6 @@
   };
 
   /**
-   * Represent the current screenshoting state,
-   * i.e. what is currently visible. Possible value:
-   * 'frame': the actual app iframe
-   * 'screenshot': the screenshot overlay,
-   *               serve as a placeholder for visible but not active apps.
-   * 'none': nothing is currently visible.
-   */
-  AppWindow.prototype._screenshotOverlayState = 'frame';
-
-  /**
    * Represent the current pagee visibility state,
    * i.e. what is currently visible. Possible value:
    * 'foreground': setVisible(true)
@@ -197,63 +187,37 @@
   };
 
   /**
-   * In order to prevent flashing of unpainted frame/screenshot overlay
+   * In order to prevent flashing of unpainted frame
    * during switching from one to another,
    * many event listener & callbacks are employed.
    *
-   * 1. Switching from 'frame' to 'screenshot' state:
-   *   _showScreenshotOverlay() is called
-   *   get screenshot from frame
-   *   when getting the screenshot,
-   *   show the screenshot overlay and hide the frame
+   * When 'cardviewbeforeshow' is received, the screenshotOverlay is shown.
    *
-   * 2. Switching from 'screenshot' to 'frame' state:
-   *   _showFrame() is called
-   *   register next paint listener, and set the frame to visible
-   *   finally, when next painted, hide the screenshot
+   * When 'cardviewclosed' is received, the screenshotOverlay is hidden.
    *
-   * 3. Switching from 'none' to 'frame' state:
-   *   _showFrame() is called
+   * When 'sheetsgesturebegin' is received, the screenshotOverlay is shown.
    *
-   * 4. Switching from 'frame' to 'none' state:
-   *   _hideFrame() is called
+   * When 'sheetsgestureend' is received the screenshotOverlay is hidden.
    *
-   * 5. Switching from 'none' to 'screenshot' state:
-   *   get screenshot from frame
-   *   when getting the screenshot, show the screenshot overlay
-   *
-   * 6. Switching from 'screenshot' to 'none' state:
-   *   _hideScreenshotOverlay is called
-   *
+   * However, setVisible *never* controls the visibility of the
+   * screenshotOverlay. The visibility of it is entirely event driven or can
+   * be triggered manually be calling _showScreenshotOverlay and
+   * _hideScreenshotOverlay.
    */
   AppWindow.prototype.setVisible =
-    function aw_setVisible(visible, screenshotIfInvisible) {
+    function aw_setVisible(visible) {
       this.debug('set visibility -> ', visible);
       this.setVisibleForScreenReader(visible);
       if (visible) {
         // If this window is not the lockscreen, and the screen is locked,
         // we need to aria-hide the window.
-        this._screenshotOverlayState = 'frame';
         this._showFrame();
       } else {
-        if (this.identificationOverlay) {
-          this.identificationOverlay.classList.add('visible');
-        }
-
-        var partOfHomescreen = this.getBottomMostWindow().isHomescreen;
-        if (screenshotIfInvisible && !partOfHomescreen) {
-          this._screenshotOverlayState = 'screenshot';
-          this._showScreenshotOverlay();
-        } else {
-          this._screenshotOverlayState = 'none';
-          this._hideFrame();
-          this._hideScreenshotOverlay();
-        }
+        this._hideFrame();
       }
 
-      this.debug('screenshot state -> ', this._screenshotOverlayState);
       if (this.frontWindow) {
-        this.frontWindow.setVisible(visible, screenshotIfInvisible);
+        this.frontWindow.setVisible(visible);
       }
     };
 
@@ -268,15 +232,11 @@
     };
 
   /**
-   * _showFrame will check |this._screenshotOverlayState|
-   * and then turn on the frame visibility.
+   * _showFrame turn on the frame visibility.
    * So this shouldn't be invoked by others directly.
    */
   AppWindow.prototype._showFrame = function aw__showFrame() {
     this.debug('before showing frame');
-    if (this._screenshotOverlayState != 'frame') {
-      return;
-    }
 
     this.browser.element.classList.remove('hidden');
     this._setVisible(true);
@@ -294,15 +254,12 @@
   };
 
   /**
-   * _hideFrame will check |this._screenshotOverlayState|
-   * and then turn off the frame visibility.
+   * _hideFrame will turn off the frame visibility.
    * So this shouldn't be invoked by others directly.
    */
   AppWindow.prototype._hideFrame = function aw__hideFrame() {
-    if (this._screenshotOverlayState !== 'frame') {
-      this._setVisible(false);
-      this.iframe.classList.add('hidden');
-    }
+    this._setVisible(false);
+    this.iframe.classList.add('hidden');
   };
 
   /**
@@ -617,10 +574,8 @@
     this.identificationTitle = this.element.querySelector(title);
 
     // Launched as background: set visibility and overlay screenshot.
-    if (this.config.stayBackground) {
-      this.setVisible(false, false /* no screenshot */);
-    } else if (this.isHomescreen) {
-      // homescreen is launched at background under FTU/lockscreen too.
+    // homescreen is launched at background under FTU/lockscreen too.
+    if (this.config.stayBackground || this.isHomescreen) {
       this.setVisible(false);
     }
 
@@ -698,7 +653,9 @@
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
      'mozbrowsermetachange', 'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
-     '_orientationchange', '_focus', '_hidewindow'];
+     '_orientationchange', '_focus', '_hidewindow', '_sheetsgesturebegin',
+     '_sheetsgestureend', '_cardviewbeforeshow', '_cardviewclosed',
+     '_closed'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -1139,36 +1096,20 @@
    */
   AppWindow.prototype._showScreenshotOverlay =
     function aw__showScreenshotOverlay() {
-      if (!this.screenshotOverlay) {
-        this._hideFrame();
+      if (!this.screenshotOverlay ||
+          this.screenshotOverlay.classList.contains('visible')) {
         return;
       }
 
-      this.getScreenshot(function onGettingScreenshot(screenshotBlob) {
-        // If the callback is too late,
-        // and we're brought to foreground by somebody.
-        if (this._screenshotOverlayState == 'frame') {
-          return;
-        }
+      if (this.identificationOverlay) {
+        this.identificationOverlay.classList.add('visible');
+      }
 
-        this.screenshotOverlay.classList.add('visible');
+      this.screenshotOverlay.classList.add('visible');
 
-        if (!screenshotBlob) {
-          // If no screenshot,
-          // still hide the frame.
-          this._hideFrame();
-          return;
-        }
-
-        var screenshotURL = this.requestScreenshotURL();
-
-        this.screenshotOverlay.style.backgroundImage =
-          'url(' + screenshotURL + ')';
-
-        if (!this.iframe.classList.contains('hidden')) {
-          this._hideFrame();
-        }
-      }.bind(this));
+      var screenshotURL = this.requestScreenshotURL();
+      this.screenshotOverlay.style.backgroundImage =
+        'url(' + screenshotURL + ')';
     };
 
   /**
@@ -1177,8 +1118,8 @@
    */
   AppWindow.prototype._hideScreenshotOverlay =
     function aw__hideScreenshotOverlay() {
+
       if (!this.screenshotOverlay ||
-          this._screenshotOverlayState == 'screenshot' ||
           !this.screenshotOverlay.classList.contains('visible')) {
         return;
       }
@@ -1717,7 +1658,9 @@
     }
 
     this.debug('requesting to open');
-    if (!this.loaded || this._screenshotOverlayState == 'screenshot') {
+    if (!this.loaded ||
+        (this.screenshotOverlay &&
+         this.screenshotOverlay.classList.contains('visible'))) {
       this.debug('loaded yet');
       setTimeout(callback);
       return;
@@ -1782,6 +1725,43 @@
       this.transitionController.switchTransitionState('closed');
       this.publish('closed');
     }
+  };
+
+  AppWindow.prototype._handle__sheetsgesturebegin = function aw_sgbegin() {
+    // If we're the active we shouldn't do anything at this point. We'll get
+    // our frame hidden on swipeout.
+    if (this.isActive()) {
+      this.debug('no screenshot for active app during sheetsgesturebegin');
+      return;
+    }
+
+    // For inactive apps we'll already have a screenshot blob ready for use.
+    this.debug('showing screenshot during sheetsgesturebegin');
+    this._showScreenshotOverlay();
+  };
+
+  AppWindow.prototype._handle__sheetsgestureend = function aw_sgend() {
+    if (this.isActive()) {
+      this.debug('nothing to do during sheetsgestureend');
+      return;
+    }
+    this.debug('hiding screenshot on sheetsgestureend');
+    this._hideScreenshotOverlay();
+  };
+
+  AppWindow.prototype._handle__cardviewbeforeshow = function aw_cvbeforeshow() {
+    this.debug('showing screenshot for cardsview.');
+    this._showScreenshotOverlay();
+  };
+
+  AppWindow.prototype._handle__cardviewclosed = function aw_cvclosed() {
+    this.debug('hiding screenshot after cardsview closed.');
+    this._hideScreenshotOverlay();
+  };
+
+  AppWindow.prototype._handle__closed = function aw_closed() {
+    // Update screenshot blob here to avoid slowing down closing transitions.
+    this.getScreenshot();
   };
 
   AppWindow.prototype._handle__kill_suspended = function aw() {
