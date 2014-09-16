@@ -28,6 +28,15 @@ suite('Icons Helper', function() {
     Object.defineProperty(window, 'devicePixelRatio', dprProperty);
   });
 
+  suite('Default fallback to favicon.ico', function() {
+    test('> ensure we fallback to favicon.ico', function(done) {
+      IconsHelper.getIcon('http://example.com').then(icon => {
+        assert.equal(icon, 'http://example.com/favicon.ico');
+        done();
+      });
+    });
+  });
+
   suite('No size information', function() {
     test('> Single element with no size info', function() {
       var icons = {

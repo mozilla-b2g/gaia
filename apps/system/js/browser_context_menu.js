@@ -307,43 +307,43 @@
     return new Promise((resolve) => {
       var favicons = this.app.favicons;
       var config = this.app.config;
-      LazyLoader.load('shared/js/icons_helper.js', (function() {
+      LazyLoader.load('shared/js/icons_helper.js', (() => {
+        IconsHelper.getIcon(config.url, null, {icons: favicons}).then(icon => {
 
-        var icon = IconsHelper.getBestIcon(favicons);
-        var menuData = [];
-
-        menuData.push({
-          id: 'new-window',
-          label: _('new-window'),
-          callback: this.newWindow.bind(this, manifest)
-        });
-
-        menuData.push({
-          id: 'show-windows',
-          label: _('show-windows'),
-          callback: this.showWindows.bind(this)
-        });
-
-        BookmarksDatabase.get(config.url).then((result) => {
-          if (!result) {
-            menuData.push({
-              id: 'add-to-homescreen',
-              label: _('add-to-home-screen'),
-              callback: this.bookmarkUrl.bind(this, config.url, name, icon)
-            });
-          }
+          var menuData = [];
 
           menuData.push({
-            id: 'share',
-            label: _('share'),
-            callback: this.shareUrl.bind(this, config.url)
+            id: 'new-window',
+            label: _('new-window'),
+            callback: this.newWindow.bind(this, manifest)
           });
 
-          this.showMenu(menuData);
-          resolve();
-        });
+          menuData.push({
+            id: 'show-windows',
+            label: _('show-windows'),
+            callback: this.showWindows.bind(this)
+          });
 
-      }).bind(this));
+          BookmarksDatabase.get(config.url).then((result) => {
+            if (!result) {
+              menuData.push({
+                id: 'add-to-homescreen',
+                label: _('add-to-home-screen'),
+                callback: this.bookmarkUrl.bind(this, config.url, name, icon)
+              });
+            }
+
+            menuData.push({
+              id: 'share',
+              label: _('share'),
+              callback: this.shareUrl.bind(this, config.url)
+            });
+
+            this.showMenu(menuData);
+            resolve();
+          });
+        });
+      }));
     });
   };
 

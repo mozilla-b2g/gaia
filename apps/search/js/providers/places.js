@@ -37,13 +37,15 @@
   var iconUrls = {};
 
   function getIcon(place) {
-    var icon = IconsHelper.getBestIcon(place.icons);
-    if (icon) {
-      saveIcon(place.url, icon);
-    }
+
     if (place.url in icons && icons[place.url]) {
       return icons[place.url];
     }
+
+    IconsHelper.getIcon(place.url, null, place).then(icon => {
+      saveIcon(place.url, icon);
+    });
+
     return false;
   }
 

@@ -3,6 +3,10 @@
 /* exported MockIconsHelper */
 
 var MockIconsHelper = {
+  getIcon: function() {
+    return new Promise(resolve => { resolve(); });
+  },
+
   getBestIcon: function(size) {
 
   },
