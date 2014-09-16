@@ -9,6 +9,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_get_feature.js');
 require('/shared/test/unit/mocks/mock_icc_helper.js');
 require('/test/unit/mock_version_helper.js');
+require('/shared/js/lazy_loader.js');
 
 var mocksHelperForConfigurator = new MocksHelper([
   'VersionHelper',
