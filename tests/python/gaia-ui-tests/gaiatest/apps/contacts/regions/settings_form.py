@@ -84,5 +84,7 @@ class SettingsForm(Base):
         return Contacts(self.marionette)
 
     def tap_back_from_import_contacts(self):
+        # TODO: remove tap with coordinates after Bug 1061698 is fixed
         self.marionette.find_element(*self._import_settings_header).tap(25, 25)
+
         self.wait_for_element_not_displayed(*self._import_settings_header)
