@@ -159,7 +159,6 @@ suite('webapp-shared.js', function() {
         'push unstable_styles');
 
       var locales = 'testlocales';
-      webappShared.config.GAIA_INLINE_LOCALES = 'zh-TW';
       webappShared.pushFileByType('locales', locales + '.obj');
       assert.equal(webappShared.used.locales[0], locales,
         'push locales');

@@ -14,7 +14,7 @@ suite('multilocale Integration tests', function() {
     rmrf('profile');
   });
 
-  function makeHelper(localesFilePath, localesDir, inlineAndConcat, done) {
+  function makeHelper(localesFilePath, localesDir, concat, done) {
     var settingsZipPath = path.join(process.cwd(), 'profile', 'webapps',
       'settings.gaiamobile.org', 'application.zip');
     var cnPathInZip = 'locales-obj/zh-CN.json';
@@ -25,8 +25,8 @@ suite('multilocale Integration tests', function() {
       ' LOCALE_BASEDIR=' + localesDir +
       ' make';
 
-    if (!inlineAndConcat) {
-      command = 'GAIA_INLINE_LOCALES=0 GAIA_CONCAT_LOCALES=0 ' + command;
+    if (!concat) {
+      command = 'GAIA_CONCAT_LOCALES=0 ' + command;
     }
 
     // We were failing because the output from the gaia build process was
@@ -36,7 +36,7 @@ suite('multilocale Integration tests', function() {
 
       helper.checkError(error, stdout, stderr);
       var zip = new AdmZip(settingsZipPath);
-      if (inlineAndConcat) {
+      if (concat) {
         assert.isNotNull(zip.getEntry(cnPathInZip),
           'concat file ' + cnPathInZip + ' should exist');
       } else {
@@ -66,13 +66,13 @@ suite('multilocale Integration tests', function() {
     makeHelper(localesFilePath, absoluteLocalesDir, true, done);
   });
 
-  test('make with relative l10n path but without inline & concat',
+  test('make with relative l10n path but without concat',
     function(done) {
     var localesFilePath = path.join(localesDir, 'languages.json');
     makeHelper(localesFilePath, localesDir, false, done);
   });
 
-  test('make with absolute l10n path but without inline & concat',
+  test('make with absolute l10n path but without concat',
     function(done) {
     var localesFilePath= path.join(process.cwd(), localesDir, 'languages.json');
     var absoluteLocalesDir = path.join(process.cwd(), localesDir);

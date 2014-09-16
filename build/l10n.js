@@ -108,31 +108,9 @@
     return '';
   };
 
-  // return an array of all {{placeables}} found in a string
-  function getPlaceableNames(str) {
-    /* jshint boss:true */
-    var placeables = [];
-    var match;
-    while (match = L10n.rePlaceables.exec(str)) {
-      placeables.push(match[1]);
-    }
-    return placeables;
-  }
-
-  // put all dependencies required for string interpolation in the AST
-  // XXX only first-level deps are supported for now to avoid having to check
-  // for cyclic and recursive references
-  function getPlaceables(ast, val) {
-    var placeables = getPlaceableNames(val);
-    for (var i = 0; i < placeables.length; i++) {
-      var id = placeables[i];
-      ast[id] = this.ctx.getEntitySource(id);
-    }
-  }
-
   navigator.mozL10n.translateDocument = L10n.translateDocument;
 
-  navigator.mozL10n.getDictionary = function getDictionary(fragment) {
+  navigator.mozL10n.getDictionary = function getDictionary() {
     // don't do anything for pseudolocales
     if (this.ctx.supportedLocales[0] in this.qps) {
       return null;
@@ -140,30 +118,16 @@
 
     var ast = {};
 
-    if (!fragment) {
-      // en-US is the de facto source locale of Gaia
-      var sourceLocale = this.ctx.getLocale('en-US');
-      if (!sourceLocale.isReady) {
-        sourceLocale.build(null);
-      }
-      // iterate over all strings in en-US
-      for (var id in sourceLocale.ast) {
-        ast[id] = this.ctx.getEntitySource(id);
-      }
-      flushBuildMessages.call(this, 'compared to en-US');
-      return ast;
+    // en-US is the de facto source locale of Gaia
+    var sourceLocale = this.ctx.getLocale('en-US');
+    if (!sourceLocale.isReady) {
+      sourceLocale.build(null);
     }
-
-    var elements = L10n.getTranslatableChildren(fragment);
-
-    for (var i = 0; i < elements.length; i++) {
-      var attrs = this.getAttributes(elements[i]);
-      var val = this.ctx.getEntitySource(attrs.id);
-      ast[attrs.id] = val;
-      L10n.walkContent(val, getPlaceables.bind(this, ast));
+    // iterate over all strings in en-US
+    for (var id in sourceLocale.ast) {
+      ast[id] = this.ctx.getEntitySource(id);
     }
-    flushBuildMessages.call(this, 'in the visible DOM');
-
+    flushBuildMessages.call(this, 'compared to en-US');
     return ast;
   };
 

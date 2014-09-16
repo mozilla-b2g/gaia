@@ -138,7 +138,6 @@ suite('webapp-optimize.js', function() {
     mockConfig = {
       GAIA_DEFAULT_LOCALE: 'default-locale',
       GAIA_CONCAT_LOCALES: '1',
-      GAIA_INLINE_LOCALES: '1',
       GAIA_OPTIMIZE: '1',
       stageDir: 'testStageDir',
       DEBUG: '0',
@@ -439,28 +438,6 @@ suite('webapp-optimize.js', function() {
       assert.equal(createdDOMs[2].innerHTML,
         'window.SYSTEM_MANIFEST="app://system.undefined/manifest.webapp";',
         'should modify its innerHTML');
-    });
-
-    test('embed10nResources', function() {
-      htmlOptimizer.subDict = {
-        'test-lang': {
-          'testkey': 'testContent'
-        }
-      };
-      var originalHasAttributeFlag = hasAttributeFlag;
-      hasAttributeFlag = false;
-      htmlOptimizer.embedSubsetL10nResources();
-      hasAttributeFlag = originalHasAttributeFlag;
-
-      assert.equal(createdDOMs[3].query, 'document/script',
-        'should modify document/script');
-      assert.equal(createdDOMs[3].innerHTML,
-        '\n  ' + JSON.stringify(htmlOptimizer.subDict['test-lang']) + '\n',
-        'should embed stringify l10ned object');
-      assert.equal(createdDOMs[3].lang, 'test-lang',
-        'should modify script.lang');
-      assert.equal(createdDOMs[3].type, 'application/l10n',
-        'should have application/l10n type');
     });
 
     test('concatL10nResources', function() {
