@@ -9,28 +9,36 @@
 
 #tutorial-steps-container {
   top: 0.5rem;
+  bottom: 8.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 #tutorial-step-header {
-  height: 8.5rem;
+  flex: 0 1 auto;
   display: flex;
+  flex-direction: row;
   align-items: center;
+  width: 100%;
   padding: 0 1.5rem 0.5rem 1.5rem;
-  overflow: hidden;
   -moz-box-sizing: border-box;
+  min-height: 8.5rem;
 }
 
 #tutorial-step-title {
+  flex: 0 1 auto;
   color: white;
   display: block;
-  padding: 0;
+  padding: 1rem 0;
   margin: 0;
   font-size: 1.4rem;
   line-height: 2rem;
 }
 
 #tutorial-step-media {
-  height: calc(100% - 9.5rem);
+  flex: 1 1 auto;
+  width: 100%;
   text-align: center;
   overflow: hidden;
 }
