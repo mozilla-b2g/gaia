@@ -117,6 +117,7 @@ var CpScreenHelper = (function() {
     cancelStoreButton.addEventListener('click', cpsh_onCancelStore);
     tryAgainButton.addEventListener('click', cpsh_onTryAgain);
     finishButton.addEventListener('click', cpsh_onFinish);
+    pin.addEventListener('keyup', cpsh_onPinInput);
   }
 
   /**
@@ -151,12 +152,14 @@ var CpScreenHelper = (function() {
       // If the document has not been authenticated yet and the PIN code is
       // needed, show some info and the PIN input element to the user.
       help.textContent = _('cp-accept-help-pin');
-      pin.type = 'text';
+      pin.type = 'number';
       pin.focus();
+      acceptButton.disabled = true;
     } else {
       help.textContent = _('cp-accept-help');
       pin.type = 'hidden';
       pin.blur();
+      acceptButton.disabled = false;
     }
 
     var _title = message.sender;
@@ -347,6 +350,13 @@ var CpScreenHelper = (function() {
     evt.preventDefault();
     finishConfirmDialog.hidden = true;
     WapPushManager.close();
+  }
+
+  /**
+   * Enable / disable accept button if pin field is empty.
+   */
+  function cpsh_onPinInput(evt) {
+    acceptButton.disabled = (pin.value.length === 0);
   }
 
   return {

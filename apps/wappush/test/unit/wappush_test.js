@@ -360,7 +360,7 @@ suite('WAP Push', function() {
             assert.isFalse(acceptButton.classList.contains('hidden'),
               'the accept button should be visible');
             assert.isFalse(acceptButton.hidden);
-            assert.equal(pin.type, 'text');
+            assert.equal(pin.type, 'number');
           });
         }, done);
       }
