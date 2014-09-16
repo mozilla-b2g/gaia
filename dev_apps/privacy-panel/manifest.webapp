@@ -9,6 +9,7 @@
   },
   "permissions": {
     "audio-channel-alarm":{},
+    "audio-channel-content": {},
     "audio-channel-notification":{},
     "bluetooth":{},
     "browser": {},
@@ -21,6 +22,7 @@
     "downloads":{},
     "embed-apps": {},
     "firefox-accounts": {},
+    "geolocation": {},
     "idle":{},
     "mobileconnection":{},
     "nfc":{ "access": "readonly" },
