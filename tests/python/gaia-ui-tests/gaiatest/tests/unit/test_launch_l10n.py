@@ -4,6 +4,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
+
 from gaiatest import GaiaTestCase
 
 
@@ -23,6 +25,7 @@ class TestLaunchL10n(GaiaTestCase):
         self.data_layer.set_setting('language.current', self.alternate_locale)
 
         for app in self.test_apps.keys():
+            time.sleep(1)
             self.apps.launch(app)
 
         for app in self.test_apps.values():
@@ -37,6 +40,7 @@ class TestLaunchL10n(GaiaTestCase):
         self.data_layer.set_setting('language.current', self.alternate_locale)
 
         for app in self.test_apps.values():
+            time.sleep(1)
             self.apps.launch(app)
 
         for app in self.test_apps.values():

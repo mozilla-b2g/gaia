@@ -102,6 +102,7 @@
       }
 
       var config = new BrowserConfigHelper(detail.url, detail.manifestURL);
+      config.launchEvent = evt.type;
 
       if (!config.manifest) {
         return;
@@ -181,6 +182,13 @@
       if (app) {
         app.reviveBrowser();
       } else if (config.origin !== homescreenLauncher.origin) {
+        // Block apps launch but not system message.
+        if (AppWindowManager.isBusyLaunching() &&
+            config.launchEvent === 'webapps-launch') {
+          throw new Error('busy launching ' +
+            AppWindowManager._launchingAppReason +
+            ' then ignore ' + config.url);
+        }
         new AppWindow(config);
       } else if (config.origin == homescreenLauncher.origin) {
         homescreenLauncher.getHomescreen(true);
