@@ -60,20 +60,19 @@ class GaiaImageCompareTestCase(GaiaTestCase, GaiaImageCompareTestCaseMixin):
     # invokes screen capture event (pressing home button + sleep button together)
     def invoke_screen_capture(self, frame=None, browser=None):
         time.sleep(2)
-        self.marionette.switch_to_frame()  # switch to root frame (system app)
+        if frame is not 'root':
+            self.marionette.switch_to_frame()  # switch to root frame (system app)
         if self.post2dot0 is True:
             self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('volumedown+sleep'));")
         else:
             self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home+sleep'));")
-        self.apps.switch_to_displayed_app()
+        if frame is not 'root':
+            self.apps.switch_to_displayed_app()
         time.sleep(6)  # for the notification overlay to disappear
         if (frame is not None) and (frame is not 'root'):
             self.marionette.switch_to_frame(frame)
         if browser is not None:
             browser.switch_to_content()
-
-        elif frame is 'root':
-            self.marionette.switch_to_frame()
 
     # this method collects images in the sd card and places in the /refimages folder, renames it, and trims the top.
     def ref_image_collection(self, device_path, local_path, test_name):

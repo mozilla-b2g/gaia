@@ -34,7 +34,7 @@ class TestCardsView(GaiaImageCompareTestCase):
         self.device.hold_home_button()
         cards_view.wait_for_cards_view()
         card_frame = self.marionette.get_active_frame()
-        self.invoke_screen_capture()
+        self.invoke_screen_capture(frame='root')
 
         # Wait for first app ready
         cards_view.wait_for_card_ready(self._test_apps[1])
@@ -46,7 +46,7 @@ class TestCardsView(GaiaImageCompareTestCase):
 
         # Wait for previous app ready
         cards_view.wait_for_card_ready(self._test_apps[0])
-        self.invoke_screen_capture()
+        self.invoke_screen_capture(frame='root')
         self.marionette.switch_to_frame(frame=card_frame)
 
         cards_view.tap_app(self._test_apps[0])

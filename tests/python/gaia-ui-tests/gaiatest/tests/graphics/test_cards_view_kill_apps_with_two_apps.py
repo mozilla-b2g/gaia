@@ -29,13 +29,13 @@ class TestCardsViewTwoApps(GaiaImageCompareTestCase):
 
         # Wait for first app ready
         self.cards_view.wait_for_card_ready(self._test_apps[1])
-        self.invoke_screen_capture()
+        self.invoke_screen_capture(frame='root')
 
         # Close the current apps from the cards view
         self.cards_view.close_app(self._test_apps[1])
-        self.invoke_screen_capture()
+        self.invoke_screen_capture(frame='root')
         self.cards_view.close_app(self._test_apps[0])
-        self.invoke_screen_capture()
+        self.invoke_screen_capture(frame='root')
 
         # If successfully killed, the apps should no longer appear in the cards view and the "No recent apps" message should be displayed
         self.assertFalse(self.cards_view.is_app_present(self._test_apps[1]),

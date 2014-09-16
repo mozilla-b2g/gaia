@@ -22,9 +22,11 @@ class TestBrowserSearch(GaiaImageCompareTestCase):
         self.invoke_screen_capture()
         search = Search(self.marionette)
         search.launch()
-        search_text = 'Mozilla Web QA'
+        search_text = 'MozillaWebQA'
         browser = search.go_to_url(search_text)
-        time.sleep(5)
+        browser.switch_to_content()
+        self.wait_for_element_displayed(*self._google_search_input_locator)
+        self.assertTrue(search_text in self.marionette.title)
         self.invoke_screen_capture()
 
     def tearDown(self):
