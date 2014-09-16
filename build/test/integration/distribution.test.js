@@ -201,13 +201,6 @@ suite('Distribution mechanism', function() {
       path.join(cusDir, 'wallpapers', 'customize.png'), false);
   }
 
-  function validateBrowser() {
-    var broZipPath = path.join(process.cwd(), 'profile',
-      'webapps', 'browser.gaiamobile.org', 'application.zip');
-    helper.checkFileContentByPathInZip(broZipPath, 'js/init.json',
-      path.join(cusDir, 'browser.json'), true);
-  }
-
   function validateSystem() {
     var sysZipPath = path.join(process.cwd(), 'profile',
           'webapps', 'system.gaiamobile.org', 'application.zip');
@@ -344,7 +337,6 @@ suite('Distribution mechanism', function() {
       validateOperatorVariant();
       validateCalendar();
       validateWappush();
-      validateBrowser();
       validateSystem();
       validateGallery();
       validateHomescreen();

@@ -50,7 +50,7 @@ marionette('Remove bookmark on homescreen', function() {
       homescreen.bookmarkRemover.bookmarkRemoveButton.click();
     });
 
-    test(' and bookmark removed', function() {
+    test.skip(' and bookmark removed', function() {
       client.switchToFrame();
       homescreen.launch();
       assert.ok(!homescreen.isHomescreenIcon(title));
