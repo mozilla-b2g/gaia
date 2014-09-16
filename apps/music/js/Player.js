@@ -931,7 +931,7 @@ var PlayerView = {
           this.showInfo();
 
           var songData = this.dataSource[this.currentIndex];
-          var targetRating = parseInt(target.dataset.rating);
+          var targetRating = parseInt(target.dataset.rating, 10);
           var newRating = (targetRating === songData.metadata.rated) ?
             targetRating - 1 : targetRating;
 

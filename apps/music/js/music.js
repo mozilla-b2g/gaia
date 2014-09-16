@@ -1438,7 +1438,7 @@ var ListView = {
     var headerHeight = this.anchor.firstChild.offsetHeight;
     var itemHeight = this.anchor.lastChild.offsetHeight;
     var bottomHeight = parseInt(getComputedStyle(this.anchor.lastChild, null).
-      getPropertyValue('margin-bottom'));
+      getPropertyValue('margin-bottom'), 10);
 
     this.anchor.style.height = (
       headerHeight * this.firstLetters.length +
@@ -1783,7 +1783,7 @@ var SubListView = {
               PlayerView.setShuffle(false);
             }
 
-            var targetIndex = parseInt(target.dataset.index);
+            var targetIndex = parseInt(target.dataset.index, 10);
 
             if (PlayerView.shuffleOption) {
               // Shuffled list maybe not exist yet
