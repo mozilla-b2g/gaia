@@ -10,6 +10,7 @@
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
     <link rel="stylesheet" type="text/css" href="style/lists.css">
     <link rel="stylesheet" type="text/css" href="style/icons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
@@ -45,16 +46,16 @@
   </head>
 
   <body>
+    <!-- main view with menu -->
     <section role="region" id="root" class="current skin-dark" data-rendered="true">
       <header>
         <a id="back" href="#"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="privacy-panel">Privacy Panel</h1>
       </header>
-
       <div>
         <ul>
           <li>
-            <a id="menuItem-LA" class="menu-item" data-icon="notifications" href="#location-accuracy">
+            <a id="menuItem-ALA" class="menu-item" data-icon="notifications" href="#location-accuracy">
               <span data-l10n-id="location-accuracy">Location Accuracy</span>
             </a>
           </li>
@@ -72,10 +73,63 @@
       </div>
     </section>
 
+    <!-- Location Accuracy -->
+    <section role="region" id="ALA" class="current skin-dark" data-rendered="true" style="display: none;">
+      <header>
+        <a href="#" id="ALA-back"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="ALA-panel">Location Accuracy</h1>
+      </header>
+
+      <div>
+        <ul>
+          <li>
+            <label class="pack-switch">
+              <input id="geolocation-switch" type="checkbox" class="uninit">
+              <span data-l10n-id="useGeolocation">Use geolocation</span>
+            </label>
+          </li>
+        </ul>
+        <ul id="geolocation-box" style="display: none">
+          <li>
+            <label class="pack-switch">
+              <input id="blur-switch" type="checkbox" class="uninit">
+              <span data-l10n-id="useLocationBlur">Use location blur</span>
+            </label>
+          </li>
+
+          <li class="blur-box description" style="display: none">
+            <p>
+              <small data-l10n-id="locationBlurDescritpion">Adjust the global accuracy level of your current location for all apps, define and set a permanent fixed location and add exceptions for single apps.</small>
+            </p>
+          </li>
+
+          <li class="blur-box" style="display: none">
+            <p></p>
+            <span class="button icon icon-dialog">
+              <select id="ALA-type">
+                <option value="blur" data-l10n-id="typeBlur">Blur</option>
+                <option value="user-defined" data-l10n-id="typeUserDefined">User Defined</option>
+                <option value="no-location" data-l10n-id="typeNoLocation" selected>No Location</option>
+                <option value="precise" data-l10n-id="typePrecise">Precise</option>
+              </select>
+            </span>
+          </li>
+
+          <li class="blur-box" style="display: none">
+            <a id="add-exception" class="menu-item" data-icon="notifications" href="#add-exception">
+              <span data-l10n-id="addException">Add exceptions</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+    </section>
+
+    <!-- Remote Privacy Protection -->
     <section role="region" id="RPP" class="current skin-dark" data-rendered="true" style="display: none;">
       <header>
         <a href="#" id="RPP-back"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="remotePrivacyProtection">Remote Privacy Protection</h1>
+        <h1 data-l10n-id="rpp-panel">Remote Privacy Protection</h1>
       </header>
 
       <div id="RPP-new-password" >
