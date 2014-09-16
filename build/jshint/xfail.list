@@ -326,7 +326,6 @@ apps/system/js/browser_config_helper.js
 apps/system/js/browser_frame.js
 apps/system/js/browser_mixin.js
 apps/system/js/carrier_info_notifier.js
-apps/system/js/cell_broadcast_system.js
 apps/system/js/crash_reporter.js
 apps/system/js/download/download_manager.js
 apps/system/js/download/download_notification.js

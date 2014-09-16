@@ -13,7 +13,8 @@
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
          LockScreenNotifications, LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor, LockScreenNotificationBuilder,
-         BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager */
+         BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
+         CellBroadcastSystem */
 'use strict';
 
 
@@ -124,6 +125,8 @@ window.addEventListener('load', function startup() {
   window.appUsageMetrics.start();
   window.appWindowFactory = new AppWindowFactory();
   window.appWindowFactory.start();
+  window.cellBroadcastSystem = new CellBroadcastSystem();
+  window.cellBroadcastSystem.start();
   window.developerHUD = new DeveloperHUD();
   window.developerHUD.start();
   /** @global */
