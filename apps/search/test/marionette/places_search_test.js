@@ -39,6 +39,7 @@ marionette('Places tests', function() {
     var url = server.url('sample.html');
     var url2 = server.url('favicon.html');
 
+    console.log('triger first run');
     // Lauch the rocketbar and trigger its first run notice
     home.waitForLaunch();
     home.focusRocketBar();
