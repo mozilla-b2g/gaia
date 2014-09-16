@@ -229,6 +229,7 @@
   display: block;
   border: none;
   position: absolute;
+  pointer-events: auto;
 
   filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'shadow\'><feGaussianBlur in=\"SourceAlpha\" stdDeviation=\'2\'/><feOffset dx=\'0\' dy=\'0\' result=\'offsetblur\'/><feFlood flood-color=\'rgba(0,0,0,0.2)\'/><feComposite in2=\'offsetblur\' operator=\'in\'/><feMerge><feMergeNode/><feMergeNode in=\'SourceGraphic\'/></feMerge></filter></svg>#shadow");
 
@@ -259,14 +260,18 @@
 
   text-overflow: ellipsis;
   text-align: center;
+
+  pointer-events: auto;
 }
 
 #cards-view .card p.subtitle {
   display: none;
+  pointer-events: auto;
 }
 
 #cards-view.filtered .card .titles p.subtitle {
   display: none;
+  pointer-events: auto;
 }
 
 #cards-view.filtered .card .titles h1 {
