@@ -300,7 +300,8 @@ marionette('day view', function() {
       var now = new Date();
       var minutes = now.getMinutes();
       minutes = minutes < 10 ? (0 + String(minutes)) : minutes;
-      var currentTime = (now.getHours() % 12) + ':' + minutes;
+      var hours = now.getHours();
+      var currentTime = (hours > 12 ? hours - 12 : hours ) + ':' + minutes;
       assert.equal(day.currentTime.text(), currentTime);
     });
 
