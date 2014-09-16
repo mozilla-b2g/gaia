@@ -1724,34 +1724,12 @@ suite('Render contacts list', function() {
       this.sinon.spy(MockAlphaScroll, 'hideGroup');
     });
 
-    test('> ICE group is always build but is hidden', function() {
-      var stub = ICEStore.getContacts;
-      ICEStore.getContacts = function() {
-        return {
-          then: function(cb) {
-            cb();
-          }
-        };
-      };
-
-      mockContacts = new MockContactsList();
-      subject.load(mockContacts);
-      // ICE group created, even if we don't have contacts
-      var iceGroup = document.getElementById('section-group-ice');
-      assert.isNotNull(iceGroup);
-      // ICE group not visible
-      assert.isTrue(iceGroup.classList.contains('hide'));
-
-      ICEStore.getContacts = stub;
-    });
-
     test('Display the ICE group if ICE contacts present', function() {
       mockContacts = new MockContactsList();
       subject.load(mockContacts);
       // Check ice group present
       var iceGroup = document.getElementById('section-group-ice');
       assert.isNotNull(iceGroup);
-      assert.isFalse(iceGroup.classList.contains('hide'));
       // Check that we are displaying the extra item in the alphascroll
       sinon.assert.calledOnce(MockAlphaScroll.showGroup);
       sinon.assert.calledWith(MockAlphaScroll.showGroup, 'ice');
