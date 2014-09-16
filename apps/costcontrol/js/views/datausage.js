@@ -56,8 +56,6 @@ var DataUsageTab = (function() {
       wifiToggle.addEventListener('click', toggleWifi);
       mobileToggle.addEventListener('click', toggleMobile);
 
-      resetButtonState();
-
       // Setup the model
       SimManager.requestDataSimIcc(function(dataSimIcc) {
         ConfigManager.requestSettings(dataSimIcc.iccId,
@@ -91,6 +89,9 @@ var DataUsageTab = (function() {
               }
             }
           };
+          expandModel(model);
+          resetButtonState(settings);
+
           ConfigManager.observe('dataLimit', toggleDataLimit, true);
           ConfigManager.observe('dataLimitValue', setDataLimit, true);
           ConfigManager.observe('lastCompleteDataReset', updateDataUsage, true);
@@ -139,29 +140,24 @@ var DataUsageTab = (function() {
     initialized = false;
   }
 
-  function resetButtonState() {
-    SimManager.requestDataSimIcc(function(dataSimIcc) {
-      ConfigManager.requestSettings(dataSimIcc.iccId,
-                                    function _onSettings(settings) {
-        var isMobileChartVisible = settings.isMobileChartVisible;
-        if (typeof isMobileChartVisible === 'undefined') {
-          isMobileChartVisible = true;
-        }
-        if (isMobileChartVisible !== mobileToggle.checked) {
-          mobileToggle.checked = isMobileChartVisible;
-          toggleMobile();
-        }
+  function resetButtonState(settings) {
+    var isMobileChartVisible = settings.isMobileChartVisible;
+    if (typeof isMobileChartVisible === 'undefined') {
+      isMobileChartVisible = true;
+    }
+    if (isMobileChartVisible !== mobileToggle.checked) {
+      mobileToggle.checked = isMobileChartVisible;
+      toggleMobile();
+    }
 
-        var isWifiChartVisible = settings.isWifiChartVisible;
-        if (typeof isWifiChartVisible === 'undefined') {
-          isWifiChartVisible = false;
-        }
-        if (isWifiChartVisible !== wifiToggle.checked) {
-          wifiToggle.checked = isWifiChartVisible;
-          toggleWifi();
-        }
-      });
-    });
+    var isWifiChartVisible = settings.isWifiChartVisible;
+    if (typeof isWifiChartVisible === 'undefined') {
+      isWifiChartVisible = false;
+    }
+    if (isWifiChartVisible !== wifiToggle.checked) {
+      wifiToggle.checked = isWifiChartVisible;
+      toggleWifi();
+    }
   }
 
   function getLimitInBytes(settings) {
@@ -402,7 +398,6 @@ var DataUsageTab = (function() {
   var today = Toolkit.toMidnight(new Date());
   var CHART_BG_RATIO = 0.87;
   function expandModel(base) {
-
     // Update today
     today = Toolkit.toMidnight(new Date());
 
@@ -708,14 +703,14 @@ var DataUsageTab = (function() {
       var sampleUTCDate = Toolkit.toMidnight(new Date(sampleLocalTime));
 
       var isToday = (today.getTime() === sampleUTCDate.getTime());
-      var isTomorrow = (today.getTime() + DAY ===  sampleUTCDate.getTime());
+      var isTomorrow = (today.getTime() + DAY === sampleUTCDate.getTime());
       var thereIsATomorrowSample = (isToday && (i + 2 === len));
       // Depends on the hour of the day and the offset, it is possible the
       // networkStats API returns the current data mobile in the  tomorrow
       // sample, because on the UTC hour is another day.
       if (thereIsATomorrowSample) {
         // Join the value of the samples for today and tomorrow
-        var tomorrowSample = samples[i+1];
+        var tomorrowSample = samples[i + 1];
         if (typeof sample.value === 'undefined') {
           sample.value = tomorrowSample.value;
         } else if (typeof tomorrowSample.value !== 'undefined') {
@@ -747,7 +742,7 @@ var DataUsageTab = (function() {
         lastY = y;
       }
 
-      var onlyExistTomorrowSample = (i===0 && isTomorrow);
+      var onlyExistTomorrowSample = (i === 0 && isTomorrow);
       var isXInsideTheGraph = (x >= model.originX);
       if ((isToday || onlyExistTomorrowSample) && isXInsideTheGraph) {
         drawTodayMark(ctx, x, y, '#8b9052');
@@ -818,8 +813,8 @@ var DataUsageTab = (function() {
     // Only dealing with the use cases of negative UTC offset because, due to
     // the database granularity, the returned samples are given in UTC days, and
     // we don't know what part of the traffic sample values correspond to the
-    // current localtime day.  The query for the samples is generated on the
-    // costcontrol module, and  the case into which the returned samples only
+    // current localtime day. The query for the samples is generated on the
+    // costcontrol module, and the case into which the returned samples only
     // have one record with the data for the localtime day of yesterday is not
     // possible.
 
@@ -829,14 +824,14 @@ var DataUsageTab = (function() {
       var sampleUTCDate = Toolkit.toMidnight(new Date(sampleLocalTime));
 
       var isToday = (today.getTime() === sampleUTCDate.getTime());
-      var isTomorrow = (today.getTime() + DAY ===  sampleUTCDate.getTime());
+      var isTomorrow = (today.getTime() + DAY === sampleUTCDate.getTime());
       var thereIsATomorrowSample = (isToday && (i + 2 === len));
       // Depends on the hour of the day and the offset, it is possible the
       // networkStats API returns the current data mobile in the tomorrow
       // sample, because on the UTC hour is another day.
       if (thereIsATomorrowSample) {
         // Join the value of the samples for today and tomorrow
-        var tomorrowSample = samples[i+1];
+        var tomorrowSample = samples[i + 1];
         if (typeof sample.value === 'undefined') {
           sample.value = tomorrowSample.value;
         } else if (typeof tomorrowSample.value !== 'undefined') {
@@ -868,7 +863,7 @@ var DataUsageTab = (function() {
         lastY = y;
       }
 
-      var onlyExistTomorrowSample = (i===0 && isTomorrow);
+      var onlyExistTomorrowSample = (i === 0 && isTomorrow);
       var isXInsideTheGraph = (x >= model.originX);
       if ((isToday || onlyExistTomorrowSample) && isXInsideTheGraph) {
         drawTodayMark(ctx, x, y, '#762d4a');
