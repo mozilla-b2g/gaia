@@ -371,6 +371,31 @@ suite('Contacts settings >', function() {
       });
     });
 
+    suite('SD not present >', function() {
+      var deviceStorages, deviceStorage;
+
+      suiteSetup(function() {
+        deviceStorages = utils.sdcard.deviceStorages;
+        deviceStorage = utils.sdcard.deviceStorage;
+
+        utils.sdcard.deviceStorages = [];
+        utils.sdcard.deviceStorage = null;
+      });
+
+      suiteTeardown(function() {
+        utils.sdcard.deviceStorages = deviceStorages;
+        utils.sdcard.deviceStorage = deviceStorage;
+      });
+
+      test('import button should be disabled', function() {
+        assert.isTrue(importSDButton.hasAttribute('disabled'));
+      });
+
+      test('export button should be disabled', function() {
+        assert.isTrue(exportSDButton.hasAttribute('disabled'));
+      });
+    });
+
     suite('SD available >', function() {
       setup(function() {
         connectSDCard();
