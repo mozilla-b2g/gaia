@@ -696,6 +696,14 @@ var Compose = (function() {
         hasAttachment() || hasSubject() || isTextTooLong ?
         'mms' : 'sms';
 
+      var list = ThreadUI.recipients.list;
+      for (var i = 0; i < list.length; i++) {
+        if (Utils.isEmailAddress(list[i].number)) {
+          newType = 'mms';
+          break;
+        }
+      }
+
       if (newType !== state.type) {
         state.type = newType;
         trigger.call(this, 'type');
@@ -939,6 +947,5 @@ var Compose = (function() {
       dom.message.classList.toggle('ignoreEvents', value);
     }
   });
-
   return compose;
 }());

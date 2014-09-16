@@ -1,5 +1,5 @@
 /*global GestureDetector, Dialog, Navigation, SharedComponents, Utils,
-         Settings */
+         Settings, Compose */
 
 (function(exports) {
   'use strict';
@@ -252,6 +252,10 @@
       while ((handler = stack.pop())) {
         handler.apply(null, args);
       }
+    }
+
+    if (Settings.supportEmailRecipient) {
+      Compose.updateType();
     }
 
     return this;
