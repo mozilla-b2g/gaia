@@ -99,5 +99,9 @@ exports.scriptLoader = {
 };
 
 exports.dirname = function(path) {
-  return path.substr(0, path.lastIndexOf('.'));
+  return path.substr(0, path.lastIndexOf('/'));
+};
+
+exports.basename = function(path) {
+  return path.substr(path.lastIndexOf('/')+1);
 };
