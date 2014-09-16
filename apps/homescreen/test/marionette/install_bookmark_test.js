@@ -44,7 +44,7 @@ marionette('Install bookmark on homescreen', function() {
                                browser);
     });
 
-    test(' sample.html is on homescreen with expected title',
+    test.skip(' sample.html is on homescreen with expected title',
       function() {
         client.switchToFrame();
         homescreen.launch();
@@ -67,7 +67,7 @@ marionette('Install bookmark on homescreen', function() {
           FlowManager.setTitleToBookmark(newExpectedTitle, homescreen);
         });
 
-        test(' And we change the title of it', function() {
+        test.skip(' And we change the title of it', function() {
           client.switchToFrame();
           homescreen.launch();
           // aria-label won't change after we change bookmark title,
