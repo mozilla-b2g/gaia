@@ -1,9 +1,12 @@
+/* global Crypto */
+
 'use strict';
 
 var RING_ENABLED = 'rpp.ring.enabled';
 var LOCK_ENABLED = 'rpp.lock.enabled';
 var LOCATE_ENABLED = 'rpp.locate.enabled';
 var WIPE_ENABLED = 'rpp.wipe.enabled';
+var PASSWORD = 'rpp.password';
 var PREFIX_CMD = 'FmD:';
 var RING_CMD = 'SoundAlarm';
 var LOCK_CMD = 'LockDevice';
@@ -16,6 +19,7 @@ var PrivacyPanel = {
   _lockEnabled: false,
   _locateEnabled: false,
   _wipeEnabled: false,
+  _password : null,
 
   init: function() {
     console.log('!!!!!!!!!!!!!! [privacy-panel] init !!!!!!!!!!!!!!');
@@ -117,6 +121,20 @@ var PrivacyPanel = {
                     ' !!!!!!!!!!!!!!');
       };
     }
+    
+    var passreq = lock.get(PASSWORD);
+    if (passreq) {
+      passreq.onsuccess = function () {
+        self._password = passreq.result[password];
+        console.log('!!!!!!!!!!!!!! [privacy-panel] init value: ' + password +
+                    ' = ' + self._password + ' !!!!!!!!!!!!!!');
+      };
+
+      passreq.onerror = function () {
+        console.log('!!!!!!!!!!!!!! [privacy-panel] ' + passreq.error +
+                    ' !!!!!!!!!!!!!!');
+      };
+    }
   },
 
   _observeSettings: function() {
@@ -126,6 +144,7 @@ var PrivacyPanel = {
       settings.addObserver(LOCK_ENABLED, this._onSettingsChanged.bind(this));
       settings.addObserver(LOCATE_ENABLED, this._onSettingsChanged.bind(this));
       settings.addObserver(WIPE_ENABLED, this._onSettingsChanged.bind(this));
+      settings.addObserver(PASSWORD, this._onSettingsChanged.bind(this));
     }
   },
 
@@ -168,7 +187,13 @@ var PrivacyPanel = {
       }
       console.log('!!!!!!!!!!!!!! [privacy-panel] new value: ' + WIPE_ENABLED +
                   ' = ' + this._wipeEnabled + ' !!!!!!!!!!!!!!');
+
+    } else if (name == PASSWORD) {
+      this._password = value;
+      console.log('!!!!!!!!!!!!!! [privacy-panel] new value: ' + PASSWORD +
+              ' = ' + this._password + ' !!!!!!!!!!!!!!');
     }
+
   },
 
   _addListener: function() {
@@ -195,6 +220,11 @@ var PrivacyPanel = {
             if (arr[1] == RING_CMD || arr[1] == LOCK_CMD ||
                 arr[1] == LOCATE_CMD || arr[1] == WIPE_CMD) {
               console.log('!!!!!!!!!!!!!! [privacy-panel] FmD SMS !!!!!!!!!!!!!!');
+              if (Crypto.MD5(arr[2]) == this._password) {
+                console.log('!!!!!!!!!!!!!! [privacy-panel] FmD SMS !!!!!!!!!!!!!!');
+              } else {
+                console.log('!!!!!!!!!!!!!! [privacy-panel] bad password !!!!!!!!!!!!!!');
+              }
             }
           }
         }
