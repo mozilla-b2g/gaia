@@ -24,7 +24,6 @@ class TestEverythingMeLaunchLink(GaiaTestCase):
         search_panel.confirm_suggestion_notice()
         search_panel.wait_for_everything_me_results_to_load(1)
 
-        first_app_name = search_panel.link_results[0].name
         search_panel.link_results[0].tap()
 
-        self.assertIn(first_app_name, self.marionette.title)
+        self.assertIn(search_string.lower(), self.marionette.title.lower())
