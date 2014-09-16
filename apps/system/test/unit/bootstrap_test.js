@@ -27,6 +27,7 @@ requireApp('system/js/app_migrator.js');
 requireApp('system/js/app_usage_metrics.js');
 requireApp('system/js/app_window_factory.js');
 requireApp('system/js/browser_settings.js');
+requireApp('system/js/cell_broadcast_system.js');
 requireApp('system/js/devtools/developer_hud.js');
 requireApp('system/js/dialer_agent.js');
 requireApp('system/js/eu_roaming_manager.js');
