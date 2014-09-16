@@ -26,7 +26,7 @@ mocksForAbout.forEach(function(mockName) {
 
 suite('about >', function() {
   var realL10n, realNavigatorSettings, realMobileConnections, realIccManager;
-  var updateStatusNode, systemStatus, generalInfo;
+  var updateStatusNode, systemStatus;
   var mocksHelper;
 
   suiteSetup(function() {
@@ -88,7 +88,6 @@ suite('about >', function() {
 
     updateStatusNode = document.getElementById('update-status');
     systemStatus = updateStatusNode.querySelector('.system-update-status');
-    generalInfo = updateStatusNode.querySelector('.general-information');
 
     About.init();
   });
@@ -126,7 +125,7 @@ suite('about >', function() {
     test('displays the checking updates text', function() {
       assert.isTrue(updateStatusNode.classList.contains('checking'));
       assert.isTrue(updateStatusNode.classList.contains('visible'));
-      assert.notEqual(generalInfo.textContent.length, 0);
+      assert.notEqual(systemStatus.textContent.length, 0);
     });
 
 
@@ -227,10 +226,6 @@ suite('about >', function() {
           MockNavigatorSettings.mTriggerObservers('apps.updateStatus', {
             settingValue: 'check-complete'
           });
-        });
-
-        test('hides the status', function() {
-          assert.isFalse(updateStatusNode.classList.contains('visible'));
         });
 
         test('removes the text in the system description', function() {
