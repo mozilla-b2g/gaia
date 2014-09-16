@@ -398,8 +398,27 @@ var Navigation = {
     if (steps[self.currentStep].hash === '#date_and_time') {
       if (!UIManager.timeZoneNeedsConfirmation) {
         self.postStepMessage(self.currentStep);
+        if(navigator.onLine) {
+          //if you are online you can get a more accurate guess for the time
+          //time you just need to trigger it
+          UIManager.updateSetting(
+            'time.timezone.automatic-update.enabled', 
+            true
+          );
+          UIManager.updateSetting(
+            'time.clock.automatic-update.enabled', 
+            true
+          );
+        }
         self.skipStep();
       }
+    }
+
+    // if we are not connected we should not try fxa
+    if (futureLocation.hash === '#firefox_accounts' &&
+        !navigator.onLine) {
+      self.postStepMessage(self.currentStep);
+      self.skipStep();
     }
   }
 };
