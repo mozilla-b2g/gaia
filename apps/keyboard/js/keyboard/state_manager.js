@@ -186,6 +186,8 @@ StateManager.prototype._switchCurrentIMEngine = function() {
   var imEngineName = page.imEngine || 'default';
 
   this.app.upperCaseStateManager.reset();
+  this.app.candidatePanelManager.reset();
+
   var p = this.app.inputMethodManager.switchCurrentIMEngine(imEngineName);
 
   return p;

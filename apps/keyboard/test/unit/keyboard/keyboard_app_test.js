@@ -4,7 +4,7 @@
           SettingsPromiseManager, L10nLoader, TargetHandlersManager,
           FeedbackManager, VisualHighlightManager, CandidatePanelManager,
           UpperCaseStateManager, LayoutRenderingManager, StateManager,
-          MockInputMethodManager, IMERender */
+          MockInputMethodManager */
 
 require('/js/keyboard/console.js');
 require('/js/keyboard/input_method_manager.js');
@@ -292,32 +292,5 @@ suite('KeyboardApp', function() {
 
     var result = app.getNumberOfCandidatesPerRow();
     assert.equal(result, 42);
-  });
-
-  suite('app.upperCaseStateManager.onstatechange', function() {
-    test('w/o secondLayout', function() {
-      app.layoutManager.currentPage = {
-      };
-
-      app.upperCaseStateManager.onstatechange();
-
-      window.requestAnimationFrame.getCall(0).args[0].call(window);
-
-      assert.isTrue(
-        IMERender.setUpperCaseLock.calledWith(app.upperCaseStateManager));
-      assert.isTrue(
-        app.candidatePanelManager.showCandidates.calledOnce);
-    });
-
-    test('w secondLayout', function() {
-      app.layoutManager.currentPage = {
-        secondLayout: true
-      };
-
-      app.upperCaseStateManager.onstatechange();
-
-      assert.isTrue(
-        app.layoutRenderingManager.updateLayoutRendering.calledOnce);
-    });
   });
 });
