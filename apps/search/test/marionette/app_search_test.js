@@ -21,6 +21,7 @@ marionette('Search - App search', function() {
   test('Search apps from Rocketbar', function() {
     home.waitForLaunch();
     home.focusRocketBar();
+    search.triggerFirstRun(rocketbar);
     rocketbar.enterText('calendar');
     search.goToResults();
     var calendarIdentifier = 'app://calendar.gaiamobile.org/manifest.webapp';
@@ -32,6 +33,7 @@ marionette('Search - App search', function() {
   test('Search for app with entry point', function() {
     home.waitForLaunch();
     home.focusRocketBar();
+    search.triggerFirstRun(rocketbar);
     rocketbar.enterText('Phone');
     search.goToResults();
     var phoneIdentifier =
