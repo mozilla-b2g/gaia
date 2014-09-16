@@ -301,7 +301,7 @@ var SimManager = (function() {
       }
 
       UIManager['simCarrier' + iccNumber].textContent = operator ||
-        _('noOperator');
+        _('searchingOperator');
       var number = icc.mozIcc.iccInfo.msisdn ||
                    icc.mozIcc.iccInfo.mdn || '';
       if (number) {
