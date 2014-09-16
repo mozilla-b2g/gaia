@@ -23,6 +23,7 @@
 
   SearchWindow.SUB_COMPONENTS = {
     'childWindowFactory': window.ChildWindowFactory,
+    'contextmenu': window.BrowserContextMenu,
     'transitionController': window.AppTransitionController
   };
 
