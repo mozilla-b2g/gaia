@@ -72,8 +72,12 @@ gaia-tests-zip:
 	@(cd $(GAIA_PATH)/tests/atoms && tar -chf - *) | (cd $(GAIA_TESTS_STAGE)/gaiatest/gaiatest/atoms && tar -xf -)
 	(cd $(GAIA_TESTS_STAGE) && zip -r $(GAIA_PATH)/gaia-tests.zip *)
 
+.PHONY: gaia-prefs
+gaia-prefs:
+	$(MAKE) -C $(GAIA_PATH) $(GAIA_MAKE_FLAGS) preferences
+
 .PHONY: $(LOCAL_PATH)/profile.tar.gz
-$(LOCAL_PATH)/profile.tar.gz:
+$(LOCAL_PATH)/profile.tar.gz: gaia-prefs
 ifeq ($(CLEAN_PROFILE), 1)
 	rm -rf $(GAIA_PATH)/profile $(GAIA_PATH)/profile.tar.gz
 endif
