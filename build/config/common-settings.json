@@ -225,6 +225,7 @@
    "ums.volume.extsdcard.enabled": true,
    "ums.volume.external.enabled": true,
    "usb.transfer": "0",
+   "volume.external.unrecognised": false,
    "vibration.enabled": true,
    "wifi.enabled": true,
    "wifi.screen_off_timeout": 600000,
