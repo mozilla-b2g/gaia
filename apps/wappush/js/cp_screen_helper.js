@@ -12,7 +12,16 @@ var CpScreenHelper = (function() {
   var _ = null;
 
   /** Screen node */
-  var screen = null;
+  var cpScreen = null;
+
+  /** Pin screen node */
+  var pinScreen = null;
+
+  /** Details screen node */
+  var apnScreen = null;
+  
+  /** Details screen node */
+  var detailsScreen = null;
 
   /** Quit app button node */
   var quitButton = null;
@@ -37,9 +46,6 @@ var CpScreenHelper = (function() {
 
   /** Finish button node */
   var finishButton = null;
-
-  /** Title of the message, usually holds the sender's number */
-  var title = null;
 
   /** PIN input node */
   var pin = null;
@@ -89,6 +95,22 @@ var CpScreenHelper = (function() {
   /** Index of the card on which the message was received. */
   var iccCardIndex = 0;
 
+  /** Accept button node for each screen */
+  var acceptApnButton = null;
+  var acceptPinButton = null;
+  var acceptDetailsButton = null;
+
+  /** Title of the message, usually holds the sender's number */
+  var titleApn = null;
+  var titleDetails = null;
+  var titlePin = null;
+
+  /** Flag to define the flow of details screen */
+  var multipleApns = false;
+
+  /** Header of details screen */
+  var headerDetails = null;
+
   function cpsh_init() {
     _ = navigator.mozL10n.get;
 
@@ -97,8 +119,9 @@ var CpScreenHelper = (function() {
     processed = false;
 
     // Retrieve the various page elements
-    acceptButton = document.getElementById('accept');
-    title = document.getElementById('title');
+    titleApn = document.getElementById('title-apn');
+    titleDetails = document.getElementById('title-details');
+    titlePin = document.getElementById('title-pin');
 
     quitAppConfirmDialog = document.getElementById('cp-quit-app-confirm');
     quitButton = quitAppConfirmDialog.querySelector('.quit');
@@ -119,17 +142,35 @@ var CpScreenHelper = (function() {
     finishConfirmDialog = document.getElementById('cp-finish-confirm');
     finishButton = finishConfirmDialog.querySelector('button');
 
-    screen = document.getElementById('cp-screen');
-    pin = screen.querySelector('input');
+    cpScreen = document.getElementById('cp-screen');
+
+    pinScreen = document.getElementById('cp-pin-screen');
+    pin = pinScreen.querySelector('input');
+
+    apnScreen = document.getElementById('cp-apn-screen');
+    detailsScreen = document.getElementById('cp-details-screen');
+
+    acceptApnButton = document.getElementById('apn-accept');
+    acceptPinButton = document.getElementById('pin-accept');
+    acceptDetailsButton = document.getElementById('details-accept');
+
+    var headerApnList = document.getElementById('header-apn-list');
+    headerDetails = document.getElementById('header-details');
+    var headerPin = document.getElementById('header-pin');
 
     // Event handlers
     quitButton.addEventListener('click', cpsh_onQuit);
     cancelQuitButton.addEventListener('click', cpsh_onCancelQuit);
-    acceptButton.addEventListener('click', cpsh_onAccept);
     storeButton.addEventListener('click', cpsh_onStore);
     cancelStoreButton.addEventListener('click', cpsh_onCancelStore);
     finishButton.addEventListener('click', cpsh_onFinish);
     pin.addEventListener('keyup', cpsh_onPinInput);
+    acceptApnButton.addEventListener('click', cpsh_onApnAccept);
+    acceptPinButton.addEventListener('click', cpsh_onPinAccept);
+    acceptDetailsButton.addEventListener('click', cpsh_onDetailsAccept);
+    headerApnList.addEventListener('action', cpsh_onClose);
+    headerDetails.addEventListener('action', cpsh_closeDetails);
+    headerPin.addEventListener('action', cpsh_closePin);
   }
 
   /**
@@ -147,42 +188,7 @@ var CpScreenHelper = (function() {
    * Makes the client provisioning screen visible and populate it.
    */
   function cpsh_populateScreen(message) {
-    // The close button in the header is shared between screens but sadly the
-    // flow differs. Let the WapPushManaget knwo what CpScreenHelper function
-    // invoque when the user click on the close button.
-    WapPushManager.setOnCloseCallback(cpsh_onClose);
-
-    WapPushManager.enableAcceptButton(true);
-    screen.hidden = false;
-
-    authInfo = message.provisioning.authInfo;
-    provisioningDoc = message.provisioning.provisioningDoc;
-    // Make the PIN input visible when the authentication mechanism needs a PIN
-    // 0 NETWPIN, there is no need for an user PIN
-    // 1 USERPIN, the authentication mechanism needs a PIN from the user
-    // 1 USERNETWPIN, the authentication mechanism needs a PIN from the user
-    // 1 USERPINMAC, the authentication mechanism needs a PIN from the user
-    showPINInput = (message.provisioning.authInfo.sec !== 'NETWPIN');
-    // 'message.authInfo.checked' property tell us the authentication process
-    // was already performed by gecko
-    authenticated = message.provisioning.authInfo.checked;
-    // 'message.authInfo.pass' property tell us the result of the authentication
-    // process when this process was performed by gecko
-    isDocumentValid = message.provisioning.authInfo.pass;
-
-    if (showPINInput) {
-      // If the document has not been authenticated yet and the PIN code is
-      // needed, show some info and the PIN input element to the user.
-      pinHelp.textContent = _('cp-accept-help-pin');
-      pin.type = 'number';
-      pin.focus();
-      acceptButton.disabled = true;
-    } else {
-      pinHelp.textContent = _('cp-accept-help');
-      pin.type = 'hidden';
-      pin.blur();
-      acceptButton.disabled = false;
-    }
+    cpScreen.hidden = false;
 
     var _title = message.sender;
     /* If the phone has more than one SIM prepend the number of the SIM on
@@ -196,10 +202,208 @@ var CpScreenHelper = (function() {
          { sim: simName, title: _title }
       );
     }
-    title.textContent = _title;
+    titleApn.textContent = _title;
+    titleDetails.textContent = _title;
+    titlePin.textContent = _title;
 
     iccCardIndex = message.serviceId;
     messageTag = message.timestamp;
+
+    authInfo = message.provisioning.authInfo;
+    provisioningDoc = message.provisioning.provisioningDoc;
+
+    // Get the number of APNs to show details or the list of them.
+    var parsedProvisioningDoc = ParsedProvisioningDoc.from(provisioningDoc);
+    apns = parsedProvisioningDoc.getApns();
+
+    // The provisioning document might not have valid APNs (other ones that
+    // those ones in APPLICATION nodes for the Browsing Enabler and AC for the
+    // Multimedia Messaging System Enabler). In this case we must not continue.
+    if (apns.length === 0) {
+      message = finishConfirmDialog.querySelector('strong');
+      message.textContent = _('cp-finish-confirm-dialog-message-no-apns');
+      finishConfirmDialog.hidden = false;
+      return;
+    }
+
+    // Make the PIN input visible when the authentication mechanism needs a PIN
+    // 0 NETWPIN, there is no need for an user PIN
+    // 1 USERPIN, the authentication mechanism needs a PIN from the user
+    // 1 USERNETWPIN, the authentication mechanism needs a PIN from the user
+    // 1 USERPINMAC, the authentication mechanism needs a PIN from the user
+    showPINInput = (authInfo.sec !== 'NETWPIN');
+    // 'message.authInfo.checked' property tell us the authentication process
+    // was already performed by gecko
+    authenticated = authInfo.checked;
+    // 'message.authInfo.pass' property tell us the result of the authentication
+    // process when this process was performed by gecko
+    isDocumentValid = authInfo.pass;
+
+    if (showPINInput) {
+      // If the document has not been authenticated yet and the PIN code is
+      // needed, show some info and the PIN input element to the user.
+      pinHelp.textContent = _('cp-accept-help-pin');
+      pin.type = 'number';
+      acceptPinButton.disabled = true;
+    } else {
+      pinHelp.textContent = _('cp-accept-help');
+      pin.type = 'hidden';
+      pin.blur();
+      acceptPinButton.disabled = false;
+    }
+
+    if (apns.length > 1) {
+      multipleApns = true;
+      cpsh_showApnList();
+      return;
+    }
+
+    multipleApns = false;
+    cpsh_showDetails(0);
+  }
+
+  /**
+   * Shows the apn list screen when there are multiple apns in a configuration
+   * message populating a list with each apn name.
+   */
+  function cpsh_showApnList() {
+    var fragment = document.createDocumentFragment();
+
+    for (var i = 0; i < apns.length; i++) {
+      var list = document.createElement('li');
+
+      var a = document.createElement('a');
+      a.addEventListener('click', cpsh_showDetails.bind(null, i));
+
+      var aside = document.createElement('aside');
+      aside.className = 'pack-end';
+      aside.setAttribute('data-icon', 'forward');
+
+      var p = document.createElement('p');
+      p.textContent = apns[i].carrier;
+
+      a.appendChild(aside);
+      a.appendChild(p);
+      list.appendChild(a);
+      fragment.appendChild(list);
+    }
+
+    var content = apnScreen.querySelector('.message');
+    content.appendChild(fragment);
+  }
+
+  /**
+   * Handles the application flow when the user clicks on the 'next' button
+   * from the apn list screen.
+   */
+  function cpsh_onApnAccept() {
+    if (showPINInput) {
+      pinScreen.addEventListener('transitionend', cpsh_setPinFocus);
+    }
+
+    apnScreen.classList.add('left');
+    pinScreen.classList.remove('right');
+  }
+
+  /**
+   * Shows the apn details screen.
+   */
+  function cpsh_showDetails(index) {
+    if (multipleApns) {
+      acceptDetailsButton.style.visibility = 'hidden';
+      headerDetails.setAttribute('action', 'back');
+    }
+
+    var details = detailsScreen.querySelector('.message');
+    details.innerHTML = '';    
+
+    cpsh_createNode(details, 'Name', apns[index].carrier);
+    cpsh_createNode(details, 'APN', apns[index].apn);
+    cpsh_createNode(details, 'Proxy', apns[index].proxy);
+    cpsh_createNode(details, 'Port', apns[index].port);
+    cpsh_createNode(details, 'Username', apns[index].user);
+    cpsh_createNode(details, 'Password', apns[index].password);
+    cpsh_createNode(details, 'MMSC', apns[index].mmsc);
+    cpsh_createNode(details, 'MMS Proxy', apns[index].mmsproxy);
+    cpsh_createNode(details, 'MMS Port', apns[index].mmsport);
+    cpsh_createNode(details, 'Authentication Type', apns[index].authType);
+    cpsh_createNode(details, 'APN Type', apns[index].type);
+
+    detailsScreen.classList.remove('right');
+    apnScreen.classList.add('left');
+  }
+
+  /**
+   * Handles the application flow when the user clicks on the 'back'/ 'close'
+   * button from the details screen.
+   * If there are multiple APNs then back button to go back to apn list screen.
+   * If only one APN then shows quit confirm.
+   */
+  function cpsh_closeDetails(evt) {
+    if (!multipleApns) {
+      cpsh_onClose(evt);
+      return;
+    }
+
+    detailsScreen.classList.add('right');
+    apnScreen.classList.remove('left');
+  }
+
+  /**
+   * Handles the application flow when the user clicks on the 'next' button
+   * from the details screen.
+   */
+  function cpsh_onDetailsAccept() {
+    if (showPINInput) {
+      pinScreen.addEventListener('transitionend', cpsh_setPinFocus);
+    }
+
+    detailsScreen.classList.add('left');
+    pinScreen.classList.remove('right');
+  }
+
+  /**
+   * Helper function used to populate the list of the APN details.
+   */
+  function cpsh_createNode(rootNode, key, value) {
+    if (!value) {
+      return;
+    }
+
+    var element = document.createElement('li');
+    var nodeKey = document.createElement('p');
+    var nodeValue = document.createElement('p');
+    nodeKey.textContent = key;
+    nodeValue.textContent = value;
+    element.appendChild(nodeKey);
+    element.appendChild(nodeValue);
+    rootNode.appendChild(element);
+  }
+
+  /**
+   * Helper function used to set focus to pin input when transition to pin
+   * screen has finished.
+   */
+  function cpsh_setPinFocus() {
+    pin.focus();
+    pinScreen.removeEventListener('transitionend', cpsh_setPinFocus); 
+  }
+
+  /**
+   * Handles the application flow when the user clicks on the 'back' button
+   * from the pin screen.
+   */
+  function cpsh_closePin() {
+    pin.blur();
+
+    if (!multipleApns) {
+      pinScreen.classList.add('right');
+      detailsScreen.classList.remove('left');
+      return;
+    }
+
+    pinScreen.classList.add('right');
+    apnScreen.classList.remove('left');
   }
 
   /**
@@ -220,6 +424,7 @@ var CpScreenHelper = (function() {
    */
   function cpsh_onQuit(evt) {
     evt.preventDefault();
+
     quitAppConfirmDialog.hidden = true;
     WapPushManager.clearNotifications(messageTag);
     MessageDB.deleteByTimestamp(messageTag).then(function() {
@@ -236,7 +441,6 @@ var CpScreenHelper = (function() {
    */
   function cpsh_onCancelQuit(evt) {
     evt.preventDefault();
-    pin.focus();
     quitAppConfirmDialog.hidden = true;
   }
 
@@ -264,7 +468,7 @@ var CpScreenHelper = (function() {
    * Accepts the message, authenticates the sender and presents the settings to
    * be stored to the user
    */
-  function cpsh_onAccept() {
+  function cpsh_onPinAccept() {
     var message = null;
 
     if (!authenticated) {
@@ -301,19 +505,6 @@ var CpScreenHelper = (function() {
       // be authenticated against the SIM card), show an alter.
       message = finishConfirmDialog.querySelector('strong');
       message.textContent = _('cp-finish-confirm-dialog-message-invalid-doc');
-      finishConfirmDialog.hidden = false;
-      return;
-    }
-
-    var parsedProvisioningDoc = ParsedProvisioningDoc.from(provisioningDoc);
-    apns = parsedProvisioningDoc.getApns();
-
-    // The provisioning document might not have valid APNs (other ones that
-    // those ones in APPLICATION nodes for the Browsing Enabler and AC for the
-    // Multimedia Messaging System Enabler). In this case we must not continue.
-    if (apns.length === 0) {
-      message = finishConfirmDialog.querySelector('strong');
-      message.textContent = _('cp-finish-confirm-dialog-message-no-apns');
       finishConfirmDialog.hidden = false;
       return;
     }
@@ -407,7 +598,7 @@ var CpScreenHelper = (function() {
    * Enable / disable accept button if pin field is empty.
    */
   function cpsh_onPinInput(evt) {
-    acceptButton.disabled = (pin.value.length === 0);
+    acceptPinButton.disabled = (pin.value.length === 0);
   }
 
   return {
