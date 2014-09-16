@@ -4,7 +4,7 @@
 
 var utils = require('utils');
 
-function buildApps(options) {
+exports.execute = function(options) {
   var appRegExp;
   try {
     appRegExp = utils.getAppNameRegex(options.BUILD_APP_NAME);
@@ -33,15 +33,4 @@ function buildApps(options) {
       }
     }
   });
-}
-
-exports.execute = function(options) {
-  var stageDir = utils.getFile(options.STAGE_DIR);
-  utils.ensureFolderExists(stageDir);
-
-  require('pre-app').execute(options);
-  buildApps(options);
-  require('post-app').execute(options);
 };
-
-exports.buildApps = buildApps;
