@@ -18,11 +18,14 @@ var app = app || {};
       ALA: {
         $link:        document.getElementById('menuItem-ALA'),
         $back:        document.getElementById('ALA-back'),
+        $backapp:     document.getElementById('ALA-app-back'),
         $box:         document.getElementById('ALA'),
+        $app:         document.getElementById('application-info'),
         geo: {
           $switchBox: document.getElementById('geolocation-switch-box'),
           $switch:    document.getElementById('geolocation-switch'),
-          $box:       document.getElementById('geolocation-box')
+          $box:       document.getElementById('geolocation-box'),
+          $main:      document.getElementById('main-panel')
         },
         settings: {
           $switchBox: document.getElementById('settings-switch-box'),
@@ -38,7 +41,8 @@ var app = app || {};
         },
         exception: {
           $box:       document.getElementById('add-exception-box'),
-          $link:      document.getElementById('add-exception')
+          $link:      document.getElementById('add-exception'),
+          $main:      document.getElementById('exceptions')
         }
       },
       Exceptions: {
@@ -86,6 +90,7 @@ var app = app || {};
     // listeners for ALA
     app.elements.ALA.$link.addEventListener('click', app.showALABox);
     app.elements.ALA.$back.addEventListener('click', app.showRootBox);
+    app.elements.ALA.$backapp.addEventListener('click', app.showExceptions);
 
     app.elements.ALA.geo.$switch.addEventListener('click', function(event) { app.toggleGeolocation(event.target.checked); });
     app.elements.ALA.settings.$switch.addEventListener('click', function(event) { app.toggleSettings(event.target.checked); });
@@ -143,6 +148,16 @@ var app = app || {};
     app.elements.$root.style.display = 'none';
     app.elements.ALA.$box.style.display = 'block';
     app.elements.ALA.geo.$box.style.display = 'none';
+    app.elements.ALA.geo.$main.style.display = 'block';
+    app.elements.ALA.exception.$main.style.display = 'block';
+    app.elements.ALA.exception.$main.style.display = 'block';
+ 
+    //set up the back button
+    app.elements.ALA.$back.style.display = 'block';
+    app.elements.ALA.$backapp.style.display = 'none';
+    app.elements.ALA.$app.style.display = 'none';
+    app.elements.Exceptions.$back.style.display='none';
+
 
     // check if geolocation is enabled
     var status1 = app.settings.createLock().get('ala.geolocation.enabled');
@@ -393,6 +408,19 @@ var app = app || {};
   app.showExceptions = function() {
     app.elements.ALA.$box.style.display = 'none';
     app.elements.Exceptions.$box.style.display = 'block';
+ 
+    //set up the back button
+    app.elements.ALA.$back.style.display = 'none';
+    app.elements.ALA.$backapp.style.display = 'none';
+//    app.elements.ALA.$app.style.display = 'none';
+    app.elements.Exceptions.$back.style.display='block';
+ 
+    app.elements.ALA.geo.$main.style.display = 'block';
+    app.elements.ALA.geo.$switchBox.style.display = 'block';
+    app.elements.ALA.exception.$main.style.display = 'block';
+    app.elements.ALA.$app.style.display = 'none';
+ 
+ 
 
     // render app list
     var manifest, icon, li;
@@ -409,6 +437,24 @@ var app = app || {};
       app.elements.Exceptions.$appBox.appendChild(li);
     });
   };
+ 
+ /**
+  * Show App panel
+  */
+ app.showAppPanel = function(link){
+  app.elements.ALA.$box.style.display = 'block';
+  app.elements.ALA.geo.$main.style.display = 'none';
+  app.elements.ALA.geo.$switchBox.style.display = 'none';
+  app.elements.Exceptions.$box.style.display = 'none';
+  app.elements.ALA.exception.$main.style.display = 'none';
+  app.elements.ALA.$app.style.display = 'block';
+  //app.elements.ALA.$app.appendChild(link);
+ 
+//  //set up the back button
+  app.elements.ALA.$back.style.display = 'none';
+  app.elements.ALA.$backapp.style.display = 'block';
+  app.elements.Exceptions.$back.style.display='none';
+ };
 
   /**
    * Render App item
@@ -425,6 +471,7 @@ var app = app || {};
     link.classList.add('menu-item');
     link.appendChild(icon);
     link.appendChild(name);
+    link.addEventListener('click', function(){app.showAppPanel(link)});
     item.appendChild(link);
     return item;
   };
@@ -435,6 +482,13 @@ var app = app || {};
   app.backToALA = function() {
     app.elements.ALA.$box.style.display = 'block';
     app.elements.Exceptions.$box.style.display = 'none';
+ 
+    //set up the back button
+    app.elements.ALA.$back.style.display = 'block';
+    app.elements.ALA.$backapp.style.display = 'none';
+    app.elements.ALA.$app.style.display = 'none';
+    app.elements.Exceptions.$back.style.display='none';
+
   };
 
   /**** RPP part **************************************************************/

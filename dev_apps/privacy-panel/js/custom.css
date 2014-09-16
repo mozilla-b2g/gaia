@@ -1,0 +1,56 @@
+ul li {
+  border-bottom: none;
+  border-top: 0.1rem solid #e6e6e3;
+}
+
+ul li:first-child {
+  border-bottom: none;
+}
+
+input[type="range"].blur-slider {
+  width: calc(100% - 3rem);
+}
+
+.settings-disabled .setting-box {
+  display: none;
+}
+
+.settings-enabled .type-box.enabled {
+  display: block;
+}
+
+.type-box.disabled {
+  display: none;
+}
+
+.app-box{
+  dispaly: block;
+}
+
+.type-box {
+  border-top: none;
+}
+
+#application-info img {
+  height: 3rem;
+  margin-right: 1.4rem;
+  width: 3rem;
+}
+#application-info {
+  align-items: center;
+  padding-left: 2rem;
+}
+
+#app-list li img {
+  height: 3rem;
+  margin-right: 1.4rem;
+  width: 3rem;
+}
+
+#app-list li > a  {
+  align-items: center;
+  flex-direction: row;
+  justify-content: flex-start;
+  padding-left: 2rem;
+}
+

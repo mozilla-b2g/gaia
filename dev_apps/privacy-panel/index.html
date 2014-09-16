@@ -84,10 +84,20 @@
         <a href="#" id="ALA-back">
           <span class="icon icon-back">back</span>
         </a>
+        <a href="#" id="ALA-app-back" style="display: none;">
+            <span class="icon icon-back">back</span>
+        </a>
         <h1 data-l10n-id="ALA-panel">Location Accuracy</h1>
       </header>
 
       <div>
+        <ul id="application-info" style="display: none;">
+            <li class="setting-box description">
+                <p class="description-for-root">
+                <small data-l10n-id="appDescritpion">Adjust the custom location accuracy level of the following app:</small>
+                </p>
+            </li>
+        </ul>
         <ul id="geolocation-switch-box">
           <li>
             <label class="pack-switch">
@@ -97,6 +107,7 @@
           </li>
         </ul>
         <ul id="geolocation-box" class="settings-disabled">
+         <label id="main-panel">
           <li id="settings-switch-box">
             <label class="pack-switch">
               <input id="settings-switch" type="checkbox" class="uninit">
@@ -109,8 +120,8 @@
               <small data-l10n-id="locationBlurDescritpion">Adjust the global accuracy level of your current location for all apps, define and set a permanent fixed location and add exceptions for single apps.</small>
             </p>
           </li>
-
-          <li class="setting-box">
+          </label>
+          <li class="setting-box app-box">
             <p></p>
             <span class="button icon icon-dialog">
               <select id="ALA-type">
@@ -134,12 +145,14 @@
               <span data-l10n-id="set-custom-location">Set custom location</span>
             </a>
           </li>
-
+         
+          <label id="exceptions">
           <li class="setting-box add-exception-box">
             <a id="add-exception" class="menu-item" data-icon="notifications" href="#add-exception">
               <span data-l10n-id="addException">Add exceptions</span>
             </a>
           </li>
+          </label>
         </ul>
       </div>
     </section>
