@@ -117,6 +117,22 @@ contacts.ICE = (function() {
     });
   }
 
+  function goBack() {
+    contacts.List.clearClickHandlers();
+    contacts.List.handleClick(Contacts.showContactDetail);
+    Contacts.setNormalHeader();
+
+    var hasICESet = ICEData.iceContacts.find(function(x) {
+      return x.active === true;
+    });
+
+    if (hasICESet) {
+      contacts.List.toggleICEGroup(true);
+    }
+
+    contacts.Settings.navigation.back();
+  }
+
   /**
    * Given a contact id, saves it internally. Also restores the contact
    * list default handler.
@@ -124,12 +140,7 @@ contacts.ICE = (function() {
    */
   function selectICEHandler(id) {
     contacts.List.toggleICEGroup(true);
-    setICEContact(id, currentICETarget, true,
-     contacts.Settings.navigation.back.bind(
-      contacts.Settings.navigation));
-
-    contacts.List.clearClickHandlers();
-    contacts.List.handleClick(Contacts.showContactDetail);
+    setICEContact(id, currentICETarget, true, goBack);
   }
 
   /**
@@ -139,6 +150,7 @@ contacts.ICE = (function() {
    */
   function showSelectList(target) {
     contacts.List.toggleICEGroup(false);
+    Contacts.setCanceleableHeader(goBack);
     contacts.Settings.navigation.go('view-contacts-list', 'right-left');
     currentICETarget = target === 'select-ice-contact-1' ? 0 : 1;
     contacts.List.clearClickHandlers();
