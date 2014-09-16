@@ -8,6 +8,14 @@
     "en-US": {
       "name": "Feedback",
       "description": "Gaia Feedback"
+    },
+    "fr": {
+      "name": "Feedback",
+      "description": "Gaia Feedback"
+    },
+    "zh-TW": {
+      "name": "Feedback",
+      "description": "Gaia Feedback"
     }
   },
   "permissions": {

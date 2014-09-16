@@ -9,7 +9,19 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "locales": {
+    "ar": {
+      "name": "Browser",
+      "description": "Gaia System Web Browser"
+    },
     "en-US": {
+      "name": "Browser",
+      "description": "Gaia System Web Browser"
+    },
+    "fr": {
+      "name": "Browser",
+      "description": "Gaia System Web Browser"
+    },
+    "zh-TW": {
       "name": "Browser",
       "description": "Gaia System Web Browser"
     }

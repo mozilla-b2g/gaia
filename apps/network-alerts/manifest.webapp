@@ -20,6 +20,9 @@
     "cellbroadcast":{},
     "settings":{ "access": "readonly" }
   },
+  "locales": {
+    "en-US": {}
+  },
   "default_locale": "en-US",
   "orientation": "default",
   "messages": [

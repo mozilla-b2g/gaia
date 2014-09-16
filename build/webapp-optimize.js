@@ -63,9 +63,9 @@ HTMLOptimizer.prototype.process = function() {
   var ignore = this.optimizeConfig.L10N_OPTIMIZATION_BLACKLIST;
   // If this HTML document uses l10n.js, pre-localize it --
   //   note: a document can use l10n.js by including either l10n.js or
-  //   application/l10n resource link elements (see /shared/js/lazy_l10n.js).
+  //   localization resource link elements (see /shared/js/lazy_l10n.js).
   if ((!this.win.document.querySelector('script[src$="l10n.js"]') &&
-       !this.win.document.querySelector('link[type$="application/l10n"]')) ||
+       !this.win.document.querySelector('link[rel="localization"]')) ||
       ignore[this.webapp.sourceDirectoryName]) {
     this.done(this.files);
     return;
@@ -74,10 +74,11 @@ HTMLOptimizer.prototype.process = function() {
   // Since l10n.js was read before the document was created, we need to
   // explicitly initialize it again via mozL10n.bootstrap, which looks for
   // *.ini links in the HTML and sets up the localization context.
-  mozL10n.bootstrap(this._optimize.bind(this),
+  mozL10n.bootstrap(
     // if LOCALE_BASEDIR is set, we're going to show missing strings at
     // buildtime.
     this.config.LOCALE_BASEDIR !== '');
+  this._optimize();
 };
 
 HTMLOptimizer.prototype._optimize = function() {
@@ -263,41 +264,68 @@ HTMLOptimizer.prototype.embedSubsetL10nResources = function() {
 
 /**
  * Replaces all external l10n resource nodes by a single link:
- * <link type="application/l10n" href="/locales-obj/{{locale}}.json" />,
+ * <link rel="localization" href="/locales-obj/{locale}.json" />,
  * and merge the document dictionary into the webapp dictionary.
  */
 HTMLOptimizer.prototype.concatL10nResources = function() {
   var doc = this.win.document;
-  var resources = doc.querySelectorAll('link[type="application/l10n"]');
-  if (!resources.length) {
+  var links = doc.querySelectorAll('link[rel="localization"], ' +
+                                   'link[rel="manifest"]');
+  if (!links.length) {
     return;
   }
 
-  var parentNode = resources[0].parentNode;
+  var parentNode = links[0].parentNode;
   var fetch = false;
   var embed = false;
 
-  for (var i = 0; i < resources.length; i++) {
-    var link = resources[i];
-    link.parentNode.removeChild(link);
-    // if any l10n link does have a no-fetch
-    // attribute, we will embed the whole l10n dictionary
-    if (link.hasAttribute('data-no-fetch')) {
-      embed = true;
-    }
+  for (var i = 0; i < links.length; i++) {
+    var link = links[i];
+    var rel = link.getAttribute('rel');
 
-    // attribute we will embed the locales json link
-    if (!link.hasAttribute('data-no-fetch')) {
-      fetch = true;
+    switch (rel) {
+      case 'manifest':
+        var url = link.getAttribute('href');
+        var manifest = JSON.parse(this.getFileByRelativePath(url).content);
+
+        if (manifest.default_locale) {
+          var defaultLocaleMeta = doc.createElement('meta');
+          defaultLocaleMeta.name = 'default_locale';
+          defaultLocaleMeta.content = manifest.default_locale;
+          parentNode.insertBefore(defaultLocaleMeta, links[0]);
+        }
+
+        if (manifest.locales) {
+          var localesMeta = doc.createElement('meta');
+          localesMeta.name = 'locales';
+          localesMeta.content = Object.keys(manifest.locales).join(', ');
+          parentNode.insertBefore(localesMeta, links[0]);
+        }
+        break;
+      case 'localization':
+        // if any l10n link does have a no-fetch
+        // attribute, we will embed the whole l10n dictionary
+        if (link.hasAttribute('data-no-fetch')) {
+          embed = true;
+        }
+
+        // if any l10n link does no have the no-fetch
+        // attribute we will embed the locales json link
+        if (!link.hasAttribute('data-no-fetch')) {
+          fetch = true;
+        }
+        break;
     }
   }
 
   if (fetch) {
     var jsonLink = doc.createElement('link');
-    jsonLink.href = '/locales-obj/{{locale}}.json';
-    jsonLink.type = 'application/l10n';
-    jsonLink.rel = 'prefetch';
-    parentNode.appendChild(jsonLink);
+    jsonLink.href = '/locales-obj/{locale}.json';
+    jsonLink.rel = 'localization';
+    parentNode.insertBefore(jsonLink, links[0]);
+  }
+  for (i = 0; i < links.length; i++) {
+    parentNode.removeChild(links[i]);
   }
 
   if (embed) {
@@ -593,16 +621,30 @@ HTMLOptimizer.prototype.mockWinObj = function() {
   };
 
   this.win.XMLHttpRequest = function() {
+    var mimeType = null;
+    var status = null;
+    var responseText = null;
+
     return {
       open: function(type, url, async) {
-        this.status = 200;
-        this.responseText = self.getFileByRelativePath(url).content;
+        status = 200;
+        responseText = self.getFileByRelativePath(url).content;
+      },
+      overrideMimeType: function(type) {
+        mimeType = type;
       },
       send: function() {
+        var response;
+        if (mimeType == 'application/json') {
+          response = JSON.parse(responseText);
+        } else {
+          response = responseText;
+        }
         this.onload({
           'target': {
-            'status': this.status,
-            'responseText': this.responseText,
+            'status': status,
+            'responseText': responseText,
+            'response': response
           }
         });
       },
@@ -664,6 +706,27 @@ WebappOptimize.prototype.HTMLProcessed = function(files) {
 // all HTML documents in the webapp have been optimized:
 // create one concatenated l10n file per locale for all HTML documents
 WebappOptimize.prototype.writeDictionaries = function() {
+  function cleanLocaleFiles(stageDir) {
+    var localesDir = stageDir.clone();
+    localesDir.append('locales');
+    if (localesDir.exists()) {
+      localesDir.remove(true);
+    }
+
+    var sharedLocalesDir = stageDir.clone();
+    sharedLocalesDir.append('shared');
+    sharedLocalesDir.append('locales');
+    if (sharedLocalesDir.exists()) {
+      sharedLocalesDir.remove(true);
+    }
+
+    var files = utils.ls(stageDir, false);
+    files.forEach(function(file) {
+      if (file.isDirectory()) {
+        cleanLocaleFiles(file);
+      }
+    });
+  }
   if (this.config.GAIA_CONCAT_LOCALES !== '1') {
     return;
   }
@@ -687,24 +750,9 @@ WebappOptimize.prototype.writeDictionaries = function() {
     }
   });
 
-  var localeDir = this.webapp.buildDirectoryFile.clone();
-  localeDir.append('locales');
-  // FIXME 999903: locales directory won't be removed if DEBUG=1 because we
-  // need l10n properties file in build_stage to get l10n string in DEBUG
-  // mode.
-  if (localeDir.exists() && this.config.DEBUG !== 1) {
-    localeDir.remove(true);
+  if (this.config.GAIA_CONCAT_LOCALES === '1') {
+    cleanLocaleFiles(this.webapp.buildDirectoryFile);
   }
-  var sharedLocaleDir = this.webapp.buildDirectoryFile.clone();
-  sharedLocaleDir.append('shared');
-  sharedLocaleDir.append('locales');
-  // FIXME 999903: locales directory won't be removed if DEBUG=1 because we
-  // need l10n properties file in build_stage to get l10n string in DEBUG
-  // mode.
-  if (sharedLocaleDir.exists() && this.config.DEBUG !== 1) {
-    sharedLocaleDir.remove(true);
-  }
-
 };
 
 WebappOptimize.prototype.execute = function(config) {
