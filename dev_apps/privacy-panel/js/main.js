@@ -13,46 +13,56 @@ var app = app || {};
     }
 
     app.elements = {
-      $root:      document.getElementById('root'),
+      context: 'ROOT',
+      $root:          document.getElementById('root'),
       ALA: {
-        $link:      document.getElementById('menuItem-ALA'),
-        $back:      document.getElementById('ALA-back'),
-        $box:       document.getElementById('ALA'),
+        $link:        document.getElementById('menuItem-ALA'),
+        $back:        document.getElementById('ALA-back'),
+        $box:         document.getElementById('ALA'),
         geo: {
-          $switch:  document.getElementById('geolocation-switch'),
-          $box:     document.getElementById('geolocation-box')
+          $switchBox: document.getElementById('geolocation-switch-box'),
+          $switch:    document.getElementById('geolocation-switch'),
+          $box:       document.getElementById('geolocation-box')
         },
-        blur: {
-          $switch:  document.getElementById('blur-switch'),
-          $elements:document.getElementById('geolocation-box').querySelectorAll('.blur-box')
+        settings: {
+          $switchBox: document.getElementById('settings-switch-box'),
+          $switch:    document.getElementById('settings-switch')
+        },
+        type: {
+          $select:    document.getElementById('ALA-type'),
+          $elements:  document.querySelectorAll('.type-box'),
+          $blurBox:   document.getElementById('type-blur'),
+          $blurSlider:document.getElementById('blur-slider'),
+          $blurLabel: document.getElementById('blur-label'),
+          $customBox: document.getElementById('type-custom-location')
         }
       },
       RPP: {
-        $link:      document.getElementById('menuItem-RPP'),
-        $back:      document.getElementById('RPP-back'),
-        $box:       document.getElementById('RPP'),
-        $menu:      document.getElementById('RPP-menu'),
-        $newPass:   document.getElementById('RPP-new-password'),
-        $login:     document.getElementById('RPP-login'),
+        $link:        document.getElementById('menuItem-RPP'),
+        $back:        document.getElementById('RPP-back'),
+        $box:         document.getElementById('RPP'),
+        $menu:        document.getElementById('RPP-menu'),
+        $newPass:     document.getElementById('RPP-new-password'),
+        $login:       document.getElementById('RPP-login'),
         RemoteLocate: {
-          $box:     document.querySelector('#RPP .remote-locate'),
-          $input:   document.querySelector('#RPP .remote-locate input')
+          $box:       document.querySelector('#RPP .remote-locate'),
+          $input:     document.querySelector('#RPP .remote-locate input')
         },
         RemoteRing: {
-          $box:     document.querySelector('#RPP .remote-ring'),
-          $input:   document.querySelector('#RPP .remote-ring input')
+          $box:       document.querySelector('#RPP .remote-ring'),
+          $input:     document.querySelector('#RPP .remote-ring input')
         },
         RemoteLock: {
-          $box:     document.querySelector('#RPP .remote-lock'),
-          $input:   document.querySelector('#RPP .remote-lock input')
+          $box:       document.querySelector('#RPP .remote-lock'),
+          $input:     document.querySelector('#RPP .remote-lock input')
         },
         RemoteWipe: {
-          $box:     document.querySelector('#RPP .remote-wipe'),
-          $input:   document.querySelector('#RPP .remote-wipe input')
+          $box:       document.querySelector('#RPP .remote-wipe'),
+          $input:     document.querySelector('#RPP .remote-wipe input')
         },
         Unlock: {
-          $box:     document.querySelector('#RPP .unlock'),
-          $input:   document.querySelector('#RPP .unlock input')
+          $box:       document.querySelector('#RPP .unlock'),
+          $input:     document.querySelector('#RPP .unlock input')
         }
       }
     };
@@ -62,7 +72,10 @@ var app = app || {};
     app.elements.ALA.$back.addEventListener('click', app.showRootBox);
 
     app.elements.ALA.geo.$switch.addEventListener('click', function(event) { app.toggleGeolocation(event.target.checked); });
-    app.elements.ALA.blur.$switch.addEventListener('click', function(event) { app.toggleBlur(event.target.checked); });
+    app.elements.ALA.settings.$switch.addEventListener('click', function(event) { app.toggleSettings(event.target.checked); });
+
+    app.elements.ALA.type.$select.addEventListener('change', function(event) { app.changeType(event.target.value); });
+    app.elements.ALA.type.$blurSlider.addEventListener('change', function(event) { app.changeBlurSlider(event.target.value); });
 
     // add event listeners for RPP
     app.elements.RPP.$link.addEventListener('click', app.showRPPBox);
@@ -119,26 +132,30 @@ var app = app || {};
       app.elements.ALA.geo.$switch.checked = showGeolocation;
     };
 
-    // check if blur is enabled
-    var status2 = app.settings.createLock().get('ala.blur.enabled');
+    // check if settings are enabled
+    var status2 = app.settings.createLock().get('ala.settings.enabled');
     status2.onsuccess = function() {
-      var showBlur = status2.result['ala.blur.enabled'];
+      var showSettings = status2.result['ala.settings.enabled'];
 
-      // show Geolocation box if enabled
-      var style = (showBlur) ? 'block' : 'none';
-      for (var $el of app.elements.ALA.blur.$elements) {
-        $el.style.display = style;
+      // show setting-boxes if settings enabled
+      if (showSettings) {
+        app.elements.ALA.geo.$box.classList.add('settings-enabled');
+        app.elements.ALA.geo.$box.classList.remove('settings-disabled');
+      } else {
+        app.elements.ALA.geo.$box.classList.remove('settings-enabled');
+        app.elements.ALA.geo.$box.classList.add('settings-disabled');
       }
 
-      // set switch position
-      app.elements.ALA.blur.$switch.checked = showBlur;
+      // set settings switch position
+      app.elements.ALA.settings.$switch.checked = showSettings;
     };
 
-
+    // display settings
+    app.displaySettingsInRootContext();
   };
 
   /**
-   * Toggle Geolocation box.set
+   * Toggle Geolocation box
    * @param {Boolean} value
    */
   app.toggleGeolocation = function(value) {
@@ -151,19 +168,149 @@ var app = app || {};
 
 
   /**
-   * Toggle Blur box.
+   * Toggle setting box.
    * @param {Boolean} value
    */
-  app.toggleBlur = function(value) {
-    var style = (value) ? 'block' : 'none';
-
-    for (var $el of app.elements.ALA.blur.$elements) {
-      $el.style.display = style;
+  app.toggleSettings = function(value) {
+    if (value) {
+      app.elements.ALA.geo.$box.classList.add('settings-enabled');
+      app.elements.ALA.geo.$box.classList.remove('settings-disabled');
+    } else {
+      app.elements.ALA.geo.$box.classList.remove('settings-enabled');
+      app.elements.ALA.geo.$box.classList.add('settings-disabled');
     }
 
-    app.settings.createLock().set({ 'ala.blur.enabled': value });
+    app.settings.createLock().set({ 'ala.settings.enabled': value });
   };
 
+
+  /**
+   * Change ALA type
+   * @param {String} value
+   */
+  app.changeType = function(value) {
+
+    // save current type
+    app.settings.createLock().set({ 'geolocation.blur.type': value });
+
+    // hide all elements
+    for (var $el of app.elements.ALA.type.$elements) {
+      $el.classList.add('disabled');
+      $el.classList.remove('enabled');
+    }
+
+    switch (value) {
+      case 'user-defined':
+        app.elements.ALA.type.$customBox.classList.add('enabled');
+        app.elements.ALA.type.$customBox.classList.remove('disabled');
+        break;
+      case 'blur':
+        app.elements.ALA.type.$blurBox.classList.add('enabled');
+        app.elements.ALA.type.$blurBox.classList.remove('disabled');
+        break;
+      case 'precise':
+      case 'no-location':
+      default:
+        break;
+    }
+  };
+
+  /**
+   * Display settings in ROOT context
+   */
+  app.displaySettingsInRootContext = function() {
+    // show geolocation switch box and settings switch boxes
+    app.elements.ALA.geo.$switchBox.style.display = 'block';
+    app.elements.ALA.settings.$switchBox.style.display = 'block';
+
+    // show description for root
+    app.elements.ALA.geo.$box.querySelector('.description-for-root');
+
+    // get blur type value
+    var status1 = app.settings.createLock().get('geolocation.blur.type');
+    status1.onsuccess = function() {
+      var type = status1.result['geolocation.blur.type'];
+
+      // set checkbox value
+      app.elements.ALA.type.$select.value = type;
+
+      // change settings type
+      app.changeType(type);
+    };
+
+    // get blur radius value
+    var status2 = app.settings.createLock().get('geolocation.blur.slider');
+    status2.onsuccess = function() {
+      var sliderValue = status2.result['geolocation.blur.slider'];
+
+      // set slider value
+      app.elements.ALA.type.$blurSlider.value = sliderValue;
+
+      // set slider label
+      app.elements.ALA.type.$blurLabel.textContent = app.getRadiusLabel(sliderValue);
+    };
+  };
+
+  /**
+   *
+   * @param {Number} value
+   */
+  app.changeBlurSlider = function(value) {
+    // save slider value
+    app.settings.createLock().set({ 'geolocation.blur.slider': value });
+
+    // save radius
+    app.settings.createLock().set({ 'geolocation.blur.radius': app.getRadiusValue(value) });
+
+    // set slider label
+    app.elements.ALA.type.$blurLabel.textContent = app.getRadiusLabel(value);
+  };
+
+  /**
+   * Get radius label from input value.
+   * @param {number} value
+   * @return {String}
+   */
+  app.getRadiusLabel = function(value) {
+    switch(parseInt(value)) {
+      case 1:   return '500m';
+      case 2:   return '1km';
+      case 3:   return '2km';
+      case 4:   return '5km';
+      case 5:   return '10km';
+      case 6:   return '15km';
+      case 7:   return '20km';
+      case 8:   return '50km';
+      case 9:   return '75km';
+      case 10:  return '100km';
+      case 11:  return '500km';
+      case 12:  return '1000km';
+      default:  return '';
+    }
+  };
+
+  /**
+   * Get radius value from input value.
+   * @param {number} value
+   * @return {number}
+   */
+  app.getRadiusValue = function(value) {
+    switch(parseInt(value)) {
+      case 1:   return 0.5;
+      case 2:   return 1;
+      case 3:   return 2;
+      case 4:   return 5;
+      case 5:   return 10;
+      case 6:   return 15;
+      case 7:   return 20;
+      case 8:   return 50;
+      case 9:   return 75;
+      case 10:  return 100;
+      case 11:  return 500;
+      case 12:  return 1000;
+      default:  return null;
+    }
+  };
 
   /**** RPP part **************************************************************/
   /**

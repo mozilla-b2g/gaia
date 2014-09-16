@@ -1,0 +1,28 @@
+ul li {
+  border-bottom: none;
+  border-top: 0.1rem solid #e6e6e3;
+}
+
+ul li:first-child {
+  border-bottom: none;
+}
+
+input[type="range"].blur-slider {
+  width: calc(100% - 3rem);
+}
+
+.settings-disabled .setting-box {
+  display: none;
+}
+
+.settings-enabled .type-box.enabled {
+  display: block;
+}
+
+.type-box.disabled {
+  display: none;
+}
+
+.type-box {
+  border-top: none;
+}
