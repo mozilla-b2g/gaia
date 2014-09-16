@@ -160,9 +160,9 @@ var app = app || {};
 
 
     // check if geolocation is enabled
-    var status1 = app.settings.createLock().get('ala.geolocation.enabled');
+    var status1 = app.settings.createLock().get('geolocation.enabled');
     status1.onsuccess = function() {
-      var showGeolocation = status1.result['ala.geolocation.enabled'];
+      var showGeolocation = status1.result['geolocation.enabled'];
 
       // show Geolocation box if enabled
       app.elements.ALA.geo.$box.style.display = (showGeolocation) ? 'block' : 'none';
@@ -252,7 +252,7 @@ var app = app || {};
     app.elements.ALA.geo.$box.style.display = (value) ? 'block' : 'none';
 
     // save current value to settins
-    app.settings.createLock().set({ 'ala.geolocation.enabled': value });
+    app.settings.createLock().set({ 'geolocation.enabled': value });
   };
 
 
