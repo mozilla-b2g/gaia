@@ -77,7 +77,7 @@
       window.addEventListener('screenchange', this, true);
       window.addEventListener('home', this);
       window.addEventListener('holdhome', this);
-      window.addEventListener('sheetstransitionstart', this);
+      window.addEventListener('sheets-gesture-begin', this);
 
       if (this.preventFocusChange) {
         this.menu.addEventListener('mousedown', this.preventFocusChange);
@@ -97,7 +97,7 @@
       window.removeEventListener('screenchange', this, true);
       window.removeEventListener('home', this);
       window.removeEventListener('holdhome', this);
-      window.removeEventListener('sheetstransitionstart', this);
+      window.removeEventListener('sheets-gesture-begin', this);
 
       if (this.preventFocusChange) {
         this.menu.removeEventListener('mousedown', this.preventFocusChange);
@@ -191,7 +191,7 @@
 
         case 'home':
         case 'holdhome':
-        case 'sheetstransitionstart':
+        case 'sheets-gesture-begin':
           if (!this.visible) {
             return;
           }
