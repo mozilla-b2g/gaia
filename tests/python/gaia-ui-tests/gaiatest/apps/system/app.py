@@ -12,7 +12,7 @@ class System(Base):
     _status_bar_locator = (By.ID, 'statusbar')
     _status_bar_notification_locator = (By.ID, 'statusbar-notification')
     _geoloc_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-geolocation')
-    _airplane_mode_statusbar_locator = (By.ID, 'statusbar-flight-mode')
+    _airplane_mode_statusbar_locator = (By.CSS_SELECTOR, '#statusbar-minimized-wrapper #statusbar-flight-mode')
     _utility_tray_locator = (By.ID, 'utility-tray')
 
     _system_banner_locator = (By.CSS_SELECTOR, '.banner.generic-dialog')
@@ -63,6 +63,5 @@ class System(Base):
     def wait_for_geolocation_icon_displayed(self):
         self.wait_for_element_displayed(*self._geoloc_statusbar_locator, timeout=40000)
 
-    @property
-    def is_airplane_mode_statusbar_displayed(self):
-        return self.marionette.find_element(*self._airplane_mode_statusbar_locator).is_displayed()
+    def wait_for_airplane_mode_icon_displayed(self):
+        self.wait_for_element_displayed(*self._airplane_mode_statusbar_locator)
