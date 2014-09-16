@@ -157,6 +157,7 @@ var CallScreen = {
 
     window.addEventListener('resize', this.resizeHandler.bind(this));
     window.addEventListener('hashchange', this.hashchangeHandler.bind(this));
+    window.addEventListener('moztimechange', this.timechangeHandler.bind(this));
     this.hashchangeHandler();
 
     SettingsListener.observe('wallpaper.image', null,
@@ -363,6 +364,16 @@ var CallScreen = {
     }
   },
 
+  timechangeHandler: function cs_timechangeHandler() {
+    // Current time has changed. Need to update calls start times
+    var durationNodes = this.calls.querySelectorAll('.duration');
+    for (var i = 0; i < durationNodes.length; i++) {
+      var durationNode = durationNodes[i];
+      durationNode.dataset.startTime = Date.now() -
+                                       durationNode.dataset.duration;
+    }
+  },
+
   toggleMute: function cs_toggleMute() {
     this.muteButton.classList.toggle('active-state');
     this.hideBarMuteButton.classList.toggle('active-state');
@@ -524,11 +535,15 @@ var CallScreen = {
     durationNode.classList.add('isTimer');
 
     LazyL10n.get(function localized(_) {
-      var ticker = setInterval(function ut_updateTimer(startTime) {
+      durationNode.dataset.startTime = Date.now();
+      durationNode.dataset.duration = 0;
+      var ticker = setInterval(function ut_updateTimer() {
+        var startTime = durationNode.dataset.startTime;
         // Bug 834334: Ensure that 28.999 -> 29.000
         var delta = Math.round((Date.now() - startTime) / 1000) * 1000;
+        durationNode.dataset.duration = delta;
         Utils.prettyDuration(durationChildNode, delta);
-      }, 1000, Date.now());
+      }, 1000);
       durationNode.dataset.tickerId = ticker;
     });
     return true;

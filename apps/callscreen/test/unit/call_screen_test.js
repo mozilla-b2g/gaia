@@ -911,11 +911,16 @@ suite('call screen', function() {
 
       durationNode = document.createElement('div');
       durationNode.className = 'duration';
+      CallScreen.calls.appendChild(durationNode);
 
       timeNode = document.createElement('span');
       durationNode.appendChild(timeNode);
 
       CallScreen.createTicker(durationNode);
+    });
+
+    test('createTicker should set startTime on durationNode', function() {
+      assert.ok(durationNode.dataset.startTime);
     });
 
     test('createTicker should set a timer on durationNode', function() {
@@ -927,6 +932,31 @@ suite('call screen', function() {
       this.sinon.spy(Utils, 'prettyDuration');
       this.sinon.clock.tick(1000);
       sinon.assert.calledWith(Utils.prettyDuration, timeNode, 1000);
+    });
+
+    test('createTicker should update duration on durationNode', function() {
+      var duration = durationNode.dataset.duration;
+      this.sinon.clock.tick(1000);
+      assert.isTrue(durationNode.dataset.duration > duration);
+      duration = durationNode.dataset.duration;
+      this.sinon.clock.tick(1000);
+      assert.isTrue(durationNode.dataset.duration > duration);
+    });
+
+    test('on moztimechange startTime should be propertly updated', function() {
+      var callDuration = 3000;
+
+      // Make the clock tick so call duration gets updated
+      this.sinon.clock.tick(callDuration);
+      assert.equal(durationNode.dataset.duration, callDuration);
+
+      // We are stubbing this to simulate a time change
+      this.sinon.stub(Date, 'now').returns(6000);
+      var timechangedEvent = new Event('moztimechange');
+      window.dispatchEvent(timechangedEvent);
+
+      // startTime should be properly updated
+      assert.equal(durationNode.dataset.startTime, Date.now() - callDuration);
     });
 
     test('stopTicker should stop counter on durationNode', function() {
