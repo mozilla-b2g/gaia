@@ -309,6 +309,9 @@ var CpScreenHelper = (function() {
    */
   function cpsh_onCancelStore(evt) {
     evt.preventDefault();
+    /* When cancelling request authentication again using the original type of
+     * authentication that came with the message. */
+    authenticated = authInfo.checked;
     pin.focus();
     storeConfirmDialog.hidden = true;
   }
