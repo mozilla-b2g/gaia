@@ -27,7 +27,8 @@ define(function(require) {
       var searchEngineList = settingsCache['search.providers'];
       // If the list is empty, populate it from default JSON file
       if (!searchEngineList) {
-        this.populateSearchEngines(this.generateSearchEngineOptions.bind(this));
+        this.populateSearchEngines()
+          .then(this.generateSearchEngineOptions.bind(this));
         return;
       }
 
@@ -41,16 +42,13 @@ define(function(require) {
    *
    * @param {Function} callback function to call with retrieved data.
    */
-  Search.prototype.populateSearchEngines = function(callback) {
-    LazyLoader.getJSON('/resources/search/providers.json')
+  Search.prototype.populateSearchEngines = function() {
+    return LazyLoader.getJSON('/resources/search/providers.json')
       .then(function(data) {
         if (!data) {
           return;
         }
 
-        if (callback) {
-          callback(data);
-        }
         var result = navigator.mozSettings.createLock().set({
           'search.providers': data
         });

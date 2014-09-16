@@ -74,6 +74,7 @@ suite('Search >', function() {
     test('initSearchEngineSelect()', function() {
       var populateSearchEnginesStub = this.sinon.stub(searchModule,
                                                       'populateSearchEngines');
+      populateSearchEnginesStub.returns(Promise.resolve({}));
       var generateSearchEngineOptionsStub = this.sinon.stub(searchModule,
                                                 'generateSearchEngineOptions');
       searchModule.initSearchEngineSelect();
@@ -95,7 +96,7 @@ suite('Search >', function() {
       sinon.spy(mockLazyLoader, 'getJSON');
       mockLazyLoader.mockResponse([{ 'foo': 'bar' }]);
 
-      searchModule.populateSearchEngines(callback);
+      searchModule.populateSearchEngines().then(callback);
       assert.ok(mockLazyLoader.getJSON.called, 'getJSON should be called');
 
       // Can't run other checks till promise is done
