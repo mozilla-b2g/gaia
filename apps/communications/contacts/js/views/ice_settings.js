@@ -1,5 +1,6 @@
 /* global Contacts */
 /* global ICEData */
+/* global ConfirmDialog */
 
 
 /**
@@ -136,11 +137,55 @@ contacts.ICE = (function() {
   /**
    * Given a contact id, saves it internally. Also restores the contact
    * list default handler.
+   * In case of not valid contact it will display a message on the screen
+   * indicating the cause of the error.
    * @param id (string) contact id
    */
   function selectICEHandler(id) {
-    contacts.List.toggleICEGroup(true);
-    setICEContact(id, currentICETarget, true, goBack);
+    checkContact(id).then(function() {
+      contacts.List.toggleICEGroup(true);
+      setICEContact(id, currentICETarget, true, goBack);
+    }, function error(l10nId) {
+      var dismiss = {
+        title: 'ok',
+        callback: function() {
+          ConfirmDialog.hide();
+        }
+      };
+      Contacts.confirmDialog(null, l10nId || 'ICEUnknownError', dismiss);
+    });
+  }
+
+  /**
+   * Will perform a series of checks to validate the selected
+   * contact as a valid ICE contact
+   * @param id (string) contact id
+   * @return (Promise) fulfilled if contact is valid
+   */
+  function checkContact(id) {
+    return ICEData.load().then(function() {
+      return contactNotICE(id);
+    });
+  }
+
+  /**
+   * Checks if a contacts is already set as ICE
+   * @param id (string) contact id
+   * @return (Promise) fulfilled if contact is not repeated,
+   *  rejected otherwise
+   */
+  function contactNotICE(id) {
+    return new Promise(function(resolve, reject) {
+      var isICE = ICEData.iceContacts.some(function(x) {
+        return x.id === id;
+      });
+
+      if (isICE) {
+        reject('ICERepeatedContact');
+      } else {
+        resolve(id);
+      }
+    });
   }
 
   /**
