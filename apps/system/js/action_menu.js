@@ -202,6 +202,7 @@
 
         case 'attentionopened':
           this.hide();
+          this.oncancel();
           break;
       }
     }
