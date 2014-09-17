@@ -319,7 +319,6 @@ contacts.List = (function() {
     };
 
     var complete = function complete() {
-      iceGroup = null;
       initConfiguration(function onInitConfiguration() {
         getContactsByGroup(onError, contacts);
       });
@@ -845,17 +844,15 @@ contacts.List = (function() {
   }
 
   function displayICEIndicator(ids) {
-    if (!iceGroup) {
-      buildICEGroup();
-    }
-
     if (!ids || ids.length === 0) {
       hideICEGroup();
       return;
     }
 
     iceContacts = ids;
-
+    if (iceGroup === null) {
+      buildICEGroup();
+    }
     showICEGroup();
   }
 
