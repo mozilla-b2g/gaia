@@ -185,6 +185,38 @@ var StatusBar = {
   },
 
   /**
+   * Add event listeners associated with mobile connection state.
+   */
+  addConnectionsListeners: function() {
+    var conns = window.navigator.mozMobileConnections;
+    if (conns) {
+      Array.from(conns).forEach(
+        (conn) => {
+          conn.addEventListener('voicechange', this);
+          conn.addEventListener('datachange', this);
+          this.update.signal.call(this);
+          this.update.data.call(this);
+        }
+      );
+    }
+  },
+
+  /**
+   * Remove event listeners associated with mobile connection state.
+   */
+  removeConnectionsListeners: function() {
+    var conns = window.navigator.mozMobileConnections;
+    if (conns) {
+      Array.from(conns).forEach(
+        (conn) => {
+          conn.removeEventListener('voicechange', this);
+          conn.removeEventListener('datachange', this);
+        }
+      );
+    }
+  },
+
+  /**
    * Finish all initializing statusbar event handlers
    */
   finishInit: function() {
@@ -742,10 +774,11 @@ var StatusBar = {
    */
   handleFtuStep: function sb_handleFtuStep(stepHash) {
     switch (stepHash) {
-      case '#data_3g':
+      case '#languages':
         this.createConnectionsElements();
-        this.addSettingsListener('ril.data.enabled');
         this._updateIconVisibility();
+        this.addConnectionsListeners();
+        this.addSettingsListener('ril.data.enabled');
         break;
 
       case '#wifi':
@@ -762,23 +795,14 @@ var StatusBar = {
   },
 
   setActive: function sb_setActive(active) {
-    var self = this,
-        conns;
     this.active = active;
 
     this.setActiveBattery(active);
 
     if (active) {
       this.setActiveNfc(nfcManager.isActive());
-      conns = window.navigator.mozMobileConnections;
-      if (conns) {
-        Array.prototype.slice.call(conns).forEach(function(conn) {
-          conn.addEventListener('voicechange', self);
-          conn.addEventListener('datachange', self);
-          self.update.signal.call(self);
-          self.update.data.call(self);
-        });
-      }
+
+      this.addConnectionsListeners();
 
       window.addEventListener('simslot-iccinfochange', this);
 
@@ -793,13 +817,7 @@ var StatusBar = {
       this.refreshCallListener();
       this.toggleTimeLabel(!this.isLocked());
     } else {
-      conns = window.navigator.mozMobileConnections;
-      if (conns) {
-        Array.prototype.slice.call(conns).forEach(function(conn) {
-          conn.removeEventListener('voicechange', self);
-          conn.removeEventListener('datachange', self);
-        });
-      }
+      this.removeConnectionsListeners();
 
       window.removeEventListener('simslot-iccinfochange', this);
 

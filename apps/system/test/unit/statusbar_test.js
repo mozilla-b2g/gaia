@@ -233,16 +233,18 @@ suite('system/Statusbar', function() {
       this.sinon.stub(StatusBar, 'addSettingsListener');
     });
 
-    test('data step displays connections', function() {
+    test('connections display after languages step', function() {
       this.sinon.stub(StatusBar, 'createConnectionsElements');
+      this.sinon.stub(StatusBar, 'addConnectionsListeners');
       var evt = new CustomEvent('iac-ftucomms', {
         detail: {
           type: 'step',
-          hash: '#data_3g'
+          hash: '#languages'
         }
       });
       StatusBar.handleEvent(evt);
       assert.isTrue(StatusBar.createConnectionsElements.called);
+      assert.isTrue(StatusBar.addConnectionsListeners.called);
       assert.isTrue(StatusBar.addSettingsListener
                     .calledWith('ril.data.enabled'));
     });
