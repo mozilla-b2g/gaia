@@ -338,6 +338,9 @@ suite('Render contact form', function() {
                      classList.contains('placeholder'));
     }
 
+    var NO_OP = function() {};
+    var noteSelector = '[data-field="note"]';
+
     test('no scroll on first load', function() {
       subject.render(mockContact);
       var container = document.getElementById('contact-form').parentNode;
@@ -482,6 +485,56 @@ suite('Render contact form', function() {
         subject.render(mockContact);
         var element = document.body.querySelector('#add-phone-0');
         assert.isTrue(element === null);
+    });
+
+    test('Removing a note preserves the others', function() {
+      mockContact.note.push('other note');
+      subject.render(mockContact);
+
+      // Three as we need to count the template one
+      assert.equal(document.querySelectorAll(noteSelector).length, 3);
+
+      var firstNoteContainer = document.getElementById('add-note-0');
+      var delButton = firstNoteContainer.querySelector(
+                                                    'button.img-delete-button');
+
+     delButton.onclick({
+        eventX: 100,
+        eventY: 100,
+        target: delButton,
+        preventDefault: NO_OP
+      });
+
+      // Two as we need to count the template one
+      assert.equal(document.querySelectorAll(noteSelector).length, 2);
+    });
+
+    test('Removing all notes collapses the notes section', function() {
+      mockContact.note.push('other note');
+      subject.render(mockContact);
+
+      // Three as we need to count the template one
+      assert.equal(document.querySelectorAll(noteSelector).length, 3);
+
+      for(var j = 0; j < 2; j++) {
+        var noteContainer = document.getElementById('add-note-' + j);
+        var delButton = noteContainer.querySelector(
+                                                    'button.img-delete-button');
+        var synthEvent = {
+          eventX: 100,
+          eventY: 100,
+          target: delButton,
+          preventDefault: NO_OP
+        };
+
+        delButton.onclick(synthEvent);
+      }
+
+      // Only the template remains
+      var presentNotes = document.querySelectorAll(
+                                              '.note-template[data-template]');
+      assert.equal(presentNotes.length, 1);
+      assert.isTrue(presentNotes.item(0).id.indexOf('#') !== -1);
     });
 
     test('FB Contact. e-mail, phone and photo from Facebook', function() {

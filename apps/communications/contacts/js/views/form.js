@@ -1230,7 +1230,7 @@ contacts.Form = (function() {
 
       if (type !== 'photo') {
         elem.parentNode.removeChild(elem);
-        if (container.querySelectorAll('section').length === 0) {
+        if (container.querySelectorAll('[data-field]').length === 0) {
           container.classList.add('empty');
         }
       }
