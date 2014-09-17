@@ -97,6 +97,7 @@ var app = app || {};
 
     app.elements.ALA.type.$select.addEventListener('change', function(event) { app.changeType(event.target.value); });
     app.elements.ALA.type.$blurSlider.addEventListener('change', function(event) { app.changeBlurSlider(event.target.value); });
+    app.elements.ALA.type.$blurSlider.addEventListener('touchmove', function(event) { app.updateSliderLabel(event.target.value); });
     app.elements.ALA.type.$customBox.addEventListener('click', app.showCustomLocationBox);
 
     app.elements.ALA.exception.$link.addEventListener('click', app.showExceptions);
@@ -338,6 +339,15 @@ var app = app || {};
       // set slider label
       app.elements.ALA.type.$blurLabel.textContent = app.getRadiusLabel(sliderValue);
     };
+  };
+
+  /**
+   *
+   * @param {Number} value
+   */
+  app.updateSliderLabel = function(value) {
+    // set slider label
+    app.elements.ALA.type.$blurLabel.textContent = app.getRadiusLabel(value);
   };
 
   /**
