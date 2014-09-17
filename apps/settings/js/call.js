@@ -1086,7 +1086,7 @@ require([
     function _getCallBarring(id) {
       var options = {
         'program': _cbServiceMapper[id],
-        'password': '', // optional
+        'password': '0000', // optional
         'serviceClass': _voiceServiceClassMask
       };
 
