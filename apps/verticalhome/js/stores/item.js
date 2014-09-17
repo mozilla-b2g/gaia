@@ -193,19 +193,25 @@
     };
 
     request.onsuccess = function _onsuccess() {
-      onsuccess && onsuccess(isEmpty);
-      db = request.result;
-      var cb = self.fetch.bind(self, self.synchronize.bind(self));
+      window.asyncStorage.getItem('isHomescreenDBavailable',
+        function onItem(isHomescreenDBavailable) {
+          onsuccess && onsuccess(isEmpty || !isHomescreenDBavailable);
+          db = request.result;
+          var cb = self.fetch.bind(self, self.synchronize.bind(self));
 
-      if (isEmpty) {
-        window.addEventListener('configuration-ready', function onReady() {
-          window.removeEventListener('configuration-ready', onReady);
-          self.gridOrder = configurator.getGrid();
-          self.populate(cb);
+          if (isEmpty || !isHomescreenDBavailable) {
+            window.addEventListener('configuration-ready', function onReady() {
+              window.removeEventListener('configuration-ready', onReady);
+              self.gridOrder = configurator.getGrid();
+              self.populate(function onPopulated() {
+                window.asyncStorage.setItem('isHomescreenDBavailable', true);
+                cb();
+              });
+            });
+          } else {
+            self.initSources(cb);
+          }
         });
-      } else {
-        self.initSources(cb);
-      }
     };
 
     window.addEventListener('gaiagrid-cached-icons-rendered', this);
