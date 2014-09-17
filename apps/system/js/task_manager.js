@@ -304,6 +304,7 @@
    * @returns true if a filter was applied, false if not.
    */
   TaskManager.prototype.filter = function cs_filterCardStack(filterName) {
+    debug('filter => ' + filterName);
     var noRecentWindows = document.getElementById('cards-no-recent-windows');
     switch (filterName) {
       // Filter out any application that is not a system browser window.
@@ -820,7 +821,10 @@
         break;
 
       case 'taskmanagershow':
-        var filter = (evt.detail && evt.detail.filter) || null;
+        var filter = null;
+        if (evt.detail && evt.detail.filter) {
+          filter = evt.detail.filter;
+        }
         this.show(filter);
         break;
 
