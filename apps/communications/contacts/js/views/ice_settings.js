@@ -61,6 +61,7 @@ contacts.ICE = (function() {
           var localIceContacts = ICEData.iceContacts;
           var disabled = iceContactCheckboxes[i].checked;
           iceContactCheckboxes[i].checked = !disabled;
+          iceContactItems[i].setAttribute('aria-checked', !disabled);
           iceContactButtons[i].disabled = disabled;
           if (localIceContacts[i] && localIceContacts[i].id) {
             setICEContact(localIceContacts[i].id, i, !disabled);
