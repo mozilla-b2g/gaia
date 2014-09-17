@@ -482,8 +482,14 @@
     }
 
     var self = this;
+    var previousColor;
+
     window.requestAnimationFrame(function updateAppColor() {
       var computedColor = window.getComputedStyle(self.element).backgroundColor;
+      if (previousColor === computedColor) {
+        return;
+      }
+
       var colorCodes = /rgb\((\d+), (\d+), (\d+)\)/.exec(computedColor);
       if (!colorCodes || colorCodes.length === 0) {
         return;
@@ -497,6 +503,8 @@
 
       self.app.element.classList.toggle('light', brightness > 200);
       self.app.publish('titlestatechanged');
+      previousColor = computedColor;
+      window.requestAnimationFrame(updateAppColor);
     });
   };
 
