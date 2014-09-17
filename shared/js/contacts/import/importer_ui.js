@@ -487,7 +487,7 @@ if (typeof window.importer === 'undefined') {
         var newValue = myFriends.length -
                           Object.keys(existingContactsByUid).length;
         friendsMsgElement.textContent = _('fbFriendsFound', {
-          numFriends: newValue
+          numFriends: newValue < 0 ? 0 : newValue
         });
       }
 
