@@ -39,12 +39,12 @@
   visibility: hidden;
 }
 
-#statusbar.maximized #statusbar-maximized-wrapper {
+#screen:not(.cards-view) #statusbar.maximized #statusbar-maximized-wrapper {
   opacity: 1;
   visibility: visible;
 }
 
-#statusbar:not(.maximized) #statusbar-minimized-wrapper {
+#screen:not(.cards-view) #statusbar:not(.maximized) #statusbar-minimized-wrapper {
   opacity: 1;
   visibility: visible;
 }
