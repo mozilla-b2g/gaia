@@ -123,8 +123,8 @@
      * @memberof SoftwareButtonManager.prototype
      */
     start: function() {
-      if (this.isMobile && this.isOnRealDevice) {
-        if (!this.hasHardwareHomeButton) {
+      if (this.isMobile) {
+        if (!this.hasHardwareHomeButton && this.isOnRealDevice) {
           this.overrideFlag = true;
 
           var lock = SettingsListener.getSettingsLock();
