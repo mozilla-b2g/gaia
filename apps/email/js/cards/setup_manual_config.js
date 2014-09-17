@@ -1,11 +1,15 @@
 /**
  * Asks the user to manually configure their account.
  */
+/*jshint nonew: false */
+/*global MozActivity */
 'use strict';
 define(function(require) {
 
 var cards = require('cards'),
-    FormNavigation = require('form_navigation');
+    ConfirmDialog = require('confirm_dialog'),
+    FormNavigation = require('form_navigation'),
+    plainSocketWarningNode = require('tmpl!./tng/plain_socket_warning.html');
 
 return [
   require('./base')(require('template!./setup_manual_config.html')),
@@ -208,11 +212,16 @@ return [
       var isImap = this.accountTypeNode.value === 'imap+smtp';
       var SSL_VALUE = (isImap ? '993' : '995');
       var STARTTLS_VALUE = (isImap ? '143' : '110');
+
       var socketType = event.target.value;
+      if (socketType === 'PLAIN') {
+        this.showPlainSocketWarning();
+      }
+
       var portField = this.formItems.composite.port;
       if (socketType === 'SSL') {
         portField.value = SSL_VALUE;
-      } else if (socketType == 'STARTTLS') {
+      } else if (socketType === 'STARTTLS' || socketType === 'PLAIN') {
         portField.value = STARTTLS_VALUE;
       }
     },
@@ -220,12 +229,26 @@ return [
     onChangeSmtpSocket: function(event) {
       const SSL_VALUE = '465';
       const STARTTLS_VALUE = '587';
+      const PLAIN_VALUE = '25';
       var socketType = event.target.value;
       var portField = this.formItems.smtp.port;
-      if (socketType === 'SSL' && portField.value === STARTTLS_VALUE) {
+
+      if (socketType == 'PLAIN') {
+        this.showPlainSocketWarning();
+      }
+
+      // Switch portField values to match defaults for the socketType, but only
+      // if the existing value for portField is one of the other defaults, and
+      // not a user-supplied value.
+      if (socketType === 'SSL' && (portField.value === STARTTLS_VALUE ||
+                                   portField.value === PLAIN_VALUE)) {
         portField.value = SSL_VALUE;
-      } else if (socketType == 'STARTTLS' && portField.value == SSL_VALUE) {
+      } else if (socketType == 'STARTTLS' && (portField.value == SSL_VALUE ||
+                                              portField.value == PLAIN_VALUE)) {
         portField.value = STARTTLS_VALUE;
+      } else if (socketType == 'PLAIN' && (portField.value == SSL_VALUE ||
+                                           portField.value == STARTTLS_VALUE)) {
+        portField.value = PLAIN_VALUE;
       }
     },
 
@@ -242,6 +265,34 @@ return [
           item.removeAttribute('required');
         }
       }
+    },
+
+    showPlainSocketWarning: function() {
+      var dialog = plainSocketWarningNode.cloneNode(true);
+
+      // Capture taps to Learn More to open an activity and to also prevent the
+      // confirmation dialog from closing. A Learn More button is used instead
+      // of a hyperlink so that more text can be visible in the dialog.
+      var learnMoreNode = dialog.querySelector('.tng-plain-socket-learn-more');
+      learnMoreNode.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        new MozActivity({
+          name: 'view',
+          data: {
+            type: 'url',
+            url: learnMoreNode.dataset.href
+          }
+        });
+      });
+
+      ConfirmDialog.show(dialog, {
+        // ok
+        id: 'tng-plain-socket-warning-ok',
+        // There is nothing to do.
+        handler: function() {}
+      });
     },
 
     die: function() {
