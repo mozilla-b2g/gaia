@@ -113,6 +113,9 @@
    *                            and 'apps-only'.
    */
   TaskManager.prototype.show = function cs_showCardSwitcher(filterName) {
+    if (this.isShown()) {
+      return;
+    }
     this.calculateDimensions();
     this.newStackPosition = null;
     this._registerShowingEvents();
@@ -576,7 +579,7 @@
 
       case 'taskmanagershow':
       case 'holdhome':
-        if (System.locked) {
+        if (System.locked || this.isShown()) {
           return;
         }
 
