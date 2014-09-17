@@ -124,6 +124,10 @@ input.cmp-subject-text {
   word-wrap: break-word;
 }
 
+.cmp-body-html {
+  margin: 0 1.5rem;
+}
+
 /* Attachment */
 /* Super specific style to override base styles */
 section[role="region"] .cmp-attachment-btn .icon.icon-attachment {
