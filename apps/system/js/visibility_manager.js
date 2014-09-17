@@ -1,4 +1,4 @@
-/* global AttentionScreen, System */
+/* global AttentionScreen, System, rocketbar */
 'use strict';
 
 (function(exports) {
@@ -64,6 +64,7 @@
       case 'status-active':
       case 'attentionscreenhide':
       case 'will-unlock':
+      case 'rocketbar-overlayclosed':
         var activityContent = (evt.detail && evt.detail.activity) ?
           evt.detail.activity : null;
         if (window.lockScreen && window.lockScreen.locked) {
@@ -71,7 +72,8 @@
           return;
         }
 
-        if (!AttentionScreen.isFullyVisible()) {
+        if (!AttentionScreen.isFullyVisible() &&
+            !rocketbar.active) {
           this.publish('showwindow', {
             type: evt.type,
             activity: activityContent
@@ -80,6 +82,7 @@
         this._resetDeviceLockedTimer();
         break;
       case 'lock':
+      case 'rocketbar-overlayopened':
         // If the audio is active, the app should not set non-visible
         // otherwise it will be muted.
         // TODO: Remove this hack.
@@ -102,11 +105,9 @@
       case 'attentionscreenshow':
         this._setAttentionScreenVisibility(evt);
         break;
-      case 'rocketbar-overlayopened':
       case 'utility-tray-overlayopened':
         this.publish('hidewindowforscreenreader');
         break;
-      case 'rocketbar-overlayclosed':
       case 'utility-tray-overlayclosed':
         this.publish('showwindowforscreenreader');
         break;
