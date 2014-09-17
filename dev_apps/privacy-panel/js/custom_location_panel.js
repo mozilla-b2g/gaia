@@ -1,7 +1,10 @@
 'use strict';
 
 function CustomLocationPanel(rootPanelId) {
-  this.l10n = navigator.mozL10n;
+
+  // TODO: remove fallback when simulator allows us to
+  // access mozL10n (on device works ok)
+  this.l10n = navigator.mozL10n || { get: function(b) { return b;} };
   this.onChange = function(settings) {};
 
   this.$root = document.getElementById(rootPanelId ? rootPanelId : 'root');
@@ -9,6 +12,8 @@ function CustomLocationPanel(rootPanelId) {
   this.$back = document.getElementById('DCL-back');
   this.$typeCC = document.getElementById('dcl-type-cc');
   this.$typeGPS = document.getElementById('dcl-type-gps');
+  this.$ccArea = document.getElementById('dcl-cc-area');
+  this.$gpsArea = document.getElementById('dcl-gps-area');
   this.$countries = document.getElementById('dcl-country');
   this.$cities = document.getElementById('dcl-city');
   this.$longitude = document.getElementById('dcl-longitude');
@@ -242,21 +247,25 @@ CustomLocationPanel.prototype = {
   enableCCControls: function() {
     this.$countries.disabled = false;
     this.$cities.disabled = false;
+    this.$ccArea.style.opacity = "1";
   },
 
   enableGPSControls: function() {
     this.$longitude.disabled = false;
     this.$latitude.disabled = false;
+    this.$gpsArea.style.opacity = "1";
   },
 
   disableCCControls: function() {
     this.$countries.disabled = true;
     this.$cities.disabled = true;
+    this.$ccArea.style.opacity = "0.3";
   },
 
   disableGPSControls: function() {
     this.$longitude.disabled = true;
     this.$latitude.disabled = true;
+    this.$gpsArea.style.opacity = "0.3";
   },
 
   changedParameters: function() {

@@ -278,39 +278,43 @@
               <span data-l10n-id="dcl-type-cc">Choose a country/city</span>
             </label>
           </li>
-          <li>
-            <p data-l10n-id="dcl-country">Country</p>
-            <span class="button icon icon-dialog">
-              <select id="dcl-country" name="dcl.country" data-value-type="string">
-              </select>
-            </span>
-          </li>
-          <li>
-            <p data-l10n-id="dcl-city">City</p>
-            <span class="button icon icon-dialog">
-              <select id="dcl-city" name="dcl.city" data-value-type="string">
-              </select>
-            </span>
-          </li>
+          <div id="dcl-cc-area">
+            <li>
+              <p data-l10n-id="dcl-country">Country</p>
+              <span class="button icon icon-dialog">
+                <select id="dcl-country" name="dcl.country" data-value-type="string">
+                </select>
+              </span>
+            </li>
+            <li>
+              <p data-l10n-id="dcl-city">City</p>
+              <span class="button icon icon-dialog">
+                <select id="dcl-city" name="dcl.city" data-value-type="string">
+                </select>
+              </span>
+            </li>
+          </div>
           <li>
             <label for="dcl-type-gps" class="pack-radio">
               <input type="radio" name="dcl.type" id="dcl-type-gps" value="gps">
               <span data-l10n-id="dcl-type-gps">Enter GPS Coordinates</span>
             </label>
           </li>
-          <li>
-            <p class="description" data-l10n-id="dcl-type-gps-description">
-              Please enter the GPS coordinates for longitude from -180.0 to 180 and latitude from -90.0 to 90.0 degree with a dot to separate full degrees lower values.
-            </p>
-            <p data-l10n-id="dcl-longitude-description">
-              Longitude
-            </p>
-            <input id="dcl-longitude" type="number" min="-180.0" max="180.0" step="0.0001" value="0" placeholder="Longitude">
-            <p  data-l10n-id="dcl-latitude-description">
-              Latitude
-            </p>
-            <input id="dcl-latitude" type="number" min="-90.0" max="90.0" step="0.0001" value="0" placeholder="Latitude">
-          </li>
+          <div id="dcl-gps-area">
+            <li>
+              <p class="description" data-l10n-id="dcl-type-gps-description">
+                Please enter the GPS coordinates for longitude from -180.0 to 180 and latitude from -90.0 to 90.0 degree with a dot to separate full degrees lower values.
+              </p>
+              <p data-l10n-id="dcl-longitude-description">
+                Longitude
+              </p>
+              <input id="dcl-longitude" type="number" min="-180.0" max="180.0" step="0.0001" value="0" placeholder="Longitude">
+              <p  data-l10n-id="dcl-latitude-description">
+                Latitude
+              </p>
+              <input id="dcl-latitude" type="number" min="-90.0" max="90.0" step="0.0001" value="0" placeholder="Latitude">
+            </li>
+          </div>
         </ul>
       </div>
     </section>
