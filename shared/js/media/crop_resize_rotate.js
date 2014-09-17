@@ -180,9 +180,13 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
         return;
       }
 
-      if (cropRegion.width * cropRegion.height < outputSize) {
-        // If the image (or cropped region of the image) is smaller than
-        // the maximum size then we can just use the crop region at full size.
+      if (fullsize < outputSize) {
+        // If the full size of the image is less than the image decode size
+        // limit, then we can decode the image at full size and use the full
+        // crop region dimensions as the output size. Note that we can't just
+        // compare the size of the crop region to the output size, because
+        // even if we use the #xywh media fragment when decoding the image,
+        // gecko still requires memory to decode the full image.
         outputSize = {
           width: cropRegion.width,
           height: cropRegion.height
@@ -367,12 +371,18 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
     // Now add the appropriate media fragments to the url
     var url;
     var croppedWithMediaFragment = false, resizedWithMediaFragment = false;
-    if (sampledsize === fullsize && croppedsize === fullsize) {
-      // No media fragments in this case
-      url = baseURL;
+
+    if (sampledsize < fullsize) {
+      // Use a #-moz-samplesize media fragment to downsample while decoding
+      url = baseURL + downsample;
+      resizedWithMediaFragment = true;
     }
-    else if (croppedsize < sampledsize) {
-      // Use a #xywh media fragment to crop while decoding
+    else if (croppedsize < fullsize) {
+      // Use a #xywh media fragment to crop while decoding.
+      // This conveniently does the cropping for us, but doesn't actually
+      // save any memory because gecko still decodes the image at fullsize
+      // before cropping it internally. So we only use this media fragment
+      // if we were not going to do any downsampling.
       url = baseURL + '#xywh=' +
         inputCropRegion.left + ',' +
         inputCropRegion.top + ',' +
@@ -382,9 +392,8 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
       croppedWithMediaFragment = true;
     }
     else {
-      // Use a #-moz-samplesize media fragment to downsample while decoding
-      url = baseURL + downsample;
-      resizedWithMediaFragment = true;
+      // No media fragments in this case
+      url = baseURL;
     }
 
     // Now we've done our calculations and we have an image URL to decode
@@ -476,18 +485,31 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
         }
       }
 
-      // Now we copy the image into the canvas
-      context.drawImage(offscreenImage,
-                        // What part of the image we're drawing
-                        inputCropRegion.left, inputCropRegion.top,
-                        inputCropRegion.width, inputCropRegion.height,
-                        // And what part of the canvas we're drawing it to
-                        0, 0, destWidth, destHeight);
-
-      // Once the image has been copied, we can release the decoded image
-      // memory and the blob URL.
-      offscreenImage.src = '';
-      URL.revokeObjectURL(baseURL);
+      try {
+        // Now we copy the image into the canvas.
+        // The image has been loaded, but not decoded yet. If the image file
+        // appears to be valid and has valid width and height metadata, then
+        // the onload event handler will fire. But if the image is corrupt
+        // or too big for gecko to decode with the amount of available
+        // memory, then this drawImage() call can fail with an exception.
+        context.drawImage(offscreenImage,
+                          // What part of the image we're drawing
+                          inputCropRegion.left, inputCropRegion.top,
+                          inputCropRegion.width, inputCropRegion.height,
+                          // And what part of the canvas we're drawing it to
+                          0, 0, destWidth, destHeight);
+      }
+      catch(e) {
+        callback('Failed to decode image in cropResizeRotate; ' +
+                 'image may be corrupt or too large: ' + e);
+        return;
+      }
+      finally {
+        // Once the image has been copied, we can release the decoded image
+        // memory and the blob URL.
+        offscreenImage.src = '';
+        URL.revokeObjectURL(baseURL);
+      }
 
       // Finally, encode the image into a blob
       canvas.toBlob(gotEncodedBlob, outputType || JPEG);
