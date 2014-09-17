@@ -395,81 +395,19 @@ suite('call screen', function() {
     });
 
     suite('once the wallpaper is loaded', function() {
-      suite('when a callback is given', function() {
-        var addEventListenerSpy;
-        var removeEventListenerSpy;
-        var spyCallback;
-
-        setup(function() {
-          addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
-          removeEventListenerSpy = this.sinon.spy(screen,
-                                                  'removeEventListener');
-          spyCallback = this.sinon.spy();
-          CallScreen.toggle(spyCallback);
-        });
-
-        test('should listen for transitionend', function() {
-          assert.isTrue(addEventListenerSpy.calledWith('transitionend'));
-        });
-
-        suite('once the transition ended', function() {
-          setup(function() {
-            addEventListenerSpy.yield({target: screen});
-          });
-
-          test('should remove the event listener', function() {
-            assert.isTrue(removeEventListenerSpy.calledWith('transitionend'));
-          });
-
-          test('should trigger the callback', function() {
-            assert.isTrue(spyCallback.calledOnce);
-          });
-        });
-      });
-
       suite('when opening in incoming-locked mode', function() {
-        var addEventListenerSpy;
         var spyCallback;
 
         setup(function() {
           CallScreen.screen.dataset.layout = 'incoming-locked';
-          addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
           spyCallback = this.sinon.spy();
 
           CallScreen.toggle(spyCallback);
-        });
-
-        test('should not listen for transitionend', function() {
-          assert.isFalse(addEventListenerSpy.called);
         });
 
         test('should call the callback', function(done) {
           setTimeout(function() {
             assert.isTrue(spyCallback.called);
-            done();
-          });
-        });
-      });
-
-      suite('when toggling again in the middle of a transition', function() {
-        var addEventListenerSpy;
-        var spyCallback;
-
-        setup(function() {
-          addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
-          spyCallback = this.sinon.spy();
-
-          CallScreen.toggle(spyCallback);
-          CallScreen.toggle(spyCallback);
-        });
-
-        test('should not wait for transitionend the second time', function() {
-          assert.isTrue(addEventListenerSpy.calledOnce);
-        });
-
-        test('should call the callback once', function(done) {
-          setTimeout(function() {
-            assert.isTrue(spyCallback.calledOnce);
             done();
           });
         });
@@ -491,8 +429,6 @@ suite('call screen', function() {
     });
 
     test('it should wait for the transition to be over', function(done) {
-      var addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
-
       MockCallsHandler.mActiveCallForContactImage = new MockHandledCall();
       MockCallsHandler.mActiveCallForContactImage.photo =
         new Blob([], {type: 'image/png'});
@@ -503,7 +439,6 @@ suite('call screen', function() {
       CallScreen.toggle();
 
       setTimeout(function() {
-        addEventListenerSpy.yield({target: screen});
         assert.ok(CallScreen.contactBackground.style.backgroundImage);
         CallScreen.setCallerContactImage();
         done();
