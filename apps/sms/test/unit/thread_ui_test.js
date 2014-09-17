@@ -5309,11 +5309,13 @@ suite('thread_ui.js >', function() {
         }).then(done, done);
       });
 
-      suite('OptionMenu operations', function(done) {
+      suite('OptionMenu operations', function() {
         setup(function() {
           this.sinon.spy(Navigation, 'toPanel');
           this.sinon.spy(ThreadUI, 'saveDraft');
           this.sinon.spy(ThreadListUI, 'removeThread');
+          this.sinon.spy(Drafts, 'delete');
+          this.sinon.spy(Drafts, 'store');
         });
 
         test('Save as Draft', function(done) {
@@ -5333,6 +5335,7 @@ suite('thread_ui.js >', function() {
           ThreadUI.back().then(function() {
             sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
             sinon.assert.calledOnce(ThreadListUI.removeThread);
+            sinon.assert.callOrder(Drafts.delete, Drafts.store);
             assert.isNull(ThreadUI.draft);
           }).then(done, done);
         });
@@ -5790,8 +5793,7 @@ suite('thread_ui.js >', function() {
 
       ThreadUI.handleDraft();
 
-      sinon.assert.called(Drafts.delete);
-      sinon.assert.called(Drafts.store);
+      sinon.assert.callOrder(Drafts.delete, Drafts.store);
     });
   });
 

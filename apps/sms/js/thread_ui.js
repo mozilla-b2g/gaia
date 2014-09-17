@@ -2177,8 +2177,7 @@ var ThreadUI = {
     // so delete it
     if (this.draft) {
       ThreadListUI.removeThread(this.draft.id);
-      Drafts.delete(this.draft);
-      Drafts.store();
+      Drafts.delete(this.draft).store();
       this.draft = null;
     }
 
@@ -2851,7 +2850,7 @@ var ThreadUI = {
     // properly update the Drafts object
     // and ThreadList entries
     if (this.draft) {
-      Drafts.delete(this.draft);
+      Drafts.delete(this.draft).store();
       if (Threads.active) {
         Threads.active.timestamp = Date.now();
         ThreadListUI.updateThread(Threads.active);
