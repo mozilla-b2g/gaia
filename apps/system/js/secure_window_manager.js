@@ -52,6 +52,7 @@
       listens: ['secure-killapps',
                 'secure-closeapps',
                 'secure-appcreated',
+                'secure-appopened',
                 'secure-appterminated',
                 'secure-apprequestclose',
                 'home'
@@ -98,6 +99,9 @@
             console.error('Disallowed app: ', app.instanceID);
           }
           break;
+        case 'secure-appopened':
+          this.elements.screen.classList.add('secure-app');
+          break;
         case 'secure-appterminated':
           app = evt.detail;
           this.unregisterApp(app);
@@ -116,9 +120,11 @@
           // Default animation or kill animation.
           app.close(this.states.killMode ?
               this.configs.killAnimation : null);
+          this.elements.screen.classList.remove('secure-app');
           break;
         case 'home':
           if (0 !== Object.keys(this.states.runningApps).length) {
+            this.elements.screen.classList.remove('secure-app');
             this.softKillApps();
           }
           break;
