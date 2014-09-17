@@ -175,6 +175,7 @@
   exports.ICEData = {
     load: load,
     setICEContact: setICEContact,
+    removeICEContact: removeICEContact,
     get iceContacts() { return localIceContacts; },
     getActiveIceContacts: getActiveIceContacts,
     listenForChanges: listenForChanges,
