@@ -24,7 +24,7 @@ define(function(require) {
           wifi: panel,
           wpsColumn: panel.querySelector('.wps-column'),
           wpsInfoBlock: panel.querySelector('.wps-column small'),
-          wpsPbcLabelBlock: panel.querySelector('.wps-column a'),
+          wpsPbcLabelBlock: panel.querySelector('.wps-column span'),
           manageNetworksBtn: panel.querySelector('.manageNetworks'),
           wifiCheckbox: panel.querySelector('.wifi-enabled input'),
           manageCertificatesBtn: panel.querySelector('.manageCertificates'),
