@@ -263,7 +263,7 @@ var NotificationScreen = {
     evt.preventDefault();
 
     this._touchPosX = evt.touches[0].pageX - this._touchStartX;
-    if (this._touchPosX >= this.TAP_THRESHOLD) {
+    if (Math.abs(this._touchPosX) >= this.TAP_THRESHOLD) {
       this._isTap = false;
     }
     if (!this._isTap) {
