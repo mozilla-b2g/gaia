@@ -662,6 +662,7 @@ contacts.Form = (function() {
           var msgId = 'ICEContactDelTel';
           if (counters.tel === 0) {
             msgId = 'ICEContactDelTelAll';
+            ICEData.removeICEContact(currentContact.id);
           }
           Contacts.confirmDialog(null, {'id': msgId},
                                  cancelObject);
