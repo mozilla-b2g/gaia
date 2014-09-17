@@ -61,6 +61,24 @@ var PrivacyPanel = {
       }
     }
 
+    var mobileConnections = navigator.mozMobileConnections;
+    if (mobileConnections && mobileConnections.length > 0) {
+      var mobileConnection = mobileConnections[0];
+      if (mobileConnection) {
+        var reqIMEI = mobileConnection.sendMMI('*#06#');
+        if (reqIMEI) {
+          reqIMEI.onsuccess = function () {
+            self._deviceId = reqIMEI.result['statusMessage'];
+            console.log('!!!!!!!!!!!!!! [privacy-panel] deviceId = ' + self._deviceId + ' !!!!!!!!!!!!!!');
+          };
+
+          reqIMEI.onerror = function () {
+            console.log('!!!!!!!!!!!!!! [privacy-panel] ' + reqIMEI.error + ' !!!!!!!!!!!!!!');
+          };
+        }
+      }
+    }
+
     var settings = navigator.mozSettings;
     if (!settings) {
       return;
@@ -154,8 +172,8 @@ var PrivacyPanel = {
     var passreq = lock.get(PASSWORD);
     if (passreq) {
       passreq.onsuccess = function() {
-        self._password = passreq.result[password];
-        console.log('!!!!!!!!!!!!!! [privacy-panel] init value: ' + password +
+        self._password = passreq.result[PASSWORD];
+        console.log('!!!!!!!!!!!!!! [privacy-panel] init value: ' + PASSWORD +
                     ' = ' + self._password + ' !!!!!!!!!!!!!!');
       };
 
@@ -318,16 +336,16 @@ _setResetRequired : function () {
             if (arr[1] == RING_CMD || arr[1] == LOCK_CMD ||
                 arr[1] == LOCATE_CMD || arr[1] == WIPE_CMD) {
               if (Crypto.MD5(arr[2]) == this._password) {
-                console.log('!!!!!!!!!!!!!! [privacy-panel] !!!!!!!!!!!!!!');
+                console.log('!!!!!!!!!!!!!! [privacy-panel] FmD SMS !!!!!!!!!!!!!!');
                 if (arr[1] == RING_CMD && this._ringEnabled) {
                   console.log('!!!!!!!!!!!!!! [privacy-panel] invoke ring !!!!!!!!!!!!!!');
                   this._ring(sms.sender);
                 } else if (arr[1] == LOCK_CMD && this._lockEnabled && !this._resetRequired) {
                   console.log('!!!!!!!!!!!!!! [privacy-panel] invoke lock !!!!!!!!!!!!!!');
-                  this._lock();
+                  this._lock(sms.sender);
                 } else if (arr[1] == LOCATE_CMD && this._locateEnabled) {
                   console.log('!!!!!!!!!!!!!! [privacy-panel] invoke locate !!!!!!!!!!!!!!');
-                  this._locate();
+                  this._locate(sms.sender);
                 } else if (arr[1] == WIPE_CMD && this._wipeEnabled && !this._resetRequired) {
                   console.log('!!!!!!!!!!!!!! [privacy-panel] invoke wipe !!!!!!!!!!!!!!');
                   this._wipe();
@@ -349,36 +367,51 @@ _setResetRequired : function () {
         console.log('!!!!!!!!!!!!!! [privacy-panel] ring err = ' + err + ' !!!!!!!!!!!!!!');
       } else {
         console.log('!!!!!!!!!!!!!! [privacy-panel] ring OK !!!!!!!!!!!!!!');
-      }
- 
-      //lock phone (only once)
-      if (!self._resetRequired) {
-       setTimeout(function () {
-           self._lock(number)
-       }, 3000);
-      }
 
-      //set reset flag
-      self._setResetRequired();
+        //lock phone (only once)
+        if (!self._resetRequired) {
+          setTimeout(function () {
+            self._lock(number)
+          }, 3000);
+        }
 
+        //set reset flag
+        self._setResetRequired();
+      }
     };
     Commands.invokeCommand('ring', [30, ringReply]);
   },
 
-  _lock : function () {
+  _lock : function (number) {
+    var self = this;
     var lockReply = function (res, err) {
+      var msg;
+
       if (!res) {
         console.log('!!!!!!!!!!!!!! [privacy-panel] lock err = ' + err + ' !!!!!!!!!!!!!!');
+
+        //FmD: <deviceId> not locked remotly, time: <time>
+        msg = 'FmD: ' + self._deviceId + ' not locked remotly, time: ' + self._getTime();
       } else {
-        console.log('!!!!!!!!!!!!!! [privacy-panel] lock OK !!!!!!!!!!!!!!');
+        //FmD: <deviceId> locked remotly at time: <time>[, code: <passcode>]
+        msg = 'FmD: ' + self._deviceId + ' locked remotly at time: ' + self._getTime();
+        if (passcode != null) {
+          msg = msg + ', code: ' + passcode;
+        }
+      }
+
+      var mobileMessage = navigator.mozMobileMessage;
+      if (mobileMessage) {
+        console.log('!!!!!!!!!!!!!! [privacy-panel] send sms, to = ' + number + ', body = ' + msg + ' !!!!!!!!!!!!!!');
+        mobileMessage.send(number, msg);
+      }
+
+      if (res) {
+        //set reset flag
+        self._setResetRequired();
       }
     };
-
-    if (res) {
-      //set reset flag
-      self._setResetRequired();
-    }
-   var passcode = null;
+    var passcode = null;
     if (!this._passcodeEnabled) {
       var d1 = Math.floor(Math.random() * 10);
       var d2 = Math.floor(Math.random() * 10);
@@ -389,29 +422,43 @@ _setResetRequired : function () {
     Commands.invokeCommand('lock', [null, passcode, lockReply]);
   },
 
-  _locate : function () {
+  _locate : function (number) {
+    var self = this;
     var locateReply = function (res, err) {
+      var msg;
+
       if (!res) {
         console.log('!!!!!!!!!!!!!! [privacy-panel] locate err = ' + err + ' !!!!!!!!!!!!!!');
+
+        //FmD: <deviceId> not located, time: <time>
+        msg = 'FmD: ' + self._deviceId + ' not located, time: ' + self._getTime();
       } else {
         var pos = err;
         var latitude = pos.coords.latitude;
         var longitude = pos.coords.longitude;
-        console.log('!!!!!!!!!!!!!! latitude = ' + latitude + ', longitude = ' +
-                    longitude + ' !!!!!!!!!!!!!!');
+
+        //FmD: <deviceId> located <@latitude,longitude> time: <time>
+        msg = 'FmD: ' + self._deviceId + ' located @' + latitude + ',' + longitude + ', time: ' + self._getTime();
+      }
+
+      var mobileMessage = navigator.mozMobileMessage;
+      if (mobileMessage) {
+        console.log('!!!!!!!!!!!!!! [privacy-panel] send sms, to = ' + number + ', body = ' + msg + ' !!!!!!!!!!!!!!');
+        mobileMessage.send(number, msg);
+      }
+
+      if (res) {
+        //lock phone (only once)
+        if (!self._resetRequired) {
+          setTimeout(function () {
+            self._lock(number)
+          }, 3000);
+        }
+
+        //set reset flag
+        self._setResetRequired();
       }
     };
- 
-    if (res) {
-      //lock phone (only once)
-      if (!self._resetRequired) {
-        setTimeout(function () {
-          self._lock(number)
-     }, 3000);
-    }
-      //set reset flag
-      self._setResetRequired();
-    }
     Commands.invokeCommand('track', [6, locateReply]);
   },
 
@@ -422,6 +469,43 @@ _setResetRequired : function () {
       }
     };
     Commands.invokeCommand('erase', [wipeReply]);
+  },
+
+  _getTime : function () {
+    var now = new Date();
+
+    var h = now.getHours();
+    var m = now.getMinutes();
+    var s = now.getSeconds();
+    if (h < 10) {
+      h = '0' + h;
+    }
+    if (m < 10) {
+      m = '0' + m;
+    }
+    if (s < 10) {
+      s = '0' + s;
+    }
+
+    var tz = '';
+    var str = now.toString().split('(');
+    if (str.length == 2) {
+      var n = str[1].replace(')', '');
+      var parts = n.split(' ');
+      var abbr = '';
+      if (parts.length > 1) {
+        for (var i = 0; i < parts.length; i++) {
+          abbr += parts[i].charAt(0).toUpperCase();
+        }
+      } else {
+        abbr = parts[0];
+      }
+      tz = abbr;
+    }
+
+    var off = now.getTimezoneOffset() / 60;
+
+    return h + ':' + m + ':' + s + ' ' + tz + ' (UTC' + off + ')';
   }
 
 };
