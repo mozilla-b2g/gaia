@@ -308,4 +308,64 @@ suite('ScreenLockPasscode > ', function() {
       });
     });
   });
+
+  suite('onBeforeShow > ', function() {
+    setup(function() {
+      this.sinon.stub(screenLockPasscode, '_showDialogInMode');
+    });
+
+    suite('if users left panel by home', function() {
+      setup(function() {
+        screenLockPasscode._leftApp = true;
+        screenLockPasscode.onBeforeShow('create');
+      });
+
+      test('we would not re-show dialog again', function() {
+        assert.isFalse(screenLockPasscode._showDialogInMode.called);
+      });
+    });
+
+    suite('if users left panel by back button', function() {
+      setup(function() {
+        screenLockPasscode._leftApp = false;
+        screenLockPasscode.onBeforeShow('create');
+      });
+
+      test('we would re-show dialog again', function() {
+        assert.isTrue(screenLockPasscode._showDialogInMode.called);
+      });
+    });
+  });
+
+  suite('onHide > ', function() {
+    var realDocumentHidden = document.hidden;
+
+    setup(function() {
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        get: function() {
+          return false;
+        }
+      });
+      this.sinon.stub(screenLockPasscode, '_updatePassCodeUI');
+      screenLockPasscode._MODE = 'edit';
+      screenLockPasscode._leftApp = false;
+      screenLockPasscode.onHide();
+    });
+
+    teardown(function() {
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        get: function() {
+          return realDocumentHidden;
+        }
+      });
+    });
+
+    test('when editing passcode, we would clear passcode buffer everytime ' +
+      'when going back to previous panel', function() {
+        assert.isTrue(screenLockPasscode._updatePassCodeUI.called);
+        assert.equal(screenLockPasscode._passcodeBuffer, '');
+      });
+  });
 });

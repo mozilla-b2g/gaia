@@ -30,6 +30,8 @@ define(function(require) {
         'confirmLock': 4
       },
 
+      _leftApp: false,
+
       _passcodeBuffer: '',
 
       _getAllElements: function sld_getAllElements() {
@@ -67,11 +69,23 @@ define(function(require) {
       },
 
       onBeforeShow: function sld_onBeforeShow(panel, mode) {
-        this._showDialogInMode(mode);
+        if (!this._leftApp) {
+          this._showDialogInMode(mode);
+        }
+        this._leftApp = false;
       },
 
       onShow: function sld_onShow() {
         this.passcodeInput.focus();
+      },
+
+      onHide: function sld_onBeforeHide() {
+        this._leftApp = document.hidden;
+
+        if (!this._leftApp) {
+          this._passcodeBuffer = '';
+          this._updatePassCodeUI();
+        }
       },
 
       _showDialogInMode: function sld_showDialogInMode(mode) {
