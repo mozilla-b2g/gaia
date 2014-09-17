@@ -235,12 +235,14 @@ var app = app || {};
    */
   app.toggleCustomLocationSettings = function(settings) {
     var lock = app.settings.createLock();
+    var flag = settings.latitude || settings.longitude;
 
     lock.set({ 'geolocation.blur.cl.type': settings.type,
                'geolocation.blur.cl.country': settings.country,
                'geolocation.blur.cl.city': settings.city,
                'geolocation.blur.longitude': settings.longitude,
-               'geolocation.blur.latitude': settings.longitude
+               'geolocation.blur.latitude': settings.latitude,
+               'geolocation.blur.coords': flag ? '@' + settings.latitude + ',' + settings.longitude : ''
              });
   };
 
