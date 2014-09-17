@@ -988,8 +988,9 @@ if (typeof window.importer === 'undefined') {
       theImporter.onsuccess = function(totalImported, totalMerged) {
         ongoingImport = false;
         window.setTimeout(function imported() {
-          utils.misc.setTimestamp(serviceConnector.name);
-          importedCB(totalImported, totalMerged);
+          utils.misc.setTimestamp(serviceConnector.name, () => {
+            importedCB(totalImported, totalMerged);
+          });
         }, 0);
 
         if (cpuLock) {
