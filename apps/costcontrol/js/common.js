@@ -129,7 +129,7 @@ var Common = {
   },
 
   get localize() {
-    return navigator.mozL10n.localize;
+    return navigator.mozL10n.setAttributes;
   },
 
   // Returns whether exists an nsIDOMNetworkStatsInterfaces object

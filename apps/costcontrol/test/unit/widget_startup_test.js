@@ -59,7 +59,7 @@ suite('Widget Startup Modes Test Suite >', function() {
 
   MocksHelperForUnitTest.attachTestHelpers();
 
-  var fte, rightPanel, leftPanel;
+  var fte, rightPanel, leftPanel, showSimErrorSpy;
   suiteSetup(function() {
 
     window.Common = new MockCommon({});
@@ -88,6 +88,7 @@ suite('Widget Startup Modes Test Suite >', function() {
     fte.setAttribute('aria-hidden', 'true');
     leftPanel.setAttribute('aria-hidden', 'true');
     rightPanel.getAttribute('aria-hidden', 'true');
+    showSimErrorSpy = this.sinon.spy(Widget, 'showSimError');
   });
 
   teardown(function() {
@@ -194,7 +195,6 @@ suite('Widget Startup Modes Test Suite >', function() {
   listMandatoryAPIs.forEach(
     function(mandatoryAPIName) {
       test('Not exists the mandatory API: ' + mandatoryAPIName, function() {
-        var showSimErrorSpy = sinon.spy(Widget, 'showSimError');
         window.navigator[mandatoryAPIName] = null;
 
         Widget.init();
@@ -209,6 +209,7 @@ suite('Widget Startup Modes Test Suite >', function() {
   );
 
   test('startup with locked sim', function(done) {
+    showSimErrorSpy.restore();
     this.sinon.stub(Widget, 'showSimError', function(errorId) {
       done (function() {
         assert.equal(errorId, 'sim-locked');
@@ -223,6 +224,7 @@ suite('Widget Startup Modes Test Suite >', function() {
   });
 
   test('startup without sim', function(done) {
+    showSimErrorSpy.restore();
     this.sinon.stub(Widget, 'showSimError', function(errorId) {
       done (function() {
         assert.equal(errorId, 'no-sim2');
@@ -237,8 +239,6 @@ suite('Widget Startup Modes Test Suite >', function() {
   });
 
   test('Airplane Mode enabled', function(done) {
-    var showSimErrorSpy = sinon.spy(Widget, 'showSimError');
-
     // Force loadDataSimIccId to fail
     sinon.stub(SimManager, 'requestDataSimIcc', failingRequestDataSIMIccId);
     sinon.stub(MockMozL10n, 'ready', function(callback) {
@@ -264,8 +264,6 @@ suite('Widget Startup Modes Test Suite >', function() {
 
   test('SIM is detected after an AirplaneMode message on a previous startup',
     function(done) {
-      var showSimErrorSpy = sinon.spy(Widget, 'showSimError');
-
       // Force loadDataSimIccId to fail
       sinon.stub(SimManager, 'requestDataSimIcc', failingRequestDataSIMIccId);
 
@@ -325,9 +323,7 @@ suite('Widget Startup Modes Test Suite >', function() {
   });
 
   test('normal start-up with DATA_USAGE_ONLY applicationMode', function(done) {
-    var showSimErrorSpy = sinon.spy(Widget, 'showSimError', function() {
-      assert.ok(false);
-    });
+    assert.equal(showSimErrorSpy.notCalled,true); 
     var fakeResultDataUsage = {
       datausage: requestDataUsageResult
     };
@@ -362,9 +358,7 @@ suite('Widget Startup Modes Test Suite >', function() {
   });
 
   test('normal start-up with POSTPAID applicationMode', function(done) {
-    var showSimErrorSpy = sinon.spy(Widget, 'showSimError', function() {
-      assert.ok(false);
-    });
+    assert.equal(showSimErrorSpy.notCalled,true); 
     sinon.stub(Formatting, 'formatTime', function(timestamp, format) {
       return timestamp;
     });
@@ -390,7 +384,7 @@ suite('Widget Startup Modes Test Suite >', function() {
 
         var telephonyData =
           Formatting.computeTelephonyMinutes(fakePostPaidResult.telephony.data);
-        var telephonyDataText =  _('magnitude', {
+        var telephonyDataText = _('magnitude', {
           value: telephonyData,
           unit: 'min'
         });
@@ -412,9 +406,7 @@ suite('Widget Startup Modes Test Suite >', function() {
   });
 
   test('normal start-up with PREPAID applicationMode', function(done) {
-    var showSimErrorSpy = sinon.spy(Widget, 'showSimError', function() {
-      assert.ok(false);
-    });
+    assert.equal(showSimErrorSpy.notCalled,true); 
     sinon.stub(Formatting, 'formatTime', function(timestamp, format) {
       return timestamp;
     });
