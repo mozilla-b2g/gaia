@@ -820,8 +820,7 @@
         break;
 
       case 'taskmanagershow':
-        var filter = (evt.detail && evt.detail.filter) || null;
-        this.show(filter);
+        this.show();
         break;
 
       case 'taskmanagerhide':
