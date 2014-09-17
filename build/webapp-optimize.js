@@ -4,11 +4,10 @@
  * webpp-optimize will do below things.
  * 1. Inline embeded html from <link rel="import" href="test.html" name="name">
  *    into html and commented (<!--CONTENT-->).
- * 2. Embed l10n resource in script tag to html.
- * 3. Concat l10n resource to json files and put them as link and attach to
+ * 2. Concat l10n resource to json files and put them as link and attach to
  *    html.
- * 4. Aggregate and uglify all JS files used in html to one JS file.
- * 5. Optimize inline JS/CSS content.
+ * 3. Aggregate and uglify all JS files used in html to one JS file.
+ * 4. Optimize inline JS/CSS content.
  */
 
 var utils = require('./utils');
@@ -22,7 +21,6 @@ var HTMLOptimizer = function(options) {
   this.webapp = options.webapp;
   /**
    * Optimization helpers -- these environment variables are used:
-   *   - config.GAIA_INLINE_LOCALES  - embed the minimum l10n data in HTML files
    *   - config.GAIA_PRETRANSLATE    - pretranslate html into default locale
    *   - config.GAIA_CONCAT_LOCALES  - aggregates l10n files
    *   - config.GAIA_OPTIMIZE        - aggregates JS files
@@ -35,18 +33,13 @@ var HTMLOptimizer = function(options) {
   // When file has done optimized, we call done.
   this.done = options.callback;
   /**
-   * For each HTML file, we retrieve two multi-locale dictionaries:
-   *
-   *  - subDict (used with config.GAIA_INLINE_LOCALES)
-   *    = minimal set of strings required to translate all HTML elements that
-   *    use data-l10n-id attributes; it gets embedded in the HTML document.
+   * For each HTML file, we retrieve multi-locale dictionary:
    *
    *  - fullDict (used with config.GAIA_CONCAT_LOCALES)
    *    = full set of all l10n strings that are loaded by the HTML document,
-   *    including subDict and all strings that are used dynamically from JS;
+   *    including all strings that are used dynamically from JS;
    *    it gets merged into webapp.dictionary.
    */
-  this.subDict = utils.cloneJSON(this.webapp.dictionary);
   this.fullDict = utils.cloneJSON(this.webapp.dictionary);
   this.getDictionary = null;
 
@@ -83,10 +76,6 @@ HTMLOptimizer.prototype.process = function() {
 
 HTMLOptimizer.prototype._optimize = function() {
   this._proceedLocales();
-
-  if (this.config.GAIA_INLINE_LOCALES === '1') {
-    this.embedSubsetL10nResources();
-  }
 
   if (this.config.GAIA_CONCAT_LOCALES === '1') {
     this.concatL10nResources();
@@ -129,16 +118,13 @@ HTMLOptimizer.prototype._optimize = function() {
 // create JSON dicts for the current language; one for the <script> tag
 // embedded in HTML and one for locales-obj/
 HTMLOptimizer.prototype._proceedLocales = function() {
-  var docElt = this.win.document.documentElement;
   var mozL10n = this.win.navigator.mozL10n;
   var processedLocales = 0;
   while (processedLocales < this.locales.length) {
     // change the language of the localization context
     mozL10n.ctx.requestLocales(this.locales[processedLocales]);
 
-    // create JSON dicts for the current language; one for the <script> tag
-    // embedded in HTML and one for locales-obj/
-    this.subDict[mozL10n.language.code] = this.getDictionary(docElt);
+    // create JSON dicts for the current language for locales-obj/
     this.fullDict[mozL10n.language.code] = this.getDictionary();
     processedLocales++;
   }
@@ -241,26 +227,6 @@ HTMLOptimizer.prototype.embededGlobals = function() {
   script.innerHTML = content;
   doc.documentElement.appendChild(script);
 };
-
-/**
- * Creates a dictionary for all l10n entities that are required by the HTML
- * document, and include it as an inline JSON.
- */
-HTMLOptimizer.prototype.embedSubsetL10nResources = function() {
-  var doc = this.win.document;
-  var noFetchRes =
-    doc.querySelector('link[type="application/l10n"][data-no-fetch]');
-
-  // if the document has at least one data-no-fetch link, we will
-  // embed the whole l10n dictionary, no need to embed the partial one.
-  //
-  // hasAttribute is needed because tests always return value for querySelector
-  if (noFetchRes && noFetchRes.hasAttribute('data-no-fetch')) {
-    return;
-  }
-  embedL10nResources(doc.documentElement, this.subDict);
-};
-
 
 /**
  * Replaces all external l10n resource nodes by a single link:
@@ -789,8 +755,7 @@ WebappOptimize.prototype.execute = function(config) {
 function execute(config) {
   var gaia = utils.gaia.getInstance(config);
   var locales;
-  if (config.GAIA_INLINE_LOCALES === '1' ||
-      config.GAIA_CONCAT_LOCALES === '1') {
+  if (config.GAIA_CONCAT_LOCALES === '1') {
     locales = getLocales(config);
   } else {
     locales = [config.GAIA_DEFAULT_LOCALE];

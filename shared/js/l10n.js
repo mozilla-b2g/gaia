@@ -1146,15 +1146,6 @@
     }
   };
 
-  Locale.prototype.getEntity = function(id, ctxdata) {
-    var entry = this.getEntry(id);
-
-    if (!entry) {
-      return null;
-    }
-    return entry.valueOf(ctxdata);
-  };
-
 
 
   function Context(id) {
@@ -1408,11 +1399,9 @@
         Entity: Entity,
         getPluralRule: getPluralRule,
         rePlaceables: rePlaceables,
-        getTranslatableChildren:  getTranslatableChildren,
         translateDocument: translateDocument,
         onManifestInjected: onManifestInjected,
         onMetaInjected: onMetaInjected,
-        fireLocalizedEvent: fireLocalizedEvent,
         PropertiesParser: PropertiesParser,
         compile: compile,
         walkContent: walkContent
@@ -1471,7 +1460,6 @@
 
   function init(pretranslate) {
     if (pretranslate) {
-      inlineLocalization.call(navigator.mozL10n);
       initResources.call(navigator.mozL10n);
     } else {
       // if pretranslate is false, we want to initialize MO
@@ -1481,34 +1469,6 @@
       initObserver();
       window.setTimeout(initResources.bind(navigator.mozL10n));
     }
-  }
-
-  function inlineLocalization() {
-    var locale = this.ctx.getLocale(navigator.language);
-    var scriptLoc = locale.isPseudo ? this.ctx.defaultLocale : locale.id;
-    var script = document.documentElement
-                         .querySelector('script[type="application/l10n"]' +
-                         '[lang="' + scriptLoc + '"]');
-    if (!script) {
-      return;
-    }
-
-    // the inline localization is happenning very early, when the ctx is not
-    // yet ready and when the resources haven't been downloaded yet;  add the
-    // inlined JSON directly to the current locale
-    locale.addAST(JSON.parse(script.innerHTML));
-    // localize the visible DOM
-    var l10n = {
-      ctx: locale,
-      language: {
-        code: locale.id,
-        direction: getDirection(locale.id)
-      }
-    };
-    translateDocument.call(l10n);
-
-    // the visible DOM is now pretranslated
-    isPretranslated = true;
   }
 
   function initResources() {

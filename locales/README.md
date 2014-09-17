@@ -8,7 +8,7 @@ You can build a multilocale Gaia profile with the following `make` command:
       LOCALES_FILE=locales/languages_basecamp.json \
       GAIA_DEFAULT_LOCALE=pt-BR
 
-Use `GAIA_INLINE_LOCALES=1` to precompile all HTML to include text content in 
+Use `GAIA_PRETRANSLATE=1` to precompile all HTML to include text content in
 the deafult locale.
 
 The full documentation on building multilocale Gaia and B2G is avaiable on MDN: https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Building#Building_multilocale
