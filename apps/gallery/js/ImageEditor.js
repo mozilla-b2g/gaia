@@ -66,16 +66,17 @@ function editPhoto(n) {
   function gotFile(file) {
     // The image editor does not handle EXIF rotation, so if the image has
     // EXIF orientation flags, we alter the image in place before starting
-    // to edit it.
-    //
-    // For low-memory devices like Tarako, CONFIG_MAX_EDIT_PIXEL_SIZE
-    // will be set to a non-zero value, and this may cause us to downsample
-    // the image before allowing the user to edit it.
-    if ((metadata.rotation !== undefined && metadata.rotation) ||
-        (metadata.mirrored !== undefined && metadata.mirrored) ||
-        CONFIG_MAX_EDIT_PIXEL_SIZE) {
+    // to edit it. Similarly, if the image is too big for us to decode at
+    // full size we need to create a downsampled version that is editable.
+    // For low-memory devices like Tarako, CONFIG_MAX_EDIT_PIXEL_SIZE will
+    // be set to a non-zero value, and this may cause us to downsample the
+    // image even further than we would otherwise.
+    var imagesize = metadata.width * metadata.height;
+    var maxsize = CONFIG_MAX_EDIT_PIXEL_SIZE || CONFIG_MAX_IMAGE_PIXEL_SIZE;
+
+    if (metadata.rotation || metadata.mirrored || imagesize > maxsize) {
       showSpinner();
-      cropResizeRotate(file, null, CONFIG_MAX_EDIT_PIXEL_SIZE || null,
+      cropResizeRotate(file, null, maxsize || null,
                        null, metadata,
                        function(error, rotatedBlob) {
                          hideSpinner();

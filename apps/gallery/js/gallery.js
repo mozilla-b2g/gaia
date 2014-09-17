@@ -989,21 +989,16 @@ function cropPickedImage(fileinfo) {
       if (pickWidth && pickHeight) {
         outputSize = { width: pickWidth, height: pickHeight };
       }
-      else if (CONFIG_MAX_PICK_PIXEL_SIZE) {
-        outputSize = CONFIG_MAX_PICK_PIXEL_SIZE;
-      }
       else {
-        outputSize = null;
+        outputSize = CONFIG_MAX_PICK_PIXEL_SIZE || CONFIG_MAX_IMAGE_PIXEL_SIZE;
       }
 
-      // show spinner if cropResizeRotate will downsample image
+      // show spinner if cropResizeRotate will decode and modify the image
       if (cropRegion !== null ||
-          outputSize !== null ||
-          (pickedFileInfo.metadata !== undefined &&
-           pickedFileInfo.metadata.rotation !== undefined &&
-           pickedFileInfo.metadata.rotation) ||
-          (pickedFileInfo.metadata.mirrored !== undefined &&
-           pickedFileInfo.metadata.mirrored)) {
+          typeof outputSize === 'object' ||
+          outputSize < fullImageWidth * fullImageHeight ||
+          pickedFileInfo.metadata.rotation ||
+          pickedFileInfo.metadata.mirrored) {
         showSpinner();
       }
       cropResizeRotate(pickedFile, cropRegion, outputSize, pickType,
