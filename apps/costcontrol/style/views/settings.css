@@ -11,10 +11,6 @@
 #settings-view.view {
   top: 0;
 }
-#settings-view label span {
-  padding-left: 0.5rem;
-}
-
 
 /* low limit */
 .low-limit-container {
