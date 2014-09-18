@@ -956,10 +956,12 @@ contacts.Settings = (function() {
       if (req.result === 0) {
         exportButton.setAttribute('disabled', 'disabled');
         bulkDeleteButton.setAttribute('disabled', 'disabled');
+        setICEButton.setAttribute('disabled', 'disabled');
       }
       else {
          exportButton.removeAttribute('disabled');
          bulkDeleteButton.removeAttribute('disabled');
+         setICEButton.removeAttribute('disabled');
       }
     };
 

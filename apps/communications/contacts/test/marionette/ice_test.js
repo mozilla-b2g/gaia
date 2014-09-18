@@ -18,6 +18,9 @@ marionette('Contacts > ICE contacts', function() {
   suite('ICE contacts', function() {
 
     test('Check ICE settings transition', function() {
+      subject.addContact({
+        givenName: 'Jose'
+      });
 
       client.helper.waitForElement(selectors.settingsButton)
         .click();
