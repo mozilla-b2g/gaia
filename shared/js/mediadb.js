@@ -1222,13 +1222,21 @@ var MediaDB = (function() {
         var cursor = cursorRequest.result;
         if (cursor) {
           try {
+            // when the index is 0, we should just return the first
+            // record and does not need to advance the cursor.
+            if (index === 0) {
+              isTarget = true;
+            }
+
             // if metadata parsing succeeded and is the target record
             if (!cursor.value.fail && isTarget) {
               callback(cursor.value);
               cursor.continue();
             }
             else {
-              cursor.advance(index - 1);
+              // cursor.advance() should be given with index values
+              // greater than or equal to 1.
+              cursor.advance(index);
               isTarget = true;
             }
           }
