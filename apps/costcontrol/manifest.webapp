@@ -8,6 +8,7 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
+    "themeable":{},
     "sms":{},
     "mobileconnection":{},
     "desktop-notification":{},

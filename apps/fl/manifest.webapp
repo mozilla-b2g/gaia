@@ -49,6 +49,7 @@
     }
   },
   "permissions": {
+    "themeable":{},
     "systemXHR":{},
     "storage":{},
     "settings":{ "access": "readwrite" },

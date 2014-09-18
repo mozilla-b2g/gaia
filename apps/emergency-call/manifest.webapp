@@ -11,6 +11,7 @@
   "orientation": "default",
   "fullscreen": true,
   "permissions": {
+    "themeable":{},
     "telephony": {},
     "mobileconnection": {},
     "phonenumberservice": {},
