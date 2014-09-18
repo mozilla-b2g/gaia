@@ -14,7 +14,7 @@
    "app.update.battery-threshold.unplugged": 25,
    "app.update.battery-threshold.plugged": 25,
    "apz.force-enable": true,
-   "apz.overscroll.enabled": true,
+   "apz.overscroll.enabled": false,
    "audio.volume.alarm": 15,
    "audio.volume.bt_sco": 15,
    "audio.volume.dtmf": 15,
