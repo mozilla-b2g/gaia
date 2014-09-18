@@ -58,6 +58,7 @@ var app = app || {};
         $menu:        document.getElementById('RPP-menu'),
         $newPass:     document.getElementById('RPP-new-password'),
         $login:       document.getElementById('RPP-login'),
+        $changePass:  document.getElementById('RPP-change-password'),
         RemoteLocate: {
           $box:       document.querySelector('#RPP .remote-locate'),
           $input:     document.querySelector('#RPP .remote-locate input')
@@ -74,10 +75,7 @@ var app = app || {};
           $box:       document.querySelector('#RPP .remote-wipe'),
           $input:     document.querySelector('#RPP .remote-wipe input')
         },
-        Unlock: {
-          $box:       document.querySelector('#RPP .unlock'),
-          $input:     document.querySelector('#RPP .unlock input')
-        }
+        $changePassLink: document.getElementById('change-password-link')
       },
       DCL: new CustomLocationPanel()
     };
@@ -131,15 +129,16 @@ var app = app || {};
     // listeners for RPP
     app.elements.RPP.$link.addEventListener('click', app.showRPPBox);
     app.elements.RPP.$back.addEventListener('click', app.showRootBox);
+    app.elements.RPP.$changePassLink.addEventListener('click', app.showChangePassBox);
 
     app.elements.RPP.$newPass.querySelector('button.rpp-new-password-ok').addEventListener('click', app.savePassword);
     app.elements.RPP.$login.querySelector('button.rpp-login-ok').addEventListener('click', app.login);
+    app.elements.RPP.$changePass.querySelector('button.rpp-change-password-ok').addEventListener('click', app.changePassword);
 
     app.elements.RPP.RemoteLocate.$input.addEventListener('change', function(event) { app.toggleRemoteLocate(event.target.checked); });
     app.elements.RPP.RemoteRing.$input.addEventListener('change', function(event) { app.toggleRemoteRing(event.target.checked); });
     app.elements.RPP.RemoteLock.$input.addEventListener('change', function(event) { app.toggleRemoteLock(event.target.checked); });
     app.elements.RPP.RemoteWipe.$input.addEventListener('change', function(event) { app.toggleRemoteWipe(event.target.checked); });
-    app.elements.RPP.Unlock.$input.addEventListener('change', function(event) { app.toggleUnlock(event.target.checked); });
 
     app.elements.DCL.onChange = app.toggleCustomLocationSettings;
   };
@@ -186,7 +185,6 @@ var app = app || {};
     app.elements.RPP.RemoteRing.$box.style.display = 'none';
     app.elements.RPP.RemoteLock.$box.style.display = 'none';
     app.elements.RPP.RemoteWipe.$box.style.display = 'none';
-    app.elements.RPP.Unlock.$box.style.display = 'none';
   };
 
   /**** ALA part **************************************************************/
@@ -567,6 +565,7 @@ var app = app || {};
       app.elements.RPP.$menu.style.display = 'none';
       app.elements.RPP.$newPass.style.display = (!password) ? 'block' : 'none';
       app.elements.RPP.$login.style.display = (password) ? 'block' : 'none';
+      app.elements.RPP.$changePass.style.display = 'none';
     };
   };
 
@@ -577,6 +576,7 @@ var app = app || {};
     app.elements.RPP.$menu.style.display = 'block';
     app.elements.RPP.$newPass.style.display = 'none';
     app.elements.RPP.$login.style.display = 'none';
+    app.elements.RPP.$changePass.style.display = 'none';
 
 
     // get Remote Locate value from settings
@@ -606,13 +606,6 @@ var app = app || {};
       app.elements.RPP.RemoteWipe.$input.checked = (status4.result['rpp.wipe.enabled'] === true);
       app.elements.RPP.RemoteWipe.$box.style.display = 'block';
     };
-
-    // get Unlock value from settings
-    var status5 = app.settings.createLock().get('rpp.unlock.enabled');
-    status5.onsuccess = function() {
-      app.elements.RPP.Unlock.$input.checked = (status5.result['rpp.unlock.enabled'] === true);
-      app.elements.RPP.Unlock.$box.style.display = 'block';
-    };
   };
 
 
@@ -626,7 +619,13 @@ var app = app || {};
         $validationMessage = app.elements.RPP.$newPass.querySelector('.validation-message');
 
     /** @todo: full password validation */
-    if (pass1 !== pass2) {
+    if (!(pass1 && pass2)) {
+      $validationMessage.textContent = 'Pass phrase/confirmation is empty!';
+      $validationMessage.style.display = 'block';
+
+      $pinValidationMessage.textContent = '';
+      $pinValidationMessage.style.display = 'none';
+    } else if (pass1 !== pass2) {
       // passwords are valid
       $validationMessage.textContent = 'Confirmation must match pass phrase!';
       $validationMessage.style.display = 'block';
@@ -672,6 +671,123 @@ var app = app || {};
     };
   };
 
+  app.showChangePassBox = function () {
+    app.elements.RPP.$login.style.display = 'none';
+    app.elements.RPP.$changePass.style.display = 'block';
+
+    var pin = app.elements.RPP.$changePass.querySelector('#rpp-pin'),
+    pass1 = app.elements.RPP.$changePass.querySelector('#rpp-new-pass1'),
+    pass2 = app.elements.RPP.$changePass.querySelector('#rpp-new-pass2'),
+    $pinValidationMessage = app.elements.RPP.$changePass.querySelector('.pin-validation-message'),
+    $validationMessage = app.elements.RPP.$changePass.querySelector('.validation-message');
+
+    pin.value = '';
+    pass1.value = '';
+    pass2.value = '';
+
+    $validationMessage.textContent = '';
+    $validationMessage.style.display = 'none';
+
+    $pinValidationMessage.textContent = '';
+    $pinValidationMessage.style.display = 'none';
+  };
+
+  app.changePassword = function () {
+    var pin = app.elements.RPP.$changePass.querySelector('#rpp-pin').value,
+    pass1 = app.elements.RPP.$changePass.querySelector('#rpp-new-pass1').value,
+    pass2 = app.elements.RPP.$changePass.querySelector('#rpp-new-pass2').value,
+    passHash = Crypto.MD5(pass1).toString(),
+    $pinValidationMessage = app.elements.RPP.$changePass.querySelector('.pin-validation-message'),
+    $validationMessage = app.elements.RPP.$changePass.querySelector('.validation-message');
+
+    if (!(pass1 && pass2)) {
+      $validationMessage.textContent = 'Pass phrase/confirmation is empty!';
+      $validationMessage.style.display = 'block';
+
+      $pinValidationMessage.textContent = '';
+      $pinValidationMessage.style.display = 'none';
+    } else if (pass1 !== pass2) {
+      $validationMessage.textContent = 'Confirmation must match pass phrase!';
+      $validationMessage.style.display = 'block';
+
+      $pinValidationMessage.textContent = '';
+      $pinValidationMessage.style.display = 'none';
+    } else if (!pin) {
+      $pinValidationMessage.textContent = 'Passcode lock/SIM PIN is empty!';
+      $pinValidationMessage.style.display = 'block';
+
+      $validationMessage.textContent = '';
+      $validationMessage.style.display = 'none';
+    } else {
+      $validationMessage.textContent = '';
+      $validationMessage.style.display = 'none';
+
+      $pinValidationMessage.textContent = 'Wrong Passcode lock/SIM PIN!';
+      $pinValidationMessage.style.display = 'block';
+
+      var mobileConnections = navigator.mozMobileConnections;
+      if (mobileConnections && mobileConnections.length > 0) {
+        var mobileConnection = mobileConnections[0];
+        if (mobileConnection) {
+          var icc = navigator.mozIccManager.getIccById(mobileConnection.iccId);
+          if (icc) {
+            var unlockOptions = {};
+            unlockOptions['lockType'] = 'pin';
+            unlockOptions['pin'] = pin;
+            var unlock = icc.unlockCardLock(unlockOptions);
+
+            unlock.onsuccess = function () {
+              $pinValidationMessage.textContent = '';
+              $pinValidationMessage.style.display = 'none';
+
+              $validationMessage.textContent = '';
+              $validationMessage.style.display = 'none';
+
+              app.settings.createLock().set({
+                'rpp.password' : passHash
+              });
+              app.showRPPBox();
+            };
+
+            unlock.onerror = function () {
+              var lock = app.settings.createLock();
+              if (lock) {
+                var codeReq = lock.get('lockscreen.passcode-lock.code');
+                if (codeReq) {
+                  codeReq.onsuccess = function () {
+                    if (pin == codeReq.result['lockscreen.passcode-lock.code']) {
+                      var enabledReq = lock.get('lockscreen.passcode-lock.enabled');
+                      if (enabledReq) {
+                        enabledReq.onsuccess = function () {
+                          if (enabledReq.result['lockscreen.passcode-lock.enabled']) {
+                            $pinValidationMessage.textContent = '';
+                            $pinValidationMessage.style.display = 'none';
+
+                            $validationMessage.textContent = '';
+                            $validationMessage.style.display = 'none';
+
+                            app.settings.createLock().set({
+                              'rpp.password' : passHash
+                            });
+                            app.showRPPBox();
+                          }
+                        };
+
+                        enabledReq.onerror = function () {};
+                      }
+
+                    }
+                  };
+
+                  codeReq.onerror = function () {};
+                }
+              }
+            };
+          }
+        }
+      }
+    }
+  };
 
   /**
    * Save Remote Locate value
@@ -704,15 +820,6 @@ var app = app || {};
   app.toggleRemoteWipe = function(value) {
     app.settings.createLock().set({ 'rpp.wipe.enabled': value });
   };
-
-  /**
-   * Save Unlock via... value
-   * @param {Boolean} value
-   */
-  app.toggleUnlock = function(value) {
-    app.settings.createLock().set({ 'rpp.unlock.enabled': value });
-  };
-
 
   app.init();
 }());

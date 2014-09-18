@@ -217,8 +217,37 @@
             <input id="rpp-login-pass" type="password" placeholder="Pass phrase">
             <span class="validation-message" style="color: red; display: none;"></span>
           </li>
+          <li>
+            <a id="change-password-link" href="#change-password">
+              <span data-l10n-id="change-password">Forgot/Change your pass phrase?</span>
+            </a>
+          </li>
           <li class="action-button-box-one">
             <button class="rpp-login-ok">OK</button>
+          </li>
+        </ul>
+      </div>
+
+      <div id="RPP-change-password">
+        <ul>
+          <li class="description">
+            <p data-l10n-id="rpp-change-password-description">
+              To reset your pass phrase please enter Passcode lock/SIM PIN and new pass phrase.
+            </p>
+          </li>
+          <li>
+            <input id="rpp-pin" type="password" placeholder="Passcode lock/SIM PIN">
+            <span class="pin-validation-message" style="color: red; display: none;"></span>
+          </li>
+          <li>
+            <input id="rpp-new-pass1" type="password" placeholder="New pass phrase">
+          </li>
+          <li>
+            <input id="rpp-new-pass2" type="password" placeholder="Confirm new pass phrase">
+            <span class="validation-message" style="color: red; display: none;"></span>
+          </li>
+          <li class="action-button-box-one">
+            <button class="rpp-change-password-ok">OK</button>
           </li>
         </ul>
       </div>
@@ -252,13 +281,6 @@
               <span data-l10n-id="remoteWipe">Remote Wipe</span>
             </label>
             <p class="explanation" data-l10n-id="remoteWipeDesc">You can wipe this device via SMS as following: “FmD: WipeDevice YOURPASSPHRASE”</p>
-          </li>
-          <li class="unlock hint" style="display: none;">
-            <label class="pack-switch">
-              <input type="checkbox" class="uninit">
-              <span data-l10n-id="unlockViaPasscodeLockOrSimPin">Unlock via Passcode lock or SIM Pin</span>
-            </label>
-            <p class="explanation" data-l10n-id="unlockViaPasscodeLockOrSimPinDesc">With this function, you can unlock your Remote Security settings, if you forgot your pass phrase.</p>
           </li>
         </ul>
       </div>
