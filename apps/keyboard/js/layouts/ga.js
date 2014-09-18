@@ -2,7 +2,7 @@ Keyboards.ga = {
   label: 'Irish',
   shortLabel: 'Ga',
   imEngine: 'latin',
-  types: ['text', 'url', 'email'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'ga',
   menuLabel: 'Gaeilge',
   alt: {
@@ -26,7 +26,7 @@ Keyboards.ga = {
     w: 'ŵ',
     y: 'ŷÿ¥',
     z: 'žźż',
-    '.': '-\',?!;:'
+    '.': '-\',?!;:…'
   },
   keys: [
     [
@@ -49,19 +49,22 @@ Keyboards.ga = {
   ],
   pages: [undefined, {
     alt: {
-      '0': 'º',
-      '1': '1ú ',
-      '2': '2ú ',
-      '3': '3ú ',
-      '4': '4ú ',
-      '5': '5ú ',
-      '6': '6ú ',
-      '7': '7ú ',
-      '8': '8ú ',
-      '9': '9ú ',
-      '€': '£ $ ¥',
-      '?': '¿',
-      '!': '¡'
+      '0': ['º'],
+      '1': ['1ú'],
+      '2': ['2ú'],
+      '3': ['3ú'],
+      '4': ['4ú'],
+      '5': ['5ú'],
+      '6': ['6ú'],
+      '7': ['7ú'],
+      '8': ['8ú'],
+      '9': ['9ú'],
+      '€': ['£', '$', '¢', '¥'],
+      '"': ['“', '”'],
+      '\'':['‘', '’'],
+      '?': ['¿'],
+      '!': ['¡'],
+      '+': ['-', '×', '÷', '±']
     },
     keys: [
       [
@@ -69,18 +72,22 @@ Keyboards.ga = {
         { value: '5' }, { value: '6' }, { value: '7' }, { value: '8' },
         { value: '9' }, { value: '0' }
       ], [
-        { value: '@', hidden: ['email'] }, { value: '#' }, { value: '€' },
-        { value: '%' }, { value: '&' }, { value: '*' }, { value: '-' },
-        { value: '+' }, { value: '(' }, { value: ')' },
-        { value: '_', visible: ['email'] }
+        { value: '@' }, { value: '#' },
+        { value: '€', className: 'alternate-indicator' }, { value: '&' },
+        { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
+        { value: '(' }, { value: ')' }
       ], [
         { value: 'Alt', ratio: 1.5,
           keyCode: KeyboardEvent.DOM_VK_ALT,
           className: 'page-switch-key',
           targetPage: 2
         },
-        { value: '!' }, { value: '\"' }, { value: "'" }, { value: ':' },
-        { value: ';' }, { value: '/' }, { value: '?' },
+        { value: '+',
+          supportsSwitching: {
+            value: ','
+          }
+        }, { value: ':' }, { value: ';' }, { value: '"' },
+        { value: '\'' }, { value: '!' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },

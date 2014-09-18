@@ -89,10 +89,11 @@ AlternativesCharMenuView.prototype.show = function(key) {
   // Make each of these alternative keys as wide as the key that
   // it is an alternative for, but adjust for the relative number of
   // characters in the original and the alternative.
-  var width = 0;
-  if (alt.length == 1) {
-    width = this.keyWidth;
-  } else {
+  var width = this.keyWidth;
+
+  // Only adjust the width when there is one row, since the key width
+  // would be fixed in 2-row case.
+  if (alt.length > 1 && this._rowCount === 1) {
     // Add some padding to the composite key.
     width = this._getCharWidth(alt) + 10;
     width = Math.max(width, this.keyWidth);

@@ -22,9 +22,12 @@ Keyboards.defaultLayout = {
         '8': ['⁸'],
         '9': ['⁹'],
         '0': ['⁰', 'º'],
-        '$': ['¥', '€', '£', 'R$', '¢', '₠'],
+        '$': [ '€', '£', '¢', '¥'],
+        '"': ['“', '”'],
+        '\'':['‘', '’'],
         '?': ['¿'],
-        '!': ['¡']
+        '!': ['¡'],
+        '+': ['-', '×', '÷', '±']
       },
       keys: [
         [
@@ -49,7 +52,7 @@ Keyboards.defaultLayout = {
           },
           { value: ':' },
           { value: ';' }, { value: '"' },
-          { value: '\'' }, { value: '?' }, { value: '!' },
+          { value: '\'' }, { value: '!' }, { value: '?' },
           { value: '⌫', ratio: 1.5, keyCode: KeyboardEvent.DOM_VK_BACK_SPACE }
         ], [
           { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
@@ -59,16 +62,16 @@ Keyboards.defaultLayout = {
     },
     { /* The 2nd page, used to be called 'symbolLayout' */
       alt: {
-        '+': '±'
+        '+': ['-', '×', '÷', '±'],
+        '®': ['™']
       },
       keys: [
         [
-          { value: '¥' }, { value: '€' }, { value: '£' }, { value: '¢' },
-          { value: '₠' }, { value: '%' }, { value: '©' }, { value: '®' },
+          { value: '€' }, { value: '£' }, { value: '¢' }, { value: '¥' },
+          { value: '%' }, { value: '©' }, { value: '®' }, { value: '·' },
           { value: '|' }, { value: '\\' }
         ], [
-          { value: '~' }, { value: '°C', compositeKey: '°C' },
-          { value: '°F', compositeKey: '°F' }, { value: '°' },
+          { value: '~' }, { value: '℃' }, { value: '℉' }, { value: '°' },
           { value: '<' }, { value: '>' }, { value: '[' }, { value: ']' },
           { value: '{' }, { value: '}' }
         ], [
@@ -78,7 +81,7 @@ Keyboards.defaultLayout = {
             targetPage: 1
           },
           { value: '+' }, { value: '=' }, { value: '`' },
-          { value: '^' }, { value: '§' }, { value: '¿'}, {value: '¡'},
+          { value: '^' }, { value: '§' }, { value: '«'}, {value: '»'},
           { value: '⌫', ratio: 1.5, keyCode: KeyboardEvent.DOM_VK_BACK_SPACE }
         ], [
           { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
