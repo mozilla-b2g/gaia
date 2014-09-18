@@ -89,7 +89,7 @@ contacts.ICE = (function() {
   /**
    * Given an object representing the internal state
    * fills the UI elements.
-   * @params iceContactsIds (Array) list of contacts and state 
+   * @params iceContactsIds (Array) list of contacts and state
    */
   function setButtonsState(iceContactsIds) {
     iceContactsIds = iceContactsIds || [];
@@ -99,13 +99,23 @@ contacts.ICE = (function() {
 
       if (iceContact.id) {
         contacts.List.getContactById(iceContact.id, function(contact) {
-          var givenName = (contact.givenName && contact.givenName[0]) || '';
-          var familyName = (contact.familyName && contact.familyName[0]) || '';
+          var givenName = (Array.isArray(contact.givenName) &&
+                           contact.givenName[0]) || '';
+          var familyName = (Array.isArray(contact.familyName) &&
+                            contact.familyName[0]) || '';
+
           var display = [givenName, familyName];
-          
+          var iceLabel = display.join(' ').trim();
+          // If contact has no name we the first tel number will be used
+          if (!iceLabel) {
+            if (Array.isArray(contact.tel) && contact.tel[0]) {
+              iceLabel = contact.tel[0].value.trim();
+            }
+          }
+
           var span = document.createElement('span');
           span.classList.add('ice-contact');
-          span.textContent = display.join(' ').trim();
+          span.textContent = iceLabel;
           iceContactButtons[index].innerHTML = '';
           iceContactButtons[index].appendChild(span);
         });
@@ -162,7 +172,7 @@ contacts.ICE = (function() {
   }
 
   /**
-   * Set the values for ICE contacts, both in local and in the 
+   * Set the values for ICE contacts, both in local and in the
    * datastore
    * @param id (string) contact id
    * @param pos (int) current position (0,1)
@@ -177,7 +187,7 @@ contacts.ICE = (function() {
         cb();
       }
     });
-    
+
   }
 
   function reset() {
