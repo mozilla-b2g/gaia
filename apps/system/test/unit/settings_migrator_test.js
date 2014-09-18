@@ -9,6 +9,8 @@ suite('system/settings_migrator', function() {
   var realL10n, realSettings;
   var clock;
   var keyHour12 = 'locale.hour12';
+  var keyDoNotTrackEnabled = 'privacy.donottrackheader.enabled';
+  var keyDoNotTrackValue = 'privacy.donottrackheader.value';
 
   suiteSetup(function() {
     clock = sinon.useFakeTimers();
@@ -71,6 +73,69 @@ suite('system/settings_migrator', function() {
     test('key should be remain the same', function() {
       assert.ok(!navigator.mozL10n.get.called);
       assert.equal(window.navigator.mozSettings.mSettings[keyHour12], true);
+    });
+  });
+
+  suite('if users dont have any preference', function() {
+    setup(function(done) {
+      window.navigator.mozSettings.mSetup();
+      window.settingsMigrator = new SettingsMigrator();
+      window.settingsMigrator.start();
+      clock.tick(50);
+      done();
+    });
+
+    test('nothing would be set', function() {
+      assert.equal(
+        window.navigator.mozSettings.mSettings[keyDoNotTrackValue], undefined);
+    });
+  });
+
+  suite('if users have preference before', function() {
+    suite('preference is 0', function() {
+      setup(function(done) {
+        window.navigator.mozSettings.mSetup();
+        var cset = {};
+        cset[keyDoNotTrackValue] = '0';
+        window.navigator.mozSettings.mSet(cset);
+
+        window.settingsMigrator = new SettingsMigrator();
+        window.settingsMigrator.start();
+        clock.tick(50);
+        done();
+      });
+
+      test('change enabled to true and remove preference', function() {
+        assert.equal(
+          window.navigator.mozSettings.mSettings[keyDoNotTrackEnabled], true);
+        assert.equal(
+          window.navigator.mozSettings.mSettings[keyDoNotTrackValue],
+          undefined);
+      });
+    });
+
+    [1, -1].forEach(function(preferenceKey) {
+      suite('preference is ' + preferenceKey, function() {
+        setup(function(done) {
+          window.navigator.mozSettings.mSetup();
+          var cset = {};
+          cset[keyDoNotTrackValue] = preferenceKey;
+          window.navigator.mozSettings.mSet(cset);
+
+          window.settingsMigrator = new SettingsMigrator();
+          window.settingsMigrator.start();
+          clock.tick(50);
+          done();
+        });
+        test('change enabled to false and remove preference', function() {
+          assert.equal(
+            window.navigator.mozSettings.mSettings[keyDoNotTrackEnabled],
+              false);
+          assert.equal(
+            window.navigator.mozSettings.mSettings[keyDoNotTrackValue],
+              undefined);
+        });
+      });
     });
   });
 });

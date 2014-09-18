@@ -9,6 +9,8 @@
    */
   var SettingsMigrator = function SettingsMigrator() {
     this._kLocaleTime = 'locale.hour12';
+    this._kDoNotTrackEnabled = 'privacy.donottrackheader.enabled';
+    this._kDoNotTrackValue = 'privacy.donottrackheader.value';
   };
 
   SettingsMigrator.prototype = {
@@ -27,15 +29,26 @@
      * @param  {[type]} result all settings keys
      */
     keyMigration: function km_keyMigration(result) {
+      var cset = {};
+
       // locale.hour12
       if (result[this._kLocaleTime] === undefined) {
         var _ = navigator.mozL10n.get;
         var localeTimeFormat = _('shortTimeFormat');
         var is12hFormat = (localeTimeFormat.indexOf('%I') >= 0);
-        var cset = {};
         cset[this._kLocaleTime] = is12hFormat;
-        window.navigator.mozSettings.createLock().set(cset);
       }
+
+      // do not track
+      var preference = result[this._kDoNotTrackValue];
+      if (preference !== undefined) {
+        // we have to set it back to undefined to make sure 
+        // this operation will only be executed once
+        cset[this._kDoNotTrackValue] = undefined;
+        cset[this._kDoNotTrackEnabled] = (preference === '0');
+      }
+
+      window.navigator.mozSettings.createLock().set(cset);
     }
   };
 
