@@ -685,24 +685,15 @@ var Compose = (function() {
         state.segmentInfo.segments > Settings.maxConcatenatedMessages;
       /* Bug 1026384: if a recipient is a mail, the type must be MMS
        * Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
-       * property
+       * property */
       var hasEmailRecipient = ThreadUI.recipients.list.some(
         function(recipient) { return recipient.isEmail; }
       );
-      */
 
       /* Note: in the future, we'll maybe want to force 'mms' from the UI */
       var newType =
-        hasAttachment() || hasSubject() || isTextTooLong ?
+        hasAttachment() || hasSubject() || isTextTooLong || hasEmailRecipient ?
         'mms' : 'sms';
-
-      var list = ThreadUI.recipients.list;
-      for (var i = 0; i < list.length; i++) {
-        if (Utils.isEmailAddress(list[i].number)) {
-          newType = 'mms';
-          break;
-        }
-      }
 
       if (newType !== state.type) {
         state.type = newType;
@@ -743,6 +734,10 @@ var Compose = (function() {
             (recipientsValue && isFinite(recipientsValue)))) {
 
         hasRecipients = true;
+      }
+
+      if (Settings.supportEmailRecipient) {
+        Compose.updateType();
       }
 
       // should disable if the message is too long
@@ -947,5 +942,6 @@ var Compose = (function() {
       dom.message.classList.toggle('ignoreEvents', value);
     }
   });
+
   return compose;
 }());
