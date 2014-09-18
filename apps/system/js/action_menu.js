@@ -202,6 +202,12 @@
 
         case 'attentionopened':
           this.hide();
+          window.addEventListener('attentionclosed', this, true);
+          break;
+
+        case 'attentionclosed':
+          this.start();
+          window.removeEventListener('attentionclosed', this, true);
           break;
       }
     }

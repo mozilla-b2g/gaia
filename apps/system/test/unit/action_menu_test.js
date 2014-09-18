@@ -182,6 +182,21 @@ suite('ActionMenu', function() {
       });
       assert.isTrue(menu.hide.called);
     });
+
+    test('attention window close will show the action menu', function() {
+      var menu = new ActionMenu(genericActionsMockup, title);
+      menu.start();
+      this.sinon.spy(menu, 'hide');
+      this.sinon.spy(menu, 'start');
+      menu.handleEvent({
+        type: 'attentionopened'
+      });
+      assert.isTrue(menu.hide.calledOnce);
+      menu.handleEvent({
+        type: 'attentionclosed'
+      });
+      assert.isTrue(menu.start.calledOnce);
+    });
   });
 
   suite('events that dismiss action menu', function() {
