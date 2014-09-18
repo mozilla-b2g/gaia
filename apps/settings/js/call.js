@@ -50,7 +50,7 @@ require([
       CALL_BARRING_BAOC: 0,     // BAOC: Barring All Outgoing Calls
       CALL_BARRING_BOIC: 1,     // BOIC: Barring Outgoing International Calls
       CALL_BARRING_BOICexHC: 2, // BOICexHC: Barring Outgoing International
-                                //  Calls Except  to Home Country
+                                //           Calls Except  to Home Country
       CALL_BARRING_BAIC: 3,     // BAIC: Barring All Incoming Calls
       CALL_BARRING_BAICr: 4     // BAICr: Barring All Incoming Calls in Roaming
     };
@@ -1086,7 +1086,7 @@ require([
     function _getCallBarring(id) {
       var options = {
         'program': _cbServiceMapper[id],
-        'password': '0000', // optional
+        // 'password': '0000', // optional
         'serviceClass': _voiceServiceClassMask
       };
 
@@ -1135,6 +1135,8 @@ require([
       var inputBaicR =
         document.querySelector('#li-cb-baic-r .checkbox-label input');
 
+      var changePassword = document.getElementById('li-cb-pswd');
+
       var callBarringClick = function(event) {
         console.log('EVENT: ' + JSON.stringify(event));
         console.log('TARGET: ' + JSON.stringify(event.target));
@@ -1171,11 +1173,17 @@ require([
         );
       };
 
+      var changeCallBarringPassword = function(event) {
+        alert('YO YO YO ');
+      };
+
       inputBaoc.addEventListener('change', callBarringClick);
       inputBoic.addEventListener('change', callBarringClick);
       inputBoicExhc.addEventListener('change', callBarringClick);
       inputBaic.addEventListener('change', callBarringClick);
       inputBaicR.addEventListener('change', callBarringClick);
+
+      changePassword.addEventListener('click', changeCallBarringPassword);
     }
 
     /**
