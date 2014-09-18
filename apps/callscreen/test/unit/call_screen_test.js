@@ -743,7 +743,7 @@ suite('call screen', function() {
     });
 
     test('should show the banner', function() {
-      assert.include(bannerClass, 'visible');
+      assert.isTrue(bannerClass.contains('visible'));
     });
     test('should show the text', function() {
       assert.equal(statusMessage.querySelector('p').textContent,
