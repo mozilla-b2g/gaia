@@ -125,6 +125,7 @@
    "phone.dtmf.type": "long",
    "powersave.enabled": false,
    "powersave.threshold": -1,
+   "privacy.donottrackheader.value": "-1",
    "privacy.donottrackheader.enabled": false,
    "ril.telephony.defaultServiceId": 0,
    "ril.voicemail.defaultServiceId": 0,

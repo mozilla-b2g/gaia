@@ -833,7 +833,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                                         "{'app://keyboard.gaiamobile.org/manifest.webapp': {'en': True, 'number': True}}")
 
             # reset do not track
-            self.data_layer.set_setting('privacy.donottrackheader.enabled', False)
+            self.data_layer.set_setting('privacy.donottrackheader.value', '-1')
 
             if self.data_layer.get_setting('airplaneMode.enabled'):
                 # enable the device radio, disable airplane mode

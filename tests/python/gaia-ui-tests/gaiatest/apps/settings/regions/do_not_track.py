@@ -9,14 +9,28 @@ from gaiatest.apps.base import Base
 
 class DoNotTrack(Base):
 
-    _tracking_checkbox_locator = (By.XPATH, "//input[@name='privacy.donottrackheader.enabled']/..")
+    _allow_tracking_checkbox_locator = (By.XPATH, '//li/label[span[@data-l10n-id="allowTracking"]]')
+    _disallow_tracking_checkbox_locator = (By.XPATH, '//li/label[span[@data-l10n-id="doNotTrackActions"]]')
+    _do_not_have_pref_on_tracking_checkbox_locator = (By.XPATH, '//li/label[span[@data-l10n-id="doNotHavePrefOnTracking"]]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         self.data_layer = GaiaData(self.marionette)
 
-    def tap_tracking(self, enabled):
-        if self.data_layer.get_setting('privacy.donottrackheader.enabled') != enabled:
-            el = self.marionette.find_element(*self._tracking_checkbox_locator)
-            el.tap()
-            self.wait_for_condition(lambda m: self.data_layer.get_setting('privacy.donottrackheader.enabled') == enabled)
+    def tap_allow_tracking(self):
+        el = self.marionette.find_element(*self._allow_tracking_checkbox_locator)
+        el.tap()
+        self.wait_for_condition(lambda m: self.data_layer.get_setting('privacy.donottrackheader.value') == '0')
+        self.wait_for_condition(lambda m: self.data_layer.get_bool_pref('privacy.donottrackheader.enabled') == True)
+
+    def tap_disallow_tracking(self):
+        el = self.marionette.find_element(*self._disallow_tracking_checkbox_locator)
+        el.tap()
+        self.wait_for_condition(lambda m: self.data_layer.get_setting('privacy.donottrackheader.value') == '1')
+        self.wait_for_condition(lambda m: self.data_layer.get_bool_pref('privacy.donottrackheader.enabled') == True)
+
+    def tap_do_not_have_pref_on_tracking(self):
+        el = self.marionette.find_element(*self._do_not_have_pref_on_tracking_checkbox_locator)
+        el.tap()
+        self.wait_for_condition(lambda m: self.data_layer.get_setting('privacy.donottrackheader.value') == '-1')
+        self.wait_for_condition(lambda m: self.data_layer.get_bool_pref('privacy.donottrackheader.enabled') == False)
