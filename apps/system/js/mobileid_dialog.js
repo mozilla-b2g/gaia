@@ -104,8 +104,7 @@
       this.panel.innerHTML = '';
       this.panel.classList.remove('closing');
       this.panel.classList.remove('opening');
-      this.panel.parentNode.removeChild(this.panel);
-      this.panel = null;
+      this.reset();
 
       if (typeof onClosed === 'function') {
         onClosed();
@@ -120,6 +119,14 @@
     );
 
     this.panel.classList.add('closing');
+  };
+
+  MobileIdDialog.prototype.reset = function mobileid_reset() {
+    if (!this.panel) {
+      return;
+    }
+    this.panel.parentNode.removeChild(this.panel);
+    this.panel = null;
   };
 
   exports.MobileIdDialog = MobileIdDialog;
