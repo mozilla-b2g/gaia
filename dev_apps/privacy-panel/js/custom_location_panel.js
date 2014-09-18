@@ -5,7 +5,6 @@ function CustomLocationPanel(rootPanelId) {
   // TODO: remove fallback when simulator allows us to
   // access mozL10n (on device works ok)
   this.l10n = navigator.mozL10n || { get: function(b) { return b;} };
-  this.onChange = function(settings) {};
 
   this.$root = document.getElementById(rootPanelId ? rootPanelId : 'root');
   this.$box = document.getElementById('DCL');
@@ -28,34 +27,36 @@ function CustomLocationPanel(rootPanelId) {
     latitudeChange: this.toggleLatitude.bind(this)
   };
 
-  this.countriesAndCities = { 'poland': {
-         'warsaw': { lon: 15, lat: 51 },
-         'zielona-gora': { lon: 16, lat: 51 },
-         'wroclaw': { lon: 17, lat: 51 },
-         'poznan': { lon: 18, lat: 51 },
-       },
-       'germany': {
-         'berlin': { lon: 13, lat:42},
-         'colln': {lon:13, lat:41},
-         'frankfurt': {lon:14, lat:43},
-         'hannover': {lon:15, lat:41}
-       }};
+  this.countriesAndCities = {
+    'poland': {
+      'warsaw': { lon: 15, lat: 51 },
+      'zielona-gora': { lon: 16, lat: 51 },
+      'wroclaw': { lon: 17, lat: 51 },
+      'poznan': { lon: 18, lat: 51 },
+    },
+    'germany': {
+      'berlin': { lon: 13, lat:42},
+      'colln': {lon:13, lat:41},
+      'frankfurt': {lon:14, lat:43},
+      'hannover': {lon:15, lat:41}
+    }
+  };
 
   this.cities = {};
   this.settings = {};
-};
+}
 
 CustomLocationPanel.prototype = {
 
-  initAndShow: function(customLocationSettings) {
+  initAndShow: function(customLocationSettings, callback) {
+    this.callback = callback || function(){};
+
     this.settings = customLocationSettings || { type: 'gps' };
 
     this.updateCountriesList();
     this.updateType();
 
     this.show();
-
-    this.changedParameters();
   },
 
   show: function() {
@@ -269,6 +270,6 @@ CustomLocationPanel.prototype = {
   },
 
   changedParameters: function() {
-    this.onChange(this.settings);
+    this.callback(this.settings);
   }
 };

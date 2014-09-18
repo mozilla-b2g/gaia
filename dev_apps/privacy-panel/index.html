@@ -79,26 +79,16 @@
     </section>
 
     <!-- Location Accuracy -->
-    <section role="region" id="ALA" class="current skin-organic context-ROOT" data-rendered="true" style="display: none;">
+    <section role="region" id="ALA" class="current skin-organic" data-rendered="true" style="display: none;">
       <header>
         <a href="#" id="ALA-back">
           <span class="icon icon-back">back</span>
-        </a>
-        <a href="#" id="ALA-app-back" style="display: none;">
-            <span class="icon icon-back">back</span>
         </a>
         <h1 data-l10n-id="ALA-panel">Location Accuracy</h1>
       </header>
 
       <div>
-        <ul id="application-info" style="display: none;">
-            <li class="setting-box description">
-                <p class="description-for-root">
-                <small data-l10n-id="appDescritpion">Adjust the custom location accuracy level of the following app:</small>
-                </p>
-            </li>
-        </ul>
-        <ul id="geolocation-switch-box">
+        <ul>
           <li>
             <label class="pack-switch">
               <input id="geolocation-switch" type="checkbox" class="uninit">
@@ -107,21 +97,19 @@
           </li>
         </ul>
         <ul id="geolocation-box" class="settings-disabled">
-          <div id="main-panel">
-            <li id="settings-switch-box">
-              <label class="pack-switch">
-                <input id="settings-switch" type="checkbox" class="uninit">
-                <span data-l10n-id="useLocationBlur">Use location blur</span>
-              </label>
-            </li>
+          <li>
+            <label class="pack-switch">
+              <input id="settings-switch" type="checkbox" class="uninit">
+              <span data-l10n-id="useLocationBlur">Use location blur</span>
+            </label>
+          </li>
 
-            <li class="setting-box description">
-              <p class="description-for-root">
-                <small data-l10n-id="locationBlurDescritpion">Adjust the global accuracy level of your current location for all apps, define and set a permanent fixed location and add exceptions for single apps.</small>
-              </p>
-            </li>
-          </div>
-          <li class="setting-box app-box">
+          <li class="setting-box description">
+            <p>
+              <small data-l10n-id="locationBlurDescritpion">Adjust the global accuracy level of your current location for all apps, define and set a permanent fixed location and add exceptions for single apps.</small>
+            </p>
+          </li>
+          <li class="setting-box">
             <p></p>
             <span class="button icon icon-dialog">
               <select id="ALA-type">
@@ -145,14 +133,12 @@
               <span data-l10n-id="set-custom-location">Set custom location</span>
             </a>
           </li>
-         
-          <label id="exceptions">
+
           <li class="setting-box add-exception-box">
             <a id="add-exception" class="menu-item" data-icon="notifications" href="#add-exception">
               <span data-l10n-id="addException">Add exceptions</span>
             </a>
           </li>
-          </label>
         </ul>
       </div>
     </section>
@@ -172,6 +158,57 @@
             <p>
               <small data-l10n-id="appListDescritpion">This list shows all the apps, which are allowed to use your location.</small>
             </p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Location Accuracy Application Panel -->
+    <section role="region" id="app-panel" class="current skin-organic" data-rendered="true" style="display: none;">
+      <header>
+        <a href="#add-exception" id="app-back">
+          <span class="icon icon-back">back</span>
+        </a>
+        <h1 data-l10n-id="ALA-panel">Location Accuracy</h1>
+      </header>
+
+      <div>
+        <ul>
+          <li class="description">
+            <p>
+              <small data-l10n-id="exceptionsApplicationDescritpion">Adjust the custom location accuracy level of the following app:</small>
+            </p>
+          </li>
+          <li class="app-info app-element">
+            <a>
+              <img src="">
+              <span></span>
+            </a>
+          </li>
+          <li>
+            <p></p>
+            <span class="button icon icon-dialog">
+              <select id="app-type">
+                <option value="system-settings" data-l10n-id="typeSystemSettings">System Settings</option>
+                <option value="blur" data-l10n-id="typeBlur">Blur</option>
+                <option value="user-defined" data-l10n-id="typeUserDefined">User Defined</option>
+                <option value="no-location" data-l10n-id="typeNoLocation">No Location</option>
+                <option value="precise" data-l10n-id="typePrecise">Precise</option>
+              </select>
+            </span>
+          </li>
+
+          <li id="app-type-blur" class="type-box disabled">
+            <label>
+              <p id="app-blur-label"></p>
+              <input id="app-blur-slider" class="blur-slider" step="1" min="1" max="12" type="range" >
+            </label>
+          </li>
+
+          <li id="app-type-custom-location" class="type-box disabled">
+            <a class="menu-item" data-icon="notifications" href="#set-custom-location">
+              <span data-l10n-id="set-custom-location">Set custom location</span>
+            </a>
           </li>
         </ul>
       </div>

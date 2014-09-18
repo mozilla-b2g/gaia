@@ -31,15 +31,19 @@ input[type="range"].blur-slider {
   border-top: none;
 }
 
-#app-list li img {
+.app-element img {
   height: 3rem;
   margin-right: 1.4rem;
   width: 3rem;
 }
 
-#app-list li > a  {
+.app-element a {
   align-items: center;
   flex-direction: row;
   justify-content: flex-start;
   padding-left: 2rem;
+}
+
+.app-info {
+  border-top: none;
 }

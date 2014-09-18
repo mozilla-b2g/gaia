@@ -13,28 +13,23 @@ var app = app || {};
     }
 
     app.elements = {
-      context: 'ROOT',
       $root:          document.getElementById('root'),
       $rootBackBtn:   document.getElementById('back'),
+      currentApp:     null,
       ALA: {
         $link:        document.getElementById('menuItem-ALA'),
         $back:        document.getElementById('ALA-back'),
-        $backapp:     document.getElementById('ALA-app-back'),
         $box:         document.getElementById('ALA'),
-        $app:         document.getElementById('application-info'),
         geo: {
-          $switchBox: document.getElementById('geolocation-switch-box'),
           $switch:    document.getElementById('geolocation-switch'),
-          $box:       document.getElementById('geolocation-box'),
-          $main:      document.getElementById('main-panel')
+          $box:       document.getElementById('geolocation-box')
         },
         settings: {
-          $switchBox: document.getElementById('settings-switch-box'),
           $switch:    document.getElementById('settings-switch')
         },
         type: {
           $select:    document.getElementById('ALA-type'),
-          $elements:  document.querySelectorAll('.type-box'),
+          $elements:  document.getElementById('ALA').querySelectorAll('.type-box'),
           $blurBox:   document.getElementById('type-blur'),
           $blurSlider:document.getElementById('blur-slider'),
           $blurLabel: document.getElementById('blur-label'),
@@ -42,14 +37,26 @@ var app = app || {};
         },
         exception: {
           $box:       document.getElementById('add-exception-box'),
-          $link:      document.getElementById('add-exception'),
-          $main:      document.getElementById('exceptions')
+          $link:      document.getElementById('add-exception')
         }
       },
       Exceptions: {
         $box:         document.getElementById('excepions-panel'),
         $back:        document.getElementById('exceptions-back'),
         $appBox:      document.getElementById('app-list')
+      },
+      Application: {
+        $box:         document.getElementById('app-panel'),
+        $back:        document.getElementById('app-back'),
+        type: {
+          $select:    document.getElementById('app-type'),
+          $elements:  document.getElementById('app-panel').querySelectorAll('.type-box'),
+          $blurBox:   document.getElementById('app-type-blur'),
+          $blurSlider:document.getElementById('app-blur-slider'),
+          $blurLabel: document.getElementById('app-blur-label'),
+          $customBox: document.getElementById('app-type-custom-location'),
+          $infoBox:   document.getElementById('app-panel').querySelector('.app-info')
+        }
       },
       RPP: {
         $link:        document.getElementById('menuItem-RPP'),
@@ -108,15 +115,21 @@ var app = app || {};
       app.elements.appList = apps;
     });
 
+    // prepare exception list
+    var applicationList = this.settings.createLock().get('geolocation.exceptions');
+    applicationList.onsuccess = function() {
+      app.elements.exceptionsList = applicationList.result['geolocation.exceptions'] || {};
+    };
+
+
     // listeners for ALA
     app.elements.ALA.$link.addEventListener('click', app.showALABox);
     app.elements.ALA.$back.addEventListener('click', app.showRootBox);
-    app.elements.ALA.$backapp.addEventListener('click', app.showExceptions);
 
-    app.elements.ALA.geo.$switch.addEventListener('click', function(event) { app.toggleGeolocation(event.target.checked); });
-    app.elements.ALA.settings.$switch.addEventListener('click', function(event) { app.toggleSettings(event.target.checked); });
+    app.elements.ALA.geo.$switch.addEventListener('click', function(event) { app.toggleGeolocation(event.target.checked, true); });
+    app.elements.ALA.settings.$switch.addEventListener('click', function(event) { app.toggleSettings(event.target.checked, true); });
 
-    app.elements.ALA.type.$select.addEventListener('change', function(event) { app.changeType(event.target.value); });
+    app.elements.ALA.type.$select.addEventListener('change', function(event) { app.changeType(event.target.value, true); });
     app.elements.ALA.type.$blurSlider.addEventListener('change', function(event) { app.changeBlurSlider(event.target.value); });
     app.elements.ALA.type.$blurSlider.addEventListener('touchmove', function(event) { app.updateSliderLabel(event.target.value); });
     app.elements.ALA.type.$customBox.addEventListener('click', app.showCustomLocationBox);
@@ -125,6 +138,16 @@ var app = app || {};
 
     // listeners for Exceptions
     app.elements.Exceptions.$back.addEventListener('click', app.backToALA);
+
+    // listeners for Application Panel
+    app.elements.Application.$back.addEventListener('click', function() {
+      app.elements.currentApp = null;
+      app.showExceptions();
+    });
+    app.elements.Application.type.$select.addEventListener('change', function(event) { app.changeAppType(event.target.value, true); });
+    app.elements.Application.type.$blurSlider.addEventListener('change', function(event) { app.changeAppBlurSlider(event.target.value); });
+    app.elements.Application.type.$blurSlider.addEventListener('touchmove', function(event) { app.updateAppSliderLabel(event.target.value); });
+    app.elements.Application.type.$customBox.addEventListener('click', app.showAppCustomLocationBox);
 
     // listeners for RPP
     app.elements.RPP.$link.addEventListener('click', app.showRPPBox);
@@ -139,8 +162,6 @@ var app = app || {};
     app.elements.RPP.RemoteRing.$input.addEventListener('change', function(event) { app.toggleRemoteRing(event.target.checked); });
     app.elements.RPP.RemoteLock.$input.addEventListener('change', function(event) { app.toggleRemoteLock(event.target.checked); });
     app.elements.RPP.RemoteWipe.$input.addEventListener('change', function(event) { app.toggleRemoteWipe(event.target.checked); });
-
-    app.elements.DCL.onChange = app.toggleCustomLocationSettings;
   };
 
   /**
@@ -194,17 +215,7 @@ var app = app || {};
   app.showALABox = function() {
     app.elements.$root.style.display = 'none';
     app.elements.ALA.$box.style.display = 'block';
-    app.elements.ALA.geo.$box.style.display = 'none';
-    app.elements.ALA.geo.$main.style.display = 'block';
-    app.elements.ALA.exception.$main.style.display = 'block';
-    app.elements.ALA.exception.$main.style.display = 'block';
- 
-    //set up the back button
-    app.elements.ALA.$back.style.display = 'block';
-    app.elements.ALA.$backapp.style.display = 'none';
-    app.elements.ALA.$app.style.display = 'none';
-    app.elements.Exceptions.$back.style.display='none';
-
+    app.toggleGeolocation(false, false);
 
     // check if geolocation is enabled
     var status1 = app.settings.createLock().get('geolocation.enabled');
@@ -212,7 +223,7 @@ var app = app || {};
       var showGeolocation = status1.result['geolocation.enabled'];
 
       // show Geolocation box if enabled
-      app.elements.ALA.geo.$box.style.display = (showGeolocation) ? 'block' : 'none';
+      app.toggleGeolocation(showGeolocation, false);
 
       // set switch position
       app.elements.ALA.geo.$switch.checked = showGeolocation;
@@ -224,20 +235,35 @@ var app = app || {};
       var showSettings = status2.result['ala.settings.enabled'];
 
       // show setting-boxes if settings enabled
-      if (showSettings) {
-        app.elements.ALA.geo.$box.classList.add('settings-enabled');
-        app.elements.ALA.geo.$box.classList.remove('settings-disabled');
-      } else {
-        app.elements.ALA.geo.$box.classList.remove('settings-enabled');
-        app.elements.ALA.geo.$box.classList.add('settings-disabled');
-      }
+      app.toggleSettings(showSettings, false);
 
       // set settings switch position
       app.elements.ALA.settings.$switch.checked = showSettings;
     };
 
-    // display settings
-    app.displaySettingsInRootContext();
+    // get blur type value
+    var status3 = app.settings.createLock().get('geolocation.blur.type');
+    status3.onsuccess = function() {
+      var type = status3.result['geolocation.blur.type'];
+
+      // set checkbox value
+      app.elements.ALA.type.$select.value = type;
+
+      // change settings type
+      app.changeType(type, false);
+    };
+
+    // get blur radius value
+    var status4 = app.settings.createLock().get('geolocation.blur.slider');
+    status4.onsuccess = function() {
+      var sliderValue = status4.result['geolocation.blur.slider'];
+
+      // set slider value
+      app.elements.ALA.type.$blurSlider.value = sliderValue;
+
+      // set slider label
+      app.updateSliderLabel(sliderValue);
+    };
   };
 
   /**
@@ -245,13 +271,14 @@ var app = app || {};
    */
   app.showCustomLocationBox = function() {
     var customSettings = {};
-    var customSettingsKeys = [{ key: 'geolocation.blur.cl.type', name: "type" },
-               { key: 'geolocation.blur.cl.country', name: "country" },
-               { key: 'geolocation.blur.cl.city', name: "city" },
-               { key: 'geolocation.blur.longitude', name: "longitude" },
-               { key: 'geolocation.blur.latitude', name: "latitude" },
-               { key: 'geolocation.blur.cl.type', name: "type" }
-             ];
+    var customSettingsKeys = [
+      { key: 'geolocation.blur.cl.type',    name: "type" },
+      { key: 'geolocation.blur.cl.country', name: "country" },
+      { key: 'geolocation.blur.cl.city',    name: "city" },
+      { key: 'geolocation.blur.longitude',  name: "longitude" },
+      { key: 'geolocation.blur.latitude',   name: "latitude" },
+      { key: 'geolocation.blur.cl.type',    name: "type" }
+    ];
 
     var lock = app.settings.createLock();
     var toCompletion = customSettingsKeys.length;
@@ -264,52 +291,56 @@ var app = app || {};
         }
 
         if (--toCompletion === 0) {
-          app.elements.DCL.initAndShow(customSettings);
+          app.elements.DCL.initAndShow(customSettings, app.saveCustomLocation);
         }
       };
       getReq.onerror = function() {
         if (--toCompletion === 0) {
-          app.elements.DCL.initAndShow(customSettings);
+          app.elements.DCL.initAndShow(customSettings, app.saveCustomLocation);
         }
       };
     });
   };
 
   /**
-   * Toggle custom setting box.
-   * @param {Boolean} value
+   * Save custom location settings.
+   * @param {Object} settings
    */
-  app.toggleCustomLocationSettings = function(settings) {
+  app.saveCustomLocation = function(settings) {
     var lock = app.settings.createLock();
-    var flag = settings.latitude || settings.longitude;
+    var flag = settings.latitude && settings.longitude;
 
-    lock.set({ 'geolocation.blur.cl.type': settings.type,
-               'geolocation.blur.cl.country': settings.country,
-               'geolocation.blur.cl.city': settings.city,
-               'geolocation.blur.longitude': settings.longitude,
-               'geolocation.blur.latitude': settings.latitude,
-               'geolocation.blur.coords': flag ? '@' + settings.latitude + ',' + settings.longitude : ''
-             });
+    lock.set({
+      'geolocation.blur.cl.type':     settings.type,
+      'geolocation.blur.cl.country':  settings.country,
+      'geolocation.blur.cl.city':     settings.city,
+      'geolocation.blur.longitude':   settings.longitude,
+      'geolocation.blur.latitude':    settings.latitude,
+      'geolocation.blur.coords':      flag ? '@' + settings.latitude + ',' + settings.longitude : ''
+    });
   };
 
   /**
    * Toggle Geolocation box
    * @param {Boolean} value
+   * @param {Boolean} save
    */
-  app.toggleGeolocation = function(value) {
+  app.toggleGeolocation = function(value, save) {
     // toggle geolocation box
     app.elements.ALA.geo.$box.style.display = (value) ? 'block' : 'none';
 
-    // save current value to settins
-    app.settings.createLock().set({ 'geolocation.enabled': value });
+    if (save) {
+      // save current value to settings
+      app.settings.createLock().set({ 'geolocation.enabled': value });
+    }
   };
-
 
   /**
    * Toggle setting box.
    * @param {Boolean} value
+   * @param {Boolean} save
    */
-  app.toggleSettings = function(value) {
+  app.toggleSettings = function(value, save) {
     if (value) {
       app.elements.ALA.geo.$box.classList.add('settings-enabled');
       app.elements.ALA.geo.$box.classList.remove('settings-disabled');
@@ -318,18 +349,23 @@ var app = app || {};
       app.elements.ALA.geo.$box.classList.add('settings-disabled');
     }
 
-    app.settings.createLock().set({ 'ala.settings.enabled': value });
+    if (save) {
+      app.settings.createLock().set({ 'ala.settings.enabled': value });
+    }
   };
 
 
   /**
    * Change ALA type
    * @param {String} value
+   * @param {Boolean} save
    */
-  app.changeType = function(value) {
+  app.changeType = function(value, save) {
 
-    // save current type
-    app.settings.createLock().set({ 'geolocation.blur.type': value });
+    if (save) {
+      // save current type
+      app.settings.createLock().set({'geolocation.blur.type': value});
+    }
 
     // hide all elements
     for (var $el of app.elements.ALA.type.$elements) {
@@ -354,52 +390,15 @@ var app = app || {};
   };
 
   /**
-   * Display settings in ROOT context
-   */
-  app.displaySettingsInRootContext = function() {
-    // show geolocation switch box and settings switch boxes
-    app.elements.ALA.geo.$switchBox.style.display = 'block';
-    app.elements.ALA.settings.$switchBox.style.display = 'block';
-
-    // show description for root
-    app.elements.ALA.geo.$box.querySelector('.description-for-root');
-
-    // get blur type value
-    var status1 = app.settings.createLock().get('geolocation.blur.type');
-    status1.onsuccess = function() {
-      var type = status1.result['geolocation.blur.type'];
-
-      // set checkbox value
-      app.elements.ALA.type.$select.value = type;
-
-      // change settings type
-      app.changeType(type);
-    };
-
-    // get blur radius value
-    var status2 = app.settings.createLock().get('geolocation.blur.slider');
-    status2.onsuccess = function() {
-      var sliderValue = status2.result['geolocation.blur.slider'];
-
-      // set slider value
-      app.elements.ALA.type.$blurSlider.value = sliderValue;
-
-      // set slider label
-      app.elements.ALA.type.$blurLabel.textContent = app.getRadiusLabel(sliderValue);
-    };
-  };
-
-  /**
-   *
+   * Update slider label
    * @param {Number} value
    */
   app.updateSliderLabel = function(value) {
-    // set slider label
     app.elements.ALA.type.$blurLabel.textContent = app.getRadiusLabel(value);
   };
 
   /**
-   *
+   * Change blur slider
    * @param {Number} value
    */
   app.changeBlurSlider = function(value) {
@@ -410,7 +409,7 @@ var app = app || {};
     app.settings.createLock().set({ 'geolocation.blur.radius': app.getRadiusValue(value) });
 
     // set slider label
-    app.elements.ALA.type.$blurLabel.textContent = app.getRadiusLabel(value);
+    app.updateSliderLabel(value);
   };
 
   /**
@@ -465,20 +464,8 @@ var app = app || {};
    */
   app.showExceptions = function() {
     app.elements.ALA.$box.style.display = 'none';
+    app.elements.Application.$box.style.display = 'none';
     app.elements.Exceptions.$box.style.display = 'block';
- 
-    //set up the back button
-    app.elements.ALA.$back.style.display = 'none';
-    app.elements.ALA.$backapp.style.display = 'none';
-//    app.elements.ALA.$app.style.display = 'none';
-    app.elements.Exceptions.$back.style.display='block';
- 
-    app.elements.ALA.geo.$main.style.display = 'block';
-    app.elements.ALA.geo.$switchBox.style.display = 'block';
-    app.elements.ALA.exception.$main.style.display = 'block';
-    app.elements.ALA.$app.style.display = 'none';
- 
- 
 
     // render app list
     var manifest, icon, li;
@@ -488,6 +475,7 @@ var app = app || {};
       icon = AppList.icon(item);
 
       li = app.genAppItemTemplate({
+        manifestUrl: item.manifestURL,
         name: manifest.name,
         index: index,
         iconSrc: icon
@@ -495,24 +483,6 @@ var app = app || {};
       app.elements.Exceptions.$appBox.appendChild(li);
     });
   };
- 
- /**
-  * Show App panel
-  */
- app.showAppPanel = function(link){
-  app.elements.ALA.$box.style.display = 'block';
-  app.elements.ALA.geo.$main.style.display = 'none';
-  app.elements.ALA.geo.$switchBox.style.display = 'none';
-  app.elements.Exceptions.$box.style.display = 'none';
-  app.elements.ALA.exception.$main.style.display = 'none';
-  app.elements.ALA.$app.style.display = 'block';
-  //app.elements.ALA.$app.appendChild(link);
- 
-//  //set up the back button
-  app.elements.ALA.$back.style.display = 'none';
-  app.elements.ALA.$backapp.style.display = 'block';
-  app.elements.Exceptions.$back.style.display='none';
- };
 
   /**
    * Render App item
@@ -525,11 +495,11 @@ var app = app || {};
     var link = document.createElement('a');
     var name = document.createTextNode(itemData.name);
     icon.src = itemData.iconSrc;
-    link.dataset.appIndex = itemData.index;
     link.classList.add('menu-item');
     link.appendChild(icon);
     link.appendChild(name);
-    link.addEventListener('click', function(){app.showAppPanel(link)});
+    link.addEventListener('click', function(){ app.showApplicationPanel(itemData); });
+    item.classList.add('app-element');
     item.appendChild(link);
     return item;
   };
@@ -540,13 +510,179 @@ var app = app || {};
   app.backToALA = function() {
     app.elements.ALA.$box.style.display = 'block';
     app.elements.Exceptions.$box.style.display = 'none';
- 
-    //set up the back button
-    app.elements.ALA.$back.style.display = 'block';
-    app.elements.ALA.$backapp.style.display = 'none';
-    app.elements.ALA.$app.style.display = 'none';
-    app.elements.Exceptions.$back.style.display='none';
+  };
 
+  /**** Application part ******************************************************/
+  /**
+   * Show Application Panel
+   * @param itemData
+   */
+  app.showApplicationPanel = function(itemData) {
+
+    app.elements.currentApp = itemData.manifestUrl;
+
+    app.elements.Exceptions.$box.style.display = 'none';
+    app.elements.Application.$box.style.display = 'block';
+
+    // set application info
+    app.elements.Application.type.$infoBox.querySelector('img').src = itemData.iconSrc;
+    app.elements.Application.type.$infoBox.querySelector('span').textContent = itemData.name;
+
+    var application = app.elements.exceptionsList[itemData.manifestUrl];
+    if (!application) {
+      // set default value (from general settings)
+      app.elements.Application.type.$select.value = 'system-settings';
+      app.changeAppType('system-settings', false);
+    } else {
+      //show item's values
+
+      // set checkbox value
+      app.elements.Application.type.$select.value = application.type;
+
+      // change settings type
+      app.changeAppType(application.type, false);
+
+      // set slider value
+      app.elements.Application.type.$blurSlider.value = application.slider;
+
+      // set slider label
+      app.updateAppSliderLabel(application.slider);
+    }
+  };
+
+  /**
+   * Change Application type
+   * @param {String} value
+   * @param {Boolean} save
+   */
+  app.changeAppType = function(value, save) {
+
+    // hide all elements
+    for (var $el of app.elements.Application.type.$elements) {
+      $el.classList.add('disabled');
+      $el.classList.remove('enabled');
+    }
+
+    switch (value) {
+      case 'user-defined':
+        app.elements.Application.type.$customBox.classList.add('enabled');
+        app.elements.Application.type.$customBox.classList.remove('disabled');
+        break;
+      case 'blur':
+        app.elements.Application.type.$blurBox.classList.add('enabled');
+        app.elements.Application.type.$blurBox.classList.remove('disabled');
+        break;
+      case 'system-settings':
+        // remove application
+        if (save === true) {
+          app.removeApplication();
+        }
+        return;
+      case 'precise':
+      case 'no-location':
+      default:
+        break;
+    }
+
+    // save current type
+    if (save === true) {
+      app.saveApplications();
+    }
+  };
+
+  /**
+   * Update slider label for application
+   * @param {Number} value
+   */
+  app.updateAppSliderLabel = function(value) {
+    app.elements.Application.type.$blurLabel.textContent = app.getRadiusLabel(value);
+  };
+
+  /**
+   * Change blur slider for application
+   * @param {Number} value
+   */
+  app.changeAppBlurSlider = function(value) {
+    app.saveApplications();
+
+    // set slider label
+    app.updateAppSliderLabel(value);
+  };
+
+  /**
+   * Show main Custom location screen.
+   */
+  app.showAppCustomLocationBox = function() {
+    var application = app.elements.exceptionsList[app.elements.currentApp];
+    var customSettings = {};
+
+    if (application.cl_type) {
+      customSettings.type = application.cl_type;
+    }
+    if (application.cl_country) {
+      customSettings.country = application.cl_country;
+    }
+    if (application.cl_city) {
+      customSettings.city = application.cl_city;
+    }
+    if (application.cl_longitude) {
+      customSettings.longitude = application.cl_longitude;
+    }
+    if (application.cl_latitude) {
+      customSettings.latitude = application.cl_latitude;
+    }
+
+    app.elements.DCL.initAndShow(customSettings, app.saveAppCustomLocation);
+  };
+
+  /**
+   * Save custom location settings for app.
+   * @param {Object} settings
+   */
+  app.saveAppCustomLocation = function(settings) {
+    var flag = settings.latitude && settings.longitude;
+
+    app.saveApplications({
+      coords:       flag ? '@' + settings.latitude + ',' + settings.longitude : '',
+      cl_type:      settings.type,
+      cl_country:   settings.country,
+      cl_city:      settings.city,
+      cl_longitude: settings.longitude,
+      cl_latitude:  settings.latitude
+    });
+  };
+
+  /**
+   * Save application list.
+   * @param {Object} settings
+   */
+  app.saveApplications = function(settings) {
+    var current = app.elements.exceptionsList[app.elements.currentApp] || {};
+    var extraSettings = settings || {};
+
+    app.elements.exceptionsList[app.elements.currentApp] = {
+      type:   app.elements.Application.type.$select.value,
+      slider: app.elements.Application.type.$blurSlider.value,
+      radius: app.getRadiusValue(app.elements.Application.type.$blurSlider.value),
+
+      coords:       extraSettings.coords || current.coords || null,
+      cl_type:      extraSettings.cl_type || current.cl_type || null,
+      cl_country:   extraSettings.cl_country || current.cl_country || null,
+      cl_city:      extraSettings.cl_city || current.cl_city || null,
+      cl_longitude: extraSettings.cl_longitude || current.cl_longitude || null,
+      cl_latitude:  extraSettings.cl_latitude || current.cl_latitude || null
+    };
+
+    app.settings.createLock().set({ 'geolocation.exceptions': app.elements.exceptionsList });
+  };
+
+  /**
+   * Remove application from list
+   */
+  app.removeApplication = function() {
+    delete app.elements.exceptionsList[app.elements.currentApp];
+
+    app.settings.createLock().set({ 'geolocation.exceptions': app.elements.exceptionsList });
   };
 
   /**** RPP part **************************************************************/
