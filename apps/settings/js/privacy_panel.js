@@ -6,11 +6,14 @@ var PrivacyPanel = {
     document.getElementById('menuItem-privacyPanel').onclick = this.launchPrivacyPanel;
 },
 
-launchPrivacyPanel: function about_launchPrivacyPanel() {
+launchPrivacyPanel: function about_launchPrivacyPanel(evt) {
   var settings = Settings.mozSettings;
   if (!settings) {
     return;
   }
+
+  evt.stopImmediatePropagation();
+  evt.preventDefault();
 
   var key = 'privacyPanel.manifestURL';
   var req = settings.createLock().get(key);
@@ -36,11 +39,17 @@ launchPrivacyPanel: function about_launchPrivacyPanel() {
       }
 
       if (privacyPanelApp) {
+        // Let privacy-panel app know that we launched it from settings
+        // so the app can show us a back button.
+        settings.createLock().set({ 'pp.launched.by.settings': true });
+
         privacyPanelApp.launch();
       } else {
         alert(navigator.mozL10n.get('no-settings'));
       }
     };
+
+    return true;
   };
 }
 };

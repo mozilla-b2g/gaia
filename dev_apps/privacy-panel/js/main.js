@@ -15,6 +15,7 @@ var app = app || {};
     app.elements = {
       context: 'ROOT',
       $root:          document.getElementById('root'),
+      $rootBackBtn:   document.getElementById('back'),
       ALA: {
         $link:        document.getElementById('menuItem-ALA'),
         $back:        document.getElementById('ALA-back'),
@@ -81,11 +82,33 @@ var app = app || {};
       DCL: new CustomLocationPanel()
     };
 
+    // Observe 'privacy-panel.launched-by-settings' setting to be able to
+    // detect launching point.
+    app.settings.addObserver('pp.launched.by.settings', function(evt) {
+      app.toggleRootBackBtn(evt.settingValue);
+    });
+
+    // Get the launch flag whe app starts.
+    app.getLaunchFlag(function(result) {
+      app.toggleRootBackBtn(result);
+    });
+
+    // Get the flag every time app is activated.
+    window.addEventListener('focus', function() {
+      app.getLaunchFlag(function(result) {
+        app.toggleRootBackBtn(result);
+      });
+    });
+
+    // Reset launch flag when app is not active.
+    window.addEventListener('blur', function() {
+      app.settings.createLock().set({ 'pp.launched.by.settings': false });
+    });
+
     // prepare app list that uses geolocation
     AppList.get('geolocation', function(apps) {
       app.elements.appList = apps;
     });
-
 
     // listeners for ALA
     app.elements.ALA.$link.addEventListener('click', app.showALABox);
@@ -119,6 +142,31 @@ var app = app || {};
     app.elements.RPP.Unlock.$input.addEventListener('change', function(event) { app.toggleUnlock(event.target.checked); });
 
     app.elements.DCL.onChange = app.toggleCustomLocationSettings;
+  };
+
+  /**
+   * Gets launch from settings flag from setting
+   *
+   * @param {Function} callback
+   */
+  app.getLaunchFlag = function(callback) {
+    var ppLaunchFlag = app.settings.createLock().get('pp.launched.by.settings');
+    ppLaunchFlag.onsuccess = function() {
+      app.launchFlag = ppLaunchFlag.result['pp.launched.by.settings'] || false;
+      callback && callback(app.launchFlag);
+    };
+    ppLaunchFlag.onerror = function() {
+      console.warn('Get pp.launched.by.settings failed');
+    };
+  };
+
+  /**
+   * Toggles back button visibility
+   *
+   * @param {Boolean} visible
+   */
+  app.toggleRootBackBtn = function(visible) {
+    app.elements.$rootBackBtn.style.display = visible ? 'block' : 'none';
   };
 
 

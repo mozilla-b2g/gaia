@@ -11,6 +11,10 @@ input[type="range"].blur-slider {
   width: calc(100% - 3rem);
 }
 
+#back {
+  display: none;
+}
+
 .settings-disabled .setting-box {
   display: none;
 }
