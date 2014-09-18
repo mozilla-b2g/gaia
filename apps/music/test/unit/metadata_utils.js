@@ -25,7 +25,7 @@ function _fetch(url) {
 }
 
 
-function parseMetadata(filename, options) {
+function parseMetadata(filename) {
   return _fetch(filename).then(function(data) {
     return new Promise(function(resolve, reject) {
       parseAudioMetadata(

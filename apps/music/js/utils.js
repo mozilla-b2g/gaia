@@ -46,23 +46,6 @@ function generateDefaultThumbnailURL(metadata) {
   return '/style/images/AlbumArt' + hashedNumber + '_small.png';
 }
 
-// If the metadata music file includes embedded cover art,
-// use the thumbnail cache or extract it from the file,
-// create a blob: url for it, and set it on the specified img element.
-function displayAlbumArt(img, fileinfo) {
-  getThumbnailURL(fileinfo, function(url) {
-    if (!url)
-      return;
-
-    img.src = url;
-    // When the image loads make sure it is positioned correctly
-    img.addEventListener('load', function revoke(event) {
-      img.removeEventListener('load', revoke);
-      cropImage(event);
-    });
-  });
-}
-
 // Fetch the cover art for a given file and return it as a Blob. If there's no
 // embedded cover art, grab the appropriate placeholder image instead. XXX: This
 // function is a bit convoluted, and we could stand to simplify things here,
