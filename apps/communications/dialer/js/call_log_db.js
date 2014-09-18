@@ -764,6 +764,12 @@ var CallLogDBManager = {
     window.dispatchEvent(createOrUpdateEvt);
   },
 
+  _dispatchCallLogEntryModified: function(group) {
+    var createOrUpdateEvt = new CustomEvent('CallLogEntryModified',
+      {detail: {group: group}});
+    window.dispatchEvent(createOrUpdateEvt);
+  },
+
   /**
    * Delete a group of calls and all the calls belonging to that group.
    *
@@ -1255,6 +1261,8 @@ var CallLogDBManager = {
           cursor.update(group);
           count++;
           cursor.continue();
+          var groupObject = self._getGroupObject(group);
+          self._dispatchCallLogEntryModified(groupObject);
         } else {
           self._asyncReturn(callback, count);
           self._updateCacheRevision();
@@ -1333,6 +1341,8 @@ var CallLogDBManager = {
           cursor.update(group);
           count++;
           cursor.continue();
+          var groupObject = self._getGroupObject(group);
+          self._dispatchCallLogEntryModified(groupObject);
         } else {
           self._asyncReturn(callback, count);
           self._updateCacheRevision();
