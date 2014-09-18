@@ -27,10 +27,17 @@ class Accessibility(Base):
 
 class AccessibilityScreenreader(Base):
 
+    _screen_reader_captions_locator = (
+        By.CSS_SELECTOR, 'input[name="accessibility.screenreader-captions"]')
     _screen_reader_volume_slider_locator = (
         By.CSS_SELECTOR, 'input[name="accessibility.screenreader-volume"]')
     _screen_reader_rate_slider_locator = (
         By.CSS_SELECTOR, 'input[name="accessibility.screenreader-rate"]')
+
+    def a11y_toggle_captions(self):
+        self.accessibility.click(self.marionette.find_element(
+            *self._screen_reader_captions_locator))
+
 
 class AccessibilityColors(Base):
 

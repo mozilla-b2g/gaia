@@ -300,3 +300,11 @@
 #screen.fullscreen-layout-app > [data-z-index-level="fullscreen-layout-software-home-button"] {
   z-index: 2147483647;
 }
+
+/**
+ * Accessibility screen reader captions should be visible if they are enabled
+ * and the screen reader is on
+ */
+#screen > [data-z-index-level="accessibility-captions"] {
+  z-index: 2147483647;
+}
