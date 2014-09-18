@@ -5,6 +5,7 @@
 var FxAccountsUI = {
   dialog: null,
   panel: null,
+  iframe: null,
   onerrorCb: null,
   onsuccessCb: null,
 
@@ -62,8 +63,11 @@ var FxAccountsUI = {
   },
 
   // Method for reseting the panel.
-  reset: function fxa_ui_reset() {
+  reset: function fxa_ui_reset(reason) {
     this.panel.innerHTML = '';
+    if (reason == 'home' || reason == 'holdhome') {
+      this.onerrorCb && this.onerrorCb('DIALOG_CLOSED_BY_USER');
+    }
     this.onerrorCb = null;
     this.onsuccessCb = null;
   },
