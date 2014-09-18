@@ -91,8 +91,24 @@ suite('ICE Settings view', function() {
         // Hoping ide 1 and 2
         cb(contacts[id - 1]);
       });
-      
+
     });
+
+    function assertIceContacts(iceStates) {
+      var ice1 = document.getElementById('select-ice-contact-1');
+      assert.equal(ice1.textContent.trim(), iceStates[0].label);
+
+      var ice2 = document.getElementById('select-ice-contact-2');
+      assert.equal(ice2.textContent.trim(), iceStates[1].label);
+
+      assert.equal(ice1.disabled, !iceStates[0].active);
+      assert.equal(ice2.disabled, !iceStates[1].active);
+
+      var iceCheck1 = document.querySelector('[name="ice-contact-1-enabled"]');
+      var iceCheck2 = document.querySelector('[name="ice-contact-2-enabled"]');
+      assert.isFalse(iceCheck1.disabled);
+      assert.isFalse(iceCheck2.disabled);
+    }
 
     test('> No ice contacts', function() {
       window.asyncStorage.keys = {
@@ -101,16 +117,9 @@ suite('ICE Settings view', function() {
       subject.init();
       // On init and when we do the listening
       sinon.assert.calledTwice(asyncStorage.getItem);
-      var ice1 = document.getElementById('select-ice-contact-1');
-      assert.equal(ice1.textContent.trim(), '');
-      var ice2 = document.getElementById('select-ice-contact-2');
-      assert.equal(ice2.textContent.trim(), '');
-      assert.isTrue(ice1.disabled);
-      assert.isTrue(ice2.disabled);
-      var iceCheck1 = document.querySelector('[name="ice-contact-1-enabled"]');
-      var iceCheck2 = document.querySelector('[name="ice-contact-2-enabled"]');
-      assert.isFalse(iceCheck1.disabled);
-      assert.isFalse(iceCheck2.disabled);
+
+      assertIceContacts([{ label: '', active: false},
+                         { label: '', active: false}]);
     });
 
     test('> With 1 contact enabled', function() {
@@ -125,17 +134,45 @@ suite('ICE Settings view', function() {
 
       subject.init(true);
       sinon.assert.calledOnce(contacts.List.getContactById);
-      var ice1 = document.getElementById('select-ice-contact-1');
-      assert.equal(ice1.textContent.trim(), 'John Doe');
-      var ice2 = document.getElementById('select-ice-contact-2');
-      assert.equal(ice2.textContent.trim(), '');
-      assert.isFalse(ice1.disabled);
-      assert.isTrue(ice2.disabled);
-      var iceCheck1 = document.querySelector('[name="ice-contact-1-enabled"]');
-      var iceCheck2 = document.querySelector('[name="ice-contact-2-enabled"]');
-      assert.isFalse(iceCheck1.disabled);
-      assert.isFalse(iceCheck2.disabled);
 
+      assertIceContacts([{ label: 'John Doe', active: true},
+                         { label: '', active: false}]);
+    });
+
+    test('> With 1 contact enabled. No name. Only has tel number', function() {
+      window.asyncStorage.keys = {
+        'ice-contacts': [
+          {
+            id: 1,
+            active: true
+          }
+        ]
+      };
+
+      var targetTelNumber = '678987654';
+
+      contacts.List.getContactById.restore();
+      this.sinon.stub(contacts.List, 'getContactById', function(id, cb) {
+        var contacts = [
+        {
+          givenName: [],
+          familyName: null,
+          tel: [
+            {
+              type: ['other'],
+              value: targetTelNumber
+            }
+          ]
+        }];
+        // Hoping ide 1 and 2
+        cb(contacts[id - 1]);
+      });
+
+      subject.init(true);
+      sinon.assert.calledOnce(contacts.List.getContactById);
+
+      assertIceContacts([{ label: targetTelNumber, active: true},
+                         { label: '', active: false}]);
     });
 
     test('> With 1 contact disabled', function() {
@@ -150,12 +187,9 @@ suite('ICE Settings view', function() {
 
       subject.init(true);
       sinon.assert.calledOnce(contacts.List.getContactById);
-      var ice1 = document.getElementById('select-ice-contact-1');
-      assert.equal(ice1.textContent.trim(), 'John Doe');
-      var ice2 = document.getElementById('select-ice-contact-2');
-      assert.equal(ice2.textContent.trim(), '');
-      assert.isTrue(ice1.disabled);
-      assert.isTrue(ice2.disabled);
+
+      assertIceContacts([{ label: 'John Doe', active: false},
+                         { label: '', active: false}]);
     });
 
     test('> With 2 contacts enabled', function() {
@@ -173,12 +207,9 @@ suite('ICE Settings view', function() {
 
       subject.init(true);
       sinon.assert.calledTwice(contacts.List.getContactById);
-      var ice1 = document.getElementById('select-ice-contact-1');
-      assert.equal(ice1.textContent.trim(), 'John Doe');
-      var ice2 = document.getElementById('select-ice-contact-2');
-      assert.equal(ice2.textContent.trim(), 'Albert Pla');
-      assert.isFalse(ice1.disabled);
-      assert.isFalse(ice2.disabled);
+
+      assertIceContacts([{ label: 'John Doe', active: true},
+                         { label: 'Albert Pla', active: true}]);
     });
   });
 
