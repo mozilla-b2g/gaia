@@ -118,8 +118,8 @@
 
 .bb-tablist > li:target > a,
 .bb-tablist > li:target > button,
-.bb-tablist > li[aria-selected="true"] > a,
-.bb-tablist > li[aria-selected="true"] > button {
+.bb-tablist > li > a[aria-selected="true"],
+.bb-tablist > li > button[aria-selected="true"] {
   color: #00aacc;
   font-weight: 500;
   background-position: 50% 100%;
