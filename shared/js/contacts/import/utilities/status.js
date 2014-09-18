@@ -27,24 +27,33 @@ utils.status = (function() {
     statusMsg.addEventListener('transitionend', hideAnimationDone);
     statusMsg.classList.remove('opening');
     statusMsg.classList.remove('bannerStart');
+    statusMsg.querySelector('p').removeAttribute('data-l10n-id');
     if (additionalLine) {
       statusMsg.removeChild(additionalLine);
       additionalLine = null;
     }
   };
 
-  var showStatus = function(text, additional) {
+  var setL10nAttributes = function(node, l10n) {
+    if (typeof l10n === 'string') {
+      node.setAttribute('data-l10n-id', l10n);
+    } else {
+      navigator.mozL10n.setAttributes(node, l10n.id, l10n.args);
+    }
+  };
+
+  var showStatus = function(textId, additionalId) {
     // clean listeners in case of previous race conditions
     statusMsg.removeEventListener('transitionend', showAnimationDone);
     statusMsg.removeEventListener('transitionend', hideAnimationDone);
 
     LazyLoader.load([statusMsg], function _loaded() {
-      statusMsg.querySelector('p').textContent = text;
+      setL10nAttributes(statusMsg.querySelector('p'), textId);
 
-      if (additional) {
+      if (additionalId) {
         additionalLine = document.createElement('p');
         statusMsg.appendChild(additionalLine);
-        additionalLine.textContent = additional;
+        setL10nAttributes(additionalLine, additionalId);
       }
 
       // If showing already, we increase the time after the change

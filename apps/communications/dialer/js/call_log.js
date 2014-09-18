@@ -494,7 +494,11 @@ var CallLog = {
     if (contact && contact.primaryInfo) {
       primInfoMain.textContent = contact.primaryInfo;
     } else {
-      primInfoMain.textContent = number || this._('withheld-number');
+      if (number) {
+        primInfoMain.textContent = number;
+      } else {
+        primInfoMain.setAttribute('data-l10n-id', 'withheld-number');
+      }
     }
 
     var retryCount = document.createElement('span');
@@ -515,8 +519,8 @@ var CallLog = {
     } else if (voicemail || emergency) {
       phoneNumberAdditionalInfo = number;
       phoneNumberTypeLocalized =
-        voicemail ? this._('voiceMail') :
-          (emergency ? this._('emergencyNumber') : '');
+        voicemail ? 'voiceMail' :
+          (emergency ? 'emergencyNumber' : null);
     } else {
       phoneNumberAdditionalInfo = this._('unknown');
     }
@@ -541,8 +545,8 @@ var CallLog = {
     main.appendChild(primInfo);
     main.appendChild(addInfo);
 
-    if (phoneNumberTypeLocalized && phoneNumberTypeLocalized.length) {
-      primInfoMain.textContent = phoneNumberTypeLocalized;
+    if (phoneNumberTypeLocalized) {
+      primInfoMain.setAttribute('data-l10n-id', phoneNumberTypeLocalized);
       var primElem = primInfoMain.parentNode;
       var parent = primElem.parentNode;
       parent.insertBefore(addInfo, primElem.nextElementSibling);
@@ -595,10 +599,10 @@ var CallLog = {
       event.stopPropagation();
       return;
     }
-    this.headerEditModeText.textContent = this._('edit');
+    this.headerEditModeText.setAttribute('data-l10n-id', 'edit');
     this.deleteButton.setAttribute('disabled', 'disabled');
     this.selectAllThreads.removeAttribute('disabled');
-    this.selectAllThreads.textContent = this._('selectAll');
+    this.selectAllThreads.setAttribute('data-l10n-id', 'selectAll');
     this.deselectAllThreads.setAttribute('disabled', 'disabled');
     document.body.classList.add('recents-edit');
   },
@@ -736,15 +740,17 @@ var CallLog = {
     var allInputs = this.callLogContainer.querySelectorAll(allSelector).length;
 
     if (selected === 0) {
-      this.headerEditModeText.textContent = this._('edit');
+      this.headerEditModeText.setAttribute('data-l10n-id', 'edit');
       this.selectAllThreads.removeAttribute('disabled');
-      this.selectAllThreads.textContent = this._('selectAll');
+      this.selectAllThreads.setAttribute('data-l10n-id', 'selectAll');
       this.deselectAllThreads.setAttribute('disabled', 'disabled');
       this.deleteButton.setAttribute('disabled', 'disabled');
       return;
     }
-    this.headerEditModeText.textContent =
-      this._('edit-selected', {n: selected});
+    navigator.mozL10n.setAttributes(
+      this.headerEditModeText,
+      'edit-selected',
+      {n: selected});
 
     this.deleteButton.removeAttribute('disabled');
     if (selected === allInputs) {
@@ -752,7 +758,7 @@ var CallLog = {
       this.selectAllThreads.setAttribute('disabled', 'disabled');
     } else {
       this.selectAllThreads.removeAttribute('disabled');
-      this.selectAllThreads.textContent = this._('selectAll');
+      this.selectAllThreads.setAttribute('data-l10n-id', 'selectAll');
       this.deselectAllThreads.removeAttribute('disabled');
     }
   },

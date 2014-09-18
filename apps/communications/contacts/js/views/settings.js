@@ -103,8 +103,7 @@ contacts.Settings = (function() {
   };
 
   var updateImportTitle = function updateImportTitle(l10nString) {
-    importSettingsTitle.dataset.l10nId = l10nString;
-    importSettingsTitle.innerHTML = _(l10nString);
+    importSettingsTitle.setAttribute('data-l10n-id', l10nString);
   };
 
   // Initialises variables and listener for the UI
@@ -354,7 +353,7 @@ contacts.Settings = (function() {
         // warn the user of the ongoin operation, dismiss it
         // once we have the result
         requireOverlay(function _loaded() {
-          utils.overlay.show(_('preparing-contacts'), null, 'spinner');
+          utils.overlay.show('preparing-contacts', null, 'spinner');
           promise.onsuccess = function onSuccess(ids) {
             // Once we start the export process we can exit from select mode
             // This will have to evolve once export errors can be captured
@@ -427,23 +426,37 @@ contacts.Settings = (function() {
     updateOptionStatus(importSDOption, !cardAvailable, true);
     updateOptionStatus(exportSDOption, !cardAvailable, true);
 
-    var importSDErrorMessage = '';
-    var exportSDErrorMessage = '';
+    var importSDErrorL10nId = null;
+    var exportSDErrorL10nId = null;
 
     var cardShared = utils.sdcard.status === utils.sdcard.SHARED;
     if (!cardAvailable) {
-      importSDErrorMessage = _('noMemoryCardMsg');
-      exportSDErrorMessage = _('noMemoryCardMsgExport');
+      importSDErrorL10nId = 'noMemoryCardMsg';
+      exportSDErrorL10nId = 'noMemoryCardMsgExport';
 
       if (cardShared) {
-        importSDErrorMessage = exportSDErrorMessage = _('memoryCardUMSEnabled');
+        importSDErrorL10nId = exportSDErrorL10nId = 'memoryCardUMSEnabled';
       }
     }
 
     // update the message
-    importSDOption.querySelector('p.error-message').textContent =
-      importSDErrorMessage;
-    exportSDOption.querySelector('p').textContent = exportSDErrorMessage;
+    if (importSDErrorL10nId) {
+      importSDOption.querySelector('p.error-message').setAttribute(
+        'data-l10n-id', importSDErrorL10nId);
+      importSDOption.querySelector('p.error-message').textContent = '';
+    } else {
+      importSDOption.querySelector('p.error-message').removeAttribute(
+        'data-l10n-id');
+    }
+
+    if (exportSDErrorL10nId) {
+      exportSDOption.querySelector('p').setAttribute(
+        'data-l10n-id', exportSDErrorL10nId);
+    } else {
+      exportSDOption.querySelector('p').removeAttribute(
+        'data-l10n-id');
+      exportSDOption.querySelector('p').textContent = '';
+    }
 
   };
 
@@ -633,7 +646,7 @@ contacts.Settings = (function() {
   }
 
   function doFbUnlink() {
-    var progressBar = Contacts.showOverlay(_('cleaningFbData'), 'progressBar');
+    var progressBar = Contacts.showOverlay('cleaningFbData', 'progressBar');
     var wakeLock = navigator.requestWakeLock('cpu');
 
     var req = fb.utils.clearFbData();
@@ -644,7 +657,7 @@ contacts.Settings = (function() {
       cleaner.onsuccess = function() {
         document.dispatchEvent(new CustomEvent('fb_cleaned'));
 
-        Contacts.showOverlay(_('loggingOutFb'), 'activityBar');
+        Contacts.showOverlay('loggingOutFb', 'activityBar');
         var logoutReq = fb.utils.logout();
 
         logoutReq.onsuccess = function() {
@@ -701,7 +714,7 @@ contacts.Settings = (function() {
     if (icc === null) {
       return;
     }
-    var progress = Contacts.showOverlay(_('simContacts-reading'),
+    var progress = Contacts.showOverlay('simContacts-reading',
       'activityBar');
 
     var wakeLock = navigator.requestWakeLock('cpu');
@@ -717,7 +730,7 @@ contacts.Settings = (function() {
         // is being cooked
         progress.setClass('activityBar');
         utils.overlay.hideMenu();
-        progress.setHeaderMsg(_('messageCanceling'));
+        progress.setHeaderMsg('messageCanceling');
       } else {
         importer.onfinish(); // Early return while reading contacts
       }
@@ -732,7 +745,7 @@ contacts.Settings = (function() {
       totalContactsToImport = n;
       if (totalContactsToImport > 0) {
         progress.setClass('progressBar');
-        progress.setHeaderMsg(_('simContacts-importing'));
+        progress.setHeaderMsg('simContacts-importing');
         progress.setTotal(totalContactsToImport);
       }
     };
@@ -799,7 +812,7 @@ contacts.Settings = (function() {
     var cancelled = false;
     var importer = null;
     var progress = Contacts.showOverlay(
-      _('memoryCardContacts-reading'), 'activityBar');
+      'memoryCardContacts-reading', 'activityBar');
     utils.overlay.showMenu();
     utils.overlay.oncancel = function() {
       cancelled = true;
@@ -878,7 +891,7 @@ contacts.Settings = (function() {
 
     function import_read(n) {
       progress.setClass('progressBar');
-      progress.setHeaderMsg(_('memoryCardContacts-importing'));
+      progress.setHeaderMsg('memoryCardContacts-importing');
       progress.setTotal(n);
     }
 
@@ -1038,7 +1051,7 @@ contacts.Settings = (function() {
                                              (new Date(time)).toLocaleString());
           timeElement.textContent = utils.time.pretty(time);
         }
-        node.querySelector('p > span').textContent = _(spanID);
+        node.querySelector('p > span').setAttribute('data-l10n-id', spanID);
       });
     });
   };

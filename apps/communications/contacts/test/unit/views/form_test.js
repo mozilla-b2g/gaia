@@ -165,7 +165,8 @@ suite('Render contact form', function() {
         if (toCheck[i] === 'date') {
           // Check that the place holder 'date' appears
           var spanEle = document.getElementById('date-text_0');
-          assert.equal(spanEle.textContent, 'Date');
+          assert.equal(spanEle.getAttribute('data-l10n-id'),
+                       'date-span-placeholder');
         }
       }
       assertSaveState('disabled');

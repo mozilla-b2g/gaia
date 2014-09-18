@@ -65,7 +65,7 @@ SimDomGenerator.prototype.generateExportDOM = function() {
 
     var p = document.createElement('p');
     p.classList.add('error-message');
-    p.textContent = _('noSimMsgExport');
+    p.setAttribute('data-l10n-id', 'noSimMsgExport');
 
     li.appendChild(button);
     li.appendChild(p);
@@ -114,7 +114,7 @@ SimDomGenerator.prototype.generateImportDOM = function() {
 
     var p = document.createElement('p');
     p.classList.add('error-message');
-    p.textContent = _('noSimMsg');
+    p.setAttribute('data-l10n-id', 'noSimMsg');
 
     li.appendChild(button);
     li.appendChild(p);
