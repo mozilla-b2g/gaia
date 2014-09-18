@@ -31,7 +31,7 @@ var WifiManager = {
       return;
     }
     this._scanning = true;
-    utils.overlay.show(_('scanningNetworks'), 'spinner');
+    utils.overlay.show('scanningNetworks', 'spinner');
     var scanTimeout;
     var SCAN_TIMEOUT = 10000;
 

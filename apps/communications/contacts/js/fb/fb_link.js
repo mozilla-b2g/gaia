@@ -349,9 +349,12 @@ if (!fb.link) {
             var data = e.data;
             if (data && data.type === 'dom_transition_end') {
               window.removeEventListener('message', linkOnViewPort);
-              utils.status.show(_('linkProposal', {
-                numFriends: numFriendsProposed
-              }));
+              utils.status.show({
+                id: 'linkProposal',
+                args: {
+                  numFriends: numFriendsProposed
+                }
+              });
             }
           });
         });

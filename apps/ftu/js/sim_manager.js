@@ -714,7 +714,7 @@ var SimManager = (function() {
     // Delay for showing feedback to the user after importing
     var DELAY_FEEDBACK = 300;
     UIManager.navBar.setAttribute('aria-disabled', 'true');
-    var progress = utils.overlay.show(_('simContacts-reading'),
+    var progress = utils.overlay.show('simContacts-reading',
                                       'activityBar');
 
     var importButton = UIManager.simImportButton;
@@ -730,7 +730,7 @@ var SimManager = (function() {
         // is being cooked
         progress.setClass('activityBar');
         utils.overlay.hideMenu();
-        progress.setHeaderMsg(_('messageCanceling'));
+        progress.setHeaderMsg('messageCanceling');
       } else {
         importer.onfinish(); // Early return while reading contacts
       }
@@ -741,7 +741,7 @@ var SimManager = (function() {
       contactsRead = true;
       if (n > 0) {
         progress.setClass('progressBar');
-        progress.setHeaderMsg(_('simContacts-importing'));
+        progress.setHeaderMsg('simContacts-importing');
         progress.setTotal(n);
       }
     };
@@ -763,9 +763,10 @@ var SimManager = (function() {
         if (!cancelled) {
           SimManager.alreadyImported = true;
           importButton.setAttribute('disabled', 'disabled');
-          utils.status.show(_('simContacts-imported3',
-                              {n: importedContacts})
-          );
+          utils.status.show({
+            id: 'simContacts-imported3',
+            args: {n: importedContacts}
+          });
         }
       }, DELAY_FEEDBACK);
 

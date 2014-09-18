@@ -667,8 +667,8 @@ var Contacts = (function() {
     }
   };
 
-  var showOverlay = function c_showOverlay(message, progressClass, textId) {
-    var out = utils.overlay.show(message, progressClass, textId);
+  var showOverlay = function c_showOverlay(messageId, progressClass, textId) {
+    var out = utils.overlay.show(messageId, progressClass, textId);
     // When we are showing the overlay we are often performing other
     // significant work, such as importing.  While performing this work
     // it would be nice to avoid the overhead of any accidental reflows
@@ -687,8 +687,8 @@ var Contacts = (function() {
     }, SHARED_UTILS);
   };
 
-  var showStatus = function c_showStatus(message, additional) {
-    utils.status.show(message, additional);
+  var showStatus = function c_showStatus(messageId, additionalId) {
+    utils.status.show(messageId, additionalId);
   };
 
   var showSettings = function showSettings() {

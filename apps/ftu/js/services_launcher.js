@@ -40,12 +40,12 @@ var ServicesLauncher = (function(document) {
       extensionFrame.src = null;
     }
 
-    function close(message) {
+    function close(messageId) {
       extensionFrame.addEventListener('transitionend', function tclose() {
         extensionFrame.removeEventListener('transitionend', tclose);
         extensionFrame.src = null;
-        if (message) {
-          utils.status.show(message);
+        if (messageId) {
+          utils.status.show(messageId);
         }
       });
       extensionFrame.className = 'closing';
@@ -79,7 +79,7 @@ var ServicesLauncher = (function(document) {
           break;
 
         case 'window_close':
-          close(data.message);
+          close(data.messageId);
           break;
 
         case 'authenticated':
