@@ -250,8 +250,8 @@ suite('Thread', function() {
 
   test('Thread', function() {
     assert.ok(Thread);
-    assert.include(Thread.prototype, 'drafts');
-    assert.include(Thread.prototype, 'hasDrafts');
+    expect(Thread.prototype).to.have.property('drafts');
+    expect(Thread.prototype).to.have.property('hasDrafts');
   });
 
   test('Thread object', function() {
