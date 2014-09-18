@@ -130,6 +130,17 @@ li a:active {
   image-rendering: -moz-crisp-edges;
 }
 
+[data-type="list"] [data-icon] {
+  font-size: 0;
+}
+
+[data-type="list"] [data-icon]:before {
+  line-height: 6rem;
+  text-align: center;
+  width: 3rem;
+  color: #333;
+}
+
 /* Text content */
 [data-type="list"] li p {
   white-space: nowrap;
