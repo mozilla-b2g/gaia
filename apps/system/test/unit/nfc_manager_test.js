@@ -414,8 +414,7 @@ suite('Nfc Manager Functions', function() {
                 src: 'nfc',
                 records: sampleMsg.records,
                 tech: 'NDEF',
-                techList: sampleMsg.techList,
-                sessionToken: sampleMsg.sessionToken
+                techList: sampleMsg.techList
         }
       }, 'Uri record');
 
@@ -427,8 +426,7 @@ suite('Nfc Manager Functions', function() {
           type: 'empty',
           tech: 'NDEF',
           techList: sampleMsg.techList,
-          records: sampleMsg.records,
-          sessionToken: sampleMsg.sessionToken
+          records: sampleMsg.records
         }
       },'TNF empty');
 
@@ -443,8 +441,7 @@ suite('Nfc Manager Functions', function() {
           src: 'nfc',
           tech: 'NDEF',
           techList: sampleMsg.techList,
-          records: sampleMsg.records,
-          sessionToken: sampleMsg.sessionToken
+          records: sampleMsg.records
         }
       },'mime record');
 
@@ -457,8 +454,7 @@ suite('Nfc Manager Functions', function() {
           type: 'empty',
           tech: 'NDEF_WRITEABLE',
           techList: sampleMsg.techList,
-          records: sampleMsg.records,
-          sessionToken: sampleMsg.sessionToken
+          records: sampleMsg.records
         }
       }, 'no records');
     });
@@ -629,8 +625,7 @@ suite('Nfc Manager Functions', function() {
                 src: 'nfc',
                 records: msg.records,
                 tech: msg.techList[0],
-                techList: msg.techList,
-                sessionToken: msg.sessionToken
+                techList: msg.techList
         }
       });
     });
@@ -645,8 +640,7 @@ suite('Nfc Manager Functions', function() {
         name: 'nfc-ndef-discovered',
         data: {
                 tech: msg.techList[0],
-                techList: msg.techList,
-                sessionToken: msg.sessionToken
+                techList: msg.techList
         }
       });
     });
@@ -671,7 +665,6 @@ suite('Nfc Manager Functions', function() {
                          data: {
                            type: 'NDEF_FORMATABLE',
                            techList: dummyMsg.techList,
-                           sessionToken: dummyMsg.sessionToken,
                            records: dummyMsg.records
                          }
                        });
