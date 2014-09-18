@@ -30,6 +30,7 @@ Contacts.Selectors = {
 
   confirmHeader: '#confirmation-message h1',
   confirmBody: '#confirmation-message p',
+  confirmDismiss: '#confirmation-message menu button',
 
   details: '#view-contact-details',
   detailsEditContact: '#edit-contact-button',
@@ -38,6 +39,7 @@ Contacts.Selectors = {
   detailsFindDuplicate: '#contact-detail-inner #find-merge-button',
   detailsFavoriteButton: '#toggle-favorite',
   detailsContactName: '#contact-name-title',
+  detailsHeader: '#details-view-header',
 
   duplicateFrame: 'iframe[src*="matching_contacts.html"]',
   duplicateHeader: '#title',
@@ -57,6 +59,7 @@ Contacts.Selectors = {
   formFamilyName: '#familyName',
   formSave: '#save-button',
   formTel: '#contacts-form-phones input[type="tel"]',
+  formDelFirstTel: '#add-phone-0 .img-delete-button',
   formTelLabelFirst: '#tel_type_0',
   formTelNumberSecond: '#number_1',
   formEmailFirst: '#email_0',
