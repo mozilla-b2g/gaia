@@ -164,7 +164,7 @@ suite('system/TextSelectionDialog', function() {
     td._hasCutOrCopied = true;
     td._resetCutOrCopiedTimeout = 'testTimer';
     td._resetCutOrCopiedTimer();
-    
+
     clock.tick(td.RESET_CUT_OR_PASTE_TIMEOUT);
     assert.isFalse(td._hasCutOrCopied);
   });
@@ -193,6 +193,37 @@ suite('system/TextSelectionDialog', function() {
       assert.isFalse(stubCalculateDialogPostion.calledOnce, 'we should not' +
         ' call calculateDialogPostion');
     });
+
+  test('inputmethod-contextchange chrome event is handled', function() {
+    td.handleEvent({
+      type: 'mozChromeEvent',
+      detail: {
+        type: 'inputmethod-contextchange',
+        inputType: 'sofake'
+      }
+    });
+    assert.equal(td._currentInputType, 'sofake');
+  });
+
+  test('no cut and copy on inputType password', function() {
+    td._currentInputType = 'password';
+
+    mockDetail.detail.reasons = ['mouseup'];
+    mockDetail.detail.commands = {
+      canCopy: true,
+      canPaste: true,
+      canCut: true,
+      canSelectAll: true
+    };
+    fakeTextSelectInAppEvent.detail = mockDetail;
+    td.handleEvent(fakeTextSelectInAppEvent);
+
+    var cmds = fakeTextSelectInAppEvent.detail.detail.commands;
+    assert.equal(cmds.canCopy, false, 'canCopy');
+    assert.equal(cmds.canCut, false, 'canCut');
+    assert.equal(cmds.canPaste, true, 'canPaste');
+    assert.equal(cmds.canSelectAll, true, 'canSelectAll');
+  });
 
   suite('Value selector', function() {
     setup(function() {
