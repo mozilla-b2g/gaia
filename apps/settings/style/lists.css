@@ -333,7 +333,7 @@ input[type=range] {
 }
 
 input[type=range]::-moz-focus-outer {
-  border: 0;
+  border: 0px;
 }
 
 ul li > label input[type="range"] {
