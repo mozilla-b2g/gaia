@@ -14,6 +14,7 @@ suite('shared/dialer/TonePlayer', function() {
 
   teardown(function() {
     TonePlayer.trashAudio();
+    TonePlayer._channel = null;
   });
 
   test('should do nothing before init', function() {
