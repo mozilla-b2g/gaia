@@ -6,7 +6,11 @@ var assert = require('assert');
 marionette('First Time Use >', function() {
   var FTU = 'app://ftu.gaiamobile.org';
 
-  var client = marionette.client();
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': FTU + '/manifest.webapp'
+    }
+  });
   var wifiPassword64 =
     'e93FSJpMGMxRnWHs2vJYyMud5h6u7yEhSC445cz7RdHVxXrj2LCTZPAphzaYuyy2';
 
