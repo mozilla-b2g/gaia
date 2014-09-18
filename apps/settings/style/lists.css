@@ -332,8 +332,8 @@ input[type=range] {
   background: none;
 }
 
-input[type=range]:-moz-focusring {
-  outline: none;
+input[type=range]::-moz-focus-outer {
+  border: 0;
 }
 
 ul li > label input[type="range"] {
