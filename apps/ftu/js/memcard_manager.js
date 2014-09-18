@@ -1,6 +1,6 @@
 /* global ConfirmDialog,
           UIManager,
-          _, utils,
+          utils,
           VCFReader */
 /* exported SdManager */
 'use strict';
@@ -33,7 +33,7 @@ var SdManager = {
     var importer = null;
 
     var progress = utils.overlay.show(
-      _('memoryCardContacts-reading'), 'activityBar');
+      'memoryCardContacts-reading', 'activityBar');
     utils.overlay.showMenu();
     utils.overlay.oncancel = function() {
       cancelled = true;
@@ -91,7 +91,11 @@ var SdManager = {
             SdManager.alreadyImported = true;
             importButton.setAttribute('disabled', 'disabled');
             utils.status.show(
-              _('memoryCardContacts-imported3', {n: importedContacts}));
+              {
+                id: 'memoryCardContacts-imported3',
+                args: {n: importedContacts}
+              }
+            );
           }
 
         }, DELAY_FEEDBACK);
@@ -100,7 +104,7 @@ var SdManager = {
 
     function import_read(n) {
       progress.setClass('progressBar');
-      progress.setHeaderMsg(_('memoryCardContacts-importing'));
+      progress.setHeaderMsg('memoryCardContacts-importing');
       progress.setTotal(n);
     }
 

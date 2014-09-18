@@ -86,8 +86,8 @@ if (typeof window.importer === 'undefined') {
       parent.postMessage({
         type: message.type || '',
         data: message.data || '',
-        message: message.message || '',
-        additionalMessage: message.additionalMessage || ''
+        messageId: message.messageId,
+        additionalMessageId: message.additionalMessageId
       }, origin);
     }
 
@@ -696,13 +696,15 @@ if (typeof window.importer === 'undefined') {
       if (Importer.getContext() === 'ftu') {
         Curtain.hide(notifyParent.bind(null, {
           type: 'window_close',
-          message: cancelled ? null : _('friendsUpdated', {
-            numFriends: numFriends
-          }),
-          additionalMessage: (cancelled || !numMergedDuplicated) ?
-                              null : _('friendsMerged', {
-            numDups: numMergedDuplicated
-          })
+          messageId: cancelled ? null : {
+            id: 'friendsUpdated',
+            args: { numFriends: numFriends }
+          },
+          additionalMessageId: (cancelled || !numMergedDuplicated) ?
+                              null : {
+            id: 'friendsMerged',
+            args: { numDups: numMergedDuplicated }
+          }
         }, targetApp));
       } else {
           notifyParent({
@@ -716,18 +718,20 @@ if (typeof window.importer === 'undefined') {
             if (e.data.type === 'contacts_loaded') {
               // When the list of contacts is loaded and it's the current view
 
-              var message = cancelled ? null : _('friendsUpdated', {
-                numFriends: numFriends
-              });
-              var additionalMessage = (cancelled || !numMergedDuplicated) ?
-                null : _('friendsMerged', {
-                  numDups: numMergedDuplicated
-              });
+              var messageId = cancelled ? null : {
+                id: 'friendsUpdated',
+                args: { numFriends: numFriends }
+              };
+              var additionalMessageId = (cancelled || !numMergedDuplicated) ?
+                null : {
+                id: 'friendsMerged',
+                args: { numDups: numMergedDuplicated }
+              };
 
               Curtain.hide(notifyParent.bind(null, {
                 type: 'window_close',
-                message: message,
-                additionalMessage: additionalMessage
+                messageId: messageId,
+                additionalMessageId: additionalMessageId
               }, targetApp));
 
               window.removeEventListener('message', finished);
