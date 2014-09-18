@@ -44,6 +44,8 @@ Contacts.Selectors = {
   duplicateClose: '#merge-close',
   duplicateMerge: '#merge-action',
 
+  exportButton: '#exportContacts button',
+
   form: '#view-contact-form',
   formTitle: '#contact-form-title',
   formCustomTag: '#custom-tag',

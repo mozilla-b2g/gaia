@@ -821,11 +821,29 @@ suite('Contacts settings >', function() {
 
   suite('ICE options', function() {
 
+    var iceContacts;
+
+    suiteSetup(function() {
+      iceContacts = document.getElementById('set-ice');
+    });
+
     setup(function() {
       contacts.Settings.init();
       mocksHelper.suiteSetup();
       realMozContacts = navigator.mozContacts;
       navigator.mozContacts = MockMozContacts;
+    });
+
+    test('If no contacts, ICE contacts option is disabled', function() {
+      navigator.mozContacts.number = 0;
+      contacts.Settings.refresh();
+      assert.isTrue(iceContacts.disabled);
+    });
+
+    test('If there are contacts, ICE contacts option is enabled', function() {
+      navigator.mozContacts.number = 100;
+      contacts.Settings.refresh();
+      assert.isFalse(iceContacts.disabled);
     });
 
     test('Pressing the ICE button should init ICE module', function(done) {
