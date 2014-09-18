@@ -57,7 +57,11 @@ var MobileIdManager = {
   },
 
   cleanup: function mobileid_cleanup() {
-    this.dialog = null;
+    if (this.dialog) {
+      this.dialog.reset();
+      this.dialog = null;
+    }
+
     if (this.chromeEventId) {
       // There's a pending content requests, so we need to notify about
       // the flow cancelation
