@@ -14,7 +14,8 @@ suite('URL Helper', function() {
       '?mozilla',
       '?site:mozilla.org docshell',
       'http:',
-      'app:'
+      'app:',
+      'rtsp:'
     ].forEach(function(input) {
       assert.ok(UrlHelper.isNotURL(input));
     });
@@ -30,7 +31,8 @@ suite('URL Helper', function() {
       'a?',
       'a?b',
       'http://foo.com',
-      'data:about'
+      'data:about',
+      'rtsp://100.100.100.100/rtsp.mp4'
     ].forEach(function(input) {
       assert.ok(!UrlHelper.isNotURL(input));
     });
