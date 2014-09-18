@@ -353,13 +353,15 @@ suite('app', function() {
   });
 */
 
-  test('#view', function() {
+  test('#view', function(done) {
     subject.view('Mock', function(first) {
       subject.view('Mock', function(second) {
-        assert.instanceOf(first, Calendar.Views.Mock);
-        assert.equal(first.app, subject);
+        done(function() {
+          assert.instanceOf(first, Calendar.Views.Mock);
+          assert.equal(first.app, subject);
 
-        assert.equal(first, second);
+          assert.equal(first, second);
+        });
       });
     });
   });
