@@ -28,5 +28,8 @@ function execute(options) {
 
   // Copy shared files to stage folders
   require('./webapp-shared').execute(options);
+
+  // Generate user.js
+  require('./preferences').execute(options);
 }
 exports.execute = execute;
