@@ -487,7 +487,7 @@ function execute(options) {
       return;
     }
     var files = utils.ls(webapp.buildDirectoryFile, true,
-      /^(shared|tests?)$/);
+      /^tests?$/);
 
     l10nManager.localize(files.filter(function(file) {
       return /\.html$/.test(file.path);
