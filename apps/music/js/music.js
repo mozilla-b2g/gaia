@@ -1981,9 +1981,27 @@ var TabBar = {
     return this._tabs = this.view.querySelectorAll('[role="tab"]');
   },
 
+  set option(choice) {
+    var map = {
+      'mix': 'tabs-mix',
+      'playlist': 'tabs-playlists',
+      'artist': 'tabs-artists',
+      'album': 'tabs-albums',
+      'title': 'tabs-songs'
+    };
+
+    var tab = document.getElementById(map[choice]);
+    AccessibilityHelper.setAriaSelected(tab, this.tabs);
+    this._option = choice;
+  },
+
+  get option() {
+    return this._option;
+  },
+
   init: function tab_init() {
-    this.option = '';
-    this.view.addEventListener('click', this);
+    this.option = 'mix';
+    this.view.addEventListener('touchend', this);
 
     this.playlistArray.localize = function() {
       this.forEach(function(playList) {
@@ -2006,7 +2024,7 @@ var TabBar = {
       return;
 
     switch (evt.type) {
-      case 'click':
+      case 'touchend':
         var target = evt.target;
 
         if (!target)
@@ -2018,8 +2036,6 @@ var TabBar = {
         } else {
           this.option = target.dataset.option;
         }
-
-        AccessibilityHelper.setAriaSelected(target, this.tabs);
 
         switch (target.id) {
           case 'tabs-mix':
