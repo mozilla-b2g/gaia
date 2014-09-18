@@ -156,6 +156,22 @@ suite('migrator.js >', function() {
     startMigration();
   });
 
+  test('Window is closed ', function(done) {
+    sinon.stub(window, 'close', function() {
+      window.close.restore();
+      done();
+    });
+
+    port.postMessage = function() {};
+
+    var stub = sinon.stub(HomeState, 'getGrid', function(iterator, success) {
+      stub.restore();
+      success();
+    });
+
+    startMigration();
+  });
+
   test('Empty indexedDB ', function(done) {
     port.postMessage = function(msg) {
       assert.equal(msg, 'Done');
