@@ -761,6 +761,9 @@ var app = app || {};
 
       $pinValidationMessage.textContent = '';
       $pinValidationMessage.style.display = 'none';
+    } else if (pass1.length > 100 || pass2.length > 100) {
+      $validationMessage.textContent = 'Pass phrase is too long!';
+      $validationMessage.style.display = 'block';
     } else if (pass1 !== pass2) {
       // passwords are valid
       $validationMessage.textContent = 'Confirmation must match pass phrase!';
@@ -848,6 +851,9 @@ var app = app || {};
 
       $pinValidationMessage.textContent = '';
       $pinValidationMessage.style.display = 'none';
+    } else if (pass1.length > 100 || pass2.length > 100) {
+      $validationMessage.textContent = 'Pass phrase is too long!';
+      $validationMessage.style.display = 'block';
     } else if (!pin) {
       $pinValidationMessage.textContent = 'Passcode lock/SIM PIN is empty!';
       $pinValidationMessage.style.display = 'block';
