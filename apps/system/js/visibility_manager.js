@@ -1,4 +1,4 @@
-/* global attentionWindowManager, System, rocketbar */
+/* global attentionWindowManager, System */
 'use strict';
 
 (function(exports) {
@@ -88,8 +88,6 @@
         this.publish('showwindow', { type: evt.type });
         this._resetDeviceLockedTimer();
         break;
-
-      case 'rocketbar-overlayclosed':
       case 'lockscreen-request-unlock':
         var detail = evt.detail,
             activity = null,
@@ -100,8 +98,7 @@
           notificationId = detail.notificationId;
         }
 
-        if (!attentionWindowManager.hasActiveWindow() &&
-            !rocketbar.active) {
+        if (!attentionWindowManager.hasActiveWindow()) {
           this.publish('showwindow', {
             activity: activity,  // Trigger activity opening in AWM
             notificationId: notificationId
@@ -110,7 +107,6 @@
         this._resetDeviceLockedTimer();
         break;
       case 'lockscreen-appopened':
-      case 'rocketbar-overlayopened':
         // If the audio is active, the app should not set non-visible
         // otherwise it will be muted.
         // TODO: Remove this hack.
@@ -128,11 +124,13 @@
           this.publish('hidewindow', { type: evt.type });
         }
         break;
+      case 'rocketbar-overlayopened':
       case 'utility-tray-overlayopened':
       case 'cardviewshown':
       case 'system-dialog-show':
         this.publish('hidewindowforscreenreader');
         break;
+      case 'rocketbar-overlayclosed':
       case 'utility-tray-overlayclosed':
       case 'cardviewclosed':
       case 'system-dialog-hide':
