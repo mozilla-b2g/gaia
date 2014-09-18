@@ -60,7 +60,8 @@ marionette('Browser Chrome - Bookmark Web Result', function() {
   test('bookmark web result', function() {
     var bookmarkIdentifier = 'mozilla1.org/';
 
-    rocketbar.homescreenFocus();
+    home.waitForLaunch();
+    home.focusRocketBar();
     rocketbar.enterText('mozilla');
     search.goToResults();
     var result = search.checkResult(bookmarkIdentifier, 'Mozilla');
