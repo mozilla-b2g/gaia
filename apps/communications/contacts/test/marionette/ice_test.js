@@ -2,6 +2,7 @@
 
 var Contacts = require('./lib/contacts');
 var Actions = require('marionette-client').Actions;
+var assert = require('assert');
 
 marionette('Contacts > ICE contacts', function() {
   var client = marionette.client(Contacts.config);
@@ -48,6 +49,48 @@ marionette('Contacts > ICE contacts', function() {
 
       actions.tap(contactsHeader, 10, 10).perform();
 
+    });
+
+    test('Select ICE contact from search, go back to ICE settings', function() {
+      var givenName = 'Hello';
+      var searchQuery = givenName.slice(0,1);
+      var tel = '655555555';
+
+      subject.addContact({
+        givenName: givenName,
+        tel: tel
+      });
+
+      client.findElement(selectors.settingsButton).click();
+      client.helper.waitForElement(selectors.setIceButton).click();
+
+      var iceSwitch1 = client.helper.waitForElement(selectors.iceSwitch1);
+      subject.clickOn(iceSwitch1);
+
+      var iceButton1 = client.helper.waitForElement(selectors.iceButton1);
+      subject.clickOn(iceButton1);
+
+      var searchLabel = client.helper.waitForElement(selectors.searchLabel);
+      subject.clickOn(searchLabel);
+
+      client.helper.waitForElement(selectors.searchInput).sendKeys(searchQuery);
+
+      client.helper.waitForElement(selectors.searchResultFirst).click();
+
+      var contactsHeader =
+        client.helper.waitForElement(selectors.contactListHeader);
+
+      actions.tap(contactsHeader, 10, 10).perform();
+
+      client.helper.waitForElement(selectors.settingsClose);
+
+      var openIce = client.helper.waitForElement(selectors.iceGroupOpen);
+      subject.clickOn(openIce);
+
+      var iceContact = client.helper.waitForElement(selectors.iceContact);
+
+      assert.ok(iceContact.text().indexOf(givenName) >= 0, 
+        'The name of the contact should appear as ICE contact');
     });
 
   });

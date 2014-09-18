@@ -74,6 +74,7 @@ Contacts.Selectors = {
   overlay: 'nav[data-type="scrollbar"] p',
 
   settingsView: '#view-settings',
+  settingsClose: '#settings-close',
   bulkDelete: '#bulkDelete',
 
   editForm: '#selectable-form',
@@ -84,7 +85,9 @@ Contacts.Selectors = {
   iceSwitch1: '#ice-contacts-1-switch',
   iceSwitch2: '#ice-contacts-2-switch',
   iceButton1: '#select-ice-contact-1',
-  iceButton2: '#select-ice-contact-2'
+  iceButton2: '#select-ice-contact-2',
+  iceGroupOpen: '#section-group-ice',
+  iceContact: '#ice-group .contact-item'
 };
 
 Contacts.prototype = {
