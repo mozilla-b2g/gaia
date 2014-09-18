@@ -180,6 +180,22 @@
     launchActivity('update', currentGroup.number);
   }
 
+  function updateCallInfoWithContact(contact, reason) {
+    var titleElt = document.getElementById('call-info-title');
+
+    switch(reason) {
+      case 'update':
+          titleElt.textContent = contact.givenName[0];
+          break;
+      case 'create':
+          titleElt.textContent = contact.givenName[0];
+          detailsButton.hidden = false;
+          addToContactButton.hidden = true;
+          createContactButton.hidden = true;
+          break;
+    }
+  }
+
   function launchActivity(name, phoneNumber) {
     try {
       /* jshint nonew: false */
@@ -196,6 +212,27 @@
       console.error('Error while creating activity');
     }
   }
+
+  navigator.mozContacts.oncontactchange = function(event) {
+    var reason = event.reason;
+
+    if (reason === 'update' || reason === 'create') {
+      var options = {
+        filterBy: ['id'],
+        filterOp: 'equals',
+        filterValue: event.contactID
+      };
+
+      var request = navigator.mozContacts.find(options);
+      request.onsuccess = function(e) {
+        var contact = e.target.result[0];
+        updateCallInfoWithContact(contact, reason);
+      };
+      request.onerror = function(e) {
+        console.error('Error retrieving contact by ID ' + event.contactID);
+      };
+    }
+  };
 
   function initListeners() {
     detailsButton = document.getElementById('call-info-details');
