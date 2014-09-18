@@ -525,6 +525,16 @@ var PlayerView = {
     }
   },
 
+  // disable the next track button if needed: ie at end of playlist.
+  //
+  _disableNextIfNeeded: function() {
+    // make sure the next track button is disabled.
+    var playingIndex = (this.shuffleOption) ?
+      this.shuffleIndex : this.currentIndex;
+    this.nextControl.disabled = (this.repeatOption !== REPEAT_LIST) &&
+      (playingIndex >= this.dataSource.length - 1);
+  },
+
   play: function pv_play(targetIndex) {
     this.checkSCOStatus();
     this._sendInterpageMessage();
@@ -570,12 +580,17 @@ var PlayerView = {
       // If we reach here, the player is paused so resume it
       this.audio.play();
     }
+
+    this._disableNextIfNeeded();
   },
 
   pause: function pv_pause() {
     this.checkSCOStatus();
     this._clearInterpageMessage();
+
     this.audio.pause();
+
+    this._disableNextIfNeeded();
   },
 
   stop: function pv_stop() {
@@ -920,6 +935,7 @@ var PlayerView = {
             });
 
             this.setShuffle(newValue, this.currentIndex);
+            this._disableNextIfNeeded();
             break;
           case 'player-cover-share':
             this.share();
