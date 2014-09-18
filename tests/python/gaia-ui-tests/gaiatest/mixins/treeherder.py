@@ -28,11 +28,6 @@ DEVICE_GROUP_MAP = {
         '4.3': {
             'name': 'Flame Device Image',
             'symbol': 'Flame'}
-    },
-    'msm7627a': {
-        '4.0.4': {
-            'name': 'Buri/Hamachi Device Image',
-            'symbol': 'Buri/Hamac'}
     }}
 
 
@@ -95,7 +90,7 @@ class TreeherderTestRunnerMixin(object):
             group = DEVICE_GROUP_MAP[device][device_firmware_version_release]
             job.add_group_name(group['name'])
             job.add_group_symbol(group['symbol'])
-            job.add_job_name('Gaia Python Integration Test (%s)' % device)
+            job.add_job_name('Gaia Python Integration Test (%s)' % group['symbol'])
             job.add_job_symbol('Gip')
         except KeyError:
             self.logger.error('Unknown device id: %s or device firmware '
