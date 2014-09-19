@@ -247,6 +247,13 @@
   color: #fff;
 }
 
+@media (max-height:480px) {
+  #lockscreen-clock-time, #lockscreen-date {
+    position: relative;
+    top: -0.5rem;
+  }
+}
+
 #lockscreen-area {
   position: absolute;
   height: 8.6rem;
