@@ -36,7 +36,9 @@ var Contacts = (function() {
   var navigation = new navigationStack('view-contacts-list');
 
   var goToForm = function edit() {
-    navigation.go('view-contact-form', 'popup');
+    var transition = ActivityHandler.currentlyHandling ? 'activity-popup' : 'popup';
+
+    navigation.go('view-contact-form', transition);
   };
 
   var contactTag,
