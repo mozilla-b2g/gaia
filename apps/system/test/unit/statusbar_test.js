@@ -106,6 +106,8 @@ suite('system/Statusbar', function() {
   mocksForStatusBar.attachTestHelpers();
 
   setup(function(done) {
+    this.sinon.useFakeTimers();
+
     window.System = MockSystem;
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -407,7 +409,6 @@ suite('system/Statusbar', function() {
       assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('moztime change while lockscreen is unlocked', function() {
-      this.sinon.useFakeTimers();
       System.locked = false;
       var evt = new CustomEvent('moztimechange');
       StatusBar.handleEvent(evt);
@@ -417,7 +418,6 @@ suite('system/Statusbar', function() {
       this.sinon.clock.restore();
     });
     test('timeformatchange while timeformat changed', function() {
-      this.sinon.useFakeTimers();
       var evt = new CustomEvent('timeformatchange');
       StatusBar.handleEvent(evt);
       this.sinon.clock.tick();
@@ -1366,18 +1366,15 @@ suite('system/Statusbar', function() {
   });
 
   suite('media information', function() {
-    var fakeClock;
     var recordingSpy;
 
     setup(function() {
-      fakeClock = this.sinon.useFakeTimers();
       recordingSpy = this.sinon.spy(StatusBar.update, 'recording');
     });
 
     teardown(function() {
       StatusBar.recordingCount = 0;
       StatusBar.playingActive = false;
-      fakeClock.restore();
     });
 
     test('geolocation is activating', function() {
@@ -1489,16 +1486,6 @@ suite('system/Statusbar', function() {
       return e;
     }
 
-    // Making sure the time-bounded features won't have side effects
-    // outside of this suite.
-    setup(function() {
-      this.sinon.useFakeTimers();
-    });
-
-    teardown(function() {
-      this.sinon.clock.tick(10000);
-    });
-
     var app;
     setup(function() {
       app = {
@@ -1557,6 +1544,7 @@ suite('system/Statusbar', function() {
       }
 
       teardown(function() {
+        this.sinon.clock.tick(10000);
         StatusBar.element.style.transition = '';
         StatusBar.element.style.transform = '';
       });
