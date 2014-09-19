@@ -1,26 +1,28 @@
 #update-manager-container {
   display: none;
+  position: relative;
 }
 
 #update-manager-container.displayed {
   display: block;
 }
 
-#update-manager-container > .activity {
+#update-manager-container progress {
   display: none;
-  background-image: url(images/loader.png);
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 2.4rem;
-  animation: 0.9s fn-rotate infinite linear;
+  position: absolute;
+  width: 100%;
+  height: 0.4rem;
+  left: 0;
+  bottom: 0;
+  border: none;
 }
 
-#update-manager-container.downloading > .icon.activity {
+#update-manager-container progress::-moz-progress-bar {
+  background: url(../shared/progress.gif) repeat-x;
+}
+
+#update-manager-container.downloading progress {
   display: block;
-}
-
-#update-manager-container.downloading > .icon {
-  display: none;
 }
 
 #update-manager-container > .title-container {
