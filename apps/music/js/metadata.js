@@ -1071,8 +1071,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       // generally, this is because we had an unsynced ID3 frame with the art
       // and needed to de-unsync it.
       //
-      // First, try to make a unique filename for the thumbnail based on the
-      // artist, album, and file size. The file size is essentially a poor man's
+      // First, try to make a unique filename for the image based on the artist,
+      // album, and file size. The file size is essentially a poor man's
       // checksum to make sure we aren't reusing an inappropriate image, such as
       // if the user updated the embedded art.
       var albumKey;
@@ -1163,7 +1163,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       // it's for. Since the audio track could be in any storage area, we'll
       // examine its filename to get the storage name; the storage name is
       // always the first part of the (absolute) filename, so we'll grab that
-      // and build an absolute path for the thumbnail. This will ensure that the
+      // and build an absolute path for the image. This will ensure that the
       // generic deviceStorage we use for pictures ("pictureStorage") puts the
       // image where we want it.
       //
@@ -1188,7 +1188,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
       // We already have the image. We're done!
       getrequest.onsuccess = function() {
-        metadata.picture.thumbnail = thumbnailAbsPath;
+        metadata.picture.filename = imageAbsPath;
         callback();
       };
 
