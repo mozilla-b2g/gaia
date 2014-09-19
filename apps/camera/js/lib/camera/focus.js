@@ -81,6 +81,7 @@ Focus.prototype.configureFocusModes = function() {
     this.startFaceDetection();
   }
   this.mozCamera.onAutoFocusMoving = this.onAutoFocusMoving;
+  this.mozCamera.onAutoFocusCompleted = this.onAutoFocusCompleted;
 };
 
 Focus.prototype.startFaceDetection = function() {
@@ -144,24 +145,25 @@ Focus.prototype.suspendContinuousFocus = function(ms) {
   this.continuousModeTimer = setTimeout(this.resumeContinuousFocus, ms);
 };
 
+Focus.prototype.updateFocusState = function(state) {
+  // Only update if the state has changed, and only transition to focused
+  // or unfocused if we were previously focusing; this eliminates unfocused
+  // rings just before a focusing state change.
+  if (this.focusState !== state &&
+      (this.focusState === 'focusing' || state === 'focusing')) {
+    this.focusState = state;
+    this.onAutoFocusChanged(state);
+  }
+};
+
 Focus.prototype.onAutoFocusMoving = function(moving) {
-  var self = this;
   if (moving) {
-    this.onAutoFocusChanged('focusing');
-    this.mozCamera.autoFocus(onSuccess, onError);
-    return;
+    this.updateFocusState('focusing');
   }
-  function onError(err) {
-    if (err !== 'AutoFocusInterrupted') {
-      self.onAutoFocusChanged('error');
-      self.mozCamera.resumeContinuousFocus();
-    }
-  }
-  function onSuccess(state) {
-    state = state ? 'focused' : 'fail';
-    self.onAutoFocusChanged(state);
-    self.mozCamera.resumeContinuousFocus();
-  }
+};
+
+Focus.prototype.onAutoFocusCompleted = function(state) {
+  this.updateFocusState(state ? 'focused' : 'fail');
 };
 
 Focus.prototype.onAutoFocusChanged = function(state) {
@@ -219,6 +221,7 @@ Focus.prototype.focus = function(done) {
   // then call the done callback, which takes the picture and clears
   // the focus ring.
   //
+  this.updateFocusState('focusing');
   this.mozCamera.autoFocus(onSuccess, onError);
 
   // If focus fails with an error, we still need to signal the
@@ -298,6 +301,7 @@ Focus.prototype.updateFocusArea = function(rect, done) {
     done('touchToFocusNotAvailable');
     return;
   }
+  this.updateFocusState('focusing');
   this.stopContinuousFocus();
   this.stopFaceDetection();
   this.mozCamera.setFocusAreas([rect]);
