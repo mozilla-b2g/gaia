@@ -14,6 +14,8 @@
   box-shadow: 0.2rem 0.2rem 0.4rem 0 rgba(0, 0, 0, 0.4);
   display: none;
   border-radius: 0.2rem;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
 }
 
 .appWindow > .textselection-dialog div,
@@ -51,9 +53,14 @@
   display: block;
 }
 
+#TextSelectionDialogRoot > .textselection-dialog div:active:after,
+#TextSelectionDialogRoot > .textselection-dialog div:active + div:after{
+  display: none;
+}
+
 .appWindow > .textselection-dialog.visible,
 #TextSelectionDialogRoot > .textselection-dialog.visible {
-  display: block;
+  opacity: 1;
 }
 
 .appWindow .textselection-dialog-copy,
