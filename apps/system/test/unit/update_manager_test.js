@@ -131,8 +131,8 @@ suite('system/UpdateManager', function() {
     fakeNode.id = 'update-manager-container';
     fakeNode.innerHTML = [
       '<div data-icon="download-circle"></div>',
-      '<div class="icon activity"></div>',
-      '<div class="title-container"></div>'
+      '<div class="title-container"></div>',
+      '<progress></progress>'
     ].join('');
 
     fakeToaster = document.createElement('div');
