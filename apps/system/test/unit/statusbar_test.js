@@ -1,4 +1,4 @@
-/* globals FtuLauncher, MockAppWindowManager, MockL10n, MockMobileOperator,
+/* globals FtuLauncher, MockAppWindowManager, MockMobileOperator,
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
            MockSystem, MockTouchForwarder, StatusBar, System,
@@ -13,7 +13,8 @@ require(
 require('/shared/test/unit/mocks/mock_icc_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_app_window_manager.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/js/l10n.js');
+require('/shared/js/l10n_date.js');
 require('/shared/test/unit/mocks/mock_system.js');
 require('/shared/test/unit/mocks/mock_simslot.js');
 require('/shared/test/unit/mocks/mock_simslot_manager.js');
@@ -42,7 +43,7 @@ suite('system/Statusbar', function() {
       fakeStatusbarIconsMinWrapper, fakeStatusbarIconsMin,
       fakeStatusBarConnections, fakeStatusBarCallForwardings, fakeStatusBarTime,
       fakeStatusBarLabel, fakeStatusBarBattery;
-  var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [],
+  var realMozMobileConnections, realMozTelephony, fakeIcons = [],
       realNfcManager;
 
   function prepareDOM() {
@@ -101,6 +102,12 @@ suite('system/Statusbar', function() {
     fakeStatusBarBattery = document.createElement('div');
     fakeStatusBarBattery.id = 'statusbar-battery';
     document.body.appendChild(fakeStatusBarBattery);
+
+    var l10nHref = '/locales/system.{locale}.properties';
+    var resource = document.createElement('link');
+    resource.setAttribute('href', l10nHref);
+    resource.setAttribute('rel', 'localization');
+    document.head.appendChild(resource);
   }
 
   mocksForStatusBar.attachTestHelpers();
@@ -109,8 +116,6 @@ suite('system/Statusbar', function() {
     this.sinon.useFakeTimers();
 
     window.System = MockSystem;
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
     realMozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
     realMozTelephony = navigator.mozTelephony;
@@ -179,7 +184,6 @@ suite('system/Statusbar', function() {
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatorMozMobileConnections.mTeardown();
     System.locked = false;
-    navigator.mozL10n = realMozL10n;
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozTelephony = realMozTelephony;
     window.nfcManager.isActive.restore();
@@ -1996,13 +2000,13 @@ suite('system/Statusbar', function() {
         };
 
     setup(function() {
-      sinon.stub(MockL10n, 'get').returns('test');
+      sinon.stub(navigator.mozL10n, 'get').returns('test');
       mockIcon.dataset = {};
       mockIcon.setAttribute = sinon.spy();
     });
 
     teardown(function() {
-      MockL10n.get.restore();
+      navigator.mozL10n.get.restore();
     });
 
     test('should set the data-level attribute', function() {
@@ -2032,7 +2036,7 @@ suite('system/Statusbar', function() {
     test('should set the aria-label', function() {
       mockIcon.dataset.searching = true;
       StatusBar.updateSignalIcon(mockIcon, connInfo);
-      assert.isTrue(MockL10n.get.calledWith('statusbarSignalRoaming', {
+      assert.isTrue(navigator.mozL10n.get.calledWith('statusbarSignalRoaming', {
         level: mockIcon.dataset.level,
         operator: connInfo.network && connInfo.network.shortName
       }));
