@@ -1,11 +1,10 @@
 /* globals ICEContacts, ICEStore, MocksHelper, mozContact, MockMozContacts,
-           MockL10n, CallHandler, MockLazyLoader */
+           CallHandler, MockLazyLoader */
 'use strict';
 
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_mozContacts.js');
 require('/shared/js/dialer/utils.js');
 require('/shared/test/unit/mocks/mock_ice_store.js');
@@ -20,7 +19,6 @@ var mocksHelperForDialer = new MocksHelper([
 
 suite('ICE contacts bar', function() {
   var realMozContacts;
-  var realL10n;
   var container;
   var iceContactBar;
   var iceContactsOverlay;
@@ -79,15 +77,11 @@ suite('ICE contacts bar', function() {
   }
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = window.MockL10n;
-
     realMozContacts = navigator.mozContacts;
     navigator.mozContacts = MockMozContacts;
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
     navigator.mozContacts = realMozContacts;
     document.body.removeChild(container);
   });
@@ -117,6 +111,14 @@ suite('ICE contacts bar', function() {
       ICEContacts.updateICEContacts().then(function() {
         var header = iceContactsOverlay.querySelector('header');
         assert.equal(header.dataset.l10nId, 'ice-contacts-overlay-title');
+        done();
+      });
+    });
+
+    test('Should init when calling updateICEContacts', function(done) {
+      ICEContacts._initialized = false;
+      ICEContacts.updateICEContacts().then(function() {
+        assert.isTrue(ICEContacts._initialized);
         done();
       });
     });
@@ -402,8 +404,6 @@ suite('ICE contacts bar', function() {
     var contact1;
 
     setup(function(done) {
-      this.sinon.spy(MockL10n, 'get');
-
       navigator.mozContacts.clear();
       contact1 = new mozContact();
       contact1.givenName = ['ICE Contact'];
@@ -431,9 +431,9 @@ suite('ICE contacts bar', function() {
     });
 
     test('Should include tel-type element', function() {
-      assert.equal(iceContactsOverlay.querySelector('.js-tel-type').textContent,
-                   contact1.tel[0].type);
-      sinon.assert.calledWith(MockL10n.get, contact1.tel[0].type[0]);
+      assert.equal(
+        iceContactsOverlay.querySelector('.js-tel-type').dataset.l10nId,
+        contact1.tel[0].type);
     });
 
     test('Should include time element', function() {
