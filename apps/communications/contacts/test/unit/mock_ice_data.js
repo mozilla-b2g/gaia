@@ -20,7 +20,7 @@ var MockICEData = {
   },
   _mTriggerChange: function(data) {
     this._mChangeCallbacks.forEach(function(fn) {
-      fn(data);
+      fn(MockICEData.iceContacts);
     });
   }
 };

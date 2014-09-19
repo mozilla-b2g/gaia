@@ -5,8 +5,9 @@
 /* global contacts */
 /* global asyncStorage */
 /* global MockContactsListObj */
-/* global MockICEStore */
+/* global ICEData */
 
+requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/js/utilities/ice_data.js');
@@ -23,6 +24,9 @@ suite('ICE Settings view', function() {
   var subject;
   var realContactsList;
   var realPromise;
+  var defaultLabel = 'ICESelectContact';
+
+  var cid1 = '1', cid2 = '2';
 
   suiteSetup(function() {
     mocksHelper.suiteSetup();
@@ -82,24 +86,39 @@ suite('ICE Settings view', function() {
       this.sinon.stub(contacts.List, 'getContactById', function(id, cb) {
         var contacts = [
         {
+          id: cid1,
           givenName: ['John'],
           familyName: ['Doe']
         },{
+          id: cid2,
           givenName: ['Albert'],
           familyName: ['Pla']
         }];
         // Hoping ide 1 and 2
         cb(contacts[id - 1]);
       });
-
     });
 
     function assertIceContacts(iceStates) {
       var ice1 = document.getElementById('select-ice-contact-1');
-      assert.equal(ice1.textContent.trim(), iceStates[0].label);
+      assert.equal(ice1.dataset.contactId, iceStates[0].contactId);
+
+      if (iceStates[0].label) {
+        assert.equal(ice1.textContent.trim(), iceStates[0].label);
+      }
+      else {
+        assert.equal(ice1.dataset.l10nId, defaultLabel);
+      }
 
       var ice2 = document.getElementById('select-ice-contact-2');
-      assert.equal(ice2.textContent.trim(), iceStates[1].label);
+      assert.equal(ice2.dataset.contactId, iceStates[1].contactId);
+
+      if (iceStates[1].label) {
+        assert.equal(ice2.textContent.trim(), iceStates[1].label);
+      }
+      else {
+        assert.equal(ice2.dataset.l10nId, defaultLabel);
+      }
 
       assert.equal(ice1.disabled, !iceStates[0].active);
       assert.equal(ice2.disabled, !iceStates[1].active);
@@ -110,106 +129,166 @@ suite('ICE Settings view', function() {
       assert.isFalse(iceCheck2.disabled);
     }
 
-    test('> No ice contacts', function() {
+    test('> No ice contacts', function(done) {
       window.asyncStorage.keys = {
         'ice-contacts': []
       };
-      subject.init();
-      // On init and when we do the listening
-      sinon.assert.calledTwice(asyncStorage.getItem);
 
-      assertIceContacts([{ label: '', active: false},
-                         { label: '', active: false}]);
+      subject.refresh(function() {
+        // On init and when we do the listening
+        sinon.assert.calledOnce(asyncStorage.getItem);
+
+        assertIceContacts([{ contactId: '', active: false},
+                         { contactId: '', active: false}]);
+        done();
+      });
     });
 
-    test('> With 1 contact enabled', function() {
+    test('> With 1 contact enabled. ICE Contact 1', function(done) {
       window.asyncStorage.keys = {
         'ice-contacts': [
           {
-            id: 1,
+            id: cid1,
             active: true
           }
         ]
       };
 
-      subject.init(true);
-      sinon.assert.calledOnce(contacts.List.getContactById);
+      subject.refresh(function() {
+        sinon.assert.calledTwice(contacts.List.getContactById);
 
-      assertIceContacts([{ label: 'John Doe', active: true},
-                         { label: '', active: false}]);
+        assertIceContacts([{ contactId: cid1, label: 'John Doe', active: true},
+                         { contactId: '', active: false}]);
+        done();
+      });
     });
 
-    test('> With 1 contact enabled. No name. Only has tel number', function() {
+     test('> With 1 contact enabled. ICE Contact 2', function(done) {
       window.asyncStorage.keys = {
         'ice-contacts': [
+          {},
           {
-            id: 1,
+            id: cid2,
             active: true
           }
         ]
       };
 
-      var targetTelNumber = '678987654';
+      subject.refresh(function() {
+        sinon.assert.calledTwice(contacts.List.getContactById);
 
-      contacts.List.getContactById.restore();
-      this.sinon.stub(contacts.List, 'getContactById', function(id, cb) {
-        var contacts = [
-        {
-          givenName: [],
-          familyName: null,
-          tel: [
+        assertIceContacts([{ contactId: '', active: false},
+                      { contactId: cid2, label: 'Albert Pla', active: true}]);
+        done();
+      });
+    });
+
+    test('> With 1 contact enabled. No name. Only has tel number',
+      function(done) {
+        window.asyncStorage.keys = {
+          'ice-contacts': [
             {
-              type: ['other'],
-              value: targetTelNumber
+              id: cid1,
+              active: true
             }
           ]
-        }];
-        // Hoping ide 1 and 2
-        cb(contacts[id - 1]);
-      });
+        };
 
-      subject.init(true);
-      sinon.assert.calledOnce(contacts.List.getContactById);
+        var targetTelNumber = '678987654';
 
-      assertIceContacts([{ label: targetTelNumber, active: true},
-                         { label: '', active: false}]);
+        contacts.List.getContactById.restore();
+        this.sinon.stub(contacts.List, 'getContactById', function(id, cb) {
+          var contacts = [
+          {
+            id: cid1,
+            givenName: [],
+            familyName: null,
+            tel: [
+              {
+                type: ['other'],
+                value: targetTelNumber
+              }
+            ]
+          }];
+          // Hoping ide 1 and 2
+          cb(contacts[id - 1]);
+        });
+
+        subject.refresh(function() {
+          sinon.assert.calledTwice(contacts.List.getContactById);
+
+          assertIceContacts([{
+            label: targetTelNumber, contactId: cid1, active: true
+          },{
+              contactId: '', active: false
+          }]);
+
+          done();
+        });
     });
 
-    test('> With 1 contact disabled', function() {
+    test('> With ICE contact 1 disabled', function(done) {
       window.asyncStorage.keys = {
         'ice-contacts': [
           {
-            id: 1,
+            id: cid1,
             active: false
           }
         ]
       };
 
-      subject.init(true);
-      sinon.assert.calledOnce(contacts.List.getContactById);
+      subject.refresh(function() {
+        sinon.assert.calledTwice(contacts.List.getContactById);
 
-      assertIceContacts([{ label: 'John Doe', active: false},
-                         { label: '', active: false}]);
+        assertIceContacts([{ contactId: cid1, label:'John Doe', active: false},
+                         { contactId: '', active: false}]);
+
+        done();
+      });
     });
 
-    test('> With 2 contacts enabled', function() {
+    test('> With ICE contact 2 disabled', function(done) {
+      window.asyncStorage.keys = {
+        'ice-contacts': [
+          {},
+          {
+            id: cid2,
+            active: false
+          }
+        ]
+      };
+
+      subject.refresh(function() {
+        sinon.assert.calledTwice(contacts.List.getContactById);
+
+        assertIceContacts([{ contactId: '', active: false},
+                        { contactId: cid2, label:'Albert Pla', active: false}]);
+
+        done();
+      });
+    });
+
+    test('> With 2 contacts enabled', function(done) {
       window.asyncStorage.keys = {
         'ice-contacts': [
           {
-            id: 1,
+            id: cid1,
             active: true
           }, {
-            id: 2,
+            id: cid2,
             active: true
           }
         ]
       };
 
-      subject.init(true);
-      sinon.assert.calledTwice(contacts.List.getContactById);
+      subject.refresh(function() {
+        sinon.assert.calledTwice(contacts.List.getContactById);
 
-      assertIceContacts([{ label: 'John Doe', active: true},
-                         { label: 'Albert Pla', active: true}]);
+        assertIceContacts([{ contactId: cid1, label: 'John Doe', active: true},
+                      { contactId: cid2, label: 'Albert Pla', active: true}]);
+
+        done();
+      });
     });
   });
 
@@ -218,25 +297,27 @@ suite('ICE Settings view', function() {
       window.asyncStorage.keys = {
         'ice-contacts': [
           {
-            id: 1,
+            id: cid1,
             active: true
           }, {
-            id: 2,
+            id: cid2,
             active: true
           }
         ]
       };
 
-      this.sinon.spy(MockICEStore, 'setContacts');
+      this.sinon.spy(ICEData, 'setICEContact');
     });
 
     test('> change state saves ICE Datastore', function() {
       var switch1 = document.getElementById('ice-contacts-1-switch');
-      subject.init();
+      subject.refresh();
+      switch1.querySelector('[name="ice-contact-1-enabled"]').checked = true;
       // Disable 1
       switch1.click();
-      sinon.assert.calledOnce(MockICEStore.setContacts);
-      sinon.assert.calledWith(MockICEStore.setContacts, [2]);
+
+      sinon.assert.calledOnce(ICEData.setICEContact);
+      sinon.assert.calledWith(ICEData.setICEContact, cid1, 0, false);
     });
   });
 
