@@ -85,7 +85,7 @@ contacts.List = (function() {
       'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +          // Roman
       'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ' +            // Greek
       'АБВГДЂЕЁЖЗИЙЈКЛЉМНЊОПРСТЋУФХЦЧЏШЩЭЮЯ'; // Cyrillic (Russian + Serbian)
-    var order = { 
+    var order = {
       'ice': 0,
       'favorites': 1
     };
@@ -857,7 +857,7 @@ contacts.List = (function() {
     }
 
     iceContacts = ids;
-    
+
     showICEGroup();
   }
 
@@ -1209,6 +1209,11 @@ contacts.List = (function() {
   };
 
   var getContactById = function(contactID, successCb, errorCb) {
+    if (!contactID) {
+      successCb();
+      return;
+    }
+    
     var options = {
       filterBy: ['id'],
       filterOp: 'equals',

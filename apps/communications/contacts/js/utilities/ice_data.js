@@ -146,7 +146,8 @@
 
     // If it's a delete update all the storages
     if (evt.detail.reason === 'remove') {
-      removeICEContact(contact.id).then(notifyCallbacks);
+      removeICEContact(contact.id).then(notifyCallbacks.bind(null,
+                                                             localIceContacts));
     } else {
       notifyCallbacks(localIceContacts);
     }

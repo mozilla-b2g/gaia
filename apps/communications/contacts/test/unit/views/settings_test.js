@@ -852,7 +852,7 @@ suite('Contacts settings >', function() {
           contacts.Settings.navigation.currentView(),
           'ice-settings'
         );
-        assert.ok(contacts.ICE.loaded);
+        assert.ok(contacts.ICE.initialized);
         done();
       });
     });
