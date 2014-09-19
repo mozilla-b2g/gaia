@@ -118,8 +118,8 @@ module.exports = {
   },
 
   spinnerTimeouts: {
-    takingPicture: 1500,
-    requestingCamera: 700,
+    takingPicture: 1650,
+    requestingCamera: 850,
     loadingVideo: 100
   },
 
