@@ -364,8 +364,8 @@ suite('suggestion Bar', function() {
     });
 
     suite('#update suggestions - exact match', function() {
-      var setupExactMatch = function() {
-        var enteredNumber = '1234567890';
+      var setupExactMatch = function(number) {
+        var enteredNumber = number;
 
         MockContacts.mResult = mockResult1;
         MockFbContacts.mResult = [];
@@ -374,9 +374,8 @@ suite('suggestion Bar', function() {
 
       test('one SIM', function() {
         var mockNumber = '1234567890';
+        setupExactMatch(mockNumber);
         var tel = domSuggestionBar.querySelector('.js-tel');
-
-        setupExactMatch();
 
         assert.isFalse(domSuggestionBar.classList.contains('hide'));
         assert.equal(tel.textContent, mockNumber);
@@ -384,7 +383,25 @@ suite('suggestion Bar', function() {
 
       test('two SIMs', function() {
         MockNavigatorMozIccManager.addIcc(1, {});
-        setupExactMatch();
+        setupExactMatch('123456789');
+        subject.update('1234567890');
+
+        assert.isFalse(domSuggestionBar.classList.contains('hide'));
+
+        document.body.querySelector('.js-suggestion-item').click();
+
+        assert.isTrue(domSuggestionBar.classList.contains('hide'));
+
+        subject.update('12345678');
+
+        assert.isFalse(domSuggestionBar.classList.contains('hide'));
+
+        document.body.querySelector('.js-suggestion-item').click();
+
+        assert.isTrue(domSuggestionBar.classList.contains('hide'));
+
+        MockContacts.mResult = [];
+        subject.update('343246878');
 
         assert.isTrue(domSuggestionBar.classList.contains('hide'));
       });

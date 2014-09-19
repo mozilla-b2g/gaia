@@ -7,6 +7,9 @@ var MockKeypadManager = {
   lastCalled: '15555555555',
   updatePhoneNumber: function khm_updatePhoneNumber(number) {
     this._phoneNumber = number;
+    if (this.onValueChanged) {
+      this.onValueChanged(this._phoneNumber);
+    }
   },
   makeCall: function makeCall() {
     if (this.mOnMakeCall) {
