@@ -380,6 +380,11 @@ Camera.prototype.configure = function() {
     return;
   }
 
+  // In some extreme cases the mode can
+  // get changed and configured whilst
+  // video recording is in progress.
+  this.stopRecording();
+
   // Indicate 'busy'
   this.busy();
 
@@ -1474,6 +1479,7 @@ Camera.prototype.busy = function(type) {
   debug('busy %s', type || '');
   this.isBusy = true;
   this.emit('busy', type);
+  clearTimeout(this.readyTimeout);
 };
 
 /**
@@ -1483,9 +1489,13 @@ Camera.prototype.busy = function(type) {
  * @private
  */
 Camera.prototype.ready = function() {
-  debug('ready');
+  var self = this;
   this.isBusy = false;
-  this.emit('ready');
+  clearTimeout(this.readyTimeout);
+  this.readyTimeout = setTimeout(function() {
+    debug('ready');
+    self.emit('ready');
+  }, 150);
 };
 
 });
