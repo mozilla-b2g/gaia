@@ -79,6 +79,9 @@ suite('MobileID Manager', function() {
     var chromeEventId = 'fakeId';
 
     MobileIdManager.dialog = {
+      reset: function() {
+      },
+
       dispatchEvent: function(eventName, data) {
         MobileIdManager.dialog = null;
         done();
@@ -87,12 +90,15 @@ suite('MobileID Manager', function() {
 
     window.applications.mRegisterMockApp(appManifest);
 
+    var spy = this.sinon.spy(MobileIdManager.dialog, 'reset');
     this.sinon.stub(MobileIdManager, 'sendContentEvent',
                     function(eventName, data) {
       assert.equal(eventName, CONTENT_EVENT);
       assert.equal(data.error, 'DIALOG_CLOSED_BY_USER');
       assert.equal(MobileIdManager.chromeEventId, chromeEventId);
       window.applications.mUnregisterMockApp(appManifest);
+      assert.ok(spy.calledOnce);
+      spy.restore();
       done();
     });
 
