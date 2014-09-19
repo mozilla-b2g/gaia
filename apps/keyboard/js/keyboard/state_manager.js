@@ -10,12 +10,6 @@ var StateManager = function(app) {
   this._layoutName = undefined;
 };
 
-// Don't switch away IMEngine right away since the transition won't
-// start until then, and we need to keep the keyboard responsive to user
-// touch when visible.
-// (This number corresponds to BLUR_CHANGE_DELAY in input management.)
-StateManager.prototype.DEACTIVATE_DELAY = 120;
-
 StateManager.prototype.start = function() {
   this.app.console.log('StateManager.start()');
   // Start with inactive state.
@@ -116,42 +110,16 @@ StateManager.prototype._updateActiveState = function(active) {
       'keyboard.current': undefined
     });
 
-    var imManager = this.app.inputMethodManager;
-
-    // Finish off anything pending except removing the rendering after a delay
-    // -- input management need it for transition.
-    this._delayDeactivate()
-      // ... cancel everything
-      .then(function() {
-        this.app.console.log('StateManager._delayDeactivate()::then');
-        this.app.candidatePanelManager.hideFullPanel();
-        this.app.candidatePanelManager.updateCandidates([]);
-        this.app.targetHandlersManager.activeTargetsManager.clearAllTargets();
-      }.bind(this))
-      // ... switch away IMEngine
-      .then(imManager.switchCurrentIMEngine.bind(imManager, 'default'))
-      // ... make sure error is not silently ignored.
-      .catch(function(e) { (e !== undefined) && console.error(e); });
+    // Finish off anything pending & cancel everything
+    this.app.candidatePanelManager.hideFullPanel();
+    this.app.candidatePanelManager.updateCandidates([]);
+    this.app.targetHandlersManager.activeTargetsManager.clearAllTargets();
+    var p = this.app.inputMethodManager.switchCurrentIMEngine('default');
+    // ... make sure error is not silently ignored.
+    p.catch(function(e) { (e !== undefined) && console.error(e); });
   }
 
   this._isActive = active;
-};
-
-StateManager.prototype._delayDeactivate = function() {
-  this.app.console.log('StateManager._delayDeactivate()');
-  var p = new Promise(function(resolve, reject) {
-    setTimeout(function() {
-      // If state has switched to active, do not deactivate the keyboard.
-      if (this._isActive) {
-        console.warn('StateManager: Reactivated before DEACTIVATE_DELAY.');
-        reject();
-      }
-
-      resolve();
-    }.bind(this), this.DEACTIVATE_DELAY);
-  }.bind(this));
-
-  return p;
 };
 
 StateManager.prototype._preloadLayout = function() {
