@@ -118,7 +118,7 @@ suiteGroup('Controllers.Alarm', function() {
 
           if (mockAlarms.onadd) {
             Calendar.nextTick(function() {
-              mockAlarms.onadd();
+              mockAlarms.onadd && mockAlarms.onadd();
             });
           }
 
