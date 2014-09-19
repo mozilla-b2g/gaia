@@ -35,7 +35,8 @@ var LazyLoader = (function() {
       var style = document.createElement('link');
       style.type = 'text/css';
       style.rel = 'stylesheet';
-      style.href = file;
+      style.href =
+        file.replace(/\/?(shared\/style.*)/, 'app://theme.gaiamobile.org/$1');
       document.head.appendChild(style);
       callback();
     },
