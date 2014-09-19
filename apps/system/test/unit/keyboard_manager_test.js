@@ -52,7 +52,7 @@ suite('KeyboardManager', function() {
   function simulateInputChangeEvent(inputType) {
     // we call the method directly because we can't send a direct event
     // because otherwise in this test, we'll have n mozChromeEvent listeners
-    KeyboardManager.inputFocusChange(inputChangeEvent(inputType));
+    KeyboardManager._inputFocusChange(inputChangeEvent(inputType));
   }
 
   function setupHTML() {
@@ -145,18 +145,18 @@ suite('KeyboardManager', function() {
   suite('Switching keyboard focus', function() {
     setup(function() {
       this.sinon.stub(KeyboardManager, 'hideKeyboard');
-      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
-      this.sinon.stub(KeyboardManager, 'setKeyboardToShow');
-      this.sinon.stub(KeyboardManager, 'resetShowingKeyboard');
+      this.sinon.stub(KeyboardManager, '_showIMESwitcher');
+      this.sinon.stub(KeyboardManager, '_setKeyboardToShow');
+      this.sinon.stub(KeyboardManager, '_resetShowingKeyboard');
     });
 
     test('The event triggers inputFocusChange', function() {
-      this.sinon.stub(KeyboardManager, 'inputFocusChange');
+      this.sinon.stub(KeyboardManager, '_inputFocusChange');
 
       var event = inputChangeEvent('text');
       window.dispatchEvent(event);
 
-      sinon.assert.called(KeyboardManager.inputFocusChange);
+      sinon.assert.called(KeyboardManager._inputFocusChange);
     });
 
     suite('Switching inputType', function() {
@@ -171,17 +171,17 @@ suite('KeyboardManager', function() {
 
         simulateInputChangeEvent('number');
 
-        sinon.assert.calledWith(KeyboardManager.setKeyboardToShow, 'text');
-        sinon.assert.calledWith(KeyboardManager.setKeyboardToShow, 'number');
-        sinon.assert.callCount(KeyboardManager.resetShowingKeyboard, 0);
+        sinon.assert.calledWith(KeyboardManager._setKeyboardToShow, 'text');
+        sinon.assert.calledWith(KeyboardManager._setKeyboardToShow, 'number');
+        sinon.assert.callCount(KeyboardManager._resetShowingKeyboard, 0);
       });
 
       test('Switching from "text" to "text"', function() {
         simulateInputChangeEvent('text');
         simulateInputChangeEvent('text');
 
-        sinon.assert.calledWith(KeyboardManager.setKeyboardToShow, 'text');
-        sinon.assert.notCalled(KeyboardManager.resetShowingKeyboard);
+        sinon.assert.calledWith(KeyboardManager._setKeyboardToShow, 'text');
+        sinon.assert.notCalled(KeyboardManager._resetShowingKeyboard);
       });
 
       test('Switching from "text" to "select-one"', function() {
@@ -206,7 +206,7 @@ suite('KeyboardManager', function() {
         assert.isFalse(this.checkDefaults.called);
       });
       test('shows "url" keyboard', function() {
-        assert.ok(KeyboardManager.setKeyboardToShow.calledWith('url'));
+        assert.ok(KeyboardManager._setKeyboardToShow.calledWith('url'));
       });
     });
 
@@ -240,7 +240,7 @@ suite('KeyboardManager', function() {
           assert.ok(this.getLayouts.calledAfter(this.checkDefaults));
         });
         test('reverts to "text" when no defaults', function() {
-          assert.ok(KeyboardManager.setKeyboardToShow.calledWith('text'));
+          assert.ok(KeyboardManager._setKeyboardToShow.calledWith('text'));
         });
       });
 
@@ -267,7 +267,7 @@ suite('KeyboardManager', function() {
           assert.ok(this.saveToSettings.called);
         });
         test('keeps "url" when defaults found', function() {
-          assert.ok(KeyboardManager.setKeyboardToShow.calledWith('url'));
+          assert.ok(KeyboardManager._setKeyboardToShow.calledWith('url'));
         });
       });
     });
@@ -299,7 +299,7 @@ suite('KeyboardManager', function() {
 
         simulateInputChangeEvent('chocola');
 
-        sinon.assert.calledWith(km.setKeyboardToShow, 'chocola', 1);
+        sinon.assert.calledWith(km._setKeyboardToShow, 'chocola', 1);
       });
 
       test('Selection is present, multiple from same manifest', function() {
@@ -309,7 +309,7 @@ suite('KeyboardManager', function() {
 
         simulateInputChangeEvent('chocola');
 
-        sinon.assert.calledWith(km.setKeyboardToShow, 'chocola', 2);
+        sinon.assert.calledWith(km._setKeyboardToShow, 'chocola', 2);
       });
 
       test('Selection is not present', function() {
@@ -319,7 +319,7 @@ suite('KeyboardManager', function() {
 
         simulateInputChangeEvent('chocola');
 
-        sinon.assert.calledWith(km.setKeyboardToShow, 'chocola');
+        sinon.assert.calledWith(km._setKeyboardToShow, 'chocola');
       });
 
       test('No selection set', function() {
@@ -329,7 +329,7 @@ suite('KeyboardManager', function() {
 
         sinon.assert.callCount(mkh.getCurrentActiveLayout, 1);
         sinon.assert.calledWith(mkh.getCurrentActiveLayout, 'chocola');
-        sinon.assert.calledWith(km.setKeyboardToShow, 'chocola');
+        sinon.assert.calledWith(km._setKeyboardToShow, 'chocola');
       });
     });
   });
@@ -434,7 +434,7 @@ suite('KeyboardManager', function() {
     });
 
     test('change to text and to password', function() {
-      KeyboardManager.setKeyboardToShow('text');
+      KeyboardManager._setKeyboardToShow('text');
       assert.isTrue(stubLaunchFrame.calledWith({
         manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
         id: 'en'
@@ -442,7 +442,7 @@ suite('KeyboardManager', function() {
 
       stubLaunchFrame.reset();
 
-      KeyboardManager.switchToNext();
+      KeyboardManager._switchToNext();
       this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
       assert.isTrue(stubLaunchFrame.calledWith({
         manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
@@ -451,7 +451,7 @@ suite('KeyboardManager', function() {
 
       stubLaunchFrame.reset();
 
-      KeyboardManager.setKeyboardToShow('password');
+      KeyboardManager._setKeyboardToShow('password');
       assert.isTrue(stubLaunchFrame.calledWith({
         manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
         id: 'fr'
@@ -459,14 +459,14 @@ suite('KeyboardManager', function() {
     });
 
     test('change to text and to number and to password', function() {
-      KeyboardManager.setKeyboardToShow('text');
+      KeyboardManager._setKeyboardToShow('text');
       assert.isTrue(stubLaunchFrame.calledWith({
         manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
         id: 'en'
       }), 'should change to first text layout');
 
       stubLaunchFrame.reset();
-      KeyboardManager.switchToNext();
+      KeyboardManager._switchToNext();
       this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
 
       assert.isTrue(stubLaunchFrame.calledWith({
@@ -476,11 +476,11 @@ suite('KeyboardManager', function() {
 
       stubLaunchFrame.reset();
 
-      KeyboardManager.setKeyboardToShow('number');
+      KeyboardManager._setKeyboardToShow('number');
 
       stubLaunchFrame.reset();
 
-      KeyboardManager.setKeyboardToShow('password');
+      KeyboardManager._setKeyboardToShow('password');
       assert.isTrue(stubLaunchFrame.calledWith({
         manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
         id: 'fr'
@@ -488,14 +488,14 @@ suite('KeyboardManager', function() {
     });
 
     test('change to text, blur, and to password', function() {
-      KeyboardManager.setKeyboardToShow('text');
+      KeyboardManager._setKeyboardToShow('text');
       assert.isTrue(stubLaunchFrame.calledWith({
         manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
         id: 'en'
       }), 'should change to first text layout');
 
       stubLaunchFrame.reset();
-      KeyboardManager.switchToNext();
+      KeyboardManager._switchToNext();
       this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
 
       assert.isTrue(stubLaunchFrame.calledWith({
@@ -507,7 +507,7 @@ suite('KeyboardManager', function() {
 
       stubLaunchFrame.reset();
 
-      KeyboardManager.setKeyboardToShow('password');
+      KeyboardManager._setKeyboardToShow('password');
       assert.isTrue(stubLaunchFrame.calledWith({
         manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
         id: 'fr'
@@ -582,7 +582,7 @@ suite('KeyboardManager', function() {
 
   suite('Switching keyboard focus before keyboard is shown', function() {
     setup(function() {
-      this.sinon.stub(KeyboardManager, 'resetShowingKeyboard');
+      this.sinon.stub(KeyboardManager, '_resetShowingKeyboard');
     });
 
     test('Switching from "text" to another field before' +
@@ -591,7 +591,7 @@ suite('KeyboardManager', function() {
       simulateInputChangeEvent('text');
       KeyboardManager.hideKeyboard();
 
-      sinon.assert.callCount(KeyboardManager.resetShowingKeyboard, 1);
+      sinon.assert.callCount(KeyboardManager._resetShowingKeyboard, 1);
     });
   });
 
@@ -638,8 +638,8 @@ suite('KeyboardManager', function() {
 
     test('In showingLayoutInfo', function() {
       var hideKeyboard = this.sinon.stub(KeyboardManager, 'hideKeyboard');
-      var setKeyboardToShow =
-                          this.sinon.stub(KeyboardManager, 'setKeyboardToShow');
+      var _setKeyboardToShow =
+        this.sinon.stub(KeyboardManager, '_setKeyboardToShow');
       KeyboardManager.inputFrameManager
         .runningLayouts[fakeFrame_A.manifestURL] = {};
       KeyboardManager.inputFrameManager
@@ -648,13 +648,13 @@ suite('KeyboardManager', function() {
       fakeFrame.dataset.frameManifestURL =
         'app://keyboard.gaiamobile.org/manifest.webapp';
 
-      KeyboardManager.showingLayoutInfo.group = 'text';
-      KeyboardManager.showingLayoutInfo.layout = {
+      KeyboardManager._showingLayoutInfo.group = 'text';
+      KeyboardManager._showingLayoutInfo.layout = {
         manifestURL: fakeFrame_A.manifestURL
       };
       KeyboardManager.removeKeyboard(fakeFrame_A.manifestURL, true);
       sinon.assert.callCount(hideKeyboard, 1);
-      assert.ok(setKeyboardToShow.calledWith('text'));
+      assert.ok(_setKeyboardToShow.calledWith('text'));
       assert.equal(
         KeyboardManager.inputFrameManager.runningLayouts.hasOwnProperty(
           fakeFrame_A.manifestURL
@@ -672,7 +672,7 @@ suite('KeyboardManager', function() {
       hideKeyboardImmediately =
             this.sinon.stub(KeyboardManager, 'hideKeyboardImmediately');
       removeKeyboard = this.sinon.stub(KeyboardManager, 'removeKeyboard');
-      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
+      this.sinon.stub(KeyboardManager, '_showIMESwitcher');
     });
 
     test('OOM event', function() {
@@ -742,13 +742,13 @@ suite('KeyboardManager', function() {
     });
 
     test('sheetstransitionstart event: hide keyboard if needed', function() {
-      var realActive = KeyboardManager.hasActiveKeyboard;
-      KeyboardManager.hasActiveKeyboard = true;
+      var realActive = KeyboardManager._hasActiveKeyboard;
+      KeyboardManager._hasActiveKeyboard = true;
       var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
       trigger('sheets-gesture-begin');
       sinon.assert.calledOnce(spy);
 
-      KeyboardManager.hasActiveKeyboard = realActive;
+      KeyboardManager._hasActiveKeyboard = realActive;
     });
 
     test('lock event: do nothing if no keyboard', function() {
@@ -758,13 +758,13 @@ suite('KeyboardManager', function() {
     });
 
     test('lock event: hide keyboard if needed', function() {
-      var realActive = KeyboardManager.hasActiveKeyboard;
-      KeyboardManager.hasActiveKeyboard = true;
+      var realActive = KeyboardManager._hasActiveKeyboard;
+      KeyboardManager._hasActiveKeyboard = true;
       var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
       trigger('lockscreen-appopened');
       sinon.assert.calledOnce(spy);
 
-      KeyboardManager.hasActiveKeyboard = realActive;
+      KeyboardManager._hasActiveKeyboard = realActive;
     });
   });
 
@@ -773,7 +773,7 @@ suite('KeyboardManager', function() {
 
     setup(function() {
       KeyboardManager.keyboardFrameContainer.classList.remove('hide');
-      rsk = this.sinon.spy(KeyboardManager, 'resetShowingKeyboard');
+      rsk = this.sinon.spy(KeyboardManager, '_resetShowingKeyboard');
     });
 
     test('resetShowingKeyboard wait until transition done', function() {
@@ -893,8 +893,8 @@ suite('KeyboardManager', function() {
     var rsk;
     setup(function() {
       KeyboardManager.keyboardFrameContainer.classList.add('hide');
-      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
-      rsk = this.sinon.spy(KeyboardManager, 'resetShowingKeyboard');
+      this.sinon.stub(KeyboardManager, '_showIMESwitcher');
+      rsk = this.sinon.spy(KeyboardManager, '_resetShowingKeyboard');
     });
 
     test('Hide immediately after show should destroy', function() {
@@ -904,7 +904,7 @@ suite('KeyboardManager', function() {
         called = true;
       });
 
-      KeyboardManager.setKeyboardToShow('text');
+      KeyboardManager._setKeyboardToShow('text');
 
       KeyboardManager.transitionManager.handleResize(123);
 
@@ -925,7 +925,7 @@ suite('KeyboardManager', function() {
       handleResize =
         this.sinon.spy(KeyboardManager.transitionManager, 'handleResize');
       showIMESwitcher =
-        this.sinon.stub(KeyboardManager, 'showIMESwitcher');
+        this.sinon.stub(KeyboardManager, '_showIMESwitcher');
     });
 
     function fakeMozbrowserResize(height) {
@@ -937,7 +937,7 @@ suite('KeyboardManager', function() {
     }
 
     test('keyboardFrameContainer is ready to show.', function() {
-      KeyboardManager.setKeyboardToShow('text');
+      KeyboardManager._setKeyboardToShow('text');
       fakeMozbrowserResize(200);
       sinon.assert.callCount(handleResize, 1, 'handleResize should be called');
       sinon.assert.callCount(showIMESwitcher, 1,
@@ -946,7 +946,7 @@ suite('KeyboardManager', function() {
 
     test('keyboardFrameContainer is hiding.', function() {
       // show the keyboar first
-      KeyboardManager.setKeyboardToShow('text');
+      KeyboardManager._setKeyboardToShow('text');
       fakeMozbrowserResize(200);
       dispatchTransitionEvents();
 
@@ -960,7 +960,7 @@ suite('KeyboardManager', function() {
     });
 
     test('Switching keyboard.', function() {
-      KeyboardManager.setKeyboardToShow('text');
+      KeyboardManager._setKeyboardToShow('text');
       fakeMozbrowserResize(200);
       dispatchTransitionEvents();
 
@@ -973,7 +973,7 @@ suite('KeyboardManager', function() {
     });
 
     test('keyboard is showing.', function() {
-      KeyboardManager.setKeyboardToShow('text');
+      KeyboardManager._setKeyboardToShow('text');
       fakeMozbrowserResize(300);
       fakeMozbrowserResize(350);
       assert.equal(KeyboardManager.getHeight(), 350);
@@ -985,15 +985,15 @@ suite('KeyboardManager', function() {
   suite('Focus and Blur', function() {
     var imeSwitcherHide;
     setup(function() {
-      // prevent setKeyboardToShow callCount miscalculation
+      // prevent _setKeyboardToShow callCount miscalculation
       // due to launch on boot
       KeyboardManager.inputFrameManager.runningLayouts[
         'app://keyboard.gaiamobile.org/manifest.webapp'
       ] = {};
 
       this.sinon.stub(KeyboardManager, 'hideKeyboard');
-      this.sinon.stub(KeyboardManager, 'setKeyboardToShow');
-      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
+      this.sinon.stub(KeyboardManager, '_setKeyboardToShow');
+      this.sinon.stub(KeyboardManager, '_showIMESwitcher');
       imeSwitcherHide = this.sinon.stub(KeyboardManager.imeSwitcher, 'hide');
       KeyboardManager.inputLayouts.layouts = {
         text: {
@@ -1006,7 +1006,7 @@ suite('KeyboardManager', function() {
       simulateInputChangeEvent('blur');
 
       sinon.assert.callCount(KeyboardManager.hideKeyboard, 1);
-      sinon.assert.notCalled(KeyboardManager.setKeyboardToShow);
+      sinon.assert.notCalled(KeyboardManager._setKeyboardToShow);
       sinon.assert.callCount(imeSwitcherHide, 1,
                              'IMESwitcher.hide should be called');
     });
@@ -1015,14 +1015,14 @@ suite('KeyboardManager', function() {
       simulateInputChangeEvent('text');
 
       sinon.assert.notCalled(KeyboardManager.hideKeyboard);
-      sinon.assert.callCount(KeyboardManager.setKeyboardToShow, 1);
+      sinon.assert.callCount(KeyboardManager._setKeyboardToShow, 1);
     });
   });
 
   test('showIMESwitcher should call IMESwitcher.show properly', function() {
-    var oldShowingLayoutInfo = KeyboardManager.showingLayoutInfo;
+    var oldShowingLayoutInfo = KeyboardManager._showingLayoutInfo;
     var oldInputLayouts = KeyboardManager.inputLayouts.layouts;
-    KeyboardManager.showingLayoutInfo = {
+    KeyboardManager._showingLayoutInfo = {
       group: 'text',
       index: 0
     };
@@ -1037,54 +1037,54 @@ suite('KeyboardManager', function() {
 
     var stubIMESwitcherShow =
       this.sinon.stub(KeyboardManager.imeSwitcher, 'show');
-    KeyboardManager.showIMESwitcher();
+    KeyboardManager._showIMESwitcher();
 
     sinon.assert.calledWith(stubIMESwitcherShow, 'DummyApp', 'DummyKB');
 
-    KeyboardManager.showingLayoutInfo = oldShowingLayoutInfo;
+    KeyboardManager._showingLayoutInfo = oldShowingLayoutInfo;
     KeyboardManager.inputLayouts.layouts = oldInputLayouts;
   });
 
   test('setHasActiveKeyboard helper', function() {
-    var oldHasActiveKeyboard = KeyboardManager.hasActiveKeyboard;
+    var oldHasActiveKeyboard = KeyboardManager._hasActiveKeyboard;
     KeyboardManager.setHasActiveKeyboard(true);
-    assert.strictEqual(KeyboardManager.hasActiveKeyboard, true);
+    assert.strictEqual(KeyboardManager._hasActiveKeyboard, true);
     KeyboardManager.setHasActiveKeyboard(false);
-    assert.strictEqual(KeyboardManager.hasActiveKeyboard, false);
-    KeyboardManager.hasActiveKeyboard = oldHasActiveKeyboard;
+    assert.strictEqual(KeyboardManager._hasActiveKeyboard, false);
+    KeyboardManager._hasActiveKeyboard = oldHasActiveKeyboard;
   });
 
   suite('showingLayoutInfo helpers', function() {
     var layoutInfo;
     setup(function() {
-      layoutInfo = KeyboardManager.showingLayoutInfo;
+      layoutInfo = KeyboardManager._showingLayoutInfo;
     });
     teardown(function() {
-      KeyboardManager.showingLayoutInfo = layoutInfo;
+      KeyboardManager._showingLayoutInfo = layoutInfo;
     });
     test('resetShowingLayoutInfo', function(){
-      KeyboardManager.showingLayoutInfo = {};
-      KeyboardManager.showingLayoutInfo.group = 'dummy';
-      KeyboardManager.showingLayoutInfo.index = 0xfff;
-      KeyboardManager.showingLayoutInfo.layout = 'something';
+      KeyboardManager._showingLayoutInfo = {};
+      KeyboardManager._showingLayoutInfo.group = 'dummy';
+      KeyboardManager._showingLayoutInfo.index = 0xfff;
+      KeyboardManager._showingLayoutInfo.layout = 'something';
 
-      KeyboardManager.resetShowingLayoutInfo();
+      KeyboardManager._resetShowingLayoutInfo();
 
-      assert.equal(KeyboardManager.showingLayoutInfo.group, 'text');
-      assert.equal(KeyboardManager.showingLayoutInfo.index, 0);
-      assert.strictEqual(KeyboardManager.showingLayoutInfo.layout, null);
+      assert.equal(KeyboardManager._showingLayoutInfo.group, 'text');
+      assert.equal(KeyboardManager._showingLayoutInfo.index, 0);
+      assert.strictEqual(KeyboardManager._showingLayoutInfo.layout, null);
     });
     test('setShowingLayoutInfo', function(){
-      KeyboardManager.showingLayoutInfo = {};
-      KeyboardManager.showingLayoutInfo.group = 'dummy';
-      KeyboardManager.showingLayoutInfo.index = 0xfff;
-      KeyboardManager.showingLayoutInfo.layout = 'something';
+      KeyboardManager._showingLayoutInfo = {};
+      KeyboardManager._showingLayoutInfo.group = 'dummy';
+      KeyboardManager._showingLayoutInfo.index = 0xfff;
+      KeyboardManager._showingLayoutInfo.layout = 'something';
 
-      KeyboardManager.setShowingLayoutInfo('group', 1, 'someLayout');
+      KeyboardManager._setShowingLayoutInfo('group', 1, 'someLayout');
 
-      assert.equal(KeyboardManager.showingLayoutInfo.group, 'group');
-      assert.equal(KeyboardManager.showingLayoutInfo.index, 1);
-      assert.equal(KeyboardManager.showingLayoutInfo.layout, 'someLayout');
+      assert.equal(KeyboardManager._showingLayoutInfo.group, 'group');
+      assert.equal(KeyboardManager._showingLayoutInfo.index, 1);
+      assert.equal(KeyboardManager._showingLayoutInfo.layout, 'someLayout');
     });
   });
 
@@ -1114,12 +1114,12 @@ suite('KeyboardManager', function() {
 
       KeyboardManager.inputLayouts.layouts.text.activeLayout = 2;
 
-      oldShowingLayoutInfoGroup = KeyboardManager.showingLayoutInfo.group;
-      KeyboardManager.showingLayoutInfo.group = 'text';
+      oldShowingLayoutInfoGroup = KeyboardManager._showingLayoutInfo.group;
+      KeyboardManager._showingLayoutInfo.group = 'text';
     });
 
     teardown(function() {
-      KeyboardManager.showingLayoutInfo.group = oldShowingLayoutInfoGroup;
+      KeyboardManager._showingLayoutInfo.group = oldShowingLayoutInfoGroup;
       KeyboardManager.inputLayouts.layouts = oldInputLayouts;
     });
 
@@ -1133,16 +1133,16 @@ suite('KeyboardManager', function() {
       navigator.mozL10n = MockL10n;
 
       stubWaitForSwitchTimeout =
-        this.sinon.stub(KeyboardManager, 'waitForSwitchTimeout');
+        this.sinon.stub(KeyboardManager, '_waitForSwitchTimeout');
 
       stubHideKeyboard = this.sinon.stub(KeyboardManager, 'hideKeyboard');
 
       stubImeMenuCallback =
-        this.sinon.stub(KeyboardManager, 'imeMenuCallback');
+        this.sinon.stub(KeyboardManager, '_imeMenuCallback');
 
       MockImeMenu.mSetup();
 
-      KeyboardManager.showImeMenu();
+      KeyboardManager._showImeMenu();
 
       stubWaitForSwitchTimeout.getCall(0).args[0]();
 
@@ -1185,12 +1185,12 @@ suite('KeyboardManager', function() {
 
       setup(function() {
         stubSetKeyboardToShow =
-          this.sinon.stub(KeyboardManager, 'setKeyboardToShow');
+          this.sinon.stub(KeyboardManager, '_setKeyboardToShow');
         stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
       });
 
       test('success', function(){
-        KeyboardManager.imeMenuCallback('text', 1);
+        KeyboardManager._imeMenuCallback('text', 1);
         assert.equal(KeyboardManager.inputLayouts.layouts.text.activeLayout, 1);
         assert.isTrue(stubSetKeyboardToShow.calledWith('text', 1));
         assert.equal(stubDispatchEvent.getCall(0).args[0].type,
@@ -1198,7 +1198,7 @@ suite('KeyboardManager', function() {
       });
 
       test('cancel', function(){
-        KeyboardManager.imeMenuCallback('text');
+        KeyboardManager._imeMenuCallback('text');
         assert.equal(KeyboardManager.inputLayouts.layouts.text.activeLayout, 2);
         assert.isTrue(stubSetKeyboardToShow.calledWithExactly('text'));
         assert.equal(stubDispatchEvent.getCall(0).args[0].type,
@@ -1211,8 +1211,8 @@ suite('KeyboardManager', function() {
       var stubWaitForSwitchTimeout;
       var stubSetKeyboardToShow;
       setup(function() {
-        oldShowingLayoutInfo = KeyboardManager.showingLayoutInfo;
-        KeyboardManager.showingLayoutInfo = {
+        oldShowingLayoutInfo = KeyboardManager._showingLayoutInfo;
+        KeyboardManager._showingLayoutInfo = {
           type: 'text',
           index: 2,
           layout: {
@@ -1223,14 +1223,14 @@ suite('KeyboardManager', function() {
         };
 
         stubWaitForSwitchTimeout =
-          this.sinon.stub(KeyboardManager, 'waitForSwitchTimeout');
+          this.sinon.stub(KeyboardManager, '_waitForSwitchTimeout');
 
         stubSetKeyboardToShow =
-          this.sinon.stub(KeyboardManager, 'setKeyboardToShow');
+          this.sinon.stub(KeyboardManager, '_setKeyboardToShow');
       });
 
       test('to same kb app', function(){
-        KeyboardManager.switchToNext();
+        KeyboardManager._switchToNext();
 
         stubWaitForSwitchTimeout.getCall(0).args[0]();
 
@@ -1241,11 +1241,11 @@ suite('KeyboardManager', function() {
 
       test('to different kb app', function(){
         var stubResetShowingKeybaord =
-          this.sinon.stub(KeyboardManager, 'resetShowingKeyboard');
+          this.sinon.stub(KeyboardManager, '_resetShowingKeyboard');
 
-        KeyboardManager.showingLayoutInfo.index = 0;
+        KeyboardManager._showingLayoutInfo.index = 0;
 
-        KeyboardManager.switchToNext();
+        KeyboardManager._switchToNext();
 
         stubWaitForSwitchTimeout.getCall(0).args[0]();
 
@@ -1257,12 +1257,12 @@ suite('KeyboardManager', function() {
     });
 
     test('waitForSwitchTimeout helper', function(done) {
-      var oldSwitchChangeTimeout = KeyboardManager.switchChangeTimeout;
-      KeyboardManager.switchChangeTimeout = 1234;
+      var oldSwitchChangeTimeout = KeyboardManager._switchChangeTimeout;
+      KeyboardManager._switchChangeTimeout = 1234;
 
       var stubClearTimeout = this.sinon.stub(window, 'clearTimeout');
 
-      KeyboardManager.waitForSwitchTimeout(function(){
+      KeyboardManager._waitForSwitchTimeout(function(){
         done();
       });
 
@@ -1270,7 +1270,7 @@ suite('KeyboardManager', function() {
 
       this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
 
-      KeyboardManager.switchChangeTimeout = oldSwitchChangeTimeout;
+      KeyboardManager._switchChangeTimeout = oldSwitchChangeTimeout;
     });
   });
 
@@ -1292,13 +1292,13 @@ suite('KeyboardManager', function() {
           { id: 'ur', manifestURL: 'app://unreal/manifest.webapp' }
         ]
       };
-      KeyboardManager.showingLayoutInfo.type = 'text';
+      KeyboardManager._showingLayoutInfo.type = 'text';
     });
 
     test('Switching stores new layout in settings', function() {
       MockKeyboardHelper.saveCurrentActiveLayout = this.sinon.stub();
 
-      KeyboardManager.showingLayoutInfo.index = 0;
+      KeyboardManager._showingLayoutInfo.index = 0;
       KeyboardManager.inputLayouts.
         _layoutToGroupMapping['app://unreal/manifest.webapp/ur'] =
           [{
@@ -1306,7 +1306,7 @@ suite('KeyboardManager', function() {
             index: 3
           }];
 
-      KeyboardManager.switchToNext();
+      KeyboardManager._switchToNext();
       this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
 
       sinon.assert.callCount(MockKeyboardHelper.saveCurrentActiveLayout, 1);
@@ -1315,15 +1315,15 @@ suite('KeyboardManager', function() {
     });
 
     test('Switching calls setKeyboardToShow', function() {
-      KeyboardManager.setKeyboardToShow = this.sinon.stub();
+      KeyboardManager._setKeyboardToShow = this.sinon.stub();
 
-      KeyboardManager.showingLayoutInfo.index = 1;
+      KeyboardManager._showingLayoutInfo.index = 1;
 
-      KeyboardManager.switchToNext();
+      KeyboardManager._switchToNext();
       this.sinon.clock.tick(SWITCH_CHANGE_DELAY);
 
-      sinon.assert.callCount(KeyboardManager.setKeyboardToShow, 1);
-      sinon.assert.calledWith(KeyboardManager.setKeyboardToShow,
+      sinon.assert.callCount(KeyboardManager._setKeyboardToShow, 1);
+      sinon.assert.calledWith(KeyboardManager._setKeyboardToShow,
         'text', 0);
     });
   });

@@ -1,5 +1,8 @@
 'use strict';
 
+/* global SettingsListener, IMESwitcher, InputAppsTransitionManager, ImeMenu,
+          InputFrameManager, InputLayouts, LazyLoader, KeyboardHelper */
+
 // If we get a inputmethod-contextchange chrome event for an element with
 // one of these types, we'll just ignore it.
 // XXX we won't skip these types in the future when we move value selector
@@ -45,20 +48,21 @@ var KeyboardManager = {
   // this info keeps the current keyboard layout's information,
   // including its group, its index in the group array in InputLayouts.layouts,
   // its occupying height and its "layout" as kept in InputLayouts.layouts
-  showingLayoutInfo: {
+  _showingLayoutInfo: {
     group: 'text',
     index: 0,
     layout: null,
     height: 0
   },
 
-  switchChangeTimeout: 0,
+  _switchChangeTimeout: 0,
   _onDebug: false,
   _debug: function km_debug(msg) {
-    if (this._onDebug)
+    if (this._onDebug) {
       console.log('[Keyboard Manager] ' + msg);
+    }
   },
-  hasActiveKeyboard: false,
+  _hasActiveKeyboard: false,
   isOutOfProcessEnabled: false,
   totalMemory: 0,
 
@@ -81,7 +85,7 @@ var KeyboardManager = {
     this.keyboardFrameContainer = document.getElementById('keyboards');
 
     this.imeSwitcher = new IMESwitcher();
-    this.imeSwitcher.ontap = this.showImeMenu.bind(this);
+    this.imeSwitcher.ontap = this._showImeMenu.bind(this);
     this.imeSwitcher.start();
 
     // For Bug 812115: hide the keyboard when the app is closed here,
@@ -109,7 +113,7 @@ var KeyboardManager = {
 
     this.transitionManager = new InputAppsTransitionManager();
     this.transitionManager.onstatechange =
-      this.onTransitionStateChange.bind(this);
+      this._onTransitionStateChange.bind(this);
     this.transitionManager.start();
 
     this.inputFrameManager = new InputFrameManager(this);
@@ -123,7 +127,7 @@ var KeyboardManager = {
       'shared/js/keyboard_helper.js'
     ], function() {
       KeyboardHelper.watchLayouts(
-        { enabled: true }, this.updateLayouts.bind(this)
+        { enabled: true }, this._updateLayouts.bind(this)
       );
     }.bind(this));
   },
@@ -132,7 +136,7 @@ var KeyboardManager = {
     return this.transitionManager.occupyingHeight;
   },
 
-  tryLaunchOnBoot: function km_launchOnBoot() {
+  _tryLaunchOnBoot: function km_launchOnBoot() {
     if (Object.keys(this.inputFrameManager.runningLayouts).length) {
       // There are already keyboard(s) being launched. We don't really care
       // if a default keyboard should be launch-on-boot.
@@ -145,19 +149,20 @@ var KeyboardManager = {
       // If the value is not set or it is set to true,
       // launch the keyboad in background
       var launchOnBoot = req.result && req.result[LAUNCH_ON_BOOT_KEY];
-      if (typeof launchOnBoot !== 'boolean')
+      if (typeof launchOnBoot !== 'boolean') {
         launchOnBoot = true;
+      }
 
       // if there are still no keyboards running at this point -
       // set text to show, but don't bring it to the foreground.
       if (launchOnBoot &&
           !Object.keys(this.inputFrameManager.runningLayouts).length) {
-        this.setKeyboardToShow('text', undefined, true);
+        this._setKeyboardToShow('text', undefined, true);
       }
     }).bind(this);
   },
 
-  updateLayouts: function km_updateLayouts(layouts) {
+  _updateLayouts: function km_updateLayouts(layouts) {
     var enabledApps = this.inputLayouts.processLayouts(layouts);
 
     // Remove apps that are no longer enabled to clean up.
@@ -168,7 +173,7 @@ var KeyboardManager = {
       }
     }, this);
 
-    this.tryLaunchOnBoot();
+    this._tryLaunchOnBoot();
   },
 
   resizeKeyboard: function km_resizeKeyboard(evt) {
@@ -181,21 +186,21 @@ var KeyboardManager = {
     var height = evt.detail.height;
 
     this._debug('resizeKeyboard: ' + height);
-    this.showingLayoutInfo.height = height;
+    this._showingLayoutInfo.height = height;
     this.transitionManager.handleResize(height);
 
     evt.stopPropagation();
 
-    this.showIMESwitcher();
+    this._showIMESwitcher();
   },
 
   // Decide the keyboard layout for the specific group and show it
-  activateKeyboard: function km_activateKeyboard(group) {
+  _activateKeyboard: function km_activateKeyboard(group) {
     // if we already have layouts for the group, no need to check default
     if (!this.inputLayouts.layouts[group]) {
       KeyboardHelper.checkDefaults(function changedDefaults() {
           KeyboardHelper.getLayouts({ enabled: true },
-            this.updateLayouts.bind(this));
+            this._updateLayouts.bind(this));
           KeyboardHelper.saveToSettings();
       }.bind(this));
     }
@@ -204,7 +209,7 @@ var KeyboardManager = {
       group = 'text';
     }
 
-      var previousLayout = this.showingLayoutInfo.layout;
+      var previousLayout = this._showingLayoutInfo.layout;
 
       // Get the last keyboard the user used for this group
       var currentActiveLayout = KeyboardHelper.getCurrentActiveLayout(group);
@@ -222,21 +227,21 @@ var KeyboardManager = {
         }
       }
 
-      this.setKeyboardToShow(group, currentActiveLayoutIdx);
+      this._setKeyboardToShow(group, currentActiveLayoutIdx);
 
     // We need to reset the previous frame only when we switch to a new frame
     // this "frame" is decided by layout properties
     if (previousLayout &&
         (previousLayout.manifestURL !==
-         this.showingLayoutInfo.layout.manifestURL ||
-         previousLayout.id !== this.showingLayoutInfo.layout.id)
+         this._showingLayoutInfo.layout.manifestURL ||
+         previousLayout.id !== this._showingLayoutInfo.layout.id)
        ) {
       this._debug('reset previousFrame.');
       this.inputFrameManager.resetFrame(previousLayout);
     }
   },
 
-  inputFocusChange: function km_inputFocusChange(evt) {
+  _inputFocusChange: function km_inputFocusChange(evt) {
     var type = evt.detail.inputType;
 
     // Skip the <select> element and inputs with type of date/time,
@@ -255,7 +260,7 @@ var KeyboardManager = {
       // fallback to text for default if no group is found
       var group = TYPE_GROUP_MAPPING[type];
       this._debug('get focus event ' + type);
-      this.activateKeyboard(group);
+      this._activateKeyboard(group);
     }
   },
 
@@ -286,7 +291,7 @@ var KeyboardManager = {
         // get rid of it.
         // We only do that when we don't run keyboards OOP.
         this._debug('mozmemorypressure event');
-        if (!this.isOutOfProcessEnabled && !this.hasActiveKeyboard) {
+        if (!this.isOutOfProcessEnabled && !this._hasActiveKeyboard) {
           Object.keys(this.inputFrameManager.runningLayouts)
                 .forEach(this.removeKeyboard, this);
           this.inputFrameManager.runningLayouts = {};
@@ -296,7 +301,7 @@ var KeyboardManager = {
       case 'lockscreen-appopened':
         /* falls through */
       case 'sheets-gesture-begin':
-        if (this.hasActiveKeyboard) {
+        if (this._hasActiveKeyboard) {
           // Instead of hideKeyboard(), we should removeFocus() here.
           // (and, removing the focus cause Gecko to ask us to hideKeyboard())
           navigator.mozInputMethod.removeFocus();
@@ -305,13 +310,13 @@ var KeyboardManager = {
       case 'mozChromeEvent':
         switch (evt.detail.type) {
           case 'inputmethod-showall':
-            this.showImeMenu();
+            this._showImeMenu();
             break;
           case 'inputmethod-next':
-            this.switchToNext();
+            this._switchToNext();
             break;
           case 'inputmethod-contextchange':
-            this.inputFocusChange(evt);
+            this._inputFocusChange(evt);
             break;
         }
         break;
@@ -324,22 +329,22 @@ var KeyboardManager = {
       return;
     }
 
-    if (this.showingLayoutInfo.layout &&
-      this.showingLayoutInfo.layout.manifestURL === manifestURL) {
-      revokeShowedGroup = this.showingLayoutInfo.group;
+    if (this._showingLayoutInfo.layout &&
+      this._showingLayoutInfo.layout.manifestURL === manifestURL) {
+      revokeShowedGroup = this._showingLayoutInfo.group;
       this.hideKeyboard();
     }
 
     this.inputFrameManager.removeKeyboard(manifestURL);
 
-    this.resetShowingLayoutInfo();
+    this._resetShowingLayoutInfo();
 
     if (handleOOM && revokeShowedGroup !== null) {
-      this.setKeyboardToShow(revokeShowedGroup);
+      this._setKeyboardToShow(revokeShowedGroup);
     }
   },
 
-  setKeyboardToShow: function km_setKeyboardToShow(group, index, launchOnly) {
+  _setKeyboardToShow: function km_setKeyboardToShow(group, index, launchOnly) {
     if (!this.inputLayouts.layouts[group]) {
       console.warn('trying to set a layout group to show that doesnt exist');
       return;
@@ -350,7 +355,7 @@ var KeyboardManager = {
     this._debug('set layout to display: group=' + group + ' index=' + index);
     var layout = this.inputLayouts.layouts[group][index];
     this.inputFrameManager.launchFrame(layout, launchOnly);
-    this.setShowingLayoutInfo(group, index, layout);
+    this._setShowingLayoutInfo(group, index, layout);
 
     this.inputLayouts.setGroupsActiveLayout(layout);
 
@@ -358,7 +363,7 @@ var KeyboardManager = {
     // to the backgorund; this is convenient to call
     // setKeyboardToShow() and call resetShowingKeyboard() in one atcion.
     if (launchOnly) {
-      this.resetShowingKeyboard();
+      this._resetShowingKeyboard();
       return;
     }
 
@@ -370,7 +375,7 @@ var KeyboardManager = {
     // while user foucus quickly again.
     if (this.transitionManager.currentState ===
         this.transitionManager.STATE_TRANSITION_OUT) {
-      this.transitionManager.handleResize(this.showingLayoutInfo.height);
+      this.transitionManager.handleResize(this._showingLayoutInfo.height);
     }
 
     this.inputFrameManager.setupFrame(layout);
@@ -380,8 +385,8 @@ var KeyboardManager = {
    * A half-permanent notification should display after the keyboard got
    * activated, and only hides after the keyboard got deactivated.
    */
-  showIMESwitcher: function km_showIMESwitcher() {
-    var showed = this.showingLayoutInfo;
+  _showIMESwitcher: function km_showIMESwitcher() {
+    var showed = this._showingLayoutInfo;
     if (!this.inputLayouts.layouts[showed.group]) {
       return;
     }
@@ -393,12 +398,12 @@ var KeyboardManager = {
   },
 
   // Reset the current keyboard frame
-  resetShowingKeyboard: function km_resetShowingKeyboard() {
+  _resetShowingKeyboard: function km_resetShowingKeyboard() {
     this._debug('resetShowingKeyboard');
 
-    this.inputFrameManager.resetFrame(this.showingLayoutInfo.layout);
+    this.inputFrameManager.resetFrame(this._showingLayoutInfo.layout);
 
-    this.resetShowingLayoutInfo();
+    this._resetShowingLayoutInfo();
   },
 
   hideKeyboard: function km_hideKeyboard() {
@@ -407,17 +412,17 @@ var KeyboardManager = {
     if ((transitionState === this.transitionManager.STATE_HIDDEN) ||
         (transitionState === this.transitionManager.STATE_TRANSITION_OUT)) {
       // Bug 963377. Also reset yet-to-show keyboards.
-      this.resetShowingKeyboard();
+      this._resetShowingKeyboard();
       return;
     }
 
     this.transitionManager.hide();
   },
 
-  onTransitionStateChange: function km_onTransitionStateChange() {
+  _onTransitionStateChange: function km_onTransitionStateChange() {
     if (this.transitionManager.currentState ===
         this.transitionManager.STATE_HIDDEN) {
-      this.resetShowingKeyboard();
+      this._resetShowingKeyboard();
     }
   },
 
@@ -426,33 +431,33 @@ var KeyboardManager = {
   },
 
   setHasActiveKeyboard: function km_setHasActiveKeyboard(active) {
-    this.hasActiveKeyboard = active;
+    this._hasActiveKeyboard = active;
   },
 
-  resetShowingLayoutInfo: function km_resetShowingLayoutInfo() {
-    this.showingLayoutInfo.group = 'text';
-    this.showingLayoutInfo.index = 0;
-    this.showingLayoutInfo.layout = null;
+  _resetShowingLayoutInfo: function km_resetShowingLayoutInfo() {
+    this._showingLayoutInfo.group = 'text';
+    this._showingLayoutInfo.index = 0;
+    this._showingLayoutInfo.layout = null;
   },
 
-  setShowingLayoutInfo: function km_setShowingLayoutInfo(group, index, layout) {
-    this.showingLayoutInfo.group = group;
-    this.showingLayoutInfo.index = index;
-    this.showingLayoutInfo.layout = layout;
+  _setShowingLayoutInfo: function km_setShowingLayoutInfo(group, index, layout){
+    this._showingLayoutInfo.group = group;
+    this._showingLayoutInfo.index = index;
+    this._showingLayoutInfo.layout = layout;
   },
 
   /* A small helper function for maintaining timeouts */
-  waitForSwitchTimeout: function km_waitForSwitchTimeout(callback) {
-    clearTimeout(this.switchChangeTimeout);
+  _waitForSwitchTimeout: function km_waitForSwitchTimeout(callback) {
+    clearTimeout(this._switchChangeTimeout);
 
-    this.switchChangeTimeout = setTimeout(callback, SWITCH_CHANGE_DELAY);
+    this._switchChangeTimeout = setTimeout(callback, SWITCH_CHANGE_DELAY);
   },
 
-  switchToNext: function km_switchToNext() {
-    var showed = this.showingLayoutInfo;
+  _switchToNext: function km_switchToNext() {
+    var showed = this._showingLayoutInfo;
     var oldLayout = showed.layout;
 
-    this.waitForSwitchTimeout(function keyboardSwitchLayout() {
+    this._waitForSwitchTimeout(function keyboardSwitchLayout() {
       if (!this.inputLayouts.layouts[showed.group]) {
         showed.group = 'text';
       }
@@ -465,10 +470,10 @@ var KeyboardManager = {
       // Only resetShowingKeyboard() if the running layout is not the same app
       // to prevent flash of black when switching.
       if (oldLayout.manifestURL !== nextLayout.manifestURL) {
-        this.resetShowingKeyboard();
+        this._resetShowingKeyboard();
       }
 
-      this.setKeyboardToShow(showed.group, index);
+      this._setKeyboardToShow(showed.group, index);
     }.bind(this));
   },
 
@@ -476,20 +481,20 @@ var KeyboardManager = {
    * Callback for ImeMenu.
    * If selectedIndex is defined, then some item of imeMenu was selected;
    * if it's not, then it was canceled.
-   * The showedGroup param is bind()'ed by showImeMenu
+   * The showedGroup param is bind()'ed by _showImeMenu
    * (resulting in a partial func)
    */
-  imeMenuCallback: function km_imeMenuCallback(showedGroup, selectedIndex) {
+  _imeMenuCallback: function km_imeMenuCallback(showedGroup, selectedIndex) {
     if (typeof selectedIndex === 'number') {
       // success: show the new keyboard
       this.inputLayouts.layouts[showedGroup].activeLayout = selectedIndex;
-      this.setKeyboardToShow(showedGroup, selectedIndex);
+      this._setKeyboardToShow(showedGroup, selectedIndex);
 
       // Hide the tray to show the app directly after user selected a new kb.
       window.dispatchEvent(new CustomEvent('keyboardchanged'));
     } else {
       // cancel: mimic the success callback to show the current keyboard.
-      this.setKeyboardToShow(showedGroup);
+      this._setKeyboardToShow(showedGroup);
 
       // Hide the tray to show the app directly after user canceled.
       window.dispatchEvent(new CustomEvent('keyboardchangecanceled'));
@@ -497,12 +502,12 @@ var KeyboardManager = {
   },
 
   // Show the input method menu
-  showImeMenu: function km_showImeMenu() {
-    var showedGroup = this.showingLayoutInfo.group;
+  _showImeMenu: function km_showImeMenu() {
+    var showedGroup = this._showingLayoutInfo.group;
     var activeLayout = this.inputLayouts.layouts[showedGroup].activeLayout;
     var actionMenuTitle = navigator.mozL10n.get('choose-option');
 
-    this.waitForSwitchTimeout(function listLayouts() {
+    this._waitForSwitchTimeout(function listLayouts() {
       var items = this.inputLayouts.layouts[showedGroup].map(
         function(layout, index) {
           return {
@@ -516,8 +521,8 @@ var KeyboardManager = {
       this.hideKeyboard();
 
       var menu = new ImeMenu(items, actionMenuTitle,
-        this.imeMenuCallback.bind(this, showedGroup),
-        this.imeMenuCallback.bind(this, showedGroup));
+        this._imeMenuCallback.bind(this, showedGroup),
+        this._imeMenuCallback.bind(this, showedGroup));
 
       menu.start();
 
@@ -525,7 +530,7 @@ var KeyboardManager = {
   }
 };
 
-if (applications.ready) {
+if (window.applications.ready) {
   KeyboardManager.init();
 } else {
   window.addEventListener('applicationready', function mozAppsReady(event) {
