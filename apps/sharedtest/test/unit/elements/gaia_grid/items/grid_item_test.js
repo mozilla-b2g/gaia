@@ -1,6 +1,7 @@
 'use strict';
 /* global GaiaGrid */
 
+require('/shared/js/url_helper.js');
 require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
 require('/shared/elements/gaia_grid/js/grid_layout.js');
 require('/shared/elements/gaia_grid/js/grid_view.js');
@@ -29,6 +30,18 @@ suite('GridItem', function() {
     };
 
     subject.renderIconFromSrc('/style/icons/Blank.png');
+  });
+
+  test('basic auth in icon urls', function() {
+    var subject = new GaiaGrid.GridItem();
+    subject.app = {
+      origin: 'some:user@mozilla.org'
+    };
+
+    var result = subject.closestIconFromList({
+      100: '/icon.png'
+    });
+    assert.equal(result, 'some:user@mozilla.org/icon.png');
   });
 
 });
