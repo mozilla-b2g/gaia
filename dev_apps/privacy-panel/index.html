@@ -32,10 +32,22 @@
     <link rel="resource" type="application/l10n" href="shared/locales/tz.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/sounds.ini">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
+
+    <link rel="import" href="/templates/guided_tour/welcome.html">
+    <link rel="import" href="/templates/guided_tour/la_explain.html">
+    <link rel="import" href="/templates/guided_tour/la_blur.html">
+    <link rel="import" href="/templates/guided_tour/la_custom.html">
+    <link rel="import" href="/templates/guided_tour/la_exceptions.html">
+    <link rel="import" href="/templates/guided_tour/rpp_explain.html">
+    <link rel="import" href="/templates/guided_tour/rpp_passphrase.html">
+    <link rel="import" href="/templates/guided_tour/rpp_locate.html">
+    <link rel="import" href="/templates/guided_tour/rpp_ring.html">
+    <link rel="import" href="/templates/guided_tour/rpp_lock.html">
+
     <script src="shared/js/l10n.js"></script>
     <script src="shared/js/dump.js"></script>
     <script src="shared/js/crypto.js"></script>
-    <script src="js/custom_location_panel.js"></script>"
+    <script src="js/custom_location_panel.js"></script>
     <script src="js/settings-app.js"></script>
     <script src="js/app_list.js"></script>
     <script src="js/custom_location_panel.js"></script>
@@ -46,11 +58,12 @@
     <script defer src="shared/js/settings_listener.js"></script>
     <script defer src="shared/js/settings_helper.js"></script>
     <script defer src="shared/js/settings_url.js"></script>
+    <script src="shared/js/lazy_loader.js"></script>
  
     <title>Privacy Panel</title>
   </head>
 
-  <body>
+  <body class="skin-organic uninit theme-settings" data-ready="true">
     <!-- main view with menu -->
     <section role="region" id="root" class="current skin-organic" data-rendered="true">
       <header>
@@ -69,11 +82,11 @@
               <span data-l10n-id="remote-privacy-protection">Remote Privacy Protection</span>
             </a>
           </li>
-<!--          <li>
+          <li>
             <a id="menuItem-GT" class="menu-item" data-icon="notifications" href="#guided-tour">
               <span data-l10n-id="guided-tour">Guided Tour</span>
             </a>
-          </li> -->
+          </li>
         </ul>
       </div>
     </section>
@@ -372,6 +385,18 @@
       </div>
     </section>
 
+    <section is="welcome" class="current skin-organic" role="region" id="welcome" data-rendered="true" style="display: none;"></section>
+    <section is="la_explain" class="current skin-organic" role="region" id="la_explain" data-rendered="true" style="display: none;"></section>
+    <section is="la_blur" class="current skin-organic" role="region" id="la_blur" data-rendered="true" style="display: none;"></section>
+    <section is="la_custom" class="current skin-organic" role="region" id="la_custom" data-rendered="true" style="display: none;"></section>
+    <section is="la_exceptions" class="current skin-organic" role="region" id="la_exceptions" data-rendered="true" style="display: none;"></section>
+    <section is="rpp_explain" class="current skin-organic" role="region" id="rpp_explain" data-rendered="true" style="display: none;"></section>
+    <section is="rpp_passphrase" class="current skin-organic" role="region" id="rpp_passphrase" data-rendered="true" style="display: none;"></section>
+    <section is="rpp_locate" class="current skin-organic" role="region" id="rpp_locate" data-rendered="true" style="display: none;"></section>
+    <section is="rpp_ring" class="current skin-organic" role="region" id="rpp_ring" data-rendered="true" style="display: none;"></section>
+    <section is="rpp_lock" class="current skin-organic" role="region" id="rpp_lock" data-rendered="true" style="display: none;"></section>
+
     <script src="js/main.js"></script>
+    <script src="js/guided_tour.js"></script>
   </body>
 </html>
