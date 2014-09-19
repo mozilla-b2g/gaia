@@ -263,23 +263,9 @@ suite('lib/camera/focus', function() {
 
     test('should call onAutoFocusChanged', function() {
       this.focus.onAutoFocusMoving(true);
-      assert.ok(this.focus.onAutoFocusChanged.called);
-      assert.ok(this.mozCamera.autoFocus.called);
-      this.mozCamera.autoFocus.callsArgWith(0, 1);
-      assert.ok(this.focus.onAutoFocusChanged.called);
-    });
-
-    test('should call onAutoFocusChanged after error', function() {
-      this.focus.onAutoFocusMoving(true);
-      assert.ok(this.focus.onAutoFocusChanged.called);
-      assert.ok(this.mozCamera.autoFocus.called);
-      this.mozCamera.autoFocus.callsArgWith(1, 'GeneralFailure');
-      assert.ok(this.focus.onAutoFocusChanged.called);
-    });
-
-    test('should not call onAutoFocusChanged', function() {
+      assert.ok(this.focus.onAutoFocusChanged.calledWith('focusing'));
       this.focus.onAutoFocusMoving(false);
-      assert.ok(!this.focus.onAutoFocusChanged.called);
+      assert.ok(this.focus.onAutoFocusChanged.calledWith('focused'));
     });
   });
 

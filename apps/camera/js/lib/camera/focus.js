@@ -145,23 +145,10 @@ Focus.prototype.suspendContinuousFocus = function(ms) {
 };
 
 Focus.prototype.onAutoFocusMoving = function(moving) {
-  var self = this;
-  if (moving) {
-    this.onAutoFocusChanged('focusing');
-    this.mozCamera.autoFocus(onSuccess, onError);
-    return;
-  }
-  function onError(err) {
-    if (err !== 'AutoFocusInterrupted') {
-      self.onAutoFocusChanged('error');
-      self.mozCamera.resumeContinuousFocus();
-    }
-  }
-  function onSuccess(state) {
-    state = state ? 'focused' : 'fail';
-    self.onAutoFocusChanged(state);
-    self.mozCamera.resumeContinuousFocus();
-  }
+  // Only need to update the UI because this is only triggered in
+  // continuous-video or continuous-picture focus modes where
+  // the driver handles the focus operations
+  this.onAutoFocusChanged(moving ? 'focusing' : 'focused');
 };
 
 Focus.prototype.onAutoFocusChanged = function(state) {
