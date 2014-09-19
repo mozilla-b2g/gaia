@@ -18,13 +18,22 @@ import mozversion
 import requests
 from thclient import TreeherderRequest, TreeherderJobCollection
 
+# The device_group_map maps by device name then
+# device_firmware_version_release to denote the underlying Android version
 DEVICE_GROUP_MAP = {
     'flame': {
-        'name': 'Flame Device Image',
-        'symbol': 'Flame'},
+        '4.4.2': {
+            'name': 'Flame KitKat Device Image',
+            'symbol': 'Flame-KK'},
+        '4.3': {
+            'name': 'Flame Device Image',
+            'symbol': 'Flame'}
+    },
     'msm7627a': {
-        'name': 'Buri/Hamachi Device Image',
-        'symbol': 'Buri/Hamac'}}
+        '4.0.4': {
+            'name': 'Buri/Hamachi Device Image',
+            'symbol': 'Buri/Hamac'}
+    }}
 
 
 class S3UploadError(Exception):
@@ -74,21 +83,27 @@ class TreeherderTestRunnerMixin(object):
         job = job_collection.get_job()
 
         device = version.get('device_id')
+        device_firmware_version_release = \
+            version.get('device_firmware_version_release')
+
         if not device:
             self.logger.error('Submitting to Treeherder is currently limited '
                               'to devices.')
             return
 
         try:
-            group = DEVICE_GROUP_MAP[device]
+            group = DEVICE_GROUP_MAP[device][device_firmware_version_release]
             job.add_group_name(group['name'])
             job.add_group_symbol(group['symbol'])
             job.add_job_name('Gaia Python Integration Test (%s)' % device)
             job.add_job_symbol('Gip')
         except KeyError:
-            self.logger.error('Unknown device id: %s, unable to determine '
-                              'Treeherder group. Supported device ids: %s' % (
-                                  device, DEVICE_GROUP_MAP.keys()))
+            self.logger.error('Unknown device id: %s or device firmware '
+                              'version: %s. Unable to determine Treeherder '
+                              'group. Supported devices: %s'
+                              % (device, device_firmware_version_release,
+                                 ['%s: %s' %(k, [fw for fw in v.keys()])
+                                  for k, v in DEVICE_GROUP_MAP.iteritems()]))
             return
 
         # Determine revision hash from application revision

@@ -32,6 +32,7 @@
   "default_locale": "en-US",
 
   "permissions": {
+    "themeable":{},
     "telephony":{},
     "contacts":{ "access": "readwrite" },
     "mobileconnection":{},

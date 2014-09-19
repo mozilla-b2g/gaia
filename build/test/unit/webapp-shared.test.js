@@ -158,9 +158,10 @@ suite('webapp-shared.js', function() {
       assert.equal(webappShared.used.unstable_styles[0], unstable_styles,
         'push unstable_styles');
 
-      var locales = 'testlocales';
-      webappShared.pushFileByType('locales', locales + '.obj');
-      assert.equal(webappShared.used.locales[0], locales,
+      var localeName = 'date';
+      webappShared.pushFileByType('locales',
+        localeName + '/date.{locale}.properties');
+      assert.equal(webappShared.used.locales[0], localeName,
         'push locales');
     });
 

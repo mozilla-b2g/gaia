@@ -167,8 +167,6 @@ BrowserMigrator.prototype = {
 
   runMigration: function() {
 
-    this.iteratePendingBookmarks = this._iteratePendingBookmarks.bind(this);
-
     BrowserDB.init(() => {
       BrowserDB.readVisits().then(visits => {
         this._saveVisits(visits).then(() => {
@@ -219,6 +217,8 @@ BrowserMigrator.prototype = {
       icon: nextBookmark.iconUri
     };
 
-    BookmarksDatabase.add(descriptor).then(this.iteratePending);
+    BookmarksDatabase.add(descriptor).then(() => {
+      this._iteratePendingBookmarks();
+    });
   }
 };

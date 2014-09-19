@@ -44,6 +44,8 @@ Contacts.Selectors = {
   duplicateClose: '#merge-close',
   duplicateMerge: '#merge-action',
 
+  exportButton: '#exportContacts button',
+
   form: '#view-contact-form',
   formTitle: '#contact-form-title',
   formCustomTag: '#custom-tag',
@@ -61,8 +63,8 @@ Contacts.Selectors = {
 
   groupList: ' #groups-list',
   list: '#view-contacts-list',
-  listContactFirst: '.contact-item',
-  listContactFirstText: '.contact-item .contact-text',
+  listContactFirst: 'li:not([data-group="ice"]).contact-item',
+  listContactFirstText: 'li:not([data-group="ice"]).contact-item p',
   contactListHeader: '#contacts-list-header',
 
   searchLabel: '#search-start',

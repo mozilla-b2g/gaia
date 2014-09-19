@@ -49,6 +49,7 @@
     { "bluetooth-cancel": "/message.html" }
   ],
   "permissions": {
+    "themeable":{},
     "attention":{},
     "bluetooth":{},
     "device-storage:sdcard":{ "access": "readonly" },

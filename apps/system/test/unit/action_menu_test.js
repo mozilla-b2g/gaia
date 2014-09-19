@@ -172,18 +172,6 @@ suite('ActionMenu', function() {
     });
   });
 
-  suite('events', function() {
-    test('attention window will hide the action menu', function() {
-      var menu = new ActionMenu(genericActionsMockup, title);
-      menu.start();
-      this.sinon.spy(menu, 'hide');
-      menu.handleEvent({
-        type: 'attentionopened'
-      });
-      assert.isTrue(menu.hide.called);
-    });
-  });
-
   suite('events that dismiss action menu', function() {
     var successCBStub;
     var cancelCBStub;
@@ -211,6 +199,15 @@ suite('ActionMenu', function() {
       assert.isFalse(cancelCBStub.called);
       menu.handleEvent({
         type: 'sheets-gesture-begin'
+      });
+      assert.isTrue(menu.hide.called);
+      assert.isTrue(cancelCBStub.called);
+    });
+    test('attention window dismisses the action menu', function() {
+      assert.isFalse(menu.hide.called);
+      assert.isFalse(cancelCBStub.called);
+      menu.handleEvent({
+        type: 'attentionopened'
       });
       assert.isTrue(menu.hide.called);
       assert.isTrue(cancelCBStub.called);

@@ -64,6 +64,15 @@
     passCodeEnabled: false,
 
     /*
+    * Boolean returns whether the screen is enabled, as mutated by screenchange
+    * event.
+    * Note: 'undefined' should be regarded as 'true' as screenchange event
+    * doesn't trigger on device boot, and we want to make fail-safe procedures
+    * under such circamstances -- as we are never sure if screen is on or off.
+    */
+    _screenEnabled: undefined,
+
+    /*
     * Boolean should regenerate overlay color for notifications background
     * When this is true, and when we're locking the device, we should
     * regenerate the overlay color as specified in bug 950884
@@ -148,6 +157,8 @@
         if (evt.detail.screenOffBy == 'proximity') {
           break;
         }
+
+        this._screenEnabled = evt.detail.screenEnabled;
 
         // XXX: If the screen is not turned off by ScreenManager
         // we would need to lock the screen again
@@ -960,8 +971,18 @@
     var background = document.getElementById('lockscreen-background'),
         url = 'url(' + value + ')';
     background.style.backgroundImage = url;
-    this._shouldRegenerateMaskedBackgroundColor = true;
+    // if screen is locked and display is on, regenerate the color immediately
+    // as it's possible that notifications come in without we ever having a
+    // chance to generate the color (triggered in lockscreen.locked)
     this._regenerateMaskedBackgroundColorFrom = value;
+    // see this._screenEnabled's definition above on
+    // why 'undefined' is seen as 'true'
+    if ((this._screenEnabled === undefined || this._screenEnabled) &&
+        this.locked) {
+      this._generateMaskedBackgroundColor();
+    }else{
+      this._shouldRegenerateMaskedBackgroundColor = true;
+    }
   };
 
   /**
@@ -971,7 +992,7 @@
   function ls_checkGenerateMaskedBackgroundColor() {
     // XXX: request animation frame?
     return (this._shouldRegenerateMaskedBackgroundColor &&
-            this._regenerateMaskedBackgroundColorFrom);
+            !!this._regenerateMaskedBackgroundColorFrom);
   };
 
   /**

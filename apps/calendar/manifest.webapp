@@ -12,6 +12,7 @@
      { "notification": "/index.html" }
   ],
   "permissions": {
+    "themeable":{},
     "systemXHR":{},
     "alarms":{},
     "browser": {},

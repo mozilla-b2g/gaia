@@ -283,6 +283,14 @@ Resources.prototype.getKeyboardResource = function (keyboard) {
     var content = { values: utils.getJSON(file),
                     defaults: defaults };
 
+    for (var value in content.values) {
+      if (!value.startsWith('keyboard.')) {
+        throw new Error('Invalid keyboard property \'' + value + '\' in file ' +
+                        file.path + ', keyboard properties must start ' +
+                        'with \'keyboard.\'');
+      }
+    }
+
     var jsonName = 'keyboard-' + getHash(keyboard) + '.json';
     return this.createJSON(jsonName, content);
   }

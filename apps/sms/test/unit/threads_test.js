@@ -250,8 +250,8 @@ suite('Thread', function() {
 
   test('Thread', function() {
     assert.ok(Thread);
-    expect(Thread.prototype).to.have.property('drafts');
-    expect(Thread.prototype).to.have.property('hasDrafts');
+    assert.equal(typeof Thread.prototype.drafts, 'object');
+    assert.equal(typeof Thread.prototype.hasDrafts, 'boolean');
   });
 
   test('Thread object', function() {

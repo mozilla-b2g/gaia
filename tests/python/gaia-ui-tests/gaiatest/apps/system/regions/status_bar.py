@@ -8,6 +8,18 @@ from gaiatest.apps.base import Base
 
 class StatusBar(Base):
     _status_bar_time_locator = (By.ID, 'statusbar-time')
+    _status_bar_maximized_wrapper = (By.ID, 'statusbar-maximized-wrapper')
+    _status_bar_minimized_wrapper = (By.ID, 'statusbar-minimized-wrapper')
+
+    @property
+    def is_status_bar_maximized_wrapper_a11y_hidden(self):
+        return self.accessibility.is_hidden(self.marionette.find_element(
+            *self._status_bar_maximized_wrapper))
+
+    @property
+    def is_status_bar_minimized_wrapper_a11y_hidden(self):
+        return self.accessibility.is_hidden(self.marionette.find_element(
+            *self._status_bar_minimized_wrapper))
 
     def a11y_wheel_status_bar_time(self):
         self.accessibility.wheel(self.marionette.find_element(
