@@ -328,7 +328,7 @@
               SiSlScreenHelper.populateScreen(message);
               return wpm_clearNotifications(timestamp);
             case 'text/vnd.wap.connectivity-xml':
-              CpScreenHelper.populateScreen(message);
+              CpScreenHelper.showConfirmInstallationDialog(message);
               break;
           }
         } else {

@@ -20,6 +20,12 @@ var CpScreenHelper = (function() {
   /** Cancel quit app button node */
   var cancelQuitButton = null;
 
+  /** Accept install configuration button node */
+  var acceptInstallCfgButton = null;
+
+  /** Cancel install configuration button node */
+  var cancelInstallCfgButton = null;
+
   /** Accept button node */
   var acceptButton = null;
 
@@ -40,6 +46,9 @@ var CpScreenHelper = (function() {
 
   /** Quit app confirm dialog node */
   var quitAppConfirmDialog = null;
+
+  /** Install configuration confirm dialog node */
+  var installCfgConfirmDialog = null;
 
   /** Store confirm dialog node */
   var storeConfirmDialog = null;
@@ -95,6 +104,11 @@ var CpScreenHelper = (function() {
     quitButton = quitAppConfirmDialog.querySelector('.quit');
     cancelQuitButton = quitAppConfirmDialog.querySelector('.cancel');
 
+    installCfgConfirmDialog =
+      document.getElementById('cp-install-configuration-confirm');
+    acceptInstallCfgButton = installCfgConfirmDialog.querySelector('.accept');
+    cancelInstallCfgButton = installCfgConfirmDialog.querySelector('.cancel');
+
     storeConfirmDialog = document.getElementById('cp-store-confirm');
     storeButton = storeConfirmDialog.querySelector('.store');
     cancelStoreButton = storeConfirmDialog.querySelector('.cancel');
@@ -116,6 +130,17 @@ var CpScreenHelper = (function() {
     cancelStoreButton.addEventListener('click', cpsh_onCancelStore);
     finishButton.addEventListener('click', cpsh_onFinish);
     pin.addEventListener('keyup', cpsh_onPinInput);
+  }
+
+  /**
+   * Init the application flow showing a warning prompt that asks to the user if
+   * wants to install the configuration information.
+   */
+  function cpsh_showConfirmInstallationDialog(message) {
+    installCfgConfirmDialog.hidden = false;
+    acceptInstallCfgButton
+      .addEventListener('click',cpsh_onAcceptInstallCfg.bind(null, message));
+    cancelInstallCfgButton.addEventListener('click', cpsh_onCancelInstallCfg);
   }
 
   /**
@@ -213,6 +238,26 @@ var CpScreenHelper = (function() {
     evt.preventDefault();
     pin.focus();
     quitAppConfirmDialog.hidden = true;
+  }
+
+  /**
+   * Handles the application flow when the user clicks on the 'Cancel' button
+   * from the client install configuration screen.
+   */
+  function cpsh_onCancelInstallCfg(evt) {
+    evt.preventDefault();
+    installCfgConfirmDialog.hidden = true;
+    WapPushManager.close();
+  }
+
+  /**
+   * Handles the application flow when the user clicks on the 'Cancel' button
+   * from the client install configuration screen.
+   */
+  function cpsh_onAcceptInstallCfg(message, evt) {
+    evt.preventDefault();
+    cpsh_populateScreen(message);
+    installCfgConfirmDialog.hidden = true;
   }
 
   /**
@@ -367,6 +412,7 @@ var CpScreenHelper = (function() {
 
   return {
     init: cpsh_init,
-    populateScreen: cpsh_populateScreen
+    populateScreen: cpsh_populateScreen,
+    showConfirmInstallationDialog: cpsh_showConfirmInstallationDialog
   };
 })();
