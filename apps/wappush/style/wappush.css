@@ -54,3 +54,7 @@ html,body {
   font-size: 1.5rem;
   line-height: 1.8rem;
 }
+
+#cp-auth-failure {
+  color: #f00;
+}

@@ -69,6 +69,7 @@
           <div class="message">
             <p data-l10n-id="cp-container-title"> OTA Access Point Configuration </p>
             <input type="hidden" data-l10n-id="cp-pin" placeholder="PIN" required="">
+            <p id="cp-auth-failure" data-l10n-id="cp-auth-failure" hidden>PIN is not correct.</p>
             <p id="cp-accept-help" data-l10n-id="cp-accept-help">Configuration message received, click on 'Accept' to continue.</p>
           </section>
         </section>
@@ -102,19 +103,6 @@
       <menu>
         <button data-l10n-id="cancel" class="cancel">Cancel</button>
         <button data-l10n-id="store" class="store recommend">Store</button>
-      </menu>
-    </form>
-
-    <!-- Client provisioning authentication failure confirm dialog -->
-    <form id="cp-auth-failure-confirm" role="dialog" data-type="confirm" hidden>
-      <section>
-        <h1 data-l10n-id="cp-container-title"> OTA Access Point Configuration </h1>
-        <p>
-          <strong data-l10n-id="cp-auth-failure-confirm-dialog-message">The PIN you have entered is incorrect. The PIN code should have been provided to you by whomever sent you the configuration message.</strong>
-        </p>
-      </section>
-      <menu>
-        <button data-l10n-id="try-again" class="full">Try again</button>
       </menu>
     </form>
 
