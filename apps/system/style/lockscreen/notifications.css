@@ -191,25 +191,21 @@
 
 /* in collapsed mode (there is a widget)
  * desired vertical position is manually adjusted for big screen,
- *  and for big screen we allow three notifications
- * for small screen, we allow two notification; they are
+ *  and for big screen we allow two notifications
+ * for small screen, we allow one notification and it is
  * vertically centered between date and music player widget
  */
 #notifications-lockscreen-container.collapsed {
-  top: calc(50% - 8.7rem);
-  height: 17.7rem;
+  top: calc(50% - 9.6rem);
+  height: 11.7rem;
 }
 
 #notifications-lockscreen-container.masked-both {
   mask: url('lockscreen_container_mask.svg#fade_mask_both');
 }
 
-#notifications-lockscreen-container.masked-top {
+#notifications-lockscreen-container.collapsed.masked-top {
   mask: url('lockscreen_container_mask.svg#solid_mask_top');
-}
-
-#notifications-lockscreen-container.masked-top.top-actionable {
-  mask: none;
 }
 
 @media (max-height:480px) {
@@ -225,7 +221,7 @@
   }
 
  /* small screen, collapsed mode: for one notification...
-  * manally adjusted according to UX; 1x Notification is 5.8rem
+  * manally adjusted; 1x Notification is 5.8rem
   * UX specifies in bug 1023500 that the container should not be scrollable
   * (so there is no mask either)
   */
@@ -293,7 +289,7 @@
   max-width: 6.5rem;
   font-size: 1.2rem;
   font-style: italic;
-  font-weight: normal;
+  font-weight: bold;
   line-height: 1.6rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -342,12 +338,12 @@
 
 #lockscreen-notification-arrow.collapsed {
   /* manually adjusted */
-  top: calc(50% - 8.7rem + 17.7rem - 0.05rem);
+  top: calc(50% - 9.6rem + 11.7rem - 0.05rem);
 }
 
 @media (max-height:480px) {
   #lockscreen-notification-arrow {
-    top: calc(50% - 4.7rem + 18.8rem - 1.1rem);
+    top: calc(50% - 4.7rem + 18.7rem - 1.1rem);
   }
 
   #lockscreen-notification-arrow.collapsed {

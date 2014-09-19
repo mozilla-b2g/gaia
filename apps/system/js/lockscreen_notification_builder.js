@@ -73,12 +73,6 @@
       }));
   };
 
-  // little helper that can be stubbed when testing;
-  LockScreenNotificationBuilder.prototype._getWindowInnerHeight =
-  function lsnb_getWindowInnerHeight() {
-    return window.innerHeight;
-  };
-
   /**
    * When it get clicked, do the UI change.
    */
@@ -92,30 +86,6 @@
     var button = this.createActionButton(node.dataset.notificationId);
     node.appendChild(button);
     node.classList.add('actionable');
-
-    // because background of an active actionable notification can be clipped
-    // by the top mask implemented in lockscreen visual refresh 2.0,
-    // we need to cancel the mask when the 'top' (in the visible viewport,
-    // not the whole container) notification is active. such 'top'-ness is
-    // is decided by the notification's relative reverse position.
-    // we have 2 viewable notifications for HVGA lockscreen with music player
-    // widget, and for larger screen, and the absence of the widget,
-    // we can allow one, and two, more viewable notifications.
-    var visualTopPosition = 2;
-
-    if (this._getWindowInnerHeight() > 480) {
-      visualTopPosition++;
-    }
-    if (!this.container.classList.contains('collapsed')) {
-      visualTopPosition++;
-    }
-
-    if (this.container.querySelector(
-          'div.notification:nth-last-of-type(' + visualTopPosition + ')'
-        ) === node){
-      this.container.classList.add('top-actionable');
-    }
-
     window.dispatchEvent(new CustomEvent(
       'lockscreen-notification-highlighted', {
       detail: {
@@ -150,7 +120,6 @@
 
   LockScreenNotificationBuilder.prototype.removeHighlight =
   function lsnb_removeHighlight(node) {
-    this.container.classList.remove('top-actionable');
     node.classList.remove('actionable');
     node.querySelector('.button-actionable').remove();
   };

@@ -377,22 +377,4 @@ suite('system/LockScreenNotifications', function() {
     );
   });
 
-  test('removeNotificationHighlight removes top-actionable class',
-  function() {
-    lockScreenNotifications.container.classList.add('top-actionable');
-    assert.isTrue(
-      lockScreenNotifications.container.classList.contains('top-actionable'),
-      'top-actionable class is absent while it shouldn\'t be'
-    );
-    var dummyNode = document.createElement('div');
-    var dummyInnerNode = document.createElement('div');
-    dummyInnerNode.classList.add('button-actionable');
-    dummyNode.appendChild(dummyInnerNode);
-    lockScreenNotifications.removeNotificationHighlight(dummyNode);
-    assert.isFalse(
-     lockScreenNotifications.container.classList.contains('top-actionable'),
-      'top-actionable class is not absent while it should be'
-    );
-  });
-
 });

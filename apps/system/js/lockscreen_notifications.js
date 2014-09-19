@@ -186,7 +186,6 @@
 
   LockScreenNotifications.prototype.removeNotificationHighlight =
   function lsn_removeNotificationHighlight(node) {
-    this.container.classList.remove('top-actionable');
     node.classList.remove('actionable');
     node.querySelector('.button-actionable').remove();
     var oldPrevious = this.container.querySelector(
