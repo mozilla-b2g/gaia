@@ -36,7 +36,8 @@ var SheetsTransition = {
       this._new.classList.toggle('outside-edges-right', (direction == 'rtl'));
     }
 
-    window.dispatchEvent(new CustomEvent('sheetstransitionstart'));
+    // Note that we send sheets-gesture-end from the StackManager!!!
+    window.dispatchEvent(new CustomEvent('sheets-gesture-begin'));
   },
 
   _lastProgress: null,

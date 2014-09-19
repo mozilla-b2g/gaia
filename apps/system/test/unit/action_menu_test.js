@@ -206,11 +206,11 @@ suite('ActionMenu', function() {
       assert.isTrue(menu.hide.called);
       assert.isTrue(cancelCBStub.called);
     });
-    test('sheetstransitionstart event dismisses action menu', function() {
+    test('sheets-gesture-begin event dismisses action menu', function() {
       assert.isFalse(menu.hide.called);
       assert.isFalse(cancelCBStub.called);
       menu.handleEvent({
-        type: 'sheetstransitionstart'
+        type: 'sheets-gesture-begin'
       });
       assert.isTrue(menu.hide.called);
       assert.isTrue(cancelCBStub.called);

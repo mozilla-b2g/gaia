@@ -321,6 +321,10 @@ var StackManager = {
       return;
     }
 
+    // We're done swiping around, let's close up the gesture. Note that
+    // sheets-gesture-start is detected and sent in SheetsTransition!!!
+    window.dispatchEvent(new CustomEvent('sheets-gesture-end'));
+
     // We're back to the same place
     if (this._appIn && this._appIn === this._appOut) {
       this._appIn.transitionController.clearTransitionClasses();
