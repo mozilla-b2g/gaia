@@ -45,6 +45,8 @@ module.exports = View.extend({
       video: this.find('.js-icon-video')
     };
 
+    this.setupSwitch();
+
     // Clean up
     delete this.template;
 
@@ -93,7 +95,6 @@ module.exports = View.extend({
     this.drag.on('translate', this.onSwitchTranslate);
     this.drag.on('snapped', this.onSwitchSnapped);
 
-    this.drag.updateDimensions();
     this.updateSwitchPosition();
   },
 
