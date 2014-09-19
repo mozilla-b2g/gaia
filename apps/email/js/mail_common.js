@@ -220,6 +220,16 @@ Cards = {
     this._cardsNode.addEventListener('transitionend',
                                      this._onTransitionEnd.bind(this),
                                      false);
+
+    // Listen for visibility changes to let current card know of them too.
+    // Do this here instead of each card needing to listen, and needing to know
+    // if it is also the current card.
+    document.addEventListener('visibilitychange', function(evt) {
+      var card = this._cardStack[this.activeCardIndex];
+      if (card && card.cardImpl.onCurrentCardDocumentVisibilityChange) {
+        card.cardImpl.onCurrentCardDocumentVisibilityChange(document.hidden);
+      }
+    }.bind(this));
   },
 
   /**
