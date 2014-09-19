@@ -38,20 +38,22 @@
 
   function mns_mReplyToRequests() {
     try {
-      requests.forEach(function(request) {
+      var currentRequests = requests;
+      requests = [];
+      currentRequests.forEach(function(request) {
+        console.log('replying', JSON.stringify(request.result));
         if (request.onsuccess) {
           request.onsuccess({
             target: request
           });
         }
       });
-    }
-    finally {
-      requests = [];
+    } catch(e) {
     }
   }
 
   function mns_mLockGet(key) {
+    console.log('getting', key);
     var resultObj = {};
     if (key === '*') {
       resultObj = settings;
