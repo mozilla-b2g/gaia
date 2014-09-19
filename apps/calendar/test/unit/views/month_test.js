@@ -206,7 +206,7 @@ suiteGroup('Views.Month', function() {
       subject._selectDay(select);
 
       var dayEl = selected();
-      assert.length(dayEl, 1, 'should highlight selected');
+      assert.lengthOf(dayEl, 1, 'should highlight selected');
 
       dayEl = dayEl[0];
 
@@ -218,15 +218,15 @@ suiteGroup('Views.Month', function() {
 
     test('#_clearSelectedDay', function() {
       subject.render();
-      assert.length(selected(), 0);
+      assert.lengthOf(selected(), 0);
 
       var el = subject.element.querySelector('li');
       el.classList.add('selected');
 
-      assert.length(selected(), 1);
+      assert.lengthOf(selected(), 1);
       subject._clearSelectedDay();
 
-      assert.length(selected(), 0);
+      assert.lengthOf(selected(), 0);
     });
 
   });

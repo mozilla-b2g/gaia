@@ -19,7 +19,7 @@ suite('responder', function() {
     var calledWith;
 
     subject.on('test', function() {
-      calledWith = arguments;
+      calledWith = Array.slice(arguments);
     });
 
     subject.respond(['test', 'one', 'two', 'three']);

@@ -221,7 +221,7 @@ suiteGroup('Models.Event', function() {
 
     function hasError(event, type) {
       var errors = event.validationErrors();
-      assert.length(errors, 1);
+      assert.lengthOf(errors, 1);
       assert.deepEqual(
         errors[0], {
           name: type

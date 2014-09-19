@@ -100,7 +100,7 @@ suite('service/caldav', function() {
       var calledWith;
 
       subject[event] = function() {
-        calledWith = arguments;
+        calledWith = Array.slice(arguments);
       };
 
       service.emit(event, 1, 2, 3, 4);
@@ -282,7 +282,7 @@ suite('service/caldav', function() {
         );
 
         assert.ok(!result.recurrenceId);
-        assert.length(result.exceptions, 2);
+        assert.lengthOf(result.exceptions, 2);
 
         var key;
         var exceptions = result.exceptions;
@@ -409,7 +409,7 @@ suite('service/caldav', function() {
           );
 
           var alarm = subject._displayAlarms(detail);
-          assert.length(alarm, 1, 'has alarms');
+          assert.lengthOf(alarm, 1, 'has alarms');
 
           var start = detail.startDate.clone();
           start.adjust(0, 0, -5, 0);
@@ -489,7 +489,7 @@ suite('service/caldav', function() {
         var details = icalEvent.getOccurrenceDetails(next);
 
         var alarms = subject._displayAlarms(details);
-        assert.length(alarms, 2);
+        assert.lengthOf(alarms, 2);
 
         var date = icalEvent.startDate.clone();
         date.adjust(0, 0, -30, 0);
@@ -630,15 +630,15 @@ suite('service/caldav', function() {
           }
 
           done(function() {
-            assert.length(occurrences, 1);
-            assert.length(events, 1);
+            assert.lengthOf(occurrences, 1);
+            assert.lengthOf(events, 1);
             var formatted = subject._formatEvent(
               'abcd', url,
               fixtures.singleEvent,
               icalEvent
             );
 
-            assert.length(components, 1);
+            assert.lengthOf(components, 1);
 
             assert.deepEqual(events, [formatted]);
             assert.deepEqual(
@@ -689,7 +689,7 @@ suite('service/caldav', function() {
 
             var lastOccurence = occurrences[occurrences.length - 1];
 
-            assert.length(components, 1, 'has component');
+            assert.lengthOf(components, 1, 'has component');
 
             assert.hasProperties(
               components[0],
@@ -830,7 +830,7 @@ suite('service/caldav', function() {
     test('all sent events', function() {
       var expectedKeys = Object.keys(components);
 
-      assert.length(
+      assert.lengthOf(
         events.component,
         expectedKeys.length,
         'returns same number of components sent'
@@ -1155,7 +1155,7 @@ suite('service/caldav', function() {
         done(function() {
           assert.instanceOf(event, ICAL.Event);
           var exceptions = Object.keys(event.exceptions);
-          assert.length(exceptions, 2);
+          assert.lengthOf(exceptions, 2);
         });
       });
     });
@@ -1285,7 +1285,7 @@ suite('service/caldav', function() {
             return;
           }
 
-          assert.length(actual, expected.length);
+          assert.lengthOf(actual, expected.length);
           assert.deepEqual(actual, expected, 'expected occurrences');
 
           assert.deepEqual(
@@ -1328,7 +1328,7 @@ suite('service/caldav', function() {
             return;
           }
 
-          assert.length(actual, expected.length);
+          assert.lengthOf(actual, expected.length);
           assert.deepEqual(actual, expected, 'expected occurrences');
 
           done();
