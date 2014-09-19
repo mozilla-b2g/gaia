@@ -178,7 +178,7 @@ contacts.ICE = (function() {
    */
   function checkContact(id) {
     return ICEData.load().then(function() {
-      return contactNotICE(id);
+      return contactNotICE(id).then(contactNoPhone);
     });
   }
 
@@ -199,6 +199,26 @@ contacts.ICE = (function() {
       } else {
         resolve(id);
       }
+    });
+  }
+
+  /**
+   * Filter to avoid selecting contacts as ICE if they
+   * don't have a phone number
+   * @param id (String) contact id
+   * @returns (Promise) Fulfilled if contact has phone
+   */
+  function contactNoPhone(id) {
+    return new Promise(function(resolve, reject) {
+      contacts.List.getContactById(id, function(contact) {
+        if(Array.isArray(contact.tel) && contact.tel[0] &&
+         contact.tel[0].value && contact.tel[0].value.trim()) {
+          resolve(id);
+        }
+        else {
+          reject('ICEContactNoNumber');
+        }
+      });
     });
   }
 
