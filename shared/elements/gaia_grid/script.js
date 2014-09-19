@@ -28,6 +28,7 @@ window.GaiaGrid = (function(win) {
       element: this,
       features: {
         dragdrop: this.getAttribute('dragdrop') !== null,
+        group: this.getAttribute('group') !== null,
         zoom: this.getAttribute('zoom') !== null
       }
     });

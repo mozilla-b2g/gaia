@@ -217,6 +217,9 @@ Collection.prototype = {
     this.actions.longPress(element, 1).perform();
     this.client.helper.waitForElement(
       Collection.Selectors.cloudMenuPin).click();
+
+    // Wait for animation to finish
+    this.actions.wait(1).perform();
   },
 
   /**

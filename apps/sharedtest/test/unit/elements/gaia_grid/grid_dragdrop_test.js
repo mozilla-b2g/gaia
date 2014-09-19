@@ -88,7 +88,7 @@ suite('GaiaGrid > DragDrop', function() {
   });
 
   test('cleanup if the touch gesture is canceled', function() {
-    var firstBookmark = document.querySelector('.icon');
+    var firstBookmark = grid.items[0].element;
     firstBookmark.dispatchEvent(new CustomEvent('contextmenu',
       {bubbles: true}));
     assert.ok(grid.dragdrop.inEditMode);
@@ -110,8 +110,8 @@ suite('GaiaGrid > DragDrop', function() {
     subject.icon = grid.items[0];
 
     // The current positions are second -> first -> placeholder
-    // Simulate a drop past the placeholder (index 2).
-    subject.rearrange(2);
+    // Simulate a drop onto the second item (index 2).
+    subject.rearrange(grid.items[2]);
 
     assert.equal(grid.items[0].name, 'first');
     assert.equal(grid.items[1].name, 'second');

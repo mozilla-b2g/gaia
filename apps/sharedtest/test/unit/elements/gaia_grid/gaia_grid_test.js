@@ -72,6 +72,8 @@ suite('GaiaGrid', function() {
         id: 'http://mozilla.org',
         url: 'http://mozilla.org'
       },
+      setPosition: function() {},
+      setCoordinates: function() {},
       render: function() {}
     };
 

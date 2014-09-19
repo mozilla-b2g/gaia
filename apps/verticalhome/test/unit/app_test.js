@@ -3,6 +3,7 @@
 /* global MocksHelper, loadBodyHTML */
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/elements/gaia_grid/js/grid_dragdrop.js');
 require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
@@ -16,7 +17,8 @@ require('/test/unit/mock_item_store.js');
 
 var mocksHelperForApp = new MocksHelper([
   'LazyLoader',
-  'ItemStore'
+  'ItemStore',
+  'SettingsListener'
 ]).init();
 
 suite('app.js > ', function() {

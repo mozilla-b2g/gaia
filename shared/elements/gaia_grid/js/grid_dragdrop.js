@@ -1,10 +1,11 @@
 'use strict';
+/* global GaiaGrid */
 
 (function(exports) {
 
-  const ACTIVE_SCALE_ADJUST = 0.4;
+  const ACTIVE_SCALE = 1.4;
 
-  const COLLECTION_DROP_SCALE_ADJUST = 0.5;
+  const COLLECTION_DROP_SCALE = 0.5;
 
   /* This delay is the time passed once users stop the finger over an icon and
    * the rearrange is performed */
@@ -72,8 +73,8 @@
     /**
      * Returns the maximum active scale value.
      */
-    get maxActiveScale() {
-      return 1 + ACTIVE_SCALE_ADJUST;
+    get activeScale() {
+      return ACTIVE_SCALE;
     },
 
     /**
@@ -93,27 +94,23 @@
       this.gridView.stop();
       window.dispatchEvent(new CustomEvent('gaiagrid-dragdrop-begin'));
 
-      this.icon.noTransform = true;
       this.hoverItem = null;
       this.rearrangeDelay = null;
       this.enterEditMode();
       this.container.classList.add('dragging');
-      this.target.classList.add('active');
+      this.icon.scale = ACTIVE_SCALE;
+      this.icon.setActive(true);
 
-      // Testing with some extra offset (20)
-      this.xAdjust = this.gridView.layout.gridItemWidth / 2 + 20;
-      this.yAdjust = this.gridView.layout.gridItemHeight + 20;
+      this.xAdjust = e.pageX - this.icon.x;
+      this.yAdjust = e.pageY - this.icon.y;
 
       var items = this.gridView.items;
       var lastElement = items[items.length - 1];
       this.maxScroll = lastElement.y + lastElement.pixelHeight +
-                       (this.icon.pixelHeight * this.maxActiveScale);
+                       (this.icon.pixelHeight * ACTIVE_SCALE);
 
-      // Make the icon larger
-      this.icon.transform(
-        e.pageX - this.xAdjust,
-        e.pageY - this.yAdjust,
-        this.icon.scale + ACTIVE_SCALE_ADJUST);
+      // Redraw the icon at the new position and scale
+      this.positionIcon(e.pageX, e.pageY);
     },
 
     finish: function(e) {
@@ -141,14 +138,13 @@
 
           // When we set the position, we need to compensate for the transform
           // center being at the top-left.
+          var scale = this.gridView.layout.percent * COLLECTION_DROP_SCALE;
           var scaleAdjustX =
             ((this.gridView.layout.gridItemWidth * this.icon.scale) -
-             (this.gridView.layout.gridItemWidth *
-              (this.icon.scale - COLLECTION_DROP_SCALE_ADJUST))) / 2;
+             (this.gridView.layout.gridItemWidth * scale)) / 2;
           var scaleAdjustY =
             ((this.gridView.layout.gridItemHeight * this.icon.scale) -
-             (this.gridView.layout.gridItemHeight *
-              (this.icon.scale - COLLECTION_DROP_SCALE_ADJUST))) / 2;
+             (this.gridView.layout.gridItemHeight * scale)) / 2;
 
           // Create the clone icon that we'll animate dropping into the
           // collection
@@ -170,13 +166,13 @@
           this.icon.transform(
             this.hoverItem.x + scaleAdjustX,
             this.hoverItem.y + scaleAdjustY,
-            this.icon.scale - COLLECTION_DROP_SCALE_ADJUST,
+            scale,
             clone);
 
           // Now animate the original icon back into its original position.
           this.icon.transform(this.icon.x + scaleAdjustX,
                               this.icon.y + scaleAdjustY,
-                              this.icon.scale - COLLECTION_DROP_SCALE_ADJUST);
+                              scale);
 
           // Force a reflow on this icon, otherwise when we remove the active
           // class, it will transition from its original position instead of
@@ -187,11 +183,9 @@
         }
       }
 
-      // Hand back responsibility to GridItem to render itself.
-      delete this.icon.noTransform;
-      if (this.target) {
-        this.target.classList.remove('active');
-      }
+      // Hand back responsibility to Grid view to render the dragged item.
+      this.icon.scale = 1;
+      this.icon.setActive(false);
 
       this.gridView.render();
 
@@ -296,18 +290,47 @@
      * @param {Integer} pageY The Y coordinate of the touch.
      */
     positionIcon: function(pageX, pageY) {
+      var iconIsDivider = this.icon.detail.type === 'divider';
+
       pageX = pageX - this.xAdjust;
       pageY = pageY - this.yAdjust;
 
-      this.icon.transform(
-        pageX,
-        pageY,
-        this.icon.scale + ACTIVE_SCALE_ADJUST);
+      var oldX = this.icon.x;
+      var oldY = this.icon.y;
+      // Adjust new icon coordinates for the slightly inflated scale so that
+      // it appears centered around the touch point.
+      var newX = pageX;
+      var newY = pageY;
+      if (!iconIsDivider) {
+        newX = pageX - ((this.icon.scale * this.gridView.layout.gridItemWidth) -
+                        this.gridView.layout.gridItemWidth) / 2;
+        newY = pageY - ((this.icon.scale * this.icon.pixelHeight) -
+                        this.icon.pixelHeight) / 2;
+      }
+      this.icon.setCoordinates(newX, newY);
+      this.icon.render();
+      this.icon.setCoordinates(oldX, oldY);
+
+      // If we're a divider being dragged, manually check if the y-coordinate
+      // has strayed far enough from the center of the row to initiate a
+      // movement.
+      if (iconIsDivider) {
+        if (Math.abs(pageY - this.icon.y) <=
+            this.gridView.layout.gridItemHeight / 2) {
+          return;
+        }
+      }
 
       // Reposition in the icons array if necessary.
       // Find the icon with the closest X/Y position of the move,
       // and insert ours before it.
-      var foundIndex = this.gridView.getNearestItemIndex(pageX, pageY);
+      pageX += this.gridView.layout.gridItemWidth / 2;
+      pageY += this.icon.pixelHeight / 2;
+      var foundIndex =
+        this.gridView.getNearestItemIndex(pageX, pageY, iconIsDivider);
+      if (foundIndex === null) {
+        return;
+      }
       var foundItem = this.gridView.items[foundIndex];
 
       // Clear the rearrange delay and hover item if we aren't hovering over
@@ -322,12 +345,17 @@
       }
 
       if (foundIndex !== this.icon.detail.index) {
-        // Collections should not trigger a hover
-        if (this.icon.detail.type !== 'collection') {
+        // Collections and groups should not trigger a hover
+        if (this.icon.detail.type !== 'collection' && !iconIsDivider) {
           this.hoverItem = foundItem;
           this.hoverItem.element.classList.add('hovered');
         }
-        this.doRearrange = this.rearrange.bind(this, foundIndex);
+        // Add another divider when hovering over a divider
+        if (!iconIsDivider && foundItem.detail.type === 'divider') {
+          this.doRearrange = this.createNewDivider.bind(this, foundItem);
+        } else {
+          this.doRearrange = this.rearrange.bind(this, foundItem);
+        }
         this.rearrangeDelay =
           setTimeout(this.doRearrange.bind(this),
             this.hoverItem && this.hoverItem.detail.type === 'collection' ?
@@ -336,31 +364,123 @@
     },
 
     /**
-     * Rearranges items in GridView.items
-     * @param {Integer} insertAt The position to insert our icon at.
+     * Returns the number of items between the given index and the divider
+     * before it that aren't placeholders and aren't active.
      */
-    rearrange: function(tIndex) {
+    countItemsBeforeIndex: function(index) {
+      var size = 0;
+      for (var i = index - 1, items = this.gridView.items;
+           i >= 0 && items[i].detail.type !== 'divider'; i--) {
+        if (items[i].detail.type !== 'placeholder' && !items[i].active) {
+          size++;
+        }
+      }
+      return size;
+    },
+
+    /**
+     * Creates a new divider in GridView.items and rearranges the currently
+     * dragged icon into the newly created section.
+     * @param {Object} tDivider The divider after which to place a new divider
+     */
+    createNewDivider: function(tDivider) {
+      var items = this.gridView.items;
+      var tIndex = items.indexOf(tDivider);
+
+      // Only create a new divider if the divider doesn't end an empty section
+      // and the next divider doesn't end an empty section. We don't count the
+      // active icon to avoid creating infinite groups.
+      if (this.countItemsBeforeIndex(tIndex) === 0) {
+        return;
+      }
+      for (var nIndex = tIndex + 1, len = items.length;
+           nIndex < len; nIndex++) {
+        if (items[nIndex].detail.type === 'divider') {
+          if (this.countItemsBeforeIndex(nIndex) === 0) {
+            return;
+          }
+          break;
+        }
+      }
+
+      // Create the new divider
+      var newDivider = new GaiaGrid.Divider();
+      items.splice(tIndex + 1, 0, newDivider);
+
+      // Place the dragged item into the new empty section
+      var sIndex = items.indexOf(this.icon);
+      this.rearrange(sIndex > tIndex ? newDivider : tDivider);
+    },
+
+    /**
+     * Rearranges items in GridView.items
+     * @param {Object} tItem The item to position the dragged icon at.
+     */
+    rearrange: function(tItem) {
 
       // We get a reference to the position of this.icon within the items
       // array. Because placeholders are shifting around while we are dragging,
       // we can't trust the detail.index attribute. This will be fixed on every
       // render call though.
       var sIndex = this.gridView.items.indexOf(this.icon);
-      var toInsert = this.gridView.items.splice(sIndex, 1)[0];
+      var tIndex = this.gridView.items.indexOf(tItem);
 
+      // Check how many items we need to rearrange (if it's a group, there will
+      // be multiple items.
+      var eIndex = sIndex;
+      if (this.icon.detail.type === 'divider') {
+        for (; sIndex > 0 &&
+               this.gridView.items[sIndex - 1].detail.type !== 'divider';
+             sIndex--) {}
+
+        // Modify the tIndex to make sure we're inserting immediately after
+        // another divider or at the start of the container.
+        var gridLength = this.gridView.items.length;
+        if (tIndex !== 0 && tIndex !== gridLength - 1) {
+          if (tIndex > sIndex) {
+            for (; tIndex < gridLength - 1 &&
+                 this.gridView.items[tIndex - 1].detail.type !== 'divider';
+                 tIndex++) {}
+          } else {
+            for (; tIndex > 0 &&
+                 this.gridView.items[tIndex - 1].detail.type !== 'divider';
+                 tIndex--) {}
+          }
+
+          // Don't allow the user to rearrange with a divider unless it's
+          // visible.
+          var otherDivider = this.gridView.items[tIndex];
+          if ((otherDivider.y < this.scrollable.scrollTop) ||
+              (otherDivider.y + otherDivider.pixelHeight >
+               this.scrollable.scrollTop + this.scrollable.clientHeight)) {
+            return;
+          }
+        }
+
+        if (sIndex === tIndex) {
+          // Nothing to do.
+          return;
+        }
+      } else if (sIndex < tIndex) {
+        tIndex++;
+      }
+
+      // We may have changed tIndex, so refresh our item pointer
+      tItem = this.gridView.items[tIndex];
+
+      // Remove the items from the array
+      var lastItemOffset = eIndex - sIndex;
+      var toInsert = this.gridView.items.splice(sIndex, lastItemOffset + 1);
+
+      // Craft the parameter list to reinsert the items at the correct place
+      toInsert.unshift(this.gridView.items.indexOf(tItem), 0);
+
+      // Reinsert items
       this.rearrangeDelay = null;
       this.dirty = true;
-      this.gridView.items.splice(tIndex, 0, toInsert);
+      this.gridView.items.splice.apply(this.gridView.items, toInsert);
 
-      // Render to/from the selected position. We give a render buffer of 2
-      // rows or so due to divider creation/removal. Otherwise we may
-      // end up not rendering enough depending on the actual drop and have a
-      // stale rendering of the dragged icon.
-      var renderBuffer = this.gridView.layout.cols * 2;
-      this.gridView.render({
-        from: Math.min(tIndex, sIndex) - renderBuffer,
-        to: Math.max(tIndex, sIndex) + renderBuffer
-      });
+      this.gridView.render();
     },
 
     enterEditMode: function() {
@@ -370,6 +490,7 @@
       this.gridView.element.dispatchEvent(
         new CustomEvent('editmode-start'));
       document.addEventListener('visibilitychange', this);
+      this.gridView.render();
     },
 
     exitEditMode: function() {
@@ -385,7 +506,7 @@
       this.gridView.element.dispatchEvent(new CustomEvent('editmode-end'));
       document.removeEventListener('visibilitychange', this);
       this.removeDragHandlers();
-      this.gridView.render({skipItems: true});
+      this.gridView.render();
     },
 
     removeDragHandlers: function() {
@@ -433,10 +554,11 @@
               return;
             }
 
-            var identifier = this.target.dataset.identifier;
-            this.icon = this.gridView.icons[identifier];
+            this.icon = this.gridView.findItemFromElement(this.target);
 
-            if (!this.icon) {
+            if (!this.icon || !this.icon.isDraggable() ||
+                this.icon.detail.type === 'placeholder') {
+              this.icon = null;
               return;
             }
 
@@ -451,12 +573,11 @@
           case 'touchmove':
             var touch = e.touches[0];
 
-            var pageY = touch.pageY;
-            this.positionIcon(touch.pageX, pageY);
+            this.positionIcon(touch.pageX, touch.pageY);
 
             this.currentTouch = {
               pageX: touch.pageX,
-              pageY: pageY
+              pageY: touch.pageY
             };
 
             if (!this.isScrolling) {

@@ -158,6 +158,14 @@
     },
 
     /**
+     * Sets the item coordinates
+     */
+    setCoordinates: function(x, y) {
+      this.x = x;
+      this.y = y;
+    },
+
+    /**
      * Given a list of icons that match a size, return the closest icon to
      * reduce possible pixelation by picking a wrong size.
      * @param {Object} choices An object mapping icon size to icon URL.
@@ -257,8 +265,9 @@
         style.height = this.grid.layout.gridItemHeight + 'px';
         // icon size + padding for shadows implemented in the icon renderer
         var backgroundHeight =
-          ((this.grid.layout.gridIconSize * (1 / this.scale)) +
+          ((this.grid.layout.gridIconSize * (1 / this.grid.layout.percent)) +
           GridIconRenderer.prototype.unscaledCanvasPadding);
+
         if (this.grid.layout.gridItemHeight > backgroundHeight) {
           style.backgroundSize = backgroundHeight + 'px';
         } else {
@@ -478,11 +487,9 @@
 
     /**
      * Renders the icon to the container.
-     * @param {Array} coordinates Grid coordinates to render to.
-     * @param {Number} index The index of the items list of this item.
      */
-    render: function(coordinates, index) {
-      this.scale = this.grid.layout.percent;
+    render: function() {
+      var scale = this.grid.layout.percent * this.scale;
 
       // Generate an element if we need to
       if (!this.element) {
@@ -496,7 +503,7 @@
         // to this container via CSS without touching JS.
         var nameContainerEl = document.createElement('p');
         nameContainerEl.style.marginTop = ((this.grid.layout.gridIconSize *
-          (1 / this.scale)) +
+          (1 / this.grid.layout.percent)) +
           (GridIconRenderer.prototype.unscaledCanvasPadding / 2)) + 'px';
         tile.appendChild(nameContainerEl);
 
@@ -517,18 +524,7 @@
         this.grid.element.appendChild(tile);
       }
 
-      var x = coordinates[0] * this.grid.layout.gridItemWidth;
-      var y = this.grid.layout.offsetY;
-      this.setPosition(index);
-      this.x = x;
-      this.y = y;
-
-      // Avoid rendering the icon during a drag to prevent jumpiness
-      if (this.noTransform) {
-        return;
-      }
-
-      this.transform(x, y, this.grid.layout.percent);
+      this.transform(this.x, this.y, scale);
     },
 
     /**
@@ -539,6 +535,19 @@
       element = element || this.element;
       element.style.transform =
         'translate(' + x + 'px,' + y + 'px) scale(' + scale + ')';
+    },
+
+    /**
+     * Set whether the item is being dragged.
+     */
+    setActive: function(active) {
+      if (active) {
+        this.element.classList.add('active');
+        this.active = true;
+      } else {
+        this.element.classList.remove('active');
+        this.active = false;
+      }
     },
 
     /**
