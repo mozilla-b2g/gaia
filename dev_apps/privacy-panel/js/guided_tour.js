@@ -6,7 +6,19 @@
    * Loads a template.
    */
   function loadTemplates(callback) {
-    window.LazyLoader.load([document.getElementById('welcome')], callback);
+    var templates = [
+      document.getElementById('welcome'),
+      document.getElementById('la_explain'),
+      document.getElementById('la_blur'),
+      document.getElementById('la_custom'),
+      document.getElementById('la_exceptions'),
+      document.getElementById('rpp_explain'),
+      document.getElementById('rpp_passphrase'),
+      document.getElementById('rpp_locate'),
+      document.getElementById('rpp_ring'),
+      document.getElementById('rpp_lock')
+    ];
+    window.LazyLoader.load(templates, callback);
   }
 
   function showSection(element) {
