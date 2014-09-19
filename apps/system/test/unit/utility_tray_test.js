@@ -74,6 +74,14 @@ suite('system/UtilityTray', function() {
     var notifications = document.createElement('div');
     notifications.style.cssText = 'height: 100px; display: block;';
 
+    var ambientIndicator = {
+      clientHeight: 2,
+      style: {
+        transform: '',
+        transition: ''
+      }
+    };
+
     var topPanel = document.createElement('div');
     topPanel.style.cssText = 'height: 20px; display: block;';
 
@@ -95,6 +103,8 @@ suite('system/UtilityTray', function() {
           return notifications;
         case 'top-panel':
           return topPanel;
+        case 'ambient-indicator':
+          return ambientIndicator;
         default:
           return null;
       }
@@ -430,6 +440,33 @@ suite('system/UtilityTray', function() {
               it works in local test but breaks in travis. */
       // assert.equal(UtilityTray.active, true);
     });
+  });
+
+  suite('handleEvent: touchmove', function() {
+    setup(function() {
+      UtilityTray.shown = false;
+      UtilityTray.ambientIndicator.style.transform = '';
+      sinon.stub(UtilityTray, 'onTouchEnd');
+    });
+
+    teardown(function() {
+      UtilityTray.onTouchEnd.restore();
+    });
+
+    test('Dont move the ambientIndicator if touch < height', function(done) {
+      fakeTouches(0, 2);
+      var expected = '';
+      assert.equal(UtilityTray.ambientIndicator.style.transform, expected);
+      done();
+    });
+
+    test('Move the ambientIndicator if touch > height', function(done) {
+      fakeTouches(0, 10);
+      var expected = 'translateY(7px)';
+      assert.equal(UtilityTray.ambientIndicator.style.transform, expected);
+      done();
+    });
+
   });
 
   suite('handleEvent: touchend', function() {

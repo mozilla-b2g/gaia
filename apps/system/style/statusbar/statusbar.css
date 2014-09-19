@@ -82,13 +82,13 @@
   }
 }
 
-#screen.utility-tray #statusbar,
 #screen.attention #statusbar {
   top: 0;
   background-color: black;
 }
 
 #screen.utility-tray #statusbar {
+  top: -3rem;
   background-color: #333;
 }
 
