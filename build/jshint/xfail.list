@@ -325,7 +325,6 @@ apps/system/js/bluetooth_transfer.js
 apps/system/js/browser_config_helper.js
 apps/system/js/browser_frame.js
 apps/system/js/browser_mixin.js
-apps/system/js/carrier_info_notifier.js
 apps/system/js/crash_reporter.js
 apps/system/js/download/download_manager.js
 apps/system/js/download/download_notification.js
@@ -368,7 +367,6 @@ apps/system/test/marionette/notification_test.js
 apps/system/test/unit/app_install_manager_test.js
 apps/system/test/unit/battery_manager_test.js
 apps/system/test/unit/bluetooth_transfer_test.js
-apps/system/test/unit/carrier_info_notifier_test.js
 apps/system/test/unit/date_picker_test.js
 apps/system/test/unit/download_manager_test.js
 apps/system/test/unit/download_notification_test.js
@@ -415,7 +413,6 @@ apps/system/test/unit/mock_iachandler.js
 apps/system/test/unit/mock_keyboard_manager.js
 apps/system/test/unit/mock_lock_screen.js
 apps/system/test/unit/mock_media_files.js
-apps/system/test/unit/mock_modal_dialog.js
 apps/system/test/unit/mock_notification_screen.js
 apps/system/test/unit/mock_orientation_manager.js
 apps/system/test/unit/mock_screen_layout.js
