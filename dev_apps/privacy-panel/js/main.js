@@ -1,5 +1,6 @@
 /* global AppList */
 /* global Crypto */
+/* global CustomLocationPanel */
 
 var app = app || {};
 
@@ -381,9 +382,12 @@ var app = app || {};
       case 'blur':
         app.elements.ALA.type.$blurBox.classList.add('enabled');
         app.elements.ALA.type.$blurBox.classList.remove('disabled');
+
+        app.updateSliderLabel(app.elements.ALA.type.$blurSlider.value);
         break;
       case 'precise':
       case 'no-location':
+        break;
       default:
         break;
     }
@@ -571,6 +575,8 @@ var app = app || {};
       case 'blur':
         app.elements.Application.type.$blurBox.classList.add('enabled');
         app.elements.Application.type.$blurBox.classList.remove('disabled');
+
+        app.updateAppSliderLabel(app.elements.Application.type.$blurSlider.value);
         break;
       case 'system-settings':
         // remove application
@@ -580,6 +586,7 @@ var app = app || {};
         return;
       case 'precise':
       case 'no-location':
+        break;
       default:
         break;
     }
@@ -654,7 +661,7 @@ var app = app || {};
 
   /**
    * Save application list.
-   * @param {Object} settings
+   * @param {Object|Null} settings
    */
   app.saveApplications = function(settings) {
     var current = app.elements.exceptionsList[app.elements.currentApp] || {};
@@ -693,7 +700,7 @@ var app = app || {};
     app.elements.$root.style.display = 'none';
     app.elements.RPP.$box.style.display = 'block';
 
-    // Get current pass phrase and display proper screen
+    // Get current passphrase and display proper screen
     var status = app.settings.createLock().get('rpp.password');
     status.onsuccess = function() {
       var password = status.result['rpp.password'];
@@ -754,19 +761,15 @@ var app = app || {};
         passHash = Crypto.MD5(pass1).toString(),
         $validationMessage = app.elements.RPP.$newPass.querySelector('.validation-message');
 
-    /** @todo: full password validation */
     if (!(pass1 && pass2)) {
-      $validationMessage.textContent = 'Pass phrase/confirmation is empty!';
+      $validationMessage.textContent = 'Passphrase/confirmation is empty!';
       $validationMessage.style.display = 'block';
-
-      $pinValidationMessage.textContent = '';
-      $pinValidationMessage.style.display = 'none';
     } else if (pass1.length > 100 || pass2.length > 100) {
-      $validationMessage.textContent = 'Pass phrase is too long!';
+      $validationMessage.textContent = 'Passphrase is too long!';
       $validationMessage.style.display = 'block';
     } else if (pass1 !== pass2) {
       // passwords are valid
-      $validationMessage.textContent = 'Confirmation must match pass phrase!';
+      $validationMessage.textContent = 'Confirmation must match passphrase!';
       $validationMessage.style.display = 'block';
     } else {
       // clear validation message
@@ -804,7 +807,7 @@ var app = app || {};
         app.showRPPMenu();
       } else {
         // passwords are valid
-        $validationMessage.textContent = 'Pass phrase is wrong!';
+        $validationMessage.textContent = 'Passphrase is wrong!';
         $validationMessage.style.display = 'block';
       }
     };
@@ -815,8 +818,8 @@ var app = app || {};
     app.elements.RPP.$changePass.style.display = 'block';
 
     var pin = app.elements.RPP.$changePass.querySelector('#rpp-pin'),
-    pass1 = app.elements.RPP.$changePass.querySelector('#rpp-new-pass1'),
-    pass2 = app.elements.RPP.$changePass.querySelector('#rpp-new-pass2'),
+    pass1 = app.elements.RPP.$changePass.querySelector('#rpp-change-pass1'),
+    pass2 = app.elements.RPP.$changePass.querySelector('#rpp-change-pass2'),
     $pinValidationMessage = app.elements.RPP.$changePass.querySelector('.pin-validation-message'),
     $validationMessage = app.elements.RPP.$changePass.querySelector('.validation-message');
 
@@ -833,26 +836,26 @@ var app = app || {};
 
   app.changePassword = function () {
     var pin = app.elements.RPP.$changePass.querySelector('#rpp-pin').value,
-    pass1 = app.elements.RPP.$changePass.querySelector('#rpp-new-pass1').value,
-    pass2 = app.elements.RPP.$changePass.querySelector('#rpp-new-pass2').value,
+    pass1 = app.elements.RPP.$changePass.querySelector('#rpp-change-pass1').value,
+    pass2 = app.elements.RPP.$changePass.querySelector('#rpp-change-pass2').value,
     passHash = Crypto.MD5(pass1).toString(),
     $pinValidationMessage = app.elements.RPP.$changePass.querySelector('.pin-validation-message'),
     $validationMessage = app.elements.RPP.$changePass.querySelector('.validation-message');
 
     if (!(pass1 && pass2)) {
-      $validationMessage.textContent = 'Pass phrase/confirmation is empty!';
+      $validationMessage.textContent = 'Passphrase/confirmation is empty!';
       $validationMessage.style.display = 'block';
 
       $pinValidationMessage.textContent = '';
       $pinValidationMessage.style.display = 'none';
     } else if (pass1 !== pass2) {
-      $validationMessage.textContent = 'Confirmation must match pass phrase!';
+      $validationMessage.textContent = 'Confirmation must match passphrase!';
       $validationMessage.style.display = 'block';
 
       $pinValidationMessage.textContent = '';
       $pinValidationMessage.style.display = 'none';
     } else if (pass1.length > 100 || pass2.length > 100) {
-      $validationMessage.textContent = 'Pass phrase is too long!';
+      $validationMessage.textContent = 'Passphrase is too long!';
       $validationMessage.style.display = 'block';
     } else if (!pin) {
       $pinValidationMessage.textContent = 'Passcode lock/SIM PIN is empty!';
@@ -874,8 +877,8 @@ var app = app || {};
           var icc = navigator.mozIccManager.getIccById(mobileConnection.iccId);
           if (icc) {
             var unlockOptions = {};
-            unlockOptions['lockType'] = 'pin';
-            unlockOptions['pin'] = pin;
+            unlockOptions.lockType = 'pin';
+            unlockOptions.pin = pin;
             var unlock = icc.unlockCardLock(unlockOptions);
 
             unlock.onsuccess = function () {
@@ -885,9 +888,7 @@ var app = app || {};
               $validationMessage.textContent = '';
               $validationMessage.style.display = 'none';
 
-              app.settings.createLock().set({
-                'rpp.password' : passHash
-              });
+              app.settings.createLock().set({ 'rpp.password': passHash });
               app.showRPPBox();
             };
 
@@ -897,7 +898,7 @@ var app = app || {};
                 var codeReq = lock.get('lockscreen.passcode-lock.code');
                 if (codeReq) {
                   codeReq.onsuccess = function () {
-                    if (pin == codeReq.result['lockscreen.passcode-lock.code']) {
+                    if (pin === codeReq.result['lockscreen.passcode-lock.code']) {
                       var enabledReq = lock.get('lockscreen.passcode-lock.enabled');
                       if (enabledReq) {
                         enabledReq.onsuccess = function () {
@@ -908,9 +909,7 @@ var app = app || {};
                             $validationMessage.textContent = '';
                             $validationMessage.style.display = 'none';
 
-                            app.settings.createLock().set({
-                              'rpp.password' : passHash
-                            });
+                            app.settings.createLock().set({ 'rpp.password': passHash });
                             app.showRPPBox();
                           }
                         };

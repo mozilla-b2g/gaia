@@ -189,7 +189,7 @@
             <p></p>
             <span class="button icon icon-dialog">
               <select id="app-type">
-                <option value="system-settings" data-l10n-id="typeSystemSettings">System Settings</option>
+                <option value="system-settings" data-l10n-id="typeSystemSettings">Global Settings</option>
                 <option value="blur" data-l10n-id="typeBlur">Blur</option>
                 <option value="user-defined" data-l10n-id="typeUserDefined">User Defined</option>
                 <option value="no-location" data-l10n-id="typeNoLocation">No Location</option>
@@ -227,15 +227,15 @@
         <ul>
           <li class="description">
             <p data-l10n-id="rpp-new-password-description">
-              Please set a pass phrase to secure your remote features (maximum 30 characters).
+              Please set a passphrase to secure your remote features (maximum 30 characters).
             </p>
           </li>
           <li>
-            <input id="rpp-new-pass1" type="password" placeholder="New pass phrase">
+            <input id="rpp-new-pass1" type="password" placeholder="New passphrase">
           </li>
           <li>
-            <input id="rpp-new-pass2" type="password" placeholder="Confirm new pass phrase">
-            <span class="validation-message" style="color: red; display: none;"></span>
+            <input id="rpp-new-pass2" type="password" placeholder="Confirm new passphrase">
+            <span class="validation-message" style="display: none;"></span>
           </li>
           <li class="action-button-box-one">
             <button class="rpp-new-password-ok">OK</button>
@@ -247,16 +247,14 @@
         <ul>
           <li class="description">
             <p data-l10n-id="rpp-login-description">
-              Please enter your pass phrase.
+              Please enter your passphrase.
             </p>
           </li>
           <li>
-            <input id="rpp-login-pass" type="password" placeholder="Pass phrase">
-            <span class="validation-message" style="color: red; display: none;"></span>
-          </li>
-          <li>
-            <a id="change-password-link" href="#change-password">
-              <span data-l10n-id="change-password">Forgot/Change your pass phrase?</span>
+            <input id="rpp-login-pass" type="password" placeholder="Passphrase">
+            <span class="validation-message" style="display: none;"></span>
+            <a id="change-password-link" class="small-link" href="#change-password">
+              <span data-l10n-id="change-password">Forgot/Change your passphrase?</span>
             </a>
           </li>
           <li class="action-button-box-one">
@@ -269,19 +267,19 @@
         <ul>
           <li class="description">
             <p data-l10n-id="rpp-change-password-description">
-              To reset your pass phrase please enter Passcode lock/SIM PIN and new pass phrase.
+              To reset your passphrase please enter Passcode lock/SIM PIN and new passphrase.
             </p>
           </li>
           <li>
             <input id="rpp-pin" type="password" placeholder="Passcode lock/SIM PIN">
-            <span class="pin-validation-message" style="color: red; display: none;"></span>
+            <span class="pin-validation-message" style="display: none;"></span>
           </li>
           <li>
-            <input id="rpp-new-pass1" type="password" placeholder="New pass phrase">
+            <input id="rpp-change-pass1" type="password" placeholder="New passphrase">
           </li>
           <li>
-            <input id="rpp-new-pass2" type="password" placeholder="Confirm new pass phrase">
-            <span class="validation-message" style="color: red; display: none;"></span>
+            <input id="rpp-change-pass2" type="password" placeholder="Confirm new passphrase">
+            <span class="validation-message" style="display: none;"></span>
           </li>
           <li class="action-button-box-one">
             <button class="rpp-change-password-ok">OK</button>
@@ -296,28 +294,28 @@
               <input type="checkbox" class="uninit">
               <span data-l10n-id="remoteLocate">Remote Locate</span>
             </label>
-            <p class="explanation" data-l10n-id="remoteLocateDesc">You can locate this device via SMS as following: “FmD: LocateDevice YOURPASSPHRASE”</p>
+            <p class="explanation" data-l10n-id="remoteLocateDesc">You can locate this device via SMS as following: “RPP locate YOURPASSPHRASE”</p>
           </li>
           <li class="remote-ring hint" style="display: none;">
             <label class="pack-switch">
               <input type="checkbox" class="uninit">
               <span data-l10n-id="remoteRing">Remote Ring</span>
             </label>
-            <p class="explanation" data-l10n-id="remoteRingDesc">You can ring this device via SMS as following: “FmD: SoundAlarm YOURPASSPHRASE”</p>
+            <p class="explanation" data-l10n-id="remoteRingDesc">You can ring this device via SMS as following: “RPP ring YOURPASSPHRASE”</p>
           </li>
           <li class="remote-lock hint" style="display: none;">
             <label class="pack-switch">
               <input type="checkbox" class="uninit">
               <span data-l10n-id="remoteLock">Remote Lock</span>
             </label>
-            <p class="explanation" data-l10n-id="remoteLockDesc">You can lock this device via SMS as following: “FmD: LockDevice YOURPASSPHRASE”</p>
+            <p class="explanation" data-l10n-id="remoteLockDesc">You can lock this device via SMS as following: “RPP lock YOURPASSPHRASE”</p>
           </li>
           <li class="remote-wipe hint" style="display: none;">
             <label class="pack-switch">
               <input type="checkbox" class="uninit">
               <span data-l10n-id="remoteWipe">Remote Wipe</span>
             </label>
-            <p class="explanation" data-l10n-id="remoteWipeDesc">You can wipe this device via SMS as following: “FmD: WipeDevice YOURPASSPHRASE”</p>
+            <p class="explanation" data-l10n-id="remoteWipeDesc">You can wipe this device via SMS as following: “RPP wipe YOURPASSPHRASE”</p>
           </li>
         </ul>
       </div>
@@ -337,69 +335,14 @@
               <span data-l10n-id="dcl-type-cc">Choose a country/city</span>
             </label>
           </li>
-          <div id="dcl-cc-area">
-            <li>
-              <p data-l10n-id="dcl-country">Country</p>
-              <span class="button icon icon-dialog">
-                <select id="dcl-country" name="dcl.country" data-value-type="string">
-                </select>
-              </span>
-            </li>
-            <li>
-              <p data-l10n-id="dcl-city">City</p>
-              <span class="button icon icon-dialog">
-                <select id="dcl-city" name="dcl.city" data-value-type="string">
-                </select>
-              </span>
-            </li>
-          </div>
-          <li>
-            <label for="dcl-type-gps" class="pack-radio">
-              <input type="radio" name="dcl.type" id="dcl-type-gps" value="gps">
-              <span data-l10n-id="dcl-type-gps">Enter GPS Coordinates</span>
-            </label>
-          </li>
-          <div id="dcl-gps-area">
-            <li>
-              <p class="description" data-l10n-id="dcl-type-gps-description">
-                Please enter the GPS coordinates for longitude from -180.0 to 180 and latitude from -90.0 to 90.0 degree with a dot to separate full degrees lower values.
-              </p>
-              <p data-l10n-id="dcl-latitude-description">
-                Latitude
-              </p>
-              <input id="dcl-latitude" type="number" min="-90.0" max="90.0" step="0.0001" value="0" placeholder="Latitude">
-              <p data-l10n-id="dcl-longitude-description">
-                Longitude
-              </p>
-              <input id="dcl-longitude" type="number" min="-180.0" max="180.0" step="0.0001" value="0" placeholder="Longitude">
-            </li>
-          </div>
-        </ul>
-      </div>
-    </section>
-
-    <section role="region" id="DCL" class="current skin-organic" data-rendered="true" style="display: none;">
-      <header>
-        <a href="#" id="DCL-back"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="define-custom-location">Define custom loaction</h1>
-      </header>
-
-      <div class="current">
-        <ul>
-          <li>
-            <label for="dcl-type-cc" class="pack-radio">
-              <input type="radio" name="dcl.type" id="dcl-type-cc" value="cc">
-              <span data-l10n-id="dcl-type-cc">Choose a country/city</span>
-            </label>
-          </li>
-          <li>
+          <li id="dcl-cc-country">
             <p data-l10n-id="dcl-country">Country</p>
             <span class="button icon icon-dialog">
               <select id="dcl-country" name="dcl.country" data-value-type="string">
               </select>
             </span>
           </li>
-          <li>
+          <li id="dcl-cc-city">
             <p data-l10n-id="dcl-city">City</p>
             <span class="button icon icon-dialog">
               <select id="dcl-city" name="dcl.city" data-value-type="string">
@@ -412,18 +355,18 @@
               <span data-l10n-id="dcl-type-gps">Enter GPS Coordinates</span>
             </label>
           </li>
-          <li>
+          <li id="dcl-gps-area">
             <p class="description" data-l10n-id="dcl-type-gps-description">
               Please enter the GPS coordinates for longitude from -180.0 to 180 and latitude from -90.0 to 90.0 degree with a dot to separate full degrees lower values.
             </p>
+            <p data-l10n-id="dcl-latitude-description">
+              Latitude
+            </p>
+            <input id="dcl-latitude" type="number" min="-90.0" max="90.0" step="0.0001" value="0" placeholder="Latitude">
             <p data-l10n-id="dcl-longitude-description">
               Longitude
             </p>
             <input id="dcl-longitude" type="number" min="-180.0" max="180.0" step="0.0001" value="0" placeholder="Longitude">
-            <p  data-l10n-id="dcl-latitude-description">
-              Latitude
-            </p>
-            <input id="dcl-latitude" type="number" min="-90.0" max="90.0" step="0.0001" value="0" placeholder="Latitude">
           </li>
         </ul>
       </div>

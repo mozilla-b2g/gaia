@@ -11,7 +11,8 @@ function CustomLocationPanel(rootPanelId) {
   this.$back = document.getElementById('DCL-back');
   this.$typeCC = document.getElementById('dcl-type-cc');
   this.$typeGPS = document.getElementById('dcl-type-gps');
-  this.$ccArea = document.getElementById('dcl-cc-area');
+  this.$ccAreaCountry = document.getElementById('dcl-cc-country');
+  this.$ccAreaCity = document.getElementById('dcl-cc-city');
   this.$gpsArea = document.getElementById('dcl-gps-area');
   this.$countries = document.getElementById('dcl-country');
   this.$cities = document.getElementById('dcl-city');
@@ -248,7 +249,8 @@ CustomLocationPanel.prototype = {
   enableCCControls: function() {
     this.$countries.disabled = false;
     this.$cities.disabled = false;
-    this.$ccArea.style.opacity = "1";
+    this.$ccAreaCountry.style.opacity = "1";
+    this.$ccAreaCity.style.opacity = "1";
   },
 
   enableGPSControls: function() {
@@ -260,7 +262,8 @@ CustomLocationPanel.prototype = {
   disableCCControls: function() {
     this.$countries.disabled = true;
     this.$cities.disabled = true;
-    this.$ccArea.style.opacity = "0.3";
+    this.$ccAreaCountry.style.opacity = "0.3";
+    this.$ccAreaCity.style.opacity = "0.3";
   },
 
   disableGPSControls: function() {

@@ -47,3 +47,15 @@ input[type="range"].blur-slider {
 .app-info {
   border-top: none;
 }
+
+.validation-message,
+.pin-validation-message {
+  color: red;
+  font-size: 1.4rem;
+  white-space: normal;
+}
+
+.small-link {
+  font-size: 1.4rem;
+  white-space: normal;
+}
