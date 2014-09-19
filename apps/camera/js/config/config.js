@@ -118,8 +118,8 @@ module.exports = {
   },
 
   loadingScreen: {
-    takingPicture: 1500,
-    requestingCamera: 600,
+    takingPicture: 1650,
+    requestingCamera: 750,
     loadingVideo: 100
   },
 
