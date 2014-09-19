@@ -538,7 +538,6 @@
   }
 
   TimePicker.prototype = {
-
     _fetchElements: function tp__fetchElements() {
       this.elements = {};
       this.elementClasses = ['value-picker-hours', 'value-picker-minutes',
@@ -593,11 +592,33 @@
       var style = 'format24h';
       if (this.is12hFormat) {
         var localeTimeFormat = navigator.mozL10n.get('shortTimeFormat12');
+        // handle revert appearance
         var reversedPeriod =
           (localeTimeFormat.indexOf('%p') < localeTimeFormat.indexOf('%M'));
         style = (reversedPeriod) ? 'format12hrev' : 'format12h';
+
+        if ('format12' === style) {
+          this.element.classList.remove('format12hhrev');
+          this.element.classList.remove('format24h');
+          if (!this.element.classList.contains(style)) {
+            this.element.classList.add(style);
+          }
+        } else {
+          this.element.classList.remove('format12');
+          this.element.classList.remove('format24h');
+          if (!this.element.classList.contains(style)) {
+            this.element.classList.add(style);
+          }
+        }
       }
-      this.element.classList.toggle(style, true);
+
+      if('format24h' === style) {
+        this.element.classList.remove('format12h');
+        this.element.classList.remove('format12hrev');
+        if (!this.element.classList.contains(style)) {
+          this.element.classList.add(style);
+        }
+      }
     },
 
     getHour: function tp_getHours() {
@@ -621,5 +642,4 @@
       return (hour < 10 ? '0' : '') + hour + ':' + minute;
     }
   };
-
 })(window);

@@ -136,6 +136,8 @@ suite('value selector/value selector', function() {
 
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     assert.ok(vs.elements.timePickerContainer.classList.contains('format12h'));
+    assert.ok(!vs.elements.timePickerContainer.classList.contains(
+      'format24h'));
     stubMozl10nGet.restore();
 
     // change to 24h format
@@ -146,6 +148,8 @@ suite('value selector/value selector', function() {
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     assert.ok(vs.elements.timePickerContainer.classList.contains(
       'format24h'));
+    assert.ok(!vs.elements.timePickerContainer.classList.contains(
+      'format12h'));
   });
 
   test('Time Picker reset at timeformat change', function() {
@@ -156,6 +160,8 @@ suite('value selector/value selector', function() {
 
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     assert.ok(vs.elements.timePickerContainer.classList.contains('format12h'));
+    assert.ok(!vs.elements.timePickerContainer.classList.contains(
+      'format24h'));
     stubMozl10nGet.restore();
 
     // change to 24h format
@@ -166,6 +172,8 @@ suite('value selector/value selector', function() {
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     assert.ok(vs.elements.timePickerContainer.classList.contains(
       'format24h'));
+    assert.ok(!vs.elements.timePickerContainer.classList.contains(
+      'format12h'));
   });
 
   test('Date Picker (en-US)', function() {
