@@ -235,5 +235,16 @@ suite('system/LockScreenStateManager', function() {
       assert.isFalse(subject.lockScreenStates.unlocking,
         'the screenchange event doesn\'t restore the unlocking state');
     });
+
+    test('When actionable noitification want to unlock, ' +
+         'it would trigger activate unlock',
+    function() {
+      var stubOnActiveUnlock = this.sinon.stub(subject, 'onActivateUnlock');
+      subject.handleEvent({
+        type: 'lockscreen-notification-request-activate-unlock'
+      });
+      assert.isTrue(stubOnActiveUnlock.called,
+        'the handler didn\'t handle the event');
+    });
   });
 });
