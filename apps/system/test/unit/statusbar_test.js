@@ -105,10 +105,13 @@ suite('system/Statusbar', function() {
 
   mocksForStatusBar.attachTestHelpers();
 
-  setup(function(done) {
-    window.System = MockSystem;
+  suiteSetup(function() {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+  });
+
+  setup(function(done) {
+    window.System = MockSystem;
     realMozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
     realMozTelephony = navigator.mozTelephony;
@@ -177,11 +180,14 @@ suite('system/Statusbar', function() {
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatorMozMobileConnections.mTeardown();
     System.locked = false;
-    navigator.mozL10n = realMozL10n;
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozTelephony = realMozTelephony;
     window.nfcManager.isActive.restore();
     window.nfcManager = realNfcManager;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozL10n = realMozL10n;
   });
 
   suite('airplane mode icon', function() {
