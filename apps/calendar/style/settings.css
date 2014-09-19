@@ -150,14 +150,8 @@ not actually shown since the top header should be transparent.
 }
 
 #settings [role="toolbar"] {
-  display: flex;
   position: absolute;
   bottom: 0;
-  width: 100%;
-}
-
-#settings .toolbar-item {
-  font-size: 0;
 }
 
 #settings [role="toolbar"].noaccount .settings {
@@ -176,10 +170,6 @@ not actually shown since the top header should be transparent.
 
 #settings [role="toolbar"] .settings:active:after {
   background-image: url("icons/settings_icon_press.png");
-}
-
-#settings [role="toolbar"] .sync {
-  border-left: 0.1rem solid #dfdfdf;
 }
 
 #settings [role="toolbar"] .sync:after {
