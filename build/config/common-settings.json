@@ -220,6 +220,7 @@
    "ums.mode": 0,
    "ums.status": 0,
    "ums.volume.sdcard.enabled": true,
+   "ums.volume.sdcard1.enabled": true,
    "ums.volume.extsdcard.enabled": true,
    "ums.volume.external.enabled": true,
    "usb.transfer": "0",
