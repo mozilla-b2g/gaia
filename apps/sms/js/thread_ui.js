@@ -1232,15 +1232,14 @@ var ThreadUI = {
     }
 
     // If there is no messageContainer we have to create it
-    messageDateGroup = this._htmlStringToDomNode(
-      this.tmpl.dateGroup.interpolate({
-        id: 'mc_' + startOfDayTimestamp,
-        timestamp: startOfDayTimestamp.toString(),
-        headerTimeUpdate: 'repeat',
-        headerTime: messageTimestamp.toString(),
-        headerDateOnly: 'true'
-      })
-    );
+    messageDateGroup = this.tmpl.dateGroup.prepare({
+      id: 'mc_' + startOfDayTimestamp,
+      timestamp: startOfDayTimestamp.toString(),
+      headerTimeUpdate: 'repeat',
+      headerTime: messageTimestamp.toString(),
+      headerDateOnly: 'true'
+    }).toDocumentFragment().firstElementChild;
+
     header = messageDateGroup.firstElementChild;
     messageContainer = messageDateGroup.lastElementChild;
 
@@ -1579,7 +1578,7 @@ var ThreadUI = {
       timestamp: String(message.timestamp),
       subject: String(message.subject),
       simInformationHTML: simInformationHTML,
-      messageStatusHTML: this.getMessageStatusMarkup(messageStatus)
+      messageStatusHTML: this.getMessageStatusMarkup(messageStatus).toString()
     }, {
       safe: ['bodyHTML', 'simInformationHTML', 'messageStatusHTML']
     });
@@ -1603,7 +1602,7 @@ var ThreadUI = {
 
   getMessageStatusMarkup: function(status) {
     return ['read', 'delivered', 'sending', 'error'].indexOf(status) >= 0 ?
-      this.tmpl.messageStatus.interpolate({
+      this.tmpl.messageStatus.prepare({
         statusL10nId: 'message-delivery-status-' + status
       }) : '';
   },
@@ -1650,21 +1649,6 @@ var ThreadUI = {
 
     // With this function, "inserting before 'null'" means "appending"
     container.insertBefore(nodeToInsert, currentNode || null);
-  },
-
-  /**
-   * Parses html string to DOM node. Works with html string wrapped into single
-   * element only.
-   * NOTE: it's supposed that htmlString parameter is sanitized in advance as
-   * there aren't any sanitizing checks performed inside this method!
-   * @param {string} htmlString Valid html string.
-   * @returns {Node} DOM node create from the specified html string.
-   * @private
-   */
-  _htmlStringToDomNode: function(htmlString) {
-    var tempContainer = document.createElement('div');
-    tempContainer.innerHTML = htmlString;
-    return tempContainer.firstElementChild;
   },
 
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
@@ -2302,7 +2286,7 @@ var ThreadUI = {
 
     if (newStatusMarkup) {
       messageDOM.querySelector('.message-details').appendChild(
-        this._htmlStringToDomNode(newStatusMarkup)
+        newStatusMarkup.toDocumentFragment()
       );
     }
   },
