@@ -436,7 +436,7 @@ suite('Nfc Manager Functions', function() {
         name: 'import',
         data: {
           type: 'text/vcard',
-          blob: new Blob([nfcUtils.toUTF8(sampleMsg.records.payload)],
+          blob: new Blob([nfcUtils.toUTF8(sampleMimeRecord.payload)],
                          {'type': 'text/vcard'}),
           src: 'nfc',
           tech: 'NDEF',
