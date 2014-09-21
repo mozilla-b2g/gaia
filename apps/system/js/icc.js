@@ -1,6 +1,6 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global LazyLoader, DUMP */
 'use strict';
 
 var icc = {
@@ -77,17 +77,13 @@ var icc = {
 
   getIccInfo: function icc_getIccInfo() {
     var self = this;
-    var xhr = new XMLHttpRequest();
-    xhr.onerror = function() {
-      DUMP('Failed to fetch file: ' + href, xhr.statusText);
-    };
-    xhr.onload = function() {
-      self._defaultURL = xhr.response.defaultURL;
+    var url = '/resources/icc.json';
+    LazyLoader.getJSON(url).then(function(json) {
+      self._defaultURL = json.defaultURL;
       DUMP('ICC default URL: ', self._defaultURL);
-    };
-    xhr.open('GET', '/resources/icc.json', true);
-    xhr.responseType = 'json';
-    xhr.send();
+    }, function(error) {
+      DUMP('Failed to fetch file: ' + url + ',' + error);
+    });
   },
 
   getIcc: function icc_getIcc(iccId) {
