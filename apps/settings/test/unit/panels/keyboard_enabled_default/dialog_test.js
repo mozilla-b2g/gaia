@@ -87,22 +87,20 @@ suite('KeyboardEnabledDefaultDialog', function() {
       // gets localized string for type
       assert.isTrue(this.get.calledWith('keyboardType-text'));
       // localizes element
-      assert.deepEqual(this.setAttributes.args[0], [
-        this.title,
-        'mustHaveOneKeyboard',
-        { type: 'keyboardType-text' }
-      ]);
+      assert.equal(this.setAttributes.args[0][0], this.title);
+      assert.equal(this.setAttributes.args[0][1], 'mustHaveOneKeyboard');
+      assert.deepEqual(this.setAttributes.args[0][2], 
+        { type: 'keyboardType-text' });  
     });
 
     test('localizes text with layout details', function() {
       // gets localized string for type
       assert.isTrue(this.get.calledWith('keyboardType-text'));
       // localizes element
-      assert.deepEqual(this.setAttributes.args[1], [
-        this.title,
-        'defaultKeyboardEnabled',
-        { appName: 'appName', layoutName: 'layoutName' }
-      ]);
+      assert.equal(this.setAttributes.args[1][0], this.text);
+      assert.equal(this.setAttributes.args[1][1], 'defaultKeyboardEnabled');
+      assert.deepEqual(this.setAttributes.args[1][2], 
+        { appName: 'appName', layoutName: 'layoutName' });  
     });
 
     test('should navigate back to the origin when submitted', function() {
