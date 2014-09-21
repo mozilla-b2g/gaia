@@ -3110,12 +3110,14 @@ suite('thread_ui.js >', function() {
       ThreadUI.appendMessage(this.targetMsg);
       ThreadUI.appendMessage(this.otherMsg);
 
-      assert.length(
+      assert.lengthOf(
         ThreadUI.container.querySelectorAll('[data-message-id="23"]'),
-        1);
-      assert.length(
+        1
+      );
+      assert.lengthOf(
         ThreadUI.container.querySelectorAll('[data-message-id="45"]'),
-        1);
+        1
+      );
 
       this.getMessageReq = {};
       this.sinon.stub(MessageManager, 'getMessage')
@@ -3135,12 +3137,14 @@ suite('thread_ui.js >', function() {
       this.getMessageReq.result = this.targetMsg;
       this.getMessageReq.onsuccess();
 
-      assert.length(
+      assert.lengthOf(
         ThreadUI.container.querySelectorAll('[data-message-id="23"]'),
-        0);
-      assert.length(
+        0
+      );
+      assert.lengthOf(
         ThreadUI.container.querySelectorAll('[data-message-id="45"]'),
-        1);
+        1
+      );
     });
 
     test('invokes MessageManager.resendMessage', function() {
