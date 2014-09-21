@@ -182,7 +182,7 @@ suite('Render contacts list', function() {
     var selectorStr = 'li.contact-item';
 
     var showContact = searchList.querySelectorAll(selectorStr);
-    assert.length(showContact, 1);
+    assert.lengthOf(showContact, 1);
     assert.equal(showContact[0].dataset.uuid, contact.id);
     assert.isTrue(noResults.classList.contains('hide'));
   }
@@ -908,16 +908,20 @@ suite('Render contacts list', function() {
         var favList = assertGroup(groupFav, containerFav, names.length);
         var lastFav = favList[favList.length - 1];
         doOnscreen(subject, lastFav, function() {
-          assert.equal(lastFav.dataset.rendered, 'true',
+          try {  
+            assert.equal(lastFav.dataset.rendered, 'true',
                        'contact should be rendered in "favorites" list');
 
-          var aList = assertGroup(groupA, containerA, names.length);
-          var lastA = aList[aList.length - 1];
-          doOnscreen(subject, lastA, function() {
-            assert.equal(lastA.dataset.rendered, 'true',
+            var aList = assertGroup(groupA, containerA, names.length);
+            var lastA = aList[aList.length - 1];
+            doOnscreen(subject, lastA, function() {
+              assert.equal(lastA.dataset.rendered, 'true',
                          'contact should be rendered in "A" list');
-            done();
-          });
+              done();
+            });
+          } catch (err) {
+            done(err);  
+          }
         });
       });
     });
@@ -926,13 +930,17 @@ suite('Render contacts list', function() {
       var newList = new MockContactsList();
       doLoad(subject, newList, function() {
         doLoad(subject, null, function() {
-          assertNoGroup(groupA, containerA);
-          assertNoGroup(groupB, containerB);
-          assertNoGroup(groupC, containerC);
-          assertNoGroup(groupD, containerD);
-          assertNoGroup(groupFav, containerFav);
-          assertNoGroup(groupUnd, containerUnd);
-          done();
+          try {
+            assertNoGroup(groupA, containerA);
+            assertNoGroup(groupB, containerB);
+            assertNoGroup(groupC, containerC);
+            assertNoGroup(groupD, containerD);
+            assertNoGroup(groupFav, containerFav);
+            assertNoGroup(groupUnd, containerUnd);
+            done();
+          } catch (err) {
+            done(err);
+          }    
         });
       });
     });
@@ -940,99 +948,117 @@ suite('Render contacts list', function() {
     test('removing one contact', function(done) {
       var newList = new MockContactsList();
       doLoad(subject, newList, function() {
-        var originalNumber = container.querySelectorAll('.contact-item').length;
-        assert.isNotNull(container.querySelector('[data-uuid="2"]'));
+        try {
+          var originalNumber = 
+            container.querySelectorAll('.contact-item').length;
+          assert.isNotNull(container.querySelector('[data-uuid="2"]'));
 
-        subject.remove('2');
+          subject.remove('2');
 
-        var afterDelNumber = container.querySelectorAll('.contact-item').length;
-        assert.equal(originalNumber, afterDelNumber + 1);
-        assert.isNotNull(container.querySelector('[data-uuid="1"]'));
-        assert.isNull(container.querySelector('[data-uuid="2"]'));
-        assert.isNotNull(container.querySelector('[data-uuid="3"]'));
+          var afterDelNumber = 
+            container.querySelectorAll('.contact-item').length;
+          assert.equal(originalNumber, afterDelNumber + 1);
+          assert.isNotNull(container.querySelector('[data-uuid="1"]'));
+          assert.isNull(container.querySelector('[data-uuid="2"]'));
+          assert.isNotNull(container.querySelector('[data-uuid="3"]'));
 
-        // There are contacts on the list so no contacts should be hidden
-        assert.isTrue(noContacts.classList.contains('hide'));
-        assert.isFalse(fastScroll.classList.contains('hide'));
-        assert.isFalse(groupsContainer.classList.contains('hide'));
+          // There are contacts on the list so no contacts should be hidden
+          assert.isTrue(noContacts.classList.contains('hide'));
+          assert.isFalse(fastScroll.classList.contains('hide'));
+          assert.isFalse(groupsContainer.classList.contains('hide'));
 
-        done();
+          done();
+        } catch (err) {
+          done(err);
+        }
       });
     });
 
     test('checking no contacts when coming from activity', function(done) {
       ActivityHandler.currentlyHandling = true;
       doLoad(subject, [], function() {
-        assert.isTrue(noContacts.classList.contains('hide'));
-        assertNoGroup(groupFav, containerFav);
-        assertTotal(0, 0);
-        ActivityHandler.currentlyHandling = false;
-        done();
+        try {
+          assert.isTrue(noContacts.classList.contains('hide'));
+          assertNoGroup(groupFav, containerFav);
+          assertTotal(0, 0);
+          ActivityHandler.currentlyHandling = false;
+          done();
+        } catch (err) {
+          done(err);
+        }
       });
     });
 
     test('updating photo for a contact already rendered', function(done) {
       mockContacts = new MockContactsList();
       doLoad(subject, mockContacts, function() {
-        assertTotal(3, 3);
-        var selectorContact1 = 'li[data-uuid = "1"]';
-        var contact = container.querySelector(selectorContact1);
+        try {
+          assertTotal(3, 3);
+          var selectorContact1 = 'li[data-uuid = "1"]';
+          var contact = container.querySelector(selectorContact1);
 
-        doOnscreen(subject, contact, function() {
-          var img = contact.querySelector('span[data-type=img]');
-          assert.equal(img.style.backgroundPosition, '');
-          assert.equal(img.dataset.src, 'test.png',
-                        'At the begining contact 1 img === "test.png"');
-          var prevUpdated = contact.dataset.updated;
+          doOnscreen(subject, contact, function() {
+            var img = contact.querySelector('span[data-type=img]');
+            assert.equal(img.style.backgroundPosition, '');
+            assert.equal(img.dataset.src, 'test.png',
+                          'At the begining contact 1 img === "test.png"');
+            var prevUpdated = contact.dataset.updated;
 
-          mockContacts[0].updated = new Date(); // This is the key!
-          mockContacts[0].photo = ['one.png'];
-          doLoad(subject, mockContacts, function() {
-            assertTotal(3, 3);
+            mockContacts[0].updated = new Date(); // This is the key!
+            mockContacts[0].photo = ['one.png'];
+            doLoad(subject, mockContacts, function() {
+              assertTotal(3, 3);
 
-            contact = container.querySelector(selectorContact1);
+              contact = container.querySelector(selectorContact1);
 
-            doOnscreen(subject, contact, function() {
-              img = contact.querySelector('span[data-type=img]');
+              doOnscreen(subject, contact, function() {
+                img = contact.querySelector('span[data-type=img]');
 
-              assert.equal(img.dataset.src, 'one.png',
-                            'After updating contact 1 img === "one.png"');
+                assert.equal(img.dataset.src, 'one.png',
+                              'After updating contact 1 img === "one.png"');
 
-              assert.isTrue(prevUpdated < contact.dataset.updated,
-                            'Updated date is wrong. It should be changed!');
-              done();
+                assert.isTrue(prevUpdated < contact.dataset.updated,
+                              'Updated date is wrong. It should be changed!');
+                done();
+              });
             });
           });
-        });
+        } catch (err) {
+          done(err);
+        }
       });
     });
 
     test('reloading list of contacts without updating', function(done) {
       mockContacts = new MockContactsList();
       doLoad(subject, mockContacts, function() {
-        assertTotal(3, 3);
+        try {
+          assertTotal(3, 3);
 
-        var selectorContact1 = 'li[data-uuid = "1"]';
-        var contact = container.querySelector(selectorContact1);
+          var selectorContact1 = 'li[data-uuid = "1"]';
+          var contact = container.querySelector(selectorContact1);
 
-        doOnscreen(subject, contact, function() {
-          var img = contact.querySelector('span[data-type=img]');
-          assert.equal(img.dataset.src, 'test.png',
-                        'At the begining contact 1 img === "test.png"');
+          doOnscreen(subject, contact, function() {
+            var img = contact.querySelector('span[data-type=img]');
+            assert.equal(img.dataset.src, 'test.png',
+                          'At the begining contact 1 img === "test.png"');
 
-          doLoad(subject, mockContacts, function() {
-            assertTotal(3, 3);
+            doLoad(subject, mockContacts, function() {
+              assertTotal(3, 3);
 
-            contact = container.querySelector(selectorContact1);
+              contact = container.querySelector(selectorContact1);
 
-            doOnscreen(subject, contact, function() {
-              img = contact.querySelector('span[data-type=img]');
-              assert.equal(img.dataset.src, 'test.png',
-                            'At the begining contact 1 img === "test.png"');
-              done();
+              doOnscreen(subject, contact, function() {
+                img = contact.querySelector('span[data-type=img]');
+                assert.equal(img.dataset.src, 'test.png',
+                              'At the begining contact 1 img === "test.png"');
+                done();
+              });
             });
           });
-        });
+        } catch (err) {
+          done(err);
+        }
       });
     });
   });  // suite ends
@@ -1060,15 +1086,19 @@ suite('Render contacts list', function() {
       assertTotal(0, 0);
 
       doLoad(subject, [deviceContact], function() {
-        groupT = container.querySelector('#group-T');
-        containerT = container.querySelector('#contacts-list-T');
-        var tContacts = assertGroup(groupT, containerT, 1);
-        assert.isTrue(tContacts[0].querySelector('p').innerHTML.
-                      indexOf('Taylor') > -1);
+        try {
+          groupT = container.querySelector('#group-T');
+          containerT = container.querySelector('#contacts-list-T');
+          var tContacts = assertGroup(groupT, containerT, 1);
+          assert.isTrue(tContacts[0].querySelector('p').innerHTML.
+                        indexOf('Taylor') > -1);
 
-        // Two instances as this contact is a favorite one also
-        assertTotal(2, 2);
-        done();
+          // Two instances as this contact is a favorite one also
+          assertTotal(2, 2);
+          done();
+        } catch (err) {
+          done(err);
+        }
       });
     }); // test ends
 
@@ -1090,11 +1120,13 @@ suite('Render contacts list', function() {
         contacts.Search.search(function search_finished() {
           var selectorStr = 'li.contact-item';
           var contacts = searchList.querySelectorAll(selectorStr);
-
-          assert.length(contacts, 0);
-          assert.isFalse(noResults.classList.contains('hide'));
-
-          done();
+          try {
+            assert.lengthOf(contacts, 0);
+            assert.isFalse(noResults.classList.contains('hide'));
+            done();
+          } catch (err) {
+            done(err);
+          }     
         });
       });
     });
@@ -1109,9 +1141,13 @@ suite('Render contacts list', function() {
         searchBox.value = contact.givenName[0] + ' ' +
                           contact.familyName[0] + '  ';
         contacts.Search.search(function search_finished() {
-          assertContactFound(contact);
-          contacts.Search.invalidateCache();
-          done();
+          try {
+            assertContactFound(contact);
+            contacts.Search.invalidateCache();
+            done();
+          } catch (err) {
+            done(err);
+          }
         });
       });
     });
@@ -1126,17 +1162,21 @@ suite('Render contacts list', function() {
         // Search by the first character
         searchBox.value = contact.givenName[0][0];
         contacts.Search.search(function search_finished() {
-          assertContactFound(contact);
-          // Keep the first character to have the same search valid
-          contact.givenName[0] = contact.givenName[0][0] + ' New Name';
-          sinon.spy(contacts.Search, 'updateSearchList');
-          subject.refresh(contact, function() {
-            var listStr = list.textContent;
-            assert.isTrue(listStr.indexOf(contact.givenName[0]) !== -1);
-            var searchListStr = searchList.textContent;
-            assert.isTrue(searchListStr.indexOf(contact.givenName[0]) !== -1);
-            done();
-          });
+          try {
+            assertContactFound(contact);
+            // Keep the first character to have the same search valid
+            contact.givenName[0] = contact.givenName[0][0] + ' New Name';
+            sinon.spy(contacts.Search, 'updateSearchList');
+            subject.refresh(contact, function() {
+              var listStr = list.textContent;
+              assert.isTrue(listStr.indexOf(contact.givenName[0]) !== -1);
+              var searchListStr = searchList.textContent;
+              assert.isTrue(searchListStr.indexOf(contact.givenName[0]) !== -1);
+              done();
+            });
+          } catch (err) {
+            done(err);
+          }
         });
       });
     });
@@ -1147,9 +1187,13 @@ suite('Render contacts list', function() {
       doLoad(subject, mockContacts, function() {
         searchBox.value = '(';
         contacts.Search.search(function search_finished() {
-          assert.isFalse(noResults.classList.contains('hide'));
-          contacts.Search.invalidateCache();
-          done();
+          try {
+            assert.isFalse(noResults.classList.contains('hide'));
+            contacts.Search.invalidateCache();
+            done();
+          } catch (err) {
+            done(err);
+          }
         });
       });
     });
@@ -1165,10 +1209,14 @@ suite('Render contacts list', function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = '(';
           contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(contact);
-            contacts.Search.invalidateCache();
-            done();
+            try {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(contact);
+              contacts.Search.invalidateCache();
+              done();
+            } catch (err) {
+              done(err);
+            }
           });
         });
       });
@@ -1193,10 +1241,14 @@ suite('Render contacts list', function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = accentedCharName + ' ' + contact.familyName[0];
           contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(contact);
-            contacts.Search.invalidateCache();
-            done();
+            try {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(contact);
+              contacts.Search.invalidateCache();
+              done();
+            } catch (err) {
+              done(err);
+            }
           });
         });
       });
@@ -1224,10 +1276,14 @@ suite('Render contacts list', function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = givenName + ' ' + familyName;
           contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(contact);
-            contacts.Search.invalidateCache();
-            done();
+            try {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(contact);
+              contacts.Search.invalidateCache();
+              done();
+            } catch (err) {
+              done(err);
+            }
           });
         });
       });
@@ -1242,10 +1298,14 @@ suite('Render contacts list', function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = contact.tel[0].value;
           contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(contact);
-            contacts.Search.invalidateCache();
-            done();
+            try {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(contact);
+              contacts.Search.invalidateCache();
+              done();
+            } catch (err) {
+              done(err);
+            }
           });
         });
       });
@@ -1268,11 +1328,15 @@ suite('Render contacts list', function() {
         contacts.List.initSearch(function onInit() {
           searchBox.value = 'noName';
           contacts.Search.search(function search_finished() {
-            assert.isTrue(noResults.classList.contains('hide'));
-            assertContactFound(empty);
-            contacts.Search.invalidateCache();
-            contacts.Search.exitSearchMode({preventDefault: function() {}});
-            done();
+            try {
+              assert.isTrue(noResults.classList.contains('hide'));
+              assertContactFound(empty);
+              contacts.Search.invalidateCache();
+              contacts.Search.exitSearchMode({preventDefault: function() {}});
+              done();
+            } catch (err) {
+              done(err);
+            }
           });
         });
       });
@@ -1312,9 +1376,13 @@ suite('Render contacts list', function() {
         var firstLetter = contact.givenName[0].charAt(0);
         searchBox.value = firstLetter;
         contacts.Search.search(function search_finished() {
-          assertHighlight(firstLetter);
-          contacts.Search.invalidateCache();
-          done();
+          try {
+            assertHighlight(firstLetter);
+            contacts.Search.invalidateCache();
+            done();
+          } catch (err) {
+            done(err);
+          }
         });
       });
     });
@@ -1329,9 +1397,13 @@ suite('Render contacts list', function() {
         var firstLetter = contact.givenName[0];
         searchBox.value = firstLetter;
         contacts.Search.search(function search_finished() {
-          assertHighlight(firstLetter);
-          contacts.Search.invalidateCache();
-          done();
+          try {
+            assertHighlight(firstLetter);
+            contacts.Search.invalidateCache();
+            done();
+          } catch (err) {
+            done(err);
+          }
         });
       });
     });
@@ -1348,9 +1420,13 @@ suite('Render contacts list', function() {
       doLoad(subject, mockContacts, function() {
         searchBox.value = 'ae';
         contacts.Search.search(function search_finished() {
-          assertHighlight('áe');
-          contacts.Search.invalidateCache();
-          done();
+          try {
+            assertHighlight('áe');
+            contacts.Search.invalidateCache();
+            done();
+          } catch (err) {
+            done(err);
+          } 
         });
       });
     });
@@ -1358,29 +1434,33 @@ suite('Render contacts list', function() {
     test('Order string lazy calculated', function(done) {
       mockContacts = new MockContactsList();
       doLoad(subject, mockContacts, function() {
-        // The nodes are there
-        var nodes = list.querySelectorAll('li');
-        assert.length(nodes, 3);
+        try {
+          // The nodes are there
+          var nodes = list.querySelectorAll('li');
+          assert.lengthOf(nodes, 3);
 
-        // But no order strings are rendered initially.  This work is deferred
-        nodes = list.querySelectorAll('li[data-order]');
-        assert.length(nodes, 0);
+          // But no order strings are rendered initially.  This work is deferred
+          nodes = list.querySelectorAll('li[data-order]');
+          assert.lengthOf(nodes, 0);
 
-        // Adding a contact via refresh() should result in the order string
-        // being calculated.
-        var c = new MockContactAllFields();
-        c.id = 99;
-        c.familyName = ['AZ'];
-        c.category = [];
-        doRefreshContact(subject, c);
+          // Adding a contact via refresh() should result in the order string
+          // being calculated.
+          var c = new MockContactAllFields();
+          c.id = 99;
+          c.familyName = ['AZ'];
+          c.category = [];
+          doRefreshContact(subject, c);
 
-        nodes = list.querySelectorAll('li');
-        assert.length(nodes, 4);
+          nodes = list.querySelectorAll('li');
+          assert.lengthOf(nodes, 4);
 
-        nodes = list.querySelectorAll('li[data-order]');
-        assert.length(nodes, 2);
+          nodes = list.querySelectorAll('li[data-order]');
+          assert.lengthOf(nodes, 2);
 
-        done();
+          done();
+        } catch (err) {
+          done(err);
+        }
       });
     });
 
@@ -1398,7 +1478,7 @@ suite('Render contacts list', function() {
 
       var nodes = document.querySelectorAll('li[data-order]');
 
-      assert.length(nodes, mockContacts.length);
+      assert.lengthOf(nodes, mockContacts.length);
       for (i = 0; i < nodes.length; i++) {
         var node = nodes[i];
         var mockContact = mockContacts[i];

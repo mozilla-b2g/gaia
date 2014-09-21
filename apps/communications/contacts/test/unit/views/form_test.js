@@ -138,7 +138,7 @@ suite('Render contact form', function() {
 
   function assertSaveState(value) {
     var element = document.body.querySelector('#save-button');
-    assert.equal(element.getAttribute('disabled'), value);
+    assert.equal(element.disabled, value);
   }
 
   function assertCarrierState(ele, value) {
@@ -168,7 +168,7 @@ suite('Render contact form', function() {
           assert.equal(spanEle.textContent, 'Date');
         }
       }
-      assertSaveState('disabled');
+      assertSaveState(true);
 
       // The add date button shouldn't be disabled
       assertAddDateState(false);
@@ -193,7 +193,7 @@ suite('Render contact form', function() {
       assert.equal(valueEmail, '');
       assert.isTrue(footer.classList.contains('hide'));
 
-      assertSaveState(null);
+      assertSaveState(false);
     });
 
     test('with email params', function() {
@@ -214,7 +214,7 @@ suite('Render contact form', function() {
       assert.equal(value, '');
       assert.isTrue(footer.classList.contains('hide'));
 
-      assertSaveState(null);
+      assertSaveState(false);
     });
 
     test('with email and tel params', function() {
@@ -236,7 +236,7 @@ suite('Render contact form', function() {
       assert.isTrue(valueEmail === params.email);
       assert.isTrue(footer.classList.contains('hide'));
 
-      assertSaveState(null);
+      assertSaveState(false);
     });
 
     test('with date params', function() {
@@ -249,7 +249,7 @@ suite('Render contact form', function() {
 
       assert.equal(valueDate.toDateString(), params.date.toDateString());
 
-      assertSaveState(null);
+      assertSaveState(true);
     });
 
     test('Initially the carrier field must be in disabled state', function() {
@@ -265,7 +265,7 @@ suite('Render contact form', function() {
         };
 
         subject.render(params);
-        assertSaveState('disabled');
+        assertSaveState(true);
       }
     );
 
@@ -279,7 +279,7 @@ suite('Render contact form', function() {
         };
 
         subject.render(params);
-        assertSaveState(null);
+        assertSaveState(false);
       }
     );
 
@@ -299,7 +299,7 @@ suite('Render contact form', function() {
         });
         formView.dispatchEvent(valueModifiedEvent);
 
-        assertSaveState('disabled');
+        assertSaveState(true);
     });
 
     test('Date tags are filtered properly', function() {
