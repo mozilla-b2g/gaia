@@ -527,7 +527,7 @@ export BUILD_CONFIG
 include build/common.mk
 
 # Generate profile/
-$(PROFILE_FOLDER): preferences pre-app post-app test-agent-config offline contacts extensions b2g_sdk .git/hooks/pre-commit
+$(PROFILE_FOLDER): profile-dir pre-app post-app test-agent-config offline contacts extensions b2g_sdk .git/hooks/pre-commit
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
