@@ -105,7 +105,6 @@ apps/fm/js/fm.js
 apps/fm/test/unit/fm_test.js
 apps/ftu/js/wifi.js
 apps/ftu/test/unit/data_mobile_test.js
-apps/ftu/test/unit/language_test.js
 apps/ftu/test/unit/mock_data_mobile.js
 apps/ftu/test/unit/mock_import_services.js
 apps/ftu/test/unit/mock_navigation.html.js
