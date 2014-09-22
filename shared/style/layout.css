@@ -110,7 +110,7 @@ p {
   pointer-events: none;
 }
 
-.gaia-list li:last-of-type:after {
+.gaia-list li:last-of-type:not(.not-last):after {
   display: none;
 }
 
@@ -234,7 +234,8 @@ p {
 .gaia-list li button + p,
 .gaia-list li .button + p,
 .gaia-list li label + button,
-.gaia-list li label + .button {
+.gaia-list li label + .button,
+.gaia-list li label + input {
   margin-top: 10px;
 }
 
