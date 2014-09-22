@@ -1,7 +1,7 @@
 'use strict';
+/* global require, process */
 
-var childProcess = require('child_process'),
-    fs = require('fs'),
+var fs = require('fs'),
     request = require('request');
 
 var PULL_REQUEST_URL_PATTERN =
