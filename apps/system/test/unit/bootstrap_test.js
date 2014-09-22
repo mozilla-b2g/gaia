@@ -69,6 +69,7 @@ requireApp('system/test/unit/mock_attention_window.js');
 requireApp('system/test/unit/mock_callscreen_window.js');
 requireApp('system/test/unit/mock_airplane_mode.js');
 requireApp('system/test/unit/mock_applications.js');
+requireApp('system/test/unit/mock_edge_swipe_detector.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_screen_manager.js');
@@ -88,7 +89,8 @@ var mocksForBootstrap = new MocksHelper([
   'L10n',
   'AppWindowManager',
   'VersionHelper',
-  'CallscreenWindow'
+  'CallscreenWindow',
+  'EdgeSwipeDetector'
 ]).init();
 
 suite('system/Bootstrap', function() {
