@@ -5,7 +5,7 @@
    NavbarManager, Notification, MockKeypadManager, MockVoicemail,
    MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock, MockMmiManager,
    MockSuggestionBar, LazyLoader, AccessibilityHelper, MockSimSettingsHelper,
-   MockSimPicker, MockTelephonyHelper */
+   MockTelephonyHelper, CustomElementsHelper */
 
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -24,7 +24,6 @@ require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
-require('/shared/test/unit/mocks/mock_sim_picker.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
@@ -32,6 +31,8 @@ require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/dialer/mock_telephony_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
+require(
+  '/shared/test/unit/mocks/elements/gaia_sim_picker/mock_gaia_sim_picker.js');
 
 require('/dialer/js/dialer.js');
 
@@ -41,6 +42,7 @@ var mocksHelperForDialer = new MocksHelper([
   'Contacts',
   'CallLog',
   'CallLogDBManager',
+  'GaiaSimPicker',
   'LazyL10n',
   'LazyLoader',
   'KeypadManager',
@@ -48,13 +50,16 @@ var mocksHelperForDialer = new MocksHelper([
   'Notification',
   'NotificationHelper',
   'SettingsListener',
-  'SimPicker',
   'SimSettingsHelper',
   'SuggestionBar',
   'Utils',
   'TonePlayer',
   'Voicemail'
 ]).init();
+
+var customElementsForNavbarManager = new CustomElementsHelper([
+  'GaiaSimPicker'
+]);
 
 suite('navigation bar', function() {
   var domContactsIframe;
@@ -107,6 +112,8 @@ suite('navigation bar', function() {
 
     CallHandler.init();
     NavbarManager.init();
+
+    customElementsForNavbarManager.resolve();
   });
 
   teardown(function() {
@@ -531,11 +538,21 @@ suite('navigation bar', function() {
 
       var getGroupAtPositionStub;
       var callSpy;
+      var simPicker;
 
       setup(function() {
         getGroupAtPositionStub =
           this.sinon.stub(MockCallLogDBManager, 'getGroupAtPosition');
         callSpy = this.sinon.stub(CallHandler, 'call');
+
+        simPicker = document.createElement('gaia-sim-picker');
+        simPicker.id = 'sim-picker';
+        document.body.appendChild(simPicker);
+        customElementsForNavbarManager.resolve();
+      });
+
+      teardown(function() {
+        document.body.removeChild(simPicker);
       });
 
       [0, 1].forEach(function(serviceId) {
@@ -557,9 +574,9 @@ suite('navigation bar', function() {
         });
 
         test('should show SIM picker', function() {
-          this.sinon.spy(MockSimPicker, 'getOrPick');
+          this.sinon.spy(simPicker, 'getOrPick');
           sendCommand('ATD12345');
-          sinon.assert.calledWith(MockSimPicker.getOrPick, serviceId, '12345');
+          sinon.assert.calledWith(simPicker.getOrPick, serviceId, '12345');
         });
 
         test('should show/foreground the dialer', function() {
