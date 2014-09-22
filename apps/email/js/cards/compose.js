@@ -87,9 +87,6 @@ function ComposeCard(domNode, mode, args) {
     .addEventListener('click', this.onBack.bind(this), false);
   this.sendButton = domNode.getElementsByClassName('cmp-send-btn')[0];
   this.sendButton.addEventListener('click', this.onSend.bind(this), false);
-  this._bound_onVisibilityChange = this.onVisibilityChange.bind(this);
-  document.addEventListener('visibilitychange',
-                            this._bound_onVisibilityChange);
 
   this.toNode = domNode.getElementsByClassName('cmp-to-text')[0];
   this.ccNode = domNode.getElementsByClassName('cmp-cc-text')[0];
@@ -839,9 +836,10 @@ ComposeCard.prototype = {
   },
 
   /**
-   * Save the draft if there's anything to it, close the card.
+   * Save the draft if there's anything to it. Called by Cards if this card
+   * is also the current card.
    */
-  onVisibilityChange: function() {
+  onCurrentCardDocumentVisibilityChange: function() {
     if (document.hidden && this._saveNeeded()) {
       console.log('compose: autosaving; we became hidden and save needed.');
       this._saveDraft('automatic');
@@ -1011,9 +1009,6 @@ ComposeCard.prototype = {
   },
 
   die: function() {
-    document.removeEventListener('visibilitychange',
-                                 this._bound_onVisibilityChange);
-
     // If confirming for prompt when destroyed, just remove
     // and if save is needed, it will be autosaved below.
     if (this._savePromptMenu) {

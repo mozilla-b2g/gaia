@@ -663,6 +663,8 @@ MessageListCard.prototype = {
       headerCursor.freshMessagesSlice();
     }
 
+    this.onFolderShown();
+
     return true;
   },
 
@@ -1388,6 +1390,40 @@ MessageListCard.prototype = {
    */
   onFolderPickerClosing: function() {
     this.headerMenuNode.classList.remove('transparent');
+  },
+
+  /**
+   * Listener called when a folder is shown. The listener emits an 'inboxShown'
+   * for the current account, if the inbox is really being shown and the app is
+   * visible. Useful if periodic sync is involved, and notifications need to be
+   * closed if the inbox is visible to the user.
+   */
+  onFolderShown: function() {
+    if (this.mode === 'search') {
+      return;
+    }
+
+    var account = model.account,
+        foldersSlice = model.foldersSlice;
+
+    // The extra checks here are to allow for lazy startup when we might have
+    // a card instance but not a full model available. Once the model is
+    // available though, this method will get called again, so the event
+    // emitting is still correctly done in the lazy startup case.
+    if (!document.hidden && account && foldersSlice && this.curFolder) {
+      var inboxFolder = foldersSlice.getFirstFolderWithType('inbox');
+      if (inboxFolder === this.curFolder) {
+        evt.emit('inboxShown', account.id);
+      }
+    }
+  },
+
+  /**
+   * An API method for the cards infrastructure, that Cards will call when the
+   * page visibility changes and this card is the currently displayed card.
+   */
+  onCurrentCardDocumentVisibilityChange: function() {
+    this.onFolderShown();
   },
 
   /**

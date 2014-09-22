@@ -1,5 +1,6 @@
 /* global MocksHelper, MockAppWindow, MockSystem, AppTransitionController,
-          MockSimPinDialog, MockRocketbar, rocketbar */
+          MockSimPinDialog, MockRocketbar, rocketbar, MockLockScreen,
+          MockAttentionScreen */
 'use strict';
 
 requireApp('system/test/unit/mock_app_window.js');
@@ -9,9 +10,12 @@ requireApp('system/test/unit/mock_system.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_sim_pin_dialog.js');
 requireApp('system/test/unit/mock_rocketbar.js');
+requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_attention_screen.js');
 
 var mocksForAppTransitionController = new MocksHelper([
-  'AppWindow', 'LayoutManager', 'SettingsListener', 'System'
+  'AppWindow', 'LayoutManager', 'SettingsListener', 'System',
+  'AttentionScreen'
 ]).init();
 
 suite('system/AppTransitionController', function() {
@@ -20,6 +24,7 @@ suite('system/AppTransitionController', function() {
   setup(function(done) {
     window.SimPinDialog = new MockSimPinDialog();
     window.rocketbar = new MockRocketbar();
+    window.lockScreen = MockLockScreen;
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/app_transition_controller.js', done);
@@ -177,6 +182,29 @@ suite('system/AppTransitionController', function() {
     assert.isTrue(stubReviveBrowser.called);
   });
 
+  test('Do not put to foreground if lockscreen is active', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var acn1 = new AppTransitionController(app1);
+    var stubReviveBrowser = this.sinon.stub(app1, 'reviveBrowser');
+    var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+    MockLockScreen.locked = true;
+    acn1.handle_opening();
+    assert.isFalse(stubSetVisible.calledWith(true));
+    assert.isTrue(stubReviveBrowser.called);
+    MockLockScreen.locked = false;
+  });
+
+  test('Do not put to foreground if attention screen is active', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var acn1 = new AppTransitionController(app1);
+    var stubReviveBrowser = this.sinon.stub(app1, 'reviveBrowser');
+    var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+    this.sinon.stub(MockAttentionScreen, 'isFullyVisible').returns(true);
+    acn1.handle_opening();
+    assert.isFalse(stubSetVisible.calledWith(true));
+    assert.isTrue(stubReviveBrowser.called);
+  });
+
   test('Warm launch event', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
@@ -238,6 +266,29 @@ suite('system/AppTransitionController', function() {
       var stubSetOrientation = this.sinon.stub(app1, 'setOrientation');
       acn1.handle_opened();
       assert.isTrue(stubSetVisible.calledWith(true));
+      assert.isTrue(stubSetOrientation.called);
+    });
+
+    test('Do not put to foreground if lockscreen is active', function() {
+      var app1 = new MockAppWindow(fakeAppConfig1);
+      var acn1 = new AppTransitionController(app1);
+      var stubSetOrientation = this.sinon.stub(app1, 'setOrientation');
+      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+      MockLockScreen.locked = true;
+      acn1.handle_opened();
+      assert.isFalse(stubSetVisible.calledWith(true));
+      assert.isTrue(stubSetOrientation.called);
+      MockLockScreen.locked = false;
+    });
+
+    test('Do not put to foreground if attention screen is active', function() {
+      var app1 = new MockAppWindow(fakeAppConfig1);
+      var acn1 = new AppTransitionController(app1);
+      var stubSetOrientation = this.sinon.stub(app1, 'setOrientation');
+      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+      this.sinon.stub(MockAttentionScreen, 'isFullyVisible').returns(true);
+      acn1.handle_opened();
+      assert.isFalse(stubSetVisible.calledWith(true));
       assert.isTrue(stubSetOrientation.called);
     });
   });

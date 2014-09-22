@@ -5,6 +5,10 @@ var MockAppWindowManager = {
     return (config.origin in this.mRunningApps);
   },
 
+  _updateActiveApp: function() {
+
+  },
+
   mRunningApps: {},
 
   // TODO: Remove this.

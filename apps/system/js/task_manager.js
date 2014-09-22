@@ -1,6 +1,6 @@
 /* global Card, TaskCard,
           AppWindowManager, sleepMenu, SettingsListener, AttentionScreen,
-          OrientationManager,
+          OrientationManager, homescreenLauncher,
           GestureDetector, UtilityTray, StackManager, Event */
 
 'use strict';
@@ -268,6 +268,11 @@
       this.element.classList.add('no-transition');
     }
 
+    var app = AppWindowManager.getActiveApp();
+    if (app && !app.isActive()) {
+      app.open('immediate');
+    }
+
     // Make the cardsView overlay inactive
     this.setActive(false);
 
@@ -335,7 +340,12 @@
     // while the task manager is shown, the active app is the homescreen
     // so selecting an app switches from homescreen to that app
     // which gets us in the right state
-    AppWindowManager.display(null, null, 'to-cardview');
+    var app = AppWindowManager.getActiveApp();
+    if (app) {
+      AppWindowManager._updateActiveApp(
+        homescreenLauncher.getHomescreen().instanceID);
+      app.close(app.isHomescreen ? 'immediate' : 'to-cardview');
+    }
 
     // We're committed to showing the card switcher.
     // Homescreen fades (shows its fade-overlay) on cardviewbeforeshow events
