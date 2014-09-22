@@ -35,7 +35,7 @@ suite('value selector/value selector', function() {
       inputType: 'date'
     }
   };
-  var fakeSheetsTransitionStart = { type: '_sheetstransitionstart' };
+  var fakeSheetsGestureBegin = { type: '_sheetsgesturebegin' };
   var fakeClosing = { type: '_closing' };
   var fakeOpening = { type: '_opening' };
   var fakeLocalizedEvent = { type: '_localized' };
@@ -136,6 +136,8 @@ suite('value selector/value selector', function() {
 
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     assert.ok(vs.elements.timePickerContainer.classList.contains('format12h'));
+    assert.ok(!vs.elements.timePickerContainer.classList.contains(
+      'format24h'));
     stubMozl10nGet.restore();
 
     // change to 24h format
@@ -146,6 +148,8 @@ suite('value selector/value selector', function() {
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     assert.ok(vs.elements.timePickerContainer.classList.contains(
       'format24h'));
+    assert.ok(!vs.elements.timePickerContainer.classList.contains(
+      'format12h'));
   });
 
   test('Time Picker reset at timeformat change', function() {
@@ -156,6 +160,8 @@ suite('value selector/value selector', function() {
 
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     assert.ok(vs.elements.timePickerContainer.classList.contains('format12h'));
+    assert.ok(!vs.elements.timePickerContainer.classList.contains(
+      'format24h'));
     stubMozl10nGet.restore();
 
     // change to 24h format
@@ -166,6 +172,8 @@ suite('value selector/value selector', function() {
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     assert.ok(vs.elements.timePickerContainer.classList.contains(
       'format24h'));
+    assert.ok(!vs.elements.timePickerContainer.classList.contains(
+      'format12h'));
   });
 
   test('Date Picker (en-US)', function() {
@@ -190,11 +198,11 @@ suite('value selector/value selector', function() {
     assert.isTrue(stub_publish.calledWith('hidden'));
   });
 
-  test('cancel on "_sheetstransitionstart" event', function() {
+  test('cancel on "_sheetsgesturebegin" event', function() {
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     this.sinon.stub(vs, 'cancel');
 
-    vs.handleEvent(fakeSheetsTransitionStart);
+    vs.handleEvent(fakeSheetsGestureBegin);
     sinon.assert.calledOnce(vs.cancel);
   });
 

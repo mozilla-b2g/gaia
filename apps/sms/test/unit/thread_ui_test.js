@@ -460,9 +460,15 @@ suite('thread_ui.js >', function() {
   });
 
   suite('segmentInfo management >', function() {
-    var banner, convertBanner, form, counterLabel;
+    var banner,
+        convertBanner,
+        form,
+        counterLabel,
+        counterMsgCointainer;
 
     var realCompose;
+
+    var clock;
 
     suiteSetup(function() {
       realCompose = window.Compose;
@@ -472,9 +478,12 @@ suite('thread_ui.js >', function() {
     suiteTeardown(function() {
       window.Compose = realCompose;
       realCompose = null;
+      clock.restore();
     });
 
     setup(function() {
+      clock = this.sinon.useFakeTimers();
+      clock.tick(0);
       MockCompose.mSetup();
 
       this.sinon.stub(Compose, 'on');
@@ -493,6 +502,12 @@ suite('thread_ui.js >', function() {
       convertBanner = document.getElementById('messages-convert-notice');
       form = document.getElementById('messages-compose-form');
       counterLabel = document.getElementById('messages-counter-label');
+      counterMsgCointainer = 
+        document.getElementById('messages-sms-counter-notice');
+    });
+
+    teardown(function() {
+      clock.restore();
     });
 
     function yieldInputAndSegmentInfo(segmentInfo) {
@@ -535,6 +550,20 @@ suite('thread_ui.js >', function() {
       assert.isFalse(
         Compose.lock,
         'lock is disabled'
+      );
+    });
+
+    test('start the SMS', function() {
+      counterLabel.classList.add('has-counter');
+
+      yieldInputAndSegmentInfo({
+        segments: 0,
+        charsAvailableInLastSegment: 0
+      });
+
+      assert.isTrue(
+        counterMsgCointainer.classList.contains('hide'),
+        'sms counter toast not shouldn\'t be showed'
       );
     });
 
@@ -588,6 +617,28 @@ suite('thread_ui.js >', function() {
       );
     });
 
+    test('from first segment to second segment', function() {
+      counterLabel.classList.add('has-counter');
+      ThreadUI.counterLabel.dataset.counter = '0/1';
+
+      yieldInputAndSegmentInfo({
+        segments: 2,
+        charsAvailableInLastSegment: 145
+      });
+
+      assert.isFalse(
+        counterMsgCointainer.classList.contains('hide'),
+        'sms counter toast should be showed'
+      );
+
+      clock.tick(3100);
+
+      assert.isTrue(
+        counterMsgCointainer.classList.contains('hide'),
+        'sms counter toast shouldn\'t be showed in 3 seconds'
+      );
+    });
+
     test('in second segment', function() {
       var segment = 2,
           availableChars = 20;
@@ -637,6 +688,21 @@ suite('thread_ui.js >', function() {
       assert.isFalse(
         Compose.lock,
         'lock is disabled'
+      );
+    });
+
+    test('from ninth segment to tenth segment', function() {
+      counterLabel.classList.add('has-counter');
+      ThreadUI.counterLabel.dataset.counter = '0/9';
+
+      yieldInputAndSegmentInfo({
+        segments: 10,
+        charsAvailableInLastSegment: 145
+      });
+
+      assert.isTrue(
+        counterMsgCointainer.classList.contains('hide'),
+        'sms counter toast shouldn\'t be showed'
       );
     });
 
@@ -5303,11 +5369,13 @@ suite('thread_ui.js >', function() {
         }).then(done, done);
       });
 
-      suite('OptionMenu operations', function(done) {
+      suite('OptionMenu operations', function() {
         setup(function() {
           this.sinon.spy(Navigation, 'toPanel');
           this.sinon.spy(ThreadUI, 'saveDraft');
           this.sinon.spy(ThreadListUI, 'removeThread');
+          this.sinon.spy(Drafts, 'delete');
+          this.sinon.spy(Drafts, 'store');
         });
 
         test('Save as Draft', function(done) {
@@ -5327,6 +5395,7 @@ suite('thread_ui.js >', function() {
           ThreadUI.back().then(function() {
             sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
             sinon.assert.calledOnce(ThreadListUI.removeThread);
+            sinon.assert.callOrder(Drafts.delete, Drafts.store);
             assert.isNull(ThreadUI.draft);
           }).then(done, done);
         });
@@ -5784,8 +5853,7 @@ suite('thread_ui.js >', function() {
 
       ThreadUI.handleDraft();
 
-      sinon.assert.called(Drafts.delete);
-      sinon.assert.called(Drafts.store);
+      sinon.assert.callOrder(Drafts.delete, Drafts.store);
     });
   });
 

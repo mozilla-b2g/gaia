@@ -22,8 +22,8 @@ class Settings(Base):
     _bluetooth_text_locator = (By.ID, 'bluetooth-desc')
 
     _app_loaded_locator = (By.CSS_SELECTOR, 'body[data-ready="true"]')
-    _airplane_switch_locator = (By.XPATH, "//input[@id='airplaneMode-input']/..")
-    _airplane_checkbox_locator = (By.ID, "airplaneMode-input")
+    _airplane_switch_locator = (By.XPATH, "//input[contains(@class, 'airplaneMode-input')]/..")
+    _airplane_checkbox_locator = (By.CSS_SELECTOR, ".airplaneMode-input")
     _gps_enabled_locator = (By.XPATH, "//input[@name='geolocation.enabled']")
     _gps_switch_locator = (By.XPATH, "//input[@name='geolocation.enabled']/..")
     _accessibility_menu_item_locator = (By.ID, 'menuItem-accessibility')

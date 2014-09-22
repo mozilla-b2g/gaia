@@ -55,7 +55,8 @@ suite('app', function() {
     navigator.mozL10n = { readyState: null };
 
     navigator.mozSettings = {
-      addObserver: function() {}
+      addObserver: function() {},
+      removeObserver: function() {}
     };
 
     var options = this.options = {
@@ -298,21 +299,35 @@ suite('app', function() {
 
   suite('App#bindEvents()', function() {
     setup(function() {
+      this.app.firer.restore();
+
+      sinon.stub(this.app, 'firer');
+
+      this.app.firer
+        .withArgs('busy')
+        .returns('<busy-firer>');
+
+      this.app.firer
+        .withArgs('localized')
+        .returns('<localized-firer>');
+
       this.app.bindEvents();
     });
 
     test('Should listen for visibilitychange on document', function() {
-      assert.isTrue(this.app.doc.addEventListener.calledWith('visibilitychange'));
+      sinon.assert.calledWith(this.app.doc.addEventListener, 'visibilitychange');
     });
 
     test('Should relay window \'localized\' event', function() {
-      assert.isTrue(this.app.win.addEventListener.calledWith('localized'));
-      assert.isTrue(this.app.firer.calledWith('localized'));
+      sinon.assert.calledWith(this.app.win.addEventListener, 'localized', '<localized-firer>');
+    });
+
+    test('It indicates the app is \'busy\' when the camera \'willchange\'', function() {
+      sinon.assert.calledWith(this.app.on, 'camera:willchange', '<busy-firer>');
     });
   });
 
   suite('App#onVisibilityChange', function() {
-
     test('Should update the `app.hidden` property', function() {
       this.app.doc.hidden = true;
       this.app.onVisibilityChange();

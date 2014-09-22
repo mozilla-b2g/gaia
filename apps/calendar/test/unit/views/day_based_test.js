@@ -100,11 +100,11 @@ suiteGroup('Views.DayBased', function() {
       addCalledWith = [];
 
       subject.add = function() {
-        addCalledWith.push(arguments);
+        addCalledWith.push(Array.slice(arguments));
       };
 
       controller.findAssociated = function() {
-        requestCalledWith.push(arguments);
+        requestCalledWith.push(Array.slice(arguments));
       };
     });
 
@@ -313,7 +313,7 @@ suiteGroup('Views.DayBased', function() {
         '[data-id="' + busytime._id + '"]'
       );
 
-      assert.length(elements, 1);
+      assert.lengthOf(elements, 1);
 
       var record = hour.records.get(id);
       assert.isTrue(record);
@@ -507,7 +507,7 @@ suiteGroup('Views.DayBased', function() {
     test('allday', function() {
       subject.createHour('allday');
       var parent = subject.allDayElement;
-      assert.length(parent.children, 1);
+      assert.lengthOf(parent.children, 1);
     });
 
     test('first', function() {
@@ -625,7 +625,7 @@ suiteGroup('Views.DayBased', function() {
     );
 
     displayedHours.forEach(subject.removeHour, subject);
-    assert.length(subject.hours, 0);
+    assert.lengthOf(subject.hours, 0);
 
     list.forEach(function(el) {
       assert.ok(!el.parentNode, 'removed element');

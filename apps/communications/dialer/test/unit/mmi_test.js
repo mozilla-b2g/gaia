@@ -28,6 +28,7 @@ const MMI_MSG = 'mmi_msg';
 const MMI_CF_MSG_ACTIVE_VOICE = 'mmi_cf_active_voice';
 const MMI_CF_MSG_ACTIVE_DATA = 'mmi_cf_active_data';
 const MMI_CF_MSG_ACTIVE_FAX = 'mmi_cf_active_fax';
+const MMI_CF_MSG_ACTIVE_SMS = 'mmi_cf_active_sms';
 const MMI_CF_MSG_ACTIVE_DATA_SYNC = 'mmi_cf_active_data_sync';
 const MMI_CF_MSG_ACTIVE_DATA_ASYNC = 'mmi_cf_active_data_async';
 const MMI_CF_MSG_ACTIVE_PACKET = 'mmi_cf_active_package';
@@ -43,12 +44,11 @@ const MMI_CALL_WAITING_STATUS_DISABLED = 'mmi_call_waiting_status_disabled';
 const ICC_SERVICE_CLASS_VOICE = (1 << 0);
 const ICC_SERVICE_CLASS_DATA = (1 << 1);
 const ICC_SERVICE_CLASS_FAX = (1 << 2);
-// const ICC_SERVICE_CLASS_SMS = (1 << 3);
+const ICC_SERVICE_CLASS_SMS = (1 << 3);
 const ICC_SERVICE_CLASS_DATA_SYNC = (1 << 4);
 const ICC_SERVICE_CLASS_DATA_ASYNC = (1 << 5);
 const ICC_SERVICE_CLASS_PACKET = (1 << 6);
 const ICC_SERVICE_CLASS_PAD = (1 << 7);
-// const ICC_SERVICE_CLASS_MAX = (1 << 7);
 
 const EXPECTED_PHONE = '+34666222111';
 
@@ -109,6 +109,8 @@ suite('dialer/mmi', function() {
         break;
       case MMI_CF_MSG_ACTIVE_VOICE:
         evt.target.result = {
+          serviceCode: 'scCallForwarding',
+          statusMessage: 'smServiceInterrogated',
           additionalInformation: [{
             active: true,
             number: EXPECTED_PHONE,
@@ -119,6 +121,8 @@ suite('dialer/mmi', function() {
         break;
       case MMI_CF_MSG_ACTIVE_DATA:
         evt.target.result = {
+          serviceCode: 'scCallForwarding',
+          statusMessage: 'smServiceInterrogated',
           additionalInformation: [{
             active: true,
             number: EXPECTED_PHONE,
@@ -129,6 +133,8 @@ suite('dialer/mmi', function() {
         break;
       case MMI_CF_MSG_ACTIVE_FAX:
         evt.target.result = {
+          serviceCode: 'scCallForwarding',
+          statusMessage: 'smServiceInterrogated',
           additionalInformation: [{
             active: true,
             number: EXPECTED_PHONE,
@@ -137,8 +143,22 @@ suite('dialer/mmi', function() {
         };
         MmiManager.notifySuccess(evt);
         break;
+      case MMI_CF_MSG_ACTIVE_SMS:
+        evt.target.result = {
+          serviceCode: 'scCallForwarding',
+          statusMessage: 'smServiceInterrogated',
+          additionalInformation: [{
+            active: true,
+            number: EXPECTED_PHONE,
+            serviceClass: ICC_SERVICE_CLASS_SMS
+          }]
+        };
+        MmiManager.notifySuccess(evt);
+        break;
       case MMI_CF_MSG_ACTIVE_DATA_SYNC:
         evt.target.result = {
+          serviceCode: 'scCallForwarding',
+          statusMessage: 'smServiceInterrogated',
           additionalInformation: [{
             active: true,
             number: EXPECTED_PHONE,
@@ -149,6 +169,8 @@ suite('dialer/mmi', function() {
         break;
       case MMI_CF_MSG_ACTIVE_DATA_ASYNC:
         evt.target.result = {
+          serviceCode: 'scCallForwarding',
+          statusMessage: 'smServiceInterrogated',
           additionalInformation: [{
             active: true,
             number: EXPECTED_PHONE,
@@ -159,6 +181,8 @@ suite('dialer/mmi', function() {
         break;
       case MMI_CF_MSG_ACTIVE_PACKET:
         evt.target.result = {
+          serviceCode: 'scCallForwarding',
+          statusMessage: 'smServiceInterrogated',
           additionalInformation: [{
             active: true,
             number: EXPECTED_PHONE,
@@ -169,6 +193,8 @@ suite('dialer/mmi', function() {
         break;
       case MMI_CF_MSG_ACTIVE_PAD:
         evt.target.result = {
+          serviceCode: 'scCallForwarding',
+          statusMessage: 'smServiceInterrogated',
           additionalInformation: [{
             active: true,
             number: EXPECTED_PHONE,
@@ -179,6 +205,8 @@ suite('dialer/mmi', function() {
         break;
       case MMI_CF_MSG_INVALID_SERVICE_CLASS:
         evt.target.result = [{
+          serviceCode: 'scCallForwarding',
+          statusMessage: 'smServiceInterrogated',
           active: true,
           number: EXPECTED_PHONE,
           serviceClass: -1
@@ -187,6 +215,8 @@ suite('dialer/mmi', function() {
         break;
      case MMI_CF_MSG_TWO_RULES:
         evt.target.result = {
+          serviceCode: 'scCallForwarding',
+          statusMessage: 'smServiceInterrogated',
           additionalInformation: [{
             active: true,
             number: EXPECTED_PHONE,
@@ -201,6 +231,8 @@ suite('dialer/mmi', function() {
         break;
       case MMI_CF_MSG_ALL_INACTIVE:
         evt.target.result = {
+          serviceCode: 'scCallForwarding',
+          statusMessage: 'smServiceInterrogated',
           additionalInformation: [{
             active: false
           }]
@@ -760,154 +792,246 @@ suite('dialer/mmi', function() {
     });
   });
 
-  /** Temporary disable CF tests until Bug 884343 (Use MMIResult for Call
-   *   Forwarding related functionality) is done.
+  suite('Call forwarding request via MMI.', function() {
+    var _spy;
 
-  suite('Call forwarding request via MMI. Active voice', function() {
-    test('Check call forwarding rules', function(done) {
+    setup(function() {
+      _spy = this.sinon.spy(MmiManager, '_');
+    });
+
+    test('Check call forwarding rules, active voice', function(done) {
       MmiManager.send(MMI_CF_MSG_ACTIVE_VOICE);
       setTimeout(function() {
-        assert.equal(MockLazyL10n.keys['cf-voice'].voice, EXPECTED_PHONE);
-        assert.equal(MockLazyL10n.keys['cf-data'].data, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-fax'].fax, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-sms'].sms, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-sync'].sync, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-async'].async, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-packet'].packet, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-pad'].pad, 'cf-inactive');
+        sinon.assert.calledWith(_spy, 'call-forwarding-voice',
+                                { voice: EXPECTED_PHONE });
+        sinon.assert.calledWith(_spy, 'call-forwarding-data',
+                                { data: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-fax',
+                                { fax: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sms',
+                                { sms: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sync',
+                                { sync: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-async',
+                                { async: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-packet',
+                                { packet: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-pad',
+                                { pad: 'call-forwarding-inactive' });
         done();
       }, TINY_TIMEOUT);
     });
-  });
 
-  suite('Call forwarding request via MMI. Active data', function() {
-    test('Check call forwarding rules', function(done) {
+    test('Check call forwarding rules, active data', function(done) {
       MmiManager.send(MMI_CF_MSG_ACTIVE_DATA);
       setTimeout(function() {
-        assert.equal(MockLazyL10n.keys['cf-data'].data, EXPECTED_PHONE);
-        assert.equal(MockLazyL10n.keys['cf-voice'].voice, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-fax'].fax, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-sms'].sms, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-sync'].sync, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-async'].async, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-packet'].packet, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-pad'].pad, 'cf-inactive');
+        sinon.assert.calledWith(_spy, 'call-forwarding-voice',
+                                { voice: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-data',
+                                { data: EXPECTED_PHONE });
+        sinon.assert.calledWith(_spy, 'call-forwarding-fax',
+                                { fax: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sms',
+                                { sms: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sync',
+                                { sync: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-async',
+                                { async: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-packet',
+                                { packet: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-pad',
+                                { pad: 'call-forwarding-inactive' });
         done();
       }, TINY_TIMEOUT);
     });
-  });
 
-  suite('Call forwarding request via MMI. Active data sync', function() {
-    test('Check call forwarding rules', function(done) {
+    test('Check call forwarding rules, active fax', function(done) {
+      MmiManager.send(MMI_CF_MSG_ACTIVE_FAX);
+      setTimeout(function() {
+        sinon.assert.calledWith(_spy, 'call-forwarding-voice',
+                                { voice: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-data',
+                                { data: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-fax',
+                                { fax: EXPECTED_PHONE });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sms',
+                                { sms: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sync',
+                                { sync: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-async',
+                                { async: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-packet',
+                                { packet: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-pad',
+                                { pad: 'call-forwarding-inactive' });
+        done();
+      }, TINY_TIMEOUT);
+    });
+
+    test('Check call forwarding rules, active SMS', function(done) {
+      MmiManager.send(MMI_CF_MSG_ACTIVE_SMS);
+      setTimeout(function() {
+        sinon.assert.calledWith(_spy, 'call-forwarding-voice',
+                                { voice: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-data',
+                                { data: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-fax',
+                                { fax: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sms',
+                                { sms: EXPECTED_PHONE });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sync',
+                                { sync: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-async',
+                                { async: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-packet',
+                                { packet: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-pad',
+                                { pad: 'call-forwarding-inactive' });
+        done();
+      }, TINY_TIMEOUT);
+    });
+
+    test('Check call forwarding rules, active data sync', function(done) {
       MmiManager.send(MMI_CF_MSG_ACTIVE_DATA_SYNC);
       setTimeout(function() {
-        assert.equal(MockLazyL10n.keys['cf-sync'].sync, EXPECTED_PHONE);
-        assert.equal(MockLazyL10n.keys['cf-data'].data, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-voice'].voice, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-fax'].fax, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-sms'].sms, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-async'].async, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-packet'].packet, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-pad'].pad, 'cf-inactive');
+        sinon.assert.calledWith(_spy, 'call-forwarding-voice',
+                                { voice: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-data',
+                                { data: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-fax',
+                                { fax: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sms',
+                                { sms: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sync',
+                                { sync: EXPECTED_PHONE });
+        sinon.assert.calledWith(_spy, 'call-forwarding-async',
+                                { async: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-packet',
+                                { packet: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-pad',
+                                { pad: 'call-forwarding-inactive' });
         done();
       }, TINY_TIMEOUT);
     });
-  });
 
-  suite('Call forwarding request via MMI. Active data async', function() {
-    test('Check call forwarding rules', function(done) {
+    test('Check call forwarding rules, data async', function(done) {
       MmiManager.send(MMI_CF_MSG_ACTIVE_DATA_ASYNC);
       setTimeout(function() {
-        assert.equal(MockLazyL10n.keys['cf-async'].async, EXPECTED_PHONE);
-        assert.equal(MockLazyL10n.keys['cf-sync'].sync, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-data'].data, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-voice'].voice, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-fax'].fax, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-sms'].sms, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-packet'].packet, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-pad'].pad, 'cf-inactive');
+        sinon.assert.calledWith(_spy, 'call-forwarding-voice',
+                                { voice: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-data',
+                                { data: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-fax',
+                                { fax: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sms',
+                                { sms: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sync',
+                                { sync: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-async',
+                                { async: EXPECTED_PHONE });
+        sinon.assert.calledWith(_spy, 'call-forwarding-packet',
+                                { packet: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-pad',
+                                { pad: 'call-forwarding-inactive' });
         done();
       }, TINY_TIMEOUT);
     });
-  });
 
-  suite('Call forwarding request via MMI. Active package', function() {
-    test('Check call forwarding rules', function(done) {
+    test('Check call forwarding rules, active package', function(done) {
       MmiManager.send(MMI_CF_MSG_ACTIVE_PACKET);
       setTimeout(function() {
-        assert.equal(MockLazyL10n.keys['cf-packet'].packet, EXPECTED_PHONE);
-        assert.equal(MockLazyL10n.keys['cf-async'].async, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-sync'].sync, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-data'].data, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-voice'].voice, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-fax'].fax, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-sms'].sms, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-pad'].pad, 'cf-inactive');
+        sinon.assert.calledWith(_spy, 'call-forwarding-voice',
+                                { voice: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-data',
+                                { data: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-fax',
+                                { fax: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sms',
+                                { sms: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sync',
+                                { sync: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-async',
+                                { async: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-packet',
+                                { packet: EXPECTED_PHONE });
+        sinon.assert.calledWith(_spy, 'call-forwarding-pad',
+                                { pad: 'call-forwarding-inactive' });
         done();
       }, TINY_TIMEOUT);
     });
-  });
 
-  suite('Call forwarding request via MMI. Active PAD', function() {
-    test('Check call forwarding rules', function(done) {
+    test('Check call forwarding rules, active PAD', function(done) {
       MmiManager.send(MMI_CF_MSG_ACTIVE_PAD);
       setTimeout(function() {
-        assert.equal(MockLazyL10n.keys['cf-pad'].pad, EXPECTED_PHONE);
-        assert.equal(MockLazyL10n.keys['cf-packet'].packet, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-async'].async, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-sync'].sync, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-data'].data, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-voice'].voice, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-fax'].fax, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-sms'].sms, 'cf-inactive');
+        sinon.assert.calledWith(_spy, 'call-forwarding-voice',
+                                { voice: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-data',
+                                { data: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-fax',
+                                { fax: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sms',
+                                { sms: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sync',
+                                { sync: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-async',
+                                { async: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-packet',
+                                { packet: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-pad',
+                                { pad: EXPECTED_PHONE });
         done();
       }, TINY_TIMEOUT);
     });
-  });
 
-  suite('Call forwarding request via MMI. All inactive', function() {
-    test('Check call forwarding rules', function(done) {
+    test('Check call forwarding rules, all inactive', function(done) {
       MmiManager.send(MMI_CF_MSG_ALL_INACTIVE);
       setTimeout(function() {
-        assert.equal(MockLazyL10n.keys['cf-voice'].voice, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-data'].data, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-fax'].fax, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-sms'].sms, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-sync'].sync, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-async'].async, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-packet'].packet, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-pad'].pad, 'cf-inactive');
+        sinon.assert.calledWith(_spy, 'call-forwarding-voice',
+                                { voice: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-data',
+                                { data: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-fax',
+                                { fax: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sms',
+                                { sms: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sync',
+                                { sync: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-async',
+                                { async: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-packet',
+                                { packet: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-pad',
+                                { pad: 'call-forwarding-inactive' });
         done();
       }, TINY_TIMEOUT);
     });
-  });
 
-  suite('Call forwarding request via MMI. Two rules', function() {
-    test('Check call forwarding rules', function(done) {
+    test('Check call forwarding rules, two rules', function(done) {
       MmiManager.send(MMI_CF_MSG_TWO_RULES);
       setTimeout(function() {
-        assert.equal(MockLazyL10n.keys['cf-voice'].voice, EXPECTED_PHONE);
-        assert.equal(MockLazyL10n.keys['cf-data'].data, EXPECTED_PHONE);
-        assert.equal(MockLazyL10n.keys['cf-fax'].fax, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-sms'].sms, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-sync'].sync, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-async'].async, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-packet'].packet, 'cf-inactive');
-        assert.equal(MockLazyL10n.keys['cf-pad'].pad, 'cf-inactive');
+        sinon.assert.calledWith(_spy, 'call-forwarding-voice',
+                                { voice: EXPECTED_PHONE });
+        sinon.assert.calledWith(_spy, 'call-forwarding-data',
+                                { data: EXPECTED_PHONE });
+        sinon.assert.calledWith(_spy, 'call-forwarding-fax',
+                                { fax: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sms',
+                                { sms: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-sync',
+                                { sync: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-async',
+                                { async: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-packet',
+                                { packet: 'call-forwarding-inactive' });
+        sinon.assert.calledWith(_spy, 'call-forwarding-pad',
+                                { pad: 'call-forwarding-inactive' });
         done();
       }, TINY_TIMEOUT);
     });
-  });
 
-  suite('Call forwarding request via MMI. Invalid', function() {
-    setup(function() {
+    test('Invalid request', function() {
       MmiManager.send(MMI_CF_MSG_INVALID_SERVICE_CLASS);
-    });
-
-    test('Check call forwarding rules', function() {
       assert.equal(MmiManager._ui._messageReceived, null);
     });
   });
-
-  */
 });

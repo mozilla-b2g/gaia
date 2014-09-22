@@ -20,23 +20,21 @@ class TestGalleryCropPhoto(GaiaTestCase):
         gallery.launch()
         gallery.wait_for_files_to_load(1)
 
+        initial_image_size = gallery.thumbnails[0].absolute_image_size
         image = gallery.tap_first_gallery_item()
-        initial_scale = image.current_scale
 
         # Tap on Edit button.
         edit_image = image.tap_edit_button()
         edit_image.tap_edit_crop_button()
+        # portrait crop is 2:3 and will retain the image's height
         edit_image.tap_portrait_crop()
 
         gallery = edit_image.tap_edit_save_button()
-
         gallery.wait_for_files_to_load(2)
 
-        # Verify new Photo is created
-        self.assertEqual(2, gallery.gallery_items_number)
+        # get the absolute image for the new first image
+        cropped_image_size = gallery.thumbnails[0].absolute_image_size
 
-        image1 = gallery.tap_first_gallery_item()
-
-        # The logic is: scale is inversely proportional with the size(witdh*height) of the image
-        # if initial_scale < image1.current_scale then image > image1
-        self.assertLess(initial_scale, image1.current_scale)
+        # As we have chosen portrait crop, height will remain the same, width should change
+        self.assertEqual(cropped_image_size['height'], initial_image_size['height'])
+        self.assertLess(cropped_image_size['width'], initial_image_size['width'])

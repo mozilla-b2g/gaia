@@ -645,11 +645,10 @@ suite('lib/camera/camera', function() {
 
   suite('Camera#onPreviewStateChange()', function() {
     setup(function() {
-      this.camera = new this.Camera();
-      sinon.stub(this.camera, 'emit');
+
     });
 
-    test('Should fire \'busy\' event if \'stopped\' or \'paused\'', function() {
+    test('It fires \'busy\' event if \'stopped\' or \'paused\'', function() {
       this.camera.onPreviewStateChange('stopped');
       assert.ok(this.camera.emit.calledWith('busy'));
       this.camera.emit.reset();
@@ -658,13 +657,13 @@ suite('lib/camera/camera', function() {
       assert.ok(this.camera.emit.calledWith('busy'));
     });
 
-    test('Should not fire \'ready\' event for all other states', function() {
+    test('It fires \'ready\' event for all other states', function() {
       this.camera.onPreviewStateChange('something else');
-      assert.ok(this.camera.emit.calledWith('ready'));
-      this.camera.emit.reset();
+      sinon.assert.called(this.camera.ready);
+      this.camera.ready.reset();
 
       this.camera.onPreviewStateChange('other');
-      assert.ok(this.camera.emit.calledWith('ready'));
+      sinon.assert.called(this.camera.ready);
     });
   });
 
@@ -915,7 +914,7 @@ suite('lib/camera/camera', function() {
       sinon.assert.notCalled(this.mozCamera.setConfiguration);
 
       this.camera.ready();
-      this.clock.tick(1);
+      this.clock.tick(151);
 
       sinon.assert.called(this.mozCamera.setConfiguration);
       sinon.assert.calledWith(this.camera.emit, 'configured');
@@ -935,7 +934,6 @@ suite('lib/camera/camera', function() {
     });
 
     test('Should flag as busy, then ready', function() {
-      var self = this;
 
       // Use async for this case
       this.mozCamera.setConfiguration = sinon.stub();
@@ -953,8 +951,8 @@ suite('lib/camera/camera', function() {
       // Manually call the callback
       onSuccess();
 
-      assert.isFalse(self.camera.isBusy);
-      sinon.assert.calledWith(self.camera.emit, 'ready');
+      assert.isFalse(this.camera.isBusy);
+      sinon.assert.called(this.camera.ready);
     });
 
     test('Should abort if `mozCamera` has since been released', function() {
@@ -972,6 +970,13 @@ suite('lib/camera/camera', function() {
       this.mozCamera = null;
 
       assert.isFalse(this.camera.emit.calledWith('configured'));
+    });
+
+    test('It stops any recording that make be in progress', function() {
+      sinon.stub(this.camera, 'stopRecording');
+      this.camera.configure();
+      this.clock.tick(1);
+      sinon.assert.called(this.camera.stopRecording);
     });
   });
 
@@ -1350,6 +1355,35 @@ suite('lib/camera/camera', function() {
       this.camera.mode = 'my-mode';
       assert.isTrue(this.camera.isMode('my-mode'));
       assert.isFalse(this.camera.isMode('not-my-mode'));
+    });
+  });
+
+  suite('Camera#ready()', function() {
+    setup(function() {
+      this.clock = sinon.useFakeTimers();
+    });
+
+    test('It is debounced in case busy fires shortly after', function() {
+      this.camera.ready();
+      this.camera.ready();
+      this.camera.ready();
+      this.camera.ready();
+
+      this.clock.tick(150);
+
+      assert.isTrue(this.camera.emit.withArgs('ready').calledOnce);
+    });
+  });
+
+  suite('Camera#busy()', function() {
+    setup(function() {
+      this.camera.readyTimeout = '<ready-timeout>';
+      this.sandbox.stub(window, 'clearTimeout');
+    });
+
+    test('It clears the ready timeout', function() {
+      this.camera.busy();
+      sinon.assert.calledWith(window.clearTimeout, '<ready-timeout>');
     });
   });
 });

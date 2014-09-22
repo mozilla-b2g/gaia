@@ -171,7 +171,10 @@ contacts.List = (function() {
 
     monitor && monitor.pauseMonitoringMutations();
     updateRowStyle(row, false);
-    releasePhoto(row);
+    var search = contacts.Search;
+    if (!search || !search.isInSearchMode()) {
+      releasePhoto(row);
+    }
     monitor && monitor.resumeMonitoringMutations(false);
   };
 
@@ -313,7 +316,7 @@ contacts.List = (function() {
     }
   };
 
-  var load = function load(contacts, forceReset) {
+  var load = function load(contacts, forceReset, callback) {
     var onError = function() {
       console.log('ERROR Retrieving contacts');
     };
@@ -321,6 +324,9 @@ contacts.List = (function() {
     var complete = function complete() {
       initConfiguration(function onInitConfiguration() {
         getContactsByGroup(onError, contacts);
+        if (typeof callback === 'function') {
+          callback();
+        } // Used in unit testing.
       });
     };
 
@@ -939,7 +945,8 @@ contacts.List = (function() {
     LazyLoader.load(['/shared/js/contacts/utilities/image_loader.js',
                      '/contacts/js/fb_resolver.js'], function() {
       if (!imgLoader) {
-        imgLoader = new ImageLoader('#groups-container', 'li');
+        imgLoader = new ImageLoader('#groups-container',
+                                    'li:not([data-group="ice"])');
         imgLoader.setResolver(fb.resolver);
       }
       imgLoader.reload();

@@ -1,4 +1,5 @@
-/* global _, CostControl, ConfigManager, debug, Formatting, SimManager */
+/* global _, CostControl, ConfigManager, debug,
+          Formatting, SimManager, Common */
 /*
  * The telephony tab is in charge of show telephony and billing cycle
  * information.
@@ -95,11 +96,11 @@ var TelephonyTab = (function() {
   }
 
   function updateCounters(activity) {
-    smscount.textContent = _('magnitude', {
+    Common.localize(smscount, 'magnitude', {
       value: activity.smscount,
       unit: 'SMS'
     });
-    calltime.textContent = _('magnitude', {
+    Common.localize(calltime, 'magnitude', {
       value: Formatting.computeTelephonyMinutes(activity),
       unit: 'min.'
     });
@@ -112,7 +113,7 @@ var TelephonyTab = (function() {
     } else {
       billingCycle.setAttribute('aria-hidden', false);
       var content = Formatting.getFormattedDate(settings.nextReset,
-                                                _('short-date-format'));
+        _('short-date-format'));
       resetDate.textContent = content;
     }
   }

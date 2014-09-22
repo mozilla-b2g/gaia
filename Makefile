@@ -429,7 +429,6 @@ GAIA_LOCALES_PATH?=locales
 LOCALES_FILE?=shared/resources/languages.json
 GAIA_LOCALE_SRCDIRS=$(GAIA_DIR)$(SEP)shared $(GAIA_APPDIRS)
 GAIA_DEFAULT_LOCALE?=en-US
-GAIA_INLINE_LOCALES?=0
 GAIA_PRETRANSLATE?=1
 GAIA_CONCAT_LOCALES?=1
 
@@ -501,7 +500,6 @@ define BUILD_CONFIG
   "DOGFOOD" : "$(DOGFOOD)", \
   "OFFICIAL" : "$(MOZILLA_OFFICIAL)", \
   "GAIA_DEFAULT_LOCALE" : "$(GAIA_DEFAULT_LOCALE)", \
-  "GAIA_INLINE_LOCALES" : "$(GAIA_INLINE_LOCALES)", \
   "GAIA_PRETRANSLATE" : "$(GAIA_PRETRANSLATE)", \
   "GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)", \
   "GAIA_ENGINE" : "xpcshell", \
@@ -529,7 +527,7 @@ export BUILD_CONFIG
 include build/common.mk
 
 # Generate profile/
-$(PROFILE_FOLDER): preferences pre-app post-app test-agent-config offline contacts extensions b2g_sdk .git/hooks/pre-commit
+$(PROFILE_FOLDER): profile-dir pre-app post-app test-agent-config offline contacts extensions b2g_sdk .git/hooks/pre-commit
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -876,7 +874,7 @@ ifdef APP
   JSHINTED_PATH = apps/$(APP)
   GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint/xfail.list | ( while read file ; do test -f "$$file" && echo $$file ; done ) )
 else
-  JSHINTED_PATH = apps shared build
+  JSHINTED_PATH = apps shared build tests
   GJSLINTED_PATH = $(shell ( while read file ; do test -f "$$file" && echo $$file ; done ) < build/jshint/xfail.list )
 endif
 endif

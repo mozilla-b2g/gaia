@@ -13,16 +13,16 @@ Keyboards.ro = {
     l: 'ł',
     s: 'ș',
     t: 'ț',
-    '.': ',?!;:'
+    '.': ',?!;:…'
   },
   keys: [
     [
       { value: 'q' }, { value: 'w' }, { value: 'e' } , { value: 'r' },
-      { value: 't' } , { value: 'y' }, { value: 'u' } , { value: 'i' },
+      { value: 't' }, { value: 'y' }, { value: 'u' } , { value: 'i' },
       { value: 'o' }, { value: 'p' }
     ], [
       { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
-      { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' },
+      { value: 'g' }, { value: 'h' }, { value: 'j' }, { value: 'k' },
       { value: 'l' }
     ], [
       { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
@@ -37,10 +37,12 @@ Keyboards.ro = {
   pages: [undefined, {
     alt: {
       '0': 'º',
-      '$': '€£¥',
-      '?': '¿',
-      '!': '¡',
-      '\"': '„”'
+      '$': [ '€', '£', '¢', '¥'],
+      '"': ['„', '“', '”'],
+      '\'':['‘', '’'],
+      '?': ['¿'],
+      '!': ['¡'],
+      '+': ['-', '×', '÷', '±']
     },
     // These are based on the en layout.
     keys: [
@@ -64,7 +66,7 @@ Keyboards.ro = {
             value: ','
           }
         }, { value: ':' }, { value: ';' }, { value: '"' },
-        { value: '\'' }, { value: '?' }, { value: '!' },
+        { value: '\'' }, { value: '!' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },

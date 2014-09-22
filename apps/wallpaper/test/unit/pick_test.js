@@ -1,3 +1,4 @@
+require('/shared/js/lazy_loader.js');
 require('/shared/js/media/downsample.js');
 requireApp('wallpaper/js/pick.js');
 

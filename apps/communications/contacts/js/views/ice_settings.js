@@ -1,5 +1,6 @@
 /* global Contacts */
 /* global ICEData */
+/* global ConfirmDialog */
 
 
 /**
@@ -89,7 +90,7 @@ contacts.ICE = (function() {
   /**
    * Given an object representing the internal state
    * fills the UI elements.
-   * @params iceContactsIds (Array) list of contacts and state 
+   * @params iceContactsIds (Array) list of contacts and state
    */
   function setButtonsState(iceContactsIds) {
     iceContactsIds = iceContactsIds || [];
@@ -99,13 +100,23 @@ contacts.ICE = (function() {
 
       if (iceContact.id) {
         contacts.List.getContactById(iceContact.id, function(contact) {
-          var givenName = (contact.givenName && contact.givenName[0]) || '';
-          var familyName = (contact.familyName && contact.familyName[0]) || '';
+          var givenName = (Array.isArray(contact.givenName) &&
+                           contact.givenName[0]) || '';
+          var familyName = (Array.isArray(contact.familyName) &&
+                            contact.familyName[0]) || '';
+
           var display = [givenName, familyName];
-          
+          var iceLabel = display.join(' ').trim();
+          // If contact has no name we the first tel number will be used
+          if (!iceLabel) {
+            if (Array.isArray(contact.tel) && contact.tel[0]) {
+              iceLabel = contact.tel[0].value.trim();
+            }
+          }
+
           var span = document.createElement('span');
           span.classList.add('ice-contact');
-          span.textContent = display.join(' ').trim();
+          span.textContent = iceLabel;
           iceContactButtons[index].innerHTML = '';
           iceContactButtons[index].appendChild(span);
         });
@@ -117,19 +128,98 @@ contacts.ICE = (function() {
     });
   }
 
+  function goBack() {
+    contacts.List.clearClickHandlers();
+    contacts.List.handleClick(Contacts.showContactDetail);
+    Contacts.setNormalHeader();
+
+    var hasICESet = ICEData.iceContacts.find(function(x) {
+      return x.active === true;
+    });
+
+    if (hasICESet) {
+      contacts.List.toggleICEGroup(true);
+    }
+
+    if (contacts.Search && contacts.Search.isInSearchMode()) {
+      contacts.Search.exitSearchMode();
+    }
+
+    contacts.Settings.navigation.back();
+  }
+
   /**
    * Given a contact id, saves it internally. Also restores the contact
    * list default handler.
+   * In case of not valid contact it will display a message on the screen
+   * indicating the cause of the error.
    * @param id (string) contact id
    */
   function selectICEHandler(id) {
-    contacts.List.toggleICEGroup(true);
-    setICEContact(id, currentICETarget, true,
-     contacts.Settings.navigation.back.bind(
-      contacts.Settings.navigation));
+    checkContact(id).then(function() {
+      contacts.List.toggleICEGroup(true);
+      setICEContact(id, currentICETarget, true, goBack);
+    }, function error(l10nId) {
+      var dismiss = {
+        title: 'ok',
+        callback: function() {
+          ConfirmDialog.hide();
+        }
+      };
+      Contacts.confirmDialog(null, l10nId || 'ICEUnknownError', dismiss);
+    });
+  }
 
-    contacts.List.clearClickHandlers();
-    contacts.List.handleClick(Contacts.showContactDetail);
+  /**
+   * Will perform a series of checks to validate the selected
+   * contact as a valid ICE contact
+   * @param id (string) contact id
+   * @return (Promise) fulfilled if contact is valid
+   */
+  function checkContact(id) {
+    return ICEData.load().then(function() {
+      return contactNotICE(id).then(contactNoPhone);
+    });
+  }
+
+  /**
+   * Checks if a contacts is already set as ICE
+   * @param id (string) contact id
+   * @return (Promise) fulfilled if contact is not repeated,
+   *  rejected otherwise
+   */
+  function contactNotICE(id) {
+    return new Promise(function(resolve, reject) {
+      var isICE = ICEData.iceContacts.some(function(x) {
+        return x.id === id;
+      });
+
+      if (isICE) {
+        reject('ICERepeatedContact');
+      } else {
+        resolve(id);
+      }
+    });
+  }
+
+  /**
+   * Filter to avoid selecting contacts as ICE if they
+   * don't have a phone number
+   * @param id (String) contact id
+   * @returns (Promise) Fulfilled if contact has phone
+   */
+  function contactNoPhone(id) {
+    return new Promise(function(resolve, reject) {
+      contacts.List.getContactById(id, function(contact) {
+        if(Array.isArray(contact.tel) && contact.tel[0] &&
+         contact.tel[0].value && contact.tel[0].value.trim()) {
+          resolve(id);
+        }
+        else {
+          reject('ICEContactNoNumber');
+        }
+      });
+    });
   }
 
   /**
@@ -139,6 +229,7 @@ contacts.ICE = (function() {
    */
   function showSelectList(target) {
     contacts.List.toggleICEGroup(false);
+    Contacts.setCanceleableHeader(goBack);
     contacts.Settings.navigation.go('view-contacts-list', 'right-left');
     currentICETarget = target === 'select-ice-contact-1' ? 0 : 1;
     contacts.List.clearClickHandlers();
@@ -146,7 +237,7 @@ contacts.ICE = (function() {
   }
 
   /**
-   * Set the values for ICE contacts, both in local and in the 
+   * Set the values for ICE contacts, both in local and in the
    * datastore
    * @param id (string) contact id
    * @param pos (int) current position (0,1)
@@ -161,7 +252,7 @@ contacts.ICE = (function() {
         cb();
       }
     });
-    
+
   }
 
   function reset() {

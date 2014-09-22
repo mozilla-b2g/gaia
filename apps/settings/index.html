@@ -52,13 +52,17 @@
     <script src="shared/elements/gaia-header/dist/script.js"></script>
 
     <!-- Localization -->
-    <link rel="resource" type="application/l10n" href="shared/locales/download.ini">
-    <link rel="resource" type="application/l10n" href="shared/locales/branding.ini">
-    <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
-    <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini">
-    <link rel="resource" type="application/l10n" href="shared/locales/tz.ini">
-    <link rel="resource" type="application/l10n" href="shared/locales/sounds.ini">
-    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <link rel="manifest" href="./manifest.webapp">
+
+    <link rel="localization" href="shared/locales/download/download.{locale}.properties">
+    <link rel="localization" href="shared/locales/branding/branding.{locale}.properties">
+    <link rel="localization" href="shared/locales/date/date.{locale}.properties">
+    <link rel="localization" href="shared/locales/permissions/permissions.{locale}.properties">
+    <link rel="localization" href="shared/locales/tz/tz.{locale}.properties">
+    <link rel="localization" href="shared/locales/sounds/sounds.{locale}.properties">
+    <link rel="localization" href="locales/settings.{locale}.properties">
+    <link rel="localization" href="locales/device_type/settings.device.{locale}.properties">
+
     <script src="shared/js/l10n.js"></script>
     <script defer="" src="shared/js/l10n_date.js"></script>
 
@@ -397,7 +401,7 @@
         <ul>
           <li data-category="connectivity">
             <label class="pack-switch">
-              <input id="airplaneMode-input" class="uninit" type="checkbox" disabled>
+              <input class="airplaneMode-input uninit" type="checkbox" disabled>
               <span id="menuItem-airplaneMode" class="menu-item" data-icon="airplane" data-l10n-id="airplaneMode">Airplane Mode</span>
             </label>
           </li>

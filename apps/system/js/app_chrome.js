@@ -468,8 +468,14 @@
     }
 
     var self = this;
+    var previousColor;
+
     window.requestAnimationFrame(function updateAppColor() {
       var computedColor = window.getComputedStyle(self.element).backgroundColor;
+      if (previousColor === computedColor) {
+        return;
+      }
+
       var colorCodes = /rgb\((\d+), (\d+), (\d+)\)/.exec(computedColor);
       if (!colorCodes || colorCodes.length === 0) {
         return;
@@ -483,6 +489,8 @@
 
       self.app.element.classList.toggle('light', brightness > 200);
       self.app.publish('titlestatechanged');
+      previousColor = computedColor;
+      window.requestAnimationFrame(updateAppColor);
     });
   };
 
@@ -635,23 +643,25 @@
     var url = this._currentURL;
 
     LazyLoader.load('shared/js/icons_helper.js', (function() {
-      var activity = new MozActivity({
-        name: 'save-bookmark',
-        data: {
-          type: 'url',
-          url: url,
-          name: name,
-          icon: IconsHelper.getBestIcon(favicons),
-          useAsyncPanZoom: dataset.useAsyncPanZoom,
-          iconable: false
+      IconsHelper.getIcon(url, null, {icons: favicons}).then(icon => {
+        var activity = new MozActivity({
+          name: 'save-bookmark',
+          data: {
+            type: 'url',
+            url: url,
+            name: name,
+            icon: icon,
+            useAsyncPanZoom: dataset.useAsyncPanZoom,
+            iconable: false
+          }
+        });
+
+        if (this.addToHomeButton) {
+          activity.onsuccess = function onsuccess() {
+            this.addToHomeButton.hidden = true;
+          }.bind(this);
         }
       });
-
-      if (this.addToHomeButton) {
-        activity.onsuccess = function onsuccess() {
-          this.addToHomeButton.hidden = true;
-        }.bind(this);
-      }
     }).bind(this));
   };
 

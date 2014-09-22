@@ -30,12 +30,14 @@
   <link rel="resource" type="image/png" href="/shared/resources/branding/logosmall.png"/>
   <link rel="resource" type="image/png" href="/shared/resources/branding/powered.png"/>
   <link rel="resource" type="image/png" href="/shared/resources/branding/privacy_sprite.png"/>
-  <link rel="resource" type="application/l10n" href="/shared/locales/branding.ini"/>
+  <link rel="manifest" href="manifest.webapp">
+  <link rel="localization" href="/shared/locales/branding/branding.{locale}.properties">
   <!-- This is needed for not duplicating SIM Import and FB Import locales -->
-  <link rel="resource" type="application/l10n" href="/shared/locales/import_contacts.ini"/>
-  <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
-  <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
-  <link rel="resource" type="application/l10n" href="/shared/locales/tz.ini"/>
+  <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
+  <link rel="localization" href="locales/ftu.{locale}.properties">
+  <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
+  <link rel="localization" href="/shared/locales/tz/tz.{locale}.properties">
+
   <link rel="resource" type="application/json" href="/shared/resources/tz.json"/>
   <link rel="resource" type="application/json" href="/shared/resources/languages.json"/>
   <link rel="resource" type="application/json" href="/shared/resources/keyboard_layouts.json"/>
@@ -451,9 +453,9 @@
       <section role="region" id="firefox_accounts">
         <div class="fxa-logo"></div>
 
-        <p data-l10n-id="fxa-overview" id="fxa-intro">
-          A Firefox Account lets you use features like Find My Device and apps
-          like the Firefox Marketplace.
+        <p data-l10n-id="fxa-upsell" id="fxa-intro">
+          A Firefox Account lets you find a lost phone and buy apps from
+          the Firefox Marketplace.
         </p>
 
         <p>

@@ -476,7 +476,7 @@ suite('sim mgmt >', function() {
     });
 
     test('should read no operator when unlocked', function() {
-      assert.equal('noOperator', UIManager.simCarrier1.textContent);
+      assert.equal('searchingOperator', UIManager.simCarrier1.textContent);
     });
 
     test('should update the operator on voicechange', function() {

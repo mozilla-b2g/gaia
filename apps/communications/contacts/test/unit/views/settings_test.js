@@ -371,6 +371,31 @@ suite('Contacts settings >', function() {
       });
     });
 
+    suite('SD not present >', function() {
+      var deviceStorages, deviceStorage;
+
+      suiteSetup(function() {
+        deviceStorages = utils.sdcard.deviceStorages;
+        deviceStorage = utils.sdcard.deviceStorage;
+
+        utils.sdcard.deviceStorages = [];
+        utils.sdcard.deviceStorage = null;
+      });
+
+      suiteTeardown(function() {
+        utils.sdcard.deviceStorages = deviceStorages;
+        utils.sdcard.deviceStorage = deviceStorage;
+      });
+
+      test('import button should be disabled', function() {
+        assert.isTrue(importSDButton.hasAttribute('disabled'));
+      });
+
+      test('export button should be disabled', function() {
+        assert.isTrue(exportSDButton.hasAttribute('disabled'));
+      });
+    });
+
     suite('SD available >', function() {
       setup(function() {
         connectSDCard();
@@ -796,11 +821,29 @@ suite('Contacts settings >', function() {
 
   suite('ICE options', function() {
 
+    var iceContacts;
+
+    suiteSetup(function() {
+      iceContacts = document.getElementById('set-ice');
+    });
+
     setup(function() {
       contacts.Settings.init();
       mocksHelper.suiteSetup();
       realMozContacts = navigator.mozContacts;
       navigator.mozContacts = MockMozContacts;
+    });
+
+    test('If no contacts, ICE contacts option is disabled', function() {
+      navigator.mozContacts.number = 0;
+      contacts.Settings.refresh();
+      assert.isTrue(iceContacts.disabled);
+    });
+
+    test('If there are contacts, ICE contacts option is enabled', function() {
+      navigator.mozContacts.number = 100;
+      contacts.Settings.refresh();
+      assert.isFalse(iceContacts.disabled);
     });
 
     test('Pressing the ICE button should init ICE module', function(done) {

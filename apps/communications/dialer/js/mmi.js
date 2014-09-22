@@ -89,8 +89,6 @@ var MmiManager = {
     // Helper function to compose an informative message about a successful
     // request to query the call forwarding status.
     var processCf = (function processCf(result) {
-      var msg = this._('cf-status');
-
       var voice, data, fax, sms, sync, async, packet, pad;
 
       for (var i = 0; i < result.length; i++) {
@@ -128,20 +126,25 @@ var MmiManager = {
                 pad = result[i].number;
                 break;
               default:
-                return this._('cf-error');
+                return this._('call-forwarding-error');
             }
           }
         }
       }
 
-      msg += this._('cf-voice', {voice: voice || this._('cf-inactive')}) +
-             this._('cf-data', {data: data || this._('cf-inactive')}) +
-             this._('cf-fax', {fax: fax || this._('cf-inactive')}) +
-             this._('cf-sms', {sms: sms || this._('cf-inactive')}) +
-             this._('cf-sync', {sync: sync || this._('cf-inactive')}) +
-             this._('cf-async', {async: async || this._('cf-inactive')}) +
-             this._('cf-packet', {packet: packet || this._('cf-inactive')}) +
-             this._('cf-pad', {pad: pad || this._('cf-inactive')});
+      var inactive = this._('call-forwarding-inactive');
+      var msg = [
+        this._('call-forwarding-status'),
+        this._('call-forwarding-voice', { voice: voice || inactive }),
+        this._('call-forwarding-data', { data: data || inactive }),
+        this._('call-forwarding-fax', { fax: fax || inactive }),
+        this._('call-forwarding-sms', { sms: sms || inactive }),
+        this._('call-forwarding-sync', { sync: sync || inactive }),
+        this._('call-forwarding-async', { async: async || inactive }),
+        this._('call-forwarding-packet', { packet: packet || inactive }),
+        this._('call-forwarding-pad', { pad: pad || inactive })
+      ].join('\n');
+
       return msg;
     }).bind(this);
 

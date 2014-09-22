@@ -61,6 +61,10 @@ var ThreadUI = {
   IMAGE_RESIZE_DURATION: 3000,
   BANNER_DURATION: 2000,
 
+  // Toast duration when you write a long text and need more than one SMS
+  // to send it
+  ANOTHER_SMS_TOAST_DURATION: 3000,
+
   // Min available chars count that triggers available chars counter
   MIN_AVAILABLE_CHARS_COUNT: 20,
 
@@ -104,7 +108,7 @@ var ThreadUI = {
       'tel-form', 'header-text', 'max-length-notice', 'convert-notice',
       'resize-notice', 'dual-sim-information', 'new-message-notice',
       'subject-max-length-notice', 'counter-label', 'recipient-suggestions',
-      'call-number-button'
+      'call-number-button','sms-counter-notice'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -1224,9 +1228,12 @@ var ThreadUI = {
   },
 
   onSegmentInfoChange: function thui_onSegmentInfoChange() {
+    var counterMsgCointainer = this.smsCounterNotice;
     var smsInfo = Compose.segmentInfo;
     var segments = smsInfo.segments;
     var availableChars = smsInfo.charsAvailableInLastSegment;
+    var pContent = counterMsgCointainer.querySelector('p');
+    var currentSegment = +this.counterLabel.dataset.counter.split('/')[1];
 
     // in MMS mode, the counter value isn't used anyway, so we can update this
     this.counterLabel.dataset.counter = availableChars + '/' + segments;
@@ -1236,6 +1243,18 @@ var ThreadUI = {
     var showCounter = (segments && (segments > 1 ||
       availableChars <= this.MIN_AVAILABLE_CHARS_COUNT));
     this.counterLabel.classList.toggle('has-counter', showCounter);
+
+    if(currentSegment !== segments && currentSegment > 0 && 
+      segments < Settings.maxConcatenatedMessages){
+      navigator.mozL10n.setAttributes(pContent, 
+        'sms-counter-notice-label', {number: segments});
+      counterMsgCointainer.classList.remove('hide');
+      window.setTimeout(function() {
+        counterMsgCointainer.classList.add('hide');
+      }, this.ANOTHER_SMS_TOAST_DURATION);
+    }
+
+
   },
 
   checkMessageSize: function thui_checkMessageSize() {
@@ -2194,8 +2213,7 @@ var ThreadUI = {
     // so delete it
     if (this.draft) {
       ThreadListUI.removeThread(this.draft.id);
-      Drafts.delete(this.draft);
-      Drafts.store();
+      Drafts.delete(this.draft).store();
       this.draft = null;
     }
 
@@ -2868,7 +2886,7 @@ var ThreadUI = {
     // properly update the Drafts object
     // and ThreadList entries
     if (this.draft) {
-      Drafts.delete(this.draft);
+      Drafts.delete(this.draft).store();
       if (Threads.active) {
         Threads.active.timestamp = Date.now();
         ThreadListUI.updateThread(Threads.active);

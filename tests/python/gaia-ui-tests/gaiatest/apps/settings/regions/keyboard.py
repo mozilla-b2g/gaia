@@ -61,4 +61,5 @@ class KeyboardAddMoreKeyboards(Base):
         self.wait_for_condition(lambda m: checkbox.is_selected())
 
     def go_back(self):
+        # TODO: remove tap with coordinates after Bug 1061698 is fixed
         self.marionette.find_element(*self._header_locator).tap(25, 25)

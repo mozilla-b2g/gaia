@@ -149,7 +149,7 @@ suite('service/ical_recur_expansion', function() {
             inclusiveDates[0]
           );
 
-          assert.length(sent, forEachLimit, 'limit bounds');
+          assert.lengthOf(sent, forEachLimit, 'limit bounds');
         });
 
         test('min verify exclusive', function() {
@@ -169,7 +169,7 @@ suite('service/ical_recur_expansion', function() {
             inclusiveDates[1]
           );
 
-          assert.length(sent, forEachLimit, 'limit bounds');
+          assert.lengthOf(sent, forEachLimit, 'limit bounds');
         });
       }
 
@@ -266,7 +266,7 @@ suite('service/ical_recur_expansion', function() {
         });
 
         assert.instanceOf(iter, ICAL.RecurExpansion);
-        assert.length(sent, forEachLimit);
+        assert.lengthOf(sent, forEachLimit);
 
         // test sanity we need an infinite recur iterator
         // or our tests simply suck...

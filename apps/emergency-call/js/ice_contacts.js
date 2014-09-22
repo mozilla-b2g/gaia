@@ -23,10 +23,7 @@
 
     LazyLoader.load([contactListOverlay], function() {
       var contactListOverlayHeader = contactListOverlay.querySelector('header');
-
-      navigator.mozL10n.ready(function() {
-        contactListOverlayHeader.dataset.l10nId = 'ice-contacts-overlay-title';
-      });
+      contactListOverlayHeader.dataset.l10nId = 'ice-contacts-overlay-title';
 
       contactList = document.getElementById('contact-list');
       contactListCancel =
@@ -57,27 +54,25 @@
   }
 
   function addContactToOverlay(contact, resolve) {
-    contact.tel.forEach(function (tel) {
-      navigator.mozL10n.ready(function() {
-        var iceContactOverlayEntry = contactInOverlay.cloneNode(true);
-        iceContactOverlayEntry.removeAttribute('id');
-        iceContactOverlayEntry.removeAttribute('hidden');
-        iceContactOverlayEntry.querySelector('.js-name').textContent =
-          contact.name[0];
-        iceContactOverlayEntry.querySelector('.js-tel-type').textContent =
-          navigator.mozL10n.get(tel.type[0]);
-        iceContactOverlayEntry.querySelector('.js-tel').textContent =
-            tel.value;
-        contactList.insertBefore(iceContactOverlayEntry, contactListCancel);
-        iceContactOverlayEntry.addEventListener('click',
-          callICEContact.bind(null, tel.value));
-        // Set the ICE contacts bar visible as soon as there is some
-        //  ICE contact to call.
-        showICEContactsBar();
-        if (updateCompleted()) {
-          resolve();
-        }
-      });
+    contact.tel.forEach(function(tel) {
+      var iceContactOverlayEntry = contactInOverlay.cloneNode(true);
+      iceContactOverlayEntry.removeAttribute('id');
+      iceContactOverlayEntry.removeAttribute('hidden');
+      iceContactOverlayEntry.querySelector('.js-name').textContent =
+        contact.name[0];
+      iceContactOverlayEntry.querySelector('.js-tel-type').dataset.l10nId =
+        tel.type[0];
+      iceContactOverlayEntry.querySelector('.js-tel').textContent =
+        tel.value;
+      contactList.insertBefore(iceContactOverlayEntry, contactListCancel);
+      iceContactOverlayEntry.addEventListener('click',
+        callICEContact.bind(null, tel.value));
+      // Set the ICE contacts bar visible as soon as there is some
+      //  ICE contact to call.
+      showICEContactsBar();
+      if (updateCompleted()) {
+        resolve();
+      }
     });
   }
 
@@ -91,40 +86,39 @@
    */
   function updateICEContacts() {
     processedContacts = 0;
+    init();
+
     // FIXME/bug 1060730: Turn this into a Promise.all() barrier.
-    return new Promise(function (resolve) {
-      LazyLoader.load([contactInOverlay],
-        function() {
-          init();
-          ICEStore.getContacts().then(function (iceContacts) {
-            if (!iceContacts || !iceContacts.length) {
-              resolve();
-            } else {
-              contactsToProcess = iceContacts.length;
-              iceContacts.forEach(function (iceContact) {
-                var contactFilter = {
-                  filterBy: ['id'],
-                  filterValue: iceContact,
-                  filterOp: 'equals',
-                  filterLimit: 1
-                };
-                var contactRequest = navigator.mozContacts.find(contactFilter);
-                contactRequest.onsuccess = function () {
-                  var contact = this.result[0];
-                  if (!contact || !contact.tel || contact.tel.length === 0) {
-                    if (updateCompleted()) {
-                      resolve();
-                    }
-                    return;
+    return new Promise(function(resolve) {
+      LazyLoader.load([contactInOverlay], function() {
+        ICEStore.getContacts().then(function(iceContacts) {
+          if (!iceContacts || !iceContacts.length) {
+            resolve();
+          } else {
+            contactsToProcess = iceContacts.length;
+            iceContacts.forEach(function(iceContact) {
+              var contactFilter = {
+                filterBy: ['id'],
+                filterValue: iceContact,
+                filterOp: 'equals',
+                filterLimit: 1
+              };
+              var contactRequest = navigator.mozContacts.find(contactFilter);
+              contactRequest.onsuccess = function() {
+                var contact = this.result[0];
+                if (!contact || !contact.tel || contact.tel.length === 0) {
+                  if (updateCompleted()) {
+                    resolve();
                   }
-                  iceContactsDetails.push(this.result[0]);
-                  addContactToOverlay(this.result[0], resolve);
-                };
-              });
-            }
-          });
-        }
-      );
+                  return;
+                }
+                iceContactsDetails.push(this.result[0]);
+                addContactToOverlay(this.result[0], resolve);
+              };
+            });
+          }
+        });
+      });
     });
   }
 

@@ -9,8 +9,20 @@ var icc = {
   _inputTimeout: 40000,
   _toneDefaultTimeout: 5000,
 
+  checkPlatformCompatibility: function icc_checkPlatformCompat() {
+    // The STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE constant will be added
+    // in the next versions of the platform. This code avoid errors if running
+    // in old versions. See bug #1026556
+    // Remove this workaround as soon as Gecko has the constant defined.
+    // Followup bug #1059166
+    if (!('STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE' in this._iccManager)) {
+      this._iccManager.STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE = 0x24;
+    }
+  },
+
   init: function icc_init() {
     this._iccManager = window.navigator.mozIccManager;
+    this.checkPlatformCompatibility();
     var self = this;
     this.clearMenuCache(function() {
       window.navigator.mozSetMessageHandler('icc-stkcommand',
@@ -510,7 +522,7 @@ var icc = {
     // Help
     this.icc_input_btn_help.disabled = !options.isHelpAvailable;
 
-    if (!options.isYesNoRequired && !options.isYesNoRequested) {
+    if (!options.isYesNoRequested) {
       this.icc_input.classList.remove('yesnomode');
 
       // Workaround. See bug #818270. Followup: #895314
@@ -554,12 +566,12 @@ var icc = {
       this.icc_input_btn_yes.onclick = function(event) {
         clearInputTimeout();
         self.hideViews();
-        callback(true, 1);
+        callback(true, true);
       };
       this.icc_input_btn_no.onclick = function(event) {
         clearInputTimeout();
         self.hideViews();
-        callback(true, 0);
+        callback(true, false);
       };
     }
 

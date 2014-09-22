@@ -30,6 +30,12 @@ function navigationStack(currentView) {
         current: 'app-go-up-back-out'
       }
     },
+    'activity-popup': {
+        forwards: {
+         next: 'app-go-up-in'
+      },
+      backwards: {}
+    },
     'go-deeper': {
       forwards: {
         current: 'app-go-deeper-out',

@@ -83,7 +83,7 @@ var NetworkUsageAlarm = (function() {
   }
 
   return {
-    updateAlarm : _updateAlarm,
+    updateAlarm: _updateAlarm,
     clearAlarms: _clearAlarms
   };
 }());

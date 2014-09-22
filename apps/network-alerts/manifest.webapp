@@ -15,10 +15,14 @@
     "68": "/style/icons/icon-68.png"
   },
   "permissions": {
+    "themeable":{},
     "attention":{},
     "desktop-notification":{},
     "cellbroadcast":{},
     "settings":{ "access": "readonly" }
+  },
+  "locales": {
+    "en-US": {}
   },
   "default_locale": "en-US",
   "orientation": "default",

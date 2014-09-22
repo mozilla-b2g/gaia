@@ -214,7 +214,7 @@ suiteGroup('Views.TimeParent', function() {
 
       assert.ok(!curFrame.active, 'deactivated previously current');
       assert.ok(subject.frames.get(curId), 'previous id is still present');
-      assert.length(subject.frames, 4);
+      assert.lengthOf(subject.frames, 4);
     });
 
     test('max frame pruge', function() {
@@ -243,13 +243,13 @@ suiteGroup('Views.TimeParent', function() {
       next = subject.frames.get(next);
 
       // verify frames exist
-      assert.length(subject.frames, 3, 'trims extra frames when over max');
+      assert.lengthOf(subject.frames, 3, 'trims extra frames when over max');
       assert.ok(subject.frames.has(cur), 'cur');
       assert.ok(subject.frames.has(prev), 'prev');
       assert.ok(subject.frames.has(next), 'next');
 
       // verify other children where removed
-      assert.length(subject.frameContainer.children, 3);
+      assert.lengthOf(subject.frameContainer.children, 3);
     });
 
     test('the same scrollTop between day ane week views', function() {

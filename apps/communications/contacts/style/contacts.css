@@ -395,6 +395,11 @@ gaia-header [data-icon] {
   border-radius: 7rem;
 }
 
+#view-contact-form #contact-form hr {
+  margin-left: 4rem;
+  background-color: #e7e7e7;
+}
+
 /* Order switch */
 #view-settings [data-type="list"] li#settingsOrder {
   display: flex;

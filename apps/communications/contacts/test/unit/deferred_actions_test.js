@@ -41,7 +41,8 @@ if (!window.fb) {
 suite('Post rendering', function() {
   var realImportStatusData,
       realUtils,
-      realFb;
+      realFb,
+      realFbLoader;
 
   var mockNavigationStack;
 
@@ -72,11 +73,19 @@ suite('Post rendering', function() {
       });
 
       sinon.stub(navigator, 'removeIdleObserver', function() {});
+
+      realFbLoader = window.fbLoader;
+
+      window.fbLoader = {
+        loaded: true
+      };
     });
 
     suiteTeardown(function() {
       navigator.addIdleObserver.restore();
       navigator.removeIdleObserver.restore();
+
+      window.fbLoader = realFbLoader;
     });
 
     setup(function() {
@@ -88,6 +97,7 @@ suite('Post rendering', function() {
       sinon.stub(Mockfb.sync, 'scheduleNextSync', function() {
         done(function() {
           Mockfb.sync.scheduleNextSync.restore();
+          assert.ok('passed');
         });
       });
 
@@ -96,17 +106,46 @@ suite('Post rendering', function() {
         accessTokenMigrated: true
       });
 
-      window.ImportStatusData.put(Mockfb.utils.SCHEDULE_SYNC_KEY, Date.now())
-        .then(function() {
+      window.ImportStatusData.put(
+        Mockfb.utils.SCHEDULE_SYNC_KEY, Date.now()).then(function() {
           DeferredActions.execute();
-        }
-      );
+      });
+    });
+
+    test('Facebook not yet loaded', function(done) {
+      var currentFbLoader = window.fbLoader;
+
+      window.fbLoader = {
+        loaded: false
+      };
+
+      sinon.stub(Mockfb.sync, 'scheduleNextSync', function() {
+        done(function() {
+          Mockfb.sync.scheduleNextSync.restore();
+          window.fbLoader = currentFbLoader;
+          assert.ok('passed');
+        });
+      });
+
+      MockCookie.update({
+        fbMigrated: true,
+        accessTokenMigrated: true
+      });
+
+      window.ImportStatusData.put(
+        Mockfb.utils.SCHEDULE_SYNC_KEY, Date.now()).then(function() {
+          DeferredActions.execute();
+          window.dispatchEvent(new CustomEvent('facebookLoaded'));
+      });
     });
 
     test('Version migration triggered when needed', function(done) {
       sinon.stub(window.LazyLoader, 'load', function(file) {
         if (file.indexOf('migrator.js') > -1) {
-          done();
+          done(function() {
+            window.LazyLoader.load.restore();
+            assert.ok('passed');
+          });
         }
       });
 

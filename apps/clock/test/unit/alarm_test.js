@@ -44,6 +44,13 @@ suite('Alarm Test', function() {
       });
     });
 
+    test('alarm is enabled when snoozed', function(done) {
+      this.alarm.schedule('snooze').then(function() {
+        assert.ok(this.alarm.isEnabled());
+        done();
+      }.bind(this));
+    });
+
     test('schedule saves alarm', function(done) {
       var spy = sinon.spy(alarmDatabase, 'put');
       this.alarm.schedule('normal').then(function() {

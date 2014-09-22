@@ -43,7 +43,9 @@
 
 var CostControlApp = (function() {
 
-  var costcontrol, initialized = false;
+  var costcontrol,
+      initialized = false,
+      hashFromLastRun;
   var vmanager;
 
   // Set the application in waiting for SIM mode. During this mode, the
@@ -196,7 +198,7 @@ var CostControlApp = (function() {
     }
 
     if (thereIsNextReset) {
-      window.addEventListener('messagehandlerready',  function _setNextReset() {
+      window.addEventListener('messagehandlerready', function _setNextReset() {
         window.removeEventListener('messagehandlerready', _setNextReset);
         setNextReset(ConfigManager.option('nextReset'));
       });
@@ -339,6 +341,7 @@ var CostControlApp = (function() {
       ConfigManager.requestSettings(dataSim.iccId,
                                     function _onSettings(settings) {
         var mode = ConfigManager.getApplicationMode();
+        var newHash;
         debug('App UI mode: ', mode);
 
         // Layout
@@ -352,7 +355,7 @@ var CostControlApp = (function() {
 
             var dataUsageTab = document.getElementById('datausage-tab');
             dataUsageTab.classList.add('standalone');
-            window.location.hash = '#datausage-tab';
+            newHash = '#datausage-tab';
 
           // Two tabs mode
           } else {
@@ -365,10 +368,12 @@ var CostControlApp = (function() {
             // If it was showing the left tab, force changing to the
             // proper left view
             if (!isDataUsageTabShown()) {
-              window.location.hash = (mode === 'PREPAID') ?
-                                     '#balance-tab#' : '#telephony-tab#';
+              newHash = (mode === 'PREPAID') ? '#balance-tab#' :
+                        '#telephony-tab#';
             }
           }
+          window.location.hash = hashFromLastRun || newHash;
+          hashFromLastRun = null;
 
           // XXX: Break initialization to allow Gecko to render the animation on
           // time.
@@ -428,6 +433,10 @@ var CostControlApp = (function() {
   }
 
   function initApp() {
+    // The location hash keeps its current value even if the app is killed by
+    // the oom killer.
+    hashFromLastRun = window.location.hash;
+    window.location.hash = '';
     vmanager = new ViewManager();
     waitForSIMReady(startApp);
   }

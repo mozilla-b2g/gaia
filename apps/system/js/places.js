@@ -4,6 +4,8 @@
 
 (function(exports) {
 
+  const DEBOUNCE_TIME = 2000;
+
   /**
    * Places is the browser history, bookmark and icon management system for
    * B2G. Places monitors app events and syncs information with the Places
@@ -53,6 +55,21 @@
     topSites: [],
 
     /**
+     * A list of debounced changes to places, keyed by URL.
+     * @memberof Places.prototype
+     * @type {Object}
+     */
+    _placeChanges: {},
+
+    /**
+     * Maps URLs to debounce save timeouts. The place is saved after the
+     * timeout is reached, or on appload.
+     * @memberof Places.prototype
+     * @type {Object}
+     */
+    _timeouts: {},
+
+    /**
      * Starts places.
      * Adds necessary event listeners and gets the datastore.
      * @param {Function} callback
@@ -60,8 +77,8 @@
      */
     start: function() {
       return new Promise(resolve => {
-        window.addEventListener('apptitlechange', this);
         window.addEventListener('applocationchange', this);
+        window.addEventListener('apptitlechange', this);
         window.addEventListener('appiconchange', this);
         window.addEventListener('apploaded', this);
 
@@ -99,22 +116,23 @@
       }
 
       switch (evt.type) {
-      case 'apptitlechange':
-        this.setPlaceTitle(app.config.url, app.title);
-        break;
-      case 'applocationchange':
-        this.addVisit(app.config.url);
-        break;
-      case 'appiconchange':
-        this.addPlaceIcons(app.config.url, app.favicons);
-        break;
-      case 'apploaded':
-        var index = this.screenshotQueue.indexOf(app.config.url);
-        if (index !== -1) {
-          this.screenshotRequested(app.config.url);
-          this.screenshotQueue.splice(index, 1);
-        }
-        break;
+        case 'applocationchange':
+          this.onLocationChange(app.config.url);
+          break;
+        case 'apptitlechange':
+          this.onTitleChange(app.config.url, app.title);
+          break;
+        case 'appiconchange':
+          this.onIconChange(app.config.url, app.favicons);
+          break;
+        case 'apploaded':
+          var index = this.screenshotQueue.indexOf(app.config.url);
+          if (index !== -1) {
+            this.screenshotRequested(app.config.url);
+            this.screenshotQueue.splice(index, 1);
+          }
+          this.debouncePlaceChanges(app.config.url);
+          break;
       }
     },
 
@@ -186,26 +204,6 @@
     },
 
     /**
-     * Add visit.
-     *
-     * Record visit to place. Currently this just increments frecency, but
-     * eventually there should be a separate 'visits' DataStore to store a
-     * record for every visit in order to render a history view.
-     *
-     * @param {String} url URL of visit to record.
-     * @memberof Places.prototype
-     */
-    addVisit: function(url) {
-      return this.editPlace(url, (place, cb) => {
-        place.visited = Date.now();
-        place.frecency++;
-        place = this.addToVisited(place);
-        this.checkTopSites(place);
-        cb(place);
-      });
-    },
-
-    /**
      * Manually set the previous visits array of timestamps, used for
      * migrations
      */
@@ -213,7 +211,9 @@
       return this.editPlace(url, (place, cb) => {
         place.visits = place.visits || [];
         place.visits.concat(visits);
-        place.visits.sort((a, b) => { return b - a; });
+        place.visits.sort((a, b) => {
+          return b - a;
+        });
         cb(place);
       });
     },
@@ -258,7 +258,7 @@
       var numTopSites = this.topSites.length;
       var lastTopSite = this.topSites[numTopSites - 1];
       if (numTopSites < this.MAX_TOP_SITES ||
-          place.frecency > lastTopSite.frecency) {
+        place.frecency > lastTopSite.frecency) {
         this.topSites.push(place);
         this.screenshotRequested(place.url);
         this.topSites.sort(function(a, b) {
@@ -283,7 +283,26 @@
      * @memberof Places.prototype
      */
     clear: function() {
-      return this.getStore().then(store => { store.clear(); });
+      return this.getStore().then(store => {
+        store.clear();
+      });
+    },
+
+    /**
+     * Add visit.
+     *
+     * Updates our place cache. Currently this just increments frecency, but
+     * eventually there should be a separate 'visits' DataStore to store a
+     * record for every visit in order to render a history view.
+     *
+     * @param {String} url URL of visit to record.
+     * @memberof Places.prototype
+     */
+    onLocationChange: function(url) {
+      this._placeChanges[url] = this._placeChanges[url] || this.defaultPlace();
+      this._placeChanges[url].visited = Date.now();
+      this._placeChanges[url].frecency += 1;
+      this.debounce(url);
     },
 
     /**
@@ -293,11 +312,10 @@
      * @param {String} title Title of place to set.
      * @memberof Places.prototype
      */
-    setPlaceTitle: function(url, title) {
-      return this.editPlace(url, function(place, cb) {
-        place.title = title;
-        cb(place);
-      });
+    onTitleChange: function(url, title) {
+      this._placeChanges[url] = this._placeChanges[url] || this.defaultPlace();
+      this._placeChanges[url].title = title;
+      this.debounce(url);
     },
 
     /**
@@ -307,11 +325,61 @@
      * @param {String} icon The icon object
      * @memberof Places.prototype
      */
-    addPlaceIcons: function(url, icons) {
-      return this.editPlace(url, (place, cb) => {
-        for (var iconUri in icons) {
-          place.icons[iconUri] = icons[iconUri];
+    onIconChange: function(url, icons) {
+      this._placeChanges[url] = this._placeChanges[url] || this.defaultPlace();
+      for (var iconUri in icons) {
+        this._placeChanges[url].icons[iconUri] = icons[iconUri];
+      }
+      this.debounce(url);
+    },
+
+    /**
+     * Creates a timeout to save place data.
+     *
+     * @param {String} url URL of place.
+     * @memberof Places.prototype
+     */
+    debounce: function(url) {
+      clearTimeout(this._timeouts[url]);
+      this._timeouts[url] = setTimeout(() => {
+        this.debouncePlaceChanges(url);
+      }, DEBOUNCE_TIME);
+    },
+
+    /**
+     * Saves place data to datastore after the apploaded event, or a timeout.
+     *
+     * @param {String} url URL of place to update.
+     * @param {String} icon The icon object
+     * @memberof Places.prototype
+     */
+    debouncePlaceChanges: function(url) {
+      clearTimeout(this._timeouts[url]);
+
+      this.editPlace(url, (place, cb) => {
+        var edits = this._placeChanges[url];
+        if (!edits) {
+          return;
         }
+
+        // Update the title if it's not the default (matches the URL)
+        if (edits.title !== url) {
+          place.title = edits.title;
+        }
+
+        if (edits.visited) {
+          place.visited = edits.visited;
+        }
+        place.frecency += edits.frecency;
+
+        for (var iconUri in edits.icons) {
+          place.icons[iconUri] = edits.icons[iconUri];
+        }
+
+        place = this.addToVisited(place);
+        this.checkTopSites(place);
+
+        delete this._placeChanges[url];
         cb(place);
       });
     }

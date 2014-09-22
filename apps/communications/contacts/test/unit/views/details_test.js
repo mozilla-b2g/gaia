@@ -17,6 +17,7 @@
 /* export TAG_OPTIONS */
 /* exported SCALE_RATIO */
 /* exported _ */
+/* global MockMozContacts */
 
 //Avoiding lint checking the DOM file renaming it to .html
 requireApp('communications/contacts/test/unit/mock_details_dom.js.html');
@@ -32,7 +33,7 @@ require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/contacts/mock_contacts_buttons.js');
 
-
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/js/views/details.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
@@ -101,6 +102,7 @@ suite('Render contact', function() {
   }
 
   suiteSetup(function() {
+    navigator.mozContacts = MockMozContacts;
     realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
     realL10n = navigator.mozL10n;
     realListeners = utils.listeners;
@@ -247,6 +249,17 @@ suite('Render contact', function() {
       subject.setContact(contactWoFav);
       subject.render(null, TAG_OPTIONS);
       assert.isFalse(detailsName.classList.contains('favorite'));
+    });
+    test('change in favorite not render the window', function(done) {
+      var contactWoPhoto = new MockContactAllFields();
+      contactWoPhoto.photo = null;
+      subject.setContact(contactWoPhoto);
+      subject.render(null, TAG_OPTIONS);
+      var spy = sinon.spy(subject, 'toggleFavorite');
+      subject.toggleFavorite();
+      spy.lastCall.returnValue.then(function(value) {
+        assert.isTrue(value);
+      }).then(done, done);
     });
   });
 

@@ -122,6 +122,7 @@
         grid: this.grid
       }).then(function saved() {
         this.port.postMessage(msg);
+        window.close();
       }.bind(this));
     },
 

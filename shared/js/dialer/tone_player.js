@@ -19,7 +19,7 @@ var TonePlayer = {
   init: function tp_init(channel) {
     if (document.hidden) {
       // We don't create an AudioContext because it will be trashed right away
-      this._cannel = channel;
+      this._channel = channel;
     } else {
       this.setChannel(channel);
     }

@@ -48,8 +48,6 @@ define(function(require) {
        */
       LazyLoader.load([
         'js/firefox_accounts/menu_loader.js',
-        'shared/js/airplane_mode_helper.js',
-        'js/airplane_mode.js',
         'js/try_show_homescreen_section.js',
         'js/security_privacy.js',
         'js/icc_menu.js',

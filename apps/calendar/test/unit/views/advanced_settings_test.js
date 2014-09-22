@@ -151,7 +151,7 @@ suiteGroup('Views.AdvancedSettings', function() {
           providerType: 'Local'
         }));
 
-        assert.length(children, 1, 'does not add account');
+        assert.lengthOf(children, 1, 'does not add account');
       });
     });
 

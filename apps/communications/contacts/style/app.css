@@ -205,6 +205,10 @@ li button span {
   font-size: 0;
 }
 
+li button span[data-l10n-id] {
+  font-size: 1.6rem;
+}
+
 /* Extending components */
 li button.activity > b em {
   color: #727272;

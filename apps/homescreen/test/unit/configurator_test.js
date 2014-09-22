@@ -190,7 +190,7 @@ suite('configurator.js >', function() {
    */
   test('Search provider enabled >', function() {
     sendResponseText('{ "search_page":{ "provider": "em","enabled": true } }');
-    assert.include(document.body.classList, 'searchPageEnabled');
+    assert.isTrue(document.body.classList.contains('searchPageEnabled'));
     assertHomescreen(0);
   });
 

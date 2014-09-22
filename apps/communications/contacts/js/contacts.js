@@ -36,7 +36,10 @@ var Contacts = (function() {
   var navigation = new navigationStack('view-contacts-list');
 
   var goToForm = function edit() {
-    navigation.go('view-contact-form', 'popup');
+    var transition = ActivityHandler.currentlyHandling ?
+     'activity-popup' : 'popup';
+
+    navigation.go('view-contact-form', transition);
   };
 
   var contactTag,
@@ -265,6 +268,37 @@ var Contacts = (function() {
     checkCancelableActivity();
   };
 
+  function setupCancelableHeader() {
+    header.setAttribute('action', 'close');
+    settingsButton.hidden = true;
+    addButton.hidden = true;
+    // Trigger the title to re-run font-fit/centering logic
+    appTitleElement.textContent = appTitleElement.textContent;
+  }
+
+  function setupActionableHeader() {
+    header.removeAttribute('action');
+    settingsButton.hidden = false;
+    addButton.hidden = false;
+    // Trigger the title to re-run font-fit/centering logic
+    appTitleElement.textContent = appTitleElement.textContent;
+  }
+
+  var lastCustomHeaderCallback;
+
+  var setCanceleableHeader = function setCanceleableHeader(cb) {
+    setupCancelableHeader();
+    header.removeEventListener('action', handleCancel);
+    lastCustomHeaderCallback = cb;
+    header.addEventListener('action', cb);
+  };
+
+  var setNormalHeader = function setNormalHeader() {
+    setupActionableHeader();
+    header.removeEventListener('action', lastCustomHeaderCallback);
+    header.addEventListener('action', handleCancel);
+  };
+
   var checkCancelableActivity = function cancelableActivity() {
     // NOTE: Only set textContent below if necessary to avoid repaints at
     //       load time.  For more info see bug 725221.
@@ -275,10 +309,12 @@ var Contacts = (function() {
       addButton.hidden = true;
       // Trigger the title to re-run font-fit/centering logic
       appTitleElement.textContent = appTitleElement.textContent;
+      setupCancelableHeader();
     } else {
       header.removeAttribute('action');
       settingsButton.hidden = false;
       addButton.hidden = false;
+      setupActionableHeader();
     }
 
     text = (contactsList && contactsList.isSelecting)?
@@ -634,8 +670,8 @@ var Contacts = (function() {
     }
   };
 
-  var showOverlay = function c_showOverlay(message, progressClass, textId) {
-    var out = utils.overlay.show(message, progressClass, textId);
+  var showOverlay = function c_showOverlay(messageId, progressClass, textId) {
+    var out = utils.overlay.show(messageId, progressClass, textId);
     // When we are showing the overlay we are often performing other
     // significant work, such as importing.  While performing this work
     // it would be nice to avoid the overhead of any accidental reflows
@@ -654,8 +690,8 @@ var Contacts = (function() {
     }, SHARED_UTILS);
   };
 
-  var showStatus = function c_showStatus(message, additional) {
-    utils.status.show(message, additional);
+  var showStatus = function c_showStatus(messageId, additionalId) {
+    utils.status.show(messageId, additionalId);
   };
 
   var showSettings = function showSettings() {
@@ -865,11 +901,6 @@ var Contacts = (function() {
     }
 
     document.addEventListener('visibilitychange', function visibility(e) {
-      if (ActivityHandler.currentlyHandling && document.hidden) {
-        ActivityHandler.postCancel();
-        return;
-      }
-
       Contacts.checkCancelableActivity();
       if (document.hidden === false &&
                                 navigation.currentView() === 'view-settings') {
@@ -1016,6 +1047,8 @@ var Contacts = (function() {
     'view': loadView,
     'utility': loadUtility,
     'updateSelectCountTitle': updateSelectCountTitle,
+    'setCanceleableHeader': setCanceleableHeader,
+    'setNormalHeader': setNormalHeader,
     get asyncScriptsLoaded() {
       return asyncScriptsLoaded;
     },

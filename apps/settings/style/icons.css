@@ -311,6 +311,10 @@ html[dir="rtl"] label > .menu-item::before {
   left: auto;
 }
 
+html[dir="rtl"] label > .menu-item + small {
+  margin: 0 4rem 0 0;
+}
+
 html[dir="rtl"] aside.pack-end {
   left: 1.5rem;
   right: auto;

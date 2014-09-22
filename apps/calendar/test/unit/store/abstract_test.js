@@ -370,7 +370,7 @@ suite('store/abstract', function() {
       var results = [];
 
       function complete() {
-        assert.length(results, expected);
+        assert.lengthOf(results, expected);
 
         var idx = 1;
 

@@ -152,6 +152,20 @@
     }
   }
 
+  function getActiveIceContacts() {
+    return new Promise(function(resolve, reject) {
+      load().then(function() {
+        var result = [];
+        localIceContacts.forEach(function(aContact) {
+          if (aContact.active && aContact.id) {
+            result.push(aContact.id);
+          }
+          resolve(result);
+        });
+      }, reject);
+    });
+  }
+
   function stopListenForChanges() {
     document.removeEventListener('contactChanged', onChangeEvent);
     onChangeCallbacks = [];
@@ -161,11 +175,12 @@
   exports.ICEData = {
     load: load,
     setICEContact: setICEContact,
+    removeICEContact: removeICEContact,
     get iceContacts() { return localIceContacts; },
+    getActiveIceContacts: getActiveIceContacts,
     listenForChanges: listenForChanges,
     stopListenForChanges: stopListenForChanges
   };
 
 
 })(window);
-

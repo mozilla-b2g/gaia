@@ -106,6 +106,8 @@ suite('system/Statusbar', function() {
   mocksForStatusBar.attachTestHelpers();
 
   setup(function(done) {
+    this.sinon.useFakeTimers();
+
     window.System = MockSystem;
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -233,16 +235,18 @@ suite('system/Statusbar', function() {
       this.sinon.stub(StatusBar, 'addSettingsListener');
     });
 
-    test('data step displays connections', function() {
+    test('connections display after languages step', function() {
       this.sinon.stub(StatusBar, 'createConnectionsElements');
+      this.sinon.stub(StatusBar, 'addConnectionsListeners');
       var evt = new CustomEvent('iac-ftucomms', {
         detail: {
           type: 'step',
-          hash: '#data_3g'
+          hash: '#languages'
         }
       });
       StatusBar.handleEvent(evt);
       assert.isTrue(StatusBar.createConnectionsElements.called);
+      assert.isTrue(StatusBar.addConnectionsListeners.called);
       assert.isTrue(StatusBar.addSettingsListener
                     .calledWith('ril.data.enabled'));
     });
@@ -405,7 +409,6 @@ suite('system/Statusbar', function() {
       assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('moztime change while lockscreen is unlocked', function() {
-      this.sinon.useFakeTimers();
       System.locked = false;
       var evt = new CustomEvent('moztimechange');
       StatusBar.handleEvent(evt);
@@ -415,7 +418,6 @@ suite('system/Statusbar', function() {
       this.sinon.clock.restore();
     });
     test('timeformatchange while timeformat changed', function() {
-      this.sinon.useFakeTimers();
       var evt = new CustomEvent('timeformatchange');
       StatusBar.handleEvent(evt);
       this.sinon.clock.tick();
@@ -1364,18 +1366,15 @@ suite('system/Statusbar', function() {
   });
 
   suite('media information', function() {
-    var fakeClock;
     var recordingSpy;
 
     setup(function() {
-      fakeClock = this.sinon.useFakeTimers();
       recordingSpy = this.sinon.spy(StatusBar.update, 'recording');
     });
 
     teardown(function() {
       StatusBar.recordingCount = 0;
       StatusBar.playingActive = false;
-      fakeClock.restore();
     });
 
     test('geolocation is activating', function() {
@@ -1487,16 +1486,6 @@ suite('system/Statusbar', function() {
       return e;
     }
 
-    // Making sure the time-bounded features won't have side effects
-    // outside of this suite.
-    setup(function() {
-      this.sinon.useFakeTimers();
-    });
-
-    teardown(function() {
-      this.sinon.clock.tick(10000);
-    });
-
     var app;
     setup(function() {
       app = {
@@ -1555,6 +1544,7 @@ suite('system/Statusbar', function() {
       }
 
       teardown(function() {
+        this.sinon.clock.tick(10000);
         StatusBar.element.style.transition = '';
         StatusBar.element.style.transform = '';
       });
@@ -1995,6 +1985,61 @@ suite('system/Statusbar', function() {
     });
   });
 
+  suite('updateSignalIcon', function() {
+    var mockIcon = {},
+        connInfo = {
+          relSignalStrength: 75,
+          roaming: true,
+          network: {
+            shortName: 'name'
+          }
+        };
+
+    setup(function() {
+      sinon.stub(MockL10n, 'get').returns('test');
+      mockIcon.dataset = {};
+      mockIcon.setAttribute = sinon.spy();
+    });
+
+    teardown(function() {
+      MockL10n.get.restore();
+    });
+
+    test('should set the data-level attribute', function() {
+      StatusBar.updateSignalIcon(mockIcon, connInfo);
+      assert.equal(mockIcon.dataset.level, 4);
+    });
+
+    test('roaming visibility with one sim', function() {
+      fakeIcons.roaming[0].hidden = connInfo.roaming;
+      StatusBar.updateSignalIcon(mockIcon, connInfo);
+      assert.equal(fakeIcons.roaming[0].hidden, !connInfo.roaming);
+    });
+
+    test('roaming visibility with multisim', function() {
+      mockIcon.dataset.index = 2;
+      fakeIcons.roaming[1].hidden = connInfo.roaming;
+      StatusBar.updateSignalIcon(mockIcon, connInfo);
+      assert.equal(fakeIcons.roaming[1].hidden, !connInfo.roaming);
+    });
+
+    test('should remove the searching dataset', function() {
+      mockIcon.dataset.searching = true;
+      StatusBar.updateSignalIcon(mockIcon, connInfo);
+      assert.isTrue(!mockIcon.dataset.searching);
+    });
+
+    test('should set the aria-label', function() {
+      mockIcon.dataset.searching = true;
+      StatusBar.updateSignalIcon(mockIcon, connInfo);
+      assert.isTrue(MockL10n.get.calledWith('statusbarSignalRoaming', {
+        level: mockIcon.dataset.level,
+        operator: connInfo.network && connInfo.network.shortName
+      }));
+      sinon.assert.calledWith(mockIcon.setAttribute, 'aria-label', 'test');
+    });
+  });
+
   suite('handle events', function() {
     var app;
     var setAppearanceStub;
@@ -2038,8 +2083,8 @@ suite('system/Statusbar', function() {
       testEventThatHides.bind(this)('appopening');
     });
 
-    test('sheetstransitionstart', function() {
-      testEventThatHides.bind(this)('sheetstransitionstart');
+    test('sheets-gesture-begin', function() {
+      testEventThatHides.bind(this)('sheets-gesture-begin');
     });
 
     test('homescreenopened', function() {

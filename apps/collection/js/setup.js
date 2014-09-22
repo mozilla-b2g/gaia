@@ -94,6 +94,7 @@
 
       this.initializing = false;
       this.port.postMessage('Done');
+      window.close();
     },
 
     /**

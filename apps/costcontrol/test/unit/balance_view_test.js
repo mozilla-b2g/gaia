@@ -3,12 +3,13 @@
 'use strict';
 
 requireApp('costcontrol/test/unit/mock_date.js');
+requireApp('costcontrol/test/unit/mock_common.js');
 requireApp('costcontrol/test/unit/mock_moz_l10n.js');
 requireApp('costcontrol/js/utils/toolkit.js');
 requireApp('costcontrol/js/utils/formatting.js');
 requireApp('costcontrol/js/views/BalanceView.js');
 
-var realDate,
+var realDate,realCommon,
     realMozL10n;
 
 if (!window.navigator.mozL10n) {
@@ -31,6 +32,9 @@ suite(
       realMozL10n = window.navigator.mozL10n;
       window.navigator.mozL10n = window.MockMozL10n;
 
+      realCommon = window.Common;
+      window.Common = new window.MockCommon();
+
       realDate = window.Date;
       now = new window.MockDateFactory.realDate(2013, 0, 3, 18);
       window.Date = new window.MockDateFactory(now);
@@ -39,6 +43,7 @@ suite(
     suiteTeardown(function() {
       window.navigator.mozL10n = realMozL10n;
       window.Date = realDate;
+      window.Common = realCommon;
     });
 
     setup(function() {
@@ -79,7 +84,8 @@ suite(
         var isUpdating = true;
         balanceResult.timestamp = now;
         balanceView.update(balanceResult, isUpdating);
-        assert.equal(timestampLabel.textContent, 'updating-ellipsis');
+        assert.equal(timestampLabel.setAttribute('data-l10n-id',
+          'updating-ellipsis'));
       }
     );
 
@@ -87,7 +93,8 @@ suite(
       'Balance not available',
       function() {
         balanceView.update(undefined);
-        assert.equal(balanceLabel.textContent, 'not-available');
+        assert.equal(balanceLabel.setAttribute('data-l10n-id',
+          'not-available'));
         assert.equal(timestampLabel.innerHTML, '');
       }
     );

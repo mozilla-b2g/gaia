@@ -189,13 +189,20 @@
           if (detail && detail.stayBackground) {
             return;
           }
+          this.hideResults();
+          this.deactivate();
+          break;
+        case 'open-app':
+          // Do not hide the searchWindow if we have a frontWindow.
+          if (this.searchWindow && this.searchWindow.frontWindow) {
+            return;
+          }
           /* falls through */
         case 'attentionopening':
         case 'attentionopened':
         case 'apploading':
         case 'appforeground':
         case 'appopened':
-        case 'open-app':
           this.hideResults();
           this.deactivate();
           break;

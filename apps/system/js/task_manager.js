@@ -113,6 +113,9 @@
    *                            and 'apps-only'.
    */
   TaskManager.prototype.show = function cs_showCardSwitcher(filterName) {
+    if (this.isShown()) {
+      return;
+    }
     this.calculateDimensions();
     this.newStackPosition = null;
     this._registerShowingEvents();
@@ -475,7 +478,7 @@
       this.position < this.cardsList.childNodes.length - 1) {
       // Two finger swipe left.
       this.position++;
-    } else if (this.position > 0) {
+    } else if (evt.deltaX < 0 && this.position > 0) {
       // Two finger swipe right.
       this.position--;
     }
@@ -511,7 +514,7 @@
       return;
     }
 
-    if ('position' in targetNode.dataset) {
+    if (('position' in targetNode.dataset) || card) {
       this.cardAction(card, 'select');
       return;
     }
@@ -576,7 +579,7 @@
 
       case 'taskmanagershow':
       case 'holdhome':
-        if (System.locked) {
+        if (System.locked || this.isShown()) {
           return;
         }
 

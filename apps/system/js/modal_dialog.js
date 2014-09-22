@@ -182,9 +182,29 @@ var ModalDialog = {
       title = '';
     }
 
+    function localizeElement(node, payload) {
+      if (typeof payload === 'string') {
+        node.setAttribute('data-l10n-id', payload);
+        return;
+      }
+
+      if (typeof payload === 'object') {
+        if (payload.raw) {
+          node.removeAttribute('data-l10n-id');
+          node.textContent = payload.raw;
+          return;
+        }
+
+        if (payload.id) {
+          navigator.mozL10n.setAttributes(node, payload.id, payload.args);
+          return;
+        }
+      }
+    }
+
     switch (type) {
       case 'alert':
-        elements.alertMessage.setAttribute('data-l10n-id', message);
+        localizeElement(elements.alertMessage, message);
         elements.alert.classList.add('visible');
         this.setTitle('alert', title);
         elements.alertOk.setAttribute('data-l10n-id', evt.yesText ?
@@ -195,7 +215,7 @@ var ModalDialog = {
       case 'prompt':
         elements.prompt.classList.add('visible');
         elements.promptInput.value = evt.detail.initialValue;
-        elements.promptMessage.setAttribute('data-l10n-id', message);
+        localizeElement(elements.promptMessage, message);
         this.setTitle('prompt', title);
         elements.promptOk.setAttribute('data-l10n-id', evt.yesText ?
                                                         evt.yesText : 'ok');
@@ -206,7 +226,7 @@ var ModalDialog = {
 
       case 'confirm':
         elements.confirm.classList.add('visible');
-        elements.confirmMessage.setAttribute('data-l10n-id', message);
+        localizeElement(elements.confirmMessage, message);
         this.setTitle('confirm', title);
         elements.confirmOk.setAttribute('data-l10n-id', evt.yesText ?
                                                         evt.yesText : 'ok');

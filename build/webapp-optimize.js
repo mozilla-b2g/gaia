@@ -4,11 +4,10 @@
  * webpp-optimize will do below things.
  * 1. Inline embeded html from <link rel="import" href="test.html" name="name">
  *    into html and commented (<!--CONTENT-->).
- * 2. Embed l10n resource in script tag to html.
- * 3. Concat l10n resource to json files and put them as link and attach to
+ * 2. Concat l10n resource to json files and put them as link and attach to
  *    html.
- * 4. Aggregate and uglify all JS files used in html to one JS file.
- * 5. Optimize inline JS/CSS content.
+ * 3. Aggregate and uglify all JS files used in html to one JS file.
+ * 4. Optimize inline JS/CSS content.
  */
 
 var utils = require('./utils');
@@ -22,7 +21,6 @@ var HTMLOptimizer = function(options) {
   this.webapp = options.webapp;
   /**
    * Optimization helpers -- these environment variables are used:
-   *   - config.GAIA_INLINE_LOCALES  - embed the minimum l10n data in HTML files
    *   - config.GAIA_PRETRANSLATE    - pretranslate html into default locale
    *   - config.GAIA_CONCAT_LOCALES  - aggregates l10n files
    *   - config.GAIA_OPTIMIZE        - aggregates JS files
@@ -35,18 +33,13 @@ var HTMLOptimizer = function(options) {
   // When file has done optimized, we call done.
   this.done = options.callback;
   /**
-   * For each HTML file, we retrieve two multi-locale dictionaries:
-   *
-   *  - subDict (used with config.GAIA_INLINE_LOCALES)
-   *    = minimal set of strings required to translate all HTML elements that
-   *    use data-l10n-id attributes; it gets embedded in the HTML document.
+   * For each HTML file, we retrieve multi-locale dictionary:
    *
    *  - fullDict (used with config.GAIA_CONCAT_LOCALES)
    *    = full set of all l10n strings that are loaded by the HTML document,
-   *    including subDict and all strings that are used dynamically from JS;
+   *    including all strings that are used dynamically from JS;
    *    it gets merged into webapp.dictionary.
    */
-  this.subDict = utils.cloneJSON(this.webapp.dictionary);
   this.fullDict = utils.cloneJSON(this.webapp.dictionary);
   this.getDictionary = null;
 
@@ -63,9 +56,9 @@ HTMLOptimizer.prototype.process = function() {
   var ignore = this.optimizeConfig.L10N_OPTIMIZATION_BLACKLIST;
   // If this HTML document uses l10n.js, pre-localize it --
   //   note: a document can use l10n.js by including either l10n.js or
-  //   application/l10n resource link elements (see /shared/js/lazy_l10n.js).
+  //   localization resource link elements (see /shared/js/lazy_l10n.js).
   if ((!this.win.document.querySelector('script[src$="l10n.js"]') &&
-       !this.win.document.querySelector('link[type$="application/l10n"]')) ||
+       !this.win.document.querySelector('link[rel="localization"]')) ||
       ignore[this.webapp.sourceDirectoryName]) {
     this.done(this.files);
     return;
@@ -74,18 +67,15 @@ HTMLOptimizer.prototype.process = function() {
   // Since l10n.js was read before the document was created, we need to
   // explicitly initialize it again via mozL10n.bootstrap, which looks for
   // *.ini links in the HTML and sets up the localization context.
-  mozL10n.bootstrap(this._optimize.bind(this),
+  mozL10n.bootstrap(
     // if LOCALE_BASEDIR is set, we're going to show missing strings at
     // buildtime.
     this.config.LOCALE_BASEDIR !== '');
+  this._optimize();
 };
 
 HTMLOptimizer.prototype._optimize = function() {
   this._proceedLocales();
-
-  if (this.config.GAIA_INLINE_LOCALES === '1') {
-    this.embedSubsetL10nResources();
-  }
 
   if (this.config.GAIA_CONCAT_LOCALES === '1') {
     this.concatL10nResources();
@@ -128,16 +118,13 @@ HTMLOptimizer.prototype._optimize = function() {
 // create JSON dicts for the current language; one for the <script> tag
 // embedded in HTML and one for locales-obj/
 HTMLOptimizer.prototype._proceedLocales = function() {
-  var docElt = this.win.document.documentElement;
   var mozL10n = this.win.navigator.mozL10n;
   var processedLocales = 0;
   while (processedLocales < this.locales.length) {
     // change the language of the localization context
     mozL10n.ctx.requestLocales(this.locales[processedLocales]);
 
-    // create JSON dicts for the current language; one for the <script> tag
-    // embedded in HTML and one for locales-obj/
-    this.subDict[mozL10n.language.code] = this.getDictionary(docElt);
+    // create JSON dicts for the current language for locales-obj/
     this.fullDict[mozL10n.language.code] = this.getDictionary();
     processedLocales++;
   }
@@ -242,62 +229,69 @@ HTMLOptimizer.prototype.embededGlobals = function() {
 };
 
 /**
- * Creates a dictionary for all l10n entities that are required by the HTML
- * document, and include it as an inline JSON.
- */
-HTMLOptimizer.prototype.embedSubsetL10nResources = function() {
-  var doc = this.win.document;
-  var noFetchRes =
-    doc.querySelector('link[type="application/l10n"][data-no-fetch]');
-
-  // if the document has at least one data-no-fetch link, we will
-  // embed the whole l10n dictionary, no need to embed the partial one.
-  //
-  // hasAttribute is needed because tests always return value for querySelector
-  if (noFetchRes && noFetchRes.hasAttribute('data-no-fetch')) {
-    return;
-  }
-  embedL10nResources(doc.documentElement, this.subDict);
-};
-
-
-/**
  * Replaces all external l10n resource nodes by a single link:
- * <link type="application/l10n" href="/locales-obj/{{locale}}.json" />,
+ * <link rel="localization" href="/locales-obj/{locale}.json" />,
  * and merge the document dictionary into the webapp dictionary.
  */
 HTMLOptimizer.prototype.concatL10nResources = function() {
   var doc = this.win.document;
-  var resources = doc.querySelectorAll('link[type="application/l10n"]');
-  if (!resources.length) {
+  var links = doc.querySelectorAll('link[rel="localization"], ' +
+                                   'link[rel="manifest"]');
+  if (!links.length) {
     return;
   }
 
-  var parentNode = resources[0].parentNode;
+  var parentNode = links[0].parentNode;
   var fetch = false;
   var embed = false;
 
-  for (var i = 0; i < resources.length; i++) {
-    var link = resources[i];
-    link.parentNode.removeChild(link);
-    // if any l10n link does have a no-fetch
-    // attribute, we will embed the whole l10n dictionary
-    if (link.hasAttribute('data-no-fetch')) {
-      embed = true;
-    }
+  for (var i = 0; i < links.length; i++) {
+    var link = links[i];
+    var rel = link.getAttribute('rel');
 
-    // attribute we will embed the locales json link
-    if (!link.hasAttribute('data-no-fetch')) {
-      fetch = true;
+    switch (rel) {
+      case 'manifest':
+        var url = link.getAttribute('href');
+        var manifest = JSON.parse(this.getFileByRelativePath(url).content);
+
+        if (manifest.default_locale) {
+          var defaultLocaleMeta = doc.createElement('meta');
+          defaultLocaleMeta.name = 'default_locale';
+          defaultLocaleMeta.content = manifest.default_locale;
+          parentNode.insertBefore(defaultLocaleMeta, links[0]);
+        }
+
+        if (manifest.locales) {
+          var localesMeta = doc.createElement('meta');
+          localesMeta.name = 'locales';
+          localesMeta.content = Object.keys(manifest.locales).join(', ');
+          parentNode.insertBefore(localesMeta, links[0]);
+        }
+        break;
+      case 'localization':
+        // if any l10n link does have a no-fetch
+        // attribute, we will embed the whole l10n dictionary
+        if (link.hasAttribute('data-no-fetch')) {
+          embed = true;
+        }
+
+        // if any l10n link does no have the no-fetch
+        // attribute we will embed the locales json link
+        if (!link.hasAttribute('data-no-fetch')) {
+          fetch = true;
+        }
+        break;
     }
   }
 
   if (fetch) {
     var jsonLink = doc.createElement('link');
-    jsonLink.href = '/locales-obj/{{locale}}.json';
-    jsonLink.type = 'application/l10n';
-    jsonLink.rel = 'prefetch';
-    parentNode.appendChild(jsonLink);
+    jsonLink.href = '/locales-obj/{locale}.json';
+    jsonLink.rel = 'localization';
+    parentNode.insertBefore(jsonLink, links[0]);
+  }
+  for (i = 0; i < links.length; i++) {
+    parentNode.removeChild(links[i]);
   }
 
   if (embed) {
@@ -554,13 +548,21 @@ HTMLOptimizer.prototype.getFileByRelativePath = function(relativePath) {
       return;
     }
     file.append(name);
-    if (utils.isSubjectToBranding(file.path)) {
-      file.append((this.config.OFFICIAL === '1') ? 'official' : 'unofficial');
-    }
-    if (utils.isSubjectToDeviceType(file.path)) {
-      file.append(this.config.GAIA_DEVICE_TYPE);
-    }
   }, this);
+
+  var dirName = utils.dirname(relativePath);
+  var fileName = utils.basename(relativePath);
+
+  if (utils.isSubjectToBranding(dirName)) {
+    file = file.parent;
+    file.append((this.config.OFFICIAL === '1') ? 'official' : 'unofficial');
+    file.append(fileName);
+  }
+  if (utils.isSubjectToDeviceType(file.path)) {
+    file = file.parent;
+    file.append(this.config.GAIA_DEVICE_TYPE);
+    file.append(fileName);
+  }
 
   try {
     return {
@@ -593,16 +595,30 @@ HTMLOptimizer.prototype.mockWinObj = function() {
   };
 
   this.win.XMLHttpRequest = function() {
+    var mimeType = null;
+    var status = null;
+    var responseText = null;
+
     return {
       open: function(type, url, async) {
-        this.status = 200;
-        this.responseText = self.getFileByRelativePath(url).content;
+        status = 200;
+        responseText = self.getFileByRelativePath(url).content;
+      },
+      overrideMimeType: function(type) {
+        mimeType = type;
       },
       send: function() {
+        var response;
+        if (mimeType == 'application/json') {
+          response = JSON.parse(responseText);
+        } else {
+          response = responseText;
+        }
         this.onload({
           'target': {
-            'status': this.status,
-            'responseText': this.responseText,
+            'status': status,
+            'responseText': responseText,
+            'response': response
           }
         });
       },
@@ -664,6 +680,27 @@ WebappOptimize.prototype.HTMLProcessed = function(files) {
 // all HTML documents in the webapp have been optimized:
 // create one concatenated l10n file per locale for all HTML documents
 WebappOptimize.prototype.writeDictionaries = function() {
+  function cleanLocaleFiles(stageDir) {
+    var localesDir = stageDir.clone();
+    localesDir.append('locales');
+    if (localesDir.exists()) {
+      localesDir.remove(true);
+    }
+
+    var sharedLocalesDir = stageDir.clone();
+    sharedLocalesDir.append('shared');
+    sharedLocalesDir.append('locales');
+    if (sharedLocalesDir.exists()) {
+      sharedLocalesDir.remove(true);
+    }
+
+    var files = utils.ls(stageDir, false);
+    files.forEach(function(file) {
+      if (file.isDirectory()) {
+        cleanLocaleFiles(file);
+      }
+    });
+  }
   if (this.config.GAIA_CONCAT_LOCALES !== '1') {
     return;
   }
@@ -687,24 +724,9 @@ WebappOptimize.prototype.writeDictionaries = function() {
     }
   });
 
-  var localeDir = this.webapp.buildDirectoryFile.clone();
-  localeDir.append('locales');
-  // FIXME 999903: locales directory won't be removed if DEBUG=1 because we
-  // need l10n properties file in build_stage to get l10n string in DEBUG
-  // mode.
-  if (localeDir.exists() && this.config.DEBUG !== 1) {
-    localeDir.remove(true);
+  if (this.config.GAIA_CONCAT_LOCALES === '1') {
+    cleanLocaleFiles(this.webapp.buildDirectoryFile);
   }
-  var sharedLocaleDir = this.webapp.buildDirectoryFile.clone();
-  sharedLocaleDir.append('shared');
-  sharedLocaleDir.append('locales');
-  // FIXME 999903: locales directory won't be removed if DEBUG=1 because we
-  // need l10n properties file in build_stage to get l10n string in DEBUG
-  // mode.
-  if (sharedLocaleDir.exists() && this.config.DEBUG !== 1) {
-    sharedLocaleDir.remove(true);
-  }
-
 };
 
 WebappOptimize.prototype.execute = function(config) {
@@ -741,8 +763,7 @@ WebappOptimize.prototype.execute = function(config) {
 function execute(config) {
   var gaia = utils.gaia.getInstance(config);
   var locales;
-  if (config.GAIA_INLINE_LOCALES === '1' ||
-      config.GAIA_CONCAT_LOCALES === '1') {
+  if (config.GAIA_CONCAT_LOCALES === '1') {
     locales = getLocales(config);
   } else {
     locales = [config.GAIA_DEFAULT_LOCALE];

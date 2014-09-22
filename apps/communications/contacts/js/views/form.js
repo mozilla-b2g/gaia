@@ -11,6 +11,7 @@
 /* global utils */
 /* global TAG_OPTIONS */
 /* global ActionMenu */
+/* global ICEData */
 
 var contacts = window.contacts || {};
 
@@ -63,6 +64,10 @@ contacts.Form = (function() {
   var MAX_PHOTO_SIZE = 200000;
 
   var touchstart = 'ontouchstart' in window ? 'touchstart' : 'mousedown';
+
+  // Indicates whether a tel number has been deleted
+  // (useful for warning about ICE Contacts)
+  var deletedTelNumber = false;
 
   var textFieldsCache = {
     _textFields: null,
@@ -173,9 +178,15 @@ contacts.Form = (function() {
       if (tgt.tagName == 'BUTTON' && tgt.getAttribute('type') == 'reset') {
         event.preventDefault();
         var input = tgt.previousElementSibling;
+
         if (input.getAttribute('name').startsWith('tel') &&
             input.dataset.field === 'value') {
-          input.parentNode.nextElementSibling.classList.add(INVALID_CLASS);
+          var telId = input.id;
+          var telIndex = telId.substring(telId.indexOf('_') + 1);
+          var carrierField =
+                        document.getElementById('carrier' + '_' + telIndex);
+          carrierField.parentNode.classList.add(INVALID_CLASS);
+
           textFieldsCache.clear();
         }
         input.value = '';
@@ -309,7 +320,7 @@ contacts.Form = (function() {
       });
     }
 
-    ['tel', 'email', 'adr', 'date', 'note'].forEach(function(field) {
+['tel', 'email', 'adr', 'date', 'note'].forEach(function(field) {
       renderTemplate(field, contact[field]);
     });
 
@@ -337,6 +348,15 @@ contacts.Form = (function() {
       Contacts.confirmDialog(null, msg, noObject, yesObject);
     };
   };
+
+  // Checks whether is an ICE contact or not
+  function isIceContact(contact, cb) {
+    LazyLoader.load('js/utilities/ice_data.js', function() {
+      ICEData.getActiveIceContacts().then(function iceloaded(iceContacts) {
+        cb(iceContacts.indexOf(contact.id) !== -1);
+      });
+    });
+  }
 
   var showAdd = function showAdd(params) {
     mode = 'add';
@@ -628,6 +648,36 @@ contacts.Form = (function() {
     saveButton.setAttribute('disabled', 'disabled');
     showThrobber();
 
+    var cancelObject = {
+      title: 'ok',
+      callback: function onCancel() {
+        ConfirmDialog.hide();
+        continueSavingContact();
+      }
+    };
+
+    if (deletedTelNumber) {
+      isIceContact(currentContact, function(result) {
+        if (result === true) {
+          var msgId = 'ICEContactDelTel';
+          if (counters.tel === 0) {
+            msgId = 'ICEContactDelTelAll';
+            ICEData.removeICEContact(currentContact.id);
+          }
+          Contacts.confirmDialog(null, {'id': msgId},
+                                 cancelObject);
+        }
+        else {
+          continueSavingContact();
+        }
+      });
+    }
+    else {
+      continueSavingContact();
+    }
+  };
+
+  function continueSavingContact() {
     currentContact = currentContact || {};
     currentContact = deviceContact || currentContact;
     var deviceGivenName = currentContact.givenName || [''];
@@ -710,7 +760,7 @@ contacts.Form = (function() {
       formHeader.addEventListener('action', cancelHandler);
       doMatch(contact, callbacks);
     });
-  };
+  }
 
   var cookMatchingCallbacks = function cookMatchingCallbacks(contact) {
     return {
@@ -1089,6 +1139,8 @@ contacts.Form = (function() {
 
   var resetForm = function resetForm() {
     currentPhoto = null;
+    deletedTelNumber = false;
+
     thumbAction.querySelector('p').classList.remove('hide');
     var removeIcon = thumbAction.querySelector('button.' + IMG_DELETE_CLASS);
     if (removeIcon) {
@@ -1179,13 +1231,17 @@ contacts.Form = (function() {
 
       if (type !== 'photo') {
         elem.parentNode.removeChild(elem);
-        if (container.querySelectorAll('section').length === 0) {
+        if (container.querySelectorAll('[data-field]').length === 0) {
           container.classList.add('empty');
         }
       }
       else {
         // TODO: Implement the new delete image flow
         console.warn('Delete image');
+      }
+
+      if (type === 'tel') {
+        deletedTelNumber = true;
       }
 
       // Update the aria label for acessibility

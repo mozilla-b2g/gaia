@@ -263,7 +263,7 @@ var NotificationScreen = {
     evt.preventDefault();
 
     this._touchPosX = evt.touches[0].pageX - this._touchStartX;
-    if (this._touchPosX >= this.TAP_THRESHOLD) {
+    if (Math.abs(this._touchPosX) >= this.TAP_THRESHOLD) {
       this._isTap = false;
     }
     if (!this._isTap) {
@@ -572,15 +572,10 @@ var NotificationScreen = {
       if (!this.silent) {
         var ringtonePlayer = new Audio();
         var telephony = window.navigator.mozTelephony;
-        var isOnCall = telephony && telephony.calls.some(function(call) {
-          return (call.state == 'connected');
-        });
-        var isOnMultiCall = telephony && telephony.conferenceGroup &&
-          telephony.conferenceGroup.state === 'connected';
 
         ringtonePlayer.src = this._sound;
 
-        if (isOnCall || isOnMultiCall) {
+        if (telephony && telephony.active) {
           ringtonePlayer.mozAudioChannelType = 'telephony';
           ringtonePlayer.volume = 0.3;
         } else {
@@ -679,8 +674,11 @@ var NotificationScreen = {
     if (this.unreadNotifications.length) {
       var indicatorSize = getIndicatorSize(this.unreadNotifications.length);
       this.ambientIndicator.className = 'unread ' + indicatorSize;
+      this.ambientIndicator.setAttribute('aria-label', navigator.mozL10n.get(
+        'statusbarNotifications-unread', {n: this.unreadNotifications.length}));
     } else {
       this.ambientIndicator.classList.remove('unread');
+      this.ambientIndicator.removeAttribute('aria-label');
     }
   },
 

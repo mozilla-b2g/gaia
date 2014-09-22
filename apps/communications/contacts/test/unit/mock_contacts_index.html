@@ -1,7 +1,8 @@
 
-
-      <link rel="resource" type="application/l10n" href="/contacts/locales/locales.ini"/>
-      <link rel="resource" type="application/l10n" href="/shared/locales/import_contacts.ini"/>
+      <link rel="manifest" href="manifest.webapp">
+      <link rel="localization" href="locales/contacts.{locale}.properties">
+      <link rel="localization" href="../dialer/locales/shared.{locale}.properties">
+      <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
         <!-- Contacts List Section -->
       <section id='view-contacts-list' role="region" data-state="active" class="view view-noscroll view-contacts-list">
         <gaia-header id="activity-header" action="close">
@@ -464,28 +465,28 @@
         <section role="region" class="view-body-inner">
           <ul data-type="list" id="import-options">
             <li id="import-sim-option" data-source="sim">
-              <button class="icon icon-sim" data-l10n-id="importSim2">
-                SIM card
+              <button class="icon icon-sim">
+                <span data-l10n-id="importSim2">SIM card</span>
                 <p><span></span><time></time></p>
               </button>
               <p class="error-message" data-l10n-id="noSimMsg"></p>
             </li>
             <li id="import-sd-option" data-source="sd">
-              <button class="icon icon-sd" data-l10n-id="importMemoryCard">
-                Memory card
+              <button class="icon icon-sd">
+                <span data-l10n-id="importMemoryCard">Memory card</span>
                 <p><span></span><time></time></p>
               </button>
               <p class="error-message" data-l10n-id="noMemoryCardMsg"></p>
             </li>
             <li id="import-gmail-option" class="importService" data-source="gmail">
-              <button class="icon icon-gmail" data-l10n-id="importGmail">
-                Gmail
+              <button class="icon icon-gmail">
+                <span data-l10n-id="importGmail">Gmail</span>
                 <p><span></span><time></time></p>
               </button>
             </li>
             <li id="import-live-option" class="importService" data-source="live">
-              <button class="icon icon-live" data-l10n-id="importOutlook">
-                Outlook
+              <button class="icon icon-live">
+                <span data-l10n-id="importOutlook">Outlook</span>
                 <p><span></span><time></time></p>
               </button>
               <p class="error-message" data-l10n-id="genericNoConnection"></p>

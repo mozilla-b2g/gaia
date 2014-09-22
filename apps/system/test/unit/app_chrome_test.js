@@ -421,8 +421,20 @@ suite('system/AppChrome', function() {
   });
 
   suite('Theme-Color', function() {
+    var app, chrome, stubRequestAnimationFrame, appPublishStub;
+
+    setup(function() {
+      app = new AppWindow(fakeWebSite);
+      chrome = new AppChrome(app);
+      stubRequestAnimationFrame =
+        this.sinon.stub(window, 'requestAnimationFrame', function(cb) {
+
+        cb();
+      });
+      appPublishStub = this.sinon.stub(app, 'publish');
+    });
+
     test('metachange already set', function() {
-      var app = new AppWindow(fakeWebSite);
       app.themeColor = 'orange';
 
       var chrome = new AppChrome(app);
@@ -430,8 +442,6 @@ suite('system/AppChrome', function() {
     });
 
     test('metachange added', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       chrome.handleEvent({
         type: 'mozbrowsermetachange',
         detail: {
@@ -444,8 +454,6 @@ suite('system/AppChrome', function() {
     });
 
     test('metachange removed', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       chrome.handleEvent({
         type: 'mozbrowsermetachange',
         detail: {
@@ -457,8 +465,6 @@ suite('system/AppChrome', function() {
     });
 
     test('metachange changed', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
       chrome.handleEvent({
         type: 'mozbrowsermetachange',
         detail: {
@@ -471,15 +477,6 @@ suite('system/AppChrome', function() {
     });
 
     test('dark color have light icons', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
-      var stubRequestAnimationFrame =
-        this.sinon.stub(window, 'requestAnimationFrame', function(cb) {
-
-        cb();
-      });
-      var appPublishStub = this.sinon.stub(app, 'publish');
-
       chrome.setThemeColor('black');
       assert.isTrue(stubRequestAnimationFrame.called);
       assert.isFalse(app.element.classList.contains('light'));
@@ -489,15 +486,6 @@ suite('system/AppChrome', function() {
     });
 
     test('light color have dark icons', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
-      var stubRequestAnimationFrame =
-        this.sinon.stub(window, 'requestAnimationFrame', function(cb) {
-
-        cb();
-      });
-      var appPublishStub = this.sinon.stub(app, 'publish');
-
       chrome.setThemeColor('white');
       assert.isTrue(stubRequestAnimationFrame.called);
       assert.isTrue(app.element.classList.contains('light'));
@@ -507,17 +495,42 @@ suite('system/AppChrome', function() {
     });
 
     test('browser scrollable background is black', function() {
-      var app = new AppWindow(fakeWebSite);
-      var chrome = new AppChrome(app);
-
       assert.equal(chrome.scrollable.style.backgroundColor, '');
       chrome.setThemeColor('black');
       assert.equal(chrome.scrollable.style.backgroundColor, 'black');
     });
 
+    test('should stop requesting frames when color stops changing', function() {
+      chrome.scrollable.style.backgroundColor, '#fff';
+      chrome.setThemeColor('#fff');
+      assert.isTrue(stubRequestAnimationFrame.calledTwice);
+    });
+
+    test('should keep requesting frames while color changes', function() {
+      var count = 0;
+      sinon.stub(window, 'getComputedStyle', function() {
+        var style = {};
+        switch (count) {
+          case 0:
+            style.backgroundColor = 'rgb(1, 2, 3)';
+            break;
+          case 1:
+            style.backgroundColor = 'rgb(2, 3, 4)';
+            break;
+          case 2:
+          case 3:
+            style.backgroundColor = 'rgb(3, 4, 5)';
+            break;
+        }
+        count++;
+        return style;
+      });
+      chrome.setThemeColor('#fff');
+      assert.equal(stubRequestAnimationFrame.callCount, 4);
+      window.getComputedStyle.restore();
+    });
 
     test('homescreen scrollable background is unset', function() {
-      var app = new AppWindow(fakeWebSite);
       app.isHomescreen = true;
       var chrome = new AppChrome(app);
 

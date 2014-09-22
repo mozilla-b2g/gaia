@@ -64,7 +64,7 @@ marionette('Homescreen navigation >', function() {
 
     goHome();
     launchSettings();
-    client.helper.wait(1000);
+
     reflowHelper.startTracking(System.URL);
     client.switchToFrame();
 

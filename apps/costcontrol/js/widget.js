@@ -233,10 +233,10 @@ var Widget = (function() {
         rightPanel.setAttribute('aria-hidden', true);
       }
       var className = 'widget-' + status;
-      document.getElementById('fte-icon').classList.add(className);
       Common.localize(fte.querySelector('p:first-child'), className +
         '-heading');
-      Common.localize(fte.querySelector('p:last-child'), className + '-meta');
+      Common.localize(fte.querySelector('p:last-child'), className +
+        '-meta');
     });
   }
 
@@ -259,13 +259,13 @@ var Widget = (function() {
     };
     var simKey = keyLookup[mode];
 
-    document.getElementById('fte-icon').className = 'icon ' + simKey;
     Common.localize(
       fte.querySelector('p:first-child'),
       simKey + '-heading',
       {provider: provider}
     );
-    Common.localize(fte.querySelector('p:last-child'), simKey + '-meta');
+    Common.localize(fte.querySelector('p:last-child'), simKey +
+      '-meta');
   }
 
   var hashMark = 0;

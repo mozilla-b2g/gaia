@@ -18,7 +18,7 @@
   const suffix =
     backgroundRatio === 1 ? '.jpg' : ('@' + backgroundRatio + 'x.jpg');
   const mozBgUrl =
-    'http://fxos.cdn.mozilla.net/collection/background/{categoryId}' + suffix;
+    'https://fxos.cdn.mozilla.net/collection/background/{categoryId}' + suffix;
 
   const APPS_IN_ICON = 3;
 

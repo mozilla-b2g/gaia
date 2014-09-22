@@ -131,7 +131,8 @@ var IMERender = (function() {
       capsLockKey.classList.remove('kbr-key-hold');
     }
 
-    capsLockKey.setAttribute('aria-pressed', !!state);
+    capsLockKey.setAttribute('aria-pressed',
+      state.isUpperCaseLocked || state.isUpperCase);
   };
 
   // Draw the keyboard and its components. Meat is here.

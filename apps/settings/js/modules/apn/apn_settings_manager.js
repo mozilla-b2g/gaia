@@ -90,7 +90,9 @@ define(function(require) {
               // Has matched apn in the existing apns.
               return matchedApnItem.id;
             } else {
-              return this.addApn(serviceId, apnInUse);
+              var category = (apnInUse.carrier === '_custom_') ?
+                ApnItem.APN_CATEGORY.CUSTOM : ApnItem.APN_CATEGORY.PRESET;
+              return this.addApn(serviceId, apnInUse, category);
             }
           } else {
             return null;

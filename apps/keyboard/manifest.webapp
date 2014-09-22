@@ -9,6 +9,7 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
+    "themeable":{},
     "settings": { "access": "readwrite" },
     "input": {}
   },
@@ -27,7 +28,15 @@
     }
   },
   "locales": {
+    "ar": {
+      "name": "Built-in Keyboard",
+      "description": "Built-in Keyboard"
+    },
     "en-US": {
+      "name": "Built-in Keyboard",
+      "description": "Built-in Keyboard"
+    },
+    "fr": {
       "name": "Built-in Keyboard",
       "description": "Built-in Keyboard"
     },

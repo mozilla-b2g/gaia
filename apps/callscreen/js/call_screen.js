@@ -1,5 +1,5 @@
 /* globals CallsHandler, FontSizeManager, KeypadManager, LazyL10n,
-           LockScreenSlide, MozActivity, SettingsListener, Utils */
+           LockScreenSlide, MozActivity, SettingsListener, Utils, performance */
 /* jshint nonew: false */
 
 'use strict';
@@ -267,35 +267,10 @@ var CallScreen = {
       return;
     }
 
-    var screen = this.screen;
-
-    // If we toggle the class during the transition we'll loose the
-    // transitionend ; and we have no opening transition for incoming locked
-    var skipTransition = this._transitioning ||
-                         (this.screen.dataset.layout === 'incoming-locked');
-
-    if (skipTransition) {
-      if (callback && typeof(callback) == 'function') {
-        setTimeout(callback);
-      }
-      this._onTransitionDone();
-      return;
+    if (callback && typeof(callback) == 'function') {
+      setTimeout(callback);
     }
-
-    /* We need CSS transitions for the status bar state and the regular state */
-    var self = this;
-    self._transitioning = true;
-    screen.addEventListener('transitionend', function trWait(evt) {
-      if (evt.target != screen) {
-        return;
-      }
-      screen.removeEventListener('transitionend', trWait);
-      self._transitioning = false;
-      if (callback && typeof(callback) == 'function') {
-        callback();
-      }
-      self._onTransitionDone();
-    });
+    this._onTransitionDone();
   },
 
   _onTransitionDone: function cs_onTransitionDone() {
@@ -526,9 +501,9 @@ var CallScreen = {
     LazyL10n.get(function localized(_) {
       var ticker = setInterval(function ut_updateTimer(startTime) {
         // Bug 834334: Ensure that 28.999 -> 29.000
-        var delta = Math.round((Date.now() - startTime) / 1000) * 1000;
+        var delta = Math.round((performance.now() - startTime) / 1000) * 1000;
         Utils.prettyDuration(durationChildNode, delta);
-      }, 1000, Date.now());
+      }, 1000, performance.now());
       durationNode.dataset.tickerId = ticker;
     });
     return true;

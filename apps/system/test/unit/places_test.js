@@ -4,12 +4,14 @@
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 
 requireApp('system/js/places.js');
 
 var mocksHelperForPlaces = new MocksHelper([
+  'AppWindowManager',
   'asyncStorage',
   'SettingsListener',
   'Datastore'
@@ -37,6 +39,10 @@ suite('system/Places', function() {
 
   suiteTeardown(function() {
     navigator.getDataStores = realDatastores;
+  });
+
+  setup(function() {
+    this.sinon.useFakeTimers();
   });
 
   var url1 = 'http://example.org';
@@ -74,6 +80,7 @@ suite('system/Places', function() {
         done();
       });
       sendEvent('applocationchange', url1);
+      sendEvent('apploaded', url1);
     });
 
     test('Test title event', function(done) {
@@ -86,6 +93,7 @@ suite('system/Places', function() {
         done();
       });
 
+      sendEvent('applocationchange', url1);
       window.dispatchEvent(new CustomEvent('apptitlechange', {
         detail: {
           isBrowser: function() { return true; },
@@ -95,6 +103,7 @@ suite('system/Places', function() {
           }
         }
       }));
+      sendEvent('apploaded', url1);
     });
 
     test('Test icon event', function(done) {
@@ -108,6 +117,7 @@ suite('system/Places', function() {
         done();
       });
 
+      sendEvent('applocationchange', url1);
       window.dispatchEvent(new CustomEvent('appiconchange', {
         detail: {
           isBrowser: function() { return true; },
@@ -117,6 +127,7 @@ suite('system/Places', function() {
           }
         }
       }));
+      sendEvent('apploaded', url1);
     });
 
     test('Test screenshots', function(done) {
@@ -132,12 +143,14 @@ suite('system/Places', function() {
         if (changes === 1) {
           assert.ok(screenshotStub.calledOnce);
           sendEvent('applocationchange', url1 + '/1');
+          sendEvent('apploaded', url1 + '/1');
           return;
         }
 
         // We send 2 requests for /0 through /5 two times each
         if (changes > 1 && changes < 12) {
           sendEvent('applocationchange', url1 + '/' + (changes % 6));
+          sendEvent('apploaded', url1 + '/' + (changes % 6));
           return;
         }
 
@@ -145,6 +158,7 @@ suite('system/Places', function() {
         if (changes === 12) {
           assert.equal(screenshotStub.callCount, 12);
           sendEvent('applocationchange', url1 + '/new');
+          sendEvent('apploaded', url1 + '/new');
           return;
         }
 
@@ -159,8 +173,30 @@ suite('system/Places', function() {
       });
 
       sendEvent('applocationchange', url1 + '/0');
+      sendEvent('apploaded', url1 + '/0');
     });
 
+    test('Receive icon update after apploaded saves place', function(done) {
+      sendEvent('applocationchange', url1);
+      sendEvent('apploaded', url1);
+      MockDatastore.addEventListener('change', function() {
+        // Exit after we get a save event for the icon update.
+        done();
+      });
+      sendEvent('appiconchange', url1);
+      this.sinon.clock.tick(10000);
+    });
+
+    test('Receive title update after apploaded saves place', function(done) {
+      sendEvent('applocationchange', url1);
+      sendEvent('apploaded', url1);
+      MockDatastore.addEventListener('change', function() {
+        // Exit after we get a save event for the icon update.
+        done();
+      });
+      sendEvent('apptitlechange', url1);
+      this.sinon.clock.tick(10000);
+    });
   });
 
 });

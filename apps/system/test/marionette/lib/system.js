@@ -19,6 +19,7 @@ System.Selector = Object.freeze({
   appChromeContextMenuNewWindow: '.appWindow.active [data-id=new-window]',
   appChromeContextMenuBookmark: '.appWindow.active [data-id=add-to-homescreen]',
   appChromeContextMenuShare: '.appWindow.active [data-id=share]',
+  softwareHome: '#software-home-button',
   statusbar: '#statusbar',
   statusbarLabel: '#statusbar-label',
   topPanel: '#top-panel',
@@ -75,6 +76,10 @@ System.prototype = {
   get appChromeContextMenuShare() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeContextMenuShare);
+  },
+
+  get softwareHome() {
+    return this.client.findElement(System.Selector.softwareHome);
   },
 
   get statusbar() {

@@ -345,6 +345,10 @@
 
   LockScreenStateManager.prototype.onScreenChanged =
   function lssm_onScreenChanged(value) {
+    // To prevent unlock and lock hurriedly.
+    if (this.lockScreenStates.unlocking) {
+      this.lockScreenStates.unlocking = false;
+    }
     var inputs = this.extend(this.lockScreenStates, {
       screenOn: value
     });

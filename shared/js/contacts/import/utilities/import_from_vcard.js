@@ -1,4 +1,4 @@
-/* global Contacts, _, VCFReader, ConfirmDialog */
+/* global Contacts, VCFReader, ConfirmDialog */
 'use strict';
 
 var utils = window.utils || {};
@@ -15,7 +15,7 @@ utils.importFromVcard = function(file, callback) {
     var importer = null;
     var text = null;
     var progress = utils.overlay.show(
-                   _('memoryCardContacts-reading'),
+                   'memoryCardContacts-reading',
                    'activityBar'
                  );
 
@@ -60,12 +60,14 @@ utils.importFromVcard = function(file, callback) {
       importer.process(function import_finish(result, numDupsMerged) {
         utils.overlay.hide();
         if (!cancelled) {
-          var msg1 = _('memoryCardContacts-imported3', {
-            n: importedContacts
-          });
-          var msg2 = !numDupsMerged ? null : _('contactsMerged', {
-            numDups: numDupsMerged
-          });
+          var msg1 = {
+            id: 'memoryCardContacts-imported3',
+            args: { n: importedContacts }
+          };
+          var msg2 = !numDupsMerged ? null : {
+            id: 'contactsMerged',
+            args: { numDups: numDupsMerged }
+          };
           utils.status.show(msg1,msg2);
         }
 
@@ -79,7 +81,7 @@ utils.importFromVcard = function(file, callback) {
 
     function import_read(n) {
       progress.setClass('progressBar');
-      progress.setHeaderMsg(_('memoryCardContacts-importing'));
+      progress.setHeaderMsg('memoryCardContacts-importing');
       progress.setTotal(n);
     }
 
