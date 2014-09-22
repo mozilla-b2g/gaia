@@ -5,15 +5,12 @@
 'use strict';
 
 function SimPinDialog(dialog) {
-  var conns = window.navigator.mozMobileConnections;
   var icc;
-
-  if (!conns) {
-    return;
-  }
-
   var _localize = navigator.mozL10n.setAttributes;
 
+  if (!window.navigator.mozMobileConnections) {
+    return;
+  }
 
   /**
    * Global variables and callbacks -- set by the main `show()' method
@@ -63,6 +60,7 @@ function SimPinDialog(dialog) {
     });
     return input;
   }
+
   var pinInput = numberPasswordInput(pinArea);
   var pukInput = numberPasswordInput(pukArea);
   var newPinInput = numberPasswordInput(newPinArea);
@@ -229,6 +227,17 @@ function SimPinDialog(dialog) {
 
   var _fdnContactInfo = {};
 
+  /**
+   * Updates a FDN contact. For some reason, `icc.updateContact` requires the
+   * pin input value instead of delegating to `icc.setCardLock`. That means
+   * that, in case of failure, the error is different that the one that
+   * `icc.setCardLock` gives. This means that we have to handle it separatedly
+   * instead of being able to use the existing `handleCardLockError` above.
+   * Among other things, it doesn't include the retryCount, so we can't tell
+   * the user how many remaining tries she has. What a mess.
+   *
+   * This should be solved when bug 1070941 is fixed.
+   */
   function updateFdnContact() {
     var req = icc.updateContact('fdn', _fdnContactInfo, pinInput.value);
 
@@ -238,16 +247,23 @@ function SimPinDialog(dialog) {
     };
 
     req.onerror = function onerror(e) {
-      var wrongPin2 = /IncorrectPassword/.test(req.error.name);
-      if (wrongPin2) { // TODO: count retries (not supported by the platform)
-        _action = initUI('get_pin2');
-        showMessage('fdnErrorMsg');
-        pinInput.value = '';
-        pinInput.focus();
-      } else {
-        _oncancel(_fdnContactInfo);
-        close();
-        throw new Error('Could not edit FDN contact on SIM card', e);
+      switch (req.error.name) {
+        case 'IncorrectPassword':
+        case 'SimPin2':
+          // TODO: count retries (not supported by the platform) -> Bug 1070941
+          _action = initUI('get_pin2');
+          showMessage('fdnErrorMsg');
+          pinInput.value = '';
+          pinInput.focus();
+          break;
+        case 'SimPuk2':
+          _action = initUI('unlock_puk2');
+          pukInput.focus();
+          break;
+        default:
+          _oncancel(_fdnContactInfo);
+          close();
+          throw new Error('Could not edit FDN contact on SIM card', e);
       }
     };
   }
