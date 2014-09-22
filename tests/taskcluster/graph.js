@@ -88,4 +88,3 @@ var graph = {
 // Output directly to stdout and allow pipe redirection to handle where it
 // should go...
 process.stdout.write(JSON.stringify(graph, null, 2));
-
