@@ -376,41 +376,34 @@ suite('ImageUtils', function() {
         verifyImage(this.inputBlob, W, H, 0, 0, W - 1, H - 1, 4, done);
       });
 
-      test('throw for invalid input', function() {
+      test('throw for invalid input', function(done) {
         var self = this;
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover();
-        }, 'no arguments');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover('not a blob');
-        }, 'not a blob');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob);
-        }, 'no dimensions');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, 0, 10);
-        }, 'zero width');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, 10, 0);
-        }, 'zero height');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, -10, 10);
-        }, 'negative width');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, 10, -10);
-        }, 'negative height');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, Infinity, 10);
-        }, 'infinite width');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, 10, Infinity);
-        }, 'infinite height');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, {}, 10);
-        }, 'NaN width');
-        assert.throws(function() {
-          ImageUtils.cropAndResizeToCover(self.inputBlob, 10, {});
-        }, 'NaN height');
+
+        function onResolve(value) {
+          throw Error('Must be rejected'); 
+        }
+
+        function onReject(err) {
+          assert.equal(err.message, 'invalid output dimensions');
+        }
+
+        function check(promise) {
+          return promise.then(onResolve, onReject);
+        }
+
+        Promise.all([
+          check(ImageUtils.resizeAndCropToCover()),
+          check(ImageUtils.resizeAndCropToCover('not a blob')),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, 0, 10)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, 10, 0)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, -10, 10)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, 10, -10)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, Infinity, 10)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, 10, Infinity)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, {}, 10)),
+          check(ImageUtils.resizeAndCropToCover(self.inputBlob, 10, {}))
+        ]).then(() => done(), done); 
       });
 
       // Verify that if the output size is the same as the input size then
