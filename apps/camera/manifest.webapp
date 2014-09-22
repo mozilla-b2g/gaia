@@ -18,6 +18,7 @@
     "camera":{},
     "geolocation":{},
     "audio-channel-notification":{},
+    "audio-channel-content":{},
     "feature-detection": {}
   },
   "activities": {
