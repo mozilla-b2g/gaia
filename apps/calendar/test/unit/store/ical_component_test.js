@@ -87,7 +87,7 @@ suite('store/ical_component', function() {
     test('found', function(done) {
       subject.findRecurrencesBefore(max, function(err, list) {
         done(function() {
-          assert.length(list, expected.length);
+          assert.lengthOf(list, expected.length);
           assert.deepEqual(list, expected);
         });
       });

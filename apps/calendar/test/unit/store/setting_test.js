@@ -53,7 +53,7 @@ suite('store/setting', function() {
 
     setup(function(done) {
       subject.on(name + 'Change', function() {
-        calledEvent = arguments;
+        calledEvent = Array.slice(arguments);
       });
       subject.set(name, 'first', done);
     });

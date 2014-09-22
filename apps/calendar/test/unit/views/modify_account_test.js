@@ -193,7 +193,7 @@ suiteGroup('Views.ModifyAccount', function() {
     setup(function() {
       handler = subject.accountHandler;
       subject.showErrors = function() {
-        showErrorCall = arguments;
+        showErrorCall = Array.slice(arguments);
       };
     });
 
@@ -231,12 +231,12 @@ suiteGroup('Views.ModifyAccount', function() {
       // we don't really need to redirect
       // in the test just confirm that it does
       app.router.show = function() {
-        calledShow = arguments;
+        calledShow = Array.slice(arguments);
       };
 
       // again fake model so we do a fake remove
       store.remove = function() {
-        calledRemove = arguments;
+        calledRemove = Array.slice(arguments);
       };
     });
 

@@ -449,7 +449,7 @@ suite('store/account', function() {
     });
 
     test('found accounts', function() {
-      assert.length(results, 1);
+      assert.lengthOf(results, 1);
       assert.equal(results[0]._id, accounts.sync._id);
     });
 

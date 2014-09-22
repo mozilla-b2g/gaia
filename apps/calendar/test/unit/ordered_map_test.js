@@ -75,7 +75,7 @@ suite('ordered_map', function() {
         subject.items[1][0], 8,
         'should not remove unrelated item'
       );
-      assert.length(subject, 2);
+      assert.lengthOf(subject, 2);
     });
 
     test('before', function() {

@@ -339,7 +339,7 @@ suiteGroup('Controllers.Alarm', function() {
           subject.handleAlarm(alarm, function() {
             Calendar.nextTick(function() {
               done(function() {
-                assert.length(sent, 0);
+                assert.lengthOf(sent, 0);
                 assert.ok(lock.mIsUnlocked, 'frees lock');
                 assert.ok(worksQueue, 'works alarm queue');
               });
@@ -573,7 +573,7 @@ suiteGroup('Controllers.Alarm', function() {
           var pending = 4;
 
           function onComplete() {
-            assert.length(locks, 4, 'has correct number of locks');
+            assert.lengthOf(locks, 4, 'has correct number of locks');
 
             var freedAll = locks.every(function(lock) {
               return lock.mIsUnlocked === true;
