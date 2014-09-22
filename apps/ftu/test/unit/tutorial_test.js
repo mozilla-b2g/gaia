@@ -3,7 +3,6 @@
           MockNavigatorSettings */
 'use strict';
 
-require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('ftu/test/unit/mock_l10n.js');
@@ -21,6 +20,19 @@ suite('Tutorial >', function() {
 
   mocksHelperForFTU.attachTestHelpers();
 
+  function MockXMLHttpRequest() {
+    var mResponse = MockXMLHttpRequest.mResponse;
+    this.open = function() {};
+    this.send = function() {
+      this.response = mResponse;
+      this.timeout = setTimeout(this.onload.bind(this));
+    };
+    this.abort = function() {
+      if (this.timeout) {
+        clearTimeout(this.clearTimeout);
+      }
+    };
+  }
   function mockConfig(stepCount) {
     var steps = [];
     for (; stepCount; stepCount--) {
@@ -40,6 +52,7 @@ suite('Tutorial >', function() {
   var realL10n;
   var realMozApps;
   var realMozSettings;
+  var realXHR;
 
   suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
@@ -53,6 +66,9 @@ suite('Tutorial >', function() {
 
     loadBodyHTML('/index.html');
 
+    realXHR = window.XMLHttpRequest;
+    window.XMLHttpRequest = MockXMLHttpRequest;
+
     requireApp('ftu/js/tutorial.js', done);
   });
 
@@ -61,6 +77,8 @@ suite('Tutorial >', function() {
     navigator.mozApps = realMozApps;
     navigator.mozSettings = realMozSettings;
     realL10n = null;
+    window.XMLHttpRequest = realXHR;
+    realXHR = null;
     document.body.innerHTML = '';
   });
 
@@ -76,8 +94,7 @@ suite('Tutorial >', function() {
   });
 
   test(' sanity test mocks', function(done) {
-    this.sinon.stub(LazyLoader, 'getJSON')
-              .returns(Promise.resolve(mockConfig(2)));
+    MockXMLHttpRequest.mResponse = mockConfig(2);
     Tutorial.loadConfig().then(onOutcome, onOutcome)
                          .then(done, done);
     function onOutcome() {
@@ -153,7 +170,7 @@ suite('Tutorial >', function() {
 
     test('start despite failure to load media', function(done) {
       var tutorialWasInitialized = false;
-      var jsonMock = {
+      MockXMLHttpRequest.mResponse = {
         'default': {
           steps: [{
             video: '/style/images/tutorial/NotThere.mp4',
@@ -161,7 +178,6 @@ suite('Tutorial >', function() {
           }]
         }
       };
-      this.sinon.stub(LazyLoader, 'getJSON').returns(Promise.resolve(jsonMock));
       window.addEventListener('tutorialinitialized', function() {
         tutorialWasInitialized = true;
       });
@@ -178,7 +194,8 @@ suite('Tutorial >', function() {
   suite(' post-init', function() {
     suiteSetup(function(done) {
       Tutorial.reset();
-      sinon.stub(LazyLoader, 'getJSON').returns(Promise.resolve(mockConfig(3)));
+
+      MockXMLHttpRequest.mResponse = mockConfig(3);
 
       Tutorial.init();
       Tutorial.start(function() {

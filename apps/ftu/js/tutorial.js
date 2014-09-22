@@ -1,5 +1,5 @@
 /* global ScreenLayout, Promise,
-          Utils, FinishScreen, LazyLoader */
+          Utils, FinishScreen */
 /* exported Tutorial */
 
 (function(exports) {
@@ -375,12 +375,30 @@
 
         var configUrl = '/config/' + currentLayout + '.json';
 
-        this._configPromise = LazyLoader.getJSON(configUrl)
-                                        .then(function(json) {
-          Tutorial.config = json;
-          return Tutorial.config;
-        }, function() {
-          return new Error('Tutorial config failed to load from: ' + configUrl);
+        this._configPromise = new Promise(function(resolve, reject) {
+          var xhr = Tutorial._configRequest = new XMLHttpRequest();
+          xhr.open('GET', configUrl, true);
+          xhr.responseType = 'json';
+
+          xhr.onload = function() {
+            Tutorial._configRequest = null;
+            if (xhr.response) {
+              Tutorial.config = xhr.response;
+              resolve(Tutorial.config);
+            } else {
+              reject(
+                new Error('Tutorial config failed to load from: ' + configUrl)
+              );
+            }
+          };
+
+          xhr.onerror = function(err) {
+            Tutorial._configRequest = null;
+            reject(
+              new Error('Tutorial config failed to load from: ' + configUrl)
+            );
+          };
+          xhr.send(null);
         });
       }
       return this._configPromise;
@@ -395,6 +413,9 @@
       if (this._initialization) {
         this._initialization.abort();
         this._initialization = null;
+      }
+      if (this._configRequest) {
+        this._configRequest.abort();
       }
       this._configPromise = null;
       this._currentStep = 1;
