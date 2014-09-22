@@ -14,7 +14,8 @@
 
 'use strict';
 
-requireApp('sms/js/compose.js');
+require('/js/event_dispatcher.js');
+require('/js/compose.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/drafts.js');
 
@@ -373,7 +374,7 @@ suite('compose_test.js', function() {
       });
 
       teardown(function() {
-        Compose.clearListeners();
+        Compose.offAll();
         typeWhenEvent = null;
       });
 
@@ -865,47 +866,46 @@ suite('compose_test.js', function() {
     });
 
     suite('Message Type Events', function() {
-      var expectType;
-
-      function typeChange(event) {
-        assert.equal(Compose.type, expectType);
-        typeChange.called++;
-      }
+      var typeChangeStub;
 
       setup(function() {
-        expectType = 'sms';
         Compose.clear();
-        typeChange.called = 0;
 
-        Compose.on('type', typeChange);
+        typeChangeStub = sinon.stub();
+
+        Compose.on('type', typeChangeStub);
       });
 
       teardown(function() {
-        Compose.off('type', typeChange);
+        Compose.off('type', typeChangeStub);
       });
 
       test('Message switches type when adding attachment but not when clearing',
         function() {
-        expectType = 'mms';
         Compose.append(mockAttachment());
-        assert.equal(typeChange.called, 1);
+
+        sinon.assert.calledOnce(typeChangeStub);
+        assert.equal(Compose.type, 'mms');
 
         Compose.clear();
-        assert.equal(typeChange.called, 1);
+
+        sinon.assert.calledOnce(typeChangeStub);
         assert.equal(Compose.type, 'sms');
       });
 
       test('Message switches type when adding/removing subject',
         function() {
-        expectType = 'mms';
         Compose.toggleSubject();
         subject.textContent = 'foo';
         subject.dispatchEvent(new CustomEvent('input'));
-        assert.equal(typeChange.called, 1);
 
-        expectType = 'sms';
+        sinon.assert.calledOnce(typeChangeStub);
+        assert.equal(Compose.type, 'mms');
+
         Compose.toggleSubject();
-        assert.equal(typeChange.called, 2);
+
+        sinon.assert.calledTwice(typeChangeStub);
+        assert.equal(Compose.type, 'sms');
       });
     });
 
@@ -1610,7 +1610,7 @@ suite('compose_test.js', function() {
       // some tests use a rejected promise
       segmentInfoPromise.catch(() => {}).then(function() {
         Compose.clear();
-        Compose.clearListeners();
+        Compose.offAll();
       }).then(done, done);
     });
 

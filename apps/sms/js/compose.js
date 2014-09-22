@@ -5,7 +5,8 @@
         MessageManager,
         Navigation,
         Promise,
-        ThreadUI
+        ThreadUI,
+        EventDispatcher
 */
 /*exported Compose */
 
@@ -32,12 +33,6 @@ var Compose = (function() {
     subject: null,
     sendButton: null,
     attachButton: null
-  };
-
-  var handlers = {
-    input: [],
-    type: [],
-    segmentinfochange: []
   };
 
   var state = {
@@ -206,7 +201,7 @@ var Compose = (function() {
     Compose.updateType();
     updateSegmentInfoThrottled();
 
-    trigger.call(Compose, 'input');
+    Compose.emit('input');
   }
 
   function onSubjectChanged() {
@@ -242,17 +237,6 @@ var Compose = (function() {
       // trigger a recompute of size on the keypresses
       state.size = null;
       compose.lock = false;
-    }
-  }
-
-  function trigger(type) {
-    var event = new CustomEvent(type);
-    var fns = handlers[type];
-
-    if (fns && fns.length) {
-      for (var i = 0; i < fns.length; i++) {
-        fns[i].call(compose, event);
-      }
     }
   }
 
@@ -379,7 +363,7 @@ var Compose = (function() {
         };
       }
     ).then(compose.updateType.bind(Compose))
-    .then(trigger.bind(compose, 'segmentinfochange'));
+    .then(compose.emit.bind(compose, 'segmentinfochange'));
   }
 
   var compose = {
@@ -408,10 +392,10 @@ var Compose = (function() {
       dom.attachButton.addEventListener('click',
         this.onAttachClick.bind(this));
 
-      this.clearListeners();
+      this.offAll();
       this.clear();
 
-      this.on('type', this.onTypeChange);
+      this.on('type', this.onTypeChange.bind(this));
 
       /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
        * property */
@@ -419,29 +403,6 @@ var Compose = (function() {
       // Bug 1026384: call updateType as well when the recipients change
 
       return this;
-    },
-
-    on: function(type, handler) {
-      if (handlers[type]) {
-        handlers[type].push(handler);
-      }
-      return this;
-    },
-
-    off: function(type, handler) {
-      if (handlers[type]) {
-        var index = handlers[type].indexOf(handler);
-        if (index !== -1) {
-          handlers[type].splice(index, 1);
-        }
-      }
-      return this;
-    },
-
-    clearListeners: function() {
-      for (var type in handlers) {
-        handlers[type] = [];
-      }
     },
 
     getContent: function() {
@@ -698,7 +659,7 @@ var Compose = (function() {
 
       if (newType !== state.type) {
         state.type = newType;
-        trigger.call(this, 'type');
+        this.emit('type');
       }
     },
 
@@ -940,5 +901,9 @@ var Compose = (function() {
     }
   });
 
-  return compose;
+  return EventDispatcher.mixin(compose, [
+    'input',
+    'type',
+    'segmentinfochange'
+  ]);
 }());
