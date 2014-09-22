@@ -526,7 +526,8 @@ suite('lib/camera/camera', function() {
       this.camera.focus = {
         resume: function() {},
         focus: sinon.stub().callsArg(0),
-        getMode: sinon.spy()
+        getMode: sinon.spy(),
+        startFaceDetection : sinon.spy()
       };
 
       sinon.stub(this.camera, 'set');
