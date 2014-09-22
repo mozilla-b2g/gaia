@@ -610,6 +610,7 @@ var Contacts = (function() {
           '/shared/js/mime_mapper.js',
           SHARED_UTILS_PATH + '/' + 'vcard_parser.js',
           '/contacts/js/utilities/icc_handler.js',
+          SHARED_UTILS_PATH + '/' + 'sdcard.js',
           '/shared/js/date_time_helper.js'], function() {
           settingsReady = true;
           contacts.Settings.init();
@@ -767,7 +768,6 @@ var Contacts = (function() {
       '/contacts/js/contacts_tag.js',
       '/contacts/js/tag_options.js',
       '/shared/js/text_normalizer.js',
-      SHARED_UTILS_PATH + '/' + 'sdcard.js',
       SHARED_UTILS_PATH + '/' + 'status.js',
       '/shared/js/contacts/utilities/dom.js',
       '/shared/js/contacts/import/import_status_data.js'
