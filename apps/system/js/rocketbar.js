@@ -90,14 +90,13 @@
       backdrop.addEventListener('transitionend', finishTransition);
       safetyTimeout = setTimeout(finishTransition, 300);
 
-      var finishLoad = (function() {
+      this.loadSearchApp().then(() => {
         if (this.input.value.length) {
           this.handleInput();
         }
         searchLoaded = true;
         waitOver();
-      }).bind(this);
-      this.loadSearchApp(finishLoad);
+      });
     },
 
     /**
@@ -502,14 +501,15 @@
 
     /**
      * Instantiates a new SearchWindow.
+     * @return {Promise}
      * @memberof Rocketbar.prototype
      */
-    loadSearchApp: function(callback) {
+    loadSearchApp: function() {
       if (!this.searchWindow) {
         this.searchWindow = new SearchWindow();
       }
 
-      this.initSearchConnection(callback);
+      return this.initSearchConnection();
     },
 
     /**
@@ -530,44 +530,36 @@
 
     /**
      * Initialise inter-app connection with search app.
-     * @param {Function} callback Function to call after we have an IAC port.
+     * @return {Promise}
      * @memberof Rocketbar.prototype
      */
-    initSearchConnection: function(callback) {
-      var self = this;
-
-      if (this._port) {
-        if (callback) {
-          callback();
-        }
-        return;
+    initSearchConnection: function() {
+      if (this.pendingInitConnection) {
+        return this.pendingInitConnection;
       }
 
-      this._port = 'pending';
-      navigator.mozApps.getSelf().onsuccess = function() {
-        var app = this.result;
-        if (!app) {
-          return;
-        }
-
-        app.connect('search').then(
-          function onConnectionAccepted(ports) {
-            ports.forEach(function(port) {
-              self._port = port;
-            });
-            if (self._pendingMessage) {
-              self.handleSearchMessage(self._pendingMessage);
-              delete self._pendingMessage;
-            }
-            if (callback) {
-              callback();
-            }
-          },
-          function onConnectionRejected(reason) {
-            console.error('Error connecting: ' + reason + '\n');
+      this.pendingInitConnection = new Promise((resolve, reject) => {
+        navigator.mozApps.getSelf().onsuccess = (event) => {
+          var app = event.target.result;
+          if (!app) {
+            reject();
+            return;
           }
-        );
-      };
+
+          app.connect('search').then(ports => {
+              ports.forEach(port => {
+                this._port = port;
+              });
+              if (this._pendingMessage) {
+                this.handleSearchMessage(this._pendingMessage);
+                delete this._pendingMessage;
+              }
+              delete this.pendingInitConnection;
+              resolve();
+            }, reject);
+        };
+      });
+      return this.pendingInitConnection;
     },
 
     /**

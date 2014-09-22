@@ -106,7 +106,8 @@ suite('system/Rocketbar', function() {
   });
 
   test('focus()', function() {
-    var loadSearchAppStub = this.sinon.stub(subject, 'loadSearchApp');
+    var loadSearchAppStub = this.sinon.stub(subject, 'loadSearchApp')
+      .returns(Promise.resolve());
     subject.form.classList.add('hidden');
     subject.activate();
     subject.focus();
@@ -419,7 +420,7 @@ suite('system/Rocketbar', function() {
     initSearchConnectionStub.restore();
   });
 
-  test('initSearchConnection()', function() {
+  test('initSearchConnection()', function(done) {
     var handleSearchMessageStub = this.sinon.stub(subject,
       'handleSearchMessage');
     subject._pendingMessage = 'hi';
@@ -437,13 +438,15 @@ suite('system/Rocketbar', function() {
     }};
     subject._port = null;
     navigator.mozApps.getSelf = function() { return app; };
-    subject.initSearchConnection();
-    app.onsuccess();
-    assert.equal(subject._port, 'abc');
-    assert.equal(subject._pendingMessage, null);
-    assert.ok(handleSearchMessageStub.calledOnce);
-    navigator.mozApps = realMozApps;
-    handleSearchMessageStub.restore();
+    subject.initSearchConnection().then(() => {
+      assert.equal(subject._port, 'abc');
+      assert.equal(subject._pendingMessage, null);
+      assert.ok(handleSearchMessageStub.calledOnce);
+      navigator.mozApps = realMozApps;
+      handleSearchMessageStub.restore();
+      done();
+    });
+    app.onsuccess({target: app});
   });
 
   test('handleSearchMessage()', function() {
@@ -535,7 +538,7 @@ suite('system/Rocketbar', function() {
     assert.ok(spy.calledWithNew);
 
     assert.ok(subject.searchWindow instanceof MockSearchWindow);
-    assert.equal(subject._port, 'pending');
+    assert.equal(subject._port, null);
   });
 
   test('open', function() {
@@ -585,16 +588,14 @@ suite('system/Rocketbar', function() {
 
   suite('activate with a transition', function() {
     test('done after transition and search app load', function(done) {
-      this.sinon.spy(subject, 'loadSearchApp');
+      this.sinon.stub(subject, 'loadSearchApp').returns(Promise.resolve());
       subject.activate(done);
-      subject.loadSearchApp.yield();
       subject.backdrop.dispatchEvent(new CustomEvent('transitionend'));
     });
 
     test('done after safety timeout and search app load', function(done) {
-      this.sinon.spy(subject, 'loadSearchApp');
+      this.sinon.stub(subject, 'loadSearchApp').returns(Promise.resolve());
       subject.activate(done);
-      subject.loadSearchApp.yield();
       this.sinon.clock.tick(500);
     });
   });
