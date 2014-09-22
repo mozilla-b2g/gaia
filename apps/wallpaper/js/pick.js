@@ -34,6 +34,11 @@ var Wallpaper = {
     // See Bug 1011460
     var sampleSize = Downsample.sizeNoMoreThan(this.thumbnailScale);
     xhr.onload = function successGenerateWallpaperList() {
+      // The unit test won't be able to find the wallpapers element, so just
+      // return.
+      if (!self.wallpapers) {
+        return;
+      }
       self.wallpapers.innerHTML = '';
       xhr.response.forEach(function(wallpaper) {
         var fileName = 'resources/' + wallpaper;
