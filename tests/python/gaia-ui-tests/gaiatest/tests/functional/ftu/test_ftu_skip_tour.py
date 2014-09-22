@@ -17,6 +17,9 @@ class TestFtu(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
+        # Reset timezone.user-selected setting as we change this in our testvars
+        self.data_layer.set_setting('time.timezone.user-selected', None)
+
         self.ftu = Ftu(self.marionette)
         self.ftu.launch()
 
