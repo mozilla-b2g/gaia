@@ -471,7 +471,7 @@ MARIONETTE_HOST ?= localhost
 MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(GAIA_DIR)/tests
 
-define BUILD_CONFIG
+define build-config
 { \
   "ADB" : "$(patsubst "%",%,$(ADB))", \
   "GAIA_DIR" : "$(GAIA_DIR)", \
@@ -504,7 +504,7 @@ define BUILD_CONFIG
   "GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)", \
   "GAIA_ENGINE" : "xpcshell", \
   "GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)", \
-  "GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
+  "GAIA_APPDIRS" : "$(1)", \
   "GAIA_ALLAPPDIRS" : "$(GAIA_ALLAPPDIRS)", \
   "GAIA_MEMORY_PROFILE" : "$(GAIA_MEMORY_PROFILE)", \
   "NOFTU" : "$(NOFTU)", \
@@ -522,12 +522,14 @@ define BUILD_CONFIG
 }
 endef
 
+BUILD_CONFIG := $(call build-config,$(GAIA_APPDIRS))
+
 export BUILD_CONFIG
 
 include build/common.mk
 
 # Generate profile/
-$(PROFILE_FOLDER): preferences pre-app post-app test-agent-config offline contacts extensions b2g_sdk .git/hooks/pre-commit
+$(PROFILE_FOLDER): preferences post-app test-agent-config offline contacts extensions b2g_sdk .git/hooks/pre-commit
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -537,16 +539,26 @@ $(STAGE_DIR):
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
-.PHONY: pre-app
 pre-app: b2g_sdk $(STAGE_DIR)
 	@$(call run-js-command,pre-app)
 
+APP_TARGET_LIST :=
+
+define app_rule =
+APP_NAME := $(shell basename $(APP_PATH))
+APP_TARGET_LIST += app-$(APP_NAME)
+.PHONY: app-$(APP_NAME)
+app-$(APP_NAME): pre-app
+	@BUILD_CONFIG='$(call build-config,$(APP_PATH))' $(call run-js-command,app)
+endef
+
+$(foreach APP_PATH,$(GAIA_APPDIRS),$(eval $(app_rule)))
+
 .PHONY: app
-app: $(XULRUNNER_BASE_DIRECTORY) pre-app | $(STAGE_DIR)
-	@$(call run-js-command,app)
+app: $(APP_TARGET_LIST)
 
 .PHONY: post-app
-post-app: app pre-app b2g_sdk
+post-app: app
 	@$(call run-js-command,post-app)
 
 # Keep old targets just for people/scripts still using it
@@ -935,7 +947,8 @@ forward:
 
 # install-gaia is alias to build & push to device.
 .PHONY: install-gaia
-install-gaia: $(PROFILE_FOLDER) push
+install-gaia: $(PROFILE_FOLDER)
+	@$(call run-js-command,push-to-device)
 
 # If your gaia/ directory is a sub-directory of the B2G directory, then
 # you should use:
@@ -978,7 +991,14 @@ production: reset-gaia
 dogfood: reset-gaia
 
 # Remove everything and install a clean profile
-reset-gaia: purge install-gaia install-default-data
+reset-gaia: purge $(PROFILE_FOLDER) contacts
+	$(ADB) push $(PROFILE_FOLDER)/settings.json $(MSYS_FIX)/system/b2g/defaults/settings.json
+ifdef CONTACTS_PATH
+	$(ADB) push $(PROFILE_FOLDER)/contacts.json $(MSYS_FIX)/system/b2g/defaults/contacts.json
+else
+	$(ADB) shell rm /system/b2g/defaults/contacts.json
+endif
+	@$(call run-js-command,push-to-device)
 
 # remove the memories and apps on the phone
 purge:
@@ -993,20 +1013,6 @@ purge:
 	$(ADB) remount
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 	$(ADB) shell 'if test -d $(MSYS_FIX)/persist/svoperapps; then rm -r $(MSYS_FIX)/persist/svoperapps; fi'
-
-$(PROFILE_FOLDER)/settings.json: b2g_sdk profile-dir pre-app post-app
-
-# push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone
-install-default-data: $(PROFILE_FOLDER)/settings.json contacts
-	$(ADB) shell stop b2g
-	$(ADB) remount
-	$(ADB) push $(PROFILE_FOLDER)/settings.json $(MSYS_FIX)/system/b2g/defaults/settings.json
-ifdef CONTACTS_PATH
-	$(ADB) push $(PROFILE_FOLDER)/contacts.json $(MSYS_FIX)/system/b2g/defaults/contacts.json
-else
-	$(ADB) shell rm /system/b2g/defaults/contacts.json
-endif
-	$(ADB) shell start b2g
 
 # clean out build products
 clean:
