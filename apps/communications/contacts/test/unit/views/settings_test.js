@@ -137,6 +137,7 @@ suite('Contacts settings >', function() {
   });
 
   suite('DSDS DOM support', function() {
+    var spyL10n;
     // This test sets an scenario of two sim cards
     suiteSetup(function() {
       realMozMobileConnections = navigator.mozMobileConnections;
@@ -148,9 +149,12 @@ suite('Contacts settings >', function() {
       // Add to facke iccs
       navigator.mozIccManager.iccIds[0] = 0;
       navigator.mozIccManager.iccIds[1] = 1;
+
+      spyL10n = sinon.spy(navigator.mozL10n, 'setAttributes');
     });
     suiteTeardown(function() {
       navigator.mozMobileConnections = realMozMobileConnections;
+      spyL10n.restore();
     });
 
     setup(function() {
@@ -175,8 +179,14 @@ suite('Contacts settings >', function() {
 
     test('Check number of import buttons appearing', function() {
       // Check that we generated two sim import buttons
-      assert.isNotNull(document.querySelector('#import-sim-option-0'));
-      assert.isNotNull(document.querySelector('#import-sim-option-1'));
+      var importButton0 = document.querySelector('#import-sim-option-0');
+      var importButton1 = document.querySelector('#import-sim-option-1');
+      assert.isNotNull(importButton0);
+      assert.isNotNull(importButton1);
+
+      // We test as well that the l10NIds are correctly set
+      assert.equal(spyL10n.args[0][1], 'simNumber');
+      assert.equal(spyL10n.args[1][1], 'simNumber');
     });
 
     test('Check number of export buttons appearing', function() {

@@ -31,4 +31,7 @@ var MockMozL10n = window.navigator.mozL10n = {
   once: function(cb) {
     this.realL10nCB = cb;
   },
+  setAttributes: function(node, id, params) {
+    node.dataset.l10nId = id;
+  }
 };
