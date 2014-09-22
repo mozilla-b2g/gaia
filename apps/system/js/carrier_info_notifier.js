@@ -1,4 +1,10 @@
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
+
+/* global ModalDialog */
+/* global NotificationScreen */
 
 var CarrierInfoNotifier = {
 
@@ -13,15 +19,14 @@ var CarrierInfoNotifier = {
   },
 
   showCDMA: function cin_showCDMA(message) {
-    var _ = navigator.mozL10n.get;
     if (message.display) {
-      this.show(message.display, _('cdma-record-info'));
+      this.show(message.display, 'cdma-record-info');
     }
     if (message.extendedDisplay) {
       var text = message.extendedDisplay.records.map(function(elem) {
         return elem.content;
       }).join(' ');
-      this.show(text, _('cdma-record-info'));
+      this.show(text, 'cdma-record-info');
     }
   },
 
@@ -29,7 +34,7 @@ var CarrierInfoNotifier = {
     var showDialog = function cin_showDialog() {
       ModalDialog.showWithPseudoEvent({
         title: title,
-        text: message,
+        text: { raw: message },
         type: 'alert'
       });
     };

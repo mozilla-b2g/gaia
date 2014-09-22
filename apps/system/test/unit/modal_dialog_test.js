@@ -143,4 +143,80 @@ suite('system/ModalDialog >', function() {
 
     ModalDialogCleanUp();
   });
+
+  suite('not to localize strings >', function() {
+    var oldTestObject;
+    suiteSetup(function() {
+      oldTestObject = testObject;
+      testObject.dialogText = { raw: testObject.dialogText };
+    });
+
+    suiteTeardown(function() {
+      testObject = oldTestObject;
+    });
+
+    test('call confirm API directly >', function() {
+
+      ModalDialog.confirm(
+        testObject.dialogTitle,
+        testObject.dialogText,
+        testObject.dialogConfirmObject,
+        testObject.dialogCancelObject
+      );
+
+      assert.strictEqual(
+        ModalDialog.elements.confirmTitle.getAttribute('data-l10n-id'),
+        testObject.dialogTitle);
+      assert.strictEqual(
+        ModalDialog.elements.confirmMessage.getAttribute('data-l10n-id'),
+        null);
+      assert.strictEqual(
+        ModalDialog.elements.confirmMessage.textContent,
+        testObject.dialogText.raw);
+
+      ModalDialogCleanUp();
+    });
+
+    test('call alert API directly >', function() {
+      ModalDialog.alert(
+        testObject.dialogTitle,
+        testObject.dialogText,
+        testObject.dialogCancelObject
+      );
+
+      assert.strictEqual(
+        ModalDialog.elements.alertTitle.getAttribute('data-l10n-id'),
+        testObject.dialogTitle);
+      assert.strictEqual(
+        ModalDialog.elements.alertMessage.getAttribute('data-l10n-id'),
+        null);
+      assert.strictEqual(
+        ModalDialog.elements.alertMessage.textContent,
+        testObject.dialogText.raw);
+
+      ModalDialogCleanUp();
+    });
+
+    test('call prompt API directly >', function() {
+      ModalDialog.prompt(
+        testObject.dialogTitle,
+        testObject.dialogText,
+        testObject.dialogDefaultValue,
+        testObject.dialogConfirmObject,
+        testObject.dialogCancelObject
+      );
+
+      assert.strictEqual(
+        ModalDialog.elements.promptTitle.getAttribute('data-l10n-id'),
+        testObject.dialogTitle);
+      assert.strictEqual(
+        ModalDialog.elements.promptMessage.getAttribute('data-l10n-id'),
+        null);
+      assert.strictEqual(
+        ModalDialog.elements.promptMessage.textContent,
+        testObject.dialogText.raw);
+
+      ModalDialogCleanUp();
+    });
+  });
 });
