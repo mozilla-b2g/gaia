@@ -6,6 +6,8 @@
 
   const DEBOUNCE_TIME = 2000;
 
+  const SCREENSHOT_TIMEOUT = 5000;
+
   /**
    * Places is the browser history, bookmark and icon management system for
    * B2G. Places monitors app events and syncs information with the Places
@@ -43,7 +45,7 @@
      * @memberof Places.prototype
      * @type {Array}
      */
-    screenshotQueue: [],
+    screenshotQueue: {},
 
     /**
      * Maximum number of top sites we display
@@ -126,10 +128,8 @@
           this.onIconChange(app.config.url, app.favicons);
           break;
         case 'apploaded':
-          var index = this.screenshotQueue.indexOf(app.config.url);
-          if (index !== -1) {
-            this.screenshotRequested(app.config.url);
-            this.screenshotQueue.splice(index, 1);
+          if (app.config.url in this.screenshotQueue) {
+            this.takeScreenshot(app.config.url);
           }
           this.debouncePlaceChanges(app.config.url);
           break;
@@ -142,18 +142,31 @@
      * @memberof Places.prototype
      */
     screenshotRequested: function(url) {
-      var self = this;
+      var app = AppWindowManager.getApp(url);
+      if (!app || app.loading) {
+        this.screenshotQueue[url] = setTimeout(() => {
+          this.takeScreenshot(url);
+        }, SCREENSHOT_TIMEOUT);
+      } else {
+        this.takeScreenshot(url);
+      }
+    },
+
+    takeScreenshot: function(url) {
+      if (url in this.screenshotQueue) {
+        clearTimeout(this.screenshotQueue[url]);
+        delete this.screenshotQueue[url];
+      }
+
       var app = AppWindowManager.getApp(url);
       if (!app) {
+        console.error('Couldnt find app for:', url);
         return false;
       }
-      if (app.loading) {
-        this.screenshotQueue.push(url);
-        return;
-      }
-      app.getScreenshot(function(screenshot) {
+
+      app.getScreenshot((screenshot) => {
         if (screenshot) {
-          self.saveScreenshot(url, screenshot);
+          this.saveScreenshot(url, screenshot);
         }
       });
     },
