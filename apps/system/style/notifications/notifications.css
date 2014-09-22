@@ -230,7 +230,7 @@
 #notifications-container .notification {
   height: 6rem;
   padding: 0 1.5rem;
-  font: 1.8rem/1.8rem auto;
+  font: 1.53rem/1.8rem auto;
   color: #e7e7e7;
   overflow: hidden;
 
@@ -268,7 +268,7 @@
 
 #notifications-container .notification > div.title-container {
   padding-top: 1.4rem;
-  font-size: 1.7rem;
+  font-size: 1.53rem;
   display: flex;
 }
 
