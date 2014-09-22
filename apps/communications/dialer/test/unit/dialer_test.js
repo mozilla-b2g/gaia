@@ -110,6 +110,8 @@ suite('navigation bar', function() {
   });
 
   teardown(function() {
+    window.removeEventListener('hashchange', NavbarManager.update);
+
     MockNavigatorMozIccManager.mTeardown();
     navigator.mozIccManager = realMozIccManager;
 
@@ -709,6 +711,7 @@ suite('navigation bar', function() {
     suite('Second tap on contacts tab', function() {
       test('Listens to click events', function() {
         this.sinon.spy(domOptionContacts, 'addEventListener');
+        window.removeEventListener('hashchange', NavbarManager.update);
         NavbarManager.init();
         sinon.assert.calledWith(domOptionContacts.addEventListener, 'click',
                                 NavbarManager.contactsTabTap);
