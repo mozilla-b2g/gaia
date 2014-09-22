@@ -14,9 +14,9 @@ class SettingsForm(Base):
     _order_by_last_name_locator = (By.CSS_SELECTOR, 'p[data-l10n-id="contactsOrderBy"]')
     _order_by_last_name_switch_locator = (By.CSS_SELECTOR, 'input[name="order.lastname"]')
     _import_from_sim_button_locator = (By.CSS_SELECTOR, "li[id*='import-sim-option'] button")
-    _import_from_sdcard_locator = (By.CSS_SELECTOR, 'button.icon-sd[data-l10n-id="importMemoryCard"]')
-    _import_from_gmail_button_locator = (By.CSS_SELECTOR, 'button.icon-gmail[data-l10n-id="importGmail"]')
-    _import_from_windows_live_button_locator = (By.CSS_SELECTOR, 'button.icon-live[data-l10n-id="importLive"]')
+    _import_from_sdcard_locator = (By.CSS_SELECTOR, 'button.icon-sd')
+    _import_from_gmail_button_locator = (By.CSS_SELECTOR, 'button.icon-gmail')
+    _import_from_windows_live_button_locator = (By.CSS_SELECTOR, 'button.icon-live')
     _import_settings_header = (By.ID, 'import-settings-header');
     _export_to_sd_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="memoryCard"]')
     _import_contacts_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="importContactsButton"]')
