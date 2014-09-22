@@ -346,7 +346,7 @@
       console.log.apply(console, args);
     }
   }
-  WallpaperManager.DEBUG = true; // Set to false to silence debug output
+  WallpaperManager.DEBUG = false; // Set to true to enable debug output
 
   /** @exports WallpaperManager */
   exports.WallpaperManager = WallpaperManager;

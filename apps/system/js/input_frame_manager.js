@@ -136,7 +136,7 @@
     // available memory is more than 512MB.
     if (this._keyboardManager.isOutOfProcessEnabled &&
         (!isCertifiedApp || this._keyboardManager.totalMemory >= 512)) {
-      console.log('=== Enable keyboard: ' + layout.origin + ' run as OOP ===');
+      this._debug('=== Enable keyboard: ' + layout.origin + ' run as OOP ===');
       frame.setAttribute('remote', 'true');
       frame.setAttribute('ignoreuserfocus', 'true');
     }
