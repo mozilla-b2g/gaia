@@ -12,7 +12,6 @@
 var Startup = {
   _lazyLoadScripts: [
     '/shared/js/settings_listener.js',
-    '/shared/js/sim_picker.js',
     '/shared/js/mime_mapper.js',
     '/shared/js/notification_helper.js',
     '/shared/js/option_menu.js',
@@ -21,6 +20,7 @@ var Startup = {
     '/shared/js/mobile_operator.js',
     '/shared/js/multi_sim_action_button.js',
     '/shared/js/image_utils.js',
+    '/shared/elements/gaia_sim_picker/script.js',
     'js/waiting_screen.js',
     'js/errors.js',
     'js/dialog.js',
