@@ -1,5 +1,13 @@
-// Quick Settings Test
 'use strict';
+/* global MockL10n */
+/* global MockAirplaneMode */
+/* global MockNavigatorMozMobileConnections */
+/* global MockNavigatorSettings */
+/* global MocksHelper */
+/* global MockSettingsListener */
+/* global MockWifiManager */
+/* global QuickSettings */
+
 
 require('/test/unit/mock_activity.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -28,6 +36,7 @@ suite('quick settings > ', function() {
   var realMozMobileConnections;
   var fakeQuickSettingsNode;
   var realAirplaneMode;
+  var subject;
 
   mocksForQuickSettings.attachTestHelpers();
 
@@ -59,12 +68,14 @@ suite('quick settings > ', function() {
     fakeQuickSettingsNode.id = 'quick-settings';
     document.body.appendChild(fakeQuickSettingsNode);
 
-    QuickSettings.ELEMENTS.forEach(function testAddElement(elementName) {
+    subject = new QuickSettings();
+
+    subject.ELEMENTS.forEach(function testAddElement(elementName) {
       var elt = document.createElement('div');
       elt.id = 'quick-settings-' + elementName;
       fakeQuickSettingsNode.appendChild(elt);
     });
-    QuickSettings.init();
+    subject.start();
   });
 
   teardown(function() {
@@ -73,12 +84,12 @@ suite('quick settings > ', function() {
 
   test('system/quick settings/enable wifi: Connected', function() {
     MockWifiManager.connection.status = 'connected';
-    QuickSettings.handleEvent({
+    subject.handleEvent({
       type: 'click',
-      target: QuickSettings.wifi,
+      target: subject.wifi,
       preventDefault: function() {}
     });
-    QuickSettings.handleEvent({
+    subject.handleEvent({
       type: 'wifi-statuschange',
       preventDefault: function() {}
     });
@@ -88,12 +99,12 @@ suite('quick settings > ', function() {
 
   test('system/quick settings/enable wifi: Connecting failed', function() {
     MockWifiManager.connection.status = 'connectingfailed';
-    QuickSettings.handleEvent({
+    subject.handleEvent({
       type: 'click',
-      target: QuickSettings.wifi,
+      target: subject.wifi,
       preventDefault: function() {}
     });
-    QuickSettings.handleEvent({
+    subject.handleEvent({
       type: 'wifi-statuschange',
       preventDefault: function() {}
     });
@@ -103,12 +114,12 @@ suite('quick settings > ', function() {
 
   test('system/quick settings/enable wifi: Disconnected', function() {
     MockWifiManager.connection.status = 'disconnected';
-    QuickSettings.handleEvent({
+    subject.handleEvent({
       type: 'click',
-      target: QuickSettings.wifi,
+      target: subject.wifi,
       preventDefault: function() {}
     });
-    QuickSettings.handleEvent({
+    subject.handleEvent({
       type: 'wifi-statuschange',
       preventDefault: function() {}
     });
@@ -118,9 +129,9 @@ suite('quick settings > ', function() {
 
   test('system/quick settings/disable wifi', function() {
     MockSettingsListener.mCallbacks['wifi.enabled'](true);
-    QuickSettings.handleEvent({
+    subject.handleEvent({
       type: 'click',
-      target: QuickSettings.wifi,
+      target: subject.wifi,
       preventDefault: function() {}
     });
     assert.equal(
@@ -129,62 +140,62 @@ suite('quick settings > ', function() {
 
   test('system/quick settings/enable airplane mode', function() {
     MockSettingsListener.mCallbacks['airplaneMode.status']('enabled');
-    QuickSettings.handleEvent({
+    subject.handleEvent({
       type: 'click',
-      target: QuickSettings.airplaneMode,
+      target: subject.airplaneMode,
       preventDefault: function() {}
     });
     assert.equal(
-      QuickSettings.airplaneMode.dataset.enabled, 'true');
+      subject.airplaneMode.dataset.enabled, 'true');
 
     assert.equal(
-      QuickSettings.data.classList.contains(
+      subject.data.classList.contains(
         'quick-settings-airplane-mode'), true);
   });
 
   test('system/quick settings/disable airplane mode', function() {
     MockSettingsListener.mCallbacks['airplaneMode.status']('disabled');
-    QuickSettings.handleEvent({
+    subject.handleEvent({
       type: 'click',
-      target: QuickSettings.airplaneMode,
+      target: subject.airplaneMode,
       preventDefault: function() {}
     });
     assert.equal(
-      QuickSettings.airplaneMode.dataset.enabled, undefined);
+      subject.airplaneMode.dataset.enabled, undefined);
 
     assert.equal(
-      QuickSettings.data.classList.contains(
+      subject.data.classList.contains(
         'quick-settings-airplane-mode'), false);
   });
 
   test('system/quick settings/disabling airplane mode', function() {
     MockSettingsListener.mCallbacks['airplaneMode.status']('disabling');
-    QuickSettings.handleEvent({
+    subject.handleEvent({
       type: 'click',
-      target: QuickSettings.airplaneMode,
+      target: subject.airplaneMode,
       preventDefault: function() {}
     });
 
     assert.equal(
-      QuickSettings.airplaneMode.dataset.disabling, 'true');
+      subject.airplaneMode.dataset.disabling, 'true');
 
     assert.equal(
-      QuickSettings.airplaneMode.dataset.enabling, undefined);
+      subject.airplaneMode.dataset.enabling, undefined);
   });
 
   test('system/quick settings/enabling airplane mode', function() {
     MockSettingsListener.mCallbacks['airplaneMode.status']('enabling');
-    QuickSettings.handleEvent({
+    subject.handleEvent({
       type: 'click',
-      target: QuickSettings.airplaneMode,
+      target: subject.airplaneMode,
       preventDefault: function() {}
     });
 
     assert.equal(
-      QuickSettings.airplaneMode.dataset.enabling, 'true');
+      subject.airplaneMode.dataset.enabling, 'true');
 
     assert.equal(
-      QuickSettings.airplaneMode.dataset.disabling, undefined);
+      subject.airplaneMode.dataset.disabling, undefined);
   });
 
   suite('datachange > ', function() {
@@ -215,7 +226,7 @@ suite('quick settings > ', function() {
       });
 
       test('we would get 3G label', function() {
-        assert.equal(QuickSettings.data.dataset.network, label['umts']);
+        assert.equal(subject.data.dataset.network, label.umts);
       });
     });
 
@@ -228,7 +239,7 @@ suite('quick settings > ', function() {
       });
 
       test('we would get undefined label', function() {
-        assert.equal(QuickSettings.data.dataset.network, label[undefined] + '');
+        assert.equal(subject.data.dataset.network, label[undefined] + '');
       });
     });
   });

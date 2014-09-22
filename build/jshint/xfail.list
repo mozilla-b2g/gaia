@@ -425,7 +425,6 @@ apps/system/test/unit/mock_utility_tray.js
 apps/system/test/unit/mock_wifi_manager.js
 apps/system/test/unit/operator_variant_helper_test.js
 apps/system/test/unit/orientation_manager_test.js
-apps/system/test/unit/quick_settings_test.js
 apps/system/test/unit/screen_manager_test.js
 apps/system/test/unit/settings_helper_test.js
 apps/system/test/unit/spin_date_picker_test.js
