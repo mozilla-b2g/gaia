@@ -195,6 +195,7 @@
 
         case 'attentionscreenshow':
           this.hide();
+          this.oncancel();
           break;
       }
     }
