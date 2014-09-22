@@ -97,7 +97,7 @@ then
   XULRUNNER_SDK=$(make xulrunner_sdk)
   XPCSHELL_SDK=$(make xpcshell_sdk)
 
-  GAIA_DIR=$(pwd) $XULRUNNER_SDK $XPCSHELL_SDK \
+  env GAIA_DIR=$(pwd) $XULRUNNER_SDK $XPCSHELL_SDK \
     -f build/xpcshell-commonjs.js \
     -e "quit(require('csslint').lint('$(pwd)', '$css_changed_files'));"
 
