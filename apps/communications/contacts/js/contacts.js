@@ -627,6 +627,8 @@ var Contacts = (function() {
         var simPickerNode = document.getElementById('sim-picker');
         LazyLoader.load(
           ['/shared/js/contacts/import/utilities/misc.js',
+           '/dialer/js/telephony_helper.js',
+           '/shared/js/contacts/sms_integration.js',
            simPickerNode,
            '/shared/js/contacts/contacts_buttons.js'],
         function() {
@@ -765,8 +767,6 @@ var Contacts = (function() {
       '/contacts/js/contacts_tag.js',
       '/contacts/js/tag_options.js',
       '/shared/js/text_normalizer.js',
-      '/dialer/js/telephony_helper.js',
-      '/shared/js/contacts/sms_integration.js',
       SHARED_UTILS_PATH + '/' + 'sdcard.js',
       SHARED_UTILS_PATH + '/' + 'status.js',
       '/shared/js/contacts/utilities/dom.js',
