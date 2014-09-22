@@ -146,12 +146,21 @@
       // link the iccid with current internet state for future restoring.
       var type = (evt.settingName.indexOf('wifi') > -1) ? 'wifi' : 'usb';
       var cardId = (IccHelper.iccInfo && IccHelper.iccInfo.iccid) || 'absent';
+      var conns = window.navigator.mozMobileConnections;
+      var title;
+      var buttonText;
+      var message;
+
+      if (!conns) {
+        return;
+      }
+      var dataType;
+      // In DualSim only one of them will have data active
+      for (var i = 0; i < conns.length && !dataType; i++) {
+        dataType = conns[i].data.type;
+      }
 
       if ('wifi' === type) {
-        var title;
-        var buttonText;
-        var message;
-
         if (AirplaneMode.enabled && true === evt.settingValue) {
           title = 'apmActivated';
           buttonText = 'ok';
@@ -167,6 +176,24 @@
 
           ModalDialog.alert(title, message, { title: buttonText });
           settings.createLock().set({'tethering.wifi.enabled': false});
+          return;
+        } else if (dataType != 'evdo0' && true === evt.settingValue) {
+          title = 'no-connectivity-head';
+          buttonText = 'ok';
+          message = 'no-connectivity-message-wifi-tethering';
+
+          ModalDialog.alert(title, message, { title: buttonText });
+          settings.createLock().set({'tethering.wifi.enabled': false});
+          return;
+        }
+      } else {
+        if (dataType != 'evdo0' && true === evt.settingValue) {
+          title = 'no-connectivity-head';
+          buttonText = 'ok';
+          message = 'no-connectivity-message-usb-tethering';
+
+          ModalDialog.alert(title, message, { title: buttonText });
+          settings.createLock().set({'tethering.usb.enabled': false});
           return;
         }
       }
