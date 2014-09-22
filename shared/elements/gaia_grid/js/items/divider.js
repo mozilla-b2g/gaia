@@ -20,6 +20,8 @@
     x: 0,
     y: 0,
 
+    headerHeight: 0,
+
     /**
      * Height in pixels of each divider.
      */

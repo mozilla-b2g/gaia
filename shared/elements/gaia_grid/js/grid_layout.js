@@ -42,8 +42,6 @@
 
     maxIconsPerRow: maxIconsPerRow,
 
-    groupHeaderHeight: 47,
-
     _cols: minIconsPerRow,
 
     _offsetY: 0,

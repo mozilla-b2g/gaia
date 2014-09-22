@@ -35,11 +35,6 @@
       this.zoom = new GridZoom(this);
     }
 
-    if (config.features.group) {
-      this.enableGrouping = true;
-      config.element.classList.add('grouping');
-    }
-
     this.layout = new GridLayout(this);
 
     // Set columns if we have a 'cols' attribute
@@ -464,30 +459,28 @@
           item.element = null;
         }
 
-        if (this.enableGrouping) {
-          if (item.detail.type === 'divider') {
-            nextDivider = null;
-          } else {
-            if (!nextDivider) {
-              for (var i = idx + 1; i < this.items.length; i++) {
-                if (this.items[i].detail.type === 'divider') {
-                  nextDivider = this.items[i];
-                  break;
-                }
-              }
-
-              // Make sure to leave room for group headers
-              if (nextDivider &&
-                  !nextDivider.detail.collapsed) {
-                this.layout.offsetY += this.layout.groupHeaderHeight;
+        if (item.detail.type === 'divider') {
+          nextDivider = null;
+        } else {
+          if (!nextDivider) {
+            for (var i = idx + 1; i < this.items.length; i++) {
+              if (this.items[i].detail.type === 'divider') {
+                nextDivider = this.items[i];
+                break;
               }
             }
 
-            // If this item is in a collapsed group, we need to skip rendering.
-            if (nextDivider && nextDivider.detail.collapsed) {
-              item.setPosition(idx);
-              continue;
+            // Make sure to leave room for group headers
+            if (nextDivider &&
+                !nextDivider.detail.collapsed) {
+              this.layout.offsetY += nextDivider.headerHeight;
             }
+          }
+
+          // If this item is in a collapsed group, we need to skip rendering.
+          if (nextDivider && nextDivider.detail.collapsed) {
+            item.setPosition(idx);
+            continue;
           }
         }
 

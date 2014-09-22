@@ -36,6 +36,11 @@
     gridWidth: 4,
 
     /**
+     * Height in pixels of the header part of the group.
+     */
+    headerHeight: 47,
+
+    /**
      * Height in pixels of the background of the group.
      */
     backgroundHeight: 0,
@@ -138,7 +143,7 @@
          COLLAPSED_GROUP_MARGIN * 2) / COLLAPSED_GROUP_SIZE);
       var x = COLLAPSED_GROUP_MARGIN +
         Math.round(Math.max(0, (COLLAPSED_GROUP_SIZE - nApps) * width / 2));
-      y += this.grid.layout.groupHeaderHeight;
+      y += this.headerHeight;
 
       for (var i = index - nApps; i < index; i++) {
         var item = this.grid.items[i];
@@ -183,7 +188,7 @@
       var y = this.y;
       if (!this.detail.collapsed) {
         y = this.grid.items[this.detail.index - nApps].y -
-          this.grid.layout.groupHeaderHeight;
+          this.headerHeight;
       }
 
       // Place the header span
@@ -198,7 +203,7 @@
         var height = Math.ceil(nApps / this.grid.layout.cols);
         this.backgroundHeight = (height || 1) * this.grid.layout.gridItemHeight;
       }
-      this.backgroundHeight += this.grid.layout.groupHeaderHeight;
+      this.backgroundHeight += this.headerHeight;
 
       // Place and size the background span element
       this.backgroundSpanElement.style.transform =
