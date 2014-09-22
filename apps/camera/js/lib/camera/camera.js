@@ -1263,6 +1263,11 @@ Camera.prototype.createVideoFilepath = function(done) {
  */
 Camera.prototype.resumePreview = function() {
   this.mozCamera.resumePreview();
+  // After calling takePicture(Camera.ShutterCallback, Camera.PictureCallback,
+  // Camera.PictureCallback) or stopPreview(), and then resuming preview with
+  // startPreview(), the apps should call this method again to resume face
+  // detection. See Bug 1070791.
+  this.focus.startFaceDetection();
   this.emit('previewresumed');
 };
 
