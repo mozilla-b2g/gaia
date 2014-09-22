@@ -56,65 +56,30 @@
 }
 
 /* Content */
+
 #firsttime-view .content:not(gaia-header) {
-  padding: 0 1.5rem 0;
-  margin-top: 3.5rem;
+  padding: 0;
+  margin-top: 1.5rem;
   list-style: none;
 }
 
 /* Wrapper with scroll */
 #firsttime-view section.content {
   -moz-box-sizing: border-box;
-  max-height: calc(100% - 5rem - 3.5rem - 6.8rem); /* window height - header height - steps progress - menu height  */
+  max-height: calc(100% - 5rem - 1.5rem - 6.8rem); /* window height - header height - steps progress - menu height  */
   overflow-x: auto;
 }
 
 #firsttime-view .content h2 {
   font-size: 1.9rem;
   margin-bottom: 1.6rem;
-}
-
-#firsttime-view .content p {
-  font-size: 1.6rem;
-}
-
-/* Choices */
-#firsttime-view .choices li {
-  margin: 0;
-  list-style: none;
-  border-bottom: 0.1rem solid #E7E7E7;
-  position: relative;
-  color: #000;
-  height: 6rem;
-  padding-left: 1.5rem;
-}
-
-#firsttime-view .choices li label {
-  width: 100%;
-  height: 100%;
-  font-size: 1.9rem;
   font-weight: normal;
+  font-style: italic;
+  padding: 2rem 3rem 0;
 }
 
-#firsttime-view .choices li label > input ~ span {
-  line-height: 6rem;
-}
-
-#firsttime-view .choices li label > input ~ span:after {
-  left: auto;
-  right: 0;
-}
-
-
-/* Settings */
-#firsttime-view .settings li {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.step-hint {
-  color: #999;
+#firsttime-view .content > p {
   font-size: 1.6rem;
-  font-weight: bold;
-  margin: 2rem;
+  padding: 0 3rem;
 }
+
