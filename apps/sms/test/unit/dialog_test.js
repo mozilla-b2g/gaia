@@ -54,8 +54,7 @@ suite('Dialog', function() {
     // - "loading"
     // - "attachment"
     // - "threads-edit-form"
-    // - "sim-picker"
-    assert.equal(previouslyDefinedForms, 6);
+    assert.equal(previouslyDefinedForms, 5);
     // Now we create the new element
     var dialog = new Dialog(params);
     // We check if the object is appended to the DOM
@@ -63,12 +62,15 @@ suite('Dialog', function() {
     // Is appended properly?
     var currentlyDefinedForms = document.getElementsByTagName('form');
     var currentlyDefinedFormsLength = currentlyDefinedForms.length;
-    assert.equal(currentlyDefinedFormsLength, 7);
+    assert.equal(currentlyDefinedFormsLength, 6);
     // We check the type
     var dialogForm = currentlyDefinedForms[currentlyDefinedFormsLength - 1];
     assert.equal(dialogForm.dataset.type, 'confirm');
   });
 
+  test('Has GaiaSimPicker', function() {
+    assert.ok(document.getElementById('sim-picker'));
+  });
 
   test('Focus', function() {
     var dialog = new Dialog(params);
