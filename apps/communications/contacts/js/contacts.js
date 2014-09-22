@@ -604,6 +604,8 @@ var Contacts = (function() {
     } else {
       Contacts.view('Settings', function viewLoaded() {
         LazyLoader.load(['/contacts/js/utilities/sim_dom_generator.js',
+          '/shared/js/mime_mapper.js',
+          SHARED_UTILS_PATH + '/' + 'vcard_parser.js',
           '/contacts/js/utilities/icc_handler.js',
           '/shared/js/date_time_helper.js'], function() {
           settingsReady = true;
@@ -763,7 +765,6 @@ var Contacts = (function() {
       '/dialer/js/telephony_helper.js',
       '/shared/js/contacts/sms_integration.js',
       SHARED_UTILS_PATH + '/' + 'sdcard.js',
-      SHARED_UTILS_PATH + '/' + 'vcard_parser.js',
       SHARED_UTILS_PATH + '/' + 'status.js',
       '/shared/js/contacts/utilities/dom.js',
       '/shared/js/contacts/import/import_status_data.js'
