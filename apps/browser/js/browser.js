@@ -215,7 +215,7 @@ var Browser = {
        this.followLink.bind(this));
 
     this.tabsSwipeMngr.browser = this;
-     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
+     ['touchstart', 'pan', 'tap', 'swipe'].forEach(function(evt) {
        this.tabsList.addEventListener(evt,
          this.tabsSwipeMngr[evt].bind(this.tabsSwipeMngr));
      }, this);
@@ -375,6 +375,8 @@ var Browser = {
 
   handleNewTab: function browserHandleNewTab(e) {
     this.inTransition = true;
+    // bug 1059650
+    this.screenSwipeMngr.gestureDetector.stopDetecting();
     var tabId = this.createTab();
     this.showNewTabAnimation((function browser_showNewTabAnimation() {
       this.selectTab(tabId);
@@ -1589,7 +1591,7 @@ var Browser = {
     id: null,
     containerWidth: null,
 
-    mousedown: function tabSwipe_mousedown(e) {
+    touchstart: function tabSwipe_touchstart(e) {
       e.preventDefault();
 
       this.isCloseButton = e.target.nodeName === 'BUTTON';
