@@ -585,6 +585,7 @@ var Contacts = (function() {
     } else {
       initDetails(function onDetails() {
         LazyLoader.load([
+          '/shared/js/contacts/import/utilities/misc.js',
           '/shared/js/contacts/utilities/image_thumbnail.js'],
         function() {
           Contacts.view('Form', function viewLoaded() {
@@ -604,6 +605,7 @@ var Contacts = (function() {
     } else {
       Contacts.view('Settings', function viewLoaded() {
         LazyLoader.load(['/contacts/js/utilities/sim_dom_generator.js',
+          '/shared/js/contacts/import/utilities/misc.js',
           '/shared/js/mime_mapper.js',
           SHARED_UTILS_PATH + '/' + 'vcard_parser.js',
           '/contacts/js/utilities/icc_handler.js',
@@ -623,7 +625,9 @@ var Contacts = (function() {
       Contacts.view('Details', function viewLoaded() {
         var simPickerNode = document.getElementById('sim-picker');
         LazyLoader.load(
-          [simPickerNode, '/shared/js/contacts/contacts_buttons.js'],
+          ['/shared/js/contacts/import/utilities/misc.js',
+           simPickerNode,
+           '/shared/js/contacts/contacts_buttons.js'],
         function() {
           navigator.mozL10n.translate(simPickerNode);
           detailsReady = true;
@@ -759,7 +763,6 @@ var Contacts = (function() {
       '/shared/js/contacts/contacts_shortcuts.js',
       '/contacts/js/contacts_tag.js',
       '/contacts/js/tag_options.js',
-      SHARED_UTILS_PATH + '/' + 'misc.js',
       '/contacts/js/utilities/normalizer.js',
       '/shared/js/text_normalizer.js',
       '/dialer/js/telephony_helper.js',
@@ -897,8 +900,11 @@ var Contacts = (function() {
   var initContacts = function initContacts(evt) {
     window.setTimeout(Contacts.onLocalized);
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
-      var actHandler = ActivityHandler.handle.bind(ActivityHandler);
-      window.navigator.mozSetMessageHandler('activity', actHandler);
+      LazyLoader.load(['/shared/js/contacts/import/utilities/misc.js'],
+       function() {
+        var actHandler = ActivityHandler.handle.bind(ActivityHandler);
+        window.navigator.mozSetMessageHandler('activity', actHandler);
+      });
     }
 
     document.addEventListener('visibilitychange', function visibility(e) {
