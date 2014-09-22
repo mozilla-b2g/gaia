@@ -313,7 +313,7 @@ MediaFrame.prototype._displayImage = function _displayImage(blob, isPreview) {
     (isPreview ? this.previewSampleSize : this.fullSampleSize);
 };
 
-MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
+MediaFrame.prototype._switchToFullSizeImage = function _switchToFull(zoomOption) {
   if (!this.displayingImage || !this.displayingPreview)
     return;
 
@@ -323,6 +323,7 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
   var oldimage = this.oldimage = this.image;
   var newimage = this.image = document.createElement('img');
   newimage.style.transformOrigin = 'center center';
+  newimage.style.display = 'none';
 
   // If there is a separate preview blob, then we need a new url now
   if (this.previewblob) {
@@ -364,6 +365,7 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
   // When the new image is loaded we can begin to remove the preview image
   newimage.onload = function imageLoaded() {
     newimage.onload = null;
+    newimage.style.display = 'block';
 
     // If the image we got has a different size than what we predicted
     // then make an adjustment now. This might happen if we use a
@@ -387,7 +389,11 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
         self.oldimage.src = '';
         self.oldimage = null;
       }
-    }, 1000);
+      if (zoomOption) {
+        self.zoom(zoomOption.scale, zoomOption.fixedX,
+                                         zoomOption.fixedY, zoomOption.time);
+      }
+    }, 100);
   };
 };
 
@@ -628,8 +634,11 @@ MediaFrame.prototype.zoom = function zoom(scale, fixedX, fixedY, time) {
     return;
 
   // If we were displaying the preview, switch to the full-size image
-  if (this.displayingPreview)
-    this._switchToFullSizeImage();
+  if (this.displayingPreview) {
+    var zoomOption = {scale: scale, fixedX: fixedX, fixedY: fixedY, time: 500};
+    this._switchToFullSizeImage(zoomOption);
+    return;
+  }
 
   // Never zoom in farther than the native resolution of the image
   if (this.fit.scale * scale > 1) {
