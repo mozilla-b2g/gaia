@@ -103,7 +103,7 @@ suite('DownloadList', function() {
     test(' > edit mode button enabled/disabled', function(done) {
       DownloadsList.init(function() {
         // Edit button is false at the beginning
-        assert.isFalse(editButton.classList.contains('disabled'));
+        assert.isFalse(editButton.disabled);
         // Edit mode
         editButton.click();
         // Select all
@@ -117,7 +117,7 @@ suite('DownloadList', function() {
             if (itemsDeleted === MockMozDownloads.mockLength) {
               // Stop the observer
               observer.disconnect();
-              assert.ok(editButton.classList.contains('disabled'));
+              assert.ok(editButton.disabled);
               done();
             }
           });
