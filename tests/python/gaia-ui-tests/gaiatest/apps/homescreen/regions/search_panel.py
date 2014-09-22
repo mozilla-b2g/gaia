@@ -6,7 +6,7 @@ from marionette.by import By
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
-
+import urllib
 
 class SearchPanel(Base):
 
@@ -32,7 +32,7 @@ class SearchPanel(Base):
         self.marionette.find_element(*self._rocketbar_input_locator).tap()
 
         self.keyboard.tap_enter()
-        self.wait_for_condition(lambda m: url in self.apps.displayed_app.name)
+        self.wait_for_condition(lambda m: urllib.quote(url) in self.apps.displayed_app.name)
 
         from gaiatest.apps.search.regions.browser import Browser
         return Browser(self.marionette)
