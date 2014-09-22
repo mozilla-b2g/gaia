@@ -2,7 +2,7 @@
 echo 'Downloading Firefox'
 ./node_modules/.bin/mozilla-download --product firefox \
                  --channel tinderbox \
-                 --branch mozilla-central \
+                 --branch mozilla-b2g30_v1_4 \
                  $PWD/firefox
 
 echo 'Downloading & installing node dependencies'
