@@ -4,7 +4,6 @@
   font: 1.8rem/1.8rem auto;
   color: #e7e7e7;
   overflow: hidden;
-
   border-bottom: .1rem solid rgba(255, 255, 255, .05);
 }
 
@@ -50,4 +49,10 @@
 
 .notification.attention-notification {
   background-color: rgba(0, 202, 242, 0.3);
+}
+
+/* RTL View */
+
+html[dir="rtl"] .fake-notification [data-icon] {
+  float: right;
 }
