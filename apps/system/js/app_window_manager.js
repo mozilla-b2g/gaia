@@ -65,6 +65,21 @@
     },
 
     /**
+     * Match app window that is currently at a specific url.
+     * @param  {String} url The url to be matched.
+     * @return {AppWindow} The app window object matched.
+     */
+    getAppByURL: function awm_getAppByURL(url) {
+      for (var id in this._apps) {
+        var app = this._apps[id];
+        if (app.config.url === url) {
+          return app;
+        }
+      }
+      return null;
+    },
+
+    /**
      * Get all apps.
      * @return {Object} The running app window references stored
      *                  by its instanceID.

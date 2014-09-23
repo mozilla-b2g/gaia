@@ -123,7 +123,7 @@
      */
     screenshotRequested: function(url) {
       var self = this;
-      var app = AppWindowManager.getApp(url);
+      var app = AppWindowManager.getAppByURL(url);
       if (!app) {
         return false;
       }

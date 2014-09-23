@@ -928,4 +928,21 @@ suite('system/AppWindowManager', function() {
     newApp2 = AppWindowManager.getApp(fakeBrowserConfig.origin);
     assert.deepEqual(newApp2.config, fakeBrowserConfig);
   });
+
+  test('getAppByURL', function() {
+
+    var url1 = fakeBrowserConfig.url;
+    var url2 = 'http://mozilla.org/page2';
+
+    injectRunningApps(browser1);
+    assert.deepEqual(AppWindowManager.getAppByURL(url1), browser1);
+    assert.isNull(AppWindowManager.getAppByURL('app://no-this-origin'));
+
+    // Change url in the browser and ensure we can find it again
+    browser1.config.url = url2;
+
+    assert.deepEqual(AppWindowManager.getAppByURL(url2), browser1);
+    assert.isNull(AppWindowManager.getAppByURL(url1));
+  });
+
 });
