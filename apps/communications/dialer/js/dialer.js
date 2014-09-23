@@ -7,14 +7,10 @@
 
 var NavbarManager = {
   init: function nm_init() {
+    // binding now so that we can remove the listener in unit tests
+    this.update = this.update.bind(this);
     this.update();
-    var self = this;
-    window.addEventListener('hashchange' , function nm_hashChange(event) {
-      // FIXME/bug 1026079: Implement it with building blocks:
-      // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.css
-      // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.html
-      self.update();
-    });
+    window.addEventListener('hashchange', this.update);
 
     var contacts = document.getElementById('option-contacts');
     contacts.addEventListener('click', this.contactsTabTap);
