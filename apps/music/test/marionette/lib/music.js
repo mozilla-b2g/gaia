@@ -25,7 +25,9 @@ Music.Selector = Object.freeze({
   shareMenu: 'form[data-z-index-level="action-menu"]',
   pickDoneButton: '#title-done',
   header: '#title',
-  playerIcon: '#title-player'
+  playerIcon: '#title-player',
+  tileView: '#views-tiles',
+  tileSearchBox: '#views-tiles-search'
 });
 
 Music.prototype = {
@@ -86,6 +88,14 @@ Music.prototype = {
     return parseFloat(this.progressBar.getAttribute('value'));
   },
 
+  get tileView() {
+    return this.client.helper.waitForElement(Music.Selector.tileView);
+  },
+
+  get tileSearchBox() {
+    return this.client.helper.waitForElement(Music.Selector.tileSearchBox);
+  },
+
   launch: function() {
     this.client.switchToFrame();
     this.client.apps.launch(this.origin);
@@ -119,6 +129,18 @@ Music.prototype = {
       var volumeShown = this.messageOverlay.displayed();
       return volumeShown === shouldBeShown;
     }.bind(this));
+  },
+
+  waitForTileSearchBoxShown: function() {
+    this.client.waitFor(function() {
+      return this.tileSearchBox.displayed();
+    }.bind(this));
+  },
+
+  scrollAndTapSearchBox: function() {
+    this.client.helper.wait(2000);
+    this.actions.flick(this.tileView, 0, 0, 0, 100).perform();
+    this.actions.tap(this.tileSearchBox).perform();
   },
 
   // Because bug 862156 so we couldn't get the correct displayed value for the

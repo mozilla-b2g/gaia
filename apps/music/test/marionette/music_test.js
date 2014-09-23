@@ -2,6 +2,8 @@
 'use strict';
 
 var Music = require('./lib/music.js');
+var Keyboard = require('./lib/keyboard.js');
+var System = require('./lib/system.js');
 var FakeActivityCaller = require('./lib/fakeactivitycaller.js');
 
 marionette('Music ui tests', function() {
@@ -24,9 +26,13 @@ marionette('Music ui tests', function() {
   });
 
   var music;
+  var keyboard;
+  var system;
 
   setup(function() {
     music = new Music(client);
+    keyboard = new Keyboard(client);
+    system = new System(client);
   });
 
   suite('Launch regular music with no audio files', function() {
@@ -86,6 +92,29 @@ marionette('Music ui tests', function() {
 
       music.switchToMe();
       music.waitForMessageOverlayShown(false);
+    });
+  });
+
+  suite('Search music', function() {
+    setup(function() {
+      client.fileManager.add([
+        { type: 'music', filePath: 'test_media/samples/Music/b2g.ogg' }
+      ]);
+    });
+
+    test('Keyboard should dismiss when click return key', function() {
+      music.launch();
+      music.scrollAndTapSearchBox();
+
+      // Wait for the keyboard pop up and switch to it
+      system.waitForKeyboardFrameDisplayed();
+      system.switchToActiveKeyboardFrame();
+
+      keyboard.tapReturnKey();
+      system.waitForKeyboardFrameHidden();
+
+      music.switchToMe();
+      music.waitForTileSearchBoxShown();
     });
   });
 });

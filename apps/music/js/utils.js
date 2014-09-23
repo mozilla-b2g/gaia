@@ -85,3 +85,13 @@ function getAlbumArtBlob(fileinfo, callback) {
     getBlob(url, callback);
   }
 }
+
+function searchMusicWithKeyboard(event) {
+  if ((event.target.id === 'views-tiles-search-input' ||
+       event.target.id === 'views-list-search-input') &&
+       event.keyCode === KeyEvent.DOM_VK_RETURN) {
+    return true;
+  } else {
+    return false;
+  }
+}
