@@ -23,8 +23,8 @@ mocksHelper.init();
 suite('ICE Settings view', function() {
   var subject;
   var realContactsList;
-  var realPromise;
   var defaultLabel = 'ICESelectContact';
+  var getContactByIdStub;
 
   var cid1 = '1', cid2 = '2';
 
@@ -33,36 +33,39 @@ suite('ICE Settings view', function() {
     subject = contacts.ICE;
     realContactsList = contacts.List;
     contacts.List = MockContactsListObj;
-    realPromise = window.Promise;
-    window.Promise = function(func, rj) {
-      var args = Array.prototype.slice.call(arguments, 1);
-      return {
-        'then': function() {
-          var allArguments = args.concat(Array.prototype.slice.call(arguments));
-          return func.apply(this, allArguments);
-        }
-      };
-    };
-    window.Promise.resolve = function(args) {
-      return {
-        'then': function(fn) {
-          fn(args);
-        }
-      };
-    };
   });
 
   suiteTeardown(function() {
-    window.Promise = realPromise;
+    contacts.List = realContactsList;
   });
 
   setup(function() {
     setupHTML();
+    getContactByIdStub = sinon.stub(contacts.List, 'getContactById',
+      function(id, cb) {
+        if (!id) {
+          cb();
+          return;
+        }
+        var contacts = [
+        {
+          id: cid1,
+          givenName: ['John'],
+          familyName: ['Doe']
+        },{
+          id: cid2,
+          givenName: ['Albert'],
+          familyName: ['Pla']
+        }];
+        // Hoping ide 1 and 2
+        cb(contacts[id - 1]);
+    });
   });
 
   teardown(function() {
     subject.reset();
     window.asyncStorage.clear();
+    getContactByIdStub.restore();
   });
 
   function setupHTML() {
@@ -76,58 +79,40 @@ suite('ICE Settings view', function() {
     document.body.appendChild(section);
   }
 
-  suiteTeardown(function() {
-    contacts.List = realContactsList;
-  });
+  function assertIceContacts(iceStates) {
+    var ice1 = document.getElementById('select-ice-contact-1');
+    assert.equal(ice1.dataset.contactId, iceStates[0].contactId);
+
+    if (iceStates[0].label) {
+      assert.equal(ice1.textContent.trim(), iceStates[0].label);
+    }
+    else {
+      assert.equal(ice1.dataset.l10nId, defaultLabel);
+    }
+
+    var ice2 = document.getElementById('select-ice-contact-2');
+    assert.equal(ice2.dataset.contactId, iceStates[1].contactId);
+
+    if (iceStates[1].label) {
+      assert.equal(ice2.textContent.trim(), iceStates[1].label);
+    }
+    else {
+      assert.equal(ice2.dataset.l10nId, defaultLabel);
+    }
+
+    assert.equal(ice1.disabled, !iceStates[0].active);
+    assert.equal(ice2.disabled, !iceStates[1].active);
+
+    var iceCheck1 = document.querySelector('[name="ice-contact-1-enabled"]');
+    var iceCheck2 = document.querySelector('[name="ice-contact-2-enabled"]');
+    assert.isFalse(iceCheck1.disabled);
+    assert.isFalse(iceCheck2.disabled);
+  }
 
   suite('> Initialization', function() {
     setup(function() {
       this.sinon.spy(asyncStorage, 'getItem');
-      this.sinon.stub(contacts.List, 'getContactById', function(id, cb) {
-        var contacts = [
-        {
-          id: cid1,
-          givenName: ['John'],
-          familyName: ['Doe']
-        },{
-          id: cid2,
-          givenName: ['Albert'],
-          familyName: ['Pla']
-        }];
-        // Hoping ide 1 and 2
-        cb(contacts[id - 1]);
-      });
     });
-
-    function assertIceContacts(iceStates) {
-      var ice1 = document.getElementById('select-ice-contact-1');
-      assert.equal(ice1.dataset.contactId, iceStates[0].contactId);
-
-      if (iceStates[0].label) {
-        assert.equal(ice1.textContent.trim(), iceStates[0].label);
-      }
-      else {
-        assert.equal(ice1.dataset.l10nId, defaultLabel);
-      }
-
-      var ice2 = document.getElementById('select-ice-contact-2');
-      assert.equal(ice2.dataset.contactId, iceStates[1].contactId);
-
-      if (iceStates[1].label) {
-        assert.equal(ice2.textContent.trim(), iceStates[1].label);
-      }
-      else {
-        assert.equal(ice2.dataset.l10nId, defaultLabel);
-      }
-
-      assert.equal(ice1.disabled, !iceStates[0].active);
-      assert.equal(ice2.disabled, !iceStates[1].active);
-
-      var iceCheck1 = document.querySelector('[name="ice-contact-1-enabled"]');
-      var iceCheck2 = document.querySelector('[name="ice-contact-2-enabled"]');
-      assert.isFalse(iceCheck1.disabled);
-      assert.isFalse(iceCheck2.disabled);
-    }
 
     test('> No ice contacts', function(done) {
       window.asyncStorage.keys = {
@@ -293,6 +278,14 @@ suite('ICE Settings view', function() {
   });
 
   suite('> Modify ICE contacts', function() {
+    suiteSetup(function() {
+      sinon.spy(ICEData, 'setICEContact');
+    });
+
+    suiteTeardown(function() {
+      ICEData.setICEContact.restore();
+    });
+
     setup(function() {
       window.asyncStorage.keys = {
         'ice-contacts': [
@@ -305,20 +298,35 @@ suite('ICE Settings view', function() {
           }
         ]
       };
-
-      this.sinon.spy(ICEData, 'setICEContact');
     });
 
-    test('> change state saves ICE Datastore', function() {
-      var switch1 = document.getElementById('ice-contacts-1-switch');
-      subject.refresh();
-      switch1.querySelector('[name="ice-contact-1-enabled"]').checked = true;
-      // Disable 1
-      switch1.click();
+    test('> change state saves ICE Datastore', function(done) {
+      subject.refresh(function() {
+        var switch1 = document.getElementById('ice-contacts-1-switch');
+        // Disable 1
+        switch1.click();
 
-      sinon.assert.calledOnce(ICEData.setICEContact);
-      sinon.assert.calledWith(ICEData.setICEContact, cid1, 0, false);
+        sinon.assert.calledOnce(ICEData.setICEContact);
+        sinon.assert.calledWith(ICEData.setICEContact, cid1, 0, false);
+
+        done();
+      });
     });
+
+    test('> remove ICE Contact 1 and ICE Contact 2 remains', function(done) {
+      subject.refresh(function() {
+        assertIceContacts([{ contactId: cid1, label: 'John Doe', active: true},
+                      { contactId: cid2, label: 'Albert Pla', active: true}]);
+
+        ICEData.removeICEContact(cid1).then(function() {
+          subject.refresh(function() {
+            assertIceContacts([{ contactId: '', active: false},
+                      { contactId: cid2, label: 'Albert Pla', active: true}]);
+            done();
+          });
+        });
+      });
+    });
+
   });
-
 });
