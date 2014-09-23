@@ -76,6 +76,10 @@ contacts.ICE = (function() {
       element.addEventListener('click', function(evt) {
         showSelectList(evt.target.id);
       });
+      // Bug 1071064 If users clicked on disabled button, the switch was checked
+      element.parentNode.addEventListener('click', (evt) => {
+        evt.stopPropagation();
+      });
     });
 
     iceScreenInitialized = true;
