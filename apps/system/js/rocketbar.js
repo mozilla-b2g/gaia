@@ -189,6 +189,7 @@
         case 'searchclosed':
           window.removeEventListener('open-app', this);
           break;
+        case 'apploading':
         case 'launchapp':
           // Do not close the search app if something opened in the background.
           var detail = e.detail;
@@ -203,10 +204,12 @@
           if (this.searchWindow && this.searchWindow.frontWindow) {
             return;
           }
+          if (e.detail && !e.detail.showApp) {
+            return;
+          }
           /* falls through */
         case 'attentionopening':
         case 'attentionopened':
-        case 'apploading':
         case 'appforeground':
         case 'appopened':
           this.hideResults();
