@@ -35,7 +35,7 @@ marionette('Vertical - Collection', function() {
 
     home.waitForLaunch();
     collection.disableGeolocation();
-    collection.setServerURL(server);
+    EmeServer.setServerURL(client, server);
   });
 
   test('drag icon (/w entry point) into collection', function() {

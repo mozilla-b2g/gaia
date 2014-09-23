@@ -70,3 +70,20 @@ module.exports = function create(client, callback) {
 };
 
 module.exports.EmeServer;
+
+/**
+ * Updates the everything.me API setting.
+ * @param {Object} client The marionette client.
+ * @param {Object} server An everything.me server instance.
+ */
+module.exports.setServerURL = function(client, server) {
+  var chrome = client.scope({ context: 'chrome' });
+  chrome.executeAsyncScript(function(url) {
+    var request = navigator.mozSettings.createLock().set({
+      'everythingme.api.url': url
+    });
+    request.onsuccess = function() {
+      marionetteScriptFinished();
+    };
+  }, [server.url + '/{resource}']);
+};
