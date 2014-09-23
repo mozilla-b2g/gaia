@@ -802,8 +802,8 @@ b2g: node_modules/.bin/mozilla-download
 	./node_modules/.bin/mozilla-download  \
 		--verbose \
 		--product b2g \
-		--channel tinderbox \
-		--branch mozilla-central $@
+		--channel prerelease \
+		--branch nightly/latest-mozilla-b2g32_v2_0 $@
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
