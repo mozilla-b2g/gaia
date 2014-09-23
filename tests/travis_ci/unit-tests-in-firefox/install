@@ -3,8 +3,8 @@ make node_modules
 
 echo 'Downloading Firefox'
 ./node_modules/.bin/mozilla-download --product firefox \
-                 --channel tinderbox \
-                 --branch mozilla-central \
+                 --channel prerelease \
+                 --branch nightly/latest-mozilla-b2g32_v2_0 \
                  $PWD/firefox
 
 echo 'Downloading & installing node dependencies'

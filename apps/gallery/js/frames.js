@@ -179,11 +179,12 @@ function shareSingleItem() {
 
   function shareModifiedImage() {
     var metadata = fileinfo.metadata;
-    var button = $('fullscreen-share-button');
+    var button = fullscreenButtons.share;
     button.classList.add('disabled');
     showSpinner();
+    var maxsize = CONFIG_MAX_PICK_PIXEL_SIZE || CONFIG_MAX_IMAGE_PIXEL_SIZE;
     cropResizeRotate(currentFrame.imageblob, null,
-                     CONFIG_MAX_PICK_PIXEL_SIZE || null, null, metadata,
+                     maxsize || null, null, metadata,
                      function(error, rotatedBlob) {
                        hideSpinner();
                        button.classList.remove('disabled');
