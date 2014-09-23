@@ -152,7 +152,6 @@
       window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('appopened', this);
       window.addEventListener('launchapp', this);
-      window.addEventListener('open-app', this);
       window.addEventListener('home', this);
       window.addEventListener('launchactivity', this, true);
       window.addEventListener('searchterminated', this);
@@ -160,6 +159,8 @@
       window.addEventListener('global-search-request', this);
       window.addEventListener('attentionopening', this);
       window.addEventListener('attentionopened', this);
+      window.addEventListener('searchopened', this);
+      window.addEventListener('searchclosed', this);
 
       // Listen for events from Rocketbar
       this.input.addEventListener('focus', this);
@@ -182,6 +183,12 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+        case 'searchopened':
+          window.addEventListener('open-app', this);
+          break;
+        case 'searchclosed':
+          window.removeEventListener('open-app', this);
+          break;
         case 'launchapp':
           // Do not close the search app if something opened in the background.
           var detail = e.detail;

@@ -300,6 +300,14 @@ suite('system/Rocketbar', function() {
     assert.ok(hideResultsStub.notCalled);
     subject.searchWindow = null;
 
+    // Does not hide if the search window is not open.
+    window.dispatchEvent(new CustomEvent('searchclosed'));
+    window.dispatchEvent(new CustomEvent('open-app'));
+    assert.ok(deactivateStub.notCalled);
+    assert.ok(hideResultsStub.notCalled);
+
+    // Hides if the search window is open.
+    window.dispatchEvent(new CustomEvent('searchopened'));
     window.dispatchEvent(new CustomEvent('open-app'));
     assert.ok(deactivateStub.calledOnce);
     assert.ok(hideResultsStub.calledOnce);
