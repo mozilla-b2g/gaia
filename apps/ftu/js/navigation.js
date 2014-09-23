@@ -127,6 +127,7 @@ var Navigation = {
         UIManager.sendNewsletter(function newsletterSent(result) {
           if (result) { // sending process ok, we advance
             UIManager.activationScreen.classList.remove('show');
+            UIManager.changeStatusBarColor(UIManager.DARK_THEME);
             UIManager.finishScreen.classList.add('show');
             UIManager.hideActivationScreenFromScreenReader();
           } else { // error on sending, we stay where we are

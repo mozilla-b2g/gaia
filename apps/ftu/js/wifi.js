@@ -31,6 +31,7 @@ var WifiManager = {
       return;
     }
     this._scanning = true;
+    UIManager.changeStatusBarColor(UIManager.DARK_THEME);
     utils.overlay.show(_('scanningNetworks'), 'spinner');
     var scanTimeout;
     var SCAN_TIMEOUT = 10000;
@@ -378,6 +379,7 @@ var WifiUI = {
       networksList.dataset.type = 'list';
       networksDOM.appendChild(networksList);
     }
+    UIManager.changeStatusBarColor(UIManager.LIGHT_THEME);
     utils.overlay.hide();
   },
 

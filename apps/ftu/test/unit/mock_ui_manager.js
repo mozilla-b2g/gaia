@@ -96,6 +96,8 @@ var MockUIManager = {
     'offline-newsletter-error-dialog',
     'invalid-email-error-dialog'
   ],
+  DARK_THEME: '#242d33',
+  LIGHT_THEME: '#eeeeee',
 
   mSetup: function muim_mSuiteSetup() {
     this.domSelectors.forEach(function createElementRef(name) {
@@ -124,7 +126,8 @@ var MockUIManager = {
   displayOfflineDialog: function() {},
   hideActivationScreenFromScreenReader: function() {},
   init: function() {},
-  initTZ: function() {}
+  initTZ: function() {},
+  changeStatusBarColor: function(color) {}
 };
 
 function toCamelCase(str) {
