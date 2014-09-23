@@ -83,6 +83,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 400;
+  text-align: left;
 }
 
 .toaster-title {
@@ -327,46 +328,13 @@
 
 /* RTL View */
 
-html[dir="rtl"] .toaster-icon {
-  left: auto;
-  right: 1rem;
+html[dir="rtl"] #toaster-icon{
+  left: unset;
+  right: 1.5rem;
 }
 
-html[dir="rtl"] .notification-toaster > div,
-html[dir="rtl"] .fake-notification-toaster > div {
-  left: auto;
-  right: 5rem;
+html[dir="rtl"] #notification-container > div {
+  left: unset;
+  right: 5.6rem;
   text-align: right;
-}
-
-html[dir="rtl"] .notification-bar span {
-  margin-left: 0;
-  margin-right: 1.5rem;
-}
-
-html[dir="rtl"] #notification-bar button {
-  float: left;
-  margin-left: 1.5rem;
-  margin-right: 0;
-  text-align: left;
-}
-
-html[dir="rtl"] #notifications-container .notification > div {
-  margin-left: 0;
-  margin-right: 5rem;
-  text-align: right;
-}
-
-html[dir="rtl"] #notifications-container .notification > div.title-container .title {
-  margin-right: 0;
-  margin-left: .5rem;
-}
-
-html[dir="rtl"] #notifications-container .notification > div.title-container .timestamp {
-  left: 1.5rem;
-  right: auto;
-}
-
-html[dir="rtl"] #notifications-container .notification > img {
-  float: right;
 }
