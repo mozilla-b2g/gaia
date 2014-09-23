@@ -614,6 +614,16 @@ suite('system/AppWindowManager', function() {
       assert.deepEqual(AppWindowManager._activeApp, app1);
     });
 
+    test('should not publish activeappchanged if activeApp is the same',
+      function() {
+        var spyPublish= this.sinon.spy(AppWindowManager, 'publish');
+        injectRunningApps(app1);
+        AppWindowManager._activeApp = app1;
+        AppWindowManager._updateActiveApp(app1.instanceID);
+        assert.isFalse(spyPublish.calledOnce);
+      });
+
+
     test('should resize the new active app', function() {
       injectRunningApps(app1, app2, app3, app4);
       AppWindowManager._activeApp = app2;

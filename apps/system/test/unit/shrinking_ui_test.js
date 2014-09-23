@@ -104,6 +104,33 @@ suite('system/shrinkingUI', function() {
   test('Handle "home" event', homeAndHoldhomeTestFactory('home'));
   test('Handle "holdhome" event', homeAndHoldhomeTestFactory('holdhome'));
 
+  test('Handle "activeappchanged" event, when app is tilting', function() {
+    var evt = {
+      type: 'activeappchanged'
+    };
+    this.sinon.stub(shrinkingUI, '_state').returns(true);
+    shrinkingUI.state = {
+      activeApp: 'testActiveApp'
+    };
+    var stubSop = this.sinon.stub(shrinkingUI, 'stopTilt');
+    shrinkingUI.handleEvent(evt);
+    assert.isTrue(stubSop.called);
+    assert.isTrue(shrinkingUI._clearPreviousTilting);
+    assert.equal(shrinkingUI.current, 'testActiveApp');
+  });
+
+  test('Handle "activeappchanged" event, when app is not tilting', function() {
+    var evt = {
+      type: 'activeappchanged'
+    };
+    this.sinon.stub(shrinkingUI, '_state').returns(false);
+    var stubSop = this.sinon.stub(shrinkingUI, 'stopTilt');
+    shrinkingUI.handleEvent(evt);
+    assert.isFalse(stubSop.called);
+    assert.isFalse(shrinkingUI._clearPreviousTilting);
+    assert.deepEqual(shrinkingUI.current, fakeApp);
+  });
+
   test('Handle "shrinking-start" event', function() {
     var evt = {
       type: 'shrinking-start'
