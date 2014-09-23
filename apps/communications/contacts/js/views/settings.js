@@ -238,7 +238,7 @@ contacts.Settings = (function() {
       '/contacts/js/utilities/ice_data.js',
       '/contacts/js/views/ice_settings.js',
       '/shared/js/contacts/utilities/ice_store.js'], function(){
-      contacts.ICE.init();
+      contacts.ICE.refresh();
       navigationHandler.go('ice-settings', 'right-left');
       if (typeof cb === 'function') {
         cb();
