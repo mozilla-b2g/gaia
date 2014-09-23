@@ -513,11 +513,11 @@ body .utility-tray .statusbar > .sb-start {
 }
 
 .sb-icon-recording {
-  background-position: -24rem -4rem;
+  background-position: -26rem -4rem;
 }
 
 .sb-icon-recording[data-active="true"] {
-  background-position: -26rem -4rem;
+  background-position: -24rem -4rem;
 }
 
 .sb-icon-roaming {
