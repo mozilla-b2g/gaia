@@ -13,8 +13,7 @@
 }
 
 .contact-item .ci__tel-type:not(:empty):after {
-  content: '|';
-  padding-left: 0.6rem;
+  content: ',';
 }
 
 .ci__name {
