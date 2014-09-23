@@ -29,8 +29,11 @@ class SearchPanel(Base):
 
         #TODO Remove hack once Bug 1062309 is fixed
         self.marionette.switch_to_frame()
+        self.wait_for_condition(lambda m: not self.keyboard.is_keyboard_displayed)
+
         self.marionette.find_element(*self._rocketbar_input_locator).tap()
 
+        self.wait_for_condition(lambda m: self.keyboard.is_keyboard_displayed)
         self.keyboard.tap_enter()
         self.wait_for_condition(lambda m: url in self.apps.displayed_app.name)
 

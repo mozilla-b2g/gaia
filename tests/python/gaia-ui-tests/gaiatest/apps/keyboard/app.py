@@ -416,3 +416,7 @@ keyboard.removeFocus();""")
         self.accessibility.click(
             self.marionette.find_element(*self._predicted_word_locator))
         self.apps.switch_to_displayed_app()
+
+    @property
+    def is_keyboard_displayed(self):
+        return 'hide' not in self.marionette.find_element(*self._keyboards_locator).get_attribute('class')
