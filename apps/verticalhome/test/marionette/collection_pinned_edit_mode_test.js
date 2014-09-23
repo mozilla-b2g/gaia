@@ -34,7 +34,7 @@ marionette('Vertical - Collection', function() {
 
     home.waitForLaunch();
     collection.disableGeolocation();
-    collection.setServerURL(server);
+    EmeServer.setServerURL(client, server);
   });
 
   test('edit mode with two pinned objects', function() {

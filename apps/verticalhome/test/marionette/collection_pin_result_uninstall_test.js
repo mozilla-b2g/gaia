@@ -35,7 +35,7 @@ marionette('Vertical - Collection', function() {
 
     home.waitForLaunch();
     collection.disableGeolocation();
-    collection.setServerURL(server);
+    EmeServer.setServerURL(client, server);
   });
 
   test('uninstall pinned collection web result', function() {

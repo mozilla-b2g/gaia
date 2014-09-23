@@ -54,13 +54,7 @@ marionette('Browser Chrome - Share Web Result', function() {
     system.waitForStartup();
 
     search.removeGeolocationPermission();
-
-    var chrome = client.scope({ context: 'chrome' });
-    chrome.executeScript(function(url) {
-      navigator.mozSettings.createLock().set({
-        'everythingme.api.url': url
-      });
-    }, [server.url + '/{resource}']);
+    EmeServer.setServerURL(client, server);
   });
 
   test('share web result via e-mail', function() {
