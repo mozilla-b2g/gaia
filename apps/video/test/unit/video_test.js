@@ -1368,7 +1368,7 @@ suite('Video App Unit Tests', function() {
     });
   });
 
-  suite('handleScreenLayoutChange flows', function() {
+  suite('handleResize flows', function() {
 
     var updateAllThumbnailTitleSpy;
     var rescaleSpy;
@@ -1399,7 +1399,7 @@ suite('Video App Unit Tests', function() {
       rescaleSpy.reset();
     });
 
-    test('#handleScreenLayoutChange: tablet, landscape, everything is waiting',
+    test('#handleResize: tablet, landscape, everything is waiting',
         function() {
 
       // In tablet, the landscape mode will show player and list at the same
@@ -1412,14 +1412,14 @@ suite('Video App Unit Tests', function() {
       firstScanEnded = false;
       dom.spinnerOverlay.classList.add('hidden'); // stage spinner being hidden
 
-      handleScreenLayoutChange();
+      handleResize();
 
       assert.isFalse(containsClass(dom.spinnerOverlay, 'hidden'));
       assert.isTrue(containsClass(dom.playerView, 'disabled'));
       assert.equal(ThumbnailItem.titleMaxLines, 2);
     });
 
-    test('#handleScreenLayoutChange: tablet, landscape, scan has ended',
+    test('#handleResize: tablet, landscape, scan has ended',
         function() {
       ScreenLayout.setCurrentLayout('landscape');
       isPhone = false;
@@ -1428,14 +1428,14 @@ suite('Video App Unit Tests', function() {
       dom.spinnerOverlay.classList.remove('hidden'); // stage spinner shown
       dom.playerView.classList.add('disabled'); // stage player view
 
-      handleScreenLayoutChange();
+      handleResize();
 
       assert.isTrue(containsClass(dom.spinnerOverlay, 'hidden'));
       assert.isFalse(containsClass(dom.playerView, 'disabled'));
       assert.equal(ThumbnailItem.titleMaxLines, 2);
     });
 
-    test('#handleScreenLayoutChange: tablet rotating to portrait, list view',
+    test('#handleResize: tablet rotating to portrait, list view',
         function() {
 
       isPhone = false;
@@ -1450,13 +1450,13 @@ suite('Video App Unit Tests', function() {
         'name': videoName
       };
 
-      handleScreenLayoutChange();
+      handleResize();
 
       assert.isFalse(playerShowing);
       assert.equal(ThumbnailItem.titleMaxLines, 4);
     });
 
-    test('#handleScreenLayoutChange: tablet rotating to landscape, list view',
+    test('#handleResize: tablet rotating to landscape, list view',
         function() {
 
       isPhone = false;
@@ -1465,7 +1465,7 @@ suite('Video App Unit Tests', function() {
       playerShowing = false;
 
       //
-      // handleScreenLayoutChange invokes showPlayer with 'currentVideo',
+      // handleResize invokes showPlayer with 'currentVideo',
       //
       currentVideo = {
         'name': videoName
@@ -1473,7 +1473,7 @@ suite('Video App Unit Tests', function() {
 
       dom.player.onloadedmetadata = null;
 
-      handleScreenLayoutChange();
+      handleResize();
       //
       // showPlayer calls setVideoUrl which sets 'src' of
       // video element. Except that we're using a mock video
@@ -1486,31 +1486,31 @@ suite('Video App Unit Tests', function() {
       assert.equal(ThumbnailItem.titleMaxLines, 2);
     });
 
-    test('#handleScreenLayoutChange: update thumbnail title text immediately',
+    test('#handleResize: update thumbnail title text immediately',
         function() {
 
       isPhone = true;
       currentLayoutMode = LAYOUT_MODE.list;
 
-      handleScreenLayoutChange();
+      handleResize();
 
       assert.isTrue(updateAllThumbnailTitleSpy.calledOnce);
     });
 
-    test('#handleScreenLayoutChange: update thumbnail title text later',
+    test('#handleResize: update thumbnail title text later',
         function() {
 
       isPhone = true;
       currentLayoutMode = LAYOUT_MODE.fullscreenPlayer;
       pendingUpdateTitleText = false;
 
-      handleScreenLayoutChange();
+      handleResize();
 
       assert.equal(updateAllThumbnailTitleSpy.callCount, 0);
       assert.isTrue(pendingUpdateTitleText);
     });
 
-    test('#handleScreenLayoutChange: update thumbnail title text -- abort',
+    test('#handleResize: update thumbnail title text -- abort',
         function() {
 
       isPhone = true;
@@ -1518,7 +1518,7 @@ suite('Video App Unit Tests', function() {
       pendingUpdateTitleText = false;
       thumbnailList = null;
 
-      handleScreenLayoutChange();
+      handleResize();
 
       // Shouldn't have invoked updateAllThumbnailTitle nor
       // should have set pendingUpdateTitleText
@@ -1526,7 +1526,7 @@ suite('Video App Unit Tests', function() {
       assert.isFalse(pendingUpdateTitleText);
     });
 
-    test('#handleScreenLayoutChange: phone, rescale',
+    test('#handleResize: phone, rescale',
         function() {
 
       currentVideo = {
@@ -1540,12 +1540,12 @@ suite('Video App Unit Tests', function() {
       ScreenLayout.setCurrentLayout('portrait');
       dom.player.readyState = HAVE_METADATA;
 
-      handleScreenLayoutChange();
+      handleResize();
 
       assert.isTrue(rescaleSpy.calledOnce);
     });
 
-    test('#handleScreenLayoutChange: phone, no rescale',
+    test('#handleResize: phone, no rescale',
         function() {
 
       currentVideo = {
@@ -1559,7 +1559,7 @@ suite('Video App Unit Tests', function() {
       ScreenLayout.setCurrentLayout('portrait');
       dom.player.readyState = HAVE_NOTHING;
 
-      handleScreenLayoutChange();
+      handleResize();
 
       assert.equal(rescaleSpy.callCount, 0);
     });
