@@ -14,7 +14,7 @@
          LockScreenNotifications, LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor, LockScreenNotificationBuilder,
          BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
-         CellBroadcastSystem */
+         CellBroadcastSystem, EdgeSwipeDetector */
 'use strict';
 
 
@@ -134,10 +134,12 @@ window.addEventListener('load', function startup() {
   window.attentionWindowManager.start();
   window.dialerAgent = new DialerAgent();
   window.dialerAgent.start();
-  window.externalStorageMonitor = new ExternalStorageMonitor();
-  window.externalStorageMonitor.start();
+  window.edgeSwipeDetector = new EdgeSwipeDetector();
+  window.edgeSwipeDetector.start();
   window.euRoamingManager = new EuRoamingManager();
   window.euRoamingManager.start();
+  window.externalStorageMonitor = new ExternalStorageMonitor();
+  window.externalStorageMonitor.start();
   window.homeGesture = new HomeGesture();
   window.homeGesture.start();
   if (!window.homescreenLauncher) {

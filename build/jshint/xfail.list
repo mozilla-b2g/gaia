@@ -327,7 +327,6 @@ apps/system/js/browser_mixin.js
 apps/system/js/crash_reporter.js
 apps/system/js/download/download_manager.js
 apps/system/js/download/download_notification.js
-apps/system/js/edge_swipe_detector.js
 apps/system/js/emergency_callback_manager.js
 apps/system/js/entry_sheet.js
 apps/system/js/icc.js
