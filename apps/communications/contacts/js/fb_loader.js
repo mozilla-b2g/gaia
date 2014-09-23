@@ -31,6 +31,8 @@ var fbLoader = (function() {
     document.body.appendChild(iframesFragment);
 
     var scripts = [
+      '/shared/js/contacts/import/utilities/misc.js',
+      '/shared/js/contacts/import/import_status_data.js',
       '/contacts/js/service_extensions.js',
       '/shared/pages/import/js/parameters.js',
       '/shared/js/fb/fb_request.js',
