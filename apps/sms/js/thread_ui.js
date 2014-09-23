@@ -336,13 +336,21 @@ var ThreadUI = {
 
   /**
    * When the header 'action' button is tapped
+   *
+   * @private
+   */
+  onHeaderAction: function thui_onHeaderAction() {
+    this.backOrClose();
+  },
+
+  /**
    * we always go back to the previous pane,
    * unless we're in an activity, then in
    * select cases we exit the activity.
    *
    * @private
    */
-  onHeaderAction: function thui_onHeaderAction() {
+  backOrClose: function thui_backOrClose() {
     var inActivity = ActivityHandler.isInActivity();
     var isComposer = Navigation.isCurrentPanel('composer');
     var isThread = Navigation.isCurrentPanel('thread');
@@ -1862,7 +1870,7 @@ var ThreadUI = {
       // Remove the thread from DOM and go back to the thread-list
       ThreadListUI.removeThread(Threads.currentId);
       callback();
-      Navigation.toPanel('thread-list');
+      this.backOrClose();
     } else {
       // Retrieve latest message in the UI
       var lastMessage = ThreadUI.container.lastElementChild.querySelector(
