@@ -114,24 +114,25 @@ var ConfigManager = (function() {
   }
 
   function loadConfigurationIndex(callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/js/config/index.json', true);
-    xhr.overrideMimeType('application/json');
-    xhr.responseType = 'json';
-    xhr.onload = function onXHRLoad() {
-      if (xhr.status !== 200) {
-        console.error('Error loading the configuration index! ' +
-                      'Error code: ' + xhr.status);
+    LazyLoader.getJSON('/js/config/index.json').then(function(json) {
+      configurationIndex = json;
+      if (configurationIndex === null) { // TODO Remove workaround when 
+					 // Bug 1069808 is fixed.
+        console.error('Error loading the configuration index!' + 
+                      'Response from LazyLoader was null.');
         configurationIndex = {};
       }
-      configurationIndex = xhr.response;
+
       if (typeof callback === 'function') {
         setTimeout(function() {
           callback();
         });
       }
-    };
-    xhr.send();
+    }, function(error) {
+      console.error('Error loading the configuration index! ' + 
+                    'Error code: ' + error);
+      configurationIndex = {};
+    });
   }
 
   // Let's serialize dates
