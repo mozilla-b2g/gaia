@@ -14,13 +14,13 @@ SHARED=$DIR/../shared/test/integration
 
 # Go to the isolated Python environment if we already setup the virtualenv.
 VIRTUALENV=$(which virtualenv)
-JS_MARIONETTE_ENV=$(find $DIR/.. -path "*/js-marionette-env")
-if [ -x "$VIRTUALENV" -a -x "$JS_MARIONETTE_ENV" ]; then
-  source ./js-marionette-env/bin/activate
+CI_VENV=$(find $DIR/.. -path "*/ci_venv")
+if [ -x "$VIRTUALENV" -a -x "$CI_VENV" ]; then
+  source ./ci_venv/bin/activate
 fi
 
 # We skip the related tests if the Radicale CalDAV server is not installed.
-if [ ! -x "$VIRTUALENV" -o ! -x "$JS_MARIONETTE_ENV" -o ! -x "$(which radicale)" ]; then
+if [ ! -x "$VIRTUALENV" -o ! -x "$CI_VENV" -o ! -x "$(which radicale)" ]; then
   echo -e "The Radicale CalDAV server is not installed in the virtualenv, we will skip the CalDAV tests.\n \
            \rIf you want to run the CalDAV tests, please run |make caldav-server-install| first."
   CALDAV_RELATED_TESTS="apps/calendar/test/marionette/caldav_test.js apps/calendar/test/marionette/server_test.js"
