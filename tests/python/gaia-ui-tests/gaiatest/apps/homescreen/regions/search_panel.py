@@ -33,9 +33,7 @@ class SearchPanel(Base):
         self.marionette.find_element(*self._rocketbar_input_locator).tap()
 
         self.keyboard.tap_enter()
-        if (' ' in url):  # if it contains space(s), it is not a url - it is a search text
-            url = urllib.quote(url)
-        self.wait_for_condition(lambda m: url in self.apps.displayed_app.name)
+        self.wait_for_condition(lambda m: urllib.quote(url, safe=':/') in self.apps.displayed_app.name)
 
         from gaiatest.apps.search.regions.browser import Browser
         return Browser(self.marionette)
