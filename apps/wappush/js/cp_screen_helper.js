@@ -29,9 +29,6 @@ var CpScreenHelper = (function() {
   /** Cancel storebutton node */
   var cancelStoreButton = null;
 
-  /** Try again button node */
-  var tryAgainButton = null;
-
   /** Finish button node */
   var finishButton = null;
 
@@ -47,8 +44,11 @@ var CpScreenHelper = (function() {
   /** Store confirm dialog node */
   var storeConfirmDialog = null;
 
-  /** Auth failures confirm dialog node */
-  var authFailureConfirmDialog = null;
+  /** Auth failure message */
+  var authFailureMessage = null;
+
+  /** Help message */
+  var pinHelp = null;
 
   /** Finish confirm dialog node */
   var finishConfirmDialog = null;
@@ -99,9 +99,8 @@ var CpScreenHelper = (function() {
     storeButton = storeConfirmDialog.querySelector('.store');
     cancelStoreButton = storeConfirmDialog.querySelector('.cancel');
 
-    authFailureConfirmDialog =
-      document.getElementById('cp-auth-failure-confirm');
-    tryAgainButton = authFailureConfirmDialog.querySelector('button');
+    authFailureMessage = document.getElementById('cp-auth-failure');
+    pinHelp = document.getElementById('cp-accept-help');
 
     finishConfirmDialog = document.getElementById('cp-finish-confirm');
     finishButton = finishConfirmDialog.querySelector('button');
@@ -115,7 +114,6 @@ var CpScreenHelper = (function() {
     acceptButton.addEventListener('click', cpsh_onAccept);
     storeButton.addEventListener('click', cpsh_onStore);
     cancelStoreButton.addEventListener('click', cpsh_onCancelStore);
-    tryAgainButton.addEventListener('click', cpsh_onTryAgain);
     finishButton.addEventListener('click', cpsh_onFinish);
     pin.addEventListener('keyup', cpsh_onPinInput);
   }
@@ -147,16 +145,15 @@ var CpScreenHelper = (function() {
     // process when this process was performed by gecko
     isDocumentValid = message.provisioning.authInfo.pass;
 
-    var help = document.getElementById('cp-accept-help');
     if (showPINInput) {
       // If the document has not been authenticated yet and the PIN code is
       // needed, show some info and the PIN input element to the user.
-      help.textContent = _('cp-accept-help-pin');
+      pinHelp.textContent = _('cp-accept-help-pin');
       pin.type = 'number';
       pin.focus();
       acceptButton.disabled = true;
     } else {
-      help.textContent = _('cp-accept-help');
+      pinHelp.textContent = _('cp-accept-help');
       pin.type = 'hidden';
       pin.blur();
       acceptButton.disabled = false;
@@ -227,8 +224,8 @@ var CpScreenHelper = (function() {
 
     if (!authenticated) {
       if (!pin.value) {
-        // Need a valid PIN code, show an alert.
-        authFailureConfirmDialog.hidden = false;
+        // Need a valid PIN code, show error.
+        cpsh_pinError();
         return;
       }
 
@@ -246,9 +243,9 @@ var CpScreenHelper = (function() {
 
       authenticated = true;
       if (!isDocumentValid) {
-        // The document couldn't be authenticated, alert.
+        // The document couldn't be authenticated, show error.
         authenticated = false;
-        authFailureConfirmDialog.hidden = false;
+        cpsh_pinError();
         return;
       }
     }
@@ -296,6 +293,22 @@ var CpScreenHelper = (function() {
     storeConfirmDialog.hidden = false;
   }
 
+  function cpsh_pinError() {
+    authFailureMessage.hidden = false;
+    pinHelp.hidden = true;
+    pin.focus();
+    // Set max to -1 in order to show invalid input.
+    pin.setAttribute('max', -1);
+    pin.addEventListener('keyup', cpsh_onPinErrorRestore);
+  }
+
+  function cpsh_onPinErrorRestore() {
+    authFailureMessage.hidden = true;
+    pinHelp.hidden = false;
+    pin.removeAttribute('max');
+    pin.addEventListener('keyup', cpsh_onPinInput);
+  }
+
   /**
    * Handles the application flow when the user clicks on the 'Store' button
    * from the client provisioning store confirm dialog.
@@ -333,16 +346,6 @@ var CpScreenHelper = (function() {
     authenticated = authInfo.checked;
     pin.focus();
     storeConfirmDialog.hidden = true;
-  }
-
-  /**
-   * Handles the application flow when the user clicks on the 'Try again' button
-   * from the client provisioning authentication failure confirm dialog.
-   */
-  function cpsh_onTryAgain(evt) {
-    evt.preventDefault();
-    pin.focus();
-    authFailureConfirmDialog.hidden = true;
   }
 
   /**
