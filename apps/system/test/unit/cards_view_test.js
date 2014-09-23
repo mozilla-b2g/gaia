@@ -130,7 +130,6 @@ suite('cards view >', function() {
   var screenNode, realMozLockOrientation, realScreenLayout;
   var cardsView, cardsList;
   var originalLockScreen;
-  var ihDescriptor;
 
   function createTouchEvent(type, target, x, y) {
     var touch = document.createTouch(window, target, 1, x, y, x, y);
@@ -145,7 +144,6 @@ suite('cards view >', function() {
 
   mocksForCardsView.attachTestHelpers();
   suiteSetup(function(done) {
-    ihDescriptor = Object.getOwnPropertyDescriptor(window, 'innerHeight');
     Object.defineProperty(window, 'innerHeight', {
       value: fakeInnerHeight,
       configurable: true
@@ -172,7 +170,9 @@ suite('cards view >', function() {
   });
 
   suiteTeardown(function() {
-    Object.defineProperty(window, 'innerHeight', ihDescriptor);
+    // The real innerHeight is is defined in window.prototype so we can safely
+    // delete the property.
+    delete window.innerHeight;
     window.lockScreen = originalLockScreen;
     screenNode.parentNode.removeChild(screenNode);
     window.ScreenLayout = realScreenLayout;
