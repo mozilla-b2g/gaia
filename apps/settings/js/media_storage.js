@@ -235,7 +235,7 @@ require([
 
   // Update external storage UI state only
   Volume.prototype.updateStorageUIState =
-    function volume_updateStorageUIState(enabled, isUnrecognised) {
+    function volume_updateStorageUIState(enabled, isUnrecognisedEventUpdate) {
     // If storage is formatting, we keep the information to figure out the
     // status. Just do early return.
     if (this.isFormatting && !enabled) {
@@ -245,6 +245,17 @@ require([
     // If storage is unrecognised, we keep the information to figure out the
     // status. Just do early return.
     if (this.isUnrecognised && !enabled) {
+      return;
+    }
+
+    // If receive unrecognised event update with disabled request, and the
+    // storage status is 'Mounted', let's ignore the update. Because settings
+    // key 'volume.external.unrecognised' will be updated while volume storage
+    // is detecting an inserted SD card every time. Sometimes, the key observer
+    // event comes after 'storage-state-change' event. It will disable the
+    // external storage information here.
+    if (isUnrecognisedEventUpdate && !enabled &&
+        (this.currentStorageStatus === 'Mounted')) {
       return;
     }
 
@@ -262,7 +273,7 @@ require([
 
     // If storage is unrecognised, we just display header and format button.
     // Then, do early return from here.
-    if (isUnrecognised) {
+    if (isUnrecognisedEventUpdate) {
       // set stacked bar to be hidden
       this.rootElement.querySelector('.space-stackedbar').parentNode.hidden =
         enabled;
@@ -620,7 +631,7 @@ require([
           this.showChangingDefaultStorageConfirmation();
           break;
         case 'visibilitychange':
-          this.updateListeners(this._updateInfo);
+          this.updateListeners(this._updateInfo, true);
           break;
       }
     },
@@ -647,48 +658,15 @@ require([
 
         // disable option menu if we have only one option
         if (self._volumeList.length === 1) {
-          self.defaultMediaLocationList.setAttribute('aria-disabled', true);
-          selectionMenu.disabled = true;
-          selectionMenu.parentNode.setAttribute('aria-disabled', true);
+          self.enableDefaultMediaLocationSelection(false);
           var obj = {};
           obj[DEFAULT_MEDIA_VOLUME_KEY] = selectedOption.value;
           Settings.mozSettings.createLock().set(obj);
         } else if (self._volumeList.length > 1) {
           // Disable default media location selection menu if external storage
           // is not in slot.
-          var externalVolume = self._volumeList[1];
-          if (externalVolume.storages && externalVolume.storages.sdcard) {
-            var storageStatusReq =
-              externalVolume.storages.sdcard.storageStatus();
-            storageStatusReq.onsuccess = function storageStatusSuccess(evt) {
-              // save status
-              self._volumeList[1].currentStorageStatus = evt.target.result;
-              var storageStatus = evt.target.result;
-              if (storageStatus !== 'Mounted') {
-                self.enableDefaultMediaLocationSelection(false);
-                // If default storage is external, change it to be internal.
-                if (self.defaultLocationName !== 'sdcard') {
-                  if (storageStatus === 'NoMedia') {
-                    // Change the default storage to be internal.
-                    self.setInternalStorageBeDefaultMediaLocation();
-                  } else if (storageStatus === 'Idle') {
-                    // Change the default storage to be internal, if the storage
-                    // status is still in 'Idle'. Because 'Shared', 'Formatting'
-                    // status will go through 'Idle' status.
-                    setTimeout(function() {
-                      if (self._volumeList[1].currentStorageStatus === 'Idle') {
-                        self.setInternalStorageBeDefaultMediaLocation();
-                      }
-                    }, LATENCY_CHECK_STATUS_AFTER_IDLE_IN_MILLISECONDS);
-                  }
-                }
-              } else {
-                self.enableDefaultMediaLocationSelection(true);
-              }
-            };
-          }
+          self.updateDefaultMediaLocation();
 
-          // enableDefaultMediaLocationSelection
           // observe selection menu 'change' event for updating default location
           // name.
           selectionMenu.addEventListener('change', self);
@@ -717,7 +695,7 @@ require([
       };
     },
 
-    updateListeners: function ms_updateListeners(callback) {
+    updateListeners: function ms_updateListeners(callback, isVisibilitychange) {
       var self = this;
       if (document.hidden) {
         // Settings is being hidden. Unregister our change listener so we won't
@@ -755,6 +733,12 @@ require([
             // status already.
             if (callback) {
               callback();
+            }
+
+            // Update default media location.
+            // If there is only one storage, do nothing.
+            if (isVisibilitychange && (this._volumeList.length > 1)) {
+              this.updateDefaultMediaLocation();
             }
           }.bind(this));
 
@@ -840,7 +824,7 @@ require([
           this.enableDefaultMediaLocationSelection(false);
           // If default storage is external, change it to be internal.
           if ((storageName !== 'sdcard') &&
-              (self.defaultLocationName !== 'sdcard')) {
+              (this.defaultLocationName !== 'sdcard')) {
             if (storageStatus === 'NoMedia') {
               // Change the default storage to be internal.
               this.setInternalStorageBeDefaultMediaLocation();
@@ -858,6 +842,43 @@ require([
         } else {
           this.enableDefaultMediaLocationSelection(true);
         }
+      }
+    },
+
+    updateDefaultMediaLocation: function ms_updateDefaultMediaLocation() {
+      // Disable default media location selection menu if external storage
+      // is not in slot.
+      var externalVolume = this._volumeList[1];
+      if (externalVolume.storages && externalVolume.storages.sdcard) {
+        var self = this;
+        var storageStatusReq =
+          externalVolume.storages.sdcard.storageStatus();
+        storageStatusReq.onsuccess = function storageStatusSuccess(evt) {
+          // save status
+          self._volumeList[1].currentStorageStatus = evt.target.result;
+          var storageStatus = evt.target.result;
+          if (storageStatus !== 'Mounted') {
+            self.enableDefaultMediaLocationSelection(false);
+            // If default storage is external, change it to be internal.
+            if (self.defaultLocationName !== 'sdcard') {
+              if (storageStatus === 'NoMedia') {
+                // Change the default storage to be internal.
+                self.setInternalStorageBeDefaultMediaLocation();
+              } else if (storageStatus === 'Idle') {
+                // Change the default storage to be internal, if the storage
+                // status is still in 'Idle'. Because 'Shared', 'Formatting'
+                // status will go through 'Idle' status.
+                setTimeout(function() {
+                  if (self._volumeList[1].currentStorageStatus === 'Idle') {
+                    self.setInternalStorageBeDefaultMediaLocation();
+                  }
+                }, LATENCY_CHECK_STATUS_AFTER_IDLE_IN_MILLISECONDS);
+              }
+            }
+          } else {
+            self.enableDefaultMediaLocationSelection(true);
+          }
+        };
       }
     },
 
