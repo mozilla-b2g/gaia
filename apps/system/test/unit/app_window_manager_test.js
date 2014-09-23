@@ -606,9 +606,11 @@ suite('system/AppWindowManager', function() {
  
   suite('updateActiveApp()', function() {
     test('update', function() {
+      var spyPublish= this.sinon.spy(AppWindowManager, 'publish');
       injectRunningApps(app1, app2, app3, app4);
       AppWindowManager._activeApp = app2;
       AppWindowManager._updateActiveApp(app1.instanceID);
+      assert.equal(spyPublish.firstCall.args[0], 'activeappchanged');
       assert.deepEqual(AppWindowManager._activeApp, app1);
     });
 

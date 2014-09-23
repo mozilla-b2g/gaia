@@ -14,6 +14,13 @@
     this._injected = false;
     this._hasCutOrCopied = false;
     this._ignoreSelectionChange = false;
+    this._isShowed = false;
+
+    this._previousOffsetX = 0;
+    this._previousOffsetY = 0;
+
+    window.addEventListener('activeappchanged', this);
+    window.addEventListener('home', this);
     window.addEventListener('mozChromeEvent', this);
     window.addEventListener('value-selector-shown', this);
     window.addEventListener('value-selector-hidden', this);
@@ -61,6 +68,10 @@
 
   TextSelectionDialog.prototype.handleEvent = function tsd_handleEvent(evt) {
     switch(evt.type) {
+      case 'home':
+      case 'activeappchanged':
+        this.close();
+        break;
       case 'value-selector-showed':
         this._ignoreSelectionChange = true;
         break;
@@ -68,22 +79,93 @@
         this._ignoreSelectionChange = false;
         break;
       case 'mozChromeEvent':
-        if (evt.detail.type !== 'selectionchange' ||
-            this._ignoreSelectionChange) {
-          return;
+        switch (evt.detail.type) {
+          case 'selectionchange':
+            this._onSelectionChange(evt);
+            break;
+          case 'scrollviewchange':
+            this.debug('scrollviewchange');
+            this.debug(JSON.stringify(evt.detail.detail));
+            if (evt.detail.detail.state === 'started') {
+              this._previousOffsetX = evt.detail.detail.scrollX;
+              this._previousOffsetY = evt.detail.detail.scrollY;
+              this.hide();
+            } else if (evt.detail.detail.state === 'stopped' &&
+                       this._isShowed === true) {
+              this.updateDialogPosition(
+                evt.detail.detail.scrollX - this._previousOffsetX,
+                evt.detail.detail.scrollY - this._previousOffsetY
+              );
+              this._previousOffsetX = 0;
+              this._previousOffsetY = 0;
+            }
+            break;
         }
-        this.event = evt;
-        evt.preventDefault();
-        evt.stopPropagation();
-        this.textualmenuDetail = this.event.detail.detail;
-        if (!this._injected) {
-          this.render();
-        }
-        this.show();
-        this._injected = true;
-        break;
     }
   };
+
+  TextSelectionDialog.prototype._onSelectionChange =
+    function tsd__onSelectionChange(evt) {
+      if (this._ignoreSelectionChange) {
+        return;
+      }
+      evt.preventDefault();
+      evt.stopPropagation();
+
+      var detail = evt.detail.detail;
+      if (!detail) {
+        return;
+      }
+      this.debug(JSON.stringify(detail));
+      var rect = detail.rect;
+      var reasons = detail.reasons;
+      var commands = detail.commands;
+      var isCollapsed = detail.isCollapsed;
+      var isTempShortcut = this._hasCutOrCopied && isCollapsed;
+      var rectHeight = rect.top - rect.bottom;
+      var rectWidth = rect.right - rect.left;
+
+      // In collapsed mode, only paste option will be displaed if we have copied
+      // or cut before.
+      if (isTempShortcut) {
+        commands.canSelectAll = false;
+      }
+
+      if (reasons.indexOf('mouseup') !== -1 && rectHeight === 0 &&
+          rectWidth === 0 && !isTempShortcut) {
+        this.hide();
+        return;
+      }
+
+      // We should not do anything if below cases happen.
+      if (reasons.length === 0 || (
+          rectHeight === 0 && rectWidth === 0 && !isTempShortcut) ||
+          !(commands.canPaste || commands.canCut || commands.canSelectAll ||
+            commands.canCopy)
+        ) {
+        return;
+      }
+
+      if (!this._injected) {
+        this.render();
+        this._injected = true;
+      }
+
+      if (reasons.indexOf('selectall') !== -1 ||
+          reasons.indexOf('mouseup') !== -1) {
+        if (!isTempShortcut && isCollapsed) {
+          this.close();
+          return;
+        }
+
+        this.show(detail);
+        if (isTempShortcut) {
+          this._hideTimeout = window.setTimeout(function() {
+            this.close();
+          }.bind(this), this.SHORTCUT_TIMEOUT);
+        }
+      }
+    };
 
   TextSelectionDialog.prototype._fetchElements = function tsd__fetchElements() {
     this.element = document.getElementById(this.ID_NAME);
@@ -123,6 +205,7 @@
           cmd: cmd
         }
       };
+      this.debug(JSON.stringify(props));
       window.dispatchEvent(
         new CustomEvent('mozContentEvent', props));
       this.hide();
@@ -174,44 +257,13 @@
       }.bind(this), this.RESET_CUT_OR_PASTE_TIMEOUT);
   };
 
-  TextSelectionDialog.prototype.show = function tsd_show() {
-    if (!this.event) {
-      return;
-    }
-    var evt = this.event;
-    var detail = this.textualmenuDetail;
+
+  TextSelectionDialog.prototype.show = function tsd_show(detail) {
     this.debug(JSON.stringify(detail));
-
-    // When selectall and contents contains br frame, gecko will bubble up
-    // a null reasons to filter it. We should ignore it in case hidding
-    // the dialog.
-    if (detail.reasons.length === 0) {
-      return;
-    }
-
-    var isTempShortcut = this._hasCutOrCopied && detail.isCollapsed;
-
-    // When selectall happened, gecko will first collapse the range then
-    // select all. So we will receive two selection change events with
-    // SELECTALL_REASON. We filter first event by check the length of
-    // selectedText.
-    if ((detail.reasons.indexOf('mouseup') === -1 &&
-        (detail.reasons.indexOf('selectall') === -1 || detail.isCollapsed)) ||
-        // In collapsed mode, only temp shortcut allowed.
-        (detail.isCollapsed && !isTempShortcut)) {
-      this.hide();
-      return;
-    }
 
     clearTimeout(this._hideTimeout);
     var numOfSelectOptions = 0;
     var options = [ 'Paste', 'Copy', 'Cut', 'SelectAll' ];
-
-    // In collapsed mode, only paste option will be displaed if we have copied
-    // or cut before.
-    if (isTempShortcut) {
-      detail.commands.canSelectAll = false;
-    }
 
     // Based on UI spec, we should have dividers ONLY between each select option
     // So, we use css to put divider in pseudo element and set the last visible
@@ -227,42 +279,48 @@
       }
     }, this);
 
-    if (numOfSelectOptions === 0) {
-      return;
-    }
-
+    this.numOfSelectOptions = numOfSelectOptions;
+    this.textualmenuDetail = detail;
     // Add last-option class to the last item of options array;
     lastVisibleOption.classList.add('last-option');
 
-    var pos = this.calculateDialogPostion(detail, numOfSelectOptions);
-    this.debug(pos);
-    this.element.style.top = pos.top + 'px';
-    this.element.style.left = pos.left + 'px';
-
-    this.element.classList.add('visible');
-
-    if (isTempShortcut) {
-      this._hideTimeout = window.setTimeout(function() {
-        this.hide();
-      }.bind(this), this.SHORTCUT_TIMEOUT);
-    }
-
-    evt.preventDefault();
+    this.updateDialogPosition(0, 0);
   };
 
+  TextSelectionDialog.prototype.updateDialogPosition =
+    function tsd_updateDialogPosition(scrollOffsetW, scrollOffsetH) {
+      var pos = this.calculateDialogPostion(scrollOffsetW, scrollOffsetH);
+      this.debug(pos);
+      this.element.style.top = pos.top + 'px';
+      this.element.style.left = pos.left + 'px';
+      this.element.classList.add('visible');
+      this._isShowed = true;
+    };
+
   TextSelectionDialog.prototype.calculateDialogPostion =
-    function tsd_calculateDialogPostion(detail, numOfSelectOptions) {
+    function tsd_calculateDialogPostion(scrollOffsetW, scrollOffsetH) {
+      var numOfSelectOptions = this.numOfSelectOptions;
+      var detail = this.textualmenuDetail;
       var frameHeight = layoutManager.height;
       var frameWidth = layoutManager.width;
       var selectOptionWidth = this.TEXTDIALOG_WIDTH;
       var selectOptionHeight = this.TEXTDIALOG_HEIGHT;
 
-      var selectDialogTop = detail.rect.top * detail.zoomFactor;
+      this.debug('scrollOffsetW  ' + scrollOffsetW + '; scrollOffsetH ' +
+        scrollOffsetH);
+      detail.rect.top -= scrollOffsetH;
+      detail.rect.bottom -= scrollOffsetH;
+      detail.rect.left -= scrollOffsetW;
+      detail.rect.right -= scrollOffsetW;
+
+      var selectDialogTop = (detail.rect.top) *
+        detail.zoomFactor;
       var selectDialogBottom =
-        detail.rect.bottom * detail.zoomFactor;
-      var selectDialogLeft = detail.rect.left * detail.zoomFactor;
+        (detail.rect.bottom) * detail.zoomFactor;
+      var selectDialogLeft = (detail.rect.left) *
+        detail.zoomFactor;
       var selectDialogRight =
-        detail.rect.right * detail.zoomFactor;
+        (detail.rect.right) * detail.zoomFactor;
       var distanceFromBottom = this.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP;
       var distanceFromTop = this.DISTANCE_FROM_MENUBOTTOM_TO_SELECTEDAREA;
 
@@ -299,10 +357,20 @@
     };
 
   TextSelectionDialog.prototype.hide = function tsd_hide() {
-    this.element.blur();
+    if (!this.element) {
+      return;
+    }
     this.element.classList.remove('visible');
+  };
+
+  TextSelectionDialog.prototype.close = function tsd_close() {
+    if (!this._isShowed) {
+      return;
+    }
+    this.element.blur();
+    this.hide();
     this.textualmenuDetail = null;
-    this.event = null;
+    this._isShowed = false;
     clearTimeout(this._hideTimeout);
   };
 
