@@ -781,6 +781,16 @@ MessageListCard.prototype = {
   },
 
   onCancelSearch: function(event) {
+    event.preventDefault();
+
+    if (event.explicitOriginalTarget !== event.target) {
+      // Styling is dependend on type="submit", but it also implies
+      // unwanted behavior. Detect if this was form submit, and if so
+      // preventDefault and blur input field
+      this.searchInput.blur();
+      return;
+    }
+
     try {
       headerCursor.endSearch();
     }
