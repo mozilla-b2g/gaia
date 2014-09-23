@@ -281,7 +281,7 @@ suite('system/ChildWindowFactory', function() {
       {
         detail: fakeWindowOpenPopup
       }));
-    var stubLockOrientation = this.sinon.stub(app1, 'lockOrientation');
+    var stubSetOrientation = this.sinon.stub(app1, 'setOrientation');
     var stubVisible = this.sinon.stub(app1, 'setVisible');
     MockAttentionScreen.mFullyVisible = false;
     spy.getCall(0).returnValue.element
@@ -289,7 +289,7 @@ suite('system/ChildWindowFactory', function() {
           detail: spy.getCall(0).returnValue
         }));
     assert.isTrue(stubVisible.calledWith(true));
-    assert.isTrue(stubLockOrientation.called);
+    assert.isTrue(stubSetOrientation.called);
   });
 
   test('closing of popup should not resume visibility and orientation' +
