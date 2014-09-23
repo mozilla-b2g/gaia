@@ -281,6 +281,15 @@ Camera.prototype.requestCamera = function(camera, config) {
 
   function onSuccess(mozCamera) {
     debug('successfully got mozCamera');
+
+    // release camera when press power key
+    // as soon as you open a camera app
+    if (document.hidden) {
+      self.mozCamera = mozCamera;
+      self.release();
+      return;
+    }
+
     self.setupNewCamera(mozCamera);
     self.configureFocus();
     self.emit('focusconfigured', {
