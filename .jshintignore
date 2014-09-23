@@ -63,7 +63,6 @@ tests/browser_dialer_phone_number_sanitizing.js
 tests/browser_sms_conversation.js
 tests/browser_sms_new.js
 tests/head.js
-tests/atoms/accessibility.js
 tests/atoms/fake_update-checker.js
 tests/atoms/gaia_apps.js
 tests/atoms/gaia_data_layer.js
