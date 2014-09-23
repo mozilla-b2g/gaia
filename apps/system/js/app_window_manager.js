@@ -55,9 +55,13 @@
     getApp: function awm_getApp(origin, manifestURL) {
       for (var id in this._apps) {
         var app = this._apps[id];
+
+        if (app.isBrowser() && app.config.url === origin) {
+          return app;
+        }
+
         if (app.origin === origin &&
-            (!manifestURL || app.manifestURL === manifestURL) &&
-            (!app.isBrowser() || app.config.url === origin)) {
+            (!manifestURL || app.manifestURL === manifestURL)) {
           return app;
         }
       }

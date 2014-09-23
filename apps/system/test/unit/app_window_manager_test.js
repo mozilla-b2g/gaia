@@ -66,6 +66,9 @@ suite('system/AppWindowManager', function() {
     app6 = new AppWindow(fakeAppConfig6Browser);
     app7 = new AppWindow(fakeAppConfig7Activity);
     browser1 = new AppWindow(fakeBrowserConfig);
+    browser1.isBrowser = function() {
+      return true;
+    };
 
     requireApp('system/js/app_window_manager.js', function() {
       window.AppWindowManager.init();
@@ -151,7 +154,7 @@ suite('system/AppWindowManager', function() {
   var fakeBrowserConfig = {
     url: 'http://mozilla.org/index.html',
     manifest: {},
-    origin: 'http://mozilla.org'
+    origin: 'http://mozilla.org/'
   };
 
   function injectRunningApps() {
@@ -603,7 +606,7 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubKill.called);
     });
   });
- 
+
   suite('updateActiveApp()', function() {
     test('update', function() {
       injectRunningApps(app1, app2, app3, app4);
@@ -904,6 +907,12 @@ suite('system/AppWindowManager', function() {
     assert.isNull(AppWindowManager.getApp('app://no-this-origin'));
   });
 
+  test('getApp with navigation', function() {
+    injectRunningApps(app1, app2, app3, app4);
+    assert.deepEqual(AppWindowManager.getApp('app://www.fake2'), app2);
+    assert.isNull(AppWindowManager.getApp('app://no-this-origin'));
+  });
+
   test('new browser window for getApp', function() {
     injectRunningApps(app5);
     var newApp1 = AppWindowManager.getApp(fakeAppConfig5Background.origin);
@@ -913,7 +922,14 @@ suite('system/AppWindowManager', function() {
     assert.deepEqual(newApp2, null);
 
     injectRunningApps(browser1);
-    newApp2 = AppWindowManager.getApp(fakeBrowserConfig.origin);
-    assert.deepEqual(newApp2.config, fakeBrowserConfig);
+
+    var newApp3 = AppWindowManager.getApp(fakeBrowserConfig.url);
+    assert.deepEqual(newApp3.config, fakeBrowserConfig);
+
+    var newUrl = 'http://mozilla.org/page2';
+    browser1.config.url = newUrl;
+
+    var newApp4 = AppWindowManager.getApp(newUrl);
+    assert.deepEqual(newApp4.config, fakeBrowserConfig);
   });
 });
