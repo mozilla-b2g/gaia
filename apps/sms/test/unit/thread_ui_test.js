@@ -19,9 +19,9 @@
 
 mocha.setup({ globals: ['alert'] });
 
+require('/js/event_dispatcher.js');
 require('/js/compose.js');
 require('/js/drafts.js');
-require('/js/event_dispatcher.js');
 require('/js/threads.js');
 require('/js/thread_ui.js');
 require('/js/shared_components.js');
@@ -193,6 +193,7 @@ suite('thread_ui.js >', function() {
     );
 
     this.sinon.stub(MessageManager, 'on');
+    this.sinon.stub(Compose, 'on');
     this.sinon.useFakeTimers();
 
     ThreadUI.recipients = null;
@@ -464,11 +465,9 @@ suite('thread_ui.js >', function() {
         convertBanner,
         form,
         counterLabel,
-        counterMsgCointainer;
+        counterMsgContainer;
 
     var realCompose;
-
-    var clock;
 
     suiteSetup(function() {
       realCompose = window.Compose;
@@ -478,15 +477,10 @@ suite('thread_ui.js >', function() {
     suiteTeardown(function() {
       window.Compose = realCompose;
       realCompose = null;
-      clock.restore();
     });
 
     setup(function() {
-      clock = this.sinon.useFakeTimers();
-      clock.tick(0);
       MockCompose.mSetup();
-
-      this.sinon.stub(Compose, 'on');
 
       // This is added in ThreadUI.init, so we need to remove the listener to
       // prevent having the listener being called several times.
@@ -502,12 +496,8 @@ suite('thread_ui.js >', function() {
       convertBanner = document.getElementById('messages-convert-notice');
       form = document.getElementById('messages-compose-form');
       counterLabel = document.getElementById('messages-counter-label');
-      counterMsgCointainer = 
+      counterMsgContainer = 
         document.getElementById('messages-sms-counter-notice');
-    });
-
-    teardown(function() {
-      clock.restore();
     });
 
     function yieldInputAndSegmentInfo(segmentInfo) {
@@ -562,8 +552,8 @@ suite('thread_ui.js >', function() {
       });
 
       assert.isTrue(
-        counterMsgCointainer.classList.contains('hide'),
-        'sms counter toast not shouldn\'t be showed'
+        counterMsgContainer.classList.contains('hide'),
+        'sms counter toast not should not be showed'
       );
     });
 
@@ -627,15 +617,15 @@ suite('thread_ui.js >', function() {
       });
 
       assert.isFalse(
-        counterMsgCointainer.classList.contains('hide'),
+        counterMsgContainer.classList.contains('hide'),
         'sms counter toast should be showed'
       );
 
-      clock.tick(3100);
+      this.sinon.clock.tick(3100);
 
       assert.isTrue(
-        counterMsgCointainer.classList.contains('hide'),
-        'sms counter toast shouldn\'t be showed in 3 seconds'
+        counterMsgContainer.classList.contains('hide'),
+        'sms counter toast should not be showed in 3 seconds'
       );
     });
 
@@ -701,8 +691,8 @@ suite('thread_ui.js >', function() {
       });
 
       assert.isTrue(
-        counterMsgCointainer.classList.contains('hide'),
-        'sms counter toast shouldn\'t be showed'
+        counterMsgContainer.classList.contains('hide'),
+        'sms counter toast should not be showed'
       );
     });
 
@@ -1100,8 +1090,6 @@ suite('thread_ui.js >', function() {
 
     setup(function() {
       MockCompose.mSetup();
-
-      this.sinon.stub(Compose, 'on');
 
       // This is added in ThreadUI.init, so we need to remove the listener to
       // prevent having the listener being called several times.
