@@ -2710,13 +2710,32 @@ suite('thread_ui.js >', function() {
       sinon.assert.calledOnce(WaitingScreen.hide);
     });
 
-    test('deleting all messages deletes the thread', function() {
-      this.sinon.spy(Navigation, 'toPanel');
-      this.sinon.spy(ThreadListUI, 'removeThread');
+    suite('deleting all messages', function() {
+      setup(function() {
+        this.sinon.stub(ThreadListUI, 'removeThread');
+        this.sinon.stub(ThreadUI, 'back');
+        this.sinon.stub(ThreadUI, 'close');
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
+        this.sinon.stub(ActivityHandler, 'isInActivity').returns(false);
+      });
 
-      ThreadUI.deleteUIMessages(testMessages.map((m) => m.id));
-      sinon.assert.calledOnce(ThreadListUI.removeThread);
-      sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
+      test('when not in an activity, deletes the thread and navigates back',
+      function() {
+        ThreadUI.deleteUIMessages(testMessages.map((m) => m.id));
+        sinon.assert.calledOnce(ThreadListUI.removeThread);
+        sinon.assert.called(ThreadUI.back);
+        sinon.assert.notCalled(ThreadUI.close);
+      });
+
+      test('when in an activity, deletes the thread and closes activity',
+      function() {
+        ActivityHandler.isInActivity.returns(true);
+        ThreadUI.deleteUIMessages(testMessages.map((m) => m.id));
+        sinon.assert.calledOnce(ThreadListUI.removeThread);
+        sinon.assert.notCalled(ThreadUI.back);
+        sinon.assert.called(ThreadUI.close);
+      });
     });
 
     test('error still calls callback', function() {
