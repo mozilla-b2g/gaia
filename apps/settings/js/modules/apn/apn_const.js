@@ -9,6 +9,9 @@ define(function(require) {
   var CP_APN_KEY = 'ril.data.cp.apns';
   var DEFAULT_APN_KEY = 'ril.data.default.apns';
 
+  // Used for detecting if a new icc card has been inserted.
+  var CACHED_ICCIDS_KEY = 'apn.cached.iccids';
+
   var APN_LIST_KEY = 'apn.list';
   var APN_SELECTIONS_KEY = 'apn.selections';
   var APN_SETTINGS_KEY = 'ril.data.apnSettings';
@@ -34,6 +37,7 @@ define(function(require) {
     get APN_TYPES() { return APN_TYPES; },
     get CP_APN_KEY() { return CP_APN_KEY; },
     get DEFAULT_APN_KEY() { return DEFAULT_APN_KEY; },
+    get CACHED_ICCIDS_KEY() { return CACHED_ICCIDS_KEY; },
     get APN_LIST_KEY() { return APN_LIST_KEY; },
     get APN_SELECTIONS_KEY() { return APN_SELECTIONS_KEY; },
     get APN_SETTINGS_KEY() { return APN_SETTINGS_KEY; },
