@@ -556,57 +556,6 @@ body .utility-tray .statusbar > .sb-start {
   background-position: -28rem -6rem;
 }
 
-.sb-icon-notification {
-  background: none;
-  width: 3.2rem;
-  position: absolute;
-  left: 0;
-}
-
-.sb-icon-notification::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1.6rem;
-  height: 1.6rem;
-  background: url('images/icons.png') no-repeat;
-  background-position: -18rem -6rem;
-  background-size: 34rem 9.6rem;
-}
-
-*[dir=rtl] .sb-icon-notification::before {
-  right: 0;
-  left: auto;
-}
-
-.sb-icon-notification[data-unread="true"]::before {
-  background-position: -16rem -6rem;
-}
-
-.sb-icon-notification[data-unread="true"]::after {
-  color: #fff;
-}
-
-.sb-icon-notification::after {
-  content: attr(data-num);
-  position: absolute;
-  color: rgba(255,255,255, 0.4);
-  top: 0;
-  right: 0;
-  width: 1.6rem;
-  height: 1.6rem;
-  padding: 0 0.1rem;
-  font-size: 1.5rem;
-  font-weight: 400;
-  line-height: 1.6rem;
-}
-
-*[dir=rtl] .sb-icon-notification::after {
-  right: auto;
-  left: 0;
-}
-
 .sb-icon-emergency-cb-notification {
   background-position: -24rem -8rem;
 }
@@ -672,7 +621,6 @@ body .utility-tray .statusbar > .sb-start {
 .sb-hide-bluetooth-headphones .sb-icon-bluetooth-headphones,
 .sb-hide-headphones .sb-icon-headphones,
 .sb-hide-playing .sb-icon-playing,
-.sb-hide-notification .sb-icon-notification,
 .sb-hide-bluetooth-transferring .sb-icon-bluetooth-transferring,
 .sb-hide-alarm .sb-icon-alarm,
 .sb-hide-sms .sb-icon-sms,
