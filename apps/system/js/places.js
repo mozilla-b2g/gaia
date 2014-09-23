@@ -142,7 +142,7 @@
      * @memberof Places.prototype
      */
     screenshotRequested: function(url) {
-      var app = AppWindowManager.getApp(url);
+      var app = AppWindowManager.getAppByURL(url);
       if (!app || app.loading) {
         this.screenshotQueue[url] = setTimeout(() => {
           this.takeScreenshot(url);
@@ -158,7 +158,7 @@
         delete this.screenshotQueue[url];
       }
 
-      var app = AppWindowManager.getApp(url);
+      var app = AppWindowManager.getAppByURL(url);
       if (!app) {
         console.error('Couldnt find app for:', url);
         return false;
