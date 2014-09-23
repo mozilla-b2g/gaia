@@ -54,6 +54,24 @@ marionette('Contacts > ICE contacts', function() {
 
     });
 
+    test('Clicking on ice button does not toggle the switch', function() {
+      subject.addContact({
+        givenName: 'Jose'
+      });
+
+      client.helper.waitForElement(selectors.settingsButton).click();
+      var settings = client.helper.waitForElement(selectors.settingsView);
+      subject.waitForSlideUp(settings);
+      client.findElement(selectors.setIceButton).click();
+
+      var iceButton1 = client.helper.waitForElement(selectors.iceButton1);
+      subject.clickOn(iceButton1);
+      var checked = client.executeScript(function(selector) {
+        return document.querySelector(selector).checked;
+      }, [selectors.iceInputSwitch1]);
+      assert.ok(!checked);
+    });
+
     test('Select ICE contact from search, go back to ICE settings', function() {
       var givenName = 'Hello';
       var searchQuery = givenName.slice(0,1);
