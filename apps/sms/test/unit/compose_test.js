@@ -522,19 +522,12 @@ suite('compose_test.js', function() {
       });
 
       test('Place cursor at the end of the compose field', function() {
-        var mockSelection = {
-          selectAllChildren: function() {},
-          collapseToEnd: function() {}
-        };
-
-        this.sinon.stub(window, 'getSelection').returns(mockSelection);
-        this.sinon.spy(mockSelection, 'selectAllChildren');
-        this.sinon.spy(mockSelection, 'collapseToEnd');
         Compose.fromDraft(d1);
 
-        sinon.assert.calledOnce(mockSelection.selectAllChildren);
-        sinon.assert.calledWith(mockSelection.selectAllChildren, message);
-        sinon.assert.calledOnce(mockSelection.collapseToEnd);
+        var range = window.getSelection().getRangeAt(0);
+        assert.equal(message.lastChild.tagName, 'BR');
+        assert.isTrue(range.collapsed);
+        assert.equal(range.startOffset, message.childNodes.length - 1);
       });
 
       test('Draft with subject', function() {

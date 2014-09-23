@@ -500,8 +500,15 @@ var Compose = (function() {
 
       // Put the cursor at the end of the message
       var selection = window.getSelection();
-      selection.selectAllChildren(dom.message);
-      selection.collapseToEnd();
+      var range = document.createRange();
+      var lastChild = dom.message.lastChild;
+      if (lastChild.tagName === 'BR') {
+        range.setStartBefore(lastChild);
+      } else {
+        range.setStartAfter(lastChild);
+      }
+      selection.removeAllRanges();
+      selection.addRange(range);
     },
 
     /** Render message (sms or mms)
