@@ -155,8 +155,17 @@ suite('system/Rocketbar', function() {
   test('handleEvent() - apploading', function() {
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     var deactivateStub = this.sinon.stub(subject, 'deactivate');
-    var event = {type: 'apploading'};
-    subject.handleEvent(event);
+
+    // Bug 1071953 - Not called when stayBackground is true.
+    var event1 = {type: 'apploading', detail: {
+      stayBackground: true
+    }};
+    subject.handleEvent(event1);
+    assert.ok(hideResultsStub.notCalled);
+    assert.ok(deactivateStub.notCalled);
+
+    var event2 = {type: 'apploading'};
+    subject.handleEvent(event2);
     assert.ok(hideResultsStub.calledOnce);
     assert.ok(deactivateStub.calledOnce);
   });
@@ -300,6 +309,15 @@ suite('system/Rocketbar', function() {
     assert.ok(hideResultsStub.notCalled);
     subject.searchWindow = null;
 
+    // Bug 1071953 - Not called when showApp is false.
+    window.dispatchEvent(new CustomEvent('open-app', {
+      detail: {
+        showApp: false
+      }
+    }));
+    assert.ok(deactivateStub.notCalled);
+    assert.ok(hideResultsStub.notCalled);
+
     // Does not hide if the search window is not open.
     window.dispatchEvent(new CustomEvent('searchclosed'));
     window.dispatchEvent(new CustomEvent('open-app'));
@@ -308,6 +326,7 @@ suite('system/Rocketbar', function() {
 
     // Hides if the search window is open.
     window.dispatchEvent(new CustomEvent('searchopened'));
+
     window.dispatchEvent(new CustomEvent('open-app'));
     assert.ok(deactivateStub.calledOnce);
     assert.ok(hideResultsStub.calledOnce);
