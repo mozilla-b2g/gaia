@@ -223,116 +223,35 @@ suite('StateManager', function() {
     });
 
     suite('deactivate', function() {
-      var p, resolved, rejected;
       setup(function() {
         // triggers inputcontextchange
         navigator.mozInputMethod.setInputContext();
         app.inputContext = null;
-
-        p = window.Promise.firstCall.returnValue;
-        p.mExecuteCallback(function resolve() {
-          resolved = true;
-        }, function reject() {
-          rejected = true;
-        });
-
-        assert.equal(window.setTimeout.firstCall.args[1],
-          manager.DEACTIVATE_DELAY);
       });
 
       test('finishing deactivation', function() {
-        window.setTimeout.firstCall.args[0].call(window);
-        assert.isTrue(resolved);
-
-        p.mFulfillToValue();
-
         assert.isTrue(app.candidatePanelManager.hideFullPanel.calledTwice);
         assert.isTrue(app.candidatePanelManager.updateCandidates.calledTwice);
         assert.isTrue(app.targetHandlersManager
           .activeTargetsManager.clearAllTargets.calledOnce);
 
-        var p2 = p.mGetNextPromise();
-        p2.mFulfillToValue();
-
         assert.isTrue(app.inputMethodManager.switchCurrentIMEngine
           .getCall(1).calledWith('default'));
 
         // trigger visibilitychange (after inputcontextchange)
+
+        // check if deactivation should not be called again by
+        // checking hideFullPanel as an example
+        app.candidatePanelManager.hideFullPanel.reset();
+
         document.hidden = true;
         var evt = {
           type: 'visibilitychange'
         };
         windowStub.dispatchEvent(evt);
 
-        assert.isFalse(window.setTimeout.calledTwice,
+        assert.isFalse(app.candidatePanelManager.hideFullPanel.called,
           'should not attempt to hide again.');
-      });
-
-      test('re-activate right away', function() {
-        var switchCurrentLayoutPromise = Promise.resolve();
-        var switchCurrentIMEnginePromise = Promise.resolve();
-        var updateLayoutRenderingPromise = Promise.resolve();
-
-        app.layoutManager.switchCurrentLayout
-          .returns(switchCurrentLayoutPromise);
-        app.inputMethodManager.switchCurrentIMEngine
-          .returns(switchCurrentIMEnginePromise);
-        app.layoutRenderingManager.updateLayoutRendering
-          .returns(updateLayoutRenderingPromise);
-
-        document.hidden = false;
-        var evt = {
-          type: 'visibilitychange'
-        };
-        windowStub.dispatchEvent(evt);
-
-        navigator.mozInputMethod.setInputContext(new MockInputContext());
-        app.inputContext = navigator.mozInputMethod.inputcontext;
-
-        window.setTimeout.firstCall.args[0].call(window);
-        assert.isTrue(rejected, 'Should stop unloading.');
-
-        assert.isFalse(app.layoutManager.loader.getLayoutAsync.calledOnce,
-          'Should not try to preload layout.');
-        assert.isFalse(
-          app.inputMethodManager.loader.getInputMethodAsync.calledOnce,
-          'Should not try to preload IMEngine.');
-        assert.isFalse(app.l10nLoader.load.calledTwice);
-
-        assert.isTrue(
-          app.inputMethodManager.updateInputContextData.calledTwice);
-
-        assert.isTrue(app.candidatePanelManager.hideFullPanel.calledTwice);
-        assert.isTrue(app.candidatePanelManager.updateCandidates.calledTwice);
-
-        assert.isTrue(
-          app.layoutManager.switchCurrentLayout.getCall(1).calledWith('foo'));
-
-        // calling _switchCurrentIMEngine()
-        var pLoading = switchCurrentLayoutPromise;
-        var pLoadingReturn = pLoading.mFulfillToValue();
-        assert.isTrue(app.upperCaseStateManager.reset.calledTwice);
-        assert.isTrue(app.inputMethodManager.switchCurrentIMEngine
-          .getCall(1).calledWith('bar'));
-        assert.isTrue(app.upperCaseStateManager.reset.getCall(1).calledBefore(
-          app.inputMethodManager.switchCurrentIMEngine.getCall(1)),
-          'Reset the state before engine activates.');
-
-        assert.equal(pLoadingReturn, switchCurrentIMEnginePromise);
-
-        // Calling _updateLayoutRendering()
-        var pLoading2 = pLoading.mGetNextPromise();
-        var pLoading2Return = pLoading2.mFulfillToValue();
-
-        assert.isTrue(
-          app.layoutRenderingManager.updateLayoutRendering.calledTwice);
-
-        assert.equal(pLoading2Return, updateLayoutRenderingPromise);
-        var pLoading3 = pLoading2.mGetNextPromise();
-        pLoading3.mFulfillToValue();
-
-        assert.isTrue(app.l10nLoader.load.calledTwice);
-        assert.isTrue(app.l10nLoader.load.getCall(1).calledOn(app.l10nLoader));
       });
     });
   });
@@ -474,42 +393,6 @@ suite('StateManager', function() {
 
         assert.isTrue(app.l10nLoader.load.calledTwice);
         assert.isTrue(app.l10nLoader.load.getCall(1).calledOn(app.l10nLoader));
-      });
-
-      test('de-activate right away', function() {
-        document.hidden = true;
-
-        var evt = {
-          type: 'visibilitychange'
-        };
-
-        windowStub.dispatchEvent(evt);
-
-        var p = window.Promise.firstCall.returnValue;
-        var resolved;
-        p.mExecuteCallback(function resolve() {
-          resolved = true;
-        }, function reject() {
-          assert.isTrue(false, 'should not reject');
-        });
-
-        assert.equal(window.setTimeout.firstCall.args[1],
-          manager.DEACTIVATE_DELAY);
-
-        this.sinon.stub(window.Promise, 'reject');
-
-        // calling _switchCurrentIMEngine()
-        var pLoading = switchCurrentLayoutPromise;
-        var pReturn = pLoading.mFulfillToValue();
-        assert.isFalse(app.upperCaseStateManager.reset.calledOnce);
-        assert.isFalse(
-          app.inputMethodManager.switchCurrentIMEngine.calledWith('bar'));
-
-        assert.equal(pReturn, window.Promise.reject.firstCall.returnValue,
-          'Loading should stop when hidden.');
-
-        var pLoading2 = pLoading.mGetNextPromise();
-        pLoading2.mRejectToError();
       });
     });
   });
