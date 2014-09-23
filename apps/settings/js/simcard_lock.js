@@ -84,7 +84,8 @@
         this.simPinContainer.querySelector('.simpin-enabled-' +
           cardIndex + ' input');
 
-      var isSimAvailable = icc && icc.cardState && icc.cardState !== 'unknown';
+      var cardState = icc && icc.cardState;
+      var isSimAvailable = cardState && (cardState !== 'unknown');
 
       // when fugu is in airplane mode, icc.cardState will not be changed ...
       // in this way, we have to use isAirplaneMode to check this situation
@@ -98,7 +99,7 @@
       var req = icc.getCardLock('pin');
       req.onsuccess = function() {
         var enabled = req.result.enabled;
-        simPinCheckbox.disabled = false;
+        simPinCheckbox.disabled = (cardState !== 'ready');
         simPinCheckbox.checked = enabled;
         changeSimPinItem.hidden = !enabled;
       };

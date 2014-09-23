@@ -273,6 +273,46 @@ suite('SimPinLock > ', function() {
         assert.ok(cachedDoms.div.hidden);
       });
     });
+
+    // This is for 2.0m only
+    suite('if cardState is locked', function() {
+      ['pukRequired', 'pinRequired'].forEach(function(cardState) {
+        var fakeIccId = '1234567';
+
+        setup(function(done) {
+          MockNavigatorMozIccManager.addIcc(fakeIccId, {
+            'cardState': cardState
+          });
+          SimPinLock.conns[0].iccId = fakeIccId;
+          SimPinLock.isAirplaneMode = false;
+          SimPinLock.updateSimPinUI(0);
+          setTimeout(done);
+        });
+
+        test('cardState = ' + cardState + ', we will disable checkbox',
+          function() {
+            assert.ok(cachedDoms.checkbox.disabled);
+        });
+      });
+    });
+
+    suite('if cardState is not locked', function() {
+      var fakeIccId = '1234567';
+
+      setup(function(done) {
+        MockNavigatorMozIccManager.addIcc(fakeIccId, {
+          'cardState': 'ready'
+        });
+        SimPinLock.conns[0].iccId = fakeIccId;
+        SimPinLock.isAirplaneMode = false;
+        SimPinLock.updateSimPinUI(0);
+        setTimeout(done);
+      });
+
+      test('we will enable checkbox', function() {
+        assert.isFalse(cachedDoms.checkbox.disabled);
+      });
+    });
   });
 
   suite('updateSimPinsUI > ', function() {
