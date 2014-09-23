@@ -71,15 +71,8 @@
           ' (' + menu[SIMNumber].iccId + ') - ', menu[SIMNumber].entries);
 
         var li = document.createElement('li');
-        // XXX this line requires a better l10n support, see bug 968853
-        if (Object.keys(menu).length > 1) {
-          var small = document.createElement('small');
-          small.textContent = 'SIM ' + SIMNumber;
-          small.classList.add('menu-item-desc');
-          li.appendChild(small);
-        }
         var a = document.createElement('a');
-        a.textContent = menu[SIMNumber].entries.title;
+
         a.id = 'menuItem-icc-' + menu[SIMNumber].iccId;
         a.className = 'menu-item menuItem-icc';
         a.href = '#icc';
@@ -93,8 +86,20 @@
             window.dispatchEvent(event);
           });
         };
-        li.appendChild(a);
 
+        var span = document.createElement('span');
+        span.textContent = menu[SIMNumber].entries.title;
+        a.appendChild(span);
+
+        // XXX this line requires a better l10n support, see bug 968853
+        if (Object.keys(menu).length > 1) {
+          var small = document.createElement('small');
+          small.textContent = 'SIM ' + SIMNumber;
+          small.classList.add('menu-item-desc');
+          a.appendChild(small);
+        }
+
+        li.appendChild(a);
         iccEntries.appendChild(li);
 
         iccMainHeader.hidden = false;
