@@ -219,9 +219,20 @@ function initLayout() {
     dom.playerView.classList.add('disabled');
   }
 
-  // We handle the isPortrait calculation here, because window dispatches
-  // multiple resize event with different width and height in Firefox nightly.
-  window.addEventListener('screenlayoutchange', handleScreenLayoutChange);
+  //
+  // Regarding how we handle screen orientation changes, we can use either
+  // 'screenlayoutchange' or 'resize' events. Both have negative side affects:
+  //
+  // 'resize' -- firefox nightly dispatches multiple 'resize' events with
+  //             different width and height when using the rotate button in
+  //             the responsive design view.
+  //  'screenlayoutchange' -- causes a problem when hiding the software home
+  //                          button using mozRequestFullScreen due to the
+  //                          timing of the layout change event and the
+  //                          MediaQueryList events (bug 1062022).
+  //
+
+  window.addEventListener('resize', handleResize);
 
   switchLayout(LAYOUT_MODE.list);
 }
@@ -287,6 +298,28 @@ function toggleFullscreenPlayer(e) {
                           currentVideo.metadata.rotation || 0);
 }
 
+document.addEventListener('mozfullscreenerror', function fullScreenError(e) {
+  console.error('mozfullscreenerror -- ' + e);
+});
+
+function setSoftwareHomeButtonVisibility(visible) {
+  // We do not hide software home button during pick activity
+  if (pendingPick) {
+    return;
+  }
+
+  // Currently we only support when the device has no hardware home button
+  if (!ScreenLayout.getCurrentLayout('hardwareHomeButton')) {
+    if (visible) {
+      document.mozCancelFullScreen();
+      dom.videoControls.classList.add('software-button-present');
+    }
+    else {
+      dom.playerView.mozRequestFullScreen();
+    }
+  }
+}
+
 function toggleVideoControls(e) {
   // When we change the visibility state of video controls, we need to check the
   // timeout of auto hiding.
@@ -301,14 +334,16 @@ function toggleVideoControls(e) {
       // If control not shown, tap any place to show it.
       setControlsVisibility(true);
       e.cancelBubble = true;
+      setSoftwareHomeButtonVisibility(true);
     } else if (e.originalTarget === dom.videoControls) {
       // If control is shown, only tap the empty area should show it.
       setControlsVisibility(false);
+      setSoftwareHomeButtonVisibility(false);
     }
   }
 }
 
-function handleScreenLayoutChange() {
+function handleResize() {
   // When resizing, we need to check the orientation change.
   isPortrait = ScreenLayout.getCurrentLayout('portrait');
 
@@ -390,40 +425,44 @@ function handleActivityEvents(a) {
 }
 
 function showInfoView() {
-  hideOptionsView();
-  //Get the length of the playing video
-  var length = isFinite(currentVideo.metadata.duration) ?
+  LazyLoader.load(['shared/style/confirm.css',
+                   'style/confirm.css'], function() {
+    hideOptionsView();
+    //Get the length of the playing video
+    var length = isFinite(currentVideo.metadata.duration) ?
       MediaUtils.formatDuration(currentVideo.metadata.duration) : '';
-  //Get the video size
-  var size = isFinite(currentVideo.size) ?
+    //Get the video size
+    var size = isFinite(currentVideo.size) ?
       MediaUtils.formatSize(currentVideo.size) : '';
-  //Check if video type has prefix 'video/' e.g. video/mp4
-  var type = currentVideo.type;
-  if (type) {
-    var index = currentVideo.type.indexOf('/');
-    type = index > -1 ?
-      currentVideo.type.slice(index + 1) : currentVideo.type;
-  }
-  //Get the resolution of the playing video
-  var resolution = (currentVideo.metadata.width &&
-      currentVideo.metadata.height) ? currentVideo.metadata.width + 'x' +
-      currentVideo.metadata.height : '';
-  //Create data object to fill in the fields of info overlay view
-  var data = {
-    'info-name': currentVideo.metadata.title,
-    'info-length': length,
-    'info-size': size,
-    'info-type': type,
-    'info-date': MediaUtils.formatDate(currentVideo.date),
-    'info-resolution': resolution
-  };
+    //Check if video type has prefix 'video/' e.g. video/mp4
+    var type = currentVideo.type;
+    if (type) {
+      var index = currentVideo.type.indexOf('/');
+      type = index > -1 ?
+        currentVideo.type.slice(index + 1) : currentVideo.type;
+    }
+    //Get the resolution of the playing video
+    var resolution = (currentVideo.metadata.width &&
+                      currentVideo.metadata.height) ?
+                      currentVideo.metadata.width + 'x' +
+                      currentVideo.metadata.height : '';
+    //Create data object to fill in the fields of info overlay view
+    var data = {
+      'info-name': currentVideo.metadata.title,
+      'info-length': length,
+      'info-size': size,
+      'info-type': type,
+      'info-date': MediaUtils.formatDate(currentVideo.date),
+      'info-resolution': resolution
+    };
 
-  //Populate info overlay view
-  MediaUtils.populateMediaInfo(data);
-  // We need to disable NFC sharing when showing info view
-  setNFCSharing(false);
-  //Show the video info view
-  dom.infoView.classList.remove('hidden');
+    //Populate info overlay view
+    MediaUtils.populateMediaInfo(data);
+    // We need to disable NFC sharing when showing info view
+    setNFCSharing(false);
+    //Show the video info view
+    dom.infoView.classList.remove('hidden');
+  });
 }
 
 function hideInfoView() {
@@ -560,7 +599,8 @@ function resetCurrentVideo() {
 function deleteSelectedItems() {
   if (selectedFileNames.length === 0)
     return;
-  LazyLoader.load('shared/style/confirm.css', function() {
+  LazyLoader.load(['shared/style/confirm.css',
+                   'style/confirm.css'], function() {
 
     Dialogs.confirm({
       messageId: 'delete-n-items?',
@@ -710,6 +750,7 @@ function thumbnailClickHandler(videodata) {
       stopParsingMetadata(function() {
         var fullscreen = pendingPick || isPhone || isPortrait;
         showPlayer(videodata, !pendingPick, fullscreen, pendingPick);
+        setSoftwareHomeButtonVisibility(false);
       });
     });
   }
@@ -765,6 +806,7 @@ function showOverlay(id) {
 }
 
 function setControlsVisibility(visible) {
+
   // in tablet landscape mode, we always shows controls in list layout. We
   // don't need to hide it.
   if (isPhone || isPortrait ||
@@ -776,6 +818,7 @@ function setControlsVisibility(visible) {
     // always set it as shown.
     controlShowing = true;
   }
+
   // to sync the slider under the case of auto-pause(unplugging headset), we
   // need to update the slider when controls is visible.
   if (controlShowing) {
@@ -821,7 +864,8 @@ function deleteCurrentVideo() {
   // We need to disable NFC sharing when showing delete confirmation dialog
   setNFCSharing(false);
 
-  LazyLoader.load('shared/style/confirm.css', function() {
+  LazyLoader.load(['shared/style/confirm.css',
+                   'style/confirm.css'], function() {
     // If we're deleting the file shown in the player we've got to
     // return to the thumbnail list. We pass false to hidePlayer() to tell it
     // not to record new metadata for the file we're about to delete.
@@ -994,7 +1038,6 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
   //hide video player before setVideoUrl
   dom.player.hidden = true;
   setVideoUrl(dom.player, currentVideo, function() {
-
     if (enterFullscreen) {
       switchLayout(LAYOUT_MODE.fullscreenPlayer);
     }
