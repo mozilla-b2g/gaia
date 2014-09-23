@@ -92,15 +92,6 @@ suite('telephony helper', function() {
     sinon.assert.calledWith(navigator.mozTelephony.dial, '0145345520');
   });
 
-  test('should not dial the same number twice', function() {
-    var dialNumber = '0145345520';
-    MockNavigatorMozTelephony.calls = [{number: dialNumber}];
-
-    subject.call(dialNumber, 0);
-
-    sinon.assert.notCalled(navigator.mozTelephony.dial);
-  });
-
   suite('Emergency dialing >', function() {
     var initialState;
 

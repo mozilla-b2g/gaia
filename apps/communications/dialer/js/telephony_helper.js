@@ -74,16 +74,6 @@ var TelephonyHelper = (function() {
       return;
     }
 
-    // Making sure we're not dialing the same number twice
-    var alreadyDialed = telephony.calls.some(function callIterator(call) {
-      var number = call.id ? call.id.number : call.number;
-
-      return (number == sanitizedNumber);
-    });
-    if (alreadyDialed) {
-      return;
-    }
-
     LazyLoader.load('/shared/js/icc_helper.js', function() {
       var cardState = IccHelper.cardState;
       var emergencyOnly = conn.voice.emergencyCallsOnly;
