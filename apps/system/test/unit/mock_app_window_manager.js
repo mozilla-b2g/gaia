@@ -25,6 +25,10 @@ var MockAppWindowManager = {
     return this.mRunningApps[origin];
   },
 
+  getAppByURL: function mawm_getAppByUrl() {
+    return null;
+  },
+
   // reference to active appWindow instance.
   mActiveApp: null,
 
