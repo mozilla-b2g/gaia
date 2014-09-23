@@ -136,7 +136,10 @@ body #statusbar {
 
 #statusbar-minimized {
   width: calc(100% - 100% * 0.6521 + 8rem * 0.6521 - 0.5rem);
-  padding: 0 0.3rem 0 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  -moz-padding-start: 0;
+  -moz-padding-end: 0.3rem;
 }
 
 .statusbar > * {
@@ -148,21 +151,11 @@ body #statusbar {
   opacity: 0;
 }
 
-*[dir=rtl] .statusbar {
-  right: auto;
-  left: 0;
-}
-
 .statusbar > .sb-start-upper {
   visibility: hidden;
   position: absolute;
   left: 0;
   top: calc(var(--statusbar-height) * -1);
-}
-
-*[dir=rtl] .statusbar > .sb-start-upper {
-  left: auto;
-  right: 0;
 }
 
 body .utility-tray .statusbar > .sb-start-upper,
@@ -178,7 +171,7 @@ body .utility-tray .statusbar > .sb-start {
 }
 
 #statusbar-label {
-  margin-left: 0.8rem;
+  -moz-margin-start: 0.8rem;
   color: #ffffff;
   font-size: 1.5rem;
   font-weight: 400;
@@ -236,7 +229,7 @@ body .utility-tray .statusbar > .sb-start {
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-signal {
-  margin-left: 0.8rem;
+  -moz-margin-start: 0.8rem;
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-signal::before {
@@ -626,4 +619,59 @@ body .utility-tray .statusbar > .sb-start {
 .sb-hide-sms .sb-icon-sms,
 .sb-hide-label .sb-icon-label {
   display: none;
+}
+
+/* RTL View */
+html[dir="rtl"] #screen.lockscreen-camera > #statusbar {
+  transform-origin: right top;
+}
+
+html[dir="rtl"] .statusbar {
+  left: 0;
+  right: unset;
+}
+
+html[dir="rtl"] .statusbar > .sb-start-upper {
+  left: unset;
+  right: 0
+}
+
+html[dir="rtl"] #statusbar-connections > * {
+  float: left;
+}
+
+html[dir="rtl"] #statusbar-connections .sb-icon-roaming {
+  left: unset;
+  right: 0;
+}
+
+html[dir="rtl"] #statusbar-connections[data-multiple="true"] .statusbar-signal::before {
+  left: unset;
+  right: -0.6rem;
+}
+
+html[dir="rtl"] #statusbar-connections .statusbar-signal .statusbar-data {
+  text-align: left;
+  left: unset;
+  right: -.7rem;
+}
+
+html[dir="rtl"] #statusbar-connections[data-multiple="true"] .statusbar-signal .statusbar-data {
+  left: unset;
+  right: -.7rem;
+  text-align: right;
+}
+
+html[dir="rtl"] #statusbar-connections[data-multiple="true"] .statusbar-data.sb-icon-data-circle {
+  left: unset;
+  right: 0.2rem;
+}
+
+html[dir="rtl"] #statusbar-call-forwardings > * {
+  float: left;
+}
+
+html[dir="rtl"] #statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding::before {
+  left: unset;
+  right: -0.6rem;
 }

@@ -3,7 +3,6 @@
   top: 0;
   width: 100%;
   height: var(--statusbar-height);
-
   overflow: hidden;
   z-index: 6;
 }
@@ -14,7 +13,6 @@
 
 .appWindow .titlebar .statusbar-shadow {
   height: 100%;
-
   background-size: 100% 100%;
   background-repeat: no-repeat;
   background-position: bottom right;
@@ -94,4 +92,14 @@
 
 #homescreen .chrome + .titlebar .titlebar-minimized {
   opacity: 0;
+}
+
+/* RTL View */
+html[dir="rtl"] .appWindow .titlebar .statusbar-shadow {
+  background-position: bottom left;
+}
+
+html[dir="rtl"] .appWindow .titlebar .titlebar-minimized {
+  left: 0;
+  right: unset;
 }
