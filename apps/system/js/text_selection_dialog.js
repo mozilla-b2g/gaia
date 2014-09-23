@@ -68,6 +68,13 @@
         this._ignoreSelectionChange = false;
         break;
       case 'mozChromeEvent':
+        if (evt.detail.type === 'inputmethod-contextchange') {
+          this._currentInputType = evt.detail.inputType === 'blur' ?
+            null :
+            evt.detail.inputType;
+          return;
+        }
+
         if (evt.detail.type !== 'selectionchange' ||
             this._ignoreSelectionChange) {
           return;
@@ -211,6 +218,10 @@
     // or cut before.
     if (isTempShortcut) {
       detail.commands.canSelectAll = false;
+    }
+
+    if (this._currentInputType === 'password') {
+      detail.commands.canCopy = detail.commands.canCut = false;
     }
 
     // Based on UI spec, we should have dividers ONLY between each select option
