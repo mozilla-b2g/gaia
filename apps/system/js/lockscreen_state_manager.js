@@ -74,6 +74,7 @@
       listenEvents: [
         'lockscreen-notify-homepressed',
         'screenchange',
+        'lockscreen-notification-request-activate-unlock',
         'lockscreen-request-unlock',
         'lockscreen-request-lock',
         'lockscreen-appclosed',
@@ -322,6 +323,7 @@
         this.onHomePressed();
         break;
       case 'lockscreenslide-activate-right':
+      case 'lockscreen-notification-request-activate-unlock':
         this.onActivateUnlock();
         break;
       case 'lockscreen-request-unlock':

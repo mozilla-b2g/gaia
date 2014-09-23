@@ -152,6 +152,9 @@
   LockScreen.prototype.handleEvent =
   function ls_handleEvent(evt) {
     switch (evt.type) {
+      case 'lockscreen-notification-request-activate-unlock':
+        this._activateUnlock();
+        break;
       case 'screenchange':
         // Don't lock if screen is turned off by promixity sensor.
         if (evt.detail.screenOffBy == 'proximity') {
@@ -387,7 +390,8 @@
     this.initUnlockerEvents();
 
     /* Status changes */
-    window.addEventListener('volumechange', this);
+    window.addEventListener(
+      'lockscreen-notification-request-activate-unlock', this);
     window.addEventListener('screenchange', this);
 
     /* Incoming and normal mode would be different */
@@ -645,12 +649,9 @@
 
   LockScreen.prototype._activateUnlock =
   function ls_activateUnlock() {
-    var passcodeOrUnlock = (function() {
-      if (!(this.passCodeEnabled && this.checkPassCodeTimeout())) {
-        this.unlock();
-      }
-    }).bind(this);
-    passcodeOrUnlock();
+    if (!(this.passCodeEnabled && this.checkPassCodeTimeout())) {
+      this.unlock();
+    }
   };
 
   LockScreen.prototype.handleIconClick =
