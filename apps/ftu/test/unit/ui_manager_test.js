@@ -230,4 +230,23 @@ suite('UI Manager > ', function() {
 
   });
 
+  suite('Change app theme', function() {
+    var meta;
+    suiteSetup(function() {
+      meta = document.createElement('meta');
+      meta.content = 'red';
+      meta.name = 'theme-color';
+      document.head.appendChild(meta);
+    });
+
+    teardown(function() {
+      document.head.removeChild(meta);
+    });
+
+    test('Should change the theme color of the app', function() {
+      UIManager.changeStatusBarColor('black');
+      assert.equal(meta.getAttribute('content'), 'black');
+    });
+  });
+
 });
