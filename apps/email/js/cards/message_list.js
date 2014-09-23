@@ -229,6 +229,10 @@ function MessageListCard(domNode, mode, args) {
   }
   // -- search mode
   else if (mode === 'search') {
+
+    domNode.getElementsByClassName('msg-search-form')[0]
+      .addEventListener('submit', this.onSearchSubmit.bind(this), false);
+
     domNode.getElementsByClassName('msg-search-cancel')[0]
       .addEventListener('click', this.onCancelSearch.bind(this), false);
 
@@ -780,7 +784,32 @@ MessageListCard.prototype = {
     this.showSearch(this.searchInput.value, this.curFilter);
   },
 
+  onSearchSubmit: function(event) {
+    // Not a real form to submit, so stop actual submission.
+    event.preventDefault();
+
+    // Blur the focus away from the text input. This has the effect of hiding
+    // the keyboard. This is useful for the two cases where this function is
+    // currently triggered: Enter on the keyboard or Cancel on the form submit.
+    // Note that the Cancel button has a type="submit", which is technically
+    // an incorrect use of that type. However the /shared styles depend on it
+    // being marked as such for style reasons.
+    this.searchInput.blur();
+  },
+
   onCancelSearch: function(event) {
+    // Only care about real clicks on the actual button, not fake ones triggered
+    // by a form submit from the Enter button on the keyboard.
+    // Note: the cancel button should not really be a type="submit", but it is
+    // that way because the /shared styles for this search form wants to see
+    // a submit. Longer term this should be changed in the /shared components.
+    // This event test is used because in form submit cases, the
+    // explicitOriginalTarget (the text input) is not the same as the target
+    // (the button).
+    if (event.explicitOriginalTarget !== event.target) {
+      return;
+    }
+
     try {
       headerCursor.endSearch();
     }
