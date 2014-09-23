@@ -437,7 +437,6 @@
           this._stampElementWithIcon(icon);
         }).
         catch((err) => {
-          console.error('Error fetching icon', err);
           blobNotFound();
         });
     },
