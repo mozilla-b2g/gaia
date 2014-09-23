@@ -439,6 +439,12 @@ var Browser = {
    * @param {Event} e
    */
   handleNewTab: function browserHandleNewTab(e) {
+    // Only respond to new tab clicks if not in transition and the current
+    // screen is TABS_Screen, prevents multiple empty tabs from created
+    if (this.inTransition || this.currentScreen !== this.TABS_SCREEN) {
+      return;
+    }
+
     this.inTransition = true;
     var tabId = this.createTab();
     this.showNewTabAnimation((function browser_showNewTabAnimation() {
