@@ -69,6 +69,25 @@ suite('compose_test.js', function() {
     return attachment;
   }
 
+  /**
+   * Waits for "count" "eventName" events.
+   * @param {string} eventName Compose event name to wait for.
+   * @param {number?} count Optional number of fired events to wait for. If not
+   * specified - 1 is used.
+   * @returns {Promise} Promise that is resolved once event fired "count" times.
+   */
+  function waitForComposeEvent(eventName, count) {
+    count = count || 1;
+    return new Promise((resolve) => {
+      Compose.on(eventName, function onEvent() {
+        if (--count === 0) {
+          Compose.off(eventName, onEvent);
+          resolve();
+        }
+      });
+    });
+  }
+
   suiteSetup(function(done) {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -1566,19 +1585,8 @@ suite('compose_test.js', function() {
       subject.dispatchEvent(event);
     }
 
-    // Wait "count" segmentinfochange events. (default: 1)
     function waitForSegmentinfo(count) {
-      count = count || 1;
-
-      var resolveFunction;
-      return new Promise(function(resolve, reject) {
-        Compose.on('segmentinfochange', resolve);
-        resolveFunction = resolve;
-      }).then(function() {
-        if (--count === 0) {
-          Compose.off('segmentinfochange', resolveFunction);
-        }
-      });
+      return waitForComposeEvent('segmentinfochange', count);
     }
 
     setup(function(done) {
@@ -1801,6 +1809,123 @@ suite('compose_test.js', function() {
           assert.deepEqual(results, [ segmentInfo2, segmentInfo1 ]);
         }).then(done, done);
       });
+    });
+  });
+
+  suite('Message char counter', function() {
+    var messageCounter,
+        segmentInfoResponse;
+
+    setup(function(done) {
+      this.sinon.stub(
+        MessageManager,
+        'getSegmentInfo',
+        () => Promise.resolve(segmentInfoResponse)
+      );
+
+      loadBodyHTML('/index.html');
+      messageCounter = document.querySelector('.js-message-counter');
+
+      Compose.init('messages-compose-form');
+      waitForComposeEvent('segmentinfochange').then(done);
+      clock.tick(UPDATE_DELAY);
+
+      // Initiate next update
+      Compose.append('Some text');
+    });
+
+    test('there are no segments', function(done) {
+      Compose.clear();
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'sms');
+        assert.equal(messageCounter.textContent, '');
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+
+    test('in first segment, enough characters', function(done) {
+      segmentInfoResponse = {
+        segments: 1,
+        charsAvailableInLastSegment: 25
+      };
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'sms');
+        assert.equal(messageCounter.textContent, '');
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+
+    test('in first segment, less or equal then 20 chars left', function(done) {
+      segmentInfoResponse = {
+        segments: 1,
+        charsAvailableInLastSegment: 20
+      };
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'sms');
+        assert.equal(messageCounter.textContent, '20/1');
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+
+    test('in second segment', function(done) {
+      segmentInfoResponse = {
+        segments: 2,
+        charsAvailableInLastSegment: 40
+      };
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'sms');
+        assert.equal(messageCounter.textContent, '40/2');
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+
+    test('in last segment', function(done) {
+      segmentInfoResponse = {
+        segments: 10,
+        charsAvailableInLastSegment: 20
+      };
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'sms');
+        assert.equal(messageCounter.textContent, '20/10');
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+
+    test('clears counter if type changed to MMS', function(done) {
+      segmentInfoResponse = {
+        segments: 11,
+        charsAvailableInLastSegment: 40
+      };
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'mms');
+        assert.equal(messageCounter.textContent, '');
+
+        // Go back to sms
+        segmentInfoResponse = {
+          segments: 10,
+          charsAvailableInLastSegment: 40
+        };
+        Compose.append('Some other text');
+        clock.tick(UPDATE_DELAY);
+
+        return waitForComposeEvent('segmentinfochange').then(function () {
+          assert.equal(Compose.type, 'sms');
+          assert.equal(messageCounter.textContent, '40/10');
+        });
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
     });
   });
 });

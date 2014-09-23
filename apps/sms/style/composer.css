@@ -151,8 +151,8 @@ form[role="search"] button[type="submit"]:after {
   align-items: flex-end;
 }
 
-#subject-mms-label,
-#messages-counter-label {
+.mms-label,
+.message-counter {
   display: none;
   flex: none;
 
@@ -164,9 +164,24 @@ form[role="search"] button[type="submit"]:after {
   font-size: 1.4rem;
 }
 
-/* If subject is visible we show MMS only near the subject itself */
-[data-message-type='mms'].subject-input-visible #subject-mms-label,
-[data-message-type='mms']:not(.subject-input-visible) #messages-counter-label {
+.bottom-composer-section .mms-label,
+.message-counter {
+  padding-top: .7rem;
+}
+
+/**
+ * 1. "MMS" label is displayed near the subject field when subject input is
+ *    visible and message type is MMS;
+ * 2. "MMS" label is displayed in bottom section if subject input is not
+ *    visible and message type is MMS;
+ * 3. Remaining characters counter is displayed in bottom section if character
+ *    count exceeds predefined threshold and message type is SMS.
+ */
+[data-message-type='mms'].subject-input-visible
+    .top-composer-section > .mms-label,
+[data-message-type='mms']:not(.subject-input-visible)
+    .bottom-composer-section .mms-label,
+[data-message-type='sms'] .message-counter:not(:empty) {
   display: block;
 }
 
@@ -255,29 +270,6 @@ form[role="search"] button[type="submit"]:after {
 
 #messages-input.ignoreEvents {
   pointer-events: none;
-}
-
-#messages-counter-label {
-  padding-top: .7rem;
-}
-
-/* TODO: Revise message-counter handling in bug 1061215*/
-[data-message-type='sms'] #messages-counter-label.has-counter {
-  display: block;
-  visibility: hidden;
-}
-
-[data-message-type='sms'] .has-counter:after {
-  position: absolute;
-  top: 0.6rem;
-  left: 0;
-
-  display: block;
-  visibility: visible;
-
-  width: 100%;
-
-  content: attr(data-counter);
 }
 
 #messages-attach-button {

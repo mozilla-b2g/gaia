@@ -52,7 +52,7 @@ marionette('Messages as share target', function() {
 
         // Exit from activity and verify that Messages is dismissed
         messagesApp.performHeaderAction();
-        messagesApp.selectMenuOption('Discard');
+        messagesApp.selectAppMenuOption('Discard');
         messagesApp.waitForAppToDisappear();
       });
 
@@ -78,7 +78,7 @@ marionette('Messages as share target', function() {
 
         // Go to the Report panel
         messagesApp.contextMenu(messagesApp.Thread.message);
-        messagesApp.selectMenuOption('View message report');
+        messagesApp.selectAppMenuOption('View message report');
         client.helper.waitForElement(messagesApp.Report.main);
 
         assert.ok(

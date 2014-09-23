@@ -65,9 +65,6 @@ var ThreadUI = {
   // to send it
   ANOTHER_SMS_TOAST_DURATION: 3000,
 
-  // Min available chars count that triggers available chars counter
-  MIN_AVAILABLE_CHARS_COUNT: 20,
-
   // when sending an sms to several recipients in activity, we'll exit the
   // activity after this delay after moving to the thread list.
   LEAVE_ACTIVITY_DELAY: 3000,
@@ -79,6 +76,7 @@ var ThreadUI = {
   isNewMessageNoticeShown: false,
   shouldChangePanelNextEvent: false,
   showErrorInFailedEvent: '',
+  previousSegment: 0,
 
   timeouts: {
     update: null,
@@ -107,7 +105,7 @@ var ThreadUI = {
       'new-message-notice', 'options-button', 'edit-mode', 'edit-form',
       'tel-form', 'header-text', 'max-length-notice', 'convert-notice',
       'resize-notice', 'dual-sim-information', 'new-message-notice',
-      'subject-max-length-notice', 'counter-label', 'recipient-suggestions',
+      'subject-max-length-notice', 'recipient-suggestions',
       'call-number-button','sms-counter-notice'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
@@ -115,7 +113,6 @@ var ThreadUI = {
 
     this.mainWrapper = document.getElementById('main-wrapper');
     this.threadMessages = document.getElementById('thread-messages');
-    this.composerContainer = document.getElementById('composer-container');
 
     // Allow for stubbing in environments that do not implement the
     // `navigator.mozMobileMessage` API
@@ -1235,33 +1232,27 @@ var ThreadUI = {
   },
 
   onSegmentInfoChange: function thui_onSegmentInfoChange() {
-    var counterMsgCointainer = this.smsCounterNotice;
-    var smsInfo = Compose.segmentInfo;
-    var segments = smsInfo.segments;
-    var availableChars = smsInfo.charsAvailableInLastSegment;
-    var pContent = counterMsgCointainer.querySelector('p');
-    var currentSegment = +this.counterLabel.dataset.counter.split('/')[1];
+    var currentSegment = Compose.segmentInfo.segments;
 
-    // in MMS mode, the counter value isn't used anyway, so we can update this
-    this.counterLabel.dataset.counter = availableChars + '/' + segments;
+    var isValidSegment = currentSegment > 0;
+    var isSegmentChanged = this.previousSegment !== currentSegment;
+    var isStartingFirstSegment = this.previousSegment === 0 &&
+          currentSegment === 1;
 
-    // if we are going to force MMS, this is true anyway, so adding
-    // has-counter again doesn't hurt us.
-    var showCounter = (segments && (segments > 1 ||
-      availableChars <= this.MIN_AVAILABLE_CHARS_COUNT));
-    this.counterLabel.classList.toggle('has-counter', showCounter);
+    if (Compose.type === 'sms' && isValidSegment && isSegmentChanged &&
+        !isStartingFirstSegment) {
+      this.previousSegment = currentSegment;
 
-    if(currentSegment !== segments && currentSegment > 0 && 
-      segments < Settings.maxConcatenatedMessages){
-      navigator.mozL10n.setAttributes(pContent, 
-        'sms-counter-notice-label', {number: segments});
-      counterMsgCointainer.classList.remove('hide');
+      navigator.mozL10n.setAttributes(
+        this.smsCounterNotice.querySelector('p'),
+        'sms-counter-notice-label',
+        { number: currentSegment }
+      );
+      this.smsCounterNotice.classList.remove('hide');
       window.setTimeout(function() {
-        counterMsgCointainer.classList.add('hide');
-      }, this.ANOTHER_SMS_TOAST_DURATION);
+        this.smsCounterNotice.classList.add('hide');
+      }.bind(this), this.ANOTHER_SMS_TOAST_DURATION);
     }
-
-
   },
 
   checkMessageSize: function thui_checkMessageSize() {
@@ -2156,10 +2147,6 @@ var ThreadUI = {
 
   cleanFields: function thui_cleanFields() {
     Compose.clear();
-
-    // reset the counter
-    this.counterLabel.dataset.counter = '';
-    this.counterLabel.classList.remove('has-counter');
   },
 
   onSendClick: function thui_onSendClick() {

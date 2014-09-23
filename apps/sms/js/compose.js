@@ -19,7 +19,10 @@
  */
 var Compose = (function() {
   // delay between 2 counter updates while composing a message
-  var UPDATE_DELAY = 500;
+  const UPDATE_DELAY = 500;
+
+  // Min available chars count that triggers available chars counter
+  const MIN_AVAILABLE_CHARS_COUNT = 20;
 
   var placeholderClass = 'placeholder';
   var attachmentClass = 'attachment-container';
@@ -32,7 +35,8 @@ var Compose = (function() {
     message: null,
     subject: null,
     sendButton: null,
-    attachButton: null
+    attachButton: null,
+    counter: null
   };
 
   var state = {
@@ -335,7 +339,7 @@ var Compose = (function() {
     // A possible solution is to do it only when the user deletes characters in
     // MMS mode.
     if (hasAttachment()) {
-      return;
+      return resetSegmentInfo();
     }
 
     if (segmentInfoTimeout === null) {
@@ -356,14 +360,16 @@ var Compose = (function() {
     segmentInfoPromise.then(
       function(segmentInfo) {
         state.segmentInfo = segmentInfo;
-      }, function(error) {
-        state.segmentInfo = {
-          segments: 0,
-          charsAvailableInLastSegment: 0
-        };
-      }
+      }, resetSegmentInfo
     ).then(compose.updateType.bind(Compose))
     .then(compose.emit.bind(compose, 'segmentinfochange'));
+  }
+
+  function resetSegmentInfo() {
+    state.segmentInfo = {
+      segments: 0,
+      charsAvailableInLastSegment: 0
+    };
   }
 
   var compose = {
@@ -374,6 +380,7 @@ var Compose = (function() {
       dom.sendButton = document.getElementById('messages-send-button');
       dom.attachButton = document.getElementById('messages-attach-button');
       dom.optionsMenu = document.getElementById('attachment-options-menu');
+      dom.counter = dom.form.querySelector('.js-message-counter');
 
       // update the placeholder, send button and Compose.type
       dom.message.addEventListener('input', onContentChanged);
@@ -396,6 +403,8 @@ var Compose = (function() {
       this.clear();
 
       this.on('type', this.onTypeChange.bind(this));
+      this.on('type', this.updateMessageCounter.bind(this));
+      this.on('segmentinfochange', this.updateMessageCounter.bind(this));
 
       /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
        * property */
@@ -634,11 +643,10 @@ var Compose = (function() {
       subject.clear().hide();
       state.resizing = false;
       state.size = 0;
-      state.segmentInfo = {
-        segments: 0,
-        charsAvailableInLastSegment: 0
-      };
+
+      resetSegmentInfo();
       segmentInfoTimeout = null;
+
       onContentChanged();
       return this;
     },
@@ -777,6 +785,24 @@ var Compose = (function() {
       }
 
       dom.form.dataset.messageType = this.type;
+    },
+
+    updateMessageCounter: function c_updateMessageCounter() {
+      var counterValue = '';
+
+      if (this.type === 'sms') {
+        var segments = state.segmentInfo.segments;
+        var availableChars = state.segmentInfo.charsAvailableInLastSegment;
+
+        if (segments && (segments > 1 ||
+            availableChars <= MIN_AVAILABLE_CHARS_COUNT)) {
+          counterValue = availableChars + '/' + segments;
+        }
+      }
+
+      if (counterValue !== dom.counter.textContent) {
+        dom.counter.textContent = counterValue;
+      }
     },
 
     /** Initiates a 'pick' MozActivity allowing the user to create an
