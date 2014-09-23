@@ -67,10 +67,9 @@ HTMLOptimizer.prototype.process = function() {
   // Since l10n.js was read before the document was created, we need to
   // explicitly initialize it again via mozL10n.bootstrap, which looks for
   // *.ini links in the HTML and sets up the localization context.
-  mozL10n.bootstrap(
-    // if LOCALE_BASEDIR is set, we're going to show missing strings at
-    // buildtime.
-    this.config.LOCALE_BASEDIR !== '');
+  // Also, if LOCALE_BASEDIR is set, we're going to show missing strings at
+  // buildtime.
+  mozL10n.bootstrap(this.webapp.url, this.config.LOCALE_BASEDIR !== '');
   this._optimize();
 };
 
@@ -125,7 +124,9 @@ HTMLOptimizer.prototype._proceedLocales = function() {
     mozL10n.ctx.requestLocales(this.locales[processedLocales]);
 
     // create JSON dicts for the current language for locales-obj/
-    this.fullDict[mozL10n.language.code] = this.getDictionary();
+    if (this.config.GAIA_CONCAT_LOCALES) {
+      this.fullDict[mozL10n.language.code] = this.getDictionary();
+    }
     processedLocales++;
   }
 
