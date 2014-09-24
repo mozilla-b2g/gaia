@@ -354,7 +354,9 @@ var properties = {
 
           callback && callback(null);
         }.bind(this))
-        .catch(function(err) {
+      .catch(function(err) {
+          this._LOG.deadConnection('connect-error', whyFolderId);
+
           if (errorutils.shouldReportProblem(err)) {
             this.universe.__reportAccountProblem(
               this.compositeAccount,
