@@ -19,6 +19,10 @@
   overflow: hidden;
 }
 
+#screen.software-button-enabled [role="dialog"].generic-dialog {
+  bottom: var(--software-home-button-height);
+}
+
 [role="dialog"].generic-dialog:before {
   content: "";
   display: inline-block;
