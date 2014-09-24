@@ -1654,6 +1654,7 @@
    */
   AppWindow.prototype.ready = function aw_ready(callback) {
     if (!this.element) {
+      callback(false);
       return;
     }
 

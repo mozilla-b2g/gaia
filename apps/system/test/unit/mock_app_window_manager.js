@@ -45,6 +45,10 @@ var MockAppWindowManager = {
   broadcastMessage: function() {
   },
 
+  isBusyLaunching: function() {
+    return false;
+  },
+
   sendStopRecordingRequest: function(callback) {
     if (callback) {
       callback();

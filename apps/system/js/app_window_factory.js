@@ -191,6 +191,10 @@
         }
         app.reviveBrowser();
       } else if (config.origin !== homescreenLauncher.origin) {
+        if (AppWindowManager.isBusyLaunching() &&
+            config.evtType == 'webapps-launch') {
+          return;
+        }
         new AppWindow(config);
       } else if (config.origin == homescreenLauncher.origin) {
         homescreenLauncher.getHomescreen(true);
