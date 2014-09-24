@@ -5,6 +5,7 @@
 var SimLock = {
   _duringCall: false,
   _showPrevented: false,
+  _alreadyShown: false,
 
   init: function sl_init() {
     // Do not do anything if there's no SIMSlot instance.
@@ -52,6 +53,8 @@ var SimLock = {
     window.addEventListener('simpinskip', this);
     window.addEventListener('simpinback', this);
     window.addEventListener('simpinrequestclose', this);
+
+    this._alreadyShown = false;
   },
 
   handleEvent: function sl_handleEvent(evt) {
@@ -192,6 +195,17 @@ var SimLock = {
         return false;
       }
 
+      // Only render if not already displaying, or
+      // displaying and skipping
+      if (SimPinDialog.visible ? !skipped : skipped) {
+        return false;
+      }
+
+      // Always showing the first slot first.
+      if (!this._alreadyShown && index > 1) {
+        return false;
+      }
+
       switch (slot.simCard.cardState) {
         // do nothing in either unknown or null card states
         case null:
@@ -199,8 +213,6 @@ var SimLock = {
           break;
         case 'pukRequired':
         case 'pinRequired':
-          SimPinDialog.show(slot, this.onClose.bind(this), skipped);
-          return true;
         case 'networkLocked':
         case 'corporateLocked':
         case 'serviceProviderLocked':
@@ -209,6 +221,7 @@ var SimLock = {
         case 'hrpdNetworkLocked':
         case 'ruimCorporateLocked':
         case 'ruimServiceProviderLocked':
+          this._alreadyShown = true;
           SimPinDialog.show(slot, this.onClose.bind(this), skipped);
           return true;
       }
