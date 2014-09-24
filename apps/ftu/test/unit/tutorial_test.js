@@ -3,6 +3,7 @@
           MockNavigatorSettings */
 'use strict';
 
+require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('ftu/test/unit/mock_l10n.js');
@@ -20,19 +21,6 @@ suite('Tutorial >', function() {
 
   mocksHelperForFTU.attachTestHelpers();
 
-  function MockXMLHttpRequest() {
-    var mResponse = MockXMLHttpRequest.mResponse;
-    this.open = function() {};
-    this.send = function() {
-      this.response = mResponse;
-      this.timeout = setTimeout(this.onload.bind(this));
-    };
-    this.abort = function() {
-      if (this.timeout) {
-        clearTimeout(this.clearTimeout);
-      }
-    };
-  }
   function mockConfig(stepCount) {
     var steps = [];
     for (; stepCount; stepCount--) {
@@ -52,7 +40,6 @@ suite('Tutorial >', function() {
   var realL10n;
   var realMozApps;
   var realMozSettings;
-  var realXHR;
 
   suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
@@ -66,9 +53,6 @@ suite('Tutorial >', function() {
 
     loadBodyHTML('/index.html');
 
-    realXHR = window.XMLHttpRequest;
-    window.XMLHttpRequest = MockXMLHttpRequest;
-
     requireApp('ftu/js/tutorial.js', done);
   });
 
@@ -77,8 +61,6 @@ suite('Tutorial >', function() {
     navigator.mozApps = realMozApps;
     navigator.mozSettings = realMozSettings;
     realL10n = null;
-    window.XMLHttpRequest = realXHR;
-    realXHR = null;
     document.body.innerHTML = '';
   });
 
@@ -94,7 +76,8 @@ suite('Tutorial >', function() {
   });
 
   test(' sanity test mocks', function(done) {
-    MockXMLHttpRequest.mResponse = mockConfig(2);
+    this.sinon.stub(LazyLoader, 'getJSON')
+              .returns(Promise.resolve(mockConfig(2)));
     Tutorial.loadConfig().then(onOutcome, onOutcome)
                          .then(done, done);
     function onOutcome() {
@@ -170,7 +153,7 @@ suite('Tutorial >', function() {
 
     test('start despite failure to load media', function(done) {
       var tutorialWasInitialized = false;
-      MockXMLHttpRequest.mResponse = {
+      var jsonMock = {
         'default': {
           steps: [{
             video: '/style/images/tutorial/NotThere.mp4',
@@ -178,6 +161,7 @@ suite('Tutorial >', function() {
           }]
         }
       };
+      this.sinon.stub(LazyLoader, 'getJSON').returns(Promise.resolve(jsonMock));
       window.addEventListener('tutorialinitialized', function() {
         tutorialWasInitialized = true;
       });
@@ -192,15 +176,21 @@ suite('Tutorial >', function() {
   });
 
   suite(' post-init', function() {
+    var getJSONStub;
     suiteSetup(function(done) {
       Tutorial.reset();
 
-      MockXMLHttpRequest.mResponse = mockConfig(3);
+      getJSONStub = sinon.stub(LazyLoader, 'getJSON')
+                         .returns(Promise.resolve(mockConfig(3)));
 
       Tutorial.init();
       Tutorial.start(function() {
         done();
       });
+    });
+
+    suiteTeardown(function() {
+     getJSONStub.restore();
     });
 
     test(' is shown properly after Tutorial.start', function() {
@@ -279,36 +269,51 @@ suite('Tutorial >', function() {
   });
 
   suite('IAC Message >', function() {
+    var lazyLoaderStub;
+    suiteSetup(function() {
+      realMozApps = navigator.mozApps;
+      realMozSettings = navigator.mozSettings;
+      navigator.mozApps = MockNavigatormozApps;
+      navigator.mozSettings = MockNavigatorSettings;
+      lazyLoaderStub = sinon.stub(LazyLoader, 'getJSON')
+                            .returns(Promise.resolve(mockConfig(4)));
+    });
+
+    suiteTeardown(function() {
+      navigator.mozApps = realMozApps;
+      navigator.mozSettings = realMozSettings;
+      lazyLoaderStub.restore();
+    });
+
     setup(function() {
       Tutorial.reset();
     });
 
     teardown(function() {
       MockNavigatormozApps.mTeardown();
+      MockNavigatorSettings.mTeardown();
     });
 
     function setHomescreenManifest(url) {
       var obj = {'homescreen.manifestURL': url};
-      MockNavigatorSettings.createLock().set(obj);
+      navigator.mozSettings.createLock().set(obj);
     }
 
-    test('will send message', function(done) {
+    test('will send message', function() {
       var url = 'app://verticalhome.gaiamobile.org/manifest.webapp';
       setHomescreenManifest(url);
       Tutorial.init(null, function() {
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
+        navigator.mozApps.mTriggerLastRequestSuccess();
         assert.equal(MockNavigatormozApps.mLastConnectionKeyword,
                      'migrate');
-        done();
       });
     });
 
-    test('will not send message', function(done) {
+    test('will not send message', function() {
       var url = 'app://homescreen.gaiamobile.org/manifest.webapp';
       setHomescreenManifest(url);
       Tutorial.init(null, function() {
         assert.isNull(MockNavigatormozApps.mLastRequest);
-        done();
       });
     });
   });
