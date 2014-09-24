@@ -3,7 +3,7 @@
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
   var screenElement = document.getElementById('screen');
 
   /**

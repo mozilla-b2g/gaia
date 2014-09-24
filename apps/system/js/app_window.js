@@ -2,7 +2,7 @@
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
   var _id = 0;
 
   /**
@@ -1259,6 +1259,12 @@
   AppWindow.prototype._resize = function aw__resize() {
     var height, width;
     this.debug('force RESIZE...');
+    // XXX: We are losing this.element if we are a crashed homescreen window.
+    if (!this.element) {
+      this.debug('losing this.element, showing trace below.');
+      console.trace();
+      return;
+    }
     if (self.layoutManager.keyboardEnabled) {
       /**
        * The event is dispatched on the app window only when keyboard is up.
