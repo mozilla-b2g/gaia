@@ -1,3 +1,4 @@
+/* globals KeypadManager, NavbarManager, LazyLoader, LazyL10n, CallHandler */
 'use strict';
 
 window.addEventListener('load', function dialerSetup() {
@@ -45,8 +46,6 @@ window.addEventListener('load', function dialerSetup() {
       ], function fileSetLoaded() {
         window.dispatchEvent(new CustomEvent('moz-app-loaded'));
       });
-
-      lazyPanelsElements.forEach(navigator.mozL10n.translate);
     });
   });
 });
