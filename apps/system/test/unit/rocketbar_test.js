@@ -525,6 +525,8 @@ suite('system/Rocketbar', function() {
     assert.ok(spy.calledWithNew);
     spy.restore();
 
+    var destroyStub = this.sinon.stub(subject.searchWindow, 'destroy');
+
     // Dispatch a crash event.
     window.dispatchEvent(new CustomEvent('searchterminated'));
 
@@ -536,6 +538,7 @@ suite('system/Rocketbar', function() {
 
     assert.ok(subject.searchWindow instanceof MockSearchWindow);
     assert.equal(subject._port, 'pending');
+    assert.ok(destroyStub.calledOnce);
   });
 
   test('open', function() {

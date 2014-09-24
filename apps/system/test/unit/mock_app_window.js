@@ -68,6 +68,7 @@
     cancelQueuedShow: function() {},
     queueHide: function() {},
     setOrientation: function() {},
+    destroy: function() {},
     focus: function() {},
     debug: function() {},
     tryWaitForFullRepaint: function() {},
