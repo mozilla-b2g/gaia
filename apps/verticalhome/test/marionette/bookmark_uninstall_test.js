@@ -3,8 +3,7 @@
 
 var assert = require('assert');
 
-var Bookmark = require('./lib/bookmark');
-var Browser = require('../../../../apps/browser/test/marionette/lib/browser');
+var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
 var Home2 = require('./lib/home2');
 var Server = require('../../../../shared/test/integration/server');
 var System = require('../../../../apps/system/test/marionette/lib/system');
@@ -18,7 +17,7 @@ marionette('Vertical - Bookmark Uninstall', function() {
   delete options.settings['homescreen.manifestURL'];
 
   var client = marionette.client(options);
-  var bookmark, browser, home, server, system;
+  var bookmark, home, server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -33,19 +32,16 @@ marionette('Vertical - Bookmark Uninstall', function() {
 
   var url;
   setup(function() {
-    browser = new Browser(client);
     home = new Home2(client);
     system = new System(client);
     bookmark = new Bookmark(client, server);
     system.waitForStartup();
 
     client.apps.launch(Home2.URL);
-    home.waitForLaunch();
 
     url = server.url('sample.html');
-    bookmark.save(url, browser);
+    bookmark.openAndSave(url);
 
-    client.switchToFrame();
     system.goHome();
     client.switchToFrame(system.getHomescreenIframe());
     home.enterEditMode();
