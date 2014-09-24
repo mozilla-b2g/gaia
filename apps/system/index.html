@@ -559,8 +559,10 @@
       <div id="utility-tray-notifications" data-l10n-id="utilityTray" role="dialog" aria-label="Utility tray" data-z-index-level="utility-tray-notifications">
         <div id="notification-bar" class="fake-notification">
           <div data-icon="notifications"></div>
-          <div id="notification-some" class="title-container" data-l10n-id="notifications">Notifications</div>
-          <button id="notification-clear" data-l10n-id="clear-all" disabled>Clear all</button>
+          <div class="title-container">
+            <div id="notification-some" class="title" data-l10n-id="statusbarNotifications" data-l10n-args='{"n": "0"}'></div>
+            <button id="notification-clear" data-l10n-id="clear-all" disabled>Clear all</button>
+          </div>
         </div>
 
         <div id="notifications-container">

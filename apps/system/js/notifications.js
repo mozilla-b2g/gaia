@@ -680,6 +680,8 @@ var NotificationScreen = {
       this.ambientIndicator.classList.remove('unread');
       this.ambientIndicator.removeAttribute('aria-label');
     }
+
+    UtilityTray.updateNotificationCount();
   },
 
   closeToast: function ns_closeToast() {
