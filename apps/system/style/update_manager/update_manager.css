@@ -26,7 +26,10 @@
 }
 
 #update-manager-container > .title-container {
-  margin: 1.4rem 0 0 3.7rem;
+  margin-top: 1.4rem;
+  margin-bottom: 0;
+  -moz-margin-start: 3.7rem;
+  -moz-margin-end: 0;
 }
 
 #update-manager-container > .title-container > span {
@@ -102,7 +105,7 @@
 #updates-download-dialog ul {
   list-style: none;
   margin-top: 0.4rem;
-  padding-left: 0;
+  -moz-padding-start: 0;
 }
 
 #updates-download-dialog li {
@@ -192,4 +195,25 @@
 #updates-download-dialog[data-online="false"] #updates-offline-warning,
 #updates-download-dialog[data-online="true"][data-nowifi="true"][data-data-connection-inline-warning="true"] #updates-data-connection-warning {
   visibility: visible;
+}
+
+/* RTL View */
+
+html[dir="rtl"] #update-manager-toaster > .icon {
+  float: right;
+}
+
+html[dir="rtl"] #update-manager-toaster > .message {
+  left: unset;
+  right: 5rem;
+}
+
+html[dir="rtl"] #updates-download-dialog label {
+  float: left;
+}
+
+html[dir="rtl"] #updates-download-dialog label.required {
+  left: 0.5rem;
+  right: unset;
+  text-align: left;
 }
