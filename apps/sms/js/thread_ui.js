@@ -320,6 +320,21 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
+  /**
+   * we always go back to the previous pane,
+   * unless we're in an activity, then in
+   * select cases we exit the activity.
+   *
+   * @private
+   */
+  backOrClose: function thui_backOrClose() {
+    var inActivity = ActivityHandler.isInActivity();
+    var isComposer = Navigation.isCurrentPanel('composer');
+    var isThread = Navigation.isCurrentPanel('thread');
+    var action = inActivity && (isComposer || isThread) ? 'close' : 'back';
+    this[action]();
+  },
+
   // Initialize Recipients list and Recipients.View (DOM)
   initRecipients: function thui_initRecipients() {
     var recipientsChanged = (function recipientsChanged(length, record) {
@@ -1886,7 +1901,7 @@ var ThreadUI = global.ThreadUI = {
       // Remove the thread from DOM and go back to the thread-list
       ThreadListUI.removeThread(Threads.currentId);
       callback();
-      Navigation.toPanel('thread-list');
+      this.backOrClose();
     } else {
       // Retrieve latest message in the UI
       var lastMessage = ThreadUI.container.lastElementChild.querySelector(
