@@ -25,6 +25,7 @@ suite('system/LockScreenStateManager', function() {
       };
     };
     window.LockScreenStateSlideShow =
+    window.LockScreenStateSlideHide =
     window.LockScreenStatePanelHide =
     window.LockScreenStateKeypadShow =
     window.LockScreenStateKeypadHiding =

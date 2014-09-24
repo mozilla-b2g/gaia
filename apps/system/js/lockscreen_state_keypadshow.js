@@ -36,6 +36,8 @@
       // Copy from the original switching method.
       this.lockScreen.overlay.classList.add('no-transition');
       this.lockScreen.overlay.dataset.panel = 'passcode';
+      // Resetting slider when it get hidden by the passcode keypad
+      this.lockScreen._unlocker.reset();
       // XXX: Because when it's 'success', the keyboard would be hidden.
       // This should be fixed: we should manage the show/hide with other
       // CSS flags.
