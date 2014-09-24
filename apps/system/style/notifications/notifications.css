@@ -184,14 +184,14 @@
 #notification-bar .title-container {
   display: flex;
   width: calc(100% - 3.7rem);
-  margin-left: .7rem;
+  -moz-margin-start: .7rem;
   float: left;
   font: italic 300 1.8rem/3.6rem auto;
 }
 
 #notification-bar .title {
   flex: 1;
-  margin-right: .5rem;
+  -moz-margin-end: .5rem;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -274,7 +274,7 @@
 
 #notifications-container .notification > div.title-container .title {
   flex: 1;
-  margin-right: .5rem;
+  -moz-margin-end: .5rem;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -341,5 +341,27 @@ html[dir="rtl"] #toaster-icon{
 html[dir="rtl"] #notification-container > div {
   left: unset;
   right: 5.6rem;
+  text-align: right;
+}
+
+html[dir="rtl"] #notification-bar .title-container {
+  float: right;
+}
+
+html[dir="rtl"] #notifications-container .notification > img {
+  float: right;
+}
+
+html[dir="rtl"] #notifications-container .notification > div.title-container .timestamp {
+  left: 1.5rem;
+  right: unset;
+}
+
+html[dir="rtl"] #notifications-container .notification > div {
+  margin-left: unset;
+  margin-right: 3.7rem;
+}
+
+html[dir="rtl"] #notifications-container .notification > div:-moz-dir(ltr) {
   text-align: right;
 }
