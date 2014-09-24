@@ -20,6 +20,20 @@ var VERSION =
 // Default provisioner and worker types
 var WORKER_TYPE = 'gaia';
 var PROVISIONER_ID = 'aws-provisioner';
+var COPIED_ENVS = [
+  'CI',
+  'GITHUB_PULL_REQUEST',
+  'GITHUB_BASE_REPO',
+  'GITHUB_BASE_USER',
+  'GITHUB_BASE_GIT',
+  'GITHUB_BASE_REV',
+  'GITHUB_BASE_BRANCH',
+  'GITHUB_HEAD_REPO',
+  'GITHUB_HEAD_USER',
+  'GITHUB_HEAD_GIT',
+  'GITHUB_HEAD_REV',
+  'GITHUB_HEAD_BRANCH'
+];
 
 /**
 Decorates tasks with required parameters.
@@ -67,6 +81,11 @@ function decorateTask(task) {
   output.task.tags.treeherderProject =
     output.task.tags.treeherderProject || 'gaia';
 
+  // Copy over the important environment variables...
+  payload.env = payload.env || {};
+  COPIED_ENVS.forEach(function(env) {
+    payload.env[env] = payload.env[env] || process.env[env];
+  });
   return output;
 }
 
