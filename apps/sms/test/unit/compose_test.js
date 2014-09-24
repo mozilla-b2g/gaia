@@ -1796,7 +1796,7 @@ suite('compose_test.js', function() {
         deferred2.resolve(segmentInfo2);
 
         waitForSegmentinfo(2).then(function() {
-          assert.deepEqual(results, [ segmentInfo1, segmentInfo2 ]);
+          assert.equal(results[1], segmentInfo2);
         }).then(done, done);
       });
 
@@ -1806,7 +1806,7 @@ suite('compose_test.js', function() {
 
         waitForSegmentinfo(2).then(function() {
           // note: this is wrong, but this won't happen in real life
-          assert.deepEqual(results, [ segmentInfo2, segmentInfo1 ]);
+          assert.equal(results[1], segmentInfo1);
         }).then(done, done);
       });
     });
