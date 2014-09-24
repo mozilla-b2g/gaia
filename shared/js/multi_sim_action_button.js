@@ -108,7 +108,8 @@ MultiSimActionButton.prototype._updateUI = function() {
       navigator.mozIccManager.iccIds.length > 1) {
     if (this._simIndication) {
       var self = this;
-      var l10nId = this._simIndication.dataset.l10nId || 'sim-picker-button';
+      var l10nId = this._simIndication.dataset.l10nId ||
+                   'sim-picker-button';
       navigator.mozL10n.ready(function() {
         navigator.mozL10n.setAttributes(self._simIndication,
                                         l10nId,
