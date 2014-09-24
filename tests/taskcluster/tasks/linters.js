@@ -1,14 +1,14 @@
 module.exports = {
   task: {
     metadata: {
-      name: "Gaia linters",
-      description: "Run all gaia linters"
+      name: 'Gaia linters',
+      description: 'Run all gaia linters'
     },
     payload: {
-      command: ["./bin/ci run linters"]
+      command: ['entrypoint', './bin/ci run linters']
     },
     tags: {
-      treeherderProject: "Li"
+      treeherderProject: 'Li'
     }
   }
 };
