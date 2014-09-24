@@ -203,7 +203,8 @@
     this._lockScreen._unlockingMessage = {
       notificationId: info.notificationId
     };
-    this._lockScreen._activateUnlock();
+    window.dispatchEvent(
+      new CustomEvent('lockscreen-notification-request-activate-unlock'));
   };
 
   /**
