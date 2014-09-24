@@ -2,6 +2,7 @@
 
 suite('ApnList', function() {
   var FAKE_APN_LIST_KEY = 'fakeKey';
+  var mockAsyncStorage;
 
   var map = {
     '*': {
@@ -17,17 +18,17 @@ suite('ApnList', function() {
   ];
 
   setup(function(done) {
-    var that = this;
     var requireCtx = testRequire([], map, function() {});
 
-    this.mockAsyncStorage = {};
+    mockAsyncStorage = {};
+
     define('MockAsyncStorage', function() {
       return {
         setItem: function() {
           return Promise.resolve();
         },
         getItem: function(key) {
-          return Promise.resolve(that.mockAsyncStorage[key]);
+          return Promise.resolve(mockAsyncStorage[key]);
         }
       };
     });
@@ -58,8 +59,8 @@ suite('ApnList', function() {
           }
         ];
         this.apnList = new this.ApnList(FAKE_APN_LIST_KEY);
-        this.mockAsyncStorage = {};
-        this.mockAsyncStorage[FAKE_APN_LIST_KEY] = this.mockApnItems;
+        mockAsyncStorage = {};
+        mockAsyncStorage[FAKE_APN_LIST_KEY] = this.mockApnItems;
 
         done();
     }.bind(this));
@@ -71,7 +72,7 @@ suite('ApnList', function() {
       var category = 'category';
       var randomId = 'randomId';
 
-      this.mockAsyncStorage = {};
+      mockAsyncStorage = {};
       this.sinon.stub(this.MockApnUtils, 'generateId', function() {
         return randomId;
       });
@@ -93,7 +94,7 @@ suite('ApnList', function() {
       var apn = {};
       var randomId = 'randomId';
 
-      this.mockAsyncStorage = {};
+      mockAsyncStorage = {};
       this.sinon.stub(this.MockApnUtils, 'generateId', function() {
         return randomId;
       });
@@ -114,7 +115,7 @@ suite('ApnList', function() {
 
   suite('_remove', function() {
     test('no existing apn items', function(done) {
-      this.mockAsyncStorage = {};
+      mockAsyncStorage = {};
 
       this.apnList._remove('000')
       .then(function() {
@@ -153,7 +154,7 @@ suite('ApnList', function() {
 
   suite('_update', function() {
     test('no existing apn items', function(done) {
-      this.mockAsyncStorage = {};
+      mockAsyncStorage = {};
 
       this.apnList._update('000', {})
       .then(function() {
@@ -209,8 +210,8 @@ suite('ApnList', function() {
     test('without cached apn items', function(done) {
       var that = this;
       this.apnList._apnItems = null;
-      this.mockAsyncStorage = {};
-      this.mockAsyncStorage[FAKE_APN_LIST_KEY] = this.mockApnItems;
+      mockAsyncStorage = {};
+      mockAsyncStorage[FAKE_APN_LIST_KEY] = this.mockApnItems;
 
       this.apnList.items()
       .then(function(apnItems) {
@@ -240,7 +241,7 @@ suite('ApnList', function() {
     });
 
     test('without existing apn items', function(done) {
-      this.mockAsyncStorage = {};
+      mockAsyncStorage = {};
       this.apnList.item('1')
       .then(function(apnItem) {
         assert.isNull(apnItem);
@@ -263,8 +264,8 @@ suite('ApnList', function() {
     });
   });
 
-  suite('add', function(done) {
-    test('should call to _schedule and _add correctly', function() {
+  suite('add', function() {
+    test('should call to _schedule and _add correctly', function(done) {
       var apn = {};
       var category = 'category';
       var apnClone = {};
@@ -288,8 +289,8 @@ suite('ApnList', function() {
     });
   });
 
-  suite('remove', function(done) {
-    test('should call to _schedule and _remove correctly', function() {
+  suite('remove', function() {
+    test('should call to _schedule and _remove correctly', function(done) {
       var apnId = '000';
       this.sinon.stub(this.apnList, '_remove', function() {
         return Promise.resolve();
@@ -307,8 +308,8 @@ suite('ApnList', function() {
     });
   });
 
-  suite('update', function(done) {
-    test('should call to _schedule and _update correctly', function() {
+  suite('update', function() {
+    test('should call to _schedule and _update correctly', function(done) {
       var apnId = '000';
       var apn = {};
       var apnClone = {};
@@ -324,7 +325,7 @@ suite('ApnList', function() {
       .then(function() {
         sinon.assert.calledWith(this.MockApnUtils.clone, apn);
         sinon.assert.called(this.apnList._schedule);
-        sinon.assert.calledWith(this.apnList._update, apnClone, apnId);
+        sinon.assert.calledWith(this.apnList._update, apnId, apnClone);
       }.bind(this), function() {
         // This function does not reject.
         assert.isTrue(false);
