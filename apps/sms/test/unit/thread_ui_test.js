@@ -5,10 +5,9 @@
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
-         ActivityPicker, KeyEvent, MockNavigatorSettings, MockContactRenderer,
-         Draft, MockStickyHeader, MultiSimActionButton, Promise, KeyboardEvent,
+         ActivityPicker, MockNavigatorSettings, MockContactRenderer,
+         Draft, MockStickyHeader, MultiSimActionButton, Promise,
          MockLazyLoader, WaitingScreen, Navigation, MockDialog, MockSettings,
-         FocusEvent,
          DocumentFragment,
          Errors,
          MockCompose,
@@ -20,6 +19,7 @@
 mocha.setup({ globals: ['alert'] });
 
 require('/js/event_dispatcher.js');
+require('/js/subject_composer.js');
 require('/js/compose.js');
 require('/js/drafts.js');
 require('/js/threads.js');
@@ -102,9 +102,8 @@ mocksHelperForThreadUI.init();
 
 suite('thread_ui.js >', function() {
   var input;
-  var subject;
   var container;
-  var sendButton, sendButtonSimInfo;
+  var sendButton;
   var composeForm;
   var recipientsList;
   var sticky;
@@ -178,11 +177,8 @@ suite('thread_ui.js >', function() {
     loadBodyHTML('/index.html');
 
     input = document.getElementById('messages-input');
-    subject = document.getElementById('messages-subject-input');
     container = document.getElementById('messages-container');
     sendButton = document.getElementById('messages-send-button');
-    sendButtonSimInfo =
-      document.getElementById('messages-dual-sim-information');
     composeForm = document.getElementById('messages-compose-form');
     recipientsList = document.getElementById('messages-recipients-list');
     threadMessages = document.getElementById('thread-messages');
@@ -307,7 +303,8 @@ suite('thread_ui.js >', function() {
 
     test('composer cleared', function() {
       Compose.append('foo');
-      subject.textContent = 'foo';
+      Compose.setSubject('foo');
+
       ThreadUI.cleanFields();
       assert.equal(Compose.getContent(), '');
       assert.equal(Compose.getSubject(), '');
@@ -537,7 +534,7 @@ suite('thread_ui.js >', function() {
 
       assert.isTrue(
         counterMsgContainer.classList.contains('hide'),
-        'sms counter toast not should not be showed'
+        'sms counter toast should not be showed'
       );
     });
 
@@ -549,7 +546,7 @@ suite('thread_ui.js >', function() {
 
       assert.isTrue(
         counterMsgContainer.classList.contains('hide'),
-        'sms counter toast not should not be showed'
+        'sms counter toast should not be showed'
       );
 
       yieldSegmentInfo({
@@ -627,6 +624,34 @@ suite('thread_ui.js >', function() {
       yieldSegmentInfo({
         segments: 10,
         charsAvailableInLastSegment: 145
+      });
+
+      assert.isTrue(
+        counterMsgContainer.classList.contains('hide'),
+        'sms counter toast should not be showed'
+      );
+    });
+
+    test('after Composer is cleared', function() {
+      ThreadUI.cleanFields();
+
+      yieldSegmentInfo({
+        segments: 2,
+        charsAvailableInLastSegment: 10
+      });
+
+      assert.isFalse(
+        counterMsgContainer.classList.contains('hide'),
+        'sms counter toast should be showed'
+      );
+
+      this.sinon.clock.tick(ThreadUI.ANOTHER_SMS_TOAST_DURATION);
+
+      ThreadUI.cleanFields();
+
+      yieldSegmentInfo({
+        segments: 1,
+        charsAvailableInLastSegment: 10
       });
 
       assert.isTrue(
@@ -714,264 +739,42 @@ suite('thread_ui.js >', function() {
     });
   });
 
-  suite('Subject', function() {
+  suite('Max Length banner', function() {
+    var banner;
 
-    suite('Recipient behavior when interacting with subject', function() {
-      setup(function() {
-        // Add recipient node
-        var node = document.createElement('span');
-        node.isPlaceholder = true;
-        node.textContent = '999';
-
-        // fake markup for some contact suggestions
-        recipientSuggestions.querySelector('.contact-list').innerHTML =
-          '<li>' +
-            '<a class="suggestion">' +
-              '<p class="name">Jean Dupont</p>' +
-              '<p class="number">0123456789</p>' +
-            '</a>' +
-          '</li>';
-
-        this.sinon.spy(ThreadUI.recipients, 'add');
-        this.sinon.stub(Navigation, 'isCurrentPanel');
-        Navigation.isCurrentPanel.withArgs('composer').returns(true);
-
-        recipientsList.appendChild(node);
-        Compose.toggleSubject();
-      });
-
-      teardown(function() {
-        ThreadUI.recipients.length = 0;
-        ThreadUI.recipients.inputValue = '';
-      });
-
-      test('Recipient assimilation is called when focus on subject',
-      function() {
-        this.sinon.spy(ThreadUI, 'toggleRecipientSuggestions');
-        subject.dispatchEvent(new FocusEvent('focus'));
-
-        // recipient added and container is cleared
-        sinon.assert.calledWithMatch(ThreadUI.recipients.add, {
-          name: '999',
-          number: '999',
-          source: 'manual'
-        });
-
-        sinon.assert.calledWithExactly(ThreadUI.toggleRecipientSuggestions);
-      });
+    setup(function() {
+      banner = document.getElementById('messages-subject-max-length-notice');
+      Compose.showSubject();
     });
 
-    suite('Max Length banner', function() {
-      var banner,
-          subject;
+    teardown(function() {
+      banner.classList.add('hide');
+      Compose.clear();
+    });
 
+    test('should be hidden if limit not reached', function() {
+      assert.isTrue(banner.classList.contains('hide'));
+    });
+
+    suite('when trying to pass the limit...', function() {
       setup(function() {
-        banner = document.getElementById('messages-subject-max-length-notice');
-        subject = document.getElementById('messages-subject-input');
-        Compose.toggleSubject();
+        Compose.setSubject('1234567890123456789012345678901234567890');
+        Compose.on.withArgs('subject-change').yield();
       });
 
-      teardown(function() {
-        banner.classList.add('hide');
-        Compose.clear();
+      test('should create a timeout', function() {
+        assert.isFalse(!ThreadUI.timeouts.subjectLengthNotice);
       });
 
-      test('should be hidden if limit not reached', function() {
+      test('banner should be hidden after an amount of secs.',
+        function() {
+        assert.isFalse(banner.classList.contains('hide'));
+        this.sinon.clock.tick(ThreadUI.BANNER_DURATION);
         assert.isTrue(banner.classList.contains('hide'));
       });
 
-      suite('when trying to pass the limit...', function() {
-        var clock;
-        setup(function() {
-          clock = this.sinon.useFakeTimers();
-          subject.textContent = '1234567890123456789012345678901234567890';
-          // 40 char
-          clock.tick(0);
-          // Event is launched on keypress
-          subject.dispatchEvent(new CustomEvent('keyup'));
-        });
-
-        teardown(function() {
-          clock.restore();
-        });
-
-        test('should create a timeout', function() {
-          assert.isFalse(!ThreadUI.timeouts.subjectLengthNotice);
-        });
-
-        test('banner should be hidden after an amount of secs.',
-          function() {
-          assert.isFalse(banner.classList.contains('hide'));
-          clock.tick(3100);
-          assert.isTrue(banner.classList.contains('hide'));
-        });
-
-        test('should be visible', function() {
-          assert.isFalse(banner.classList.contains('hide'));
-        });
-
-        test('should be hidden if focus is away', function() {
-          subject.dispatchEvent(new CustomEvent('blur'));
-          assert.isTrue(banner.classList.contains('hide'));
-        });
-
-        test('should not be visible if focus comes back.', function() {
-          subject.dispatchEvent(new CustomEvent('blur'));
-          subject.dispatchEvent(new CustomEvent('focus'));
-          assert.isTrue(banner.classList.contains('hide'));
-        });
-      });
-    });
-
-
-    suite('Visibility', function() {
-      var downEvent, upEvent, backspace;
-
-      setup(function() {
-        downEvent = new KeyboardEvent('keydown', {
-          bubbles: true,
-          cancelable: true,
-          keyCode: KeyEvent.DOM_VK_BACK_SPACE
-        });
-
-        upEvent = new KeyboardEvent('keyup', {
-          bubbles: true,
-          cancelable: true,
-          keyCode: KeyEvent.DOM_VK_BACK_SPACE
-        });
-
-        backspace = function(id) {
-          subject.dispatchEvent(downEvent);
-          subject.dispatchEvent(upEvent);
-        };
-      });
-
-      test('<delete> in empty subject hides field', function() {
-
-        // 1. This "tricks" Compose.updateType() into thinking we've
-        // entered some text into the subject. This ensures that
-        // Compose.type is correctly updated as it would be if
-        // the user had actually typed into the field.
-        subject.textContent = 'Howdy!';
-
-        Compose.toggleSubject();
-
-        // 2. Assert the correct state condition updates have occurred,
-        // as described in step 1
-        assert.isTrue(Compose.isSubjectVisible);
-
-        assert.equal(Compose.type, 'mms');
-
-        // 3. To simulate the user "deleting" the subject,
-        // set the value to an empty string.
-        subject.textContent = '';
-
-        // 4. Simulate backspace on the subject field
-        backspace();
-
-        // 5. Confirm that the state of the compose
-        // area has updated properly.
-        assert.isFalse(Compose.isSubjectVisible);
-
-        assert.equal(Compose.type, 'sms');
-      });
-
-      test('<delete> in non-empty subject does not hide field', function() {
-
-        // 1. This "tricks" Compose.updateType() into thinking we've
-        // entered some text into the subject. This ensures that
-        // Compose.type is correctly updated as it would be if
-        // the user had actually typed into the field.
-        subject.textContent = 'Howdy!';
-
-        Compose.toggleSubject();
-
-        // 2. Assert the correct state condition updates have occurred,
-        // as described in step 1
-        assert.isTrue(Compose.isSubjectVisible);
-
-        // 3. Simulate backspace on the subject field
-        backspace();
-
-        // 4. Confirm that the state of the compose area not changed.
-        assert.isTrue(Compose.isSubjectVisible);
-      });
-
-      test('<delete> holding subject does not hide field', function() {
-
-        // 1. This "tricks" Compose.updateType() into thinking we've
-        // entered some text into the subject. This ensures that
-        // Compose.type is correctly updated as it would be if
-        // the user had actually typed into the field.
-        subject.textContent = 'Howdy!';
-
-        Compose.toggleSubject();
-
-        // 2. Assert the correct state condition updates have occurred,
-        // as described in step 1
-        assert.isTrue(Compose.isSubjectVisible);
-
-        // 3. Simulate holding backspace on the subject field
-        for (var i = 0; i < 5; i++) {
-          subject.dispatchEvent(downEvent);
-        }
-
-        // 4. This is the "release" from a holding state
-        subject.dispatchEvent(upEvent);
-
-        // 5. Confirm that the state of the compose area not changed.
-        assert.isTrue(Compose.isSubjectVisible);
-      });
-
-      test('<delete> holding subject, release and tap hides field', function() {
-
-        // 1. This "tricks" Compose.updateType() into thinking we've
-        // entered some text into the subject. This ensures that
-        // Compose.type is correctly updated as it would be if
-        // the user had actually typed into the field.
-        subject.textContent = 'Howdy!';
-
-        Compose.toggleSubject();
-
-        // 2. Assert the correct state condition updates have occurred,
-        // as described in step 1
-        assert.isTrue(Compose.isSubjectVisible);
-
-        // 3. Simulate holding backspace on the subject field
-        for (var i = 0; i < 5; i++) {
-          subject.dispatchEvent(downEvent);
-        }
-
-        // 4. This is the "release" from a holding state
-        subject.dispatchEvent(upEvent);
-
-        // 5. To simulate the user "deleting" the subject,
-        // set the value to an empty string.
-        subject.textContent = '';
-
-        // 6. Simulate backspace on the subject field.
-        backspace();
-
-        // 7. Confirm that the state of the compose area not changed.
-        assert.isFalse(Compose.isSubjectVisible);
-      });
-    });
-
-    suite('Return key handling', function() {
-      var event;
-
-      test('Return key should be ignored at key down', function() {
-        event = new KeyboardEvent('keydown', {
-          bubbles: true,
-          cancelable: true,
-          keyCode: KeyEvent.DOM_VK_RETURN
-        });
-        this.sinon.spy(event, 'stopPropagation');
-
-        subject.dispatchEvent(event);
-
-        assert.ok(event.defaultPrevented);
-        sinon.assert.called(event.stopPropagation);
+      test('should be visible', function() {
+        assert.isFalse(banner.classList.contains('hide'));
       });
     });
   });
@@ -1123,6 +926,26 @@ suite('thread_ui.js >', function() {
 
     teardown(function() {
       Threads.delete(1);
+    });
+
+    test('Recipient assimilation is called when Compose is interacted',
+      function() {
+      Navigation.isCurrentPanel.withArgs('composer').returns(true);
+
+      var node = document.createElement('span');
+      node.isPlaceholder = true;
+      node.textContent = '999';
+
+      ThreadUI.recipientsList.appendChild(node);
+
+      Compose.on.withArgs('interact').yield();
+
+      // recipient added and container is cleared
+      sinon.assert.calledWithMatch(ThreadUI.recipients.add, {
+        name: '999',
+        number: '999',
+        source: 'manual'
+      });
     });
 
     suite('Recipients.View.isFocusable', function() {

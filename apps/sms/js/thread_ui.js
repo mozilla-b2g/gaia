@@ -17,8 +17,6 @@
 'use strict';
 
 var attachmentMap = new WeakMap();
-var isEmptyOnBackspace = false;
-var isHoldingBackspace = false;
 
 function thui_mmsAttachmentClick(target) {
   var attachment = attachmentMap.get(target);
@@ -98,15 +96,13 @@ var ThreadUI = {
 
     // Fields with 'messages' label
     [
-      'container', 'subheader', 'to-field', 'recipients-list', 'recipient',
-      'input', 'compose-form', 'check-uncheck-all-button',
-      'contact-pick-button', 'send-button', 'header', 'edit-header',
-      'attach-button', 'delete-button', 'subject-input',
-      'new-message-notice', 'options-button', 'edit-mode', 'edit-form',
-      'tel-form', 'header-text', 'max-length-notice', 'convert-notice',
-      'resize-notice', 'dual-sim-information', 'new-message-notice',
-      'subject-max-length-notice', 'recipient-suggestions',
-      'call-number-button','sms-counter-notice'
+      'container', 'to-field', 'recipients-list', 'compose-form', 'header',
+      'edit-header', 'check-uncheck-all-button', 'contact-pick-button',
+      'send-button', 'delete-button', 'call-number-button', 'options-button',
+      'new-message-notice', 'edit-mode', 'edit-form', 'header-text',
+      'max-length-notice', 'convert-notice', 'resize-notice',
+      'new-message-notice', 'subject-max-length-notice', 'sms-counter-notice',
+      'recipient-suggestions'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -125,20 +121,6 @@ var ThreadUI = {
     this.onVisibilityChange = this.onVisibilityChange.bind(this);
     document.addEventListener('visibilitychange',
                               this.onVisibilityChange);
-
-    // Changes on subject input can change the type of the message
-    // and size of fields
-    this.subjectInput.addEventListener(
-      'keydown', this.onSubjectKeydown.bind(this)
-    );
-
-    this.subjectInput.addEventListener(
-      'keyup', this.onSubjectKeyup.bind(this)
-    );
-
-    this.subjectInput.addEventListener(
-      'blur', this.onSubjectBlur.bind(this)
-    );
 
     this.toField.addEventListener(
       'keypress', this.toFieldKeypress.bind(this), true
@@ -194,50 +176,6 @@ var ThreadUI = {
 
     this.newMessageNotice.addEventListener(
       'click', this.onNewMessageNoticeClick.bind(this)
-    );
-
-    // Assimilations
-    // -------------------------------------------------
-    // If the user manually types a recipient number
-    // into the recipients list and does not "accept" it
-    // via <ENTER> or ";", but proceeds to either
-    // the message or attachment options, attempt to
-    // gather those stranded recipients and assimilate them.
-    //
-    // Previously, an approach using the "blur" event on
-    // the Recipients' "messages-to-field" element was used,
-    // however the to-field will frequently lose "focus"
-    // to any of its recipient children. If we assimilate on
-    // to-field blur, the result is entirely unusable:
-    //
-    //  1. Focus will jump from the recipient input to the
-    //      message input
-    //  2. 1 or 2 characters may remain in the recipient
-    //      editable, which will be "assimilated"
-    //  3. If a user has made it past 1 & 2, any attempts to
-    //      select a contact from contact search results
-    //      will also jump focus to the message input field
-    //
-    //  Currently, there are 4 Assimilations.
-    //
-
-    var assimilate = this.assimilateRecipients.bind(this);
-
-    // 1. message input field focused
-    this.input.addEventListener(
-      'focus', assimilate
-    );
-    // 2. message input field clicked
-    this.input.addEventListener(
-      'click', assimilate
-    );
-    // 3. attachment button clicked
-    this.attachButton.addEventListener(
-      'click', assimilate
-    );
-    // 4. subject focused
-    this.subjectInput.addEventListener(
-      'focus', assimilate
     );
 
     this.container.addEventListener(
@@ -299,7 +237,33 @@ var ThreadUI = {
     // In case of input, we have to resize the input following UX Specs.
     Compose.on('input', this.messageComposerInputHandler.bind(this));
     Compose.on('type', this.onMessageTypeChange.bind(this));
+    Compose.on('subject-change', this.onSubjectChange.bind(this));
     Compose.on('segmentinfochange', this.onSegmentInfoChange.bind(this));
+
+    // Assimilations
+    // -------------------------------------------------
+    // If the user manually types a recipient number
+    // into the recipients list and does not "accept" it
+    // via <ENTER> or ";", but proceeds to either
+    // the message or attachment options, attempt to
+    // gather those stranded recipients and assimilate them.
+    //
+    // Previously, an approach using the "blur" event on
+    // the Recipients' "messages-to-field" element was used,
+    // however the to-field will frequently lose "focus"
+    // to any of its recipient children. If we assimilate on
+    // to-field blur, the result is entirely unusable:
+    //
+    //  1. Focus will jump from the recipient input to the
+    //      message input
+    //  2. 1 or 2 characters may remain in the recipient
+    //      editable, which will be "assimilated"
+    //  3. If a user has made it past 1 & 2, any attempts to
+    //      select a contact from contact search results
+    //      will also jump focus to the message input field
+    //
+    // So we assimilate recipients if user starts to interact with Composer
+    Compose.on('interact', this.assimilateRecipients.bind(this));
 
     this.multiSimActionButton = null;
 
@@ -498,49 +462,6 @@ var ThreadUI = {
         this._resizeNoticeTimeout = null;
       }.bind(this), this.IMAGE_RESIZE_DURATION);
     }
-  },
-
-  onSubjectKeydown: function thui_onSubjectKeydown(event) {
-    if (event.keyCode === event.DOM_VK_BACK_SPACE) {
-      if (!isHoldingBackspace) {
-        isEmptyOnBackspace = Compose.isSubjectEmpty();
-        isHoldingBackspace = true;
-      }
-    } else {
-      isHoldingBackspace = false;
-      // Input char will be ignored when:
-      // - Reaching the maximum subjuect length. Any char input is not allowed
-      // - Return key(new line) input. Since new line won't work in subject
-      if (Compose.isSubjectMaxLength() ||
-          event.keyCode === event.DOM_VK_RETURN) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-    }
-  },
-  onSubjectKeyup: function thui_onSubjectKeyup(event) {
-    // Show the warning when the subject field has the focus
-    if (Compose.isSubjectMaxLength()) {
-      this.showSubjectMaxLengthNotice();
-    } else {
-      this.hideSubjectMaxLengthNotice();
-    }
-    // User removes subject field by either:
-    // - Selecting options menu in top right hand corner, or
-    // - Selecting the delete button in the keyboard. if all
-    // the text is removed from the subject field and the user
-    // selects delete on the keyboard the subject field is removed
-    if (event.keyCode === event.DOM_VK_BACK_SPACE &&
-        isHoldingBackspace &&
-        isEmptyOnBackspace) {
-      Compose.toggleSubject();
-    }
-    isEmptyOnBackspace = false;
-    isHoldingBackspace = false;
-  },
-
-  onSubjectBlur: function thui_onSubjectBlur() {
-    this.hideSubjectMaxLengthNotice();
   },
 
   showMaxLengthNotice: function thui_showMaxLengthNotice(l10nKey) {
@@ -957,6 +878,14 @@ var ThreadUI = {
     this._convertNoticeTimeout = setTimeout(function hideConvertNotice() {
       this.convertNotice.classList.add('hide');
     }.bind(this), this.CONVERTED_MESSAGE_DURATION);
+  },
+
+  onSubjectChange: function thui_onSubjectChange() {
+    if (Compose.isSubjectVisible && Compose.isSubjectMaxLength()) {
+      this.showSubjectMaxLengthNotice();
+    } else {
+      this.hideSubjectMaxLengthNotice();
+    }
   },
 
   // Triggered when the onscreen keyboard appears/disappears.
@@ -1798,12 +1727,19 @@ var ThreadUI = {
     };
 
     // Subject management
-    params.items.push({
-      l10nId: Compose.isSubjectVisible ? 'remove-subject' : 'add-subject',
-      method: function tSubject() {
-        Compose.toggleSubject();
-      }
-    });
+    var subjectItem;
+    if (Compose.isSubjectVisible) {
+      subjectItem = {
+        l10nId: 'remove-subject',
+        method: Compose.hideSubject
+      };
+    } else {
+      subjectItem = {
+        l10nId: 'add-subject',
+        method: Compose.showSubject
+      };
+    }
+    params.items.push(subjectItem);
 
     // If we are on a thread, we can call to SelectMessages
     if (Navigation.isCurrentPanel('thread')) {
@@ -2146,6 +2082,8 @@ var ThreadUI = {
   },
 
   cleanFields: function thui_cleanFields() {
+    this.previousSegment = 0;
+
     Compose.clear();
   },
 

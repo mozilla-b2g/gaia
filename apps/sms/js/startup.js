@@ -38,6 +38,7 @@ var Startup = {
     'js/attachment_renderer.js',
     'js/attachment_menu.js',
     'js/thread_ui.js',
+    'js/subject_composer.js',
     'js/compose.js',
     'js/wbmp.js',
     'js/smil.js',

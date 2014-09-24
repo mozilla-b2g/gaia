@@ -35,11 +35,6 @@ form.bottom[role="search"] {
   z-index: 3;
 }
 
-#messages-recipient {
-  padding-right: 3rem;
-  font-size: 1.8rem;
-}
-
 /* Override Building Block [Edit mode] styles */
 form[role="dialog"][data-type="edit"] gaia-header {
   transform: translateY(-110%);

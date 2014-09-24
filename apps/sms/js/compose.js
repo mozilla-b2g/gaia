@@ -3,6 +3,7 @@
 
 /*global Settings, Utils, Attachment, AttachmentMenu, MozActivity, SMIL,
         MessageManager,
+        SubjectComposer,
         Navigation,
         Promise,
         ThreadUI,
@@ -33,7 +34,6 @@ var Compose = (function() {
   var dom = {
     form: null,
     message: null,
-    subject: null,
     sendButton: null,
     attachButton: null,
     counter: null
@@ -55,61 +55,7 @@ var Compose = (function() {
     }
   };
 
-  var subject = {
-    isVisible: false,
-    lineHeight: null,
-    toggle: function sub_toggle() {
-      if (!this.isVisible) {
-        this.show();
-      } else {
-        this.hide();
-        dom.message.focus();
-      }
-      return this;
-    },
-    show: function sub_show() {
-      // Adding this class to the form element, as other form elements depend on
-      // visibility of the subject input
-      dom.form.classList.add('subject-input-visible');
-      this.isVisible = true;
-      dom.subject.focus();
-      onSubjectChanged();
-      return this;
-    },
-    hide: function sub_hide() {
-      dom.form.classList.remove('subject-input-visible');
-      this.isVisible = false;
-      onSubjectChanged();
-      return this;
-    },
-    clear: function sub_clear() {
-      dom.subject.innerHTML = '<br>';
-      return this;
-    },
-    getContent: function sub_getContent() {
-      return this.isVisible ?
-        getTextFromContent(getContentFromDOM(dom.subject)) : '';
-    },
-    setContent: function sub_setContent(content) {
-      if (typeof content !== 'string') {
-        return;
-      }
-      dom.subject.insertBefore(
-        insert(content),
-        dom.subject.lastChild
-      );
-      return this;
-    },
-    getMaxLength: function sub_getMaxLength() {
-      return +dom.subject.dataset.maxLength;
-    },
-    get isEmpty() {
-      return dom.subject.textContent.length === 0;
-    },
-    get isShowing() {
-      return this.isVisible;
-    }
-  };
+  var subject = null;
 
   // Given a DOM element, we will extract an array of the
   // relevant nodes as attachment or text
@@ -152,18 +98,6 @@ var Compose = (function() {
     }
 
     return content;
-  }
-
-  // Given a content array, we will get a String with the text
-  // concatenated, without line breaks.
-  function getTextFromContent(contentArray) {
-    var text = '';
-    for (var i = contentArray.length - 1; i >= 0; i--) {
-      if (typeof contentArray[i] === 'string') {
-        text += contentArray[i];
-      }
-    }
-    return text.replace(/\n\s*/g, ' ');
   }
 
   // anytime content changes - takes a parameter to check for image resizing
@@ -214,15 +148,21 @@ var Compose = (function() {
       ThreadUI.draft.isEdited = true;
     }
 
-    // Subject placeholder management
-    dom.subject.classList.toggle(
-      placeholderClass,
-      subject.isShowing && subject.isEmpty
-    );
-
     Compose.updateEmptyState();
     Compose.updateSendButton();
     Compose.updateType();
+
+    Compose.emit('subject-change');
+  }
+
+  function onSubjectVisibilityChanged() {
+    if (subject.isVisible()) {
+      subject.focus();
+      dom.form.classList.add('subject-composer-visible');
+    } else {
+      dom.message.focus();
+      dom.form.classList.remove('subject-composer-visible');
+    }
   }
 
   function hasAttachment() {
@@ -230,7 +170,7 @@ var Compose = (function() {
   }
 
   function hasSubject() {
-    return subject.isShowing && !subject.isEmpty;
+    return subject.isVisible() && !!subject.getValue();
   }
 
   function composeKeyEvents(e) {
@@ -376,15 +316,21 @@ var Compose = (function() {
     init: function composeInit(formId) {
       dom.form = document.getElementById(formId);
       dom.message = document.getElementById('messages-input');
-      dom.subject = document.getElementById('messages-subject-input');
       dom.sendButton = document.getElementById('messages-send-button');
       dom.attachButton = document.getElementById('messages-attach-button');
       dom.optionsMenu = document.getElementById('attachment-options-menu');
       dom.counter = dom.form.querySelector('.js-message-counter');
 
+      subject = new SubjectComposer(
+        dom.form.querySelector('.js-subject-composer')
+      );
+
+      subject.on('change', onSubjectChanged);
+      subject.on('visibility-change', onSubjectChanged);
+      subject.on('visibility-change', onSubjectVisibilityChanged);
+
       // update the placeholder, send button and Compose.type
       dom.message.addEventListener('input', onContentChanged);
-      dom.subject.addEventListener('input', onSubjectChanged);
 
       // we need to bind to keydown & keypress because of #870120
       dom.message.addEventListener('keydown', composeKeyEvents);
@@ -411,6 +357,13 @@ var Compose = (function() {
       ThreadUI.on('recipientschange', this.updateSendButton.bind(this));
       // Bug 1026384: call updateType as well when the recipients change
 
+      var onInteracted = this.emit.bind(this, 'interact');
+
+      dom.message.addEventListener('click', onInteracted);
+      dom.message.addEventListener('focus', onInteracted);
+      dom.attachButton.addEventListener('click', onInteracted);
+      subject.on('focus', onInteracted);
+
       return this;
     },
 
@@ -419,20 +372,25 @@ var Compose = (function() {
     },
 
     getSubject: function() {
-      return subject.getContent();
+      return subject.getValue();
+    },
+
+    setSubject: function(value) {
+      return subject.setValue(value);
     },
 
     isSubjectMaxLength: function() {
-      return subject.getContent().length >= subject.getMaxLength();
+      return subject.getValue().length >= subject.getMaxLength();
     },
 
-    isSubjectEmpty: function() {
-      return subject.isEmpty;
+    showSubject: function() {
+      subject.show();
     },
 
-    toggleSubject: function() {
-      subject.toggle();
+    hideSubject: function() {
+      subject.hide();
     },
+
     /** Render draft
      *
      * @param {Draft} draft Draft to be loaded into the composer.
@@ -448,8 +406,8 @@ var Compose = (function() {
       }
 
       if (draft.subject) {
-        subject.setContent(draft.subject);
-        subject.toggle();
+        this.setSubject(draft.subject);
+        this.showSubject();
       }
 
       // draft content is an array
@@ -491,8 +449,8 @@ var Compose = (function() {
 
       if (message.type === 'mms') {
         if (message.subject) {
-          subject.setContent(message.subject);
-          subject.show();
+          this.setSubject(message.subject);
+          this.showSubject();
         }
         SMIL.parse(message, function(elements) {
           elements.forEach(function(element) {
@@ -640,7 +598,9 @@ var Compose = (function() {
       this.onTypeChange();
 
       dom.message.innerHTML = '<br>';
-      subject.clear().hide();
+
+      subject.reset();
+
       state.resizing = false;
       state.size = 0;
 
@@ -917,14 +877,8 @@ var Compose = (function() {
   });
 
   Object.defineProperty(compose, 'isSubjectVisible', {
-    get: function composeGetResizeState() {
-      return subject.isShowing;
-    }
-  });
-
-  Object.defineProperty(compose, 'subjectMaxLength', {
-    get: function composeGetResizeState() {
-      return subject.getMaxLength();
+    get: function composeIsSubjectVisible() {
+      return subject.isVisible();
     }
   });
 
@@ -937,6 +891,8 @@ var Compose = (function() {
   return EventDispatcher.mixin(compose, [
     'input',
     'type',
-    'segmentinfochange'
+    'segmentinfochange',
+    'interact',
+    'subject-change'
   ]);
 }());

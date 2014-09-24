@@ -20,7 +20,8 @@ require('/js/event_dispatcher.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/settings.js');
 requireApp('sms/js/attachment_menu.js');
-requireApp('sms/js/compose.js');
+require('/js/subject_composer.js');
+require('/js/compose.js');
 requireApp('sms/js/contacts.js');
 requireApp('sms/js/recipients.js');
 requireApp('sms/js/threads.js');
@@ -367,7 +368,7 @@ suite('ThreadUI Integration', function() {
       children[1].textContent = '555';
 
       // Simulate input field focus/entry
-      ThreadUI.attachButton.click();
+      document.getElementById('messages-attach-button').click();
 
       // There are now two recipients...
       assert.equal(recipients.length, 2);

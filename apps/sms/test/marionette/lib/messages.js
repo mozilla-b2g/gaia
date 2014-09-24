@@ -21,14 +21,14 @@
     Composer: {
       recipientsInput: '#messages-to-field [contenteditable=true]',
       messageInput: '#messages-input',
-      subjectInput: '#messages-subject-input',
+      subjectInput: '.subject-composer-input',
       sendButton: '#messages-send-button',
       attachButton: '#messages-attach-button',
       header: '#messages-header',
       charCounter: '.message-counter',
       moreHeaderButton: '#messages-options-button',
-      mmsLabel: '.bottom-composer-section .mms-label',
-      subjectMmsLabel: '.top-composer-section > .mms-label',
+      mmsLabel: '.content-composer-mms-label',
+      subjectMmsLabel: '.subject-composer-mms-label',
       attachment: '#messages-input .attachment-container'
     },
 
