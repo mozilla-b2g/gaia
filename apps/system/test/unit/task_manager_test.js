@@ -465,19 +465,6 @@ suite('system/TaskManager >', function() {
     });
 
     suite('display cardsview >', function() {
-      var realRAF;
-      suiteSetup(function() {
-        realRAF = window.mozRequestAnimationFrame;
-
-        window.mozRequestAnimationFrame = function(cb) {
-          cb();
-        };
-      });
-
-      suiteTeardown(function() {
-        window.mozRequestAnimationFrame = realRAF;
-      });
-
       setup(function() {
         MockAppWindowManager.mActiveApp = apps['http://sms.gaiamobile.org'];
         showTaskManager(this.sinon.clock);
@@ -561,20 +548,20 @@ suite('system/TaskManager >', function() {
 
       test('cards should be hidden for better performance', function() {
         var card = taskManager.getCardAtIndex(0);
-        assert.equal(card.element.style.display, 'block');
+        assert.equal(card.element.style.visibility, '');
 
         var farAway = taskManager.getCardAtIndex(3);
-        assert.equal(farAway.element.style.display, 'none');
+        assert.equal(farAway.element.style.visibility, 'hidden');
       });
 
       test('and shown when needed', function() {
         taskManager.position = 3;
         taskManager.alignCurrentCard();
         var card = taskManager.getCardAtIndex(0);
-        assert.equal(card.element.style.display, 'none');
+        assert.equal(card.element.style.visibility, 'hidden');
 
         var farAway = taskManager.getCardAtIndex(3);
-        assert.equal(farAway.element.style.display, 'block');
+        assert.equal(farAway.element.style.visibility, '');
       });
 
       test('wheel up event', function() {
