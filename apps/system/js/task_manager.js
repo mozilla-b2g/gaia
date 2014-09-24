@@ -6,7 +6,8 @@
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
+
   /**
    * Represent a stack of apps as cards
    *
@@ -472,6 +473,11 @@
   TaskManager.prototype.removeCard = function cs_removeCard(card,
                                                             removeImmediately) {
     var element = card.element;
+    if (!element) {
+      debug('losing card element while removing card, showing trace below.');
+      console.trace();
+      return;
+    }
     var position = element.dataset.position;
     delete this.cardsByAppID[card.app.instanceID];
     card.destroy();
