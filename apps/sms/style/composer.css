@@ -251,6 +251,12 @@ form[role="search"] button[type="submit"]:after {
 }
 
 #messages-send-button {
+  /* When we put the icon at the center, an optical illusion makes it look to be
+   * slightly to the left, so we offset the button by 2px to the right to
+   * counteract this illusion */
+  position: relative;
+  left: .2rem;
+
   height: 4rem;
   overflow: visible;
   background: #fff url(images/icons/actionicon_sms_send_30x30.png)
