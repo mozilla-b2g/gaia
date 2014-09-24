@@ -176,7 +176,7 @@ suite('navigation >', function() {
     UIManager.activationScreen.classList.add('show');
 
     Navigation.forward();
-    assert.include(UIManager.finishScreen.classList, 'show');
+    assert.isTrue(UIManager.finishScreen.classList.contains('show'));
     assert.isFalse(UIManager.activationScreen.classList.contains('show'));
   });
 
