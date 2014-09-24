@@ -9,6 +9,10 @@
 
 (function ICEData(exports) {
 
+  if (exports.ICEData) {
+    return; 
+  }
+
   var localIceContacts = [];
   var ICE_CONTACTS_KEY = 'ice-contacts';
   var onChangeCallbacks = [];
@@ -104,7 +108,9 @@
       localIceContacts[index].active = false;
 
       setIceContactsItem(ICE_CONTACTS_KEY, localIceContacts).then(function() {
-        return modifyICEInDS();
+        return modifyICEInDS().then(() => {
+          notifyCallbacks(localIceContacts);
+        });
       }).then(resolve, reject);
     });
   }
@@ -143,6 +149,12 @@
     });
   }
 
+  function notifyCallbacks(data) {
+    onChangeCallbacks.forEach(function(fn) {
+      fn(data);
+    });
+  }
+
   function onChangeEvent(evt) {
     // Figure out if we got a change in a ICE contact
     var contact = localIceContacts.find(function(x) {
@@ -153,16 +165,9 @@
       return;
     }
 
-    function notifyCallbacks(data) {
-      onChangeCallbacks.forEach(function(fn) {
-        fn(data);
-      });
-    }
-
     // If it's a delete update all the storages
     if (evt.detail.reason === 'remove') {
-      removeICEContact(contact.id).then(
-                                  notifyCallbacks.bind(null, localIceContacts));
+      removeICEContact(contact.id);
     } else {
       notifyCallbacks(localIceContacts);
     }
