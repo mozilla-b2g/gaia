@@ -580,6 +580,31 @@ suite('system/LockScreenNotifications', function() {
       });
     });
 
+    test('In HVGA mode with music player on thr screen, the highlighting ' +
+         'request should be permitted when there is a new node',
+    function() {
+      this.sinon.stub(lockScreenNotifications, '_getWindowInnerDimension',
+      function() {
+        return { height: 480, width: 320 };
+      });
+      var stubContainer = {
+        getBoundingClientRect () {
+          return { top: 193, bottom: 251};
+        }
+      };
+      var stubNode = {
+        getBoundingClientRect () {
+          return { top: 203, bottom: 252 };
+        }
+      };
+      var originalContainer = lockScreenNotifications.container;
+      lockScreenNotifications.container = stubContainer;
+      assert.isFalse(lockScreenNotifications
+        .notificationOutOfViewport(stubNode),
+        'The request is denied.');
+      lockScreenNotifications.container = originalContainer;
+    });
+
     suite('top-actionable class is correctly removed with ' +
           'tryAddTopMaskByNotification',
       function() {
