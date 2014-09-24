@@ -15,6 +15,7 @@
         "payload": {
           "image": "lightsofapollo/gaia-taskenv:0.4.2",
           "command": [
+            "entrypoint",
             "make node_modules &&",
             "node tests/taskcluster/graph.js > /graph.json &&",
             "cat /graph.json"
