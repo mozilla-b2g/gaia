@@ -16,6 +16,7 @@ suite('ApnSettingsManager', function() {
     'modules/apn/apn_const',
     'modules/apn/apn_list',
     'modules/apn/apn_selections',
+    'modules/apn/apn_settings',
     'modules/async_storage'
   ];
 
@@ -26,7 +27,8 @@ suite('ApnSettingsManager', function() {
       return {
         getAll: function() {},
         get: function() {},
-        update: function() {}
+        update: function() {},
+        restore: function() {}
       };
     };
     define('MockApnSettings', function() {
@@ -76,13 +78,14 @@ suite('ApnSettingsManager', function() {
 
     requireCtx(modules,
       function(ApnSettingsManager, ApnItem, MockApnUtils, MockApnConst,
-        MockApnList, MockApnSelections, MockAsyncStorage) {
+        MockApnList, MockApnSelections, MockApnSettings, MockAsyncStorage) {
           this.ApnSettingsManager = ApnSettingsManager;
           this.ApnItem = ApnItem;
           this.MockApnUtils = MockApnUtils;
           this.MockApnConst = MockApnConst;
           this.MockApnList = MockApnList;
           this.MockApnSelections = MockApnSelections;
+          this.MockApnSettings = MockApnSettings;
           this.MockAsyncStorage = MockAsyncStorage;
 
           this.sinon.stub(this.ApnSettingsManager, '_ready', function() {
@@ -595,9 +598,8 @@ suite('ApnSettingsManager', function() {
           }
       });
 
-      this.sinon.stub(this.MockApnUtils, 'getEuApns',
-        function() {
-          return Promise.resolve(EU_APNS);
+      this.sinon.stub(this.MockApnUtils, 'getEuApns', function() {
+        return Promise.resolve(EU_APNS);
       });
 
       this.sinon.stub(this.MockApnUtils, 'getDefaultApns',
@@ -614,9 +616,13 @@ suite('ApnSettingsManager', function() {
           }
       });
 
-      this.sinon.stub(this.MockApnUtils, 'separateApnsByType',
-        function(apns) {
-          return apns;
+      this.sinon.stub(this.MockApnUtils, 'separateApnsByType', function(apns) {
+        return apns;
+      });
+
+      this.sinon.stub(this.ApnSettingsManager._apnSettings, 'restore',
+        function() {
+          return Promise.resolve();
       });
 
       this.sinon.stub(this.ApnSettingsManager._apnSelections, 'clear',
@@ -652,7 +658,7 @@ suite('ApnSettingsManager', function() {
         });
     });
 
-    test('should resotre EU roaming apns', function(done) {
+    test('should resotre EU roaming apn items', function(done) {
       var that = this;
 
       this.ApnSettingsManager.restore(serviceId)
@@ -667,7 +673,7 @@ suite('ApnSettingsManager', function() {
     });
 
 
-    test('should resotre preset apns', function(done) {
+    test('should resotre preset apn items', function(done) {
       var that = this;
 
       this.ApnSettingsManager.restore(serviceId)
@@ -697,6 +703,33 @@ suite('ApnSettingsManager', function() {
         assert.isTrue(false);
       }).then(done, done);
     });
+
+    test('should restore apn settings when mode is not ONLY_APN_ITEMS',
+      function(done) {
+        var that = this;
+
+        this.ApnSettingsManager.restore(serviceId).then(function() {
+          sinon.assert.calledWith(that.ApnSettingsManager._apnSettings.restore,
+            serviceId);
+        }, function() {
+          // This function does not reject.
+          assert.isTrue(false);
+        }).then(done, done);
+    });
+
+    test('should not restore apn settings when mode is ONLY_APN_ITEMS',
+      function(done) {
+        var that = this;
+
+        this.ApnSettingsManager.restore(serviceId,
+          this.ApnSettingsManager.RESTORE_MODE.ONLY_APN_ITEMS)
+        .then(function() {
+          sinon.assert.notCalled(that.ApnSettingsManager._apnSettings.restore);
+        }, function() {
+          // This function does not reject.
+          assert.isTrue(false);
+        }).then(done, done);
+    });
   });
 
   suite('queryApns', function() {
@@ -711,109 +744,31 @@ suite('ApnSettingsManager', function() {
       this.sinon.stub(this.ApnSettingsManager, '_apnItems', function() {
         return Promise.resolve(mockApnItems);
       });
-      this.sinon.stub(this.ApnSettingsManager, 'setActiveApnId');
-    });
-
-    suite('with active apn id', function() {
-      setup(function() {
-        this.sinon.stub(this.ApnSettingsManager, 'getActiveApnId', function() {
-          return Promise.resolve(FAKE_ACTIVE_APN_ID);
-        });
-        this.sinon.spy(this.ApnSettingsManager,
-          '_deriveActiveApnIdFromSettings');
-        this.sinon.spy(this.ApnSettingsManager, '_deriveActiveApnIdFromItems');
-      });
-
-      test('should return correct apns', function(done) {
-        var that = this;
-
-        this.ApnSettingsManager.queryApns(serviceId, apnType)
-        .then(function(apnItems) {
-          // Ensure the result is the same as the mock apn items.
-          apnItems.forEach(function(apnItem, index) {
-            var mockApnItem = mockApnItems[index];
-            assert.equal(apnItem.id, mockApnItem.id);
-            // The active property of the apn item with an id that equals to
-            // FAKE_ACTIVE_APN_ID should be true and vice versa.
-            assert.ok(apnItem.active === (apnItem.id === FAKE_ACTIVE_APN_ID));
-          });
-
-          sinon.assert.notCalled(that.ApnSettingsManager.setActiveApnId);
-          sinon.assert.notCalled(
-            that.ApnSettingsManager._deriveActiveApnIdFromSettings);
-          sinon.assert.notCalled(
-            that.ApnSettingsManager._deriveActiveApnIdFromItems);
-        }, function() {
-          // This function does not reject.
-          assert.isTrue(false);
-        }).then(done, done);
+      this.sinon.stub(this.ApnSettingsManager, 'getActiveApnId', function() {
+        return Promise.resolve(FAKE_ACTIVE_APN_ID);
       });
     });
 
-    suite('without active apn id', function() {
-      setup(function() {
-        this.sinon.stub(this.ApnSettingsManager, 'getActiveApnId', function() {
-          return Promise.resolve(null);
+    test('should return correct apns', function(done) {
+      var that = this;
+
+      this.ApnSettingsManager.queryApns(serviceId, apnType)
+      .then(function(apnItems) {
+        sinon.assert.calledWith(that.ApnSettingsManager.getActiveApnId,
+          serviceId, apnType);
+
+        // Ensure the result is the same as the mock apn items.
+        apnItems.forEach(function(apnItem, index) {
+          var mockApnItem = mockApnItems[index];
+          assert.equal(apnItem.id, mockApnItem.id);
+          // The active property of the apn item with an id that equals to
+          // FAKE_ACTIVE_APN_ID should be true and vice versa.
+          assert.ok(apnItem.active === (apnItem.id === FAKE_ACTIVE_APN_ID));
         });
-        this.sinon.stub(this.ApnSettingsManager, '_deriveActiveApnIdFromItems',
-          function() {
-            return Promise.resolve(FAKE_ACTIVE_APN_ID);
-        });
-      });
-
-      test('with value in ril.data.apnSettings', function(done) {
-        var that = this;
-
-        this.sinon.stub(this.ApnSettingsManager,
-          '_deriveActiveApnIdFromSettings', function() {
-            return Promise.resolve(FAKE_ACTIVE_APN_ID);
-        });
-
-        this.ApnSettingsManager.queryApns(serviceId, apnType)
-        .then(function() {
-          // Should call to _deriveActiveApnIdFromSettings
-          sinon.assert.calledWith(
-            that.ApnSettingsManager._deriveActiveApnIdFromSettings,
-              serviceId, apnType);
-          // Should not call to _deriveActiveApnIdFromItems
-          sinon.assert.notCalled(
-            that.ApnSettingsManager._deriveActiveApnIdFromItems);
-          // Should set FAKE_ACTIVE_APN_ID as the active id.
-          sinon.assert.calledWith(
-            that.ApnSettingsManager.setActiveApnId,
-              serviceId, apnType, FAKE_ACTIVE_APN_ID);
-        }, function() {
-          // This function does not reject.
-          assert.isTrue(false);
-        }).then(done, done);
-      });
-
-      test('without value in ril.data.apnSettings', function(done) {
-        var that = this;
-        this.sinon.stub(this.ApnSettingsManager,
-          '_deriveActiveApnIdFromSettings', function() {
-            return Promise.resolve(null);
-        });
-
-        this.ApnSettingsManager.queryApns(serviceId, apnType)
-        .then(function() {
-          // Should call to _deriveActiveApnIdFromSettings
-          sinon.assert.calledWith(
-            that.ApnSettingsManager._deriveActiveApnIdFromSettings,
-              serviceId, apnType);
-          // Should call to _deriveActiveApnIdFromItems
-          sinon.assert.calledWith(
-            that.ApnSettingsManager._deriveActiveApnIdFromItems,
-              serviceId, apnType);
-          // Should set FAKE_ACTIVE_APN_ID as the active id.
-          sinon.assert.calledWith(
-            that.ApnSettingsManager.setActiveApnId,
-              serviceId, apnType, FAKE_ACTIVE_APN_ID);
-        }, function() {
-          // This function does not reject.
-          assert.isTrue(false);
-        }).then(done, done);
-      });
+      }, function() {
+        // This function does not reject.
+        assert.isTrue(false);
+      }).then(done, done);
     });
   });
 
@@ -1051,38 +1006,92 @@ suite('ApnSettingsManager', function() {
         function() {
           return Promise.resolve(mockApnSelections);
       });
+      this.sinon.stub(this.ApnSettingsManager, 'setActiveApnId');
     });
 
-    test('apnSelections is available', function(done) {
-      mockApnSelections[apnType] = FAKE_ACTIVE_APN_ID;
-      this.ApnSettingsManager.getActiveApnId(serviceId, apnType)
-      .then(function(result) {
-        assert.ok(result === FAKE_ACTIVE_APN_ID);
-      }, function() {
-        // This function does not reject.
-        assert.isTrue(false);
-      }).then(done, done);
-    });
+    suite('with active apn id', function() {
+      setup(function() {
+        mockApnSelections = {};
+        mockApnSelections[apnType] = FAKE_ACTIVE_APN_ID;
+        this.sinon.spy(this.ApnSettingsManager,
+          '_deriveActiveApnIdFromSettings');
+        this.sinon.spy(this.ApnSettingsManager, '_deriveActiveApnIdFromItems');
+      });
 
-    suite('apnSelections is not available', function() {
-      test('no apnSelections object', function(done) {
-        mockApnSelections = null;
+      test('should return correct apns', function(done) {
+        var that = this;
+
         this.ApnSettingsManager.getActiveApnId(serviceId, apnType)
-        .then(function(result) {
-          assert.ok(result == null);
+        .then(function(activeApnId) {
+          assert.equal(activeApnId, FAKE_ACTIVE_APN_ID);
+          sinon.assert.notCalled(that.ApnSettingsManager.setActiveApnId);
+          sinon.assert.notCalled(
+            that.ApnSettingsManager._deriveActiveApnIdFromSettings);
+          sinon.assert.notCalled(
+            that.ApnSettingsManager._deriveActiveApnIdFromItems);
+        }, function() {
+          // This function does not reject.
+          assert.isTrue(false);
+        }).then(done, done);
+      });
+    });
+
+    suite('without active apn id', function() {
+      setup(function() {
+        mockApnSelections = null;
+        this.sinon.stub(this.ApnSettingsManager, '_deriveActiveApnIdFromItems',
+          function() {
+            return Promise.resolve(FAKE_ACTIVE_APN_ID);
+        });
+      });
+
+      test('with value in ril.data.apnSettings', function(done) {
+        var that = this;
+        this.sinon.stub(this.ApnSettingsManager,
+          '_deriveActiveApnIdFromSettings', function() {
+            return Promise.resolve(FAKE_ACTIVE_APN_ID);
+        });
+
+        this.ApnSettingsManager.getActiveApnId(serviceId, apnType)
+        .then(function() {
+          // Should call to _deriveActiveApnIdFromSettings
+          sinon.assert.calledWith(
+            that.ApnSettingsManager._deriveActiveApnIdFromSettings,
+              serviceId, apnType);
+          // Should not call to _deriveActiveApnIdFromItems
+          sinon.assert.notCalled(
+            that.ApnSettingsManager._deriveActiveApnIdFromItems);
+          // Should set FAKE_ACTIVE_APN_ID as the active id.
+          sinon.assert.calledWith(
+            that.ApnSettingsManager.setActiveApnId,
+              serviceId, apnType, FAKE_ACTIVE_APN_ID);
         }, function() {
           // This function does not reject.
           assert.isTrue(false);
         }).then(done, done);
       });
 
-      test('no seleciont for the specified apnType', function(done) {
-        mockApnSelections = {
-          'anotherType': FAKE_ACTIVE_APN_ID
-        };
+      test('without value in ril.data.apnSettings', function(done) {
+        var that = this;
+        this.sinon.stub(this.ApnSettingsManager,
+          '_deriveActiveApnIdFromSettings', function() {
+            return Promise.resolve(null);
+        });
+
         this.ApnSettingsManager.getActiveApnId(serviceId, apnType)
-        .then(function(result) {
-          assert.ok(result == null);
+        .then(function() {
+          // Should call to _deriveActiveApnIdFromSettings
+          sinon.assert.calledWith(
+            that.ApnSettingsManager._deriveActiveApnIdFromSettings,
+              serviceId, apnType);
+          // Should call to _deriveActiveApnIdFromItems
+          sinon.assert.calledWith(
+            that.ApnSettingsManager._deriveActiveApnIdFromItems,
+              serviceId, apnType);
+          // Should set FAKE_ACTIVE_APN_ID as the active id.
+          sinon.assert.calledWith(
+            that.ApnSettingsManager.setActiveApnId,
+              serviceId, apnType, FAKE_ACTIVE_APN_ID);
         }, function() {
           // This function does not reject.
           assert.isTrue(false);

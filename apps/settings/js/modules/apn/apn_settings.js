@@ -13,6 +13,7 @@ define(function(require) {
   var ApnConst = require('modules/apn/apn_const');
 
   var APN_SETTINGS_KEY = ApnConst.APN_SETTINGS_KEY;
+  var DEFAULT_APN_SETTINGS_KEY = ApnConst.DEFAULT_APN_SETTINGS_KEY;
 
   /**
    * @class ApnSettings
@@ -101,7 +102,7 @@ define(function(require) {
      * @memberOf ApnSettings.prototype
      * @returns {Promise}
      */
-    _ready: function as__init() {
+    _ready: function as__ready() {
       if (this._isReady) {
         return Promise.resolve();
       } else {
@@ -131,7 +132,7 @@ define(function(require) {
      * @params {Object} newApn
      * @returns {Promise}
      */
-    _update: function as_update(serviceId, apnType, newApn) {
+    _update: function as__update(serviceId, apnType, newApn) {
       return this._ready().then(function() {
         var apns = this._apnSettings[serviceId];
         if (!apns) {
@@ -169,7 +170,7 @@ define(function(require) {
      * @params {Number} serviceId
      * @returns {Promise Array}
      */
-    getAll: function as__get(serviceId) {
+    getAll: function as_getAll(serviceId) {
       return this._ready().then(function() {
         return this._apnSettings[serviceId];
       }.bind(this));
@@ -184,7 +185,7 @@ define(function(require) {
      * @params {String} apnType
      * @returns {Promise Object}
      */
-    get: function as__get(serviceId, apnType) {
+    get: function as_get(serviceId, apnType) {
       return this._ready().then(function() {
         var apns = this._apnSettings[serviceId];
         if (apns) {
@@ -205,10 +206,36 @@ define(function(require) {
      * @params {Object} apn
      * @returns {Promise}
      */
-    update: function as__update(serviceId, apnType, apn) {
+    update: function as_update(serviceId, apnType, apn) {
       var apnClone = ApnUtils.clone(apn);
       return this._schedule(
         this._update.bind(this, serviceId, apnType, apnClone));
+    },
+
+    /**
+     * Restore the apn settings to the default value determined in
+     * system/js/operator_variants.js.
+     *
+     * @access public
+     * @memberOf ApnSettings.prototype
+     * @params {String} serviceId
+     * @returns {Promise}
+     */
+    restore: function as_restore(serviceId) {
+      var that = this;
+      return this._ready().then(function() {
+        return new Promise(function(resolve) {
+          SettingsCache.getSettings(function(results) {
+            resolve(results[DEFAULT_APN_SETTINGS_KEY] || []);
+          });
+        });
+      }).then(function(defaultApnSettings) {
+        return that._schedule(function() {
+          that._isDirty = true;
+          that._apnSettings[serviceId] = defaultApnSettings[serviceId];
+          return Promise.resolve();
+        });
+      });
     }
   };
 

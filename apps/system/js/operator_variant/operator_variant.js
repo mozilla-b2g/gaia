@@ -620,6 +620,7 @@
         result[this._iccCardIndex] = mergedApnSettings;
         transaction.set({
           'ril.data.apnSettings': result,
+          'ril.data.default.apnSettings': result,
           'apn.selections': null
         });
       }).bind(this);

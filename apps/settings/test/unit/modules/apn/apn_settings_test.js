@@ -181,4 +181,25 @@ suite('ApnSettings', function() {
       }).then(done, done);
     });
   });
+
+  suite('restore', function() {
+    var serviceId = 0;
+
+    setup(function() {
+      this.sinon.stub(this.apnSettings, '_schedule', function() {
+        return Promise.resolve();
+      });
+    });
+
+    test('should restore to default apn settings correctly', function(done) {
+      this.apnSettings._apnSettings = [];
+      this.apnSettings.restore(serviceId)
+      .then(function() {
+        assert.deepEqual(this.apnSettings._apnSettings, this.mockApnSettings);
+      }.bind(this), function() {
+        // This function does not reject.
+        assert.isTrue(false);
+      }).then(done, done);
+    });
+  });
 });
