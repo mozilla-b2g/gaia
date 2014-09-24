@@ -80,13 +80,6 @@
       var invoked = false;
       var timer;
 
-      // First, let's check if we have a frontWindow, if so this is the one
-      // we will want a screenshot of!
-      if (this.frontWindow && this.frontWindow.isActive()) {
-        this.frontWindow.getScreenshot(callback, width, height, timeout);
-        return;
-      }
-
       if (timeout) {
         timer = window.setTimeout(function() {
           if (invoked) {

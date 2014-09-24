@@ -938,40 +938,6 @@ suite('system/AppWindow', function() {
       assert.isTrue(callback1.called);
     });
 
-    test('MozBrowser API: getScreenshot (with frontWindow active)', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var app2 = new AppWindow(fakeAppConfig2);
-
-      injectFakeMozBrowserAPI(app1.browser.element);
-      injectFakeMozBrowserAPI(app2.browser.element);
-      var stubScreenshot = this.sinon.stub(app1.browser.element,
-        'getScreenshot');
-      var stubScreenshot2 = this.sinon.stub(app2.browser.element,
-        'getScreenshot');
-      this.sinon.stub(app2, 'isActive', function() { return true; });
-
-      var fakeDOMRequest = {
-        onsuccess: function() {},
-        onerror: function() {}
-      };
-
-      stubScreenshot.returns(fakeDOMRequest);
-      stubScreenshot2.returns(fakeDOMRequest);
-
-      var callback1 = this.sinon.spy();
-      app1.frontWindow = app2;
-      app1.getScreenshot(callback1);
-
-      assert.isFalse(stubScreenshot.called);
-      assert.isTrue(stubScreenshot2.called);
-      fakeDOMRequest.onsuccess({ target: { result: 'fakeBlob' } });
-      assert.equal(app2._screenshotBlob, 'fakeBlob');
-      assert.isTrue(callback1.calledWith('fakeBlob'));
-
-      fakeDOMRequest.onerror();
-      assert.isTrue(callback1.called);
-    });
-
     test('MozBrowser API: getGoForward', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
