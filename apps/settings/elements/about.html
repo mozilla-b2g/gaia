@@ -7,9 +7,9 @@
 
     <div>
       <ul>
-        <li id="deviceinfo-phone-num">
+        <li class="deviceinfo-phone-num">
           <span data-l10n-id="deviceInfo-MSISDN">Phone number</span>
-          <small id="deviceInfo-msisdns" class="multiline"></small>
+          <small class="deviceInfo-msisdns" class="multiline"></small>
         </li>
         <li>
           <span id="model-name" data-l10n-id="model-name">Model</span>
@@ -21,7 +21,7 @@
         </li>
         <li>
           <span data-l10n-id="last-updated">Last Updated</span>
-          <small id="last-update-date"></small>
+          <small class="last-update-date"></small>
         </li>
         <li>
           <a class="menu-item" href="#about-moreInfo">
@@ -45,10 +45,10 @@
           </span>
         </li>
         <li>
-          <button id="check-update-now"
+          <button class="check-update-now"
             data-l10n-id="check-update-now">Check Now</button>
         </li>
-        <li id="update-status" class="description update-status">
+        <li class="update-status description update-status">
           <p>
             <span class="general-information"
               data-l10n-id="checking-for-update">Checking for updates…</span>
@@ -94,12 +94,12 @@
       </header>
       <ul>
         <li>
-          <button id="reset-phone" data-l10n-id="reset-device">Reset Phone</button>
+          <button class="reset-phone" data-l10n-id="reset-device">Reset Phone</button>
         </li>
       </ul>
     </div>
 
-    <form role="dialog" data-type="confirm" id="reset-phone-dialog" hidden>
+    <form role="dialog" data-type="confirm" class="reset-phone-dialog" hidden>
       <section>
         <h1 data-l10n-id="reset-warning-title">CAUTION</h1>
         <p data-l10n-id="reset-warning-body">
@@ -107,13 +107,12 @@
         </p>
       </section>
       <menu>
-        <button data-l10n-id="cancel" id="cancel-reset-phone">Cancel</button>
-        <button data-l10n-id="reset" id="confirm-reset-phone" class="danger">Reset</button>
+        <button data-l10n-id="cancel" class="cancel-reset-phone">Cancel</button>
+        <button data-l10n-id="reset" class="confirm-reset-phone danger">Reset</button>
       </menu>
     </form>
 
-    <script src="js/about.js"></script>
-    <script src="js/factory_reset.js"></script>
+    <panel data-path="panels/about/panel"></panel>
 
   </template>
 </element>

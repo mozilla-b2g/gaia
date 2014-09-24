@@ -263,6 +263,17 @@ require.config({
         'main',
         'modules/mvvm/observable'
       ]
+    },
+    {
+      name: 'panels/about/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/about_more_info/panel',
+      exclude: [
+        'main',
+        'modules/bluetooth',
+      ]
     }
   ]
 });
