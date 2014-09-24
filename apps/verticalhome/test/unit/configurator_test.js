@@ -2,7 +2,7 @@
 
 /* global Configurator, MockNavigatorSettings, IccHelper,
    MocksHelper, MockVersionHelper, verticalPreferences,
-   MockNavigatorGetFeature */
+   MockNavigatorGetFeature, LazyLoader */
 
 require('/shared/js/homescreens/vertical_preferences.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -21,7 +21,6 @@ suite('configurator.js >', function() {
 
   var realGetFeature;
   var realMozSettings;
-  var xhr;
   var requests = [];
   var configurator;
 
@@ -81,8 +80,6 @@ suite('configurator.js >', function() {
 
   setup(function(done) {
     mocksHelperForConfigurator.setup();
-    xhr = sinon.useFakeXMLHttpRequest();
-    xhr.onCreate = function(req) { requests.push(req); };
     requireApp('verticalhome/js/configurator.js', function() {
       configurator = new Configurator();
       requests = [];
@@ -92,32 +89,34 @@ suite('configurator.js >', function() {
 
   teardown(function() {
     mocksHelperForConfigurator.teardown();
-    xhr.restore();
     navigator.mozSettings.mTeardown();
   });
 
-  test('Sections >', function() {
+  test('Sections >', function(done) {
+    this.sinon.stub(LazyLoader, 'getJSON')
+      .returns(Promise.resolve(confGridOK));
     configurator.load();
-    var req = requests[0];
-    req.response = confGridOK;
-    req.onload();
 
-    var grid = configurator.getGrid();
-    assert.equal(grid[0][0].entry_point, confGridOK.grid[0][0].entry_point);
-    assert.equal(grid[0][0].name, confGridOK.grid[0][0].name);
-    assert.equal(grid[0][0].manifestURL, confGridOK.grid[0][0].manifestURL);
-    assert.equal(grid[0][0].icon, confGridOK.grid[0][0].icon);
+    window.addEventListener('configuration-ready', function ready() {
+      window.removeEventListener('configuration-ready', ready);
+      var grid = configurator.getGrid();
+      assert.equal(grid[0][0].entry_point, confGridOK.grid[0][0].entry_point);
+      assert.equal(grid[0][0].name, confGridOK.grid[0][0].name);
+      assert.equal(grid[0][0].manifestURL, confGridOK.grid[0][0].manifestURL);
+      assert.equal(grid[0][0].icon, confGridOK.grid[0][0].icon);
 
-    var prediction = configurator.getSection('prediction');
-    assert.equal(prediction.enabled, confGridOK.prediction.enabled);
-    assert.equal(prediction.lookahead, confGridOK.prediction.lookahead);
+      var prediction = configurator.getSection('prediction');
+      assert.equal(prediction.enabled, confGridOK.prediction.enabled);
+      assert.equal(prediction.lookahead, confGridOK.prediction.lookahead);
 
-    // This section should be undefined
-    assert.isUndefined(configurator.getSection('noExiste'));
+      // This section should be undefined
+      assert.isUndefined(configurator.getSection('noExiste'));
 
-    // For configurator remove the listener
-    IccHelper.mProps.iccInfo = {mcc:'214', mnc:'007'};
-    IccHelper.mTriggerEventListeners('iccinfochange', {});
+      // For configurator remove the listener
+      IccHelper.mProps.iccInfo = {mcc:'214', mnc:'007'};
+      IccHelper.mTriggerEventListeners('iccinfochange', {});
+      done();
+    });
   });
 
   function assertLoadFile(okLoad, done) {
@@ -136,31 +135,22 @@ suite('configurator.js >', function() {
     });
 
     configurator.load();
-
-    var req = requests[0];
-    req.response = confGridOK;
-    if (okLoad) {
-      req.onload();
-    } else {
-      req.onerror({'type': 'expected error'});
-    }
   }
 
-  test ('Correct load conf file >', function(done) {
+  test('Correct load conf file >', function(done) {
+    this.sinon.stub(LazyLoader, 'getJSON')
+      .returns(Promise.resolve(confGridOK));
     assertLoadFile(true, done);
   });
 
-  test ('Wrong load conf file >', function(done) {
+  test('Wrong load conf file >', function(done) {
+    this.sinon.stub(LazyLoader, 'getJSON')
+      .returns(Promise.reject({'type': 'expected error'}));
     assertLoadFile(false, done);
   });
 
   function assertSV(xhrOk, done) {
     sinon.useFakeTimers();
-    configurator.load();
-
-    var req = requests[0];
-    req.response = confGridOK;
-    req.onload();
 
     IccHelper.mProps.iccInfo = {mcc:'214', mnc:'007'};
     IccHelper.mTriggerEventListeners('iccinfochange', {});
@@ -184,19 +174,21 @@ suite('configurator.js >', function() {
       done();
     });
 
-    req = requests[1];
-    req.response = confSV;
-    xhrOk ? req.onload() : req.onerror({'type': 'expected error'});
+    configurator.load();
   }
 
   /*
    * It tests the public method 'getSingleVariantApps' getting properties/values
    */
   test('getSingleVariantApps - Correct conf file  >', function(done) {
+    this.sinon.stub(LazyLoader, 'getJSON')
+      .returns(Promise.resolve(confSV));
     assertSV(true, done);
   });
 
   test('getSingleVariantApps - Wrong conf file  >', function(done) {
+    this.sinon.stub(LazyLoader, 'getJSON')
+      .returns(Promise.reject({'type': 'expected error'}));
     assertSV(false, done);
   });
 
