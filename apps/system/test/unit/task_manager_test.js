@@ -1,6 +1,6 @@
 /* global MockStackManager, MockNavigatorSettings, MockAppWindowManager,
           TaskManager, Card, TaskCard, AppWindow, HomescreenLauncher,
-          HomescreenWindow, MockScreenLayout, MocksHelper */
+          HomescreenWindow, MockScreenLayout, MocksHelper, MockL10n */
 'use strict';
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -13,6 +13,7 @@ requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
 require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
@@ -65,7 +66,7 @@ suite('system/TaskManager >', function() {
 
   var screenNode, realMozLockOrientation, realScreenLayout, realMozSettings,
       realSettingsListener;
-  var cardsView, cardsList;
+  var cardsView, cardsList, cardsNoWindows;
   var originalLockScreen;
   var ihDescriptor;
 
@@ -98,9 +99,13 @@ suite('system/TaskManager >', function() {
   var apps, home;
   var sms, game, game2, game3, game4;
   var taskManager;
+  var realL10n;
 
   mocksForTaskManager.attachTestHelpers();
   suiteSetup(function cv_suiteSetup(done) {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+
     apps = {
       'http://sms.gaiamobile.org': new AppWindow({
         launchTime: 5,
@@ -312,6 +317,10 @@ suite('system/TaskManager >', function() {
     cardsList.id = 'cards-list';
     cardsView.appendChild(cardsList);
 
+    cardsNoWindows = document.createElement('span');
+    cardsNoWindows.id = 'cards-no-recent-windows';
+    cardsView.appendChild(cardsNoWindows);
+
     screenNode.appendChild(cardsView);
     document.body.appendChild(screenNode);
     realScreenLayout = window.ScreenLayout;
@@ -375,6 +384,8 @@ suite('system/TaskManager >', function() {
     screen.mozLockOrientation = realMozLockOrientation;
     navigator.mozSettings = realMozSettings;
     window.SettingsListener = realSettingsListener;
+    navigator.mozL10n = realL10n;
+
   });
 
   suite('sanity check > ', function() {
@@ -1128,18 +1139,46 @@ suite('system/TaskManager >', function() {
       taskManager.hide(true);
     });
 
-    test('filter function is called and empty stack is the result', function() {
+    test('filter function is called and empty stack is the result',
+    function(done) {
       var _filterName = 'browser-only';
       var stub = this.sinon.stub(taskManager, 'filter', function(filterName) {
-          assert.equal(filterName, _filterName);
-          taskManager.stack = [];
-        });
+        assert.equal(filterName, _filterName);
+        taskManager.stack = [];
+      });
+
+      waitForEvent(window, 'cardviewshown').then(
+        function() {
+          stub.calledWith([_filterName]);
+          assert.isTrue(cardsView.classList.contains('empty'),
+                        'Should be displaying no recent browser windows');
+          done();
+        }, failOnReject);
+
       taskManager.show(_filterName);
-      stub.calledWith([_filterName]);
-      assert.isTrue(cardsView.classList.contains('empty'),
-                    'Should be displaying no recent browser windows');
     });
 
+    test('filter still calls enter/leaveTaskManager on all apps',
+    function(done) {
+      var _filterName = 'browser-only';
+      var app = apps['http://sms.gaiamobile.org'];
+      var enterStub = this.sinon.stub(app, 'enterTaskManager');
+      var leaveStub = this.sinon.stub(app, 'leaveTaskManager');
+
+      waitForEvent(window, 'cardviewshown').then(
+        function() {
+          assert.isTrue(enterStub.calledOnce);
+          taskManager.exitToApp();
+        }, failOnReject);
+
+      waitForEvent(window, 'cardviewclosed').then(
+        function() {
+          assert.isTrue(leaveStub.calledOnce);
+          done();
+        }, failOnReject);
+
+      taskManager.show(_filterName);
+    });
   });
 
 });

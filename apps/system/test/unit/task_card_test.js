@@ -53,13 +53,7 @@ suite('system/TaskCard', function() {
         app: makeApp({ name: 'dummyapp' }),
         manager: mockManager
       });
-      this.enterTMStub = sinon.stub(this.card.app, 'enterTaskManager');
-      this.leaveTMStub = sinon.stub(this.card.app, 'leaveTaskManager');
       this.card.render();
-    });
-    suiteTeardown(function() {
-      this.enterTMStub.restore();
-      this.leaveTMStub.restore();
     });
 
     test('exposes expected element properties', function(){
@@ -78,14 +72,6 @@ suite('system/TaskCard', function() {
       assert.ok(card.element.querySelector('.favorite-button'),
                                            '.favorite-button');
       assert.ok(card.element.querySelector('h1'), 'h1');
-    });
-
-    test('enter/leaveTaskManager', function(){
-      this.card.destroy();
-      assert.isTrue(this.enterTMStub.calledOnce,
-                    'enterTaskManager called once');
-      assert.isTrue(this.leaveTMStub.calledOnce,
-                    'leaveTaskManager called once');
     });
   });
   suite('applyStyle > ', function() {
