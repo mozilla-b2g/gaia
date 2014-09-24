@@ -33,7 +33,7 @@ class SearchPanel(Base):
         self.marionette.find_element(*self._rocketbar_input_locator).tap()
 
         self.keyboard.tap_enter()
-        self.wait_for_condition(lambda m: urllib.quote(url, safe=':/') in self.apps.displayed_app.name)
+        self.wait_for_condition(lambda m: urllib.quote(url, safe=':/?=') in self.apps.displayed_app.name)
 
         from gaiatest.apps.search.regions.browser import Browser
         return Browser(self.marionette)
