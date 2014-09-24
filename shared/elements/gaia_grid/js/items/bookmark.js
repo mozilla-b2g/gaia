@@ -77,8 +77,8 @@
     /**
      * This method overrides the GridItem.render function.
      */
-    render: function(coordinates, index) {
-      GaiaGrid.GridItem.prototype.render.call(this, coordinates, index);
+    render: function() {
+      GaiaGrid.GridItem.prototype.render.call(this);
       this.element.classList.add('bookmark');
       if (this.isEditable()) {
         this.element.classList.add('editable');

@@ -63,9 +63,8 @@ gaia-grid {
   display: none;
 }
 
-.divider:last-of-type {
+.divider:not(.group):last-of-type {
   visibility: hidden;
-  padding-bottom: 1.4rem;
 }
 
 .edit-mode .divider:last-of-type {

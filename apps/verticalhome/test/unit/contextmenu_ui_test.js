@@ -12,13 +12,15 @@ require('/shared/elements/gaia_grid/js/items/placeholder.js');
 require('/shared/elements/gaia_grid/script.js');
 require('/test/unit/mock_item_store.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/js/wallpaper.js');
 requireElements('verticalhome/elements/contextmenu.html');
 
 var mocksHelperForContextMenuUI = new MocksHelper([
   'LazyLoader',
-  'ItemStore'
+  'ItemStore',
+  'SettingsListener'
 ]).init();
 
 suite('contextmenu_ui.js >', function() {

@@ -83,6 +83,7 @@
   width: calc(100% - 0.4rem);
   box-sizing: border-box;
   vertical-align: top;
+  transition: opacity 0.5s;
 }
 
 /* We allow more space for text in the search app by hooking into the text-rows attribute on gaia-grid. */
@@ -97,31 +98,51 @@
   line-height: 1.94rem;
 }
 
+.icon.collapsed {
+  pointer-events: none;
+}
+
+.icon.collapsed .title {
+  opacity: 0;
+}
+
+.icon.hidden {
+  pointer-events: none;
+  opacity: 0;
+}
+
 .divider {
   position: absolute;
-  width: 50%;
-  margin: 2.3rem 25% 3.5rem 25%;
+  width: 100%;
+  padding-top: 2.3rem;
+  border-left: 0.6rem solid transparent;
+  border-right: 0.6rem solid transparent;
+  box-sizing: border-box;
+  z-index: 2;
 }
 
 [cols="4"] .divider {
-  margin: 1.6rem 25% 3.2rem 25%;
+  padding-top: 1.6rem;
 }
 
-.divider span {
+.divider span.spacer {
+  position: absolute;
+  bottom: 0;
   display: block;
   background: linear-gradient(to bottom, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.5));
-  width: 100%;
-  z-index: 2;
+  margin: 0 25%;
+  width: 50%;
   height: 0.2rem;
+  transition: opacity 0.5s;
 }
 
 .dragging .icon.active {
-  z-index: 4;
+  z-index: 5;
   opacity: 0.65;
 }
 
-.dragging .divider,
-.dragging .icon:not(.active),
+.dragging .divider:not(.group),
+.icon:not(.active),
 .dropped {
   transition: transform 0.5s, opacity 0.5s;
 }
@@ -143,10 +164,8 @@
   padding: 0.5rem;
 }
 
-.icon .remove {
-  display: none;
-}
-
+.icon .remove,
+.icon.collapsed .remove,
 .edit-mode .icon.active .remove {
   display: none;
 }
@@ -162,4 +181,120 @@
 
 #confirm-message {
   z-index: 100;
+}
+
+.dragging .group.active {
+  z-index: 4;
+}
+
+.divider.group {
+  border: none;
+  padding: 0;
+}
+
+.group > span {
+  display: block;
+  position: absolute;
+  width: 100%;
+  transition: background-color 0.5s, opacity 0.5s;
+}
+
+.dragging .group > span {
+  will-change: transform;
+}
+
+.group:not(.active) > span {
+  transition: transform 0.5s;
+}
+
+.group .header {
+  height: 4.7rem;
+}
+
+.group .header span {
+  position: absolute;
+  top: 1rem;
+  transition: transform 0.5s, opacity 0.5s;
+}
+
+.group .header .gripper,
+.group .header .toggle {
+  width: 2.7rem;
+  height: 2.7rem;
+
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+.group .header .gripper {
+  left: 1rem;
+  background-image: url('images/move_gripper.png');
+  background-size: 1.6rem;
+  opacity: 0;
+  transform: translate(-3.7rem, 0);
+}
+
+.edit-mode .group .header .gripper {
+  opacity: 1;
+  transform: translate(0, 0);
+}
+
+.group .header .title {
+  left: 1.4rem;
+  /* This is full width - gripper - toggle - padding */
+  width: calc(100% - 2.7rem - 2.7rem - 2.8rem);
+
+  text-align: left;
+  color: white;
+  font-size: 2.27rem;
+  font-style: italic;
+  font-weight: 300;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.edit-mode .header .title {
+  transform: translate(3.7rem, 0);
+}
+
+.group .header .toggle {
+  right: 1rem;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.15);
+  background-image: url('images/collapse_arrow.png');
+  background-size: 1.5rem;
+}
+
+.group.collapsed .header .toggle {
+  transform: rotateZ(180deg);
+}
+
+.group.active .header .toggle {
+  opacity: 0.5;
+}
+
+.group .background {
+  background-color: rgba(255, 255, 255, 0.2);
+  opacity: 0;
+  height: 0.1rem;
+  transform-origin: 0 0;
+}
+
+.edit-mode .group .background {
+  opacity: 1;
+}
+
+.group.active .background {
+  background-color: rgba(27, 185, 225, 0.5);
+}
+
+.group .separator {
+  background: rgba(0, 0, 0, 0.1);
+  margin: 0;
+  height: 1.3rem;
+  pointer-events: none;
+}
+
+.edit-mode .group .separator {
+  opacity: 0;
 }

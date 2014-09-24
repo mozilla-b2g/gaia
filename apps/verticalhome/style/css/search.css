@@ -6,6 +6,10 @@
   z-index: 5;
 }
 
+.grouping #search {
+  margin-bottom: 0;
+}
+
 #search-form {
   pointer-events: none;
   position: absolute;
