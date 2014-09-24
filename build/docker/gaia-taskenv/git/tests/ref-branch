@@ -2,10 +2,17 @@
 
 source setup.sh
 
-git ci-checkout-ref \
-  $STAGE_DIR \
-  https://github.com/lightsofapollo/github-workflow-test.git \
-  branch
+test_commands() {
+  git ci-checkout-ref \
+    $STAGE_DIR \
+    https://github.com/lightsofapollo/github-workflow-test.git \
+    branch
 
-test -f $STAGE_DIR/branch
-test ! -f $STAGE_DIR/master
+  test -f $STAGE_DIR/branch
+  test ! -f $STAGE_DIR/master
+}
+
+
+# Run it twice to ensure its repeatable.
+test_commands
+test_commands

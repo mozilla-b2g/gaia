@@ -1,9 +1,7 @@
 #! /bin/bash -e
 
-SUBDIRECTORY_OK=1
 USAGE="git ci-checkout-ref <directory> <repository> <revision>"
 
-. "$(git --exec-path)/git-sh-setup"
 . "$(which git-ci-checkout-setup)"
 
 # Initial checkout of the source files.
@@ -13,7 +11,7 @@ initial_checkout() {
   local repo=$1
 
   # To be idempotent ensure we set the origin for pulling...
-  if [ "$(contains $(git remote) $CI_REMOTE)" = "0" ];
+  if [ "$(contains $(git remote) $GIT_CI_REMOTE)" = "0" ];
   then
     git remote set-url $GIT_CI_REMOTE $repo
   else

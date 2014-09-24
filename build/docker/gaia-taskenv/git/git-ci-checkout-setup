@@ -25,8 +25,17 @@ contains() {
 # Arguments:
 # - absolute path to the git directory.
 change_git_target() {
-  local path=$1
+  # Note that we require an absolute path here so we try to resolve it first
+  # with greadlink then readlink (readlink on OSX does not do what you want) 
+  readlink=$(which greadlink || which readlink)
+
+  local path=$($readlink -m $1)
   # Set the git directories for this process and all child processes.
   export GIT_DIR=$path/.git/
   export GIT_WORK_TREE=$path/
+}
+
+usage() {
+  echo $USAGE
+  exit 1
 }

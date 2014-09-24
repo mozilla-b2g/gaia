@@ -2,13 +2,17 @@
 
 source setup.sh
 
-git-ci-checkout-pr \
-  $STAGE_DIR \
-  https://github.com/lightsofapollo/github-workflow-test.git \
-  master \
-  https://github.com/lightsofapollo/github-workflow-test.git \
-  pr
+test_commands() {
+  git-ci-checkout-pr \
+    $STAGE_DIR \
+    https://github.com/lightsofapollo/github-workflow-test.git \
+    master \
+    https://github.com/lightsofapollo/github-workflow-test.git \
+    pr
 
-test -f $STAGE_DIR/master
-test -f $STAGE_DIR/pr
+  test -f $STAGE_DIR/master
+  test -f $STAGE_DIR/pr
+}
 
+test_commands
+test_commands

@@ -1,9 +1,7 @@
 #! /bin/bash -e
 
-SUBDIRECTORY_OK=1
 USAGE="git ci-checkout-pr <directory> <source_repository> <source_revision> <target_repo> <target_revision>"
 
-. "$(git --exec-path)/git-sh-setup"
 . "$(which git-ci-checkout-setup)"
 
 # Checkout the git repository at the correct version with the pull request
@@ -30,7 +28,7 @@ checkout_pr() {
   local branch="git-ci-$source_rev-to-$target_rev"
 
   # Clear up any previous branches with the same name
-  if [ "$(contains $(git branch) $branch)" = "0" ];
+  if [ "$(contains $branch $(git branch))" = "0" ];
   then
     git branch -D $branch
   fi
