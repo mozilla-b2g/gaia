@@ -347,6 +347,15 @@ keyboard.removeFocus();""")
         self.wait_for_element_displayed(*self._predicted_word_locator)
         self.marionette.find_element(*self._predicted_word_locator).tap()
         self.apps.switch_to_displayed_app()
+    
+    def tap_suggestion(self, word):
+        self.switch_to_keyboard()
+        
+        # find the requested suggestion
+        selector = (By.CSS_SELECTOR, ".suggestions-container span[data-data=\"%s\"]" %(word))
+        self.wait_for_element_displayed(*selector)
+        self.marionette.find_element(*selector).tap()
+        self.apps.switch_to_displayed_app()
 
     # Accessibility related properties and methods
 
