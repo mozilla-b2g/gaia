@@ -1,0 +1,16 @@
+#! /bin/bash -vex
+
+source setup.sh
+
+git-ci-checkout-pr \
+  $STAGE_DIR \
+  https://github.com/lightsofapollo/github-workflow-test.git \
+  branch \
+  https://github.com/lightsofapollo-staging/github-workflow-test.git \
+  pr-remote
+
+test -f $STAGE_DIR/pr-remote
+test -f $STAGE_DIR/master
+
+
+
