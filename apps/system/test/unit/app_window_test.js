@@ -1701,6 +1701,37 @@ suite('system/AppWindow', function() {
 
       assert.isTrue(switchTransitionState.calledWith('closed'));
     });
+
+    test('Shrinking start event', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubGetScreenshot = this.sinon.stub(app1,'getScreenshot',
+        // We want to check if callback provided as getScreenshot argument
+        // calls all the necessary methods
+        (callback) => { callback(); }
+      );
+      var stubShowScreenshot = this.sinon.stub(app1, '_showScreenshotOverlay');
+      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+
+      app1.handleEvent({
+        type: '_shrinkingstart'
+      });
+
+      assert.isTrue(stubGetScreenshot.calledOnce, 'getScreenshot');
+      assert.isTrue(stubShowScreenshot.calledOnce,
+                    '_showScreenshotOverlay in callback');
+      assert.isTrue(stubSetVisible.calledWith(false), 'setVisble in callback');
+    });
+
+    test('Shrinking stop event', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+
+      app1.handleEvent({
+        type: '_shrinkingstop'
+      });
+
+      assert.isTrue(stubSetVisible.calledWith(true), 'setVisible');
+    });
   });
 
   test('Change URL at run time', function() {
