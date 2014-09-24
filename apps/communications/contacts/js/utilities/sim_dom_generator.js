@@ -18,7 +18,7 @@ function generateButton(singleSim, sim, index) {
     if (sim.iccInfo && sim.iccInfo.msisdn) {
       params.msisdn = ': ' + sim.iccInfo.msisdn;
     }
-    navigator.mozL10n.setAttributes(span, 'simNumber', params);
+    navigator.mozL10n.setAttributes(span, 'simCardNumber', params);
   }
   button.appendChild(span);
   return button;
