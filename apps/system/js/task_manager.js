@@ -293,6 +293,7 @@
       }).bind(this);
       cardsView.addEventListener('transitionend', cardsViewHidden);
     }
+
     this.fireCardViewClosed();
   };
 
@@ -417,7 +418,12 @@
     // Make sure we're in default orientation
     screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
-    // First add an item to the cardsList for each running app
+    // Tell *all* applications we're about to enter task manager.
+    this.unfilteredStack.forEach(function(app) {
+      app.enterTaskManager();
+    });
+
+    // Then add an item to the cardsList for each running app we care about
     stack.forEach(function(app, position) {
       this.addCard(position, app);
     }, this);
@@ -558,6 +564,10 @@
 
   TaskManager.prototype.exitToApp = function(app,
                                              openAnimation) {
+    // Tell all applications we're about to leave task manager.
+    this.unfilteredStack.forEach(function(app) {
+      app.leaveTaskManager();
+    });
 
     if (!app) {
       // return if possible to previous app.
