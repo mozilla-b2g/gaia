@@ -1,6 +1,7 @@
 'use strict';
 
 var Actions = require('marionette-client').Actions;
+var Bookmark = require('./lib/bookmark');
 var Collection = require('./lib/collection');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
@@ -10,7 +11,7 @@ var System = require('../../../../apps/system/test/marionette/lib/system');
 marionette('Vertical - Collection', function() {
 
   var client = marionette.client(Home2.clientOptions);
-  var actions, collection, home, selectors, server, system;
+  var actions, bookmark, collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
     EmeServer(client, function(err, _server) {
@@ -25,6 +26,7 @@ marionette('Vertical - Collection', function() {
 
   setup(function() {
     actions = new Actions(client);
+    bookmark = new Bookmark(client, server);
     selectors = Collection.Selectors;
     collection = new Collection(client);
     home = new Home2(client);

@@ -2,7 +2,7 @@
 
 var assert = require('assert');
 var Actions = require('marionette-client').Actions;
-var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
+var Bookmark = require('./lib/bookmark');
 var Collection = require('./lib/collection');
 var Home2 = require('./lib/home2');
 var EmeServer = require(

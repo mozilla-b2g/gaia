@@ -1,7 +1,7 @@
 'use strict';
 
 var Actions = require('marionette-client').Actions;
-var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
+var Bookmark = require('./lib/bookmark');
 var Collection = require('./lib/collection');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');

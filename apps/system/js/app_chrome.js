@@ -470,7 +470,7 @@
     var self = this;
     var previousColor;
 
-    setTimeout(function updateAppColor() {
+    window.requestAnimationFrame(function updateAppColor() {
       var computedColor = window.getComputedStyle(self.element).backgroundColor;
       if (previousColor === computedColor) {
         return;
@@ -490,8 +490,8 @@
       self.app.element.classList.toggle('light', brightness > 200);
       self.app.publish('titlestatechanged');
       previousColor = computedColor;
-      setTimeout(updateAppColor, 2000);
-    }, 2000);
+      window.requestAnimationFrame(updateAppColor);
+    });
   };
 
   AppChrome.prototype.render = function() {
