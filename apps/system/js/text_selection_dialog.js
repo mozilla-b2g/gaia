@@ -131,6 +131,13 @@
         commands.canSelectAll = false;
       }
 
+      // We should hide the bubble when user call selection.collapseToEnd() by
+      // script.
+      if (reasons.indexOf('collapsetoend') !== -1) {
+        this.hide();
+        return;
+      }
+
       if (reasons.indexOf('mouseup') !== -1 && rectHeight === 0 &&
           rectWidth === 0 && !isTempShortcut) {
         this.hide();

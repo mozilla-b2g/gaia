@@ -224,6 +224,13 @@ suite('system/TextSelectionDialog', function() {
       assert.isTrue(stubEvent.calledOnce);
     });
 
+    test('should hide bubble if user call selection.collapseToEnd() by script',
+      function() {
+        testDetail.reasons = ['collapsetoend'];
+        td._onSelectionChange(fakeTextSelectInAppEvent);
+        assert.isTrue(stubHide.calledOnce);
+      });
+
     test('should hide bubble if rect has no size but get mouseup reason',
       // In editable div, we may receive this event while bubble is displaying
       // and tapping on other context.
