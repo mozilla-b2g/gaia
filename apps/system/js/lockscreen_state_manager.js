@@ -15,7 +15,8 @@
  */
 
 /* global SettingsListener, System */
-/* global LockScreenStateSlideShow, LockScreenStateKeypadShow */
+/* global LockScreenStateSlideShow, LockScreenStateSlideHide */
+/* global LockScreenStateKeypadShow */
 /* global LockScreenStateKeypadHiding, LockScreenStateKeypadRising */
 /* global LockScreenStatePanelHide */
 /* global LockScreenStateLogger */
@@ -90,6 +91,7 @@
     // these states.
     this.states = {
       slideShow: (new LockScreenStateSlideShow()).start(this.lockScreen),
+      slideHide: (new LockScreenStateSlideHide()).start(this.lockScreen),
       keypadShow: (new LockScreenStateKeypadShow()).start(this.lockScreen),
       keypadHiding: (new LockScreenStateKeypadHiding()).start(this.lockScreen),
       keypadRising: (new LockScreenStateKeypadRising()).start(this.lockScreen),
@@ -143,9 +145,18 @@
       screenOn: true,
       unlocking: false
     },
-    ['panelHide'],
+    ['panelHide', 'slideHide'],
     this.states.slideShow,
     'Resume from screen off');
+
+    this.registerRule({
+      passcodeEnabled: false,
+      screenOn: true,
+      unlocking: true
+    },
+    ['slideShow'],
+    this.states.slideHide,
+    'When it activate to unlock without passcode, unlock and animates.');
 
     this.registerRule({
       passcodeEnabled: true,
