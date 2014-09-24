@@ -135,7 +135,7 @@ body #statusbar {
 }
 
 #statusbar-minimized {
-  width: calc(100% - 100% * 0.6521 + 8rem * 0.6521 - 0.5rem);
+  width: calc(100% - 100% * var(--rocketbar-scale) + 8rem * var(--rocketbar-scale) - 0.5rem);
   padding-top: 0;
   padding-bottom: 0;
   -moz-padding-start: 0;

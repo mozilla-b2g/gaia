@@ -1,8 +1,8 @@
 .appWindow:not(.bar) > .chrome {
   pointer-events: none;
   top: 0;
-  height: calc(var(--statusbar-height) * 2.53);
-  transform: scaleY(0.6521) translateY(calc(var(--statusbar-height) * -1));
+  height: calc(var(--statusbar-height) + 4.4rem);
+  transform: scaleY(var(--rocketbar-scale)) translateY(calc(var(--statusbar-height) * -1));
   transform-origin: top left;
   transition: transform 0.2s ease-in-out, background-color 0.5s ease;
 
@@ -12,8 +12,8 @@
 }
 
 :not(.browser).appWindow[data-shrinking-state="true"] > .chrome {
-  height: calc(var(--statusbar-height) / 0.651);
-  transform: scaleY(0.651) translateY(0);
+  height: calc(var(--statusbar-height) / var(--rocketbar-scale));
+  transform: scaleY(var(--rocketbar-scale)) translateY(0);
 }
 
 .appWindow.light > .chrome {
@@ -40,7 +40,7 @@
   pointer-events: auto;
   background-color: transparent;
   position: absolute;
-  bottom: 0;
+  bottom: 0.1rem;
   width: 100%;
   font-size: 0;
 }
@@ -104,9 +104,9 @@
 /* URL bar */
 .chrome .controls .urlbar {
   width: calc(100% - 4.5rem);
-  height: 3.6rem;
-  line-height: 3.6rem;
-  margin: 0.5rem 0 0.5rem;
+  height: 3.4rem;
+  line-height: 3.4rem;
+  margin: 0 0 0.5rem;
   border-radius: 1.8rem;
   color: inherit;
   overflow: hidden;
@@ -132,13 +132,13 @@
   width: calc(100% - 3.2rem);
   padding-top: 0;
   padding-bottom: 0;
-  -moz-padding-start: 1rem;
+  -moz-padding-start: 1.45rem;
   -moz-padding-end: 0.8rem;
   box-sizing: padding-box;
   overflow: hidden;
   white-space: nowrap;
   font-weight: 300;
-  font-size: 2rem;
+  font-size: 1.8rem;
   float: none;
   background-color: rgba(204,204,204,0.2);
   border-radius: 1.8rem;
@@ -193,13 +193,13 @@
 }
 
 .controls .urlbar {
-  transform: scaleX(0.6521);
+  transform: scaleX(var(--rocketbar-scale)) translateY(0.1rem);
   transform-origin: top left;
   transition: transform 0.2s ease-in-out;
 }
 
 .appWindow.fullscreen-app .chrome:not(.maximized) .controls .urlbar {
-  transform: scale(0.6521) translateY(0.2rem);
+  transform: scale(var(--rocketbar-scale)) translateY(0.3rem);
   transform-origin: bottom left;
 }
 
@@ -219,11 +219,11 @@
 
 .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
 .collapsible .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(0.6521) translateX(-5.5rem);
+  transform: scaleX(var(--rocketbar-scale)) translateX(-5.5rem);
 }
 
 .collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(0.6521) translateX(-12rem);
+  transform: scaleX(var(--rocketbar-scale)) translateX(-12rem);
 }
 
 
@@ -272,7 +272,7 @@
 /* Vertically align butons outside of urlbar. */
 .controls > button {
   position: relative;
-  top: 0.2rem;
+  top: -0.2rem;
 }
 
 .loading .controls .reload-button {
