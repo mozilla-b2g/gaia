@@ -26,7 +26,7 @@ class TestA11yKeyboardWordSuggestions(GaiaTestCase):
         keyboard = keyboard_page.tap_text_input()
 
         # type first 7 letters of the expected word
-        expected_word = 'keyboard '
+        expected_word = 'keyboard'
         keyboard.send(expected_word[:7])
 
         keyboard.switch_to_keyboard()
