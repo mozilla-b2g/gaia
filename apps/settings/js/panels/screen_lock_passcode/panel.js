@@ -17,6 +17,9 @@ define(function(require) {
       },
       onShow: function() {
         screenLockPasscode.onShow();
+      },
+      onHide: function() {
+        screenLockPasscode.onHide();
       }
     });
   };
