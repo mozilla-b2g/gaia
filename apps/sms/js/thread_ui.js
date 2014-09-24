@@ -1836,12 +1836,6 @@ var ThreadUI = {
     this.cleanForm();
 
     this.mainWrapper.classList.toggle('edit');
-
-    // Ensure the Edit Mode menu does not occlude the final messages in the
-    // thread.
-    this.container.style.height = 'calc(100% - ' +
-        this.HEADER_HEIGHT + 'px - ' +
-        this.editForm.querySelector('menu').offsetHeight + 'px)';
   },
 
   deleteUIMessages: function thui_deleteUIMessages(list, callback) {
