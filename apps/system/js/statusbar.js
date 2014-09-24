@@ -55,9 +55,9 @@ var StatusBar = {
     ['mute', 16 + 4],
     ['call-forwardings', null], // Width can change
     ['playing', 16 + 4],
-    ['headphones', 16 + 4]
-    //['sms' 16 + 4], // Not currently implemented.
-    //['label' 16 + 4], // Only visible in the maximized status bar.
+    ['headphones', 16 + 4],
+    //['sms', 16 + 4], // Not currently implemented.
+    ['label', null] // Only visible in the maximized status bar.
   ],
 
   /* Timeout for 'recently active' indicators */
