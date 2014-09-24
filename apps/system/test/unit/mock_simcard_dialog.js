@@ -2,5 +2,6 @@
 'use strict';
 
 var MockSimPinDialog = {
-  close: function() {}
+  close: function() {},
+  show: function() {},
 };
