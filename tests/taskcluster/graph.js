@@ -98,11 +98,11 @@ var graph = {
   tasks: []
 };
 
-//for (var i = 0; i < (1 / tasks.length); i++) {
+for (var i = 0; i < (100 / tasks.length); i++) {
   graph.tasks = graph.tasks.concat(tasks.map(function(task) {
     return decorateTask(task);
   }));
-//}
+}
 
 // Output directly to stdout and allow pipe redirection to handle where it
 // should go...
