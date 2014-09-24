@@ -126,8 +126,7 @@
   z-index: 8193;
 }
 
-#screen > [data-z-index-level="app"] > .appWindow.attentionWindow.active,
-#screen > [data-z-index-level="app"] > .appWindow.attentionWindow.transition-opening {
+#screen > [data-z-index-level="app"] > .appWindow.attentionWindow {
   z-index: 8192;
 }
 
