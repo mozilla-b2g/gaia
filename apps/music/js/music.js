@@ -1180,7 +1180,12 @@ function createListElement(option, data, index, highlight) {
 
       var indexSpan = document.createElement('span');
       indexSpan.className = 'list-song-index';
-      indexSpan.textContent = index + 1;
+      var trackNum = data.metadata.tracknum;
+      if (data.metadata.discnum && data.multidisc) {
+        trackNum = data.metadata.discnum + '.' +
+          (trackNum < 10 ? '0' + trackNum : trackNum);
+      }
+      indexSpan.textContent = trackNum;
 
       var titleSpan = document.createElement('span');
       titleSpan.className = 'list-song-title';
@@ -1746,12 +1751,18 @@ var SubListView = {
                                          function lv_enumerateAll(dataArray) {
       var albumName;
       var albumNameL10nId;
+      var maxDiscNum = 1;
 
       if (option === 'album') {
         dataArray.sort(function(e1, e2) {
           return (e1.metadata.discnum - e2.metadata.discnum) ||
             (e1.metadata.tracknum - e2.metadata.tracknum);
         });
+
+        maxDiscNum = Math.max(
+          dataArray[dataArray.length - 1].metadata.disccount,
+          dataArray[dataArray.length - 1].metadata.discnum
+        );
       }
 
       if (option === 'artist') {
@@ -1774,6 +1785,7 @@ var SubListView = {
       SubListView.setAlbumSrc(data);
 
       dataArray.forEach(function(songData) {
+        songData.multidisc = (maxDiscNum > 1);
         SubListView.update(songData);
       });
 
