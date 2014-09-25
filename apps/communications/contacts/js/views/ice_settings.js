@@ -238,7 +238,7 @@ contacts.ICE = (function() {
    */
   function checkContact(id) {
     return ICEData.load().then(function() {
-      return contactNotICE(id).then(contactNoPhone);
+      return contactNotICE(id).then(contactNotAllowed);
     });
   }
 
@@ -263,19 +263,21 @@ contacts.ICE = (function() {
   }
 
   /**
-   * Filter to avoid selecting contacts as ICE if they
-   * don't have a phone number
+   * Filter to avoid selecting contacts as ICE if they don't have a phone number
+   * or they are a Facebook contact
    * @param id (String) contact id
    * @returns (Promise) Fulfilled if contact has phone
    */
-  function contactNoPhone(id) {
+  function contactNotAllowed(id) {
     return new Promise(function(resolve, reject) {
-      contacts.List.getContactById(id, function(contact) {
+      contacts.List.getContactById(id, function(contact, isFBContact) {
         if(Array.isArray(contact.tel) && contact.tel[0] &&
          contact.tel[0].value && contact.tel[0].value.trim()) {
           resolve(id);
         }
-        else {
+        else if (isFBContact) {
+          reject('ICEFacebookContactNotAllowed');
+        } else {
           reject('ICEContactNoNumber');
         }
       });
@@ -289,7 +291,7 @@ contacts.ICE = (function() {
    */
   function showSelectList(target) {
     contacts.List.toggleICEGroup(false);
-    Contacts.setCanceleableHeader(goBack);
+    Contacts.setCancelableHeader(goBack);
     contacts.Settings.navigation.go('view-contacts-list', 'right-left');
     currentICETarget = target === 'select-ice-contact-1' ? 0 : 1;
     contacts.List.clearClickHandlers();
