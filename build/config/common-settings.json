@@ -213,6 +213,7 @@
    "tethering.wifi.security.password": "",
    "tethering.wifi.connectedClients": 0,
    "tethering.usb.connectedClients": 0,
+   "theme.selected": "app://default_theme.gaiamobile.org/manifest.webapp",
    "time.clock.automatic-update.enabled": true,
    "time.timezone.automatic-update.enabled": true,
    "time.timezone": null,
