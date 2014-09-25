@@ -135,6 +135,80 @@ marionette('Contacts > ICE contacts', function() {
       subject.clickOn(listContactFirstText);
     }
 
+    suite('Confirm window when deleting numbers from ICE contacts', function() {
+      setup(function() {
+        subject.addContact({
+          givenName: 'Hello',
+          tel: '123456789'
+        });
+
+        setFirstContactAsICE();
+
+        // Pressing back button to go back to settings
+        var contactsHeader =
+          client.helper.waitForElement(selectors.contactListHeader);
+        actions.wait(0.5)
+               .tap(contactsHeader, 10, 10)
+               .perform();
+
+        var closeSettings =
+          client.helper.waitForElement(selectors.settingsClose);
+        subject.clickOn(closeSettings);
+
+        // Opening contact details for the first displayed contact
+        var firstContact =
+          client.helper.waitForElement(selectors.listContactFirst);
+        subject.clickOn(firstContact);
+
+        // Pressing the button to edit the contact
+        var edit = client.helper.waitForElement(selectors.detailsEditContact);
+        subject.clickOn(edit);
+
+        // When edit view is fully open...
+        subject.waitForFormShown();
+
+        // ...delete the first telephone number
+        client.findElement(selectors.formDelFirstTel).click();
+
+        // Save the changes when the 'Update' button is enabled
+        var save = client.findElement(selectors.formSave);
+        save.enabled();
+        save.click();
+      });
+
+      test('Confirm window when deleting number from ICE contact', function() {
+        var confirmText = client.helper.waitForElement(selectors.confirmBody)
+          .text();
+
+        var expectedResult = subject.l10n(
+          '/locales-obj/en-US.json',
+          'ICEContactDelTelAll');
+
+        assert.equal(confirmText, expectedResult);
+      });
+
+      test('Contact is deleted from ICE when no numbers left', function() {
+        client.helper.waitForElement(selectors.confirmDismiss).click();
+
+        var detailsHeader =
+          client.helper.waitForElement(selectors.detailsHeader);
+
+        actions.wait(0.5)
+               .tap(detailsHeader, 10, 10)
+               .perform();
+
+        var openSettings =
+          client.helper.waitForElement(selectors.settingsButton);
+        subject.clickOn(openSettings);
+
+        client.helper.waitForElement(selectors.setIceButton)
+          .click();
+        assert.ok(
+          !client.helper.waitForElement(selectors.iceButton1).enabled(),
+          'The button to select an ICE contact should be disabled');
+      });
+    });
+
     test('ICE contacts can\'t be repeat', function() {
 
       var detailsContact1 = {
