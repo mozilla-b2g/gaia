@@ -160,7 +160,7 @@ var Voicemail = {
     this.notifications = {};
     var prefix = this.tagPrefix;
     var promise = Notification.get();
-    promise.then(function(notifications) {
+    return promise.then(function(notifications) {
       notifications.forEach(function(notification) {
         if (!notification) {
           return;
@@ -180,7 +180,6 @@ var Voicemail = {
       var voicemail = window.navigator.mozVoicemail;
       voicemail.addEventListener('statuschanged', this);
     }).bind(this));
-    return promise;
   },
 
   showVoicemailSettings: function vm_showVoicemailSettings() {
