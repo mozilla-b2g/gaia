@@ -305,7 +305,9 @@ suite('system/StackManager >', function() {
     suite('> goNext()', function() {
       setup(function() {
         StackManager.goPrev();
+        assert.isFalse(StackManager._didntMove);
         StackManager.goPrev();
+        assert.isFalse(StackManager._didntMove);
       });
 
       test('should move forward in the stack without modifying it', function() {
@@ -340,11 +342,26 @@ suite('system/StackManager >', function() {
       test('should do nothing when we\'re at the top of the stack',
       function() {
         StackManager.goNext();
+        assert.isFalse(StackManager._didntMove);
         StackManager.goNext();
+        assert.isTrue(StackManager._didntMove);
         assert.deepEqual(StackManager.getCurrent().config, settings.config);
         StackManager.goNext();
         assert.deepEqual(StackManager.getCurrent().config, settings.config);
       });
+    });
+
+    test('going back to the start app', function() {
+      var onSheetsGestureEnd = this.sinon.spy();
+      window.addEventListener('sheets-gesture-end', onSheetsGestureEnd);
+      StackManager.goPrev();
+      StackManager.goNext();
+      assert.isTrue(StackManager._didntMove);
+      StackManager.commit();
+      sinon.assert.calledOnce(onSheetsGestureEnd);
+      this.sinon.clock.tick(800);
+      sinon.assert.calledOnce(onSheetsGestureEnd);
+      window.removeEventListener('sheets-gesture-end', onSheetsGestureEnd);
     });
 
     suite('> blasting through history', function() {
@@ -365,7 +382,9 @@ suite('system/StackManager >', function() {
                                                    'sendStopRecordingRequest');
 
         StackManager.goPrev();
+        assert.isFalse(StackManager._didntMove);
         StackManager.goPrev();
+        assert.isFalse(StackManager._didntMove);
       });
 
       test('it should flag the next active app', function() {
@@ -400,6 +419,7 @@ suite('system/StackManager >', function() {
         setup(function() {
           StackManager.goNext();
           StackManager.goNext();
+          assert.isTrue(StackManager._didntMove);
         });
 
         test('it should just cleanup the transition classes', function() {

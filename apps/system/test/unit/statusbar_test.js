@@ -2111,11 +2111,21 @@ suite('system/Statusbar', function() {
     });
 
     test('stackchanged', function() {
+      StatusBar.element.classList.add('hidden');
+      assert.isTrue(StatusBar.element.classList.contains('hidden'));
       var event = new CustomEvent('stackchanged');
       StatusBar.handleEvent(event);
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
       assert.isTrue(setAppearanceStub.called);
       assert.isTrue(setAppearanceStub.calledWith(app));
+    });
+
+    test('sheets-gesture-end', function() {
+      StatusBar.element.classList.add('hidden');
+      assert.isTrue(StatusBar.element.classList.contains('hidden'));
+      var event = new CustomEvent('sheets-gesture-end');
+      StatusBar.handleEvent(event);
+      assert.isFalse(StatusBar.element.classList.contains('hidden'));
     });
 
     test('homescreenopening', function() {
