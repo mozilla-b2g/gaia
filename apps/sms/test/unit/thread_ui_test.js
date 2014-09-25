@@ -5441,12 +5441,44 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('isCurrentThread(current threadId is 1)', function() {
+    setup(function() {
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+    });
+
+    [1, 2].forEach((id) => {
+      test('check thread panel with threadId is' + id, function() {
+        Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+
+        assert.equal(ThreadUI.isCurrentThread(id), id === 1);
+      });
+
+      test('check report panel with threadId is' + id, function() {
+        Navigation.isCurrentPanel.withArgs(
+          'report-view',
+          { threadId: 1 }
+        ).returns(true);
+
+        assert.equal(ThreadUI.isCurrentThread(id), id === 1);
+      });
+
+      test('check group panel with threadId is' + id, function() {
+        Navigation.isCurrentPanel.withArgs(
+          'group-view',
+          { id: 1 }
+        ).returns(true);
+
+        assert.equal(ThreadUI.isCurrentThread(id), id === 1);
+      });
+    });
+  });
+
   suite('onMessageSending()', function() {
     // some more tests are in the "sending behavior" part
 
     setup(function() {
       this.sinon.stub(ThreadUI, 'appendMessage');
-      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      this.sinon.stub(ThreadUI, 'isCurrentThread').returns(false);
 
       this.sinon.spy(Navigation, 'toPanel');
     });
@@ -5459,7 +5491,7 @@ suite('thread_ui.js >', function() {
     test('should append message if the user is in correct thread', function() {
       // not implemented yet: https://github.com/cjohansen/Sinon.JS/issues/461
       // Navigation.isCurrentPanel.withExactArgs('thread').returns(true);
-      Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+      ThreadUI.isCurrentThread.withArgs(1).returns(true);
 
       var message = MockMessages.sms({
         threadId: 1
@@ -5473,27 +5505,8 @@ suite('thread_ui.js >', function() {
     });
 
     test('should do nothing if the user is not in correct thread', function() {
-      Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
-
       var message = MockMessages.sms({
         threadId: 2
-      });
-
-      MessageManager.on.withArgs('message-sending').yield({
-        message: message
-      });
-
-      sinon.assert.notCalled(ThreadUI.appendMessage);
-
-      // should not change the panel since we didn't click the send button
-      sinon.assert.notCalled(Navigation.toPanel);
-    });
-
-    test('should not change panel if the user is in the composer', function() {
-      Navigation.isCurrentPanel.withArgs('composer').returns(true);
-
-      var message = MockMessages.sms({
-        threadId: 1
       });
 
       MessageManager.on.withArgs('message-sending').yield({
@@ -5509,17 +5522,13 @@ suite('thread_ui.js >', function() {
 
   suite('onMessageReceived >', function() {
     setup(function() {
-      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      this.sinon.stub(ThreadUI, 'isCurrentThread').returns(false);
       this.sinon.spy(MessageManager, 'markMessagesRead');
     });
 
     test('should not mark message as read if message from other thread',
     function() {
-      var message = MockMessages.sms({
-        threadId: 2
-      });
-
-      Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+      var message = MockMessages.sms();
 
       MessageManager.on.withArgs('message-received').yield({
         message: message
@@ -5534,7 +5543,7 @@ suite('thread_ui.js >', function() {
         threadId: 1
       });
 
-      Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+      ThreadUI.isCurrentThread.withArgs(1).returns(true);
 
       MessageManager.on.withArgs('message-received').yield({
         message: message
