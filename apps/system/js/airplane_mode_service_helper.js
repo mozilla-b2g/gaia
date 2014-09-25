@@ -18,10 +18,19 @@
   System.create(AirplaneModeServiceHelper, {}, {
     name: 'AirplaneModeServiceHelper',
     _settings: {},
+    _start: function() {
+      var self = this;
+      this.constructor.SETTINGS.forEach(function(name) {
+        if (name.indexOf('.enabled') >= 0) {
+          this.readSetting(name).then(function(value) {
+            if (value) {
+              self._unsuspend(name.replace('enabled', 'suspended'));
+            }
+          });
+        }
+      }, this);
+    },
     '_pre_observe': function(setting, value) {
-      if (setting.indexOf('enabled') >= 0 && value) {
-        this._unsuspend(setting.replace('enabled', 'suspended'));
-      }
       this._settings[setting] = value;
     },
     // turn off the mozSetting corresponding to `key'
@@ -31,19 +40,20 @@
       var suspended = this._settings[key + '.suspended'];
 
       if (suspended) {
+        this.debug('already suspended.');
         return;
       }
 
       // remember the state before switching it to false
       var sset = {};
       sset[key + '.suspended'] = enabled;
-      System.notifyObserver(sset);
+      this.writeSetting(sset);
 
       // switch the state to false if necessary
       if (enabled) {
         var eset = {};
         eset[key + '.enabled'] = false;
-        System.notifyObserver(eset);
+        this.writeSetting(eset);
       }
     },
     // turn on the mozSetting corresponding to `key'
@@ -54,20 +64,20 @@
       // clear the 'suspended' state
       var sset = {};
       sset[key + '.suspended'] = false;
-      System.notifyObserver(sset);
+      this.writeSetting(sset);
 
       // switch the state to true if it was suspended
       if (suspended) {
         var rset = {};
         rset[key + '.enabled'] = true;
-        System.notifyObserver(rset);
+        this.writeSetting(rset);
       }
     },
     _unsuspend: function(settingSuspendedID) {
       // clear the 'suspended' state
       var sset = {};
       sset[settingSuspendedID] = false;
-      System.notifyObserver(sset);
+      this.writeSetting(sset);
     },
     isEnabled: function(key) {
       return this._settings[key + '.enabled'];
@@ -76,6 +86,7 @@
       return this._settings[key + '.suspended'];
     },
     updateStatus: function(value) {
+      this.debug('updating status.');
       // FM Radio will be turned off in Gecko, more detailed about why we do
       // this in Gecko instead, please check bug 997064.
       var bluetooth = window.navigator.mozBluetooth;
@@ -101,7 +112,7 @@
         // Turn off Wifi and Wifi tethering.
         if (wifiManager) {
           this._suspend('wifi');
-          System.notifyObserver({
+          this.writeSetting({
             'tethering.wifi.enabled': false
           });
         }

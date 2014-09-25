@@ -1,14 +1,9 @@
-/* global MockNavigatorSettings, MocksHelper,
-          MockNavigatorMozMobileConnections, SettingsListener,
-          MockLock, AirplaneModeServiceHelper,
-          suite, requireApp, test, suiteTeardown, suiteSetup,
-          setup, teardown, assert, sinon */
+/* global MocksHelper, AirplaneModeServiceHelper, System */
 'use strict';
 
 requireApp(
   'system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('system/shared/test/unit/mocks/mock_promise.js');
 requireApp('system/test/unit/mock_bluetooth.js');
 requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/test/unit/mock_radio.js');
@@ -20,59 +15,39 @@ requireApp('system/js/airplane_mode_service_helper.js');
 var mocksForAirplaneModeServiceHelper = new MocksHelper([
   'Radio',
   'Bluetooth',
-  'WifiManager',
-  'SettingsListener',
-  'NavigatorMozMobileConnections'
+  'WifiManager'
 ]).init();
 
 suite('system/airplane_mode_service_helper.js', function() {
-  var realSettings;
-  var realMobileConnections;
   var subject;
+  var services = ['ril.data', 'geolocation', 'wifi', 'nfc', 'bluetooth'];
 
   mocksForAirplaneModeServiceHelper.attachTestHelpers();
 
-  suiteSetup(function() {
-    realSettings = window.navigator.mozSettings;
-    window.navigator.mozSettings = MockNavigatorSettings;
-
-    realMobileConnections = window.navigator.mozMobileConnections;
-    window.navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
-  });
-
-  suiteTeardown(function() {
-    window.navigator.mozSettings = realSettings;
-
-    MockNavigatorMozMobileConnections.mTeardown();
-    window.navigator.mozMobileConnections = realMobileConnections;
-  });
-
   setup(function() {
-    // we will do a lot of manipulations on SettingsListener,
-    // let's clean it all for every test
-    MockLock.clear();
-
     subject = new AirplaneModeServiceHelper();
-    subject.start();
   });
   teardown(function() {
     subject.stop();
   });
 
-  suite('AirplaneModeServiceHelper', function() {
-    test('init and _initSetting should set initial values of _settings',
+  test('init and _initSetting should set initial values of _settings',
       function() {
-        // SettingsListener is a mock here and would never observe any changes.
-        // We need to trigger callbacks manually to make initSettings work
-        servicesIterator(function(key) {
-          SettingsListener.mTriggerCallback(key + '.enabled', false);
-          SettingsListener.mTriggerCallback(key + '.suspended', false);
+        this.sinon.stub(System, 'request', function(arg) {
+          var args = Array.prototype.splice.call(arguments, 0);
+          if (args[0] === 'SettingsCore:addObserver') {
+            return Promise.resolve(args[2].observe(args[1], false));
+          } else {
+            return Promise.resolve(false);
+          }
         });
+        subject.start();
         // check all values in _settings
         servicesIterator(function(key) {
           assert.ok(getSettingOnServiceHelper(key + '.enabled') === false);
           assert.ok(getSettingOnServiceHelper(key + '.suspended') === false);
         });
+        subject.stop();
     });
 
     suite('_suspend should work as expected when services are enabled',
@@ -82,15 +57,21 @@ suite('system/airplane_mode_service_helper.js', function() {
         });
         test('turn on airplane mode, thus all ".enabled" should be false ' +
           'and all ".suspended" should be true', function() {
+            var settingsDB = {};
+            this.sinon.stub(System, 'request', function() {
+              var args = Array.prototype.splice.call(arguments, 0);
+              for (var key in args[1]) {
+                settingsDB[key] = args[1][key];
+              }
+              return Promise.resolve(false);
+            });
             // enable airplane mode, thus suspend all services
             servicesIterator(function(key) {
               subject._suspend(key);
             });
             servicesIterator(function(key) {
-              assert.ok(
-                MockNavigatorSettings.mSettings[key + '.enabled'] === false);
-              assert.ok(
-                MockNavigatorSettings.mSettings[key + '.suspended'] === true);
+              assert.ok(settingsDB[key + '.enabled'] === false);
+              assert.ok(settingsDB[key + '.suspended'] === true);
             });
         });
     });
@@ -98,30 +79,26 @@ suite('system/airplane_mode_service_helper.js', function() {
     suite('_unsuspend should work as expected when airplane mode is on',
       function() {
         setup(function() {
-          this.sinon.spy(subject, '_unsuspend');
-          setAllSettingsOnServiceHelper({enabled: true, suspended: false});
-          // enable airplane mode, thus suspend all services
-          servicesIterator(function(key) {
-            subject._suspend(key);
-          });
+          setAllSettingsOnServiceHelper({enabled: false, suspended: true});
         });
-        // expand the tests to all services
-        servicesIterator(function(key) {
-          test('turn on ' + key + ', "' + key + '.suspended" should be false ' +
-            'and _unsuspend should be called', function() {
-              var sset = JSON.parse('{"' + key + '.enabled": true}');
-              sinon.assert.notCalled(subject._unsuspend);
-              MockNavigatorSettings.createLock().set(sset);
-              // toggle service (identified by key) on
-              assert.ok(
-                MockNavigatorSettings.mSettings[key + '.enabled'] === true);
-              assert.ok(
-                MockNavigatorSettings.mSettings[key + '.suspended'] === false);
-              assert.ok(getSettingOnServiceHelper(key + '.enabled') === true);
-              assert.ok(
-                getSettingOnServiceHelper(key + '.suspended') === false);
-              sinon.assert.called(subject._unsuspend);
-          });
+
+        test('turn on airplane mode, thus all ".enabled" should be false ' +
+          'and all ".suspended" should be true', function() {
+            var settingsDB = {};
+            this.sinon.stub(System, 'request', function() {
+              var args = Array.prototype.splice.call(arguments, 0);
+              for (var key in args[1]) {
+                settingsDB[key] = args[1][key];
+              }
+              return new Promise(function() {});
+            });
+            // enable airplane mode, thus suspend all services
+            servicesIterator(function(key) {
+              subject._unsuspend(key + '.suspended');
+            });
+            servicesIterator(function(key) {
+              assert.ok(settingsDB[key + '.suspended'] === false);
+            });
         });
       });
 
@@ -150,12 +127,11 @@ suite('system/airplane_mode_service_helper.js', function() {
           });
       });
     });
-  });
 
   // test helpers
 
   function servicesIterator(callback) {
-    ['ril.data', 'bluetooth', 'wifi', 'geolocation', 'nfc'].forEach(callback);
+    services.forEach(callback);
   }
 
   function setSettingOnServiceHelper(key, value) {

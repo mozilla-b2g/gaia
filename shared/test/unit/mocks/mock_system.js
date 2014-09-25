@@ -18,7 +18,10 @@ var MockSystem = {
   mTeardown: function() {
     this.mObservers = {};
   },
-  notifyObserver: function(notifier) {
+  set: function(notifier) {
+  },
+  get: function(name) {
+
   },
   isBusyLoading: function() {
     return false;

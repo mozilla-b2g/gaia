@@ -10,7 +10,9 @@
     'airplaneMode.enabled'
   ];
   AirplaneMode.EVENTS = [
-    'radiostatechange'
+    'radiostatechange',
+    'request-airplane-mode-enable',
+    'request-airplane-mode-disable'
   ];
   AirplaneMode.SUB_MODULES = [
     'AirplaneModeServiceHelper'
@@ -88,6 +90,18 @@
       }
     },
 
+    '_handle_request-airplane-mode-enable': function() {
+      if (this.enabled === false) {
+        this.enabled = true;
+      }
+    },
+
+    '_handle_request-airplane-mode-disable': function() {
+      if (this.enabled === true) {
+        this.enabled = false;
+      }
+    },
+
     /*
      * When turning on / off airplane mode, we will start watching
      * needed events to make sure we are in airplane mode or not.
@@ -134,20 +148,20 @@
       areAllActionsDone = this._areCheckedActionsAllDone(checkActions);
 
       if (areAllActionsDone) {
-        this.debug('write settings...', self._enabled);
-        System.notifyObserver({
-          'airplaneMode.enabled': self._enabled,
-          'airplaneMode.status': self._enabled ? 'enabled' : 'disabled',
+        this.debug('write settings...', this._enabled);
+        this.writeSetting({
+          'airplaneMode.enabled': this._enabled,
+          'airplaneMode.status': this._enabled ? 'enabled' : 'disabled',
           // NOTE
           // this is for backward compatibility,
           // because we will update this value only when airplane mode
           // is on / off, it will not affect apps using this value
-          'ril.radio.disabled': self._enabled
+          'ril.radio.disabled': this._enabled
         });
       } else {
         // keep updating the status to reflect current status
-        System.notifyObserver({
-          'airplaneMode.status': self._enabled ? 'enabling' : 'disabling'
+        this.writeSetting({
+          'airplaneMode.status': this._enabled ? 'enabling' : 'disabling'
         });
       }
     },

@@ -2,13 +2,122 @@
 'use strict';
 
 (function(window) {
-  var DEBUG = false;
+  var DEBUG = true;
   /**
    * Shared some global property.
    * @type {Object}
    * @module  System
    */
   window.System = {
+    /**
+     * Store the services in a json format
+     * serverName => {
+     *   query: function() {},
+     *   lock: function() {}
+     * }
+     * @type {Map}
+     */
+    _servers: new Map(),
+
+    _services: new Map(),
+
+    _requestsByService: new Map(),
+
+    _requestsByServer: new Map(),
+
+    request: function(service) {
+      var requestItems = service.split(':');
+      var args = Array.prototype.slice.call(arguments, 1);
+      if (requestItems.length === 2) {
+        var serverName = requestItems[0];
+        var serviceName = requestItems[1];
+        if (this._servers.get(serverName)) {
+          this.debug('service: ' + serviceName +
+            ' is online, perform the request with ' + args.concat());
+          var self = this;
+          return new Promise(function(resolve) {
+            resolve(self._servers.get(serverName)[serviceName].apply(
+              self._servers.get(serverName), args));
+          });
+        } else {
+          var self = this;
+          return new Promise(function(resolve, reject) {
+            self.debug('service: ' + service + ' is offline, queue the task.');
+            if (!self._requestsByServer.has(serverName)) {
+              self._requestsByServer.set(serverName, []);
+            }
+            self._requestsByServer.get(serverName).push({
+              service: serviceName,
+              resolve: resolve,
+              args: args
+            });
+          });
+        }
+      } else {
+        if (this._services.has(service)) {
+          var server = this._services.get(service);
+          this.debug('service [' + service +
+            '] provider [' + server.name + '] is online, perform the task.');
+          return new Promise(function(resolve, reject) {
+            resolve(server[service].apply(server, args));
+          });
+        } else {
+          this.debug('service: ' + service + ' is offline, queue the task.');
+          var self = this;
+          var promise = new Promise(function(resolve) {
+            self.debug('storing the requests...');
+            if (!self._requestsByService.has(service)) {
+              self._requestsByService.set(service, []);
+            }
+            self._requestsByService.get(service).push({
+              service: service,
+              args: args,
+              resolve: resolve
+            });
+          });
+          return promise;
+        }
+      }
+    },
+
+    register: function(service, server) {
+      var self = this;
+      if (!this._servers.has(server.name)) {
+        this._servers.set(server.name, server);
+      }
+      this.debug((server.name || '(Anonymous)') +
+        ' is registering service: [' + service + ']');
+      this._services.set(service, server);
+      this.debug('checking awaiting requests by server..');
+      if (this._requestsByServer.has(server.name)) {
+        this._requestsByServer.get(server.name).forEach(function(request) {
+          self.debug('resolving..', server,
+            server.name, request.service, request.args);
+          request.resolve(server[request.service].apply(server, request.args));
+        });
+        this._requestsByServer.delete(server.name);
+      }
+      this.debug('checking awaiting requests by service..');
+      if (this._requestsByService.has(service)) {
+        this._requestsByService.get(service).forEach(function(request) {
+          self.debug('resolving..', server, request.service);
+          request.resolve(server[request.service].apply(server, request.args));
+        });
+        this._requestsByService.delete(service);
+      }
+    },
+
+    unregister: function(service, server) {
+      var s = this._servers.get(server.name);
+      if (s) {
+        s.splice(s.indexOf(service), 1);
+      }
+      var se = this._services.get(service);
+      if (se && server === se) {
+        this._services.delete(service);
+      }
+    },
+
     'API': {
       'nfc': navigator.mozNFC,
       'bluetooth': navigator.mozBluetooth,
@@ -37,10 +146,6 @@
         BaseModule.mixin(constructor.prototype, prototype);
       }
       return constructor;
-    },
-
-    request: function() {
-
     },
 
     lazyLoad: function(array, callback) {
@@ -81,6 +186,9 @@
     /**
      * Indicates the system is busy doing something.
      * Now it stands for the foreground app is not loaded yet.
+     *
+     * XXX: AppWindowManager should register a query interface
+     * for isBusyLoading query.
      */
     isBusyLoading: function() {
       var app = window.AppWindowManager.getActiveApp();
@@ -143,68 +251,6 @@
       window.dispatchEvent(evt);
     },
 
-    handleEvent: function(evt) {
-      if (evt.type == 'settings-core-started') {
-        this._observer_to_add &&
-        this._observer_to_add.forEach(function(observer) {
-          window.settingsCore.addObserver(observer.name, observer.context);
-        });
-        this._observer_to_remove &&
-        this._observer_to_remove.forEach(function(observer) {
-          window.settingsCore.removeObserver(observer.name, observer.context);
-        });
-        this._observer_to_notify &&
-        this._observer_to_notify.forEach(function(notifier) {
-          window.settingsCore.notifyObserver(notifier);
-        });
-        this._observer_to_add = [];
-        this._observer_to_remove = [];
-        this._observer_to_notify = [];
-      }
-    },
-
-    notifyObserver: function(notifier) {
-      if (window.settingsCore) {
-        window.settingsCore.notifyObserver(notifier);
-      } else {
-        if (!this._observer_to_notify) {
-          this._observer_to_notify = [];
-        }
-        this._observer_to_notify.push(notifier);
-        window.addEventListener('settings-core-started', this);
-      }
-    },
-
-    addObserver: function(name, context) {
-      if (window.settingsCore) {
-        window.settingsCore.addObserver(name, context);
-      } else {
-        if (!this._observer_to_add) {
-          this._observer_to_add = [];
-        }
-        this._observer_to_add.push({
-          name: name,
-          context: context
-        });
-        window.addEventListener('settings-core-started', this);
-      }
-    },
-
-    removeObserver: function(key, context) {
-      if (window.settingsCore) {
-        window.settingsCore.removeObserver(key, callback);
-      } else {
-        if (!this._observer_to_remove) {
-          this._observer_to_remove = [];
-        }
-        this._observer_to_remove.push({
-          name: key,
-          context: context
-        });
-        window.addEventListener('settings-core-started', this);
-      }
-    },
-
     get runningFTU() {
       if ('undefined' === typeof window.FtuLauncher) {
         return false;
@@ -232,18 +278,6 @@
 
     get manifestURL() {
       return window.location.href.replace('index.html', 'manifest.webapp');
-    },
-
-    isMultiSIM: function() {
-      if (window.SIMSlotManager) {
-        return window.SIMSlotManager.isMultiSIM();
-      } else {
-        if (this.getAPI('mobileConnections')) {
-          return (this.getAPI('mobileConnections').length > 1);
-        } else {
-          return false;
-        }
-      }
     }
   };
 }(this));

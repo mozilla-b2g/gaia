@@ -2,7 +2,7 @@
 'use strict';
 
 (function(exports) {
-  var GLOBAL_DEBUG = true;
+  var GLOBAL_DEBUG = false;
   /**
    * BaseModule is a class skeletion which helps you to build a module with
    * * Centralized event handler
@@ -52,6 +52,18 @@
    * before the real start of this module.
    */
   BaseModule.IMPORTS = [];
+
+  /**
+   * This tells System the sandbox what methods you are going to
+   * register and let the other to request.
+   */
+  BaseModule.SERVICES = [];
+
+  /**
+   * This tells System the sandbox what data you are going to
+   * register and let the other to query.
+   */
+  BaseModule.QEURIES = [];
 
   BaseModule.mixin = function (prototype, mixin) {
     for (var prop in mixin) {
@@ -161,11 +173,25 @@
       }
     },
 
+    writeSetting: function(settingObject) {
+      this.debug('writing ' + JSON.stringify(settingObject) +
+        ' to settings db');
+      return System.request('SettingsCore:set', settingObject);
+    },
+
+    readSetting: function(name) {
+      this.debug('reading ' + name + ' from settings db');
+      return System.request('SettingsCore:get', name);
+    },
+
     observe: function(name, value) {
+      this.debug('observing ' + name + ' : ' + value);
       if (typeof(this._pre_observe) == 'function') {
+        this.debug('pre observer found, invoking.');
         this._pre_observe(name, value);
       }
       if (typeof(this['_observe_' + name]) == 'function') {
+        this.debug('observer for ' + name + ' found, invoking.');
         this['_observe_' + name](value);
       }
       if (typeof(this._post_observe) == 'function') {
@@ -181,7 +207,7 @@
       this.debug('~observing following settings: ' +
         this.constructor.SETTINGS.concat());
       this.constructor.SETTINGS.forEach(function(setting) {
-        System.addObserver(setting, this);
+        System.request('SettingsCore:addObserver', setting, this);
       }, this);
     },
 
@@ -190,7 +216,7 @@
         return;
       }
       this.constructor.SETTINGS.forEach(function(setting) {
-        System.removeObserver(setting, this);
+        System.request('SettingsCore:removeObserver', setting, this);
       }, this);
     },
 
@@ -212,6 +238,19 @@
       this.constructor.EVENTS.forEach(function(event) {
         window.removeEventListener(event, this);
       }, this);
+    },
+
+    _registerServices: function() {
+      if (!this.constructor.SERVICES) {
+        return;
+      }
+      this.constructor.SERVICES.forEach(function(service) {
+        System.register(service, this);
+      }, this);
+    },
+
+    _unregisterServices: function() {
+
     },
 
     _start: function() {},
@@ -241,6 +280,8 @@
       this._subscribeEvents();
       this.debug('setting observing stage..');
       this._observeSettings();
+      this.debug('register services stage..');
+      this._registerServices();
       this.lifeCycleState = 'started';
       this.publish('started');
       this.debug('Started.');
@@ -321,6 +362,7 @@
       this.stopSubModules();
       this._unsubscribeEvents();
       this._unobserveSettings();
+      this._unregisterServices();
       this._stop();
       this.lifeCycleState = 'stopped';
       this.publish('stopped');

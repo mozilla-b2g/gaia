@@ -98,6 +98,7 @@ var Wifi = {
         return;
       }
 
+      console.log('changing wifi enabled');
       self.wifiEnabled = value;
 
       clearTimeout(self._scanTimer);

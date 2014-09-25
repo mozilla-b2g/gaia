@@ -1039,7 +1039,8 @@ var StatusBar = {
 
     data: function sb_updateSignal() {
       var conns = System.getAPI('mobileConnections');
-      if (!conns || typeof(window.SIMSlotManager) === 'undefined') {
+      if (!conns || typeof(window.SIMSlotManager) === 'undefined' ||
+          !this.icons.data) {
         this.updateConnectionsVisibility();
         return;
       }
@@ -1460,42 +1461,43 @@ var StatusBar = {
     }
 
     var conns = System.getAPI('mobileConnections');
+    var self = this;
     if (conns) {
-      var multipleSims = System.isMultiSIM();
+      System.request('isMultiSIM').then(function(multipleSims) {
+        // Create signal elements based on the number of SIM slots.
+        self.icons.connections.dataset.multiple = multipleSims;
+        self.icons.signals = {};
+        self.icons.data = {};
+        self.icons.roaming = {};
+        for (var i = conns.length - 1; i >= 0; i--) {
+          var signal = document.createElement('div');
+          var data = document.createElement('div');
+          var roaming = document.createElement('div');
+          signal.className = 'sb-icon sb-icon-signal statusbar-signal';
+          signal.dataset.level = '5';
+          if (multipleSims) {
+            signal.dataset.index = i + 1;
+          }
+          signal.setAttribute('role', 'listitem');
+          signal.hidden = true;
+          data.setAttribute('role', 'listitem');
+          data.className = 'sb-icon statusbar-data';
+          data.hidden = true;
 
-      // Create signal elements based on the number of SIM slots.
-      this.icons.connections.dataset.multiple = multipleSims;
-      this.icons.signals = {};
-      this.icons.data = {};
-      this.icons.roaming = {};
-      for (var i = conns.length - 1; i >= 0; i--) {
-        var signal = document.createElement('div');
-        var data = document.createElement('div');
-        var roaming = document.createElement('div');
-        signal.className = 'sb-icon sb-icon-signal statusbar-signal';
-        signal.dataset.level = '5';
-        if (multipleSims) {
-          signal.dataset.index = i + 1;
+          roaming.setAttribute('role', 'listitem');
+          roaming.className = 'sb-icon sb-icon-roaming';
+          roaming.hidden = true;
+
+          signal.appendChild(data);
+          self.icons.connections.appendChild(signal);
+          self.icons.connections.appendChild(roaming);
+          self.icons.signals[i] = signal;
+          self.icons.data[i] = data;
+          self.icons.roaming[i] = roaming;
         }
-        signal.setAttribute('role', 'listitem');
-        signal.hidden = true;
-        data.setAttribute('role', 'listitem');
-        data.className = 'sb-icon statusbar-data';
-        data.hidden = true;
 
-        roaming.setAttribute('role', 'listitem');
-        roaming.className = 'sb-icon sb-icon-roaming';
-        roaming.hidden = true;
-
-        signal.appendChild(data);
-        this.icons.connections.appendChild(signal);
-        this.icons.connections.appendChild(roaming);
-        this.icons.signals[i] = signal;
-        this.icons.data[i] = data;
-        this.icons.roaming[i] = roaming;
-      }
-
-      this.updateConnectionsVisibility();
+        self.updateConnectionsVisibility();
+      });
     }
   },
 
@@ -1506,28 +1508,29 @@ var StatusBar = {
     }
 
     var conns = System.getAPI('mobileConnections');
+    var self = this;
     if (conns) {
-      var multipleSims = System.isMultiSIM();
-
-      // Create call forwarding icons
-      var sbCallForwardings =
-        document.getElementById('statusbar-call-forwardings');
-      sbCallForwardings.dataset.multiple = multipleSims;
-      this.icons.callForwardingsElements = {};
-      for (var idx = conns.length - 1; idx >= 0; idx--) {
-        var callForwarding = document.createElement('div');
-        callForwarding.className = 'sb-icon sb-icon-call-forwarding';
-        if (multipleSims) {
-          callForwarding.dataset.index = idx + 1;
+      System.request('isMultiSIM').then(function(multipleSims) {
+        // Create call forwarding icons
+        var sbCallForwardings =
+          document.getElementById('statusbar-call-forwardings');
+        sbCallForwardings.dataset.multiple = multipleSims;
+        self.icons.callForwardingsElements = {};
+        for (var idx = conns.length - 1; idx >= 0; idx--) {
+          var callForwarding = document.createElement('div');
+          callForwarding.className = 'sb-icon sb-icon-call-forwarding';
+          if (multipleSims) {
+            callForwarding.dataset.index = idx + 1;
+          }
+          callForwarding.setAttribute('role', 'listitem');
+          callForwarding.setAttribute('aria-label', 'statusbarForwarding');
+          callForwarding.hidden = true;
+          self.icons.callForwardings.appendChild(callForwarding);
+          self.icons.callForwardingsElements[idx] = callForwarding;
         }
-        callForwarding.setAttribute('role', 'listitem');
-        callForwarding.setAttribute('aria-label', 'statusbarForwarding');
-        callForwarding.hidden = true;
-        this.icons.callForwardings.appendChild(callForwarding);
-        this.icons.callForwardingsElements[idx] = callForwarding;
-      }
 
-      this.updateCallForwardingsVisibility();
+        self.updateCallForwardingsVisibility();
+      });
     }
   },
 

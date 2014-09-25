@@ -1,5 +1,5 @@
 /* jshint loopfunc: true */
-/* global SettingsHelper, SettingsListener, airplaneMode, applications,
+/* global SettingsHelper, SettingsListener, applications,
           UtilityTray, MozActivity, System */
 
 /* global System */
@@ -11,6 +11,7 @@
     'airplaneMode.status',
     'geolocation.enabled',
     'bluetooth.enabled',
+    'wifi.enabled'
   ];
   QuickSettings.EVENTS = [
     'wifi-enabled',
@@ -256,7 +257,8 @@
           break;
 
         case this.airplaneMode:
-          airplaneMode.enabled = !this.airplaneMode.dataset.enabled;
+          var enable = this.airplaneMode.dataset.enabled ? 'disable' : 'enable';
+          this.publish('request-airplane-mode-' + enable);
           break;
 
         case this.fullApp:

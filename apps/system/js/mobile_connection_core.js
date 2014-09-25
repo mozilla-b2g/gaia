@@ -23,6 +23,9 @@
     'airplanemode-enabled',
     'airplanemode-disabled'
   ];
+  MobileConnectionCore.SERVICES = [
+    'isMultiSIM'
+  ];
   System.create(MobileConnectionCore, {}, {
     name: 'MobileConnectionCore',
     '_handle_airplanemode-enabled': function() {
@@ -45,9 +48,26 @@
       }
     },
     onSubModuleInited: function(moduleName) {
-      console.log(moduleName, window.airplaneMode);
       if (moduleName == 'radio' && window.airplaneMode) {
         this.radio.enabled = !window.airplaneMode.enabled;
+      }
+    },
+
+    /**
+     * SIMSlotManager is not based on the base module,
+     * so we need to provide the interface here to protect it.
+     * @return {Boolean} There is multiple SIM slots in the device or not.
+     */
+    isMultiSIM: function() {
+      this.debug('querying multiple sim..');
+      if (window.SIMSlotManager) {
+        return window.SIMSlotManager.isMultiSIM();
+      } else {
+        if (this.mobileConnections) {
+          return (this.mobileConnections.length > 1);
+        } else {
+          return false;
+        }
       }
     }
   });
