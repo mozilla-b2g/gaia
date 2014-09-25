@@ -23,6 +23,36 @@ var MockCallScreen = {
   disablePlaceNewCall: function() {
     this.mEnablePlaceNewCallCalled = false;
   },
+  enableMute: function() {
+    this.mEnableMuteCalled = true;
+  },
+  disableMute: function() {
+    this.mEnableMuteCalled = false;
+  },
+  enableSpeaker: function() {
+    this.mEnableSpeakerCalled = true;
+  },
+  disableSpeaker: function() {
+    this.mEnableSpeakerCalled = false;
+  },
+  showOnHold: function() {
+    this.mShowOnHoldCalled = true;
+  },
+  hideOnHold: function() {
+    this.mHideOnHoldCalled = true;
+  },
+  enableOnHold: function() {
+    this.mEnableOnHoldCalled = true;
+  },
+  disableOnHold: function() {
+    this.mEnableOnHoldCalled = false;
+  },
+  showMerge: function() {
+    this.mShowMergeCalled = true;
+  },
+  hideMerge: function() {
+    this.mHideMergeCalled = true;
+  },
   syncSpeakerEnabled: function() {
     this.mSyncSpeakerCalled = true;
   },
@@ -111,6 +141,13 @@ var MockCallScreen = {
   incomingNumberAdditionalInfo: document.createElement('span'),
 
   mEnablePlaceNewCallCalled: false,
+  mEnableMuteCalled: false,
+  mEnableSpeakerCalled: false,
+  mShowOnHoldCalled: false,
+  mHideOnHoldCalled: false,
+  mEnableOnHoldCalled: false,
+  mShowMergeCalled: false,
+  mHideMergeCalled: false,
   mSyncSpeakerCalled: false,
   mSetCallerContactImageCalled: false,
   mMuteOn: false,
@@ -118,6 +155,13 @@ var MockCallScreen = {
   mLastRenderMode: null,
   mTeardown: function teardown() {
     this.mEnablePlaceNewCallCalled = false;
+    this.mEnableMuteCalled = false;
+    this.mEnableSpeakerCalled = false;
+    this.mShowOnHoldCalled = false,
+    this.mHideOnHoldCalled = false,
+    this.mEnableOnHoldCalled = false,
+    this.mShowMergeCalled = false,
+    this.mHideMergeCalled = false,
     this.mSyncSpeakerCalled = false;
     this.mSetCallerContactImageCalled = false;
     this.mMuteOn = false;

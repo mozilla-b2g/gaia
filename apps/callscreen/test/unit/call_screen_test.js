@@ -51,6 +51,8 @@ suite('call screen', function() {
   var incomingContainer;
   var bluetoothButton,
       bluetoothMenu;
+  var holdButton;
+  var mergeButton;
 
   mocksHelperForCallScreen.attachTestHelpers();
 
@@ -132,6 +134,14 @@ suite('call screen', function() {
     bluetoothButton.id = 'bt';
     screen.appendChild(bluetoothButton);
 
+    holdButton = document.createElement('button');
+    holdButton.id = 'on-hold';
+    screen.appendChild(holdButton);
+
+    mergeButton = document.createElement('button');
+    mergeButton.id = 'merge';
+    screen.appendChild(mergeButton);
+
     bluetoothMenu = document.createElement('form');
     bluetoothMenu.id = 'bluetooth-menu';
     bluetoothMenu.dataset.dummy = 'dummy';
@@ -173,13 +183,15 @@ suite('call screen', function() {
 
   suite('call screen initialize', function() {
     var mockElements = ['keypadButton', 'placeNewCallButton', 'answerButton',
-      'rejectButton', 'holdButton', 'showGroupButton', 'hideGroupButton',
-      'incomingAnswer', 'incomingEnd', 'incomingIgnore'];
+      'rejectButton', 'holdButton', 'mergeButton', 'showGroupButton',
+      'hideGroupButton', 'incomingAnswer', 'incomingEnd', 'incomingIgnore'];
 
     setup(function() {
       this.sinon.stub(CallScreen, 'showClock');
       this.sinon.stub(CallScreen, 'initLockScreenSlide');
       this.sinon.stub(CallScreen, 'render');
+      this.sinon.spy(CallScreen, 'toggleOnHold');
+      this.sinon.spy(MockCallsHandler, 'mergeCalls');
       mockElements.forEach(function(name) {
         CallScreen[name] = document.createElement('button');
       });
@@ -190,6 +202,8 @@ suite('call screen', function() {
       sinon.assert.notCalled(CallScreen.showClock);
       sinon.assert.notCalled(CallScreen.initLockScreenSlide);
       sinon.assert.notCalled(CallScreen.render);
+      sinon.assert.notCalled(CallScreen.toggleOnHold);
+      sinon.assert.notCalled(MockCallsHandler.mergeCalls);
     });
 
     suite('incoming-locked screen initialize', function() {
@@ -217,6 +231,30 @@ suite('call screen', function() {
         sinon.assert.called(CallScreen.showClock);
         sinon.assert.called(CallScreen.initLockScreenSlide);
         sinon.assert.notCalled(CallScreen.render);
+      });
+    });
+
+    suite('button listeners successfully added and notified', function() {
+      test('hold button successfully added and notified', function() {
+        CallScreen.init();
+        var event = new MouseEvent('click', {
+          'view': window,
+          'bubbles': true,
+          'cancelable': true
+        });
+        CallScreen.holdButton.dispatchEvent(event);
+        sinon.assert.calledOnce(CallScreen.toggleOnHold);
+      });
+
+      test('merge button successfully added and notified', function() {
+        CallScreen.init();
+        var event = new MouseEvent('click', {
+          'view': window,
+          'bubbles': true,
+          'cancelable': true
+        });
+        CallScreen.mergeButton.dispatchEvent(event);
+        sinon.assert.calledOnce(MockCallsHandler.mergeCalls);
       });
     });
   });
@@ -681,6 +719,25 @@ suite('call screen', function() {
           number: ''
         }
       });
+    });
+  });
+
+  suite('toggleOnHold', function() {
+    test('should change active-state class', function() {
+      var classList = CallScreen.holdButton.classList;
+      var originalState = classList.contains('active-state');
+
+      CallScreen.toggleOnHold();
+      assert.notEqual(classList.contains('active-state'), originalState);
+
+      CallScreen.toggleOnHold();
+      assert.equal(classList.contains('active-state'), originalState);
+    });
+
+    test('should call CallsHandler.holdOrResumeSingleCall', function() {
+      this.sinon.spy(MockCallsHandler, 'holdOrResumeSingleCall');
+      CallScreen.toggleOnHold();
+      assert.isTrue(MockCallsHandler.holdOrResumeSingleCall.calledOnce);
     });
   });
 

@@ -10,7 +10,6 @@ function HandledCall(aCall) {
   this.call = aCall;
 
   aCall.addEventListener('statechange', this);
-  aCall.addEventListener('statechange', CallsHandler.updatePlaceNewCall);
 
   aCall.ongroupchange = (function onGroupChange() {
     if (this.call.group) {
@@ -50,13 +49,6 @@ function HandledCall(aCall) {
   this.hangupButton.onclick = (function() {
     this.call.hangUp();
   }.bind(this));
-  this.mergeButton = this.node.querySelector('.merge-button');
-  this.mergeButton.onclick = (function(evt) {
-    if (evt) {
-      evt.stopPropagation();
-    }
-    CallsHandler.mergeActiveCallWith(this.call);
-  }).bind(this);
 
   this.updateCallNumber();
 
@@ -111,6 +103,8 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       this.node.classList.add('held');
       break;
   }
+  CallsHandler.updatePlaceNewCall();
+  CallsHandler.updateMergeAndOnHoldStatus();
 };
 
 HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
