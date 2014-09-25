@@ -262,6 +262,9 @@ WebappShared.prototype.pushElements = function(path) {
   }, this);
 };
 
+/**
+ * Push file to build_stage/<app>/shared/<type> by their type
+ */
 WebappShared.prototype.pushFileByType = function(kind, path) {
   if (path.match(/@[\d\.]+x\.(png|gif|jpg)$/)) {
     utils.log('WARNNING: You are using hidpi image directly in html.');
@@ -316,24 +319,53 @@ WebappShared.prototype.pushFileByType = function(kind, path) {
   }
 };
 
+/**
+ * Filter <script...>|<link..> keyword in HTML. If these external resources are 
+ * imported from '/shared', we should move them to build_stage/<app>/shared
+ */
 WebappShared.prototype.filterSharedUsage = function(file) {
   var SHARED_USAGE =
-      /<(?:script|link).+=['"]\.?\.?\/?shared\/([^\/]+)\/([^'"\s]+)("|')/g;
+      /<(?:script|link).+=['"]\.?\.?\/?shared\/([^\/]+)\/([^'"\s]+)['"]/g;
   var content = utils.getFileContent(file);
   var matches = null;
-  while((matches = SHARED_USAGE.exec(content)) !== null) {
+  while ((matches = SHARED_USAGE.exec(content)) !== null) {
     let kind = matches[1]; // js | locales | resources | style
     let path = matches[2];
     this.pushFileByType(kind, path);
   }
 };
 
-WebappShared.prototype.filterHTML = function(file) {
-  var EXTENSIONS_WHITELIST = ['html'];
+/**
+ * Filter @import keyword in CSS. If these imported CSS are from '/shared',
+ * we should move them to build_stage/<app>/shared
+ */
+WebappShared.prototype.filterSharedCSSImport = function(file) {
+  var COMMENTED =
+      /(?:\/\*(?:[\s\S]*?)\*\/)|(?:([\s;])+\/\/(?:.*)$)/gm;
+  var CSS_IMPORT =
+      /@import (?:url\()?['"].*shared\/([^\/]+)\/([^'"\s]+)['"](?:\))?.*;$/gm;
+  var content = utils.getFileContent(file).replace(COMMENTED, '');
+  var matches = null;
+  while ((matches = CSS_IMPORT.exec(content)) !== null) {
+    let kind = matches[1]; // imported css file
+    let path = matches[2];
+    this.pushFileByType(kind, path);
+  }
+};
+
+/**
+ * Filter file by extenstion
+ */
+WebappShared.prototype.filterFileByExtenstion = function(type, file) {
+  var EXTENSIONS_WHITELIST = [type];
   var extension = utils.getExtension(file.leafName);
   return file.isFile() && EXTENSIONS_WHITELIST.indexOf(extension) !== -1;
 };
 
+/**
+ * copyShared scan '/shared' resources which have ever imported by webapps
+ * and copy them to '/build_stage' with their proper structures.  
+ */
 WebappShared.prototype.copyShared = function() {
   // If config.BUILD_APP_NAME isn't `*`, we only accept one webapp
   if (this.config.BUILD_APP_NAME !== '*' &&
@@ -347,7 +379,10 @@ WebappShared.prototype.copyShared = function() {
   }
 
   var files = utils.ls(this.webapp.sourceDirectoryFile, true);
-  files.filter(this.filterHTML).forEach(this.filterSharedUsage.bind(this));
+  files.filter(this.filterFileByExtenstion.bind(this, 'html')).forEach(
+    this.filterSharedUsage.bind(this));
+  files.filter(this.filterFileByExtenstion.bind(this, 'css')).forEach(
+    this.filterSharedCSSImport.bind(this));
   this.customizeShared();
 };
 

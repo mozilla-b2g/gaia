@@ -82,7 +82,7 @@ suite('webapp-shared.js', function() {
   });
 
   suite('setOptions, pushFileByType, filterSharedUsage, ' +
-        'filterHTML, ',
+        'filterSharedCSSImport, filterFileByExtenstion, ',
     function() {
     var webappShared;
     setup(function() {
@@ -182,21 +182,44 @@ suite('webapp-shared.js', function() {
         {kind: 'js', path: jslink}]);
     });
 
-    test('filterHTML', function() {
-      var htmlResult = webappShared.filterHTML({
-        isFile: function() {
-          return true;
-        },
-        leafName: 'text.html'
-      });
+    test('filterSharedCSSImport', function() {
+      var csslink = 'test.css';
+      var content = '@import "shared/style/' + csslink + '";\n';
+      var result = [];
+      webappShared.pushFileByType = function(kind, path) {
+        result.push({kind: kind, path: path});
+      };
+      webappShared.filterSharedCSSImport(content);
+      assert.deepEqual(result, [
+        {kind: 'style', path: csslink}
+      ]);
+    });
+
+    test('filterFileByExtenstion', function() {
+      var htmlResult = webappShared.filterFileByExtenstion(
+        'html', {
+          isFile: function() {
+            return true;
+          },
+          leafName: 'text.html'
+        });
       assert.equal(htmlResult, true);
-      var notHtmlResult = webappShared.filterHTML({
-        isFile: function() {
-          return true;
-        },
-        leafName: 'text.txt'
-      });
-      assert.equal(notHtmlResult, false);
+      var cssResult = webappShared.filterFileByExtenstion(
+        'css', {
+          isFile: function() {
+            return true;
+          },
+          leafName: 'text.css'
+        });
+      assert.equal(cssResult, true);
+      var failResult = webappShared.filterFileByExtenstion(
+        'txt', {
+          isFile: function() {
+            return true;
+          },
+          leafName: 'text.js'
+        });
+      assert.equal(failResult, false);
     });
 
     teardown(function() {
@@ -236,12 +259,16 @@ suite('webapp-shared.js', function() {
     });
 
     test('copyShared', function() {
-      var result;
-      webappShared.filterHTML = function(file) {
-        return file.indexOf('.html') !== -1;
+      var result = [];
+
+      webappShared.filterFileByExtenstion = function(type, file) {
+        return file.indexOf(type) !== -1;
       };
       webappShared.filterSharedUsage = function(file) {
-        result = file;
+        result.push(file);
+      };
+      webappShared.filterSharedCSSImport = function(file) {
+        result.push(file);
       };
       webappShared.customizeShared = function() {};
 
@@ -252,7 +279,7 @@ suite('webapp-shared.js', function() {
         sourceDirectoryName: 'testApp2'
       };
       assert.equal(webappShared.copyShared(), undefined,
-        'config.BUILD_APP_NAME isnot *, we only accept one webapp');
+        'config.BUILD_APP_NAME is\'nt *, we only accept one webapp');
 
       webappShared.webapp.sourceDirectoryName =
         webappShared.config.BUILD_APP_NAME;
@@ -265,13 +292,13 @@ suite('webapp-shared.js', function() {
       mockUtils.isExternalApp = function() {
         return false;
       };
-      var expected = 'testfile.html';
-      var testfiles = [expected, 'testimg.png'];
+      var expected = ['testfile.html', 'teststyle.css'];
+      var testfiles = ['testfile.html', 'teststyle.css', 'testimg.png'];
       mockUtils.ls = function() {
         return testfiles;
       };
       webappShared.copyShared();
-      assert.equal(result, expected,
+      assert.deepEqual(result, expected,
         'external app');
     });
 
