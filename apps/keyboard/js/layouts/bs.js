@@ -3,6 +3,7 @@ Keyboards.bs = {
   shortLabel: 'Bs',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],
+  autoCorrectLanguage: 'bs',
   menuLabel: 'Bosanski',
   alt: {
     c: 'čć',
