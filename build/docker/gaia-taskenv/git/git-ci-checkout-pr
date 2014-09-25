@@ -1,0 +1,43 @@
+#! /bin/bash -e
+
+USAGE="git ci-checkout-pr <directory> <source_repository> <source_revision> <target_repo> <target_revision>"
+
+. "$(which git-ci-checkout-setup)"
+
+# Checkout the git repository at the correct version with the pull request
+# applied.
+# Arguments:
+#  - directory
+#  - source repository [ex: http://github.com/mozilla-b2g/gaia]
+#  - source version [ex: master]
+#  - target repository [ex: http://github.com/lightsofapollo/gaia]
+#  - target version [ex: pr]
+checkout_pr() {
+  local checkout_path=$1
+  local source_repo=$2
+  local source_rev=$3
+  local target_repo=$4
+  local target_rev=$5
+
+  # git-ci-checkout-pr contains the initial logic which checkouts the source
+  # state... NOTE: The dash style is used here so tests and remote work equally
+  # well...
+  git ci-checkout-ref $checkout_path $source_repo $source_rev
+  change_git_target $checkout_path
+
+  local branch="git-ci-$source_rev-to-$target_rev"
+
+  # Clear up any previous branches with the same name
+  if [ "$(contains $branch $(git branch))" = "0" ];
+  then
+    git branch -D $branch
+  fi
+
+  # Checkout the new branch.
+  git checkout -b $branch
+  # TODO: Should we fallback to checking out the target rev if we fail to merge
+  # the two?
+  git pull --no-edit $target_repo $target_rev
+}
+
+checkout_pr $@
