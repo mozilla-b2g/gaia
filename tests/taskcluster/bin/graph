@@ -36,7 +36,13 @@ var taskIdMap = {};
 
 // Final task graph definition place holder...
 var graph = {
-  scopes: [
+  tasks: []
+};
+
+// XXX: Hack to allow testing locally as well as via the gaia-taskcluster server
+// side infrastructure.
+if (process.argv[2] == '--full') {
+  graph.scopes = [
     util.format(
       'queue:define-task:%s/%s',
       config.params.provisionerId, config.params.workerType
@@ -46,16 +52,15 @@ var graph = {
       'queue:create-task:%s/%s',
       config.params.provisionerId, config.params.workerType
     ),
-  ],
+  ];
 
-  metadata: {
+  graph.metadata = {
     source: process.env.GITHUB_HEAD_GIT + '/blob/tests/taskcluster/bin/graph',
     owner: 'jlal@mozilla.com', // TODO: Obviously change this...
     description: 'Generated task graph for gaia',
     name: 'Gaia'
-  },
-  tasks: []
-};
+  };
+}
 
 // Expand all tasks based on the `tasks.yml` file...
 Object.keys(config.definitions).forEach(function(name) {
