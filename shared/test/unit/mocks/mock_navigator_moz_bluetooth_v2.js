@@ -4,37 +4,25 @@
 
 (function(window) {
 
+  // refer to http://dxr.mozilla.org/mozilla-central/source/
+  // dom/webidl/BluetoothAdapter2.webidl
   var MockBTAdapter = {
     answerWaitingCall: function mba_answerWaitingCall() {},
     ignoreWaitingCall: function mba_ignoreWaitingCall() {},
     toggleCalls: function mba_toggleCalls() {},
     getConnectedDevices: function mba_getConnectedDevices() {},
-    getPairedDevices: function mba_getPairedDevices() {},
     connectSco: function mba_connectSco() {},
     disconnectSco: function mba_disconnectSco() {},
-    setPairingConfirmation: function mba_setPairingConfirmation() {},
-    setPinCode: function mba_setPinCode() {},
-    setPasskey: function mba_setPasskey() {},
+    enable: function mba_enable() {},
+    disable: function mba_disable() {},
 
     onscostatuschanged: null
   };
 
   var mEventListeners = [];
 
-  var mAdapterRequest = {
-    result: MockBTAdapter,
-    onsuccess: null,
-    onerror: null
-  };
-
-  function mmb_getDefaultAdapter() {
-    return mAdapterRequest;
-  }
-
-  function mmb_triggerOnGetAdapterSuccess() {
-    if (mAdapterRequest.onsuccess) {
-      mAdapterRequest.onsuccess();
-    }
+  function mmb_defaultAdapter() {
+    return MockBTAdapter;
   }
 
   function mmb_addEventListener(type, callback) {
@@ -52,12 +40,14 @@
     });
   }
 
+  // refer to http://dxr.mozilla.org/mozilla-central/source/
+  // dom/webidl/BluetoothManager2.webidl
   window.MockMozBluetooth = {
+    defaultAdapter: mmb_defaultAdapter(),
     addEventListener: mmb_addEventListener,
     triggerEventListeners: mmb_triggerEventListeners,
-    getDefaultAdapter: mmb_getDefaultAdapter,
-    triggerOnGetAdapterSuccess: mmb_triggerOnGetAdapterSuccess,
-    ondisabled: function mmb_ondisabled() {}
+    onattributechanged: function mmb_onattributechanged() {},
+    getAdapters: function mmb_getAdapters() {}
   };
 
   window.MockBTAdapter = MockBTAdapter;
