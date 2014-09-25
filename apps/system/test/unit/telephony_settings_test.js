@@ -155,6 +155,9 @@ suite('system/TelephonySettings', function() {
         'getCallingLineIdRestriction').returns(reqResponse);
       setStub = this.sinon.stub(fakeConnections[0],
         'setCallingLineIdRestriction').returns(reqResponse);
+      MockSettingsHelper.instances['ril.clirMode'] = {
+        value: ['custom-value-clir']
+      };
 
       subject = new TelephonySettings();
       stubFunctions(subject, 'initCallerIdPreference');
@@ -166,11 +169,6 @@ suite('system/TelephonySettings', function() {
       setStub.restore();
     });
 
-    test('setCallingLineIdRestriction default value', function() {
-      subject.start();
-      assert.ok(setStub.calledWith(0));
-    });
-
     test('_registerListenerForCallerIdPreference is called when init',
       function() {
         subject.start();
@@ -180,10 +178,17 @@ suite('system/TelephonySettings', function() {
     });
 
     test('setCallingLineIdRestriction from settings', function() {
-      MockSettingsHelper.instances['ril.clirMode'] =
-        {value: ['custom-value-clir']};
       subject.start();
       assert.ok(setStub.calledWith('custom-value-clir'));
+    });
+
+    test('setCallingLineIdRestriction should not be called when user ' +
+      'preference is not available', function() {
+        MockSettingsHelper.instances['ril.clirMode'] = {
+          value: null
+        };
+        subject.start();
+        assert.ok(setStub.notCalled);
     });
   });
 
