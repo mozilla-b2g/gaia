@@ -1,7 +1,7 @@
 'use strict';
 
 (function(window) {
-  var observers, settings, removedObservers, requests;
+  var observers, settings, removedObservers, requests, timeouts;
   var _mSyncRepliesOnly, _onsettingchange;
 
   function mns_mLockSet(obj) {
@@ -23,17 +23,21 @@
       onerror: null
     };
 
-    setTimeout(function() {
+    timeouts.push(setTimeout(function() {
       if (req.onsuccess) {
         req.onsuccess();
       }
-    });
+    }));
 
     return req;
   }
 
   function mns_clearRequests() {
     requests = [];
+    if (timeouts) {
+      timeouts.forEach(clearTimeout);
+    }
+    timeouts = [];
   }
 
   function mns_mReplyToRequests() {
@@ -68,11 +72,11 @@
     };
 
     if (!_mSyncRepliesOnly) {
-      setTimeout(function() {
+      timeouts.push(setTimeout(function() {
         if (settingsRequest.onsuccess) {
           settingsRequest.onsuccess();
         }
-      });
+      }));
     } else {
       requests.push(settingsRequest);
     }
@@ -119,7 +123,7 @@
     observers = {};
     settings = {};
     removedObservers = {};
-    requests = [];
+    mns_clearRequests();
     _mSyncRepliesOnly = false;
     _onsettingchange = null;
   }

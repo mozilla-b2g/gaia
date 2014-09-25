@@ -90,7 +90,9 @@ suite('WallpaperManager', function() {
       publish: function(type, data) {
         if (self.onWallpaperChange) {
           setTimeout(function() {
-            self.onWallpaperChange(type, data);
+            if (self.onWallpaperChange) {
+              self.onWallpaperChange(type, data);
+            }
           });
         }
       }
@@ -147,19 +149,20 @@ suite('WallpaperManager', function() {
 
     // We do our assertions once we see a wallpaperchange event published.
     this.onWallpaperChange = function(type, data) {
-      // Check event type
-      assert.equal(type, 'wallpaperchange');
-      // Check that we get a blob url
-      assert.equal(data.url.substring(0, 5), 'blob:');
+      done(() => {
+        // Check event type
+        assert.equal(type, 'wallpaperchange');
+        // Check that we get a blob url
+        assert.equal(data.url.substring(0, 5), 'blob:');
 
-      // Check that the methods were called the expected number of times
-      assert.ok(self.setWallpaperSpy.calledOnce);
-      assert.ok(self.toBlobSpy.notCalled);
-      assert.ok(LazyLoader.load.notCalled);
-      assert.ok(self.checkSizeSpy.notCalled);
-      assert.ok(self.saveSpy.notCalled);
-      assert.ok(self.publishSpy.calledOnce);
-      done();
+        // Check that the methods were called the expected number of times
+        sinon.assert.calledOnce(self.setWallpaperSpy);
+        sinon.assert.notCalled(self.toBlobSpy);
+        sinon.assert.notCalled(LazyLoader.load);
+        sinon.assert.notCalled(self.checkSizeSpy);
+        sinon.assert.notCalled(self.saveSpy);
+        sinon.assert.calledOnce(self.publishSpy);
+      });
     };
 
     subject.start();
