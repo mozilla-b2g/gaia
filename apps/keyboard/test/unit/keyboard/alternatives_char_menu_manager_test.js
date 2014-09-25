@@ -33,15 +33,9 @@ suite('AlternativesCharMenuManager', function() {
     container.id = 'test-menu';
 
     var child1 = document.createElement('div');
-    child1.style.width = '30px';
-    child1.style.height = '100%';
-    child1.id = 'key1';
     container.appendChild(child1);
 
     var child2 = document.createElement('div');
-    child2.style.width = '30px';
-    child2.style.height = '100%';
-    child2.id = 'key2';
     container.appendChild(child2);
 
     document.body.appendChild(container);
@@ -56,8 +50,8 @@ suite('AlternativesCharMenuManager', function() {
           getBoundingClientRect: function() {
             return container.getBoundingClientRect();
           },
-          getLineHeight: function() {
-            return 10;
+          getMenuTarget: function() {
+            return child2;
           }
         };
       },
