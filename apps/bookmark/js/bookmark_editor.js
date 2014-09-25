@@ -1,6 +1,6 @@
 'use strict';
 
-/* global UrlHelper, BookmarksDatabase, Icon */
+/* global UrlHelper, BookmarksDatabase, Icon, WebManifestHelper */
 /* exported BookmarkEditor */
 
 var BookmarkEditor = {
@@ -24,6 +24,7 @@ var BookmarkEditor = {
     this.bookmarkIcon = document.getElementById('bookmark-icon');
     this.cancelButton = document.getElementById('cancel-button');
     this.saveButton = document.getElementById('done-button');
+    this.appInstallationSection = document.getElementById('app-installation');
 
     this.cancelButton.addEventListener('click', this.close.bind(this));
     this.saveListener = this.save.bind(this);
@@ -32,6 +33,14 @@ var BookmarkEditor = {
     this.bookmarkTitle.value = this.data.name || '';
 
     this._renderIcon();
+    
+    if (this.data.manifestURL) {
+      this.manifestURL = this.data.manifestURL;
+      this._getManifest(this.manifestURL);
+      this.installAppSwitch = document.getElementById('install-app-switch');
+      this.installAppSwitch.addEventListener('click',
+        this._handleAppSwitchClick.bind(this));
+    }
 
     this._checkDoneButton();
     this.form = document.getElementById('bookmark-form');
@@ -55,6 +64,17 @@ var BookmarkEditor = {
   _renderIcon: function renderIcon() {
     var icon = new Icon(this.bookmarkIcon, this.data.icon);
     icon.render();
+  },
+  
+  _getManifest: function bookmarkEditor_getManifest(manifestURL) {
+    WebManifestHelper.getManifest(manifestURL).then(manifestData => {
+      if (manifestData) {
+        this.appInstallationSection.classList.remove('hidden');
+        this.manifest = manifestData;
+      }
+    }, function(error) {
+    console.error('Unable to get web manifest: ' + error);
+    });
   },
 
   _onEditMode: function bookmarkEditor_onEditMode() {
@@ -87,9 +107,27 @@ var BookmarkEditor = {
     var title = this.bookmarkTitle.value.trim();
     this.saveButton.disabled = title === '';
   },
+  
+  _handleAppSwitchClick: function bookmarkEditor_handleAppSwitchClick(e) {
+    if (e.target.checked) {
+      this.bookmarkTitle.value = this.manifest.short_name ||
+        this.manifest.name || this.data.name || '';
+      this.appRequested = true;
+    } else {
+      this.bookmarkTitle.value = this.data.name || '';
+      this.appRequested = false;
+    }
+  },
 
   save: function bookmarkEditor_save(evt) {
     this.saveButton.removeEventListener('click', this.saveListener);
+    
+    // If app installation requested, install app
+    if (this.appRequested) {
+      this.oncancelled();
+      window.navigator.mozApps.install(this.manifestURL);
+      return;
+    }
 
     // Only allow urls to be bookmarked.
     // This is defensive check - callers should filter out non-URLs.
