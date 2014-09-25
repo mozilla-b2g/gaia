@@ -630,6 +630,8 @@ b2g_sdk:
 	@echo "Test SDK directory: $(XULRUNNER_DIRECTORY)"
 ifndef USE_LOCAL_XULRUNNER_SDK
 ifneq ($(B2G_SDK_URL),$(shell test -d $(XULRUNNER_DIRECTORY) && cat $(B2G_SDK_URL_FILE) 2> /dev/null))
+ifeq ($(BUILDAPP),desktop)
+	@echo $(BUILDAPP)
 	rm -rf $(XULRUNNER_DIRECTORY)
 	mkdir -p "$(XULRUNNER_DIRECTORY)"
 	@echo "Downloading B2G SDK..."
@@ -648,6 +650,7 @@ else
 endif
 	@rm -rf $(B2G_SDK_TMP) $(B2G_SDK_FILE_NAME)
 	@echo $(B2G_SDK_URL) > $(B2G_SDK_URL_FILE)
+endif # ends BUILDAPP=desktop block
 endif # B2G SDK is up to date
 endif # USE_LOCAL_XULRUNNER_SDK
 	test -f $(XPCSHELLSDK)
