@@ -87,6 +87,7 @@ Contacts.Selectors = {
 
   clearOrgButton: '#clear-org',
   setIceButton: '#set-ice',
+  iceHeader: '#ice-header',
   iceSwitch1: '#ice-contacts-1-switch',
   iceInputSwitch1: '#ice-contacts-1-switch input[type="checkbox"]',
   iceSwitch2: '#ice-contacts-2-switch',
