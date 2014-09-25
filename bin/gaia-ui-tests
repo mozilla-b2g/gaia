@@ -20,7 +20,7 @@ get_b2g_bin() {
 get_profile() {
   # TODO: Make configurable
   local folder=profile
-  if [ -z $folder ];
+  if [ ! -d $folder ];
   then
     # Everything goes to stderr...
     make $folder 1>&2

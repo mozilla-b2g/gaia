@@ -1,8 +1,5 @@
 # Chunking task for gaia-ui-tests...
 ---
-requires:
-  - '{{tasks.linters}}'
-
 task:
   metadata:
     name: 'Gaia ui tests {{chunk}}'

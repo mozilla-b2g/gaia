@@ -1,6 +1,3 @@
-requires:
-  - '{{tasks.linters}}'
-
 task:
   metadata:
     name: Gaia unit tests in firefox
