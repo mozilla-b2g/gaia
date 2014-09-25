@@ -146,6 +146,13 @@ if [ "$BUILDAPP" != "desktop" ]; then
   echo "spawned PID: $SPAWNED_PID"
 fi
 
+# Dirty hack until we can kill this file or fix passing DEBUG to profile
+# construction.
+if [ ! -z "$NODE_DEBUG" ];
+then
+  export DEBUG=$NODE_DEBUG
+fi
+
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
 # xpcshell in available for email fake servers.
 PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \

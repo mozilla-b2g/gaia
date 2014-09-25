@@ -17,7 +17,13 @@ task:
 
     command:
       - entrypoint
-      - ./bin/ci run marionette_js
+      - mkdir -p artifacts && NODE_DEBUG=* ./bin/ci run marionette_js 2> artifacts/debug.log
+
+    artifacts:
+      'public/gaia_ui_tests':
+        type: directory
+        path: '{{gaia}}/artifacts/'
+        expires: '{{nextYear}}'
 
   tags:
     treeherderProject: Gij{{chunk}}
