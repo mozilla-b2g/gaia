@@ -35,8 +35,9 @@ checkout_pr() {
 
   # Checkout the new branch.
   git checkout -b $branch
-  # TODO: Should we fallback to checking out the target rev if we fail to merge
-  # the two?
+
+  # We might also consider checking out the revision without the merge if this
+  # fails which is what travis CI does but this may lead to false positives.
   git pull --no-edit $target_repo $target_rev
 }
 

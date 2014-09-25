@@ -15,6 +15,7 @@ task:
     # See: travis_ci/gaia_ui_tests/script for how this ties into the built in
     # chunking functionality for the test scripts...
     env:
+      SUITE: functional
       THIS_CHUNK: '{{chunk}}'
       TOTAL_CHUNKS: '{{totalChunks}}'
 
@@ -25,12 +26,12 @@ task:
     artifacts:
       'public/gecko.log':
         type: file
-        path: /home/tester/git_checkout/artifacts/gaia_ui_tests_report.html
+        path: '{{gaia}}/artifacts/gaia_ui_tests_report.html'
         expires: '{{nextYear}}'
 
       'public/html_report':
         type: file
-        path: /home/tester/git_checkout/artifacts/gaia_ui_tests_gecko.log
+        path: '{{gaia}}/artifacts/gaia_ui_tests_gecko.log'
         expires: '{{nextYear}}'
 
   tags:

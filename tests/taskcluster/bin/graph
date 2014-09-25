@@ -40,8 +40,9 @@ var graph = {
   tasks: []
 };
 
-// XXX: Hack to allow testing locally as well as via the gaia-taskcluster server
-// side infrastructure.
+// XXX: When extending the task graph the scopes and metadata fields are invalid
+// according to the schema so for local testing we need the --full option so the
+// task graph can be submitted.
 if (process.argv[2] == '--full') {
   graph.scopes = [
     util.format(
@@ -82,7 +83,7 @@ Object.keys(config.definitions).forEach(function(name) {
     }));
     task.taskId = taskIdMap[name];
     graph.tasks.push(task);
-    return
+    return;
   }
 
   // Handle all chunking options...

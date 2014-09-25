@@ -18,8 +18,6 @@ var VERSION =
   fs.readFileSync(GAIA_DIR + '/build/docker/gaia-taskenv/VERSION', 'utf8');
 
 // Default provisioner and worker types
-var WORKER_TYPE = 'gaia';
-var PROVISIONER_ID = 'aws-provisioner';
 var COPIED_ENVS = [
   'CI',
   'GITHUB_PULL_REQUEST',

@@ -22,7 +22,7 @@ github pull requests work.
 Checkout a v2.0 branch from gaia then apply changes from another branch:
 
 ```sh
-git ci-checkout-ref \
+git ci-checkout-pr \
   $HOME/gaia \
   https://github.com/mozilla-b2g/gaia.git \
   v2.0 \

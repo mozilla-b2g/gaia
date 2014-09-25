@@ -6,16 +6,11 @@ BINPATH?=/usr/local/bin/
 
 target: target/doc $(TARGETS)
 
-.PHONY: debug
-debug:
-	echo $(TARGETS)
-
 target/doc:
 	mkdir -p $@
 
 $(TARGETS): $(SOURCES)
 	pandoc -s -t man -o $@ $^
-
 
 # For local installation of files...
 install: target
