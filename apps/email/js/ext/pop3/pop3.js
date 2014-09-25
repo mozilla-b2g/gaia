@@ -1,11 +1,11 @@
 define(['module', 'exports', 'rdcommon/log', 'tcp-socket', 'md5',
         './transport', 'mimeparser', 'imap/imapchew',
-        'syncbase',
+        'syncbase', 'date',
         'mimefuncs',
         './mime_mapper', 'allback'],
 function(module, exports, log, tcpSocket, md5,
          transport, MimeParser, imapchew,
-         syncbase, mimefuncs, mimeMapper, allback) {
+         syncbase, dateMod, mimefuncs, mimeMapper, allback) {
 
   /**
    * The Pop3Client modules and classes are organized according to
@@ -193,10 +193,16 @@ function(module, exports, log, tcpSocket, md5,
       });
     }.bind(this);
 
+    // sync cares about listening for us closing; it has no way to be informed
+    // by disaster recovery otherwise
+    this.onclose = null;
     this.socket.onclose = function() {
       console.log('pop3:onclose');
       this.protocol.onclose();
       this.close();
+      if (this.onclose) {
+        this.onclose();
+      }
     }.bind(this);
 
     // To track requests/responses in the presence of a server
@@ -565,15 +571,16 @@ function(module, exports, log, tcpSocket, md5,
         checkpointInterval = totalMessages;
       }
 
+      var firstErr = null;
       // Download all of the messages in batches.
       var nextBatch = function() {
         console.log('POP3: Next batch. Messages left: ' + messages.length);
-        // If there are no more messages, we're done.
-        if (!messages.length) {
+        // If there are no more messages or our connection died, we're done.
+        if (!messages.length || this.protocol.closed) {
           console.log('POP3: Sync complete. ' +
                       totalMessages + ' messages synced, ' +
                       overflowMessages.length + ' overflow messages.');
-          cb && cb(null, totalMessages, overflowMessages);
+          cb && cb(firstErr, totalMessages, overflowMessages);
           return;
         }
 
@@ -582,15 +589,21 @@ function(module, exports, log, tcpSocket, md5,
 
         // Trigger a download for every message in the batch.
         batch.forEach(function(m, idx) {
-          var messageDone = latch.defer();
+          var messageDone = latch.defer(m.number);
           this.downloadPartialMessageByNumber(m.number, function(err, msg) {
             bytesFetched += m.size;
-            progressCb && progressCb({
-              totalBytes: totalBytes,
-              bytesFetched: bytesFetched,
-              size: m.size,
-              message: msg
-            });
+            if (err) {
+              if (!firstErr) {
+                firstErr = err;
+              }
+            } else {
+              progressCb && progressCb({
+                totalBytes: totalBytes,
+                bytesFetched: bytesFetched,
+                size: m.size,
+                message: msg
+              });
+            }
             messageDone(err);
           });
         }.bind(this));
@@ -601,8 +614,17 @@ function(module, exports, log, tcpSocket, md5,
         // save the database periodically or perform other
         // housekeeping during sync).
         latch.then(function(results) {
-          console.log('POP3: Checkpoint.');
-          if (checkpoint) {
+          // figure out if we actually did work so we actually need to save.
+          var anySaved = false;
+          for (var num in results) {
+            console.log('result', num, results[num]);
+            if (!results[num][0]) {
+              anySaved = true;
+              break;
+            }
+          }
+          if (checkpoint && anySaved) {
+            console.log('POP3: Checkpoint.');
             checkpoint(nextBatch);
           } else {
             nextBatch();
@@ -789,7 +811,23 @@ function(module, exports, log, tcpSocket, md5,
     var partialNode = (isSnippet ? lastNode : null);
     var estSize = (number && this.idToSize[number]) || mimeContent.length;
     var content;
-    var date = safeHeader(rootNode, 'date');
+    var dateHeader = safeHeader(rootNode, 'date'), dateTS;
+    // If we got a date, clamp it to now if it's trying to live in the future
+    // or it's simply invalid.  Our rational for clamping is that we don't
+    // want spammers to be able to permanently lodge their mails at the top of
+    // the inbox or to otherwise upset our careful invariants.
+    var now = dateMod.NOW();
+    if (dateHeader) {
+      dateTS = Date.parse(dateHeader);
+      if (isNaN(dateTS) || dateTS > now) {
+        dateTS = now;
+      }
+    } else {
+      // If we don't have a date, then just use now as the date.  The rationale
+      // for this is that we are already trusting the message's claimed
+      // composition date, so it's not like this can be maliciously abused.
+      dateTS = now;
+    }
 
     var headerList = [];
     for (var key in rootNode.headers) {
@@ -800,7 +838,7 @@ function(module, exports, log, tcpSocket, md5,
     var msg = {
       uid: number && this.idToUidl[number], // the server-given ID
       'header.fields[]': headerList.join(''),
-      internaldate: date && imapchew.formatImapDateTime(new Date(date)),
+      internaldate: dateTS && imapchew.formatImapDateTime(new Date(dateTS)),
       flags: [],
       bodystructure: mimeTreeToStructure(rootNode, '1', partMap, partialNode)
     };
