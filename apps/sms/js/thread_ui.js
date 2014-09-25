@@ -818,7 +818,10 @@ var ThreadUI = {
     var message = e.message;
 
     // If user currently in other thread then there is nothing to do here
-    if (!Navigation.isCurrentPanel('thread', { id: message.threadId })) {
+    if (!Navigation.isCurrentPanel('thread', { id: message.threadId }) &&
+        !Navigation.isCurrentPanel('report-view', {
+          threadId: Threads.currentId
+        })) {
       return;
     }
 
@@ -833,7 +836,10 @@ var ThreadUI = {
 
   onMessageSending: function thui_onMessageReceived(e) {
     var message = e.message;
-    if (Navigation.isCurrentPanel('thread', { id: message.threadId })) {
+    if (Navigation.isCurrentPanel('thread', { id: message.threadId }) ||
+        Navigation.isCurrentPanel('report-view', {
+          threadId: Threads.currentId
+        })) {
       this.onMessage(message);
       this.forceScrollViewToBottom();
     } else {
@@ -2030,7 +2036,8 @@ var ThreadUI = {
             method: function showMessageReport(messageId) {
               // Fetch the message by id and display report
               Navigation.toPanel('report-view', {
-                id: messageId
+                id: messageId,
+                threadId: Threads.currentId
               });
             },
             params: [messageId]
