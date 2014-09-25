@@ -522,7 +522,10 @@
      * @event AppWindow#appwillrender
      */
     this.publish('willrender');
-    this.containerElement.insertAdjacentHTML('beforeend', this.view());
+
+    var range = document.createRange();
+    var fragment = range.createContextualFragment(this.view());
+
     // window.open would offer the iframe so we don't need to generate.
     if (this.iframe) {
       this.browser = {
@@ -531,7 +534,7 @@
     } else {
       this.browser = new BrowserFrame(this.browser_config);
     }
-    this.element = document.getElementById(this.instanceID);
+    this.element = fragment.getElementById(this.instanceID);
 
     // For gaiauitest usage.
     this.element.dataset.manifestName = this.manifest ? this.manifest.name : '';
@@ -555,13 +558,7 @@
     this.browserContainer = this.element.querySelector('.browser-container');
     this.browserContainer.appendChild(this.browser.element);
 
-    // Intentional! The app in the iframe gets two resize events when adding
-    // the element to the page (see bug 1007595). The first one is incorrect,
-    // thus assumptions made (media queries or rendering) can be wrong (see
-    // bug 995886). A sync reflow makes it that there will only be one resize.
-    // Please remove after 1007595 has been fixed.
-    this.browser.element.offsetWidth;
-    // End intentional
+    this.containerElement.appendChild(fragment);
 
     this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
     this.fadeOverlay = this.element.querySelector('.fade-overlay');

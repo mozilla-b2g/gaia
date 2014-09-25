@@ -1,6 +1,6 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager,
       LayoutManager, MocksHelper, MockContextMenu, layoutManager,
-      MockAppTransitionController, MockPermissionSettings */
+      MockAppTransitionController, MockPermissionSettings, DocumentFragment */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -22,7 +22,6 @@ var mocksForAppWindow = new MocksHelper([
 ]).init();
 
 suite('system/AppWindow', function() {
-  var stubById;
   var realPermissionSettings;
   mocksForAppWindow.attachTestHelpers();
   setup(function(done) {
@@ -35,8 +34,11 @@ suite('system/AppWindow', function() {
     navigator.mozPermissionSettings = MockPermissionSettings;
     MockPermissionSettings.mSetup();
 
-    stubById = this.sinon.stub(document, 'getElementById');
-    stubById.returns(document.createElement('div'));
+    this.sinon.stub(document, 'getElementById').
+      returns(document.createElement('div'));
+    this.sinon.stub(DocumentFragment.prototype, 'getElementById').
+      returns(document.createElement('div'));
+
     this.sinon.stub(HTMLElement.prototype, 'querySelector',
     function() {
       return document.createElement('div');
@@ -51,8 +53,6 @@ suite('system/AppWindow', function() {
   teardown(function() {
     navigator.mozPermissionSettings = realPermissionSettings;
     delete window.layoutManager;
-
-    stubById.restore();
   });
 
   var fakeAppConfig1 = {
