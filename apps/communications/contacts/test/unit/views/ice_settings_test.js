@@ -5,7 +5,7 @@
 /* global contacts */
 /* global asyncStorage */
 /* global MockContactsListObj */
-/* global ICEData */
+/* global ICEData, MockContactsSettings, Contacts */
 
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
@@ -13,30 +13,35 @@ requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/js/utilities/ice_data.js');
 requireApp('communications/contacts/js/views/ice_settings.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
+requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
 require('/shared/test/unit/mocks/mock_ice_store.js');
 
 var mocksHelper = new MocksHelper([
-  'asyncStorage', 'ICEStore'
+  'asyncStorage', 'ICEStore', 'Contacts'
 ]);
 mocksHelper.init();
 
 suite('ICE Settings view', function() {
   var subject;
   var realContactsList;
+  var realContactsSettings;
   var defaultLabel = 'ICESelectContact';
   var getContactByIdStub;
 
-  var cid1 = '1', cid2 = '2';
+  var cid1 = '1', cid2 = '2', fbcid3 = '3';
 
   suiteSetup(function() {
     mocksHelper.suiteSetup();
     subject = contacts.ICE;
+    realContactsSettings = contacts.Settings;
+    contacts.Settings = MockContactsSettings;
     realContactsList = contacts.List;
     contacts.List = MockContactsListObj;
   });
 
   suiteTeardown(function() {
     contacts.List = realContactsList;
+    contacts.Settings = realContactsSettings;
   });
 
   setup(function() {
@@ -56,9 +61,15 @@ suite('ICE Settings view', function() {
           id: cid2,
           givenName: ['Albert'],
           familyName: ['Pla']
+        },{
+          id: fbcid3,
+          givenName: ['Cristian'],
+          familyName: ['Martin'],
+          isFB: true
         }];
         // Hoping ide 1 and 2
-        cb(contacts[id - 1]);
+        var contact = contacts[id - 1];
+        cb(contact, contact.isFB);
     });
   });
 
@@ -324,6 +335,62 @@ suite('ICE Settings view', function() {
                       { contactId: cid2, label: 'Albert Pla', active: true}]);
             done();
           });
+        });
+      });
+    });
+
+  });
+
+  suite('> Error handling ', function() {
+
+    var handleClick;
+
+    suiteSetup(function() {
+      sinon.stub(contacts.List, 'handleClick', function(cb) {
+        handleClick = cb;
+      });
+    });
+
+    suiteTeardown(function() {
+      contacts.List.handleClick.restore();
+    });
+
+    setup(function() {
+      window.asyncStorage.keys = {
+        'ice-contacts': [
+          {
+            id: cid1,
+            active: true
+          }
+        ]
+      };
+    });
+
+    function clickOnList(id) {
+      document.getElementById('select-ice-contact-1').click();
+      handleClick(id);
+    }
+
+    function assertErrorMessage(code, expectedCode, cb) {
+      assert.equal(code, expectedCode);
+      Contacts.confirmDialog.restore();
+      cb();
+    }
+
+    test(' repeated contact', function(done) {
+      subject.refresh(function() {
+        clickOnList(cid1);
+        sinon.stub(Contacts, 'confirmDialog', function(param1, code) {
+          assertErrorMessage(code, 'ICERepeatedContact', done);
+        });
+      });
+    });
+
+    test(' facebook contact', function(done) {
+      subject.refresh(function() {
+        clickOnList(fbcid3);
+        sinon.stub(Contacts, 'confirmDialog', function(param1, code) {
+          assertErrorMessage(code, 'ICEFacebookContactNotAllowed', done);
         });
       });
     });

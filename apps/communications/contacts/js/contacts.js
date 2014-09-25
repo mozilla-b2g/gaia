@@ -286,7 +286,7 @@ var Contacts = (function() {
 
   var lastCustomHeaderCallback;
 
-  var setCanceleableHeader = function setCanceleableHeader(cb) {
+  var setCancelableHeader = function setCancelableHeader(cb) {
     setupCancelableHeader();
     header.removeEventListener('action', handleCancel);
     lastCustomHeaderCallback = cb;
@@ -1053,7 +1053,7 @@ var Contacts = (function() {
     'view': loadView,
     'utility': loadUtility,
     'updateSelectCountTitle': updateSelectCountTitle,
-    'setCanceleableHeader': setCanceleableHeader,
+    'setCancelableHeader': setCancelableHeader,
     'setNormalHeader': setNormalHeader,
     get asyncScriptsLoaded() {
       return asyncScriptsLoaded;
