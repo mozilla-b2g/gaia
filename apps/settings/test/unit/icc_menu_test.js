@@ -130,7 +130,7 @@ suite('STK (Main menu) >', function() {
 
     test('Operator name (SIM 1) showed in the list', function() {
       assert.equal(document.querySelector(
-        '#icc-entries li a').textContent, 'DummyOperator');
+        '#icc-entries li span').textContent, 'DummyOperator');
     });
 
     test('SIM number (SIM 1) showed in the list', function() {
@@ -140,7 +140,7 @@ suite('STK (Main menu) >', function() {
 
     test('Operator name (SIM 2) showed in the list', function() {
       assert.equal(document.querySelector(
-        '#icc-entries li:nth-child(2) a').textContent, 'DummyOperator');
+        '#icc-entries li:nth-child(2) span').textContent, 'DummyOperator');
     });
 
     test('SIM number (SIM 2) showed in the list', function() {
