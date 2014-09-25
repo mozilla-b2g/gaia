@@ -3,12 +3,12 @@
 /**
 Entrypoint for the task graph extension / decisions for gaia tests.
 */
-
 var slugid = require('slugid');
 var fs = require('fs');
 var path = require('path');
+var template = require('json-templater/object');
 
-var GAIA_DIR = path.resolve(__dirname, '..', '..');
+var GAIA_DIR = path.resolve(__dirname, '..', '..', '..');
 
 // Default image name / version this can be overriden at the task level...
 var IMAGE =
@@ -20,6 +20,20 @@ var VERSION =
 // Default provisioner and worker types
 var WORKER_TYPE = 'gaia';
 var PROVISIONER_ID = 'aws-provisioner';
+var COPIED_ENVS = [
+  'CI',
+  'GITHUB_PULL_REQUEST',
+  'GITHUB_BASE_REPO',
+  'GITHUB_BASE_USER',
+  'GITHUB_BASE_GIT',
+  'GITHUB_BASE_REV',
+  'GITHUB_BASE_BRANCH',
+  'GITHUB_HEAD_REPO',
+  'GITHUB_HEAD_USER',
+  'GITHUB_HEAD_GIT',
+  'GITHUB_HEAD_REV',
+  'GITHUB_HEAD_BRANCH'
+];
 
 /**
 Decorates tasks with required parameters.
@@ -29,18 +43,18 @@ See the http://docs.taskcluster.net/scheduler/api-docs/#extendTaskGraph section.
 @param {Object} task.
 @return {Object} decorated task.
 */
-function decorateTask(task) {
+function decorateTask(task, options) {
+  task = template(task, options);
+
   // Shallow copy the task...
   var output = {};
   for (var key in task) output[key] = task[key];
 
   // Each task must have its own unique task id.
-  output.taskId = slugid.v4();
+  output.taskId = output.taskId || slugid.v4();
 
   // Taskcluster needs to know how to run the tasks these specify which
   // provisioning method and which worker type to run on.
-  output.task.provisionerId = output.task.provisionerId || PROVISIONER_ID;
-  output.task.workerType = output.task.workerType || WORKER_TYPE;
   output.task.created = new Date().toJSON();
   output.task.metadata.source = 'http://todo.com/soon';
 
@@ -54,7 +68,7 @@ function decorateTask(task) {
   // Expire all tasks in 24 hours...
   var deadline = new Date();
   deadline.setHours(deadline.getHours() + 24);
-  output.task.deadline = deadline;
+  output.task.deadline = deadline.toJSON();
 
   // Default docker image...
   var payload = output.task.payload;
@@ -67,24 +81,13 @@ function decorateTask(task) {
   output.task.tags.treeherderProject =
     output.task.tags.treeherderProject || 'gaia';
 
+  // Copy over the important environment variables...
+  payload.env = payload.env || {};
+  COPIED_ENVS.forEach(function(env) {
+    payload.env[env] = payload.env[env] || process.env[env];
+  });
+
   return output;
 }
 
-// Simply read all definitions for now...
-var tasks = fs.readdirSync(__dirname + '/tasks/').map(function(file) {
-  return require('./tasks/' + file);
-});
-
-var graph = {
-  tasks: []
-};
-
-//for (var i = 0; i < (1 / tasks.length); i++) {
-  graph.tasks = graph.tasks.concat(tasks.map(function(task) {
-    return decorateTask(task);
-  }));
-//}
-
-// Output directly to stdout and allow pipe redirection to handle where it
-// should go...
-process.stdout.write(JSON.stringify(graph, null, 2));
+module.exports = decorateTask;

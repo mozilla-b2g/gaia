@@ -1,0 +1,14 @@
+task:
+  metadata:
+    name: Gaia linters
+    description: Run all gaia linters
+
+  workerType: '{{workerType}}'
+  provisionerId: '{{provisionerId}}'
+
+  payload:
+    command:
+      - entrypoint
+      - ./bin/ci run linters
+  tags:
+    treeherderProject: Li
