@@ -510,13 +510,15 @@ var CarrierSettings = (function(window, document, undefined) {
       /**
        * A network list item has the following HTML structure:
        *   <li>
-       *     <small> Network State </small>
-       *     <a> Network Name </a>
+       *     <a>
+       *       <span>Network Name</span>
+       *       <small>Network State</small>
+       *     </a>
        *   </li>
        */
 
       // name
-      var name = document.createElement('a');
+      var name = document.createElement('span');
       name.textContent = network.shortName || network.longName;
 
       // state
@@ -524,10 +526,13 @@ var CarrierSettings = (function(window, document, undefined) {
       state.setAttribute('data-l10n-id',
         network.state ? ('state-' + network.state) : 'state-unknown');
 
+      var a = document.createElement('a');
+      a.appendChild(name);
+      a.appendChild(state);
+
       // create list item
       var li = document.createElement('li');
-      li.appendChild(state);
-      li.appendChild(name);
+      li.appendChild(a);
 
       li.dataset.cachedState = network.state || 'unknown';
       li.classList.add('operatorItem');
