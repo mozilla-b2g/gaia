@@ -101,8 +101,8 @@ class ContactForm(Base):
         return self.marionette.find_element(*self._comment_locator).text
 
     def type_comment(self, value):
-        self.wait_for_element_displayed(*self._comment_locator)
         element = self.marionette.find_element(*self._comment_locator)
+        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [element])
         element.clear()
         element.send_keys(value)
 
