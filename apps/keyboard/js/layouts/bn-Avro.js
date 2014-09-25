@@ -36,12 +36,12 @@ Keyboards['bn-Avro'] = {
   },
   keys: [
     [
-      { value: 'q' }, { value: 'w' }, { value: 'e' } , { value: 'r' },
-      { value: 't' } , { value: 'y' }, { value: 'u' } , { value: 'i' },
+      { value: 'q' }, { value: 'w' }, { value: 'e' }, { value: 'r' },
+      { value: 't' }, { value: 'y' }, { value: 'u' }, { value: 'i' },
       { value: 'o' }, { value: 'p' }
     ], [
       { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
-      { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' },
+      { value: 'g' }, { value: 'h' }, { value: 'j' }, { value: 'k' },
       { value: 'l' }, { value: 'ঁ' }
     ], [
       { value: '⇪', ratio: 1.25, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
@@ -50,7 +50,8 @@ Keyboards['bn-Avro'] = {
       { value: 'n', ratio: 0.95 }, { value: 'm', ratio: 0.95 },
       { value: '⌫', ratio: 1.25, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
     ], [
-      { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+      { value: '&nbsp', ratio: 7, keyCode: KeyboardEvent.DOM_VK_SPACE },
+      { value: '।' },
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
@@ -70,14 +71,15 @@ Keyboards['bn-Avro'] = {
       '?': '¿',
       '!': '¡'
     },
+    // These are based on the en layout, with top row modifed, $ localized and & replaced.
     keys: [
       [
-        { value: '১' }, { value: '২' }, { value: '৩' } , { value: '৪' },
-        { value: '৫' } , { value: '৬' }, { value: '৭' } , { value: '৮' },
+        { value: '১' }, { value: '২' }, { value: '৩' }, { value: '৪' },
+        { value: '৫' }, { value: '৬' }, { value: '৭' }, { value: '৮' },
         { value: '৯' }, { value: '০' }
       ], [
         { value: '@', hidden: ['email'] }, { value: '#' }, { value: '৳' },
-        { value: '%' }, { value: '&' } , { value: '*' }, { value: '-' },
+        { value: '%' }, { value: 'ঃ' }, { value: '*' }, { value: '-' },
         { value: '+' }, { value: '(' }, { value: ')' },
         { value: '_', visible: ['email'] }
       ], [
