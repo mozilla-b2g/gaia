@@ -8,10 +8,10 @@ var CallServicesPasswordScreen = (function() {
   var panel,
       container,
       input,
-      _passcodeDigits,
       btnOK,
       btnCancel;
-  var _passcodeBuffer;
+  var _passcodeDigits,
+      _passcodeBuffer;
 
   function _getInputKey(evt) {
     var code = evt.charCode;
