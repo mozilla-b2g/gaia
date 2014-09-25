@@ -56,6 +56,10 @@ function Camera(options) {
   // The minimum available disk space to start recording a video.
   this.recordSpaceMin = options.recordSpaceMin || 1024 * 1024 * 2;
 
+  // The number of times to attempt
+  // hardware request before giving up
+  this.requestAttempts = options.requestAttempts || 3;
+
   // Test hooks
   this.getVideoMetaData = options.getVideoMetaData || getVideoMetaData;
   this.orientation = options.orientation || orientation;
@@ -267,6 +271,8 @@ Camera.prototype.fetchBootConfig = function() {
 Camera.prototype.requestCamera = function(camera, config) {
   debug('request camera', camera, config);
   if (this.isBusy) { return; }
+
+  var attempts = this.requestAttempts;
   var self = this;
 
   // Indicate 'busy'
@@ -276,8 +282,19 @@ Camera.prototype.requestCamera = function(camera, config) {
   // the camera has been configured.
   this.configured = !!config;
 
-  navigator.mozCameras.getCamera(camera, config || {}, onSuccess, onError);
-  debug('camera requested', camera, config);
+  // Make initial request
+  request();
+
+  /**
+   * Requests the camera hardware.
+   *
+   * @private
+   */
+  function request() {
+    navigator.mozCameras.getCamera(camera, config || {}, onSuccess, onError);
+    debug('camera requested', camera, config);
+    attempts--;
+  }
 
   function onSuccess(mozCamera) {
     debug('successfully got mozCamera');
@@ -306,8 +323,24 @@ Camera.prototype.requestCamera = function(camera, config) {
     self.ready();
   }
 
+  /**
+   * Called when the request for camera
+   * hardware fails.
+   *
+   * If the hardware is 'closed' we attempt
+   * to re-request it one second later, until
+   * all our attempts have run out.
+   *
+   * @param  {String} err
+   */
   function onError(err) {
     debug('error requesting camera', err);
+
+    if (err === 'HardwareClosed' && attempts) {
+      self.cameraRequestTimeout = setTimeout(request, 1000);
+      return;
+    }
+
     self.ready();
   }
 };
@@ -691,6 +724,9 @@ Camera.prototype.release = function(done) {
   debug('release');
   done = done || function() {};
   var self = this;
+
+  // Clear any pending hardware requests
+  clearTimeout(this.cameraRequestTimeout);
 
   // Ignore if there is no loaded camera
   if (!this.mozCamera) {
