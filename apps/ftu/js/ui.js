@@ -434,6 +434,9 @@ var UIManager = {
     );
     // Disable the button
     UIManager.fxaCreateAccount.disabled = true;
+    // Change the Skip button label
+    var nextButton = document.getElementById('forward');
+    nextButton.setAttribute('data-l10n-id', 'navbar-next');
   },
 
   fxaShowError: function ui_fxaShowError(response) {
@@ -447,6 +450,9 @@ var UIManager = {
     );
     // Enable the button
     UIManager.fxaCreateAccount.disabled = false;
+    // Change the Skip button label
+    var nextButton = document.getElementById('forward');
+    nextButton.setAttribute('data-l10n-id', 'skip');
   },
 
   displayOfflineDialog: function ui_displayOfflineDialog(href, title) {

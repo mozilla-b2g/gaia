@@ -150,6 +150,7 @@ suite('UI Manager > ', function() {
 
   suite('Firefox Accounts section', function() {
     var localizeSpy;
+    var nextButton;
     suiteSetup(function() {
       Navigation.currentStep = 7;
       Navigation.manageStep();
@@ -162,30 +163,53 @@ suite('UI Manager > ', function() {
 
     setup(function() {
       localizeSpy = this.sinon.spy(navigator.mozL10n, 'localize');
+      nextButton = document.getElementById('forward');
     });
 
     teardown(function() {
       navigator.mozL10n.localize.restore();
     });
 
-    test('Show correct success message after verified login', function() {
-      var verifiedAcct = {
-        email: 'foo@bar.com',
-        verified: true
-      };
-      UIManager.fxaGetAccounts(verifiedAcct);
-      assert.isTrue(localizeSpy.calledOnce);
-      assert.equal('fxa-signed-in', localizeSpy.args[0][1]);
+    suite('Verified Firefox Account login', function() {
+      setup(function() {
+        var verifiedAcct = {
+          email: 'foo@bar.com',
+          verified: true
+        };
+        nextButton.setAttribute('data-l10n-id', 'skip');
+        UIManager.fxaGetAccounts(verifiedAcct);
+      });
+
+      test('Should show correct success message', function() {
+        assert.isTrue(localizeSpy.calledOnce);
+        assert.equal('fxa-signed-in', localizeSpy.args[0][1]);
+      });
+
+      test('Should set correct label on button', function() {
+        var dataL10n = nextButton.getAttribute('data-l10n-id');
+        assert.equal(dataL10n, 'navbar-next');
+      });
     });
 
-    test('Show correct success message after unverified login', function() {
-      var unverifiedAcct = {
-        email: 'foo@bar.com',
-        verified: false
-      };
-      UIManager.fxaGetAccounts(unverifiedAcct);
-      assert.isTrue(localizeSpy.calledOnce);
-      assert.equal('fxa-email-sent', localizeSpy.args[0][1]);
+    suite('Unverified Firefox Account login', function() {
+      setup(function() {
+        var unverifiedAcct = {
+          email: 'foo@bar.com',
+          verified: false
+        };
+        nextButton.setAttribute('data-l10n-id', 'skip');
+        UIManager.fxaGetAccounts(unverifiedAcct);
+      });
+
+      test('Should show correct success message', function() {
+        assert.isTrue(localizeSpy.calledOnce);
+        assert.equal('fxa-email-sent', localizeSpy.args[0][1]);
+      });
+
+      test('Should set correct label on button', function() {
+        var dataL10n = nextButton.getAttribute('data-l10n-id');
+        assert.equal(dataL10n, 'navbar-next');
+      });
     });
   });
 
