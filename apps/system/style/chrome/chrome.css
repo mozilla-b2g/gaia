@@ -112,12 +112,12 @@
   overflow: hidden;
   background-color: transparent;
   float: left;
-  margin-left: 0.5rem;
+  -moz-margin-start: 0.5rem;
 }
 
 .collapsible .chrome .controls button:not([disabled]) + button[disabled] + .urlbar,
 .collapsible .chrome .controls button:not([disabled]) + .urlbar {
-  margin-left: 0;
+  -moz-margin-start: 0;
 }
 
 .maximized .controls .urlbar {
@@ -130,7 +130,10 @@
 
 .chrome .controls .urlbar .title {
   width: calc(100% - 3.2rem);
-  padding: 0 0.8rem 0 1rem;
+  padding-top: 0;
+  padding-bottom: 0;
+  -moz-padding-start: 1rem;
+  -moz-padding-end: 0.8rem;
   box-sizing: padding-box;
   overflow: hidden;
   white-space: nowrap;
@@ -205,12 +208,12 @@
 }
 
 .chrome.maximized .title[data-ssl="secure"] {
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
   background: url("images/light/ssl.png") no-repeat 0.1rem center / 3rem 3rem;
 }
 
 .chrome.maximized .title[data-ssl="broken"] {
-  padding-left: 3rem;
+  -moz-padding-start: 3rem;
   background: url("images/light/ssl_broken.png") no-repeat 0.1rem center / 3rem 3rem;
 }
 
@@ -445,4 +448,23 @@ gaia-overflow-menu button#share {
 
 .appWindow:not(.collapsible) > .chrome .controls .urlbar .title {
   width: calc(100%);
+}
+
+/* RTL View */
+html[dir="rtl"] .appWindow:not(.bar) > .chrome {
+  transform-origin: top right;
+}
+
+html[dir="rtl"] .chrome .controls .urlbar {
+  float: right;
+}
+
+html[dir="rtl"] .search-app .chrome.maximized .controls .urlbar:after {
+  left: 0.8rem;
+  right: unset;
+  background-position: center left;
+}
+
+html[dir="rtl"] .controls .urlbar {
+  transform-origin: top right;
 }
