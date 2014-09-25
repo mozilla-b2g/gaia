@@ -15,7 +15,7 @@ var util = require('util');
 var TASK_DEFINITIONS = {};
 function loadTask(name, parameters) {
   if (!TASK_DEFINITIONS[name]) {
-    var path = fsPath.resolve('./tasks/' + name + '.yml');
+    var path = fsPath.resolve(__dirname + '/../tasks/' + name + '.yml');
     TASK_DEFINITIONS[name] = yaml.safeLoad(fs.readFileSync(path));
   }
   return decorate(TASK_DEFINITIONS[name], parameters);
