@@ -28,7 +28,9 @@
 
 /* globals dump, Promise, AppWindowManager */
 (function(exports) {
-  var ShrinkingUI = function() {};
+  var ShrinkingUI = function() {
+    this._clearPreviousTilting = false;
+  };
 
   ShrinkingUI.prototype = {
     DEBUG: false,
@@ -47,7 +49,8 @@
         prevY: -1
       },
       slideTransitionCb: null, // Last slide transition
-      tiltTransitionCb: null // Last tilt transition
+      tiltTransitionCb: null, // Last tilt transition
+      activeApp: null
     },
     configs: {
       degreeLandscape: '2.7deg',
@@ -57,11 +60,14 @@
     },
 
     get current() {
-      var currentApp = AppWindowManager && AppWindowManager.getActiveApp();
-      if (!currentApp) {
-        return null;
+      if (!this._clearPreviousTilting || !this.state.activeApp) {
+        var currentApp = AppWindowManager && AppWindowManager.getActiveApp();
+        if (!currentApp) {
+          return null;
+        }
+        this.state.activeApp = currentApp.getTopMostWindow();
       }
-      return currentApp.getTopMostWindow();
+      return this.state.activeApp;
     },
 
     get element() {
@@ -102,6 +108,7 @@
   ShrinkingUI.prototype.start = function su_start() {
     window.addEventListener('home', this);
     window.addEventListener('holdhome', this);
+    window.addEventListener('activeappchanged', this);
     window.addEventListener('shrinking-start', this);
     window.addEventListener('shrinking-stop', this);
     window.addEventListener('shrinking-receiving', this);
@@ -118,6 +125,7 @@
   ShrinkingUI.prototype.stop = function su_stop() {
     window.removeEventListener('home', this);
     window.removeEventListener('holdhome', this);
+    window.removeEventListener('activeappchanged', this);
     window.removeEventListener('shrinking-start', this);
     window.removeEventListener('shrinking-stop', this);
     window.removeEventListener('shrinking-receiving', this);
@@ -146,6 +154,12 @@
         case 'holdhome':
           if (this._state()) {
             evt.stopImmediatePropagation();
+          }
+          break;
+        case 'activeappchanged':
+          if (this._state()) {
+            this._clearPreviousTilting = true;
+            this.stopTilt();
           }
           break;
         case 'shrinking-start':
@@ -196,6 +210,7 @@
     if (!this.wrapper || !this.element) {
       return;
     }
+    this._clearPreviousTilting = false;
     var currentApp = this.current;
     this.state.shrinking = true;
     this.state.tilting = true;
@@ -247,6 +262,7 @@
       currentApp.setVisible(true);
       this._cleanEffects().then(() => {
         this.state.ending = false;
+        this._clearPreviousTilting = false;
       });
     }).bind(this);
     this.tip.remove();
