@@ -1,5 +1,8 @@
 # Chunking task for marionette js tests...
 ---
+requires:
+  - '{{tasks.linters}}'
+
 task:
   metadata:
     name: 'Marionette JS tests chunk {{chunk}}'

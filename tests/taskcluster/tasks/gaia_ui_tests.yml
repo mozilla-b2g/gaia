@@ -1,5 +1,8 @@
 # Chunking task for gaia-ui-tests...
 ---
+requires:
+  - '{{tasks.linters}}'
+
 task:
   metadata:
     name: 'Gaia ui tests {{chunk}}'
@@ -18,6 +21,17 @@ task:
     command:
       - entrypoint
       - ./bin/ci run gaia_ui_tests
+
+    artifacts:
+      'public/gecko.log':
+        type: file
+        path: /home/tester/git_checkout/artifacts/gaia_ui_tests_report.html
+        expires: '{{nextYear}}'
+
+      'public/html_report':
+        type: file
+        path: /home/tester/git_checkout/artifacts/gaia_ui_tests_gecko.log
+        expires: '{{nextYear}}'
 
   tags:
     treeherderProject: Gip{{chunk}}

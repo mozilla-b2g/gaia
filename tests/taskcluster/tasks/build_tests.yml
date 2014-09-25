@@ -1,3 +1,6 @@
+requires:
+  - '{{tasks.linters}}'
+
 task:
   metadata:
     name: Gaia build tests

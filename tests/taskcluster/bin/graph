@@ -10,6 +10,7 @@ var fs = require('fs');
 var fsPath = require('path');
 var slugid = require('slugid');
 var util = require('util');
+var template = require('json-templater/object');
 
 // Cache for task definitions...
 var TASK_DEFINITIONS = {};
@@ -62,6 +63,10 @@ if (process.argv[2] == '--full') {
   };
 }
 
+var nextYear = new Date(Date.now());
+nextYear.setFullYear(nextYear.getFullYear() + 1);
+nextYear = nextYear.toJSON();
+
 // Expand all tasks based on the `tasks.yml` file...
 Object.keys(config.definitions).forEach(function(name) {
   var definition = config.definitions[name];
@@ -73,7 +78,7 @@ Object.keys(config.definitions).forEach(function(name) {
       // Useful for environment variables.
       process: process,
       // For dependencies.
-      tasks: taskIdMap
+      nextYear: nextYear
     }));
     task.taskId = taskIdMap[name];
     graph.tasks.push(task);
@@ -89,7 +94,7 @@ Object.keys(config.definitions).forEach(function(name) {
     var task = loadTask(name, params(config.params, {
       // Allow process to be used in variables useful for process.env.
       process: process,
-      tasks: taskIdMap,
+      nextYear: nextYear,
 
       // Chunk parameters
       chunk: chunk,
@@ -98,6 +103,11 @@ Object.keys(config.definitions).forEach(function(name) {
     graph.tasks.push(task);
   }
 });
+
+graph.tasks = graph.tasks.map(function(task) {
+  return template(task, { tasks: taskIdMap });
+});
+
 
 // Output the entire task graph for extension....
 process.stdout.write(JSON.stringify(graph, null, 2));

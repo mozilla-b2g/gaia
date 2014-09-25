@@ -68,7 +68,7 @@ function decorateTask(task, options) {
   // Expire all tasks in 24 hours...
   var deadline = new Date();
   deadline.setHours(deadline.getHours() + 24);
-  output.task.deadline = deadline;
+  output.task.deadline = deadline.toJSON();
 
   // Default docker image...
   var payload = output.task.payload;
