@@ -22,4 +22,4 @@ definitions:
   marionette_js_tests:
     chunks: 5
 
-  unit_tests_firefox:
+  unit_tests_b2g:
