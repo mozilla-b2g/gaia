@@ -17,11 +17,11 @@ definitions:
   build_tests:
 
   gaia_ui_tests:
-    chunks: 5
+    chunks: 20
 
   linters:
 
   marionette_js_tests:
-    chunks: 5
+    chunks: 20
 
   unit_tests_b2g:
