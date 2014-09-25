@@ -49,7 +49,7 @@
   visibility: visible;
 }
 
-#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused).fullscreen-app #statusbar {
+#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-app #statusbar {
   opacity: 0;
   visibility: hidden;
 }
