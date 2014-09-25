@@ -1,4 +1,4 @@
-/* global FtuLauncher,
+/* global FtuLauncher, VersionHelper,
           MockasyncStorage, MockNavigatorSettings */
 'use strict';
 
@@ -101,6 +101,12 @@ suite('launch ftu >', function() {
       FtuLauncher.retrieve();
     });
     test('ftu ping is called', function() {
+      var fakePromise = {
+        then: sinon.stub()
+      };
+
+      this.sinon.stub(VersionHelper, 'getVersionInfo').returns(fakePromise);
+
       FtuLauncher.retrieve();
       assert.ok(FtuLauncher.getFtuPing().ensurePingCalled);
     });
