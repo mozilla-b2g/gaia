@@ -126,6 +126,14 @@ AlternativesCharMenuView.prototype.show = function(key) {
     var altKeyElement =
       this.buildKey(alt, '', width + 'px', altKeyObj, null, attributeList);
 
+    // ui/integration test needs these attributes
+    if ('compositeKey' in altKeyObj){
+      altKeyElement.dataset.compositeKey = altKeyObj.compositeKey;
+    } else {
+      altKeyElement.dataset.keycode = altKeyObj.keyCode;
+      altKeyElement.dataset.keycodeUpper = altKeyObj.keyCodeUpper;
+    }
+
     content.appendChild(altKeyElement);
 
     IMERender.setDomElemTargetObject(altKeyElement, altKeyObj);

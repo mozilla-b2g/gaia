@@ -116,7 +116,7 @@ AlternativesCharMenuManager.prototype.hide = function() {
 };
 
 AlternativesCharMenuManager.prototype.isMenuTarget = function(target) {
-  if (!this._currentMenuView) {
+  if (!this._currentMenuView || Object.keys(target).length === 0) {
     return false;
   }
 

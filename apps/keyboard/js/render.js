@@ -267,9 +267,17 @@ var IMERender = (function() {
         var keyElement = buildKey(outputChar, className, keyWidth + 'px',
           key, key.longPressValue, attributeList);
 
-        // dataset.keycode is retained in bug 1044525
-        // because some css relies on it
+        // a few dataset properties are retained in bug 1044525 because some css
+        // and ui/integration tests rely on them.
+        // also to not break them we spell keycode instead of keyCode in dataset
         keyElement.dataset.keycode = key.keyCode;
+        keyElement.dataset.keycodeUpper = key.keyCodeUpper;
+        if ('targetPage' in key) {
+          keyElement.dataset.targetPage = key.targetPage;
+        }
+        if ('compositeKey' in key) {
+          keyElement.dataset.compositeKey = key.compositeKey;
+        }
 
         kbRow.appendChild(keyElement);
 
@@ -413,6 +421,10 @@ var IMERender = (function() {
             text: span.textContent,
             data: data
           });
+
+          // ui/integration test needs this
+          span.dataset.data = data;
+
           if (correction)
             span.classList.add('autocorrect');
 
@@ -530,6 +542,9 @@ var IMERender = (function() {
         data: data
       });
       span.style.width = (unit * candidateUnitWidth - 2) + 'px';
+
+      // ui/integration test needs this
+      span.dataset.data = data;
 
       nowUnit += unit;
 

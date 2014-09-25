@@ -218,6 +218,10 @@ LayoutRenderingManager.prototype._updateHeight = function() {
 };
 
 LayoutRenderingManager.prototype.getTargetObject = function (elem) {
+  if (!elem) {
+    return {};
+  }
+
   // default to an empty object such that member accessing and 'in' won't fail
   return this.domObjectMap.get(elem) || {};
 };
