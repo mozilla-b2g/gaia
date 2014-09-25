@@ -39,7 +39,7 @@
 .appWindow .titlebar .titlebar-minimized {
   background-image: -moz-element(#statusbar-minimized);
   background-size: cover;
-  width: calc(100% - 100% * 0.6521 + 8rem * 0.6521 - 0.5rem);
+  width: calc(100% - 100% * var(--rocketbar-scale) + 8rem * var(--rocketbar-scale) - 0.5rem);
   right: 0;
   position: absolute;
 }

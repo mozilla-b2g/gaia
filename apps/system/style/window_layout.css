@@ -104,6 +104,11 @@
   left: 0;
   width: 100%;
   height: calc(100% - var(--statusbar-height));
+}
+
+/* The loading indicator is part of .chrome and needs to animate with it
+ so do not apply overflow: hidden to it */
+.appWindow > div:not(.chrome) {
   overflow: hidden;
 }
 

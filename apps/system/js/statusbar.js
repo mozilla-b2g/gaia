@@ -546,10 +546,10 @@ var StatusBar = {
   _getMinimizedStatusBarWidth: function sb_getMinimizedStatusBarWidth() {
     // The rocket bar takes approx. 50% of the total screen width in portrait.
     // This formula reflects the CSS styling applied to #statusbar-minimized.
-    // From /apps/system/style/statusbar/statusbar.css, line 79:
-    // * width: calc(100% - 100% * 0.6521 + 8rem * 0.6521 - 0.5rem);
+    // From /apps/system/style/statusbar/statusbar.css:
+    // * width: calc(100% - 100% * 0.682 + 8rem * 0.682 - 0.5rem);
     // * padding: 0 0.3rem 0 0;
-    return window.innerWidth - window.innerWidth * 0.6521 + 80 * 0.6521 - 5 - 3;
+    return window.innerWidth - window.innerWidth * 0.682 + 80 * 0.682 - 5 - 3;
   },
 
   pauseUpdate: function sb_pauseUpdate() {
