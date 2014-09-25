@@ -1,6 +1,7 @@
 /* global MozActivity, IconsHelper, LazyLoader */
 /* global applications */
 /* global BookmarksDatabase */
+/* global WebManifestHelper */
 
 (function(window) {
   'use strict';
@@ -231,6 +232,11 @@
     if (icon) {
       data.icon = icon;
     }
+    
+    if (this.app.webManifestURL) {
+      WebManifestHelper.getManifest(this.app.webManifestURL);
+    }
+    
     new MozActivity({
       name: 'save-bookmark',
       data: data

@@ -649,6 +649,7 @@
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
      'mozbrowsermetachange', 'mozbrowsericonchange', 'mozbrowserasyncscroll',
+     'mozbrowsermanifestchange',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      '_orientationchange', '_focus', '_hidewindow', '_sheetsgesturebegin',
      '_sheetsgestureend', '_cardviewbeforeshow', '_cardviewclosed',
@@ -944,6 +945,13 @@
           break;
       }
 
+    };
+
+  AppWindow.prototype._handle_mozbrowsermanifestchange =
+    function aw__handle_mozbrowsermanifestchange(evt) {
+      if (evt.detail.href) {
+        this.webManifestURL = evt.detail.href;
+      }
     };
 
   AppWindow.prototype._registerEvents = function aw__registerEvents() {
