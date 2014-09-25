@@ -16,6 +16,8 @@
     <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
 
     <script defer src="shared/js/l10n.js"></script>
+    <!-- <link rel="stylesheet" href="shared/style/input_areas.css"> -->
+
     <!-- Those libraries are loaded after rendering icons -->
     <!-- <script defer src="shared/js/homescreens/confirm_dialog_helper.js"></script> -->
     <!-- <script defer src="js/contextmenu_handler.js"></script> -->
@@ -96,5 +98,19 @@
       <button id="change-wallpaper-action" data-l10n-id="change-wallpaper" type="button"></button>
       <button id="create-smart-collection" data-l10n-id="add-smart-collections" type="button"></button>
     </gaia-menu>
+
+    <section id="edit-group" role="region" hidden>
+      <gaia-header id="edit-group-header" action="close">
+        <h1 data-l10n-id="edit-group-header"></h1>
+        <button id="edit-group-save" disabled type="button" data-l10n-id="edit-done"></button>
+      </gaia-header>
+
+      <form>
+        <p>
+          <input type="text" id="edit-group-title" x-inputmode="latin-prose" dir="auto"></input>
+          <button id="edit-group-title-clear" type="reset">Clear</button>
+        </p>
+      </form>
+    </section>
   </body>
 </html>

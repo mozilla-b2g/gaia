@@ -40,6 +40,18 @@ Home2.clientOptions = {
   }
 };
 
+Home2.clientOptionsWithGroups = {
+  prefs: Home2.clientOptions.prefs,
+  settings: {
+    'verticalhome.grouping.enabled': true
+  }
+};
+
+Object.keys(Home2.clientOptions.settings).forEach(function(prop) {
+  Home2.clientOptionsWithGroups.settings[prop] = 
+                                Home2.clientOptions.settings[prop];
+});
+
 /**
  * @type String Origin of Home2 app
  */
@@ -48,8 +60,14 @@ Home2.URL = 'app://verticalhome.gaiamobile.org';
 Home2.Selectors = {
   editHeaderText: '#edit-header h1',
   editHeaderDone: '#exit-edit-mode',
+  editGroup: '#edit-group',
+  editGroupTitle: '#edit-group-title',
+  editGroupSave: '#edit-group-save',
+  editGroupTitleClear: '#edit-group-title-clear',
   search: '#search',
   firstIcon: '#icons div.icon:not(.placeholder)',
+  groupHeader: '#icons .group .header',
+  groupTitle: '#icons .group .header .title',
   dividers: '#icons section.divider',
   contextmenu: '#contextmenu-dialog',
   themeColor: 'head meta[name="theme-color"]'
