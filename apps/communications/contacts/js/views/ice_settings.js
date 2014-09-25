@@ -196,10 +196,7 @@ contacts.ICE = (function() {
       return x.active === true;
     });
 
-    if (hasICESet) {
-      contacts.List.toggleICEGroup(true);
-    }
-    else {
+    if (!hasICESet) {
       resetIceGroupStates();
     }
 
@@ -207,7 +204,9 @@ contacts.ICE = (function() {
       contacts.Search.exitSearchMode();
     }
 
-    contacts.Settings.navigation.back();
+    contacts.Settings.navigation.back(() => {
+      hasICESet && contacts.List.toggleICEGroup(true);
+    });
   }
 
   /**
@@ -219,7 +218,6 @@ contacts.ICE = (function() {
    */
   function selectICEHandler(id) {
     checkContact(id).then(function() {
-      contacts.List.toggleICEGroup(true);
       setICEContact(id, currentICETarget, true, goBack);
     }, function error(l10nId) {
       var dismiss = {
