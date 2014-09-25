@@ -21,15 +21,9 @@ task:
       - ./bin/ci run gaia_ui_tests
 
     artifacts:
-      'public/gecko.log':
-        type: file
-        path: '{{gaia}}/artifacts/gaia_ui_tests_report.html'
+      'public/gaia_ui_tests':
+        type: directory
+        path: '{{gaia}}/artifacts/'
         expires: '{{nextYear}}'
-
-      'public/html_report':
-        type: file
-        path: '{{gaia}}/artifacts/gaia_ui_tests_gecko.log'
-        expires: '{{nextYear}}'
-
   tags:
     treeherderProject: Gip{{chunk}}

@@ -10,7 +10,7 @@ params:
   provisionerId: 'aws-provisioner'
   workerType: gaia
   # Location in image where we store the gaia contents.
-  gaia: '/home/tester/git_checkout/'
+  gaia: '/home/tester/git_checkout'
 
 # All task definitions
 definitions:
