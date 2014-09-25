@@ -228,6 +228,11 @@
         this._decorateIcon(background);
         URL.revokeObjectURL(background.src);
       };
+      background.onerror = () => {
+        URL.revokeObjectURL(background.src);
+        this.renderIconFromSrc(this.defaultIcon);
+        this._stampElementWithIcon(this.defaultIcon);
+      };
     },
 
     /**
