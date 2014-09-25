@@ -1293,9 +1293,9 @@ contacts.Form = (function() {
   function removeOrUpdatePhoto() {
     LazyLoader.load('/contacts/js/action_menu.js', function() {
       var prompt = new ActionMenu('photo-options');
-      prompt.addToList(_('remove-photo'), removePhoto);
+      prompt.addToList({id: 'remove-photo'}, removePhoto);
 
-      prompt.addToList(_('change-photo'), pickImage);
+      prompt.addToList({id: 'change-photo'}, pickImage);
 
       prompt.show();
     });

@@ -17,7 +17,6 @@
 /* exported SCALE_RATIO */
 /* jshint nonew: false */
 
-var _;
 var COMMS_APP_ORIGIN = location.origin;
 
 // Scale ratio for different devices
@@ -240,7 +239,6 @@ var Contacts = (function() {
   };
 
   var init = function init() {
-    _ = navigator.mozL10n.get;
     initContainers();
     initEventListeners();
     utils.PerformanceHelper.chromeInteractive();
@@ -300,9 +298,6 @@ var Contacts = (function() {
   };
 
   var checkCancelableActivity = function cancelableActivity() {
-    // NOTE: Only set textContent below if necessary to avoid repaints at
-    //       load time.  For more info see bug 725221.
-    var text;
     if (ActivityHandler.currentlyHandling) {
       header.setAttribute('action', 'close');
       settingsButton.hidden = true;
@@ -317,12 +312,9 @@ var Contacts = (function() {
       setupActionableHeader();
     }
 
-    text = (contactsList && contactsList.isSelecting)?
-          _('selectContact'):_('contacts');
-
-    if (appTitleElement.textContent !== text) {
-      appTitleElement.textContent = text;
-    }
+    var l10nId = (contactsList && contactsList.isSelecting)?
+      'selectContact' : 'contacts';
+    appTitleElement.setAttribute('data-l10n-id', l10nId);
   };
 
 
@@ -461,10 +453,6 @@ var Contacts = (function() {
       tagHeader.addEventListener('action', handleBack);
     }
 
-    for (var i in options) {
-      options[i].value = _(options[i].type);
-    }
-
     ContactsTag.setCustomTag(customTag);
     // Set whether the custom tag is visible or not
     // This is needed for dates as we only support bday and anniversary
@@ -485,7 +473,6 @@ var Contacts = (function() {
     var tagViewElement = document.getElementById('view-select-tag');
     if (!lazyLoadedTagsDom) {
       LazyLoader.load(tagViewElement, function() {
-        navigator.mozL10n.translate(tagViewElement);
         showSelectTag();
         lazyLoadedTagsDom = true;
        });
@@ -633,7 +620,6 @@ var Contacts = (function() {
            simPickerNode,
            '/shared/js/contacts/contacts_buttons.js'],
         function() {
-          navigator.mozL10n.translate(simPickerNode);
           detailsReady = true;
           contactsDetails = contacts.Details;
           contactsDetails.init();
@@ -984,9 +970,6 @@ var Contacts = (function() {
       }
 
       LazyLoader.load(toLoad, function() {
-          if (node) {
-            navigator.mozL10n.translate(node);
-          }
           if (callback) {
             callback();
           }
@@ -1019,7 +1002,9 @@ var Contacts = (function() {
   }
 
   var updateSelectCountTitle = function updateSelectCountTitle(count) {
-    editModeTitleElement.textContent = _('SelectedTxt', {n: count});
+    navigator.mozL10n.setAttributes(editModeTitleElement,
+                                    'SelectedTxt',
+                                    {n: count});
   };
 
   window.addEventListener('DOMContentLoaded', function onLoad() {
