@@ -120,6 +120,13 @@
     src = src + '&timestamp=' + timestamp;
     this.browser.element.src = src;
     this._terminated = false;
+
+    // Since the callscreen is pre-created, it doesn't account for any
+    // differences in the layout like the software home button. Here we
+    // ensure it has been resized before being displayed to account for
+    // changes to layout-modifying settings
+    this._resize();
+
     this.show();
   };
 
