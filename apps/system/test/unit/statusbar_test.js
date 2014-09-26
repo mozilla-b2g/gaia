@@ -1976,6 +1976,11 @@ suite('system/Statusbar', function() {
   });
 
   suite('setAppearance', function() {
+    setup(function() {
+      StatusBar.element.classList.remove('light');
+      StatusBar.element.classList.remove('maximized');
+    });
+
     test('setAppearance light and maximized', function() {
       StatusBar.setAppearance({
         appChrome: {
@@ -2003,6 +2008,23 @@ suite('system/Statusbar', function() {
       });
       assert.isFalse(StatusBar.element.classList.contains('light'));
       assert.isTrue(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('should do nothing if the phone is locked', function() {
+      System.locked = true;
+      StatusBar.setAppearance({
+        appChrome: {
+          useLightTheming: function useLightTheming() {
+            return true;
+          },
+          isMaximized: function isMaximized() {
+            return true;
+          }
+        }
+      });
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+      assert.isFalse(StatusBar.element.classList.contains('maximized'));
+      System.locked = false;
     });
   });
 

@@ -520,6 +520,12 @@ var StatusBar = {
   },
 
   setAppearance: function(app) {
+    // Avoid any attempt to update the statusbar when
+    // the phone is locked
+    if (this.isLocked()) {
+      return;
+    }
+
     this.element.classList.toggle('light',
       !!(app.appChrome && app.appChrome.useLightTheming())
     );
