@@ -702,7 +702,7 @@ SMTPClient.prototype._authenticateUser = function(){
         case "PLAIN":
             this._currentAction = this._actionAUTHComplete;
             this.sendCommand("AUTH PLAIN "+new Buffer(
-                    this.options.auth.user+"\u0000"+
+                    "\u0000"+ // for compat/problem avoidance, don't provide the first auth thing
                     this.options.auth.user+"\u0000"+
                     this.options.auth.pass,"utf-8").toString("base64"));
             return;
