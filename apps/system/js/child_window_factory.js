@@ -159,7 +159,7 @@
       return;
     }
 
-    this.app.lockOrientation();
+    this.app.setOrientation();
     this.app.setVisible(true);
   };
 
