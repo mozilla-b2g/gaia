@@ -1099,6 +1099,21 @@ suite('system/AppWindow', function() {
       assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
       assert.isFalse(app2.screenshotOverlay.classList.contains('visible'));
     });
+
+    test('setVisible: called twice', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+      app1.browser.element.classList.add('hidden');
+      var stubMixinSetVisible = this.sinon.stub(app1, '_setVisible');
+
+      app1.setVisible(true);
+      assert.isTrue(stubMixinSetVisible.calledOnce,
+                    'should call _setVisible once!');
+
+      app1.setVisible(true);
+      assert.isTrue(stubMixinSetVisible.calledOnce,
+                    'calling setVisible again should *not* call _setVisible!');
+    });
   });
 
   suite('setVisibleForScreenReader', function() {
@@ -1380,6 +1395,29 @@ suite('system/AppWindow', function() {
       });
 
       assert.isTrue(stubKill.called);
+    });
+
+    test('Closed event', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      app1.isHomescreen = true;
+      var app2 = new AppWindow(fakeAppConfig2);
+
+      injectFakeMozBrowserAPI(app1.browser.element);
+      injectFakeMozBrowserAPI(app2.browser.element);
+      var stubScreenshot = this.sinon.stub(app1.browser.element,
+        'getScreenshot');
+      var stubScreenshot2 = this.sinon.stub(app2.browser.element,
+        'getScreenshot');
+
+      app2.rearWindow = app1;
+      app2.handleEvent({
+        type: '_closed'
+      });
+
+      assert.isFalse(stubScreenshot.called,
+                     'should never take screenshot on _closed when homescreen');
+      assert.isFalse(stubScreenshot2.called,
+                     'should never take screenshot on _closed when homescreen');
     });
 
     test('Kill a child window.', function() {
