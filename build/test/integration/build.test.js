@@ -742,20 +742,6 @@ suite('Build Integration tests', function() {
     });
   });
 
-  suite('Build file inclusion tests', function() {
-    test('build includes elements folder and sim_picker', function(done) {
-      helper.exec('make', function(error, stdout, stderr) {
-        var pathInZip = 'shared/elements/sim_picker.html';
-        var zipPath = path.join(process.cwd(), 'profile', 'webapps',
-          'communications.gaiamobile.org', 'application.zip');
-        var expectedSimPickerPath = path.join(process.cwd(),
-          'shared', 'elements', 'sim_picker.html');
-        helper.checkFileInZip(zipPath, pathInZip, expectedSimPickerPath);
-        done();
-      });
-    });
-  });
-
   suite('Pseudolocalizations', function() {
     test('build with GAIA_CONCAT_LOCALES=0 doesn\'t include pseudolocales', function(done) {
       helper.exec('GAIA_CONCAT_LOCALES=0 make', function(error, stdout, stderr) {
