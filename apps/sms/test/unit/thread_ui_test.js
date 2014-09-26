@@ -5999,12 +5999,6 @@ suite('thread_ui.js >', function() {
         assert.isTrue(Recipients.View.isFocusable);
       });
 
-      test('loads and translates SIM picker', function() {
-        var simPickerElt = document.getElementById('sim-picker');
-
-        sinon.assert.calledWith(MockLazyLoader.load, [simPickerElt]);
-      });
-
       test('loads the audio played when a message is sent', function() {
         var sentAudio = ThreadUI.sentAudio;
 
