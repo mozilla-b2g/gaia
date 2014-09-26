@@ -272,6 +272,9 @@ function initDB() {
     // anymore when the MediaDB becomes available again.
     if (!pendingPick) {
       setView(LAYOUT_MODE.list);
+    } else {
+      setView(LAYOUT_MODE.pick);
+      cleanupCrop();
     }
 
     // If storage becomes unavailble (e.g. the user starts a USB Mass Storage
