@@ -87,7 +87,7 @@ suite('system/AppTransitionController', function() {
     acn1._transitionState = 'closing';
     var stubSetVisible = this.sinon.stub(app1, 'setVisible');
     acn1.handleEvent({ type: '_closed' });
-    assert.isTrue(stubSetVisible.calledWith(false, true));
+    assert.isTrue(stubSetVisible.calledWith(false));
   });
 
   test('Opened notification', function() {
@@ -304,6 +304,6 @@ suite('system/AppTransitionController', function() {
     var acn1 = new AppTransitionController(app1);
     var stubSetVisible = this.sinon.stub(app1, 'setVisible');
     acn1.handle_closed();
-    assert.isTrue(stubSetVisible.calledWith(false, true));
+    assert.isTrue(stubSetVisible.calledWith(false));
   });
 });
