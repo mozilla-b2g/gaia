@@ -163,11 +163,10 @@ App.prototype.bindEvents = function() {
   // App
   this.once('storage:checked:healthy', this.geolocationWatch);
   this.once('viewfinder:visible', this.onCriticalPathDone);
-  this.on('camera:willchange', this.firer('busy'));
-  this.on('ready', this.clearSpinner);
   this.on('visible', this.onVisible);
   this.on('hidden', this.onHidden);
   this.on('busy', this.onBusy);
+  this.on('ready', this.onReady);
 
   // Pinch
   this.pinch.on('changed', this.firer('pinch:changed'));
@@ -422,6 +421,9 @@ App.prototype.onBusy = function(type) {
   debug('camera busy, type: %s', type);
   var delay = this.settings.spinnerTimeouts.get(type);
   if (delay) { this.showSpinner(type); }
+
+  clearTimeout(this.busyTimeout);
+  this.doc.body.classList.add('busy');
 };
 
 /**
@@ -431,12 +433,12 @@ App.prototype.onBusy = function(type) {
  * @private
  */
 App.prototype.onReady = function() {
-  debug('ready');
-  var view = this.views.loading;
-  clearTimeout(this.spinnerTimeout);
-  if (!view) { return; }
-  view.hide(view.destroy);
-  this.views.loading = null;
+  this.clearSpinner();
+
+  var self = this;
+  this.busyTimeout = setTimeout(function() {
+    self.doc.body.classList.remove('busy');
+  }, 500);
 };
 
 /**

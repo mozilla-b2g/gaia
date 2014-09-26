@@ -19,6 +19,10 @@ body.no-background {
   background-color: transparent;
 }
 
+body.busy * {
+  pointer-events: none;
+}
+
 /** Mini reset
  ---------------------------------------------------------*/
 
