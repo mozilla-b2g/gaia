@@ -2,6 +2,7 @@
 
 var Contacts = require('./lib/contacts');
 var Actions = require('marionette-client').Actions;
+var assert = require('assert');
 
 marionette('Contacts > ICE contacts', function() {
   var client = marionette.client(Contacts.config);
