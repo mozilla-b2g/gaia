@@ -137,18 +137,14 @@ form[role="search"] button[type="submit"]:after {
     background: none;
 }
 
-.top-composer-section {
-  display: none;
+.subject-composer {
+  display: flex;
+  align-items: flex-end;
 
   width: 100%;
   padding: 1rem 0 0.3rem;
 
   background-color: #e1f0ec;
-}
-
-.subject-input-visible .top-composer-section {
-  display: flex;
-  align-items: flex-end;
 }
 
 .mms-label,
@@ -164,7 +160,7 @@ form[role="search"] button[type="submit"]:after {
   font-size: 1.4rem;
 }
 
-.bottom-composer-section .mms-label,
+.content-composer-mms-label,
 .message-counter {
   padding-top: .7rem;
 }
@@ -177,28 +173,27 @@ form[role="search"] button[type="submit"]:after {
  * 3. Remaining characters counter is displayed in bottom section if character
  *    count exceeds predefined threshold and message type is SMS.
  */
-[data-message-type='mms'].subject-input-visible
-    .top-composer-section > .mms-label,
-[data-message-type='mms']:not(.subject-input-visible)
-    .bottom-composer-section .mms-label,
+[data-message-type='mms'] .subject-composer-mms-label,
+[data-message-type='mms']:not(.subject-composer-visible) .content-composer-mms-label,
 [data-message-type='sms'] .message-counter:not(:empty) {
   display: block;
 }
 
-.bottom-composer-section {
+.content-composer {
   display: flex;
   flex-direction: row;
 
   min-height: 0;
 }
 
-#messages-subject-input {
+.subject-composer-input {
   position: relative;
 
   flex-grow: 1;
 
   box-sizing: border-box;
   min-width: 0;
+  min-height: 2.2rem;
   padding: 0 0 0.1rem 1.5rem;
 
   text-align: left;
@@ -208,18 +203,17 @@ form[role="search"] button[type="submit"]:after {
   font-size: 1.7rem;
 }
 
-#messages-subject-input:after {
+.subject-composer-placeholder {
   position: absolute;
-  top: 0;
+  top: 1rem;
+  left: 1.5rem;
 
   color: #00adad;
+  font-size: 1.7rem;
   font-weight: normal;
   font-style: italic;
-  pointer-events: none;
-}
 
-#messages-subject-input.placeholder:after {
-  content: attr(data-placeholder);
+  pointer-events: none;
 }
 
 .composer-message-input-container {

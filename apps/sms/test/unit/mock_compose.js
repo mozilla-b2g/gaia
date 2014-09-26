@@ -27,7 +27,9 @@ var MockCompose = {
   updateType: function() {},
 
   getSubject: function() {},
-  toggleSubject: function() {},
+  setSubject: function() {},
+  showSubject: function() {},
+  hideSubject: function() {},
   fromDraft: function() {},
   fromMessage: function() {},
 

@@ -6,7 +6,9 @@
          MessageManager,
          Navigation,
          Promise,
-         AssetsHelper
+         AssetsHelper,
+         FocusEvent,
+         SubjectComposer
 */
 
 /*jshint strict:false */
@@ -31,6 +33,7 @@ requireApp('sms/test/unit/mock_thread_ui.js');
 require('/test/unit/mock_smil.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/test/unit/mock_subject_composer.js');
 
 var mocksHelperForCompose = new MocksHelper([
   'asyncStorage',
@@ -43,7 +46,8 @@ var mocksHelperForCompose = new MocksHelper([
   'MozActivity',
   'Attachment',
   'ThreadUI',
-  'SMIL'
+  'SMIL',
+  'SubjectComposer'
 ]).init();
 
 suite('compose_test.js', function() {
@@ -124,6 +128,10 @@ suite('compose_test.js', function() {
 
   setup(function() {
     clock = this.sinon.useFakeTimers();
+
+    this.sinon.stub(SubjectComposer.prototype, 'on');
+    this.sinon.stub(SubjectComposer.prototype, 'isVisible').returns(false);
+    this.sinon.stub(SubjectComposer.prototype, 'getValue').returns('');
   });
 
   teardown(function() {
@@ -131,7 +139,7 @@ suite('compose_test.js', function() {
   });
 
   suite('Message Composition', function() {
-    var message, subject, sendButton, attachButton, form;
+    var message, sendButton, attachButton, form;
 
     setup(function() {
       this.sinon.stub(ThreadUI, 'on');
@@ -141,7 +149,6 @@ suite('compose_test.js', function() {
       ThreadUI.initRecipients();
       Compose.init('messages-compose-form');
       message = document.getElementById('messages-input');
-      subject = document.getElementById('messages-subject-input');
       sendButton = document.getElementById('messages-send-button');
       attachButton = document.getElementById('messages-attach-button');
       form = document.getElementById('messages-compose-form');
@@ -149,81 +156,57 @@ suite('compose_test.js', function() {
 
     suite('Subject', function() {
       setup(function() {
-        Compose.clear();
+        this.sinon.stub(SubjectComposer.prototype, 'show');
+        this.sinon.stub(SubjectComposer.prototype, 'hide');
+        this.sinon.stub(SubjectComposer.prototype, 'setValue');
+        this.sinon.stub(SubjectComposer.prototype, 'getMaxLength');
+      });
+
+      test('Visibility', function() {
+        SubjectComposer.prototype.isVisible.returns(true);
+        assert.isTrue(Compose.isSubjectVisible);
+
+        SubjectComposer.prototype.isVisible.returns(false);
+        assert.isFalse(Compose.isSubjectVisible);
       });
 
       test('Toggle field', function() {
-        assert.isFalse(form.classList.contains('subject-input-visible'));
-        // Show
-        Compose.toggleSubject();
-        assert.isTrue(form.classList.contains('subject-input-visible'));
-        // Hide
-        Compose.toggleSubject();
-        assert.isFalse(form.classList.contains('subject-input-visible'));
+        Compose.showSubject();
+        sinon.assert.called(SubjectComposer.prototype.show);
+
+        Compose.hideSubject();
+        sinon.assert.called(SubjectComposer.prototype.hide);
       });
 
       test('Get content from subject field', function() {
         var content = 'Title';
-        subject.textContent = content;
-        // We need to show the subject to get content
-        Compose.toggleSubject();
+        SubjectComposer.prototype.getValue.returns(content);
+
         assert.equal(Compose.getSubject(), content);
       });
 
-      // Per discussion, this is being deferred to another bug
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=959360
-      //
-      // test('Toggle type display visibility', function() {
-      //   assert.isFalse(sendButton.classList.contains('has-counter'));
+      test('Set content to subject field', function() {
+        var content = 'Title';
+        Compose.setSubject(content);
 
-      //   subject.value = 'hi';
-      //   Compose.toggleSubject();
-      //   assert.isTrue(sendButton.classList.contains('has-counter'));
-
-      //   Compose.toggleSubject();
-      //   assert.isFalse(sendButton.classList.contains('has-counter'));
-      // });
-
-      test('Sent subject doesnt have line breaks (spaces instead)', function() {
-        // Set the value
-        subject.innerHTML = 'Line 1<br>Line 2<br><br><br><br>Line 3<br>';
-        // We need to show the subject to get content
-        Compose.toggleSubject();
-        var text = Compose.getSubject();
-        assert.equal(text, 'Line 1 Line 2 Line 3');
+        sinon.assert.calledWith(SubjectComposer.prototype.setValue, content);
       });
 
       suite('Subject methods in Compose object', function() {
         setup(function() {
-          Compose.clear();
+          SubjectComposer.prototype.getMaxLength.returns(5);
         });
 
         test('> isSubjectMaxLength:false', function() {
-          subject.textContent = 'foo text';
-          Compose.toggleSubject();
+          SubjectComposer.prototype.getValue.returns('abcd');
+
           assert.isFalse(Compose.isSubjectMaxLength());
         });
 
         test('> isSubjectMaxLength:true', function() {
-          subject.textContent = '1234567890123456789012345678901234567890' +
-          '123456789012345678901234567890123456789012345678901234567890' +
-          '123456789012345678901234567890123456789012345678901234567890' +
-          '123456789012345678901234567890123456789012345678901234567890' +
-          '123456789012345678901234567890123456789012345678901234567890';
-          Compose.toggleSubject();
+          SubjectComposer.prototype.getValue.returns('abcde');
+
           assert.isTrue(Compose.isSubjectMaxLength());
-        });
-
-        test('> isSubjectEmpty:true', function() {
-          subject.innerHTML = '<br><br><br>';
-          Compose.toggleSubject();
-          assert.isTrue(Compose.isSubjectEmpty());
-        });
-
-        test('> isSubjectEmpty:false', function() {
-          subject.innerHTML = '<br><br><br>foo';
-          Compose.toggleSubject();
-          assert.isFalse(Compose.isSubjectEmpty());
         });
       });
     });
@@ -260,6 +243,8 @@ suite('compose_test.js', function() {
     suite('Clearing Message', function() {
       setup(function() {
         Compose.clear();
+
+        this.sinon.stub(SubjectComposer.prototype, 'reset');
       });
 
       test('Clear removes text', function() {
@@ -278,14 +263,10 @@ suite('compose_test.js', function() {
         txt = Compose.getContent();
         assert.equal(txt.length, 0, 'No lines in the txt');
       });
-      test('Clear removes subject', function() {
-        subject.textContent = 'Title';
-        Compose.toggleSubject();
-        var txt = Compose.getSubject();
-        assert.equal(txt, 'Title', 'Something in the txt');
+      test('Resets subject', function() {
         Compose.clear();
-        txt = Compose.getSubject();
-        assert.equal(txt, '', 'Nothing in the txt');
+
+        sinon.assert.called(SubjectComposer.prototype.reset);
       });
     });
 
@@ -530,6 +511,9 @@ suite('compose_test.js', function() {
           content: ['I have an attachment!', attachment],
           threadId: 1
         });
+
+        this.sinon.stub(SubjectComposer.prototype, 'show');
+        this.sinon.stub(SubjectComposer.prototype, 'setValue');
       });
       teardown(function() {
 
@@ -551,15 +535,20 @@ suite('compose_test.js', function() {
       });
 
       test('Draft with subject', function() {
-        assert.isFalse(Compose.isSubjectVisible);
         Compose.fromDraft(d1);
-        assert.equal(Compose.getSubject(), d1.subject);
-        assert.isTrue(Compose.isSubjectVisible);
+
+        sinon.assert.called(SubjectComposer.prototype.show);
+        sinon.assert.calledWith(
+          SubjectComposer.prototype.setValue,
+          d1.subject
+        );
       });
 
       test('Draft without subject', function() {
         Compose.fromDraft(d2);
-        assert.isFalse(Compose.isSubjectVisible);
+
+        sinon.assert.notCalled(SubjectComposer.prototype.show);
+        sinon.assert.notCalled(SubjectComposer.prototype.setValue);
       });
 
       test('Draft with attachment', function() {
@@ -584,7 +573,14 @@ suite('compose_test.js', function() {
       });
 
       test('Changing subject', function() {
-        Compose.toggleSubject();
+        SubjectComposer.prototype.on.withArgs('change').yield();
+
+        assert.isTrue(ThreadUI.draft.isEdited);
+      });
+
+      test('Hiding or showing subject', function() {
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
         assert.isTrue(ThreadUI.draft.isEdited);
       });
 
@@ -907,14 +903,16 @@ suite('compose_test.js', function() {
 
       test('Message switches type when adding/removing subject',
         function() {
-        Compose.toggleSubject();
-        subject.textContent = 'foo';
-        subject.dispatchEvent(new CustomEvent('input'));
+        SubjectComposer.prototype.getValue.returns('foo');
+
+        SubjectComposer.prototype.isVisible.returns(true);
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
 
         sinon.assert.calledOnce(typeChangeStub);
         assert.equal(Compose.type, 'mms');
 
-        Compose.toggleSubject();
+        SubjectComposer.prototype.isVisible.returns(false);
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
 
         sinon.assert.calledTwice(typeChangeStub);
         assert.equal(Compose.type, 'sms');
@@ -928,23 +926,27 @@ suite('compose_test.js', function() {
       });
 
       test('changing type to mms, then clear', function() {
-        var subjectNode = document.getElementById('messages-subject-input');
-        subjectNode.textContent = 'some subject';
-        Compose.toggleSubject();
+        SubjectComposer.prototype.getValue.returns('some subject');
+
+        SubjectComposer.prototype.isVisible.returns(true);
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
 
         assert.isFalse(message.hasAttribute('x-inputmode'));
         assert.equal(form.dataset.messageType, 'mms');
 
+        SubjectComposer.prototype.isVisible.returns(false);
         Compose.clear();
         assert.equal(message.getAttribute('x-inputmode'), '-moz-sms');
         assert.equal(form.dataset.messageType, 'sms');
       });
 
       test('changing type to mms then sms', function() {
-        var subjectNode = document.getElementById('messages-subject-input');
-        subjectNode.textContent = 'some subject';
-        Compose.toggleSubject();
-        Compose.toggleSubject();
+        SubjectComposer.prototype.getValue.returns('some subject');
+
+        SubjectComposer.prototype.isVisible.returns(true);
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+        SubjectComposer.prototype.isVisible.returns(false);
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
 
         assert.equal(message.getAttribute('x-inputmode'), '-moz-sms');
         assert.equal(form.dataset.messageType, 'sms');
@@ -1050,17 +1052,20 @@ suite('compose_test.js', function() {
         });
 
         test('enabled when there is subject input and is visible', function() {
-          subject.textContent = 'Title';
-          Compose.toggleSubject(); // show the subject
-          subject.dispatchEvent(new CustomEvent('input'));
+          SubjectComposer.prototype.isVisible.returns(true);
+          SubjectComposer.prototype.getValue.returns('test');
+          SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
           assert.isFalse(sendButton.disabled);
         });
 
         test('disabled when there is subject input, but is hidden', function() {
           sendButton.disabled = false;
 
-          subject.textContent = 'Title';
-          subject.dispatchEvent(new CustomEvent('input'));
+          SubjectComposer.prototype.isVisible.returns(false);
+          SubjectComposer.prototype.getValue.returns('test');
+          SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
           assert.isTrue(sendButton.disabled);
         });
 
@@ -1162,8 +1167,11 @@ suite('compose_test.js', function() {
 
           suite('when there is visible subject with input...', function() {
             setup(function() {
-              subject.textContent = 'Title';
-              Compose.toggleSubject();
+              SubjectComposer.prototype.getValue.returns('Title');
+              SubjectComposer.prototype.isVisible.returns(true);
+
+              SubjectComposer.prototype.on.withArgs('visibility-change').
+                yield();
             });
 
             test('and recipient field value is valid ', function() {
@@ -1217,9 +1225,12 @@ suite('compose_test.js', function() {
             });
 
             test('after adding subject input', function() {
-              Compose.toggleSubject();
-              subject.textContent = 'Title';
-              subject.dispatchEvent(new CustomEvent('input'));
+              SubjectComposer.prototype.getValue.returns('Title');
+              SubjectComposer.prototype.isVisible.returns(true);
+
+              SubjectComposer.prototype.on.withArgs('visibility-change').
+                yield();
+
               assert.isFalse(sendButton.disabled);
             });
 
@@ -1288,8 +1299,9 @@ suite('compose_test.js', function() {
           suite('when there is subject input...', function() {
             setup(function() {
               sendButton.disabled = false;
-              subject.textContent = 'Title';
-              subject.dispatchEvent(new CustomEvent('input'));
+
+              SubjectComposer.prototype.getValue.returns('Title');
+              SubjectComposer.prototype.on.withArgs('change').yield();
             });
 
             teardown(function() {
@@ -1555,12 +1567,6 @@ suite('compose_test.js', function() {
     var initialText = 'hello,';
     var followingText = ' world!';
 
-    function toggleSubject() {
-      var subjectNode = document.getElementById('messages-subject-input');
-      subjectNode.textContent = 'some subject';
-      Compose.toggleSubject();
-    }
-
     function setInput(string) {
       var message = document.getElementById('messages-input');
       message.textContent = string;
@@ -1575,14 +1581,6 @@ suite('compose_test.js', function() {
       clock.tick(UPDATE_DELAY);
 
       return waitForSegmentinfo();
-    }
-
-    function setSubjectInput(string) {
-      var subject = document.getElementById('messages-subject-input');
-      subject.textContent = string;
-
-      var event = new InputEvent('input', { bubbles: true, cancelable: true });
-      subject.dispatchEvent(event);
     }
 
     function waitForSegmentinfo(count) {
@@ -1623,24 +1621,34 @@ suite('compose_test.js', function() {
     });
 
     test('does not update when subject input changes', function() {
-      toggleSubject();
+      SubjectComposer.prototype.getValue.returns('some subject');
+      SubjectComposer.prototype.isVisible.returns(true);
+      SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
       setInput('some body');
       this.sinon.clock.tick(UPDATE_DELAY);
       sinon.assert.called(MessageManager.getSegmentInfo);
 
       MessageManager.getSegmentInfo.reset();
 
-      setSubjectInput('more title');
+      SubjectComposer.prototype.on.withArgs('change').yield();
+
       this.sinon.clock.tick(UPDATE_DELAY);
 
       sinon.assert.notCalled(MessageManager.getSegmentInfo);
     });
 
     test('updates when subject is removed', function(done) {
-      toggleSubject();
+      SubjectComposer.prototype.getValue.returns('some subject');
+      SubjectComposer.prototype.isVisible.returns(true);
+      SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
       setInputAndWait('some text').then(function() {
         assert.equal(Compose.type, 'mms');
-        toggleSubject();
+
+        SubjectComposer.prototype.isVisible.returns(false);
+        SubjectComposer.prototype.on.withArgs('visibility-change').yield();
+
         assert.deepEqual(Compose.segmentInfo, expected);
         assert.equal(Compose.type, 'sms');
       }).then(done, done);
@@ -1926,6 +1934,33 @@ suite('compose_test.js', function() {
       }).then(done, done);
 
       clock.tick(UPDATE_DELAY);
+    });
+  });
+
+  suite('Message "interact" event', function() {
+    setup(function() {
+      loadBodyHTML('/index.html');
+      Compose.init('messages-compose-form');
+    });
+
+    test('correctly calls "interact" event', function() {
+      var onInteractStub = sinon.stub();
+
+      Compose.on('interact', onInteractStub);
+
+      document.getElementById('messages-input').click();
+      sinon.assert.calledOnce(onInteractStub);
+
+      document.getElementById('messages-input').dispatchEvent(
+        new FocusEvent('focus')
+      );
+      sinon.assert.calledTwice(onInteractStub);
+
+      document.getElementById('messages-attach-button').click();
+      sinon.assert.calledThrice(onInteractStub);
+
+      SubjectComposer.prototype.on.withArgs('focus').yield();
+      assert.equal(onInteractStub.callCount, 4);
     });
   });
 });
