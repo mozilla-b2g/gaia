@@ -149,8 +149,8 @@ var KeyboardManager = {
     window.addEventListener('mozbrowsererror', this);
     window.addEventListener('applicationsetupdialogshow', this);
     window.addEventListener('mozmemorypressure', this);
-    window.addEventListener('sheetstransitionstart', this);
     window.addEventListener('lock', this);
+    window.addEventListener('sheets-gesture-begin', this);
 
     // To handle keyboard layout switching
     window.addEventListener('mozChromeEvent', function(evt) {
@@ -489,7 +489,7 @@ var KeyboardManager = {
         break;
       case 'lock':
         /* falls through */
-      case 'sheetstransitionstart':
+      case 'sheets-gesture-begin':
         if (this.hasActiveKeyboard) {
           // Instead of hideKeyboard(), we should removeFocus() here.
           // (and, removing the focus cause Gecko to ask us to hideKeyboard())

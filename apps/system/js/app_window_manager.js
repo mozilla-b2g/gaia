@@ -252,7 +252,8 @@
       window.addEventListener('homegesture-disabled', this);
       window.addEventListener('system-resize', this);
       window.addEventListener('orientationchange', this);
-      window.addEventListener('sheetstransitionstart', this);
+      window.addEventListener('sheets-gesture-begin', this);
+      window.addEventListener('sheets-gesture-end', this);
       // XXX: PermissionDialog is shared so we need AppWindowManager
       // to focus the active app after it's closed.
       window.addEventListener('permissiondialoghide', this);
@@ -321,7 +322,8 @@
       window.removeEventListener('homegesture-disabled', this);
       window.removeEventListener('system-resize', this);
       window.removeEventListener('orientationchange', this);
-      window.removeEventListener('sheetstransitionstart', this);
+      window.removeEventListener('sheets-gesture-begin', this);
+      window.removeEventListener('sheets-gesture-end', this);
       window.removeEventListener('permissiondialoghide', this);
       window.removeEventListener('appopening', this);
       window.removeEventListener('localized', this);
@@ -558,11 +560,26 @@
           if (this._activeApp) {
             this._activeApp.getTopMostWindow().blur();
           }
+          this.broadcastMessage('cardviewbeforeshow');
           break;
-        case 'sheetstransitionstart':
+
+        case 'cardviewclosed':
+          this.broadcastMessage('cardviewclosed');
+          break;
+
+        case 'sheets-gesture-begin':
           if (document.mozFullScreen) {
             document.mozCancelFullScreen();
           }
+          // All app window instances need to be aware of this so they can show
+          // the screenshot overlay.
+          this.broadcastMessage('sheetsgesturebegin');
+          break;
+
+        case 'sheets-gesture-end':
+          // All inactive app window instances need to be aware of this so they
+          // can hide the screenshot overlay. The check occurs in the AppWindow.
+          this.broadcastMessage('sheetsgestureend');
           break;
 
         case 'localized':
