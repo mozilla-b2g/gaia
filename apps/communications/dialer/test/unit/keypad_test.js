@@ -276,6 +276,27 @@ suite('dialer/keypad', function() {
       });
     });
 
+    suite('Keypad vibration', function() {
+      setup(function() {
+        this.sinon.spy(navigator, 'vibrate');
+        subject._observePreferences();
+      });
+
+      test('vibrates if setting is set', function() {
+        MockSettingsListener.mCallbacks['keyboard.vibration'](true);
+
+        subject._touchStart('1');
+        sinon.assert.calledWith(navigator.vibrate, 50);
+      });
+
+      test('does not vibrate if setting is not set', function() {
+        MockSettingsListener.mCallbacks['keyboard.vibration'](false);
+
+        subject._touchStart('1');
+        sinon.assert.notCalled(navigator.vibrate);
+      });
+    });
+
     suite('During  a call', function() {
       var mockCall;
       var mockHC;
