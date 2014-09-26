@@ -1284,7 +1284,6 @@ suite('lib/camera/camera', function() {
 
   suite('Camera#updateFocusArea()', function() {
     setup(function() {
-      sinon.stub(this.camera, 'set');
       this.camera.mozCamera = { flashMode: null };
       this.camera.focus = {
         updateFocusArea: sinon.spy(),
@@ -1294,22 +1293,18 @@ suite('lib/camera/camera', function() {
     test('Should suspend flash mode and restore when complete', function() {
       this.camera.mozCamera.flashMode = 'on';
       this.camera.updateFocusArea();
-      assert.ok(this.camera.set.firstCall.calledWith('focus', 'focusing'));
       assert.equal(this.camera.mozCamera.flashMode, 'off');
       assert.ok(this.camera.focus.updateFocusArea.called);
       this.camera.focus.updateFocusArea.callArgWith(1, 'focused');
-      assert.ok(this.camera.set.secondCall.calledWith('focus', 'focused'));
       assert.equal(this.camera.mozCamera.flashMode, 'on');
     });
 
-    test('Should suspend flash mode and restore when interrupted but leave state as focusing', function() {
+    test('Should suspend flash mode and restore when interrupted', function() {
       this.camera.mozCamera.flashMode = 'on';
       this.camera.updateFocusArea();
-      assert.ok(this.camera.set.firstCall.calledWith('focus', 'focusing'));
       assert.equal(this.camera.mozCamera.flashMode, 'off');
       assert.ok(this.camera.focus.updateFocusArea.called);
       this.camera.focus.updateFocusArea.callArgWith(1, 'interrupted');
-      assert.ok(this.camera.set.calledOnce);
       assert.equal(this.camera.mozCamera.flashMode, 'on');
     });
   });

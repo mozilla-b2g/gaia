@@ -861,18 +861,12 @@ Camera.prototype.takePicture = function(options) {
   // If the camera focus is 'continuous' or 'infinity'
   // we can take the picture straight away.
   if (this.focus.getMode() === 'auto') {
-    this.set('focus', 'focusing');
     this.focus.focus(onFocused);
   } else {
     takePicture();
   }
 
   function onFocused(state) {
-    // State remains focusing if we are interrupted
-    // as the last caller should update it
-    if (state !== 'interrupted') {
-      self.set('focus', state);
-    }
     takePicture();
   }
 
@@ -913,18 +907,12 @@ Camera.prototype.takePicture = function(options) {
 
 Camera.prototype.updateFocusArea = function(rect, done) {
   var self = this;
-  this.set('focus', 'focusing');
   // Disables flash temporarily so it doesn't go off while focusing
   this.suspendFlashMode();
   this.focus.updateFocusArea(rect, focusDone);
   function focusDone(state) {
     // Restores previous flash mode
     self.restoreFlashMode();
-    // State remains focusing if we are interrupted
-    // as the last caller should update it
-    if (state !== 'interrupted') {
-      self.set('focus', state);
-    }
     if (done) {
       done(state);
     }
