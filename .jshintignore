@@ -67,7 +67,6 @@ tests/atoms/fake_update-checker.js
 tests/atoms/gaia_apps.js
 tests/atoms/gaia_data_layer.js
 tests/atoms/gaia_lock_screen.js
-tests/atoms/reflow.js
 tests/atoms/remote_date.js
 tests/atoms/screenshot.js
 tests/js-marionette/helper.js
