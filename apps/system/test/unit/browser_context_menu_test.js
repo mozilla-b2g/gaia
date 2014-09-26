@@ -26,6 +26,13 @@ suite('system/BrowserContextMenu', function() {
     stubQuerySelector = this.sinon.stub(e, 'querySelector');
     stubQuerySelector.returns(document.createElement('div'));
     stubById.returns(e);
+
+    window.BookmarksDatabase = {
+      get: function() {
+        return new Promise(function(resolve) { resolve(false); });
+      }
+    };
+
     requireApp('system/js/system.js');
     requireApp('system/js/base_ui.js');
     requireApp('system/js/browser_context_menu.js', done);
@@ -40,6 +47,7 @@ suite('system/BrowserContextMenu', function() {
     stubQuerySelector.restore();
     MozActivity.mTeardown();
     window.MozActivity = realMozActivity;
+    delete window.BookmarksDatabase;
   });
 
   var fakeAppConfig1 = {
@@ -55,6 +63,7 @@ suite('system/BrowserContextMenu', function() {
     preventDefault: function() {
       this.defaultPrevented = true;
     },
+    stopPropagation: function() {},
     detail: {
       contextmenu: {
         items: [{
@@ -82,6 +91,7 @@ suite('system/BrowserContextMenu', function() {
       preventDefault: function() {
         this.defaultPrevented = true;
       },
+      stopPropagation: function() {},
       detail: {
         contextmenu: {
           items: []
@@ -127,8 +137,11 @@ suite('system/BrowserContextMenu', function() {
   test('launch menu', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var md1 = new BrowserContextMenu(app1);
+    var stubStopPropagation =
+      this.sinon.stub(fakeContextMenuEvent, 'stopPropagation');
 
     md1.handleEvent(fakeContextMenuEvent);
+    assert.isTrue(stubStopPropagation.called);
     assert.isTrue(md1.element.classList.contains('visible'));
     assert.equal(
       md1.elements.list.querySelector('button:first-child').textContent,
@@ -139,11 +152,13 @@ suite('system/BrowserContextMenu', function() {
       'url("' + fakeContextMenuEvent.detail.contextmenu.items[0].icon + '")');
   });
 
-  test('manually launch menu', function() {
+  test('manually launch menu', function(done) {
     var app1 = new AppWindow(fakeAppConfig1);
     var md1 = new BrowserContextMenu(app1);
-    md1.showDefaultMenu();
-    assert.isTrue(md1.element.classList.contains('visible'));
+    md1.showDefaultMenu().then(function() {
+      assert.isTrue(md1.element.classList.contains('visible'));
+      done();
+    });
   });
 
   test('Check that a context menu containing items is prevented', function() {

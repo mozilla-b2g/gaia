@@ -19,6 +19,10 @@
   overflow: hidden;
 }
 
+#screen.software-button-enabled [role="dialog"].generic-dialog {
+  bottom: var(--software-home-button-height);
+}
+
 [role="dialog"].generic-dialog:before {
   content: "";
   display: inline-block;
@@ -92,11 +96,9 @@
   [role="dialog"].generic-dialog {
     -moz-box-sizing: border-box;
     position: absolute;
-    top: calc(50% - 24rem);
-    left: calc(50% - 34rem);
     width: 68rem;
     height: 48rem;
-    padding: 6rem;
+    padding: 0;
     font-size: 2.2rem;
     background-image: none;
     background-color: #333333;

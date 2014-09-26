@@ -62,10 +62,7 @@ EditEvent.prototype = {
   },
 
   get startDate() {
-    return this.form.findElement('[name="startDate"]')
-      .scriptWith(function(el) {
-        return el.value;
-      });
+    return this.getFormValue('startDate');
   },
 
   set startTime(value) {
@@ -73,10 +70,11 @@ EditEvent.prototype = {
   },
 
   get startTime() {
-    return this.form.findElement('[name="startTime"]')
-      .scriptWith(function(el) {
-        return el.value;
-      });
+    return this.getFormValue('startTime');
+  },
+
+  get startTimeLocale() {
+    return this.findElement('#start-time-locale');
   },
 
   set endDate(value) {
@@ -84,10 +82,11 @@ EditEvent.prototype = {
   },
 
   get endDate() {
-    return this.form.findElement('[name="endDate"]')
-      .scriptWith(function(el) {
-        return el.value;
-      });
+    return this.getFormValue('endDate');
+  },
+
+  get endTimeLocale() {
+    return this.findElement('#end-time-locale');
   },
 
   set endTime(value) {
@@ -95,10 +94,7 @@ EditEvent.prototype = {
   },
 
   get endTime() {
-    return this.form.findElement('[name="endTime"]')
-      .scriptWith(function(el) {
-        return el.value;
-      });
+    return this.getFormValue('endTime');
   },
 
   set allDay(value) {

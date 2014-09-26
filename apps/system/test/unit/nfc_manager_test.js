@@ -148,6 +148,28 @@ suite('Nfc Manager Functions', function() {
     });
   });
 
+  suite('isActive', function() {
+    test('returns false if hardware state is OFF', function() {
+      nfcManager._hwState = nfcManager.NFC_HW_STATE.OFF;
+      assert.isFalse(nfcManager.isActive());
+    });
+
+    test('returns true if hardware state is ON', function() {
+      nfcManager._hwState = nfcManager.NFC_HW_STATE.ON;
+      assert.isTrue(nfcManager.isActive());
+    });
+
+    test('returns true if hardware state is ENABLE_DISCOVERY', function() {
+      nfcManager._hwState = nfcManager.NFC_HW_STATE.ENABLE_DISCOVERY;
+      assert.isTrue(nfcManager.isActive());
+    });
+
+    test('returns true if hardware state is DISABLE_DISCOVERY', function() {
+      nfcManager._hwState = nfcManager.NFC_HW_STATE.DISABLE_DISCOVERY;
+      assert.isTrue(nfcManager.isActive());
+    });
+  });
+
   suite('handleEvent', function() {
     test('proper handling of lock, unlock, screenchange', function() {
       var stubChangeHardwareState = this.sinon.stub(nfcManager,
@@ -385,14 +407,14 @@ suite('Nfc Manager Functions', function() {
       nfcManager._handleTechDiscovered(sampleMsg);
 
       assert.deepEqual(MozActivity.firstCall.args[0], {
-        name: 'nfc-ndef-discovered',
+        name: 'view',
         data: {
                 type: 'url',
                 url: 'http://mozilla.org',
+                src: 'nfc',
                 records: sampleMsg.records,
                 tech: 'NDEF',
-                techList: sampleMsg.techList,
-                sessionToken: sampleMsg.sessionToken
+                techList: sampleMsg.techList
         }
       }, 'Uri record');
 
@@ -404,8 +426,7 @@ suite('Nfc Manager Functions', function() {
           type: 'empty',
           tech: 'NDEF',
           techList: sampleMsg.techList,
-          records: sampleMsg.records,
-          sessionToken: sampleMsg.sessionToken
+          records: sampleMsg.records
         }
       },'TNF empty');
 
@@ -417,10 +438,10 @@ suite('Nfc Manager Functions', function() {
           type: 'text/vcard',
           blob: new Blob([nfcUtils.toUTF8(sampleMsg.records.payload)],
                          {'type': 'text/vcard'}),
+          src: 'nfc',
           tech: 'NDEF',
           techList: sampleMsg.techList,
-          records: sampleMsg.records,
-          sessionToken: sampleMsg.sessionToken
+          records: sampleMsg.records
         }
       },'mime record');
 
@@ -433,8 +454,7 @@ suite('Nfc Manager Functions', function() {
           type: 'empty',
           tech: 'NDEF_WRITEABLE',
           techList: sampleMsg.techList,
-          records: sampleMsg.records,
-          sessionToken: sampleMsg.sessionToken
+          records: sampleMsg.records
         }
       }, 'no records');
     });
@@ -598,14 +618,14 @@ suite('Nfc Manager Functions', function() {
 
       nfcManager._fireNDEFDiscovered(msg, msg.techList[0]);
       assert.deepEqual(MozActivity.firstCall.args[0], {
-        name: 'nfc-ndef-discovered',
+        name: 'view',
         data: {
                 type: 'url',
                 url: 'http://mozilla.org',
+                src: 'nfc',
                 records: msg.records,
                 tech: msg.techList[0],
-                techList: msg.techList,
-                sessionToken: msg.sessionToken
+                techList: msg.techList
         }
       });
     });
@@ -620,8 +640,7 @@ suite('Nfc Manager Functions', function() {
         name: 'nfc-ndef-discovered',
         data: {
                 tech: msg.techList[0],
-                techList: msg.techList,
-                sessionToken: msg.sessionToken
+                techList: msg.techList
         }
       });
     });
@@ -646,7 +665,6 @@ suite('Nfc Manager Functions', function() {
                          data: {
                            type: 'NDEF_FORMATABLE',
                            techList: dummyMsg.techList,
-                           sessionToken: dummyMsg.sessionToken,
                            records: dummyMsg.records
                          }
                        });
@@ -719,7 +737,8 @@ suite('Nfc Manager Functions', function() {
         data: {
           type: 'webtelephony/number',
           number: payload.uri.substring(4),
-          uri: payload.uri
+          uri: payload.uri,
+          src: 'nfc'
         }
       });
     });
@@ -732,7 +751,8 @@ suite('Nfc Manager Functions', function() {
         name: 'new',
         data: {
           type: 'mail',
-          url: payload.uri
+          url: payload.uri,
+          src: 'nfc'
         }
       });
     });
@@ -742,10 +762,11 @@ suite('Nfc Manager Functions', function() {
 
       var options = nfcManager._createNDEFActivityOptions(payload);
       assert.deepEqual(options, {
-        name: NDEF_ACTIVITY_NAME,
+        name: 'view',
         data: {
           type: 'url',
-          url: payload.uri
+          url: payload.uri,
+          src: 'nfc'
         }
       });
     });
@@ -775,11 +796,12 @@ suite('Nfc Manager Functions', function() {
 
       var options = nfcManager._createNDEFActivityOptions(payload);
       assert.deepEqual(options, {
-        name: NDEF_ACTIVITY_NAME,
+        name: 'view',
         data: {
           type: 'url',
           text: payload.text,
           url: 'http://mozilla.org',
+          src: 'nfc'
         }
       });
     });

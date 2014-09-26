@@ -196,6 +196,10 @@ var StackManager = {
         }
         break;
       case 'home':
+        // only handle home events if task manager is not visible
+        if (window.taskManager && window.taskManager.isShown()) {
+          return;
+        }
         this._moveToTop(this.position);
         this.position = -1;
         this.commitClose();
@@ -267,7 +271,7 @@ var StackManager = {
       if (sConfig.instanceID == instanceID) {
         this._stack.splice(i, 1);
 
-        if (i <= this.position && this.position > 0) {
+        if (i <= this.position && this.position >= 0) {
           this.position--;
         }
         return;
@@ -316,6 +320,10 @@ var StackManager = {
     if (SheetsTransition.transitioning) {
       return;
     }
+
+    // We're done swiping around, let's close up the gesture. Note that
+    // sheets-gesture-start is detected and sent in SheetsTransition!!!
+    window.dispatchEvent(new CustomEvent('sheets-gesture-end'));
 
     // We're back to the same place
     if (this._appIn && this._appIn === this._appOut) {

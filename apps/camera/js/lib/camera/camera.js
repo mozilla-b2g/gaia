@@ -56,6 +56,10 @@ function Camera(options) {
   // The minimum available disk space to start recording a video.
   this.recordSpaceMin = options.recordSpaceMin || 1024 * 1024 * 2;
 
+  // The number of times to attempt
+  // hardware request before giving up
+  this.requestAttempts = options.requestAttempts || 3;
+
   // Test hooks
   this.getVideoMetaData = options.getVideoMetaData || getVideoMetaData;
   this.orientation = options.orientation || orientation;
@@ -74,6 +78,7 @@ function Camera(options) {
   };
 
   this.focus = new Focus(options.focus);
+  this.suspendedFlashCount = 0;
 
   // Indicate this first
   // load hasn't happened yet.
@@ -266,6 +271,8 @@ Camera.prototype.fetchBootConfig = function() {
 Camera.prototype.requestCamera = function(camera, config) {
   debug('request camera', camera, config);
   if (this.isBusy) { return; }
+
+  var attempts = this.requestAttempts;
   var self = this;
 
   // Indicate 'busy'
@@ -275,11 +282,31 @@ Camera.prototype.requestCamera = function(camera, config) {
   // the camera has been configured.
   this.configured = !!config;
 
-  navigator.mozCameras.getCamera(camera, config || {}, onSuccess, onError);
-  debug('camera requested', camera, config);
+  // Make initial request
+  request();
+
+  /**
+   * Requests the camera hardware.
+   *
+   * @private
+   */
+  function request() {
+    navigator.mozCameras.getCamera(camera, config || {}, onSuccess, onError);
+    debug('camera requested', camera, config);
+    attempts--;
+  }
 
   function onSuccess(mozCamera) {
     debug('successfully got mozCamera');
+
+    // release camera when press power key
+    // as soon as you open a camera app
+    if (document.hidden) {
+      self.mozCamera = mozCamera;
+      self.release();
+      return;
+    }
+
     self.setupNewCamera(mozCamera);
     self.configureFocus();
     self.emit('focusconfigured', {
@@ -296,8 +323,24 @@ Camera.prototype.requestCamera = function(camera, config) {
     self.ready();
   }
 
+  /**
+   * Called when the request for camera
+   * hardware fails.
+   *
+   * If the hardware is 'closed' we attempt
+   * to re-request it one second later, until
+   * all our attempts have run out.
+   *
+   * @param  {String} err
+   */
   function onError(err) {
     debug('error requesting camera', err);
+
+    if (err === 'HardwareClosed' && attempts) {
+      self.cameraRequestTimeout = setTimeout(request, 1000);
+      return;
+    }
+
     self.ready();
   }
 };
@@ -378,6 +421,11 @@ Camera.prototype.configure = function() {
     debug('no mozCamera');
     return;
   }
+
+  // In some extreme cases the mode can
+  // get changed and configured whilst
+  // video recording is in progress.
+  this.stopRecording();
 
   // Indicate 'busy'
   this.busy();
@@ -480,8 +528,7 @@ Camera.prototype.previewSizes = function() {
  */
 Camera.prototype.previewSize = function() {
   var sizes = this.previewSizes();
-  var profile = this.resolution();
-  var size = CameraUtils.getOptimalPreviewSize(sizes, profile);
+  var size = CameraUtils.getOptimalPreviewSize(sizes);
   debug('get optimal previewSize', size);
   return size;
 };
@@ -612,6 +659,9 @@ Camera.prototype.setThumbnailSize = function() {
  * Sets the current flash mode,
  * both on the Camera instance
  * and on the cameraObj hardware.
+ * If flash is suspended, it
+ * updates the cached state that
+ * will be restored.
  *
  * @param {String} key
  */
@@ -621,11 +671,48 @@ Camera.prototype.setFlashMode = function(key) {
     // a valid flash mode.
     key = key || 'off';
 
-    this.mozCamera.flashMode = key;
-    debug('flash mode set: %s', key);
+    if (this.suspendedFlashCount > 0) {
+      this.suspendedFlashMode = key;
+      debug('flash mode set while suspended: %s', key);
+    } else {
+      this.mozCamera.flashMode = key;
+      debug('flash mode set: %s', key);
+    }
   }
 
   return this;
+};
+
+/**
+ * Disables flash until it is
+ * restored. restoreFlashMode
+ * must be called the same
+ * number of times in order to
+ * restore the original state.
+ */
+Camera.prototype.suspendFlashMode = function() {
+  if (this.suspendedFlashCount === 0) {
+    this.suspendedFlashMode = this.mozCamera.flashMode;
+    this.mozCamera.flashMode = 'off';
+    debug('flash mode suspended');
+  }
+  ++this.suspendedFlashCount;
+};
+
+/**
+ * Restores flash mode to its
+ * original state. If it was
+ * disabled multiple times,
+ * only the final call will
+ * do the restoration.
+ */
+Camera.prototype.restoreFlashMode = function() {
+  --this.suspendedFlashCount;
+  if (this.suspendedFlashCount === 0) {
+    this.mozCamera.flashMode = this.suspendedFlashMode;
+    debug('flash mode restored: %s', this.suspendedFlashMode);
+    this.suspendedFlashMode = null;
+  }
 };
 
 /**
@@ -637,6 +724,9 @@ Camera.prototype.release = function(done) {
   debug('release');
   done = done || function() {};
   var self = this;
+
+  // Clear any pending hardware requests
+  clearTimeout(this.cameraRequestTimeout);
 
   // Ignore if there is no loaded camera
   if (!this.mozCamera) {
@@ -778,7 +868,11 @@ Camera.prototype.takePicture = function(options) {
   }
 
   function onFocused(state) {
-    self.set('focus', state);
+    // State remains focusing if we are interrupted
+    // as the last caller should update it
+    if (state !== 'interrupted') {
+      self.set('focus', state);
+    }
     takePicture();
   }
 
@@ -820,9 +914,17 @@ Camera.prototype.takePicture = function(options) {
 Camera.prototype.updateFocusArea = function(rect, done) {
   var self = this;
   this.set('focus', 'focusing');
+  // Disables flash temporarily so it doesn't go off while focusing
+  this.suspendFlashMode();
   this.focus.updateFocusArea(rect, focusDone);
   function focusDone(state) {
-    self.set('focus', state);
+    // Restores previous flash mode
+    self.restoreFlashMode();
+    // State remains focusing if we are interrupted
+    // as the last caller should update it
+    if (state !== 'interrupted') {
+      self.set('focus', state);
+    }
     if (done) {
       done(state);
     }
@@ -1422,6 +1524,7 @@ Camera.prototype.busy = function(type) {
   debug('busy %s', type || '');
   this.isBusy = true;
   this.emit('busy', type);
+  clearTimeout(this.readyTimeout);
 };
 
 /**
@@ -1431,9 +1534,13 @@ Camera.prototype.busy = function(type) {
  * @private
  */
 Camera.prototype.ready = function() {
-  debug('ready');
+  var self = this;
   this.isBusy = false;
-  this.emit('ready');
+  clearTimeout(this.readyTimeout);
+  this.readyTimeout = setTimeout(function() {
+    debug('ready');
+    self.emit('ready');
+  }, 150);
 };
 
 });

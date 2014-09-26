@@ -1,6 +1,7 @@
 {
   "contacts": {
-    "src": ["apps/communications/contacts/js/**/*.js"],
+    "src": ["apps/communications/contacts/js/**/*.js",
+            "!apps/communications/contacts/js/views/form.js"],
     "options": {
       "destination": "docs/contacts"
     }
@@ -9,12 +10,6 @@
     "src": ["apps/communications/dialer/js/**/*.js"],
     "options": {
       "destination": "docs/dialer"
-    }
-  },
-  "ftu": {
-    "src": ["apps/communications/ftu/js/**/*.js"],
-    "options": {
-      "destination": "docs/ftu"
     }
   }
 }

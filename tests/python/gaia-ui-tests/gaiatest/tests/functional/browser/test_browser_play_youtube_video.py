@@ -4,8 +4,8 @@
 
 from marionette.by import By
 from gaiatest import GaiaTestCase
-from gaiatest.apps.browser.app import Browser
-from gaiatest.apps.browser.regions.html5_player import HTML5Player
+from gaiatest.apps.search.app import Search
+from gaiatest.apps.search.regions.html5_player import HTML5Player
 
 
 class TestYouTube(GaiaTestCase):
@@ -20,15 +20,17 @@ class TestYouTube(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.connect_to_network()
+        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
     def test_play_youtube_video(self):
         """Confirm YouTube video playback
 
         https://moztrap.mozilla.org/manage/case/6073/
         """
-        browser = Browser(self.marionette)
-        browser.launch()
-        browser.go_to_url(self.video_URL, timeout=180)
+        search = Search(self.marionette)
+        search.launch()
+        browser = search.go_to_url(self.video_URL)
+        browser.wait_for_page_to_load(180)
         browser.switch_to_content()
 
         # Tap the video container to load the <video> element and start playing

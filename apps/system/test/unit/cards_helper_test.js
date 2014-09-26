@@ -80,6 +80,17 @@ suite('cards helper >', function() {
       assert.equal(url, iconDataURI,
                   'return data uri as-is');
     });
+
+    test('handles off-origin absolute URIs', function() {
+      var testApp = makeApp({
+        icon: 'http://cdn.iconhost.tld/some/icon.png',
+        manifest: {}
+      });
+
+      var url = CardsHelper.getIconURIForApp(testApp);
+      assert.equal(url, 'http://cdn.iconhost.tld/some/icon.png',
+                  'return abs uri as-is');
+    });
   });
 
   test('test escapeHTML', function() {

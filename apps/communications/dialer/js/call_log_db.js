@@ -385,7 +385,7 @@ var CallLogDBManager = {
           status: status
         });
         var date = new Date(record.date);
-        var key = date.getDay() + date.getMonth() + date.getFullYear() +
+        var key = date.getDate() + date.getMonth() + date.getFullYear() +
                   record.number + type;
         if (status) {
           key += status;
@@ -695,7 +695,9 @@ var CallLogDBManager = {
     group.retryCount++;
     var self = this;
     groupsStore.put(group).onsuccess = function onsuccess() {
-      self._asyncReturn(callback, self._getGroupObject(group));
+      var groupObject = self._getGroupObject(group);
+      self._dispatchCallLogDbNewCall(groupObject);
+      self._asyncReturn(callback, groupObject);
     };
   },
 
@@ -743,15 +745,25 @@ var CallLogDBManager = {
       self._newTxn('readwrite', [self._dbGroupsStore],
                    function(error, txn, store) {
         store.add(group).onsuccess = function onsuccess() {
+          var groupObject = self._getGroupObject(group);
+          self._dispatchCallLogDbNewCall(groupObject);
+
           // Once the group has successfully been added, we check that the
           // db size is below the max size set.
           self._keepDbPrettyAndFit(function() {
-            self._asyncReturn(callback, self._getGroupObject(group));
+            self._asyncReturn(callback, groupObject);
           });
         };
       });
     });
   },
+
+  _dispatchCallLogDbNewCall: function(group) {
+    var createOrUpdateEvt = new CustomEvent('CallLogDbNewCall',
+      {detail: {group: group}});
+    window.dispatchEvent(createOrUpdateEvt);
+  },
+
   /**
    * Delete a group of calls and all the calls belonging to that group.
    *
@@ -1108,6 +1120,25 @@ var CallLogDBManager = {
       } catch (e) {
         callback(e);
       }
+    });
+  },
+
+  getGroup: function(number, date, type, status) {
+    var self = this;
+    return new Promise(function(resolve, reject) {
+      var recentCall = {number: number, date: date, type: type, status: status};
+      var groupId = self._getGroupId(recentCall);
+      self._newTxn('readonly', self._dbGroupsStore,
+      function(error, txn, groupsStore) {
+        groupsStore.get(groupId).onsuccess = function() {
+          var group = this.result;
+          if (!group) {
+            reject();
+            return;
+          }
+          resolve(self._getGroupObject(group));
+        };
+      });
     });
   },
 

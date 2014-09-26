@@ -161,6 +161,10 @@ Calendar.ns('Controllers').Time = (function() {
       this.busytime.on('remove', function(id) {
         self.removeCachedBusytime(id);
       });
+      this.calendarStore.on(
+        'calendarVisibilityChange',
+        this._notifyVisibilityChange.bind(this)
+      );
     },
 
     /**
@@ -478,6 +482,20 @@ Calendar.ns('Controllers').Time = (function() {
 
     get position() {
       return this._position;
+    },
+
+    _notifyVisibilityChange: function(calendarId, calendar) {
+      // we can't really remove items from the cache (otherwise we wouldn't be
+      // able to re-add them later) so we just dispatch the add/remove events
+      // which will be enough to rebuild the views
+      var eventType = calendar.localDisplayed ? 'add' : 'remove';
+
+      // we need to notify all the cached timespans, not just the current one
+      this._collection.toArray().forEach(busy => {
+        if (busy.calendarId === calendarId) {
+          this.fireTimeEvent(eventType, busy.startDate, busy.endDate, busy);
+        }
+      });
     },
 
     /**

@@ -8,13 +8,8 @@ define(['shared/js/gesture_detector'], function() {
 var GestureDetector = window.GestureDetector;
 
 /**
- * Some default styles to override the canonical HTML5 styling defaults that
- * make our display seem bad.  These are currently inline because we want to be
- * able to synchronously (re)flow the document without needing styles to load.
- * This does not need to be the case longterm; after our initial reflow to
- * detect newsletters, we could only add in a link to a CSS file shipped with
- * us for the non-newsletter case.  We could also internally load the CSS file
- * and splice it in rather than hardcoding it.
+ * Style tag to put in the header of the body.  We currently only support inline
+ * styles in general, so these are primarily overrides and defaults.
  */
 var DEFAULT_STYLE_TAG =
   '<style type="text/css">\n' +
@@ -30,15 +25,93 @@ var DEFAULT_STYLE_TAG =
   // Give the layout engine an upper-bound on the width that's arguably
   // much wider than anyone should find reasonable, but might save us from
   // super pathological cases.
-  'html, body { max-width: 120rem; word-wrap: break-word; }\n' +
+  'html, body { max-width: 120rem; word-wrap: break-word;' +
+  // don't let the html/body grow the scrollable area.  Also, it's not clear
+  // overflow: hidden actually works in either of these cases, but I did most of
+  // the development and testing where things worked with the overflow: hidden
+  // present and I'm worried about removing it now.
+  ' overflow: hidden; padding: 0; margin: 0; }\n' +
   // pre messes up wrapping very badly if left to its own devices
   'pre { white-space: pre-wrap; word-wrap: break-word; }\n' +
   '.moz-external-link { color: blue; cursor: pointer; }\n' +
   '</style>';
 
 /**
+ * Tweakable display settings for timings.  If you want to mess with these
+ * values from the debugger, do requirejs('iframe_shims').iframeShimsOpts.
+ *
+ * All current poll timeouts (circa Sep 19, 2014) are ballpark figures arrived
+ * at on a Flame device.  We could probably tighten things up if need be.
+ */
+var iframeShimsOpts = {
+  /**
+   * What is the minimum delay between changing the transform setting?  You
+   * might think that we want this low, but because we experience memory-spikes
+   * if we modify the transform from a setTimeout, we currently want this
+   * to be short enough that a human would be unlikely to actually re-trigger
+   * while this is active.  It's handy to keep around to turn it way up so that
+   * we can reproduce the setTimeout problem for debugging, however.
+   */
+  zoomDelayMS: 200,
+  /**
+   * What should our initial scale-factor be?  If 1, it's 100%.  If null, we use
+   * the fit-page-width value.
+   */
+  initialScale: null,
+  /**
+   * How many times should we poll the dimensions of the HTML iframe before
+   * ceasing?  This is used both for initial display and after "display external
+   * images" or "display embedded images" is triggered.
+   */
+  resizeLimit: 4,
+  /**
+   * After first creating the document, how long should we wait before we start
+   * to poll?  Note that the "load" event doesn't work for us and
+   * "DOMContentLoaded" turns out to be too early.  Even though we forbid remote
+   * resources, it seems like our fonts or something can still need to
+   * asynchronously load or the HTML5 parser no longer synchronously lays
+   * everything out for us.
+   */
+  initialResizePollIntervalMS: 200,
+  /**
+   * If we polled and there was no change in dimensions, how long should we wait
+   * before our next poll?  The idea is you might make this shorter in order to
+   * make sure we respond sooner / faster.
+   */
+  noResizePollIntervalMS: 250,
+  /**
+   * If we polled and there was a change in dimensions, how long should we wait
+   * before our next poll?  The idea is you might make this longer so as to
+   * avoid churn if there is something going on that would affect sizing.
+   */
+  didResizePollIntervalMS: 300,
+  /**
+   * How long should we wait until after we get the last picture "load" event
+   * before polling?  Note that in this case we will have reset our resize count
+   * back to 0 so resizeLimit will need to be hit again.  The waiting is
+   * accomplished by constantly resetting the timeout, so extremely small values
+   * are dangerous here.  Also, experience has shown that when we previously
+   * tried to update our size immediately or near-immediately getting the final
+   * load event, we still would be too early.
+   */
+  pictureDelayPollIntervalMS: 200
+};
+
+/**
  * Logic to help with creating, populating, and handling events involving our
  * HTML message-disply iframes.
+ *
+ * ## UX Goals ##
+ *
+ * We want a continuous scrolling experience.  The message's envelope and the
+ * HTML body should scroll continuously.
+ *
+ * Pinch-and-zoom: We want the user to be able to zoom in and out on the message
+ * in a responsive fashion without crashing the app.  We also want to start
+ * with fit-to-page-width because when the email is wider than the screen it
+ * tends to look stupid.
+ *
+ * ## Security ##
  *
  * All HTML content is passed through a white-list-based sanitization process,
  * but we still want the iframe so that:
@@ -47,42 +120,106 @@ var DEFAULT_STYLE_TAG =
  * - We can both avoid the content being influenced by our stylesheets as well
  *   as to allow the content to use inline "style" tags without any risk to our
  *   styling.
- * - We MAYBE SOMEDAY get the security benefits of an iframe "sandbox".
  *
- * Our iframe sandbox attributes (not) specified and rationale are:
+ * Our iframe sandbox attributes (not) specified and rationale are as follows.
+ * Note that "NO" means we don't specify the string in our sandbox.
  * - "allow-same-origin": YES.  We do this because in order to touch the
  *   contentDocument we need to live in the same origin.  Because scripts are
  *   not enabled in the iframe this is not believed to have any meaningful
  *   impact.
+ *
+ *   In the future when we are able to do nested APZ stuff, what we
+ *   will likely do is have two layers of iframes.  The outer mozbrowser iframe
+ *   will have its own origin but be running (only) our code.  It will talk to
+ *   us via postMessage.  Then it will have a sandboxed iframe where script is
+ *   disabled but that lives in the same origin.  So our code in that origin
+ *   can then poke at things as needed.
+ *
  * - "allow-scripts": NO.  We never ever want to let scripts from an email
  *   run.  And since we are setting "allow-same-origin", even if we did want
  *   to allow scripts we *must not* while that setting is on.  Our CSP should
  *   limit the use of scripts if the iframe has the same origin as us since
  *   everything in the iframe should qualify as
+ *
  * - "allow-top-navigation": NO.  The iframe should not navigate if the user
  *   clicks on a link.  Note that the current plan is to just capture the
  *   click event and trigger the browse event ourselves so we can show them the
  *   URL, so this is just extra protection.
+ *
  * - "allow-forms": NO.  We already sanitize forms out, so this is just extra
  *   protection.
+ *
  * - "allow-popups": NO.  We would never want this, but it also shouldn't be
  *   possible to even try to trigger this (scripts are disabled and sanitized,
  *   links are sanitized to forbid link targets as well as being nerfed), so
  *   this is also just extra protection.
  *
- * The spec makes a big deal that flag changes only take effect when navigation
- * occurs.  Accordingly, we may need to actually trigger navigation by using
- * a data URI (currently, and which should be able to inherit our origin)
- * rather than relying on about:blank.  On the other hand, sandbox flags have
- * been added to CSP, so we might also be able to rely on our CSP having set
- * things so that even the instantaneously created about:blank gets locked down.
+ * ## Platform Limitations: We Got'em! ##
  *
- * The only wrinkle right now is that gecko does not support the "seamless"
- * attribute.  This is not a problem since our content insertion is synchronous
- * and we can force a size calculation, but it would be nice if we didn't
- * have to do it.
+ * ### Seamless iframes ###
  *
- * ## Document Width and Zooming ##
+ * Gecko does not support seamless iframes, so we have to manually make sure
+ * that we set the iframe's outer size to what its inner size is.  Because
+ * layout is asynchronous (even in the document.write case, apparently), we end
+ * up polling after any notable event that might affect layout.
+ *
+ * I did experiment with the gecko-specific 'overflow' event a bit.  Although I
+ * suspect there were complicating factors, I do believe I ran into trouble with
+ * it since it is an event that is only generated each time you transition from
+ * overflow and back to underflow.  So if you get an overflow event but didn't
+ * actually cause yourself to go back to underflow (like if you have weird CSS
+ * maybe doing something like setting a width to 105% or something?), you won't
+ * get another overflow event.
+ *
+ * ### Pinch-and-Zoom ###
+ *
+ * Gecko supports Asynchronous Pan-and-Zoom (APZ), but we can't use it for our
+ * HTML pages right now because it can only be used for the root of an
+ * app/browser window.  And there is no support for nested subprocesses yet.
+ * When that stuff happens, we want to just use that instead of doing manual
+ * pinchy-zoomy support.
+ *
+ * We fake some level of usable pinch-zoom by using a "transform: scale()" on
+ * our iframe.  Because the transform is a painting thing and not a layout thing
+ * we have to wrap the iframe in a "viewport" div that provides our effective
+ * DOM size for scrolling.  We could maybe use better nomenclature for this and
+ * maybe even stop nesting the iframe in the viewport.  (The current structure
+ * is somewhat historical from when the viewport div actually was clipping the
+ * iframe.)
+ *
+ * For example, let's say our iframe is internally 580px by 1000px but we are
+ * displaying it at 50% scale so it's 290px by 500px.  In that case the iframe's
+ * size still needs to be 580px by 1000px, but the viewport needs to be 290px by
+ * 500px so that the scrolling works out right.  Otherwise you end up with lots
+ * of white space at the right and bottom.
+ *
+ * Likewise if we are zooming it to 200% we need the viewport's dimensions to be
+ * doubled so that there is the extra space to scroll into.
+ *
+ * ### Transform Performance / Memory Limitations ###
+ *
+ * We can't actually mess with "transform: scale()" in realtime.  This is
+ * primarily because it results in memory spikes that can get our process killed
+ * as the graphics subsystem's logic glitches and ends up allocating graphics
+ * buffers for the entirety of the HTML document, even the parts not on the
+ * screen.  But a secondary concern is that especially when it's drawing too
+ * much, it can take a very long time to scale.
+ *
+ * So we've implemented a "quantized" scaling approach where we have four zoom
+ * levels: "fit-to-width" (which is <= 1), 100%, 150%, and 200%.  Pinching to
+ * zoom in moves you to the right in the list, pinching to zoom out moves you
+ * out in the list.
+ *
+ * We use the shared gesture_detector code to figure out what's going on.
+ * Specifically, once the scale in absolute terms is clearly a zoom in or a zoom
+ * out, we trigger the scale change and then ignore the rest of the gesture
+ * until a new gesture occurs.  This is arguably intuitive, but more importantly
+ * it avoids the problems we had in the past where you could just absurdly
+ * oscillate your pinchers and kill the app as we swamped the system with a
+ * gazillion transforms.
+ *
+ *
+ * ## Email types and Pinchy-Zoomy time ##
  *
  * There are two types of HTML e-mails:
  *
@@ -91,57 +228,38 @@ var DEFAULT_STYLE_TAG =
  *    blockquote padding to cause text to have very little screen real estate.
  *
  * 2) Newsletter style e-mails which are structured and may have multiple
- *    columns, grids of images and stuff like that.
+ *    columns, grids of images and stuff like that.  They historically have
+ *    tended to assume a size of about 600px.  However, it's increasingly common
+ *    to be smart and use media queries.  Unfortunately, we don't support media
+ *    queries right now and so it's very likely we'll end up in the desktop
+ *    case.
  *
- * Newsletters tend to assume a screen width of around 60rem.  They also help
- * us out by usually explicitly sizing (parts) of themselves with that big
- * number, but usually a few levels of DOM in.  We could try and look for
- * explicit 'width' style directives (or attributes for tables), possibly
- * during sanitization, or we can try and force the layout engine to figure out
- * how wide the document really wants to be and then figure out if we need
- * a zoom strategy.  The latter approach is more reliable but will result in
- * layout having to perform 2 reflows (although one of them could probably be
- * run during synchronization and persisted).
+ * We originally treated these types of mails differently, but over time it
+ * became clear that this was not a great strategy, especially since showing
+ * external images/etc. could push a "normal" email into being a "newsletter"
+ * email.  We also intentionally would trigger a layout with relaxed constraints
+ * then try and tighten them up.
  *
- * We use the make-layout-figure-it-out strategy and declare any width that
- * ended up being wider than the viewport's width is a newsletter.  We then
- * deal with the cases like so:
+ * Our (new) strategy is to create the iframe so that it fits in the width we
+ * have available.  On flame devices that's 290px right now, though the actual
+ * size is discovered at runtime and doesn't matter.
  *
- * 1) We force the iframe to be the width of our screen and try and imitate a
- *    seamless iframe by setting the height of the iframe to its scrollHeight.
+ * As discussed above, we poll the scrollWidth and scrollHeight for a while to
+ * make sure that it stabilizes.  The trick is that if something is a newsletter
+ * it will end up wanting to be wider than our base/screen 290px.  We will
+ * detect this and update our various dimensions, including our "fit-to-width"
+ * scale.  Since we pick 100% or the computed fit-to-width scale, whichever is
+ * smaller, the non-newsletter case is just us using a fit-to-width zoom factor
+ * that just happens to be 100%.  The newsletter case is when fit-to-width is
+ * less than 100%.
  *
- * 2) We force the iframe to be the size it wants to be and use transform magic
- *    and gallery interaction logic to let the user pan and zoom to their
- *    heart's content.  We lack the ability to perform reflows-on-zoom like
- *    browser frames can do right now, so this sucks, but not as bad as if we
- *    tried to force the newsletter into a smaller width than it was designed
- *    for.  We could implement some workarounds for this, but it seems useful
- *    to try and drive this in platform.
+ * ## Bugs / Doc Links ##
  *
- * Here's an interesting blog post on font inflation for those that want to
- * know more:
- * http://jwir3.wordpress.com/2012/07/30/font-inflation-fennec-and-you/
- *
- * BUGS BLOCKING US FROM DOING WHAT WE REALLY WANT, MAYBE:
- *
- * - HTML5 iframe sandbox attribute which is landing soon.
- *   https://bugzilla.mozilla.org/show_bug.cgi?id=341604
- *
- * - reflow on zoom doesn't exist yet?
- *   https://bugzilla.mozilla.org/show_bug.cgi?id=710298
- *
- * BUGS MAKING US DO WORKAROUNDS:
+ * - Font-inflation is a thing.  It's not clear it affects us:
+ *   http://jwir3.wordpress.com/2012/07/30/font-inflation-fennec-and-you/
  *
  * - iframe "seamless" doesn't work, so we manually need to poke stuff:
  *   https://bugzilla.mozilla.org/show_bug.cgi?id=80713
- *
- * - iframes can't get the web browser pan-and-zoom stuff for free, so we
- *   use logic from the gallery app.
- *   https://bugzilla.mozilla.org/show_bug.cgi?id=775456
- *
- * ATTENTION: ALL KINDS OF CODE IS COPIED AND PASTED FROM THE GALLERY APP TO
- * GIVE US PINCH AND ZOOM.  IF YOU SEE CODE THAT SAYS PHOTO, THAT IS WHY.
- * ALSO, PHOTOS WILL REPLACE EMAIL AS THE MEANS OF COMMUNICATION.
  *
  * Uh, the ^ stuff below should really be @, but it's my jstut syntax that
  * gjslint simply hates, so...
@@ -179,38 +297,48 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
                                          parentNode, beforeNode,
                                          interactiveMode,
                                          clickHandler) {
-  // Add padding to compensate for scroll-bars in environments (Firefox, not
-  // b2g) where they can show up and cause themselves to exist in perpetuity.
-  var scrollPad = 16;
+  // We used to care about running in Firefox nightly.  This was a fudge-factor
+  // to account for its stupid scroll-bars that could not be escaped.  If you
+  // are using nightly, maybe it makes sense to turn this back up.  Or maybe we
+  // leave this zero and style the scrollbars to be overlays in b2g.  Who knows.
+  var scrollPad = 0;
 
   var viewportWidth = parentNode.offsetWidth - scrollPad;
   var viewport = document.createElement('div');
   viewport.setAttribute(
     'style',
-    'overflow: hidden; position: relative; ' +
-    'width: 100%;');
+    'padding: 0; border-width: 0; margin: 0; ' +
+    //'position: relative; ' +
+    'overflow: hidden;');
+  viewport.style.width = viewportWidth + 'px';
+  // leave height unsized for now.
+
   var iframe = document.createElement('iframe');
 
   iframe.setAttribute('sandbox', 'allow-same-origin');
   // Styling!
-  // - no visible border
-  // - we want to approximate seamless, so turn off overflow and we'll resize
-  //   things below.
-  // - 60rem wide; this is approximately the standard expected width for HTML
-  //   emails.
   iframe.setAttribute(
     'style',
-    'position: absolute; ' +
-    'border-width: 0;' +
-    'overflow: hidden;'
-//    'pointer-events: none; ' +
-//    '-moz-user-select: none; ' +
-//    'width: ' + (scrollWidth) + 'px; ' +
-//    'height: ' + (viewportHeight) + 'px;'
-  );
+    // no border! no padding/margins.
+    'padding: 0; border-width: 0; margin: 0; ' +
+    // I don't think this actually stops the iframe from being internally
+    // scrolly, but I wouldn't remove this without some testing...
+    'overflow: hidden; ' +
+    // When scaling, use the top-left for math sanity.
+    'transform-origin: top left; ' +
+    // The iframe does not want to process its own clicks!  that's what
+    // bindSanitizedClickHandler is for!
+    'pointer-events: none;');
+  if (iframeShimsOpts.tapTransform) {
+    iframe.style.transform = 'scale(1)';
+  }
+  // try and get the page to size itself to our actually available space.
+  iframe.style.width = viewportWidth + 'px';
+
+  // We need to be linked into the DOM tree to be able to write to our document
+  // and have CSS and improtant things like that work.
   viewport.appendChild(iframe);
   parentNode.insertBefore(viewport, beforeNode);
-  //iframe.setAttribute('srcdoc', htmlStr);
 
   // we want this fully synchronous so we can know the size of the document
   iframe.contentDocument.open();
@@ -221,56 +349,84 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
   iframe.contentDocument.write(htmlStr);
   iframe.contentDocument.write('</body>');
   iframe.contentDocument.close();
-  var iframeBody = iframe.contentDocument.documentElement;
+  var iframeHtml = iframe.contentDocument.documentElement;
+  var iframeBody = iframe.contentDocument.body;
+
+  // NOTE.  This has gone through some historical iterations here AKA is
+  // evolved.  Technically, getBoundingClientRect() may be superior since it can
+  // have fractional parts.  I believe I tried using it with iframeHtml and it
+  // ended up betraying me by reporting clientWidth/clientHeight instead of
+  // scrollWidth, whereas scrollWidth/scrollHeight worked better.  However I was
+  // trying a lot of things; I might just have been confused by some APZ
+  // glitches where panning right would not work immediately after zooming and
+  // you'd have to pan left first in order to pan all the way to the newly
+  // expaned right.  What we know right now is this gives the desired behaviour
+  // sizing behaviour.
   var scrollWidth = iframeBody.scrollWidth;
   var scrollHeight = iframeBody.scrollHeight;
 
-  var newsletterMode = scrollWidth > viewportWidth,
-      resizeFrame;
-
-  var scale = Math.min(1, viewportWidth / scrollWidth),
-      baseScale = scale,
-      lastScale = scale,
+  // fit-to-width scale.
+  var baseScale = Math.min(1, viewportWidth / scrollWidth),
+      // If there's an initial scale, use that, otherwise fall back to the base
+      // (fit-to-width) scale
+      lastRequestedScale = iframeShimsOpts.initialScale || baseScale,
+      scale = lastRequestedScale,
+      lastDoubleTapScale = scale,
       scaleMode = 0;
 
-  viewport.setAttribute(
-    'style',
-    'padding: 0; border-width: 0; margin: 0; ' +
-    'position: relative; ' +
-    'overflow: hidden;');
-  viewport.style.width = (scrollWidth * scale) + 'px';
-  viewport.style.height = (scrollHeight * scale) + 'px';
+  viewport.style.width = Math.ceil(scrollWidth * scale) + 'px';
+  viewport.style.height = Math.ceil(scrollHeight * scale) + 'px';
 
   // setting iframe.style.height is not sticky, so be heavy-handed.
   // Also, do not set overflow: hidden since we are already clipped by our
   // viewport or our containing card and Gecko slows down a lot because of the
   // extra clipping.
-  iframe.setAttribute(
-    'style',
-    'padding: 0; border-width: 0; margin: 0; ' +
-    'transform-origin: top left; ' +
-    'pointer-events: none;');
   iframe.style.width = scrollWidth + 'px';
 
-  resizeFrame = function(updateHeight) {
-    if (updateHeight) {
-      iframe.style.height = '';
+  var resizeFrame = function(why) {
+    if (why === 'initial' || why === 'poll') {
+      scrollWidth = iframeBody.scrollWidth;
       scrollHeight = iframeBody.scrollHeight;
+      // the baseScale will almost certainly have changed
+      var oldBaseScale = baseScale;
+      baseScale = Math.min(1, viewportWidth / scrollWidth);
+      if (scale === oldBaseScale) {
+        scale = baseScale;
+      }
+      iframe.style.width = scrollWidth + 'px';
+      console.log('iframe_shims: recalculating height / width because', why,
+                  'sw', scrollWidth, 'sh', scrollHeight, 'bs', baseScale);
     }
-    if (scale !== 1)
-      iframe.style.transform = 'scale(' + scale + ')';
-    else
-      iframe.style.transform = '';
+    console.log('iframe_shims: scale:', scale);
+    iframe.style.transform = 'scale(' + scale + ')';
     iframe.style.height =
       ((scrollHeight * Math.max(1, scale)) + scrollPad) + 'px';
-    viewport.style.width = (scrollWidth * scale) + 'px';
-    viewport.style.height = ((scrollHeight * scale) + scrollPad) + 'px';
+    viewport.style.width = Math.ceil(scrollWidth * scale) + 'px';
+    viewport.style.height = (Math.ceil(scrollHeight * scale) + scrollPad) +
+                              'px';
   };
-  resizeFrame(true);
+  resizeFrame('initial');
 
+  var activeZoom = false, lastCenterX, lastCenterY;
+  /**
+   * Zoom to the given scale, eventually.  If we are actively zooming or have
+   * recently zoomed and need for various async things to catch up, we will
+   * wait a bit before actually zooming to that scale.  We latch the most recent
+   * value in all cases.
+   */
   var zoomFrame = function(newScale, centerX, centerY) {
+    // There is nothing to do if we are actually already at this scale level.
+    // (Note that there still is something to do if newScale ===
+    //  lastRequestedScale, though!)
     if (newScale === scale)
       return;
+    lastRequestedScale = newScale;
+    lastCenterX = centerX;
+    lastCenterY = centerY;
+    if (activeZoom) {
+      return;
+    }
+    activeZoom = true;
 
     // Our goal is to figure out how to scroll the window so that the
     // location on the iframe corresponding to centerX/centerY maintains
@@ -297,21 +453,85 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
 
     var scaleDelta = (newScale / scale);
 
-    var vertScrollDelta = iy * scaleDelta,
-        horizScrollDelta = ix * scaleDelta;
+    var vertScrollDelta = Math.ceil(iy * scaleDelta),
+        horizScrollDelta = Math.ceil(ix * scaleDelta);
 
     scale = newScale;
-    resizeFrame();
+    resizeFrame('zoom');
     scrollContainer.scrollTop = vertScrollDelta + extraHeight - centerY;
     scrollContainer.scrollLeft = horizScrollDelta - centerX;
+
+    // Right, so on a Flame device I'm noticing serious delays in getting all
+    // this painting and such done, so it seems like we really want to up this
+    // constant to let any async stuff happen and to give the system some time
+    // to recover and maybe run a GC.  Because there is a very real chance of
+    // someone happilly zooming in-and-out over and over to cause us to hit a
+    // GC ceiling.
+    window.setTimeout(clearActiveZoom, iframeShimsOpts.zoomDelayMS);
   };
+  var clearActiveZoom = function() {
+    activeZoom = false;
+    if (scale !== lastRequestedScale) {
+      window.requestAnimationFrame(function() {
+        // This is almost certainly going to cause a memory spike, so log it.
+        // ugh.
+        console.log('delayed zoomFrame timeout, probably causing a mem-spike');
+        zoomFrame(lastRequestedScale, lastCenterX, lastCenterY);
+      });
+    }
+  };
+
+  // See giant block comment and timer constants for a description of our
+  // polling logic and knobs.
+  var resizePollerTimeout = null;
+  // track how many times we've checked.  We want to bound this for battery life
+  // purposes and also to avoid weird sad cases.
+  var resizePollCount = 0;
+  var pollResize = function() {
+    var opts = iframeShimsOpts;
+    var desiredScrollWidth = iframeBody.scrollWidth;
+    var desiredScrollHeight = iframeBody.scrollHeight;
+    var resized = false;
+    // if we need to grow, grow.  (for stability reasons, we never want to
+    // shrink since it could lead to infinite oscillation)
+    if (desiredScrollWidth > scrollWidth ||
+        desiredScrollHeight > scrollHeight) {
+      resizeFrame('poll');
+      resized = true;
+    }
+
+    if (++resizePollCount < opts.resizeLimit) {
+      // we manually schedule ourselves for slack purposes
+      resizePollerTimeout = window.setTimeout(
+        pollResize,
+        resized ? opts.didResizePollIntervalMS : opts.noResizePollIntervalMS);
+    } else {
+      resizePollerTimeout = null;
+    }
+  };
+  resizePollerTimeout = window.setTimeout(
+    pollResize, iframeShimsOpts.initialResizePollIntervalMS);
 
   var iframeShims = {
     iframe: iframe,
+    // (This is invoked each time an image "load" event fires.)
     resizeHandler: function() {
-      resizeFrame(true);
+      resizePollCount = 0;
+      // Reset the existing timeout because many emails with external images
+      // will have a LOT of external images so it could take a while for them
+      // all to load.
+      if (resizePollerTimeout) {
+        window.clearTimeout(resizePollerTimeout);
+      }
+      resizePollerTimeout = window.setTimeout(
+        pollResize, iframeShimsOpts.pictureDelayPollIntervalMS);
     }
   };
+
+  if (interactiveMode !== 'interactive') {
+    return iframeShims;
+  }
+
   var detectorTarget = viewport;
   var detector = new GestureDetector(detectorTarget);
   // We don't need to ever stopDetecting since the closures that keep it
@@ -322,21 +542,15 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
     viewport.removeEventListener('click', clickHandler);
     bindSanitizedClickHandler(viewport, clickHandler, null, iframe);
   }
-  // If mail is not newsletter mode, ignore zoom/dbtap event handling.
-  if (!newsletterMode || interactiveMode !== 'interactive') {
-    return iframeShims;
-  }
-  // XXX these live down here now because these hardcoded hacks will
-  // explode when we use this logic in the composer (when there isn't
-  // a message reader on the stack).  This is okay / not any more horrible
-  // because the compose iframe is entirely noninteractive so these values
-  // aren't used anyways.
+
   var title = document.getElementsByClassName('msg-reader-header')[0];
   var header = document.getElementsByClassName('msg-envelope-bar')[0];
   var extraHeight = title.clientHeight + header.clientHeight;
+
+  // -- Double-tap zoom idiom
   detectorTarget.addEventListener('dbltap', function(e) {
     var newScale = scale;
-    if (lastScale === scale) {
+    if (lastDoubleTapScale === lastRequestedScale) {
       scaleMode = (scaleMode + 1) % 3;
       switch (scaleMode) {
         case 0:
@@ -349,11 +563,12 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
           newScale = 2;
           break;
       }
+      console.log('already in double-tap, deciding on new scale', newScale);
     }
     else {
       // If already zoomed in, zoom out to starting scale
-      if (scale > 1) {
-        newScale = lastScale;
+      if (lastRequestedScale > 1) {
+        newScale = lastDoubleTapScale;
         scaleMode = 0;
       }
       // Otherwise zoom in to 2x
@@ -361,28 +576,74 @@ function createAndInsertIframeForContent(htmlStr, scrollContainer,
         newScale = 2;
         scaleMode = 2;
       }
+      console.log('user was not in double-tap switching to double-tap with',
+                  newScale);
     }
-    lastScale = newScale;
+    lastDoubleTapScale = newScale;
     try {
       zoomFrame(newScale, e.detail.clientX, e.detail.clientY);
     } catch (ex) {
       console.error('zoom bug!', ex, '\n', ex.stack);
     }
   });
-  detectorTarget.addEventListener('transform', function(e) {
-    var scaleFactor = e.detail.relative.scale;
-    var newScale = scale * scaleFactor;
-    // Never zoom in farther than 2x
-    if (newScale > 2) {
-      newScale = 2;
-    }
-    // And never zoom out farther than baseScale
-    else if (newScale < baseScale) {
-      newScale = baseScale;
-    }
-    zoomFrame(newScale,
-              e.detail.midpoint.clientX, e.detail.midpoint.clientY);
+
+  // -- quantized pinchy-zoomy idiom
+  // track whether we've already transformed this transform event cycle
+  var transformDone = false;
+  // reset when the transform has ended.  (there is no transformbegin event)
+  detectorTarget.addEventListener('transformend', function(e) {
+    transformDone = false;
   });
+  detectorTarget.addEventListener('transform', function(e) {
+    // if we already zoomed in/out this time, then just bail
+    if (transformDone) {
+      return;
+    }
+
+    var scaleFactor = e.detail.absolute.scale;
+    var newScale = lastRequestedScale;
+    // once it's clear this is a zoom-in, we can handle
+    if (scaleFactor > 1.15) {
+      transformDone = true;
+      // Zoom in if we can.
+      // (Note that if baseScale is 1, we will properly go direct to 1.5 from
+      // baseScale.  Hooray!)
+      if (lastRequestedScale < 1) {
+        newScale = 1;
+      }
+      else if (lastRequestedScale < 1.5) {
+        newScale = 1.5;
+      }
+      else if (lastRequestedScale < 2) {
+        newScale = 2;
+      }
+      else {
+        return;
+      }
+    }
+    else if (scaleFactor < 0.9) {
+      transformDone = true;
+      if (lastRequestedScale > 1.5) {
+        newScale = 1.5;
+      }
+      else if (lastRequestedScale > 1) {
+        newScale = 1;
+      }
+      else if (lastRequestedScale > baseScale) {
+        newScale = baseScale;
+      }
+      else {
+        return;
+      }
+    }
+    else {
+      return;
+    }
+    zoomFrame(
+      newScale,
+      e.detail.midpoint.clientX, e.detail.midpoint.clientY);
+  });
+
 
   return iframeShims;
 }
@@ -450,7 +711,8 @@ function bindSanitizedClickHandler(target, clickHandler, topNode, iframe) {
 
 return {
   createAndInsertIframeForContent: createAndInsertIframeForContent,
-  bindSanitizedClickHandler: bindSanitizedClickHandler
+  bindSanitizedClickHandler: bindSanitizedClickHandler,
+  iframeShimsOpts: iframeShimsOpts
 };
 
 });

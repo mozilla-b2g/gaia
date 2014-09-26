@@ -12,7 +12,10 @@ suite('URL Helper', function() {
       'a?some b',
       'docshell site:mozilla.org',
       '?mozilla',
-      '?site:mozilla.org docshell'
+      '?site:mozilla.org docshell',
+      'http:',
+      'app:',
+      'rtsp:'
     ].forEach(function(input) {
       assert.ok(UrlHelper.isNotURL(input));
     });
@@ -28,7 +31,8 @@ suite('URL Helper', function() {
       'a?',
       'a?b',
       'http://foo.com',
-      'data:about'
+      'data:about',
+      'rtsp://100.100.100.100/rtsp.mp4'
     ].forEach(function(input) {
       assert.ok(!UrlHelper.isNotURL(input));
     });

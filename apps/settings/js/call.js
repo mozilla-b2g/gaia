@@ -88,8 +88,8 @@ require([
       // Set the navigation correctly when on a multi ICC card device.
       if (DsdsSettings.getNumberOfIccSlots() > 1) {
         var callSettingsPanel = document.getElementById('call');
-        var backButton = callSettingsPanel.querySelector('a');
-        backButton.setAttribute('href', '#call-iccs');
+        var header = callSettingsPanel.querySelector('gaia-header');
+        header.setAttribute('data-href', '#call-iccs');
       }
 
       cs_addVoiceTypeChangeListeners();

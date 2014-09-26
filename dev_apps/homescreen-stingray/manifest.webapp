@@ -17,12 +17,6 @@
     "device-storage:videos":{ "access": "readonly" },
     "audio-channel-content":{}
   },
-  "locales": {
-    "en-US": {
-      "name": "Stingray Homescreen",
-      "description": "Homescreen with Widgets"
-    }
-  },
   "default_locale": "en-US",
   "icons": {
     "60": "/style/icons/homescreen.png"

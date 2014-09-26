@@ -10,7 +10,6 @@
 
 (function(exports) {
 
-  var _ = navigator.mozL10n.get;
   var eme = exports.eme;
 
   function HandleCreate(activity) {
@@ -112,9 +111,16 @@
         .then(generateIcons)
         // XXX: We currently need to save before we populate info.
         .then(saveAll)
-        .then(populateNativeInfo)
-        .then(generateIcons)
-        .then(saveAll)
+        .then(collections => {
+          // recovery scheme: population will fail if offline
+          return populateNativeInfo(collections)
+            .then(generateIcons)
+            .then(saveAll)
+            .catch(() => {
+              eme.error('NativeInfo task failed');
+              return collections;
+            });
+        })
         .then(postResultIds)
         .catch((ex) => {
           eme.error('caught exception', ex);
@@ -122,12 +128,7 @@
         });
     }
 
-    function onOffline() {
-      alert(navigator.mozL10n.get('network-error-message'));
-      activity.postResult(false);
-    }
-
-    function onOnline() {
+    var handlerPromise =
       CollectionsDatabase.getAllCategories()
       .then(function doRequest(installed) {
         request = eme.api.Categories.list().then(
@@ -140,26 +141,31 @@
             });
 
             Suggestions.load(categories)
-            .then(selected => {
-              createCollections(selected, data);
-            }, reason => {
-              eme.log('rejected with', reason);
-              activity.postResult(false);
-            });
+              .then(selected => {
+                createCollections(selected, data);
+              }, reason => {
+                eme.log('rejected with', reason);
+                activity.postResult(false);
+              });
 
-        }, function error(reason) {
-          eme.log('create-collection: error', reason);
-          activity.postError(reason === 'network error' ?
-                              _('network-error-message') : undefined);
-        }).catch(function fail(ex) {
+          }, function error(reason) {
+            eme.log('create-collection: error', reason);
+
+            if (reason === 'network error') {
+              alert(navigator.mozL10n.get('network-error-message'));
+            }
+
+            activity.postResult(false);
+
+          }).catch(function fail(ex) {
           eme.log('create-collection: failed', ex);
-          activity.postError();
+          activity.postResult(false);
         });
 
-      }, activity.postError);
-    }
+        return request;
 
-    window.addEventListener('offline', onOffline);
+      }, activity.postResult.bind(null, false));
+
     cancel.addEventListener('click', function() {
       // TODO request should always have an 'abort' method
       // but sometimes it doesn't. find out why!
@@ -171,11 +177,7 @@
 
     document.body.dataset.testReady = true;
 
-    if (navigator.onLine) {
-      onOnline();
-    } else {
-      onOffline();
-    }
+    return handlerPromise;
   }
 
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {

@@ -158,6 +158,12 @@ function init() {
     cleanupCrop();
   });
 
+  if (!isPhone) {
+    $('fullscreen-toolbar-header').addEventListener('action', function() {
+      setView(LAYOUT_MODE.list);
+    });
+  }
+
   // The camera buttons should launch the camera app
   fullscreenButtons.camera.onclick = launchCameraApp;
 
@@ -716,11 +722,9 @@ function setView(view) {
   // so the title must be changed while switching
   if (!isPhone) {
     if (view !== LAYOUT_MODE.fullscreen) {
-      $('fullscreen-title').textContent =
-        navigator.mozL10n.get('preview');
+      $('fullscreen-title').setAttribute('data-l10n-id', 'preview');
     } else {
-      $('fullscreen-title').textContent =
-        navigator.mozL10n.get('gallery');
+      $('fullscreen-title').setAttribute('data-l10n-id', 'gallery');
     }
   }
   // Remember the current view
@@ -983,21 +987,16 @@ function cropPickedImage(fileinfo) {
       if (pickWidth && pickHeight) {
         outputSize = { width: pickWidth, height: pickHeight };
       }
-      else if (CONFIG_MAX_PICK_PIXEL_SIZE) {
-        outputSize = CONFIG_MAX_PICK_PIXEL_SIZE;
-      }
       else {
-        outputSize = null;
+        outputSize = CONFIG_MAX_PICK_PIXEL_SIZE || CONFIG_MAX_IMAGE_PIXEL_SIZE;
       }
 
-      // show spinner if cropResizeRotate will downsample image
+      // show spinner if cropResizeRotate will decode and modify the image
       if (cropRegion !== null ||
-          outputSize !== null ||
-          (pickedFileInfo.metadata !== undefined &&
-           pickedFileInfo.metadata.rotation !== undefined &&
-           pickedFileInfo.metadata.rotation) ||
-          (pickedFileInfo.metadata.mirrored !== undefined &&
-           pickedFileInfo.metadata.mirrored)) {
+          typeof outputSize === 'object' ||
+          outputSize < fullImageWidth * fullImageHeight ||
+          pickedFileInfo.metadata.rotation ||
+          pickedFileInfo.metadata.mirrored) {
         showSpinner();
       }
       cropResizeRotate(pickedFile, cropRegion, outputSize, pickType,
@@ -1103,8 +1102,11 @@ function clearSelection() {
   selectedFileNamesToBlobs = {};
   $('thumbnails-delete-button').classList.add('disabled');
   $('thumbnails-share-button').classList.add('disabled');
-  $('thumbnails-number-selected').textContent =
-    navigator.mozL10n.get('number-selected2', { n: 0 });
+  navigator.mozL10n.setAttributes(
+    $('thumbnails-number-selected'),
+    'number-selected2',
+    { n: 0 }
+  );
 }
 
 // When we enter thumbnail selection mode, or when the selection changes
@@ -1164,10 +1166,11 @@ function updateSelection(thumbnail) {
 
   // Now update the UI based on the number of selected thumbnails
   var numSelected = selectedFileNames.length;
-  var msg = navigator.mozL10n.get('number-selected2', { n: numSelected });
-  var headerTitle = $('thumbnails-number-selected');
-
-  headerTitle.textContent = msg;
+  navigator.mozL10n.setAttributes(
+    $('thumbnails-number-selected'),
+    'number-selected2',
+    { n: numSelected }
+  );
 
   if (numSelected === 0) {
     $('thumbnails-delete-button').classList.add('disabled');
@@ -1206,9 +1209,10 @@ function deleteSelectedItems() {
     return;
 
   Dialogs.confirm({
-    message: navigator.mozL10n.get('delete-n-items?', {n: selected.length}),
-    cancelText: navigator.mozL10n.get('cancel'),
-    confirmText: navigator.mozL10n.get('delete'),
+    messageId: 'delete-n-items?',
+    messageArgs: {n: selected.length},
+    cancelId: 'cancel',
+    confirmId: 'delete',
     danger: true
   }, function() { // onSuccess
     // deleteFile is O(n), so this loop is O(n*n). If used with really large

@@ -158,10 +158,10 @@ suite('webapp-shared.js', function() {
       assert.equal(webappShared.used.unstable_styles[0], unstable_styles,
         'push unstable_styles');
 
-      var locales = 'testlocales';
-      webappShared.config.GAIA_INLINE_LOCALES = 'zh-TW';
-      webappShared.pushFileByType('locales', locales + '.obj');
-      assert.equal(webappShared.used.locales[0], locales,
+      var localeName = 'date';
+      webappShared.pushFileByType('locales',
+        localeName + '/date.{locale}.properties');
+      assert.equal(webappShared.used.locales[0], localeName,
         'push locales');
     });
 
@@ -321,9 +321,7 @@ suite('webapp-shared.js', function() {
       webappShared.pushLocale(localePath);
       assert.equal(result[0].path, 'shared/locales/' + localePath);
       assert.equal(result[0].file.path, sharedFilePath);
-      assert.equal(result[1].path, 'shared/locales/' + localePath + '.ini');
-      assert.equal(result[1].file.path, sharedFilePath);
-      assert.equal(result[2].path, lsContentFilePath);
+      assert.equal(result[1].path, lsContentFilePath);
     });
 
     test('pushResource', function() {

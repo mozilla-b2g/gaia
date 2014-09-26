@@ -7,7 +7,27 @@
  */
 (function IconsHelper(exports) {
 
-  //
+  function getIcon(uri, iconSize, placeObj) {
+    var icon;
+
+    if (placeObj && placeObj.icons) {
+      icon = getBestIcon(placeObj.icons, iconSize);
+    }
+
+    // If we dont pick up a valid icon, use favicon.ico at the origin
+    if (!icon) {
+      var a = document.createElement('a');
+      a.href = uri;
+      icon = a.origin + '/favicon.ico';
+    }
+
+    // Future proofing as eventually this helper will retrieve and
+    // cache the icons, and will need an async API
+    return new Promise(resolve => {
+      resolve(icon);
+    });
+  }
+
   // See bug 1041482, we will need to support better
   // icons for different part of the system application.
   // A web page have different ways to defining icons
@@ -22,8 +42,8 @@
   // {
   //   '[uri 1]': {
   //     sizes: ['16x16 32x32 48x48', '60x60']
-  //   }, 
-  //   '[uri 2]': { 
+  //   },
+  //   '[uri 2]': {
   //     sizes: ['16x16']
   //   }
   // }
@@ -39,6 +59,7 @@
     var sizes = Object.keys(options).sort(function(a, b) {
       return a - b;
     });
+
     // Handle the case of no size info in the whole list
     // just return the first icon.
     if (sizes.length === 0) {
@@ -46,10 +67,18 @@
       return iconStrings.length > 0 ? iconStrings[0] : null;
     }
 
-
     var preferredSize = getPreferredSize(sizes, iconSize);
+    var icon = options[preferredSize];
 
-    return options[preferredSize];
+    if (icon.rel === 'apple-touch-icon') {
+      var iconsUrl = 'https://developer.mozilla.org/en-US/' +
+        'Apps/Build/Icon_implementation_for_apps#General_icons_for_web_apps';
+      console.warn('Warning: The apple-touch icons are being used ' +
+                   'as a fallback only. They will be deprecated in ' +
+                   'the future. See ' + iconsUrl);
+    }
+
+    return icon.uri;
   }
 
   // Given an object representing the icons detected in a web
@@ -68,7 +97,10 @@
           return;
         }
 
-        sizes[sizeValue] = uri;
+        sizes[sizeValue] = {
+          uri: uri,
+          rel: icons[uri].rel
+        };
       });
     });
 
@@ -109,6 +141,8 @@
   }
 
   exports.IconsHelper = {
+    getIcon: getIcon,
+
     getBestIcon: getBestIcon,
     // Make public for unit test purposes
     getSizes: getSizes

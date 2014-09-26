@@ -25,8 +25,9 @@ var contacts = window.contacts || {};
 contacts.Settings = (function() {
 
   var navigationHandler,
-    importSettingsBack,
+    importSettingsHeader,
     orderCheckBox,
+    orderItem,
     orderByLastName,
     setICEButton,
     importSettingsPanel,
@@ -41,6 +42,7 @@ contacts.Settings = (function() {
     exportSDOption,
     fbImportOption,
     fbImportCheck,
+    fbImportCheckContainer,
     fbUpdateButton,
     fbOfflineMsg,
     fbTotalsMsg,
@@ -97,6 +99,7 @@ contacts.Settings = (function() {
     var value = newOrderByLastName === null ? orderByLastName :
       newOrderByLastName;
     orderCheckBox.checked = value;
+    orderItem.setAttribute('aria-checked', value);
   };
 
   var updateImportTitle = function updateImportTitle(l10nString) {
@@ -106,7 +109,7 @@ contacts.Settings = (function() {
 
   // Initialises variables and listener for the UI
   var initContainers = function initContainers() {
-    var orderItem = document.getElementById('settingsOrder');
+    orderItem = document.getElementById('settingsOrder');
     orderCheckBox = orderItem.querySelector('[name="order.lastname"]');
     orderItem.addEventListener('click', onOrderingChange.bind(this));
     // Creating a navigation handler from this view
@@ -136,8 +139,8 @@ contacts.Settings = (function() {
     });
 
     // Navigation back
-    importSettingsBack = document.getElementById('import-settings-back');
-    importSettingsBack.addEventListener('click', importSettingsBackHandler);
+    importSettingsHeader = document.getElementById('import-settings-header');
+    importSettingsHeader.addEventListener('action', importSettingsBackHandler);
 
     // Handlers for the navigation through the panels
     importContacts = document.getElementById('importContacts');
@@ -163,7 +166,8 @@ contacts.Settings = (function() {
     bulkDeleteButton.addEventListener('click', bulkDeleteHandler);
     if (fb.isEnabled) {
       fbImportOption = document.querySelector('#settingsFb');
-      document.querySelector('#settingsFb > .fb-item').onclick = onFbEnable;
+      fbImportCheckContainer = fbImportOption.querySelector('.fb-item');
+      fbImportCheckContainer.onclick = onFbEnable;
 
       fbImportCheck = document.querySelector('[name="fb.imported"]');
 
@@ -230,8 +234,11 @@ contacts.Settings = (function() {
   }
 
   function showICEScreen(cb) {
-    LazyLoader.load(['/contacts/js/ice.js'], function(){
-      contacts.ICE.init();
+    LazyLoader.load([
+      '/contacts/js/utilities/ice_data.js',
+      '/contacts/js/views/ice_settings.js',
+      '/shared/js/contacts/utilities/ice_store.js'], function(){
+      contacts.ICE.refresh();
       navigationHandler.go('ice-settings', 'right-left');
       if (typeof cb === 'function') {
         cb();
@@ -347,7 +354,7 @@ contacts.Settings = (function() {
         // warn the user of the ongoin operation, dismiss it
         // once we have the result
         requireOverlay(function _loaded() {
-          utils.overlay.show(_('preparing-contacts'), null, 'spinner');
+          utils.overlay.show('preparing-contacts', null, 'spinner');
           promise.onsuccess = function onSuccess(ids) {
             // Once we start the export process we can exit from select mode
             // This will have to evolve once export errors can be captured
@@ -429,7 +436,7 @@ contacts.Settings = (function() {
       exportSDErrorMessage = _('noMemoryCardMsgExport');
 
       if (cardShared) {
-        importSDErrorMessage = exportSDErrorMessage = _('sdUMSEnabled');
+        importSDErrorMessage = exportSDErrorMessage = _('memoryCardUMSEnabled');
       }
     }
 
@@ -467,11 +474,13 @@ contacts.Settings = (function() {
     fbGetTotals(false);
 
     fbImportCheck.checked = true;
+    fbImportCheckContainer.setAttribute('aria-checked', true);
     document.dispatchEvent(new CustomEvent('facebookEnabled'));
   }
 
   function fbSetDisabledState() {
     fbImportCheck.checked = false;
+    fbImportCheckContainer.setAttribute('aria-checked', false);
   }
 
   // Get total number of contacts imported from fb
@@ -569,6 +578,7 @@ contacts.Settings = (function() {
 
     if (fbImportedValue === 'logged-out') {
       fbImportCheck.checked = true;
+      fbImportCheckContainer.setAttribute('aria-checked', true);
       // For starting we wait for the switch transition to give feedback
       window.addEventListener('transitionend', function transendCheck(e) {
         if (e.target.id === 'span-check-fb') {
@@ -578,19 +588,21 @@ contacts.Settings = (function() {
           // without logging in (we don't have any mechanism to know that fact)
           window.setTimeout(function() {
             fbImportCheck.checked = false;
+            fbImportCheckContainer.setAttribute('aria-checked', false);
           }, WAIT_UNCHECK);
         }
       });
     }
     else {
       fbImportCheck.checked = false;
+      fbImportCheckContainer.setAttribute('aria-checked', false);
       // For starting we wait for the switch transition to give feedback
       window.addEventListener('transitionend', function fb_remove_all(e) {
         if (e.target.id === 'span-check-fb') {
           window.removeEventListener('transitionend', fb_remove_all);
-          var msg = _('cleanFbConfirmMsg');
+          var msg = 'cleanFbConfirmMsg';
           var yesObject = {
-            title: _('remove'),
+            title: 'remove',
             isDanger: true,
             callback: function() {
               ConfirmDialog.hide();
@@ -599,9 +611,10 @@ contacts.Settings = (function() {
           };
 
           var noObject = {
-            title: _('cancel'),
+            title: 'cancel',
             callback: function onCancel() {
               fbImportCheck.checked = true;
+              fbImportCheckContainer.setAttribute('aria-checked', true);
               ConfirmDialog.hide();
             }
           };
@@ -620,7 +633,7 @@ contacts.Settings = (function() {
   }
 
   function doFbUnlink() {
-    var progressBar = Contacts.showOverlay(_('cleaningFbData'), 'progressBar');
+    var progressBar = Contacts.showOverlay('cleaningFbData', 'progressBar');
     var wakeLock = navigator.requestWakeLock('cpu');
 
     var req = fb.utils.clearFbData();
@@ -631,7 +644,7 @@ contacts.Settings = (function() {
       cleaner.onsuccess = function() {
         document.dispatchEvent(new CustomEvent('fb_cleaned'));
 
-        Contacts.showOverlay(_('loggingOutFb'), 'activityBar');
+        Contacts.showOverlay('loggingOutFb', 'activityBar');
         var logoutReq = fb.utils.logout();
 
         logoutReq.onsuccess = function() {
@@ -688,7 +701,7 @@ contacts.Settings = (function() {
     if (icc === null) {
       return;
     }
-    var progress = Contacts.showOverlay(_('simContacts-reading'),
+    var progress = Contacts.showOverlay('simContacts-reading',
       'activityBar');
 
     var wakeLock = navigator.requestWakeLock('cpu');
@@ -704,7 +717,7 @@ contacts.Settings = (function() {
         // is being cooked
         progress.setClass('activityBar');
         utils.overlay.hideMenu();
-        progress.setHeaderMsg(_('messageCanceling'));
+        progress.setHeaderMsg('messageCanceling');
       } else {
         importer.onfinish(); // Early return while reading contacts
       }
@@ -719,7 +732,7 @@ contacts.Settings = (function() {
       totalContactsToImport = n;
       if (totalContactsToImport > 0) {
         progress.setClass('progressBar');
-        progress.setHeaderMsg(_('simContacts-importing'));
+        progress.setHeaderMsg('simContacts-importing');
         progress.setTotal(totalContactsToImport);
       }
     };
@@ -736,12 +749,18 @@ contacts.Settings = (function() {
           });
         }
         if (!cancelled) {
-          Contacts.showStatus(_('simContacts-imported3', {
-            n: importedContacts
-          }),
-          !numDupsMerged ? null : _('contactsMerged', {
-            numDups: numDupsMerged
-          }));
+          Contacts.showStatus({
+            id: 'simContacts-imported3',
+            args: {
+              n: importedContacts
+            }
+          },
+          !numDupsMerged ? null : {
+            id: 'contactsMerged',
+            args: {
+              numDups: numDupsMerged
+            }
+          });
         }
 
         typeof done === 'function' && done();
@@ -760,13 +779,13 @@ contacts.Settings = (function() {
 
     importer.onerror = function import_error() {
       var cancel = {
-        title: _('cancel'),
+        title: 'cancel',
         callback: function() {
           ConfirmDialog.hide();
         }
       };
       var retry = {
-        title: _('retry'),
+        title: 'retry',
         isRecommend: true,
         callback: function() {
           ConfirmDialog.hide();
@@ -775,7 +794,7 @@ contacts.Settings = (function() {
             onSimImport.bind(this, iccId)), 0);
         }
       };
-      Contacts.confirmDialog(null, _('simContacts-error'), cancel, retry);
+      Contacts.confirmDialog(null, 'simContacts-error', cancel, retry);
       resetWait(wakeLock);
     };
 
@@ -786,7 +805,7 @@ contacts.Settings = (function() {
     var cancelled = false;
     var importer = null;
     var progress = Contacts.showOverlay(
-      _('memoryCardContacts-reading'), 'activityBar');
+      'memoryCardContacts-reading', 'activityBar');
     utils.overlay.showMenu();
     utils.overlay.oncancel = function() {
       cancelled = true;
@@ -845,12 +864,18 @@ contacts.Settings = (function() {
             resetWait(wakeLock);
 
             if (!cancelled) {
-              var msg1 = _('memoryCardContacts-imported3', {
-                n: importedContacts
-              });
-              var msg2 = !numDupsMerged ? null : _('contactsMerged', {
-                numDups: numDupsMerged
-              });
+              var msg1 = {
+                id: 'memoryCardContacts-imported3',
+                args: {
+                  n: importedContacts
+                }
+              };
+              var msg2 = !numDupsMerged ? null : {
+                id: 'contactsMerged',
+                args: {
+                  numDups: numDupsMerged
+                }
+              };
 
               Contacts.showStatus(msg1, msg2);
 
@@ -865,7 +890,7 @@ contacts.Settings = (function() {
 
     function import_read(n) {
       progress.setClass('progressBar');
-      progress.setHeaderMsg(_('memoryCardContacts-importing'));
+      progress.setHeaderMsg('memoryCardContacts-importing');
       progress.setTotal(n);
     }
 
@@ -876,14 +901,14 @@ contacts.Settings = (function() {
 
     function import_error(e, cb) {
       var cancel = {
-        title: _('cancel'),
+        title: 'cancel',
         callback: function() {
           ConfirmDialog.hide();
         }
       };
 
       var retry = {
-        title: _('retry'),
+        title: 'retry',
         isRecommend: true,
         callback: function() {
           ConfirmDialog.hide();
@@ -891,7 +916,7 @@ contacts.Settings = (function() {
           window.setTimeout(requireOverlay.bind(this, onSdImport), 0);
         }
       };
-      Contacts.confirmDialog(null, _('memoryCardContacts-error'), cancel,
+      Contacts.confirmDialog(null, 'memoryCardContacts-error', cancel,
         retry);
       resetWait(wakeLock);
       if (typeof cb === 'function') {
@@ -943,10 +968,12 @@ contacts.Settings = (function() {
       if (req.result === 0) {
         exportButton.setAttribute('disabled', 'disabled');
         bulkDeleteButton.setAttribute('disabled', 'disabled');
+        setICEButton.setAttribute('disabled', 'disabled');
       }
       else {
          exportButton.removeAttribute('disabled');
          bulkDeleteButton.removeAttribute('disabled');
+         setICEButton.removeAttribute('disabled');
       }
     };
 

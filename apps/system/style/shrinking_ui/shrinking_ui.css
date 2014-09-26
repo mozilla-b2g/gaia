@@ -1,24 +1,20 @@
 
 .shrinking-wrapper {
-  background-image: url('/style/shrinking_ui/images/background.png');
+  background-image: radial-gradient(circle closest-corner at center top, #2F3A44 0%, #222A31 100%);
   background-size: cover;
   background-repeat: no-repeat;
   perspective: 1rem;
-}
-
-@media screen and (orientation: landscape) {
-  .shrinking-wrapper {
-    background-image: url('/style/shrinking_ui/images/backgroundL.png');
-  }
 }
 
 #shrinking-tip {
   width: 100%;
   position: absolute;
   top: 10%;
-  color: #00AACC;
+  color: #22caf0;
   z-index: 4;
   font-size: 1.8rem;
+  font-family: "Fira Sans", sans-serif;
+  font-style: italic;
   text-align: center;
   transition: opacity 0.3s ease;
 }
@@ -27,10 +23,21 @@
   background-image: url('/style/shrinking_ui/images/sending_arrow.png');
   background-repeat: no-repeat;
   background-position: center center;
+  background-size: 2rem;
   width: 100%;
   text-align: center;
   margin-top: 0.5rem;
   height: 2rem;
+}
+
+@media (orientation: landscape) {
+  #shrinking-tip {
+    top: 13%;
+  }
+
+  #shrinking-tip-arrow {
+    margin-top: 0.6rem;
+  }
 }
 
 #shrinking-tip.hide {

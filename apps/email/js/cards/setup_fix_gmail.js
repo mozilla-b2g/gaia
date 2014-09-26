@@ -28,7 +28,7 @@ function SetupFixGmail(domNode, mode, args) {
   var accountType = (this.account.type === 'imap+smtp' ? 'imap' : 'pop3');
   for (var className in translations) {
     var l10nId = translations[className].replace('{ACCOUNT_TYPE}', accountType);
-    mozL10n.localize(this.getElement(className), l10nId);
+    this.getElement(className).setAttribute('data-l10n-id', l10nId);
   }
 
   this.getElement('sup-dismiss-btn').addEventListener(

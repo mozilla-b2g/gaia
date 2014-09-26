@@ -12,7 +12,7 @@
  * Video frames allow the user to play and pause but don't allow zooming.
  *
  * When a frame is displaying a video, it handles mouse events.
- * When display a picture, however, it expects the client to handle events
+ * When displaying a picture, however, it expects the client to handle events
  * and call the pan() and zoom() methods.
  *
  * The pan() method is a little unusual. It "uses" as much of the pan
@@ -31,8 +31,15 @@
  * the constructor. The MediaFrame code also includes a runtime check for
  * the amount of RAM available on the device, and may limit the image decode
  * size on low-memory devices.
+ *
+ * MediaFrame uses the CSS background-image property to display images. This
+ * means that the images are decoded even if the MediaFrame is offscreen and
+ * the image is not visible. So if you create a lot of these and display big
+ * images in them, you will use a lot of memory. Be careful!
  */
 function MediaFrame(container, includeVideo, maxImageSize) {
+  this.clear(); // Set all the properties we'll use to default values
+
   if (typeof container === 'string')
     container = document.getElementById(container);
   this.container = container;
@@ -41,15 +48,6 @@ function MediaFrame(container, includeVideo, maxImageSize) {
     this.video = new VideoPlayer(container);
     this.video.hide();
   }
-  this.displayingVideo = false;
-  this.displayingImage = false;
-  this.imageblob = null;
-  this.previewblob = null;
-  this.videoblob = null;
-  this.posterblob = null;
-  this.url = null;
-
-  var self = this;
 }
 
 MediaFrame.computeMaxImageDecodeSize = function(mem) {
@@ -108,25 +106,45 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
                                                           rotation,
                                                           mirrored)
 {
+  var self = this;
+
   // If we are still querying the device memory, wait for that query to
   // complete and then try again.
   if (MediaFrame.pendingPromise) {
     MediaFrame.pendingPromise.then(function resolve() {
-      displayImage(blob, width, height, preview, rotation, mirrored);
+      self.displayImage(blob, width, height, preview, rotation, mirrored);
     });
     return;
   }
 
-  var self = this;
   this.clear();  // Reset everything
-  // Remember what we're displaying
+
+  // Remember what we're displaying. This doesn't really need to be public
+  // but the Gallery app uses it.
   this.imageblob = blob;
-  this.preview = preview;
+
+  // Create an element to display the image (using CSS background-image)
+  this.image = document.createElement('div');
+  this.container.appendChild(this.image);
+  this.image.className = 'image-view';
+  this.image.style.transformOrigin = 'center center';
+  this.image.style.backgroundImage = 'none';
+  this.image.style.backgroundSize = 'contain';
+  this.image.style.backgroundRepeat = 'no-repeat';
+  // It would be nice if users of this module could override this
+  // background color.
+  this.image.style.backgroundColor = '#222';
 
   // Figure out if we are going to downsample the image before displaying it
+  // We expose fullSampleSize as part of the public api only for testing.
   this.fullSampleSize = computeFullSampleSize(blob, width, height);
   this.fullsizeWidth = this.fullSampleSize.scale(width);
   this.fullsizeHeight = this.fullSampleSize.scale(height);
+
+  // Create a blob URL for it, combine it with the media fragment for
+  // downsampling, and put it in CSS background-image format.
+  this.imageurl = URL.createObjectURL(blob);
+  this.fullBackgroundImage = 'url(' + this.imageurl + this.fullSampleSize + ')';
 
   // Note: There is a default value for orientation/mirrored since some
   // images don't have EXIF data to retrieve this information.
@@ -174,39 +192,85 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
              preview.height >= screenWidth));  // landscape
   }
 
-  // If we have a useable preview image, use it.
+  // To save memory, we want to avoid displaying the image at full size
+  // whenever we can display a smaller preview of it. In general, we only
+  // want to decode the full-size image if the user zooms in on it.
+  // This code determines whether we have a usable preview image (or whether
+  // we can downsample the full-size image) and if so, displays that image
   if (usePreview(preview)) {
     if (preview.start) {
-      this.previewblob = blob.slice(preview.start, preview.end, 'image/jpeg');
-      this.previewSampleSize = Downsample.NONE;
-      this._displayImage(this.previewblob, true);
+      gotPreview(blob.slice(preview.start, preview.end, 'image/jpeg'),
+                 preview.width, preview.height);
     }
     else {
       var storage = navigator.getDeviceStorage('pictures');
       var getreq = storage.get(preview.filename);
       getreq.onsuccess = function() {
-        self.previewblob = getreq.result;
-        self.previewSampleSize = Downsample.NONE;
-        self._displayImage(self.previewblob, true);
+        gotPreview(getreq.result, preview.width, preview.height);
       };
       getreq.onerror = function() {
-        self.preview = null;
-        self.previewblob = null;
-        self.previewSampleSize = computePreviewSampleSize(blob, width, height);
-        self._displayImage(blob, self.previewSampleSize !== Downsample.NONE);
+        noPreview();
       };
     }
   }
   else {
-    // In this case we don't have a usable preview image
-    this.preview = null;
-    this.previewblob = null;
+    noPreview();
+  }
 
-    // If the image is a JPEG, then we can use #-moz-samplesize to downsample
-    // while decoding so that we can display a small preview without using
-    // lots of memory.
-    this.previewSampleSize = computePreviewSampleSize(blob, width, height);
-    this._displayImage(blob, this.previewSampleSize !== Downsample.NONE);
+  // If we've got a usable preview blob from EXIF or an external file,
+  // this is what we do with it.
+  function gotPreview(previewblob, previewWidth, previewHeight) {
+    // Create a blob URL for the preview
+    self.previewurl = URL.createObjectURL(previewblob);
+    // And put it in CSS background-image syntax
+    self.previewBackgroundImage = 'url(' + self.previewurl + ')';
+    // Remember the preview size
+    self.previewWidth = previewWidth;
+    self.previewHeight = previewHeight;
+    // Update the CSS background image spec for the full image to use
+    // both images so that the transition from the preview to the full
+    // image is smooth.
+    self.fullBackgroundImage += ', ' + self.previewBackgroundImage;
+
+    // Start off with the preview image displayed
+    self.displayingPreview = true;
+    self._displayImage(self.previewBackgroundImage,
+                       self.previewWidth, self.previewHeight);
+  }
+
+  // If we don't have a preview image we can use this is what we do.
+  function noPreview() {
+    self.previewurl = null;
+    // Figure out whether we can downsample the fullsize image for
+    // use as a preview
+    var previewSampleSize = computePreviewSampleSize(blob, width, height);
+
+    // If we can create a preview by downsampling...
+    if (previewSampleSize !== Downsample.NONE) {
+      // Combine the full image url with the downsample media fragment
+      // to create a background image spec for the downsampled preview.
+      self.previewBackgroundImage =
+        'url(' + self.imageurl + previewSampleSize + ')';
+      // Compute the preview size based on the downsample amount.
+      self.previewWidth = previewSampleSize.scale(width);
+      self.previewHeight = previewSampleSize.scale(height);
+
+      // Update the full-size CSS background image spec to include this preview
+      self.fullBackgroundImage += ', ' + self.previewBackgroundImage;
+
+      // Now start off with the downsampled image displayed
+      self.displayingPreview = true;
+      self._displayImage(self.previewBackgroundImage,
+                         self.previewWidth, self.previewHeight);
+    }
+    else {
+      // If we can't (or don't need to) downsample the full image then note
+      // that we don't have a preview and display the image at full size.
+      self.previewBackgroundImage = null;
+      self.displayingPreview = false;
+      self._displayImage(self.fullBackgroundImage,
+                         self.fullsizeWidth, self.fullsizeHeight);
+    }
   }
 
   // If the blob is a JPEG then we can use #-moz-samplesize to downsample
@@ -267,138 +331,59 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   }
 };
 
-// A utility function we use to display the full-size image or the preview.
-MediaFrame.prototype._displayImage = function _displayImage(blob, isPreview) {
-  var self = this;
+// An internal method to set the background image and size styles of
+// the image div and to reposition the image appropriately. We use this when
+// first displaying an image and when switching from the preview image to the
+// full image and back. Note that the backgroundImage argument must be a
+// string suitable for use in a CSS background-image property. When switching
+// from the preview image to the full image, we actually use a string with
+// two urls in it so that the full image replaces the preview image when it
+// is loaded.
+MediaFrame.prototype._displayImage = function(backgroundImage, width, height) {
+  // The background image should be a string in CSS format.
+  this.image.style.backgroundImage = backgroundImage;
+  this.image.style.width = width + 'px';
+  this.image.style.height = height + 'px';
 
-  // Get rid of any existing image and its event handlers
-  this._clearImage();
+  // Remember the width and height, but swap them for rotated images.
+  if (this.rotation == 0 || this.rotation == 180) {
+    this.itemWidth = width;
+    this.itemHeight = height;
+  } else {
+    this.itemWidth = height;
+    this.itemHeight = width;
+  }
 
-  // And create a fresh new one
-  this.image = document.createElement('img');
-  this.image.style.transformOrigin = 'center center';
-  this.image.style.display = 'none';
-  this.image.className = 'image-view';
-  this.container.appendChild(this.image);
+  // The image div has a new size, so we have to change its transform
+  this.computeFit();
+  this.setPosition();
 
-  this.displayingPreview = isPreview;
-
-  // Create a URL for the blob (or preview blob)
-  if (this.url)
-    URL.revokeObjectURL(this.url);
-  this.url = URL.createObjectURL(blob);
-
-  this.image.onerror = function(e) {
-    console.error('failed to load image', self.image.url, e);
-    if (self.onerror)
-      self.onerror(e);
-  };
-  this.image.onload = function(e) {
-    self.image.onload = null;
-
-    // Switch height & width for rotated images
-    if (self.rotation == 0 || self.rotation == 180) {
-      self.itemWidth = self.image.width;
-      self.itemHeight = self.image.height;
-    } else {
-      self.itemWidth = self.image.height;
-      self.itemHeight = self.image.width;
-    }
-
-    self.computeFit();
-    self.setPosition();
-    self.image.style.display = 'block';
-  };
-
-  this.image.src = this.url +
-    (isPreview ? this.previewSampleSize : this.fullSampleSize);
+  // Query the position of the image in order to flush the changes
+  // made by setPosition() above. This prevents us from accidentally
+  // animating those changes when the user double taps to zoom.
+  var temp = this.image.clientLeft;
 };
+
 
 MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
   if (!this.displayingImage || !this.displayingPreview)
     return;
-
-  var self = this;
   this.displayingPreview = false;
-
-  var oldimage = this.oldimage = this.image;
-  var newimage = this.image = document.createElement('img');
-  newimage.style.transformOrigin = 'center center';
-
-  // If there is a separate preview blob, then we need a new url now
-  if (this.previewblob) {
-    URL.revokeObjectURL(this.url);
-    this.url = URL.createObjectURL(this.imageblob);
-  }
-
-  newimage.src = this.url + this.fullSampleSize;
-
-  // move onerror callback to newimage when oldimage becomes useless.
-  newimage.onerror = oldimage.onerror;
-  oldimage.onerror = null;
-
-  // Add the new image to the container before the current preview image
-  // Because it comes first it will be obscured by the preview
-  this.container.insertBefore(newimage, oldimage);
-
-  // Resize the preview image to be the same size as the full image.
-  // It will be pixelated, but it will be ready right away.
-  if (this.rotation == 0 || this.rotation == 180) {
-    this.itemWidth = this.oldimage.width = this.fullsizeWidth;
-    this.itemHeight = this.oldimage.height = this.fullsizeHeight;
-  } else {
-    this.itemWidth = this.oldimage.height = this.fullsizeHeight;
-    this.itemHeight = this.oldimage.width = this.fullsizeWidth;
-  }
-
-  this.computeFit();
-  this.setPosition();
-
-  // Query the position of the two images in order to flush the changes
-  // made by setPosition() above. This prevents us from accidentally
-  // animating those changes when the user double taps to zoom.
-  if (this.oldimage) {
-    var temp = this.oldimage.clientLeft;
-    temp = this.image.clientLeft;
-  }
-
-  // When the new image is loaded we can begin to remove the preview image
-  newimage.onload = function imageLoaded() {
-    newimage.onload = null;
-
-    // If the image we got has a different size than what we predicted
-    // then make an adjustment now. This might happen if we use a
-    // #-moz-samplesize fragment and it does not do what we expect.
-    if (newimage.width !== self.fullsizeWidth) {
-      console.warn('#-moz-samplesize did not scale as expected',
-                  newimage.width, self.fullsizeWidth);
-      self.itemWidth = self.fullsizeWidth = newimage.width;
-      self.itemHeight = self.fullsizeHeight = newimage.height;
-    }
-
-    // It takes quite a while for gecko to decode a 1200x1600 image once
-    // it is loaded, so we wait a second here before removing the preview.
-    // XXX: This is a hack. There really ought to be an event we can listen for
-    // to know when the image is ready to display onscreen. See Bug 844245.
-    self.imageSwitchTimeout = setTimeout(function() {
-      self.imageSwitchTimeout = null;
-      if (self.oldimage) {
-        self.container.removeChild(self.oldimage);
-        self.oldimage.onload = null;
-        self.oldimage.src = '';
-        self.oldimage = null;
-      }
-    }, 1000);
-  };
+  this._displayImage(this.fullBackgroundImage,
+                     this.fullsizeWidth, this.fullsizeHeight);
 };
 
 MediaFrame.prototype._switchToPreviewImage = function _switchToPreview() {
   // If we're not displaying an image or already displaying preview
-  // then there is nothing to do
-  if (!this.displayingImage || this.displayingPreview)
+  // or don't have a preview to display then there is nothing to do.
+  if (!this.displayingImage || this.displayingPreview ||
+      !this.previewBackgroundImage) {
     return;
+  }
 
-  this._displayImage(this.previewblob || this.imageblob, true);
+  this.displayingPreview = true;
+  this._displayImage(this.previewBackgroundImage,
+                     this.previewWidth, this.previewHeight);
 };
 
 MediaFrame.prototype.displayVideo = function displayVideo(videoblob, posterblob,
@@ -430,17 +415,6 @@ MediaFrame.prototype.displayVideo = function displayVideo(videoblob, posterblob,
   this.video.show();
 };
 
-// Get rid of the image if we have one
-MediaFrame.prototype._clearImage = function _clearImage() {
-  if (this.image) {
-    this.container.removeChild(this.image);
-    this.image.onload = null;
-    this.image.onerror = null;
-    this.image.src = '';
-    this.image = null;
-  }
-};
-
 // Reset the frame state, release any urls and and hide everything
 MediaFrame.prototype.clear = function clear() {
   // Reset the saved state
@@ -449,32 +423,30 @@ MediaFrame.prototype.clear = function clear() {
   this.displayingVideo = false;
   this.itemWidth = this.itemHeight = null;
   this.imageblob = null;
-  this.previewblob = null;
   this.videoblob = null;
   this.posterblob = null;
+  this.fullSampleSize = null;
+  this.fullBackgroundImage = null;
+  this.previewBackgroundImage = null;
   this.fullsizeWidth = this.fullsizeHeight = null;
-  this.preview = null;
+  this.previewWidth = this.previewHeight = null;
   this.fit = null;
-  if (this.url) {
-    URL.revokeObjectURL(this.url);
-    this.url = null;
-  }
 
-  this._clearImage();
+  if (this.imageurl) {
+    URL.revokeObjectURL(this.imageurl);
+  }
+  this.imageurl = null;
 
-  // If we were in the middle of switching from a preview image to a
-  // fullsize image, then clean up from that, too.
-  if (this.imageSwitchTimeout) {
-    clearTimeout(this.imageSwitchTimeout);
-    this.imageSwitchTimeout = null;
+  if (this.previewurl) {
+    URL.revokeObjectURL(this.previewurl);
   }
-  if (this.oldimage) {
-    this.container.removeChild(this.oldimage);
-    this.oldimage.onload = null;
-    this.oldimage.onerror = null;
-    this.oldimage.src = '';
-    this.oldimage = null;
+  this.previewurl = null;
+
+  if (this.image) {
+    this.container.removeChild(this.image);
+    this.image.style.backgroundImage = 'none';
   }
+  this.image = null;
 
   // Hide the video player
   if (this.video) {
@@ -482,8 +454,10 @@ MediaFrame.prototype.clear = function clear() {
     this.video.hide();
     if (this.videourl)
       URL.revokeObjectURL(this.videourl);
+    this.videourl = null;
     if (this.posterurl)
       URL.revokeObjectURL(this.posterurl);
+    this.posterurl = null;
   }
 };
 
@@ -522,8 +496,6 @@ MediaFrame.prototype.setPosition = function setPosition() {
     'rotate(' + this.rotation + 'deg) ';
 
   this.image.style.transform = transform;
-  if (this.oldimage)
-    this.oldimage.style.transform = transform;
 };
 
 MediaFrame.prototype.computeFit = function computeFit() {
@@ -554,7 +526,7 @@ MediaFrame.prototype.reset = function reset() {
   // If we're not displaying the preview image, but we have one,
   // and it is the right size, then switch to it
   if (this.displayingImage && !this.displayingPreview &&
-      (this.previewblob || this.previewSampleSize !== Downsample.NONE)) {
+      this.previewBackgroundImage) {
     this._switchToPreviewImage(); // resets image size and position
     return;
   }
@@ -628,7 +600,7 @@ MediaFrame.prototype.zoom = function zoom(scale, fixedX, fixedY, time) {
   if (!this.displayingImage)
     return;
 
-  // If we were displaying the preview, switch to the full-size image
+  // If we were displaying the preview switch to the full-size image.
   if (this.displayingPreview)
     this._switchToFullSizeImage();
 
@@ -698,8 +670,7 @@ MediaFrame.prototype.zoom = function zoom(scale, fixedX, fixedY, time) {
     // If a time was specfied, animate the transformation
     var transition = 'transform ' + time + 'ms ease';
     this.image.style.transition = transition;
-    if (this.oldimage)
-      this.oldimage.style.transition = transition;
+
     var self = this;
     this.image.addEventListener('transitionend', function done() {
       self.image.removeEventListener('transitionend', done);

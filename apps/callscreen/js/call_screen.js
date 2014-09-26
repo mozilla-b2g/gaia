@@ -1,5 +1,5 @@
 /* globals CallsHandler, FontSizeManager, KeypadManager, LazyL10n,
-           LockScreenSlide, MozActivity, SettingsListener */
+           LockScreenSlide, MozActivity, SettingsListener, Utils, performance */
 /* jshint nonew: false */
 
 'use strict';
@@ -267,36 +267,10 @@ var CallScreen = {
       return;
     }
 
-    var screen = this.screen;
-    screen.classList.toggle('displayed');
-
-    // If we toggle the class during the transition we'll loose the
-    // transitionend ; and we have no opening transition for incoming locked
-    var skipTransition = this._transitioning ||
-                         (this.screen.dataset.layout === 'incoming-locked');
-
-    if (skipTransition) {
-      if (callback && typeof(callback) == 'function') {
-        setTimeout(callback);
-      }
-      this._onTransitionDone();
-      return;
+    if (callback && typeof(callback) == 'function') {
+      setTimeout(callback);
     }
-
-    /* We need CSS transitions for the status bar state and the regular state */
-    var self = this;
-    self._transitioning = true;
-    screen.addEventListener('transitionend', function trWait(evt) {
-      if (evt.target != screen) {
-        return;
-      }
-      screen.removeEventListener('transitionend', trWait);
-      self._transitioning = false;
-      if (callback && typeof(callback) == 'function') {
-        callback();
-      }
-      self._onTransitionDone();
-    });
+    this._onTransitionDone();
   },
 
   _onTransitionDone: function cs_onTransitionDone() {
@@ -443,7 +417,6 @@ var CallScreen = {
         number: ''
       }
     });
-    window.resizeTo(100, 40);
   },
 
   render: function cs_render(layout_type) {
@@ -453,7 +426,11 @@ var CallScreen = {
   showClock: function cs_showClock(now) {
     LazyL10n.get(function localized(_) {
       var f = new navigator.mozL10n.DateTimeFormat();
-      var timeFormat = _('shortTimeFormat').replace('%p', '<span>%p</span>');
+      var timeFormat = window.navigator.mozHour12 ? _('shortTimeFormat12') :
+                                                    _('shortTimeFormat24');
+      // FIXME/bug 1060333: Replace span with hidden mechanism.
+      // Don't show am/pm (for 12 or 24 time) in the callscreen
+      timeFormat = timeFormat.replace('%p', '<span>%p</span>');
       var dateFormat = _('longDateFormat');
       this.lockedClockTime.innerHTML = f.localeFormat(now, timeFormat);
       this.lockedDate.textContent = f.localeFormat(now, dateFormat);
@@ -521,23 +498,12 @@ var CallScreen = {
     durationChildNode.textContent = '00:00';
     durationNode.classList.add('isTimer');
 
-    function padNumber(n) {
-      return n > 9 ? n : '0' + n;
-    }
-
     LazyL10n.get(function localized(_) {
       var ticker = setInterval(function ut_updateTimer(startTime) {
         // Bug 834334: Ensure that 28.999 -> 29.000
-        var delta = Math.round((Date.now() - startTime) / 1000) * 1000;
-        var elapsed = new Date(delta);
-        var duration = {
-          h: padNumber(elapsed.getUTCHours()),
-          m: padNumber(elapsed.getUTCMinutes()),
-          s: padNumber(elapsed.getUTCSeconds())
-        };
-        durationChildNode.textContent = _(elapsed.getUTCHours() > 0 ?
-          'callDurationHours' : 'callDurationMinutes', duration);
-      }, 1000, Date.now());
+        var delta = Math.round((performance.now() - startTime) / 1000) * 1000;
+        Utils.prettyDuration(durationChildNode, delta);
+      }, 1000, performance.now());
       durationNode.dataset.tickerId = ticker;
     });
     return true;

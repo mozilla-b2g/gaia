@@ -301,7 +301,7 @@ var SimManager = (function() {
       }
 
       UIManager['simCarrier' + iccNumber].textContent = operator ||
-        _('noOperator');
+        _('searchingOperator');
       var number = icc.mozIcc.iccInfo.msisdn ||
                    icc.mozIcc.iccInfo.mdn || '';
       if (number) {
@@ -714,7 +714,7 @@ var SimManager = (function() {
     // Delay for showing feedback to the user after importing
     var DELAY_FEEDBACK = 300;
     UIManager.navBar.setAttribute('aria-disabled', 'true');
-    var progress = utils.overlay.show(_('simContacts-reading'),
+    var progress = utils.overlay.show('simContacts-reading',
                                       'activityBar');
 
     var importButton = UIManager.simImportButton;
@@ -730,7 +730,7 @@ var SimManager = (function() {
         // is being cooked
         progress.setClass('activityBar');
         utils.overlay.hideMenu();
-        progress.setHeaderMsg(_('messageCanceling'));
+        progress.setHeaderMsg('messageCanceling');
       } else {
         importer.onfinish(); // Early return while reading contacts
       }
@@ -741,7 +741,7 @@ var SimManager = (function() {
       contactsRead = true;
       if (n > 0) {
         progress.setClass('progressBar');
-        progress.setHeaderMsg(_('simContacts-importing'));
+        progress.setHeaderMsg('simContacts-importing');
         progress.setTotal(n);
       }
     };
@@ -763,9 +763,10 @@ var SimManager = (function() {
         if (!cancelled) {
           SimManager.alreadyImported = true;
           importButton.setAttribute('disabled', 'disabled');
-          utils.status.show(_('simContacts-imported3',
-                              {n: importedContacts})
-          );
+          utils.status.show({
+            id: 'simContacts-imported3',
+            args: {n: importedContacts}
+          });
         }
       }, DELAY_FEEDBACK);
 
@@ -780,13 +781,13 @@ var SimManager = (function() {
 
       // Showing error message allowing user to retry
       var cancel = {
-        title: _('cancel'),
+        title: 'cancel',
         callback: function() {
           ConfirmDialog.hide();
         }
       };
       var retry = {
-        title: _('retry'),
+        title: 'retry',
         isRecommend: true,
         callback: function() {
           ConfirmDialog.hide();
@@ -794,7 +795,7 @@ var SimManager = (function() {
           importButton.click();
         }
       };
-      ConfirmDialog.show(null, _('simContacts-error'), cancel, retry);
+      ConfirmDialog.show(null, 'simContacts-error', cancel, retry);
     }; // importer.onerror
 
     importer.start();

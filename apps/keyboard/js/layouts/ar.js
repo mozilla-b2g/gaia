@@ -4,7 +4,7 @@ Keyboards.ar = {
   menuLabel: 'العربية',
   secondLayout: true,
   specificCssRule: true,
-  types: ['text', 'url', 'email', 'number'],
+  types: ['text', 'url', 'email'],
   alternateLayoutKey: '123',
   basicLayoutKey: 'أ ب ج',
   width: 11,

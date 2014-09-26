@@ -1,6 +1,6 @@
 'use strict';
 
-/* global PerformanceTimer, InputMethodManager, LayoutManager,
+/* global KeyboardConsole, InputMethodManager, LayoutManager,
           SettingsPromiseManager, L10nLoader, TargetHandlersManager,
           FeedbackManager, VisualHighlightManager, CandidatePanelManager,
           UpperCaseStateManager, LayoutRenderingManager, IMERender,
@@ -9,7 +9,7 @@
 (function(exports) {
 
 var KeyboardApp = function() {
-  this.perfTimer = null;
+  this.console = null;
   this.inputMethodManager = null;
   this.layoutManager = null;
   this.settingsPromiseManager = null;
@@ -25,7 +25,6 @@ var KeyboardApp = function() {
   this.inputContext = null;
 };
 
-KeyboardApp.prototype.ACCENT_CHAR_MENU_ELEMENT_ID = 'keyboard-accent-char-menu';
 KeyboardApp.prototype.CONATINER_ELEMENT_ID = 'keyboard';
 
 KeyboardApp.prototype.start = function() {
@@ -34,10 +33,11 @@ KeyboardApp.prototype.start = function() {
 
 KeyboardApp.prototype._startComponents = function() {
   // A timer for time measurement
-  this.perfTimer = new PerformanceTimer();
-  this.perfTimer.start();
-  this.perfTimer.printTime('KeyboardApp._startComponents()');
-  this.perfTimer.startTimer('KeyboardApp._startComponents()');
+  this.console = new KeyboardConsole();
+  this.console.start();
+  this.console.log('KeyboardApp._startComponents()');
+  this.console.trace();
+  this.console.time('KeyboardApp._startComponents()');
 
   // SettingsPromiseManager wraps Settings DB methods into promises.
   // This must be available to InputMethodManager and FeedbackManager.
@@ -66,16 +66,19 @@ KeyboardApp.prototype._startComponents = function() {
   this.visualHighlightManager = new VisualHighlightManager(this);
   this.visualHighlightManager.start();
 
-  this.candidatePanelManager = new CandidatePanelManager(this);
-  this.candidatePanelManager.start();
+  var renderingManager = this.layoutRenderingManager =
+    new LayoutRenderingManager(this);
+  renderingManager.start();
 
   this.upperCaseStateManager = new UpperCaseStateManager();
   this.upperCaseStateManager.onstatechange =
-    this.handleUpperCaseStateChange.bind(this);
+    renderingManager.updateUpperCaseRendering.bind(renderingManager);
   this.upperCaseStateManager.start();
 
-  this.layoutRenderingManager = new LayoutRenderingManager(this);
-  this.layoutRenderingManager.start();
+  this.candidatePanelManager = new CandidatePanelManager(this);
+  this.candidatePanelManager.oncandidateschange =
+    renderingManager.updateCandidatesRendering.bind(renderingManager);
+  this.candidatePanelManager.start();
 
   // Initialize the rendering module
   IMERender.init();
@@ -83,18 +86,18 @@ KeyboardApp.prototype._startComponents = function() {
   this.stateManager = new StateManager(this);
   this.stateManager.start();
 
-  this.perfTimer.printTime('BLOCKING KeyboardApp._startComponents()',
-    'KeyboardApp._startComponents()');
+  this.console.timeEnd('KeyboardApp._startComponents()');
 };
 
 KeyboardApp.prototype.stop = function() {
+  this.console.log('KeyboardApp.stop()');
   this._stopComponents();
 
   this.inputContext = null;
 };
 
 KeyboardApp.prototype._stopComponents = function() {
-  this.perfTimer = null;
+  this.console = null;
 
   this.inputMethodManager = null;
 
@@ -127,17 +130,13 @@ KeyboardApp.prototype._stopComponents = function() {
   this.stateManager = null;
 };
 
-KeyboardApp.prototype.getMenuContainer = function() {
-  // This is equal to IMERender.menu.
-  return document.getElementById(this.ACCENT_CHAR_MENU_ELEMENT_ID);
-};
-
 KeyboardApp.prototype.getContainer = function() {
   // This is equal to IMERender.ime.
   return document.getElementById(this.CONATINER_ELEMENT_ID);
 };
 
 KeyboardApp.prototype.setInputContext = function(inputContext) {
+  this.console.log('KeyboardApp.setInputContext()', inputContext);
   this.inputContext = inputContext;
 };
 
@@ -153,13 +152,13 @@ KeyboardApp.prototype.getBasicInputType = function() {
     case 'tel':
     case 'email':
     case 'text':
+    case 'search':
       // Don't overwrite type
 
       break;
 
     // default fallback and textual types
     case 'password':
-    case 'search':
     /* falls through */
     default:
       type = 'text';
@@ -181,12 +180,13 @@ KeyboardApp.prototype.supportsSwitching = function() {
 };
 
 KeyboardApp.prototype.setLayoutPage = function setLayoutPage(page) {
+  this.console.log('KeyboardApp.setLayoutPage()', page);
   this.layoutManager.updateLayoutPage(page);
   this.layoutRenderingManager.updateLayoutRendering();
 
   var engine = this.inputMethodManager.currentIMEngine;
   if (typeof engine.setLayoutPage === 'function') {
-    engine.setLayoutPage(this.layoutManager.currentLayoutPage);
+    engine.setLayoutPage(this.layoutManager.currentPageIndex);
   }
 };
 
@@ -194,30 +194,6 @@ KeyboardApp.prototype.setLayoutPage = function setLayoutPage(page) {
 // IMERender() is no longer a global class.
 KeyboardApp.prototype.getNumberOfCandidatesPerRow = function() {
   return IMERender.getNumberOfCandidatesPerRow();
-};
-
-KeyboardApp.prototype.handleUpperCaseStateChange = function() {
-  // When we have secondLayout, we need to force re-render on uppercase switch
-  if (this.layoutManager.currentModifiedLayout.secondLayout) {
-    this.layoutRenderingManager.updateLayoutRendering();
-
-    return;
-  }
-
-  // Otherwise we can just update only the keys we need...
-  // Try to block the event loop as little as possible
-  window.requestAnimationFrame(function() {
-    this.perfTimer.startTimer('setUpperCase:requestAnimationFrame:callback');
-    // And make sure the caps lock key is highlighted correctly
-    IMERender.setUpperCaseLock(this.upperCaseStateManager);
-
-    //restore the previous candidates
-    this.candidatePanelManager.showCandidates();
-
-    this.perfTimer.printTime(
-      'BLOCKING setUpperCase:requestAnimationFrame:callback',
-      'setUpperCase:requestAnimationFrame:callback');
-  }.bind(this));
 };
 
 exports.KeyboardApp = KeyboardApp;

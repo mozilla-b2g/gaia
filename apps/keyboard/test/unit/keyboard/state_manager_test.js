@@ -2,11 +2,11 @@
 
 /* global LayoutManager, InputMethodManager, L10nLoader, CandidatePanelManager,
           ActiveTargetsManager, UpperCaseStateManager, SettingsPromiseManager,
-          LayoutRenderingManager, PerformanceTimer, LayoutLoader,
+          LayoutRenderingManager, KeyboardConsole, LayoutLoader,
           InputMethodLoader, StateManager, MockInputMethod, MockInputContext,
-          MockEventTarget, Promise */
+          MockEventTarget, MockPromise, Promise */
 
-require('/js/keyboard/performance_timer.js');
+require('/js/keyboard/console.js');
 require('/js/keyboard/input_method_manager.js');
 require('/js/keyboard/layout_manager.js');
 require('/js/keyboard/layout_loader.js');
@@ -16,6 +16,7 @@ require('/js/keyboard/active_targets_manager.js');
 require('/js/keyboard/candidate_panel_manager.js');
 require('/js/keyboard/upper_case_state_manager.js');
 require('/js/keyboard/layout_rendering_manager.js');
+require('/shared/test/unit/mocks/mock_promise.js');
 
 require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_navigator_input_method.js');
@@ -26,6 +27,7 @@ suite('StateManager', function() {
   var manager;
   var app;
   var realMozInputMethod;
+  var realPromise;
   var windowStub;
 
   suiteSetup(function() {
@@ -51,7 +53,7 @@ suite('StateManager', function() {
       setInputContext: this.sinon.stub(),
       settingsPromiseManager: this.sinon.stub(SettingsPromiseManager.prototype),
       layoutRenderingManager: this.sinon.stub(LayoutRenderingManager.prototype),
-      perfTimer: this.sinon.stub(PerformanceTimer.prototype)
+      console: this.sinon.stub(KeyboardConsole.prototype)
     };
 
     app.layoutManager.loader = this.sinon.stub(LayoutLoader.prototype);
@@ -70,6 +72,11 @@ suite('StateManager', function() {
     realMozInputMethod = navigator.mozInputMethod;
     navigator.mozInputMethod = new MockInputMethod();
 
+    realPromise = window.Promise;
+    window.Promise = this.sinon.spy(MockPromise);
+
+    this.sinon.stub(window, 'setTimeout');
+
     manager = new StateManager(app);
   });
 
@@ -82,25 +89,29 @@ suite('StateManager', function() {
       window.removeEventListener.calledWith('visibilitychange', manager));
 
     navigator.mozInputMethod = realMozInputMethod;
+    window.Promise = realPromise;
   });
 
   suite('start with not hidden', function() {
-    setup(function(done) {
+    setup(function() {
       document.hidden = false;
       navigator.mozInputMethod.setInputContext(new MockInputContext());
       app.inputContext = navigator.mozInputMethod.inputcontext;
 
-      var p = Promise.resolve();
-      var p2 = Promise.resolve();
-      var p3 = Promise.resolve();
+      var switchCurrentLayoutPromise = Promise.resolve();
+      var switchCurrentIMEnginePromise = Promise.resolve();
+      var updateLayoutRenderingPromise = Promise.resolve();
 
-      app.layoutManager.currentModifiedLayout = {
+      app.layoutManager.currentPage = {
         imEngine: 'bar'
       };
 
-      app.layoutManager.switchCurrentLayout.returns(p);
-      app.inputMethodManager.switchCurrentIMEngine.returns(p2);
-      app.layoutRenderingManager.updateLayoutRendering.returns(p3);
+      app.layoutManager.switchCurrentLayout
+        .returns(switchCurrentLayoutPromise);
+      app.inputMethodManager.switchCurrentIMEngine
+        .returns(switchCurrentIMEnginePromise);
+      app.layoutRenderingManager.updateLayoutRendering
+        .returns(updateLayoutRenderingPromise);
 
       manager.start();
 
@@ -118,191 +129,144 @@ suite('StateManager', function() {
 
       assert.isTrue(app.inputMethodManager.updateInputContextData.calledOnce);
 
+      assert.isTrue(app.candidatePanelManager.hideFullPanel.calledOnce);
+      assert.isTrue(app.candidatePanelManager.updateCandidates.calledOnce);
+      assert.isFalse(app.targetHandlersManager
+        .activeTargetsManager.clearAllTargets.called);
+
       assert.isTrue(app.layoutManager.switchCurrentLayout.calledWith('foo'));
-      p.then(function() {
-        assert.isTrue(app.upperCaseStateManager.reset.calledOnce);
-        assert.isTrue(
-          app.inputMethodManager.switchCurrentIMEngine.calledWith('bar'));
-        assert.isTrue(app.upperCaseStateManager.reset.calledBefore(
-          app.inputMethodManager.switchCurrentIMEngine),
-          'Reset the state before engine activates.');
 
-        return p2;
-      }, function() {
-        assert.isTrue(false, 'Should not reject.');
-      }).then(function() {
-        assert.isTrue(app.candidatePanelManager.hideFullPanel.calledOnce);
-        assert.isTrue(app.candidatePanelManager.updateCandidates.calledOnce);
-        assert.isTrue(app.targetHandlersManager
-          .activeTargetsManager.clearAllTargets.calledOnce);
+      // calling _switchCurrentIMEngine()
+      var p = switchCurrentLayoutPromise;
+      var pReturn = p.mFulfillToValue();
+      assert.isTrue(app.upperCaseStateManager.reset.calledOnce);
+      assert.isTrue(app.candidatePanelManager.reset.calledOnce);
+      assert.isTrue(
+        app.inputMethodManager.switchCurrentIMEngine.calledWith('bar'));
+      assert.isTrue(app.upperCaseStateManager.reset.calledBefore(
+        app.inputMethodManager.switchCurrentIMEngine),
+        'Reset the state before engine activates.');
 
-        assert.isTrue(
-          app.layoutRenderingManager.updateLayoutRendering.calledOnce);
+      assert.equal(pReturn, switchCurrentIMEnginePromise);
 
-        return p3;
-      }, function() {
-        assert.isTrue(false, 'Should not reject.');
-      }).then(function() {
-        assert.isTrue(app.l10nLoader.load.calledOnce);
-        assert.isTrue(app.l10nLoader.load.calledOn(app.l10nLoader));
-      }, function() {
-        assert.isTrue(false, 'Should not reject.');
-      }).then(done, done);
+      // Calling _updateLayoutRendering()
+      var p2 = p.mGetNextPromise();
+      var p2Return = p2.mFulfillToValue();
+
+      assert.isTrue(
+        app.layoutRenderingManager.updateLayoutRendering.calledOnce);
+
+      assert.equal(p2Return, updateLayoutRenderingPromise);
+      var p3 = p2.mGetNextPromise();
+      p3.mFulfillToValue();
+
+      assert.isTrue(app.l10nLoader.load.calledOnce);
+      assert.isTrue(app.l10nLoader.load.calledOn(app.l10nLoader));
     });
 
-    test('hashchange', function(done) {
+    test('hashchange', function() {
       window.location.hash = '#foo2';
       var evt = {
         type: 'hashchange'
       };
 
-      var p = Promise.resolve();
-      var p2 = Promise.resolve();
-      var p3 = Promise.resolve();
+      var switchCurrentLayoutPromise = Promise.resolve();
+      var switchCurrentIMEnginePromise = Promise.resolve();
+      var updateLayoutRenderingPromise = Promise.resolve();
 
-      app.layoutManager.currentModifiedLayout = {
+      app.layoutManager.currentPage = {
         imEngine: 'bar2'
       };
 
-      app.layoutManager.switchCurrentLayout.returns(p);
-      app.inputMethodManager.switchCurrentIMEngine.returns(p2);
-      app.layoutRenderingManager.updateLayoutRendering.returns(p3);
+      app.layoutManager.switchCurrentLayout
+        .returns(switchCurrentLayoutPromise);
+      app.inputMethodManager.switchCurrentIMEngine
+        .returns(switchCurrentIMEnginePromise);
+      app.layoutRenderingManager.updateLayoutRendering
+        .returns(updateLayoutRenderingPromise);
 
       windowStub.dispatchEvent(evt);
 
       // Start layout switching
-      assert.isTrue(app.inputMethodManager.updateInputContextData.calledTwice);
+      assert.isTrue(app.candidatePanelManager.hideFullPanel.calledTwice);
+      assert.isTrue(app.candidatePanelManager.updateCandidates.calledTwice);
+      assert.isFalse(app.targetHandlersManager
+        .activeTargetsManager.clearAllTargets.called);
+
+      assert.isTrue(app.layoutManager.switchCurrentLayout.calledWith('foo2'));
+
+      // calling _switchCurrentIMEngine()
+      var p = switchCurrentLayoutPromise;
+      var pReturn = p.mFulfillToValue();
+      assert.isTrue(app.upperCaseStateManager.reset.calledTwice);
+      assert.isTrue(
+        app.inputMethodManager.switchCurrentIMEngine.calledWith('bar2'));
+      assert.isTrue(app.upperCaseStateManager.reset.calledBefore(
+        app.inputMethodManager.switchCurrentIMEngine),
+        'Reset the state before engine activates.');
+
+      assert.equal(pReturn, switchCurrentIMEnginePromise);
+
+      // Calling _updateLayoutRendering()
+      var p2 = p.mGetNextPromise();
+      var p2Return = p2.mFulfillToValue();
 
       assert.isTrue(
-        app.layoutManager.switchCurrentLayout.getCall(1).calledWith('foo2'));
-      p.then(function() {
-        assert.isTrue(app.upperCaseStateManager.reset.calledTwice);
-        assert.isTrue(app.inputMethodManager.switchCurrentIMEngine
-          .getCall(1).calledWith('bar2'));
-        assert.isTrue(app.upperCaseStateManager.reset.getCall(1).calledBefore(
-          app.inputMethodManager.switchCurrentIMEngine.getCall(1)),
-          'Reset the state before engine activates.');
+        app.layoutRenderingManager.updateLayoutRendering.calledTwice);
 
-        return p2;
-      }).then(function() {
-        assert.isTrue(app.candidatePanelManager.hideFullPanel.calledTwice);
-        assert.isTrue(app.candidatePanelManager.updateCandidates.calledTwice);
-        assert.isTrue(app.targetHandlersManager
-          .activeTargetsManager.clearAllTargets.calledTwice);
+      assert.equal(p2Return, updateLayoutRenderingPromise);
+      var p3 = p2.mGetNextPromise();
+      p3.mFulfillToValue();
 
-        assert.isTrue(
-          app.layoutRenderingManager.updateLayoutRendering.calledTwice);
-
-        return p3;
-      }).then(function() {
-        assert.isTrue(app.l10nLoader.load.calledTwice);
-        assert.isTrue(app.l10nLoader.load.getCall(1).calledOn(app.l10nLoader));
-      }).then(done, done);
+      assert.isTrue(app.l10nLoader.load.calledTwice);
+      assert.isTrue(app.l10nLoader.load.calledOn(app.l10nLoader));
     });
 
-    suite('not active', function() {
+    suite('deactivate', function() {
       setup(function() {
-        document.hidden = true;
+        // triggers inputcontextchange
+        navigator.mozInputMethod.setInputContext();
+        app.inputContext = null;
+      });
 
-        var evt = {
-          type: 'visibilitychange'
-        };
-
-        windowStub.dispatchEvent(evt);
-
+      test('finishing deactivation', function() {
         assert.isTrue(app.candidatePanelManager.hideFullPanel.calledTwice);
         assert.isTrue(app.candidatePanelManager.updateCandidates.calledTwice);
         assert.isTrue(app.targetHandlersManager
-          .activeTargetsManager.clearAllTargets.calledTwice);
+          .activeTargetsManager.clearAllTargets.calledOnce);
+
         assert.isTrue(app.inputMethodManager.switchCurrentIMEngine
           .getCall(1).calledWith('default'));
 
-        navigator.mozInputMethod.setInputContext();
-        app.inputContext = null;
+        // trigger visibilitychange (after inputcontextchange)
 
-        assert.isFalse(app.candidatePanelManager.hideFullPanel.calledThrice,
-          'Should not disable current layout again.');
-        assert.isFalse(app.candidatePanelManager.updateCandidates.calledThrice,
-          'Should not disable current layout again.');
-        assert.isFalse(app.targetHandlersManager
-          .activeTargetsManager.clearAllTargets.calledThrice,
-          'Should not disable current layout again.');
-        assert.isFalse(
-          app.inputMethodManager.switchCurrentIMEngine.calledThrice,
-          'Should not disable current layout again.');
-      });
+        // check if deactivation should not be called again by
+        // checking hideFullPanel as an example
+        app.candidatePanelManager.hideFullPanel.reset();
 
-      test('not active', function() {
-      });
-
-      test('re-active right away', function(done) {
-        var p = Promise.resolve();
-        var p2 = Promise.resolve();
-        var p3 = Promise.resolve();
-
-        app.layoutManager.switchCurrentLayout.returns(p);
-        app.inputMethodManager.switchCurrentIMEngine.returns(p2);
-        app.layoutRenderingManager.updateLayoutRendering.returns(p3);
-
-        document.hidden = false;
+        document.hidden = true;
         var evt = {
           type: 'visibilitychange'
         };
         windowStub.dispatchEvent(evt);
 
-        navigator.mozInputMethod.setInputContext(new MockInputContext());
-        app.inputContext = navigator.mozInputMethod.inputcontext;
-
-        assert.isFalse(app.layoutManager.loader.getLayoutAsync.calledOnce,
-          'Should not try to preload layout.');
-        assert.isFalse(
-          app.inputMethodManager.loader.getInputMethodAsync.calledOnce,
-          'Should not try to preload IMEngine.');
-        assert.isFalse(app.l10nLoader.load.calledTwice);
-
-        assert.isTrue(
-          app.inputMethodManager.updateInputContextData.calledTwice);
-
-        assert.isTrue(app.layoutManager.switchCurrentLayout.calledWith('foo'));
-        p.then(function() {
-          assert.isTrue(app.upperCaseStateManager.reset.calledTwice);
-          assert.isTrue(app.inputMethodManager.switchCurrentIMEngine
-            .getCall(2).calledWith('bar'));
-          assert.isTrue(app.upperCaseStateManager.reset.getCall(1).calledBefore(
-            app.inputMethodManager.switchCurrentIMEngine.getCall(2)),
-            'Reset the state before engine activates.');
-
-          return p2;
-        }).then(function() {
-          assert.isTrue(app.candidatePanelManager.hideFullPanel.calledThrice);
-          assert.isTrue(
-            app.candidatePanelManager.updateCandidates.calledThrice);
-          assert.isTrue(app.targetHandlersManager
-            .activeTargetsManager.clearAllTargets.calledThrice);
-
-          assert.isTrue(
-            app.layoutRenderingManager.updateLayoutRendering.calledTwice);
-
-          return p3;
-        }).then(function() {
-          assert.isTrue(app.l10nLoader.load.calledTwice);
-          assert.isTrue(
-            app.l10nLoader.load.getCall(1).calledOn(app.l10nLoader));
-        }).then(done, done);
+        assert.isFalse(app.candidatePanelManager.hideFullPanel.called,
+          'should not attempt to hide again.');
       });
     });
   });
 
   suite('start with hidden', function() {
-    setup(function(done) {
+    setup(function() {
       document.hidden = true;
 
       var layout = { imEngine: 'bar' };
-      var p = Promise.resolve(layout);
-      var p2 = Promise.resolve({});
+      var getLayoutAsyncPromise = Promise.resolve();
+      var getInputMethodAsyncPromise = Promise.resolve();
 
-      app.layoutManager.loader.getLayoutAsync.returns(p);
-      app.inputMethodManager.loader.getInputMethodAsync.returns(p2);
+      app.layoutManager.loader.getLayoutAsync.returns(getLayoutAsyncPromise);
+      app.inputMethodManager.loader.getInputMethodAsync
+        .returns(getInputMethodAsyncPromise);
 
       manager.start();
 
@@ -312,49 +276,49 @@ suite('StateManager', function() {
         window.addEventListener.calledWith('visibilitychange', manager));
 
       assert.isTrue(app.layoutManager.loader.getLayoutAsync.calledWith('foo'));
-      p.then(function() {
-        assert.isTrue(
-          app.inputMethodManager.loader.getInputMethodAsync.calledWith('bar'));
-        return p2;
-      }, function() {
-        assert.isTrue(false, 'Should not reject.');
-      }).then(function() {
-        assert.isTrue(app.l10nLoader.load.calledOnce);
-        assert.isTrue(app.l10nLoader.load.calledOn(app.l10nLoader));
-      }, function() {
-        assert.isTrue(false, 'Should not reject.');
-      }).then(done, done);
+      var p = getLayoutAsyncPromise;
+      p.mFulfillToValue(layout);
+
+      assert.isTrue(
+        app.inputMethodManager.loader.getInputMethodAsync.calledWith('bar'));
+
+      var p2 = p.mGetNextPromise();
+      var p3 = p2.catch.firstCall.returnValue;
+      p3.mFulfillToValue({});
+
+      assert.isTrue(app.l10nLoader.load.calledOnce);
+      assert.isTrue(app.l10nLoader.load.calledOn(app.l10nLoader));
     });
 
-    test('hashchange', function(done) {
+    test('hashchange', function() {
       window.location.hash = '#foo2';
       var evt = {
         type: 'hashchange'
       };
 
       var layout = { imEngine: 'bar2' };
-      var p = Promise.resolve(layout);
-      var p2 = Promise.resolve({});
+      var getLayoutAsyncPromise = Promise.resolve();
+      var getInputMethodAsyncPromise = Promise.resolve();
 
-      app.layoutManager.loader.getLayoutAsync.returns(p);
-      app.inputMethodManager.loader.getInputMethodAsync.returns(p2);
+      app.layoutManager.loader.getLayoutAsync.returns(getLayoutAsyncPromise);
+      app.inputMethodManager.loader.getInputMethodAsync
+        .returns(getInputMethodAsyncPromise);
 
       windowStub.dispatchEvent(evt);
 
       assert.isTrue(app.layoutManager.loader.getLayoutAsync.calledWith('foo2'),
         'Start loading foo2 when hashchanged');
-      p.then(function() {
-        assert.isTrue(
-          app.inputMethodManager.loader.getInputMethodAsync.calledWith('bar2'),
-          'Start loading bar2 when hashchanged');
-        return p2;
-      }).then(function() {
-        return;
-      }).then(done, done);
+      var p = getLayoutAsyncPromise;
+      p.mFulfillToValue(layout);
+
+      assert.isTrue(
+        app.inputMethodManager.loader.getInputMethodAsync.calledWith('bar2'));
     });
 
-    suite('active', function() {
-      var p, p2, p3;
+    suite('activate', function() {
+      var switchCurrentLayoutPromise;
+      var switchCurrentIMEnginePromise;
+      var updateLayoutRenderingPromise;
 
       setup(function() {
         document.hidden = false;
@@ -368,17 +332,20 @@ suite('StateManager', function() {
         assert.isFalse(app.layoutManager.switchCurrentLayout.calledOnce,
           'Not launched yet with visibilitychange only.');
 
-        p = Promise.resolve();
-        p2 = Promise.resolve();
-        p3 = Promise.resolve();
+        switchCurrentLayoutPromise = Promise.resolve();
+        switchCurrentIMEnginePromise = Promise.resolve();
+        updateLayoutRenderingPromise = Promise.resolve();
 
-        app.layoutManager.currentModifiedLayout = {
+        app.layoutManager.currentPage = {
           imEngine: 'bar'
         };
 
-        app.layoutManager.switchCurrentLayout.returns(p);
-        app.inputMethodManager.switchCurrentIMEngine.returns(p2);
-        app.layoutRenderingManager.updateLayoutRendering.returns(p3);
+        app.layoutManager.switchCurrentLayout
+          .returns(switchCurrentLayoutPromise);
+        app.inputMethodManager.switchCurrentIMEngine
+          .returns(switchCurrentIMEnginePromise);
+        app.layoutRenderingManager.updateLayoutRendering
+          .returns(updateLayoutRenderingPromise);
 
         navigator.mozInputMethod.setInputContext(new MockInputContext());
         app.inputContext = navigator.mozInputMethod.inputcontext;
@@ -392,81 +359,40 @@ suite('StateManager', function() {
 
         assert.isTrue(app.inputMethodManager.updateInputContextData.calledOnce);
 
+        assert.isTrue(app.candidatePanelManager.hideFullPanel.calledOnce);
+        assert.isTrue(app.candidatePanelManager.updateCandidates.calledOnce);
+        assert.isFalse(app.targetHandlersManager
+          .activeTargetsManager.clearAllTargets.called);
+
         assert.isTrue(app.layoutManager.switchCurrentLayout.calledWith('foo'));
       });
 
-      test('active', function(done) {
-        p.then(function() {
-          assert.isTrue(app.upperCaseStateManager.reset.calledOnce);
-          assert.isTrue(
-            app.inputMethodManager.switchCurrentIMEngine.calledWith('bar'));
-          assert.isTrue(app.upperCaseStateManager.reset.calledBefore(
-            app.inputMethodManager.switchCurrentIMEngine),
-            'Reset the state before engine activates.');
-
-          return p2;
-        }).then(function() {
-          assert.isTrue(app.candidatePanelManager.hideFullPanel.calledOnce);
-          assert.isTrue(app.candidatePanelManager.updateCandidates.calledOnce);
-          assert.isTrue(app.targetHandlersManager
-            .activeTargetsManager.clearAllTargets.calledOnce);
-
-          assert.isTrue(
-            app.layoutRenderingManager.updateLayoutRendering.calledOnce);
-
-          return p3;
-        }).then(function() {
-          assert.isTrue(app.l10nLoader.load.calledTwice);
-          assert.isTrue(
-            app.l10nLoader.load.getCall(1).calledOn(app.l10nLoader));
-        }).then(done, done);
-      });
-
-      test('de-active right away', function(done) {
-        document.hidden = true;
-
-        var evt = {
-          type: 'visibilitychange'
-        };
-
-        windowStub.dispatchEvent(evt);
-
-        assert.isTrue(app.candidatePanelManager.hideFullPanel.calledOnce);
-        assert.isTrue(app.candidatePanelManager.updateCandidates.calledOnce);
-        assert.isTrue(app.targetHandlersManager
-          .activeTargetsManager.clearAllTargets.calledOnce);
+      test('finishing activation', function() {
+        // calling _switchCurrentIMEngine()
+        var p = switchCurrentLayoutPromise;
+        var pReturn = p.mFulfillToValue();
+        assert.isTrue(app.upperCaseStateManager.reset.calledOnce);
         assert.isTrue(
-          app.inputMethodManager.switchCurrentIMEngine.calledWith('default'));
+          app.inputMethodManager.switchCurrentIMEngine.calledWith('bar'));
+        assert.isTrue(app.upperCaseStateManager.reset.calledBefore(
+          app.inputMethodManager.switchCurrentIMEngine),
+          'Reset the state before engine activates.');
 
-        navigator.mozInputMethod.setInputContext();
-        app.inputContext = null;
+        assert.equal(pReturn, switchCurrentIMEnginePromise);
 
-        assert.isFalse(app.candidatePanelManager.hideFullPanel.calledThrice,
-          'Should not disable current layout again.');
-        assert.isFalse(app.candidatePanelManager.updateCandidates.calledThrice,
-          'Should not disable current layout again.');
-        assert.isFalse(app.targetHandlersManager
-          .activeTargetsManager.clearAllTargets.calledThrice,
-          'Should not disable current layout again.');
-        assert.isFalse(
-          app.inputMethodManager.switchCurrentIMEngine.calledThrice,
-          'Should not disable current layout again.');
+        // Calling _updateLayoutRendering()
+        var p2 = p.mGetNextPromise();
+        var p2Return = p2.mFulfillToValue();
 
-        p.then(function() {
-          assert.isFalse(
-            app.inputMethodManager.switchCurrentIMEngine.calledWith('bar'),
-            'Loading stops.');
+        assert.isTrue(
+          app.layoutRenderingManager.updateLayoutRendering.calledOnce);
 
-          return p2;
-        }).then(function() {
-          assert.isFalse(
-            app.layoutRenderingManager.updateLayoutRendering.calledOnce,
-            'Loading stops.');
+        assert.equal(p2Return, updateLayoutRenderingPromise);
+        var p3 = p2.mGetNextPromise();
+        p3.mFulfillToValue();
 
-          return p3;
-        }).then(function() {
-          assert.isFalse(app.l10nLoader.load.calledTwice);
-        }).then(done, done);
+        assert.isTrue(app.l10nLoader.load.calledTwice);
+        assert.isTrue(app.l10nLoader.load.getCall(1).calledOn(app.l10nLoader));
       });
     });
   });

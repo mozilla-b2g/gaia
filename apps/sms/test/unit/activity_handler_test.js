@@ -28,7 +28,7 @@ requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_threads.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
-requireApp('sms/test/unit/mock_action_menu.js');
+require('/shared/test/unit/mocks/mock_option_menu.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_notify.js');
 require('/test/unit/mock_navigation.js');
@@ -211,15 +211,6 @@ suite('ActivityHandler', function() {
         sinon.assert.notCalled(window.alert);
       }).then(done, done);
     });
-
-    test('share message should switch application to request activity mode',
-      function() {
-        MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
-        assert.isTrue(document.body.classList.contains(
-          ActivityHandler.REQUEST_ACTIVITY_MODE_CLASS_NAME)
-        );
-      }
-    );
 
     test('share message should set the current activity', function(done) {
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
@@ -796,16 +787,6 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
       assert.isTrue(ActivityHandler.isInActivity());
     });
-
-    test('new message should switch application to request activity mode',
-      function() {
-        MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-        assert.isTrue(document.body.classList.contains(
-          ActivityHandler.REQUEST_ACTIVITY_MODE_CLASS_NAME)
-        );
-      }
-    );
-
   });
 
   suite('When compose is not empty', function() {
@@ -865,15 +846,6 @@ suite('ActivityHandler', function() {
       ActivityHandler.leaveActivity();
     });
 
-    test('setting current activity should switch on activity mode', function() {
-      ActivityHandler.setActivity({
-        postResult: sinon.stub()
-      });
-      assert.isTrue(document.body.classList.contains(
-          ActivityHandler.REQUEST_ACTIVITY_MODE_CLASS_NAME)
-      );
-    });
-
     test('setting current activity as null or undefined should throw exception',
       function() {
         assert.throws(function() {
@@ -882,9 +854,6 @@ suite('ActivityHandler', function() {
         assert.throws(function() {
           ActivityHandler.setActivity();
         });
-        assert.isFalse(document.body.classList.contains(
-          ActivityHandler.REQUEST_ACTIVITY_MODE_CLASS_NAME)
-        );
       }
     );
   });

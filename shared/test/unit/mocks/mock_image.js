@@ -19,6 +19,10 @@ MockImage.triggerEvent = function(name) {
   });
 };
 
+MockImage.teardown = function() {
+  MockImage.instances = [];
+};
+
 MockImage.prototype.triggerEvent = function(name) {
   var callback = this[name];
 

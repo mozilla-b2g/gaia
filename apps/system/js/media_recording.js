@@ -30,7 +30,7 @@
      * @memberof MediaRecording.prototype
      */
     start: function mr_start() {
-      this.container = document.getElementById('media-recoding-status-list');
+      this.container = document.getElementById('media-recording-status-list');
 
       window.addEventListener('mozChromeEvent', this);
     },
@@ -65,16 +65,13 @@
       var message;
 
       if (isAudio && isVideo) {
-        icon =
-            'url(style/media_recording/images/VideoRecorder.png)';
-          message = 'media-is-on';
+        icon = 'video-mic';
+        message = 'media-is-on';
       } else if (isAudio) {
-        icon =
-          'url(style/media_recording/images/Microphone.png)';
+        icon = 'mic';
         message = 'microphone-is-on';
       } else if (isVideo) {
-        icon =
-          'url(style/media_recording/images/Camera.png)';
+        icon = 'video';
         message = 'camera-is-on';
       }
 
@@ -86,7 +83,7 @@
         origin: this.getOrigin(detail),
         icon: icon,
         message: message,
-        updateTime: this.getFormattedTimeString(new Date())
+        timestamp: new Date()
       };
     },
 
@@ -146,35 +143,47 @@
 
       // attach panel
       var _ = navigator.mozL10n.get;
-      var panelElement, iconElement, originElement,
+      var panelElement, iconElement, titleContainerElement, originElement,
           messageElement, timerElement;
       /* create panel
-       <div class="media-recoding-status" role="listitem">
-         <div class="icon"></div>
-         <div class="origin"></div>
+       <div class="media-recording-status fake-notification" role="listitem">
+         <div data-icon="video"></div>
+         <div class="title-container">
+           <div class="origin"></div>
+           <div class="timestamp"></div>
+         </div>
          <div class="message"></div>
-         <div class="timer"></div>
        </div>
       */
       panelElement = document.createElement('div');
-      panelElement.className = 'media-recoding-status';
+      panelElement.className = 'media-recording-status fake-notification';
       panelElement.setAttribute('role', 'listitem');
+
       iconElement = document.createElement('div');
-      iconElement.className = 'icon';
-      iconElement.style.backgroundImage = item.icon;
+      iconElement.dataset.icon = item.icon;
+      iconElement.className = 'alert';
       panelElement.appendChild(iconElement);
+
+      titleContainerElement = document.createElement('div');
+      titleContainerElement.className = 'title-container';
+      panelElement.appendChild(titleContainerElement);
+
       originElement = document.createElement('div');
-      originElement.className = 'origin';
+      originElement.className = 'title';
       originElement.textContent = item.origin;
-      panelElement.appendChild(originElement);
+      titleContainerElement.appendChild(originElement);
+
+      timerElement = document.createElement('div');
+      timerElement.className = 'timestamp';
+      timerElement.dataset.timestamp = item.timestamp;
+      titleContainerElement.appendChild(timerElement);
+      panelElement.appendChild(titleContainerElement);
+
       messageElement = document.createElement('div');
-      messageElement.className = 'message';
+      messageElement.className = 'message detail';
       messageElement.textContent = _(item.message);
       panelElement.appendChild(messageElement);
-      timerElement = document.createElement('div');
-      timerElement.className = 'timer';
-      timerElement.innerHTML = item.updateTime;
-      panelElement.appendChild(timerElement);
+
       // remember element in item
       item.element = panelElement;
 

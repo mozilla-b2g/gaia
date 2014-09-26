@@ -12,9 +12,11 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_screen_layout.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 
 var mocksForSftButtonManager = new MocksHelper([
+  'AppWindowManager',
   'SettingsListener',
   'ScreenLayout',
   'OrientationManager'
@@ -29,6 +31,8 @@ suite('enable/disable software home button', function() {
   var fakeElement;
   var fakeHomeButton;
   var fakeFullScreenHomeButton;
+  var fakeFullScreenElement;
+  var fakeFullScreenLayoutHomeButton;
   var fakeScreen;
   var subject;
 
@@ -71,6 +75,16 @@ suite('enable/disable software home button', function() {
       'fullscreen-software-home-button';
     document.body.appendChild(fakeFullScreenHomeButton);
 
+    fakeFullScreenElement = document.createElement('div');
+    fakeFullScreenElement.id = 'software-buttons-fullscreen-layout';
+    fakeFullScreenElement.height = '100px';
+    document.body.appendChild(fakeFullScreenElement);
+
+    fakeFullScreenLayoutHomeButton = document.createElement('div');
+    fakeFullScreenLayoutHomeButton.id =
+      'fullscreen-layout-software-home-button';
+    fakeFullScreenElement.appendChild(fakeFullScreenLayoutHomeButton);
+
     requireApp('system/js/software_button_manager.js', done);
   });
 
@@ -80,6 +94,9 @@ suite('enable/disable software home button', function() {
     fakeScreen.parentNode.removeChild(fakeScreen);
     fakeFullScreenHomeButton.parentNode
       .removeChild(fakeFullScreenHomeButton);
+    fakeFullScreenLayoutHomeButton.parentNode
+      .removeChild(fakeFullScreenLayoutHomeButton);
+    fakeFullScreenElement.parentNode.removeChild(fakeFullScreenElement);
     window.ScreenLayout.mTeardown();
     MockNavigatorSettings.mTeardown();
   });
@@ -201,8 +218,9 @@ suite('enable/disable software home button', function() {
       });
     subject.handleEvent({type: 'touchstart'});
     assert.isTrue(ready);
-    assert.isTrue(subject.homeButton.classList.contains('active'));
-    assert.isTrue(subject.fullscreenHomeButton.classList.contains('active'));
+    subject.homeButtons.forEach(function(b) {
+      assert.isTrue(b.classList.contains('active'));
+    });
   });
 
   test('release home button', function() {
@@ -224,8 +242,9 @@ suite('enable/disable software home button', function() {
       });
     subject.handleEvent({type: 'touchend'});
     assert.isTrue(ready);
-    assert.isFalse(subject.homeButton.classList.contains('active'));
-    assert.isFalse(subject.fullscreenHomeButton.classList.contains('active'));
+    subject.homeButtons.forEach(function(b) {
+      assert.isFalse(b.classList.contains('active'));
+    });
   });
 
   test('receive homegesture-disabled when' +
@@ -253,6 +272,133 @@ suite('enable/disable software home button', function() {
         mSettings['software-button.enabled'], false);
   });
 
+  suite('Fullscreen layout support', function() {
+    var realFullScreen;
+    var realFullScreenElem;
+    var elem;
+
+    setup(function() {
+      this.sinon.useFakeTimers();
+      elem = subject.fullscreenLayoutElement;
+
+      realFullScreen = document.mozFullScreen;
+      realFullScreenElem = document.mozFullScreenElement;
+      Object.defineProperty(document, 'mozFullScreen', {
+        configurable: true,
+        get: function() { return true; }
+      });
+
+      Object.defineProperty(document, 'mozFullScreenElement', {
+        configurable: true,
+        get: function() { return subject.screenElement; }
+      });
+
+      window.dispatchEvent(new CustomEvent('mozfullscreenchange'));
+    });
+
+    teardown(function() {
+      Object.defineProperty(document, 'mozFullScreen', {
+        configurable: true,
+        get: function() { return realFullScreen; }
+      });
+      Object.defineProperty(document, 'mozFullScreenElement', {
+        configurable: true,
+        get: function() { return realFullScreenElem; }
+      });
+      window.dispatchEvent(new CustomEvent('mozfullscreenchange'));
+    });
+
+    function fakeTouchDispatch(type, target, xs, ys) {
+      var touches = [];
+
+      for (var i = 0; i < xs.length; i++) {
+        var x = xs[i];
+        var y = ys[i];
+        var touch = document.createTouch(window, target, 42, x, y,
+                                         x, y, x, y,
+                                         0, 0, 0, 0);
+        touches.push(touch);
+      }
+      var touchList = document.createTouchList(touches);
+
+      var e = document.createEvent('TouchEvent');
+      e.initTouchEvent(type, true, true,
+                       null, null, false, false, false, false,
+                       touchList, null, touchList);
+
+      target.dispatchEvent(e);
+      return e;
+    }
+
+    test('the button should be hidden at first', function() {
+      assert.isTrue(elem.classList.contains('hidden'));
+    });
+
+    suite('on tap', function() {
+      setup(function() {
+        fakeTouchDispatch('touchstart', subject.screenElement, [42], [42]);
+        this.sinon.clock.tick();
+        fakeTouchDispatch('touchend', subject.screenElement, [42], [42]);
+      });
+
+      test('the button should be displayed', function() {
+        assert.isFalse(elem.classList.contains('hidden'));
+      });
+
+      test('the button should hide after a timeout', function() {
+        this.sinon.clock.tick(3000);
+        assert.isTrue(elem.classList.contains('hidden'));
+      });
+
+      suite('taping a second time', function() {
+        var addSpy;
+        setup(function() {
+          addSpy = this.sinon.spy(elem.classList, 'add');
+          fakeTouchDispatch('touchstart', subject.screenElement, [42], [42]);
+          this.sinon.clock.tick();
+          fakeTouchDispatch('touchend', subject.screenElement, [42], [42]);
+        });
+
+        test('should hide the button after a tiny timeout', function() {
+          assert.isFalse(elem.classList.contains('hidden'));
+          this.sinon.clock.tick(100);
+          assert.isTrue(elem.classList.contains('hidden'));
+        });
+
+        suite('if the fullscreen is canceled at the same time', function() {
+          setup(function() {
+            this.sinon.clock.tick();
+
+            Object.defineProperty(document, 'mozFullScreenElement', {
+              configurable: true,
+              get: function() { return null; }
+            });
+
+            window.dispatchEvent(new CustomEvent('mozfullscreenchange'));
+            this.sinon.clock.tick(100);
+          });
+
+          test('the hidden class should never be added to prevent a flash',
+          function() {
+            sinon.assert.notCalled(addSpy);
+          });
+        });
+      });
+    });
+
+    suite('on swipe', function() {
+      setup(function() {
+        fakeTouchDispatch('touchstart', subject.screenElement, [42], [42]);
+        this.sinon.clock.tick();
+        fakeTouchDispatch('touchend', subject.screenElement, [142], [142]);
+      });
+
+      test('the button should not be displayed', function() {
+        assert.isTrue(elem.classList.contains('hidden'));
+      });
+    });
+  });
+
   suite('Redispatched events support', function() {
     var pressSpy, releaseSpy;
 
@@ -260,7 +406,7 @@ suite('enable/disable software home button', function() {
       this.sinon.useFakeTimers();
 
       // Simulating the landscape software home button
-      this.sinon.stub(subject.homeButton, 'getBoundingClientRect').returns({
+      this.sinon.stub(subject.homeButtons[0], 'getBoundingClientRect').returns({
         left: 430,
         right: 480,
         top: 135,

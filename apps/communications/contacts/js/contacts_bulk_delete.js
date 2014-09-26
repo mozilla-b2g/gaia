@@ -7,8 +7,6 @@ contacts.BulkDelete = (function() {
 
   var cancelled = false;
 
-  var _ = navigator.mozL10n.get;
-
   /**
    * Loads the overlay class before showing
    */
@@ -20,7 +18,7 @@ contacts.BulkDelete = (function() {
   var showConfirm = function showConfirm(n) {
     return new Promise(function doShowConfirm(resolve, reject) {
       var cancelObject = {
-        title: _('cancel'),
+        title: 'cancel',
         callback: function onCancel() {
           ConfirmDialog.hide();
           reject();
@@ -28,7 +26,7 @@ contacts.BulkDelete = (function() {
       };
 
       var removeObject = {
-        title: _('delete'),
+        title: 'delete',
         isDanger: true,
         callback: function onRemove() {
           ConfirmDialog.hide();
@@ -36,14 +34,15 @@ contacts.BulkDelete = (function() {
         }
       };
 
-      Contacts.confirmDialog(null, _('ContactConfirmDel', {n: n}), cancelObject,
-                             removeObject);
+      Contacts.confirmDialog(null,
+        {'id': 'ContactConfirmDel', 'args': {n: n}}, cancelObject,
+          removeObject);
     });
   };
 
   var doDelete = function doDelete(ids, done) {
     cancelled = false;
-    var progress = utils.overlay.show(_('DeletingContacts'), 'progressBar');
+    var progress = utils.overlay.show('DeletingContacts', 'progressBar');
     progress.setTotal(ids.length);
     utils.overlay.showMenu();
 
@@ -68,21 +67,25 @@ contacts.BulkDelete = (function() {
 
     contactsRemoverObj.onCancelled = function onCancelled() {
       Contacts.hideOverlay();
-      Contacts.showStatus(_('DeletedTxt',
-        {n: contactsRemoverObj.getDeletedCount()}));
+      Contacts.showStatus({
+        id: 'DeletedTxt',
+        args: {n: contactsRemoverObj.getDeletedCount()}
+      });
       contacts.Settings.refresh();
     };
 
     contactsRemoverObj.onError = function onError() {
       Contacts.hideOverlay();
-      Contacts.showStatus(_('deleteError-general'));
+      Contacts.showStatus('deleteError-general');
       contacts.Settings.refresh();
     };
 
     contactsRemoverObj.onFinished = function onFinished() {
       Contacts.hideOverlay();
-      Contacts.showStatus(_('DeletedTxt',
-        {n: contactsRemoverObj.getDeletedCount()}));
+      Contacts.showStatus({
+        id: 'DeletedTxt',
+        args: {n: contactsRemoverObj.getDeletedCount()}
+      });
       contacts.Settings.refresh();
 
       if (typeof done === 'function') {
@@ -94,7 +97,7 @@ contacts.BulkDelete = (function() {
   // Start the delete of the contacts
   var performDelete = function performDelete(promise, done) {
     requireOverlay(function onOverlay() {
-      utils.overlay.show(_('preparing-contacts'), 'spinner');
+      utils.overlay.show('preparing-contacts', 'spinner');
       promise.onsuccess = function onSuccess(ids) {
         Contacts.hideOverlay();
         showConfirm(ids.length).then(

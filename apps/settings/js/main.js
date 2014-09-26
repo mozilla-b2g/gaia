@@ -8,7 +8,7 @@ require(['config/require'], function() {
     require('utils');
     require('shared/async_storage');
     require('shared/settings_listener');
-    // used by wifi.js, wifi_select_certificate_file.js
+    // used by connectivity.js, wifi.js, wifi_select_certificate_file.js
     require('shared/wifi_helper');
     // used by security_privacy.js, messaging.js
     require('shared/icc_helper');
@@ -21,6 +21,7 @@ require(['config/require'], function() {
     var LazyLoader = require('shared/lazy_loader');
     var ScreenLayout = require('shared/screen_layout');
     var Settings = require('settings');
+    var Connectivity = require('connectivity');
 
     function isInitialPanel(panel) {
       var isTabletAndLandscape = Settings.isTabletAndLandscape();
@@ -67,7 +68,8 @@ require(['config/require'], function() {
       SettingsService: SettingsService,
       PageTransitions: PageTransitions,
       LazyLoader: LazyLoader,
-      ScreenLayout: ScreenLayout
+      ScreenLayout: ScreenLayout,
+      Connectivity: Connectivity
     };
 
     if (document && (document.readyState === 'complete' ||

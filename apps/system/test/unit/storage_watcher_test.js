@@ -51,10 +51,9 @@ suite('system/DeviceStorageWatcher >', function() {
     fakeNotif = document.createElement('div');
     fakeNotif.id = 'storage-watcher-container';
     fakeNotif.innerHTML = [
-      '<div class="message">',
-      '</div>',
-      '<div class="available-space">',
-      '</div>'
+      '<div data-icon="storage-circle"></div>',
+      '<div class="title-container"></div>',
+      '<div class="detail"></div>'
     ].join('');
 
     document.body.appendChild(fakeNotif);
@@ -75,8 +74,8 @@ suite('system/DeviceStorageWatcher >', function() {
     test('should bind DOM elements', function(done) {
       assert.equal('storage-watcher-container',
                    DeviceStorageWatcher._container.id);
-      assert.equal('message', DeviceStorageWatcher._message.className);
-      assert.equal('available-space',
+      assert.equal('title-container', DeviceStorageWatcher._message.className);
+      assert.equal('detail',
                    DeviceStorageWatcher._availableSpace.className);
       done();
     });
@@ -135,9 +134,9 @@ suite('system/DeviceStorageWatcher >', function() {
 
     test('should display the notification', function() {
       assert.isTrue(fakeNotif.classList.contains('displayed'));
-      assert.equal(fakeNotif.querySelector('.message').innerHTML,
+      assert.equal(fakeNotif.querySelector('.title-container').innerHTML,
                    'low-device-storage');
-      assert.equal(fakeNotif.querySelector('.available-space').innerHTML,
+      assert.equal(fakeNotif.querySelector('.detail').innerHTML,
                    'free-space{"value":0,"unit":"byteUnit-B"}');
     });
 
@@ -180,9 +179,9 @@ suite('system/DeviceStorageWatcher >', function() {
 
     test('should display the notification with unknown space', function() {
       assert.isTrue(fakeNotif.classList.contains('displayed'));
-      assert.equal(fakeNotif.querySelector('.message').innerHTML,
+      assert.equal(fakeNotif.querySelector('.title-container').innerHTML,
                    'low-device-storage');
-      assert.equal(fakeNotif.querySelector('.available-space').innerHTML,
+      assert.equal(fakeNotif.querySelector('.detail').innerHTML,
                    'unknown-free-space');
     });
 
@@ -220,7 +219,7 @@ suite('system/DeviceStorageWatcher >', function() {
     });
 
     test('should update free space', function() {
-      assert.equal(fakeNotif.querySelector('.available-space').innerHTML,
+      assert.equal(fakeNotif.querySelector('.detail').innerHTML,
                    'free-space{"value":1,"unit":"byteUnit-KB"}');
     });
   });

@@ -10,6 +10,7 @@
    *
    * @class HomescreenWindow
    * @param {String} manifestURL The manifestURL of the homescreen app.
+   * @extends AppWindow
    */
   var HomescreenWindow = function HomescreenWindow(manifestURL) {
     this.instanceID = 'homescreen';
@@ -162,6 +163,7 @@
   HomescreenWindow.prototype.view = function hw_view() {
     return '<div class="appWindow homescreen" id="homescreen">' +
               '<div class="titlebar">' +
+              ' <div class="notifications-shadow"></div>' +
               ' <div class="statusbar-shadow titlebar-maximized"></div>' +
               ' <div class="statusbar-shadow titlebar-minimized"></div>' +
               '</div>' +

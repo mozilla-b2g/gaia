@@ -31,6 +31,10 @@ View.prototype = {
     return this.client.findElement(this.selector);
   },
 
+  get element() {
+    return this.getElement();
+  },
+
   /**
    * Whether or not the root element associated with
    * this view is displayed.
@@ -66,5 +70,9 @@ View.prototype = {
 
   setFormData: function(formData) {
     this.client.forms.fill(this.form, formData);
+  },
+
+  getFormValue: function(name) {
+    return this.findElement('[name="' + name + '"]').getAttribute('value');
   }
 };

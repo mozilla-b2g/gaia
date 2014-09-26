@@ -17,14 +17,15 @@
     <!-- Localization -->
     <script defer type="text/javascript" src="/shared/js/lazy_loader.js"></script>
     <script defer type="application/javascript" src="/shared/js/lazy_l10n.js"></script>
-    <link rel="resource" type="application/l10n" href="/locales/locales.ini">
-    <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
-    <link rel="resource" type="application/l10n" href="/shared/locales/phone_types.ini">
-    <link rel="resource" type="application/l10n" href="/shared/locales/lockscreen.ini">
+    <link rel="manifest" href="manifest.webapp">
+    <link rel="localization" href="../communications/dialer/locales/dialer.{locale}.properties">
+    <link rel="localization" href="../communications/dialer/locales/shared.{locale}.properties">
+    <link rel="localization" href="shared/locales/date/date.{locale}.properties">
+    <link rel="localization" href="shared/locales/phone_types/phone_types.{locale}.properties">
+    <link rel="localization" href="shared/locales/lockscreen/lockscreen.{locale}.properties">
     <!-- Making sure the shared resources will be copy into the zip
     <script type="application/javascript" src="/shared/js/l10n.js"></script>
     <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
-    <link rel="resource" type="application/json" href="shared/resources/media/tones/"/>
     -->
 
     <script defer type="application/javascript" src="/js/index.js"></script>
@@ -33,6 +34,7 @@
     <script defer type="application/javascript" src="/shared/js/async_storage.js"></script>
     <script defer type="application/javascript" src="/shared/js/contact_photo_helper.js"></script>
     <script defer type="application/javascript" src="/shared/js/font_size_utils.js"></script>
+    <script defer type="application/javascript" src="/shared/js/date_time_helper.js"></script>
 
     <script defer type="application/javascript" src="/shared/js/simple_phone_matcher.js"></script>
     <script defer type="application/javascript" src="/shared/js/dialer/contacts.js"></script>
@@ -66,7 +68,7 @@
     <script defer src="/shared/js/lockscreen_connection_info_manager.js"></script>
   </head>
   <body>
-    <article id="call-screen" data-layout>
+    <article id="call-screen" data-layout class="displayed">
       <div id="lockscreen-header">
         <div id="lockscreen-conn-states">
         </div>

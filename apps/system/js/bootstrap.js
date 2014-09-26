@@ -5,7 +5,7 @@
          SecureWindowManager, HomescreenLauncher,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
-         VisibilityManager, Storage, InternetSharing, TaskManager,
+         VisibilityManager, UsbStorage, InternetSharing, TaskManager,
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
@@ -13,7 +13,8 @@
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
          LockScreenNotifications, LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor, LockScreenNotificationBuilder,
-         BrowserSettings */
+         BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
+         CellBroadcastSystem, EdgeSwipeDetector */
 'use strict';
 
 
@@ -102,6 +103,9 @@ window.addEventListener('load', function startup() {
     lock.set({
       'gaia.system.checkForUpdates': true
     });
+    // make sure new key is available in system
+    window.settingsMigrator = new SettingsMigrator();
+    window.settingsMigrator.start();
   }
 
   window.addEventListener('ftudone', doneWithFTU);
@@ -115,14 +119,25 @@ window.addEventListener('load', function startup() {
   window.activities = new Activities();
   window.accessibility = new Accessibility();
   window.accessibility.start();
+  window.appMigrator = new AppMigrator();
+  window.appMigrator.start();
   window.appUsageMetrics = new AppUsageMetrics();
   window.appUsageMetrics.start();
   window.appWindowFactory = new AppWindowFactory();
   window.appWindowFactory.start();
+  window.cellBroadcastSystem = new CellBroadcastSystem();
+  window.cellBroadcastSystem.start();
   window.developerHUD = new DeveloperHUD();
   window.developerHUD.start();
+  /** @global */
+  window.attentionWindowManager = new window.AttentionWindowManager();
+  window.attentionWindowManager.start();
   window.dialerAgent = new DialerAgent();
   window.dialerAgent.start();
+  window.edgeSwipeDetector = new EdgeSwipeDetector();
+  window.edgeSwipeDetector.start();
+  window.euRoamingManager = new EuRoamingManager();
+  window.euRoamingManager.start();
   window.externalStorageMonitor = new ExternalStorageMonitor();
   window.externalStorageMonitor.start();
   window.homeGesture = new HomeGesture();
@@ -191,7 +206,7 @@ window.addEventListener('load', function startup() {
   window.dispatchEvent(evt);
 });
 
-window.storage = new Storage();
+window.usbStorage = new UsbStorage();
 
 // Define the default background to use for all homescreens
 window.addEventListener('wallpaperchange', function(evt) {

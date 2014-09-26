@@ -56,7 +56,7 @@ marionette('modify event view', function() {
       editEvent.endDate = startDatePreviousDay;
       assert.equal(
         editEvent.errors,
-        'End date must come after start date',
+        'The event cannot end before its start date',
         'show the correct error message'
       );
     });
@@ -66,9 +66,26 @@ marionette('modify event view', function() {
       editEvent.endTime = startDate;
       assert.equal(
         editEvent.errors,
-        'End date must come after start date on the same date',
+        'The event cannot end before its start time',
         'show the correct error message'
       );
+    });
+
+    suite('12/24 hour format', function() {
+      test('default format: 12 hour', function() {
+        assert.equal(editEvent.startTimeLocale.text(), '12:34 PM',
+          'check start time locale');
+        assert.equal(editEvent.endTimeLocale.text(), '1:34 PM',
+          'check end time locale');
+      });
+
+      test('switch to 24 hour format', function() {
+        app.switch24HourTimeFormat();
+        assert.equal(editEvent.startTimeLocale.text(), '12:34',
+          'check start time locale');
+        assert.equal(editEvent.endTimeLocale.text(), '13:34',
+          'check end time locale');
+      });
     });
   });
 });

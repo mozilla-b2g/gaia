@@ -1,8 +1,10 @@
 'use strict';
-/* global MockApp, App, GaiaGrid, MocksHelper, loadBodyHTML, BookmarkSource */
+/* global MockApp, App, GaiaGrid, MocksHelper, loadBodyHTML, BookmarkSource,
+          MockNavigatormozApps, appManager */
 
 require('/shared/js/bookmarks_database.js');
 
+require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/elements/gaia_grid/js/grid_dragdrop.js');
 require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
@@ -23,15 +25,20 @@ suite('bookmark.js > ', function() {
 
   mocksHelperForBookmark.attachTestHelpers();
 
-  var subject = null;
+  var subject = null,
+      realMozApps = null;
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
+    realMozApps = navigator.mozApps;
+    navigator.mozApps = MockNavigatormozApps;
     window.app = new App();
     loadBodyHTML('/index.html');
     subject = new BookmarkSource();
+    require('/js/app_manager.js', done);
   });
 
   teardown(function() {
+    navigator.mozApps = realMozApps;
     MockApp.mIcons = {};
   });
 
@@ -42,10 +49,14 @@ suite('bookmark.js > ', function() {
       url: expectedURL
     });
 
-    var removeStub = this.sinon.stub(subject, 'removeIconFromGrid',
-      function(url) {
-        assert.equal(url, expectedURL);
-        removeStub.restore();
+    var removeSpy = sinon.spy(subject, 'removeIconFromGrid');
+
+    var sendEventStub = sinon.stub(appManager, 'sendEventToCollectionApp',
+      function(eventName, message) {
+        assert.isTrue(removeSpy.calledWith(expectedURL));
+        assert.equal(eventName, 'uninstall');
+        assert.equal(message.id, expectedURL);
+        sendEventStub.restore();
         done();
       }
     );

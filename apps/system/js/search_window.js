@@ -21,9 +21,17 @@
     'mozbrowsererror'
   ];
 
-  SearchWindow.SUB_COMPONENTS = {};
+  SearchWindow.SUB_COMPONENTS = {
+    'childWindowFactory': window.ChildWindowFactory,
+    'contextmenu': window.BrowserContextMenu,
+    'transitionController': window.AppTransitionController
+  };
 
   SearchWindow.prototype = Object.create(AppWindow.prototype);
+
+  SearchWindow.prototype.constructor = SearchWindow;
+
+  SearchWindow.SUSPENDING_ENABLED = false;
 
   SearchWindow.prototype._DEBUG = false;
 
@@ -46,6 +54,11 @@
              '" transition-state="closed">' +
              '<div class="browser-container"></div>' +
            '</div>';
+  };
+
+  // The search window orientation depends on the orientation of the
+  // current displayed app. So don't do anything here.
+  SearchWindow.prototype.lockOrientation = function() {
   };
 
   // We don't need to wait.

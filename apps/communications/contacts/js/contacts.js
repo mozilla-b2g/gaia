@@ -3,7 +3,6 @@
 /* global ConfirmDialog */
 /* global contacts */
 /* global ContactsTag */
-/* global DatastoreMigration */
 /* global fb */
 /* global fbLoader */
 /* global LazyLoader */
@@ -11,8 +10,8 @@
 /* global navigationStack */
 /* global SmsIntegration */
 /* global utils */
+/* global DeferredActions */
 /* global TAG_OPTIONS */
-/* global ImportStatusData */
 
 /* exported COMMS_APP_ORIGIN */
 /* exported SCALE_RATIO */
@@ -37,13 +36,16 @@ var Contacts = (function() {
   var navigation = new navigationStack('view-contacts-list');
 
   var goToForm = function edit() {
-    navigation.go('view-contact-form', 'popup');
+    var transition = ActivityHandler.currentlyHandling ?
+     'activity-popup' : 'popup';
+
+    navigation.go('view-contact-form', transition);
   };
 
   var contactTag,
       settings,
       settingsButton,
-      cancelButton,
+      header,
       addButton,
       appTitleElement,
       editModeTitleElement,
@@ -61,7 +63,7 @@ var Contacts = (function() {
   var contactsDetails;
   var contactsForm;
 
-  var customTag, customTagReset, tagDone, tagCancel, lazyLoadedTagsDom = false;
+  var customTag, customTagReset, tagDone, tagHeader, lazyLoadedTagsDom = false;
 
   // Shows the edit form for the current contact being in an update activity
   // It receives an array of two elements with the facebook data && values
@@ -208,7 +210,7 @@ var Contacts = (function() {
   var initContainers = function initContainers() {
     settings = document.getElementById('view-settings');
     settingsButton = document.getElementById('settings-button');
-    cancelButton = document.getElementById('cancel_activity');
+    header = document.getElementById('contacts-list-header');
     addButton = document.getElementById('add-contact-button');
     editModeTitleElement = document.getElementById('edit-title');
     appTitleElement = document.getElementById('app-title');
@@ -230,43 +232,10 @@ var Contacts = (function() {
     });
   };
 
-  var checkFacebookSynchronization = function(config) {
-    if (config && config.fbScheduleDone) {
-      return;
-    }
-
-    LazyLoader.load([
-      '/facebook/js/fb_sync.js',
-      '/shared/js/contacts/import/import_status_data.js',
-      '/shared/js/contacts/import/facebook/fb_utils.js'
-    ], function() {
-      var fbutils = fb.utils;
-
-      var neverExecuteAgain = function() {
-        ImportStatusData.remove(fbutils.SCHEDULE_SYNC_KEY);
-        utils.cookie.update({fbScheduleDone: true});
-        navigator.removeIdleObserver(idleObserver);
-        idleObserver = null;
-      };
-
-      var idleObserver = {
-        time: 3,
-        onidle: function onidle() {
-          ImportStatusData.get(fbutils.SCHEDULE_SYNC_KEY).then(function(date) {
-            if (date) {
-              fbutils.setLastUpdate(date, function() {
-                var req = fb.sync.scheduleNextSync();
-                req.onsuccess = neverExecuteAgain;
-                req.onerror = neverExecuteAgain;
-              });
-            } else {
-              neverExecuteAgain();
-            }
-          });
-        }
-      };
-
-      navigator.addIdleObserver(idleObserver);
+  var loadDeferredActions = function loadDeferredActions() {
+    window.removeEventListener('listRendered', loadDeferredActions);
+    LazyLoader.load('js/deferred_actions.js', function() {
+      DeferredActions.execute();
     });
   };
 
@@ -277,19 +246,7 @@ var Contacts = (function() {
     utils.PerformanceHelper.chromeInteractive();
     window.addEventListener('hashchange', checkUrl);
 
-    var config = utils.cookie.load();
-
-    checkFacebookSynchronization(config);
-
-    // If the migration is not complete
-    if (!config || !config.fbMigrated) {
-      LazyLoader.load('js/fb/datastore_migrator.js', function() {
-        new DatastoreMigration().start();
-      });
-    }
-    else {
-      window.console.info('FB Already migrated!!!');
-    }
+    window.addEventListener('listRendered', loadDeferredActions);
 
     // Tell audio channel manager that we want to adjust the notification
     // channel if the user press the volumeup/volumedown buttons in Contacts.
@@ -311,18 +268,53 @@ var Contacts = (function() {
     checkCancelableActivity();
   };
 
+  function setupCancelableHeader() {
+    header.setAttribute('action', 'close');
+    settingsButton.hidden = true;
+    addButton.hidden = true;
+    // Trigger the title to re-run font-fit/centering logic
+    appTitleElement.textContent = appTitleElement.textContent;
+  }
+
+  function setupActionableHeader() {
+    header.removeAttribute('action');
+    settingsButton.hidden = false;
+    addButton.hidden = false;
+    // Trigger the title to re-run font-fit/centering logic
+    appTitleElement.textContent = appTitleElement.textContent;
+  }
+
+  var lastCustomHeaderCallback;
+
+  var setCancelableHeader = function setCancelableHeader(cb) {
+    setupCancelableHeader();
+    header.removeEventListener('action', handleCancel);
+    lastCustomHeaderCallback = cb;
+    header.addEventListener('action', cb);
+  };
+
+  var setNormalHeader = function setNormalHeader() {
+    setupActionableHeader();
+    header.removeEventListener('action', lastCustomHeaderCallback);
+    header.addEventListener('action', handleCancel);
+  };
+
   var checkCancelableActivity = function cancelableActivity() {
     // NOTE: Only set textContent below if necessary to avoid repaints at
     //       load time.  For more info see bug 725221.
     var text;
     if (ActivityHandler.currentlyHandling) {
-      cancelButton.classList.remove('hide');
-      addButton.classList.add('hide');
-      settingsButton.classList.add('hide');
+      header.setAttribute('action', 'close');
+      settingsButton.hidden = true;
+      addButton.hidden = true;
+      // Trigger the title to re-run font-fit/centering logic
+      appTitleElement.textContent = appTitleElement.textContent;
+      setupCancelableHeader();
     } else {
-      cancelButton.classList.add('hide');
-      addButton.classList.remove('hide');
-      settingsButton.classList.remove('hide');
+      header.removeAttribute('action');
+      settingsButton.hidden = false;
+      addButton.hidden = false;
+      setupActionableHeader();
     }
 
     text = (contactsList && contactsList.isSelecting)?
@@ -464,9 +456,9 @@ var Contacts = (function() {
       tagDone = document.querySelector('#settings-done');
       tagDone.addEventListener('click', handleSelectTagDone);
     }
-    if (!tagCancel) {
-      tagCancel = document.querySelector('#settings-cancel');
-      tagCancel.addEventListener('click', handleBack);
+    if (!tagHeader) {
+      tagHeader = document.querySelector('#settings-header');
+      tagHeader.addEventListener('action', handleBack);
     }
 
     for (var i in options) {
@@ -593,6 +585,7 @@ var Contacts = (function() {
     } else {
       initDetails(function onDetails() {
         LazyLoader.load([
+          SHARED_UTILS_PATH + '/misc.js',
           '/shared/js/contacts/utilities/image_thumbnail.js'],
         function() {
           Contacts.view('Form', function viewLoaded() {
@@ -612,7 +605,12 @@ var Contacts = (function() {
     } else {
       Contacts.view('Settings', function viewLoaded() {
         LazyLoader.load(['/contacts/js/utilities/sim_dom_generator.js',
+          '/contacts/js/utilities/normalizer.js',
+          SHARED_UTILS_PATH + '/misc.js',
+          '/shared/js/mime_mapper.js',
+          SHARED_UTILS_PATH + '/vcard_parser.js',
           '/contacts/js/utilities/icc_handler.js',
+          SHARED_UTILS_PATH + '/sdcard.js',
           '/shared/js/date_time_helper.js'], function() {
           settingsReady = true;
           contacts.Settings.init();
@@ -628,7 +626,13 @@ var Contacts = (function() {
     } else {
       Contacts.view('Details', function viewLoaded() {
         var simPickerNode = document.getElementById('sim-picker');
-        LazyLoader.load([simPickerNode], function() {
+        LazyLoader.load(
+          [SHARED_UTILS_PATH + '/misc.js',
+           '/dialer/js/telephony_helper.js',
+           '/shared/js/contacts/sms_integration.js',
+           simPickerNode,
+           '/shared/js/contacts/contacts_buttons.js'],
+        function() {
           navigator.mozL10n.translate(simPickerNode);
           detailsReady = true;
           contactsDetails = contacts.Details;
@@ -676,8 +680,8 @@ var Contacts = (function() {
     }
   };
 
-  var showOverlay = function c_showOverlay(message, progressClass, textId) {
-    var out = utils.overlay.show(message, progressClass, textId);
+  var showOverlay = function c_showOverlay(messageId, progressClass, textId) {
+    var out = utils.overlay.show(messageId, progressClass, textId);
     // When we are showing the overlay we are often performing other
     // significant work, such as importing.  While performing this work
     // it would be nice to avoid the overhead of any accidental reflows
@@ -696,8 +700,8 @@ var Contacts = (function() {
     }, SHARED_UTILS);
   };
 
-  var showStatus = function c_showStatus(message, additional) {
-    utils.status.show(message, additional);
+  var showStatus = function c_showStatus(messageId, additionalId) {
+    utils.status.show(messageId, additionalId);
   };
 
   var showSettings = function showSettings() {
@@ -723,7 +727,12 @@ var Contacts = (function() {
   var initEventListeners = function initEventListener() {
     // Definition of elements and handlers
     utils.listeners.add({
-      '#cancel_activity': handleCancel, // Activity (any) cancellation
+      '#contacts-list-header': [
+        {
+          event: 'action',
+          handler: handleCancel // Activity (any) cancellation
+        }
+      ],
       '#add-contact-button': showAddContact,
       '#settings-button': showSettings, // Settings related
       '#search-start': [
@@ -758,16 +767,9 @@ var Contacts = (function() {
       '/shared/js/contacts/contacts_shortcuts.js',
       '/contacts/js/contacts_tag.js',
       '/contacts/js/tag_options.js',
-      SHARED_UTILS_PATH + '/' + 'misc.js',
-      '/contacts/js/utilities/normalizer.js',
       '/shared/js/text_normalizer.js',
-      '/dialer/js/telephony_helper.js',
-      '/contacts/js/sms_integration.js',
-      SHARED_UTILS_PATH + '/' + 'sdcard.js',
-      SHARED_UTILS_PATH + '/' + 'vcard_parser.js',
-      SHARED_UTILS_PATH + '/' + 'status.js',
-      '/shared/js/contacts/utilities/dom.js',
-      '/shared/js/contacts/import/import_status_data.js'
+      SHARED_UTILS_PATH + '/status.js',
+      '/shared/js/contacts/utilities/dom.js'
     ];
 
     // Lazyload nfc.js if NFC is available
@@ -846,15 +848,14 @@ var Contacts = (function() {
                 contactsList.refresh(enrichedContact || currentContact,
                                      checkPendingChanges, event.reason);
               }
+              notifyContactChanged(event.contactID, event.reason);
           });
         } else {
-          contactsList.refresh(event.contactID, checkPendingChanges,
-            event.reason);
+          refreshContactInList(event.contactID);
         }
         break;
       case 'create':
-        contactsList.refresh(event.contactID, checkPendingChanges,
-          event.reason);
+        refreshContactInList(event.contactID);
         break;
       case 'remove':
         if (currentContact != null && currentContact.id == event.contactID &&
@@ -865,9 +866,31 @@ var Contacts = (function() {
         contactsList.remove(event.contactID, event.reason);
         currentContact = {};
         checkPendingChanges(event.contactID);
+        notifyContactChanged(event.contactID, event.reason);
         break;
     }
   };
+
+  // Refresh a contact in the list, and notifies of contact
+  // changed to possible listeners.
+  function refreshContactInList(id) {
+    contactsList.refresh(id, function() {
+      notifyContactChanged(id);
+      checkPendingChanges(id);
+    });
+  }
+
+  // Send a custom event when we know that a contact changed and
+  // the contact list was updated.
+  // Used internally in places where the contact list is a reference
+  function notifyContactChanged(id, reason) {
+    document.dispatchEvent(new CustomEvent('contactChanged', {
+      detail: {
+        contactID: id,
+        reason: reason
+      }
+    }));
+  }
 
   var close = function close() {
     window.removeEventListener('localized', initContacts);
@@ -876,16 +899,14 @@ var Contacts = (function() {
   var initContacts = function initContacts(evt) {
     window.setTimeout(Contacts.onLocalized);
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
-      var actHandler = ActivityHandler.handle.bind(ActivityHandler);
-      window.navigator.mozSetMessageHandler('activity', actHandler);
+      LazyLoader.load([SHARED_UTILS_PATH + '/misc.js'],
+       function() {
+        var actHandler = ActivityHandler.handle.bind(ActivityHandler);
+        window.navigator.mozSetMessageHandler('activity', actHandler);
+      });
     }
 
     document.addEventListener('visibilitychange', function visibility(e) {
-      if (ActivityHandler.currentlyHandling && document.hidden) {
-        ActivityHandler.postCancel();
-        return;
-      }
-
       Contacts.checkCancelableActivity();
       if (document.hidden === false &&
                                 navigation.currentView() === 'view-settings') {
@@ -929,7 +950,8 @@ var Contacts = (function() {
     settings: 'settings-wrapper',
     search: 'search-view',
     overlay: 'loading-overlay',
-    confirm: 'confirmation-message'
+    confirm: 'confirmation-message',
+    ice: 'ice-view'
   };
 
   function load(type, file, callback, path) {
@@ -1031,6 +1053,8 @@ var Contacts = (function() {
     'view': loadView,
     'utility': loadUtility,
     'updateSelectCountTitle': updateSelectCountTitle,
+    'setCancelableHeader': setCancelableHeader,
+    'setNormalHeader': setNormalHeader,
     get asyncScriptsLoaded() {
       return asyncScriptsLoaded;
     },

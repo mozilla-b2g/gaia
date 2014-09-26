@@ -9,20 +9,6 @@ function NullRingtone() {}
 
 NullRingtone.prototype = {
   /**
-   * @return {String} A unique ID for the ringtone.
-   */
-  get id() {
-    return 'none:none';
-  },
-
-  /**
-   * @return {String} The l10n ID of the ringtone.
-   */
-  get l10nID() {
-    return 'ringtone-none';
-  },
-
-  /**
    * @return {String} The localized name of the ringtone. Assumes mozL10n has
    *   been initialized.
    */
@@ -34,6 +20,27 @@ NullRingtone.prototype = {
    * @return {String} The filename of the ringtone (null in this case).
    */
   get filename() {
+    return null;
+  },
+
+  /**
+   * @return {String} The l10n ID of the ringtone.
+   */
+  get l10nID() {
+    return 'ringtone-none';
+  },
+
+  /**
+   * @return {String} A unique ID for the ringtone.
+   */
+  get id() {
+    return 'none:none';
+  },
+
+  /**
+   * @return {String} The type of the tone (null in this case).
+   */
+  get type() {
     return null;
   },
 

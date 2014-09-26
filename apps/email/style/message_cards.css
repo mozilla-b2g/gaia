@@ -744,15 +744,24 @@ reflows. Foreground/background colors should be safe.
   display: inline-block;
   margin: 1.5rem 1.5rem 0 0;
   opacity: .8;
-  transform: translateY(-6.5rem);
+  transform: translate(0, -6.5rem);
   transition-property: transform;
   transition-duration: .6s;
   transition-timing-function: ease;
   transition-delay: 0s;
 }
 
+.message-list-topbar.no-anim {
+  transition-property: none;
+}
+
+.message-list-topbar.horiz-top,
+.message-list-topbar.closing[data-state="top"] {
+  transform: translate(0, -6.5rem);
+}
+
 .message-list-topbar[data-state="top"] {
-  transform: translateY(0);
+  transform: translate(0, 0);
   right: 0;
   width: 5rem;
   height: 5rem;
@@ -761,8 +770,14 @@ reflows. Foreground/background colors should be safe.
   font-size: 0;
 }
 
+.message-list-topbar.horiz-message,
+.message-list-topbar.closing[data-state="message"] {
+  transform: translate(-50%, -6.5rem);
+}
+
 .message-list-topbar[data-state="message"] {
-  transform: translateY(0);
+  transform: translate(-50%, 0);
+  left: 50%;
   margin: 1.5rem auto;
   padding: 0 1.3rem;
   height: 4rem;
@@ -772,11 +787,6 @@ reflows. Foreground/background colors should be safe.
   color: white;
   background-color: #a6a6a6;
   opacity: .95;
-}
-
-.message-list-topbar.closing[data-state="message"],
-.message-list-topbar.closing[data-state="top"] {
-  transform: translateY(-6.5rem);
 }
 
 .msg-reply-menu button:before {

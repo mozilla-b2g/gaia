@@ -72,7 +72,9 @@
      */
     setContacts: function(iceContacts) {
       return init().then(function() {
-        return store.put(iceContacts, FIELD);
+        return store.put(iceContacts, FIELD).then(function() {
+          return Promise.resolve(iceContacts);
+        });
       });
     },
     /**
@@ -90,7 +92,9 @@
      */
     onChange: function(cb) {
       return init().then(function() {
-        store.addEventListener('change', cb);
+        store.addEventListener('change', function() {
+          store.get(FIELD).then(cb);
+        });
       });
     }
   };

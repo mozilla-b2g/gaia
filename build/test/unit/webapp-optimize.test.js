@@ -61,6 +61,9 @@ suite('webapp-optimize.js', function() {
         clone: function() {
           return getFile(filePath);
         },
+        get parent() {
+          return getFile(filePath.substr(0, filePath.lastIndexOf('/')));
+        },
         append: function(subPath) {
           filePath += '/' + subPath;
         },
@@ -138,7 +141,6 @@ suite('webapp-optimize.js', function() {
     mockConfig = {
       GAIA_DEFAULT_LOCALE: 'default-locale',
       GAIA_CONCAT_LOCALES: '1',
-      GAIA_INLINE_LOCALES: '1',
       GAIA_OPTIMIZE: '1',
       stageDir: 'testStageDir',
       DEBUG: '0',
@@ -180,6 +182,7 @@ suite('webapp-optimize.js', function() {
       this.removeChild = function(dom) {
         removeDomChildren.push(dom);
       };
+      this.ownerDocument = mockDoc;
       this.hasAttribute = function(attr) {
         return hasAttributeFlag;
       };
@@ -227,8 +230,7 @@ suite('webapp-optimize.js', function() {
               };
             };
           },
-          bootstrap: function(callback, localeBasedirFlag) {
-            callback(true);
+          bootstrap: function(localeBasedirFlag) {
           },
           ctx: {
             requestLocales: function(locale) {
@@ -354,7 +356,6 @@ suite('webapp-optimize.js', function() {
     var writeAggregatedConfig;
     setup(function() {
       var htmlFile = mockUtils.getFile('test-index.html');
-      htmlFile.parent = mockUtils.getFile('test-parent-index.html');
       htmlOptimizer = new app.HTMLOptimizer({
         htmlFile: htmlFile,
         webapp: {
@@ -378,8 +379,8 @@ suite('webapp-optimize.js', function() {
       var _optimizeCalled;
       htmlOptimizer.webapp.sourceDirectoryName = 'ignoreL10nOptimizeApp';
       htmlOptimizer.mockWinObj = function() {};
-      htmlOptimizer._optimize = function(called) {
-        _optimizeCalled = called;
+      htmlOptimizer._optimize = function() {
+        _optimizeCalled = true;
       };
       htmlOptimizer.files = ['test'];
       htmlOptimizer.process();
@@ -441,34 +442,12 @@ suite('webapp-optimize.js', function() {
         'should modify its innerHTML');
     });
 
-    test('embed10nResources', function() {
-      htmlOptimizer.subDict = {
-        'test-lang': {
-          'testkey': 'testContent'
-        }
-      };
-      htmlOptimizer.embed10nResources();
-      assert.equal(createdDOMs[2].query, 'document/script',
-        'should modify document/script');
-      assert.equal(createdDOMs[2].innerHTML,
-        '\n  ' + JSON.stringify(htmlOptimizer.subDict['test-lang']) + '\n',
-        'should embed stringify l10ned object');
-      assert.equal(createdDOMs[2].lang, 'test-lang',
-        'should modify script.lang');
-      assert.equal(createdDOMs[2].type, 'application/l10n',
-        'should have application/l10n type');
-    });
-
     test('concatL10nResources', function() {
       hasAttributeFlag = false;
       htmlOptimizer.concatL10nResources();
       assert.equal(createdDOMs[2].query,
-        'document/link[type="application/l10n"]',
-        'should modify document/link[type="application/l10n"]');
-      assert.equal(createdDOMs[3].query, 'document/link');
-      assert.equal(createdDOMs[3].href, '/locales-obj/{{locale}}.json');
-      assert.equal(createdDOMs[3].type, 'application/l10n');
-      assert.equal(createdDOMs[3].rel, 'prefetch');
+        'document/link[rel="localization"], link[rel="manifest"]',
+        'should modify document/link[rel="localization"]');
     });
 
     test('aggregateJsResources', function() {
@@ -548,9 +527,10 @@ suite('webapp-optimize.js', function() {
 
     test('getFileByRelativePath', function() {
       isSubjectToBranding = true;
-      var path = '/test';
+      var path = '/test/foo.html';
       var result = htmlOptimizer.getFileByRelativePath(path);
-      assert.equal(result.file.getCurrentPath(), 'build_stage/test/official');
+      assert.equal(result.file.getCurrentPath(),
+                   'build_stage/test/official/foo.html');
     });
   });
 });

@@ -17,7 +17,7 @@ class Phone(Base):
     _contacts_view_locator = (By.ID, 'option-contacts')
     _keypad_toolbar_button_locator = (By.ID, 'option-keypad')
     _keypad_toolbar_locator = (By.ID, 'keypad-panel')
-    _add_contact_action_menu_locator = (By.ID, 'add-contact-action-menu')
+    _call_group_menu_locator = (By.CLASS_NAME, 'call-group-menu')
     _cancel_action_menu_locator = (By.ID, 'cancel-action-menu')
     _contacts_toolbar_locator = (By.ID, 'iframe-contacts-container')
     _contacts_frame_locator = (By.ID, 'iframe-contacts')

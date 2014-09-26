@@ -201,17 +201,17 @@ PreviewGalleryController.prototype.deleteCurrentItem = function() {
   var msg;
 
   if (item.isVideo) {
-    msg = navigator.mozL10n.get('delete-video?');
+    msg = 'delete-video?';
   }
   else {
-    msg = navigator.mozL10n.get('delete-photo?');
+    msg = 'delete-photo?';
   }
 
   dialog.show('', msg, {
-      title: navigator.mozL10n.get('cancel'),
+      title: 'cancel',
       callback: closeDialog
     }, {
-      title: navigator.mozL10n.get('delete'),
+      title: 'delete',
       callback: deleteItem,
       recommend: false
     });

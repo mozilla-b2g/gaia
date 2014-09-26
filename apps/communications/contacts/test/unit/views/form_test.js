@@ -29,7 +29,7 @@ requireApp('communications/contacts/js/contacts_tag.js');
 requireApp('communications/contacts/js/views/form.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
-requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_external_services.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_contacts_search.js');
@@ -239,6 +239,19 @@ suite('Render contact form', function() {
       assertSaveState(null);
     });
 
+    test('with date params', function() {
+      var params = {
+        date: new Date(0)
+      };
+      subject.render(params);
+
+      var valueDate = document.querySelector('#date_0').valueAsDate;
+
+      assert.equal(valueDate.toDateString(), params.date.toDateString());
+
+      assertSaveState(null);
+    });
+
     test('Initially the carrier field must be in disabled state', function() {
       subject.render();
       var element = document.body.querySelector('#add-phone-0');
@@ -301,6 +314,13 @@ suite('Render contact form', function() {
       assert.equal(date2.dataset.value, 'anniversary');
     });
 
+    test('Reset button phone field', function() {
+      var phoneNumberField = document.getElementById('number_0');
+      phoneNumberField.value = '123456';
+      phoneNumberField.nextElementSibling.click();
+
+      assert.isTrue(phoneNumberField.value === '');
+    });
   });
 
   suite('Render edit form', function() {
@@ -317,6 +337,9 @@ suite('Render contact form', function() {
       assert.isFalse(inputDate.previousElementSibling.
                      classList.contains('placeholder'));
     }
+
+    var NO_OP = function() {};
+    var noteSelector = '[data-field="note"]';
 
     test('no scroll on first load', function() {
       subject.render(mockContact);
@@ -365,10 +388,6 @@ suite('Render contact form', function() {
       assertEmailData(0);
 
       assert.isFalse(footer.classList.contains('hide'));
-
-      // Remove Field icon on photo is present
-      var thumbnail = document.querySelector('#thumbnail-action');
-      assert.isTrue(thumbnail.querySelector('.icon-delete') !== null);
     });
 
     test('with only birthday', function() {
@@ -460,12 +479,62 @@ suite('Render contact form', function() {
         assertCarrierState(element, null);
     });
 
-    test('if tel field has no value, carrier input must be in disabled state',
+    test('if tel field has no value, there is no visible telephone field',
       function() {
         mockContact.tel = [];
         subject.render(mockContact);
         var element = document.body.querySelector('#add-phone-0');
-        assertCarrierState(element, 'disabled');
+        assert.isTrue(element === null);
+    });
+
+    test('Removing a note preserves the others', function() {
+      mockContact.note.push('other note');
+      subject.render(mockContact);
+
+      // Three as we need to count the template one
+      assert.equal(document.querySelectorAll(noteSelector).length, 3);
+
+      var firstNoteContainer = document.getElementById('add-note-0');
+      var delButton = firstNoteContainer.querySelector(
+                                                    'button.img-delete-button');
+
+     delButton.onclick({
+        eventX: 100,
+        eventY: 100,
+        target: delButton,
+        preventDefault: NO_OP
+      });
+
+      // Two as we need to count the template one
+      assert.equal(document.querySelectorAll(noteSelector).length, 2);
+    });
+
+    test('Removing all notes collapses the notes section', function() {
+      mockContact.note.push('other note');
+      subject.render(mockContact);
+
+      // Three as we need to count the template one
+      assert.equal(document.querySelectorAll(noteSelector).length, 3);
+
+      for(var j = 0; j < 2; j++) {
+        var noteContainer = document.getElementById('add-note-' + j);
+        var delButton = noteContainer.querySelector(
+                                                    'button.img-delete-button');
+        var synthEvent = {
+          eventX: 100,
+          eventY: 100,
+          target: delButton,
+          preventDefault: NO_OP
+        };
+
+        delButton.onclick(synthEvent);
+      }
+
+      // Only the template remains
+      var presentNotes = document.querySelectorAll(
+                                              '.note-template[data-template]');
+      assert.equal(presentNotes.length, 1);
+      assert.isTrue(presentNotes.item(0).id.indexOf('#') !== -1);
     });
 
     test('FB Contact. e-mail, phone and photo from Facebook', function() {
@@ -497,9 +566,6 @@ suite('Render contact form', function() {
 
         // Remove Field icon photo should not be present
         var thumbnail = document.querySelector('#thumbnail-action');
-        assert.isTrue(thumbnail.querySelector('.icon-delete').
-                        parentNode.classList.contains('hide'));
-
         assert.isTrue(thumbnail.classList.contains('facebook'));
       };
     });
@@ -654,7 +720,6 @@ suite('Render contact form', function() {
 
           var domElement1 = document.querySelector('#' + element + '-' + '1');
           assert.isFalse(domElement1.classList.contains('facebook'));
-          assert.isTrue(domElement1.querySelector('.icon-delete') !== null);
         }
 
         for (var c = 0; c < 2; c++) {
@@ -673,9 +738,6 @@ suite('Render contact form', function() {
         subject.render(mockContact, null, this.result);
 
         var thumbnail = document.querySelector('#thumbnail-action');
-        assert.isFalse(thumbnail.querySelector('.icon-delete').
-                        parentNode.classList.contains('hide'));
-
         assert.isFalse(thumbnail.classList.contains('facebook'));
       };
     });
@@ -694,8 +756,6 @@ suite('Render contact form', function() {
         var domElement0 = document.querySelector('#add-date-0');
         assert.isFalse(domElement0.classList.contains('facebook'),
                       'Class Removed or Facebook present');
-        assert.isFalse(domElement0.querySelector('.icon-delete') === null,
-                      'Icon delete not present');
 
         // The add date button shouldn't be disabled
         assertAddDateState(false);
@@ -942,7 +1002,7 @@ suite('Render contact form', function() {
     var data = phoneData || mockContact;
 
     var valuePhone = document.querySelector('#number_' + c).value;
-    var typePhone = document.querySelector('#tel_type_' + c).textContent;
+    var typePhone = document.querySelector('#tel_type_' + c).textContent.trim();
     var carrierPhone = document.querySelector('#carrier_' + c).value;
     assert.isTrue(valuePhone === data.tel[c].value);
     assert.isTrue(typePhone === data.tel[c].type[0]);

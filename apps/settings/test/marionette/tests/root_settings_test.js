@@ -55,7 +55,9 @@ marionette('check root panel settings', function() {
       });
     });
 
-    test('language description on the root panel is translated', function() {
+    // Refer to http://bugzil.la/1061390.
+    test.skip('language description on the root panel is translated',
+      function() {
       settingsApp.currentLanguage = 'french';
       assert.ok(rootPanel.isLanguageDescTranslated('french'));
 
@@ -101,7 +103,7 @@ marionette('check root panel settings', function() {
         assert.equal(rootPanel.usbStorageDesc, 'Disabled');
       });
 
-      test('enable usb storage', function() {
+      test.skip('enable usb storage', function() {
         rootPanel.usbStorage(true);
 
         // There will be confirmation dialog shown at the first time the usb
@@ -118,11 +120,6 @@ marionette('check root panel settings', function() {
   });
 
   suite('sim related tests', function() {
-    setup(function() {
-      client.contentScript.inject(__dirname +
-        '/../mocks/mock_navigator_moz_bluetooth.js');
-    });
-
     suite('single sim tests', function() {
       setup(function() {
         client.contentScript.inject(__dirname +

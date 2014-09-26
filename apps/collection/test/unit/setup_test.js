@@ -75,6 +75,18 @@ suite('setup.js >', function() {
     assert.isUndefined(setup.initializing);
   });
 
+  test('Window is closed ', function(done) {
+    sinon.stub(window, 'close', function() {
+      window.close.restore();
+      done();
+    });
+
+    port.postMessage = function() {};
+
+    initialize();
+    sendResponseText('{ "collections" : [] }');
+  });
+
   test('There are no collections ', function(done) {
     port.postMessage = function(msg) {
       assert.isFalse(cdAddStub.called);

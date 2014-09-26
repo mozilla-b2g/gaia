@@ -14,7 +14,6 @@ class CellData(Base):
     _cell_data_enabled_label_locator = (By.XPATH, "//input[@name='ril.data.enabled']/..")
     _menuItem_carrier_sim1_locator = (By.ID, "menuItem-carrier-sim1")
     _menuItem_carrier_sim2_locator = (By.ID, "menuItem-carrier-sim2")
-    _back_button_locator = (By.CSS_SELECTOR, '.current header > a')
 
     @property
     def carrier_name(self):

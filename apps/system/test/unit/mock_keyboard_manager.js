@@ -8,6 +8,7 @@ MockKeyboardManager = {
   mTeardown: function() {
     this.mHeight = 0;
   },
+  inputTypeTable: {},
   isOutOfProcessEnabled: false,
   totalMemory: 0,
   keyboardFrameContainer: null,

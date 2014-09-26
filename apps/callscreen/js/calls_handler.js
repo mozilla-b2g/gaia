@@ -20,8 +20,6 @@ var CallsHandler = (function callsHandler() {
   telephony.oncallschanged = onCallsChanged;
 
   var displayed = false;
-  var closing = false;
-
   // Setting up the SimplePhoneMatcher
   // XXX: check bug-926169
   // this is used to keep all tests passing while introducing multi-sim APIs
@@ -126,10 +124,9 @@ var CallsHandler = (function callsHandler() {
         CallScreen.showPlaceNewCallButton();
       }
     }
-
     if (handledCalls.length === 0) {
       exitCallScreen(false);
-    } else if (!displayed && !closing) {
+    } else if (!displayed) {
       toggleScreen();
     }
   }
@@ -311,12 +308,6 @@ var CallsHandler = (function callsHandler() {
   }
 
   function exitCallScreen(animate) {
-    if (closing) {
-      return;
-    }
-
-    closing = true;
-
     // If the screen is not displayed yet we close the window directly
     if (animate && displayed) {
       toggleScreen();
@@ -326,7 +317,6 @@ var CallsHandler = (function callsHandler() {
   }
 
   function closeWindow() {
-    closing = false;
     window.close();
   }
 

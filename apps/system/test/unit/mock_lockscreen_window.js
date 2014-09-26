@@ -10,6 +10,7 @@
     this.kill =
     this.setVisible =
     this.isActive =
+    this.resize =
     function() {};
 
     this.isFullScreen =

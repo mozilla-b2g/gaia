@@ -8,10 +8,12 @@ var NotificationScreen = {
   TOASTER_TIMEOUT: 5000,
   TRANSITION_FRACTION: 0.30,
   TAP_THRESHOLD: 10,
+  SCROLL_THRESHOLD: 10,
 
   _notification: null,
   _containerWidth: null,
   _touchStartX: 0,
+  _touchStartY: 0,
   _touchPosX: 0,
   _touching: false,
   _isTap: false,
@@ -45,11 +47,14 @@ var NotificationScreen = {
 
   init: function ns_init() {
     window.addEventListener('mozChromeNotificationEvent', this);
+    this.notificationsContainer =
+      document.getElementById('notifications-container');
     this.container =
       document.getElementById('desktop-notifications-container');
     this.lockScreenContainer =
       document.getElementById('notifications-lockscreen-container');
     this.toaster = document.getElementById('notification-toaster');
+    this.ambientIndicator = document.getElementById('ambient-indicator');
     this.toasterIcon = document.getElementById('toaster-icon');
     this.toasterTitle = document.getElementById('toaster-title');
     this.toasterDetail = document.getElementById('toaster-detail');
@@ -66,10 +71,11 @@ var NotificationScreen = {
     // will hold the count of external contributors to the notification
     // screen
     this.externalNotificationsCount = 0;
+    this.unreadNotifications = [];
 
     window.addEventListener('utilitytrayshow', this);
-    window.addEventListener('lockscreen-appclosed',
-      this.clearLockScreen.bind(this));
+    // Since UI expect there is a slight delay for the opened notification.
+    window.addEventListener('lockscreen-appclosed', this);
     window.addEventListener('visibilitychange', this);
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
@@ -95,6 +101,18 @@ var NotificationScreen = {
     var self = this;
     SettingsListener.observe('notification.ringtone', '', function(value) {
       self._sound = self.ringtoneURL.set(value);
+    });
+
+    // We have new default ringtones in 2.0, so check if the version is upgraded
+    // then execute the necessary migration.
+    VersionHelper.getVersionInfo().then(function(versionInfo) {
+      if (versionInfo.isUpgrade()) {
+        LazyLoader.load('js/tone_upgrader.js', function() {
+          toneUpgrader.perform('alerttone');
+        });
+      }
+    }, function(err) {
+      console.error('VersionHelper failed to lookup version settings.');
     });
   },
 
@@ -135,7 +153,7 @@ var NotificationScreen = {
         this.wheel(evt);
       case 'utilitytrayshow':
         this.updateTimestamps();
-        StatusBar.updateNotificationUnread(false);
+        this.hideNotificationIndicator();
         break;
       case 'visibilitychange':
         //update timestamps in lockscreen notifications
@@ -154,6 +172,13 @@ var NotificationScreen = {
         if (this.resendExpecting) {
           this.isResending = true;
         }
+        break;
+      case 'lockscreen-appclosed':
+        // UX require to delay to clear notifications from
+        // LockScreen for the actionable LockScreen notifications.
+        setTimeout((function() {
+          this.clearLockScreen();
+        }).bind(this), 400);
         break;
     }
   },
@@ -204,10 +229,10 @@ var NotificationScreen = {
     if (!target.dataset.notificationId)
       return;
 
-    evt.preventDefault();
     this._notification = target;
     this._containerWidth = this.container.clientWidth;
     this._touchStartX = evt.touches[0].pageX;
+    this._touchStartY = evt.touches[0].pageY;
     this._touchPosX = 0;
     this._touching = true;
     this._isTap = true;
@@ -218,15 +243,27 @@ var NotificationScreen = {
       return;
     }
 
-    if (evt.touches.length !== 1) {
+    var touchDiffY = evt.touches[0].pageY - this._touchStartY;
+
+    // The notification being touched is the toast
+    if (this._notification.classList.contains('displayed')) {
+      this._touching = false;
+      if (touchDiffY < 0)
+        this.closeToast();
+      return;
+    }
+
+    if (evt.touches.length !== 1 ||
+        (this._isTap && Math.abs(touchDiffY) >= this.SCROLL_THRESHOLD)) {
       this._touching = false;
       this.cancelSwipe();
       return;
     }
 
     evt.preventDefault();
+
     this._touchPosX = evt.touches[0].pageX - this._touchStartX;
-    if (this._touchPosX >= this.TAP_THRESHOLD) {
+    if (Math.abs(this._touchPosX) >= this.TAP_THRESHOLD) {
       this._isTap = false;
     }
     if (!this._isTap) {
@@ -304,7 +341,7 @@ var NotificationScreen = {
     }
 
     if (node == this.toaster) {
-      this.toaster.classList.remove('displayed');
+      this.closeToast();
     } else {
       UtilityTray.hide();
     }
@@ -363,6 +400,10 @@ var NotificationScreen = {
       (isPriorityNotification) ?
       this.container.querySelector('.priority-notifications') :
       this.container.querySelector('.other-notifications');
+
+    // We need to animate the ambient indicator when the toast
+    // timesout, so we skip updating it here, by passing a skip bool
+    this.addUnreadNotification(detail.id, true);
 
     var notificationNode = document.createElement('div');
     notificationNode.classList.add('notification');
@@ -457,8 +498,6 @@ var NotificationScreen = {
       }
     }
 
-    this.updateStatusBarIcon(true);
-
     var notify = !('noNotify' in detail) &&
       // don't notify for network-alerts notifications
       (this.SILENT_APPLICATIONS.indexOf(manifestURL) === -1);
@@ -474,7 +513,7 @@ var NotificationScreen = {
         }
 
         this._toasterTimeout = setTimeout((function() {
-          this.toaster.classList.remove('displayed');
+          this.closeToast();
           this._toasterTimeout = null;
         }).bind(this), this.TOASTER_TIMEOUT);
       }
@@ -533,13 +572,10 @@ var NotificationScreen = {
       if (!this.silent) {
         var ringtonePlayer = new Audio();
         var telephony = window.navigator.mozTelephony;
-        var isOnCall = telephony && telephony.calls.some(function(call) {
-            return (call.state == 'connected');
-        });
 
         ringtonePlayer.src = this._sound;
 
-        if (isOnCall) {
+        if (telephony && telephony.active) {
           ringtonePlayer.mozAudioChannelType = 'telephony';
           ringtonePlayer.volume = 0.3;
         } else {
@@ -609,6 +645,50 @@ var NotificationScreen = {
     notification.style.transform = '';
   },
 
+  addUnreadNotification: function ns_addUnreadNotification(id, skipUpdate) {
+    if (UtilityTray.shown) {
+      return;
+    }
+    this.unreadNotifications.push(id);
+    if (!skipUpdate) {
+      this.updateNotificationIndicator();
+    }
+  },
+
+  removeUnreadNotification: function ns_removeUnreadNotification(id) {
+    var notifIndex = this.unreadNotifications.indexOf(id);
+    if (notifIndex > -1) {
+      this.unreadNotifications.splice(notifIndex, 1);
+    }
+    this.updateNotificationIndicator();
+  },
+
+  hideNotificationIndicator: function ns_hideNotificationIndicator() {
+    if (this.unreadNotifications.length > 0) {
+      this.unreadNotifications = [];
+    }
+    this.updateNotificationIndicator();
+  },
+
+  updateNotificationIndicator: function ns_updateNotificationIndicator() {
+    if (this.unreadNotifications.length) {
+      var indicatorSize = getIndicatorSize(this.unreadNotifications.length);
+      this.ambientIndicator.className = 'unread ' + indicatorSize;
+      this.ambientIndicator.setAttribute('aria-label', navigator.mozL10n.get(
+        'statusbarNotifications-unread', {n: this.unreadNotifications.length}));
+    } else {
+      this.ambientIndicator.classList.remove('unread');
+      this.ambientIndicator.removeAttribute('aria-label');
+    }
+
+    UtilityTray.updateNotificationCount();
+  },
+
+  closeToast: function ns_closeToast() {
+    this.toaster.classList.remove('displayed');
+    this.updateNotificationIndicator();
+  },
+
   closeNotification: function ns_closeNotification(notificationNode) {
     var notificationId = notificationNode.dataset.notificationId;
     this.removeNotification(notificationId);
@@ -652,8 +732,13 @@ var NotificationScreen = {
       id: notificationId
     });
     window.dispatchEvent(event);
-    this.removeLockScreenNotification(notificationId);
-    this.updateStatusBarIcon();
+    // UX require to give a tiny delay for actionable notification on
+    // LockScreen.
+    setTimeout((function() {
+      this.removeLockScreenNotification(notificationId);
+    }).bind(this), 400);
+
+    this.removeUnreadNotification();
     if (!this.container.querySelector('.notification')) {
       // no notifications left
       this.clearAllButton.disabled = true;
@@ -682,32 +767,22 @@ var NotificationScreen = {
     // check if lockscreen notifications visual
     // hints (masks & arrow) need to show
     window.lockScreenNotifications.adjustContainerVisualHints();
-  },
-
-  updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {
-    var notifCount = this.externalNotificationsCount;
-    notifCount += this.container.querySelectorAll('.notification').length;
-
-    StatusBar.updateNotification(notifCount);
-
-    if (unread)
-      StatusBar.updateNotificationUnread(true);
-  },
-
-  incExternalNotifications: function ns_incExternalNotifications() {
-    this.externalNotificationsCount++;
-    this.updateStatusBarIcon(true);
-  },
-
-  decExternalNotifications: function ns_decExternalNotifications() {
-    this.externalNotificationsCount--;
-    if (this.externalNotificationsCount < 0) {
-      this.externalNotificationsCount = 0;
-    }
-    this.updateStatusBarIcon();
   }
 
 };
+
+function getIndicatorSize(count) {
+  if (!count || count <= 2)
+    return 'small';
+
+  if (count <= 4)
+    return 'medium';
+
+  if (count <= 6)
+    return 'big';
+
+  return 'full';
+}
 
 window.addEventListener('load', function() {
   window.removeEventListener('load', this);

@@ -5,7 +5,8 @@
     <meta charset="utf-8" />
     <title>Bluetooth</title>
     <!-- Localization -->
-    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
+    <link rel="manifest" href="manifest.webapp">
+    <link rel="localization" href="locales/bluetooth.{locale}.properties">
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
@@ -86,7 +87,7 @@
 
     <form role="dialog" data-type="confirm" id="update-device-name" hidden>
       <section>
-        <h1 data-l10n-id="change-device-name">Change phone name</h1>
+        <h1 data-l10n-id="change-phone-name">Change phone name</h1>
         <p>
           <input type="text" id="update-device-name-input" value=""/>
           <span data-l10n-id="change-phone-name-desc">Change the name of your device as it appears in your computer</span>

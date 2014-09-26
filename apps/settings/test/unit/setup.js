@@ -51,6 +51,9 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'unit/mock_wifi_utils': {
         exports: 'MockWifiUtils'
       },
+      'unit/mock_airplane_mode_helper': {
+        exports: 'MockAirplaneModeHelper'
+      },
       'shared_mocks/mock_navigator_moz_settings': {
         exports: 'MockNavigatorSettings'
       },
@@ -81,12 +84,6 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       },
       'shared_mocks/mock_navigator_moz_wifi_manager': {
         exports: 'MockNavigatorMozWifiManager'
-      },
-      'shared_mocks/mock_navigator_moz_bluetooth': {
-        exports: 'MockMozBluetooth'
-      },
-      'shared_mocks/mock_bluetooth_helper': {
-        exports: 'MockBluetoothHelper'
       },
       'shared_mocks/mock_enumerate_all': {
         exports: 'MockEnumerateAll'

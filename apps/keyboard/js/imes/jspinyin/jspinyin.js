@@ -86,13 +86,7 @@ IMEngineBase.prototype = {
      * Sends the input string to the IMEManager.
      * @param {String} str The input string.
      */
-    sendString: function(str) {},
-
-    /**
-     * Change the keyboad
-     * @param {String} keyboard The name of the keyboard.
-     */
-    alterKeyboard: function(keyboard) {}
+    sendString: function(str) {}
   },
 
   /**
@@ -128,6 +122,18 @@ IMEngineBase.prototype = {
    * @param {Object} data User data of the candidate.
    */
   select: function engineBase_select(text, data) {
+  },
+
+  /**
+   * Notifies when selection changes
+   */
+  selectionChange: function engineBase_selectionChange(detail) {
+  },
+
+  /**
+   * Notifies when surrounding text changes
+   */
+  surroundingtextChange: function engineBase_surroundingtextChange(detail) {
   },
 
   /**
@@ -476,13 +482,6 @@ IMEngine.prototype = {
     }
   },
 
-  _alterKeyboard: function engine_changeKeyboard(keyboard) {
-    this._resetKeypressQueue();
-    this.empty();
-
-    this._glue.alterKeyboard(keyboard);
-  },
-
   _resetKeypressQueue: function engine_abortKeypressQueue() {
     this._keypressQueue = [];
     this._isWorking = false;
@@ -596,19 +595,7 @@ IMEngine.prototype = {
   click: function engine_click(keyCode) {
     IMEngineBase.prototype.click.call(this, keyCode);
 
-    switch (keyCode) {
-      case -31: // Switch to English Symbol Panel, Page 1
-      case -32: // Switch to English Symbol Panel, Page 2
-        var index = Math.abs(keyCode);
-        var symbolPage = index % 10;
-        this._alterKeyboard(
-          'zh-Hans-Pinyin-Symbol-En-' + symbolPage);
-        break;
-      default:
-        this._keypressQueue.push(keyCode);
-        break;
-    }
-
+    this._keypressQueue.push(keyCode);
     this._start();
   },
 
@@ -659,6 +646,19 @@ IMEngine.prototype = {
     this._firstCandidate = '';
     this._sendPendingSymbols();
     this._sendCandidates([]);
+  },
+
+  /**
+   * Override
+   */
+  selectionChange: function engine_selectionChange(detail) {
+    debug('selectionChange');
+
+    if (detail.ownAction) {
+      return;
+    }
+
+    this.empty();
   },
 
   /**

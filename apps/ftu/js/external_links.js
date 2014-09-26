@@ -18,6 +18,15 @@ function getLocalizedLink(key) {
       href: 'https://www.mozilla.org/privacy/firefox-os/',
       l10nId: 'learn-more-privacy-link',
       className: 'external'
+    },
+    'htmlWelcome': {
+      href: '#about-your-rights',
+      l10nId: 'htmlWelcome-link'
+    },
+    'helpImprove': {
+      href: 'https://www.mozilla.org/privacy/firefox-os/',
+      l10nId: 'helpImprove-link',
+      className: 'external'
     }
   };
 

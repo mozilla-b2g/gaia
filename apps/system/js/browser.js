@@ -1,23 +1,14 @@
-/* global UrlHelper, AppWindowManager, AppWindow */
+/* global UrlHelper, AppWindow, BrowserConfigHelper */
 
 (function() {
 
   'use strict';
 
   function handleOpenUrl(url) {
-
-    var app = AppWindowManager.getActiveApp();
-
-    if (app && app.isBrowser()) {
-      app.navigate(url);
-      return;
-    }
-
-    var newApp = new AppWindow({
-      oop: true,
-      useAsyncPanZoom: true,
-      url: url
-    });
+    var config = new BrowserConfigHelper(url);
+    config.useAsyncPanZoom = true;
+    config.oop = true;
+    var newApp = new AppWindow(config);
 
     newApp.requestOpen();
   }

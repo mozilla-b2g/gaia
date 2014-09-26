@@ -16,25 +16,24 @@ function RootPanel(client) {
 module.exports = RootPanel;
 
 RootPanel.Selectors = {
-  'root': '#root',
-  'airplaneModeCheckbox': '#airplaneMode-input',
+  'airplaneModeCheckbox': '.airplaneMode-input',
   'airplaneModeMenuItem': '#menuItem-airplaneMode',
-  'airplaneModeSpan': '#airplaneMode-input ~ span',
+  'airplaneModeSpan': '.airplaneMode-input ~ span',
   'applicationStorageDesc': '.application-storage-desc',
   'batteryDesc': '.battery-desc',
-  'bluetoothDesc': '.bluetooth-desc',
+  'bluetoothDesc': '#bluetooth-desc',
   'firefoxAccountDesc': '#fxa-desc',
-  'geolocationCheckbox': '#root input[name="geolocation.enabled"]',
-  'geolocationSpan': '#root input[name="geolocation.enabled"] ~ span',
+  'geolocationCheckbox': 'input[name="geolocation.enabled"]',
+  'geolocationSpan': 'input[name="geolocation.enabled"] ~ span',
   'languageDesc': '.language-desc',
   'mediaStorageDesc': '.media-storage-desc',
   'simManagerItem': '#simCardManager-settings',
   'simSecurityItem': '#simSecurity-settings',
-  'screenLockDesc': '#screenLock-desc',
+  'screenLockDesc': '.screenLock-desc',
   'wifiDesc': '#wifi-desc',
-  'usbStorageCheckbox': '.ums-switch-root',
-  'usbStorageSpan': '.ums-switch-root ~ span',
-  'usbStorageDesc': '.ums-desc-root',
+  'usbStorageCheckbox': '.usb-switch',
+  'usbStorageSpan': '.usb-switch ~ span',
+  'usbStorageDesc': '.usb-desc',
   'usbStorageConfirmDialog': '.turn-on-ums-dialog',
   'usbStorageConfirmButton': '.ums-confirm-option',
   'nfcCheckbox': '#nfc-input'
@@ -46,13 +45,13 @@ RootPanel.prototype = {
 
   _languageMap: {
     english: {
-      desc: 'English (US)'
+      desc: 'English (US)',
     },
     traditionalChinese: {
-      desc: '正體中文'
+      desc: '正體中文',
     },
     french: {
-      desc: 'Français'
+      desc: 'Français',
     }
   },
 
@@ -199,10 +198,6 @@ RootPanel.prototype = {
 
   get isSimSecurityItemVisible() {
     return this.findElement('simSecurityItem').displayed();
-  },
-
-  get isVisible() {
-    return this.findElement('root').displayed();
   }
 
 };

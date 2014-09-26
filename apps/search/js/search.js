@@ -9,7 +9,7 @@
   /* global UrlHelper */
 
   // timeout before notifying providers
-  var SEARCH_DELAY = 600;
+  var SEARCH_DELAY = 500;
 
   window.Search = {
 
@@ -141,9 +141,8 @@
       var input = msg.data.input;
       var providers = this.providers;
 
-      this.clear();
-
       this.changeTimeout = setTimeout(() => {
+        this.clear();
         this.dedupe.reset();
 
         Object.keys(providers).forEach((providerKey) => {

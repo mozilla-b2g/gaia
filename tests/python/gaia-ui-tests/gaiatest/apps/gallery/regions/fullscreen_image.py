@@ -9,9 +9,12 @@ from gaiatest.apps.base import Base
 
 
 class FullscreenImage(Base):
+    '''
+    This is not the actual image file - it is a blob of the image file in storage
+    '''
 
     _fullscreen_view_locator = (By.ID, 'fullscreen-view')
-    _current_image_locator = (By.CSS_SELECTOR, '#frames .current > img.image-view')
+    _current_image_locator = (By.CSS_SELECTOR, '#frames .current > .image-view')
     _photos_toolbar_locator = (By.ID, 'fullscreen-toolbar')
     _delete_image_locator = (By.ID, 'fullscreen-delete-button-tiny')
     _confirm_delete_locator = (By.ID, 'confirm-ok')
@@ -28,7 +31,7 @@ class FullscreenImage(Base):
 
     @property
     def current_image_source(self):
-        return self.marionette.find_element(*self._current_image_locator).get_attribute('src')
+        return self.marionette.find_element(*self._current_image_locator).value_of_css_property('background-image')
 
     def flick_to_next_image(self):
         self._flick_to_image('next')
@@ -69,8 +72,3 @@ class FullscreenImage(Base):
     @property
     def photo_toolbar_width(self):
         return self.marionette.execute_script('return document.getElementById("fullscreen-toolbar").offsetWidth')
-
-    @property
-    def current_scale(self):
-        style = self.marionette.find_element(*self._current_image_locator).get_attribute('style')
-        return map(lambda x: float(x), style.split('scale(')[1].split(') ')[0].split(', '))

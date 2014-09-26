@@ -1,8 +1,14 @@
 Calendar.ns('Views').CurrentTime = (function() {
   'use strict';
 
+  var activeClass = Calendar.View.ACTIVE;
+  var createDay = Calendar.Calc.createDay;
+  var localeFormat = Calendar.App.dateFormat.localeFormat;
+  var getTimeL10nLabel = Calendar.Calc.getTimeL10nLabel;
+
   function CurrentTime(options) {
     this._container = options.container;
+    // timespan can be injected later! this is just a convenience
     this.timespan = options.timespan;
     this._sticky = options.sticky;
   }
@@ -19,6 +25,18 @@ Calendar.ns('Views').CurrentTime = (function() {
       this._container.appendChild(this.element);
     },
 
+    refresh: function() {
+      this._clearInterval();
+
+      if (this._previousOverlap) {
+        this._previousOverlap.classList.remove('is-hidden');
+      }
+
+      this._unmarkCurrentDay();
+      this._hide();
+      this.activate();
+    },
+
     activate: function() {
       if (!this.timespan.containsNumeric(Date.now())) {
         this._maybeActivateInTheFuture();
@@ -26,7 +44,7 @@ Calendar.ns('Views').CurrentTime = (function() {
       }
 
       this._create();
-      this.element.classList.add(Calendar.View.ACTIVE);
+      this.element.classList.add(activeClass);
       this._tick();
     },
 
@@ -45,8 +63,12 @@ Calendar.ns('Views').CurrentTime = (function() {
 
     deactivate: function() {
       this._clearInterval();
+      this._hide();
+    },
+
+    _hide: function() {
       if (this.element) {
-        this.element.classList.remove(Calendar.View.ACTIVE);
+        this.element.classList.remove(activeClass);
       }
     },
 
@@ -55,12 +77,6 @@ Calendar.ns('Views').CurrentTime = (function() {
       if (this.element) {
         this._container.removeChild(this.element);
       }
-      delete this.element;
-      delete this._container;
-      delete this._sticky;
-      delete this.timespan;
-      delete this._previousOverlap;
-      delete this._previousHeader;
     },
 
     _clearInterval: function() {
@@ -88,11 +104,17 @@ Calendar.ns('Views').CurrentTime = (function() {
 
     _render: function() {
       var now = new Date();
+      var format = getTimeL10nLabel('current-time');
 
-      this.element.textContent = Calendar.App.dateFormat.localeFormat(
+      this.element.textContent = localeFormat(
         now,
         navigator.mozL10n.get('current-time')
       );
+
+      this.element.textContent =
+        localeFormat(now, navigator.mozL10n.get(format));
+      this.element.dataset.date = now;
+      this.element.dataset.l10nDateFormat = format;
 
       var hour = now.getHours();
       var elapsedMinutes = (hour * 60) + now.getMinutes();
@@ -139,8 +161,8 @@ Calendar.ns('Views').CurrentTime = (function() {
         return;
       }
 
-      var day = Calendar.Calc.createDay(date);
-      var selector = '.sticky-frame[data-date="' + day +'"] h1';
+      var day = createDay(date);
+      var selector = '.allday[data-date="' + day +'"] .day-name';
       var header = this._sticky.querySelector(selector);
 
       if (header) {

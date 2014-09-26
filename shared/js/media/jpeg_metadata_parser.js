@@ -81,6 +81,12 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
         metadata.height = data.getUint16(5);
         metadata.width = data.getUint16(7);
 
+        if (type === 0xC2) {
+          // pjpeg files can't be efficiently downsampled while decoded
+          // so we need to distinguish them from regular jpegs
+          metadata.progressive = true;
+        }
+
         // We're done. All the EXIF data will come before this segment
         // So call the callback
         metadataCallback(metadata);

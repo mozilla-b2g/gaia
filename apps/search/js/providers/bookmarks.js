@@ -33,6 +33,19 @@
       return this.syncStore.sync();
     },
 
+    get: function(url) {
+      var results = this.persistStore.results;
+
+      for (var idx in results) {
+        var item = results[idx];
+        if (item.url === url) {
+          return formatBookmark(item);
+        }
+      }
+
+      return null;
+    },
+
     search: function(filter) {
       var self = this;
       return new Promise(function(resolve, reject) {

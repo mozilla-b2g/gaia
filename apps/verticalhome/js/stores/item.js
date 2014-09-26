@@ -207,9 +207,24 @@
         self.initSources(cb);
       }
     };
+
+    window.addEventListener('gaiagrid-cached-icons-rendered', this);
   }
 
   ItemStore.prototype = {
+
+    /**
+     * Whether or not the grid has been rendered. We use this as an
+     * indicator as to whether or not we should save items to indexedDB.
+     * If we get items to save before this is true, we wait until the
+     * cached-icons-rendered event to save.
+     */
+    _renderedOnce: false,
+
+    /**
+     * The saved arguments for the last deferred save call.
+     */
+    _deferredSaveArgs: [],
 
     /**
      * A list of all items. These are item objects (App, Bookmark, Divider)
@@ -266,6 +281,19 @@
         },
         callback
       );
+    },
+
+    /**
+     * Defers the save of items until after the grid is ready.
+     */
+    deferredSave: function() {
+      var args = Array.slice(arguments);
+
+      if (this._renderedOnce) {
+        return this.save.apply(this, args);
+      }
+
+      this._deferredSaveArgs = args;
     },
 
     /**
@@ -389,7 +417,7 @@
      */
     populate: function(callback) {
       this.initSources(function(entries) {
-        this.save(entries, callback);
+        this.deferredSave(entries, callback);
       }.bind(this));
     },
 
@@ -408,8 +436,19 @@
       var nextPosition = this.nextPosition;
       this.nextPosition++;
       return nextPosition;
-    }
+    },
 
+    handleEvent: function(e) {
+      switch(e.type) {
+        case 'gaiagrid-cached-icons-rendered':
+          this._renderedOnce = true;
+          window.removeEventListener('gaiagrid-cached-icons-rendered', this);
+          if (this._deferredSaveArgs.length) {
+            this.save.apply(this, this._deferredSaveArgs);
+          }
+        break;
+      }
+    }
   };
 
   exports.ItemStore = ItemStore;

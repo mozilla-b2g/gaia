@@ -3,14 +3,14 @@
 /* global CallHandler, CallLog, CallLogDBManager, Contacts, KeypadManager,
           MockMozL10n, MockNavigatorMozIccManager, MockNotification,
           MocksHelper, MockSimSettingsHelper, Notification,
-          PhoneNumberActionMenu */
+          CallGroupMenu, Utils */
 
 require('/dialer/js/call_log.js');
 require('/shared/js/dialer/utils.js');
 
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/dialer/test/unit/mock_performance_testing_helper.js');
-require('/dialer/test/unit/mock_phone_action_menu.js');
+require('/dialer/test/unit/mock_call_group_menu.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
@@ -34,7 +34,7 @@ var mocksHelperForCallLog = new MocksHelper([
   'CallLogDBManager',
   'Contacts',
   'AccessibilityHelper',
-  'PhoneNumberActionMenu',
+  'CallGroupMenu',
   'PerformanceTestingHelper',
   'LazyLoader',
   'LazyL10n',
@@ -77,7 +77,7 @@ suite('dialer/call_log', function() {
       'call-log-container',
       'call-log-edit-mode',
       'call-log-filter',
-      'call-log-icon-close',
+      'edit-mode-header',
       'call-log-icon-edit',
       'call-log-view',
       'deselect-all-threads',
@@ -421,6 +421,50 @@ suite('dialer/call_log', function() {
     }
   }
 
+  suite('timeformatchange', function() {
+
+    test('update times to new 12/24 timeformat', function(done) {
+      this.sinon.spy(Utils, 'prettyDate');
+      var numEntries = 2;
+      var fakeClockTime12 = '12:02 <span>PM</span>';
+      var fakeClockTime24 = '13:14';
+      window.navigator.mozHour12 = false;
+
+      var self = this;
+      // This calls checkGroupDOM which validates the time is there.
+      appendAndCheckGroupDOM(numEntries, null, function() {
+        self.sinon.stub(MockMozL10n, 'DateTimeFormat', function() {
+          this.localeFormat = function(date, format) {
+            if (format === 'shortTimeFormat12') {
+              return fakeClockTime12;
+            } else if (format === 'shortTimeFormat24') {
+              return fakeClockTime24;
+            }
+            return '';
+          };
+        });
+
+        sinon.assert.callCount(Utils.prettyDate, numEntries);
+        Utils.prettyDate.reset();
+
+        window.navigator.mozHour12 = true;
+        window.dispatchEvent(new CustomEvent('timeformatchange'));
+        sinon.assert.calledWith(Utils.prettyDate, incomingGroup.lastEntryDate);
+        sinon.assert.callCount(Utils.prettyDate, numEntries);
+
+        // Test that when we set it to 12 hr and update, items are updated.
+        var logItems = CallLog.callLogContainer.querySelectorAll('.log-item');
+        for (var i = 0; i < logItems.length; i++) {
+          var logItemElt = logItems[i];
+          var callTime = logItemElt.querySelector('.call-time');
+          assert.equal(callTime.textContent, fakeClockTime12 + ' ');
+        }
+
+        done();
+      });
+    });
+  });
+
   suite('createGroup', function() {
     test('Incoming call', function(done) {
       checkGroupDOM(CallLog.createGroup(incomingGroup), incomingGroup, done);
@@ -710,10 +754,10 @@ suite('dialer/call_log', function() {
 
   suite('Opening contact details', function() {
     var groupDOM;
-    var phoneNumberActionMenuSpy;
+    var callGroupMenuSpy;
 
     setup(function() {
-      phoneNumberActionMenuSpy = this.sinon.spy(PhoneNumberActionMenu, 'show');
+      callGroupMenuSpy = this.sinon.spy(CallGroupMenu, 'show');
     });
 
     test('regular number', function() {
@@ -721,11 +765,11 @@ suite('dialer/call_log', function() {
       CallLog.handleEvent({target: groupDOM, preventDefault: function() {}});
 
       sinon.assert.calledWith(
-        phoneNumberActionMenuSpy,
-        incomingGroup.contact.id,
+        callGroupMenuSpy,
+        incomingGroup.contact.primaryInfo,
         incomingGroup.contact.matchingTel.value,
-        null,
-        false
+        incomingGroup.lastEntryDate.toString(),
+        incomingGroup.type
       );
     });
 
@@ -734,11 +778,11 @@ suite('dialer/call_log', function() {
       CallLog.handleEvent({target: groupDOM, preventDefault: function() {}});
 
       sinon.assert.calledWith(
-        phoneNumberActionMenuSpy,
-        incomingGroup.contact.id,
-        incomingGroup.contact.matchingTel.value,
-        null,
-        true
+        callGroupMenuSpy,
+        missedGroup.contact.primaryInfo,
+        missedGroup.contact.matchingTel.value,
+        missedGroup.lastEntryDate.toString(),
+        missedGroup.type
       );
     });
   });
@@ -765,10 +809,10 @@ suite('dialer/call_log', function() {
     };
 
     var longPressShouldShowActionMenu = function() {
-      var showSpy = this.sinon.spy(PhoneNumberActionMenu, 'show');
+      var showSpy = this.sinon.spy(CallGroupMenu, 'show');
       simulateContextMenu(CallLog.appendGroup(missedGroup));
       sinon.assert.calledWith(
-        showSpy, missedGroup.contact.id, missedGroup.number);
+        showSpy, missedGroup.contact.primaryInfo, missedGroup.number);
     };
 
     [0, 1].forEach(function(cardIndex) {

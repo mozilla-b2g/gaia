@@ -1,10 +1,9 @@
 <element name="developer" extends="section">
   <template>
 
-    <header>
-      <a href="#root"><span class="icon icon-back">Back</span></a>
+    <gaia-header action="back" data-href="#root">
       <h1 data-l10n-id="developer-header">Developer</h1>
-    </header>
+    </gaia-header>
 
     <div>
       <header>
@@ -58,6 +57,7 @@
             <input type="checkbox" name="apz.overscroll.enabled">
             <span data-l10n-id="apz-overscroll">Overscrolling</span>
           </label>
+        </li>
         <li>
           <label class="pack-checkbox">
             <input type="checkbox" name="layers.enable-tiles">
@@ -149,6 +149,17 @@
         </li>
       </ul>
       <header>
+        <h2 data-l10n-id="homescreen">Homescreen</h2>
+      </header>
+      <ul>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="verticalhome.grouping.enabled">
+            <span data-l10n-id="verticalhome-grouping">App grouping</span>
+          </label>
+        </li>
+      </ul>
+      <header>
         <h2 data-l10n-id="debug">Debug</h2>
       </header>
       <ul>
@@ -166,6 +177,12 @@
         </li>
         <li>
           <label class="pack-checkbox">
+            <input type="checkbox" name="geolocation.debugging.gps-locations-ignored">
+            <span data-l10n-id="geolocation-debugging-gps-locations-ignored">Ignore GPS locations</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
             <input type="checkbox" name="wifi.debugging.enabled">
             <span data-l10n-id="wifi-debugging">Wi-Fi output in ADB</span>
           </label>
@@ -174,6 +191,12 @@
           <label class="pack-checkbox">
             <input type="checkbox" name="bluetooth.debugging.enabled">
             <span data-l10n-id="bluetooth-debugging">Bluetooth output in ADB</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="nfc.debugging.enabled">
+            <span data-l10n-id="nfc-debugging">NFC output in ADB</span>
           </label>
         </li>
         <li>
@@ -190,8 +213,8 @@
         </li>
         <li>
           <label class="pack-checkbox">
-            <input type="checkbox" name="accessibility.show-settings">
-            <span data-l10n-id="showA11ySettings">Show accessibility settings</span>
+            <input type="checkbox" name="accessibility.screenreader-show-settings">
+            <span data-l10n-id="showScreenReaderSettings">Show screen reader settings</span>
           </label>
         </li>
         <li>

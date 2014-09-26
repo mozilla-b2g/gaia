@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-/* globals dump, CustomEvent, MozActivity, System, SettingsListener,
+/* globals CustomEvent, MozActivity, System, SettingsListener,
    NfcHandoverManager, NfcUtils, NDEF, ScreenManager */
 
 'use strict';
@@ -83,7 +83,7 @@
      * @memberof NfcManager.prototype
      */
     start: function nm_start() {
-      this._debug('Starting NFC Menager');
+      this._debug('Starting NFC Manager');
       this._hwState = this.NFC_HW_STATE.OFF;
 
       window.navigator.mozSetMessageHandler('nfc-manager-tech-discovered',
@@ -97,6 +97,10 @@
 
       this._onSettingsChanged = (enabled) => this._nfcSettingsChanged(enabled);
       SettingsListener.observe('nfc.enabled', false, this._onSettingsChanged);
+
+      this._onDebugChanged = (enabled) => { DEBUG = enabled; };
+      SettingsListener.observe('nfc.debugging.enabled', false,
+                               this._onDebugChanged);
     },
 
     /**
@@ -115,6 +119,16 @@
       window.removeEventListener('lockscreen-appclosed', this);
 
       SettingsListener.unobserve('nfc.enabled', this._onSettingsChanged);
+      SettingsListener.unobserve('nfc.debugging.enabled', this._onDebugChanged);
+    },
+
+    /**
+     * Returns if NFC is active or not, depending on the hardware state
+     * @memberof NfcManager.prototype
+     * returns {boolean} isActive
+     */
+    isActive: function nm_isActive() {
+      return (this._hwState !== this.NFC_HW_STATE.OFF) ? true : false;
     },
 
     /**
@@ -264,7 +278,7 @@
       // update statusbar status via custom event
       var event = new CustomEvent('nfc-state-changed', {
         detail: {
-          active: (state !== this.NFC_HW_STATE.OFF) ? true : false
+          active: this.isActive()
         }
       });
       window.dispatchEvent(event);
@@ -273,8 +287,8 @@
         this._debug('_changeHardwareState ' + state + ' success');
       };
       req.onerror = () => {
-        this._debug('_changeHardwareState ' + state + ' error ' +
-                    req.error.name);
+        this._logVisibly('_changeHardwareState ' + state + ' error ' +
+                         req.error.name);
       };
     },
 
@@ -341,8 +355,7 @@
           window.addEventListener('shrinking-sent', this);
         } else {
           // Clean up P2P UI events
-          this._debug('Error checking P2P Registration: ' +
-                      JSON.stringify(status.result));
+          this._logVisibly('CheckP2PRegistration failed');
           window.removeEventListener('shrinking-sent', this);
           window.dispatchEvent(new CustomEvent('shrinking-stop'));
         }
@@ -387,16 +400,15 @@
       var options = this._createNDEFActivityOptions(data);
       options.data.tech = tech;
       options.data.techList = msg.techList;
-      options.data.sessionToken = msg.sessionToken;
 
       if (data !== null) {
         options.data.records = msg.records;
       }
 
-      this._debug('options: ' + JSON.stringify(options));
+      this._debug('_fireNDEFDiscovered activity options: ', options);
       var activity = new MozActivity(options);
       activity.onerror = () => {
-        this._debug('Firing nfc-ndef-discovered failed');
+        this._logVisibly('Firing nfc-ndef-discovered activity failed');
       };
     },
 
@@ -457,6 +469,7 @@
         } else if (payload.uri.indexOf('http://') === 0 ||
                    payload.uri.indexOf('https://') === 0) {
           // launch browser
+          options.name = 'view';
           options.data.type = 'url';
           options.data.url = payload.uri;
         } else {
@@ -466,6 +479,7 @@
         (payload.uri.indexOf('http://') === 0 ||
          payload.uri.indexOf('https://') === 0)) {
         // smartposter adaptation for browser handling
+        options.name = 'view';
         options.data = payload;
         options.data.type = 'url';
         options.data.url = payload.uri;
@@ -476,6 +490,10 @@
         options.data = payload;
       } else {
         options.data = payload;
+      }
+
+      if (options.name !== 'nfc-ndef-discovered') {
+        options.data.src = 'nfc';
       }
 
       return options;
@@ -496,7 +514,6 @@
         name: 'nfc-tag-discovered',
         data: {
           type: type,
-          sessionToken: msg.sessionToken,
           techList: msg.techList,
           // it might be possible we will have some content
           // so app might handle it, real world testing needed
@@ -505,24 +522,34 @@
       });
 
       activity.onerror = () => {
-        this._debug('Firing nfc-tag-discovered failed');
+        this._logVisibly('Firing nfc-tag-discovered activity failed');
       };
     },
 
     /**
-     * Debug function
+     * Debug function, prints log to logcat only if DEBUG flag is true
      * @memberof NfcManager.prototype
      * @param {string} msg - debug message
      * @param {Object} optObject - object to log
      */
     _debug: function nm_debug(msg, optObject) {
       if (DEBUG) {
-        var output = '[DEBUG] SYSTEM NFC: ' + msg;
-        if (optObject) {
-          output += JSON.stringify(optObject);
-        }
-        dump(output + '\n');
+        this._logVisibly(msg,optObject);
       }
+    },
+
+    /**
+     * Logs message in logcat
+     * @memberof NfcManager.prototype
+     * @param {string} msg - message
+     * @param {Object} optObject - object log (will be JSON.stringify)
+     */
+    _logVisibly: function nm_logVisibly(msg, optObject) {
+      var output = '[NfcManager]: ' + msg;
+      if (optObject) {
+        output += JSON.stringify(optObject);
+      }
+      console.log(output);
     }
   };
 

@@ -15,7 +15,8 @@
  */
 
 /* global SettingsListener, System */
-/* global LockScreenStateSlideShow, LockScreenStateKeypadShow */
+/* global LockScreenStateSlideShow, LockScreenStateSlideHide */
+/* global LockScreenStateKeypadShow */
 /* global LockScreenStateKeypadHiding, LockScreenStateKeypadRising */
 /* global LockScreenStatePanelHide */
 /* global LockScreenStateLogger */
@@ -68,12 +69,13 @@
   function lssm_start(lockScreen) {
     this.lockScreen = lockScreen;
     this.logger = (new LockScreenStateLogger()).start({
-      graph: true
+      debug: false
     });
     this.configs = {
       listenEvents: [
         'lockscreen-notify-homepressed',
         'screenchange',
+        'lockscreen-notification-request-activate-unlock',
         'lockscreen-request-unlock',
         'lockscreen-request-lock',
         'lockscreen-appclosed',
@@ -89,6 +91,7 @@
     // these states.
     this.states = {
       slideShow: (new LockScreenStateSlideShow()).start(this.lockScreen),
+      slideHide: (new LockScreenStateSlideHide()).start(this.lockScreen),
       keypadShow: (new LockScreenStateKeypadShow()).start(this.lockScreen),
       keypadHiding: (new LockScreenStateKeypadHiding()).start(this.lockScreen),
       keypadRising: (new LockScreenStateKeypadRising()).start(this.lockScreen),
@@ -142,9 +145,18 @@
       screenOn: true,
       unlocking: false
     },
-    ['panelHide'],
+    ['panelHide', 'slideHide'],
     this.states.slideShow,
     'Resume from screen off');
+
+    this.registerRule({
+      passcodeEnabled: false,
+      screenOn: true,
+      unlocking: true
+    },
+    ['slideShow'],
+    this.states.slideHide,
+    'When it activate to unlock without passcode, unlock and animates.');
 
     this.registerRule({
       passcodeEnabled: true,
@@ -237,9 +249,8 @@
   LockScreenStateManager.prototype.transfer =
   function lssm_transfer(currentStates) {
     this.logger
-      .debug('Do transfer; input and stack: ', currentStates)
-      .debug('Previous state:', this.previousState.type)
-      .stack();
+      .debug('Do transfer; input: ', currentStates)
+      .debug('Previous state:', this.previousState.type);
 
     // Not unlocking and not locked.
     // Unlocking would be set false after the System got unlocked,
@@ -323,6 +334,7 @@
         this.onHomePressed();
         break;
       case 'lockscreenslide-activate-right':
+      case 'lockscreen-notification-request-activate-unlock':
         this.onActivateUnlock();
         break;
       case 'lockscreen-request-unlock':
@@ -346,6 +358,10 @@
 
   LockScreenStateManager.prototype.onScreenChanged =
   function lssm_onScreenChanged(value) {
+    // To prevent unlock and lock hurriedly.
+    if (this.lockScreenStates.unlocking) {
+      this.lockScreenStates.unlocking = false;
+    }
     var inputs = this.extend(this.lockScreenStates, {
       screenOn: value
     });

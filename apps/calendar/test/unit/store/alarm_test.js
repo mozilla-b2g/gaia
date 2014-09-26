@@ -281,7 +281,7 @@ suite('store/alarm', function() {
       });
 
       test('after', function() {
-        assert.length(added, 0);
+        assert.lengthOf(added, 0);
       });
     });
 
@@ -296,7 +296,7 @@ suite('store/alarm', function() {
       });
 
       test('after complete', function() {
-        assert.length(added, 1);
+        assert.lengthOf(added, 1);
 
         assert.deepEqual(
           added[0][0],
@@ -314,7 +314,7 @@ suite('store/alarm', function() {
       });
 
       test('after complete', function() {
-        assert.length(added, 1);
+        assert.lengthOf(added, 1);
 
         assert.deepEqual(
           added[0][0],
@@ -377,7 +377,7 @@ suite('store/alarm', function() {
       */
 
       test('after complete', function() {
-        assert.length(added, 2);
+        assert.lengthOf(added, 2);
 
         assert.deepEqual(added[0][0], new Date(2018, 0, 1, 5));
         assert.equal(

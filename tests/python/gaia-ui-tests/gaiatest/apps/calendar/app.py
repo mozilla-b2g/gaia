@@ -73,10 +73,9 @@ class Calendar(Base):
                 '#event-list section.hour-%d div.events' % time_slot)
 
     def _get_events_locator_in_week_view(self, date_time):
-        time_slot = self._get_data_hour(date_time)
         data_date = self._get_data_date(date_time)
         return (By.CSS_SELECTOR,
-                "#week-view section.active[data-date*='%s'] ol.hour-%d" % (data_date, time_slot))
+                "#week-view .day[data-date*='%s'] .event" % data_date)
 
     @staticmethod
     def _get_data_date(date_time):

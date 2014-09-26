@@ -19,7 +19,7 @@ var ContactsBTExport = function ContactsBTExport() {
   };
 
   var _getExportTitle = function btex_getExportTitle() {
-    return _('btExport-title');
+    return 'btExport-title';
   };
 
   var _setProgressStep = function btex_setProgressStep(p) {
@@ -60,9 +60,9 @@ var ContactsBTExport = function ContactsBTExport() {
     } else {
       var today = new Date();
       filename.push(
-        today.getDate(),
-        today.getMonth() + 1,
         today.getFullYear(),
+        today.getMonth() + 1,
+        today.getDate(),
         contacts.length
       );
     }

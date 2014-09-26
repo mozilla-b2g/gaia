@@ -1,6 +1,6 @@
 /* global ConfirmDialog,
           UIManager,
-          _, utils,
+          utils,
           VCFReader */
 /* exported SdManager */
 'use strict';
@@ -33,7 +33,7 @@ var SdManager = {
     var importer = null;
 
     var progress = utils.overlay.show(
-      _('memoryCardContacts-reading'), 'activityBar');
+      'memoryCardContacts-reading', 'activityBar');
     utils.overlay.showMenu();
     utils.overlay.oncancel = function() {
       cancelled = true;
@@ -91,7 +91,11 @@ var SdManager = {
             SdManager.alreadyImported = true;
             importButton.setAttribute('disabled', 'disabled');
             utils.status.show(
-              _('memoryCardContacts-imported3', {n: importedContacts}));
+              {
+                id: 'memoryCardContacts-imported3',
+                args: {n: importedContacts}
+              }
+            );
           }
 
         }, DELAY_FEEDBACK);
@@ -100,7 +104,7 @@ var SdManager = {
 
     function import_read(n) {
       progress.setClass('progressBar');
-      progress.setHeaderMsg(_('memoryCardContacts-importing'));
+      progress.setHeaderMsg('memoryCardContacts-importing');
       progress.setTotal(n);
     }
 
@@ -117,14 +121,14 @@ var SdManager = {
 
       // Showing error message allowing user to retry
       var cancel = {
-        title: _('cancel'),
+        title: 'cancel',
         callback: function() {
           ConfirmDialog.hide();
         }
       };
 
       var retry = {
-        title: _('retry'),
+        title: 'retry',
         isRecommend: true,
         callback: function() {
           ConfirmDialog.hide();
@@ -132,7 +136,7 @@ var SdManager = {
           importButton.click();
         }
       };
-      ConfirmDialog.show(null, _('memoryCardContacts-error'), cancel, retry);
+      ConfirmDialog.show(null, 'memoryCardContacts-error', cancel, retry);
     }
   }
 };

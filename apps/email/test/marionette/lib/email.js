@@ -10,7 +10,6 @@ Email.EMAIL_ORIGIN = 'app://email.gaiamobile.org';
 var Selector = {
   setupNameInput: '.card-setup-account-info .sup-info-name',
   setupEmailInput: '.card-setup-account-info .sup-info-email',
-  setupPasswordInput: '.card-setup-account-info .sup-info-password',
   nextButton: '.card-setup-account-info .sup-info-next-btn',
   prefsNextButton: '.card-setup-account-prefs .sup-info-next-btn',
   manualSetupNameInput: '.sup-manual-form .sup-info-name',
@@ -167,7 +166,6 @@ Email.prototype = {
     // wait for the setup page is loaded
     this._setupTypeName(server.imap.username);
     this._setupTypeEmail(email);
-    this._setupTypePassword(server.imap.password);
 
     this._waitForElementNoTransition(Selector.manualConfigButton).tap();
     this._waitForTransitionEnd('setup_manual_config');
@@ -682,12 +680,6 @@ Email.prototype = {
     this.client.helper
       .waitForElement(Selector.setupEmailInput)
       .sendKeys(email);
-  },
-
-  _setupTypePassword: function(password) {
-    this.client.helper
-      .waitForElement(Selector.setupPasswordInput)
-      .sendKeys(password);
   },
 
   _waitForElementNoTransition: function(selector) {

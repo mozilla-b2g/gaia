@@ -41,10 +41,10 @@ a[role="button"] {
 
 section[data-items="2"] button,
 section[data-items="2"] a[role="button"] {
-  width: calc((100% - 1rem) / 2);
+  width: auto;
 }
 
 section[data-items="3"] button,
 section[data-items="3"] a[role="button"] {
-  width: calc((100% - 1rem) / 3);
+  width: auto;
 }

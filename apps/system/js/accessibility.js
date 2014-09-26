@@ -38,6 +38,12 @@
     TOGGLE_SCREEN_READER_COUNT: 6,
 
     /**
+     * Cap the full range of contrast. Actual -1 is completely gray, and 1
+     * makes things hard to see. This value is the max/min contrast.
+     */
+    CONTRAST_CAP: 0.6,
+
+    /**
      * Current counter for button presses in short succession.
      * @type {Number}
      * @memberof Accessibility.prototype
@@ -69,7 +75,12 @@
     settings: {
       'accessibility.screenreader': false,
       'accessibility.screenreader-volume': 1,
-      'accessibility.screenreader-rate': 0
+      'accessibility.screenreader-rate': 0,
+      'accessibility.screenreader-captions': false,
+      'accessibility.colors.enable': false,
+      'accessibility.colors.invert': false,
+      'accessibility.colors.grayscale': false,
+      'accessibility.colors.contrast': '0.0'
     },
 
     /**
@@ -100,21 +111,64 @@
      * @memberof Accessibility.prototype
      */
     start: function ar_init() {
+
+      this.screen = document.getElementById('screen');
+
+      this.speechSynthesizer = speechSynthesizer;
+
       window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('logohidden', this);
 
       // Attach all observers.
       Object.keys(this.settings).forEach(function attach(settingKey) {
         SettingsListener.observe(settingKey, this.settings[settingKey],
           function observe(aValue) {
             this.settings[settingKey] = aValue;
+            switch (settingKey) {
+              case 'accessibility.screenreader':
+                // Show Accessibility panel if it is not already visible
+                if (aValue) {
+                  SettingsListener.getSettingsLock().set({
+                    'accessibility.screenreader-show-settings': true
+                  });
+                }
+                this.screen.classList.toggle('screenreader', aValue);
+                break;
 
-            if (settingKey === 'accessibility.screenreader') {
-              // Show Accessibility panel if it is not already visible
-              if (aValue) {
+              case 'accessibility.colors.enable':
                 SettingsListener.getSettingsLock().set({
-                  'accessibility.show-settings': true
+                  'layers.effect.invert': aValue ?
+                    this.settings['accessibility.colors.invert'] : false,
+                  'layers.effect.grayscale': aValue ?
+                    this.settings['accessibility.colors.grayscale'] : false,
+                  'layers.effect.contrast': aValue ?
+                    this.settings['accessibility.colors.contrast'] : '0.0'
                 });
-              }
+                break;
+
+              case 'accessibility.screenreader-captions':
+                this.speechSynthesizer.captions = aValue;
+                // If captions are displayed hide them.
+                if (!aValue) {
+                  this.speechSynthesizer.hideSpeech(true);
+                }
+                break;
+
+              case 'accessibility.colors.invert':
+              case 'accessibility.colors.grayscale':
+              case 'accessibility.colors.contrast':
+                if (this.settings['accessibility.colors.enable']) {
+                  var effect = settingKey.split('.').pop();
+                  var gfxSetting = {};
+                  if (effect === 'contrast') {
+                    gfxSetting['layers.effect.contrast'] =
+                      aValue * this.CONTRAST_CAP;
+                  } else {
+                    gfxSetting['layers.effect.' + effect] = aValue;
+                  }
+                  SettingsListener.getSettingsLock().set(gfxSetting);
+                }
+                break;
             }
           }.bind(this));
       }, this);
@@ -172,14 +226,14 @@
       this.reset();
 
       if (!this.isSpeaking && timeStamp > this.expectedCompleteTimeStamp) {
-        speechSynthesizer.cancel();
+        this.speechSynthesizer.cancel();
         this.announceScreenReader(function onEnd() {
           this.resetSpeaking(timeStamp + this.REPEAT_BUTTON_PRESS);
         }.bind(this));
         return;
       }
 
-      speechSynthesizer.cancel();
+      this.speechSynthesizer.cancel();
       this.resetSpeaking();
       SettingsListener.getSettingsLock().set({
         'accessibility.screenreader':
@@ -194,10 +248,6 @@
      * @memberof Accessibility.prototype
      */
     _playSound: function ar__playSound(aSoundKey) {
-      // If volume is at 0, do not play sound.
-      if (!this.volume) {
-        return;
-      }
       if (!this.sounds[aSoundKey]) {
         this.sounds[aSoundKey] = new Audio(this.soundURLs[aSoundKey]);
         this.sounds[aSoundKey].load();
@@ -255,18 +305,37 @@
     },
 
     /**
+     * Remove aria-hidden from the screen element to make content accessible to
+     * the screen reader.
+     * @memberof Accessibility.prototype
+     */
+    activateScreen: function ar_activateScreen() {
+      // Screen reader will not say anything until the splash animation is
+      // hidden and the aria-hidden attribute is removed from #screen.
+      this.screen.removeAttribute('aria-hidden');
+      window.removeEventListener('logohidden', this);
+    },
+
+    /**
      * Handle a mozChromeEvent event.
      * @param  {Object} aEvent mozChromeEvent.
      * @memberof Accessibility.prototype
      */
     handleEvent: function ar_handleEvent(aEvent) {
-      switch (aEvent.detail.type) {
-        case 'accessfu-output':
-          this.handleAccessFuOutput(JSON.parse(aEvent.detail.details));
+      switch (aEvent.type) {
+        case 'logohidden':
+          this.activateScreen();
           break;
-        case 'volume-up-button-press':
-        case 'volume-down-button-press':
-          this.handleVolumeButtonPress(aEvent);
+        case 'mozChromeEvent':
+          switch (aEvent.detail.type) {
+            case 'accessibility-output':
+              this.handleAccessFuOutput(JSON.parse(aEvent.detail.details));
+              break;
+            case 'volume-up-button-press':
+            case 'volume-down-button-press':
+              this.handleVolumeButtonPress(aEvent);
+              break;
+          }
           break;
       }
     },
@@ -295,11 +364,7 @@
      * @memberof Accessibility.prototype
      */
     speak: function ar_speak(aData, aCallback, aOptions = {}) {
-      // If volume is at 0, do not speak.
-      if (!this.volume) {
-        return;
-      }
-      speechSynthesizer.speak(aData, aOptions, this.rate, this.volume,
+      this.speechSynthesizer.speak(aData, aOptions, this.rate, this.volume,
         aCallback);
     }
   };
@@ -310,18 +375,46 @@
    * @type {Object}
    */
   var speechSynthesizer = {
+
+    /**
+     * A delay before hiding screen reader caption.
+     * @type {Number}
+     * @memberof speechSynthesizer
+     */
+    CAPTIONS_DELAY: 1500,
+
+    /**
+     * A flag used for speech captions rendering.
+     * @type {Boolean}
+     * @memberof speechSynthesizer
+     */
+    captions: false,
+
+    /**
+     * Screen container getter.
+     * @type {Object}
+     * @memberof speechSynthesizer
+     */
+    get screen() {
+      delete this.screen;
+      this.screen = document.getElementById('screen');
+      return this.screen;
+    },
+
     /**
      * Speech Synthesis
      * @type {Object}
      * @memberof speechSynthesizer
      */
     get speech() {
+      delete this.speech;
       // If there are no voices bundled, consider speech synthesis unavailable.
       if (!window.speechSynthesis ||
         window.speechSynthesis.getVoices().length === 0) {
-        return null;
+        this.speech = null;
       }
-      return window.speechSynthesis;
+      this.speech = window.speechSynthesis;
+      return this.speech;
     },
 
     /**
@@ -330,7 +423,9 @@
      * @memberof speechSynthesizer
      */
     get utterance() {
-      return window.SpeechSynthesisUtterance;
+      delete this.utterance;
+      this.utterance = window.SpeechSynthesisUtterance;
+      return this.utterance;
     },
 
     /**
@@ -398,6 +493,45 @@
     },
 
     /**
+     * Show caption for the screen reader.
+     * @param  {String} aUtterance Current screen reader caption.
+     * @memberof speechSynthesizer
+     */
+    showSpeech: function ar_showSpeech(aUtterance) {
+      if (!this.captionsBox) {
+        this.captionsBox = document.createElement('div');
+        this.captionsBox.id = 'accessibility-captions-box';
+        this.captionsBox.setAttribute('data-z-index-level',
+          'accessibility-captions');
+        this.captionsBox.setAttribute('aria-hidden', true);
+        this.screen.appendChild(this.captionsBox);
+      }
+      window.clearTimeout(this.captionsHideTimeout);
+      this.captionsHideTimeout = null;
+      this.captionsBox.innerHTML = aUtterance;
+      this.captionsBox.classList.add('visible');
+    },
+
+    /**
+     * Hide current screen reader caption.
+     * @param {Boolean} aImmediately A flag to hide captionsBox immediately.
+     * @memberof speechSynthesizer
+     */
+    hideSpeech: function ar_hideSpeech(aImmediately) {
+      if (!this.captionsBox) {
+        return;
+      }
+      // Hide the caption after CAPTIONS_DELAY.
+      if (aImmediately) {
+        this.captionsBox.classList.remove('visible');
+      } else {
+        this.captionsHideTimeout = window.setTimeout(function() {
+          this.captionsBox.classList.remove('visible');
+        }.bind(this), this.CAPTIONS_DELAY);
+      }
+    },
+
+    /**
      * Utter a message with a speechSynthesizer.
      * @param {?Array} aData A messages array to be localized.
      * @param {JSON} aOptions Options to be used when speaking. For example: {
@@ -421,10 +555,29 @@
         this.cancel();
       }
 
-      var utterance = new this.utterance(this.buildUtterance(aData));
+      var sentence = this.buildUtterance(aData);
+      if (!sentence) {
+        if (aCallback) {
+          aCallback();
+        }
+        return;
+      }
+
+      var utterance = new this.utterance(sentence);
       utterance.volume = aVolume;
       utterance.rate = aRate;
-      utterance.addEventListener('end', aCallback);
+      utterance.addEventListener('end', function() {
+        if (this.captions) {
+          this.hideSpeech();
+        }
+        if (aCallback) {
+          aCallback();
+        }
+      }.bind(this));
+
+      if (this.captions) {
+        this.showSpeech(sentence);
+      }
       this.speech.speak(utterance);
     }
   };

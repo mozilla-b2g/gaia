@@ -136,7 +136,9 @@ var MockKeyboardHelper = {
   isKeyboardType: function() {
     return true;
   },
-  changeDefaultLayouts: function() {}
+  changeDefaultLayouts: function() {},
+  getCurrentActiveLayout: function() {},
+  saveCurrentActiveLayout: function() {}
 };
 
 MockKeyboardHelper.mSuiteSetup = MockKeyboardHelper.mSetup;

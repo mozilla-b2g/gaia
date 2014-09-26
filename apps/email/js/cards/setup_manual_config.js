@@ -33,6 +33,8 @@ function SetupManualConfig(domNode, mode, args) {
     activeSync: {}
   };
 
+  var password = args.password || '';
+
   this.formItems.common.displayName = domNode.getElementsByClassName(
     'sup-info-name')[0];
   this.formItems.common.displayName.value = args.displayName;
@@ -41,7 +43,7 @@ function SetupManualConfig(domNode, mode, args) {
   this.formItems.common.emailAddress.value = args.emailAddress;
   this.formItems.common.password = domNode.getElementsByClassName(
     'sup-info-password')[0];
-  this.formItems.common.password.value = args.password;
+  this.formItems.common.password.value = password;
   this.formItems.common.passwordWrapper = domNode.getElementsByClassName(
     'sup-manual-password-wrapper')[0];
 
@@ -56,7 +58,7 @@ function SetupManualConfig(domNode, mode, args) {
   this.formItems.composite.username.value = args.emailAddress;
   this.formItems.composite.password = domNode.getElementsByClassName(
     'sup-manual-composite-password')[0];
-  this.formItems.composite.password.value = args.password;
+  this.formItems.composite.password.value = password;
 
   this.formItems.smtp.hostname = domNode.getElementsByClassName(
     'sup-manual-smtp-hostname')[0];
@@ -69,7 +71,7 @@ function SetupManualConfig(domNode, mode, args) {
   this.formItems.smtp.username.value = args.emailAddress;
   this.formItems.smtp.password = domNode.getElementsByClassName(
     'sup-manual-smtp-password')[0];
-  this.formItems.smtp.password.value = args.password;
+  this.formItems.smtp.password.value = password;
 
   this.formItems.activeSync.hostname = domNode.getElementsByClassName(
     'sup-manual-activesync-hostname')[0];
@@ -82,7 +84,8 @@ function SetupManualConfig(domNode, mode, args) {
   this.changeIfSame(this.formItems.composite.username,
                     [this.formItems.smtp.username]);
   this.changeIfSame(this.formItems.composite.password,
-                    [this.formItems.smtp.password]);
+                    [this.formItems.smtp.password,
+                     this.formItems.common.password]);
 
   for (var type in this.formItems) {
     for (var field in this.formItems[type]) {
@@ -125,14 +128,16 @@ SetupManualConfig.prototype = {
         port: this.formItems.composite.port.value,
         socketType: this.formItems.composite.socket.value,
         username: this.formItems.composite.username.value,
-        password: this.formItems.composite.password.value
+        password: this.formItems.composite.password.value,
+        authentication: 'password-cleartext'
       };
       config.outgoing = {
         hostname: this.formItems.smtp.hostname.value,
         port: this.formItems.smtp.port.value,
         socketType: this.formItems.smtp.socket.value,
         username: this.formItems.smtp.username.value,
-        password: this.formItems.smtp.password.value
+        password: this.formItems.smtp.password.value,
+        authentication: 'password-cleartext'
       };
     }
     else { // config.type === 'activesync'
@@ -164,7 +169,7 @@ SetupManualConfig.prototype = {
         password: password,
         outgoingPassword: config.outgoing && config.outgoing.password,
 
-        domainInfo: config,
+        configInfo: config,
         callingCard: this
       },
       'right');

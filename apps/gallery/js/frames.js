@@ -33,7 +33,11 @@ if (CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH) {
 var transitioning = false;
 
 // Clicking on the back button will go to the preview view
-fullscreenButtons.back.onclick = setView.bind(null, LAYOUT_MODE.list);
+// Note that tablet doesn't have a back button, it's bind to header instead,
+// so we don't try to register click event on a non-existent button
+if (fullscreenButtons.back) {
+  fullscreenButtons.back.onclick = setView.bind(null, LAYOUT_MODE.list);
+}
 
 // Clicking the delete button while viewing a single item deletes that item
 fullscreenButtons.delete.onclick = deleteSingleItem;
@@ -123,18 +127,18 @@ nextFrame.container.addEventListener('transitionend', removeTransition);
 function deleteSingleItem() {
   var msg;
   if (files[currentFileIndex].metadata.video) {
-    msg = navigator.mozL10n.get('delete-video?');
+    msg = 'delete-video?';
   }
   else {
-    msg = navigator.mozL10n.get('delete-photo?');
+    msg = 'delete-photo?';
   }
   // We need to disable NFC sharing when showing delete confirmation dialog
   setNFCSharing(false);
 
   Dialogs.confirm({
-    message: msg,
-    cancelText: navigator.mozL10n.get('cancel'),
-    confirmText: navigator.mozL10n.get('delete'),
+    messageId: msg,
+    cancelId: 'cancel',
+    confirmId: 'delete',
     danger: true
   }, function() { // onSuccess
     // disable delete and share button to prevent operations while delete item
@@ -182,8 +186,9 @@ function shareSingleItem() {
     var button = fullscreenButtons.share;
     button.classList.add('disabled');
     showSpinner();
+    var maxsize = CONFIG_MAX_PICK_PIXEL_SIZE || CONFIG_MAX_IMAGE_PIXEL_SIZE;
     cropResizeRotate(currentFrame.imageblob, null,
-                     CONFIG_MAX_PICK_PIXEL_SIZE || null, null, metadata,
+                     maxsize || null, null, metadata,
                      function(error, rotatedBlob) {
                        hideSpinner();
                        button.classList.remove('disabled');
@@ -238,7 +243,8 @@ function resizeFrames() {
 // fullscreen mode directly.
 function singletap(e) {
   if (currentView === LAYOUT_MODE.fullscreen) {
-    if (currentFrame.displayingImage || currentFrame.video.player.paused) {
+    if ((currentFrame.displayingImage || currentFrame.video.player.paused) &&
+         isPhone) {
       fullscreenView.classList.toggle('toolbar-hidden');
     }
   } else if (currentView === LAYOUT_MODE.list &&

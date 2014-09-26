@@ -2,7 +2,7 @@
 # to replicate this setup locally. Original script taken from the gaia-ui-tests
 # install.
 
-DIR_TEST_ENV=$PWD/travis_venv
+DIR_TEST_ENV=$PWD/ci_venv
 VERSION_VIRTUALENV=1.11
 URL_VIRTUALENV=https://pypi.python.org/packages/source/v/virtualenv/virtualenv-${VERSION_VIRTUALENV}.tar.gz
 

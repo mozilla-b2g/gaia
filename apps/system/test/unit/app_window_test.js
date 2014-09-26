@@ -1,5 +1,6 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager,
-      LayoutManager, MocksHelper, MockContextMenu, layoutManager */
+      LayoutManager, MocksHelper, MockContextMenu, layoutManager,
+      MockAppTransitionController, MockPermissionSettings, DocumentFragment */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -11,18 +12,17 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
-requireApp('system/test/unit/mock_popup_window.js');
-requireApp('system/test/unit/mock_activity_window.js');
-requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/test/unit/mock_app_transition_controller.js');
+requireApp('system/shared/test/unit/mocks/mock_permission_settings.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'LayoutManager', 'ActivityWindow',
-  'ScreenLayout', 'AppChrome', 'PopupWindow', 'StatusBar'
+  'ManifestHelper', 'LayoutManager', 'ScreenLayout', 'AppChrome',
+  'AppTransitionController'
 ]).init();
 
 suite('system/AppWindow', function() {
-  var stubById;
+  var realPermissionSettings;
   mocksForAppWindow.attachTestHelpers();
   setup(function(done) {
     this.sinon.useFakeTimers();
@@ -30,8 +30,15 @@ suite('system/AppWindow', function() {
     window.layoutManager = new LayoutManager();
     window.layoutManager.start();
 
-    stubById = this.sinon.stub(document, 'getElementById');
-    stubById.returns(document.createElement('div'));
+    realPermissionSettings = navigator.mozPermissionSettings;
+    navigator.mozPermissionSettings = MockPermissionSettings;
+    MockPermissionSettings.mSetup();
+
+    this.sinon.stub(document, 'getElementById').
+      returns(document.createElement('div'));
+    this.sinon.stub(DocumentFragment.prototype, 'getElementById').
+      returns(document.createElement('div'));
+
     this.sinon.stub(HTMLElement.prototype, 'querySelector',
     function() {
       return document.createElement('div');
@@ -44,9 +51,8 @@ suite('system/AppWindow', function() {
   });
 
   teardown(function() {
+    navigator.mozPermissionSettings = realPermissionSettings;
     delete window.layoutManager;
-
-    stubById.restore();
   });
 
   var fakeAppConfig1 = {
@@ -272,9 +278,9 @@ suite('system/AppWindow', function() {
       visibleSpy = this.sinon.stub(AppWindow.prototype, 'setVisible');
     });
 
-    test('do not screenshot apps launched in background', function() {
+    test('apps with background flag launched in background', function() {
       new AppWindow(fakeAppConfigBackground); // jshint ignore:line
-      sinon.assert.calledWith(visibleSpy, false, false);
+      sinon.assert.calledWith(visibleSpy, false);
     });
 
     test('homescreen is launched at background', function() {
@@ -521,7 +527,7 @@ suite('system/AppWindow', function() {
     });
   });
 
-  suite('Fullscreen', function() {
+  suite('Fullscreen, FullscreenLayout', function() {
     var fakeAppConfig1FullScreen = {
       url: 'app://www.fake/index.html',
       manifest: {
@@ -530,64 +536,78 @@ suite('system/AppWindow', function() {
       manifestURL: 'app://wwww.fake/ManifestURL',
       origin: 'app://www.fake'
     };
+
+    var fakeAppConfig1FullScreenLayout = {
+      url: 'app://www.fake/index.html',
+      manifest: {
+        'fullscreen_layout': true
+      },
+      manifestURL: 'app://wwww.fake/ManifestURL',
+      origin: 'app://www.fake'
+    };
+
+    var fakeWrapper = {
+      url: 'app://www.fake.com/index.html',
+      origin: 'app://www.fake.com'
+    };
+
     test('isFullScreen', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       assert.isFalse(app1.isFullScreen());
       assert.isFalse(app1.element.classList.contains('fullscreen-app'));
 
+      var appW = new AppWindow(fakeWrapper);
+      assert.isFalse(appW.isFullScreen());
+      assert.isFalse(appW.element.classList.contains('fullscreen-app'));
+
       var app1f = new AppWindow(fakeAppConfig1FullScreen);
       assert.isTrue(app1f.isFullScreen());
       assert.isTrue(app1f.element.classList.contains('fullscreen-app'));
+
+      var app1fl = new AppWindow(fakeAppConfig1FullScreenLayout);
+      assert.isTrue(app1fl.isFullScreen());
+      assert.isTrue(app1fl.element.classList.contains('fullscreen-app'));
+    });
+
+    test('isFullScreenLayout', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      assert.isFalse(app1.isFullScreenLayout());
+
+      var appW = new AppWindow(fakeWrapper);
+      assert.isFalse(appW.isFullScreenLayout());
+      assert.isFalse(app1.element.classList.contains('fullscreen-app'));
+
+      var app1f = new AppWindow(fakeAppConfig1FullScreenLayout);
+      assert.isTrue(app1f.isFullScreenLayout());
     });
   });
 
   suite('ScreenshotOverlay State Control', function() {
-    test('show', function() {
+    test('when cards view is shown and hidden', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
 
-      var stub_setVisible = this.sinon.stub(app1, '_setVisible');
-      app1._screenshotOverlayState = 'frame';
-      app1._showFrame();
-      assert.isTrue(stub_setVisible.calledWith(true));
-      stub_setVisible.restore();
+      app1.element.dispatchEvent(new CustomEvent('_cardviewbeforeshow'));
+      assert.isTrue(app1.screenshotOverlay.classList.contains('visible'),
+                    'Overlay should be visible after beforeshow is received');
 
-      stub_setVisible = this.sinon.stub(app1, '_setVisible');
-      app1._screenshotOverlayState = 'screenshot';
-      app1._showFrame();
-      assert.isFalse(stub_setVisible.called);
-      stub_setVisible.restore();
-
-      stub_setVisible = this.sinon.stub(app1, '_setVisible');
-      app1._screenshotOverlayState = 'none';
-      app1._showFrame();
-      assert.isFalse(stub_setVisible.called);
-      stub_setVisible.restore();
+      app1.element.dispatchEvent(new CustomEvent('_cardviewclosed'));
+      assert.isFalse(app1.screenshotOverlay.classList.contains('visible'),
+                     'Overlay should be hidden after closed is received');
     });
 
-    test('hide', function() {
+    test('when sheets-gesture-begin and end are received', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
 
-      var stub_setVisible = this.sinon.stub(app1, '_setVisible');
-      app1._screenshotOverlayState = 'frame';
-      app1._hideFrame();
-      assert.isFalse(stub_setVisible.called);
-      stub_setVisible.restore();
+      app1.element.dispatchEvent(new CustomEvent('_sheetsgesturebegin'));
+      assert.isTrue(app1.screenshotOverlay.classList.contains('visible'),
+                    'Overlay should be visible after _sheets-gesture-begin');
 
-      stub_setVisible = this.sinon.stub(app1, '_setVisible');
-      app1._screenshotOverlayState = 'screenshot';
-      app1._hideFrame();
-      assert.isTrue(stub_setVisible.calledWith(false));
-      stub_setVisible.restore();
-
-      stub_setVisible = this.sinon.stub(app1, '_setVisible');
-      app1._screenshotOverlayState = 'none';
-      app1._hideFrame();
-      assert.isTrue(stub_setVisible.calledWith(false));
-      stub_setVisible.restore();
+      app1.element.dispatchEvent(new CustomEvent('_sheetsgestureend'));
+      assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
     });
 
     test('showScreenshotOverlay', function() {
@@ -595,37 +615,11 @@ suite('system/AppWindow', function() {
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
 
-      var stubGetScreenshot = this.sinon.stub(app1, 'getScreenshot');
-      var stubHideFrame = this.sinon.stub(app1, '_hideFrame');
       var stubRequestScreenshotURL =
         this.sinon.stub(app1, 'requestScreenshotURL');
-      app1._screenshotOverlayState = 'frame';
       app1._showScreenshotOverlay();
-      stubGetScreenshot.getCall(0).args[0]('');
-      assert.isFalse(stubHideFrame.called);
-      stubGetScreenshot.getCall(0).args[0]('fakeBlob');
-      assert.isFalse(stubRequestScreenshotURL.called);
-
-      stubHideFrame.reset();
-      stubRequestScreenshotURL.reset();
-
-      app1._screenshotOverlayState = 'screenshot';
-      app1._showScreenshotOverlay();
-      stubGetScreenshot.getCall(1).args[0]('');
-      assert.isTrue(stubHideFrame.called);
-      stubGetScreenshot.getCall(1).args[0]('fakeBlob');
       assert.isTrue(stubRequestScreenshotURL.called);
-
-      stubHideFrame.reset();
-      stubRequestScreenshotURL.reset();
-
-      app1._screenshotOverlayState = 'none';
-      app1._showScreenshotOverlay();
-      stubGetScreenshot.yield('');
-      assert.isTrue(stubHideFrame.called);
-      stubGetScreenshot.yield('fakeblob');
       assert.isTrue(app1.screenshotOverlay.classList.contains('visible'));
-      assert.isTrue(stubRequestScreenshotURL.called);
     });
 
     test('hideScreenshotOverlay', function() {
@@ -633,7 +627,6 @@ suite('system/AppWindow', function() {
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
 
-      app1._screenshotOverlayState = 'none';
       app1.screenshotOverlay.classList.add('visible');
       app1.identificationOverlay.classList.add('visible');
       app1._hideScreenshotOverlay();
@@ -675,11 +668,11 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubRevokeObjectURL.calledWith('fakeURL'));
     });
 
-    test('Show identification overlay when setVisible(false)', function() {
+    test('Show identification overlay when showing screenshot', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
-      app1.setVisible(false);
+      app1._showScreenshotOverlay();
       assert.isTrue(app1.identificationOverlay.classList.contains('visible'));
     });
   });
@@ -700,13 +693,10 @@ suite('system/AppWindow', function() {
   suite('Transition', function() {
     test('Open', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var fakeTransitionController = {
-        requireOpen: function() {},
-        requireClose: function() {}
-      };
-      app1.transitionController = fakeTransitionController;
+      var transitionController = new MockAppTransitionController();
+      app1.transitionController = transitionController;
       var stubRequireOpen =
-        this.sinon.stub(fakeTransitionController, 'requireOpen');
+        this.sinon.stub(transitionController, 'requireOpen');
       app1.open();
       assert.isTrue(stubRequireOpen.called);
       app1.open('Orz');
@@ -715,13 +705,10 @@ suite('system/AppWindow', function() {
 
     test('Close', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var fakeTransitionController = {
-        requireOpen: function() {},
-        requireClose: function() {}
-      };
-      app1.transitionController = fakeTransitionController;
+      var transitionController = new MockAppTransitionController();
+      app1.transitionController = transitionController;
       var stubRequireClose =
-        this.sinon.stub(fakeTransitionController, 'requireClose');
+        this.sinon.stub(transitionController, 'requireClose');
       app1.close();
       assert.isTrue(stubRequireClose.called);
       app1.close('XD');
@@ -878,7 +865,7 @@ suite('system/AppWindow', function() {
         this.sinon.stub(app1, 'tryWaitForFullRepaint');
 
       app1.loaded = true;
-      app1._screenshotOverlayState = 'screenshot';
+      app1.screenshotOverlay.classList.add('visible');
       app1.ready(callback);
       assert.isFalse(stubEnsureFullRepaint.called);
       assert.isFalse(stubWaitForNextPaint.called);
@@ -945,6 +932,39 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubScreenshot.called);
       fakeDOMRequest.onsuccess({ target: { result: 'fakeBlob' } });
       assert.equal(app1._screenshotBlob, 'fakeBlob');
+      assert.isTrue(callback1.calledWith('fakeBlob'));
+
+      fakeDOMRequest.onerror();
+      assert.isTrue(callback1.called);
+    });
+
+    test('MozBrowser API: getScreenshot (with frontWindow active)', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var app2 = new AppWindow(fakeAppConfig2);
+
+      injectFakeMozBrowserAPI(app1.browser.element);
+      injectFakeMozBrowserAPI(app2.browser.element);
+      var stubScreenshot = this.sinon.stub(app1.browser.element,
+        'getScreenshot');
+      var stubScreenshot2 = this.sinon.stub(app2.browser.element,
+        'getScreenshot');
+
+      var fakeDOMRequest = {
+        onsuccess: function() {},
+        onerror: function() {}
+      };
+
+      stubScreenshot.returns(fakeDOMRequest);
+      stubScreenshot2.returns(fakeDOMRequest);
+
+      var callback1 = this.sinon.spy();
+      app1.frontWindow = app2;
+      app1.getScreenshot(callback1);
+
+      assert.isFalse(stubScreenshot.called);
+      assert.isTrue(stubScreenshot2.called);
+      fakeDOMRequest.onsuccess({ target: { result: 'fakeBlob' } });
+      assert.equal(app2._screenshotBlob, 'fakeBlob');
       assert.isTrue(callback1.calledWith('fakeBlob'));
 
       fakeDOMRequest.onerror();
@@ -1025,35 +1045,22 @@ suite('system/AppWindow', function() {
     test('setVisible: true', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
-      app1.screenshotOverlay = document.createElement('div');
       var stub_showFrame = this.sinon.stub(app1,
         '_showFrame');
 
       app1.setVisible(true);
-      assert.equal(app1._screenshotOverlayState, 'frame');
+      assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
       assert.isTrue(stub_showFrame.called);
     });
+
     test('setVisible: false', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
-      app1.screenshotOverlay = document.createElement('div');
       var stub_hideFrame = this.sinon.stub(app1,
         '_hideFrame');
 
       app1.setVisible(false);
-      assert.equal(app1._screenshotOverlayState, 'none');
       assert.isTrue(stub_hideFrame.called);
-    });
-    test('setVisible: false, true', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      injectFakeMozBrowserAPI(app1.browser.element);
-      app1.screenshotOverlay = document.createElement('div');
-      var stub_showScreenshotOverlay = this.sinon.stub(app1,
-        '_showScreenshotOverlay');
-
-      app1.setVisible(false, true);
-      assert.equal(app1._screenshotOverlayState, 'screenshot');
-      assert.isTrue(stub_showScreenshotOverlay.called);
     });
 
     test('setVisible to front window', function() {
@@ -1072,13 +1079,12 @@ suite('system/AppWindow', function() {
     test('setVisible: homescreen', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       injectFakeMozBrowserAPI(app1.browser.element);
-      app1.screenshotOverlay = document.createElement('div');
       var stub_hideFrame = this.sinon.stub(app1,
         '_hideFrame');
       app1.isHomescreen = true;
 
       app1.setVisible(false);
-      assert.equal(app1._screenshotOverlayState, 'none');
+      assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
       assert.isTrue(stub_hideFrame.called);
     });
 
@@ -1090,8 +1096,8 @@ suite('system/AppWindow', function() {
       app1.isHomescreen = true;
 
       app1.setVisible(false);
-      assert.equal(app1._screenshotOverlayState, 'none');
-      assert.equal(app2._screenshotOverlayState, 'none');
+      assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
+      assert.isFalse(app2.screenshotOverlay.classList.contains('visible'));
     });
   });
 
@@ -1161,15 +1167,20 @@ suite('system/AppWindow', function() {
   suite('enter/leaveTaskManager', function() {
     test('class gets added and removed', function() {
       var app = new AppWindow(fakeAppConfig1);
+      var closeStub = this.sinon.stub(app, 'close');
+
+      app.transitionController = new MockAppTransitionController();
       assert.isFalse(app.element.classList.contains('in-task-manager'));
       app.enterTaskManager();
       assert.isTrue(app.element.classList.contains('in-task-manager'));
       app.leaveTaskManager();
       assert.isFalse(app.element.classList.contains('in-task-manager'));
+      assert.isTrue(closeStub.calledOnce, 'app.close was called');
     });
 
     test('leaveTaskManager: element.style cleanup', function() {
       var app = new AppWindow(fakeAppConfig1);
+      app.transitionController = new MockAppTransitionController();
       var unapplyStyleStub = sinon.stub(app, 'unapplyStyle');
       app.applyStyle({
         fontSize: '11',
@@ -1210,6 +1221,19 @@ suite('system/AppWindow', function() {
       requireOpen: function() {},
       requireClose: function() {}
     };
+
+    test('Hidewindow event', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var attention = new AppWindow(fakeAppConfig2);
+      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+      attention.parentWindow = app1;
+
+      app1.handleEvent({
+        type: '_hidewindow',
+        detail: attention
+      });
+      assert.isFalse(stubSetVisible.called);
+    });
 
     test('ActivityDone event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
@@ -1307,9 +1331,13 @@ suite('system/AppWindow', function() {
     test('Destroy only the browser when app crashed and ' +
           'suspending is enabled',
       function() {
-        var app1 = new AppWindow(fakeAppConfig1);
+        var apps = openPopups(2);
+        var app1 = apps[0];
+        var popup1 = apps[1];
+        var stubKill = this.sinon.stub(popup1, 'kill');
         var stubDestroyBrowser = this.sinon.stub(app1, 'destroyBrowser');
         var stubIsActive = this.sinon.stub(app1, 'isActive');
+
         stubIsActive.returns(false);
         AppWindow.SUSPENDING_ENABLED = true;
         app1.handleEvent({
@@ -1320,6 +1348,7 @@ suite('system/AppWindow', function() {
         });
 
         assert.isTrue(stubDestroyBrowser.called);
+        assert.isTrue(stubKill.called);
         AppWindow.SUSPENDING_ENABLED = false;
       });
 
@@ -1355,8 +1384,14 @@ suite('system/AppWindow', function() {
 
     test('Kill a child window.', function() {
       var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+
       var app1parent = new AppWindow(fakeAppConfig2);
+      injectFakeMozBrowserAPI(app1parent.browser.element);
+
       var app1child = new AppWindow(fakeAppConfig3);
+      injectFakeMozBrowserAPI(app1child.browser.element);
+
       app1.nextWindow = app1child;
       app1child.previousWindow = app1;
       app1.previousWindow = app1parent;
@@ -1376,8 +1411,10 @@ suite('system/AppWindow', function() {
       assert.isNull(app1.nextWindow);
 
       var stubDestroy = this.sinon.stub(app1, 'destroy');
+
       /** global */
       app1.element.dispatchEvent(new CustomEvent('_closed'));
+
       assert.isTrue(stubDestroy.called);
     });
 
@@ -1650,6 +1687,7 @@ suite('system/AppWindow', function() {
 
     test('Swipe out event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
       var atc1 = {
         switchTransitionState: function() {}
       };
@@ -1765,6 +1803,7 @@ suite('system/AppWindow', function() {
     var app2 = new AppWindow(fakeAppConfig4);
     assert.isFalse(app1.isBrowser());
     assert.isTrue(app2.isBrowser());
+    assert.isTrue(app2.element.classList.contains('browser'));
   });
 
   test('isCertified', function() {
@@ -2079,5 +2118,37 @@ suite('system/AppWindow', function() {
       assert.isFalse(stubPublish.calledOnce);
       stubPublish.restore();
     });
+  });
+
+  test('Should not be killable if it has an attention window', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var attention = new AppWindow(fakeAppConfig1);
+    app1.attentionWindow = attention;
+    assert.isFalse(app1.killable());
+  });
+
+  test('Should not be killable if we are homescreen window', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    app1.isHomescreen = true;
+    assert.isFalse(app1.killable());
+  });
+
+  test('Has attention permission', function() {
+    MockPermissionSettings.permissions.attention = 'deny';
+    var app1 = new AppWindow(fakeAppConfig1);
+    assert.isFalse(app1.hasPermission('attention'));
+
+    MockPermissionSettings.permissions.attention = 'allow';
+    var app2 = new AppWindow(fakeAppConfig2);
+    assert.isTrue(app2.hasPermission('attention'));
+  });
+
+  test('Show()', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    app1.hide();
+    assert.isTrue(app1.element.classList.contains('hidden'));
+
+    app1.show();
+    assert.isFalse(app1.element.classList.contains('hidden'));
   });
 });

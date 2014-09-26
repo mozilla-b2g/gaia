@@ -181,11 +181,11 @@ var icc_worker = {
     tonePlayer.loop = true;
 
     var timeout = 0;
-    if (options.duration &&
-        options.duration.timeUnit != undefined &&
-        options.duration.timeInterval != undefined) {
-      timeout = icc.calculateDurationInMS(options.duration.timeUnit,
-        options.duration.timeInterval);
+    var duration = options.duration;
+    if (duration && duration.timeUnit != undefined &&
+        duration.timeInterval != undefined) {
+      timeout = icc.calculateDurationInMS(duration.timeUnit,
+        duration.timeInterval);
     } else if (options.timeUnit != undefined &&
         options.timeInterval != undefined) {
       timeout = icc.calculateDurationInMS(options.timUnit,
@@ -242,14 +242,21 @@ var icc_worker = {
       return;
     }
 
+    var timeout = icc._displayTextTimeout;
+    var duration = options.duration;
+    if (duration && duration.timeUnit != undefined &&
+        duration.timeInterval != undefined) {
+      timeout = icc.calculateDurationInMS(duration.timeUnit,
+        duration.timeInterval);
+    }
+
     if (options.responseNeeded) {
       icc.responseSTKCommand(message, {
         resultCode: icc._iccManager.STK_RESULT_OK
       });
-      icc.confirm(message, options.text, icc._displayTextTimeout,
-        null);
+      icc.confirm(message, options.text, timeout, null);
     } else {
-      icc.confirm(message, options.text, icc._displayTextTimeout,
+      icc.confirm(message, options.text, timeout,
         function(userCleared) {
           if (userCleared == null) {
             return;   // ICC Back or ICC Terminate
@@ -295,9 +302,10 @@ var icc_worker = {
         icc.hideViews();
       }, true);
 
-    var timeout = (options.duration &&
-      icc.calculateDurationInMS(options.duration.timeUnit,
-          options.duration.timeInterval)) || icc._inputTimeout;
+    var duration = options.duration;
+    var timeout = (duration &&
+      icc.calculateDurationInMS(duration.timeUnit, duration.timeInterval)) ||
+      icc._inputTimeout;
     icc.input(message, options.text, timeout, options,
       function(response, value) {
         if (response == null) {
@@ -311,10 +319,17 @@ var icc_worker = {
           });
         } else {
           DUMP('STK_CMD_GET_INPUT: Response = ', value);
-          icc.responseSTKCommand(message, {
-            resultCode: icc._iccManager.STK_RESULT_OK,
-            input: value
-          });
+          if (typeof value === 'boolean') {
+            icc.responseSTKCommand(message, {
+              resultCode: icc._iccManager.STK_RESULT_OK,
+              isYesNo: value
+            });
+          } else {
+            icc.responseSTKCommand(message, {
+              resultCode: icc._iccManager.STK_RESULT_OK,
+              input: value
+            });
+          }
         }
       });
   },
@@ -477,27 +492,47 @@ var icc_worker = {
         break;
 
       case icc._iccManager.STK_TIMER_DEACTIVATE:
-        pendingTime = a_timer.stop(options.timerId) / 1000;
-        icc.responseSTKCommand(message, {
-          timer: {
-            'timerId': options.timerId,
-            'timerValue': pendingTime,
-            'timerAction': icc._iccManager.STK_TIMER_DEACTIVATE
-          },
-          resultCode: icc._iccManager.STK_RESULT_OK
-        });
+        if (a_timer.queryPendingTime(options.timerId) === 0) {
+          icc.responseSTKCommand(message, {
+            timer: {
+              'timerId': options.timerId
+            },
+            resultCode:
+              icc._iccManager.STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE
+          });
+        } else {
+          pendingTime = a_timer.stop(options.timerId) / 1000;
+          icc.responseSTKCommand(message, {
+            timer: {
+              'timerId': options.timerId,
+              'timerValue': pendingTime,
+              'timerAction': icc._iccManager.STK_TIMER_DEACTIVATE
+            },
+            resultCode: icc._iccManager.STK_RESULT_OK
+          });
+        }
         break;
 
       case icc._iccManager.STK_TIMER_GET_CURRENT_VALUE:
         pendingTime = a_timer.queryPendingTime(options.timerId) / 1000;
-        icc.responseSTKCommand(message, {
-          timer: {
-            'timerId': options.timerId,
-            'timerValue': pendingTime,
-            'timerAction': icc._iccManager.STK_TIMER_GET_CURRENT_VALUE
-          },
-          resultCode: icc._iccManager.STK_RESULT_OK
-        });
+        if (pendingTime === 0) {
+          icc.responseSTKCommand(message, {
+            timer: {
+              'timerId': options.timerId
+            },
+            resultCode:
+              icc._iccManager.STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE
+          });
+        } else {
+          icc.responseSTKCommand(message, {
+            timer: {
+              'timerId': options.timerId,
+              'timerValue': pendingTime,
+              'timerAction': icc._iccManager.STK_TIMER_GET_CURRENT_VALUE
+            },
+            resultCode: icc._iccManager.STK_RESULT_OK
+          });
+        }
         break;
     }
   },

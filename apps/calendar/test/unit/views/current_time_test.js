@@ -157,16 +157,22 @@ suiteGroup('Views.CurrentTime', function() {
 
   suite('#_render', function() {
     var clock;
+    var date;
     var element;
 
     setup(function() {
-      clock = sinon.useFakeTimers(+(new Date(2014, 4, 22, 5, 15)));
+      date = new Date(2014, 4, 22, 5, 15);
+      clock = sinon.useFakeTimers(+date);
       element = subject.element;
       sinon.stub(subject, '_checkOverlap');
       subject.element = {
         textContent: null,
         style: {
           top: null
+        },
+        dataset: {
+          date: null,
+          l10nDateFormat: null
         }
       };
     });
@@ -182,9 +188,13 @@ suiteGroup('Views.CurrentTime', function() {
       assert.deepEqual(
         subject.element,
         {
-          textContent: '5:15',
+          textContent: '05:15',
           style: {
             top: '21.875%'
+          },
+          dataset: {
+            date: date,
+            l10nDateFormat: 'current-time24'
           }
         }
       );
@@ -446,12 +456,8 @@ suiteGroup('Views.CurrentTime', function() {
       subject.deactivate.restore();
     });
 
-    test('stop timer, remove element and delete properties', function() {
+    test('stop timer, remove element', function() {
       subject.destroy();
-      assert.ok(!subject.element, 'element');
-      assert.ok(!subject._container, '_container');
-      assert.ok(!subject.timespan, 'timespan');
-      assert.ok(!subject._previousOverlap, '_previousOverlap');
       assert.ok(subject.deactivate.calledOnce, 'deactivate');
       assert.ok(container.removeChild.calledWithExactly(el), 'removeChild');
     });

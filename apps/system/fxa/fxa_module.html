@@ -2,7 +2,6 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <link href="../shared/style/headers.css" rel="stylesheet" type="text/css">
     <link href="../shared/style/switches.css" rel="stylesheet" type="text/css">
     <link href="../shared/style/buttons.css" rel="stylesheet" type="text/css">
     <link href="../shared/style/confirm.css" rel="stylesheet" type="text/css">
@@ -10,7 +9,12 @@
     <link href="../shared/style/progress_activity.css" rel="stylesheet" type="text/css">
     <link href="style/fxa.css" rel="stylesheet" type="text/css">
 
-    <link rel="resource" type="application/l10n" href="locales/locales-fxa.ini" />
+    <!-- Gaia Components -->
+    <link href="../shared/elements/gaia-theme/style.css" rel="stylesheet" type="text/css">
+    <link href="../shared/elements/gaia-icons/style.css" rel="stylesheet" type="text/css">
+
+    <link rel="manifest" href="../manifest.webapp">
+    <link rel="localization" href="locales/fxa.{locale}.properties">
 
     <link rel="import" href="elements/fxa-email.html">
     <link rel="import" href="elements/fxa-set-password.html">
@@ -30,6 +34,10 @@
     <script defer src="../shared/js/settings_helper.js"></script>
     <script defer src="../shared/js/utilities.js"></script>
 
+    <!-- Gaia Components -->
+    <script defer src="../shared/elements/config.js"></script>
+    <script defer src="../shared/elements/gaia-header/dist/script.js"></script>
+
     <script defer src="js/fxam_server_request.js"></script>
     <script defer src="js/fxam_overlay.js"></script>
     <script defer src="js/fxam_error_overlay.js"></script>
@@ -40,12 +48,11 @@
     <script defer src="js/fxam_module.js"></script>
 
   </head>
-  <body>
-    <section role="region" class="skin-organic">
-      <header>
-        <button id="fxa-module-close"><span class="icon icon-close">close</span></button>
+  <body class="theme-settings">
+    <section role="region">
+      <gaia-header id="fxa-module-header" action="close">
         <h1 data-l10n-id="firefox-accounts-title">Firefox Accounts</h1>
-      </header>
+      </gaia-header>
       <div class="bb-steps">
         <progress id="fxa-progress" value="" max="100"></progress>
       </div>

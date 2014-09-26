@@ -81,7 +81,6 @@
   width: 100%;
   height: 100%;
   background-color: #000;
-
   visibility: hidden;
 }
 
@@ -201,7 +200,6 @@
   font-weight: 300;
   font-size: 1.4rem;
   padding-bottom: 1.4rem;
-
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -228,7 +226,10 @@
 
 #lockscreen-clock-time {
   line-height: 1;
-  margin: -1.4rem 0 0 -0.4rem;
+  margin-top: -1.4rem;
+  margin-bottom: 0;
+  -moz-margin-start: -0.4rem;
+  -moz-margin-end: 0;
   font-weight: 200;
   font-size: 8.5rem;
 }
@@ -245,6 +246,13 @@
 
 #lockscreen-clock-time, #lockscreen-date {
   color: #fff;
+}
+
+@media (max-height:480px) {
+  #lockscreen-clock-time, #lockscreen-date {
+    position: relative;
+    top: -0.5rem;
+  }
 }
 
 #lockscreen-area {
@@ -266,7 +274,6 @@
 .lockscreen-icon {
   width: 6rem;
   height: 6rem;
-
   pointer-events: none;
 }
 
@@ -297,7 +304,7 @@
   }
 
   #lockscreen-header {
-    padding-left: 6rem;
+    -moz-padding-start: 6rem;
     font-weight: 300;
   }
 
@@ -359,11 +366,8 @@ button::-moz-focus-inner {
 #lockscreen-alt-camera-button {
   width: 100%;
   height: 100%;
-
   border-radius: 50%;
-
   pointer-events: auto;
-
   background-image: url('./images/pin_camera.png');
   background-position: 1rem center;
   background-repeat: no-repeat;
@@ -382,7 +386,7 @@ button::-moz-focus-inner {
 
 #lockscreen-passcode-code {
   position: absolute;
-  bottom: 21.4rem;
+  bottom: 20.4rem;
   height: 7rem;
   width: 100%;
   background-color: rgba(51, 51, 51, 0.3);
@@ -390,13 +394,13 @@ button::-moz-focus-inner {
   padding: 0 1rem;
   -moz-box-sizing: border-box;
   visibility: hidden;
-  transform: translateY(calc(21.4rem + 7.2rem));
+  transform: translateY(calc(20.4rem + 7.2rem));
   transition: visibility 0.3s ease, transform 0.3s ease;
 }
 
 [data-passcode-status="success"] #lockscreen-passcode-pad,
 [data-passcode-status="success"] #lockscreen-passcode-code {
-  transform: translateY(calc(21.4rem + 7.2rem)) !important;
+  transform: translateY(calc(20.4rem + 7.2rem)) !important;
 }
 
 [data-panel="passcode"] #lockscreen-passcode-code {
@@ -418,7 +422,6 @@ button::-moz-focus-inner {
   text-align: center;
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 0.5rem;
-
   position: relative;
 }
 
@@ -427,21 +430,20 @@ button::-moz-focus-inner {
 }
 
 [data-passcode-status="error"] #lockscreen-passcode-code > span[data-dot]::before {
-    background-color: #B70404;
+  background-color: #B70404;
 }
 
 #lockscreen-passcode-code > span[data-dot]::before {
   content: '';
   display: block;
   position: absolute;
-
   width: 1.5rem;
   height: 1.5rem;
   background-color: #3e3b39;
   border-radius: 0.75rem;
   top: 50%;
   left: 50%;
-  margin-left: -0.75rem;
+  -moz-margin-start: -0.75rem;
   margin-top: -0.75rem;
 }
 
@@ -449,11 +451,11 @@ button::-moz-focus-inner {
   -moz-box-sizing: border-box;
   position: absolute;
   bottom: 0;
-  height: 21.4rem;
+  height: 20.4rem;
   width: 100%;
   background-color: #606b6e;
   visibility: hidden;
-  transform: translateY(calc(21.4rem + 7em));
+  transform: translateY(calc(20.4rem + 7em));
   transition: visibility 0.3s ease, transform 0.3s ease;
 }
 
@@ -471,17 +473,14 @@ button::-moz-focus-inner {
   display: block;
   float: left;
   width: 33.333%;
-  height: 5rem;
+  height: 5.1rem;
   outline: none;
   padding: 0; /* 2rem; */
-
-  font-size: 3rem;
+  font-size: 3.2rem;
   font-weight: 400;
-  line-height: 4.2rem;
-
+  line-height: 4rem;
   color: #fff;
   text-decoration: none;
-  font-family: 'Keyboard Symbols', sans-serif;
 }
 
 #lockscreen-passcode-pad > a > div {
@@ -495,23 +494,32 @@ button::-moz-focus-inner {
   text-align: center;
 }
 
-#lockscreen-passcode-pad > a:last-child > div{
+#lockscreen-passcode-pad > a[data-key="3"] > div,
+#lockscreen-passcode-pad > a[data-key="6"] > div,
+#lockscreen-passcode-pad > a[data-key="9"] > div,
+#lockscreen-passcode-pad > a[data-key="c"] > div,
+#lockscreen-passcode-pad > a[data-key="b"] > div{
   border-right: none;
-}
-
-#lockscreen-passcode-pad > a:nth-child(3n+1):not([data-key="b"]) > div{
-  border-left: none;
 }
 
 #lockscreen-passcode-pad > a[data-key="b"] > div {
   font-size: 1.5rem;
-  padding-left: 4rem;
+  font-weight: 500;
   color: #abb0b1;
+  font-family: 'Keyboard Symbols', sans-serif;
 }
 
-#lockscreen-passcode-pad > a.last-row {
-  height: 6.4rem;
-  line-height: 5.6rem;
+#lockscreen-passcode-pad > a.last-row > div {
+  padding-top: 0.4rem;
+  height: calc(100% - 1.2rem);
+}
+
+#lockscreen-passcode-pad > a.last-row[data-key="e"] > div {
+  height: calc(100% - 1rem);
+}
+
+#lockscreen-passcode-pad > a.last-row:not([data-key="0"]) > div {
+  padding-top: 0.2rem;
 }
 
 #lockscreen-passcode-pad > a > div > span {
@@ -553,25 +561,25 @@ button::-moz-focus-inner {
 }
 
 #lockscreen-passcode-pad .row0 > div{
-  border-right-color: #606B6E;
+  border-right-color: #525b5e;
 }
 
 #lockscreen-passcode-pad .row1 > div {
-  border-right-color: #5B6668;
+  border-right-color: #4c5657;
 }
 
 #lockscreen-passcode-pad .row2 > div {
-  border-right-color: #566063;
+  border-right-color: #475052;
 }
 
 #lockscreen-passcode-pad .row3 > div {
-  border-right-color: #525C5E;
+  border-right-color: #434b4d;
 }
 
 #lockscreen-passcode-pad > a.row0 > div,
 #lockscreen-passcode-pad > a.row1 > div,
 #lockscreen-passcode-pad > a.row2 > div {
-  margin-top: 0.1rem;
+  margin-top: 0.4rem;
 }
 
 #lockscreen-passcode-pad > a.row0 > div > span,
@@ -587,7 +595,8 @@ button::-moz-focus-inner {
 }
 
 #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func > div{
-  padding: 0 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
   text-align: center;
 }
 
@@ -609,6 +618,14 @@ button::-moz-focus-inner {
   line-height: 1.6rem;
   text-transform: uppercase;
   vertical-align: middle;
+}
+
+#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func[data-key="e"] > div > span,
+#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func[data-key="c"] > div > span {
+  font-size: 1.3rem;
+  line-height: 1.4rem;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 #lockscreen-passcode-pad > a.disabled {
@@ -685,7 +702,6 @@ button::-moz-focus-inner {
   overflow-y: auto;
   line-height: 1.4rem;
   z-index: 16;
-
   margin: auto;
   border-radius: 1rem;
   border: 1px solid #e6e6e6;
@@ -693,9 +709,7 @@ button::-moz-focus-inner {
   width: 27rem;
   min-height: 5rem;
   max-height: 10rem;
-
   background-color: #fafafa;
-
   font-size: 1.4rem;
   font-weight: 700;
   color: black;

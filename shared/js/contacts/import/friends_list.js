@@ -183,7 +183,7 @@ var FriendListRenderer = (function() {
         ret.push(getValue(contact, field));
       });
 
-      ret = contact.search = ret.join('');
+      ret = contact.search = ret.join(' ');
     }
 
     return ret;

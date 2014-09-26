@@ -5,7 +5,8 @@
     <meta charset="utf-8" />
     <title>Bluetooth</title>
     <!-- Localization -->
-    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
+    <link rel="manifest" href="manifest.webapp">
+    <link rel="localization" href="locales/bluetooth.{locale}.properties">
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
@@ -66,14 +67,14 @@
       </gaia-header>
       <div>
         <!-- Devices List View :: Paired Devices List -->
-        <gaia-subheader id="bluetooth-paired-title" skin="organic" data-l10n-id="bluetooth-paired-devices">
-          Paired Devices
+        <gaia-subheader id="bluetooth-paired-title" skin="organic">
+          <span data-l10n-id="bluetooth-paired-devices">Paired Devices</span>
         </gaia-subheader>
         <ul id="bluetooth-paired-devices" class="devices">
         </ul>
         <!-- Devices List View :: Found Devices List -->
-        <gaia-subheader id="bluetooth-found-title" skin="organic" data-l10n-id="bluetooth-devices-in-area">
-          Devices found
+        <gaia-subheader id="bluetooth-found-title" skin="organic">
+          <span data-l10n-id="bluetooth-devices-in-area">Devices found</span>
         </gaia-subheader>
         <ul id="bluetooth-devices" class="devices">
         </ul>

@@ -1,4 +1,6 @@
 /* global MozActivity, IconsHelper, LazyLoader */
+/* global applications */
+/* global BookmarksDatabase */
 
 (function(window) {
   'use strict';
@@ -112,6 +114,7 @@
 
     // Notify the embedder we are handling the context menu
     evt.preventDefault();
+    evt.stopPropagation();
     this.showMenu(items);
   };
 
@@ -222,7 +225,8 @@
     var data = {
       type: 'url',
       url: url,
-      name: name
+      name: name,
+      iconable: false
     };
     if (icon) {
       data.icon = icon;
@@ -233,10 +237,23 @@
     });
   };
 
+  BrowserContextMenu.prototype.newWindow = function(manifest) {
+    var newTabApp = applications.getByManifestURL(manifest);
+    newTabApp.launch();
+  };
+
+  BrowserContextMenu.prototype.showWindows = function(manifest) {
+    window.dispatchEvent(
+      new CustomEvent('taskmanagershow',
+                      { detail: { filter: 'browser-only' }})
+    );
+  };
+
   BrowserContextMenu.prototype.generateSystemMenuItem = function(item) {
 
     var nodeName = item.nodeName.toUpperCase();
     var uri = item.data.uri;
+    var text = item.data.text;
 
     switch (nodeName) {
       case 'A':
@@ -245,13 +262,10 @@
           label: _('open-in-new-tab'),
           callback: this.openUrl.bind(this, uri)
         }, {
-        // TODO: requires the text description from the link
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=1009351
-        //
-        //   id: 'bookmark-link',
-        //   label: _('add-link-to-home-screen'),
-        //   callback: this.bookmarkUrl.bind(this, [item.data.uri])
-        // }, {
+          id: 'bookmark-link',
+          label: _('add-link-to-home-screen'),
+          callback: this.bookmarkUrl.bind(this, uri, text)
+        }, {
           id: 'save-link',
           label: _('save-link'),
           callback: this.app.browser.element.download.bind(this, uri)
@@ -289,19 +303,48 @@
     }
   };
 
-  BrowserContextMenu.prototype.showDefaultMenu = function() {
-    var favicons = this.app.favicons;
-    var config = this.app.config;
-    LazyLoader.load('shared/js/icons_helper.js', (function() {
-      var icon = IconsHelper.getBestIcon(favicons);
-      this.showMenu([{
-        label: _('add-to-home-screen'),
-        callback: this.bookmarkUrl.bind(this, config.url, this.app.title, icon)
-      }, {
-        label: _('share'),
-        callback: this.shareUrl.bind(this, config.url)
-      }]);
-    }).bind(this));
+  BrowserContextMenu.prototype.showDefaultMenu = function(manifest, name) {
+    return new Promise((resolve) => {
+      var favicons = this.app.favicons;
+      var config = this.app.config;
+      LazyLoader.load('shared/js/icons_helper.js', (() => {
+        IconsHelper.getIcon(config.url, null, {icons: favicons}).then(icon => {
+
+          var menuData = [];
+
+          menuData.push({
+            id: 'new-window',
+            label: _('new-window'),
+            callback: this.newWindow.bind(this, manifest)
+          });
+
+          menuData.push({
+            id: 'show-windows',
+            label: _('show-windows'),
+            callback: this.showWindows.bind(this)
+          });
+
+          BookmarksDatabase.get(config.url).then((result) => {
+            if (!result) {
+              menuData.push({
+                id: 'add-to-homescreen',
+                label: _('add-to-home-screen'),
+                callback: this.bookmarkUrl.bind(this, config.url, name, icon)
+              });
+            }
+
+            menuData.push({
+              id: 'share',
+              label: _('share'),
+              callback: this.shareUrl.bind(this, config.url)
+            });
+
+            this.showMenu(menuData);
+            resolve();
+          });
+        });
+      }));
+    });
   };
 
 }(this));

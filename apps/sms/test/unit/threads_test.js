@@ -188,6 +188,8 @@ suite('Threads', function() {
 
     test('Threads.delete() calls Drafts.delete()', function() {
       this.sinon.stub(Drafts, 'delete');
+      this.sinon.stub(Drafts, 'store');
+
       this.sinon.stub(Threads, 'get').returns({
         id: 1,
         hasDrafts: true
@@ -195,7 +197,8 @@ suite('Threads', function() {
 
       Threads.delete(1);
 
-      assert.isTrue(Drafts.delete.calledWith({ threadId: 1 }));
+      sinon.assert.calledWith(Drafts.delete, { threadId: 1 });
+      sinon.assert.callOrder(Drafts.delete, Drafts.store);
     });
   });
 

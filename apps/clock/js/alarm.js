@@ -18,9 +18,9 @@ define(function(require, exports, module) {
       hour: now.getHours(),
       minute: now.getMinutes(),
       label: '',
-      sound: 'ac_classic_clock_alarm.opus',
+      sound: 'ac_awake.opus',
       vibrate: true,
-      snooze: 5 // Number of minutes to snooze
+      snooze: 10 // Number of minutes to snooze
     };
 
     for (var key in defaults) {
@@ -51,7 +51,9 @@ define(function(require, exports, module) {
      */
     isEnabled: function() {
       for (var i in this.registeredAlarms) {
-        if (i === 'normal') {
+        // Both 'normal' and 'snooze' registered alarms should be
+        // treated as enabled, because the alarm will imminently fire.
+        if (i === 'normal' || i === 'snooze') {
           return true;
         }
       }

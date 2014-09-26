@@ -11,6 +11,7 @@
   var HardwareButtonsSleepState;
   var HardwareButtonsVolumeState;
   var HardwareButtonsWakeState;
+  var HardwareButtonsScreenshotState;
 
   /**
    * Gecko code in `b2g/chrome/content/shell.js` sends `mozChromeEvents`
@@ -394,10 +395,8 @@
         /**
          * When the user presses Volume Down button, before HOLD_INTERVAL,
          * while holding the Sleep button.
-         * @event HardwareButtonsSleepState#volumedown+sleep
          */
-        this.hardwareButtons.publish('volumedown+sleep');
-        this.hardwareButtons.setState('base', type);
+        this.hardwareButtons.setState('screenshot', type);
         return;
       case 'volume-up-button-press':
         this.hardwareButtons.setState('volume', type);
@@ -487,10 +486,8 @@
           /**
            * When the user presses Sleep button, before HOLD_INTERVAL,
            * while holding the Volume Down button.
-           * @event HardwareButtonsHomeState#volumedown+sleep
            */
-          this.hardwareButtons.publish('volumedown+sleep');
-          this.hardwareButtons.setState('base', type);
+          this.hardwareButtons.setState('screenshot', type);
           return;
         }
         this.hardwareButtons.setState('sleep', type);
@@ -595,6 +592,57 @@
         return;
     }
   };
+
+  /**
+   * We enter the screenshot home state when the user presses the Power button
+   * and Volume Down button within less than HOLD_INTERVAL of each other
+   * We can fire home or holdhome events from this state
+   *
+   * @class HardwareButtonsScreenshotState
+   */
+  HardwareButtonsScreenshotState =
+    HardwareButtons.STATES.screenshot =
+    function HardwareButtonsScreenshotState(hb) {
+      this.hardwareButtons = hb;
+      this.timer = undefined;
+    };
+
+  /**
+   * Entering the state.
+   * @memberof HardwareButtonsScreenshotState.prototype
+   */
+  HardwareButtonsScreenshotState.prototype.enter = function() {
+    this.timer = setTimeout(function() {
+      /**
+       * When the user holds Volume Down and Power button
+       * more than HOLD_INTERVAL.
+       * @event HardwareButtonsHomeState#volumedown+sleep
+       */
+      this.hardwareButtons.publish('volumedown+sleep');
+      this.hardwareButtons.setState('base');
+    }.bind(this), this.hardwareButtons.HOLD_INTERVAL);
+  };
+
+  /**
+   * Leaving the state.
+   * @memberof HardwareButtonsScreenshotState.prototype
+   */
+  HardwareButtonsScreenshotState.prototype.exit = function() {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = undefined;
+    }
+  };
+
+  /**
+   * Pressing any other hardware button will cancel this state.
+   * @memberof HardwareButtonsScreenshotState.prototype
+   * @param  {String} type Name of the event to process.
+   */
+  HardwareButtonsScreenshotState.prototype.process = function(type) {
+    this.hardwareButtons.setState('base', type);
+  };
+
 
   /*
    * Start the hardware buttons events.

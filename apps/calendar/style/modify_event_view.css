@@ -115,20 +115,29 @@
   display: none;
 }
 
+/**
+ * 1. COMPLEX: Scoped style-sheets within <gaia-header>
+ *    trump all other rules. !important is required
+ *    for an app to over-ride the default appearance
+ *    of content within the custom-element. This may
+ *    change when we get `:host` and `:content` selectors
+ *    in shadow-dom.
+ */
+
 #modify-event-view.create .save-text {
-  display: block;
+  display: block !important; /* 1 */
 }
 
 #modify-event-view.create .done-text {
-  display: none;
+  display: none !important; /* 1 */
 }
 
 #modify-event-view.update .save-text {
-  display: none;
+  display: none !important; /* 1 */
 }
 
 #modify-event-view.update .done-text {
-  display: block;
+  display: block !important; /* 1 */
 }
 
 #modify-event-view .save[aria-disabled="true"] {

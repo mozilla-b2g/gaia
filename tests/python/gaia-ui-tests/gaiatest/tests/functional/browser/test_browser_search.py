@@ -5,7 +5,7 @@
 from marionette.by import By
 
 from gaiatest import GaiaTestCase
-from gaiatest.apps.browser.app import Browser
+from gaiatest.apps.search.app import Search
 
 
 class TestBrowserSearch(GaiaTestCase):
@@ -15,14 +15,15 @@ class TestBrowserSearch(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.connect_to_network()
+        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
     def test_browser_search(self):
-        browser = Browser(self.marionette)
-        browser.launch()
+        search = Search(self.marionette)
+        search.launch()
 
-        search_text = 'Mozilla Web QA'
+        search_text = 'Mozilla'
 
-        browser.go_to_url(search_text)
+        browser = search.go_to_url(search_text)
 
         browser.switch_to_content()
         self.wait_for_element_displayed(*self._google_search_input_locator)

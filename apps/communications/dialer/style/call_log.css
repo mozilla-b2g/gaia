@@ -4,16 +4,8 @@ section[role="region"] > header:first-child .icon {
 }
 
 /* Overriding BB styles for edit mode */
-form[role="dialog"][data-type="edit"] header .icon {
+form[role="dialog"][data-type="edit"] gaia-header {
   pointer-events: auto;
-}
-
-form[role="dialog"][data-type="edit"] header {
-  transform: translateY(-110%);
-}
-
-form[role="dialog"][data-type="edit"] > menu {
-  transform: translateY(110%);
 }
 
 #call-log-container[data-type="list"] section {
@@ -31,9 +23,6 @@ form[role="dialog"][data-type="edit"] > menu {
 
   /* The height needs to be kept in sync with the header height. */
   height: 3.1rem;
-
-  /* The sticky element needs to be above the list. */
-  z-index: 2;
 
   /* Those style will affect the bagroundImage: -moz-element. */
   background-repeat: no-repeat;

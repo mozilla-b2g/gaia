@@ -29,7 +29,7 @@ body[data-path^='/settings'].pending-operation #progress-indicator {
   visibility: visible;
 }
 
-#settings header {
+#settings gaia-header {
   background: transparent;
 }
 
@@ -150,25 +150,8 @@ not actually shown since the top header should be transparent.
 }
 
 #settings [role="toolbar"] {
-  display: flex;
   position: absolute;
-  text-align: center;
-  background: white;
-  color: black;
   bottom: 0;
-  height: 4.5rem;
-  line-height: 4.5rem;
-}
-
-#settings .toolbar-item {
-  position: relative;
-  display: inline-block;
-  flex: 1;
-  height: 100%;
-  line-height: 4.5rem;
-  text-align: center;
-  color: #858585;
-  font-size: 0;
 }
 
 #settings [role="toolbar"].noaccount .settings {
@@ -187,10 +170,6 @@ not actually shown since the top header should be transparent.
 
 #settings [role="toolbar"] .settings:active:after {
   background-image: url("icons/settings_icon_press.png");
-}
-
-#settings [role="toolbar"] .sync {
-  border-left: 0.1rem solid #dfdfdf;
 }
 
 #settings [role="toolbar"] .sync:after {

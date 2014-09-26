@@ -24,8 +24,9 @@ suiteGroup('Views.EventBase', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="event-test">',
-        '<button class="primary">primary</button>',
-        '<button class="cancel">cancel</button>',
+        '<gaia-header id="event-test-header" action="cancel">',
+          '<button class="primary">primary</button>',
+        '</gaia-header>',
       '</div>'
     ].join('');
 
@@ -36,7 +37,7 @@ suiteGroup('Views.EventBase', function() {
       app: app,
       selectors: {
         element: '#event-test',
-        cancelButton: '#event-test .cancel',
+        header: '#event-test-header',
         primaryButton: '#event-test .primary'
       }
     });
@@ -72,8 +73,8 @@ suiteGroup('Views.EventBase', function() {
     assert.ok(subject.primaryButton);
   });
 
-  test('.cancelButton', function() {
-    assert.ok(subject.cancelButton);
+  test('.header', function() {
+    assert.ok(subject.header);
   });
 
   test('.fieldRoot', function() {

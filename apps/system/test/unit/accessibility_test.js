@@ -1,7 +1,9 @@
 'use strict';
-/* global MocksHelper, Accessibility */
+/* global MocksHelper, MockSpeechSynthesis, MockSpeechSynthesisUtterance,
+          Accessibility, SettingsListener */
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/test/unit/mock_speech_synthesis.js');
 requireApp('system/js/accessibility.js');
 
 var mocksForA11y = new MocksHelper([
@@ -10,7 +12,7 @@ var mocksForA11y = new MocksHelper([
 
 suite('system/Accessibility', function() {
 
-  var accessibility;
+  var accessibility, speechSynthesizer;
 
   var vcChangeKeyDetails = {
     eventType: 'vc-change',
@@ -33,10 +35,15 @@ suite('system/Accessibility', function() {
     options: { enqueue: true }
   };
 
+  var fakeLogoHidden = {
+    type: 'logohidden'
+  };
+
   function getAccessFuOutput(aDetails) {
     return {
+      type: 'mozChromeEvent',
       detail: {
-        type: 'accessfu-output',
+        type: 'accessibility-output',
         details: JSON.stringify(aDetails)
       }
     };
@@ -44,6 +51,7 @@ suite('system/Accessibility', function() {
 
   function getVolumeUp() {
     return {
+      type: 'mozChromeEvent',
       detail: { type: 'volume-up-button-press' },
       timeStamp: Date.now() * 1000
     };
@@ -51,14 +59,29 @@ suite('system/Accessibility', function() {
 
   function getVolumeDown() {
     return {
+      type: 'mozChromeEvent',
       detail: { type: 'volume-down-button-press' },
       timeStamp: Date.now() * 1000
     };
   }
 
+  var fakeSentence = 'This is captions text';
+
   mocksForA11y.attachTestHelpers();
   setup(function() {
     accessibility = new Accessibility();
+    accessibility.start();
+    speechSynthesizer = accessibility.speechSynthesizer;
+    this.sinon.stub(speechSynthesizer, 'speech', MockSpeechSynthesis);
+    this.sinon.stub(speechSynthesizer, 'utterance',
+      MockSpeechSynthesisUtterance);
+  });
+
+  test('logohidden handler', function() {
+    var stubActivateScreen = this.sinon.stub(accessibility,
+      'activateScreen');
+    accessibility.handleEvent(fakeLogoHidden);
+    assert.isTrue(stubActivateScreen.called);
   });
 
   suite('handle volume button events', function() {
@@ -98,7 +121,74 @@ suite('system/Accessibility', function() {
     });
   });
 
-  suite('handle accessfu-output events', function() {
+  suite('speech captions', function() {
+    test('no captions by default', function() {
+      var stubShowSpeech = this.sinon.stub(speechSynthesizer,
+        'showSpeech');
+      var stubHideSpeech = this.sinon.stub(speechSynthesizer,
+        'hideSpeech');
+      speechSynthesizer.speak(fakeSentence, {});
+      assert.isTrue(stubShowSpeech.notCalled);
+      assert.isTrue(stubHideSpeech.notCalled);
+    });
+
+    test('captions when accessibility.screenreader-captions is set',
+      function() {
+        var stubShowSpeech = this.sinon.stub(speechSynthesizer,
+          'showSpeech');
+        var stubHideSpeech = this.sinon.stub(speechSynthesizer,
+          'hideSpeech');
+        SettingsListener.mTriggerCallback(
+          'accessibility.screenreader-captions', true);
+        speechSynthesizer.speak(fakeSentence, {});
+        assert.isTrue(stubShowSpeech.called);
+        assert.isTrue(stubHideSpeech.called);
+      });
+
+    test('showSpeech', function() {
+      this.sinon.stub(document, 'getElementById').returns(
+        document.createElement('div'));
+      assert.isUndefined(speechSynthesizer.captionsBox);
+      speechSynthesizer.showSpeech(fakeSentence);
+      assert.notEqual(speechSynthesizer.captionsBox, undefined);
+      assert.equal(speechSynthesizer.captionsBox.id,
+        'accessibility-captions-box');
+      assert.equal(speechSynthesizer.captionsBox.getAttribute('aria-hidden'),
+        'true');
+      assert.equal(speechSynthesizer.captionsBox.getAttribute(
+        'data-z-index-level'), 'accessibility-captions');
+      assert.equal(speechSynthesizer.captionsBox.innerHTML, fakeSentence);
+      assert.isTrue(speechSynthesizer.captionsBox.classList.contains(
+        'visible'));
+    });
+
+    test('hideSpeech', function() {
+      this.sinon.stub(document, 'getElementById').returns(
+        document.createElement('div'));
+      this.sinon.stub(window, 'setTimeout', function(callback) {
+        callback();
+      });
+      speechSynthesizer.showSpeech(fakeSentence);
+      assert.isTrue(speechSynthesizer.captionsBox.classList.contains(
+        'visible'));
+      speechSynthesizer.hideSpeech();
+      assert.isFalse(speechSynthesizer.captionsBox.classList.contains(
+        'visible'));
+    });
+
+    test('hideSpeech immediately', function() {
+      this.sinon.stub(document, 'getElementById').returns(
+        document.createElement('div'));
+      speechSynthesizer.showSpeech(fakeSentence);
+      assert.isTrue(speechSynthesizer.captionsBox.classList.contains(
+        'visible'));
+      speechSynthesizer.hideSpeech(true);
+      assert.isFalse(speechSynthesizer.captionsBox.classList.contains(
+        'visible'));
+    });
+  });
+
+  suite('handle accessibility-output events', function() {
     test('handleAccessFuOutput', function() {
       var stubHandleAccessFuOutput = this.sinon.stub(accessibility,
         'handleAccessFuOutput');

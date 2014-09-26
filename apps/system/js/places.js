@@ -4,6 +4,10 @@
 
 (function(exports) {
 
+  const DEBOUNCE_TIME = 2000;
+
+  const SCREENSHOT_TIMEOUT = 5000;
+
   /**
    * Places is the browser history, bookmark and icon management system for
    * B2G. Places monitors app events and syncs information with the Places
@@ -41,7 +45,7 @@
      * @memberof Places.prototype
      * @type {Array}
      */
-    screenshotQueue: [],
+    screenshotQueue: {},
 
     /**
      * Maximum number of top sites we display
@@ -53,33 +57,50 @@
     topSites: [],
 
     /**
+     * A list of debounced changes to places, keyed by URL.
+     * @memberof Places.prototype
+     * @type {Object}
+     */
+    _placeChanges: {},
+
+    /**
+     * Maps URLs to debounce save timeouts. The place is saved after the
+     * timeout is reached, or on appload.
+     * @memberof Places.prototype
+     * @type {Object}
+     */
+    _timeouts: {},
+
+    /**
      * Starts places.
      * Adds necessary event listeners and gets the datastore.
      * @param {Function} callback
      * @memberof Places.prototype
      */
-    start: function(callback) {
-      window.addEventListener('apptitlechange', this);
-      window.addEventListener('applocationchange', this);
-      window.addEventListener('appiconchange', this);
-      window.addEventListener('apploaded', this);
+    start: function() {
+      return new Promise(resolve => {
+        window.addEventListener('applocationchange', this);
+        window.addEventListener('apptitlechange', this);
+        window.addEventListener('appiconchange', this);
+        window.addEventListener('apploaded', this);
 
-      asyncStorage.getItem('top-sites', (function(results) {
-        this.topSites = results || [];
-      }).bind(this));
-
-      navigator.getDataStores(this.STORE_NAME)
-        .then(this.initStore.bind(this)).then(callback);
+        asyncStorage.getItem('top-sites', results => {
+          this.topSites = results || [];
+          resolve();
+        });
+      });
     },
 
-    /**
-     * Initializes the datastore after calling navigator.getDataStores.
-     * @param {Array} stores A list of places datastores.
-     * @memberof Places.prototype
-     */
-    initStore: function(stores) {
-      this.dataStore = stores[0];
-      return new Promise(function(resolve) { resolve(); });
+    getStore: function() {
+      return new Promise(resolve => {
+        if (this.dataStore) {
+          return resolve(this.dataStore);
+        }
+        navigator.getDataStores(this.STORE_NAME).then(stores => {
+          this.dataStore = stores[0];
+          return resolve(this.dataStore);
+        });
+      });
     },
 
     /**
@@ -89,23 +110,29 @@
      */
     handleEvent: function(evt) {
       var app = evt.detail;
+
+      // If the app is not a browser, do not track places as tracking places
+      // currently has a non-trivial startup cost.
+      if (app && !app.isBrowser()) {
+        return;
+      }
+
       switch (evt.type) {
-      case 'apptitlechange':
-        this.setPlaceTitle(app.config.url, app.title);
-        break;
-      case 'applocationchange':
-        this.addVisit(app.config.url);
-        break;
-      case 'appiconchange':
-        this.addPlaceIcons(app.config.url, app.favicons);
-        break;
-      case 'apploaded':
-        var index = this.screenshotQueue.indexOf(app.config.url);
-        if (index !== -1) {
-          this.screenshotRequested(app.config.url);
-          this.screenshotQueue.splice(index, 1);
-        }
-        break;
+        case 'applocationchange':
+          this.onLocationChange(app.config.url);
+          break;
+        case 'apptitlechange':
+          this.onTitleChange(app.config.url, app.title);
+          break;
+        case 'appiconchange':
+          this.onIconChange(app.config.url, app.favicons);
+          break;
+        case 'apploaded':
+          if (app.config.url in this.screenshotQueue) {
+            this.takeScreenshot(app.config.url);
+          }
+          this.debouncePlaceChanges(app.config.url);
+          break;
       }
     },
 
@@ -115,18 +142,31 @@
      * @memberof Places.prototype
      */
     screenshotRequested: function(url) {
-      var self = this;
-      var app = AppWindowManager.getApp(url);
+      var app = AppWindowManager.getAppByURL(url);
+      if (!app || app.loading) {
+        this.screenshotQueue[url] = setTimeout(() => {
+          this.takeScreenshot(url);
+        }, SCREENSHOT_TIMEOUT);
+      } else {
+        this.takeScreenshot(url);
+      }
+    },
+
+    takeScreenshot: function(url) {
+      if (url in this.screenshotQueue) {
+        clearTimeout(this.screenshotQueue[url]);
+        delete this.screenshotQueue[url];
+      }
+
+      var app = AppWindowManager.getAppByURL(url);
       if (!app) {
+        console.error('Couldnt find app for:', url);
         return false;
       }
-      if (app.loading) {
-        this.screenshotQueue.push(url);
-        return;
-      }
-      app.getScreenshot(function(screenshot) {
+
+      app.getScreenshot((screenshot) => {
         if (screenshot) {
-          self.saveScreenshot(url, screenshot);
+          this.saveScreenshot(url, screenshot);
         }
       });
     },
@@ -143,6 +183,8 @@
         title: url,
         icons: {},
         frecency: 0,
+        // An array containing previous visits to this url
+        visits: [],
         screenshot: null
       };
     },
@@ -154,19 +196,20 @@
      * @memberof Places.prototype
      */
     editPlace: function(url, fun) {
-      var self = this;
-      var rev = this.dataStore.revisionId;
-      return new Promise(function(resolve) {
-        self.dataStore.get(url).then(function(place) {
-          place = place || self.defaultPlace(url);
-          fun(place, function(newPlace) {
-            if (self.writeInProgress || self.dataStore.revisionId !== rev) {
-              return self.editPlace(url, fun);
-            }
-            self.writeInProgress = true;
-            self.dataStore.put(newPlace, url).then(function() {
-              self.writeInProgress = false;
-              resolve();
+      return new Promise(resolve => {
+        this.getStore().then(store => {
+          var rev = store.revisionId;
+          store.get(url).then(place => {
+            place = place || this.defaultPlace(url);
+            fun(place, newPlace => {
+              if (this.writeInProgress || store.revisionId !== rev) {
+                return this.editPlace(url, fun);
+              }
+              this.writeInProgress = true;
+              store.put(newPlace, url).then(() => {
+                this.writeInProgress = false;
+                resolve();
+              });
             });
           });
         });
@@ -174,23 +217,50 @@
     },
 
     /**
-     * Add visit.
-     *
-     * Record visit to place. Currently this just increments frecency, but
-     * eventually there should be a separate 'visits' DataStore to store a
-     * record for every visit in order to render a history view.
-     *
-     * @param {String} url URL of visit to record.
-     * @memberof Places.prototype
+     * Manually set the previous visits array of timestamps, used for
+     * migrations
      */
-    addVisit: function(url) {
-      var self = this;
-      return this.editPlace(url, function(place, cb) {
-        place.visited = Date.now();
-        place.frecency++;
-        self.checkTopSites(place);
+    setVisits: function(url, visits) {
+      return this.editPlace(url, (place, cb) => {
+        place.visits = place.visits || [];
+        place.visits.concat(visits);
+        place.visits.sort((a, b) => {
+          return b - a;
+        });
         cb(place);
       });
+    },
+
+    /*
+     * Add a recorded visit to the history, we prune them to the last
+     * TRUNCATE_VISITS number of visits and store them in a low enough
+     * resolution to render the view (one per day)
+     */
+    TRUNCATE_VISITS: 10,
+
+    addToVisited: function(place) {
+
+      place.visits = place.visits || [];
+
+      if (!place.visits.length) {
+        place.visits.unshift(place.visited);
+        return place;
+      }
+
+      // If the last visit was within the last 24 hours, remove
+      // it as we only need a resolution of one day
+      var lastVisit = place.visits[0];
+      if (lastVisit > (Date.now() - 60 * 60 * 24 * 1000)) {
+        place.visits.shift();
+      }
+
+      place.visits.unshift(place.visited);
+
+      if (place.visits.length > this.TRUNCATE_VISITS) {
+        place.visits.length = this.TRUNCATE_VISITS;
+      }
+
+      return place;
     },
 
     /**
@@ -201,7 +271,7 @@
       var numTopSites = this.topSites.length;
       var lastTopSite = this.topSites[numTopSites - 1];
       if (numTopSites < this.MAX_TOP_SITES ||
-          place.frecency > lastTopSite.frecency) {
+        place.frecency > lastTopSite.frecency) {
         this.topSites.push(place);
         this.screenshotRequested(place.url);
         this.topSites.sort(function(a, b) {
@@ -226,7 +296,26 @@
      * @memberof Places.prototype
      */
     clear: function() {
-      return this.dataStore.clear();
+      return this.getStore().then(store => {
+        store.clear();
+      });
+    },
+
+    /**
+     * Add visit.
+     *
+     * Updates our place cache. Currently this just increments frecency, but
+     * eventually there should be a separate 'visits' DataStore to store a
+     * record for every visit in order to render a history view.
+     *
+     * @param {String} url URL of visit to record.
+     * @memberof Places.prototype
+     */
+    onLocationChange: function(url) {
+      this._placeChanges[url] = this._placeChanges[url] || this.defaultPlace();
+      this._placeChanges[url].visited = Date.now();
+      this._placeChanges[url].frecency += 1;
+      this.debounce(url);
     },
 
     /**
@@ -236,11 +325,10 @@
      * @param {String} title Title of place to set.
      * @memberof Places.prototype
      */
-    setPlaceTitle: function(url, title) {
-      return this.editPlace(url, function(place, cb) {
-        place.title = title;
-        cb(place);
-      });
+    onTitleChange: function(url, title) {
+      this._placeChanges[url] = this._placeChanges[url] || this.defaultPlace();
+      this._placeChanges[url].title = title;
+      this.debounce(url);
     },
 
     /**
@@ -250,11 +338,61 @@
      * @param {String} icon The icon object
      * @memberof Places.prototype
      */
-    addPlaceIcons: function(url, icons) {
-      return this.editPlace(url, (place, cb) => {
-        for (var iconUri in icons) {
-          place.icons[iconUri] = icons[iconUri];
+    onIconChange: function(url, icons) {
+      this._placeChanges[url] = this._placeChanges[url] || this.defaultPlace();
+      for (var iconUri in icons) {
+        this._placeChanges[url].icons[iconUri] = icons[iconUri];
+      }
+      this.debounce(url);
+    },
+
+    /**
+     * Creates a timeout to save place data.
+     *
+     * @param {String} url URL of place.
+     * @memberof Places.prototype
+     */
+    debounce: function(url) {
+      clearTimeout(this._timeouts[url]);
+      this._timeouts[url] = setTimeout(() => {
+        this.debouncePlaceChanges(url);
+      }, DEBOUNCE_TIME);
+    },
+
+    /**
+     * Saves place data to datastore after the apploaded event, or a timeout.
+     *
+     * @param {String} url URL of place to update.
+     * @param {String} icon The icon object
+     * @memberof Places.prototype
+     */
+    debouncePlaceChanges: function(url) {
+      clearTimeout(this._timeouts[url]);
+
+      this.editPlace(url, (place, cb) => {
+        var edits = this._placeChanges[url];
+        if (!edits) {
+          return;
         }
+
+        // Update the title if it's not the default (matches the URL)
+        if (edits.title !== url) {
+          place.title = edits.title;
+        }
+
+        if (edits.visited) {
+          place.visited = edits.visited;
+        }
+        place.frecency += edits.frecency;
+
+        for (var iconUri in edits.icons) {
+          place.icons[iconUri] = edits.icons[iconUri];
+        }
+
+        place = this.addToVisited(place);
+        this.checkTopSites(place);
+
+        delete this._placeChanges[url];
         cb(place);
       });
     }

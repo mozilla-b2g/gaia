@@ -1,13 +1,17 @@
 /* globals DataGridProvider, SyncDataStore, Promise, IconsHelper */
 /* globals Search, GaiaGrid, PlacesIdbStore */
-
+/* globals DateHelper */
+/* globals asyncStorage */
+/* globals LazyLoader */
 (function(exports) {
 
   'use strict';
 
+  var _ = navigator.mozL10n.get;
+
   // Maximum number of results to show show for a single query
   var MAX_AWESOME_RESULTS = 4;
-  var MAX_HISTORY_RESULTS = 5;
+  var MAX_HISTORY_RESULTS = 20;
   var MAX_TOPSITES_RESULTS = 6;
 
   // Name of the datastore we pick up places from
@@ -33,13 +37,15 @@
   var iconUrls = {};
 
   function getIcon(place) {
-    var icon = IconsHelper.getBestIcon(place.icons);
-    if (icon) {
-      saveIcon(place.url, icon);
-    }
+
     if (place.url in icons && icons[place.url]) {
       return icons[place.url];
     }
+
+    IconsHelper.getIcon(place.url, null, place).then(icon => {
+      saveIcon(place.url, icon);
+    });
+
     return false;
   }
 
@@ -53,7 +59,6 @@
       if (!err) {
         icons[key] = icon;
       }
-      showStartPage();
     });
   }
 
@@ -92,7 +97,7 @@
       };
     });
 
-    xhr.onerror = function() {
+    xhr.onerror = function(err) {
       return callback(new Error('Cannot load uri'));
     };
     xhr.send();
@@ -104,6 +109,115 @@
     }
   }
 
+  var listTemplate = createList();
+
+  function createList() {
+    var list = document.createElement('ul');
+    list.setAttribute('role', 'listbox');
+    return list;
+  }
+
+  function incrementHistoryThreshold(timestamp, currentThreshold, thresholds) {
+    var newThreshold = currentThreshold += 1;
+    if (timestamp < thresholds[newThreshold]) {
+      return incrementHistoryThreshold(timestamp, newThreshold, thresholds);
+    }
+    return newThreshold;
+  }
+
+  function drawHistoryHeading(parent, threshold, timestamp) {
+
+    var LABELS = [
+      'future',
+      'today',
+      'yesterday',
+      'last-7-days',
+      'this-month',
+      'last-6-months',
+      'older-than-6-months'
+    ];
+
+    var text = '';
+
+    // Special case for month headings
+    if (threshold == 5 && timestamp) {
+      var date = new Date(timestamp);
+      var now = new Date();
+      text = _('month-' + date.getMonth());
+      if (date.getFullYear() != now.getFullYear()) {
+        text += ' ' + date.getFullYear();
+      }
+    } else {
+      text = _(LABELS[threshold]);
+    }
+
+    var h3 = document.createElement('h3');
+    var textNode = document.createTextNode(text);
+    var ul = listTemplate.cloneNode(true);
+    h3.appendChild(textNode);
+    parent.appendChild(h3);
+    parent.appendChild(ul);
+  }
+
+  function updateIcon(visit, iconDom) {
+    IconsHelper.getIcon(visit.url, null, visit).then((icon) => {
+      if (icon && iconDom) {
+        iconDom.classList.remove('empty');
+        iconDom.src = icon;
+      }
+    });
+  }
+
+  function buildHistory(visits) {
+
+    var thresholds = [
+      Date.now(),                        // 0. Now
+      DateHelper.todayStarted(),         // 1. Today
+      DateHelper.yesterdayStarted(),     // 2. Yesterday
+      DateHelper.thisWeekStarted(),      // 3. This week
+      DateHelper.thisMonthStarted(),     // 4. This month
+      DateHelper.lastSixMonthsStarted(), // 5. Six months
+      0                                  // 6. Epoch!
+    ];
+
+    var threshold = 0;
+    var month = null;
+    var year = null;
+
+    var fragment = document.createDocumentFragment();
+
+    visits.forEach(function(visit) {
+      // Draw new heading if new threshold reached
+      if (visit.date > 0 && visit.date < thresholds[threshold]) {
+        threshold = incrementHistoryThreshold(visit.date,
+                                              threshold, thresholds);
+        // Special case for month headings
+        if (threshold != 5) {
+          drawHistoryHeading(fragment, threshold);
+        }
+      }
+
+      if (threshold === 5) {
+        var timestampDate = new Date(visit.date);
+        if (timestampDate.getMonth() != month ||
+          timestampDate.getFullYear() != year) {
+          month = timestampDate.getMonth();
+          year = timestampDate.getFullYear();
+          drawHistoryHeading(fragment, threshold, visit.date);
+        }
+      }
+
+      visit.meta = visit.url;
+      visit.dataset = { url: visit.url };
+      var dom = exports.Places.buildResultsDom([visit]);
+      var iconDom = dom.querySelector('.icon');
+      fragment.appendChild(dom);
+      updateIcon(visit, iconDom);
+    });
+
+    return fragment;
+  }
+
   function showStartPage() {
 
     if (!topSitesWrapper || !historyWrapper) {
@@ -112,20 +226,15 @@
 
     var store = exports.Places.persistStore;
 
-    store.read('visited', MAX_HISTORY_RESULTS, function(results) {
-      var historyDom = exports.Places.buildResultsDom(results.map(place => {
-        return {
-          title: place.title || place.url,
-          meta: place.url,
-          dataset: {
-            url: place.url
-          },
-          icon: getIcon(place)
-        };
-      }));
-
+    var urls = [];
+    store.readVisits(MAX_HISTORY_RESULTS, function(results) {
+      var docFragment = buildHistory(results);
       historyWrapper.innerHTML = '';
-      historyWrapper.appendChild(historyDom);
+      historyWrapper.appendChild(docFragment);
+    }, function filter(visit) {
+      var isStored = visit.url in urls;
+      urls[visit.url] = true;
+      return !isStored;
     });
 
     store.read('frecency', MAX_TOPSITES_RESULTS, function(results) {
@@ -152,6 +261,11 @@
         result.screenshot : URL.createObjectURL(result.screenshot);
       div.style.backgroundImage = 'url(' + objectURL + ')';
     }
+
+    if (result.tile) {
+      div.style.backgroundImage = 'url(' + result.tile + ')';
+    }
+
     return div;
   }
 
@@ -189,10 +303,11 @@
     click: itemClicked,
 
     init: function() {
+
       DataGridProvider.prototype.init.apply(this, arguments);
       this.persistStore = new PlacesIdbStore();
 
-      this.persistStore.init().then((function() {
+      this.persistStore.init().then(() => {
 
         this.syncStore =
           new SyncDataStore(STORE_NAME, this.persistStore, 'url');
@@ -206,15 +321,37 @@
         };
         // Make init return a promise, so we know when
         // we did the sync. Used right now for testing
-        // porpuses.
+        // porpoises.
         var rev = this.persistStore.latestRevision || 0;
-        return this.syncStore.sync(rev).then(function() {
-          return new Promise(function(resolve, reject) {
-            showStartPage();
-            resolve();
+        return this.syncStore.sync(rev).then(() => {
+          return new Promise(resolve => {
+
+            function done() {
+              showStartPage();
+              resolve();
+            }
+
+            asyncStorage.getItem('have-preloaded-sites', (havePreloaded) => {
+              if (!havePreloaded) {
+                this.preloadTopSites().then(() => {
+                  asyncStorage.setItem('have-preloaded-sites', true);
+                  done();
+                });
+              } else {
+                done();
+              }
+            });
           });
         });
-      }).bind(this));
+      });
+    },
+
+    preloadTopSites: function() {
+      return LazyLoader.getJSON('/js/inittopsites.json').then(sites => {
+        return Promise.all(sites.map(site => {
+          return this.persistStore.addPlace(site);
+        }));
+      });
     },
 
     search: function(filter) {

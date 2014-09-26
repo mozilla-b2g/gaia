@@ -4,6 +4,7 @@
 /* global GridLayout */
 /* global GridZoom */
 /* global LazyLoader */
+/* global performance */
 
 (function(exports) {
 
@@ -112,25 +113,37 @@
     },
 
     /**
-     * Finds nearest item by and returns an index.
+     * Finds nearest item by and returns an index, or null if an item isn't
+     * found.
      * @param {Number} x relative to the screen
      * @param {Number} y relative to the screen
+     * @param {Boolean} isRow whether the position is to be considered as a row
+     * instead of an individual point.
      */
-    getNearestItemIndex: function(x, y) {
-      var leastDistance;
-      var foundIndex;
+    getNearestItemIndex: function(x, y, isRow) {
+      var foundIndex = null;
+      var leastDistance = null;
+      var itemMiddleOffset = this.layout.gridItemWidth / 2;
       for (var i = 0, iLen = this.items.length; i < iLen; i++) {
         var item = this.items[i];
 
-        // Do not consider dividers for dragdrop.
-        if (!item.isDraggable()) {
+        var middleX = item.x + itemMiddleOffset;
+        var middleY = item.y + item.pixelHeight / 2;
+
+        // Do not consider collapsed items, unless they are dividers.
+        if (item.detail.type !== 'divider' &&
+            item.element.classList.contains('collapsed')) {
           continue;
         }
 
+        var xDistance = (isRow || item.detail.type === 'divider') ?
+          0 : x - middleX;
+        var yDistance = y - middleY;
+
         var distance = Math.sqrt(
-          (x - item.x) * (x - item.x) +
-          (y - item.y) * (y - item.y));
-        if (!leastDistance || distance < leastDistance) {
+          xDistance * xDistance +
+          yDistance * yDistance);
+        if (leastDistance === null || distance < leastDistance) {
           leastDistance = distance;
           foundIndex = i;
         }
@@ -164,7 +177,7 @@
 
     // bug 1015000
     onScroll: function() {
-      this.lastScrollTime = Date.now();
+      this.lastScrollTime = performance.now();
     },
 
     onTouchStart: function(e) {
@@ -177,11 +190,19 @@
     // Gecko does that automatically but since we want to use touch events for
     // more responsiveness, we also need to replicate that behavior.
     onTouchEnd: function(e) {
-      if (Date.now() - this.lastScrollTime < PREVENT_TAP_TIMEOUT) {
+      var lastScrollTime = this.lastScrollTime;
+      this.lastScrollTime = 0;
+      var diff = performance.now() - lastScrollTime;
+      if (diff > 0 && diff < PREVENT_TAP_TIMEOUT) {
         return;
       }
 
       var lastTouchStart = this.lastTouchStart;
+
+      if (!lastTouchStart) {
+        // This variable is deleted once a contextmenu event is received
+        return;
+      }
 
       var touch = e.changedTouches.identifiedTouch(lastTouchStart.identifier);
       if (!touch) {
@@ -199,55 +220,85 @@
       }
     },
 
+    findItemFromElement: function(element) {
+      while (element && element.parentNode !== this.element) {
+        element = element.parentNode;
+      }
+      if (!element) {
+        return null;
+      }
+
+      var identifier = element.dataset.identifier;
+      var icon = this.icons[identifier];
+
+      // If the element didn't have an identifier, try to search for it
+      // manually.
+      if (!icon) {
+        for (var i = 0, iLen = this.items.length; i < iLen; i++) {
+          if (this.items[i].element === element) {
+            icon = this.items[i];
+            break;
+          }
+        }
+      }
+
+      return icon;
+    },
+
     /**
      * Launches an app.
      */
     clickIcon: function(e) {
       e.preventDefault();
 
-      var container = e.target;
-      var action = 'launch';
-
-      if (e.target.classList.contains('remove')) {
-        container = e.target.parentNode;
-        action = 'remove';
-      }
-      var identifier = container.dataset.identifier;
-      var icon = this.icons[identifier];
       var inEditMode = this.dragdrop && this.dragdrop.inEditMode;
 
-      if (!icon) {
-        if (e.target.classList.contains('placeholder') && inEditMode) {
-          // Exit from edit mode when user clicks an empty space
-          window.dispatchEvent(new CustomEvent('hashchange'));
-        }
+      // Exit from edit mode when user clicks an empty space
+      if (inEditMode && e.target.classList.contains('placeholder')) {
+        window.dispatchEvent(new CustomEvent('hashchange'));
         return;
       }
 
-      // We do not allow users to launch icons in edit mode
-      if (action === 'launch' && inEditMode) {
-        if (icon.detail.type !== 'bookmark' || !icon.isEditable()) {
-          return;
-        }
-        // Editing a bookmark in edit mode
-        action = 'edit';
-      } else {
-        // Add a 'launching' class to the icon to style it with CSS.
-        icon.element.classList.add('launching');
-
-        // XXX: We can't have nice things. Remove the launching class after an
-        // arbitrary time to restore the state. We want the icon to return
-        // to it's original state after launching the app, but visibilitychange
-        // will not work because activities do not fire it.
-        var returnTimeout = 500;
-        setTimeout(function stateReturn() {
-          if (icon.element) {
-            icon.element.classList.remove('launching');
-          }
-        }, returnTimeout);
+      var action = 'launch';
+      if (e.target.classList.contains('remove')) {
+        action = 'remove';
+      }
+      var icon = this.findItemFromElement(e.target);
+      if (!icon) {
+        return;
       }
 
-      icon[action]();
+      if (action === 'launch') {
+        // We do not allow users to launch icons in edit mode
+        if (inEditMode && e.target.classList.contains('icon')) {
+          // Check if we're trying to edit a bookmark or collection
+          if (!icon.isEditable()) {
+            return;
+          }
+          action = 'edit';
+        } else {
+          // If the icon can't be launched, bail out early
+          if (!icon[action]) {
+            return;
+          }
+
+          // Add a 'launching' class to the icon to style it with CSS.
+          icon.element.classList.add('launching');
+
+          // XXX: We can't have nice things. Remove the launching class after an
+          // arbitrary time to restore the state. We want the icon to return
+          // to its original state after launching the app, but visibilitychange
+          // will not work because activities do not fire it.
+          var returnTimeout = 500;
+          setTimeout(function stateReturn() {
+            if (icon.element) {
+              icon.element.classList.remove('launching');
+            }
+          }, returnTimeout);
+        }
+      }
+
+      icon[action](e.target);
     },
 
     /**
@@ -279,18 +330,11 @@
       if (skipDivider) {
         return;
       }
-      var lastItem = this.items[this.items.length - 1];
-      if (!(lastItem instanceof GaiaGrid.Divider)) {
-        this.items.push(new GaiaGrid.Divider());
-      }
 
-      // In dragdrop also append a row of placeholders.
-      // These placeholders are used for drop detection as we ignore dividers
-      // and will create a new group when an icon is dropped on them.
-      if (this.dragdrop && this.dragdrop.inEditMode) {
-        var coords = [0, lastItem.y + 2];
-        this.createPlaceholders(coords, this.items.length, this.layout.cols,
-          true);
+      // If the last item is not a divider, add a new divider at the end.
+      var lastItem = this.items[this.items.length - 1];
+      if (!lastItem || !(lastItem instanceof GaiaGrid.Divider)) {
+        this.items.push(new GaiaGrid.Divider());
       }
     },
 
@@ -346,19 +390,15 @@
      * item in grid units.
      * @param {Integer} idx The position of the first placeholder.
      * @param {Integer} idx The number of placeholders to create.
-     * @param {Boolean} createsGroup Creates a group on drop during edit mode.
      */
-    createPlaceholders: function(coordinates, idx, count, createsGroup) {
+    createPlaceholders: function(coordinates, idx, count) {
       for (var i = 0; i < count; i++) {
-        var itemCoords = [
-          coordinates[0] + i,
-          coordinates[1]
-        ];
-
         var item = new GaiaGrid.Placeholder();
-        item.createsGroupOnDrop = createsGroup;
         this.items.splice(idx + i, 0, item);
-        item.render(itemCoords, idx + i);
+        item.setPosition(idx + i);
+        item.setCoordinates((coordinates[0] + i) * this.layout.gridItemWidth,
+                            this.layout.offsetY);
+        item.render();
       }
     },
 
@@ -367,7 +407,6 @@
      * Positions app icons and dividers accoriding to available space
      * on the grid.
      * @param {Object} options Options to render with including:
-     *  - from {Integer} The index to start rendering from.
      *  - skipDivider {Boolean} Whether or not to skip the divider
      *  - rerender {Boolean} Whether we should clean elements and re-render.
      */
@@ -378,13 +417,7 @@
       this.removeAllPlaceholders();
       this.cleanItems(options.skipDivider);
 
-      // Start rendering from one before the drop target. If not,
-      // we may drop over the divider and miss rendering an icon.
-      var from = options.from - 1 || 0;
 
-      // TODO This variable should be an argument of this method. See
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=1010742#c4
-      var to = this.items.length - 1;
 
       // Reset offset steps
       this.layout.offsetY = 0;
@@ -398,7 +431,8 @@
        * @param {Object} item
        */
       function step(item) {
-        self.layout.stepYAxis(item.pixelHeight);
+        var pixelHeight = item.pixelHeight;
+        self.layout.stepYAxis(pixelHeight);
 
         x = 0;
         y++;
@@ -415,13 +449,39 @@
       this.element.addEventListener('cached-icon-rendered',
                                      onCachedIconRendered);
 
-      for (var idx = 0; idx <= to; idx++) {
+      var nextDivider = null;
+      for (var idx = 0; idx <= this.items.length - 1; idx++) {
         var item = this.items[idx];
 
         // Remove the element if we are re-rendering.
         if (options.rerender && item.element) {
           this.element.removeChild(item.element);
           item.element = null;
+        }
+
+        if (item.detail.type === 'divider') {
+          nextDivider = null;
+        } else {
+          if (!nextDivider) {
+            for (var i = idx + 1; i < this.items.length; i++) {
+              if (this.items[i].detail.type === 'divider') {
+                nextDivider = this.items[i];
+                break;
+              }
+            }
+
+            // Make sure to leave room for group headers
+            if (nextDivider &&
+                !nextDivider.detail.collapsed) {
+              this.layout.offsetY += nextDivider.headerHeight;
+            }
+          }
+
+          // If this item is in a collapsed group, we need to skip rendering.
+          if (nextDivider && nextDivider.detail.collapsed) {
+            item.setPosition(idx);
+            continue;
+          }
         }
 
         // If the item would go over the boundary before rendering,
@@ -435,18 +495,22 @@
 
           // Increment the current index due to divider insertion
           idx += remaining;
-          to += remaining;
           item = this.items[idx];
 
           // Step the y-axis by the size of the last row.
           // For now we just check the height of the last item.
-          var lastItem = this.items[idx - (remaining + 1)];
-          step(lastItem);
+          var lastItemInRow = this.items[idx - 1];
+          step(lastItemInRow);
         }
 
-        if (idx >= from) {
+        item.setPosition(idx);
+        if (!options.skipItems) {
           item.hasCachedIcon && ++pendingCachedIcons;
-          item.render([x, y], idx);
+          item.setCoordinates(x * this.layout.gridItemWidth,
+                              this.layout.offsetY);
+          if (!item.active) {
+            item.render();
+          }
         }
 
         // Increment the x-step by the sizing of the item.

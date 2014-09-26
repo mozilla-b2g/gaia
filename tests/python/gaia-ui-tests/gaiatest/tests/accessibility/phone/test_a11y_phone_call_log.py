@@ -57,7 +57,7 @@ class TestAccessibilityPhoneCallLog(GaiaTestCase):
 
         # # Add contact action menu should be visible to the screen reader.
         # self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
-        #     *self.phone._add_contact_action_menu_locator)))
+        #     *self.phone._call_group_menu_locator)))
 
         # # Close the add contact action menu with the screen reader.
         # self.accessibility.click(self.marionette.find_element(

@@ -10,6 +10,8 @@
 /* global Normalizer */
 /* global utils */
 /* global TAG_OPTIONS */
+/* global ActionMenu */
+/* global ICEData */
 
 var contacts = window.contacts || {};
 
@@ -30,7 +32,7 @@ contacts.Form = (function() {
       thumb,
       thumbAction,
       saveButton,
-      cancelButton,
+      formHeader,
       formTitle,
       currentContactId,
       givenName,
@@ -52,7 +54,7 @@ contacts.Form = (function() {
   var INVALID_CLASS = 'invalid';
 
   // Remove icon button id
-  var IMG_DELETE_ID = 'img-delete-button';
+  var IMG_DELETE_CLASS = 'img-delete-button';
 
   // The size we want our contact photos to be
   var PHOTO_WIDTH = 320;
@@ -63,18 +65,23 @@ contacts.Form = (function() {
 
   var touchstart = 'ontouchstart' in window ? 'touchstart' : 'mousedown';
 
+  // Indicates whether a tel number has been deleted
+  // (useful for warning about ICE Contacts)
+  var deletedTelNumber = false;
+
   var textFieldsCache = {
     _textFields: null,
 
     get: function textFieldsCache_get() {
       if (!this._textFields) {
-        var fields = contactForm.querySelectorAll('input.textfield');
+        var fields = contactForm.querySelectorAll('input[data-field]');
 
         var fbFields =
           Array.slice(contactForm.querySelectorAll(
-                                                  '.facebook input.textfield'));
+                                                '.facebook input[data-field]'));
         var invalidFields =
-          Array.slice(contactForm.querySelectorAll('.invalid input.textfield'));
+          Array.slice(contactForm.querySelectorAll(
+                                                '.invalid input[data-field]'));
 
         this._textFields = Array.filter(fields, function(field) {
           return (fbFields.indexOf(field) === -1 &&
@@ -94,11 +101,11 @@ contacts.Form = (function() {
     deleteContactButton = dom.querySelector('#delete-contact');
     thumb = dom.querySelector('#thumbnail-photo');
     thumbAction = dom.querySelector('#thumbnail-action');
-    thumbAction.querySelector('#photo-button').onclick = pickImage;
+    thumbAction.querySelector('#photo-button').onclick = photoAction;
     saveButton = dom.querySelector('#save-button');
     addNewDateButton = dom.querySelector('#add-new-date');
-    cancelButton = dom.querySelector('#cancel-edit');
     contactForm = dom.getElementById('contact-form');
+    formHeader = dom.querySelector('#contact-form-header');
     formTitle = dom.getElementById('contact-form-title');
     currentContactId = dom.getElementById('contact-form-id');
     givenName = dom.getElementById('givenName');
@@ -171,9 +178,15 @@ contacts.Form = (function() {
       if (tgt.tagName == 'BUTTON' && tgt.getAttribute('type') == 'reset') {
         event.preventDefault();
         var input = tgt.previousElementSibling;
+
         if (input.getAttribute('name').startsWith('tel') &&
             input.dataset.field === 'value') {
-          input.parentNode.nextElementSibling.classList.add(INVALID_CLASS);
+          var telId = input.id;
+          var telIndex = telId.substring(telId.indexOf('_') + 1);
+          var carrierField =
+                        document.getElementById('carrier' + '_' + telIndex);
+          carrierField.parentNode.classList.add(INVALID_CLASS);
+
           textFieldsCache.clear();
         }
         input.value = '';
@@ -200,7 +213,12 @@ contacts.Form = (function() {
 
     // Add listeners
     utils.listeners.add({
-      '#cancel-edit': Contacts.cancel, // Cancel edition
+      '#contact-form-header': [
+        {
+          event: 'action',
+          handler: Contacts.cancel // Cancel edition
+        }
+      ],
       '#save-button': saveContact,
       '#contact-form button[data-field-type]': newField
     });
@@ -302,28 +320,26 @@ contacts.Form = (function() {
       });
     }
 
-    var toRender = ['tel', 'email', 'adr', 'date', 'note'];
-    for (var i = 0; i < toRender.length; i++) {
-      var current = toRender[i];
-      renderTemplate(current, contact[current]);
-    }
+['tel', 'email', 'adr', 'date', 'note'].forEach(function(field) {
+      renderTemplate(field, contact[field]);
+    });
 
     deleteContactButton.onclick = function deleteClicked(event) {
-      var msg = _('deleteConfirmMsg');
+      var msg = 'deleteConfirmMsg';
       var yesObject = {
-        title: _('delete'),
+        title: 'delete',
         isDanger: true,
         callback: function onAccept() {
           deleteContact(currentContact);
           ConfirmDialog.hide();
           if (ActivityHandler.currentlyHandling) {
-            cancelButton.click();
+            formHeader.triggerAction();
           }
         }
       };
 
       var noObject = {
-        title: _('cancel'),
+        title: 'cancel',
         callback: function onCancel() {
           ConfirmDialog.hide();
         }
@@ -332,6 +348,15 @@ contacts.Form = (function() {
       Contacts.confirmDialog(null, msg, noObject, yesObject);
     };
   };
+
+  // Checks whether is an ICE contact or not
+  function isIceContact(contact, cb) {
+    LazyLoader.load('js/utilities/ice_data.js', function() {
+      ICEData.getActiveIceContacts().then(function iceloaded(iceContacts) {
+        cb(iceContacts.indexOf(contact.id) !== -1);
+      });
+    });
+  }
 
   var showAdd = function showAdd(params) {
     mode = 'add';
@@ -352,24 +377,28 @@ contacts.Form = (function() {
     familyName.value = params.lastName || '';
     company.value = params.company || '';
 
-    var toRender = ['tel', 'email', 'adr', 'date', 'note'];
-    for (var i = 0; i < toRender.length; i++) {
-      var current = toRender[i];
-      var rParams = params[current] || '';
-      renderTemplate(current, [{value: rParams}]);
-    }
+    ['tel', 'email', 'adr', 'date', 'note'].forEach(function(field) {
+      renderTemplate(field, [ { value: params[field] || '' } ]);
+    });
+
     checkDisableButton();
   };
 
 
   // template, fields, cont, counter
+  /**
+   * Render Template
+   *
+   * @param {string} type Type of template, eg. 'tel'
+   * @param {object[]} toRender
+   */
   var renderTemplate = function cf_rendTemplate(type, toRender) {
-    var object = toRender || [];
-    var objLength = object.length || 1;
+    if (!toRender || !Array.isArray(toRender)) {
+      return;
+    }
 
-    for (var i = 0; i < objLength; i++) {
-      var currentObj = object[i] || {};
-      insertField(type, currentObj);
+    for (var i = 0; i < toRender.length; i++) {
+      insertField(type, toRender[i] || {});
     }
   };
 
@@ -430,15 +459,13 @@ contacts.Form = (function() {
     var template = config.template;
     var tags = ContactsTag.filterTags(type, null, config.tags);
 
-    var fields = config.fields;
     var container = config.container;
 
     var default_type = tags[0] && tags[0].type || '';
     var currField = {};
     var infoFromFB = false;
 
-    for (var j = 0; j < fields.length; j++) {
-      var currentElem = fields[j];
+    config.fields.forEach(function(currentElem) {
       var def = (currentElem === 'type') ? default_type : '';
       var defObj = (typeof(obj) === 'string') ? obj : obj[currentElem];
       var value = '';
@@ -463,7 +490,7 @@ contacts.Form = (function() {
       if (!infoFromFB && value && nonEditableValues[value]) {
         infoFromFB = true;
       }
-    }
+    });
     currField.i = counters[type];
 
     var rendered = utils.templates.render(template, currField);
@@ -509,7 +536,8 @@ contacts.Form = (function() {
 
     // The remove button should not appear on FB disabled fields
     if (!rendered.classList.contains(FB_CLASS)) {
-      rendered.appendChild(removeFieldIcon(rendered.id, type));
+      var removeEl = removeFieldIcon(rendered.id, type);
+      rendered.insertBefore(removeEl, rendered.firstChild);
     }
 
     // Add event listeners
@@ -518,6 +546,7 @@ contacts.Form = (function() {
       boxTitle.addEventListener('click', onGoToSelectTag);
     }
 
+    container.classList.remove('empty');
     container.appendChild(rendered);
     counters[type]++;
 
@@ -619,6 +648,36 @@ contacts.Form = (function() {
     saveButton.setAttribute('disabled', 'disabled');
     showThrobber();
 
+    var cancelObject = {
+      title: 'ok',
+      callback: function onCancel() {
+        ConfirmDialog.hide();
+        continueSavingContact();
+      }
+    };
+
+    if (deletedTelNumber) {
+      isIceContact(currentContact, function(result) {
+        if (result === true) {
+          var msgId = 'ICEContactDelTel';
+          if (counters.tel === 0) {
+            msgId = 'ICEContactDelTelAll';
+            ICEData.removeICEContact(currentContact.id);
+          }
+          Contacts.confirmDialog(null, {'id': msgId},
+                                 cancelObject);
+        }
+        else {
+          continueSavingContact();
+        }
+      });
+    }
+    else {
+      continueSavingContact();
+    }
+  };
+
+  function continueSavingContact() {
     currentContact = currentContact || {};
     currentContact = deviceContact || currentContact;
     var deviceGivenName = currentContact.givenName || [''];
@@ -630,10 +689,7 @@ contacts.Form = (function() {
       name: ['']
     };
 
-    var inputs = {
-      'givenName': givenName,
-      'familyName': familyName,
-    };
+    var inputs = { givenName, familyName };
 
     for (var field in inputs) {
       var value = inputs[field].value;
@@ -666,6 +722,7 @@ contacts.Form = (function() {
       if (myContact.id) { //Editing a contact
         currentContact.tel = [];
         currentContact.email = [];
+        currentContact.org = [];
         currentContact.adr = [];
         currentContact.note = [];
         currentContact.photo = [];
@@ -700,10 +757,10 @@ contacts.Form = (function() {
 
       var callbacks = cookMatchingCallbacks(contact);
       cancelHandler = doCancel.bind(callbacks);
-      cancelButton.addEventListener('click', cancelHandler);
+      formHeader.addEventListener('action', cancelHandler);
       doMatch(contact, callbacks);
     });
-  };
+  }
 
   var cookMatchingCallbacks = function cookMatchingCallbacks(contact) {
     return {
@@ -763,7 +820,7 @@ contacts.Form = (function() {
 
             case 'ready':
               // The list of duplicate contacts has been loaded
-              cancelButton.removeEventListener('click', cancelHandler);
+              formHeader.removeEventListener('action', cancelHandler);
               hideThrobber();
               window.setTimeout(Contacts.goBack, 300);
 
@@ -783,7 +840,7 @@ contacts.Form = (function() {
       onmismatch: function() {
         // Saving because there aren't duplicate contacts
         doSave(contact);
-        cancelButton.removeEventListener('click', cancelHandler);
+        formHeader.removeEventListener('action', cancelHandler);
       }
     };
   };
@@ -848,7 +905,7 @@ contacts.Form = (function() {
   };
 
   var doCancel = function doCancel() {
-    cancelButton.removeEventListener('click', cancelHandler);
+    formHeader.removeEventListener('action', cancelHandler);
     window.removeEventListener('message', mergeHandler);
     this.onmatch = this.onmismatch = null;
     window.postMessage({
@@ -937,13 +994,9 @@ contacts.Form = (function() {
   };
 
   function isBuiltInType(type, tagList) {
-    for (var j = 0; j < tagList.length; j++) {
-      if (tagList[j].type === type) {
-          return true;
-      }
-    }
-
-    return false;
+    return tagList.some(function(tag) {
+      return tag.type === type;
+    });
   }
 
   var getPhones = function getPhones(contact) {
@@ -951,23 +1004,19 @@ contacts.Form = (function() {
     var phones = dom.querySelectorAll(selector);
     for (var i = 0; i < phones.length; i++) {
       var currentPhone = phones[i];
-      var arrayIndex = currentPhone.dataset.index;
-      var numberField = dom.getElementById('number_' + arrayIndex);
-      var numberValue = numberField.value;
-      if (!numberValue) {
+      var index = currentPhone.dataset.index;
+      var numberField = dom.getElementById('number_' + index);
+      var value = numberField.value;
+      if (!value) {
         continue;
       }
 
-      selector = 'tel_type_' + arrayIndex;
-      var typeField = dom.getElementById(selector).dataset.value || '';
-      var carrierSelector = 'carrier_' + arrayIndex;
-      var carrierField = dom.getElementById(carrierSelector).value || '';
+      var type = [dom.getElementById('tel_type_' + index).dataset.value || ''];
+      var carrierSelector = 'carrier_' + index;
+      var carrier = dom.getElementById(carrierSelector).value || '';
       contact.tel = contact.tel || [];
-      contact.tel.push({
-        value: numberValue,
-        type: [typeField],
-        carrier: carrierField
-      });
+      /*jshint -W075 */
+      contact.tel.push({ value, type, carrier });
     }
   };
 
@@ -976,20 +1025,18 @@ contacts.Form = (function() {
     var emails = dom.querySelectorAll(selector);
     for (var i = 0; i < emails.length; i++) {
       var currentEmail = emails[i];
-      var arrayIndex = currentEmail.dataset.index;
-      var emailField = dom.getElementById('email_' + arrayIndex);
-      var emailValue = emailField.value;
-      emailValue = emailValue && emailValue.trim();
-      if (!emailValue) {
+      var index = currentEmail.dataset.index;
+      var emailField = dom.getElementById('email_' + index);
+      var value = emailField.value;
+      value = value && value.trim();
+      if (!value) {
         continue;
       }
-      selector = 'email_type_' + arrayIndex;
-      var typeField = dom.getElementById(selector).dataset.value || '';
+
+      var type = [
+        dom.getElementById('email_type_' + index).dataset.value || ''];
       contact.email = contact.email || [];
-      contact.email.push({
-        value: emailValue,
-        type: [typeField]
-      });
+      contact.email.push({ value, type });
     }
   };
 
@@ -1092,8 +1139,10 @@ contacts.Form = (function() {
 
   var resetForm = function resetForm() {
     currentPhoto = null;
+    deletedTelNumber = false;
+
     thumbAction.querySelector('p').classList.remove('hide');
-    var removeIcon = thumbAction.querySelector('button#' + IMG_DELETE_ID);
+    var removeIcon = thumbAction.querySelector('button.' + IMG_DELETE_CLASS);
     if (removeIcon) {
       thumbAction.removeChild(removeIcon);
     }
@@ -1163,33 +1212,36 @@ contacts.Form = (function() {
   var removeFieldIcon = function removeFieldIcon(selector, type) {
     var delButton = document.createElement('button');
     var _ = navigator.mozL10n.get;
-    delButton.id = IMG_DELETE_ID;
-    delButton.className = 'fillflow-row-action';
+
+    delButton.className = IMG_DELETE_CLASS; // + ' fillflow-row-action';
     delButton.setAttribute('aria-label', _('removeField.ariaLabel'));
     delButton.setAttribute('data-l10n-id', 'removeField');
-    delButton.setAttribute('data-type',type);
-
-    var delIcon = document.createElement('span');
-    delIcon.className = 'icon icon-delete';
-    delButton.appendChild(delIcon);
+    delButton.setAttribute('data-type', type);
 
     delButton.onclick = function removeElement(event) {
       // Workaround until 809452 is fixed.
       // What we are avoiding with this condition is removing / restoring
       // a field when the event is simulated by a ENTER Keyboard click
-      if ((event.clientX === 0) && (event.clientY === 0)) {
+      if (event.clientX === 0 && event.clientY === 0) {
         return false;
       }
       event.preventDefault();
+      var container = configs[type].container;
       var elem = document.getElementById(selector);
-      var type = event.target.dataset.type;
 
       if (type !== 'photo') {
         elem.parentNode.removeChild(elem);
+        if (container.querySelectorAll('[data-field]').length === 0) {
+          container.classList.add('empty');
+        }
       }
       else {
         // TODO: Implement the new delete image flow
         console.warn('Delete image');
+      }
+
+      if (type === 'tel') {
+        deletedTelNumber = true;
       }
 
       // Update the aria label for acessibility
@@ -1205,9 +1257,8 @@ contacts.Form = (function() {
 
       textFieldsCache.clear();
       checkDisableButton();
-
-      return false;
     };
+
     return delButton;
   };
 
@@ -1215,7 +1266,7 @@ contacts.Form = (function() {
     // Ensure the removed and FB class names are conveniently reseted
     thumbAction.classList.remove(FB_CLASS);
 
-    var out = thumbAction.querySelector('button#' + IMG_DELETE_ID);
+    var out = thumbAction.querySelector('button.' + IMG_DELETE_CLASS);
     if (!out) {
       out = removeFieldIcon(thumbAction.id, 'photo');
       thumbAction.appendChild(out);
@@ -1228,6 +1279,36 @@ contacts.Form = (function() {
 
     return out;
   };
+
+  function photoAction() {
+    var hasPhoto = getCurrentPhoto() !== null;
+
+    if (!hasPhoto) {
+      pickImage();
+    } else {
+      removeOrUpdatePhoto();
+    }
+  }
+
+  function removeOrUpdatePhoto() {
+    LazyLoader.load('/contacts/js/action_menu.js', function() {
+      var prompt = new ActionMenu('photo-options');
+      prompt.addToList(_('remove-photo'), removePhoto);
+
+      prompt.addToList(_('change-photo'), pickImage);
+
+      prompt.show();
+    });
+  }
+
+  function removePhoto() {
+    currentPhoto = null;
+    if (!emptyForm()) {
+      saveButton.removeAttribute('disabled');
+    }
+    thumbAction.classList.remove('with-photo');
+    Contacts.updatePhoto(null, thumb);
+  }
 
   var pickImage = function pickImage() {
     var activity = new MozActivity({
@@ -1307,7 +1388,6 @@ contacts.Form = (function() {
     'render': render,
     'insertField': insertField,
     'saveContact': saveContact,
-    'onNewFieldClicked': onNewFieldClicked,
-    'pickImage': pickImage
+    'onNewFieldClicked': onNewFieldClicked
   };
 })();

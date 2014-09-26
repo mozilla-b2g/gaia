@@ -267,7 +267,7 @@ suiteGroup('Controllers.Sync', function() {
         });
         assertEmit('syncStart');
 
-        assert.length(calendarSyncCalls, 1, 'emits syncComplete');
+        assert.lengthOf(calendarSyncCalls, 1, 'emits syncComplete');
 
         var sync = calendarSyncCalls[0];
 

@@ -13,24 +13,30 @@ var LanguageManager = {
         // the 2nd parameter is to reset the current enabled layouts
         KeyboardHelper.changeDefaultLayouts(event.settingValue, true);
       });
+    window.addEventListener('localized',
+      this.localizedEventListener.bind(this));
   },
 
   handleEvent: function handleEvent(evt) {
     if (!this.settings || evt.target.name != 'language.current') {
       return true;
     }
-    this.updateSettings(evt.target.value);
+    this.setLanguage(evt.target.value);
     return false;
   },
 
-  // update current launguage and time format settings
-  updateSettings: function settings_updateSettings(language) {
-    var _ = navigator.mozL10n.get;
-    var localeTimeFormat = _('shortTimeFormat');
-    var is12hFormat = (localeTimeFormat.indexOf('%I') >= 0);
-
+  // update current launguage settings
+  setLanguage: function settings_setLanguage(language) {
     this.settings.createLock().set({
-      'language.current': language,
+      'language.current': language
+    });
+  },
+
+  // set proper timeformat while localized
+  localizedEventListener: function settings_localizedEventListener() {
+    var localeTimeFormat = navigator.mozL10n.get('shortTimeFormat');
+    var is12hFormat = (localeTimeFormat.indexOf('%I') >= 0);
+    this.settings.createLock().set({
       'locale.hour12': is12hFormat
     });
   },

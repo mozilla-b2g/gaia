@@ -3,7 +3,7 @@ Keyboards['en-Neo'] = {
   shortLabel: 'En',
   menuLabel: 'Neo',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'number', 'password'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'en_us',
   alt: {
     a: 'áàâäåãāæ',
@@ -18,7 +18,7 @@ Keyboards['en-Neo'] = {
     l: 'ł£',
     y: 'ÿ¥',
     z: 'žźż',
-    '.': ',?!;:'
+    '.': ',?!;:…'
   },
   keys: [
     [
@@ -39,22 +39,25 @@ Keyboards['en-Neo'] = {
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
-  alternateLayout: {
+  pages: [undefined, {
     needsCommaKey: true,
     alt: {
-      '0': 'º',
-      '1': '1st ',
-      '2': '2nd ',
-      '3': '3rd ',
-      '4': '4th ',
-      '5': '5th ',
-      '6': '6th ',
-      '7': '7th ',
-      '8': '8th ',
-      '9': '9th ',
-      '$': '€ £ ¥',
-      '?': '¿',
-      '!': '¡',
+      '1': ['¹', '1st'],
+      '2': ['²', '2nd'],
+      '3': ['³', '3rd'],
+      '4': ['⁴', '4th'],
+      '5': ['⁵', '5th'],
+      '6': ['⁶', '6th'],
+      '7': ['⁷', '7th'],
+      '8': ['⁸', '8th'],
+      '9': ['⁹', '9th'],
+      '0': ['⁰', 'º'],
+      '$': [ '€', '£', '¢', '¥'],
+      '"': ['“', '”'],
+      '\'':['‘', '’'],
+      '?': ['¿'],
+      '!': ['¡'],
+      '+': ['-', '×', '÷', '±'],
       '/': '\\'
     },
     keys: [
@@ -70,8 +73,9 @@ Keyboards['en-Neo'] = {
         { value: '+' }, { value: '-' }
       ], [
         { value: 'Alt', ratio: 2,
-          keyCode: KeyEvent.DOM_VK_ALT,
-          className: 'page-switch-key'
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
         },
         { value: '%' }, { value: '"' }, { value: "'" },
         { value: '1' }, { value: '2' }, { value: '3' },
@@ -81,8 +85,10 @@ Keyboards['en-Neo'] = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  },
-  symbolLayout: {
+  }, {
+    alt: {
+      '®': ['™']
+    },
     needsCommaKey: true,
     keys: [
       [
@@ -96,8 +102,9 @@ Keyboards['en-Neo'] = {
       ],
       [
         { value: 'Alt', ratio: 2,
-          keyCode: KeyEvent.DOM_VK_ALT,
-          className: 'page-switch-key'
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 1
         },
         { value: '|' }, { value: '~' }, { value: 'º' },
         { value: '¹' }, { value: '²' }, { value: '³' },
@@ -107,5 +114,5 @@ Keyboards['en-Neo'] = {
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

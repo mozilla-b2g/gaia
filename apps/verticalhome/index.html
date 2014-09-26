@@ -9,10 +9,11 @@
     <link rel="stylesheet" href="style/css/app.css">
     <link rel="stylesheet" href="style/css/search.css">
     <link rel="stylesheet" href="shared/elements/gaia_grid/style/external.css">
-    <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <link rel="resource" type="application/l10n" href="/shared/locales/collection_categories.ini">
-    <link rel="resource" type="application/l10n" href="/shared/elements/gaia_grid/locales/locales.ini">
-    <link rel="resource" type="application/l10n" href="/shared/elements/gaia_menu/locales/locales.ini">
+    <link rel="manifest" href="manifest.webapp">
+    <link rel="localization" href="locales/homescreen.{locale}.properties">
+    <link rel="localization" href="/shared/locales/collection_categories/collection_categories.{locale}.properties">
+    <link rel="localization" href="/shared/elements/gaia_grid/locales/gaia_grid.{locale}.properties">
+    <link rel="localization" href="/shared/elements/gaia_menu/locales/gaia_menu.{locale}.properties">
 
     <script defer src="shared/js/l10n.js"></script>
     <!-- Those libraries are loaded after rendering icons -->
@@ -38,6 +39,7 @@
     <script defer src="shared/js/bookmarks_database.js"></script>
     <script defer src="shared/js/collections_database.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/settings_listener.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
 
     <script defer src="js/sources/bookmark.js"></script>
@@ -54,6 +56,7 @@
     <script defer src="shared/elements/gaia_grid/js/items/collection.js"></script>
     <script defer src="shared/elements/gaia_grid/js/items/divider.js"></script>
     <script defer src="shared/elements/gaia_grid/js/items/mozapp.js"></script>
+    <!-- <script defer src="shared/elements/gaia_grid/js/items/group.js"></script> -->
     <script defer src="shared/elements/gaia_grid/js/items/placeholder.js"></script>
 
     <!-- Gaia Components -->
@@ -78,17 +81,15 @@
       </gaia-header>
     </section>
 
-    <div class="scrollable">
-      <div id="search" role="button" aria-labelledby="search-input" aria-haspopup="true">
-        <form id="search-form">
-          <input id="search-input" type="text" x-inputmode="verbatim" role="presentation"
-            placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="" dir="auto">
-          </input>
-        </form>
-      </div>
-
-      <gaia-grid id="icons" dragdrop></gaia-grid>
+    <div id="search" role="button" aria-labelledby="search-input" aria-haspopup="true">
+      <form id="search-form">
+        <input id="search-input" type="text" x-inputmode="verbatim" role="presentation"
+          placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="" dir="auto">
+        </input>
+      </form>
     </div>
+
+    <gaia-grid id="icons" dragdrop></gaia-grid>
 
     <gaia-menu id="contextmenu-dialog" hidden>
       <button id="homescreen-settings-action" data-l10n-id="homescreen-settings" type="button"></button>

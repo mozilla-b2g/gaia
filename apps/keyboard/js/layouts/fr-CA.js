@@ -2,8 +2,9 @@ Keyboards['fr-CA'] = {
   label: 'French (Canadian)',
   shortLabel: 'Fr',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'number', 'password'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'fr',
+  autoCorrectPunctuation: false,
   menuLabel: 'Français (Canadien)',
   alt: {
     a: 'áàâäåãāæ',
@@ -18,7 +19,7 @@ Keyboards['fr-CA'] = {
     l: 'ł£',
     y: 'ÿ¥',
     z: 'žźż',
-    '.': ',?!;:'
+    '.': ',?!;:…'
   },
   keys: [
     [
@@ -39,7 +40,7 @@ Keyboards['fr-CA'] = {
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
       '1': ['¹', '1st'],
       '2': ['²', '2nd'],
@@ -51,9 +52,12 @@ Keyboards['fr-CA'] = {
       '8': ['⁸', '8th'],
       '9': ['⁹', '9th'],
       '0': ['⁰', 'º'],
-      '$': ['¥', '€', '£', '¢', '₠'],
+      '$': [ '€', '£', '¢', '¥'],
+      '"': ['“', '”'],
+      '\'':['‘', '’'],
       '?': ['¿'],
-      '!': ['¡']
+      '!': ['¡'],
+      '+': ['-', '×', '÷', '±']
     },
     keys: [
       [
@@ -66,18 +70,22 @@ Keyboards['fr-CA'] = {
         { value: '*' }, { value: '-' }, { value: '_' }, { value: '/' },
         { value: '(' }, { value: ')' }
       ], [
-        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5,
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
+        },
         { value: '+',
           supportsSwitching: {
             value: ','
           }
         }, { value: ':' }, { value: ';' }, { value: '"' },
-        { value: '\'' }, { value: '?' }, { value: '!' },
+        { value: '\'' }, { value: '!' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

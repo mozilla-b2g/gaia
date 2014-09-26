@@ -277,6 +277,34 @@ ul li > label.pack-switch:active {
 }
 
 /******************************************************************************
+ * Split panel
+ */
+ul li.pack-split .name:active {
+  background-color: #B2F2FF;
+}
+
+ul li.pack-split .name {
+  position: absolute;
+  top: 0;
+  width: calc(100% - 9rem);
+  padding-left: 1.5rem;
+}
+
+ul li.pack-split:after {
+  content: '';
+  position: absolute;
+  background-color: #E6E6E3;
+  right: 7.5rem;
+  width: 0.1rem;
+  height: calc(100% - 2rem);
+  top: 1rem;
+}
+
+ul li.pack-split > span {
+  background-color: transparent;
+}
+
+/******************************************************************************
  * Field inputs
  */
 
@@ -304,13 +332,14 @@ input[type=range] {
   background: none;
 }
 
-input[type=range]:-moz-focusring {
-  outline: none;
+input[type=range]::-moz-focus-outer {
+  border: 0;
 }
 
 ul li > label input[type="range"] {
   height: 3rem;
-  width: calc(100% - 15rem);
+  width: calc(100% - 3rem);
+  margin: 1.5rem;
 }
 
 input[type=range]::-moz-range-track {
@@ -480,6 +509,11 @@ html[dir="rtl"] ul li.sound-setting > label input[type="range"] {
 html[dir="rtl"] dl dt {
   padding-left: 0;
   padding-right: 3rem;
+}
+
+html[dir="rtl"] ul li.bluetooth-device > a{
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 html[dir="rtl"] ul li > label.pack-checkbox > .color-preview:before {

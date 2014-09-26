@@ -30,6 +30,7 @@ Contacts.Selectors = {
 
   confirmHeader: '#confirmation-message h1',
   confirmBody: '#confirmation-message p',
+  confirmDismiss: '#confirmation-message menu button',
 
   details: '#view-contact-details',
   detailsEditContact: '#edit-contact-button',
@@ -38,11 +39,14 @@ Contacts.Selectors = {
   detailsFindDuplicate: '#contact-detail-inner #find-merge-button',
   detailsFavoriteButton: '#toggle-favorite',
   detailsContactName: '#contact-name-title',
+  detailsHeader: '#details-view-header',
 
   duplicateFrame: 'iframe[src*="matching_contacts.html"]',
   duplicateHeader: '#title',
   duplicateClose: '#merge-close',
   duplicateMerge: '#merge-action',
+
+  exportButton: '#exportContacts button',
 
   form: '#view-contact-form',
   formTitle: '#contact-form-title',
@@ -51,17 +55,20 @@ Contacts.Selectors = {
   formCustomTagDone: '#view-select-tag #settings-done',
   formNew: '#add-contact-button',
   formGivenName: '#givenName',
+  formOrg: '#org',
   formFamilyName: '#familyName',
   formSave: '#save-button',
   formTel: '#contacts-form-phones input[type="tel"]',
+  formDelFirstTel: '#add-phone-0 .img-delete-button',
   formTelLabelFirst: '#tel_type_0',
   formTelNumberSecond: '#number_1',
   formEmailFirst: '#email_0',
 
   groupList: ' #groups-list',
   list: '#view-contacts-list',
-  listContactFirst: '.contact-item',
-  listContactFirstText: '.contact-item .contact-text',
+  listContactFirst: 'li:not([data-group="ice"]).contact-item',
+  listContactFirstText: 'li:not([data-group="ice"]).contact-item p',
+  contactListHeader: '#contacts-list-header',
 
   searchLabel: '#search-start',
   searchInput: '#search-contact',
@@ -72,10 +79,22 @@ Contacts.Selectors = {
   overlay: 'nav[data-type="scrollbar"] p',
 
   settingsView: '#view-settings',
+  settingsClose: '#settings-close',
   bulkDelete: '#bulkDelete',
 
   editForm: '#selectable-form',
-  editMenu: '#select-all-wrapper'
+  editMenu: '#select-all-wrapper',
+
+  clearOrgButton: '#clear-org',
+  setIceButton: '#set-ice',
+  iceHeader: '#ice-header',
+  iceSwitch1: '#ice-contacts-1-switch',
+  iceInputSwitch1: '#ice-contacts-1-switch input[type="checkbox"]',
+  iceSwitch2: '#ice-contacts-2-switch',
+  iceButton1: '#select-ice-contact-1',
+  iceButton2: '#select-ice-contact-2',
+  iceGroupOpen: '#section-group-ice',
+  iceContact: '#ice-group .contact-item'
 };
 
 Contacts.prototype = {
@@ -161,7 +180,8 @@ Contacts.prototype = {
 
     details = details || {
       givenName: 'Hello',
-      familyName: 'Contact'
+      familyName: 'Contact',
+      org: 'Enterprise'
     };
 
     this.waitForFormShown();

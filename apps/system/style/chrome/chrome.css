@@ -1,14 +1,19 @@
 .appWindow:not(.bar) > .chrome {
   pointer-events: none;
   top: 0;
-  height: 7.6rem;
-  transform: scaleY(0.6521) translateY(-3rem);
+  height: calc(var(--statusbar-height) + 4.4rem);
+  transform: scaleY(var(--rocketbar-scale)) translateY(calc(var(--statusbar-height) * -1));
   transform-origin: top left;
   transition: transform 0.2s ease-in-out, background-color 0.5s ease;
 
   background-color: black;
   background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1));
   color: white;
+}
+
+:not(.browser).appWindow[data-shrinking-state="true"] > .chrome {
+  height: calc(var(--statusbar-height) / var(--rocketbar-scale));
+  transform: scaleY(var(--rocketbar-scale)) translateY(0);
 }
 
 .appWindow.light > .chrome {
@@ -21,22 +26,27 @@
   transform: scaleY(1) translateY(0);
 }
 
-.appWindow:not(.bar).fullscreen-app > .chrome {
-  height: 3rem;
+.appWindow.fullscreen-app:not(.bar) > .chrome:not(.maximized) {
+  height: var(--statusbar-height);
   top: 0;
 }
 
 .appWindow:not(.bar).fullscreen-app > .chrome.maximized {
   top: 0;
+  transform: scaleY(1) translateY(-7.6rem);
 }
 
 .controls {
   pointer-events: auto;
   background-color: transparent;
   position: absolute;
-  bottom: 0;
+  bottom: 0.1rem;
   width: 100%;
   font-size: 0;
+}
+
+.chrome .controls .windows-button {
+  display: none;
 }
 
 /* Special cases */
@@ -44,10 +54,12 @@
   display: none;
 }
 
+[data-manifest-name="FTU"]:not(.bar) > .chrome .controls,
+[data-manifest-name="FTU"]:not(.bar) > .chrome .progress,
 .lockScreenWindow:not(.bar) > .chrome .controls,
-.lockScreenWindow:not(.bar) > .chrome .progress,
+.lockScreenWindow:not(.bar) > .chrome gaia-progress,
 .homescreen:not(.bar) > .chrome .controls,
-.homescreen:not(.bar) > .chrome .progress {
+.homescreen:not(.bar) > .chrome gaia-progress {
   visibility: hidden;
 }
 
@@ -63,60 +75,92 @@
   background-color: black;
 }
 
-/* Special cases for rocketbar on the Top Sites view */
-.search-app .menu-button,
-.search-app .controls .reload-button,
-.search-app .controls .stop-button {
+/* Special cases for Rocketbar in apps with browser chrome */
+.appWindow:not(.browser) .chrome .controls .menu-button {
   display: none;
 }
 
-.search-app .chrome .controls .urlbar {
+.appWindow.fullscreen-app:not(.browser) .chrome .controls .urlbar,
+.appWindow:not(.browser) .chrome .controls .urlbar {
   width: calc(100% - 1rem);
+}
+
+/* Special cases for rocketbar on the Top Sites view */
+.search-app .menu-button,
+.search-app .controls .reload-button,
+.search-app .controls .stop-button
+.chrome .controls .windows-button {
+  display: none;
+}
+
+.appWindow.search-app .chrome .controls .urlbar {
+  width: calc(100% - 4.5rem);
+}
+
+.search-app .chrome .controls .windows-button {
+  display: inline;
 }
 
 /* URL bar */
 .chrome .controls .urlbar {
   width: calc(100% - 4.5rem);
-  height: 3.6rem;
-  line-height: 3.6rem;
-  margin: 0.4rem 0 0.6rem;
+  height: 3.4rem;
+  line-height: 3.4rem;
+  margin: 0 0 0.5rem;
   border-radius: 1.8rem;
   color: inherit;
   overflow: hidden;
   background-color: transparent;
   float: left;
-  margin-left: 0.5rem;
+  -moz-margin-start: 0.5rem;
 }
 
-.scrollable .chrome .controls button:not([disabled]) + button[disabled] + .urlbar,
-.scrollable .chrome .controls button:not([disabled]) + .urlbar {
-  margin-left: 0;
+.collapsible .chrome .controls button:not([disabled]) + button[disabled] + .urlbar,
+.collapsible .chrome .controls button:not([disabled]) + .urlbar {
+  -moz-margin-start: 0;
 }
 
 .maximized .controls .urlbar {
-  background-color: rgba(51,51,51,0.5);
+  background-color: rgba(204,204,204,0.2);
 }
 
 .appWindow.light .maximized .controls .urlbar {
-  background-color: rgba(201,201,201,0.4);
+  background-color: rgba(204,204,204,0.4);
 }
 
 .chrome .controls .urlbar .title {
   width: calc(100% - 3.2rem);
-  padding-left: 1rem;
+  padding-top: 0;
+  padding-bottom: 0;
+  -moz-padding-start: 1.45rem;
+  -moz-padding-end: 0.8rem;
   box-sizing: padding-box;
   overflow: hidden;
   white-space: nowrap;
   font-weight: 300;
-  font-size: 2rem;
+  font-size: 1.8rem;
   float: none;
-  background-color: rgba(51,51,51,0.5);
+  background-color: rgba(204,204,204,0.2);
   border-radius: 1.8rem;
   text-overflow: ellipsis;
+  font-style: italic;
+}
+
+.search-app .chrome.maximized .controls .urlbar:after {
+  content: '';
+  width: 2rem;
+  height: 100%;
+  top: 0;
+  right: 0.8rem;
+  position: absolute;
+  background-image: url('images/search.png');
+  background-repeat: no-repeat;
+  background-size: 2rem auto;
+  background-position: center right;
 }
 
 .appWindow.light .chrome:not(.maximized) .controls .urlbar .title {
-  background-color: rgba(201,201,201,0.4);
+  background-color: rgba(204,204,204,0.4);
 }
 
 .maximized .controls .urlbar .title {
@@ -136,14 +180,26 @@
   width: calc(100% - 12rem);
 }
 
+.appWindow:not(.browser) .controls .forward-button:not([disabled]) + .urlbar {
+  width: calc(100% - 4.5rem);
+}
+
+.appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar {
+  width: calc(100% - 4.5rem);
+}
+
+.appWindow:not(.browser) .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
+  width: calc(100% - 8.5rem);
+}
+
 .controls .urlbar {
-  transform: scaleX(0.6521);
+  transform: scaleX(var(--rocketbar-scale)) translateY(0.1rem);
   transform-origin: top left;
   transition: transform 0.2s ease-in-out;
 }
 
-.appWindow.fullscreen-app .controls .urlbar {
-  transform: scale(0.6521) translateY(0.2rem);
+.appWindow.fullscreen-app .chrome:not(.maximized) .controls .urlbar {
+  transform: scale(var(--rocketbar-scale)) translateY(0.3rem);
   transform-origin: bottom left;
 }
 
@@ -152,22 +208,22 @@
 }
 
 .chrome.maximized .title[data-ssl="secure"] {
-  padding-left: 3rem;
-  background: url("images/ssl.png") no-repeat 1.3rem center;
+  -moz-padding-start: 3rem;
+  background: url("images/light/ssl.png") no-repeat 0.1rem center / 3rem 3rem;
 }
 
 .chrome.maximized .title[data-ssl="broken"] {
-  padding-left: 3rem;
-  background: url("images/ssl_broken.png") no-repeat 1.3rem center;
+  -moz-padding-start: 3rem;
+  background: url("images/light/ssl_broken.png") no-repeat 0.1rem center / 3rem 3rem;
 }
 
-.scrollable .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
-.scrollable .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(0.6521) translateX(-5.5rem);
+.collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
+.collapsible .chrome:not(.maximized) .forward-button:not([disabled]) + .urlbar {
+  transform: scaleX(var(--rocketbar-scale)) translateX(-5.5rem);
 }
 
-.scrollable .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
-  transform: scaleX(0.6521) translateX(-12rem);
+.collapsible .chrome:not(.maximized) .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar {
+  transform: scaleX(var(--rocketbar-scale)) translateX(-12rem);
 }
 
 
@@ -201,7 +257,22 @@
   padding: 0 0.3rem;
   width: 3rem;
   height: 3rem;
+}
+
+.controls .reload-button::before,
+.controls .stop-button::before {
+  content: '';
+  position: relative;
+  right: 0.2rem;
+  display: block;
+  height: 2.4rem;
   border-left: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Vertically align butons outside of urlbar. */
+.controls > button {
+  position: relative;
+  top: -0.2rem;
 }
 
 .loading .controls .reload-button {
@@ -238,206 +309,162 @@
 }
 
 
-/* Buttons Images */
+/* Default (dark) theme button styles */
 .controls .back-button {
-  background-image: url("images/back.png");
-}
-
-.controls .forward-button {
-  background-image: url("images/forward.png");
-}
-
-.controls .reload-button {
-  background-image: url("images/reload.png");
-}
-
-.controls .stop-button {
-  background-image: url("images/stop.png");
-}
-
-.controls .menu-button {
-  background-image: url("images/overflow.png");
-}
-
-.light .controls .back-button {
   background-image: url("images/dark/back.png");
 }
 
-.light .controls .back-button:active {
+.controls .back-button:active {
   background-image: url("images/dark/back_active.png");
 }
 
-.light .controls .forward-button {
+.controls .forward-button {
   background-image: url("images/dark/forward.png");
 }
 
-.light .controls .forward-button:active {
+.controls .forward-button:active {
   background-image: url("images/dark/forward_active.png");
 }
 
-.light .controls .reload-button {
+.controls .menu-button {
+  background-image: url("images/dark/options.png");
+}
+
+.controls .menu-button:active {
+  background-image: url("images/dark/options_active.png");
+}
+
+.controls .reload-button {
   background-image: url("images/dark/reload.png");
 }
 
-.light .controls .reload-button:active {
+.controls .reload-button:active {
   background-image: url("images/dark/reload_active.png");
 }
 
-.light .controls .stop-button {
+.controls .stop-button {
   background-image: url("images/dark/stop.png");
 }
 
-.light .controls .stop-button:active {
+.controls .stop-button:active {
   background-image: url("images/dark/stop_active.png");
 }
 
+.controls .windows-button {
+  background-image: url('images/dark/windows.png');
+}
+
+.controls .windows-button:active {
+  background-image: url('images/dark/windows_active.png');
+}
+
+/* Light theme button styles */
+.light .controls .menu-button:active {
+  background-image: url("images/light/overflow_active.png");
+}
+
+.light .controls .back-button {
+  background-image: url("images/light/back.png");
+}
+
+.light .controls .back-button:active {
+  background-image: url("images/light/back_active.png");
+}
+
+.light .controls .forward-button {
+  background-image: url("images/light/forward.png");
+}
+
+.light .controls .forward-button:active {
+  background-image: url("images/light/forward_active.png");
+}
+
 .light .controls .menu-button {
-  background-image: url("images/dark/overflow.png");
+  background-image: url("images/light/options.png");
 }
 
 .light .controls .menu-button:active {
-  background-image: url("images/dark/overflow_active.png");
+  background-image: url("images/light/options_active.png");
+}
+
+.light .controls .reload-button {
+  background-image: url("images/light/reload.png");
+}
+
+.light .controls .reload-button:active {
+  background-image: url("images/light/reload_active.png");
+}
+
+.light .controls .stop-button {
+  background-image: url("images/light/stop.png");
+}
+
+.light .controls .stop-button:active {
+  background-image: url("images/light/stop_active.png");
+}
+
+.light .controls .windows-button {
+  background-image: url('images/light/windows.png');
+}
+
+.light .controls .windows-button:active {
+  background-image: url('images/light/windows_active.png');
+}
+
+.light .controls .menu-button:active {
+  background-image: url("images/light/overflow_active.png");
 }
 
 /* Overflow menu */
 
-.appWindow > .overflow-menu {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  /* Same as titlebar */
-  z-index: 1001;
-  padding: 11.4rem 3rem 0;
-  background-color: rgba(231, 231, 231, 0.6);
-  transition: opacity 0.3s;
-  pointer-events: auto;
-}
-
-.appWindow > .overflow-menu.hidden {
-  display: none;
-}
-
-.appWindow > .overflow-menu.showing {
-  background-color: transparent;
-}
-
-/* XXX Possibly a Gecko bug, if you don't specify this pseudo-element, the
- *     animation set on it below won't re-play subsequent times.
- */
-.overflow-menu::before {
-  content: '';
-}
-
-.overflow-menu.showing::before {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(231, 231, 231, 0.6);
-  border-radius: 0 0 0 100%;
-  transform-origin: 100% 0;
-  will-change: transform;
-
-  animation-name: grow;
-  animation-duration: 0.4s;
-}
-
-@keyframes grow {
-  from { transform: scale(0, 0); }
-  to { transform: scale(2, 2); }
-}
-
-.appWindow > .overflow-menu.hiding {
-  opacity: 0;
-}
-
-.overflow-menu > .list {
-  background-color: white;
-  width: 100%;
-  border: 0.1rem solid rgba(189, 189, 189, 0.1);
-  border-bottom: none;
-  transition: opacity 0.2s;
-  box-sizing: border-box;
-}
-
-.overflow-menu.showing > .list {
-  opacity: 0;
-}
-
-.overflow-menu > .list > .option {
-  height: 5rem;
-  border-bottom: 0.1rem solid rgba(189, 189, 189, 0.1);
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-}
-
-.overflow-menu > .list > :not(#share).option[data-disabled] {
-  display: none;
-}
-
-.overflow-menu > .list > #share.option[data-disabled] {
-  pointer-events: none;
-}
-
-.overflow-menu > .list > .option * {
-  pointer-events: none;
-  transition: opacity 0.2s;
-}
-
-.overflow-menu > .list > #share.option[data-disabled] * {
-  opacity: 0.5;
-}
-
-.overflow-menu > .list > .option > .icon {
-  display: inline-block;
-  width: 6rem;
-  height: 100%;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.overflow-menu > .list > .option > .label {
-  font-size: 1.6rem;
-  font-style: italic;
-  color: #00aac5;
-  display: inline-block;
-}
-
-.option#new-window > .icon {
+gaia-overflow-menu button#new-window {
   background-image: url("images/menu_new_window.png");
 }
 
-.option#add-to-home > .icon {
+gaia-overflow-menu button#add-to-home {
   background-image: url("images/menu_add_to_homescreen.png");
 }
 
-.option#share > .icon {
+gaia-overflow-menu button#share {
   background-image: url("images/menu_share.png");
 }
 
 /* Progress */
-.appWindow:not(.bar).scrollable > .chrome .progress {
+.appWindow:not(.bar).collapsible > .chrome gaia-progress {
   top: 7.3rem;
 }
 
 /* App specifics */
-.appWindow:not(.scrollable) > .chrome .controls button {
+.appWindow:not(.collapsible) > .chrome:not(.maximized) .controls button {
   display: none;
 }
 
-.appWindow:not(.scrollable) > .chrome .controls .forward-button:not([disabled]) + .urlbar,
-.appWindow:not(.scrollable) > .chrome .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
-.appWindow:not(.scrollable) > .chrome .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar,
-.appWindow:not(.scrollable) > .chrome .controls .urlbar {
+.appWindow:not(.collapsible) > .chrome:not(.maximized) .controls .forward-button:not([disabled]) + .urlbar,
+.appWindow:not(.collapsible) > .chrome:not(.maximized) .controls .back-button:not([disabled]) + .forward-button[disabled] + .urlbar,
+.appWindow:not(.collapsible) > .chrome:not(.maximized) .controls .back-button:not([disabled]) + .forward-button:not([disabled]) + .urlbar,
+.appWindow:not(.collapsible) > .chrome:not(.maximized) .controls .urlbar {
   width: calc(100% - 8rem);
 }
 
-.appWindow:not(.scrollable) > .chrome .controls .urlbar .title {
+.appWindow:not(.collapsible) > .chrome .controls .urlbar .title {
   width: calc(100%);
 }
 
+/* RTL View */
+html[dir="rtl"] .appWindow:not(.bar) > .chrome {
+  transform-origin: top right;
+}
+
+html[dir="rtl"] .chrome .controls .urlbar {
+  float: right;
+}
+
+html[dir="rtl"] .search-app .chrome.maximized .controls .urlbar:after {
+  left: 0.8rem;
+  right: unset;
+  background-position: center left;
+}
+
+html[dir="rtl"] .controls .urlbar {
+  transform-origin: top right;
+}

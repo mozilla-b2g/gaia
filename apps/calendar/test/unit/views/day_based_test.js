@@ -4,6 +4,8 @@ requireLib('querystring.js');
 requireLib('timespan.js');
 requireLib('utils/overlap.js');
 requireLib('utils/ordered_map.js');
+requireLib('template.js');
+requireLib('templates/date_span.js');
 requireLib('templates/day.js');
 requireLib('views/day_based.js');
 
@@ -98,11 +100,11 @@ suiteGroup('Views.DayBased', function() {
       addCalledWith = [];
 
       subject.add = function() {
-        addCalledWith.push(arguments);
+        addCalledWith.push(Array.slice(arguments));
       };
 
       controller.findAssociated = function() {
-        requestCalledWith.push(arguments);
+        requestCalledWith.push(Array.slice(arguments));
       };
     });
 
@@ -311,7 +313,7 @@ suiteGroup('Views.DayBased', function() {
         '[data-id="' + busytime._id + '"]'
       );
 
-      assert.length(elements, 1);
+      assert.lengthOf(elements, 1);
 
       var record = hour.records.get(id);
       assert.isTrue(record);
@@ -480,7 +482,6 @@ suiteGroup('Views.DayBased', function() {
 
     function hourHTML(hour) {
       return subject.template.hour.render({
-        displayHour: Calendar.Calc.formatHour(hour),
         hour: hour
       });
     }
@@ -506,7 +507,7 @@ suiteGroup('Views.DayBased', function() {
     test('allday', function() {
       subject.createHour('allday');
       var parent = subject.allDayElement;
-      assert.length(parent.children, 1);
+      assert.lengthOf(parent.children, 1);
     });
 
     test('first', function() {
@@ -617,14 +618,14 @@ suiteGroup('Views.DayBased', function() {
       list.push(item[1].element);
     });
 
-    var displayedHours = Calendar.Calc.hoursOfOccurance(
+    var displayedHours = Calendar.Calc.hoursOfOccurence(
       subject.date,
       busytime.startDate,
       busytime.endDate
     );
 
     displayedHours.forEach(subject.removeHour, subject);
-    assert.length(subject.hours, 0);
+    assert.lengthOf(subject.hours, 0);
 
     list.forEach(function(el) {
       assert.ok(!el.parentNode, 'removed element');
@@ -674,13 +675,13 @@ suiteGroup('Views.DayBased', function() {
     for (; hour < 24; hour++) {
       assert.include(
         html,
-        Calendar.Calc.formatHour(hour),
+        hour,
         'should have rendered:' + hour
       );
       today.setHours(hour, 0, 0, 0);
       assert.include(
         html,
-        'data-l10n-date-format="hour-format" data-date="' + today + '"',
+        'data-date="' + today + '"',
         'should have rendered:' + hour + ' locale data'
       );
     }

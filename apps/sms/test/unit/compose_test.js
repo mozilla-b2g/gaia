@@ -14,7 +14,8 @@
 
 'use strict';
 
-requireApp('sms/js/compose.js');
+require('/js/event_dispatcher.js');
+require('/js/compose.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/drafts.js');
 
@@ -66,6 +67,25 @@ suite('compose_test.js', function() {
       new MockAttachment(oversizedImageBlob, { name: 'oversized.jpg' }) :
       new MockAttachment(smallImageBlob, { name: 'small.jpg' });
     return attachment;
+  }
+
+  /**
+   * Waits for "count" "eventName" events.
+   * @param {string} eventName Compose event name to wait for.
+   * @param {number?} count Optional number of fired events to wait for. If not
+   * specified - 1 is used.
+   * @returns {Promise} Promise that is resolved once event fired "count" times.
+   */
+  function waitForComposeEvent(eventName, count) {
+    count = count || 1;
+    return new Promise((resolve) => {
+      Compose.on(eventName, function onEvent() {
+        if (--count === 0) {
+          Compose.off(eventName, onEvent);
+          resolve();
+        }
+      });
+    });
   }
 
   suiteSetup(function(done) {
@@ -204,42 +224,6 @@ suite('compose_test.js', function() {
           subject.innerHTML = '<br><br><br>foo';
           Compose.toggleSubject();
           assert.isFalse(Compose.isSubjectEmpty());
-        });
-
-        test('> isMultilineSubject:true', function() {
-          subject.innerHTML = '<br>';
-          Compose.toggleSubject();
-
-          assert.isFalse(Compose.isMultilineSubject());
-
-          subject.innerHTML = 'Foo<br>Bar';
-
-          assert.isTrue(Compose.isMultilineSubject());
-        });
-
-        test('> isMultilineSubject:false', function() {
-          subject.textContent = '123456789';
-          Compose.toggleSubject();
-          assert.isFalse(Compose.isMultilineSubject());
-        });
-
-        test('> isMultilineSubject depends on line height', function() {
-          subject.textContent = '123456789';
-          Compose.toggleSubject();
-
-          var subjectLineHeight = Number.parseInt(
-            window.getComputedStyle(subject).lineHeight
-          );
-
-          subject.style.height = (subjectLineHeight * 2) + 'px';
-
-          assert.isTrue(Compose.isMultilineSubject());
-
-          subject.style.height = (subjectLineHeight * 1.5) + 'px';
-          assert.isFalse(Compose.isMultilineSubject());
-
-          subject.style.height = (subjectLineHeight * 3) + 'px';
-          assert.isTrue(Compose.isMultilineSubject());
         });
       });
     });
@@ -409,7 +393,7 @@ suite('compose_test.js', function() {
       });
 
       teardown(function() {
-        Compose.clearListeners();
+        Compose.offAll();
         typeWhenEvent = null;
       });
 
@@ -558,19 +542,12 @@ suite('compose_test.js', function() {
       });
 
       test('Place cursor at the end of the compose field', function() {
-        var mockSelection = {
-          selectAllChildren: function() {},
-          collapseToEnd: function() {}
-        };
-
-        this.sinon.stub(window, 'getSelection').returns(mockSelection);
-        this.sinon.spy(mockSelection, 'selectAllChildren');
-        this.sinon.spy(mockSelection, 'collapseToEnd');
         Compose.fromDraft(d1);
 
-        sinon.assert.calledOnce(mockSelection.selectAllChildren);
-        sinon.assert.calledWith(mockSelection.selectAllChildren, message);
-        sinon.assert.calledOnce(mockSelection.collapseToEnd);
+        var range = window.getSelection().getRangeAt(0);
+        assert.equal(message.lastChild.tagName, 'BR');
+        assert.isTrue(range.collapsed);
+        assert.equal(range.startOffset, message.childNodes.length - 1);
       });
 
       test('Draft with subject', function() {
@@ -618,6 +595,17 @@ suite('compose_test.js', function() {
     });
 
     suite('requestAttachment', function() {
+      var originalLimit;
+
+      setup(function() {
+        this.sinon.spy(Utils, 'cloneBlob');
+        originalLimit = Settings.mmsSizeLimitation;
+      });
+
+      teardown(function() {
+        Settings.mmsSizeLimitation = originalLimit;
+      });
+
       test('correctly invokes the "pick" MozActivity', function() {
         Compose.requestAttachment();
         assert.equal(MockMozActivity.calls.length, 1);
@@ -627,29 +615,98 @@ suite('compose_test.js', function() {
         assert.isArray(call.data.type);
         assert.include(call.data.type, 'image/*');
       });
-      test('Invokes the provided "onsuccess" handler with an appropriate ' +
-        'Attachment instance', function(done) {
+
+      test('Invokes "onsuccess" handler with image attachment instance ' +
+        'which need copy for image size not over the limit)', function(done) {
         var req = Compose.requestAttachment();
         req.onsuccess = function(attachment) {
-          assert.instanceOf(attachment, Attachment);
+          done(function() {
+            assert.instanceOf(attachment, Attachment);
 
-          // TODO: Move these assertions to a higher-level test suite that
-          // concerns interactions between disparate units.
-          // See: Bug 868056
-          assert.equal(attachment.name, activity.result.name);
-          assert.equal(attachment.blob, activity.result.blob);
+            // TODO: Move these assertions to a higher-level test suite that
+            // concerns interactions between disparate units.
+            // See: Bug 868056
+            assert.equal(attachment.name, activity.result.name);
 
-          done();
+            // The blob in the attachment may be a copy of the blob in the
+            // activity result, but the size and type must be the same.
+            sinon.assert.calledWith(Utils.cloneBlob, activity.result.blob);
+            assert.equal(attachment.blob.type, activity.result.blob.type);
+            assert.equal(attachment.blob.size, activity.result.blob.size);
+          });
         };
 
         // Simulate a successful 'pick' MozActivity
         var activity = MockMozActivity.instances[0];
         activity.result = {
           name: 'test',
-          blob: new Blob()
+          blob: new Blob(['fake jpeg'], { type: 'image/jpeg' })
         };
         activity.onsuccess();
       });
+
+      test('Invokes "onsuccess" handler with image attachment instance ' +
+        'which does not need copy for size over limit)', function(done) {
+        var req = Compose.requestAttachment();
+        req.onsuccess = function(attachment) {
+          done(function() {
+            assert.instanceOf(attachment, Attachment);
+
+            // TODO: Move these assertions to a higher-level test suite that
+            // concerns interactions between disparate units.
+            // See: Bug 868056
+            assert.equal(attachment.name, activity.result.name);
+
+            // The image blob in the attachment doesn't need a copy of the blob
+            // if it need resize later.
+            sinon.assert.notCalled(Utils.cloneBlob);
+            assert.equal(attachment.blob, activity.result.blob);
+          });
+        };
+
+        Settings.mmsSizeLimitation = 1;
+
+        // Simulate a successful 'pick' MozActivity
+        var activity = MockMozActivity.instances[0];
+        activity.result = {
+          name: 'test',
+          blob: new Blob(['fake jpeg'], { type: 'image/jpeg' })
+        };
+        activity.onsuccess();
+      });
+
+      test('Invokes "onsuccess" handler with non-image attachment instance ',
+        function(done) {
+
+        var req = Compose.requestAttachment();
+        req.onsuccess = function(attachment) {
+          done(function() {
+            assert.instanceOf(attachment, Attachment);
+
+            // TODO: Move these assertions to a higher-level test suite that
+            // concerns interactions between disparate units.
+            // See: Bug 868056
+            assert.equal(attachment.name, activity.result.name);
+
+            // The  blob in the attachment doesn't need a copy of the blob
+            // if it's not image.
+            sinon.assert.notCalled(Utils.cloneBlob);
+            assert.equal(attachment.blob, activity.result.blob);
+          });
+        };
+
+        // Simulate a successful 'pick' MozActivity
+        var activity = MockMozActivity.instances[0];
+        activity.result = {
+          name: 'test',
+          blob: {
+            size: 100,
+            type: 'video/mp4'
+          }
+        };
+        activity.onsuccess();
+      });
+
       test('Invokes the provided "failure" handler when the MozActivity fails',
         function(done) {
         var req = Compose.requestAttachment();
@@ -821,47 +878,46 @@ suite('compose_test.js', function() {
     });
 
     suite('Message Type Events', function() {
-      var expectType;
-
-      function typeChange(event) {
-        assert.equal(Compose.type, expectType);
-        typeChange.called++;
-      }
+      var typeChangeStub;
 
       setup(function() {
-        expectType = 'sms';
         Compose.clear();
-        typeChange.called = 0;
 
-        Compose.on('type', typeChange);
+        typeChangeStub = sinon.stub();
+
+        Compose.on('type', typeChangeStub);
       });
 
       teardown(function() {
-        Compose.off('type', typeChange);
+        Compose.off('type', typeChangeStub);
       });
 
       test('Message switches type when adding attachment but not when clearing',
         function() {
-        expectType = 'mms';
         Compose.append(mockAttachment());
-        assert.equal(typeChange.called, 1);
+
+        sinon.assert.calledOnce(typeChangeStub);
+        assert.equal(Compose.type, 'mms');
 
         Compose.clear();
-        assert.equal(typeChange.called, 1);
+
+        sinon.assert.calledOnce(typeChangeStub);
         assert.equal(Compose.type, 'sms');
       });
 
       test('Message switches type when adding/removing subject',
         function() {
-        expectType = 'mms';
         Compose.toggleSubject();
         subject.textContent = 'foo';
         subject.dispatchEvent(new CustomEvent('input'));
-        assert.equal(typeChange.called, 1);
 
-        expectType = 'sms';
+        sinon.assert.calledOnce(typeChangeStub);
+        assert.equal(Compose.type, 'mms');
+
         Compose.toggleSubject();
-        assert.equal(typeChange.called, 2);
+
+        sinon.assert.calledTwice(typeChangeStub);
+        assert.equal(Compose.type, 'sms');
       });
     });
 
@@ -1529,19 +1585,8 @@ suite('compose_test.js', function() {
       subject.dispatchEvent(event);
     }
 
-    // Wait "count" segmentinfochange events. (default: 1)
     function waitForSegmentinfo(count) {
-      count = count || 1;
-
-      var resolveFunction;
-      return new Promise(function(resolve, reject) {
-        Compose.on('segmentinfochange', resolve);
-        resolveFunction = resolve;
-      }).then(function() {
-        if (--count === 0) {
-          Compose.off('segmentinfochange', resolveFunction);
-        }
-      });
+      return waitForComposeEvent('segmentinfochange', count);
     }
 
     setup(function(done) {
@@ -1566,7 +1611,7 @@ suite('compose_test.js', function() {
       // some tests use a rejected promise
       segmentInfoPromise.catch(() => {}).then(function() {
         Compose.clear();
-        Compose.clearListeners();
+        Compose.offAll();
       }).then(done, done);
     });
 
@@ -1751,7 +1796,7 @@ suite('compose_test.js', function() {
         deferred2.resolve(segmentInfo2);
 
         waitForSegmentinfo(2).then(function() {
-          assert.deepEqual(results, [ segmentInfo1, segmentInfo2 ]);
+          assert.equal(results[1], segmentInfo2);
         }).then(done, done);
       });
 
@@ -1761,9 +1806,126 @@ suite('compose_test.js', function() {
 
         waitForSegmentinfo(2).then(function() {
           // note: this is wrong, but this won't happen in real life
-          assert.deepEqual(results, [ segmentInfo2, segmentInfo1 ]);
+          assert.equal(results[1], segmentInfo1);
         }).then(done, done);
       });
+    });
+  });
+
+  suite('Message char counter', function() {
+    var messageCounter,
+        segmentInfoResponse;
+
+    setup(function(done) {
+      this.sinon.stub(
+        MessageManager,
+        'getSegmentInfo',
+        () => Promise.resolve(segmentInfoResponse)
+      );
+
+      loadBodyHTML('/index.html');
+      messageCounter = document.querySelector('.js-message-counter');
+
+      Compose.init('messages-compose-form');
+      waitForComposeEvent('segmentinfochange').then(done);
+      clock.tick(UPDATE_DELAY);
+
+      // Initiate next update
+      Compose.append('Some text');
+    });
+
+    test('there are no segments', function(done) {
+      Compose.clear();
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'sms');
+        assert.equal(messageCounter.textContent, '');
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+
+    test('in first segment, enough characters', function(done) {
+      segmentInfoResponse = {
+        segments: 1,
+        charsAvailableInLastSegment: 25
+      };
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'sms');
+        assert.equal(messageCounter.textContent, '');
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+
+    test('in first segment, less or equal then 20 chars left', function(done) {
+      segmentInfoResponse = {
+        segments: 1,
+        charsAvailableInLastSegment: 20
+      };
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'sms');
+        assert.equal(messageCounter.textContent, '20/1');
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+
+    test('in second segment', function(done) {
+      segmentInfoResponse = {
+        segments: 2,
+        charsAvailableInLastSegment: 40
+      };
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'sms');
+        assert.equal(messageCounter.textContent, '40/2');
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+
+    test('in last segment', function(done) {
+      segmentInfoResponse = {
+        segments: 10,
+        charsAvailableInLastSegment: 20
+      };
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'sms');
+        assert.equal(messageCounter.textContent, '20/10');
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
+    });
+
+    test('clears counter if type changed to MMS', function(done) {
+      segmentInfoResponse = {
+        segments: 11,
+        charsAvailableInLastSegment: 40
+      };
+
+      waitForComposeEvent('segmentinfochange').then(function() {
+        assert.equal(Compose.type, 'mms');
+        assert.equal(messageCounter.textContent, '');
+
+        // Go back to sms
+        segmentInfoResponse = {
+          segments: 10,
+          charsAvailableInLastSegment: 40
+        };
+        Compose.append('Some other text');
+        clock.tick(UPDATE_DELAY);
+
+        return waitForComposeEvent('segmentinfochange').then(function () {
+          assert.equal(Compose.type, 'sms');
+          assert.equal(messageCounter.textContent, '40/10');
+        });
+      }).then(done, done);
+
+      clock.tick(UPDATE_DELAY);
     });
   });
 });

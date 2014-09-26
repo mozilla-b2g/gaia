@@ -35,7 +35,7 @@ suite('value selector/value selector', function() {
       inputType: 'date'
     }
   };
-  var fakeSheetsTransitionStart = { type: '_sheetstransitionstart' };
+  var fakeSheetsGestureBegin = { type: '_sheetsgesturebegin' };
   var fakeClosing = { type: '_closing' };
   var fakeOpening = { type: '_opening' };
   var fakeLocalizedEvent = { type: '_localized' };
@@ -82,6 +82,7 @@ suite('value selector/value selector', function() {
   });
 
   test('Time Picker (en-US)', function() {
+    var stubPublish = this.sinon.stub(vs, 'publish');
     stubMozl10nGet =
       this.sinon.stub(navigator.mozL10n, 'get').returns('%I:%M %p');
     navigator.mozHour12 = true;
@@ -90,6 +91,7 @@ suite('value selector/value selector', function() {
 
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
 
+    assert.isTrue(stubPublish.calledWith('shown'));
     assert.isFalse(vs.element.hidden);
     assert.isFalse(vs.elements.timePickerPopup.hidden);
     assert.isTrue(vs._timePicker.is12hFormat);
@@ -134,6 +136,8 @@ suite('value selector/value selector', function() {
 
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     assert.ok(vs.elements.timePickerContainer.classList.contains('format12h'));
+    assert.ok(!vs.elements.timePickerContainer.classList.contains(
+      'format24h'));
     stubMozl10nGet.restore();
 
     // change to 24h format
@@ -144,6 +148,8 @@ suite('value selector/value selector', function() {
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     assert.ok(vs.elements.timePickerContainer.classList.contains(
       'format24h'));
+    assert.ok(!vs.elements.timePickerContainer.classList.contains(
+      'format12h'));
   });
 
   test('Time Picker reset at timeformat change', function() {
@@ -154,6 +160,8 @@ suite('value selector/value selector', function() {
 
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     assert.ok(vs.elements.timePickerContainer.classList.contains('format12h'));
+    assert.ok(!vs.elements.timePickerContainer.classList.contains(
+      'format24h'));
     stubMozl10nGet.restore();
 
     // change to 24h format
@@ -164,6 +172,8 @@ suite('value selector/value selector', function() {
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     assert.ok(vs.elements.timePickerContainer.classList.contains(
       'format24h'));
+    assert.ok(!vs.elements.timePickerContainer.classList.contains(
+      'format12h'));
   });
 
   test('Date Picker (en-US)', function() {
@@ -177,6 +187,7 @@ suite('value selector/value selector', function() {
   });
 
   test('hide', function() {
+    var stub_publish = this.sinon.stub(vs, 'publish');
     var stub_setVisibleForScreenReader = this.sinon.stub(app,
       '_setVisibleForScreenReader');
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
@@ -184,13 +195,14 @@ suite('value selector/value selector', function() {
     vs.hide();
     assert.isTrue(vs.element.hidden);
     assert.isTrue(stub_setVisibleForScreenReader.calledWith(true));
+    assert.isTrue(stub_publish.calledWith('hidden'));
   });
 
-  test('cancel on "_sheetstransitionstart" event', function() {
+  test('cancel on "_sheetsgesturebegin" event', function() {
     vs.handleEvent(fakeTimeInputMethodContextChangeEvent);
     this.sinon.stub(vs, 'cancel');
 
-    vs.handleEvent(fakeSheetsTransitionStart);
+    vs.handleEvent(fakeSheetsGestureBegin);
     sinon.assert.calledOnce(vs.cancel);
   });
 

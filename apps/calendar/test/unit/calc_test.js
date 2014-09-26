@@ -68,38 +68,6 @@ suite('calendar/calc', function() {
 
   });
 
-  suite('#formatHour', function() {
-    var realDateFormat;
-    var fmt;
-
-    suiteSetup(function() {
-      realDateFormat = Calendar.App.dateFormat;
-      fmt = navigator.mozL10n.DateTimeFormat();
-      Calendar.App.dateFormat = fmt;
-    });
-
-    suiteTeardown(function() {
-      Calendar.App.dateFormat = realDateFormat;
-    });
-
-/*
-// These tests are currently failing and have been temporarily disabled as per
-// Bug 838993. They should be fixed and re-enabled as soon as possible as per
-// Bug 840489.
-// These test appear to make incorrect assumptions about localization details
-// (they do not fail on systems configured for US English).
-    test('7 hours', function() {
-      var result = subject.formatHour(7);
-      assert.equal(result, '7 AM');
-    });
-
-    test('23 hours', function() {
-      var result = subject.formatHour(23);
-      assert.equal(result, '11 PM');
-    });
-*/
-  });
-
   test('#dayOfWeekFromSunday', function() {
     var expected = [
       ['sun', 0, 0],
@@ -474,19 +442,19 @@ suite('calendar/calc', function() {
 
   });
 
-  suite('#hoursOfOccurance', function() {
+  suite('#hoursOfOccurence', function() {
     var center;
 
     setup(function() {
       center = new Date(2012, 0, 1);
     });
 
-    function hoursOfOccurance(start, end) {
-      return subject.hoursOfOccurance(center, start, end);
+    function hoursOfOccurence(start, end) {
+      return subject.hoursOfOccurence(center, start, end);
     }
 
     test('overlap before', function() {
-      var out = hoursOfOccurance(
+      var out = hoursOfOccurence(
         new Date(2011, 1, 5),
         new Date(2012, 0, 1, 3)
       );
@@ -495,7 +463,7 @@ suite('calendar/calc', function() {
     });
 
     test('overlap after', function() {
-      var out = hoursOfOccurance(
+      var out = hoursOfOccurence(
         new Date(2012, 0, 1, 20),
         new Date(2012, 0, 2, 2)
       );
@@ -504,7 +472,7 @@ suite('calendar/calc', function() {
     });
 
     test('one hour', function() {
-      var out = hoursOfOccurance(
+      var out = hoursOfOccurence(
         new Date(2012, 0, 1, 5),
         new Date(2012, 0, 1, 6)
       );
@@ -513,7 +481,7 @@ suite('calendar/calc', function() {
     });
 
     test('1 & 1/2 hours', function() {
-      var out = hoursOfOccurance(
+      var out = hoursOfOccurence(
         new Date(2012, 0, 1, 5),
         new Date(2012, 0, 1, 6, 30)
       );
@@ -522,7 +490,7 @@ suite('calendar/calc', function() {
     });
 
     test('2 hours', function() {
-      var out = hoursOfOccurance(
+      var out = hoursOfOccurence(
         new Date(2012, 0, 1, 5),
         new Date(2012, 0, 1, 7)
       );
@@ -534,7 +502,7 @@ suite('calendar/calc', function() {
       var end = new Date(2012, 0, 2);
       end.setMilliseconds(end - 1);
 
-      var out = hoursOfOccurance(
+      var out = hoursOfOccurence(
         new Date(2012, 0, 1),
         end
       );

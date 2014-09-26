@@ -29,16 +29,10 @@
     destroyFrame: function mifm_destroyFrame() {
     },
 
-    deleteRunningKeyboardRef:
-    function mifm_deleteRunningKeyboardRef(manifestURL) {
+    removeKeyboard:
+    function mifm_removeKeyboard(manifestURL) {
       delete this.runningLayouts[manifestURL];
     },
-
-    deleteRunningFrameRef:
-    function mifm_deleteRunningFrameRef(manifestURL, id) {
-      delete this.runningLayouts[manifestURL][id];
-    }
-
   };
 
   exports.MockInputFrameManager = MockInputFrameManager;

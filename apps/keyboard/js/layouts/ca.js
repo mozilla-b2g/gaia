@@ -3,7 +3,7 @@ Keyboards.ca = {
   shortLabel: 'Ca',
   menuLabel: 'Català',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'number', 'password'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'ca',
   alt: {
     a: 'àáâäåãāæª@',
@@ -44,24 +44,25 @@ Keyboards.ca = {
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
-      '0': 'º',
-      '1': '1r 1a',
-      '2': '2n 2a',
-      '3': '3r 3a',
-      '4': '4t 4a',
-      '5': '5è 5a 5é',
-      '6': '6è 6a 6é',
-      '7': '7è 7a 7é',
-      '8': '8è 8a 8é',
-      '9': '9è 9a 9é',
-      '€': '$ £ ¥',
-      '-': '—_',
-      '?': '¿',
-      '"': '«»',
-      '.': ',;:·…',
-      '!': '¡'
+      '0': ['º'],
+      '1': ['1r', '1a'],
+      '2': ['2n', '2a'],
+      '3': ['3r', '3a'],
+      '4': ['4t', '4a'],
+      '5': ['5è', '5a', '5é'],
+      '6': ['6è', '6a', '6é'],
+      '7': ['7è', '7a', '7é'],
+      '8': ['8è', '8a', '8é'],
+      '9': ['9è', '9a', '9é'],
+      '€': ['$', '£', '¢', '¥'],
+      '"': ['“', '”', '«', '»'],
+      '\'':['‘', '’'],
+      '?': ['¿'],
+      '!': ['¡'],
+      '+': ['-', '×', '÷', '±'],
+      '.': ['·']
     },
     // These are based on the en layout, with $ localized.
     keys: [
@@ -76,20 +77,21 @@ Keyboards.ca = {
         { value: '(' }, { value: ')' }
       ], [
         { value: 'Alt', ratio: 1.5,
-          keyCode: KeyEvent.DOM_VK_ALT,
-          className: 'page-switch-key'
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
         },
         { value: '+',
           supportsSwitching: {
             value: ','
           }
         }, { value: ':' }, { value: ';' }, { value: '"' },
-        { value: '\'' }, { value: '?' }, { value: '!' },
+        { value: '\'' }, { value: '!' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

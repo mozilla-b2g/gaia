@@ -7,7 +7,7 @@ var MockGetDeviceStorage = function() {
     get: function(filepath) {
       return {
         set onsuccess(cb) {
-          cb();
+          cb.call(this);
         },
         get result() {
           var file = {

@@ -29,25 +29,27 @@
   <section class="scrollregion-below-header skin-organic" role="region">
     <button href="#" class="tng-dbg-reset">Reset App</button>
     <header><h2>Logging</h2></header>
-    <li class="select-item">
-      <label class="list-text">Logging Mode</label>
-      <span class="button icon icon-dialog">
-        <select class="tng-dbg-logging">
-          <option value="">
-            No logging.
-          </option>
-          <option value="safe">
-            Circular: Safe data: no passwords or message contents logged.
-          </option>
-          <option value="dangerous">
-            Circular: Dangerous data: passwords and message contents logged.
-          </option>
-          <option value="realtime-dangerous">
-            Realtime + Circular: Dangerous data: passwords and message contents logged.
-          </option>
-        </select>
-      </span>
-    </li>
+    <ul class="tng-list">
+      <li class="select-item">
+        <label class="list-text">Logging Mode</label>
+        <span class="button icon icon-dialog">
+          <select class="tng-dbg-logging">
+            <option value="">
+              No logging.
+            </option>
+            <option value="safe">
+              Circular: Safe data: no passwords or message contents logged.
+            </option>
+            <option value="dangerous">
+              Circular: Dangerous data: passwords and message contents logged.
+            </option>
+            <option value="realtime-dangerous">
+              Realtime + Circular: Dangerous data: passwords and message contents logged.
+            </option>
+          </select>
+        </span>
+      </li>
+    </ul>
     <button href="#" class="tng-dbg-dump-storage">Dump circular log buffer to sdcard</button>
     <header><h2>More Settings!</h2></header>
     <button href="#" class="tng-dbg-fastsync">Enable faster sync options</button>

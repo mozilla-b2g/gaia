@@ -50,6 +50,35 @@ requireApp('costcontrol/test/unit/mock_all_network_interfaces.js', function() {
       ]
     };
 
+    var APP_MANIFEST_1 = 'manifest_url_1';
+    var APP_MANIFEST_2 = 'manifest_url_2';
+    var appSamples = {
+      'manifest_url_1': {
+        'appManifestURL': APP_MANIFEST_1,
+        'network': {'type': 1, 'id': '45678'},
+        'start': {'__date__': '2014-08-14T05:00:00.000Z'},
+        'end': {'__date__': '2014-08-31T05:00:00.000Z'},
+        'data': [
+          {'rxBytes': 123, 'txBytes': 234,
+           'date': {'__date__': '2014-08-14T05:00:00.000Z'}},
+          {'rxBytes': 234, 'txBytes': 456,
+           'date': {'__date__': '2014-08-15T05:00:00.000Z'}},
+        ]
+      },
+      'manifest_url_2': {
+        'appManifestURL': APP_MANIFEST_2,
+        'network': {'type': 1, 'id': '45678'},
+        'start': {'__date__': '2014-08-14T05:00:00.000Z'},
+        'end': {'__date__': '2014-08-31T05:00:00.000Z'},
+        'data': [
+          {'rxBytes': 456, 'txBytes': 567,
+           'date': {'__date__': '2014-08-14T05:00:00.000Z'}},
+          {'rxBytes': 567, 'txBytes': 678,
+           'date': {'__date__': '2014-08-15T05:00:00.000Z'}},
+        ]
+      }
+    };
+
     var allInterfacesFake = MockAllNetworkInterfaces;
 
     var FAILING_ALARM_ID = 99;
@@ -90,18 +119,27 @@ requireApp('costcontrol/test/unit/mock_all_network_interfaces.js', function() {
       maxStorageSamples: 15552000000,
       WIFI: 0,
       MOBILE: 1,
+      APP_MANIFEST_1: 'manifest_url_1',
+      APP_MANIFEST_2: 'manifest_url_2',
       clearAllStats: {},
       clearStats: function clearStats(networkInterface) {
         return new MockFakeRequest({
           error: samples1
         });
       },
-      getSamples: function getSamples(networkInterface, start, end, url) {
+      getSamples: function getSamples(networkInterface, start, end, options) {
         if (networkInterface.type === 0) {
           return new MockFakeRequest({
             result: samples1
           });
         }
+
+        if (options && options.appManifestURL in appSamples) {
+          return new MockFakeRequest({
+            result: appSamples[options.appManifestURL]
+          });
+        }
+
         return new MockFakeRequest({
           result: samples2
         });

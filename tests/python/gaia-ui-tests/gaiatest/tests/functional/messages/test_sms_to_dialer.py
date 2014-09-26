@@ -36,6 +36,5 @@ class TestDialerFromMessage(GaiaTestCase):
         message_thread = self.messages.tap_first_received_message()
 
         # Check the phone number
-        message_thread.tap_header()
         keypad = message_thread.tap_call()
         self.assertEquals(keypad.phone_number, self.testvars['carrier']['phone_number'])

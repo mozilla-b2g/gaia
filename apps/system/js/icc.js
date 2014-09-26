@@ -9,8 +9,20 @@ var icc = {
   _inputTimeout: 40000,
   _toneDefaultTimeout: 5000,
 
+  checkPlatformCompatibility: function icc_checkPlatformCompat() {
+    // The STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE constant will be added
+    // in the next versions of the platform. This code avoid errors if running
+    // in old versions. See bug #1026556
+    // Remove this workaround as soon as Gecko has the constant defined.
+    // Followup bug #1059166
+    if (!('STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE' in this._iccManager)) {
+      this._iccManager.STK_RESULT_ACTION_CONTRADICTION_TIMER_STATE = 0x24;
+    }
+  },
+
   init: function icc_init() {
     this._iccManager = window.navigator.mozIccManager;
+    this.checkPlatformCompatibility();
     var self = this;
     this.clearMenuCache(function() {
       window.navigator.mozSetMessageHandler('icc-stkcommand',
@@ -245,11 +257,14 @@ var icc = {
 
   setupView: function icc_setupView(viewId) {
     viewId.style.marginTop = StatusBar.height + 'px';
-    this.keyboardChangedEvent(viewId);
-    window.addEventListener('keyboardchange',
-      this.keyboardChangedEvent.bind(undefined, viewId, false));
-    window.addEventListener('keyboardhide',
-      this.keyboardChangedEvent.bind(undefined, viewId, true));
+    // If the view has a form, we should be care of the keyboard changes
+    if (viewId.getElementsByTagName('form').length > 0) {
+      this.keyboardChangedEvent(viewId);
+      window.addEventListener('keyboardchange',
+        this.keyboardChangedEvent.bind(undefined, viewId, false));
+      window.addEventListener('keyboardhide',
+        this.keyboardChangedEvent.bind(undefined, viewId, true));
+    }
   },
 
   keyboardChangedEvent: function(viewId, hidden) {
@@ -262,9 +277,9 @@ var icc = {
       (window.innerHeight - keyboardHeight - StatusBar.height) + 'px';
     if (form && viewId.clientHeight > 0) {
       var input = viewId.getElementsByTagName('input')[0];
-      var header = viewId.getElementsByTagName('header')[0];
-      var headerSubtitle = viewId.getElementsByTagName('h2')[0];
-      var menu = viewId.getElementsByTagName('menu')[1];
+      var header = viewId.getElementsByTagName('gaia-header')[0];
+      var headerSubtitle = viewId.getElementsByTagName('gaia-subheader')[0];
+      var menu = viewId.getElementsByTagName('menu')[0];
       form[0].style.height = viewId.clientHeight -
         (header.clientHeight + headerSubtitle.clientHeight) -
         menu.clientHeight + 'px';
@@ -488,7 +503,7 @@ var icc = {
       this.icc_input_btn = document.getElementById('icc-input-btn');
       this.icc_input_btn_yes = document.getElementById('icc-input-btn_yes');
       this.icc_input_btn_no = document.getElementById('icc-input-btn_no');
-      this.icc_input_btn_back = document.getElementById('icc-input-btn_back');
+      this.icc_input_header = document.getElementById('icc-input-header');
       this.icc_input_btn_close = document.getElementById('icc-input-btn_close');
       this.icc_input_btn_help = document.getElementById('icc-input-btn_help');
       this.setupView(this.icc_input);
@@ -507,7 +522,7 @@ var icc = {
     // Help
     this.icc_input_btn_help.disabled = !options.isHelpAvailable;
 
-    if (!options.isYesNoRequired && !options.isYesNoRequested) {
+    if (!options.isYesNoRequested) {
       this.icc_input.classList.remove('yesnomode');
 
       // Workaround. See bug #818270. Followup: #895314
@@ -551,12 +566,12 @@ var icc = {
       this.icc_input_btn_yes.onclick = function(event) {
         clearInputTimeout();
         self.hideViews();
-        callback(true, 1);
+        callback(true, true);
       };
       this.icc_input_btn_no.onclick = function(event) {
         clearInputTimeout();
         self.hideViews();
-        callback(true, 0);
+        callback(true, false);
       };
     }
 
@@ -566,12 +581,12 @@ var icc = {
     this.icc_view.classList.add('visible');
 
     // STK Default response (BACK, CLOSE and HELP)
-    this.icc_input_btn_back.onclick = function() {
+    this.icc_input_header.addEventListener('action', function() {
       clearInputTimeout();
       self.hideViews();
       self.backResponse(stkMessage);
       callback(null);
-    };
+    });
     this.icc_input_btn_close.onclick = function() {
       clearInputTimeout();
       self.hideViews();

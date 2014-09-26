@@ -311,6 +311,10 @@ Home2.prototype = {
       app.grid.moveTo(icon.detail.index, newPos);
       app.grid.render();
     }, [icon.getAttribute('data-identifier'), index]);
+
+    // Wait for the icon to animate into place
+    var actions = new Actions(this.client);
+    actions.wait(1).perform();
   }
 };
 

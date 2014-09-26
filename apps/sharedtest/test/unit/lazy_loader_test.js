@@ -33,6 +33,46 @@ suite('lazy loader', function() {
     assert.equal(window.jsCount, 0);
     assert.typeOf(LazyLoader, 'object');
     assert.typeOf(LazyLoader.load, 'function');
+    assert.typeOf(LazyLoader.getJSON, 'function');
+  });
+
+  test('load json', function(done) {
+    LazyLoader.getJSON('/apps/sharedtest/test/unit/support/test.json')
+      .then(function(json) {
+        done(function() {
+          assert.notStrictEqual(json, null);
+          assert.equal('org' in json, true);
+          assert.equal(json.org, 'Mozilla');
+        });
+      });
+  });
+
+  test('load malformed json', function(done) {
+    LazyLoader.getJSON('/apps/sharedtest/test/unit/support/malformedJson')
+      .then(function(json) {
+        done(new Error('A resolve promise was returned.' +
+                       ' Expected Reject promise'));
+      }, function(error) {
+        done(function() {
+          assert.instanceOf(error, Error);
+          assert.equal(error.message,
+                       'No valid JSON object was found (200 OK)');
+        });
+      });
+  });
+
+  test('load inexisting json', function(done) {
+    LazyLoader.getJSON('/apps/sharedtest/test/unit/support/non_existant.json')
+      .then(function(json) {
+        done(new Error('Resolve promise was returned.' +
+                       ' Expected Reject promise'));
+      }, function(error) {
+        done(function() {
+          assert.instanceOf(error, Error);
+          assert.equal(error.message,
+                       'No valid JSON object was found (404 Not Found)');
+        });
+      });
   });
 
   test('append single js script', function(done) {

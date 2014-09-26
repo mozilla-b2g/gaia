@@ -26,8 +26,8 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
            'slider-wrapper', 'throbber', 'picker-close', 'picker-title',
-           'picker-done', 'options', 'options-view', 'options-cancel-button',
-           'seek-backward', 'seek-forward'];
+           'picker-header', 'picker-done', 'options', 'options-view',
+           'options-cancel-button', 'seek-backward', 'seek-forward'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -608,7 +608,7 @@ function share(blobs) {
   if (blobs.length === 0)
     return;
 
-  var names = [], types = [], fullpaths = [];
+  var names = [], fullpaths = [];
 
   // Get the file name (minus path) and type of each blob
   blobs.forEach(function(blob) {
@@ -621,28 +621,12 @@ function share(blobs) {
     fullpaths.push(name);
     name = name.substring(name.lastIndexOf('/') + 1);
     names.push(name);
-
-    // And we just want the first component of the type "image" or "video"
-    var type = blob.type;
-    if (type)
-      type = type.substring(0, type.indexOf('/'));
-    types.push(type);
   });
-
-  // If there is just one type, or if all types are the same, then use
-  // that type plus '/*'. Otherwise, use 'multipart/mixed'
-  // If all the blobs are image we use 'image/*'. If all are videos
-  // we use 'video/*'. Otherwise, 'multipart/mixed'.
-  var type;
-  if (types.length === 1 || types.every(function(t) { return t === types[0]; }))
-    type = types[0] + '/*';
-  else
-    type = 'multipart/mixed';
 
   var a = new MozActivity({
     name: 'share',
     data: {
-      type: type,
+      type: 'video/*', // Video app only supports video types (bug 1069885)
       number: blobs.length,
       blobs: blobs,
       filenames: names,

@@ -1,5 +1,5 @@
 /* global AppWindowManager, AppWindow, homescreenLauncher,
-          MockAttentionScreen, HomescreenWindow, MocksHelper,
+          HomescreenWindow, MocksHelper,
           MockSettingsListener, System, HomescreenLauncher,
           MockRocketbar, rocketbar */
 'use strict';
@@ -11,7 +11,6 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_activity_window.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
-requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_layout_manager.js');
@@ -23,8 +22,7 @@ requireApp('system/js/system.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForAppWindowManager = new MocksHelper([
-  'OrientationManager', 'AttentionScreen',
-  'ActivityWindow',
+  'OrientationManager', 'ActivityWindow',
   'Applications', 'SettingsListener', 'HomescreenLauncher',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
   'HomescreenWindow', 'AppWindow', 'LayoutManager', 'System', 'NfcHandler'
@@ -33,7 +31,7 @@ var mocksForAppWindowManager = new MocksHelper([
 suite('system/AppWindowManager', function() {
   mocksForAppWindowManager.attachTestHelpers();
   var stubById;
-  var app1, app2, app3, app4, app5, app6, app7, home;
+  var app1, app2, app3, app4, app5, app6, app7, browser1, home;
 
   var screenElement = document.createElement('div');
 
@@ -67,6 +65,7 @@ suite('system/AppWindowManager', function() {
     app5 = new AppWindow(fakeAppConfig5Background);
     app6 = new AppWindow(fakeAppConfig6Browser);
     app7 = new AppWindow(fakeAppConfig7Activity);
+    browser1 = new AppWindow(fakeBrowserConfig);
 
     requireApp('system/js/app_window_manager.js', function() {
       window.AppWindowManager.init();
@@ -147,6 +146,12 @@ suite('system/AppWindowManager', function() {
     origin: 'app://www.fake7',
     isActivity: true,
     parentApp: ''
+  };
+
+  var fakeBrowserConfig = {
+    url: 'http://mozilla.org/index.html',
+    manifest: {},
+    origin: 'http://mozilla.org'
   };
 
   function injectRunningApps() {
@@ -351,10 +356,10 @@ suite('system/AppWindowManager', function() {
         });
       });
 
-      test('should exit fullscreen when the sheet transition starts',
+      test('should exit fullscreen when the sheet gesture begins',
       function() {
         var cancelSpy = this.sinon.spy(document, 'mozCancelFullScreen');
-        AppWindowManager.handleEvent({ type: 'sheetstransitionstart' });
+        AppWindowManager.handleEvent({ type: 'sheets-gesture-begin' });
         sinon.assert.calledOnce(cancelSpy);
       });
     });
@@ -434,7 +439,6 @@ suite('system/AppWindowManager', function() {
     test('Show top window', function() {
       injectRunningApps(app1);
       AppWindowManager._activeApp = app1;
-      MockAttentionScreen.mFullyVisible = false;
       var stubSetVisible = this.sinon.stub(app1, 'setVisible');
 
       AppWindowManager.handleEvent({
@@ -448,7 +452,6 @@ suite('system/AppWindowManager', function() {
     function() {
       injectRunningApps(app1);
       AppWindowManager._activeApp = app1;
-      MockAttentionScreen.mFullyVisible = false;
       var stubSetVisible = this.sinon.stub(app1, 'setVisible');
       var stubActivity = this.sinon.stub();
       var originalActivity = window.MozActivity;
@@ -476,7 +479,6 @@ suite('system/AppWindowManager', function() {
     function() {
       injectRunningApps(app1);
       AppWindowManager._activeApp = app1;
-      MockAttentionScreen.mFullyVisible = false;
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent'),
           stubInitCustomEvent =
           function(type, flag1, flag2, content) {
@@ -517,13 +519,14 @@ suite('system/AppWindowManager', function() {
     test('Hide top window', function() {
       injectRunningApps(app1);
       AppWindowManager._activeApp = app1;
-      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+      var stubBroadcast = this.sinon.stub(app1, 'broadcast');
 
       AppWindowManager.handleEvent({
-        type: 'hidewindow'
+        type: 'hidewindow',
+        detail: app2
       });
 
-      assert.isTrue(stubSetVisible.calledWith(false));
+      assert.isTrue(stubBroadcast.calledWith('hidewindow', app2));
     });
 
     test('Show for screen reader top window', function() {
@@ -537,6 +540,24 @@ suite('system/AppWindowManager', function() {
       });
 
       assert.isTrue(stubSetVisibleForScreenReader.calledWith(true));
+    });
+
+    test('Sends sheetsgesturebegin and sheetsgestureend when expected',
+    function() {
+      injectRunningApps(app1);
+      AppWindowManager._activeApp = app1;
+
+      var stubBroadcast = this.sinon.stub(app1, 'broadcast');
+
+      // Should send sheetsgesturebegin.
+      AppWindowManager.handleEvent({ type: 'sheets-gesture-begin' });
+      assert.isTrue(stubBroadcast.calledWith('sheetsgesturebegin'));
+      stubBroadcast.reset();
+
+      // Should send sheetsgestureend.
+      AppWindowManager.handleEvent({type: 'sheets-gesture-end'});
+      assert.isTrue(stubBroadcast.calledWith('sheetsgestureend'));
+      stubBroadcast.reset();
     });
 
     test('Hide for screen reader top window', function() {
@@ -559,7 +580,7 @@ suite('system/AppWindowManager', function() {
       stubIsOOP.returns(false);
       var stubSetVisible = this.sinon.stub(app6, 'setVisible');
 
-      AppWindowManager.handleEvent({ type: 'overlaystart' });
+      AppWindowManager.handleEvent({ type: 'attentionopened' });
       assert.isTrue(stubSetVisible.calledWith(false));
     });
 
@@ -568,7 +589,7 @@ suite('system/AppWindowManager', function() {
       AppWindowManager._activeApp = app1;
       var stubBlur = this.sinon.stub(app1, 'blur');
 
-      AppWindowManager.handleEvent({ type: 'overlaystart' });
+      AppWindowManager.handleEvent({ type: 'attentionopened' });
       assert.isTrue(stubBlur.called);
     });
   });
@@ -582,14 +603,26 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubKill.called);
     });
   });
-
+ 
   suite('updateActiveApp()', function() {
     test('update', function() {
+      var spyPublish= this.sinon.spy(AppWindowManager, 'publish');
       injectRunningApps(app1, app2, app3, app4);
       AppWindowManager._activeApp = app2;
       AppWindowManager._updateActiveApp(app1.instanceID);
+      assert.equal(spyPublish.firstCall.args[0], 'activeappchanged');
       assert.deepEqual(AppWindowManager._activeApp, app1);
     });
+
+    test('should not publish activeappchanged if activeApp is the same',
+      function() {
+        var spyPublish= this.sinon.spy(AppWindowManager, 'publish');
+        injectRunningApps(app1);
+        AppWindowManager._activeApp = app1;
+        AppWindowManager._updateActiveApp(app1.instanceID);
+        assert.isFalse(spyPublish.calledOnce);
+      });
+
 
     test('should resize the new active app', function() {
       injectRunningApps(app1, app2, app3, app4);
@@ -848,7 +881,6 @@ suite('system/AppWindowManager', function() {
         // callee is app7, caller is app2
         injectRunningApps(app7);
         AppWindowManager._activeApp = app1;
-        fakeAppConfig.parentApp = '';
         this.sinon.stub(app1, 'getTopMostWindow').returns(app2);
 
         AppWindowManager.linkWindowActivity(fakeAppConfig);
@@ -857,6 +889,25 @@ suite('system/AppWindowManager', function() {
         assert.deepEqual(app7.callerWindow, app2);
         assert.isFalse(homescreenLauncher.getHomescreen.called);
     });
+
+    test('If there is a direct circular activity, ' +
+          'close the frontwindow to reveal the callee',
+      function() {
+        // callee is app1, caller is app3(a front window)
+        injectRunningApps(app1);
+        AppWindowManager._activeApp = app1;
+        fakeAppConfig.parentApp = '';
+        app1.frontWindow = app3;
+        this.sinon.stub(app1, 'getTopMostWindow').returns(app3);
+        this.sinon.stub(app3, 'getBottomMostWindow').returns(app1);
+        var stubKill = this.sinon.stub(app3, 'kill');
+
+        AppWindowManager.linkWindowActivity(fakeAppConfig1);
+
+        assert.isTrue(stubKill.called);
+        assert.isUndefined(app1.callerWindow);
+        app1.frontWindow = null;
+    });
   });
 
   test('getApp', function() {
@@ -864,4 +915,34 @@ suite('system/AppWindowManager', function() {
     assert.deepEqual(AppWindowManager.getApp('app://www.fake2'), app2);
     assert.isNull(AppWindowManager.getApp('app://no-this-origin'));
   });
+
+  test('new browser window for getApp', function() {
+    injectRunningApps(app5);
+    var newApp1 = AppWindowManager.getApp(fakeAppConfig5Background.origin);
+    assert.deepEqual(newApp1.config, fakeAppConfig5Background);
+
+    var newApp2 = AppWindowManager.getApp(fakeBrowserConfig.origin);
+    assert.deepEqual(newApp2, null);
+
+    injectRunningApps(browser1);
+    newApp2 = AppWindowManager.getApp(fakeBrowserConfig.origin);
+    assert.deepEqual(newApp2.config, fakeBrowserConfig);
+  });
+
+  test('getAppByURL', function() {
+
+    var url1 = fakeBrowserConfig.url;
+    var url2 = 'http://mozilla.org/page2';
+
+    injectRunningApps(browser1);
+    assert.deepEqual(AppWindowManager.getAppByURL(url1), browser1);
+    assert.isNull(AppWindowManager.getAppByURL('app://no-this-origin'));
+
+    // Change url in the browser and ensure we can find it again
+    browser1.config.url = url2;
+
+    assert.deepEqual(AppWindowManager.getAppByURL(url2), browser1);
+    assert.isNull(AppWindowManager.getAppByURL(url1));
+  });
+
 });

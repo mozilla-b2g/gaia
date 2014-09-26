@@ -114,6 +114,13 @@ suite('Contacts', function() {
     window.ImportStatusData.clear();
 
     navigator.addIdleObserver = function() {};
+
+    // We don't want to trigger migrations in this test suite.
+    MockCookie.data = {
+      fbMigrated: true,
+      accessTokenMigrated: true
+    };
+
     Contacts.init();
     mockNavigation = window.navigationStack.firstCall.thisValue;
   });
@@ -152,7 +159,9 @@ suite('Contacts', function() {
         });
       });
 
-      this.sinon.spy(contacts.List, 'refresh');
+      this.sinon.stub(contacts.List, 'refresh', function(id, cb) {
+        cb();
+      });
     });
 
     test('> FB contact update sends MozContacts info', function() {
@@ -173,6 +182,25 @@ suite('Contacts', function() {
       assert.isTrue(Array.isArray(argument.email));
       argument.email.forEach(function onEmail(email) {
         assert.isTrue(email.value === 'myfbemail@email.com');
+      });
+    });
+
+    suite('> Custom contact change', function() {
+      test('> Trigger custom event on contact change', function(done) {
+        Contacts.onLocalized();
+        var evt = {
+          contactID: 1234567,
+          reason: 'update'
+        };
+
+        mockNavigation._currentView = 'view-contact-details';
+
+        document.addEventListener('contactChanged', function(e) {
+          assert.equal(e.detail.contactID, evt.contactID);
+          done();
+        });
+
+        navigator.mozContacts.oncontactchange(evt);
       });
     });
   });
@@ -238,11 +266,11 @@ suite('Contacts', function() {
     });
 
     suite('> CancelableActivity', function() {
-      var settingsButton, cancelButton, addButton, appTitleElement;
+      var settingsButton, header, addButton, appTitleElement;
 
       setup(function() {
         settingsButton = document.getElementById('settings-button');
-        cancelButton = document.getElementById('cancel_activity');
+        header = document.getElementById('contacts-list-header');
         addButton = document.getElementById('add-contact-button');
         appTitleElement = document.getElementById('app-title');
       });
@@ -252,11 +280,11 @@ suite('Contacts', function() {
         Contacts.checkCancelableActivity();
 
         // Settings is hidden
-        assert.isTrue(settingsButton.classList.contains('hide'));
+        assert.isTrue(settingsButton.hidden);
         // Add contact is hidden
-        assert.isTrue(addButton.classList.contains('hide'));
+        assert.isTrue(addButton.hidden);
         // Cancel is visible
-        assert.isFalse(cancelButton.classList.contains('hide'));
+        assert.equal(header.getAttribute('action'), 'close');
         // Title shows CONTACTS
         assert.equal(appTitleElement.textContent, 'contacts');
 
@@ -269,7 +297,7 @@ suite('Contacts', function() {
         Contacts.checkCancelableActivity();
 
         // Cancel is hidden
-        assert.isTrue(cancelButton.classList.contains('hide'));
+        assert.isFalse(header.hasAttribute('action'));
         // Settings is visible
         assert.isFalse(addButton.classList.contains('hide'));
         // Add contact is visible
@@ -470,37 +498,6 @@ suite('Contacts', function() {
         }
       });
 
-      test('> handling an activity, should be cancelled', function() {
-        ActivityHandler.currentlyHandling = true;
-
-        fireVisibilityChange();
-
-        sinon.assert.called(ActivityHandler.postCancel);
-        ActivityHandler.currentlyHandling = false;
-      });
     });
-  });
-
-  test('FB sync scheduling when synced in ftu', function(done) {
-    window.fb.sync = {
-      scheduleNextSync: function() {
-        done(function(){
-          window.fb.sync = null;
-          navigator.addIdleObserver = null;
-          navigator.removeIdleObserver = null;
-        });
-        return {};
-      }
-    };
-
-    navigator.addIdleObserver = function(idleObserver) {
-      idleObserver.onidle();
-    };
-
-    navigator.removeIdleObserver = function() {};
-
-    MockImportStatusData.put('facebookShouldHaveScheduledAt', Date.now()).then(
-      Contacts.init
-    );
   });
 });

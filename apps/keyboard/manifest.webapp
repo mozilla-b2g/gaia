@@ -9,12 +9,34 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
+    "themeable":{},
     "settings": { "access": "readwrite" },
     "input": {}
   },
-  "inputs": {},
+  "inputs": {
+    "number": {
+      "launch_path": "/index.html#numberLayout",
+      "name": "Number",
+      "description": "Numeric layout",
+      "types": ["number"],
+      "locales": {
+        "en-US": {
+          "name": "Number",
+          "description": "Numeric layout"
+        }
+      }
+    }
+  },
   "locales": {
+    "ar": {
+      "name": "Built-in Keyboard",
+      "description": "Built-in Keyboard"
+    },
     "en-US": {
+      "name": "Built-in Keyboard",
+      "description": "Built-in Keyboard"
+    },
+    "fr": {
       "name": "Built-in Keyboard",
       "description": "Built-in Keyboard"
     },

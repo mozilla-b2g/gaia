@@ -3,40 +3,42 @@
 * ---------------------------------- */
 
 [role="toolbar"] {
-  height: 4rem;
+  display: flex;
+  box-sizing: border-box;
+  height: 45px;
   width: 100%;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  z-index: 100;
-  background: rgba(0,0,0, 0.85);
+  background: #fff;
+  border-top: 1px solid #eee;
 }
 
-[role="toolbar"] ul {
-  float: left;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-[role="toolbar"] ul:last-child {
-  float: right;
-}
-
-[role="toolbar"] li {
-  float: left;
-}
-
-[role="toolbar"] button {
-  width: 5.5rem;
-  height: 4rem;
+[role="toolbar"] button,
+[role="toolbar"] a {
+  position: relative;
+  flex: 1;
   border: none;
-  font-size: 0;
-  background: transparent no-repeat 50% 50% / 3rem auto;
+  border-left: 1px solid #e5e5e5;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  margin: 0;
   padding: 0;
+  text-align: center;
+  color: #919191;
   border-radius: 0;
+  height: 100%;
+  font-size: 0;
 }
 
-[role="toolbar"] button:active {
-  background-color: #008aaa;
+[role="toolbar"] button:first-child,
+[role="toolbar"] a:first-child {
+  border-left: none;
+}
+
+[role="toolbar"] button:active,
+[role="toolbar"] a:active {
+  color: #fff;
+  background-color: #b2f2ff;
+}
+
+[role="toolbar"] [data-icon] {
+  font-size: 0;
 }

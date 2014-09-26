@@ -22,14 +22,7 @@ Services.obs.addObserver(function(document) {
       onadapteradded: 'wr'
     },
     isConnected: function() { return false; },
-    getDefaultAdapter: function() {
-      return {
-        __exposedProps__: {
-          onsuccess: 'wr',
-          onerror: 'wr'
-        }
-      };
-    },
+    getDefaultAdapter: function() {},
     addEventListener: function() {},
     enabled: false,
     onenabled: null,

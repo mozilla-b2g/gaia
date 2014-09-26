@@ -1,8 +1,8 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global ParsedProvisioningDoc, ProvisioningAuthentication,
-          StoreProvisioning, WapPushManager, ParsedMessage */
+/* global MessageDB, ParsedProvisioningDoc, ProvisioningAuthentication,
+          StoreProvisioning, WapPushManager */
 
 /* exported CpScreenHelper */
 
@@ -20,6 +20,12 @@ var CpScreenHelper = (function() {
   /** Cancel quit app button node */
   var cancelQuitButton = null;
 
+  /** Accept install configuration button node */
+  var acceptInstallCfgButton = null;
+
+  /** Cancel install configuration button node */
+  var cancelInstallCfgButton = null;
+
   /** Accept button node */
   var acceptButton = null;
 
@@ -28,9 +34,6 @@ var CpScreenHelper = (function() {
 
   /** Cancel storebutton node */
   var cancelStoreButton = null;
-
-  /** Try again button node */
-  var tryAgainButton = null;
 
   /** Finish button node */
   var finishButton = null;
@@ -44,11 +47,17 @@ var CpScreenHelper = (function() {
   /** Quit app confirm dialog node */
   var quitAppConfirmDialog = null;
 
+  /** Install configuration confirm dialog node */
+  var installCfgConfirmDialog = null;
+
   /** Store confirm dialog node */
   var storeConfirmDialog = null;
 
-  /** Auth failures confirm dialog node */
-  var authFailureConfirmDialog = null;
+  /** Auth failure message */
+  var authFailureMessage = null;
+
+  /** Help message */
+  var pinHelp = null;
 
   /** Finish confirm dialog node */
   var finishConfirmDialog = null;
@@ -95,13 +104,17 @@ var CpScreenHelper = (function() {
     quitButton = quitAppConfirmDialog.querySelector('.quit');
     cancelQuitButton = quitAppConfirmDialog.querySelector('.cancel');
 
+    installCfgConfirmDialog =
+      document.getElementById('cp-install-configuration-confirm');
+    acceptInstallCfgButton = installCfgConfirmDialog.querySelector('.accept');
+    cancelInstallCfgButton = installCfgConfirmDialog.querySelector('.cancel');
+
     storeConfirmDialog = document.getElementById('cp-store-confirm');
     storeButton = storeConfirmDialog.querySelector('.store');
     cancelStoreButton = storeConfirmDialog.querySelector('.cancel');
 
-    authFailureConfirmDialog =
-      document.getElementById('cp-auth-failure-confirm');
-    tryAgainButton = authFailureConfirmDialog.querySelector('button');
+    authFailureMessage = document.getElementById('cp-auth-failure');
+    pinHelp = document.getElementById('cp-accept-help');
 
     finishConfirmDialog = document.getElementById('cp-finish-confirm');
     finishButton = finishConfirmDialog.querySelector('button');
@@ -115,8 +128,19 @@ var CpScreenHelper = (function() {
     acceptButton.addEventListener('click', cpsh_onAccept);
     storeButton.addEventListener('click', cpsh_onStore);
     cancelStoreButton.addEventListener('click', cpsh_onCancelStore);
-    tryAgainButton.addEventListener('click', cpsh_onTryAgain);
     finishButton.addEventListener('click', cpsh_onFinish);
+    pin.addEventListener('keyup', cpsh_onPinInput);
+  }
+
+  /**
+   * Init the application flow showing a warning prompt that asks to the user if
+   * wants to install the configuration information.
+   */
+  function cpsh_showConfirmInstallationDialog(message) {
+    installCfgConfirmDialog.hidden = false;
+    acceptInstallCfgButton
+      .addEventListener('click',cpsh_onAcceptInstallCfg.bind(null, message));
+    cancelInstallCfgButton.addEventListener('click', cpsh_onCancelInstallCfg);
   }
 
   /**
@@ -146,17 +170,18 @@ var CpScreenHelper = (function() {
     // process when this process was performed by gecko
     isDocumentValid = message.provisioning.authInfo.pass;
 
-    var help = document.getElementById('cp-accept-help');
     if (showPINInput) {
       // If the document has not been authenticated yet and the PIN code is
       // needed, show some info and the PIN input element to the user.
-      help.textContent = _('cp-accept-help-pin');
-      pin.type = 'text';
+      pinHelp.textContent = _('cp-accept-help-pin');
+      pin.type = 'number';
       pin.focus();
+      acceptButton.disabled = true;
     } else {
-      help.textContent = _('cp-accept-help');
+      pinHelp.textContent = _('cp-accept-help');
       pin.type = 'hidden';
       pin.blur();
+      acceptButton.disabled = false;
     }
 
     var _title = message.sender;
@@ -190,18 +215,6 @@ var CpScreenHelper = (function() {
   }
 
   /**
-   * Deletes a message from the database
-   */
-  function cpsh_deleteMessage(messageTag) {
-    ParsedMessage.delete(messageTag,
-      function cpsh_deleteSuccess() {},
-      function cpsh_deleteError(error) {
-        console.error('Could not remove message from database: ' + error);
-      }
-    );
-  }
-
-  /**
    * Handles the application flow when the user clicks on the 'Quit' button
    * from the client provisioning quit app confirm dialog.
    */
@@ -209,8 +222,12 @@ var CpScreenHelper = (function() {
     evt.preventDefault();
     quitAppConfirmDialog.hidden = true;
     WapPushManager.clearNotifications(messageTag);
-    cpsh_deleteMessage(messageTag);
-    WapPushManager.close();
+    MessageDB.deleteByTimestamp(messageTag).then(function() {
+      WapPushManager.close();
+    }, function() {
+      console.error('Could not delete message from the database');
+      WapPushManager.close();
+    });
   }
 
   /**
@@ -224,6 +241,26 @@ var CpScreenHelper = (function() {
   }
 
   /**
+   * Handles the application flow when the user clicks on the 'Cancel' button
+   * from the client install configuration screen.
+   */
+  function cpsh_onCancelInstallCfg(evt) {
+    evt.preventDefault();
+    installCfgConfirmDialog.hidden = true;
+    WapPushManager.close();
+  }
+
+  /**
+   * Handles the application flow when the user clicks on the 'Cancel' button
+   * from the client install configuration screen.
+   */
+  function cpsh_onAcceptInstallCfg(message, evt) {
+    evt.preventDefault();
+    cpsh_populateScreen(message);
+    installCfgConfirmDialog.hidden = true;
+  }
+
+  /**
    * Accepts the message, authenticates the sender and presents the settings to
    * be stored to the user
    */
@@ -232,8 +269,8 @@ var CpScreenHelper = (function() {
 
     if (!authenticated) {
       if (!pin.value) {
-        // Need a valid PIN code, show an alert.
-        authFailureConfirmDialog.hidden = false;
+        // Need a valid PIN code, show error.
+        cpsh_pinError();
         return;
       }
 
@@ -251,9 +288,9 @@ var CpScreenHelper = (function() {
 
       authenticated = true;
       if (!isDocumentValid) {
-        // The document couldn't be authenticated, alert.
+        // The document couldn't be authenticated, show error.
         authenticated = false;
-        authFailureConfirmDialog.hidden = false;
+        cpsh_pinError();
         return;
       }
     }
@@ -301,6 +338,22 @@ var CpScreenHelper = (function() {
     storeConfirmDialog.hidden = false;
   }
 
+  function cpsh_pinError() {
+    authFailureMessage.hidden = false;
+    pinHelp.hidden = true;
+    pin.focus();
+    // Set max to -1 in order to show invalid input.
+    pin.setAttribute('max', -1);
+    pin.addEventListener('keyup', cpsh_onPinErrorRestore);
+  }
+
+  function cpsh_onPinErrorRestore() {
+    authFailureMessage.hidden = true;
+    pinHelp.hidden = false;
+    pin.removeAttribute('max');
+    pin.addEventListener('keyup', cpsh_onPinInput);
+  }
+
   /**
    * Handles the application flow when the user clicks on the 'Store' button
    * from the client provisioning store confirm dialog.
@@ -315,11 +368,15 @@ var CpScreenHelper = (function() {
       StoreProvisioning.provision(apns, iccCardIndex);
 
       WapPushManager.clearNotifications(messageTag);
-      cpsh_deleteMessage(messageTag);
 
-      // Show finish confirm dialog.
-      finishConfirmDialog.hidden = false;
-      return;
+      /* Show finish confirm dialog after having deleted the message, this is
+       * done even if the deletion fails for some reason. */
+      MessageDB.deleteByTimestamp(messageTag).then(function() {
+        finishConfirmDialog.hidden = false;
+      }, function(e) {
+        console.error('Could not delete message from the database: ', e);
+        finishConfirmDialog.hidden = false;
+      });
     }
   }
 
@@ -329,18 +386,11 @@ var CpScreenHelper = (function() {
    */
   function cpsh_onCancelStore(evt) {
     evt.preventDefault();
+    /* When cancelling request authentication again using the original type of
+     * authentication that came with the message. */
+    authenticated = authInfo.checked;
     pin.focus();
     storeConfirmDialog.hidden = true;
-  }
-
-  /**
-   * Handles the application flow when the user clicks on the 'Try again' button
-   * from the client provisioning authentication failure confirm dialog.
-   */
-  function cpsh_onTryAgain(evt) {
-    evt.preventDefault();
-    pin.focus();
-    authFailureConfirmDialog.hidden = true;
   }
 
   /**
@@ -353,8 +403,16 @@ var CpScreenHelper = (function() {
     WapPushManager.close();
   }
 
+  /**
+   * Enable / disable accept button if pin field is empty.
+   */
+  function cpsh_onPinInput(evt) {
+    acceptButton.disabled = (pin.value.length === 0);
+  }
+
   return {
     init: cpsh_init,
-    populateScreen: cpsh_populateScreen
+    populateScreen: cpsh_populateScreen,
+    showConfirmInstallationDialog: cpsh_showConfirmInstallationDialog
   };
 })();

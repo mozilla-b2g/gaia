@@ -340,6 +340,8 @@ Mockfb.utils = (function() {
       });
     },
 
+    TOKEN_DATA_KEY: 'tokenData',
+    
     SCHEDULE_SYNC_KEY: 'facebookShouldHaveScheduledAt',
 
     setLastUpdate: function(date, callback) {
@@ -393,4 +395,8 @@ Mockfb.contacts = {
       }
     };
   }
+};
+
+Mockfb.sync = {
+  scheduleNextSync: function() {}
 };

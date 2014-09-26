@@ -111,17 +111,10 @@ ControlsController.prototype.configureMode = function() {
  * the camera becomes 'ready' from
  * hereon after.
  *
- * `.setupSwitch()` adds the dragging interactions
- * to the mode-switch. We do this after the app
- * has loaded and in a `setTimeout` to avoid
- * causing a forced-sync-layout which is
- * bad for performance.
- *
  * @private
  */
 ControlsController.prototype.onceAppLoaded = function() {
   this.app.on('ready', this.restore);
-  setTimeout(this.view.setupSwitch, 50);
   this.view.enable();
 };
 
@@ -241,19 +234,20 @@ ControlsController.prototype.captureHighlightOff = function() {
 };
 
 /**
- * Switch to the next capture
- * mode: 'picture' or 'video'.
+ * Switch to the next capture mode:
+ * 'picture' or 'video', when the
+ * mode is changed via the view.
+ *
+ * Them mode can be changed by either
+ * tapping or swiping the mode switch.
  *
  * @private
  */
-ControlsController.prototype.onViewModeChanged = function(mode) {
-  debug('view mode changed mode: %s', mode);
-  var setting = this.app.settings.mode;
+ControlsController.prototype.onViewModeChanged = function() {
+  debug('view mode changed');
   this.view.disable();
-  if (mode) { setting.select(mode); }
-  else { setting.next(); }
+  this.app.settings.mode.next();
 };
-
 
 ControlsController.prototype.onCancelButtonClick = function() {
   this.app.emit('activitycanceled');

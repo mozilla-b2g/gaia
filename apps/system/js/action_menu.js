@@ -73,11 +73,11 @@
       this.container.addEventListener('submit', this);
       this.menu.addEventListener('click', this);
 
-      window.addEventListener('attentionscreenshow', this, true);
+      window.addEventListener('attentionopened', this, true);
       window.addEventListener('screenchange', this, true);
       window.addEventListener('home', this);
       window.addEventListener('holdhome', this);
-      window.addEventListener('sheetstransitionstart', this);
+      window.addEventListener('sheets-gesture-begin', this);
 
       if (this.preventFocusChange) {
         this.menu.addEventListener('mousedown', this.preventFocusChange);
@@ -93,11 +93,11 @@
       screen.removeChild(this.container);
       screen.classList.remove('action-menu');
 
-      window.removeEventListener('attentionscreenshow', this, true);
+      window.removeEventListener('attentionopened', this, true);
       window.removeEventListener('screenchange', this, true);
       window.removeEventListener('home', this);
       window.removeEventListener('holdhome', this);
-      window.removeEventListener('sheetstransitionstart', this);
+      window.removeEventListener('sheets-gesture-begin', this);
 
       if (this.preventFocusChange) {
         this.menu.removeEventListener('mousedown', this.preventFocusChange);
@@ -191,7 +191,7 @@
 
         case 'home':
         case 'holdhome':
-        case 'sheetstransitionstart':
+        case 'sheets-gesture-begin':
           if (!this.visible) {
             return;
           }
@@ -200,8 +200,9 @@
           this.oncancel();
           break;
 
-        case 'attentionscreenshow':
+        case 'attentionopened':
           this.hide();
+          this.oncancel();
           break;
       }
     }

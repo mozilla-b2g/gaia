@@ -20,18 +20,10 @@ suite('system/OrientationManager >', function() {
   });
 
   suite('handle events', function() {
-    test('attentionscreenhide', function() {
+    test('attentionclosed', function() {
       var stubPublish = this.sinon.stub(OrientationManager, 'publish');
       OrientationManager.handleEvent({
-        type: 'attentionscreenhide'
-      });
-      assert.isTrue(stubPublish.calledWith('reset-orientation'));
-    });
-
-    test('status-active', function() {
-      var stubPublish = this.sinon.stub(OrientationManager, 'publish');
-      OrientationManager.handleEvent({
-        type: 'status-active'
+        type: 'attentionclosed'
       });
       assert.isTrue(stubPublish.calledWith('reset-orientation'));
     });
@@ -72,23 +64,19 @@ suite('system/OrientationManager >', function() {
       var stubPublish = this.sinon.stub(OrientationManager, 'publish');
       window.System.locked = true;
       OrientationManager.handleEvent({
-        type: 'attentionscreenhide'
+        type: 'attentionclosing'
       });
       assert.isFalse(stubPublish.called);
       window.System.locked = false;
     });
 
-    test('shrinking-stop and shrinking-rejected', function() {
+    test('shrinking-stop', function() {
       var stubPublish = this.sinon.stub(OrientationManager, 'publish');
       OrientationManager.handleEvent({
         type: 'shrinking-stop'
       });
 
-      OrientationManager.handleEvent({
-        type: 'shrinking-rejected'
-      });
-
-      assert.isTrue(stubPublish.alwaysCalledWith('reset-orientation'));
+      assert.isTrue(stubPublish.withArgs('reset-orientation').calledOnce);
     });
   });
 });

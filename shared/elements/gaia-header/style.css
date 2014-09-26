@@ -56,14 +56,6 @@ gaia-header[hidden] {
   display: flex; /* 1 */
 }
 
-/**
- * :active
- */
-
-.action-button:active {
-  color: var(--header-nav-button-color-active, #fff);
-}
-
 /** Action Button Icon
  ---------------------------------------------------------*/
 
@@ -125,6 +117,10 @@ gaia-header[hidden] {
   color: var(--header-title-color, #000);
 }
 
+.-content h1:active {
+  color: red;
+}
+
 /**
  * .flush-left
  *
@@ -175,7 +171,25 @@ button,
   color: var(--header-button-color, #000);
   font-style: italic;
   transition: var(--button-transition);
-  transition-delay: var(--button-transition-delay);
+}
+
+/**
+ * .active
+ *
+ * Turn off transiton-delay so the
+ * active state shows instantly.
+ *
+ * Only apply the :active state when the
+ * component indicates an interaction is
+ * taking place.
+ */
+
+a.active,
+button.active,
+.-content a.active,
+.-content button.active {
+  opacity: 0.2;
+  transition: none;
 }
 
 /**
@@ -197,28 +211,6 @@ button,
   opacity: 0.5;
 }
 
-/**
- * :active
- */
-
-a:active,
-button:active,
-.-content a:active,
-.-content button:active {
-  background: var(--header-button-background, #000);
-  color: var(--header-button-color-active, #fff);
-  transition: none;
-}
-
-/**
- * :focus
- */
-
-a:focus,
-.-content a:focus {
-  outline: none;
-}
-
 /** Icon Buttons
  ---------------------------------------------------------*/
 
@@ -231,21 +223,12 @@ a:focus,
   color: var(--header-nav-button-color, #000);
 }
 
-/**
- * :active
- */
-
-.-content .icon,
-.-content [data-icon]:active {
-  color: var(--header-nav-button-color-active, #fff);
-}
-
 /** Icons
  ---------------------------------------------------------*/
 
 [class^="icon-"]:before,
 [class*="icon-"]:before {
-  font-family: "gaia-icons";
+  font-family: 'gaia-icons';
   font-style: normal;
   text-rendering: optimizeLegibility;
   font-weight: 500;

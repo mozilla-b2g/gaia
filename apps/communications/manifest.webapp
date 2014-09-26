@@ -68,6 +68,7 @@
     }
   },
   "permissions": {
+    "themeable":{},
     "telephony":{},
     "bluetooth":{},
     "voicemail":{},
@@ -176,5 +177,12 @@
   "icons": {
         "30": "/style/icons/communications_30.png",
         "45": "/style/icons/communications_45.png"
-  }
+  },
+  "locales": {
+    "ar": {},
+    "en-US": {},
+    "fr": {},
+    "zh-TW": {}
+  },
+  "default_locale": "en-US"
 }

@@ -38,7 +38,7 @@ requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
-requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+require('/shared/test/unit/mocks/mock_mozContacts.js');
 requireApp('communications/contacts/js/utilities/performance_helper.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
@@ -281,7 +281,7 @@ suite('Render contacts list', function() {
     loading.id = 'loading-overlay';
     settings = document.createElement('div');
     settings.id = 'view-settings';
-    settings.innerHTML = '<button id="settings-close" role="menuitem"' +
+    settings.innerHTML = '<button id="settings-close"' +
                                           'data-l10n-id="done">Done</button>';
     settings.innerHTML += '<div class="view-body-inner"></div>';
     noContacts = document.createElement('div');
@@ -328,13 +328,10 @@ suite('Render contacts list', function() {
     selectSection = document.createElement('form');
     selectSection.id = 'selectable-form';
     selectSection.innerHTML = '<section role="region">' +
-    '<header>' +
-      '<button><span class="icon icon-close">close</span></button>' +
-      '<menu type="toolbar">' +
-        '<button type="button" id="select-action"></button>' +
-      '</menu>' +
+    '<gaia-header id="selectable-form-header" action="close">' +
       '<h1 id="edit-title" data-l10n-id="contacts"></h1>' +
-      '</header>' +
+      '<button type="button" id="select-action"></button>' +
+    '</gaia-header>' +
     '</section>' +
     '<menu id="select-all-wrapper">' +
       '<button id="deselect-all" disabled="disabled"></button>' +
@@ -398,6 +395,12 @@ suite('Render contacts list', function() {
     window.utils = window.utils || {};
     window.utils.alphaScroll = MockAlphaScroll;
     window.utils.cookie = MockCookie;
+    sinon.stub(window.utils.cookie, 'load', function() {
+      return {
+        order: true,
+        defaultImage: true
+      };
+    });
     realMozContacts = navigator.mozContacts;
     navigator.mozContacts = MockMozContacts;
     subject = contacts.List;
@@ -977,7 +980,7 @@ suite('Render contacts list', function() {
 
         doOnscreen(subject, contact, function() {
           var img = contact.querySelector('span[data-type=img]');
-
+          assert.equal(img.style.backgroundPosition, '');
           assert.equal(img.dataset.src, 'test.png',
                         'At the begining contact 1 img === "test.png"');
           var prevUpdated = contact.dataset.updated;
@@ -1280,7 +1283,7 @@ suite('Render contacts list', function() {
       var contactIndex = Math.floor(Math.random() * mockContacts.length);
       var contact = mockContacts[contactIndex];
       contact.givenName[1] = 'Juan';
-      contact.name = contact.givenName[0] + ' ' + contact.givenName[1] +  ' ' + 
+      contact.name = contact.givenName[0] + ' ' + contact.givenName[1] +  ' ' +
                      contact.familyName[0];
 
       doLoad(subject, mockContacts, function() {
@@ -1705,7 +1708,12 @@ suite('Render contacts list', function() {
   });
 
   suite('ICE Contacts', function() {
+    var dispatchChange;
+
     setup(function() {
+      this.sinon.stub(ICEStore, 'onChange', function(cb) {
+        dispatchChange = cb;
+      });
       this.sinon.stub(ICEStore, 'getContacts', function() {
         return {
           then: function(cb) {
@@ -1721,15 +1729,141 @@ suite('Render contacts list', function() {
       this.sinon.spy(MockAlphaScroll, 'hideGroup');
     });
 
-    test('Display the ICE group if ICE contacts present', function() {
+    teardown(function() {
+      ICEStore.onChange.restore();
+    });
+
+    test('> ICE group is always build but is hidden', function() {
+      var stub = ICEStore.getContacts;
+      ICEStore.getContacts = function() {
+        return {
+          then: function(cb) {
+            cb();
+          }
+        };
+      };
+
       mockContacts = new MockContactsList();
       subject.load(mockContacts);
-      // Check ice group present
+      // ICE group created, even if we don't have contacts
       var iceGroup = document.getElementById('section-group-ice');
       assert.isNotNull(iceGroup);
-      // Check that we are displaying the extra item in the alphascroll
-      sinon.assert.calledOnce(MockAlphaScroll.showGroup);
-      sinon.assert.calledWith(MockAlphaScroll.showGroup, 'ice');
+      // ICE group not visible
+      assert.isTrue(iceGroup.classList.contains('hide'));
+
+      ICEStore.getContacts = stub;
     });
+
+    test('Display the ICE group if ICE contacts present', function(done) {
+      mockContacts = new MockContactsList();
+      subject.load(mockContacts, false, callback);
+
+      function callback() {
+        // Check ice group present
+        var iceGroup = document.getElementById('section-group-ice');
+        done(function() {
+          assert.isNotNull(iceGroup);
+          assert.isFalse(iceGroup.classList.contains('hide'));
+          // Check that we are displaying the extra item in the alphascroll
+          sinon.assert.calledOnce(MockAlphaScroll.showGroup);
+          sinon.assert.calledWith(MockAlphaScroll.showGroup, 'ice');
+        });
+      }
+    });
+
+    test('> after a list reload, the ice group appears', function() {
+      subject.load(null, true);
+      var iceGroup = document.getElementById('section-group-ice');
+      assert.isNotNull(iceGroup);
+    });
+
+    test('toggleICEGroup hides group', function(done) {
+      mockContacts = new MockContactsList();
+      subject.load(mockContacts, false, () => {
+        var iceGroup = document.getElementById('section-group-ice');
+        assert.isFalse(iceGroup.classList.contains('hide'));
+        subject.toggleICEGroup(false);
+        assert.isTrue(iceGroup.classList.contains('hide'));
+        dispatchChange();
+        // The group was updated and it calls to showICEGroup but it remains
+        // hidden because it was forced by toggleICEGroup.
+        assert.isTrue(iceGroup.classList.contains('hide'));
+        done();
+      });
+    });
+  });
+
+  suite('Default images', function() {
+    suiteSetup(function(done) {
+      mockContacts = new MockContactsList();
+      // Remove photo field from those contacts
+      mockContacts.forEach(function(ct) {
+        delete ct.photo;
+      });
+
+      // Make contact[0] favourite
+      mockContacts[0].category.push('favorite');
+      // Make contact[2] just a phone number
+      mockContacts[2] = {
+        'id': '3',
+        'updated': new Date(),
+        'tel': [
+          {
+            'value': '+346578888883',
+            'type': 'mobile',
+            'carrier': 'TEF'
+          }
+        ]
+      };
+
+      MockCookie.data = {
+        defaultImage: true
+      };
+
+      // Forces the cookie data to be reloaded
+      subject.setOrderByLastName(null);
+      // From now on we will have order by lastname
+      subject.init();
+      // Wait till the rows are being displayed on the screen
+      subject.notifyRowOnScreenByUUID('1', function() {
+        done();
+      });
+      doLoad(subject, mockContacts);
+    });
+
+    suiteTeardown(function() {
+      MockCookie.data = {};
+      subject.setOrderByLastName(true);
+    });
+
+    test('Check default image appears', function() {
+      var contact = document.querySelector('[data-uuid="2"]');
+      assert.isTrue(contact.innerHTML.indexOf('aside') !== -1);
+    });
+
+    test('Check default image saves the backgroundPosition properly',
+          function() {
+      var img = document.querySelector('[data-uuid="2"] aside span');
+      assert.equal(img.dataset.backgroundPosition, '');
+    });
+
+    test('Check favorites with default image have proper group',
+      function() {
+        var favorite =
+          document.querySelector('#section-group-favorites [data-uuid="1"]');
+        assert.isNotNull(favorite);
+        var img = favorite.querySelector('aside span');
+        assert.equal(img.dataset.group, 'A');
+      }
+    );
+
+    test('Check contacts under # has # in the default image',
+      function() {
+        var justPhone = document.querySelector('[data-uuid="3"]');
+        assert.isNotNull(justPhone);
+        var img = justPhone.querySelector('aside span');
+        assert.equal(img.dataset.group, '#');
+      }
+    );
   });
 });

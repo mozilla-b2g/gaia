@@ -132,6 +132,20 @@ suite('system/SleepMenu', function() {
     assert.ok(stub.calledOnce);
   });
 
+  test('hide on attention window is opened', function() {
+    subject.start();
+    subject.show();
+    window.dispatchEvent(new CustomEvent('attentionopened'));
+    assert.isFalse(subject.visible);
+  });
+
+  test('hide on home button pressed', function() {
+    subject.start();
+    subject.show();
+    window.dispatchEvent(new CustomEvent('home'));
+    assert.isFalse(subject.visible);
+  });
+
   test('poweroff requested', function() {
     subject.start();
     subject.show();

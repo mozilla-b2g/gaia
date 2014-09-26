@@ -127,7 +127,7 @@ suite('db', function() {
         test('default account', function() {
           var list = Object.keys(storeLoads.accounts);
 
-          assert.length(list, 1);
+          assert.lengthOf(list, 1);
 
           var item = storeLoads.accounts[list[0]];
 
@@ -138,7 +138,7 @@ suite('db', function() {
 
         test('default calendar', function() {
           var list = Object.keys(storeLoads.calendars);
-          assert.length(list, 1);
+          assert.lengthOf(list, 1);
 
           var item = storeLoads.calendars[list[0]];
 

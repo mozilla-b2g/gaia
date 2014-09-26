@@ -35,7 +35,6 @@ suite('system/Card', function() {
 
   mocksForCard.attachTestHelpers();
   var mockManager = {
-    attentionScreenApps: [],
     useAppScreenshotPreviews: true
   };
   var cardsList;
@@ -67,30 +66,35 @@ suite('system/Card', function() {
       assert.equal(card.element.tagName, 'LI');
       assert.ok(card.screenshotView, 'screenshotView node');
       assert.ok(card.titleNode, 'title node');
+      assert.ok(card.titleId, 'title id');
+      assert.ok(card.iconButton, 'iconButton');
     });
 
     test('has expected classes/elements', function(){
       var card = this.card;
+      var header = card.element.querySelector('h1');
       assert.ok(card.element.classList.contains, '.card');
-      assert.ok(card.element.querySelector('.close-card'), '.close-card');
+      assert.isFalse(card.element.classList.contains('browser'),
+                     'no browser class for non-browser windows');
+      assert.ok(card.element.querySelector('.close-button'), '.close-button');
       assert.ok(card.element.querySelector('.screenshotView'),
                 '.screenshotView');
-      assert.ok(card.element.querySelector('h1'),
-                'h1');
+      assert.ok(header, 'h1');
+      assert.ok(header.id, 'h1.id');
     });
 
-    test('onviewport listener', function(){
-      var card = this.card;
-      var stub = this.sinon.stub(card, 'onViewport', function() {});
-      card.element.dispatchEvent(new CustomEvent('onviewport'));
-      assert.isTrue(stub.calledOnce, 'onViewport was called');
-    });
-
-    test('outviewport listener', function(){
-      var card = this.card;
-      var stub = sinon.stub(card, 'onOutViewport', function() {});
-      card.element.dispatchEvent(new CustomEvent('outviewport'));
-      assert.isTrue(stub.calledOnce, 'onOutViewport was called');
+    test('adds browser class for browser windows', function(){
+      var app = makeApp({ name: 'browserwindow' });
+      this.sinon.stub(app, 'isBrowser', function() {
+        return true;
+      });
+      var card = new Card({
+        app: app,
+        manager: mockManager
+      });
+      card.render();
+      assert.ok(card.element.classList.contains('browser'),
+               'has browser class');
     });
 
     test('browser app title', function() {
@@ -147,6 +151,28 @@ suite('system/Card', function() {
       assert.ok(!this.card.manager, 'card.manager reference is falsey');
       assert.ok(!this.card.app, 'card.app reference is falsey');
       assert.ok(!this.card.element, 'card.element reference is falsey');
+    });
+  });
+
+  suite('Unkillable card', function() {
+    setup(function(){
+      this.cardNode = document.createElement('li');
+      var app = makeApp({ name: 'dummyapp' });
+      app.attentionWindow = true;
+      this.card = new Card({
+        app: app,
+        manager: mockManager,
+        containerElement: mockManager.cardsList,
+        element: this.cardNode
+      });
+      this.card.render();
+    });
+    teardown(function() {
+      mockManager.cardsList.innerHTML = '';
+    });
+
+    test('card whose app has attentionWindow should not be closed', function() {
+      assert.equal(this.card.closeButtonVisibility, 'hidden');
     });
   });
 
@@ -229,10 +255,15 @@ suite('system/Card', function() {
     });
 
     test('card with screenshots disabled shows icon', function() {
-      var card = this.card;
-      var manager = card.manager;
-      manager.useAppScreenshotPreviews = false;
-      card.element.dispatchEvent(new CustomEvent('onviewport'));
+      var mockManager = {
+        useAppScreenshotPreviews: false
+      };
+
+      var card = new Card({
+        app: makeApp({ name: 'dummyapp-icons' }),
+        manager: mockManager
+      });
+      card.render();
 
       assert.isTrue(card.element.classList.contains('appIconPreview'),
                     'card has appIconPreview class');
@@ -241,7 +272,52 @@ suite('system/Card', function() {
       assert.ok(iconView.style.backgroundImage.indexOf('url') > -1,
                 '.appIconView element has backgroundImage value');
     });
-
   });
 
+  suite('move > ', function() {
+    var realIW;
+    suiteSetup(function() {
+      realIW = window.innerWidth;
+      Object.defineProperty(window, 'innerWidth', {
+        configurable: true,
+        get: function() { return 320; }
+      });
+    });
+
+    suiteTeardown(function() {
+      Object.defineProperty(window, 'innerWidth', {
+        configurable: true,
+        get: function() { return realIW; }
+      });
+    });
+
+    setup(function(){
+      this.card = new Card({
+        app: makeApp({ name: 'dummyapp' }),
+        manager: mockManager
+      });
+      this.card.render();
+      this.card.position = 0;
+      this.card.manager.position = 0;
+    });
+
+    test('should apply a transform', function() {
+      this.card.move(100, 0);
+      var style = this.card.element.style;
+      var expected = 'translateX(100px)';
+      assert.equal(style.transform, expected);
+    });
+
+    test('but trick gecko by always keeping it barely in the viewport',
+    function() {
+      this.card.move(400, 0);
+      var style = this.card.element.style;
+      var expected = 'translateX(236.799px)';
+      assert.equal(style.transform, expected);
+
+      var dataset = this.card.element.dataset;
+      assert.equal(dataset.positionX, 400);
+      assert.equal(dataset.keepLayerDelta, 163.201);
+    });
+  });
 });

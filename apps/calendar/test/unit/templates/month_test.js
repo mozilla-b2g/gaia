@@ -33,8 +33,8 @@ suiteGroup('Templates.Month', function() {
 
   test('#weekDaysHeader', function() {
     var result = renderHTML('weekDaysHeader', a());
-
     assert.ok(result);
+    assert.include(result, 'role="presentation"');
     assert.include(result, '<a></a>');
   });
 
@@ -45,6 +45,7 @@ suiteGroup('Templates.Month', function() {
     });
 
     assert.ok(result);
+    assert.include(result, 'role="columnheader"');
     assert.include(result, 'Monday');
   });
 
@@ -77,6 +78,7 @@ suiteGroup('Templates.Month', function() {
 
     assert.ok(result);
 
+    assert.include(result, 'role="gridcell"');
     data.forEach(function(item) {
       assert.include(result, item);
     });

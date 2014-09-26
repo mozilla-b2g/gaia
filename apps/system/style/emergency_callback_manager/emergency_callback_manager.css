@@ -1,6 +1,5 @@
 #emergency-callback-notification {
   display: none;
-  overflow: hidden;
 }
 
 #emergency-callback-notification.displayed {
@@ -17,21 +16,18 @@
   }
 }
 
-#emergency-callback-notification > .icon {
-  float: left;
-  display: block;
-  width: 2.4rem;
-  height: 2.4rem;
-  margin: 1.8rem 1rem;
+#emergency-callback-notification > .title-container {
+  margin: 1rem 0 0 3.7rem;
 }
 
-#emergency-callback-notification > .icon,
+#emergency-callback-notification > .timer {
+  margin: 0 0 0 3.7rem;
+}
+
+/* Toaster */
 #emergency-callback-toaster > .icon {
   background-image: url('images/emergency-callback-icon.png');
   background-size: 2.4rem;
-}
-
-#emergency-callback-toaster > .icon {
   float: left;
   display: block;
   width: 2.4rem;
@@ -54,26 +50,6 @@
   width: 4rem;
   line-height: 2.8rem;
 }
-
-#emergency-callback-notification > .message {
-  margin: 1rem 0 0 5rem;
-  width: calc(100% - 5.5rem);
-  font-size: 1.5rem;
-  font-weight: 500;
-  line-height: 1.9rem;
-  color: #FFFFFF;
-}
-
-#emergency-callback-notification > .timer {
-  margin: 0.3rem 0 0 5rem;
-  width: calc(100% - 5.5rem);
-  color: #bfbfbf;
-  font-size: 1.4rem;
-  line-height: 1.9rem;
-  font-weight: 400;
-  text-overflow: ellipsis;
-}
-
 
 #emergency-callback-toaster {
   position: absolute;
@@ -98,6 +74,7 @@
   transform: translateY(0);
 }
 
+/* Dialog */
 #emergency-callback-dialog {
   /* Increasing padding size form 1.5 to 3.5rem for confirm dialogs with statusbar active */
   padding-top: 3.5rem;
@@ -129,5 +106,3 @@
   height: 6.4rem;
   margin-left: -0.5rem;
 }
-
-

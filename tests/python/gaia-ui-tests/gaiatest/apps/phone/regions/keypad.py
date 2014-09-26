@@ -96,7 +96,7 @@ class Keypad(Phone):
 
 
 class AddNewNumber(Base):
-    _create_new_contact_locator = (By.ID, 'create-new-contact-menuitem')
+    _create_new_contact_locator = (By.CSS_SELECTOR, '[data-l10n-id=createNewContact]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)

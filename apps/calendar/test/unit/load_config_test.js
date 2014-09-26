@@ -60,7 +60,7 @@ suite('load_config', function() {
           'script[src*="from_loader_test.js"]'
         );
 
-        assert.length(scripts, 1, 'only loads once');
+        assert.lengthOf(scripts, 1, 'only loads once');
       });
     });
   });
@@ -76,7 +76,7 @@ suite('load_config', function() {
       );
 
       done(function() {
-        assert.length(link, 1);
+        assert.lengthOf(link, 1);
       });
     });
   });

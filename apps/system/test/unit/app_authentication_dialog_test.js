@@ -52,15 +52,15 @@ suite('system/AppAuthenticationDialog', function() {
     var app1 = new AppWindow(fakeAppConfig1);
 
     var auth1 = new AppAuthenticationDialog(app1);
-    auth1.handleEvent({
-      type: 'mozbrowserusernameandpasswordrequired',
-      preventDefault: function() {},
+    var evt = new CustomEvent('mozbrowserusernameandpasswordrequired', {
       detail: {
         host: '',
         realm: '',
         authenticate: function() {}
       }
     });
+    var stubStopPropagation = this.sinon.stub(evt, 'stopPropagation');
+    auth1.handleEvent(evt);
     auth1.hide();
 
     assert.isFalse(auth1.element.classList.contains('visible'));
@@ -68,5 +68,6 @@ suite('system/AppAuthenticationDialog', function() {
     auth1.show();
 
     assert.isTrue(auth1.element.classList.contains('visible'));
+    assert.isTrue(stubStopPropagation.called);
   });
 });

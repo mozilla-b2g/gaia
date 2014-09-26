@@ -94,6 +94,24 @@ var GaiaDataLayer = {
     };
   },
 
+  insertSIMContact: function(aType, aContact) {
+    var contact = new mozContact(aContact);
+
+    // Get 1st SIM
+    var iccId = window.navigator.mozIccManager.iccIds[0];
+    var icc = window.navigator.mozIccManager.getIccById(iccId);
+
+    var req = icc.updateContact(aType, aContact);
+    req.onsuccess = function() {
+      console.log('success saving contact to SIM');
+      marionetteScriptFinished(true);
+    };
+    req.onerror = function() {
+      console.error('error saving contact to SIM', req.error.name);
+      marionetteScriptFinished(false);
+    };
+  },
+
   getAllContacts: function(aCallback) {
     var callback = aCallback || marionetteScriptFinished;
     SpecialPowers.addPermission('contacts-read', true, document);
@@ -175,6 +193,7 @@ var GaiaDataLayer = {
   getSetting: function(aName, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
     SpecialPowers.addPermission('settings-read', true, document);
+    SpecialPowers.addPermission('settings-api-read', true, document);
     var req = window.navigator.mozSettings.createLock().get(aName);
     req.onsuccess = function() {
       console.log('setting retrieved');
@@ -187,19 +206,21 @@ var GaiaDataLayer = {
   },
 
   setSetting: function(aName, aValue, aReturnOnSuccess) {
-    SpecialPowers.addPermission('settings-readwrite', true, document);
+    SpecialPowers.addPermission('settings-write', true, document);
+    SpecialPowers.addPermission('settings-api-write', true, document);
     var returnOnSuccess = aReturnOnSuccess || aReturnOnSuccess === undefined;
     var setting = {};
     setting[aName] = aValue;
     console.log('setting ' + aName + ' to ' + aValue);
-    var req = window.navigator.mozSettings.createLock().set(setting);
-    req.onsuccess = function() {
+    var lock = window.navigator.mozSettings.createLock();
+    var req = lock.set(setting);
+    lock.onsettingstransactionsuccess = function() {
       console.log('setting changed');
       if (returnOnSuccess) {
         marionetteScriptFinished(true);
       }
     };
-    req.onerror = function() {
+    lock.onsettingstransactionfailure = function() {
       console.log('error changing setting ' + req.error.name);
       marionetteScriptFinished(false);
     };

@@ -38,13 +38,16 @@ ActionsMenu.prototype = {
       throw new Error('actions menu is already open');
     }
 
-    this._shareButton.hidden = !tone.shareable;
-    this._deleteButton.hidden = !tone.deletable;
     if (tone.shareable || tone.deletable) {
       this._tone = tone;
       this._callback = callback;
       this._menuElement.hidden = false;
       this._inUseAs = inUseAs;
+
+      this._shareButton.hidden = !tone.shareable;
+      this._shareButton.dataset.l10nId = 'actions-share-' + tone.type;
+      this._deleteButton.hidden = !tone.deletable;
+      this._deleteButton.dataset.l10nId = 'actions-delete-' + tone.type;
     }
     return !this._menuElement.hidden;
   },
@@ -106,7 +109,6 @@ ActionsMenu.prototype = {
    * @param {Event} event The event.
    */
   _delete: function(event) {
-    var _ = navigator.mozL10n.get;
     var self = this;
     this.close();
 
@@ -116,18 +118,18 @@ ActionsMenu.prototype = {
     }
 
     var cancelButton = {
-      title: _('delete-cancel'),
+      title: 'delete-cancel',
       callback: function() {
         CustomDialog.hide();
         self._finish('cancel');
       }
     };
     var confirmButton = {
-      title: _('delete-confirm'),
+      title: 'delete-confirm',
       callback: function() {
         CustomDialog.hide();
         Toaster.showToast({
-          messageL10nId: 'deleted-tone',
+          messageL10nId: 'deleted-' + self._tone.type,
           latency: 3000,
           useTransition: true
         });
@@ -136,7 +138,8 @@ ActionsMenu.prototype = {
       }
     };
     CustomDialog.show(
-      _('delete-title'), _(descKey, {tone: self._tone.name}),
+      'delete-title',
+      {id: descKey, args: {tone: self._tone.name}},
       cancelButton, confirmButton
     );
   },

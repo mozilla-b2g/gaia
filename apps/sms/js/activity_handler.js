@@ -20,9 +20,6 @@ const ActivityDataType = {
 };
 
 var ActivityHandler = {
-  // CSS class applied to the body element when app requested via activity
-  REQUEST_ACTIVITY_MODE_CLASS_NAME: 'request-activity-mode',
-
   isLocked: false,
 
   // Will hold current activity object
@@ -59,7 +56,6 @@ var ActivityHandler = {
     if (!value) {
       throw new Error('Activity should be defined!');
     }
-    this._toggleActivityRequestMode(true);
     this._activity = value;
   },
 
@@ -166,13 +162,6 @@ var ActivityHandler = {
     );
   },
 
-  _toggleActivityRequestMode: function(toggle) {
-    document.body.classList.toggle(
-      this.REQUEST_ACTIVITY_MODE_CLASS_NAME,
-      toggle
-    );
-  },
-
   /**
    * Leaves current activity and toggles request activity mode.
    * @param {string?} errorReason String message that indicates that something
@@ -187,8 +176,6 @@ var ActivityHandler = {
         this._activity.postResult({ success: true });
       }
       this._activity = null;
-
-      this._toggleActivityRequestMode(false);
     }
   },
 

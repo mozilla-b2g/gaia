@@ -1,15 +1,16 @@
 /* globals MocksHelper, VisibilityManager,
-           MockAttentionScreen, MockTaskManager */
+           MockAttentionWindowManager, MockTaskManager, MockAppWindow */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_task_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
-requireApp('system/test/unit/mock_attention_screen.js');
 require('/shared/test/unit/mocks/mock_system.js');
+requireApp('system/test/unit/mock_attention_window_manager.js');
+requireApp('system/test/unit/mock_app_window.js');
 
 var mocksForVisibilityManager = new MocksHelper([
-  'AttentionScreen', 'System'
+  'AttentionWindowManager', 'System', 'AppWindow'
 ]).init();
 
 suite('system/VisibilityManager', function() {
@@ -17,6 +18,7 @@ suite('system/VisibilityManager', function() {
   var visibilityManager;
   mocksForVisibilityManager.attachTestHelpers();
   setup(function(done) {
+    window.attentionWindowManager = MockAttentionWindowManager;
     this.sinon.useFakeTimers();
 
     stubById = this.sinon.stub(document, 'getElementById');
@@ -29,6 +31,7 @@ suite('system/VisibilityManager', function() {
   });
 
   teardown(function() {
+    window.attentionWindowManager = null;
     stubById.restore();
   });
 
@@ -53,8 +56,9 @@ suite('system/VisibilityManager', function() {
       visibilityManager._normalAudioChannelActive = false;
     });
 
-    test('lockscreen-request-unlock', function() {
-      MockAttentionScreen.mFullyVisible = false;
+    test('lockscreen-request-unlock on attention window inactive', function() {
+      this.sinon.stub(MockAttentionWindowManager,
+        'hasActiveWindow').returns(false);
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
 
       visibilityManager.handleEvent({
@@ -64,37 +68,43 @@ suite('system/VisibilityManager', function() {
 
       assert.isTrue(stubPublish.calledOnce);
       assert.isTrue(stubPublish.getCall(0).args[0] === 'showwindow');
+    });
 
-      MockAttentionScreen.mFullyVisible = true;
+
+    test('lockscreen-request-unlock on attention window active', function() {
+      this.sinon.stub(MockAttentionWindowManager,
+        'hasActiveWindow').returns(true);
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+
       visibilityManager.handleEvent({
         type: 'lockscreen-request-unlock',
         detail: {}
       });
 
-      assert.isTrue(stubPublish.calledOnce);
+      visibilityManager.handleEvent({
+        type: 'lockscreen-request-unlock',
+        detail: {}
+      });
+
+      assert.isFalse(stubPublish.called);
     });
 
-    test('attentionscreenshow', function() {
+    test('attention window is opened', function() {
+      window.System.locked = false;
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
       visibilityManager.handleEvent({
-        type: 'attentionscreenshow',
-        detail: {
-          origin: 'fake-dialer'
-        }
+        type: 'attentionopened'
       });
 
       assert.isTrue(stubPublish.called);
-      assert.isTrue(stubPublish.getCall(0).args[0] === 'overlaystart');
-      this.sinon.clock.tick(3000);
-      assert.isTrue(stubPublish.getCall(1).args[0] === 'hidewindow');
-      assert.isTrue(stubPublish.getCall(1).args[1].origin === 'fake-dialer');
+      assert.isTrue(stubPublish.getCall(0).args[0] === 'hidewindow');
     });
 
     test('show lockscreen when screen is on.', function() {
       window.System.locked = true;
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
       visibilityManager.handleEvent({
-        type: 'attentionscreenhide'
+        type: 'attention-inactive'
       });
 
       assert.isTrue(stubPublish.calledWith('showlockscreenwindow'));
@@ -214,6 +224,57 @@ suite('system/VisibilityManager', function() {
 
       assert.isFalse(stubPublish.called);
       assert.isFalse(stubPublish.calledWith('hidewindowforscreenreader'));
+    });
+
+    test('move app to foreground', function () {
+      window.System.locked = false;
+      this.sinon.stub(MockAttentionWindowManager, 'hasActiveWindow')
+          .returns(false);
+      var app = new MockAppWindow();
+      var setVisibleStub = this.sinon.stub(app, 'setVisible');
+      var event = new CustomEvent('apprequestforeground', {
+        detail: app
+      });
+      window.dispatchEvent(event);
+      assert.isTrue(setVisibleStub.calledWith(true));
+    });
+
+    test('move homescreen to foreground', function() {
+      var homescreen = new MockAppWindow();
+      var setVisibleStub = this.sinon.stub(homescreen, 'setVisible');
+      var event = new CustomEvent('homescreenrequestforeground', {
+        detail: homescreen
+      });
+      window.dispatchEvent(event);
+      assert.isTrue(setVisibleStub.calledWith(true));
+    });
+
+    test('dont foreground app when attentionscreen visible', function () {
+      window.System.locked = false;
+      this.sinon.stub(MockAttentionWindowManager, 'hasActiveWindow')
+          .returns(true);
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'setVisible');
+
+      var event = new CustomEvent('apprequestforeground', {
+        detail: app
+      });
+      window.dispatchEvent(event);
+      assert.isFalse(app.setVisible.called);
+    });
+
+    test('dont foreground app when locked', function () {
+      window.System.locked = true;
+      this.sinon.stub(MockAttentionWindowManager, 'hasActiveWindow')
+          .returns(false);
+      var app = new MockAppWindow();
+      this.sinon.stub(app, 'setVisible');
+
+      var event = new CustomEvent('apprequestforeground', {
+        detail: app
+      });
+      window.dispatchEvent(event);
+      assert.isFalse(app.setVisible.called);
     });
 
     test('system-dialog-show', function() {

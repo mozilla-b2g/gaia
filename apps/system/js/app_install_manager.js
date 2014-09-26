@@ -123,6 +123,13 @@ var AppInstallManager = {
 
     window.addEventListener('applicationready',
         this.handleApplicationReady);
+
+    window.addEventListener('home', this.handleHomeButtonPressed.bind(this));
+  },
+
+  handleHomeButtonPressed: function ai_handleHomeButtonPressed(e) {
+    this.dialog.classList.remove('visible');
+    this.handleInstallCancel();
   },
 
   handleApplicationReady: function ai_handleApplicationReady(e) {
@@ -211,7 +218,6 @@ var AppInstallManager = {
   },
 
   handleAppUninstallPrompt: function ai_handleUninstallPrompt(detail) {
-    var _ = navigator.mozL10n.get;
     var app = detail.app;
     var id = detail.id;
 
@@ -233,10 +239,10 @@ var AppInstallManager = {
     if (unrecoverable) {
       dialogConfig = {
         type: 'unrecoverable',
-        title: _('unrecoverable-error-title'),
-        body: _('unrecoverable-error-body'),
+        title: 'unrecoverable-error-title',
+        body: 'unrecoverable-error-body',
         confirm: {
-          title: _('unrecoverable-error-action'),
+          title: 'unrecoverable-error-action',
           cb: () => { this.dispatchResponse(id, 'webapps-uninstall-granted'); }
         }
       };
@@ -244,14 +250,14 @@ var AppInstallManager = {
       var nameObj = { name: manifest.name };
       dialogConfig = {
         type: 'remove',
-        title: _('delete-title', nameObj),
-        body: _('delete-body', nameObj),
+        title: {id: 'delete-title', args: nameObj},
+        body: {id: 'delete-body', args: nameObj},
         cancel: {
-          title: _('cancel'),
+          title: 'cancel',
           cb: () => { this.dispatchResponse(id, 'webapps-uninstall-denied'); }
         },
         confirm: {
-          title: _('delete'),
+          title: 'delete',
           type: 'danger',
           cb: () => { this.dispatchResponse(id, 'webapps-uninstall-granted'); }
         }
@@ -498,7 +504,8 @@ var AppInstallManager = {
 
     var newNotif =
       '<div class="fake-notification" role="link">' +
-        '<div class="message"></div>' +
+        '<div data-icon="rocket" class="alert"></div>' +
+        '<div class="title-container"></div>' +
         '<progress></progress>' +
       '</div>';
 
@@ -514,7 +521,7 @@ var AppInstallManager = {
       appName: new ManifestHelper(manifest).name
     });
 
-    newNode.querySelector('.message').textContent = message;
+    newNode.querySelector('.title-container').textContent = message;
 
     var progressNode = newNode.querySelector('progress');
     if (app.updateManifest && app.updateManifest.size) {
@@ -523,7 +530,7 @@ var AppInstallManager = {
     }
 
     appInfo.installNotification = newNode;
-    NotificationScreen.incExternalNotifications();
+    NotificationScreen.addUnreadNotification(manifestURL);
   },
 
   getNotificationProgressNode: function ai_getNotificationProgressNode(app) {
@@ -575,7 +582,7 @@ var AppInstallManager = {
 
     node.parentNode.removeChild(node);
     delete appInfo.installNotification;
-    NotificationScreen.decExternalNotifications();
+    NotificationScreen.removeUnreadNotification(manifestURL);
   },
 
   requestWifiLock: function ai_requestWifiLock(app) {

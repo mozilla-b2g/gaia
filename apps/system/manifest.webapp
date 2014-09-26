@@ -9,6 +9,7 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
+    "themeable":{},
     "alarms": {},
     "browser":{},
     "power":{},

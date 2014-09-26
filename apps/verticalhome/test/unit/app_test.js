@@ -3,6 +3,7 @@
 /* global MocksHelper, loadBodyHTML */
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/elements/gaia_grid/js/grid_dragdrop.js');
 require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
@@ -16,7 +17,8 @@ require('/test/unit/mock_item_store.js');
 
 var mocksHelperForApp = new MocksHelper([
   'LazyLoader',
-  'ItemStore'
+  'ItemStore',
+  'SettingsListener'
 ]).init();
 
 suite('app.js > ', function() {
@@ -25,23 +27,13 @@ suite('app.js > ', function() {
 
   var raf;
 
-  function initialize() {
-    app.scrollable.style.height = '500px';
-    app.scrollable.style.overflow = 'auto';
-    app.grid.style.height = '1000px';
-    app.grid.style.display = 'block';
-  }
-
   setup(function(done) {
     raf = sinon.stub(window, 'requestAnimationFrame');
     loadBodyHTML('/index.html');
     var grid = document.querySelector('gaia-grid')._grid;
     // Some features are loaded after rendering like dragdrop
     grid.render();
-    require('/js/app.js', function() {
-      initialize();
-      done();
-    });
+    require('/js/app.js', done);
   });
 
   teardown(function() {
@@ -49,11 +41,11 @@ suite('app.js > ', function() {
   });
 
   test('Scrolls on hashchange', function() {
-    var previousScrollTop = app.scrollable.scrollTop = 100;
+    window.scrollY = 100000;
+    var scrollStub = sinon.stub(window, 'scrollTo');
     window.dispatchEvent(new CustomEvent('hashchange'));
 
-    assert.isTrue(previousScrollTop > app.scrollable.scrollTop);
-    assert.isTrue(raf.called);
+    assert.ok(scrollStub.called);
   });
 
   test('No scrolling while context menu is displayed', function() {

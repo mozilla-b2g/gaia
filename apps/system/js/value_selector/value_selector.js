@@ -27,7 +27,7 @@
     app.element.addEventListener('_opening', this);
     app.element.addEventListener('_closing', this);
     app.element.addEventListener('_inputmethod-contextchange', this);
-    app.element.addEventListener('_sheetstransitionstart', this);
+    app.element.addEventListener('_sheetsgesturebegin', this);
     app.element.addEventListener('_localized', this);
     window.addEventListener('timeformatchange', this);
   };
@@ -37,6 +37,8 @@
   ValueSelector.prototype.CLASS_NAME = 'ValueSelector';
 
   ValueSelector.prototype.ELEMENT_PREFIX = 'value-selector-';
+
+  ValueSelector.prototype.EVENT_PREFIX = 'value-selector-';
 
   ValueSelector.prototype.customID = function vs_customID() {
     if (this.app) {
@@ -89,7 +91,7 @@
           this._timePicker = null;
         }
         break;
-      case '_sheetstransitionstart':
+      case '_sheetsgesturebegin':
         // Only cancel if the value selector was rendered.
         if (this._injected) {
           this.cancel();
@@ -181,6 +183,7 @@
       return;
     }
 
+    this.publish('shown');
     var min = detail.min;
     var max = detail.max;
 
@@ -234,6 +237,7 @@
     if (this.app) {
       this.app.focus();
     }
+    this.publish('hidden');
   };
 
   ValueSelector.prototype.handleSelect = function vs_handleSelect(target) {
@@ -378,6 +382,7 @@
       return;
     }
 
+    var groupTemplate = new Template('value-selector-groupoption-template');
     var template = new Template('value-selector-option-template');
 
     // Add ARIA property to notify if this is a multi-select or not.
@@ -385,13 +390,20 @@
       this._currentPickerType !== 'select-one');
 
     options.forEach(function(option) {
-      this.elements.optionsContainer.insertAdjacentHTML('beforeend',
-        template.interpolate({
-          index: option.optionIndex.toString(10),
-          checked: option.selected.toString(),
-          for: 'gaia-option-' + option.optionIndex,
-          text: option.text
-        }));
+      if (option.group) {
+        this.elements.optionsContainer.insertAdjacentHTML('beforeend',
+          groupTemplate.interpolate({
+            text: option.text
+          }));
+      } else {
+        this.elements.optionsContainer.insertAdjacentHTML('beforeend',
+          template.interpolate({
+            index: option.optionIndex.toString(10),
+            checked: option.selected.toString(),
+            for: 'gaia-option-' + option.optionIndex,
+            text: option.text
+          }));
+      }
     }, this);
 
     // Apply different style when the options are more than 1 page
@@ -526,7 +538,6 @@
   }
 
   TimePicker.prototype = {
-
     _fetchElements: function tp__fetchElements() {
       this.elements = {};
       this.elementClasses = ['value-picker-hours', 'value-picker-minutes',
@@ -581,11 +592,33 @@
       var style = 'format24h';
       if (this.is12hFormat) {
         var localeTimeFormat = navigator.mozL10n.get('shortTimeFormat12');
+        // handle revert appearance
         var reversedPeriod =
           (localeTimeFormat.indexOf('%p') < localeTimeFormat.indexOf('%M'));
         style = (reversedPeriod) ? 'format12hrev' : 'format12h';
+
+        if ('format12' === style) {
+          this.element.classList.remove('format12hhrev');
+          this.element.classList.remove('format24h');
+          if (!this.element.classList.contains(style)) {
+            this.element.classList.add(style);
+          }
+        } else {
+          this.element.classList.remove('format12');
+          this.element.classList.remove('format24h');
+          if (!this.element.classList.contains(style)) {
+            this.element.classList.add(style);
+          }
+        }
       }
-      this.element.classList.toggle(style, true);
+
+      if('format24h' === style) {
+        this.element.classList.remove('format12h');
+        this.element.classList.remove('format12hrev');
+        if (!this.element.classList.contains(style)) {
+          this.element.classList.add(style);
+        }
+      }
     },
 
     getHour: function tp_getHours() {
@@ -609,5 +642,4 @@
       return (hour < 10 ? '0' : '') + hour + ':' + minute;
     }
   };
-
 })(window);

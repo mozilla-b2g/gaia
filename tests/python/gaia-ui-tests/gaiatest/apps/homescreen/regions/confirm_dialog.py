@@ -14,5 +14,6 @@ class ConfirmDialog(Base):
     def tap_confirm(self):
         # TODO add a good wait here when Bug 1008961 is resolved
         time.sleep(1)
+        self.marionette.switch_to_frame()
         self.wait_for_element_displayed(*self._confirm_button_locator)
         self.marionette.find_element(*self._confirm_button_locator).tap()

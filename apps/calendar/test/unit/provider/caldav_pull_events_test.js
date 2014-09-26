@@ -515,7 +515,7 @@ suiteGroup('Provider.CaldavPullEvents', function() {
       test('event', function(done) {
         eventStore.findByIds([newEvent._id], function(err, list) {
           done(function() {
-            assert.length(Object.keys(list), 1, 'saved events');
+            assert.lengthOf(Object.keys(list), 1, 'saved events');
             assert.ok(list[newEvent._id], 'saved event id');
           });
         });
@@ -565,7 +565,7 @@ suiteGroup('Provider.CaldavPullEvents', function() {
       assert.ok(alarms, 'has alarms');
 
       stream.emit('occurrence', times[0]);
-      assert.length(subject.busytimeQueue, 1);
+      assert.lengthOf(subject.busytimeQueue, 1);
 
       // ids are unique each time
       expected._id = subject.busytimeQueue[0]._id;
@@ -614,7 +614,7 @@ suiteGroup('Provider.CaldavPullEvents', function() {
       expected.calendarId = calendar._id;
 
       stream.emit('component', data);
-      assert.length(subject.icalQueue, 1);
+      assert.lengthOf(subject.icalQueue, 1);
 
       assert.deepEqual(
         subject.icalQueue[0],
@@ -629,7 +629,7 @@ suiteGroup('Provider.CaldavPullEvents', function() {
       };
 
       stream.emit('component', data);
-      assert.length(subject.icalQueue, 1);
+      assert.lengthOf(subject.icalQueue, 1);
 
       assert.ok(
         !('lastRecurrenceId' in subject.icalQueue[0]),
@@ -645,7 +645,7 @@ suiteGroup('Provider.CaldavPullEvents', function() {
       // the results by using the same object during the test.
       var control = serviceEvent('recurringEvent');
       control = subject.formatEvent(control);
-      assert.length(control.remote.exceptions, 2);
+      assert.lengthOf(control.remote.exceptions, 2);
 
       var exceptions = control.remote.exceptions;
       delete control.remote.exceptions;
@@ -657,8 +657,8 @@ suiteGroup('Provider.CaldavPullEvents', function() {
       var event = serviceEvent('recurringEvent');
       stream.emit('event', event);
 
-      assert.length(subject.eventQueue, 3);
-      assert.length(subject.icalQueue, 1);
+      assert.lengthOf(subject.eventQueue, 3);
+      assert.lengthOf(subject.icalQueue, 1);
 
       assert.hasProperties(
         subject.icalQueue[0],
@@ -699,7 +699,7 @@ suiteGroup('Provider.CaldavPullEvents', function() {
 
       stream.emit('event', newEvent);
 
-      assert.length(
+      assert.lengthOf(
         subject.eventQueue,
         1
       );

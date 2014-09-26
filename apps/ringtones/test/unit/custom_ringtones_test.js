@@ -52,6 +52,13 @@ suite('custom ringtones', function() {
   suite('non-empty database', function() {
 
     var testTone;
+    
+    var toneDeepEqual = function (test, expected, msg) {
+      assert.equal(test.name, expected.name, msg);
+      assert.equal(test.blob, expected.blob, msg);
+      assert.equal(test.id, expected.id, msg);
+      assert.equal(test.subtitle, expected.subtitle, msg);
+    };
 
     setup(function(done) {
       var info = {name: 'My ringtone', blob: testBlob};
@@ -68,8 +75,7 @@ suite('custom ringtones', function() {
         done(function() {
           assert.ok(Array.isArray(tones));
           assert.equal(tones.length, 1);
-
-          assert.deepEqual(tones[0], testTone);
+          toneDeepEqual(tones[0], testTone);
         });
       }, function(error) {
         done(error);
@@ -93,7 +99,7 @@ suite('custom ringtones', function() {
     test('get()', function(done) {
       window.customRingtones.get(testTone.id).then(function(tone) {
         done(function() {
-          assert.deepEqual(tone, testTone);
+          toneDeepEqual(tone, testTone);
         });
       }, function(error) {
         done(error);

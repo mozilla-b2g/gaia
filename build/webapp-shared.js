@@ -197,22 +197,13 @@ WebappShared.prototype.pushResource = function(path) {
 WebappShared.prototype.pushLocale = function(name) {
   var localeFolder = this.gaia.sharedFolder.clone();
   localeFolder.append('locales');
-  var ini = localeFolder.clone();
   localeFolder.append(name);
   if (!localeFolder.exists()) {
     throw new Error('Using inexistent shared locale: ' + name + ' from: ' +
                     this.webapp.domain);
   }
-  ini.append(name + '.ini');
-  if (!ini.exists()) {
-    throw new Error('Using inexistent shared locale: ' + name + ' from: ' +
-                    this.webapp.domain);
-  }
   // And the locale folder itself
   this.moveToBuildDir(localeFolder, 'shared/locales/' + name );
-  // Add the .ini file
-  var pathInStage = 'shared/locales/' + name + '.ini';
-  this.moveToBuildDir(ini, pathInStage);
   utils.ls(localeFolder, true).forEach(function(fileInSharedLocales) {
 
     var relativePath =
@@ -225,9 +216,16 @@ WebappShared.prototype.pushLocale = function(name) {
 WebappShared.prototype.pushElements = function(path) {
   var file = this.gaia.sharedFolder.clone();
   file.append('elements');
-  path.split('/').forEach(function(segment) {
-    file.append(segment);
-  });
+
+  var elems = path.split('/');
+
+  for (var i = 0; i < elems.length; i++) {
+    file.append(elems[i]);
+    if (elems[i] === 'locales') {
+      break;
+    }
+  }
+
   if (!file.exists()) {
     throw new Error('Using inexistent shared elements file: ' + path +
                     ' from: ' + this.webapp.domain);
@@ -303,7 +301,7 @@ WebappShared.prototype.pushFileByType = function(kind, path) {
       }
       break;
     case 'locales':
-      var localeName = path.substr(0, path.lastIndexOf('.'));
+      var localeName = utils.dirname(path);
       if (this.used.locales.indexOf(localeName) === -1) {
         this.used.locales.push(localeName);
         this.pushLocale(localeName);

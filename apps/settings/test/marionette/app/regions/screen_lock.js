@@ -19,7 +19,7 @@ module.exports = ScreenLockPanel;
 ScreenLockPanel.Selectors = {
   'screenLockLabel': 'span[data-l10n-id="lockScreen"]',
   'screenLockCheckbox': '.lockscreen-enable',
-  'backButton': 'a[href="#screenLock"]',
+  'header': 'gaia-header',
   'passcodeLockLabel': 'span[data-l10n-id="passcode-lock"]',
   'passcodeInput': '.passcode-input',
   'passcodeCheckbox': '.passcode-enable',
@@ -91,7 +91,7 @@ ScreenLockPanel.prototype = {
     }
 
     // if we have passcode by default, then there is a popup
-    // when disabling screenLock, in this way, we have to 
+    // when disabling screenLock, in this way, we have to
     // type the correct code to disable passcodeLock at first
     if (this.isPasscodeLockEnabled()) {
       var code = this.getPasscode();
@@ -125,7 +125,7 @@ ScreenLockPanel.prototype = {
   },
 
   tapBackButton: function() {
-    this.waitForElement('backButton').tap();
+    this.waitForElement('header').tap(25, 25);
   },
 
   tapCreatePasscode: function() {

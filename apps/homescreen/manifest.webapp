@@ -9,6 +9,7 @@
     "url": "https://github.com/andreasgal/gaia"
   },
   "permissions": {
+    "themeable":{},
     "mobileconnection":{},
     "webapps-manage":{},
     "systemXHR":{},

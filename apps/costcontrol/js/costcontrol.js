@@ -99,7 +99,7 @@ var CostControl = (function() {
       function _requestDataStatistics() {
         SimManager.requestDataSimIcc(function(dataSim) {
           requestDataStatistics(configuration, settings, callback, dataSim,
-                                result);
+                                result, requestObj.apps);
         });
       }
 
@@ -427,7 +427,7 @@ var CostControl = (function() {
   // Ask statistics API for mobile and wifi data usage
   var DAY = 24 * 3600 * 1000; // 1 day
   function requestDataStatistics(configuration, settings, callback, dataSimIcc,
-                                 result) {
+                                 result, apps) {
     debug('Statistics out of date. Requesting fresh data...');
 
     var maxAge = 1000 * statistics.maxStorageAge;
@@ -465,7 +465,7 @@ var CostControl = (function() {
     var wifiInterface = Common.getWifiInterface();
     var currentSimcardNetwork = Common.getDataSIMInterface(dataSimIcc.iccId);
 
-    var simRequest, wifiRequest;
+    var wifiRequests, simRequests;
     var pendingRequests = 0;
 
     function checkForCompletion() {
@@ -475,60 +475,174 @@ var CostControl = (function() {
       }
     }
 
-    function updateDataUsage() {
-      var fakeEmptyResult = {data: []};
-      var wifiData = adaptData(wifiRequest ? wifiRequest.result :
-                                             fakeEmptyResult);
-      var mobileData = adaptData(simRequest ? simRequest.result :
-                                              fakeEmptyResult);
 
+    function updateDataUsage() {
       var lastDataUsage = {
         timestamp: new Date(),
         start: start,
         end: end,
         today: today,
         wifi: {
-          total: wifiData[1]
+          apps: {},
+          total: 0,
+          samples: []
         },
         mobile: {
-          total: mobileData[1]
+          apps: {},
+          total: 0,
+          samples: []
         }
       };
 
-      ConfigManager.setOption({ 'lastDataUsage': lastDataUsage },
-        function _onSetItem() {
-          debug('Statistics up to date and stored.');
-        }
-      );
+      function saveLastDataUsage() {
+        // XXX: raw samples are apparently too much to persist,
+        //      so we only store aggregate totals
 
-      // XXX: Enrich with the samples because I can not store them
-      lastDataUsage.wifi.samples = wifiData[0];
-      lastDataUsage.mobile.samples = mobileData[0];
+        var savedUsage = {};
+        Object.keys(lastDataUsage).forEach(function(key) {
+          var value = lastDataUsage[key];
+          if (key === 'wifi' || key === 'mobile') {
+            savedUsage[key] = { apps: {}, total: value.total };
+            Object.keys(value.apps).forEach(function(manifest) {
+              savedUsage[key].apps[manifest] = {
+                total: value.apps[manifest].total
+              };
+            });
+          } else {
+            savedUsage[key] = value;
+          }
+        });
+
+        ConfigManager.setOption({ 'lastDataUsage': savedUsage },
+          function _onSetItem() {
+            debug('Statistics up to date and stored.');
+          }
+        );
+      }
+
+      // Aggregate fine-grained app specific samples into a top level per-day
+      // and per-network sample list
+      function aggregateSamples(network) {
+        if (!network.apps) {
+          return;
+        }
+
+        var manifestURLs = Object.keys(network.apps);
+        if (manifestURLs.length === 0) {
+          return;
+        }
+
+        var samplesByDate = {};
+        var today = Toolkit.toMidnight(new Date());
+        // offset in milliseconds
+        var offset = today.getTimezoneOffset() * 60 * 1000;
+
+        manifestURLs.forEach(function(manifestURL) {
+          var samples = network.apps[manifestURL].samples;
+          samples.forEach(function(sample) {
+            if (sample.date && sample.date.__date__) {
+              sample.date = new Date(sample.date.__date__);
+            }
+
+            var sampleLocalTime = sample.date.getTime() + offset;
+            var sampleUTCDate = Toolkit.toMidnight(new Date(sampleLocalTime));
+
+            var aggregateSample = samplesByDate[sampleUTCDate.getTime()];
+            if (!aggregateSample) {
+              aggregateSample = samplesByDate[sampleUTCDate.getTime()] = {
+                value: 0,
+                date: sample.date
+              };
+            }
+
+            aggregateSample.value += sample.value;
+          });
+        });
+
+        var dates = Object.keys(samplesByDate);
+        network.samples = dates.map(function(date) {
+          return samplesByDate[date];
+        });
+
+        network.samples.sort(function(a, b) {
+          return a.date.getTime() - b.date.getTime();
+        });
+      }
+
+      // Handle results from requests to the network stats database
+      // for data usage on a specific network
+      function handleResult(request, network) {
+        var result = request.result;
+        var data = adaptData(result);
+        var manifestURL = request.result.appManifestURL;
+        if (manifestURL) {
+          network.apps[manifestURL] = {
+            samples: data[0],
+            total: data[1]
+          };
+        } else {
+          network.samples = network.samples.concat(data[0]);
+        }
+        network.total += data[1];
+      }
+
+      if (simRequests) {
+        simRequests.forEach(function(request) {
+          handleResult(request, lastDataUsage.mobile);
+        });
+        aggregateSamples(lastDataUsage.mobile);
+      }
+
+      if (wifiRequests) {
+        wifiRequests.forEach(function(request) {
+          handleResult(request, lastDataUsage.wifi);
+        });
+        aggregateSamples(lastDataUsage.wifi);
+      }
+
+      saveLastDataUsage();
+
       result.status = 'success';
       result.data = lastDataUsage;
+
       debug('Returning up to date statistics.');
       if (callback) {
         callback(result);
       }
     }
 
+    function requestPerAppUsage(networkId) {
+      function requestSamples(options) {
+        pendingRequests++;
+        var req = statistics.getSamples(networkId, start, end, options);
+        req.onsuccess = checkForCompletion;
+        return req;
+      }
+
+      var requests;
+      if (apps && apps.length > 0) {
+        requests = [];
+        apps.forEach(function(manifestURL) {
+          requests.push(requestSamples({ appManifestURL: manifestURL }));
+        });
+      } else {
+        requests = [requestSamples()];
+      }
+      return requests;
+    }
+
     //Recover current Simcard info
     if (currentSimcardNetwork) {
-      pendingRequests++;
-      simRequest = statistics.getSamples(currentSimcardNetwork, start, end);
-      simRequest.onsuccess = checkForCompletion;
+      simRequests = requestPerAppUsage(currentSimcardNetwork);
     }
 
     if (wifiInterface) {
-      pendingRequests++;
-      wifiRequest = statistics.getSamples(wifiInterface, start, end);
-      wifiRequest.onsuccess = checkForCompletion;
+      wifiRequests = requestPerAppUsage(wifiInterface);
     }
 
     if (pendingRequests === 0) {
       updateDataUsage();
     }
-
   }
 
   // Transform data usage to the model accepted by the render

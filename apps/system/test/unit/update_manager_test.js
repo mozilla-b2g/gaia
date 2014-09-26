@@ -130,12 +130,9 @@ suite('system/UpdateManager', function() {
     fakeNode = document.createElement('div');
     fakeNode.id = 'update-manager-container';
     fakeNode.innerHTML = [
-      '<div class="icon">',
-      '</div>',
-      '<div class="activity">',
-      '</div>',
-      '<div class="message">',
-      '</div>'
+      '<div data-icon="download-circle"></div>',
+      '<div class="title-container"></div>',
+      '<progress></progress>'
     ].join('');
 
     fakeToaster = document.createElement('div');
@@ -252,7 +249,7 @@ suite('system/UpdateManager', function() {
     test('should bind dom elements', function() {
       UpdateManager.init();
       assert.equal('update-manager-container', UpdateManager.container.id);
-      assert.equal('message', UpdateManager.message.className);
+      assert.equal('title-container', UpdateManager.message.className);
 
       assert.equal('update-manager-toaster', UpdateManager.toaster.id);
       assert.equal('message', UpdateManager.toasterMessage.className);
@@ -606,7 +603,7 @@ suite('system/UpdateManager', function() {
           var css = UpdateManager.container.classList;
           assert.isTrue(css.contains('displayed'));
           assert.equal(
-            MockNotificationScreen.wasMethodCalled['incExternalNotifications'],
+            MockNotificationScreen.wasMethodCalled['addUnreadNotification'],
             1);
         });
 
@@ -617,7 +614,7 @@ suite('system/UpdateManager', function() {
           assert.isTrue(css.contains('displayed'));
           assert.equal(
             MockNotificationScreen
-              .wasMethodCalled['incExternalNotifications'],
+              .wasMethodCalled['addUnreadNotification'],
             1);
         });
       });
@@ -637,7 +634,7 @@ suite('system/UpdateManager', function() {
             assert.isTrue(css.contains('displayed'));
             assert.equal(
               MockNotificationScreen
-                .wasMethodCalled['incExternalNotifications'],
+                .wasMethodCalled['addUnreadNotification'],
               1);
           });
         });
@@ -656,7 +653,7 @@ suite('system/UpdateManager', function() {
           assert.isTrue(css.contains('displayed'));
           assert.equal(
             MockNotificationScreen
-              .wasMethodCalled['incExternalNotifications'],
+              .wasMethodCalled['addUnreadNotification'],
             1);
         });
 
@@ -735,7 +732,7 @@ suite('system/UpdateManager', function() {
 
         test('should add a new statusbar notification', function() {
           this.sinon.clock.tick(TINY_TIMEOUT);
-          var method1 = 'incExternalNotifications';
+          var method1 = 'addUnreadNotification';
           assert.ok(MockNotificationScreen.wasMethodCalled[method1]);
         });
       });
@@ -753,7 +750,7 @@ suite('system/UpdateManager', function() {
         });
 
         test('should decrease the external notifications count', function() {
-          var method1 = 'decExternalNotifications';
+          var method1 = 'removeUnreadNotification';
           assert.ok(MockNotificationScreen.wasMethodCalled[method1]);
         });
       });
@@ -1319,7 +1316,10 @@ suite('system/UpdateManager', function() {
         assert.isTrue(MockCustomDialog.mShown);
         assert.isFalse(MockUtilityTray.mShown);
 
-        assert.equal('cancelAllDownloads', MockCustomDialog.mShowedTitle);
+        assert.equal(
+          'cancelAllDownloads',
+          MockCustomDialog.mShowedTitle
+        );
         assert.equal('wantToCancelAll', MockCustomDialog.mShowedMsg);
 
         assert.equal('no', MockCustomDialog.mShowedCancel.title);

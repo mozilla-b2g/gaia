@@ -23,33 +23,31 @@ var Wallpaper = {
   },
 
   generateWallpaperList: function wallpaper_generateWallpaperList(cb) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', this.wallpapersUrl, true);
-    xhr.responseType = 'json';
-    xhr.send(null);
-
     var self = this;
     // Get #-moz-samplesize media fragment to downsample while decoding
     // so that we can display smaller images without using lot of memory
     // See Bug 1011460
     var sampleSize = Downsample.sizeNoMoreThan(this.thumbnailScale);
-    xhr.onload = function successGenerateWallpaperList() {
-      self.wallpapers.innerHTML = '';
-      xhr.response.forEach(function(wallpaper) {
-        var fileName = 'resources/' + wallpaper;
-        // Use image tag instead of backgroundImage because gecko handles
-        // memory for off-screen images better
-        var imgNode = document.createElement('img');
-        imgNode.alt = '';
-        imgNode.classList.add('wallpaper');
-        imgNode.dataset.filename = fileName;
-        imgNode.src = fileName + sampleSize;
-        self.wallpapers.appendChild(imgNode);
-      });
-      if (cb) {
-        cb();
-      }
-    };
+
+    LazyLoader.getJSON(this.wallpapersUrl)
+      .then(function(json) {
+        self.wallpapers.innerHTML = '';
+        json.forEach(function(wallpaper) {
+          var fileName = 'resources/' + wallpaper;
+          // Use image tag instead of backgroundImage
+          // because gecko handles
+          // memory for off-screen images better
+          var imgNode = document.createElement('img');
+          imgNode.alt = '';
+          imgNode.classList.add('wallpaper');
+          imgNode.dataset.filename = fileName;
+          imgNode.src = fileName + sampleSize;
+          self.wallpapers.appendChild(imgNode);
+        });
+        if (cb) {
+          cb();
+        }
+    });
   },
 
   startPick: function wallpaper_startPick(request) {

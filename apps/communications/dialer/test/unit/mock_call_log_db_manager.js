@@ -71,5 +71,6 @@ var MockCallLogDBManager = {
     if (this._getGroupListCallback != null) {
       this._getGroupListCallback(this);
     }
-  }
+  },
+  getGroup: function() {},
 };

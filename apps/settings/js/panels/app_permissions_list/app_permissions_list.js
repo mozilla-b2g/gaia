@@ -7,12 +7,11 @@ define(function(require) {
 
   var SettingsService = require('modules/settings_service');
   var ManifestHelper = require('shared/manifest_helper');
-  var SettingsListener = require('shared/settings_listener');
   var mozApps = require('modules/navigator/mozApps');
   var mozPerms = require('modules/navigator/mozPermissionSettings');
 
   var PermissionsList = function pl() {
-    this._elements = null;
+    this._listRoot = null;
     this._permissionsTable = null;
     this._permissionTableHaveProcessed = false;
     this._apps = null;
@@ -22,8 +21,8 @@ define(function(require) {
     /**
      * initialization
      */
-    init: function pl_init(elements) {
-      this._elements = elements;
+    init: function pl_init(listRoot) {
+      this._listRoot = listRoot;
     },
 
     /**
@@ -56,30 +55,6 @@ define(function(require) {
           permissionsTable: this._permissionTable
         });
       }
-    },
-
-    /**
-     * Confirm to clear bookmarks data and close the dialog.
-     */
-    confirmGoClicked: function pl_confirm_go_clicked() {
-      SettingsListener.getSettingsLock().set({
-        'clear.remote-windows.data': true
-      });
-      this._elements.dialog.hidden = true;
-    },
-
-    /**
-     * Cancel to clear data of bookmarks data and close the dialog.
-     */
-    confirmCancelClicked: function pl_confirm_cacel_clicked(evt) {
-      this._elements.dialog.hidden = true;
-    },
-
-    /**
-     * Show clear-bookmarks dialog.
-     */
-    clearBookmarksData: function pl_clear_bookmarks_data(evt) {
-      this._elements.dialog.hidden = false;
     },
 
     /**
@@ -151,7 +126,7 @@ define(function(require) {
      * Genrate UI template of app item.
      */
     renderList: function pl_render_list() {
-      this._elements.list.innerHTML = '';
+      this._listRoot.innerHTML = '';
       var listFragment = document.createDocumentFragment();
       this._apps.forEach(function appIterator(app, index) {
         var manifest = new ManifestHelper(app.manifest ?
@@ -163,8 +138,7 @@ define(function(require) {
         });
         listFragment.appendChild(li);
       }.bind(this));
-      this._elements.list.appendChild(listFragment);
-      this._elements.mainButton.hidden = false;
+      this._listRoot.appendChild(listFragment);
     },
 
     /**

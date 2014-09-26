@@ -5,6 +5,7 @@ var MockSystem = {
   isBusyLoading: function() {
     return false;
   },
+  currentTime: function() {},
   slowTransition: false,
   publish: function(eventName, detail) {
     var evt = new CustomEvent(eventName, { detail: detail });

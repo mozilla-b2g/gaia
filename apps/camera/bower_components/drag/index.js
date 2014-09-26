@@ -56,39 +56,49 @@ function Drag(options) {
   this.onTouchEnd = this.onTouchEnd.bind(this);
   this.slideDuration = options.slideDuration || 140;
   this.tapTime = options.tapTime || 180;
-  this.configureTransition();
   this.bindEvents();
 }
 
 Drag.prototype.bindEvents = function() {
   this.container.el.addEventListener('touchstart', this.onTouchStart);
-  this.container.el.addEventListener('touchend', this.onTouchEnd);
-  this.handle.el.addEventListener('touchmove', this.onTouchMove);
-};
-
-Drag.prototype.configureTransition = function() {
-  this.handle.el.style.transitionTimingFunction = 'linear';
-  this.handle.el.style.transitionProperty = 'transform';
-  this.handle.el.style.willChange = 'transform';
+  this.container.el.addEventListener('mousedown', this.onTouchStart);
 };
 
 Drag.prototype.onTouchStart = function(e) {
-  this.touch = e.touches[0];
+  this.updateDimensions();
+  this.touch = ~e.type.indexOf('mouse') ? e : e.touches[0];
   this.firstTouch = this.touch;
   this.startTime = e.timeStamp;
+
+  addEventListener('touchmove', this.onTouchMove);
+  addEventListener('mousemove', this.onTouchMove);
+  addEventListener('touchend', this.onTouchEnd);
+  addEventListener('mouseup', this.onTouchEnd);
 };
 
 Drag.prototype.onTouchMove = function(e) {
+  e = ~e.type.indexOf('mouse') ? e : e.touches[0];
+
   var delta = {
-    x: e.touches[0].clientX - this.touch.clientX,
-    y: e.touches[0].clientY - this.touch.clientY
+    x: e.clientX - this.touch.clientX,
+    y: e.clientY - this.touch.clientY
   };
+
+  this.dragging = true;
   this.move(delta);
-  this.touch = e.touches[0];
+  this.touch = e;
 };
 
 Drag.prototype.onTouchEnd = function(e) {
   var tapped = (e.timeStamp - this.startTime) < this.tapTime;
+
+  this.dragging = false;
+
+  removeEventListener('touchmove', this.onTouchMove);
+  removeEventListener('mousemove', this.onTouchMove);
+  removeEventListener('touchend', this.onTouchEnd);
+  removeEventListener('mouseup', this.onTouchEnd);
+
   if (tapped) { this.emit('tapped', e); }
   else { this.emit('ended', e); }
 };
@@ -118,18 +128,15 @@ Drag.prototype.snapToClosestEdge = function() {
   this.emit('snapped', edges);
 };
 
-Drag.prototype.translate = function(position) {
-  position = this.clamp(position);
-
+Drag.prototype.translate = function(options) {
+  var position = this.clamp(options);
   var translate = 'translate(' + position.x + 'px,' + position.y + 'px)';
-  var duration = this.transitionDuration(position);
   var ratio = {
     x: (position.x / this.max.x) || 0,
     y: (position.y / this.max.y) || 0
   };
 
-  // If there is a duration, set it
-  this.handle.el.style.transitionDuration = duration ? duration + 'ms' : '';
+  this.setTransition(position);
 
   // Set the transform to move the handle
   this.handle.el.style.transform = translate;
@@ -139,7 +146,6 @@ Drag.prototype.translate = function(position) {
 
   // Emit event with useful data
   this.emit('translate', {
-    duration: duration,
     position: {
       px: position,
       ratio: ratio
@@ -152,6 +158,15 @@ Drag.prototype.clamp = function(position) {
     x: Math.max(this.min.x, Math.min(this.max.x, position.x)),
     y: Math.max(this.min.y, Math.min(this.max.y, position.y)),
   };
+};
+
+/**
+ * [setTransition description]
+ * @param {[type]} position [description]
+ */
+Drag.prototype.setTransition = function(position) {
+  var duration = !this.dragging ? this.transitionDuration(position) : 0;
+  this.handle.el.style.transitionDuration = duration + 'ms';
 };
 
 Drag.prototype.transitionDuration = function(position) {

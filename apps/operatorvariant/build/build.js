@@ -56,7 +56,10 @@ Resources.prototype.getResources = function(conf) {
   operatorJSON.default_search =
     this.getDefaultSearchResource(conf.default_search);
   operatorJSON.keyboard_settings = this.getKeyboardResource(conf.keyboard);
-  operatorJSON.topsites = this.getTopsitesResource(conf.topsites);
+  operatorJSON.topsites = this.getResourceWithIcon(conf.topsites, 'topSites',
+                                                   'iconPath');
+  operatorJSON.browser = this.getResourceWithIcon(conf.bookmarks, 'bookmarks',
+                                                  'iconPath');
 
   if ('nfc' in conf) {
     operatorJSON.nfc = this.getNfcResource(conf.nfc);
@@ -280,27 +283,35 @@ Resources.prototype.getKeyboardResource = function (keyboard) {
     var content = { values: utils.getJSON(file),
                     defaults: defaults };
 
+    for (var value in content.values) {
+      if (!value.startsWith('keyboard.')) {
+        throw new Error('Invalid keyboard property \'' + value + '\' in file ' +
+                        file.path + ', keyboard properties must start ' +
+                        'with \'keyboard.\'');
+      }
+    }
+
     var jsonName = 'keyboard-' + getHash(keyboard) + '.json';
     return this.createJSON(jsonName, content);
   }
 };
 
-// Create topsites JSON.
-Resources.prototype.getTopsitesResource = function (topsitesPath) {
-  if (topsitesPath) {
-    var file = this.getFile(topsitesPath);
-    var topsites = utils.getJSON(file);
+Resources.prototype.getResourceWithIcon = function(aFilePath, aRootKey,
+                                                   aIconPathKey) {
+  if (aFilePath) {
+    var file = this.getFile(aFilePath);
+    var json = utils.getJSON(file);
 
-    topsites.topSites.forEach(function(site) {
-      if (site.iconPath) {
-        var file = this.getFile(site.iconPath);
-        var icon = utils.getFileAsDataURI(file);
-        site.iconUri = icon;
-        delete site.iconPath;
+    json[aRootKey].forEach(function(elem) {
+      if (elem[aIconPathKey]) {
+        var iconFile = this.getFile(elem[aIconPathKey]);
+        var icon = utils.getFileAsDataURI(iconFile);
+        elem.iconUri = icon;
+        delete elem[aIconPathKey];
       }
     }.bind(this));
 
-    return this.createJSON(file.leafName, topsites);
+    return this.createJSON(file.leafName, json);
   }
 };
 

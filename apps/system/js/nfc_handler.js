@@ -24,20 +24,20 @@
         return;
       }
       var currentApp = this.appWindowManager.getActiveApp();
-      if (currentApp && currentApp.isBrowser() && currentApp.url) {
-        this.sendNDEFRequestToNFCPeer(nfcUtils.parseURIString(currentApp.url),
-          evt);
+      if (currentApp && currentApp.isBrowser() && currentApp.config.url) {
+        var ndefUri = nfcUtils.parseURIString(currentApp.config.url);
+        this.sendNDEFMessageToNFCPeer(ndefUri, evt);
       }
     },
 
     /**
-     * Send NDEF request to NFC peer.
-     * @param {MozNDEFRecord} request non-null Array of NDEF records.
+     * Send NDEF message to NFC peer.
+     * @param {MozNDEFRecord} message non-null Array of NDEF records.
      * @param {Events} nfcEvent  an event from mozNfc.onpeerready.
      */
-    sendNDEFRequestToNFCPeer:
-      function nh_sendNDEFRequestToNFCPeer(request, nfcEvent) {
-        if (!request) {
+    sendNDEFMessageToNFCPeer:
+      function nh_sendNDEFMessageToNFCPeer(message, nfcEvent) {
+        if (!message) {
           return;
         }
         var nfcPeer = nfcEvent.peer;
@@ -45,7 +45,7 @@
           return null;
         }
 
-        nfcPeer.sendNDEF(request);
+        nfcPeer.sendNDEF(message);
       }
   };
 

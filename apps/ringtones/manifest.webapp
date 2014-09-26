@@ -9,7 +9,9 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
+    "themeable":{},
     "settings": { "access": "readwrite" },
+    "device-storage:music": { "access": "readwrite" },
     "audio-channel-ringer": {},
     "desktop-notification": {}
   },
@@ -62,7 +64,19 @@
     }
   },
   "locales": {
+    "ar": {
+      "name": "Ringtones",
+      "description": "Gaia Ringtone Picker"
+    },
     "en-US": {
+      "name": "Ringtones",
+      "description": "Gaia Ringtone Picker"
+    },
+    "fr": {
+      "name": "Ringtones",
+      "description": "Gaia Ringtone Picker"
+    },
+    "zh-TW": {
       "name": "Ringtones",
       "description": "Gaia Ringtone Picker"
     }

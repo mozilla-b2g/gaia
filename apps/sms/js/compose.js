@@ -5,7 +5,8 @@
         MessageManager,
         Navigation,
         Promise,
-        ThreadUI
+        ThreadUI,
+        EventDispatcher
 */
 /*exported Compose */
 
@@ -18,7 +19,10 @@
  */
 var Compose = (function() {
   // delay between 2 counter updates while composing a message
-  var UPDATE_DELAY = 500;
+  const UPDATE_DELAY = 500;
+
+  // Min available chars count that triggers available chars counter
+  const MIN_AVAILABLE_CHARS_COUNT = 20;
 
   var placeholderClass = 'placeholder';
   var attachmentClass = 'attachment-container';
@@ -31,13 +35,8 @@ var Compose = (function() {
     message: null,
     subject: null,
     sendButton: null,
-    attachButton: null
-  };
-
-  var handlers = {
-    input: [],
-    type: [],
-    segmentinfochange: []
+    attachButton: null,
+    counter: null
   };
 
   var state = {
@@ -100,24 +99,6 @@ var Compose = (function() {
         dom.subject.lastChild
       );
       return this;
-    },
-    isMultiline: function sub_isMultuLine() {
-      // We don't check for subject emptiness because of the new line symbols
-      // that aren't respected by isEmpty, see bug 1030160 for details
-      if (!this.isShowing) {
-        return false;
-      }
-      // If subject can fit more than one line then it's considered as
-      // multiline one (currently it can have one or two lines)
-      return dom.subject.clientHeight / this.getLineHeight() >= 2;
-    },
-    getLineHeight: function sub_getLineHeight() {
-      if (!Number.isInteger(this.lineHeight)) {
-        var computedStyle = window.getComputedStyle(dom.subject);
-        // Line-height is not going to change, so cache it
-        this.lineHeight = Number.parseInt(computedStyle.lineHeight, 10);
-      }
-      return this.lineHeight;
     },
     getMaxLength: function sub_getMaxLength() {
       return +dom.subject.dataset.maxLength;
@@ -224,7 +205,7 @@ var Compose = (function() {
     Compose.updateType();
     updateSegmentInfoThrottled();
 
-    trigger.call(Compose, 'input');
+    Compose.emit('input');
   }
 
   function onSubjectChanged() {
@@ -238,9 +219,6 @@ var Compose = (function() {
       placeholderClass,
       subject.isShowing && subject.isEmpty
     );
-
-    // Indicates that subject has multiple lines to change layout accordingly
-    dom.form.classList.toggle('multiline-subject', subject.isMultiline());
 
     Compose.updateEmptyState();
     Compose.updateSendButton();
@@ -263,17 +241,6 @@ var Compose = (function() {
       // trigger a recompute of size on the keypresses
       state.size = null;
       compose.lock = false;
-    }
-  }
-
-  function trigger(type) {
-    var event = new CustomEvent(type);
-    var fns = handlers[type];
-
-    if (fns && fns.length) {
-      for (var i = 0; i < fns.length; i++) {
-        fns[i].call(compose, event);
-      }
     }
   }
 
@@ -372,7 +339,7 @@ var Compose = (function() {
     // A possible solution is to do it only when the user deletes characters in
     // MMS mode.
     if (hasAttachment()) {
-      return;
+      return resetSegmentInfo();
     }
 
     if (segmentInfoTimeout === null) {
@@ -393,14 +360,16 @@ var Compose = (function() {
     segmentInfoPromise.then(
       function(segmentInfo) {
         state.segmentInfo = segmentInfo;
-      }, function(error) {
-        state.segmentInfo = {
-          segments: 0,
-          charsAvailableInLastSegment: 0
-        };
-      }
+      }, resetSegmentInfo
     ).then(compose.updateType.bind(Compose))
-    .then(trigger.bind(compose, 'segmentinfochange'));
+    .then(compose.emit.bind(compose, 'segmentinfochange'));
+  }
+
+  function resetSegmentInfo() {
+    state.segmentInfo = {
+      segments: 0,
+      charsAvailableInLastSegment: 0
+    };
   }
 
   var compose = {
@@ -411,6 +380,7 @@ var Compose = (function() {
       dom.sendButton = document.getElementById('messages-send-button');
       dom.attachButton = document.getElementById('messages-attach-button');
       dom.optionsMenu = document.getElementById('attachment-options-menu');
+      dom.counter = dom.form.querySelector('.js-message-counter');
 
       // update the placeholder, send button and Compose.type
       dom.message.addEventListener('input', onContentChanged);
@@ -429,10 +399,12 @@ var Compose = (function() {
       dom.attachButton.addEventListener('click',
         this.onAttachClick.bind(this));
 
-      this.clearListeners();
+      this.offAll();
       this.clear();
 
-      this.on('type', this.onTypeChange);
+      this.on('type', this.onTypeChange.bind(this));
+      this.on('type', this.updateMessageCounter.bind(this));
+      this.on('segmentinfochange', this.updateMessageCounter.bind(this));
 
       /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
        * property */
@@ -440,29 +412,6 @@ var Compose = (function() {
       // Bug 1026384: call updateType as well when the recipients change
 
       return this;
-    },
-
-    on: function(type, handler) {
-      if (handlers[type]) {
-        handlers[type].push(handler);
-      }
-      return this;
-    },
-
-    off: function(type, handler) {
-      if (handlers[type]) {
-        var index = handlers[type].indexOf(handler);
-        if (index !== -1) {
-          handlers[type].splice(index, 1);
-        }
-      }
-      return this;
-    },
-
-    clearListeners: function() {
-      for (var type in handlers) {
-        handlers[type] = [];
-      }
     },
 
     getContent: function() {
@@ -479,10 +428,6 @@ var Compose = (function() {
 
     isSubjectEmpty: function() {
       return subject.isEmpty;
-    },
-
-    isMultilineSubject: function() {
-      return subject.isMultiline();
     },
 
     toggleSubject: function() {
@@ -525,8 +470,15 @@ var Compose = (function() {
 
       // Put the cursor at the end of the message
       var selection = window.getSelection();
-      selection.selectAllChildren(dom.message);
-      selection.collapseToEnd();
+      var range = document.createRange();
+      var lastChild = dom.message.lastChild;
+      if (lastChild.tagName === 'BR') {
+        range.setStartBefore(lastChild);
+      } else {
+        range.setStartAfter(lastChild);
+      }
+      selection.removeAllRanges();
+      selection.addRange(range);
     },
 
     /** Render message (sms or mms)
@@ -691,11 +643,10 @@ var Compose = (function() {
       subject.clear().hide();
       state.resizing = false;
       state.size = 0;
-      state.segmentInfo = {
-        segments: 0,
-        charsAvailableInLastSegment: 0
-      };
+
+      resetSegmentInfo();
       segmentInfoTimeout = null;
+
       onContentChanged();
       return this;
     },
@@ -723,7 +674,7 @@ var Compose = (function() {
 
       if (newType !== state.type) {
         state.type = newType;
-        trigger.call(this, 'type');
+        this.emit('type');
       }
     },
 
@@ -836,6 +787,24 @@ var Compose = (function() {
       dom.form.dataset.messageType = this.type;
     },
 
+    updateMessageCounter: function c_updateMessageCounter() {
+      var counterValue = '';
+
+      if (this.type === 'sms') {
+        var segments = state.segmentInfo.segments;
+        var availableChars = state.segmentInfo.charsAvailableInLastSegment;
+
+        if (segments && (segments > 1 ||
+            availableChars <= MIN_AVAILABLE_CHARS_COUNT)) {
+          counterValue = availableChars + '/' + segments;
+        }
+      }
+
+      if (counterValue !== dom.counter.textContent) {
+        dom.counter.textContent = counterValue;
+      }
+    },
+
     /** Initiates a 'pick' MozActivity allowing the user to create an
      * attachment
      * @return {Object} requestProxy A proxy for the underlying DOMRequest API.
@@ -862,10 +831,19 @@ var Compose = (function() {
 
       activity.onsuccess = function() {
         var result = activity.result;
+        var originalBlob = result.blob;
+        var exceedLimit = Settings.mmsSizeLimitation &&
+          originalBlob.size > Settings.mmsSizeLimitation;
+        var isImage = Utils.typeFromMimeType(originalBlob.type) === 'img';
 
-        if (Settings.mmsSizeLimitation &&
-          result.blob.size > Settings.mmsSizeLimitation &&
-          Utils.typeFromMimeType(result.blob.type) !== 'img') {
+        function newAttachment(blob) {
+          return new Attachment(blob, {
+            name: result.name,
+            isDraft: true
+          });
+        }
+
+        if (exceedLimit && !isImage) {
           if (typeof requestProxy.onerror === 'function') {
             requestProxy.onerror('file too large');
           }
@@ -873,10 +851,22 @@ var Compose = (function() {
         }
 
         if (typeof requestProxy.onsuccess === 'function') {
-          requestProxy.onsuccess(new Attachment(result.blob, {
-            name: result.name,
-            isDraft: true
-          }));
+          // We ought to just be able to call the onsuccess function now.
+          // But to workaround bug 944276, if we get a blob that is not a File
+          // and is not a big image that we are going to resize we need to
+          // make a private copy of it. Otherwise, it won't work if we
+          // pass it to another activity. Need to remove this part once
+          // bug 990123 fixed.
+          if (!(originalBlob instanceof Blob) || (isImage && exceedLimit)) {
+            requestProxy.onsuccess(newAttachment(originalBlob));
+          } else {
+            Utils.cloneBlob(originalBlob).then(function(newBlob) {
+              requestProxy.onsuccess(newAttachment(newBlob));
+            }).catch(function(error) {
+              console.error('Blob clone error :', error);
+              requestProxy.onsuccess(newAttachment(originalBlob));
+            });
+          }
         }
       };
 
@@ -944,5 +934,9 @@ var Compose = (function() {
     }
   });
 
-  return compose;
+  return EventDispatcher.mixin(compose, [
+    'input',
+    'type',
+    'segmentinfochange'
+  ]);
 }());

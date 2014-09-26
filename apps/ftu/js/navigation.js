@@ -67,7 +67,9 @@ var Navigation = {
   previousStep: 1,
   totalSteps: numSteps,
   simMandatory: false,
-  skipDataScreen: false,
+  skipMobileDataScreen: false,
+  skipDateTimeScreen: false,
+  tzInitialized: false,
   init: function n_init() {
     _ = navigator.mozL10n.get;
     var settings = navigator.mozSettings;
@@ -87,6 +89,14 @@ var Navigation = {
       self.simMandatory = reqSIM.result['ftu.sim.mandatory'] || false;
     };
 
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      app.connect('ftucomms').then(function onConnAccepted(ports) {
+        self.ports = ports;
+      }, function onConnRejected(reason) {
+        console.warn('FTU navigation cannot use IAC: ' + reason);
+      });
+    };
   },
 
   back: function n_back(event) {
@@ -151,6 +161,17 @@ var Navigation = {
     window.open(href, '', 'dialog');
   },
 
+  ensureTZInitialized: function () {
+    if (!this.tzInitialized) {
+      return UIManager.initTZ().then(() => {
+        this.skipDateTimeScreen = !UIManager.timeZoneNeedsConfirmation;
+        this.tzInitialized = true;
+      });
+    } else {
+      return Promise.resolve();
+    }
+  },
+
   handleEvent: function n_handleEvent(event) {
     var actualHash = window.location.hash;
     switch (actualHash) {
@@ -170,8 +191,22 @@ var Navigation = {
           UIManager.navBar.classList.remove('secondary-menu');
           return;
         }
-        // Avoid refresh when connecting
-        WifiManager.scan(WifiUI.renderNetworks);
+
+        // This might seem like an odd place to call UIManager.initTZ, but
+        // there's a reason for it. initTZ tries to determine the timezone
+        // using information about the current mobile network connection.
+        // We want to call initTZ as late as possible to give the mobile
+        // network time to connect before the function is called.
+        // But we have to call initTZ *before* the Date & Time page
+        // appears so that it doesn't delay the appearance of the page.
+        // This is the last good opportunity to call it.
+
+        WifiManager.scan((networks) => {
+          this.ensureTZInitialized().then(() => {
+            WifiUI.renderNetworks(networks);
+          });
+        });
+
         break;
       case '#date_and_time':
         UIManager.mainTitle.innerHTML = _('dateAndTime');
@@ -203,6 +238,14 @@ var Navigation = {
         break;
       case '#welcome_browser':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
+        var welcome = document.getElementById('browser_os_welcome');
+        navigator.mozL10n.localize(welcome, 'htmlWelcome', {
+          link: getLocalizedLink('htmlWelcome')
+        });
+        var improve = document.getElementById('browser_os_improve');
+        navigator.mozL10n.localize(improve, 'helpImprove', {
+          link: getLocalizedLink('helpImprove')
+        });
         break;
       case '#browser_privacy':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
@@ -255,6 +298,21 @@ var Navigation = {
     }
   },
 
+  /**
+   * Posts IAC message about FTU steps passed.
+   */
+  postStepMessage: function n_postStepMessage(stepNumber) {
+    if (!this.ports) {
+      return;
+    }
+    this.ports.forEach(function(port) {
+      port.postMessage({
+        type: 'step',
+        hash: steps[stepNumber].hash
+      });
+    });
+  },
+
   skipStep: function n_skipStep() {
     this.currentStep = this.currentStep +
                       (this.currentStep - this.previousStep);
@@ -269,6 +327,12 @@ var Navigation = {
 
   manageStep: function n_manageStep() {
     var self = this;
+
+    // If we moved forward in FTU, post iac message about progress.
+    if (self.currentStep > self.previousStep) {
+      self.postStepMessage(self.previousStep);
+    }
+
     //SV - We need remember if phone startup with SIM
     if (self.currentStep >= numSteps) {
       OperatorVariant.setSIMOnFirstBootState();
@@ -277,7 +341,7 @@ var Navigation = {
     // Reset totalSteps and skip screen flags at beginning of navigation
     if (self.currentStep == 1) {
       self.totalSteps = numSteps;
-      self.skipDataScreen = false;
+      self.skipMobileDataScreen = false;
     }
 
     // Retrieve future location
@@ -285,7 +349,7 @@ var Navigation = {
 
     // There is some locations which need a 'loading'
     if (futureLocation.hash === '#wifi') {
-      utils.overlay.show(_('scanningNetworks'), 'spinner');
+      utils.overlay.show('scanningNetworks', 'spinner');
     }
 
     // If SIMcard is mandatory and no SIM, go to message window
@@ -318,6 +382,10 @@ var Navigation = {
       nextButton.firstChild.textContent = _('navbar-next');
     }
 
+    if (futureLocation.hash === '#firefox_accounts') {
+      nextButton.firstChild.textContent = _('skip');
+    }
+
     // Change hash to the right location
     window.location.hash = futureLocation.hash;
 
@@ -329,7 +397,7 @@ var Navigation = {
          futureLocation.hash !== '#data_3g')) {
           self.skipStep();
           if (self.currentStep > self.previousStep) {
-            self.skipDataScreen = true;
+            self.skipMobileDataScreen = true;
             self.totalSteps--;
           }
         }
@@ -345,7 +413,12 @@ var Navigation = {
     // timezone from the network. (We assume that if we can
     // determine the timezone, we can determine the time too.)
     if (steps[self.currentStep].hash === '#date_and_time') {
-      if (!UIManager.timeZoneNeedsConfirmation) {
+      if (!self.tzInitialized) {
+        self.skipDateTimeScreen = !UIManager.timeZoneNeedsConfirmation;
+      }
+
+      if (self.skipDateTimeScreen) {
+        self.postStepMessage(self.currentStep);
         self.skipStep();
       }
     }

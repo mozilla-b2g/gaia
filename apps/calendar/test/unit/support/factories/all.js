@@ -26,17 +26,15 @@
       );
     }
 
-    if (!obj.end) {
-      obj.end = Calc.dateToTransport(
-        // 1 hour after now
-        new Date(Date.now() + 3600 * 1000)
-      );
-    }
-
-    // handle case of given .start\end or defaults
-
     if (obj.start) {
       obj.startDate = Calc.dateFromTransport(obj.start);
+    }
+
+    if (!obj.end) {
+      obj.end = Calc.dateToTransport(
+        // 1 hour after start
+        new Date(obj.startDate.getTime() + 3600 * 1000)
+      );
     }
 
     if (obj.end) {

@@ -13,7 +13,8 @@
     <link rel="stylesheet" type="text/css" href="shared/style/tabs.css"/>
     <link rel="stylesheet" type="text/css" href="style/music.css"/>
     <!-- Localization -->
-    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <link rel="manifest" href="manifest.webapp">
+    <link rel="localization" href="locales/music.{locale}.properties">
     <!-- Shared code -->
     <script defer src="shared/js/performance_testing_helper.js"></script>
     <script defer src="shared/js/l10n.js"></script>
@@ -42,7 +43,7 @@
     <gaia-header id="title" action="back">
       <h1 id="title-text" data-l10n-id="music">Music</h1>
       <button id="title-player" data-icon="play-circle" hidden></button>
-      <button id="title-done" hidden>Done</button>
+      <button id="title-done" data-l10n-id="done" hidden>Done</button>
     </gaia-header>
     <div id="views">
       <div id="views-tiles" class="view bb-tabpanel hidden" aria-labelledby="tabs-mix" role="tabpanel">

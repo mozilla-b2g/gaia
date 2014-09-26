@@ -1,7 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global Provisioning, MessageDB */
+/* global Promise, Provisioning, MessageDB */
 
 (function(exports) {
   'use strict';
@@ -71,16 +71,25 @@
     },
 
     /**
-     * Saves the message in the database. Once the transaction is completed
-     * invokes the success callback. If an error occurs the error callback will
-     * be invoked with the corresponding error as its sole parameter.
+     * Saves the message in the database.  Returns a promise that resolves
+     * to a string describing the status of the message: 'new' if the message
+     * was new, 'updated' if the message updated an existing message or
+     * 'discarded' if the message was discarded.
      *
-     * @param {Function} success A callback invoked when the transaction
-     *        completes successfully.
-     * @param {Function} error A callback invoked if an operation fails.
+     * @return {Object} A promise for this operation.
      */
-    save: function pm_save(success, error) {
-      MessageDB.put(this.toJSON(), success, error);
+    save: function pm_save() {
+      var self = this;
+      var json_message = this.toJSON();
+
+      return MessageDB.put(json_message).then(function(status) {
+        if (status === 'updated') {
+          // In case the message was updated we must update the original too.
+          self.timestamp = json_message.timestamp;
+        }
+
+        return Promise.resolve(status);
+      });
     },
 
     /**
@@ -204,32 +213,18 @@
 
   /**
    * Loads the message corresponding to the specified timestamp from the
-   * database. The message is passed to the success callback once the
-   * function succeeds. If the message is not present the success callback
-   * will be with a null parameter. If an error occurs the error callback
-   * will be invoked with the corresponding error as its sole parameter.
+   * database. Returns a promise that resolves to the message. If the message
+   * is not present the promise will be resolved with null.
    *
    * @param {Number} timestamp The timestamp of the message we want to
    *        retrieve.
-   * @param {Function} success A callback invoked when the transaction
-   *        completes successfully.
-   * @param {Function} error A callback invoked if an operation fails.
+   *
+   * @param {Object} A promise for this operation.
    */
-  ParsedMessage.load = function pm_load(timestamp, success, error) {
-    MessageDB.retrieve(timestamp,
-      function pm_loadSuccess(message) {
-        if (message) {
-          success(new ParsedMessage(message));
-        } else {
-          success(null);
-        }
-      },
-      error
-    );
-  };
-
-  ParsedMessage.delete = function pm_delete(timestamp, success, error) {
-    MessageDB.deleteByTimestamp(timestamp, success, error);
+  ParsedMessage.load = function pm_load(timestamp) {
+    return MessageDB.retrieve(timestamp).then(function(message) {
+      return message ? new ParsedMessage(message) : null;
+    });
   };
 
   exports.ParsedMessage = ParsedMessage;

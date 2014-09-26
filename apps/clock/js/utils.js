@@ -193,13 +193,18 @@ Utils.escapeHTML = function(str, escapeQuotes) {
 
 Utils.getLocalizedTimeHtml = function(date) {
   var f = new mozL10n.DateTimeFormat();
-  var shortFormat = mozL10n.get('shortTimeFormat');
+  var shortFormat = window.navigator.mozHour12 ?
+        mozL10n.get('shortTimeFormat12') :
+        mozL10n.get('shortTimeFormat24');
   return f.localeFormat(date, shortFormat.replace('%p', '<small>%p</small>'));
 };
 
 Utils.getLocalizedTimeText = function(date) {
   var f = new mozL10n.DateTimeFormat();
-  return f.localeFormat(date, mozL10n.get('shortTimeFormat'));
+  var shortFormat = window.navigator.mozHour12 ?
+        mozL10n.get('shortTimeFormat12') :
+        mozL10n.get('shortTimeFormat24');
+  return f.localeFormat(date, shortFormat);
 };
 
 Utils.changeSelectByValue = function(selectElement, value) {

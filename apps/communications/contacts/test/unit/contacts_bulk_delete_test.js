@@ -63,7 +63,7 @@ suite('contacts_bulk_delete.js', function() {
     contacts.BulkDelete.performDelete(promise);
 
     assert.isTrue(overlayShowSpy.calledWith('preparing-contacts', 'spinner'));
-    
+
     promise.onsuccess({
       length: numberOfContacts
     });
@@ -71,7 +71,8 @@ suite('contacts_bulk_delete.js', function() {
     assert.isTrue(overlayHideSpy.called);
     assert.isTrue(confirmShowSpy.called);
     assert.isNull(ConfirmDialog.title);
-    assert.equal(ConfirmDialog.text, 'ContactConfirmDel' + numberOfContacts);
+    assert.deepEqual(ConfirmDialog.text,
+      { id: 'ContactConfirmDel', args: { n: 69 } });
     assert.equal(ConfirmDialog.noObject.title, 'cancel');
     assert.equal(ConfirmDialog.yesObject.title, 'delete');
   }
@@ -98,7 +99,7 @@ suite('contacts_bulk_delete.js', function() {
   test('call performDelete but the promise fails', function() {
     contacts.BulkDelete.performDelete(promise);
     assert.isTrue(overlayShowSpy.calledWith('preparing-contacts', 'spinner'));
-    
+
     promise.onerror();
     assert.isTrue(overlayHideSpy.called);
   });

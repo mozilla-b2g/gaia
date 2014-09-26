@@ -44,32 +44,35 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
     // retrieve MCC/MNC: use the current network codes when available,
     // default to the SIM codes if necessary.
     var mcc, mnc;
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var conn = navigator.mozMobileConnection ||
-               window.navigator.mozMobileConnections &&
-               window.navigator.mozMobileConnections[0];
-    if (conn && IccHelper) {
-      if (conn.voice && conn.voice.network && conn.voice.connected) {
+
+    var connections = window.navigator.mozMobileConnections ||
+                      [navigator.mozMobileConnection];
+
+    for (var i = 0; i < connections.length; ++i) {
+      var conn = connections[i];
+      if (conn && conn.voice && conn.voice.network && conn.voice.connected) {
         // we have connection available, so we use it
         mcc = conn.voice.network.mcc;
         mnc = conn.voice.network.mnc;
         source = TIMEZONE_NETWORK;
-      } else if (IccHelper.iccInfo) {
-        // we don't have connection available, we rely on the SIM
-        mcc = IccHelper.iccInfo.mcc;
-        mnc = IccHelper.iccInfo.mnc;
-        source = TIMEZONE_SIM;
-        // if SIM is not available, mcc and mnc are null,
-        // so we wait for a future event where we have access to the SIM.
-        if (IccHelper.cardState !== 'ready') {
-          IccHelper.addEventListener('iccinfochange', function simReady() {
-            if (IccHelper.iccInfo.mcc) {
-              IccHelper.removeEventListener('iccinfochange', simReady);
-            }
-            getDefaultTimezoneID(callback);
-          });
-        }
+        break;
+      }
+    }
+
+    if (!mcc && IccHelper && IccHelper.iccInfo) {
+      // we don't have connection available, we rely on the SIM
+      mcc = IccHelper.iccInfo.mcc;
+      mnc = IccHelper.iccInfo.mnc;
+      source = TIMEZONE_SIM;
+      // if SIM is not available, mcc and mnc are null,
+      // so we wait for a future event where we have access to the SIM.
+      if (IccHelper.cardState !== 'ready') {
+        IccHelper.addEventListener('iccinfochange', function simReady() {
+          if (IccHelper.iccInfo.mcc) {
+            IccHelper.removeEventListener('iccinfochange', simReady);
+          }
+          getDefaultTimezoneID(callback);
+        });
       }
     }
 

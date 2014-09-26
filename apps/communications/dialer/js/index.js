@@ -22,8 +22,7 @@ window.addEventListener('load', function dialerSetup() {
   }
 
   setTimeout(function nextTick() {
-    var lazyPanels = ['add-contact-action-menu',
-                      'confirmation-message',
+    var lazyPanels = ['confirmation-message',
                       'edit-mode',
                       'sim-picker'];
 
@@ -40,8 +39,9 @@ window.addEventListener('load', function dialerSetup() {
         '/shared/js/fb/fb_reader_utils.js',
         '/shared/style/confirm.css',
         '/shared/js/confirm.js',
-        '/shared/style/edit_mode.css',
-        '/shared/style/headers.css'
+        '/shared/elements/config.js',
+        '/shared/elements/gaia-header/dist/script.js',
+        '/shared/style/edit_mode.css'
       ], function fileSetLoaded() {
         window.dispatchEvent(new CustomEvent('moz-app-loaded'));
       });

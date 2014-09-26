@@ -61,8 +61,9 @@ var ThreadUI = {
   IMAGE_RESIZE_DURATION: 3000,
   BANNER_DURATION: 2000,
 
-  // Min available chars count that triggers available chars counter
-  MIN_AVAILABLE_CHARS_COUNT: 20,
+  // Toast duration when you write a long text and need more than one SMS
+  // to send it
+  ANOTHER_SMS_TOAST_DURATION: 3000,
 
   // when sending an sms to several recipients in activity, we'll exit the
   // activity after this delay after moving to the thread list.
@@ -75,6 +76,7 @@ var ThreadUI = {
   isNewMessageNoticeShown: false,
   shouldChangePanelNextEvent: false,
   showErrorInFailedEvent: '',
+  previousSegment: 0,
 
   timeouts: {
     update: null,
@@ -86,6 +88,7 @@ var ThreadUI = {
     var templateIds = [
       'message',
       'message-sim-information',
+      'message-status',
       'not-downloaded',
       'recipient',
       'date-group'
@@ -97,19 +100,19 @@ var ThreadUI = {
     [
       'container', 'subheader', 'to-field', 'recipients-list', 'recipient',
       'input', 'compose-form', 'check-uncheck-all-button',
-      'contact-pick-button', 'back-button', 'close-button', 'send-button',
-      'attach-button', 'delete-button', 'cancel-button', 'subject-input',
-      'new-message-notice', 'options-icon', 'edit-mode', 'edit-form',
+      'contact-pick-button', 'send-button', 'header', 'edit-header',
+      'attach-button', 'delete-button', 'subject-input',
+      'new-message-notice', 'options-button', 'edit-mode', 'edit-form',
       'tel-form', 'header-text', 'max-length-notice', 'convert-notice',
       'resize-notice', 'dual-sim-information', 'new-message-notice',
-      'subject-max-length-notice', 'counter-label', 'recipient-suggestions'
+      'subject-max-length-notice', 'recipient-suggestions',
+      'call-number-button','sms-counter-notice'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
 
     this.mainWrapper = document.getElementById('main-wrapper');
     this.threadMessages = document.getElementById('thread-messages');
-    this.composerContainer = document.getElementById('composer-container');
 
     // Allow for stubbing in environments that do not implement the
     // `navigator.mozMobileMessage` API
@@ -152,6 +155,7 @@ var ThreadUI = {
     this.sendButton.addEventListener(
       'click', this.onSendClick.bind(this)
     );
+
     this.sendButton.addEventListener(
       'contextmenu', this.onSendClick.bind(this)
     );
@@ -160,25 +164,25 @@ var ThreadUI = {
       'scroll', this.manageScroll.bind(this)
     );
 
-    this.backButton.addEventListener(
-      'click', this.back.bind(this)
-    );
-
-    this.closeButton.addEventListener(
-      'click', this.close.bind(this)
-    );
-
     this.checkUncheckAllButton.addEventListener(
       'click', this.toggleCheckedAll.bind(this)
     );
 
-    this.cancelButton.addEventListener(
-      'click', this.cancelEdit.bind(this)
+    this.editHeader.addEventListener(
+      'action', this.cancelEdit.bind(this)
     );
 
-    this.optionsIcon.addEventListener(
+    this.header.addEventListener(
+      'action', this.onHeaderAction.bind(this)
+    );
+
+    this.optionsButton.addEventListener(
       'click', this.showOptions.bind(this)
     );
+
+    this.callNumberButton.addEventListener('click', function() {
+      ActivityPicker.dial(Threads.active.participants[0]);
+    });
 
     this.deleteButton.addEventListener(
       'click', this.delete.bind(this)
@@ -327,6 +331,29 @@ var ThreadUI = {
     }
   },
 
+  /**
+   * Executes when the header 'action' button is tapped.
+   *
+   * @private
+   */
+  onHeaderAction: function thui_onHeaderAction() {
+    this.backOrClose();
+  },
+
+  /**
+   * We always go back to the previous pane, unless we're in an activity, then
+   * in selected cases we exit the activity.
+   *
+   * @private
+   */
+  backOrClose: function thui_backOrClose() {
+    var inActivity = ActivityHandler.isInActivity();
+    var isComposer = Navigation.isCurrentPanel('composer');
+    var isThread = Navigation.isCurrentPanel('thread');
+    var action = inActivity && (isComposer || isThread) ? 'close' : 'back';
+    this[action]();
+  },
+
   // Initialize Recipients list and Recipients.View (DOM)
   initRecipients: function thui_initRecipients() {
     var recipientsChanged = (function recipientsChanged(length, record) {
@@ -442,6 +469,10 @@ var ThreadUI = {
     }
   },
 
+  setHeaderAction: function thui_setHeaderAction(icon) {
+    this.header.setAttribute('action', icon);
+  },
+
   messageComposerInputHandler: function thui_messageInputHandler(event) {
     if (Compose.type === 'sms') {
       this.hideMaxLengthNotice();
@@ -550,6 +581,8 @@ var ThreadUI = {
    * visible.
    */
   beforeEnter: function thui_beforeEnter(args) {
+    this.setHeaderAction(ActivityHandler.isInActivity() ? 'close' : 'back');
+
     Recipients.View.isFocusable = true;
     if (!this.multiSimActionButton) {
       // handles the various actions on the send button and encapsulates the
@@ -591,6 +624,14 @@ var ThreadUI = {
     if (prevPanel !== 'group-view' && prevPanel !== 'report-view') {
       this.initializeRendering();
     }
+
+    // Call button should be shown only for non-email single-participant thread
+    if (Threads.active.participants.length === 1 &&
+        (!Settings.supportEmailRecipient ||
+         !Utils.isEmailAddress(Threads.active.participants[0]))) {
+      this.callNumberButton.classList.remove('hide');
+    }
+
     return this.updateHeaderData();
   },
 
@@ -673,6 +714,7 @@ var ThreadUI = {
 
     if (!Navigation.isCurrentPanel('thread')) {
       this.threadMessages.classList.remove('has-carrier');
+      this.callNumberButton.classList.add('hide');
     }
   },
 
@@ -1190,18 +1232,27 @@ var ThreadUI = {
   },
 
   onSegmentInfoChange: function thui_onSegmentInfoChange() {
-    var smsInfo = Compose.segmentInfo;
-    var segments = smsInfo.segments;
-    var availableChars = smsInfo.charsAvailableInLastSegment;
+    var currentSegment = Compose.segmentInfo.segments;
 
-    // in MMS mode, the counter value isn't used anyway, so we can update this
-    this.counterLabel.dataset.counter = availableChars + '/' + segments;
+    var isValidSegment = currentSegment > 0;
+    var isSegmentChanged = this.previousSegment !== currentSegment;
+    var isStartingFirstSegment = this.previousSegment === 0 &&
+          currentSegment === 1;
 
-    // if we are going to force MMS, this is true anyway, so adding
-    // has-counter again doesn't hurt us.
-    var showCounter = (segments && (segments > 1 ||
-      availableChars <= this.MIN_AVAILABLE_CHARS_COUNT));
-    this.counterLabel.classList.toggle('has-counter', showCounter);
+    if (Compose.type === 'sms' && isValidSegment && isSegmentChanged &&
+        !isStartingFirstSegment) {
+      this.previousSegment = currentSegment;
+
+      navigator.mozL10n.setAttributes(
+        this.smsCounterNotice.querySelector('p'),
+        'sms-counter-notice-label',
+        { number: currentSegment }
+      );
+      this.smsCounterNotice.classList.remove('hide');
+      window.setTimeout(function() {
+        this.smsCounterNotice.classList.add('hide');
+      }.bind(this), this.ANOTHER_SMS_TOAST_DURATION);
+    }
   },
 
   checkMessageSize: function thui_checkMessageSize() {
@@ -1493,8 +1544,8 @@ var ThreadUI = {
     return this.tmpl.notDownloaded.interpolate({
       messageL10nId: messageL10nId,
       messageL10nArgs: JSON.stringify({ date: expireFormatted }),
-      messageL10nDate: +message.expiryDate,
-      messageL10nDateFormat: 'dateTimeFormat_%x',
+      messageL10nDate: message.expiryDate.toString(),
+      messageL10nDateFormat: 'expiry-date-format',
       downloadL10nId: downloadL10nId
     });
   },
@@ -1532,18 +1583,12 @@ var ThreadUI = {
   },
 
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
-    var bodyHTML = '';
-    var delivery = message.delivery;
+    var messageDOM = document.createElement('li'),
+        bodyHTML = '';
 
-    var isDelivered = this.shouldShowDeliveryStatus(message);
-    var isRead = this.shouldShowReadStatus(message);
-    var isNotDownloaded = delivery === 'not-downloaded';
-    var isIncoming = delivery === 'received' || isNotDownloaded;
-
-    var messageDOM = document.createElement('li');
-
-    var classNames = ['message', message.type, delivery];
-    var attachments = message.attachments;
+    var messageStatus = message.delivery,
+        isNotDownloaded = messageStatus === 'not-downloaded',
+        isIncoming = messageStatus === 'received' || isNotDownloaded;
 
     // If the MMS has invalid empty content(message without attachment and
     // subject) or contains only subject, we will display corresponding message
@@ -1552,16 +1597,19 @@ var ThreadUI = {
     // Returning attachments would be different based on gecko version:
     // null in b2g18 / empty array in master.
     var noAttachment = (message.type === 'mms' && !isNotDownloaded &&
-      (attachments === null || attachments.length === 0));
+      (message.attachments === null || message.attachments.length === 0));
     var invalidEmptyContent = (noAttachment && !message.subject);
 
-    classNames.push(isIncoming ? 'incoming' : 'outgoing');
-
-    if (isRead) {
-      classNames.push('read');
-    } else if (isDelivered) {
-      classNames.push('delivered');
+    if (this.shouldShowReadStatus(message)) {
+      messageStatus = 'read';
+    } else if (this.shouldShowDeliveryStatus(message)) {
+      messageStatus = 'delivered';
     }
+
+    var classNames = [
+      'message', message.type, messageStatus,
+      isIncoming ? 'incoming' : 'outgoing'
+    ];
 
     if (hidden) {
       classNames.push('hidden');
@@ -1586,6 +1634,12 @@ var ThreadUI = {
       classNames.push('no-attachment');
     }
 
+    if (classNames.indexOf('error') >= 0) {
+      messageStatus = 'error';
+    } else if (classNames.indexOf('pending') >= 0) {
+      messageStatus = 'pending';
+    }
+
     messageDOM.className = classNames.join(' ');
     messageDOM.id = 'message-' + message.id;
     messageDOM.dataset.messageId = message.id;
@@ -1604,12 +1658,10 @@ var ThreadUI = {
       bodyHTML: bodyHTML,
       timestamp: String(message.timestamp),
       subject: String(message.subject),
-      // Incoming and outgoing messages are displayed using different
-      // backgrounds, therefore progress indicator should be styled differently.
-      progressIndicatorClassName: isIncoming ? 'light' : '',
-      simInformationHTML: simInformationHTML
+      simInformationHTML: simInformationHTML,
+      messageStatusHTML: this.getMessageStatusMarkup(messageStatus)
     }, {
-      safe: ['bodyHTML', 'simInformationHTML']
+      safe: ['bodyHTML', 'simInformationHTML', 'messageStatusHTML']
     });
 
     TimeHeaders.update(messageDOM.querySelector('time'));
@@ -1626,6 +1678,13 @@ var ThreadUI = {
     }
 
     return messageDOM;
+  },
+
+  getMessageStatusMarkup: function(status) {
+    return ['read', 'delivered', 'sending', 'error'].indexOf(status) >= 0 ?
+      this.tmpl.messageStatus.interpolate({
+        statusL10nId: 'message-delivery-status-' + status
+      }) : '';
   },
 
   appendMessage: function thui_appendMessage(message, hidden) {
@@ -1801,7 +1860,7 @@ var ThreadUI = {
       // Remove the thread from DOM and go back to the thread-list
       ThreadListUI.removeThread(Threads.currentId);
       callback();
-      Navigation.toPanel('thread-list');
+      this.backOrClose();
     } else {
       // Retrieve latest message in the UI
       var lastMessage = ThreadUI.container.lastElementChild.querySelector(
@@ -1895,7 +1954,7 @@ var ThreadUI = {
 
     if (isAnySelected) {
       this.deleteButton.disabled = false;
-      navigator.mozL10n.setAttributes(this.editMode, 'selected',
+      navigator.mozL10n.setAttributes(this.editMode, 'selected-messages',
         {n: selected.length});
     } else {
       this.deleteButton.disabled = true;
@@ -2049,12 +2108,15 @@ var ThreadUI = {
           {
             l10nId: 'delete',
             method: function deleteMessage(messageId) {
-              // Complete deletion in DB and UI
-              MessageManager.deleteMessages(messageId,
-                function onDeletionDone() {
-                  ThreadUI.deleteUIMessages(messageId);
-                }
-              );
+              if (window.confirm(navigator.mozL10n
+                .get('deleteMessage-confirmation'))) {
+                // Complete deletion in DB and UI
+                MessageManager.deleteMessages(messageId,
+                  function onDeletionDone() {
+                    ThreadUI.deleteUIMessages(messageId);
+                  }
+                );
+              }
             },
             params: [messageId]
           }
@@ -2085,10 +2147,6 @@ var ThreadUI = {
 
   cleanFields: function thui_cleanFields() {
     Compose.clear();
-
-    // reset the counter
-    this.counterLabel.dataset.counter = '';
-    this.counterLabel.classList.remove('has-counter');
   },
 
   onSendClick: function thui_onSendClick() {
@@ -2149,8 +2207,7 @@ var ThreadUI = {
     // so delete it
     if (this.draft) {
       ThreadListUI.removeThread(this.draft.id);
-      Drafts.delete(this.draft);
-      Drafts.store();
+      Drafts.delete(this.draft).store();
       this.draft = null;
     }
 
@@ -2218,16 +2275,7 @@ var ThreadUI = {
   },
 
   onMessageSent: function thui_onMessageSent(e) {
-    var message = e.message;
-    var messageDOM = document.getElementById('message-' + message.id);
-
-    if (!messageDOM) {
-      return;
-    }
-
-    // Update class names to reflect message state
-    messageDOM.classList.remove('sending');
-    messageDOM.classList.add('sent');
+    this.setMessageStatus(e.message.id, 'sent');
   },
 
   /**
@@ -2243,22 +2291,12 @@ var ThreadUI = {
 
   onMessageFailed: function thui_onMessageFailed(e) {
     var message = e.message;
-    var messageDOM = document.getElementById('message-' + message.id);
     var serviceId = Settings.getServiceIdByIccId(message.iccId);
+
     // When this is the first message in a thread, we haven't displayed
     // the new thread yet. The error flag will be shown when the thread
     // will be rendered. See Bug 874043
-    if (messageDOM) {
-
-      // Check if it was painted as 'error' before
-      if (messageDOM.classList.contains('error')) {
-        return;
-      }
-
-      // Update class names to reflect message state
-      messageDOM.classList.remove('sending');
-      messageDOM.classList.add('error');
-    }
+    this.setMessageStatus(message.id, 'error');
 
     if (this.showErrorInFailedEvent === 'NonActiveSimCardError') {
       this.showErrorInFailedEvent = '';
@@ -2267,8 +2305,7 @@ var ThreadUI = {
         {
           confirmHandler: function() {
             // Update messageDOM state to 'sending' while sim switching
-            messageDOM.classList.remove('error');
-            messageDOM.classList.add('sending');
+            this.setMessageStatus(message.id, 'sending');
 
             Settings.switchMmsSimHandler(serviceId).then(
               this.resendMessage.bind(this, message.id))
@@ -2289,13 +2326,7 @@ var ThreadUI = {
       return;
     }
 
-    var messageDOM = document.getElementById('message-' + message.id);
-
-    if (!messageDOM) {
-      return;
-    }
-    // Update class names to reflect message state
-    messageDOM.classList.add('delivered');
+    this.setMessageStatus(message.id, 'delivered');
   },
 
   onReadSuccess: function thui_onReadSuccess(e) {
@@ -2305,14 +2336,7 @@ var ThreadUI = {
       return;
     }
 
-    var messageDOM = document.getElementById('message-' + message.id);
-
-    if (!messageDOM) {
-      return;
-    }
-    // Update class names to reflect message state
-    messageDOM.classList.remove('delivered');
-    messageDOM.classList.add('read');
+    this.setMessageStatus(message.id, 'read');
   },
 
   // Some error return from sending error need some specific action instead of
@@ -2349,6 +2373,32 @@ var ThreadUI = {
     }
   },
 
+  setMessageStatus: function(id, status) {
+    var messageDOM = document.getElementById('message-' + id);
+
+    if (!messageDOM || messageDOM.classList.contains(status)) {
+      return;
+    }
+
+    var newStatusMarkup = this.getMessageStatusMarkup(status),
+        oldStatusNode = messageDOM.querySelector('.message-status');
+
+    messageDOM.classList.remove(
+      'sending', 'pending', 'sent', 'received', 'delivered', 'read', 'error'
+    );
+    messageDOM.classList.add(status);
+
+    if (oldStatusNode) {
+      oldStatusNode.remove();
+    }
+
+    if (newStatusMarkup) {
+      messageDOM.querySelector('.message-details').appendChild(
+        this._htmlStringToDomNode(newStatusMarkup)
+      );
+    }
+  },
+
   retrieveMMS: function thui_retrieveMMS(messageDOM) {
     // force a number
     var id = +messageDOM.dataset.messageId;
@@ -2358,8 +2408,7 @@ var ThreadUI = {
 
     var button = messageDOM.querySelector('button');
 
-    messageDOM.classList.add('pending');
-    messageDOM.classList.remove('error');
+    this.setMessageStatus(id, 'pending');
     button.setAttribute('data-l10n-id', 'downloading-attachment');
 
     request.onsuccess = (function retrieveMMSSuccess() {
@@ -2367,8 +2416,7 @@ var ThreadUI = {
     }).bind(this);
 
     request.onerror = (function retrieveMMSError() {
-      messageDOM.classList.remove('pending');
-      messageDOM.classList.add('error');
+      this.setMessageStatus(id, 'error');
       button.setAttribute('data-l10n-id', 'download-attachment');
 
       // Show NonActiveSimCard/Other error dialog while retrieving MMS
@@ -2398,8 +2446,7 @@ var ThreadUI = {
             // TODO move this before trying to call retrieveMMS in Bug 981077
             // Avoid user to click the download button while sim state is not
             // ready yet.
-            messageDOM.classList.add('pending');
-            messageDOM.classList.remove('error');
+            this.setMessageStatus(id, 'pending');
             button.setAttribute('data-l10n-id', 'downloading-attachment');
             Settings.switchMmsSimHandler(serviceId).then(
               this.retrieveMMS.bind(this, messageDOM))
@@ -2728,7 +2775,8 @@ var ThreadUI = {
       items: null
     };
 
-    // All non-email activations will see a "Call" option
+    // All non-email activations (except for single participant thread) will
+    // see a "Call" option
     if (email) {
       items.push({
         l10nId: 'sendEmail',
@@ -2738,17 +2786,16 @@ var ThreadUI = {
         params: [email]
       });
     } else {
-      items.push({
-        l10nId: 'call',
-        method: function oCall(param) {
-          ActivityPicker.dial(param);
-        },
-        params: [number]
-      });
-
       // Multi-participant activations or in-message numbers
-      // will include a "Send Message" option in the menu
+      // will include a "Call" and "Send Message" options in the menu
       if ((thread && thread.participants.length > 1) || inMessage) {
+        items.push({
+          l10nId: 'call',
+          method: function() {
+            ActivityPicker.dial(number);
+          }
+        });
+
         items.push({
           l10nId: 'sendMessage',
           method: function oMessage(param) {
@@ -2833,7 +2880,7 @@ var ThreadUI = {
     // properly update the Drafts object
     // and ThreadList entries
     if (this.draft) {
-      Drafts.delete(this.draft);
+      Drafts.delete(this.draft).store();
       if (Threads.active) {
         Threads.active.timestamp = Date.now();
         ThreadListUI.updateThread(Threads.active);

@@ -1,6 +1,6 @@
-/* globals CallScreen, FontSizeManager, MockCallsHandler, MockLazyL10n,
+/* globals CallScreen, FontSizeManager, MockCallsHandler, Utils,
            MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
-           MockMozL10n, MocksHelper, MockSettingsListener */
+           MockMozL10n, MocksHelper, MockSettingsListener, performance */
 
 'use strict';
 
@@ -10,13 +10,16 @@ require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
+require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/js/lockscreen_connection_info_manager.js');
 
 var mocksHelperForCallScreen = new MocksHelper([
   'CallsHandler',
   'MozActivity',
   'LazyL10n',
-  'FontSizeManager'
+  'FontSizeManager',
+  'Utils'
 ]).init();
 
 // The CallScreen binds stuff when evaluated so we load it
@@ -384,107 +387,27 @@ suite('call screen', function() {
 
   suite('toggling', function() {
     suiteSetup(function() {
-      CallScreen._wallpaperReady = false;
+      CallScreen._wallpaperReady = true;
     });
 
     teardown(function() {
       CallScreen._transitioning = false;
     });
 
-    test('it should wait for the wallpaper to load', function(done) {
-      var toggleSpy = this.sinon.spy(screen.classList, 'toggle');
-      CallScreen.toggle();
-      assert.isTrue(toggleSpy.notCalled);
-      MockSettingsListener.mTriggerCallback('wallpaper.image', new Blob());
-
-      setTimeout(function() {
-        assert.isTrue(toggleSpy.calledOnce);
-        done();
-      });
-    });
-
     suite('once the wallpaper is loaded', function() {
-      test('should toggle the displayed classlist', function() {
-        var toggleSpy = this.sinon.spy(screen.classList, 'toggle');
-        CallScreen.toggle();
-        assert.isTrue(toggleSpy.calledWith('displayed'));
-      });
-
-      suite('when a callback is given', function() {
-        var addEventListenerSpy;
-        var removeEventListenerSpy;
-        var spyCallback;
-
-        setup(function() {
-          addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
-          removeEventListenerSpy = this.sinon.spy(screen,
-                                                  'removeEventListener');
-          spyCallback = this.sinon.spy();
-          CallScreen.toggle(spyCallback);
-        });
-
-        test('should listen for transitionend', function() {
-          assert.isTrue(addEventListenerSpy.calledWith('transitionend'));
-        });
-
-        suite('once the transition ended', function() {
-          setup(function() {
-            addEventListenerSpy.yield({target: screen});
-          });
-
-          test('should remove the event listener', function() {
-            assert.isTrue(removeEventListenerSpy.calledWith('transitionend'));
-          });
-
-          test('should trigger the callback', function() {
-            assert.isTrue(spyCallback.calledOnce);
-          });
-        });
-      });
-
       suite('when opening in incoming-locked mode', function() {
-        var addEventListenerSpy;
         var spyCallback;
 
         setup(function() {
           CallScreen.screen.dataset.layout = 'incoming-locked';
-          addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
           spyCallback = this.sinon.spy();
 
           CallScreen.toggle(spyCallback);
-        });
-
-        test('should not listen for transitionend', function() {
-          assert.isFalse(addEventListenerSpy.called);
         });
 
         test('should call the callback', function(done) {
           setTimeout(function() {
             assert.isTrue(spyCallback.called);
-            done();
-          });
-        });
-      });
-
-      suite('when toggling again in the middle of a transition', function() {
-        var addEventListenerSpy;
-        var spyCallback;
-
-        setup(function() {
-          addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
-          spyCallback = this.sinon.spy();
-
-          CallScreen.toggle(spyCallback);
-          CallScreen.toggle(spyCallback);
-        });
-
-        test('should not wait for transitionend the second time', function() {
-          assert.isTrue(addEventListenerSpy.calledOnce);
-        });
-
-        test('should call the callback once', function(done) {
-          setTimeout(function() {
-            assert.isTrue(spyCallback.calledOnce);
             done();
           });
         });
@@ -506,8 +429,6 @@ suite('call screen', function() {
     });
 
     test('it should wait for the transition to be over', function(done) {
-      var addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
-
       MockCallsHandler.mActiveCallForContactImage = new MockHandledCall();
       MockCallsHandler.mActiveCallForContactImage.photo =
         new Blob([], {type: 'image/png'});
@@ -518,7 +439,6 @@ suite('call screen', function() {
       CallScreen.toggle();
 
       setTimeout(function() {
-        addEventListenerSpy.yield({target: screen});
         assert.ok(CallScreen.contactBackground.style.backgroundImage);
         CallScreen.setCallerContactImage();
         done();
@@ -762,12 +682,6 @@ suite('call screen', function() {
         }
       });
     });
-
-    test('resizes the call screen in status bar mode', function() {
-      var resizeSpy = this.sinon.spy(window, 'resizeTo');
-      CallScreen.placeNewCall();
-      assert.equal(resizeSpy.firstCall.args[1], 40);
-    });
   });
 
   suite('resizeHandler', function() {
@@ -829,7 +743,7 @@ suite('call screen', function() {
     });
 
     test('should show the banner', function() {
-      assert.include(bannerClass, 'visible');
+      assert.isTrue(bannerClass.contains('visible'));
     });
     test('should show the text', function() {
       assert.equal(statusMessage.querySelector('p').textContent,
@@ -879,32 +793,48 @@ suite('call screen', function() {
   suite('showClock in screen locked status', function() {
     var formatArgs = [],
         currentDate,
-        fakeClockTime = '12:02 <span>PM</span>',
+        fakeClockTime12 = '12:02 <span>PM</span>',
+        fakeClockTime24 = '13:14',
         fakeDate = 'Monday, September 16';
 
     setup(function() {
       this.sinon.stub(navigator.mozL10n, 'DateTimeFormat', function() {
         this.localeFormat = function(date, format) {
           formatArgs.push(arguments);
-          if (format === 'shortTimeFormat') {
-            return fakeClockTime;
+          if (format === 'shortTimeFormat12') {
+            return fakeClockTime12;
+          } else if (format === 'shortTimeFormat24') {
+            return fakeClockTime24;
           }
+
           return fakeDate;
         };
       });
     });
 
-    test('clock and date should display current clock/date info', function() {
+    test('clock and date should display current date info', function() {
       currentDate = new Date();
       CallScreen.showClock(currentDate);
-      var clockTime = CallScreen.lockedClockTime.innerHTML;
       var dateStr = CallScreen.lockedDate.textContent;
       // The date parameter here should be equal to clock setup date.
       assert.equal(formatArgs.length, 2);
       assert.equal(formatArgs[0][0], currentDate);
       assert.equal(formatArgs[1][0], currentDate);
-      assert.equal(clockTime, fakeClockTime);
       assert.equal(dateStr, fakeDate);
+    });
+
+    test('clock should display current 12 hour time info', function() {
+      window.navigator.mozHour12 = true;
+      CallScreen.showClock(currentDate);
+      var clockTime = CallScreen.lockedClockTime.innerHTML;
+      assert.equal(clockTime, fakeClockTime12);
+    });
+
+    test('clock should display current 24 hour time info', function() {
+      window.navigator.mozHour12 = false;
+      CallScreen.showClock(currentDate);
+      var clockTime = CallScreen.lockedClockTime.innerHTML;
+      assert.equal(clockTime, fakeClockTime24);
     });
   });
 
@@ -913,6 +843,11 @@ suite('call screen', function() {
     var timeNode;
     setup(function() {
       this.sinon.useFakeTimers();
+
+      var self = this;
+      this.sinon.stub(performance, 'now', function() {
+        return self.sinon.clock.now.toFixed(3);
+      });
 
       durationNode = document.createElement('div');
       durationNode.className = 'duration';
@@ -929,12 +864,11 @@ suite('call screen', function() {
     });
 
     test('createTicker should update timer every second', function() {
+      this.sinon.spy(Utils, 'prettyDuration');
       this.sinon.clock.tick(1000);
-      assert.deepEqual(MockLazyL10n.keys.callDurationMinutes, {
-        h: '00',
-        m: '00',
-        s: '01'
-      });
+      sinon.assert.calledWith(Utils.prettyDuration, timeNode, 1000);
+      this.sinon.clock.tick(1000);
+      sinon.assert.calledWith(Utils.prettyDuration, timeNode, 1000);
     });
 
     test('stopTicker should stop counter on durationNode', function() {

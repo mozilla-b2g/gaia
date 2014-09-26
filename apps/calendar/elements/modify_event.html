@@ -1,20 +1,13 @@
 <element name="modify-event" extends="section">
   <template>
-    <header>
-      <button class="cancel">
-        <span data-l10n-id="cancel" class="icon icon-close">Cancel</span>
-      </button>
-
-      <menu type="toolbar">
-        <button class="save">
-          <span data-l10n-id="save" class="save-text">Save</span>
-          <span data-l10n-id="done" class="done-text">Done</span>
-        </button>
-      </menu>
-
+    <gaia-header id="modify-event-header" action="close">
       <h1 data-l10n-id="new-event-header" class="save-text">Add Event</h1>
       <h1 data-l10n-id="edit-event-header" class="done-text">Edit Event</h1>
-    </header>
+      <button class="save">
+        <span data-l10n-id="save" class="save-text">Save</span>
+        <span data-l10n-id="done" class="done-text">Done</span>
+      </button>
+    </gaia-header>
 
     <form>
       <ol>

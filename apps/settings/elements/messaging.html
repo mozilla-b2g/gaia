@@ -1,10 +1,9 @@
 <element name="messaging" extends="section">
   <template>
 
-    <header>
-      <a href="#root"><span class="icon icon-back">back</span></a>
-      <h1 data-l10n-id="messagingSettings-header">Messaging Settings</h1>
-    </header>
+    <gaia-header action="back" data-href="#root">
+      <h1 data-l10n-id="messagingSettings-header"> Messaging Settings </h1>
+    </gaia-header>
 
     <div>
       <header>
@@ -58,13 +57,17 @@
         <header>
           <h2 data-l10n-id="simSettings">SIM Settings</h2>
         </header>
-        <li aria-disabled="true" class="hint sim1">
-          <small></small>
-          <a data-l10n-id="sim1" data-card-index="0">SIM 1</a>
+        <li aria-disabled="true" class="sim1">
+          <a data-card-index="0">
+            <span data-l10n-id="sim1">SIM 1</span>
+            <small></small>
+          </a>
         </li>
-        <li aria-disabled="true" class="hint sim2">
-          <small></small>
-          <a data-l10n-id="sim2" data-card-index="1">SIM 2</a>
+        <li aria-disabled="true" class="sim2">
+          <a data-card-index="1">
+            <span data-l10n-id="sim2">SIM 2</span>
+            <small></small>
+          </a>
         </li>
       </ul>
     </div>

@@ -53,6 +53,10 @@
     gridWidth: 1,
 
     get name() {
+      if (this.detail.nonTranslatable) {
+        return this.detail.name;
+      }
+
       // first attempt to use the localized name
       return _(l10nKey + this.detail.categoryId) || this.detail.name;
     },
@@ -70,12 +74,13 @@
 
     update: GaiaGrid.GridItem.prototype.updateFromDatastore,
 
-    render: function(coordinates, index) {
+    render: function() {
       // Add 'collection' to the class list when the element gets created
       var setClassName = !this.element;
-      GaiaGrid.GridItem.prototype.render.call(this, coordinates, index);
+      GaiaGrid.GridItem.prototype.render.call(this);
       if (setClassName) {
         this.element.classList.add('collection');
+        this.isEditable() && this.element.classList.add('editable');
       }
     },
 

@@ -52,8 +52,10 @@
       browser.setAttribute('mozapp', config.manifestURL);
 
       // Only app with manifest could get system message.
-      browser.setAttribute('expecting-system-message',
-                            'expecting-system-message');
+      if (config.isSystemMessage) {
+        browser.setAttribute('expecting-system-message',
+                             'expecting-system-message');
+      }
     }
 
     if (config.parentApp) {
@@ -87,10 +89,7 @@
   function setMozAppType(iframe, config) {
     // XXX: Those urls needs to be built dynamically.
     if (config.url.startsWith(window.location.protocol +
-                              '//communications.gaiamobile.org' +
-                              (window.location.port ?
-                                (':' + window.location.port) : '') +
-                              '/dialer') ||
+                              '//callscreen.gaiamobile.org') ||
         config.url.startsWith(window.location.protocol +
                               '//clock.gaiamobile.org')) {
       iframe.setAttribute('mozapptype', 'critical');

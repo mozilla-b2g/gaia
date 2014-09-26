@@ -36,6 +36,8 @@
       // Clear passcode while the keypad is hiding.
       this.lockScreen.passCodeEntered = '';
       this.lockScreen.updatePassCodeUI();
+      // Resetting slider before we want to show it again
+      this.lockScreen._unlocker.reset();
       // Copy from the original switching method.
       this.lockScreen.overlay.classList.add('no-transition');
       this.lockScreen.overlay.dataset.panel = 'main';

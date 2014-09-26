@@ -58,9 +58,9 @@ var CrashReporter = (function() {
     var crashInfoLink = document.getElementById('crash-info-link');
     crashInfoLink.addEventListener('click', function onLearnMoreClick() {
       var dialog = document.getElementById('crash-dialog');
-      document.getElementById('crash-reports-close').
-               addEventListener('click', function onDoneClick() {
-        this.removeEventListener('click', onDoneClick);
+      document.getElementById('crash-reports-header').
+               addEventListener('action', function onAction() {
+        this.removeEventListener('click', onAction);
         dialog.classList.remove('learn-more');
       });
       dialog.classList.add('learn-more');

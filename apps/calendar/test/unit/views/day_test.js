@@ -1,3 +1,5 @@
+requireLib('template.js');
+requireLib('templates/date_span.js');
 requireCommon('test/synthetic_gestures.js');
 requireApp('calendar/shared/js/gesture_detector.js');
 requireLib('timespan.js');

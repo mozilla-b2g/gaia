@@ -1,10 +1,9 @@
 <element name="findmydevice" extends="section">
   <template>
 
-    <header>
-      <a href="#root"><span class="icon icon-back">back</span></a>
+    <gaia-header action="back" data-href="#root">
       <h1 data-l10n-id="findmydevice"> Find My Device </h1>
-    </header>
+    </gaia-header>
 
     <div>
       <div id="findmydevice-signin" hidden>
@@ -20,7 +19,7 @@
               Create account or sign in
             </button>
           </li>
-          <li class="description" id="findmydevice-fxa-unverified-error">
+          <li class="description" id="findmydevice-fxa-unverified-error" hidden>
             <p data-l10n-id="fxa-please-verify"></p>
           </li>
         </ul>

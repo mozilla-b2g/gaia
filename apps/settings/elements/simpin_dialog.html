@@ -1,15 +1,11 @@
 <element name="simpin-dialog" extends="section">
   <template>
 
-    <header>
-      <button type="reset">
-        <span data-l10n-id="back" class="icon icon-back">Back</span>
-      </button>
-      <menu type="toolbar">
-      <button data-l10n-id="done" type="submit">Done</button>
-      </menu>
+    <gaia-header>
+      <button type="reset" data-icon="back"><span data-l10n-id="back">Back</span></button>
       <h1></h1>
-    </header>
+      <button data-l10n-id="done" type="submit">Done</button>
+    </gaia-header>
 
     <div class="pin-dialog">
       <div class="sim-errorMsg error" hidden>

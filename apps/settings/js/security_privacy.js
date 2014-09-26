@@ -18,7 +18,7 @@ var Security = {
       return;
 
     // update phone code status
-    var screenlockDesc = document.getElementById('screenLock-desc');
+    var screenlockDesc = document.querySelector('.screenLock-desc');
     var lock = settings.createLock();
     var reqLockscreenEnable = lock.get('lockscreen.enabled');
     reqLockscreenEnable.onsuccess = function onLockscreenEnableSuccess() {

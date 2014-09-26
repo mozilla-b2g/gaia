@@ -13,6 +13,7 @@ require('/shared/elements/gaia_grid/script.js');
 require('/shared/elements/gaia_grid/js/items/grid_item.js');
 require('/shared/elements/gaia_grid/js/items/divider.js');
 require('/shared/elements/gaia_grid/js/items/placeholder.js');
+require('/shared/elements/gaia_grid/js/items/group.js');
 
 var mocksHelperForGrid = new MocksHelper([
   'LazyLoader'
@@ -60,6 +61,16 @@ suite('GaiaGrid', function() {
       assert.equal(grid.dragdrop, undefined);
       assert.ok(grid.layout);
     });
+
+    test('/w grouping', function() {
+      this.container.innerHTML = '<gaia-grid group></gaia-grid>';
+      var grid = this.container.firstElementChild._grid;
+      grid.render();
+      assert.equal(grid.dragdrop, undefined);
+      assert.equal(grid.zoom, undefined);
+      assert.ok(grid.layout);
+      assert.ok(document.querySelector('.divider.group'));
+    });
   });
 
   suite('items', function() {
@@ -72,6 +83,8 @@ suite('GaiaGrid', function() {
         id: 'http://mozilla.org',
         url: 'http://mozilla.org'
       },
+      setPosition: function() {},
+      setCoordinates: function() {},
       render: function() {}
     };
 
@@ -151,6 +164,25 @@ suite('GaiaGrid', function() {
       element.add(fakeBookmarkItem);
       assert.equal(element.getItems().length, 0);
       fakeBookmarkItem.identifier = oldIdentifier;
+    });
+
+    test('height with text-rows attribute', function() {
+      this.container.innerHTML = '<gaia-grid></gaia-grid>';
+      var gridEl = this.container.firstElementChild;
+      var grid = this.container.firstElementChild._grid;
+      var defaultItemHeight = grid.layout.gridItemHeight;
+      assert.ok(defaultItemHeight > 0);
+
+      gridEl.setAttribute('text-rows', 3);
+      var threeRowHeight = grid.layout.gridItemHeight;
+      assert.ok(threeRowHeight > defaultItemHeight);
+
+      gridEl.setAttribute('text-rows', 4);
+      var fourRowHeight = grid.layout.gridItemHeight;
+      assert.ok(fourRowHeight > threeRowHeight);
+      assert.equal(fourRowHeight - threeRowHeight,
+        threeRowHeight - defaultItemHeight,
+        'additional text rows match height');
     });
   });
 

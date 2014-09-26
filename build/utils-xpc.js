@@ -4,7 +4,6 @@
 /* jshint -W079, -W118 */
 
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
-const { btoa } = Cu.import('resource://gre/modules/Services.jsm', {});
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');
@@ -126,7 +125,9 @@ function writeContent(file, content) {
     converterStream.writeString(content);
     converterStream.close();
   } catch (e) {
-    dump('writeContent error, file.path: ' + file.path + '\n');
+    utils.log('utils-xpc', 'writeContent error, file.path: ' + file.path);
+    utils.log('utils-xpc', 'parent file object exists: ' +
+      file.parent.exists());
     throw(e);
   }
 }
@@ -1167,7 +1168,19 @@ function removeFiles(dir, filenames) {
   filenames.forEach(function(fn) {
     var file = getFile(dir.path, fn);
     if (file.exists()) {
-      file.remove(file.isDirectory());
+      try {
+        file.remove(file.isDirectory());
+      } catch (e) {
+        utils.log('utils-xpc', (file.isDirectory() ? 'directory' : 'file')  +
+          ' cannot be removed: ' + file.path);
+        if (file.isDirectory()) {
+          utils.log('utils-xpc', 'files in ' + file.leafName + ' directory:');
+          utils.ls(file, true).forEach(function(f) {
+            dump('* ' + f.path + '\n');
+          });
+        }
+        throw e;
+      }
     }
   });
 }

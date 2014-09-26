@@ -17,7 +17,6 @@ require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_mmi_manager.js');
 require('/dialer/test/unit/mock_voicemail.js');
 require('/dialer/test/unit/mock_suggestion_bar.js');
-require('/dialer/test/unit/mock_telephony_helper.js');
 
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
@@ -30,6 +29,7 @@ require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
+require('/shared/test/unit/mocks/dialer/mock_telephony_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
 
@@ -110,6 +110,8 @@ suite('navigation bar', function() {
   });
 
   teardown(function() {
+    window.removeEventListener('hashchange', NavbarManager.update);
+
     MockNavigatorMozIccManager.mTeardown();
     navigator.mozIccManager = realMozIccManager;
 
@@ -539,10 +541,33 @@ suite('navigation bar', function() {
       [0, 1].forEach(function(serviceId) {
         test('> Dialing a specific number on user preferred SIM ' + serviceId,
         function() {
-          this.sinon.spy(MockSimPicker, 'getOrPick');
           MockSimSettingsHelper._defaultCards.outgoingCall = serviceId;
           sendCommand('ATD12345');
+          sinon.assert.calledWith(callSpy, '12345', serviceId);
+        });
+      });
+
+      suite('> Dialing a specific number with user preferred SIM always ask',
+      function() {
+        var serviceId;
+
+        setup(function() {
+          serviceId = MockSimSettingsHelper._defaultCards.outgoingCall =
+            MockSimSettingsHelper.ALWAYS_ASK_OPTION_VALUE;
+        });
+
+        test('should show SIM picker', function() {
+          this.sinon.spy(MockSimPicker, 'getOrPick');
+          sendCommand('ATD12345');
           sinon.assert.calledWith(MockSimPicker.getOrPick, serviceId, '12345');
+        });
+
+        test('should show/foreground the dialer', function() {
+          sendCommand('ATD12345');
+          MockNavigatormozApps.mTriggerLastRequestSuccess();
+          assert.isTrue(MockNavigatormozApps.mAppWasLaunched);
+          assert.equal(MockNavigatormozApps.mAppWasLaunchedWithEntryPoint,
+                       'dialer');
         });
       });
 
@@ -686,6 +711,7 @@ suite('navigation bar', function() {
     suite('Second tap on contacts tab', function() {
       test('Listens to click events', function() {
         this.sinon.spy(domOptionContacts, 'addEventListener');
+        window.removeEventListener('hashchange', NavbarManager.update);
         NavbarManager.init();
         sinon.assert.calledWith(domOptionContacts.addEventListener, 'click',
                                 NavbarManager.contactsTabTap);

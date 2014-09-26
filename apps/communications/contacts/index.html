@@ -7,7 +7,6 @@
     <title> Contacts </title>
 
     <!-- Building Blocks -->
-    <link href="/shared/style/headers.css" rel="stylesheet">
     <link href="/shared/style/input_areas.css" rel="stylesheet">
     <link href="/shared/style/lists.css" rel="stylesheet">
     <link href="/shared/style/scrolling.css" rel="stylesheet">
@@ -28,6 +27,8 @@
     <link href="/shared/pages/import/style/curtain_frame.css" rel="stylesheet">
     <link href="/contacts/style/status.css" rel="stylesheet">
     <link href="/contacts/style/fb_extensions.css" rel="stylesheet">
+    <link href="/shared/style/contacts.css" rel="stylesheet">
+    <link href="/shared/style/contacts/contacts_buttons.css" rel="stylesheet">
 
     <!-- For contacts import/export:
     <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/sdcard.js"></script>
@@ -42,22 +43,30 @@
     <script defer type="text/javascript" src="/shared/js/contacts/import/import_status_data.js"></script>
     <script defer type="text/javascript" src="/shared/js/date_time_helper.js"></script>
     <script defer type="text/javascript" src="/shared/js/contacts/utilities/ice_store.js"></script>
+
+    <script defer src="/shared/js/mime_mapper.js"></script>
+    <script defer src="/shared/js/contacts/import/utilities/misc.js"></script>
     -->
 
     <script defer src="/shared/js/l10n.js"></script>
     <script defer src="/shared/js/l10n_date.js"></script>
     <script defer src="/contacts/js/activities.js"></script>
     <script defer src="/shared/js/lazy_loader.js"></script>
-    <script defer src="/shared/js/font_size_utils.js"></script>
     <script defer src="/shared/js/contact_photo_helper.js"></script>
-    <script defer src="/shared/js/mime_mapper.js"></script>
 
     <script defer src="/shared/js/async_storage.js"></script>
     <script defer src="/shared/js/contacts/import/utilities/config.js"></script>
     <script defer src="/contacts/js/utilities/cookie.js"></script>
     <script defer src="/contacts/js/utilities/extract_params.js"></script>
     <script defer src="/contacts/js/utilities/performance_helper.js"></script>
-    <script defer src="/shared/js/contacts/import/utilities/misc.js"></script>
+
+    <!-- Web Components -->
+    <script defer src="/shared/js/component_utils.js"></script>
+    <script defer src="/shared/elements/gaia_subheader/script.js"></script>
+    <script defer src="/shared/elements/config.js"></script>
+    <script defer src="/shared/elements/gaia-header/dist/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" /> -->
 
     <!-- For initializing FB integration -->
     <script defer src="/contacts/js/fb/fb_init.js"></script>
@@ -70,11 +79,14 @@
     <!-- for perf-measurement related utilities -->
     <script defer src='/shared/js/performance_testing_helper.js'></script>
 
-    <link rel="resource" type="application/l10n" href="/contacts/locales/locales.ini"/>
-    <link rel="resource" type="application/l10n" href="/shared/locales/import_contacts.ini"/>
-    <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
-    <link rel="resource" type="application/l10n" href="/shared/locales/sim_picker.ini"/>
-    <link rel="resource" type="application/l10n" href="/shared/locales/phone_types.ini"/>
+    <link rel="manifest" href="../manifest.webapp">
+    <link rel="localization" href="locales/contacts.{locale}.properties">
+    <link rel="localization" href="../dialer/locales/shared.{locale}.properties">
+    <link rel="localization" href="/shared/locales/import_contacts/import_contacts.{locale}.properties">
+    <link rel="localization" href="/shared/locales/date/date.{locale}.properties">
+    <link rel="localization" href="/shared/locales/sim_picker/sim_picker.{locale}.properties">
+    <link rel="localization" href="/shared/locales/phone_types/phone_types.{locale}.properties">
+
     <script defer src="/contacts/js/fb_loader.js"></script>
 
     <!-- For the build system to include in zip:
@@ -88,6 +100,8 @@
     <link href="/shared/js/sim_settings_helper.js">
     <link href="/shared/js/sim_picker.js">
     <link href="/shared/js/nfc_utils.js">
+    <link href="/shared/js/contacts/sms_integration.js">
+    <link href="/shared/js/contacts/contacts_buttons.js">
 
     <link href="/shared/js/contacts/import/facebook/fb_data.js">
     <link href="/shared/js/contacts/import/facebook/fb_utils.js">
@@ -100,6 +114,8 @@
 
     <link rel="import" href="elements/confirm.html">
     <link rel="import" href="elements/details.html">
+    <link rel="import" href="elements/phone_details.html">
+    <link rel="import" href="elements/email_details.html">
     <link rel="import" href="elements/form.html">
     <link rel="import" href="elements/overlay.html">
     <link rel="import" href="elements/screenshot.html">
@@ -107,6 +123,7 @@
     <link rel="import" href="elements/settings.html">
     <link rel="import" href="elements/status.html">
     <link rel="import" href="elements/tag.html">
+    <link rel="import" href="elements/ice.html">
     <link rel="import" href="/shared/elements/sim_picker.html">
     <!--
     <link href="/shared/pages/import/oauth.html">
@@ -115,20 +132,15 @@
     -->
   </head>
 
-  <body role="application" class="app-contacts skin-comms">
+  <body role="application" class="app-contacts skin-comms theme-communications">
 
       <!-- Contacts List Section -->
       <section id='view-contacts-list' role="region" data-state="active" class="view view-noscroll view-contacts-list">
-        <header>
-          <a href="#" id="cancel_activity" class="hide">
-            <span class="icon icon-close" data-l10n-id="exit">Exit</span>
-          </a>
-          <menu id="standard-menu" type="toolbar">
-            <button role="menuitem" id="add-contact-button"><span class="icon icon-add" data-l10n-id="add">add</span></button>
-            <button role="menuitem" id="settings-button"><span class="icon icon-settings" data-l10n-id="settings">settings</span></button>
-          </menu>
+        <gaia-header id="contacts-list-header">
           <h1 id="app-title" data-l10n-id="contacts">Contacts</h1>
-        </header>
+          <button id="add-contact-button" data-icon="add" data-l10n-id="addButton"></button>
+          <button id="settings-button" data-icon="settings" data-l10n-id="settingsButton"></button>
+        </gaia-header>
 
         <article class="view-body">
           <div id="no-contacts" class="hide">
@@ -143,7 +155,7 @@
               <li data-anchor="search-container" data-img="magnifier_icon_big.png">
                 <a href="#"><span class="pack-icon-search">Search</span></a>
               </li>
-              <li class="hide" data-anchor="group-ice" data-img="ice_small.png">
+              <li class="hide" data-anchor="group-ice" data-img="icon_ice_shortcut.png">
                 <a href="#"><span class="pack-icon-ice">ICE</span></a>
               </li>
               <li data-anchor="group-favorites" data-img="star_icon_big.png">
@@ -183,7 +195,7 @@
               <div id="groups-container-background">
                 <form id="search-container" class="search" role="search">
                   <p>
-                    <label for="search" id="search-start">
+                    <label id="search-start">
                       <input type="search" name="search" class="textfield" x-inputmode="verbatim"
                              placeholder="Search" data-l10n-id="search-contact">
                     </label>
@@ -198,12 +210,11 @@
         </article>
       </section>
     <form id="selectable-form" role="dialog" data-type="edit" class="hide">
-      <section role="region">
-        <header>
-          <button type="button"><span class="icon icon-close">close</span></button>
-          <menu type="toolbar"><button type="button" id="select-action"></button></menu>
+      <section role="region" class="theme-settings">
+        <gaia-header id="selectable-form-header" action="close">
           <h1 id="edit-title" data-l10n-id="contacts"></h1>
-        </header>
+          <button type="button" id="select-action"></button>
+        </gaia-header>
       </section>
       <menu id="select-all-wrapper">
        <button id="deselect-all" class="edit-button" data-l10n-id="deselectAll" disabled>
@@ -229,5 +240,6 @@
     <section is="status-message" id="statusMsg" role="status" class="hidden"></section>
     <form    is="confirmation-message" id="confirmation-message" class="hide" role="dialog" data-type="confirm"></form>
     <form    is="sim-picker" id="sim-picker" role="dialog" data-type="action" hidden></form>
+    <section is="ice-view" id="ice-view" role="region" class="view view-right hidden"></section>
   </body>
 </html>

@@ -2,9 +2,9 @@ var MockNotificationScreen = {
   wasMethodCalled: {},
 
   mockMethods: [
-    'incExternalNotifications',
-    'decExternalNotifications',
-    'updateStatusBarIcon',
+    'addUnreadNotification',
+    'removeUnreadNotification',
+    'updateNotificationIndicator',
     'addNotification',
     'removeNotification'
   ],

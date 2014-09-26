@@ -51,6 +51,7 @@ UserPressManager.prototype.onpressend = null;
 UserPressManager.prototype.MOVE_LIMIT = 5;
 
 UserPressManager.prototype.start = function() {
+  this.app.console.log('UserPressManager.start()');
   if (this._started) {
     throw new Error('UserPressManager: ' +
       'Instance should not be start()\'ed twice.');
@@ -66,6 +67,7 @@ UserPressManager.prototype.start = function() {
 };
 
 UserPressManager.prototype.stop = function() {
+  this.app.console.log('UserPressManager.stop()');
   if (!this._started) {
     throw new Error('UserPressManager: ' +
       'Instance was never start()\'ed but stop() is called.');
@@ -202,6 +204,7 @@ UserPressManager.prototype.handleEvent = function(evt) {
 };
 
 UserPressManager.prototype._handleNewPress = function(el, coords, id) {
+  this.app.console.info('UserPressManager._handleNewPress()');
   var press = new UserPress(el, coords);
   this.presses.set(id, press);
 
@@ -211,6 +214,7 @@ UserPressManager.prototype._handleNewPress = function(el, coords, id) {
 };
 
 UserPressManager.prototype._handleChangedPress = function(el, coords, id) {
+  this.app.console.info('UserPressManager._handleChangedPress()');
   var press = this.presses.get(id);
   press.target = el;
   press.updateCoords(coords, true);
@@ -221,6 +225,7 @@ UserPressManager.prototype._handleChangedPress = function(el, coords, id) {
 };
 
 UserPressManager.prototype._handleFinishPress = function(el, coords, id) {
+  this.app.console.info('UserPressManager._handleFinishPress()');
   var press = this.presses.get(id);
   press.target = el;
   press.updateCoords(coords,

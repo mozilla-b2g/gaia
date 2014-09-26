@@ -14,6 +14,7 @@ var UIManager = {
   // eg. instead of calling document.getElementById('splash-screen')
   // we can access this.splashScreen in our code.
   domSelectors: [
+    'container',
     'splash-screen',
     'activation-screen',
     'finish-screen',
@@ -160,7 +161,6 @@ var UIManager = {
 
     this.timeConfiguration.addEventListener('input', this);
     this.dateConfiguration.addEventListener('input', this);
-    this.initTZ();
 
     this.geolocationSwitch.addEventListener('click', this);
 
@@ -258,16 +258,16 @@ var UIManager = {
     if (emailValue === '') {
       return callback(true);
     } else {
-      utils.overlay.show(_('email-loading'), 'spinner');
+      utils.overlay.show('email-loading', 'spinner');
       if (self.newsletterInput.checkValidity()) {
         if (window.navigator.onLine) {
           Basket.send(emailValue, function emailSent(err, data) {
             if (err) {
               if (err.code && err.code === Basket.errors.INVALID_EMAIL) {
-                ConfirmDialog.show(_('invalid-email-dialog-title'),
-                                   _('invalid-email-dialog-text'),
+                ConfirmDialog.show('invalid-email-dialog-title',
+                                   'invalid-email-dialog-text',
                                    {
-                                    title: _('cancel'),
+                                    title: 'cancel',
                                     callback: function ok() {
                                       ConfirmDialog.hide();
                                     }
@@ -289,10 +289,10 @@ var UIManager = {
         }
       } else {
         utils.overlay.hide();
-        ConfirmDialog.show(_('invalid-email-dialog-title'),
-                           _('invalid-email-dialog-text'),
+        ConfirmDialog.show('invalid-email-dialog-title',
+                           'invalid-email-dialog-text',
                            {
-                            title: _('cancel'),
+                            title: 'cancel',
                             callback: function ok() {
                               ConfirmDialog.hide();
                             }
@@ -304,10 +304,17 @@ var UIManager = {
 
   initTZ: function ui_initTZ() {
     // Initialize the timezone selector, see /shared/js/tz_select.js
+    var self = this;
     var tzRegion = document.getElementById('tz-region');
     var tzCity = document.getElementById('tz-city');
-    tzSelect(tzRegion, tzCity,
-             this.setTimeZone.bind(this), this.setTimeZone.bind(this));
+    return new Promise(function(resolve) {
+      var onchange = self.setTimeZone.bind(self);
+      var onload = function() {
+        self.setTimeZone.apply(self, arguments);
+        resolve();
+      };
+      tzSelect(tzRegion, tzCity, onchange, onload);
+    });
   },
 
   handleEvent: function ui_handleEvent(event) {
@@ -427,6 +434,9 @@ var UIManager = {
     );
     // Disable the button
     UIManager.fxaCreateAccount.disabled = true;
+    // Change the Skip button label
+    var nextButton = document.getElementById('forward');
+    nextButton.setAttribute('data-l10n-id', 'navbar-next');
   },
 
   fxaShowError: function ui_fxaShowError(response) {
@@ -436,10 +446,13 @@ var UIManager = {
     // Reset the field
     navigator.mozL10n.localize(
       UIManager.fxaIntro,
-      'fxa-overview'
+      'fxa-upsell'
     );
     // Enable the button
     UIManager.fxaCreateAccount.disabled = false;
+    // Change the Skip button label
+    var nextButton = document.getElementById('forward');
+    nextButton.setAttribute('data-l10n-id', 'skip');
   },
 
   displayOfflineDialog: function ui_displayOfflineDialog(href, title) {

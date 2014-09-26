@@ -1,4 +1,5 @@
 'use strict';
+/* global exports, require */
 
 var utils = require('./utils');
 
@@ -26,23 +27,38 @@ function setWallpaper(settings, config) {
   }
 
   if (!wallpaper.exists()) {
-    wallpaper = utils.resolve(utils.joinPath('build', 'config', 'wallpaper.jpg'),
+    wallpaper = utils.resolve(
+      utils.joinPath('build', 'config', 'wallpaper.jpg'),
       config.GAIA_DIR);
   }
   settings['wallpaper.image'] = utils.getFileAsDataURI(wallpaper);
 }
 
-function setTone(settings, config, settingsKey, dir, name) {
+function setTone(settings, config, toneType, name, l10nID) {
+  let settingsKey, dir;
+  switch (toneType) {
+  case 'ringtone':
+    settingsKey = 'dialer.ringtone';
+    dir = 'shared/resources/media/ringtones/';
+    break;
+  case 'alerttone':
+    settingsKey = 'notification.ringtone';
+    dir = 'shared/resources/media/notifications/';
+    break;
+  default:
+    throw new Error('unknown tone type: ' + toneType);
+  }
+
   let tone = utils.resolve(dir + name, config.GAIA_DIR);
 
   settings[settingsKey] = utils.getFileAsDataURI(tone);
-  settings[settingsKey + '.name'] = {l10nID: name.replace(/\.\w+$/, '')};
+  settings[settingsKey + '.name'] = {l10nID: l10nID};
   settings[settingsKey + '.id'] = settings[settingsKey + '.default.id'] =
-    'builtin:' + name.replace(/\.\w+$/, '');
+    'builtin:' + toneType + '/' + name.replace(/\.\w+$/, '');
 }
 
 function setMediatone(settings, config) {
-  // Grab ac_classic_clock_alarm.opus and convert it into a base64 string
+  // Grab notifier_firefox.opus and convert it into a base64 string
   let mediatone_name = 'shared/resources/media/notifications/' +
     'notifier_firefox.opus';
   let mediatone = utils.resolve(mediatone_name,
@@ -52,9 +68,9 @@ function setMediatone(settings, config) {
 }
 
 function setAlarmtone(settings, config) {
-  // Grab ac_classic_clock_alarm.opus and convert it into a base64 string
+  // Grab ac_awake.opus and convert it into a base64 string
   let alarmtone_name = 'shared/resources/media/alarms/' +
-    'ac_classic_clock_alarm.opus';
+    'ac_awake.opus';
   let alarmtone = utils.resolve(alarmtone_name,
     config.GAIA_DIR);
 
@@ -63,17 +79,17 @@ function setAlarmtone(settings, config) {
 
 function setRingtone(settings, config) {
   // Grab ringer_firefox.opus and convert it into a base64 string
-  let ringtone_dir = 'shared/resources/media/ringtones/';
   let ringtone_name = 'ringer_firefox.opus';
-  setTone(settings, config, 'dialer.ringtone', ringtone_dir, ringtone_name);
+  let ringtone_l10nID = 'ringer_firefox2';
+  setTone(settings, config, 'ringtone', ringtone_name, ringtone_l10nID);
 }
 
 function setNotification(settings, config) {
   // Grab notifier_firefox.opus and convert it into a base64 string
-  let notification_dir = 'shared/resources/media/notifications/';
   let notification_name = 'notifier_firefox.opus';
-  setTone(settings, config, 'notification.ringtone', notification_dir,
-          notification_name);
+  let notification_l10nID = 'notifier_firefox2';
+  setTone(settings, config, 'alerttone', notification_name,
+          notification_l10nID);
 }
 
 /* Setup the default keyboard layouts according to the current language */
@@ -83,7 +99,7 @@ function setDefaultKeyboardLayouts(lang, settings, config) {
     config.GAIA_DIR);
 
   let layoutConfig = utils.getJSON(layoutConfigFile);
-  let keyboardLayouts = layoutConfig['layout'];
+  let keyboardLayouts = layoutConfig.layout;
 
   if (!keyboardLayouts) {
     utils.log('default keyboard layouts are not defined: ' +
@@ -113,7 +129,7 @@ function setDefaultKeyboardLayouts(lang, settings, config) {
   defaultLayoutList.forEach(addLayoutEntry);
 
   // Also add language-independent layouts into the sets
-  let langIndependentLayoutList = layoutConfig['langIndependentLayouts'];
+  let langIndependentLayoutList = layoutConfig.langIndependentLayouts;
   langIndependentLayoutList.forEach(addLayoutEntry);
 
   settings['keyboard.enabled-layouts'] = keyboardSettings;
@@ -202,7 +218,8 @@ function execute(config) {
 
   var settings = utils.getJSON(settingsFile);
   if (config.TARGET_BUILD_VARIANT != 'user') {
-    // We want the console to be disabled for device builds using the user variant.
+    // We want the console to be disabled
+    // for device builds using the user variant.
     settings['debug.console.enabled'] = true;
 
     // Activate developer menu under the system menu when long pressing
@@ -235,13 +252,6 @@ function execute(config) {
     settings['debugger.remote-mode'] = 'disabled';
   }
 
-  // Disable network activity icon in debug mode because it
-  // causes unit tests to run really slowly until we
-  // can investigate and fix bug 1054220.
-  if (config.DEBUG) {
-    settings['statusbar.network-activity.disabled'] = true;
-  }
-
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
 
   if (config.DEVICE_DEBUG) {
@@ -249,9 +259,12 @@ function execute(config) {
   }
 
   if (config.NO_LOCK_SCREEN) {
-    settings['screen.timeout'] = 0;
     settings['lockscreen.enabled'] = false;
     settings['lockscreen.locked'] = false;
+  }
+
+  if (config.SCREEN_TIMEOUT >= 0) {
+    settings['screen.timeout'] = config.SCREEN_TIMEOUT;
   }
 
   setDefaultKeyboardLayouts(config.GAIA_DEFAULT_LOCALE, settings, config);
@@ -282,7 +295,7 @@ function execute(config) {
   });
 
   // Ensure not quitting xpcshell before all asynchronous code is done
-  utils.processEvents(function(){return {wait : false}});
+  utils.processEvents(function(){return {wait : false};});
 
   return result;
 }

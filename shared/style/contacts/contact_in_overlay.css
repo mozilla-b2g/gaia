@@ -1,0 +1,56 @@
+/* Overrides building blocks */
+#contact-list .contact-item {
+  height: auto;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+/* End overrides building blocks */
+
+.contact-item {
+  flex: 1;
+  padding: .2rem 2rem 0;
+  min-width: 0;
+}
+
+.contact-item .ci__tel-type:not(:empty):after {
+  content: ',';
+}
+
+.ci__name {
+  line-height: 1.9rem;
+  pointer-events: none;
+}
+
+.ci--action-menu .ci__name {
+  font-size: 1.7rem;
+  line-height: 2.1rem;
+  font-weight: 500;
+}
+
+.ci__details {
+  line-height: 1.7rem;
+  pointer-events: none;
+}
+
+.ci--action-menu .ci__details {
+  font-size: 1.5rem;
+}
+
+.ci__mark {
+  background-color: #94EEE9;
+  color: unset;
+}
+
+.ci--action-menu .ci__mark {
+  background: #333;
+  color: #94eee9;
+}
+
+/* FIXME Move to some kind of "building blocks" file? */
+.ellipsis {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  margin: 0 auto;
+  width: 100%;
+}

@@ -135,11 +135,13 @@ if (!fb.link) {
           doGetRemoteProposal(acc_tk, cdata, query);
         }
         else {
-          throw ('FB: Contact to be linked not found: ', cid);
+          throw new Error(
+                  'FB: Contact to be linked not found in mozContacts: ' + cid);
         }
       };
-      req.onerror = function() {
-        throw ('FB: Error while retrieving contact data: ', cid);
+      req.onerror = function(e) {
+        window.console.error('FB: Error while retrieving contact data: ', cid);
+        throw e;
       };
     };
 
@@ -347,9 +349,12 @@ if (!fb.link) {
             var data = e.data;
             if (data && data.type === 'dom_transition_end') {
               window.removeEventListener('message', linkOnViewPort);
-              utils.status.show(_('linkProposal', {
-                numFriends: numFriendsProposed
-              }));
+              utils.status.show({
+                id: 'linkProposal',
+                args: {
+                  numFriends: numFriendsProposed
+                }
+              });
             }
           });
         });

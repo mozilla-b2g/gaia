@@ -1,6 +1,5 @@
 'use strict';
-/* global SettingsListener, AppWindowManager, SearchWindow, places,
-          SettingsURL */
+/* global AppWindowManager, SearchWindow, places */
 
 (function(exports) {
 
@@ -34,18 +33,6 @@
     this.results = document.getElementById('rocketbar-results');
     this.backdrop = document.getElementById('rocketbar-backdrop');
     this.start();
-
-    // TODO: We shouldnt be creating a blob for each wallpaper that needs
-    // changed in the system app
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=962902
-    var defaultWall = 'resources/images/backgrounds/default.png';
-    var wallpaperURL = new SettingsURL();
-
-    SettingsListener.observe('wallpaper.image', defaultWall, function(value) {
-      document.getElementById('rocketbar-backdrop').style.backgroundImage =
-        'url(' + wallpaperURL.set(value) + ')';
-    });
-
   }
 
   Rocketbar.prototype = {
@@ -103,14 +90,13 @@
       backdrop.addEventListener('transitionend', finishTransition);
       safetyTimeout = setTimeout(finishTransition, 300);
 
-      var finishLoad = (function() {
+      this.loadSearchApp().then(() => {
         if (this.input.value.length) {
           this.handleInput();
         }
         searchLoaded = true;
         waitOver();
-      }).bind(this);
-      this.loadSearchApp(finishLoad);
+      });
     },
 
     /**
@@ -126,8 +112,9 @@
       this.active = false;
 
       var backdrop = this.backdrop;
-
+      var finishTimeout;
       var finish = (function() {
+        clearTimeout(finishTimeout);
         this.form.classList.add('hidden');
         this.rocketbar.classList.remove('active');
         this.screen.classList.remove('rocketbar-focused');
@@ -145,6 +132,8 @@
           window.removeEventListener('keyboardhidden', onhiddenkeyboard);
           finish();
         });
+        // Fallback plan in case we don't get a keyboardhidden event.
+        finishTimeout = setTimeout(finish, 1000);
         this.blur();
       } else {
         finish();
@@ -162,13 +151,16 @@
       window.addEventListener('apptitlechange', this);
       window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('appopened', this);
+      window.addEventListener('launchapp', this);
       window.addEventListener('home', this);
       window.addEventListener('launchactivity', this, true);
       window.addEventListener('searchterminated', this);
       window.addEventListener('permissiondialoghide', this);
-      window.addEventListener('attentionscreenshow', this);
-      window.addEventListener('status-inactive', this);
       window.addEventListener('global-search-request', this);
+      window.addEventListener('attentionopening', this);
+      window.addEventListener('attentionopened', this);
+      window.addEventListener('searchopened', this);
+      window.addEventListener('searchclosed', this);
 
       // Listen for events from Rocketbar
       this.input.addEventListener('focus', this);
@@ -191,11 +183,35 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+        case 'searchopened':
+          window.addEventListener('open-app', this);
+          break;
+        case 'searchclosed':
+          window.removeEventListener('open-app', this);
+          break;
         case 'apploading':
+        case 'launchapp':
+          // Do not close the search app if something opened in the background.
+          var detail = e.detail;
+          if (detail && detail.stayBackground) {
+            return;
+          }
+          this.hideResults();
+          this.deactivate();
+          break;
+        case 'open-app':
+          // Do not hide the searchWindow if we have a frontWindow.
+          if (this.searchWindow && this.searchWindow.frontWindow) {
+            return;
+          }
+          if (e.detail && !e.detail.showApp) {
+            return;
+          }
+          /* falls through */
+        case 'attentionopening':
+        case 'attentionopened':
         case 'appforeground':
         case 'appopened':
-        case 'attentionscreenshow':
-        case 'status-inactive':
           this.hideResults();
           this.deactivate();
           break;
@@ -220,6 +236,7 @@
           } else if (e.target == this.clearBtn) {
             this.clear();
           } else if (e.target == this.backdrop) {
+            this.hideResults();
             this.deactivate();
           }
           break;
@@ -244,24 +261,27 @@
           // XXX: fix the WindowManager coupling
           // but currently the transition sequence is crucial for performance
           var app = AppWindowManager.getActiveApp();
-          if (app && !app.manifestURL) {
-            this.setInput(app.config.url);
-          } else {
-            this.setInput('');
+
+          // If the app is not a browser, retain the search value and activate.
+          if (app && !app.isBrowser()) {
+            this.activate(this.focus.bind(this));
+            return;
           }
 
-          var self = this;
-          var focusAndSelect = function() {
-            self.hideResults();
-            setTimeout(function() {
-              self.focus();
-              self.selectAll();
+          // Set the input to be the URL in the case of a browser.
+          this.setInput(app.config.url);
+
+          var focusAndSelect = () => {
+            this.hideResults();
+            setTimeout(() => {
+              this.focus();
+              this.selectAll();
             });
           };
 
           if (app && app.appChrome && !app.appChrome.isMaximized()) {
-            app.appChrome.maximize(function() {
-              self.activate(focusAndSelect);
+            app.appChrome.maximize(() => {
+              this.activate(focusAndSelect);
             });
           } else {
             this.activate(focusAndSelect);
@@ -322,6 +342,13 @@
      */
     clear: function() {
       this.setInput('');
+
+      // Send a message to the search app to clear results
+      if (this._port) {
+        this._port.postMessage({
+          action: 'clear'
+        });
+      }
     },
 
     /**
@@ -484,14 +511,15 @@
 
     /**
      * Instantiates a new SearchWindow.
+     * @return {Promise}
      * @memberof Rocketbar.prototype
      */
-    loadSearchApp: function(callback) {
+    loadSearchApp: function() {
       if (!this.searchWindow) {
         this.searchWindow = new SearchWindow();
       }
 
-      this.initSearchConnection(callback);
+      return this.initSearchConnection();
     },
 
     /**
@@ -512,44 +540,36 @@
 
     /**
      * Initialise inter-app connection with search app.
-     * @param {Function} callback Function to call after we have an IAC port.
+     * @return {Promise}
      * @memberof Rocketbar.prototype
      */
-    initSearchConnection: function(callback) {
-      var self = this;
-
-      if (this._port) {
-        if (callback) {
-          callback();
-        }
-        return;
+    initSearchConnection: function() {
+      if (this.pendingInitConnection) {
+        return this.pendingInitConnection;
       }
 
-      this._port = 'pending';
-      navigator.mozApps.getSelf().onsuccess = function() {
-        var app = this.result;
-        if (!app) {
-          return;
-        }
-
-        app.connect('search').then(
-          function onConnectionAccepted(ports) {
-            ports.forEach(function(port) {
-              self._port = port;
-            });
-            if (self._pendingMessage) {
-              self.handleSearchMessage(self._pendingMessage);
-              delete self._pendingMessage;
-            }
-            if (callback) {
-              callback();
-            }
-          },
-          function onConnectionRejected(reason) {
-            console.error('Error connecting: ' + reason + '\n');
+      this.pendingInitConnection = new Promise((resolve, reject) => {
+        navigator.mozApps.getSelf().onsuccess = (event) => {
+          var app = event.target.result;
+          if (!app) {
+            reject();
+            return;
           }
-        );
-      };
+
+          app.connect('search').then(ports => {
+              ports.forEach(port => {
+                this._port = port;
+              });
+              if (this._pendingMessage) {
+                this.handleSearchMessage(this._pendingMessage);
+                delete this._pendingMessage;
+              }
+              delete this.pendingInitConnection;
+              resolve();
+            }, reject);
+        };
+      });
+      return this.pendingInitConnection;
     },
 
     /**

@@ -12,11 +12,14 @@ System.Selector = Object.freeze({
   appWindow: '.appWindow',
   appTitlebar: '.appWindow.active .titlebar',
   appUrlbar: '.appWindow.active .title',
+  appChromeBack: '.appWindow.active .back-button',
+  appChromeForward: '.appWindow.active .forward-button',
   appChromeContextLink: '.appWindow.active .menu-button',
-  appChromeContextMenu: '.appWindow.active .overflow-menu',
-  appChromeContextMenuNewWindow: '.appWindow.active #new-window',
-  appChromeContextMenuBookmark: '.appWindow.active #add-to-home',
-  appChromeContextMenuShare: '.appWindow.active #share',
+  appChromeContextMenu: '.appWindow.active .contextmenu',
+  appChromeContextMenuNewWindow: '.appWindow.active [data-id=new-window]',
+  appChromeContextMenuBookmark: '.appWindow.active [data-id=add-to-homescreen]',
+  appChromeContextMenuShare: '.appWindow.active [data-id=share]',
+  softwareHome: '#software-home-button',
   statusbar: '#statusbar',
   statusbarLabel: '#statusbar-label',
   topPanel: '#top-panel',
@@ -33,11 +36,21 @@ System.prototype = {
   },
 
   get appTitlebar() {
-    return this.client.findElement(System.Selector.appTitlebar);
+    return this.client.helper.waitForElement(System.Selector.appTitlebar);
   },
 
   get appUrlbar() {
-    return this.client.findElement(System.Selector.appUrlbar);
+    return this.client.helper.waitForElement(System.Selector.appUrlbar);
+  },
+
+  get appChromeBack() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeBack);
+  },
+
+  get appChromeForward() {
+    return this.client.helper.waitForElement(
+      System.Selector.appChromeForward);
   },
 
   get appChromeContextLink() {
@@ -63,6 +76,10 @@ System.prototype = {
   get appChromeContextMenuShare() {
     return this.client.helper.waitForElement(
       System.Selector.appChromeContextMenuShare);
+  },
+
+  get softwareHome() {
+    return this.client.findElement(System.Selector.softwareHome);
   },
 
   get statusbar() {
@@ -91,6 +108,13 @@ System.prototype = {
 
   getAppIframe: function(url) {
     return this.client.findElement('iframe[src*="' + url + '"]');
+  },
+
+  gotoBrowser: function(url) {
+    var frame = this.client.helper.waitForElement(
+      'div[transition-state="opened"] iframe[src="' + url + '"]');
+    this.client.switchToFrame(frame);
+    this.client.helper.waitForElement('body');
   },
 
   getHomescreenIframe: function() {
@@ -130,6 +154,12 @@ System.prototype = {
     });
     client.waitFor(function() {
       return !clock.displayed();
+    });
+  },
+
+  stopStatusbar: function() {
+    this.client.executeScript(function() {
+      window.wrappedJSObject.StatusBar.pauseUpdate();
     });
   },
 

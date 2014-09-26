@@ -39,7 +39,7 @@ var EmergencyCbManager = {
     // Dom elements
     this.notification =
       document.getElementById('emergency-callback-notification');
-    this.message = this.notification.querySelector('.message');
+    this.message = this.notification.querySelector('.title-container');
     this.notificationTimer = this.notification.querySelector('.timer');
 
     this.toaster = document.getElementById('emergency-callback-toaster');

@@ -4,13 +4,16 @@
 
 import time
 
-from marionette.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.cost_control.app import CostControl
-from gaiatest.apps.browser.app import Browser
+from gaiatest.apps.search.app import Search
 
 
 class TestCostControlReset(GaiaTestCase):
+
+    def setUp(self):
+        GaiaTestCase.setUp(self)
+        self.apps.set_permission_by_url(Search.manifest_url, 'geolocation', 'deny')
 
     def test_cost_control_reset_wifi(self):
 
@@ -25,13 +28,14 @@ class TestCostControlReset(GaiaTestCase):
         cost_control.toggle_mobile_data_tracking(False)
         cost_control.toggle_wifi_data_tracking(True)
 
-        # open browser to get some data downloaded
-        browser = Browser(self.marionette)
-        browser.launch()
-        browser.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html')
+        # Kill the Cost control application
+        self.apps.kill(cost_control.app)
 
-        # disable wifi and kill the browser before reset data, wait for wifi to be closed, and switch back to the app
-        self.apps.kill(browser.app)
+        # open browser to get some data downloaded
+        search = Search(self.marionette)
+        search.launch()
+        search.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html')
+
         self.data_layer.disable_wifi()
         time.sleep(5)
 

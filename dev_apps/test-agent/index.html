@@ -10,6 +10,15 @@
       height: 100%;
       width: 100%;
     }
+
+    #loading-error-message {
+      margin: .5em;
+      padding: .5em 1em;
+
+      background: #fdd;
+      border: 1px solid red;
+      font-weight: bold;
+    }
   </style>
 
 </head>
@@ -31,6 +40,13 @@
   </div>
 </div>
 
+<div id="loading-error-message" hidden>
+  One or more files are unavailable. To quickly fix the issue you can run
+  <code>make update-common</code> from the Gaia directory. Note that <code>make
+    test-agent-server</code> runs this too. Then, you can
+  <a href='javascript:window.location.reload()'>try to turn it off and turn it
+    on again</a>.
+</div>
 <!-- Test Agent UI will be loaded in here -->
 <div id="test-agent-ui">
 </div>

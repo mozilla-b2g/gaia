@@ -2,7 +2,7 @@ Keyboards.en = {
   label: 'English',
   shortLabel: 'En',
   imEngine: 'latin',
-  types: ['text', 'url', 'email', 'number', 'password'],
+  types: ['text', 'url', 'email', 'password'],
   autoCorrectLanguage: 'en_us',
   menuLabel: 'English',
   alt: {
@@ -18,7 +18,7 @@ Keyboards.en = {
     l: 'ł£',
     y: 'ÿ¥',
     z: 'žźż',
-    '.': ',?!;:'
+    '.': ',?!;:…'
   },
   keys: [
     [
@@ -39,7 +39,7 @@ Keyboards.en = {
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ],
-  alternateLayout: {
+  pages: [undefined, {
     alt: {
       '1': ['¹', '1st'],
       '2': ['²', '2nd'],
@@ -51,9 +51,12 @@ Keyboards.en = {
       '8': ['⁸', '8th'],
       '9': ['⁹', '9th'],
       '0': ['⁰', 'º'],
-      '$': ['¥', '€', '£', '¢', '₠'],
+      '$': [ '€', '£', '¢', '¥'],
+      '"': ['“', '”'],
+      '\'':['‘', '’'],
       '?': ['¿'],
-      '!': ['¡']
+      '!': ['¡'],
+      '+': ['-', '×', '÷', '±']
     },
     keys: [
       [
@@ -67,20 +70,21 @@ Keyboards.en = {
         { value: '(' }, { value: ')' }
       ], [
         { value: 'Alt', ratio: 1.5,
-          keyCode: KeyEvent.DOM_VK_ALT,
-          className: 'page-switch-key'
+          keyCode: KeyboardEvent.DOM_VK_ALT,
+          className: 'page-switch-key',
+          targetPage: 2
         },
         { value: '+',
           supportsSwitching: {
             value: ','
           }
         }, { value: ':' }, { value: ';' }, { value: '"' },
-        { value: '\'' }, { value: '?' }, { value: '!' },
+        { value: '\'' }, { value: '!' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
-  }
+  } ]
 };

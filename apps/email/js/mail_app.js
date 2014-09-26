@@ -22,14 +22,11 @@ if (typeof TestUrlResolver === 'undefined') {
       l10nbase: '../shared/js/l10n',
       l10ndate: '../shared/js/l10n_date',
       style: '../style',
-      shared: '../shared',
-
-      'mailapi/main-frame-setup': 'ext/mailapi/main-frame-setup',
-      'mailapi/main-frame-backend': 'ext/mailapi/main-frame-backend'
+      shared: '../shared'
     },
-    map: {
+     map: {
       '*': {
-        'api': 'mailapi/main-frame-setup'
+        'api': 'ext/main-frame-setup'
       }
     },
     shim: {
@@ -98,6 +95,11 @@ model.latestOnce('api', function(api) {
         break;
       case 'needs-app-pass':
         Cards.pushCard('setup_fix_gmail_twofactor', 'default', 'animate',
+                  { account: account, restoreCard: Cards.activeCardIndex },
+                  'right');
+        break;
+      case 'needs-oauth-reauth':
+        Cards.pushCard('setup_fix_oauth2', 'default', 'animate',
                   { account: account, restoreCard: Cards.activeCardIndex },
                   'right');
         break;

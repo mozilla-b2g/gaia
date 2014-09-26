@@ -13,7 +13,7 @@ define(function(require) {
     return SettingsPanel({
       onInit: function(panel) {
         elements.optionsContainer = panel.querySelector('.options-container');
-        elements.header = panel.querySelector('header > h1');
+        elements.header = panel.querySelector('gaia-header > h1');
       },
       onBeforeShow: function(panel, options) {
         var self = this;

@@ -3,6 +3,7 @@ define(function(require) {
   'use strict';
 
   var SettingsService = require('modules/settings_service');
+  var SettingsUtils = require('modules/settings_utils');
 
   var ScreenLockPasscode = function ctor_screenlock_passcode() {
     return {
@@ -29,10 +30,13 @@ define(function(require) {
         'confirmLock': 4
       },
 
+      _leftApp: false,
+
       _passcodeBuffer: '',
 
       _getAllElements: function sld_getAllElements() {
         this.passcodePanel = this._panel;
+        this.header = this._panel.querySelector('gaia-header');
         this.passcodeInput = this._panel.querySelector('.passcode-input');
         this.passcodeDigits = this._panel.querySelectorAll('.passcode-digit');
         this.passcodeContainer =
@@ -65,11 +69,23 @@ define(function(require) {
       },
 
       onBeforeShow: function sld_onBeforeShow(panel, mode) {
-        this._showDialogInMode(mode);
+        if (!this._leftApp) {
+          this._showDialogInMode(mode);
+        }
+        this._leftApp = false;
       },
 
       onShow: function sld_onShow() {
         this.passcodeInput.focus();
+      },
+
+      onHide: function sld_onBeforeHide() {
+        this._leftApp = document.hidden;
+
+        if (!this._leftApp) {
+          this._passcodeBuffer = '';
+          this._updatePassCodeUI();
+        }
       },
 
       _showDialogInMode: function sld_showDialogInMode(mode) {
@@ -77,6 +93,7 @@ define(function(require) {
         this._MODE = mode;
         this.passcodePanel.dataset.mode = mode;
         this._updatePassCodeUI();
+        SettingsUtils.runHeaderFontFit(this.header);
       },
 
       handleEvent: function sld_handleEvent(evt) {
@@ -187,13 +204,6 @@ define(function(require) {
               }
               break;
           }
-
-          // We're appending new elements to DOM so to make sure headers are
-          // properly resized and centered, we emmit a lazyload event.
-          // This will be removed when the gaia-header web component lands.
-          window.dispatchEvent(new CustomEvent('lazyload', {
-            detail: this._panel
-          }));
         }
       },
 

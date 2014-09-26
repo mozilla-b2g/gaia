@@ -123,12 +123,22 @@ li a:active {
   border-radius: 2.5rem;
   margin-top: 0.5rem;
   box-sizing: border-box;
-  box-shadow: 0 0 0 0.1rem #dedede;
   background: transparent center center / cover;
   position: relative;
 
   /* Favor performance over quality */
   image-rendering: -moz-crisp-edges;
+}
+
+[data-type="list"] [data-icon] {
+  font-size: 0;
+}
+
+[data-type="list"] [data-icon]:before {
+  line-height: 6rem;
+  text-align: center;
+  width: 3rem;
+  color: #333;
 }
 
 /* Text content */

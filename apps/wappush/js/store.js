@@ -145,7 +145,10 @@ var StoreProvisioning = (function() {
             }
           });
 
-          transaction.set({'ril.data.apnSettings': apnSettings});
+          transaction.set({
+            'ril.data.apnSettings': apnSettings,
+            'apn.selections': null
+          });
           if (callback) {
             callback();
           }

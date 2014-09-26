@@ -15,12 +15,19 @@
     "68": "/style/icons/icon-68.png"
   },
   "permissions": {
+    "themeable":{},
     "attention":{},
-    "desktop-notification":{}
+    "desktop-notification":{},
+    "cellbroadcast":{},
+    "settings":{ "access": "readonly" }
+  },
+  "locales": {
+    "en-US": {}
   },
   "default_locale": "en-US",
   "orientation": "default",
   "messages": [
-     { "notification": "/notification.html" }
+     { "notification": "/notification.html" },
+     { "cellbroadcast-received": "/index.html"}
   ]
 }
