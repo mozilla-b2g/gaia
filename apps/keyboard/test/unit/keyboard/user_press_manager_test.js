@@ -69,6 +69,15 @@ suite('UserPressManager', function() {
     assert.equal(manager.app, app);
   });
 
+  // UserPress would have updateCoords() defined in prototype, 
+  // so cannot use 'deepEqual' with lastest chai.js.
+  var assertOnpressArgs = function (args, expected, msg) {
+    for (var key in expected[0]) {
+      assert.equal(args[0][key], expected[0][key], msg);
+    }
+    assert.equal(args[1], expected[1], msg);
+  };
+
   test('start()', function() {
     var manager = new UserPressManager(app);
     manager.start();
@@ -136,10 +145,9 @@ suite('UserPressManager', function() {
         ]
       };
       container.dispatchEvent(touchstartEvent);
-
       assert.isTrue(manager.onpressstart.calledOnce);
       assert.equal(manager.presses.size, 1);
-      assert.deepEqual(manager.onpressstart.getCall(0).args,
+      assertOnpressArgs(manager.onpressstart.getCall(0).args, 
         [{
           target: el,
           moved: false,
@@ -167,7 +175,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledOnce);
       assert.equal(manager.presses.size, 0);
-      assert.deepEqual(manager.onpressend.getCall(0).args,
+      assertOnpressArgs(manager.onpressend.getCall(0).args,
         [{
           target: el,
           moved: false,
@@ -210,7 +218,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledOnce);
       assert.equal(manager.presses.size, 0);
-      assert.deepEqual(manager.onpressend.getCall(0).args,
+      assertOnpressArgs(manager.onpressend.getCall(0).args,
         [{
           target: el,
           moved: false,
@@ -237,7 +245,7 @@ suite('UserPressManager', function() {
       el.dispatchEvent(touchmoveEvent);
 
       assert.isTrue(manager.onpressmove.calledOnce);
-      assert.deepEqual(manager.onpressmove.getCall(0).args,
+      assertOnpressArgs(manager.onpressmove.getCall(0).args,
         [{
           target: el,
           moved: true,
@@ -261,7 +269,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledOnce);
       assert.equal(manager.presses.size, 0);
-      assert.deepEqual(manager.onpressend.getCall(0).args,
+      assertOnpressArgs(manager.onpressend.getCall(0).args,
         [{
           target: el,
           moved: true,
@@ -291,7 +299,7 @@ suite('UserPressManager', function() {
       el.dispatchEvent(touchmoveEvent);
 
       assert.isTrue(manager.onpressmove.calledOnce);
-      assert.deepEqual(manager.onpressmove.getCall(0).args,
+      assertOnpressArgs(manager.onpressmove.getCall(0).args,
         [{
           target: el2,
           moved: true,
@@ -315,7 +323,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledOnce);
       assert.equal(manager.presses.size, 0);
-      assert.deepEqual(manager.onpressend.getCall(0).args,
+      assertOnpressArgs(manager.onpressend.getCall(0).args,
         [{
           target: el2,
           moved: true,
@@ -387,7 +395,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(mousedownEvent.preventDefault.calledOnce);
       assert.isTrue(manager.onpressstart.calledOnce);
-      assert.deepEqual(manager.onpressstart.getCall(0).args,
+      assertOnpressArgs(manager.onpressstart.getCall(0).args,
         [{
           target: el,
           moved: false,
@@ -409,7 +417,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledOnce);
       assert.equal(manager.presses.size, 0);
-      assert.deepEqual(manager.onpressend.getCall(0).args,
+      assertOnpressArgs(manager.onpressend.getCall(0).args,
         [{
           target: el,
           moved: false,
@@ -499,7 +507,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledOnce);
       assert.equal(manager.presses.size, 0);
-      assert.deepEqual(manager.onpressend.getCall(0).args,
+      assertOnpressArgs(manager.onpressend.getCall(0).args,
         [{
           target: el,
           moved: false,
@@ -520,7 +528,7 @@ suite('UserPressManager', function() {
       container.dispatchEvent(mousemoveEvent);
 
       assert.isTrue(manager.onpressmove.calledOnce);
-      assert.deepEqual(manager.onpressmove.getCall(0).args,
+      assertOnpressArgs(manager.onpressmove.getCall(0).args,
         [{
           target: el,
           moved: true,
@@ -538,7 +546,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledOnce);
       assert.equal(manager.presses.size, 0);
-      assert.deepEqual(manager.onpressend.getCall(0).args,
+      assertOnpressArgs(manager.onpressend.getCall(0).args,
         [{
           target: el,
           moved: true,
@@ -555,14 +563,14 @@ suite('UserPressManager', function() {
 
       var mousemoveEvent = {
         type: 'mousemove',
-        target: el,
+        target: el2,
         clientX: 120,
         clientY: 130
       };
       container.dispatchEvent(mousemoveEvent);
 
       assert.isTrue(manager.onpressmove.calledOnce);
-      assert.deepEqual(manager.onpressmove.getCall(0).args,
+      assertOnpressArgs(manager.onpressmove.getCall(0).args,
         [{
           target: el2,
           moved: true,
@@ -580,7 +588,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledOnce);
       assert.equal(manager.presses.size, 0);
-      assert.deepEqual(manager.onpressend.getCall(0).args,
+      assertOnpressArgs(manager.onpressend.getCall(0).args,
         [{
           target: el2,
           moved: true,
@@ -618,7 +626,7 @@ suite('UserPressManager', function() {
       container.dispatchEvent(touchstartEvent);
 
       assert.isTrue(manager.onpressstart.calledOnce);
-      assert.deepEqual(manager.onpressstart.getCall(0).args,
+      assertOnpressArgs(manager.onpressstart.getCall(0).args,
         [{
           target: el,
           moved: false,
@@ -643,7 +651,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressstart.calledTwice);
       assert.equal(manager.presses.size, 2);
-      assert.deepEqual(manager.onpressstart.getCall(1).args,
+      assertOnpressArgs(manager.onpressstart.getCall(1).args,
         [{
           target: el2,
           moved: false,
@@ -672,7 +680,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledOnce);
       assert.equal(manager.presses.size, 1);
-      assert.deepEqual(manager.onpressend.getCall(0).args,
+      assertOnpressArgs(manager.onpressend.getCall(0).args,
         [{
           target: el,
           moved: false,
@@ -696,7 +704,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledTwice);
       assert.equal(manager.presses.size, 0);
-      assert.deepEqual(manager.onpressend.getCall(1).args,
+      assertOnpressArgs(manager.onpressend.getCall(1).args,
         [{
           target: el2,
           moved: false,
@@ -726,7 +734,7 @@ suite('UserPressManager', function() {
       el.dispatchEvent(touchmoveEvent);
 
       assert.isTrue(manager.onpressmove.calledOnce);
-      assert.deepEqual(manager.onpressmove.getCall(0).args,
+      assertOnpressArgs(manager.onpressmove.getCall(0).args,
         [{
           target: el,
           moved: true,
@@ -749,7 +757,7 @@ suite('UserPressManager', function() {
       el2.dispatchEvent(touchmoveEvent2);
 
       assert.isTrue(manager.onpressmove.calledTwice);
-      assert.deepEqual(manager.onpressmove.getCall(1).args,
+      assertOnpressArgs(manager.onpressmove.getCall(1).args,
         [{
           target: el2,
           moved: true,
@@ -773,7 +781,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledOnce);
       assert.equal(manager.presses.size, 1);
-      assert.deepEqual(manager.onpressend.getCall(0).args,
+      assertOnpressArgs(manager.onpressend.getCall(0).args,
         [{
           target: el,
           moved: true,
@@ -797,7 +805,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledTwice);
       assert.equal(manager.presses.size, 0);
-      assert.deepEqual(manager.onpressend.getCall(1).args,
+      assertOnpressArgs(manager.onpressend.getCall(1).args,
         [{
           target: el2,
           moved: true,
@@ -829,7 +837,7 @@ suite('UserPressManager', function() {
       el.dispatchEvent(touchmoveEvent);
 
       assert.isTrue(manager.onpressmove.calledOnce);
-      assert.deepEqual(manager.onpressmove.getCall(0).args,
+      assertOnpressArgs(manager.onpressmove.getCall(0).args,
         [{
           target: el3,
           moved: true,
@@ -852,7 +860,7 @@ suite('UserPressManager', function() {
       el2.dispatchEvent(touchmoveEvent2);
 
       assert.isTrue(manager.onpressmove.calledTwice);
-      assert.deepEqual(manager.onpressmove.getCall(1).args,
+      assertOnpressArgs(manager.onpressmove.getCall(1).args,
         [{
           target: el4,
           moved: true,
@@ -876,7 +884,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledOnce);
       assert.equal(manager.presses.size, 1);
-      assert.deepEqual(manager.onpressend.getCall(0).args,
+      assertOnpressArgs(manager.onpressend.getCall(0).args,
         [{
           target: el3,
           moved: true,
@@ -900,7 +908,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledTwice);
       assert.equal(manager.presses.size, 0);
-      assert.deepEqual(manager.onpressend.getCall(1).args,
+      assertOnpressArgs(manager.onpressend.getCall(1).args,
         [{
           target: el4,
           moved: true,
@@ -939,7 +947,7 @@ suite('UserPressManager', function() {
       container.dispatchEvent(touchstartEvent);
 
       assert.isTrue(manager.onpressstart.calledOnce);
-      assert.deepEqual(manager.onpressstart.getCall(0).args,
+      assertOnpressArgs(manager.onpressstart.getCall(0).args,
         [{
           target: el,
           moved: false,
@@ -963,7 +971,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressstart.calledTwice);
       assert.equal(manager.presses.size, 2);
-      assert.deepEqual(manager.onpressstart.getCall(1).args,
+      assertOnpressArgs(manager.onpressstart.getCall(1).args,
         [{
           target: el,
           moved: false,
@@ -992,7 +1000,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledOnce);
       assert.equal(manager.presses.size, 1);
-      assert.deepEqual(manager.onpressend.getCall(0).args,
+      assertOnpressArgs(manager.onpressend.getCall(0).args,
         [{
           target: el,
           moved: false,
@@ -1016,7 +1024,7 @@ suite('UserPressManager', function() {
 
       assert.isTrue(manager.onpressend.calledTwice);
       assert.equal(manager.presses.size, 0);
-      assert.deepEqual(manager.onpressend.getCall(1).args,
+      assertOnpressArgs(manager.onpressend.getCall(1).args,
         [{
           target: el,
           moved: false,
