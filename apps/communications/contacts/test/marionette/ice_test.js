@@ -23,7 +23,7 @@ marionette('Contacts > ICE contacts', function() {
     var iceButton1 = client.helper.waitForElement(selectors.iceButton1);
     subject.clickOn(iceButton1);
 
-    var listContactFirstText = 
+    var listContactFirstText =
       client.helper.waitForElement(selectors.listContactFirstText);
     subject.clickOn(listContactFirstText);
   }
@@ -128,7 +128,7 @@ marionette('Contacts > ICE contacts', function() {
 
       var iceContact = client.helper.waitForElement(selectors.iceContact);
 
-      assert.ok(iceContact.text().indexOf(givenName) >= 0, 
+      assert.ok(iceContact.text().indexOf(givenName) >= 0,
         'The name of the contact should appear as ICE contact');
     });
 
@@ -227,7 +227,7 @@ marionette('Contacts > ICE contacts', function() {
       var iceButton2 = client.helper.waitForElement(selectors.iceButton2);
       subject.clickOn(iceButton2);
 
-      var listContactFirstText = 
+      var listContactFirstText =
         client.helper.waitForElement(selectors.listContactFirstText);
 
       subject.clickOn(listContactFirstText);
@@ -252,7 +252,7 @@ marionette('Contacts > ICE contacts', function() {
       subject.addContact(detailsContact1);
 
       setFirstContactAsICE();
-      
+
       var confirmText = client.helper.waitForElement(selectors.confirmBody)
         .text();
 
@@ -266,10 +266,10 @@ marionette('Contacts > ICE contacts', function() {
 
   suite('ICE list', function() {
 
-    function getNumberICEContacts() {
+    function checkIceContactsGroupHidden() {
       return client.executeScript(function(selector) {
-        return document.querySelectorAll(selector).length;
-      }, [selectors.iceContact]);
+        return document.querySelector(selector).classList.contains('hide');
+      }, [selectors.iceGroupOpen]);
     }
 
     test('ICE list empty after removing phone', function() {
@@ -293,7 +293,7 @@ marionette('Contacts > ICE contacts', function() {
       // Closing settings view
       var closeSettings = client.helper.waitForElement(selectors.settingsClose);
       subject.clickOn(closeSettings);
-      
+
       // Click on ICE contacts item in the main list
       var openIce = client.helper.waitForElement(selectors.iceGroupOpen);
       subject.clickOn(openIce);
@@ -326,9 +326,9 @@ marionette('Contacts > ICE contacts', function() {
              .tap(detailsHeader, 10, 10)
              .perform();
 
-      client.helper.waitForElement(selectors.iceHeader);
+      client.helper.waitForElement(selectors.contactListHeader);
 
-      assert.equal(getNumberICEContacts(), 0);
+      assert.ok(checkIceContactsGroupHidden());
     });
 
   });
