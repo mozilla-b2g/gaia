@@ -230,7 +230,7 @@ suite('system/shrinkingUI', function() {
     // actual "start"
 
     var oldURL = shrinkingUI.currentAppURL;
-    fakeApp.setVisible = this.sinon.spy();
+    fakeApp.broadcast = this.sinon.spy();
     stubState.returns(false);
     var stubShrinkingTilt =
       this.sinon.stub(shrinkingUI, '_shrinkingTilt', function(cb){
@@ -239,7 +239,7 @@ suite('system/shrinkingUI', function() {
         assert.isTrue(stubState.called);
         assert.isTrue(stubSetState.calledWith(true));
         assert.isTrue(stubShrinkingTilt.called);
-        assert.isTrue(fakeApp.setVisible.calledWith(false, true));
+        assert.isTrue(fakeApp.broadcast.calledWith('shrinkingstart'));
 
         shrinkingUI.currentAppURL = oldURL;
 
@@ -296,7 +296,7 @@ suite('system/shrinkingUI', function() {
 
     var oldURL = shrinkingUI.currentAppURL;
     var oldTip = shrinkingUI.current.tip;
-    fakeApp.setVisible = this.sinon.stub();
+    fakeApp.broadcast = this.sinon.stub();
     var fakeTip = {
       remove: this.sinon.spy()
     };
@@ -319,7 +319,7 @@ suite('system/shrinkingUI', function() {
         cb();
         assert.isTrue(fakeTip.remove.called);
         assert.isNull(this.tip);
-        assert.isTrue(fakeApp.setVisible.calledWith(true));
+        assert.isTrue(fakeApp.broadcast.calledWith('shrinkingstop'));
 
         stubCleanEffects.restore(); // this one is for gjslinter happy
 
