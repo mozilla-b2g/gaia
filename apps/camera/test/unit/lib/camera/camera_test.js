@@ -991,7 +991,7 @@ suite('lib/camera/camera', function() {
 
       sinon.assert.calledWith(this.camera.emit, 'configured');
       this.camera.emit.reset();
-      this.mozCamera = null;
+      delete this.mozCamera;
 
       assert.isFalse(this.camera.emit.calledWith('configured'));
     });
