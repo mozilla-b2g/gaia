@@ -4,13 +4,15 @@ requireApp('ftu/test/unit/mock_l10n.js');
 requireApp('ftu/test/unit/mock_utils.js');
 requireApp('ftu/test/unit/mock_wifi_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('ftu/test/unit/mock_ui_manager.js');
 
 requireApp('ftu/js/wifi.js');
 
 var _;
 var mocksHelperForWifi = new MocksHelper([
   'utils',
-  'WifiHelper'
+  'WifiHelper',
+  'UIManager'
 ]).init();
 
 suite('wifi > ', function() {
@@ -144,9 +146,11 @@ suite('wifi > ', function() {
 
   suite('scan networks', function() {
     var showOverlayStub;
+    var changeThemeColorStub;
 
     setup(function() {
       showOverlayStub = this.sinon.spy(utils.overlay, 'show');
+      changeThemeColorStub = this.sinon.spy(UIManager, 'changeStatusBarColor');
     });
 
     test('none available', function(done) {
@@ -154,6 +158,7 @@ suite('wifi > ', function() {
       MockNavigatorMozWifiManager.setNetworks(noNetworks);
       WifiManager.scan(function(networks) {
         assert.ok(showOverlayStub.calledOnce, 'shows loading overlay');
+        assert.ok(changeThemeColorStub.calledWith(UIManager.DARK_THEME));
         assert.equal(networks.length, noNetworks.length,
           'return zero networks');
         assert.isDefined(document.getElementById('no-result-container'),
@@ -166,6 +171,7 @@ suite('wifi > ', function() {
       MockNavigatorMozWifiManager.setNetworks(fakeNetworks);
       WifiManager.scan(function(networks) {
         assert.ok(showOverlayStub.calledOnce, 'shows loading overlay');
+        assert.ok(changeThemeColorStub.calledWith(UIManager.DARK_THEME));
         assert.isDefined(networks, 'return networks');
         assert.isNotNull(networks, 'return valid networks');
         assert.equal(networks, fakeNetworks, 'return existing networks');
@@ -189,6 +195,7 @@ suite('wifi > ', function() {
       );
       WifiManager.scan(function(networks) {
         assert.ok(showOverlayStub.calledOnce, 'shows loading overlay');
+        assert.ok(changeThemeColorStub.calledWith(UIManager.DARK_THEME));
         assert.isUndefined(networks, 'no networks returned');
         assert.ok(consoleSpy.calledOnce);
         done();
@@ -204,6 +211,7 @@ suite('wifi > ', function() {
       });
       WifiManager.scan(function(networks) {
         assert.ok(showOverlayStub.calledOnce, 'shows loading overlay');
+        assert.ok(changeThemeColorStub.calledWith(UIManager.DARK_THEME));
         assert.isUndefined(networks, 'no networks returned');
         assert.ok(consoleSpy.calledOnce);
         done();

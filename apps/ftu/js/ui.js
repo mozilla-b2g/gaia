@@ -111,6 +111,8 @@ var UIManager = {
 
   dataConnectionChangedByUsr: false,
   timeZoneNeedsConfirmation: true,
+  DARK_THEME: '#242d33',
+  LIGHT_THEME: '#eeeeee',
 
   init: function ui_init() {
     _ = navigator.mozL10n.get;
@@ -539,6 +541,11 @@ var UIManager = {
 
   updateDataConnectionStatus: function ui_udcs(status) {
     this.dataConnectionSwitch.checked = status;
+  },
+
+  changeStatusBarColor: function ui_csbc(color) {
+    var themeMeta = document.head.querySelector('meta[name="theme-color"]');
+    themeMeta.setAttribute('content', color);
   }
 
 };
