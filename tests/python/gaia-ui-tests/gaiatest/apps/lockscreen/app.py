@@ -10,6 +10,7 @@ from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.camera.app import Camera
 from gaiatest.apps.lockscreen.regions.passcode_pad import PasscodePad
 
+
 class LockScreen(Base):
 
     _lockscreen_window_locator = (By.CLASS_NAME, 'lockScreenWindow')
