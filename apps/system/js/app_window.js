@@ -238,6 +238,11 @@
   AppWindow.prototype._showFrame = function aw__showFrame() {
     this.debug('before showing frame');
 
+    // If we're already showing, do nothing!
+    if (!this.browser.element.classList.contains('hidden')) {
+      return;
+    }
+
     this.browser.element.classList.remove('hidden');
     this._setVisible(true);
 
@@ -258,8 +263,15 @@
    * So this shouldn't be invoked by others directly.
    */
   AppWindow.prototype._hideFrame = function aw__hideFrame() {
+    this.debug('before hiding frame');
+
+    // If we're already hidden, we have nothing to do!
+    if (this.browser.element.classList.contains('hidden')) {
+      return;
+    }
+
     this._setVisible(false);
-    this.iframe.classList.add('hidden');
+    this.browser.element.classList.add('hidden');
   };
 
   /**
@@ -1757,6 +1769,21 @@
   };
 
   AppWindow.prototype._handle__closed = function aw_closed() {
+    //
+    // Never take screenshots of the homescreen.
+    //
+    // We don't need the screenshot of homescreen because:
+    // 1. Homescreen background is transparent,
+    //    currently gecko only sends JPG to us.
+    //    See bug 878003.
+    // 2. Homescreen screenshot isn't required by card view.
+    //    Since getScreenshot takes additional memory usage,
+    //    let's early return here.
+    // 3. We want to remove this long term, see bug 1072781.
+    //
+    if (this.getBottomMostWindow().isHomescreen) {
+      return;
+    }
     // Update screenshot blob here to avoid slowing down closing transitions.
     this.getScreenshot();
   };
