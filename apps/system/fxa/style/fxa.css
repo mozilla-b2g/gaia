@@ -14,6 +14,10 @@ html, body * {
   -moz-user-select: none;
 }
 
+input {
+  -moz-user-select: text;
+}
+
 .vertical {
   width: 100%;
 }
