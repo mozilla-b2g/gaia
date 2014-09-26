@@ -8,8 +8,9 @@ from gaiatest import GaiaTestCase
 class TestWarmLaunch(GaiaTestCase):
 
     def test_warm_launch(self):
-        cold = self.apps.launch('Clock')
+        cold = self.apps.launch('Cost Control')
+        self.marionette.execute_script('return window.location += "datausage-tab"')
         self.apps.launch('Calendar')
-        warm = self.apps.launch('Clock')
+        warm = self.apps.launch('Cost Control')
         self.assertEqual(cold, warm)
-        self.assertTrue('clock' in self.marionette.get_url())
+        self.assertTrue('costcontrol' in self.marionette.get_url())
