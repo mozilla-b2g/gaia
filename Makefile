@@ -114,16 +114,6 @@ REMOTE_DEBUGGER?=0
 # Debug mode for build process
 BUILD_DEBUG?=0
 
-ifeq ($(DEVICE_DEBUG),1)
-REMOTE_DEBUGGER=1
-NO_LOCK_SCREEN=1
-SCREEN_TIMEOUT=300
-endif
-
-ifeq ($(SIMULATOR),1)
-SCREEN_TIMEOUT=0
-endif
-
 # We also disable FTU when running in Firefox or in debug mode
 ifeq ($(DEBUG),1)
 NOFTU=1
@@ -195,6 +185,19 @@ endif
 ifeq ($(PRODUCTION), 1)
 GAIA_OPTIMIZE=1
 GAIA_APP_TARGET=production
+else ifneq ($(DEBUG),1)
+# Enable DEVICE_DEBUG for non-production, non-debug builds.
+DEVICE_DEBUG=1
+endif
+
+ifeq ($(DEVICE_DEBUG),1)
+REMOTE_DEBUGGER=1
+SCREEN_TIMEOUT=300
+endif
+
+ifeq ($(SIMULATOR),1)
+SCREEN_TIMEOUT=0
+NO_LOCK_SCREEN=1
 endif
 
 ifeq ($(DOGFOOD), 1)
