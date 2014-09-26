@@ -657,7 +657,7 @@ var KeypadManager = {
       }
       var voicemail = navigator.mozVoicemail;
       if (!number && voicemail) {
-        number = voicemail.getNumber();
+        number = voicemail.getNumber(cardIndex);
       }
       if (number) {
         CallHandler.call(number, cardIndex);
