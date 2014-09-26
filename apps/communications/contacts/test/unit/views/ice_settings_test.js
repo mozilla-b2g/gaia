@@ -227,7 +227,7 @@ suite('ICE Settings view', function() {
       window.asyncStorage.keys = {
         'ice-contacts': [
           {
-            id: cid1,
+            id: null,
             active: false
           }
         ]
@@ -236,7 +236,7 @@ suite('ICE Settings view', function() {
       subject.refresh(function() {
         sinon.assert.calledTwice(contacts.List.getContactById);
 
-        assertIceContacts([{ contactId: cid1, label:'John Doe', active: false},
+        assertIceContacts([{ contactId: '', active: false},
                          { contactId: '', active: false}]);
 
         done();
@@ -248,7 +248,7 @@ suite('ICE Settings view', function() {
         'ice-contacts': [
           {},
           {
-            id: cid2,
+            id: null,
             active: false
           }
         ]
@@ -258,7 +258,7 @@ suite('ICE Settings view', function() {
         sinon.assert.calledTwice(contacts.List.getContactById);
 
         assertIceContacts([{ contactId: '', active: false},
-                        { contactId: cid2, label:'Albert Pla', active: false}]);
+                            { contactId: '', active: false}]);
 
         done();
       });
@@ -318,7 +318,7 @@ suite('ICE Settings view', function() {
         switch1.click();
 
         sinon.assert.calledOnce(ICEData.setICEContact);
-        sinon.assert.calledWith(ICEData.setICEContact, cid1, 0, false);
+        sinon.assert.calledWith(ICEData.setICEContact, null, 0, false);
 
         done();
       });

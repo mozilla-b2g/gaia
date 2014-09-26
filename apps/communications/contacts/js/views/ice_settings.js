@@ -61,12 +61,18 @@ contacts.ICE = (function() {
       item.addEventListener('click', function(i) {
         return function(evt) {
           var localIceContacts = ICEData.iceContacts;
-          var disabled = iceContactCheckboxes[i].checked;
-          iceContactCheckboxes[i].checked = !disabled;
-          iceContactItems[i].setAttribute('aria-checked', !disabled);
-          iceContactButtons[i].disabled = disabled;
-          if (localIceContacts[i] && localIceContacts[i].id) {
-            setICEContact(localIceContacts[i].id, i, !disabled);
+          var wasActive = iceContactCheckboxes[i].checked;
+          iceContactCheckboxes[i].checked = !wasActive;
+          iceContactItems[i].setAttribute('aria-checked', !wasActive);
+
+          if (wasActive) {
+            resetIceGroupState(i);
+            if (localIceContacts[i] && localIceContacts[i].id) {
+              setICEContact(null, i, !wasActive);
+            }
+          }
+          else {
+            iceContactButtons[i].disabled = false;
           }
         };
       }(index));
