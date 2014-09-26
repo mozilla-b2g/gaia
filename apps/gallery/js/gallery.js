@@ -273,9 +273,12 @@ function initDB() {
   // We don't need one of these handlers for the video db, since both
   // will get the same event at more or less the same time.
   photodb.onunavailable = function(event) {
-    // Switch back to the thumbnail view. If we were viewing or editing an image
-    // it might not be there anymore when the MediaDB becomes available again.
-    setView(LAYOUT_MODE.list);
+    // Switch back to the thumbnail view unless it is a pick activity.
+    // If we were viewing or editing an image it might not be there
+    // anymore when the MediaDB becomes available again.
+    if (!pendingPick) {
+      setView(LAYOUT_MODE.list);
+    }
 
     // If storage becomes unavailble (e.g. the user starts a USB Mass Storage
     // Lock the user out of the app, and tell them why
