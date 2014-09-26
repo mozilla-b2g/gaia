@@ -11,6 +11,7 @@
   var rowBuilderFn = null;
   var imgLoader = null;
   var initialized = false;
+  var iceListDisplayed = false;
 
   /**
    * Initialises the component by passing a list of ICE ids,
@@ -90,16 +91,21 @@
 
   function showICEList() {
     Contacts.navigation.go('ice-view', 'right-left');
+    iceListDisplayed = true;
   }
 
   function hideICEList() {
     Contacts.navigation.back();
+    iceListDisplayed = false;
   }
 
   var ICEView = {
     init: init,
     showICEList: showICEList,
-    hideICEList: hideICEList
+    hideICEList: hideICEList,
+    get iceListDisplayed() {
+      return iceListDisplayed;
+    }
   };
 
   exports.contacts.ICEView = ICEView;

@@ -12,6 +12,7 @@
 /* global WebrtcClient */
 /* global utils */
 /* global TAG_OPTIONS */
+/* global ICEData */
 
 var contacts = window.contacts || {};
 
@@ -107,17 +108,32 @@ contacts.Details = (function() {
     if (ActivityHandler.currentActivityIsNot(['import'])) {
       ActivityHandler.postCancel();
       Contacts.navigation.home();
-    } else {
-      var hasParams = window.location.hash.split('?');
-      var params = hasParams.length > 1 ?
-        utils.extractParams(hasParams[1]) : -1;
+    }
+    else if (contacts.ICEView && contacts.ICEView.iceListDisplayed) {
+      ICEData.getActiveIceContacts().then(function(list) {
+        if (!Array.isArray(list) || list.length === 0) {
+          Contacts.navigation.home();
+        }
+        else {
+          doHandleDetailsBack();
+        }
+      }, doHandleDetailsBack);
+    }
+    else {
+      doHandleDetailsBack();
+    }
+  };
 
-      Contacts.navigation.back(resetPhoto);
-      // post message to parent page included Contacts app.
-      if (params.back_to_previous_tab === '1') {
-        var message = { 'type': 'contactsiframe', 'message': 'back' };
-        window.parent.postMessage(message, COMMS_APP_ORIGIN);
-      }
+  var doHandleDetailsBack = function() {
+    var hashParams = window.location.hash.split('?');
+    var params = hashParams.length > 1 ?
+                      utils.extractParams(hashParams[1]) : -1;
+
+    Contacts.navigation.back(resetPhoto);
+    // post message to parent page included Contacts app.
+    if (params.back_to_previous_tab === '1') {
+      var message = { 'type': 'contactsiframe', 'message': 'back' };
+      window.parent.postMessage(message, COMMS_APP_ORIGIN);
     }
   };
 
