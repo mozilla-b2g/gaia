@@ -738,7 +738,7 @@ var NotificationScreen = {
       this.removeLockScreenNotification(notificationId);
     }).bind(this), 400);
 
-    this.removeUnreadNotification();
+    this.removeUnreadNotification(notificationId);
     if (!this.container.querySelector('.notification')) {
       // no notifications left
       this.clearAllButton.disabled = true;
