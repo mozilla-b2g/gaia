@@ -209,7 +209,8 @@
       }
 
       this.resetTransition();
-      this.app.setVisible(false, true);
+      this.app.setVisible(false);
+
       this.app.element.classList.remove('active');
     };
 
