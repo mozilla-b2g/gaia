@@ -32,9 +32,7 @@ apps/communications/dialer/test/unit/mock_confirm_dialog.js
 apps/communications/dialer/test/unit/mock_dialer_index.html.js
 apps/communications/dialer/test/unit/mock_icc_helper.js
 apps/communications/dialer/test/unit/mock_mmi_ui.js
-apps/communications/dialer/test/unit/mock_mozVoicemail.js
 apps/communications/dialer/test/unit/utils_test.js
-apps/communications/dialer/test/unit/voicemail_test.js
 apps/communications/facebook/js/console.js
 apps/communications/facebook/js/fb_sync.js
 apps/communications/facebook/js/fb_sync_init.js
@@ -519,7 +517,6 @@ apps/wallpaper/test/unit/pick_test.js
 shared/js/blobview.js
 shared/js/dialer/contacts.js
 shared/js/dialer/utils.js
-shared/js/dialer/voicemail.js
 shared/js/fb/fb_data_reader.js
 shared/js/fb/fb_reader_utils.js
 shared/js/fb/fb_request.js
