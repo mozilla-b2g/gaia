@@ -918,7 +918,10 @@
     }
 
     var rv = {};
-    for (var key in node) {
+    var keys = Object.keys(node);
+
+    /* jshint boss:true */
+    for (var i = 0, key; key = keys[i]; i++) {
       if (key === '_index') {
         rv[key] = node[key];
       } else {
