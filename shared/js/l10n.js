@@ -1355,7 +1355,7 @@
   // Public API
 
   navigator.mozL10n = {
-    ctx: new Context(document.URL),
+    ctx: new Context(window.document ? document.URL : null),
     get: function get(id, ctxdata) {
       return navigator.mozL10n.ctx.get(id, ctxdata);
     },
