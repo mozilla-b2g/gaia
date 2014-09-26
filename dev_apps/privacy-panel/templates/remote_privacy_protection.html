@@ -1,0 +1,110 @@
+<element name="remote-privacy-protection" extends="section">
+  <template>
+    <header>
+      <a class="back-to-root pp-link" href="#root">
+        <span class="icon icon-back">back</span>
+      </a>
+      <a class="back-to-login" href="#" style="display: none;">
+        <span class="icon icon-back">back</span>
+      </a>
+      <h1 data-l10n-id="rpp-panel">Remote Privacy Protection</h1>
+    </header>
+
+    <div id="rpp-new-password" class="rpp-box">
+      <ul>
+        <li class="description">
+          <p data-l10n-id="rpp-new-password-description">
+            Please set a passphrase to secure your remote features (maximum 30 characters).
+          </p>
+        </li>
+        <li>
+          <input class="pass1" type="password" placeholder="New passphrase">
+        </li>
+        <li>
+          <input class="pass2" type="password" placeholder="Confirm new passphrase">
+          <span class="validation-message"></span>
+        </li>
+        <li>
+          <button class="rpp-new-password-ok btn">OK</button>
+        </li>
+      </ul>
+    </div>
+
+    <div id="rpp-login" class="rpp-box">
+      <ul>
+        <li class="description">
+          <p data-l10n-id="rpp-login-description">
+            Please enter your passphrase.
+          </p>
+        </li>
+        <li>
+          <input class="pass1" type="password" placeholder="Passphrase">
+          <span class="validation-message"></span>
+          <a class="change-password-link link-text" href="#change-password">
+            <span data-l10n-id="change-password">Forgot/Change your passphrase?</span>
+          </a>
+        </li>
+        <li>
+          <button class="rpp-login-ok btn">OK</button>
+        </li>
+      </ul>
+    </div>
+
+    <div id="rpp-change-password" class="rpp-box">
+      <ul>
+        <li class="description">
+          <p data-l10n-id="rpp-change-password-description">
+            To reset your passphrase please enter Passcode lock/SIM PIN and new passphrase.
+          </p>
+        </li>
+        <li>
+          <input class="pin" type="password" placeholder="Passcode lock/SIM PIN">
+          <span class="pin-validation-message"></span>
+        </li>
+        <li>
+          <input class="pass1" type="password" placeholder="New passphrase">
+        </li>
+        <li>
+          <input class="pass2" type="password" placeholder="Confirm new passphrase">
+          <span class="validation-message"></span>
+        </li>
+        <li>
+          <button class="rpp-change-password-ok btn">OK</button>
+        </li>
+      </ul>
+    </div>
+
+    <div id="rpp-content" class="rpp-box">
+      <ul>
+        <li class="remote-locate hint" style="display: none;">
+          <label class="pack-switch">
+            <input type="checkbox" class="uninit">
+            <span data-l10n-id="remoteLocate">Remote Locate</span>
+          </label>
+          <p class="explanation" data-l10n-id="remoteLocateDesc">You can locate this device via SMS as following: “RPP locate YOURPASSPHRASE”</p>
+        </li>
+        <li class="remote-ring hint" style="display: none;">
+          <label class="pack-switch">
+            <input type="checkbox" class="uninit">
+            <span data-l10n-id="remoteRing">Remote Ring</span>
+          </label>
+          <p class="explanation" data-l10n-id="remoteRingDesc">You can ring this device via SMS as following: “RPP ring YOURPASSPHRASE”</p>
+        </li>
+        <li class="remote-lock hint" style="display: none;">
+          <label class="pack-switch">
+            <input type="checkbox" class="uninit">
+            <span data-l10n-id="remoteLock">Remote Lock</span>
+          </label>
+          <p class="explanation" data-l10n-id="remoteLockDesc">You can lock this device via SMS as following: “RPP lock YOURPASSPHRASE”</p>
+        </li>
+<!--        <li class="remote-wipe hint" style="display: none;">
+          <label class="pack-switch">
+            <input type="checkbox" class="uninit">
+            <span data-l10n-id="remoteWipe">Remote Wipe</span>
+          </label>
+          <p class="explanation" data-l10n-id="remoteWipeDesc">You can wipe this device via SMS as following: “RPP wipe YOURPASSPHRASE”</p>
+        </li> -->
+      </ul>
+    </div>
+  </template>
+</element>
