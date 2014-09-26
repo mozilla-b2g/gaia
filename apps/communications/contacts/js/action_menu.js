@@ -1,4 +1,3 @@
-/* globals _ */
 /* exported ActionMenu */
 'use strict';
 
@@ -41,7 +40,9 @@ function ActionMenu(title) {
   function render(self) {
     for (var i = 0, l = data.list.length; i < l; i++) {
       var button = document.createElement('button');
-      button.textContent = data.list[i].label;
+      navigator.mozL10n.setAttributes(button,
+                                      data.list[i].labelL10n.id,
+                                      data.list[i].labelL10n.args);
 
       // Set callback function on each button element.
       var callback = data.list[i].callback;
@@ -53,7 +54,7 @@ function ActionMenu(title) {
     }
 
     btnCancel = document.createElement('button');
-    btnCancel.textContent = _('cancel');
+    btnCancel.setAttribute('data-l10n-id', 'cancel');
 
     btnCancel.addEventListener('click', function() {
       self.hide();
@@ -66,10 +67,10 @@ function ActionMenu(title) {
     data.list = [];
   }
 
-  this.addToList = function (label, callback) {
+  this.addToList = function (labelL10n, callback) {
     var self = this;
     data.list.push({
-      label: label,
+      labelL10n: labelL10n,
       callback: function() {
         callback();
         self.hide();
