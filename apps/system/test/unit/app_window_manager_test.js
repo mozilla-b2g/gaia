@@ -1,5 +1,5 @@
 /* global AppWindowManager, AppWindow, homescreenLauncher,
-          HomescreenWindow, MocksHelper,
+          HomescreenWindow, MocksHelper, FtuLauncher,
           MockSettingsListener, System, HomescreenLauncher,
           MockRocketbar, rocketbar */
 'use strict';
@@ -18,6 +18,7 @@ requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_nfc_handler.js');
 requireApp('system/test/unit/mock_rocketbar.js');
+requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/js/system.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
@@ -25,7 +26,8 @@ var mocksForAppWindowManager = new MocksHelper([
   'OrientationManager', 'ActivityWindow',
   'Applications', 'SettingsListener', 'HomescreenLauncher',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
-  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'System', 'NfcHandler'
+  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'System', 'NfcHandler',
+  'FtuLauncher'
 ]).init();
 
 suite('system/AppWindowManager', function() {
@@ -603,7 +605,7 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubKill.called);
     });
   });
- 
+
   suite('updateActiveApp()', function() {
     test('update', function() {
       var spyPublish= this.sinon.spy(AppWindowManager, 'publish');
@@ -643,6 +645,20 @@ suite('system/AppWindowManager', function() {
       AppWindowManager.display(app);
       stubReady.yield();
       assert.equal(AppWindowManager._activeApp, app);
+    });
+
+    test('default to FTU when running', function() {
+      var ftu = new AppWindow(fakeFTUConfig);
+
+      injectRunningApps(ftu);
+      AppWindowManager._activeApp = null;
+      this.sinon.stub(FtuLauncher, 'isFtuRunning').returns(true);
+      this.sinon.stub(FtuLauncher, 'getFtuOrigin')
+                  .returns(fakeFTUConfig.origin);
+      var stubReady = this.sinon.stub(ftu, 'ready');
+      AppWindowManager.display();
+      stubReady.yield();
+      assert.equal(AppWindowManager._activeApp, ftu);
     });
 
     test('app to app', function() {
