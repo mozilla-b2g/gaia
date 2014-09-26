@@ -1355,7 +1355,7 @@
   // Public API
 
   navigator.mozL10n = {
-    ctx: new Context(),
+    ctx: new Context(document.URL),
     get: function get(id, ctxdata) {
       return navigator.mozL10n.ctx.get(id, ctxdata);
     },
@@ -1767,7 +1767,8 @@
       throw new L10nError(
         'setTextContent is deprecated (https://bugzil.la/1053629). ' +
         'Setting text content of elements with child elements is no longer ' +
-        'supported by l10n.js. Offending data-l10n-id: ' + id);
+        'supported by l10n.js. Offending data-l10n-id: "' + id +
+        '" near ' + element.outerHTML + ' in ' + this.ctx.id);
     }
 
     element.textContent = text;
