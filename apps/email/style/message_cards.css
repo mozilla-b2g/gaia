@@ -555,30 +555,17 @@ reflows. Foreground/background colors should be safe.
   background: url("images/icons/icon_show_external_image.png") no-repeat center / 3rem auto;
 }
 
-
-/* For WVGA (800 x 480) */
 .msg-list-action-toolbar .msg-refresh-btn:after {
   content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4.4rem;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto;
   display: block;
-  padding-bottom: 0.1rem;
   background: url("images/icons/refresh.png") no-repeat center center / 3rem auto;
 }
 
 .msg-list-action-toolbar .msg-refresh-btn:after {
   opacity: 1;
-}
-
-@media all and (min-device-width: 320px) and (max-device-width: 359px) {
-  .msg-refresh-btn:after {
-    height: 100%;
-    padding-bottom: 0;
-    background-size: 3rem;
-  }
 }
 
 .msg-refresh-btn[data-state="synchronizing"]:after {
