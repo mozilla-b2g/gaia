@@ -818,7 +818,7 @@
       case 'home':
         if (this.isShown()) {
           evt.stopImmediatePropagation();
-          this.exitToApp();
+          this.goToHomescreen(evt);
         }
         break;
 
