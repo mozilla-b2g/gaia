@@ -86,7 +86,6 @@ function openIncompatibleSettingsDialog(dialogId, newSetting,
       'tethering.usb.enabled': 'is-warning-wifi-tethering-message'
     }
   };
-
   var headerL10n = headerL10nMap[newSetting];
   var messageL10n =
     messageL10nMap[newSetting] && messageL10nMap[newSetting][oldSetting];

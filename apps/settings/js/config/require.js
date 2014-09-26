@@ -228,6 +228,14 @@ require.config({
     {
       name: 'panels/search/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/hotspot/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/hotspot/wifi_settings',
+      exclude: ['main']
     }
   ]
 });
