@@ -32,6 +32,10 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "128": "/style/icons/Blank.png"
+    "84": "/style/icons/emergency_call_84.png",
+    "126": "/style/icons/emergency_call_126.png",
+    "142": "/style/icons/emergency_call_142.png",
+    "189": "/style/icons/emergency_call_189.png",
+    "284": "/style/icons/emergency_call_284.png"
   }
 }
