@@ -85,7 +85,10 @@
     this.url = app.origin + '/index.html';
 
     this.browser_config =
-      new BrowserConfigHelper(this.origin, this.manifestURL);
+      new BrowserConfigHelper({
+        url: this.origin,
+        manifestURL: this.manifestURL
+      });
 
     this.manifest = this.browser_config.manifest;
     this.browser_config.url = this.url;

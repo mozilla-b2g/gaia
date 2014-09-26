@@ -49,6 +49,7 @@
       window.addEventListener('webapps-launch', this.preHandleEvent);
       window.addEventListener('webapps-close', this.preHandleEvent);
       window.addEventListener('open-app', this.preHandleEvent);
+      window.addEventListener('openwindow', this.preHandleEvent);
       window.addEventListener('appopenwindow', this.preHandleEvent);
       window.addEventListener('applicationready', (function appReady(e) {
         window.removeEventListener('applicationready', appReady);
@@ -69,6 +70,7 @@
       window.removeEventListener('webapps-launch', this.preHandleEvent);
       window.removeEventListener('webapps-close', this.preHandleEvent);
       window.removeEventListener('open-app', this.preHandleEvent);
+      window.removeEventListener('openwindow', this.preHandleEvent);
       window.removeEventListener('appopenwindow', this.preHandleEvent);
     },
 
@@ -98,20 +100,16 @@
 
     handleEvent: function awf_handleEvent(evt) {
       var detail = evt.detail;
-      var manifestURL = detail.manifestURL;
-      if (!manifestURL) {
+      if (!detail.url) {
         return;
       }
 
-      var config = new BrowserConfigHelper(detail.url, detail.manifestURL);
-
-      if (!config.manifest) {
-        return;
-      }
+      var config = new BrowserConfigHelper(detail);
 
       config.evtType = evt.type;
 
       switch (evt.type) {
+        case 'openwindow':
         case 'appopenwindow':
         case 'webapps-launch':
           config.timestamp = detail.timestamp;
@@ -180,7 +178,7 @@
       // The rocketbar currently handles the management of normal search app
       // launches. Requests for the 'newtab' page will continue to filter
       // through and publish the launchapp event.
-      if (config.manifest.role === 'search' &&
+      if (config.manifest && config.manifest.role === 'search' &&
           config.url.indexOf('newtab.html') === -1) {
         return;
       }

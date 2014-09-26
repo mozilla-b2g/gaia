@@ -57,7 +57,7 @@
       // <a href="" target="_blank"> should never be part of the app
       if (evt.detail.name == '_blank' &&
           evt.detail.features !== 'attention') {
-        this.launchActivity(evt);
+        this.createNewWindow(evt);
         evt.stopPropagation();
         return;
       }
@@ -130,6 +130,22 @@
     var a = url1.split('/');
     var b = url2.split('/');
     return (a[0] === b[0] && a[2] === b[2]);
+  };
+
+  ChildWindowFactory.prototype.createNewWindow = function(evt) {
+    if (!this.app.isActive() || this.app.isTransitioning()) {
+      return false;
+    }
+    var configObject = {
+      url: evt.detail.url,
+      name: evt.detail.name,
+      iframe: evt.detail.frameElement
+    };
+
+    window.dispatchEvent(new CustomEvent('openwindow', {
+      detail: configObject
+    }));
+    return true;
   };
 
   ChildWindowFactory.prototype.createChildWindow = function(evt) {
