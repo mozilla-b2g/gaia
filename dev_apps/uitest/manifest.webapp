@@ -7,8 +7,15 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "messages": [
-       { "notification": "/index.html" }
+    { "notification": "/index.html" }
   ],
+  "activities": {
+    "internal-system-engineering-mode": {
+      "filters": {},
+      "href": "/index.html",
+      "disposition": "window"
+    }
+  },
   "icons": {
     "120": "/style/icons/Uitest.png"
   },
@@ -31,6 +38,7 @@
     "video-capture":{},
     "bluetooth":{},
     "downloads":{},
-    "firefox-accounts": {}
+    "firefox-accounts": {},
+    "engineering-mode": {}
   }
 }

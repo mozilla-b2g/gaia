@@ -5,7 +5,7 @@
    NavbarManager, Notification, MockKeypadManager, MockVoicemail,
    MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock, MockMmiManager,
    MockSuggestionBar, LazyLoader, AccessibilityHelper, MockSimSettingsHelper,
-   MockSimPicker, MockTelephonyHelper */
+   MockSimPicker, MockTelephonyHelper, MockSettingsListener */
 
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -32,6 +32,7 @@ require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/dialer/mock_telephony_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
+require('/shared/test/unit/mocks/mock_moz_activity.js');
 
 require('/dialer/js/dialer.js');
 
@@ -45,6 +46,7 @@ var mocksHelperForDialer = new MocksHelper([
   'LazyLoader',
   'KeypadManager',
   'MmiManager',
+  'MozActivity',
   'Notification',
   'NotificationHelper',
   'SettingsListener',
@@ -471,6 +473,34 @@ suite('navigation bar', function() {
             assert.isTrue(wakeLock.released);
           });
         });
+      });
+    });
+
+    suite('> Launch engineering mode app by Activity', function() {
+      var code = '1234567';
+      setup(function() {
+        MockSettingsListener.mCallbacks['engineering-mode.key'](code);
+      });
+
+      teardown(function() {
+        MockSettingsListener.mCallbacks['engineering-mode.key'](null);
+      });
+
+      test('> Dialing engineering mode code', function() {
+        var activitySpy = this.sinon.spy(window, 'MozActivity');
+        CallHandler.call(code, 0);
+        sinon.assert.calledWithNew(activitySpy);
+        sinon.assert.calledOnce(activitySpy);
+        assert.deepEqual(activitySpy.firstCall.args, [{
+          name: 'internal-system-engineering-mode',
+        }]);
+      });
+
+      test('> Dialing a normal code should not trigger engineering mode',
+        function() {
+          var activitySpy = this.sinon.spy(window, 'MozActivity');
+          CallHandler.call('7654321', 0);
+          sinon.assert.notCalled(activitySpy);
       });
     });
 
