@@ -96,6 +96,16 @@ suite('system/TaskManager >', function() {
     window.dispatchEvent(evt);
   }
 
+  function sendAppTerminated(detail) {
+    detail = detail || {
+      manifestURL: 'http://sms.gaiamobile.org/manifest.webapp',
+      origin: 'http://sms.gaiamobile.org',
+      isHomescreen: false
+    };
+    var evt = new CustomEvent('appterminated', { detail: detail });
+    window.dispatchEvent(evt);
+  }
+
   var apps, home;
   var sms, game, game2, game3, game4;
   var taskManager;
@@ -984,6 +994,12 @@ suite('system/TaskManager >', function() {
         'http://sms.gaiamobile.org': apps['http://sms.gaiamobile.org'],
         'http://game.gaiamobile.org': apps['http://game.gaiamobile.org']
       };
+      sinon.stub(apps['http://sms.gaiamobile.org'], 'kill', function() {
+        sendAppTerminated(this);
+      });
+      sinon.stub(apps['http://game.gaiamobile.org'], 'kill', function() {
+        sendAppTerminated(this);
+      });
 
       assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
       waitForEvent(window, 'cardviewshown')
@@ -992,6 +1008,8 @@ suite('system/TaskManager >', function() {
       taskManager.show();
     });
     teardown(function() {
+      apps['http://sms.gaiamobile.org'].kill.restore();
+      apps['http://game.gaiamobile.org'].kill.restore();
       taskManager.hide(true);
       cardsList.innerHTML = '';
     });
