@@ -477,9 +477,10 @@
    */
   TaskManager.prototype.removeCard = function cs_removeCard(card,
                                                             removeImmediately) {
+
     var element = card.element;
     var position = element.dataset.position;
-    delete this.cardsByAppID[card.app.instanceID];
+    delete this.cardsByAppID[element.dataset.appInstanceId];
     card.destroy();
     element = null;
 
@@ -600,7 +601,6 @@
       AppWindowManager._updateActiveApp(homescreenLauncher
                                           .getHomescreen().instanceID);
     }
-    this.removeCard(card, removeImmediately);
   };
 
   /**
@@ -871,7 +871,7 @@
           card = app && this.cardsByAppID[app.instanceID];
           if (card && card.app &&
               app.instanceID === card.app.instanceID) {
-            this.removeCard(card);
+            this.removeCard(card, card !== this.currentCard);
           }
         }
     }
