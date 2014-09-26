@@ -1,0 +1,292 @@
+info it worked if it ends with ok
+verbose cli [ 'node', '/usr/bin/npm', 'install' ]
+info using npm@1.1.4
+info using node@v0.6.12
+verbose config file /home/goutam/.npmrc
+verbose config file /usr/etc/npmrc
+verbose config file /usr/share/npm/npmrc
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/package.json
+verbose loadDefaults gaia@0.0.2
+verbose readDependencies: using package.json deps
+verbose where, deps [ '/home/goutam/MozillaStuff/OldGaia/gaia',
+verbose where, deps   [ 'archiver',
+verbose where, deps     'mime',
+verbose where, deps     'async',
+verbose where, deps     'adm-zip',
+verbose where, deps     'chai',
+verbose where, deps     'dateformat',
+verbose where, deps     'debug',
+verbose where, deps     'download',
+verbose where, deps     'dive',
+verbose where, deps     'ejs',
+verbose where, deps     'ecstatic',
+verbose where, deps     'empty-port',
+verbose where, deps     'fe.js',
+verbose where, deps     'ffi-prebuilt',
+verbose where, deps     'grunt',
+verbose where, deps     'grunt-contrib-clean',
+verbose where, deps     'grunt-jsdoc',
+verbose where, deps     'jshint',
+verbose where, deps     'load-grunt-tasks',
+verbose where, deps     'mail-fakeservers',
+verbose where, deps     'marionette-apps',
+verbose where, deps     'marionette-client',
+verbose where, deps     'marionette-content-script',
+verbose where, deps     'marionette-device-host',
+verbose where, deps     'marionette-file-manager',
+verbose where, deps     'marionette-helper',
+verbose where, deps     'marionette-plugin-forms',
+verbose where, deps     'marionette-profile-builder',
+verbose where, deps     'marionette-js-runner',
+verbose where, deps     'marionette-settings-api',
+verbose where, deps     'mocha',
+verbose where, deps     'mocha-json-proxy',
+verbose where, deps     'mocha-parallel',
+verbose where, deps     'mocha-tbpl-reporter',
+verbose where, deps     'moment',
+verbose where, deps     'mozilla-download',
+verbose where, deps     'proxyquire',
+verbose where, deps     'node-static',
+verbose where, deps     'q',
+verbose where, deps     'request',
+verbose where, deps     'restify',
+verbose where, deps     'rimraf',
+verbose where, deps     'test-agent',
+verbose where, deps     'travis-project-jobs',
+verbose where, deps     'watch' ] ]
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/package.json
+info preinstall gaia@0.0.2
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/node-static/package.json
+verbose loadDefaults node-static@0.6.9
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/load-grunt-tasks/package.json
+verbose loadDefaults load-grunt-tasks@0.4.0
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/fe.js/package.json
+verbose loadDefaults fe.js@0.1.4
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-settings-api/package.json
+verbose loadDefaults marionette-settings-api@0.1.0
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/proxyquire/package.json
+verbose loadDefaults proxyquire@0.4.1
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/watch/package.json
+verbose loadDefaults watch@0.9.0
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/moment/package.json
+verbose loadDefaults moment@2.4.0
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-file-manager/package.json
+verbose loadDefaults marionette-file-manager@0.0.2
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/download/package.json
+verbose loadDefaults download@0.1.7
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/slugid/package.json
+verbose loadDefaults slugid@1.0.2
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/test-agent/package.json
+verbose loadDefaults test-agent@0.23.11
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/mail-fakeservers/package.json
+verbose loadDefaults mail-fakeservers@0.0.24
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/mime/package.json
+verbose loadDefaults mime@1.2.11
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/chai/package.json
+verbose loadDefaults chai@1.9.1
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/travis-project-jobs/package.json
+verbose loadDefaults travis-project-jobs@0.0.1
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-helper/package.json
+verbose loadDefaults marionette-helper@0.3.1
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-js-runner/package.json
+verbose loadDefaults marionette-js-runner@0.5.4
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/request/package.json
+verbose loadDefaults request@2.33.0
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-device-host/package.json
+verbose loadDefaults marionette-device-host@0.1.0
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/jshint/package.json
+verbose loadDefaults jshint@2.5.4
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/mozilla-download/package.json
+verbose loadDefaults mozilla-download@0.4.3
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/mocha-json-proxy/package.json
+verbose loadDefaults mocha-json-proxy@0.0.7
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-content-script/package.json
+verbose loadDefaults marionette-content-script@0.0.4
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/restify/package.json
+verbose loadDefaults restify@2.8.1
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/empty-port/package.json
+verbose loadDefaults empty-port@0.0.1
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/q/package.json
+verbose loadDefaults q@0.9.7
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-apps/package.json
+verbose loadDefaults marionette-apps@0.3.9
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/grunt/package.json
+verbose loadDefaults grunt@0.4.2
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/dateformat/package.json
+verbose loadDefaults dateformat@1.0.6-1.2.3
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-plugin-forms/package.json
+verbose loadDefaults marionette-plugin-forms@0.0.3
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/archiver/package.json
+verbose loadDefaults archiver@0.10.0
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/grunt-jsdoc/package.json
+verbose loadDefaults grunt-jsdoc@0.5.1
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-profile-builder/package.json
+verbose loadDefaults marionette-profile-builder@0.0.3
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/mocha/package.json
+verbose loadDefaults mocha@1.20.0
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/ecstatic/package.json
+verbose loadDefaults ecstatic@0.5.4
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/ffi-prebuilt/package.json
+verbose loadDefaults ffi-prebuilt@1.2.9
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/ejs/package.json
+verbose loadDefaults ejs@0.8.4
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/mocha-tbpl-reporter/package.json
+verbose loadDefaults mocha-tbpl-reporter@0.1.3
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-client/package.json
+verbose loadDefaults marionette-client@1.2.0
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/dive/package.json
+verbose loadDefaults dive@0.3.0
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/debug/package.json
+verbose loadDefaults debug@0.7.4
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/adm-zip/package.json
+verbose loadDefaults adm-zip@0.4.3
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/mocha-parallel/package.json
+verbose loadDefaults mocha-parallel@0.1.0
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/async/package.json
+verbose loadDefaults async@0.2.9
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/grunt-contrib-clean/package.json
+verbose loadDefaults grunt-contrib-clean@0.5.0
+verbose caching /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/rimraf/package.json
+verbose loadDefaults rimraf@2.2.5
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/package.json
+verbose readDependencies: using package.json deps
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/node-static/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/load-grunt-tasks/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/async/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/fe.js/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-settings-api/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/proxyquire/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/watch/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/moment/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-file-manager/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/download/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/slugid/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/test-agent/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/mail-fakeservers/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/mime/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/chai/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/travis-project-jobs/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-helper/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-js-runner/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/request/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-device-host/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/jshint/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/mozilla-download/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/mocha-json-proxy/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/grunt-contrib-clean/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-content-script/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/q/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/restify/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/empty-port/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/rimraf/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-apps/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/grunt/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/dateformat/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-plugin-forms/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/archiver/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/grunt-jsdoc/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-profile-builder/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/mocha/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/ecstatic/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/ffi-prebuilt/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/ejs/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/mocha-tbpl-reporter/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/marionette-client/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/dive/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/debug/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/adm-zip/package.json
+verbose from cache /home/goutam/MozillaStuff/OldGaia/gaia/node_modules/mocha-parallel/package.json
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping adm-zip@0.4.3
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping chai@1.9.1
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping dateformat@1.0.6-1.2.3
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping debug@*
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping download@0.1.7
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping dive@0.3.0
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping ejs@0.8.4
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping ecstatic@0.5.4
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping empty-port@~0.0.1
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping fe.js@~0.1.4
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping ffi-prebuilt@~1.2.6
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping grunt@0.4.2
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping grunt-contrib-clean@0.5.0
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping grunt-jsdoc@0.5.1
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping jshint@2.5.4
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping load-grunt-tasks@0.4.0
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping mail-fakeservers@0.0.24
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping marionette-apps@0.3.9
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping marionette-client@1.2.0
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping marionette-content-script@0.0.4
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping marionette-device-host@0.1.0
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping marionette-file-manager@0.0.2
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping marionette-helper@~0.3.1
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping marionette-plugin-forms@0.0.3
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping marionette-profile-builder@0.0.3
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping marionette-js-runner@0.5.4
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping marionette-settings-api@~0.1.0
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping mocha@1.20.0
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping mocha-json-proxy@~0.0.7
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping mocha-parallel@0.1.0
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping mocha-tbpl-reporter@0.1.3
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping moment@~2.4.0
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping mozilla-download@~0.4.3
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping proxyquire@~0.4
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping node-static@0.6.9
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping q@~0.9.7
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping request@2.33.0
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping restify@2.8.1
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping rimraf@2.2.5
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping test-agent@0.23.11
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping travis-project-jobs@0.0.1
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping watch@~0.9.0
+verbose cache add [ 'archiver@^0.10.0', null ]
+silly cache add: name, spec, args [ undefined, 'archiver@^0.10.0', [ 'archiver@^0.10.0', null ] ]
+verbose parsed url { pathname: 'archiver@^0.10.0',
+verbose parsed url   path: 'archiver@^0.10.0',
+verbose parsed url   href: 'archiver@^0.10.0' }
+silly cache add: name, spec, args [ 'archiver', '^0.10.0', [ 'archiver', '^0.10.0' ] ]
+verbose parsed url { pathname: '^0.10.0', path: '^0.10.0', href: '^0.10.0' }
+verbose addNamed [ 'archiver', '^0.10.0' ]
+verbose addNamed [ null, null ]
+info addNameTag [ 'archiver', '^0.10.0' ]
+verbose raw, before any munging archiver
+verbose url resolving [ 'https://registry.npmjs.org/', './archiver' ]
+verbose url resolved https://registry.npmjs.org/archiver
+http GET https://registry.npmjs.org/archiver
+verbose cache add [ 'mime@^1.2.11', null ]
+silly cache add: name, spec, args [ undefined, 'mime@^1.2.11', [ 'mime@^1.2.11', null ] ]
+verbose parsed url { pathname: 'mime@^1.2.11',
+verbose parsed url   path: 'mime@^1.2.11',
+verbose parsed url   href: 'mime@^1.2.11' }
+silly cache add: name, spec, args [ 'mime', '^1.2.11', [ 'mime', '^1.2.11' ] ]
+verbose parsed url { pathname: '^1.2.11', path: '^1.2.11', href: '^1.2.11' }
+verbose addNamed [ 'mime', '^1.2.11' ]
+verbose addNamed [ null, null ]
+info addNameTag [ 'mime', '^1.2.11' ]
+verbose already installed in /home/goutam/MozillaStuff/OldGaia/gaia skipping async@0.2.9
+verbose raw, before any munging mime
+verbose url resolving [ 'https://registry.npmjs.org/', './mime' ]
+verbose url resolved https://registry.npmjs.org/mime
+http GET https://registry.npmjs.org/mime
+ERR! Error: failed to fetch from registry: archiver
+ERR!     at /usr/share/npm/lib/utils/npm-registry-client/get.js:139:12
+ERR!     at cb (/usr/share/npm/lib/utils/npm-registry-client/request.js:31:9)
+ERR!     at Request._callback (/usr/share/npm/lib/utils/npm-registry-client/request.js:136:18)
+ERR!     at Request.callback (/usr/lib/nodejs/request/main.js:119:22)
+ERR!     at Request.<anonymous> (/usr/lib/nodejs/request/main.js:212:58)
+ERR!     at Request.emit (events.js:88:20)
+ERR!     at ClientRequest.<anonymous> (/usr/lib/nodejs/request/main.js:209:10)
+ERR!     at ClientRequest.emit (events.js:67:17)
+ERR!     at ClientRequest.onError (/usr/lib/nodejs/request/tunnel.js:164:21)
+ERR!     at ClientRequest.g (events.js:156:14)
+ERR! You may report this log at:
+ERR!     <http://bugs.debian.org/npm>
+ERR! or use
+ERR!     reportbug --attach /home/goutam/MozillaStuff/OldGaia/gaia/npm-debug.log npm
+ERR! 
+ERR! System Linux 3.8.0-34-generic
+ERR! command "node" "/usr/bin/npm" "install"
+ERR! cwd /home/goutam/MozillaStuff/OldGaia/gaia
+ERR! node -v v0.6.12
+ERR! npm -v 1.1.4
+ERR! message failed to fetch from registry: archiver
+verbose exit [ 1, true ]
