@@ -52,7 +52,6 @@ suite('system/UpdateManager', function() {
   var fakeDialog;
   var fakeWarning;
 
-  var TINY_TIMEOUT = 10;
   var lastDispatchedEvent = null;
 
   var MOBILE_CONNECTION_COUNT = 2;
@@ -94,9 +93,6 @@ suite('system/UpdateManager', function() {
         value: value
       };
     };
-
-    UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = 0;
-    UpdateManager.TOASTER_TIMEOUT = 0;
   });
 
   suiteTeardown(function() {
@@ -115,6 +111,9 @@ suite('system/UpdateManager', function() {
   });
 
   setup(function() {
+    // they are automatically restored at teardown by the test agent
+    this.sinon.useFakeTimers();
+
     UpdateManager._mgmt = MockAppsMgmt;
 
     apps = [new MockApp(), new MockApp(), new MockApp()];
@@ -191,59 +190,58 @@ suite('system/UpdateManager', function() {
     document.body.appendChild(fakeWarning);
   });
 
-  teardown(function(done) {
-    // We wait for the nextTick in order to let the UpdateManager's
-    // timeouts finish (they are all set to 0)
-    setTimeout(function nextTick() {
-      UpdateManager.updatableApps = [];
-      UpdateManager.systemUpdatable = null;
-      UpdateManager.updatesQueue = [];
-      UpdateManager.downloadsQueue = [];
-      UpdateManager._downloading = false;
-      UpdateManager._uncompressing = false;
-      UpdateManager.container = null;
-      UpdateManager.message = null;
-      UpdateManager.toaster = null;
-      UpdateManager.toasterMessage = null;
-      UpdateManager.laterButton = null;
-      UpdateManager.downloadButton = null;
-      UpdateManager.downloadDialog = null;
-      UpdateManager.downloadDialogTitle = null;
-      UpdateManager.downloadDialogList = null;
-      UpdateManager.lastUpdatesAvailable = 0;
-      UpdateManager._notificationTimeout = null;
-      UpdateManager._errorTimeout = null;
+  teardown(function() {
+    UpdateManager.updatableApps = [];
+    UpdateManager.systemUpdatable = null;
+    UpdateManager.updatesQueue = [];
+    UpdateManager.downloadsQueue = [];
+    UpdateManager._downloading = false;
+    UpdateManager._uncompressing = false;
+    UpdateManager.container = null;
+    UpdateManager.message = null;
+    UpdateManager.toaster = null;
+    UpdateManager.toasterMessage = null;
+    UpdateManager.laterButton = null;
+    UpdateManager.downloadButton = null;
+    UpdateManager.downloadDialog = null;
+    UpdateManager.downloadDialogTitle = null;
+    UpdateManager.downloadDialogList = null;
+    UpdateManager.lastUpdatesAvailable = 0;
+    UpdateManager._notificationTimeout = null;
+    UpdateManager._errorTimeout = null;
 
-      MockAppsMgmt.mTeardown();
+    MockAppsMgmt.mTeardown();
 
-      fakeNode.parentNode.removeChild(fakeNode);
-      fakeToaster.parentNode.removeChild(fakeToaster);
-      fakeDialog.parentNode.removeChild(fakeDialog);
+    fakeNode.parentNode.removeChild(fakeNode);
+    fakeToaster.parentNode.removeChild(fakeToaster);
+    fakeDialog.parentNode.removeChild(fakeDialog);
 
-      lastDispatchedEvent = null;
-      MockNavigatorWakeLock.mTeardown();
-      MockNavigatorSettings.mTeardown();
-
-      done();
-    });
+    lastDispatchedEvent = null;
+    MockNavigatorWakeLock.mTeardown();
+    MockNavigatorSettings.mTeardown();
   });
 
   suite('init', function() {
-    test('should get all applications', function(done) {
-      MockAppsMgmt.mNext = function() {
-        done();
-      };
+    test('should get all applications', function() {
+      this.sinon.stub(MockAppsMgmt, 'getAll').returns({});
       UpdateManager.init();
+      sinon.assert.called(MockAppsMgmt.getAll);
     });
 
-    test('should create AppUpdatable on init', function(done) {
+    test('should create AppUpdatable on init', function() {
       MockAppUpdatable.mTeardown();
 
-      MockAppsMgmt.mNext = function() {
-        assert.equal(MockAppUpdatable.mCount, apps.length);
-        done();
-      };
+      var request = {};
+      this.sinon.stub(MockAppsMgmt, 'getAll').returns(request);
+
       UpdateManager.init();
+      assert.isFunction(request.onsuccess);
+      request.onsuccess({
+        target: {
+          result: apps
+        }
+      });
+      assert.equal(MockAppUpdatable.mCount, apps.length);
     });
 
     test('should bind dom elements', function() {
@@ -397,8 +395,6 @@ suite('system/UpdateManager', function() {
 
   suite('UI', function() {
     setup(function() {
-      // they are automatically restored at teardown by the test agent
-      this.sinon.useFakeTimers();
 
       MockAppsMgmt.mApps = [];
       UpdateManager.init();
@@ -406,8 +402,6 @@ suite('system/UpdateManager', function() {
     });
 
     teardown(function() {
-      // but we restore it now because we need a real setTimeout in teardown
-      this.sinon.clock.restore();
     });
 
     suite('downloading state', function() {
@@ -440,17 +434,10 @@ suite('system/UpdateManager', function() {
 
       suite('if downloading', function() {
         setup(function() {
-          UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = TINY_TIMEOUT;
-          UpdateManager.TOASTER_TIMEOUT = TINY_TIMEOUT;
           UpdateManager._downloading = true;
           UpdateManager.addToUpdatesQueue(uAppWithDownloadAvailable);
 
-          this.sinon.clock.tick(TINY_TIMEOUT);
-        });
-
-        teardown(function() {
-          UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = 0;
-          UpdateManager.TOASTER_TIMEOUT = 0;
+          this.sinon.clock.tick(UpdateManager.TOASTER_TIMEOUT);
         });
 
         test('should not show the toaster', function() {
@@ -579,16 +566,6 @@ suite('system/UpdateManager', function() {
     });
 
     suite('container visibility', function() {
-      suiteSetup(function() {
-        UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = TINY_TIMEOUT;
-        UpdateManager.TOASTER_TIMEOUT = TINY_TIMEOUT;
-      });
-
-      suiteTeardown(function() {
-        UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = 0;
-        UpdateManager.TOASTER_TIMEOUT = 0;
-      });
-
       setup(function() {
         UpdateManager.addToUpdatesQueue(uAppWithDownloadAvailable);
       });
@@ -608,7 +585,7 @@ suite('system/UpdateManager', function() {
         });
 
         test('should not be displayed again after timeout', function() {
-          this.sinon.clock.tick(TINY_TIMEOUT);
+          this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
 
           var css = UpdateManager.container.classList;
           assert.isTrue(css.contains('displayed'));
@@ -623,7 +600,7 @@ suite('system/UpdateManager', function() {
         function() {
         // context is: uAppWithDownloadAvailable was added to updates queue
           setup(function() {
-            this.sinon.clock.tick(TINY_TIMEOUT);
+            this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
 
             UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
           });
@@ -647,7 +624,7 @@ suite('system/UpdateManager', function() {
         });
 
         test('should display after a timeout', function() {
-          this.sinon.clock.tick(TINY_TIMEOUT);
+          this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
 
           var css = UpdateManager.container.classList;
           assert.isTrue(css.contains('displayed'));
@@ -662,7 +639,7 @@ suite('system/UpdateManager', function() {
             UpdateManager.removeFromUpdatesQueue(uApp);
           });
 
-          this.sinon.clock.tick(TINY_TIMEOUT);
+          this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
 
           var css = UpdateManager.container.classList;
           assert.isFalse(css.contains('displayed'));
@@ -671,7 +648,7 @@ suite('system/UpdateManager', function() {
         test('should display an updated count', function() {
           UpdateManager.addToUpdatesQueue(updatableApps[1]);
 
-          this.sinon.clock.tick(TINY_TIMEOUT);
+          this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
 
           var l10nAttrs = MockL10n.getAttributes(
             UpdateManager.message);
@@ -685,7 +662,7 @@ suite('system/UpdateManager', function() {
             var css = UpdateManager.container.classList;
             assert.isFalse(css.contains('displayed'));
 
-            this.sinon.clock.tick(TINY_TIMEOUT);
+            this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
 
             var css = UpdateManager.toaster.classList;
             assert.isTrue(css.contains('displayed'));
@@ -697,19 +674,19 @@ suite('system/UpdateManager', function() {
           });
 
           test('should reset toaster value when notification was activated',
-            function() {
-              this.sinon.clock.tick(TINY_TIMEOUT);
+          function() {
+            this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
 
-              UpdateManager.addToUpdatesQueue(updatableApps[1]);
-              var l10nAttrs = MockL10n.getAttributes(
-                UpdateManager.toasterMessage);
+            UpdateManager.addToUpdatesQueue(updatableApps[1]);
+            var l10nAttrs = MockL10n.getAttributes(
+              UpdateManager.toasterMessage);
 
-              assert.equal(l10nAttrs.id, 'updateAvailableInfo');
-              assert.deepEqual(l10nAttrs.args, { n: 1 });
-            });
+            assert.equal(l10nAttrs.id, 'updateAvailableInfo');
+            assert.deepEqual(l10nAttrs.args, { n: 1 });
+          });
 
           test('should show the right message', function() {
-            this.sinon.clock.tick(TINY_TIMEOUT);
+            this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
 
             var l10nAttrs = MockL10n.getAttributes(
               UpdateManager.toasterMessage);
@@ -722,7 +699,8 @@ suite('system/UpdateManager', function() {
           test('should hide after TOASTER_TIMEOUT', function() {
             UpdateManager.addToUpdatesQueue(updatableApps[1]);
 
-            this.sinon.clock.tick(TINY_TIMEOUT * 2);
+            this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
+            this.sinon.clock.tick(UpdateManager.TOASTER_TIMEOUT);
 
             var css = UpdateManager.toaster.classList;
             assert.isFalse(css.contains('displayed'));
@@ -731,7 +709,7 @@ suite('system/UpdateManager', function() {
         });
 
         test('should add a new statusbar notification', function() {
-          this.sinon.clock.tick(TINY_TIMEOUT);
+          this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
           var method1 = 'addUnreadNotification';
           assert.ok(MockNotificationScreen.wasMethodCalled[method1]);
         });
@@ -770,16 +748,6 @@ suite('system/UpdateManager', function() {
     });
 
     suite('error banner requests', function() {
-      suiteSetup(function() {
-        UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = TINY_TIMEOUT;
-        UpdateManager.TOASTER_TIMEOUT = TINY_TIMEOUT;
-      });
-
-      suiteTeardown(function() {
-        UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT = 0;
-        UpdateManager.TOASTER_TIMEOUT = 0;
-      });
-
       setup(function() {
         UpdateManager.init();
         UpdateManager.requestErrorBanner();
@@ -790,7 +758,7 @@ suite('system/UpdateManager', function() {
       });
 
       test('should show after NOTIFICATION_BUFFERING_TIMEOUT', function() {
-        this.sinon.clock.tick(TINY_TIMEOUT);
+        this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
 
         assert.equal(1, MockSystemBanner.mShowCount);
         assert.equal('downloadError', MockSystemBanner.mMessage);
@@ -799,7 +767,7 @@ suite('system/UpdateManager', function() {
       test('should show only once if called multiple time', function() {
         UpdateManager.requestErrorBanner();
 
-        this.sinon.clock.tick(TINY_TIMEOUT);
+        this.sinon.clock.tick(UpdateManager.NOTIFICATION_BUFFERING_TIMEOUT);
 
         assert.equal(1, MockSystemBanner.mShowCount);
       });
@@ -1207,6 +1175,7 @@ suite('system/UpdateManager', function() {
         evt.initEvent('click', true, true);
 
         UpdateManager.requestDownloads(evt);
+        this.sinon.clock.tick(); // mozSettings mock needs this
 
         spy.lastCall.returnValue.then(function() {
           var css = UpdateManager.downloadViaDataConnectionDialog.classList;
@@ -1235,6 +1204,7 @@ suite('system/UpdateManager', function() {
         evt.initEvent('click', true, true);
 
         UpdateManager.requestDownloads(evt);
+        this.sinon.clock.tick(); // mozSettings mock needs this
 
         spy.lastCall.returnValue.then(function() {
           var css = UpdateManager.downloadViaDataConnectionDialog.classList;
@@ -1383,7 +1353,6 @@ suite('system/UpdateManager', function() {
     var showForbiddenDwnSpy;
 
     setup(function() {
-      this.sinon.useFakeTimers();
       showDownloadPromptSpy =
          this.sinon.spy(UpdateManager, 'showDownloadPrompt');
       showForbiddenDwnSpy =
@@ -1392,9 +1361,6 @@ suite('system/UpdateManager', function() {
     });
 
     teardown(function() {
-      this.sinon.clock.restore();
-      showDownloadPromptSpy.restore();
-      showForbiddenDwnSpy.restore();
       navigator.mozWifiManager.connection.status = 'connected';
     });
 
@@ -1558,7 +1524,7 @@ suite('system/UpdateManager', function() {
         }
 
         UpdateManager.launchDownload();
-        this.sinon.clock.tick(TINY_TIMEOUT);
+        this.sinon.clock.tick(); // mozSettings mock needs this
 
         if (testCase.forbiddenDwnload) {
           assert.ok(showDownloadPromptSpy.notCalled,
