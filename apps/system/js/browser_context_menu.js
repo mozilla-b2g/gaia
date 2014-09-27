@@ -220,7 +220,9 @@
     });
   };
 
-  BrowserContextMenu.prototype.bookmarkUrl = function(url, name, icon) {
+  BrowserContextMenu.prototype.bookmarkUrl = function(url, name) {
+    var favicons = this.app.favicons;
+
     /*jshint -W031 */
     var data = {
       type: 'url',
@@ -228,13 +230,18 @@
       name: name,
       iconable: false
     };
-    if (icon) {
-      data.icon = icon;
-    }
-    new MozActivity({
-      name: 'save-bookmark',
-      data: data
-    });
+
+    LazyLoader.load('shared/js/icons_helper.js', (() => {
+      IconsHelper.getIcon(url, null, {icons: favicons}).then(icon => {
+        if (icon) {
+          data.icon = icon;
+        }
+        new MozActivity({
+          name: 'save-bookmark',
+          data: data
+        });
+      });
+    }));
   };
 
   BrowserContextMenu.prototype.newWindow = function(manifest) {
@@ -305,45 +312,39 @@
 
   BrowserContextMenu.prototype.showDefaultMenu = function(manifest, name) {
     return new Promise((resolve) => {
-      var favicons = this.app.favicons;
       var config = this.app.config;
-      LazyLoader.load('shared/js/icons_helper.js', (() => {
-        IconsHelper.getIcon(config.url, null, {icons: favicons}).then(icon => {
+      var menuData = [];
 
-          var menuData = [];
+      menuData.push({
+        id: 'new-window',
+        label: _('new-window'),
+        callback: this.newWindow.bind(this, manifest)
+      });
 
+      menuData.push({
+        id: 'show-windows',
+        label: _('show-windows'),
+        callback: this.showWindows.bind(this)
+      });
+
+      BookmarksDatabase.get(config.url).then((result) => {
+        if (!result) {
           menuData.push({
-            id: 'new-window',
-            label: _('new-window'),
-            callback: this.newWindow.bind(this, manifest)
+            id: 'add-to-homescreen',
+            label: _('add-to-home-screen'),
+            callback: this.bookmarkUrl.bind(this, config.url, name)
           });
+        }
 
-          menuData.push({
-            id: 'show-windows',
-            label: _('show-windows'),
-            callback: this.showWindows.bind(this)
-          });
-
-          BookmarksDatabase.get(config.url).then((result) => {
-            if (!result) {
-              menuData.push({
-                id: 'add-to-homescreen',
-                label: _('add-to-home-screen'),
-                callback: this.bookmarkUrl.bind(this, config.url, name, icon)
-              });
-            }
-
-            menuData.push({
-              id: 'share',
-              label: _('share'),
-              callback: this.shareUrl.bind(this, config.url)
-            });
-
-            this.showMenu(menuData);
-            resolve();
-          });
+        menuData.push({
+          id: 'share',
+          label: _('share'),
+          callback: this.shareUrl.bind(this, config.url)
         });
-      }));
+
+        this.showMenu(menuData);
+        resolve();
+      });
     });
   };
 
