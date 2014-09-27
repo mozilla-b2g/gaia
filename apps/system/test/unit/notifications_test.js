@@ -572,12 +572,14 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('email notifications should not wake screen', function() {
+      details.mozbehavior = { noscreen: true };
       details.manifestURL = EMAIL_MANIFEST;
       NotificationScreen.addNotification(details);
       sinon.assert.notCalled(ScreenManager.turnScreenOn);
     });
 
     test('download progress notifications should not wake screen', function() {
+      details.mozbehavior = { noscreen: true };
       details.manifestURL = null;
       details.type = 'download-notification-downloading';
       NotificationScreen.addNotification(details);
@@ -585,6 +587,7 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('download complete notifications should wake screen', function() {
+      details.mozbehavior = undefined;
       details.manifestURL = null;
       details.type = 'download-notification-complete';
       NotificationScreen.addNotification(details);

@@ -393,6 +393,7 @@ var NotificationScreen = {
       document.getElementById('notifications-lockscreen-container');
 
     var manifestURL = detail.manifestURL || '';
+    var behavior = detail.mozbehavior || {};
     var isPriorityNotification =
       this.PRIORITY_APPLICATIONS.indexOf(manifestURL) !== -1;
 
@@ -410,6 +411,8 @@ var NotificationScreen = {
     notificationNode.setAttribute('role', 'link');
 
     notificationNode.dataset.notificationId = detail.id;
+    notificationNode.dataset.noClear = behavior.noclear ? 'true' : 'false';
+
     notificationNode.dataset.obsoleteAPI = 'false';
     if (typeof detail.id === 'string' &&
         detail.id.indexOf('app-notif-') === 0) {
@@ -488,14 +491,9 @@ var NotificationScreen = {
 
     // We turn the screen on if needed in order to let
     // the user see the notification toaster
-    if (typeof(ScreenManager) !== 'undefined' &&
-      !ScreenManager.screenEnabled) {
-      // bug 915236: disable turning on the screen for email notifications
-      // bug 1050023: disable turning on the screen for download notifications
-      if (type.indexOf('download-notification-downloading') === -1 &&
-          manifestURL.indexOf('email.gaiamobile.org') === -1) {
-        ScreenManager.turnScreenOn();
-      }
+    if (!behavior.noscreen && typeof(ScreenManager) !== 'undefined' &&
+        !ScreenManager.screenEnabled) {
+      ScreenManager.turnScreenOn();
     }
 
     var notify = !('noNotify' in detail) &&
@@ -573,7 +571,7 @@ var NotificationScreen = {
         var ringtonePlayer = new Audio();
         var telephony = window.navigator.mozTelephony;
 
-        ringtonePlayer.src = this._sound;
+        ringtonePlayer.src = behavior.soundFile || this._sound;
 
         if (telephony && telephony.active) {
           ringtonePlayer.mozAudioChannelType = 'telephony';
@@ -590,6 +588,12 @@ var NotificationScreen = {
       }
 
       if (this.vibrates) {
+        var pattern = [200, 200, 200];
+        if (behavior.vibrationPattern && behavior.vibrationPattern.length &&
+            behavior.vibrationPattern[0] > 0) {
+          pattern = behavior.vibrationPattern;
+        }
+
         if (document.hidden) {
           // bug 1030310: disable vibration for the email app when asleep
           // bug 1050023: disable vibration for downloads when asleep
@@ -597,11 +601,11 @@ var NotificationScreen = {
               manifestURL.indexOf('email.gaiamobile.org') === -1) {
             window.addEventListener('visibilitychange', function waitOn() {
               window.removeEventListener('visibilitychange', waitOn);
-              navigator.vibrate([200, 200, 200, 200]);
+              navigator.vibrate(pattern);
             });
           }
         } else {
-          navigator.vibrate([200, 200, 200, 200]);
+          navigator.vibrate(pattern);
         }
       }
     }
@@ -748,6 +752,9 @@ var NotificationScreen = {
   clearAll: function ns_clearAll() {
     var notifications = this.container.querySelectorAll('.notification');
     for (var notification of notifications) {
+      if (notification.dataset.noClear === 'true') {
+        continue;
+      }
       this.closeNotification(notification);
     }
   },

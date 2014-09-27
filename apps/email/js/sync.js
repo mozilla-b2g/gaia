@@ -62,7 +62,10 @@ define(function(require) {
         var notification = new Notification(title, {
           body: body,
           icon: iconUrl,
-          tag: notificationId
+          tag: notificationId,
+          mozbehavior: {
+            noscreen: true
+          }
         });
 
         // If the app is open, but in the background, when the notification
