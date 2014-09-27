@@ -185,8 +185,8 @@ suite('Contacts settings >', function() {
       assert.isNotNull(importButton1);
 
       // We test as well that the l10NIds are correctly set
-      assert.equal(spyL10n.args[0][1], 'simCardNumber');
-      assert.equal(spyL10n.args[1][1], 'simCardNumber');
+      assert.equal(spyL10n.args[0][1], 'simNumber');
+      assert.equal(spyL10n.args[1][1], 'simNumber');
     });
 
     test('Check number of export buttons appearing', function() {

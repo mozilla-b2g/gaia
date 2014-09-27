@@ -50,8 +50,6 @@ if (typeof window.importer === 'undefined') {
 
     var cancelled = false;
 
-    var _ = navigator.mozL10n.get;
-
     // Indicates whether some friends have been imported or not
     var friendsImported;
 
@@ -457,8 +455,8 @@ if (typeof window.importer === 'undefined') {
      *
      */
     function markExisting(deviceFriends) {
-      updateButton.textContent = deviceFriends.length === 0 ? _('import') :
-                                                              _('update');
+      updateButton.setAttribute('data-l10n-id',
+        deviceFriends.length === 0 ? 'import' : 'update');
       var reallyExisting = 0;
 
       deviceFriends.forEach(function(fbContact) {
@@ -482,13 +480,15 @@ if (typeof window.importer === 'undefined') {
       });
 
       if (myFriends.length < 1) {
-        friendsMsgElement.textContent = _('fbNoFriends');
+        friendsMsgElement.setAttribute('data-l10n-id', 'fbNoFriends');
       } else {
         var newValue = myFriends.length -
                           Object.keys(existingContactsByUid).length;
-        friendsMsgElement.textContent = _('fbFriendsFound', {
-          numFriends: newValue < 0 ? 0 : newValue
-        });
+        navigator.mozL10n.setAttributes(
+          friendsMsgElement,
+          'fbFriendsFound',
+          { numFriends: newValue < 0 ? 0 : newValue }
+        );
       }
 
       checkDisabledButtons();
