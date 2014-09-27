@@ -51,6 +51,15 @@ function CompositeAccount(universe, accountDef, folderInfo, dbConn,
   this._enabled = true;
   this.problems = [];
 
+  // For oauth2, hold on to a "last renew attempt" timestamp. However, since it
+  // uses performance.now() that can be reset depending on clock time and
+  // environment (shared worker always resets to 0 for instance), always reset
+  // the value here to 0. It is just a transient timestamp that is useful
+  // during the lifetime of the app.
+  if (accountDef.credentials && accountDef.credentials.oauth2) {
+    accountDef.credentials.oauth2._transientLastRenew = 0;
+  }
+
   // XXX for now we are stealing the universe's logger
   this._LOG = _LOG;
 

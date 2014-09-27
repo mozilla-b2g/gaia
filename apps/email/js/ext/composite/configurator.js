@@ -64,7 +64,12 @@ exports.configurator = {
           clientSecret: domainInfo.oauth2Secrets.clientSecret,
           refreshToken: domainInfo.oauth2Tokens.refreshToken,
           accessToken: domainInfo.oauth2Tokens.accessToken,
-          expireTimeMS: domainInfo.oauth2Tokens.expireTimeMS
+          expireTimeMS: domainInfo.oauth2Tokens.expireTimeMS,
+          // Treat the access token like it was recently retrieved; although we
+          // generally expect the XOAUTH2 case should go through without
+          // failure, in the event something is wrong, immediately re-fetching
+          // a new accessToken is not going to be useful for us.
+          _transientLastRenew: $date.PERFNOW()
         };
       }
       incomingInfo = {
