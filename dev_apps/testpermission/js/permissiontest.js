@@ -35,9 +35,7 @@ function testPermissions(outputElement) {
     'device-storage:pictures', 'device-storage:music', 'device-storage:videos',
     'device-storage:apps', 'alarms', 'attention', 'content-camera',
     'tcp-socket', 'bluetooth', 'storage', 'time', 'networkstats-manager',
-    'idle', 'network-events', 'embed-apps',
-    // Just don't.
-    'deprecated-hwvideo'
+    'idle', 'network-events', 'embed-apps'
   ];
   
   var mozPerms = navigator.mozPermissionSettings;
