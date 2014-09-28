@@ -192,8 +192,6 @@ var CallScreen = {
     this.pickUpIcon = document.getElementById('lockscreen-area-pickup');
     this.initUnlockerEvents();
     new LockScreenSlide({
-      useNewStyle: true,
-
       IDs: {
         overlay: 'main-container',
         areas: {
@@ -202,7 +200,7 @@ var CallScreen = {
         },
       },
 
-      trackNew: {
+      track: {
         strokeColorTop: 'rgba(0, 0, 0, 0)',
         strokeColorBottom: 'rgba(0, 0, 0, 0)',
         fillColorTop: 'rgba(0, 0, 0, 0.1)',
@@ -229,7 +227,7 @@ var CallScreen = {
         }
       },
 
-      resourcesNew: {
+      resources: {
         larrow: '/style/images/lock_screen/lockscreen_toggle_arrow_left.png',
         rarrow: '/style/images/lock_screen/lockscreen_toggle_arrow_right.png'
       }
