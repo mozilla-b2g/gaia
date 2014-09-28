@@ -157,9 +157,11 @@
     var elements = this.elements;
     this.element.classList.add('visible');
     System.debug(' AAD>> showing');
-    elements.httpAuthenticationMessage.textContent =
-      navigator.mozL10n.get('http-authentication-message2',
-      {host: evt.detail.host});
+    navigator.mozL10n.setAttributes(
+      elements.httpAuthenticationMessage,
+      'http-authentication-message2',
+      {host: evt.detail.host}
+    );
     elements.httpUsernameInput.value = '';
     elements.httpPasswordInput.value = '';
   };

@@ -35,7 +35,7 @@ var FxaModuleSetPassword = (function() {
   }
 
   function _showRegistering() {
-    FxaModuleOverlay.show(_('fxa-connecting'));
+    FxaModuleOverlay.show('fxa-connecting');
   }
 
   function _hideRegistering() {

@@ -26,10 +26,10 @@ var FxaModuleOverlay = {
       this.initialized = true;
     },
 
-    show: function fxam_overlay_show(string) {
+    show: function fxam_overlay_show(l10nId) {
       this.init();
 
-      this.fxaOverlayMsg.textContent = string;
+      this.fxaOverlayMsg.setAttribute('data-l10n-id', l10nId);
       this.fxaOverlay.classList.add('show');
     },
 
