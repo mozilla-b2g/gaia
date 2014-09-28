@@ -21,12 +21,12 @@ suite('FxA Module Error Overlay', function() {
   });
 
   test('show', function() {
-    var customTitle = 'LOREM IPSUM';
-    var customText = 'Lorem ipsum...';
-    FxaModuleErrorOverlay.show(customTitle, customText);
+    var customTitleL10nId = 'l10nId1';
+    var customTextL10nId = 'l10nId2';
+    FxaModuleErrorOverlay.show(customTitleL10nId, customTextL10nId);
 
-    assert.equal(title.textContent, customTitle);
-    assert.equal(message.textContent, customText);
+    assert.equal(title.getAttribute('data-l10n-id'), customTitleL10nId);
+    assert.equal(message.getAttribute('data-l10n-id'), customTextL10nId);
     assert.ok(overlay.classList.contains('show'));
   });
 
