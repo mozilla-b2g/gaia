@@ -39,7 +39,7 @@ marionette('check root panel settings', function() {
         return rootPanel.firefoxAccountDesc === 'Create account or sign in';
       });
       client.waitFor(function() {
-        return rootPanel.screenLockDesc === 'Enabled';
+        return rootPanel.screenLockDesc === 'Disabled';
       });
       client.waitFor(function() {
         return rootPanel.WiFiDesc === 'Disabled';

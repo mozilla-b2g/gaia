@@ -16,7 +16,7 @@ marionette('media playback tests', function() {
       'dom.inter-app-communication-api.enabled': true
     },
     settings: {
-      'ftu.manifestURL': null
+      'lockscreen.enabled': true
     },
     apps: apps
   });

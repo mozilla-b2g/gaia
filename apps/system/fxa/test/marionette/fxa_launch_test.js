@@ -12,6 +12,9 @@ marionette('Firefox Accounts Launch Tests', function() {
       server,
       fxaUser,
       client = marionette.client({
+        settings: {
+          'ftu.manifestURL': 'app://ftu.gaiamobile.org/manifest.webapp'
+        },
         prefs: {
           'identity.fxaccounts.auth.uri': 'http://' +
             config.SERVER_HOST + ':' +
