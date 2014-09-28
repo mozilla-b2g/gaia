@@ -3,8 +3,7 @@
 'use strict';
 
 (function(exports) {
-  var screenElement = document.getElementById('screen');
-
+  // var screenElement = document.getElementById('screen');
   /**
    * AppWindowManager manages the interaction of AppWindow instances.
    *
@@ -16,12 +15,14 @@
    *
    * @module AppWindowManager
    */
-  var AppWindowManager = {
+  var AppWindowManager = function() {};
+  AppWindowManager.prototype = {
     DEBUG: false,
     CLASS_NAME: 'AppWindowManager',
     continuousTransition: false,
 
     element: document.getElementById('windows'),
+    screen: document.getElementById('screen'),
 
     /**
      * Test the app is already running.
@@ -133,7 +134,7 @@
         document.mozCancelFullScreen();
       }
 
-      screenElement.classList.remove('fullscreen-app');
+      this.screen.classList.remove('fullscreen-app');
 
       var switching = appCurrent && !appCurrent.isHomescreen &&
                       !appNext.isHomescreen;
@@ -246,7 +247,7 @@
      *
      * @memberOf module:AppWindowManager
      */
-    init: function awm_init() {
+    start: function awm_start() {
       var nfcHandler = new NfcHandler(this);
       nfcHandler.start();
 
@@ -333,7 +334,7 @@
      * tests to avoid breaking other tests.
      * @memberOf module:AppWindowManager
      */
-    uninit: function awm_uninit() {
+    stop: function awm_stop() {
       window.removeEventListener('launchapp', this);
       window.removeEventListener('home', this);
       window.removeEventListener('appcreated', this);
@@ -734,10 +735,10 @@
         return;
       }
       var fullscreen = this._activeApp.isFullScreen();
-      screenElement.classList.toggle('fullscreen-app', fullscreen);
+      this.screen.classList.toggle('fullscreen-app', fullscreen);
 
       var fullScreenLayout = this._activeApp.isFullScreenLayout();
-      screenElement.classList.toggle('fullscreen-layout-app', fullScreenLayout);
+      this.screen.classList.toggle('fullscreen-layout-app', fullScreenLayout);
 
       // Resize when opened.
       // Note: we will not trigger reflow if the final size

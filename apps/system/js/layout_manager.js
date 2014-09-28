@@ -1,5 +1,4 @@
-/* global KeyboardManager, softwareButtonManager, System,
-          AppWindowManager */
+/* global KeyboardManager, softwareButtonManager, System */
 'use strict';
 
 (function(exports) {
@@ -49,7 +48,7 @@
      * @memberOf LayoutManager
      */
     get height() {
-      var activeApp = AppWindowManager.getActiveApp();
+      var activeApp = System.currentApp;
       var isFullScreenLayout = activeApp && activeApp.isFullScreenLayout();
       var softwareButtonHeight = System.locked || isFullScreenLayout ?
         0 : softwareButtonManager.height;
@@ -74,8 +73,8 @@
      */
     get width() {
       return window.innerWidth -
-        ((AppWindowManager.getActiveApp() &&
-          AppWindowManager.getActiveApp().isFullScreenLayout()) ?
+        ((System.currentApp &&
+          System.currentApp.isFullScreenLayout()) ?
           0 : softwareButtonManager.width);
     },
 

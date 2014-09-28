@@ -1,5 +1,5 @@
 'use strict';
-/*global applications, AppWindowManager, AppWindow */
+/*global applications, System, appWindowManager, AppWindow */
 
 (function(window) {
   /**
@@ -73,14 +73,14 @@
 
         // If we already have a browser and we receive an open request,
         // display it in the current browser frame.
-        var activeApp = AppWindowManager.getActiveApp();
+        var activeApp = System.currentApp;
         if (activeApp && activeApp.isBrowser()) {
           activeApp.navigate(url);
           return;
         }
 
         origin = url;
-        app = AppWindowManager.getApp(origin);
+        app = appWindowManager.getApp(origin);
         // Just bring on top if a wrapper window is
         // already running with this url.
         if (app && app.windowName == '_blank') {
@@ -88,7 +88,7 @@
         }
       } else {
         origin = 'window:' + name + ',source:' + callerOrigin;
-        app = AppWindowManager.getApp(origin);
+        app = appWindowManager.getApp(origin);
         if (app && app.windowName === name) {
           if (app.iframe.src === url) {
             // If the url is already loaded, just display the app
@@ -116,7 +116,7 @@
     },
 
     launchWrapper: function wf_launchWrapper(config) {
-      var app = AppWindowManager.getApp(config.origin);
+      var app = appWindowManager.getApp(config.origin);
       if (!app) {
         config.chrome = {
           scrollable: true

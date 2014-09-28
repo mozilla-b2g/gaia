@@ -1,4 +1,4 @@
-/* global AppWindowManager */
+/* global System */
 'use strict';
 (function(exports) {
   /**
@@ -104,7 +104,7 @@
         case 'activityrequesting':
           // The request may come from the top most window
           // or the system app, but we don't care here.
-          var caller = AppWindowManager.getActiveApp().getTopMostWindow();
+          var caller = System.currentApp.getTopMostWindow();
           if (!this.activityPool.size) {
             this.activityPool.set(caller.instanceID, true);
           } else {
