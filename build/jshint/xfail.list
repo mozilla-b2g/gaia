@@ -9,9 +9,6 @@ apps/browser/test/marionette/navigate_test.js
 apps/browser/test/marionette/settings_test.js
 apps/browser/test/marionette/share_url_test.js
 apps/browser/test/unit/browser_db_test.js
-apps/callscreen/js/fake-oncall-desktop.js
-apps/callscreen/js/index.js
-apps/callscreen/test/unit/mock_mozbluetooth.js
 apps/communications/dialer/js/mmi_ui.js
 apps/communications/dialer/test/marionette/lib/dialer.js
 apps/communications/dialer/test/marionette/navigation_test.js
