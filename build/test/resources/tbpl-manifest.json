@@ -1,0 +1,5 @@
+{
+  "blacklist": [
+    "build/test/integration/node-modules.test.js"
+  ]
+}
