@@ -74,7 +74,7 @@
 
     if (this.isSearchApp()) {
       this.app.element.classList.add('search-app');
-      this.title.textContent = _('search-or-enter-address');
+      this.title.setAttribute('data-l10n-id', 'search-or-enter-address');
     } else {
       this.app.element.classList.remove('search-app');
     }

@@ -53,16 +53,7 @@ suite('system/AppInstallManager >', function() {
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
 
-    navigator.mozL10n = {
-      get: function get(key, params) {
-        lastL10nParams = params;
-        if (params) {
-          return key + JSON.stringify(params);
-        }
-
-        return key;
-      }
-    };
+    navigator.mozL10n = MockL10n;
 
     realApplications = window.applications;
     window.applications = MockApplications;
@@ -842,10 +833,15 @@ suite('system/AppInstallManager >', function() {
           });
 
           test('notification should have a message', function() {
+            var l10nAttrs =
+              navigator.mozL10n.getAttributes(
+                fakeNotif.querySelector('.title-container'));
+            assert.equal(l10nAttrs.id, 'downloadingAppMessage');
+            assert.deepEqual(
+              l10nAttrs.args, { appName: 'Fake hosted app with cache' });
+
             assert.equal(
-              fakeNotif.querySelector('.title-container').textContent,
-              'downloadingAppMessage{"appName":"Fake hosted app with cache"}');
-            assert.equal(fakeNotif.querySelector('progress').textContent,
+              fakeNotif.querySelector('progress').getAttribute('data-l10n-id'),
               'downloadingAppProgressIndeterminate');
           });
 
@@ -900,7 +896,7 @@ suite('system/AppInstallManager >', function() {
             test('should keep the progress indeterminate', function() {
               var progressNode = fakeNotif.querySelector('progress');
               assert.equal(progressNode.position, -1);
-              assert.equal(progressNode.textContent,
+              assert.equal(progressNode.getAttribute('data-l10n-id'),
                 'downloadingAppProgressIndeterminate');
             });
           });
@@ -913,8 +909,11 @@ suite('system/AppInstallManager >', function() {
             test('should have a quantified progress', function() {
               var progressNode = fakeNotif.querySelector('progress');
               assert.equal(progressNode.position, -1);
-              assert.equal(progressNode.textContent,
-                'downloadingAppProgressNoMax{"progress":"10.00 bytes"}');
+
+              var l10nAttrs = navigator.mozL10n.getAttributes(progressNode);
+
+              assert.equal(l10nAttrs.id, 'downloadingAppProgressNoMax');
+              assert.deepEqual(l10nAttrs.args, { progress: '10.00 bytes' });
             });
           });
 
@@ -987,10 +986,11 @@ suite('system/AppInstallManager >', function() {
         });
 
         test('notification should have a message', function() {
-          var expectedText = 'downloadingAppMessage{"appName":"' +
-            mockAppName + '"}';
-        assert.equal(fakeNotif.querySelector('.title-container').textContent,
-          expectedText);
+          var l10nAttrs = navigator.mozL10n.getAttributes(
+            fakeNotif.querySelector('.title-container'));
+
+          assert.equal(l10nAttrs.id, 'downloadingAppMessage');
+          assert.deepEqual(l10nAttrs.args, { appName: mockAppName });
         });
 
         test('notification progress should have a max and a value',
@@ -1053,10 +1053,11 @@ suite('system/AppInstallManager >', function() {
           });
 
           test('notification should have a message', function() {
-            var expectedText = 'downloadingAppMessage{"appName":"' +
-              mockAppName + '"}';
-          assert.equal(fakeNotif.querySelector('.title-container').textContent,
-            expectedText);
+            var l10nAttrs = navigator.mozL10n.getAttributes(
+              fakeNotif.querySelector('.title-container'));
+
+            assert.equal(l10nAttrs.id, 'downloadingAppMessage');
+            assert.deepEqual(l10nAttrs.args, { appName: mockAppName });
           });
 
           test('notification progress should have a max and a value',
@@ -1113,7 +1114,7 @@ suite('system/AppInstallManager >', function() {
               mockApp.mTriggerDownloadProgress(NaN);
 
               var progressNode = fakeNotif.querySelector('progress');
-              assert.equal(progressNode.textContent,
+              assert.equal(progressNode.getAttribute('data-l10n-id'),
                 'downloadingAppProgressIndeterminate');
             });
 
@@ -1130,9 +1131,14 @@ suite('system/AppInstallManager >', function() {
             test('should update the progress notification', function() {
               var progressNode = fakeNotif.querySelector('progress');
               assert.equal(progressNode.position, ratio);
-              assert.equal(progressNode.textContent,
-                'downloadingAppProgress{"progress":"10.00 bytes",' +
-                '"max":"5.00 MB"}');
+
+              var l10nAttrs = navigator.mozL10n.getAttributes(progressNode);
+
+              assert.equal(l10nAttrs.id, 'downloadingAppProgress');
+              assert.deepEqual(l10nAttrs.args, {
+                progress: '10.00 bytes',
+                max: '5.00 MB'
+              });
             });
           });
 
@@ -1236,7 +1242,11 @@ suite('system/AppInstallManager >', function() {
       test('should set the title with the app name', function() {
         fakeNotif.querySelector('.fake-notification').click();
         var title = fakeDownloadCancelDialog.querySelector('h1');
-        assert.equal(title.textContent, 'stopDownloading{"app":"Mock app"}');
+
+        var l10nAttrs = navigator.mozL10n.getAttributes(title);
+
+        assert.equal(l10nAttrs.id, 'stopDownloading');
+        assert.deepEqual(l10nAttrs.args, { app: 'Mock app' });
       });
 
       test('should add the manifest url in data set', function() {

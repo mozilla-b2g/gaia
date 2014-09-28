@@ -1071,10 +1071,11 @@ var StatusBar = {
       icon.dataset.charging = battery.charging;
       var level = Math.floor(battery.level * 10) * 10;
       icon.dataset.level = level;
-      icon.setAttribute('aria-label', navigator.mozL10n.get(battery.charging ?
-        'statusbarBatteryCharging' : 'statusbarBattery', {
-          level: level
-        }));
+      navigator.mozL10n.setAttributes(
+        icon,
+        battery.charging ? 'statusbarBatteryCharging' : 'statusbarBattery',
+        { level: level }
+      );
     },
 
     networkActivity: function sb_updateNetworkActivity() {

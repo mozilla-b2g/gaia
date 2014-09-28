@@ -65,7 +65,7 @@
     var cancel = document.createElement('button');
     cancel.id = 'ctx-cancel-button';
     cancel.dataset.action = 'cancel';
-    cancel.dataset.l10nId = 'cancel';
+    cancel.setAttribute('data-l10n-id', 'cancel');
     this.elements.cancel = cancel;
   };
 
@@ -149,7 +149,6 @@
       this.elements.list.appendChild(action);
     }, this);
 
-    this.elements.cancel.textContent = _('cancel');
     this.elements.list.appendChild(this.elements.cancel);
   };
 

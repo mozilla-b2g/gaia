@@ -204,8 +204,7 @@
     notification.appendChild(message);
 
     var tip = document.createElement('div');
-    var helper = window.navigator.mozL10n.get('attentionScreen-tapToShow');
-    tip.appendChild(document.createTextNode(helper));
+    tip.setAttribute('data-l10n-id', 'attentionScreen-tapToShow');
     tip.classList.add('detail');
     notification.appendChild(tip);
 

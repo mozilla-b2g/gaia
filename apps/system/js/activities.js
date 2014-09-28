@@ -93,10 +93,11 @@
           // shows
           window.dispatchEvent(new CustomEvent('activitymenuwillopen'));
 
-          var activityName = navigator.mozL10n.get('activity-' + detail.name);
+          var activityNameL10nId = 'activity-' + detail.name;
           if (!this.actionMenu) {
             this.actionMenu = new ActionMenu(this._listItems(choices),
-              activityName, this.choose.bind(this), this.cancel.bind(this));
+              activityNameL10nId, this.choose.bind(this),
+              this.cancel.bind(this));
             this.actionMenu.start();
           }
         }).bind(this));

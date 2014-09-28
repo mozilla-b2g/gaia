@@ -10,8 +10,6 @@
 
 var FxaModuleRefreshAuth = (function() {
 
-  var _ = null;
-
   function _isPasswordValid(passwordEl) {
     var passwordValue = passwordEl.value;
     return passwordValue && passwordEl.validity.valid;
@@ -54,7 +52,7 @@ var FxaModuleRefreshAuth = (function() {
 
   function _forgotPassword() {
     /*jshint validthis:true */
-    FxaModuleOverlay.show(_('fxa-requesting-password-reset'));
+    FxaModuleOverlay.show('fxa-requesting-password-reset');
     _requestPasswordReset.call(
       this,
       this.email,
@@ -69,7 +67,6 @@ var FxaModuleRefreshAuth = (function() {
   var Module = Object.create(FxaModule);
   Module.init = function init(options) {
     if (!this.initialized) {
-      _ = navigator.mozL10n.get;
       // Cache DOM elements.
       this.importElements(
         'fxa-pw-input-refresh',
@@ -84,7 +81,6 @@ var FxaModuleRefreshAuth = (function() {
       this.fxaShowPwRefresh.addEventListener('change', (function() {
         var passwordFieldType = !!this.fxaShowPwRefresh.checked ? 'text' :
                                                                   'password';
-        this.fxaPwInputRefresh.setAttribute('type', passwordFieldType);
       }).bind(this), false);
 
       this.fxaForgotPasswordRefresh.addEventListener('click',
@@ -105,7 +101,7 @@ var FxaModuleRefreshAuth = (function() {
   };
 
   Module.onDone = function onDone(callback) {
-    FxaModuleOverlay.show(_('fxa-connecting'));
+    FxaModuleOverlay.show('fxa-connecting');
 
     FxModuleServerRequest.signIn(
       this.email,
