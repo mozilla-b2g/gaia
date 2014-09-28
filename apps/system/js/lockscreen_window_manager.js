@@ -1,5 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global System */
 'use strict';
 
 (function(exports) {
@@ -355,8 +356,7 @@
     function lwm_responseUnlock(detail) {
       // Only when the background app is ready,
       // we close the window.
-      var activeApp = window.AppWindowManager ?
-            window.AppWindowManager.getActiveApp() : null;
+      var activeApp = System.currentApp;
       if (!activeApp) {
         this.closeApp();
       } else {

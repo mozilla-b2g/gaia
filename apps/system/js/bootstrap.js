@@ -14,7 +14,8 @@
          LockScreenNotifications, LockScreenPasscodeValidator, NfcManager,
          ExternalStorageMonitor, LockScreenNotificationBuilder,
          BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
-         CellBroadcastSystem, EdgeSwipeDetector, QuickSettings */
+         CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
+         AppWindowManager */
 'use strict';
 
 
@@ -40,8 +41,10 @@ window.addEventListener('load', function startup() {
    */
   function registerGlobalEntries() {
     /** @global */
+    window.appWindowManager = new AppWindowManager();
+    window.appWindowManager.start();
+    /** @global */
     window.activityWindowManager = new ActivityWindowManager();
-    window.activityWindowManager.start();
     /** @global */
     window.secureWindowManager = window.secureWindowManager ||
       new SecureWindowManager();
@@ -61,7 +64,9 @@ window.addEventListener('load', function startup() {
 
     // To initilaize it after LockScreenWindowManager to block home button
     // when the screen is locked.
-    window.AppWindowManager.init();
+    window.activityWindowManager.start();
+
+    // window.AppWindowManager.init();
 
     /** @global */
     window.textSelectionDialog = new TextSelectionDialog();

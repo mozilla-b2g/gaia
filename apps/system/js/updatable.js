@@ -75,8 +75,8 @@ AppUpdatable.prototype.availableCallBack = function() {
 
 AppUpdatable.prototype.successCallBack = function() {
   var app = this.app;
-  if (AppWindowManager.getActiveApp() &&
-      AppWindowManager.getActiveApp().origin !== app.origin) {
+  if (System.currentApp &&
+      System.currentApp.origin !== app.origin) {
     this.applyUpdate();
   } else {
     var self = this;
@@ -92,7 +92,7 @@ AppUpdatable.prototype.successCallBack = function() {
 };
 
 AppUpdatable.prototype.applyUpdate = function() {
-  AppWindowManager.kill(this.app.origin);
+  appWindowManager.kill(this.app.origin);
   this._mgmt.applyDownload(this.app);
 };
 
