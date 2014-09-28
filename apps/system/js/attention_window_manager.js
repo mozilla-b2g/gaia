@@ -1,4 +1,4 @@
-/* globals System, AppWindowManager, homescreenLauncher, SettingsListener,
+/* globals System, homescreenLauncher, SettingsListener,
            AttentionIndicator */
 'use strict';
 
@@ -45,7 +45,7 @@
 
     screen: document.getElementById('screen'),
 
-    start: function attwm_init() {
+    start: function attwm_start() {
       this._instances = [];
       this._openedInstances = new Map();
       this.attentionIndicator = new AttentionIndicator(this);
@@ -69,7 +69,7 @@
       window.addEventListener('rocketbar-overlayopened', this);
     },
 
-    stop: function attwm_init() {
+    stop: function attwm_stop() {
       this._instances = null;
       this._openedInstances = null;
       this.attentionIndicator.stop();
@@ -124,7 +124,7 @@
           var candidate = null;
           if (this._openedInstances.size === 0) {
             this._topMostWindow = null;
-            candidate = AppWindowManager.getActiveApp();
+            candidate = System.currentApp;
           } else {
             this._openedInstances.forEach(function(instance) {
               candidate = instance;

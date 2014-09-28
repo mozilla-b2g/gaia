@@ -12,11 +12,11 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_screen_layout.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 
 var mocksForSftButtonManager = new MocksHelper([
-  'AppWindowManager',
+  'System',
   'SettingsListener',
   'ScreenLayout',
   'OrientationManager'

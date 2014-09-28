@@ -1,6 +1,6 @@
 'use strict';
 
-/* global SheetsTransition, AppWindowManager */
+/* global SheetsTransition, System, appWindowManager */
 
 var StackManager = {
   init: function sm_init() {
@@ -23,7 +23,7 @@ var StackManager = {
     // Until then we can get into edge cases where the app currently
     // displayed is not part of the stack and we don't want to break.
     if (!app) {
-      app = AppWindowManager.getActiveApp();
+      app = System.currentApp;
     }
 
     return app;
@@ -316,7 +316,7 @@ var StackManager = {
     }
 
     if (this._broadcastTimeout === null) {
-      AppWindowManager.sendStopRecordingRequest();
+      appWindowManager.sendStopRecordingRequest();
     }
 
     clearTimeout(this._broadcastTimeout);

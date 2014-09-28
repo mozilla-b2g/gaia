@@ -1,5 +1,5 @@
 /* global MocksHelper, MockNavigatorDatastore, MockDatastore, Places */
-/* global asyncStorage */
+/* global asyncStorage, MockAppWindowManager */
 
 'use strict';
 
@@ -35,9 +35,11 @@ suite('system/Places', function() {
 
     subject = new Places();
     subject.start().then(done);
+    window.appWindowManager = new MockAppWindowManager();
   });
 
   suiteTeardown(function() {
+    window.appWindowManager = null;
     navigator.getDataStores = realDatastores;
   });
 

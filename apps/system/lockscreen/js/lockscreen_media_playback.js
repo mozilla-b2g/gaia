@@ -1,4 +1,4 @@
-/* global Bluetooth, AppWindowManager */
+/* global Bluetooth, appWindowManager */
 'use strict';
 
 function LockScreenMediaPlaybackWidget(container, options) {
@@ -123,7 +123,7 @@ LockScreenMediaPlaybackWidget.prototype = {
       var evt = new CustomEvent('displayapp', {
         bubbles: true,
         cancelable: true,
-        detail: AppWindowManager.getApp(this.origin)
+        detail: appWindowManager.getApp(this.origin)
       });
       window.dispatchEvent(evt);
     }

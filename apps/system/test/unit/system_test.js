@@ -16,12 +16,13 @@ suite('system/System', function() {
   setup(function(done) {
     clock = this.sinon.useFakeTimers();
     requireApp('system/js/system.js', done);
+    window.appWindowManager = new MockAppWindowManager();
   });
 
   test('Busy loading if the active app is not loaded.', function() {
-    this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns({
+    window.appWindowManager.mActiveApp = {
       loaded: false
-    });
+    };
     assert.isTrue(System.isBusyLoading());
   });
 

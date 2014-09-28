@@ -1,15 +1,13 @@
-/* global MocksHelper, UtilityTray, MockAppWindowManager */
+/* global MocksHelper, UtilityTray */
 
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_statusbar.js');
 require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([
-  'AppWindowManager',
   'LazyLoader',
   'System',
   'StatusBar'
@@ -108,6 +106,7 @@ suite('system/UtilityTray', function() {
   teardown(function() {
     stubById.restore();
     window.System.locked = false;
+    window.System.currentApp = null;
   });
 
   suite('show', function() {
@@ -187,7 +186,7 @@ suite('system/UtilityTray', function() {
             oop: true
           }
         };
-        this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+        window.System.currentApp = app;
         this.sinon.spy(app.iframe, 'sendTouchEvent');
 
         fakeTouches(0, 100);
@@ -207,7 +206,7 @@ suite('system/UtilityTray', function() {
             oop: false
           }
         };
-        this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+        window.System.currentApp = app;
         this.sinon.spy(app.iframe, 'sendTouchEvent');
 
         fakeTouches(0, 100);

@@ -174,7 +174,7 @@
      * System.register('isBusyLoading', appWindowManager).
      */
     isBusyLoading: function() {
-      var app = window.AppWindowManager.getActiveApp();
+      var app = this.currentApp;
       return app && !app.loaded;
     },
 
@@ -259,6 +259,14 @@
 
     get manifestURL() {
       return window.location.href.replace('index.html', 'manifest.webapp');
+    },
+
+    get currentApp() {
+      if ('undefined' === typeof window.appWindowManager) {
+        return null;
+      } else {
+        return window.appWindowManager.getActiveApp();
+      }
     }
   };
 })(window);

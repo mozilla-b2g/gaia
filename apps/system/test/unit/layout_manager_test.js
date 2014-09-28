@@ -1,17 +1,15 @@
 /* global MocksHelper, LayoutManager, MockKeyboardManager,
           MocksoftwareButtonManager, MockLockScreen,
-          MockAppWindowManager, MockSystem */
+          MockSystem */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/js/layout_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 
 var mocksForLayoutManager = new MocksHelper([
-  'AppWindowManager',
   'KeyboardManager',
   'softwareButtonManager',
   'LockScreen',
@@ -23,7 +21,7 @@ suite('system/LayoutManager >', function() {
 
   var layoutManager;
   setup(function() {
-    MockAppWindowManager.mActiveApp = {
+    MockSystem.currentApp = {
       isFullScreenLayout: function() {
         return false;
       }
@@ -148,7 +146,7 @@ suite('system/LayoutManager >', function() {
     test('should take into account keyboard and home button with' +
          'full screen layout',
       function() {
-        this.sinon.stub(MockAppWindowManager.mActiveApp, 'isFullScreenLayout')
+        this.sinon.stub(MockSystem.currentApp, 'isFullScreenLayout')
           .returns(true);
         var _w = document.documentElement.clientWidth;
         MockKeyboardManager.mHeight = 100;
@@ -163,7 +161,7 @@ suite('system/LayoutManager >', function() {
     test('should take into account keyboard and home button with' +
          'full screen layout',
       function() {
-        this.sinon.stub(MockAppWindowManager.mActiveApp, 'isFullScreenLayout')
+        this.sinon.stub(MockSystem.currentApp, 'isFullScreenLayout')
           .returns(true);
         var _w = document.documentElement.clientWidth;
         MockKeyboardManager.mHeight = 100;
@@ -179,7 +177,7 @@ suite('system/LayoutManager >', function() {
          'full screen layout, but screen is locked',
       function() {
         MockSystem.locked = true;
-        this.sinon.stub(MockAppWindowManager.mActiveApp, 'isFullScreenLayout')
+        this.sinon.stub(MockSystem.currentApp, 'isFullScreenLayout')
           .returns(true);
         MockKeyboardManager.mHeight = 100;
         MocksoftwareButtonManager.height = 50;
