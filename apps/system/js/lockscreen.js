@@ -791,6 +791,11 @@
         document.mozCancelFullScreen();
       }
 
+      // trigerring lock sound 
+      if (this.unlockSoundEnabled) {
+        var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
+        unlockAudio.play();
+      }
       // Any changes made to this,
       // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('secure-modeon');
