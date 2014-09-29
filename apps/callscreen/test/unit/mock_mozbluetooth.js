@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockMozBluetooth */
 
 var MockBTAdapter = {
   answerWaitingCall: function mba_answerWaitingCall() {},
