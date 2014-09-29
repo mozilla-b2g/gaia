@@ -7,7 +7,7 @@ from gaiatest.apps.base import Base
 
 
 class GoogleLogin(Base):
-    _iframe_locator = (By.CSS_SELECTOR, "div.appWindow.active[loading-state='false'] iframe[data-url *= 'google']")
+    _iframe_locator = (By.CSS_SELECTOR, "iframe.sup-oauth2-browser[src *= 'google']")
     _email_locator = (By.ID, 'Email')
     _password_locator = (By.ID, 'Passwd')
     _sign_in_locator = (By.ID, 'signIn')
@@ -15,8 +15,6 @@ class GoogleLogin(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-
-        self.marionette.switch_to_frame()
 
         # wait for the pop up screen to open
         view = self.wait_for_element_present(*self._iframe_locator)
