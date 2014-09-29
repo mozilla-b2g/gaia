@@ -29,12 +29,6 @@ var CpScreenHelper = (function() {
   /** Accept button node */
   var acceptButton = null;
 
-  /** Store button node */
-  var storeButton = null;
-
-  /** Cancel storebutton node */
-  var cancelStoreButton = null;
-
   /** Finish button node */
   var finishButton = null;
 
@@ -49,9 +43,6 @@ var CpScreenHelper = (function() {
 
   /** Install configuration confirm dialog node */
   var installCfgConfirmDialog = null;
-
-  /** Store confirm dialog node */
-  var storeConfirmDialog = null;
 
   /** Auth failure message */
   var authFailureMessage = null;
@@ -109,10 +100,6 @@ var CpScreenHelper = (function() {
     acceptInstallCfgButton = installCfgConfirmDialog.querySelector('.accept');
     cancelInstallCfgButton = installCfgConfirmDialog.querySelector('.cancel');
 
-    storeConfirmDialog = document.getElementById('cp-store-confirm');
-    storeButton = storeConfirmDialog.querySelector('.store');
-    cancelStoreButton = storeConfirmDialog.querySelector('.cancel');
-
     authFailureMessage = document.getElementById('cp-auth-failure');
     pinHelp = document.getElementById('cp-accept-help');
 
@@ -126,8 +113,6 @@ var CpScreenHelper = (function() {
     quitButton.addEventListener('click', cpsh_onQuit);
     cancelQuitButton.addEventListener('click', cpsh_onCancelQuit);
     acceptButton.addEventListener('click', cpsh_onAccept);
-    storeButton.addEventListener('click', cpsh_onStore);
-    cancelStoreButton.addEventListener('click', cpsh_onCancelStore);
     finishButton.addEventListener('click', cpsh_onFinish);
     pin.addEventListener('keyup', cpsh_onPinInput);
   }
@@ -318,24 +303,20 @@ var CpScreenHelper = (function() {
       return;
     }
 
-    var names = [];
-    var i;
+    processed = true;
+    // Store the APNs into the database.
+    StoreProvisioning.provision(apns, iccCardIndex);
 
-    for (i = 0; i < apns.length; i++) {
-      names.push(apns[i].carrier);
-    }
+    WapPushManager.clearNotifications(messageTag);
 
-    // If the document has been already authenticated and there are no errors,
-    // show the settings we are about to store into the settings database.
-    message = storeConfirmDialog.querySelector('.message');
-    var msg = '';
-    for (i = 0; i < names.length; i++) {
-      msg += '\n' + names[i];
-    }
-    message.textContent = msg;
-
-    // Let's store the settings or quit the app.
-    storeConfirmDialog.hidden = false;
+    /* Show finish confirm dialog after having deleted the message, this is
+     * done even if the deletion fails for some reason. */
+    MessageDB.deleteByTimestamp(messageTag).then(function() {
+      finishConfirmDialog.hidden = false;
+    }, function(e) {
+      console.error('Could not delete message from the database: ', e);
+      finishConfirmDialog.hidden = false;
+    });
   }
 
   function cpsh_pinError() {
@@ -352,45 +333,6 @@ var CpScreenHelper = (function() {
     pinHelp.hidden = false;
     pin.removeAttribute('max');
     pin.addEventListener('keyup', cpsh_onPinInput);
-  }
-
-  /**
-   * Handles the application flow when the user clicks on the 'Store' button
-   * from the client provisioning store confirm dialog.
-   */
-  function cpsh_onStore(evt) {
-    evt.preventDefault();
-    if (authenticated && isDocumentValid) {
-      storeConfirmDialog.hidden = true;
-
-      processed = true;
-      // Store the APNs into the database.
-      StoreProvisioning.provision(apns, iccCardIndex);
-
-      WapPushManager.clearNotifications(messageTag);
-
-      /* Show finish confirm dialog after having deleted the message, this is
-       * done even if the deletion fails for some reason. */
-      MessageDB.deleteByTimestamp(messageTag).then(function() {
-        finishConfirmDialog.hidden = false;
-      }, function(e) {
-        console.error('Could not delete message from the database: ', e);
-        finishConfirmDialog.hidden = false;
-      });
-    }
-  }
-
-  /**
-   * Handles the application flow when the user clicks on the 'Cancel' button
-   * from the client provisioning store confirm dialog.
-   */
-  function cpsh_onCancelStore(evt) {
-    evt.preventDefault();
-    /* When cancelling request authentication again using the original type of
-     * authentication that came with the message. */
-    authenticated = authInfo.checked;
-    pin.focus();
-    storeConfirmDialog.hidden = true;
   }
 
   /**
