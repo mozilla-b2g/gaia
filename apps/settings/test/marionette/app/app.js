@@ -40,7 +40,7 @@ module.exports = Settings;
 
 Settings.Selectors = {
   'menuItemsSection': '#root',
-  'bluetoothMenuItem': '#menuItem-bluetooth',
+  'bluetoothMenuItem': '.menuItem-bluetooth',
   'doNotTrackMenuItem': '#menuItem-doNotTrack',
   'hotspotMenuItem': '#menuItem-internetSharing',
   'hotspotPanel': '#hotspot',

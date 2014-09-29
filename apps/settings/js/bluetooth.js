@@ -13,7 +13,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
   var _ = navigator.mozL10n.get;
   var settings = Settings.mozSettings;
-  var bluetooth = getBluetooth();
+  var bluetooth = navigator.mozBluetooth;
   var defaultAdapter = null;
 
   var MAX_DEVICE_NAME_LENGTH = 20;
