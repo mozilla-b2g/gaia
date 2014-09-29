@@ -115,22 +115,26 @@ var About = {
     function checkIfStatusComplete() {
 
       var l10nValues = [
-        'check-complete', 'retry-when-online', 'already-latest-version', 'no-updates'];
+        'check-complete', 
+        'retry-when-online', 
+        'already-latest-version', 
+        'no-updates'
+      ];
 
-      var hasSomeValidResponse = function(l10nValue){
+      var hasResponse = function(l10nValue){
         return Object.keys(checkStatus).some(function(setting) {
           return checkStatus[setting].value === l10nValue;
         });
-      }
+      };
 
       var getReponses = function(){
-        for(var l10nValue in l10nValues){
-          if (hasSomeValidResponse(l10nValues[l10nValue])){
-            return l10nValues[l10nValue];
+        for (var key in l10nValues){
+          if (hasResponse(l10nValues[key])){
+            return l10nValues[key];
           }
         }
         return 'check-error';
-      }
+      };
 
       var hasAllResponses =
         Object.keys(checkStatus).every(function(setting) {
@@ -139,12 +143,12 @@ var About = {
 
       if (hasAllResponses) {
         updateStatus.classList.remove('checking');
-        response = getReponses();
+        var response = getReponses();
         if (response != 'check-error'){
             systemStatus.setAttribute('data-l10n-id', response);
             return;
-        };
-        console.error('Error checking for system update:', value);
+        }
+        console.error('Error checking for system update:', response);
       }
     }
 
