@@ -252,6 +252,11 @@ function execute(config) {
     settings['debugger.remote-mode'] = 'disabled';
   }
 
+  if (config.PRODUCTION === '0') {
+    settings['dom.mozApps.signed_apps_installable_from'] =
+      'https://marketplace.firefox.com,https://marketplace.allizom.org';
+  }
+
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
 
   if (config.DEVICE_DEBUG) {
