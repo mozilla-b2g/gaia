@@ -21,7 +21,8 @@ function View(element) {
   });
 
   priv.set(this, {
-    visible: !element.classList.contains('hidden')
+    visible: !element.classList.contains('hidden'),
+    pendingVisible: false
   });
 }
 
@@ -54,7 +55,8 @@ Object.defineProperties(View.prototype, {
     set: function(value) {
       var state = priv.get(this);
       value = !!value;
-      if (state.visible !== value) {
+      if (state.visible !== value || state.pendingVisible) {
+        state.pendingVisible = false;
         state.visible = value;
 
         var event = new CustomEvent('panel-visibilitychange', {
@@ -71,6 +73,15 @@ Object.defineProperties(View.prototype, {
         }
       }
       return value;
+    }
+  },
+
+  pendingVisible: {
+    get: function() {
+      return priv.get(this).pendingVisible;
+    },
+    set: function(value) {
+      return (priv.get(this).pendingVisible = !!value);
     }
   }
 });
