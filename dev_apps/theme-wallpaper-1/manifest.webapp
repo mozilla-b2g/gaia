@@ -1,0 +1,11 @@
+{
+  "name": "Test theme 1",
+  "description": "Test wallpaper jpg",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "role": "theme",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  }
+}
