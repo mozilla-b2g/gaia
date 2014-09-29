@@ -1,6 +1,6 @@
 'use strict';
 
-/* global AlternativesCharMenuManager */
+/* global AlternativesCharMenuManager, IMERender */
 
 require('/js/keyboard/alternatives_char_menu_manager.js');
 
@@ -9,8 +9,12 @@ suite('AlternativesCharMenuManager', function() {
   var container;
   var manager;
   var target;
+  var targetElem;
 
   var getFakeElementWithGetBoundingClientRect;
+
+  var dummyObjForChild1;
+  var dummyObjForChild2;
 
   setup(function() {
     getFakeElementWithGetBoundingClientRect = function() {
@@ -38,6 +42,14 @@ suite('AlternativesCharMenuManager', function() {
     var child2 = document.createElement('div');
     container.appendChild(child2);
 
+    dummyObjForChild1 = {
+      dummy: 'dummy'
+    };
+
+    dummyObjForChild2 = {
+      dummy2: 'dummy2'
+    };
+
     document.body.appendChild(container);
 
     // Create fake IMERender
@@ -51,11 +63,12 @@ suite('AlternativesCharMenuManager', function() {
             return container.getBoundingClientRect();
           },
           getMenuTarget: function() {
-            return child2;
+            return dummyObjForChild2;
           }
         };
       },
-      hideAlternativesCharMenu: this.sinon.stub()
+      hideAlternativesCharMenu: this.sinon.stub(),
+      targetObjDomMap: new WeakMap()
     };
     this.sinon.spy(window.IMERender, 'showAlternativesCharMenu');
 
@@ -70,18 +83,30 @@ suite('AlternativesCharMenuManager', function() {
           alt: {
           }
         }
+      },
+      layoutRenderingManager: {
+        getTargetObject: this.sinon.stub()
       }
     };
 
-    // Create fake target
-    target = getFakeElementWithGetBoundingClientRect();
-    target.getBoundingClientRect.returns({
+    // Create fake target object and DOM element
+    targetElem = getFakeElementWithGetBoundingClientRect();
+    targetElem.getBoundingClientRect.returns({
       top: 50,
       bottom: 60,
       left: 10,
       right: 40,
       width: 30
     });
+
+    target = {
+      keyCode: 'x'.charCodeAt(0),
+      keyCodeUpper: 'X'.charCodeAt(0),
+      lowercaseValue: 'x',
+      uppercaseValue: 'X'
+    };
+
+    IMERender.targetObjDomMap.set(target, targetElem);
 
     // Show an alternatives chars menu
     manager = new AlternativesCharMenuManager(app);
@@ -180,20 +205,36 @@ suite('AlternativesCharMenuManager', function() {
     });
 
     suite('isMenuTarget', function() {
+      var dummyTarget = {
+        dummy: null
+      };
+
+      var stubMapGet;
+
+      setup(function() {
+        stubMapGet = this.sinon.stub(IMERender.targetObjDomMap, 'get');
+      });
+
       test('true', function() {
-        var target = {
+        var targetElem = {
           parentNode: container
         };
 
-        assert.isTrue(manager.isMenuTarget(target));
+        stubMapGet.returns(targetElem);
+
+        assert.isTrue(manager.isMenuTarget(dummyTarget));
+        assert.isTrue(stubMapGet.calledWith(dummyTarget));
       });
 
       test('false', function() {
-        var target = {
+        var targetElem = {
           parentNode: {}
         };
 
-        assert.isFalse(manager.isMenuTarget(target));
+        stubMapGet.returns(targetElem);
+
+        assert.isFalse(manager.isMenuTarget(dummyTarget));
+        assert.isTrue(stubMapGet.calledWith(dummyTarget));
       });
     });
 
@@ -289,8 +330,19 @@ suite('AlternativesCharMenuManager', function() {
           clientY: 55
         };
 
-        assert.equal(manager.getMenuTarget(press),
-          container.children[0]);
+        manager.app.layoutRenderingManager.getTargetObject.returns(
+          dummyObjForChild1
+        );
+
+        var retrievedTarget = manager.getMenuTarget(press);
+
+        assert.isTrue(
+          manager.app.layoutRenderingManager.getTargetObject.calledWith(
+            container.children[0]
+          )
+        );
+
+        assert.deepEqual(retrievedTarget, dummyObjForChild1);
       });
 
       test('under 2nd key', function() {
@@ -300,8 +352,7 @@ suite('AlternativesCharMenuManager', function() {
           clientY: 55
         };
 
-        assert.equal(manager.getMenuTarget(press),
-          container.children[1]);
+        assert.deepEqual(manager.getMenuTarget(press), dummyObjForChild2);
       });
 
       test('under 2nd key but haven\'t moved away from target', function() {
@@ -311,8 +362,19 @@ suite('AlternativesCharMenuManager', function() {
           clientY: 55
         };
 
-        assert.equal(manager.getMenuTarget(press),
-          container.children[0]);
+        manager.app.layoutRenderingManager.getTargetObject.returns(
+          dummyObjForChild1
+        );
+
+        var retrievedTarget = manager.getMenuTarget(press);
+
+        assert.isTrue(
+          manager.app.layoutRenderingManager.getTargetObject.calledWith(
+            container.children[0]
+          )
+        );
+
+        assert.deepEqual(retrievedTarget, dummyObjForChild1);
       });
 
       test('under 2nd key, had moved away from target', function() {
@@ -322,8 +384,7 @@ suite('AlternativesCharMenuManager', function() {
           clientY: 55
         };
 
-        assert.equal(manager.getMenuTarget(press),
-          container.children[1]);
+        assert.deepEqual(manager.getMenuTarget(press), dummyObjForChild2);
 
         var press2 = {
           target: target,
@@ -331,14 +392,18 @@ suite('AlternativesCharMenuManager', function() {
           clientY: 55
         };
 
-        assert.equal(manager.getMenuTarget(press2),
-          container.children[1]);
+        assert.deepEqual(manager.getMenuTarget(press2), dummyObjForChild2);
       });
     });
   });
 
   suite('after hiding the menu', function() {
+    var stubMapGet;
+
     setup(function() {
+      stubMapGet =
+        this.sinon.stub(IMERender.targetObjDomMap, 'get').returns(targetElem);
+
       app.upperCaseStateManager.isUpperCase = false;
       app.upperCaseStateManager.isUpperCaseLocked = false;
 
@@ -350,11 +415,8 @@ suite('AlternativesCharMenuManager', function() {
     });
 
     test('isMenuTarget should be false', function() {
-      var target = {
-        parentNode: container
-      };
-
       assert.isFalse(manager.isMenuTarget(target));
+      assert.isTrue(stubMapGet.calledWith(target));
     });
 
     test('isInMenuArea() should return false', function() {

@@ -296,4 +296,33 @@ suite('LayoutRenderingManager', function() {
       });
     });
   });
+
+  suite('domObjectMap and getTargetObject', function() {
+    test('get object with existent key', function() {
+      var key = {
+        dummy: 'dummy'
+      };
+
+      var object = {
+        result: 'result'
+      };
+
+      manager.domObjectMap.set(key, object);
+
+      assert.equal(manager.getTargetObject(key), object);
+    });
+
+    test('null and undefined key should return empty object', function() {
+      assert.deepEqual(manager.getTargetObject(null), {});
+      assert.deepEqual(manager.getTargetObject(undefined), {});
+    });
+
+    test('inexistent key should return empty object instead of undefined',
+      function() {
+      var inexistentKey = {
+        someProp: 'dummy'
+      };
+      assert.deepEqual(manager.getTargetObject(inexistentKey), {});
+    });
+  });
 });

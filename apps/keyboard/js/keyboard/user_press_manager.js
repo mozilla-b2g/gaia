@@ -13,8 +13,9 @@
 /**
  * UserPress instance represents a single user interaction, by touch or mouse.
  */
-var UserPress = function(el, coords) {
-  this.target = el;
+var UserPress = function(obj, coords) {
+  // |target| is an abstract key object, not a DOM element
+  this.target = obj;
   this.updateCoords(coords, false);
 };
 
@@ -205,7 +206,9 @@ UserPressManager.prototype.handleEvent = function(evt) {
 
 UserPressManager.prototype._handleNewPress = function(el, coords, id) {
   this.app.console.info('UserPressManager._handleNewPress()');
-  var press = new UserPress(el, coords);
+  var press =
+    new UserPress(this.app.layoutRenderingManager.getTargetObject(el),
+                  coords);
   this.presses.set(id, press);
 
   if (typeof this.onpressstart === 'function') {
@@ -216,7 +219,7 @@ UserPressManager.prototype._handleNewPress = function(el, coords, id) {
 UserPressManager.prototype._handleChangedPress = function(el, coords, id) {
   this.app.console.info('UserPressManager._handleChangedPress()');
   var press = this.presses.get(id);
-  press.target = el;
+  press.target = this.app.layoutRenderingManager.getTargetObject(el);
   press.updateCoords(coords, true);
 
   if (typeof this.onpressmove === 'function') {
@@ -227,7 +230,7 @@ UserPressManager.prototype._handleChangedPress = function(el, coords, id) {
 UserPressManager.prototype._handleFinishPress = function(el, coords, id) {
   this.app.console.info('UserPressManager._handleFinishPress()');
   var press = this.presses.get(id);
-  press.target = el;
+  press.target = this.app.layoutRenderingManager.getTargetObject(el);
   press.updateCoords(coords,
     press.moved || this._distanceReachesLimit(id, coords));
 
