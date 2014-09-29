@@ -8,7 +8,6 @@ requireApp('ftu/test/unit/mock_ui_manager.js');
 
 requireApp('ftu/js/wifi.js');
 
-var _;
 var mocksHelperForWifi = new MocksHelper([
   'utils',
   'WifiHelper',

@@ -29,6 +29,7 @@ suite('sim mgmt >', function() {
       iccInfo0,
       req,
       getCardLockRetryCountStub;
+  var l10nAttrs;
 
   var setupRetryCount = function() {
     req = { result: { retryCount: 3 } };
@@ -148,7 +149,7 @@ suite('sim mgmt >', function() {
       SimManager.handleCardState();
 
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
-      assert.equal('type_pin', UIManager.pinLabel.textContent);
+      assert.equal(UIManager.pinLabel.getAttribute('data-l10n-id'), 'type_pin');
 
       assert.isFalse(UIManager.pincodeScreen.classList.contains('show'));
       assert.isTrue(UIManager.pukcodeScreen.classList.contains('show'));
@@ -204,16 +205,18 @@ suite('sim mgmt >', function() {
       SimManager.handleCardState();
 
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
-      assert.equal(navigator.mozL10n.get('pincodeLabel', {n: 1}),
-        UIManager.pinLabel.textContent);
+      l10nAttrs = navigator.mozL10n.getAttributes(UIManager.pinLabel);
+      assert.equal(l10nAttrs.id, 'pincodeLabel');
+      assert.deepEqual(l10nAttrs.args, {n: 1});
 
       fireRetryCountCallback();
       assert.isTrue(getCardLockRetryCountStub.calledOnce);
       assert.isFalse(UIManager.pinRetriesLeft.classList.contains('hidden'));
 
       SimManager.skip();
-      assert.equal(navigator.mozL10n.get('pincodeLabel', {n: 2}),
-        UIManager.pinLabel.textContent);
+      l10nAttrs = navigator.mozL10n.getAttributes(UIManager.pinLabel);
+      assert.equal(l10nAttrs.id, 'pincodeLabel');
+      assert.deepEqual(l10nAttrs.args, {n: 2});
       assert.isTrue(UIManager.pinRetriesLeft.classList.contains('hidden'));
     });
 
@@ -223,16 +226,18 @@ suite('sim mgmt >', function() {
       SimManager.handleCardState();
 
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
-      assert.equal(navigator.mozL10n.get('pukcodeLabel', {n: 1}),
-        UIManager.pukLabel.textContent);
+      l10nAttrs = navigator.mozL10n.getAttributes(UIManager.pukLabel);
+      assert.equal(l10nAttrs.id, 'pukcodeLabel');
+      assert.deepEqual(l10nAttrs.args, {n: 1});
 
       fireRetryCountCallback();
       assert.isTrue(getCardLockRetryCountStub.calledOnce);
       assert.isFalse(UIManager.pukRetriesLeft.classList.contains('hidden'));
 
       SimManager.skip();
-      assert.equal(navigator.mozL10n.get('pukcodeLabel', {n: 2}),
-        UIManager.pukLabel.textContent);
+      l10nAttrs = navigator.mozL10n.getAttributes(UIManager.pukLabel);
+      assert.equal(l10nAttrs.id, 'pukcodeLabel');
+      assert.deepEqual(l10nAttrs.args, {n: 2});
       assert.isTrue(UIManager.pukRetriesLeft.classList.contains('hidden'));
     });
 
@@ -242,16 +247,18 @@ suite('sim mgmt >', function() {
       SimManager.handleCardState();
 
       assert.isTrue(UIManager.unlockSimScreen.classList.contains('show'));
-      assert.equal(navigator.mozL10n.get('nckcodeLabel', {n: 1}),
-        UIManager.xckLabel.textContent);
+      l10nAttrs = navigator.mozL10n.getAttributes(UIManager.xckLabel);
+      assert.equal(l10nAttrs.id, 'nckcodeLabel');
+      assert.deepEqual(l10nAttrs.args, {n: 1});
 
       fireRetryCountCallback();
       assert.isTrue(getCardLockRetryCountStub.calledOnce);
       assert.isFalse(UIManager.xckRetriesLeft.classList.contains('hidden'));
 
       SimManager.skip();
-      assert.equal(navigator.mozL10n.get('nckcodeLabel', {n: 2}),
-        UIManager.xckLabel.textContent);
+      l10nAttrs = navigator.mozL10n.getAttributes(UIManager.xckLabel);
+      assert.equal(l10nAttrs.id, 'nckcodeLabel');
+      assert.deepEqual(l10nAttrs.args, {n: 2});
       assert.isTrue(UIManager.xckRetriesLeft.classList.contains('hidden'));
     });
   });
@@ -472,11 +479,12 @@ suite('sim mgmt >', function() {
       iccInfo0.cardState = 'pinRequired';
       SimManager.updateSIMInfoText(SimManager.icc0);
 
-      assert.equal('simPinLocked', UIManager.simCarrier1.textContent);
+      assert.equal(UIManager.simCarrier1.textContent, '');
     });
 
     test('should read no operator when unlocked', function() {
-      assert.equal('searchingOperator', UIManager.simCarrier1.textContent);
+      assert.equal(UIManager.simCarrier1.getAttribute('data-l10n-id'),
+                                                      'searchingOperator');
     });
 
     test('should update the operator on voicechange', function() {

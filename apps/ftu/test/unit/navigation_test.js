@@ -21,8 +21,6 @@ requireApp('ftu/test/unit/mock_utils.js');
 requireApp('ftu/test/unit/mock_operatorVariant.js');
 requireApp('ftu/test/unit/mock_navigation.html.js');
 
-var _;
-
 var mocksHelperForNavigation = new MocksHelper([
   'utils',
   'UIManager',
@@ -182,7 +180,7 @@ suite('navigation >', function() {
 
   suite('UI changes>', function() {
     var observerConfig = {
-      childList: true
+      attributes: true
     };
 
     setup(function() {
@@ -199,7 +197,8 @@ suite('navigation >', function() {
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
-          assert.equal(UIManager.mainTitle.innerHTML, _('language'));
+          assert.equal(UIManager.mainTitle.getAttribute('data-l10n-id'),
+            'language');
         });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
@@ -210,7 +209,7 @@ suite('navigation >', function() {
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
-          assert.equal(UIManager.mainTitle.innerHTML, _('3g'));
+          assert.equal(UIManager.mainTitle.getAttribute('data-l10n-id'), '3g');
         });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
@@ -221,7 +220,8 @@ suite('navigation >', function() {
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
-          assert.equal(UIManager.mainTitle.innerHTML, _('selectNetwork'));
+          assert.equal(UIManager.mainTitle.getAttribute('data-l10n-id'),
+            'selectNetwork');
           assert.isFalse(UIManager.navBar.classList.contains('secondary-menu'));
           assert.isFalse(UIManager.activationScreen.classList.contains(
                         'no-options'));
@@ -235,7 +235,8 @@ suite('navigation >', function() {
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
-          assert.equal(UIManager.mainTitle.innerHTML, _('dateAndTime'));
+          assert.equal(UIManager.mainTitle.getAttribute('data-l10n-id'),
+            'dateAndTime');
         });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
@@ -246,7 +247,8 @@ suite('navigation >', function() {
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
-          assert.equal(UIManager.mainTitle.innerHTML, _('geolocation'));
+          assert.equal(UIManager.mainTitle.getAttribute('data-l10n-id'),
+            'geolocation');
         });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
@@ -257,7 +259,8 @@ suite('navigation >', function() {
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
-          assert.equal(UIManager.mainTitle.innerHTML, _('importContacts3'));
+          assert.equal(UIManager.mainTitle.getAttribute('data-l10n-id'),
+            'importContacts3');
         });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
@@ -268,7 +271,8 @@ suite('navigation >', function() {
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
-          assert.equal(UIManager.mainTitle.innerHTML, _('firefox-accounts'));
+          assert.equal(UIManager.mainTitle.getAttribute('data-l10n-id'),
+            'firefox-accounts');
         });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
@@ -279,7 +283,8 @@ suite('navigation >', function() {
       var observer = new MutationObserver(function(records) {
         done(function() {
           observer.disconnect();
-          assert.equal(UIManager.mainTitle.innerHTML, _('aboutBrowser'));
+          assert.equal(UIManager.mainTitle.getAttribute('data-l10n-id'),
+            'aboutBrowser');
         });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
@@ -290,12 +295,11 @@ suite('navigation >', function() {
       var observer = new MutationObserver(function() {
         done(function() {
           observer.disconnect();
-          assert.equal(UIManager.mainTitle.innerHTML, _('aboutBrowser'));
+          assert.equal(UIManager.mainTitle.getAttribute('data-l10n-id'),
+            'aboutBrowser');
           var linkRef = document.getElementById('external-link-privacy');
-          assert.equal(linkRef.textContent,
-                       '<a class="external" ' +
-                       'href="https://www.mozilla.org/privacy/firefox-os/">' +
-                       'learn-more-privacy-link</a>');
+          assert.equal(linkRef.getAttribute('data-l10n-id'),
+            'learn-more-privacy');
         });
       });
       observer.observe(UIManager.mainTitle, observerConfig);

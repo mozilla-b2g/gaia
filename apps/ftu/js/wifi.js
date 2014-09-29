@@ -4,11 +4,8 @@
 /* exported WifiManager, WifiUI */
 'use strict';
 
-var _;
-
 var WifiManager = {
   init: function wn_init() {
-    _ = navigator.mozL10n.get;
     this.api = WifiHelper.getWifiManager();
     this.changeStatus();
     // Ensure that wifi is on.
@@ -198,17 +195,17 @@ var WifiUI = {
       var securityLevelDOM =
         networkSelected.querySelectorAll('p[data-security-level]')[0];
       if (!security || security === '') {
-        securityLevelDOM.textContent = _('securityOpen');
+        securityLevelDOM.setAttribute('data-l10n-id', 'securityOpen');
       } else {
-        securityLevelDOM.textContent = security;
+        securityLevelDOM.setAttribute('data-l10n-id', security);
       }
     }
 
     // And then end we update the selected network
     var newWifi = document.getElementById(ssid);
     newWifi.dataset.wifiSelected = true;
-    newWifi.querySelector('p[data-security-level]').textContent =
-                                                    _('shortStatus-connecting');
+    newWifi.querySelector('p[data-security-level]').setAttribute(
+                        'data-l10n-id', 'shortStatus-connecting');
     newWifi.querySelector('aside').classList.add('connecting');
 
 
@@ -229,7 +226,7 @@ var WifiUI = {
     // Remove refresh option
     UIManager.activationScreen.classList.add('no-options');
     // Update title
-    UIManager.mainTitle.textContent = ssid;
+    UIManager.mainTitle.setAttribute('data-l10n-id', ssid);
 
     // Update network
     var selectedNetwork = WifiManager.getNetwork(ssid);
@@ -277,7 +274,7 @@ var WifiUI = {
     // Remove refresh option
     UIManager.activationScreen.classList.add('no-options');
     // Update title
-    UIManager.mainTitle.textContent = _('authentication');
+    UIManager.mainTitle.setAttribute('data-l10n-id', 'authentication');
     UIManager.navBar.classList.add('secondary-menu');
     window.location.hash = '#hidden-wifi-authentication';
   },
@@ -298,7 +295,7 @@ var WifiUI = {
     if (!networks || networks.length === 0) {
       var noResult = '<div id="no-result-container">' +
                      '  <div id="no-result-message">' +
-                     '    <p>' + _('noWifiFound3') + '</p>' +
+                     '    <p data-l10n-id="noWifiFound3"></p>' +
                      '  </div>' +
                      '</div>';
       networksDOM.innerHTML = noResult;
@@ -306,7 +303,7 @@ var WifiUI = {
       networksList = document.createElement('ul');
       networksList.id = 'networks-list';
       networksList.setAttribute('role', 'listbox');
-      networksList.setAttribute('aria-label', _('networksList'));
+      networksList.setAttribute('data-l10n-id', 'networksList');
       var networksShown = [];
       networks.sort(function(a, b) {
         return b.relSignalStrength - a.relSignalStrength;
@@ -330,7 +327,7 @@ var WifiUI = {
           icon.classList.add('wifi-icon');
           var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
           icon.classList.add('level-' + level);
-          icon.setAttribute('aria-label', _('wifiLevel', {level: level}));
+          navigator.mozL10n.setAttributes(icon, 'wifiLevel', {level: level});
           icon.setAttribute('role', 'presentation');
           // Set SSID
           ssidp.textContent = network.ssid;
@@ -344,18 +341,16 @@ var WifiUI = {
             small.textContent = keys.join(', ');
             icon.classList.add('secured');
           } else {
-            small.textContent = _('securityOpen');
+            small.setAttribute('data-l10n-id', 'securityOpen');
           }
           // Show connection status
           icon.classList.add('wifi-signal');
           if (WifiHelper.isConnected(network)) {
-            small.textContent = _('shortStatus-connected');
+            small.setAttribute('data-l10n-id', 'shortStatus-connected');
             small.removeAttribute('aria-label');
             icon.classList.add('connected');
             li.classList.add('connected');
             li.dataset.wifiSelected = true;
-          } else {
-            small.setAttribute('aria-label', _('security'));
           }
 
           // Update list of shown netwoks
@@ -391,8 +386,8 @@ var WifiUI = {
     }
 
     // Update the element
-    element.querySelector('p[data-security-level]').textContent =
-                                                    _('shortStatus-' + status);
+    element.querySelector('p[data-security-level]').setAttribute(
+                          'data-l10n-id', 'shortStatus-' + status);
 
     // Animate icon if connecting, stop animation if
     // failed/connected/disconnected
