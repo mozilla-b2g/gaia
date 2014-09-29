@@ -70,3 +70,9 @@ gaia-grid {
 .edit-mode .divider:last-of-type {
   visibility: visible;
 }
+
+/* Disable scroll while edit group UI is being displayed because of keyboard
+   translates the vertical home */
+body.edit-group {
+  overflow: hidden;
+}
