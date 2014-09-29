@@ -104,71 +104,65 @@ var CarrierSettings = (function(window, document, undefined) {
       backButton.setAttribute('href', '#carrier-iccs');
     }
 
-    /*
-     * Displaying all GSM and CDMA options by default for CDMA development.
-     * We should remove CDMA options after the development finished.
-     * Bug 881862 is filed for tracking this.
-     */
-    // get network type
-    getSupportedNetworkInfo(_mobileConnection, function(result) {
-      var content =
-        document.getElementById('carrier-operatorSettings-content');
+    var content =
+      document.getElementById('carrier-operatorSettings-content');
 
-      cs_initOperatorSelector();
-      cs_initRoamingPreferenceSelector();
+    cs_initOperatorSelector();
+    cs_initRoamingPreferenceSelector();
 
-      // Init warnings the user sees before enabling data calls and roaming.
-      cs_initWarnings();
+    // Init warnings the user sees before enabling data calls and roaming.
+    cs_initWarnings();
 
-      // Update the list of APNs in the APN panels.
-      window.addEventListener('panelready', function(e) {
-        // Get the mozMobileConnection instace for this ICC card.
-        _mobileConnection = _mobileConnections[
-          DsdsSettings.getIccCardIndexForCellAndDataSettings()
-        ];
-        if (!_mobileConnection) {
-          return;
-        }
+    // Update the list of APNs in the APN panels.
+    window.addEventListener('panelready', function(e) {
+      // Get the mozMobileConnection instace for this ICC card.
+      _mobileConnection = _mobileConnections[
+        DsdsSettings.getIccCardIndexForCellAndDataSettings()
+      ];
+      if (!_mobileConnection) {
+        return;
+      }
 
-        var currentHash = e.detail.current;
-        if (currentHash === '#carrier') {
-          cs_updateNetworkTypeLimitedItemsVisibility(
-            _mobileConnection.voice && _mobileConnection.voice.type);
-          // Show carrier name.
-          cs_showCarrierName();
-          cs_disabeEnableDataCallCheckbox();
-          return;
-        }
+      var currentHash = e.detail.current;
+      if (currentHash === '#carrier') {
+        cs_updateNetworkTypeLimitedItemsVisibility(
+          _mobileConnection.voice && _mobileConnection.voice.type);
+        // Show carrier name.
+        cs_showCarrierName();
+        cs_disabeEnableDataCallCheckbox();
+        return;
+      }
 
-        if (!currentHash.startsWith('#carrier-') ||
-            (currentHash === '#carrier-iccs') ||
-            (currentHash === '#carrier-dc-warning') ||
-            (currentHash === '#carrier-dr-warning')) {
-          return;
-        }
+      if (!currentHash.startsWith('#carrier-') ||
+          (currentHash === '#carrier-iccs') ||
+          (currentHash === '#carrier-dc-warning') ||
+          (currentHash === '#carrier-dr-warning')) {
+        return;
+      }
 
-        if (currentHash === '#carrier-operatorSettings') {
+      if (currentHash === '#carrier-operatorSettings') {
+        getSupportedNetworkInfo(_mobileConnection, function(result) {
           cs_updateNetworkTypeSelector(result);
           cs_updateAutomaticOperatorSelectionCheckbox();
-          return;
-        }
-
-        // Get MCC and MNC codes the APNs will rely on.
-        cs_getMccMncCodes(function getMccMncCodesCb() {
-          var networkType = _mobileConnection.data.type;
-
-          if (currentHash === '#carrier-dataSettings') {
-            cs_queryApns(cs_updateApnList, 'data', networkType);
-          } else if (currentHash === '#carrier-mmsSettings') {
-            cs_queryApns(cs_updateApnList, 'mms', networkType);
-          } else if (currentHash === '#carrier-suplSettings') {
-            cs_queryApns(cs_updateApnList, 'supl', networkType);
-          } else if (currentHash === '#carrier-dunSettings') {
-            cs_queryApns(cs_updateApnList, 'dun', networkType);
-          } else if (currentHash === '#carrier-imsSettings') {
-            cs_queryApns(cs_updateApnList, 'ims', networkType);
-          }
         });
+        return;
+      }
+
+      // Get MCC and MNC codes the APNs will rely on.
+      cs_getMccMncCodes(function getMccMncCodesCb() {
+        var networkType = _mobileConnection.data.type;
+
+        if (currentHash === '#carrier-dataSettings') {
+          cs_queryApns(cs_updateApnList, 'data', networkType);
+        } else if (currentHash === '#carrier-mmsSettings') {
+          cs_queryApns(cs_updateApnList, 'mms', networkType);
+        } else if (currentHash === '#carrier-suplSettings') {
+          cs_queryApns(cs_updateApnList, 'supl', networkType);
+        } else if (currentHash === '#carrier-dunSettings') {
+          cs_queryApns(cs_updateApnList, 'dun', networkType);
+        } else if (currentHash === '#carrier-imsSettings') {
+          cs_queryApns(cs_updateApnList, 'ims', networkType);
+        }
       });
     });
 
