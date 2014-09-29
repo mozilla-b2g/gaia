@@ -264,7 +264,8 @@
       // Filter out any application that is not a system browser window.
       case 'browser-only':
         this.stack = unfilteredStack.filter(function(app) {
-          return app.isBrowser();
+          return app.isBrowser() ||
+            (app.manifest && app.manifest.role === 'search');
         });
         navigator.mozL10n.setAttributes(noRecentWindows,
                                         'no-recent-browser-windows');
