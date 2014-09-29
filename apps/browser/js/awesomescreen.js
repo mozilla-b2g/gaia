@@ -185,6 +185,9 @@ var Awesomescreen = {
       if (urls.indexOf(visit.uri) == -1) {
         urls.push(visit.uri);
         fragment.appendChild(this.createListItem(visit));
+        var ul = this.listTemplate.cloneNode(true);
+        ul.appendChild(fragment);
+        this.history.appendChild(ul);
       }
     }, this);
 
@@ -228,10 +231,8 @@ var Awesomescreen = {
 
     var h3 = document.createElement('h3');
     var textNode = document.createTextNode(text);
-    var ul = this.listTemplate.cloneNode(true);
     h3.appendChild(textNode);
     parent.appendChild(h3);
-    parent.appendChild(ul);
   },
 
   /**
