@@ -40,6 +40,16 @@ suite('search/providers/local_apps', function() {
         launch_path: '/fakeapp3/index.html',
         name: 'Mooilla Fake App 3'
       }
+    },{
+      manifest: {
+        launch_path: '/fakeapp4/index.html',
+        name: 'Blah blah',
+        locales: {
+          foobar: {
+            name: 'localized app'
+          }
+        }
+      }
     }];
     _blValue = ['/fakeapp1-1/index.html'];
 
@@ -113,6 +123,11 @@ suite('search/providers/local_apps', function() {
       assert.equal(results.length, 3);
     });
 
+    test('Search for localized apps', function() {
+      document.documentElement.lang = 'foobar';
+      var results = subject.find('localized');
+      assert.equal(results.length, 1);
+    });
   });
 
 });
