@@ -1,3 +1,5 @@
+/* exported parseJPEGMetadata */
+/* global BlobView */
 'use strict';
 
 //
@@ -93,7 +95,7 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
         break;
 
       case 0xE1:  // APP1 segment. Probably holds EXIF metadata
-        parseAPP1(data);
+        parseAPP1(data); // jshint ignore:line
         /* fallthrough */
 
       default:
@@ -205,8 +207,9 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
     var ifd0entries = data.getUint16(offset + 10, byteorder);
     var ifd1 = data.getUint32(offset + 12 + 12 * ifd0entries, byteorder);
     // If there is an offset for IFD1, parse that
-    if (ifd1 !== 0)
+    if (ifd1 !== 0) {
       parseIFD(data, ifd1 + 10, byteorder, exif, true);
+    }
 
     return exif;
   }
@@ -217,8 +220,9 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
       parseEntry(data, offset + 2 + 12 * i, byteorder, exif);
     }
 
-    if (onlyParseOne)
+    if (onlyParseOne) {
       return;
+    }
 
     var next = data.getUint32(offset + 2 + 12 * numentries, byteorder);
     if (next !== 0 && next < file.size) {
@@ -292,8 +296,9 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
     var tagname = tagnames[tag];
 
     // If we don't know about this tag type or already processed it, skip it
-    if (!tagname || exif[tagname])
+    if (!tagname || exif[tagname]) {
       return;
+    }
 
     var type = data.getUint16(offset + 2, byteorder);
     var count = data.getUint32(offset + 4, byteorder);
@@ -317,8 +322,8 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
       } else {
         var values = [];
         var size = typesize[type];
-        for (var i = 0; i < count; i++) {
-          values[i] = parseOneValue(data, offset + size * i, type, byteorder);
+        for (var j = 0; j < count; j++) {
+          values[j] = parseOneValue(data, offset + size * j, type, byteorder);
         }
         return values;
       }
