@@ -127,6 +127,25 @@ if [ "$RUNTIME" ]; then
   RUNTIME_OPTS="--runtime=$RUNTIME"
 fi
 
+# start runner-service if we're testing against device/emulator
+SPAWNED_PID=""
+if [ "$BUILDAPP" != "desktop" ]; then
+  ADDITIONAL_OPTS=""
+  if [ "$B2G_HOME" ]; then
+    ADDITIONAL_OPTS="--b2g-home $B2G_HOME"
+  fi
+  if [ "$SYMBOLS" ]; then
+    ADDITIONAL_OPTS="$ADDITIONAL_OPTS --symbols-path $SYMBOLS"
+  fi
+  if [ "$DEVICE_SERIAL" ]; then
+    ADDITIONAL_OPTS="$ADDITIONAL_OPTS --serial $DEVICE_SERIAL"
+  fi
+  gaia-integration --buildapp $BUILDAPP $ADDITIONAL_OPTS &
+  SPAWNED_PID=$!
+  trap "kill $SPAWNED_PID" SIGINT SIGKILL SIGTERM
+  echo "spawned PID: $SPAWNED_PID"
+fi
+
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
 # xpcshell in available for email fake servers.
 PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
@@ -140,3 +159,11 @@ PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
   $SHARED/setup.js \
   $TEST_FILES \
   $@
+
+if [ $SPAWNED_PID ]; then
+  ps ux | grep $SPAWNED_PID | grep -v grep
+  if [ $? -eq 0 ]; then
+    echo "killing $SPAWNED_PID"
+    kill $SPAWNED_PID
+  fi
+fi
