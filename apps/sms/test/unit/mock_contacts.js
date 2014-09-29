@@ -47,6 +47,8 @@ var MockContacts = {
     this.mCallCallback(callback, result);
   },
 
+  addUnknown: () => {},
+
   mTeardown: function mc_mTeardown() {
     this.mAsync = false;
   }

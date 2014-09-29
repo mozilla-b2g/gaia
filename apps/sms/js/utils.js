@@ -640,6 +640,38 @@
         });
 
         return deferred;
+      },
+
+      /**
+       * Wraps a generator function that yields Promises in a way that generator
+       * flow is paused until yielded Promise is resolved, so that consumer gets
+       * Promise result instead of Promise instance itself.
+       * See https://www.promisejs.org/generators/ as the reference.
+       * @param {function*} generatorFunction Generator function that yields
+       * Promises.
+       * @return {function}
+       */
+      async: function(generatorFunction) {
+        return function asyncGenerator() {
+          var generator = generatorFunction.apply(this, arguments);
+
+          function handle(result) {
+            if (result.done) {
+              return Promise.resolve(result.value);
+            }
+
+            return Promise.resolve(result.value).then(
+              (result) => handle(generator.next(result)),
+              (error) => handle(generator.throw(error))
+            );
+          }
+
+          try {
+            return handle(generator.next());
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        };
       }
     },
 
