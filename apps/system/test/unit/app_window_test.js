@@ -1508,6 +1508,32 @@ suite('system/AppWindow', function() {
       app1.config.url = url;
     });
 
+    test('Locationchange event resets favicons', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var url = app1.config.url;
+
+      app1.handleEvent({
+        type: 'mozbrowserlocationchange',
+        detail: 'http://fakeURL.changed'
+      });
+
+      app1.handleEvent({
+        type: 'mozbrowsericonchange',
+        detail: {
+          href: 'http://fakeURL.favicon',
+          sizes: 60
+        }
+      });
+      assert.equal(Object.keys(app1.favicons).length, 1);
+
+      app1.handleEvent({
+        type: 'mozbrowserlocationchange',
+        detail: 'http://fakeURL.changed2'
+      });
+      assert.equal(Object.keys(app1.favicons).length, 0);
+      app1.config.url = url;
+    });
+
     test('Scroll event', function() {
       var app4 = new AppWindow(fakeAppConfig4);
       app4.manifest = null;
