@@ -845,6 +845,14 @@ var IMERender = (function() {
       contentNode.dataset[data.key] = data.value;
     });
 
+    // If the key is Chinese comma or period key,
+    // adjust its position.
+    var bNeedsAdjustPosition = false;
+    if (contentNode.dataset.keycode == 65292 ||
+        contentNode.dataset.keycode == 12290) {
+      bNeedsAdjustPosition = true;
+    }
+
     var vWrapperNode = document.createElement('span');
     vWrapperNode.className = 'visual-wrapper';
 
@@ -854,17 +862,26 @@ var IMERender = (function() {
     labelNode.innerHTML = label;
     labelNode.className = 'key-element';
     labelNode.dataset.label = label;
+    if (bNeedsAdjustPosition) {
+      labelNode.className += ' key-offset';
+    }
     vWrapperNode.appendChild(labelNode);
 
     // Add uppercase and lowercase pop-up for highlighted key
     labelNode = document.createElement('span');
     labelNode.innerHTML = label;
     labelNode.className = 'uppercase popup';
+    if (bNeedsAdjustPosition) {
+      labelNode.className += ' key-offset';
+    }
     vWrapperNode.appendChild(labelNode);
 
     labelNode = document.createElement('span');
     labelNode.innerHTML = contentNode.dataset.lowercaseValue;
     labelNode.className = 'lowercase popup';
+    if (bNeedsAdjustPosition) {
+      labelNode.className += ' key-offset';
+    }
     vWrapperNode.appendChild(labelNode);
 
     if (altNoteNode) {
