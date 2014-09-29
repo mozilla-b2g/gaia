@@ -1,48 +1,47 @@
-(function(window) {
-  'use strict';
+define(function(require, exports, module) {
+'use strict';
 
-  var Month = Calendar.Template.create({
-    busy: function() {
-      return '<span class="' +
-                'busytime-' + this.h('_id') +
-                ' busy-length-' + this.h('length') +
-                ' busy-' + this.h('start') +
-                ' calendar-id-' + this.h('calendarId') +
-              '">' +
-              '&nbsp;' +
-            '</span>';
-    },
+var create = require('template').create;
 
-    weekDaysHeader: function() {
-      return '<header id="month-days" role="presentation">' +
-          '<ol role="row">' +
-            this.s('value') +
-          '</ol>' +
-        '</header>';
-    },
+module.exports = create({
+  busy: function() {
+    return '<span class="' +
+              'busytime-' + this.h('_id') +
+              ' busy-length-' + this.h('length') +
+              ' busy-' + this.h('start') +
+              ' calendar-id-' + this.h('calendarId') + '">' +
+            '&nbsp;' +
+          '</span>';
+  },
 
-    weekDaysHeaderDay: function() {
-      return '<li data-l10n-id="' + this.h('l10n') + '" role="columnheader">' +
-          this.h('dayName') +
-        '</li>';
-    },
-
-    week: function() {
-      return '<ol role="row">' +
+  weekDaysHeader: function() {
+    return '<header id="month-days" role="presentation">' +
+        '<ol role="row">' +
           this.s('value') +
-        '</ol>';
-    },
+        '</ol>' +
+      '</header>';
+  },
 
-    day: function() {
-      return '<li role="gridcell" id="' + this.s('id') +
-                  '" data-date="' + this.s('dateString') +
-                  '" class="' + this.s('state') + '">' +
-          '<span class="day">' + this.h('date') + '</span>' +
-          '<div class="busy-indicator"></div>' +
-        '</li>';
-    }
-  });
+  weekDaysHeaderDay: function() {
+    return '<li data-l10n-id="' + this.h('l10n') + '" role="columnheader">' +
+        this.h('dayName') +
+      '</li>';
+  },
 
-  Calendar.ns('Templates').Month = Month;
+  week: function() {
+    return '<ol role="row">' +
+        this.s('value') +
+      '</ol>';
+  },
 
-}(this));
+  day: function() {
+    return '<li role="gridcell" id="' + this.s('id') +
+                '" data-date="' + this.s('dateString') +
+                '" class="' + this.s('state') + '">' +
+        '<span class="day">' + this.h('date') + '</span>' +
+        '<div class="busy-indicator"></div>' +
+      '</li>';
+  }
+});
+
+});

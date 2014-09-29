@@ -1,29 +1,23 @@
-/*global Factory */
+define(function(require) {
+'use strict';
 
-requireLib('calendar.js');
-requireLib('db.js');
-requireLib('ext/uuid.js');
-requireLib('models/account.js');
-requireLib('models/calendar.js');
-requireLib('models/event.js');
-requireLib('presets.js');
+var AccountStore = require('store/account');
+var Db = require('db');
+var Factory = require('test/support/factory');
+var Responder = require('responder');
 
 suite('db', function() {
-  'use strict';
-
   var subject;
   var app;
 
   var dbName = 'calendar-db-test-db';
 
-  suiteSetup(function(done) {
-    // load the required sub-objects..
+  suiteSetup(function() {
     app = testSupport.calendar.app();
-    app.loadObject('Provider.Local', done);
   });
 
   suiteSetup(function(done) {
-    var db = new Calendar.Db(dbName);
+    var db = new Db(dbName);
     db.deleteDatabase(function(err, success) {
       assert.ok(!err, 'should not have an error when deleting db');
       assert.ok(success, 'should be able to delete the db');
@@ -36,12 +30,12 @@ suite('db', function() {
   });
 
   setup(function() {
-    subject = new Calendar.Db(dbName);
+    subject = new Db(dbName);
   });
 
   test('#getStore', function() {
     var result = subject.getStore('Account');
-    assert.instanceOf(result, Calendar.Store.Account);
+    assert.instanceOf(result, AccountStore);
 
     assert.equal(result.db, subject);
     assert.equal(subject._stores.Account, result);
@@ -53,13 +47,12 @@ suite('db', function() {
     assert.include(subject.name, 'test');
     assert.ok(subject.store);
 
-    assert.instanceOf(subject, Calendar.Responder);
+    assert.instanceOf(subject, Responder);
     assert.deepEqual(subject._stores, {});
     assert.isTrue(Object.isFrozen(subject.store));
   });
 
   suite('#transaction', function() {
-
     setup(function(done) {
       subject.open(function() {
         done();
@@ -86,7 +79,6 @@ suite('db', function() {
 
   suite('#open', function() {
     suite('on version change', function() {
-
       setup(function(done) {
         subject.deleteDatabase(done);
       });
@@ -106,9 +98,7 @@ suite('db', function() {
           accountStore = subject.getStore('Account');
           calendarStore = subject.getStore('Calendar');
           subject.load(function() {
-            Calendar.nextTick(function() {
-              done();
-            });
+            done();
           });
         });
 
@@ -554,7 +544,7 @@ suite('db', function() {
       test('open', function(done) {
         // close it
         subject.close();
-        subject = new Calendar.Db(subject.name);
+        subject = new Db(subject.name);
 
         subject.open(function() {
           done();
@@ -563,5 +553,6 @@ suite('db', function() {
 
     });
   });
+});
 
 });
