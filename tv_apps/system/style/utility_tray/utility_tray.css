@@ -1,0 +1,81 @@
+#screen.lockscreen-camera > #utility-tray {
+  display: none;
+}
+
+#utility-tray {
+  position: absolute;
+  top: calc(-100% + 6rem);
+  width: calc(100%);
+  height: calc(100% - 3rem);
+  background-color: hsla(0, 0%, 20%, .95);
+  margin: 0;
+
+  transform: translateY(-4rem);
+  visibility: hidden;
+}
+
+.utility-tray #utility-tray {
+  visibility: visible;
+}
+
+@media (orientation: portrait) {
+  #screen.software-button-enabled #utility-tray {
+    top: calc(-100% + 6rem + var(--software-home-button-height));
+    height: calc(100% - 3rem - var(--software-home-button-height));
+  }
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled #utility-tray {
+    width: calc(100% - var(--software-home-button-height));
+  }
+}
+
+#notifications-placeholder {
+  height: calc(100% - 2rem);
+}
+
+#utility-tray-notifications {
+  position: fixed;
+  width: 100%;
+  top: 3rem;
+  visibility: hidden;
+  clip: rect(0, 0, 0, 0);
+  display: flex;
+  flex-direction: column;
+}
+
+#utility-tray-notifications.visible {
+  visibility: visible;
+}
+
+#utility-tray-footer {
+  background: hsla(0, 0%, 100%, .05);
+}
+
+#utility-tray > #utility-tray-grippy {
+  width: 100%;
+  height: 2rem;
+  margin: 0;
+  background: hsla(0, 0%, 100%, .05) url(images/grippy.png) no-repeat center / 7.2rem;
+}
+
+[data-icon] {
+  float: left;
+  width: 3rem;
+  height: 3rem;
+  margin: 1.5rem 0;
+}
+
+[data-icon]:before {
+  /* The icons should appear 24 x 24px but each glyph only takes 80% of the space
+   So we compensate by adding 20%, that is 30px. */
+  font-size: 3rem;
+  line-height: 3rem;
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled #utility-tray-notifications {
+    width: calc(100% - var(--software-home-button-height));
+  }
+}

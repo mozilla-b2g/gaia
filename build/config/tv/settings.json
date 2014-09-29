@@ -1,3 +1,4 @@
 {
- "homescreen.appName": "homescreen-stingray"
+ "homescreen.appName": "homescreen-stingray",
+ "lockscreen.enabled": false
 }
