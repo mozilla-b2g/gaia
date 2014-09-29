@@ -444,6 +444,17 @@ suite('system/NotificationScreen >', function() {
           '[data-notification-i-d="id-10000"]'));
     });
 
+    test('removes the unread notificaction', function() {
+      var id = 'id-10000';
+      sinon.stub(NotificationScreen, 'removeUnreadNotification');
+      NotificationScreen.addNotification({
+        id: id, title: '', message: ''
+      });
+      NotificationScreen.removeNotification(id);
+      var expect = NotificationScreen.removeUnreadNotification.calledWith(id);
+      assert.isTrue(expect);
+    });
+
     test('does notify for generic applications', function() {
       this.sinon.stub(navigator, 'vibrate');
       this.sinon.stub(MockAudio.prototype, 'play');
