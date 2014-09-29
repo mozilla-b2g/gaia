@@ -249,6 +249,11 @@ function execute(config) {
     settings['debugger.remote-mode'] = 'disabled';
   }
 
+  if (config.PRODUCTION === '0') {
+    settings['dom.mozApps.signed_apps_installable_from'] =
+      'https://marketplace.firefox.com,https://marketplace.allizom.org';
+  }
+
   // Disable network activity icon in debug mode because it
   // causes unit tests to run really slowly until we
   // can investigate and fix bug 1054220.

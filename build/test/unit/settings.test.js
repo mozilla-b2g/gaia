@@ -334,6 +334,8 @@ suite('settings.js', function() {
       config.TARGET_BUILD_VARIANT = 'user';
       var queue = app.execute(config);
       queue.done(function(result) {
+        assert.equal(Object.keys(result)
+          .indexOf('dom.mozApps.signed_apps_installable_from'), -1);
         assert.deepEqual({
           'homescreen.manifestURL': config.GAIA_SCHEME +
             'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
@@ -359,6 +361,24 @@ suite('settings.js', function() {
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
+        done();
+      });
+    });
+
+    test('PRODUCTION === 0', function(done) {
+      config.PRODUCTION = '0';
+      config.TARGET_BUILD_VARIANT = 'user';
+      var settingName = 'dom.mozApps.signed_apps_installable_from';
+      var marketplaceProd = 'https://marketplace.firefox.com';
+      var marketplaceStage = 'https://marketplace.allizom.org';
+      var queue = app.execute(config);
+      queue.done(function(result) {
+        var originsSetting = Object.keys(result);
+        assert.ok(originsSetting.indexOf(settingName) >= 0);
+        var origins = result[settingName].split(',');
+        assert.equal(origins.length, 2);
+        assert.ok(origins.indexOf(marketplaceProd) >= 0);
+        assert.ok(origins.indexOf(marketplaceStage) >= 0);
         done();
       });
     });
