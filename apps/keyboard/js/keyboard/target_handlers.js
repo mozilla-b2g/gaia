@@ -4,6 +4,8 @@
 
 (function(exports) {
 
+// |target| is an abstract key object, not a DOM element
+
 var DefaultTargetHandler = function(target, app) {
   this.target = target;
   this.app = app;
@@ -18,14 +20,14 @@ DefaultTargetHandler.prototype.activate = function() {
 DefaultTargetHandler.prototype.longPress = function() {
   this.app.console.log('DefaultTargetHandler.longPress()');
   // Does the key have an long press value?
-  if (!('longPressValue' in this.target.dataset)) {
+  if (!('longPressValue' in this.target)) {
     return;
   }
 
   // Ignore any action when commit.
   this.ignoreCommitActions = true;
 
-  var keyCode = parseInt(this.target.dataset.longPressKeyCode, 10);
+  var keyCode = this.target.longPressKeyCode;
   this.app.inputMethodManager.currentIMEngine.click(keyCode);
   this.app.visualHighlightManager.hide(this.target);
 };
@@ -44,8 +46,8 @@ DefaultTargetHandler.prototype.commit = function() {
     return;
   }
 
-  var keyCode = parseInt(this.target.dataset.keycode, 10);
-  var upperCaseKeyCode = parseInt(this.target.dataset.keycodeUpper, 10);
+  var keyCode = this.target.keyCode;
+  var keyCodeUpper = this.target.keyCodeUpper;
   var engine = this.app.inputMethodManager.currentIMEngine;
 
   /*
@@ -58,11 +60,11 @@ DefaultTargetHandler.prototype.commit = function() {
    */
   if (this.app.layoutManager.currentPage.imEngine === 'latin') {
     this.app.console.log('DefaultTargetHandler.commit()::latin::engine.click',
-      keyCode, upperCaseKeyCode);
-    engine.click(keyCode, upperCaseKeyCode);
+      keyCode, keyCodeUpper);
+    engine.click(keyCode, keyCodeUpper);
   } else {
     var code =
-      this.app.upperCaseStateManager.isUpperCase ? upperCaseKeyCode : keyCode;
+      this.app.upperCaseStateManager.isUpperCase ? keyCodeUpper : keyCode;
     this.app.console.log('DefaultTargetHandler.commit()::engine.click', code);
     engine.click(code);
   }
@@ -109,12 +111,12 @@ CandidateSelectionTargetHandler.prototype =
 CandidateSelectionTargetHandler.prototype.commit = function() {
   this.app.candidatePanelManager.hideFullPanel();
 
-  // We use dataset.data instead of target.textContent because the
+  // We use the target's data instead of target.text because the
   // text actually displayed to the user might have an ellipsis in it
   // to make it fit.
   var engine = this.app.inputMethodManager.currentIMEngine;
   if (typeof engine.select === 'function') {
-    engine.select(this.target.textContent, this.target.dataset.data);
+    engine.select(this.target.text, this.target.data);
   }
 
   this.app.visualHighlightManager.hide(this.target);
@@ -198,7 +200,7 @@ CompositeTargetHandler.prototype =
 CompositeTargetHandler.prototype.commit = function() {
   // Keys with this attribute set send more than a single character
   // Like ".com" or "2nd" or (in Catalan) "l·l".
-  var compositeString = this.target.dataset.compositeKey;
+  var compositeString = this.target.compositeKey;
   var engine = this.app.inputMethodManager.currentIMEngine;
   for (var i = 0; i < compositeString.length; i++) {
     engine.click(compositeString.charCodeAt(i));
@@ -213,7 +215,7 @@ var PageSwitchingTargetHandler = function(target, app) {
 PageSwitchingTargetHandler.prototype =
   Object.create(DefaultTargetHandler.prototype);
 PageSwitchingTargetHandler.prototype.commit = function() {
-  var page = parseInt(this.target.dataset.targetPage, 10);
+  var page = this.target.targetPage;
 
   this.app.setLayoutPage(page);
   this.app.visualHighlightManager.hide(this.target);

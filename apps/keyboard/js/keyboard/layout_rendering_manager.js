@@ -13,6 +13,12 @@ var LayoutRenderingManager = function(app) {
   this._currentRenderingPage = null;
 
   this._resizeListenerTimer = undefined;
+
+  // a weak map from DOM elements to its abstract key object, to keep us from
+  // directly relying on DOM elements during user interactions.
+  // this should only be directly written by IMErender,
+  // and reading should always take place through |getTargetObject| below.
+  this.domObjectMap = null;
 };
 
 LayoutRenderingManager.prototype.start = function() {
@@ -26,6 +32,8 @@ LayoutRenderingManager.prototype.start = function() {
     // Handle resize events
     window.addEventListener('resize', this);
   }.bind(this), 2000);
+
+  this.domObjectMap = new WeakMap();
 };
 
 LayoutRenderingManager.prototype.stop = function() {
@@ -33,6 +41,8 @@ LayoutRenderingManager.prototype.stop = function() {
   this._resizeListenerTimer = undefined;
 
   window.removeEventListener('resize', this);
+
+  this.domObjectMap = null;
 };
 
 LayoutRenderingManager.prototype.handleEvent = function() {
@@ -205,6 +215,15 @@ LayoutRenderingManager.prototype._updateHeight = function() {
   this.app.console.timeEnd('domLoading');
 
   window.resizeTo(imeWidth, imeHeight);
+};
+
+LayoutRenderingManager.prototype.getTargetObject = function (elem) {
+  if (!elem) {
+    return {};
+  }
+
+  // default to an empty object such that member accessing and 'in' won't fail
+  return this.domObjectMap.get(elem) || {};
 };
 
 exports.LayoutRenderingManager = LayoutRenderingManager;
