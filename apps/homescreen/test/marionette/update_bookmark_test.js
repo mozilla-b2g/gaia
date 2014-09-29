@@ -48,7 +48,7 @@ marionette('Update bookmark on homescreen', function() {
       FlowManager.setTitleToBookmark(newTitle, homescreen);
     });
 
-    test(' sample.html has a new title', function() {
+    test.skip(' sample.html has a new title', function() {
       client.switchToFrame();
       homescreen.launch();
       assert.ok(homescreen.getHomescreenIcon(title) !== null);
