@@ -30,9 +30,6 @@ class TestCameraUnlockWithPasscode(GaiaTestCase):
         lock_screen.switch_to_frame()
         camera = lock_screen.unlock_to_camera()
 
-        # Bug 965806 - test_lockscreen_unlock_to_camera_with_passcode.TestCameraUnlockWithPasscode is failing after Bug 951978
-        # lock_screen.wait_for_lockscreen_not_visible()
-
         self.assertTrue(self.device.is_locked)
 
         camera.switch_to_secure_camera_frame()
