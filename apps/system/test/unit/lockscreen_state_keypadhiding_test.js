@@ -1,7 +1,7 @@
 /* global LockScreenStateKeypadHiding */
 
 'use strict';
-requireApp('system/js/lockscreen_state_keypadhiding.js');
+requireApp('system/lockscreen/js/lockscreen_state_keypadhiding.js');
 suite('sytem/LockScreenStateKeypadHiding', function() {
   var subject;
   var mockLockScreen;

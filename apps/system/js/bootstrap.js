@@ -11,10 +11,10 @@
          applications, Rocketbar, LayoutManager, PermissionManager,
          SoftwareButtonManager, Accessibility, NfcUtils, ShrinkingUI,
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
-         LockScreenNotifications, LockScreenPasscodeValidator, NfcManager,
-         ExternalStorageMonitor, LockScreenNotificationBuilder,
+         LockScreenPasscodeValidator, NfcManager,
+         ExternalStorageMonitor,
          BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
-         CellBroadcastSystem, EdgeSwipeDetector */
+         CellBroadcastSystem, EdgeSwipeDetector, QuickSettings */
 'use strict';
 
 
@@ -150,10 +150,8 @@ window.addEventListener('load', function startup() {
   }
   window.internetSharing = new InternetSharing();
   window.internetSharing.start();
-  window.lockScreenNotifications = new LockScreenNotifications();
   window.lockScreenPasscodeValidator = new LockScreenPasscodeValidator();
   window.lockScreenPasscodeValidator.start();
-  window.lockScreenNotificationBuilder = new LockScreenNotificationBuilder();
   window.layoutManager = new LayoutManager();
   window.layoutManager.start();
   window.nfcUtils = new NfcUtils();
@@ -182,11 +180,13 @@ window.addEventListener('load', function startup() {
   window.wallpaperManager = new window.WallpaperManager();
   window.wallpaperManager.start();
 
-  // unit tests call init() manually
+  // unit tests call start() manually
   if (navigator.mozL10n) {
     navigator.mozL10n.once(function l10n_ready() {
       window.mediaRecording = new MediaRecording();
       window.mediaRecording.start();
+      window.quickSettings = new QuickSettings();
+      window.quickSettings.start();
     });
   }
 

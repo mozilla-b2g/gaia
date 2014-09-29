@@ -9,10 +9,6 @@ apps/browser/test/marionette/navigate_test.js
 apps/browser/test/marionette/settings_test.js
 apps/browser/test/marionette/share_url_test.js
 apps/browser/test/unit/browser_db_test.js
-apps/callscreen/js/fake-oncall-desktop.js
-apps/callscreen/js/index.js
-apps/callscreen/test/unit/mock_mozbluetooth.js
-apps/communications/dialer/js/index.js
 apps/communications/dialer/js/mmi_ui.js
 apps/communications/dialer/test/marionette/lib/dialer.js
 apps/communications/dialer/test/marionette/navigation_test.js
@@ -343,7 +339,6 @@ apps/system/js/screen_manager.js
 apps/system/js/sheets_transition.js
 apps/system/js/sim_lock.js
 apps/system/js/storage_watcher.js
-apps/system/js/system.js
 apps/system/js/trusted_ui.js
 apps/system/js/updatable.js
 apps/system/js/update_manager.js
@@ -425,7 +420,6 @@ apps/system/test/unit/mock_utility_tray.js
 apps/system/test/unit/mock_wifi_manager.js
 apps/system/test/unit/operator_variant_helper_test.js
 apps/system/test/unit/orientation_manager_test.js
-apps/system/test/unit/quick_settings_test.js
 apps/system/test/unit/screen_manager_test.js
 apps/system/test/unit/settings_helper_test.js
 apps/system/test/unit/spin_date_picker_test.js
@@ -468,13 +462,6 @@ shared/js/fb/fb_request.js
 shared/js/fxa_iac_client.js
 shared/js/keyboard_helper.js
 shared/js/lockscreen_slide.js
-shared/js/media/get_video_rotation.js
-shared/js/media/jpeg_metadata_parser.js
-shared/js/media/media_frame.js
-shared/js/media/media_utils.js
-shared/js/media/remote_controls.js
-shared/js/media/video_player.js
-shared/js/media/video_stats.js
 shared/js/mediadb.js
 shared/js/operator_variant_helper.js
 shared/js/simple_phone_matcher.js

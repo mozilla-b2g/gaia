@@ -329,7 +329,7 @@ suite('dialer/call_log', function() {
         var expected =
           group.voicemail ? 'voiceMail' :
             (group.emergency ? 'emergencyNumber' : '');
-        assert.equal(primaryInfoMain.innerHTML, expected);
+        assert.equal(primaryInfoMain.getAttribute('data-l10n-id'), expected);
       } else {
         assert.equal(primaryInfoMain.innerHTML, group.number);
       }
@@ -357,7 +357,7 @@ suite('dialer/call_log', function() {
     } else if (group.voicemail || group.emergency) {
       assert.equal(typeCarrier.innerHTML, group.number);
     } else {
-      assert.equal(typeCarrier.innerHTML, CallLog._('unknown'),
+      assert.equal(typeCarrier.getAttribute('data-l10n-id'), 'unknown',
                    'No additional info');
     }
 
@@ -678,7 +678,8 @@ suite('dialer/call_log', function() {
       });
 
       test('should fill the header', function() {
-        assert.equal(CallLog.headerEditModeText.textContent, 'edit');
+        assert.equal(CallLog.headerEditModeText.getAttribute('data-l10n-id'),
+                     'edit');
       });
 
       test('should disable the delete button at first', function() {
@@ -692,7 +693,8 @@ suite('dialer/call_log', function() {
       });
 
       test('should fill the select all button', function() {
-        assert.equal(CallLog.selectAllThreads.textContent, 'selectAll');
+        assert.equal(CallLog.selectAllThreads.getAttribute('data-l10n-id'),
+                     'selectAll');
       });
 
       test('should enable the select all button', function() {

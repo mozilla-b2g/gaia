@@ -1,3 +1,5 @@
+/* exported getVideoRotation */
+/* global BlobView */
 'use strict';
 
 //
@@ -84,8 +86,9 @@ function getVideoRotation(blob, rotationCallback) {
 
     function parseAtomAt(data, offset) {
       if (offset >= blob.size) {
-        if (handlers.eofHandler)
+        if (handlers.eofHandler) {
           handlers.eofHandler();
+        }
         return;
       }
       else {
@@ -119,23 +122,35 @@ function getVideoRotation(blob, rotationCallback) {
       var d = data.readUnsignedInt();
 
       if (a === 0 && d === 0) { // 90 or 270 degrees
-        if (b === 0x00010000 && c === 0xFFFF0000)
+        if (b === 0x00010000 && c === 0xFFFF0000) {
           rotationCallback(90);
-        else if (b === 0xFFFF0000 && c === 0x00010000)
-          rotationCallback(270);
-        else
-          rotationCallback('unexpected rotation matrix');
-      }
-      else if (b === 0 && c === 0) { // 0 or 180 degrees
-        if (a === 0x00010000 && d === 0x00010000)
-          rotationCallback(0);
-        else if (a === 0xFFFF0000 && d === 0xFFFF0000)
-          rotationCallback(180);
-        else
-          rotationCallback('unexpected rotation matrix');
+        }
+        else {
+          if (b === 0xFFFF0000 && c === 0x00010000) {
+            rotationCallback(270);
+          }
+          else {
+            rotationCallback('unexpected rotation matrix');
+          }
+        }
       }
       else {
-        rotationCallback('unexpected rotation matrix');
+        if (b === 0 && c === 0) { // 0 or 180 degrees
+          if (a === 0x00010000 && d === 0x00010000) {
+            rotationCallback(0);
+          }
+          else {
+            if (a === 0xFFFF0000 && d === 0xFFFF0000) {
+              rotationCallback(180);
+            }
+            else {
+              rotationCallback('unexpected rotation matrix');
+            }
+          }
+        }
+        else {
+          rotationCallback('unexpected rotation matrix');
+        }
       }
       return 'done';
     }

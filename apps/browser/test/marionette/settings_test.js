@@ -2,7 +2,12 @@ var Browser = require('./lib/browser'),
     assert = require('assert');
 
 marionette('Settings', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
+    }
+  });
 
   var subject;
 

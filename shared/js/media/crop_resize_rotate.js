@@ -500,7 +500,7 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
                           // And what part of the canvas we're drawing it to
                           0, 0, destWidth, destHeight);
       }
-      catch(e) {
+      catch (e) {
         callback('Failed to decode image in cropResizeRotate; ' +
                  'image may be corrupt or too large: ' + e);
         return;

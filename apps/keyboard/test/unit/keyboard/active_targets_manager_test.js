@@ -61,8 +61,7 @@ suite('ActiveTargetsManager', function() {
     var id0 = 0;
     var press0 = {
       target: {
-        textContent: '1',
-        dataset: {}
+        text: '1',
       }
     };
 
@@ -90,7 +89,7 @@ suite('ActiveTargetsManager', function() {
 
       var pressEnd = {
         target: {
-          textContent: 'e'
+          text: 'e'
         }
       };
       userPressManagerStub.onpressend(pressEnd, id0);
@@ -104,7 +103,7 @@ suite('ActiveTargetsManager', function() {
     test('press end', function() {
       var pressEnd = {
         target: {
-          textContent: 'e'
+          text: 'e'
         }
       };
       userPressManagerStub.onpressend(pressEnd, id0);
@@ -118,7 +117,7 @@ suite('ActiveTargetsManager', function() {
     test('press end (moved press)', function() {
       var pressEnd = {
         target: {
-          textContent: 'e'
+          text: 'e'
         },
         moved: true
       };
@@ -218,7 +217,7 @@ suite('ActiveTargetsManager', function() {
       test('ignore press end', function() {
         var pressEnd = {
           target: {
-            textContent: 'e'
+            text: 'e'
           }
         };
         userPressManagerStub.onpressend(pressEnd, id0);
@@ -231,7 +230,7 @@ suite('ActiveTargetsManager', function() {
         setup(function() {
           var pressMove = {
             target: {
-              textContent: 'm'
+              text: 'm'
             }
           };
 
@@ -248,7 +247,7 @@ suite('ActiveTargetsManager', function() {
         test('ignore press end', function() {
           var pressEnd = {
             target: {
-              textContent: 'e'
+              text: 'e'
             }
           };
           userPressManagerStub.onpressend(pressEnd, id0);
@@ -272,7 +271,7 @@ suite('ActiveTargetsManager', function() {
       test('press end', function() {
         var pressEnd = {
           target: {
-            textContent: 'e'
+            text: 'e'
           }
         };
         userPressManagerStub.onpressend(pressEnd, id0);
@@ -289,7 +288,7 @@ suite('ActiveTargetsManager', function() {
 
       setup(function() {
         altTarget = {
-          textContent: 'a'
+          text: 'a'
         };
 
         alternativesCharMenuManagerStub.isShown = true;
@@ -312,7 +311,7 @@ suite('ActiveTargetsManager', function() {
       test('press end', function() {
         var pressEnd = {
           target: {
-            textContent: 'e'
+            text: 'e'
           }
         };
         userPressManagerStub.onpressend(pressEnd, id0);
@@ -327,7 +326,7 @@ suite('ActiveTargetsManager', function() {
         var id1 = 1;
         var press1 = {
           target: {
-            textContent: '2'
+            text: '2'
           }
         };
 
@@ -342,7 +341,7 @@ suite('ActiveTargetsManager', function() {
         test('ignore second press, press end first press', function() {
           var pressMove = {
             target: {
-            textContent: 'm'
+            text: 'm'
           }
           };
           userPressManagerStub.onpressmove(pressMove, id1);
@@ -352,7 +351,7 @@ suite('ActiveTargetsManager', function() {
 
           var pressEnd = {
             target: {
-            textContent: 'e'
+            text: 'e'
           }
           };
           userPressManagerStub.onpressend(pressEnd, id1);
@@ -361,7 +360,7 @@ suite('ActiveTargetsManager', function() {
 
           var pressEnd2 = {
             target: {
-            textContent: 'e'
+            text: 'e'
           }
           };
           userPressManagerStub.onpressend(pressEnd2, id0);
@@ -384,7 +383,7 @@ suite('ActiveTargetsManager', function() {
 
         var oldTarget = press0.target;
         movedTarget = {
-          textContent: 'm'
+          text: 'm'
         };
         pressMove = {
           target: movedTarget
@@ -404,7 +403,7 @@ suite('ActiveTargetsManager', function() {
       test('press end', function() {
         var pressEnd = {
           target: {
-            textContent: 'e'
+            text: 'e'
           }
         };
         userPressManagerStub.onpressend(pressEnd, id0);
@@ -428,7 +427,7 @@ suite('ActiveTargetsManager', function() {
         test('press end', function() {
           var pressEnd = {
             target: {
-            textContent: 'e'
+            text: 'e'
           }
           };
           userPressManagerStub.onpressend(pressEnd, id0);
@@ -445,7 +444,7 @@ suite('ActiveTargetsManager', function() {
       var id1 = 1;
       var press1 = {
         target: {
-          textContent: '2'
+          text: '2'
         }
       };
 
@@ -466,7 +465,7 @@ suite('ActiveTargetsManager', function() {
       test('press end second press, and first press', function() {
         var pressEnd = {
           target: {
-            textContent: 'e'
+            text: 'e'
           }
         };
         userPressManagerStub.onpressend(pressEnd, id1);
@@ -478,7 +477,7 @@ suite('ActiveTargetsManager', function() {
 
         var pressEnd2 = {
           target: {
-            textContent: 'e'
+            text: 'e'
           }
         };
         userPressManagerStub.onpressend(pressEnd2, id0);
@@ -492,7 +491,7 @@ suite('ActiveTargetsManager', function() {
       test('press end first press, and second press', function() {
         var pressEnd = {
           target: {
-            textContent: 'e'
+            text: 'e'
           }
         };
         userPressManagerStub.onpressend(pressEnd, id0);
@@ -504,7 +503,7 @@ suite('ActiveTargetsManager', function() {
 
         var pressEnd2 = {
           target: {
-            textContent: 'e'
+            text: 'e'
           }
         };
         userPressManagerStub.onpressend(pressEnd2, id1);
@@ -521,10 +520,8 @@ suite('ActiveTargetsManager', function() {
     var id0 = 0;
     var press0 = {
       target: {
-        textContent: '1',
-        dataset: {
-          selection: 'true'
-        }
+        text: '1',
+        selection: 'true'
       }
     };
 

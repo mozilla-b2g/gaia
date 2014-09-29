@@ -19,16 +19,17 @@ class TestLockScreenNotification(GaiaTestCase):
 
     def test_lock_screen_wake_with_notification(self):
         lock_screen = LockScreen(self.marionette)
-
         # Check if the screen is turned off
         self.assertFalse(self.device.is_screen_enabled)
-
         self.marionette.execute_script('new Notification("%s", {body: "%s"});'
                                        % (self._notification_title, self._notification_body))
+        lock_screen.switch_to_frame()
         lock_screen.wait_for_notification()
+        self.marionette.switch_to_frame()
 
         # Check if the screen is turned on
         self.assertTrue(self.device.is_screen_enabled)
+        lock_screen.switch_to_frame()
 
         # Check if the notification is displayed on the screen
         self.assertTrue(lock_screen.notifications[0].is_visible)

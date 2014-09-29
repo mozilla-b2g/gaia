@@ -3,6 +3,8 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 'use strict';
+/* global Components, dump, XPCOMUtils */
+/* exported GaiaUITests_FakeUpdateChecker */
 
 let Cc = Components.classes;
 let Ci = Components.interfaces;
@@ -36,8 +38,8 @@ function GaiaUITests_FakeUpdateChecker() {
 
   FakeUpdateChecker.prototype = {
     /**
-     * The URL of the update service XML file to connect to that contains details
-     * about available updates.
+     * The URL of the update service XML file to
+     * connect to that contains details about available updates.
      */
     getUpdateURL: function(force) {
       debug('getUpdateURL - update URL: ' + force);
@@ -86,7 +88,7 @@ function GaiaUITests_FakeUpdateChecker() {
   // replace it with our own.
   function replaceClass(contract, expected, newCid, className) {
     // Unregister the old factory.
-    let oldCid = "";
+    let oldCid = '';
     try {
       oldCid = Cm.contractIDToCID(contract);
     } catch (ex) {
@@ -102,10 +104,10 @@ function GaiaUITests_FakeUpdateChecker() {
         createInstance: function(outer, iid) {
           if (outer) {
             throw Components.results.NS_ERROR_NO_AGGREGATION;
-	  }
+    }
           if (instance === null) {
             instance = new className();
-	  }
+    }
           instance.QueryInterface(iid);
           return instance.QueryInterface(iid);
         },

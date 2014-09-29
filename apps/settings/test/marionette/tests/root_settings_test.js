@@ -3,7 +3,12 @@ var Settings = require('../app/app'),
     assert = require('assert');
 
 marionette('check root panel settings', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
+    }
+  });
   var settingsApp;
   var rootPanel;
 
@@ -39,7 +44,7 @@ marionette('check root panel settings', function() {
         return rootPanel.firefoxAccountDesc === 'Create account or sign in';
       });
       client.waitFor(function() {
-        return rootPanel.screenLockDesc === 'Enabled';
+        return rootPanel.screenLockDesc === 'Disabled';
       });
       client.waitFor(function() {
         return rootPanel.WiFiDesc === 'Disabled';

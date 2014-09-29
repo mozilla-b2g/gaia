@@ -216,19 +216,23 @@ LayoutManager.prototype._updateCurrentPage = function() {
       pageSwitchingKeyObject = {
         keyCode: KeyboardEvent.DOM_VK_ALT,
         value: layout.alternateLayoutKey || '12&',
+        uppercaseValue: layout.alternateLayoutKey || '12&',
         ratio: 2,
         ariaLabel: 'alternateLayoutKey',
         className: 'page-switch-key',
-        targetPage: 1
+        targetPage: 1,
+        isSpecialKey: true
       };
     } else {
       pageSwitchingKeyObject = {
         keyCode: KeyboardEvent.DOM_VK_ALT,
         value: layout.basicLayoutKey || 'ABC',
+        uppercaseValue: layout.basicLayoutKey || 'ABC',
         ratio: 2,
         ariaLabel: 'basicLayoutKey',
         className: 'page-switch-key',
-        targetPage: this.PAGE_INDEX_DEFAULT
+        targetPage: this.PAGE_INDEX_DEFAULT,
+        isSpecialKey: true
       };
     }
 
@@ -241,14 +245,17 @@ LayoutManager.prototype._updateCurrentPage = function() {
   if (needsSwitchingKey) {
     var imeSwitchKey = {
       value: '&#x1f310;', // U+1F310 GLOBE WITH MERIDIANS
+      uppercaseValue: '&#x1f310;',
       ratio: 1,
       keyCode: this.KEYCODE_SWITCH_KEYBOARD,
-      className: 'switch-key'
+      className: 'switch-key',
+      isSpecialKey: true
     };
 
     // Replace the label with short label if there is one
     if (layout.shortLabel) {
       imeSwitchKey.value = layout.shortLabel;
+      imeSwitchKey.uppercaseValue = layout.shortLabel;
       imeSwitchKey.className += ' alternate-indicator';
     }
 
@@ -281,7 +288,11 @@ LayoutManager.prototype._updateCurrentPage = function() {
     var periodKey = {
       value: '.',
       ratio: 1,
-      keyCode: 46
+      keyCode: 46,
+      keyCodeUpper: 46,
+      lowercaseValue: '.',
+      uppercaseValue: '.',
+      isSpecialKey: false
     };
     if (page.alt && page.alt['.']) {
       periodKey.className = 'alternate-indicator';
@@ -323,7 +334,11 @@ LayoutManager.prototype._updateCurrentPage = function() {
         spaceKeyRow.splice(spaceKeyCount, 0, {
           value: '/',
           ratio: 1,
-          keyCode: 47
+          keyCode: 47,
+          keyCodeUpper: 47,
+          lowercaseValue: '/',
+          uppercaseValue: '/',
+          isSpecialKey: false
         });
         spaceKeyCount++;
 
@@ -338,7 +353,11 @@ LayoutManager.prototype._updateCurrentPage = function() {
         spaceKeyRow.splice(spaceKeyCount, 0, {
           value: '@',
           ratio: 1,
-          keyCode: 64
+          keyCode: 64,
+          keyCodeUpper: 64,
+          lowercaseValue: '@',
+          uppercaseValue: '@',
+          isSpecialKey: false
         });
         spaceKeyCount++;
 
@@ -365,12 +384,19 @@ LayoutManager.prototype._updateCurrentPage = function() {
           var commaKey = {
             value: ',',
             ratio: 1,
-            keyCode: 44
+            keyCode: 44,
+            keyCodeUpper: 44,
+            lowercaseValue: ',',
+            uppercaseValue: ',',
+            isSpecialKey: false
           };
 
           if (overwrites[',']) {
             commaKey.value = overwrites[','];
             commaKey.keyCode = overwrites[','].charCodeAt(0);
+            commaKey.keyCodeUpper = overwrites[','].charCodeAt(0);
+            commaKey.lowercaseValue = overwrites[','];
+            commaKey.uppercaseValue = overwrites[','];
           }
 
           spaceKeyObject.ratio -= 1;
@@ -383,6 +409,9 @@ LayoutManager.prototype._updateCurrentPage = function() {
           if (overwrites['.']) {
             periodKey.value = overwrites['.'];
             periodKey.keyCode = overwrites['.'].charCodeAt(0);
+            periodKey.keyCodeUpper = overwrites['.'].charCodeAt(0);
+            periodKey.lowercaseValue = overwrites['.'];
+            periodKey.uppercaseValue = overwrites['.'];
           }
 
           spaceKeyObject.ratio -= 1;

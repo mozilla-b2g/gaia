@@ -20,7 +20,6 @@ apps/email/js/alameda.js
 apps/email/js/tmpl_builder.js
 apps/clock/js/alameda.js
 apps/clock/js/text_builder.js
-shared/js/opensearch.js
 shared/js/utilities.js
 shared/js/uuid.js
 apps/keyboard/js/imes/jspinyin/libpinyin.js
@@ -63,7 +62,6 @@ tests/browser_dialer_phone_number_sanitizing.js
 tests/browser_sms_conversation.js
 tests/browser_sms_new.js
 tests/head.js
-tests/atoms/fake_update-checker.js
 tests/atoms/gaia_apps.js
 tests/atoms/gaia_data_layer.js
 tests/atoms/gaia_lock_screen.js

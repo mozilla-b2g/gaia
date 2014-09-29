@@ -620,6 +620,7 @@ ul li > label.range-icons span {
   margin: 0px 1.5rem;
   pointer-events: none;
   color: #657073;
+  line-height: 6rem;
 }
 
 ul li > label.range-icons span:last-child {

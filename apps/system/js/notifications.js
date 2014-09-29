@@ -45,14 +45,25 @@ var NotificationScreen = {
       '/manifest.webapp'
   ],
 
+  getLockScreenContainer: function ns_getLockScreenContainer() {
+    // XXX: Bug 1057198 add this as a workaround before we truly
+    // make LockScreen as an app.
+    if (window.lockScreenWindowManager &&
+         window.lockScreenWindowManager.getInstance() &&
+         window.lockScreenWindowManager.getInstance()
+          .getNotificationContainer()) {
+      return window.lockScreenWindowManager
+        .getInstance().getNotificationContainer();
+    }
+  },
+
   init: function ns_init() {
     window.addEventListener('mozChromeNotificationEvent', this);
     this.notificationsContainer =
       document.getElementById('notifications-container');
     this.container =
       document.getElementById('desktop-notifications-container');
-    this.lockScreenContainer =
-      document.getElementById('notifications-lockscreen-container');
+    this.lockScreenContainer = this.getLockScreenContainer();
     this.toaster = document.getElementById('notification-toaster');
     this.ambientIndicator = document.getElementById('ambient-indicator');
     this.toasterIcon = document.getElementById('toaster-icon');
@@ -389,10 +400,10 @@ var NotificationScreen = {
 
   addNotification: function ns_addNotification(detail) {
     // LockScreen window may not opened while this singleton got initialized.
-    this.lockScreenContainer = this.lockScreenContainer ||
-      document.getElementById('notifications-lockscreen-container');
+    this.lockScreenContainer = this.getLockScreenContainer();
 
     var manifestURL = detail.manifestURL || '';
+    var behavior = detail.mozbehavior || {};
     var isPriorityNotification =
       this.PRIORITY_APPLICATIONS.indexOf(manifestURL) !== -1;
 
@@ -410,6 +421,8 @@ var NotificationScreen = {
     notificationNode.setAttribute('role', 'link');
 
     notificationNode.dataset.notificationId = detail.id;
+    notificationNode.dataset.noClear = behavior.noclear ? 'true' : 'false';
+
     notificationNode.dataset.obsoleteAPI = 'false';
     if (typeof detail.id === 'string' &&
         detail.id.indexOf('app-notif-') === 0) {
@@ -488,14 +501,9 @@ var NotificationScreen = {
 
     // We turn the screen on if needed in order to let
     // the user see the notification toaster
-    if (typeof(ScreenManager) !== 'undefined' &&
-      !ScreenManager.screenEnabled) {
-      // bug 915236: disable turning on the screen for email notifications
-      // bug 1050023: disable turning on the screen for download notifications
-      if (type.indexOf('download-notification-downloading') === -1 &&
-          manifestURL.indexOf('email.gaiamobile.org') === -1) {
-        ScreenManager.turnScreenOn();
-      }
+    if (!behavior.noscreen && typeof(ScreenManager) !== 'undefined' &&
+        !ScreenManager.screenEnabled) {
+      ScreenManager.turnScreenOn();
     }
 
     var notify = !('noNotify' in detail) &&
@@ -522,50 +530,8 @@ var NotificationScreen = {
     // Adding it to the lockscreen if locked and the privacy setting
     // does not prevent it.
     if (System.locked && this.lockscreenPreview) {
-      var lockScreenNode = notificationNode.cloneNode(true);
-
-      // First we try and find an existing notification with the same id.
-      // If we have one, we'll replace it. If not, we'll create a new node.
-      var oldLockScreenNode =
-        this.lockScreenContainer.querySelector(notifSelector);
-      if (oldLockScreenNode) {
-        this.lockScreenContainer.replaceChild(
-          lockScreenNode,
-          oldLockScreenNode
-        );
-      }
-      else {
-        this.lockScreenContainer.insertBefore(
-          lockScreenNode,
-          this.lockScreenContainer.firstElementChild
-        );
-      }
-
-      // To prevent add more code in this too complicated component,
-      // LockScreen related code would incrementally move to another component.
-      // However, to keep the compatibility is necessary, so the APIs would
-      // accomplish the existing code.
-      window.lockScreenNotificationBuilder.decorate(lockScreenNode);
-      window.lockScreenNotifications.showColoredMaskBG();
-
-      // UX specifies that the container should scroll to top
-      /* note two things:
-       * 1. we need to call adjustContainerVisualHints even
-       *    though we're setting scrollTop, since setting sT doesn't
-       *    necessarily invoke onscroll (if the old container is already
-       *    scrolled to top, we might still need to decide to show
-       *    the arrow)
-       * 2. set scrollTop before calling adjustContainerVisualHints
-       *    since sT = 0 will hide the mask if it's showing,
-       *    and if we call aCVH before setting sT,
-       *    under some circumstances aCVH would decide to show mask,
-       *    only to be negated by st = 0 (waste of energy!).
-       */
-      window.lockScreenNotifications.scrollToTop();
-
-      // check if lockscreen notifications visual
-      // hints (masks & arrow) need to show
-      window.lockScreenNotifications.adjustContainerVisualHints();
+      this.addLockScreenNotification(detail.id,
+        notificationNode.cloneNode(true));
     }
 
     if (notify && !this.isResending) {
@@ -573,7 +539,7 @@ var NotificationScreen = {
         var ringtonePlayer = new Audio();
         var telephony = window.navigator.mozTelephony;
 
-        ringtonePlayer.src = this._sound;
+        ringtonePlayer.src = behavior.soundFile || this._sound;
 
         if (telephony && telephony.active) {
           ringtonePlayer.mozAudioChannelType = 'telephony';
@@ -590,6 +556,12 @@ var NotificationScreen = {
       }
 
       if (this.vibrates) {
+        var pattern = [200, 200, 200];
+        if (behavior.vibrationPattern && behavior.vibrationPattern.length &&
+            behavior.vibrationPattern[0] > 0) {
+          pattern = behavior.vibrationPattern;
+        }
+
         if (document.hidden) {
           // bug 1030310: disable vibration for the email app when asleep
           // bug 1050023: disable vibration for downloads when asleep
@@ -597,11 +569,11 @@ var NotificationScreen = {
               manifestURL.indexOf('email.gaiamobile.org') === -1) {
             window.addEventListener('visibilitychange', function waitOn() {
               window.removeEventListener('visibilitychange', waitOn);
-              navigator.vibrate([200, 200, 200, 200]);
+              navigator.vibrate(pattern);
             });
           }
         } else {
-          navigator.vibrate([200, 200, 200, 200]);
+          navigator.vibrate(pattern);
         }
       }
     }
@@ -610,6 +582,19 @@ var NotificationScreen = {
     this.clearAllButton.disabled = false;
 
     return notificationNode;
+  },
+
+  /**
+   * Give a notification node and add it to LockScreen via event.
+   */
+  addLockScreenNotification: function ns_addLockScreenNotification(id, node) {
+    window.dispatchEvent(
+      new window.CustomEvent('lockscreen-notification-request-append', { detail:
+        {
+          id: id,
+          node: node
+        }
+      }));
   },
 
   swipeCloseNotification: function ns_swipeCloseNotification() {
@@ -697,8 +682,7 @@ var NotificationScreen = {
   removeLockScreenNotification:
   function ns_removeLockScreenNotification(notificationId) {
     var notifSelector = '[data-notification-id="' + notificationId + '"]';
-    this.lockScreenContainer = this.lockScreenContainer ||
-      document.getElementById('notifications-lockscreen-container');
+    this.lockScreenContainer = this.getLockScreenContainer();
     if (this.lockScreenContainer) {
       var lockScreenNotificationNode =
           this.lockScreenContainer.querySelector(notifSelector);
@@ -708,15 +692,10 @@ var NotificationScreen = {
       var lockScreenNotificationParentNode =
         lockScreenNotificationNode.parentNode;
       lockScreenNotificationParentNode.removeChild(lockScreenNotificationNode);
-      // if we don't have any notifications,
-      // use the no-notifications masked background for lockscreen
-      if (!lockScreenNotificationParentNode.firstElementChild) {
-        window.lockScreenNotifications.hideColoredMaskBG();
-      }
-
-      // check if lockscreen notifications visual
-      // hints (masks & arrow) need to show
-      window.lockScreenNotifications.adjustContainerVisualHints();
+      window.dispatchEvent(
+        new window.CustomEvent('lockscreen-notification-request-remove', {
+          containerEmpty: !lockScreenNotificationParentNode.firstElementChild
+        }));
     }
   },
 
@@ -738,7 +717,7 @@ var NotificationScreen = {
       this.removeLockScreenNotification(notificationId);
     }).bind(this), 400);
 
-    this.removeUnreadNotification();
+    this.removeUnreadNotification(notificationId);
     if (!this.container.querySelector('.notification')) {
       // no notifications left
       this.clearAllButton.disabled = true;
@@ -748,6 +727,9 @@ var NotificationScreen = {
   clearAll: function ns_clearAll() {
     var notifications = this.container.querySelectorAll('.notification');
     for (var notification of notifications) {
+      if (notification.dataset.noClear === 'true') {
+        continue;
+      }
       this.closeNotification(notification);
     }
   },
@@ -761,13 +743,10 @@ var NotificationScreen = {
       var element = this.lockScreenContainer.firstElementChild;
       this.lockScreenContainer.removeChild(element);
     }
-
-    // remove the "have notifications" masked background from lockscreen
-    window.lockScreenNotifications.hideColoredMaskBG();
-    // check if lockscreen notifications visual
-    // hints (masks & arrow) need to show
-    window.lockScreenNotifications.adjustContainerVisualHints();
+    window.dispatchEvent(
+      new window.CustomEvent('lockscreen-notification-request-clear'));
   }
+
 
 };
 

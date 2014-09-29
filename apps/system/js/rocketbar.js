@@ -315,6 +315,7 @@
         this.searchWindow.open();
       }
       this.results.classList.remove('hidden');
+      this.backdrop.classList.add('results-shown');
     },
 
     /**
@@ -328,6 +329,7 @@
       }
 
       this.results.classList.add('hidden');
+      this.backdrop.classList.remove('results-shown');
 
       // Send a message to the search app to clear results
       if (this._port) {
@@ -444,7 +446,7 @@
     },
 
     /**
-     * Handle text input in Roketbar.
+     * Handle text input in Rocketbar.
      * @memberof Rocketbar.prototype
      */
     handleInput: function() {

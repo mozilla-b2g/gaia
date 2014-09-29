@@ -16,33 +16,34 @@
    * @constructor LockScreenWindowManager
    */
   var LockScreenWindowManager = function() {};
-  LockScreenWindowManager.prototype = {
+
+  LockScreenWindowManager.prototype.setup =
+  function lswm_setup() {
     /**
      * @memberof LockScreenWindowManager#
      * @prop {DOMElement} windows - the `#windows` element, which is the same
      *                              element that the would AppWindowManager use.
      * @prop {DOMElement} screen - the `#screen` element.
      */
-    elements: {
+    this.elements = {
       windows: null,
       screen: null
-    },
+    };
 
     /**
      * @memberof LockScreenWindowManager#
      */
-    states: {
+    this.states = {
       FTUOccurs: false,
       enabled: true,
       instance: null,
-      active: false,
       windowCreating: false
-    },
+    };
 
     /**
      * @memberof LockScreenWindowManager#
      */
-    configs: {
+    this.configs = {
       listens: ['lockscreen-request-unlock',
                 'lockscreen-request-lock',
                 'lockscreen-appcreated',
@@ -55,7 +56,7 @@
                 'showlockscreenwindow',
                 'home'
                ]
-    }
+    };
   };
 
   /**
@@ -63,6 +64,7 @@
    */
   LockScreenWindowManager.prototype.start =
   function lwm_start() {
+    this.setup();
     this.startEventListeners();
     this.startObserveSettings();
     this.initElements();
@@ -87,18 +89,18 @@
       var app = null;
       switch (evt.type) {
         case 'overlaystart':
-          if (this.states.instance && this.states.instance.isActive()) {
+          if (this.isActive()) {
             this.states.instance.setVisible(false);
           }
           break;
         case 'showlockscreenwindow':
-          if (this.states.instance && this.states.instance.isActive()) {
+          if (this.isActive()) {
             this.states.instance.setVisible(true);
           }
           break;
         case 'ftuopen':
           this.states.FTUOccurs = true;
-          if (!this.states.instance) {
+          if (this.isActive()) {
             return;
           }
           // Need immediatly unlocking (hide window).
@@ -121,8 +123,6 @@
           app = evt.detail;
           this.unregisterApp(app);
           break;
-        case 'lockscreen-appclose':
-          break;
         case 'screenchange':
           // The screenchange may be invoked by proximity sensor,
           // or the power button. If it's caused by the proximity sensor,
@@ -137,7 +137,7 @@
         case 'home':
           // We assume that this component is started before AppWindowManager
           // to make this blocking code works.
-          if (this.states.active) {
+          if (this.isActive()) {
             // XXX: I don't want to change the order of event registration
             // at this early-refactoring stage, so do this to minimize the
             // risk and complete the work.
@@ -179,6 +179,11 @@
         } else if('true' === val ||
                   true   === val) {
           this.states.enabled = true;
+          // For performance reason, we need to create window at the moment
+          // the settings get enabled.
+          if (!this.states.instance) {
+            this.createWindow();
+          }
         }
       };
 
@@ -191,7 +196,7 @@
       };
 
       window.SettingsListener.observe('lockscreen.enabled',
-          true, enabledListener);
+        true, enabledListener);
 
       // We are only interested in changes to the setting, rather
       // than its value, so just observe it instead of using SettingsListener
@@ -238,10 +243,9 @@
    */
   LockScreenWindowManager.prototype.closeApp =
     function lwm_closeApp(instant) {
-      if (!this.states.enabled && !this.states.active) {
+      if (!this.states.enabled || !this.isActive()) {
         return;
       }
-      this.states.active = false;
       this.states.instance.close(instant ? 'immediate': undefined);
       this.elements.screen.classList.remove('locked');
     };
@@ -261,13 +265,12 @@
         return;
       }
       if (!this.states.instance) {
-        this.createWindow();
+        var app = this.createWindow();
+        app.open();
       } else {
         this.states.instance.open();
-        this.states.instance.resize();
       }
       this.elements.screen.classList.add('locked');
-      this.states.active = true;
     };
 
   /**
@@ -313,6 +316,7 @@
    * if it is needed.
    *
    * @private
+   * @return {LockScreenWindow}
    * @this {LockScreenWindowManager}
    * @memberof LockScreenWindowManager
    */
@@ -323,8 +327,8 @@
       }
       this.states.windowCreating = true;
       var app = new window.LockScreenWindow();
-      app.open();
       this.states.windowCreating = false;
+      return app;
     };
 
   /**
@@ -353,20 +357,35 @@
 
   LockScreenWindowManager.prototype.responseUnlock =
     function lwm_responseUnlock(detail) {
+      var forcibly = (detail && detail.forcibly) ? true : false;
       // Only when the background app is ready,
       // we close the window.
       var activeApp = window.AppWindowManager ?
             window.AppWindowManager.getActiveApp() : null;
       if (!activeApp) {
-        this.closeApp();
+        this.closeApp(forcibly);
       } else {
-        activeApp.ready(this.closeApp.bind(this));
+        activeApp.ready(this.closeApp.bind(this, forcibly));
       }
     };
 
   LockScreenWindowManager.prototype.responseLock =
     function lwm_responseLock(detail) {
       this.openApp();
+    };
+
+  LockScreenWindowManager.prototype.getInstance =
+    function lwm_getInstance() {
+      return this.states.instance;
+    };
+
+  LockScreenWindowManager.prototype.isActive =
+    function lwm_isActive() {
+      if (null === this.states.instance) {
+        return false;
+      } else {
+        return this.states.instance.isActive();
+      }
     };
 
   /** @exports LockScreenWindowManager */

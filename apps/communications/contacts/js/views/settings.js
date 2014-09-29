@@ -103,8 +103,7 @@ contacts.Settings = (function() {
   };
 
   var updateImportTitle = function updateImportTitle(l10nString) {
-    importSettingsTitle.dataset.l10nId = l10nString;
-    importSettingsTitle.innerHTML = _(l10nString);
+    importSettingsTitle.setAttribute('data-l10n-id', l10nString);
   };
 
   // Initialises variables and listener for the UI
@@ -427,23 +426,35 @@ contacts.Settings = (function() {
     updateOptionStatus(importSDOption, !cardAvailable, true);
     updateOptionStatus(exportSDOption, !cardAvailable, true);
 
-    var importSDErrorMessage = '';
-    var exportSDErrorMessage = '';
+    var importSDErrorL10nId = null;
+    var exportSDErrorL10nId = null;
 
     var cardShared = utils.sdcard.status === utils.sdcard.SHARED;
     if (!cardAvailable) {
-      importSDErrorMessage = _('noMemoryCardMsg');
-      exportSDErrorMessage = _('noMemoryCardMsgExport');
+      importSDErrorL10nId = 'noMemoryCardMsg';
+      exportSDErrorL10nId = 'noMemoryCardMsgExport';
 
       if (cardShared) {
-        importSDErrorMessage = exportSDErrorMessage = _('memoryCardUMSEnabled');
+        importSDErrorL10nId = exportSDErrorL10nId = 'memoryCardUMSEnabled';
       }
     }
 
     // update the message
-    importSDOption.querySelector('p.error-message').textContent =
-      importSDErrorMessage;
-    exportSDOption.querySelector('p').textContent = exportSDErrorMessage;
+    var importSDErrorNode = importSDOption.querySelector('p.error-message');
+    if (importSDErrorL10nId) {
+      importSDErrorNode.setAttribute('data-l10n-id', importSDErrorL10nId);
+    } else {
+      importSDErrorNode.removeAttribute('data-l10n-id');
+      importSDErrorNode.textContent = '';
+    }
+
+    var exportSDErrorNode = exportSDOption.querySelector('p');
+    if (exportSDErrorL10nId) {
+      exportSDErrorNode.setAttribute('data-l10n-id', exportSDErrorL10nId);
+    } else {
+      exportSDErrorNode.removeAttribute('data-l10n-id');
+      exportSDErrorNode.textContent = '';
+    }
 
   };
 
@@ -1050,7 +1061,7 @@ contacts.Settings = (function() {
                                              (new Date(time)).toLocaleString());
           timeElement.textContent = utils.time.pretty(time);
         }
-        node.querySelector('p > span').textContent = _(spanID);
+        node.querySelector('p > span').setAttribute('data-l10n-id', spanID);
       });
     });
   };

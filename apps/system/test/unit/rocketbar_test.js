@@ -86,6 +86,7 @@ suite('system/Rocketbar', function() {
     subject.results.classList.add('hidden');
     subject.showResults();
     assert.equal(subject.results.classList.contains('hidden'), false);
+    assert.equal(subject.backdrop.classList.contains('results-shown'), true);
   });
 
   test('hideResults()', function() {
@@ -94,6 +95,7 @@ suite('system/Rocketbar', function() {
 
     subject.hideResults();
     assert.ok(subject.results.classList.contains('hidden'));
+    assert.equal(subject.backdrop.classList.contains('results-shown'), false);
     assert.ok(MockIACPort.mNumberOfMessages() == 1);
     sinon.assert.calledOnce(stub);
   });

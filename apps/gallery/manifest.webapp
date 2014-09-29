@@ -13,7 +13,6 @@
     "storage":{},
     "device-storage:pictures":{ "access": "readwrite" },
     "device-storage:videos":{ "access": "readwrite" },
-    "deprecated-hwvideo":{},
     "audio-channel-content":{},
     "nfc": { "access": "readwrite" },
     "feature-detection": {}

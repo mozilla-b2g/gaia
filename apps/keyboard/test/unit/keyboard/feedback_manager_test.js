@@ -126,21 +126,13 @@ suite('SoundFeedback', function() {
     var promiseManager = new SettingsPromiseManager();
 
     normalTarget = {
-      dataset: {
-        keyCode: 60
-      },
-      classList: {
-        contains: this.sinon.stub().returns(false)
-      }
+      keyCode: 60,
+      isSpecialKey: false
     };
 
     specialTarget = {
-      dataset: {
-        keyCode: 60
-      },
-      classList: {
-        contains: this.sinon.stub().returns(true)
-      }
+      keyCode: 60,
+      isSpecialKey: true
     };
 
     feedback = new SoundFeedback({
@@ -255,21 +247,13 @@ suite('FeedbackManager', function() {
     createLockStub.returns(lock);
 
     var normalTarget = {
-      dataset: {
-        keyCode: 60
-      },
-      classList: {
-        contains: this.sinon.stub().returns(false)
-      }
+      keyCode: 60,
+      isSpecialKey: false
     };
 
     var specialTarget = {
-      dataset: {
-        keyCode: 60
-      },
-      classList: {
-        contains: this.sinon.stub().returns(true)
-      }
+      keyCode: 60,
+      isSpecialKey: true
     };
 
     var app = {

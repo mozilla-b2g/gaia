@@ -1,5 +1,5 @@
 'use strict';
-/* global ItemStore, LazyLoader, Configurator, SettingsListener */
+/* global ItemStore, LazyLoader, Configurator, SettingsListener, groupEditor */
 
 (function(exports) {
 
@@ -36,6 +36,7 @@
     this.grid.addEventListener('iconblobdecorated', this);
     this.grid.addEventListener('gaiagrid-iconbloberror', this);
     this.grid.addEventListener('cached-icons-rendered', this);
+    this.grid.addEventListener('edititem', this);
     window.addEventListener('hashchange', this);
     window.addEventListener('gaiagrid-saveitems', this);
     window.addEventListener('online', this.retryFailedIcons.bind(this));
@@ -196,6 +197,18 @@
           });
           break;
 
+        case 'edititem':
+          var icon = e.detail;
+          if (icon.detail.type != 'divider') {
+            // We only edit groups
+            return;
+          }
+
+          LazyLoader.load('js/edit_group.js', () => {
+            groupEditor.edit(icon);
+          });
+          break;
+
         case 'gaiagrid-iconbloberror':
           // Attempt to redownload this icon at some point in the future
           this._iconsToRetry.push(e.detail.identifier);
@@ -225,6 +238,12 @@
         // The system app changes the hash of the homescreen iframe when it
         // receives a home button press.
         case 'hashchange':
+          // The group editor UI will be hidden by itself so returning...
+          var editor = exports.groupEditor;
+          if (editor && !editor.hidden) {
+            return;
+          }
+
           var _grid = this.grid._grid;
 
           // Leave edit mode if the user is in edit mode.

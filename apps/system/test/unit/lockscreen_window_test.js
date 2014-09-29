@@ -17,10 +17,14 @@ var mocksForLockScreenWindow = new window.MocksHelper([
 ]).init();
 
 suite('system/LockScreenWindow', function() {
-  var realL10n, stubById;
+  var realL10n, stubById, stubLockScreenAgent;
   mocksForLockScreenWindow.attachTestHelpers();
 
   setup(function(done) {
+    stubLockScreenAgent = function() {
+      this.start = function() {};
+    };
+    window.LockScreenAgent = stubLockScreenAgent;
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
 
       var element = document.createElement('div');

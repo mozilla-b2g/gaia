@@ -4,6 +4,7 @@
 
 'use strict';
 
+require('/shared/js/lazy_loader.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');

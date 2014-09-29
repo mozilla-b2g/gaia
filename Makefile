@@ -1025,6 +1025,9 @@ build-test-unit: $(NPM_INSTALLED_PROGRAMS)
 build-test-integration: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-test, $(shell find build/test/integration/*.test.js))
 
+build-test-unit-coverage: $(NPM_INSTALLED_PROGRAMS)
+	@$(call run-build-coverage,build/test/unit)
+
 .PHONY: docs
 docs: $(NPM_INSTALLED_PROGRAMS)
 	grunt docs

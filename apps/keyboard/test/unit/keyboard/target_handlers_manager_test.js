@@ -60,15 +60,8 @@ suite('TargetHandlersManager', function() {
     var target;
     setup(function() {
       target = {
-        classList: {
-          contains: this.sinon.stub()
-        },
-        dataset: {
-          keycode: '99'
-        }
+        keyCode: 99
       };
-      target.classList.contains.returns(false);
-
       activeTargetsManagerStub.ontargetactivated(target);
 
       assert.isTrue(window.DefaultTargetHandler.calledWith(target, app));
@@ -143,15 +136,8 @@ suite('TargetHandlersManager', function() {
     var target;
     setup(function() {
       target = {
-        classList: {
-          contains: this.sinon.stub()
-        },
-        dataset: {
-          keycode: '99'
-        }
+        keyCode: 99
       };
-      target.classList.contains.returns(false);
-
       activeTargetsManagerStub.ontargetmovedin(target);
 
       assert.isTrue(window.DefaultTargetHandler.calledWith(target, app));
@@ -225,18 +211,11 @@ suite('TargetHandlersManager', function() {
   suite('activate different targets', function() {
     test('DismissSuggestionsTargetHandler', function() {
       var target = {
-        classList: {
-          contains: this.sinon.stub()
-        },
-        dataset: {
-        }
+        isDismissSuggestionsButton: true
       };
-      target.classList.contains.returns(true);
 
       activeTargetsManagerStub.ontargetactivated(target);
 
-      assert.isTrue(
-        target.classList.contains.calledWith('dismiss-suggestions-button'));
       assert.isTrue(
         window.DismissSuggestionsTargetHandler.calledWith(target, app));
 
@@ -245,14 +224,8 @@ suite('TargetHandlersManager', function() {
 
     test('CandidateSelectionTargetHandler', function() {
       var target = {
-        classList: {
-          contains: this.sinon.stub()
-        },
-        dataset: {
-          selection: 'foo'
-        }
+        selection: 'foo'
       };
-      target.classList.contains.returns(false);
 
       activeTargetsManagerStub.ontargetactivated(target);
 
@@ -264,14 +237,8 @@ suite('TargetHandlersManager', function() {
 
     test('CompositeTargetHandler', function() {
       var target = {
-        classList: {
-          contains: this.sinon.stub()
-        },
-        dataset: {
-          compositeKey: 'lol'
-        }
+        compositeKey: 'lol'
       };
-      target.classList.contains.returns(false);
 
       activeTargetsManagerStub.ontargetactivated(target);
 
@@ -283,14 +250,8 @@ suite('TargetHandlersManager', function() {
 
     test('BackspaceTargetHandler', function() {
       var target = {
-        classList: {
-          contains: this.sinon.stub()
-        },
-        dataset: {
-          keycode: KeyEvent.DOM_VK_BACK_SPACE
-        }
+        keyCode: KeyEvent.DOM_VK_BACK_SPACE
       };
-      target.classList.contains.returns(false);
 
       activeTargetsManagerStub.ontargetactivated(target);
 
@@ -303,14 +264,8 @@ suite('TargetHandlersManager', function() {
 
     test('SpaceKeyTargetHandler', function() {
       var target = {
-        classList: {
-          contains: this.sinon.stub()
-        },
-        dataset: {
-          keycode: KeyEvent.DOM_VK_SPACE
-        }
+        keyCode: KeyEvent.DOM_VK_SPACE
       };
-      target.classList.contains.returns(false);
 
       activeTargetsManagerStub.ontargetactivated(target);
 
@@ -322,14 +277,8 @@ suite('TargetHandlersManager', function() {
 
     test('PageSwitchingTargetHandler', function() {
       var target = {
-        classList: {
-          contains: this.sinon.stub()
-        },
-        dataset: {
-          keycode: KeyEvent.DOM_VK_ALT
-        }
+        keyCode: KeyEvent.DOM_VK_ALT
       };
-      target.classList.contains.returns(false);
 
       activeTargetsManagerStub.ontargetactivated(target);
 
@@ -341,14 +290,8 @@ suite('TargetHandlersManager', function() {
 
     test('SwitchKeyboardTargetHandler', function() {
       var target = {
-        classList: {
-          contains: this.sinon.stub()
-        },
-        dataset: {
-          keycode: app.layoutManager.KEYCODE_SWITCH_KEYBOARD
-        }
+        keyCode: app.layoutManager.KEYCODE_SWITCH_KEYBOARD
       };
-      target.classList.contains.returns(false);
 
       activeTargetsManagerStub.ontargetactivated(target);
 
@@ -360,14 +303,8 @@ suite('TargetHandlersManager', function() {
 
     test('CapsLockTargetHandler', function() {
       var target = {
-        classList: {
-          contains: this.sinon.stub()
-        },
-        dataset: {
-          keycode: KeyEvent.DOM_VK_CAPS_LOCK
-        }
+        keyCode: KeyEvent.DOM_VK_CAPS_LOCK
       };
-      target.classList.contains.returns(false);
 
       activeTargetsManagerStub.ontargetactivated(target);
 
@@ -380,14 +317,8 @@ suite('TargetHandlersManager', function() {
     suite('DefaultTargetHandler', function() {
       test('-99', function() {
         var target = {
-          classList: {
-            contains: this.sinon.stub()
-          },
-          dataset: {
-            keycode: '-99'
-          }
+          keyCode: -99
         };
-        target.classList.contains.returns(false);
 
         activeTargetsManagerStub.ontargetactivated(target);
 
@@ -399,14 +330,8 @@ suite('TargetHandlersManager', function() {
 
       test('99', function() {
         var target = {
-          classList: {
-            contains: this.sinon.stub()
-          },
-          dataset: {
-            keycode: '99'
-          }
+          keyCode: 99
         };
-        target.classList.contains.returns(false);
 
         activeTargetsManagerStub.ontargetactivated(target);
 
@@ -418,14 +343,7 @@ suite('TargetHandlersManager', function() {
     });
 
     test('NullTargetHandler', function() {
-      var target = {
-        classList: {
-          contains: this.sinon.stub()
-        },
-        dataset: {
-        }
-      };
-      target.classList.contains.returns(false);
+      var target = {};
 
       activeTargetsManagerStub.ontargetactivated(target);
 

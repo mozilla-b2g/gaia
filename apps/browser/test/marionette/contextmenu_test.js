@@ -4,7 +4,12 @@ var Browser = require('./lib/browser'),
     Actions = require('marionette-client').Actions;
 
 marionette('search', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
+    }
+  });
   var subject;
   var server;
   var actions = new Actions(client);
