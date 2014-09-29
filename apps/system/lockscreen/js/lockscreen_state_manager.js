@@ -14,7 +14,7 @@
   limitations under the License.
  */
 
-/* global SettingsListener, System */
+/* global SettingsListener */
 /* global LockScreenStateSlideShow, LockScreenStateSlideHide */
 /* global LockScreenStateKeypadShow */
 /* global LockScreenStateKeypadHiding, LockScreenStateKeypadRising */
@@ -252,13 +252,6 @@
       .debug('Do transfer; input: ', currentStates)
       .debug('Previous state:', this.previousState.type);
 
-    // Not unlocking and not locked.
-    // Unlocking would be set false after the System got unlocked,
-    // because the final event would be fired later.
-    if (!this.lockScreenStates.unlocking && !System.locked) {
-      this.logger.debug('Do no transfer since System is unlocked.');
-      return;
-    }
 
     // Find what rule match the current LockScreen states.
     for (var [conditions, state] of this.rules) {
@@ -397,7 +390,7 @@
   };
 
   LockScreenStateManager.prototype.onLock =
-  function lssm_onUnlock(detail) {
+  function lssm_onLock(detail) {
     // To prevent unlock and lock hurriedly.
     if (this.lockScreenStates.unlocking) {
       this.lockScreenStates.unlocking = false;

@@ -11,7 +11,12 @@ var sharedPath = __dirname + '/../../../../shared/test/integration',
 
 marionette('interop basic', function() {
   var app, server;
-  var client = marionette.client();
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
+    }
+  });
 
   var vanillaEvent = Object.freeze({
     title: 'Vanilla event',

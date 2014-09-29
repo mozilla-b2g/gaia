@@ -23,8 +23,23 @@ class LockScreen(Base):
 
     _notification_locator = (By.CSS_SELECTOR, '#notifications-lockscreen-container > div.notification')
 
-    def unlock(self):
+    def switch_to_frame(self):
+      # XXX: Because we're not in frame yet. LockScreen team now is
+      # trying hard to do decoupling & as-iframe at the same time,
+      # but iframe now stuck at weird test failures, so the team decide
+      # to land decoupling part first, with some dummy functions that
+      # can be modified later to fit the implementation.
+      #
+      # If we finished to make it as an iframe, to this to switch
+      # to the real frame:
+      #
+      #   self.marionette.switch_to_frame(
+      #    self.marionette.find_element(*self._lockscreen_frame_locator));
+      #
+      # But now we're not ready to do that yet.
+      self.marionette.switch_to_frame();
 
+    def unlock(self):
         self._slide_to_unlock('homescreen')
         return Homescreen(self.marionette)
 

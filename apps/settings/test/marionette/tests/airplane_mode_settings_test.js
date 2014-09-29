@@ -5,7 +5,12 @@ var Settings = require('../app/app'),
 // Note :
 // This test is only run on devices
 marionette('airplaneMode settings', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
+    }
+  });
   var settingsApp;
   var rootPanel;
 

@@ -311,7 +311,7 @@
 #lockscreen-notification-arrow {
   width: calc(100% - 5.2rem);
   height: 1.6rem;
-  background-image: url('/style/lockscreen/images/lockscreen_notification_arrow.png');
+  background-image: url('./images/lockscreen_notification_arrow.png');
   background-repeat: no-repeat;
   background-position: calc(50% + 0.25rem) center;
   /* hide it while we adjust no layout */
@@ -380,19 +380,4 @@ html[dir="rtl"] #notifications-lockscreen-container .notification > div.title-co
 
 html[dir="rtl"] #notifications-lockscreen-container .notification > img {
   float: right;
-}
-
-html[dir="rtl"] #notifications-lockscreen-container .notification > div {
-  margin-left: 0;
-  margin-right: 3.6rem;
-}
-
-html[dir="rtl"] #notifications-lockscreen-container .notification > div.title-container .timestamp {
-  left: 0;
-  right: auto;
-}
-
-html[dir="rtl"] #notifications-lockscreen-container .notification > img {
-  margin-left: 0;
-  margin-right: 0;
 }

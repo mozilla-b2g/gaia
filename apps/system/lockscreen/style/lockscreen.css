@@ -69,7 +69,8 @@
 
 /* When switching lock-camera off,
  * transition time should be delayed to prevent homescreen appears.
- * (Let lockscreen appears first)                                   */
+ * (Let lockscreen appears first)
+ */
 #screen:not(.lockscreen-camera) > #lockscreen-camera {
   transition-delay: 0.3s;
 }
@@ -90,14 +91,7 @@
   border: none;
 }
 
-#lockscreen.uninit > * {
-  display: none;
-}
-
-#lockscreen.no-transition,
-#lockscreen.no-transition #lockscreen-panel-passcode,
-#lockscreen.no-transition #lockscreen-passcode-pad,
-#lockscreen.no-transition #lockscreen-passcode-code {
+#lockscreen.no-transition {
   transition: none;
 }
 

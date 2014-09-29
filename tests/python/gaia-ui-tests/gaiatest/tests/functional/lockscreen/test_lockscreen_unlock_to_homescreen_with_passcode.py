@@ -21,6 +21,7 @@ class TestLockScreen(GaiaTestCase):
 
     def test_unlock_to_homescreen_with_passcode(self):
         lock_screen = LockScreen(self.marionette)
+        lock_screen.switch_to_frame()
         passcode_pad = lock_screen.unlock_to_passcode_pad()
         homescreen = passcode_pad.type_passcode(self._input_passcode)
 

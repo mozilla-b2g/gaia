@@ -2,7 +2,7 @@
 
 'use strict';
 
-requireApp('system/js/lockscreen_notifications.js');
+requireApp('system/lockscreen/js/lockscreen_notifications.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 
 var mocksForLockScreenNotifications = new MocksHelper([
@@ -29,9 +29,15 @@ suite('system/LockScreenNotifications', function() {
   };
 
   var lockScreenNotifications;
+  var stubLockScreenNotificationBuilder;
   mocksForLockScreenNotifications.attachTestHelpers();
 
   setup(function() {
+    stubLockScreenNotificationBuilder = function() {
+      this.stop = this.start = function() {};
+    };
+    window.LockScreenNotificationBuilder =
+      stubLockScreenNotificationBuilder;
     lockScreenNotifications = new LockScreenNotifications();
     MockLockScreen.init();
     lockScreenNotifications.start(MockLockScreen,

@@ -17,6 +17,9 @@ marionette('Firefox Accounts Launch Tests', function() {
             config.SERVER_HOST + ':' +
             config.SERVER_PORT + '/' +
             config.SERVER_PATH
+          },
+          settings: {
+            'lockscreen.enabled': false
           }
       });
 

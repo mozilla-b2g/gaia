@@ -11,8 +11,8 @@
          applications, Rocketbar, LayoutManager, PermissionManager,
          SoftwareButtonManager, Accessibility, NfcUtils, ShrinkingUI,
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
-         LockScreenNotifications, LockScreenPasscodeValidator, NfcManager,
-         ExternalStorageMonitor, LockScreenNotificationBuilder,
+         LockScreenPasscodeValidator, NfcManager,
+         ExternalStorageMonitor,
          BrowserSettings, AppMigrator, SettingsMigrator, EuRoamingManager,
          CellBroadcastSystem, EdgeSwipeDetector, QuickSettings */
 'use strict';
@@ -150,10 +150,8 @@ window.addEventListener('load', function startup() {
   }
   window.internetSharing = new InternetSharing();
   window.internetSharing.start();
-  window.lockScreenNotifications = new LockScreenNotifications();
   window.lockScreenPasscodeValidator = new LockScreenPasscodeValidator();
   window.lockScreenPasscodeValidator.start();
-  window.lockScreenNotificationBuilder = new LockScreenNotificationBuilder();
   window.layoutManager = new LayoutManager();
   window.layoutManager.start();
   window.nfcUtils = new NfcUtils();

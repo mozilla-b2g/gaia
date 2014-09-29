@@ -54,6 +54,27 @@ SystemAppBuilder.prototype.initConfigJsons = function() {
 
 };
 
+/**
+ * XXX: Before we can pull LockScreen out, we need this to split
+ * LockScreen and System app while still merge them into one file.
+ * (Bug 1057198).
+ */
+SystemAppBuilder.prototype.integrateLockScreen = function(options) {
+  var stagePath = options.STAGE_APP_DIR;
+  var lockscreenFrameElement = '<div id="lockscreen-frame-placeholder"></div>';
+  // Paths must indicate to the files in build stage directory.
+  var lockscreenFramePath = [stagePath, 'lockscreen', 'lockscreen.html'];
+  var systemIndexPath = [stagePath, 'index.html'];
+  var systemIndexFile = utils.getFile.apply(utils, systemIndexPath);
+  var lockscreenContent = utils.getFileContent(
+      utils.getFile.apply(utils, lockscreenFramePath));
+  var systemIndexContent = utils.getFileContent(
+      systemIndexFile);
+  var replacedIndexContent = systemIndexContent.replace(lockscreenFrameElement,
+      lockscreenContent);
+  utils.writeContent(systemIndexFile, replacedIndexContent);
+};
+
 SystemAppBuilder.prototype.execute = function(options) {
   utils.copyToStage(options);
   this.setOptions(options);
@@ -61,6 +82,7 @@ SystemAppBuilder.prototype.execute = function(options) {
   if (this.distDirPath) {
     this.addCustomizeFiles();
   }
+  this.integrateLockScreen(options);
 };
 
 exports.execute = function(options) {

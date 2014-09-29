@@ -1,0 +1,78 @@
+.media-playback-container {
+  height: auto;
+  padding: 0 1.8rem;
+}
+
+.media-playback-container.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.media-playback-nowplaying {
+  height: 2.4rem;
+}
+
+.media-playback-nowplaying > .track {
+  padding: 1rem 1.5rem 0 1.5rem;
+  font: italic 1.4rem/1.4rem auto;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.media-playback-controls {
+  height: 5.6rem;
+  width: 100%;
+  overflow: hidden;
+  text-align: center;
+  font-size: 0; /* ensure there's no space between the buttons */
+}
+
+.media-playback-controls > [data-icon] {
+  width: calc(100% / 3);
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  color: #e7e7e7;
+  border: none;
+  border-radius: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.media-playback-controls > [data-icon]:before {
+  font-size: 4rem;
+  line-height: 5.6rem;
+}
+
+.media-playback-controls > .previous {
+  text-align: left;
+  padding-left: 1.5rem;
+}
+
+.media-playback-controls > .next {
+  text-align: right;
+  padding-right: 1.5rem;
+}
+
+.media-playback-controls > button {
+  transition: 0s 0.3s; /* Delay transition post tap by some milliseconds. */
+}
+
+[role="dialog"] .media-playback-controls > button:active,
+.media-playback-controls > button:active {
+  background-color: transparent;
+  color: #0ac;
+  transition: 0s;
+}
+
+/* Lock screen music player */
+#lockscreen-media-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 5rem;
+  background: rgba(51, 51, 51, 0.3);
+  z-index: 1;
+}

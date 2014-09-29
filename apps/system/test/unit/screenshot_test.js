@@ -115,7 +115,7 @@ suite('system/Screenshot', function() {
         'screenshotFailed');
       assert.deepEqual(notificationSpy.firstCall.args[1],
         { body: 'screenshotNoSDCard',
-          icon: 'style/icons/Gallery.png'});
+          icon: '/style/icons/Gallery.png'});
     });
 
   test('Receive volumedown+sleep event with shared device storage.',
@@ -140,7 +140,7 @@ suite('system/Screenshot', function() {
         'screenshotFailed');
       assert.deepEqual(notificationSpy.firstCall.args[1],
         { body: 'screenshotSDCardInUse',
-          icon: 'style/icons/Gallery.png'});
+          icon: '/style/icons/Gallery.png'});
     });
 
   test('Receive volumedown+sleep event with low disk space.',
@@ -170,7 +170,7 @@ suite('system/Screenshot', function() {
         'screenshotFailed');
       assert.deepEqual(notificationSpy.firstCall.args[1],
         { body: 'screenshotSDCardLow',
-          icon: 'style/icons/Gallery.png'});
+          icon: '/style/icons/Gallery.png'});
     });
 
   test('Receive take-screenshot-success mozChromeEvent event',
@@ -208,6 +208,6 @@ suite('system/Screenshot', function() {
       assert.equal(notificationSpy.firstCall.args[0],
         'screenshotSaved');
       assert.equal(notificationSpy.firstCall.args[1].icon,
-        'style/icons/Gallery.png');
+        '/style/icons/Gallery.png');
     });
 });

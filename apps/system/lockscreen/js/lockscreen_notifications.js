@@ -2,6 +2,8 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 
+/* global LockScreenNotificationBuilder */
+
 (function(exports) {
   /**
    * Manage Notifications in Lockscreen:
@@ -16,6 +18,9 @@
   function lsn_start(lockScreen, container){
     this._lockScreen = lockScreen;
     this.container = container;
+    this._lockScreenNotificationBuilder =
+      new LockScreenNotificationBuilder(this.container);
+    this._lockScreenNotificationBuilder.start();
     this.arrow =
       document.getElementById('lockscreen-notification-arrow');
     // The 'scroll' event can't be forwarded via 'window'.
@@ -23,10 +28,15 @@
     this.configs = {
       listens: [
         'lockscreen-notification-request-highlight',
-        'lockscreen-notification-highlighted',
-        'lockscreen-notification-clean-highlighted',
-        'lockscreen-notification-clicked',
-        'touchstart'
+        'lockscreen-notification-notify-highlighted',
+        'lockscreen-notification-request-clean-highlighted',
+        'lockscreen-notification-request-activate',
+        'lockscreen-notification-request-append',
+        'lockscreen-notification-request-remove',
+        'lockscreen-notification-request-clear',
+        'touchstart',
+        'visibilitychange',
+        'scroll'
       ],
       // UX require to cancel the highlighted state after
       // idle 3 seconds.
@@ -49,21 +59,34 @@
   LockScreenNotifications.prototype.handleEvent =
   function lsn_handleEvent(evt) {
     var detail = evt.detail || {};
-    var { id, timestamp } = detail;
+    var { id, timestamp, node } = detail;
     switch (evt.type) {
+      case 'lockscreen-notification-request-append':
+        this.onNotificationAppend(id, node);
+      break;
+      case 'lockscreen-notification-request-remove':
+        var containerEmpty = false;
+        if (evt.detail && evt.detail.containerEmpty) {
+          containerEmpty = true;
+        }
+        this.onNotificationRemoved(containerEmpty);
+      break;
+      case 'lockscreen-notification-request-clear':
+        this.onNotificationsClear();
+      break;
       case 'lockscreen-notification-request-highlight':
         if (!this.notificationOutOfViewport(evt.detail.node)) {
           evt.detail.highlighter();
         }
       break;
-      case 'lockscreen-notification-highlighted':
+      case 'lockscreen-notification-notify-highlighted':
         this.onNotificationHighlighted(id, timestamp);
       break;
-      case 'lockscreen-notification-clean-highlighted':
+      case 'lockscreen-notification-request-clean-highlighted':
         this.onCleanHighlighted(id, timestamp);
       break;
-      case 'lockscreen-notification-clicked':
-        this.onNotificationClicked(evt.detail);
+      case 'lockscreen-notification-request-activate':
+        this.onNotificationActivate(evt.detail);
       break;
       case 'touchstart':
         if (!evt.target.classList.contains('notification') &&
@@ -73,6 +96,11 @@
       break;
       case 'scroll':
         this.onContainerScrolling();
+      break;
+      case 'visibilitychange':
+        if (!document.hidden) {
+          this.updateTimestamps();
+        }
       break;
     }
   };
@@ -235,13 +263,81 @@
   /**
    * When user clicked on the notification while it's locked.
    */
-  LockScreenNotifications.prototype.onNotificationClicked =
-  function lsn_onNotificationClicked(info) {
+  LockScreenNotifications.prototype.onNotificationActivate =
+  function lsn_onNotificationActivate(info) {
     this._lockScreen._unlockingMessage = {
       notificationId: info.notificationId
     };
     window.dispatchEvent(
       new CustomEvent('lockscreen-notification-request-activate-unlock'));
+  };
+
+  /**
+   * When new notification appended, do the visual change.
+   * Would receive a ordinary Notificaition node.
+   */
+  LockScreenNotifications.prototype.onNotificationAppend =
+  function lsn_onNotificationsAppend(id, node) {
+      var notifSelector = '[data-notification-id="' + id + '"]';
+      // First we try and find an existing notification with the same id.
+      // If we have one, we'll replace it. If not, we'll create a new node.
+      var oldLockScreenNode =
+        this.container.querySelector(notifSelector);
+      if (oldLockScreenNode) {
+        this.container.replaceChild(
+          node,
+          oldLockScreenNode
+        );
+      }
+      else {
+        this.container.insertBefore(
+          node,
+          this.container.firstElementChild
+        );
+      }
+
+      this._lockScreenNotificationBuilder.decorate(node);
+      this.showColoredMaskBG();
+
+      // UX specifies that the container should scroll to top
+      /* note two things:
+       * 1. we need to call adjustContainerVisualHints even
+       *    though we're setting scrollTop, since setting sT doesn't
+       *    necessarily invoke onscroll (if the old container is already
+       *    scrolled to top, we might still need to decide to show
+       *    the arrow)
+       * 2. set scrollTop before calling adjustContainerVisualHints
+       *    since sT = 0 will hide the mask if it's showing,
+       *    and if we call aCVH before setting sT,
+       *    under some circumstances aCVH would decide to show mask,
+       *    only to be negated by st = 0 (waste of energy!).
+       */
+      this.scrollToTop();
+
+      // check if lockscreen notifications visual
+      // hints (masks & arrow) need to show
+      this.adjustContainerVisualHints();
+  };
+
+  LockScreenNotifications.prototype.onNotificationRemoved =
+  function lsn_onNotificationRemoved(containerEmpty) {
+    // if we don't have any notifications,
+    // use the no-notifications masked background for lockscreen
+    if (containerEmpty) {
+      this.hideColoredMaskBG();
+    }
+    // check if lockscreen notifications visual
+    // hints (masks & arrow) need to show
+    this.adjustContainerVisualHints();
+  };
+
+  LockScreenNotifications.prototype.onNotificationsClear =
+  function lsn_onNotificationsClear() {
+    // remove the "have notifications" masked background from lockscreen
+    this.hideColoredMaskBG();
+    // check if lockscreen notifications visual
+    // hints (masks & arrow) need to show
+    this.adjustContainerVisualHints();
   };
 
   /**
@@ -455,6 +551,29 @@
         numNotificationInContainerViewport + ')') === notificationNode){
       this.container.classList.remove('top-actionable');
     }
+  };
+
+  LockScreenNotifications.prototype.updateTimestamps =
+  function lsn_updateTimestamps() {
+    var timestamps = [...document.querySelectorAll('.notification .timestamp')];
+    timestamps.forEach((element) => {
+      element.textContent =
+        this.prettyDate(new Date(element.dataset.timestamp));
+    });
+  };
+
+  /**
+   * Display a human-readable relative timestamp.
+   */
+  LockScreenNotifications.prototype.prettyDate =
+  function lsn_prettyDate(time) {
+    var date;
+    if (navigator.mozL10n) {
+      date = navigator.mozL10n.DateTimeFormat().fromNow(time, true);
+    } else {
+      date = time.toLocaleFormat();
+    }
+    return date;
   };
 
   /** @exports LockScreenWindowManager */
