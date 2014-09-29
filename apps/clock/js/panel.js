@@ -56,6 +56,7 @@ Object.defineProperties(Panel.prototype, {
         if (value) {
           this.element.classList.add('active');
         } else {
+          this.pendingVisible = true;
           this.element.classList.remove('active');
         }
       }
