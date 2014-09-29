@@ -25,14 +25,16 @@ var SiSlScreenHelper = (function() {
 
   function sssh_init() {
     // Retrieve the various page elements
-    title = document.getElementById('title');
+    title = document.getElementById('title-si-sl');
 
     screen = document.getElementById('si-sl-screen');
     container = screen.querySelector('.container');
     text = container.querySelector('p');
     link = container.querySelector('a');
+    var header = document.getElementById('header-si-sl');
 
     // Event handlers
+    header.addEventListener('action', sssh_onClose);
     link.addEventListener(
       'click',
       LinkActionHandler.onClick.bind(LinkActionHandler)
@@ -43,12 +45,6 @@ var SiSlScreenHelper = (function() {
   function sssh_populateScreen(message) {
     var _ = navigator.mozL10n.get;
 
-    // The close button in the header is shared between screens but sadly the
-    // flow differs. Let the WapPushManaget knwo what SiSlScreenHelper function
-    // invoque when the user click on the close button.
-    WapPushManager.setOnCloseCallback(sssh_onClose);
-
-    WapPushManager.enableAcceptButton(false);
     screen.hidden = false;
 
     // Populate the message
