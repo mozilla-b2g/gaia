@@ -1,7 +1,7 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ApnHelper */
+/* globals ApnHelper, LazyLoader */
 
 (function(exports) {
   'use strict';
@@ -185,32 +185,24 @@
       function ovh_retrieveOperatorVariantSettings(callback) {
 
       var self = this;
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', OPERATOR_VARIANT_FILE, true);
-      xhr.responseType = 'json';
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
-          var apn = xhr.response;
+      LazyLoader.getJSON(OPERATOR_VARIANT_FILE).then(function(apn) {
+        // The apn.json generator strips out leading zeros for mcc values. No
+        // need for padding in this instance.
+        var mcc = self._iccSettings.mcc;
 
-          // The apn.json generator strips out leading zeros for mcc values. No
-          // need for padding in this instance.
-          var mcc = self._iccSettings.mcc;
+        // We must pad the mnc value and turn it into a string otherwise
+        // we could *fail* to load the appropriate settings for single digit
+        // *mnc* values!
+        var mnc = self.padLeft(self._iccSettings.mnc, 2);
 
-          // We must pad the mnc value and turn it into a string otherwise
-          // we could *fail* to load the appropriate settings for single digit
-          // *mnc* values!
-          var mnc = self.padLeft(self._iccSettings.mnc, 2);
+        // Get the type of the data network
+        var networkType = window.navigator
+                                .mozMobileConnections[self._iccCardIndex]
+                                .data.type;
 
-          // Get the type of the data network
-          var networkType = window.navigator
-                                  .mozMobileConnections[self._iccCardIndex]
-                                  .data.type;
-
-          // Get a list of matching APNs
-          callback(ApnHelper.getCompatible(apn, mcc, mnc, networkType));
-        }
-      };
-      xhr.send();
+        // Get a list of matching APNs
+        callback(ApnHelper.getCompatible(apn, mcc, mnc, networkType));
+      });
     },
 
     /**
@@ -640,24 +632,17 @@
       var WAP_UA_PROFILE_FILE = '/resources/wapuaprof.json';
       var DEFAULT_KEY = '000000';
 
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', WAP_UA_PROFILE_FILE, true);
-      xhr.responseType = 'json';
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
-          var uaprof = xhr.response;
-          // normalize mcc, mnc as zero padding string.
-          var mcc = self.padLeft(self._iccSettings.mcc, 3);
-          var mnc = self.padLeft(self._iccSettings.mnc, 3);
+      LazyLoader.getJSON(WAP_UA_PROFILE_FILE).then(function(uaprof) {
+        // normalize mcc, mnc as zero padding string.
+        var mcc = self.padLeft(self._iccSettings.mcc, 3);
+        var mnc = self.padLeft(self._iccSettings.mnc, 3);
 
-          // Get the ua profile url with mcc/mnc. Fallback to default if no
-          // record found. If still not found, we use undefined as the default
-          // value
-          var uaProfile = uaprof[mcc + mnc] || uaprof[DEFAULT_KEY];
-          callback(uaProfile);
-        }
-      };
-      xhr.send();
+        // Get the ua profile url with mcc/mnc. Fallback to default if no
+        // record found. If still not found, we use undefined as the default
+        // value
+        var uaProfile = uaprof[mcc + mnc] || uaprof[DEFAULT_KEY];
+        callback(uaProfile);
+      });
     },
 
     /**

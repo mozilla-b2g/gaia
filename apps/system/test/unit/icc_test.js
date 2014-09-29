@@ -14,7 +14,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/load_body_html_helper.js');
-
+require('/shared/js/lazy_loader.js');
 
 var mocksForIcc = new MocksHelper([
   'Dump',
