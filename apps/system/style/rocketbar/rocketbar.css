@@ -122,22 +122,29 @@
   width: 100%;
 }
 
-#rocketbar-backdrop {
-  top: 0;
-  height: 100%;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.95);
-  transition: opacity 0.3s linear;
-}
-
 /* Rocketbar results is normally 7rem tall and should be adjusted by the
    height of the SHB when enabled */
 #screen.software-button-enabled #rocketbar-results {
   height: calc(100% - 7rem - var(--software-home-button-height));
 }
 
-#rocketbar-results.hidden, #rocketbar-results iframe.hidden,
+#rocketbar-backdrop {
+  top: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  transform: scaleY(1);
+  transform-origin: top;
+  transition: transform 0.25s linear, background-color 0.25s linear;
+}
+
 #rocketbar-backdrop.hidden {
+  background-color: rgba(0, 0, 0, 0);
+  transform: scaleY(0);
+  pointer-events: none;
+}
+
+#rocketbar-results.hidden, #rocketbar-results iframe.hidden {
   opacity: 0;
   pointer-events: none;
 }

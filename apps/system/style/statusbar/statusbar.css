@@ -99,7 +99,7 @@
 }
 
 body #statusbar {
-  transition: transform 0.2s linear;
+  transition: transform 0.2s linear, opacity 0.2s linear;
 }
 
 /* Hiding the black background while the homescreen is in foreground but not

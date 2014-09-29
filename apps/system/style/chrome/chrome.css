@@ -144,6 +144,12 @@
   border-radius: 1.8rem;
   text-overflow: ellipsis;
   font-style: italic;
+  opacity: 1;
+}
+
+#screen.rocketbar-focused .chrome .controls .urlbar .title {
+  opacity: 0;
+  transition: opacity 0.2s linear;
 }
 
 .search-app .chrome.maximized .controls .urlbar:after {
