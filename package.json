@@ -20,6 +20,7 @@
     "grunt": "0.4.2",
     "grunt-contrib-clean": "0.5.0",
     "grunt-jsdoc": "0.5.1",
+    "istanbul": "^0.3.2",
     "jshint": "2.5.4",
     "load-grunt-tasks": "0.4.0",
     "mail-fakeservers": "0.0.24",
@@ -45,7 +46,7 @@
     "request": "2.33.0",
     "restify": "2.8.1",
     "rimraf": "2.2.5",
-    "test-agent": "0.25",
+    "test-agent": "0.23.11",
     "travis-project-jobs": "0.0.1",
     "watch": "~0.9.0"
   },
