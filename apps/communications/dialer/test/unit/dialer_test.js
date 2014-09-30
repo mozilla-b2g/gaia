@@ -280,7 +280,7 @@ suite('navigation bar', function() {
 
       suite('> with a CDMA second call', function() {
         setup(function() {
-          sysMsg.secondNumber = '23456';
+          sysMsg.id.secondNumber = '23456';
         });
 
         test('should insert two different calls in the database', function() {
