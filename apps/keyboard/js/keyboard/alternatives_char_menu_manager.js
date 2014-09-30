@@ -116,13 +116,12 @@ AlternativesCharMenuManager.prototype.hide = function() {
 };
 
 AlternativesCharMenuManager.prototype.isMenuTarget = function(target) {
-  if (!this._currentMenuView || Object.keys(target).length === 0) {
+  if (!this._currentMenuView) {
     return false;
   }
 
-  var menuContainer = this._currentMenuView.getMenuContainer();
-  return (IMERender.targetObjDomMap.get(target).parentNode === menuContainer ||
-          IMERender.targetObjDomMap.get(target) === menuContainer);
+  return (IMERender.targetObjDomMap.get(target).parentNode ===
+          this._currentMenuView.getMenuContainer());
 };
 
 AlternativesCharMenuManager.prototype.getMenuTarget = function(press) {
