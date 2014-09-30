@@ -72,7 +72,7 @@
       case 'activeappchanged':
         this.close();
         break;
-      case 'value-selector-showed':
+      case 'value-selector-shown':
         this._ignoreSelectionChange = true;
         break;
       case 'value-selector-hidden':

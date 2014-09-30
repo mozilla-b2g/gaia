@@ -367,7 +367,7 @@ suite('system/TextSelectionDialog', function() {
     });
 
     test('is shown', function() {
-      td.handleEvent({ type: 'value-selector-showed' });
+      td.handleEvent({ type: 'value-selector-shown' });
       assert.isTrue(td._ignoreSelectionChange);
 
       fakeTextSelectInAppEvent.detail = mockDetail;
