@@ -261,12 +261,12 @@ button::-moz-focus-inner {
 }
 
 /* Caps lock case */
-.keyboard-key.special-key.kbr-key-hold > .visual-wrapper > .key-element {
+.keyboard-key.special-key.kbr-key-hold:not(.highlighted) > .visual-wrapper > .key-element {
   color: #00caf2;
 }
 
 /* The underline for caps lock */
-.keyboard-key.kbr-key-hold > .visual-wrapper {
+.keyboard-key.kbr-key-hold:not(.highlighted) > .visual-wrapper {
   box-shadow: 0 0.4rem 0 #00caf2;
 }
 
