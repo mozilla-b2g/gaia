@@ -110,9 +110,9 @@ var ModeManager = {
 
     if (mode === MODE_PLAYER) {
       // Here if Player is not loaded yet and we are going to play
-      // load PlayerView.js then we can use the PlayerView object
+      // load player_view.js then we can use the PlayerView object
       document.getElementById('views-player').classList.remove('hidden');
-      LazyLoader.load('js/views/PlayerView.js', function() {
+      LazyLoader.load('js/views/player_view.js', function() {
         if (!playerLoaded) {
           PlayerView.init();
           PlayerView.setOptions(playerSettings);
