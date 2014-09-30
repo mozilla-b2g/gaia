@@ -226,4 +226,65 @@ suite('Views > AlternativesCharMenuView', function() {
       assert.equal(target, expectedTarget, 'Should map to the 4th element');
     });
   });
+
+  suite(' > getMenuTarget() - 2 row with one empty cell case', function() {
+    var childObjs = [];
+
+    setup(function() {
+      fakeMenu = document.createElement('div');
+      fakeMenu.style.position = 'absolute';
+      fakeMenu.style.width = KEY_WIDTH * 3 + 'px';  // 2 row
+
+      childObjs = [];
+
+      // insert 5 keys for 2 rows
+      // (would result in 3x2 cells with top top-right one being empty)
+      for (var i = 0; i < 5; i++) {
+         var child = document.createElement('div');
+         child.style.display = 'inline-block';
+         child.style.width = KEY_WIDTH + 'px';
+         child.style.height = KEY_HEIGHT + 'px';
+
+         fakeMenu.appendChild(child);
+
+        var childObj = {
+          dummy: i
+        };
+
+        IMERender.setDomElemTargetObject(child, childObj);
+
+        childObjs.push(childObj);
+      }
+
+      rootElement.appendChild(fakeMenu);
+
+      menu = new AlternativesCharMenuView(rootElement, altChars, renderer);
+      menu.renderingManager = fakeLayoutRenderingManager;
+
+      this.sinon.stub(menu, 'getMenuContainer');
+      menu.getMenuContainer.returns(fakeMenu);
+
+      this.sinon.stub(menu, 'getBoundingClientRect',
+        fakeMenu.getBoundingClientRect.bind(fakeMenu));
+
+      this.sinon.stub(menu, 'getLineHeight');
+      menu.getLineHeight.returns(KEY_HEIGHT);
+
+      var keyElem = document.createElement('button');
+      IMERender.targetObjDomMap.set(key, keyElem);
+    });
+
+    teardown(function() {
+      menu.hide();
+    });
+
+    test('2 row - the empty element', function() {
+      menu.show(key);
+
+      var target = menu.getMenuTarget(fakeMenu.offsetLeft + KEY_WIDTH * 2, 0);
+      var expectedTarget = childObjs[4];
+
+      assert.equal(target, expectedTarget, 'Should map to the last element');
+    });
+  });
 });

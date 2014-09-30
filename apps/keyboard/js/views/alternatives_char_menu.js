@@ -216,6 +216,13 @@ AlternativesCharMenuView.prototype.getMenuTarget = function(x, y) {
   }
 
   var menuContainer = this.getMenuContainer();
+
+  // UX spec: if the targetIndex is out of the length of the alt chars,
+  // we want to highlight the last alt char.
+  if (targetIndex >= menuContainer.children.length) {
+    targetIndex = menuContainer.children.length - 1;
+  }
+
   return this.renderingManager.getTargetObject(
            menuContainer.children[targetIndex]
          );
