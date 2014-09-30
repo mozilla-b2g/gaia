@@ -5,7 +5,7 @@ export GAIATEST_SKIP_WARNING=true
 
 # Get the b2g desktop binary...
 get_b2g_bin() {
-  local folder=$(find . -d 1 -name 'b2g*' | cut -f 1 -d " ")
+  local folder=$(find . -d 1 -name 'b2g' | cut -f 1 -d " ")
   # Download b2g...
   if [ -z "$folder" ];
   then
@@ -32,6 +32,8 @@ b2g=$(get_b2g_bin)
 root=tests/python/gaia-ui-tests/gaiatest
 profile=$(get_profile)
 gaiatest="$root/cli.py"
+
+echo "Using b2g: $b2g"
 
 # Enter the virtual env.
 source ./tests/travis_ci/venv.sh &&
