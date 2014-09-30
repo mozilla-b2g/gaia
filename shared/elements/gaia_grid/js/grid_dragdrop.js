@@ -319,9 +319,11 @@
       // Find the icon with the closest X/Y position of the move,
       // and insert ours before it.
       var foundIndex = 0;
+      var insertDividerAtTop = !iconIsDivider;
       pageX += this.gridView.layout.gridItemWidth / 2;
       pageY += this.icon.pixelHeight / 2;
       if (pageY >= 0) {
+        insertDividerAtTop = false;
         foundIndex =
           this.gridView.getNearestItemIndex(pageX, pageY, iconIsDivider);
       }
@@ -344,7 +346,8 @@
       }
 
       // Nothing to do if we find the dragged icon or no icon
-      if (foundIndex === null || foundIndex === this.icon.detail.index) {
+      if (foundIndex === null ||
+          (!insertDividerAtTop && foundIndex === this.icon.detail.index)) {
         return;
       }
       var foundItem = this.gridView.items[foundIndex];
@@ -367,9 +370,13 @@
         this.hoverItem.element.classList.add('hovered');
       }
 
-      // Add another divider when hovering over a divider with an icon
-      if (!iconIsDivider && foundItem.detail.type === 'divider') {
-        this.doRearrange = this.createNewDivider.bind(this, foundItem);
+      // Add another divider when hovering over a divider with an icon or
+      // dragging an icon to the very top of the grid
+      if (insertDividerAtTop ||
+          (!iconIsDivider && (foundItem.detail.type === 'divider'))) {
+        this.doRearrange =
+          this.createNewDivider.bind(this,
+                                     insertDividerAtTop ?  null : foundItem);
       } else {
         this.doRearrange = this.rearrange.bind(this, foundItem);
 
@@ -386,19 +393,20 @@
     /**
      * Creates a new divider in GridView.items and rearranges the currently
      * dragged icon into the newly created section.
-     * @param {Object} tDivider The divider after which to place a new divider
+     * @param {Object} tDivider The divider after which to place a new divider,
+     *   or null to insert a divider at the beginning on the grid.
      */
     createNewDivider: function(tDivider) {
       var items = this.gridView.items;
-      var tIndex = items.indexOf(tDivider);
+      var tIndex = tDivider ? items.indexOf(tDivider) + 1 : 0;
 
       // Create the new divider
       var newDivider = new GaiaGrid.Divider();
-      items.splice(tIndex + 1, 0, newDivider);
+      items.splice(tIndex, 0, newDivider);
 
       // Place the dragged item into the new empty section
       var sIndex = items.indexOf(this.icon);
-      this.rearrange(sIndex > tIndex ? newDivider : tDivider);
+      this.rearrange(sIndex >= tIndex ? newDivider : tDivider);
     },
 
     /**
