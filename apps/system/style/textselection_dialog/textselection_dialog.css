@@ -7,13 +7,15 @@
 
 .appWindow > .textselection-dialog,
 #TextSelectionDialogRoot > .textselection-dialog {
-  height: auto;
+  height: 5.2rem;
   width: auto;
   position: absolute;
   background-color: #696b6e;
   box-shadow: 0.2rem 0.2rem 0.4rem 0 rgba(0, 0, 0, 0.4);
   display: none;
   border-radius: 0.2rem;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
 }
 
 .appWindow > .textselection-dialog div,
@@ -34,6 +36,7 @@
 .appWindow > .textselection-dialog div:active,
 #TextSelectionDialogRoot > .textselection-dialog div:active {
   background-color: #4e595c;
+  border-radius: 0.2rem;
 }
 
 .appWindow > .textselection-dialog div:after,
@@ -41,7 +44,7 @@
   content: '';
   background-color: #596466;
   width: 0.1rem;
-  height: 4.6rem;
+  height: 4.4rem;
   margin-top: 0.4rem;
   display: none;
 }
@@ -51,9 +54,14 @@
   display: block;
 }
 
+#TextSelectionDialogRoot > .textselection-dialog div:active:after,
+#TextSelectionDialogRoot > .textselection-dialog div:active + div:after{
+  display: none;
+}
+
 .appWindow > .textselection-dialog.visible,
 #TextSelectionDialogRoot > .textselection-dialog.visible {
-  display: block;
+  opacity: 1;
 }
 
 .appWindow .textselection-dialog-copy,

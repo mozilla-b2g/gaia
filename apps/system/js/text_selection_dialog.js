@@ -15,6 +15,7 @@
     this._hasCutOrCopied = false;
     this._ignoreSelectionChange = false;
     this._isShowed = false;
+    this._isCommandSendable = false;
 
     this._previousOffsetX = 0;
     this._previousOffsetY = 0;
@@ -171,7 +172,9 @@
             this.close();
           }.bind(this), this.SHORTCUT_TIMEOUT);
         }
+        return;
       }
+      this.close();
     };
 
   TextSelectionDialog.prototype._fetchElements = function tsd__fetchElements() {
@@ -195,17 +198,35 @@
 
   TextSelectionDialog.prototype._registerEvents =
     function tsd__registerEvents() {
+      var self = this;
       var elements = this.elements;
-      elements.copy.addEventListener('mousedown', this.copyHandler.bind(this));
-      elements.cut.addEventListener('mousedown', this.cutHandler.bind(this));
-      elements.paste.addEventListener('mousedown',
+      for (var ele in elements) {
+        elements[ele].addEventListener('mousedown', onMouseDown);
+
+        // We should not send command to gecko if user move their finger out of
+        // the original button.
+        elements[ele].addEventListener('mouseout', onMouseOut);
+      }
+      elements.copy.addEventListener('click', this.copyHandler.bind(this));
+      elements.cut.addEventListener('click', this.cutHandler.bind(this));
+      elements.paste.addEventListener('click',
         this.pasteHandler.bind(this));
-      elements.selectall.addEventListener('mousedown',
+      elements.selectall.addEventListener('click',
         this.selectallHandler.bind(this));
-  };
+      function onMouseDown(evt) {
+        self._isCommandSendable = true;
+        evt.preventDefault();
+      }
+      function onMouseOut(evt) {
+        self._isCommandSendable = false;
+      }
+    };
 
   TextSelectionDialog.prototype._doCommand =
     function tsd_doCommand(evt, cmd) {
+      if (!this._isCommandSendable) {
+        return;
+      }
       var props = {
         detail: {
           type: 'do-command',
@@ -213,11 +234,12 @@
         }
       };
       this.debug(JSON.stringify(props));
+
       window.dispatchEvent(
         new CustomEvent('mozContentEvent', props));
-      this.hide();
+      this.close();
       evt.preventDefault();
-  };
+    };
 
   TextSelectionDialog.prototype.copyHandler =
     function tsd_copyHandler(evt) {
@@ -300,7 +322,9 @@
       this.debug(pos);
       this.element.style.top = pos.top + 'px';
       this.element.style.left = pos.left + 'px';
+      this.element.style.display = 'block';
       this.element.classList.add('visible');
+
       this._isShowed = true;
     };
 
@@ -367,6 +391,11 @@
     if (!this.element) {
       return;
     }
+    this.element.addEventListener('transitionend',
+      function onTransitionEnd(evt) {
+        evt.target.removeEventListener('transitionend', onTransitionEnd);
+        evt.target.style.display = 'none';
+      });
     this.element.classList.remove('visible');
   };
 
