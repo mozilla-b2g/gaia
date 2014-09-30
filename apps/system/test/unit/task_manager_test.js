@@ -210,6 +210,27 @@ suite('system/TaskManager >', function() {
         },
         origin: 'http://browser2.somedomain.tld/',
         blur: function() {}
+      }),
+      'search': new AppWindow({
+        name: 'search',
+        element: document.createElement('div'),
+        frame: document.createElement('div'),
+        iframe: document.createElement('iframe'),
+        rotatingDegree: 0,
+        isBrowser: function() {
+          return true;
+        },
+        requestScreenshotURL: function() {
+          return null;
+        },
+        getScreenshot: function(callback) {
+          callback();
+        },
+        origin: 'http://search.gaiamobile.org/',
+        manifest: {
+          role: 'search'
+        },
+        blur: function() {}
       })
     };
 
@@ -1142,6 +1163,23 @@ suite('system/TaskManager >', function() {
 
       taskManager.exitToApp();
       fakeFinish(this.sinon.clock, apps.home);
+    });
+  });
+
+  suite('filtering > /w search role', function() {
+    setup(function() {
+      MockAppWindowManager.mRunningApps = apps;
+      MockAppWindowManager.mActiveApp = apps.search;
+      MockStackManager.mCurrent = 1;
+      MockStackManager.mStack = [
+        apps.browser1,
+        apps.search
+      ];
+      showTaskManager(this.sinon.clock, 'browser-only');
+    });
+    test('filter includes search app', function() {
+      assert.equal(taskManager.stack.length, 2);
+      assert.equal(taskManager.position, 1);
     });
   });
 
