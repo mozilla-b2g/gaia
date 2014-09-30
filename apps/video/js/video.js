@@ -733,11 +733,13 @@ function showOverlay(id) {
     var _ = navigator.mozL10n.get;
     var text, title;
 
-    if (id === 'empty') {
+    if (pendingPick || id === 'empty') {
       dom.overlayMenu.classList.remove('hidden');
       dom.overlayActionButton.classList.remove('hidden');
       dom.overlayActionButton.setAttribute('data-l10n-id',
-                                           'overlay-camera-button');
+                                           pendingPick ?
+                                             'overlay-cancel-button' :
+                                             'overlay-camera-button');
     } else {
       dom.overlayMenu.classList.add('hidden');
       dom.overlayActionButton.classList.add('hidden');
