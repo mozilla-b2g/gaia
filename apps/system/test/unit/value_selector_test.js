@@ -176,6 +176,13 @@ suite('value selector/value selector', function() {
       'format12h'));
   });
 
+  test('Destroy removes timeformat listener', function() {
+    this.sinon.stub(window, 'removeEventListener');
+    vs.destroy();
+    assert.isTrue(window.removeEventListener
+      .withArgs('timeformatchange', vs).calledOnce);
+  });
+
   test('Date Picker (en-US)', function() {
     assert.isNull(vs._datePicker);
 

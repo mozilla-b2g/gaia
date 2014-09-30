@@ -2246,4 +2246,11 @@ suite('system/AppWindow', function() {
     app1.show();
     assert.isFalse(app1.element.classList.contains('hidden'));
   });
+
+  test('Sub-component destruction', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var stub = this.sinon.stub(app1.transitionController, 'destroy');
+    app1.destroy();
+    assert.ok(stub.calledOnce);
+  });
 });

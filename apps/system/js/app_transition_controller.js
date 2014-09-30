@@ -108,7 +108,11 @@
       this.resetTransition();
       this['_do_' + state]();
       this.app.publish(state);
+
       //backward compatibility
+      if (!this.app) {
+        return;
+      }
       if (state == 'opening') {
         /**
          * Fired when the app is doing opening animation.
@@ -139,9 +143,12 @@
   AppTransitionController.prototype._do_closing =
     function atc_do_closing() {
       this.app.debug('timer to ensure closed does occur.');
-      this._closingTimeout = window.setTimeout(function() {
+      this._closingTimeout = window.setTimeout(() => {
+        if (!this.app) {
+          return;
+        }
         this.app.broadcast('closingtimeout');
-      }.bind(this),
+      },
       System.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
                               this.CLOSING_TRANSITION_TIMEOUT);
 
