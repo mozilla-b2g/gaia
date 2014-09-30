@@ -732,16 +732,13 @@ ifndef APPS
   endif
 endif
 
-b2g: node_modules/.bin/mozilla-download
-	DEBUG=* ./node_modules/.bin/mozilla-download  \
-		--verbose \
-		--product b2g \
-		--channel tinderbox \
-		--branch mozilla-central $@
+b2g:
+	# TODO: Replace with path from ftp
+	curl http://ftp.mozilla.org/pub/mozilla.org/b2g/try-builds/jlal@mozilla.com-67148f23bb73/try-linux64_gecko-debug/b2g-35.0a1.en-US.linux-x86_64.tar.bz2 | tar xvj
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
-test-integration: clean $(PROFILE_FOLDER) test-integration-test
+test-integration: $(PROFILE_FOLDER) test-integration-test
 
 # XXX Because bug-969215 is not finished, if we are going to run too many
 # marionette tests for 30 times at the same time, we may easily get timeout.
@@ -751,7 +748,7 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 #
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
-test-integration-test:
+test-integration-test: b2g
 	./bin/gaia-marionette \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--manifest $(TEST_MANIFEST) \
