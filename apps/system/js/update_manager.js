@@ -22,7 +22,6 @@ var UpdateManager = {
   _dataConnectionWarningEnabled: true,
   _startedDownloadUsingDataConnection: false,
   _settings: null,
-  UPDATE_NOTIF_ID: 'update-notification',
   NOTIFICATION_BUFFERING_TIMEOUT: 30 * 1000,
   TOASTER_TIMEOUT: 1200,
   UPDATE_2G_SETT: 'update.2g.enabled',
@@ -559,14 +558,14 @@ var UpdateManager = {
   hideNotificationIfDisplayed: function() {
     if (this.container.classList.contains('displayed')) {
       this.container.classList.remove('displayed');
-      NotificationScreen.removeUnreadNotification(this.UPDATE_NOTIF_ID);
+      NotificationScreen.decExternalNotifications();
     }
   },
 
   displayNotificationIfHidden: function() {
     if (!this.container.classList.contains('displayed')) {
       this.container.classList.add('displayed');
-      NotificationScreen.addUnreadNotification(this.UPDATE_NOTIF_ID);
+      NotificationScreen.incExternalNotifications();
     }
   },
 

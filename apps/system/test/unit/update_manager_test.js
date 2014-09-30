@@ -603,7 +603,7 @@ suite('system/UpdateManager', function() {
           var css = UpdateManager.container.classList;
           assert.isTrue(css.contains('displayed'));
           assert.equal(
-            MockNotificationScreen.wasMethodCalled['addUnreadNotification'],
+            MockNotificationScreen.wasMethodCalled['incExternalNotifications'],
             1);
         });
 
@@ -614,7 +614,7 @@ suite('system/UpdateManager', function() {
           assert.isTrue(css.contains('displayed'));
           assert.equal(
             MockNotificationScreen
-              .wasMethodCalled['addUnreadNotification'],
+              .wasMethodCalled['incExternalNotifications'],
             1);
         });
       });
@@ -634,7 +634,7 @@ suite('system/UpdateManager', function() {
             assert.isTrue(css.contains('displayed'));
             assert.equal(
               MockNotificationScreen
-                .wasMethodCalled['addUnreadNotification'],
+                .wasMethodCalled['incExternalNotifications'],
               1);
           });
         });
@@ -653,7 +653,7 @@ suite('system/UpdateManager', function() {
           assert.isTrue(css.contains('displayed'));
           assert.equal(
             MockNotificationScreen
-              .wasMethodCalled['addUnreadNotification'],
+              .wasMethodCalled['incExternalNotifications'],
             1);
         });
 
@@ -732,7 +732,7 @@ suite('system/UpdateManager', function() {
 
         test('should add a new statusbar notification', function() {
           this.sinon.clock.tick(TINY_TIMEOUT);
-          var method1 = 'addUnreadNotification';
+          var method1 = 'incExternalNotifications';
           assert.ok(MockNotificationScreen.wasMethodCalled[method1]);
         });
       });
@@ -750,7 +750,7 @@ suite('system/UpdateManager', function() {
         });
 
         test('should decrease the external notifications count', function() {
-          var method1 = 'removeUnreadNotification';
+          var method1 = 'decExternalNotifications';
           assert.ok(MockNotificationScreen.wasMethodCalled[method1]);
         });
       });

@@ -74,7 +74,7 @@ suite('system/NotificationScreen >', function() {
 
   function incrementNotications(number) {
     for (var i = 0; i <= number - 1; i++) {
-      NotificationScreen.addUnreadNotification(i);
+      NotificationScreen.incExternalNotifications();
     }
   }
 
@@ -251,13 +251,13 @@ suite('system/NotificationScreen >', function() {
 
     test('should clear unread notifications after open tray', function() {
       incrementNotications(2);
-      assert.equal(NotificationScreen.unreadNotifications.length, 2);
+      assert.equal(NotificationScreen.unreadNotifications, 2);
       assert.equal(NotificationScreen.ambientIndicator.getAttribute(
         'aria-label'), localizeAmbientIndicatorLabel(2));
       var event = new CustomEvent('utilitytrayshow');
       window.dispatchEvent(event);
       assert.equal(document.body.getElementsByClassName('unread').length, 0);
-      assert.equal(NotificationScreen.unreadNotifications.length, 0);
+      assert.equal(NotificationScreen.unreadNotifications, 0);
       assert.isNull(NotificationScreen.ambientIndicator.getAttribute(
         'aria-label'));
     });
@@ -305,21 +305,6 @@ suite('system/NotificationScreen >', function() {
         'aria-label'));
       UtilityTray.shown = false;
     });
-
-    test('should not clear the ambient after decrement unread', function() {
-      var imgpath = 'http://example.com/test.png';
-      var detail = {
-        id: 'my-id',
-        icon: imgpath,
-        title: 'title',
-        detail: 'detail'
-      };
-      NotificationScreen.addNotification(detail);
-      assert.equal(NotificationScreen.unreadNotifications.length, 1);
-      NotificationScreen.removeUnreadNotification('other-id');
-      assert.equal(NotificationScreen.unreadNotifications.length, 1);
-    });
-
   });
 
   suite('addUnreadNotification', function() {
@@ -337,7 +322,7 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('shouldnt update the notif indicator when skipping', function() {
-      NotificationScreen.addUnreadNotification('other-id', true);
+      NotificationScreen.addUnreadNotification(true);
       assert.isFalse(NotificationScreen.updateNotificationIndicator.called);
     });
   });
