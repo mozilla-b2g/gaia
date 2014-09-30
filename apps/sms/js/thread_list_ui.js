@@ -158,8 +158,15 @@ var ThreadListUI = {
         Contacts.addUnknown(title);
       }
 
+      var photoUrl = node.dataset.photoUrl;
+      if (photoUrl) {
+        window.URL.revokeObjectURL(photoUrl);
+      }
+
       if (src) {
         node.dataset.photoUrl = src;
+      } else if (photoUrl) {
+        node.dataset.photoUrl = '';
       }
 
       navigator.mozL10n.setAttributes(name, 'thread-header-text', {

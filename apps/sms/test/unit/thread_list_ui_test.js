@@ -1287,6 +1287,8 @@ suite('thread_list_ui', function() {
 
     setup(function() {
       this.sinon.stub(Contacts, 'findByAddress');
+      this.sinon.stub(window.URL, 'revokeObjectURL');
+
       var thread = {
         id: 1,
         participants: ['555'],
@@ -1320,7 +1322,6 @@ suite('thread_list_ui', function() {
       assert.include(node.dataset.photoUrl, 'blob:');
     });
 
-
     test('display correctly a contact without a picture', function() {
       var contactInfo = MockContact.list();
       Contacts.findByAddress.yield(contactInfo);
@@ -1328,6 +1329,29 @@ suite('thread_list_ui', function() {
       var photo = node.querySelector('span[data-type=img]');
       assert.isFalse(photo.style.backgroundImage.contains('blob:'));
       assert.isTrue(pictureContainer.classList.contains('empty'));
+    });
+
+    test('correctly revokes old contact image blob URL', function() {
+      // Doesn't revoke anything if nothing to revoke
+      node.dataset.photoUrl = '';
+      Contacts.findByAddress.yield(MockContact.list());
+
+      sinon.assert.notCalled(window.URL.revokeObjectURL);
+
+      // Call revoke if we had image before and now contact also has image
+      node.dataset.photoUrl = 'blob://data#1';
+      var contactInfo = MockContact.list();
+      contactInfo[0].photo = [new Blob(['test'], { type: 'image/jpeg' })];
+      Contacts.findByAddress.yield(contactInfo);
+
+      sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob://data#1');
+
+      // Call revoke if we had image before, but don't have it now
+      node.dataset.photoUrl = 'blob://data#2';
+      Contacts.findByAddress.yield(MockContact.list());
+
+      sinon.assert.calledWith(window.URL.revokeObjectURL, 'blob://data#2');
+      assert.equal(node.dataset.photoUrl, '');
     });
   });
 
