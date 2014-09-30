@@ -481,12 +481,12 @@ header .icon:after {
 
 #elapsed-text {
   width: 3.2rem;
-  margin-left: 2.0rem;
+  margin-left: 0rem;
 }
 
 #duration-text {
-  width: 3.2rem;
-  margin-right: 2.0rem;
+  width: 4.2rem;
+  margin-right: 0rem;
 }
 
 /* time slider */
@@ -500,8 +500,8 @@ header .icon:after {
 #slider-wrapper {
   width: 100%;
   height: 4.1rem;
-  margin-left: 1.0rem;
-  margin-right: 1.0rem;
+  margin-left: 1.5rem;
+  margin-right: 2.5rem;
 }
 
 #slider-wrapper div {
@@ -532,6 +532,7 @@ header .icon:after {
   height: 0.1rem;
   background-color: #a6b4b6;
   z-index: 10;
+  padding-left: 1.0rem;
 }
 
 #videoControlBar {
