@@ -1,5 +1,5 @@
 /* exported TilesView */
-/* global tilesHandle, musicdb, TabBar, showCorrectOverlay, unknownArtist,
+/* global tilesHandle, musicdb, TabBar, App, unknownArtist,
           unknownArtistL10nId, unknownAlbum, unknownAlbumL10nId,
           generateDefaultThumbnailURL, getThumbnailURL, SearchView, ModeManager,
           MODE_SEARCH_FROM_TILES, IDBKeyRange, MODE_PLAYER, PlayerView,
@@ -68,7 +68,7 @@ var TilesView = {
     TabBar.setDisabled(!this.dataSource.length);
 
     if (result === null) {
-      showCorrectOverlay();
+      App.showCorrectOverlay();
       // Display the TilesView after when finished updating the UI
       document.getElementById('views-tiles').classList.remove('hidden');
       // After the hidden class is removed, hideSearch can be effected

@@ -1,18 +1,18 @@
-/* exported musicdb, init */
+/* exported musicdb, initDB */
 /* global MediaDB, LazyLoader, parseAudioMetadata, showOverlay, PlayerView,
           pendingPick, TabBar, ModeManager, MODE_TILES, TilesView,
-          currentOverlay, showCurrentView, MusicComms, MODE_LIST, MODE_PICKER */
+          currentOverlay, App, MusicComms, MODE_LIST, MODE_PICKER */
 'use strict';
 
 // The MediaDB object that manages the filesystem and the database of metadata
-// See init()
+// See initDB()
 var musicdb;
 // We use this flag when switching views. We want to hide the scan progress
 // bar (to show the titlebar) when we enter sublist mode or player mode
 var displayingScanProgress = false;
 var firstScanDone = false;
 
-function init() {
+function initDB() {
   // We want to exclude some folders that store ringtones so they don't show up
   // in the music app. The regex matches absolute paths starting with a volume
   // name (e.g. "/volume-name/Ringtones/") or relative paths starting with the
@@ -97,7 +97,7 @@ function init() {
     }
 
     // Display music that we already know about
-    showCurrentView(function() {
+    App.showCurrentView(function() {
       // Hide the  spinner once we've displayed the initial screen
       document.getElementById('spinner-overlay').classList.add('hidden');
 
@@ -146,7 +146,7 @@ function init() {
       filesFoundWhileScanning = 0;
       filesFoundBatch = 0;
       filesDeletedWhileScanning = 0;
-      showCurrentView();
+      App.showCurrentView();
     }
 
     // If this was the first scan after startup, tell the performance monitors
@@ -187,7 +187,7 @@ function init() {
 
       if (filesFoundBatch > SCAN_UPDATE_BATCH_SIZE) {
         filesFoundBatch = 0;
-        showCurrentView();
+        App.showCurrentView();
       }
     }
     else {
@@ -195,7 +195,7 @@ function init() {
       // there was probably a new song saved via bluetooth or MMS.
       // We don't have any way to be clever about it; we just have to
       // redisplay the entire view
-      showCurrentView();
+      App.showCurrentView();
     }
   };
 
@@ -219,7 +219,7 @@ function init() {
       }
       deleteTimer = setTimeout(function() {
         deleteTimer = null;
-        showCurrentView();    // Redisplay the UI
+        App.showCurrentView();    // Redisplay the UI
       }, DELETE_BATCH_TIMEOUT);
     }
   };

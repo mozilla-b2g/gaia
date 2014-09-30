@@ -85,3 +85,141 @@ function getAlbumArtBlob(fileinfo, callback) {
     getBlob(url, callback);
   }
 }
+
+// In Music, visually we have three styles of list
+// Here we use one function to create different style lists
+function createListElement(option, data, index, highlight) {
+  var li = document.createElement('li');
+  li.className = 'list-item';
+
+  var a = document.createElement('a');
+  a.dataset.index = index;
+  a.dataset.option = option;
+
+  li.appendChild(a);
+
+  function highlightText(result, text) {
+    var textContent = result.textContent;
+    var textLowerCased = textContent.toLocaleLowerCase();
+    var index = Normalizer.toAscii(textLowerCased).indexOf(text);
+
+    if (index >= 0) {
+      var innerHTML = textContent.substring(0, index) +
+                      '<span class="search-highlight">' +
+                      textContent.substring(index, index + text.length) +
+                      '</span>' +
+                      textContent.substring(index + text.length);
+
+      result.innerHTML = innerHTML;
+    }
+  }
+
+  switch (option) {
+    case 'playlist':
+      var titleSpan = document.createElement('span');
+      titleSpan.className = 'list-playlist-title';
+      if (data.metadata.l10nId) {
+        titleSpan.textContent = data.metadata.title;
+        titleSpan.dataset.l10nId = data.metadata.l10nId;
+      } else {
+        titleSpan.textContent = data.metadata.title || unknownTitle;
+        titleSpan.dataset.l10nId =
+          data.metadata.title ? '' : unknownTitleL10nId;
+      }
+
+      a.dataset.keyRange = 'all';
+      a.dataset.option = data.option;
+
+      li.appendChild(titleSpan);
+
+      if (index === 0) {
+        var shuffleIcon = document.createElement('div');
+        shuffleIcon.className = 'list-playlist-icon';
+        shuffleIcon.dataset.icon = 'shuffle';
+        li.appendChild(shuffleIcon);
+      }
+
+      break;
+
+    case 'artist':
+    case 'album':
+    case 'title':
+      // Use background image instead of creating img elements can reduce
+      // the amount of total elements in the DOM tree, it can save memory
+      // and gecko can render the elements faster as well.
+      var setBackground = function(url) {
+        url = url || generateDefaultThumbnailURL(data.metadata);
+        li.style.backgroundImage = 'url(' + url + ')';
+      };
+
+      getThumbnailURL(data, setBackground);
+
+      if (option === 'artist') {
+        var artistSpan = document.createElement('span');
+        artistSpan.className = 'list-single-title';
+        artistSpan.textContent = data.metadata.artist || unknownArtist;
+        artistSpan.dataset.l10nId =
+          data.metadata.artist ? '' : unknownArtistL10nId;
+
+        // Highlight the text when the highlight argument is passed
+        // This should only happens when we are creating searched results
+        if (highlight)
+          highlightText(artistSpan, highlight);
+
+        li.appendChild(artistSpan);
+      } else {
+        var albumOrTitleSpan = document.createElement('span');
+        var artistSpan = document.createElement('span');
+        albumOrTitleSpan.className = 'list-main-title';
+        artistSpan.className = 'list-sub-title';
+        if (option === 'album') {
+          albumOrTitleSpan.textContent = data.metadata.album || unknownAlbum;
+          albumOrTitleSpan.dataset.l10nId =
+            data.metadata.album ? '' : unknownAlbumL10nId;
+        } else {
+          albumOrTitleSpan.textContent = data.metadata.title || unknownTitle;
+          albumOrTitleSpan.dataset.l10nId =
+            data.metadata.title ? '' : unknownTitleL10nId;
+        }
+        artistSpan.textContent = data.metadata.artist || unknownArtist;
+        artistSpan.dataset.l10nId =
+          data.metadata.artist ? '' : unknownArtistL10nId;
+
+        // Highlight the text when the highlight argument is passed
+        // This should only happens when we are creating searched results
+        if (highlight)
+          highlightText(albumOrTitleSpan, highlight);
+
+        li.appendChild(albumOrTitleSpan);
+        li.appendChild(artistSpan);
+      }
+
+      a.dataset.keyRange = data.metadata[option];
+      a.dataset.option = option;
+
+      break;
+
+    case 'song':
+      var songTitle = data.metadata.title || unknownTitle;
+
+      var indexSpan = document.createElement('span');
+      indexSpan.className = 'list-song-index';
+      indexSpan.textContent = index + 1;
+
+      var titleSpan = document.createElement('span');
+      titleSpan.className = 'list-song-title';
+      titleSpan.textContent = songTitle;
+      titleSpan.dataset.l10nId = data.metadata.title ? '' : unknownTitleL10nId;
+
+      var lengthSpan = document.createElement('span');
+      lengthSpan.className = 'list-song-length';
+
+      li.appendChild(indexSpan);
+      li.appendChild(titleSpan);
+      li.appendChild(lengthSpan);
+
+      break;
+  }
+
+  return li;
+}
