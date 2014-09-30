@@ -473,6 +473,14 @@ function startup(data, reason) {
                   .createInstance(Ci.nsIStandardURL);
         uri.init(Ci.nsIStandardURL.URLTYPE_STANDARD, -1, aSpec, aOriginCharset,
                  aBaseURI);
+
+        // Grant the contacts permissions to the newly created URI.
+        let pm = Cc["@mozilla.org/permissionmanager;1"]
+                 .getService(Ci.nsIPermissionManager);
+        pm.add(uri, "contacts-read", Ci.nsIPermissionManager.ALLOW_ACTION);
+        pm.add(uri, "contacts-write", Ci.nsIPermissionManager.ALLOW_ACTION);
+        pm.add(uri, "contacts-create", Ci.nsIPermissionManager.ALLOW_ACTION);
+
         return uri.QueryInterface(Ci.nsIURI);
       },
       newChannel: function(aURI) {
