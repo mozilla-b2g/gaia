@@ -524,7 +524,7 @@ var AppInstallManager = {
     }
 
     appInfo.installNotification = newNode;
-    NotificationScreen.incExternalNotifications();
+    NotificationScreen.addUnreadNotification(manifestURL);
   },
 
   getNotificationProgressNode: function ai_getNotificationProgressNode(app) {
@@ -576,7 +576,7 @@ var AppInstallManager = {
 
     node.parentNode.removeChild(node);
     delete appInfo.installNotification;
-    NotificationScreen.decExternalNotifications();
+    NotificationScreen.removeUnreadNotification(manifestURL);
   },
 
   requestWifiLock: function ai_requestWifiLock(app) {

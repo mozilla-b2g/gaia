@@ -71,7 +71,7 @@ var NotificationScreen = {
     // will hold the count of external contributors to the notification
     // screen
     this.externalNotificationsCount = 0;
-    this.unreadNotifications = 0;
+    this.unreadNotifications = [];
 
     window.addEventListener('utilitytrayshow', this);
     // Since UI expect there is a slight delay for the opened notification.
@@ -401,10 +401,9 @@ var NotificationScreen = {
       this.container.querySelector('.priority-notifications') :
       this.container.querySelector('.other-notifications');
 
-
     // We need to animate the ambient indicator when the toast
     // timesout, so we skip updating it here, by passing a skip bool
-    this.addUnreadNotification(true);
+    this.addUnreadNotification(detail.id, true);
 
     var notificationNode = document.createElement('div');
     notificationNode.classList.add('notification');
@@ -651,35 +650,37 @@ var NotificationScreen = {
     notification.style.transform = '';
   },
 
-  addUnreadNotification: function ns_addUnreadNotification(skipUpdate) {
+  addUnreadNotification: function ns_addUnreadNotification(id, skipUpdate) {
     if (UtilityTray.shown) {
       return;
     }
-
-    this.unreadNotifications++;
+    this.unreadNotifications.push(id);
     if (!skipUpdate) {
       this.updateNotificationIndicator();
     }
   },
 
-  removeUnreadNotification: function ns_removeUnreadNotification() {
-    this.unreadNotifications--;
-    var isNegative = this.unreadNotifications < 0;
-    this.unreadNotifications = isNegative ? 0 : this.unreadNotifications;
+  removeUnreadNotification: function ns_removeUnreadNotification(id) {
+    var notifIndex = this.unreadNotifications.indexOf(id);
+    if (notifIndex > -1) {
+      this.unreadNotifications.splice(notifIndex, 1);
+    }
     this.updateNotificationIndicator();
   },
 
   hideNotificationIndicator: function ns_hideNotificationIndicator() {
-    this.unreadNotifications = 0;
+    if (this.unreadNotifications.length > 0) {
+      this.unreadNotifications = [];
+    }
     this.updateNotificationIndicator();
   },
 
   updateNotificationIndicator: function ns_updateNotificationIndicator() {
-    if (this.unreadNotifications) {
-      var indicatorSize = getIndicatorSize(this.unreadNotifications);
+    if (this.unreadNotifications.length) {
+      var indicatorSize = getIndicatorSize(this.unreadNotifications.length);
       this.ambientIndicator.className = 'unread ' + indicatorSize;
       this.ambientIndicator.setAttribute('aria-label', navigator.mozL10n.get(
-        'statusbarNotifications-unread', {n: this.unreadNotifications}));
+        'statusbarNotifications-unread', {n: this.unreadNotifications.length}));
     } else {
       this.ambientIndicator.classList.remove('unread');
       this.ambientIndicator.removeAttribute('aria-label');
@@ -769,19 +770,6 @@ var NotificationScreen = {
     // check if lockscreen notifications visual
     // hints (masks & arrow) need to show
     window.lockScreenNotifications.adjustContainerVisualHints();
-  },
-
-  incExternalNotifications: function ns_incExternalNotifications() {
-    this.externalNotificationsCount++;
-    this.addUnreadNotification();
-  },
-
-  decExternalNotifications: function ns_decExternalNotifications() {
-    this.externalNotificationsCount--;
-    if (this.externalNotificationsCount < 0) {
-      this.externalNotificationsCount = 0;
-    }
-    this.removeUnreadNotification();
   }
 
 };
