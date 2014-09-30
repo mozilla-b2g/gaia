@@ -254,21 +254,21 @@ suite('system/ChildWindowFactory', function() {
 
   test('Target _blank support', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
-    var activitySpy = this.sinon.spy(window, 'MozActivity');
     var cwf = new ChildWindowFactory(app1);
-    var expectedActivity = {
-      name: 'view',
-      data: {
-        type: 'url',
-        url: 'http://blank.com/index.html'
-      }
-    };
-    cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
-      {
-        detail: fakeWindowOpenBlank
-      }));
-    assert.isTrue(activitySpy.calledWithNew());
-    sinon.assert.calledWith(activitySpy, expectedActivity);
+    this.sinon.stub(app1, 'isActive').returns(true);
+    this.sinon.stub(app1, 'isTransitioning').returns(false);
+    var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+    var testEvt = (new CustomEvent('mozbrowseropenwindow', {
+      detail: fakeWindowOpenBlank
+    }));
+    cwf.handleEvent(testEvt);
+
+    assert.equal(stubDispatchEvent.getCall(0).args[0].type, 'openwindow');
+    assert.deepEqual(stubDispatchEvent.getCall(0).args[0].detail, {
+      url: fakeWindowOpenBlank.url,
+      name: fakeWindowOpenBlank.name,
+      iframe: fakeWindowOpenBlank.frameElement
+    });
   });
 
   test('Create ActivityWindow', function() {
