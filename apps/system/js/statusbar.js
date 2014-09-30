@@ -165,6 +165,7 @@ var StatusBar = {
     window.addEventListener('ftudone', this);
     window.addEventListener('ftuskip', this);
     window.addEventListener('ftuopen', this);
+    window.addEventListener('apptitlestatechanged', this);
   },
 
   addSettingsListener: function sb_addSettingsListener(settingKey) {
@@ -287,7 +288,6 @@ var StatusBar = {
     window.addEventListener('homescreenopened', this);
     window.addEventListener('sheets-gesture-begin', this);
     window.addEventListener('sheets-gesture-end', this);
-    window.addEventListener('apptitlestatechanged', this);
     window.addEventListener('stackchanged', this);
 
     // We need to preventDefault on mouse events until
