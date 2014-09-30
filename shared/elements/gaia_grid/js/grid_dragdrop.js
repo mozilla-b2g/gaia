@@ -189,6 +189,7 @@
       // Hand back responsibility to Grid view to render the dragged item.
       this.icon.scale = 1;
       this.icon.setActive(false);
+      this.icon.element.classList.remove('hovering');
 
       this.gridView.render();
 
@@ -337,6 +338,11 @@
         this.hoverItem = null;
       }
 
+      // Add the 'hovering' class to the dragged icon.
+      if (foundIndex !== null) {
+        this.icon.element.classList.add('hovering');
+      }
+
       // Nothing to do if we find the dragged icon or no icon
       if (foundIndex === null || foundIndex === this.icon.detail.index) {
         return;
@@ -348,6 +354,9 @@
       if (iconIsDivider &&
           foundIndex > 0 &&
           foundItem.detail.type !== 'divider') {
+        // Remove the hovering class from a group if it's not hovering over
+        // a valid drop position or itself.
+        this.icon.element.classList.remove('hovering');
         return;
       }
 
