@@ -247,7 +247,8 @@
     },
 
     setActive: function(active) {
-      GaiaGrid.GridItem.prototype.setActive.call(this, active);
+      // Make sure we're collapsed
+      this.collapse();
 
       // Mark our child items as active/inactive with us so they pick up the
       // right style when dragged.
@@ -255,6 +256,10 @@
         function(item) { item.element.classList.add('active'); } :
         function(item) { item.element.classList.remove('active'); };
       this.forEachItem(callback);
+
+      // This needs to be called last, or the grid will skip rendering this
+      // group and the collapse won't cause the icons below to shift position
+      GaiaGrid.GridItem.prototype.setActive.call(this, active);
     },
 
     collapse: function() {
@@ -327,7 +332,7 @@
     },
 
     isDraggable: function() {
-      return this.detail.collapsed;
+      return true;
     }
   };
 
