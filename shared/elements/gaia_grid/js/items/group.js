@@ -88,7 +88,7 @@
      */
     _createElement: function() {
       var group = this.element = document.createElement('div');
-      group.className = 'divider group';
+      group.className = 'divider group newly-created';
 
       // Create the background (only seen in edit mode)
       var span = document.createElement('span');
@@ -127,6 +127,10 @@
       group.appendChild(span);
       this.dividerSpanElement = span;
 
+      // Create a child span for the separator to act as the indicator for
+      // dropping icons/groups during editing.
+      this.dividerSpanElement.appendChild(document.createElement('span'));
+
       this.grid.element.appendChild(group);
       this.separatorHeight = this.dividerSpanElement.clientHeight;
     },
@@ -163,16 +167,16 @@
           var itemVisible = (i - (index - nApps)) < COLLAPSED_GROUP_SIZE;
           if (!itemVisible) {
             item.setCoordinates(x - width, y);
-            item.render();
-            item.element.classList.add('hidden');
-            continue;
+          } else {
+            item.setCoordinates(x, y);
+            x += width;
           }
 
-          item.setCoordinates(x, y);
           item.render();
           item.element.classList.add('collapsed');
-
-          x += width;
+          if (!itemVisible) {
+            item.element.classList.add('hidden');
+          }
         }
       }
     },
@@ -228,10 +232,9 @@
 
       // Fade in newly-created groups
       if (createdElements) {
-        this.element.style.opacity = 0;
-        // Force a reflow on the group so the initial fade animation plays.
+        // Force a reflow to make sure the transform transition doesn't play
         this.element.clientTop;
-        this.element.style.opacity = '';
+        this.element.classList.remove('newly-created');
       }
     },
 

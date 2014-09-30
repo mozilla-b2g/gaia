@@ -136,7 +136,7 @@
   transition: opacity 0.5s;
 }
 
-.dragging .icon.active {
+.dragging .icon.active:not(.hidden) {
   z-index: 5;
   opacity: 0.65;
 }
@@ -203,7 +203,7 @@
   will-change: transform;
 }
 
-.group:not(.active) > span {
+.group:not(.active):not(.newly-created) > span {
   transition: transform 0.5s;
 }
 
@@ -214,7 +214,7 @@
 .group .header span {
   position: absolute;
   top: 1rem;
-  transition: transform 0.5s, opacity 0.5s;
+  transition: transform 0.25s, opacity 0.25s;
 }
 
 .group .header .gripper,
@@ -282,7 +282,7 @@
   transform-origin: 0 0;
 }
 
-.edit-mode .group .background {
+.edit-mode .group:not(.newly-created) .background {
   opacity: 1;
 }
 
@@ -293,10 +293,33 @@
 .group .separator {
   background: rgba(0, 0, 0, 0.1);
   margin: 0;
-  height: 1.3rem;
+  height: 0.8rem;
   pointer-events: none;
+}
+
+.group .separator > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.25s, opacity 0.25s;
+  opacity: 0;
 }
 
 .edit-mode .group .separator {
   opacity: 0;
+}
+
+.dragging .group:not(.active) .separator {
+  opacity: 1;
+}
+
+.dragging .group:not(.active) .separator > span {
+  background-color: #0095dd;
+  transform: scaleY(0.325);
+  opacity: 0.4;
+}
+
+.dragging .group.hovered:not(.active) .separator > span {
+  transform: scaleY(1);
+  opacity: 1;
 }
