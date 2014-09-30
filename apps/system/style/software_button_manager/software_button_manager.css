@@ -100,8 +100,8 @@
   visibility: hidden;
 }
 
-#screen.software-button-enabled:not(.locked):-moz-full-screen-ancestor #fullscreen-software-home-button,
-#screen.software-button-enabled.locked.secure-app:-moz-full-screen-ancestor #fullscreen-software-home-button {
+#screen.software-button-enabled:not(.fullscreen-layout-app):not(.locked):-moz-full-screen-ancestor #fullscreen-software-home-button,
+#screen.software-button-enabled.locked.secure-app:not(.fullscreen-layout-app):-moz-full-screen-ancestor #fullscreen-software-home-button {
   visibility: visible;
 }
 
@@ -112,11 +112,6 @@
     right: 0.5rem;
     bottom: calc(50% - var(--button-width) / 2);
   }
-}
-
-#screen.fullscreen-layout-app:-moz-full-screen-ancestor #fullscreen-software-home-button,
-#screen.fullscreen-layout-app #fullscreen-software-home-button {
-  visibility: hidden;
 }
 
 #screen:not(.fullscreen-layout-app) #software-buttons-fullscreen-layout {
