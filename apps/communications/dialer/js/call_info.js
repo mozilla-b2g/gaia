@@ -247,6 +247,7 @@
       LazyLoader.load([callInfoView,
                        '/shared/js/dialer/contacts.js',
                        '/shared/js/dialer/utils.js',
+                       '/shared/js/dialer/telephony_messages.js',
                        '/shared/js/contacts/contacts_buttons.js',
                        '/shared/js/contacts/utilities/templates.js',
                        '/shared/js/contacts/sms_integration.js',

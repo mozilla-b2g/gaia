@@ -616,6 +616,7 @@ var Contacts = (function() {
         LazyLoader.load(
           [SHARED_UTILS_PATH + '/misc.js',
            '/dialer/js/telephony_helper.js',
+           '/shared/js/dialer/telephony_messages.js',
            '/shared/js/contacts/sms_integration.js',
            simPickerNode,
            '/shared/js/contacts/contacts_buttons.js'],
