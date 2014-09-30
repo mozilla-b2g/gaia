@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+<link rel='stylesheet' href='simulator.css' />
+<link rel='stylesheet' href='shims/dsds.css' />
+</head>
+<body>
+<div id='container' class='container'>
+  <iframe id='application'></iframe>
+  <div class='control'>
+    <div class='line'>
+      <button id='start'>Load the application</button>
+    </div>
+    <div id='shim-contributions'>
+    </div>
+  </div>
+</div>
+<script src='/shared/test/unit/mocks/mock_navigator_moz_settings.js'></script>
+<script src='/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js'></script>
+<script src='../js/desktop-only/mobilemessage.js'></script>
+<script src='shims/shims.js'></script>
+<script src='shims/mozSetMessageHandler.js'></script>
+<script src='shims/dsds.js'></script>
+<script src='shims/mozApps.js'></script>
+<script src='shims/mozMobileMessage.js'></script>
+<script src='shims/mozMobileConnections.js'></script>
+<script src='shims/mozIccManager.js'></script>
+<script src='shims/mozSettings.js'></script>
+<script src='simulator.js'></script>
+</body>
+</html>

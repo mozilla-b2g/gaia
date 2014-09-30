@@ -1,4 +1,3 @@
-/*global Drafts, asyncStorage */
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -322,8 +321,10 @@
     '101', '102', '103', '104', '105', '106', '107', '108', '109'
   ];
 
-  var timestamp = Date.now();
+  // TODO better control for drafts
   // Fake drafts stored in local store
+  /*
+   var timestamp = Date.now();
   (function() {
     var drafts = [
       {
@@ -378,7 +379,7 @@
       }
     });
   }());
-
+*/
 
   // Fake in-memory message database
   var messagesDb = {
@@ -917,6 +918,8 @@
     });
   };
 
+  MockNavigatormozMobileMessage._trigger = trigger;
+
   // Global simulation control
   // The following global variables, if properly defined in the global scope,
   // will affect the SMS mock's simulated network effects:
@@ -946,6 +949,10 @@
       handlers = allHandlers[eventName] = [];
     }
     handlers.push(handler);
+  };
+
+  MockNavigatormozMobileMessage._teardown = function() {
+    allHandlers = {};
   };
 
   MockNavigatormozMobileMessage.send = function(number, text, success, error) {
