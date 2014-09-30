@@ -28,7 +28,13 @@ suite('app', function() {
     doc: function() {
       return {
         addEventListener: sinon.spy(),
-        hidden: false
+        hidden: false,
+        body: {
+          classList: {
+            add: sinon.spy(),
+            remove: sinon.spy()
+          }
+        }
       };
     },
     win: function() {

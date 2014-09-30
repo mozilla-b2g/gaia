@@ -993,8 +993,12 @@ Camera.prototype.stopRecording = function() {
 
     // Re-fetch the blob from storage
     var req = storage.get(filepath);
-    req.onerror = self.onRecordingError;
+    req.onerror = onError;
     req.onsuccess = onSuccess;
+
+    function onError() {
+      self.onRecordingError();
+    }
 
     function onSuccess() {
       debug('got video blob');
