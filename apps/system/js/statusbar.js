@@ -587,7 +587,7 @@ var StatusBar = {
     var maximizedStatusBarWidth = this._getMaximizedStatusBarWidth();
     var minimizedStatusBarWidth = this._getMinimizedStatusBarWidth();
 
-    this.PRIORITIES.forEach(function(iconObj) {
+    this.PRIORITIES.forEach(function sb_updateIconVisibilityForEach(iconObj) {
       var iconId = iconObj[0];
       var icon = this.icons[this.toCamelCase(iconId)];
 
@@ -985,16 +985,20 @@ var StatusBar = {
       // show up for 500ms.
 
       var icon = this.icons.networkActivity;
+      var previousHiddenState = icon.hidden;
 
       clearTimeout(this._networkActivityTimer);
-      icon.hidden = false;
 
       this._networkActivityTimer = setTimeout(function hideNetActivityIcon() {
         icon.hidden = true;
         this._updateIconVisibility();
       }.bind(this), 500);
 
-      this._updateIconVisibility();
+      if (previousHiddenState) {
+        icon.hidden = false;
+
+        this._updateIconVisibility();
+      }
     },
 
     flightMode: function sb_flightMode() {
@@ -1013,6 +1017,7 @@ var StatusBar = {
     signal: function sb_updateSignal() {
       var self = this;
       var simSlots = SIMSlotManager.getSlots();
+      var isDirty = false; // Whether to reprioritise icons afterwards.
       for (var index = 0; index < simSlots.length; index++) {
         var simslot = simSlots[index];
         var conn = simslot.conn;
@@ -1031,6 +1036,9 @@ var StatusBar = {
           icon.hidden = true;
           continue;
         }
+
+        var previousHiddenState = icon.hidden;
+        var previousRoamingHiddenState = roaming.hidden;
 
         icon.hidden = false;
         icon.dataset.inactive = false;
@@ -1074,12 +1082,19 @@ var StatusBar = {
           icon.setAttribute('aria-label', _(icon.dataset.searching ?
             'statusbarSignalNoneSearching' : 'emergencyCallsOnly'));
         }
+
+        if (previousHiddenState !== icon.hidden ||
+          previousRoamingHiddenState !== roaming.hidden) {
+          isDirty = true;
+        }
       }
 
       this.updateConnectionsVisibility();
       this.refreshCallListener();
 
-      this._updateIconVisibility();
+      if (isDirty) {
+        this._updateIconVisibility();
+      }
     },
 
     data: function sb_updateSignal() {
