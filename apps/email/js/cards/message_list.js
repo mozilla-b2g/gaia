@@ -922,7 +922,17 @@ MessageListCard.prototype = {
                 headerCursor.messagesSlice.headerCount,
                 'alleged known headers. canGrow:',
                 headerCursor.messagesSlice.userCanGrowDownwards);
-    if (headerCursor.messagesSlice.userCanGrowDownwards) {
+
+    // Show "load more", but only if the slice can grow and if there is a
+    // non-zero headerCount. If zero headerCount, it likely means the folder
+    // has never been synchronized, and this display was an offline display,
+    // so it is hard to know if messages can be synchronized. In this case,
+    // canGrow is not enough of an indicator, because as far as the back end is
+    // concerned, it could grow, it just has no way to check for sure yet. So
+    // hide the "load more", the user can use the refresh icon once online to
+    // load messages.
+    if (headerCursor.messagesSlice.userCanGrowDownwards &&
+        headerCursor.messagesSlice.headerCount) {
       this.syncMoreNode.classList.remove('collapsed');
     } else {
       this.syncMoreNode.classList.add('collapsed');
