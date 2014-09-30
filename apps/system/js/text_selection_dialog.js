@@ -1,7 +1,7 @@
 /* global layoutManager */
 'use strict';
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
   /**
    * Text Selection Dialog of the AppWindow
    */
@@ -171,7 +171,9 @@
             this.close();
           }.bind(this), this.SHORTCUT_TIMEOUT);
         }
+        return;
       }
+      this.close();
     };
 
   TextSelectionDialog.prototype._fetchElements = function tsd__fetchElements() {
@@ -206,6 +208,7 @@
 
   TextSelectionDialog.prototype._doCommand =
     function tsd_doCommand(evt, cmd) {
+      var self = this;
       var props = {
         detail: {
           type: 'do-command',
@@ -213,9 +216,12 @@
         }
       };
       this.debug(JSON.stringify(props));
-      window.dispatchEvent(
-        new CustomEvent('mozContentEvent', props));
-      this.hide();
+      evt.target.addEventListener('mouseup', function onMouseUp() {
+        evt.target.removeEventListener('mouseup', onMouseUp);
+        window.dispatchEvent(
+          new CustomEvent('mozContentEvent', props));
+        self.close();
+      });
       evt.preventDefault();
   };
 
@@ -300,7 +306,9 @@
       this.debug(pos);
       this.element.style.top = pos.top + 'px';
       this.element.style.left = pos.left + 'px';
+      this.element.style.display = 'block';
       this.element.classList.add('visible');
+
       this._isShowed = true;
     };
 
@@ -367,6 +375,7 @@
     if (!this.element) {
       return;
     }
+    this.element.style.display = 'none';
     this.element.classList.remove('visible');
   };
 
