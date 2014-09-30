@@ -1,4 +1,4 @@
-/*global MocksHelper, MockL10n, ThreadUI, MockNavigatormozMobileMessage,
+/*global MocksHelper, MockL10n, ThreadUI,
          loadBodyHTML, Compose, MessageManager, Navigation */
 
 'use strict';
@@ -10,7 +10,6 @@ require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('sms/test/unit/mock_contact.js');
-requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_information.js');
@@ -41,7 +40,6 @@ var mHelperIntegration = new MocksHelper([
 
 suite('ThreadUI Integration', function() {
   var realMozL10n;
-  var threadUIMozMobileMessage;
   var recipients;
   var children;
   var fixture;
@@ -58,9 +56,6 @@ suite('ThreadUI Integration', function() {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    threadUIMozMobileMessage = ThreadUI._mozMobileMessage;
-    ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
-
     loadBodyHTML('/index.html');
     Navigation.init();
     ThreadUI.init();
@@ -68,12 +63,9 @@ suite('ThreadUI Integration', function() {
 
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
-    ThreadUI._mozMobileMessage = threadUIMozMobileMessage;
   });
 
   setup(function() {
-
-    ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
 
     sendButton = document.getElementById('messages-send-button');
     input = document.getElementById('messages-input');

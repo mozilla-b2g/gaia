@@ -1,4 +1,3 @@
-/*global Drafts, asyncStorage */
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -10,9 +9,11 @@
 
 *********************************************************** */
 (function(window) {
+  if (navigator.mozMobileMessage) {
+    return;
+  }
 
-  var MockNavigatormozMobileMessage =
-        window.DesktopMockNavigatormozMobileMessage = {};
+  var MockNavigatormozMobileMessage = {};
 
   var outstandingRequests = 0;
   var requests = {};
@@ -321,64 +322,6 @@
   var participants = [
     '101', '102', '103', '104', '105', '106', '107', '108', '109'
   ];
-
-  var timestamp = Date.now();
-  // Fake drafts stored in local store
-  (function() {
-    var drafts = [
-      {
-        recipients: ['555', '666'],
-        subject: '',
-        content: ['This is a draft message'],
-        timestamp: timestamp - (3600000 * 24),
-        threadId: 42,
-        type: 'sms'
-      },
-      {
-        recipients: [],
-        subject: '',
-        content: ['This is a draft SMS, with no recipient'],
-        timestamp: timestamp,
-        threadId: null,
-        type: 'sms'
-      },
-      {
-        recipients: ['555-666-1234'],
-        subject: '',
-        content: ['This is a draft SMS, with a recipient, but no thread'],
-        timestamp: timestamp - 3600000,
-        threadId: null,
-        type: 'sms'
-      },
-      {
-        recipients: ['123456'],
-        subject: '',
-        content: [
-          'This is a draft MMS...',
-          {
-            blob: {
-              type: 'audio/ogg',
-              size: 12345
-            },
-            name: 'audio.oga'
-          },
-          '...with a recipient and a thread'
-        ],
-        timestamp: timestamp - (3600000 * 2),
-        threadId: 8,
-        type: 'mms'
-      }
-    ];
-
-
-    asyncStorage.getItem('draft index', function(result) {
-      if (result === null || !result.length) {
-        drafts.forEach(Drafts.add, Drafts);
-        Drafts.store();
-      }
-    });
-  }());
-
 
   // Fake in-memory message database
   var messagesDb = {
@@ -1552,5 +1495,7 @@
 
     return request;
   };
+
+  navigator.mozMobileMessage = MockNavigatormozMobileMessage;
 
 }(window));
