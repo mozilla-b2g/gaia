@@ -1094,9 +1094,8 @@ suite('system/TaskManager >', function() {
       taskManager.exitToApp();
     });
 
-    test('active app is opened on home event', function(done) {
-      var activeApp = MockAppWindowManager.mActiveApp;
-      var stub = this.sinon.stub(activeApp, 'open');
+    test('home app is opened on home event', function(done) {
+      var stub = this.sinon.stub(apps.home, 'open');
 
       waitForEvent(window, 'cardviewclosed').then(function() {
         assert.isTrue(stub.calledOnce, 'active app open method was called');
