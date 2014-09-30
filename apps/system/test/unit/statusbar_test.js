@@ -204,6 +204,12 @@ suite('system/Statusbar', function() {
   suite('init when FTU is running', function() {
     setup(function() {
       this.sinon.stub(StatusBar, 'finishInit');
+      this.sinon.stub(StatusBar, 'setAppearance');
+    });
+
+    teardown(function() {
+      StatusBar.finishInit.restore();
+      StatusBar.setAppearance.restore();
     });
 
     test('skipping FTU finishes initialization', function() {
@@ -227,6 +233,13 @@ suite('system/Statusbar', function() {
       evt = new CustomEvent('ftudone');
       StatusBar.handleEvent(evt);
       assert.isTrue(StatusBar.finishInit.called);
+    });
+
+    test('handles apptitlestatechanged on ftu', function() {
+      FtuLauncher.mIsUpgrading = false;
+      var evt = new CustomEvent('apptitlestatechanged');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.setAppearance.called);
     });
   });
 
