@@ -15,25 +15,27 @@
 */
 
 'use strict';
-(function(exports) {
 
 /**
  * Creates an object used for refreshing the clock UI element. Handles all
  * related timer manipulation (start/stop/cancel).
  * @class  Clock
  */
-function Clock() {
-  /**
-   * One-shot timer used to refresh the clock at a minute's turn
-   * @memberOf Clock
-   */
-  this.timeoutID = null;
+export class Clock {
 
-  /**
-   * Timer used to refresh the clock every minute
-   * @memberOf Clock
-   */
-  this.timerID = null;
+  contructor() {
+    /**
+     * One-shot timer used to refresh the clock at a minute's turn
+     * @memberOf Clock
+     */
+    this.timeoutID = null;
+
+    /**
+     * Timer used to refresh the clock every minute
+     * @memberOf Clock
+     */
+    this.timerID = null;
+  }
 
   /**
    * Start the timer used to refresh the clock, will call the specified
@@ -45,7 +47,7 @@ function Clock() {
    *        tick, should accept a date object as its only argument.
    * @memberOf Clock
    */
-  this.start = function cl_start(refresh) {
+  start(refresh) {
     var date = new Date();
     var self = this;
 
@@ -61,13 +63,13 @@ function Clock() {
         }
       }, (60 - date.getSeconds()) * 1000);
     }
-  };
+  }
 
   /**
    * Stops the timer used to refresh the clock
    * @memberOf Clock
    */
-  this.stop = function cl_stop() {
+  stop() {
     if (this.timeoutID != null) {
       window.clearTimeout(this.timeoutID);
       this.timeoutID = null;
@@ -77,10 +79,5 @@ function Clock() {
       window.clearInterval(this.timerID);
       this.timerID = null;
     }
-  };
+  }
 }
-
-/** @exports Clock */
-exports.Clock = Clock;
-
-})(window);

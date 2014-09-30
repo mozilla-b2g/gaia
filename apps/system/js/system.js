@@ -1,4 +1,5 @@
 'use strict';
+/* global System */
 
 (function(exports) {
   var DEBUG = false;
@@ -7,7 +8,7 @@
    * @type {Object}
    * @module  System
    */
-  exports.System = {
+  var SystemMixins = {
     /**
      * Indicates the system is busy doing something.
      * Now it stands for the foreground app is not loaded yet.
@@ -113,4 +114,8 @@
       }
     }
   };
+
+  for (var i in SystemMixins) {
+    System[i] = SystemMixins[i];
+  }
 })(window);

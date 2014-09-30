@@ -22,6 +22,9 @@
 
 'use strict';
 
+System.baseURL = '/js/';
+
+System.import('./clock').then(m => {
 var StatusBar = {
   /* all elements that are children nodes of the status bar */
   ELEMENTS: ['emergency-cb-notification', 'time', 'connections',
@@ -140,7 +143,7 @@ var StatusBar = {
   /**
    * Object used for handling the clock UI element, wraps all related timers
    */
-  clock: new Clock(),
+  clock: new m.Clock(),
 
   /* For other modules to acquire */
   get height() {
@@ -1636,3 +1639,8 @@ if (navigator.mozL10n) {
     StatusBar.init();
   });
 }
+
+// FIXME: For backwards compatibility.
+window.StatusBar = StatusBar;
+
+}).catch(console.error.bind(console));
