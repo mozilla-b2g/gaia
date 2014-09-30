@@ -2,6 +2,18 @@
 /* global CustomLocationPanel */
 'use strict';
 
+#define GEO_ENABLED         "geolocation.enabled"
+
+#define GEO_TYPE            "geolocation.type"
+
+#define GEO_APPROX_DISTANCE "geolocation.approx_distance"
+
+#define GEO_FIXED_COORDS    "geolocation.fixed_coords"
+
+#define GEO_APP_SETTINGS    "geolocation.app_settings"
+
+#define GEO_ALWAYS_PRECISE  "geolocation.always_precise"
+
 var app = app || {};
 
 (function() {
@@ -128,10 +140,10 @@ var app = app || {};
 
     // prepare exception list
     var applicationList = this.settings.createLock()
-      .get('geolocation.exceptions');
+      .get('geolocation.app_settings');
     applicationList.onsuccess = function() {
       app.elements.exceptionsList =
-        applicationList.result['geolocation.exceptions'] || {};
+        applicationList.result['geolocation.app_settings'] || {};
     };
 
 
@@ -245,9 +257,9 @@ var app = app || {};
     };
 
     // get blur type value
-    var status3 = app.settings.createLock().get('geolocation.blur.type');
+    var status3 = app.settings.createLock().get('geolocation.type');
     status3.onsuccess = function() {
-      var type = status3.result['geolocation.blur.type'];
+      var type = status3.result['geolocation.type'];
 
       // set checkbox value
       app.elements.ALA.type.$select.value = type;
@@ -257,9 +269,9 @@ var app = app || {};
     };
 
     // get blur radius value
-    var status4 = app.settings.createLock().get('geolocation.blur.slider');
+    var status4 = app.settings.createLock().get('geolocation.slider');
     status4.onsuccess = function() {
-      var sliderValue = status4.result['geolocation.blur.slider'];
+      var sliderValue = status4.result['geolocation.slider'];
 
       // set slider value
       app.elements.ALA.type.$blurSlider.value = sliderValue;
@@ -279,12 +291,12 @@ var app = app || {};
     };
 
     var customSettingsKeys = [
-      { key: 'geolocation.blur.cl.type',    name: 'type' },
-      { key: 'geolocation.blur.cl.country', name: 'country' },
-      { key: 'geolocation.blur.cl.city',    name: 'city' },
-      { key: 'geolocation.blur.longitude',  name: 'longitude' },
-      { key: 'geolocation.blur.latitude',   name: 'latitude' },
-      { key: 'geolocation.blur.cl.type',    name: 'type' }
+      { key: 'geolocation.cl.type',    name: 'type' },
+      { key: 'geolocation.cl.country', name: 'country' },
+      { key: 'geolocation.cl.city',    name: 'city' },
+      { key: 'geolocation.longitude',  name: 'longitude' },
+      { key: 'geolocation.latitude',   name: 'latitude' },
+      { key: 'geolocation.cl.type',    name: 'type' }
     ];
 
     var lock = app.settings.createLock();
@@ -318,12 +330,12 @@ var app = app || {};
     var flag = settings.latitude && settings.longitude;
 
     lock.set({
-      'geolocation.blur.cl.type':     settings.type,
-      'geolocation.blur.cl.country':  settings.country,
-      'geolocation.blur.cl.city':     settings.city,
-      'geolocation.blur.longitude':   settings.longitude,
-      'geolocation.blur.latitude':    settings.latitude,
-      'geolocation.blur.coords':
+      'geolocation.cl.type':     settings.type,
+      'geolocation.cl.country':  settings.country,
+      'geolocation.cl.city':     settings.city,
+      'geolocation.longitude':   settings.longitude,
+      'geolocation.latitude':    settings.latitude,
+      'geolocation.fixed_coords':
         flag ? '@' + settings.latitude + ',' + settings.longitude : ''
     });
   };
@@ -372,7 +384,7 @@ var app = app || {};
 
     if (save) {
       // save current type
-      app.settings.createLock().set({'geolocation.blur.type': value});
+      app.settings.createLock().set({'geolocation.type': value});
     }
 
     // hide all elements
@@ -414,11 +426,11 @@ var app = app || {};
    */
   app.changeBlurSlider = function(value) {
     // save slider value
-    app.settings.createLock().set({ 'geolocation.blur.slider': value });
+    app.settings.createLock().set({ 'geolocation.slider': value });
 
     // save radius
     app.settings.createLock()
-      .set({ 'geolocation.blur.radius': app.getRadiusValue(value) });
+      .set({ 'geolocation.approx_distance': app.getRadiusValue(value) });
 
     // set slider label
     app.updateSliderLabel(value);
@@ -737,7 +749,7 @@ var app = app || {};
     };
 
     app.settings.createLock()
-      .set({ 'geolocation.exceptions': app.elements.exceptionsList });
+      .set({ 'geolocation.app_settings': app.elements.exceptionsList });
   };
 
   /**
@@ -747,7 +759,7 @@ var app = app || {};
     delete app.elements.exceptionsList[app.elements.currentApp];
 
     app.settings.createLock()
-      .set({ 'geolocation.exceptions': app.elements.exceptionsList });
+      .set({ 'geolocation.app_settings': app.elements.exceptionsList });
   };
 
   app.init();
