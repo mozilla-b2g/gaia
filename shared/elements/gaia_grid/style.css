@@ -294,6 +294,10 @@
   background-color: rgba(27, 185, 225, 0.5);
 }
 
+.group.active .shadow {
+  box-shadow: 0 0.9rem 1.2rem rgba(0, 0, 0, 0.63);
+}
+
 .group .separator {
   background: rgba(0, 0, 0, 0.1);
   margin: 0;

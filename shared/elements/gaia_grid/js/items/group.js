@@ -96,6 +96,12 @@
       group.appendChild(span);
       this.backgroundSpanElement = span;
 
+      // Create an element for a drop-shadow (only seen when active)
+      span = document.createElement('span');
+      span.className = 'shadow';
+      group.appendChild(span);
+      this.shadowSpanElement = span;
+
       // Create the header (container for the move gripper, title and
       // expand/collapse toggle)
       span = document.createElement('span');
@@ -222,6 +228,11 @@
       // Place and size the background span element
       this.backgroundSpanElement.style.transform =
         'translate(0px, ' + y + 'px) scale(1, ' + this.backgroundHeight + ')';
+
+      // Place and size the shadow span element
+      this.shadowSpanElement.style.transform =
+        'translateY(' + y + 'px)';
+      this.shadowSpanElement.style.height = this.backgroundHeight + 'px';
 
       // Place the divider after this point
       this.dividerSpanElement.style.transform =
