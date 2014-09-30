@@ -11,9 +11,6 @@
   transition-duration: 0.4s;
   transition-timing-function: ease-in-out;
   visibility: hidden;
-}
-
-#software-buttons {
   background: black;
 }
 
@@ -29,7 +26,6 @@
 
 #software-buttons-fullscreen-layout {
   bottom: 0;
-  background: none;
 }
 
 #screen.software-button-enabled.fullscreen-layout-app:not(.locked) #software-buttons-fullscreen-layout,
