@@ -186,7 +186,7 @@
   width: calc(100% - 3.7rem);
   -moz-margin-start: .7rem;
   float: left;
-  font: italic 300 1.8rem/3.6rem auto;
+  font: italic 300 1.8rem/4.2rem auto;
 }
 
 #notification-bar .title {
