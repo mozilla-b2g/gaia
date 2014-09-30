@@ -2,7 +2,7 @@
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
            MockSystem, MockTouchForwarder, StatusBar, System,
-           AppWindowManager, MockNfcManager */
+           AppWindowManager, MockNfcManager, MockMobileconnection */
 
 'use strict';
 
@@ -16,6 +16,7 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_system.js');
 require('/shared/test/unit/mocks/mock_simslot.js');
 require('/shared/test/unit/mocks/mock_simslot_manager.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_ftu_launcher.js');
 require('/test/unit/mock_nfc_manager.js');
@@ -42,7 +43,7 @@ suite('system/Statusbar', function() {
       fakeStatusBarConnections, fakeStatusBarCallForwardings, fakeStatusBarTime,
       fakeStatusBarLabel, fakeStatusBarBattery;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [],
-      realNfcManager;
+      realNfcManager, realL10n;
 
   function prepareDOM() {
     for (var i = 1; i < mobileConnectionCount; i++) {
@@ -114,6 +115,8 @@ suite('system/Statusbar', function() {
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
     realNfcManager = window.nfcManager;
     window.nfcManager = new MockNfcManager();
@@ -181,6 +184,7 @@ suite('system/Statusbar', function() {
     navigator.mozL10n = realMozL10n;
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozTelephony = realMozTelephony;
+    navigator.mozL10n = realL10n;
     window.nfcManager.isActive.restore();
     window.nfcManager = realNfcManager;
   });
@@ -2285,7 +2289,7 @@ suite('system/Statusbar', function() {
     });
   });
 
-  suite.only('Geolocation and recording', function() {
+  suite('Geolocation and recording', function() {
     var updateIconSpy;
     var cloneStatusbarSpy;
 
@@ -2322,6 +2326,111 @@ suite('system/Statusbar', function() {
           assert.equal(updateIconSpy.callCount, updateIconCallCount);
           assert.equal(cloneStatusbarSpy.callCount, cloneStatusbarCallCount);
         }.bind(this));
+    });
+  });
+
+  suite('Signal icons', function() {
+    var slots;
+    var mockMobileConnection;
+    var updateIconSpy;
+
+    setup(function() {
+      mockMobileConnection = MockMobileconnection();
+      mockMobileConnection.voice = {
+        network: {
+          mcc: 123
+        }
+      };
+      mockMobileConnection.simCard = {
+        cardState: 'ready',
+        iccInfo: {
+          iccid: 'iccid1'
+        }
+      };
+      slots = [new MockSIMSlot(mockMobileConnection, 0)];
+      MockSIMSlotManager.mInstances = slots;
+
+      StatusBar.settingValues['ril.radio.disabled'] = false;
+      StatusBar.update.signal.call(StatusBar);
+
+      updateIconSpy = this.sinon.spy(StatusBar, '_updateIconVisibility');
+    });
+
+    teardown(function() {
+      MockSIMSlotManager.mTeardown();
+    });
+
+    test('should call reprioritise function when changed', function() {
+      StatusBar.settingValues['ril.radio.disabled'] = true;
+      StatusBar.update.signal.call(StatusBar);
+
+      assert.isTrue(updateIconSpy.called);
+    });
+
+    test('should not call reprioritise function when not changed', function() {
+      StatusBar.settingValues['ril.radio.disabled'] = false;
+      StatusBar.update.signal.call(StatusBar);
+
+      assert.isFalse(updateIconSpy.called);
+    });
+  });
+
+  suite('Data icons', function() {
+    var updateIconSpy;
+
+    setup(function() {
+      MockNavigatorMozMobileConnections[0].data = {
+        connected: true,
+        type: 'lte'
+      };
+
+      StatusBar.settingValues['ril.radio.disabled'] = false;
+      StatusBar.settingValues['ril.data.enabled'] = true;
+      StatusBar.icons.wifi.hidden = true;
+      StatusBar.update.data.call(StatusBar);
+
+      updateIconSpy = this.sinon.spy(StatusBar, '_updateIconVisibility');
+    });
+
+    test('should call reprioritise function when changed', function() {
+      StatusBar.settingValues['ril.data.enabled'] = false;
+      StatusBar.update.data.call(StatusBar);
+
+      assert.isTrue(updateIconSpy.called);
+    });
+
+    test('should not call reprioritise function when not changed', function() {
+      StatusBar.settingValues['ril.data.enabled'] = true;
+      StatusBar.update.data.call(StatusBar);
+
+      assert.isFalse(updateIconSpy.called);
+    });
+  });
+
+  suite('Network activity icons', function() {
+    var updateIconSpy;
+    var clock;
+
+    setup(function() {
+      updateIconSpy = this.sinon.spy(StatusBar, '_updateIconVisibility');
+      clock = sinon.useFakeTimers();
+    });
+
+    teardown(function() {
+      clock.restore();
+    });
+
+    test('should call reprioritise function when changed', function() {
+      StatusBar.update.networkActivity.call(StatusBar);
+
+      assert.isTrue(updateIconSpy.called);
+    });
+
+    test('should call reprioritise function after 500ms', function() {
+      StatusBar.update.networkActivity.call(StatusBar);
+      clock.tick(510);
+
+      assert.equal(updateIconSpy.callCount, 2);
     });
   });
 });

@@ -592,7 +592,7 @@ var StatusBar = {
     var maximizedStatusBarWidth = this._getMaximizedStatusBarWidth();
     var minimizedStatusBarWidth = this._getMinimizedStatusBarWidth();
 
-    this.PRIORITIES.forEach(function(iconObj) {
+    this.PRIORITIES.forEach(function sb_updateIconVisibilityForEach(iconObj) {
       var iconId = iconObj[0];
       var icon = this.icons[this.toCamelCase(iconId)];
 
@@ -1020,14 +1020,17 @@ var StatusBar = {
       var icon = this.icons.networkActivity;
 
       clearTimeout(this._networkActivityTimer);
-      icon.hidden = false;
 
       this._networkActivityTimer = setTimeout(function hideNetActivityIcon() {
         icon.hidden = true;
         this._updateIconVisibility();
       }.bind(this), 500);
 
-      this._updateIconVisibility();
+      if (icon.hidden) {
+        icon.hidden = false;
+
+        this._updateIconVisibility();
+      }
     },
 
     flightMode: function sb_flightMode() {
@@ -1044,15 +1047,15 @@ var StatusBar = {
     },
 
     signal: function sb_updateSignal() {
-      var self = this;
       var simSlots = SIMSlotManager.getSlots();
+      var isDirty = false; // Whether to reprioritise icons afterwards.
       for (var index = 0; index < simSlots.length; index++) {
         var simslot = simSlots[index];
         var conn = simslot.conn;
         var voice = conn.voice;
         var data = conn.data;
-        var icon = self.icons.signals[index];
-        var roaming = self.icons.roaming[index];
+        var icon = this.icons.signals[index];
+        var roaming = this.icons.roaming[index];
 
         var _ = navigator.mozL10n.get;
 
@@ -1060,8 +1063,16 @@ var StatusBar = {
           continue;
         }
 
-        if (self.settingValues['ril.radio.disabled']) {
+        var previousHiddenState = icon.hidden;
+        var previousRoamingHiddenState = roaming.hidden;
+
+        if (this.settingValues['ril.radio.disabled']) {
           icon.hidden = true;
+
+          if (previousHiddenState !== icon.hidden) {
+            isDirty = true;
+          }
+
           continue;
         }
 
@@ -1081,7 +1092,7 @@ var StatusBar = {
           // "Carrier" / "Carrier (Roaming)" (EVDO)
           // Show signal strength of data call as EVDO only supports data call.
           this.updateSignalIcon(icon, data);
-        } else if (voice.connected || self.hasActiveCall() &&
+        } else if (voice.connected || this.hasActiveCall() &&
             navigator.mozTelephony.active.serviceId === index) {
           // "Carrier" / "Carrier (Roaming)"
           // If voice.connected is false but there is an active call, we should
@@ -1107,12 +1118,19 @@ var StatusBar = {
           icon.setAttribute('aria-label', _(icon.dataset.searching ?
             'statusbarSignalNoneSearching' : 'emergencyCallsOnly'));
         }
+
+        if (previousHiddenState !== icon.hidden ||
+          previousRoamingHiddenState !== roaming.hidden) {
+          isDirty = true;
+        }
       }
 
       this.updateConnectionsVisibility();
       this.refreshCallListener();
 
-      this._updateIconVisibility();
+      if (isDirty) {
+        this._updateIconVisibility();
+      }
     },
 
     data: function sb_updateSignal() {
@@ -1122,29 +1140,36 @@ var StatusBar = {
         return;
       }
 
-      var self = this;
+      var isDirty = false; // Whether to reprioritise icons afterwards.
       for (var index = 0; index < conns.length; index++) {
         var conn = conns[index];
         var data = conn.data;
-        var icon = self.icons.data[index];
+        var icon = this.icons.data[index];
 
         if (!data) {
           continue;
         }
 
-        if (self.settingValues['ril.radio.disabled'] ||
-            !self.settingValues['ril.data.enabled'] ||
-            !self.icons.wifi.hidden || !data.connected) {
+        var previousHiddenState = icon.hidden;
+
+        if (this.settingValues['ril.radio.disabled'] ||
+            !this.settingValues['ril.data.enabled'] ||
+            !this.icons.wifi.hidden || !data.connected) {
           icon.hidden = true;
+
+          if (previousHiddenState !== icon.hidden) {
+            isDirty = true;
+          }
+
           continue;
         }
 
-        var type = self.mobileDataIconTypes[data.type];
+        var type = this.mobileDataIconTypes[data.type];
         icon.hidden = false;
         icon.textContent = '';
         icon.classList.remove('sb-icon-data-circle');
         if (type) {
-          if (self.dataExclusiveCDMATypes[data.type]) {
+          if (this.dataExclusiveCDMATypes[data.type]) {
             // If the current data connection is CDMA types, we need to check
             // if there exist any calls. If yes, we have to set the status
             // text to empty.
@@ -1161,12 +1186,18 @@ var StatusBar = {
           icon.classList.add('sb-icon-data-circle');
         }
         icon.setAttribute('aria-hidden', !!icon.textContent);
+
+        if (previousHiddenState !== icon.hidden) {
+          isDirty = true;
+        }
       }
 
       this.updateConnectionsVisibility();
       this.refreshCallListener();
 
-      this._updateIconVisibility();
+      if (isDirty) {
+        this._updateIconVisibility();
+      }
     },
 
     wifi: function sb_updateWifi() {
