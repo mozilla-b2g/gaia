@@ -265,8 +265,8 @@
     switch (nodeName) {
       case 'A':
         return [{
-          id: 'open-in-new-tab',
-          label: _('open-in-new-tab'),
+          id: 'open-in-new-window',
+          label: _('open-in-new-window'),
           callback: this.openUrl.bind(this, uri)
         }, {
           id: 'bookmark-link',
