@@ -3,10 +3,6 @@
 mocha.setup({ ui: 'tdd', ignoreLeaks: true });
 window.assert = chai.assert;
 
-navigator.mozSettings.createLock().set({
-  'keyboard.ftu.enabled': false
-});
-
 /**
  * This is a set of tests that test mozInputMethod
  */

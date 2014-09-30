@@ -17,8 +17,7 @@ Contacts.URL = 'app://communications.gaiamobile.org';
 
 Contacts.config = {
   settings: {
-    // disable keyboard ftu because it blocks our display
-    'keyboard.ftu.enabled': false,
+    // disable FTU because it blocks our display
     'ftu.manifestURL': null,
     'lockscreen.enabled': false
   }

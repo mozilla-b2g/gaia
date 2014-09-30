@@ -4,12 +4,7 @@ var serverHelper = require('./lib/server_helper');
 
 marionette('send email via IMAP', function() {
   var app,
-      client = marionette.client({
-        settings: {
-          // disable keyboard ftu because it blocks our display
-          'keyboard.ftu.enabled': false
-        }
-      });
+      client = marionette.client();
 
   setup(function() {
     app = new Email(client);

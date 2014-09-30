@@ -8,11 +8,7 @@ var FlowManager = require('./lib/flow_manager');
 var Actions = require('marionette-client').Actions;
 
 marionette('Remove bookmark on homescreen', function() {
-  var client = marionette.client({
-    settings: {
-      'keyboard.ftu.enabled': false
-    }
-  }), browser, homescreen, server;
+  var client = marionette.client(), browser, homescreen, server;
 
   suiteSetup(function(done) {
     Server.create(function(err, _server) {

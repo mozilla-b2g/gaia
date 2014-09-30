@@ -7,12 +7,7 @@ var Server = require('./lib/server');
 var FlowManager = require('./lib/flow_manager');
 
 marionette('Install bookmark on homescreen', function() {
-  var client = marionette.client({
-        settings: {
-          // disable keyboard ftu because it blocks our display
-          'keyboard.ftu.enabled': false
-        }
-      });
+  var client = marionette.client();
   var browser;
   var homescreen;
   var server;
