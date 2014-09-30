@@ -102,8 +102,13 @@
       this.icon.scale = ACTIVE_SCALE;
       this.icon.setActive(true);
 
-      this.xAdjust = e.pageX - this.icon.x;
-      this.yAdjust = e.pageY - this.icon.y;
+      // Work around e.pageX/e.pageY being null (to make it easier to work with
+      // injected events, or old versions of Marionette)
+      var pageX = (typeof e.pageX === 'undefined') ? this.icon.x : e.pageX;
+      var pageY = (typeof e.pageY === 'undefined') ? this.icon.y : e.pageY;
+
+      this.xAdjust = pageX - this.icon.x;
+      this.yAdjust = pageY - this.icon.y;
 
       var items = this.gridView.items;
       var lastElement = items[items.length - 1];
@@ -111,7 +116,7 @@
                        (this.icon.pixelHeight * ACTIVE_SCALE);
 
       // Redraw the icon at the new position and scale
-      this.positionIcon(e.pageX, e.pageY);
+      this.positionIcon(pageX, pageY);
     },
 
     finish: function(e) {
