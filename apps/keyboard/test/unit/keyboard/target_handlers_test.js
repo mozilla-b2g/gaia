@@ -727,8 +727,54 @@ suite('target handlers', function() {
     });
 
     test('activate', function() {
-      assert.equal(handler.activate, DefaultTargetHandler.prototype.activate,
-        'function not overwritten');
+      setup(function() {
+        handler.activate();
+
+        assert.isTrue(app.feedbackManager.triggerFeedback.calledWith(target));
+        assert.isTrue(app.feedbackManager.triggerFeedback.calledOnce);
+
+        assert.isTrue(app.visualHighlightManager.show.calledWith(target));
+        assert.isTrue(app.visualHighlightManager.show.calledOnce);
+      });
+
+      test('commit', function() {
+        handler.commit();
+
+        assert.isTrue(app.upperCaseStateManager.switchUpperCaseState
+                      .calledWith({
+          isUpperCase: true,
+          isUpperCaseLocked: false
+        }));
+
+        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
+        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+      });
+
+      test('moveOut', function() {
+        handler.moveOut();
+
+        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
+        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+      });
+
+      test('cancel', function() {
+        handler.cancel();
+
+        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
+        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+      });
+
+      test('doubleTap', function() {
+        handler.doubleTap();
+
+        assert.isTrue(app.upperCaseStateManager.switchUpperCaseState
+                      .calledWith({
+          isUpperCaseLocked: true
+        }));
+
+        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
+        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+      });
     });
 
     test('longPress', function() {

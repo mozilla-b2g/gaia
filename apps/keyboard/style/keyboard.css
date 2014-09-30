@@ -253,12 +253,12 @@ button::-moz-focus-inner {
 }
 
 /* Caps lock case */
-.keyboard-key.special-key.kbr-key-hold > .visual-wrapper > .key-element {
+.keyboard-key.special-key.kbr-key-hold:not(.highlighted) > .visual-wrapper > .key-element {
   color: #00caf2;
 }
 
 /* The underline for caps lock */
-.keyboard-key.kbr-key-hold > .visual-wrapper {
+.keyboard-key.kbr-key-hold:not(.highlighted) > .visual-wrapper {
   box-shadow: 0 0.4rem 0 #00caf2;
 }
 
@@ -303,7 +303,7 @@ and displays the list of alternatives. */
   overflow: hidden;
   text-align: left;
   /* Special hack to make the keys in the menu flow upwards. */
-  transform: rotateX(180deg); 
+  transform: rotateX(180deg);
   margin-left: -1.0rem; /* because the last child is wider than others */
 }
 

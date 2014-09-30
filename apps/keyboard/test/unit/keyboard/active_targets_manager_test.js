@@ -451,8 +451,9 @@ suite('ActiveTargetsManager', function() {
       setup(function() {
         userPressManagerStub.onpressstart(press1, id1);
 
-        assert.isTrue(manager.ontargetcommitted.calledWith(press0.target),
-          'Commit the first press when the second press starts.');
+        assert.isTrue(manager.onnewtargetwillactivate.calledWith(press0.target),
+          'Determine commit the first press or not' +
+          ' when the second press starts.');
         assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
 
         assert.isTrue(
