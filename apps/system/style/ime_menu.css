@@ -20,3 +20,22 @@
   line-height: normal;
   padding: 0.3rem 2.6rem 0.9rem 1.5rem;
 }
+
+/* For IME Menu buttons */
+.ime-menu-button-container {
+  white-space: nowrap;
+  margin: 0;
+  padding: 1.5rem;
+  background: #4d4d4d;
+  display: block;
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Need 2 selectors to override the general rule */
+.ime-menu-button-container > .ime-menu-button {
+  margin: 0;
+}
