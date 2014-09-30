@@ -98,6 +98,12 @@ Rocketbar.prototype = {
         window.wrappedJSObject.rocketbar.handleInput();
       });
     }
+
+    // Manually blur the input with script or the keyboard can mess up
+    // visibility in tests.
+    input.scriptWith(function(el) {
+      el.blur();
+    });
   },
 
   /**
