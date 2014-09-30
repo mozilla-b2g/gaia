@@ -259,6 +259,16 @@ suite('system/VisibilityManager', function() {
       assert.isTrue(setVisibleStub.calledWith(true));
     });
 
+    test('move secure app to foreground', function () {
+      var secureapp = new MockAppWindow();
+      var setVisibleStub = this.sinon.stub(secureapp, 'setVisible');
+      var event = new CustomEvent('secure-apprequestforeground', {
+        detail: secureapp
+      });
+      window.dispatchEvent(event);
+      assert.isTrue(setVisibleStub.calledWith(true));
+    });
+
     test('dont foreground app when attentionscreen visible', function () {
       window.System.locked = false;
       this.sinon.stub(MockAttentionWindowManager, 'hasActiveWindow')
