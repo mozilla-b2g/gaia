@@ -1,8 +1,7 @@
-/* global it, assert:true, describe */
-/* global window, navigator, process */
+/* global it, assert, describe */
+/* global navigator, process */
 'use strict';
 
-var assert = require('assert') || window.assert;
 var PropertiesParser;
 
 if (typeof navigator !== 'undefined') {

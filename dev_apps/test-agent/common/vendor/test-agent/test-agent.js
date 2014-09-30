@@ -705,20 +705,15 @@
   }
 
   var Loader = window.TestAgent.Loader = function Loader(options) {
-    var key;
-
     this._cached = {};
-
-    //queue stuff
-    this._queue = [];
-
+    this._queue = 0;
     this.doneCallbacks = [];
 
-    if (typeof(options) === 'undefined') {
+    if (typeof options !== 'object') {
       options = {};
     }
 
-    for (key in options) {
+    for (var key in options) {
       if (options.hasOwnProperty(key)) {
         this[key] = options[key];
       }
@@ -797,30 +792,25 @@
      *
      * @param {Function} callback called after all scripts are loaded.
      */
-    done: function done(callback) {
-      this.doneCallbacks.push(callback);
-      return this;
+    done: function done() {
+      return new Promise((accept, reject) => {
+        if (this._queue === 0) {
+          return accept();
+        }
+
+        this.doneCallbacks.push(accept);
+      });
     },
 
-    /**
-     * Begins an item in the queue.
-     */
-    _begin: function() {
-      var item = this._queue[0];
-
-      if (item) {
-        item();
-      } else {
-        this._fireCallbacks();
-      }
-    },
 
     /**
      * Moves to the next item in the queue.
      */
     _next: function() {
-      this._queue.shift();
-      this._begin();
+      this._queue--;
+      if (this._queue === 0) {
+        this._fireCallbacks();
+      }
     },
 
     /**
@@ -832,13 +822,12 @@
      * @param {String} callback callback when script loading is complete.
      */
     require: function(url, callback, options) {
-      this._queue.push(
-        this._require.bind(this, url, callback, options)
-      );
-
-      if (this._queue.length === 1) {
-        this._begin();
-      }
+      this._queue++;
+      var next = this._next.bind(this);
+      return this._require(url, options)
+      .then(() => callback && callback())
+      .catch(() => console.error('Error while loading: ', url))
+      .then(next);
     },
 
     /**
@@ -848,59 +837,44 @@
      *
      * @private
      */
-    _require: function require(url, callback, options) {
-      var prefix = this.prefix,
-          suffix = '',
-          self = this,
-          element,
-          key,
-          document = this.targetWindow.document;
-
+    _require: function require(url, options) {
       if (url in this._cached) {
-        if (callback) {
-          callback();
-        }
-        return this._next();
+        // Return a promise that represents the loading state
+        // for the cached resource.
+        return this._cached[url];
       }
 
-      if (this.bustCache) {
-        suffix = '?time=' + String(Date.now());
-      }
+      var suffix = this.bustCache ? ('?time=' + Date.now()) : '';
+      var fullUrl = this.prefix + url + suffix;
 
-      this._cached[url] = true;
-
-      url = prefix + url + suffix;
-      element = document.createElement('script');
-      element.src = url;
+      var doc = this.targetWindow.document;
+      var element = doc.createElement('script');
+      element.src = fullUrl;
       element.async = false;
       element.type = this.type;
 
-      if (options) {
-        for (key in options) {
+      if (typeof options === 'object' && !Array.isArray(options)) {
+        for (var key in options) {
           if (options.hasOwnProperty(key)) {
             element.setAttribute(key, options[key]);
           }
         }
-      };
-
-      function oncomplete() {
-        if (callback) {
-          callback();
-        }
-        self._next();
       }
 
+      var promise = new Promise((accept, reject) => {
+        element.onload = accept;
+        // XXX: Should we report missing files differently?
+        //     Maybe fail the whole test case when a file is missing...?
+        element.onerror = () => {
+          console.error('Error while loading: ', url);
+          accept();
+        };
+        doc.getElementsByTagName('head')[0].appendChild(element);
+      });
 
-      //XXX: should we report missing
-      //files differently ? maybe
-      //fail the whole test case
-      //when a file is missing...?
-      element.onerror = oncomplete;
-      element.onload = oncomplete;
-
-      document.getElementsByTagName('head')[0].appendChild(element);
+      this._cached[url] = promise;
+      return promise;
     }
-
   };
 
 }(this));
@@ -2374,6 +2348,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     var self = this;
 
     this.sandbox.run(function onSandboxRun() {
+      // Test agent runtime configuration
+      this.testAgentRuntime = {};
       self.loader.targetWindow = this;
       if (callback) {
         if (!('require' in this)) {
@@ -3012,64 +2988,54 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       return result;
     },
 
-    _loadTestHelpers: function(box, callback) {
+    _loadTestHelpers: function(box) {
       var helpers = this.testHelperUrl;
-      if (typeof(helpers) === 'string') {
+      if (typeof helpers === 'string') {
         helpers = [helpers];
       }
 
-      var current = 0;
-      var max = helpers.length;
+      var promise = Promise.resolve();
+      helpers.forEach(helper => {
+        promise = promise.then(() => box.require(helper));
+      });
 
-      function next() {
-        if (current < max) {
-          box.require(helpers[current], function() {
-            current++;
-            next();
-          });
-        } else {
-          callback();
-        }
-      }
-
-      next();
+      return promise;
     },
 
     _testRunner: function _testRunner(worker, tests, done) {
-      var box = worker.sandbox.getWindow(),
-          self = this;
-
-      worker.loader.done(function onDone() {
-        box.mocha.run(done);
-      });
-
-      box.require(this.mochaUrl, function onRequireMocha() {
+      var box = worker.sandbox.getWindow();
+      return box.require(this.mochaUrl)
+      .then(() => {
         if (!box.process) {
           box.process = {
-            stdout: {
-              write: console.log
-            },
+            stdout: { write: console.log },
             write: console.log
           };
         }
 
-        var options = self.extend({}, self.setup, {
-          ui: self.ui,
-          timeout: self.timeout,
-          reporter: self.getReporter(box)
+        var options = this.extend({}, this.setup, {
+          reporter: this.getReporter(box),
+          timeout: this.timeout,
+          ui: this.ui
         });
 
-        //setup mocha
         box.mocha.setup(options);
-      });
 
-      self._loadTestHelpers(box, function() {
-        tests.sort().forEach(function(test) {
-          box.require(test);
-        });
-      });
+        return this._loadTestHelpers(box);
+      })
+      .then(() => {
+        var load;
+        if (box.testAgentRuntime && box.testAgentRuntime.testLoader) {
+          load = box.testAgentRuntime.testLoader.bind(box.testAgentRuntime);
+        } else {
+          load = box.require.bind(box);
+        }
+
+        return Promise.all(tests.sort().map(load));
+      })
+      .then(() => worker.loader.done())
+      .then(() => box.mocha.run(done));
     }
-
   };
 
   window.TestAgent.BrowserWorker.MochaDriver = MochaDriver;
