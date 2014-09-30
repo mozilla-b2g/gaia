@@ -4,11 +4,14 @@
 }
 
 .report-view > div {
-  padding: 2rem 1.5rem 3rem 3rem;
+  padding-top: 2rem;
+  -moz-padding-end: 1.5rem;
+  padding-bottom: 3rem;
+  -moz-padding-start: 3rem;
 }
 
-.report-view p, .report-view span {
-  font-family: "Fira Sans";
+.report-view p,
+.report-view span {
   font-size: 1.5rem;
   line-height: 1.5rem;
   color: #858585;
@@ -72,7 +75,9 @@
 .report-view > .contact-list > li {
   height: auto;
   min-height: 9rem;
-  padding: 1rem 0 1rem 1.5rem;
+  padding: 1rem;
+  -moz-padding-end: 0;
+  -moz-padding-start: 1.5rem;
 }
 
 .report-view > .contact-list a {
@@ -107,29 +112,31 @@
 }
 
 .report-view > .contact-list div .icon {
-  display: inline-block;
+  float: left;
+
   width: 1.6rem;
   height: 1.6rem;
-  margin-right : 0.7rem;
-  vertical-align: text-bottom;
+  margin-right: 0.7rem;
+
+  background: no-repeat center center / 1.6rem transparent;
 }
 
 .contact-list div[data-delivery-status="delivered"] .icon {
-  background: url('images/icons/deliveredtick.png') no-repeat center center / 1.6rem transparent;
+  background-image: url('images/icons/deliveredtick.png');
 }
 
 .contact-list div[data-delivery-status="read"] .icon {
-  background: url('images/icons/message_read.png') no-repeat center center / 1.6rem transparent;
+  background-image: url('images/icons/message_read.png');
 }
 
 .contact-list div[data-delivery-status="error"] .icon {
-  background: url('images/icons/exclamation.png') no-repeat center center / 1.6rem transparent;
+  background-image: url('images/icons/exclamation.png');
 }
 
 .contact-list div[data-delivery-status="not-applicable"],
 .contact-list div[data-delivery-status="pending"] .icon,
-.contact-list div[data-delivery-status="pending"] .timestampt,
-.contact-list div[data-delivery-status="error"] .timestampt {
+.contact-list div[data-delivery-status="pending"] .timestamp,
+.contact-list div[data-delivery-status="error"] .timestamp {
   display: none;
 }
 

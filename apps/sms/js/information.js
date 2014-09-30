@@ -39,17 +39,26 @@ var REPORT_MAP = {
   'not-applicable': {
     'not-applicable': 'not-applicable',
     'pending' : 'pending',
-    'success' : 'read'
+    'success' : 'read',
+    'error' : 'error'
   },
   'pending' : {
     'not-applicable': 'pending',
     'pending': 'pending',
-    'success' : 'read'   // should not possible
+    'success' : 'read',   // should not possible
+    'error' : 'error'
   },
   'success' : {
     'not-applicable': 'delivered',
     'pending': 'delivered',
-    'success' : 'read'
+    'success' : 'read',
+    'error' : 'error'
+  },
+  'error' : {
+    'not-applicable': 'error',
+    'pending': 'error',
+    'success' : 'error', // should not possible
+    'error' : 'error'    // should not possible
   }
 };
 
@@ -58,7 +67,8 @@ var MESSAGE_EVENTS = [
   'message-failed-to-send',
   'message-delivered',
   'message-read',
-  'message-sent'
+  'message-sent',
+  'message-sending'
 ];
 
 function completeLocaleFormat(timestamp) {
@@ -96,8 +106,7 @@ function createReportDiv(reports) {
       'delivered' : reports.deliveryStatus;
   } else {
     try {
-      status = reports.deliveryStatus === 'error' ? 'error' :
-        REPORT_MAP[reports.deliveryStatus][reports.readStatus];
+      status = REPORT_MAP[reports.deliveryStatus][reports.readStatus];
     } catch(e) {
       console.error('Invalid message report status: ' + e);
       return reportDiv;
@@ -230,19 +239,18 @@ var VIEWS = {
 
     init: function() {
       this.onStatusChanged = this.onStatusChanged.bind(this);
-      this.onMessageSending = this.onMessageSending.bind(this);
     },
 
     beforeEnter: function() {
-      MESSAGE_EVENTS.forEach(function(event) {
+      MESSAGE_EVENTS.forEach((event) => {
         MessageManager.on(event, this.onStatusChanged);
-      }.bind(this));
+      });
     },
 
     afterLeave: function() {
-      MESSAGE_EVENTS.forEach(function(event) {
+      MESSAGE_EVENTS.forEach((event) => {
         MessageManager.off(event, this.onStatusChanged);
-      }.bind(this));
+      });
     },
 
     render: function renderReport() {
@@ -317,23 +325,22 @@ var VIEWS = {
 
     setEventListener: function report_setEventListener() {
       this.resendBtn.addEventListener('click', function() {
-        MessageManager.on('message-sending', this.onMessageSending);
         ThreadUI.resendMessage(this.id);
       }.bind(this));
     },
 
     onStatusChanged: function report_onStatusChanged(e) {
+      // If we got sending status change in report view after resend clicked,
+      // we should change report panel id and refresh for new message report.
+      if (e.message.delivery === 'sending') {
+        this.id = e.message.id;  
+      }
+
       if (Navigation.isCurrentPanel('report-view', { id: e.message.id }) ||
           (Navigation.isCurrentPanel('report-view') &&
            this.id === e.message.id)) {
         this.refresh();
       }
-    },
-
-    onMessageSending: function report_onMessageSending(e) {
-      MessageManager.off('message-sending', this.onMessageSending);
-      this.id = e.message.id;
-      this.refresh();
     },
 
     elements: ['contact-list', 'size', 'size-block', 'type', 'sent-title',
