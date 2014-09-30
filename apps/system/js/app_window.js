@@ -687,7 +687,7 @@
    * };
    *
    * var appWindow = new AppWindow();
-   * AppWindow.prototype.SUB_COMPONENTS.push(myDialog);
+   * AppWindow.SUB_COMPONENTS.push(myDialog);
    *
    * app.installSubComponents();
    */
@@ -715,7 +715,7 @@
 
   AppWindow.prototype.uninstallSubComponents =
     function aw_uninstallSubComponents() {
-      for (var componentName in this.constructor.prototype.SUB_COMPONENTS) {
+      for (var componentName in this.constructor.SUB_COMPONENTS) {
         if (this[componentName] && this[componentName].destroy) {
           this[componentName].destroy();
         }
