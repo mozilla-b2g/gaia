@@ -404,7 +404,7 @@ suite('ThreadUI Integration', function() {
       children[1].textContent = '000';
 
       // Simulate sendButton click
-      ThreadUI.onSendClick();
+      ThreadUI.contentComposer.click();
       ThreadUI.simSelectedCallback(undefined, 0);
 
       // Ensure that the "unaccepted" recipient was assimilated

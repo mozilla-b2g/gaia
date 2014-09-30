@@ -102,7 +102,7 @@ var ThreadUI = {
       'new-message-notice', 'edit-mode', 'edit-form', 'header-text',
       'max-length-notice', 'convert-notice', 'resize-notice',
       'new-message-notice', 'subject-max-length-notice', 'sms-counter-notice',
-      'recipient-suggestions'
+      'recipient-suggestions', 'content-composer'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -259,6 +259,11 @@ var ThreadUI = {
     //
     // So we assimilate recipients if user starts to interact with Composer
     Compose.on('interact', this.assimilateRecipients.bind(this));
+
+    // content composer section clicked
+    this.contentComposer.addEventListener(
+      'click', this.assimilateRecipients.bind(this)
+    );
 
     this.multiSimActionButton = null;
 
@@ -2064,12 +2069,6 @@ var ThreadUI = {
     if (Compose.isEmpty()) {
       return;
     }
-
-    // Assimilation 3 (see "Assimilations" above)
-    // User may return to recipients, type a new recipient
-    // manually and then click the sendButton without "accepting"
-    // the recipient.
-    this.assimilateRecipients();
 
     // not sure why this happens - replace me if you know
     this.container.classList.remove('hide');
