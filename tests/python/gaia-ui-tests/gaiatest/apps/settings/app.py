@@ -3,6 +3,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+
+from gaiatest import GaiaData
 from gaiatest.apps.base import Base
 
 
@@ -39,6 +41,10 @@ class Settings(Base):
     _device_info_menu_item_locator = (By.ID, 'menuItem-deviceInfo')
     _battery_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-battery')
     _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
+
+    def __init__(self, marionette):
+        Base.__init__(self, marionette)
+        self.data_layer = GaiaData(self.marionette)
 
     def launch(self):
         Base.launch(self)

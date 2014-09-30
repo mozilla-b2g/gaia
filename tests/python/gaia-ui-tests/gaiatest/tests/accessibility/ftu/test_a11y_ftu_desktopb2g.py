@@ -12,6 +12,7 @@ class TestFtuAccessibility(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.ftu = Ftu(self.marionette)
+        self.ftu.data_layer.set_setting('devtools.qps.enabled', True)
         self.ftu.launch()
 
     def test_a11y_ftu(self):
@@ -23,10 +24,10 @@ class TestFtuAccessibility(GaiaTestCase):
 
         # Select different languages
         self.assertEqual(self.ftu.selected_language, 'en-US')
-        self.ftu.a11y_click_language('fr')
-        self.assertEqual(self.ftu.selected_language, 'fr')
-        self.ftu.a11y_click_language('en-US')
-        self.assertEqual(self.ftu.selected_language, 'en-US')
+        self.ftu.a11y_click_language('qps-ploc')
+        self.assertEqual(self.ftu.selected_language, 'qps-ploc')
+        self.ftu.a11y_click_language('qps-plocm')
+        self.assertEqual(self.ftu.selected_language, 'qps-plocm')
 
         self.ftu.a11y_click_next_to_wifi_section()
         self.ftu.a11y_click_next_to_timezone_section()

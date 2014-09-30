@@ -33,16 +33,6 @@ LanguagePanel.prototype = {
       optionText: '\u202aEnglish (US)\u202c',
       dayRules: /Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/
     },
-    traditionalChinese: {
-      label: '語言',
-      optionText: '\u202a正體中文\u202c',
-      dayRules: /一|二|三|四|五|六|日/i
-    },
-    french: {
-      label: 'Langue',
-      optionText: '\u202aFrançais\u202c',
-      dayRules: /lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche/i
-    },
     accented: {
       label: 'Ŀȧȧƞɠŭŭȧȧɠḗḗ',
       optionText: '\u202aȦȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ\u202c',
@@ -51,13 +41,13 @@ LanguagePanel.prototype = {
         'Ŧŭŭḗḗşḓȧȧẏ|' +
         'Ẇḗḗḓƞḗḗşḓȧȧẏ|' +
         'Ŧħŭŭřşḓȧȧẏ|' +
-        'Ŧřīīḓȧȧẏ|' +
+        'Ƒřīīḓȧȧẏ|' +
         'Şȧȧŧŭŭřḓȧȧẏ|' +
         'Şŭŭƞḓȧȧẏ')
     },
     mirrored: {
       label: '\u202e˥ɐuƃnɐƃǝ\u202c',
-      optionText: '\u202b\u202eWıɹɹoɹǝp Ǝuƃʅısɥ\u202c\u202c',
+      optionText: '\u202b\u202eWıɹɹoɹǝp\u202c \u202eƎuƃʅısɥ\u202c\u202c',
       dayRules: new RegExp(
         '\u202eWoupɐʎ\u202c|' +
         '\u202e⊥nǝspɐʎ\u202c|' +
@@ -131,7 +121,7 @@ LanguagePanel.prototype = {
     var bodyWidth = this.findElement('body').size().width;
     this.client.waitFor(function() {
       var loc = parentSection.location();
-      return loc.x >= bodyWidth;
+      return Math.abs(loc.x) >= bodyWidth;
     });
   }
 

@@ -27,14 +27,15 @@ marionette('Vertical - Localization', function() {
 
     client.executeScript(function() {
       navigator.mozSettings.createLock().set({
-        'language.current': 'fr'
+        'language.current': 'qps-ploc'
       });
     });
 
     // Localization can be async, wait for the content to update
     client.waitFor(function() {
       settingsIcon = home.getIcon(settingsManifestUrl);
-      return settingsIcon.text() === home.localizedAppName('settings', 'fr');
+      return settingsIcon.text() ===
+        home.localizedAppName('settings', 'qps-ploc');
     });
   });
 
@@ -44,7 +45,7 @@ marionette('Vertical - Localization', function() {
     // Change the language to french
     client.executeScript(function() {
       navigator.mozSettings.createLock().set({
-        'language.current': 'fr'
+        'language.current': 'qps-ploc'
       });
     });
 
@@ -54,7 +55,7 @@ marionette('Vertical - Localization', function() {
 
     // Element.text() does not return the content of the shadow dom,
     // so enter the shadow dom manually for now to get the text.
-    var expected = home.l10n('/locales-obj/fr.json', 'cancel');
+    var expected = home.l10n('cancel');
     client.waitFor(function(){
       var menu = client.helper.waitForElement(selectors.contextmenu);
       var content = menu.scriptWith(function(menu) {
