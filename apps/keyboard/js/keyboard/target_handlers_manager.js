@@ -39,6 +39,8 @@ TargetHandlersManager.prototype.start = function() {
     this._callTargetAction.bind(this, 'cancel', false, true);
   activeTargetsManager.ontargetdoubletapped =
     this._callTargetAction.bind(this, 'doubleTap', false, true);
+  activeTargetsManager.onnewtargetwillactivate =
+    this._callTargetAction.bind(this, 'newTargetActivate', false, false);
   activeTargetsManager.start();
 };
 
@@ -61,6 +63,9 @@ TargetHandlersManager.prototype.stop = function() {
 // "longpress" is noticeably an optional step during the life cycle and does
 // not start or end the handler/active target, so it was not mentioned in the
 // above list.
+// "newTargetActivate" is similar to "longpress",  it is an optional step too,
+// so it was not mentioned in the above list. When newTargetActivate is called,
+// isUpperCase will be set to true, and hold the icon's background.
 //
 // Please note that since we are using target (an abstract key object associated
 // with one DOM element) as the identifier of handlers, we do not assign new

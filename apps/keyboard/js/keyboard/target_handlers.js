@@ -1,6 +1,6 @@
 'use strict';
 
-/* global KeyEvent */
+/* global KeyEvent, IMERender */
 
 (function(exports) {
 
@@ -78,6 +78,11 @@ DefaultTargetHandler.prototype.cancel = function() {
 DefaultTargetHandler.prototype.doubleTap = function() {
   this.app.console.log('DefaultTargetHandler.doubleTap()');
   this.commit();
+};
+DefaultTargetHandler.prototype.newTargetActivate = function() {
+  this.commit();
+  // Ignore any action when commit.
+  this.ignoreCommitActions = true;
 };
 
 var NullTargetHandler = function(target, app) {
@@ -231,11 +236,28 @@ var CapsLockTargetHandler = function(target, app) {
   DefaultTargetHandler.apply(this, arguments);
 };
 CapsLockTargetHandler.prototype = Object.create(DefaultTargetHandler.prototype);
+CapsLockTargetHandler.prototype.capsLockState = 'none';
+CapsLockTargetHandler.prototype.newTargetActivated = false;
+CapsLockTargetHandler.prototype.activate = function() {
+  if (this.app.upperCaseStateManager.isUpperCaseLocked) {
+    this.capsLockState = 'upperCaseLocked';
+  } else if (this.app.upperCaseStateManager.isUpperCase) {
+    this.capsLockState = 'upperCase';
+  } else {
+    this.capsLockState = 'none';
+  }
+  this.app.feedbackManager.triggerFeedback(this.target);
+  this.app.visualHighlightManager.show(this.target);
+};
 CapsLockTargetHandler.prototype.commit = function() {
+  // If hold shift to enter upper case, set isUpperCase false when finished
   this.app.upperCaseStateManager.switchUpperCaseState({
-    isUpperCase: !this.app.upperCaseStateManager.isUpperCase,
+    isUpperCase: this.newTargetActivated ? false :
+      !this.app.upperCaseStateManager.isUpperCase,
     isUpperCaseLocked: false
   });
+  this.newTargetActivated = false;
+  this.capsLockState = 'none';
   this.app.visualHighlightManager.hide(this.target);
 };
 CapsLockTargetHandler.prototype.doubleTap = function() {
@@ -243,6 +265,13 @@ CapsLockTargetHandler.prototype.doubleTap = function() {
     isUpperCaseLocked: true
   });
   this.app.visualHighlightManager.hide(this.target);
+};
+CapsLockTargetHandler.prototype.newTargetActivate = function() {
+  this.newTargetActivated = true;
+  this.app.upperCaseStateManager.switchUpperCaseState({
+    isUpperCaseLocked: true
+  });
+  IMERender.highlightKey(this.target, { capsLockState: this.capsLockState });
 };
 
 var SwitchKeyboardTargetHandler = function(target, app) {

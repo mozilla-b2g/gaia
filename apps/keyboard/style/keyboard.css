@@ -179,6 +179,39 @@ button::-moz-focus-inner {
   left: 0;
 }
 
+/* Rules for hold shift to enter upper case */
+.keyboard-key.highlight-locked-uppercaselocked {
+  background-color: #4a5255;
+}
+
+.keyboard-key.highlight-locked-uppercaselocked > .visual-wrapper {
+  box-shadow: 0 0.4rem 0 #00caf2;
+}
+
+.keyboard-key.highlight-locked-none > .visual-wrapper > .key-element {
+  color: #00b8d6;
+}
+
+.keyboard-key.highlight-locked-uppercase {
+  background-color: #00caf2;
+}
+
+.keyboard-key.highlight-locked-uppercase > .visual-wrapper {
+  box-shadow: 0 0 0 #00caf2;
+}
+
+.keyboard-key.highlight-locked-uppercase > .visual-wrapper > .key-element {
+  color: #00b8d6;
+  border-right-color: transparent;
+}
+
+.keyboard-key.highlight-locked-none > .visual-wrapper {
+  box-shadow: 0 0 0 #00caf2;
+}
+
+.keyboard-key.highlight-locked-none > .visual-wrapper > .key-element {
+  color: #00b8d6;
+}
 
 /* Special keys */
 .keyboard-key.special-key > .visual-wrapper > .key-element {
@@ -186,12 +219,15 @@ button::-moz-focus-inner {
   right: 0;
   bottom: 0;
   left: 0;
-  color: #abb0b1;
   font: 500 1.5rem/4.3rem 'Keyboard Symbols', sans-serif;
 }
 
+.keyboard-key.special-key:not([class*='highlight-locked']) > .visual-wrapper > .key-element {
+  color: #abb0b1;
+}
+
 /* Highlight for special keys */
-.keyboard-key.special-key.highlighted > .visual-wrapper > .key-element {
+.keyboard-key.special-key.highlighted:not([class*='highlight-locked']) > .visual-wrapper > .key-element {
   color: #00b8d6;
 }
 
@@ -243,22 +279,22 @@ button::-moz-focus-inner {
 /* Key states */
 
 /* Active key, used for shift key - uppercase */
-.keyboard-key.kbr-key-active {
+.keyboard-key.kbr-key-active:not([class*='highlight-locked']) {
   background-color: #00caf2;
 }
 
-.keyboard-key.kbr-key-active > .visual-wrapper > .key-element {
+.keyboard-key.kbr-key-active:not([class*='highlight-locked']) > .visual-wrapper > .key-element {
  color: #fff;
  border-right-color: transparent;
 }
 
 /* Caps lock case */
-.keyboard-key.special-key.kbr-key-hold > .visual-wrapper > .key-element {
+.keyboard-key.special-key.kbr-key-hold:not([class*='highlight-locked']) > .visual-wrapper > .key-element {
   color: #00caf2;
 }
 
 /* The underline for caps lock */
-.keyboard-key.kbr-key-hold > .visual-wrapper {
+.keyboard-key.kbr-key-hold:not([class*='highlight-locked']) > .visual-wrapper {
   box-shadow: 0 0.4rem 0 #00caf2;
 }
 
