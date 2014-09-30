@@ -137,7 +137,7 @@ suite('navigation bar', function() {
         this.sinon.spy(window, 'Notification');
         MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
         callEndedData = {
-          id: { number: '123' },
+          number: '123',
           serviceId: 1,
           direction: 'incoming',
           hangUpLocal: false
@@ -207,7 +207,7 @@ suite('navigation bar', function() {
 
       setup(function() {
         sysMsg = {
-          id: { number: '12345' },
+          number: '12345',
           serviceId: 1,
           emergency: false,
           duration: 1200,
@@ -280,7 +280,7 @@ suite('navigation bar', function() {
 
       suite('> with a CDMA second call', function() {
         setup(function() {
-          sysMsg.id.secondNumber = '23456';
+          sysMsg.secondNumber = '23456';
         });
 
         test('should insert two different calls in the database', function() {
