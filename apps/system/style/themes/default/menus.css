@@ -47,7 +47,7 @@
 }
 
 [role="dialog"] menu.actions > ul > li:not(:last-child) > button,
-[role="dialog"] menu.actions > ul > li:not(:last-child) > a[role="button"] {
+[role="dialog"] menu.actions > ul > li:not(:last-child) > a.bb-button {
   font-size: 1.4rem;
   color: #fff;
   text-shadow: none;
@@ -58,13 +58,13 @@
 }
 
 [role="dialog"] menu.actions > ul > li:not(:last-child) > button:active,
-[role="dialog"] menu.actions > ul > li:not(:last-child) > a[role="button"]:active {
+[role="dialog"] menu.actions > ul > li:not(:last-child) > a.bb-button:active {
   background-color: #006f86;
   color: #333;
   text-shadow: 0 0.1rem 0 rgba(255, 255, 255, 0.25);
 }
 
 [role="dialog"] menu.actions > ul > li:last-child > button,
-[role="dialog"] menu.actions > ul > li:last-child > a[role="button"] {
+[role="dialog"] menu.actions > ul > li:last-child > a.bb-button {
   margin: 0.5rem 0 1rem 0;
 }
