@@ -1087,7 +1087,7 @@ suite('system/UpdateManager', function() {
 
       suite('download prompt', function() {
         test('should hide the utility tray', function() {
-          assert.isFalse(MockUtilityTray.mShown);
+          assert.isFalse(MockUtilityTray.shown);
         });
 
         test('should show the download dialog', function() {
@@ -1270,7 +1270,7 @@ suite('system/UpdateManager', function() {
         assert.isFalse(css.contains('visible'));
         css = UpdateManager.downloadViaDataConnectionDialog.classList;
         assert.isFalse(css.contains('visible'));
-        assert.isTrue(MockUtilityTray.mShown);
+        assert.isTrue(MockUtilityTray.shown);
         assert.isTrue(evt.defaultPrevented);
       });
     });
@@ -1284,7 +1284,7 @@ suite('system/UpdateManager', function() {
 
       test('should show the cancel', function() {
         assert.isTrue(MockCustomDialog.mShown);
-        assert.isFalse(MockUtilityTray.mShown);
+        assert.isFalse(MockUtilityTray.shown);
 
         assert.equal(
           'cancelAllDownloads',

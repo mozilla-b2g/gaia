@@ -3,18 +3,28 @@ var MockUtilityTray = {
   },
 
   show: function() {
-    this.mShown = true;
+    this.shown = true;
+    if (this.overlay._transitionEnd) {
+      this.overlay._transitionEnd();
+    }
   },
 
   hide: function() {
-    this.mShown = false;
+    this.shown = false;
   },
 
   updateNotificationCount: function() {
   },
 
-  mShown: false,
+  shown: false,
+  _transitionEnd: null,
+  overlay: {
+    _transitionEnd: null,
+    addEventListener: function(eventName, callback) {
+      this._transitionEnd = callback;
+    }
+  },
   mTeardown: function teardown() {
-    this.mShown = false;
+    this.shown = false;
   }
 };

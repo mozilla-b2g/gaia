@@ -4,18 +4,27 @@
 
 #utility-tray {
   position: absolute;
-  top: calc(-100% + 6rem);
+  top: calc(-100%);
   width: calc(100%);
-  height: calc(100% - 3rem);
-  background-color: hsla(0, 0%, 20%, .95);
+  height: calc(100%);
+  background-color: transparent;
   margin: 0;
 
   transform: translateY(-4rem);
   visibility: hidden;
 }
 
+#tray-statusbar {
+  background-image: -moz-element(#statusbar);
+  top: 0;
+  position: absolute;
+  height: var(--statusbar-height);
+  width: 100%;
+}
+
 .utility-tray #utility-tray {
   visibility: visible;
+  pointer-events: none;
 }
 
 @media (orientation: portrait) {
@@ -32,17 +41,26 @@
 }
 
 #notifications-placeholder {
-  height: calc(100% - 2rem);
+  height: calc(100% - 5rem);
+  margin-top: 3rem;
+}
+
+#tray-notifications-wrapper {
+  top: var(--statusbar-height);
+  height: calc(100% - var(--statusbar-height));
+  width: 100%;
+  position: absolute;
 }
 
 #utility-tray-notifications {
   position: fixed;
   width: 100%;
-  top: 3rem;
+  top: 0;
   visibility: hidden;
   clip: rect(0, 0, 0, 0);
   display: flex;
   flex-direction: column;
+  background-color: hsla(0, 0%, 20%, .95);
 }
 
 #utility-tray-notifications.visible {
@@ -57,7 +75,8 @@
   width: 100%;
   height: 2rem;
   margin: 0;
-  background: hsla(0, 0%, 100%, .05) url(images/grippy.png) no-repeat center / 7.2rem;
+  background: hsla(0, 0%, 24.31%, .9525) url(images/grippy.png) no-repeat center / 7.2rem;
+  pointer-events: all;
 }
 
 [data-icon] {

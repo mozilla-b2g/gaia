@@ -85,6 +85,18 @@ var NotificationScreen = {
     this.unreadNotifications = [];
 
     window.addEventListener('utilitytrayshow', this);
+
+    // The utility tray transitions after releasing the handle
+    // showing/hiding the utility tray. In case of showing it,
+    // we need to remove the ambient indicator.
+    UtilityTray.overlay.addEventListener('transitionend',
+      function onTransitionEnd() {
+        if (UtilityTray.shown) {
+          this.hideNotificationIndicator();
+        }
+      }.bind(this)
+    );
+
     // Since UI expect there is a slight delay for the opened notification.
     window.addEventListener('lockscreen-appclosed', this);
     window.addEventListener('visibilitychange', this);
@@ -164,7 +176,6 @@ var NotificationScreen = {
         this.wheel(evt);
       case 'utilitytrayshow':
         this.updateTimestamps();
-        this.hideNotificationIndicator();
         break;
       case 'visibilitychange':
         //update timestamps in lockscreen notifications
