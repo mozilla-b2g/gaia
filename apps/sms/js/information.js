@@ -30,6 +30,47 @@ var TMPL = function createTemplate(tmpls) {
   report: 'information-report-tmpl'
 });
 
+/*
+ Summarized single status based on delivery and read status for mms.
+ The 1st level properties represents delivery status and 2nd level properties
+ represents read status.
+ */
+var REPORT_MAP = {
+  'not-applicable': {
+    'not-applicable': 'not-applicable',
+    'pending' : 'pending',
+    'success' : 'read',
+    'error' : 'error'
+  },
+  'pending' : {
+    'not-applicable': 'pending',
+    'pending': 'pending',
+    'success' : 'read',   // should not possible
+    'error' : 'error'
+  },
+  'success' : {
+    'not-applicable': 'delivered',
+    'pending': 'delivered',
+    'success' : 'read',
+    'error' : 'error'
+  },
+  'error' : {
+    'not-applicable': 'error',
+    'pending': 'error',
+    'success' : 'error', // should not possible
+    'error' : 'error'    // should not possible
+  }
+};
+
+// Register the message events we wanted for report view refresh
+var MESSAGE_EVENTS = [
+  'message-failed-to-send',
+  'message-delivered',
+  'message-read',
+  'message-sent',
+  'message-sending'
+];
+
 function completeLocaleFormat(timestamp) {
   return Utils.date.format.localeFormat(
     new Date(+timestamp),
@@ -52,49 +93,37 @@ function l10nContainsDateSetup(element, timestamp) {
 function createReportDiv(reports) {
   var reportDiv = document.createElement('div');
   var data = {
-    deliveryClass: '',
-    deliveryL10n: '',
-    deliveryDateL10n: '',
-    deliveryTimestamp: '',
-    readClass: '',
-    readL10n: '',
-    readDateL10n: '',
-    readTimestamp: '',
+    titleL10n: '',
+    reportDateL10n: '',
+    timestamp: '',
     messageL10nDateFormat12: 'report-dateTimeFormat12',
     messageL10nDateFormat24: 'report-dateTimeFormat24'
   };
+  var status;
 
-  switch (reports.deliveryStatus) {
-    case 'pending':
-      data.deliveryL10n = 'message-requested';
-      break;
-    case 'success':
-      data.deliveryTimestamp = '' + reports.deliveryTimestamp;
-      data.deliveryDateL10n = completeLocaleFormat(reports.deliveryTimestamp);
-      break;
-    case 'error':
-      data.deliveryL10n = 'message-status-error';
-      break;
-    //'not-applicable' and other unknown status should hide the field
-    default:
-      data.deliveryClass = 'hide';
+  if (!reports.readStatus) {  // sms
+    status = reports.deliveryStatus === 'success' ?
+      'delivered' : reports.deliveryStatus;
+  } else {
+    try {
+      status = REPORT_MAP[reports.deliveryStatus][reports.readStatus];
+    } catch(e) {
+      console.error('Invalid message report status: ' + e);
+      return reportDiv;
+    }
   }
 
-  switch (reports.readStatus) {
-    case 'pending':
-      data.readL10n = 'message-requested';
-      break;
-    case 'success':
-      data.readTimestamp = '' + reports.readTimestamp;
-      data.readDateL10n = completeLocaleFormat(reports.readTimestamp);
-      break;
-    case 'error':
-      data.readL10n = 'message-status-error';
-      break;
-    //'not-applicable' and other unknown status should hide the field
-    default:
-      data.readClass = 'hide';
+  data.titleL10n = 'message-status-' + status;
+  reportDiv.dataset.deliveryStatus = status;
+
+  if (status === 'delivered') {
+    data.timestamp = '' + reports.deliveryTimestamp;
+    data.reportDateL10n = completeLocaleFormat(reports.deliveryTimestamp);
+  } else if (status === 'read') {
+    data.timestamp = '' + reports.readTimestamp;
+    data.reportDateL10n = completeLocaleFormat(reports.readTimestamp);
   }
+
   reportDiv.innerHTML = TMPL.report.interpolate(data);
   return reportDiv;
 }
@@ -209,18 +238,19 @@ var VIEWS = {
     name: 'report',
 
     init: function() {
-      this.onDeliverySuccess = this.onDeliverySuccess.bind(this);
-      this.onReadSuccess = this.onReadSuccess.bind(this);
+      this.onStatusChanged = this.onStatusChanged.bind(this);
     },
 
     beforeEnter: function() {
-      MessageManager.on('message-delivered', this.onDeliverySuccess);
-      MessageManager.on('message-read', this.onReadSuccess);
+      MESSAGE_EVENTS.forEach((event) => {
+        MessageManager.on(event, this.onStatusChanged);
+      });
     },
 
     afterLeave: function() {
-      MessageManager.off('message-delivered', this.onDeliverySuccess);
-      MessageManager.off('message-read', this.onReadSuccess);
+      MESSAGE_EVENTS.forEach((event) => {
+        MessageManager.off(event, this.onStatusChanged);
+      });
     },
 
     render: function renderReport() {
@@ -234,18 +264,19 @@ var VIEWS = {
         var isIncoming = message.delivery === 'received' ||
             message.delivery === 'not-downloaded';
 
-        this.subject.textContent = '';
-
         // Fill in the description/status/size
         if (type === 'sms') {
           setL10nAttributes(this.type, 'message-type-sms');
+          this.subject.classList.add('hide');
           this.sizeBlock.classList.add('hide');
         } else { //mms
           setL10nAttributes(this.type, 'message-type-mms');
           // subject text content
           var subject = message.subject;
+
+          this.subject.classList.toggle('hide', !subject);
           if (subject) {
-            this.subject.textContent = subject;
+            this.subject.querySelector('.detail').textContent = subject;
           }
 
           // Message total size show/hide
@@ -257,11 +288,7 @@ var VIEWS = {
             this.sizeBlock.classList.add('hide');
           }
         }
-        this.status.dataset.type = message.delivery;
-        setL10nAttributes(this.status, 'message-status-' + message.delivery);
-
-        // Set different layout/value for received and sent message
-        this.container.classList.toggle('received', isIncoming);
+        this.container.dataset.delivery = message.delivery;
 
         // If incoming message is migrated from the database where sentTimestamp
         // hadn't been supported yet then we won't have valid value for it.
@@ -272,14 +299,16 @@ var VIEWS = {
 
         setL10nAttributes(
           this.contactTitle,
-          isIncoming ? 'report-from' : 'report-recipients'
+          isIncoming ? 'report-from-title' : 'report-to-title'
         );
 
         if (isIncoming) {
           l10nContainsDateSetup(this.receivedTimeStamp, message.timestamp);
           l10nContainsDateSetup(this.sentTimeStamp, message.sentTimestamp);
+          setL10nAttributes(this.sentTitle, 'message-sent');
         } else {
-          l10nContainsDateSetup(this.datetime, message.timestamp);
+          l10nContainsDateSetup(this.sentTimeStamp, message.timestamp);
+          setL10nAttributes(this.sentTitle, 'message-' + message.delivery);
         }
 
         //show sim information for dual sim device
@@ -294,21 +323,30 @@ var VIEWS = {
       ThreadUI.setHeaderAction('close');
     },
 
-    onDeliverySuccess: function report_onDeliverySuccess(e) {
-      if (Navigation.isCurrentPanel('report-view', { id: e.message.id })) {
+    setEventListener: function report_setEventListener() {
+      this.resendBtn.addEventListener('click', function() {
+        ThreadUI.resendMessage(this.id);
+      }.bind(this));
+    },
+
+    onStatusChanged: function report_onStatusChanged(e) {
+      // If we got sending status change in report view after resend clicked,
+      // we should change report panel id and refresh for new message report.
+      if (e.message.delivery === 'sending') {
+        this.id = e.message.id;  
+      }
+
+      if (Navigation.isCurrentPanel('report-view', { id: e.message.id }) ||
+          (Navigation.isCurrentPanel('report-view') &&
+           this.id === e.message.id)) {
         this.refresh();
       }
     },
 
-    onReadSuccess: function report_onReadSuccess(e) {
-      if (Navigation.isCurrentPanel('report-view', { id: e.message.id })) {
-        this.refresh();
-      }
-    },
-
-    elements: ['contact-list', 'status', 'size', 'size-block', 'sent-detail',
-      'type', 'subject', 'datetime', 'contact-title', 'received-detail',
-      'sent-timeStamp', 'received-timeStamp', 'sim-info']
+    elements: ['contact-list', 'size', 'size-block', 'type', 'sent-title',
+      'sent-timeStamp', 'received-timeStamp', 'subject', 'sim-info',
+      'contact-title', 'resend-btn'
+    ]
   }
 };
 
