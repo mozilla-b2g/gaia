@@ -65,6 +65,7 @@ var Connectivity = (function(window, document, undefined) {
    */
 
   function updateBluetooth() {
+    var bluetooth = getBluetooth();
     if (!bluetooth) {
       return;
     }
