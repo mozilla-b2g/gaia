@@ -1383,6 +1383,9 @@
     if (top.instanceID != this.instanceID) {
       bottom._resize();
       top.resize();
+      if (top.rearWindow && top.rearWindow != bottom) {
+        top.rearWindow._resize();
+      }
     } else {
       // resize myself if no child.
       this.debug(' will resize... ');
