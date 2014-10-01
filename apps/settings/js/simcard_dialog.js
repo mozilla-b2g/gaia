@@ -432,6 +432,8 @@ function SimPinDialog(dialog) {
   }
 
   function show(action, options) {
+    console.log(System.currentTime());
+    console.trace();
     options = options || {};
 
     icc = getIccByIndex(options.cardIndex);
