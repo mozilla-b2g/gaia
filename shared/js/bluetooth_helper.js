@@ -44,34 +44,44 @@ var BluetoothHelper = function() {
     };
   };
 
+  // get adapter via bluetooth API v2
+  var _fetchAdapterV2 = function() {
+    _adapter = _bluetooth.defaultAdapter;
+    if (_adapter) {
+      _isReady = true;
+
+      _callbacks.forEach(function(callback) {
+        callback();
+      });
+    } else {
+      // We can do nothing without default adapter.
+      console.log('BluetoothHelper(): connot get default adapter!!!');
+    }
+  };
+
+  // get adapter via bluetooth API v1
+  var _fetchAdapter = function() {
+    var req = _bluetooth.getDefaultAdapter();
+    req.onsuccess = function() {
+      _isReady = true;
+      _adapter = req.result;
+
+      _callbacks.forEach(function(callback) {
+        callback();
+      });
+    };
+
+    req.onerror = function() {
+      // We can do nothing without default adapter.
+      console.log('BluetoothHelper(): connot get default adapter!!!');
+    };
+  };
+
   var _getAdapter = function() {
     if (_v2) {
-      _adapter = _bluetooth.defaultAdapter;
-      if (_adapter) {
-        _isReady = true;
-
-        _callbacks.forEach(function(callback) {
-          callback();
-        });
-      } else {
-        // We can do nothing without default adapter.
-        console.log('BluetoothHelper(): connot get default adapter!!!');
-      }
+      _fetchAdapterV2();
     } else {
-      var req = _bluetooth.getDefaultAdapter();
-      req.onsuccess = function() {
-        _isReady = true;
-        _adapter = req.result;
-
-        _callbacks.forEach(function(callback) {
-          callback();
-        });
-      };
-
-      req.onerror = function() {
-        // We can do nothing without default adapter.
-        console.log('BluetoothHelper(): connot get default adapter!!!');
-      };
+      _fetchAdapter();
     }
   };
 
