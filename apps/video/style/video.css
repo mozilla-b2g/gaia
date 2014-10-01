@@ -755,3 +755,75 @@ form[role="dialog"][data-type="confirm"] button.hidden {
   border: none;
   padding: 0;
 }
+
+/*
+ * Overrides for software home button
+ * 
+ * Note: The adjustment of height and width are based on the height
+ * (width in landscape) of the software home button which is set here:
+ * 
+ * apps/system/style//definitions.css:  --software-home-button-height: 4.4rem;
+ */
+@media not all and (-moz-physical-home-button) {
+  @media (orientation: portrait) {
+    #thumbnail-list-view, #thumbnail-select-view {
+      height: calc(100% - 4.4rem);
+      width: 100%;
+    }
+
+    #options-view {
+      right: 0;
+      bottom: 4.4rem;
+    }
+
+    #options-cancel-button {
+      right: 0;
+      bottom: 4.4rem;
+    }
+  }
+
+  @media (orientation: landscape) {
+    #thumbnail-list-view, #thumbnail-select-view {
+      height: 100%;
+      width: calc(100% - 4.4rem);
+    }
+
+    #options-view {
+      right: 4.4rem;
+      bottom: 0;
+    }
+
+    /*
+     * options-cancel-button needs special treatment because its position
+     * is 'fixed'. In order for 'right' to be applied, set 'left: auto'.
+     * Adjust width by 5+3 ('5' because right is shifted by 5, '3' because
+     * width has already been shortened by 3 by here:
+     * '[role="dialog"][data-type="action"] > menu > button' in action_menu.css
+     */
+    #options-cancel-button {
+      left: auto;
+      right: 4.4rem;
+      width: calc(100% - 7.6rem);
+      bottom: 0;
+    }
+  }
+}
+
+/* 
+ * Adjust video controls when software home button is present
+*/
+@media (orientation: portrait) {
+  #videoControls.software-button-present {
+    height: calc(100% - 4.4rem);
+    width: 100%;
+  }
+}
+
+@media (orientation: landscape) {
+  #videoControls.software-button-present {
+    height: 100%;
+    width: calc(100% - 4.4rem);
+  }
+}
+
+
