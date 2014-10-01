@@ -423,6 +423,12 @@ function initThumbnails() {
   var batch = [];
   var batchsize = PAGE_SIZE;
   var firstBatchDisplayed = false;
+  var storage = navigator.getDeviceStorage('pictures');
+  var enumCount = 0;
+  var start, end;
+
+  start = new Date();
+  console.log('Enumerate Start Time', start.getTime());
 
   photodb.enumerate('date', null, 'prev', function(fileinfo) {
     if (fileinfo) {
@@ -440,14 +446,29 @@ function initThumbnails() {
         metadata.preview.width = Math.floor(metadata.preview.width);
         metadata.preview.height = Math.floor(metadata.preview.height);
       }
-
-      batch.push(fileinfo);
-      if (batch.length >= batchsize) {
-        flush();
-        batchsize *= 2;
+      enumCount++;
+      // Existence check of a file in first enumeration on app start Bug 864674
+      // Make an async device storage call to get the file and update batch
+      // files array only when device storage call is successful
+      if (fileinfo.name) {
+        var getreq = storage.get(fileinfo.name);
+        getreq.onsuccess = function() {
+          batch.push(fileinfo);
+          if (batch.length >= batchsize) {
+            flush();
+            batchsize *= 2;
+          }
+        };
       }
     }
     else {
+      // log enumerated time
+      end = new Date();
+      console.log('Enumerate End Time', end.getTime());
+      console.log('Enumerate Time taken', end.getTime() - start.getTime());
+      console.log('Enumerated Photo Count', enumCount);
+      enumCount = 0;
+
       done();
     }
   });
