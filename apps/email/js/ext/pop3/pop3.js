@@ -771,8 +771,6 @@ function(module, exports, log, tcpSocket, md5,
     }
 
     if (node.content != null) {
-      node.content = mimefuncs.charset.decode(node.content, 'utf-8');
-
       partMap[typeInfo.part] = node.content;
       // If this node was only partially downloaded, note it as such
       // in a special key on partMap. We'll use this key to later
@@ -801,11 +799,14 @@ function(module, exports, log, tcpSocket, md5,
   Pop3Client.prototype.parseMime = function(mimeContent, isSnippet, number) {
     var mp = new MimeParser();
     var lastNode;
-    mp.onbody = function(node) {
-      lastNode = node;
-    };
     mp.write(mimefuncs.charset.encode(mimeContent, 'utf-8'));
     mp.end();
+    // mimeparser does not generate onbody events for partial pieces of body
+    // so we find the "last" node through tree-traversal:
+    lastNode = mp.node;
+    while (lastNode._currentChild && lastNode !== lastNode._currentChild) {
+      lastNode = lastNode._currentChild;
+    }
 
     var rootNode = mp.node;
     var partialNode = (isSnippet ? lastNode : null);
@@ -867,7 +868,7 @@ function(module, exports, log, tcpSocket, md5,
     for (var i = 0; i < rep.bodyInfo.bodyReps.length; i++) {
       var bodyRep = rep.bodyInfo.bodyReps[i];
 
-      content = partMap[bodyRep.part];
+      content = mimefuncs.charset.decode(partMap[bodyRep.part], 'utf-8');
       var req = {
         // If bytes is null, imapchew.updateMessageWithFetch knows
         // that we've fetched the entire thing. Passing in [-1, -1] as a
@@ -891,7 +892,6 @@ function(module, exports, log, tcpSocket, md5,
 
     // Convert attachments and related parts to Blobs if we've
     // downloaded the whole thing:
-
     for (var i = 0; i < rep.bodyInfo.relatedParts.length; i++) {
       var relatedPart = rep.bodyInfo.relatedParts[i];
       relatedPart.sizeEstimate = partSizes[relatedPart.part];
