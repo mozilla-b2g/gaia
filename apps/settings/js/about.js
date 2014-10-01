@@ -121,19 +121,23 @@ var About = {
         'no-updates'
       ];
 
-      var hasResponse = function(l10nValue){
-        return Object.keys(checkStatus).some(function(setting) {
-          return checkStatus[setting].value === l10nValue;
-        });
-      };
-
       var getReponses = function(){
-        for (var key in l10nValues){
-          if (hasResponse(l10nValues[key])){
-            return l10nValues[key];
-          }
+        var responses = Object.keys(checkStatus).map(function(setting){
+          return checkStatus[setting];
+        });
+
+        var responseIndexes = responses.map(function(status){
+          //the order of elements in l10nValues implies its priority to be shown
+          return l10nValues.indexOf(status.value); 
+        });
+        
+        var overallStatusIndex = Math.min.apply(Math, responseIndexes);
+        if (overallStatusIndex == -1){
+          return 'check-error';
         }
-        return 'check-error';
+        else {
+          return l10nValues[overallStatusIndex];
+        }
       };
 
       var hasAllResponses =
