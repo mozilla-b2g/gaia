@@ -290,6 +290,8 @@ var StatusBar = {
     window.addEventListener('sheets-gesture-begin', this);
     window.addEventListener('sheets-gesture-end', this);
     window.addEventListener('stackchanged', this);
+    window.addEventListener('utilitytrayshow', this);
+    window.addEventListener('utilitytrayhide', this);
 
     // We need to preventDefault on mouse events until
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1005815 lands
@@ -522,6 +524,14 @@ var StatusBar = {
       case 'activityopened':
         this.setAppearance(evt.detail);
         this.element.classList.remove('hidden');
+        break;
+      case 'utilitytrayshow':
+        clearTimeout(this._releaseTimeout);
+        break;
+      case 'utilitytrayhide':
+        var app = AppWindowManager.getActiveApp().getTopMostWindow();
+        var titleBar = app.element.querySelector('.titlebar');
+        this._releaseBar(titleBar);
         break;
     }
   },
