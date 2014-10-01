@@ -7,7 +7,7 @@ var FakeRingtones = require('./lib/fakeringtones.js');
 var FakeControls = require('./lib/fakecontrols.js');
 /*var Statusbar = require('./lib/statusbar.js');*/
 
-marionette('Music player playlist tests', function() {
+marionette('Music player playlist', function() {
   var apps = {};
   apps[FakeRingtones.DEFAULT_ORIGIN] = __dirname + '/fakeringtones';
   apps[FakeControls.DEFAULT_ORIGIN] = __dirname + '/fakecontrols';
@@ -32,38 +32,92 @@ marionette('Music player playlist tests', function() {
   setup(function() {
     music = new Music(client);
 
-    client.fileManager.removeAllFiles();
-    client.fileManager.add([
-      {
-        type: 'music',
-        filePath: 'apps/music/test-data/playlists/a.ogg'
-      },
-      {
-        type: 'music',
-        filePath: 'apps/music/test-data/playlists/b.ogg'
-      },
-      {
-        type: 'music',
-        filePath: 'apps/music/test-data/playlists/c.ogg'
-      },
-      {
-        type: 'music',
-        filePath: 'apps/music/test-data/playlists/w.ogg'
-      },
-      {
-        type: 'music',
-        filePath: 'apps/music/test-data/playlists/x.ogg'
-      },
-      {
-        type: 'music',
-        filePath: 'apps/music/test-data/playlists/y.ogg'
-      },
-    ]);
   });
 
-  suite('Playlist sort order', function() {
+  suite('Single disc tests', function () {
+    setup(function() {
+      client.fileManager.removeAllFiles();
+      client.fileManager.add([
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/01.ogg'
+        },
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/02.ogg'
+        },
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/03.ogg'
+        }
+      ]);
+    });
 
     test('Check the sort order', function() {
+
+      music.launch();
+      music.waitForFirstTile();
+      music.switchToAlbumsView();
+
+      music.selectAlbum('Where is Julian Assange?');
+
+      music.waitForSongs(function(songs) {
+        return songs.length >= 3;
+      });
+
+      var songs = music.songs;
+
+      assert.equal(songs.length, 3);
+
+      assert.equal(songs[0].findElement('.list-song-index').text(), '1');
+      assert.equal(songs[0].findElement('.list-song-title').text(),
+                   'Australian citizen is a US traitor');
+
+      assert.equal(songs[1].findElement('.list-song-index').text(), '4');
+      assert.equal(songs[1].findElement('.list-song-title').text(),
+                   'Ich bin ein Berliner');
+
+      assert.equal(songs[2].findElement('.list-song-index').text(), '8');
+      assert.equal(songs[2].findElement('.list-song-title').text(),
+                   'The Ecuadorian Embassy');
+    });
+
+  });
+
+  suite('Multi disc tests', function() {
+
+    setup(function() {
+      client.fileManager.removeAllFiles();
+      client.fileManager.add([
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/a.ogg'
+        },
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/b.ogg'
+        },
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/c.ogg'
+        },
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/w.ogg'
+        },
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/x.ogg'
+        },
+        {
+          type: 'music',
+          filePath: 'apps/music/test-data/playlists/y.ogg'
+        },
+      ]);
+    });
+
+    test('Check the sort order', function() {
+
       music.launch();
       music.waitForFirstTile();
       music.switchToAlbumsView();
