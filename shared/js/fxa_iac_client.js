@@ -192,6 +192,16 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
     }, successCb, errorCb);
   };
 
+  var getAssertionForSignedInUser =
+    function getAssertionForSignedInUser(audience, options,
+                                         successCb, errorCb) {
+    sendMessage({
+      'name': 'getAssertionForSignedInUser',
+      'audience': audience,
+      'options': options
+    }, successCb, errorCb);
+  };
+
   var openFlow = function openFlow(successCb, errorCb) {
     sendMessage({
       'name': 'openFlow'
@@ -229,6 +239,7 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
   return {
     'addEventListener': addEventListener,
     'getAccounts': getAccounts,
+    'getAssertionForSignedInUser': getAssertionForSignedInUser,
     'init': init,
     'logout': logout,
     'openFlow': openFlow,
