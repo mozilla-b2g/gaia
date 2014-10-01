@@ -588,6 +588,9 @@ var VCFReader = (function _VCFReader() {
     this.finished = false;
     this.currentChar = 0;
 
+    // By default import contacts at the same time we read them
+    this.importOnRead = true;
+
     this.numDupsMerged = 0;
   };
 
@@ -721,7 +724,11 @@ var VCFReader = (function _VCFReader() {
           VCFReader._save(contact, afterSaveFn);
         }
       };
-      contacts.Matcher.match(contact, 'passive', matchCbs);
+      if (self.importOnRead) {
+        contacts.Matcher.match(contact, 'passive', matchCbs);
+      } else {
+        afterSaveFn();
+      }
     }
 
     saveContact(contactObjects[cursor]);
