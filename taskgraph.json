@@ -16,9 +16,7 @@
           "image": "lightsofapollo/gaia-taskenv:0.4.8",
           "command": [
             "entrypoint",
-            "make node_modules &&",
-            "node tests/taskcluster/bin/graph > /graph.json &&",
-            "cat /graph.json"
+            "make node_modules && node tests/taskcluster/bin/graph > /graph.json && cat /graph.json"
           ],
           "graphs": ["/graph.json"]
         },
