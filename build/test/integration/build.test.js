@@ -363,7 +363,8 @@ suite('Build Integration tests', function() {
       var ignoreSettings = [
         'apz.force-enable',
         'debug.console.enabled',
-        'developer.menu.enabled'
+        'developer.menu.enabled',
+        'screen.timeout'
       ];
       ignoreSettings.forEach(function(key) {
         if (commonSettings[key] !== undefined) {
