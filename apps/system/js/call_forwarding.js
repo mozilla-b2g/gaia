@@ -15,7 +15,9 @@
     CALL_FORWARD_REASON_UNCONDITIONAL: 0,
     CALL_FORWARD_REASON_MOBILE_BUSY: 1,
     CALL_FORWARD_REASON_NO_REPLY: 2,
-    CALL_FORWARD_REASON_NOT_REACHABLE: 3
+    CALL_FORWARD_REASON_NOT_REACHABLE: 3,
+    CALL_FORWARD_REASON_ALL_CALL_FORWARDING: 4,
+    CALL_FORWARD_REASON_ALL_CONDITIONAL_CALL_FORWARDING: 5
   };
   var _cfAction = {
     CALL_FORWARD_ACTION_DISABLE: 0,
@@ -122,8 +124,9 @@
      * @memberof CallForwarding.prototype
      */
     _updateCallForwardingIconState: function(slot, event) {
-      if (!event ||
-          event.reason != _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL) {
+      if (!event || !event.success ||
+          (event.reason != _cfReason.CALL_FORWARD_REASON_UNCONDITIONAL &&
+           event.reason != _cfReason.CALL_FORWARD_REASON_ALL_CALL_FORWARDING)) {
         return;
       }
 
@@ -131,10 +134,17 @@
       var simCard = slot.simCard;
 
       var enabled = false;
-      if (event.success &&
-          (event.action == _cfAction.CALL_FORWARD_ACTION_REGISTRATION ||
-           event.action == _cfAction.CALL_FORWARD_ACTION_ENABLE)) {
-        enabled = true;
+      switch (event.action) {
+        case _cfAction.CALL_FORWARD_ACTION_REGISTRATION:
+        case _cfAction.CALL_FORWARD_ACTION_ENABLE:
+          enabled = true;
+          break;
+        case _cfAction.CALL_FORWARD_ACTION_ERASURE:
+          enabled = false;
+          break;
+        default:
+          enabled = false;
+          break;
       }
 
       this._callForwardingHelper.get((function(states) {
