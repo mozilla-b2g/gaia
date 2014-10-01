@@ -258,17 +258,3 @@ var IccHandlerForCarrierSettings = (function(window, document, undefined) {
     init: ihfcs_init
   };
 })(this, document);
-
-/**
- * Startup.
- */
-navigator.mozL10n.once(function loadWhenIdle() {
-  var idleObserver = {
-    time: 3,
-    onidle: function() {
-      IccHandlerForCarrierSettings.init();
-      navigator.removeIdleObserver(idleObserver);
-    }
-  };
-  navigator.addIdleObserver(idleObserver);
-});
