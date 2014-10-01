@@ -913,12 +913,15 @@
 
   // Recursively walk an AST node searching for content leaves
   function walkContent(node, fn) {
-    if (typeof node === 'string') {
+    if (!node || typeof node === 'string') {
       return fn(node);
     }
 
     var rv = {};
-    for (var key in node) {
+    var keys = Object.keys(node);
+
+    /* jshint boss:true */
+    for (var i = 0, key; key = keys[i]; i++) {
       if (key === '_index') {
         rv[key] = node[key];
       } else {
