@@ -10,6 +10,7 @@ require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
+require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/lockscreen_connection_info_manager.js');
@@ -19,6 +20,7 @@ var mocksHelperForCallScreen = new MocksHelper([
   'MozActivity',
   'LazyL10n',
   'FontSizeManager',
+  'KeypadManager',
   'Utils'
 ]).init();
 
@@ -33,6 +35,7 @@ suite('call screen', function() {
   var realMozL10n;
   var realSettingsListener;
 
+  var body;
   var screen;
   var container;
   var contactBackground;
@@ -71,6 +74,8 @@ suite('call screen', function() {
   });
 
   setup(function(done) {
+    body = document.body;
+
     screen = document.createElement('div');
     screen.id = 'call-screen';
     document.body.appendChild(screen);
@@ -250,30 +255,30 @@ suite('call screen', function() {
     suite('updateCallsDisplay', function() {
       test('should toggle single-line/big-duration class',
       function() {
-        assert.isFalse(calls.classList.contains('single-line'));
+        assert.isFalse(body.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
 
         calls.innerHTML = '<section></section>';
         CallScreen.updateCallsDisplay();
-        assert.isTrue(calls.classList.contains('single-line'));
+        assert.isTrue(body.classList.contains('single-line'));
         assert.isTrue(calls.classList.contains('big-duration'));
 
         calls.innerHTML = '<section></section>' +
                           '<section></section>';
         CallScreen.updateCallsDisplay();
-        assert.isFalse(calls.classList.contains('single-line'));
+        assert.isFalse(body.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
       });
 
       test('should toggle single-line/big-duration class without visible calls',
       function() {
-        assert.isFalse(calls.classList.contains('single-line'));
+        assert.isFalse(body.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
 
         calls.innerHTML = '<section></section>' +
                           '<section hidden=""></section>';
         CallScreen.updateCallsDisplay();
-        assert.isTrue(calls.classList.contains('single-line'));
+        assert.isTrue(body.classList.contains('single-line'));
         assert.isTrue(calls.classList.contains('big-duration'));
 
         calls.innerHTML = '<section></section>' +
@@ -281,7 +286,7 @@ suite('call screen', function() {
                           '<section hidden=""></section>';
 
         CallScreen.updateCallsDisplay();
-        assert.isFalse(calls.classList.contains('single-line'));
+        assert.isFalse(body.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
       });
 
@@ -917,6 +922,18 @@ suite('call screen', function() {
       assert.isFalse(bluetoothMenu.classList.contains('display'));
       CallScreen.toggleBluetoothMenu(true);
       assert.isTrue(bluetoothMenu.classList.contains('display'));
+    });
+  });
+
+  suite('Test keypad', function() {
+    test('should add the class showKeypad on the body', function() {
+      CallScreen.showKeypad();
+      assert.isTrue(body.classList.contains('showKeypad'));
+    });
+
+    test('should remove the class showKeypad of the body', function() {
+      CallScreen.hideKeypad();
+      assert.isFalse(body.classList.contains('showKeypad'));
     });
   });
 

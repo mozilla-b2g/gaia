@@ -77,7 +77,7 @@ var CallScreen = {
   updateCallsDisplay: function cs_updateCallsDisplay() {
     var visibleCalls =
       this.calls.querySelectorAll('section:not([hidden])').length;
-    this.calls.classList.toggle('single-line', visibleCalls <= 1);
+    this.body.classList.toggle('single-line', visibleCalls <= 1);
     this.calls.classList.toggle('big-duration', visibleCalls <= 1);
     CallsHandler.updateAllPhoneNumberDisplays();
   },
@@ -608,7 +608,7 @@ var CallScreen = {
     var scenario;
     if (this.inStatusBarMode) {
       scenario = FontSizeManager.STATUS_BAR;
-    } else if (this.calls.classList.contains('single-line')) {
+    } else if (this.body.classList.contains('single-line')) {
       scenario = FontSizeManager.SINGLE_CALL;
     } else {
       scenario = FontSizeManager.CALL_WAITING;
