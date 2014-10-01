@@ -15,6 +15,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
   var settings = Settings.mozSettings;
   var bluetooth = getBluetooth();
   var defaultAdapter = null;
+  var forceToDiscoverable = false;
 
   var MAX_DEVICE_NAME_LENGTH = 20;
 
@@ -175,7 +176,12 @@ navigator.mozL10n.once(function bluetoothSettings() {
     // initial this device information and do default actions
     // when DefaultAdapter is ready.
     function initial() {
-      visibleCheckBox.checked = defaultAdapter.discoverable;
+      if (forceToDiscoverable) {
+        // Always enable bluetooth.visible when users turn bluetooth on.
+        visibleCheckBox.checked = true;
+      } else {
+        visibleCheckBox.checked = defaultAdapter.discoverable;
+      }
       setDiscoverable(visibleCheckBox.checked);
       // we can't get device name immediately, wait a while
       setTimeout(function() {
@@ -850,6 +856,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
     gBluetoothCheckBox.disabled = true;
 
     lastMozSettingValue = enabled;
+    forceToDiscoverable = enabled;
     updateBluetoothState(enabled);
 
     gDeviceList.update(enabled);
@@ -865,6 +872,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
   req.onsuccess = function bt_getSettingsSuccess() {
     lastMozSettingValue = req.result['bluetooth.enabled'];
+    forceToDiscoverable = !lastMozSettingValue;
 
     // if bluetooth is on when booting, the adapter probably is ready.
     if (lastMozSettingValue)
