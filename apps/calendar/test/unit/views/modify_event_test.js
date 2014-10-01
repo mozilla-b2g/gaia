@@ -745,10 +745,13 @@ suite('views/modify_event', function() {
         provider.createEvent = function(event, callback) {
           done(function() {
             var data = subject.formData();
+            var expected = new Calendar.Models.Event();
 
-            data.alarms = [];
+            for (var key in data) {
+              expected[key] = data[key];
+            }
 
-            assert.hasProperties(subject.event, data, 'updated model');
+            assert.hasProperties(subject.event, expected, 'updated model');
             assert.isTrue(list.contains(subject.PROGRESS));
 
             callback();
