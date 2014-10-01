@@ -4,7 +4,7 @@
  * Portions Copyright (C) Philipp Kewisch, 2011-2012 */
 
 if (typeof ICAL === 'undefined') {
-  if (typeof exports === 'object') {
+  if (typeof(module) !== 'undefined' && module.exports) {
     // CommonJS
     ICAL = exports;
   } else if (typeof window !== 'undefined') {

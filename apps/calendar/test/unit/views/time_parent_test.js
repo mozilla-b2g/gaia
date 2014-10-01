@@ -1,15 +1,17 @@
-require('/shared/js/gesture_detector.js');
-requireLib('timespan.js');
+define(function(require) {
+'use strict';
 
-suiteGroup('Views.TimeParent', function() {
-  'use strict';
+var OrderedMap = require('utils/ordered_map');
+var TimeParent = require('views/time_parent');
+var Timespan = require('timespan');
+var View = require('view');
 
+suite('Views.TimeParent', function() {
   var testEl;
   var app;
   var subject;
   var id;
   var controller;
-  var TimeParent;
 
   function ChildView(options) {
     this.date = options.date;
@@ -48,10 +50,6 @@ suiteGroup('Views.TimeParent', function() {
       this.scrollTop = scrollTop;
     }
   };
-
-  suiteSetup(function() {
-    TimeParent = Calendar.Views.TimeParent;
-  });
 
   setup(function() {
     id = 0;
@@ -105,8 +103,8 @@ suiteGroup('Views.TimeParent', function() {
 
   test('initializer', function() {
     assert.instanceOf(subject, TimeParent);
-    assert.instanceOf(subject, Calendar.View);
-    assert.instanceOf(subject.frames, Calendar.Utils.OrderedMap);
+    assert.instanceOf(subject, View);
+    assert.instanceOf(subject.frames, OrderedMap);
 
     assert.equal(subject.element.id, 'test');
   });
@@ -265,7 +263,7 @@ suiteGroup('Views.TimeParent', function() {
 
   suite('#handleEvent', function() {
     test('event: purge', function() {
-      var span = new Calendar.Timespan(new Date(), new Date());
+      var span = new Timespan(new Date(), new Date());
       var calledWith;
       subject.purgeFrames = function() {
         calledWith = arguments;
@@ -281,14 +279,14 @@ suiteGroup('Views.TimeParent', function() {
     var items;
 
     function span(start, end) {
-      return new Calendar.Timespan(
+      return new Timespan(
         new Date(2012, 1, start),
         new Date(2012, 1, end)
       );
     }
 
     setup(function() {
-      purgeSpan = new Calendar.Timespan(
+      purgeSpan = new Timespan(
         new Date(2012, 1, 5),
         new Date(2012, 1, 10)
       );
@@ -380,6 +378,7 @@ suiteGroup('Views.TimeParent', function() {
         'when'
       );
     });
-
   });
+});
+
 });

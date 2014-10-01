@@ -1,25 +1,21 @@
-/*jshint loopfunc: true */
-/* global uuid */
-Calendar.Db = (function() {
+/* jshint loopfunc: true */
+define(function(require, exports, module) {
 'use strict';
 
-/**
- * Module dependencies
- */
-/*var Account = Calendar.Models.Account;*/
-/*var Presets = Calendar.Presets;*/
-/*var Provider = Calendar.Provider;*/
-var Responder = Calendar.Responder;
-/*var Store = Calendar.Store;*/
-var debug = Calendar.debug('Db');
-var nextTick = Calendar.nextTick;
-var probablyParseInt = Calendar.probablyParseInt;
+var Account = require('models/account');
+var Presets = require('presets');
+var Local = require('provider/local');
+var Responder = require('responder');
+var Store = require('store/store');
+var debug = require('debug')('db');
+var nextTick = require('next_tick');
+var probablyParseInt = require('probably_parse_int');
+var uuid = require('ext/uuid');
 
-/**
- * Constants
- */
 var idb = window.indexedDB;
+
 const VERSION = 15;
+
 var store = Object.freeze({
   events: 'events',
   accounts: 'accounts',
@@ -30,12 +26,14 @@ var store = Object.freeze({
   icalComponents: 'icalComponents'
 });
 
-function Db(name) {
+function Db(name, app) {
+  this.app = app;
   this.name = name;
   this._stores = Object.create(null);
   Responder.call(this);
   this._upgradeOperations = [];
 }
+module.exports = Db;
 
 Db.prototype = {
   __proto__: Responder.prototype,
@@ -48,10 +46,10 @@ Db.prototype = {
   getStore: function(name) {
     if (!(name in this._stores)) {
       try {
-        this._stores[name] = new Calendar.Store[name](this);
+        this._stores[name] = new Store[name](this, this.app);
       } catch (e) {
-        console.log('Error', e.name, e.message);
-        console.log('Failed to load store', name, e.stack);
+        console.error('Error', e.name, e.message);
+        console.error('Failed to load store', name, e.stack);
       }
     }
 
@@ -432,16 +430,16 @@ Db.prototype = {
       });
     }
 
-    var options = Calendar.Presets.local.options;
+    var options = Presets.local.options;
     debug('Creating local calendar with options:', options);
-    var account = new Calendar.Models.Account(options);
+    var account = new Account(options);
     account.preset = 'local';
     account._id = uuid();
 
     var calendar = {
-      _id: Calendar.Provider.Local.calendarId,
+      _id: Local.calendarId,
       accountId: account._id,
-      remote: Calendar.Provider.Local.defaultCalendar()
+      remote: Local.defaultCalendar()
     };
 
     accountStore.persist(account, trans);
@@ -466,6 +464,4 @@ Db.prototype = {
   }
 };
 
-return Db;
-
-}());
+});

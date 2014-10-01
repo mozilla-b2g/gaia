@@ -1,13 +1,14 @@
-requireLib('provider/abstract.js');
-requireLib('provider/local.js');
+define(function(require) {
+'use strict';
 
-suiteGroup('Templates.Calendar', function() {
-  'use strict';
+var Calendar = require('templates/calendar');
+var Local = require('provider/local');
 
+suite('Templates.Calendar', function() {
   var subject;
 
   suiteSetup(function() {
-    subject = Calendar.Templates.Calendar;
+    subject = Calendar;
   });
 
   function renderHTML(type, options) {
@@ -17,7 +18,7 @@ suiteGroup('Templates.Calendar', function() {
   test('#item with local id', function() {
     var model = {
       localDisplayed: true,
-      _id: Calendar.Provider.Local.calendarId,
+      _id: Local.calendarId,
       name: 'foo'
     };
 
@@ -52,4 +53,6 @@ suiteGroup('Templates.Calendar', function() {
     assert.isFalse(selected);
     assert.include(output, model.name);
   });
+});
+
 });

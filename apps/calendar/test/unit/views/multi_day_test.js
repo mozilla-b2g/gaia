@@ -1,10 +1,9 @@
-requireLib('template.js');
-requireLib('templates/date_span.js');
-requireLib('views/multi_day.js');
+define(function(require) {
+'use strict';
 
-suiteGroup('Views.MultiDay', function() {
-  'use strict';
+var MultiDay = require('views/multi_day');
 
+suite('Views.MultiDay', function() {
   var app;
   var subject;
 
@@ -13,7 +12,7 @@ suiteGroup('Views.MultiDay', function() {
   });
 
   setup(function() {
-    subject = new Calendar.Views.MultiDay({app: app});
+    subject = new MultiDay({app: app});
     subject.element = document.createElement('div');
     subject.element.innerHTML = '<div class="sidebar"></div>';
     subject._currentTime = {
@@ -70,5 +69,6 @@ suiteGroup('Views.MultiDay', function() {
       'selectedDay'
     );
   });
+});
 
 });

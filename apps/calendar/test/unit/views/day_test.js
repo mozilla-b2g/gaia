@@ -1,12 +1,11 @@
-requireLib('template.js');
-requireLib('templates/date_span.js');
-requireCommon('test/synthetic_gestures.js');
-requireApp('calendar/shared/js/gesture_detector.js');
-requireLib('timespan.js');
+define(function(require) {
+'use strict';
 
-suiteGroup('Views.Day', function() {
-  'use strict';
+var Calc = require('calc');
+var Day = require('views/day');
+var TimeParent = require('views/time_parent');
 
+suite('Views.Day', function() {
   var subject,
       app,
       controller,
@@ -35,9 +34,7 @@ suiteGroup('Views.Day', function() {
     controller = app.timeController;
     controller.move(new Date());
 
-    subject = new Calendar.Views.Day({
-      app: app
-    });
+    subject = new Day({ app: app });
 
     // we need to mock the DayChild constructor to avoid problems with the
     // CurrentTime and keep the tests isolated
@@ -54,7 +51,7 @@ suiteGroup('Views.Day', function() {
   });
 
   test('#initialize', function() {
-    assert.instanceOf(subject, Calendar.Views.TimeParent);
+    assert.instanceOf(subject, TimeParent);
   });
 
   suite('#handleEvent', function() {
@@ -192,7 +189,7 @@ suiteGroup('Views.Day', function() {
       subject.onactive();
 
       assert.isFalse(
-        Calendar.Calc.isSameDate(selDate, controller.day),
+        Calc.isSameDate(selDate, controller.day),
         'should not move controller'
       );
 
@@ -257,12 +254,12 @@ suiteGroup('Views.Day', function() {
 
   suite('#changeDate', function() {
     setup(function() {
-      sinon.stub(Calendar.Views.TimeParent.prototype, 'changeDate');
+      sinon.stub(TimeParent.prototype, 'changeDate');
       subject.currentFrame = new subject.childClass();
     });
 
     teardown(function() {
-      Calendar.Views.TimeParent.prototype.changeDate.restore();
+      TimeParent.prototype.changeDate.restore();
       subject._getDestinationScrollTop.restore();
       subject.currentFrame = null;
     });
@@ -369,5 +366,6 @@ suiteGroup('Views.Day', function() {
   test('#onfirstseen', function() {
     assert.equal(subject.onfirstseen, subject.render);
   });
+});
 
 });

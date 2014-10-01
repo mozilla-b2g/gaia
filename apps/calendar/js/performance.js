@@ -1,5 +1,7 @@
-(function(exports) {
+define(function(require, exports) {
 'use strict';
+
+require('shared/performance_testing_helper');
 
 // Helper for the performance testing events. we created
 // this dedicated module since we need some "state machine" logic to avoid
@@ -125,4 +127,4 @@ function dispatchAppLoad() {
   dispatch('moz-app-loaded');
 }
 
-}(Calendar.performance = {}));
+});

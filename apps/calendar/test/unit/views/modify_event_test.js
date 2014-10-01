@@ -1,15 +1,24 @@
-/*global Factory */
+/* global suiteTemplate */
+define(function(require) {
+'use strict';
 
-requireLib('provider/abstract.js');
-requireLib('template.js');
-requireLib('querystring.js');
-requireElements('calendar/elements/modify_event.html');
-requireElements('calendar/elements/show_event.html');
+var CalendarError = require('error');
+var EventBase = require('views/event_base');
+var Factory = require('test/support/factory');
+var InputParser = require('shared/input_parser');
+var ModifyEvent = require('views/modify_event');
+var QueryString = require('querystring');
+var Template = require('template');
+var View = require('view');
+var nextTick = require('next_tick');
+var providerFactory = require('provider/provider_factory');
 
-suiteGroup('Views.ModifyEvent', function() {
-  /*jshint -W027 */
-  'use strict';
+require('dom!modify_event');
+require('dom!show_event');
+
+suite('views/modify_event', function() {
   /** disabled because of intermittent failures see bug 917537 */
+  /* jshint -W027 */
   return;
 
   var subject;
@@ -46,7 +55,7 @@ suiteGroup('Views.ModifyEvent', function() {
   }
 
   function escapeHTML(html) {
-    var template = new Calendar.Template(function() {
+    var template = new Template(function() {
       return this.h('value');
     });
 
@@ -61,7 +70,7 @@ suiteGroup('Views.ModifyEvent', function() {
   var realGo;
 
   teardown(function() {
-    Calendar.App.go = realGo;
+    app.go = realGo;
   });
 
   suiteTemplate('show-event', {
@@ -80,14 +89,14 @@ suiteGroup('Views.ModifyEvent', function() {
     accountStore = app.store('Account');
     calendarStore = app.store('Calendar');
     settingStore = app.store('Setting');
-    provider = app.provider('Mock');
+    provider = providerFactory.get('Mock');
 
     fmt = navigator.mozL10n.DateTimeFormat();
 
     controller = app.timeController;
 
     app.db.open(done);
-    subject = new Calendar.Views.ModifyEvent({
+    subject = new ModifyEvent({
       app: app
     });
   });
@@ -132,8 +141,8 @@ suiteGroup('Views.ModifyEvent', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, Calendar.View);
-    assert.instanceOf(subject, Calendar.Views.EventBase);
+    assert.instanceOf(subject, View);
+    assert.instanceOf(subject, EventBase);
     assert.equal(subject._changeToken, 0);
 
     assert.ok(subject._els, 'has fields');
@@ -417,7 +426,7 @@ suiteGroup('Views.ModifyEvent', function() {
         endDate: endDate.toString()
       };
 
-      search = '?' + Calendar.QueryString.stringify(queryString);
+      search = '?' + QueryString.stringify(queryString);
       subject.useModel(this.busytime, this.event, done);
     });
 
@@ -587,7 +596,7 @@ suiteGroup('Views.ModifyEvent', function() {
     });
 
     test('with an error', function(done) {
-      var err = new Calendar.Error.Authentication();
+      var err = new CalendarError.Authentication();
       subject.showErrors = function(givenErr) {
         done(function() {
           assert.equal(err, givenErr);
@@ -595,7 +604,7 @@ suiteGroup('Views.ModifyEvent', function() {
       };
 
       provider.deleteEvent = function(model, callback) {
-        Calendar.nextTick(callback.bind(null, err));
+        nextTick(callback.bind(null, err));
       };
 
       subject.deleteRecord();
@@ -632,7 +641,7 @@ suiteGroup('Views.ModifyEvent', function() {
 
     function haltsOnError(providerMethod) {
       test('does not persist record when provider fails', function(done) {
-        var err = new Calendar.Error.Authentication();
+        var err = new CalendarError.Authentication();
         subject.showErrors = function(gotErr) {
           done(function() {
             assert.equal(err, gotErr, 'dispatches error');
@@ -642,7 +651,7 @@ suiteGroup('Views.ModifyEvent', function() {
         provider[providerMethod] = function() {
           var args = Array.slice(arguments);
           var cb = args.pop();
-          Calendar.nextTick(cb.bind(null, err));
+          nextTick(cb.bind(null, err));
         };
 
         subject.primary();
@@ -1194,5 +1203,6 @@ suiteGroup('Views.ModifyEvent', function() {
       };
     });
   });
+});
 
 });
