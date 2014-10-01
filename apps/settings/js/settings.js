@@ -227,7 +227,23 @@ var Settings = {
 
         // Go to that section
         setTimeout(function settings_goToSection() {
-          Settings.SettingsService.navigate(section, options);
+          if (section === 'icc') {
+            DUMP('Opening ICC page...');
+            // This is a special case since the section name is dynamic (iccId)
+            if (typeof iccMenu === 'undefined') {
+              DUMP('Waiting for iccMenu...');
+              window.addEventListener('iccMenuLoaded',
+                function oniccMenuLoaded(event) {
+                  DUMP('Yeah! iccMenu available');
+                  iccMenu.openMainPage();
+                });
+            } else {
+              DUMP('iccMenu available');
+              iccMenu.openMainPage();
+            }
+          } else {
+            Settings.SettingsService.navigate(section, options);
+          }
         }.bind(this));
         break;
       default:
