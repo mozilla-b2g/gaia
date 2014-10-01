@@ -460,7 +460,8 @@ var CallHandler = (function callHandler() {
       SuggestionBar.clear();
     };
 
-    LazyLoader.load(['/dialer/js/telephony_helper.js'], function() {
+    LazyLoader.load(['/dialer/js/telephony_helper.js',
+                     '/shared/js/dialer/telephony_messages.js'], function() {
       TelephonyHelper.call(
         number, cardIndex, oncall, connected, disconnected, error);
     });
