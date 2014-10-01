@@ -12,27 +12,14 @@ require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/js/sim_manager.js');
 
-var realMozSettings,
-    realMozMobileConnections,
-    realMozIccManager;
-
-if (!window.navigator.mozSettings) {
-  window.navigator.mozSettings = null;
-}
-
-if (!window.navigator.mozMobileConnections) {
-  window.navigator.mozMobileConnections = null;
-}
-
-if (!window.navigator.mozIccManager) {
-  window.navigator.mozIccManager = null;
-}
-
 var MocksHelperForUnitTest = new MocksHelper([
   'SettingsListener'
 ]).init();
 
 suite('Cost Control SimManager >', function() {
+  var realMozSettings,
+      realMozMobileConnections,
+      realMozIccManager;
 
   MocksHelperForUnitTest.attachTestHelpers();
 
@@ -54,20 +41,32 @@ suite('Cost Control SimManager >', function() {
   });
 
   setup(function() {
-    window.navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
-    window.navigator.mozIccManager = window.MockNavigatorMozIccManager;
+    MockNavigatorSettings.mSetup();
   });
 
+  teardown(function() {
+    MockNavigatorSettings.mTeardown();
+    MockNavigatorMozIccManager.mTeardown();
+    MockNavigatorMozMobileConnections.mTeardown();
+
+    timeouts.forEach(clearTimeout);
+    timeouts = [];
+
+    SimManager.reset();
+  });
+
+
+  var timeouts = [];
   function createFailingLockRequest() {
     return function() {
       return {
         set: null,
         get: function() {
           var request = {};
-          setTimeout(function() {
+          timeouts.push(setTimeout(function() {
             request.error = { name: 'error' };
             request.onerror && request.onerror();
-          }, 0);
+          }));
           return request;
         }
       };
@@ -91,11 +90,12 @@ suite('Cost Control SimManager >', function() {
       assert.isFalse(SimManager.isMultiSim());
 
       SimManager.requestDataSimIcc(function(dataSim) {
-        assert.isTrue(dataSim.initialized);
-        assert.equal(dataSim.iccId,
-                     MockAllNetworkInterfaces[1].id);
-        MockNavigatorMozIccManager.removeIcc(MockAllNetworkInterfaces[1].id);
-        done();
+        done(function() {
+          assert.isTrue(dataSim.initialized);
+          assert.equal(dataSim.iccId,
+                       MockAllNetworkInterfaces[1].id);
+          MockNavigatorMozIccManager.removeIcc(MockAllNetworkInterfaces[1].id);
+        });
       });
     });
 
@@ -103,13 +103,16 @@ suite('Cost Control SimManager >', function() {
       MockNavigatorMozMobileConnections[0] = {
         iccId: null
       };
-      var consoleSpy = sinon.spy(console, 'error');
-      SimManager.requestDataSimIcc(function() { assert.ok(false); },
+      this.sinon.spy(console, 'error');
+      SimManager.requestDataSimIcc(
+        () => done(new Error('Should not call success')),
         function _onError() {
-          consoleSpy.calledWith('The slot 0, configured as the data slot,' +
-                                ' is empty');
-          consoleSpy.restore();
-          done();
+          done(() => {
+            sinon.assert.calledWith(
+              console.error,
+              'The slot 0, configured as the data slot, is empty'
+            );
+          });
         }
       );
     });
@@ -120,14 +123,10 @@ suite('Cost Control SimManager >', function() {
       MockNavigatorMozMobileConnections[0] = {
         iccId: MockAllNetworkInterfaces[1].id
       };
-      var consoleSpy = sinon.spy(console, 'error');
-      SimManager.requestDataSimIcc(function() { assert.ok(false); },
-        function _onError() {
-          consoleSpy.calledWith('The slot 0, configured as the data slot,' +
-                                ' is empty');
-          consoleSpy.restore();
-          done();
-        }
+      this.sinon.spy(console, 'error');
+      SimManager.requestDataSimIcc(
+        () => done(new Error('Should not call success')),
+        () => done()
       );
     });
 
@@ -140,32 +139,26 @@ suite('Cost Control SimManager >', function() {
       };
 
       SimManager.requestDataConnection(function(connection) {
-        assert.isTrue(connection.voice.connected);
-        done();
+        done(() => assert.isTrue(connection.voice.connected));
       });
     });
   });
 
   suite(' Multi SIM scenario (currently DSDS)  >', function() {
-    suiteSetup(function () {
+    setup(function() {
       MockNavigatorMozMobileConnections.mAddMobileConnection();
       MockNavigatorMozIccManager.addIcc(MockAllNetworkInterfaces[0].id, {});
       MockNavigatorMozIccManager.addIcc(MockAllNetworkInterfaces[1].id, {});
-    });
-    suiteTeardown(function () {
-      MockNavigatorMozMobileConnections.mRemoveMobileConnection(1);
-      MockNavigatorMozIccManager.removeIcc(MockAllNetworkInterfaces[0].id);
-      MockNavigatorMozIccManager.removeIcc(MockAllNetworkInterfaces[1].id);
-    });
-    setup(function() {
-      SimManager.reset();
-      MockNavigatorSettings.mTeardown();
+
       MockNavigatorMozMobileConnections[0] = {
         iccId: MockAllNetworkInterfaces[1].id
       };
       MockNavigatorMozMobileConnections[1] = {
         iccId: MockAllNetworkInterfaces[0].id
       };
+
+      // needs to call this again after we setup the connections
+      SimManager.reset();
     });
 
     test('requestDataSimIcc() calls onsuccess with the iccinfo object ',
@@ -175,24 +168,34 @@ suite('Cost Control SimManager >', function() {
         assert.isTrue(SimManager.isMultiSim());
 
         SimManager.requestDataSimIcc(function(dataSim) {
-          assert.equal(dataSim.iccId, MockAllNetworkInterfaces[1].id);
-          done();
-        }, function _onError() { assert.ok(false); });
+          done(() => {
+            assert.equal(dataSim.iccId, MockAllNetworkInterfaces[1].id);
+          });
+        }, function _onError() {
+          done(
+            new Error('requestDataSimIcc should not report an error')
+          );
+        });
       }
     );
 
     test('requestDataSimIcc() without the setting returns a warning message',
       function(done) {
-        var consoleSpy = sinon.spy(console, 'warn');
+        this.sinon.spy(console, 'warn');
         window.addEventListener('simManagerReady', function _onSMInit() {
           window.removeEventListener('simManagerReady', _onSMInit);
-          assert.ok(consoleSpy.calledTwice);
-          assert.ok(consoleSpy.calledWith('SimManager is not ready, waiting ' +
-                                          'for initialized custom event'));
-          assert.ok(consoleSpy.calledWith('The setting ril.data.' +
-            'defaultServiceId does not exists, using default Slot (0)'));
-          consoleSpy.restore();
-          done();
+          done(() => {
+            sinon.assert.calledTwice(console.warn);
+            sinon.assert.calledWith(
+              console.warn,
+              'SimManager is not ready, waiting for initialized custom event'
+            );
+            sinon.assert.calledWith(
+              console.warn,
+              'The setting ril.data.defaultServiceId does not exists, ' +
+                'using default Slot (0)'
+            );
+          });
         });
         SimManager.requestDataSimIcc();
       }
@@ -200,16 +203,21 @@ suite('Cost Control SimManager >', function() {
 
     test('requestTelephonySimIcc() without settings returns warning messages',
       function(done) {
-        var consoleSpy = sinon.spy(console, 'warn');
+        this.sinon.spy(console, 'warn');
         window.addEventListener('simManagerReady', function _onSMInit() {
           window.removeEventListener('simManagerReady', _onSMInit);
-          assert.ok(consoleSpy.calledTwice);
-          assert.ok(consoleSpy.calledWith('SimManager is not ready, waiting ' +
-                                          'for initialized custom event'));
-          assert.ok(consoleSpy.calledWith('The setting ril.telephony.' +
-            'defaultServiceId does not exists, using default Slot (0)'));
-          consoleSpy.restore();
-          done();
+          done(() => {
+            sinon.assert.calledTwice(console.warn);
+            sinon.assert.calledWith(
+              console.warn,
+              'SimManager is not ready, waiting for initialized custom event'
+            );
+            sinon.assert.calledWith(
+              console.warn,
+              'The setting ril.telephony.' +
+                'defaultServiceId does not exists, using default Slot (0)'
+            );
+          });
         });
         SimManager.requestTelephonySimIcc();
       }
@@ -217,16 +225,21 @@ suite('Cost Control SimManager >', function() {
 
     test('requestMessageSimIcc() without the setting returns warning messages',
       function(done) {
-        var consoleSpy = sinon.spy(console, 'warn');
+        this.sinon.spy(console, 'warn');
         window.addEventListener('simManagerReady', function _onSMInit() {
           window.removeEventListener('simManagerReady', _onSMInit);
-          assert.ok(consoleSpy.calledTwice);
-          assert.ok(consoleSpy.calledWith('SimManager is not ready, waiting ' +
-                                          'for initialized custom event'));
-          assert.ok(consoleSpy.calledWith('The setting ril.sms.' +
-            'defaultServiceId does not exists, using default Slot (0)'));
-          consoleSpy.restore();
-          done();
+          done(() => {
+            sinon.assert.calledTwice(console.warn);
+            sinon.assert.calledWith(
+              console.warn,
+              'SimManager is not ready, waiting for initialized custom event'
+            );
+            sinon.assert.calledWith(
+              console.warn,
+              'The setting ril.sms.' +
+                'defaultServiceId does not exists, using default Slot (0)'
+            );
+          });
         });
         SimManager.requestMessageSimIcc();
       }
@@ -235,45 +248,64 @@ suite('Cost Control SimManager >', function() {
     test('requestDataSimIcc() returns Icc without settings', function(done) {
       assert.isTrue(SimManager.isMultiSim());
 
-      SimManager.requestDataSimIcc(function(dataSim) {
-        assert.isTrue(dataSim.initialized);
-        assert.isTrue(dataSim.dirty);
-        assert.equal(dataSim.iccId, MockAllNetworkInterfaces[1].id);
-        done();
-      }, function _onError() { assert.ok(false); });
+      SimManager.requestDataSimIcc(
+        function(dataSim) {
+          done(() => {
+            assert.isTrue(dataSim.initialized);
+            assert.isTrue(dataSim.dirty);
+            assert.equal(dataSim.iccId, MockAllNetworkInterfaces[1].id);
+          });
+        },
+        function onerror() {
+          done(
+            new Error('requestTelephonySimIcc should not report an error')
+          );
+        }
+      );
     });
 
     test('requestTelephonySimIcc() works ok when settings request fails',
       function(done) {
-        sinon.stub(navigator.mozSettings, 'createLock',
+        this.sinon.stub(navigator.mozSettings, 'createLock',
                    createFailingLockRequest());
 
         assert.isTrue(SimManager.isMultiSim());
-        SimManager.requestTelephonySimIcc(function _onSuccess(telephonySim) {
-          assert.equal(telephonySim.iccId, MockAllNetworkInterfaces[1].id);
-          navigator.mozSettings.createLock.restore();
-          done();
-        }, function _onError() { assert.ok(false); });
+        SimManager.requestTelephonySimIcc(
+          function _onSuccess(telephonySim) {
+            done(() => {
+              assert.equal(telephonySim.iccId, MockAllNetworkInterfaces[1].id);
+            });
+          },
+          function onerror() {
+            done(
+              new Error('requestTelephonySimIcc should not report an error')
+            );
+          }
+        );
       }
     );
 
     test('requestDataSimIcc() when all fails (no settings, no icc)',
       function(done) {
-        sinon.stub(navigator.mozSettings, 'createLock',
+        this.sinon.stub(navigator.mozSettings, 'createLock',
                    createFailingLockRequest());
         MockNavigatorMozMobileConnections[0] = { iccId: null };
 
-        var consoleSpy = sinon.spy(console, 'warn');
-        SimManager.requestDataSimIcc(function() { assert.ok(false); },
+        this.sinon.spy(console, 'warn');
+        SimManager.requestDataSimIcc(
+          () => { done(new Error('Should not call success')); },
           function _onError() {
-            assert.ok(consoleSpy.calledTwice);
-            assert.ok(consoleSpy.calledWith(
-              'SimManager is not ready, waiting for initialized custom event'));
-            assert.ok(consoleSpy.calledWith(
-              'The setting ril.data.defaultServiceId does not exists'));
-            navigator.mozSettings.createLock.restore();
-            consoleSpy.restore();
-            done();
+            done(() => {
+              sinon.assert.calledTwice(console.warn);
+              sinon.assert.calledWith(
+                console.warn,
+                'SimManager is not ready, waiting for initialized custom event'
+              );
+              sinon.assert.calledWith(
+                console.warn,
+                'The setting ril.data.defaultServiceId does not exists'
+              );
+            });
           }
         );
       }
@@ -288,19 +320,19 @@ suite('Cost Control SimManager >', function() {
       MockNavigatorSettings
         .mSettings['ril.sms.defaultServiceId'] = messageSlotId;
 
-      SimManager.requestDataSimIcc(function(dataSim) {
-          assert.ok(dataSim.initialized);
-          assert.equal(dataSim.slotId, dataSlotId);
-      }, function _onError() { assert.ok(false); });
+      var promises = [];
 
-      SimManager.requestMessageSimIcc(function(messageSim) {
-          assert.equal(messageSim.slotId, messageSlotId);
-      }, function _onError() { assert.ok(false); });
+      promises.push(new Promise(SimManager.requestDataSimIcc));
+      promises.push(new Promise(SimManager.requestMessageSimIcc));
+      promises.push(new Promise(SimManager.requestTelephonySimIcc));
 
-      SimManager.requestTelephonySimIcc(function _onSuccess(telephonySim) {
-        assert.equal(telephonySim.slotId, telephonySlotId);
-      }, function _onError() { assert.ok(false); });
-      done();
+      Promise.all(promises).then((sims) => {
+        sims.forEach((sim) => assert.ok(sim.initialized));
+        assert.equal(sims[0].slotId, dataSlotId);
+        assert.equal(sims[1].slotId, messageSlotId);
+        assert.equal(sims[2].slotId, telephonySlotId);
+      }, () => { throw new Error('A request failed.'); })
+      .then(done, done);
     });
 
     test('requestMessageSimIcc() launches initialized event', function(done) {
@@ -321,10 +353,10 @@ suite('Cost Control SimManager >', function() {
         window.removeEventListener('dataSlotChange', _onSMInit);
 
         SimManager.requestDataSimIcc(function(dataSim) {
-          assert.equal(dataSim.slotId, newDataSlotId);
-          done();
-
-        }, function _onError() { assert.ok(false); });
+          done(() => { assert.equal(dataSim.slotId, newDataSlotId); });
+        }, function _onError() {
+          done(new Error('requestDataSimIcc should not report an error'));
+        });
       });
 
       SimManager.requestDataSimIcc(function _onsuccess(dataSim) {
@@ -340,35 +372,30 @@ suite('Cost Control SimManager >', function() {
       };
 
       SimManager.requestDataConnection(function(telephonyConnection) {
-        assert.isTrue(telephonyConnection.voice.connected);
-        done();
+        done(() => { assert.isTrue(telephonyConnection.voice.connected); });
       });
     });
 
     test('getTelephonyConnection() works ok when settings request fails',
     function(done) {
-      sinon.stub(navigator.mozSettings, 'createLock',
+      this.sinon.stub(navigator.mozSettings, 'createLock',
                  createFailingLockRequest());
       MockNavigatorMozMobileConnections[0] = {
         voice: { connected: true }
       };
       SimManager.requestDataConnection(function (telephonyConnection) {
-        assert.isTrue(telephonyConnection.voice.connected);
-        navigator.mozSettings.createLock.restore();
-        done();
+        done(() => { assert.isTrue(telephonyConnection.voice.connected); });
       });
     });
 
     test('getTelephonyConnection fails, no settings, no MobileConnections',
       function(done) {
-        sinon.stub(navigator.mozSettings, 'createLock',
+        this.sinon.stub(navigator.mozSettings, 'createLock',
                    createFailingLockRequest());
         MockNavigatorMozMobileConnections[0] = null;
 
         SimManager.requestDataConnection(function (telephonyConnection) {
-            assert.isNull(telephonyConnection);
-            navigator.mozSettings.createLock.restore();
-            done();
+          done(() => { assert.isNull(telephonyConnection); });
         });
       }
     );
