@@ -99,6 +99,14 @@
     _settingsObserveHandler: null,
 
     /**
+     * Handles system browser URL sharing via NFC. Starts listening for
+     * peerready events once NFC is enabled in settings
+     * @type {Object}
+     * @memberOf module:AppWindowManager
+     */
+    _nfcHandler: null,
+
+    /**
      * Switch to a different app
      * @param {AppWindow} newApp The new app window instance.
      * @param {String} [openAnimation] The open animation for opening app.
@@ -247,9 +255,6 @@
      * @memberOf module:AppWindowManager
      */
     init: function awm_init() {
-      var nfcHandler = new NfcHandler(this);
-      nfcHandler.start();
-
       if (System.slowTransition) {
         this.element.classList.add('slow-transition');
       } else {
@@ -316,6 +321,21 @@
               this.broadcastMessage('kill_suspended');
             }
           }.bind(this)
+        },
+
+        'nfc.enabled': {
+          defaultValue: false,
+          callback: (value) => {
+            if (!this._nfcHandler) {
+              this._nfcHandler = new NfcHandler(this);
+            }
+
+            if (value) {
+              this._nfcHandler.start();
+            } else {
+              this._nfcHandler.stop();
+            }
+          }
         }
       };
 
