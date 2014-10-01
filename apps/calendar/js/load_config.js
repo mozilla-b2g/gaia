@@ -40,10 +40,7 @@ exports.plugins.dom = function(id, obs, cb) {
     return cb();
   }
 
-  LazyLoader.load([node], function nodeLoad() {
-    navigator.mozL10n.translate(node);
-    cb();
-  });
+  LazyLoader.load([node], cb);
 };
 
 exports.plugins.js = function lc_importJS(file, obs, cb) {

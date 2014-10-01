@@ -59,9 +59,6 @@ return View.extend({
       detail: this.el
     }));
 
-    // Update localization strings
-    navigator.mozL10n.translate(this.el);
-
     // Configure the MediaFrame component
     this.configure();
 
@@ -309,7 +306,6 @@ return View.extend({
   showOptionsMenu: function() {
     this.optionsMenuContainer = document.createElement('div');
     this.optionsMenuContainer.innerHTML = this.optionTemplate();
-    navigator.mozL10n.translate(this.optionsMenuContainer);
     this.el.appendChild(this.optionsMenuContainer);
 
     this.menu = this.find('.js-menu');
