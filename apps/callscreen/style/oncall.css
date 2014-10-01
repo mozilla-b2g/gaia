@@ -273,10 +273,22 @@
     background-image: url('images/call_screen/actionicon_activecall_speaker.png');
   }
 
+  .icon-on-hold {
+    background-image: url('images/call_screen/Ico_call_onhold_40x120.png');
+  }
+
+  .icon-merge {
+    background-image: url('images/call_screen/Ico_call_merge_40x40.png');
+  }
+
   .co-advanced-option.active-state .icon.icon-mute,
   .co-advanced-option.active-state .icon.icon-speaker,
-  .co-advanced-option.active-state .icon.icon-bt  {
+  .co-advanced-option.active-state .icon.icon-bt {
     background-position: 0 -4rem;
+  }
+
+  .co-advanced-option.active-state .icon.icon-on-hold {
+    background-position: 0 8rem;
   }
 
   .co-advanced-option:active .icon.icon-mute,
@@ -285,29 +297,18 @@
     background-position: 0 0;
   }
 
+  .co-advanced-option.active-state:active .icon.icon-on-hold {
+    background-position: 0 4rem;
+  }
+  
   #callbar {
+    display: flex;
     background: rgba(255, 255, 255, 0.85);
-    -moz-box-sizing: border-box;
-  }
-
-  #callbar-hang-up {
-    float: left;
-    height: 6rem;
-    width: 50%;
-  }
-
-  #callbar-answer {
-    height: 6rem;
-    width: 50%;
-  }
-
-  #callbar-hold {
-    height: 6rem;
-    width: 50%;
-    display: none;
   }
 
   #callbar > button {
+    flex: 1;
+    height: 6rem;
     padding: 0;
     border: none;
     background: none;
@@ -322,7 +323,7 @@
   }
 
   #callbar-hang-up > .callbar-inner-button {
-    margin: 1rem 0.5rem 1rem 1.5rem;
+    margin: 1rem 1.5rem 1rem 1.5rem;
     background: url('images/handled_call/actionicon_activecall_hangup.png') center / 4rem no-repeat,
                 #e00000;
   }
@@ -517,6 +518,7 @@
 
   #calls:not(.single-line) > section:not(.held) .isTimer {
     color: #fff;
+    font-feature-settings: "tnum";
   }
 
   #calls.big-duration > section .additionalContactInfo {
@@ -573,7 +575,8 @@
     background-repeat: no-repeat;
   }
 
-  #calls:not(.big-duration) > section.outgoing {
+  #calls:not(.big-duration) > section.outgoing,
+  #calls:not(.big-duration) > #group-call:not(.held) {
     background-image: url('images/handled_call/actionicon_callscreen_outgoingcall.png');
     background-size: 3rem;
     background-position: 0.7rem;
@@ -584,13 +587,18 @@
   #calls.big-duration > section.held .numberWrapper,
   #calls.big-duration > section.held .additionalContactInfo,
   #calls.big-duration > section.ended .numberWrapper,
-  #calls.big-duration > section.ended .additionalContactInfo {
+  #calls.big-duration > section.ended .additionalContactInfo,
+  #calls.big-duration > section.ended .switch-calls {
     background-color: rgba(255, 255, 255, 0.85);
   }
 
   #calls:not(.big-duration) > section.ended,
-  #calls.big-duration > section.held .numberWrapper,
-  #calls.big-duration > section.held .additionalContactInfo,
+  #calls.big-duration:not(.big-duration) > section.held .numberWrapper,
+  #calls.big-duration:not(.big-duration) > section.held .additionalContactInfo,
+  #calls.big-duration:not(.single-line) > section.held .numberWrapper,
+  #calls.big-duration:not(.single-line) > section.held .additionalContactInfo,
+  #calls.big-duration:not(.single-line) > section.held .switch-calls,
+  #calls.big-duration > section.held .switch-calls,
   #calls.big-duration > section.ended .numberWrapper,
   #calls.big-duration > section.ended .additionalContactInfo {
     background-color: rgba(207, 64, 64, 0.9);
@@ -613,8 +621,8 @@
   #calls > section.ended .numberWrapper .number,
   #calls > section.ended .additionalContactInfo,
   #calls.big-duration > section.ended .additionalContactInfo,
-  #calls.big-duration > section.held .additionalContactInfo {
-    color: rgba(255,255,255,0.6);
+  #calls.big-duration:not(.single-line) > section.held .additionalContactInfo {
+    color: rgba(255, 255, 255, 0.6);
   }
 
   #calls.big-duration > section.held .duration {
@@ -626,7 +634,7 @@
     white-space: nowrap;
   }
 
-  #calls > section.held:not(.ended) .duration {
+  #calls:not(.single-line) > section.held:not(.ended) .duration {
     display: none;
   }
 
@@ -641,7 +649,8 @@
     padding: 0;
   }
 
-  #calls.big-duration .handled-call .direction:before {
+  #calls.big-duration .handled-call .direction:before,
+  #calls.big-duration #group-call .direction:before {
     content: "";
     display: block;
     width: 4rem;
@@ -656,12 +665,14 @@
     background-size: 4rem;
   }
 
-  #calls.big-duration .handled-call.outgoing .direction:before {
+  #calls.big-duration .handled-call.outgoing .direction:before,
+  #calls.big-duration #group-call .direction:before {
     background-image: url('images/handled_call/actionicon_callscreen_outgoingcall.png');
     background-size: 4rem;
   }
 
-  #calls.big-duration .handled-call.ended .direction:before {
+  #calls.big-duration .handled-call.ended .direction:before,
+  #calls.big-duration #group-call.ended .direction:before {
     background-image: url('images/handled_call/actionicon_callscreen_hangup.png');
     background-size: 4rem;
     background-position: 0 0.8rem;
@@ -787,9 +798,13 @@
     position: absolute;
     padding: 0;
     right : 0;
-    height: 10rem;
+    height: 8rem;
     width: 6rem;
     background: url('images/handled_call/actionicon_callscreen_proceed.png') no-repeat 2rem center / 3rem;
+  }
+
+  .single-line #group-call #group-show {
+    height: 10rem;
   }
 
   #group-call.held #group-show {
@@ -894,26 +909,10 @@
     color: rgba(51, 51, 51, 0.7);
   }
 
-  #call-screen[data-layout="connected-hold"] #callbar-hold {
-    display: block;
-  }
-
-  #call-screen[data-layout="connected-hold"] #calls.big-duration .handled-call.ongoing .direction:before {
+  #call-screen[data-layout="connected-hold"] #calls.big-duration .handled-call.ongoing .direction:before,
+  #call-screen[data-layout="connected-hold"] #calls.big-duration #group-call.held .direction:before {
     background-image: url('images/handled_call/actionicon_callscreen_pausedcall.png');
     background-size: 4rem;
-  }
-
-  #call-screen[data-layout="connected-hold"] #co-advanced {
-    pointer-events: none;
-  }
-
-  #call-screen[data-layout="connected-hold"] #co-advanced span.icon {
-    opacity: 0.4;
-  }
-
-  #call-screen[data-layout="dialing"] #callbar-hang-up,
-  #call-screen[data-layout="connected"] #callbar-hang-up {
-    width: 100%;
   }
 
   #call-screen[data-layout="dialing"] #callbar-hang-up > .callbar-inner-button,
@@ -972,31 +971,6 @@
     font-weight: normal;
     line-height: 1.6rem;
     padding-bottom: 2rem;
-  }
-
-  /* We may need to sync system lockscreen media query part for showing call
-     screen on larger screen size*/
-
-  .merge-button {
-    display: none;
-  }
-
-  #calls:not(.single-line) .handled-call.held .merge-button,
-  #calls:not(.single-line) #group-call.held .merge-button {
-    display: block;
-    position: absolute;
-    width: 6rem;
-    height: 8rem;
-    top: 0;
-    right: 0;
-    background: url(images/handled_call/actionicon_activecall_merge_calls.png) no-repeat center;
-    background-size: 4rem;
-    border: none;
-    font-size: 0;
-  }
-
-  #calls:not(.single-line) .handled-call.ended.held .merge-button {
-    display: none;
   }
 
   /* DSDS SIM indication support */
