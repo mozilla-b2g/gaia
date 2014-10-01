@@ -87,19 +87,15 @@ define(function(require) {
     };
 
     var _loadSubpanels = function(panel, callback) {
-      panel.addEventListener('transitionend', function ote() {
-        panel.removeEventListener('transitionend', ote);
-
-        requestAnimationFrame(function() {
-          var sub = document.querySelector('section[id^="' + panel.id + '-"]');
-          [].forEach.call(sub, function(p) {
-            _loadPanel(p.id);
-          });
-
-          if (callback) {
-            requestAnimationFrame(callback);
-          }
+      requestAnimationFrame(function() {
+        var sub = document.querySelector('section[id^="' + panel.id + '-"]');
+        [].forEach.call(sub, function(p) {
+          _loadPanel(p.id);
         });
+
+        if (callback) {
+          requestAnimationFrame(callback);
+        }
       });
     };
 
@@ -144,9 +140,11 @@ define(function(require) {
       }
 
       function go() {
+        var newPanelElement = document.getElementById(panelId);
+        var isFirstRender = !newPanelElement.dataset.rendered;
+
         _loadPanel(panelId);
 
-        var newPanelElement = document.getElementById(panelId);
         var currentPanelId =
            _currentNavigation && _currentNavigation.panelId;
         var currentPanel = _currentNavigation && _currentNavigation.panel;
@@ -158,21 +156,35 @@ define(function(require) {
 
         options = options || {};
 
+        if (isFirstRender) {
+          newPanelElement.dataset.firstTransition = true;
+        }
+
         requestAnimationFrame(function() {
-          _transit(currentPanelElement, newPanelElement);
+          var transitAnim = _transit(currentPanelElement, newPanelElement);
 
           PanelCache.get(panelId, function(panel) {
-            if (currentPanel && currentPanelId !== _rootPanelId) {
-              currentPanel.beforeHide();
+            var hideEvents = currentPanel && currentPanelId !== _rootPanelId;
+
+            var showHideChain = Promise.resolve().then(function() {
+              return hideEvents && currentPanel.beforeHide();
+            }).then(function() {
+              return panel.beforeShow(newPanelElement, options);
+            }).then(function() {
+              return panel.show(newPanelElement, options);
+            }).then(function() {
+              delete newPanelElement.dataset.firstTransition;
+            }).then(function() {
+              return hideEvents && currentPanel.hide();
+            }).then(function() {
+              callback();
+            });
+
+            if (newPanelElement.dataset.requireSubPanels) {
+              Promise.all([ showHideChain, transitAnim ]).then(function() {
+                _loadSubpanels(newPanelElement);
+              });
             }
-
-            panel.beforeShow(newPanelElement, options);
-
-            if (currentPanel && currentPanelId !== _rootPanelId) {
-              currentPanel.hide();
-            }
-
-            panel.show(newPanelElement, options);
 
             _currentNavigation = {
               panelId: panelId,
@@ -185,20 +197,13 @@ define(function(require) {
             // to make sure we won't manipulate Settings
             // directly
             Settings._currentPanel = '#' + panelId;
-
-            callback();
-
-            if (newPanelElement.dataset.requireSubPanels) {
-              _loadSubpanels(newPanelElement);
-            }
           });
         });
       }
 
       if (navigator.mozL10n.readyState === 'complete') {
         go();
-      }
-      else {
+      } else {
         navigator.mozL10n.once(go);
       }
     };
