@@ -67,11 +67,11 @@ define(function(require) {
           permissionListModule.refresh();
         } else {
           LazyLoader.getJSON(['/resources/permissions_table.json'])
-            .then(function(data) {
-              permissionsTableHasBeenLoaded = true;
-              permissionListModule.setPermissionsTable(data);
-              permissionListModule.refresh();
-            });
+          .then(function(data) {
+            permissionsTableHasBeenLoaded = true;
+            permissionListModule.setPermissionsTable(data);
+            permissionListModule.refresh();
+          });
         }
         bindEvents(elements);
       },

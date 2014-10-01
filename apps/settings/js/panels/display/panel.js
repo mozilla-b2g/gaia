@@ -33,9 +33,9 @@ define(function(require) {
           wallpaper.selectWallpaper.bind(wallpaper));
 
         LazyLoader.getJSON(['/resources/device-features.json'])
-          .then(function(data) {
-            display.init(displayElements, data);
-          });
+        .then(function(data) {
+          display.init(displayElements, data);
+        });
       },
 
       onBeforeShow: function dp_onBeforeShow() {

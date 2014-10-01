@@ -46,10 +46,10 @@ define(function(require) {
         return;
       }
       LazyLoader.getJSON('/resources/support.json')
-        .then(function loadSupportInfo(data) {
-          this._supportInfo = data;
-          callback(this._supportInfo);
-        }.bind(this));
+      .then(function loadSupportInfo(data) {
+        this._supportInfo = data;
+        callback(this._supportInfo);
+      }.bind(this));
     },
     /**
      * create support url items

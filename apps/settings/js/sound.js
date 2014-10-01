@@ -13,10 +13,10 @@
   // Show/Hide 'Vibrate' checkbox according to device-features.json
   (function() {
     LazyLoader.getJSON(['/resources/device-features.json'])
-      .then(function(data) {
-        var vibrationSetting = document.getElementById('vibration-setting');
-        vibrationSetting.hidden = !data.vibration;
-      });
+    .then(function(data) {
+      var vibrationSetting = document.getElementById('vibration-setting');
+      vibrationSetting.hidden = !data.vibration;
+    });
   })();
 
   // Setup the sliders for previewing the tones.

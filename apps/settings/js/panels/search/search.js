@@ -28,7 +28,7 @@ define(function(require) {
       // If the list is empty, populate it from default JSON file
       if (!searchEngineList) {
         this.populateSearchEngines()
-          .then(this.generateSearchEngineOptions.bind(this));
+        .then(this.generateSearchEngineOptions.bind(this));
         return;
       }
 
@@ -44,24 +44,24 @@ define(function(require) {
    */
   Search.prototype.populateSearchEngines = function() {
     return LazyLoader.getJSON('/resources/search/providers.json')
-      .then(function(data) {
-        if (!data) {
-          return;
-        }
-
-        var result = navigator.mozSettings.createLock().set({
-          'search.providers': data
-        });
-        result.onerror = function() {
-          console.error('Unable to set search providers setting');
-        };
-
-        return data;
-      })
-      .catch(function () {
-        console.error('Unable to get default search provider file.');
+    .then(function(data) {
+      if (!data) {
         return;
+      }
+
+      var result = navigator.mozSettings.createLock().set({
+        'search.providers': data
       });
+      result.onerror = function() {
+        console.error('Unable to set search providers setting');
+      };
+
+      return data;
+    })
+    .catch(function () {
+      console.error('Unable to get default search provider file.');
+      return;
+    });
   };
 
   /**
