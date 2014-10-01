@@ -140,6 +140,7 @@ var About = {
        * possible return values:
        *
        * - for system updates:
+       *   - active-update
        *   - no-updates
        *   - already-latest-version
        *   - check-complete
