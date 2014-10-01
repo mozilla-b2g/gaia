@@ -191,7 +191,7 @@
    "edgesgesture.enabled": true,
    "continuous-transition.enabled": false,
    "statusbar.network-activity.disabled": false,
-   "statusbar.show-am-pm": true,
+   "statusbar.show-am-pm": false,
    "support.onlinesupport.title": "",
    "support.onlinesupport.href": "",
    "support.callsupport1.title": "",
