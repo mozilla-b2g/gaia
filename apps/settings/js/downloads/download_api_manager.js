@@ -104,6 +104,11 @@
                 return true;
               }
             });
+            for (var i = downloads.length; i >= 0; --i) {
+              if (!downloads[i]) {
+                downloads.splice(i, 1);
+              }
+            }
             // Append to the Dictionary
             _appendDownloadsToCache(downloads);
             onsuccess(downloads, oncomplete);
