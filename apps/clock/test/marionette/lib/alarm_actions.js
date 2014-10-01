@@ -100,7 +100,7 @@ AlarmActions.prototype = {
       // Switch to the Attention Screen
       this._client.switchToFrame();
       this._client.switchToFrame(
-        $('iframe[data-frame-name="_blank"]').el);
+        $('iframe[name="_blank"]').el);
       attentionHandler();
       // Now switch back to the system, then to the clock.
       this._client.switchToFrame();
