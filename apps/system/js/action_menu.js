@@ -54,8 +54,8 @@
 
       // Following our paradigm we need a cancel
       this.cancel = document.createElement('button');
+      this.cancel.setAttribute('data-l10n-id', 'cancel');
       this.cancel.dataset.action = 'cancel';
-      this.cancel.dataset.l10nId = 'cancel';
 
       // We have a menu with all the options
       this.menu = document.createElement('menu');
@@ -121,7 +121,6 @@
         }
         this.menu.appendChild(action);
       }, this);
-      this.cancel.setAttribue('data-l10n-id', 'cancel');
       this.menu.appendChild(this.cancel);
     },
 
