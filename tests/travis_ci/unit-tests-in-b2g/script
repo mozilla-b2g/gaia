@@ -1,4 +1,7 @@
 #! /bin/bash -vex
 
-export TEST_ARGS="--this-chunk=${THIS_CHUNK:=1} --total-chunks=${TOTAL_CHUNKS:=1}"
-make test-agent-test
+./node_modules/test-agent/bin/js-test-agent test \
+  --this-chunk=${THIS_CHUNK:=1} \
+  --total-chunks=${TOTAL_CHUNKS:=1} \
+  --server ws://localhost:8789 \
+  --reporter spec
