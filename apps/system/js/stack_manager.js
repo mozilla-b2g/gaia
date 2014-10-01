@@ -30,7 +30,8 @@ var StackManager = {
   },
 
   _currentFromStack: function sm_currentInStack() {
-    return this._stack[this.position].getActiveWindow();
+    return this._stack[this.position] &&
+           this._stack[this.position].getActiveWindow();
   },
   outOfStack: function sm_outOfStack() {
     return (this._currentFromStack() !== this.getCurrent());
