@@ -732,9 +732,12 @@ ifndef APPS
   endif
 endif
 
-b2g:
-	# TODO: Replace with path from ftp
-	curl http://ftp.mozilla.org/pub/mozilla.org/b2g/try-builds/jlal@mozilla.com-19fa2c4661e2/try-linux64_gecko-debug/b2g-35.0a1.en-US.linux-x86_64.tar.bz2 | tar xvj
+b2g: node_modules/.bin/mozilla-download
+	DEBUG=* ./node_modules/.bin/mozilla-download \
+	--verbose \
+	--product b2g \
+	--channel tinderbox \
+	--branch mozilla-central $@
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.

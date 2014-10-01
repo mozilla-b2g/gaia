@@ -30,4 +30,3 @@ task:
       groupName: "Gaia javascript integration tests"
       groupSymbol: Gij
       symbol: Gij{chunk}
-    treeherderProject: Gij{{chunk}}
