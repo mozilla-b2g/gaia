@@ -1,6 +1,6 @@
 /* global SettingsListener */
 /* global SettingsHelper */
-/* global loadJSON */
+/* global LazyLoader */
 /* global wakeUpFindMyDevice */
 /* global IAC_API_WAKEUP_REASON_TRY_DISABLE */
 
@@ -18,7 +18,7 @@ var FindMyDevice = {
     var self = this;
     self._loginButton = document.querySelector('#findmydevice-login > button');
 
-    loadJSON('/resources/findmydevice.json', function(data) {
+    LazyLoader.getJSON('/resources/findmydevice.json').then(function(data) {
       SettingsListener.observe('findmydevice.logged-in', false,
         self._togglePanel.bind(self));
 

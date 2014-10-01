@@ -5,13 +5,15 @@ requireApp('settings/shared/test/unit/load_body_html_helper.js');
 
 suite('DisplayPanel', function() {
   var modules = [
-    'panels/display/panel'
+    'panels/display/panel',
+    'shared_mocks/mock_lazy_loader',
   ];
   var map = {
     '*': {
       'modules/settings_panel': 'MockSettingsPanel',
       'panels/display/display': 'MockDisplay',
-      'panels/display/wallpaper': 'MockWallpaper'
+      'panels/display/wallpaper': 'MockWallpaper',
+      'shared/lazy_loader': 'shared_mocks/mock_lazy_loader'
     }
   };
 
@@ -60,27 +62,31 @@ suite('DisplayPanel', function() {
     });
 
     // Define mock loadJSON
-    this.realLoadJSON = window.loadJSON;
     this.mockSensorData = {};
-    window.loadJSON = function(paths, callback) {
-      callback(that.mockSensorData);
-    };
 
-    requireCtx(modules, function(DisplayPanel) {
+    requireCtx(modules, function(DisplayPanel, MockLazyLoader) {
       that.panel = DisplayPanel();
+      that.mockLazyLoader = MockLazyLoader;
+      MockLazyLoader.mockResponse(that.mockSensorData);
       done();
     });
   });
 
   teardown(function() {
-    window.loadJSON = this.realLoadJSON;
+    this.mockLazyLoader.mTeardown();
   });
 
   test('init display module with correct data', function() {
     this.sinon.stub(this.mockDisplay, 'init');
+    this.sinon.spy(this.mockLazyLoader, 'getJSON');
+
     this.panel.init(document.body);
-    assert.ok(
-      this.mockDisplay.init.calledWith(sinon.match.any, this.mockSensorData));
+
+    // Can't run other checks till promise is done
+    this.mockLazyLoader.getJSON.returnValues[0].then(function() {
+      assert.ok(
+        this.mockDisplay.init.calledWith(sinon.match.any, this.mockSensorData));
+    });
   });
 
   test('observe wallpaperSrc when onBeforeShow', function() {
