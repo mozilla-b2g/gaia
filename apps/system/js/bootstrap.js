@@ -113,7 +113,6 @@ window.addEventListener('load', function startup() {
   window.addEventListener('ftuskip', doneWithFTU);
 
   Shortcuts.init();
-  ScreenManager.turnScreenOn();
 
   // Please sort it alphabetically
   window.activities = new Activities();
