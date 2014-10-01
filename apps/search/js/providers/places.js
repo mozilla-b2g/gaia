@@ -250,7 +250,7 @@
   function formatTopResult(result) {
     var div = document.createElement('div');
     var span = document.createElement('span');
-    span.textContent = result.title;
+    span.textContent = result.title || result.url;
     div.dataset.url = result.url;
     div.classList.add('top-site');
     div.appendChild(span);

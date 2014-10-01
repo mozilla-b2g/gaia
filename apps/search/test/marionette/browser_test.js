@@ -4,6 +4,8 @@ var Home2 = require('../../../verticalhome/test/marionette/lib/home2');
 var System = require('../../../system/test/marionette/lib/system');
 var Search = require('./lib/search');
 
+var assert = require('chai').assert;
+
 marionette('Browser test', function() {
 
   var client = marionette.client(Home2.clientOptions);
@@ -51,6 +53,28 @@ marionette('Browser test', function() {
     client.waitFor(function() {
       return search.getTopSites().length == 3;
     });
+  });
+
+  test('Ensure sim variant preloaded sites exist', function() {
+
+    client.executeScript(function() {
+      var settings = window.wrappedJSObject.navigator.mozSettings;
+      settings.createLock().set({
+        'operatorResources.data.topsites': {
+          'topSites': [{url: 'http://example1.org'}]
+        }
+      });
+    });
+
+    client.apps.launch(Search.URL);
+    client.apps.switchToApp(Search.URL);
+
+    client.waitFor(function() {
+      return search.getTopSites().length == 1;
+    });
+
+    var topSite = search.getTopSites()[0];
+    assert.equal(topSite.text(), 'http://example1.org');
   });
 
 });
