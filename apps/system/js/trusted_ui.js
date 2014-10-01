@@ -359,10 +359,17 @@ var TrustedUIManager = {
     }
 
     var name = dialog.name;
-    var _ = navigator.mozL10n.get;
 
-    this.errorTitle.textContent = _('error-title', {name: name});
-    this.errorMessage.textContent = _(errorProperty, {name: name});
+    navigator.mozL10n.setAttributes(
+      this.errorTitle,
+      'error-title',
+      { name: name }
+    );
+    navigator.mozL10n.setAttributes(
+      this.errorTitle,
+      errorProperty,
+      { name: name }
+    );
 
     this.container.classList.add('error');
   },

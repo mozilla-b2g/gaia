@@ -16,7 +16,6 @@
 var FxaModuleEnterEmail = (function() {
 
   var _ = null;
-  var localize = null;
   var termsUrl = 'https://accounts.firefox.com/legal/terms';
   var privacyUrl = 'https://accounts.firefox.com/legal/privacy';
 
@@ -47,7 +46,6 @@ var FxaModuleEnterEmail = (function() {
   var Module = Object.create(FxaModule);
   Module.init = function init(options) {
     _ = navigator.mozL10n.get;
-    localize = navigator.mozL10n.localize;
 
     // Cache static HTML elements
     this.importElements(
@@ -77,9 +75,9 @@ var FxaModuleEnterEmail = (function() {
 
     // manually import a few elements after innerHTMLing
     this.fxaPrivacy = document.getElementById('fxa-privacy');
-    localize(this.fxaPrivacy, 'fxa-pn');
+    this.fxaPrivacy.setAttribute('data-l10n-id', 'fxa-pn');
     this.fxaTerms = document.getElementById('fxa-terms');
-    localize(this.fxaTerms, 'fxa-tos');
+    this.fxaTerms.setAttribute('data-l10n-id', 'fxa-tos');
 
     this.isFTU = !!(options && options.isftu);
 
@@ -156,7 +154,7 @@ var FxaModuleEnterEmail = (function() {
   };
 
   Module.onNext = function onNext(gotoNextStepCallback) {
-    FxaModuleOverlay.show(_('fxa-connecting'));
+    FxaModuleOverlay.show('fxa-connecting');
 
     var email = this.fxaEmailInput.value;
 
