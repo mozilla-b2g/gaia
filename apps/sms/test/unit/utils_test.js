@@ -158,6 +158,62 @@ suite('Utils', function() {
       assert.equal(Utils.getHeaderDate(fixtures.date), expect);
     });
 
+    test('yesterday, after a DST-we-gain-one-hour change', function() {
+      var expect = 'yesterday';
+      var now = new Date();
+      var yesterday = Date.now() - 86400000;
+      var yesterdayBeforeDST = new Date(yesterday);
+      yesterdayBeforeDST.setHours(0, 0, 0, 0);
+      yesterdayBeforeDST = yesterdayBeforeDST.getTime() - 3600;
+
+      var realGetTime = Date.prototype.getTime;
+      this.sinon.stub(Date.prototype, 'getTime', function() {
+        if (this.getDate() < now.getDate()) { // ok, this is yesterday
+          return yesterdayBeforeDST;
+        } else {
+          return realGetTime.call(this);
+        }
+      });
+
+      var fixtures = {
+        string: yesterday + '',
+        number: yesterday,
+        date: new Date(yesterday)
+      };
+
+      assert.equal(Utils.getHeaderDate(fixtures.string), expect);
+      assert.equal(Utils.getHeaderDate(fixtures.number), expect);
+      assert.equal(Utils.getHeaderDate(fixtures.date), expect);
+    });
+
+    test('yesterday, after a DST-we-lose-one-hour change', function() {
+      var expect = 'yesterday';
+      var now = new Date();
+      var yesterday = Date.now() - 86400000;
+      var yesterdayBeforeDST = new Date(yesterday);
+      yesterdayBeforeDST.setHours(0, 0, 0, 0);
+      yesterdayBeforeDST = yesterdayBeforeDST.getTime() + 3600;
+
+      var realGetTime = Date.prototype.getTime;
+      this.sinon.stub(Date.prototype, 'getTime', function() {
+        if (this.getDate() < now.getDate()) { // ok, this is yesterday
+          return yesterdayBeforeDST;
+        } else {
+          return realGetTime.call(this);
+        }
+      });
+
+      var fixtures = {
+        string: yesterday + '',
+        number: yesterday,
+        date: new Date(yesterday)
+      };
+
+      assert.equal(Utils.getHeaderDate(fixtures.string), expect);
+      assert.equal(Utils.getHeaderDate(fixtures.number), expect);
+      assert.equal(Utils.getHeaderDate(fixtures.date), expect);
+    });
+
     test('between 2 and 5 days ago', function() {
       for (var days = 2; days <= 5; days++) {
         var date = Date.now() - 86400000 * days;
