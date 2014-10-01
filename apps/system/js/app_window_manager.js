@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenLauncher, KeyboardManager,
-          FtuLauncher, layoutManager, System, NfcHandler, rocketbar */
+          layoutManager, System, NfcHandler, rocketbar */
 'use strict';
 
 (function(exports) {
@@ -107,21 +107,12 @@
      */
     display: function awm_display(newApp, openAnimation, closeAnimation) {
       this._dumpAllWindows();
-      var appCurrent = this._activeApp, appNext = newApp;
-      var ftuApp;
+      var appCurrent = this._activeApp, appNext = newApp ||
+        homescreenLauncher.getHomescreen(true);
 
-      if (!appNext && FtuLauncher && FtuLauncher.isFtuRunning()) {
-        ftuApp = this.getApp(FtuLauncher.getFtuOrigin());
-        if (ftuApp && !ftuApp.isDead()) {
-          appNext = ftuApp;
-        }
-      }
       if (!appNext) {
-        appNext = homescreenLauncher.getHomescreen(true);
-        if (!appNext) {
-          this.debug('no next app.');
-          return;
-        }
+        this.debug('no next app.');
+        return;
       }
 
       // If the app has child app window, open it instead.
@@ -249,7 +240,7 @@
      * 1. Applications is ready. (mozApps are parsed.)
      * 2. Bootstrap tells HomescreenLauncher to init.
      * 3. Homescreen is ready.
-     * 4. Bootstrap tells FtuLauncher to fetch FTU(First Time Use app) info.
+     * 4. Bootstrap tells FTULauncher to fetch FTU(First Time Use app) info.
      * 5. FTU app is skipped or done.
      * 6. AppWindowManager open homescreen app via HomescreenLauncher.
      *
