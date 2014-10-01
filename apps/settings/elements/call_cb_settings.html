@@ -1,0 +1,90 @@
+<element name="call-cbSettings" extends="section">
+  <template>
+
+    <header>
+      <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+      <h1 data-l10n-id="callBarring-header"> Call barring </h1>
+    </header>
+
+    <div>
+      <header id="header-cb-outgoing">
+        <h2 data-l10n-id="cb-outgoing"> Outgoing calls </h2>
+      </header>
+      <ul id="list-callBarring-outgoing">
+        <li id="li-cb-baoc" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="cb-baoc">All</span>
+            <small id="baoc-desc"></small>
+          </label>
+        </li>
+        <li id="li-cb-boic" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="cb-boic">International</span>
+            <small id="boic-desc"></small>
+          </label>
+        </li>
+        <li id="li-cb-boic-exhc" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="cb-boic-exhc">International except Home Country</span>
+            <small id="boic-exhc-desc"></small>
+          </label>
+        </li>
+      </ul>
+
+      <header id="header-cb-incoming">
+        <h2 data-l10n-id="cb-incoming"> Incoming calls </h2>
+      </header>
+      <ul id="list-callBarring-incoming">
+        <li id="li-cb-baic" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="cb-baic">All</span>
+            <small id="baic-desc"></small>
+          </label>
+        </li>
+        <li id="li-cb-baic-r" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="cb-baic-r">All while roaming</span>
+            <small id="bair-r-desc"></small>
+          </label>
+        </li>
+      </ul>
+
+      <header id="header-cb-password">
+        <h2 data-l10n-id="cb-password"> Change password </h2>
+      </header>
+      <ul id="list-callBarring-password">
+        <li id="li-cb-pswd">
+          <a>Change password</a>
+        </li>
+      </ul>
+    </div>
+
+    <form data-type="confirm" role="dialog" id="cb-passcode" hidden>
+      <input type="number" x-inputmode="digit" class="passcode-input" />
+      <div class="passcode-container">
+        <p id="cb-passcode-title">
+            <strong>Enter passcode</strong>
+        </p>
+        <div class="passcode" id="cb-passcode-pseudo-input">
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+        </div>
+        <p id="cb-passcode-def">
+          <small>definition</small>
+        </p>
+      </div>
+      <menu>
+        <button id="cb-passcode-cancel-btn" data-l10n-id="cancel">Cancel</button>
+        <button id="cb-passcode-ok-btn" data-l10n-id="ok" class="recommend">OK</button>
+      </menu>
+    </form>
+
+  </template>
+</element>
