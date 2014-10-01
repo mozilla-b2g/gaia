@@ -175,7 +175,7 @@ ul li > label.pack-switch > small {
  */
 
 ul li button,
-ul li a[role="button"] {
+ul li a.bb-button {
   display: inline-block;
   margin: 1rem 0;
 }
