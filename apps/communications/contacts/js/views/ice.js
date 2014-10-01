@@ -46,7 +46,7 @@
     document.getElementById('ice-header').addEventListener(
       'action', hideICEList);
     document.getElementById('ice-list').addEventListener('click', clickHandler);
-    
+
     LazyLoader.load(['/contacts/js/utilities/ice_data.js'], function() {
       listenForChanges();
     });
@@ -57,15 +57,13 @@
   // to be a small set (2 currently) of contacts.
   function listenForChanges() {
     ICEData.listenForChanges(function(data) {
-      if (!Array.isArray(data) || data.length === 0) {
-        contactsIds = [];
-        ICEData.iceContacts.forEach(function(iceContact) {
-          if (iceContact.id && iceContact.active) {
-            contactsIds.push(iceContact.id);
-          }
-        });
-        buildICEContactsList();
-      }
+      contactsIds = [];
+      ICEData.iceContacts.forEach(function(iceContact) {
+        if (iceContact.id && iceContact.active) {
+          contactsIds.push(iceContact.id);
+        }
+      });
+      buildICEContactsList();
     });
   }
 
