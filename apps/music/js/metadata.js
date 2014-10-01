@@ -651,8 +651,9 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
             var minf = findChildAtom(mdia, 'minf');
             if (minf) {
               var vmhd = searchChildAtom(minf, 'vmhd');
-              if (vmhd)
-                throw 'Found video track in MP4 container';
+              //Commented next two lines because it causes stopping of parsing m4a file with cover embedded
+              //if (vmhd)
+                //throw 'Found video track in MP4 container';
               var smhd = searchChildAtom(minf, 'smhd');
               if (smhd) {
                 var stbl = findChildAtom(minf, 'stbl');
