@@ -208,7 +208,7 @@
 }
 
 .group .header {
-  height: 4.7rem;
+  height: 4rem;
 }
 
 .group .header span {
@@ -219,17 +219,18 @@
 
 .group .header .gripper,
 .group .header .toggle {
-  width: 2.7rem;
-  height: 2.7rem;
+  width: 4.7rem;
+  height: 4rem;
+  top: 0;
 
   background-position: center center;
   background-repeat: no-repeat;
+  background-size: 100%;
 }
 
 .group .header .gripper {
-  left: 1rem;
+  left: 0;
   background-image: url('images/move_gripper.png');
-  background-size: 1.6rem;
   opacity: 0;
   transform: translate(-3.7rem, 0);
 }
@@ -240,13 +241,14 @@
 }
 
 .group .header .title {
+  top: 0.9rem;
   left: 1.4rem;
   /* This is full width - gripper - toggle - padding */
   width: calc(100% - 2.7rem - 2.7rem - 2.8rem);
 
   text-align: left;
   color: white;
-  font-size: 2.27rem;
+  font-size: 1.6rem;
   font-style: italic;
   font-weight: 300;
   white-space: nowrap;
@@ -256,15 +258,12 @@
 }
 
 .edit-mode .header .title {
-  transform: translate(3.7rem, 0);
+  transform: translate(3.3rem, 0);
 }
 
 .group .header .toggle {
-  right: 1rem;
-  border-radius: 50%;
-  background-color: rgba(0, 0, 0, 0.15);
+  right: 0;
   background-image: url('images/collapse_arrow.png');
-  background-size: 1.5rem;
 }
 
 .group.collapsed .header .toggle {
