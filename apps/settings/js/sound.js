@@ -32,7 +32,7 @@
       var isFirstInput = false;
       var interval = 500;
       var intervalID = null;
-      var delay = 800;
+      var delay = 1000;
       var player = new Audio();
 
       // Get the volume value for the slider, also observe the value change.
@@ -54,7 +54,6 @@
       slider.addEventListener('touchstart', function(event) {
         isTouching = true;
         isFirstInput = true;
-        var toneKey;
         // Stop the tone previewing from the last touchstart if the delayed
         // stopTone() is not called yet.
         stopTone();
@@ -62,22 +61,6 @@
         // get better ux that the slider won't be updated by both the observer
         // and the ui.
         SettingsListener.unobserve(channelKey, setSliderValue);
-
-        switch (channelType) {
-          case 'content':
-            toneKey = 'media.ringtone';
-            break;
-          case 'notification':
-            toneKey = 'dialer.ringtone';
-            break;
-          case 'alarm':
-            toneKey = 'alarm.ringtone';
-            break;
-        }
-
-        getToneBlob(channelType, toneKey, function(blob) {
-          playTone(channelType, blob);
-        });
       });
 
       slider.addEventListener('input', function(event) {
@@ -95,6 +78,7 @@
 
       slider.addEventListener('touchend', function(event) {
         isTouching = false;
+        var toneKey;
         // Clear the interval setVolume() and set it directly when the user's
         // finger leaves the panel.
         clearInterval(intervalID);
@@ -105,6 +89,22 @@
         // If the user tap the slider very quickly, like the click event, then
         // we try to stop the player after a constant duration so that the user
         // is able to hear the tone's preview with the adjusted volume.
+        switch (channelType) {
+          case 'content':
+            toneKey = 'media.ringtone';
+            break;
+          case 'notification':
+            toneKey = 'dialer.ringtone';
+            break;
+          case 'alarm':
+            toneKey = 'alarm.ringtone';
+            break;
+        }
+
+        getToneBlob(channelType, toneKey, function(blob) {
+          playTone(channelType, blob);
+        });
+
         setTimeout(function() {
           if (!isTouching) {
             stopTone();
