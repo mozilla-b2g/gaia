@@ -23,6 +23,13 @@
   bottom: var(--software-home-button-height);
 }
 
+@media (orientation: landscape) {
+  #screen.software-button-enabled [role="dialog"].generic-dialog {
+    bottom: 0;
+    right: var(--software-home-button-height);
+  }
+}
+
 [role="dialog"].generic-dialog:before {
   content: "";
   display: inline-block;

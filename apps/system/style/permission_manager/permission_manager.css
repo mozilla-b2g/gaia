@@ -27,11 +27,6 @@
   height: 100%;
 }
 
-#screen.attention #permission-screen {
-  top: 4rem;
-  height: calc(100% - 4rem);
-}
-
 #permission-screen.visible {
   pointer-events: auto;
   display: inline-block;
@@ -42,31 +37,18 @@
   overflow-y: scroll;
 }
 
+#screen:not(.fullscreen-app):not(.fullscreen-layout-app) #permission-dialog > div.inner {
+  margin-top: var(--statusbar-height);
+}
+
 @media not all and (-moz-physical-home-button) {
   #screen:not(.software-button-disabled) #permission-screen {
     height: calc(100% - var(--software-home-button-height));
   }
 
-  #screen.attention:not(.software-button-disabled) #permission-screen {
-    height: calc(100% - 4rem - var(--software-home-button-height));
-  }
-
   #screen.fullscreen-app:not(.software-button-disabled) #permission-screen {
     height: calc(100% - var(--software-home-button-height));
   }
-}
-
-#screen.software-button-enabled #permission-screen {
-  height: calc(100% - var(--software-home-button-height));
-}
-
-#screen.software-button-enabled.attention #permission-screen {
-  height: calc(100% - 4rem - var(--software-home-button-height));
-}
-
-
-#screen.software-button-enabled.fullscreen-app #permission-screen {
-  height: calc(100% - var(--software-home-button-height));
 }
 
 #permission-title {
