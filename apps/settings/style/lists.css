@@ -254,7 +254,7 @@ ul li > label.pack-switch > input ~ span:after {
 }
 
 ul li > label.pack-checkbox > span {
-  padding-right: 6.1rem;
+  padding-right: 4.5rem;
 }
 
 ul li > label.pack-radio ~ p {
@@ -266,7 +266,7 @@ ul li > label.pack-switch > span {
 }
 
 ul li > label.pack-radio > span {
-  padding-right: 5.9rem;
+  padding-right: 4.5rem;
 }
 
 ul li > label.pack-checkbox:active,
@@ -274,6 +274,21 @@ ul li > label.pack-radio:active,
 ul li > label.pack-switch:active {
   background-color: #b2f2ff;
   color: #222;
+}
+
+ul li > label.description {
+  padding: 0;
+}
+
+ul li > label.description span {
+  height: auto;
+  min-height: 6rem;
+  padding-top: 1.2rem;
+  padding-bottom: 1.2rem;
+  font-size: 1.7rem;
+  line-height: 2.3rem;
+  white-space: normal;
+  vertical-align: middle;
 }
 
 /******************************************************************************
