@@ -613,10 +613,7 @@ var StatusBar = {
     if (!iconWidth) {
       // The width of this icon is not static.
       var icon = this.icons[this.toCamelCase(iconObj[0])];
-      var style = window.getComputedStyle(icon);
-      iconWidth = icon.clientWidth +
-        parseInt(style.marginLeft, 10) +
-        parseInt(style.marginRight, 10);
+      iconObj[1] = iconWidth = icon.offsetWidth;
     }
 
     return iconWidth;
