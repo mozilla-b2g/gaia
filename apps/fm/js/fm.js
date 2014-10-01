@@ -712,7 +712,13 @@ var favoritesList = {
   }
 };
 
+var inited = false;
 function init() {
+  if (inited) {
+    return;
+  }
+  inited = true;
+
   frequencyDialer.init();
 
   var seeking = false;
