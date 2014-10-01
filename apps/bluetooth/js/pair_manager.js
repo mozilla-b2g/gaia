@@ -34,7 +34,7 @@
       // pairing request immediately.
       navigator.mozSettings.addObserver('lockscreen.locked',
         function gotScreenLockedChanged(event) {
-          this.showPendingPairing(event.settingValue);
+          this.manageHasnotCompletedPairing(event.settingValue);
       }.bind(this));
 
       // Observe Bluetooth ondisabled event from hardware side.
@@ -52,6 +52,9 @@
 
     onRequestPairing: function(pairingInfo) {
       this.debug('onRequestPairing(): pairingInfo = ' + pairingInfo);
+
+      // reset the flag since new pairing request is coming
+      this.cleanUncompletedPairing();
 
       var req = navigator.mozSettings.createLock().get('lockscreen.locked');
       var self = this;
@@ -135,10 +138,44 @@
       };
     },
 
+    // The function is a management for uncompleted pairing procedure, pending
+    // pairing request in screen locked/unlocked mode.
+    manageHasnotCompletedPairing: function(screenLocked) {
+      if (screenLocked) {
+        // If attention screen is still showing, it means that the pairing
+        // procedure not completed yet. Close attention screen, then save the
+        // status via flag 'uncompletedPairing'. The uncompleted pairing will be
+        // resumed while screen is just unlocked.
+        if (this.childWindow) {
+          this.closePairview();
+
+          // set the flag to be true for resuming pairing request
+          this.uncompletedPairing = true;
+        }
+      } else {
+        // Resume uncompleted pairing procedure while screen just be unlocked.
+        this.resumeUncompletedPairing();
+
+        // Show pending pairing procedure while screen just be unlocked.
+        this.showPendingPairing();
+      }
+    },
+
+    // If there is a uncompleted pairing procedure while a user just unlocks
+    // screen, we will resume pair view immediately.
+    resumeUncompletedPairing: function() {
+      if (this.uncompletedPairing) {
+        this.showPairview(this.pairingInfo);
+
+        // clean the flag of uncompleted pairing since it's resumed
+        this.cleanUncompletedPairing();
+      }
+    },
+
     // If there is a pending pairing request while a user just unlocks screen,
     // we will show pair view immediately. Then, we clear up the notification.
-    showPendingPairing: function(screenLocked) {
-      if (!screenLocked && this.pendingPairing) {
+    showPendingPairing: function() {
+      if (this.pendingPairing) {
         // show pair view from the callback function
         if (this.pendingPairing.showPairviewCallback) {
           this.pendingPairing.showPairviewCallback();
@@ -178,8 +215,23 @@
       });
     },
 
+    cleanUncompletedPairing: function() {
+      this.debug('cleanUncompletedPairing(): has uncompletedPairing = ' +
+                 (this.uncompletedPairing));
+
+      if (this.uncompletedPairing) {
+        // Clear up the uncompleted pairing procedure
+        this.uncompletedPairing = false;
+      }
+    },
+
     showPairview: function(pairingInfo) {
       this.debug('showPairview(): pairingInfo = ' + pairingInfo);
+
+      // Pre-store the pairing info for the new request. It's prepairing for
+      // uncompleted pairing request since we will close attention screen in
+      // screen locked mode.
+      this.pairingInfo = pairingInfo;
 
       var evt = pairingInfo;
       var device = {
@@ -206,14 +258,24 @@
       };
     },
 
+    closePairview: function() {
+      if (this.childWindow) {
+        this.childWindow.Pairview.closeInput();
+        this.childWindow.close();
+        this.childWindow = null;
+      }
+    },
+
     onBluetoothCancel: function(message) {
       this.debug('onBluetoothCancel(): event message = ' + message);
 
       // if the attention screen still open, close it
-      if (this.childWindow) {
-        this.childWindow.Pairview.closeInput();
-        this.childWindow.close();
-      }
+      this.closePairview();
+
+      // If "bluetooth-cancel" system message is coming, and there is an
+      // uncompleted pairing request, we have to clean up it. Because the
+      // request is canceled by the requester.
+      this.cleanUncompletedPairing();
 
       // If "bluetooth-cancel" system message is coming, and there is a
       // pending pairing request, we have reset the object. Because the callback
@@ -237,10 +299,7 @@
       this.debug('onBluetoothDisabled():');
 
       // if the attention screen still open, close it
-      if (this.childWindow) {
-        this.childWindow.Pairview.closeInput();
-        this.childWindow.close();
-      }
+      this.closePairview();
 
       // Since Bluetooth is off, close itself.
       window.close();
