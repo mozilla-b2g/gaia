@@ -71,11 +71,11 @@ form[role="dialog"][data-type="edit"] gaia-header {
 }
 
 button[disabled], input[type="text"][disabled],
-a[disabled][role="button"], a[disabled][role="button"] * {
+a.bb-button[disabled], a.bb-button[disabled] * {
   pointer-events: none;
 }
 
-input[type="text"][disabled], a[disabled][role="button"] {
+input[type="text"][disabled], a.bb-button[disabled] {
   opacity: 0.3;
 }
 
