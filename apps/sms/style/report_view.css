@@ -148,3 +148,19 @@
   font-size: 1.5rem;
   color: #858585;
 }
+
+/* RTL View */
+html[dir="rtl"] .report-view > div {
+  padding-left: 1.5rem;
+  padding-right: 3rem;
+}
+
+html[dir="rtl"] .report-view .contact-title {
+  padding-left: 0;
+  padding-right: 3rem;
+}
+
+html[dir="rtl"] .report-view > ul.contact-list > li {
+  padding-left: 0;
+  padding-right: 1.5rem;
+}
