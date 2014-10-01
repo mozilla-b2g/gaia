@@ -92,12 +92,18 @@ section[role="region"] > header:first-child button[disabled] {
   Icons
 ---------------------------------- */
 
-section[role="region"] > header:first-child .icon {
+section[role="region"] > header:first-child .icon,
+section[role="region"] > header:first-child .gaia-icon {
   display: block;
   width: 3rem;
   height: 5rem;
   background: transparent no-repeat center / 3rem auto;
   font-size: 0;
+  color: #fff;
+}
+
+section[role="region"] > header:first-child .gaia-icon:before {
+  left: 1rem;
 }
 
 /* ----------------------------------
@@ -214,6 +220,15 @@ section[role="region"] > header:first-child .icon-options {
   background-image: url(headers/images/icons/options.png);
 }
 
+/*
+ * We should remove this rule once all headers in gaia
+ * stop using bitmaps.
+ */
+section[role="region"] > header:first-child .gaia-icon {
+  background-image: none;
+}
+
+
 /* ----------------------------------
   Subheader
 ---------------------------------- */
@@ -238,6 +253,11 @@ section[role="region"].skin-comms > header:first-child {
 section[role="region"].skin-comms > header:first-child a,
 section[role="region"].skin-comms > header:first-child button {
   color: rgba(0,0,0,0.5);
+}
+
+.skin-comms section[role="region"] > header:first-child .gaia-icon,
+section[role="region"].skin-comms > header:first-child .gaia-icon {
+  color: #fff;
 }
 
 .skin-comms section[role="region"] > header:first-child a:active,
@@ -273,6 +293,11 @@ section[role="region"].skin-dark > header:first-child,
 section[role="region"].skin-dark > header:first-child a,
 section[role="region"].skin-dark > header:first-child button {
   color: #00aac5;
+}
+
+.skin-dark section[role="region"] > header:first-child .gaia-icon,
+section[role="region"].skin-dark > header:first-child .gaia-icon {
+  color: #fff;
 }
 
 .skin-dark section[role="region"] > header:first-child a:active,
@@ -323,6 +348,11 @@ section[role="region"].skin-organic > header:first-child button,
   color: #00aac5;
 }
 
+section[role="region"].skin-organic > header:first-child .gaia-icon,
+.skin-organic section[role="region"] > header:first-child .gaia-icon {
+  color: #5f5f5f;
+}
+
 section[role="region"].skin-organic > header:first-child a:focus,
 section[role="region"].skin-organic > header:first-child button:focus,
 .skin-organic section[role="region"] > header:first-child a:focus,
@@ -352,6 +382,11 @@ section[role="region"].skin-organic > header:first-child .icon-add,
 section[role="region"].skin-organic > header:first-child .icon-edit,
 .skin-organic section[role="region"] > header:first-child .icon-edit {
   background-image: url(headers/images/icons/organic/edit.png);
+}
+
+section[role="region"].skin-organic > header:first-child .gaia-icon,
+.skin-organic section[role="region"] > header:first-child .gaia-icon {
+  background-image: none;
 }
 
 /* ----------------------------------

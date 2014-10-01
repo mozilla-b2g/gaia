@@ -475,7 +475,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"browser-closecancel"
+					"browser-close"
 				]
 			},
 			"properties": {
@@ -483,7 +483,7 @@
 				"id": 221,
 				"prevSize": 32,
 				"code": 58902,
-				"name": "browser-closecancel",
+				"name": "browser-close",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -517,7 +517,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"browser-foward"
+					"browser-forward"
 				]
 			},
 			"properties": {
@@ -525,7 +525,7 @@
 				"id": 219,
 				"prevSize": 32,
 				"code": 58904,
-				"name": "browser-foward",
+				"name": "browser-forward",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -685,7 +685,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"calllog-checkboxoff"
+					"checkboxoff"
 				]
 			},
 			"properties": {
@@ -693,7 +693,7 @@
 				"id": 211,
 				"prevSize": 32,
 				"code": 58912,
-				"name": "calllog-checkboxoff",
+				"name": "checkboxoff",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -706,7 +706,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"calllog-checkboxon-box"
+					"checkboxon"
 				]
 			},
 			"properties": {
@@ -714,7 +714,7 @@
 				"id": 210,
 				"prevSize": 32,
 				"code": 58913,
-				"name": "calllog-checkboxon-box",
+				"name": "checkboxon",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -727,7 +727,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"calllog-checkboxon-checkmark"
+					"checkboxcheck"
 				]
 			},
 			"properties": {
@@ -735,7 +735,7 @@
 				"id": 209,
 				"prevSize": 32,
 				"code": 58914,
-				"name": "calllog-checkboxon-checkmark",
+				"name": "checkboxcheck",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -1021,7 +1021,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"closecancel"
+					"close"
 				]
 			},
 			"properties": {
@@ -1029,7 +1029,7 @@
 				"id": 195,
 				"prevSize": 32,
 				"code": 58928,
-				"name": "closecancel",
+				"name": "close",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -2022,7 +2022,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"email-send"
+					"send"
 				]
 			},
 			"properties": {
@@ -2030,7 +2030,7 @@
 				"id": 148,
 				"prevSize": 32,
 				"code": 58975,
-				"name": "email-send",
+				"name": "send",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -2043,7 +2043,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"emailsmscalilog-editlist"
+					"edit"
 				]
 			},
 			"properties": {
@@ -2051,7 +2051,7 @@
 				"id": 147,
 				"prevSize": 32,
 				"code": 58976,
-				"name": "emailsmscalilog-editlist",
+				"name": "edit",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -2106,7 +2106,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"foward"
+					"forward"
 				]
 			},
 			"properties": {
@@ -2114,7 +2114,7 @@
 				"id": 144,
 				"prevSize": 32,
 				"code": 58979,
-				"name": "foward",
+				"name": "forward",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -2486,7 +2486,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"gerneral-unlock"
+					"unlock"
 				]
 			},
 			"properties": {
@@ -2494,7 +2494,7 @@
 				"id": 126,
 				"prevSize": 32,
 				"code": 58997,
-				"name": "gerneral-unlock",
+				"name": "unlock",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -3032,7 +3032,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"newadd"
+					"add"
 				]
 			},
 			"properties": {
@@ -3040,7 +3040,7 @@
 				"id": 100,
 				"prevSize": 32,
 				"code": 59023,
-				"name": "newadd",
+				"name": "add",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -4871,7 +4871,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"treadnotsent-circle"
+					"threadnotsent-circle"
 				]
 			},
 			"properties": {
@@ -4879,7 +4879,7 @@
 				"id": 14,
 				"prevSize": 32,
 				"code": 59109,
-				"name": "treadnotsent-circle",
+				"name": "threadnotsent-circle",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -4892,7 +4892,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"treadsent-check"
+					"threadsent-check"
 				]
 			},
 			"properties": {
@@ -4900,7 +4900,7 @@
 				"id": 13,
 				"prevSize": 32,
 				"code": 59110,
-				"name": "treadsent-check",
+				"name": "threadsent-check",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -4913,7 +4913,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"treadsent-circle"
+					"threadsent-circle"
 				]
 			},
 			"properties": {
@@ -4921,7 +4921,7 @@
 				"id": 12,
 				"prevSize": 32,
 				"code": 59111,
-				"name": "treadsent-circle",
+				"name": "threadsent-circle",
 				"ligatures": ""
 			},
 			"setIdx": 0,
@@ -4934,7 +4934,7 @@
 				],
 				"grid": 0,
 				"tags": [
-					"useraccoun-headers"
+					"user"
 				]
 			},
 			"properties": {
@@ -4942,7 +4942,7 @@
 				"id": 11,
 				"prevSize": 32,
 				"code": 59112,
-				"name": "useraccoun-headers",
+				"name": "user",
 				"ligatures": ""
 			},
 			"setIdx": 0,
