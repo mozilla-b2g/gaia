@@ -737,6 +737,10 @@
         }
       }
 
+      if (this.isInputMethod) {
+        return;
+      }
+
       if (this.manifest) {
         var that = this;
         that.element.addEventListener('_opened', function onOpened() {
