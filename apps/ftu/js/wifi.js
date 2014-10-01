@@ -261,8 +261,10 @@ var WifiUI = {
 
     // Activate secondary menu
     UIManager.navBar.classList.add('secondary-menu');
+
     // Update changes in form
-    if (WifiHelper.isEap(WifiManager.getNetwork(ssid))) {
+    var showUserInput = WifiHelper.isEap(WifiManager.getNetwork(ssid));
+    if (showUserInput) {
       userInput.parentNode.classList.remove('hidden');
     } else {
       userInput.parentNode.classList.add('hidden');
@@ -270,6 +272,13 @@ var WifiUI = {
 
     // Change hash
     window.location.hash = '#configure_network';
+
+    // Focus the first visible input
+    if (showUserInput) {
+      userInput.focus();
+    } else {
+      passwordInput.focus();
+    }
   },
 
   addHiddenNetwork: function wui_addHiddenNetwork() {
