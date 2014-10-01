@@ -17,7 +17,10 @@ def call_handlers(func):
         handler_name = '%s_handlers' % func.__name__[3:]
         handlers = getattr(cls, handler_name, [])
         for handler in handlers:
-            handler(data)
+            try:
+                handler(data)
+            except:
+                cls.worker.send_json({'action': 'ready_stop'})
         return func(cls, data)
     return _
 
