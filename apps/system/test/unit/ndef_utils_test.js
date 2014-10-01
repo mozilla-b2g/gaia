@@ -67,6 +67,12 @@ suite('NDEFUtils tests', function() {
     setup(function() {
       mac = '01:23:45:67:89:AB';
     });
+    
+    var checkArray = function (test, expected) {
+      for (var i = 0; i < test.length; i++ ) {
+        assert.equal(test[i], expected[i]);
+      }
+    };
 
     test('Transitive with encodeHandoverSelect()', function() {
       var cps = 2;
@@ -154,9 +160,9 @@ suite('NDEFUtils tests', function() {
       assert.deepEqual(hout.ac[0].cps, 0);
       assert.deepEqual(hout.ac[1].cps, 1);
       assert.deepEqual(hout.ac[2].cps, 2);
-      assert.deepEqual(hout.ac[0].cdr.payload, [8, 0].concat(macs[0]));
-      assert.deepEqual(hout.ac[1].cdr.payload, [8, 0].concat(macs[1]));
-      assert.deepEqual(hout.ac[2].cdr.payload, [8, 0].concat(macs[2]));
+      checkArray(hout.ac[0].cdr.payload, [8, 0].concat(macs[0]));
+      checkArray(hout.ac[1].cdr.payload, [8, 0].concat(macs[1]));
+      checkArray(hout.ac[2].cdr.payload, [8, 0].concat(macs[2]));
     });
 
     test('Parses Collision Resolution Record', function() {

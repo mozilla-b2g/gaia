@@ -14,6 +14,12 @@ var mocksForNfcUtils = new MocksHelper([
 
 suite('NFC Utils', function() {
 
+  var checkArray = function (test, expected, msg) {
+    for (var i = 0; i < test.length; i++ ) {
+      assert.equal(test[i], expected[i], msg);
+    }
+  };
+
   mocksForNfcUtils.attachTestHelpers();
 
   var nfcUtils;
@@ -171,7 +177,7 @@ suite('NFC Utils', function() {
                                           payload: payload});
 
       var result = nfcUtils.encodeNDEF([ndefRecord]);
-      assert.deepEqual(result, ndefMsg);
+      checkArray(result, ndefMsg);
     });
 
     test('Long record', function() {
@@ -227,14 +233,14 @@ suite('NFC Utils', function() {
                                           payload: payload});
 
       var result = nfcUtils.encodeNDEF([ndefRecord]);
-      assert.deepEqual(result, ndefMsg);
+      checkArray(result, ndefMsg);
     });
 
     test('No type, no paylod, no id', function() {
       var ndefMsg = new Uint8Array([0xd0, 0x00, 0x00]);
 
       var result = nfcUtils.encodeNDEF([new MozNDEFRecord()]);
-      assert.deepEqual(result, ndefMsg);
+      checkArray(result, ndefMsg);
     });
 
     test('Multiple records', function() {
@@ -259,7 +265,7 @@ suite('NFC Utils', function() {
                                     payload: payload2});
 
       var result = nfcUtils.encodeNDEF([rec1, rec2]);
-      assert.deepEqual(result, ndefMsg);
+      checkArray(result, ndefMsg);
     });
   });
 
@@ -349,15 +355,15 @@ suite('NFC Utils', function() {
       assert.equal(parsed[1].tnf, NDEF.TNF_ABSOLUTE_URI);
       assert.equal(parsed[2].tnf, NDEF.TNF_EXTERNAL_TYPE);
 
-      assert.deepEqual(parsed[0].type, [0x55], 'type 0');
-      assert.deepEqual(parsed[1].type, [0xAA, 0xBB], 'type 1');
-      assert.deepEqual(parsed[2].type, [0x55], 'type 2');
+      checkArray(parsed[0].type, [0x55], 'type 0');
+      checkArray(parsed[1].type, [0xAA, 0xBB], 'type 1');
+      checkArray(parsed[2].type, [0x55], 'type 2');
 
-      assert.deepEqual(parsed[0].payload,
+      checkArray(parsed[0].payload,
         [0x03, 0x6D, 0x6F], 'payload 0');
-      assert.deepEqual(parsed[1].payload,
+      checkArray(parsed[1].payload,
         [0x02, 0xAD, 0x8F, 0x71, 0x96], 'payload 1');
-      assert.deepEqual(parsed[2].payload,
+      checkArray(parsed[2].payload,
         [0xFF, 0x12, 0x9A, 0xA7, 0x11, 0xDC, 0xA8], 'payload 2');
     });
   });
@@ -384,13 +390,13 @@ suite('NFC Utils', function() {
                     0x67];
       var parsed = nfcUtils._parseNDEFRecord(new NfcBuffer(record));
       assert.isNotNull(parsed);
-      assert.deepEqual(parsed.id, [0x01, 0x02, 0x03, 0x04]);
+      checkArray(parsed.id, [0x01, 0x02, 0x03, 0x04]);
     });
 
     test('Supports records without ID', function() {
       var parsed = nfcUtils._parseNDEFRecord(new NfcBuffer(record));
       assert.isNotNull(parsed);
-      assert.deepEqual(parsed.id, []);
+      checkArray(parsed.id, []);
     });
 
     test('Supports long records (no SR bit set)', function() {
@@ -403,7 +409,7 @@ suite('NFC Utils', function() {
 
       var parsed = nfcUtils._parseNDEFRecord(new NfcBuffer(record));
       assert.isNotNull(parsed);
-      assert.deepEqual(parsed.payload, payload);
+      checkArray(parsed.payload, payload);
     });
 
     test('Decodes TNF', function() {
@@ -421,13 +427,13 @@ suite('NFC Utils', function() {
     test('Decodes type', function() {
       var parsed = nfcUtils._parseNDEFRecord(new NfcBuffer(record));
       assert.isNotNull(parsed);
-      assert.deepEqual(parsed.type, [0x55]);
+      checkArray(parsed.type, [0x55]);
     });
 
     test('Decodes payload', function() {
       var parsed = nfcUtils._parseNDEFRecord(new NfcBuffer(record));
       assert.isNotNull(parsed);
-      assert.deepEqual(parsed.payload, [0x03, 0x6D, 0x6F, 0x7A, 0x69,
+      checkArray(parsed.payload, [0x03, 0x6D, 0x6F, 0x7A, 0x69,
                                         0x6C, 0x6C, 0x61, 0x2E, 0x6F,
                                         0x72, 0x67]);
     });
@@ -479,6 +485,12 @@ suite('NfcBuffer', function() {
   var arr;
   var buf;
 
+  var checkArray = function (test, expected, msg) {
+    for (var i = 0; i < test.length; i++ ) {
+      assert.equal(test[i], expected[i], msg);
+    }
+  };
+
   setup(function() {
     arr = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     buf = new NfcBuffer(arr);
@@ -492,10 +504,10 @@ suite('NfcBuffer', function() {
   });
 
   test('getOctetArray()', function() {
-    assert.deepEqual([0, 1, 2], buf.getOctetArray(3));
-    assert.deepEqual([3], buf.getOctetArray(1));
-    assert.deepEqual([4, 5, 6, 7], buf.getOctetArray(4));
-    assert.deepEqual([], buf.getOctetArray(0));
+    checkArray([0, 1, 2], buf.getOctetArray(3));
+    checkArray([3], buf.getOctetArray(1));
+    checkArray([4, 5, 6, 7], buf.getOctetArray(4));
+    checkArray([], buf.getOctetArray(0));
   });
 
   test('skip()', function() {
