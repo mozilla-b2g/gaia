@@ -24,4 +24,36 @@ marionette('Browser test', function() {
       return search.getTopSites().length == 2;
     });
   });
+
+  test('Ensure sim variant preloaded sites exist', function() {
+
+    client.executeAsyncScript(function() {
+      var settings = window.wrappedJSObject.navigator.mozSettings;
+      var result = settings.createLock().set({
+        'operatorResources.data.topsites': {
+          'topSites': [{
+            url: 'http://example1.org',
+            title: 'Example1'
+          }, {
+            url: 'http://example2.org',
+            title: 'Example2'
+          }, {
+            url: 'http://example3.org',
+            title: 'Example3'
+          }]
+        }
+      });
+      result.onsuccess = function() {
+        marionetteScriptFinished();
+      };
+    });
+
+    client.apps.launch(Search.URL);
+    client.apps.switchToApp(Search.URL);
+
+    client.waitFor(function() {
+      return search.getTopSites().length == 3;
+    });
+  });
+
 });
