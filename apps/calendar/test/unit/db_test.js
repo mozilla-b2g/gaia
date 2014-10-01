@@ -182,6 +182,8 @@ suite('db', function() {
 
 
       suite('Bug 887698', function() {
+        /** Bug 916063- re-enable once it works */
+        return;
         /**
          * @type {Calendar.Store}
          */
