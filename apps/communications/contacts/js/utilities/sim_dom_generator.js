@@ -9,16 +9,15 @@ function generateButton(singleSim, sim, index) {
 
   var span = document.createElement('span');
   if (singleSim) {
-    span.dataset.l10nId = 'simCard';
+    span.setAttribute('data-l10n-id', 'simCard');
   } else {
-    var params = {
-      'number': index,
-      'msisdn': ''
+    var msisdn = sim.iccInfo && sim.iccInfo.msisdn;
+    var l10nId = msisdn ? 'simNumberWithMSISDN' : 'simNumber';
+    var l10nArgs = {
+      number: index,
+      msisdn: msisdn
     };
-    if (sim.iccInfo && sim.iccInfo.msisdn) {
-      params.msisdn = ': ' + sim.iccInfo.msisdn;
-    }
-    navigator.mozL10n.setAttributes(span, 'simCardNumber', params);
+    navigator.mozL10n.setAttributes(span, l10nId, l10nArgs);
   }
   button.appendChild(span);
   return button;

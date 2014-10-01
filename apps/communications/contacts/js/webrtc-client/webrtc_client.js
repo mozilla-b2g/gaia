@@ -94,7 +94,7 @@
 
     voiceCallButton = document.createElement('button');
     voiceCallButton.className = 'activity icon icon-webrtc-voice';
-    navigator.mozL10n.localize(voiceCallButton, 'audio');
+    voiceCallButton.setAttribute('data-l10n-id', 'audio');
     voiceCallButton.addEventListener(
       'click',
       function onVoiceCallRequest() {
@@ -104,7 +104,7 @@
 
     videoCallButton = document.createElement('button');
     videoCallButton.className = 'activity icon icon-webrtc-video';
-    navigator.mozL10n.localize(videoCallButton, 'video');
+    videoCallButton.setAttribute('data-l10n-id', 'video');
     videoCallButton.addEventListener(
       'click',
       function onVideoCallRequest() {
