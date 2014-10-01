@@ -66,7 +66,7 @@
   background: url("images/video_pause_button.png") no-repeat center center / 3rem,
               rgba(0,0,0,.5);
   border-radius: 5.3rem;
-  border: solid #ccc 0.3rem;
+  border: 0.3rem;
   top: -2.5rem;
   left: 1rem;
 }
