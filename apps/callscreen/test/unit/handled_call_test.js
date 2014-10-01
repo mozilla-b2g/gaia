@@ -412,16 +412,18 @@ suite('dialer/handled_call', function() {
       });
 
       test('should remove the node from the dom', function() {
-        mockCall._disconnect();
         assert.isFalse(MockCallScreen.mRemoveCallCalled);
-        this.sinon.clock.tick(2000);
+        mockCall._disconnect();
+        //check that the node is not immediately removed from DOM.
+        assert.isFalse(MockCallScreen.mRemoveCallCalled);
+        this.sinon.clock.tick(MockCallScreen.callEndPromptTime);
         assert.isTrue(MockCallScreen.mRemoveCallCalled);
       });
 
       test('should nullify the node', function() {
         mockCall._disconnect();
         assert.isNotNull(subject.node);
-        this.sinon.clock.tick(2000);
+        this.sinon.clock.tick(MockCallScreen.callEndPromptTime);
         assert.isNull(subject.node);
       });
 
