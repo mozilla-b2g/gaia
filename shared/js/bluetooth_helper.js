@@ -15,6 +15,7 @@ var BluetoothHelper = function() {
   var _callbacks = [];
 
   var _adapter = null;
+  var _v2 = false;
 
   var _ready = function(callback) {
     if (!callback || !_bluetooth) {
@@ -43,7 +44,23 @@ var BluetoothHelper = function() {
     };
   };
 
-  var _getAdapter = function() {
+  // get adapter via bluetooth API v2
+  var _fetchAdapterV2 = function() {
+    _adapter = _bluetooth.defaultAdapter;
+    if (_adapter) {
+      _isReady = true;
+
+      _callbacks.forEach(function(callback) {
+        callback();
+      });
+    } else {
+      // We can do nothing without default adapter.
+      console.log('BluetoothHelper(): connot get default adapter!!!');
+    }
+  };
+
+  // get adapter via bluetooth API v1
+  var _fetchAdapter = function() {
     var req = _bluetooth.getDefaultAdapter();
     req.onsuccess = function() {
       _isReady = true;
@@ -60,7 +77,19 @@ var BluetoothHelper = function() {
     };
   };
 
+  var _getAdapter = function() {
+    if (_v2) {
+      _fetchAdapterV2();
+    } else {
+      _fetchAdapter();
+    }
+  };
+
+  // init
   if (_bluetooth) {
+    if (_bluetooth.defaultAdapter) {
+      _v2 = true;
+    }
     _bluetooth.addEventListener('enabled', _getAdapter);
     _bluetooth.addEventListener('adapteradded', _getAdapter);
     _getAdapter();
