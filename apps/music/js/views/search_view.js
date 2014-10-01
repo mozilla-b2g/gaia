@@ -1,5 +1,5 @@
 /* exported SearchView */
-/* global Normalizer, createListElement, pendingPick, musicdb, ModeManager, 
+/* global Normalizer, createListElement, App, musicdb, ModeManager,
           MODE_PLAYER, PlayerView, TYPE_SINGLE, TYPE_LIST, SubListView,
           MODE_SUBLIST */
 'use strict';
@@ -64,7 +64,7 @@ var SearchView = {
     }
 
     // Only shows the search results of tracks when it's in picker mode
-    if (!pendingPick) {
+    if (!App.pendingPick) {
       this.searchHandles.artist = musicdb.enumerate(
         'metadata.artist', null, 'nextunique',
         sv_showResult.bind(this, 'artist')
@@ -127,7 +127,7 @@ var SearchView = {
       /* jshint validthis:true */
       if (option === 'title') {
         ModeManager.push(MODE_PLAYER, function() {
-          if (pendingPick) {
+          if (App.pendingPick) {
             PlayerView.setSourceType(TYPE_SINGLE);
             PlayerView.dataSource = this.dataSource;
             PlayerView.play(index);

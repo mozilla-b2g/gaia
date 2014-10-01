@@ -1,7 +1,7 @@
 /* exported musicdb, initDB */
-/* global MediaDB, LazyLoader, parseAudioMetadata, showOverlay, PlayerView,
-          pendingPick, TabBar, ModeManager, MODE_TILES, TilesView,
-          currentOverlay, App, MusicComms, MODE_LIST, MODE_PICKER */
+/* global MediaDB, LazyLoader, parseAudioMetadata, PlayerView,
+          TabBar, ModeManager, MODE_TILES, TilesView,
+          App, MusicComms, MODE_LIST, MODE_PICKER */
 'use strict';
 
 // The MediaDB object that manages the filesystem and the database of metadata
@@ -42,7 +42,7 @@ function initDB() {
 
   // show dialog in upgradestart, when it finished, it will turned to ready.
   musicdb.onupgrading = function() {
-    showOverlay('upgrade');
+    App.showOverlay('upgrade');
   };
 
   // This is called when DeviceStorage becomes unavailable because the
@@ -56,9 +56,9 @@ function initDB() {
     // Also let the user know why they can't play songs anymore
     var why = event.detail;
     if (why === MediaDB.NOCARD) {
-      showOverlay('nocard');
+      App.showOverlay('nocard');
     } else if (why === MediaDB.UNMOUNTED) {
-      showOverlay('pluggedin');
+      App.showOverlay('pluggedin');
     }
   };
 
@@ -81,7 +81,7 @@ function initDB() {
     }
 
     // TabBar should be set to "mix" to sync with the tab selection.
-    if (!pendingPick) {
+    if (!App.pendingPick) {
       TabBar.option = 'mix';
       ModeManager.start(MODE_TILES);
       TilesView.hideSearch();
@@ -90,10 +90,10 @@ function initDB() {
 
   musicdb.onready = function() {
     // Hide the nocard or pluggedin overlay if it is displayed
-    if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin' ||
-        currentOverlay === 'upgrade')
+    if (App.currentOverlay === 'nocard' || App.currentOverlay === 'pluggedin' ||
+        App.currentOverlay === 'upgrade')
     {
-      showOverlay(null);
+      App.showOverlay(null);
     }
 
     // Display music that we already know about
@@ -227,8 +227,8 @@ function initDB() {
   // If the overlay is displayed during a pick, let the user get out of it
   document.getElementById('overlay-cancel-button')
     .addEventListener('click', function() {
-      if (pendingPick) {
-        pendingPick.postError('pick cancelled');
+      if (App.pendingPick) {
+        App.pendingPick.postError('pick cancelled');
       }
     });
 }

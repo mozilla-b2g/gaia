@@ -1,6 +1,6 @@
 /* exported ListView */
-/* global listHandle:true, musicdb, pendingPick, knownSongs:true,
-          showCorrectOverlay, createListElement, TabBar, ModeManager,
+/* global listHandle:true, musicdb, App,
+          createListElement, TabBar, ModeManager,
           MODE_PLAYER, PlayerView, TYPE_MIX, TYPE_SINGLE, IDBKeyRange,
           mostPlayedTitle, recentlyAddedTitle, highestRatedTitle, SubListView,
           MODE_SUBLIST, SearchView, MODE_SEARCH_FROM_LIST */
@@ -120,7 +120,7 @@ var ListView = {
           if (record) {
             // Check if music is in picker mode because we don't to allow the
             // user to pick locked music.
-            if (!pendingPick || !record.metadata.locked) {
+            if (!App.pendingPick || !record.metadata.locked) {
               this.dataSource.push(record);
             }
 
@@ -145,9 +145,9 @@ var ListView = {
             this.adjustHeight(info.option, count);
             // In picker mode we have to use the ListView's dataSource to
             // display the correct overlay.
-            if (pendingPick) {
-              knownSongs = this.dataSource;
-              showCorrectOverlay();
+            if (App.pendingPick) {
+              App.knownSongs = this.dataSource;
+              App.showCorrectOverlay();
             }
           }
         }.bind(this));
@@ -156,7 +156,7 @@ var ListView = {
 
   update: function lv_update(option, result) {
     if (result === null) {
-      showCorrectOverlay();
+      App.showCorrectOverlay();
       return;
     }
 
@@ -313,7 +313,7 @@ var ListView = {
 
   playWithIndex: function lv_playWithIndex(index) {
     ModeManager.push(MODE_PLAYER, function() {
-      if (pendingPick) {
+      if (App.pendingPick) {
         PlayerView.setSourceType(TYPE_SINGLE);
       } else {
         PlayerView.setSourceType(TYPE_MIX);

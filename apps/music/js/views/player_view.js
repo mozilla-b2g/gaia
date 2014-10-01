@@ -1,5 +1,5 @@
 /* exported PlayerView */
-/* global TitleBar, MusicComms, playerHandle, musicdb, ModeManager, pendingPick,
+/* global TitleBar, MusicComms, playerHandle, musicdb, ModeManager, App,
           unknownTitle, unknownTitleL10nId, unknownArtist, unknownArtistL10nId,
           unknownAlbum, unknownAlbumL10nId, getThumbnailURL,
           generateDefaultThumbnailURL, parseAudioMetadata, getAlbumArtBlob,
@@ -217,7 +217,7 @@ var PlayerView = {
 
       // If it is a locked music file, or if we are handling a Pick activity
       // then we should not give the user the option of sharing the file.
-      if (metadata.locked || pendingPick) {
+      if (metadata.locked || App.pendingPick) {
         this.shareButton.classList.add('hidden');
         this.artist.classList.add('hidden-cover-share');
         this.album.classList.add('hidden-cover-share');

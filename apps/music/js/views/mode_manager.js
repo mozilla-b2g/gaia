@@ -1,7 +1,7 @@
 /* exported ModeManager */
 /* global TitleBar, musicTitle, TabBar, playlistTitle, artistTitle, albumTitle,
           songTitle, unknownTitle, pickerTitle, LazyLoader, PlayerView,
-          playerSettings, pendingPick, displayingScanProgress:true */
+          App, displayingScanProgress:true */
 'use strict';
 
 // This Application has five modes: TILES, SEARCH, LIST, SUBLIST, and PLAYER
@@ -115,7 +115,7 @@ var ModeManager = {
       LazyLoader.load('js/views/player_view.js', function() {
         if (!playerLoaded) {
           PlayerView.init();
-          PlayerView.setOptions(playerSettings);
+          PlayerView.setOptions(App.playerSettings);
         }
 
         // Music only share the playing file when it's in player mode.
@@ -152,7 +152,7 @@ var ModeManager = {
 
     // We have to show the done button when we are in picker mode
     // and previewing the selecting song
-    if (pendingPick) {
+    if (App.pendingPick) {
       document.getElementById('title-done').hidden = (mode !== MODE_PLAYER);
     }
 
@@ -183,7 +183,7 @@ var ModeManager = {
       return;
     }
 
-    if (enabled && !pendingPick) {
+    if (enabled && !App.pendingPick) {
       // Assign the sharing function to onpeerready so that it will trigger
       // the shrinking ui to share the playing file.
       navigator.mozNfc.onpeerready = function(event) {

@@ -29,19 +29,9 @@ var recentlyAddedTitleL10nId = 'playlists-recently-added';
 var mostPlayedTitleL10nId = 'playlists-most-played';
 var leastPlayedTitleL10nId = 'playlists-least-played';
 
-// Pick activity
-var pendingPick;
 // Key for store the player options of repeat and shuffle
 var SETTINGS_OPTION_KEY = 'settings_option_key';
-var playerSettings;
 
-var chromeInteractive = false;
-//
-// Overlay messages
-//
-var currentOverlay;  // The id of the current overlay or null if none.
-// To display a correct overlay, we need to record the known songs from musicdb
-var knownSongs = [];
 // We need handles here to cancel enumerations for
 // tilesView, listView, sublistView and playerView
 var tilesHandle = null;
@@ -50,6 +40,17 @@ var sublistHandle = null;
 var playerHandle = null;
 
 var App = {
+  // Pick activity
+  pendingPick: null,
+
+  playerSettings: null,
+  // The id of the current overlay or null if none.
+  currentOverlay: null,
+  // To display a correct overlay, record the known songs from musicdb
+  knownSongs: [],
+
+  chromeInteractive: false,
+
   localize: function app_localize() {
     // Get prepared for the localized strings, these will be used later
     navigator.mozL10n.ready(function onLanguageChange() {
@@ -93,12 +94,12 @@ var App = {
         ModeManager.updateTitle();
         TabBar.playlistArray.localize();
 
-        if (!chromeInteractive) {
-          chromeInteractive = true;
+        if (!this.chromeInteractive) {
+          this.chromeInteractive = true;
           // Tell performance monitors that our chrome is interactible.
           window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
         }
-      });
+      }.bind(this));
     }.bind(this));
 
     window.addEventListener('scrollstart', function onScroll(e) {
@@ -120,9 +121,9 @@ var App = {
         var activityName = a.source.name;
 
         if (activityName === 'pick') {
-          pendingPick = a;
+          this.pendingPick = a;
         }
-      });
+      }.bind(this));
 
       TabBar.option = 'title';
       ModeManager.start(MODE_PICKER);
@@ -133,8 +134,8 @@ var App = {
       // The player options will be used later,
       // so let's get them first before the player is loaded.
       asyncStorage.getItem(SETTINGS_OPTION_KEY, function(settings) {
-        playerSettings = settings;
-      });
+        this.playerSettings = settings;
+      }.bind(this));
 
       // The done button must be removed when we are not in picker mode
       // because the rules of the header building blocks
@@ -156,7 +157,7 @@ var App = {
     // Localization is done using the specified id with "-title" and "-text"
     // suffixes.
     //
-    currentOverlay = id;
+    this.currentOverlay = id;
 
     if (id === null) {
       document.getElementById('overlay').classList.add('hidden');
@@ -164,7 +165,7 @@ var App = {
     }
 
     var menu = document.getElementById('overlay-menu');
-    if (pendingPick) {
+    if (this.pendingPick) {
       menu.classList.remove('hidden');
     } else {
       menu.classList.add('hidden');
@@ -190,8 +191,8 @@ var App = {
     // If we don't know about any songs, display the 'empty' overlay.
     // If we do know about songs and the 'empty overlay is being displayed
     // then hide it.
-    if (knownSongs.length > 0) {
-      if (currentOverlay === 'empty')
+    if (this.knownSongs.length > 0) {
+      if (this.currentOverlay === 'empty')
         this.showOverlay(null);
     } else {
       this.showOverlay('empty');
@@ -217,7 +218,7 @@ var App = {
       // If it's in picking mode we will just enumerate all the songs
       // and don't need to enumerate data for TilesView
       // because mix page is not needed in picker mode
-      if (pendingPick) {
+      if (this.pendingPick) {
         showListView();
 
         if (callback)
@@ -250,13 +251,13 @@ var App = {
           songs.push(null);
           TilesView.clean();
 
-          knownSongs.length = 0;
+          this.knownSongs.length = 0;
           songs.forEach(function(song) {
             TilesView.update(song);
             // Push the song to knownSongs then
             // we can display a correct overlay
-            knownSongs.push(song);
-          });
+            this.knownSongs.push(song);
+          }.bind(this));
 
           // Tell performance monitors that the content is displayed and is
           // ready to interact with. We won't send the final moz-app-loaded
@@ -270,9 +271,9 @@ var App = {
 
           if (callback)
             callback();
-        }
+        }.bind(this)
       );
-    });
+    }.bind(this));
   }
 };
 

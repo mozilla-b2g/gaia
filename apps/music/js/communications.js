@@ -145,7 +145,7 @@ var MusicComms = {
     if (typeof PlayerView === 'undefined') {
       LazyLoader.load('js/Player.js', function() {
         PlayerView.init();
-        PlayerView.setOptions(playerSettings);
+        PlayerView.setOptions(App.playerSettings);
 
         callback();
       });

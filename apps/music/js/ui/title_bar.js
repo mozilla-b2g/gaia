@@ -1,6 +1,6 @@
 /* exported TitleBar */
 /* global ModeManager, MODE_PICKER, MODE_PLAYER, PlayerView, getAlbumArtBlob,
-          pendingPick */
+          App */
 
 'use strict';
 
@@ -32,9 +32,9 @@ var TitleBar = {
   },
 
   onActionBack: function() {
-    if (pendingPick) {
+    if (App.pendingPick) {
       if (ModeManager.currentMode === MODE_PICKER) {
-        pendingPick.postError('pick cancelled');
+        App.pendingPick.postError('pick cancelled');
         return;
       }
 
@@ -73,7 +73,7 @@ var TitleBar = {
             var playingBlob = PlayerView.playingBlob;
             getAlbumArtBlob(currentFileinfo, function(err, picture) {
               var currentMetadata = currentFileinfo.metadata;
-              pendingPick.postResult({
+              App.pendingPick.postResult({
                 type: playingBlob.type,
                 blob: playingBlob,
                 name: currentMetadata.title || '',
