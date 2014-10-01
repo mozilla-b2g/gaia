@@ -19,6 +19,8 @@ var SuggestionBar = {
   _hasMatchingFbContacts: false,
   _hasMatchingLocalContacts: false,
 
+  _lastSearch: null,
+
   // Visual Elements
   bar: null,
   barSuggestionItem: null,
@@ -72,6 +74,7 @@ var SuggestionBar = {
   },
 
   update: function sb_update(number) {
+    this._lastSearch = this._phoneNumber;
     this._phoneNumber = number;
 
     // when first letter of number is "+", we'll change minimum search criteria
@@ -118,11 +121,17 @@ var SuggestionBar = {
     // place a call, it just fills in the phone number. In this case, we should
     // hide the suggestions bar to not confuse the user into thinking that
     // tapping it again will place the call.
-    if (totalMatchNum === 1 &&
-        contact.tel[firstMatch].value == self._phoneNumber &&
-        navigator.mozIccManager &&
-        navigator.mozIccManager.iccIds.length > 1) {
-      shouldHideSuggestionBar = true;
+
+    if(totalMatchNum === 1 &&
+      navigator.mozIccManager &&
+      navigator.mozIccManager.iccIds.length > 1){
+      if (self._lastSearch === self._phoneNumber) {
+        shouldHideSuggestionBar = true;
+      } else if(contact.tel[firstMatch].value == self._phoneNumber &&
+        self._lastSearch !=
+        self._phoneNumber.substring(0,self._phoneNumber.length-1)){
+        shouldHideSuggestionBar = true;
+      }
     }
 
     // Don't show any suggestions if we have too many. The user should narrow it
