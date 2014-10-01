@@ -17,6 +17,11 @@ class TestBluetoothSettings(GaiaTestCase):
         from gaiatest.utils.bluetooth.bluetooth_host import BluetoothHost
         self.bluetooth_host = BluetoothHost(self.marionette)
 
+    def tearDown(self):
+        self.data_layer.unpair_all_bluetooth_devices()
+        self.data_layer.bluetooth_disable()
+        self.bluetooth_host.discoverable = False
+
     def test_toggle_bluetooth_settings(self):
         """Toggle Bluetooth via Settings - Networks & Connectivity
 
@@ -26,8 +31,8 @@ class TestBluetoothSettings(GaiaTestCase):
 
         settings = Settings(self.marionette)
         settings.launch()
-
         bluetooth_settings = settings.open_bluetooth_settings()
+
         bluetooth_settings.enable_bluetooth()
 
         bluetooth_settings.tap_rename_my_device()
@@ -39,3 +44,7 @@ class TestBluetoothSettings(GaiaTestCase):
         # Now have host machine inquire and shouldn't find our device
         device_found = self.bluetooth_host.is_device_visible(device_name)
         self.assertTrue(device_found, "Host should see our device (device discoverable mode is ON)")
+
+        remote_device_name = self.bluetooth_host.host_name
+        bluetooth_settings.pair_device(remote_device_name)
+        self.assertIn(remote_device_name, bluetooth_settings.connected_devices)
