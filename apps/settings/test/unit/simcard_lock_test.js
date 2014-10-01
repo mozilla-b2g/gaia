@@ -76,6 +76,9 @@ suite('SimPinLock > ', function() {
     this.sinon.stub(document, 'getElementById', function() {
       return document.createElement('div');
     });
+    this.sinon.stub(document, 'querySelector', function() {
+      return document.createElement('div');
+    });
   });
 
   // we will setAllElements first so that in later

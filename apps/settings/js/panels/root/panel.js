@@ -12,6 +12,7 @@ define(function(require) {
   var StorageAppItem = require('panels/root/storage_app_item');
   var WifiItem = require('panels/root/wifi_item');
   var ScreenLockItem = require('panels/root/screen_lock_item');
+  var SimSecurityItem = require('panels/root/sim_security_item');
   var AirplaneModeItem = require('panels/root/airplane_mode_item');
 
   return function ctor_root_panel() {
@@ -25,6 +26,7 @@ define(function(require) {
     var storageAppItem;
     var wifiItem;
     var screenLockItem;
+    var simSecurityItem;
     var airplaneModeItem;
 
     return SettingsPanel({
@@ -53,6 +55,8 @@ define(function(require) {
           ScreenLockItem(panel.querySelector('.screenLock-desc'));
         airplaneModeItem =
           AirplaneModeItem(panel.querySelector('.airplaneMode-input'));
+        simSecurityItem =
+          SimSecurityItem(panel.querySelector('.simCardLock-desc'));
       },
       onBeforeShow: function rp_onBeforeShow() {
         bluetoothItem.enabled = true;
@@ -63,6 +67,7 @@ define(function(require) {
         storageAppItem.enabled = true;
         wifiItem.enabled = true;
         screenLockItem.enabled = true;
+        simSecurityItem.enabled = true;
         airplaneModeItem.enabled = true;
       },
       onShow: function rp_onShow() {
@@ -81,6 +86,7 @@ define(function(require) {
         storageAppItem.enabled = false;
         wifiItem.enabled = false;
         screenLockItem.enabled = false;
+        simSecurityItem.enabled = false;
         airplaneModeItem.enabled = false;
       }
     });

@@ -10,7 +10,7 @@ require(['config/require'], function() {
     require('shared/settings_listener');
     // used by wifi.js, wifi_select_certificate_file.js
     require('shared/wifi_helper');
-    // used by security_privacy.js, messaging.js
+    // used by messaging.js
     require('shared/icc_helper');
     // used by all header building blocks
     require('shared/font_size_utils');

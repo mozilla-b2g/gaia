@@ -199,7 +199,7 @@
       this.simPinTmpl = document.getElementById('simpin-tmpl');
       this.simPinContainer = document.getElementById('simpin-container');
       this.simPinHeader = document.getElementById('simpin-header');
-      this.simSecurityDesc = document.getElementById('simCardLock-desc');
+      this.simSecurityDesc = document.querySelector('.simCardLock-desc');
     },
     addIccDetectedEvent: function() {
       var self = this;
