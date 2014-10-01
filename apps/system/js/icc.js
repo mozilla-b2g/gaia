@@ -327,6 +327,7 @@ var icc = {
       this.icc_confirm_btn_close =
         document.getElementById('icc-confirm-btn_close');
       this.setupView(this.icc_confirm);
+      this.keyboardChangedEvent(this.icc_confirm, true);
     }
 
     if (typeof callback != 'function') {
@@ -392,6 +393,7 @@ var icc = {
       this.icc_asyncconfirm_btn_yes =
         document.getElementById('icc-asyncconfirm-btn-yes');
       this.setupView(this.icc_asyncconfirm);
+      this.keyboardChangedEvent(this.icc_asyncconfirm, true);
     }
 
     this.icc_asyncconfirm_maintitle.textContent = _('icc-message-maintitle');
