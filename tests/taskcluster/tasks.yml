@@ -25,3 +25,4 @@ definitions:
     chunks: 30
 
   unit_tests_b2g:
+    chunks: 30
