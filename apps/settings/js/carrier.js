@@ -87,55 +87,49 @@ var CarrierSettings = (function(window, document, undefined) {
       header.setAttribute('data-href', '#carrier-iccs');
     }
 
-    /*
-     * Displaying all GSM and CDMA options by default for CDMA development.
-     * We should remove CDMA options after the development finished.
-     * Bug 881862 is filed for tracking this.
-     */
-    // get network type
-    getSupportedNetworkInfo(_mobileConnection, function(result) {
-      var content =
-        document.getElementById('carrier-operatorSettings-content');
+    var content =
+      document.getElementById('carrier-operatorSettings-content');
 
-      cs_initOperatorSelector();
-      cs_initRoamingPreferenceSelector();
-      cs_refreshDataUI();
+    cs_initOperatorSelector();
+    cs_initRoamingPreferenceSelector();
+    cs_refreshDataUI();
 
-      // Init warnings the user sees before enabling data calls and roaming.
-      cs_initWarnings();
+    // Init warnings the user sees before enabling data calls and roaming.
+    cs_initWarnings();
 
-      window.addEventListener('panelready', function(e) {
-        // Get the mozMobileConnection instace for this ICC card.
-        _mobileConnection = _mobileConnections[
-          DsdsSettings.getIccCardIndexForCellAndDataSettings()
-        ];
-        if (!_mobileConnection) {
-          return;
-        }
+    window.addEventListener('panelready', function(e) {
+      // Get the mozMobileConnection instace for this ICC card.
+      _mobileConnection = _mobileConnections[
+        DsdsSettings.getIccCardIndexForCellAndDataSettings()
+      ];
+      if (!_mobileConnection) {
+        return;
+      }
 
-        var currentHash = e.detail.current;
-        if (currentHash === '#carrier') {
-          cs_updateNetworkTypeLimitedItemsVisibility(
-            _mobileConnection.voice && _mobileConnection.voice.type);
-          // Show carrier name.
-          cs_showCarrierName();
-          cs_disabeEnableDataCallCheckbox();
-          return;
-        }
+      var currentHash = e.detail.current;
+      if (currentHash === '#carrier') {
+        cs_updateNetworkTypeLimitedItemsVisibility(
+          _mobileConnection.voice && _mobileConnection.voice.type);
+        // Show carrier name.
+        cs_showCarrierName();
+        cs_disabeEnableDataCallCheckbox();
+        return;
+      }
 
-        if (!currentHash.startsWith('#carrier-') ||
-            (currentHash === '#carrier-iccs') ||
-            (currentHash === '#carrier-dc-warning') ||
-            (currentHash === '#carrier-dr-warning')) {
-          return;
-        }
+      if (!currentHash.startsWith('#carrier-') ||
+          (currentHash === '#carrier-iccs') ||
+          (currentHash === '#carrier-dc-warning') ||
+          (currentHash === '#carrier-dr-warning')) {
+        return;
+      }
 
-        if (currentHash === '#carrier-operatorSettings') {
+      if (currentHash === '#carrier-operatorSettings') {
+        getSupportedNetworkInfo(_mobileConnection, function(result) {
           cs_updateNetworkTypeSelector(result);
           cs_updateAutomaticOperatorSelectionCheckbox();
-          return;
-        }
-      });
+        });
+        return;
+      }
     });
   }
 
