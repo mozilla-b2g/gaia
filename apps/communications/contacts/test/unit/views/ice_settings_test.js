@@ -116,7 +116,7 @@ suite('ICE Settings view', function() {
       };
       subject.init();
       // On init and when we do the listening
-      sinon.assert.calledTwice(asyncStorage.getItem);
+      sinon.assert.calledOnce(asyncStorage.getItem);
 
       assertIceContacts([{ label: '', active: false},
                          { label: '', active: false}]);
