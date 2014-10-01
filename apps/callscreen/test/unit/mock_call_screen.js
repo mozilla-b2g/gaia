@@ -108,7 +108,8 @@ var MockCallScreen = {
   cdmaConferenceCall: function() {},
   hidePlaceNewCallButton: function() {},
   showPlaceNewCallButton: function() {},
-
+  toggleOnHold : function() {},
+  
   set holdAndAnswerOnly(enabled) {
     this.mHoldAndAnswerOnly = enabled;
   },

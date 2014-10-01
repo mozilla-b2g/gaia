@@ -569,6 +569,7 @@ var CallsHandler = (function callsHandler() {
       CallScreen.enableMute();
       CallScreen.enableSpeaker();
     }
+    CallScreen.toggleOnHold();
   }
 
   // Hang up the held call or the second incomming call
@@ -766,8 +767,9 @@ var CallsHandler = (function callsHandler() {
   function mergeCalls() {
     if (!telephony.conferenceGroup.calls.length) {
       telephony.conferenceGroup.add(telephony.calls[0], telephony.calls[1]);
+    } else {
+      telephony.conferenceGroup.add(telephony.calls[0]);
     }
-    telephony.conferenceGroup.add(telephony.calls[0]);
   }
 
   /* === Telephony audio channel competing functions ===*/
@@ -812,14 +814,12 @@ var CallsHandler = (function callsHandler() {
     }
   }
 
-  function getNumberOfCalls() {
-    return telephony.calls.length +
-      (telephony.conferenceGroup.calls.length ? 1 : 0);
-  }
-
   function updateMergeAndOnHoldStatus() {
     var isEstablishing = isEstablishingCall();
-    if (getNumberOfCalls() > 1 && !isEstablishing) {
+    var openLines = telephony.calls.length +
+      (telephony.conferenceGroup.calls.length ? 1 : 0);
+    
+    if (openLines > 1 && !isEstablishing) {
       CallScreen.hideOnHold();
       CallScreen.showMerge();
     } else {
