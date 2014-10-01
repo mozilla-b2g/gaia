@@ -5,6 +5,7 @@
 
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/elements/gaia_menu/mock_gaia_menu.js');
@@ -48,18 +49,21 @@ suite('GaiaSimPicker', function() {
   });
 
   setup(function() {
-    this.sinon.spy(MockGaiaMenu, 'show');
-
     this.container = document.createElement('div');
     this.container.innerHTML =
       '<gaia-sim-picker></gaia-sim-picker>';
     subject = this.container.firstElementChild;
     subject._menu = MockGaiaMenu;
 
+    this.sinon.spy(MockGaiaMenu, 'show');
+    this.sinon.spy(subject, 'focus');
+    this.sinon.useFakeTimers();
+
     navigator.mozIccManager.addIcc(0, {});
     navigator.mozIccManager.addIcc(1, {});
 
     subject.getOrPick(0, '1111');
+    this.sinon.clock.tick(); // for the mozL10n timeout
 
     header = subject.shadowRoot.querySelector('#sim-picker-dial-via');
     menu = subject.shadowRoot.querySelector('gaia-menu');
@@ -111,12 +115,7 @@ suite('GaiaSimPicker', function() {
     });
 
     test('should focus on self', function() {
-      var focusSpy = this.sinon.spy(subject, 'focus');
-      subject.getOrPick(0, '1111');
-
-      setTimeout(function() {
-        sinon.assert.calledOnce(focusSpy);
-      });
+      sinon.assert.calledOnce(subject.focus);
     });
   });
 
