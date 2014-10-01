@@ -7,6 +7,12 @@ task:
   provisionerId: '{{provisionerId}}'
 
   payload:
+
+    # Chunking logic is handled in travis_ci/unit-tests-in-b2g/script
+    env:
+      THIS_CHUNK: '{{chunk}}'
+      TOTAL_CHUNKS: '{{totalChunks}}'
+
     command:
       - entrypoint
       - ./bin/ci run unit-tests-in-b2g
