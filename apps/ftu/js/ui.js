@@ -86,8 +86,8 @@ var UIManager = {
     //Date & Time
     'date-configuration',
     'time-configuration',
-    'date-configuration-label',
-    'time-configuration-label',
+    'date-configuration-button',
+    'time-configuration-button',
     'time-form',
     // 3G
     'data-connection-switch',
@@ -125,9 +125,10 @@ var UIManager = {
     var currentDate = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
     var format = _('shortTimeFormat');
-    this.timeConfigurationLabel.innerHTML = f.localeFormat(currentDate, format);
-    this.dateConfigurationLabel.innerHTML = currentDate.
-      toLocaleFormat('%Y-%m-%d');
+    this.timeConfigurationButton.innerHTML = 
+      f.localeFormat(currentDate, format);
+    this.dateConfigurationButton.innerHTML = 
+      currentDate.toLocaleFormat('%Y-%m-%d');
 
     // Add events to DOM
     this.simImportButton.addEventListener('click', this);
@@ -492,7 +493,7 @@ var UIManager = {
     var currentTime = now.toLocaleFormat('%H:%M');
     var timeToSet = new Date(currentDate + 'T' + currentTime);
     TimeManager.set(timeToSet);
-    this.dateConfigurationLabel.innerHTML =
+    this.dateConfigurationButton.innerHTML =
       timeToSet.toLocaleFormat('%Y-%m-%d');
   },
 
@@ -500,7 +501,7 @@ var UIManager = {
     if (!!this.lock) {
       return;
     }
-    var timeLabel = document.getElementById('time-configuration-label');
+    var timeLabel = document.getElementById('time-configuration-button');
     // Current time
     var now = new Date();
     // Format: 2012-09-01
@@ -522,20 +523,18 @@ var UIManager = {
     this.timeZoneNeedsConfirmation = !!needsConfirmation;
 
     var utcOffset = timezone.utcOffset;
-    document.getElementById('time_zone_overlay').className =
-      'UTC' + utcOffset.replace(/[+:]/g, '');
     var timezoneTitle = document.getElementById('time-zone-title');
     navigator.mozL10n.localize(timezoneTitle, 'timezoneTitle', {
       utcOffset: utcOffset,
       region: timezone.region,
       city: timezone.city
     });
-    document.getElementById('tz-region-label').textContent = timezone.region;
-    document.getElementById('tz-city-label').textContent = timezone.city;
+    document.getElementById('tz-region-button').textContent = timezone.region;
+    document.getElementById('tz-city-button').textContent = timezone.city;
 
     var f = new navigator.mozL10n.DateTimeFormat();
     var now = new Date();
-    var timeLabel = document.getElementById('time-configuration-label');
+    var timeLabel = document.getElementById('time-configuration-button');
     timeLabel.innerHTML = f.localeFormat(now, _('shortTimeFormat'));
   },
 
