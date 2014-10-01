@@ -180,10 +180,6 @@
     // batches can be linked together into larger time periods
     this.deviceID = null;
 
-    // Are we online? Initialized in startCollecting() and updated in
-    // handleEvent() based on online and offline events
-    this.online = false;
-
     // Is the user idle? Updated in handleEvent() based on an idle observer
     this.idle = false;
 
@@ -438,14 +434,6 @@
     case ACTIVE:
       this.idle = false;
       break;
-
-    case ONLINE:
-      this.online = true;
-      break;
-
-    case OFFLINE:
-      this.online = false;
-      break;
     }
 
     /*
@@ -458,8 +446,10 @@
       this.metrics.save(); // Doesn't do anything if metrics have not changed
     }
 
+    var online = navigator.onLine;
+
     // Is there data to be sent and is this an okay time to send it?
-    if (!this.metrics.isEmpty() && this.idle && this.online) {
+    if (!this.metrics.isEmpty() && this.idle && online) {
       // Have we tried and failed to send it before?
       if (this.lastFailedTransmission > this.metrics.startTime()) {
 
