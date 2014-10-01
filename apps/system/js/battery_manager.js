@@ -71,6 +71,13 @@ var BatteryManager = {
         PowerSaveHandler.onBatteryChange();
 
         var battery = this._battery;
+
+        if ('vibrate' in navigator) {
+          window.setTimeout(function() {
+            navigator.vibrate(100);
+          }, 750);
+        }
+
         // We turn the screen on if needed in order to let
         // the user knows the device is charging
 
