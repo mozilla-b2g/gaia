@@ -249,6 +249,34 @@ var DownloadHelper = (function() {
     }
   };
 
+  /*
+   * This action gets the info for a download
+   *
+   * @param{Object} Configuration parameters
+   */
+  var InfoAction = function InfoAction(params) {
+    Action.call(this, params);
+
+    this.data = {
+      name: DownloadFormatter.getFileName(params.download),
+      type: params.type,
+      blob: params.blob,
+      size: params.download.totalBytes,
+      path: params.download.path
+    };
+  };
+
+  InfoAction.prototype = {
+    __proto__: Action.prototype,
+
+    /*
+     * It overrides the generic run method
+     */
+    run: function ia_run() {
+      this.req.done(this.data);
+    }
+  };
+
   // This is a factory that deals with different <Action> objects
   var ActionsFactory = {
     TYPE: {
@@ -259,6 +287,9 @@ var DownloadHelper = (function() {
       SHARE: {
         activityName: 'share',
         actionClass: ShareAction
+      },
+      INFO: {
+        actionClass: InfoAction
       },
       WALLPAPER: {
         activityName: 'setwallpaper',
@@ -320,7 +351,8 @@ var DownloadHelper = (function() {
           if (type.length === 0) {
             type = download.contentType;
 
-            if (actionType !== ActionsFactory.TYPE.OPEN) {
+            if (actionType !== ActionsFactory.TYPE.OPEN &&
+                actionType !== ActionsFactory.TYPE.INFO) {
               sendError(req, 'Mime type not supported: ' + type,
                         CODE.MIME_TYPE_NOT_SUPPORTED);
               return;
@@ -578,6 +610,15 @@ var DownloadHelper = (function() {
     */
     ringtone: function(download) {
       return runAction(ActionsFactory.TYPE.RINGTONE, download);
+    },
+
+   /*
+    * This method returns information about a download
+    *
+    * @param{Object} It represents a DOMDownload object
+    */
+    info: function(download) {
+      return runAction(ActionsFactory.TYPE.INFO, download);
     },
 
     /*
