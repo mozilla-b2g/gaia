@@ -89,7 +89,10 @@ li a:active {
 /* Graphic content */
 [data-type="list"] aside {
   float: left;
-  margin: 0 0.5rem 0 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  -moz-margin-start: 0;
+  -moz-margin-end: 0.5rem;
   height: 100%;
   position: relative;
 }
@@ -102,6 +105,10 @@ li a:active {
 [data-type="list"] aside.pack-end {
   float: right;
   margin: 0 0 0 0.5rem;
+  margin-top: 0;
+  margin-bottom: 0;
+  -moz-margin-start: 0.5rem;
+  -moz-margin-end: 0;
   text-align: right;
 }
 
@@ -194,12 +201,12 @@ li a:active {
 [data-type="list"] li > .pack-radio input ~ span:after,
 [data-type="list"] li > .pack-switch input ~ span:after {
   left: 0;
-  margin-left: 0;
+  -moz-margin-start: 0;
 }
 
 /* Edit mode */
 [data-type="list"] [data-type="edit"] li {
-  padding-left: 4rem;
+  -moz-padding-start: 4rem;
 }
 
 [data-type="list"] [data-type="edit"] li > .pack-checkbox,
@@ -225,4 +232,31 @@ li a:active {
 /* Themes */
 .skin-comms [data-type="list"] header {
   color: #4997a7;
+}
+
+/* RTL View */
+html[dir="rtl"] [data-type="list"] aside {
+  float: right;
+}
+
+html[dir="rtl"] [data-type="list"] aside.pack-end {
+  float: left;
+  text-align: left;
+}
+
+html[dir="rtl"] [data-type="list"] li > .pack-checkbox,
+html[dir="rtl"] [data-type="list"] li > .pack-radio,
+html[dir="rtl"] [data-type="list"] li > .pack-switch {
+  left: 0;
+  right: -4rem;
+}
+
+html[dir="rtl"] [data-type="list"] li > .pack-checkbox input ~ span:after,
+html[dir="rtl"] [data-type="list"] li > .pack-radio input ~ span:after,
+html[dir="rtl"] [data-type="list"] li > .pack-switch input ~ span:after,
+html[dir="rtl"] [data-type="list"] [data-type="edit"] li > .pack-checkbox,
+html[dir="rtl"] [data-type="list"] [data-type="edit"] li > .pack-radio,
+html[dir="rtl"] [data-type="list"] [data-type="edit"] li > .pack-switch {
+  left: unset;
+  right: 0;
 }

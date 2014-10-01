@@ -43,3 +43,8 @@ li:active:before {
   z-index: -1;
   content: '';
 }
+
+html[dir="rtl"] li:active:before {
+  left: unset;
+  right: -1.5rem;
+}
