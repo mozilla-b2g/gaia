@@ -73,12 +73,6 @@ function decorateTask(task, options) {
   payload.image = payload.image || (IMAGE.trim()) + ':' + (VERSION.trim());
   payload.maxRunTime = 100 * 60; // 100 minutes in seconds...
 
-  // TODO: We need to define specific taskclusterProject's for each branch but
-  //       right now only the `gaia` project is defined in the future we will
-  //       have more.
-  output.task.tags.treeherderProject =
-    output.task.tags.treeherderProject || 'gaia';
-
   // Copy over the important environment variables...
   payload.env = payload.env || {};
   COPIED_ENVS.forEach(function(env) {
