@@ -13,6 +13,8 @@ function waiting_port {
   exit 1
 }
 
+make node_modules
+
 echo "Starting test-agent-server"
 make test-agent-server &
 
