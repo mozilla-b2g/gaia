@@ -252,6 +252,7 @@ var icc = {
   },
 
   setupView: function icc_setupView(viewId) {
+    viewId.style.marginTop = StatusBar.height + 'px';
     // If the view has a form, we should be care of the keyboard changes
     if (viewId.getElementsByTagName('form').length > 0) {
       this.keyboardChangedEvent(viewId);
@@ -268,19 +269,16 @@ var icc = {
       keyboardHeight = KeyboardManager.getHeight() || 0;
     }
     var form = viewId.getElementsByTagName('form');
-    var height = (window.innerHeight - keyboardHeight - StatusBar.height);
-    height -= softwareButtonManager.height;
-    viewId.style.height = height + 'px';
+    viewId.style.height =
+      (window.innerHeight - keyboardHeight - StatusBar.height) + 'px';
     if (form && viewId.clientHeight > 0) {
       var input = viewId.getElementsByTagName('input')[0];
       var header = viewId.getElementsByTagName('gaia-header')[0];
       var headerSubtitle = viewId.getElementsByTagName('gaia-subheader')[0];
       var menu = viewId.getElementsByTagName('menu')[0];
-      var formHeight = viewId.clientHeight;
-      formHeight -= (header.clientHeight + headerSubtitle.clientHeight);
-      formHeight -= menu.clientHeight;
-      formHeight -= softwareButtonManager.height;
-      form[0].style.height = formHeight + 'px';
+      form[0].style.height = viewId.clientHeight -
+        (header.clientHeight + headerSubtitle.clientHeight) -
+        menu.clientHeight + 'px';
       input.scrollIntoView();
     }
   },

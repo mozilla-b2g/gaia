@@ -8,7 +8,8 @@
   display: none;
   position: fixed;
   width: 100%;
-  top: var(--statusbar-height);
+  height: 100%;
+  top: 0;
   background: #f4f4f4;
   color: #000;
 }
@@ -18,7 +19,6 @@
   position: absolute;
   width: 100%;
   top: 0;
-  height: 100%;
 }
 
 #icc-view > section > form,
