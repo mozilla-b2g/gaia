@@ -1,6 +1,7 @@
 #! /bin/bash -vex
 
 make node_modules
+npm ls
 
 pwd
 ls
