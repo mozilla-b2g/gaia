@@ -26,6 +26,7 @@ class Camera(Base):
     _video_timer_locator = (By.CSS_SELECTOR, '.recording-timer')
 
     # HUD View
+    _body_locator = (By.CSS_SELECTOR, 'body.theme-media')
     _hud_locator = (By.CSS_SELECTOR, '.hud')
     _loading_screen_locator = (By.CSS_SELECTOR, '.loading-screen')
     _toggle_flash_button_locator = (By.CSS_SELECTOR, '.test-flash-button')
@@ -112,6 +113,8 @@ class Camera(Base):
 
         self.wait_for_condition(lambda m: self.marionette.find_element(
             *self._controls_locator).get_attribute('data-enabled') == 'true')
+        self.wait_for_condition(lambda m: 'no-background' in self.marionette.find_element(
+            *self._body_locator).get_attribute('class'))
 
         self.wait_for_condition(lambda m: self.marionette.find_element(
             *self._controls_locator).is_enabled())
