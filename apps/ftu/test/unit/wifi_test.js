@@ -7,7 +7,6 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 requireApp('ftu/js/wifi.js');
 
-var _;
 var mocksHelperForWifi = new MocksHelper([
   'utils',
   'WifiHelper'

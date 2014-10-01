@@ -427,7 +427,7 @@ var UIManager = {
     UIManager.newsletterInput.value = acct.email;
     // Update the string
     UIManager.fxaIntro.innerHTML = '';
-    navigator.mozL10n.localize(
+    navigator.mozL10n.setAttributes(
       UIManager.fxaIntro,
       acct.verified ? 'fxa-signed-in' : 'fxa-email-sent',
       {
@@ -446,7 +446,7 @@ var UIManager = {
     // Clean fields
     UIManager.newsletterInput.value = '';
     // Reset the field
-    navigator.mozL10n.localize(
+    navigator.mozL10n.setAttributes(
       UIManager.fxaIntro,
       'fxa-upsell'
     );
@@ -458,9 +458,9 @@ var UIManager = {
   },
 
   displayOfflineDialog: function ui_displayOfflineDialog(href, title) {
-    var dialog = this.offlineErrorDialog,
-        text = _('offline-dialog-text', { url: href });
-    dialog.querySelector('small').textContent = text;
+    var dialog = this.offlineErrorDialog;
+    navigator.mozL10n.setAttributes(dialog.querySelector('small'),
+      'offline-dialog-text', { url: href });
     dialog.classList.add('visible');
     this.hideActivationScreenFromScreenReader();
   },
@@ -525,7 +525,7 @@ var UIManager = {
     document.getElementById('time_zone_overlay').className =
       'UTC' + utcOffset.replace(/[+:]/g, '');
     var timezoneTitle = document.getElementById('time-zone-title');
-    navigator.mozL10n.localize(timezoneTitle, 'timezoneTitle', {
+    navigator.mozL10n.setAttributes(timezoneTitle, 'timezoneTitle', {
       utcOffset: utcOffset,
       region: timezone.region,
       city: timezone.city
