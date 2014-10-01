@@ -1,0 +1,74 @@
+/* ----------------------------------
+ * Value selector tablet (Single & Multiple)
+ * ---------------------------------- */
+
+
+@media (min-width: 640px){
+ 
+  form[role="dialog"][data-type="value-selector"] {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    background:
+      url(value_selector/images/ui/pattern.png) repeat left top,
+      url(value_selector/images/ui/gradient.png) no-repeat center / 56rem 36.5rem;
+    background-color: rgba(0,0,0,0.65);
+  }
+
+  form[role="dialog"][data-type="value-selector"] .scrollable:before{
+    content: "";
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0 auto;
+    background: url('value_selector/images/ui/shadow.png') repeat-x scroll left 6.8rem, url('value_selector/images/ui/shadow-invert.png') repeat-x scroll left bottom 7rem transparent;
+    width: 56rem;
+    height: 36.5rem;
+  }
+
+
+  form[role="dialog"][data-type="value-selector"] > section {
+    width: 56rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: calc(36.5rem - 6.8rem);
+  }
+  
+  form[role="dialog"][data-type="value-selector"] > section h1{
+    height: 7rem;
+    padding: 0 6rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  form[role="dialog"][data-type="value-selector"] [role="listbox"]{
+    height: calc(100% - 7rem);
+    padding-left: 6rem;
+    padding-right: 6rem;
+  }
+
+
+  form[role="dialog"][data-type="value-selector"] menu {
+    position: static;
+    width: 56rem;
+    box-sizing: padding-box;
+    height: 7rem;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  form[role="dialog"][data-type="value-selector"] menu button {
+    width: calc((60% - 1rem) / 2);
+  }
+
+  form[role="dialog"][data-type="value-selector"] menu button.full {
+    width: calc(100% - 12rem);
+  }
+
+}

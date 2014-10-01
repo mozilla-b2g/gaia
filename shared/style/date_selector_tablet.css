@@ -1,0 +1,52 @@
+/* ----------------------------------
+ * Date selector tablet
+ * ---------------------------------- */
+
+/* Main dialog setup */
+@media (min-width: 640px){
+
+  [role="dialog"][data-type="date-selector"] {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    background:
+      url(confirm/images/ui/pattern.png) repeat left top,
+      url(confirm/images/ui/gradient.png) no-repeat center / 56rem 36.5rem;
+    background-color: rgba(0,0,0,0.65);
+
+  }
+  
+  form[role="dialog"][data-type="date-selector"] h1 {
+    width: 56rem;
+    height: 7rem;
+    padding: 0px 6rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  [role="dialog"][data-type="date-selector"] .picker-container {
+    width: calc( 56rem - 12rem);
+    height: calc(36.5rem - 14rem);
+    margin: 0;
+  }
+
+  form[role="dialog"][data-type="date-selector"] menu {
+    position: static;
+    width: 56rem;
+    height: 7rem;
+    box-sizing: padding-box;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  form[role="dialog"][data-type="date-selector"] menu button {
+    width: calc(56rem / 2 - 12rem);
+  }
+
+}

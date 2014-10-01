@@ -1,0 +1,78 @@
+/* ----------------------------------
+ * Action menu tablet
+ * ---------------------------------- */
+
+/* Main dialog setup */
+@media (min-width: 640px){
+ form[role="dialog"][data-type="action"] {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    background:
+      url(value_selector/images/ui/pattern.png) repeat left top,
+      url(value_selector/images/ui/gradient.png) no-repeat center / 56rem 36.5rem;
+    background-color: rgba(0,0,0,0.65);
+  }
+
+  form[role="dialog"][data-type="action"]:before{
+    display: none;
+  }
+  
+  form[role="dialog"][data-type="action"] > header {
+    position: static;
+    width: 56rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 7rem;
+  }
+  
+  form[role="dialog"][data-type="action"] > header:after{
+    display: none;
+  }
+
+  form[role="dialog"][data-type="action"] > menu {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    width: 56rem;
+    overflow: scroll;
+    margin-bottom: 7rem;
+    height: calc(36.5rem - 14rem);
+  }
+
+  form[role="dialog"][data-type="action"] > menu > button{
+    flex-shrink: 0;
+  }
+
+  form[role="dialog"][data-type="action"] > menu > button:last-child,
+  form[role="dialog"][data-type="object"] > menu > button:last-child {
+    position: absolute;
+    left: 0px;
+    width: 53rem;
+    top: calc(50% + 36.5rem / 2 - 4rem - 1.5rem);
+    left: calc(50% - 53rem / 2);
+    overflow: visible;
+    margin: 0;
+  }
+
+  form[role="dialog"][data-type="action"] > menu > button:last-child:before,
+  form[role="dialog"][data-type="object"] > menu > button:last-child:before {
+    content: "";
+    position: absolute;
+    height: auto;
+     width: auto;
+    top: -1.5rem;
+    right: -1.5rem;
+    left: -1.5rem;
+    bottom: -1.5rem;
+    z-index: -1;
+    border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
+  }
+
+}
