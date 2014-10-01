@@ -318,11 +318,26 @@ var IMERender = (function() {
     if (!options.showUpperCase) {
       keyElem.classList.add('lowercase');
     }
+    // Show highlight locked background.
+    switch (options.capsLockState) {
+      case 'upperCaseLocked':
+        keyElem.classList.add('highlight-locked-uppercaselocked');
+        break;
+      case 'upperCase':
+        keyElem.classList.add('highlight-locked-uppercase');
+        break;
+      case 'none':
+        keyElem.classList.add('highlight-locked-none');
+        break;
+    }
   };
 
   // Unhighlight a key
   var unHighlightKey = function kr_unHighlightKey(key) {
     var keyElem = targetObjDomMap.get(key);
+    keyElem.classList.remove('highlight-locked-uppercaselocked');
+    keyElem.classList.remove('highlight-locked-uppercase');
+    keyElem.classList.remove('highlight-locked-none');
     keyElem.classList.remove('highlighted');
     keyElem.classList.remove('lowercase');
   };
