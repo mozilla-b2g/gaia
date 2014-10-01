@@ -167,4 +167,15 @@ suite('Integration tests', function() {
       }
     );
   });
+
+  test('make caldav-server-install to install CalDAV server', function(done) {
+    helper.exec('make caldav-server-install',
+      function(error, stdout, stderr) {
+        var installedExtsPath = path.join('ci_venv', 'bin', 'radicale');
+        helper.checkError(error, stdout, stderr);
+        assert.ok(fs.existsSync(installedExtsPath));
+        done();
+      }
+    );
+  });
 });
