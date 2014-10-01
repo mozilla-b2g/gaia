@@ -1,6 +1,6 @@
 'use strict';
 /* global AppWindow, PopupWindow, ActivityWindow, SettingsListener,
-          AttentionWindow, MozActivity */
+          FtuLauncher, AttentionWindow, MozActivity */
 
 (function(exports) {
   var ENABLE_IN_APP_SHEET = false;
@@ -56,6 +56,7 @@
 
       // <a href="" target="_blank"> should never be part of the app
       if (evt.detail.name == '_blank' &&
+          !FtuLauncher.isFtuRunning() &&
           evt.detail.features !== 'attention') {
         this.createNewWindow(evt);
         evt.stopPropagation();
