@@ -84,34 +84,34 @@ suite('Media Frame Unit Tests', function() {
       frame.displayImage(dummyJPEGBlob, 8000, 6000, null, 0, false);
       assert.isTrue(frame.displayingImage);
       assert.isTrue(frame.displayingPreview);
-      assert.isNull(frame.previewblob);  // no separate preview image
+      assert.isNull(frame.previewurl);  // no separate preview image
       assert.notEqual(frame.previewSampleSize, Downsample.NONE);
       frame.reset();
       assert.isTrue(frame.displayingPreview);
       assert.isTrue(frame.displayingImage);
-      assert.equal(frame.previewblob, null);
+      assert.isNull(frame.previewurl);
     });
 
     test('=> displayImage big PNG image without preview', function() {
       frame.displayImage(dummyPNGBlob, 8000, 6000, null, 0, false);
       assert.isTrue(frame.displayingImage);
       assert.isFalse(frame.displayingPreview);
-      assert.isNull(frame.previewblob);
+      assert.isNull(frame.previewurl);
       frame.reset();
       assert.isFalse(frame.displayingPreview);
       assert.isTrue(frame.displayingImage);
-      assert.equal(frame.previewblob, null);
+      assert.isNull(frame.previewurl);
     });
 
     test('=> displayImage small without preview', function() {
       frame.displayImage(dummyJPEGBlob, 160, 120, null, 0, false);
       assert.isTrue(frame.displayingImage);
       assert.isFalse(frame.displayingPreview);
-      assert.isNull(frame.previewblob);
+      assert.isNull(frame.previewurl);
       frame.reset();
       assert.isFalse(frame.displayingPreview);
       assert.isTrue(frame.displayingImage);
-      assert.isNull(frame.previewblob);
+      assert.isNull(frame.previewurl);
     });
 
     test('=> displayImage embedded preview, bigEnough=false', function() {
@@ -124,12 +124,12 @@ suite('Media Frame Unit Tests', function() {
       frame.displayImage(dummyJPEGBlob, 8000, 6000, preview, 0, false);
       assert.isTrue(frame.displayingImage);
       assert.isTrue(frame.displayingPreview);
-      assert.isNull(frame.previewblob);
+      assert.isNull(frame.previewurl);
       assert.notEqual(frame.previewSampleSize, Downsample.NONE);
       frame.reset();
       assert.isTrue(frame.displayingPreview);
       assert.isTrue(frame.displayingImage);
-      assert.isNull(frame.previewblob);
+      assert.isNull(frame.previewurl);
     });
 
     test('=> displayImage preview big enough, aspect ratio wrong', function() {
@@ -142,12 +142,12 @@ suite('Media Frame Unit Tests', function() {
       frame.displayImage(dummyJPEGBlob, 8000, 6000, preview, 0, false);
       assert.isTrue(frame.displayingPreview);
       assert.isTrue(frame.displayingImage);
-      assert.isNull(frame.previewblob);
+      assert.isNull(frame.previewurl);
       assert.notEqual(frame.previewSampleSize, Downsample.NONE);
       frame.reset();
       assert.isTrue(frame.displayingPreview);
       assert.isTrue(frame.displayingImage);
-      assert.isNull(frame.previewblob);
+      assert.isNull(frame.previewurl);
     });
 
     test('=> displayImage preview big enough, aspect ratio ok', function() {
@@ -160,11 +160,11 @@ suite('Media Frame Unit Tests', function() {
       frame.displayImage(dummyJPEGBlob, 8000, 6000, preview, 0, false);
       assert.isTrue(frame.displayingPreview);
       assert.isTrue(frame.displayingImage);
-      assert.ok(frame.previewblob);
+      assert.ok(frame.previewurl);
       frame.reset();
       assert.isTrue(frame.displayingPreview);
       assert.isTrue(frame.displayingImage);
-      assert.ok(frame.previewblob);
+      assert.ok(frame.previewurl);
     });
 
     test('=> displayImage preview file, get success', function() {
@@ -186,7 +186,7 @@ suite('Media Frame Unit Tests', function() {
             retObj.onsuccess();
             assert.isTrue(frame.displayingPreview);
             assert.isTrue(frame.displayingImage);
-            assert.ok(frame.previewblob);
+            assert.ok(frame.previewurl);
             frame.reset();
           });
 
@@ -222,7 +222,7 @@ suite('Media Frame Unit Tests', function() {
           setTimeout(function() {
             retObj.onerror();
             assert.isFalse(frame.displayingPreview);
-            assert.isNull(frame.preview);
+            assert.isNull(frame.previewurl);
             assert.isTrue(frame.displayingImage);
             frame.reset();
           });
@@ -259,7 +259,7 @@ suite('Media Frame Unit Tests', function() {
       MediaFrame.maxImageDecodeSize = 0;
       frame = new MediaFrame(dummyDiv, false);
       frame.displayImage(dummyJPEGBlob, 10000, 10000);
-      assert.equal(frame.fullSampleSize, Downsample.NONE);
+      assert.deepEqual(frame.fullSampleSize, Downsample.NONE);
     });
 
     test('limit decode size with constructor', function() {
