@@ -4,17 +4,32 @@ html, body {
   margin: 0;
   padding: 0;
   overflow: hidden !important;
-  font-size: 10px;
-  font-weight: 400;
+  font-size: 11px;
+  font-weight: 300;
   -moz-user-select: none;
+}
+
+p {
+  font-weight: 200;
 }
 
 a {
   font-size: 1.35rem;
   line-height: 1.8rem;
-  color: #000;
+  color: dodgerblue;
   text-decoration: underline;
-  font-weight: 500;
+  font-weight: 200;
+}
+
+.disabled, [disabled] {
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.content {
+  padding: 0 3rem 0 3rem;
+  font-size: 18px;
+  line-height: 1.8rem;
 }
 
 /*
@@ -44,7 +59,7 @@ a {
   left: 0;
   right: 0;
   top: 5rem;
-  bottom: 6.5rem;
+  bottom: 0;
 }
 
 /*
@@ -79,7 +94,7 @@ gaia-buttons.forward-only .icon-previous {
   Header conditional button
 */
 
-.no-options header menu,
+.no-options gaia-header menu,
 .no-options gaia-header button {
   display: none !important;
 }
@@ -253,21 +268,12 @@ gaia-buttons.forward-only .icon-previous {
 /*
   Languages Styles
 */
-
-#languages {
-  background: url(images/bg_bubbles.png) fixed no-repeat;
-  background-size: 100% auto;
-  overflow: hidden;
-}
-
 #languages [data-type="list"] {
-  position: relative;
-  top: 15.5rem;
-  height: calc(100% - 15.5rem);
   overflow-y: scroll;
   overflow-x: hidden;
   padding-top: 0;
 }
+
 /*
   #SIM_mandatory
 */
@@ -291,35 +297,22 @@ gaia-buttons.forward-only .icon-previous {
  * Wifi
  */
 
-#wifi {
-  top: 1.5rem;
-}
-
 #wifi [data-type="list"] li > p {
   pointer-events: none;
   padding-right: 6.2rem;
 }
 
-#wifi li {
-  padding: 0 1.5rem;
-  display: flex;
-  flex-direction: column;
+#wifi ul {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
 }
+
 #wifi li.connected p {
   color: #00AACC;
 }
 
-#wifi li:after {
-  content: "";
-  transition: opacity 0.2s ease;
-  background: #b1f1ff;
-  opacity: 0;
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
+#wifi p[data-security-level]{
+  font-size: 15px;
 }
 
 #wifi li:active:after {
@@ -339,27 +332,17 @@ gaia-buttons.forward-only .icon-previous {
 */
 
 #wifi-wrapper {
-  top: -1rem;
+  top: 0;
   bottom: 5.5rem;
 }
 
-#networks-list:first-child {
-  padding-top: 0;
-}
-
-#join-hidden-button {
-  bottom: 0;
-  margin-top: 1.5rem;
-  width: calc(100% - 3rem);
-  margin-left: 1.5rem;
-}
-
 #wifi #no-result-container {
-  position: absolute;
-  background: url('images/wifi_icon.png') no-repeat fixed center / 23.6rem;
-  height: 100%;
-  width: 100%;
+  background: url('images/wifi_icon.png') no-repeat;
+  background-position: center center;
   pointer-events: none;
+  border-bottom: 0.1rem solid #E7E7E7;
+  margin-left: 1.5rem;
+  margin-right: 1.5rem;
 }
 
 #wifi #no-result-message {
@@ -367,23 +350,33 @@ gaia-buttons.forward-only .icon-previous {
   line-height: 3rem;
   position: relative;
   top: 50%;
-  border-top: .1rem solid rgba(96,96,96,.5);
   padding: 0;
   width: 27rem;
-  margin: -3rem auto;
+  height: 17rem;
+  margin: 0 auto;
   color: #606060;
   font-weight: 300;
   font-size: 2.26rem;
 }
 
+/*Fit two lines of text in wifi list elements*/
+#networks-list .nav-item p {
+  line-height: 2rem;
+}
+
+#networks-list .nav-item p:first-child {
+  margin-top: 1rem;
+}
+
 /*
  * States of Wifi signal
  */
-#wifi [data-type="list"] li > aside {
+#wifi .nav-item > aside {
   position: absolute;
   right: 1.5rem;
   top: 0;
 }
+
 aside.wifi-icon {
   background-repeat: no-repeat;
   background-position: 0 center;
@@ -420,6 +413,11 @@ aside.connecting {
 /*
   Wifi configuration
 */
+
+#hidden-wifi-authentication button {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
 
 #hidden-wifi-authentication form,
 #configure_network_params form {
@@ -546,7 +544,7 @@ aside.connecting {
   position: absolute;
   z-index: 2;
   width: 100%;
-  height: 100%;
+  height: 40%;
   padding-top: 0.5rem;
   -moz-box-sizing: border-box;
 }
@@ -576,7 +574,6 @@ aside.connecting {
 #time_zone_overlay.UTC1245 { background-image: url('images/timezone/+1245.png'); }
 #time_zone_overlay.UTC1300 { background-image: url('images/timezone/+1300.png'); }
 #time_zone_overlay.UTC1400 { background-image: url('images/timezone/+1400.png'); }
-
 #time_zone_overlay.UTC-0100 { background-image: url('images/timezone/-0100.png'); }
 #time_zone_overlay.UTC-0200 { background-image: url('images/timezone/-0200.png'); }
 #time_zone_overlay.UTC-0300 { background-image: url('images/timezone/-0300.png'); }
@@ -599,7 +596,7 @@ aside.connecting {
   background-repeat: no-repeat;
   background-size: 100%;
   /*position: relative;*/
-  height: 100%;
+  height: 40%;
   width: 100%;
   padding-top: 0.5rem;
   -moz-box-sizing: border-box;
@@ -635,13 +632,6 @@ aside.connecting {
   margin: 0;
 }
 
-#date_and_time [data-type="list"] {
-  position: absolute;
-  bottom: 0.5rem;
-  left: 0;
-  right: 0;
-}
-
 #date_and_time [data-type="list"] li {
   height: 5rem;
   padding: 0 1.5rem;
@@ -662,14 +652,9 @@ aside.connecting {
   margin: auto;
 }
 
-
 /*
   Import
 */
-
-#import_contacts li {
-  padding: 0 3.5rem;
-}
 
 #import_contacts li.importOption {
   padding: 0 !important;
@@ -677,16 +662,12 @@ aside.connecting {
   border-bottom: none;
 }
 
-#import_contacts #fb_import, #import_contacts #fb_after_import2 {
-  margin-top: 1rem;
-}
-
 /* Needed due to the .icon class which is overriding this property */
 #import_contacts button:active {
   background-color: #008aaa !important;
 }
 
-#no-sim, #no-memorycard, #no-network, #fb_after_import2 p {
+#no-sim, #no-memorycard, #no-network {
   color: #5B5B5B;
   font-size: 1.5rem;
   line-height: 2rem;
@@ -720,8 +701,48 @@ aside.connecting {
   background-image: url('images/gmail_icon.png');
 }
 
+#import_contacts div.nav-item:after {
+  content: "";
+  width: 3rem;
+  height: 3rem;
+  position: absolute;
+  top: calc(50% - 1.5rem);
+  right: 0.5rem;
+  background-repeat: no-repeat;
+}
+
+/*RTL adjustments*/
+html[dir="rtl"] #import_contacts div.nav-item:after {
+    right: auto;
+    left: 0.5rem;
+}
+
+#import_contacts .icon-gmail:after {
+  background-image: url('images/gmail_icon.png');
+}
+
+#import_contacts .icon-sim:after {
+  background-image: url('images/import_sim.png');
+}
+
+#import_contacts .icon-sd:after {
+  background-image: url('images/import_sd.png');
+}
+
+#import_contacts .icon-wlive:after {
+  background-image: url('images/outlook_icon.png');
+}
+
+#import_contacts .icon-fb:after {
+  background-image: url('images/f_logo.png');
+}
+
 #import_contacts li button.icon {
   padding-left: 4rem;
+}
+
+#import_contacts li button {
+  font-weight: 200;
 }
 
 #import_contacts li button.icon:before {
@@ -733,11 +754,6 @@ aside.connecting {
 #import_contacts li button[disabled="disabled"].icon:before {
   opacity: 0.2;
 }
-
-#import_contacts article:first-child ul {
-  margin-top: 1.6rem;
-}
-
 
 #fb_after_import1 {
   background: url('images/import_fb.png') no-repeat center left / 3rem;
@@ -757,42 +773,24 @@ aside.connecting {
 /*
   About your rights
 */
-#welcome_browser {
-  padding: 1.5rem 3rem 0 3rem;
-  width: calc(100% - 6rem);
-  overflow-x: hidden;
-  overflow-y: scroll;
-}
 
-#welcome_browser p {
-  margin: 0;
-  color: #000;
-  padding: 0 0 2rem 0;
-  font-size: 1.35rem;
-  line-height: 1.8rem;
-}
+
 
 #welcome_browser #browser_logo_horizontal {
-  margin: 1rem 0;
+  margin: 1rem 3rem;
 }
 
 #welcome_browser #browser_logo_horizontal img {
   width: 20rem;
 }
 
-#welcome_browser label {
-  position: absolute;
-  margin: -1.5rem 0 0 -1.5rem;
-}
-
-#welcome_browser section p a {
-  margin-left: 0.3rem;
-}
-
 #welcome_browser #browser_os_privacy_links {
   margin-bottom: 3rem;
   display: block;
-  overflow: hidden;
+  overflow: scroll;
+  position: absolute;
+  left: 2rem;
+  right: 2rem;
 }
 
 #welcome_browser #browser_os_privacy_links a {
@@ -805,44 +803,20 @@ aside.connecting {
   text-align: right;
 }
 
-#welcome_browser #form_share_statistics {
-  clear: both;
-}
-
-#welcome_browser #form_share_statistics label {
-  width: 100%;
-  height: auto;
-  margin: 0 3rem 0 0;
-  padding-right: 3rem;
-}
-
-#form_share_statistics span:after {
-  top: 1rem;
-  left: 1rem;
-}
-
-#welcome_browser #form_share_statistics p {
-  width: calc(100% - 3.5rem);
-  float: right;
-  font-size: 1.5rem;
-}
-
 /*
   Privacy policies
 */
 
-#browser_privacy {
+#browser_privacy_content {
   padding: 1.5rem 3rem 0 3rem;
   width: calc(100% - 6rem);
-  height: calc(100% - 3.5rem);
-  margin-top: 2rem;
 }
 
-#browser_privacy img {
+#browser_privacy_content img {
   vertical-align: middle;
 }
 
-#browser_privacy p {
+#browser_privacy_content > p {
   margin: 0;
   color: #000;
   padding: 0 0 2rem 0;
@@ -850,18 +824,22 @@ aside.connecting {
   line-height: 1.8rem;
 }
 
-
-#browser_privacy p a {
-  font-size: 1.35rem;
-  line-height: 1.8rem;
+#browser_privacy_content > p.content {
+  margin: 0;
   color: #000;
-  text-decoration: underline;
-  font-weight: 500;
+  padding: 0 0 2rem 0;
+  font-size: 18px;
+  line-height: 1.8rem;
 }
 
 #browser_privacy input {
   margin-bottom: 2rem;
   -moz-box-sizing: border-box;
+}
+
+#browser_privacy #bottom_link p {
+  padding: 0 1.5rem 0 1.5rem;
+  font-size: 14px;
 }
 
 .invisible {
@@ -1053,18 +1031,9 @@ i.hack-first-child {
   background-position: center center;
 }
 
-#time-form .icon {
-  background-color: transparent;
-}
-
 /*
   3G & geolocation
 */
-
-#data_3g [data-type="list"] li,
-#geolocation [data-type="list"] li {
-  padding-left: 1.5rem;
-}
 
 #data_3g .content,
 #geolocation .content {
@@ -1073,12 +1042,17 @@ i.hack-first-child {
 
 #data_3g .content p,
 #geolocation .content p {
-  font-size: 1.4rem;
+  font-size: 18px;
 }
 
 #data_3g .pack-switch,
 #geolocation .pack-switch {
   height: 100%;
+}
+
+#geolocation #privacy-link {
+  position: absolute;
+  left: 1.5rem;
 }
 
 /*
@@ -1093,15 +1067,15 @@ i.hack-first-child {
   background-image: url('images/fxa_logo.png');
   background-repeat: no-repeat;
   background-size: 16.4rem auto;
-  margin: 3rem auto 0;
+  margin: 1.5rem auto 0;
   width: 17rem;
   height: 17.5rem;
 }
 
-#firefox_accounts {
-  padding: 1rem 1rem 0;
+#fxa-intro {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
   font-size: 1.5rem;
-  text-align: center;
 }
 
 /*

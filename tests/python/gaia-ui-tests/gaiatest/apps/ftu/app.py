@@ -12,11 +12,10 @@ class Ftu(Base):
 
     name = 'FTU'
 
-    _next_button_locator = (By.ID, 'forward')
-
     # Step Languages section
     _section_languages_locator = (By.ID, 'languages')
-    _listed_languages_locator = (By.CSS_SELECTOR, "#languages ul li input[name='language.current']")
+    _us_languages_option_locator = (By.ID, 'en-US')
+    _listed_languages_locator = (By.CSS_SELECTOR, "#languages ul li")
     _language_locator = (By.CSS_SELECTOR, "#languages ul li input[name='language.current'][value='%s'] ~ p")
     _language_input_locator = (By.CSS_SELECTOR,
                                "#languages ul li input[name='language.current'][value='%s']")
@@ -24,7 +23,7 @@ class Ftu(Base):
 
     # Step Cell data section
     _section_cell_data_locator = (By.ID, 'data_3g')
-    _enable_data_checkbox_locator = (By.ID, 'data-connection-switch')
+    _enable_data_option_locator = (By.ID, 'enable-data')
 
     # Step Wifi
     _section_wifi_locator = (By.ID, 'wifi')
@@ -32,33 +31,39 @@ class Ftu(Base):
     _password_input_locator = (By.ID, 'wifi_password')
     _join_network_locator = (By.ID, 'wifi-join-button')
     _progress_activity_locator = (By.ID, 'progress-activity')
+    _wifi_forward_locator = (By.CSS_SELECTOR, '#wifi .forward');
 
     # Step Date & Time
     _section_date_time_locator = (By.ID, 'date_and_time')
     _timezone_continent_locator = (By.CSS_SELECTOR, '#time-form li:nth-child(1) > .change.icon.icon-dialog')
     _timezone_city_locator = (By.CSS_SELECTOR, '#time-form li:nth-child(2) > .change.icon.icon-dialog')
     _time_zone_title_locator = (By.ID, 'time-zone-title')
+    _timezone_forward_locator = (By.ID, 'dt_skip');
 
     # Step Geolocation
     _section_geolocation_locator = (By.ID, 'geolocation')
-    _enable_geolocation_checkbox_locator = (By.CSS_SELECTOR, '#geolocation-switch > label')
+    _geolocation_forward_locator = (By.ID, 'enable-geolocation');
 
     # Section Import contacts
     _section_import_contacts_locator = (By.ID, 'import_contacts')
     _import_from_sim_locator = (By.ID, 'sim-import-button')
     _sim_import_feedback_locator = (By.ID, 'statusMsg')
+    _import_forward_locator = (By.CSS_SELECTOR, '#import_contacts .forward');
 
     # Step Firefox Accounts
     _section_firefox_accounts_locator = (By.ID, 'firefox_accounts')
+    _fxa_forward_locator = (By.ID, 'fxa-no');
 
     # Section Welcome Browser
     _section_welcome_browser_locator = (By.ID, 'welcome_browser')
     _enable_statistic_checkbox_locator = (By.ID, 'form_share_statistics')
     _statistic_checkbox_locator = (By.ID, 'share-performance')
+    _welcome_forward_locator = (By.CSS_SELECTOR, '#welcome_browser .forward');
 
     # Section Privacy Choices
     _section_browser_privacy_locator = (By.ID, 'browser_privacy')
     _email_field_locator = (By.CSS_SELECTOR, 'input[type="email"]')
+    _privacy_forward_locator = (By.CSS_SELECTOR, '#browser_privacy .forward');
 
     # Section Finish
     _section_finish_locator = (By.ID, 'finish-screen')
@@ -101,7 +106,8 @@ class Ftu(Base):
                                  self._language_input_locator[1] % language))
 
     def tap_next(self):
-        self.marionette.find_element(*self._next_button_locator).tap()
+        #self.marionette.find_element(*self._next_button_locator).tap()
+        self.marionette.find_element().tap()
 
     def a11y_click_next(self):
         self.accessibility.click(self.marionette.find_element(*self._next_button_locator))
@@ -123,7 +129,7 @@ class Ftu(Base):
         self.accessibility.click(self.marionette.find_element(*self._enable_data_checkbox_locator))
 
     def tap_next_to_wifi_section(self):
-        self.tap_next()
+        self.marionette.find_element(*self._us_languages_option_locator).tap()
         self.wait_for_condition(lambda m: not self.is_element_displayed(*self._progress_activity_locator))
         self.wait_for_element_displayed(*self._section_wifi_locator)
 
@@ -165,7 +171,7 @@ class Ftu(Base):
             self.accessibility.click(self.marionette.find_element(*self._join_network_locator))
 
     def tap_next_to_timezone_section(self):
-        self.tap_next()
+        self.marionette.find_element(*self._wifi_forward_locator).tap()
         self.wait_for_element_displayed(*self._section_date_time_locator)
 
     def a11y_click_next_to_timezone_section(self):
@@ -197,7 +203,11 @@ class Ftu(Base):
         return self.marionette.find_element(*self._time_zone_title_locator).text
 
     def tap_next_to_geolocation_section(self):
-        self.tap_next()
+        dt_skip = self.wait_for_element_present(*self._timezone_forward_locator)
+        self.marionette.execute_script("arguments[0].scrollIntoView(false);", 
+                                       [dt_skip])
+        self.wait_for_element_displayed(*self._timezone_forward_locator)
+        dt_skip.tap()
         self.wait_for_element_displayed(*self._section_geolocation_locator)
 
     def a11y_click_next_to_geolocation_section(self):
@@ -216,7 +226,7 @@ class Ftu(Base):
             *self._enable_geolocation_checkbox_locator))
 
     def tap_next_to_import_contacts_section(self):
-        self.tap_next()
+        self.marionette.find_element(*self._geolocation_forward_locator).tap()
         self.wait_for_element_displayed(*self._section_import_contacts_locator)
 
     def a11y_click_next_to_import_contacts_section(self):
@@ -244,7 +254,7 @@ class Ftu(Base):
         return import_sim_count
 
     def tap_next_to_firefox_accounts_section(self):
-        self.tap_next()
+        self.marionette.find_element(*self._import_forward_locator).tap()
         self.wait_for_element_displayed(*self._section_firefox_accounts_locator)
 
     def a11y_click_next_to_firefox_accounts_section(self):
@@ -252,7 +262,7 @@ class Ftu(Base):
         self.wait_for_element_displayed(*self._section_firefox_accounts_locator)
 
     def tap_next_to_welcome_browser_section(self):
-        self.tap_next()
+        self.marionette.find_element(*self._fxa_forward_locator).tap()
         self.wait_for_element_displayed(*self._section_welcome_browser_locator)
 
     def a11y_click_next_to_welcome_browser_section(self):
@@ -266,7 +276,7 @@ class Ftu(Base):
         self.accessibility.click(self.marionette.find_element(*self._statistic_checkbox_locator))
 
     def tap_next_to_privacy_browser_section(self):
-        self.tap_next()
+        self.marionette.find_element(*self._welcome_forward_locator).tap()
         self.wait_for_element_displayed(*self._section_browser_privacy_locator)
 
     def a11y_click_next_to_privacy_browser_section(self):
@@ -292,14 +302,15 @@ class Ftu(Base):
         self.accessibility.click(self.marionette.find_element(*self._skip_tour_button_locator))
 
     def run_ftu_setup_with_default_values(self):
-        count =0
-        while not self.is_element_displayed(*self._take_tour_button_locator):
-            if self.is_element_displayed(*self._next_button_locator):
-                self.tap_next()
-            else:
-                count=count+1
-            if count > 5:
-                break
+        self.tap_next_to_wifi_section()
+        self.tap_next_to_timezone_section()
+        self.tap_next_to_geolocation_section()
+        self.tap_next_to_import_contacts_section()
+        self.tap_next_to_firefox_accounts_section()
+        self.tap_next_to_welcome_browser_section()
+        self.tap_next_to_privacy_browser_section()
+        self.marionette.find_element(*self._privacy_forward_locator).tap()
+        self.wait_for_element_displayed(*self._take_tour_button_locator)
 
     def tap_take_tour(self):
         self.marionette.find_element(*self._take_tour_button_locator).tap()
