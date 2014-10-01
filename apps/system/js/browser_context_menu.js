@@ -149,7 +149,7 @@
       this.elements.list.appendChild(action);
     }, this);
 
-    this.elements.cancel.textContent = _('cancel');
+    this.elements.setAttribute('data-l10n-id', 'cancel');
     this.elements.list.appendChild(this.elements.cancel);
   };
 
