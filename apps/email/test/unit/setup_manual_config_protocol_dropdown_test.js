@@ -27,7 +27,7 @@ suite('IMAP protocol dropdown', function() {
   });
 
   suite('IMAP port selection', function() {
-    test('should change upon selecting STARTTLS', function() {
+    test('should change upon selecting STARTTLS and PLAIN', function() {
       var dropdown = el.getElementsByClassName(
         'sup-manual-composite-socket')[0];
       var port = el.getElementsByClassName('sup-manual-composite-port')[0];
@@ -37,11 +37,15 @@ suite('IMAP protocol dropdown', function() {
       dropdown.value = 'STARTTLS';
       dropdown.dispatchEvent(new Event('change'));
       assert.equal(port.value, '143');
+
+      dropdown.value = 'PLAIN';
+      dropdown.dispatchEvent(new Event('change'));
+      assert.equal(port.value, '143');
     });
   });
 
   suite('SMTP port selection', function() {
-    test('should change upon selecting STARTTLS', function() {
+    test('should change upon selecting STARTTLS and PLAIN', function() {
       var dropdown = el.getElementsByClassName('sup-manual-smtp-socket')[0];
       var port = el.getElementsByClassName('sup-manual-smtp-port')[0];
       assert.equal(port.value, '465');
@@ -50,6 +54,10 @@ suite('IMAP protocol dropdown', function() {
       dropdown.value = 'STARTTLS';
       dropdown.dispatchEvent(new Event('change'));
       assert.equal(port.value, '587');
+
+      dropdown.value = 'PLAIN';
+      dropdown.dispatchEvent(new Event('change'));
+      assert.equal(port.value, '25');
     });
   });
 
