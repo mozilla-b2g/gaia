@@ -261,8 +261,7 @@ var KeypadManager = {
     if (layoutType == 'oncall') {
       if (CallsHandler.activeCall) {
         var activeCall = CallsHandler.activeCall.call;
-        this._phoneNumber =
-          activeCall.id ? activeCall.id.number : activeCall.number;
+        this._phoneNumber = activeCall.id.number;
       }
       this._isKeypadClicked = false;
       this.phoneNumberViewContainer.classList.add('keypad-visible');
