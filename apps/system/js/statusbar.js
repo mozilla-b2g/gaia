@@ -921,10 +921,7 @@ var StatusBar = {
 
       if (!conn || !conn.voice || !conn.voice.connected ||
           conn.voice.emergencyCallsOnly) {
-        delete l10nArgs.operator;
-        label.dataset.l10nArgs = JSON.stringify(l10nArgs);
-
-        label.dataset.l10nId = '';
+        label.removeAttribute('data-l10n-id');
         label.textContent = l10nArgs.date;
 
         return;
@@ -937,10 +934,7 @@ var StatusBar = {
         l10nArgs.operator += ' ' + operatorInfos.region;
       }
 
-      label.dataset.l10nArgs = JSON.stringify(l10nArgs);
-
-      label.dataset.l10nId = 'statusbarLabel';
-      label.textContent = navigator.mozL10n.get('statusbarLabel', l10nArgs);
+      navigator.mozL10n.setAttributes(label, 'statusbarLabel', l10nArgs);
     },
 
     time: function sb_updateTime(now) {
@@ -974,10 +968,11 @@ var StatusBar = {
       icon.dataset.charging = battery.charging;
       var level = Math.floor(battery.level * 10) * 10;
       icon.dataset.level = level;
-      icon.setAttribute('aria-label', navigator.mozL10n.get(battery.charging ?
-        'statusbarBatteryCharging' : 'statusbarBattery', {
-          level: level
-        }));
+      navigator.mozL10n.setAttributes(
+        icon,
+        battery.charging ? 'statusbarBatteryCharging' : 'statusbarBattery',
+        { level: level }
+      );
     },
 
     networkActivity: function sb_updateNetworkActivity() {
