@@ -95,7 +95,6 @@ var DsdsSettings = (function(window, document, undefined) {
 
     if (ds_getNumberOfIccSlots() > 1) {
       cellAndDataItem = document.getElementById('menuItem-cellularAndData');
-      cellAndDataItem.setAttribute('href', '#carrier-iccs');
       if ((_mobileConnections[0].radioState !== 'enabled') ||
           (!_mobileConnections[0].iccId &&
            !_mobileConnections[1].iccId)) {
