@@ -127,6 +127,7 @@
     transform: translateY(-100%);
     visibility: visible;
     z-index: 500;
+    pointer-events: none;
   }
 
   body.showKeypad #keyboard-container {
@@ -134,6 +135,7 @@
     background: rgba(255,255,255,0.85);
     position: absolute;
     bottom: 0;
+    pointer-events: auto;
   }
 
   body.showKeypad #keypad {
