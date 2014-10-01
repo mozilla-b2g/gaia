@@ -782,11 +782,12 @@ var PlayerView = {
         var filename = songData.name,
         name = filename.substring(filename.lastIndexOf('/') + 1),
         type = file.type;
+        var blob = getAudioTypeBlob(file);
 
         var activityData = {
           type: 'audio/*',
           number: 1,
-          blobs: [file],
+          blobs: [blob],
           filenames: [name],
           filepaths: [filename],
           // We only pass some metadata attributes so we don't share personal
