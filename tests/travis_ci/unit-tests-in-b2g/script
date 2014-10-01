@@ -1,5 +1,4 @@
 #! /bin/bash -vex
 
-export TEST_ARGS=--this-chunk=${THIS_CHUNK:=1} \
-                --total-chunks=${TOTAL_CHUNKS:=1}
+export TEST_ARGS="--this-chunk=${THIS_CHUNK:=1} --total-chunks=${TOTAL_CHUNKS:=1}"
 make test-agent-test
