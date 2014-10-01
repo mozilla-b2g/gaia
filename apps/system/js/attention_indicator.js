@@ -18,7 +18,6 @@
       }
     },
     stop: function() {
-      window.addEventListener('screenrendered', this.render);
     },
     render: function() {
       if (this._rendered) {
@@ -34,7 +33,6 @@
               'data-z-index-level="attention-indicator">' +
               '<div class="handle handle1"></div>' +
               '<div class="handle handle2"></div>' +
-              '<div class="handle handle3"></div>' +
             '</div>';
     },
     show: function() {
