@@ -20,6 +20,7 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_getdevicestorage.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_getdevicestorages.js');
 
 requireApp('system/js/accessibility.js');
+requireApp('system/js/accessibility_quicknav_menu.js');
 requireApp('system/js/activities.js');
 requireApp('system/js/activity_window_factory.js');
 requireApp('system/js/activity_window_manager.js');
