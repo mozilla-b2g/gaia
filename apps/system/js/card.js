@@ -238,10 +238,12 @@
    */
   Card.prototype.destroy = function() {
     this.publish('willdestroy');
-    this._unregisterEvents();
     var element = this.element;
-    if (element && element.parentNode) {
-      element.parentNode.removeChild(element);
+    if (element) {
+      this._unregisterEvents();
+      if (element.parentNode) {
+        element.parentNode.removeChild(element);
+      }
     }
     this.element = this.manager = this.app = null;
     this.publish('destroyed');
