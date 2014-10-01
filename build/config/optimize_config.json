@@ -13,5 +13,6 @@
   },
   "PRETRANSLATION_BLACKLIST": {
     "keyboard": ["index.html"]
-  }
+  },
+  "SINGLE_FILE_OPTIMIZE_BLACKLIST": {}
 }
