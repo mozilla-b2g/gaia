@@ -113,57 +113,50 @@ FxA.prototype = {
             .sendKeys(inputString);
     },
     onClick:  function(searchSelector) {
-        var element = this.client.findElement(searchSelector);
-        this.client.helper
-            .waitForElement(element)
-            .tap();
-    },
-    clickNext: function() {
-      var element = this.client.findElement(FxA.Selectors.moduleNext);
       this.client.helper
-        .waitForElement(element)
+        .waitForElement(searchSelector)
         .tap();
     },
-    clickDone: function() {
-      var element = this.client.findElement(FxA.Selectors.moduleDone);
+    clickNext: function() {
       this.client.helper
-          .waitForElement(element)
-          .tap();
+        .waitForElement(FxA.Selectors.moduleNext)
+        .tap();
     },
-    clickTabOpenFlow: function() {
-      var element = this.client.findElement(FxA.Selectors.tabOpenFlow);
+
+    clickDone: function() {
       this.client.helper
-          .waitForElement(element)
+        .waitForElement(FxA.Selectors.moduleDone)
+        .tap();
+    },
+
+    clickTabOpenFlow: function() {
+      this.client.helper
+          .waitForElement(FxA.Selectors.tabOpenFlow)
           .tap();
     },
     clickFxaLogin: function() {
-      var element = this.client.findElement(FxA.Selectors.fxaLogin);
       this.client.helper
-          .waitForElement(element)
+          .waitForElement(FxA.Selectors.fxaLogin)
           .tap();
     },
     clickMenuItemFxa: function() {
-      var element = this.client.findElement(FxA.Selectors.menuItemFxa);
       this.client.helper
-          .waitForElement(element)
+          .waitForElement(FxA.Selectors.menuItemFxa)
           .tap();
     },
     clickRequestButton: function() {
-      var element = this.client.findElement(FxA.Selectors.requestButton);
       this.client.helper
-          .waitForElement(element)
+          .waitForElement(FxA.Selectors.requestButton)
           .tap();
     },
     clickTabAPI: function() {
-      var element = this.client.findElement(FxA.Selectors.tabAPI);
       this.client.helper
-          .waitForElement(element)
+          .waitForElement(FxA.Selectors.tabAPI)
           .tap();
     },
     clickFxaButton: function() {
-      var element = this.client.findElement(FxA.Selectors.fxaButton);
       this.client.helper
-          .waitForElement(element)
+          .waitForElement(FxA.Selectors.fxaButton)
           .tap();
     },
     switchFrame:  function(frameId) {
