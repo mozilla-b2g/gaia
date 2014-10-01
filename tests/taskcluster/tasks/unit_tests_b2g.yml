@@ -15,6 +15,13 @@ task:
 
     command:
       - entrypoint
-      - ./bin/ci run unit-tests-in-b2g
+      - mkdir -p artifacts && ./bin/ci run unit-tests-in-b2g 2> artifacts/debug.log
+
+    artifacts:
+      'public/unit_tests_b2g':
+        type: directory
+        path: '{{gaia}}/artifacts/'
+        expires: '{{nextYear}}'
+
   tags:
     treeherderProject: GU
