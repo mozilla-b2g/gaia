@@ -737,14 +737,16 @@
         }
       }
 
-      if (this.manifest) {
-        var that = this;
-        that.element.addEventListener('_opened', function onOpened() {
-          that.element.removeEventListener('_opened', onOpened);
-          that.appChrome = new AppChrome(that);
-        });
-      } else {
-        this.appChrome = new AppChrome(this);
+      if (!this.isInputMethod) {
+        if (this.manifest) {
+          var that = this;
+          that.element.addEventListener('_opened', function onOpened() {
+            that.element.removeEventListener('_opened', onOpened);
+            that.appChrome = new AppChrome(that);
+          });
+        } else {
+          this.appChrome = new AppChrome(this);
+        }
       }
     };
 
@@ -1616,7 +1618,7 @@
    */
   AppWindow.prototype.setFrameBackground =
     function aw_setFrameBackground() {
-      if (!this.isHomescreen &&
+      if (!this.isHomescreen && !this.isInputMethod &&
           !this.loaded && !this.splashed && this.element) {
 
         if (this._splash) {
