@@ -57,9 +57,9 @@ Resources.prototype.getResources = function(conf) {
     this.getDefaultSearchResource(conf.default_search);
   operatorJSON.keyboard_settings = this.getKeyboardResource(conf.keyboard);
   operatorJSON.topsites = this.getResourceWithIcon(conf.topsites, 'topSites',
-                                                   'iconPath');
+                                                   'tilePath', 'tile');
   operatorJSON.browser = this.getResourceWithIcon(conf.bookmarks, 'bookmarks',
-                                                  'iconPath');
+                                                  'iconPath', 'iconUri');
 
   if ('nfc' in conf) {
     operatorJSON.nfc = this.getNfcResource(conf.nfc);
@@ -297,7 +297,7 @@ Resources.prototype.getKeyboardResource = function (keyboard) {
 };
 
 Resources.prototype.getResourceWithIcon = function(aFilePath, aRootKey,
-                                                   aIconPathKey) {
+                                                   aIconPathKey, aIconOutKey) {
   if (aFilePath) {
     var file = this.getFile(aFilePath);
     var json = utils.getJSON(file);
@@ -306,7 +306,7 @@ Resources.prototype.getResourceWithIcon = function(aFilePath, aRootKey,
       if (elem[aIconPathKey]) {
         var iconFile = this.getFile(elem[aIconPathKey]);
         var icon = utils.getFileAsDataURI(iconFile);
-        elem.iconUri = icon;
+        elem[aIconOutKey] = icon;
         delete elem[aIconPathKey];
       }
     }.bind(this));
