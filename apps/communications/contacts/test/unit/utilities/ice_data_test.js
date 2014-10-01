@@ -79,93 +79,86 @@ suite('ICE Data', function() {
   });
 
   suite('> Listen for changes', function() {
-    var realPromise;
     setup(function() {
       subject.stopListenForChanges();
     });
-    suiteSetup(function() {
-      realPromise = window.Promise;
-      window.Promise = function(func, rj) {
-        var args = Array.prototype.slice.call(arguments, 1);
-        return {
-          'then': function() {
-            var allArguments = args.concat(
-              Array.prototype.slice.call(arguments));
-            return func.apply(this, allArguments);
-          }
-        };
-      };
-      window.Promise.resolve = function(args) {
-        return {
-          'then': function(fn) {
-            fn(args);
-          }
-        };
-      };
-    });
-    suiteTeardown(function() {
-      window.Promise = realPromise;
-    });
-    test('> Several listening attach one contact change', function() {
+
+    test('> Several listening attach one contact change', function(done) {
       sinon.spy(document, 'addEventListener');
-      subject.listenForChanges(function(){});
-      subject.listenForChanges(function(){});
-      sinon.assert.calledOnce(document.addEventListener);
-      document.addEventListener.restore();
+
+      subject.listenForChanges(function() {}).then(function() {
+        return subject.listenForChanges(function() {});
+      }).then(function() {
+          sinon.assert.calledOnce(document.addEventListener);
+          document.addEventListener.restore();
+          done();
+      });
     });
-    test('> A change in a non ice contact wont trigger', function() {
+
+    test('> A change in a non ice contact will not trigger', function(done) {
       var changeCallback;
-      sinon.stub(document, 'addEventListener', function(name, cb) {
+      var stub = sinon.stub(document, 'addEventListener', function(name, cb) {
         changeCallback = cb;
       });
+
       subject.listenForChanges(function() {
         throw new Error();
+      }).then(function() {
+          changeCallback({
+            detail: {
+              contactID: 5,
+              reason: 'update'
+            }
+          });
+          stub.restore();
+          done();
       });
-
-      changeCallback({
-        detail: {
-          contactID: 5,
-          reason: 'update'
-        }
-      });
-      document.addEventListener.restore();
     });
+
     test('> A change in a ice contact will trigger', function(done) {
       var changeCallback;
-      sinon.stub(document, 'addEventListener', function(name, cb) {
+      var stub = sinon.stub(document, 'addEventListener', function(name, cb) {
         changeCallback = cb;
       });
-      subject.listenForChanges(function() {
-        done();
-      });
 
-      changeCallback({
-        detail: {
-          contactID: 1,
-          reason: 'update'
-        }
+      subject.listenForChanges(function() {
+          stub.restore();
+          done(function() {
+            assert.ok('ok');
+          });
+      }).then(function() {
+          changeCallback({
+            detail: {
+              contactID: 1,
+              reason: 'update'
+            }
+          });
       });
-      document.addEventListener.restore();
     });
+
     test('> ICE contact removed', function(done) {
       var changeCallback;
-      
-      sinon.stub(document, 'addEventListener', function(name, cb) {
+
+      var stub = sinon.stub(document, 'addEventListener', function(name, cb) {
         changeCallback = cb;
       });
-      subject.listenForChanges(function() {
-        assert.isFalse(subject.iceContacts[0].id === 1);
-        assert.isFalse(subject.iceContacts[0].active);
-        done();
-      });
 
-      changeCallback({
-        detail: {
-          contactID: 1,
-          reason: 'remove'
-        }
+      subject.listenForChanges(function() {
+        done(function() {
+          assert.isFalse(subject.iceContacts[0].id === 1);
+          assert.isFalse(subject.iceContacts[0].active);
+
+          stub.restore();
+        });
+      }).then(function() {
+            changeCallback({
+              detail: {
+                contactID: 1,
+                reason: 'remove'
+              }
+        });
       });
-      document.addEventListener.restore();
     });
+
   });
 });
