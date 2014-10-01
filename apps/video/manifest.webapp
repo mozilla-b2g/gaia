@@ -67,5 +67,8 @@
       "disposition": "inline",
       "returnValue": true
     }
-  }
+  },
+"messages": [
+    { "headset-button": "/index.html" }
+]
 }

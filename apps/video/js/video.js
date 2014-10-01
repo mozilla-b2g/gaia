@@ -84,6 +84,7 @@ var pendingPick;
 // careful to relinquish the hardware when we are not visible.
 var restoreTime = null;
 
+
 var isPhone;
 var isPortrait;
 var currentLayoutMode;
@@ -174,6 +175,7 @@ function init() {
       }
     });
   }
+window.navigator.mozSetMessageHandler('headset-button', headsetCommandHandler);
 
   navigator.mozSetMessageHandler('activity', handleActivityEvents);
 
@@ -187,6 +189,16 @@ function init() {
     }
   });
 }
+
+function headsetCommandHandler(message) {
+  if (message === 'headset-button-press') {
+    if (playing) {
+      setVideoPlaying(false);
+    } else if (!playing) {
+      setVideoPlaying(true);
+    }
+  }
+ }
 
 function initThumbnailSize() {
   // use devicePixelRatio as the scale ratio for thumbnail creation.
