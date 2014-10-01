@@ -1,3 +1,4 @@
+/* jshint maxlen: 100 */
 define(function(require, exports, module) {
 'use strict';
 
@@ -285,7 +286,12 @@ module.exports = View.extend({
   template: function() {
     return '<div class="viewfinder-frame js-frame">' +
         '<div class="viewfinder-video-container js-video-container">' +
-          '<video class="viewfinder-video js-video"></video>' +
+
+          // Bug 1071198: Must use `mozaudiochannel="content"` to allow
+          // Camera to receive the `visibilitychange` event when the
+          // "Lock" button is pressed.
+          '<video class="viewfinder-video js-video" mozaudiochannel="content">' +
+          '</video>' +
         '</div>' +
         '<div class="viewfinder-grid">' +
           '<div class="row"></div>' +
