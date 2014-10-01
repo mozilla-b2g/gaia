@@ -33,15 +33,27 @@ MockDatastoreObj.prototype = {
     });
   },
 
-  get: function(dsId) {
+  get: function() {
     if (this._inError === true) {
       return this._reject();
     }
 
     var self = this;
+    var funcArgs = arguments;
 
     return new window.Promise(function(resolve, reject) {
-      var dsIds = Array.isArray(dsId) ? dsId : [dsId];
+      var dsIds;
+      var args = [];
+      for (var j = 0; j < funcArgs.length; j++) {
+        args.push(funcArgs[j]);
+      }
+
+      if (args.length === 1) {
+        dsIds = Array.isArray(args[0]) ? args[0] : [args[0]];
+      }
+      else {
+        dsIds = args;
+      }
 
       var results = [];
 
@@ -50,7 +62,7 @@ MockDatastoreObj.prototype = {
         results.push(record);
       });
 
-      var out = Array.isArray(dsId) ? results : results[0];
+      var out = args.length > 1 ? results : results[0];
 
       resolve(out);
     });
