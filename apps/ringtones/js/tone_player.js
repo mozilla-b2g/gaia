@@ -15,7 +15,7 @@ function TonePlayer() {
   // background, so here we use audio context to occupy the channel until the
   // user leaves the ringtones app, see bug 958470 for details.
   this._player = new Audio();
-  this._context = new AudioContext();
+  this._context = new AudioContext('ringer');
   this._source = this._context.createMediaElementSource(this._player);
   this._source.connect(this._context.destination);
 
