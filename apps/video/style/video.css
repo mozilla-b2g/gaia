@@ -434,6 +434,7 @@ header .icon:after {
   height: 100%;
   z-index: 10;
   opacity: 1;
+  will-change: opacity;
   -moz-transition: opacity 0.5s;
 }
 #videoControls.hidden {
