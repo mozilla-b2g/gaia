@@ -190,6 +190,7 @@ Calendar.ns('Views').Settings = (function() {
       // trigger the sync the syncStart/complete events
       // will hide/show the button.
       this.app.syncController.all();
+      this._hideSettings();
     },
 
     _add: function(id, model) {
