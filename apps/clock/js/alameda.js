@@ -814,6 +814,11 @@ var requirejs, require, define;
                     }
                     urlFetched[url] = true;
 
+                    console.log('mcav ALAMEDA:', JSON.stringify({
+                      id: id,
+                      url: url,
+                      ctx: contextName
+                    }));
                     script = document.createElement('script');
                     script.setAttribute('data-requiremodule', id);
                     script.type = config.scriptType || 'text/javascript';
