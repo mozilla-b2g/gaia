@@ -210,14 +210,18 @@ var SimManager = (function() {
     }
   },
 
+  simAvailable: function() {
+    return !!((this.icc0 && !this.icc0.isLocked()) ||
+              (this.icc1 && !this.icc1.isLocked()));
+  },
+
   finish: function() {
     this.hideScreen();
     this.hideSIMInfoScreen();
     // card state has been handled, so return
     // to normal navigation, and only show cell
     // data step if we have an unlocked sim
-    var showCellData = (this.icc0 && !this.icc0.isLocked()) ||
-                       (this.icc1 && !this.icc1.isLocked());
+    var showCellData = this.simAvailable();
     this.finishCallback && this.finishCallback(showCellData);
   },
 
