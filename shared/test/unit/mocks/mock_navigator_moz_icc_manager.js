@@ -4,6 +4,7 @@
   // container for icc instances
   var iccs = {};
   var iccIds = [];
+  var timeouts = [];
 
   var MockIccManager = {
     _eventListeners: {},
@@ -89,11 +90,11 @@
             enabled: true
           }
         };
-        setTimeout(function() {
+        timeouts.push(setTimeout(function() {
           if (obj.onsuccess) {
             obj.onsuccess();
           }
-        });
+        }));
         return obj;
       };
 
@@ -101,9 +102,9 @@
         var req = {
           result: { retryCount: 3 }
         };
-        setTimeout(function() {
+        timeouts.push(setTimeout(function() {
           req.onsuccess && req.onsuccess();
-        });
+        }));
         return req;
       };
 
@@ -164,6 +165,8 @@
     mTeardown: function iccm_teardown() {
       iccIds = [];
       iccs = {};
+      timeouts.forEach(clearTimeout);
+      timeouts = [];
     },
 
     // STK Constants
