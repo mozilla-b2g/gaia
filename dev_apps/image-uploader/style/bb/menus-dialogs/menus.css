@@ -47,7 +47,7 @@ body[role="application"] menu.actions > ul > li:last-child {
 }
 
 body[role="application"] menu.actions > ul > li:not(:last-child) > button,
-body[role="application"] menu.actions > ul > li:not(:last-child) > a[role="button"] {
+body[role="application"] menu.actions > ul > li:not(:last-child) > a.bb-button {
   font-size: 1.4rem;
   color: #fff;
   text-shadow: none;
@@ -58,13 +58,13 @@ body[role="application"] menu.actions > ul > li:not(:last-child) > a[role="butto
 }
 
 body[role="application"] menu.actions > ul > li:not(:last-child) > button:active,
-body[role="application"] menu.actions > ul > li:not(:last-child) > a[role="button"]:active {
+body[role="application"] menu.actions > ul > li:not(:last-child) > a.bb-button:active {
   background-color: #006f86;
   color: #333;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 body[role="application"] menu.actions > ul > li:last-child > button,
-body[role="application"] menu.actions > ul > li:last-child > a[role="button"] {
+body[role="application"] menu.actions > ul > li:last-child > a.bb-button {
   margin: 0.5rem 0 1rem 0;
 }
