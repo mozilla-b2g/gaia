@@ -1,4 +1,4 @@
-/* global assert, require, suite, test */
+/* global assert, require, suite, test, LazyLoader */
 'use strict';
 
 require('/js/built_in_ringtones.js');
