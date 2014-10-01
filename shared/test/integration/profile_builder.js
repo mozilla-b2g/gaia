@@ -14,10 +14,9 @@
 var super_ = require('marionette-profile-builder');
 
 // utils
-var debug = require('debug')('gaia-profile-builder');
-var exec = require('child_process').exec;
-var fs = require('fs');
-var fsPath = require('path');
+var debug = require('debug')('gaia-profile-builder'),
+    exec = require('child_process').exec,
+    fsPath = require('path');
 
 // we need to know where to invoke the Makefile
 var GAIA_ROOT = fsPath.resolve(__dirname, '..', '..', '..');
@@ -77,14 +76,6 @@ GaiaBuilder.prototype = {
   __proto__: super_.prototype,
 
   /**
-   * When profile has already built this will be true and the make step will be
-   * skipped.
-   *
-   * @type {Boolean}
-   */
-  hasProfile: false,
-
-  /**
    * Generate the gaia profile if it does not exist.
    *
    * @param {Object} overrides for the profile builder.
@@ -92,21 +83,10 @@ GaiaBuilder.prototype = {
    */
   build: function(overrides, callback) {
     overrides = overrides || {};
-
-    var env = { 'PROFILE_FOLDER': PROFILE_FOLDER };
+    var env = overrides && overrides.env || {};
+    env.PROFILE_FOLDER = PROFILE_FOLDER;
     var profile = fsPath.join(GAIA_ROOT, PROFILE_FOLDER);
-
-    // set the base profile to the newly minted profile build.
     overrides.profile = ['baseProfile', profile];
-
-    this.hasProfile = this.hasProfile || fs.existsSync(profile);
-
-    // if profile is build continue.
-    if (this.hasProfile) {
-      // invoke the superclass which handles the boilerplate
-      super_.prototype.build.call(this, overrides, callback);
-      return;
-    }
 
     // TODO: in the future we can expose build time options
     //       (like customizations)
@@ -116,6 +96,7 @@ GaiaBuilder.prototype = {
         // this working successfully.
         throw err;
       }
+
       super_.prototype.build.call(this, overrides, callback);
     }.bind(this));
   }
