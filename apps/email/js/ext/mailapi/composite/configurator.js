@@ -6909,11 +6909,11 @@ return {
 
 define('pop3/pop3',['module', 'exports', 'rdcommon/log', 'net', 'crypto',
         './transport', 'mailparser/mailparser', '../mailapi/imap/imapchew',
-        '../mailapi/syncbase',
+        '../mailapi/syncbase', '../mailapi/date',
         './mime_mapper', '../mailapi/allback'],
 function(module, exports, log, net, crypto,
          transport, mailparser, imapchew,
-         syncbase, mimeMapper, allback) {
+         syncbase, dateMod, mimeMapper, allback) {
 
   /**
    * The Pop3Client modules and classes are organized according to
@@ -7709,11 +7709,16 @@ function(module, exports, log, net, crypto,
     var estSize = number && this.idToSize[number] || mimeContent.length;
     var content;
 
+    var date = rootNode.meta.date && rootNode.meta.date.valueOf();
+    if (!date) {
+      date = dateMod.NOW();
+    }
+
     var partMap = {}; // partId -> content
     var msg = {
       id: number && this.idToUidl[number], // the server-given ID
       msg: rootNode,
-      date: rootNode.meta.date && rootNode.meta.date.valueOf(),
+      date: date,
       flags: [],
       structure: mimeTreeToStructure(rootNode, '1', partMap, partialNode),
     };
