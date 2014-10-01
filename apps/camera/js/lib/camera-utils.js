@@ -55,6 +55,8 @@ define(function(require) {
    * @return {Object}
    */
   CameraUtils.getOptimalPreviewSize = function(previewSizes, viewportSize) {
+    console.log('**** previewSizes ****', JSON.stringify(previewSizes));
+
     var targetWidth = viewportSize ?
       Math.max(viewportSize.width, viewportSize.height) :
       Math.ceil(window.innerHeight * window.devicePixelRatio);
