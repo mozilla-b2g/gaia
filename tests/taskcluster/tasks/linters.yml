@@ -10,5 +10,6 @@ task:
     command:
       - entrypoint
       - ./bin/ci run linters
-  tags:
-    treeherderProject: Li
+  extra:
+    treeherder:
+      symbol: Li

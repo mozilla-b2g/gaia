@@ -22,9 +22,10 @@
           ],
           "graphs": ["/graph.json"]
         },
-        "tags": {
-          "treeherderProject": "gaia",
-          "treeherderSymbol": "G"
+        "extra": {
+          "treeherder": {
+            "symbol": "G"
+          }
         }
       }
     }

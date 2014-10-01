@@ -23,5 +23,8 @@ task:
         path: '{{gaia}}/artifacts/'
         expires: '{{nextYear}}'
 
-  tags:
-    treeherderProject: GU
+  extra:
+    treeherder:
+      groupSymbol: GU
+      groupName: Gaia unit tests
+      symbol: GU{{chunk}}

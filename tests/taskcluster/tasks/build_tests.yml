@@ -10,5 +10,6 @@ task:
     command:
       - entrypoint
       - ./bin/ci run build_tests
-  tags:
-    treeherderProject: GB
+  extra:
+    treeherder:
+      symbol: GB

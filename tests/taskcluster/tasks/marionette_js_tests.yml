@@ -25,5 +25,9 @@ task:
         path: '{{gaia}}/artifacts/'
         expires: '{{nextYear}}'
 
-  tags:
+  extra:
+    treeherder:
+      groupName: "Gaia javascript integration tests"
+      groupSymbol: Gij
+      symbol: Gij{chunk}
     treeherderProject: Gij{{chunk}}

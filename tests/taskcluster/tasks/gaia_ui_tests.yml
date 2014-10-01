@@ -25,5 +25,8 @@ task:
         type: directory
         path: '{{gaia}}/artifacts/'
         expires: '{{nextYear}}'
-  tags:
-    treeherderProject: Gip{{chunk}}
+  extra:
+    treeherder:
+      groupSymbol: Gip
+      groupName: "Gaia python integration tests"
+      symbol: Gip{{chunk}}
