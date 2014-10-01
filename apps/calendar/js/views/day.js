@@ -20,6 +20,8 @@ Calendar.ns('Views').Day = (function() {
       element: '#day-view'
     },
 
+    _isSwipe: false,
+
     _initEvents: function() {
       Parent.prototype._initEvents.call(this);
 
@@ -32,18 +34,24 @@ Calendar.ns('Views').Day = (function() {
     },
 
     handleEvent: function(e) {
-      Parent.prototype.handleEvent.apply(
-        this, arguments
-      );
-
       switch (e.type) {
         case 'dayChange':
           this.app.timeController.selectedDay = this.app.timeController.day;
-          /* falls through */
-        case 'selectedDayChange':
-          this.changeDate(e.data[0], { onlyToday: true });
+          if (this._isSwipe) {
+            Parent.prototype.changeDate.call(this, e.data[0]);
+          } else {
+            this.changeDate(e.data[0], { startScrollTop: 0 });
+          }
+          this._isSwipe = false;
+          break;
+        case 'swipe':
+          this._isSwipe = true;
           break;
       }
+
+      Parent.prototype.handleEvent.apply(
+        this, arguments
+      );
     },
 
     _nextTime: function(time) {
@@ -63,9 +71,9 @@ Calendar.ns('Views').Day = (function() {
     },
 
     render: function() {
-      this.changeDate(
-        this.app.timeController.day
-      );
+      setTimeout(function() {
+        this.changeDate(this.app.timeController.day);
+      }.bind(this));
     },
 
     oninactive: function() {
@@ -94,9 +102,7 @@ Calendar.ns('Views').Day = (function() {
 
       controller.moveToMostRecentDay();
 
-      // Scroll to the destination from the top(scrollTop as 0)
-      // when go to the day view from other view.
-      this.changeDate(controller.position, { startScrollTop: 0 });
+      Parent.prototype.changeDate.call(this, controller.position);
 
       if (!this.frames || !this.frames.length) {
         console.error('(Calendar: render error) no child frames');
