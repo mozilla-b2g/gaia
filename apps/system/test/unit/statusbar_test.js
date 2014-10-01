@@ -1442,6 +1442,7 @@ suite('system/Statusbar', function() {
     });
 
     test('audio player is playing', function() {
+      StatusBar.recordingActive = false;
       var evt = new CustomEvent('mozChromeEvent', {
         detail: {
           type: 'audio-channel-changed',
@@ -1452,7 +1453,20 @@ suite('system/Statusbar', function() {
       assert.equal(StatusBar.icons.playing.hidden, false);
     });
 
+    test('audio player is not playing while recording', function() {
+      StatusBar.recordingActive = true;
+      var evt = new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'audio-channel-changed',
+          channel: 'content'
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.equal(StatusBar.icons.playing.hidden, true);
+    });
+
     test('repeat audio-channel-changed event', function() {
+      StatusBar.recordingActive = false;
       var evt = new CustomEvent('mozChromeEvent', {
         detail: {
           type: 'audio-channel-changed',
