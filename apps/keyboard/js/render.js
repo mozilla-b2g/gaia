@@ -753,24 +753,10 @@ var IMERender = (function() {
   // to be applied as dataset
   //*
 
-  // Explicit call to mozL10n to translate the generated DOM element
-  // to be removed once bug 992473 lands.
-  var translateElement = function(el) {
-    if (!navigator.mozL10n || navigator.mozL10n.readyState !== 'complete') {
-      // mozL10n is not loaded or ready yet. Our elements in the DOM tree
-      // will automatically be localized by it when it's ready.
-      // Return early here.
-      return;
-    }
-
-    navigator.mozL10n.translate(el);
-  };
-
   var candidatePanelCode = function() {
     var candidatePanel = document.createElement('div');
     candidatePanel.setAttribute('role', 'group');
     candidatePanel.dataset.l10nId = 'wordSuggestions2';
-    translateElement(candidatePanel);
 
     candidatePanel.classList.add('keyboard-candidate-panel');
     if (inputMethodName)
@@ -781,7 +767,6 @@ var IMERender = (function() {
     dismissButton.classList.add('hide');
     dismissButton.setAttribute('role', 'button');
     dismissButton.dataset.l10nId = 'dismiss2';
-    translateElement(dismissButton);
     candidatePanel.appendChild(dismissButton);
 
     var suggestionContainer = document.createElement('div');
@@ -835,10 +820,6 @@ var IMERender = (function() {
     if (attributeList) {
       attributeList.forEach(function(attribute) {
         contentNode.setAttribute(attribute.key, attribute.value);
-
-        if (attribute.key === 'data-l10n-id') {
-          translateElement(contentNode);
-        }
       });
     }
 
