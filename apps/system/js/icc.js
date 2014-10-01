@@ -286,7 +286,6 @@ var icc = {
   },
 
   alert: function icc_alert(stkMessage, message) {
-    var _ = navigator.mozL10n.get;
     if (!this.icc_alert) {
       this.icc_alert = document.getElementById('icc-alert');
       this.icc_alert_maintitle = document.getElementById('icc-alert-maintitle');
@@ -296,10 +295,13 @@ var icc = {
       this.setupView(this.icc_alert);
     }
 
-    this.icc_alert_maintitle.textContent = _('icc-message-maintitle');
-    this.icc_alert_subtitle.textContent = _('icc-message-subtitle', {
-        'id': this.getSIMNumber(stkMessage.iccId)
-      });
+    this.icc_alert_maintitle.setAttribute('data-l10n-id',
+      'icc-message-maintitle');
+    navigator.mozL10n.setAttributes(
+      this.icc_alert_subtitle,
+      'icc-message-subtitle',
+      { 'id': this.getSIMNumber(stkMessage.iccId) }
+    );
 
     var self = this;
     this.icc_alert_btn.onclick = function closeICCalert() {
@@ -315,7 +317,6 @@ var icc = {
    * callback responds with "userCleared"
    */
   confirm: function(stkMessage, message, timeout, callback) {
-    var _ = navigator.mozL10n.get;
     if (!this.icc_confirm) {
       this.icc_confirm = document.getElementById('icc-confirm');
       this.icc_confirm_maintitle =
@@ -335,10 +336,13 @@ var icc = {
       callback = function() {};
     }
 
-    this.icc_confirm_maintitle.textContent = _('icc-message-maintitle');
-    this.icc_confirm_subtitle.textContent = _('icc-message-subtitle', {
-        'id': this.getSIMNumber(stkMessage.iccId)
-      });
+    this.icc_confirm_maintitle.setAttribute('data-l10n-id',
+      'icc-message-maintitle');
+    navigator.mozL10n.setAttributes(
+      this.icc_confirm_subtitle,
+      'icc-message-subtitle',
+      { 'id': this.getSIMNumber(stkMessage.iccId) }
+    );
 
     var self = this;
 
@@ -376,7 +380,6 @@ var icc = {
   },
 
   asyncConfirm: function(stkMessage, message, callback) {
-    var _ = navigator.mozL10n.get;
     if (typeof callback != 'function') {
       callback = function() {};
     }
@@ -396,10 +399,13 @@ var icc = {
       this.setupView(this.icc_asyncconfirm);
     }
 
-    this.icc_asyncconfirm_maintitle.textContent = _('icc-message-maintitle');
-    this.icc_asyncconfirm_subtitle.textContent = _('icc-message-subtitle', {
-        'id': this.getSIMNumber(stkMessage.iccId)
-      });
+    this.icc_asyncconfirm_maintitle.setAttribute('data-l10n-id',
+      'icc-message-maintitle');
+    navigator.mozL10n.setAttributes(
+      this.icc_asyncconfirm_subtitle,
+      'icc-message-subtitle',
+      { 'id': this.getSIMNumber(stkMessage.iccId) }
+    );
 
     var self = this;
     this.icc_asyncconfirm_btn_no.onclick = function rejectConfirm() {
@@ -450,7 +456,6 @@ var icc = {
   },
 
   input: function(stkMessage, message, timeout, options, callback) {
-    var _ = navigator.mozL10n.get;
     var self = this;
     var timeoutId = null;
     /**
@@ -463,7 +468,11 @@ var icc = {
     function checkInputLengthValid(inputLen, minLen, maxLen) {
       // Update input counter
       var charactersLeft = maxLen - inputLen;
-      self.icc_input_btn.textContent = _('ok') + ' (' + charactersLeft + ')';
+      navigator.mozL10n.setAttributes(
+        self.icc_input_btn,
+        'okCharsLeft',
+        { n: charactersLeft }
+      );
       // Input box full feedback
       if (charactersLeft === 0) {
         self.icc_input_box.classList.add('full');
@@ -512,10 +521,13 @@ var icc = {
     }
     setInputTimeout();
 
-    this.icc_input_maintitle.textContent = _('icc-inputbox-maintitle');
-    this.icc_input_subtitle.textContent = _('icc-inputbox-subtitle', {
-        'id': this.getSIMNumber(stkMessage.iccId)
-      });
+    this.icc_input_maintitle.setAttribute('data-l10n-id',
+      'icc-message-maintitle');
+    navigator.mozL10n.setAttributes(
+      this.icc_input_subtitle,
+      'icc-message-subtitle',
+      { 'id': this.getSIMNumber(stkMessage.iccId) }
+    );
 
     // Help
     this.icc_input_btn_help.disabled = !options.isHelpAvailable;
