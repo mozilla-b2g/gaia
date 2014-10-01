@@ -106,7 +106,7 @@
      * @return {Promise}
      */
     favicon: function(img) {
-
+      console.log('evme', 'favicon', img.src);
       // If we have a decent sized image, we want to clip instead.
       if (img.width > this._icon.grid.layout.gridIconSize / 2) {
         return this.clip(img);
@@ -138,7 +138,10 @@
                                       (shadowCanvas.height - iconHeight) / 2,
                                       iconWidth, iconHeight);
         shadowCanvas.toBlob(resolve);
-      });
+      }).then(() => console.log('evme', 'resolved'),
+              // code fails here:
+              // The operation is insecure
+              (e) => console.log('evme', 'errored', e.message || e.type));
     },
 
     /**
