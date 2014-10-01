@@ -78,10 +78,12 @@ suite('system/CallscreenWindow', function() {
 
   test('Close while window.close() then hide', function() {
     var callscreen = new CallscreenWindow();
+    var stubPublish = this.sinon.stub(callscreen, 'publish');
     this.sinon.stub(callscreen, 'isActive').returns(true);
     var stubBlur = this.sinon.stub(callscreen.browser.element, 'blur');
     var stubReloadWindow = this.sinon.stub(callscreen, 'reloadWindow');
     callscreen.element.dispatchEvent(new CustomEvent('mozbrowserclose'));
+    assert.isTrue(stubPublish.calledWith('terminated'));
     assert.isFalse(stubReloadWindow.called);
     callscreen.element.dispatchEvent(new CustomEvent('_closed'));
     assert.isTrue(callscreen.isHidden());
