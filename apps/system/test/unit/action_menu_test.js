@@ -79,7 +79,8 @@ suite('ActionMenu', function() {
     test(' > setTitle', function() {
       var menu = new ActionMenu(activitiesMockup, title);
       menu.start();
-      assert.equal(getMenu().querySelector('header').textContent, title);
+      assert.equal(
+        getMenu().querySelector('header').getAttribute('data-l10n-id'), title);
       menu.stop();
     });
 
