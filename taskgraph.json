@@ -13,7 +13,7 @@
         "provisionerId": "aws-provisioner",
         "workerType": "gaia",
         "payload": {
-          "image": "lightsofapollo/gaia-taskenv:0.4.2",
+          "image": "lightsofapollo/gaia-taskenv:0.4.8",
           "command": [
             "entrypoint",
             "make node_modules &&",
