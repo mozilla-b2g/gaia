@@ -734,7 +734,7 @@ endif
 
 b2g:
 	# TODO: Replace with path from ftp
-	curl http://ftp.mozilla.org/pub/mozilla.org/b2g/try-builds/jlal@mozilla.com-67148f23bb73/try-linux64_gecko-debug/b2g-35.0a1.en-US.linux-x86_64.tar.bz2 | tar xvj
+	curl http://ftp.mozilla.org/pub/mozilla.org/b2g/try-builds/jlal@mozilla.com-95a899f53c7a/try-linux64_gecko-debug/b2g-35.0a1.en-US.linux-x86_64.tar.bz2 | tar xvj
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
