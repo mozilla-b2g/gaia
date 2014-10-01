@@ -1,0 +1,92 @@
+#pinkeypadscreen {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #fff;
+  -moz-user-select: none;
+  transition: transform 0.3s ease;
+}
+
+#pinkeypadscreen > #pinkeypadscreen-container {
+  width: 100%;
+  margin-top: 2rem;
+}
+
+#pinkeypadscreen-desc {
+  width: 100%;
+  height: 5rem;
+  line-height: 5rem;
+  background-color: rgba(0, 0, 0, 0.85);
+  margin: 0;
+  text-align: center;
+  vertical-align: middle;
+  border: 0;
+  font-size: 3.2rem;
+}
+
+#pinkeypadscreen-code {
+  bottom: 5rem;
+  height: 6rem;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+}
+
+#pinkeypadscreen-code > span {
+  -moz-box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: 100%;
+  line-height: 4rem;
+  text-align: center;
+  border: 1rem solid #888;
+  box-shadow: 0 0 1rem #fff inset;
+}
+
+#pinkeypadscreen-display {
+  font-size: 5rem;
+  color: #000;
+}
+
+#pinkeypadscreen-pad {
+  -moz-box-sizing: border-box;
+  border: 0.1rem solid #919191;
+  bottom: 0;
+  height: 35rem;
+  width: 100%;
+  padding: 0.4rem;
+}
+
+#pinkeypadscreen-pad > a {
+  -moz-box-sizing: border-box;
+  display: block;
+  float: left;
+  width: calc(33.333% - 0.8rem);
+  height: 6rem;
+  line-height: 6rem;
+  font-size: 4.8rem;
+  margin: 0.4rem;
+  text-align: center;
+  border: 0.1rem solid #919191;
+  border-radius: 0.8rem;
+  outline: none;
+  color: #919191;
+  text-decoration: none;
+}
+
+#pinkeypadscreen-pad > a:active {
+  background-color: rgb(0, 0, 0);
+  color: #ccc;
+}
+
+#pinkeypadscreen-pad > a.pinkeypadscreen-pad-func {
+  font-size: 2rem;
+}
+
+#pinkeypadscreen-pad > a.pinkeypadscreen-pad-func-full {
+  width: calc(100% - 0.8rem);
+  font-size: 2rem;
+}
+
