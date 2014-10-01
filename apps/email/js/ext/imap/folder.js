@@ -882,11 +882,6 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
 
             var node = parser.node;
 
-            console.error('imap:built-attachment-part', JSON.stringify({
-              contentType: node.contentType.value,
-              length: node.content.length
-            }));
-
             bodies[index] = new Blob([node.content], {
               type: node.contentType.value
             });

@@ -362,7 +362,7 @@ function(_LOG, blob, storeTo, filename, partInfo, cb, isRetry) {
       var idxLastPeriod = filename.lastIndexOf('.');
       if (idxLastPeriod === -1)
         idxLastPeriod = filename.length;
-      filename = filename.substring(0, idxLastPeriod) + '-' + Date.now() +
+      filename = filename.substring(0, idxLastPeriod) + '-' + $date.NOW() +
         filename.substring(idxLastPeriod);
       saveToDeviceStorage(_LOG, blob, storeTo, filename, partInfo, cb, true);
     }
@@ -466,7 +466,7 @@ exports.do_downloadBodyReps = function(op, callback) {
     // many times body change notifications will be fired.
     folderStorage.getMessageBody(header.suid, header.date,
                                          function(body) {
-      if (!body.bodyReps.every(function(rep) { return rep.isDownloaded; })) {
+      if (!folderStorage.messageBodyRepsDownloaded(body)) {
         folderConn.downloadBodyReps(header, onDownloadReps);
       } else {
         // passing flushed = true because we don't need to save anything
