@@ -245,7 +245,7 @@ ControlsController.prototype.captureHighlightOff = function() {
  */
 ControlsController.prototype.onViewModeChanged = function() {
   debug('view mode changed');
-  this.view.disable();
+  this.app.emit('busy');
   this.app.settings.mode.next();
 };
 

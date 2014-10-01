@@ -270,7 +270,6 @@ Camera.prototype.fetchBootConfig = function() {
  */
 Camera.prototype.requestCamera = function(camera, config) {
   debug('request camera', camera, config);
-  if (this.isBusy) { return; }
 
   var attempts = this.requestAttempts;
   var self = this;
@@ -734,7 +733,6 @@ Camera.prototype.release = function(done) {
     return;
   }
 
-  this.busy();
   this.stopRecording();
   this.focus.stopFaceDetection();
   this.set('focus', 'none');
@@ -836,8 +834,13 @@ Camera.prototype.capture = function(options) {
  * @param  {Object} options
  */
 Camera.prototype.takePicture = function(options) {
+  if (this.isBusy) {
+    return;
+  }
+
+  this.busy('takingPicture');
+
   debug('take picture');
-  this.busy();
 
   var rotation = this.orientation.get();
   var selectedCamera = this.selectedCamera;
@@ -871,7 +874,6 @@ Camera.prototype.takePicture = function(options) {
   }
 
   function takePicture() {
-    self.busy('takingPicture');
     self.mozCamera.takePicture(config, onSuccess, onError);
   }
 
@@ -945,6 +947,12 @@ Camera.prototype.setVideoStorage = function(storage) {
  * @public
  */
 Camera.prototype.startRecording = function(options) {
+  if (this.isBusy) {
+    return;
+  }
+
+  this.busy();
+
   debug('start recording');
   var frontCamera = this.selectedCamera === 'front';
   var rotation = this.orientation.get();
@@ -954,8 +962,6 @@ Camera.prototype.startRecording = function(options) {
 
   // Rotation is flipped for front camera
   if (frontCamera) { rotation = -rotation; }
-
-  this.busy();
 
   // Lock orientation during video recording
   //
@@ -1044,16 +1050,21 @@ Camera.prototype.startRecording = function(options) {
  * @public
  */
 Camera.prototype.stopRecording = function() {
+  var notRecording = !this.get('recording');
+  if (notRecording) { return; }
+
+  if (this.isBusy) {
+    return;
+  }
+
+  this.busy();
+
   debug('stop recording');
 
-  var notRecording = !this.get('recording');
   var filepath = this.video.filepath;
   var storage = this.storage.video;
   var self = this;
 
-  if (notRecording) { return; }
-
-  this.busy();
   this.stopVideoTimer();
   this.mozCamera.stopRecording();
   this.set('recording', false);
@@ -1073,7 +1084,7 @@ Camera.prototype.stopRecording = function() {
     // For instance when yanking the SD CARD
     if (e.reason === 'unavailable') {
       storage.removeEventListener('change', onStorageChange);
-      self.emit('ready');
+      self.ready();
       return;
     }
     debug('video file ready', e.path);
@@ -1089,8 +1100,12 @@ Camera.prototype.stopRecording = function() {
 
     // Re-fetch the blob from storage
     var req = storage.get(filepath);
-    req.onerror = self.onRecordingError;
+    req.onerror = onError;
     req.onsuccess = onSuccess;
+
+    function onError() {
+      self.onRecordingError();
+    }
 
     function onSuccess() {
       debug('got video blob');
@@ -1186,10 +1201,12 @@ Camera.prototype.onShutter = function() {
  */
 Camera.prototype.onPreviewStateChange = function(state) {
   debug('preview state change: %s', state);
-  var busy = state === 'stopped' || state === 'paused';
   this.emit('preview:' + state);
-  if (busy) { this.busy(); }
-  else { this.ready(); }
+
+  var busy = state === 'stopped' || state === 'paused';
+  if (busy) { return; }
+  
+  this.ready();
 };
 
 /**
@@ -1514,10 +1531,11 @@ Camera.prototype.getSensorAngle = function() {
  * @private
  */
 Camera.prototype.busy = function(type) {
-  debug('busy %s', type || '');
-  this.isBusy = true;
-  this.emit('busy', type);
-  clearTimeout(this.readyTimeout);
+  if (!this.isBusy) {
+    clearTimeout(this.readyTimeout);
+    this.isBusy = true;
+    this.emit('busy', type);
+  }
 };
 
 /**
@@ -1528,11 +1546,12 @@ Camera.prototype.busy = function(type) {
  */
 Camera.prototype.ready = function() {
   var self = this;
-  this.isBusy = false;
   clearTimeout(this.readyTimeout);
   this.readyTimeout = setTimeout(function() {
-    debug('ready');
-    self.emit('ready');
+    if (self.isBusy) {
+      self.isBusy = false;
+      self.emit('ready');
+    }
   }, 150);
 };
 
