@@ -1,5 +1,7 @@
 'use strict';
 
+/* global InputWindow */
+
 (function(exports) {
 
   /**
@@ -15,9 +17,11 @@
     // The set of running keyboards.
     // This is a map from keyboard manifestURL to an object like this:
     // 'keyboard.gaiamobile.org/manifest.webapp' : {
-    //   'English': aIframe
+    //   'English': anInputWindow
     // }
     this.runningLayouts = {};
+
+    this._showedCallbacks = new WeakMap();
 
     this._onDebug = false;
   };
@@ -36,100 +40,80 @@
 
   };
 
-  InputFrameManager.prototype.handleEvent = function ifm_handleEvent(evt) {
-    this._keyboardManager.resizeKeyboard(evt);
+  InputFrameManager.prototype.onopened = function ifm_onopened(inputWindow) {
+    if (typeof this._showedCallbacks.get(inputWindow) === 'function'){
+      this._showedCallbacks.get(inputWindow).call();
+    }
+    inputWindow.openImmediately = false;    
   };
 
-  InputFrameManager.prototype.setupFrame = function ifm_setupFrame(layout) {
-    var frame = this.runningLayouts[layout.manifestURL][layout.id];
-    frame.classList.remove('hide');
-    this._setFrameActive(frame, true);
-    frame.addEventListener('mozbrowserresize', this, true);
+  InputFrameManager.prototype.onclosed = function ifm_onclosed(inputWindow) {
+    if (inputWindow.isActiveKeyboard){
+      this._keyboardManager._resetShowingKeyboard();
+    }
   };
 
-  InputFrameManager.prototype.resetFrame = function ifm_resetFrame(layout) {
+  InputFrameManager.prototype.onlaunched = function ifm_onlaunched(height) {
+    this._keyboardManager._onKeyboardLaunched(height);
+  };
+
+  InputFrameManager.prototype.setupInputWindow =
+    function ifm_setupInputWindow(layout) {
+    var inputWindow = this.runningLayouts[layout.manifestURL][layout.id];
+    inputWindow.setAsActiveInput(true);
+  };
+
+  InputFrameManager.prototype.resetInputWindow =
+    function ifm_resetInputWindow(layout) {
     if (!layout) {
       return;
     }
 
-    var frame = this.runningLayouts[layout.manifestURL][layout.id];
+    var inputWindow = this.runningLayouts[layout.manifestURL][layout.id];
 
-    if (!frame) {
+    if (!inputWindow) {
       return;
     }
 
-    frame.classList.add('hide');
-    this._setFrameActive(frame, false);
-    frame.removeEventListener('mozbrowserresize', this, true);
+    inputWindow.setAsActiveInput(false);
   };
 
-  InputFrameManager.prototype._setFrameActive =
-    function ifm_setFrameActive(frame, active) {
-    this._debug('setFrameActive: ' +
-                frame.dataset.frameManifestURL +
-                frame.dataset.framePath + ', active: ' + active);
+  InputFrameManager.prototype.launchInputWindow =
+    function ifm_launchInputWindow(layout, keepInactive,
+                                   showImmediately, showedCallback) {
+    var inputWindow = null;
 
-    if (frame.setVisible) {
-      frame.setVisible(active);
-    }
-    if (frame.setInputMethodActive) {
-      frame.setInputMethodActive(active);
-    }
-
-    this._keyboardManager.setHasActiveKeyboard(active);
-  };
-
-  InputFrameManager.prototype.launchFrame =
-    function ifm_launchFrame(layout, keepInactive) {
     if (this._isRunningLayout(layout)) {
       this._debug('this layout is running');
-      return;
+
+      inputWindow = this.runningLayouts[layout.manifestURL][layout.id];
+    } else {
+      // See if the layout is in a keyboard app that has been launched.
+      if (this._isRunningKeyboard(layout)) {
+        // Re-use the iframe by changing its src.
+        inputWindow = this._getWindowFromExistingKeyboard(layout);
+      }
+
+      // Can't reuse, so create a new frame to load this new layout.
+      if (!inputWindow) {
+        inputWindow = this._loadKeyboardLayoutToWindow(layout, keepInactive);
+      }
+
+      inputWindow.setLayoutData(layout);
+
+      this._insertWindowRef(layout, inputWindow);
     }
 
-    var frame = null;
-    // The layout is in a keyboard app that has been launched.
-    if (this._isRunningKeyboard(layout)) {
-      // Re-use the iframe by changing its src.
-      frame = this._getFrameFromExistingKeyboard(layout);
-    }
-
-    // Can't reuse, so create a new frame to load this new layout.
-    if (!frame) {
-      frame = this._loadKeyboardLayoutToFrame(layout, keepInactive);
-      frame.dataset.frameManifestURL = layout.manifestURL;
-    }
-
-    frame.dataset.frameName = layout.id;
-    frame.dataset.framePath = layout.path;
-
-    this._insertFrameRef(layout, frame);
+    inputWindow.openImmediately = showImmediately;
+    this._showedCallbacks.set(inputWindow, showedCallback);
   };
 
-  InputFrameManager.prototype._loadKeyboardLayoutToFrame =
-    function ifm__loadKeyboardLayoutToFrame(layout, keepInactive) {
-    var frame = this._constructFrame(layout);
-    this._keyboardManager.keyboardFrameContainer.appendChild(frame);
-    if (keepInactive) {
-      frame.setVisible(false);
-      frame.classList.add('hide');
-    }
-    return frame;
-  };
+  InputFrameManager.prototype._loadKeyboardLayoutToWindow =
+    function ifm__loadKeyboardLayoutToWindow(layout, keepInactive) {
+    var app = window.applications.getByManifestURL(layout.manifestURL);
 
-  InputFrameManager.prototype._constructFrame =
-    function ifm__constructFrame(layout) {
-
-    // Generate a <iframe mozbrowser> containing the keyboard.
-    var frame = document.createElement('iframe');
-    frame.src = layout.origin + layout.path;
-    frame.setAttribute('mozapptype', 'inputmethod');
-    frame.setAttribute('mozbrowser', 'true');
-    frame.setAttribute('mozpasspointerevents', 'true');
-    frame.setAttribute('mozapp', layout.manifestURL);
-
-    var manifest =
-      window.applications.getByManifestURL(layout.manifestURL).manifest;
-    var isCertifiedApp = (manifest.type === 'certified');
+    var oopEnabled = false;
+    var isCertifiedApp = (app.manifest.type === 'certified');
 
     // oop is always enabled for non-certified app,
     // and optionally enabled to certified apps if
@@ -137,52 +121,55 @@
     if (this._keyboardManager.isOutOfProcessEnabled &&
         (!isCertifiedApp || this._keyboardManager.totalMemory >= 512)) {
       this._debug('=== Enable keyboard: ' + layout.origin + ' run as OOP ===');
-      frame.setAttribute('remote', 'true');
-      frame.setAttribute('ignoreuserfocus', 'true');
+      oopEnabled = true;
     }
 
-    return frame;
+    var inputWindow =
+      new InputWindow(this, app, layout.path, oopEnabled);
+
+    if (keepInactive) {
+      inputWindow.iframe.setVisible(false);
+    }
+
+    return inputWindow;
   };
 
-  InputFrameManager.prototype._getFrameFromExistingKeyboard =
-    function ifm__getFrameFromExistingKeyboard(layout) {
-    var frame = null;
+  InputFrameManager.prototype._getWindowFromExistingKeyboard =
+    function ifm__getWindowFromExistingKeyboard(layout) {
+    var inputWindow = null;
     var runningKeybaord = this.runningLayouts[layout.manifestURL];
     for (var id in runningKeybaord) {
-      var oldPath = runningKeybaord[id].dataset.framePath;
+      var oldPath = runningKeybaord[id].framePath;
       var newPath = layout.path;
       if (oldPath.substring(0, oldPath.indexOf('#')) ===
           newPath.substring(0, newPath.indexOf('#'))) {
-        frame = runningKeybaord[id];
-        frame.src = layout.origin + newPath;
-        this._debug(id + ' is overwritten: ' + frame.src);
-        this._deleteRunningFrameRef(layout.manifestURL, id);
+        inputWindow = runningKeybaord[id];
+        inputWindow.iframe.src = layout.origin + newPath;
+        this._debug(id + ' is overwritten: ' + inputWindow.iframe.src);
+        this._deleteRunningWindowRef(layout.manifestURL, id);
         break;
       }
     }
-    return frame;
+    return inputWindow;
   };
 
-  InputFrameManager.prototype._destroyFrame =
-    function ifm__destroyFrame(kbManifestURL, layoutID) {
-    var frame = this.runningLayouts[kbManifestURL][layoutID];
-    try {
-      frame.parentNode.removeChild(frame);
-    } catch (e) {
-      // if it doesn't work, noone cares
-    }
+  // XXX: delegate to input_window
+  InputFrameManager.prototype._destroyWindow =
+    function ifm__destroyWindow(kbManifestURL, layoutID) {
+    var inputWindow = this.runningLayouts[kbManifestURL][layoutID];
+    inputWindow.destroy();
   };
 
-  InputFrameManager.prototype._insertFrameRef =
-    function ifm__insertFrameRef(layout, frame) {
+  InputFrameManager.prototype._insertWindowRef =
+    function ifm__insertWindowRef(layout, inputWindow) {
     if (!(layout.manifestURL in this.runningLayouts)) {
       this.runningLayouts[layout.manifestURL] = {};
     }
 
-    this.runningLayouts[layout.manifestURL][layout.id] = frame;
+    this.runningLayouts[layout.manifestURL][layout.id] = inputWindow;
   };
 
-  InputFrameManager.prototype._deleteRunningFrameRef =
+  InputFrameManager.prototype._deleteRunningWindowRef =
     function ifm__deleteRunningLayoutRef(kbManifestURL, layoutID) {
     delete this.runningLayouts[kbManifestURL][layoutID];
   };
@@ -190,8 +177,8 @@
   InputFrameManager.prototype.removeKeyboard =
     function ifm_removeKeyboard(kbManifestURL) {
     for (var id in this.runningLayouts[kbManifestURL]) {
-      this._destroyFrame(kbManifestURL, id);
-      this._deleteRunningFrameRef(kbManifestURL, id);
+      this._destroyWindow(kbManifestURL, id);
+      this._deleteRunningWindowRef(kbManifestURL, id);
     }
 
     delete this.runningLayouts[kbManifestURL];
@@ -208,6 +195,56 @@
       return false;
    }
     return this.runningLayouts[layout.manifestURL].hasOwnProperty(layout.id);
+  };
+
+  // XXX: maybe active layout should be kept at inputwindowmanager in the future
+
+  InputFrameManager.prototype.getInputWindowState =
+    function ifm_getInputWindowState(kbManifestURL, layoutID) {
+      if (this.runningLayouts[kbManifestURL] &&
+          this.runningLayouts[kbManifestURL][layoutID]){
+        return this.runningLayouts[kbManifestURL][layoutID]
+               .transitionController._transitionState;
+      }
+
+      return undefined;
+  };
+
+  InputFrameManager.prototype.hideInputWindow =
+    function ifm_hideInputWindow(kbManifestURL, layoutID) {
+
+    this.runningLayouts[kbManifestURL][layoutID].close();
+  };
+
+  InputFrameManager.prototype.hideInputWindowImmediately =
+    function ifm_hideInputWindowImmediately(kbManifestURL, layoutID) {
+
+    // simulate anything we would do in 'closing' event
+    if ('_handle__closing' in this.runningLayouts[kbManifestURL][layoutID]) {
+      this.runningLayouts[kbManifestURL][layoutID]._handle__closing();
+    }
+    this.runningLayouts[kbManifestURL][layoutID].close('immediate');
+  };
+
+  InputFrameManager.prototype.getOccupyingHeight =
+    function ifm_getOccupyingHeight(kbManifestURL, layoutID) {
+      return this.runningLayouts[kbManifestURL][layoutID].occupyingHeight;
+  };
+
+  InputFrameManager.prototype.hasActiveKeyboard =
+    function ifm_hasActiveKeyboard() {
+      return Object.keys(this.runningLayouts).some(
+        manifestURL =>
+        Object.keys(this.runningLayouts[manifestURL]).some(
+          layoutID =>
+          this.runningLayouts[manifestURL][layoutID].isActiveKeyboard
+        )
+      );
+  };
+
+  InputFrameManager.prototype.beginOpen =
+    function ifm_beginOpen(kbManifestURL, layoutID, height) {
+      this.runningLayouts[kbManifestURL][layoutID].beginOpen(height);
   };
 
   exports.InputFrameManager = InputFrameManager;
