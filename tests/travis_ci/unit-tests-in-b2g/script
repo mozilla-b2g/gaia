@@ -1,6 +1,8 @@
 #! /bin/bash -vex
 
-ls node_modules
+pwd
+ls
+
 ./node_modules/.bin/js-test-agent test \
   --this-chunk=${THIS_CHUNK:=1} \
   --total-chunks=${TOTAL_CHUNKS:=1} \
