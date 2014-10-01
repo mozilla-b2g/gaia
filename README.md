@@ -1,3 +1,4 @@
+Testing the new try server hook
 # Gaia [![Build Status](https://travis-ci.org/mozilla-b2g/gaia.svg)](https://travis-ci.org/mozilla-b2g/gaia)
 
 Gaia is Mozilla's Phone UX for the Boot to Gecko (B2G) project.
