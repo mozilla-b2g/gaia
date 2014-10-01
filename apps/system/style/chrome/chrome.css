@@ -80,8 +80,8 @@
   display: none;
 }
 
-.appWindow.fullscreen-app:not(.browser) .chrome.maximized .controls .urlbar,
-.appWindow:not(.browser) .chrome.maximized .controls .urlbar {
+.appWindow.fullscreen-app:not(.browser) .chrome .controls .urlbar,
+.appWindow:not(.browser) .chrome .controls .urlbar {
   width: calc(100% - 1rem);
 }
 
