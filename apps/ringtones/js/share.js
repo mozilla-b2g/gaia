@@ -21,7 +21,23 @@ if (document.location.hash === '#activity') {
     data.metadata = flatten(data.metadata);
     data.name = flatten(data.filenames);
 
+    //This is an ugly workaround for bug 956811.
+    var hack_setting_property = 'ringtone._hack.pause_please';
+
+    // Listen for changes to the magic setting
+    navigator.mozSettings.addObserver(hack_setting_property, observer);
+    function observer(e) {
+      // If the value of the setting has changed, then we pause the
+      // rintone. Note that we don't care what the new value of the
+      // setting is.  We only care whether it has changed. The music
+      // app will just toggle it back and forth between true and false.
+      document.getElementById('preview').pause();
+    }
+
     handleShare(data, function(command, details) {
+      if (command)
+        navigator.mozSettings.removeObserver(hack_setting_property, observer);
+
       switch (command) {
       case 'save':
         activity.postResult({});
@@ -165,9 +181,6 @@ function handleShare(data, callback) {
               navigator.mozSettings.createLock().set(o).onsuccess = function() {
                 preview.play();
               };
-
-              // Alter the activity data so we only run this code once.
-              delete data[hack_activity_property];
             };
           }
           else {
