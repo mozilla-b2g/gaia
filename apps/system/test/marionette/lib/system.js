@@ -157,6 +157,12 @@ System.prototype = {
     });
   },
 
+  stopStatusbar: function() {
+    this.client.executeScript(function() {
+      window.wrappedJSObject.StatusBar.pauseUpdate();
+    });
+  },
+
   stopDevtools: function() {
     this.client.executeScript(function() {
       window.wrappedJSObject.developerHUD.stop();

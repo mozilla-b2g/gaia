@@ -283,6 +283,35 @@ suite('Build Integration tests', function() {
     }
   }
 
+  function verifyCopySharedCSS() {
+    var testCSS = 'dev_apps/test-shared-css/style/main.css';
+    var COMMENTED =
+        /(?:\/\*(?:[\s\S]*?)\*\/)|(?:([\s;])+\/\/(?:.*)$)/gm;
+    var CSS_IMPORT =
+        /@import (?:url\()?['"].*(shared\/[^\/]+\/[^'"\s]+)['"](?:\))?.*;$/gm;
+    var content = fs.readFileSync(testCSS, { encoding: 'utf8' })
+        .replace(COMMENTED, '');
+    var matches = null;
+    var includes = [];
+    while ((matches = CSS_IMPORT.exec(content)) !== null) {
+      includes.push(matches[1]);
+    }
+
+    var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+        'test-shared-css.gaiamobile.org', 'application.zip');
+    var zip = new AdmZip(zipPath);
+    var zipEntries = zip.getEntries();
+    if (zipEntries.length === 0) {
+      return;
+    }
+
+    var appFiles = [];
+    for (var f = 0; f < zipEntries.length; f++) {
+      appFiles.push(zipEntries[f].entryName);
+    }
+    assert.includeMembers(appFiles, includes, 'not include shared CSS');
+  }
+
   test('make without rule & variable', function(done) {
     helper.exec('make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
@@ -334,7 +363,8 @@ suite('Build Integration tests', function() {
       var ignoreSettings = [
         'apz.force-enable',
         'debug.console.enabled',
-        'developer.menu.enabled'
+        'developer.menu.enabled',
+        'screen.timeout'
       ];
       ignoreSettings.forEach(function(key) {
         if (commonSettings[key] !== undefined) {
@@ -451,6 +481,15 @@ suite('Build Integration tests', function() {
         helper.checkError(error, stdout, stderr);
         verifyIncludedFilesFromHtml('system');
         verifyIncludedImagesSize('system', 1, false);
+        done();
+      });
+    });
+
+  test('make APP=test-shared-css, checking shared css are imported',
+    function(done) {
+      helper.exec('make APP=test-shared-css', function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+        verifyCopySharedCSS();
         done();
       });
     });
@@ -666,7 +705,7 @@ suite('Build Integration tests', function() {
           helper.checkSettings(settings, expectedSettings);
           helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
           // only expect one zip file for marketplace.
-          assert.equal(zipCount, 2, 'we should have two zip files in ' +
+          assert.equal(zipCount, 3, 'we should have three zip files in ' +
             'profile-debug directory');
 
           restoreFunc();

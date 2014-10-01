@@ -10,18 +10,14 @@ var SHARED_PATH = __dirname + '/../../../../shared/test/integration/';
 marionette('notification tests', function() {
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
     }
   });
   var actions = new Marionette.Actions(client);
   var notificationList = new NotificationList(client);
 
   test('fire notification', function() {
-    // Need to trigger LockScreenWindow manager with screenchange event.
-    client.executeScript(function(enabled) {
-      window.wrappedJSObject.ScreenManager.turnScreenOff(true);
-      window.wrappedJSObject.ScreenManager.turnScreenOn(true);
-    });
     var details = {tag: 'test tag',
                    title: 'test title',
                    body: 'test body',
@@ -31,11 +27,6 @@ marionette('notification tests', function() {
     notificationList.refresh();
     assert.ok(notificationList.contains(details),
               'Utility notification notification contains all fields');
-    notificationList.refreshLockScreen();
-    assert.ok(notificationList.containsLockScreen(details),
-              'Lock screen notification contains all fields: ' +
-               JSON.stringify(notificationList.lockScreenNotifications));
-              // Would be empty array...
   });
 
   test('swipe up should hide the toast', function() {
@@ -53,11 +44,6 @@ marionette('notification tests', function() {
   });
 
   test('system replace notification', function() {
-    // Need to trigger LockScreenWindow manager with screenchange event
-    client.executeScript(function(enabled) {
-      window.wrappedJSObject.ScreenManager.turnScreenOff(true);
-      window.wrappedJSObject.ScreenManager.turnScreenOn(true);
-    });
     var oldDetails = {tag: 'test tag, replace',
                       title: 'test title, replace',
                       body: 'test body, replace',
@@ -75,11 +61,6 @@ marionette('notification tests', function() {
               'Utility unreplaced notification should exist');
     assert.ok(notificationList.contains(newDetails, true),
               'Utility replaced notification should not exist');
-    notificationList.refreshLockScreen();
-    assert.ok(notificationList.containsLockScreen(oldDetails),
-              'Lock screen unreplaced notification should exist');
-    assert.ok(notificationList.containsLockScreen(newDetails, true),
-              'Lock screen replaced notification should not exist');
 
     var newNotify = new NotificationTest(client, newDetails);
     notificationList.refresh();
@@ -87,18 +68,9 @@ marionette('notification tests', function() {
               'Utility unreplaced notification should not exist');
     assert.ok(notificationList.contains(newDetails),
               'Utility replaced notification should exist');
-    notificationList.refreshLockScreen();
-    assert.ok(notificationList.containsLockScreen(oldDetails, true),
-              'Lock screen unreplaced notification should not exist');
-    assert.ok(notificationList.containsLockScreen(newDetails),
-              'Lock screen replaced notification should exists');
   });
 
   test('close notification', function() {
-    client.executeScript(function(enabled) {
-      window.wrappedJSObject.ScreenManager.turnScreenOff(true);
-      window.wrappedJSObject.ScreenManager.turnScreenOn(true);
-    });
     var details = {tag: 'test tag, close',
                    title: 'test title, close',
                    body: 'test body, close'};
@@ -106,17 +78,9 @@ marionette('notification tests', function() {
     notificationList.refresh();
     assert.ok(notificationList.contains(details),
               'notification should be in list before calling close');
-    notificationList.refreshLockScreen();
-    assert.ok(notificationList.containsLockScreen(details),
-              'notification should be in list before calling close');
     assert.ok(notify.close(), 'notification closed correctly');
     notificationList.refresh();
     assert.ok(notificationList.contains(details, true),
-              'notification should not be in list after calling close');
-      // Do loop wait since we would close notification with delay
-      // on LockScreen notification, after we make it actionable.
-    notificationList.refreshLockScreen();
-    assert.ok(notificationList.containsLockScreen(details, true),
               'notification should not be in list after calling close');
   });
 

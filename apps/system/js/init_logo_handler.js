@@ -96,7 +96,7 @@ var InitLogoHandler = {
 
   _removeCarrierPowerOn: function ilh_removeCarrierPowerOn() {
     var self = this;
-    if (this.carrierLogo) {
+    if (this.carrierLogo && this.carrierLogo.parentNode) {
       this.carrierLogo.parentNode.removeChild(self.carrierLogo);
       this._setReady();
     } else {

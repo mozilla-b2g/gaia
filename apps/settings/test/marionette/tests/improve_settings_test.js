@@ -2,7 +2,12 @@ var Settings = require('../app/app'),
     assert = require('assert');
 
 marionette('improve b2g', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
+    }
+  });
   var settingsApp;
   var improvePanel;
   var feedbackPanel;

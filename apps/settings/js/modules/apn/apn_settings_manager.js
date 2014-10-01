@@ -21,6 +21,7 @@
 define(function(require) {
   'use strict';
 
+  var AsyncStorage = require('modules/async_storage');
   var ApnConst = require('modules/apn/apn_const');
   var ApnUtils = require('modules/apn/apn_utils');
   var ApnItem = require('modules/apn/apn_item');
@@ -30,9 +31,16 @@ define(function(require) {
 
   var APN_TYPES = ApnConst.APN_TYPES;
   var APN_LIST_KEY = ApnConst.APN_LIST_KEY;
+  var CACHED_ICCIDS_KEY = ApnConst.CACHED_ICCIDS_KEY;
+
+  var RESTORE_MODE = {
+    ALL: 0,
+    ONLY_APN_ITEMS: 1,
+  };
 
   /**
    * @class ApnSettingsManager
+   * @requires module:modules/async_storage
    * @requires module:modules/apn/apn_const
    * @requires module:modules/apn/apn_utils
    * @requires module:modules/apn/apn_item
@@ -45,13 +53,55 @@ define(function(require) {
     this._apnLists = {};
     this._apnSelections = ApnSelections();
     this._apnSettings = ApnSettings();
+
+    this._readyPromises = {};
+
+    Object.defineProperty(this, 'RESTORE_MODE', {
+      configurable: false,
+      get: function() {
+        return RESTORE_MODE;
+      }
+    });
   }
 
   ApnSettingsManager.prototype = {
     /**
+     * Ensures the current apn items are up-to-date. When the current apn
+     * id does not equal to the cached apn id, we should restore the apn items.
+     *
+     * @access private
+     * @memberOf ApnSettingsManager.prototype
+     * @param {Number} serviceId
+     * @returns {Promise}
+     */
+    _ready: function asc_fromItems(serviceId) {
+      if (!this._readyPromises[serviceId]) {
+        // Check if a new icc card is detected.
+        this._readyPromises[serviceId] = AsyncStorage.getItem(CACHED_ICCIDS_KEY)
+        .then((cachedIccIds) => {
+          var cachedIccId = cachedIccIds && cachedIccIds[serviceId];
+          var curIccId = navigator.mozMobileConnections[serviceId].iccId;
+          if (!curIccId || curIccId === cachedIccId) {
+            return;
+          }
+
+          cachedIccIds = cachedIccIds || {};
+          cachedIccIds[serviceId] = curIccId;
+          // Get the default preset apns by restoring.
+          return Promise.all([
+            // In this case we only restore apn items but not apn settings.
+            this.restore(serviceId, RESTORE_MODE.ONLY_APN_ITEMS),
+            AsyncStorage.setItem(CACHED_ICCIDS_KEY, cachedIccIds)
+          ]);
+        });
+      }
+      return this._readyPromises[serviceId];
+    },
+
+    /**
      * Returns the id of the first preset apn item.
      *
-     * @param {String} serviceId
+     * @param {Number} serviceId
      * @param {String} apnType
      * @returns {Promise String}
      */
@@ -69,7 +119,7 @@ define(function(require) {
      * Returns the id of the apn item that matches the current apn setting of
      * the specified apn type.
      *
-     * @param {String} serviceId
+     * @param {Number} serviceId
      * @param {String} apnType
      * @returns {Promise String}
      */
@@ -105,10 +155,10 @@ define(function(require) {
      *
      * @access private
      * @memberOf ApnSettingsManager.prototype
-     * @param {String} serviceId
+     * @param {Number} serviceId
      * @param {String} apnId
      *                 id of the apn being checked.
-     * @returns {Promise String} 
+     * @returns {Promise String}
      */
     _getApnAppliedType: function asc_getApnAppliedType(serviceId, apnId) {
       return this._apnSelections.get(serviceId).then(function(apnSelection) {
@@ -121,7 +171,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf ApnSettingsManager.prototype
-     * @param {String} serviceId
+     * @param {Number} serviceId
      * @param {String} apnType
      */
     _storeApnSettingByType: function asc_storeApnByType(serviceId, apnType) {
@@ -146,7 +196,7 @@ define(function(require) {
      *
      * @access private
      * @memberOf ApnSettingsManager.prototype
-     * @param {String} serviceId
+     * @param {Number} serviceId
      * @returns {ApnList} The apn item list.
      */
     _apnList: function asc_apnList(serviceId) {
@@ -158,27 +208,18 @@ define(function(require) {
     },
 
     /**
-     * Get the apn items of an apn type for a sim slot. If the apn list is
-     * empty, it fills the list by restoring the apn settings.
+     * Get the apn items of an apn type for a sim slot.
      *
      * @access private
      * @memberOf ApnSettingsManager.prototype
-     * @param {String} serviceId
+     * @param {Number} serviceId
      * @param {String} apnType
      * @returns {Promise Array<ApnItem>} The apn items.
      */
     _apnItems: function asc_apnItems(serviceId, apnType) {
-      var apnList = this._apnList(serviceId);
-      return apnList.items().then(function(apnItems) {
-        if (apnItems) {
-          return apnItems;
-        } else {
-          // Get the default preset apns by restoring.
-          return this.restore(serviceId).then(function() {
-            return apnList.items();
-          });
-        }
-      }.bind(this)).then(function(apnItems) {
+      return this._ready(serviceId).then(() => {
+        return this._apnList(serviceId).items();
+      }).then((apnItems) => {
         return apnItems &&
           apnItems.filter(ApnUtils.apnTypeFilter.bind(null, apnType)) || [];
       });
@@ -222,17 +263,23 @@ define(function(require) {
     },
 
     /**
-     * Restore the apn settings to the default. Only apn items of the category
-     * ApnItem.APN_CATEGORY.PRESET and ApnItem.APN_CATEGORY.EU are restored.
-     * User created apn items (custom apns) will not be affected. The preset apn
-     * items are from the apn.json database and client provisioning messages.
+     * Restore the apn items and apn settings to the default. Only apn items of
+     * the category ApnItem.APN_CATEGORY.PRESET and ApnItem.APN_CATEGORY.EU are
+     * restored. User created apn items (custom apns) will not be affected. The
+     * preset apn items are from the apn.json database and client provisioning
+     * messages.
      *
      * @access public
      * @memberOf ApnSettingsManager.prototype
      * @param {String} serviceId
+     * @param {Number} mode
+     *                 The possible values are defined in RESTORE_MODE. We
+     *                 restore both apn items and apn settings by default. Only
+     *                 apn items are restored when mode is
+     *                 RESTORE_MODE.ONLY_APN_ITEMS.
      * @returns {Promise}
      */
-    restore: function asc_restore(serviceId) {
+    restore: function asc_restore(serviceId, mode) {
       var mobileConnection = navigator.mozMobileConnections[serviceId];
       var networkType = mobileConnection.data.type;
       var apnList = this._apnList(serviceId);
@@ -250,7 +297,7 @@ define(function(require) {
         return Promise.all([
           ApnUtils.getEuApns(),
           ApnUtils.getDefaultApns(mcc, mnc, networkType),
-          ApnUtils.getCpApns(mcc, mnc, networkType),
+          ApnUtils.getCpApns(mcc, mnc, networkType)
         ]);
       }).then(function(results) {
         // Restore preset and eu apns.
@@ -263,15 +310,15 @@ define(function(require) {
         .then(function() {
           return that._restoreApnItemsOfCategory(
             apnList, presetApns, ApnItem.APN_CATEGORY.PRESET);
-        }).then(function(apnIds) {
-          // Set all preset apns as the active ones for each type.
-          var promises = [];
-          presetApns.forEach(function(presetApn, index) {
-            var type = presetApn.types[0];
-            promises.push(that.setActiveApnId(serviceId, type, apnIds[index]));
-          });
-          return Promise.all(promises);
         });
+      }).then(function() {
+        // We simply clear the apn selections. The selections will be restored
+        // based on the current apn settings when it is being queried.
+        return that._apnSelections.clear(serviceId);
+      }).then(function() {
+        if (mode !== RESTORE_MODE.ONLY_APN_ITEMS) {
+          return that._apnSettings.restore(serviceId);
+        }
       });
     },
 
@@ -281,15 +328,105 @@ define(function(require) {
      *
      * @access public
      * @memberOf ApnSettingsManager.prototype
-     * @param {String} serviceId
+     * @param {Number} serviceId
      * @param {String} apnType
      * @returns {Promise Array<ApnItem>} The apn items
      */
     queryApns: function asc_queryApns(serviceId, apnType) {
-      var that = this;
-
       return this.getActiveApnId(serviceId, apnType)
       .then(function(activeApnId) {
+        return this._apnItems(serviceId, apnType).then(function(items) {
+          items.forEach(function(apnItem) {
+            apnItem.active = (apnItem.id === activeApnId);
+          });
+          return items;
+        });
+      }.bind(this));
+    },
+
+    /**
+     * Add an apn to a sim slot.
+     *
+     * @access public
+     * @memberOf ApnSettingsManager.prototype
+     * @param {Number} serviceId
+     * @param {Object} apn
+     * @param {ApnItem.APN_CATEGORY} category
+     * @returns {Promise}
+     */
+    addApn: function asc_addApn(serviceId, apn, category) {
+      return this._ready(serviceId).then(() => {
+        return this._apnList(serviceId).add(apn,
+          category || ApnItem.APN_CATEGORY.CUSTOM);
+      });
+    },
+
+    /**
+     * Remove an apn from a sim slot.
+     *
+     * @access public
+     * @memberOf ApnSettingsManager.prototype
+     * @param {Number} serviceId
+     * @param {String} id
+     *                 id of the apn item to be added.
+     * @returns {Promise}
+     */
+    removeApn: function asc_removeApn(serviceId, id) {
+      return this._ready(serviceId).then(() => {
+        return this._apnList(serviceId).remove(id);
+      }).then(() => {
+        // check if the removed apn is actively being used.
+        return this._getApnAppliedType(serviceId, id);
+      }).then((matchedApnType) => {
+        if (matchedApnType) {
+          return this._deriveActiveApnIdFromItems(serviceId, matchedApnType)
+          .then((activeApnId) => {
+            return this.setActiveApnId(serviceId, matchedApnType, activeApnId);
+          });
+        }
+      });
+    },
+
+    /**
+     * Update an apn item.
+     *
+     * @access public
+     * @memberOf ApnSettingsManager.prototype
+     * @param {Number} serviceId
+     * @param {String} id
+     *                 id of the apn item to be updated.
+     * @param {Object} apn
+     * @returns {Promise}
+     */
+    updateApn: function asc_updateApn(serviceId, id, apn) {
+      return this._ready(serviceId).then(() => {
+        return this._apnList(serviceId).update(id, apn);
+      }).then(() => {
+        // check if the updated apn is actively being used.
+        return this._getApnAppliedType(serviceId, id);
+      }).then((matchedApnType) => {
+        if (matchedApnType) {
+          return this._storeApnSettingByType(serviceId, matchedApnType);
+        }
+      });
+    },
+
+    /**
+     * Get the id of the apn that is actively being used for an apn type.
+     *
+     * @access public
+     * @memberOf ApnSettingsManager.prototype
+     * @param {Number} serviceId
+     * @param {String} apnType
+     * @returns {Promise String}
+     */
+    getActiveApnId: function asc_getActiveApnId(serviceId, apnType) {
+      var that = this;
+      return this._ready(serviceId).then(function() {
+        return that._apnSelections.get(serviceId);
+      }).then(function(apnSelection) {
+        return apnSelection && apnSelection[apnType];
+      }).then(function(activeApnId) {
         if (activeApnId) {
           return activeApnId;
         } else {
@@ -316,87 +453,6 @@ define(function(require) {
             return apnId;
           });
         }
-      }).then(function(activeApnId) {
-        return that._apnItems(serviceId, apnType).then(function(items) {
-          items.forEach(function(apnItem) {
-            apnItem.active = (apnItem.id === activeApnId);
-          });
-          return items;
-        });
-      });
-    },
-
-    /**
-     * Add an apn to a sim slot.
-     *
-     * @access public
-     * @memberOf ApnSettingsManager.prototype
-     * @param {String} serviceId
-     * @param {Object} apn
-     * @param {ApnItem.APN_CATEGORY} category
-     * @returns {Promise}
-     */
-    addApn: function asc_addApn(serviceId, apn, category) {
-      return this._apnList(serviceId).add(apn,
-        category || ApnItem.APN_CATEGORY.CUSTOM);
-    },
-
-    /**
-     * Remove an apn from a sim slot.
-     *
-     * @access public
-     * @memberOf ApnSettingsManager.prototype
-     * @param {String} serviceId
-     * @param {String} id
-     *                 id of the apn item to be added.
-     * @returns {Promise}
-     */
-    removeApn: function asc_removeApn(serviceId, id) {
-      return this._apnList(serviceId).remove(id)
-      // check if the removed apn is actively being used.
-      .then(this._getApnAppliedType.bind(this, serviceId, id))
-      .then(function(matchedApnType) {
-        if (matchedApnType) {
-          return this._deriveActiveApnIdFromItems(serviceId, matchedApnType)
-          .then(this.setActiveApnId.bind(this, serviceId, matchedApnType));
-        }
-      }.bind(this));
-    },
-
-    /**
-     * Update an apn item.
-     *
-     * @access public
-     * @memberOf ApnSettingsManager.prototype
-     * @param {String} serviceId
-     * @param {String} id
-     *                 id of the apn item to be updated.
-     * @param {Object} apn
-     * @returns {Promise}
-     */
-    updateApn: function asc_updateApn(serviceId, id, apn) {
-      return this._apnList(serviceId).update(id, apn)
-      // check if the updated apn is actively being used.
-      .then(this._getApnAppliedType.bind(this, serviceId, id))
-      .then(function(matchedApnType) {
-        if (matchedApnType) {
-          return this._storeApnSettingByType(serviceId, matchedApnType);
-        }
-      }.bind(this));
-    },
-
-    /**
-     * Get the id of the apn that is actively being used for an apn type.
-     *
-     * @access public
-     * @memberOf ApnSettingsManager.prototype
-     * @param {String} serviceId
-     * @param {String} apnType
-     * @returns {Promise String}
-     */
-    getActiveApnId: function asc_getActiveApnId(serviceId, apnType) {
-      return this._apnSelections.get(serviceId).then(function(apnSelection) {
-        return apnSelection && apnSelection[apnType];
       });
     },
 
@@ -405,18 +461,20 @@ define(function(require) {
      *
      * @access public
      * @memberOf ApnSettingsManager.prototype
-     * @param {String} serviceId
+     * @param {Number} serviceId
      * @param {String} apnType
      * @param {String} id
      * @returns {Promise}
      */
     setActiveApnId: function asc_setActiveApnId(serviceId, apnType, id) {
-      return this._apnSelections.get(serviceId).then(function(apnSelection) {
+      return this._ready(serviceId).then(() => {
+        return this._apnSelections.get(serviceId);
+      }).then((apnSelection) => {
         if (apnSelection[apnType] !== id) {
           apnSelection[apnType] = id;
           return this._storeApnSettingByType(serviceId, apnType);
         }
-      }.bind(this));
+      });
     }
   };
 

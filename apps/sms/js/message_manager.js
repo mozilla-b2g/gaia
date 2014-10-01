@@ -21,10 +21,8 @@ var MessageManager = {
       return;
     }
     this.initialized = true;
-    // Allow for stubbing in environments that do not implement the
-    // `navigator.mozMobileMessage` API
-    this._mozMobileMessage = navigator.mozMobileMessage ||
-      window.DesktopMockNavigatormozMobileMessage;
+
+    this._mozMobileMessage = navigator.mozMobileMessage;
 
     this._mozMobileMessage.addEventListener(
       'received', this.onMessageReceived.bind(this)

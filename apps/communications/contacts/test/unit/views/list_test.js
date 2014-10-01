@@ -1708,7 +1708,12 @@ suite('Render contacts list', function() {
   });
 
   suite('ICE Contacts', function() {
+    var dispatchChange;
+
     setup(function() {
+      this.sinon.stub(ICEStore, 'onChange', function(cb) {
+        dispatchChange = cb;
+      });
       this.sinon.stub(ICEStore, 'getContacts', function() {
         return {
           then: function(cb) {
@@ -1722,6 +1727,10 @@ suite('Render contacts list', function() {
 
       this.sinon.spy(MockAlphaScroll, 'showGroup');
       this.sinon.spy(MockAlphaScroll, 'hideGroup');
+    });
+
+    teardown(function() {
+      ICEStore.onChange.restore();
     });
 
     test('> ICE group is always build but is hidden', function() {
@@ -1766,6 +1775,21 @@ suite('Render contacts list', function() {
       subject.load(null, true);
       var iceGroup = document.getElementById('section-group-ice');
       assert.isNotNull(iceGroup);
+    });
+
+    test('toggleICEGroup hides group', function(done) {
+      mockContacts = new MockContactsList();
+      subject.load(mockContacts, false, () => {
+        var iceGroup = document.getElementById('section-group-ice');
+        assert.isFalse(iceGroup.classList.contains('hide'));
+        subject.toggleICEGroup(false);
+        assert.isTrue(iceGroup.classList.contains('hide'));
+        dispatchChange();
+        // The group was updated and it calls to showICEGroup but it remains
+        // hidden because it was forced by toggleICEGroup.
+        assert.isTrue(iceGroup.classList.contains('hide'));
+        done();
+      });
     });
   });
 

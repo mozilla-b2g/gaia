@@ -148,6 +148,20 @@ navigator.mozL10n.once(function deviceList() {
         showDevicePaired(evt.status, 'Authentication Failed');
       };
 
+      defaultAdapter.ondiscoverystatechanged =
+        function bt_discoveryStateChanged(evt) {
+          if (!evt.discovering) {
+            searchAgainBtn.disabled = false;
+            searchingItem.hidden = true;
+
+            clearTimeout(discoverTimeout);
+            discoverTimeout = null;
+          } else {
+            searchAgainBtn.disabled = true;
+            searchingItem.hidden = false;
+          }
+        };
+
       onDeviceSelectedHandler = deviceSelectedCallback;
       onExitBtnClickedHandler = exitBtnClickedCallback;
 
@@ -265,8 +279,6 @@ navigator.mozL10n.once(function deviceList() {
       // the same status update twice.
       var workingAddress = pairingAddress;
       pairingAddress = null;
-      // turn on search button while pairing process finished
-      searchAgainBtn.disabled = false;
       if (paired) {
         // if the device is on the list, remove it.
         // it will show on paired list later.
@@ -314,13 +326,11 @@ navigator.mozL10n.once(function deviceList() {
 
       var req = defaultAdapter.startDiscovery();
       req.onsuccess = function bt_discoveryStart() {
-        searchAgainBtn.disabled = true;
         if (!discoverTimeout)
           discoverTimeout = setTimeout(stopDiscovery, discoverTimeoutTime);
       };
       req.onerror = function bt_discoveryFailed() {
-        searchingItem.hidden = true;
-        searchAgainBtn.disabled = false;
+        console.error('Can not discover nearby device');
       };
     }
 
@@ -336,17 +346,10 @@ navigator.mozL10n.once(function deviceList() {
         return;
 
       var req = defaultAdapter.stopDiscovery();
-      req.onsuccess = function bt_discoveryStopped() {
-        if (!pairingAddress)
-          searchAgainBtn.disabled = false;
-
-        searchingItem.hidden = true;
-      };
       req.onerror = function bt_discoveryStopFailed() {
         console.error('Failed to stop discovery of nearby devices');
-        searchAgainBtn.disabled = true;
-        searchingItem.hidden = false;
       };
+
       clearTimeout(discoverTimeout);
       discoverTimeout = null;
     }

@@ -59,6 +59,7 @@ marionette('Homescreen navigation >', function() {
     // Since the clock will cause reflows we're disabling it
     // Also disabling the developer hud because of
     // https://bugzilla.mozilla.org/show_bug.cgi?id=971008
+    sys.stopStatusbar();
     sys.stopDevtools();
     sys.stopClock();
 
@@ -72,9 +73,7 @@ marionette('Homescreen navigation >', function() {
     launchSettings();
 
     var count = reflowHelper.getCount();
-    // Changing the will-change property causes a reflow
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=974125
-    assert.equal(count, 2, 'we got ' + count + ' reflows instead of 2');
+    assert.equal(count, 0, 'we got ' + count + ' reflows instead of 0');
     reflowHelper.stopTracking();
   });
 });

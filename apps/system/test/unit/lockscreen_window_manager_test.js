@@ -62,7 +62,9 @@ suite('system/LockScreenWindowManager', function() {
     } else {
       window.lockScreenWindowManager = new window.LockScreenWindowManager();
     }
+    window.lockScreenWindowManager.setup();
     window.lockScreenWindowManager.startObserveSettings();
+    window.lockScreenWindowManager.elements = {};
     window.lockScreenWindowManager.elements.screen =
       document.createElement('div');
     // Differs from the existing mock which is expected by other components.
@@ -83,14 +85,15 @@ suite('system/LockScreenWindowManager', function() {
       var evt = {
             type: 'home',
             stopImmediatePropagation: this.sinon.stub()
-          },
-          originalActive = window.lockScreenWindowManager.states.active;
+          };
       // Need to be active to block the home event.
-      window.lockScreenWindowManager.states.active = true;
+      this.sinon.stub(window.lockScreenWindowManager, 'isActive',
+        function() {
+          return true;
+      });
       window.lockScreenWindowManager.handleEvent(evt);
       assert.ok(evt.stopImmediatePropagation.called,
         'it didn\'t call the stopImmediatePropagation method');
-      window.lockScreenWindowManager.states.active = originalActive;
     });
 
     test('App created', function() {
@@ -145,21 +148,18 @@ suite('system/LockScreenWindowManager', function() {
     test('Open the app when screen is turned on', function() {
       window.lockScreenWindowManager.registerApp(appFake);
       var stubOpen = this.sinon.stub(appFake, 'open');
-      var stubResize = this.sinon.stub(appFake, 'resize');
       window.lockScreenWindowManager.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });
       assert.isTrue(stubOpen.called,
         'the manager didn\'t call the app.open when screen on');
-      assert.isTrue(stubResize.called,
-        'the manager didn\'t call the app.resize when screen on');
       window.lockScreenWindowManager.unregisterApp(appFake);
     });
 
     test('When FTU occurs, the window should not be instantiated', function() {
       var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
         'openApp');
-      window.lockScreenWindowManager.handleEvent( { type: 'ftuopen' } );
+      window.lockScreenWindowManager.handleEvent({ type: 'ftuopen' });
       window.lockScreenWindowManager.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });
@@ -170,8 +170,8 @@ suite('system/LockScreenWindowManager', function() {
     test('But after FTU done, the window should be instantiated', function() {
       var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
         'openApp');
-      window.lockScreenWindowManager.handleEvent( { type: 'ftuopen' } );
-      window.lockScreenWindowManager.handleEvent( { type: 'ftudone' } );
+      window.lockScreenWindowManager.handleEvent({ type: 'ftuopen' });
+      window.lockScreenWindowManager.handleEvent({ type: 'ftudone' });
       window.lockScreenWindowManager.handleEvent(
         { type: 'screenchange',
           detail: { screenEnabled: true } });
@@ -185,7 +185,7 @@ suite('system/LockScreenWindowManager', function() {
         this.sinon.stub(app, 'isActive').returns(true);
         window.lockScreenWindowManager.states.instance = app;
         var stubSetVisible = this.sinon.stub(app, 'setVisible');
-        window.lockScreenWindowManager.handleEvent( { type: 'overlaystart' } );
+        window.lockScreenWindowManager.handleEvent({ type: 'overlaystart' });
         assert.isTrue(stubSetVisible.calledWith(false));
       });
 
@@ -215,13 +215,10 @@ suite('system/LockScreenWindowManager', function() {
     test('Open the app when asked via lock-immediately setting', function() {
       window.lockScreenWindowManager.registerApp(appFake);
       var stubOpen = this.sinon.stub(appFake, 'open');
-      var stubResize = this.sinon.stub(appFake, 'resize');
       window.MockNavigatorSettings.mTriggerObservers(
         'lockscreen.lock-immediately', {settingValue: true});
       assert.isTrue(stubOpen.called,
         'the manager didn\'t open the app when requested');
-      assert.isTrue(stubResize.called,
-        'the manager didn\'t resize the app when requested');
       window.lockScreenWindowManager.unregisterApp(appFake);
     });
   });

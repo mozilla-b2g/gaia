@@ -7,7 +7,8 @@ marionette('Use a different outgoing password', function() {
       client = marionette.client({
         settings: {
           // disable keyboard ftu because it blocks our display
-          'keyboard.ftu.enabled': false
+          'ftu.manifestURL': null,
+          'lockscreen.enabled': false
         }
       });
 

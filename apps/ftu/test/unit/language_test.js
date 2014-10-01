@@ -1,3 +1,5 @@
+/*global MockL10n, MockNavigatorSettings, MockLanguageList,
+LanguageManager, LanguageList, KeyboardHelper, dispatchEvent*/
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -39,7 +41,6 @@ suite('languages >', function() {
     LanguageManager.handleEvent(fakeEvent);
     assert.equal(MockNavigatorSettings.mSettings[fakeEvent.target.name],
                  fakeEvent.target.value);
-    assert.equal(MockNavigatorSettings.mSettings['locale.hour12'], false);
   });
 
   test('build language list', function(done) {
@@ -83,6 +84,11 @@ suite('languages >', function() {
       MockNavigatorSettings.mTriggerObservers(langKey,
                                               {settingValue: 'newLanguage'});
       assert.isTrue(KeyboardHelper.changeDefaultLayouts.called);
+    });
+
+    test('localize changed', function() {
+      dispatchEvent(new CustomEvent('localized'));
+      assert.equal(MockNavigatorSettings.mSettings['locale.hour12'], false);
     });
   });
 });

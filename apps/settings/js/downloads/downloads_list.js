@@ -356,6 +356,8 @@
     // Add 'edit' stype
     downloadsPanel.classList.add('edit');
 
+    downloadsEditMenu.hidden = false;
+
     // Change edit mdoe status
     isEditMode = true;
     _updateButtonsStatus();
@@ -364,6 +366,8 @@
   function _closeEditMode() {
     // Remove "edit" styles
     downloadsPanel.classList.remove('edit');
+
+    downloadsEditMenu.hidden = true;
 
     // Clean vars
     isEditMode = false;

@@ -38,6 +38,7 @@ var Startup = {
     'js/attachment_renderer.js',
     'js/attachment_menu.js',
     'js/thread_ui.js',
+    'js/subject_composer.js',
     'js/compose.js',
     'js/wbmp.js',
     'js/smil.js',
@@ -87,17 +88,6 @@ var Startup = {
     var initUIApp = this._initUIApp.bind(this);
     window.addEventListener('DOMContentLoaded', function() {
       window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
-
-      if (!navigator.mozMobileMessage) {
-        var mocks = [
-          'js/desktop-only/mobilemessage.js',
-          'js/desktop-only/contacts.js'
-        ];
-        LazyLoader.load(mocks, function() {
-          MessageManager.init(initUIApp);
-        });
-        return;
-      }
       MessageManager.init(initUIApp);
     });
   }

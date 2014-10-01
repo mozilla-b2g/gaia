@@ -1,6 +1,6 @@
 /* global MockStackManager, MockNavigatorSettings, MockAppWindowManager,
           TaskManager, Card, AppWindow, HomescreenLauncher,
-          HomescreenWindow, MocksHelper */
+          HomescreenWindow, MocksHelper, MockL10n */
 
 'use strict';
 
@@ -14,6 +14,7 @@ requireApp('system/test/unit/mock_trusted_ui_manager.js');
 
 require('/shared/test/unit/mocks/mock_system.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForTaskManager = new MocksHelper([
   'TrustedUIManager',
@@ -52,8 +53,8 @@ function failOnReject(err) {
 suite('system/TaskManager >', function() {
   var fakeInnerHeight = 200;
 
-  var screenNode, realMozSettings, realSettingsListener;
-  var cardsView, cardsList;
+  var screenNode, realMozSettings, realSettingsListener, realL10n;
+  var cardsView, cardsList, noRecentWindowsNode;
   var ihDescriptor;
 
   function createTouchEvent(type, target, x, y) {
@@ -92,8 +93,8 @@ suite('system/TaskManager >', function() {
     window.dispatchEvent(evt);
   }
 
-  function showTaskManager(clock) {
-    taskManager.show();
+  function showTaskManager(clock, stackFilter) {
+    taskManager.show(stackFilter);
     // We wait for the app to close
     window.dispatchEvent(new CustomEvent('appclosed'));
     // Then dispatch the cardviewshow event after a tick
@@ -107,7 +108,7 @@ suite('system/TaskManager >', function() {
   }
 
   var apps, home;
-  var sms, game, game2, game3, game4;
+  var sms, game, game2;
   var taskManager;
 
   mocksForTaskManager.attachTestHelpers();
@@ -154,6 +155,25 @@ suite('system/TaskManager >', function() {
         origin: 'http://game.gaiamobile.org',
         blur: function() {}
       }),
+      'browser1': new AppWindow({
+        launchTime: 4,
+        name: 'BROWSER1',
+        element: document.createElement('div'),
+        frame: document.createElement('div'),
+        iframe: document.createElement('iframe'),
+        rotatingDegree: 0,
+        isBrowser: function() {
+          return true;
+        },
+        requestScreenshotURL: function() {
+          return null;
+        },
+        getScreenshot: function(callback) {
+          callback();
+        },
+        origin: 'http://browser1.somedomain.tld/path',
+        blur: function() {}
+      }),
       'http://game2.gaiamobile.org': new AppWindow({
         launchTime: 3,
         name: 'GAME2',
@@ -173,42 +193,43 @@ suite('system/TaskManager >', function() {
         origin: 'http://game2.gaiamobile.org',
         blur: function() {}
       }),
-      'http://game3.gaiamobile.org': new AppWindow({
-        launchTime: 2,
-        name: 'GAME3',
+      'browser2': new AppWindow({
+        name: 'BROWSER2',
         element: document.createElement('div'),
         frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
-        manifest: {
-          orientation: 'landscape'
+        rotatingDegree: 0,
+        isBrowser: function() {
+          return true;
         },
-        rotatingDegree: 90,
         requestScreenshotURL: function() {
           return null;
         },
         getScreenshot: function(callback) {
           callback();
         },
-        origin: 'http://game3.gaiamobile.org',
+        origin: 'http://browser2.somedomain.tld/',
         blur: function() {}
       }),
-      'http://game4.gaiamobile.org': new AppWindow({
-        launchTime: 1,
-        name: 'GAME4',
+      'search': new AppWindow({
+        name: 'search',
         element: document.createElement('div'),
         frame: document.createElement('div'),
         iframe: document.createElement('iframe'),
-        manifest: {
-          orientation: 'portrait-secondary'
+        rotatingDegree: 0,
+        isBrowser: function() {
+          return true;
         },
-        rotatingDegree: 180,
         requestScreenshotURL: function() {
           return null;
         },
         getScreenshot: function(callback) {
           callback();
         },
-        origin: 'http://game4.gaiamobile.org',
+        origin: 'http://search.gaiamobile.org/',
+        manifest: {
+          role: 'search'
+        },
         blur: function() {}
       })
     };
@@ -276,48 +297,6 @@ suite('system/TaskManager >', function() {
       blur: function() {}
     });
 
-    game3 = new AppWindow({
-      instanceID: 'AppWindow-3',
-      launchTime: 5,
-      name: 'GAME3',
-      element: document.createElement('div'),
-      frame: document.createElement('div'),
-      iframe: document.createElement('iframe'),
-      manifest: {
-        orientation: 'portrait-primary'
-      },
-      rotatingDegree: 90,
-      origin: 'http://game3.gaiamobile.org',
-      requestScreenshotURL: function() {
-        return null;
-      },
-      getScreenshot: function(callback) {
-        callback();
-      },
-      blur: function() {}
-    });
-
-    game4 = new AppWindow({
-      instanceID: 'AppWindow-4',
-      launchTime: 5,
-      name: 'GAME4',
-      element: document.createElement('div'),
-      frame: document.createElement('div'),
-      iframe: document.createElement('iframe'),
-      manifest: {
-        orientation: 'portrait-primary'
-      },
-      rotatingDegree: 180,
-      origin: 'http://game4.gaiamobile.org',
-      requestScreenshotURL: function() {
-        return null;
-      },
-      getScreenshot: function(callback) {
-        callback();
-      },
-      blur: function() {}
-    });
-
     ihDescriptor = Object.getOwnPropertyDescriptor(window, 'innerHeight');
     Object.defineProperty(window, 'innerHeight', {
       value: fakeInnerHeight,
@@ -332,6 +311,10 @@ suite('system/TaskManager >', function() {
     cardsList = document.createElement('ul');
     cardsList.id = 'cards-list';
     cardsView.appendChild(cardsList);
+
+    noRecentWindowsNode = document.createElement('div');
+    noRecentWindowsNode.id = 'cards-no-recent-windows';
+    cardsView.appendChild(noRecentWindowsNode);
 
     screenNode.appendChild(cardsView);
     document.body.appendChild(screenNode);
@@ -359,6 +342,9 @@ suite('system/TaskManager >', function() {
         return MockNavigatorSettings.createLock();
       }
     };
+
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
     home = new HomescreenWindow('fakeHome');
     var homescreenLauncher = new HomescreenLauncher();
@@ -388,6 +374,7 @@ suite('system/TaskManager >', function() {
     screenNode.parentNode.removeChild(screenNode);
     navigator.mozSettings = realMozSettings;
     window.SettingsListener = realSettingsListener;
+    navigator.mozL10n = realL10n;
   });
 
   // The whole suite should use fakeTimers to prevent intemittents
@@ -465,19 +452,6 @@ suite('system/TaskManager >', function() {
     });
 
     suite('display cardsview >', function() {
-      var realRAF;
-      suiteSetup(function() {
-        realRAF = window.mozRequestAnimationFrame;
-
-        window.mozRequestAnimationFrame = function(cb) {
-          cb();
-        };
-      });
-
-      suiteTeardown(function() {
-        window.mozRequestAnimationFrame = realRAF;
-      });
-
       setup(function() {
         MockAppWindowManager.mActiveApp = apps['http://sms.gaiamobile.org'];
         showTaskManager(this.sinon.clock);
@@ -561,20 +535,20 @@ suite('system/TaskManager >', function() {
 
       test('cards should be hidden for better performance', function() {
         var card = taskManager.getCardAtIndex(0);
-        assert.equal(card.element.style.display, 'block');
+        assert.equal(card.element.style.visibility, '');
 
         var farAway = taskManager.getCardAtIndex(3);
-        assert.equal(farAway.element.style.display, 'none');
+        assert.equal(farAway.element.style.visibility, 'hidden');
       });
 
       test('and shown when needed', function() {
         taskManager.position = 3;
         taskManager.alignCurrentCard();
         var card = taskManager.getCardAtIndex(0);
-        assert.equal(card.element.style.display, 'none');
+        assert.equal(card.element.style.visibility, 'hidden');
 
         var farAway = taskManager.getCardAtIndex(3);
-        assert.equal(farAway.element.style.display, 'block');
+        assert.equal(farAway.element.style.visibility, '');
       });
 
       test('wheel up event', function() {
@@ -672,6 +646,20 @@ suite('system/TaskManager >', function() {
       test('position should be the last position in the stack',
       function() {
         assert.equal(taskManager.position, 2);
+      });
+
+      test('exitToApp handles out-of-stack app',
+      function(done) {
+        var outOfStackApp = game2;
+        var openStub = this.sinon.stub(outOfStackApp, 'open');
+        waitForEvent(window, 'cardviewclosed').then(function(evt) {
+          assert.isTrue(openStub.calledOnce);
+          assert.equal(evt.detail.newStackPosition, -1);
+        }, failOnReject)
+        .then(function() { done(); }, done);
+
+        taskManager.exitToApp(outOfStackApp);
+        this.sinon.clock.tick(500); // allow safety timeout to fire
       });
     });
 
@@ -865,7 +853,7 @@ suite('system/TaskManager >', function() {
     test('setActive false', function(done) {
       taskManager.setActive(true);
       this.sinon.clock.tick();
-      // setActive(false) should fire cardsviewbeforeclose event
+      // setActive(false) should fire cardviewbeforeclose event
       waitForEvent(window, 'cardviewbeforeclose').then(function(event) {
         assert.isFalse(cardsView.classList.contains('active'));
         assert.isFalse(taskManager.isShown(), 'isShown is false');
@@ -1125,10 +1113,77 @@ suite('system/TaskManager >', function() {
         taskManager.exitToApp(targetApp);
         fakeFinish(this.sinon.clock, targetApp);
       });
+
     });
   });
 
   suite('filtering > ', function() {
+    setup(function() {
+      MockAppWindowManager.mRunningApps = apps;
+      MockAppWindowManager.mActiveApp = apps.browser2;
+      MockStackManager.mCurrent = 0;
+      MockStackManager.mStack = [
+        apps['http://sms.gaiamobile.org'],
+        apps.browser1,
+        apps['http://game.gaiamobile.org'],
+        apps.browser2,
+        apps['http://game2.gaiamobile.org']
+      ];
+      showTaskManager(this.sinon.clock, 'browser-only');
+    });
+    test('filter for browsers', function() {
+      assert.equal(taskManager.stack.length, 2);
+      assert.equal(taskManager.position, 1);
+    });
+    test('exitToApp sets newStackPosition correctly using a filtered stack',
+    function(done) {
+      var targetApp = apps.browser1;
+      var expectedPosition = MockStackManager.mStack.indexOf(targetApp);
+      var stub = this.sinon.stub(targetApp, 'open');
+
+      waitForEvent(window, 'cardviewclosed').then(function(evt) {
+        assert.isTrue(stub.calledOnce, 'selected app open method was called');
+        assert.equal(evt.detail.newStackPosition, expectedPosition);
+      }, failOnReject)
+      .then(function() { done(); }, done);
+
+      taskManager.exitToApp(targetApp);
+      fakeFinish(this.sinon.clock, targetApp);
+    });
+
+    test('exitToApp given no app opens home', function(done) {
+      var expectedPosition = -1;
+      var stub = this.sinon.stub(apps.home, 'open');
+
+      waitForEvent(window, 'cardviewclosed').then(function(evt) {
+        assert.isTrue(stub.calledOnce, 'selected app open method was called');
+        assert.equal(evt.detail.newStackPosition, expectedPosition);
+      }, failOnReject)
+      .then(function() { done(); }, done);
+
+      taskManager.exitToApp();
+      fakeFinish(this.sinon.clock, apps.home);
+    });
+  });
+
+  suite('filtering > /w search role', function() {
+    setup(function() {
+      MockAppWindowManager.mRunningApps = apps;
+      MockAppWindowManager.mActiveApp = apps.search;
+      MockStackManager.mCurrent = 1;
+      MockStackManager.mStack = [
+        apps.browser1,
+        apps.search
+      ];
+      showTaskManager(this.sinon.clock, 'browser-only');
+    });
+    test('filter includes search app', function() {
+      assert.equal(taskManager.stack.length, 2);
+      assert.equal(taskManager.position, 1);
+    });
+  });
+
+  suite('filtering > no matches ', function() {
     var stub, _filterName;
     setup(function() {
       taskManager.hide();
@@ -1159,5 +1214,6 @@ suite('system/TaskManager >', function() {
         sinon.assert.calledOnce(app.enterTaskManager);
       }, this);
     });
+
   });
 });

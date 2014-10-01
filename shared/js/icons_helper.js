@@ -68,8 +68,17 @@
     }
 
     var preferredSize = getPreferredSize(sizes, iconSize);
+    var icon = options[preferredSize];
 
-    return options[preferredSize];
+    if (icon.rel === 'apple-touch-icon') {
+      var iconsUrl = 'https://developer.mozilla.org/en-US/' +
+        'Apps/Build/Icon_implementation_for_apps#General_icons_for_web_apps';
+      console.warn('Warning: The apple-touch icons are being used ' +
+                   'as a fallback only. They will be deprecated in ' +
+                   'the future. See ' + iconsUrl);
+    }
+
+    return icon.uri;
   }
 
   // Given an object representing the icons detected in a web
@@ -88,7 +97,10 @@
           return;
         }
 
-        sizes[sizeValue] = uri;
+        sizes[sizeValue] = {
+          uri: uri,
+          rel: icons[uri].rel
+        };
       });
     });
 

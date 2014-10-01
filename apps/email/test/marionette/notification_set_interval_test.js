@@ -10,12 +10,7 @@ var SHARED_PATH = __dirname + '/../../../../shared/test/integration';
 
 marionette('email notifications, set interval', function() {
   var app,
-      client = marionette.client({
-        settings: {
-          // disable keyboard ftu because it blocks our display
-          'keyboard.ftu.enabled': false
-        }
-      }),
+      client = marionette.client(),
       server1 = serverHelper.use({
                   credentials: {
                     username: 'testy1',

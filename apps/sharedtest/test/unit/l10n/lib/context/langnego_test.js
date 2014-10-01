@@ -1,8 +1,6 @@
-/* global it, assert:true, describe, beforeEach */
-/* global window, navigator, process */
+/* global it, assert, describe, beforeEach */
+/* global navigator, process */
 'use strict';
-
-var assert = require('assert') || window.assert;
 
 if (typeof navigator !== 'undefined') {
   var L10n = navigator.mozL10n._getInternalAPI();

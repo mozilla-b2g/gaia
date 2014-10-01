@@ -8,6 +8,11 @@ html, body {
   margin: 0;
 }
 
+body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
 /* RTL fixes being tracked in bug 1008013 */
 html[dir="rtl"] {
   direction: ltr;
@@ -63,11 +68,16 @@ gaia-grid {
   display: none;
 }
 
-.divider:last-of-type {
+.divider:not(.group):last-of-type {
   visibility: hidden;
-  padding-bottom: 1.4rem;
 }
 
 .edit-mode .divider:last-of-type {
   visibility: visible;
+}
+
+/* Disable scroll while edit group UI is being displayed because of keyboard
+   translates the vertical home */
+body.edit-group {
+  overflow: hidden;
 }

@@ -333,12 +333,14 @@ var SuggestionBar = {
       self._initOverlay();
       self._clearOverlay();
       var title = self.overlay.querySelector('header');
-      LazyL10n.get(function localized(_) {
-        title.textContent = _('suggestionMatches', {
+      navigator.mozL10n.setAttributes(
+        title,
+        'suggestionMatches',
+        {
           n: +self.countTag.textContent,
           matchNumber: self._phoneNumber
-        });
-      });
+        }
+      );
       for (var i = 0; i < self._contactList.length; i++) {
         for (var j = 0; j < self._allMatched.allMatches[i].length; j++) {
           var node = self._createItem();

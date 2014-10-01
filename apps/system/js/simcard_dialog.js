@@ -367,8 +367,8 @@ var SimPinDialog = {
 
     this.initElements();
 
-    this.dialogDone.onclick = this.verify.bind(this);
-    this.dialogSkip.onclick = this.skip.bind(this);
+    this.dialogDone.ontouchend = this.verify.bind(this);
+    this.dialogSkip.ontouchend = this.skip.bind(this);
     this.header.addEventListener('action', this.back.bind(this));
     this.pinInput = this.getNumberPasswordInputField('simpin');
     this.pukInput = this.getNumberPasswordInputField('simpuk');

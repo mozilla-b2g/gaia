@@ -1,4 +1,4 @@
-/* globals _, ConfirmDialog, Contacts, LazyLoader, utils, ActionMenu */
+/* globals ConfirmDialog, Contacts, LazyLoader, utils, ActionMenu */
 /* exported ActivityHandler */
 
 'use strict';
@@ -234,7 +234,10 @@ var ActivityHandler = {
             itemData = dataSet[i].value;
             var carrier = dataSet[i].carrier || '';
             prompt1.addToList(
-              _('pick_destination', {destination: itemData, carrier: carrier}),
+              {
+                id: 'pick_destination',
+                args: {destination: itemData, carrier: carrier}
+              },
               capture(itemData)
             );
           }

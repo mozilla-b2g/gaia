@@ -111,6 +111,8 @@ var UIManager = {
 
   dataConnectionChangedByUsr: false,
   timeZoneNeedsConfirmation: true,
+  DARK_THEME: '#242d33',
+  LIGHT_THEME: '#eeeeee',
 
   init: function ui_init() {
     _ = navigator.mozL10n.get;
@@ -434,6 +436,9 @@ var UIManager = {
     );
     // Disable the button
     UIManager.fxaCreateAccount.disabled = true;
+    // Change the Skip button label
+    var nextButton = document.getElementById('forward');
+    nextButton.setAttribute('data-l10n-id', 'navbar-next');
   },
 
   fxaShowError: function ui_fxaShowError(response) {
@@ -447,6 +452,9 @@ var UIManager = {
     );
     // Enable the button
     UIManager.fxaCreateAccount.disabled = false;
+    // Change the Skip button label
+    var nextButton = document.getElementById('forward');
+    nextButton.setAttribute('data-l10n-id', 'skip');
   },
 
   displayOfflineDialog: function ui_displayOfflineDialog(href, title) {
@@ -533,6 +541,11 @@ var UIManager = {
 
   updateDataConnectionStatus: function ui_udcs(status) {
     this.dataConnectionSwitch.checked = status;
+  },
+
+  changeStatusBarColor: function ui_csbc(color) {
+    var themeMeta = document.head.querySelector('meta[name="theme-color"]');
+    themeMeta.setAttribute('content', color);
   }
 
 };

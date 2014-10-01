@@ -17,7 +17,6 @@
 /* exported SCALE_RATIO */
 /* jshint nonew: false */
 
-var _;
 var COMMS_APP_ORIGIN = location.origin;
 
 // Scale ratio for different devices
@@ -240,7 +239,6 @@ var Contacts = (function() {
   };
 
   var init = function init() {
-    _ = navigator.mozL10n.get;
     initContainers();
     initEventListeners();
     utils.PerformanceHelper.chromeInteractive();
@@ -286,7 +284,7 @@ var Contacts = (function() {
 
   var lastCustomHeaderCallback;
 
-  var setCanceleableHeader = function setCanceleableHeader(cb) {
+  var setCancelableHeader = function setCancelableHeader(cb) {
     setupCancelableHeader();
     header.removeEventListener('action', handleCancel);
     lastCustomHeaderCallback = cb;
@@ -300,9 +298,6 @@ var Contacts = (function() {
   };
 
   var checkCancelableActivity = function cancelableActivity() {
-    // NOTE: Only set textContent below if necessary to avoid repaints at
-    //       load time.  For more info see bug 725221.
-    var text;
     if (ActivityHandler.currentlyHandling) {
       header.setAttribute('action', 'close');
       settingsButton.hidden = true;
@@ -317,12 +312,9 @@ var Contacts = (function() {
       setupActionableHeader();
     }
 
-    text = (contactsList && contactsList.isSelecting)?
-          _('selectContact'):_('contacts');
-
-    if (appTitleElement.textContent !== text) {
-      appTitleElement.textContent = text;
-    }
+    var l10nId = (contactsList && contactsList.isSelecting)?
+      'selectContact' : 'contacts';
+    appTitleElement.setAttribute('data-l10n-id', l10nId);
   };
 
 
@@ -461,10 +453,6 @@ var Contacts = (function() {
       tagHeader.addEventListener('action', handleBack);
     }
 
-    for (var i in options) {
-      options[i].value = _(options[i].type);
-    }
-
     ContactsTag.setCustomTag(customTag);
     // Set whether the custom tag is visible or not
     // This is needed for dates as we only support bday and anniversary
@@ -485,7 +473,6 @@ var Contacts = (function() {
     var tagViewElement = document.getElementById('view-select-tag');
     if (!lazyLoadedTagsDom) {
       LazyLoader.load(tagViewElement, function() {
-        navigator.mozL10n.translate(tagViewElement);
         showSelectTag();
         lazyLoadedTagsDom = true;
        });
@@ -585,6 +572,7 @@ var Contacts = (function() {
     } else {
       initDetails(function onDetails() {
         LazyLoader.load([
+          SHARED_UTILS_PATH + '/misc.js',
           '/shared/js/contacts/utilities/image_thumbnail.js'],
         function() {
           Contacts.view('Form', function viewLoaded() {
@@ -604,7 +592,12 @@ var Contacts = (function() {
     } else {
       Contacts.view('Settings', function viewLoaded() {
         LazyLoader.load(['/contacts/js/utilities/sim_dom_generator.js',
+          '/contacts/js/utilities/normalizer.js',
+          SHARED_UTILS_PATH + '/misc.js',
+          '/shared/js/mime_mapper.js',
+          SHARED_UTILS_PATH + '/vcard_parser.js',
           '/contacts/js/utilities/icc_handler.js',
+          SHARED_UTILS_PATH + '/sdcard.js',
           '/shared/js/date_time_helper.js'], function() {
           settingsReady = true;
           contacts.Settings.init();
@@ -621,9 +614,12 @@ var Contacts = (function() {
       Contacts.view('Details', function viewLoaded() {
         var simPickerNode = document.getElementById('sim-picker');
         LazyLoader.load(
-          [simPickerNode, '/shared/js/contacts/contacts_buttons.js'],
+          [SHARED_UTILS_PATH + '/misc.js',
+           '/dialer/js/telephony_helper.js',
+           '/shared/js/contacts/sms_integration.js',
+           simPickerNode,
+           '/shared/js/contacts/contacts_buttons.js'],
         function() {
-          navigator.mozL10n.translate(simPickerNode);
           detailsReady = true;
           contactsDetails = contacts.Details;
           contactsDetails.init();
@@ -757,16 +753,9 @@ var Contacts = (function() {
       '/shared/js/contacts/contacts_shortcuts.js',
       '/contacts/js/contacts_tag.js',
       '/contacts/js/tag_options.js',
-      SHARED_UTILS_PATH + '/' + 'misc.js',
-      '/contacts/js/utilities/normalizer.js',
       '/shared/js/text_normalizer.js',
-      '/dialer/js/telephony_helper.js',
-      '/shared/js/contacts/sms_integration.js',
-      SHARED_UTILS_PATH + '/' + 'sdcard.js',
-      SHARED_UTILS_PATH + '/' + 'vcard_parser.js',
-      SHARED_UTILS_PATH + '/' + 'status.js',
-      '/shared/js/contacts/utilities/dom.js',
-      '/shared/js/contacts/import/import_status_data.js'
+      SHARED_UTILS_PATH + '/status.js',
+      '/shared/js/contacts/utilities/dom.js'
     ];
 
     // Lazyload nfc.js if NFC is available
@@ -896,8 +885,12 @@ var Contacts = (function() {
   var initContacts = function initContacts(evt) {
     window.setTimeout(Contacts.onLocalized);
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
-      var actHandler = ActivityHandler.handle.bind(ActivityHandler);
-      window.navigator.mozSetMessageHandler('activity', actHandler);
+      LazyLoader.load([SHARED_UTILS_PATH + '/misc.js',
+        SHARED_UTILS_PATH + '/vcard_parser.js'],
+       function() {
+        var actHandler = ActivityHandler.handle.bind(ActivityHandler);
+        window.navigator.mozSetMessageHandler('activity', actHandler);
+      });
     }
 
     document.addEventListener('visibilitychange', function visibility(e) {
@@ -978,9 +971,6 @@ var Contacts = (function() {
       }
 
       LazyLoader.load(toLoad, function() {
-          if (node) {
-            navigator.mozL10n.translate(node);
-          }
           if (callback) {
             callback();
           }
@@ -1013,7 +1003,9 @@ var Contacts = (function() {
   }
 
   var updateSelectCountTitle = function updateSelectCountTitle(count) {
-    editModeTitleElement.textContent = _('SelectedTxt', {n: count});
+    navigator.mozL10n.setAttributes(editModeTitleElement,
+                                    'SelectedTxt',
+                                    {n: count});
   };
 
   window.addEventListener('DOMContentLoaded', function onLoad() {
@@ -1047,7 +1039,7 @@ var Contacts = (function() {
     'view': loadView,
     'utility': loadUtility,
     'updateSelectCountTitle': updateSelectCountTitle,
-    'setCanceleableHeader': setCanceleableHeader,
+    'setCancelableHeader': setCancelableHeader,
     'setNormalHeader': setNormalHeader,
     get asyncScriptsLoaded() {
       return asyncScriptsLoaded;

@@ -9,6 +9,10 @@
 
 (function ICEData(exports) {
 
+  if (exports.ICEData) {
+    return; 
+  }
+
   var localIceContacts = [];
   var ICE_CONTACTS_KEY = 'ice-contacts';
   var onChangeCallbacks = [];
@@ -98,10 +102,23 @@
       return Promise.resolve();
     }
 
-    var index = localIceContacts.indexOf(contact);
-    localIceContacts.splice(index, 1);
-    window.asyncStorage.setItem(ICE_CONTACTS_KEY, localIceContacts);
-    return modifyICEInDS();
+    return new Promise(function(resolve, reject) {
+      var index = localIceContacts.indexOf(contact);
+      localIceContacts[index].id = null;
+      localIceContacts[index].active = false;
+
+      setIceContactsItem(ICE_CONTACTS_KEY, localIceContacts).then(function() {
+        return modifyICEInDS().then(() => {
+          notifyCallbacks(localIceContacts);
+        });
+      }).then(resolve, reject);
+    });
+  }
+
+  function setIceContactsItem(key, iceContactsList) {
+    return new Promise(function(resolve, reject) {
+      window.asyncStorage.setItem(key, iceContactsList, resolve, reject);
+    });
   }
 
   /**
@@ -116,16 +133,26 @@
    * @param fn (Function) callback to call when ice contact change
    */
   function listenForChanges(fn) {
-    if (!onChangeAttached) {
-      load().then(function() {
-        document.addEventListener('contactChanged', onChangeEvent);
-        onChangeAttached = true;
-      });
-    }
+    return new Promise(function(resolve) {
+      if (!onChangeAttached) {
+        load().then(function() {
+          document.addEventListener('contactChanged', onChangeEvent);
+          onChangeAttached = true;
+        });
+      }
 
-    if (typeof fn === 'function') {
-      onChangeCallbacks.push(fn);
-    }
+      if (typeof fn === 'function') {
+        onChangeCallbacks.push(fn);
+      }
+
+      resolve();
+    });
+  }
+
+  function notifyCallbacks(data) {
+    onChangeCallbacks.forEach(function(fn) {
+      fn(data);
+    });
   }
 
   function onChangeEvent(evt) {
@@ -138,15 +165,9 @@
       return;
     }
 
-    function notifyCallbacks(data) {
-      onChangeCallbacks.forEach(function(fn) {
-        fn(data);
-      });
-    }
-
     // If it's a delete update all the storages
     if (evt.detail.reason === 'remove') {
-      removeICEContact(contact.id).then(notifyCallbacks);
+      removeICEContact(contact.id);
     } else {
       notifyCallbacks(localIceContacts);
     }

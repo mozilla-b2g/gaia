@@ -99,18 +99,6 @@ Collection.prototype = {
   },
 
   /**
-   * Updates eme server settings to hit the local server URL.
-   */
-  setServerURL: function(server) {
-    var client = this.client.scope({ context: 'chrome' });
-    client.executeScript(function(url) {
-      navigator.mozSettings.createLock().set({
-        'everythingme.api.url': url
-      });
-    }, [server.url + '/{resource}']);
-  },
-
-  /**
    * Enters the create collection screen from the homescreen.
    * @param {Integer} position The desired position to create the collection.
    */
@@ -229,6 +217,9 @@ Collection.prototype = {
     this.actions.longPress(element, 1).perform();
     this.client.helper.waitForElement(
       Collection.Selectors.cloudMenuPin).click();
+
+    // Wait for animation to finish
+    this.actions.wait(1).perform();
   },
 
   /**

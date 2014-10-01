@@ -6,7 +6,7 @@ var MockCompose = {
   init: function() {},
   on: function(type, handler) {},
   off: function(type, handler) {},
-  clearListeners: function() {},
+  offAll: function() {},
   getContent: function() {},
   getText: function() {},
   isEmpty: function() {
@@ -27,7 +27,9 @@ var MockCompose = {
   updateType: function() {},
 
   getSubject: function() {},
-  toggleSubject: function() {},
+  setSubject: function() {},
+  showSubject: function() {},
+  hideSubject: function() {},
   fromDraft: function() {},
   fromMessage: function() {},
 

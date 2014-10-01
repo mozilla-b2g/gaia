@@ -28,9 +28,9 @@ define(function(require, exports) {
    * Open a connection to an IMAP server.
    *
    * @param {object} credentials
-   *   keys: hostname, port, crypto
+   *   keys: username, password, [oauth2]
    * @param {object} connInfo
-   *   keys: username, password, accessToken and/or refreshToken
+   *   keys: hostname, port, crypto
    * @param {function(credentials)} credsUpdatedCallback
    *   Callback, called if the credentials have been updated and
    *   should be stored to disk. Not called if the credentials are
@@ -44,12 +44,8 @@ define(function(require, exports) {
                                           credsUpdatedCallback) {
     var conn;
 
-    return oauth.ensureUpdatedCredentials(
-      credentials
-    ).then(function(credentialsChanged) {
-      if (credentialsChanged) {
-        credsUpdatedCallback(credentials);
-      }
+    return oauth.ensureUpdatedCredentials(credentials, credsUpdatedCallback)
+    .then(function() {
       return new Promise(function(resolve, reject) {
         conn = new BrowserBox(
           connInfo.hostname,
@@ -89,11 +85,23 @@ define(function(require, exports) {
       if (conn) {
         conn.close();
       }
-      slog.error('imap:connect-error', {
-        error: errorString,
-        connInfo: connInfo
-      });
-      throw errorString;
+
+      // Could hit an oauth reauth case due to date skews, so give a token
+      // review a shot before really bailing.
+      if (errorString === 'needs-oauth-reauth' &&
+          oauth.isRenewPossible(credentials)) {
+        return oauth.ensureUpdatedCredentials(credentials,
+                                              credsUpdatedCallback, true)
+        .then(function() {
+          return exports.createImapConnection(credentials, connInfo,
+                                              credsUpdatedCallback);
+        });
+      } else {
+        slog.error('imap:connect-error', {
+          error: errorString
+        });
+        throw errorString;
+      }
     });
   }
 
@@ -194,7 +202,6 @@ define(function(require, exports) {
       return null;
     }
 
-    var state = conn && conn.state;
     var wasOauth = conn && !!conn.options.auth.xoauth2;
 
     // Structure of an IMAP error response:
@@ -229,7 +236,9 @@ define(function(require, exports) {
                /Invalid credentials/i.test(str) || // Gmail bad access token
                /login failed/i.test(str) ||
                /password/.test(str) ||
-               state <= BrowserBox.prototype.STATE_NOT_AUTHENTICATED) {
+               // We can't trust state since it gets updated on close, but
+               // authenticated latches to true and stays that way.
+               !conn.authenticated) {
       // If we got a protocol-level error but we weren't authenticated
       // yet, it's likely an authentication problem, as authenticating
       // is the first thing we do. Any other socket-level connection

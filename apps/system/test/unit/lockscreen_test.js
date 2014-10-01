@@ -18,7 +18,7 @@ requireApp('system/test/unit/mock_clock.js', function() {
     function() {
       window.realOrientationManager = window.OrientationManager;
       window.OrientationManager = window.MockOrientationManager;
-      requireApp('system/js/lockscreen.js');
+      requireApp('system/lockscreen/js/lockscreen.js');
     });
 });
 
@@ -42,7 +42,7 @@ requireApp('system/test/unit/mock_clock.js', function() {
     function() {
       window.realOrientationManager = window.OrientationManager;
       window.OrientationManager = window.MockOrientationManager;
-      requireApp('system/js/lockscreen.js');
+      requireApp('system/lockscreen/js/lockscreen.js');
     });
 });
 
@@ -82,7 +82,7 @@ suite('system/LockScreen >', function() {
     window.LockScreenConnInfoManager = function() {
       this.updateConnStates = function() {};
     };
-    window.MediaPlaybackWidget = function() {};
+    window.LockScreenMediaPlaybackWidget = function() {};
     window.SettingsURL = function() {};
 
     realL10n = navigator.mozL10n;
@@ -265,6 +265,7 @@ suite('system/LockScreen >', function() {
       'would fire event to refresh the clock',
       function() {
         var stubRefreshClock = this.sinon.stub(subject, 'refreshClock');
+        subject.l10nready = true; // Or it would block the handler.
         subject.handleEvent(new CustomEvent('timeformatchange'));
         assert.isTrue(stubRefreshClock.called,
           'the refreshClock wasn\'t called even after the time format changed');

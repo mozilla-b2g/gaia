@@ -108,7 +108,8 @@ var StatusBar = {
     'vibration.enabled': ['vibration'],
     'ril.cf.enabled': ['callForwarding'],
     'operatorResources.data.icon': ['iconData'],
-    'statusbar.network-activity.disabled': ['networkActivity']
+    'statusbar.network-activity.disabled': ['networkActivity'],
+    'statusbar.show-am-pm': ['time']
   },
 
   /* Track which settings are observed, so we don't add multiple listeners. */
@@ -164,6 +165,7 @@ var StatusBar = {
     window.addEventListener('ftudone', this);
     window.addEventListener('ftuskip', this);
     window.addEventListener('ftuopen', this);
+    window.addEventListener('apptitlestatechanged', this);
   },
 
   addSettingsListener: function sb_addSettingsListener(settingKey) {
@@ -282,10 +284,11 @@ var StatusBar = {
 
     window.addEventListener('appopening', this);
     window.addEventListener('appopened', this);
+    window.addEventListener('activityopened', this);
     window.addEventListener('homescreenopening', this);
     window.addEventListener('homescreenopened', this);
     window.addEventListener('sheets-gesture-begin', this);
-    window.addEventListener('apptitlestatechanged', this);
+    window.addEventListener('sheets-gesture-end', this);
     window.addEventListener('stackchanged', this);
 
     // We need to preventDefault on mouse events until
@@ -504,6 +507,10 @@ var StatusBar = {
         this.element.classList.add('hidden');
         break;
 
+      case 'sheets-gesture-end':
+        this.element.classList.remove('hidden');
+        break;
+
       case 'stackchanged':
         this.setAppearance(AppWindowManager.getActiveApp());
         this.element.classList.remove('hidden');
@@ -512,6 +519,7 @@ var StatusBar = {
       case 'apptitlestatechanged':
       case 'appopened':
       case 'homescreenopened':
+      case 'activityopened':
         this.setAppearance(evt.detail);
         this.element.classList.remove('hidden');
         break;
@@ -519,8 +527,16 @@ var StatusBar = {
   },
 
   setAppearance: function(app) {
+    // Avoid any attempt to update the statusbar when
+    // the phone is locked
+    if (this.isLocked()) {
+      return;
+    }
+
+    // Fetch top-most window to figure out color theming.
+    var top = app.getTopMostWindow();
     this.element.classList.toggle('light',
-      !!(app.appChrome && app.appChrome.useLightTheming())
+      !!(top.appChrome && top.appChrome.useLightTheming())
     );
 
     this.element.classList.toggle('maximized', app.isHomescreen ||
@@ -545,10 +561,10 @@ var StatusBar = {
   _getMinimizedStatusBarWidth: function sb_getMinimizedStatusBarWidth() {
     // The rocket bar takes approx. 50% of the total screen width in portrait.
     // This formula reflects the CSS styling applied to #statusbar-minimized.
-    // From /apps/system/style/statusbar/statusbar.css, line 79:
-    // * width: calc(100% - 100% * 0.6521 + 8rem * 0.6521 - 0.5rem);
+    // From /apps/system/style/statusbar/statusbar.css:
+    // * width: calc(100% - 100% * 0.682 + 8rem * 0.682 - 0.5rem);
     // * padding: 0 0.3rem 0 0;
-    return window.innerWidth - window.innerWidth * 0.6521 + 80 * 0.6521 - 5 - 3;
+    return window.innerWidth - window.innerWidth * 0.682 + 80 * 0.682 - 5 - 3;
   },
 
   pauseUpdate: function sb_pauseUpdate() {
@@ -619,6 +635,16 @@ var StatusBar = {
     }
 
     return iconWidth;
+  },
+
+  _getTimeFormat: function sb_getTimeFormat(timeFormat) {
+    if (this.settingValues['statusbar.show-am-pm']) {
+      timeFormat = timeFormat.replace('%p', '<span>%p</span>');
+    } else {
+      timeFormat = timeFormat.replace('%p', '').trim();
+    }
+
+    return timeFormat;
   },
 
   panelHandler: function sb_panelHandler(evt) {
@@ -918,12 +944,13 @@ var StatusBar = {
     },
 
     time: function sb_updateTime(now) {
+      now = now || new Date();
       var _ = navigator.mozL10n.get;
       var f = new navigator.mozL10n.DateTimeFormat();
 
       var timeFormat = window.navigator.mozHour12 ?
         _('shortTimeFormat12') : _('shortTimeFormat24');
-      timeFormat = timeFormat.replace('%p', '<span>%p</span>');
+      timeFormat = this._getTimeFormat(timeFormat);
       var formatted = f.localeFormat(now, timeFormat);
       this.icons.time.innerHTML = formatted;
 

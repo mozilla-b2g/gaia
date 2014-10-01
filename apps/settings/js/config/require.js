@@ -228,6 +228,10 @@ require.config({
     {
       name: 'panels/search/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/homescreens/panel',
+      exclude: ['main']
     }
   ]
 });

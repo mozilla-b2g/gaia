@@ -12,6 +12,7 @@
 /* global WebrtcClient */
 /* global utils */
 /* global TAG_OPTIONS */
+/* global ICEData */
 
 var contacts = window.contacts || {};
 
@@ -109,17 +110,32 @@ contacts.Details = (function() {
     if (ActivityHandler.currentActivityIsNot(['import'])) {
       ActivityHandler.postCancel();
       Contacts.navigation.home();
-    } else {
-      var hasParams = window.location.hash.split('?');
-      var params = hasParams.length > 1 ?
-        utils.extractParams(hasParams[1]) : -1;
+    }
+    else if (contacts.ICEView && contacts.ICEView.iceListDisplayed) {
+      ICEData.getActiveIceContacts().then(function(list) {
+        if (!Array.isArray(list) || list.length === 0) {
+          Contacts.navigation.home();
+        }
+        else {
+          doHandleDetailsBack();
+        }
+      }, doHandleDetailsBack);
+    }
+    else {
+      doHandleDetailsBack();
+    }
+  };
 
-      Contacts.navigation.back(resetPhoto);
-      // post message to parent page included Contacts app.
-      if (params.back_to_previous_tab === '1') {
-        var message = { 'type': 'contactsiframe', 'message': 'back' };
-        window.parent.postMessage(message, COMMS_APP_ORIGIN);
-      }
+  var doHandleDetailsBack = function() {
+    var hashParams = window.location.hash.split('?');
+    var params = hashParams.length > 1 ?
+                      utils.extractParams(hashParams[1]) : -1;
+
+    Contacts.navigation.back(resetPhoto);
+    // post message to parent page included Contacts app.
+    if (params.back_to_previous_tab === '1') {
+      var message = { 'type': 'contactsiframe', 'message': 'back' };
+      window.parent.postMessage(message, COMMS_APP_ORIGIN);
     }
   };
 
@@ -310,7 +326,7 @@ contacts.Details = (function() {
     favoriteMessage.style.pointerEvents = 'none';
 
     var promise = new Promise(function(resolve, reject) {
-      var request = 
+      var request =
         navigator.mozContacts.save(utils.misc.toMozContact(contact));
       request.onsuccess = function onsuccess() {
         isAFavoriteChange = true;
@@ -345,8 +361,8 @@ contacts.Details = (function() {
 
   var toggleFavoriteMessage = function toggleFavMessage(isFav) {
     var cList = favoriteMessage.classList;
-    var text = isFav ? _('removeFavorite') : _('addFavorite');
-    favoriteMessage.textContent = text;
+    var l10nId = isFav ? 'removeFavorite' : 'addFavorite';
+    favoriteMessage.setAttribute('data-l10n-id', l10nId);
     isFav ? cList.add('on') : cList.remove('on');
   };
 
@@ -418,7 +434,7 @@ contacts.Details = (function() {
     } else {
         var socialLabel = social.querySelector('#social-label');
         if (socialLabel) {
-          socialLabel.textContent = _('facebook');
+          socialLabel.setAttribute('data-l10n-id', 'facebook');
         }
 
         // Check whether the social buttons that require to be online
@@ -532,7 +548,7 @@ contacts.Details = (function() {
     }
     var container = document.createElement('li');
     var title = document.createElement('h2');
-    title.textContent = _('comments');
+    title.setAttribute('data-l10n-id', 'comments');
     container.appendChild(title);
     for (var i = 0; i < contact.note.length; i++) {
       var currentNote = contact.note[i];

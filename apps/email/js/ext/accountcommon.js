@@ -166,6 +166,47 @@ function recreateIdentities(universe, accountId, oldIdentities) {
 }
 exports.recreateIdentities = recreateIdentities;
 
+function fillConfigPlaceholders(userDetails, sourceConfigInfo) {
+  // Return a mutated copy, don't mutate the original.
+  var configInfo = JSON.parse(JSON.stringify(sourceConfigInfo));
+
+  var details = userDetails.emailAddress.split('@');
+  var emailLocalPart = details[0], emailDomainPart = details[1];
+  var domain = emailDomainPart.toLowerCase();
+
+  var placeholderFields = {
+    incoming: ['username', 'hostname', 'server'],
+    outgoing: ['username', 'hostname'],
+  };
+
+  function fillPlaceholder(value) {
+    return value.replace('%EMAILADDRESS%', userDetails.emailAddress)
+                .replace('%EMAILLOCALPART%', emailLocalPart)
+                .replace('%EMAILDOMAIN%', emailDomainPart)
+                .replace('%REALNAME%', userDetails.displayName);
+  }
+
+  for (var serverType in placeholderFields) {
+    var fields = placeholderFields[serverType];
+    var server = configInfo[serverType];
+    if (!server) {
+      continue;
+    }
+
+    for (var iField = 0; iField < fields.length; iField++) {
+      var field = fields[iField];
+
+      if (server.hasOwnProperty(field)) {
+        server[field] = fillPlaceholder(server[field]);
+      }
+    }
+  }
+
+  return configInfo;
+}
+exports.fillConfigPlaceholders = fillConfigPlaceholders;
+
+
 /**
  * The Autoconfigurator tries to automatically determine account settings, in
  * large part by taking advantage of Thunderbird's prior work on autoconfig:
@@ -620,45 +661,6 @@ Autoconfigurator.prototype = {
     });
   },
 
-  _fillConfigPlaceholders: function(userDetails, sourceConfigInfo) {
-    // Return a mutated copy, don't mutate the original.
-    var configInfo = JSON.parse(JSON.stringify(sourceConfigInfo));
-
-    var details = userDetails.emailAddress.split('@');
-    var emailLocalPart = details[0], emailDomainPart = details[1];
-    var domain = emailDomainPart.toLowerCase();
-
-    var placeholderFields = {
-      incoming: ['username', 'hostname', 'server'],
-      outgoing: ['username', 'hostname'],
-    };
-
-    function fillPlaceholder(value) {
-      return value.replace('%EMAILADDRESS%', userDetails.emailAddress)
-                  .replace('%EMAILLOCALPART%', emailLocalPart)
-                  .replace('%EMAILDOMAIN%', emailDomainPart)
-                  .replace('%REALNAME%', userDetails.displayName);
-    }
-
-    for (var serverType in placeholderFields) {
-      var fields = placeholderFields[serverType];
-      var server = configInfo[serverType];
-      if (!server) {
-        continue;
-      }
-
-      for (var iField = 0; iField < fields.length; iField++) {
-        var field = fields[iField];
-
-        if (server.hasOwnProperty(field)) {
-          server[field] = fillPlaceholder(server[field]);
-        }
-      }
-    }
-
-    return configInfo;
-  },
-
   _checkGelamConfig: function(domain) {
     if (autoconfigByDomain.hasOwnProperty(domain)) {
       return autoconfigByDomain[domain];
@@ -688,7 +690,7 @@ Autoconfigurator.prototype = {
       var victory = function(sourceConfigInfo, source) {
         var configInfo = null, result;
         if (sourceConfigInfo) {
-          configInfo = this._fillConfigPlaceholders(details, sourceConfigInfo);
+          configInfo = fillConfigPlaceholders(details, sourceConfigInfo);
           if (configInfo.incoming &&
               configInfo.incoming.authentication === 'xoauth2') {
             result = 'need-oauth2';

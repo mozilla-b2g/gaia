@@ -14,6 +14,7 @@
   "permissions": {
     "themeable":{},
     "alarms":{},
+    "browser": {},
     "audio-channel-notification":{},
     "contacts":{ "access": "readcreate" },
     "desktop-notification":{},
@@ -73,10 +74,6 @@
     }
   },
   "redirects": [
-    {
-      "from": "https://email.gaiamobile.org/oauth2callback",
-      "to": "/js/cards/oauth2/redirect.html"
-    },
     {
       "from": "http://localhost",
       "to": "/js/cards/oauth2/redirect.html"

@@ -1,5 +1,5 @@
 /* globals LazyLoader, MockCallHandler, MockContacts, MockFbContacts,
-           MocksHelper, MockLazyL10n, MockNavigatorMozIccManager,
+           MocksHelper, MockLazyL10n, MockMozL10n, MockNavigatorMozIccManager,
            SuggestionBar, SimSettingsHelper */
 
 'use strict';
@@ -14,6 +14,7 @@ require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 require('/dialer/js/suggestion_bar.js');
 
@@ -29,6 +30,7 @@ var mocksHelperForSuggestionBar = new MocksHelper([
 suite('suggestion Bar', function() {
   var realFbContacts;
   var realMozIccManager;
+  var realMozL10n;
 
   mocksHelperForSuggestionBar.attachTestHelpers();
 
@@ -41,6 +43,8 @@ suite('suggestion Bar', function() {
 
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockMozL10n;
 
     MockNavigatorMozIccManager.mTeardown();
   });
@@ -188,6 +192,7 @@ suite('suggestion Bar', function() {
 
   suiteTeardown(function() {
     window.fb.contacts = realFbContacts;
+    navigator.mozL10n = realMozL10n;
 
     navigator.mozIccManager = realMozIccManager;
   });
@@ -429,11 +434,9 @@ suite('suggestion Bar', function() {
       });
 
       test('should call mozL10n.get with correct arguments ', function() {
-        // showOverlay() calls once and _fillContacts() calls two more times
-        assert.equal(mozL10nGet.callCount, 3);
-        assert.deepEqual(mozL10nGet.getCall(0).args, [
-          'suggestionMatches', { n: 2, matchNumber: '1111' }
-        ]);
+        // _fillContacts() calls two more times
+        assert.equal(mozL10nGet.callCount, 2);
+        assert.deepEqual(mozL10nGet.getCall(0).args, [ 'mobile' ]);
       });
 
       test('each match is displayed in the proper order', function() {

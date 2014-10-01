@@ -1,8 +1,7 @@
-/* global it, assert:true, describe, before, beforeEach */
-/* global window, navigator, process */
+/* global it, assert, describe, before, beforeEach */
+/* global navigator, process */
 'use strict';
 
-var assert = require('assert') || window.assert;
 var PropertiesParser, propertiesParser;
 
 var reVowels = /[AEIOUaeiou]/;

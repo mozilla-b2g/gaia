@@ -139,7 +139,10 @@
    */
   SecureWindowFactory.prototype.create =
     function(url, manifestURL) {
-      var config = new self.BrowserConfigHelper(url, manifestURL);
+      var config = new self.BrowserConfigHelper({
+        url: url,
+        manifestURL: manifestURL
+      });
       for (var instanceID in this.states.apps) {
         var secureWindow = this.states.apps[instanceID];
         if (config.manifestURL === secureWindow.manifestURL) {

@@ -385,7 +385,7 @@ var CallLogDBManager = {
           status: status
         });
         var date = new Date(record.date);
-        var key = date.getDay() + date.getMonth() + date.getFullYear() +
+        var key = date.getDate() + date.getMonth() + date.getFullYear() +
                   record.number + type;
         if (status) {
           key += status;

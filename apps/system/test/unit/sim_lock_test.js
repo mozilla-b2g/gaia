@@ -1,4 +1,4 @@
-/* global SimLock, MockL10n, MocksHelper, SimPinDialog */
+/* global SimLock, MockL10n, MocksHelper, SimPinDialog, System */
 /* global MockSIMSlotManager, MockVersionHelper, FtuLauncher */
 /* global preInit, VersionHelper:true */
 
@@ -22,6 +22,20 @@ suite('SimLock', function() {
   var realMozL10n;
   mocksHelperForSimLock.attachTestHelpers();
 
+  function addSimSlot() {
+    MockSIMSlotManager.mInstances.push({
+      index: MockSIMSlotManager.mInstances.length,
+      isAbsent: false,
+      simCard: {
+        cardState: 'pinRequired'
+      }
+    });
+  }
+
+  function removeSimSlot() {
+    MockSIMSlotManager.mInstances.pop();
+  }
+
   suiteSetup(function(done) {
     // load this later
     realMozL10n = navigator.mozL10n;
@@ -38,9 +52,14 @@ suite('SimLock', function() {
 
   setup(function() {
     // inject one instance
-    MockSIMSlotManager.mInstances.push({
-      isAbsent: false
+    addSimSlot();
+    this.sinon.stub(SimPinDialog, 'show', function() {
+      SimPinDialog.visible = true;
     });
+  });
+
+  teardown(function() {
+    SimPinDialog.show.restore();
   });
 
   suite('SIMSlotManager is not ready', function() {
@@ -58,7 +77,9 @@ suite('SimLock', function() {
     var simLockSpy;
 
     setup(function() {
-      this.sinon.stub(SimPinDialog, 'close');
+      this.sinon.stub(SimPinDialog, 'close', function() {
+        SimPinDialog.visible = false;
+      });
       simLockSpy = this.sinon.spy(SimLock, 'showIfLocked');
       this.sinon.stub(FtuLauncher, 'isFtuRunning', function() {
         return true;
@@ -74,7 +95,7 @@ suite('SimLock', function() {
       VersionHelper = MockVersionHelper(false);
       window.dispatchEvent(new window.CustomEvent('ftuopen'));
       VersionHelper.getVersionInfo();
-      VersionHelper.resolve({ isUpgrade: function () {
+      VersionHelper.resolve({ isUpgrade: function() {
                                 return false;
                               }
                             });
@@ -86,7 +107,7 @@ suite('SimLock', function() {
       VersionHelper = MockVersionHelper(true);
       window.dispatchEvent(new window.CustomEvent('ftuopen'));
       VersionHelper.getVersionInfo();
-      VersionHelper.resolve({ isUpgrade: function () {
+      VersionHelper.resolve({ isUpgrade: function() {
                                 return true;
                               }
                             });
@@ -117,6 +138,74 @@ suite('SimLock', function() {
         assert.isFalse(stubShowIfLocked.called,
           'should not show the dialog');
       });
+  });
+
+  suite('showIfLocked', function() {
+    setup(function() {
+      SimLock.init();
+      SimPinDialog.show.reset();
+      SimPinDialog.visible = false;
+    });
+
+    teardown(function() {
+    });
+
+    test('should paint the first simslot on first render', function() {
+      assert.isFalse(SimLock._alreadyShown);
+      SimLock.showIfLocked();
+      assert.isTrue(SimPinDialog.show.called);
+      assert.isTrue(SimLock._alreadyShown);
+    });
+
+    test('should not show if locked', function() {
+      System.locked = true;
+      SimLock.showIfLocked();
+      assert.isFalse(SimPinDialog.show.called);
+      System.locked = false;
+    });
+
+    test('should not show on Ftu', function() {
+      sinon.stub(FtuLauncher, 'isFtuRunning').returns(true);
+      sinon.stub(FtuLauncher, 'isFtuUpgrading').returns(false);
+      SimLock.showIfLocked();
+      assert.isFalse(SimPinDialog.show.called);
+      FtuLauncher.isFtuUpgrading.restore();
+      FtuLauncher.isFtuRunning.restore();
+    });
+
+    test('should not show during a call', function() {
+      SimLock._duringCall = true;
+      SimLock.showIfLocked();
+      assert.isFalse(SimPinDialog.show.called);
+      SimLock._duringCall = false;
+    });
+
+    suite('Multisim handling', function() {
+      setup(function() {
+        addSimSlot();
+      });
+
+      teardown(function() {
+        removeSimSlot();
+      });
+
+      test('should not show the second dialog after first', function() {
+        SimLock.showIfLocked();
+        assert.equal(SimPinDialog.show.callCount, 1);
+      });
+
+      test('should not render if alreadyShown and not skipping', function() {
+        SimLock.showIfLocked();
+        SimLock.showIfLocked();
+        assert.equal(SimPinDialog.show.callCount, 1);
+      });
+
+      test('should render if alreadyShown and skipping', function() {
+        SimLock.showIfLocked();
+        SimLock.showIfLocked(1, true);
+        assert.equal(SimPinDialog.show.callCount, 2);
+      });
+    });
   });
 
   suite('lockscreen request to unlock', function() {

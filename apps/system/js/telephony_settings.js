@@ -86,20 +86,22 @@
      * CLIR_SUPPRESSION: 2
      */
     initCallerIdPreference: function() {
-      var defaultCallerIdPreferences =
-        this.connections.map(function() { return 0; });
-      var callerIdPreferenceHelper =
-        SettingsHelper('ril.clirMode', defaultCallerIdPreferences);
+      var callerIdPreferenceHelper = SettingsHelper('ril.clirMode', null);
       var that = this;
 
       callerIdPreferenceHelper.get(function got_cid(values) {
         that.connections.forEach(function cid_iterator(conn, index) {
-          that._setCallerIdPreference(conn, values[index], function() {
-            that._syncCallerIdPreferenceWithCarrier(conn, index,
-              callerIdPreferenceHelper);
+          if (values && values[index] !== null) {
+            that._setCallerIdPreference(conn, values[index], function() {
+              that._syncCallerIdPreferenceWithCarrier(conn, index,
+                callerIdPreferenceHelper);
+              that._registerListenerForCallerIdPreference(conn, index,
+                callerIdPreferenceHelper);
+            });
+          } else {
             that._registerListenerForCallerIdPreference(conn, index,
               callerIdPreferenceHelper);
-          });
+          }
         });
       });
     },

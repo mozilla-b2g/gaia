@@ -49,7 +49,7 @@
   visibility: visible;
 }
 
-#screen:not(.locked):not(.minimized-tray).fullscreen-app #statusbar {
+#screen:not(.locked):not(.minimized-tray):not(.rocketbar-focused):not(.utility-tray).fullscreen-app #statusbar {
   opacity: 0;
   visibility: hidden;
 }
@@ -135,8 +135,11 @@ body #statusbar {
 }
 
 #statusbar-minimized {
-  width: calc(100% - 100% * 0.6521 + 8rem * 0.6521 - 0.5rem);
-  padding: 0 0.3rem 0 0;
+  width: calc(100% - 100% * var(--rocketbar-scale) + 8rem * var(--rocketbar-scale) - 0.5rem);
+  padding-top: 0;
+  padding-bottom: 0;
+  -moz-padding-start: 0;
+  -moz-padding-end: 0.3rem;
 }
 
 .statusbar > * {
@@ -148,21 +151,11 @@ body #statusbar {
   opacity: 0;
 }
 
-*[dir=rtl] .statusbar {
-  right: auto;
-  left: 0;
-}
-
 .statusbar > .sb-start-upper {
   visibility: hidden;
   position: absolute;
   left: 0;
   top: calc(var(--statusbar-height) * -1);
-}
-
-*[dir=rtl] .statusbar > .sb-start-upper {
-  left: auto;
-  right: 0;
 }
 
 body .utility-tray .statusbar > .sb-start-upper,
@@ -178,7 +171,7 @@ body .utility-tray .statusbar > .sb-start {
 }
 
 #statusbar-label {
-  margin-left: 0.8rem;
+  -moz-margin-start: 0.8rem;
   color: #ffffff;
   font-size: 1.5rem;
   font-weight: 400;
@@ -236,7 +229,7 @@ body .utility-tray .statusbar > .sb-start {
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-signal {
-  margin-left: 0.8rem;
+  -moz-margin-start: 0.8rem;
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-signal::before {
@@ -275,12 +268,17 @@ body .utility-tray .statusbar > .sb-start {
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-data.sb-icon-data-circle {
-  top: -0.1rem;
-  left: 0.2rem;
+  top: -0.3rem;
+  left: -0.8rem;
+}
+
+#statusbar-connections .statusbar-data.sb-icon-data-circle {
+  top: -.1rem;
+  left: .1rem;
   width: 0.8rem;
   height: 0.8rem;
-  background-size: 16.7rem 4.8rem;
-  background-position: -6.68rem -4rem;
+  background-size: 16.8rem 4.8rem;
+  background-position: -5.8rem -4rem;
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-data[hidden] {
@@ -430,10 +428,6 @@ body .utility-tray .statusbar > .sb-start {
   background-position: -8rem -6rem;
 }
 
-.sb-icon-data-circle {
-  background-position: -12rem -8rem;
-}
-
 .sb-icon-flight-mode {
   background-position: 0 -4rem;
 }
@@ -512,11 +506,11 @@ body .utility-tray .statusbar > .sb-start {
 }
 
 .sb-icon-recording {
-  background-position: -24rem -4rem;
+  background-position: -26rem -4rem;
 }
 
 .sb-icon-recording[data-active="true"] {
-  background-position: -26rem -4rem;
+  background-position: -24rem -4rem;
 }
 
 .sb-icon-roaming {
@@ -553,57 +547,6 @@ body .utility-tray .statusbar > .sb-start {
 
 .sb-icon-usb {
   background-position: -28rem -6rem;
-}
-
-.sb-icon-notification {
-  background: none;
-  width: 3.2rem;
-  position: absolute;
-  left: 0;
-}
-
-.sb-icon-notification::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1.6rem;
-  height: 1.6rem;
-  background: url('images/icons.png') no-repeat;
-  background-position: -18rem -6rem;
-  background-size: 34rem 9.6rem;
-}
-
-*[dir=rtl] .sb-icon-notification::before {
-  right: 0;
-  left: auto;
-}
-
-.sb-icon-notification[data-unread="true"]::before {
-  background-position: -16rem -6rem;
-}
-
-.sb-icon-notification[data-unread="true"]::after {
-  color: #fff;
-}
-
-.sb-icon-notification::after {
-  content: attr(data-num);
-  position: absolute;
-  color: rgba(255,255,255, 0.4);
-  top: 0;
-  right: 0;
-  width: 1.6rem;
-  height: 1.6rem;
-  padding: 0 0.1rem;
-  font-size: 1.5rem;
-  font-weight: 400;
-  line-height: 1.6rem;
-}
-
-*[dir=rtl] .sb-icon-notification::after {
-  right: auto;
-  left: 0;
 }
 
 .sb-icon-emergency-cb-notification {
@@ -671,10 +614,64 @@ body .utility-tray .statusbar > .sb-start {
 .sb-hide-bluetooth-headphones .sb-icon-bluetooth-headphones,
 .sb-hide-headphones .sb-icon-headphones,
 .sb-hide-playing .sb-icon-playing,
-.sb-hide-notification .sb-icon-notification,
 .sb-hide-bluetooth-transferring .sb-icon-bluetooth-transferring,
 .sb-hide-alarm .sb-icon-alarm,
 .sb-hide-sms .sb-icon-sms,
 .sb-hide-label .sb-icon-label {
   display: none;
+}
+
+/* RTL View */
+html[dir="rtl"] #screen.lockscreen-camera > #statusbar {
+  transform-origin: right top;
+}
+
+html[dir="rtl"] .statusbar {
+  left: 0;
+  right: unset;
+}
+
+html[dir="rtl"] .statusbar > .sb-start-upper {
+  left: unset;
+  right: 0
+}
+
+html[dir="rtl"] #statusbar-connections > * {
+  float: left;
+}
+
+html[dir="rtl"] #statusbar-connections .sb-icon-roaming {
+  left: unset;
+  right: 0;
+}
+
+html[dir="rtl"] #statusbar-connections[data-multiple="true"] .statusbar-signal::before {
+  left: unset;
+  right: -0.6rem;
+}
+
+html[dir="rtl"] #statusbar-connections .statusbar-signal .statusbar-data {
+  text-align: left;
+  left: unset;
+  right: -.7rem;
+}
+
+html[dir="rtl"] #statusbar-connections[data-multiple="true"] .statusbar-signal .statusbar-data {
+  left: unset;
+  right: -.7rem;
+  text-align: right;
+}
+
+html[dir="rtl"] #statusbar-connections[data-multiple="true"] .statusbar-data.sb-icon-data-circle {
+  left: unset;
+  right: 0.2rem;
+}
+
+html[dir="rtl"] #statusbar-call-forwardings > * {
+  float: left;
+}
+
+html[dir="rtl"] #statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding::before {
+  left: unset;
+  right: -0.6rem;
 }

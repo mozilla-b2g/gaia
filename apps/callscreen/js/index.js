@@ -1,4 +1,6 @@
 'use strict';
+/* globals AudioCompetingHelper, CallsHandler, CallScreen,
+   KeypadManager, TonePlayer */
 
 window.addEventListener('load', function callSetup(evt) {
   window.removeEventListener('load', callSetup);

@@ -65,6 +65,21 @@
     },
 
     /**
+     * Match app window that is currently at a specific url.
+     * @param  {String} url The url to be matched.
+     * @return {AppWindow} The app window object matched.
+     */
+    getAppByURL: function awm_getAppByURL(url) {
+      for (var id in this._apps) {
+        var app = this._apps[id];
+        if (app.config.url === url) {
+          return app;
+        }
+      }
+      return null;
+    },
+
+    /**
      * Get all apps.
      * @return {Object} The running app window references stored
      *                  by its instanceID.
@@ -711,6 +726,8 @@
     },
 
     _updateActiveApp: function awm__changeActiveApp(instanceID) {
+      var appHasChanged = (this._activeApp !== this._apps[instanceID]);
+
       this._activeApp = this._apps[instanceID];
       if (!this._activeApp) {
         this.debug('no active app alive: ' + instanceID);
@@ -726,6 +743,9 @@
       // Note: we will not trigger reflow if the final size
       // is the same as its current value.
       this._activeApp.resize();
+      if (appHasChanged) {
+        this.publish('activeappchanged');
+      }
 
       this.debug('=== Active app now is: ',
         (this._activeApp.name || this._activeApp.origin), '===');

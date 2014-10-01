@@ -15,6 +15,10 @@ marionette('day view', function() {
       // Do not require the B2G-desktop app window to have focus (as per the
       // system window manager) in order for it to do focus-related things.
       'focusmanager.testmode': true,
+    },
+    settings: {
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
     }
   });
 
@@ -307,9 +311,14 @@ marionette('day view', function() {
 
     test('switch to 24 hour format', function() {
       app.switch24HourTimeFormat();
-      assert.equal(day.sideBarHours[0].text(), '0');
-      assert.equal(day.sideBarHours[13].text(), '13');
-      assert.equal(day.sideBarHours[23].text(), '23');
+
+      // Settings changes are async, so we might need waitFor() the
+      // UI components to update.
+      client.waitFor(function() {
+        return day.sideBarHours[0].text() === '0' &&
+          day.sideBarHours[13].text() === '13' &&
+          day.sideBarHours[23].text() === '23';
+      });
 
       var now = new Date();
       var currentTime = pad(now.getHours()) + ':' + pad(now.getMinutes());

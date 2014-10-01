@@ -10,6 +10,9 @@ var MockUtilityTray = {
     this.mShown = false;
   },
 
+  updateNotificationCount: function() {
+  },
+
   mShown: false,
   mTeardown: function teardown() {
     this.mShown = false;

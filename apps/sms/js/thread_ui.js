@@ -17,8 +17,6 @@
 'use strict';
 
 var attachmentMap = new WeakMap();
-var isEmptyOnBackspace = false;
-var isHoldingBackspace = false;
 
 function thui_mmsAttachmentClick(target) {
   var attachment = attachmentMap.get(target);
@@ -65,9 +63,6 @@ var ThreadUI = {
   // to send it
   ANOTHER_SMS_TOAST_DURATION: 3000,
 
-  // Min available chars count that triggers available chars counter
-  MIN_AVAILABLE_CHARS_COUNT: 20,
-
   // when sending an sms to several recipients in activity, we'll exit the
   // activity after this delay after moving to the thread list.
   LEAVE_ACTIVITY_DELAY: 3000,
@@ -79,6 +74,7 @@ var ThreadUI = {
   isNewMessageNoticeShown: false,
   shouldChangePanelNextEvent: false,
   showErrorInFailedEvent: '',
+  previousSegment: 0,
 
   timeouts: {
     update: null,
@@ -100,27 +96,19 @@ var ThreadUI = {
 
     // Fields with 'messages' label
     [
-      'container', 'subheader', 'to-field', 'recipients-list', 'recipient',
-      'input', 'compose-form', 'check-uncheck-all-button',
-      'contact-pick-button', 'send-button', 'header', 'edit-header',
-      'attach-button', 'delete-button', 'subject-input',
-      'new-message-notice', 'options-button', 'edit-mode', 'edit-form',
-      'tel-form', 'header-text', 'max-length-notice', 'convert-notice',
-      'resize-notice', 'dual-sim-information', 'new-message-notice',
-      'subject-max-length-notice', 'counter-label', 'recipient-suggestions',
-      'call-number-button','sms-counter-notice'
+      'container', 'to-field', 'recipients-list', 'compose-form', 'header',
+      'edit-header', 'check-uncheck-all-button', 'contact-pick-button',
+      'send-button', 'delete-button', 'call-number-button', 'options-button',
+      'new-message-notice', 'edit-mode', 'edit-form', 'header-text',
+      'max-length-notice', 'convert-notice', 'resize-notice',
+      'new-message-notice', 'subject-max-length-notice', 'sms-counter-notice',
+      'recipient-suggestions'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
 
     this.mainWrapper = document.getElementById('main-wrapper');
     this.threadMessages = document.getElementById('thread-messages');
-    this.composerContainer = document.getElementById('composer-container');
-
-    // Allow for stubbing in environments that do not implement the
-    // `navigator.mozMobileMessage` API
-    this._mozMobileMessage = navigator.mozMobileMessage ||
-      window.DesktopMockNavigatormozMobileMessage;
 
     window.addEventListener('resize', this.resizeHandler.bind(this));
 
@@ -128,20 +116,6 @@ var ThreadUI = {
     this.onVisibilityChange = this.onVisibilityChange.bind(this);
     document.addEventListener('visibilitychange',
                               this.onVisibilityChange);
-
-    // Changes on subject input can change the type of the message
-    // and size of fields
-    this.subjectInput.addEventListener(
-      'keydown', this.onSubjectKeydown.bind(this)
-    );
-
-    this.subjectInput.addEventListener(
-      'keyup', this.onSubjectKeyup.bind(this)
-    );
-
-    this.subjectInput.addEventListener(
-      'blur', this.onSubjectBlur.bind(this)
-    );
 
     this.toField.addEventListener(
       'keypress', this.toFieldKeypress.bind(this), true
@@ -197,50 +171,6 @@ var ThreadUI = {
 
     this.newMessageNotice.addEventListener(
       'click', this.onNewMessageNoticeClick.bind(this)
-    );
-
-    // Assimilations
-    // -------------------------------------------------
-    // If the user manually types a recipient number
-    // into the recipients list and does not "accept" it
-    // via <ENTER> or ";", but proceeds to either
-    // the message or attachment options, attempt to
-    // gather those stranded recipients and assimilate them.
-    //
-    // Previously, an approach using the "blur" event on
-    // the Recipients' "messages-to-field" element was used,
-    // however the to-field will frequently lose "focus"
-    // to any of its recipient children. If we assimilate on
-    // to-field blur, the result is entirely unusable:
-    //
-    //  1. Focus will jump from the recipient input to the
-    //      message input
-    //  2. 1 or 2 characters may remain in the recipient
-    //      editable, which will be "assimilated"
-    //  3. If a user has made it past 1 & 2, any attempts to
-    //      select a contact from contact search results
-    //      will also jump focus to the message input field
-    //
-    //  Currently, there are 4 Assimilations.
-    //
-
-    var assimilate = this.assimilateRecipients.bind(this);
-
-    // 1. message input field focused
-    this.input.addEventListener(
-      'focus', assimilate
-    );
-    // 2. message input field clicked
-    this.input.addEventListener(
-      'click', assimilate
-    );
-    // 3. attachment button clicked
-    this.attachButton.addEventListener(
-      'click', assimilate
-    );
-    // 4. subject focused
-    this.subjectInput.addEventListener(
-      'focus', assimilate
     );
 
     this.container.addEventListener(
@@ -302,7 +232,33 @@ var ThreadUI = {
     // In case of input, we have to resize the input following UX Specs.
     Compose.on('input', this.messageComposerInputHandler.bind(this));
     Compose.on('type', this.onMessageTypeChange.bind(this));
+    Compose.on('subject-change', this.onSubjectChange.bind(this));
     Compose.on('segmentinfochange', this.onSegmentInfoChange.bind(this));
+
+    // Assimilations
+    // -------------------------------------------------
+    // If the user manually types a recipient number
+    // into the recipients list and does not "accept" it
+    // via <ENTER> or ";", but proceeds to either
+    // the message or attachment options, attempt to
+    // gather those stranded recipients and assimilate them.
+    //
+    // Previously, an approach using the "blur" event on
+    // the Recipients' "messages-to-field" element was used,
+    // however the to-field will frequently lose "focus"
+    // to any of its recipient children. If we assimilate on
+    // to-field blur, the result is entirely unusable:
+    //
+    //  1. Focus will jump from the recipient input to the
+    //      message input
+    //  2. 1 or 2 characters may remain in the recipient
+    //      editable, which will be "assimilated"
+    //  3. If a user has made it past 1 & 2, any attempts to
+    //      select a contact from contact search results
+    //      will also jump focus to the message input field
+    //
+    // So we assimilate recipients if user starts to interact with Composer
+    Compose.on('interact', this.assimilateRecipients.bind(this));
 
     this.multiSimActionButton = null;
 
@@ -335,14 +291,21 @@ var ThreadUI = {
   },
 
   /**
-   * When the header 'action' button is tapped
-   * we always go back to the previous pane,
-   * unless we're in an activity, then in
-   * select cases we exit the activity.
+   * Executes when the header 'action' button is tapped.
    *
    * @private
    */
   onHeaderAction: function thui_onHeaderAction() {
+    this.backOrClose();
+  },
+
+  /**
+   * We always go back to the previous pane, unless we're in an activity, then
+   * in selected cases we exit the activity.
+   *
+   * @private
+   */
+  backOrClose: function thui_backOrClose() {
     var inActivity = ActivityHandler.isInActivity();
     var isComposer = Navigation.isCurrentPanel('composer');
     var isThread = Navigation.isCurrentPanel('thread');
@@ -496,49 +459,6 @@ var ThreadUI = {
     }
   },
 
-  onSubjectKeydown: function thui_onSubjectKeydown(event) {
-    if (event.keyCode === event.DOM_VK_BACK_SPACE) {
-      if (!isHoldingBackspace) {
-        isEmptyOnBackspace = Compose.isSubjectEmpty();
-        isHoldingBackspace = true;
-      }
-    } else {
-      isHoldingBackspace = false;
-      // Input char will be ignored when:
-      // - Reaching the maximum subjuect length. Any char input is not allowed
-      // - Return key(new line) input. Since new line won't work in subject
-      if (Compose.isSubjectMaxLength() ||
-          event.keyCode === event.DOM_VK_RETURN) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-    }
-  },
-  onSubjectKeyup: function thui_onSubjectKeyup(event) {
-    // Show the warning when the subject field has the focus
-    if (Compose.isSubjectMaxLength()) {
-      this.showSubjectMaxLengthNotice();
-    } else {
-      this.hideSubjectMaxLengthNotice();
-    }
-    // User removes subject field by either:
-    // - Selecting options menu in top right hand corner, or
-    // - Selecting the delete button in the keyboard. if all
-    // the text is removed from the subject field and the user
-    // selects delete on the keyboard the subject field is removed
-    if (event.keyCode === event.DOM_VK_BACK_SPACE &&
-        isHoldingBackspace &&
-        isEmptyOnBackspace) {
-      Compose.toggleSubject();
-    }
-    isEmptyOnBackspace = false;
-    isHoldingBackspace = false;
-  },
-
-  onSubjectBlur: function thui_onSubjectBlur() {
-    this.hideSubjectMaxLengthNotice();
-  },
-
   showMaxLengthNotice: function thui_showMaxLengthNotice(l10nKey) {
     Compose.lock = true;
     this.maxLengthNotice.querySelector('p').setAttribute(
@@ -649,10 +569,16 @@ var ThreadUI = {
 
   afterEnterComposer: function thui_afterEnterComposer(args) {
     // TODO Bug 1010223: should move to beforeEnter
-    this.handleActivity(args.activity);
-    this.handleForward(args.forward);
-    this.handleDraft(+args.draftId);
-    this.recipients.focus();
+    if (args.activity) {
+      this.handleActivity(args.activity);
+    } else if (args.forward) {
+      this.handleForward(args.forward);
+    } else if (this.draft || args.draftId || Threads.currentId) {
+      // It would be nice to revisit these conditions in Bug 1010216.
+      this.handleDraft(+args.draftId);
+    } else {
+      this.recipients.focus();
+    }
 
     // not strictly necessary but better for consistency
     return Promise.resolve();
@@ -715,16 +641,12 @@ var ThreadUI = {
   },
 
   handleForward: function thui_handleForward(forward) {
-    // TODO use a promise here
-    if (!forward) {
-      return;
-    }
-
     var request = MessageManager.getMessage(+forward.messageId);
 
     request.onsuccess = (function() {
       Compose.fromMessage(request.result);
 
+      Recipients.View.isFocusable = true;
       ThreadUI.recipients.focus();
     }).bind(this);
 
@@ -734,10 +656,6 @@ var ThreadUI = {
   },
 
   handleActivity: function thui_handleActivity(activity) {
-    // TODO use a promise here
-    if (!activity) {
-      return;
-    }
     /**
      * Choose the appropriate contact resolver:
      *  - if we have a phone number and no contact, rely on findByAddress
@@ -774,6 +692,12 @@ var ThreadUI = {
       }
       Compose.fromMessage(activity);
     }
+
+    if (number) {
+      Compose.focus();
+    } else {
+      this.recipients.focus();
+    }
   },
 
   // recalling draft for composer only
@@ -806,6 +730,8 @@ var ThreadUI = {
 
       // Discard this draft object and update the backing store
       Drafts.delete(draft).store();
+    } else {
+      this.recipients.focus();
     }
 
     if (this.draft) {
@@ -953,6 +879,14 @@ var ThreadUI = {
     this._convertNoticeTimeout = setTimeout(function hideConvertNotice() {
       this.convertNotice.classList.add('hide');
     }.bind(this), this.CONVERTED_MESSAGE_DURATION);
+  },
+
+  onSubjectChange: function thui_onSubjectChange() {
+    if (Compose.isSubjectVisible && Compose.isSubjectMaxLength()) {
+      this.showSubjectMaxLengthNotice();
+    } else {
+      this.hideSubjectMaxLengthNotice();
+    }
   },
 
   // Triggered when the onscreen keyboard appears/disappears.
@@ -1228,33 +1162,27 @@ var ThreadUI = {
   },
 
   onSegmentInfoChange: function thui_onSegmentInfoChange() {
-    var counterMsgCointainer = this.smsCounterNotice;
-    var smsInfo = Compose.segmentInfo;
-    var segments = smsInfo.segments;
-    var availableChars = smsInfo.charsAvailableInLastSegment;
-    var pContent = counterMsgCointainer.querySelector('p');
-    var currentSegment = +this.counterLabel.dataset.counter.split('/')[1];
+    var currentSegment = Compose.segmentInfo.segments;
 
-    // in MMS mode, the counter value isn't used anyway, so we can update this
-    this.counterLabel.dataset.counter = availableChars + '/' + segments;
+    var isValidSegment = currentSegment > 0;
+    var isSegmentChanged = this.previousSegment !== currentSegment;
+    var isStartingFirstSegment = this.previousSegment === 0 &&
+          currentSegment === 1;
 
-    // if we are going to force MMS, this is true anyway, so adding
-    // has-counter again doesn't hurt us.
-    var showCounter = (segments && (segments > 1 ||
-      availableChars <= this.MIN_AVAILABLE_CHARS_COUNT));
-    this.counterLabel.classList.toggle('has-counter', showCounter);
+    if (Compose.type === 'sms' && isValidSegment && isSegmentChanged &&
+        !isStartingFirstSegment) {
+      this.previousSegment = currentSegment;
 
-    if(currentSegment !== segments && currentSegment > 0 && 
-      segments < Settings.maxConcatenatedMessages){
-      navigator.mozL10n.setAttributes(pContent, 
-        'sms-counter-notice-label', {number: segments});
-      counterMsgCointainer.classList.remove('hide');
+      navigator.mozL10n.setAttributes(
+        this.smsCounterNotice.querySelector('p'),
+        'sms-counter-notice-label',
+        { number: currentSegment }
+      );
+      this.smsCounterNotice.classList.remove('hide');
       window.setTimeout(function() {
-        counterMsgCointainer.classList.add('hide');
-      }, this.ANOTHER_SMS_TOAST_DURATION);
+        this.smsCounterNotice.classList.add('hide');
+      }.bind(this), this.ANOTHER_SMS_TOAST_DURATION);
     }
-
-
   },
 
   checkMessageSize: function thui_checkMessageSize() {
@@ -1362,22 +1290,6 @@ var ThreadUI = {
 
     number = thread.participants[0];
     others = thread.participants.length - 1;
-
-    // For Desktop testing, there is a fake mozContacts but it's not working
-    // completely. So in the case of Desktop testing we are going to execute
-    // the callback directly in order to make it work!
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=836733
-    if (!this._mozMobileMessage) {
-      navigator.mozL10n.setAttributes(
-        this.headerText,
-        'thread-header-text',
-        {
-          name: number,
-          n: others
-        }
-      );
-      return Promise.resolve();
-    }
 
     // Add data to contact activity interaction
     this.headerText.dataset.number = number;
@@ -1800,12 +1712,19 @@ var ThreadUI = {
     };
 
     // Subject management
-    params.items.push({
-      l10nId: Compose.isSubjectVisible ? 'remove-subject' : 'add-subject',
-      method: function tSubject() {
-        Compose.toggleSubject();
-      }
-    });
+    var subjectItem;
+    if (Compose.isSubjectVisible) {
+      subjectItem = {
+        l10nId: 'remove-subject',
+        method: Compose.hideSubject
+      };
+    } else {
+      subjectItem = {
+        l10nId: 'add-subject',
+        method: Compose.showSubject
+      };
+    }
+    params.items.push(subjectItem);
 
     // If we are on a thread, we can call to SelectMessages
     if (Navigation.isCurrentPanel('thread')) {
@@ -1829,12 +1748,6 @@ var ThreadUI = {
     this.cleanForm();
 
     this.mainWrapper.classList.toggle('edit');
-
-    // Ensure the Edit Mode menu does not occlude the final messages in the
-    // thread.
-    this.container.style.height = 'calc(100% - ' +
-        this.HEADER_HEIGHT + 'px - ' +
-        this.editForm.querySelector('menu').offsetHeight + 'px)';
   },
 
   deleteUIMessages: function thui_deleteUIMessages(list, callback) {
@@ -1862,7 +1775,7 @@ var ThreadUI = {
       // Remove the thread from DOM and go back to the thread-list
       ThreadListUI.removeThread(Threads.currentId);
       callback();
-      Navigation.toPanel('thread-list');
+      this.backOrClose();
     } else {
       // Retrieve latest message in the UI
       var lastMessage = ThreadUI.container.lastElementChild.querySelector(
@@ -2148,11 +2061,9 @@ var ThreadUI = {
   },
 
   cleanFields: function thui_cleanFields() {
-    Compose.clear();
+    this.previousSegment = 0;
 
-    // reset the counter
-    this.counterLabel.dataset.counter = '';
-    this.counterLabel.classList.remove('has-counter');
+    Compose.clear();
   },
 
   onSendClick: function thui_onSendClick() {

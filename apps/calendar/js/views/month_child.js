@@ -307,6 +307,8 @@
       var element = document.createElement('section');
 
       element.classList.add('month');
+      element.setAttribute('role', 'grid');
+      element.setAttribute('aria-readonly', true);
       element.innerHTML = html;
 
       this.element = element;

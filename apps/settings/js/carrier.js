@@ -87,55 +87,49 @@ var CarrierSettings = (function(window, document, undefined) {
       header.setAttribute('data-href', '#carrier-iccs');
     }
 
-    /*
-     * Displaying all GSM and CDMA options by default for CDMA development.
-     * We should remove CDMA options after the development finished.
-     * Bug 881862 is filed for tracking this.
-     */
-    // get network type
-    getSupportedNetworkInfo(_mobileConnection, function(result) {
-      var content =
-        document.getElementById('carrier-operatorSettings-content');
+    var content =
+      document.getElementById('carrier-operatorSettings-content');
 
-      cs_initOperatorSelector();
-      cs_initRoamingPreferenceSelector();
-      cs_refreshDataUI();
+    cs_initOperatorSelector();
+    cs_initRoamingPreferenceSelector();
+    cs_refreshDataUI();
 
-      // Init warnings the user sees before enabling data calls and roaming.
-      cs_initWarnings();
+    // Init warnings the user sees before enabling data calls and roaming.
+    cs_initWarnings();
 
-      window.addEventListener('panelready', function(e) {
-        // Get the mozMobileConnection instace for this ICC card.
-        _mobileConnection = _mobileConnections[
-          DsdsSettings.getIccCardIndexForCellAndDataSettings()
-        ];
-        if (!_mobileConnection) {
-          return;
-        }
+    window.addEventListener('panelready', function(e) {
+      // Get the mozMobileConnection instace for this ICC card.
+      _mobileConnection = _mobileConnections[
+        DsdsSettings.getIccCardIndexForCellAndDataSettings()
+      ];
+      if (!_mobileConnection) {
+        return;
+      }
 
-        var currentHash = e.detail.current;
-        if (currentHash === '#carrier') {
-          cs_updateNetworkTypeLimitedItemsVisibility(
-            _mobileConnection.voice && _mobileConnection.voice.type);
-          // Show carrier name.
-          cs_showCarrierName();
-          cs_disabeEnableDataCallCheckbox();
-          return;
-        }
+      var currentHash = e.detail.current;
+      if (currentHash === '#carrier') {
+        cs_updateNetworkTypeLimitedItemsVisibility(
+          _mobileConnection.voice && _mobileConnection.voice.type);
+        // Show carrier name.
+        cs_showCarrierName();
+        cs_disabeEnableDataCallCheckbox();
+        return;
+      }
 
-        if (!currentHash.startsWith('#carrier-') ||
-            (currentHash === '#carrier-iccs') ||
-            (currentHash === '#carrier-dc-warning') ||
-            (currentHash === '#carrier-dr-warning')) {
-          return;
-        }
+      if (!currentHash.startsWith('#carrier-') ||
+          (currentHash === '#carrier-iccs') ||
+          (currentHash === '#carrier-dc-warning') ||
+          (currentHash === '#carrier-dr-warning')) {
+        return;
+      }
 
-        if (currentHash === '#carrier-operatorSettings') {
+      if (currentHash === '#carrier-operatorSettings') {
+        getSupportedNetworkInfo(_mobileConnection, function(result) {
           cs_updateNetworkTypeSelector(result);
           cs_updateAutomaticOperatorSelectionCheckbox();
-          return;
-        }
-      });
+        });
+        return;
+      }
     });
   }
 
@@ -510,13 +504,15 @@ var CarrierSettings = (function(window, document, undefined) {
       /**
        * A network list item has the following HTML structure:
        *   <li>
-       *     <small> Network State </small>
-       *     <a> Network Name </a>
+       *     <a>
+       *       <span>Network Name</span>
+       *       <small>Network State</small>
+       *     </a>
        *   </li>
        */
 
       // name
-      var name = document.createElement('a');
+      var name = document.createElement('span');
       name.textContent = network.shortName || network.longName;
 
       // state
@@ -524,10 +520,13 @@ var CarrierSettings = (function(window, document, undefined) {
       state.setAttribute('data-l10n-id',
         network.state ? ('state-' + network.state) : 'state-unknown');
 
+      var a = document.createElement('a');
+      a.appendChild(name);
+      a.appendChild(state);
+
       // create list item
       var li = document.createElement('li');
-      li.appendChild(state);
-      li.appendChild(name);
+      li.appendChild(a);
 
       li.dataset.cachedState = network.state || 'unknown';
       li.classList.add('operatorItem');

@@ -6,6 +6,7 @@ html, body {
 }
 
 body {
+  background-color: #0E1214;
   color: #fff;
   font-size: 10px;
   margin: 0;
@@ -433,6 +434,7 @@ header .icon:after {
   height: 100%;
   z-index: 10;
   opacity: 1;
+  will-change: opacity;
   -moz-transition: opacity 0.5s;
 }
 #videoControls.hidden {

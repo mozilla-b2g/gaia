@@ -14,7 +14,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/load_body_html_helper.js');
-
+require('/shared/js/lazy_loader.js');
 
 var mocksForIcc = new MocksHelper([
   'Dump',
@@ -49,6 +49,8 @@ suite('STK (icc) >', function() {
 
     realNavigatormozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+
+    window.softwareButtonManager = {};
   });
 
   suiteTeardown(function() {
@@ -64,6 +66,8 @@ suite('STK (icc) >', function() {
 
     MockNavigatorMozMobileConnections.mTeardown();
     navigator.mozMobileConnections = realNavigatormozMobileConnections;
+
+    window.softwareButtonManager = null;
   });
 
   setup(function(done) {

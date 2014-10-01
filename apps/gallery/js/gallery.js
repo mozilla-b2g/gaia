@@ -273,9 +273,15 @@ function initDB() {
   // We don't need one of these handlers for the video db, since both
   // will get the same event at more or less the same time.
   photodb.onunavailable = function(event) {
-    // Switch back to the thumbnail view. If we were viewing or editing an image
-    // it might not be there anymore when the MediaDB becomes available again.
-    setView(LAYOUT_MODE.list);
+    // Switch back to the thumbnail view unless it is a pick activity.
+    // If we were viewing or editing an image it might not be there
+    // anymore when the MediaDB becomes available again.
+    if (!pendingPick) {
+      setView(LAYOUT_MODE.list);
+    } else {
+      setView(LAYOUT_MODE.pick);
+      cleanupCrop();
+    }
 
     // If storage becomes unavailble (e.g. the user starts a USB Mass Storage
     // Lock the user out of the app, and tell them why
@@ -722,11 +728,9 @@ function setView(view) {
   // so the title must be changed while switching
   if (!isPhone) {
     if (view !== LAYOUT_MODE.fullscreen) {
-      $('fullscreen-title').textContent =
-        navigator.mozL10n.get('preview');
+      $('fullscreen-title').setAttribute('data-l10n-id', 'preview');
     } else {
-      $('fullscreen-title').textContent =
-        navigator.mozL10n.get('gallery');
+      $('fullscreen-title').setAttribute('data-l10n-id', 'gallery');
     }
   }
   // Remember the current view
@@ -1104,8 +1108,11 @@ function clearSelection() {
   selectedFileNamesToBlobs = {};
   $('thumbnails-delete-button').classList.add('disabled');
   $('thumbnails-share-button').classList.add('disabled');
-  $('thumbnails-number-selected').textContent =
-    navigator.mozL10n.get('number-selected2', { n: 0 });
+  navigator.mozL10n.setAttributes(
+    $('thumbnails-number-selected'),
+    'number-selected2',
+    { n: 0 }
+  );
 }
 
 // When we enter thumbnail selection mode, or when the selection changes
@@ -1165,10 +1172,11 @@ function updateSelection(thumbnail) {
 
   // Now update the UI based on the number of selected thumbnails
   var numSelected = selectedFileNames.length;
-  var msg = navigator.mozL10n.get('number-selected2', { n: numSelected });
-  var headerTitle = $('thumbnails-number-selected');
-
-  headerTitle.textContent = msg;
+  navigator.mozL10n.setAttributes(
+    $('thumbnails-number-selected'),
+    'number-selected2',
+    { n: numSelected }
+  );
 
   if (numSelected === 0) {
     $('thumbnails-delete-button').classList.add('disabled');
@@ -1207,9 +1215,10 @@ function deleteSelectedItems() {
     return;
 
   Dialogs.confirm({
-    message: navigator.mozL10n.get('delete-n-items?', {n: selected.length}),
-    cancelText: navigator.mozL10n.get('cancel'),
-    confirmText: navigator.mozL10n.get('delete'),
+    messageId: 'delete-n-items?',
+    messageArgs: {n: selected.length},
+    cancelId: 'cancel',
+    confirmId: 'delete',
     danger: true
   }, function() { // onSuccess
     // deleteFile is O(n), so this loop is O(n*n). If used with really large

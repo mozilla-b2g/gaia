@@ -99,6 +99,11 @@ var StackManager = {
   },
 
   commit: function sm_commit() {
+    // We're back to the same place, let's close up the gesture without
+    // queueing.
+    if (this._didntMove) {
+      window.dispatchEvent(new CustomEvent('sheets-gesture-end'));
+    }
     if (!this._broadcastTimeout) {
       this._broadcast();
     }
@@ -132,6 +137,11 @@ var StackManager = {
   get position() {
     return this._current;
   },
+
+  get _didntMove() {
+    return !!this._appIn && this._appIn === this._appOut;
+  },
+
   set position(position) {
     var _position = parseInt(position);
     if (_position < -1 || _position >= this._stack.length) {
@@ -321,16 +331,16 @@ var StackManager = {
       return;
     }
 
-    // We're done swiping around, let's close up the gesture. Note that
-    // sheets-gesture-start is detected and sent in SheetsTransition!!!
-    window.dispatchEvent(new CustomEvent('sheets-gesture-end'));
-
     // We're back to the same place
-    if (this._appIn && this._appIn === this._appOut) {
+    if (this._didntMove) {
       this._appIn.transitionController.clearTransitionClasses();
       this._cleanUp();
       return;
     }
+
+    // We're done swiping around, let's close up the gesture. Note that
+    // sheets-gesture-start is detected and sent in SheetsTransition!!!
+    window.dispatchEvent(new CustomEvent('sheets-gesture-end'));
 
     if (this._appIn) {
       this._appIn.broadcast('swipein');

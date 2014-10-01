@@ -1,6 +1,26 @@
 /*
-  Loading screen while loading contacts
+  Loading screen while searching for networks
 */
+/*
+* We are changing this specifically on FTU due to Bug 1069306,
+* this should be changed when the pattern changes
+*/
+#loading-overlay {
+    background-color: #f4f4f4;
+}
+
+#loading-overlay h1,
+#loading-overlay p {
+    color: #000000;
+}
+
+#loading-overlay menu {
+  display: none;
+}
+
+#loading-overlay menu.showed {
+  display: block;
+}
 
 #loading-overlay.hide {
   display: none;
@@ -22,13 +42,6 @@
   opacity: 0;
 }
 
-#loading-overlay menu {
-  display: none;
-}
-
-#loading-overlay menu.showed {
-  display: block;
-}
 
 #cancel-overlay {
   width: 100%;

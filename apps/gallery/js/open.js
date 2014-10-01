@@ -253,7 +253,7 @@ navigator.mozL10n.once(function() {
         // to the invoking app
         saved = filename;
         // And tell the user
-        showBanner(navigator.mozL10n.get('saved', { filename: title }));
+        showBanner('saved', title);
       };
       savereq.onerror = function(e) {
         // XXX we don't report this to the user because it is hard to
@@ -275,8 +275,8 @@ navigator.mozL10n.once(function() {
     $('filename').textContent = $('filename').textContent;
   }
 
-  function showBanner(msg) {
-    $('message').textContent = msg;
+  function showBanner(msg, title) {
+    navigator.mozL10n.setAttributes($('message'), msg, {filename: title});
     $('banner').hidden = false;
     setTimeout(function() {
       $('banner').hidden = true;

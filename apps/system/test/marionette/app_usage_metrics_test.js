@@ -38,7 +38,6 @@ marionette('App Usage Metrics >', function() {
       'ftu.manifestURL': null,
       'homescreen.manifestURL':
         'app://verticalhome.gaiamobile.org/manifest.webapp',
-      'keyboard.ftu.enabled': false,
       'lockscreen.enabled': false
     }
   });
@@ -164,11 +163,8 @@ marionette('App Usage Metrics >', function() {
 
     function lockScreen() {
       client.executeScript(function() {
-        var lwm = window.wrappedJSObject.lockScreenWindowManager;
-        lwm.openApp();
-        window.wrappedJSObject.lockScreen.lock();
+        window.wrappedJSObject.System.request('lock', { 'forcibly': true });
       });
-
       waitForEvent('lockscreen-appopened', checkMetrics);
     }
 
@@ -177,7 +173,7 @@ marionette('App Usage Metrics >', function() {
       assert.ok(metrics.getAppUsageTime(MEDIA_MANIFEST) > 0);
 
       client.executeScript(function() {
-        window.wrappedJSObject.lockScreen.unlock();
+        window.wrappedJSObject.System.request('unlock', { 'forcibly': true });
       });
 
       client.apps.close(MEDIA_APP);

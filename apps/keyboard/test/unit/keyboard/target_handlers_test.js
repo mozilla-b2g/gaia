@@ -75,12 +75,10 @@ suite('target handlers', function() {
     var target;
     setup(function() {
       target = {
-        dataset: {
-          keycode: '99',
-          keycodeUpper: '999',
-          longPressValue: '$$',
-          longPressKeyCode: '9999'
-        }
+        keyCode: 99,
+        keyCodeUpper: 999,
+        longPressValue: '$$',
+        longPressKeyCode: 9999
       };
 
       handler = new DefaultTargetHandler(target, app);
@@ -272,10 +270,7 @@ suite('target handlers', function() {
     var handler;
     var target;
     setup(function() {
-      target = {
-        dataset: {
-        }
-      };
+      target = {};
 
       handler = new NullTargetHandler(target, app);
     });
@@ -313,10 +308,7 @@ suite('target handlers', function() {
     var handler;
     var target;
     setup(function() {
-      target = {
-        dataset: {
-        }
-      };
+      target = {};
 
       handler = new SpaceKeyTargetHandler(target, app);
     });
@@ -369,10 +361,8 @@ suite('target handlers', function() {
     var target;
     setup(function() {
       target = {
-        dataset: {
-          data: 'data'
-        },
-        textContent: 'text'
+        data: 'data',
+        text: 'text'
       };
 
       handler = new CandidateSelectionTargetHandler(target, app);
@@ -428,8 +418,6 @@ suite('target handlers', function() {
     var target;
     setup(function() {
       target = {
-        dataset: {
-        }
       };
 
       handler = new BackspaceTargetHandler(target, app);
@@ -680,9 +668,7 @@ suite('target handlers', function() {
     var target;
     setup(function() {
       target = {
-        dataset: {
-          compositeKey: 'lol'
-        }
+        compositeKey: 'lol'
       };
 
       handler = new CompositeTargetHandler(target, app);
@@ -735,10 +721,7 @@ suite('target handlers', function() {
     var handler;
     var target;
     setup(function() {
-      target = {
-        dataset: {
-        }
-      };
+      target = {};
 
       handler = new CapsLockTargetHandler(target, app);
     });
@@ -797,10 +780,8 @@ suite('target handlers', function() {
     var target;
     setup(function() {
       target = {
-        dataset: {
-          keycode: KeyEvent.DOM_VK_ALT,
-          targetPage: '99'
-        }
+        keyCode: KeyEvent.DOM_VK_ALT,
+        targetPage: 99
       };
 
       handler = new PageSwitchingTargetHandler(target, app);
@@ -853,10 +834,7 @@ suite('target handlers', function() {
     var handler;
     var target;
     setup(function() {
-      target = {
-        dataset: {
-        }
-      };
+      target = {};
 
       handler = new SwitchKeyboardTargetHandler(target, app);
     });
@@ -915,10 +893,7 @@ suite('target handlers', function() {
     var handler;
     var target;
     setup(function() {
-      target = {
-        dataset: {
-        }
-      };
+      target = {};
 
       handler = new ToggleCandidatePanelTargetHandler(target, app);
     });
@@ -967,10 +942,7 @@ suite('target handlers', function() {
     var handler;
     var target;
     setup(function() {
-      target = {
-        dataset: {
-        }
-      };
+      target = {};
 
       handler = new DismissSuggestionsTargetHandler(target, app);
     });

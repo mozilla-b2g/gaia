@@ -35,6 +35,8 @@
       'system-dialog-hide',
       'searchrequestforeground',
       'apprequestforeground',
+      'lockscreen-apprequestforeground',
+      'secure-apprequestforeground',
       'homescreenrequestforeground'
     ];
   };
@@ -62,6 +64,13 @@
     switch (evt.type) {
       case 'searchrequestforeground':
       case 'homescreenrequestforeground':
+      case 'lockscreen-apprequestforeground':
+      case 'secure-apprequestforeground':
+        // XXX: Use hierachy manager to know who is top most.
+        if (!attentionWindowManager.hasActiveWindow()) {
+          evt.detail.setVisible(true);
+        }
+        break;
       case 'apprequestforeground':
         // XXX: Use hierachy manager to know who is top most.
         if (!System.locked &&

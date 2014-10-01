@@ -1,7 +1,7 @@
 /* global LockScreenStateKeypadShow */
 
 'use strict';
-requireApp('system/js/lockscreen_state_keypadshow.js');
+requireApp('system/lockscreen/js/lockscreen_state_keypadshow.js');
 suite('sytem/LockScreenStateKeypadShow', function() {
   var subject;
   var mockLockScreen;

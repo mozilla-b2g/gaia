@@ -204,6 +204,12 @@ suite('system/Statusbar', function() {
   suite('init when FTU is running', function() {
     setup(function() {
       this.sinon.stub(StatusBar, 'finishInit');
+      this.sinon.stub(StatusBar, 'setAppearance');
+    });
+
+    teardown(function() {
+      StatusBar.finishInit.restore();
+      StatusBar.setAppearance.restore();
     });
 
     test('skipping FTU finishes initialization', function() {
@@ -227,6 +233,13 @@ suite('system/Statusbar', function() {
       evt = new CustomEvent('ftudone');
       StatusBar.handleEvent(evt);
       assert.isTrue(StatusBar.finishInit.called);
+    });
+
+    test('handles apptitlestatechanged on ftu', function() {
+      FtuLauncher.mIsUpgrading = false;
+      var evt = new CustomEvent('apptitlestatechanged');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(StatusBar.setAppearance.called);
     });
   });
 
@@ -1818,6 +1831,27 @@ suite('system/Statusbar', function() {
     });
   });
 
+  suite('Time format', function() {
+    test('should be 24 hour', function() {
+      var timeFormat = StatusBar._getTimeFormat('shortTimeFormat24');
+      assert.equal(timeFormat, 'shortTimeFormat24');
+    });
+
+    test('should be 12 hour with AM/PM', function() {
+      StatusBar.settingValues['statusbar.show-am-pm'] = true;
+
+      var timeFormat = StatusBar._getTimeFormat('123 %p');
+      assert.equal(timeFormat, '123 <span>%p</span>');
+    });
+
+    test('should be 12 hour without AM/PM', function() {
+      StatusBar.settingValues['statusbar.show-am-pm'] = false;
+
+      var timeFormat = StatusBar._getTimeFormat('123 %p');
+      assert.equal(timeFormat, '123');
+    });
+  });
+
   suite('Icons', function() {
     test('visibility should be updated on screen resize', function() {
       var spyUpdateIconVisibility =
@@ -1955,7 +1989,69 @@ suite('system/Statusbar', function() {
   });
 
   suite('setAppearance', function() {
+    setup(function() {
+      StatusBar.element.classList.remove('light');
+      StatusBar.element.classList.remove('maximized');
+    });
+
     test('setAppearance light and maximized', function() {
+      var app = {
+        _topWindow: {
+          appChrome: {
+            useLightTheming: function useLightTheming() {
+              return true;
+            },
+            isMaximized: function isMaximized() {
+              return true;
+            }
+          },
+        },
+        appChrome: {
+          isMaximized: function isMaximized() {
+            return true;
+          }
+        },
+        getTopMostWindow: function getTopMostWindow() {
+          return this._topWindow;
+        }
+      };
+      var spyTopUseLightTheming = this.sinon.spy(app._topWindow.appChrome,
+                                                 'useLightTheming');
+      var spyTopIsMaximized = this.sinon.spy(app._topWindow.appChrome,
+                                             'isMaximized');
+      var spyParentIsMaximized = this.sinon.spy(app.appChrome, 'isMaximized');
+
+      StatusBar.setAppearance(app);
+      assert.isTrue(StatusBar.element.classList.contains('light'));
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+      assert.isTrue(spyTopUseLightTheming.calledOnce);
+      assert.isFalse(spyTopIsMaximized.called);
+      assert.isTrue(spyParentIsMaximized.calledOnce);
+    });
+
+    test('setAppearance no appChrome', function() {
+      StatusBar.setAppearance({
+        getTopMostWindow: function getTopMostWindow() {
+          return this;
+        }
+      });
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+      assert.isFalse(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('setAppearance homescreen', function() {
+      StatusBar.setAppearance({
+        isHomescreen: true,
+        getTopMostWindow: function getTopMostWindow() {
+          return this;
+        }
+      });
+      assert.isFalse(StatusBar.element.classList.contains('light'));
+      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+    });
+
+    test('should do nothing if the phone is locked', function() {
+      System.locked = true;
       StatusBar.setAppearance({
         appChrome: {
           useLightTheming: function useLightTheming() {
@@ -1966,22 +2062,9 @@ suite('system/Statusbar', function() {
           }
         }
       });
-      assert.isTrue(StatusBar.element.classList.contains('light'));
-      assert.isTrue(StatusBar.element.classList.contains('maximized'));
-    });
-
-    test('setAppearance no appChrome', function() {
-      StatusBar.setAppearance({});
       assert.isFalse(StatusBar.element.classList.contains('light'));
       assert.isFalse(StatusBar.element.classList.contains('maximized'));
-    });
-
-    test('setAppearance homescreen', function() {
-      StatusBar.setAppearance({
-        isHomescreen: true
-      });
-      assert.isFalse(StatusBar.element.classList.contains('light'));
-      assert.isTrue(StatusBar.element.classList.contains('maximized'));
+      System.locked = false;
     });
   });
 
@@ -2068,11 +2151,21 @@ suite('system/Statusbar', function() {
     });
 
     test('stackchanged', function() {
+      StatusBar.element.classList.add('hidden');
+      assert.isTrue(StatusBar.element.classList.contains('hidden'));
       var event = new CustomEvent('stackchanged');
       StatusBar.handleEvent(event);
       assert.isFalse(StatusBar.element.classList.contains('hidden'));
       assert.isTrue(setAppearanceStub.called);
       assert.isTrue(setAppearanceStub.calledWith(app));
+    });
+
+    test('sheets-gesture-end', function() {
+      StatusBar.element.classList.add('hidden');
+      assert.isTrue(StatusBar.element.classList.contains('hidden'));
+      var event = new CustomEvent('sheets-gesture-end');
+      StatusBar.handleEvent(event);
+      assert.isFalse(StatusBar.element.classList.contains('hidden'));
     });
 
     test('homescreenopening', function() {
@@ -2097,6 +2190,10 @@ suite('system/Statusbar', function() {
 
     test('apptitlestatechanged', function() {
       testEventThatShows.bind(this)('apptitlestatechanged');
+    });
+
+    test('activityopened', function() {
+      testEventThatShows.bind(this)('activityopened');
     });
   });
 });

@@ -176,6 +176,15 @@ suite('system/Places', function() {
       sendEvent('apploaded', url1 + '/0');
     });
 
+    test('Test screenshots for loading sites', function() {
+      var takeScreenshotStub = sinon.stub(subject, 'takeScreenshot');
+      subject.screenshotRequested('http://example.org');
+      assert.ok(takeScreenshotStub.notCalled);
+      this.sinon.clock.tick(6000);
+      assert.ok(takeScreenshotStub.calledOnce);
+      takeScreenshotStub.restore();
+    });
+
     test('Receive icon update after apploaded saves place', function(done) {
       sendEvent('applocationchange', url1);
       sendEvent('apploaded', url1);

@@ -58,7 +58,6 @@ function IdentityTests() {
     var self = this;
     try {
       navigator.mozId.watch({
-        loggedInUser: null,
 
         onlogin: function(assertion) {
           var unpacked = JSON.stringify(unpackAssertion(assertion), null, 2);

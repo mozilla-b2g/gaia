@@ -60,7 +60,8 @@ contacts.List = (function() {
       // Will keep an array of contacts ids, not higger than
       // 2 contacts with current implementation
       iceContacts = [],
-      iceGroup = null;
+      iceGroup = null,
+      forceICEGroupToBeHidden = false;
 
   // Possible values for the configuration field 'defaultContactsOrder'
   // config.json file (see bug 841693)
@@ -85,7 +86,7 @@ contacts.List = (function() {
       'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +          // Roman
       'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ' +            // Greek
       'АБВГДЂЕЁЖЗИЙЈКЛЉМНЊОПРСТЋУФХЦЧЏШЩЭЮЯ'; // Cyrillic (Russian + Serbian)
-    var order = { 
+    var order = {
       'ice': 0,
       'favorites': 1
     };
@@ -860,23 +861,26 @@ contacts.List = (function() {
     }
 
     iceContacts = ids;
-    
+
     showICEGroup();
   }
 
-  function toggleICEGroup(bool) {
+  function toggleICEGroup(show) {
     if (!iceGroup) {
       return;
     }
 
-    if (!!bool) {
-      showICEGroup();
-    } else {
-      hideICEGroup();
-    }
+    forceICEGroupToBeHidden = !(!!show); 
+    forceICEGroupToBeHidden ? hideICEGroup() : showICEGroup();
   }
 
   function showICEGroup() {
+    // If the ICE group has been hidden programmatically by means of
+    // <toggleICEGroup> it will only be displayed again using the same
+    // mechanism regardless updates.
+    if (forceICEGroupToBeHidden) {
+      return;
+    }
     iceGroup.classList.remove('hide');
     utils.alphaScroll.showGroup('ice');
   }
@@ -1212,6 +1216,11 @@ contacts.List = (function() {
   };
 
   var getContactById = function(contactID, successCb, errorCb) {
+    if (!contactID) {
+      successCb();
+      return;
+    }
+    
     var options = {
       filterBy: ['id'],
       filterOp: 'equals',

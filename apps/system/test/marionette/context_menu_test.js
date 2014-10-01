@@ -35,7 +35,7 @@ marionette('Test Context Menu Events', function() {
 
     // Ensure the share and open tab menu items are present
     client.switchToFrame();
-    client.helper.waitForElement('[data-id=open-in-new-tab]');
+    client.helper.waitForElement('[data-id=open-in-new-window]');
     client.helper.waitForElement('[data-id=share-link]');
 
     // Cancel the context menu

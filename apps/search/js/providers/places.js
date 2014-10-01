@@ -59,7 +59,6 @@
       if (!err) {
         icons[key] = icon;
       }
-      showStartPage();
     });
   }
 
@@ -160,6 +159,15 @@
     parent.appendChild(ul);
   }
 
+  function updateIcon(visit, iconDom) {
+    IconsHelper.getIcon(visit.url, null, visit).then((icon) => {
+      if (icon && iconDom) {
+        iconDom.classList.remove('empty');
+        iconDom.src = icon;
+      }
+    });
+  }
+
   function buildHistory(visits) {
 
     var thresholds = [
@@ -199,11 +207,12 @@
         }
       }
 
-      visit.icon = getIcon(visit);
       visit.meta = visit.url;
       visit.dataset = { url: visit.url };
       var dom = exports.Places.buildResultsDom([visit]);
+      var iconDom = dom.querySelector('.icon');
       fragment.appendChild(dom);
+      updateIcon(visit, iconDom);
     });
 
     return fragment;

@@ -5,7 +5,6 @@
 
 'use strict';
 
-//require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/js/contacts/utilities/ice_store.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
@@ -138,8 +137,7 @@ suite('ICE contacts view', function() {
       // Change the contact
       var contact1 = document.querySelector('#contacts-list [data-uuid="1"]');
       contact1.firstChild.textContent = 'Peter Pan';
-      
-      console.log(ICEData._mTriggerChange);
+
       // Simulate a contact change
       ICEData.iceContacts = [ {
         id: 1,

@@ -1,6 +1,6 @@
 'use strict';
 
-/* global _, TonePlayer, LazyLoader, IccHelper, ConfirmDialog, LazyL10n */
+/* global TonePlayer, LazyLoader, IccHelper, ConfirmDialog */
 /* exported TelephonyHelper */
 
 var TelephonyHelper = (function() {
@@ -71,16 +71,6 @@ var TelephonyHelper = (function() {
 
     var telephony = navigator.mozTelephony;
     if (!telephony) {
-      return;
-    }
-
-    // Making sure we're not dialing the same number twice
-    var alreadyDialed = telephony.calls.some(function callIterator(call) {
-      var number = call.id ? call.id.number : call.number;
-
-      return (number == sanitizedNumber);
-    });
-    if (alreadyDialed) {
       return;
     }
 
@@ -188,14 +178,13 @@ var TelephonyHelper = (function() {
     var confMsg = document.getElementById('confirmation-message');
 
     LazyLoader.load(['/shared/js/confirm.js', confMsg], function() {
-      navigator.mozL10n.translate(confMsg);
       confirmLoaded = true;
       cb();
     });
   };
 
   var displayMessage = function t_displayMessage(message, number) {
-    var showDialog = function fm_showDialog(_) {
+    var showDialog = function fm_showDialog() {
       var dialogTitle, dialogBody;
       switch (message) {
       case 'BadNumber':
@@ -249,13 +238,7 @@ var TelephonyHelper = (function() {
       });
     };
 
-    if (window.hasOwnProperty('LazyL10n')) {
-      LazyL10n.get(function localized(_) {
-        showDialog(_);
-      });
-    } else {
-      showDialog(_);
-    }
+    showDialog();
   };
 
   var getInUseSim = function t_getInUseSim() {

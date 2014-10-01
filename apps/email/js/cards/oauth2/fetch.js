@@ -2,6 +2,8 @@
 define(function(require) {
   var queryString = require('query_string');
   var services = require('services');
+  var Cards = require('mail_common').Cards;
+
   // All of the oauthSecrets we know.
   var oauthSecrets = services.oauth2;
   // The secrets for the oauth we're currently doing.
@@ -12,18 +14,18 @@ define(function(require) {
 
   var TIMEOUT_MS = 30 * 1000;
 
-  var deferred, p, win, winIntervalId, oauthSettings;
+  var redirectUri = 'http://localhost';
+
+  var deferred, p, oauthSettings;
 
   /**
    * The postMessage listener called from redirect.html to indicate the final
    * data returned from the oauth jump.
    * @param  {DOMEvent} event the event sent via redirect.html's postMessage.
    */
-  function oauthOnMessage(event) {
-    var data = event.data,
-        origin = document.location.protocol + '//' + document.location.host;
-
-    if (data.messageType === 'oauthRedirect' && event.origin === origin) {
+  function onBrowserComplete(message) {
+    var data = message.data;
+    if (message.type === 'oauth2Complete') {
       if (!data.code) {
         reset('reject', new Error('no code returned'));
         return;
@@ -57,6 +59,10 @@ define(function(require) {
         function(err) {
           reset('reject', err);
         });
+    } else {
+      // Treat anything else like a cancel, it failed or was stopped by the
+      // user.
+      reset('resolve', { status: 'cancel' });
     }
   }
 
@@ -110,7 +116,7 @@ define(function(require) {
         client_secret: curOauthSecrets.clientSecret,
         // uh, this doesn't seem right, but the docs want it?  hopefully it just
         // gets forever ignored?
-        redirect_uri: 'http://localhost',
+        redirect_uri: redirectUri,
         grant_type: 'authorization_code'
       };
 
@@ -118,32 +124,11 @@ define(function(require) {
     });
   }
 
-  /**
-   * Checks that the browser window used to show the oauth provider's oauth2
-   * flow to the user is still in operation. If it is not, it means the user
-   * canceled the flow by closing that browser window.
-   */
-  function dialogHeartbeat() {
-    if ((!win || win.closed) && !redeemingCode) {
-      reset('resolve', { status: 'cancel' });
-    }
-  }
-
   function reset(actionName, value) {
     console.log('oauth2 fetch reset with action: ' + actionName);
     var action = deferred[actionName];
-    if (winIntervalId) {
-      clearInterval(winIntervalId);
-      winIntervalId = 0;
-    }
 
-    if (win && !win.closed) {
-      win.close();
-    }
-
-    window.removeEventListener('message', oauthOnMessage);
-
-    deferred = p = win = null;
+    deferred = p = null;
     redeemingCode = false;
 
     action(value);
@@ -177,7 +162,7 @@ define(function(require) {
    *   { accessToken, refreshToken, expireTimeMS }
    * * secrets: The clientId and clientSecret used for this oauth.
    */
-  return function oauthFetch(o2Settings, extraQueryObject) {
+  return function oauth2Fetch(o2Settings, extraQueryObject) {
     // Only one auth session at a time.
     if (deferred) {
       reset('reject', new Error('Multiple oauth calls, starting new one'));
@@ -189,8 +174,6 @@ define(function(require) {
       };
     });
 
-    // Set up listening for message from cards/oauth/redirect.html
-    window.addEventListener('message', oauthOnMessage);
     oauthSettings = o2Settings;
 
     curOauthSecrets = undefined;
@@ -215,7 +198,7 @@ define(function(require) {
       // fairly gmail specific with the "installed app" flow, we (must) use
       // localhost, but we are maintaining a redirect for our theoretical
       // https://email.gaiamobile.org/ domain.
-      redirect_uri: 'http://localhost',
+      redirect_uri: redirectUri,
       response_type: 'code',
       scope: o2Settings.scope,
       // max_auth_age set to 0 means that google will not keep the user signed
@@ -235,10 +218,10 @@ define(function(require) {
       }
     }
 
-    // Need to watch for a window close. Best way is to poll that status of
-    // the window.
-    win = window.open(url, '', 'dialog');
-    winIntervalId = setInterval(dialogHeartbeat, 1000);
+    Cards.pushCard('setup_oauth2', 'default', 'animate', {
+      url: url,
+      onBrowserComplete: onBrowserComplete
+    });
 
     return p;
   };

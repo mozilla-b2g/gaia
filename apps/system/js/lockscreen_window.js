@@ -1,5 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* globals LockScreenAgent */
 'use strict';
 
 (function(exports) {
@@ -26,26 +25,12 @@
                   '/manifest.webapp',
       origin: window.location.origin.replace('system', 'lockscreen')
     };
+    this.iframe = this.createFrame();
 
-    // Mock the iframe contains the elements with the existing
-    // lockscreen div.
-    this.iframe = this.createOverlay();
+    this.lockScreenAgent = new LockScreenAgent(this.iframe);
+    this.lockScreenAgent.start();
     AppWindow.call(this, configs);
-
-    // XXX: Because we still have to create both LockScreenWindow
-    // and LockScreen.
-    this.lockscreen = new window.LockScreen();
-    window.lockScreen = this.lockscreen;
-    this.lockscreen.init();
-
-    var notificationContainer =
-      document.getElementById('notifications-lockscreen-container');
-    window.lockScreenNotificationBuilder
-      .start(notificationContainer);
-    window.lockScreenNotifications
-      .start(window.lockScreen, notificationContainer);
-    window.lockScreenStateManager = new window.LockScreenStateManager();
-    window.lockScreenStateManager.start(window.lockScreen);
+    window.dispatchEvent(new CustomEvent('lockscreen-frame-bootstrap'));
   };
 
   /**
@@ -95,6 +80,7 @@
    * @memberof LockScreenWindow
    */
   LockScreenWindow.prototype.CLASS_LIST = 'appWindow lockScreenWindow';
+  LockScreenWindow.prototype.CLASS_NAME = 'LockScreenWindow';
 
   LockScreenWindow.prototype._resize = function aw__resize() {
     var height, width;
@@ -119,28 +105,23 @@
   };
 
   /**
-   * Create LockScreen overlay. This method would exist until
-   * we make the overlay loaded from HTML file just like the
-   * real iframe app.
+   * Create the iframe and load it.
    *
    * @this {LockScreenWindow}
    * @memberof LockScreenWindow
    */
-  LockScreenWindow.prototype.createOverlay =
-    function lsw_createOverlay() {
-      var template = new window.Template('lockscreen-overlay-template'),
-          html = template.interpolate(),
-          dummy = document.createElement('div');
-
-      dummy.innerHTML = html;
-      var iframe = dummy.firstElementChild;
-      iframe.setVisible = function() {};
-      // XXX: real iframes would own these methods.
-      iframe.addNextPaintListener = function(cb) {
+  LockScreenWindow.prototype.createFrame =
+    function lsw_createFrame() {
+      // XXX: Before we can make LockScreen as a real app,
+      // we need these.
+      var frame = document.getElementById('lockscreen-frame');
+      frame.setVisible = function() {};
+      // XXX: real mozbrowser iframes would own these methods.
+      frame.addNextPaintListener = function(cb) {
         cb();
       };
-      iframe.removeNextPaintListener = function() {};
-      iframe.getScreenshot = function() {
+      frame.removeNextPaintListener = function() {};
+      frame.getScreenshot = function() {
         // Mock the request.
         return {
           get onsuccess() {return null;},
@@ -152,7 +133,15 @@
           }
         };
       };
-      return iframe;
+      frame.removeAttribute('hidden');
+      return frame;
+    };
+
+  LockScreenWindow.prototype.getNotificationContainer =
+    function lsw_getNotificationContainer() {
+      // XXX: After we make LockScreen as an app, needn't this anymore.
+      return document.getElementById(
+        'notifications-lockscreen-container');
     };
   exports.LockScreenWindow = LockScreenWindow;
 })(window);

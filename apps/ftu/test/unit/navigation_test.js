@@ -154,6 +154,7 @@ suite('navigation >', function() {
   test('skips date and time when network time is available', function() {
     var oldTimeZoneNeedsConfirmation = UIManager.timeZoneNeedsConfirmation;
     UIManager.timeZoneNeedsConfirmation = false;
+    UIManager.updateSetting = sinon.stub();
 
     MockIccHelper.setProperty('cardState', 'ready');
     Navigation.simMandatory = true;
@@ -176,7 +177,7 @@ suite('navigation >', function() {
     UIManager.activationScreen.classList.add('show');
 
     Navigation.forward();
-    assert.include(UIManager.finishScreen.classList, 'show');
+    assert.isTrue(UIManager.finishScreen.classList.contains('show'));
     assert.isFalse(UIManager.activationScreen.classList.contains('show'));
   });
 

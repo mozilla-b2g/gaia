@@ -104,6 +104,33 @@ suite('system/shrinkingUI', function() {
   test('Handle "home" event', homeAndHoldhomeTestFactory('home'));
   test('Handle "holdhome" event', homeAndHoldhomeTestFactory('holdhome'));
 
+  test('Handle "activeappchanged" event, when app is tilting', function() {
+    var evt = {
+      type: 'activeappchanged'
+    };
+    this.sinon.stub(shrinkingUI, '_state').returns(true);
+    shrinkingUI.state = {
+      activeApp: 'testActiveApp'
+    };
+    var stubSop = this.sinon.stub(shrinkingUI, 'stopTilt');
+    shrinkingUI.handleEvent(evt);
+    assert.isTrue(stubSop.called);
+    assert.isTrue(shrinkingUI._clearPreviousTilting);
+    assert.equal(shrinkingUI.current, 'testActiveApp');
+  });
+
+  test('Handle "activeappchanged" event, when app is not tilting', function() {
+    var evt = {
+      type: 'activeappchanged'
+    };
+    this.sinon.stub(shrinkingUI, '_state').returns(false);
+    var stubSop = this.sinon.stub(shrinkingUI, 'stopTilt');
+    shrinkingUI.handleEvent(evt);
+    assert.isFalse(stubSop.called);
+    assert.isFalse(shrinkingUI._clearPreviousTilting);
+    assert.deepEqual(shrinkingUI.current, fakeApp);
+  });
+
   test('Handle "shrinking-start" event', function() {
     var evt = {
       type: 'shrinking-start'
@@ -203,7 +230,7 @@ suite('system/shrinkingUI', function() {
     // actual "start"
 
     var oldURL = shrinkingUI.currentAppURL;
-    fakeApp.setVisible = this.sinon.spy();
+    fakeApp.broadcast = this.sinon.spy();
     stubState.returns(false);
     var stubShrinkingTilt =
       this.sinon.stub(shrinkingUI, '_shrinkingTilt', function(cb){
@@ -212,7 +239,7 @@ suite('system/shrinkingUI', function() {
         assert.isTrue(stubState.called);
         assert.isTrue(stubSetState.calledWith(true));
         assert.isTrue(stubShrinkingTilt.called);
-        assert.isTrue(fakeApp.setVisible.calledWith(false, true));
+        assert.isTrue(fakeApp.broadcast.calledWith('shrinkingstart'));
 
         shrinkingUI.currentAppURL = oldURL;
 
@@ -269,7 +296,7 @@ suite('system/shrinkingUI', function() {
 
     var oldURL = shrinkingUI.currentAppURL;
     var oldTip = shrinkingUI.current.tip;
-    fakeApp.setVisible = this.sinon.stub();
+    fakeApp.broadcast = this.sinon.stub();
     var fakeTip = {
       remove: this.sinon.spy()
     };
@@ -292,7 +319,7 @@ suite('system/shrinkingUI', function() {
         cb();
         assert.isTrue(fakeTip.remove.called);
         assert.isNull(this.tip);
-        assert.isTrue(fakeApp.setVisible.calledWith(true));
+        assert.isTrue(fakeApp.broadcast.calledWith('shrinkingstop'));
 
         stubCleanEffects.restore(); // this one is for gjslinter happy
 
