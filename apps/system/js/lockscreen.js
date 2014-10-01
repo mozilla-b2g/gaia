@@ -639,7 +639,6 @@
           type: 'photos'
         }
       };
-
       this.unlock(/* instant */ null, /* detail */ {
         areaCamera: true,
         activity: activityContent
@@ -790,7 +789,12 @@
         this.unlockDetail = detail;
       }
     }.bind(this);
-    if (app) {
+    // If it's not homescreen, wait the foreground app to paint itself.
+    // If it is, or there is no active app,
+    // unlock immediately to eliminate the 'performance' gap.
+    // Since to wait homescreen repaint would cost about 1 second,
+    // see Bug 1054904 comment#18
+    if (app && 'homescreen' !== app.manifest.role) {
       app.ready(nextPaint);
     } else {
       nextPaint();
