@@ -46,7 +46,7 @@
     "request": "2.33.0",
     "restify": "2.8.1",
     "rimraf": "2.2.5",
-    "test-agent": "0.23.11",
+    "test-agent": "0.26",
     "travis-project-jobs": "0.0.1",
     "watch": "~0.9.0"
   },
