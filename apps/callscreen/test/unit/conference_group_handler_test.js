@@ -32,6 +32,7 @@ suite('conference group handler', function() {
   var fakeGroupLine;
   var fakeGroupLabel;
   var fakeGroupDetails;
+  var fakeGroupSummary;
   var fakeMergeButton;
   var fakeDurationChildNode;
   var fakeTotalDurationChildNode;
@@ -76,6 +77,7 @@ suite('conference group handler', function() {
     fakeGroupLine = document.getElementById('group-call');
     fakeGroupLabel = document.getElementById('group-call-label');
     fakeGroupDetails = document.getElementById('group-call-details');
+    fakeGroupSummary = document.getElementById('group-call-summary');
     fakeMergeButton = document.querySelector('.merge-button');
     fakeDurationChildNode =
         document.querySelector('#group-call > .duration > span');
@@ -106,6 +108,7 @@ suite('conference group handler', function() {
     }
 
     setup(function() {
+      MockCallsHandler.groupCalls = [];
       firstCall = new MockCall('543552', 'incoming');
       firstHC = telephonyAddCall.call(this, firstCall, {trigger: true});
 
@@ -118,6 +121,7 @@ suite('conference group handler', function() {
         MockNavigatorMozTelephony.calls = [];
         MockNavigatorMozTelephony.conferenceGroup.calls =
           [firstCall, secondCall];
+        MockCallsHandler.groupCalls = [firstHC, secondHC];
       });
 
       test('should update the group label', function() {
@@ -134,6 +138,12 @@ suite('conference group handler', function() {
         sinon.assert.calledOnce(MockCallScreen.cdmaConferenceCall);
       });
 
+      test('should update groupSummary', function() {
+        flush();
+        assert.equal(fakeGroupSummary.textContent, firstCall.id.number +
+          ', ' + secondCall.id.number);
+      });
+
       suite('when a new called is merged in the conference', function() {
         setup(function() {
           flush();
@@ -144,6 +154,7 @@ suite('conference group handler', function() {
           MockNavigatorMozTelephony.calls = [];
           MockNavigatorMozTelephony.conferenceGroup.calls =
             [firstCall, secondCall, thirdCall];
+          MockCallsHandler.groupCalls = [firstHC, secondHC, thirdHC];
         });
 
         test('should update the group label', function() {
@@ -158,6 +169,13 @@ suite('conference group handler', function() {
           assert.isTrue(MockCallScreen.mUpdateSingleLineCalled);
         });
 
+        test('should update groupSummary', function() {
+          flush();
+          assert.equal(fakeGroupSummary.textContent, firstCall.id.number +
+            ', ' + secondCall.id.number +
+            ', ' + thirdCall.id.number);
+        });
+
         suite('when a call is unmerged from the conference', function() {
           setup(function() {
             flush();
@@ -165,12 +183,19 @@ suite('conference group handler', function() {
             MockNavigatorMozTelephony.calls = [thirdCall];
             MockNavigatorMozTelephony.conferenceGroup.calls =
               [firstCall, secondCall];
+            MockCallsHandler.groupCalls = [firstHC, secondHC];
           });
 
           test('should update the group label', function() {
             flush();
             assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
             assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
+          });
+
+          test('should update groupSummary', function() {
+            flush();
+            assert.equal(fakeGroupSummary.textContent, firstCall.id.number +
+              ', ' + secondCall.id.number);
           });
         });
 
@@ -181,6 +206,7 @@ suite('conference group handler', function() {
             MockNavigatorMozTelephony.calls = [];
             MockNavigatorMozTelephony.conferenceGroup.calls =
               [firstCall, secondCall];
+            MockCallsHandler.groupCalls = [firstHC, secondHC];
           });
 
           test('should update the group label', function() {
@@ -195,6 +221,12 @@ suite('conference group handler', function() {
             flush();
             assert.isTrue(checkCallsSpy.calledOnce);
           });
+
+          test('should update groupSummary', function() {
+            flush();
+            assert.equal(fakeGroupSummary.textContent, firstCall.id.number +
+              ', ' + secondCall.id.number);
+          });
         });
       });
 
@@ -204,6 +236,7 @@ suite('conference group handler', function() {
 
           MockNavigatorMozTelephony.calls = [firstCall, secondCall];
           MockNavigatorMozTelephony.conferenceGroup.calls = [];
+          MockCallsHandler.groupCalls = [];
         });
 
         test('should hide the overlay of group details', function() {

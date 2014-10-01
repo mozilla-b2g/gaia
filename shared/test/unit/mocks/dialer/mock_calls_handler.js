@@ -5,6 +5,7 @@ var MockCallsHandler = {
   mActiveCall: null,
   mActiveCallForContactImage: null,
   mIsFirstCallOnCdmaNetwork: false,
+  groupCalls: [],
 
   get activeCall() {
     return this.mActiveCall;
@@ -32,6 +33,9 @@ var MockCallsHandler = {
   answer: function() {},
   updateAllPhoneNumberDisplays: function() {},
   updatePlaceNewCall: function() {},
+  getGroupHandledCalls: function() {
+    return this.groupCalls;
+  },
 
   mTeardown: function() {
     this.mActiveCall = null;

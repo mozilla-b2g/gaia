@@ -566,6 +566,14 @@ var CallsHandler = (function callsHandler() {
     }
   }
 
+  // Get the HandledCalls that are in a conference
+  function getGroupHandledCalls() {
+    var groupHandCalls = handledCalls.filter(function (element) {
+      return !!element.call.group;
+    });
+    return groupHandCalls;
+  }
+
   // Hang up the held call or the second incomming call
   function hangupWaitingCalls() {
     handledCalls.forEach(function(handledCall) {
@@ -824,6 +832,7 @@ var CallsHandler = (function callsHandler() {
     switchToReceiver: switchToReceiver,
     switchToSpeaker: switchToSpeaker,
     switchToDefaultOut: switchToDefaultOut,
+    getGroupHandledCalls: getGroupHandledCalls,
 
     checkCalls: onCallsChanged,
     mergeActiveCallWith: mergeActiveCallWith,
