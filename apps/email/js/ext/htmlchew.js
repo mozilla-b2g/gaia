@@ -330,7 +330,7 @@ var LEGAL_ATTR_MAP = {
 var LEGAL_STYLES = [
   // animation: animation*
   // URI-like: background, background-image
-  'background-color',
+  'background-color','background-repeat','background-position','background-size',
   // NB: border-image is not set by the 'border' aliases
   'border',
   'border-bottom', 'border-bottom-color', 'border-bottom-left-radius',
@@ -360,10 +360,12 @@ var LEGAL_STYLES = [
   'list-style-position',
   'list-style-type',
   'margin', 'margin-bottom', 'margin-left', 'margin-right', 'margin-top',
+  'max-width', 'max-height', 'min-width', 'min-height',
+  'overflow',
   'padding', 'padding-bottom', 'padding-left', 'padding-right', 'padding-top',
   'text-align', 'text-align-last',
   'text-decoration', 'text-decoration-color', 'text-decoration-line',
-  'text-decoration-style', 'text-indent',
+  'text-decoration-style', 'text-indent', 'text-overflow',
   'vertical-align',
   'white-space',
   'width',
