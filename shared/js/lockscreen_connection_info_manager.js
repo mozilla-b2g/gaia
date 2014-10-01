@@ -185,6 +185,7 @@
    */
   LockScreenConnInfoManagerPrototype.updateConnState =
     function lscs_updateConnState(simslot) {
+      console.log(new Error().stack.replace(/\n/g, '|'));
       var conn = simslot.conn;
       var index = simslot.index;
 

@@ -1858,11 +1858,15 @@ suite('Render contacts list', function() {
     );
 
     test('Check contacts under # has # in the default image',
-      function() {
-        var justPhone = document.querySelector('[data-uuid="3"]');
-        assert.isNotNull(justPhone);
-        var img = justPhone.querySelector('aside span');
-        assert.equal(img.dataset.group, '#');
+      function(done) {
+        subject.notifyRowOnScreenByUUID('3', function() {
+          done(function() {
+            var justPhone = document.querySelector('[data-uuid="3"]');
+            assert.isNotNull(justPhone);
+            var img = justPhone.querySelector('aside span');
+            assert.equal(img.dataset.group, '#');
+          });
+        });
       }
     );
   });
