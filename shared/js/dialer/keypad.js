@@ -416,7 +416,7 @@ var KeypadManager = {
 
         self._phoneNumber = self._phoneNumber.slice(0, -1);
         self._updatePhoneNumberView('begin', false);
-      }, 1500, this);
+      }, 400, this);
     }
 
     if (key == 'delete') {

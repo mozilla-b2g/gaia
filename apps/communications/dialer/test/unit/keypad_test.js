@@ -511,6 +511,7 @@ suite('dialer/keypad', function() {
 
       setup(function() {
         fakeVoicemail = '888';
+        KeypadManager._phoneNumber = '';
 
         this.sinon.spy(CallHandler, 'call');
 
@@ -521,9 +522,10 @@ suite('dialer/keypad', function() {
         MockMozActivity.mTeardown();
       });
 
-      var doLongPress = function() {
+      var doLongPress = function(time) {
+        time = time || 400;
         subject._touchStart('1', true);
-        this.sinon.clock.tick(1500);
+        this.sinon.clock.tick(time);
         subject._touchEnd('1');
       };
 
@@ -629,6 +631,16 @@ suite('dialer/keypad', function() {
 
         test('should open settings app with MozActivity when no voicemail set',
              shouldOpenSettingsAppWithMozActivity);
+      });
+
+      test('pressing less than 400ms should not call', function() {
+        navigator.mozIccManager.iccIds[0] = 0;
+        MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = fakeVoicemail;
+
+        doLongPress.bind(this)(399);
+        MockNavigatorSettings.mReplyToRequests();
+
+        sinon.assert.notCalled(CallHandler.call);
       });
     });
   });
