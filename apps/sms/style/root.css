@@ -100,11 +100,11 @@ a abbr {
 }
 
 /* Icons */
-span[role="button"] {
+span.bb-button {
   font-style: normal;
 }
 
-span[role="button"] + b, span[role="button"] + span {
+span.bb-button + b, span.bb-button + span {
   vertical-align: middle;
 }
 

@@ -642,7 +642,7 @@ Do not remove.
   display: block;
   float: left;
 
-   /* override BB [role="button"] selector (bug 1055363) */
+   /* override BB selector */
   height: auto;
   width: auto;
 }

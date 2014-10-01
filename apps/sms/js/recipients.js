@@ -546,6 +546,7 @@
       node.isPlaceholder = false;
       node.contentEditable = false;
       node.setAttribute('role', 'button');
+      node.classList.add('bb-button');
 
       // The last node should be contentEditable=true
       // and isPlaceholder=true
@@ -553,6 +554,7 @@
         node.isPlaceholder = true;
         node.contentEditable = true;
         node.setAttribute('role', 'textbox');
+        node.classList.remove('bb-button');
       } else {
         // Map the node to it's entry in the list
         // (only for actual recipient nodes)
