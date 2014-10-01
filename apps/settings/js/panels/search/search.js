@@ -55,6 +55,8 @@ define(function(require) {
         result.onerror = function() {
           console.error('Unable to set search providers setting');
         };
+
+        return data;
       })
       .catch(function () {
         console.error('Unable to get default search provider file.');

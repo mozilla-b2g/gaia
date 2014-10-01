@@ -92,17 +92,19 @@ suite('Search >', function() {
     });
 
     test('populateSearchEngines()', function(done) {
-      var callback = sinon.spy();
       sinon.spy(mockLazyLoader, 'getJSON');
       mockLazyLoader.mockResponse([{ 'foo': 'bar' }]);
 
-      searchModule.populateSearchEngines().then(callback);
+      var promise = searchModule.populateSearchEngines();
+      //promise.then(callback);
       assert.ok(mockLazyLoader.getJSON.called, 'getJSON should be called');
+      assert.instanceOf(promise, Promise,
+        'populateSearchEngines should return a promise');
 
       // Can't run other checks till promise is done
-      mockLazyLoader.getJSON.returnValues[0].then(function() {
-        assert.ok(callback.called,
-                  'populateSearchEngines should invoke callback');
+      promise.then(function(data) {
+        assert.deepEqual(data, [{ 'foo': 'bar' }],
+                  'populateSearchEngines should resolve promise with data');
 
         assert.equal(
           (navigator.mozSettings.mSettings['search.providers']).toString(),
