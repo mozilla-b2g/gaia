@@ -57,7 +57,7 @@ var icc_events = {
       if (call.state == 'incoming') {
         self.downloadEvent(message, {
           eventType: icc._iccManager.STK_EVENT_TYPE_MT_CALL,
-          number: call.id.number,
+          number: call.id ? call.id.number : call.number,
           isIssuedByRemote: outgoing,
           error: null
         });
@@ -65,7 +65,7 @@ var icc_events = {
       call.addEventListener('error', function callError(err) {
         self.downloadEvent(message, {
           eventType: icc._iccManager.STK_EVENT_TYPE_CALL_DISCONNECTED,
-          number: call.id.number,
+          number: call.id ? call.id.number : call.number,
           error: err
         });
       });
@@ -75,7 +75,7 @@ var icc_events = {
           case 'connected':
             self.downloadEvent(message, {
               eventType: icc._iccManager.STK_EVENT_TYPE_CALL_CONNECTED,
-              number: call.id.number,
+              number: call.id ? call.id.number : call.number,
               isIssuedByRemote: outgoing
             });
             break;
@@ -83,7 +83,7 @@ var icc_events = {
             call.removeEventListener('statechange', callStateChange);
             self.downloadEvent(message, {
               eventType: icc._iccManager.STK_EVENT_TYPE_CALL_DISCONNECTED,
-              number: call.id.number,
+              number: call.id ? call.id.number : call.number,
               isIssuedByRemote: outgoing,
               error: null
             });
