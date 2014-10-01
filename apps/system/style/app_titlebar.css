@@ -23,7 +23,7 @@
   filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'invert\'><feColorMatrix in=\'SourceGraphic\' color-interpolation-filters=\'sRGB\' type=\'matrix\' values=\'1 -1 0.3019 0 0 0 0.3019 0 0 0 0 0 0.3019 0 0 0 0 0 1 0\'/></filter></svg>#invert");
 }
 
-.appWindow .titlebar .notifications-shadow {
+.appWindow:not(.lockScreenWindow) .titlebar .notifications-shadow {
   background-image: -moz-element(#ambient-indicator);
   width: 100%;
   position: absolute;
