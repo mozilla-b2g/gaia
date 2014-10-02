@@ -1,11 +1,6 @@
-define(function(require) {
-'use strict';
+suiteGroup('OAuthWindow', function() {
+  'use strict';
 
-var OAuthWindow = require('oauth_window');
-var QueryString = require('querystring');
-var View = require('view');
-
-suite('OAuthWindow', function() {
   var subject;
   var url = 'https://foobar.com';
   var element;
@@ -33,7 +28,7 @@ suite('OAuthWindow', function() {
       '</section>'
     ].join('');
 
-    subject = new OAuthWindow(
+    subject = new Calendar.OAuthWindow(
       element,
       url,
       params
@@ -45,7 +40,7 @@ suite('OAuthWindow', function() {
     assert.equal(subject.element, element);
     assert.deepEqual(
       subject.target,
-      url + '?' + QueryString.stringify(params),
+      url + '?' + Calendar.QueryString.stringify(params),
       '.target'
     );
   });
@@ -73,7 +68,7 @@ suite('OAuthWindow', function() {
 
   test('without redirect_uri', function() {
     assert.throws(function() {
-      return new OAuthWindow(url, {});
+      return new Calendar.OAuthWindow(url, {});
     });
   });
 
@@ -88,7 +83,7 @@ suite('OAuthWindow', function() {
 
     test('is active', function() {
       assert.ok(
-        subject.element.classList.contains(View.ACTIVE),
+        subject.element.classList.contains(Calendar.View.ACTIVE),
         'is active'
       );
     });
@@ -164,7 +159,7 @@ suite('OAuthWindow', function() {
 
       emitLocationChange(
         params.redirect_uri + '?' +
-        QueryString.stringify(successParams)
+        Calendar.QueryString.stringify(successParams)
       );
     });
   });
@@ -182,7 +177,7 @@ suite('OAuthWindow', function() {
       assert.ok(!element.querySelector('iframe'), 'removes from dom');
       assert.isFalse(subject.isOpen, 'isOpen');
       assert.ok(
-        !element.classList.contains(View.ACTIVE),
+        !element.classList.contains(Calendar.View.ACTIVE),
         'is inactive'
       );
     });
@@ -204,6 +199,5 @@ suite('OAuthWindow', function() {
       assert.ok(!triggedClose, 'does not trigger close');
     });
   });
-});
 
 });

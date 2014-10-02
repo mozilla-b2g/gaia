@@ -3,16 +3,16 @@
  * porting the handleEvent thing over here for now
  * to eventually be moved back with the other tweaks.
  */
-define(function(require) {
-'use strict';
 
-var Responder = require('responder');
+requireApp('calendar/test/unit/helper.js');
 
 suite('responder', function() {
+  'use strict';
+
   var subject;
 
   setup(function() {
-    subject = new Responder();
+    subject = new Calendar.Responder();
   });
 
   test('multi arg responder', function() {
@@ -27,6 +27,7 @@ suite('responder', function() {
   });
 
   suite('handleEvent', function() {
+
     test('object', function() {
       var events = {};
       var target = {
@@ -61,6 +62,4 @@ suite('responder', function() {
     });
 
   });
-});
-
 });

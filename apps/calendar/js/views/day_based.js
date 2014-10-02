@@ -1,680 +1,691 @@
-define(function(require, exports, module) {
-'use strict';
+Calendar.ns('Views').DayBased = (function() {
+  'use strict';
 
-var Calc = require('calc');
-var Day = require('templates/day');
-var OrderedMap = require('utils/ordered_map');
-var Overlap = require('utils/overlap');
-var View = require('view');
-var QueryString = require('querystring');
-var hoursOfOccurence = Calc.hoursOfOccurence;
-var performance = require('performance');
+  /**
+   * Module dependencies
+   */
+  var Calc = Calendar.Calc;
+  var OrderedMap = Calendar.Utils.OrderedMap;
+  var hoursOfOccurence = Calendar.Calc.hoursOfOccurence;
+  /*var performance = Calendar.performance;*/
 
-const MINUTES_IN_HOUR = 60;
+  /**
+   * Constants
+   */
+  const MINUTES_IN_HOUR = 60;
 
-/**
- * Ordered map for storing relevant
- * details of day based views.
- */
-function DayBased() {
-  View.apply(this, arguments);
+  /**
+   * Ordered map for storing relevant
+   * details of day based views.
+   */
+  function DayBased() {
+    Calendar.View.apply(this, arguments);
 
-  if (!this.timespan && this.date) {
-    this.timespan = Calc.spanOfDay(this.date);
+    if (!this.timespan && this.date) {
+      this.timespan = Calc.spanOfDay(this.date);
+    }
+
+    this._resetHourCache();
+    this.controller = this.app.timeController;
   }
 
-  this._resetHourCache();
-  this.controller = this.app.timeController;
-}
-module.exports = DayBased;
+  DayBased.prototype = {
+    __proto__: Calendar.View.prototype,
 
-DayBased.prototype = {
-  __proto__: View.prototype,
+    /**
+     * Signifies the state of view.
+     * We increment the change token
+     * each time we switch days.
+     *
+     * This can be used to avoid race conditions
+     * by storing a reference to the token locally
+     * then comparing it with the global state of
+     * the view.
+     */
+    _changeToken: 0,
 
-  /**
-   * Signifies the state of view.
-   * We increment the change token
-   * each time we switch days.
-   *
-   * This can be used to avoid race conditions
-   * by storing a reference to the token locally
-   * then comparing it with the global state of
-   * the view.
-   */
-  _changeToken: 0,
+    classType: 'day-events',
 
-  classType: 'day-events',
+    /**
+     * Render all day events outside of flow.
+     */
+    outsideAllDay: true,
 
-  /**
-   * Render all day events outside of flow.
-   */
-  outsideAllDay: true,
+    /**
+     * When true will render all hours of the day
+     * (empty of events or not) on initial render.
+     */
+    renderAllHours: true,
 
-  /**
-   * When true will render all hours of the day
-   * (empty of events or not) on initial render.
-   */
-  renderAllHours: true,
+    /**
+     * Template to use for generating html.
+     * Must be a subclass of template and must provide:
+     *
+     *    hour:
+     *      - hour: numeric hour (0, 1, 23, 24, etc..)
+     *      - displayHour: localized hour (12am, etc..)
+     *      - items: html content for hour.
+     *      - classes: classes/flags for hour
+     *
+     *    event:
+     *      - calendarId
+     *      - eventId
+     *      - title
+     *      - location
+     *      - attendees
+     */
+    template: Calendar.Templates.Day,
 
-  /**
-   * Template to use for generating html.
-   * Must be a subclass of template and must provide:
-   *
-   *    hour:
-   *      - hour: numeric hour (0, 1, 23, 24, etc..)
-   *      - displayHour: localized hour (12am, etc..)
-   *      - items: html content for hour.
-   *      - classes: classes/flags for hour
-   *
-   *    event:
-   *      - calendarId
-   *      - eventId
-   *      - title
-   *      - location
-   *      - attendees
-   */
-  template: Day,
+    /**
+     * Date that this view represents.
+     */
+    date: null,
 
-  /**
-   * Date that this view represents.
-   */
-  date: null,
+    /**
+     * Range of time this view will cover.
+     *
+     * @type {Calendar.Timespan}
+     */
+    timespan: null,
 
-  /**
-   * Range of time this view will cover.
-   *
-   * @type {Calendar.Timespan}
-   */
-  timespan: null,
+    /**
+     * Contains list of all rendered hours
+     * and the details of those hours.
+     */
+    hours: null,
 
-  /**
-   * Contains list of all rendered hours
-   * and the details of those hours.
-   */
-  hours: null,
+    /**
+     * Contains a map of all rendered
+     * busytime ids and which hours they occur at.
+     */
+    _idsToHours: null,
 
-  /**
-   * Contains a map of all rendered
-   * busytime ids and which hours they occur at.
-   */
-  _idsToHours: null,
+    get element() {
+      return this._element;
+    },
 
-  get element() {
-    return this._element;
-  },
+    get events() {
+      return this._eventsElement;
+    },
 
-  get events() {
-    return this._eventsElement;
-  },
+    /**
+     * Reset the hour cache.
+     */
+    _resetHourCache: function() {
+      this._idsToHours = Object.create(null);
+      this.overlaps = new Calendar.Utils.Overlap();
+      this.hours = new OrderedMap([], Calc.compareHours);
+    },
 
-  /**
-   * Reset the hour cache.
-   */
-  _resetHourCache: function() {
-    this._idsToHours = Object.create(null);
-    this.overlaps = new Overlap();
-    this.hours = new OrderedMap([], Calc.compareHours);
-  },
+    /**
+     * Remove the current timespan observer.
+     */
+    _removeTimespanObserver: function() {
+      if (this.timespan) {
+        this.controller.removeTimeObserver(
+          this.timespan,
+          this
+        );
+      }
+    },
 
-  /**
-   * Remove the current timespan observer.
-   */
-  _removeTimespanObserver: function() {
-    if (this.timespan) {
-      this.controller.removeTimeObserver(
-        this.timespan,
-        this
-      );
-    }
-  },
+    /**
+     * Starts the process of loading records for display.
+     *
+     * @param {Object|Array} busytimes list or single busytime.
+     * @param {Function} [callback] callback
+     */
+    _loadRecords: function(busytimes, callback) {
+      // we want to fail loudly if nothing is given.
+      busytimes = (Array.isArray(busytimes)) ? busytimes : [busytimes];
 
-  /**
-   * Starts the process of loading records for display.
-   *
-   * @param {Object|Array} busytimes list or single busytime.
-   * @param {Function} [callback] callback
-   */
-  _loadRecords: function(busytimes, callback) {
-    // we want to fail loudly if nothing is given.
-    busytimes = (Array.isArray(busytimes)) ? busytimes : [busytimes];
+      // keep local record of original
+      // token if this changes we know
+      // we have switched dates.
+      var token = this._changeToken;
+      var self = this;
 
-    // keep local record of original
-    // token if this changes we know
-    // we have switched dates.
-    var token = this._changeToken;
-    var self = this;
+      this.controller.findAssociated(busytimes, function(err, list) {
+        if (self._changeToken !== token) {
+          // tokens don't match we don't
+          // care about these results anymore...
+          return;
+        }
 
-    this.controller.findAssociated(busytimes, function(err, list) {
-      if (self._changeToken !== token) {
-        // tokens don't match we don't
-        // care about these results anymore...
+        list.forEach(function(record) {
+          this.add(record.busytime, record.event);
+        }, self);
+
+        callback && callback();
+      });
+    },
+
+    /**
+     * Creates a record for a given hour.
+     * NOTE- this usually needs to be called
+     * after creating the hour.
+     *
+     * @param {Numeric} hour current hour.
+     * @param {Object} busytime object.
+     * @param {Object} record usually an event.
+     */
+    _createRecord: function(hour, busytime, record) {
+      var hourRecord = this.hours.get(hour);
+      var id = busytime._id;
+
+      if (!hourRecord) {
+        hourRecord = this.createHour(hour);
+      }
+
+      if (!record) {
+        throw new Error('must pass a event');
+      }
+
+      var eventRecord = true;
+
+      if (id in this._idsToHours) {
+        // existing event
+        this._idsToHours[id].push(hour);
+      } else {
+        // new event
+        this._idsToHours[id] = [hour];
+
+        var html = this._renderEvent(busytime, record, hour);
+        var eventArea = hourRecord.element;
+
+        if (this.template.hourEventsSelector) {
+          eventArea = eventArea.querySelector(
+            this.template.hourEventsSelector
+          );
+        }
+
+
+        // we ignore insertion order for now as the overlap &
+        // placement logic can handle those things.
+        eventArea.insertAdjacentHTML('beforeend', html);
+        var el = eventArea.lastChild;
+
+        if (hour !== Calendar.Calc.ALLDAY) {
+          this._assignPosition(busytime, el);
+          this.overlaps.add(busytime, el);
+        } else {
+          /**
+           * Because we have two types of events (hourly & allday)
+           * we need to store the elements differently.
+           * The all day events we store here but the hourly
+           * events are stored in the overlap container.
+           *
+           * TODO: maybe it makes sense to have a single container
+           *       that contains both sets of elements.
+           */
+          eventRecord = { element: el };
+        }
+      }
+
+      // increment count of event per-hour (hour -> [events] counter)
+      return hourRecord.records.set(id, eventRecord);
+    },
+
+    /**
+     * Inject a html string into a element based on its
+     * position in the hour records.
+     *
+     * @param {String} html template string.
+     * @param {HTMLElement} element dom element to inject html into.
+     * @param {Array} records used to determine the position that snippet should
+     *                        be inserted into the parent element.
+     * @param {Numeric} idx current index used with records to position snippet.
+     * @return {HTMLElement} inserted dom element.
+     */
+    _insertElement: function(html, element, records, idx) {
+      var el;
+
+      if (!element.children.length || idx === 0) {
+        element.insertAdjacentHTML(
+          'afterbegin', html
+        );
+        el = element.firstChild;
+      } else {
+        var lastElement = records[idx - 1][1];
+        lastElement.element.insertAdjacentHTML(
+          'afterend', html
+        );
+        el = lastElement.element.nextElementSibling;
+      }
+
+      return el;
+    },
+
+    /**
+     * Assigns an elements its height and top offset based on its busytime.
+     *
+     * @param {Object} busytime full busytime object.
+     * @param {HTMLElement} element target to apply top/height to.
+     */
+    _assignPosition: function(busytime, element) {
+      // cache dates
+      var start = busytime.startDate;
+      var end = busytime.endDate;
+
+      // check if start time is on same date.
+      var startMin = 0;
+      var startHour = 0;
+      if (Calendar.Calc.isSameDate(this.date, busytime.startDate)) {
+        startMin = start.getMinutes();
+        startHour = start.getHours();
+      }
+
+      // check if end time is on same date.
+      var endMin = 59;
+      var endHour = 23;
+      var isSameDateWithEndDate =
+          Calendar.Calc.isSameDate(this.date, busytime.endDate);
+      if (isSameDateWithEndDate) {
+        endHour = end.getHours();
+        endMin = end.getMinutes();
+      }
+
+      // the % of the way we are through the first hour.
+      var offsetPercent = (startMin / MINUTES_IN_HOUR) * 100;
+      if (offsetPercent) {
+        // assign top offset as percentage
+        element.style.top = String(offsetPercent) + '%';
+      }
+
+      // Calculate duration in hours, with minutes as decimal part
+      var hoursDuration = (endHour - startHour) +
+                          ((endMin - startMin) / MINUTES_IN_HOUR);
+      var elementHeight = hoursDuration;
+
+      // If this event is less than a full hour and NOT cross next day,
+      // tweak the classname so that some alternate styles for
+      // a tiny event can apply. (eg. hide details)
+      // And if the event is cross next day, the height of event element is 1.
+      if (hoursDuration < 1) {
+        if (isSameDateWithEndDate) {
+          element.classList.add('partial-hour');
+          // we need to toggle layout if event lasts less than 20, 30 and 45min
+          if (hoursDuration < 0.3) {
+            element.classList.add('partial-hour-micro');
+          } else if (hoursDuration < 0.5) {
+            element.classList.add('partial-hour-tiny');
+          } else if (hoursDuration < 0.75) {
+            element.classList.add('partial-hour-small');
+          }
+        } else {
+          elementHeight = 1;
+        }
+      }
+
+      return this._assignHeight(element, elementHeight);
+    },
+
+    /**
+     * Assigns an elements height, based on a duration in hours.
+     *
+     * @param {HTMLElement} element target to apply top/height to.
+     * @param {Numeric} duration in hours, minutes as decimal part.
+     */
+    _assignHeight: function(element, hoursDuration) {
+      // we remove 0.1rem from height so multiple consecutive events doesn't
+      // "blend into each other" (works as a margin)
+      element.style.height = 'calc(' + (hoursDuration * 100) + '% - 0.1rem)';
+    },
+
+    /**
+     * build the default elements for the view and return the parent element.
+     */
+    _buildElement: function() {
+      // XXX: wrapper used to create a new stacking context to fix Bug 972666
+      // without causing performance issues described on Bug 972675
+      var wrapper = document.createElement('div');
+      wrapper.classList.add('day-events-wrapper');
+
+      // create the hidden values for element & eventsElement
+      this._eventsElement = document.createElement('section');
+      this._element = document.createElement('section');
+
+      // if the allDayElement is not assigned
+      if (!this.allDayElement) {
+        this.allDayElement = this._eventsElement;
+      }
+
+      if (this.outsideAllDay) {
+        this.allDayElement = document.createElement('section');
+        this.element.appendChild(this.allDayElement);
+
+        this.allDayElement.classList.add(Calendar.Calc.ALLDAY);
+        this.allDayElement.classList.add(this.classType);
+      }
+
+      // setup/inject elements.
+      wrapper.appendChild(this._eventsElement);
+      this.element.appendChild(wrapper);
+      this.events.classList.add(this.classType);
+
+      return this.element;
+    },
+
+    /** must be overriden */
+    _renderEvent: function(busytime, event, hour) {},
+
+    _renderHour: function(hour) {
+      return this.template.hour.render({
+        hour: hour
+      });
+    },
+
+    /** public **/
+
+    handleEvent: function(e) {
+      switch (e.type) {
+        case 'remove':
+          this.remove(e.data);
+          break;
+        case 'add':
+          this._loadRecords(e.data);
+          break;
+      }
+    },
+
+    removeHour: function(hour) {
+      var record = this.hours.get(hour);
+
+      // skip records that do not exist.
+      if (record === null) {
         return;
       }
 
-      list.forEach(function(record) {
-        this.add(record.busytime, record.event);
-      }, self);
+      var el = record.element;
 
-      callback && callback();
-    });
-  },
-
-  /**
-   * Creates a record for a given hour.
-   * NOTE- this usually needs to be called
-   * after creating the hour.
-   *
-   * @param {Numeric} hour current hour.
-   * @param {Object} busytime object.
-   * @param {Object} record usually an event.
-   */
-  _createRecord: function(hour, busytime, record) {
-    var hourRecord = this.hours.get(hour);
-    var id = busytime._id;
-
-    if (!hourRecord) {
-      hourRecord = this.createHour(hour);
-    }
-
-    if (!record) {
-      throw new Error('must pass a event');
-    }
-
-    var eventRecord = true;
-
-    if (id in this._idsToHours) {
-      // existing event
-      this._idsToHours[id].push(hour);
-    } else {
-      // new event
-      this._idsToHours[id] = [hour];
-
-      var html = this._renderEvent(busytime, record, hour);
-      var eventArea = hourRecord.element;
-
-      if (this.template.hourEventsSelector) {
-        eventArea = eventArea.querySelector(
-          this.template.hourEventsSelector
-        );
+      if (el) {
+        el.parentNode.removeChild(el);
       }
 
+      this.hours.remove(hour);
+    },
 
-      // we ignore insertion order for now as the overlap &
-      // placement logic can handle those things.
-      eventArea.insertAdjacentHTML('beforeend', html);
-      var el = eventArea.lastChild;
-
-      if (hour !== Calc.ALLDAY) {
-        this._assignPosition(busytime, el);
-        this.overlaps.add(busytime, el);
-      } else {
-        /**
-         * Because we have two types of events (hourly & allday)
-         * we need to store the elements differently.
-         * The all day events we store here but the hourly
-         * events are stored in the overlap container.
-         *
-         * TODO: maybe it makes sense to have a single container
-         *       that contains both sets of elements.
-         */
-        eventRecord = { element: el };
+    createHour: function(hour) {
+      var html = this._renderHour(hour);
+      var parent = (hour === Calendar.Calc.ALLDAY) ?
+        this.allDayElement : this.events;
+      if (!parent) {
+        throw new Error('parent must be specified');
       }
-    }
 
-    // increment count of event per-hour (hour -> [events] counter)
-    return hourRecord.records.set(id, eventRecord);
-  },
+      var idx = this.hours.insertIndexOf(hour);
+      var el = this._insertElement(html, parent, this.hours.items, idx);
+      return this.hours.set(hour, {
+        element: el,
+        records: new OrderedMap()
+      });
+    },
 
-  /**
-   * Inject a html string into a element based on its
-   * position in the hour records.
-   *
-   * @param {String} html template string.
-   * @param {HTMLElement} element dom element to inject html into.
-   * @param {Array} records used to determine the position that snippet should
-   *                        be inserted into the parent element.
-   * @param {Numeric} idx current index used with records to position snippet.
-   * @return {HTMLElement} inserted dom element.
-   */
-  _insertElement: function(html, element, records, idx) {
-    var el;
-
-    if (!element.children.length || idx === 0) {
-      element.insertAdjacentHTML(
-        'afterbegin', html
+    /**
+     * Add a busytime to the view.
+     *
+     * @param {Object} busytime busytime object.
+     * @param {Object} event related event object.
+     */
+    add: function(busytime, event) {
+      var hours = hoursOfOccurence(
+        this.date,
+        busytime.startDate,
+        busytime.endDate
       );
-      el = element.firstChild;
-    } else {
-      var lastElement = records[idx - 1][1];
-      lastElement.element.insertAdjacentHTML(
-        'afterend', html
-      );
-      el = lastElement.element.nextElementSibling;
-    }
 
-    return el;
-  },
+      hours.forEach(function(hour) {
+        this._createRecord(hour, busytime, event);
+      }, this);
+    },
 
-  /**
-   * Assigns an elements its height and top offset based on its busytime.
-   *
-   * @param {Object} busytime full busytime object.
-   * @param {HTMLElement} element target to apply top/height to.
-   */
-  _assignPosition: function(busytime, element) {
-    // cache dates
-    var start = busytime.startDate;
-    var end = busytime.endDate;
+    /**
+     * Remove a busytime from the view.
+     *
+     * @param {Object} busytime busytime object.
+     */
+    remove: function(busytime) {
+      var id = busytime._id;
+      var hours = this._idsToHours[id];
 
-    // check if start time is on same date.
-    var startMin = 0;
-    var startHour = 0;
-    if (Calc.isSameDate(this.date, busytime.startDate)) {
-      startMin = start.getMinutes();
-      startHour = start.getHours();
-    }
+      delete this._idsToHours[id];
 
-    // check if end time is on same date.
-    var endMin = 59;
-    var endHour = 23;
-    var isSameDateWithEndDate = Calc.isSameDate(this.date, busytime.endDate);
-    if (isSameDateWithEndDate) {
-      endHour = end.getHours();
-      endMin = end.getMinutes();
-    }
+      if (!hours) {
+        return;
+      }
 
-    // the % of the way we are through the first hour.
-    var offsetPercent = (startMin / MINUTES_IN_HOUR) * 100;
-    if (offsetPercent) {
-      // assign top offset as percentage
-      element.style.top = String(offsetPercent) + '%';
-    }
+      hours.forEach(function(number) {
+        var hour = this.hours.get(number);
 
-    // Calculate duration in hours, with minutes as decimal part
-    var hoursDuration = (endHour - startHour) +
-                        ((endMin - startMin) / MINUTES_IN_HOUR);
-    var elementHeight = hoursDuration;
-
-    // If this event is less than a full hour and NOT cross next day,
-    // tweak the classname so that some alternate styles for
-    // a tiny event can apply. (eg. hide details)
-    // And if the event is cross next day, the height of event element is 1.
-    if (hoursDuration < 1) {
-      if (isSameDateWithEndDate) {
-        element.classList.add('partial-hour');
-        // we need to toggle layout if event lasts less than 20, 30 and 45min
-        if (hoursDuration < 0.3) {
-          element.classList.add('partial-hour-micro');
-        } else if (hoursDuration < 0.5) {
-          element.classList.add('partial-hour-tiny');
-        } else if (hoursDuration < 0.75) {
-          element.classList.add('partial-hour-small');
+        // XXX: If renderAllHours is false we want to remove
+        //      unsed hours.
+        if (!this.renderAllHours && hour.records.length === 1) {
+          this.removeHour(number);
         }
+
+        var record = hour.records.get(id);
+
+        if (typeof(record) === 'object' && record.element) {
+          record.element.parentNode.removeChild(record.element);
+        }
+
+        hour.records.remove(id);
+      }, this);
+
+      // remove event from tree
+      var eventEl = this.overlaps.getElement(busytime);
+      if (eventEl) {
+        eventEl.parentNode.removeChild(eventEl);
+        // remove it from overlaps
+        this.overlaps.remove(busytime);
+      }
+
+    },
+
+    /**
+     * Changes the date the view cares about
+     * in reality we only manage one view at
+     * a time.
+     *
+     * @param {Date} date used to calculate events & range.
+     * @param {Boolean} clear when true clears out all elements.
+     */
+    changeDate: function(date, clear) {
+      // It is very important that this goes here.
+      // If the timespan of the view changes (as in MonthsDay view).
+      // We must discard all pending async operations for the old date.
+      // we do this by incrementing the "change token" here.
+      this._changeToken++;
+
+      var controller = this.controller;
+
+      this._removeTimespanObserver();
+      this.id = date.valueOf();
+      this.date = Calendar.Calc.createDay(date);
+      this.timespan = Calendar.Calc.spanOfDay(date);
+
+      if (this.element) {
+        this.element.dataset.date = this.date;
+      }
+
+      controller.observeTime(this.timespan, this);
+
+      if (clear) {
+        this._resetHourCache();
+        // clear out all children
+        this.events.innerHTML = '';
+      }
+
+      var records = this.controller.queryCache(this.timespan);
+
+      if (records && records.length) {
+        this._loadRecords(records, () => Calendar.performance.dayBasedReady());
       } else {
-        elementHeight = 1;
+        // if we don't load records (no events today) we still need to let the
+        // Performance controller know that the DayBased view is ready
+        Calendar.performance.dayBasedReady();
       }
-    }
+    },
 
-    return this._assignHeight(element, elementHeight);
-  },
+    /**
+     * Creates a DOM representation of this view.
+     * @return {Element} some element.
+     */
+    create: function() {
+      var el = this._buildElement();
 
-  /**
-   * Assigns an elements height, based on a duration in hours.
-   *
-   * @param {HTMLElement} element target to apply top/height to.
-   * @param {Numeric} duration in hours, minutes as decimal part.
-   */
-  _assignHeight: function(element, hoursDuration) {
-    // we remove 0.1rem from height so multiple consecutive events doesn't
-    // "blend into each other" (works as a margin)
-    element.style.height = 'calc(' + (hoursDuration * 100) + '% - 0.1rem)';
-  },
+      if (this.renderAllHours) {
+        if (this.outsideAllDay) {
+          this.createHour('allday');
+        }
 
-  /**
-   * build the default elements for the view and return the parent element.
-   */
-  _buildElement: function() {
-    // XXX: wrapper used to create a new stacking context to fix Bug 972666
-    // without causing performance issues described on Bug 972675
-    var wrapper = document.createElement('div');
-    wrapper.classList.add('day-events-wrapper');
-
-    // create the hidden values for element & eventsElement
-    this._eventsElement = document.createElement('section');
-    this._element = document.createElement('section');
-
-    // if the allDayElement is not assigned
-    if (!this.allDayElement) {
-      this.allDayElement = this._eventsElement;
-    }
-
-    if (this.outsideAllDay) {
-      this.allDayElement = document.createElement('section');
-      this.element.appendChild(this.allDayElement);
-
-      this.allDayElement.classList.add(Calc.ALLDAY);
-      this.allDayElement.classList.add(this.classType);
-    }
-
-    // setup/inject elements.
-    wrapper.appendChild(this._eventsElement);
-    this.element.appendChild(wrapper);
-    this.events.classList.add(this.classType);
-
-    return this.element;
-  },
-
-  /** must be overriden */
-  _renderEvent: function(busytime, event, hour) {},
-
-  _renderHour: function(hour) {
-    return this.template.hour.render({
-      hour: hour
-    });
-  },
-
-  /** public **/
-
-  handleEvent: function(e) {
-    switch (e.type) {
-      case 'remove':
-        this.remove(e.data);
-        break;
-      case 'add':
-        this._loadRecords(e.data);
-        break;
-    }
-  },
-
-  removeHour: function(hour) {
-    var record = this.hours.get(hour);
-
-    // skip records that do not exist.
-    if (record === null) {
-      return;
-    }
-
-    var el = record.element;
-
-    if (el) {
-      el.parentNode.removeChild(el);
-    }
-
-    this.hours.remove(hour);
-  },
-
-  createHour: function(hour) {
-    var html = this._renderHour(hour);
-    var parent = (hour === Calc.ALLDAY) ?
-      this.allDayElement : this.events;
-    if (!parent) {
-      throw new Error('parent must be specified');
-    }
-
-    var idx = this.hours.insertIndexOf(hour);
-    var el = this._insertElement(html, parent, this.hours.items, idx);
-    return this.hours.set(hour, {
-      element: el,
-      records: new OrderedMap()
-    });
-  },
-
-  /**
-   * Add a busytime to the view.
-   *
-   * @param {Object} busytime busytime object.
-   * @param {Object} event related event object.
-   */
-  add: function(busytime, event) {
-    var hours = hoursOfOccurence(
-      this.date,
-      busytime.startDate,
-      busytime.endDate
-    );
-
-    hours.forEach(function(hour) {
-      this._createRecord(hour, busytime, event);
-    }, this);
-  },
-
-  /**
-   * Remove a busytime from the view.
-   *
-   * @param {Object} busytime busytime object.
-   */
-  remove: function(busytime) {
-    var id = busytime._id;
-    var hours = this._idsToHours[id];
-
-    delete this._idsToHours[id];
-
-    if (!hours) {
-      return;
-    }
-
-    hours.forEach(function(number) {
-      var hour = this.hours.get(number);
-
-      // XXX: If renderAllHours is false we want to remove
-      //      unsed hours.
-      if (!this.renderAllHours && hour.records.length === 1) {
-        this.removeHour(number);
+        for (var hour = 0; hour < 24; hour++) {
+          this.createHour(hour);
+        }
       }
 
-      var record = hour.records.get(id);
+      // TODO(gareth): This is maybe not a good place for this.
+      this.changeDate(this.date);
 
-      if (typeof(record) === 'object' && record.element) {
-        record.element.parentNode.removeChild(record.element);
+      this.delegate(el, 'click', 'section.hour',
+          this._onHourClick.bind(this));
+      return el;
+    },
+
+    /**
+     * @param {MouseEvent} evt A click event on an hour element.
+     * @param {Element} el matched by css selector.
+     * @private
+     */
+    _onHourClick: function(evt, el) {
+      if (this._clickedOnEvent(evt.target)) {
+        // We just clicked on an event... bail!
+        return;
       }
 
-      hour.records.remove(id);
-    }, this);
-
-    // remove event from tree
-    var eventEl = this.overlaps.getElement(busytime);
-    if (eventEl) {
-      eventEl.parentNode.removeChild(eventEl);
-      // remove it from overlaps
-      this.overlaps.remove(busytime);
-    }
-
-  },
-
-  /**
-   * Changes the date the view cares about
-   * in reality we only manage one view at
-   * a time.
-   *
-   * @param {Date} date used to calculate events & range.
-   * @param {Boolean} clear when true clears out all elements.
-   */
-  changeDate: function(date, clear) {
-    // It is very important that this goes here.
-    // If the timespan of the view changes (as in MonthsDay view).
-    // We must discard all pending async operations for the old date.
-    // we do this by incrementing the "change token" here.
-    this._changeToken++;
-
-    var controller = this.controller;
-
-    this._removeTimespanObserver();
-    this.id = date.valueOf();
-    this.date = Calc.createDay(date);
-    this.timespan = Calc.spanOfDay(date);
-
-    if (this.element) {
-      this.element.dataset.date = this.date;
-    }
-
-    controller.observeTime(this.timespan, this);
-
-    if (clear) {
-      this._resetHourCache();
-      // clear out all children
-      this.events.innerHTML = '';
-    }
-
-    var records = this.controller.queryCache(this.timespan);
-
-    if (records && records.length) {
-      this._loadRecords(records, () => performance.dayBasedReady());
-    } else {
-      // if we don't load records (no events today) we still need to let the
-      // Performance controller know that the DayBased view is ready
-      performance.dayBasedReady();
-    }
-  },
-
-  /**
-   * Creates a DOM representation of this view.
-   * @return {Element} some element.
-   */
-  create: function() {
-    var el = this._buildElement();
-
-    if (this.renderAllHours) {
-      if (this.outsideAllDay) {
-        this.createHour('allday');
+      var hour = el.getAttribute('data-hour');
+      if (!hour) {
+        // Something went terribly wrong...
+        return;
       }
 
-      for (var hour = 0; hour < 24; hour++) {
-        this.createHour(hour);
+      var startDate = new Date(this.date.getTime());
+      startDate.setHours(0);
+      startDate.setMinutes(0);
+      startDate.setSeconds(0);
+
+      var endDate = new Date(this.date.getTime());
+      endDate.setHours(0);
+      endDate.setMinutes(0);
+      endDate.setSeconds(0);
+
+      var queryString = {};
+      if (hour === Calendar.Calc.ALLDAY) {
+        queryString.isAllDay = true;
+        endDate.setDate(startDate.getDate() + 1);
+      } else {
+        // If it's not all day it must be a number.
+        hour = parseInt(hour);
+        startDate.setHours(hour);
+        endDate.setHours(hour + 1);
       }
-    }
 
-    // TODO(gareth): This is maybe not a good place for this.
-    this.changeDate(this.date);
+      queryString.startDate = startDate.toString();
+      queryString.endDate = endDate.toString();
 
-    this.delegate(el, 'click', 'section.hour',
-        this._onHourClick.bind(this));
-    return el;
-  },
+      this.app.go(
+          '/event/add/?' +
+          Calendar.QueryString.stringify(queryString)
+      );
+    },
 
-  /**
-   * @param {MouseEvent} evt A click event on an hour element.
-   * @param {Element} el matched by css selector.
-   * @private
-   */
-  _onHourClick: function(evt, el) {
-    if (this._clickedOnEvent(evt.target)) {
-      // We just clicked on an event... bail!
-      return;
-    }
-
-    var hour = el.getAttribute('data-hour');
-    if (!hour) {
-      // Something went terribly wrong...
-      return;
-    }
-
-    var startDate = new Date(this.date.getTime());
-    startDate.setHours(0);
-    startDate.setMinutes(0);
-    startDate.setSeconds(0);
-
-    var endDate = new Date(this.date.getTime());
-    endDate.setHours(0);
-    endDate.setMinutes(0);
-    endDate.setSeconds(0);
-
-    var queryString = {};
-    if (hour === Calc.ALLDAY) {
-      queryString.isAllDay = true;
-      endDate.setDate(startDate.getDate() + 1);
-    } else {
-      // If it's not all day it must be a number.
-      hour = parseInt(hour);
-      startDate.setHours(hour);
-      endDate.setHours(hour + 1);
-    }
-
-    queryString.startDate = startDate.toString();
-    queryString.endDate = endDate.toString();
-
-    this.app.go('/event/add/?' + QueryString.stringify(queryString));
-  },
-
-  /**
-   * The structure of one of these cells is:
-   * <div class="events">
-   *   <section class="event">...</section>
-   *   <section class="event">...</section>
-   * </div>
-   * @param {Element} target The HTML element that got clicked.
-   * @return {boolean} Whether or not we clicked on an event.
-   * @private
-   */
-  _clickedOnEvent: function(target) {
-    var el = target;
-    while (el && el.nodeType === 1 /** ELEMENT_NODE */) {
-      if (el.classList.contains('event')) {
-        return true;
+    /**
+     * The structure of one of these cells is:
+     * <div class="events">
+     *   <section class="event">...</section>
+     *   <section class="event">...</section>
+     * </div>
+     * @param {Element} target The HTML element that got clicked.
+     * @return {boolean} Whether or not we clicked on an event.
+     * @private
+     */
+    _clickedOnEvent: function(target) {
+      var el = target;
+      while (el && el.nodeType === 1 /** ELEMENT_NODE */) {
+        if (el.classList.contains('event')) {
+          return true;
+        }
+        if (el.classList.contains('events')) {
+          return false;
+        }
+        el = el.parentNode;
       }
-      if (el.classList.contains('events')) {
-        return false;
+      return true;
+    },
+
+    activate: function() {
+      this.element.classList.add(
+        this.activeClass
+      );
+    },
+
+    deactivate: function() {
+      this.element.classList.remove(
+        this.activeClass
+      );
+    },
+
+    /**
+     * Remove observers and remove elements
+     * from the dom.
+     */
+    destroy: function() {
+      this._removeTimespanObserver();
+      var el = this.element;
+      if (el && el.parentNode) {
+        el.parentNode.removeChild(el);
       }
-      el = el.parentNode;
-    }
-    return true;
-  },
+    },
 
-  activate: function() {
-    this.element.classList.add(this.activeClass);
-  },
+    getScrollTop: function() {
+      var scroll = this.element.querySelectorAll('.day-events-wrapper')[0];
+      var scrollTop = scroll.scrollTop;
+      return scrollTop;
+    },
 
-  deactivate: function() {
-    this.element.classList.remove(this.activeClass);
-  },
-
-  /**
-   * Remove observers and remove elements
-   * from the dom.
-   */
-  destroy: function() {
-    this._removeTimespanObserver();
-    var el = this.element;
-    if (el && el.parentNode) {
-      el.parentNode.removeChild(el);
-    }
-  },
-
-  getScrollTop: function() {
-    var scroll = this.element.querySelectorAll('.day-events-wrapper')[0];
-    var scrollTop = scroll.scrollTop;
-    return scrollTop;
-  },
-
-  setScrollTop: function(scrollTop) {
-    var scroll = this.element.querySelectorAll('.day-events-wrapper')[0];
-    scroll.scrollTop = scrollTop;
-  },
-
-  /**
-   * Animated scroll to the destination scrollTop for am element.
-   *
-   * @param {Number} destinationScrollTop the scrollTop of destination.
-   */
-  animatedScroll: function(scrollTop) {
-    var scroll = this.element.querySelectorAll('.day-events-wrapper')[0];
-    var content = scroll.querySelector('.day-events');
-    var SPEED = 500;
-    var scrollTo = scroll.scrollTop - scrollTop;
-    var seconds = Math.abs(scrollTo) / SPEED;
-
-    setTimeout(function() {
-      content.style.transform = 'translateY(' + scrollTo + 'px)';
-      // easeOutQuart borrowed from http://matthewlein.com/ceaser/
-      content.style.transition = 'transform ' + seconds + 's ' +
-        'cubic-bezier(0.165, 0.840, 0.440, 1.000)';
-    });
-
-    content.addEventListener('transitionend', function setScrollTop() {
-      content.removeEventListener('transitionend', setScrollTop);
-      content.style.transform = null;
-      content.style.transition = null;
+    setScrollTop: function(scrollTop) {
+      var scroll = this.element.querySelectorAll('.day-events-wrapper')[0];
       scroll.scrollTop = scrollTop;
-    });
-  }
-};
+    },
 
-});
+    /**
+     * Animated scroll to the destination scrollTop for am element.
+     *
+     * @param {Number} destinationScrollTop the scrollTop of destination.
+     */
+    animatedScroll: function(scrollTop) {
+      var scroll = this.element.querySelectorAll('.day-events-wrapper')[0];
+      var content = scroll.querySelector('.day-events');
+      var SPEED = 500;
+      var scrollTo = scroll.scrollTop - scrollTop;
+      var seconds = Math.abs(scrollTo) / SPEED;
+
+      setTimeout(function() {
+        content.style.transform = 'translateY(' + scrollTo + 'px)';
+        // easeOutQuart borrowed from http://matthewlein.com/ceaser/
+        content.style.transition = 'transform ' + seconds + 's ' +
+          'cubic-bezier(0.165, 0.840, 0.440, 1.000)';
+      });
+
+      content.addEventListener('transitionend', function setScrollTop() {
+        content.removeEventListener('transitionend', setScrollTop);
+        content.style.transform = null;
+        content.style.transition = null;
+        scroll.scrollTop = scrollTop;
+      });
+    }
+  };
+
+  return DayBased;
+
+}());

@@ -1,12 +1,6 @@
-define(function(require) {
-'use strict';
+suiteGroup('Views.EventBase', function() {
+  'use strict';
 
-var EventBase = require('views/event_base');
-var EventModel = require('models/event');
-var View = require('view');
-var providerFactory = require('provider/provider_factory');
-
-suite('Views.EventBase', function() {
   var subject;
   var app;
   var triggerEvent;
@@ -22,7 +16,7 @@ suite('Views.EventBase', function() {
   teardown(function() {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);
-    delete providerFactory.providers.Test;
+    delete app._providers.Test;
   });
 
   setup(function(done) {
@@ -39,7 +33,7 @@ suite('Views.EventBase', function() {
     document.body.appendChild(div);
     app = testSupport.calendar.app();
 
-    subject = new EventBase({
+    subject = new Calendar.Views.EventBase({
       app: app,
       selectors: {
         element: '#event-test',
@@ -69,8 +63,8 @@ suite('Views.EventBase', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, View);
-    assert.instanceOf(subject, EventBase);
+    assert.instanceOf(subject, Calendar.View);
+    assert.instanceOf(subject, Calendar.Views.EventBase);
 
     assert.ok(subject._els, 'has elements');
   });
@@ -112,7 +106,7 @@ suite('Views.EventBase', function() {
     });
 
     test('readonly', function(done) {
-      var provider = providerFactory.get('Mock');
+      var provider = app.provider('Mock');
 
       provider.stageEventCapabilities(this.event._id, null, {
         canUpdate: false
@@ -186,7 +180,7 @@ suite('Views.EventBase', function() {
         // model
         assert.instanceOf(
           subject.event,
-          EventModel
+          Calendar.Models.Event
         );
 
         // expected model time
@@ -336,6 +330,5 @@ suite('Views.EventBase', function() {
       );
     });
   });
-});
 
 });

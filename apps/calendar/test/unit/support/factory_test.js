@@ -1,9 +1,10 @@
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var Factory = require('test/support/factory');
+requireApp('calendar/test/unit/support/factory.js');
 
 suite('factory', function() {
+  'use strict';
+
   var subject;
   var realDefined;
 
@@ -423,7 +424,7 @@ suite('factory', function() {
       assert.isTrue(result.normalCal.foo);
       assert.isTrue(result.normalCal.event.nested);
     });
+
   });
-});
 
 });

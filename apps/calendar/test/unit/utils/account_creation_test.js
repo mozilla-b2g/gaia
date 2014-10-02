@@ -1,12 +1,8 @@
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var AccountCreation = require('utils/account_creation');
-var Factory = require('test/support/factory');
-var Responder = require('responder');
-var providerFactory = require('provider/provider_factory');
+suiteGroup('Utils.AccountCreation', function() {
+  'use strict';
 
-suite('Utils.AccountCreation', function() {
   var subject;
   var accountStore;
   var calendarStore;
@@ -15,14 +11,21 @@ suite('Utils.AccountCreation', function() {
   var account;
   var provider;
 
+  testSupport.calendar.loadObjects(
+    'Models.Account',
+    'Models.Calendar'
+  );
+
   setup(function(done) {
     app = testSupport.calendar.app();
     accountStore = app.store('Account');
     calendarStore = app.store('Calendar');
 
-    subject = new AccountCreation(app);
+    subject = new Calendar.Utils.AccountCreation(
+      app
+    );
 
-    provider = providerFactory.get('Mock');
+    provider = app.provider('Mock');
     account = Factory('account', {
       user: 'special',
       providerType: 'Mock'
@@ -44,7 +47,7 @@ suite('Utils.AccountCreation', function() {
 
   test('initialization', function() {
     assert.equal(subject.app, app);
-    assert.instanceOf(subject, Responder);
+    assert.instanceOf(subject, Calendar.Responder);
   });
 
   suite('#send - success', function() {
@@ -180,7 +183,7 @@ suite('Utils.AccountCreation', function() {
         });
       });
     });
+
   });
-});
 
 });

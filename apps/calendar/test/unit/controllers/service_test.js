@@ -1,20 +1,19 @@
-define(function(require) {
-'use strict';
+suiteGroup('Controllers.Service', function() {
+  'use strict';
 
-var Manager = require('worker/manager');
-var ServiceController = require('controllers/service');
-
-suite('Controllers.Service', function() {
   var subject;
   var app;
 
   setup(function() {
     app = testSupport.calendar.app();
-    subject = new ServiceController(app);
+    subject = new Calendar.Controllers.Service(app);
   });
 
   test('initialize', function() {
-    assert.instanceOf(subject, Manager);
+    assert.instanceOf(
+      subject,
+      Calendar.Worker.Manager
+    );
   });
 
   test('#start', function() {
@@ -44,6 +43,6 @@ suite('Controllers.Service', function() {
       worker.instance = null;
     });
   });
-});
 
 });
+

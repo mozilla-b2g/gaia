@@ -1,13 +1,10 @@
-define(function(require) {
-'use strict';
+suiteGroup('Templates.Month', function() {
+  'use strict';
 
-var Month = require('templates/month');
-
-suite('Templates.Month', function() {
   var subject;
 
   suiteSetup(function() {
-    subject = Month;
+    subject = Calendar.Templates.Month;
   });
 
   function a() {
@@ -87,6 +84,5 @@ suite('Templates.Month', function() {
     });
 
   });
-});
 
 });

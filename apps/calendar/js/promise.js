@@ -1,8 +1,9 @@
+/* global Promise */
 /**
  * @fileoverview Utilities for converting async functions which use
  *     node-style callbacks to also cater promises callers.
  */
-define(function(require, exports) {
+(function(exports) {
 'use strict';
 
 function denodeify(fn) {
@@ -37,7 +38,7 @@ exports.denodeify = denodeify;
 
 function denodeifyAll(object, methods) {
   methods.forEach((method) => {
-    object[method] = exports.denodeify(object[method]);
+    object[method] = Calendar.Promise.denodeify(object[method]);
   });
 }
 exports.denodeifyAll = denodeifyAll;
@@ -53,4 +54,4 @@ function defer() {
   return deferred;
 }
 
-});
+}(Calendar.Promise = {}));

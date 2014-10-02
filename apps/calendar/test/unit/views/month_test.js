@@ -1,14 +1,18 @@
-define(function(require) {
-'use strict';
-
-var Calc = require('calc');
-var Month = require('views/month');
-var MonthChild = require('views/month_child');
-var TimeParent = require('views/time_parent');
-
 requireCommon('test/synthetic_gestures.js');
+require('/shared/js/gesture_detector.js');
+requireLib('timespan.js');
 
-suite('Views.Month', function() {
+/*
+requireLib('utils/ordered_map.js');
+requireLib('templates/month.js');
+requireLib('views/time_parent.js');
+requireLib('views/month_child.js');
+requireLib('views/month.js');
+*/
+
+suiteGroup('Views.Month', function() {
+  'use strict';
+
   var subject,
       app,
       controller,
@@ -43,11 +47,14 @@ suite('Views.Month', function() {
 
     busytimes = app.store('Busytime');
 
-    subject = new Month({ app: app });
+    subject = new Calendar.Views.Month({
+      app: app
+    });
+
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, TimeParent);
+    assert.instanceOf(subject, Calendar.Views.TimeParent);
     assert.equal(subject.controller, controller);
     assert.equal(subject.element, document.querySelector('#month-view'));
   });
@@ -62,7 +69,7 @@ suite('Views.Month', function() {
         '[data-date]'
       );
 
-      var date = Calc.dateFromId(
+      var date = Calendar.Calc.dateFromId(
         el.dataset.date
       );
 
@@ -155,7 +162,7 @@ suite('Views.Month', function() {
     var time = new Date(2012, 1, 1);
     var child = subject._createChild(time);
 
-    assert.instanceOf(child, MonthChild);
+    assert.instanceOf(child, Calendar.Views.MonthChild);
     assert.deepEqual(child.date, time);
   });
 
@@ -204,7 +211,7 @@ suite('Views.Month', function() {
       dayEl = dayEl[0];
 
       assert.ok(dayEl.id, 'should have id');
-      assert.include(dayEl.id, Calc.getDayId(
+      assert.include(dayEl.id, Calendar.Calc.getDayId(
         select
       ));
     });
@@ -229,6 +236,5 @@ suite('Views.Month', function() {
     controller.move(time);
     subject.render();
   });
-});
 
 });

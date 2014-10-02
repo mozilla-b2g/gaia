@@ -1,14 +1,10 @@
-define(function(require) {
-'use strict';
-
-var Calc = require('calc');
-var MonthChild = require('views/month_child');
-var Timespan = require('timespan');
-var nextTick = require('next_tick');
-
 requireCommon('test/synthetic_gestures.js');
+require('/shared/js/gesture_detector.js');
+requireLib('timespan.js');
 
-suite('Views.MonthChild', function() {
+suiteGroup('Views.MonthChild', function() {
+  'use strict';
+
   var subject,
       controller,
       busytimes,
@@ -31,7 +27,7 @@ suite('Views.MonthChild', function() {
     controller = app.timeController;
 
     busytimes = app.store('Busytime');
-    subject = new MonthChild({
+    subject = new Calendar.Views.MonthChild({
       app: app,
       date: month
     });
@@ -46,7 +42,7 @@ suite('Views.MonthChild', function() {
 
       assert.instanceOf(
         subject.timespan,
-        Timespan,
+        Calendar.Timespan,
         'should create timespan'
       );
 
@@ -54,7 +50,7 @@ suite('Views.MonthChild', function() {
 
       assert.deepEqual(
         subject.timespan,
-        Calc.spanOfMonth(subject.date)
+        Calendar.Calc.spanOfMonth(subject.date)
       );
     });
 
@@ -86,25 +82,25 @@ suite('Views.MonthChild', function() {
         result;
 
     suiteSetup(function() {
-      id = Calc.getDayId(day);
+      id = Calendar.Calc.getDayId(day);
       controller.move(day);
     });
 
     setup(function() {
-      oldStateFn = Calc.relativeState;
-      Calc.relativeState = function() {
+      oldStateFn = Calendar.Calc.relativeState;
+      Calendar.Calc.relativeState = function() {
         return 'fooz';
       };
     });
 
     teardown(function() {
-      Calc.relativeState = oldStateFn;
+      Calendar.Calc.relativeState = oldStateFn;
     });
 
     function rendersObject() {
       assert.ok(result);
       assert.include(
-        result, Calc.relativeState(day),
+        result, Calendar.Calc.relativeState(day),
         'should include day id'
       );
       assert.include(result, 'fooz', 'should include state');
@@ -115,7 +111,7 @@ suite('Views.MonthChild', function() {
     }
 
     test('result', function() {
-      var id = Calc.getDayId(day);
+      var id = Calendar.Calc.getDayId(day);
       controller.move(day);
       result = subject._renderDay(day);
 
@@ -138,7 +134,7 @@ suite('Views.MonthChild', function() {
     setup(function() {
       controller.currentMonth = day;
       controller.move(day);
-      result = subject._renderWeek(Calc.getWeeksDays(day));
+      result = subject._renderWeek(Calendar.Calc.getWeeksDays(day));
     });
 
     test('html output', function() {
@@ -177,7 +173,7 @@ suite('Views.MonthChild', function() {
     function rendersWeeks(month, weekStartDates) {
       controller.move(month);
 
-      var subject = new MonthChild({
+      var subject = new Calendar.Views.MonthChild({
         app: app,
         date: month
       });
@@ -186,7 +182,7 @@ suite('Views.MonthChild', function() {
 
       weekStartDates.forEach(function(date) {
         assert.include(
-          result, subject._renderWeek(Calc.getWeeksDays(date)),
+          result, subject._renderWeek(Calendar.Calc.getWeeksDays(date)),
           'should include week of ' + date.toString()
         );
       });
@@ -250,7 +246,7 @@ suite('Views.MonthChild', function() {
     test('access rendered day', function() {
       subject.create();
 
-      var id = Calc.getDayId(month);
+      var id = Calendar.Calc.getDayId(month);
       var result = subject._busyElement(month);
       var fromString = subject._busyElement(id);
 
@@ -309,7 +305,7 @@ suite('Views.MonthChild', function() {
 
         controller.queryCache = function() {
           // wait for _renderBusytime to complete
-          nextTick(done);
+          Calendar.nextTick(done);
           calledCachedWith = arguments;
           return slice;
         };
@@ -399,11 +395,11 @@ suite('Views.MonthChild', function() {
       stub = sinon.stub(subject, '_setBusyCount');
       subject._dayToBusyCount = Object.create(null);
 
-      Calc.daysBetween(
+      Calendar.Calc.daysBetween(
         busytime.startDate,
         endDate
       ).forEach(function(date) {
-        dayIds.push(Calc.getDayId(date));
+        dayIds.push(Calendar.Calc.getDayId(date));
       });
 
       dayIds.forEach(function(dayId) {
@@ -425,7 +421,7 @@ suite('Views.MonthChild', function() {
   });
 
   suite('#_setBusyCount', function() {
-    var dayId = Calc.getDayId(new Date('January 17, 1998'));
+    var dayId = Calendar.Calc.getDayId(new Date('January 17, 1998'));
     var mock;
 
     test('ok', function() {
@@ -493,6 +489,4 @@ suite('Views.MonthChild', function() {
       subject._setBusyCount(dayId, 1337);
     });
   });
-});
-
 });

@@ -1,7 +1,5 @@
-define(function(require, exports) {
+(function(exports) {
 'use strict';
-
-var dateFormat = require('date_format');
 
 /**
  * Localizes all elements with data-l10n-date-format.
@@ -57,7 +55,7 @@ exports.localizeElement = function(element, options) {
     format = format.replace(/\s*%p\s*/, '<span class="ampm">%p</span>');
   }
 
-  var text = dateFormat.localeFormat(new Date(date), format);
+  var text = Calendar.App.dateFormat.localeFormat(new Date(date), format);
   if (options && options.removeLeadingZero) {
     text = text.replace(/^0/, '');
   }
@@ -65,4 +63,4 @@ exports.localizeElement = function(element, options) {
   element.textContent = text;
 };
 
-});
+}(Calendar.dateL10n = {}));

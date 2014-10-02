@@ -1,12 +1,13 @@
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var Factory = require('test/support/factory');
-var IntervalTree = require('interval_tree');
-var Overlap = require('utils/overlap');
-var Timespan = require('timespan');
+requireLib('calc.js');
+requireLib('timespan.js');
+requireLib('interval_tree.js');
+requireLib('utils/overlap.js');
 
 suite('overlap', function() {
+  'use strict';
+
   var forever;
   var subject;
   var baseDate = new Date(2012, 0, 1);
@@ -95,8 +96,8 @@ suite('overlap', function() {
   }
 
   setup(function() {
-    subject = new Overlap();
-    forever = new Timespan(0, Infinity);
+    subject = new Calendar.Utils.Overlap();
+    forever = new Calendar.Timespan(0, Infinity);
   });
 
   teardown(function() {
@@ -104,7 +105,7 @@ suite('overlap', function() {
   });
 
   test('initialize', function() {
-    assert.instanceOf(subject.tree, IntervalTree);
+    assert.instanceOf(subject.tree, Calendar.IntervalTree);
     assert.deepEqual(
       subject.elements,
       {}
@@ -407,8 +408,10 @@ suite('overlap', function() {
       assert.deepEqual(classNamesFromRecords(records), [
         '', '', null
       ]);
+
+
     });
+
   });
-});
 
 });

@@ -1,17 +1,25 @@
-define(function(require, exports, module) {
+(function(exports) {
 'use strict';
 
+/**
+ * Constants
+ */
 var FORMAT_REGEX = /%([0-9])?s/g;
 
-module.exports = function() {
-  var args = Array.prototype.slice.call(arguments);
+exports.format = function() {
+  var i = 0,
+      str,
+      args = Array.prototype.slice.call(arguments),
+      result;
 
-  var i = 0;
-  var str = args.shift();
-  return str.replace(FORMAT_REGEX, function(match, pos) {
+  str = args.shift();
+
+  result = str.replace(FORMAT_REGEX, function(match, pos) {
     var index = parseInt(pos || i++, 10);
     return args[index];
   });
+
+  return result;
 };
 
-});
+}(Calendar));

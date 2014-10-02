@@ -1,147 +1,145 @@
-define(function(require, exports, module) {
-'use strict';
+/* globals Calendar */
+Calendar.ns('Views').TimeHeader = (function() {
+  'use strict';
 
-var View = require('view');
-var dateFormat = require('date_format');
+  var SETTINGS = /settings/;
 
-var SETTINGS = /settings/;
+  function TimeHeader() {
+    Calendar.View.apply(this, arguments);
+    this.controller = this.app.timeController;
+    this.controller.on('scaleChange', this);
 
-function TimeHeader() {
-  View.apply(this, arguments);
-  this.controller = this.app.timeController;
-  this.controller.on('scaleChange', this);
+    this.element.addEventListener('action', function settingsClick(e) {
+      e.stopPropagation();
+      var path = window.location.pathname;
+      if (SETTINGS.test(path)) {
+        Calendar.App.resetState();
+      } else {
+        Calendar.App.router.show('/settings/');
+      }
+    });
+  }
 
-  this.element.addEventListener('action', (e) => {
-    e.stopPropagation();
-    var path = window.location.pathname;
-    if (SETTINGS.test(path)) {
-      this.app.resetState();
-    } else {
-      this.app.router.show('/settings/');
-    }
-  });
-}
-module.exports = TimeHeader;
+  TimeHeader.prototype = {
+    __proto__: Calendar.View.prototype,
 
-TimeHeader.prototype = {
-  __proto__: View.prototype,
+    selectors: {
+      element: '#time-header',
+      title: '#time-header h1'
+    },
 
-  selectors: {
-    element: '#time-header',
-    title: '#time-header h1'
-  },
+    scales: {
+      month: 'multi-month-view-header-format',
+      day: 'day-view-header-format',
+      // when week starts in one month and ends
+      // in another, we need both of them
+      // in the header
+      multiMonth: 'multi-month-view-header-format'
+    },
 
-  scales: {
-    month: 'multi-month-view-header-format',
-    day: 'day-view-header-format',
-    // when week starts in one month and ends
-    // in another, we need both of them
-    // in the header
-    multiMonth: 'multi-month-view-header-format'
-  },
+    handleEvent: function(e) {
+      // respond to all events here but
+      // we add/remove listeners to reduce
+      // calls
+      switch (e.type) {
+        case 'yearChange':
+        case 'monthChange':
+        case 'dayChange':
+        case 'weekChange':
+          this._updateTitle();
+          break;
+        case 'scaleChange':
+          this._updateScale.apply(this, e.data);
+          break;
+      }
+    },
 
-  handleEvent: function(e) {
-    // respond to all events here but
-    // we add/remove listeners to reduce
-    // calls
-    switch (e.type) {
-      case 'yearChange':
-      case 'monthChange':
-      case 'dayChange':
-      case 'weekChange':
-        this._updateTitle();
-        break;
-      case 'scaleChange':
-        this._updateScale.apply(this, e.data);
-        break;
-    }
-  },
+    get title() {
+      return this._findElement('title');
+    },
 
-  get title() {
-    return this._findElement('title');
-  },
+    _scaleEvent: function(event) {
+      switch (event) {
+        case 'month':
+          return 'monthChange';
+        case 'year':
+          return 'yearChange';
+        case 'week':
+          return 'weekChange';
+      }
 
-  _scaleEvent: function(event) {
-    switch (event) {
-      case 'month':
-        return 'monthChange';
-      case 'year':
-        return 'yearChange';
-      case 'week':
-        return 'weekChange';
-    }
+      return 'dayChange';
+    },
 
-    return 'dayChange';
-  },
+    _updateScale: function(newScale, oldScale) {
+      if (oldScale) {
+        this.controller.removeEventListener(
+          this._scaleEvent(oldScale),
+          this
+        );
+      }
 
-  _updateScale: function(newScale, oldScale) {
-    if (oldScale) {
-      this.controller.removeEventListener(
-        this._scaleEvent(oldScale),
+      this.controller.addEventListener(
+        this._scaleEvent(newScale),
         this
       );
-    }
 
-    this.controller.addEventListener(
-      this._scaleEvent(newScale),
-      this
-    );
+      this._updateTitle();
+    },
 
-    this._updateTitle();
-  },
-
-  getScale: function(type) {
-    var position = this.controller.position;
-    if (type === 'week') {
-      var lastWeekday = this._getLastWeekday();
-      if (position.getMonth() !== lastWeekday.getMonth()) {
-        // when displaying dates from multiple months we use a different
-        // format to avoid overflowing
-        return this._localeFormat(position, 'multiMonth') + ' ' +
-          this._localeFormat(lastWeekday, 'multiMonth');
+    getScale: function(type) {
+      var position = this.controller.position;
+      if (type === 'week') {
+        var lastWeekday = this._getLastWeekday();
+        if (position.getMonth() !== lastWeekday.getMonth()) {
+          // when displaying dates from multiple months we use a different
+          // format to avoid overflowing
+          return this._localeFormat(position, 'multiMonth') + ' ' +
+            this._localeFormat(lastWeekday, 'multiMonth');
+        }
+        // if it isn't "multiMonth" we use "month" instead
+        type = 'month';
       }
-      // if it isn't "multiMonth" we use "month" instead
-      type = 'month';
+
+      return this._localeFormat(position, type || 'month');
+    },
+
+    _getLastWeekday: function(){
+      // we display 5 days at a time, controller.position is always the day on
+      // the left of the view
+      var position = this.controller.position;
+      return new Date(
+        position.getFullYear(),
+        position.getMonth(),
+        position.getDate() + 4
+      );
+    },
+
+    _localeFormat: function(date, scale) {
+      return this.app.dateFormat.localeFormat(
+        date,
+        navigator.mozL10n.get(this.scales[scale])
+      );
+    },
+
+    _updateTitle: function() {
+      var con = this.app.timeController;
+      var title = this.title;
+
+      title.dataset.l10nDateFormat =
+        this.scales[con.scale] || this.scales.month;
+
+      title.dataset.date = con.position.toString();
+
+      title.textContent = this.getScale(
+        con.scale
+      );
+    },
+
+    render: function() {
+      this._updateScale(this.controller.scale);
     }
+  };
 
-    return this._localeFormat(position, type || 'month');
-  },
-
-  _getLastWeekday: function(){
-    // we display 5 days at a time, controller.position is always the day on
-    // the left of the view
-    var position = this.controller.position;
-    return new Date(
-      position.getFullYear(),
-      position.getMonth(),
-      position.getDate() + 4
-    );
-  },
-
-  _localeFormat: function(date, scale) {
-    return dateFormat.localeFormat(
-      date,
-      navigator.mozL10n.get(this.scales[scale])
-    );
-  },
-
-  _updateTitle: function() {
-    var con = this.app.timeController;
-    var title = this.title;
-
-    title.dataset.l10nDateFormat =
-      this.scales[con.scale] || this.scales.month;
-
-    title.dataset.date = con.position.toString();
-
-    title.textContent = this.getScale(
-      con.scale
-    );
-  },
-
-  render: function() {
-    this._updateScale(this.controller.scale);
-  }
-};
-
-});
+  return TimeHeader;
+}());

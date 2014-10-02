@@ -1,19 +1,12 @@
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var AccountCreation = require('utils/account_creation');
-var AccountModel = require('models/account');
-var Factory = require('test/support/factory');
-var FakePage = require('test/support/fake_page');
-var ModifyAccount = require('views/modify_account');
-var OAuthWindow = require('oauth_window');
-var Presets = require('presets');
-var nextTick = require('next_tick');
+requireLib('oauth_window.js');
+requireLib('provider/abstract.js');
+requireLib('provider/local.js');
 
-require('dom!modify_event');
-require('dom!show_event');
+suiteGroup('Views.ModifyAccount', function() {
+  'use strict';
 
-suite('Views.ModifyAccount', function() {
   var subject;
   var account;
   var triggerEvent;
@@ -38,13 +31,13 @@ suite('Views.ModifyAccount', function() {
   var realMozApps;
   function setupOauth() {
     realMozApps = navigator.mozApps;
-    RealOAuth = OAuthWindow;
-    OAuthWindow = MockOAuth;
+    RealOAuth = Calendar.OAuthWindow;
+    Calendar.OAuthWindow = MockOAuth;
 
     navigator.mozApps = {
       getSelf: function() {
         var req = {};
-        nextTick(function() {
+        Calendar.nextTick(function() {
           if (req.onsuccess) {
             req.onsuccess({
               target: {
@@ -60,7 +53,7 @@ suite('Views.ModifyAccount', function() {
   }
 
   function teardownOauth() {
-    OAuthWindow = RealOAuth;
+    Calendar.OAuthWindow = RealOAuth;
     navigator.mozApps = realMozApps;
   }
 
@@ -128,7 +121,7 @@ suite('Views.ModifyAccount', function() {
     account = Factory('account', { _id: 1 });
 
     // assumes account is in a "modify" state
-    subject = new ModifyAccount({
+    subject = new Calendar.Views.ModifyAccount({
       app: app,
       model: account
     });
@@ -150,15 +143,16 @@ suite('Views.ModifyAccount', function() {
   });
 
   suite('initialization', function() {
+
     test('when given correct fields', function() {
-      var subject = new ModifyAccount({
+      var subject = new Calendar.Views.ModifyAccount({
         model: account,
         type: 'new'
       });
 
       assert.instanceOf(
         subject.accountHandler,
-        AccountCreation
+        Calendar.Utils.AccountCreation
       );
     });
 
@@ -273,7 +267,7 @@ suite('Views.ModifyAccount', function() {
     setup(function() {
       calledWith = null;
       subject.completeUrl = '/settings';
-      FakePage.shown = null;
+      Calendar.Test.FakePage.shown = null;
 
       subject.accountHandler.send = function() {
         calledWith = arguments;
@@ -300,7 +294,7 @@ suite('Views.ModifyAccount', function() {
       calledWith[1]();
 
       assert.equal(
-        FakePage.shown,
+        Calendar.Test.FakePage.shown,
         subject.completeUrl,
         'redirects to complete url'
       );
@@ -325,7 +319,7 @@ suite('Views.ModifyAccount', function() {
       );
 
       assert.notEqual(
-        FakePage.shown,
+        Calendar.Test.FakePage.shown,
         subject.completeUrl,
         'does not redirect on complete'
       );
@@ -340,11 +334,11 @@ suite('Views.ModifyAccount', function() {
 
     var model = subject._createModel(preset);
 
-    assert.instanceOf(model, AccountModel);
+    assert.instanceOf(model, Calendar.Models.Account);
 
     assert.equal(
       model.providerType,
-      Presets.local.providerType
+      Calendar.Presets.local.providerType
     );
   });
 
@@ -381,17 +375,17 @@ suite('Views.ModifyAccount', function() {
         done(function() {
           assert.instanceOf(
             subject.model,
-            AccountModel,
+            Calendar.Models.Account,
             'creates model'
           );
 
           assert.hasProperties(
             subject.model,
-            Presets.local.options,
+            Calendar.Presets.local.options,
             'uses preset options'
           );
 
-          assert.equal(subject.preset, Presets.local);
+          assert.equal(subject.preset, Calendar.Presets.local);
           assert.equal(subject.completeUrl, '/settings/');
         });
       };
@@ -499,7 +493,7 @@ suite('Views.ModifyAccount', function() {
         clearBrowserData: function() {
           var req = {};
 
-          nextTick(function() {
+          Calendar.nextTick(function() {
             clearsCookies = true;
             req.onsuccess && req.onsuccess();
           });
@@ -516,7 +510,7 @@ suite('Views.ModifyAccount', function() {
         // Oauth flows are only for new accounts
         subject.model = {};
 
-        subject.preset = Presets.google;
+        subject.preset = Calendar.Presets.google;
         subject.render();
 
         var realFlow = subject._redirectToOAuthFlow;
@@ -563,7 +557,7 @@ suite('Views.ModifyAccount', function() {
       suiteTeardown(teardownOauth);
 
       setup(function() {
-        subject.preset = Presets.google;
+        subject.preset = Calendar.Presets.google;
         subject.render();
       });
 
@@ -627,7 +621,7 @@ suite('Views.ModifyAccount', function() {
 
     suite('oauth2 edit flow', function() {
       setup(function() {
-        subject.preset = Presets.google;
+        subject.preset = Calendar.Presets.google;
         subject.model._id = 1;
 
         assert.equal(subject.authenticationType, 'oauth2');
@@ -645,6 +639,7 @@ suite('Views.ModifyAccount', function() {
     });
 
     suite('submit form', function() {
+
       setup(function() {
         account.user = 'foo';
         subject.fields.password.value = 'foo';
@@ -664,6 +659,5 @@ suite('Views.ModifyAccount', function() {
 
     });
   });
-});
 
 });

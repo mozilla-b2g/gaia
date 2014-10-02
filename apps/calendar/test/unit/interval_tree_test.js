@@ -1,13 +1,11 @@
-define(function(require) {
-'use strict';
+/*global Factory */
 
-var Factory = require('test/support/factory');
-var IntervalTree = require('interval_tree');
-var Timespan = require('timespan');
-var binsearch = require('binsearch');
-var compare = require('compare');
+requireLib('interval_tree.js');
+requireLib('timespan.js');
 
 suite('interval_tree', function() {
+  'use strict';
+
   var subject;
   var items;
   var list;
@@ -24,11 +22,11 @@ suite('interval_tree', function() {
   }
 
   suiteSetup(function() {
-    Node = IntervalTree.Node;
+    Node = Calendar.IntervalTree.Node;
   });
 
   setup(function() {
-    IntervalTree.overlapTime = 0;
+    Calendar.IntervalTree.overlapTime = 0;
     // we use this range as a baseline
     // through the less complicated tests
     expectedRange = {
@@ -36,7 +34,10 @@ suite('interval_tree', function() {
       end: 1300
     };
 
-    span = new Timespan(expectedRange.start, expectedRange.end);
+    span = new Calendar.Timespan(
+      expectedRange.start,
+      expectedRange.end
+    );
 
     // setup the basic list of items
     items = {};
@@ -54,11 +55,11 @@ suite('interval_tree', function() {
       items.after
     ];
 
-    subject = new IntervalTree(list);
+    subject = new Calendar.IntervalTree(list);
   });
 
   test('integration', function() {
-    var span = new Timespan(
+    var span = new Calendar.Timespan(
       100,
       800
     );
@@ -96,7 +97,7 @@ suite('interval_tree', function() {
   });
 
   test('init without list', function() {
-    var subject = new IntervalTree();
+    var subject = new Calendar.IntervalTree();
     assert.deepEqual(subject.items, []);
   });
 
@@ -402,7 +403,7 @@ suite('interval_tree', function() {
 
       subject.traverse(span, function(item, node) {
         results.push(item);
-        assert.instanceOf(node, IntervalTree.Node);
+        assert.instanceOf(node, Calendar.IntervalTree.Node);
       });
 
       assert.deepEqual(
@@ -420,18 +421,18 @@ suite('interval_tree', function() {
         sublist = [];
       });
 
-      function compareDateMS(aObj, bObj) {
+      function compare(aObj, bObj) {
         var a = aObj._startDateMS;
         var b = bObj._startDateMS;
 
-        return compare(a, b);
+        return Calendar.compare(a, b);
       }
 
       function orderedAdd(item, arr) {
-        var idx = binsearch.insert(
+        var idx = Calendar.binsearch.insert(
           arr,
           item,
-          compareDateMS
+          compare
         );
         arr.splice(idx, 0, item);
       }
@@ -475,8 +476,8 @@ suite('interval_tree', function() {
           add(i + 2500, i + 2505);
         }
 
-        subject = new IntervalTree(sublist);
-        var result = subject.query(new Timespan(
+        subject = new Calendar.IntervalTree(sublist);
+        var result = subject.query(new Calendar.Timespan(
           5201,
           11750
         ));
@@ -491,7 +492,7 @@ suite('interval_tree', function() {
       });
 
       test('basic start range query', function() {
-        var range = new Timespan(
+        var range = new Calendar.Timespan(
           80,
           900
         );
@@ -503,7 +504,7 @@ suite('interval_tree', function() {
       });
 
       test('basic end range query', function() {
-        var range = new Timespan(
+        var range = new Calendar.Timespan(
           1600,
           1800
         );
@@ -515,7 +516,7 @@ suite('interval_tree', function() {
       });
 
       test('basic middle query', function() {
-        var range = new Timespan(
+        var range = new Calendar.Timespan(
           expectedRange.start,
           expectedRange.end
         );
@@ -589,6 +590,4 @@ suite('interval_tree', function() {
       assert.ok(!subject.index('eventId', one.eventId));
     });
   });
-});
-
 });

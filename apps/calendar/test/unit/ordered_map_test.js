@@ -1,14 +1,14 @@
-define(function(require) {
-'use strict';
-
-var OrderedMap = require('utils/ordered_map');
-var compare = require('compare');
+requireLib('utils/ordered_map.js');
 
 suite('ordered_map', function() {
+  'use strict';
+
   var subject;
 
   setup(function() {
-    subject = new OrderedMap([[8, 'foo'], [1, 'baz']], compare);
+    subject = new Calendar.Utils.OrderedMap(
+      [[8, 'foo'], [1, 'baz']], Calendar.compare
+    );
   });
 
   test('initialization', function() {
@@ -67,6 +67,7 @@ suite('ordered_map', function() {
   });
 
   suite('#set', function() {
+
     test('override', function() {
       subject.set(1, 'foo');
       assert.equal(subject.items[0][1], 'foo');
@@ -136,6 +137,6 @@ suite('ordered_map', function() {
       String(window.performance.now() - now) + 'ms'
     );
   });
-});
 
 });
+

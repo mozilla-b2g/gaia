@@ -1,15 +1,15 @@
-define(function(require, exports, module) {
+/*global GestureDetector */
+Calendar.ns('Views').HourDoubleTap = (function(){
 'use strict';
 
 // this will be replaced later for a better logic (see Bug 992728) but it was
 // too much to do in a single patch, so for now we do a simple double tap
 // without any visual feedback (similar to the old day view behavior)
 
-var GestureDetector = require('shared/gesture_detector');
-var QueryString = require('querystring');
-var absoluteOffsetTop = require('utils/dom').absoluteOffsetTop;
-var closest = require('utils/dom').closest;
-var createDay = require('calc').createDay;
+var absoluteOffsetTop = Calendar.Utils.dom.absoluteOffsetTop;
+var closest = Calendar.Utils.dom.closest;
+var createDay = Calendar.Calc.createDay;
+var QueryString = Calendar.QueryString;
 
 function HourDoubleTap(options) {
   this.app = options.app;
@@ -21,12 +21,12 @@ function HourDoubleTap(options) {
   this._onDayDoubleTap = this._onDayDoubleTap.bind(this);
   this._onAllDayDoubleTap = this._onAllDayDoubleTap.bind(this);
 }
-module.exports = HourDoubleTap;
 
 HourDoubleTap.prototype = {
+
   _isActive: false,
 
-  setup: function() {
+  setup: function(){
     this._mainOffset = absoluteOffsetTop(this.main);
 
     this._hourGd = new GestureDetector(this.daysHolder);
@@ -83,6 +83,7 @@ HourDoubleTap.prototype = {
       this.app.go('/event/add/?' + QueryString.stringify(data));
     }, 50);
   }
+
 };
 
 function addHours(date, hourDiff) {
@@ -91,4 +92,5 @@ function addHours(date, hourDiff) {
   return result;
 }
 
-});
+return HourDoubleTap;
+}());

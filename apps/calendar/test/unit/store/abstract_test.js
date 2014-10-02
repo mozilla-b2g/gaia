@@ -1,11 +1,14 @@
-define(function(require, exports, module) {
-'use strict';
+/*global Factory */
 
-var Abstract = require('store/abstract');
-var Factory = require('test/support/factory');
-var Responder = require('responder');
+requireLib('responder.js');
+requireLib('db.js');
+requireLib('store/abstract.js');
+requireLib('models/account.js');
+requireApp('calendar/test/unit/helper.js');
 
 suite('store/abstract', function() {
+  'use strict';
+
   var subject;
   var db;
   var app;
@@ -13,7 +16,7 @@ suite('store/abstract', function() {
   setup(function(done) {
     app = testSupport.calendar.app();
     db = app.db;
-    subject = new Abstract(db);
+    subject = new Calendar.Store.Abstract(db);
 
     // set _store to accounts so we can actually
     // persist stuff.
@@ -45,7 +48,7 @@ suite('store/abstract', function() {
 
   test('initialization', function() {
     assert.equal(subject.db, db);
-    assert.instanceOf(subject, Responder);
+    assert.instanceOf(subject, Calendar.Responder);
     assert.deepEqual(subject._cached, {});
   });
 
@@ -456,6 +459,5 @@ suite('store/abstract', function() {
     });
 
   });
-});
 
 });
