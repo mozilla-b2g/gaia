@@ -314,16 +314,12 @@
 
     launch: function(target) {
       var inEditMode = this.grid.dragdrop && this.grid.dragdrop.inEditMode;
-      if ((target === this.toggleElement) ||
-          (target === this.headerSpanElement && !inEditMode) ||
-          (target === this.backgroundSpanElement && this.detail.collapsed)) {
-        if (this.detail.collapsed) {
-          this.expand();
-        } else {
-          this.collapse();
-        }
-      } else if (target === this.headerSpanElement && inEditMode) {
+      if (inEditMode && target === this.headerSpanElement) {
         this.edit();
+      } else if (this.detail.collapsed) {
+        this.expand();
+      } else if (target === this.toggleElement) {
+        this.collapse();
       }
     },
 
