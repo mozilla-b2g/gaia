@@ -21,5 +21,8 @@ var MockKeypadManager = {
   },
   fetchLastCalled: function() {
     this._phoneNumber = this.lastCalled;
-  }
+  },
+  render: function() {},
+  restorePhoneNumber: function() {},
+  restoreAdditionalContactInfo: function() {}
 };
