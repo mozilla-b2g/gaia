@@ -1,0 +1,76 @@
+#toolbar-end {
+  display: none;
+  z-index: 51;
+}
+
+.page-screen #toolbar-end {
+  display: flex;
+}
+
+.start-page.page-screen #toolbar-end {
+  display: none;
+}
+
+#toolbar-end a,
+#toolbar-end button {
+  float: none;
+  max-width: inherit;
+  margin: 0;
+  padding: 0;
+  letter-spacing: normal;
+}
+
+#toolbar-end a:active,
+#toolbar-end button:active {
+  background-position: 50% 0;
+  background-repeat: no-repeat;
+}
+
+.start-page.page-screen #frames {
+  bottom: 0;
+}
+
+#back-button {
+  background-image: url("images/iconaction_browser_back.png");
+}
+
+#forward-button {
+  background-image: url("images/iconaction_browser_forward.png");
+}
+
+#bookmark-button {
+  background-image: url("images/iconaction_bookmark.png");
+}
+
+#bookmark-button.bookmarked {
+ background-position: 50% 100%;
+}
+
+#share-button {
+  background-image: url("images/share.png");
+}
+
+/* This is a dirty hack to hide the bottom toolbar while
+ * the keyboard is active, than device-height - 40px
+ * (for status bar/mini attention screen),
+ * then the keyboard is likely activated
+ */
+/* For the Otoro, 320x480 */
+@media (device-height: 480px) and (max-height: 430px),
+       (device-height: 320px) and (max-height: 270px) {
+  .page-screen #toolbar-end { display: none; }
+  .page-screen #frames { bottom: 0; }
+}
+/* For the Galaxy SII, 640x480 */
+@media (device-height: 480px) and (max-height: 430px),
+       (device-height: 640px) and (max-height: 590px) {
+  .page-screen #toolbar-end { display: none; }
+  .page-screen #frames { bottom: 0; }
+}
+
+/* For the Twist , 960x540 */
+@media (device-height: 540px) and (max-height: 490px),
+       (device-height: 960px) and (max-height: 910px) {
+  .page-screen #toolbar-end { display: none; }
+  .page-screen #frames { bottom: 0; }
+}
