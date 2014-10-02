@@ -626,19 +626,48 @@
   };
 
   /**
-   * Try to navigate the current frame to a given url if current instance
-   * is a browsing window.
+   * Try to navigate the current frame to a given url. If the current instance
+   * is not a browsing window, we reconfigure it to be a browser window, and
+   * give it a clean browser frame.
    * @param {String} url The url to navigate to
    */
   AppWindow.prototype.navigate = function aw_isbrowser(url) {
-    if (this.isBrowser()) {
-      // Kill any front window.
-      if (this.frontWindow) {
-        this.frontWindow.kill();
-        this.frontWindow = null;
-      }
-      this.browser.element.src = url;
+
+    // Bug 1071882 - We currently only support navigating browser windows and
+    // apps with a role="search", which we use for the browser landing page.
+    var appIsSearch = this.manifest && this.manifest.role === 'search';
+    if (!this.isBrowser() && !appIsSearch) {
+      console.warn('Tried to navigate an illegal app window.');
+      return;
     }
+
+    // Kill any front window.
+    if (this.frontWindow) {
+      this.frontWindow.kill();
+      this.frontWindow = null;
+    }
+
+    if (!this.isBrowser()) {
+      // Handle navigating from an app -> browser.
+      this.manifestURL = null;
+      this.manifest = null;
+      this.element.classList.add('browser');
+
+      // Reset the browser
+      this.reConfig({
+        url: url,
+        title: url,
+        oop: true
+      });
+      this.browserContainer.removeChild(this.browser.element);
+      this.browser = new BrowserFrame(this.browser_config);
+      this.browserContainer.appendChild(this.browser.element);
+      this.iframe = this.browser.element;
+      this.launchTime = Date.now();
+      this.appChrome && this.appChrome.reConfig();
+    }
+
+    this.browser.element.src = url;
   };
 
   /**

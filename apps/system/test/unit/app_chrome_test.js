@@ -610,4 +610,15 @@ suite('system/AppChrome', function() {
       assert.isTrue(appPublishStub.calledWith('titlestatechanged'));
     });
   });
+
+  suite('reConfig', function() {
+    test('removes the search-app class if not the search app', function() {
+      var app = new AppWindow(fakeSearchApp);
+      var chrome = new AppChrome(app);
+      assert.isTrue(chrome.app.element.classList.contains('search-app'));
+      chrome.app.config.manifest = null;
+      chrome.reConfig();
+      assert.isFalse(chrome.app.element.classList.contains('search-app'));
+    });
+  });
 });
