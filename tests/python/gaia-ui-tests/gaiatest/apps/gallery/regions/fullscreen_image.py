@@ -10,7 +10,7 @@ from gaiatest.apps.base import Base
 class FullscreenImage(Base):
 
     _fullscreen_view_locator = (By.ID, 'fullscreen-view')
-    _current_image_locator = (By.CSS_SELECTOR, '#frames > div.frame[style ~= "translateX(0px);"] > img[style ~= "block;"]')
+    _current_image_locator = (By.CSS_SELECTOR, '#frames > div.frame[style ~= "translateX(0px);"] > .image-view')
     _photos_toolbar_locator = (By.ID, 'fullscreen-toolbar')
     _delete_image_locator = (By.ID, 'fullscreen-delete-button-tiny')
     _confirm_delete_locator = (By.ID, 'confirm-ok')
@@ -27,7 +27,7 @@ class FullscreenImage(Base):
 
     @property
     def current_image_source(self):
-        return self.marionette.find_element(*self._current_image_locator).get_attribute('src')
+        return self.marionette.find_element(*self._current_image_locator).value_of_css_property('background-image')
 
     def flick_to_next_image(self):
         self._flick_to_image('next')
