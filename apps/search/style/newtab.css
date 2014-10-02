@@ -103,6 +103,10 @@ h2 span {
   height: 1.6rem;
 }
 
+#history .icon img {
+  display: none;
+}
+
 #history .icon.empty {
   border: 0.1rem dashed #5A5A5A;
   border-radius: 0.2rem;
