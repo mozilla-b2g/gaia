@@ -106,17 +106,17 @@ suite('GaiaSimPicker', function() {
       assert.equal(buttons.length, 2);
     });
 
-    test('should show the menu', function() {
-      sinon.assert.calledOnce(MockGaiaMenu.show);
+    test('should show the menu', function(done) {
+      this.sinon.restore(MockGaiaMenu, 'show');
+      this.sinon.stub(MockGaiaMenu, 'show', () => done());
+
+      subject.getOrPick(0, '2222');
     });
 
-    test('should focus on self', function() {
-      var focusSpy = this.sinon.spy(subject, 'focus');
-      subject.getOrPick(0, '1111');
+    test('should focus on self', function(done) {
+      this.sinon.stub(subject, 'focus', () => done());
 
-      setTimeout(function() {
-        sinon.assert.calledOnce(focusSpy);
-      });
+      subject.getOrPick(0, '1111');
     });
   });
 
