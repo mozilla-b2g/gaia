@@ -49,6 +49,8 @@ suite('STK (icc) >', function() {
 
     realNavigatormozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+
+    window.softwareButtonManager = {};
   });
 
   suiteTeardown(function() {
@@ -64,6 +66,8 @@ suite('STK (icc) >', function() {
 
     MockNavigatorMozMobileConnections.mTeardown();
     navigator.mozMobileConnections = realNavigatormozMobileConnections;
+
+    window.softwareButtonManager = null;
   });
 
   setup(function(done) {
