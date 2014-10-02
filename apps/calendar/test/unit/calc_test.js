@@ -1,15 +1,16 @@
-requireLib('timespan.js');
-requireLib('calc.js');
+define(function(require) {
+'use strict';
+
+var Timespan = require('timespan');
+var Calc = require('calc');
 
 //Worth noting that these tests will fail
 //in horrible ways outside of US timezone.
 suite('calendar/calc', function() {
-  'use strict';
-
   var subject, mocked = {};
 
   setup(function() {
-    subject = Calendar.Calc;
+    subject = Calc;
   });
 
   teardown(function() {
@@ -416,10 +417,7 @@ suite('calendar/calc', function() {
 
       var out = subject.spanOfDay(date, true);
 
-      assert.deepEqual(out, new Calendar.Timespan(
-        date,
-        end
-      ));
+      assert.deepEqual(out, new Timespan(date, end));
     });
 
     test('ignore time', function() {
@@ -434,10 +432,7 @@ suite('calendar/calc', function() {
 
       var out = subject.spanOfDay(date);
 
-      assert.deepEqual(out, new Calendar.Timespan(
-        start,
-        end
-      ));
+      assert.deepEqual(out, new Timespan(start, end));
     });
 
   });
@@ -801,5 +796,7 @@ suite('calendar/calc', function() {
     });
 
   });
+
+});
 
 });

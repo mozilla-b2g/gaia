@@ -1,148 +1,150 @@
-Calendar.ns('Views').Day = (function() {
-  'use strict';
+define(function(require, exports, module) {
+'use strict';
 
-  var Parent = Calendar.Views.TimeParent;
+var Calc = require('calc');
+var DayChild = require('./day_child');
+var Parent = require('./time_parent');
+var app = require('app');
 
-  function Day() {
-    Parent.apply(this, arguments);
-  }
+function Day() {
+  Parent.apply(this, arguments);
+}
+module.exports = Day;
 
-  Day.prototype = {
-    __proto__: Parent.prototype,
-    panThreshold: 50,
-    childThreshold: 3,
+Day.prototype = {
+  __proto__: Parent.prototype,
+  panThreshold: 50,
+  childThreshold: 3,
 
-    scale: 'day',
+  scale: 'day',
 
-    childClass: Calendar.Views.DayChild,
+  childClass: DayChild,
 
-    selectors: {
-      element: '#day-view'
-    },
+  selectors: {
+    element: '#day-view'
+  },
 
-    _initEvents: function() {
-      Parent.prototype._initEvents.call(this);
+  _initEvents: function() {
+    Parent.prototype._initEvents.call(this);
 
-      var delegateParent = this.delegateParent || this.frameContainer;
-      this.delegate(
-        delegateParent, 'click', '[data-id]', function(e, target) {
-          Calendar.App.router.show('/event/show/' + target.dataset.id + '/');
-        }
-      );
-    },
-
-    handleEvent: function(e) {
-      Parent.prototype.handleEvent.apply(
-        this, arguments
-      );
-
-      switch (e.type) {
-        case 'dayChange':
-          this.app.timeController.selectedDay = this.app.timeController.day;
-          /* falls through */
-        case 'selectedDayChange':
-          this.changeDate(e.data[0], { onlyToday: true });
-          break;
+    var delegateParent = this.delegateParent || this.frameContainer;
+    this.delegate(
+      delegateParent, 'click', '[data-id]', function(e, target) {
+        app.router.show('/event/show/' + target.dataset.id + '/');
       }
-    },
+    );
+  },
 
-    _nextTime: function(time) {
-      return new Date(
-        time.getFullYear(),
-        time.getMonth(),
-        time.getDate() + 1
-      );
-    },
+  handleEvent: function(e) {
+    Parent.prototype.handleEvent.apply(
+      this, arguments
+    );
 
-    _previousTime: function(time) {
-      return new Date(
-        time.getFullYear(),
-        time.getMonth(),
-        time.getDate() - 1
-      );
-    },
-
-    render: function() {
-      this.changeDate(
-        this.app.timeController.day
-      );
-    },
-
-    oninactive: function() {
-      Parent.prototype.oninactive.apply(this, arguments);
-
-      /**
-       * We disable events here because this view
-       * does not need to be updated while hidden
-       * notice this will not effect the day children
-       * at all...
-       */
-      var controller = this.app.timeController;
-      controller.removeEventListener('dayChange', this);
-      controller.removeEventListener('selectedDayChange', this);
-    },
-
-    onactive: function() {
-      Parent.prototype.onactive.apply(this, arguments);
-      /**
-       * We only want to listen to views when
-       * this view is actually active...
-       */
-      var controller = this.app.timeController;
-      controller.on('dayChange', this);
-      controller.on('selectedDayChange', this);
-
-      controller.moveToMostRecentDay();
-
-      // Scroll to the destination from the top(scrollTop as 0)
-      // when go to the day view from other view.
-      this.changeDate(controller.position, { startScrollTop: 0 });
-
-      if (!this.frames || !this.frames.length) {
-        console.error('(Calendar: render error) no child frames');
-        console.trace();
-      }
-    },
-
-    changeDate: function(time, options) {
-      var startScrollTop = options && options.startScrollTop;
-      if (startScrollTop != null) {
-        this.currentFrame.setScrollTop(startScrollTop);
-      }
-
-      Parent.prototype.changeDate.call(this, time);
-
-      var scrollTop = this._getDestinationScrollTop(time, options);
-      if (scrollTop != null) {
-        this.currentFrame.animatedScroll(scrollTop);
-      }
-    },
-
-    _getDestinationScrollTop: function(time, options) {
-      var now = new Date();
-      var dayEvents = this.currentFrame.element
-        .querySelector('.day-events-wrapper');
-      var maxScrollTop = dayEvents.scrollHeight - dayEvents.clientHeight;
-      var scrollTop;
-      var hour;
-
-      if (Calendar.Calc.isSameDate(time, now)) {
-        hour = Math.max(now.getHours() - 1, 0);
-      } else if (!options || !options.onlyToday) {
-        hour = 8;
-      }
-
-      if (hour != null) {
-        scrollTop = dayEvents.querySelector('.hour-' + hour).offsetTop;
-        scrollTop = Math.min(scrollTop, maxScrollTop);
-      }
-
-      return scrollTop;
+    switch (e.type) {
+      case 'dayChange':
+        this.app.timeController.selectedDay = this.app.timeController.day;
+        /* falls through */
+      case 'selectedDayChange':
+        this.changeDate(e.data[0], { onlyToday: true });
+        break;
     }
-  };
+  },
 
-  Day.prototype.onfirstseen = Day.prototype.render;
+  _nextTime: function(time) {
+    return new Date(
+      time.getFullYear(),
+      time.getMonth(),
+      time.getDate() + 1
+    );
+  },
 
-  return Day;
+  _previousTime: function(time) {
+    return new Date(
+      time.getFullYear(),
+      time.getMonth(),
+      time.getDate() - 1
+    );
+  },
 
-}());
+  render: function() {
+    this.changeDate(
+      this.app.timeController.day
+    );
+  },
+
+  oninactive: function() {
+    Parent.prototype.oninactive.apply(this, arguments);
+
+    /**
+     * We disable events here because this view
+     * does not need to be updated while hidden
+     * notice this will not effect the day children
+     * at all...
+     */
+    var controller = this.app.timeController;
+    controller.removeEventListener('dayChange', this);
+    controller.removeEventListener('selectedDayChange', this);
+  },
+
+  onactive: function() {
+    Parent.prototype.onactive.apply(this, arguments);
+    /**
+     * We only want to listen to views when
+     * this view is actually active...
+     */
+    var controller = this.app.timeController;
+    controller.on('dayChange', this);
+    controller.on('selectedDayChange', this);
+
+    controller.moveToMostRecentDay();
+
+    // Scroll to the destination from the top(scrollTop as 0)
+    // when go to the day view from other view.
+    this.changeDate(controller.position, { startScrollTop: 0 });
+
+    if (!this.frames || !this.frames.length) {
+      console.error('(Calendar: render error) no child frames');
+      console.trace();
+    }
+  },
+
+  changeDate: function(time, options) {
+    var startScrollTop = options && options.startScrollTop;
+    if (startScrollTop != null) {
+      this.currentFrame.setScrollTop(startScrollTop);
+    }
+
+    Parent.prototype.changeDate.call(this, time);
+
+    var scrollTop = this._getDestinationScrollTop(time, options);
+    if (scrollTop != null) {
+      this.currentFrame.animatedScroll(scrollTop);
+    }
+  },
+
+  _getDestinationScrollTop: function(time, options) {
+    var now = new Date();
+    var dayEvents = this.currentFrame.element
+      .querySelector('.day-events-wrapper');
+    var maxScrollTop = dayEvents.scrollHeight - dayEvents.clientHeight;
+    var scrollTop;
+    var hour;
+
+    if (Calc.isSameDate(time, now)) {
+      hour = Math.max(now.getHours() - 1, 0);
+    } else if (!options || !options.onlyToday) {
+      hour = 8;
+    }
+
+    if (hour != null) {
+      scrollTop = dayEvents.querySelector('.hour-' + hour).offsetTop;
+      scrollTop = Math.min(scrollTop, maxScrollTop);
+    }
+
+    return scrollTop;
+  }
+};
+
+Day.prototype.onfirstseen = Day.prototype.render;
+
+});

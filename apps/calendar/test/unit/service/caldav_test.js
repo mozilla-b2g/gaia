@@ -1,16 +1,16 @@
-/*global Factory */
+define(function(require) {
+'use strict';
 
-requireApp('calendar/test/unit/service/helper.js');
-requireLib('presets.js');
-requireLib('ext/ical.js');
-requireLib('ext/caldav.js');
-requireLib('ext/uuid.js');
-requireLib('service/ical_recur_expansion.js');
-requireLib('service/caldav.js');
+var Calc = require('calc');
+var Caldav = require('ext/caldav');
+var CaldavService = require('service/caldav');
+var Factory = require('test/support/factory');
+var ICAL = require('ext/ical');
+var IcalRecurExpansion = require('service/ical_recur_expansion');
+var Responder = require('responder');
+var ServiceSupport = require('test/service/helper');
 
 suite('service/caldav', function() {
-  'use strict';
-
   var subject;
   var con;
   var service;
@@ -69,8 +69,8 @@ suite('service/caldav', function() {
   });
 
   setup(function() {
-    service = new Calendar.Responder();
-    subject = new Calendar.Service.Caldav(service);
+    service = new Responder();
+    subject = new CaldavService(service);
     con = Factory('caldav.connection');
   });
 
@@ -594,7 +594,7 @@ suite('service/caldav', function() {
       events.length = 0;
       components.length = 0;
 
-      stream = new Calendar.Responder();
+      stream = new Responder();
 
       stream.on('component', function(item) {
         components.push(item);
@@ -726,7 +726,7 @@ suite('service/caldav', function() {
 
     setup(function(done) {
       // stream interface to capture events
-      stream = new Calendar.Responder();
+      stream = new Responder();
 
       // list of sent components
       components = {};
@@ -942,7 +942,7 @@ suite('service/caldav', function() {
     });
 
     test('authentication error', function(done) {
-      var stream = new Calendar.Responder();
+      var stream = new Responder();
       var options = {
         startDate: new Date(2012, 0, 1),
         cached: {
@@ -974,7 +974,7 @@ suite('service/caldav', function() {
     });
 
     test('empty response', function(done) {
-      var stream = new Calendar.Responder();
+      var stream = new Responder();
       var options = {
         startDate: new Date(2012, 0, 1),
         cached: {}
@@ -986,7 +986,7 @@ suite('service/caldav', function() {
     });
 
     test('success', function(done) {
-      var stream = new Calendar.Responder();
+      var stream = new Responder();
       var options = {
         startDate: new Date(2012, 0, 1),
         cached: {
@@ -1080,7 +1080,7 @@ suite('service/caldav', function() {
 
     test('isDate', function() {
       var date = new Date(2012, 1, 1);
-      var transport = Calendar.Calc.dateToTransport(
+      var transport = Calc.dateToTransport(
         date, null, true
       );
 
@@ -1177,8 +1177,7 @@ suite('service/caldav', function() {
       parseFixture('recurringEvent');
 
       teardown(function() {
-        Calendar.Service.IcalRecurExpansion.forEachLimit =
-          100;
+        IcalRecurExpansion.forEachLimit = 100;
       });
 
       function occurrencesUntil(limit, maxWindow) {
@@ -1217,11 +1216,10 @@ suite('service/caldav', function() {
 
         expected.splice(0, 6);
 
-        Calendar.Service.IcalRecurExpansion.forEachLimit =
-          expected.length;
+        IcalRecurExpansion.forEachLimit = expected.length;
 
         var actual = [];
-        var stream = new Calendar.Responder();
+        var stream = new Responder();
         var options = {
           iterator: firstIter.toJSON(),
           now: now
@@ -1267,7 +1265,7 @@ suite('service/caldav', function() {
         var [iter, expected] = occurrencesUntil(10, maxWindow);
 
         var actual = [];
-        var stream = new Calendar.Responder();
+        var stream = new Responder();
         var options = {
           maxDate: subject.formatICALTime(maxWindow),
           now: now
@@ -1308,7 +1306,7 @@ suite('service/caldav', function() {
         min.utc -= 1;
 
         var expected = occurrences.slice(2, 6);
-        var stream = new Calendar.Responder();
+        var stream = new Responder();
 
         stream.on('occurrence', function(item) {
           actual.push(item);
@@ -1520,8 +1518,8 @@ suite('service/caldav', function() {
           title: 'title',
           description: 'desc',
           location: 'location',
-          start: Calendar.Calc.dateToTransport(start),
-          end: Calendar.Calc.dateToTransport(end)
+          start: Calc.dateToTransport(start),
+          end: Calc.dateToTransport(end)
         };
 
         mockAsset('put', function(options, data, cb) {
@@ -1565,13 +1563,13 @@ suite('service/caldav', function() {
             });
 
             assert.deepEqual(
-              Calendar.Calc.dateFromTransport(event.start),
+              Calc.dateFromTransport(event.start),
               new Date(icalEvent.startDate.toJSDate()),
               'start'
             );
 
             assert.deepEqual(
-              Calendar.Calc.dateFromTransport(event.end),
+              Calc.dateFromTransport(event.end),
               new Date(icalEvent.endDate.toJSDate()),
               'end'
             );
@@ -1612,8 +1610,8 @@ suite('service/caldav', function() {
             title: 'new title',
             description: 'new desc',
             location: 'new loc',
-            start: Calendar.Calc.dateToTransport(start),
-            end: Calendar.Calc.dateToTransport(end),
+            start: Calc.dateToTransport(start),
+            end: Calc.dateToTransport(end),
             alarms: [
               { action: 'DISPLAY', trigger: 5000 },
               { action: 'DISPLAY', trigger: 30000 }
@@ -1723,5 +1721,6 @@ suite('service/caldav', function() {
     });
 
   });
+});
 
 });

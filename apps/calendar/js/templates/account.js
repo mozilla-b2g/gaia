@@ -1,30 +1,30 @@
-(function(window) {
-  'use strict';
+define(function(require, exports, module) {
+'use strict';
 
-  var Account = Calendar.Template.create({
-    provider: function() {
-      var name = this.h('name');
-      return `<li class="${name}">
-          <a data-l10n-id="preset-${name}"
-             data-provider="${name}" href="/create-account/${name}">
-          </a>
-        </li>`;
-    },
+var create = require('template').create;
 
-    account: function() {
-      var id = this.h('id');
-      var preset = this.h('preset');
-      var user = this.h('user');
+module.exports = create({
+  provider: function() {
+    var name = this.h('name');
+    return `<li class="${name}">
+        <a data-l10n-id="preset-${name}"
+           data-provider="${name}" href="/create-account/${name}">
+        </a>
+      </li>`;
+  },
 
-      return `<li id="account-${id}">
-          <a href="/update-account/${id}">
-            <span class="preset" data-l10n-id="preset-${preset}"></span>
-            <span class="user">${user}</span>
-          </a>
-        </li>`;
-    }
-  });
+  account: function() {
+    var id = this.h('id');
+    var preset = this.h('preset');
+    var user = this.h('user');
 
-  Calendar.ns('Templates').Account = Account;
+    return `<li id="account-${id}">
+        <a href="/update-account/${id}">
+          <span class="preset" data-l10n-id="preset-${preset}"></span>
+          <span class="user">${user}</span>
+        </a>
+      </li>`;
+  }
+});
 
-}(this));
+});

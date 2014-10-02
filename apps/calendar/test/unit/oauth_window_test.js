@@ -1,6 +1,11 @@
-suiteGroup('OAuthWindow', function() {
-  'use strict';
+define(function(require) {
+'use strict';
 
+var OAuthWindow = require('oauth_window');
+var QueryString = require('querystring');
+var View = require('view');
+
+suite('OAuthWindow', function() {
   var subject;
   var url = 'https://foobar.com';
   var element;
@@ -28,7 +33,7 @@ suiteGroup('OAuthWindow', function() {
       '</section>'
     ].join('');
 
-    subject = new Calendar.OAuthWindow(
+    subject = new OAuthWindow(
       element,
       url,
       params
@@ -40,7 +45,7 @@ suiteGroup('OAuthWindow', function() {
     assert.equal(subject.element, element);
     assert.deepEqual(
       subject.target,
-      url + '?' + Calendar.QueryString.stringify(params),
+      url + '?' + QueryString.stringify(params),
       '.target'
     );
   });
@@ -68,7 +73,7 @@ suiteGroup('OAuthWindow', function() {
 
   test('without redirect_uri', function() {
     assert.throws(function() {
-      return new Calendar.OAuthWindow(url, {});
+      return new OAuthWindow(url, {});
     });
   });
 
@@ -83,7 +88,7 @@ suiteGroup('OAuthWindow', function() {
 
     test('is active', function() {
       assert.ok(
-        subject.element.classList.contains(Calendar.View.ACTIVE),
+        subject.element.classList.contains(View.ACTIVE),
         'is active'
       );
     });
@@ -159,7 +164,7 @@ suiteGroup('OAuthWindow', function() {
 
       emitLocationChange(
         params.redirect_uri + '?' +
-        Calendar.QueryString.stringify(successParams)
+        QueryString.stringify(successParams)
       );
     });
   });
@@ -177,7 +182,7 @@ suiteGroup('OAuthWindow', function() {
       assert.ok(!element.querySelector('iframe'), 'removes from dom');
       assert.isFalse(subject.isOpen, 'isOpen');
       assert.ok(
-        !element.classList.contains(Calendar.View.ACTIVE),
+        !element.classList.contains(View.ACTIVE),
         'is inactive'
       );
     });
@@ -199,5 +204,6 @@ suiteGroup('OAuthWindow', function() {
       assert.ok(!triggedClose, 'does not trigger close');
     });
   });
+});
 
 });
