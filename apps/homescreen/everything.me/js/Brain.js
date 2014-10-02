@@ -54,7 +54,6 @@
       timeoutSetUrlAsActive = null,
       timeoutHashChange = null,
       _ = navigator.mozL10n.get,
-      mozL10nTranslate = navigator.mozL10n.translate,
 
       mozSettings = navigator.mozSettings;
 
@@ -65,8 +64,6 @@
     // bind to events
     Evme.EventHandler && Evme.EventHandler.bind(catchCallback);
     elContainer = Evme.Utils.getContainer();
-
-    initL10nObserver();
 
     _config = options;
 
@@ -86,34 +83,6 @@
         // to force UI update to the new language
         Evme.Collection.hide();
       });
-    }
-  };
-
-  // l10n: create a mutation observer to know when a node was added
-  // and check if it needs to be translated
-  function initL10nObserver() {
-    Array.prototype.forEach.call(Evme.Utils.getScopeElements(),
-      function createObserver(elScope) {
-        new MutationObserver(Evme.Brain.l10nMutationObserver)
-        .observe(elScope, {
-          childList: true,
-          subtree: true
-        });
-      });
-  }
-
-  // callback for "node added" mutation observer
-  // this translates all the new nodes added
-  // the mozL10nTranslate method is defined above,
-  // it's a reference to the mozilla l10n function
-  this.l10nMutationObserver = function onMutationEventNodeAdded(mutations) {
-    for (var i = 0, mutation; mutation = mutations[i++];) {
-      var children = mutation.addedNodes || [];
-      for (var j = 0, node; node = children[j++];) {
-        if (node instanceof HTMLElement) {
-          node && mozL10nTranslate(node);
-        }
-      }
     }
   };
 

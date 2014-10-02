@@ -197,7 +197,6 @@ var EverythingME = {
     var searchPage = document.getElementById('search-page');
     LazyLoader.load(searchPage, function loaded() {
       document.body.classList.add('evme-loading');
-      navigator.mozL10n.translate(searchPage);
       EverythingME.load();
     });
   },
@@ -551,8 +550,6 @@ var EverythingME = {
             EverythingME.hideLoading();
             EverythingME.pendingEvent = null;
           });
-
-        navigator.mozL10n.translate(elLoading);
 
         window.setTimeout(function styleReady() {
           elLoading.style.display = 'block';
