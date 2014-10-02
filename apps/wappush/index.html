@@ -14,6 +14,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css" >
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css" >
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
 
     <!-- Specific styles -->
     <link rel="stylesheet" type="text/css" href="style/wappush.css">
@@ -48,34 +49,65 @@
   </head>
 
   <body role="application" class="theme-productivity">
-    <section role="region">
-      <gaia-header id="header" action="close">
-        <h1 id="title"></h1>
-        <button id="accept" data-l10n-id="accept" class="full recommend hidden">Accept</button>
+    <!-- SI SL message screen -->
+    <article id="si-sl-screen" role="main" hidden>
+      <gaia-header id="header-si-sl" action="close">
+        <h1 id="title-si-sl"></h1>
       </gaia-header>
 
-      <!-- SI SL message screen -->
-      <article id="si-sl-screen" role="main" hidden>
-        <section class="container" role="region">
-          <div class="message">
-            <p></p>
-            <a data-url="" data-action="url-link"></a>
-          </div>
+      <section class="container" role="region">
+        <div class="message">
+          <p></p>
+          <a data-url="" data-action="url-link"></a>
+        </div>
+      </section>
+    </article>
+
+    <article id="cp-screen" role="main" hidden>
+
+      <!-- Client provisioning APNs screen -->
+      <article id="cp-apn-screen" role="main" class="view">
+        <gaia-header id="header-apn-list" action="close">
+          <h1 id="title-apn"></h1>
+          <button id="apn-accept" data-l10n-id="next" class="full recommend">Next</button>
+        </gaia-header>
+
+        <section class="container" role="region" data-type="list">
+          <ul class="message">
+          </ul>
+        </section>
+      </article>
+
+      <!-- Client provisioning details screen -->
+      <article id="cp-details-screen" role="main" class="view right">
+        <gaia-header id="header-details" action="close">
+          <h1 id="title-details"></h1>
+          <button id="details-accept" data-l10n-id="next" class="full recommend">Next</button>
+        </gaia-header>
+
+        <section class="container" role="region" data-type="list">
+          <ul class="message">
+          </ul>
         </section>
       </article>
 
       <!-- Client provisioning message screen -->
-      <article id="cp-screen" role="main" hidden>
+      <article id="cp-pin-screen" role="main" class="view right">
+        <gaia-header id="header-pin" action="back">
+          <h1 id="title-pin"></h1>
+          <button id="pin-accept" data-l10n-id="done" class="full recommend">Done</button>
+        </gaia-header>
+
         <section class="container" role="region">
           <div class="message">
             <p data-l10n-id="cp-container-title"> OTA Access Point Configuration </p>
             <input type="hidden" data-l10n-id="cp-pin" placeholder="PIN" required="">
             <p id="cp-auth-failure" data-l10n-id="cp-auth-failure" hidden>PIN is not correct.</p>
-            <p id="cp-accept-help" data-l10n-id="cp-accept-help">Configuration message received, click on 'Accept' to continue.</p>
-          </section>
+            <p id="cp-done-help" data-l10n-id="cp-accept-help">Configuration message received, click on 'Done' to continue.</p>
+          </div>
         </section>
       </article>
-    </section>
+    </article>
 
     <!-- Client provisioning quit app confirm dialog -->
     <form id="cp-quit-app-confirm" role="dialog" data-type="confirm" hidden>
