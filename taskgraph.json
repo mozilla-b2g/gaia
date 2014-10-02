@@ -13,7 +13,7 @@
         "provisionerId": "aws-provisioner",
         "workerType": "gaia",
         "payload": {
-          "image": "lightsofapollo/gaia-taskenv:0.5.0",
+          "image": "lightsofapollo/gaia-taskenv:0.5.2",
           "command": [
             "entrypoint",
             "echo 'what' && make node_modules && node tests/taskcluster/bin/graph > /graph.json && cat /graph.json"
