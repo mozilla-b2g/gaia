@@ -52,9 +52,7 @@ suite('Sync Datastore', function() {
       },
       {
         operation: 'remove',
-        target: {
-          id: 'http://example.com'
-        },
+        id: 'http://example.com',
         revisionId: 5
       },
     ];
