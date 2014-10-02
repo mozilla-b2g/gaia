@@ -1,9 +1,9 @@
 {
   "external": true,
-  "etag": "\"d4bf89c6db685c64b18c761274284c2edc63ec90f332fd5966021560b59bd40b\"",
+  "etag": "\"5b96d5bb1b2f546607d12f4ce9e3181e8e3030cfd4d28d88ef434c3ab7026d02\"",
   "installOrigin": "https://marketplace-dev.allizom.org",
   "manifestURL": "https://marketplace-dev.allizom.org/packaged.webapp",
-  "packageEtag": "\"fdc9d9d1d77a921949c5ac0944eb2cd9853864a31d4ae9bf46d9a3d361fc583f\"",
+  "packageEtag": "\"28bdeddd738acb55425ced9476abee8797a8074cc6604dd617124f4e6d0c5e24\"",
   "removable": false,
   "type": "privileged"
 }
