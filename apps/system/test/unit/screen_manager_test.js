@@ -424,6 +424,7 @@ suite('system/ScreenManager', function() {
     var stubSetIdle,
         stubRemoveListener,
         stubScnClassListAdd,
+        stubScnClassListRemove,
         stubScreen,
         stubFireEvent,
         stubUnlock,
@@ -433,7 +434,9 @@ suite('system/ScreenManager', function() {
       stubSetIdle = this.sinon.stub(ScreenManager, '_setIdleTimeout');
       stubRemoveListener = this.sinon.stub(window, 'removeEventListener');
       stubScnClassListAdd = this.sinon.stub();
-      stubScreen = {'classList': {'add': stubScnClassListAdd}};
+      stubScnClassListRemove = this.sinon.stub();
+      stubScreen = {'classList': {'add': stubScnClassListAdd,
+                    'remove': stubScnClassListRemove}};
       stubFireEvent = this.sinon.stub(ScreenManager, 'fireScreenChangeEvent');
       stubUnlock = this.sinon.stub();
       stubSetBrightness = this.sinon.stub(ScreenManager, 'setScreenBrightness');
@@ -462,6 +465,19 @@ suite('system/ScreenManager', function() {
       assert.isTrue(stubSetBrightness.calledWith(0, true));
       assert.isFalse(MockMozPower.screenEnabled);
       assert.isTrue(ScreenManager.fireScreenChangeEvent.called);
+    });
+
+    test('turn off instantly then on again', function() {
+      ScreenManager.screenEnabled = true;
+      assert.isTrue(ScreenManager.turnScreenOff(true, 'powerkey'));
+      this.sinon.clock.tick(10);
+      assert.isTrue(ScreenManager.turnScreenOn(true));
+      this.sinon.clock.tick(10);
+      assert.isTrue(ScreenManager.screenEnabled);
+      assert.isTrue(MockMozPower.screenEnabled);
+      assert.isTrue(stubScnClassListAdd.calledWith('screenoff'));
+      assert.isTrue(stubScnClassListRemove.calledWith('screenoff'));
+      sinon.assert.callOrder(stubScnClassListAdd, stubScnClassListRemove);
     });
 
     test('turn off screen wihout instant argument', function() {
