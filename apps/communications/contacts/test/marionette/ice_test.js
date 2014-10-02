@@ -23,8 +23,9 @@ marionette('Contacts > ICE contacts', function() {
     var iceButton1 = client.helper.waitForElement(selectors.iceButton1);
     subject.clickOn(iceButton1);
 
+    subject.waitSlideLeft('list');
     var listContactFirstText =
-      client.helper.waitForElement(selectors.listContactFirstText);
+      client.findElement(selectors.listContactFirstText);
     subject.clickOn(listContactFirstText);
   }
 
@@ -97,7 +98,7 @@ marionette('Contacts > ICE contacts', function() {
       }, [selectors.iceGroupOpen]);
     }
 
-    test('ICE list empty after removing phone', function() {
+    test.skip('ICE list empty after removing phone', function() {
 
       var contact = {
         givenName: 'Raul Gonzalez Blanco',
@@ -156,6 +157,28 @@ marionette('Contacts > ICE contacts', function() {
       assert.ok(checkIceContactsGroupHidden());
     });
 
+  });
+
+  suite('ICE settings', function() {
+    test('Contact must have a phone number', function() {
+
+      var detailsContact1 = {
+        givenName: 'Benito Aparicio'
+      };
+
+      subject.addContact(detailsContact1);
+
+      setFirstContactAsICE();
+      
+      var confirmText = client.helper.waitForElement(selectors.confirmBody)
+        .text();
+
+      var expectedResult = subject.l10n(
+        '/locales-obj/en-US.json',
+        'no_contact_phones');
+      assert.equal(confirmText, expectedResult);
+
+    });
   });
 
 });

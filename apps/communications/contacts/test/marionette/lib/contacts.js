@@ -62,7 +62,7 @@ Contacts.Selectors = {
   groupList: ' #groups-list',
   list: '#view-contacts-list',
   listContactFirst: '.contact-item',
-  listContactFirstText: '.contact-item .contact-text',
+  listContactFirstText: '.contact-item:not([data-group="ice"]) .contact-text',
   contactListHeader: '#contacts-list-header',
 
   searchLabel: '#search-start',
