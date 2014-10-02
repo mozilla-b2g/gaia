@@ -4,8 +4,6 @@
 
 (function(exports) {
   var iceContactsDetails = [],
-      contactsToProcess = 0,
-      processedContacts = 0,
       iceContactsBar,
       contactListOverlay,
       contactInOverlay,
@@ -53,69 +51,71 @@
     CallHandler.call(number);
   }
 
-  function addContactToOverlay(contact, resolve) {
-    contact.tel.forEach(function(tel) {
-      var iceContactOverlayEntry = contactInOverlay.cloneNode(true);
-      iceContactOverlayEntry.removeAttribute('id');
-      iceContactOverlayEntry.removeAttribute('hidden');
-      iceContactOverlayEntry.querySelector('.js-name').textContent =
-        contact.name[0];
-      iceContactOverlayEntry.querySelector('.js-tel-type').dataset.l10nId =
-        tel.type[0];
-      iceContactOverlayEntry.querySelector('.js-tel').textContent =
-        tel.value;
-      contactList.insertBefore(iceContactOverlayEntry, contactListCancel);
-      iceContactOverlayEntry.addEventListener('click',
-        callICEContact.bind(null, tel.value));
-      // Set the ICE contacts bar visible as soon as there is some
-      //  ICE contact to call.
-      showICEContactsBar();
-      if (updateCompleted()) {
-        resolve();
-      }
+  function findContact(iceContact) {
+    return new Promise(function(resolve) {
+      var contactFilter = {
+        filterBy: ['id'],
+        filterValue: iceContact,
+        filterOp: 'equals',
+        filterLimit: 1
+      };
+      var contactRequest = navigator.mozContacts.find(contactFilter);
+      contactRequest.onsuccess = function() {
+        var contact = this.result[0];
+        if (contact && contact.tel) {
+          iceContactsDetails.push(contact);
+        }
+        resolve(contact);
+      };
     });
   }
 
-  function updateCompleted() {
-    return ++processedContacts === contactsToProcess;
+  function addContactToOverlay(contact) {
+    return new Promise(function (resolve) {
+      if (!contact || !contact.tel) {
+        resolve();
+        return;
+      }
+      contact.tel.forEach(function(tel) {
+        var iceContactOverlayEntry = contactInOverlay.cloneNode(true);
+        iceContactOverlayEntry.removeAttribute('id');
+        iceContactOverlayEntry.removeAttribute('hidden');
+        iceContactOverlayEntry.querySelector('.js-name').textContent =
+          contact.name[0];
+        iceContactOverlayEntry.querySelector('.js-tel-type').dataset.l10nId =
+          tel.type[0];
+        iceContactOverlayEntry.querySelector('.js-tel').textContent =
+          tel.value;
+        contactList.insertBefore(iceContactOverlayEntry, contactListCancel);
+        iceContactOverlayEntry.addEventListener('click',
+          callICEContact.bind(null, tel.value));
+        // Set the ICE contacts bar visible as soon as there is some
+        //  ICE contact to call.
+        showICEContactsBar();
+      });
+      resolve();
+    });
   }
+
   /**
    * Gets the ICE contacts, show the ICE contacts bar if appropriate and loads
    *  the ICE contacts on the overlay for future calling.
    * @returns {Promise}
    */
   function updateICEContacts() {
-    processedContacts = 0;
     init();
 
-    // FIXME/bug 1060730: Turn this into a Promise.all() barrier.
     return new Promise(function(resolve) {
       LazyLoader.load([contactInOverlay], function() {
         ICEStore.getContacts().then(function(iceContacts) {
           if (!iceContacts || !iceContacts.length) {
             resolve();
           } else {
-            contactsToProcess = iceContacts.length;
-            iceContacts.forEach(function(iceContact) {
-              var contactFilter = {
-                filterBy: ['id'],
-                filterValue: iceContact,
-                filterOp: 'equals',
-                filterLimit: 1
-              };
-              var contactRequest = navigator.mozContacts.find(contactFilter);
-              contactRequest.onsuccess = function() {
-                var contact = this.result[0];
-                if (!contact || !contact.tel || contact.tel.length === 0) {
-                  if (updateCompleted()) {
-                    resolve();
-                  }
-                  return;
-                }
-                iceContactsDetails.push(this.result[0]);
-                addContactToOverlay(this.result[0], resolve);
-              };
+            var promises = [];
+            iceContacts.forEach(function (iceContact) {
+              promises.push(findContact(iceContact).then(addContactToOverlay));
             });
+            Promise.all(promises).then(resolve);
           }
         });
       });

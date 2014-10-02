@@ -1,7 +1,7 @@
 {
   "sms": {
     "src": ["apps/sms/js/**/*.js",
-            "!apps/sms/js/desktop-only/contacts.js"],
+            "!apps/sms/js/desktop-only/*"],
     "options": {
       "destination": "docs/sms"
     }

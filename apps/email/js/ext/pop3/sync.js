@@ -1,7 +1,7 @@
-define(['rdcommon/log', '../util', 'module', 'require', 'exports',
+define(['rdcommon/log', 'slog', '../util', 'module', 'require', 'exports',
         '../mailchew', '../syncbase', '../date', '../jobmixins',
         '../allback', './pop3'],
-function(log, util, module, require, exports,
+function(log, slog, util, module, require, exports,
          mailchew, sync, date, jobmixins,
          allback, pop3) {
 
@@ -56,9 +56,9 @@ function lazyWithConnection(getNew, cbIndex, whyLabel, fn) {
           if (err) {
             callback && callback(err);
           } else {
-            args[cbIndex] = function lazyDone() {
+            args[cbIndex] = function lazyDone(err) {
               done();
-              callback && callback();
+              callback && callback(err);
             };
             fn.apply(this, [conn].concat(args));
           }
@@ -454,9 +454,26 @@ Pop3FolderSyncer.prototype = {
    */
   sync: lazyWithConnection(/* getNew = */ true, /* cbIndex = */ 2,
   /* whyLabel = */ 'sync',
-  function(conn, syncType, slice, doneCallback, progressCallback) {
+  function(conn, syncType, slice, realDoneCallback, progressCallback) {
     // if we could not establish a connection, abort the sync.
     var self = this;
+    slog.log('pop3.sync:begin', { syncType: syncType });
+
+    // Avoid invoking realDoneCallback multiple times.  Cleanup when we switch
+    // sync to promises/tasks.
+    var doneFired = false;
+    var doneCallback = function(err) {
+      if (doneFired) {
+        slog.log('pop3.sync:duplicateDone', { syncType: syncType, err: err });
+        return;
+      }
+      slog.log('pop3.sync:end', { syncType: syncType, err: err });
+      doneFired = true;
+      // coerce the rich error object to a string error code; currently
+      // refreshSlice only likes 'unknown' and 'aborted' so just run with
+      // unknown.
+      realDoneCallback(err ? 'unknown' : null);
+    };
 
     // Only fetch info for messages we don't already know about.
     var filterFunc;
@@ -490,6 +507,28 @@ Pop3FolderSyncer.prototype = {
       this._LOG.sync_begin();
       var fetchDoneCb = latch.defer();
 
+      var closeExpected = false;
+      // register for a close notification so if disaster recovery closes the
+      // connection we still get a chance to report the error without breaking
+      // sync.  This is the lowest priority onclose handler so all the other
+      // more specific error handlers will get a chance to fire.  However, some
+      // like to defer to future turns of the event loop so we we use setTimeout
+      // to defer through at least two turns of the event loop.
+      conn.onclose = function() {
+        if (closeExpected) {
+          return;
+        }
+        closeExpected = true;
+        // see the above.  This is horrible but we hate POP3 and these error
+        // handling cases are edge-casey and this actually does improve our test
+        // coverage.  (test_pop3_dead_connection.js's first two test clauses
+        // were written before I added this onclose handler.)
+        window.setTimeout(function() {
+          window.setTimeout(function() {
+            doneCallback('closed');
+          }, 0);
+        }, 0);
+      };
       // Fetch messages, ensuring that we don't actually store them all in
       // memory so as not to burden memory unnecessarily.
       conn.listMessages({
@@ -525,6 +564,7 @@ Pop3FolderSyncer.prototype = {
         // persisted. In the future, when we support server-side
         // deletion, we should ensure that this QUIT does not
         // inadvertently commit unintended deletions.
+        closeExpected = true;
         conn.quit();
 
         if (err) {
@@ -598,7 +638,7 @@ Pop3FolderSyncer.prototype = {
             this.storage, this.storage._curSyncSlice,
             false, doneCallback, null));
       } else {
-        doneCallback(null, null);
+        doneCallback(null);
       }
     }.bind(this);
   }),

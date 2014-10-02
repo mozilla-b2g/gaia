@@ -3,18 +3,15 @@
 /* global AccessibilityHelper, CallLog, CallLogDBManager, Contacts,
           KeypadManager,LazyL10n, LazyLoader, MmiManager, Notification,
           NotificationHelper, SettingsListener, SimPicker, SimSettingsHelper,
-          SuggestionBar, TelephonyHelper, TonePlayer, Utils, Voicemail */
+          SuggestionBar, TelephonyHelper, TonePlayer, Utils, Voicemail,
+          MozActivity */
 
 var NavbarManager = {
   init: function nm_init() {
+    // binding now so that we can remove the listener in unit tests
+    this.update = this.update.bind(this);
     this.update();
-    var self = this;
-    window.addEventListener('hashchange' , function nm_hashChange(event) {
-      // FIXME/bug 1026079: Implement it with building blocks:
-      // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.css
-      // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.html
-      self.update();
-    });
+    window.addEventListener('hashchange', this.update);
 
     var contacts = document.getElementById('option-contacts');
     contacts.addEventListener('click', this.contactsTabTap);
@@ -148,6 +145,7 @@ var CallHandler = (function callHandler() {
 
   /* === Settings === */
   var screenState = null;
+  var engineeringModeKey = null;
 
   /* === WebActivity === */
   function handleActivity(activity) {
@@ -271,12 +269,12 @@ var CallHandler = (function callHandler() {
 
   function callEnded(data) {
     var highPriorityWakeLock = navigator.requestWakeLock('high-priority');
-    var number = data.id ? data.id.number : data.number;
+    var number = data.number;
     var incoming = data.direction === 'incoming';
 
     NavbarManager.ensureResources(function() {
       // Missed call when not rejected by user
-      if(incoming && !data.duration && !data.hangUpLocal) {
+      if (incoming && !data.duration && !data.hangUpLocal) {
         sendNotification(number, data.serviceId);
       }
 
@@ -298,7 +296,7 @@ var CallHandler = (function callHandler() {
 
           // A CDMA call can contain two calls. If it only has one call,
           // we have nothing left to do and release the lock.
-          if(!data.secondNumber) {
+          if (!data.secondNumber) {
             highPriorityWakeLock.unlock();
             return;
           }
@@ -424,6 +422,16 @@ var CallHandler = (function callHandler() {
 
   /* === Calls === */
   function call(number, cardIndex) {
+    if (engineeringModeKey && number === engineeringModeKey) {
+      var activity = new MozActivity({
+        name: 'internal-system-engineering-mode'
+      });
+      activity.onerror = function() {
+        console.log('Could not launch engineering mode');
+      };
+      return;
+    }
+
     if (MmiManager.isMMI(number, cardIndex)) {
       if (number === '*#06#') {
         MmiManager.showImei();
@@ -516,6 +524,9 @@ var CallHandler = (function callHandler() {
         } else {
           screenState = 'unlocked';
         }
+      });
+      SettingsListener.observe('engineering-mode.key', null, function(value) {
+        engineeringModeKey = value || null;
       });
     });
   }

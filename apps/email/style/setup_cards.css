@@ -370,6 +370,20 @@ li.sup-manual-account-type-container .button {
   text-align: center;
 }
 
+.card-setup-oauth2 .scrollregion-below-header {
+  overflow: hidden;
+  will-change: auto;
+}
+
+.sup-oauth2-browser {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+}
+
 .card-settings-debug button {
   display: block;
   margin: 1.5rem auto;

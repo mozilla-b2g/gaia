@@ -3,11 +3,13 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 'use strict';
+/* globals SpecialPowers, marionetteScriptFinished */
+/* exported Accessibility */
 
 var Accessibility = {
 
   _accRetrieval: SpecialPowers.Cc[
-    "@mozilla.org/accessibleRetrieval;1"].getService(
+    '@mozilla.org/accessibleRetrieval;1'].getService(
       SpecialPowers.Ci.nsIAccessibleRetrieval),
 
   _getAccessible:
@@ -20,8 +22,8 @@ var Accessibility = {
         if (attempts <= 0) {
           let tagName = element ? element.tagName : undefined;
           let elemId = element ? element.id : undefined;
-          console.log('accessibility.js: failed to get accessible for tag="' +
-            tagName + '" id="' + elemId + '"');
+          console.log('accessibility.js: failed to get accessible for tag=\"' +
+            tagName + '\" id=\"' + elemId + '\"');
         }
         try {
           callback(acc);
@@ -49,8 +51,8 @@ var Accessibility = {
   },
 
   wheel: function Accessibility_wheel(element, direction) {
-    let horizontal = direction === "left" || direction === "right";
-    let page = (direction === "left" || direction === "up") ? 1 : -1;
+    let horizontal = direction === 'left' || direction === 'right';
+    let page = (direction === 'left' || direction === 'up') ? 1 : -1;
     let event = new window.wrappedJSObject.WheelEvent('wheel', {
       bubbles: true,
       cancelable: true,

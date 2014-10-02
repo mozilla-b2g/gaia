@@ -30,11 +30,15 @@
   <!-- Search header -->
   <section role="region"
            class="msg-search-header msg-search-only">
-    <form role="search">
+    <form class="msg-search-form" role="search">
       <button class="msg-search-cancel" type="submit" data-l10n-id="message-search-cancel">Cancel</button>
       <p>
         <input type="text" required="required" class="msg-search-text"
-             dir="auto" data-l10n-id="message-search-input" />
+             dir="auto"
+             autocorrect="off"
+             inputmode="verbatim"
+             x-inputmode="verbatim"
+             data-l10n-id="message-search-input" />
         <button type="reset" data-l10n-id="form-clear-input"></button>
       </p>
     </form>

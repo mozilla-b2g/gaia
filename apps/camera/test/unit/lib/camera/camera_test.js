@@ -526,7 +526,8 @@ suite('lib/camera/camera', function() {
       this.camera.focus = {
         resume: function() {},
         focus: sinon.stub().callsArg(0),
-        getMode: sinon.spy()
+        getMode: sinon.spy(),
+        startFaceDetection : sinon.spy()
       };
 
       sinon.stub(this.camera, 'set');
@@ -763,10 +764,10 @@ suite('lib/camera/camera', function() {
       navigator.mozCameras.getCamera.callsArgWith(2, this.mozCamera);
       this.camera.mozCamera = this.mozCamera;
       this.camera.selectedCamera = 'back';
+      this.clock = sinon.useFakeTimers();
     });
 
     test('Should emit a \'busy\', then \'ready\' event', function() {
-      navigator.mozCameras.getCamera.callsArgWith(2, this.mozCamera);
       this.camera.requestCamera();
 
       var busy = this.camera.emit.withArgs('busy');
@@ -813,6 +814,30 @@ suite('lib/camera/camera', function() {
     test('Should emit a \'configured\' if the camera was loaded with a config', function() {
       this.camera.requestCamera('back', { some: 'config' });
       sinon.assert.calledWith(this.camera.emit, 'configured');
+    });
+
+    test('It attempts to re-request the camera if \'HardwareClosed\'', function() {
+      navigator.mozCameras.getCamera.callsArgWith(3, 'HardwareClosed');
+
+      // First attempt
+      this.camera.requestCamera();
+      sinon.assert.called(navigator.mozCameras.getCamera);
+      navigator.mozCameras.getCamera.reset();
+
+      this.clock.tick(1000);
+
+      // Second attempt
+      sinon.assert.called(navigator.mozCameras.getCamera);
+      navigator.mozCameras.getCamera.reset();
+
+      this.clock.tick(1000);
+
+      // Third attempt
+      sinon.assert.called(navigator.mozCameras.getCamera);
+      navigator.mozCameras.getCamera.reset();
+
+      // Doesn't attempt fourth time
+      sinon.assert.notCalled(navigator.mozCameras.getCamera);
     });
   });
 
@@ -967,7 +992,7 @@ suite('lib/camera/camera', function() {
 
       sinon.assert.calledWith(this.camera.emit, 'configured');
       this.camera.emit.reset();
-      this.mozCamera = null;
+      delete this.mozCamera;
 
       assert.isFalse(this.camera.emit.calledWith('configured'));
     });
@@ -1028,6 +1053,17 @@ suite('lib/camera/camera', function() {
         assert.equal(err, 'error');
         done();
       });
+    });
+
+    test('It clears any pending camera request timeout', function() {
+      this.sandbox.stub(window, 'setTimeout').returns('<timeout-id>');
+      this.sandbox.stub(window, 'clearTimeout');
+
+      navigator.mozCameras.getCamera.callsArgWith(3, 'HardwareClosed');
+      this.camera.requestCamera();
+      this.camera.release();
+
+      sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
     });
   });
 
@@ -1249,7 +1285,6 @@ suite('lib/camera/camera', function() {
 
   suite('Camera#updateFocusArea()', function() {
     setup(function() {
-      sinon.stub(this.camera, 'set');
       this.camera.mozCamera = { flashMode: null };
       this.camera.focus = {
         updateFocusArea: sinon.spy(),
@@ -1259,22 +1294,18 @@ suite('lib/camera/camera', function() {
     test('Should suspend flash mode and restore when complete', function() {
       this.camera.mozCamera.flashMode = 'on';
       this.camera.updateFocusArea();
-      assert.ok(this.camera.set.firstCall.calledWith('focus', 'focusing'));
       assert.equal(this.camera.mozCamera.flashMode, 'off');
       assert.ok(this.camera.focus.updateFocusArea.called);
       this.camera.focus.updateFocusArea.callArgWith(1, 'focused');
-      assert.ok(this.camera.set.secondCall.calledWith('focus', 'focused'));
       assert.equal(this.camera.mozCamera.flashMode, 'on');
     });
 
-    test('Should suspend flash mode and restore when interrupted but leave state as focusing', function() {
+    test('Should suspend flash mode and restore when interrupted', function() {
       this.camera.mozCamera.flashMode = 'on';
       this.camera.updateFocusArea();
-      assert.ok(this.camera.set.firstCall.calledWith('focus', 'focusing'));
       assert.equal(this.camera.mozCamera.flashMode, 'off');
       assert.ok(this.camera.focus.updateFocusArea.called);
       this.camera.focus.updateFocusArea.callArgWith(1, 'interrupted');
-      assert.ok(this.camera.set.calledOnce);
       assert.equal(this.camera.mozCamera.flashMode, 'on');
     });
   });

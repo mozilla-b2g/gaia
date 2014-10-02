@@ -62,11 +62,11 @@ TargetHandlersManager.prototype.stop = function() {
 // not start or end the handler/active target, so it was not mentioned in the
 // above list.
 //
-// Please note that since we are using target (the DOM element) as the
-// identifier of handlers, we do not assign new handler if there are two touches
-// on the same element. Currently that cannot happen because of what done in
-// bug 985855, however in the future that will change (and these handlers needs
-// to) to adopt bug 985853 (Combo key).
+// Please note that since we are using target (an abstract key object associated
+// with one DOM element) as the identifier of handlers, we do not assign new
+// handler if there are two touches on the same element. Currently that cannot
+// happen because of what done in bug 985855, however in the future that will
+// change (and these handlers needs to) to adopt bug 985853 (Combo key).
 TargetHandlersManager.prototype._callTargetAction = function(action,
                                                              setHandler,
                                                              deleteHandler,
@@ -101,6 +101,7 @@ TargetHandlersManager.prototype._callTargetAction = function(action,
 // This method decide which of the TargetHandler is the right one to
 // handle the active target. It decide the TargetHandler to use and create
 // and instance of it, and return the instance.
+// |target| is an object, not a DOM element.
 TargetHandlersManager.prototype._createHandlerForTarget = function(target) {
   this.app.console.log('TargetHandlersManager._createHandlerForTarget()');
 
@@ -109,20 +110,18 @@ TargetHandlersManager.prototype._createHandlerForTarget = function(target) {
   // This is unfortunately very complex but this is essentially what's already
   // specified in keyboard.js.
   // We will need to normalize the identifier for each targets in the future.
-  if (target.classList.contains('dismiss-suggestions-button')) {
+  if ('isDismissSuggestionsButton' in target) {
     handler = new DismissSuggestionsTargetHandler(target, this.app);
-  } else if ('selection' in target.dataset) {
+  } else if ('selection' in target) {
     handler = new CandidateSelectionTargetHandler(target, this.app);
-  } else if ('compositeKey' in target.dataset) {
+  } else if ('compositeKey' in target) {
     handler = new CompositeTargetHandler(target, this.app);
-  } else if ('keycode' in target.dataset) {
-    var keyCode = parseInt(target.dataset.keycode, 10);
-    switch (keyCode) {
+  } else if ('keyCode' in target) {
+    switch (target.keyCode) {
       // Delete is a special key, it reacts when pressed not released
       case KeyEvent.DOM_VK_BACK_SPACE:
         handler = new BackspaceTargetHandler(target, this.app);
         break;
-
       case KeyEvent.DOM_VK_SPACE:
         handler = new SpaceKeyTargetHandler(target, this.app);
         break;

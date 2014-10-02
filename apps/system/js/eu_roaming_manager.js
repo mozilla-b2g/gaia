@@ -1,4 +1,5 @@
-/* globals SIMSlotManager, Notification, MozActivity, Promise */
+/* globals SIMSlotManager, Notification, MozActivity, Promise,
+           LazyLoader */
 'use strict';
 
 (function(exports) {
@@ -334,25 +335,10 @@
     },
 
     _loadJSON: function(path) {
-      return new Promise(function(resolve) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', path, true);
-        xhr.responseType = 'json';
-        xhr.onreadystatechange = function() {
-          if (xhr.readyState == 4) {
-            if (xhr.status == 200 || xhr.status === 0) {
-              resolve(xhr.response);
-            } else {
-              resolve(null);
-            }
-          }
-        };
-
-        try {
-          xhr.send();
-        } catch (e) {
-          resolve(null);
-        }
+      return LazyLoader.getJSON(path).then(function(json) {
+        return Promise.resolve(json);
+      }, function(error) {
+        return Promise.resolve(null);
       });
     }
   };

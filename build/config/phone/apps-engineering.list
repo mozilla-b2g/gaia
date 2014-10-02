@@ -1,5 +1,6 @@
 apps/*
 outoftree_apps/*
+dev_apps/marketplace-dev.allizom.org
 dev_apps/in_app_pay_test
 dev_apps/marketplace.allizom.org
 dev_apps/mochitest
@@ -20,6 +21,7 @@ dev_apps/test-receiver-1
 dev_apps/test-receiver-2
 dev_apps/test-receiver-inline
 dev_apps/test-wappush
+dev_apps/test-shared-css
 dev_apps/uitest
 dev_apps/uitest-privileged
 dev_apps/test-fxa-client

@@ -229,6 +229,10 @@ function MessageListCard(domNode, mode, args) {
   }
   // -- search mode
   else if (mode === 'search') {
+
+    domNode.getElementsByClassName('msg-search-form')[0]
+      .addEventListener('submit', this.onSearchSubmit.bind(this), false);
+
     domNode.getElementsByClassName('msg-search-cancel')[0]
       .addEventListener('click', this.onCancelSearch.bind(this), false);
 
@@ -780,7 +784,32 @@ MessageListCard.prototype = {
     this.showSearch(this.searchInput.value, this.curFilter);
   },
 
+  onSearchSubmit: function(event) {
+    // Not a real form to submit, so stop actual submission.
+    event.preventDefault();
+
+    // Blur the focus away from the text input. This has the effect of hiding
+    // the keyboard. This is useful for the two cases where this function is
+    // currently triggered: Enter on the keyboard or Cancel on the form submit.
+    // Note that the Cancel button has a type="submit", which is technically
+    // an incorrect use of that type. However the /shared styles depend on it
+    // being marked as such for style reasons.
+    this.searchInput.blur();
+  },
+
   onCancelSearch: function(event) {
+    // Only care about real clicks on the actual button, not fake ones triggered
+    // by a form submit from the Enter button on the keyboard.
+    // Note: the cancel button should not really be a type="submit", but it is
+    // that way because the /shared styles for this search form wants to see
+    // a submit. Longer term this should be changed in the /shared components.
+    // This event test is used because in form submit cases, the
+    // explicitOriginalTarget (the text input) is not the same as the target
+    // (the button).
+    if (event.explicitOriginalTarget !== event.target) {
+      return;
+    }
+
     try {
       headerCursor.endSearch();
     }
@@ -893,7 +922,17 @@ MessageListCard.prototype = {
                 headerCursor.messagesSlice.headerCount,
                 'alleged known headers. canGrow:',
                 headerCursor.messagesSlice.userCanGrowDownwards);
-    if (headerCursor.messagesSlice.userCanGrowDownwards) {
+
+    // Show "load more", but only if the slice can grow and if there is a
+    // non-zero headerCount. If zero headerCount, it likely means the folder
+    // has never been synchronized, and this display was an offline display,
+    // so it is hard to know if messages can be synchronized. In this case,
+    // canGrow is not enough of an indicator, because as far as the back end is
+    // concerned, it could grow, it just has no way to check for sure yet. So
+    // hide the "load more", the user can use the refresh icon once online to
+    // load messages.
+    if (headerCursor.messagesSlice.userCanGrowDownwards &&
+        headerCursor.messagesSlice.headerCount) {
       this.syncMoreNode.classList.remove('collapsed');
     } else {
       this.syncMoreNode.classList.add('collapsed');

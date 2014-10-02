@@ -1,24 +1,10 @@
 apps/bluetooth/js/deviceList.js
 apps/bluetooth/js/transfer.js
-apps/browser/test/marionette/awesomescreen_test.js
-apps/browser/test/marionette/contextmenu_test.js
-apps/browser/test/marionette/lib/browser.js
-apps/browser/test/marionette/lib/server.js
-apps/browser/test/marionette/lib/server_child.js
-apps/browser/test/marionette/navigate_test.js
-apps/browser/test/marionette/settings_test.js
-apps/browser/test/marionette/share_url_test.js
-apps/browser/test/unit/browser_db_test.js
-apps/callscreen/js/fake-oncall-desktop.js
-apps/callscreen/js/index.js
-apps/callscreen/test/unit/mock_mozbluetooth.js
-apps/communications/dialer/js/index.js
 apps/communications/dialer/js/mmi_ui.js
 apps/communications/dialer/test/marionette/lib/dialer.js
 apps/communications/dialer/test/marionette/navigation_test.js
 apps/communications/dialer/test/unit/call_log_db_test.js
 apps/communications/dialer/test/unit/mock_call_handler.js
-apps/communications/dialer/test/unit/mock_confirm_dialog.js
 apps/communications/dialer/test/unit/mock_dialer_index.html.js
 apps/communications/dialer/test/unit/mock_icc_helper.js
 apps/communications/dialer/test/unit/mock_mozVoicemail.js
@@ -105,7 +91,6 @@ apps/fm/js/fm.js
 apps/fm/test/unit/fm_test.js
 apps/ftu/js/wifi.js
 apps/ftu/test/unit/data_mobile_test.js
-apps/ftu/test/unit/language_test.js
 apps/ftu/test/unit/mock_data_mobile.js
 apps/ftu/test/unit/mock_import_services.js
 apps/ftu/test/unit/mock_navigation.html.js
@@ -328,7 +313,6 @@ apps/system/js/browser_mixin.js
 apps/system/js/crash_reporter.js
 apps/system/js/download/download_manager.js
 apps/system/js/download/download_notification.js
-apps/system/js/edge_swipe_detector.js
 apps/system/js/emergency_callback_manager.js
 apps/system/js/entry_sheet.js
 apps/system/js/icc.js
@@ -345,7 +329,6 @@ apps/system/js/screen_manager.js
 apps/system/js/sheets_transition.js
 apps/system/js/sim_lock.js
 apps/system/js/storage_watcher.js
-apps/system/js/system.js
 apps/system/js/trusted_ui.js
 apps/system/js/updatable.js
 apps/system/js/update_manager.js
@@ -427,7 +410,6 @@ apps/system/test/unit/mock_utility_tray.js
 apps/system/test/unit/mock_wifi_manager.js
 apps/system/test/unit/operator_variant_helper_test.js
 apps/system/test/unit/orientation_manager_test.js
-apps/system/test/unit/quick_settings_test.js
 apps/system/test/unit/screen_manager_test.js
 apps/system/test/unit/settings_helper_test.js
 apps/system/test/unit/spin_date_picker_test.js

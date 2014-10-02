@@ -163,13 +163,17 @@ BUILD_APP_NAME=$(APP)
 endif
 endif
 
-REPORTER?=spec
 # BUILDAPP variable defines the target b2g platform (eg desktop, device)
 # and exports it for the gaia-marionette script
 BUILDAPP?=desktop
 export BUILDAPP
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
+ifneq ($(BUILDAPP),desktop)
+REPORTER?=mocha-socket-reporter
+MARIONETTE_RUNNER_HOST?=marionette-socket-host
+endif
+REPORTER?=spec
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 TEST_MANIFEST?=./shared/test/integration/local-manifest.json
 MOZPERFOUT?=""
@@ -1024,6 +1028,9 @@ build-test-unit: $(NPM_INSTALLED_PROGRAMS)
 
 build-test-integration: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-test, $(shell find build/test/integration/*.test.js))
+
+build-test-unit-coverage: $(NPM_INSTALLED_PROGRAMS)
+	@$(call run-build-coverage,build/test/unit)
 
 .PHONY: docs
 docs: $(NPM_INSTALLED_PROGRAMS)

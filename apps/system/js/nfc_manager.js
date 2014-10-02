@@ -400,7 +400,6 @@
       var options = this._createNDEFActivityOptions(data);
       options.data.tech = tech;
       options.data.techList = msg.techList;
-      options.data.sessionToken = msg.sessionToken;
 
       if (data !== null) {
         options.data.records = msg.records;
@@ -515,7 +514,6 @@
         name: 'nfc-tag-discovered',
         data: {
           type: type,
-          sessionToken: msg.sessionToken,
           techList: msg.techList,
           // it might be possible we will have some content
           // so app might handle it, real world testing needed

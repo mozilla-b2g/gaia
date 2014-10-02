@@ -606,11 +606,23 @@ suite('system/AppWindowManager', function() {
  
   suite('updateActiveApp()', function() {
     test('update', function() {
+      var spyPublish= this.sinon.spy(AppWindowManager, 'publish');
       injectRunningApps(app1, app2, app3, app4);
       AppWindowManager._activeApp = app2;
       AppWindowManager._updateActiveApp(app1.instanceID);
+      assert.equal(spyPublish.firstCall.args[0], 'activeappchanged');
       assert.deepEqual(AppWindowManager._activeApp, app1);
     });
+
+    test('should not publish activeappchanged if activeApp is the same',
+      function() {
+        var spyPublish= this.sinon.spy(AppWindowManager, 'publish');
+        injectRunningApps(app1);
+        AppWindowManager._activeApp = app1;
+        AppWindowManager._updateActiveApp(app1.instanceID);
+        assert.isFalse(spyPublish.calledOnce);
+      });
+
 
     test('should resize the new active app', function() {
       injectRunningApps(app1, app2, app3, app4);
@@ -916,4 +928,21 @@ suite('system/AppWindowManager', function() {
     newApp2 = AppWindowManager.getApp(fakeBrowserConfig.origin);
     assert.deepEqual(newApp2.config, fakeBrowserConfig);
   });
+
+  test('getAppByURL', function() {
+
+    var url1 = fakeBrowserConfig.url;
+    var url2 = 'http://mozilla.org/page2';
+
+    injectRunningApps(browser1);
+    assert.deepEqual(AppWindowManager.getAppByURL(url1), browser1);
+    assert.isNull(AppWindowManager.getAppByURL('app://no-this-origin'));
+
+    // Change url in the browser and ensure we can find it again
+    browser1.config.url = url2;
+
+    assert.deepEqual(AppWindowManager.getAppByURL(url2), browser1);
+    assert.isNull(AppWindowManager.getAppByURL(url1));
+  });
+
 });

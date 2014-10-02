@@ -214,6 +214,8 @@ suite('dialer/contacts', function() {
         assert.ok(contacts[0].updated instanceof Date &&
                   !isNaN(contacts[0].updated.valueOf()));
         contacts[0].updated = 'date';
+        // Phone numbers haven't been merged
+        aFacebookContact.tel = aMozTestContact.tel;
         assert.deepEqual(contacts[0], aFacebookContact);
       });
     });

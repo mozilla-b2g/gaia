@@ -119,11 +119,26 @@
       });
     },
 
+    /**
+     * Checks if an app manifest matches a query.
+     */
+    matches: function(manifest, query) {
+      query = query.toLowerCase();
+
+      // Get the localized name from the query.
+      var userLang = document.documentElement.lang;
+      var locales = manifest.locales;
+      var localized = locales && locales[userLang] && locales[userLang].name;
+      localized = localized || '';
+
+      return manifest.name.toLowerCase().indexOf(query) != -1 ||
+        localized.toLowerCase().indexOf(query) != -1;
+    },
+
     find: function(query) {
       var results = [];
-
       this.appListing.forEach(function(manifest) {
-        if (manifest.name.toLowerCase().indexOf(query.toLowerCase()) != -1) {
+        if (this.matches(manifest, query)) {
           results.push({
             app: this.apps[manifest.manifestURL],
             entryPoint: manifest.entryPoint

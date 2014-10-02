@@ -314,12 +314,11 @@ suite('WAP Push', function() {
       }, done);
     });
 
-    test('the display is populated with the NETWPIN message contents',
+    test('the display shows warning message asking for install configuration',
       function(done) {
-        var title = document.getElementById('title');
-        var screen = document.getElementById('cp-screen');
-        var acceptButton = document.getElementById('accept');
-        var pin = screen.querySelector('input');
+        var installCfgConfirmDialog =
+          document.getElementById('cp-install-configuration-confirm');
+        var acceptButton = installCfgConfirmDialog.querySelector('.accept');
 
         this.sinon.stub(Date, 'now').returns(0);
         this.sinon.spy(MockNotification.prototype, 'close');
@@ -329,6 +328,60 @@ suite('WAP Push', function() {
         }).then(function() {
           done(function checks() {
             sinon.assert.notCalled(MockNotification.prototype.close);
+            assert.isFalse(acceptButton.classList.contains('hidden'),
+              'the accept button should be visible');
+            assert.isFalse(acceptButton.hidden);
+          });
+        }, done);
+      }
+    );
+
+    test('the app is closed when if the user does not accept the instalation',
+      function(done) {
+        var installCfgConfirmDialog =
+          document.getElementById('cp-install-configuration-confirm');
+        var cancelButton = installCfgConfirmDialog.querySelector('.cancel');
+
+        this.sinon.spy(WapPushManager, 'close');
+        this.sinon.stub(Date, 'now').returns(0);
+        this.sinon.spy(MockNotification.prototype, 'close');
+
+        WapPushManager.onWapPushReceived(messages.netwpin).then(function() {
+          return WapPushManager.displayWapPushMessage(0);
+        }).then(function() {
+          done(function checks() {
+            sinon.assert.notCalled(MockNotification.prototype.close);
+            assert.isFalse(cancelButton.classList.contains('hidden'),
+              'the accept button should be visible');
+            assert.isFalse(cancelButton.hidden);
+            cancelButton.click();
+            sinon.assert.calledOnce(WapPushManager.close);
+          });
+        }, done);
+      }
+    );
+
+    test('the display is populated with the NETWPIN message contents after ' +
+         'accepting installation ',
+      function(done) {
+        var title = document.getElementById('title');
+        var screen = document.getElementById('cp-screen');
+        var acceptButton = document.getElementById('accept');
+        var pin = screen.querySelector('input');
+        var installCfgConfirmDialog =
+          document.getElementById('cp-install-configuration-confirm');
+        var acceptInstallButton =
+          installCfgConfirmDialog.querySelector('.accept');
+
+        this.sinon.stub(Date, 'now').returns(0);
+        this.sinon.spy(MockNotification.prototype, 'close');
+
+        WapPushManager.onWapPushReceived(messages.netwpin).then(function() {
+          return WapPushManager.displayWapPushMessage(0);
+        }).then(function() {
+          done(function checks() {
+            sinon.assert.notCalled(MockNotification.prototype.close);
+            acceptInstallButton.click();
 
             assert.equal(title.textContent, messages.netwpin.sender);
             assert.isFalse(acceptButton.classList.contains('hidden'),
@@ -340,12 +393,17 @@ suite('WAP Push', function() {
       }
     );
 
-    test('the display is populated with the USERPIN message contents',
+    test('the display is populated with the USERPIN message contents after ' +
+         'accepting installation ',
       function(done) {
         var title = document.getElementById('title');
         var screen = document.getElementById('cp-screen');
         var acceptButton = document.getElementById('accept');
         var pin = screen.querySelector('input');
+        var installCfgConfirmDialog =
+          document.getElementById('cp-install-configuration-confirm');
+        var acceptInstallButton =
+          installCfgConfirmDialog.querySelector('.accept');
 
         this.sinon.stub(Date, 'now').returns(0);
         this.sinon.spy(MockNotification.prototype, 'close');
@@ -355,6 +413,7 @@ suite('WAP Push', function() {
         }).then(function() {
           done(function checks() {
             sinon.assert.notCalled(MockNotification.prototype.close);
+            acceptInstallButton.click();
 
             assert.equal(title.textContent, messages.userpin.sender);
             assert.isFalse(acceptButton.classList.contains('hidden'),

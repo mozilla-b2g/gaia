@@ -51,6 +51,7 @@ manifest.appcache
 /build/config/custom-prefs.js
 /build/config/custom-settings.json
 /build_stage/
+/coverage/
 /local.mk
 
 /tools/xpcwindow/vendor/

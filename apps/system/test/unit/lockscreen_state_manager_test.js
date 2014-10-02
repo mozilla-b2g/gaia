@@ -3,7 +3,7 @@
 'use strict';
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_system.js');
-requireApp('system/js/lockscreen_state_manager.js');
+requireApp('system/lockscreen/js/lockscreen_state_manager.js');
 
 var mocksHelper = new window.MocksHelper([
   'SettingsListener', 'System'
@@ -25,6 +25,7 @@ suite('system/LockScreenStateManager', function() {
       };
     };
     window.LockScreenStateSlideShow =
+    window.LockScreenStateSlideHide =
     window.LockScreenStatePanelHide =
     window.LockScreenStateKeypadShow =
     window.LockScreenStateKeypadHiding =
@@ -234,6 +235,17 @@ suite('system/LockScreenStateManager', function() {
       this.sinon.stub(subject, 'transfer');
       assert.isFalse(subject.lockScreenStates.unlocking,
         'the screenchange event doesn\'t restore the unlocking state');
+    });
+
+    test('When actionable noitification want to unlock, ' +
+         'it would trigger activate unlock',
+    function() {
+      var stubOnActiveUnlock = this.sinon.stub(subject, 'onActivateUnlock');
+      subject.handleEvent({
+        type: 'lockscreen-notification-request-activate-unlock'
+      });
+      assert.isTrue(stubOnActiveUnlock.called,
+        'the handler didn\'t handle the event');
     });
   });
 });

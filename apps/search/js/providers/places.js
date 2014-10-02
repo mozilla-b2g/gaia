@@ -59,7 +59,6 @@
       if (!err) {
         icons[key] = icon;
       }
-      showStartPage();
     });
   }
 
@@ -160,6 +159,15 @@
     parent.appendChild(ul);
   }
 
+  function updateIcon(visit, iconDom) {
+    IconsHelper.getIcon(visit.url, null, visit).then((icon) => {
+      if (icon && iconDom) {
+        iconDom.classList.remove('empty');
+        iconDom.src = icon;
+      }
+    });
+  }
+
   function buildHistory(visits) {
 
     var thresholds = [
@@ -199,11 +207,12 @@
         }
       }
 
-      visit.icon = getIcon(visit);
       visit.meta = visit.url;
       visit.dataset = { url: visit.url };
       var dom = exports.Places.buildResultsDom([visit]);
+      var iconDom = dom.querySelector('.icon');
       fragment.appendChild(dom);
+      updateIcon(visit, iconDom);
     });
 
     return fragment;
@@ -241,20 +250,16 @@
   function formatTopResult(result) {
     var div = document.createElement('div');
     var span = document.createElement('span');
-    span.textContent = result.title;
+    span.textContent = result.title || result.url;
     div.dataset.url = result.url;
     div.classList.add('top-site');
     div.appendChild(span);
     div.setAttribute('role', 'link');
 
-    if (result.screenshot) {
-      var objectURL = typeof result.screenshot === 'string' ?
-        result.screenshot : URL.createObjectURL(result.screenshot);
-      div.style.backgroundImage = 'url(' + objectURL + ')';
-    }
-
-    if (result.tile) {
-      div.style.backgroundImage = 'url(' + result.tile + ')';
+    if (result.screenshot || result.tile) {
+      var img = result.screenshot || result.tile;
+      var imgUrl = (typeof img === 'string') ? img : URL.createObjectURL(img);
+      div.style.backgroundImage = 'url(' + imgUrl + ')';
     }
 
     return div;
@@ -337,11 +342,32 @@
       });
     },
 
+    saveSites: function(sites) {
+      return Promise.all(sites.map(site => {
+        site.frecency = 0;
+        return this.persistStore.addPlace(site);
+      }));
+    },
+
     preloadTopSites: function() {
-      return LazyLoader.getJSON('/js/inittopsites.json').then(sites => {
-        return Promise.all(sites.map(site => {
-          return this.persistStore.addPlace(site);
-        }));
+
+      var TOPSITE_KEY = 'operatorResources.data.topsites';
+
+      // Switch the existing format of sim topsites into the current format
+      return new Promise(resolve => {
+        // Attempt to load top sites from sim variant data
+        var request = navigator.mozSettings.createLock().get(TOPSITE_KEY);
+        request.onsuccess = () => {
+          var result = request.result[TOPSITE_KEY];
+          if (result && result.topSites) {
+            return this.saveSites(result.topSites).then(resolve);
+          }
+
+          // No sim variant data found, load default build top sites
+          return LazyLoader.getJSON('/js/inittopsites.json').then(sites => {
+            return this.saveSites(sites).then(resolve);
+          });
+        };
       });
     },
 

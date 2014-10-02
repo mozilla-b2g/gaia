@@ -70,6 +70,11 @@ DownloadNotification.prototype = {
     if (noNotify) {
       info.noNotify = true;
     }
+    if (this.state === 'downloading') {
+      info.mozbehavior = {
+        noscreen: true
+      };
+    }
     NotificationScreen.addNotification(info);
     if (this.state === 'succeeded') {
       this._onSucceeded();

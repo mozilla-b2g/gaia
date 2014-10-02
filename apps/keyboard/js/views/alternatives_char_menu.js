@@ -1,5 +1,7 @@
 'use strict';
 
+/* globals IMERender */
+
 (function(exports) {
 
 /**
@@ -16,6 +18,7 @@ function AlternativesCharMenuView(rootElement, altChars, renderer) {
   this.buildKey = renderer.buildKey;
   this.keyWidth = renderer.keyWidth;
   this.screenInPortraitMode = renderer.screenInPortraitMode;
+  this.renderingManager = renderer.renderingManager;
 
   this.menu = null;
   this._rowCount = 0;
@@ -27,11 +30,13 @@ AlternativesCharMenuView.prototype.MENU_LINE_HEIGHT = 6;   // in rem
 
 AlternativesCharMenuView.prototype.show = function(key) {
   var content = document.createDocumentFragment();
+  var keyElem = IMERender.targetObjDomMap.get(key);
 
   // XXX: should not cause reflow by ref. innerWidth
   var cachedWindowWidth = window.innerWidth;
 
-  var left = (cachedWindowWidth / 2 > key.offsetLeft);
+  var left = (cachedWindowWidth / 2 > keyElem.offsetLeft);
+  this._direction = left ? 'left' : 'right';
 
   var menu = document.createElement('div');
   menu.id = 'keyboard-accent-char-menu';
@@ -47,7 +52,8 @@ AlternativesCharMenuView.prototype.show = function(key) {
   if (this.altChars.length > 5) {
     widthRatio = Math.ceil(this.altChars.length / 2);
 
-    menu.style.top = (key.offsetTop - this.getLineHeight() * 2)  + 'px';
+    menu.style.top = (keyElem.offsetTop - this.getLineHeight() * 2)  + 'px';
+    this._columnCount = widthRatio;
     this._rowCount = 2;
 
     // Specify the width so that it will be folded into 2 rows.
@@ -56,20 +62,21 @@ AlternativesCharMenuView.prototype.show = function(key) {
     menu.classList.add('multi-row');
   } else {
     // menu height -  4 (top margin of the visual wrapper)
-    menu.style.top = (key.offsetTop - this.getLineHeight() + 4) +  'px';
+    menu.style.top = (keyElem.offsetTop - this.getLineHeight() + 4) +  'px';
     this._rowCount = 1;
+    this._columnCount = this.altChars.length;
   }
 
   // Determine the horizontal positioning of the menu
   if (left) {
-    var keyRight = key.offsetLeft + key.offsetWidth;
+    var keyRight = keyElem.offsetLeft + keyElem.offsetWidth;
     var posLeft = keyRight - this.keyWidth;
     menu.style.left = posLeft + 'px';
     if (posLeft === 0) {
       menu.classList.add('left-edge');
     }
   } else {
-    var menuRight = key.offsetLeft + this.keyWidth;
+    var menuRight = keyElem.offsetLeft + this.keyWidth;
     var posRight = cachedWindowWidth - menuRight;
     menu.style.right =  posRight + 'px';
     if (posRight === 0) {
@@ -79,48 +86,62 @@ AlternativesCharMenuView.prototype.show = function(key) {
 
   // Build a key for each alternative
   this.altChars.forEach(function(alt, index) {
-    var dataset = alt.length == 1 ?
-    [
-      { 'key': 'keycode', 'value': alt.charCodeAt(0) },
-      { 'key': 'keycodeUpper', 'value': alt.toUpperCase().charCodeAt(0) }
-    ] :
-    [ { 'key': 'compositeKey', 'value': alt } ];
+    // TODO: the renderer should not be creating a business logic object,
+    // let's move it to somewhere else, and/or allow normalization directly
+    // to take place at LayoutNormalizer
+    var altKeyObj = alt.length == 1 ? {
+      keyCode: alt.charCodeAt(0),
+      keyCodeUpper: alt.toUpperCase().charCodeAt(0)
+    } : {'compositeKey': alt };
 
-  // Make each of these alternative keys as wide as the key that
-  // it is an alternative for, but adjust for the relative number of
-  // characters in the original and the alternative.
-  var width = this.keyWidth;
+    // Make each of these alternative keys as wide as the key that
+    // it is an alternative for, but adjust for the relative number of
+    // characters in the original and the alternative.
+    var width = this.keyWidth;
 
-  // Only adjust the width when there is one row, since the key width
-  // would be fixed in 2-row case.
-  if (alt.length > 1 && this._rowCount === 1) {
-    // Add some padding to the composite key.
-    width = this._getCharWidth(alt) + 10;
-    width = Math.max(width, this.keyWidth);
-  }
+    // Only adjust the width when there is one row, since the key width
+    // would be fixed in 2-row case.
+    if (alt.length > 1 && this._rowCount === 1) {
+      // Add some padding to the composite key.
+      width = this._getCharWidth(alt) + 10;
+      width = Math.max(width, this.keyWidth);
+    }
 
-  var attributeList = [];
+    var attributeList = [];
 
-  if (this.ARIA_LABELS && this.ARIA_LABELS[alt]) {
+    if (this.ARIA_LABELS && this.ARIA_LABELS[alt]) {
+      attributeList.push({
+        key: 'data-l10n-id',
+        value: this.ARIA_LABELS[alt]
+      });
+    } else {
+      attributeList.push({
+        key: 'aria-label',
+        value: alt
+      });
+    }
+
     attributeList.push({
-      key: 'data-l10n-id',
-      value: this.ARIA_LABELS[alt]
+      key: 'role',
+      value: 'key'
     });
-  } else {
-    attributeList.push({
-      key: 'aria-label',
-      value: alt
-    });
-  }
 
-  attributeList.push({
-    key: 'role',
-    value: 'key'
-  });
+    var altKeyElement =
+      this.buildKey(alt, '', width + 'px', altKeyObj, null, attributeList);
 
-  content.appendChild(
-      this.buildKey(alt, '', width + 'px', dataset, null, attributeList));
+    // ui/integration test needs these attributes
+    if ('compositeKey' in altKeyObj){
+      altKeyElement.dataset.compositeKey = altKeyObj.compositeKey;
+    } else {
+      altKeyElement.dataset.keycode = altKeyObj.keyCode;
+      altKeyElement.dataset.keycodeUpper = altKeyObj.keyCodeUpper;
+    }
+
+    content.appendChild(altKeyElement);
+
+    IMERender.setDomElemTargetObject(altKeyElement, altKeyObj);
   }.bind(this));
+
   menu.appendChild(content);
 
   // Adjust menu style
@@ -158,6 +179,53 @@ AlternativesCharMenuView.prototype._getCharWidth = function(textContent) {
   scaleContext.font = fontSize + ' sans-serif';
 
   return scaleContext.measureText(textContent).width;
+};
+
+AlternativesCharMenuView.prototype.getMenuTarget = function(x, y) {
+  var menuRect = this.getBoundingClientRect();
+
+  // Limit the x,y in the menu
+  if (x <= menuRect.left) {
+    x = menuRect.left + 1;
+  } else if (x >= menuRect.right) {
+    // Cannot find element if x hit the edge, so -1 here.
+    x = menuRect.right - 1;
+  }
+
+  var xOffset = 0;
+  if (this._direction === 'left') {
+    // menu extends to left
+    xOffset = x - menuRect.left;
+  } else {
+    // menu extends to right
+    xOffset = menuRect.right - x;
+  }
+
+  // Redirect to upper row
+  y = y - this.getLineHeight();
+  if (y <= menuRect.top) {
+    // Cannot find element if y hit the edge, so +1 here.
+    y = menuRect.top + 1;
+  }
+
+  var columnCount = this._columnCount;
+  var targetIndex = Math.floor(xOffset / menuRect.width * columnCount);
+
+  if ((menuRect.bottom - y) > this.getLineHeight()) {
+    targetIndex += columnCount;
+  }
+
+  var menuContainer = this.getMenuContainer();
+
+  // UX spec: if the targetIndex is out of the length of the alt chars,
+  // we want to highlight the last alt char.
+  if (targetIndex >= menuContainer.children.length) {
+    targetIndex = menuContainer.children.length - 1;
+  }
+
+  return this.renderingManager.getTargetObject(
+           menuContainer.children[targetIndex]
+         );
 };
 
 })(window);

@@ -28,7 +28,6 @@ Rocketbar.clientOptions = {
     'homescreen.manifestURL':
       'app://verticalhome.gaiamobile.org/manifest.webapp',
     'ftu.manifestURL': null,
-    'keyboard.ftu.enabled': false,
     'lockscreen.enabled': false
   }
 };
@@ -99,6 +98,12 @@ Rocketbar.prototype = {
         window.wrappedJSObject.rocketbar.handleInput();
       });
     }
+
+    // Manually blur the input with script or the keyboard can mess up
+    // visibility in tests.
+    input.scriptWith(function(el) {
+      el.blur();
+    });
   },
 
   /**

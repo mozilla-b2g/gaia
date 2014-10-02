@@ -3,27 +3,20 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 'use strict';
+/* globals waitFor, finish */
+/* exported GaiaLockScreen */
 
 var GaiaLockScreen = {
 
   unlock: function() {
-    let lockscreen = window.wrappedJSObject.lockScreen;
     let setlock = window.wrappedJSObject.SettingsListener.getSettingsLock();
     let system = window.wrappedJSObject.System;
     let obj = {'screen.timeout': 0};
     setlock.set(obj);
 
-    window.wrappedJSObject.ScreenManager.turnScreenOn();
-
     waitFor(
       function() {
-        window.wrappedJSObject.dispatchEvent(
-          new window.wrappedJSObject.CustomEvent(
-            'lockscreen-request-unlock', {
-              detail: {
-                forcibly: true
-              }
-            }));
+        system.request('unlock', { forcibly: true });
         waitFor(
           function() {
             finish(system.locked);
@@ -34,53 +27,31 @@ var GaiaLockScreen = {
         );
       },
       function() {
-        return !!lockscreen;
+        return !!system;
       }
     );
   },
 
   lock: function() {
-    let lwm = window.wrappedJSObject.lockScreenWindowManager;
-    let lockscreen = window.wrappedJSObject.lockScreen;
     let system = window.wrappedJSObject.System;
     let setlock = window.wrappedJSObject.SettingsListener.getSettingsLock();
     let obj = {'screen.timeout': 0};
-    let waitLock = function() {
-      waitFor(
-        function() {
-        window.wrappedJSObject.dispatchEvent(
-          new window.wrappedJSObject.CustomEvent(
-            'lockscreen-request-lock', {
-              detail: {
-                forcibly: true
-              }
-            }));
-          waitFor(
-            function() {
-              finish(!system.locked);
-            },
-            function() {
-              return system.locked;
-            }
-          );
-        },
-        function() {
-          return !!lockscreen;
-        }
-      );
-    };
-
     setlock.set(obj);
-    window.wrappedJSObject.ScreenManager.turnScreenOn();
-
-    // Need to open the window before we lock the lockscreen.
-    // This would only happen when someone directly call the lockscrene.lock.
-    // It's a bad pattern and would only for test.
-    lwm.openApp();
-    waitFor(function() {
-      waitLock();
-    }, function() {
-      return lwm.states.instance.isActive();
-    });
+    waitFor(
+      function() {
+      system.request('lock', { forcibly: true });
+        waitFor(
+          function() {
+            finish(!system.locked);
+          },
+          function() {
+            return system.locked;
+          }
+        );
+      },
+      function() {
+        return !!system;
+      }
+    );
   }
 };

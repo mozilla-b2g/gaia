@@ -38,8 +38,8 @@ requireApp('system/js/home_gesture.js');
 requireApp('system/js/homescreen_launcher.js');
 requireApp('system/js/internet_sharing.js');
 requireApp('system/js/layout_manager.js');
+requireApp('system/js/lockscreen_agent.js');
 requireApp('system/js/lockscreen_window_manager.js');
-requireApp('system/js/lockscreen_notifications.js');
 requireApp('system/js/lockscreen_passcode_validator.js');
 requireApp('system/js/lockscreen_notification_builder.js');
 requireApp('system/js/media_recording.js');
@@ -50,6 +50,7 @@ requireApp('system/js/secure_window_manager.js');
 requireApp('system/js/sleep_menu.js');
 requireApp('system/js/orientation_manager.js');
 requireApp('system/js/nfc_manager.js');
+requireApp('system/js/quick_settings.js');
 requireApp('system/js/shrinking_ui.js');
 requireApp('system/js/software_button_manager.js');
 requireApp('system/js/source_view.js');
@@ -69,6 +70,7 @@ requireApp('system/test/unit/mock_attention_window.js');
 requireApp('system/test/unit/mock_callscreen_window.js');
 requireApp('system/test/unit/mock_airplane_mode.js');
 requireApp('system/test/unit/mock_applications.js');
+requireApp('system/test/unit/mock_edge_swipe_detector.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_screen_manager.js');
@@ -88,7 +90,8 @@ var mocksForBootstrap = new MocksHelper([
   'L10n',
   'AppWindowManager',
   'VersionHelper',
-  'CallscreenWindow'
+  'CallscreenWindow',
+  'EdgeSwipeDetector'
 ]).init();
 
 suite('system/Bootstrap', function() {

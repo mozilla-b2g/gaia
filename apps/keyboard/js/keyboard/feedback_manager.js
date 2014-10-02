@@ -100,13 +100,11 @@ SoundFeedback.prototype.triggerFeedback = function(target) {
     return;
   }
 
-  var isSpecialKey = target.classList.contains('special-key') ||
-    (parseInt(target.dataset.keyCode, 10) < 0);
-
   // Take the audio interface available, play it,
   // and create another one (so it can be readily available later)
   var clicker;
-  if (!isSpecialKey) {
+
+  if (!target.isSpecialKey) {
     clicker = this.clicker;
     this.clicker = new Audio(this.CLICK_SOUND_URL);
   } else {

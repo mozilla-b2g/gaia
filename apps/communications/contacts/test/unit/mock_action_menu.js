@@ -12,9 +12,9 @@ function ActionMenu() {
     hide: function() {
       this.data.list = [];
     },
-    addToList: function(label, callback) {
+    addToList: function(labelL10n, callback) {
       this.data.list.push({
-        'type': [label],
+        'type': [labelL10n],
         'callback': callback
       });
     }

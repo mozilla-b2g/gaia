@@ -54,5 +54,6 @@ var MockContacts = {
   },
   setCurrent: function(ct) {
     
-  }
+  },
+  setCancelableHeader: function() {}
 };

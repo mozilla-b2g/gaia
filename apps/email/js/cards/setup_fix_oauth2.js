@@ -36,22 +36,32 @@ SetupFixOAuth2.prototype = {
     event.preventDefault();
 
     var oauth2 = this.account._wireRep.credentials.oauth2;
-    oauthFetch(oauth2)
+    oauthFetch(oauth2, {
+      login_hint: this.account.username
+    })
     .then(function(response) {
       // Cancellation means hide this UI.
       if (response.status === 'cancel') {
-        this.close();
+        this.delayedClose();
       // Success means victory.
       } else if (response.status === 'success') {
         this.account.modifyAccount({ oauthTokens: response.tokens });
         this.account.clearProblems();
-        this.close();
+        this.delayedClose();
+
       // Anything else means a failure and it's also time to close.
       } else {
         console.error('Unknown oauthFetch status: ' + response.status);
-        this.close();
+        this.delayedClose();
       }
     }.bind(this));
+  },
+
+  delayedClose: function() {
+    // The setTimeout is a hack. See the comment in setup_progress, in
+    // onCardVisible, similar issue here, but for the close of the oauth
+    // card.
+    setTimeout(this.close.bind(this), 100);
   },
 
   close: function(event) {

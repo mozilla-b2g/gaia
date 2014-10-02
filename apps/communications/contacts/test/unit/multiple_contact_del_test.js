@@ -12,7 +12,7 @@ requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/js/contacts_bulk_delete.js');
 requireApp('communications/contacts/js/contacts_remover.js');
-requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_confirm_dialog.js');
 requireApp('communications/contacts/js/views/list.js');
 requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
 

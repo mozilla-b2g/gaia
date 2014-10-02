@@ -20,7 +20,7 @@ class NewMessage(Messages):
     _message_sending_locator = (By.CSS_SELECTOR, "li.message.outgoing.sending")
     _thread_messages_locator = (By.ID, 'thread-messages')
     _message_resize_notice_locator = (By.ID, 'messages-resize-notice')
-    _subject_input_locator = (By.ID, 'messages-subject-input')
+    _subject_input_locator = (By.CSS_SELECTOR, '.subject-composer-input')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)

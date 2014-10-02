@@ -1,4 +1,5 @@
-/* global IccHelper, verticalPreferences, VersionHelper */
+/* global IccHelper, verticalPreferences,
+          VersionHelper, LazyLoader */
 /* exported configurator */
 
 'use strict';
@@ -18,29 +19,6 @@
   // Keeps the list of single variant apps, indexed by manifestURL
   var singleVariantApps = {};
   var simPresentOnFirstBoot = true;
-
-  function loadFile(file, success, error) {
-    try {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', file, true);
-      xhr.responseType = 'json';
-
-      xhr.onload = function _xhrOnLoadFile(evt) {
-        try {
-          success(xhr.response);
-        } catch (e) {
-          error && error(e);
-        }
-      };
-
-      xhr.onerror = function _xhrOnError(evt) {
-        error && error('file ' + file + ' not found');
-      };
-      xhr.send(null);
-    } catch (ex) {
-      error && error(ex);
-    }
-  }
 
   function loadSettingSIMPresent(currentMccMnc) {
     var settings = navigator.mozSettings;
@@ -132,9 +110,9 @@
       mcc_mnc = getMccMnc();
       if (mcc_mnc) {
         IccHelper.removeEventListener('iccinfochange', iccHandler);
-        loadFile(SINGLE_VARIANT_CONF_FILE,
-                 loadSVConfFileSuccess,
-                 loadSVConfFileError);
+        LazyLoader.getJSON(SINGLE_VARIANT_CONF_FILE).then(
+          loadSVConfFileSuccess, loadSVConfFileError
+        );
         // No needed anymore
         iccHandler = null;
         return true;
@@ -200,7 +178,9 @@
           }
         });
       } else {
-        loadFile('js/init.json', onLoadInitJSON, onErrorInitJSON);
+        LazyLoader.getJSON('js/init.json').then(
+          onLoadInitJSON, onErrorInitJSON
+        );
       }
     }, function(err) {
       console.error('VersionHelper failed to lookup version settings, ' +

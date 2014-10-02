@@ -50,6 +50,10 @@
 
   ValueSelector.prototype._im = navigator.mozInputMethod;
 
+  ValueSelector.prototype.destroy = function() {
+    window.removeEventListener('timeformatchange', this);
+  };
+
   ValueSelector.prototype.handleEvent = function vs_handleEvent(evt) {
     this.app.debug('handling ' + evt.type);
     var target = evt.target;

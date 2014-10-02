@@ -238,6 +238,11 @@
   AppWindow.prototype._showFrame = function aw__showFrame() {
     this.debug('before showing frame');
 
+    // If we're already showing, do nothing!
+    if (!this.browser.element.classList.contains('hidden')) {
+      return;
+    }
+
     this.browser.element.classList.remove('hidden');
     this._setVisible(true);
 
@@ -258,8 +263,15 @@
    * So this shouldn't be invoked by others directly.
    */
   AppWindow.prototype._hideFrame = function aw__hideFrame() {
+    this.debug('before hiding frame');
+
+    // If we're already hidden, we have nothing to do!
+    if (this.browser.element.classList.contains('hidden')) {
+      return;
+    }
+
     this._setVisible(false);
-    this.iframe.classList.add('hidden');
+    this.browser.element.classList.add('hidden');
   };
 
   /**
@@ -522,7 +534,10 @@
      * @event AppWindow#appwillrender
      */
     this.publish('willrender');
-    this.containerElement.insertAdjacentHTML('beforeend', this.view());
+
+    var range = document.createRange();
+    var fragment = range.createContextualFragment(this.view());
+
     // window.open would offer the iframe so we don't need to generate.
     if (this.iframe) {
       this.browser = {
@@ -531,7 +546,7 @@
     } else {
       this.browser = new BrowserFrame(this.browser_config);
     }
-    this.element = document.getElementById(this.instanceID);
+    this.element = fragment.getElementById(this.instanceID);
 
     // For gaiauitest usage.
     this.element.dataset.manifestName = this.manifest ? this.manifest.name : '';
@@ -555,13 +570,7 @@
     this.browserContainer = this.element.querySelector('.browser-container');
     this.browserContainer.appendChild(this.browser.element);
 
-    // Intentional! The app in the iframe gets two resize events when adding
-    // the element to the page (see bug 1007595). The first one is incorrect,
-    // thus assumptions made (media queries or rendering) can be wrong (see
-    // bug 995886). A sync reflow makes it that there will only be one resize.
-    // Please remove after 1007595 has been fixed.
-    this.browser.element.offsetWidth;
-    // End intentional
+    this.containerElement.appendChild(fragment);
 
     this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
     this.fadeOverlay = this.element.querySelector('.fade-overlay');
@@ -655,7 +664,7 @@
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      '_orientationchange', '_focus', '_hidewindow', '_sheetsgesturebegin',
      '_sheetsgestureend', '_cardviewbeforeshow', '_cardviewclosed',
-     '_closed'];
+     '_closed', '_shrinkingstart', '_shrinkingstop'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -680,7 +689,7 @@
    * };
    *
    * var appWindow = new AppWindow();
-   * AppWindow.prototype.SUB_COMPONENTS.push(myDialog);
+   * AppWindow.SUB_COMPONENTS.push(myDialog);
    *
    * app.installSubComponents();
    */
@@ -708,7 +717,7 @@
 
   AppWindow.prototype.uninstallSubComponents =
     function aw_uninstallSubComponents() {
-      for (var componentName in this.constructor.prototype.SUB_COMPONENTS) {
+      for (var componentName in this.constructor.SUB_COMPONENTS) {
         if (this[componentName] && this[componentName].destroy) {
           this[componentName].destroy();
         }
@@ -873,6 +882,7 @@
 
   AppWindow.prototype._handle_mozbrowserlocationchange =
     function aw__handle_mozbrowserlocationchange(evt) {
+      this.favicons = {};
       this.config.url = evt.detail;
       // Integration test needs to locate the frame by this attribute.
       this.browser.element.dataset.url = evt.detail;
@@ -1760,6 +1770,21 @@
   };
 
   AppWindow.prototype._handle__closed = function aw_closed() {
+    //
+    // Never take screenshots of the homescreen.
+    //
+    // We don't need the screenshot of homescreen because:
+    // 1. Homescreen background is transparent,
+    //    currently gecko only sends JPG to us.
+    //    See bug 878003.
+    // 2. Homescreen screenshot isn't required by card view.
+    //    Since getScreenshot takes additional memory usage,
+    //    let's early return here.
+    // 3. We want to remove this long term, see bug 1072781.
+    //
+    if (this.getBottomMostWindow().isHomescreen) {
+      return;
+    }
     // Update screenshot blob here to avoid slowing down closing transitions.
     this.getScreenshot();
   };
@@ -1768,6 +1793,27 @@
     if (this.suspended) {
       this.kill();
     }
+  };
+
+  /**
+   * Handles shrinkingstart event broadcasted from ShrinkingUI. Gets the current
+   * screenshot, once it's available shows screenshot overlay and hides itself.
+   * @memberOf AppWindow.prototype
+   */
+  AppWindow.prototype._handle__shrinkingstart = function aw_shrinkingstart() {
+    this.getScreenshot(() => {
+      this._showScreenshotOverlay();
+      this.setVisible(false);
+    });
+  };
+
+  /**
+   * Handles shrinkingstop event broadcasted from ShrinkingUI.
+   * Shows itself automatically hiding screenshot overlay.
+   * @memberOf AppWindow.prototype
+   */
+  AppWindow.prototype._handle__shrinkingstop = function aw_shrinkingstop() {
+    this.setVisible(true);
   };
 
   /**

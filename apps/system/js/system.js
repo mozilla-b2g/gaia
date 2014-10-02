@@ -1,13 +1,13 @@
 'use strict';
 
-(function(window) {
+(function(exports) {
   var DEBUG = false;
   /**
    * Shared some global property.
    * @type {Object}
    * @module  System
    */
-  window.System = {
+  exports.System = {
     /**
      * Indicates the system is busy doing something.
      * Now it stands for the foreground app is not loaded yet.
@@ -44,14 +44,14 @@
     debug: function sys_debug() {
       if (DEBUG) {
         console.log('[System]' +
-          '[' + System.currentTime() + ']' +
+          '[' + window.System.currentTime() + ']' +
           Array.slice(arguments).concat());
       }
     },
 
     forceDebug: function sys_debug() {
       console.log('[System]' +
-        '[' + System.currentTime() + ']' +
+        '[' + window.System.currentTime() + ']' +
         Array.slice(arguments).concat());
     },
 
@@ -85,12 +85,32 @@
       if ('undefined' === typeof window.lockScreenWindowManager) {
         return false;
       } else {
-        return window.lockScreenWindowManager.states.active;
+        return window.lockScreenWindowManager.isActive();
       }
     },
 
     get manifestURL() {
       return window.location.href.replace('index.html', 'manifest.webapp');
+    },
+
+    /**
+     * To request some actions of whole system.
+     *
+     * @param {string} action
+     * @param {object} detailContent
+     * @return {Promise}
+     */
+    request(action, detailContent) {
+      switch (action) {
+        case 'lock':
+        case 'unlock':
+          window.dispatchEvent(
+            new CustomEvent('lockscreen-request-' + action, {
+              detail: detailContent
+            })
+          );
+          break;
+      }
     }
   };
-}(this));
+})(window);

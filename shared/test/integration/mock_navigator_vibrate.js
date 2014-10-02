@@ -10,11 +10,13 @@
 (function() {
     var fake_vibrations = 0;
     var document_visibility_state = true;
+    var vibrationPattern = null;
+    var screenEnabled = window.wrappedJSObject.ScreenManager.screenEnabled;
 
     window.navigator.wrappedJSObject.__defineGetter__('vibrate', function() {
-        return function(_pattern) {
+        return function(pattern) {
             fake_vibrations++;
-
+            vibrationPattern = pattern;
             return true;
         };
     });
@@ -34,5 +36,29 @@
 
             return true;
         };
+    });
+
+    window.wrappedJSObject.__defineGetter__('__fakeVibrationPattern',
+                                            function() {
+        return vibrationPattern;
+    });
+
+    window.wrappedJSObject.ScreenManager.__defineGetter__(
+        'turnScreenOff', function() {
+        return function(_dim) {
+            screenEnabled = false;
+        };
+    });
+
+    window.wrappedJSObject.ScreenManager.__defineGetter__(
+        'turnScreenOn', function() {
+        return function(_dim) {
+            screenEnabled = true;
+        };
+    });
+
+    window.wrappedJSObject.ScreenManager.__defineGetter__(
+        'screenEnabled', function() {
+        return screenEnabled;
     });
 })();

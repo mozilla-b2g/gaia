@@ -197,13 +197,13 @@
 
     // Paths to access the resources.
     resources: {
-      larrow: '/style/lockscreen/images/larrow.png',
-      rarrow: '/style/lockscreen/images/rarrow.png'
+      larrow: '/lockscreen/style/images/larrow.png',
+      rarrow: '/lockscreen/style/images/rarrow.png'
     },
 
     resourcesNew: {
-      larrow: '/style/lockscreen/images/lockscreen_toggle_arrow_left.png',
-      rarrow: '/style/lockscreen/images/lockscreen_toggle_arrow_right.png'
+      larrow: '/lockscreen/style/images/lockscreen_toggle_arrow_left.png',
+      rarrow: '/lockscreen/style/images/lockscreen_toggle_arrow_right.png'
     }
   };
 
@@ -229,6 +229,14 @@
       this.publish('lockscreenslide-unlocker-initializer');
       this.states.initialized = true;
     };
+
+  LockScreenSlidePrototype.reset = function lss_reset() {
+    this._clearCanvas();
+    this._drawTrack();
+    this._resetHandle();
+    this._resetArrows();
+    this._drawIconBG();
+  };
 
   /**
    * Overwrite settings recursively.
@@ -577,24 +585,12 @@
     function lss_onSlideEnd() {
 
       var isLeft = this.states.touch.pageX - this.center.x < 0;
-      var bounceEnd = (function _bounceEnd() {
-        this._clearCanvas();
-        this._drawTrack();
-        this._resetHandle();
-        this._resetArrows();
-        this._drawIconBG();
-      }).bind(this);
-
       if (false === this.states.slideReachEnd) {
-        this._bounceBack(this.states.touch.pageX, bounceEnd);
+        this._bounceBack(this.states.touch.pageX);
       } else {
         var intention = isLeft ? 'lockscreenslide-activate-left' :
           'lockscreenslide-activate-right';
         this.publish(intention);
-
-        // Restore it only after screen changed.
-        var appLaunchDelay = 400;
-        setTimeout(bounceEnd, appLaunchDelay);
       }
 
       this.publish('lockscreenslide-unlocking-stop');

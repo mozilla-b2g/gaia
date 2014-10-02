@@ -268,7 +268,8 @@ suiteGroup('Views.MonthChild', function() {
 
       result = subject.create();
       assert.equal(subject.element, result);
-
+      assert.equal(subject.element.getAttribute('role'), 'grid');
+      assert.equal(subject.element.getAttribute('aria-readonly'), 'true');
       assert.equal(
         result.innerHTML, expected,
         'should render month'

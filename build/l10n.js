@@ -16,8 +16,8 @@
 
   var L10n = navigator.mozL10n._getInternalAPI();
 
-  navigator.mozL10n.bootstrap = function(debug) {
-    var ctx = navigator.mozL10n.ctx = new L10n.Context();
+  navigator.mozL10n.bootstrap = function(file, debug) {
+    var ctx = navigator.mozL10n.ctx = new L10n.Context(file);
 
     if (debug) {
       DEBUG = true;

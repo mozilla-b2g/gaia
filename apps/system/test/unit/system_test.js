@@ -21,4 +21,17 @@ suite('system/System', function() {
     });
     assert.isTrue(System.isBusyLoading());
   });
+
+  test('Request would fire lock/unlock event', function() {
+    var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+    System.request('lock');
+    stubDispatchEvent.calledWith(sinon.match(function (evt) {
+      return 'lockscreen-request-lock' === evt.type;
+    }));
+
+    System.request('unlock');
+    stubDispatchEvent.calledWith(sinon.match(function (evt) {
+      return 'lockscreen-request-unlock' === evt.type;
+    }));
+  });
 });

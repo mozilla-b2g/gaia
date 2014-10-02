@@ -20,6 +20,8 @@
     x: 0,
     y: 0,
 
+    headerHeight: 0,
+
     /**
      * Height in pixels of each divider.
      */
@@ -36,10 +38,8 @@
 
     /**
      * Renders the icon to the grid component.
-     * @param {Object} coordinates Grid coordinates to render to.
-     * @param {Number} index The index of the items list of this item.
      */
-    render: function(coordinates, index) {
+    render: function() {
       // Generate the content if we need to
       if (!this.element) {
         // Divider is a <section> and the rest of items are <div> containers
@@ -48,16 +48,13 @@
         divider.className = 'divider';
 
         var span = document.createElement('span');
+        span.className = 'spacer';
         divider.appendChild(span);
 
         this.grid.element.appendChild(divider);
       }
 
-      var y = this.grid.layout.offsetY;
-      this.element.style.transform = 'translate(0 ,' + y + 'px)';
-
-      this.detail.index = index;
-      this.y = y;
+      this.element.style.transform = 'translate(0 ,' + this.y + 'px)';
     },
 
     remove: function() {

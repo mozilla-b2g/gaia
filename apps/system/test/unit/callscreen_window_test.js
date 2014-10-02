@@ -39,6 +39,8 @@ suite('system/CallscreenWindow', function() {
     }
   };
 
+  fakeAppConfig.browser = { element: fakeAppConfig.iframe };
+
   setup(function(done) {
     MockApplications.mRegisterMockApp(fakeAppConfig);
     realApplications = window.applications;
@@ -137,7 +139,10 @@ suite('system/CallscreenWindow', function() {
     setup(function() {
       subject = new CallscreenWindow();
       subject.browser.element = {
-        src: 'app://callscreen.gaiamobile.org/index.html#stuff'
+        src: 'app://callscreen.gaiamobile.org/index.html#stuff',
+        classList: {
+          contains: function() { return true; }
+        }
       };
       this.sinon.spy(subject, 'setVisible');
 

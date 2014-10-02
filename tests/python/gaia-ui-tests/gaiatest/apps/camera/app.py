@@ -21,7 +21,7 @@ class Camera(Base):
     _switch_button_locator = (By.CSS_SELECTOR, '.test-switch')
     _capture_button_locator = (By.CSS_SELECTOR, '.test-capture')
     _gallery_button_locator = (By.CSS_SELECTOR, '.test-gallery')
-    _thumbnail_button_locator = (By.CSS_SELECTOR, '.test-thumbnail')
+    _thumbnail_button_locator = (By.CSS_SELECTOR, 'img.test-thumbnail')
 
     _video_timer_locator = (By.CSS_SELECTOR, '.recording-timer')
 
@@ -39,6 +39,10 @@ class Camera(Base):
         Base.launch(self)
         self.wait_for_capture_ready()
         self.wait_for_element_not_displayed(*self._loading_screen_locator)
+
+    @property
+    def camera_mode(self):
+        return self.marionette.find_element(*self._controls_locator).get_attribute('data-mode')
 
     def take_photo(self):
         # Wait for camera to be ready to take a picture
@@ -82,6 +86,8 @@ class Camera(Base):
 
     def tap_switch_source(self):
         self.wait_for_element_displayed(*self._switch_button_locator)
+
+        current_camera_mode = self.camera_mode
         switch = self.marionette.find_element(*self._switch_button_locator)
         # TODO: Use marionette.tap(_switch_button_locator) to switch camera mode
         Actions(self.marionette).press(switch).move_by_offset(0, 0).release().perform()
@@ -89,10 +95,13 @@ class Camera(Base):
         self.wait_for_condition(
             lambda m: m.find_element(
                 *self._controls_locator).get_attribute('data-enabled') == 'true')
+
+        self.wait_for_condition(lambda m: not current_camera_mode == self.camera_mode)
         self.wait_for_capture_ready()
 
     def tap_toggle_flash_button(self):
         initial_flash_mode = self.current_flash_mode
+        self.wait_for_condition(lambda m: m.find_element(*self._toggle_flash_button_locator).is_enabled())
         self.marionette.find_element(*self._toggle_flash_button_locator).tap()
         self.wait_for_condition(lambda m: self.current_flash_mode != initial_flash_mode)
 
@@ -100,8 +109,12 @@ class Camera(Base):
         self.wait_for_condition(
             lambda m: m.execute_script('return arguments[0].readyState;', [
                 self.wait_for_element_present(*self._viewfinder_video_locator)]) > 0, 10)
+
         self.wait_for_condition(lambda m: self.marionette.find_element(
             *self._controls_locator).get_attribute('data-enabled') == 'true')
+
+        self.wait_for_condition(lambda m: self.marionette.find_element(
+            *self._controls_locator).is_enabled())
 
     def wait_for_video_capturing(self):
         self.wait_for_condition(lambda m: self.marionette.find_element(
@@ -143,6 +156,14 @@ class Camera(Base):
     @property
     def current_flash_mode(self):
         return self.marionette.find_element(*self._hud_locator).get_attribute('flash-mode')
+
+    @property
+    def current_image_src(self):
+        return self.marionette.find_element(*self._thumbnail_button_locator).get_attribute('src')
+
+    def wait_for_picture_to_change(self, image_src):
+        self.wait_for_condition(lambda m: self.current_image_src != image_src)
+
 
 class ImagePreview(Base):
 

@@ -14,7 +14,7 @@
     },
 
     weekDaysHeader: function() {
-      return '<header id="month-days">' +
+      return '<header id="month-days" role="presentation">' +
           '<ol role="row">' +
             this.s('value') +
           '</ol>' +
@@ -22,7 +22,7 @@
     },
 
     weekDaysHeaderDay: function() {
-      return '<li data-l10n-id="' + this.h('l10n') + '">' +
+      return '<li data-l10n-id="' + this.h('l10n') + '" role="columnheader">' +
           this.h('dayName') +
         '</li>';
     },
@@ -34,7 +34,7 @@
     },
 
     day: function() {
-      return '<li id="' + this.s('id') +
+      return '<li role="gridcell" id="' + this.s('id') +
                   '" data-date="' + this.s('dateString') +
                   '" class="' + this.s('state') + '">' +
           '<span class="day">' + this.h('date') + '</span>' +

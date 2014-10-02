@@ -28,8 +28,7 @@ if (!contacts.MatchingController) {
      */
     var type = 'matching';
 
-    window.addEventListener('localized', function localized(evt) {
-      window.removeEventListener('localized', localized);
+    navigator.mozL10n.once(function localized(evt) {
       // The controller is started when the literals are available
       start(window.location.search.substring('contactId'.length + 2));
     });

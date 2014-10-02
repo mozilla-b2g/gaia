@@ -46,13 +46,19 @@ var UITest = {
     if (!message.clicked) {
       return;
     }
-
-    // handle notifications when uitest is closed
+    this.bringSelfToForeground();
+  },
+  bringSelfToForeground: function() {
     navigator.mozApps.getSelf().onsuccess = function gotSelf(evt) {
       var app = evt.target.result;
-
       app.launch();
     };
+  },
+  handleActivity: function(activity) {
+    if (activity.source.name != 'internal-system-engineering-mode') {
+      return;
+    }
+    //TODO use mozEngineeringMode API to do something
   },
   init: function ut_init() {
     this.iframe.addEventListener('load', this);
@@ -61,8 +67,13 @@ var UITest = {
     window.addEventListener('keyup', this);
     window.addEventListener('hashchange', this);
     this.backHeader.addEventListener('action', this);
+
     navigator.mozSetMessageHandler('notification', function(msg) {
       this.handleNotificationMessage(msg);
+    }.bind(this));
+
+    navigator.mozSetMessageHandler('activity', function(activity) {
+      this.handleActivity(activity);
     }.bind(this));
 
     var name = this.getNameFromHash();

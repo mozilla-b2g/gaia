@@ -80,6 +80,7 @@ suite('system/SleepMenu', function() {
   });
 
   test('generateItems w/o mozTelephony', function() {
+    delete navigator.mozTelephony;
     var items = subject.generateItems();
     assert.equal(items.length, 3);
   });

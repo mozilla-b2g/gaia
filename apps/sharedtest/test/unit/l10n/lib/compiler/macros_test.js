@@ -1,12 +1,11 @@
-/* global it, before, beforeEach, assert:true, describe, requireApp */
+/* global it, before, beforeEach, assert, describe, requireApp */
 'use strict';
-var compile, assert;
+var compile;
 
 if (typeof navigator !== 'undefined') {
   requireApp('sharedtest/test/unit/l10n/lib/compiler/header.js');
 } else {
   compile = require('./header.js').compile;
-  assert = require('./header.js').assert;
 }
 
 describe('Macros', function(){

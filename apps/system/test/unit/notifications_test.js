@@ -444,6 +444,17 @@ suite('system/NotificationScreen >', function() {
           '[data-notification-i-d="id-10000"]'));
     });
 
+    test('removes the unread notificaction', function() {
+      var id = 'id-10000';
+      sinon.stub(NotificationScreen, 'removeUnreadNotification');
+      NotificationScreen.addNotification({
+        id: id, title: '', message: ''
+      });
+      NotificationScreen.removeNotification(id);
+      var expect = NotificationScreen.removeUnreadNotification.calledWith(id);
+      assert.isTrue(expect);
+    });
+
     test('does notify for generic applications', function() {
       this.sinon.stub(navigator, 'vibrate');
       this.sinon.stub(MockAudio.prototype, 'play');
@@ -572,12 +583,14 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('email notifications should not wake screen', function() {
+      details.mozbehavior = { noscreen: true };
       details.manifestURL = EMAIL_MANIFEST;
       NotificationScreen.addNotification(details);
       sinon.assert.notCalled(ScreenManager.turnScreenOn);
     });
 
     test('download progress notifications should not wake screen', function() {
+      details.mozbehavior = { noscreen: true };
       details.manifestURL = null;
       details.type = 'download-notification-downloading';
       NotificationScreen.addNotification(details);
@@ -585,6 +598,7 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('download complete notifications should wake screen', function() {
+      details.mozbehavior = undefined;
       details.manifestURL = null;
       details.type = 'download-notification-complete';
       NotificationScreen.addNotification(details);

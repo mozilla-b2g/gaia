@@ -13,7 +13,7 @@ sh.initPath(utils.getEnvPath());
  */
 function needsB2gRestart(appName) {
   // b2g should be restarted if these app name is assigned by APP=appname
-  var appList = ['system', 'callscreen', 'browser'];
+  var appList = ['system', 'callscreen'];
   return (appList.indexOf(appName) !== -1);
 }
 

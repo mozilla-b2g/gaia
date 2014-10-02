@@ -27,14 +27,16 @@ suite('MobileID UI ', function() {
     }
   ];
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     realMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
     MockNavigatorMozMobileConnections.mAddMobileConnection();
     loadBodyHTML('/mobile_id/index.html');
-    UI.init();
+    UI.init({
+      callback: done
+    });
   });
 
   suiteTeardown(function() {
@@ -71,15 +73,15 @@ suite('MobileID UI ', function() {
       UI.render(mockDetails);
     });
 
-
     test('> close button action',function(done) {
       this.sinon.stub(Controller, 'postCloseAction');
       var header = document.querySelector('gaia-header');
 
       header.addEventListener('action', function() {
-        assert.ok(Controller.postCloseAction.calledOnce);
-        sinon.assert.calledWith(Controller.postCloseAction, false);
-        done();
+        done(function() {
+          sinon.assert.calledOnce(Controller.postCloseAction);
+          sinon.assert.calledWith(Controller.postCloseAction, false);
+        });
       });
 
       header.triggerAction();

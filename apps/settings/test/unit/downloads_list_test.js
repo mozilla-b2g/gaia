@@ -43,7 +43,7 @@ suite('DownloadList', function() {
   var realMozDownloads, realL10n;
 
   var downloadsContainerDOM, editButton, deleteButton,
-    selectAllButton, deselectAllButton;
+    selectAllButton, deselectAllButton, downloadsEditMenu;
 
   suiteSetup(function() {
     // Mock l10n
@@ -66,6 +66,7 @@ suite('DownloadList', function() {
     selectAllButton = null;
     deselectAllButton = null;
     deleteButton = null;
+    downloadsEditMenu = null;
     mocksHelperForDownloadList.suiteTeardown();
   });
 
@@ -87,6 +88,7 @@ suite('DownloadList', function() {
         document.getElementById('downloads-edit-select-all');
       deselectAllButton =
         document.getElementById('downloads-edit-deselect-all');
+      downloadsEditMenu = document.getElementById('downloads-edit-menu');
       mocksHelperForDownloadList.setup();
       done();
     });
@@ -104,8 +106,11 @@ suite('DownloadList', function() {
       DownloadsList.init(function() {
         // Edit button is false at the beginning
         assert.isFalse(editButton.disabled);
+        // Edit menu is hidden at the beginning
+        assert.isTrue(downloadsEditMenu.hidden);
         // Edit mode
         editButton.click();
+        assert.isFalse(downloadsEditMenu.hidden);
         // Select all
         selectAllButton.click();
 

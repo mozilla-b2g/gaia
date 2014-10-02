@@ -17,8 +17,9 @@ Contacts.URL = 'app://communications.gaiamobile.org';
 
 Contacts.config = {
   settings: {
-    // disable keyboard ftu because it blocks our display
-    'keyboard.ftu.enabled': false
+    // disable FTU because it blocks our display
+    'ftu.manifestURL': null,
+    'lockscreen.enabled': false
   }
 };
 
@@ -30,6 +31,7 @@ Contacts.Selectors = {
 
   confirmHeader: '#confirmation-message h1',
   confirmBody: '#confirmation-message p',
+  confirmDismiss: '#confirmation-message menu button',
 
   details: '#view-contact-details',
   detailsEditContact: '#edit-contact-button',
@@ -38,6 +40,7 @@ Contacts.Selectors = {
   detailsFindDuplicate: '#contact-detail-inner #find-merge-button',
   detailsFavoriteButton: '#toggle-favorite',
   detailsContactName: '#contact-name-title',
+  detailsHeader: '#details-view-header',
 
   duplicateFrame: 'iframe[src*="matching_contacts.html"]',
   duplicateHeader: '#title',
@@ -57,6 +60,7 @@ Contacts.Selectors = {
   formFamilyName: '#familyName',
   formSave: '#save-button',
   formTel: '#contacts-form-phones input[type="tel"]',
+  formDelFirstTel: '#add-phone-0 .img-delete-button',
   formTelLabelFirst: '#tel_type_0',
   formTelNumberSecond: '#number_1',
   formEmailFirst: '#email_0',
@@ -76,6 +80,7 @@ Contacts.Selectors = {
   overlay: 'nav[data-type="scrollbar"] p',
 
   settingsView: '#view-settings',
+  settingsClose: '#settings-close',
   bulkDelete: '#bulkDelete',
 
   editForm: '#selectable-form',
@@ -83,10 +88,14 @@ Contacts.Selectors = {
 
   clearOrgButton: '#clear-org',
   setIceButton: '#set-ice',
+  iceHeader: '#ice-header',
   iceSwitch1: '#ice-contacts-1-switch',
+  iceInputSwitch1: '#ice-contacts-1-switch input[type="checkbox"]',
   iceSwitch2: '#ice-contacts-2-switch',
   iceButton1: '#select-ice-contact-1',
-  iceButton2: '#select-ice-contact-2'
+  iceButton2: '#select-ice-contact-2',
+  iceGroupOpen: '#section-group-ice',
+  iceContact: '#ice-group .contact-item'
 };
 
 Contacts.prototype = {

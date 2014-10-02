@@ -96,18 +96,18 @@
     var className = this.CLASS_NAME + this.instanceID;
 
     return `<div class="chrome" id="${className}">
-            <gaia-progress></gaia-progress>
-            <div class="controls">
-             <button type="button" class="back-button" disabled></button>
-             <button type="button" class="forward-button" disabled></button>
-             <div class="urlbar">
-               <div class="title" data-ssl=""></div>
-               <button type="button" class="reload-button"></button>
-               <button type="button" class="stop-button"></button>
-             </div>
-             <button type="button" class="menu-button"
-               alt="Menu"></button>
-             <button type="button" class="windows-button"></button>
+              <gaia-progress></gaia-progress>
+              <div class="controls">
+                <button type="button" class="back-button" disabled></button>
+                <button type="button" class="forward-button" disabled></button>
+                <div class="urlbar">
+                  <div class="title" data-ssl=""></div>
+                  <button type="button" class="reload-button"></button>
+                  <button type="button" class="stop-button"></button>
+                </div>
+                <button type="button" class="menu-button" alt="Menu"></button>
+                <button type="button" class="windows-button"></button>
+              </div>
             </div>`;
   };
 

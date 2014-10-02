@@ -189,9 +189,11 @@ suite('L10n', function() {
     test('element with child', function() {
       elem.innerHTML = 'here is a button <button>(foo)</button>';
       _localize(elem, 'textcontent-test');
-      _translateFragment(elem);
-      assert.equal(elem.textContent, 'this is text content(foo)');
-      assert.ok(elem.querySelector('button'));
+
+      /* jshint -W083 */
+      assert.throws(function() {
+        _translateFragment(elem);
+      }, /setTextContent is deprecated/);
     });
   });
 

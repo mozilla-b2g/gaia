@@ -11,6 +11,7 @@
   var rowBuilderFn = null;
   var imgLoader = null;
   var initialized = false;
+  var iceListDisplayed = false;
 
   /**
    * Initialises the component by passing a list of ICE ids,
@@ -46,7 +47,7 @@
     document.getElementById('ice-header').addEventListener(
       'action', hideICEList);
     document.getElementById('ice-list').addEventListener('click', clickHandler);
-    
+
     LazyLoader.load(['/contacts/js/utilities/ice_data.js'], function() {
       listenForChanges();
     });
@@ -56,16 +57,14 @@
   // contacts. In that case rebuild the whole list, since ICE list is meant
   // to be a small set (2 currently) of contacts.
   function listenForChanges() {
-    ICEData.listenForChanges(function(data) {
-      if (!Array.isArray(data) || data.length === 0) {
-        contactsIds = [];
-        ICEData.iceContacts.forEach(function(iceContact) {
-          if (iceContact.id && iceContact.active) {
-            contactsIds.push(iceContact.id);
-          }
-        });
-        buildICEContactsList();
-      }
+    ICEData.listenForChanges(function(newList) {
+      contactsIds = [];
+      newList.forEach(function(iceContact) {
+        if (iceContact.id && iceContact.active) {
+          contactsIds.push(iceContact.id);
+        }
+      });
+      buildICEContactsList();
     });
   }
 
@@ -92,16 +91,21 @@
 
   function showICEList() {
     Contacts.navigation.go('ice-view', 'right-left');
+    iceListDisplayed = true;
   }
 
   function hideICEList() {
     Contacts.navigation.back();
+    iceListDisplayed = false;
   }
 
   var ICEView = {
     init: init,
     showICEList: showICEList,
-    hideICEList: hideICEList
+    hideICEList: hideICEList,
+    get iceListDisplayed() {
+      return iceListDisplayed;
+    }
   };
 
   exports.contacts.ICEView = ICEView;

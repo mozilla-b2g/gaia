@@ -233,7 +233,8 @@ suite('Import Friends Test Suite', function() {
 
     importer.start('mock_token', MockConnector, '*', function() {
       var friendsMsgElement = document.querySelector('#friends-msg');
-      assert.equal(friendsMsgElement.textContent, 'fbNoFriends');
+      assert.equal(friendsMsgElement.getAttribute('data-l10n-id'),
+                   'fbNoFriends');
       done();
     });
     MockConnector.listDeviceContacts = listDeviceContacts;
@@ -255,7 +256,8 @@ suite('Import Friends Test Suite', function() {
       assert.isTrue(document.getElementById('select-all').disabled === false);
 
       var friendsElement = document.getElementById('friends-msg');
-      assert.isTrue(friendsElement.textContent === 'fbNoFriends');
+      assert.equal(friendsElement.getAttribute('data-l10n-id'),
+                  'fbNoFriends');
 
       done();
     });
@@ -341,7 +343,7 @@ suite('Import Friends Test Suite', function() {
       function setObserver(callback) {
         observer = new MutationObserver(callback);
         var observerTarget = document.getElementById('friends-msg');
-        observer.observe(observerTarget, {childList: true});
+        observer.observe(observerTarget, {attributes: true});
 
         var MockFbConnector = {
           name: 'facebook',
@@ -380,9 +382,9 @@ suite('Import Friends Test Suite', function() {
 
         setObserver(function(mutations) {
           done(function() {
-            assert.isTrue(mutations[0].target.textContent.indexOf('-') < 0,
-              'The number must not be negative');
-            assert.isTrue(mutations[0].target.textContent.indexOf('0') >= 0,
+            var l10nAttrs =
+              navigator.mozL10n.getAttributes(mutations[0].target);
+            assert.deepEqual(l10nAttrs.args, { numFriends : 0 },
               'The number must be 0');
           });
         });
@@ -394,7 +396,9 @@ suite('Import Friends Test Suite', function() {
 
         setObserver(function(mutations) {
           done(function() {
-            assert.isTrue(mutations[0].target.textContent.indexOf('0') >= 0,
+            var l10nAttrs =
+              navigator.mozL10n.getAttributes(mutations[0].target);
+            assert.deepEqual(l10nAttrs.args, { numFriends : 0 },
               'The number must be 0');
           });
         });
@@ -406,12 +410,10 @@ suite('Import Friends Test Suite', function() {
 
         setObserver(function(mutations) {
           done(function() {
-            assert.isTrue(mutations[0].target.textContent.indexOf('-') < 0,
-              'The number must not be negative');
-            assert.isTrue(mutations[0].target.textContent.indexOf('0') < 0,
-              'The number must not be 0');
-            assert.isTrue(mutations[0].target.textContent.indexOf('1') >= 0,
-              'The number must be 1 in this case');
+            var l10nAttrs =
+              navigator.mozL10n.getAttributes(mutations[0].target);
+            assert.deepEqual(l10nAttrs.args, { numFriends : 1 },
+              'The number must be 1');
           });
         });
       });

@@ -23,6 +23,10 @@ var UtilityTray = {
 
   grippy: document.getElementById('utility-tray-grippy'),
 
+  container: document.getElementById('desktop-notifications-container'),
+
+  notificationTitle: document.getElementById('notification-some'),
+
   screen: document.getElementById('screen'),
 
   init: function ut_init() {
@@ -396,6 +400,14 @@ var UtilityTray = {
       evt.initCustomEvent('utilitytrayshow', true, true, null);
       window.dispatchEvent(evt);
     }
+  },
+
+  updateNotificationCount: function ut_updateNotificationCount() {
+    var count = this.container.querySelectorAll('.notification').length;
+    navigator.mozL10n.setAttributes(this.notificationTitle,
+      'statusbarNotifications', {
+        n: count
+      });
   },
 
   updateSize: function ut_updateSize() {

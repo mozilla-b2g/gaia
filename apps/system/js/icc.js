@@ -1,6 +1,6 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* global LazyLoader, DUMP */
 'use strict';
 
 var icc = {
@@ -77,17 +77,13 @@ var icc = {
 
   getIccInfo: function icc_getIccInfo() {
     var self = this;
-    var xhr = new XMLHttpRequest();
-    xhr.onerror = function() {
-      DUMP('Failed to fetch file: ' + href, xhr.statusText);
-    };
-    xhr.onload = function() {
-      self._defaultURL = xhr.response.defaultURL;
+    var url = '/resources/icc.json';
+    LazyLoader.getJSON(url).then(function(json) {
+      self._defaultURL = json.defaultURL;
       DUMP('ICC default URL: ', self._defaultURL);
-    };
-    xhr.open('GET', '/resources/icc.json', true);
-    xhr.responseType = 'json';
-    xhr.send();
+    }, function(error) {
+      DUMP('Failed to fetch file: ' + url + ',' + error);
+    });
   },
 
   getIcc: function icc_getIcc(iccId) {
@@ -256,7 +252,6 @@ var icc = {
   },
 
   setupView: function icc_setupView(viewId) {
-    viewId.style.marginTop = StatusBar.height + 'px';
     // If the view has a form, we should be care of the keyboard changes
     if (viewId.getElementsByTagName('form').length > 0) {
       this.keyboardChangedEvent(viewId);
@@ -273,16 +268,19 @@ var icc = {
       keyboardHeight = KeyboardManager.getHeight() || 0;
     }
     var form = viewId.getElementsByTagName('form');
-    viewId.style.height =
-      (window.innerHeight - keyboardHeight - StatusBar.height) + 'px';
+    var height = (window.innerHeight - keyboardHeight - StatusBar.height);
+    height -= softwareButtonManager.height;
+    viewId.style.height = height + 'px';
     if (form && viewId.clientHeight > 0) {
       var input = viewId.getElementsByTagName('input')[0];
       var header = viewId.getElementsByTagName('gaia-header')[0];
       var headerSubtitle = viewId.getElementsByTagName('gaia-subheader')[0];
       var menu = viewId.getElementsByTagName('menu')[0];
-      form[0].style.height = viewId.clientHeight -
-        (header.clientHeight + headerSubtitle.clientHeight) -
-        menu.clientHeight + 'px';
+      var formHeight = viewId.clientHeight;
+      formHeight -= (header.clientHeight + headerSubtitle.clientHeight);
+      formHeight -= menu.clientHeight;
+      formHeight -= softwareButtonManager.height;
+      form[0].style.height = formHeight + 'px';
       input.scrollIntoView();
     }
   },

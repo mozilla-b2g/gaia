@@ -22,16 +22,7 @@
      * Returns the height in pixels of each icon.
      */
     get pixelHeight() {
-      var itemHeight = this.grid.layout.gridItemHeight;
-
-      // For placeholders which are there for edge group creation, give them
-      // the minimum height necessary to render. The divider will already
-      // have a spacing buffer.
-      if (this.createsGroupOnDrop) {
-        itemHeight = 1;
-      }
-
-      return itemHeight;
+      return this.grid.layout.gridItemHeight;
     },
 
     /**
@@ -56,12 +47,8 @@
 
     /**
      * Renders a transparent placeholder.
-     * @param {Array} coordinates Grid coordinates to render to.
-     * @param {Number} index The index of the items list of this item.
      */
-    render: function(coordinates, index) {
-      this.scale = this.grid.layout.percent;
-
+    render: function() {
       // Generate an element if we need to
       if (!this.element) {
         var tile = document.createElement('div');
@@ -71,11 +58,7 @@
         this.grid.element.appendChild(tile);
       }
 
-      var x = this.x = coordinates[0] * this.grid.layout.gridItemWidth;
-      var y = this.y = this.grid.layout.offsetY;
-      this.setPosition(index);
-
-      this.transform(x, y, this.grid.layout.percent);
+      this.transform(this.x, this.y, this.grid.layout.percent);
     },
 
     remove: function() {

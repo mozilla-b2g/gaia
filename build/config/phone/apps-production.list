@@ -1,6 +1,5 @@
 apps/bluetooth
 apps/bookmark
-apps/browser
 apps/calendar
 apps/callscreen
 apps/camera
@@ -8,6 +7,7 @@ apps/clock
 apps/collection
 apps/communications
 apps/costcontrol
+apps/default_theme
 apps/email
 apps/emergency-call
 apps/findmydevice

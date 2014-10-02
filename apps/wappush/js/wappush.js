@@ -111,7 +111,9 @@
     header = document.getElementById('header');
 
     // Get the app object and configuration
-    var promise = Promise.all([wpm_getApp(), wpm_getConfig()]);
+    var promise = Promise.all([
+      wpm_getApp(), wpm_getConfig(), WhiteList.init()
+    ]);
 
     promise = promise.then(function(values) {
       app = values[0];
@@ -328,7 +330,7 @@
               SiSlScreenHelper.populateScreen(message);
               return wpm_clearNotifications(timestamp);
             case 'text/vnd.wap.connectivity-xml':
-              CpScreenHelper.populateScreen(message);
+              CpScreenHelper.showConfirmInstallationDialog(message);
               break;
           }
         } else {

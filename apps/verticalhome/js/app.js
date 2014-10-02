@@ -1,5 +1,5 @@
 'use strict';
-/* global ItemStore, LazyLoader, Configurator */
+/* global ItemStore, LazyLoader, Configurator, SettingsListener, groupEditor */
 
 (function(exports) {
 
@@ -10,9 +10,33 @@
     window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
     this.grid = document.getElementById('icons');
 
+    SettingsListener.observe('verticalhome.grouping.enabled', false,
+      (value) => {
+        var groupingEnabled = value;
+        if (typeof this.grouping !== 'undefined') {
+          if (groupingEnabled != this.grouping) {
+            window.location.reload();
+            return;
+          }
+        }
+
+        this.grouping = groupingEnabled;
+        if (groupingEnabled) {
+          document.body.classList.add('grouping');
+          LazyLoader.load(
+            ['shared/elements/gaia_grid/js/items/group.js'],
+            () => {
+              this.init();
+            });
+        } else {
+          this.init();
+        }
+      });
+
     this.grid.addEventListener('iconblobdecorated', this);
     this.grid.addEventListener('gaiagrid-iconbloberror', this);
     this.grid.addEventListener('cached-icons-rendered', this);
+    this.grid.addEventListener('edititem', this);
     window.addEventListener('hashchange', this);
     window.addEventListener('gaiagrid-saveitems', this);
     window.addEventListener('online', this.retryFailedIcons.bind(this));
@@ -173,6 +197,18 @@
           });
           break;
 
+        case 'edititem':
+          var icon = e.detail;
+          if (icon.detail.type != 'divider') {
+            // We only edit groups
+            return;
+          }
+
+          LazyLoader.load('js/edit_group.js', () => {
+            groupEditor.edit(icon);
+          });
+          break;
+
         case 'gaiagrid-iconbloberror':
           // Attempt to redownload this icon at some point in the future
           this._iconsToRetry.push(e.detail.identifier);
@@ -202,6 +238,12 @@
         // The system app changes the hash of the homescreen iframe when it
         // receives a home button press.
         case 'hashchange':
+          // The group editor UI will be hidden by itself so returning...
+          var editor = exports.groupEditor;
+          if (editor && !editor.hidden) {
+            return;
+          }
+
           var _grid = this.grid._grid;
 
           // Leave edit mode if the user is in edit mode.
@@ -238,6 +280,5 @@
     }
   };
   exports.app = new App();
-  exports.app.init();
 
 }(window));

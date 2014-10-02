@@ -81,8 +81,8 @@
   // Export the UsageData class so we can test it independently
   AUM.UsageData = UsageData;
 
-  // Set to false to silence debug output
-  AUM.DEBUG = true;
+  // Set to true to to enable debug output
+  AUM.DEBUG = false;
 
   // This logging function is the only thing that is not exposed through
   // the AppUsageMetrics contstructor or its instance.

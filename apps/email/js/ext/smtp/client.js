@@ -37,12 +37,8 @@ define(function(require, exports) {
                                           credsUpdatedCallback) {
     var conn;
 
-    return oauth.ensureUpdatedCredentials(
-      credentials
-    ).then(function(credentialsChanged) {
-      if (credentialsChanged) {
-        credsUpdatedCallback(credentials);
-      }
+    return oauth.ensureUpdatedCredentials(credentials, credsUpdatedCallback)
+    .then(function() {
       return new Promise(function(resolve, reject) {
 
         var auth = {
@@ -106,11 +102,24 @@ define(function(require, exports) {
       if (conn) {
         conn.close();
       }
-      slog.error('smtp:connect-error', {
-        error: errorString,
-        connInfo: connInfo
-      });
-      throw errorString;
+
+      // Could hit an oauth reauth case due to date skews, so give a token
+      // review a shot before really bailing.
+      if (errorString === 'needs-oauth-reauth' &&
+          oauth.isRenewPossible(credentials)) {
+        return oauth.ensureUpdatedCredentials(credentials,
+                                              credsUpdatedCallback, true)
+        .then(function() {
+          return exports.createImapConnection(credentials, connInfo,
+                                              credsUpdatedCallback);
+        });
+      } else {
+        slog.error('smtp:connect-error', {
+          error: errorString,
+          connInfo: connInfo
+        });
+        throw errorString;
+      }
     });
   };
 

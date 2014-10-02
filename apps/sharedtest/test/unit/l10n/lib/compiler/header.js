@@ -1,9 +1,8 @@
-/* global window, navigator, process, exports, assert:true */
-/* exported assert, compile */
+/* global navigator, process, exports */
+/* exported compile */
 
 'use strict';
 
-var assert = require('assert') || window.assert;
 var PropertiesParser;
 
 if (typeof navigator !== 'undefined') {
@@ -31,5 +30,4 @@ function compile(source) {
   return env;
 }
 
-exports.assert = assert;
 exports.compile = compile;

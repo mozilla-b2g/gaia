@@ -14,11 +14,6 @@ class GaiaIntegrationParser(ArgumentParser):
           "default": "desktop",
           "help": "The type of build to run gaia-integration tests on.",
         }],
-        [["--manifest"],
-        { "dest": "manifest",
-          "default": None,
-          "help": "Path to a test manifest to use."
-        }],
         [["--b2gpath"],
         { "dest": "b2g_home",
           "default": None,

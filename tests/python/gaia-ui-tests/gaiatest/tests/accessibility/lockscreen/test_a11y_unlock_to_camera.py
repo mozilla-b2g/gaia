@@ -23,8 +23,7 @@ class TestLockScreenAccessibility(GaiaTestCase):
         self.assertFalse(self.is_element_present(*camera_locator))
 
         camera = lock_screen.a11y_click_camera_button()
-        lock_screen.wait_for_lockscreen_not_visible()
-        self.assertEquals(self.apps.displayed_app.name, camera.name)
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == camera.name)
 
         self.assertTrue(self.accessibility.is_hidden(lockScreen_window))
         self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(

@@ -1,7 +1,7 @@
 'use strict';
 
 var Actions = require('marionette-client').Actions;
-var Bookmark = require('./lib/bookmark');
+var Bookmark = require('../../../../apps/system/test/marionette/lib/bookmark');
 var Collection = require('./lib/collection');
 var EmeServer = require(
   '../../../../shared/test/integration/eme_server/parent');
@@ -35,7 +35,7 @@ marionette('Vertical - Collection', function() {
 
     home.waitForLaunch();
     collection.disableGeolocation();
-    collection.setServerURL(server);
+    EmeServer.setServerURL(client, server);
   });
 
   test('uninstall pinned collection web result', function() {

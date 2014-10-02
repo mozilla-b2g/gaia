@@ -69,16 +69,16 @@
         }
         return;
       }
-      // We don't need the screenshot of homescreen because:
-      // 1. Homescreen background is transparent,
-      //    currently gecko only sends JPG to us.
-      //    See bug 878003.
-      // 2. Homescreen screenshot isn't required by card view.
-      //    Since getScreenshot takes additional memory usage,
-      //    let's early return here.
       var self = this;
       var invoked = false;
       var timer;
+
+      // First, let's check if we have a frontWindow, if so this is the one
+      // we will want a screenshot of!
+      if (this.frontWindow) {
+        this.frontWindow.getScreenshot(callback, width, height, timeout);
+        return;
+      }
 
       if (timeout) {
         timer = window.setTimeout(function() {

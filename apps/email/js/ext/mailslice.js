@@ -4359,6 +4359,10 @@ FolderStorage.prototype = {
   /**
    * Determines if the bodyReps of a given body have been downloaded...
    *
+   * Note that for POP3 we will return false here if there are undownloaded
+   * attachments even if the body parts are entirely downloaded.  This
+   * situation would occur if the body is extremely small and so our snippet
+   * fetch is able to fully retrieve the observed body parts.
    *
    *    storage.messageBodyRepsDownloaded(bodyInfo) => true/false
    *
@@ -4368,9 +4372,23 @@ FolderStorage.prototype = {
     if (!bodyInfo.bodyReps || !bodyInfo.bodyReps.length)
       return true;
 
-    return bodyInfo.bodyReps.every(function(rep) {
+    var bodyRepsDownloaded = bodyInfo.bodyReps.every(function(rep) {
       return rep.isDownloaded;
     });
+
+    // As noted above, for POP3 we want to also validate the state of the
+    // attachments since they need to be downloaded for the whole message to
+    // have been downloaded.  Of course, we only want to do this for the inbox;
+    // all other folders are synthetic and downloading is nonsensical.
+    //
+    // Sarcastic hooray for POP3 forcing us to do stuff like this.
+    if (this._account.type !== 'pop3' || this.folderMeta.type !== 'inbox') {
+      return bodyRepsDownloaded;
+    }
+    var attachmentsDownloaded = bodyInfo.attachments.every(function(att) {
+      return !!att.file;
+    });
+    return bodyRepsDownloaded && attachmentsDownloaded;
   },
 
   /**

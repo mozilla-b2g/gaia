@@ -69,4 +69,6 @@ var FakeMusicComms = {
   }
 };
 
-FakeMusicComms.init();
+window.addEventListener('load', function() {
+  FakeMusicComms.init();
+});
