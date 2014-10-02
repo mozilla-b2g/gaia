@@ -49,10 +49,6 @@ suite('search/providers/suggestions', function() {
   });
 
   suite('search', function() {
-    function promise() {
-      return new Promise(function () {});
-    }
-
     setup(function() {
       eme.api = {
         Search: {
@@ -73,12 +69,11 @@ suite('search/providers/suggestions', function() {
       }, done);
     });
 
-    test('makes api call', function() {
-      eme.api.Search = {suggestions: function() {}};
-      var stub = this.sinon.stub(eme.api.Search, 'suggestions');
-      stub.returns(promise());
+    test('makes api call', function(done) {
+      eme.api.Search = {suggestions: function() {
+        done();
+      }};
       subject.search();
-      assert.ok(stub.calledOnce);
     });
 
     test('clears if new suggestions', function() {

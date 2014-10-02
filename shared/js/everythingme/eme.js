@@ -18,6 +18,10 @@
     },
 
     init: function init() {
+      if (initPromise) {
+        return initPromise;
+      }
+
       initPromise = this.readSettings()
       .then(
         function success(settings) {
