@@ -1,18 +1,23 @@
 'use strict';
-/* global MocksHelper, MockApplications, MockL10n, ActionMenu, Activities */
+/* global MocksHelper, MockApplications, MockL10n, ActionMenu, Activities,
+   MockNavigatormozApps, MockDefaultActivityHelper, DefaultActivityHelper */
 
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/js/action_menu.js');
 requireApp('system/shared/js/manifest_helper.js');
 requireApp('system/js/activities.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
+require('/shared/test/unit/mocks/mock_default_activity_helper.js');
+
 var mocksForActivities = new MocksHelper([
   'Applications'
 ]).init();
 
 suite('system/Activities', function() {
   var realL10n;
+  var realMozapps;
+  var realDefaultActivityHelper;
   var subject;
   var stubById;
   var fakeElement;
@@ -33,14 +38,20 @@ suite('system/Activities', function() {
   mocksForActivities.attachTestHelpers();
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
+    realMozapps = navigator.mozApps;
     navigator.mozL10n = MockL10n;
+    navigator.mozApps = MockNavigatormozApps;
     realApplications = window.applications;
+    realDefaultActivityHelper = window.DefaultActivityHelper;
     window.applications = MockApplications;
+    window.DefaultActivityHelper = MockDefaultActivityHelper;
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
+    navigator.mozApps = realMozapps;
     window.applications = realApplications;
+    window.DefaultActivityHelper = realDefaultActivityHelper;
     realApplications = null;
   });
 
@@ -202,21 +213,42 @@ suite('system/Activities', function() {
 
   suite('choose', function() {
     test('calls _sendEvent', function() {
-      subject._id = 'foo';
+      subject._detail = {
+        id: 'foo'
+      };
       var stub = this.sinon.stub(subject, '_sendEvent');
       var formatted = {
         id: 'foo',
         type: 'activity-choice',
-        value: 0
+        value: 0,
+        setAsDefault: false
       };
-      subject.choose(0);
+      subject.choose(0, false);
       assert.ok(stub.calledWith(formatted));
+    });
+  });
+
+  suite('choose with set default', function() {
+    test('calls DefaultActivityHelper set default action', function() {
+      subject._detail = {
+        id: 'foo',
+        name: 'testactivity',
+        activityType: 'testtype',
+        choices: [{
+          manifest: 'manifest'
+        }]
+      };
+      var stub = this.sinon.stub(DefaultActivityHelper, 'setDefaultAction');
+      subject.choose(0, true);
+      assert.ok(stub.calledWith('testactivity', 'testtype', 'manifest'));
     });
   });
 
   suite('cancel', function() {
     test('calls _sendEvent', function() {
-      subject._id = 'foo';
+      subject._detail = {
+        id: 'foo'
+      };
       var stub = this.sinon.stub(subject, '_sendEvent');
       var formatted = {
         id: 'foo',
@@ -271,5 +303,9 @@ suite('system/Activities', function() {
       this.sinon.clock.tick();
       assert.ok(actionMenuStub.calledOnce);
     });
+  });
+
+  suite('set default action', function() {
+
   });
 });

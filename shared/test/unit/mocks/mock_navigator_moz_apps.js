@@ -50,7 +50,10 @@ var MockNavigatormozApps = {
         }
       };
     },
-    uninstall: function() {}
+    uninstall: function() {},
+    addEventListener: function() {
+
+    }
   },
 
   mLastRequest: null,

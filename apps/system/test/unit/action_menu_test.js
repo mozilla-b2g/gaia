@@ -225,4 +225,20 @@ suite('ActionMenu', function() {
       assert.isTrue(menu.preventFocusChange.called);
     });
   });
+
+  suite('askForDefaultChoice option', function() {
+    var menu;
+
+    setup(function() {
+      menu = new ActionMenu(
+        genericActionsMockup, title, null, null, true);
+      menu.start();
+      this.sinon.spy(menu, 'hide');
+    });
+
+    test('checkbox is created', function() {
+      var checkbox = getMenu().querySelectorAll('.pack-checkbox');
+      assert.equal(checkbox.length, 1);
+    });
+  });
 });
