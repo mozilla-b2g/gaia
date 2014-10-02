@@ -32,7 +32,6 @@ form[role="dialog"][data-type="object"] > menu > button.tail-icon {
 
 form[role="dialog"][data-type="action"],
 form[role="dialog"][data-type="object"] {
-	position: absolute;
 	visibility: hidden;
 	transform: translateY(100%);
 	transition: transform ease-in-out .3s, visibility .3s;
