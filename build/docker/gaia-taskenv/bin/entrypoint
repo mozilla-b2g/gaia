@@ -36,7 +36,7 @@ fi
 cd $checkout_path
 
 # Current revision...
-git log -n 1
+git --no-pager log -n 1
 
 # virtualenv setup so any python packages can be abused without root access
 virtualenv $HOME/.venv --system-site-packages

@@ -23,6 +23,9 @@ env LOGNAME tester
 env PATH $PATH:/home/tester/bin
 workdir /home/tester
 
+run git config --global user.email "gaia@mozilla.com"
+run git config --global user.name "gaia-taskenv"
+
 # run some more root commands which change frequently
 add ./bin/entrypoint /home/tester/bin/entrypoint
 run chmod a+x /home/tester/bin/entrypoint
