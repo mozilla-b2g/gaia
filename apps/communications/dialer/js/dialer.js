@@ -269,12 +269,12 @@ var CallHandler = (function callHandler() {
 
   function callEnded(data) {
     var highPriorityWakeLock = navigator.requestWakeLock('high-priority');
-    var number = data.id ? data.id.number : data.number;
+    var number = data.number;
     var incoming = data.direction === 'incoming';
 
     NavbarManager.ensureResources(function() {
       // Missed call when not rejected by user
-      if(incoming && !data.duration && !data.hangUpLocal) {
+      if (incoming && !data.duration && !data.hangUpLocal) {
         sendNotification(number, data.serviceId);
       }
 
@@ -296,7 +296,7 @@ var CallHandler = (function callHandler() {
 
           // A CDMA call can contain two calls. If it only has one call,
           // we have nothing left to do and release the lock.
-          if(!data.secondNumber) {
+          if (!data.secondNumber) {
             highPriorityWakeLock.unlock();
             return;
           }
