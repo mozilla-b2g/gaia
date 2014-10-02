@@ -82,7 +82,7 @@ suite('Tutorial >', function() {
                          .then(done, done);
     function onOutcome() {
       assert.equal(Tutorial.config['default'].steps.length, 2);
-    };
+    }
   });
 
   suite(' lifecycle', function() {
@@ -229,7 +229,7 @@ suite('Tutorial >', function() {
     test(' text & src are the right ones for the current step (2)',
       function(done) {
       // Spy the l10n
-      this.sinon.spy(navigator.mozL10n, 'localize');
+      this.sinon.spy(navigator.mozL10n, 'setAttributes');
       // Move forwad again
       function onNextLoaded() {
          // Are we in Step 2?
@@ -238,7 +238,7 @@ suite('Tutorial >', function() {
           2
         );
         // We are in step 2 and taking into account the current layout
-        assert.equal(navigator.mozL10n.localize.args[0][1],
+        assert.equal(navigator.mozL10n.setAttributes.args[0][1],
                     Tutorial.config['default'].steps[1].l10nKey);
         // Now we check the element src.
         // As we are in 'tiny' (default layout in the mock)

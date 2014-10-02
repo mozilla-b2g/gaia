@@ -4,8 +4,6 @@
 /* exported AppManager */
 'use strict';
 
-var _ = navigator.mozL10n.get;
-
 function notifyCollection() {
   navigator.mozApps.getSelf().onsuccess = function(evt) {
     var app = evt.target.result;
@@ -105,7 +103,7 @@ navigator.mozL10n.ready(function showBody() {
       AppManager.init(versionInfo);
     } else {
       UIManager.initTZ();
-      UIManager.mainTitle.innerHTML = _('language');
+      UIManager.mainTitle.setAttribute('data-l10n-id', 'language');
     }
 
   });

@@ -108,7 +108,7 @@ suite('UI Manager > ', function() {
         cityLabel = document.getElementById('tz-city-label');
         timeLabel = document.getElementById('time-configuration-label');
 
-        localizeSpy = this.sinon.spy(navigator.mozL10n, 'localize');
+        localizeSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
         localeFormatSpy =
           this.sinon.spy(navigator.mozL10n.DateTimeFormat.prototype,
                         'localeFormat');
@@ -162,12 +162,12 @@ suite('UI Manager > ', function() {
     });
 
     setup(function() {
-      localizeSpy = this.sinon.spy(navigator.mozL10n, 'localize');
+      localizeSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
       nextButton = document.getElementById('forward');
     });
 
     teardown(function() {
-      navigator.mozL10n.localize.restore();
+      navigator.mozL10n.setAttributes.restore();
     });
 
     suite('Verified Firefox Account login', function() {

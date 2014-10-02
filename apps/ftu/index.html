@@ -139,7 +139,10 @@
         <label id="pin-retries-left" data-l10n-id="inputCodeRetriesLeft" class="retries hidden">Unknown tries left</label>
         <section class="input-wrapper">
           <input id="pin-input" name="simpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
-          <label id="pin-error" data-l10n-id="pinError" class="hidden error">The PIN was incorrect.</label>
+          <label id="pin-error" class="hidden error">
+            <span data-l10n-id="pinError" class="main">The PIN was incorrect.</span>
+            <span data-l10n-id="pinLastChanceMsg" class="lastchance hidden"></span>
+          </label>
         </section>
       </section>
 
@@ -149,7 +152,10 @@
         <section class="input-wrapper">
           <input id="puk-input" name="simpuk" type="password" x-inputmode="digit" size="8" maxlength="8" />
           <div id="puk-info" data-l10n-id="pukInfo" class="info">You must enter the Personal Unlocking Key (PUK) Code for the SIM card. Refer to your SIM card documentation or contact your carrier for more information.</div>
-          <div id="puk-error" data-l10n-id="pukError" class="hidden error">The PUK was incorrect.</div>
+          <div id="puk-error" class="hidden error">
+            <span data-l10n-id="pukError" class="main">The PUK was incorrect.</span>
+            <span data-l10n-id="pukLastChanceMsg" class="lastchance hidden"></span>
+          </div>
         </section>
         <label id="newpin" data-l10n-id="create_newpin">Create new PIN (4 to 8 digits)</label>
         <section class="input-wrapper">
@@ -168,7 +174,10 @@
         <label id="xck-retries-left" data-l10n-id="inputCodeRetriesLeft" class="hidden retries">Unknown tries left</label>
         <section class="input-wrapper">
           <input id="xck-input" name="simxck" type="password"  x-inputmode="digit" size="16" maxlength="16" />
-          <label id="xck-error" data-l10n-id="confirm_newpin" class="hidden error"></label>
+          <label id="xck-error" class="hidden error">
+            <span data-l10n-id="confirm_newpin" class="main"></span>
+            <span data-l10n-id="nckLastChanceMsg" class="lastchance hidden"></span>
+          </label>
         </section>
       </section>
     </article>
