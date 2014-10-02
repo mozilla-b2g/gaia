@@ -1,6 +1,6 @@
 /*global Notify, Compose, MocksHelper, ActivityHandler, Contacts,
          Attachment, ThreadUI, Settings, Notification,
-         Threads, Navigation, Promise  */
+         Threads, Navigation, Promise, MessageManager, Utils  */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
          MockNavigatorWakeLock, MockOptionMenu,
          MockMessages, MockL10n, MockSilentSms,
@@ -681,31 +681,46 @@ suite('ActivityHandler', function() {
       postResult: sinon.stub()
     };
 
+    var deferred;
+
     setup(function() {
       // find no contact in here
-      this.sinon.stub(Contacts, 'findByAddress').callsArgWith(1, []);
+      this.sinon.stub(Contacts, 'findByPhoneNumber').callsArgWith(1, []);
+      // find no message with current number
+      this.sinon.stub(MessageManager, 'getMessages').yieldsTo('done');
       this.sinon.spy(Navigation, 'toPanel');
+      deferred = Utils.Promise.defer();
+      var originalToView = ActivityHandler.toView;
+      this.sinon.stub(ActivityHandler, 'toView', function(viewInfo) {
+        originalToView.call(this, viewInfo);
+        return deferred.resolve(viewInfo);
+      });
+
     });
 
     teardown(function() {
       ActivityHandler.leaveActivity();
     });
 
-    test('Activity lock should be released properly', function() {
+    test('Activity lock should be released properly', function(done) {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
 
-      assert.isFalse(ActivityHandler.isLocked);
+      deferred.promise.then(function() {
+         assert.isFalse(ActivityHandler.isLocked);
+      }).then(done,done);
     });
 
-    test('Should move to the composer', function() {
+    test('Should move to the composer', function(done) {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
 
-      sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
-        activity: {
-          number: '123',
-          body: 'foo'
-        }
-      });
+      deferred.promise.then(function() {
+        sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
+          activity: {
+            number: '123',
+            body: 'foo'
+          }
+        });
+      }).then(done,done);
     });
 
     test('new message with empty msg', function() {
@@ -728,7 +743,7 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity_empty);
     });
 
-    test('new message with user input msg, discard it', function() {
+    test('new message with user input msg, discard it', function(done) {
       // User typed message in the input field
       Compose.mEmpty = false;
       this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
@@ -751,15 +766,17 @@ suite('ActivityHandler', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
 
       // should be called after discarding
-      sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
-        activity: {
-          number: '123',
-          body: 'foo'
-        }
-      });
+      deferred.promise.then(function() {
+        sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
+          activity: {
+            number: '123',
+            body: 'foo'
+          }
+        });
+      }).then(done,done);
     });
 
-    test('new message with user input msg, edit it', function() {
+    test('new message with user input msg, edit it', function(done) {
       // There is message in the input field.
       Compose.mEmpty = false;
       this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
@@ -780,12 +797,266 @@ suite('ActivityHandler', function() {
       });
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
 
-      sinon.assert.notCalled(Navigation.toPanel);
+      deferred.promise.then(function() {
+        sinon.assert.notCalled(Navigation.toPanel);
+      }).then(done,done);
     });
 
-    test('new message should set the current activity', function() {
+    test('new message should set the current activity', function(done) {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      assert.isTrue(ActivityHandler.isInActivity());
+
+      deferred.promise.then(function() {
+        assert.isTrue(ActivityHandler.isInActivity());
+      }).then(done,done);
+    });
+
+    suite('When there is an existing thread for a number', function() {
+
+        setup(function() {
+          MessageManager.getMessages.restore();
+          this.sinon.stub(MessageManager, 'getMessages');
+        });
+
+        test('Message manager found no message : redirect to new message',
+        function(done) {
+          MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+          MessageManager.getMessages.yieldTo('done');
+          // threadId must be null
+          deferred.promise.then(function() {
+            sinon.assert.calledWithMatch(ActivityHandler.toView, {
+              threadId: null,
+              number: '123',
+              body: 'foo'
+            });
+          }).then(done,done);
+        });
+
+        test('Message manager found messages that are not candidates : ' +
+        'redirect to new message', function(done) {
+          MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+          // 123 is user own number
+          // User wants threadId with his/herself, eliminate received messages
+          // from others
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.sms({
+              delivery: 'received',
+              sender: '124',
+              receiver: '123',
+              threadId: 1
+          }));
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.mms({
+              delivery: 'received',
+              sender: '124',
+              receivers: ['123'],
+              threadId: 3
+          }));
+          // user wants threadId with his/herself, eliminate sent messages to
+          // others
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.sms({
+              delivery: 'sent',
+              sender: '123',
+              receiver: '124',
+              threadId: 4
+          }));
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.mms({
+              delivery: 'sent',
+              sender: '123',
+              receivers: ['124'],
+              threadId: 5
+          }));
+          // 123 is not user number
+          // MMS case: we eliminate thread with good sender/receivers, but with
+          // more than one thread participants.
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.mms({
+              delivery: 'sent',
+              sender: '122',
+              receivers: ['123', '124'],
+              threadId: 6
+          }));
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.mms({
+              delivery: 'sent',
+              sender: '123',
+              receivers: ['123', '124'],
+              threadId: 7
+          }));
+          MessageManager.getMessages.yieldTo('done');
+          // threadId must be null
+          deferred.promise.then(function() {
+            sinon.assert.calledWithMatch(ActivityHandler.toView, {
+              threadId: null,
+              number: '123',
+              body: 'foo'
+            });
+          }).then(done,done);
+        });
+
+        test('Message manager found a candidate : sent sms to oneself',
+        function(done) {
+          MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+          // user wants threadId with his/herself,
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.sms({
+              delivery: 'sent',
+              sender: '123',
+              receiver: '123',
+              threadId: 3
+          }));
+          MessageManager.getMessages.yieldTo('done');
+          deferred.promise.then(function() {
+            sinon.assert.calledWithMatch(ActivityHandler.toView, {
+              threadId: 3,
+              number: '123',
+              body: 'foo'
+            });
+          }).then(done,done);
+        });
+
+        test('Message manager found a candidate : sent sms', function(done) {
+          MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+          // user is 122, wants the conversation with 123
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.sms({
+              delivery: 'sent',
+              sender: '122',
+              receiver: '123',
+              threadId: 4
+          }));
+          MessageManager.getMessages.yieldTo('done');
+          deferred.promise.then(function() {
+            sinon.assert.calledWithMatch(ActivityHandler.toView, {
+              threadId: 4,
+              number: '123',
+              body: 'foo'
+            });
+          }).then(done,done);
+        });
+
+        test('Message manager found a candidate : received  sms from oneself',
+        function(done) {
+          MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+          // user wants threadId with his/herself,
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.sms({
+              delivery: 'received',
+              sender: '123',
+              receiver: '123',
+              type: 'sms',
+              threadId: 1
+          }));
+          MessageManager.getMessages.yieldTo('done');
+          deferred.promise.then(function() {
+            sinon.assert.calledWithMatch(ActivityHandler.toView, {
+              threadId: 1,
+              number: '123',
+              body: 'foo'
+            });
+          }).then(done,done);
+        });
+
+        test('Message manager found a candidate : received  sms',
+        function(done) {
+          MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+          // user wants threadId with 123, he is 122
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.sms({
+              delivery: 'received',
+              sender: '123',
+              receiver: '122',
+              threadId: 2
+          }));
+          MessageManager.getMessages.yieldTo('done');
+          deferred.promise.then(function() {
+            sinon.assert.calledWithMatch(ActivityHandler.toView, {
+              threadId: 2,
+              number: '123',
+              body: 'foo'
+            });
+          }).then(done,done);
+        });
+
+        test('Message manager found a candidate : sent mms to oneself',
+        function(done) {
+          MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.mms({
+              delivery: 'sent',
+              sender: '123',
+              receivers: ['123'],
+              threadId: 3
+          }));
+          MessageManager.getMessages.yieldTo('done');
+          deferred.promise.then(function() {
+            sinon.assert.calledWithMatch(ActivityHandler.toView, {
+              threadId: 3,
+              number: '123',
+              body: 'foo'
+            });
+          }).then(done,done);
+        });
+
+        test('Message manager found a candidate : sent mms', function(done) {
+          MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.mms({
+              delivery: 'sent',
+              sender: '122',
+              receivers: ['123'],
+              threadId: 4
+          }));
+          MessageManager.getMessages.yieldTo('done');
+          deferred.promise.then(function() {
+            sinon.assert.calledWithMatch(ActivityHandler.toView, {
+              threadId: 4,
+              number: '123',
+              body: 'foo'
+            });
+          }).then(done,done);
+        });
+
+        test('Message manager found a candidate : received mms from oneself',
+        function(done) {
+          MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.mms({
+              delivery: 'received',
+              sender: '123',
+              receivers: ['123'],
+              threadId: 5
+          }));
+          MessageManager.getMessages.yieldTo('done');
+          deferred.promise.then(function() {
+            sinon.assert.calledWithMatch(ActivityHandler.toView, {
+              threadId: 5,
+              number: '123',
+              body: 'foo'
+            });
+          }).then(done,done);
+        });
+
+        test('Message manager found a candidate : received mms',
+        function(done) {
+          MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.mms({
+              delivery: 'received',
+              sender: '123',
+              receivers: ['122'],
+              threadId: 6
+          }));
+          MessageManager.getMessages.yieldTo('done');
+          deferred.promise.then(function() {
+            sinon.assert.calledWithMatch(ActivityHandler.toView, {
+              threadId: 6,
+              number: '123',
+              body: 'foo'
+            });
+          }).then(done,done);
+        });
     });
   });
 
