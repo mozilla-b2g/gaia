@@ -3,6 +3,11 @@
   bottom: var(--software-home-button-height);
 }
 
+#screen.software-button-enabled .appWindow [role="dialog"][data-type="action"],
+#screen.software-button-enabled .appWindow [role="dialog"][data-type="object"] {
+  bottom: 0;
+}
+
 #screen.fullscreen-layout-app.software-button-enabled [role="dialog"][data-type="action"] {
   height: calc(100% - 7rem - var(--software-home-button-height));
 }
