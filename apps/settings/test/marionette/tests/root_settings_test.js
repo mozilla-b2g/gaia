@@ -41,7 +41,7 @@ marionette('check root panel settings', function() {
         return rootPanel.bluetoothDesc === 'Turned off';
       });
       client.waitFor(function() {
-        return rootPanel.firefoxAccountDesc === 'Create account or sign in';
+        return rootPanel.firefoxAccountDesc === 'Create Account or Sign In';
       });
       client.waitFor(function() {
         return rootPanel.screenLockDesc === 'Disabled';
