@@ -72,6 +72,17 @@
       return 'homescreen';
     },
 
+    /**
+     * manifest URL of homescreen.
+     *
+     * @access public
+     * @memberOf HomescreenLauncher.prototype
+     * @type {string}
+     */
+    get manifestURL() {
+      return this._currentManifestURL;
+    },
+
     _fetchSettings: function hl_fetchSettings() {
       var that = this;
       SettingsListener.observe('homescreen.manifestURL', '',
